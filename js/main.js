@@ -36,8 +36,8 @@ function initChart( data, config ) {
 		//var scale = d3.scale.linear();
 		//scale.domain( [0, 200 ] );
 		
-		chart.forceY( [0, 200000] );
-		chart.yDomain( [0, 300000] );
+		//chart.forceY( [0, 200000] );
+		//chart.yDomain( [0, 300000] );
 
 		chart.yAxis
 			//.scale( scale )
@@ -83,8 +83,91 @@ setTimeout( function() {
 
 }, 1000 );
 
+//testing import from local system
+var onCsvSelected = function( err, data ) {
 
-d3.csv( "data/books_test.csv", function( error, rawData ) {
+	if( err ) { 
+		console.error( err );
+		return;
+	}
+
+	if( data && data.rows ) {
+
+		var mappedData = mapData( data.rows );
+		initChart( mappedData, {} );
+
+		//reset file picker
+		$( "#myfilepicker" ).replaceWith( $("#myfilepicker").clone() );
+		$( "#myfilepicker" ).prop( "disabled", false);
+		CSV.begin( "#myfilepicker" ).go( onCsvSelected );
+
+	} else {
+
+		console.error( "Something wrong with upload" );
+
+	}
+	
+}
+CSV.begin( "#myfilepicker" ).go( onCsvSelected );
+
+
+var mapData = function( rawData ) {
+
+	var data = [],
+		dataById = [],
+		countryIndex = 1;
+
+	rawData.forEach( function( row, i, Arr ) {
+
+		var cellIndex = 0, timestamp = 0;
+		for( var cellName in row ) {
+
+			if( cellIndex !== 0 ) {
+			
+				var countryObj;
+				if( i == 0 ) {
+					
+					countryObj = {
+						id: cellIndex,
+						key: row[cellName],
+						values: []
+					};
+					dataById[ cellName ] = countryObj
+				
+				} else {
+
+					countryObj = dataById[ cellIndex ];
+
+					var value = +row[cellName];
+					if( !isNaN( value ) && value > 0 ) {
+						countryObj.values.push( { x: +timestamp, y: +row[cellName] } );
+					}
+					
+				}
+			
+			} else {
+
+				timestamp = row[ cellName ];
+
+			}
+			
+			cellIndex++;
+			
+		}
+
+	} );
+
+	//map from associative array to 
+	for( var countryName in dataById ) {
+		data.push( dataById[ countryName ] );
+	}
+
+	return data;
+
+}
+
+//testing import csv
+/*d3.csv( "data/books_test.csv", function( error, rawData ) {
 
 	//remap data
 	var dataByCountry = [],
@@ -128,4 +211,4 @@ d3.csv( "data/books_test.csv", function( error, rawData ) {
 
 	initChart( data, {} );
 
-} );
+} );*/
