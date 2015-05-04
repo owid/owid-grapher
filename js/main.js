@@ -16,10 +16,12 @@ function initChart( data, config ) {
 		chart = nv.models.lineChart()
 			.options({
 				transitionDuration: 300,
+				margin: { top: 100, left: 120, bottom: 20, right: 50 },
 				//useInteractiveGuideline: true,
 				tooltipContent: tooltipContent/*,
 				x: x,
 				y: y*/
+
 			})
 		;
 
@@ -31,8 +33,15 @@ function initChart( data, config ) {
 			.staggerLabels( true )
 		;
 
+		//var scale = d3.scale.linear();
+		//scale.domain( [0, 200 ] );
+		
+		chart.forceY( [0, 200000] );
+		chart.yDomain( [0, 300000] );
+
 		chart.yAxis
-			.axisLabel('Books')
+			//.scale( scale )
+			.axisLabel( "Books" )
 			//.tickFormat(d3.format(',.2f'))
 		;
 
@@ -70,7 +79,7 @@ setTimeout( function() {
 		return ( countries.indexOf( v.key ) > - 1 ) ? true : false;
 	} );
 	
-	initChart( filteredData, {} );
+	//initChart( filteredData, {} );
 
 }, 1000 );
 
