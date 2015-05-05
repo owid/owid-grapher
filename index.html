@@ -11,7 +11,7 @@
 		<!-- Place favicon.ico in the root directory -->
 
 		<link href="css/libs/bootstrap.min.css" rel="stylesheet" type="text/css" />    
-		<link href="css/libs/font-awesome.min.css" rel="stylesheet" type="text/css" />
+		<link href="css/libs/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
 		<!-- <link href="http://code.ionicframework.com/ionicons/2.0.0/css/ionicons.min.css" rel="stylesheet" type="text/css" />  -->  
 		<link href="css/libs/AdminLTE.min.css" rel="stylesheet" type="text/css" />
 		<link href="css/libs/_all-skins.min.css" rel="stylesheet" type="text/css" />
@@ -24,7 +24,7 @@
 		<link href="css/nv.d3.css" rel="stylesheet" type="text/css">
 		<link href="css/main.css" rel="stylesheet" type="text/css">
 		
-		<script src="js/vendor/modernizr-2.8.3.min.js"></script>
+		<script src="js/libs/modernizr-2.8.3.min.js"></script>
 		
 		<style>
 
@@ -50,12 +50,13 @@
 				</nav>
 			</header>
 			<div class="content-wrapper col-sm-12">
-				<div class="col-sm-12 col-md-6 chart-wrapper">
+				<div id="chart-view" class="col-sm-12 col-md-6 chart-wrapper">
 					<div class="chart-wrapper-inner">
+						<h2 class="chart-name"></h2>
 						<svg></svg>
 					</div>
 				</div>
-				<div class="col-sm-12 col-md-6 form-wrapper">
+				<div id="form-view" class="col-sm-12 col-md-6 form-wrapper">
 					<div class="form-wrapper-inner">
 						<form action="#">
 							<section class="form-section">
@@ -73,7 +74,8 @@
 								<div class="form-section-content">
 									<p class="form-section-desc">For now, choose CSV file from your computer with data to chart. Each country data should be in their own colum,time should it be first column, otherwise it's not gonna work.</p>
 									<div class="file-picker-wrapper">
-										<input type="file" id="myfilepicker" />
+										<input type="file" />
+										<a href="#" title="Remove uploaded file" class="remove-uploaded-file-btn"><span class="visuallyhidden">Remove uploaded file</span><i class="fa fa-remove"></i></a>
 									</div>
 								</div>
 							</section>
@@ -83,7 +85,10 @@
 								</div>
 								<div class="form-section-content">
 									<p class="form-section-desc">Select countries from drop down below. You can set countries colors by clicking on the country label itself.</p>
-									<select class="form-control chosen-select" data-placeholder="Choose a Country...">
+									<ul class="selected-countries-box no-bullets">
+
+									</ul>
+									<select class="form-control chosen-select countries-select" data-placeholder="Choose a Country...">
 										<option value=""></option>
 										<option value="United States">United States</option>
 										<option value="United Kingdom">United Kingdom</option>
@@ -345,7 +350,7 @@
 								</div>
 								<div class="form-section-content">
 									<p class="form-section-desc">Using <a href="http://ionden.com/a/plugins/ion.rangeSlider/demo.html" target="_blank">Ion range slider</a> for now, not sure it's the best solution.</p>
-									<input type="text" id="example_id" name="example_name" value="" />
+									<input type="text" name="chart-time" value="" />
 								</div>
 							</section>
 							<section class="form-section">
@@ -367,19 +372,33 @@
 		</div>
 
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-		<script>window.jQuery || document.write('<script src="js/vendor/jquery-1.11.3.min.js"><\/script>')</script>
+		<script>window.jQuery || document.write('<script src="js/libs/jquery-1.11.3.min.js"><\/script>')</script>
 		
-		<script src="js/vendor/html5csv.js"></script>
-		<script src="js/vendor/d3.js"></script>
-		<script src="js/vendor/nv.d3.js"></script>
+		<script src="js/libs/html5csv.js"></script>
+		<script src="js/libs/d3.js"></script>
+		<script src="js/libs/nv.d3.js"></script>
 
-		<script src="js/vendor/bootstrap.min.js"></script>    
-		<script src="js/vendor/admin-lte-app.min.js"></script>    
+		<script src="js/libs/underscore.js"></script>    
+		<script src="js/libs/backbone.js"></script>    
 		
-		<script src="js/vendor/ion.rangeSlider.min.js"></script>    
-		<script src="js/vendor/chosen.jquery.min.js"></script>    
+		<script src="js/libs/bootstrap.min.js"></script>    
+		<script src="js/libs/admin-lte-app.min.js"></script>    
+		
+		<script src="js/libs/ion.rangeSlider.min.js"></script>    
+		<script src="js/libs/chosen.jquery.min.js"></script>    
 
-		<script src="js/plugins.js"></script>
+		<script src="js/namespaces.js"></script>
+		
+		<script src="js/app/App.Utils.js"></script>
+		
+		<script src="js/app/models/App.Models.ChartModel.js"></script>
+		
+		<script src="js/app/views/App.Views.ChartView.js"></script>
+		<script src="js/app/views/App.Views.FormView.js"></script>
+		<script src="js/app/views/App.Views.Main.js"></script>
+		
+		<script src="js/app/App.js"></script>
+
 		<script src="js/main.js"></script>
 
 		<!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->

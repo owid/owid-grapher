@@ -6,27 +6,18 @@ var $window = $( window );
 function onResize() {
 	var winHeight = $window.height();
 	$(".chart-wrapper, .form-wrapper").css('height', winHeight - $('.main-header').outerHeight());
+	$("svg").css('height', winHeight - $('.main-header').outerHeight() - 150);
 }
 $window.on( "resize", onResize );
 onResize();
 
 $(".chosen-select").chosen();
-$("#example_id").ionRangeSlider({
-    type: "double",
-    min: 0,
-    max: 1000,
-    from: 200,
-    to: 500,
-    grid: true
-});
 
 function tooltipContent(key, y, e, graph) {
 	return '<h3>' + key + '</h3>' +'<p>' + y + '$</p>' ;
 }
 
 function initChart( data, config ) {
-
-	console.log( "initChart" );
 
 	var x = config.x,
 		y = config.y;
@@ -127,7 +118,7 @@ var onCsvSelected = function( err, data ) {
 	}
 	
 }
-CSV.begin( "#myfilepicker" ).go( onCsvSelected );
+//CSV.begin( "#myfilepicker" ).go( onCsvSelected );
 
 
 var mapData = function( rawData ) {

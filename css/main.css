@@ -2,13 +2,6 @@ html, body {
 	width: 100%;
 	height: 100%;
 }
-
-svg {
-	width: 100%;
-	height: 100%;
-	padding: 0;
-}
-
 .browserupgrade {
 	margin: 0.2em 0;
 	background: #ccc;
@@ -43,6 +36,7 @@ svg {
 	padding: 0;
 }
 	.chart-wrapper-inner, .form-wrapper-inner {
+		position: relative;
 		overflow: auto;
 		height: 100%;
 	}
@@ -54,8 +48,19 @@ svg {
 	background-color: #ffffff;
 }
 .chart-wrapper-inner {
-	padding: 50px;
+	padding: 0px 50px 50px;
 }
+	.chart-wrapper .chart-name {
+		margin-top: 40px;
+	}
+	.chart-wrapper svg {
+		position: absolute;
+		top: 100px;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		width: 100%;	
+	}
 
 /* ==========================================================================
   Form
@@ -94,12 +99,24 @@ svg {
 			font-style: italic;
 		}
 		.file-picker-wrapper {
+			position: relative;
 			background-color: #ecf0f5;
 		}
 			.file-picker-wrapper input {
 				width: 100%;
 				padding: 20px;
 			}
+
+			.remove-uploaded-file-btn {
+				position: absolute;
+				top: 8px;
+				right: 16px;
+				font-size: 32px;
+				color: #dd4b39;
+			}
+				.remove-uploaded-file-btn:hover {
+					color: #d33724;
+				}
 
 		/* override ugly chosen */
 		.chosen-container-single .chosen-single {
@@ -113,7 +130,51 @@ svg {
 		.form-section-submit {
 			background-color: #222d32 !important;
 		}
-		
+
+.selected-countries-box {
+	margin: 20px 0px;
+	padding: 0;
+}	
+.country-label {
+	display: inline-block;
+	margin-right: 10px;
+	margin-bottom: 10px;
+	padding: 10px 20px;
+	background-color: #bbb;
+	cursor: pointer;
+}
+	.country-label .fa {
+		margin-right: -10px;
+		margin-left: 10px;
+		color: #ffffff;
+		cursor: pointer;
+	}
+		.country-label .fa:hover {
+			color: #000000;
+		}
+
+/* override ion range slider default */
+.irs {
+	height: 70px;
+	margin: 40px 0px 0px;
+}
+.irs-line, .irs-bar {
+	top: 35px;
+}
+.irs-slider {
+	top: 32px;
+}
+.irs-from, .irs-to, .irs-single {
+	font-size: 20px;
+	border-radius: 0;
+}
+.irs-min, .irs-max {
+	font-size: 17px;
+}
+.irs-grid-text {
+	font-size: 15px;
+}
+
 /*.irs-line-mid, .irs-line-left, .irs-line-right, .irs-bar, .irs-bar-edge, .irs-slider {
 	background: url("../img/sprite-skin-flat.png") repeat-x;
 }*/
@@ -180,6 +241,10 @@ svg {
 
 .clearfix:after {
 	clear: both;
+}
+
+.no-bullets {
+	list-style-type: none;
 }
 
 /* ==========================================================================
