@@ -21,7 +21,7 @@ class CreateVariableDatasetsTable extends Migration {
 			$table->foreign('fk_dataset_id')->references('id')->on('datasets');
 			//add composite key
 			$table->primary(array('fk_variable_id', 'fk_dataset_id'));
-
+			$table->timestamps();
 		});
 	}
 
