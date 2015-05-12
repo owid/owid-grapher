@@ -20,6 +20,8 @@
 		render: function() {
 			
 			this.$el.find( ".chart-name" ).text( App.ChartModel.get( "chart-name" ) );
+			this.$el.find( ".chart-description" ).html( App.ChartModel.get( "chart-description" ) );
+			
 			this.updateChart( App.ChartModel.get( "chart-data" ) );
 
 		},
@@ -62,6 +64,20 @@
 
 			}
 
+			//get axis configs
+			var xAxis = App.ChartModel.get( "x-axis" ),
+				yAxis = App.ChartModel.get( "y-axis" ),
+				xAxisPrefix = ( xAxis[ "axis-prefix" ] || "" ),
+				xAxisSuffix = ( xAxis[ "axis-suffix" ] || "" ),
+				yAxisPrefix = ( yAxis[ "axis-prefix" ] || "" ),
+				yAxisSuffix = ( yAxis[ "axis-suffix" ] || "" ),
+				xAxisLabelDistance = ( +xAxis[ "axis-label-distance" ] || 0 ),
+				yAxisLabelDistance = ( +yAxis[ "axis-label-distance" ] || 0 ),
+				xAxisMin = ( xAxis[ "axis-min" ] || null ),
+				xAxisMax = ( xAxis[ "axis-max" ] || null ),
+				yAxisMin = ( yAxis[ "axis-min" ] || 0 ),
+				yAxisMax = ( yAxis[ "axis-max" ] || null );
+
 			var that = this;
 			nv.addGraph(function() {
 				that.chart = nv.models.lineChart()
@@ -69,14 +85,38 @@
 								transitionDuration: 300,
 								margin: { top: 100, left: 80, bottom: 100, right: 80 },
 								tooltipContent: tooltipContent });
-			
+				
 				that.chart.xAxis
-					.axisLabel( "Axis X" )
-					.staggerLabels( true );
+					.axisLabel( xAxis[ "axis-label" ] )
+					.staggerLabels( true )
+					.axisLabelDistance( xAxisLabelDistance )
+					.tickFormat( function(d) { return xAxisPrefix + d + xAxisSuffix; });
+				
+				//forcing xAxis - do not force zero
+				var forceX = [];
+				if( !isNaN( xAxisMin ) ) {
+					forceX.push( xAxisMin );
+				}
+				if( !isNaN( xAxisMax ) ) {
+					forceX.push( xAxisMax );
+				}
+				that.chart.forceX( forceX );
+
+				//forcing yAxis
+				var forceY = [];
+				if( !isNaN( yAxisMin ) ) {
+					forceY.push( yAxisMin );
+				}
+				if( !isNaN( xAxisMax ) ) {
+					forceY.push( yAxisMax );
+				}
+				that.chart.forceY( forceY );
 
 				that.chart.yAxis
-					.axisLabel( "Axis Y" );
-					
+					.axisLabel( yAxis[ "axis-label" ] )
+					.axisLabelDistance( yAxisLabelDistance )
+					.tickFormat( function(d) { return yAxisPrefix + d + yAxisSuffix; });
+				
 				var svgSelection = d3.select( "svg" )
 					.datum(localData)
 					.call(that.chart);

@@ -15,6 +15,10 @@
 			
 			this.dispatcher = options.dispatcher;
 			
+			//create subviews
+			this.axisTabView = new App.Views.Form.AxisTabView( { dispatcher: this.dispatcher } );
+			this.descriptionTabView = new App.Views.Form.DescriptionTabView( { dispatcher: this.dispatcher } );
+
 			//fetch doms
 			this.$removeUploadedFileBtn = this.$el.find( ".remove-uploaded-file-btn" );
 			this.$filePicker = this.$el.find( ".file-picker-wrapper [type=file]" );
@@ -112,7 +116,28 @@
 			} );
 
 			var $lis = this.$selectedCountriesBox.find( ".country-label" ),
-				$lisRemoveBtns = $lis.find( ".fa-remove" );
+				$lisRemoveBtns = $lis.find( ".fa-remove" ),
+				colorPicker = null;
+
+			$lis.on( "click", function( evt ) {
+
+				evt.preventDefault();
+
+				var $countryLabel = $( evt.currentTarget );
+				if( colorPicker ) {
+					colorPicker.close();
+				}
+				colorPicker = new App.Views.UI.ColorPicker( $countryLabel );
+				colorPicker.init( $countryLabel );
+				colorPicker.onSelected = function( value ) {
+					$countryLabel.css( "background-color", value );
+					//$el.parent().parent().attr( "data-color", value );
+					colorPicker.close();
+					//that.$el.trigger( "change" );
+				};
+
+			} );	
+
 			$lisRemoveBtns.on( "click", function( evt ) {
 
 				evt.preventDefault();

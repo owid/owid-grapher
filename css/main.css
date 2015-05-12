@@ -15,7 +15,7 @@ html, body {
 
 .main-header {
 	color: white;
-	box-shadow: -1px 2px 3px rgba(0,0,0,0.25);
+	/*box-shadow: -1px 2px 3px rgba(0,0,0,0.25);*/
 }
 	.main-header h1 {
 		margin: 13px 30px;
@@ -61,13 +61,18 @@ html, body {
 		bottom: 0;
 		width: 100%;	
 	}
+	.chart-wrapper .chart-description {
+		position: absolute;
+		bottom: 30px;
+	}
 
 /* ==========================================================================
   Form
    ========================================================================== */
 .form-wrapper {
 	overflow: auto;
-	box-shadow: -1px 2px 3px rgba(0,0,0,0.25) !important;
+	/*box-shadow: -1px 2px 3px rgba(0,0,0,0.25) !important;*/
+	border-left: 1px solid gray;
 }
 .form-wrapper-inner {}
 	.form-section {
@@ -131,11 +136,17 @@ html, body {
 			background-color: #222d32 !important;
 		}
 
+		.form-wrapper textarea {
+			width: 100%;
+			padding: 10px;
+		}
+
 .selected-countries-box {
 	margin: 20px 0px;
 	padding: 0;
 }	
 .country-label {
+	position: relative;
 	display: inline-block;
 	margin-right: 10px;
 	margin-bottom: 10px;
@@ -152,6 +163,41 @@ html, body {
 		.country-label .fa:hover {
 			color: #000000;
 		}
+
+/**
+* popup picker
+**/
+.popup-picker-wrapper {
+	position: absolute;
+	top: 0px;
+	left: 101px;
+	width: 105px;
+	padding: 10px;
+	background-color: #666;
+	z-index: 100;
+}
+	.popup-picker-wrapper ul {
+		padding-left: 0px;
+	}
+	.popup-picker-wrapper li {
+		float: left;
+		width: 14px;
+		height: 14px;
+		margin: 0px 3px 3px 0px;
+	}
+		.popup-picker-wrapper li:hover {
+			border: 1px solid white;
+		}
+	.popup-picker-wrapper::before {
+		position: absolute;
+		top: 10px;
+		left: -20px;
+		content: "";
+		width: 10px;
+		height: 10px;
+		border: 10px solid transparent;
+		border-right: 10px solid #666;
+	}
 
 /* override ion range slider default */
 .irs {
