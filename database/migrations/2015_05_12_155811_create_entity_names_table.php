@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateEntitiesTable extends Migration {
+class CreateEntityNamesTable extends Migration {
 
 	/**
 	 * Run the migrations.
@@ -12,15 +12,12 @@ class CreateEntitiesTable extends Migration {
 	 */
 	public function up()
 	{
-		Schema::create('entities', function(Blueprint $table)
+		Schema::create('entity_names', function(Blueprint $table)
 		{
 			$table->increments('id');
-			//data
-			$table->string('name');
 			//fks
-			$table->integer('fk_ent_t_id')->unsigned();
-			$table->foreign('fk_ent_t_id')->references('id')->on('entity_types');
-			//time
+			$table->integer('fk_entity_id')->unsigned();
+			$table->foreign('fk_entity_id')->references('id')->on('entities');
 			$table->timestamps();
 		});
 	}
@@ -32,7 +29,7 @@ class CreateEntitiesTable extends Migration {
 	 */
 	public function down()
 	{
-		Schema::drop('entities');
+		Schema::drop('entity_names');
 	}
 
 }

@@ -15,9 +15,11 @@ class CreateTimesTable extends Migration {
 		Schema::create('times', function(Blueprint $table)
 		{
 			$table->increments('id');
+			//data
 			$table->dateTime('from');
 			$table->dateTime('to');
 			$table->string('label');
+			//time
 			$table->timestamps();
 		});
 	}

@@ -15,8 +15,10 @@ class CreateEntityTypesTable extends Migration {
 		Schema::create('entity_types', function(Blueprint $table)
 		{
 			$table->increments('id');
+			//data
 			$table->string('name');
 			$table->boolean('has_geometry');
+			//time
 			$table->timestamps();
 		});
 	}

@@ -15,6 +15,9 @@ class CreateDatasourcesTable extends Migration {
 		Schema::create('datasources', function(Blueprint $table)
 		{
 			$table->increments('id');
+			$table->string('name');
+			$table->string('link');
+			$table->text('description');
 			$table->timestamps();
 		});
 	}

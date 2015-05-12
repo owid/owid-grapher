@@ -15,12 +15,13 @@ class CreateDatasetsTable extends Migration {
 		Schema::create('datasets', function(Blueprint $table)
 		{
 			$table->increments('id');
-			//fks
-			$table->integer('fk_dsr_id')->unsigned();
-			$table->foreign('fk_dsr_id')->references('id')->on('datasources');
 			//data
 			$table->string('name');
-			$table->string('unit');
+			$table->string('description');
+			//fks
+			$table->integer('fk_dsr_id')->unsigned()->nullable();
+			$table->foreign('fk_dsr_id')->references('id')->on('datasources');
+			//time
 			$table->timestamps();
 		});
 	}

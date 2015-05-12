@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateDataTable extends Migration {
+class CreateEntityMetasTable extends Migration {
 
 	/**
 	 * Run the migrations.
@@ -12,23 +12,18 @@ class CreateDataTable extends Migration {
 	 */
 	public function up()
 	{
-		Schema::create('data', function(Blueprint $table)
+		Schema::create('entity_metas', function(Blueprint $table)
 		{
 			$table->increments('id');
-			
+			//data
+			$table->string('meta_name');
+			$table->string('meta_value');
 			//fks
-			$table->integer('fk_time_id')->unsigned();
-			$table->foreign('fk_time_id')->references('id')->on('times');
-			
+			$table->integer('fk_times_id')->unsigned();
+			$table->foreign('fk_times_id')->references('id')->on('times');
 			$table->integer('fk_ent_id')->unsigned();
 			$table->foreign('fk_ent_id')->references('id')->on('entities');
-			
-			$table->integer('fk_var_id')->unsigned();
-			$table->foreign('fk_var_id')->references('id')->on('variables');
-			
-			//data
-			$table->string('value');
-			$table->string('description');
+			//time
 			$table->timestamps();
 		});
 	}
@@ -40,7 +35,7 @@ class CreateDataTable extends Migration {
 	 */
 	public function down()
 	{
-		Schema::drop('data');
+		Schema::drop('entity_metas');
 	}
 
 }
