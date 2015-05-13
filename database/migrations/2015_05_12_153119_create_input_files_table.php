@@ -22,7 +22,7 @@ class CreateInputFilesTable extends Migration {
 			//time
 			$table->timestamps();
 		});
-		Schema::table('values', function(Blueprint $table)
+		Schema::table('data_values', function(Blueprint $table)
 		{
 			$table->integer('fk_input_files_id')->unsigned();
 			$table->foreign('fk_input_files_id')->references('id')->on('input_files');
@@ -37,9 +37,9 @@ class CreateInputFilesTable extends Migration {
 	 */
 	public function down()
 	{
-		Schema::table('values', function(Blueprint $table)
+		Schema::table('data_values', function(Blueprint $table)
 		{
-			$table->dropForeign('values_fk_input_files_id_foreign');
+			$table->dropForeign('data_values_fk_input_files_id_foreign');
 			$table->dropColumn('fk_input_files_id');
 		});
 		Schema::drop('input_files');

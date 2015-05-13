@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateValuesTable extends Migration {
+class CreateDataValuesTable extends Migration {
 
 	/**
 	 * Run the migrations.
@@ -12,16 +12,16 @@ class CreateValuesTable extends Migration {
 	 */
 	public function up()
 	{
-		Schema::create('values', function(Blueprint $table)
+		Schema::create('data_values', function(Blueprint $table)
 		{
 			$table->increments('id');
 			//data
 			$table->string('value');
 			$table->string('description');
 			//fks
-			$table->integer('fk_time_id')->unsigned();
+			$table->integer('fk_time_id')->unsigned()->nullable();
 			$table->foreign('fk_time_id')->references('id')->on('times');
-			$table->integer('fk_ent_id')->unsigned();
+			$table->integer('fk_ent_id')->unsigned()->nullable();
 			$table->foreign('fk_ent_id')->references('id')->on('entities');
 			$table->integer('fk_var_id')->unsigned();
 			$table->foreign('fk_var_id')->references('id')->on('variables');
@@ -37,7 +37,7 @@ class CreateValuesTable extends Migration {
 	 */
 	public function down()
 	{
-		Schema::drop('values');
+		Schema::drop('data_values');
 	}
 
 }
