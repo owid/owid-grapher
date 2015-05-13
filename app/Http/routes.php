@@ -11,11 +11,23 @@
 |
 */
 
-Route::get('/', 'WelcomeController@index');
+Route::model( 'entities', 'Entity' );
+Route::model( 'variables', 'Variable' );
 
+Route::get('/', 'WelcomeController@index');
 Route::get('home', 'HomeController@index');
 
 Route::controllers([
 	'auth' => 'Auth\AuthController',
 	'password' => 'Auth\PasswordController',
 ]);
+
+Route::resource( 'entities', 'EntitiesController' );
+Route::resource( 'variables', 'VariablesController' );
+//Route::resource( 'dataValues', 'DataValuesController' );
+Route::bind( 'entities', function($value, $route) {
+	return App\Entity::whereId($value)->first();
+});
+Route::bind( 'variables', function($value, $route) {
+	return App\Variable::whereId($value)->first();
+});
