@@ -13,9 +13,10 @@
 
 Route::model( 'entities', 'Entity' );
 Route::model( 'variables', 'Variable' );
+Route::model( 'charts', 'Chart' );
 
-Route::get('/', 'WelcomeController@index');
-Route::get('home', 'HomeController@index');
+//Route::get('/', 'WelcomeController@index');
+Route::get('/', 'HomeController@index');
 
 Route::controllers([
 	'auth' => 'Auth\AuthController',
@@ -24,6 +25,7 @@ Route::controllers([
 
 Route::resource( 'entities', 'EntitiesController' );
 Route::resource( 'variables', 'VariablesController' );
+Route::resource( 'charts', 'ChartsController' );
 //Route::resource( 'dataValues', 'DataValuesController' );
 Route::bind( 'entities', function($value, $route) {
 	return App\Entity::whereId($value)->first();
@@ -31,3 +33,9 @@ Route::bind( 'entities', function($value, $route) {
 Route::bind( 'variables', function($value, $route) {
 	return App\Variable::whereId($value)->first();
 });
+Route::bind( 'charts', function($value, $route) {
+	return App\Chart::whereId($value)->first();
+});
+
+Route::get( 'import', 'ImportController@index' );
+Route::post( 'import/store', 'ImportController@store' );

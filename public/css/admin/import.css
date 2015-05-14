@@ -1,0 +1,8 @@
+.csv-import-result {}
+	.csv-import-result table {
+		background-color: #fff;
+	}
+	.csv-import-result th, .csv-import-result td {
+		padding: 10px;
+		border: 1px solid gray;
+	}

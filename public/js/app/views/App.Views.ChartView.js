@@ -64,9 +64,6 @@
 
 			}
 
-			console.log( "data", data );
-			console.log( App.ChartModel );
-
 			//get axis configs
 			var xAxis = App.ChartModel.get( "x-axis" ),
 				yAxis = App.ChartModel.get( "y-axis" ),

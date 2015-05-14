@@ -1,13 +1,11 @@
 <?php namespace App\Http\Controllers;
 
-use App\Variable;
-use App\DataValue;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
 
-class VariablesController extends Controller {
+class ViewerController extends Controller {
 
 	/**
 	 * Display a listing of the resource.
@@ -16,8 +14,7 @@ class VariablesController extends Controller {
 	 */
 	public function index()
 	{
-		$variables = Variable::all();
-		return view( 'variables.index', compact('variables') );
+		//
 	}
 
 	/**
@@ -46,9 +43,9 @@ class VariablesController extends Controller {
 	 * @param  int  $id
 	 * @return Response
 	 */
-	public function show(Variable $variable)
+	public function show($id)
 	{
-		return view( 'variables.show', compact('variable') );
+		//
 	}
 
 	/**
