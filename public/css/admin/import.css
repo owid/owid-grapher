@@ -1,3 +1,12 @@
+.import-view {
+	background-color: inherit;
+}
+
+.variable-name-section {}
+	.variable-name-section input {
+		width: 50% !important;
+	}
+
 .csv-import-result {}
 	.csv-import-result table {
 		background-color: #fff;

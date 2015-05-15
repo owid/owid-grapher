@@ -1,5 +1,6 @@
 <?php namespace App\Http\Controllers;
 
+use DB;
 use App\Variable;
 use App\DataValue;
 use App\Http\Requests;
@@ -46,9 +47,37 @@ class VariablesController extends Controller {
 	 * @param  int  $id
 	 * @return Response
 	 */
-	public function show(Variable $variable)
+	public function show( Variable $variable, Request $request )
 	{
-		return view( 'variables.show', compact('variable') );
+		if( $request->ajax() )
+		{
+			//use query builder instead of eloquent
+			$rawData = DB::table( 'data_values' )
+				->join( 'entities', 'data_values.fk_ent_id', '=', 'entities.id' )
+				->join( 'times', 'data_values.fk_time_id', '=', 'times.id' )
+				->where( 'data_values.fk_var_id', $variable->id )
+				->get();
+			
+			$data = [];
+			$index = 1;
+
+			foreach( $rawData as $d ) {
+
+				if( !array_key_exists( $d->name, $data ) ) {
+					$obj = new \StdClass;
+					$obj->id = $index;
+					$obj->key = $d->name;
+					$obj->values = [];
+					$data[ $d->name ] = $obj;
+					$index++;
+				}
+				$data[ $d->name ]->values[] = [ "x" => intval($d->label), "y" => intval($d->value) ];
+
+			}
+			return ['success' => true, 'data' => [ 'variable' => $variable, 'data' => $data ] ];
+		} else {
+			return view( 'variables.show', compact('variable') );
+		}
 	}
 
 	/**

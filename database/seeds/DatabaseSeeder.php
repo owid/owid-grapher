@@ -18,12 +18,12 @@ class DatabaseSeeder extends Seeder {
 		$this->call('InputFilesTableSeeder');
 
 		$this->call('EntityTypesTableSeeder');
-		$this->call('EntitiesTableSeeder');
+		//$this->call('EntitiesTableSeeder');
 	
 		$this->call('VariableTypesTableSeeder');
-		$this->call('VariablesTableSeeder');
+		//$this->call('VariablesTableSeeder');
 		
-		$this->call('DataValuesTableSeeder');
+		//$this->call('DataValuesTableSeeder');
 
 	}
 

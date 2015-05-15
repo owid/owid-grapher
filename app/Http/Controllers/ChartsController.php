@@ -2,6 +2,7 @@
 
 use Input;
 use App\Chart;
+use App\Variable;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
@@ -27,7 +28,10 @@ class ChartsController extends Controller {
 	 */
 	public function create()
 	{
-		return view('charts.create');
+		$variables = Variable::lists( 'name', 'id' );
+		$data = new \StdClass;
+		$data->variables = $variables;
+		return view('charts.create')->with( 'data', $data );
 	}
 
 	/**
@@ -47,7 +51,7 @@ class ChartsController extends Controller {
 			$json = json_encode( $data );
 
 			$chart = Chart::create( [ 'config' => $json, 'name' => $chartName ] );
-			return 1;
+			return ['success' => true, 'data' => [ 'id' => $chart->id, 'viewUrl' => route( 'view', $chart->id ) ] ];
 
 			/*$u = new User;
 			$u->username = $data['username'];
@@ -89,11 +93,15 @@ class ChartsController extends Controller {
 	 */
 	public function edit( Chart $chart, Request $request )
 	{
+		$config = json_decode( $chart->config );
 		if( $request->ajax() ) {
-			$config = json_decode( $chart->config );
 			return response()->json( $config );
 		} else {
-			return view('charts.edit', compact( 'chart' ) );
+			$variables = Variable::lists( 'name', 'id' );
+			$data = new \StdClass;
+			$data->variables = $variables;
+			$data->config = $config;
+			return view('charts.edit', compact( 'chart' ) )->with( 'data', $data );
 		}
 	}
 

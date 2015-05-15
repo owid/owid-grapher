@@ -12,8 +12,7 @@
 			this.dispatcher = options.dispatcher;
 			this.$filePicker = this.$el.find( ".file-picker-wrapper [type=file]" );
 			this.$dataInput = this.$el.find( "[name=data]" );
-			console.log( this.$dataInput );
-
+			
 			var that = this;
 			CSV.begin( this.$filePicker.selector )
 			    .table( "csv-import-result", { header:1,caption:"Imported data" } )

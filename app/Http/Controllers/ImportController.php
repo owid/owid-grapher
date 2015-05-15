@@ -61,7 +61,9 @@ class ImportController extends Controller {
 			//create new file
 
 			//create new variable
-			
+			$variableData = [ 'name' => $request->input( 'variable_name' ), 'fk_var_type_id' => 2 ];
+			$variable = Variable::create( $variableData ); 
+			$variableId = $variable->id;
 
 			foreach( $json as $countryValue ) {
 
@@ -74,19 +76,19 @@ class ImportController extends Controller {
 				foreach( $countryValues as $value ) {
 
 					//create time
-					$timeValue = [ 'from' => $value->x, 'to' => $value->y, 'label' => $value->y ];
+					$timeValue = [ 'fromTime' => \DateTime::createFromFormat( 'Y', $value->x ), 'toTime' => \DateTime::createFromFormat( 'Y', $value->x ), 'label' => $value->x ];
 					$time = Time::create( $timeValue );
 					$timeId = $time->id;
 
 					//create value
-					$dataValueData = [ 'value' => $value->y, 'fk_time_id' => $timeId, 'fk_input_files_id' => 1, 'fk_var_id' => 1, 'fk_ent_id' => $entityId ];
+					$dataValueData = [ 'value' => $value->y, 'fk_time_id' => $timeId, 'fk_input_files_id' => 1, 'fk_var_id' => $variableId, 'fk_ent_id' => $entityId ];
 					$dataValue = DataValue::create( $dataValueData );
 
 				}
 
 			}
 
-			dd( "Insertion complete" );
+			return redirect()->route( 'variables.index' )->with( 'message', 'Insertion complete.' );
 
 		}
 		

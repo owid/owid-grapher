@@ -110,9 +110,13 @@ html, body {
 			position: relative;
 			background-color: #ecf0f5;
 		}
-			.file-picker-wrapper input {
+			.file-picker-wrapper input, .form-variable-select-wrapper select {
 				width: 100%;
 				padding: 20px;
+			}
+			.form-variable-select-wrapper {
+				padding: 20px;
+				background-color: #ecf0f5;
 			}
 
 			.remove-uploaded-file-btn {
@@ -143,6 +147,8 @@ html, body {
 			width: 100%;
 			padding: 10px;
 		}
+
+	.
 
 .selected-countries-box {
 	margin: 20px 0px;

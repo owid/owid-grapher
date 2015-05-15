@@ -17,8 +17,11 @@
 			this.dispatcher = options.dispatcher;
 			
 			//create subviews
+			this.basicTabView = new App.Views.Form.BasicTabView( { dispatcher: this.dispatcher } );
 			this.axisTabView = new App.Views.Form.AxisTabView( { dispatcher: this.dispatcher } );
 			this.descriptionTabView = new App.Views.Form.DescriptionTabView( { dispatcher: this.dispatcher } );
+			this.stylingTabView = new App.Views.Form.StylingTabView( { dispatcher: this.dispatcher } );
+			this.exportTabView = new App.Views.Form.ExportTabView( { dispatcher: this.dispatcher } );
 
 			//fetch doms
 			this.$removeUploadedFileBtn = this.$el.find( ".remove-uploaded-file-btn" );
@@ -153,17 +156,21 @@
 
 		onFormSubmit: function( evt ) {
 			
-			$.ajaxSetup({
+			$.ajaxSetup( {
 				headers: { 'X-CSRF-TOKEN': $('[name="_token"]').val() }
-			});
+			} );
 
 			evt.preventDefault();
+
+			var dispatcher = this.dispatcher;
 			App.ChartModel.save( {}, {
-				success: function ( model, respose, options ) {
-					console.log("The model has been saved to the server");
+				success: function ( model, response, options ) {
+					alert( "The chart saved succesfully" );
+					dispatcher.trigger( "chart-saved", response.data.id, response.data.viewUrl );
 				},
 				error: function (model, xhr, options) {
-					console.log("Something went wrong while saving the model");
+					console.error("Something went wrong while saving the model", xhr );
+					alert( "Opps, there was a problem saving your chart." );
 				}
 			});
 

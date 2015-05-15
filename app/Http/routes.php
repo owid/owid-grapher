@@ -37,5 +37,8 @@ Route::bind( 'charts', function($value, $route) {
 	return App\Chart::whereId($value)->first();
 });
 
-Route::get( 'import', 'ImportController@index' );
+Route::get( 'import', [ 'as' => 'import', 'uses' => 'ImportController@index' ] );
 Route::post( 'import/store', 'ImportController@store' );
+
+Route::get( 'view', 'ViewController@index' );
+Route::get( 'view/{id}', [ 'as' => 'view', 'uses' => 'ViewController@show' ] );

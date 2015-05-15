@@ -31,8 +31,6 @@
 
 		onFormControlChange: function( evt ) {
 
-			console.log( "onFormControlChange" );
-
 			var textAreaValue = this.$textArea.val();
 			App.ChartModel.set( "chart-description", textAreaValue );
 

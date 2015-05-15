@@ -46,7 +46,7 @@
 			localData = _.filter( localData, function( value, key, list ) {
 				return ( _.indexOf( selectedCountries, value.key ) > -1 );
 			} );
-
+			console.log( "localData", localData );
 			//filter by chart time
 			var chartTime = App.ChartModel.get( "chart-time" );
 			if( chartTime && chartTime.length == 2 ) {

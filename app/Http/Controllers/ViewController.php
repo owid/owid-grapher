@@ -1,11 +1,12 @@
 <?php namespace App\Http\Controllers;
 
+use App\Chart;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
 
-class ViewerController extends Controller {
+class ViewController extends Controller {
 
 	/**
 	 * Display a listing of the resource.
@@ -14,7 +15,7 @@ class ViewerController extends Controller {
 	 */
 	public function index()
 	{
-		//
+		return 'No chart selected to view';
 	}
 
 	/**
@@ -44,8 +45,14 @@ class ViewerController extends Controller {
 	 * @return Response
 	 */
 	public function show($id)
-	{
-		//
+	{	
+		$chart = Chart::find( $id );
+		if( $chart ) {
+			return view( 'view.show', compact( 'chart' ) );
+		} else {
+			return 'No chart found to view';
+		}
+		
 	}
 
 	/**

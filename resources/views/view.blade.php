@@ -13,15 +13,6 @@
 		<link href="{{ asset('css/libs/bootstrap.min.css') }}" rel="stylesheet" type="text/css" />    
 		<link href="{{ asset('css/libs/font-awesome/css/font-awesome.min.css') }}" rel="stylesheet" type="text/css" />
 		<!-- <link href="http://code.ionicframework.com/ionicons/2.0.0/css/ionicons.min.css" rel="stylesheet" type="text/css" />  -->  
-		<link href="{{ asset('css/libs/AdminLTE.min.css') }}" rel="stylesheet" type="text/css" />
-		<link href="{{ asset('css/libs/_all-skins.min.css') }}" rel="stylesheet" type="text/css" />
-		
-		<link href="{{ asset('css/libs/ion.rangeSlider.css') }}" rel="stylesheet" type="text/css" />
-		<link href="{{ asset('css/libs/ion.rangeSlider.skinFlat.css') }}" rel="stylesheet" type="text/css" />
-		
-		<link href="{{ asset('css/libs/bootstrap3-wysihtml5.min.css') }}" rel="stylesheet" type="text/css" />
-		
-		<link href="{{ asset('css/libs/chosen.css') }}" rel="stylesheet" type="text/css" />
 		
 		<link href="{{ asset('css/nv.d3.css') }}" rel="stylesheet" type="text/css">
 		<link href="{{ asset('css/main.css') }}" rel="stylesheet" type="text/css">
@@ -42,51 +33,20 @@
 		</style>
 
 	</head>
-	<body class="skin-blue">
+	<body>
 		<!--[if lt IE 9]>
 			<p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
 		<![endif]-->
 
 		<div class="wrapper">
-			<header class="main-header">
-				<a href="#" class="logo"><b>Chart Builder</b> OWD</a>
-				<nav class="navbar navbar-static-top">
-					<a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
-						<span class="sr-only">Toggle navigation</span>
-					</a>
-				</nav>
-			</header>
-			<aside class="main-sidebar">
-				<!-- sidebar: style can be found in sidebar.less -->
-				<section class="sidebar" style="height: auto;">
-					<!-- sidebar menu: : style can be found in sidebar.less -->
-					<ul class="sidebar-menu">
-						<li class="header">CHARTS</li>
-						<li><a href="{!! route( 'charts.index' ) !!}"><i class="fa fa-bar-chart"></i> Charts</a></li>
-						<li class="header">IMPORT</li>
-						<li><a href="{!! route( 'import' ) !!}"><i class="fa fa-upload"></i> Import new data</a></li>
-						<li class="header">DATA MANAGEMENT</li>
-						<li><a href="{!! route( 'entities.index' ) !!}"><i class="fa fa-flag"></i> Entities</a></li>
-						<li><a href="{!! route( 'variables.index' ) !!}"><i class="fa fa-table"></i> Datasets</a></li>
-					</ul>
-				</section>
-				<!-- /.sidebar -->
-			  </aside>
-			<div class="content-wrapper">
-				@if (Session::has('message'))
-					<div class="flash alert-info">
-						<p>{{ Session::get('message') }}</p>
-					</div>
-				@endif
-				@yield('content')
-			</div>
+			@yield('content')
 		</div>
 
 		<script>
 			var Global = {};
 			Global.rootUrl = "{!! Request::root() !!}";
 		</script>
-
+		
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 		<script>window.jQuery || document.write('<script src="js/libs/jquery-1.11.3.min.js"><\/script>')</script>
 		
@@ -96,15 +56,8 @@
 
 		<script src="{{ asset('js/libs/underscore.js') }}"></script>    
 		<script src="{{ asset('js/libs/backbone.js') }}"></script>    
-		
-		<script src="{{ asset('js/libs/bootstrap.min.js') }}"></script>    
-		<script src="{{ asset('js/libs/admin-lte-app.min.js') }}"></script>    
-		
-		<script src="{{ asset('js/libs/ion.rangeSlider.min.js') }}"></script>    
 		<script src="{{ asset('js/libs/chosen.jquery.min.js') }}"></script>    
 		
-		<script src="{{ asset('js/libs/bootstrap3-wysihtml5.all.min.js') }}"></script>    
-
 		<script src="{{ asset('js/namespaces.js') }}"></script>
 		
 		<script src="{{ asset('js/app/App.Utils.js') }}"></script>

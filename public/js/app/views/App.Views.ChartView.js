@@ -22,8 +22,18 @@
 			this.$el.find( ".chart-name" ).text( App.ChartModel.get( "chart-name" ) );
 			this.$el.find( ".chart-description" ).html( App.ChartModel.get( "chart-description" ) );
 			
-			this.updateChart( App.ChartModel.get( "chart-data" ) );
-
+			if( App.ChartModel.get( "chart-variable" ) ) {
+				var that = this;
+				$.ajax( {
+					url: Global.rootUrl + "/variables/" + App.ChartModel.get( "chart-variable" ),
+					success: function( response ) {
+						that.updateChart( response.data.data );
+					}
+				});
+			} else {
+				this.updateChart( App.ChartModel.get( "chart-data" ) );
+			}
+			
 		},
 
 		onChartModelChange: function( evt ) {
@@ -63,7 +73,7 @@
 				} );
 
 			}
-
+			
 			//get axis configs
 			var xAxis = App.ChartModel.get( "x-axis" ),
 				yAxis = App.ChartModel.get( "y-axis" ),
