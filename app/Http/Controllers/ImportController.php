@@ -1,5 +1,10 @@
 <?php namespace App\Http\Controllers;
 
+use App\Dataset;
+use App\DatasetCategory;
+use App\DatasetSubcategory;
+use App\VariableType;
+use App\InputFile;
 use App\Variable;
 use App\Time;
 use App\DataValue;
@@ -25,7 +30,20 @@ class ImportController extends Controller {
 			new DataValue( [ 'value' => 'adsf', 'description' => 'Description 2', 'fk_input_files_id' => 1 ] ) 
 		];
 		$variable->saveData( $data );*/
-		return view( 'import.index' );
+
+		$datasets = Dataset::all();
+		$categories = DatasetCategory::all();
+		$subcategories = DatasetSubcategory::all();
+		$varTypes = VariableType::all();
+
+		$data = [
+			'datasets' => $datasets,
+			'categories' => $categories,
+			'subcategories' => $subcategories,
+			'varTypes' => $varTypes
+		];
+
+		return view( 'import.index' )->with( 'data', $data );
 	}
 
 	/**
@@ -59,9 +77,24 @@ class ImportController extends Controller {
 			$json = json_decode( $jsonString );
 
 			//create new file
+			$inputFileData = [ 'raw_data' => $jsonString, 'fk_user_id' => 1 ];
+			$inputFile = InputFile::create( $inputFileData ); 
+			$inputFileDataId = $inputFile->id;
 
+			//create new dataset or pick existing one
+			if( $request->input( "new_dataset" ) === "1" ) {
+				$datasetName = $request->input( 'new_dataset_name' );
+				$datasetData = [ 'name' => $datasetName, 'fk_dst_cat_id' => $request->input( 'category_id' ), 'fk_dst_subcat_id' => $request->input( 'subcategory_id' ) ];
+				$dataset = Dataset::create( $datasetData );
+				$datasetId = $dataset->id;
+			} else {
+				$datasetId = $request->input( 'existing_dataset_id' );
+				$dataset = Dataset::find( $datasetId );
+				$datasetName = $dataset->name;
+			}
+			
 			//create new variable
-			$variableData = [ 'name' => $request->input( 'variable_name' ), 'fk_var_type_id' => 2 ];
+			$variableData = [ 'name' => $datasetName, 'fk_var_type_id' => $request->input( 'variable_type' ), 'fk_dst_id' => $datasetId ];
 			$variable = Variable::create( $variableData ); 
 			$variableId = $variable->id;
 
@@ -81,7 +114,7 @@ class ImportController extends Controller {
 					$timeId = $time->id;
 
 					//create value
-					$dataValueData = [ 'value' => $value->y, 'fk_time_id' => $timeId, 'fk_input_files_id' => 1, 'fk_var_id' => $variableId, 'fk_ent_id' => $entityId ];
+					$dataValueData = [ 'value' => $value->y, 'fk_time_id' => $timeId, 'fk_input_files_id' => $inputFileDataId, 'fk_var_id' => $variableId, 'fk_ent_id' => $entityId ];
 					$dataValue = DataValue::create( $dataValueData );
 
 				}

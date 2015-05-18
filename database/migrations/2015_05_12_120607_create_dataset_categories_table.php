@@ -20,7 +20,7 @@ class CreateDatasetCategoriesTable extends Migration {
 		});
 		Schema::table('datasets', function($table) 
 		{
-			$table->integer('fk_dst_cat_id')->unsigned();
+			$table->integer('fk_dst_cat_id')->unsigned()->nullable();
 			$table->foreign('fk_dst_cat_id')->references('id')->on('dataset_categories');
 		});
 	}

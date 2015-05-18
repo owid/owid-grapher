@@ -2,16 +2,35 @@
 	background-color: inherit;
 }
 
-.variable-name-section {}
+.import-view {}
+
+	/* dataset section */
+	.import-view .new-dataset-section {}
+	.import-view .existing-dataset-section {
+		display: none;
+	} 
+
+/*.variable-name-section {}
 	.variable-name-section input {
 		width: 50% !important;
-	}
+	}*/
 
-.csv-import-result {}
+.csv-import-result {
+	overflow: auto;
+}
 	.csv-import-result table {
 		background-color: #fff;
 	}
 	.csv-import-result th, .csv-import-result td {
 		padding: 10px;
 		border: 1px solid gray;
+	}
+
+
+.category-section {}
+	.category-section [name="category_id"] {
+
+	}
+	.category-section [name="subcategory_id"] {
+		display: none;
 	}

@@ -21,6 +21,10 @@ class DatabaseSeeder extends Seeder {
 		//$this->call('EntitiesTableSeeder');
 	
 		$this->call('VariableTypesTableSeeder');
+		
+		$this->call('DatasetCategoriesTableSeeder');
+		$this->call('DatasetSubcategoriesTableSeeder');
+
 		//$this->call('VariablesTableSeeder');
 		
 		//$this->call('DataValuesTableSeeder');
