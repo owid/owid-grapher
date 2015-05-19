@@ -54,6 +54,17 @@
 					<a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
 						<span class="sr-only">Toggle navigation</span>
 					</a>
+					<div class="navbar-custom-menu">
+						<ul class="nav navbar-nav">
+							<li class="dropdown user user-menu">
+								@if (Auth::user())
+									<a href="{!! route( 'logout' ) !!}">
+										<span class="hidden-xs">Signed in as <strong>{{ Auth::user()->name }}</strong></span>
+									</a>
+								@endif
+							</li>
+						</ul>
+					</div>
 				</nav>
 			</header>
 			<aside class="main-sidebar">

@@ -17,6 +17,7 @@
 
 .csv-import-result {
 	overflow: auto;
+	max-height: 300px;
 }
 	.csv-import-result table {
 		background-color: #fff;
