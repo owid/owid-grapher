@@ -1,0 +1,259 @@
+
+/**
+ * Default theme
+ *
+ */
+/* Slight reset to make the preview have ample padding. */
+.cse .gsc-control-cse,
+.gsc-control-cse {
+  padding: 1em;
+  width: auto;
+}
+.cse .gsc-control-wrapper-cse,
+.gsc-control-wrapper-cse {
+  width: 100%;
+}
+.cse .gsc-branding,
+.gsc-branding {
+  display: none;
+}
+/* Selector for entire element. */
+.cse .gsc-control-cse,
+.gsc-control-cse {
+  background-color: #ffffff;
+  border: 1px solid #ffffff;
+}
+.cse .gsc-control-cse:after,
+.gsc-control-cse:after {
+  content:".";
+  display:block;
+  height:0;
+  clear:both;
+  visibility:hidden;
+}
+.cse .gsc-resultsHeader,
+.gsc-resultsHeader {
+  border: block;
+}
+table.gsc-search-box td.gsc-input {
+  padding-right: 12px;
+}
+input.gsc-input {
+  border-color: #D9D9D9;
+  font-size: 13px;
+  padding: 1px 6px;
+}
+/* Search button */
+.cse input.gsc-search-button,
+input.gsc-search-button {
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: bold;
+  color: #000;
+  padding: 0 8px;
+  height: 20px;
+  min-width: 54px;
+  background-color: #CECECE;
+  border: 1px solid #666;
+  border-radius: 2px;
+  -moz-border-radius: 2px;
+  -webkit-border-radius: 2px;
+}
+/* Inactive tab */
+.cse .gsc-tabHeader.gsc-tabhInactive,
+.gsc-tabHeader.gsc-tabhInactive {
+  border-bottom: none;
+  color: #666666;
+  background-color: #e9e9e9;
+  border: 1px solid;
+  border-color: #e9e9e9;
+  border-bottom: none;
+}
+/* Active tab */
+.cse .gsc-tabHeader.gsc-tabhActive,
+.gsc-tabHeader.gsc-tabhActive {
+  background-color: #FFFFFF;
+  border: 1px solid;
+  border-top: 2px solid;
+  border-color: #e9e9e9;
+  border-top-color: #FF9900;
+  border-bottom: none;
+}
+/* This is the tab bar bottom border. */
+.cse .gsc-tabsArea,
+.gsc-tabsArea {
+  margin-top: 1em;
+  border-bottom: 1px solid #e9e9e9;
+}
+/* Inner wrapper for a result */
+.cse .gsc-webResult.gsc-result,
+.gsc-webResult.gsc-result,
+.gsc-imageResult-column,
+.gsc-imageResult-classic {
+  padding: .25em;
+  border: 1px solid;
+  border-color: #ffffff;
+  margin-bottom: 1em;
+}
+/* Result hover event styling */
+.cse .gsc-webResult.gsc-result:hover,
+.gsc-webResult.gsc-result:hover,
+.gsc-webResult.gsc-result.gsc-promotion:hover,
+.gsc-results .gsc-imageResult-classic:hover,
+.gsc-results .gsc-imageResult-column:hover {
+  border: 1px solid;
+  border-color: #FFFFFF;
+}
+/*Promotion Settings*/
+/* The entire promo */
+.cse .gsc-webResult.gsc-result.gsc-promotion,
+.gsc-webResult.gsc-result.gsc-promotion {
+  background-color: #FFFFFF;
+  border-color: #336699;
+}
+/* Promotion links */
+.cse .gs-promotion a.gs-title:link,
+.gs-promotion a.gs-title:link,
+.cse .gs-promotion a.gs-title:link *,
+.gs-promotion a.gs-title:link *,
+.cse .gs-promotion .gs-snippet a:link,
+.gs-promotion .gs-snippet a:link {
+  color: #0000CC;
+}
+.cse .gs-promotion a.gs-title:visited,
+.gs-promotion a.gs-title:visited,
+.cse .gs-promotion a.gs-title:visited *,
+.gs-promotion a.gs-title:visited *,
+.cse .gs-promotion .gs-snippet a:visited,
+.gs-promotion .gs-snippet a:visited {
+  color: #0000CC;
+}
+.cse .gs-promotion a.gs-title:hover,
+.gs-promotion a.gs-title:hover,
+.cse .gs-promotion a.gs-title:hover *,
+.gs-promotion a.gs-title:hover *,
+.cse .gs-promotion .gs-snippet a:hover,
+.gs-promotion .gs-snippet a:hover {
+  color: #0000CC;
+}
+.cse .gs-promotion a.gs-title:active,
+.gs-promotion a.gs-title:active,
+.cse .gs-promotion a.gs-title:active *,
+.gs-promotion a.gs-title:active *,
+.cse .gs-promotion .gs-snippet a:active,
+.gs-promotion .gs-snippet a:active {
+  color: #0000CC;
+}
+/* Promotion snippet */
+.cse .gs-promotion .gs-snippet,
+.gs-promotion .gs-snippet,
+.cse .gs-promotion .gs-title .gs-promotion-title-right,
+.gs-promotion .gs-title .gs-promotion-title-right,
+.cse .gs-promotion .gs-title .gs-promotion-title-right *,
+.gs-promotion .gs-title .gs-promotion-title-right * {
+  color: #000000;
+}
+/* Promotion url */
+.cse .gs-promotion .gs-visibleUrl,
+.gs-promotion .gs-visibleUrl {
+  color: #008000;
+}
+/* Style for auto-completion table
+ * .gsc-completion-selected : styling for a suggested query which the user has moused-over
+ * .gsc-completion-container : styling for the table which contains the completions
+ */
+.gsc-completion-selected {
+  background: #EEE;
+}
+.gsc-completion-container {
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+  background: white;
+  border: 1px solid #CCC;
+  border-top-color: #D9D9D9;
+  margin-left: 0;
+  margin-right: 0;
+  /* The top, left, and width are set in JavaScript. */
+}
+.gsc-completion-title {
+  color: #0000CC;
+}
+.gsc-completion-snippet {
+  color: #000000;
+}
+
+/* Full URL */
+.gs-webResult div.gs-visibleUrl-short,
+.gs-promotion div.gs-visibleUrl-short {
+  display: none;
+}
+.gs-webResult div.gs-visibleUrl-long,
+.gs-promotion div.gs-visibleUrl-long {
+  display: block;
+}
+
+.gsc-context-box {
+  font-size: 83%;
+  margin-top: 3px;
+  border-collapse: collapse;
+}
+
+.gsc-context-box .gsc-col {
+  padding:1px 0;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.gsc-context-box .gsc-facet-label {
+  width: 65px;
+  padding-left: 2px;
+  text-decoration: underline;
+  color: #15C;
+  cursor: pointer;
+}
+
+.gsc-context-box .gsc-chart {
+  width: 32em;
+  padding: 3px;
+  border-left: 1px solid #6A9CF3;
+  border-right: 1px solid #6A9CF3;
+}
+
+.gsc-context-box .gsc-top {
+  border-top: 1px solid #6A9CF3;
+}
+
+.gsc-context-box .gsc-bottom {
+  border-bottom: 1px solid #6A9CF3;
+}
+
+.gsc-context-box .gsc-chart div {
+  background: #6A9CF3;
+  height: 9px;
+}
+
+.gsc-context-box .gsc-facet-result {
+  color: #15C;
+  width: 30px;
+  text-align: right;
+  padding-right: 5px;
+}
+
+
+/* field customization */
+
+input.gsc-input
+{
+    border-color: #BCCDF0;
+}
+input.gsc-search-button
+{
+    border-color: #336699;
+    background-color: #E9E9E9;
+}
+.sizer{
+    font-family: arial, sans-serif;font-size:medium;position:absolute;visibility:hidden;white-space:nowrap;
+}
+.small {
+    font-size:small;
+}

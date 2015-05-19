@@ -146,6 +146,7 @@ return [
 		'App\Providers\RouteServiceProvider',
 
 		'Collective\Html\HtmlServiceProvider',
+		'Zofe\Rapyd\RapydServiceProvider',
 	],
 
 	/*

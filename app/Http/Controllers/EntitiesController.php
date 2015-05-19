@@ -16,7 +16,16 @@ class EntitiesController extends Controller {
 	public function index()
 	{
 		$entities = Entity::all();
-		return view( 'entities.index', compact('entities') );
+
+		$grid = \DataGrid::source('entities');
+		$grid->add( 'id', 'ID', true)->style( 'width:100px' );
+        $grid->add( 'name', 'Name', true);
+		$grid->add( '<a href="' .route( 'entities.index' ). '/{{$id}}">View</a>', 'View' );
+		$grid->add( '<a href="' .route( 'entities.index' ). '/{{$id}}/edit">Edit</a>', 'Edit');
+        $grid->paginate(10);
+
+		return view( 'entities.index', compact('grid') );
+
 	}
 
 	/**
@@ -36,7 +45,7 @@ class EntitiesController extends Controller {
 	 */
 	public function store()
 	{
-		//
+		
 	}
 
 	/**
@@ -47,7 +56,7 @@ class EntitiesController extends Controller {
 	 */
 	public function show(Entity $entity)
 	{	
-		return view( 'entities.show', compact('entity') );
+		return view( 'entities.show', compact( 'entity' ) );
 	}
 
 	/**
@@ -56,9 +65,9 @@ class EntitiesController extends Controller {
 	 * @param  int  $id
 	 * @return Response
 	 */
-	public function edit($id)
+	public function edit(Entity $entity)
 	{
-		//
+		return view( 'entities.edit', compact( 'entity' ) );
 	}
 
 	/**
@@ -67,9 +76,11 @@ class EntitiesController extends Controller {
 	 * @param  int  $id
 	 * @return Response
 	 */
-	public function update($id)
+	public function update(Entity $entity, Request $request)
 	{
-		//
+		$input = array_except( $request->all(), [ '_method', '_token' ] );
+		$entity->update( $input );
+		return redirect()->route( 'entities.show', $entity->id)->with( 'message', 'Entity updated.');
 	}
 
 	/**

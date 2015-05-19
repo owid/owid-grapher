@@ -1,0 +1,74 @@
+<form id="redactorInsertLinkForm" method="post" action="" enctype="multipart/form-data">
+
+
+	<div id="redactor_tabs">
+		<a href="javascript:void(null);" class="redactor_tabs_act">URL</a>
+		<a href="javascript:void(null);">Email</a>
+		<a href="javascript:void(null);">%RLANG.anchor%</a>
+		<a href="javascript:void(null);">%RLANG.file%</a>
+	</div>
+	
+	<input type="hidden" id="redactor_tab_selected" value="1" />
+	
+	<div class="redactor_tab" id="redactor_tab1">
+		<table class="redactor_ruler">
+			<tr>
+				<td nowrap>URL</td>
+				<td width="100%"><input id="redactor_link_url" style="width: 99%; font-size: 16px;"  /></td>
+			</tr>
+			<tr>
+				<td>%RLANG.text%</td>
+				<td><input class="redactor_link_text" id="redactor_link_url_text" style="width: 99%; font-size: 16px;" /></td>
+			</tr>
+		</table>
+	</div>
+	<div class="redactor_tab" id="redactor_tab2" style="display: none;">
+		<table class="redactor_ruler">
+			<tr>
+				<td nowrap>Email</td>
+				<td width="100%"><input id="redactor_link_mailto" style="width: 99%; font-size: 16px;"  /></td>
+			</tr>
+			<tr>
+				<td>%RLANG.text%</td>
+				<td><input class="redactor_link_text" id="redactor_link_mailto_text" style="width: 99%; font-size: 16px;" /></td>
+			</tr>
+		</table>
+	</div>
+	<div class="redactor_tab" id="redactor_tab3" style="display: none;">
+		<table class="redactor_ruler">
+			<tr>
+				<td nowrap>%RLANG.anchor%</td>
+				<td width="100%"><input id="redactor_link_anchor" style="width: 99%; font-size: 16px;"  /></td>
+			</tr>
+			<tr>
+				<td>%RLANG.text%</td>
+				<td><input class="redactor_link_text" id="redactor_link_anchor_text" style="width: 99%; font-size: 16px;" /></td>
+			</tr>
+		</table>
+	</div>
+	<div class="redactor_tab" id="redactor_tab4" style="display: none;">
+		<table class="redactor_ruler">
+			<tr>
+				<td>%RLANG.text%</td>
+				<td><input class="redactor_link_text" id="redactor_link_file_text" style="width: 99%; font-size: 16px;" /></td>
+			</tr>
+			<tr>
+				<td></td>
+				<td>
+				
+					<input type="file" id="redactor_file" name="file" />
+				
+				</td>
+			</tr>
+		</table>	
+		
+	</div>
+
+
+</form>
+
+<span class="redactor_btns_box">
+<input type="button" id="redactor_insert_link_btn" value="%RLANG.insert%" />&nbsp;&nbsp;
+<a href="javascript:void(null);" style="color: #777; font-size: 12px;" id="redactor_btn_modal_close">%RLANG.cancel%</a>
+</span>
+<div style="clear: both;"></div>
