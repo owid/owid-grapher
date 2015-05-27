@@ -1,5 +1,9 @@
 @extends('app')
 
+@section('styles')
+	<link href="{{ asset('css/admin/charts.css') }}" rel="stylesheet" type="text/css">
+@endsection
+
 @section('content')
 	<div class="col-xs-12">
 		<div class="box">

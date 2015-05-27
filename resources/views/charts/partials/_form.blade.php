@@ -30,28 +30,47 @@
 						<input class="form-control input-lg .col-xs-12" placeholder="Chart name" type="text" name="chart-name" value=""/>
 					</div>
 				</section>
-				<section class="form-section">
+				<section class="form-section chart-type-section">
 					<div class="form-section-header">
-						<h2><span class="form-section-digit">2</span>Select your data</h2>
+						<h2><span class="form-section-digit">2</span>What type of chart</h2>
 					</div>
 					<div class="form-section-content">
-						<p class="form-section-desc">Select dataset from database</p>
-						<div class="form-variable-select-wrapper">
-							<select name='chart-variable' class="form-control form-variable-select">
-								<option value="" disabled selected>Select your dataset</option>
-								@foreach( $data->variables as $variableId => $variableName )
-									<option value="{{ $variableId }}">{{ $variableName }}</option>
-								@endforeach
-							</select>
+						<select name="chart-type" class="form-control chart-type-select">
+							<option value="" disabled selected>Select type</option>
+							@foreach( $data->chartTypes as $chartTypeId=>$chartTypeName )
+								<option value="{{ $chartTypeId }}">{{ $chartTypeName }}</option>
+							@endforeach
+						</select>
+					</div>
+				</section>
+				<section class="form-section add-data-section">
+					<div class="form-section-header">
+						<h2><span class="form-section-digit">3</span>Add your data</h2>
+						<a href="#" class="add-data-btn"><i class="fa fa-plus"></i>Add variable</a>
+					</div>
+					<div class="form-section-content">
+						<div class="dd">
+							<ol class="dd-list no-bullets">
+
+							</ol>
 						</div>
 					</div>
-					<div class="form-section-content">
+					<!--<div class="form-section-content">
 						<p class="form-section-desc">Or choose CSV file from your computer with data to chart. Each country data should be in their own colum,time should it be first column, otherwise it's not gonna work.</p>
 						<div class="file-picker-wrapper">
 							<input type="file" />
 							<a href="#" title="Remove uploaded file" class="remove-uploaded-file-btn"><span class="visuallyhidden">Remove uploaded file</span><i class="fa fa-remove"></i></a>
 						</div>
+					</div>-->
+				</section>
+				<section class="form-section dimensions-section">
+					<div class="form-section-header">
+						<h2><span class="form-section-digit">3</span>Map your dimensions</h2>
 					</div>
+					<div class="form-section-content">
+						
+					</div>
+					<input type="hidden" name="chart-dimensions" value="" />
 				</section>
 				<section class="form-section">
 					<div class="form-section-header">
@@ -64,6 +83,7 @@
 						</ul>
 						<select class="form-control chosen-select countries-select" data-placeholder="Choose a Country...">
 							<option value=""></option>
+							<option value="World">World</option>
 							<option value="United States">United States</option>
 							<option value="United Kingdom">United Kingdom</option>
 							<option value="Afghanistan">Afghanistan</option>
@@ -427,4 +447,4 @@
 			</section>
 		{!! Form::close() !!}
 	</div>
-</div>	
+</div>

@@ -2,36 +2,112 @@
 	background-color: inherit;
 }
 
-.import-view {}
-
 	/* dataset section */
 	.import-view .new-dataset-section {}
 	.import-view .existing-dataset-section {
 		display: none;
 	} 
+	.import-view .dataset-radiogroup label {
+		margin-right: 20px;
+	}
 
+	.import-view .new-dataset-section, 
+	.import-view .existing-dataset-section {
+		margin: 10px 0px;
+	}
+		.import-view .new-dataset-section [name=new_dataset_name],
+		.import-view .existing-dataset-section [name=existing_dataset_id] {
+			display: block;
+			width: 40%;
+		}
+		.import-view .new-dataset-section .new-dataset-description-btn {
+			display: block;
+			margin: 15px 0px 2px;
+		}
+			.import-view .new-dataset-section .new-dataset-description-btn i {
+				margin-right: 10px;
+				font-size: 12px;
+			}
+			.import-view .new-dataset-section .new-dataset-description {
+				display: none;
+			}
+		
 /*.variable-name-section {}
 	.variable-name-section input {
 		width: 50% !important;
 	}*/
 
-.csv-import-result {
-	overflow: auto;
-	max-height: 300px;
-}
-	.csv-import-result table {
-		background-color: #fff;
+	.import-view .csv-import-result {
+		overflow: auto;
+		max-height: 350px;
+		margin: 15px 0px;
 	}
-	.csv-import-result th, .csv-import-result td {
-		padding: 10px;
-		border: 1px solid gray;
+		.import-view .csv-import-result table {
+			background-color: #fff;
+		}
+		.import-view .csv-import-result th, .csv-import-result td {
+			padding: 10px;
+			border: 1px solid gray;
+		}
+
+	.import-view .file-picker-wrapper {
+		background-color: #d2d6de;
 	}
 
-
-.category-section {}
-	.category-section [name="category_id"] {
-
+	/* data type section */
+	.import-view .dataset-type-radiogroup label {
+		margin-right: 20px;
 	}
-	.category-section [name="subcategory_id"] {
-		display: none;
+
+	/* variable section */
+	.import-view .variable-item {
+		margin-bottom: 20px;
 	}
+		.import-view .variable-item label {
+			float: left;
+			margin-top: -40px;
+			margin-right: 10px;
+			font-size: 12px;
+		}
+			.import-view .variable-item:first-child label {
+				margin-top: -10px;
+			}
+			.import-view .variable-item label input {
+				display: block;
+			}
+
+	.import-view .category-section {}
+		.import-view .category-section label,
+		.import-view .category-section select,
+		.import-view .category-section input {
+			display: block;
+		}
+		.import-view .category-section select,
+		.import-view .category-section input {
+			margin-top: 5px;
+		}
+		.import-view .category-section label {
+			margin-bottom: 10px;
+		}
+		.import-view .category-section [name="category_id"] {
+
+		}
+		.import-view .category-section [name="subcategory_id"] {
+			display: none;
+		}
+		.import-view .category-section [name="new_dataset_tags"] {
+			width: 40%;
+		}
+
+	.import-view .variable-type-section {}
+		.import-view .variable-type-section [name="variable_type"] {
+			width: 40%;
+		}
+
+	.import-view .submit-section {}
+		.import-view .submit-section [type="submit"] {
+			margin-bottom: 20px;
+			padding: 10px 40px;
+			text-transform: uppercase;
+			font-size: 18px;
+		}

@@ -24,6 +24,10 @@
 		<link href="{{ asset('css/libs/chosen.css') }}" rel="stylesheet" type="text/css" />
 		
 		<link href="{{ asset('css/nv.d3.css') }}" rel="stylesheet" type="text/css">
+		
+		<link href="{{ asset('css/admin/admin.css') }}" rel="stylesheet" type="text/css">
+		<link href="{{ asset('css/admin/data.css') }}" rel="stylesheet" type="text/css">
+		
 		<link href="{{ asset('css/main.css') }}" rel="stylesheet" type="text/css">
 		
 		@yield('styles')
@@ -78,7 +82,10 @@
 						<li><a href="{!! route( 'import' ) !!}"><i class="fa fa-upload"></i> Import new data</a></li>
 						<li class="header">DATA MANAGEMENT</li>
 						<li><a href="{!! route( 'entities.index' ) !!}"><i class="fa fa-flag"></i> Entities</a></li>
-						<li><a href="{!! route( 'variables.index' ) !!}"><i class="fa fa-table"></i> Datasets</a></li>
+						<li><a href="{!! route( 'datasets.index' ) !!}"><i class="fa fa-table"></i> Datasets</a></li>
+						<li class="header">SETTINGS</li>
+						<li><a href="{!! route( 'categories.index' ) !!}"><i class="fa fa-folder"></i> Categories</a></li>
+						<li><a href="{!! route( 'tags.index' ) !!}"><i class="fa fa-tags"></i> Tags</a></li>
 					</ul>
 				</section>
 				<!-- /.sidebar -->
@@ -92,7 +99,7 @@
 				@yield('content')
 			</div>
 		</div>
-
+		@yield('outter-content')
 		<script>
 			var Global = {};
 			Global.rootUrl = "{!! Request::root() !!}";
@@ -114,15 +121,20 @@
 		<script src="{{ asset('js/libs/ion.rangeSlider.min.js') }}"></script>    
 		<script src="{{ asset('js/libs/chosen.jquery.min.js') }}"></script>    
 		
+		<script src="{{ asset('js/libs/jquery.nestable.js') }}"></script>    
+		
 		<script src="{{ asset('js/libs/bootstrap3-wysihtml5.all.min.js') }}"></script>    
 
 		<script src="{{ asset('js/namespaces.js') }}"></script>
 		
 		<script src="{{ asset('js/app/App.Utils.js') }}"></script>
 		
+		<script src="{{ asset('js/app/models/App.Models.ChartDimensionsModel.js') }}"></script>
 		<script src="{{ asset('js/app/models/App.Models.ChartModel.js') }}"></script>
 		
-		<script src="{{ asset('js/app/views/ui/App.Views.ui.ColorPicker.js') }}"></script>
+		<script src="{{ asset('js/app/views/ui/App.Views.UI.ColorPicker.js') }}"></script>
+		<script src="{{ asset('js/app/views/ui/App.Views.UI.VariableSelects.js') }}"></script>
+		<script src="{{ asset('js/app/views/ui/App.Views.UI.SelectVarPopup.js') }}"></script>
 		
 		@yield('scripts')
 

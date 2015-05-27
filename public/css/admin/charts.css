@@ -1,0 +1,32 @@
+.form-variable-select-wrapper {}
+	.form-variable-select-wrapper select {
+		margin-bottom: 10px;
+	}
+
+/**
+*	select var popup
+**/
+.select-var-popup {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 1040;
+	display: none;
+}
+	.select-var-popup .modal {
+		display: block;
+	}
+
+/**
+*	dimension section
+**/
+.dimension-box {}
+	.dimension-box .dd-wrapper {
+		min-height: 200px;
+	}
+	.dimension-box .dd-empty {
+		background-color: transparent;
+		background-image: none;
+	}

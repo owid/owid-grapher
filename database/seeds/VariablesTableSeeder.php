@@ -16,7 +16,7 @@ class VariablesTableSeeder extends Seeder {
 		$variables = array();
 		$len = 3;
 		for( $i = 0; $i < $len; $i++ ) {
-			$variables[] = [ 'name' => 'Variable ' .$i, 'unit' => '$', 'description' => 'Description ' .$i, 'fk_var_type_id' => 2 ];
+			$variables[] = [ 'fk_dst_id' => 1, 'name' => 'Variable ' .$i, 'unit' => '$', 'description' => 'Description ' .$i, 'fk_var_type_id' => 2 ];
 		}
 		// Uncomment the below to run the seeder
 		DB::table('variables')->insert($variables);

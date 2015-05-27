@@ -14,7 +14,7 @@ class EntitiesTableSeeder extends Seeder {
 		DB::unprepared($statement);
 		
 		$entities = array();
-		$len = 10;
+		$len = 5;
 		for( $i = 0; $i < $len; $i++ ) {
 			$entities[] = [ 'name' => 'Entity ' .$i, 'fk_ent_t_id' => 1 ];
 		}

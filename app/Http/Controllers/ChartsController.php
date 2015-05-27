@@ -3,6 +3,10 @@
 use Input;
 use App\Chart;
 use App\Variable;
+use App\DatasetCategory;
+use App\DatasetSubcategory;
+use App\ChartType;
+
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
@@ -28,9 +32,11 @@ class ChartsController extends Controller {
 	 */
 	public function create()
 	{
-		$variables = Variable::lists( 'name', 'id' );
 		$data = new \StdClass;
-		$data->variables = $variables;
+		$data->variables = Variable::with('Dataset')->get();
+		$data->categories = DatasetCategory::all();
+		$data->subcategories = DatasetSubcategory::all();
+		$data->chartTypes = ChartType::lists( 'name', 'id' );
 		return view('charts.create')->with( 'data', $data );
 	}
 
@@ -81,6 +87,9 @@ class ChartsController extends Controller {
 			$config = json_decode( $chart->config );
 			return response()->json( $config );
 		} else {
+			$data->variables = Variable::with('Dataset')->get();
+			$data->categories = DatasetCategory::all();
+			$data->subcategories = DatasetSubcategory::all();
 			return view('charts.show', compact( 'chart' ) );
 		}
 	}

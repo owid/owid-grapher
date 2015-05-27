@@ -22,7 +22,34 @@
 			this.$el.find( ".chart-name" ).text( App.ChartModel.get( "chart-name" ) );
 			this.$el.find( ".chart-description" ).html( App.ChartModel.get( "chart-description" ) );
 			
-			if( App.ChartModel.get( "chart-variable" ) ) {
+			var dimensionsString = App.ChartModel.get( "chart-dimensions" );
+			if( dimensionsString ) {
+
+				console.log( "dimensionsString" );
+				console.log( dimensionsString );
+				
+				var that = this;
+				$.ajax( {
+					url: Global.rootUrl + "/data/dimensions",
+					data: { "dimensions": dimensionsString },
+					success: function( response ) {
+						if( response.data ) {
+							
+							that.updateChart( response.data );
+							//add values to response
+							/*_.each( response.data, function( v, k ) {
+								dimensionsById[ k ].values = v;	
+							} );*/
+						}
+						//that.updateChart( dimensionsById );
+					}
+				} );
+
+			} else if( App.ChartModel.get( "chart-data" ) ) {
+				this.updateChart( App.ChartModel.get( "chart-data" ) );
+			}
+
+			/*if( App.ChartModel.get( "chart-variable" ) ) {
 				var that = this;
 				$.ajax( {
 					url: Global.rootUrl + "/variables/" + App.ChartModel.get( "chart-variable" ),
@@ -32,7 +59,7 @@
 				});
 			} else {
 				this.updateChart( App.ChartModel.get( "chart-data" ) );
-			}
+			}*/
 			
 		},
 
@@ -43,6 +70,8 @@
 		},
 
 		updateChart: function( data ) {
+
+			console.log( "updateChart", data );
 
 			if( !data ) {
 				return;

@@ -76,7 +76,8 @@ class VariablesController extends Controller {
 			}
 			return ['success' => true, 'data' => [ 'variable' => $variable, 'data' => $data ] ];
 		} else {
-			return view( 'variables.show', compact('variable') );
+			$values = $variable->data;
+			return view( 'variables.show', compact('variable','values') );
 		}
 	}
 
@@ -86,9 +87,9 @@ class VariablesController extends Controller {
 	 * @param  int  $id
 	 * @return Response
 	 */
-	public function edit($id)
+	public function edit(Variable $variable)
 	{
-		//
+		return view( 'variables.edit', compact( 'variable' ) );
 	}
 
 	/**
@@ -97,9 +98,11 @@ class VariablesController extends Controller {
 	 * @param  int  $id
 	 * @return Response
 	 */
-	public function update($id)
+	public function update(Variable $variable, Request $request)
 	{
-		//
+		$input = array_except( $request->all(), [ '_method', '_token' ] );
+		$variable->update( $input );
+		return redirect()->route( 'variables.show', $variable->id)->with( 'message', 'Variable updated.');
 	}
 
 	/**
@@ -108,9 +111,14 @@ class VariablesController extends Controller {
 	 * @param  int  $id
 	 * @return Response
 	 */
-	public function destroy($id)
+	public function destroy(Variable $variable, Request $request)
 	{
-		//
+		//delete data
+		$variable->data()->delete();
+		//delete itself
+		$variable->delete();
+		
+		return redirect()->route('datasets.show', $variable->fk_dst_id)->with('message', 'Variable deleted.');
 	}
 
 }

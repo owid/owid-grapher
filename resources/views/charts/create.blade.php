@@ -1,4 +1,8 @@
 @extends('app')
+
+@section('styles')
+	<link href="{{ asset('css/admin/charts.css') }}" rel="stylesheet" type="text/css">
+@endsection
  
 @section('content')
 	<div id="chart-view" class="col-sm-12 col-md-6 chart-wrapper">
@@ -9,6 +13,10 @@
 		</div>
 	</div>
 	@include('charts/partials/_form', ['method' => 'post'])
+@endsection
+
+@section('outter-content')
+	@include('charts/partials/_select-var-popup')
 @endsection
 
 @section('scripts')

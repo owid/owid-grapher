@@ -40,7 +40,7 @@
 			
 			//random els
 			this.$newDatasetDescription = this.$el.find( "[name=new_dataset_description]" );
-			this.$variableSectionList = this.$variableSection.find( "ul" );
+			this.$variableSectionList = this.$variableSection.find( "ol" );
 
 			this.$filePicker = this.$el.find( ".file-picker-wrapper [type=file]" );
 			this.$dataInput = this.$el.find( "[name=data]" );
@@ -55,7 +55,7 @@
 
 			//hide optional elements
 			this.$newDatasetDescription.hide();
-			this.$variableSection.hide();
+			//this.$variableSection.hide();
 
 		},
 
@@ -63,7 +63,7 @@
 
 			var that = this;
 			CSV.begin( this.$filePicker.selector )
-				.table( "csv-import-result", { header:1, caption: "Imported data" } )
+				.table( "csv-import-result", { header:1, caption: "" } )
 				.go( function( err, data ) {
 						that.onCsvSelected( err, data );
 				} );
@@ -92,11 +92,11 @@
 			data.unit = "";
 			data.description = "";
 
-			var $li = $( "<li></li>" ),
-				$inputName = $( "<input value='" + data.name + "' />" ),
-				$inputUnit = $( "<input value='' />" ),
-				$inputDescription = $( "<input value='' />" ),
-				$inputData = $( "<input type='text' name='variables[]' value='" + JSON.stringify( data ) + "' />" );
+			var $li = $( "<li class='variable-item clearfix'></li>" ),
+				$inputName = $( "<label>Name<input class='form-control' value='" + data.name + "' placeholder='Enter variable name'/></label>" ),
+				$inputUnit = $( "<label>Unit*<input class='form-control' value='' placeholder='Enter variable unit' /></label>" ),
+				$inputDescription = $( "<label>Description*<input class='form-control' value='' placeholder='Enter variable description' /></label>" ),
+				$inputData = $( "<input type='hidden' name='variables[]' value='" + JSON.stringify( data ) + "' />" );
 			
 			$li.append( $inputName );
 			$li.append( $inputUnit );
@@ -209,6 +209,7 @@
 			var $input = $( evt.currentTarget );
 			if( $input.val() != "" ) {
 				this.$subcategorySelect.show();
+				this.$subcategorySelect.css( "display", "block" );
 			} else {
 				this.$subcategorySelect.hide();
 			}
@@ -228,10 +229,10 @@
 			var $input = $( evt.currentTarget );
 			if( $input.val() === "1" ) {
 				this.isDataMultiVariant = true;
-				this.$variableSection.show();
+				//this.$variableSection.show();
 			} else {
 				this.isDataMultiVariant = false;
-				this.$variableSection.hide();
+				//this.$variableSection.hide();
 			}
 
 			if( this.uploadedData ) {

@@ -1,0 +1,20 @@
+/* variable */
+.values-table {}
+	.values-table td,
+	.values-table th {
+		padding: 4px 10px;
+	}
+	.values-table td:nth-child(1) {
+		width: 100px;
+	}
+	.values-table td:nth-child(2) {
+		width: 200px;
+	}
+
+/* value */
+.edit-value-module, .edit-dataset-module {}
+	.edit-value-module form,
+	.edit-dataset-module form {
+		max-width: 500px;
+	}
+

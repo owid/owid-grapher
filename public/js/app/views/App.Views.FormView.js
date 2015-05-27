@@ -9,13 +9,17 @@
 			"input input[name=chart-name]": "onNameChange",
 			"click .remove-uploaded-file-btn": "onRemoveUploadedFile",
 			"change .countries-select": "onCountriesSelect",
-			"submit form": "onFormSubmit"
+			"submit form": "onFormSubmit",
 		},
 
 		initialize: function( options ) {
 			
 			this.dispatcher = options.dispatcher;
 			
+			//create related models
+			App.ChartVariablesCollection = new App.Collections.ChartVariablesCollection();
+			App.ChartDimensionsModel = new App.Models.ChartDimensionsModel();
+
 			//create subviews
 			this.basicTabView = new App.Views.Form.BasicTabView( { dispatcher: this.dispatcher } );
 			this.axisTabView = new App.Views.Form.AxisTabView( { dispatcher: this.dispatcher } );

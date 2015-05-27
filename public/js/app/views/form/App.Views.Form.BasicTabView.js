@@ -6,28 +6,35 @@
 
 		el: "#form-view #basic-tab",
 		events: {
-			"input [name=chart-variable]": "onChartVariableChange"
+			"click .add-data-btn": "onAddDataBtn",
+			//"change [name=chart-variable]": "onChartVariableChange",
+			//"change [name=category-id]": "onCategoryChange",
+			//"change [name=subcategory-id]": "onSubCategoryChange",
 		},
 
 		initialize: function( options ) {
 			
 			this.dispatcher = options.dispatcher;
+
+			this.chartTypeSection = new App.Views.Form.ChartTypeSectionView( { dispatcher: this.dispatcher } );
+			this.addDataSection = new App.Views.Form.AddDataSectionView( { dispatcher: this.dispatcher } );
+			this.dimensionsSection = new App.Views.Form.DimensionsSectionView( { dispatcher: this.dispatcher } );
+
 			this.render();
 
 		},
 
 		render: function() {
+			
+		}
 
-			this.$chartVariable = this.$el.find( "[name=chart-variable]" );
-			//this.onChartVariableChange();
 
-		},
+		/*onChartVariableChange: function() {
 
-		onChartVariableChange: function() {
-
+			console.log( "on chart onChartVariableChange" ); 
 			App.ChartModel.set( "chart-variable", this.$chartVariable.val() );
 
-		}
+		}*/
 
 
 	});

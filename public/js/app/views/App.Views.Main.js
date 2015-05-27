@@ -25,6 +25,10 @@
 				this.importView = new App.Views.ImportView( {dispatcher: dispatcher } );
 			}
 			
+			//variable select
+			var variableSelects = new App.Views.UI.VariableSelects();
+			variableSelects.init();
+
 		}
 
 	});

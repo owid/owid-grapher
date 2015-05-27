@@ -7,4 +7,12 @@ class DataValue extends Model {
 	protected $guarded = ['id'];
 	protected $table = 'data_values';
 
+	public function entity() {
+		return $this->hasOne( 'App\Entity', 'id', 'fk_ent_id' );
+	}
+
+	public function time() {
+		return $this->hasOne( 'App\Time', 'id', 'fk_time_id' );
+	}
+
 }

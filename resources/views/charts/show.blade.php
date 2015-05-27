@@ -1,5 +1,9 @@
 @extends('app')
 
+@section('styles')
+	<link href="{{ asset('css/admin/charts.css') }}" rel="stylesheet" type="text/css">
+@endsection
+
 @section('content')
 	<div id="chart-view" class="col-sm-12 chart-wrapper chart-show-wrapper" data-chart-id="{{ $chart->id }}">
 		<div class="chart-wrapper-inner">

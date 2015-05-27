@@ -4,10 +4,11 @@
 
 	App.Models.ChartModel = Backbone.Model.extend( {
 
-		urlRoot: 'http://localhost:8888/oxford/our-world-in-data-chart-builder/public/charts',
+		urlRoot: Global.rootUrl + '/charts',
 
 		defaults: {
 			"selected-countries": [ "France", "Germany" ],
+			"variables": [],
 			"y-axis": {},
 			"x-axis": {}
 		},
@@ -36,6 +37,28 @@
 			}
 			this.trigger( "change" );
 
+		},
+
+		updateVariables: function( newVar ) {
+			//copy array
+			var variables = this.get( "variables" ).slice(),
+				varInArr = _.find( variables, function( v ){ return v.id == newVar.id; })
+
+			if( !varInArr ) {
+				variables.push( newVar );
+				this.set( "variables", variables );
+			}
+		},
+
+		removeVariable: function( varIdToRemove ) {
+			//copy array
+			var variables = this.get( "variables" ).slice(),
+				varInArr = _.find( variables, function( v ){ return v.id == newVar.id; })
+
+			if( !varInArr ) {
+				variables.push( newVar );
+				this.set( "variables", variables );
+			}
 		}
 
 

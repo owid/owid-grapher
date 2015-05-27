@@ -10,11 +10,12 @@ class Variable extends Model {
 		return $this->hasMany( 'App\DataValue', 'fk_var_id' );
 	}
 
-	public function saveData( $data ) {
-
-		$this->data()->saveMany( $data );
-
+	public function dataset() {
+		return $this->belongsTo( 'App\Dataset', 'fk_dst_id' );
 	}
 
+	public function saveData( $data ) {
+		$this->data()->saveMany( $data );
+	}
 
 }
