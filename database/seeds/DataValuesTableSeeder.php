@@ -15,12 +15,15 @@ class DataValuesTableSeeder extends Seeder {
 		
 		$values = array();
 
-		$cat_len = 3;
-		for( $i = 1; $i <= $cat_len; $i++ ) {
-			$var_len = 1000;
-			for( $y = 0; $y < $var_len; $y++ ) {
-				$values[] = [ 'value' => $y, 'description' => 'Description for var' .$y, 'fk_var_id' => $i, 'fk_input_files_id' => 1, 'fk_ent_id' => rand(1,5) ];
-			}
+		$ent_len = 5;
+		for( $z = 1; $z <= $ent_len; $z++ ) {
+			$cat_len = 3;
+			for( $i = 1; $i <= $cat_len; $i++ ) {
+				$var_len = 100;
+				for( $y = 1; $y <= $var_len; $y++ ) {
+					$values[] = [ 'value' => rand()*$y, 'description' => 'Description for var' .$y, 'fk_var_id' => $i, 'fk_input_files_id' => 1, 'fk_ent_id' => $z, 'fk_time_id' => $y  ];
+				}
+			}	
 		}
 		
 		// Uncomment the below to run the seeder

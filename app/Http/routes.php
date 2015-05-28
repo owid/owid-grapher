@@ -83,3 +83,5 @@ Route::group(['middleware' => 'auth'], function()
 
 Route::get( 'data', 'DataController@index' );
 Route::get( 'data/dimensions', 'DataController@dimensions' );
+Route::get( 'data/entities', 'DataController@entities' );
+Route::get( 'data/times', 'DataController@times' );

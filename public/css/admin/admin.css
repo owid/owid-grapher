@@ -171,7 +171,11 @@ button > i {
 			padding: 10px;
 		}
 
-	.
+	.form-wrapper .dd-empty {
+		min-height: 35px;
+		background-color: transparent;
+		background-image: none;
+	}
 
 .selected-countries-box {
 	margin: 20px 0px;

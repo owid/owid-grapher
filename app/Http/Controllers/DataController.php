@@ -23,13 +23,18 @@ class DataController extends Controller {
 	public function dimensions( Request $request ) {
 
 		$data = array();
-		
+		$dataByVariable = array();
+		$dataByEntity = array();
+
 		if( !Input::has( 'dimensions' ) ) {
 			return false;
 		}
 
 		$dimensionsInput = Input::get( 'dimensions' );
 		$dimensions = json_decode( $dimensionsInput );
+
+		//find out how many variables we have 
+		$groupByEntity = ( count( $dimensions ) > 1 )? false: true;
 
 		foreach( $dimensions as $dimension ) {
 			
@@ -40,55 +45,134 @@ class DataController extends Controller {
 			$variableData = DB::table( 'data_values' )
 				->join( 'entities', 'data_values.fk_ent_id', '=', 'entities.id' )
 				->join( 'times', 'data_values.fk_time_id', '=', 'times.id' )
+				//->join( 'variables', 'data_values.fk_var_id', '=', 'variables.id' )
 				->where( 'data_values.fk_var_id', $id )
 				->get();
 
-			//group variable data by entities
-			foreach( $variableData as $i=>$datum ) {
-
-				$entityId = $datum->fk_ent_id;
+			if( $groupByEntity ) {
 				
-				//do we have already object for that entity
-				if( !array_key_exists($entityId, $data) ) {
-					$data[ $entityId ] = array( 
-						"id" => $entityId,
-						"key" => $datum->name,
-						"values" => []
-					);
-				}
+				$dataByEntity = array();
 
-				//do we have already array for that value
-				if( !array_key_exists( $i, $data[ $entityId ][ "values" ] ) ) {
-					$data[ $entityId ][ "values" ][ $i ] = [];
-				}
-				$values = $data[ $entityId ][ "values" ][ $i ];
-				$values[ $property ] = $datum->value;
-				$data[ $entityId ][ "values" ][ $i ] = $values; 
+				//group variable data by entities
+				foreach( $variableData as $datum ) {
 
-			}
-
-		}
-
-		//sanity check, need to have all property values
-		foreach( $data as $entityId=>$entityData ) {
-
-			if( !empty($entityData) && !empty($entityData->values) ) {
-				foreach( $entityData->values as &$value ) {
-
-					if( !array_key_exists("x",$value) ) {
-						$value["x"] = 0;
-					}				
-					if( !array_key_exists("y",$value) ) {
-						$value["y"] = 0;
-					}
+					$entityId = $datum->fk_ent_id;
 					
-				}	
+					//do we have already object for that entity
+					if( !array_key_exists($entityId, $dataByEntity) ) {
+						$dataByEntity[ $entityId ] = array( 
+							"id" => intval($entityId),
+							"key" => $datum->name,
+							"values" => []
+						);
+					}
+
+					$dataByEntity[ $entityId ][ "values" ][] = array( "x" => floatval($datum->label), "y" => floatval($datum->value) );
+
+					//more complicated case for scatter plot and else
+					//do we have already array for that value
+					/*if( !array_key_exists( $i, $dataByEntity[ $entityId ][ "values" ] ) ) {
+						$dataByEntity[ $entityId ][ "values" ][ $i ] = [ "x" => floatval($datum->label), "y" => floatval($datum->value) ];
+					}
+					$i++;*/
+					/*$values = $data[ $entityId ][ "values" ][ $i ];
+					$values[ $property ] = $datum->value;
+					$data[ $entityId ][ "values" ][ $i ] = $values;*/
+
+				}
+
+			} else {
+
+				//multivariables
+				$dataByVariable[ "id-".$id ] = array( 
+					"id" => $id,
+					"key" => $dimension->variableId,
+					"values" => []
+				);
+
+				foreach( $variableData as $datum ) {
+					$dataByVariable[ "id-".$id ][ "values" ][] = array( "x" => floatval($datum->label), "y" => floatval($datum->value) );
+				}
+
 			}
-			
-			
+
 		}
 
-				
+		if( $groupByEntity ) {
+			//convert to array
+			foreach( $dataByEntity as $entityData ) {
+				$data[] = $entityData;
+			}
+		} else {
+			//convert to array
+			foreach( $dataByVariable as $varData ) {
+				$data[] = $varData;
+			}
+		}
+	
+		if( $request->ajax() ) {
+
+			return ['success' => true, 'data' => $data ];
+
+		} else {
+			//not ajax request, just spit out whatever is in data
+			return $data;
+		}
+
+	}
+
+	public function entities( Request $request ) {
+
+
+		$data = array();
+		if( !Input::has( 'variableIds' ) ) {
+			return false;
+		}
+
+		$variableIdsInput = Input::get( 'variableIds' );
+		$variableIds = explode( ',', $variableIdsInput );
+
+		//use query builder instead of eloquent
+		$entitiesData = DB::table( 'data_values' )
+			->select( 'entities.id', 'entities.name' )
+			->join( 'entities', 'data_values.fk_ent_id', '=', 'entities.id' )
+			->whereIn( 'data_values.fk_var_id', $variableIds )
+			->groupBy( 'name' )
+			->get();
+
+		$data = $entitiesData;
+
+		if( $request->ajax() ) {
+
+			return ['success' => true, 'data' => $data ];
+
+		} else {
+			//not ajax request, just spit out whatever is in data
+			return $data;
+		}
+
+	}
+
+	public function times( Request $request ) {
+
+		$data = array();
+		if( !Input::has( 'variableIds' ) ) {
+			return false;
+		}
+
+		$variableIdsInput = Input::get( 'variableIds' );
+		$variableIds = explode( ',', $variableIdsInput );
+
+		//use query builder instead of eloquent
+		$timesData = DB::table( 'data_values' )
+			->select( 'times.id', 'times.label' )
+			->join( 'times', 'data_values.fk_time_id', '=', 'times.id' )
+			->whereIn( 'data_values.fk_var_id', $variableIds )
+			->groupBy( 'label' )
+			->get();
+
+		$data = $timesData;
+
 		if( $request->ajax() ) {
 
 			return ['success' => true, 'data' => $data ];

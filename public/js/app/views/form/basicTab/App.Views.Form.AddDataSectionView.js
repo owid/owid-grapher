@@ -47,9 +47,20 @@
 		},
 
 		onVariableAdd: function( model ) {
+
+			//if there's empty element, remove it
+			this.$el.find( ".dd-empty" ).remove();
+			if( !this.$dd.find( ".dd-list" ).length ) {
+				//dd-list has been removed by nestable
+				var $ddList = $( "<ol class='dd-list'></ol>" );
+				this.$dd.append( $ddList );
+				this.$ddList = this.$dd.find( ".dd-list" );
+			}
+
 			var $li = "<li class='variable-label dd-item' data-variable-id='" + model.get( "id" ) + "'><div class='dd-handle'>" + model.get( "name" ) + "</div><span class='fa fa-close'></span></li>";
 			this.$ddList.append( $li );
 			this.refreshHandlers();
+
 		},
 
 		onVariableRemove: function( model ) {

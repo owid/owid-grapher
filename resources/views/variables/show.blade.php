@@ -1,5 +1,9 @@
 @extends('app')
 
+@section('styles')
+	{!! Rapyd::styles() !!} 
+@endsection
+
 @section('content')
 	<div class="module-wrapper index-variable-module">
 		<a class="back-btn" href="{{ route( 'datasets.show', $variable->fk_dst_id ) }}"><i class="fa fa-arrow-left"></i>Back to the dataset</a>
@@ -25,7 +29,10 @@
 		<div class="property-wrapper">
 			<h3 class="property-title">Data</h3>
 			<div class="property-value">
-			<table class="values-table">
+
+			{!! $grid !!}
+
+			<!--<table class="values-table">
 				<tr><th>Value</th><th>Entity</th><th>Time</th></tr>
 				@foreach( $values as $value )
 					<tr>
@@ -40,7 +47,11 @@
 					   </td>
 					</tr>
 				@endforeach
-			</table>
+			</table>-->
 		</div>
 	</div>
+@endsection
+
+@section('scripts')
+	{!! Rapyd::scripts() !!} 
 @endsection

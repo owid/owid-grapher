@@ -4,6 +4,20 @@
 	}
 
 /**
+*	add variable section
+**/
+.variable-label {}
+	.variable-label .dd-handle {
+		background: transparent;
+	}
+		.variable-label:hover {
+			background-color: #ddd;
+		}
+		.variable-label .dd-handle:hover {
+			color: inherit;
+		}
+
+/**
 *	select var popup
 **/
 .select-var-popup {
@@ -22,11 +36,24 @@
 /**
 *	dimension section
 **/
+.dimensions-list {
+	padding: 0;
+}
 .dimension-box {}
 	.dimension-box .dd-wrapper {
-		min-height: 200px;
+		min-height: 100px;
 	}
-	.dimension-box .dd-empty {
-		background-color: transparent;
-		background-image: none;
+	.dimensions-list .dd-empty {
+		border: 2px dashed #fff;
 	}
+
+/**
+*	time section
+**/
+.time-section {}
+	.time-section .irs {}
+		.time-section .irs.disabled {
+			opacity: .5;
+			pointer-events: none;
+		}
+

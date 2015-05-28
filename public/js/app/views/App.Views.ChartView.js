@@ -23,7 +23,11 @@
 			this.$el.find( ".chart-description" ).html( App.ChartModel.get( "chart-description" ) );
 			
 			var dimensionsString = App.ChartModel.get( "chart-dimensions" );
-			if( dimensionsString ) {
+			if( App.ChartModel.get( "chart-data" ) ) {
+			
+				this.updateChart( App.ChartModel.get( "chart-data" ) );
+			
+			} else if( dimensionsString ) {
 
 				console.log( "dimensionsString" );
 				console.log( dimensionsString );
@@ -34,20 +38,12 @@
 					data: { "dimensions": dimensionsString },
 					success: function( response ) {
 						if( response.data ) {
-							
 							that.updateChart( response.data );
-							//add values to response
-							/*_.each( response.data, function( v, k ) {
-								dimensionsById[ k ].values = v;	
-							} );*/
 						}
-						//that.updateChart( dimensionsById );
 					}
 				} );
 
-			} else if( App.ChartModel.get( "chart-data" ) ) {
-				this.updateChart( App.ChartModel.get( "chart-data" ) );
-			}
+			} 
 
 			/*if( App.ChartModel.get( "chart-variable" ) ) {
 				var that = this;
@@ -71,8 +67,6 @@
 
 		updateChart: function( data ) {
 
-			console.log( "updateChart", data );
-
 			if( !data ) {
 				return;
 			}
@@ -82,9 +76,15 @@
 
 			//filter data for selected countries
 			var selectedCountries = App.ChartModel.get( "selected-countries" );
-			localData = _.filter( localData, function( value, key, list ) {
-				return ( _.indexOf( selectedCountries, value.key ) > -1 );
-			} );
+			if( selectedCountries && selectedCountries.length ) {
+				localData = _.filter( localData, function( value, key, list ) {
+					return ( _.indexOf( selectedCountries, value.key ) > -1 );
+				} );
+			} else {
+				//TODO - nonose? just convert associative array to array
+				localData = _.map( localData, function( value ) { return value; } );
+			}
+			
 
 			//filter by chart time
 			var chartTime = App.ChartModel.get( "chart-time" );
@@ -155,7 +155,6 @@
 					.axisLabel( yAxis[ "axis-label" ] )
 					.axisLabelDistance( yAxisLabelDistance )
 					.tickFormat( function(d) { return yAxisPrefix + d + yAxisSuffix; });
-				
 				var svgSelection = d3.select( "svg" )
 					.datum(localData)
 					.call(that.chart);

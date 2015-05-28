@@ -61,10 +61,12 @@
 				var $box = $( v ),
 					$droppedVariables = $box.find( ".variable-label" );
 				if( $droppedVariables.length ) {
-					//just in case there was more variables
-					var $droppedVariable = $droppedVariables.eq( 0 ),
-						dimension = { variableId: $droppedVariable.attr( "data-variable-id" ), property: $box.attr( "data-property" ), name: $box.find( "h4" ).text() };
-					dimensions.push( dimension );
+					//just in case there were more variables
+					$.each( $droppedVariables, function( i, v ) {
+						var $droppedVariable = $( v ),
+							dimension = { variableId: $droppedVariable.attr( "data-variable-id" ), property: $box.attr( "data-property" ), name: $box.find( "h4" ).text() };
+						dimensions.push( dimension );
+					} );
 				}
 
 			} );

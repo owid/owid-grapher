@@ -77,7 +77,15 @@ class VariablesController extends Controller {
 			return ['success' => true, 'data' => [ 'variable' => $variable, 'data' => $data ] ];
 		} else {
 			$values = $variable->data;
-			return view( 'variables.show', compact('variable','values') );
+
+			$grid = \DataGrid::source($variable);
+			$grid->add( 'id', 'ID', true)->style( 'width:100px' );
+			$grid->add( 'value', 'Value', true);
+			//$grid->add( '<a href="' .route( 'entities.index' ). '/{{$id}}">View</a>', 'View' );
+			//$grid->add( '<a href="' .route( 'entities.index' ). '/{{$id}}/edit">Edit</a>', 'Edit');
+			$grid->paginate(10);
+			
+			return view( 'variables.show', compact('variable','values','grid') );
 		}
 	}
 

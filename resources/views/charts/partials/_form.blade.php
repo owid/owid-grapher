@@ -46,11 +46,11 @@
 				<section class="form-section add-data-section">
 					<div class="form-section-header">
 						<h2><span class="form-section-digit">3</span>Add your data</h2>
-						<a href="#" class="add-data-btn"><i class="fa fa-plus"></i>Add variable</a>
 					</div>
 					<div class="form-section-content">
+						<a href="#" class="add-data-btn"><i class="fa fa-plus"></i>Add variable</a>
 						<div class="dd">
-							<ol class="dd-list no-bullets">
+							<ol class="dd-list">
 
 							</ol>
 						</div>
@@ -64,26 +64,23 @@
 					</div>-->
 				</section>
 				<section class="form-section dimensions-section">
-					<div class="form-section-header">
-						<h2><span class="form-section-digit">3</span>Map your dimensions</h2>
-					</div>
 					<div class="form-section-content">
 						
 					</div>
 					<input type="hidden" name="chart-dimensions" value="" />
 				</section>
-				<section class="form-section">
+				<section class="form-section entities-section">
 					<div class="form-section-header">
-						<h2><span class="form-section-digit">3</span>Pick your countries</h2>
+						<h2><span class="form-section-digit">4</span>Pick your countries</h2>
 					</div>
 					<div class="form-section-content">
 						<p class="form-section-desc">Select countries from drop down below. You can set countries colors by clicking on the country label itself.</p>
 						<ul class="selected-countries-box no-bullets">
 
 						</ul>
-						<select class="form-control chosen-select countries-select" data-placeholder="Choose a Country...">
+						<select class="form-control countries-select" data-placeholder="Choose a Country...">
 							<option value=""></option>
-							<option value="World">World</option>
+							<!--<option value="World">World</option>
 							<option value="United States">United States</option>
 							<option value="United Kingdom">United Kingdom</option>
 							<option value="Afghanistan">Afghanistan</option>
@@ -334,17 +331,20 @@
 							<option value="Western Sahara">Western Sahara</option>
 							<option value="Yemen">Yemen</option>
 							<option value="Zambia">Zambia</option>
-							<option value="Zimbabwe">Zimbabwe</option>
+							<option value="Zimbabwe">Zimbabwe</option>-->
 						</select>
 					</div>
 				</section>
-				<section class="form-section">
+				<section class="form-section time-section">
 					<div class="form-section-header">
-						<h2><span class="form-section-digit">4</span>Define your time</h2>
+						<h2><span class="form-section-digit">5</span>Define your time</h2>
 					</div>
 					<div class="form-section-content">
-						<p class="form-section-desc">Using <a href="http://ionden.com/a/plugins/ion.rangeSlider/demo.html" target="_blank">Ion range slider</a> for now, not sure it's the best solution.</p>
-						<input type="text" name="chart-time" value="" />
+						<label>
+							<input type="checkbox" name="dynamic-time" checked/>
+							Use entire time period of the selected data
+						</label>
+						<input type="text" name="chart-time" value=""/>
 					</div>
 				</section>
 			</div>

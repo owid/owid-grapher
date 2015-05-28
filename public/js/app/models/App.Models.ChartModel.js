@@ -7,7 +7,8 @@
 		urlRoot: Global.rootUrl + '/charts',
 
 		defaults: {
-			"selected-countries": [ "France", "Germany" ],
+			"selected-countries": [],
+			//"selected-countries": [ "France", "Germany" ],
 			"variables": [],
 			"y-axis": {},
 			"x-axis": {}

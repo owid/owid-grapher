@@ -18,7 +18,9 @@
 			
 			//create related models
 			App.ChartVariablesCollection = new App.Collections.ChartVariablesCollection();
+			App.AvailableEntitiesCollection = new App.Collections.AvailableEntitiesCollection();
 			App.ChartDimensionsModel = new App.Models.ChartDimensionsModel();
+			App.AvailableTimeModel = new App.Models.AvailableTimeModel();
 
 			//create subviews
 			this.basicTabView = new App.Views.Form.BasicTabView( { dispatcher: this.dispatcher } );
@@ -42,18 +44,6 @@
 			App.ChartModel.on( "change:selected-countries", this.render, this );
 
 			this.$removeUploadedFileBtn.hide();
-
-			$( "[name=chart-time]" ).ionRangeSlider({
-				type: "double",
-				min: 0,
-				max: 2015,
-				from: 1000,
-				to: 1500,
-				grid: true,
-				onChange: function( data ) {
-					App.ChartModel.set( "chart-time", [data.from, data.to] );
-        		}
-			});
 
 			this.render();
 
