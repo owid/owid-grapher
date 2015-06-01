@@ -29,9 +29,6 @@
 			
 			} else if( dimensionsString ) {
 
-				console.log( "dimensionsString" );
-				console.log( dimensionsString );
-				
 				var that = this;
 				$.ajax( {
 					url: Global.rootUrl + "/data/dimensions",
@@ -75,10 +72,18 @@
 			var localData = $.extend( true, localData, data );
 
 			//filter data for selected countries
-			var selectedCountries = App.ChartModel.get( "selected-countries" );
-			if( selectedCountries && selectedCountries.length ) {
+			var selectedCountries = App.ChartModel.get( "selected-countries" ),
+				selectedCountriesNames = _.map( selectedCountries, function(v) { return v.name; } );
+
+			if( selectedCountries && selectedCountriesNames.length ) {
 				localData = _.filter( localData, function( value, key, list ) {
-					return ( _.indexOf( selectedCountries, value.key ) > -1 );
+					//set color while in the loop
+					var country = selectedCountries[ value.key ];
+					if( country && country.color ) {
+						value.color = country.color;
+					}
+					//actual filtering
+					return ( _.indexOf( selectedCountriesNames, value.key ) > -1 );
 				} );
 			} else {
 				//TODO - nonose? just convert associative array to array
@@ -102,7 +107,7 @@
 				} );
 
 			}
-			
+
 			//get axis configs
 			var xAxis = App.ChartModel.get( "x-axis" ),
 				yAxis = App.ChartModel.get( "y-axis" ),

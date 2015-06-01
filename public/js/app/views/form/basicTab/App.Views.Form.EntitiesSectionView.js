@@ -37,7 +37,7 @@
 		onCountriesSelect: function( evt ) {
 
 			var $select = $( evt.target );
-			App.ChartModel.addSelectedCountry( $select.val() );
+			App.ChartModel.addSelectedCountry( { name: $select.val() } );
 
 		}
 

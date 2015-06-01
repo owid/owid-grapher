@@ -7,7 +7,7 @@
 		urlRoot: Global.rootUrl + '/charts',
 
 		defaults: {
-			"selected-countries": [],
+			"selected-countries": {},
 			//"selected-countries": [ "France", "Germany" ],
 			"variables": [],
 			"y-axis": {},
@@ -16,17 +16,41 @@
 
 		addSelectedCountry: function( country ) {
 
-			this.set( "selected-countries", this.get( "selected-countries" ).concat( country ) ); 
+			var selectedCountries = this.get( "selected-countries" );
+			selectedCountries[ country.name ] = country;
+			this.trigger( "change:selected-countries" );
+			this.trigger( "change" );
+			
+			//this.set( "selected-countries", this.get( "selected-countries" ).concat( country ) ); 
+
+		},
+
+		updateSelectedCountry: function( countryName, color ) {
+
+			var selectedCountries = this.get( "selected-countries" ),
+				country = selectedCountries[ countryName ];
+			if( country ) {
+				country.color = color;
+				this.trigger( "change:selected-countries" );
+				this.trigger( "change" );
+			} 
 
 		},
 
 		removeSelectedCountry: function( countryName ) {
 
-			var selectedCountries = this.get( "selected-countries" ).slice( 0 );
+			var selectedCountries = this.get( "selected-countries" );
+			if( selectedCountries[ countryName ] ) {
+				delete selectedCountries[ countryName ];
+				this.trigger( "change:selected-countries" );
+				this.trigger( "change" );
+			}
+
+			/*var selectedCountries = this.get( "selected-countries" ).slice( 0 );
 			selectedCountries = _.filter( selectedCountries, function( value, key, list ) {
 				return ( value != countryName )? true: false;
 			} );
-			this.set( "selected-countries", selectedCountries );
+			this.set( "selected-countries", selectedCountries );*/
 
 		},
 

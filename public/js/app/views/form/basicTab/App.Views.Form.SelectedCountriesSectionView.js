@@ -26,7 +26,11 @@
 				selectedCountries = App.ChartModel.get( "selected-countries" );
 
 			$.each( selectedCountries, function( i, v ) {
-				that.$el.append( "<li class='country-label' data-name='" + v + "'>" + v + "<span class='fa fa-remove'></span></li>" );
+				var $li = $( "<li class='country-label' data-name='" + v.name + "'>" + v.name + "<span class='fa fa-remove'></span></li>" );
+				that.$el.append( $li );
+				if( v.color ) {
+					$li.css( "background-color", v.color );
+				}
 			} );
 
 			var $lis = this.$el.find( ".country-label" ),
@@ -45,7 +49,8 @@
 				colorPicker.init( $countryLabel );
 				colorPicker.onSelected = function( value ) {
 					$countryLabel.css( "background-color", value );
-					//$el.parent().parent().attr( "data-color", value );
+					$countryLabel.attr( "data-color", value );
+					App.ChartModel.updateSelectedCountry( $countryLabel.attr( "data-name" ), value );
 					colorPicker.close();
 					//that.$el.trigger( "change" );
 				};
