@@ -6,7 +6,7 @@
 
 		el: "#form-view #axis-tab",
 		events: {
-			"input input.form-control": "onFormControlChange",
+			"input input.form-control, select.form-control": "onFormControlChange",
 		},
 
 		initialize: function( options ) {
@@ -30,6 +30,7 @@
 			//strip control name prefix
 			controlName = controlName.substring( 8 );
 
+			console.log( "onFormControlChange" );
 			App.ChartModel.setAxisConfig( axisName, controlName, controlValue );
 
 		}

@@ -5,11 +5,16 @@
 	App.Views.ChartView = Backbone.View.extend({
 
 		el: "#chart-view",
-		events: {},
+		events: {
+			"click .chart-save-png-btn": "onSavePng"
+		},
 
 		initialize: function( options ) {
 			
 			this.dispatcher = options.dispatcher;
+			
+			this.header = new App.Views.Chart.Header( { dispatcher: this.dispatcher } );
+
 			this.render();
 
 			//setup events
@@ -60,6 +65,17 @@
 
 			this.render();
 
+		},
+
+		onSavePng: function( evt ) {
+
+			evt.preventDefault();
+			//App.Utils.encodeSvgToPng( $( ".nvd3-svg" ).get( 0 ).innerHTML );
+			var $svgCanvas = $( ".nvd3-svg" );
+			if( $svgCanvas.length ) {
+				saveSvgAsPng( $( ".nvd3-svg" ).get( 0 ), "diagram.png");
+			}
+			
 		},
 
 		updateChart: function( data ) {
@@ -120,7 +136,11 @@
 				xAxisMin = ( xAxis[ "axis-min" ] || null ),
 				xAxisMax = ( xAxis[ "axis-max" ] || null ),
 				yAxisMin = ( yAxis[ "axis-min" ] || 0 ),
-				yAxisMax = ( yAxis[ "axis-max" ] || null );
+				yAxisMax = ( yAxis[ "axis-max" ] || null ),
+				xAxisScale = ( xAxis[ "axis-scale" ] || "linear" ),
+				yAxisScale = ( yAxis[ "axis-scale" ] || "linear" );
+
+			console.log( xAxis, yAxis, xAxisMin, xAxisMax, yAxisMin, yAxisMax, xAxisScale, yAxisScale );
 
 			var that = this;
 			nv.addGraph(function() {
@@ -136,25 +156,51 @@
 					.axisLabelDistance( xAxisLabelDistance )
 					.tickFormat( function(d) { return xAxisPrefix + d + xAxisSuffix; });
 				
-				//forcing xAxis - do not force zero
-				var forceX = [];
-				if( !isNaN( xAxisMin ) ) {
-					forceX.push( xAxisMin );
+				//get extend
+				var allValues = [];
+				_.each( localData, function( v, i ) {
+					allValues = allValues.concat( v.values );
+				} );
+				
+				var xDomain = d3.extent( allValues.map( function( d ) { return d.x; } ) ),
+					yDomain = d3.extent( allValues.map( function( d ) { return d.y; } ) ),
+					isClamped = false;
+				if( xAxisMin && !isNaN( xAxisMin ) ) {
+					xDomain[ 0 ] = xAxisMin;
+					isClamped = true;
 				}
-				if( !isNaN( xAxisMax ) ) {
-					forceX.push( xAxisMax );
+				if( xAxisMax && !isNaN( xAxisMax ) ) {
+					xDomain[ 1 ] = xAxisMax;
+					isClamped = true;
 				}
-				that.chart.forceX( forceX );
+				if( yAxisMin && !isNaN( yAxisMin ) ) {
+					yDomain[ 0 ] = yAxisMin;
+					isClamped = true;
+				}
+				if( yAxisMax && !isNaN( yAxisMax ) ) {
+					yDomain[ 1 ] = yAxisMax;
+					isClamped = true;
+				}
 
-				//forcing yAxis
-				var forceY = [];
-				if( !isNaN( yAxisMin ) ) {
-					forceY.push( yAxisMin );
+				//manually clamp values
+				if( isClamped ) {
+					that.chart.xDomain( xDomain );
+					that.chart.yDomain( yDomain );
+					that.chart.xScale().clamp( true );
+					that.chart.yScale().clamp( true );
 				}
-				if( !isNaN( xAxisMax ) ) {
-					forceY.push( yAxisMax );
+
+				//set scales
+				if( xAxisScale === "linear" ) {
+					that.chart.xScale( d3.scale.linear() ); 
+				} else if( xAxisScale === "log" ) {
+					that.chart.xScale( d3.scale.log() ); 
 				}
-				that.chart.forceY( forceY );
+				if( yAxisScale === "linear" ) {
+					that.chart.yScale( d3.scale.linear() ); 
+				} else if( yAxisScale === "log" ) {
+					that.chart.yScale( d3.scale.log() ); 
+				}
 
 				that.chart.yAxis
 					.axisLabel( yAxis[ "axis-label" ] )

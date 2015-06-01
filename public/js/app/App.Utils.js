@@ -1,8 +1,6 @@
 ;( function() {
 
 	"use strict";
-
-	App.Utils = {};
 	
 	App.Utils.mapData = function( rawData, transposed ) {
 
@@ -113,7 +111,37 @@
 		//here will be country name detection and stuff
 		return str;
 
-	}
+	},
+
+	App.Utils.encodeSvgToPng = function( html ) {
+
+		console.log( html );
+		var imgSrc = "data:image/svg+xml;base64," + btoa(html),
+			img = "<img src='" + imgSrc + "'>"; 
+		
+		//d3.select( "#svgdataurl" ).html( img );
+
+		$( ".chart-wrapper-inner" ).html( img );
+
+		/*var canvas = document.querySelector( "canvas" ),
+			context = canvas.getContext( "2d" );
+
+		var image = new Image;
+		image.src = imgsrc;
+		image.onload = function() {
+			context.drawImage(image, 0, 0);
+			var canvasData = canvas.toDataURL( "image/png" );
+			var pngImg = '<img src="' + canvasData + '">'; 
+			d3.select("#pngdataurl").html(pngimg);
+
+			var a = document.createElement("a");
+			a.download = "sample.png";
+			a.href = canvasdata;
+			a.click();
+		};*/
+
+
+	};
 
 
 })();

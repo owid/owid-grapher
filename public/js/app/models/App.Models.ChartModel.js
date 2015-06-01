@@ -8,6 +8,7 @@
 
 		defaults: {
 			"selected-countries": {},
+			"tabs": [ "chart", "data", "sources" ],
 			//"selected-countries": [ "France", "Germany" ],
 			"variables": [],
 			"y-axis": {},
@@ -60,6 +61,7 @@
 			if( axis ) {
 				axis[ prop ] = value;
 			}
+			console.log( axis, prop, value );
 			this.trigger( "change" );
 
 		},

@@ -111,6 +111,7 @@
 		<script src="{{ asset('js/libs/html5csv.js') }}"></script>
 		<script src="{{ asset('js/libs/d3.js') }}"></script>
 		<script src="{{ asset('js/libs/nv.d3.js') }}"></script>
+		<script src="{{ asset('js/libs/saveSvgAsPng.js') }}"></script>
 
 		<script src="{{ asset('js/libs/underscore.js') }}"></script>    
 		<script src="{{ asset('js/libs/backbone.js') }}"></script>    

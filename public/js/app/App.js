@@ -7,7 +7,7 @@
 	var $chartShowWrapper = $( ".chart-show-wrapper, .chart-edit-wrapper" ),
 		chartId = $chartShowWrapper.attr( "data-chart-id" );
 
-	if( $chartShowWrapper.length && chartId !== "" ) {
+	if( $chartShowWrapper.length && chartId ) {
 
 		//showing existing chart
 		App.ChartModel = new App.Models.ChartModel( { id: chartId } );

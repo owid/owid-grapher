@@ -380,6 +380,13 @@
 								<label for="chart-y-axis-suffix">Y-Axis Suffix</label>
 								<input class="form-control" type="text" name="chart-y-axis-suffix" />
 							</div>
+							<div class="input-wrapper">
+								<label for="chart-y-scale">Y-Axis Scale</label>
+								<select class="form-control" type="text" name="chart-y-axis-scale">
+									<option value="linear">Linear</option>
+									<option value="log">Log</option>
+								</select>
+							</div>
 						</div>
 						<div class="x-section">
 							<h3>X Axis</h3>
@@ -407,6 +414,13 @@
 								<label for="chart-x-axis-suffix">X-Axis Suffix</label>
 								<input class="form-control" type="text" name="chart-x-axis-suffix" />
 							</div>
+							<div class="input-wrapper">
+								<label for="chart-y-scale">X-Axis Scale</label>
+								<select class="form-control" type="text" name="chart-x-axis-scale">
+									<option value="linear">Linear</option>
+									<option value="log">Log</option>
+								</select>
+							</div>
 						</div>
 					</div>
 				</section>
@@ -432,9 +446,42 @@
 				</section>
 			</div>
 			<div id="export-tab" class="tab-pane">
+				<section class="form-section tabs-section">
+					<div class="form-section-header">
+						<h2><span class="form-section-digit">8a</span>Which tabs</h2>
+					</div>
+					<div class="form-section-content">
+						<ol>
+							<li>
+								<label class="chart-tab-check">
+									<input type="checkbox" value="chart" />
+									Chart tab
+								</label>
+							</li>	
+							<li>
+								<label class="data-tab-check">
+									<input type="checkbox" value="data" />
+									Data tab
+								</label>
+							</li>
+							<li>
+								<label class="map-tab-check">
+									<input type="checkbox" value="map" />
+									Map tab
+								</label>
+							</li>
+							<li>
+								<label class="sources-tab-check">
+									<input type="checkbox" value="sources" />
+									Sources tab
+								</label>
+							</li>
+						</ol>
+					</div>
+				</section>
 				<section class="form-section">
 					<div class="form-section-header">
-						<h2><span class="form-section-digit">8</span>Embed your chart</h2>
+						<h2><span class="form-section-digit">8b</span>Embed your chart</h2>
 					</div>
 					<div class="form-section-content">
 						<p class="form-section-desc">Copy and paste code below to use the chart on your page.</p>
