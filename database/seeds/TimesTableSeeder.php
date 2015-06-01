@@ -14,10 +14,15 @@ class TimesTableSeeder extends Seeder {
 		DB::unprepared($statement);
 
 		$times = array();
-		$len = 100;
-		for( $i = 0; $i < $len; $i++ ) {
-			$times[] = [ 'label' => $i+1000 ];
+		$roundLen = 15;
+		for( $y = 0; $y < $roundLen; $y++ ) {
+			$len = 100;
+			for( $i = 0; $i < $len; $i++ ) {
+				$times[] = [ 'label' => $i+1000 ];
+			}
 		}
+
+		
 		// Uncomment the below to run the seeder
 		DB::table('times')->insert($times);
 	}

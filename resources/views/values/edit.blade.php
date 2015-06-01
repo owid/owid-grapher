@@ -4,6 +4,11 @@
 	<div class="module-wrapper edit-value-module">
 		<a class="back-btn" href="{{ route( 'variables.show', $dataValue->fk_var_id ) }}"><i class="fa fa-arrow-left"></i>Back to the variable</a>
 		<h2>Edit value</h2>
+		<div class="pull-right">
+			{!! Form::open(array('class' => 'form-inline', 'method' => 'DELETE', 'route' => array('values.destroy', $dataValue->id))) !!}
+				{!! Form::submit('Delete value', array('class' => 'btn btn-danger')) !!}
+			{!! Form::close() !!}
+		</div>
 		{!! Form::model($dataValue, ['method' => 'PATCH', 'route' => ['values.update', $dataValue->id]]) !!}
 			<div class="form-group">
 				{!! Form::label('value', 'Value:') !!}
@@ -24,6 +29,6 @@
 			<div class="form-group">
 				{!! Form::submit('Update value', ['class'=>'btn btn-success']) !!}
 			</div>
-	    {!! Form::close() !!}
+		{!! Form::close() !!}
 	</div>
 @endsection

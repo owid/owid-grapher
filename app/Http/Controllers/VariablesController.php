@@ -1,7 +1,9 @@
 <?php namespace App\Http\Controllers;
 
 use DB;
+use Input;
 use App\Variable;
+use App\Entity;
 use App\DataValue;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
@@ -76,16 +78,46 @@ class VariablesController extends Controller {
 			}
 			return ['success' => true, 'data' => [ 'variable' => $variable, 'data' => $data ] ];
 		} else {
+			
+			//data
 			$values = $variable->data;
+			$source = DataValue::with( array('Entity','Time') )->where( 'fk_var_id', '=', $variable->id ); 
+			$entityList = DataValue::where( 'fk_var_id', '=', $variable->id )->lists('fk_var_id');
+			$entities = Entity::whereIn( 'id', $entityList );
 
-			$grid = \DataGrid::source($variable);
+			//datagrid & filter
+			$filter = \DataFilter::source( $source );
+			$filter->attributes(array('class'=>'form-inline'));
+			$filter->add('value','Value', 'text');
+			//$filter->add('Entity.name','Entity', 'text');
+			//$filter->add('Entity.name','Entity','select')->options($entities->lists('name','name'));
+			$filter->add('Entity.name','Entity','select')->options( Entity::lists('name', 'name'));
+			$filter->add('Time.label','Time', 'text');
+			//$filter->add('Time.label','Time','daterange')->format('m/d/Y', 'en');
+        	$filter->submit('search');
+			$filter->build();
+
+			$grid = \App\Components\BatchDataGrid::source( $filter );
 			$grid->add( 'id', 'ID', true)->style( 'width:100px' );
 			$grid->add( 'value', 'Value', true);
-			//$grid->add( '<a href="' .route( 'entities.index' ). '/{{$id}}">View</a>', 'View' );
-			//$grid->add( '<a href="' .route( 'entities.index' ). '/{{$id}}/edit">Edit</a>', 'Edit');
-			$grid->paginate(10);
+			$grid->add( 'Entity.name', 'Entity', true);
+			$grid->add( 'Time.label', 'Time', true);
+			$grid->add( 'description', 'Description' );
+
+			//$grid->checkbox('title','Title');
+
+			$grid->add( '<a href="' .route( 'values.index' ). '/{{$id}}/edit">Edit</a>', 'Edit' );
+			//$grid->paginate(10);
+
+			//is csv export?
+			if( Input::has( 'export' ) && Input::get( 'export' ) == 'csv' ) {
+				return $grid->buildCSV('export_variable', 'Y-m-d.His'); 
+			}
+
+			//construct csv export url
+			$exportUrl = $request->fullUrl() .'&export=csv';
 			
-			return view( 'variables.show', compact('variable','values','grid') );
+			return view( 'variables.show', compact( 'variable', 'values', 'grid', 'filter', 'exportUrl' ) );
 		}
 	}
 

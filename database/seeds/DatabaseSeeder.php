@@ -18,10 +18,10 @@ class DatabaseSeeder extends Seeder {
 		$this->call('InputFilesTableSeeder');
 
 		$this->call('EntityTypesTableSeeder');
-		//$this->call('EntitiesTableSeeder');
+		$this->call('EntitiesTableSeeder');
 	
 		$this->call('VariableTypesTableSeeder');
-		//$this->call('TimesTableSeeder');
+		$this->call('TimesTableSeeder');
 		
 		$this->call('DatasetCategoriesTableSeeder');
 		$this->call('DatasetSubcategoriesTableSeeder');
@@ -29,9 +29,9 @@ class DatabaseSeeder extends Seeder {
 		$this->call('ChartTypesTableSeeder');
 		$this->call('ChartTypeDimensionsTableSeeder');
 
-		//$this->call('DatasetsTableSeeder');
-		//$this->call('VariablesTableSeeder');
-		//$this->call('DataValuesTableSeeder');
+		$this->call('DatasetsTableSeeder');
+		$this->call('VariablesTableSeeder');
+		$this->call('DataValuesTableSeeder');
 
 	}
 

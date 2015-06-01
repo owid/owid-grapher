@@ -35,6 +35,16 @@ button > i {
 	-webkit-appearance: none; 
 }
 
+/* tables */
+.table {}
+	.table tr {
+		border-bottom: 1px solid gray;
+	}
+		.table th, .table td {
+			border-top: 0px !important;
+			border-bottom: 0px !important;
+		}
+
 /* ==========================================================================
    Header
    ========================================================================== */
