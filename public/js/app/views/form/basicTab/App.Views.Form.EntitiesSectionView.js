@@ -5,7 +5,9 @@
 	App.Views.Form.EntitiesSectionView = Backbone.View.extend({
 
 		el: "#form-view #basic-tab .entities-section",
-		events: {},
+		events: {
+			"change .countries-select": "onCountriesSelect",
+		},
 
 		initialize: function( options ) {
 			
@@ -29,6 +31,13 @@
 			App.AvailableEntitiesCollection.each( function( model ) {
 				$entitiesSelect.append( $( "<option>" + model.get( "name" ) + "</option>" ) );	
 			});
+
+		},
+
+		onCountriesSelect: function( evt ) {
+
+			var $select = $( evt.target );
+			App.ChartModel.addSelectedCountry( $select.val() );
 
 		}
 

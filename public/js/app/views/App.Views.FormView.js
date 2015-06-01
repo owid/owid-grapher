@@ -8,7 +8,6 @@
 		events: {
 			"input input[name=chart-name]": "onNameChange",
 			"click .remove-uploaded-file-btn": "onRemoveUploadedFile",
-			"change .countries-select": "onCountriesSelect",
 			"submit form": "onFormSubmit",
 		},
 
@@ -32,26 +31,22 @@
 			//fetch doms
 			this.$removeUploadedFileBtn = this.$el.find( ".remove-uploaded-file-btn" );
 			this.$filePicker = this.$el.find( ".file-picker-wrapper [type=file]" );
-			this.$selectedCountriesBox = this.$el.find( ".selected-countries-box" );
-
+			
 			//setup events
-			var that = this;
+			/*var that = this;
 			CSV.begin( this.$filePicker.selector ).go( 
 				function( err, data ) {
 					that.onCsvSelected( err, data );
 				}
 			);
-			App.ChartModel.on( "change:selected-countries", this.render, this );
-
-			this.$removeUploadedFileBtn.hide();
+			
+			this.$removeUploadedFileBtn.hide();*/
 
 			this.render();
 
 		},
 
 		render: function() {
-
-			this.updateSelectedCountries();
 
 		},
 
@@ -78,13 +73,6 @@
 
 		},
 
-		onCountriesSelect: function( evt ) {
-
-			var $select = $( evt.target );
-			App.ChartModel.addSelectedCountry( $select.val() );
-
-		},
-
 		onRemoveUploadedFile: function( evt ) {
 
 			this.$filePicker.replaceWith( this.$filePicker.clone() );
@@ -98,53 +86,6 @@
 			} );
 
 			this.$removeUploadedFileBtn.hide();
-
-		},
-
-		updateSelectedCountries: function() {
-
-			//remove everything
-			this.$selectedCountriesBox.empty();
-
-			var that = this,
-				selectedCountries = App.ChartModel.get( "selected-countries" );
-
-			$.each( selectedCountries, function( i, v ) {
-				that.$selectedCountriesBox.append( "<li class='country-label' data-name='" + v + "'>" + v + "<span class='fa fa-remove'></span></li>" );
-			} );
-
-			var $lis = this.$selectedCountriesBox.find( ".country-label" ),
-				$lisRemoveBtns = $lis.find( ".fa-remove" ),
-				colorPicker = null;
-
-			$lis.on( "click", function( evt ) {
-
-				evt.preventDefault();
-
-				var $countryLabel = $( evt.currentTarget );
-				if( colorPicker ) {
-					colorPicker.close();
-				}
-				colorPicker = new App.Views.UI.ColorPicker( $countryLabel );
-				colorPicker.init( $countryLabel );
-				colorPicker.onSelected = function( value ) {
-					$countryLabel.css( "background-color", value );
-					//$el.parent().parent().attr( "data-color", value );
-					colorPicker.close();
-					//that.$el.trigger( "change" );
-				};
-
-			} );	
-
-			$lisRemoveBtns.on( "click", function( evt ) {
-
-				evt.preventDefault();
-				var $this = $( this ),
-					$parent = $this.parent(),
-					countryName = $parent.attr( "data-name" );
-				App.ChartModel.removeSelectedCountry( countryName );
-
-			})	
 
 		},
 

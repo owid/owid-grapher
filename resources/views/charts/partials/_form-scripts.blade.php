@@ -8,6 +8,7 @@
 <script src="{{ asset('js/app/views/form/basicTab/App.Views.Form.ChartTypeSectionView.js') }}"></script>
 <script src="{{ asset('js/app/views/form/basicTab/App.Views.Form.AddDataSectionView.js') }}"></script>
 <script src="{{ asset('js/app/views/form/basicTab/App.Views.Form.DimensionsSectionView.js') }}"></script>
+<script src="{{ asset('js/app/views/form/basicTab/App.Views.Form.SelectedCountriesSectionView.js') }}"></script>
 <script src="{{ asset('js/app/views/form/basicTab/App.Views.Form.EntitiesSectionView.js') }}"></script>
 <script src="{{ asset('js/app/views/form/basicTab/App.Views.Form.TimeSectionView.js') }}"></script>
 
