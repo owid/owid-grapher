@@ -87,9 +87,11 @@ class ChartsController extends Controller {
 			$config = json_decode( $chart->config );
 			return response()->json( $config );
 		} else {
+			$data = new \StdClass;
 			$data->variables = Variable::with('Dataset')->get();
 			$data->categories = DatasetCategory::all();
 			$data->subcategories = DatasetSubcategory::all();
+			$data->chartTypes = ChartType::lists( 'name', 'id' );
 			return view('charts.show', compact( 'chart' ) );
 		}
 	}
@@ -106,10 +108,11 @@ class ChartsController extends Controller {
 		if( $request->ajax() ) {
 			return response()->json( $config );
 		} else {
-			$variables = Variable::lists( 'name', 'id' );
 			$data = new \StdClass;
-			$data->variables = $variables;
-			$data->config = $config;
+			$data->variables = Variable::with('Dataset')->get();
+			$data->categories = DatasetCategory::all();
+			$data->subcategories = DatasetSubcategory::all();
+			$data->chartTypes = ChartType::lists( 'name', 'id' );
 			return view('charts.edit', compact( 'chart' ) )->with( 'data', $data );
 		}
 	}

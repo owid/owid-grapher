@@ -6,7 +6,8 @@
 
 		el: "#form-view #export-tab",
 		events: {
-			"click [type='checkbox']": "onTabsCheck"
+			"click [type='checkbox']": "onTabsCheck",
+			"change .embed-size-wrapper input": "onEmbedSizeChange"
 		},
 
 		initialize: function( options ) {
@@ -19,16 +20,24 @@
 		},
 
 		render: function() {
+			
 			this.$checkboxes = this.$el.find( "[type='checkbox']" ); 
+			this.$widthInput = this.$el.find( "[name='iframe-width']" );
+			this.$heightInput = this.$el.find( "[name='iframe-height']" );
 			this.$iframeTextArea = this.$el.find( "[name='iframe']" );
 
-			//update from model
+			//update line-type from model
 			var that = this,
 				tabs = App.ChartModel.get( "tabs" );
 			_.each( tabs, function( v, i ) {
 				var $checkbox = that.$checkboxes.filter( "[value='" + v + "']" );
 				$checkbox.prop( "checked", true );
 			} );
+
+			//update size from model
+			this.$widthInput.val( App.ChartModel.get( "iframe-width" ) );
+			this.$heightInput.val( App.ChartModel.get( "iframe-height" ) );
+
 
 		},
 
@@ -52,8 +61,25 @@
 
 		},
 
+		onEmbedSizeChange: function( evt ) {
+
+			
+			var $input = $( evt.currentTarget );
+			//unnecessary to update everything just because generated code changed
+			App.ChartModel.set( $input.attr( "name" ), $input.val(), {silent:true} );
+
+			console.log( "onEmbedSizeChange", $input.attr( "name" ), $input.val() );
+
+			//if already generated code, update it
+			if( this.$iframeTextArea.text() != "" ) {
+				that.generateIframeCode();
+			} 
+			//generateIframeCode();
+
+		},
+
 		generateIframeCode: function( id, viewUrl ) {
-			this.$iframeTextArea.text( '<iframe src="' + viewUrl + '" style="width: 100%; height: 100%;"></iframe>' );
+			this.$iframeTextArea.text( '<iframe src="' + viewUrl + '" style="width: "' + App.ChartModel.get( "iframe-width" ) + '"; height: "' + App.ChartModel.get( "iframe-height" ) + '";"></iframe>' );
 		}
 
 	});

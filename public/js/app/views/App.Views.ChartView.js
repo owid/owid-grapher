@@ -80,6 +80,8 @@
 
 		updateChart: function( data ) {
 
+			console.log( "updateChart", data );
+
 			if( !data ) {
 				return;
 			}
@@ -140,15 +142,28 @@
 				xAxisScale = ( xAxis[ "axis-scale" ] || "linear" ),
 				yAxisScale = ( yAxis[ "axis-scale" ] || "linear" );
 
-			console.log( xAxis, yAxis, xAxisMin, xAxisMax, yAxisMin, yAxisMax, xAxisScale, yAxisScale );
-
 			var that = this;
 			nv.addGraph(function() {
-				that.chart = nv.models.lineChart()
-							.options({
-								transitionDuration: 300,
-								margin: { top: 100, left: 80, bottom: 100, right: 80 },
-								tooltipContent: tooltipContent });
+
+				var chartOptions = {
+					transitionDuration: 300,
+					margin: { top: 100, left: 80, bottom: 100, right: 80 },
+					tooltipContent: tooltipContent/*,
+					defined: function( d ) { return d.y != 0; }*/								
+				};
+
+				//line type
+				var lineType = App.ChartModel.get( "line-type" );
+				if( lineType == 2 ) {
+					chartOptions.defined = function( d ) { return d.y !== 0; }
+				} 
+				if( lineType == 0 ) {
+					that.$el.addClass( "line-dots" );
+				} else {
+					that.$el.removeClass( "line-dots" );
+				}
+
+				that.chart = nv.models.lineChart().options( chartOptions );
 				
 				that.chart.xAxis
 					.axisLabel( xAxis[ "axis-label" ] )

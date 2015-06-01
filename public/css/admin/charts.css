@@ -57,3 +57,11 @@
 			pointer-events: none;
 		}
 
+.type-of-line-section {}
+	.type-of-line-section label {
+		display: block;
+	}
+		.type-of-line-section input[type=radio] {
+			margin-right: 5px;
+		}
+

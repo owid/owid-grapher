@@ -22,7 +22,7 @@ class DataValuesTableSeeder extends Seeder {
 			for( $i = 1; $i <= $cat_len; $i++ ) {
 				$var_len = 100;
 				for( $y = 1; $y <= $var_len; $y++ ) {
-					$values[] = [ 'value' => rand()*$y, 'description' => 'Description for var' .$y, 'fk_var_id' => $i, 'fk_input_files_id' => 1, 'fk_ent_id' => $z, 'fk_time_id' => $timeId  ];
+					$values[] = [ 'value' => (rand(0,1)>.1)?rand(0,10)*$y:0, 'description' => 'Description for var' .$y, 'fk_var_id' => $i, 'fk_input_files_id' => 1, 'fk_ent_id' => $z, 'fk_time_id' => $timeId  ];
 					$timeId++;
 				}
 			}	

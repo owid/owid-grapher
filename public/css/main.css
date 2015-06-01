@@ -80,6 +80,16 @@ html, body {
 	list-style-type: none;
 }
 
+/**
+*	CHARTS
+**/
+
+#chart-view.line-dots .nvd3.nv-line .nvd3.nv-scatter .nv-groups .nv-point {
+	stroke-opacity: 1;
+	fill-opacity: 1;
+}
+
+
 /* ==========================================================================
    EXAMPLE Media Queries for Responsive Design.
    These examples override the primary ('mobile first') styles.

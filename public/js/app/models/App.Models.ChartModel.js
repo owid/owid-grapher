@@ -9,6 +9,7 @@
 		defaults: {
 			"selected-countries": {},
 			"tabs": [ "chart", "data", "sources" ],
+			"line-type": "2",
 			//"selected-countries": [ "France", "Germany" ],
 			"variables": [],
 			"y-axis": {},
@@ -61,7 +62,6 @@
 			if( axis ) {
 				axis[ prop ] = value;
 			}
-			console.log( axis, prop, value );
 			this.trigger( "change" );
 
 		},

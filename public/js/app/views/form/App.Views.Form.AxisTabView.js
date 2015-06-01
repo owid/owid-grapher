@@ -30,7 +30,6 @@
 			//strip control name prefix
 			controlName = controlName.substring( 8 );
 
-			console.log( "onFormControlChange" );
 			App.ChartModel.setAxisConfig( axisName, controlName, controlValue );
 
 		}

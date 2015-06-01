@@ -436,12 +436,23 @@
 				</section>
 			</div>
 			<div id="styling-tab" class="tab-pane">
-				<section class="form-section">
+				<section class="form-section type-of-line-section">
 					<div class="form-section-header">
-						<h2><span class="form-section-digit">7</span>Make it pretty</h2>
+						<h2><span class="form-section-digit">7</span>Choose Type of Line</h2>
 					</div>
 					<div class="form-section-content">
-						<p class="form-section-desc">Here will be options to choose display of lines, lines and dots etc. </p>
+						<label>
+							<input type="radio" name="line-type" value="0"/>
+							Line with dots
+						</label>
+						<label>
+							<input type="radio" name="line-type" value="1"/>
+							Line without dots
+						</label>
+						<label>
+							<input type="radio" name="line-type" value="2"/>
+							Do not join values if observations are missing
+						</label>
 					</div>
 				</section>
 			</div>
@@ -480,10 +491,20 @@
 					</div>
 				</section>
 				<section class="form-section">
-					<div class="form-section-header">
+					<div class="form-section-header embed-section">
 						<h2><span class="form-section-digit">8b</span>Embed your chart</h2>
 					</div>
 					<div class="form-section-content">
+						<div class="embed-size-wrapper">
+							<label>
+								Width
+								<input type="text" name="iframe-width" />
+							</label>
+							<label>
+								Height
+								<input type="text" name="iframe-height" />
+							</label>
+						</div>
 						<p class="form-section-desc">Copy and paste code below to use the chart on your page.</p>
 						<textarea rows="4" cols="50" name="iframe" placeholder="No chart created, yet. Click 'Create chart' button at the bottom to get code for embedding." readonly></textarea>
 					</div>
