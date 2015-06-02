@@ -50,7 +50,9 @@
 							<input type="file" />
 							<a href="#" title="Remove uploaded file" class="remove-uploaded-file-btn"><span class="visuallyhidden">Remove uploaded file</span><i class="fa fa-remove"></i></a>
 						</div>
-						<div id="csv-import-result" class="csv-import-result"></div>
+						<div class="csv-import-result">
+							<div id="csv-import-table-wrapper" class="csv-import-table-wrapper"></div>
+						</div>
 					</div>
 			</section>
 			<section class="form-section dataset-type-section">

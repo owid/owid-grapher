@@ -38,10 +38,13 @@
 	}*/
 
 	.import-view .csv-import-result {
-		overflow: auto;
-		max-height: 350px;
 		margin: 15px 0px;
 	}
+		.import-view .csv-import-table-wrapper {
+			overflow: auto;
+			width: 100%;
+			max-height: 350px;
+		}
 		.import-view .csv-import-result table {
 			background-color: #fff;
 		}

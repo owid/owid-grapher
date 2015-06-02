@@ -16,6 +16,7 @@ class CreateEntitiesTable extends Migration {
 		{
 			$table->increments('id');
 			//data
+			$table->string('code');
 			$table->string('name');
 			//fks
 			$table->integer('fk_ent_t_id')->unsigned();

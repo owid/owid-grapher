@@ -1,6 +1,12 @@
 @extends('app')
 
 @section('content')
+	<a class="back-btn" href="{{ route( 'categories.show', $subcategory->fk_dst_cat_id ) }}"><i class="fa fa-arrow-left"></i>Back to the variable</a>
+	<div class="pull-right">
+		{!! Form::open(array('class' => 'form-inline', 'method' => 'DELETE', 'route' => array('subcategories.destroy', $subcategory->id))) !!}
+			{!! Form::submit('Delete subcategory', array('class' => 'btn btn-danger')) !!}
+		{!! Form::close() !!}
+	</div>
 	<h2>Edit subcategory</h2>
-	@include('subcategories/partials/_form', ['method' => 'put'])
+	@include('subcategories/partials/_form', ['method' => 'PATCH'])
 @endsection

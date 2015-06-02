@@ -78,6 +78,9 @@ Route::group(['middleware' => 'auth'], function()
 	Route::get( 'view', 'ViewController@index' );
 	Route::get( 'view/{id}', [ 'as' => 'view', 'uses' => 'ViewController@show' ] );
 
+	Route::get( 'entityIsoNames/validateData', 'EntityIsoNamesController@validateData' );
+
+
 });
 
 

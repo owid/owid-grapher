@@ -35,6 +35,10 @@ button > i {
 	-webkit-appearance: none; 
 }
 
+.p0 {
+	padding: 0px;
+}
+
 /* tables */
 .table {}
 	.table tr {
@@ -44,6 +48,23 @@ button > i {
 			border-top: 0px !important;
 			border-bottom: 0px !important;
 		}
+
+.flash {
+	padding: 10px;
+}
+	.flash p {
+		margin: 0;
+	}
+
+.text-danger i,
+.text-success i {
+	margin-right: 5px;
+}
+.text-danger a,
+.text-success a {
+	color: inherit;
+	text-decoration: underline;
+}
 
 /* ==========================================================================
    Header

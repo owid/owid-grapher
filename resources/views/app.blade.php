@@ -92,7 +92,7 @@
 			  </aside>
 			<div class="content-wrapper">
 				@if (Session::has('message'))
-					<div class="flash alert-info">
+					<div class="flash alert-@if(Session::has('message-class')){{Session::get('message-class')}}@else{{'info'}}@endif">
 						<p>{{ Session::get('message') }}</p>
 					</div>
 				@endif

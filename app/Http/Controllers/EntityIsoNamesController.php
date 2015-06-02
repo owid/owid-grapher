@@ -1,13 +1,13 @@
 <?php namespace App\Http\Controllers;
 
-use App\DatasetSubcategory;
-
+use Input;
+use App\EntityIsoName;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
 
-class SubcategoriesController extends Controller {
+class EntityIsoNamesController extends Controller {
 
 	/**
 	 * Display a listing of the resource.
@@ -53,26 +53,23 @@ class SubcategoriesController extends Controller {
 	/**
 	 * Show the form for editing the specified resource.
 	 *
-	 * @param  DatasetSubcategory $subcategory
+	 * @param  int  $id
 	 * @return Response
 	 */
-	public function edit(DatasetSubcategory $subcategory)
+	public function edit($id)
 	{
-		return view( 'subcategories.edit', compact( 'subcategory' ) );
+		//
 	}
 
 	/**
 	 * Update the specified resource in storage.
 	 *
-	 * @param  DatasetSubcategory $subcategory
-	 * @param  Request $request
+	 * @param  int  $id
 	 * @return Response
 	 */
-	public function update(DatasetSubcategory $subcategory, Request $request)
+	public function update($id)
 	{
-		$input = array_except( $request->all(), [ '_method', '_token' ] );
-		$subcategory->update( $input );
-		return redirect()->route( 'categories.show', $subcategory->fk_dst_cat_id)->with( 'message', 'Subcategory updated.');
+		//
 	}
 
 	/**
@@ -81,12 +78,36 @@ class SubcategoriesController extends Controller {
 	 * @param  int  $id
 	 * @return Response
 	 */
-	public function destroy(DatasetSubcategory $subcategory)
+	public function destroy($id)
 	{
-		//delete itself
-		$subcategory->delete();
+		//
+	}
+
+	public function validateData( Request $request ) {
+
+
+		$entitiesString = Input::get( 'entities' );
+		$entities = json_decode( $entitiesString );
+
+		$unmatched = array();
+		foreach( $entities as $entity ) {
+			$match = EntityIsoName::match( $entity )->first();
+			if( !$match ) {
+				$unmatched[] = $entity;
+			}
+		}
 		
-		return redirect()->route('categories.show', $subcategory->fk_dst_cat_id)->with('message', 'Subcategory deleted.');
+		$data = $unmatched;
+
+		if( $request->ajax() ) {
+
+			return ['success' => true, 'data' => $data ];
+
+		} else {
+			//not ajax request, just spit out whatever is in data
+			return print_r($data,true);
+		}
+
 	}
 
 }

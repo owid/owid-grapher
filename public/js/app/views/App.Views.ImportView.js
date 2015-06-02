@@ -10,6 +10,7 @@
 
 		el: "#import-view",
 		events: {
+			"submit form": "onFormSubmit",
 			"input [name=new_dataset_name]": "onNewDatasetNameChange",
 			"change [name=new_dataset]": "onNewDatasetChange",
 			"click .remove-uploaded-file-btn": "onRemoveUploadedFile",
@@ -63,7 +64,7 @@
 
 			var that = this;
 			CSV.begin( this.$filePicker.selector )
-				.table( "csv-import-result", { header:1, caption: "" } )
+				.table( "csv-import-table-wrapper", { header:1, caption: "" } )
 				.go( function( err, data ) {
 						that.onCsvSelected( err, data );
 				} );
@@ -130,6 +131,50 @@
 			this.$removeUploadedFileBtn.show();
 
 			this.updateVariableList( json );
+
+		},
+
+		validateEntityData: function() {
+
+			var $dataTableWrapper = $( ".csv-import-table-wrapper" ),
+				$dataTable = $dataTableWrapper.find( "table" ),
+				$entitiesCells = $dataTable.find( "th" ),
+				entities = _.map( $entitiesCells, function( v ) { return $( v ).text() } );
+
+			//get rid of first one (time label)
+			entities.shift();
+
+			$.ajax( {
+				url: Global.rootUrl + "/entityIsoNames/validateData",
+				data: { "entities": JSON.stringify( entities ) },
+				beforeSend: function() {
+					$dataTableWrapper.before( "<p class='entities-loading-notice loading-notice'>Validating entities</p>" );
+				},
+				success: function( response ) {
+					if( response.data ) {
+							
+						var unmatched = response.data;
+						$entitiesCells.removeClass( "alert-error" );
+						$.each( $entitiesCells, function( i, v ) {
+							var $entityCell = $( this ),
+								value = $entityCell.text();
+							if( _.indexOf( unmatched, value ) > -1 ) {
+								$entityCell.addClass( "alert-error" );
+							}
+						} );
+
+						//remove preloader
+						$( ".entities-loading-notice" ).remove();
+						//result notice
+						$( ".entities-validation-result" ).remove();
+						var $resultNotice = (unmatched.length)? $( "<p class='entities-validation-result text-danger'><i class='fa fa-exclamation-circle'></i>Some countries do not have <a href='http://en.wikipedia.org/wiki/ISO_3166' target='_blank'>standardized name</a>! Rename the highlighted countries and reupload CSV.</p>" ): $( "<p class='entities-validation-result text-succes'><i class='fa fa-check-circle'></i>All countries have standardized name, well done!</p>" );
+						$dataTableWrapper.before( $resultNotice );
+
+					}
+				}
+			} );
+			console.log( entities );
+
 
 		},
 
@@ -201,6 +246,7 @@
 
 			this.uploadedData = data;
 			this.mapData();
+			this.validateEntityData();
 
 		},
 
@@ -239,6 +285,27 @@
 				this.mapData();
 			}
 			
+		},
+
+		onFormSubmit: function( evt ) {
+
+			var $entitiesValidationResult = $( ".entities-validation-result" );
+			if( $entitiesValidationResult.length ) {
+				//do not send form and scroll to error message
+				evt.preventDefault();
+				$('html, body').animate({
+					scrollTop: $entitiesValidationResult.offset().top - 18
+				}, 300);
+				return false;
+			}
+
+			//evt 
+			var $btn = $( "[type=submit]" );
+			$btn.prop( "disabled", true );
+			$btn.css( "opacity", .5 );
+
+			$btn.after( "Sending form" );
+
 		}
 
 

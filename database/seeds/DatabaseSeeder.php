@@ -18,20 +18,23 @@ class DatabaseSeeder extends Seeder {
 		$this->call('InputFilesTableSeeder');
 
 		$this->call('EntityTypesTableSeeder');
-		$this->call('EntitiesTableSeeder');
-	
 		$this->call('VariableTypesTableSeeder');
-		$this->call('TimesTableSeeder');
 		
+		$this->call('EntityIsoNamesTableSeeder');
+
 		$this->call('DatasetCategoriesTableSeeder');
 		$this->call('DatasetSubcategoriesTableSeeder');
 		
 		$this->call('ChartTypesTableSeeder');
 		$this->call('ChartTypeDimensionsTableSeeder');
 
+		/*
+		$this->call('EntitiesTableSeeder');
+		$this->call('TimesTableSeeder');
 		$this->call('DatasetsTableSeeder');
 		$this->call('VariablesTableSeeder');
 		$this->call('DataValuesTableSeeder');
+		*/
 
 	}
 

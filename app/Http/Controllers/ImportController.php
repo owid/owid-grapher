@@ -10,6 +10,7 @@ use App\InputFile;
 use App\Variable;
 use App\Time;
 use App\DataValue;
+use App\EntityIsoName;
 use App\Entity;
 
 use App\Http\Requests;
@@ -25,7 +26,7 @@ class ImportController extends Controller {
 	 * @return Response
 	 */
 	public function index()
-	{
+	{	
 		/*$variable = Variable::find( 1 );
 		$data = [
 			new DataValue( [ 'value' => 'fads', 'description' => 'Description 1', 'fk_input_files_id' => 1 ] ),
@@ -107,6 +108,8 @@ class ImportController extends Controller {
 				$datasetName = $dataset->name;
 			}
 			
+			//store inserted variables, for case of rolling back
+			$inserted_variables = array();
 			foreach( $variables as $variableJsonString ) {
 
 				$variableObj = json_decode( $variableJsonString );
@@ -115,12 +118,45 @@ class ImportController extends Controller {
 				$variable = Variable::create( $variableData ); 
 				$variableId = $variable->id;
 
+				$inserted_variables[] = $variable;
+
 				$variableValues = $variableObj->values;
 				foreach( $variableValues as $countryValue ) {
 
-					//for now, always just create entities
 					$entityData = [ 'name' => $countryValue->key, 'fk_ent_t_id' => 5 ];
-					$entity = Entity::create( $entityData ); 
+
+					//find corresponding iso code
+					$entityIsoName = EntityIsoName::match( $entityData['name'] )->first();
+					if(!$entityIsoName) {
+						//!haven't found corresponding country, throw an error!
+						
+						//rollback everything first
+						foreach($inserted_variables as $inserted_var) {
+							$inserted_var->data()->delete();
+							$inserted_var->delete();
+						}
+						//is new dataset
+						if( $request->input( 'new_dataset' ) === '1' ) {
+							$dataset = Dataset::find( $datasetId );
+							//delete itself
+							$dataset->delete();
+						}
+
+						return redirect()->route( 'import' )->with( 'message', 'Error non-existing entity in dataset.' )->with( 'message-class', 'error' );
+
+					}
+
+					//enter standardized info
+					$entityData['name'] = $entityIsoName->name;
+					$entityData['code'] = $entityIsoName->code;
+					
+					//find try finding entity in db
+					$entity = Entity::where( 'code', '=', $entityIsoName->code )->first();
+					if( !$entity ) {
+						//entity haven't found in database, so insert it
+						$entity = Entity::create( $entityData ); 
+					}
+
 					$entityId = $entity->id;
 
 					$countryValues = $countryValue->values;
@@ -145,7 +181,7 @@ class ImportController extends Controller {
 
 			} 
 
-			return redirect()->route( 'variables.index' )->with( 'message', 'Insertion complete.' );
+			return redirect()->route( 'variables.index' )->with( 'message', 'Insertion complete' )->with( 'message-class', 'success' );
 
 		}
 		
