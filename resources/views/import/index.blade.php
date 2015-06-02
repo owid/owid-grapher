@@ -128,5 +128,6 @@
 @endsection
 
 @section('scripts')
+	<script src="{{ asset('js/libs/moments.min.js') }}"></script>
 	<script src="{{ asset('js/app/views/App.Views.ImportView.js') }}"></script>
 @endsection

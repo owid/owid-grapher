@@ -167,7 +167,7 @@
 						$( ".entities-loading-notice" ).remove();
 						//result notice
 						$( ".entities-validation-result" ).remove();
-						var $resultNotice = (unmatched.length)? $( "<p class='entities-validation-result text-danger'><i class='fa fa-exclamation-circle'></i>Some countries do not have <a href='http://en.wikipedia.org/wiki/ISO_3166' target='_blank'>standardized name</a>! Rename the highlighted countries and reupload CSV.</p>" ): $( "<p class='entities-validation-result text-succes'><i class='fa fa-check-circle'></i>All countries have standardized name, well done!</p>" );
+						var $resultNotice = (unmatched.length)? $( "<p class='entities-validation-result text-danger'><i class='fa fa-exclamation-circle'></i>Some countries do not have <a href='http://en.wikipedia.org/wiki/ISO_3166' target='_blank'>standardized name</a>! Rename the highlighted countries and reupload CSV.</p>" ): $( "<p class='entities-validation-result text-success'><i class='fa fa-check-circle'></i>All countries have standardized name, well done!</p>" );
 						$dataTableWrapper.before( $resultNotice );
 
 					}
@@ -176,6 +176,44 @@
 			console.log( entities );
 
 
+		},
+
+		validateTimeData: function() {
+
+			var $dataTableWrapper = $( ".csv-import-table-wrapper" ),
+				$dataTable = $dataTableWrapper.find( "table" ),
+				$timesCells = $dataTable.find( "td:first-child" ),
+				times = _.map( $timesCells, function( v ) { return $( v ).text() } );
+
+			//get rid of first one (time label)
+			times.shift();
+
+			$.each( $timesCells, function( i, v ) {
+
+				var $timeCell = $( v ),
+					value = $timeCell.text(),
+					date = moment( new Date(value) );
+
+				if( !date.isValid() ) {
+					$timeCell.addClass( "alert-error" );
+				} else {
+					$timeCell.removeClass( "alert-error" );
+				}
+
+			});
+
+			var $resultNotice;
+			if( $timesCells.filter( ".alert-error" ).length ) {
+				
+				$resultNotice = $( "<p class='times-validation-result text-danger'><i class='fa fa-exclamation-circle'></i>Time information in the uploaded file is not in <a href='http://en.wikipedia.org/wiki/ISO_8601' target='_blank'>standardized format (YYYY-MM-DD)</a>! Fix the highlighted time information and reupload CSV.</p>" );
+			
+			} else {
+
+				$resultNotice = $( "<p class='times-validation-result text-success'><i class='fa fa-check-circle'></i>Time information in the upload file is correct, well done!</p>" );
+
+			}
+			$dataTableWrapper.before( $resultNotice );
+			
 		},
 
 		onDatasetDescription: function( evt ) {
@@ -247,6 +285,7 @@
 			this.uploadedData = data;
 			this.mapData();
 			this.validateEntityData();
+			this.validateTimeData();
 
 		},
 
@@ -289,12 +328,12 @@
 
 		onFormSubmit: function( evt ) {
 
-			var $entitiesValidationResult = $( ".entities-validation-result" );
-			if( $entitiesValidationResult.length ) {
+			var $validationResults = $( ".entities-validation-result.text-danger, .times-validation-result.text-danger" );
+			if( $validationResults.length ) {
 				//do not send form and scroll to error message
 				evt.preventDefault();
 				$('html, body').animate({
-					scrollTop: $entitiesValidationResult.offset().top - 18
+					scrollTop: $validationResults.offset().top - 18
 				}, 300);
 				return false;
 			}
