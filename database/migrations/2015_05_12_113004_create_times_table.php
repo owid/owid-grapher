@@ -16,8 +16,9 @@ class CreateTimesTable extends Migration {
 		{
 			$table->increments('id');
 			//data
-			$table->dateTime('fromTime');
-			$table->dateTime('toTime');
+			$table->dateTime('date');
+			$table->dateTime('startDate');
+			$table->dateTime('endDate');
 			$table->string('label');
 			//time
 			$table->timestamps();

@@ -18,7 +18,7 @@ class TimesTableSeeder extends Seeder {
 		for( $y = 0; $y < $roundLen; $y++ ) {
 			$len = 100;
 			for( $i = 0; $i < $len; $i++ ) {
-				$times[] = [ 'label' => $i+1000 ];
+				$times[] = [ 'value' => $i+1000, 'date' => $i+1000 ];
 			}
 		}
 

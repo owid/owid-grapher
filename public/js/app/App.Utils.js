@@ -25,7 +25,7 @@
 				colName = singleCol.shift();
 
 			var singleData = _.map( singleCol, function( value, i ) {
-				return { x: App.Utils.parseTimeString( timeArr[i] ), y: +value }
+				return { x: timeArr[i], y: +value }
 			} );
 
 			//construct entity obj
@@ -102,7 +102,7 @@
 	App.Utils.parseTimeString = function( str ) {
 
 		//here will be smart way of converting times string from varius format into actual time
-		return +str;
+		return str;
 
 	},
 

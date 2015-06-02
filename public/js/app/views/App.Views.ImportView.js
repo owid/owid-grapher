@@ -134,7 +134,9 @@
 
 		},
 
-		validateEntityData: function() {
+		validateEntityData: function( data ) {
+
+			//validateEntityData doesn't modify the original data
 
 			var $dataTableWrapper = $( ".csv-import-table-wrapper" ),
 				$dataTable = $dataTableWrapper.find( "table" ),
@@ -167,37 +169,100 @@
 						$( ".entities-loading-notice" ).remove();
 						//result notice
 						$( ".entities-validation-result" ).remove();
-						var $resultNotice = (unmatched.length)? $( "<p class='entities-validation-result text-danger'><i class='fa fa-exclamation-circle'></i>Some countries do not have <a href='http://en.wikipedia.org/wiki/ISO_3166' target='_blank'>standardized name</a>! Rename the highlighted countries and reupload CSV.</p>" ): $( "<p class='entities-validation-result text-success'><i class='fa fa-check-circle'></i>All countries have standardized name, well done!</p>" );
+						var $resultNotice = (unmatched.length)? $( "<p class='entities-validation-result validation-result text-danger'><i class='fa fa-exclamation-circle'></i>Some countries do not have <a href='http://en.wikipedia.org/wiki/ISO_3166' target='_blank'>standardized name</a>! Rename the highlighted countries and reupload CSV.</p>" ): $( "<p class='entities-validation-result validation-result text-success'><i class='fa fa-check-circle'></i>All countries have standardized name, well done!</p>" );
 						$dataTableWrapper.before( $resultNotice );
 
 					}
 				}
 			} );
-			console.log( entities );
-
-
+			
 		},
 
-		validateTimeData: function() {
+		validateTimeData: function( data ) {
+
+			//validateTimeData modify the original data
 
 			var $dataTableWrapper = $( ".csv-import-table-wrapper" ),
 				$dataTable = $dataTableWrapper.find( "table" ),
+				timeDomain = $dataTable.find( "th:first-child" ).text(),
 				$timesCells = $dataTable.find( "td:first-child" ),
 				times = _.map( $timesCells, function( v ) { return $( v ).text() } );
 
-			//get rid of first one (time label)
-			times.shift();
+			//format time domain maybe
+			if( timeDomain ) {
+				timeDomain = timeDomain.toLowerCase();
+			}
+
+			//make sure time is from given domain
+			if( _.indexOf( [ "century", "decade", "year" ], timeDomain ) == -1 ) {
+				var $resultNotice = $( "<p class='time-domain-validation-result validation-result text-danger'><i class='fa fa-exclamation-circle'></i>First top-left cell should contain time domain infomartion. Either 'century', or'decade', or 'year'.</p>" );
+				$dataTableWrapper.before( $resultNotice );
+			}
 
 			$.each( $timesCells, function( i, v ) {
 
-				var $timeCell = $( v ),
-					value = $timeCell.text(),
-					date = moment( new Date(value) );
+				var $timeCell = $( v );
+				
+				//find corresponding value in loaded data
+				var newValue,
+					origValue = data[ i+1 ][ 0 ],
+					value = App.Utils.parseTimeString( origValue.toString() ),
+					date = moment( new Date( value ) );
 
 				if( !date.isValid() ) {
+
 					$timeCell.addClass( "alert-error" );
+				
 				} else {
+					
+					//correct date
 					$timeCell.removeClass( "alert-error" );
+					//insert potentially modified value into cell
+					$timeCell.text( value );
+
+					newValue = { "date": date, "label": origValue };
+
+					if( timeDomain == "year" ) {
+						
+						//try to guess century
+						var year = Math.floor( origValue ),
+							nextYear = year + 1;
+						//convert it to datetime values
+						year = moment( new Date( year.toString() ) );
+						nextYear = moment( new Date( nextYear.toString() ) ).seconds(-1);
+						//modify the initial value
+						newValue[ "startDate" ] = year;
+						newValue[ "endDate" ] = nextYear;
+
+					} else if( timeDomain == "decade" ) {
+						
+						//try to guess century
+						var decade = Math.floor( origValue / 10 ) * 10,
+							nextDecade = decade + 10;
+						//convert it to datetime values
+						decade = moment( new Date( decade.toString() ) );
+						nextDecade = moment( new Date( nextDecade.toString() ) ).seconds(-1);
+						//modify the initial value value
+						newValue[ "startDate"] = decade;
+						newValue[ "endDate" ] = nextDecade;
+
+					} else if( timeDomain == "century" ) {
+						
+						//try to guess century
+						var century = Math.floor( origValue / 100 ) * 100,
+							nextCentury = century + 100;
+						//convert it to datetime values
+						century = moment( new Date( century.toString() ) );
+						nextCentury = moment( new Date( nextCentury.toString() ) ).seconds(-1);
+						//modify the initial value value
+						newValue[ "startDate"] = century;
+						newValue[ "endDate" ] = nextCentury;
+
+					}
+
+					//initial was number/string so passed by value, need to insert it back to arreay
+					data[ i+1 ][ 0 ] = newValue;
+
 				}
 
 			});
@@ -205,11 +270,11 @@
 			var $resultNotice;
 			if( $timesCells.filter( ".alert-error" ).length ) {
 				
-				$resultNotice = $( "<p class='times-validation-result text-danger'><i class='fa fa-exclamation-circle'></i>Time information in the uploaded file is not in <a href='http://en.wikipedia.org/wiki/ISO_8601' target='_blank'>standardized format (YYYY-MM-DD)</a>! Fix the highlighted time information and reupload CSV.</p>" );
+				$resultNotice = $( "<p class='times-validation-result validation-result text-danger'><i class='fa fa-exclamation-circle'></i>Time information in the uploaded file is not in <a href='http://en.wikipedia.org/wiki/ISO_8601' target='_blank'>standardized format (YYYY-MM-DD)</a>! Fix the highlighted time information and reupload CSV.</p>" );
 			
 			} else {
 
-				$resultNotice = $( "<p class='times-validation-result text-success'><i class='fa fa-check-circle'></i>Time information in the upload file is correct, well done!</p>" );
+				$resultNotice = $( "<p class='times-validation-result validation-result text-success'><i class='fa fa-check-circle'></i>Time information in the uploaded file is correct, well done!</p>" );
 
 			}
 			$dataTableWrapper.before( $resultNotice );
@@ -283,9 +348,11 @@
 			}
 
 			this.uploadedData = data;
+
+			this.validateEntityData( data.rows );
+			this.validateTimeData( data.rows );
+
 			this.mapData();
-			this.validateEntityData();
-			this.validateTimeData();
 
 		},
 
@@ -328,7 +395,7 @@
 
 		onFormSubmit: function( evt ) {
 
-			var $validationResults = $( ".entities-validation-result.text-danger, .times-validation-result.text-danger" );
+			var $validationResults = $( ".validation-result.text-danger" );
 			if( $validationResults.length ) {
 				//do not send form and scroll to error message
 				evt.preventDefault();

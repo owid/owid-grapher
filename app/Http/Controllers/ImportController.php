@@ -165,7 +165,13 @@ class ImportController extends Controller {
 						if( !empty( $value->x ) && !empty( $value->y ) ) {
 
 							//create time
-							$timeValue = [ 'fromTime' => \DateTime::createFromFormat( 'Y', $value->x ), 'toTime' => \DateTime::createFromFormat( 'Y', $value->x ), 'label' => $value->x ];
+							$timeObj = $value->x;
+							$timeValue = [ 
+								'startDate' => ( isset($timeObj->startDate) )? $timeObj->startDate: "", 
+								'endDate' => ( isset($timeObj->endDate) )? $timeObj->endDate: "", 
+								'date' =>  ( isset($timeObj->date) )? $timeObj->date: "", 
+								'label' =>  ( isset($timeObj->label) )? $timeObj->label: ""
+							];
 							$time = Time::create( $timeValue );
 							$timeId = $time->id;
 
