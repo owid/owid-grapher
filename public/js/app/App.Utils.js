@@ -8,7 +8,7 @@
 			dataById = [],
 			countryIndex = 1;
 
-		//do we have entities in rows and times in rows?	
+		//do we have entities in rows and times in columns?	
 		if( !transposed ) {
 			//no, we have to switch rows and columns
 			rawData = App.Utils.transpose( rawData );
@@ -18,13 +18,13 @@
 		var timeArr = rawData.shift();
 		//get rid of first item (label of time column) 
 		timeArr.shift();
-		
+	
 		for( var i = 0, len = rawData.length; i < len; i++ ) {
 
-			var singleCol = rawData[ i ],
-				colName = singleCol.shift();
-
-			var singleData = _.map( singleCol, function( value, i ) {
+			var singleRow = rawData[ i ],
+				colName = singleRow.shift();
+			
+			var singleData = _.map( singleRow, function( value, i ) {
 				return { x: timeArr[i], y: +value }
 			} );
 
@@ -34,7 +34,6 @@
 				key: App.Utils.parseEntityString( colName ),
 				values: singleData
 			};
-
 			data.push( entityObj );
 
 		}
@@ -47,7 +46,7 @@
 
 		var variable = {
 			name: variableName,
-			values: App.Utils.mapData( rawData )
+			values: App.Utils.mapData( rawData, true )
 		};
 		return [variable];
 
@@ -74,7 +73,7 @@
 			//construct object
 			var variable = {
 				name: variableName,
-				values: App.Utils.mapData( dataToMap, true )
+				values: App.Utils.mapData( dataToMap, false )
 			};
 			variables.push( variable );
 

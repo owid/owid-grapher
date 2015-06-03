@@ -16,6 +16,7 @@
 			"click .remove-uploaded-file-btn": "onRemoveUploadedFile",
 			"change [name=category_id]": "onCategoryChange",
 			"change [name=existing_dataset_id]": "onExistingDatasetChange",
+			"change [name=existing_variable_id]": "onExistingVariableChange",
 			"change [name=subcategory_id]": "onSubCategoryChange",
 			"change [name=multivariant_dataset]": "onMultivariantDatasetChange",
 			"click .new-dataset-description-btn": "onDatasetDescription"
@@ -38,14 +39,21 @@
 			this.$variableSection = this.$el.find( ".variables-section" );
 			this.$categorySection = this.$el.find( ".category-section" );
 			this.$variableTypeSection = this.$el.find( ".variable-type-section" );
-			
+				
 			//random els
 			this.$newDatasetDescription = this.$el.find( "[name=new_dataset_description]" );
+			this.$existingDatasetSelect = this.$el.find( "[name=existing_dataset_id]" );
+			this.$existingVariablesWrapper = this.$el.find( ".existing-variable-wrapper" );
+			this.$existingVariablesSelect = this.$el.find( "[name=existing_variable_id]" );
 			this.$variableSectionList = this.$variableSection.find( "ol" );
 
+			//import section
 			this.$filePicker = this.$el.find( ".file-picker-wrapper [type=file]" );
 			this.$dataInput = this.$el.find( "[name=data]" );
+			
 			this.$csvImportResult = this.$el.find( ".csv-import-result" );
+			this.$csvImportTableWrapper = this.$el.find( "#csv-import-table-wrapper" );
+			
 			this.$newDatasetSection = this.$el.find( ".new-dataset-section" );
 			this.$existingDatasetSection = this.$el.find( ".existing-dataset-section" );
 			this.$removeUploadedFileBtn = this.$el.find( ".remove-uploaded-file-btn" );
@@ -64,11 +72,73 @@
 
 			var that = this;
 			CSV.begin( this.$filePicker.selector )
-				.table( "csv-import-table-wrapper", { header:1, caption: "" } )
+				//.table( "csv-import-table-wrapper", { header:1, caption: "" } )
 				.go( function( err, data ) {
-						that.onCsvSelected( err, data );
+					that.onCsvSelected( err, data );
 				} );
 			this.$removeUploadedFileBtn.hide();
+
+		},
+
+		onCsvSelected: function( err, data ) {
+			
+			if( !data ) {
+				return;
+			}
+
+			this.uploadedData = data;
+
+			//do we need to transpose data?
+			var isOriented = this.detectOrientation( data.rows );
+			if( !isOriented ) {
+				data.rows = App.Utils.transpose( data.rows );
+			}
+
+			this.createDataTable( data.rows );
+
+			this.validateEntityData( data.rows );
+			this.validateTimeData( data.rows );
+
+			this.mapData();
+
+		},
+
+		detectOrientation: function( data ) {
+
+			var isOriented = true;
+
+			//first row, second cell, should be number (time)
+			if( data.length > 0 && data[0].length > 0 ) {
+				var secondCell = data[ 0 ][ 1 ];
+				if( isNaN( secondCell ) ) {
+					isOriented = false;
+				}
+			}
+
+			return isOriented;
+
+		},
+
+		createDataTable: function( data ) {
+
+			var tableString = "<table>";
+
+			_.each( data, function( rowData, rowIndex ) {
+
+				var tr = "<tr>";
+				_.each( rowData, function( cellData, cellIndex ) {
+					var td = (rowIndex > 0)? "<td>" + cellData + "</td>": "<th>" + cellData + "</th>";
+					tr += td;
+				} );
+				tr += "</tr>";
+				tableString += tr;
+
+			} );
+
+			tableString += "</table>";
+
+			var $table = $( tableString );
+			this.$csvImportTableWrapper.append( $table );	
 
 		},
 
@@ -80,8 +150,17 @@
 			var that = this;
 			if( data && data.variables ) {
 				_.each( data.variables, function( v, k ) {
+					
+					//if we're creating new variables injects into data object existing variables
+					if( that.existingVariable && that.existingVariable.attr( "data-id" ) > 0 ) {
+						v.id = that.existingVariable.attr( "data-id" );
+						v.name = that.existingVariable.attr( "data-name" );
+						v.unit = that.existingVariable.attr( "data-unit" );
+						v.description = that.existingVariable.attr( "data-description" );
+					}
 					var $li = that.createVariableEl( v );
 					$list.append( $li );
+				
 				} );
 			}
 
@@ -89,14 +168,17 @@
 
 		createVariableEl: function( data ) {
 
-			//add missing properties
-			data.unit = "";
-			data.description = "";
+			if( !data.unit ) {
+				data.unit = "";
+			}
+			if( !data.description ) {
+				data.description = "";
+			}
 
 			var $li = $( "<li class='variable-item clearfix'></li>" ),
-				$inputName = $( "<label>Name<input class='form-control' value='" + data.name + "' placeholder='Enter variable name'/></label>" ),
-				$inputUnit = $( "<label>Unit*<input class='form-control' value='' placeholder='Enter variable unit' /></label>" ),
-				$inputDescription = $( "<label>Description*<input class='form-control' value='' placeholder='Enter variable description' /></label>" ),
+				$inputName = $( "<label>Name*<input class='form-control' value='" + data.name + "' placeholder='Enter variable name'/></label>" ),
+				$inputUnit = $( "<label>Unit<input class='form-control' value='" + data.unit + "' placeholder='Enter variable unit' /></label>" ),
+				$inputDescription = $( "<label>Description<input class='form-control' value='" + data.description + "' placeholder='Enter variable description' /></label>" ),
 				$inputData = $( "<input type='hidden' name='variables[]' value='" + JSON.stringify( data ) + "' />" );
 			
 			$li.append( $inputName );
@@ -140,11 +222,12 @@
 
 			var $dataTableWrapper = $( ".csv-import-table-wrapper" ),
 				$dataTable = $dataTableWrapper.find( "table" ),
-				$entitiesCells = $dataTable.find( "th" ),
+				$entitiesCells = $dataTable.find( "td:first-child" ),
+				//$entitiesCells = $dataTable.find( "th" ),
 				entities = _.map( $entitiesCells, function( v ) { return $( v ).text() } );
 
 			//get rid of first one (time label)
-			entities.shift();
+			//entities.shift();
 
 			$.ajax( {
 				url: Global.rootUrl + "/entityIsoNames/validateData",
@@ -160,8 +243,11 @@
 						$.each( $entitiesCells, function( i, v ) {
 							var $entityCell = $( this ),
 								value = $entityCell.text();
+								$entityCell.removeClass( "alert-error" );
+								$entityCell.addClass( "alert-success" );
 							if( _.indexOf( unmatched, value ) > -1 ) {
 								$entityCell.addClass( "alert-error" );
+								$entityCell.removeClass( "alert-success" );
 							}
 						} );
 
@@ -181,41 +267,46 @@
 		validateTimeData: function( data ) {
 
 			//validateTimeData modify the original data
-
 			var $dataTableWrapper = $( ".csv-import-table-wrapper" ),
 				$dataTable = $dataTableWrapper.find( "table" ),
 				timeDomain = $dataTable.find( "th:first-child" ).text(),
-				$timesCells = $dataTable.find( "td:first-child" ),
-				times = _.map( $timesCells, function( v ) { return $( v ).text() } );
-
+				$timesCells = $dataTable.find( "th" );/*,
+				times = _.map( $timesCells, function( v ) { return $( v ).text() } );*/
+			
 			//format time domain maybe
 			if( timeDomain ) {
 				timeDomain = timeDomain.toLowerCase();
 			}
+			
+			//the first cell (timeDomain) shouldn't be validated
+			$timesCells = $timesCells.slice( 1 );
 
 			//make sure time is from given domain
 			if( _.indexOf( [ "century", "decade", "year" ], timeDomain ) == -1 ) {
 				var $resultNotice = $( "<p class='time-domain-validation-result validation-result text-danger'><i class='fa fa-exclamation-circle'></i>First top-left cell should contain time domain infomartion. Either 'century', or'decade', or 'year'.</p>" );
 				$dataTableWrapper.before( $resultNotice );
 			}
-
+			
 			$.each( $timesCells, function( i, v ) {
 
 				var $timeCell = $( v );
 				
 				//find corresponding value in loaded data
 				var newValue,
-					origValue = data[ i+1 ][ 0 ],
+					origValue = data[ 0 ][ i+1 ],
+					//origValue = data[ i+1 ][ 0 ],
 					value = App.Utils.parseTimeString( origValue.toString() ),
 					date = moment( new Date( value ) );
 
 				if( !date.isValid() ) {
 
 					$timeCell.addClass( "alert-error" );
+					$timeCell.removeClass( "alert-success" );
 				
 				} else {
 					
 					//correct date
+					$timeCell.addClass( "alert-success" );
 					$timeCell.removeClass( "alert-error" );
 					//insert potentially modified value into cell
 					$timeCell.text( value );
@@ -261,7 +352,7 @@
 					}
 
 					//initial was number/string so passed by value, need to insert it back to arreay
-					data[ i+1 ][ 0 ] = newValue;
+					data[ 0 ][ i+1 ] = newValue;
 
 				}
 
@@ -305,6 +396,12 @@
 			if( $input.val() === "0" ) {
 				this.$newDatasetSection.hide();
 				this.$existingDatasetSection.show();
+				//should we appear variable select as well?
+				if( !this.$existingDatasetSelect.val() ) {
+					this.$existingVariablesWrapper.hide();
+				} else {
+					this.$existingVariablesWrapper.show();
+				}
 			} else {
 				this.$newDatasetSection.show();
 				this.$existingDatasetSection.hide();
@@ -324,6 +421,25 @@
 			var $input = $( evt.currentTarget );
 			this.datasetName = $input.find( 'option:selected' ).text();
 
+			if( $input.val() ) {
+				//filter variable select to show variables only from given dataset
+				var $options = this.$existingVariablesSelect.find( "option" );
+				$options.hide();
+				$options.filter( "[data-dataset-id=" + $input.val() + "]" ).show();
+				//appear also the first default
+				$options.first().show();
+				this.$existingVariablesWrapper.show();
+			} else {
+				this.$existingVariablesWrapper.hide();
+			}
+
+		},
+
+		onExistingVariableChange: function( evt ) {
+
+			var $input = $( evt.currentTarget );
+			this.existingVariable = $input.find( 'option:selected' ); 
+	
 		},
 
 		onRemoveUploadedFile: function( evt ) {
@@ -334,25 +450,12 @@
 			this.$filePicker.prop( "disabled", false);
 
 			//reset related components
-			this.$csvImportResult.empty();
+			this.$csvImportTableWrapper.empty();
 			this.$dataInput.val("");
+			//remove notifications
+			this.$csvImportResult.find( ".validation-result" ).remove();
 
 			this.initUpload();
-
-		},
-
-		onCsvSelected: function( err, data ) {
-			
-			if( !data ) {
-				return;
-			}
-
-			this.uploadedData = data;
-
-			this.validateEntityData( data.rows );
-			this.validateTimeData( data.rows );
-
-			this.mapData();
 
 		},
 
@@ -410,7 +513,7 @@
 			$btn.prop( "disabled", true );
 			$btn.css( "opacity", .5 );
 
-			$btn.after( "Sending form" );
+			$btn.after( "<p class='send-notification'><i class='fa fa-spinner fa-spin'></i>Sending form</p>" );
 
 		}
 

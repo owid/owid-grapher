@@ -165,10 +165,10 @@ class DataController extends Controller {
 
 		//use query builder instead of eloquent
 		$timesData = DB::table( 'data_values' )
-			->select( 'times.id', 'times.time', 'times.label' )
+			->select( 'times.id', 'times.date', 'times.label' )
 			->join( 'times', 'data_values.fk_time_id', '=', 'times.id' )
 			->whereIn( 'data_values.fk_var_id', $variableIds )
-			->groupBy( 'time' )
+			->groupBy( 'date' )
 			->get();
 
 		$data = $timesData;

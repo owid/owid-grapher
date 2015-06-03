@@ -14,7 +14,8 @@ class DatasetsTableSeeder extends Seeder {
 		DB::unprepared($statement);
 
 		$datasets = array(
-			[ 'name' => 'test dataset', 'fk_dst_cat_id' => 1, 'fk_dst_subcat_id' => 1]
+			[ 'name' => 'test dataset', 'fk_dst_cat_id' => 1, 'fk_dst_subcat_id' => 1],
+			[ 'name' => 'test dataset 2', 'fk_dst_cat_id' => 1, 'fk_dst_subcat_id' => 1]
 		);
 		
 		// Uncomment the below to run the seeder

@@ -26,7 +26,7 @@
 							<label><input type="radio" class="" name="new_dataset" value="0" /> Choose an existing dataset</label>
 						</fieldset>
 						<div class="new-dataset-section">
-							{!! Form::text('new_dataset_name', '', array('class' => 'form-control ', 'placeholder' => 'Short name for your dataste' )); !!}
+							{!! Form::text('new_dataset_name', '', array('class' => 'form-control ', 'placeholder' => 'Short name for your dataset' )); !!}
 							<a href="#" class="new-dataset-description-btn"><i class="fa fa-plus"></i><span>Add dataset description<span></a>
 							{!! Form::textarea ('new_dataset_description', '', array('class' => 'form-control new-dataset-description', 'placeholder' => 'Optional description for dataset' )); !!}
 						</div>
@@ -37,6 +37,15 @@
 									<option value="{{ $dataset->id }}">{{ $dataset->name }}</option>
 								@endforeach
 							</select>
+							<label class="existing-variable-wrapper">
+								Insert data into new variable or select existing one.
+								<select name='existing_variable_id' class="form-control">
+									<option value="" selected>Create new variable</option>
+									@foreach( $data['variables'] as $variable )
+										<option data-id="{{ $variable->id }}" data-dataset-id="{{ $variable->fk_dst_id }}" data-name="{{ $variable->name }}" data-unit="{{ $variable->unit }}" data-description="{{ $variable->description }}" value="{{ $variable->id }}">{{ $variable->name }}</option>
+									@endforeach
+								</select>
+							</label>
 						</div>
 					</div>
 			</section>
@@ -112,9 +121,9 @@
 					<div class="form-section-content">
 						<p class="form-section-desc">Choosing right type of variable will help us to determin for which properties in chart it can be used. This will probably be semi-automated in future.</p>
 						<select name='variable_type' class="form-control">
-							<option value="" disabled selected>Select variable type</option>
+							<option value="" disabled>Select variable type</option>
 							@foreach( $data['varTypes'] as $varType )
-								<option value="{{ $varType->id }}">{{ $varType->name }}</option>
+								<option value="{{ $varType->id }}" @if($varType->id == 2) {{'selected'}}@endif>{{ $varType->name }}</option>
 							@endforeach
 						</select>
 					</div>

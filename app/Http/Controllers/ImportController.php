@@ -35,12 +35,14 @@ class ImportController extends Controller {
 		$variable->saveData( $data );*/
 
 		$datasets = Dataset::all();
+		$variables = Variable::all();
 		$categories = DatasetCategory::all();
 		$subcategories = DatasetSubcategory::all();
 		$varTypes = VariableType::all();
 
 		$data = [
 			'datasets' => $datasets,
+			'variables' => $variables,
 			'categories' => $categories,
 			'subcategories' => $subcategories,
 			'varTypes' => $varTypes
@@ -115,7 +117,17 @@ class ImportController extends Controller {
 				$variableObj = json_decode( $variableJsonString );
 
 				$variableData = [ 'name' => $variableObj->name, 'fk_var_type_id' => $request->input( 'variable_type' ), 'fk_dst_id' => $datasetId, 'unit' => $variableObj->unit, 'description' => $variableObj->description ];
-				$variable = Variable::create( $variableData ); 
+
+				//update of existing variable or new variable
+				if( !isset( $variableObj->id ) ) {
+					//new variable
+					$variable = Variable::create( $variableData ); 
+				} else {
+					//update variable
+					$variable = Variable::find( $variableObj->id );
+					$variable->fill( $variableData );
+					$variable->save();
+				}
 				$variableId = $variable->id;
 
 				$inserted_variables[] = $variable;
@@ -187,7 +199,7 @@ class ImportController extends Controller {
 
 			} 
 
-			return redirect()->route( 'variables.index' )->with( 'message', 'Insertion complete' )->with( 'message-class', 'success' );
+			return redirect()->route( 'datasets.index' )->with( 'message', 'Insertion complete' )->with( 'message-class', 'success' );
 
 		}
 		
