@@ -66,7 +66,6 @@
 
 			//get variable name from first cell of columns
 			var variableName = values.shift();
-			console.log( "variableName", variableName );
 			//add entity name as first cell
 			values.unshift( entityName );
 			//construct array for mapping
@@ -76,8 +75,6 @@
 				name: variableName,
 				values: App.Utils.mapData( dataToMap, true )
 			};
-			console.log( "variable" );
-			console.log( variable );
 			variables.push( variable );
 
 		} ); 

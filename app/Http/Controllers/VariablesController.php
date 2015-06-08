@@ -91,7 +91,11 @@ class VariablesController extends Controller {
 			$filter->add('value','Value', 'text');
 			//$filter->add('Entity.name','Entity', 'text');
 			//$filter->add('Entity.name','Entity','select')->options($entities->lists('name','name'));
-			$filter->add('Entity.name','Entity','select')->options( Entity::lists('name', 'name'));
+
+			$entitiesList = Entity::lists('name', 'name');
+			$entitiesList[''] = 'All';
+
+			$filter->add('Entity.name','Entity','select')->options( $entitiesList );
 			$filter->add('Time.label','Time', 'text');
 			//$filter->add('Time.label','Time','daterange')->format('m/d/Y', 'en');
         	$filter->submit('search');
@@ -116,7 +120,6 @@ class VariablesController extends Controller {
 
 			//construct csv export url
 			$exportUrl = $request->fullUrl() .'&export=csv';
-			
 			return view( 'variables.show', compact( 'variable', 'values', 'grid', 'filter', 'exportUrl' ) );
 		}
 	}
@@ -159,6 +162,18 @@ class VariablesController extends Controller {
 		$variable->delete();
 		
 		return redirect()->route('datasets.show', $variable->fk_dst_id)->with('message', 'Variable deleted.');
+	}
+
+	public function batchDestroy(Variable $variable, Request $request)
+	{	
+		if( $request->has( 'value_ids' ) ) {
+			$valueIds = $request->get( 'value_ids' );
+			$idsArr = json_decode($valueIds);
+			DataValue::destroy($idsArr);
+			return redirect()->route('variables.show', $variable->id)->with('message', 'Values deleted.');
+		}
+		return redirect()->route('variables.show', $variable->id);
+	
 	}
 
 }

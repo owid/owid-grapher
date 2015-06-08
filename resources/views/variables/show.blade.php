@@ -31,9 +31,15 @@
 			<div class="property-value">
 				{!! $filter !!} 
 				<div class="pull-right">
+					{!! Form::open(array('class' => 'form-inline', 'method' => 'DELETE', 'route' => array('valuesBatchDestroy'))) !!}
+						<input type="hidden" name="value_ids" value=""/>
+						<button type="submit" class="delete-btn"><i class="fa fa-remove"></i>Delete displayed values</a>
+					{!! Form::close() !!}
 					<a href="{!! $exportUrl !!}">Export to CSV</a>
 				</div>
+
 				{!! $grid !!}
+
 				<!--<table class="values-table">
 					<tr><th>Value</th><th>Entity</th><th>Time</th></tr>
 					@foreach( $values as $value )

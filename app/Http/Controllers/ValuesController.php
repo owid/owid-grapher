@@ -92,7 +92,6 @@ class ValuesController extends Controller {
 		$dataValue->delete();
 		//delete time
 		$deleteTime = $dataValue->time->delete();
-		
 		return redirect()->route('variables.show', $dataValue->fk_var_id)->with('message', 'Value deleted.');
 	}
 

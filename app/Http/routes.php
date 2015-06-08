@@ -36,6 +36,7 @@ Route::group(['middleware' => 'auth'], function()
 {
 	Route::resource( 'entities', 'EntitiesController' );
 	Route::resource( 'datasets', 'DatasetsController' );
+	Route::delete( 'variables/batchDestroy', ['as' => 'valuesBatchDestroy' ,'uses' => 'VariablesController@batchDestroy'] );
 	Route::resource( 'variables', 'VariablesController' );
 	Route::resource( 'values', 'ValuesController' );
 	Route::resource( 'charts', 'ChartsController' );
@@ -76,8 +77,7 @@ Route::group(['middleware' => 'auth'], function()
 	Route::post( 'import/store', 'ImportController@store' );
 
 	Route::get( 'entityIsoNames/validateData', 'EntityIsoNamesController@validateData' );
-
-
+	
 });
 
 Route::get( 'view', 'ViewController@index' );
