@@ -4,7 +4,7 @@
 
 	App.Views.Form.TimeSectionView = Backbone.View.extend({
 
-		el: "#form-view #basic-tab .time-section",
+		el: "#form-view #data-tab .time-section",
 		events: {
 			"change [name='dynamic-time']": "onDynamicTime"
 		},

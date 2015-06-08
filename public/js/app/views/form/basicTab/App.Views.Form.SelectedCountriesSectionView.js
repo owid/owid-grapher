@@ -4,7 +4,7 @@
 
 	App.Views.Form.SelectedCountriesSectionView = Backbone.View.extend({
 
-		el: "#form-view #basic-tab .selected-countries-box",
+		el: "#form-view #data-tab .selected-countries-box",
 		events: {},
 
 		initialize: function( options ) {

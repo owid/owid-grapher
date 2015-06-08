@@ -15,7 +15,9 @@ class CreateEntityIsoNamesTable extends Migration {
 		Schema::create('entity_iso_names', function(Blueprint $table)
 		{
 			$table->increments('id');
-			$table->text('code');
+			$table->text('iso2');
+			$table->text('iso3');
+			$table->text('cow3');
 			$table->text('name');
 		});
 	}

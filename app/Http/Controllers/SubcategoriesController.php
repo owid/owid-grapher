@@ -2,6 +2,8 @@
 
 use App\DatasetSubcategory;
 
+use App\DatasetCategory;
+
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
@@ -26,7 +28,9 @@ class SubcategoriesController extends Controller {
 	 */
 	public function create()
 	{
-		//
+		$categories = DatasetCategory::lists('name','id');
+		$category = 0;
+		return view( 'subcategories.create', compact( 'categories', 'category' ) );
 	}
 
 	/**
@@ -34,9 +38,10 @@ class SubcategoriesController extends Controller {
 	 *
 	 * @return Response
 	 */
-	public function store()
+	public function store( Request $request )
 	{
-		//
+		DatasetSubcategory::create($request->all());
+		return redirect()->route( 'categories.index' )->with( 'message', 'Subcategory created.');
 	}
 
 	/**
@@ -58,7 +63,9 @@ class SubcategoriesController extends Controller {
 	 */
 	public function edit(DatasetSubcategory $subcategory)
 	{
-		return view( 'subcategories.edit', compact( 'subcategory' ) );
+		$categories = DatasetCategory::lists('name','id');
+		$category = $subcategory->fk_dst_cat_id;
+		return view( 'subcategories.edit', compact( 'subcategory', 'categories', 'category' ) );
 	}
 
 	/**

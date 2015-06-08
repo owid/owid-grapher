@@ -1,0 +1,135 @@
+#chart-view {
+	font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+	color: #000000;
+	height: 100%;
+}
+
+	.standalone-chart-viewer #chart-view {
+		width: 100%;
+	}
+
+	#chart-view a {
+		color: #000000;
+	}
+
+	/**
+	*	CHART HEADER
+	**/
+	#chart-view h2,
+	#chart-view h3 {
+		font-family: Georgia, "Times New Roman", Serif;
+	}
+	#chart-view h2 {
+		font-size: 24px;
+		font-weight: 400;
+		line-height: 1.2;
+	}
+	#chart-view h3 {
+		font-size: 15px;
+		opacity: .8;
+	}
+
+	/* chart tabs */
+	#chart-view .chart-tabs {
+		float: right;
+		margin-bottom: 0;
+		list-style-type: none;
+		text-transform: uppercase;
+	}
+		#chart-view .chart-tabs li { 
+			float: left;
+			padding: 8px 12px;
+			font-size: 12px;
+			background-color: #FAFAFA;
+    	}
+			#chart-view .chart-tabs li.active {
+				background-color: #FFFFFF;
+				border: 2px #FAFAFA;
+				border-top: 2px solid rgba(0,33,71,.9);
+			}
+			#chart-view .chart-tabs li a { 
+				text-decoration: none;
+			}
+
+	.chart-wrapper-inner {
+		position: relative;
+		overflow: auto;
+		height: 100%;
+	}
+
+	/**
+	*	CHART CONTENT
+	**/
+	#chart-view .tab-content {
+		height: calc(100% - 95px);
+	}
+	#chart-view .tab-pane {
+		position: relative;
+		height: 100%;
+	}
+	
+	#chart-view svg {
+		/*position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 100px;*/
+		width: 100%;
+		height: calc(100% - 80px);
+	}
+
+	/* modify tooltip position to account for header */
+	.nvtooltip { 
+		margin-top: -150px; 
+	}
+
+	/**
+	*	CHART FOOTER
+	**/
+	#chart-view .chart-footer {
+		position: absolute;
+		bottom: 30px;
+		width: 100%;
+		background-color: #FAFAFA;
+		font-size: 11px;
+		padding: 10px 20px;
+	}
+		#chart-view .chart-footer a:hover {
+			text-decoration: underline;
+		}
+
+	.chart-wrapper {
+		background-color: #ffffff;
+	}
+	.chart-wrapper-inner {
+		padding: 25px 50px;
+	}
+	.chart-wrapper .chart-name {
+		margin-top: 40px;
+	}
+	.chart-wrapper .chart-description {
+		    margin-top: 20px;
+	}
+
+	/* for saving image */
+	.nvd3-svg {
+		background-color: #ffffff;
+	}
+
+	/** 
+	*	DATA TAB
+	**/
+	#data-chart-tab {}
+		#data-chart-tab .data-table {
+			margin-top: 20px;
+		}
+			#data-chart-tab .data-table th,
+			#data-chart-tab .data-table td { 
+				padding: 5px 10px;
+			}
+			#data-chart-tab .data-table th { 
+				border-bottom: 1px solid #AAAAAA;
+			}
+			#data-chart-tab .data-table td { 
+				border-bottom: 1px solid #AFAFAF;
+			}

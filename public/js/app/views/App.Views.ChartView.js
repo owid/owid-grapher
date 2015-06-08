@@ -25,8 +25,11 @@
 		render: function() {
 			
 			this.$el.find( ".chart-name" ).text( App.ChartModel.get( "chart-name" ) );
+			this.$el.find( ".chart-subname" ).text( App.ChartModel.get( "chart-subname" ) );
 			this.$el.find( ".chart-description" ).html( App.ChartModel.get( "chart-description" ) );
 			
+			this.$dataTab = this.$el.find( "#data-chart-tab" );
+
 			var dimensionsString = App.ChartModel.get( "chart-dimensions" );
 			if( App.ChartModel.get( "chart-data" ) ) {
 			
@@ -73,14 +76,12 @@
 			//App.Utils.encodeSvgToPng( $( ".nvd3-svg" ).get( 0 ).innerHTML );
 			var $svgCanvas = $( ".nvd3-svg" );
 			if( $svgCanvas.length ) {
-				saveSvgAsPng( $( ".nvd3-svg" ).get( 0 ), "diagram.png");
+				saveSvgAsPng( $( ".nvd3-svg" ).get( 0 ), "chart.png");
 			}
 			
 		},
 
 		updateChart: function( data ) {
-
-			console.log( "updateChart", data );
 
 			if( !data ) {
 				return;
@@ -142,12 +143,20 @@
 				xAxisScale = ( xAxis[ "axis-scale" ] || "linear" ),
 				yAxisScale = ( yAxis[ "axis-scale" ] || "linear" );
 
+
+			this.updateDataTab( localData );
+
 			var that = this;
 			nv.addGraph(function() {
+
+				function tooltipContent(key, y, e, graph) {
+					return '<h3>' + key + '</h3>' +'<p>' + y + '$</p>' ;
+				}
 
 				var chartOptions = {
 					transitionDuration: 300,
 					margin: { top: 100, left: 80, bottom: 100, right: 80 },
+					//margin: { top: 0, left: 50, bottom: 50, right: 50 },
 					tooltipContent: tooltipContent/*,
 					defined: function( d ) { return d.y != 0; }*/								
 				};
@@ -228,6 +237,42 @@
 				nv.utils.windowResize(that.chart.update);
 
 			});
+
+		},
+
+		updateDataTab: function( data ) {
+
+			this.$dataTab.empty();
+
+			var tableString = "<table class='data-table'>";
+
+			_.each( data, function( rowData, rowIndex ) {
+
+				var tr = "";
+				if( rowIndex == 0) {
+					//create header file from cell information
+					tr += "<th>Time</th>";
+					_.each( rowData.values, function( cellData, cellIndex ) {
+						var th = "<th>" + cellData.x + "</th>";
+						tr += th;
+					} );
+				}
+				tr += "</tr>";
+
+				tr += "<tr><td><strong>" + rowData.key + "</strong></td>";
+				_.each( rowData.values, function( cellData, cellIndex ) {
+					var td = "<td>" + cellData.y + "</td>";
+					tr += td;
+				} );
+				tr += "</tr>";
+				tableString += tr;
+
+			} );
+
+			tableString += "</table>";
+
+			var $table = $( tableString );
+			this.$dataTab.append( $table );	
 
 		}
 

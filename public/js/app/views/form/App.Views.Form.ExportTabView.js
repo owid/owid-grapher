@@ -68,18 +68,19 @@
 			//unnecessary to update everything just because generated code changed
 			App.ChartModel.set( $input.attr( "name" ), $input.val(), {silent:true} );
 
-			console.log( "onEmbedSizeChange", $input.attr( "name" ), $input.val() );
-
 			//if already generated code, update it
 			if( this.$iframeTextArea.text() != "" ) {
-				that.generateIframeCode();
+				this.generateIframeCode();
 			} 
-			//generateIframeCode();
 
 		},
 
 		generateIframeCode: function( id, viewUrl ) {
-			this.$iframeTextArea.text( '<iframe src="' + viewUrl + '" style="width: "' + App.ChartModel.get( "iframe-width" ) + '"; height: "' + App.ChartModel.get( "iframe-height" ) + '";"></iframe>' );
+			//store view url
+			if( viewUrl ) {
+				this.viewUrl = viewUrl;
+			}
+			this.$iframeTextArea.text( '<iframe src="' + this.viewUrl + '" style="width:' + App.ChartModel.get( "iframe-width" ) + ';height:' + App.ChartModel.get( "iframe-height" ) + ';"></iframe>' );
 		}
 
 	});

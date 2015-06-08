@@ -115,9 +115,45 @@ class DataController extends Controller {
 			return ['success' => true, 'data' => $data ];
 
 		} else {
-			//not ajax request, just spit out whatever is in data
-			return $data;
+
+			if( Input::has( 'export' ) && Input::get( 'export' ) == 'csv' ) {
+				
+				/*foreach( $data as $datum ) {
+					dd( $datum );
+				}*/
+				return $data;
+				//return $this->download_csv( $data );
+			
+			} else {
+
+				//not ajax request, nor csv export, just spit out whatever is in data
+				return $data;
+
+			}
+
 		}
+
+	}
+
+	public function download_csv( $data ) {
+
+		$headers = [
+			'Cache-Control'	=>	'must-revalidate, post-check=0, pre-check=0',
+			'Content-type' => 'text/csv',
+			'Content-Disposition' => 'attachment; filename=galleries.csv',
+			'Expires' => '0',
+			'Pragma' => 'public'
+		];
+
+		$csv = \League\Csv\Writer::createFromFileObject(new \SplTempFileObject());
+
+		foreach($data as $datum) {
+            //$csv->insertOne( array( "a" => "a", "b" => "b" ) );
+            //$csv->insertOne( (array) $datum );
+        }
+        return $csv->output('people.csv');
+		
+		//return \Response::stream($callback, 200, $headers);
 
 	}
 

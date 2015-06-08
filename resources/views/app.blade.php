@@ -28,6 +28,7 @@
 		<link href="{{ asset('css/admin/admin.css') }}" rel="stylesheet" type="text/css">
 		<link href="{{ asset('css/admin/data.css') }}" rel="stylesheet" type="text/css">
 		
+		<link href="{{ asset('css/chart.css') }}" rel="stylesheet" type="text/css">
 		<link href="{{ asset('css/main.css') }}" rel="stylesheet" type="text/css">
 		
 		@yield('styles')

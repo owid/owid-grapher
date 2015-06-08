@@ -35,9 +35,11 @@ class CategoriesController extends Controller {
 	 *
 	 * @return Response
 	 */
-	public function store()
+	public function store( Request $request )
 	{
-		//
+		DatasetCategory::create($request->all());
+		return redirect()->route( 'categories.index' )->with( 'message', 'Category created.');
+	
 	}
 
 	/**
@@ -57,9 +59,9 @@ class CategoriesController extends Controller {
 	 * @param  int  $id
 	 * @return Response
 	 */
-	public function edit($id)
+	public function edit(DatasetCategory $category)
 	{
-		//
+		return view( 'categories.edit', compact( 'category' ) );
 	}
 
 	/**
@@ -68,9 +70,11 @@ class CategoriesController extends Controller {
 	 * @param  int  $id
 	 * @return Response
 	 */
-	public function update($id)
+	public function update(DatasetCategory $category, Request $request)
 	{
-		//
+		$input = array_except( $request->all(), [ '_method', '_token' ] );
+		$category->update( $input );
+		return redirect()->route( 'categories.show', $category->id)->with( 'message', 'Category updated.');
 	}
 
 	/**
@@ -79,9 +83,13 @@ class CategoriesController extends Controller {
 	 * @param  int  $id
 	 * @return Response
 	 */
-	public function destroy($id)
+	public function destroy(DatasetCategory $category)
 	{
-		//
+		//delete itself
+		$category->subcategories()->delete();
+		$category->delete();
+		
+		return redirect()->route('categories.index')->with('message', 'Category deleted.');
 	}
 
 }

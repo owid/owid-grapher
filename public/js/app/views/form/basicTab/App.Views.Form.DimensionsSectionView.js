@@ -4,7 +4,7 @@
 
 	App.Views.Form.DimensionsSectionView = Backbone.View.extend({
 
-		el: "#form-view #basic-tab .dimensions-section",
+		el: "#form-view #data-tab .dimensions-section",
 		events: {
 			"change [name='chart-type']": "onChartTypeChange",
 		},

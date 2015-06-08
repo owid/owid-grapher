@@ -103,7 +103,7 @@ class VariablesController extends Controller {
 			$grid->add( 'Entity.name', 'Entity', true);
 			$grid->add( 'Time.label', 'Time', true);
 			$grid->add( 'description', 'Description' );
-
+			
 			//$grid->checkbox('title','Title');
 
 			$grid->add( '<a href="' .route( 'values.index' ). '/{{$id}}/edit">Edit</a>', 'Edit' );

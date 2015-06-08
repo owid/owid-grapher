@@ -86,41 +86,17 @@ button > i {
 .content-wrapper {
 	/*margin: 0;
 	padding: 0;*/
+	position: relative;
 	padding: 20px;
 }
 
 .chart-wrapper, .form-wrapper {
 	padding: 0;
 }
-	.chart-wrapper-inner, .form-wrapper-inner {
+	.form-wrapper-inner {
 		position: relative;
 		overflow: auto;
 		height: 100%;
-	}
-
-/* ==========================================================================
-  Chart
-   ========================================================================== */
-.chart-wrapper {
-	background-color: #ffffff;
-}
-.chart-wrapper-inner {
-	padding: 0px 50px 50px;
-}
-	.chart-wrapper .chart-name {
-		margin-top: 40px;
-	}
-	.chart-wrapper svg {
-		position: absolute;
-		top: 100px;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		width: 100%;	
-	}
-	.chart-wrapper .chart-description {
-		position: absolute;
-		bottom: 30px;
 	}
 
 /* ==========================================================================
@@ -128,13 +104,17 @@ button > i {
    ========================================================================== */
 .form-wrapper {
 	overflow: auto;
+	height: 100%;
 	/*box-shadow: -1px 2px 3px rgba(0,0,0,0.25) !important;*/
 	border-left: 1px solid gray;
 }
 .form-wrapper-inner {}
 	.form-section {
-		padding: 15px 30px 30px;
+		padding: 5px 30px 15px;
 	}
+		.form-section h2 {
+			font-size: 24px;
+		}
 		.form-section:nth-child(2n) {
 			background-color: #d2d6de;
 		}
@@ -142,12 +122,13 @@ button > i {
 			.form-section-digit {
 				display: inline-block;
 				margin-right: 20px;
-				padding: 9px 16px;
-				font-size: 24px;
+				padding: 9px 14px;
+				font-size: 18px;
 				font-weight: 700;
 				color: white;
 				background-color: #3c8dbc;
 				border-radius: 50%;
+				text-transform: uppercase;
 			}
 				.form-section:nth-child(2n) .form-section-digit {
 					background-color: #357ca5;
@@ -194,6 +175,11 @@ button > i {
 		}
 		
 		.form-section-submit {
+			/*position: absolute;
+			bottom: 0px;*/
+			width: 100%;
+			margin-top: 20px;
+			padding: 15px 30px 15px;
 			background-color: #222d32 !important;
 		}
 
@@ -240,6 +226,15 @@ button > i {
 		margin-right: 0px;
 		margin-left: 0px;
 	}
+
+/**
+*
+**/
+.new-subcategory-btn {
+	display: block;
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
 
 /**
 * popup picker

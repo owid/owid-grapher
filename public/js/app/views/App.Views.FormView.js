@@ -7,6 +7,7 @@
 		el: "#form-view",
 		events: {
 			"input input[name=chart-name]": "onNameChange",
+			"input textarea[name=chart-subname]": "onSubnameChange",
 			"click .remove-uploaded-file-btn": "onRemoveUploadedFile",
 			"submit form": "onFormSubmit",
 		},
@@ -47,13 +48,20 @@
 		},
 
 		render: function() {
-
+			
 		},
 
 		onNameChange: function( evt ) {
 
 			var $input = $( evt.target );
 			App.ChartModel.set( "chart-name", $input.val() );
+
+		},
+
+		onSubnameChange: function( evt ) {
+
+			var $textarea = $( evt.target );
+			App.ChartModel.set( "chart-subname", $textarea.val() );
 
 		},
 
@@ -100,8 +108,11 @@
 			var dispatcher = this.dispatcher;
 			App.ChartModel.save( {}, {
 				success: function ( model, response, options ) {
+					console.log( "response", response );
 					alert( "The chart saved succesfully" );
 					dispatcher.trigger( "chart-saved", response.data.id, response.data.viewUrl );
+					//update id of an existing model
+					App.ChartModel.set( "id", response.data.id );
 				},
 				error: function (model, xhr, options) {
 					console.error("Something went wrong while saving the model", xhr );

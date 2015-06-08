@@ -10,10 +10,19 @@
 			"selected-countries": {},
 			"tabs": [ "chart", "data", "sources" ],
 			"line-type": "2",
+			"chart-description": "You are welcome to share but please refer to its source where you where you can find more information.",
 			//"selected-countries": [ "France", "Germany" ],
 			"variables": [],
 			"y-axis": {},
-			"x-axis": {}
+			"x-axis": {},
+			"iframe-width": "100%",
+			"iframe-height": "100%"
+		},
+
+		initialize: function() {
+
+			console.log( "ChartModel" );
+
 		},
 
 		addSelectedCountry: function( country ) {

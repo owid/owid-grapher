@@ -5,8 +5,13 @@
 @endsection
 
 @section('content')
-	@include('charts/partials/_chart')
-	@include('charts/partials/_form', ['method' => 'put'])
+	<div style="position:absolute;top:0;left:0;right:0;bottom:0;">
+		@include('charts/partials/_chart')
+		@include('charts/partials/_form', ['method' => 'put'])
+	</div>
+@endsection
+
+@section('outter-content')
 	@include('charts/partials/_select-var-popup')
 @endsection
 

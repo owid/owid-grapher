@@ -80,6 +80,8 @@ class ImportController extends Controller {
 		$inputFile = InputFile::create( $inputFileData ); 
 		$inputFileDataId = $inputFile->id;
 
+		$multivariantDataset = $request->input( 'multivariant_dataset' );
+
 		$variables = $request->input( 'variables' );
 		if( !empty( $variables ) ) {
 			
@@ -137,6 +139,7 @@ class ImportController extends Controller {
 
 					$entityData = [ 'name' => $countryValue->key, 'fk_ent_t_id' => 5 ];
 
+					//entity validation (only if not multivariant dataset)
 					//find corresponding iso code
 					$entityIsoName = EntityIsoName::match( $entityData['name'] )->first();
 					if(!$entityIsoName) {
@@ -160,7 +163,7 @@ class ImportController extends Controller {
 
 					//enter standardized info
 					$entityData['name'] = $entityIsoName->name;
-					$entityData['code'] = $entityIsoName->code;
+					$entityData['code'] = $entityIsoName->iso3;
 					
 					//find try finding entity in db
 					$entity = Entity::where( 'code', '=', $entityIsoName->code )->first();

@@ -55,8 +55,9 @@ class ChartsController extends Controller {
 			
 			$chartName = $data[ "chart-name" ];
 			$json = json_encode( $data );
-
+			
 			$chart = Chart::create( [ 'config' => $json, 'name' => $chartName ] );
+			
 			return ['success' => true, 'data' => [ 'id' => $chart->id, 'viewUrl' => route( 'view', $chart->id ) ] ];
 
 			/*$u = new User;
@@ -124,8 +125,18 @@ class ChartsController extends Controller {
 	 * @return Response
 	 */
 	public function update( Chart $chart )
-	{
-		//
+	{	
+		$data = Input::all();
+		$chartName = $data[ "chart-name" ];
+		$json = json_encode( $data );
+		
+		$newData = new \stdClass();
+		$newData->config = $json;
+		$newData->name = $chartName;
+		
+		$chart->fill( [ 'name' => $chartName, 'config' => $json ] );
+		$chart->save();
+		return ['success' => true, 'data' => [ 'id' => $chart->id, 'viewUrl' => route( 'view', $chart->id ) ] ];
 	}
 
 	/**

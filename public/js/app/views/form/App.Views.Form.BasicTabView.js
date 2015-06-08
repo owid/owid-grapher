@@ -29,6 +29,9 @@
 
 		render: function() {
 			
+			this.$el.find( "[name=chart-name]" ).val( App.ChartModel.get( "chart-name" ) );
+			this.$el.find( "[name=chart-subname]" ).val( App.ChartModel.get( "chart-subname" ) );
+
 		}
 
 

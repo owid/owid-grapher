@@ -4,7 +4,7 @@
 
 	App.Views.Form.AddDataSectionView = Backbone.View.extend({
 
-		el: "#form-view #basic-tab .add-data-section",
+		el: "#form-view #data-tab .add-data-section",
 		events: {
 			"click .add-data-btn": "onAddDataBtn",
 		},

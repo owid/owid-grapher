@@ -4,7 +4,7 @@
 
 	App.Views.Form.DescriptionTabView = Backbone.View.extend({
 
-		el: "#form-view #description-tab",
+		el: "#form-view #sources-tab",
 		events: {},
 
 		initialize: function( options ) {
@@ -13,6 +13,8 @@
 			var that = this;
 
 			this.$textArea = this.$el.find( "textarea" );
+			this.$textArea.val( App.ChartModel.get( "chart-description" ) );
+
 			this.$textArea.wysihtml5( {
 				"events": {
 					"change": function( evt ) {

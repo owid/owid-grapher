@@ -56,7 +56,7 @@
 		
 		//transform multivariant into standard format ( time, entity )
 		var variables = [],
-			transposed = App.Utils.transpose( rawData ),
+			transposed = rawData,//App.Utils.transpose( rawData ),
 			timeArr = transposed.shift();
 
 		//get rid of first item (label of time column) 
@@ -66,6 +66,7 @@
 
 			//get variable name from first cell of columns
 			var variableName = values.shift();
+			console.log( "variableName", variableName );
 			//add entity name as first cell
 			values.unshift( entityName );
 			//construct array for mapping
@@ -73,8 +74,10 @@
 			//construct object
 			var variable = {
 				name: variableName,
-				values: App.Utils.mapData( dataToMap, false )
+				values: App.Utils.mapData( dataToMap, true )
 			};
+			console.log( "variable" );
+			console.log( variable );
 			variables.push( variable );
 
 		} ); 

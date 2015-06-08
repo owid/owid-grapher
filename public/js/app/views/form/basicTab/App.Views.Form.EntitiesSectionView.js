@@ -4,7 +4,7 @@
 
 	App.Views.Form.EntitiesSectionView = Backbone.View.extend({
 
-		el: "#form-view #basic-tab .entities-section",
+		el: "#form-view #data-tab .entities-section",
 		events: {
 			"change .countries-select": "onCountriesSelect",
 		},

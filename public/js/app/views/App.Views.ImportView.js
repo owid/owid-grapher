@@ -6,6 +6,7 @@
 
 		datasetName: "",
 		isDataMultiVariant: false,
+		origUploadedData: false,
 		uploadedData: false,
 
 		el: "#import-view",
@@ -85,14 +86,16 @@
 			if( !data ) {
 				return;
 			}
-
-			this.uploadedData = data;
-
+			
 			//do we need to transpose data?
 			var isOriented = this.detectOrientation( data.rows );
 			if( !isOriented ) {
 				data.rows = App.Utils.transpose( data.rows );
 			}
+
+			this.uploadedData = data;
+			//store also original, this.uploadedData will be modified when being validated
+			this.origUploadedData = $.extend( true, {}, this.uploadedData);
 
 			this.createDataTable( data.rows );
 
@@ -266,7 +269,9 @@
 
 		validateTimeData: function( data ) {
 
-			//validateTimeData modify the original data
+			console.log( "validateTimeData" );
+			console.table( data );
+
 			var $dataTableWrapper = $( ".csv-import-table-wrapper" ),
 				$dataTable = $dataTableWrapper.find( "table" ),
 				timeDomain = $dataTable.find( "th:first-child" ).text(),
@@ -293,11 +298,22 @@
 				
 				//find corresponding value in loaded data
 				var newValue,
-					origValue = data[ 0 ][ i+1 ],
-					//origValue = data[ i+1 ][ 0 ],
-					value = App.Utils.parseTimeString( origValue.toString() ),
-					date = moment( new Date( value ) );
+					origValue = data[ 0 ][ i+1 ];
 
+				//check value has 4 digits
+				if( origValue ) {
+					origValue = origValue.toString();
+				}
+				if( origValue != "" && origValue.length < 4 ) {
+					//insert missing zeros
+					var origValueLen = origValue.length;
+					for( var y = 0; y < 4 - origValueLen; y++ ) {
+						origValue = "0" + origValue;
+					}
+				}
+				var value = App.Utils.parseTimeString( origValue.toString() ),
+					date = moment( new Date( value ) );
+				
 				if( !date.isValid() ) {
 
 					$timeCell.addClass( "alert-error" );
@@ -490,15 +506,21 @@
 				//this.$variableSection.hide();
 			}
 
-			if( this.uploadedData ) {
+			if( this.uploadedData && this.origUploadedData ) {
+
+				//insert original uploadedData into array before processing
+				this.uploadedData = $.extend( true, {}, this.origUploadedData);
 				this.mapData();
+
 			}
 			
 		},
 
 		onFormSubmit: function( evt ) {
 
-			var $validationResults = $( ".validation-result.text-danger" );
+			//fetch validation results depending on type, for multivariant don't put 
+			var $validationResults = ( !this.isDataMultiVariant )? $( ".validation-result.text-danger" ): $( ".time-domain-validation-result.text-danger, .times-validation-result.text-danger" ) ;
+			
 			if( $validationResults.length ) {
 				//do not send form and scroll to error message
 				evt.preventDefault();

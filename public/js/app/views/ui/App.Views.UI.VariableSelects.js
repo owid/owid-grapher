@@ -16,15 +16,18 @@
 		init: function() {
 
 			this.$el = $( ".form-variable-select-wrapper" );
+			this.$categoryWrapper = this.$el.find( ".category-wrapper" );
 			this.$categorySelect = this.$el.find( "[name=category-id]" );
+			this.$subcategoryWrapper = this.$el.find( ".subcategory-wrapper" );
 			this.$subcategorySelect = this.$el.find( "[name=subcategory-id]" );
+			this.$variableWrapper = this.$el.find( ".variable-wrapper" );
 			this.$chartVariable = this.$el.find( "[name=chart-variable]" );
 			
 			this.$categorySelect.on( "change", $.proxy( this.onCategoryChange, this ) );
 			this.$subcategorySelect.on( "change", $.proxy( this.onSubCategoryChange, this ) );
 
-			this.$subcategorySelect.hide();
-			this.$chartVariable.hide();
+			this.$subcategoryWrapper.hide();
+			this.$variableWrapper.hide();
 
 		},
 
@@ -32,11 +35,10 @@
 			
 			var $input = $( evt.currentTarget );
 			if( $input.val() != "" ) {
-				this.$subcategorySelect.show();
-				this.$subcategorySelect.css( "display", "block" );
+				this.$subcategoryWrapper.show();
 			} else {
-				this.$subcategorySelect.hide();
-				this.$chartVariable.hide();
+				this.$subcategoryWrapper.hide();
+				this.$variableWrapper.hide();
 			}
 
 			//filter subcategories select
@@ -49,9 +51,9 @@
 
 			var $input = $( evt.currentTarget );
 			if( $input.val() != "" ) {
-				this.$chartVariable.show();
+				this.$variableWrapper.show();
 			} else {
-				this.$chartVariable.hide();
+				this.$variableWrapper.hide();
 			}
 			
 			//filter subcategories select
