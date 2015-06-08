@@ -25,6 +25,8 @@ class CreateDataValuesTable extends Migration {
 			$table->foreign('fk_ent_id')->references('id')->on('entities');
 			$table->integer('fk_var_id')->unsigned();
 			$table->foreign('fk_var_id')->references('id')->on('variables');
+			$table->integer('fk_dsr_id')->unsigned()->nullable();
+			$table->foreign('fk_dsr_id')->references('id')->on('datasources');
 			//time
 			$table->timestamps();
 		});

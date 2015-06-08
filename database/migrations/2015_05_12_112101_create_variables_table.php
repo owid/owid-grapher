@@ -22,6 +22,9 @@ class CreateVariablesTable extends Migration {
 			//fks
 			$table->integer('fk_dst_id')->unsigned();
 			$table->foreign('fk_dst_id')->references('id')->on('datasets');
+			//fks
+			$table->integer('fk_dsr_id')->unsigned()->nullable();
+			$table->foreign('fk_dsr_id')->references('id')->on('datasources');
 			//time
 			$table->timestamps();
 		});

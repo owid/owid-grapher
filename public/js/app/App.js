@@ -8,7 +8,7 @@
 		chartId = $chartShowWrapper.attr( "data-chart-id" );
 
 	if( $chartShowWrapper.length && chartId ) {
-
+		
 		//showing existing chart
 		App.ChartModel = new App.Models.ChartModel( { id: chartId } );
 		App.ChartModel.fetch( {
@@ -17,7 +17,7 @@
 				console.error( "Error loading chart model", xhr );
 			}
 		} );
-
+		
 	} else {
 
 		//is new chart

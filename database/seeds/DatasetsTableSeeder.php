@@ -10,12 +10,12 @@ class DatasetsTableSeeder extends Seeder {
 		DB::table('datasets')->delete();
 
 		//reset autoincrement
-		$statement = "ALTER TABLE datasets AUTO_INCREMENT = 1;";
+		$statement = 'ALTER TABLE datasets AUTO_INCREMENT = 1;';
 		DB::unprepared($statement);
 
 		$datasets = array(
-			[ 'name' => 'test dataset', 'fk_dst_cat_id' => 1, 'fk_dst_subcat_id' => 1],
-			[ 'name' => 'test dataset 2', 'fk_dst_cat_id' => 1, 'fk_dst_subcat_id' => 1]
+			[ 'name' => 'test dataset', 'fk_dst_cat_id' => 1, 'fk_dst_subcat_id' => 1, 'fk_dsr_id' => 1 ],
+			[ 'name' => 'test dataset 2', 'fk_dst_cat_id' => 1, 'fk_dst_subcat_id' => 1, 'fk_dsr_id' => 2]
 		);
 		
 		// Uncomment the below to run the seeder
