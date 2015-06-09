@@ -150,7 +150,7 @@
 			nv.addGraph(function() {
 
 				function tooltipContent(key, y, e, graph) {
-					return '<h3>' + key + '</h3>' +'<p>' + y + '$</p>' ;
+					return '<h3>' + key + '</h3>' +'<p>' + e + '$</p>' ;
 				}
 
 				var chartOptions = {
