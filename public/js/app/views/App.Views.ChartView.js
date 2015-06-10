@@ -286,8 +286,8 @@
 			var footerHtml = "",
 				tabHtml = "",
 				descriptiontionHtml = App.ChartModel.get( "chart-description" ),
-				sourcesNameHtml = "Data sources: ",
-				sourcesDescriptionHtml = "Data sources: ";
+				sourcesShortHtml = "Data sources: ",
+				sourcesLongHtml = "Data sources: ";
 			
 			//construct source html
 			_.each( data, function( sourceData, sourceIndex ) {
@@ -295,13 +295,13 @@
 				if( sourceIndex > 0 ) {
 					sourcesHtml += ", ";
 				}
-				sourcesNameHtml += sourceData.name;
-				sourcesDescriptionHtml += sourceData.description;
+				sourcesShortHtml += sourceData.name;
+				sourcesLongHtml += sourceData.description;
 				
 			} );
 
-			footerHtml = descriptiontionHtml + "<br />" + sourcesNameHtml;
-			tabHtml = descriptiontionHtml + "<br /><br />" + sourcesDescriptionHtml;
+			footerHtml = descriptiontionHtml + "<br />" + sourcesShortHtml;
+			tabHtml = descriptiontionHtml + "<br /><br />" + sourcesLongHtml;
 
 			//append to DOM
 			this.$el.find( ".chart-description" ).html( footerHtml );
