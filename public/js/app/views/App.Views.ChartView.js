@@ -45,7 +45,7 @@
 					success: function( response ) {
 						console.log( response );
 						if( response.data ) {
-							that.updateChart( response.data );
+							that.updateChart( response.data, response.timeType );
 						}
 						if( response.datasources ) {
 							that.updateSourceTab( response.datasources );
@@ -86,7 +86,7 @@
 			
 		},
 
-		updateChart: function( data ) {
+		updateChart: function( data, timeType ) {
 
 			if( !data ) {
 				return;
@@ -183,7 +183,7 @@
 					.axisLabel( xAxis[ "axis-label" ] )
 					.staggerLabels( true )
 					.axisLabelDistance( xAxisLabelDistance )
-					.tickFormat( function(d) { return xAxisPrefix + d + xAxisSuffix; });
+					.tickFormat( function(d) { return that.formatTimeLabel( timeType, d, xAxisPrefix, xAxisSuffix ); });
 				
 				//get extend
 				var allValues = [];
@@ -242,7 +242,7 @@
 				nv.utils.windowResize(that.chart.update);
 
 			});
-
+		
 		},
 
 		updateDataTab: function( data ) {
@@ -291,13 +291,11 @@
 			
 			//construct source html
 			_.each( data, function( sourceData, sourceIndex ) {
-
 				if( sourceIndex > 0 ) {
 					sourcesHtml += ", ";
 				}
 				sourcesShortHtml += sourceData.name;
 				sourcesLongHtml += sourceData.description;
-				
 			} );
 
 			footerHtml = descriptiontionHtml + "<br />" + sourcesShortHtml;
@@ -307,6 +305,71 @@
 			this.$el.find( ".chart-description" ).html( footerHtml );
 			this.$sourcesTab.html( tabHtml );
 
+		},
+
+		formatTimeLabel: function( type, d, xAxisPrefix, xAxisSuffix ) {
+			//depending on type format label
+			var label;
+			switch( type ) {
+				
+				case "decade":
+					
+					var decadeString = d.toString();
+					decadeString = decadeString.substring( 0, decadeString.length - 1);
+					decadeString = decadeString + "0s";
+					label = decadeString;
+
+					break;
+
+				case "quarter century":
+					
+					var quarterString = "",
+						quarter = d % 100;
+					
+					if( quarter < 25 ) {
+						quarterString = "1st quarter of the";
+					} else if( quarter < 50 ) {
+						quarterString = "half of the";
+					} else if( quarter < 75 ) {
+						quarterString = "3rd quarter of the";
+					} else {
+						quarterString = "4th quarter of the";
+					}
+						
+					var centuryString = App.Utils.centuryString( d );
+
+					label = quarterString + " " + centuryString;
+
+					break;
+
+				case "half century":
+					
+					var halfString = "",
+						half = d % 100;
+					
+					if( half < 50 ) {
+						halfString = "1st half of the";
+					} else {
+						halfString = "2nd half of the";
+					}
+						
+					var centuryString = App.Utils.centuryString( d );
+
+					label = halfString + " " + centuryString;
+
+					break;
+
+				case "century":
+					
+					label = App.Utils.centuryString( d );
+
+					break;
+
+				default:
+					label = d.toString();
+					break;
+			}
+			return xAxisPrefix + label + xAxisSuffix;
 		}
 
 	});

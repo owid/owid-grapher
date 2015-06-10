@@ -28,6 +28,8 @@ class DataController extends Controller {
 		$dataByEntity = array();
 		$dataByEntityTime = array();
 
+		$timeType = 'decade';
+
 		//extra array for storing values for export
 		$times = array();
 		$entities = array();
@@ -74,7 +76,7 @@ class DataController extends Controller {
 						);
 					}
 
-					$dataByEntity[ $entityId ][ "values" ][] = array( "x" => floatval($datum->label), "y" => floatval($datum->value) );
+					$dataByEntity[ $entityId ][ "values" ][] = array( "x" => floatval($datum->date), "y" => floatval($datum->value) );
 
 					//store for the need of export 
 					if( !array_key_exists($entityId, $dataByEntityTime) ) {
@@ -107,7 +109,7 @@ class DataController extends Controller {
 				);
 
 				foreach( $variableData as $datum ) {
-					$dataByVariable[ "id-".$id ][ "values" ][] = array( "x" => floatval($datum->label), "y" => floatval($datum->value) );
+					$dataByVariable[ "id-".$id ][ "values" ][] = array( "x" => floatval($datum->date), "y" => floatval($datum->value) );
 					$times[$datum->label] = true;
 				}
 
@@ -133,7 +135,7 @@ class DataController extends Controller {
 
 		if( $request->ajax() ) {
 
-			return ['success' => true, 'data' => $data, 'datasources' => $datasources ];
+			return [ 'success' => true, 'data' => $data, 'datasources' => $datasources, 'timeType' => $timeType ];
 
 		} else {
 

@@ -142,5 +142,32 @@
 
 	};
 
+	/**
+	*	TIME RELATED FUNCTIONS
+	**/
+
+	App.Utils.nth = function ( d ) {
+		//conver to number just in case
+		d = +d;
+		if( d > 3 && d < 21 ) return 'th'; // thanks kennebec
+		switch( d % 10 ) {
+			case 1:  return "st";
+			case 2:  return "nd";
+			case 3:  return "rd";
+			default: return "th";
+		}
+	} 
+
+	App.Utils.centuryString = function ( d ) {
+		//conver to number just in case
+		d = +d;
+		
+		var centuryNum = Math.floor(d / 100) + 1,
+			centuryString = centuryNum.toString(),
+			nth = App.Utils.nth( centuryString );
+
+		return centuryString + nth + " century";
+	} 
+
 
 })();
