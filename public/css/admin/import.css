@@ -65,6 +65,15 @@
 		background-color: #d2d6de;
 	}
 
+	/* datasource section */
+	.import-view .sources-section label,
+	.import-view .sources-section label span {
+		display: block;
+	}
+	.import-view .sources-section input {
+		width: 300px;
+	}
+	
 	/* data type section */
 	.import-view .dataset-type-radiogroup label {
 		margin-right: 20px;

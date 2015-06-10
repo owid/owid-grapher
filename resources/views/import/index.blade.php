@@ -85,9 +85,29 @@
 						<ol></ol>
 					</div>
 			</section>
+			<section class="form-section sources-section">
+					<div class="form-section-header">
+						<h3><span class="form-section-digit">5</span>Set source</h3>
+					</div>
+					<div class="form-section-content">
+						<p class="form-section-desc">Add source references which will be displayed with every chart using imported data.</p>
+						<label>
+							<span>Source name:</span>
+							<input class="form-control" type="text" name="source_name" />
+						</label>
+						<label>
+							<span>Source link:</span>
+							<input class="form-control" type="text" name="source_link" />
+						</label>
+						<label>
+							<span>Source description:</span>
+							<textarea cols="50" rows="4" class="form-control" type="text" name="source_description"></textarea>
+						</label>
+					</div>
+			</section>
 			<section class="form-section category-section">
 					<div class="form-section-header">
-						<h3><span class="form-section-digit">5</span>Select category</h3>
+						<h3><span class="form-section-digit">6</span>Select category</h3>
 					</div>
 					<div class="form-section-content">
 						<p class="form-section-desc">Properly categorizing dataset by selecting category and sub-category will help you to find it easier later. If you feel like there are some keywords that describe dataset well, you can add them as tags. For now just write tags separated by comma.</p>
@@ -116,7 +136,7 @@
 			</section>
 			<section class="form-section variable-type-section">
 					<div class="form-section-header">
-						<h3><span class="form-section-digit">6</span>Select variable type</h3>
+						<h3><span class="form-section-digit">7</span>Select variable type</h3>
 					</div>
 					<div class="form-section-content">
 						<p class="form-section-desc">Choosing right type of variable will help us to determin for which properties in chart it can be used. This will probably be semi-automated in future.</p>

@@ -25,6 +25,11 @@ class DataController extends Controller {
 		$data = array();
 		$dataByVariable = array();
 		$dataByEntity = array();
+		$dataByEntityTime = array();
+
+		//extra array for storing values for export
+		$times = array();
+		$entities = array();
 
 		if( !Input::has( 'dimensions' ) ) {
 			return false;
@@ -69,6 +74,14 @@ class DataController extends Controller {
 
 					$dataByEntity[ $entityId ][ "values" ][] = array( "x" => floatval($datum->label), "y" => floatval($datum->value) );
 
+					//store for the need of export 
+					if( !array_key_exists($entityId, $dataByEntityTime) ) {
+						$dataByEntityTime[ $entityId ] = [];
+						$entities[ $entityId ] = $datum->name; 
+					}
+					$dataByEntityTime[ $entityId ][ $datum->label ] = $datum->value;
+					$times[ $datum->label ] = true;
+
 					//more complicated case for scatter plot and else
 					//do we have already array for that value
 					/*if( !array_key_exists( $i, $dataByEntity[ $entityId ][ "values" ] ) ) {
@@ -92,6 +105,7 @@ class DataController extends Controller {
 
 				foreach( $variableData as $datum ) {
 					$dataByVariable[ "id-".$id ][ "values" ][] = array( "x" => floatval($datum->label), "y" => floatval($datum->value) );
+					$times[$datum->label] = true;
 				}
 
 			}
@@ -116,13 +130,38 @@ class DataController extends Controller {
 
 		} else {
 
+			//process data to csv friendly format
+			$timeKeys = array_keys( $times );
+			
+			//construct first row
+			$firstRow = $timeKeys;
+			array_unshift( $firstRow, "Times" ); 
+
+			$exportData = [ $firstRow ];
+			foreach( $dataByEntityTime as $entityId=>$entityData ) {
+				//first insert name
+				$entityName = ( array_key_exists($entityId, $entities) )? $entities[$entityId]: "";
+				$rowData = [ $entityName ];
+				//then insert times
+				foreach( $timeKeys as $time ) {
+					//does value exist for given time and entity?
+					if( !array_key_exists($time, $entityData) ) {
+						$rowData[] = "x"; 
+					} else {
+						//value exists
+						$rowData[] = $entityData[$time];
+					} 
+				}
+				$exportData[] = $rowData;
+			}
+
+			return $this->downloadCsv( $exportData );
+
 			if( Input::has( 'export' ) && Input::get( 'export' ) == 'csv' ) {
 				
-				/*foreach( $data as $datum ) {
-					dd( $datum );
-				}*/
-				return $data;
-				//return $this->download_csv( $data );
+				//http://localhost:8888/oxford/our-world-in-data-chart-builder/public/data/dimensions?dimensions=%5B%7B%22variableId%22%3A%221%22%2C%22property%22%3A%22y%22%2C%22name%22%3A%22Y+axis%22%7D%5D
+				//return $data;
+				return $this->downloadCsv( $exportData );
 			
 			} else {
 
@@ -135,26 +174,25 @@ class DataController extends Controller {
 
 	}
 
-	public function download_csv( $data ) {
+	public function downloadCsv( $data ) {
 
+		$fileName = 'data-' .date('Y-m-d H:i:s'). '.csv';
 		$headers = [
 			'Cache-Control'	=>	'must-revalidate, post-check=0, pre-check=0',
 			'Content-type' => 'text/csv',
-			'Content-Disposition' => 'attachment; filename=galleries.csv',
+			'Content-Disposition' => 'attachment; filename=' .$fileName,
 			'Expires' => '0',
 			'Pragma' => 'public'
 		];
 
 		$csv = \League\Csv\Writer::createFromFileObject(new \SplTempFileObject());
-
 		foreach($data as $datum) {
-            //$csv->insertOne( array( "a" => "a", "b" => "b" ) );
-            //$csv->insertOne( (array) $datum );
+            $csv->insertOne($datum);
         }
-        return $csv->output('people.csv');
-		
-		//return \Response::stream($callback, 200, $headers);
-
+        $csv->output( $fileName );
+        //have to die out, for laravel not to append non-sense
+		die();
+	
 	}
 
 	public function entities( Request $request ) {
@@ -219,5 +257,16 @@ class DataController extends Controller {
 		}
 
 	}
+
+	public function exportToSvg( Request $request ) {
+		/*print header(-type=>"image/svg+xml",
+		     -attachment=>"d3js_export_demo.svg");
+	print $data;
+	exit(0);*/
+		$type = 'image/svg+xml';
+		$svg = '<svg version="1.1" baseProfile="full" width="300" height="200" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="40" stroke="green" stroke-width="4" fill="yellow" /></svg>';
+		return response( $svg )->header('Content-Type',$type);
+	}
+
 
 }

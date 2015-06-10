@@ -23,6 +23,7 @@
 				<svg></svg>
 				<div class="chart-footer clearfix">
 					<a href="#" class="chart-save-png-btn pull-right">Save to png</a>
+					<a href="{!! route( 'exportToSvg' ) !!}" class="pull-right" target="_blank">Save to svg</a>
 					<p class="chart-description"></p>
 				</div>
 			</div>

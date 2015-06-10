@@ -12,6 +12,7 @@
 */
 
 Route::model( 'entities', 'Entity' );
+Route::model( 'datasources', 'Datasource' );
 Route::model( 'datasets', 'Dataset' );
 Route::model( 'variables', 'Variable' );
 Route::model( 'values', 'DataValue' );
@@ -35,6 +36,7 @@ Route::get('/logout', [ 'as' => 'logout', 'uses' => 'Auth\AuthController@getLogo
 Route::group(['middleware' => 'auth'], function()
 {
 	Route::resource( 'entities', 'EntitiesController' );
+	Route::resource( 'datasources', 'DatasourcesController' );
 	Route::resource( 'datasets', 'DatasetsController' );
 	Route::delete( 'variables/batchDestroy', ['as' => 'valuesBatchDestroy' ,'uses' => 'VariablesController@batchDestroy'] );
 	Route::resource( 'variables', 'VariablesController' );
@@ -47,6 +49,9 @@ Route::group(['middleware' => 'auth'], function()
 	//Route::resource( 'dataValues', 'DataValuesController' );
 	Route::bind( 'entities', function($value, $route) {
 		return App\Entity::whereId($value)->first();
+	});
+	Route::bind( 'datasources', function($value, $route) {
+		return App\Datasource::whereId($value)->first();
 	});
 	Route::bind( 'datasets', function($value, $route) {
 		return App\Dataset::whereId($value)->first();
@@ -85,5 +90,6 @@ Route::get( 'view/{id}', [ 'as' => 'view', 'uses' => 'ViewController@show' ] );
 
 Route::get( 'data', 'DataController@index' );
 Route::get( 'data/dimensions', 'DataController@dimensions' );
+Route::get( 'data/exportToSvg', [ 'as' => 'exportToSvg', 'uses' => 'DataController@exportToSvg' ] );
 Route::get( 'data/entities', 'DataController@entities' );
 Route::get( 'data/times', 'DataController@times' );

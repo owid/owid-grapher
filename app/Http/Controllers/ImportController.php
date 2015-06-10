@@ -1,5 +1,6 @@
 <?php namespace App\Http\Controllers;
 
+use App\Datasource;
 use App\Dataset;
 use App\DatasetCategory;
 use App\DatasetSubcategory;
@@ -87,11 +88,15 @@ class ImportController extends Controller {
 			
 			$entityData = [];
 
+			//store datasource 
+			$datasourceData = [ 'name' => $request->input( 'source_name' ), 'link' => $request->input( 'source_link' ), 'description' => $request->input( 'source_description' ) ];
+			$datasource = Datasource::create( $datasourceData );
+
 			//create new dataset or pick existing one
 			if( $request->input( 'new_dataset' ) === '1' ) {
 				$datasetName = $request->input( 'new_dataset_name' );
 
-				$datasetData = [ 'name' => $datasetName, 'fk_dst_cat_id' => $request->input( 'category_id' ), 'fk_dst_subcat_id' => $request->input( 'subcategory_id' ), 'description' => $request->input( 'new_dataset_description' ) ];
+				$datasetData = [ 'name' => $datasetName, 'fk_dst_cat_id' => $request->input( 'category_id' ), 'fk_dst_subcat_id' => $request->input( 'subcategory_id' ), 'description' => $request->input( 'new_dataset_description' ), 'fk_dsr_id' => $datasource->id ];
 				$dataset = Dataset::create( $datasetData );
 				$datasetId = $dataset->id;
 				
@@ -111,14 +116,14 @@ class ImportController extends Controller {
 				$dataset = Dataset::find( $datasetId );
 				$datasetName = $dataset->name;
 			}
-			
+
 			//store inserted variables, for case of rolling back
 			$inserted_variables = array();
 			foreach( $variables as $variableJsonString ) {
 
 				$variableObj = json_decode( $variableJsonString );
 
-				$variableData = [ 'name' => $variableObj->name, 'fk_var_type_id' => $request->input( 'variable_type' ), 'fk_dst_id' => $datasetId, 'unit' => $variableObj->unit, 'description' => $variableObj->description ];
+				$variableData = [ 'name' => $variableObj->name, 'fk_var_type_id' => $request->input( 'variable_type' ), 'fk_dst_id' => $datasetId, 'unit' => $variableObj->unit, 'description' => $variableObj->description, 'fk_dsr_id' => $datasource->id ];
 
 				//update of existing variable or new variable
 				if( !isset( $variableObj->id ) ) {
@@ -191,7 +196,7 @@ class ImportController extends Controller {
 							$timeId = $time->id;
 
 							//create value
-							$dataValueData = [ 'value' => $value->y, 'fk_time_id' => $timeId, 'fk_input_files_id' => $inputFileDataId, 'fk_var_id' => $variableId, 'fk_ent_id' => $entityId ];
+							$dataValueData = [ 'value' => $value->y, 'fk_time_id' => $timeId, 'fk_input_files_id' => $inputFileDataId, 'fk_var_id' => $variableId, 'fk_ent_id' => $entityId, 'fk_dsr_id' => $datasource->id ];
 							$dataValue = DataValue::create( $dataValueData );
 
 						}

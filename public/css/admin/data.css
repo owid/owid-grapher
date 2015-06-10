@@ -14,7 +14,13 @@
 /* value */
 .edit-value-module, .edit-dataset-module {}
 	.edit-value-module form,
-	.edit-dataset-module form {
+	.edit-dataset-module form,
+	.edit-datasource-module form {
 		max-width: 500px;
 	}
+
+/* datasources */
+.btn-new-datasource {
+	margin: 10px 0px;
+}
 
