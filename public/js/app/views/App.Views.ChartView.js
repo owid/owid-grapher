@@ -29,6 +29,7 @@
 			this.$el.find( ".chart-description" ).html( App.ChartModel.get( "chart-description" ) );
 			
 			this.$dataTab = this.$el.find( "#data-chart-tab" );
+			this.$sourcesTab = this.$el.find( "#sources-chart-tab" );
 
 			var dimensionsString = App.ChartModel.get( "chart-dimensions" );
 			if( App.ChartModel.get( "chart-data" ) ) {
@@ -42,8 +43,12 @@
 					url: Global.rootUrl + "/data/dimensions",
 					data: { "dimensions": dimensionsString },
 					success: function( response ) {
+						console.log( response );
 						if( response.data ) {
 							that.updateChart( response.data );
+						}
+						if( response.datasources ) {
+							that.updateSourceTab( response.datasources );
 						}
 					}
 				} );
@@ -273,6 +278,34 @@
 
 			var $table = $( tableString );
 			this.$dataTab.append( $table );	
+
+		},
+
+		updateSourceTab: function( data ) {
+
+			var footerHtml = "",
+				tabHtml = "",
+				descriptiontionHtml = App.ChartModel.get( "chart-description" ),
+				sourcesNameHtml = "Data sources: ",
+				sourcesDescriptionHtml = "Data sources: ";
+			
+			//construct source html
+			_.each( data, function( sourceData, sourceIndex ) {
+
+				if( sourceIndex > 0 ) {
+					sourcesHtml += ", ";
+				}
+				sourcesNameHtml += sourceData.name;
+				sourcesDescriptionHtml += sourceData.description;
+				
+			} );
+
+			footerHtml = descriptiontionHtml + "<br />" + sourcesNameHtml;
+			tabHtml = descriptiontionHtml + "<br /><br />" + sourcesDescriptionHtml;
+
+			//append to DOM
+			this.$el.find( ".chart-description" ).html( footerHtml );
+			this.$sourcesTab.html( tabHtml );
 
 		}
 

@@ -3,6 +3,7 @@
 use DB;
 use Input;
 use App\Variable;
+use App\Datasource;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
@@ -30,6 +31,7 @@ class DataController extends Controller {
 		//extra array for storing values for export
 		$times = array();
 		$entities = array();
+		$datasourcesIdsArr = array();
 
 		if( !Input::has( 'dimensions' ) ) {
 			return false;
@@ -81,6 +83,7 @@ class DataController extends Controller {
 					}
 					$dataByEntityTime[ $entityId ][ $datum->label ] = $datum->value;
 					$times[ $datum->label ] = true;
+					$datasourcesIdsArr[ $datum->fk_dsr_id ] = true;
 
 					//more complicated case for scatter plot and else
 					//do we have already array for that value
@@ -123,10 +126,14 @@ class DataController extends Controller {
 				$data[] = $varData;
 			}
 		}
-	
+
+		//get all necessary info for datasources
+		$datasourcesIds = array_keys( $datasourcesIdsArr );
+		$datasources = Datasource::findMany( $datasourcesIds );
+
 		if( $request->ajax() ) {
 
-			return ['success' => true, 'data' => $data ];
+			return ['success' => true, 'data' => $data, 'datasources' => $datasources ];
 
 		} else {
 
@@ -154,8 +161,6 @@ class DataController extends Controller {
 				}
 				$exportData[] = $rowData;
 			}
-
-			return $this->downloadCsv( $exportData );
 
 			if( Input::has( 'export' ) && Input::get( 'export' ) == 'csv' ) {
 				

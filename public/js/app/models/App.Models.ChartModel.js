@@ -21,7 +21,7 @@
 
 		initialize: function() {
 
-			console.log( "ChartModel" );
+			console.log( "ChartModel", this.attributes );
 
 		},
 
