@@ -42,6 +42,10 @@ class DataController extends Controller {
 		$dimensionsInput = Input::get( 'dimensions' );
 		$dimensions = json_decode( $dimensionsInput );
 
+		$chartType = Input::get( 'chartType' );
+		//there's special setting for linechart
+		$isLineChart = ( $chartType == "1" )? true: false;
+
 		//find out how many variables we have 
 		$groupByEntity = true;
 		//$groupByEntity = ( count( $dimensions ) > 1 )? false: true;
@@ -90,6 +94,10 @@ class DataController extends Controller {
 					}
 					//store value
 					$dataByEntity[ $entityId ][ "values" ][ $i ][ $property ] = floatval( $datum->value );
+					//if is linechart, store 
+					if( $isLineChart ) {
+						$dataByEntity[ $entityId ][ "values" ][ $i ][ "x" ] = floatval( $datum->label );
+					}
 					$i++;
 
 					//store for the need of export 

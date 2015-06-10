@@ -41,7 +41,7 @@
 				var that = this;
 				$.ajax( {
 					url: Global.rootUrl + "/data/dimensions",
-					data: { "dimensions": dimensionsString },
+					data: { "dimensions": dimensionsString, "chartType": App.ChartModel.get( "chart-type" ) },
 					success: function( response ) {
 						console.log( response );
 						if( response.data ) {

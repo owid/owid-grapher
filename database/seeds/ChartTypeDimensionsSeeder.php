@@ -14,7 +14,7 @@ class ChartTypeDimensionsTableSeeder extends Seeder {
 		DB::unprepared($statement);
 		
 		$chart_types = array(
-			[ 'property' => 'x', 'name' => 'X axis', 'type' => 'number', 'fk_chart_type_id' => 1 ],
+			//[ 'property' => 'x', 'name' => 'X axis', 'type' => 'number', 'fk_chart_type_id' => 1 ],
 			[ 'property' => 'y', 'name' => 'Y axis', 'type' => 'number', 'fk_chart_type_id' => 1 ],
 			[ 'property' => 'x', 'name' => 'X axis', 'type' => 'number', 'fk_chart_type_id' => 2 ],
 			[ 'property' => 'y', 'name' => 'Y axis', 'type' => 'number', 'fk_chart_type_id' => 2 ],
