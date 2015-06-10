@@ -27,6 +27,12 @@
 			</div>
 		</div>
 		<div class="property-wrapper">
+			<h3 class="property-title">Source</h3>
+			<div class="property-value">
+				{{ $variable->datasource->name }}
+			</div>
+		</div>
+		<div class="property-wrapper">
 			<h3 class="property-title">Data</h3>
 			<div class="property-value">
 				{!! $filter !!} 

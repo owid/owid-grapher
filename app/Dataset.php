@@ -15,4 +15,23 @@ class Dataset extends Model {
 	public function subcategory() {
 		return $this->hasOne( 'App\DatasetSubcategory', 'id', 'fk_dst_subcat_id' );
 	}
+	public function datasource() {
+		return $this->hasOne( 'App\Datasource', 'id', 'fk_dsr_id' );
+	}
+
+	public function scopeUpdateSource( $query, $datasetId, $newDatasourceId ) {
+		if( !empty( $newDatasourceId ) ) {
+			$dataset = Dataset::find( $datasetId );
+			//is it event necessary to update source?
+			if( $dataset->fk_dsr_id != $newDatasourceId ) {
+				
+				//get all variables
+				$variables = $dataset->variables;
+				foreach( $variables as $variable ) {
+					Variable::updateSource( $variable->id, $newDatasourceId );
+				}
+				
+			}
+		}
+	}
 }

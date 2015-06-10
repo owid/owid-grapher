@@ -1,6 +1,7 @@
 <?php namespace App\Http\Controllers;
 
 use App\Dataset;
+use App\Datasource;
 use App\DatasetCategory;
 use App\DatasetSubcategory;
 use App\Http\Requests;
@@ -60,9 +61,10 @@ class DatasetsController extends Controller {
 	 */
 	public function edit(Dataset $dataset)
 	{
+		$datasources = Datasource::lists( 'name', 'id' );
 		$categories = DatasetCategory::all()->lists( 'name', 'id' );
 		$subcategories = DatasetSubcategory::all()->lists( 'name', 'id' );
-		return view( 'datasets.edit', compact( 'dataset', 'categories', 'subcategories' ) );
+		return view( 'datasets.edit', compact( 'dataset', 'categories', 'subcategories', 'datasources' ) );
 	}
 
 	/**
@@ -74,6 +76,10 @@ class DatasetsController extends Controller {
 	public function update(Dataset $dataset, Request $request)
 	{
 		$input = array_except( $request->all(), [ '_method', '_token' ] );
+		//need to update data value sources?
+		if( $request->has( "fk_dsr_id" ) ) {
+			Dataset::updateSource( $dataset->id, $request->get( "fk_dsr_id" ) );
+		}
 		$dataset->update( $input );
 		return redirect()->route( 'datasets.show', $dataset->id)->with( 'message', 'Dataset updated.');
 	}

@@ -2,6 +2,7 @@
 
 use DB;
 use Input;
+use App\Datasource;
 use App\Variable;
 use App\Entity;
 use App\DataValue;
@@ -131,8 +132,9 @@ class VariablesController extends Controller {
 	 * @return Response
 	 */
 	public function edit(Variable $variable)
-	{
-		return view( 'variables.edit', compact( 'variable' ) );
+	{	
+		$datasources = Datasource::lists( 'name', 'id' );
+		return view( 'variables.edit', compact( 'variable', 'datasources' ) );
 	}
 
 	/**
@@ -144,6 +146,10 @@ class VariablesController extends Controller {
 	public function update(Variable $variable, Request $request)
 	{
 		$input = array_except( $request->all(), [ '_method', '_token' ] );
+		//need to update data value sources?
+		if( $request->has( "fk_dsr_id" ) ) {
+			Variable::updateSource( $variable->id, $request->get( "fk_dsr_id" ) );
+		}
 		$variable->update( $input );
 		return redirect()->route( 'variables.show', $variable->id)->with( 'message', 'Variable updated.');
 	}
@@ -174,6 +180,21 @@ class VariablesController extends Controller {
 		}
 		return redirect()->route('variables.show', $variable->id);
 	
+	}
+
+	public function updateSource(Variable $variable, $newDatasourceId) {
+
+		if( !empty( $newDatasourceId ) ) {
+			//is it event necessary to update source?
+			if( $variable->fk_dsr_id != $newDatasourceId ) {
+				//it is update both variable source all sources of all variable values
+				$variable->fk_dsr_id = $newDatasourceId;
+				$variable->save();
+				//update all variable values
+				DataValue::where( 'fk_var_id', $variable->id )->update( array( 'fk_dsr_id' => $newDatasourceId ) );
+			}
+		}
+
 	}
 
 }

@@ -1,6 +1,7 @@
 <?php namespace App\Http\Controllers;
 
 use App\DataValue;
+use App\Datasource;
 use App\Entity;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
@@ -59,7 +60,8 @@ class ValuesController extends Controller {
 	public function edit(DataValue $dataValue)
 	{
 		$entities = Entity::lists( 'name', 'id' );
-		return view( 'values.edit', compact( 'dataValue', 'entities' ) );
+		$datasources = Datasource::lists( 'name', 'id' );
+		return view( 'values.edit', compact( 'dataValue', 'entities', 'datasources' ) );
 	}
 
 	/**

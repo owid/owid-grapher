@@ -15,4 +15,8 @@ class DataValue extends Model {
 		return $this->hasOne( 'App\Time', 'id', 'fk_time_id' );
 	}
 
+	public function datasource() {
+		return $this->hasOne( 'App\Datasource', 'id', 'fk_dsr_id' );
+	}
+
 }
