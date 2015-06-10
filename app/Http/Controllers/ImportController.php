@@ -200,6 +200,28 @@ class ImportController extends Controller {
 								'date' =>  ( isset($timeObj->date) )? $timeObj->date: "", 
 								'label' =>  ( isset($timeObj->label) )? $timeObj->label: ""
 							];
+
+							//TODO - convert this into something reasonably, convert timedomain 
+							$fk_ttype_id = 1;//$timeObj->timeDomain;
+							switch( $timeObj->timeDomain ) {
+								case "century":
+									$fk_ttype_id = 5;
+									break;
+								case "half century":
+									$fk_ttype_id = 4;
+									break;
+								case "quarter century":
+									$fk_ttype_id = 3;
+									break;
+								case "decade":
+									$fk_ttype_id = 2;
+									break;
+								case "year":
+									$fk_ttype_id = 1;
+									break;
+							}
+							$timeValue['fk_ttype_id'] = $fk_ttype_id;
+
 							$time = Time::create( $timeValue );
 							$timeId = $time->id;
 

@@ -371,6 +371,9 @@
 
 					}
 
+					//insert info about time domain
+					newValue[ "timeDomain" ] = timeDomain;
+
 					//initial was number/string so passed by value, need to insert it back to arreay
 					data[ 0 ][ i+1 ] = newValue;
 
