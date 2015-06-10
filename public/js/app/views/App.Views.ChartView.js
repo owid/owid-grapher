@@ -110,7 +110,7 @@
 					return ( _.indexOf( selectedCountriesNames, value.key ) > -1 );
 				} );
 			} else {
-				//TODO - nonose? just convert associative array to array
+				//TODO - nonsense? just convert associative array to array
 				localData = _.map( localData, function( value ) { return value; } );
 			}
 			
@@ -177,8 +177,14 @@
 					that.$el.removeClass( "line-dots" );
 				}
 
-				that.chart = nv.models.lineChart().options( chartOptions );
-				
+				//depending on chart type create chart
+				var chartType = App.ChartModel.get( "chart-type" );
+				if( chartType == "1" ) {
+					that.chart = nv.models.lineChart().options( chartOptions );
+				} else if( chartType == "2" ) {
+					that.chart = nv.models.scatterChart().showDistX(true).showDistY(true);
+				}
+
 				that.chart.xAxis
 					.axisLabel( xAxis[ "axis-label" ] )
 					.staggerLabels( true )
@@ -230,6 +236,8 @@
 				} else if( yAxisScale === "log" ) {
 					that.chart.yScale( d3.scale.log() ); 
 				}
+
+				console.log( "localData", localData );
 
 				that.chart.yAxis
 					.axisLabel( yAxis[ "axis-label" ] )

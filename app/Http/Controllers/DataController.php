@@ -43,7 +43,8 @@ class DataController extends Controller {
 		$dimensions = json_decode( $dimensionsInput );
 
 		//find out how many variables we have 
-		$groupByEntity = ( count( $dimensions ) > 1 )? false: true;
+		$groupByEntity = true;
+		//$groupByEntity = ( count( $dimensions ) > 1 )? false: true;
 
 		foreach( $dimensions as $dimension ) {
 			
@@ -59,13 +60,18 @@ class DataController extends Controller {
 				->get();
 
 			if( $groupByEntity ) {
-				
-				$dataByEntity = array();
-
+			
 				//group variable data by entities
+				$i = 0;
+				$oldEntityId = -1;
 				foreach( $variableData as $datum ) {
 
 					$entityId = $datum->fk_ent_id;
+					//check if new entity and we need to reset cycle
+					if( $oldEntityId != $entityId ) {
+						$i = 0;
+					}
+					$oldEntityId = $entityId;
 					
 					//do we have already object for that entity
 					if( !array_key_exists($entityId, $dataByEntity) ) {
@@ -76,7 +82,15 @@ class DataController extends Controller {
 						);
 					}
 
-					$dataByEntity[ $entityId ][ "values" ][] = array( "x" => floatval($datum->date), "y" => floatval($datum->value) );
+					//$dataByEntity[ $entityId ][ "values" ][] = array( "x" => floatval($datum->date), "y" => floatval($datum->value) );
+					
+					//is it first property being saved for given property
+					if( !array_key_exists( $i, $dataByEntity[ $entityId ][ "values" ] ) ) {
+						$dataByEntity[ $entityId ][ "values" ][ $i ] = [];// "x" => floatval($datum->label), "y" => floatval($datum->value) ];
+					}
+					//store value
+					$dataByEntity[ $entityId ][ "values" ][ $i ][ $property ] = floatval( $datum->value );
+					$i++;
 
 					//store for the need of export 
 					if( !array_key_exists($entityId, $dataByEntityTime) ) {
@@ -116,7 +130,7 @@ class DataController extends Controller {
 			}
 
 		}
-
+		
 		if( $groupByEntity ) {
 			//convert to array
 			foreach( $dataByEntity as $entityData ) {

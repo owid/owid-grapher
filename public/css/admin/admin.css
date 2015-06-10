@@ -204,7 +204,8 @@ button > i {
 	margin-right: 10px;
 	margin-bottom: 10px;
 	padding: 10px 20px;
-	background-color: #bbb;
+	background-color: #fff;
+	border: 1px solid #bbb;
 	cursor: pointer;
 }
 	.country-label .fa,
@@ -220,7 +221,7 @@ button > i {
 		}
 	.variable-label .fa {
 		position: absolute;
-		top: 9px;
+		top: 14px;
 		right: 10px;
 		color: #666666;
 		margin-right: 0px;
@@ -307,7 +308,7 @@ button > i {
 .dd-item,
 .dd-empty,
 .dd-placeholder { display: block; position: relative; margin: 0; padding: 0; min-height: 20px; font-size: 13px; line-height: 20px; }
-.dd-handle { display: block; height: 30px; margin: 5px 0; padding: 5px 10px; color: #333; text-decoration: none; font-weight: bold; border: 1px solid #ccc;
+.dd-handle { display: block; height: 30px; margin: 5px 0; padding: 5px 10px; color: #333; text-decoration: none; font-weight: bold; border: 0px solid #ccc;
     background: #fafafa;
     background: -webkit-linear-gradient(top, #fafafa 0%, #eee 100%);
     background:    -moz-linear-gradient(top, #fafafa 0%, #eee 100%);

@@ -179,7 +179,7 @@ class ImportController extends Controller {
 					$entityData['code'] = $entityIsoName->iso3;
 					
 					//find try finding entity in db
-					$entity = Entity::where( 'code', '=', $entityIsoName->code )->first();
+					$entity = Entity::where( 'code', $entityIsoName->iso3 )->first();
 					if( !$entity ) {
 						//entity haven't found in database, so insert it
 						$entity = Entity::create( $entityData ); 

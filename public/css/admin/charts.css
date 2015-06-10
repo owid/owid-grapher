@@ -41,7 +41,7 @@
 }
 .dimension-box {}
 	.dimension-box .dd-wrapper {
-		min-height: 100px;
+		min-height: 45px;
 	}
 	.dimensions-list .dd-empty {
 		border: 2px dashed #fff;

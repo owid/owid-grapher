@@ -24,6 +24,7 @@
 		onChartTypeChange: function( evt ) {
 
 			var $select = $( evt.currentTarget );
+			App.ChartModel.set( "chart-type", $select.val() );
 			App.ChartDimensionsModel.loadConfiguration( $select.val() );
 
 		}
