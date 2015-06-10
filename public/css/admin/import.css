@@ -66,11 +66,14 @@
 	}
 
 	/* datasource section */
-	.import-view .sources-section label,
-	.import-view .sources-section label span {
+	.import-view .datasources-section .new-datasource-wrapper {
+		margin-top: 10px;
+	}
+	.import-view .datasources-section label,
+	.import-view .datasources-section label span {
 		display: block;
 	}
-	.import-view .sources-section input {
+	.import-view .datasources-section input {
 		width: 300px;
 	}
 	
@@ -96,6 +99,7 @@
 				display: block;
 			}
 
+	/* category section */
 	.import-view .category-section {}
 		.import-view .category-section label,
 		.import-view .category-section select,
@@ -119,6 +123,7 @@
 			width: 40%;
 		}
 
+	/* variable type section */
 	.import-view .variable-type-section {}
 		.import-view .variable-type-section [name="variable_type"] {
 			width: 40%;

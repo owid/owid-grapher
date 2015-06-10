@@ -36,6 +36,7 @@ class ImportController extends Controller {
 		$variable->saveData( $data );*/
 
 		$datasets = Dataset::all();
+		$datasources = Datasource::all();
 		$variables = Variable::all();
 		$categories = DatasetCategory::all();
 		$subcategories = DatasetSubcategory::all();
@@ -43,6 +44,7 @@ class ImportController extends Controller {
 
 		$data = [
 			'datasets' => $datasets,
+			'datasources' => $datasources,
 			'variables' => $variables,
 			'categories' => $categories,
 			'subcategories' => $subcategories,
@@ -88,9 +90,15 @@ class ImportController extends Controller {
 			
 			$entityData = [];
 
-			//store datasource 
-			$datasourceData = [ 'name' => $request->input( 'source_name' ), 'link' => $request->input( 'source_link' ), 'description' => $request->input( 'source_description' ) ];
-			$datasource = Datasource::create( $datasourceData );
+			//either fetch existing datasource or new one 
+			if( !empty( $request->input( 'datasource_id' ) ) ) {
+				//fetching existing one
+				$datasource = Datasource::find( $request->input( 'datasource_id' ) );
+			} else {
+				//creating new datasource
+				$datasourceData = [ 'name' => $request->input( 'source_name' ), 'link' => $request->input( 'source_link' ), 'description' => $request->input( 'source_description' ) ];
+				$datasource = Datasource::create( $datasourceData );	
+			}
 
 			//create new dataset or pick existing one
 			if( $request->input( 'new_dataset' ) === '1' ) {

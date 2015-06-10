@@ -17,6 +17,7 @@
 			"click .remove-uploaded-file-btn": "onRemoveUploadedFile",
 			"change [name=category_id]": "onCategoryChange",
 			"change [name=existing_dataset_id]": "onExistingDatasetChange",
+			"change [name=datasource_id]": "onDatasourceChange",
 			"change [name=existing_variable_id]": "onExistingVariableChange",
 			"change [name=subcategory_id]": "onSubCategoryChange",
 			"change [name=multivariant_dataset]": "onMultivariantDatasetChange",
@@ -58,6 +59,9 @@
 			this.$newDatasetSection = this.$el.find( ".new-dataset-section" );
 			this.$existingDatasetSection = this.$el.find( ".existing-dataset-section" );
 			this.$removeUploadedFileBtn = this.$el.find( ".remove-uploaded-file-btn" );
+
+			//datasource section
+			this.$newDatasourceWrapper = this.$el.find( ".new-datasource-wrapper" );
 
 			//category section
 			this.$categorySelect = this.$el.find( "[name=category_id]" );
@@ -488,6 +492,18 @@
 			//filter subcategories select
 			this.$subcategorySelect.find( "option" ).hide();
 			this.$subcategorySelect.find( "option[data-category-id=" + $input.val() + "]" ).show();
+
+		},
+
+		onDatasourceChange: function( evt ) {
+
+			var $target = $( evt.currentTarget );
+			console.log( "onDatasourceChange", $target.val() );
+			if( $target.val() < 1 ) {
+				this.$newDatasourceWrapper.slideDown();
+			} else {
+				this.$newDatasourceWrapper.slideUp();
+			}
 
 		},
 
