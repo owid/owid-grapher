@@ -60,7 +60,7 @@
 			timeArr = transposed.shift();
 
 		//get rid of first item (label of time column) 
-		timeArr.shift();
+		//timeArr.shift();
 		
 		_.each( transposed, function( values, key, list ) {
 
@@ -68,8 +68,9 @@
 			var variableName = values.shift();
 			//add entity name as first cell
 			values.unshift( entityName );
-			//construct array for mapping
-			var dataToMap = [ timeArr, values ];
+			//construct array for mapping, need to deep copy timeArr
+			var localTimeArr = $.extend( true, [], timeArr);
+			var dataToMap = [ localTimeArr, values ];
 			//construct object
 			var variable = {
 				name: variableName,

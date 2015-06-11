@@ -28,7 +28,8 @@
 				</div>
 			</div>
 			<div id="data-chart-tab" class="tab-pane">
-				Data tab
+				<a href="#" data-base-url="{!! route( 'dimensions' ) !!}" class="download-data-btn" target="_blank">Download data</a>
+				<div class="data-table-wrapper"></div>
 			</div>
 			<div id="map-chart-tab" class="tab-pane">
 				Map tab

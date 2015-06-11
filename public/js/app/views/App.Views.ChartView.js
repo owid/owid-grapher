@@ -28,7 +28,12 @@
 			this.$el.find( ".chart-subname" ).text( App.ChartModel.get( "chart-subname" ) );
 			this.$el.find( ".chart-description" ).html( App.ChartModel.get( "chart-description" ) );
 			
+			//data tab
 			this.$dataTab = this.$el.find( "#data-chart-tab" );
+			this.$downloadBtn = this.$dataTab.find( ".download-data-btn" );
+			this.$dataTableWrapper = this.$dataTab.find( ".data-table-wrapper" );
+			
+			//sources tab
 			this.$sourcesTab = this.$el.find( "#sources-chart-tab" );
 
 			var dimensionsString = App.ChartModel.get( "chart-dimensions" );
@@ -43,12 +48,14 @@
 					url: Global.rootUrl + "/data/dimensions",
 					data: { "dimensions": dimensionsString, "chartType": App.ChartModel.get( "chart-type" ) },
 					success: function( response ) {
-						console.log( response );
 						if( response.data ) {
 							that.updateChart( response.data, response.timeType );
 						}
 						if( response.datasources ) {
 							that.updateSourceTab( response.datasources );
+						}
+						if( response.exportData ) {
+							that.updateDataTab( response.exportData );
 						}
 					}
 				} );
@@ -148,9 +155,6 @@
 				xAxisScale = ( xAxis[ "axis-scale" ] || "linear" ),
 				yAxisScale = ( yAxis[ "axis-scale" ] || "linear" );
 
-
-			this.updateDataTab( localData );
-
 			var that = this;
 			nv.addGraph(function() {
 
@@ -237,8 +241,6 @@
 					that.chart.yScale( d3.scale.log() ); 
 				}
 
-				console.log( "localData", localData );
-
 				that.chart.yAxis
 					.axisLabel( yAxis[ "axis-label" ] )
 					.axisLabelDistance( yAxisLabelDistance )
@@ -255,28 +257,36 @@
 
 		updateDataTab: function( data ) {
 
-			this.$dataTab.empty();
+			this.$dataTableWrapper.empty();
+
+			//update link
+			var dimensionsString = App.ChartModel.get( "chart-dimensions" ),
+				chartType = App.ChartModel.get( "chart-type" ),
+				baseUrl = this.$downloadBtn.attr( "data-base-url" ),
+				dimensionsUrl = encodeURIComponent( dimensionsString );
+			this.$downloadBtn.attr( "href", baseUrl + "?dimensions=" + dimensionsUrl + "&chartType=" + chartType + "&export=csv" );
 
 			var tableString = "<table class='data-table'>";
 
 			_.each( data, function( rowData, rowIndex ) {
 
-				var tr = "";
+				var tr = "<tr>";
 				if( rowIndex == 0) {
+					
 					//create header file from cell information
-					tr += "<th>Time</th>";
-					_.each( rowData.values, function( cellData, cellIndex ) {
-						var th = "<th>" + cellData.x + "</th>";
+					_.each( rowData, function( value ) {
+						var th = "<th>" + value + "</th>";
 						tr += th;
 					} );
+				
+				} else {
+					
+					_.each( rowData, function( value, index ) {
+						var td = ( index == 0 )? "<td><strong>" + value + "</strong></td>": "<td>" + value + "</td>";
+						tr += td;
+					} );
+				
 				}
-				tr += "</tr>";
-
-				tr += "<tr><td><strong>" + rowData.key + "</strong></td>";
-				_.each( rowData.values, function( cellData, cellIndex ) {
-					var td = "<td>" + cellData.y + "</td>";
-					tr += td;
-				} );
 				tr += "</tr>";
 				tableString += tr;
 
@@ -285,7 +295,7 @@
 			tableString += "</table>";
 
 			var $table = $( tableString );
-			this.$dataTab.append( $table );	
+			this.$dataTableWrapper.append( $table );	
 
 		},
 

@@ -25,13 +25,9 @@ class DataController extends Controller {
 	public function dimensions( Request $request ) {
 
 		$data = array();
-		$dataByVariable = array();
-		$dataByEntity = array();
-		$dataByEntityTime = array();
-
+		
 		//extra array for storing values for export
 		$times = array();
-		$entities = array();
 		$datasourcesIdsArr = array();
 
 		if( !Input::has( 'dimensions' ) ) {
@@ -49,6 +45,16 @@ class DataController extends Controller {
 		$groupByEntity = (!$isLineChart || count( $dimensions ) == 1)? true: false;
 
 		$timeType = '';
+
+		if( $groupByEntity ) {
+			$entities = array();
+			$dataByEntity = array();
+			$dataByEntityTime = array();
+		} else {
+			$variables = array();
+			$dataByVariable = array();
+			$dataByVariableTime = array();
+		}
 
 		foreach( $dimensions as $dimension ) {
 			
@@ -114,16 +120,6 @@ class DataController extends Controller {
 					$times[ $datum->label ] = true;
 					$datasourcesIdsArr[ $datum->fk_dsr_id ] = true;
 
-					//more complicated case for scatter plot and else
-					//do we have already array for that value
-					/*if( !array_key_exists( $i, $dataByEntity[ $entityId ][ "values" ] ) ) {
-						$dataByEntity[ $entityId ][ "values" ][ $i ] = [ "x" => floatval($datum->label), "y" => floatval($datum->value) ];
-					}
-					$i++;*/
-					/*$values = $data[ $entityId ][ "values" ][ $i ];
-					$values[ $property ] = $datum->value;
-					$data[ $entityId ][ "values" ][ $i ] = $values;*/
-
 				}
 
 			} else {
@@ -139,8 +135,21 @@ class DataController extends Controller {
 					$dataByVariable[ "id-".$id ][ "values" ][] = array( "x" => floatval($datum->date), "y" => floatval($datum->value) );
 					$times[$datum->label] = true;
 					$datasourcesIdsArr[ $datum->fk_dsr_id ] = true;
-				}
 
+					//store time type if not stored
+					if( empty( $timeType ) ) {
+						$timeType = TimeType::find( $datum->fk_ttype_id )->name; 
+					}
+
+					//store for the need of export 
+					if( !array_key_exists($dimension->variableId, $dataByVariableTime) ) {
+						$dataByVariableTime[ $dimension->variableId ] = [];
+						$variables[ $dimension->variableId ] = $datum->fk_var_id; 
+					}
+					$dataByVariableTime[ $dimension->variableId ][ $datum->label ] = $datum->value;
+
+				}
+				
 			}
 
 		}
@@ -161,20 +170,17 @@ class DataController extends Controller {
 		$datasourcesIds = array_keys( $datasourcesIdsArr );
 		$datasources = Datasource::findMany( $datasourcesIds );
 
-		if( $request->ajax() ) {
+		//process data to csv friendly format
+		$timeKeys = array_keys( $times );
+		
+		//construct first row
+		$firstRow = $timeKeys;
+		array_unshift( $firstRow, "Times" ); 
 
-			return [ 'success' => true, 'data' => $data, 'datasources' => $datasources, 'timeType' => $timeType ];
+		$exportData = [ $firstRow ];
 
-		} else {
+		if( $groupByEntity ) {
 
-			//process data to csv friendly format
-			$timeKeys = array_keys( $times );
-			
-			//construct first row
-			$firstRow = $timeKeys;
-			array_unshift( $firstRow, "Times" ); 
-
-			$exportData = [ $firstRow ];
 			foreach( $dataByEntityTime as $entityId=>$entityData ) {
 				//first insert name
 				$entityName = ( array_key_exists($entityId, $entities) )? $entities[$entityId]: "";
@@ -191,6 +197,33 @@ class DataController extends Controller {
 				}
 				$exportData[] = $rowData;
 			}
+
+		} else {
+
+			foreach( $dataByVariableTime as $variableId=>$variableData ) {
+				//first insert name
+				$variableName = ( array_key_exists($variableId, $variables) )? $variables[$variableId]: "";
+				$rowData = [ $variableName ];
+				//then insert times
+				foreach( $timeKeys as $time ) {
+					//does value exist for given time and entity?
+					if( !array_key_exists($time, $variableData) ) {
+						$rowData[] = "x"; 
+					} else {
+						//value exists
+						$rowData[] = $variableData[$time];
+					} 
+				}
+				$exportData[] = $rowData;
+			}
+
+		}
+
+		if( $request->ajax() ) {
+
+			return [ 'success' => true, 'data' => $data, 'datasources' => $datasources, 'timeType' => $timeType, 'exportData' => $exportData ];
+
+		} else {
 
 			if( Input::has( 'export' ) && Input::get( 'export' ) == 'csv' ) {
 				

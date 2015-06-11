@@ -303,7 +303,7 @@
 				//find corresponding value in loaded data
 				var newValue,
 					origValue = data[ 0 ][ i+1 ];
-
+					
 				//check value has 4 digits
 				origValue = App.Utils.addZeros( origValue );
 
@@ -430,7 +430,7 @@
 
 					//insert info about time domain
 					newValue[ "timeDomain" ] = timeDomain;
-
+					
 					//initial was number/string so passed by value, need to insert it back to arreay
 					data[ 0 ][ i+1 ] = newValue;
 
