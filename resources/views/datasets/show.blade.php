@@ -20,7 +20,9 @@
 		<div class="property-wrapper">
 			<h3 class="property-title">Source</h3>
 			<div class="property-value">
-				{{ $dataset->datasource->name }}
+				@if ($dataset->datasource)
+					{{ $dataset->datasource->name }}
+				@endif
 			</div>
 		</div>
 		<h3>Variables</h3>

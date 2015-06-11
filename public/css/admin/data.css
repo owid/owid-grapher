@@ -11,9 +11,12 @@
 		width: 200px;
 	}
 
+
+
 /* value */
-.edit-value-module, .edit-dataset-module {}
+.edit-value-module, .edit-dataset-module, .edit-variable-module {}
 	.edit-value-module form,
+	.edit-variable-module form,
 	.edit-dataset-module form,
 	.edit-datasource-module form {
 		max-width: 500px;
