@@ -10,7 +10,7 @@
 			{!! Form::close() !!}
 		</div>
 		<h2>{{ $dataset->name }}</h2>
-		<p>Categorized as: <strong>{{ $dataset->category->name}}/{{ $dataset->subcategory->name}}</strong>.</p>
+		<p>Categorized as: <strong>{{ ($dataset->category)? $dataset->category->name: null}}/{{ ($dataset->subcategory)? $dataset->subcategory->name: null}}</strong>.</p>
 		<div class="property-wrapper">
 			<h3>Description</h3>
 			<div class="property-value">
