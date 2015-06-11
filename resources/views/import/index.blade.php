@@ -15,7 +15,7 @@
 			</div>
 		@endif
 		<h2>Import</h2>
-		{!! Form::open(array('class' => 'form-inline', 'method' => 'post', 'url' => 'import/store')) !!}
+		{!! Form::open(array('class' => 'form-inline validate-form', 'method' => 'post', 'url' => 'import/store')) !!}
 			<section class="form-section dataset-section">
 					<div class="form-section-header">
 						<h3><span class="form-section-digit">1</span>Choose your dataset</h3>
@@ -26,7 +26,7 @@
 							<label><input type="radio" class="" name="new_dataset" value="0" /> Choose an existing dataset</label>
 						</fieldset>
 						<div class="new-dataset-section">
-							{!! Form::text('new_dataset_name', '', array('class' => 'form-control ', 'placeholder' => 'Short name for your dataset' )); !!}
+							{!! Form::text('new_dataset_name', '', array('class' => 'form-control required', 'placeholder' => 'Short name for your dataset' )); !!}
 							<a href="#" class="new-dataset-description-btn"><i class="fa fa-plus"></i><span>Add dataset description<span></a>
 							{!! Form::textarea ('new_dataset_description', '', array('class' => 'form-control new-dataset-description', 'placeholder' => 'Optional description for dataset' )); !!}
 						</div>

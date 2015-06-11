@@ -7,6 +7,7 @@ App.Views.UI = {};
 App.Models = {};
 App.Collections = {};
 App.Utils = {};
+App.Utils.FormHelper = {};
 
 //export
 window.App = App;

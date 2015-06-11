@@ -170,5 +170,149 @@
 		
 	}
 
+	/** 
+	* FORM HELPER
+	**/
+	App.Utils.FormHelper.validate = function( $form ) {
+		
+		var missingErrorLabel = "Please enter value.",
+			emailErrorLabel =  "Please enter valide email.",
+			numberErrorLabel = "Please ente valid number."; 
+
+		var invalidInputs = [];
+		
+		//gather all fields requiring validation
+		var $requiredInputs = $form.find( ".required" );
+		if( $requiredInputs.length ) {
+
+			$.each( $requiredInputs, function( i, v ) {
+
+				var $input = $( this );
+				
+				//filter only visible
+				if( !$input.is( ":visible" ) ) {
+					return;
+				}
+
+				//check for empty
+				var inputValid = App.Utils.FormHelper.validateRequiredField( $input );
+				if( !inputValid ) {
+				
+					App.Utils.FormHelper.addError( $input, missingErrorLabel );
+					invalidInputs.push( $input );
+				
+				} else {
+					
+					App.Utils.FormHelper.removeError( $input );
+
+					//check for digit
+					if( $input.hasClass( "required-number" ) ) {
+						inputValid = App.Utils.FormHelper.validateNumberField( $input );
+						if( !inputValid ) {
+							App.Utils.FormHelper.addError( $input, numberErrorLabel );
+							invalidInputs.push( $input );
+						} else {
+							App.Utils.FormHelper.removeError( $input );
+						}
+					}
+
+					//check for mail
+					if( $input.hasClass( "required-mail" ) ) {
+						inputValid = FormHelper.validateEmailField( $input );
+						if( !inputValid ) {
+							App.Utils.FormHelper.addError( $input, emailErrorLabel );
+							invalidInputs.push( $input );
+						} else {
+							App.Utils.FormHelper.removeError( $input );
+						}
+					}
+
+					//check for checkbox
+					if( $input.hasClass( "required-checkbox" ) ) {
+
+						inputValid = FormHelper.validateCheckbox( $input );
+						if( !inputValid ) {
+							App.Utils.FormHelper.addError( $input, missingErrorLabel );
+							invalidInputs.push( $input );
+						} else {
+							App.Utils.FormHelper.removeError( $input );
+						}
+
+					}
+
+				}
+	
+			} );
+
+		}
+
+
+		if( invalidInputs.length ) {
+
+			//take first element and scroll to it
+			var $firstInvalidInput = invalidInputs[0];
+			$('html, body').animate( {
+				scrollTop: $firstInvalidInput.offset().top - 25
+			}, 250);
+
+			return false;
+			
+		}
+
+		return true; 
+
+	};
+
+	App.Utils.FormHelper.validateRequiredField = function( $input ) {
+
+		return ( $input.val() === "" ) ? false : true;
+
+	};
+
+	App.Utils.FormHelper.validateEmailField = function( $input ) {
+
+		var email = $input.val();
+		var regex = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,6})?$/;
+		return regex.test( email );
+
+	};
+
+	App.Utils.FormHelper.validateNumberField = function( $input ) {
+
+		return ( isNaN( $input.val() ) ) ? false : true;
+
+	};
+
+	App.Utils.FormHelper.validateCheckbox = function( $input ) {
+
+		return ( $input.is(':checked') ) ? true : false;
+
+	};
+
+
+	App.Utils.FormHelper.addError = function( $el, $msg ) {
+
+		if( $el ) {
+			if( !$el.hasClass( "error" ) ) {
+				$el.addClass( "error" );
+				$el.before( "<p class='error-label'>" + $msg + "</p>" );
+			}
+		}
+
+	};
+
+	App.Utils.FormHelper.removeError = function( $el ) {
+
+		if( $el ) {
+			$el.removeClass( "error" );
+			var $parent = $el.parent();
+			var $errorLabel = $parent.find( ".error-label" );
+			if( $errorLabel.length ) {
+				$errorLabel.remove();
+			}
+		}
+		
+	};
+
 
 })();
