@@ -18,8 +18,6 @@ class CreateEntityTypesTable extends Migration {
 			//data
 			$table->string('name');
 			$table->boolean('has_geometry');
-			//time
-			$table->timestamps();
 		});
 	}
 

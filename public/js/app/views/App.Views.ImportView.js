@@ -382,6 +382,10 @@
 			});
 
 			var $resultNotice;
+
+			//remove any previously attached notifications
+			$( ".times-validation-result" ).remove();
+
 			if( $timesCells.filter( ".alert-error" ).length ) {
 				
 				$resultNotice = $( "<p class='times-validation-result validation-result text-danger'><i class='fa fa-exclamation-circle'></i>Time information in the uploaded file is not in <a href='http://en.wikipedia.org/wiki/ISO_8601' target='_blank'>standardized format (YYYY-MM-DD)</a>! Fix the highlighted time information and reupload CSV.</p>" );
@@ -529,6 +533,9 @@
 
 				//insert original uploadedData into array before processing
 				this.uploadedData = $.extend( true, {}, this.origUploadedData);
+				//re-validate
+				this.validateEntityData( this.uploadedData.rows );
+				this.validateTimeData( this.uploadedData.rows );
 				this.mapData();
 
 			}

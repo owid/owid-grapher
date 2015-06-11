@@ -17,7 +17,6 @@ class CreateVariableTypesTable extends Migration {
 			$table->increments('id');
 			$table->string('name');
 			$table->boolean('isSortable');
-			$table->timestamps();
 		});
 		Schema::table('variables', function(Blueprint $table)
 		{

@@ -186,7 +186,6 @@ class ImportController extends Controller {
 					}
 
 					$entityId = $entity->id;
-
 					$countryValues = $countryValue->values;
 					foreach( $countryValues as $value ) {
 
