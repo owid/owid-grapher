@@ -291,7 +291,7 @@
 			$timesCells = $timesCells.slice( 1 );
 
 			//make sure time is from given domain
-			if( _.indexOf( [ "century", "decade", "year" ], timeDomain ) == -1 ) {
+			if( _.indexOf( [ "century", "decade", "quarter century", "half century", "year" ], timeDomain ) == -1 ) {
 				var $resultNotice = $( "<p class='time-domain-validation-result validation-result text-danger'><i class='fa fa-exclamation-circle'></i>First top-left cell should contain time domain infomartion. Either 'century', or'decade', or 'year'.</p>" );
 				$dataTableWrapper.before( $resultNotice );
 			}
@@ -305,17 +305,9 @@
 					origValue = data[ 0 ][ i+1 ];
 
 				//check value has 4 digits
-				if( origValue ) {
-					origValue = origValue.toString();
-				}
-				if( origValue != "" && origValue.length < 4 ) {
-					//insert missing zeros
-					var origValueLen = origValue.length;
-					for( var y = 0; y < 4 - origValueLen; y++ ) {
-						origValue = "0" + origValue;
-					}
-				}
-				var value = App.Utils.parseTimeString( origValue.toString() ),
+				origValue = App.Utils.addZeros( origValue );
+
+				var value = origValue,
 					date = moment( new Date( value ) );
 				
 				if( !date.isValid() ) {
@@ -338,6 +330,11 @@
 						//try to guess century
 						var year = Math.floor( origValue ),
 							nextYear = year + 1;
+
+						//add zeros
+						year = App.Utils.addZeros( year );
+						nextYear = App.Utils.addZeros( nextYear );
+						
 						//convert it to datetime values
 						year = moment( new Date( year.toString() ) );
 						nextYear = moment( new Date( nextYear.toString() ) ).seconds(-1);
@@ -350,23 +347,83 @@
 						//try to guess century
 						var decade = Math.floor( origValue / 10 ) * 10,
 							nextDecade = decade + 10;
+						
+						//add zeros
+						decade = App.Utils.addZeros( decade );
+						nextDecade = App.Utils.addZeros( nextDecade );
+
 						//convert it to datetime values
 						decade = moment( new Date( decade.toString() ) );
 						nextDecade = moment( new Date( nextDecade.toString() ) ).seconds(-1);
-						//modify the initial value value
-						newValue[ "startDate"] = decade;
+						//modify the initial value
+						newValue[ "startDate" ] = decade;
 						newValue[ "endDate" ] = nextDecade;
+
+					} else if( timeDomain == "quarter century" ) {
+						
+						//try to guess quarter century
+						var century = Math.floor( origValue / 100 ) * 100,
+							modulo = ( origValue % 100 ),
+							quarterCentury;
+						
+						//which quarter is it
+						if( modulo < 25 ) {
+							quarterCentury = century;
+						} else if( modulo < 50 ) {
+							quarterCentury = century+25;
+						} else if( modulo < 75 ) {
+							quarterCentury = century+50;
+						} else {
+							quarterCentury = century+75;
+						}
+							
+						var nextQuarterCentury = quarterCentury + 25;
+
+						//add zeros
+						quarterCentury = App.Utils.addZeros( quarterCentury );
+						nextQuarterCentury = App.Utils.addZeros( nextQuarterCentury );
+
+						//convert it to datetime values
+						quarterCentury = moment( new Date( quarterCentury.toString() ) );
+						nextQuarterCentury = moment( new Date( nextQuarterCentury.toString() ) ).seconds(-1);
+						//modify the initial value
+						newValue[ "startDate" ] = quarterCentury;
+						newValue[ "endDate" ] = nextQuarterCentury;
+
+					} else if( timeDomain == "half century" ) {
+						
+						//try to guess half century
+						var century = Math.floor( origValue / 100 ) * 100,
+							//is it first or second half?
+							halfCentury = ( origValue % 100 < 50 )? century: century+50,
+							nextHalfCentury = halfCentury + 50;
+
+						//add zeros
+						halfCentury = App.Utils.addZeros( halfCentury );
+						nextHalfCentury = App.Utils.addZeros( nextHalfCentury );
+
+						//convert it to datetime values
+						halfCentury = moment( new Date( halfCentury.toString() ) );
+						nextHalfCentury = moment( new Date( nextHalfCentury.toString() ) ).seconds(-1);
+						//modify the initial value
+						newValue[ "startDate" ] = halfCentury;
+						newValue[ "endDate" ] = nextHalfCentury;
 
 					} else if( timeDomain == "century" ) {
 						
 						//try to guess century
 						var century = Math.floor( origValue / 100 ) * 100,
 							nextCentury = century + 100;
+
+						//add zeros
+						century = App.Utils.addZeros( century );
+						nextCentury = App.Utils.addZeros( nextCentury );
+
 						//convert it to datetime values
 						century = moment( new Date( century.toString() ) );
 						nextCentury = moment( new Date( nextCentury.toString() ) ).seconds(-1);
-						//modify the initial value value
-						newValue[ "startDate"] = century;
+						//modify the initial value
+						newValue[ "startDate" ] = century;
 						newValue[ "endDate" ] = nextCentury;
 
 					}

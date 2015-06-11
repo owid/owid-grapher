@@ -31,7 +31,7 @@
 			//construct entity obj
 			var	entityObj = {
 				id: i,
-				key: App.Utils.parseEntityString( colName ),
+				key: colName,
 				values: singleData
 			};
 			data.push( entityObj );
@@ -98,20 +98,6 @@
 
 	},
 
-	App.Utils.parseTimeString = function( str ) {
-
-		//here will be smart way of converting times string from varius format into actual time
-		return str;
-
-	},
-
-	App.Utils.parseEntityString = function( str ) {
-
-		//here will be country name detection and stuff
-		return str;
-
-	},
-
 	App.Utils.encodeSvgToPng = function( html ) {
 
 		console.log( html );
@@ -168,6 +154,20 @@
 
 		return centuryString + nth + " century";
 	} 
+
+	App.Utils.addZeros = function ( value ) {
+
+		value = value.toString();
+		if( value.length < 4 ) {
+			//insert missing zeros
+			var valueLen = value.length;
+			for( var y = 0; y < 4 - valueLen; y++ ) {
+				value = "0" + value;
+			}
+		}
+		return value;
+		
+	}
 
 
 })();

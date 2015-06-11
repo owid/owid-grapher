@@ -10,6 +10,7 @@ use App\VariableType;
 use App\InputFile;
 use App\Variable;
 use App\Time;
+use App\TimeType;
 use App\DataValue;
 use App\EntityIsoName;
 use App\Entity;
@@ -49,7 +50,7 @@ class ImportController extends Controller {
 			'categories' => $categories,
 			'subcategories' => $subcategories,
 			'varTypes' => $varTypes
-		];
+		];	
 
 		return view( 'import.index' )->with( 'data', $data );
 	}
@@ -200,25 +201,12 @@ class ImportController extends Controller {
 								'label' =>  ( isset($timeObj->label) )? $timeObj->label: ""
 							];
 
-							//TODO - convert this into something reasonably, convert timedomain 
-							$fk_ttype_id = 1;//$timeObj->timeDomain;
-							switch( $timeObj->timeDomain ) {
-								case "century":
-									$fk_ttype_id = 5;
-									break;
-								case "half century":
-									$fk_ttype_id = 4;
-									break;
-								case "quarter century":
-									$fk_ttype_id = 3;
-									break;
-								case "decade":
-									$fk_ttype_id = 2;
-									break;
-								case "year":
-									$fk_ttype_id = 1;
-									break;
-							}
+							//convert timedomain 
+							$fk_ttype_id = 1;
+							if( !empty($timeObj->timeDomain) ) {
+								$ttQuery = TimeType::query();
+								$fk_ttype_id = $ttQuery->whereRaw( 'LOWER(`name`) like ?', [$timeObj->timeDomain] )->first()->id;
+							} 	
 							$timeValue['fk_ttype_id'] = $fk_ttype_id;
 
 							$time = Time::create( $timeValue );
