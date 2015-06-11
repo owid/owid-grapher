@@ -6,7 +6,8 @@
 
 		el: "#chart-view",
 		events: {
-			"click .chart-save-png-btn": "onSavePng"
+			"click .chart-save-png-btn": "onSavePng",
+			"click .chart-save-svg-btn": "onSaveSvg"
 		},
 
 		initialize: function( options ) {
@@ -91,6 +92,20 @@
 				saveSvgAsPng( $( ".nvd3-svg" ).get( 0 ), "chart.png");
 			}
 			
+		},
+
+		onSaveSvg: function( evt ) {
+
+			var $btn = $( evt.currentTarget ), 
+				//grab all svg
+				$svg = this.$el.find( "svg" ),
+				svg = $svg.get(0),
+				svgString = svg.outerHTML;
+
+			
+			var $hiddenInput = this.$el.find( "[name='export-svg']" );
+			$hiddenInput.val( svgString );
+
 		},
 
 		updateChart: function( data, timeType ) {

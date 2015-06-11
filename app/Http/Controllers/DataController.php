@@ -327,12 +327,12 @@ class DataController extends Controller {
 	}
 
 	public function exportToSvg( Request $request ) {
-		/*print header(-type=>"image/svg+xml",
-		     -attachment=>"d3js_export_demo.svg");
-	print $data;
-	exit(0);*/
+		
+		$svg = 'Export to svg failed';
+		if( Input::has( 'export-svg' ) ) {
+			$svg = $request->input( 'export-svg' );
+		} 
 		$type = 'image/svg+xml';
-		$svg = '<svg version="1.1" baseProfile="full" width="300" height="200" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="40" stroke="green" stroke-width="4" fill="yellow" /></svg>';
 		return response( $svg )->header('Content-Type',$type);
 	}
 

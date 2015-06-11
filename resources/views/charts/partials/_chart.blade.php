@@ -20,10 +20,14 @@
 		</div>
 		<div class="tab-content">
 			<div id="chart-chart-tab" class="tab-pane active">
-				<svg></svg>
+				<svg xmlns="http://www.w3.org/2000/svg" version="1.1"></svg>
 				<div class="chart-footer clearfix">
 					<a href="#" class="chart-save-png-btn pull-right">Save to png</a>
-					<a href="{!! route( 'exportToSvg' ) !!}" class="pull-right" target="_blank">Save to svg</a>
+					{{--*/ $actionUrl = route( 'exportToSvg' ) /*--}}
+					{!! Form::open( array( "url" => $actionUrl ) ) !!}
+						<input type="hidden" name="export-svg" />
+						<button type="submit"  class="chart-save-svg-btn pull-right" target="_blank">Save to svg</button>
+					{!! Form::close() !!}
 					<p class="chart-description"></p>
 				</div>
 			</div>
