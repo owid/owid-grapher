@@ -46,8 +46,7 @@ class DataController extends Controller {
 		$isLineChart = ( $chartType == "1" )? true: false;
 
 		//find out how many variables we have 
-		$groupByEntity = true;
-		//$groupByEntity = ( count( $dimensions ) > 1 )? false: true;
+		$groupByEntity = (!$isLineChart || count( $dimensions ) == 1)? true: false;
 
 		$timeType = '';
 
@@ -97,7 +96,7 @@ class DataController extends Controller {
 					$dataByEntity[ $entityId ][ "values" ][ $i ][ $property ] = floatval( $datum->value );
 					//if is linechart, store 
 					if( $isLineChart ) {
-						$dataByEntity[ $entityId ][ "values" ][ $i ][ "x" ] = floatval( $datum->label );
+						$dataByEntity[ $entityId ][ "values" ][ $i ][ "x" ] = floatval( $datum->date );
 					}
 					$i++;
 
@@ -139,6 +138,7 @@ class DataController extends Controller {
 				foreach( $variableData as $datum ) {
 					$dataByVariable[ "id-".$id ][ "values" ][] = array( "x" => floatval($datum->date), "y" => floatval($datum->value) );
 					$times[$datum->label] = true;
+					$datasourcesIdsArr[ $datum->fk_dsr_id ] = true;
 				}
 
 			}
