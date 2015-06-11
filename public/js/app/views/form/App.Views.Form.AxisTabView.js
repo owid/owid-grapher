@@ -18,6 +18,18 @@
 
 		render: function() {
 
+			//setup initial values
+			var that = this,
+				chartXaxis = App.ChartModel.get( "x-axis" ),
+				chartYaxis = App.ChartModel.get( "y-axis" );
+
+			_.each( chartXaxis, function( d, i ) {
+				that.$el.find( "[name='chart-x-" + i + "']" ).val( d );
+			} );
+			_.each( chartYaxis, function( d, i ) {
+				that.$el.find( "[name='chart-y-" + i + "']" ).val( d );
+			} );
+
 		},
 
 		onFormControlChange: function( evt ) {

@@ -14,16 +14,19 @@
 			this.dispatcher = options.dispatcher;
 			App.AvailableTimeModel.on( "change", this.updateTime, this );
 			
-			this.$entitiesSelect = this.$el.find( ".countries-select" );
-
+			
 			this.render();
 
 		},
 
 		render: function() {
-			this.$dynamicTime = this.$el.find( "[name='dynamic-time']" );
 
-			$( "[name=chart-time]" ).ionRangeSlider({
+			this.$entitiesSelect = this.$el.find( ".countries-select" );
+			this.$chartTime = this.$el.find( "[name='chart-time']" );
+			this.$dynamicTime = this.$el.find( "[name='dynamic-time']" );
+			this.$irs = this.$el.find( ".irs" );
+
+			this.$chartTime.ionRangeSlider({
 				type: "double",
 				min: 0,
 				max: 2015,
@@ -36,8 +39,7 @@
 			});
 			var that = this;
 			setTimeout( function() {
-				var $irs = that.$el.find( ".irs" );
-				$irs.addClass( "disabled" );
+				that.$irs.addClass( "disabled" );
 			}, 250 );
 
 		},
@@ -46,16 +48,18 @@
 
 			var slider = $( "[name=chart-time]" ).data( "ionRangeSlider" );
 			slider.update( {from: App.AvailableTimeModel.get( "min" ), to: App.AvailableTimeModel.get( "max" )  } );
+			//updating slider, so have some set values and disabling dynamic table
+			this.$dynamicTime.prop( "checked", false );
+			this.$irs.removeClass( "disabled" );
 
 		},
 
 		onDynamicTime: function() {
 
-			var $irs = this.$el.find( ".irs" );
 			if( this.$dynamicTime.is( ":checked" ) ) {
-				$irs.addClass( "disabled" );
+				this.$irs.addClass( "disabled" );
 			} else {
-				$irs.removeClass( "disabled" );
+				this.$irs.removeClass( "disabled" );
 			}
 		
 		}

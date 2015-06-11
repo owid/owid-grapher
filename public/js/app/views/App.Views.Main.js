@@ -11,7 +11,10 @@
 			this.$win = $( window );
 			this.$win.on( "resize", this.onResize );
 			this.onResize();
+		},
 
+		start: function() {
+			//render everything for the first time
 			this.render();
 		},
 

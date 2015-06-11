@@ -18,7 +18,11 @@
 		},
 
 		render: function() {
-
+			var $select = this.$el.find( "[name='chart-type']" ),
+				selectedChartType = App.ChartModel.get( "chart-type" );
+			if( selectedChartType ) {
+				$select.val( selectedChartType );
+			}
 		},
 
 		onChartTypeChange: function( evt ) {

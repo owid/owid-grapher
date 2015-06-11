@@ -38,6 +38,12 @@
 			this.$widthInput.val( App.ChartModel.get( "iframe-width" ) );
 			this.$heightInput.val( App.ChartModel.get( "iframe-height" ) );
 
+			//update export code from 
+			var chartId = App.ChartModel.get( "id" );
+			if( chartId ) {
+				var viewUrl = this.$iframeTextArea.attr( "data-view-url" );
+				this.generateIframeCode( chartId, viewUrl );
+			}
 
 		},
 

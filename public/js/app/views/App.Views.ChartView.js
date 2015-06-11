@@ -159,13 +159,12 @@
 			nv.addGraph(function() {
 
 				function tooltipContent(key, y, e, graph) {
-					return '<h3>' + key + '</h3>' +'<p>' + e + '$</p>' ;
+					return "<h3>" + key + "</h3><p>" + e + App.ChartModel.get( "unit" ) + "</p>";
 				}
 
 				var chartOptions = {
 					transitionDuration: 300,
-					margin: { top: 100, left: 80, bottom: 100, right: 80 },
-					//margin: { top: 0, left: 50, bottom: 50, right: 50 },
+					margin: App.ChartModel.get( "margins" ),
 					tooltipContent: tooltipContent/*,
 					defined: function( d ) { return d.y != 0; }*/								
 				};

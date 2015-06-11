@@ -15,13 +15,13 @@
 			"variables": [],
 			"y-axis": {},
 			"x-axis": {},
+			"margins": { top: 100, left: 80, bottom: 100, right: 80 },
+			"unit": "",
 			"iframe-width": "100%",
 			"iframe-height": "100%"
 		},
 
 		initialize: function() {
-
-			console.log( "ChartModel", this.attributes );
 
 		},
 
@@ -32,8 +32,6 @@
 			this.trigger( "change:selected-countries" );
 			this.trigger( "change" );
 			
-			//this.set( "selected-countries", this.get( "selected-countries" ).concat( country ) ); 
-
 		},
 
 		updateSelectedCountry: function( countryName, color ) {

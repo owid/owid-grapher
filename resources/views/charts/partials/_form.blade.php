@@ -216,11 +216,45 @@
 						</label>
 					</div>
 				</section>
+				<section class="form-section margins-section">
+					<div class="form-section-header">
+						<h2><span class="form-section-digit">j</span>Set margins</h2>
+					</div>
+					<div class="form-section-content">
+						<label>
+							<span>Margin top</span>
+							<input type="input" class="form-control" name="margin-top" value=""/>
+						</label>
+						<label>
+							<span>Margin right</span>
+							<input type="input" class="form-control" name="margin-right" value=""/>
+						</label>
+						<label>
+							<span>Margin bottom</span>
+							<input type="input" class="form-control" name="margin-bottom" value=""/>
+						</label>
+						<label>
+							<span>Margin left</span>
+							<input type="input" class="form-control" name="margin-left" value=""/>
+						</label>
+					</div>
+				</section>
+				<section class="form-section margins-section">
+					<div class="form-section-header">
+						<h2><span class="form-section-digit">k</span>Popup unit</h2>
+					</div>
+					<div class="form-section-content">
+						<label>
+							<span>Unit</span>
+							<input type="input" class="form-control" name="unit" value=""/>
+						</label>
+					</div>
+				</section>
 			</div>
 			<div id="export-tab" class="tab-pane">
 				<section class="form-section tabs-section">
 					<div class="form-section-header">
-						<h2><span class="form-section-digit">j</span>Which tabs</h2>
+						<h2><span class="form-section-digit">l</span>Which tabs</h2>
 					</div>
 					<div class="form-section-content">
 						<ol>
@@ -253,7 +287,7 @@
 				</section>
 				<section class="form-section">
 					<div class="form-section-header embed-section">
-						<h2><span class="form-section-digit">k</span>Embed your chart</h2>
+						<h2><span class="form-section-digit">m</span>Embed your chart</h2>
 					</div>
 					<div class="form-section-content">
 						<div class="embed-size-wrapper">
@@ -267,7 +301,7 @@
 							</label>
 						</div>
 						<p class="form-section-desc">Copy and paste code below to use the chart on your page.</p>
-						<textarea rows="4" cols="50" name="iframe" placeholder="No chart created, yet. Click 'Create chart' button at the bottom to get code for embedding." readonly></textarea>
+						<textarea rows="4" cols="50" name="iframe" @if (isset($chart)) data-view-url="{!! route( 'view', $chart->id ) !!}" @endif placeholder="No chart created, yet. Click 'Create chart' button at the bottom to get code for embedding." readonly></textarea>
 					</div>
 				</section>
 			</div>

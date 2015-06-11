@@ -33,6 +33,13 @@
 			this.$removeUploadedFileBtn = this.$el.find( ".remove-uploaded-file-btn" );
 			this.$filePicker = this.$el.find( ".file-picker-wrapper [type=file]" );
 			
+			//update related models
+			var chartTime = App.ChartModel.get( "chart-time" );
+			if( $.isArray( chartTime ) && chartTime.length == 2 ) {
+				App.AvailableTimeModel.set( "min", chartTime[ 0 ] );
+				App.AvailableTimeModel.set( "max", chartTime[ 1 ] );
+			}
+
 			//setup events
 			/*var that = this;
 			CSV.begin( this.$filePicker.selector ).go( 
@@ -104,6 +111,15 @@
 			} );
 
 			evt.preventDefault();
+
+			//put all changes to chart model
+			var formConfig = {
+				"variables-collection": App.ChartVariablesCollection.toJSON(),
+				"entities-collection": App.AvailableEntitiesCollection.toJSON(),
+				"dimensions": App.ChartDimensionsModel.toJSON(),
+				"available-time": App.AvailableTimeModel.toJSON()
+			}
+			App.ChartModel.set( "form-config", formConfig, { silent: true } );
 
 			var dispatcher = this.dispatcher;
 			App.ChartModel.save( {}, {

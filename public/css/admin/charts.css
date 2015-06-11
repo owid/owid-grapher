@@ -66,8 +66,20 @@
 		}
 
 /**
+*	margins-section
+**/
+.margins-section {}
+	.margins-section label {
+		display: block;
+	}
+		.margins-section label span {
+			width: 100px;
+		}
+
+/**
 *	embed section
 **/
 .embed-section {}
+
 	
 
