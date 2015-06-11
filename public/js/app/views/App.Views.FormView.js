@@ -6,8 +6,8 @@
 
 		el: "#form-view",
 		events: {
-			"input input[name=chart-name]": "onNameChange",
-			"input textarea[name=chart-subname]": "onSubnameChange",
+			"change input[name=chart-name]": "onNameChange",
+			"change textarea[name=chart-subname]": "onSubnameChange",
 			"click .remove-uploaded-file-btn": "onRemoveUploadedFile",
 			"submit form": "onFormSubmit",
 		},

@@ -20,7 +20,9 @@
 		</div>
 		<div class="tab-content">
 			<div id="chart-chart-tab" class="tab-pane active">
-				<svg xmlns="http://www.w3.org/2000/svg" version="1.1"></svg>
+				<svg xmlns="http://www.w3.org/2000/svg" version="1.1">
+					<!--<text x="0" y="50" class="h2 chart-name"></text><text x="0" y="150" class="h3 chart-description"></text>-->
+				</svg>
 				<div class="chart-footer clearfix">
 					<a href="#" class="chart-save-png-btn pull-right">Save to png</a>
 					{{--*/ $actionUrl = route( 'exportToSvg' ) /*--}}

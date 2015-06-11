@@ -16,15 +16,19 @@
 	*	CHART HEADER
 	**/
 	#chart-view h2,
-	#chart-view h3 {
+	#chart-view .h2,
+	#chart-view h3,
+	#chart-view .h3 {
 		font-family: Georgia, "Times New Roman", Serif;
 	}
-	#chart-view h2 {
+	#chart-view h2,
+	#chart-view .h2 {
 		font-size: 24px;
 		font-weight: 400;
 		line-height: 1.2;
 	}
-	#chart-view h3 {
+	#chart-view h3,
+	#chart-view .h3 {
 		font-size: 15px;
 		opacity: .8;
 	}
