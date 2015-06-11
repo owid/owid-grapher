@@ -3,6 +3,7 @@
 use DB;
 use Input;
 use App\Variable;
+use App\TimeType;
 use App\Datasource;
 
 use App\Http\Requests;
@@ -28,8 +29,6 @@ class DataController extends Controller {
 		$dataByEntity = array();
 		$dataByEntityTime = array();
 
-		$timeType = 'decade';
-
 		//extra array for storing values for export
 		$times = array();
 		$entities = array();
@@ -49,6 +48,8 @@ class DataController extends Controller {
 		//find out how many variables we have 
 		$groupByEntity = true;
 		//$groupByEntity = ( count( $dimensions ) > 1 )? false: true;
+
+		$timeType = '';
 
 		foreach( $dimensions as $dimension ) {
 			
@@ -99,6 +100,11 @@ class DataController extends Controller {
 						$dataByEntity[ $entityId ][ "values" ][ $i ][ "x" ] = floatval( $datum->label );
 					}
 					$i++;
+
+					//store time type if not stored
+					if( empty( $timeType ) ) {
+						$timeType = TimeType::find( $datum->fk_ttype_id )->name; 
+					}
 
 					//store for the need of export 
 					if( !array_key_exists($entityId, $dataByEntityTime) ) {

@@ -320,7 +320,7 @@
 			var label;
 			switch( type ) {
 				
-				case "decade":
+				case "Decade":
 					
 					var decadeString = d.toString();
 					decadeString = decadeString.substring( 0, decadeString.length - 1);
@@ -329,7 +329,7 @@
 
 					break;
 
-				case "quarter century":
+				case "Quarter Century":
 					
 					var quarterString = "",
 						quarter = d % 100;
@@ -350,7 +350,7 @@
 
 					break;
 
-				case "half century":
+				case "Half Century":
 					
 					var halfString = "",
 						half = d % 100;
@@ -367,7 +367,7 @@
 
 					break;
 
-				case "century":
+				case "Century":
 					
 					label = App.Utils.centuryString( d );
 
