@@ -326,7 +326,11 @@
 				if( sourceIndex > 0 ) {
 					sourcesHtml += ", ";
 				}
-				sourcesShortHtml += sourceData.name;
+				if( sourceData.link ) {
+					sourcesShortHtml += "<a href='" + sourceData.link + "' target='_blank'>" + sourceData.name + "</a>";
+				} else {
+					sourcesShortHtml += sourceData.name;
+				}
 				sourcesLongHtml += sourceData.description;
 			} );
 
