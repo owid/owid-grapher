@@ -6,6 +6,7 @@
 
 		el: "#form-view",
 		events: {
+			"click": "onFormCollapse",
 			"change input[name=chart-name]": "onNameChange",
 			"change textarea[name=chart-subname]": "onSubnameChange",
 			"click .remove-uploaded-file-btn": "onRemoveUploadedFile",
@@ -101,6 +102,16 @@
 			} );
 
 			this.$removeUploadedFileBtn.hide();
+
+		},
+
+
+		onFormCollapse: function( evt ) {
+
+			console.log( "onFormCollapse" );
+			evt.preventDefault();
+			var $parent = this.$el.find( "parent" );
+			$parent.toggleClass( "form-panel-collapsed" );
 
 		},
 

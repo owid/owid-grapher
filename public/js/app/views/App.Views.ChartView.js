@@ -324,7 +324,7 @@
 			//construct source html
 			_.each( data, function( sourceData, sourceIndex ) {
 				if( sourceIndex > 0 ) {
-					sourcesHtml += ", ";
+					sourcesShortHtml += ", ";
 				}
 				if( sourceData.link ) {
 					sourcesShortHtml += "<a href='" + sourceData.link + "' target='_blank'>" + sourceData.name + "</a>";

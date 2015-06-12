@@ -23,18 +23,21 @@
 
 			var singleRow = rawData[ i ],
 				colName = singleRow.shift();
-			
-			var singleData = _.map( singleRow, function( value, i ) {
-				return { x: timeArr[i], y: +value }
-			} );
+				
+			//ommit rows with no colNmae
+			if( colName ) {
+				var singleData = _.map( singleRow, function( value, i ) {
+					return { x: timeArr[i], y: +value }
+				} );
 
-			//construct entity obj
-			var	entityObj = {
-				id: i,
-				key: colName,
-				values: singleData
-			};
-			data.push( entityObj );
+				//construct entity obj
+				var	entityObj = {
+					id: i,
+					key: colName,
+					values: singleData
+				};
+				data.push( entityObj );
+			}
 
 		}
 

@@ -56,7 +56,7 @@
 					<div class="form-section-content">
 						<p class="form-section-desc">For now, just CSV files are working. We'll have xls and choice of external source (e.g. Gapminder) in the future.</p>
 						<div class="file-picker-wrapper">
-							<input type="file" />
+							<input type="file" autocomplete="off"/>
 							<a href="#" title="Remove uploaded file" class="remove-uploaded-file-btn"><span class="visuallyhidden">Remove uploaded file</span><i class="fa fa-remove"></i></a>
 						</div>
 						<div class="csv-import-result">

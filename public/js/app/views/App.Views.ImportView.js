@@ -215,7 +215,7 @@
 				//var mappedData =  App.Utils.mapSingleVariantData( data.rows, "test" ), 
 				json = { "variables": mappedData },
 				jsonString = JSON.stringify( json );
-
+			
 			this.$dataInput.val( jsonString );
 			this.$removeUploadedFileBtn.show();
 
@@ -272,9 +272,6 @@
 		},
 
 		validateTimeData: function( data ) {
-
-			console.log( "validateTimeData" );
-			console.table( data );
 
 			var $dataTableWrapper = $( ".csv-import-table-wrapper" ),
 				$dataTable = $dataTableWrapper.find( "table" ),

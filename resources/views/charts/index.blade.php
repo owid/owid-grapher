@@ -11,7 +11,6 @@
 				<h2>Charts</h2>
 				<a href="{!! route('charts.create') !!}" class="btn btn-success">Create new chart</a>
 			</div>
-			<div class="box-body">
 				@if ( !$charts->count() )
 					There are no charts.
 				@else
@@ -28,7 +27,6 @@
 						@endforeach
 					</table>
 				@endif
-			</div>
 		</div>
 	</div>
 @endsection

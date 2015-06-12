@@ -1,4 +1,5 @@
 <div id="form-view" class="col-sm-12 col-md-6 form-wrapper">
+	<!--<a href="#" class="form-collapse-btn">Collapse btn</a>-->
 	<div class="form-wrapper-inner">
 		{!! Form::open( array( 'method' => $method ) ) !!}
 			<div class="nav-tabs-custom">
