@@ -54,7 +54,7 @@
 
 		<div class="wrapper">
 			<header class="main-header">
-				<a href="#" class="logo"><b>Chart Builder</b> OWD</a>
+				<a href="#" class="logo"><b>Chart Builder</b> 0.1</a>
 				<nav class="navbar navbar-static-top">
 					<a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
 						<span class="sr-only">Toggle navigation</span>
