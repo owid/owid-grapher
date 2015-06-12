@@ -4,7 +4,8 @@
 
 	App.Models.ChartModel = Backbone.Model.extend( {
 
-		urlRoot: Global.rootUrl + '/charts',
+		//urlRoot: Global.rootUrl + '/charts/',
+		urlRoot: Global.rootUrl + '/data/config/',
 
 		defaults: {
 			"selected-countries": {},

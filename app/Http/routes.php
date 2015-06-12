@@ -89,6 +89,7 @@ Route::get( 'view', 'ViewController@index' );
 Route::get( 'view/{id}', [ 'as' => 'view', 'uses' => 'ViewController@show' ] );
 
 Route::get( 'data', 'DataController@index' );
+Route::get( 'data/config/{id}', 'ChartsController@config' );
 Route::get( 'data/dimensions', [ 'as' => 'dimensions', 'uses' => 'DataController@dimensions' ] );
 Route::post( 'data/exportToSvg', [ 'as' => 'exportToSvg', 'uses' => 'DataController@exportToSvg' ] );
 Route::get( 'data/entities', 'DataController@entities' );

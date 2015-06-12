@@ -97,6 +97,12 @@ class ChartsController extends Controller {
 		}
 	}
 
+	public function config( $chartId ) {
+		$chart = Chart::find( $chartId );
+		$config = ( $chart )? json_decode( $chart->config ): false;
+		return response()->json( $config );
+	}
+
 	/**
 	 * Show the form for editing the specified resource.
 	 *
