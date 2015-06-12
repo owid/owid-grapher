@@ -18,7 +18,8 @@
 	.edit-value-module form,
 	.edit-variable-module form,
 	.edit-dataset-module form,
-	.edit-datasource-module form {
+	.edit-datasource-module form,
+	.edit-license-module form {
 		max-width: 500px;
 	}
 

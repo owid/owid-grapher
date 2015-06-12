@@ -86,6 +86,7 @@
 						<li><a href="{!! route( 'datasets.index' ) !!}"><i class="fa fa-table"></i> Datasets</a></li>
 						<li><a href="{!! route( 'datasources.index' ) !!}"><i class="fa fa-link"></i> Sources</a></li>
 						<li class="header">SETTINGS</li>
+						<li><a href="{!! route( 'licenses.index' ) !!}"><i class="fa fa-gavel"></i> Licenses</a></li>
 						<li><a href="{!! route( 'categories.index' ) !!}"><i class="fa fa-folder"></i> Categories</a></li>
 						<li><a href="{!! route( 'tags.index' ) !!}"><i class="fa fa-tags"></i> Tags</a></li>
 					</ul>
@@ -130,20 +131,20 @@
 
 		<script src="{{ asset('js/namespaces.js') }}"></script>
 		
-		<script src="{{ asset('js/app/App.Utils.js') }}"></script>
+		<script src="{{ asset('js/app/App.Utils.js') }}?bust={!!time()!!}"></script>
 		
-		<script src="{{ asset('js/app/models/App.Models.ChartDimensionsModel.js') }}"></script>
-		<script src="{{ asset('js/app/models/App.Models.ChartModel.js') }}"></script>
+		<script src="{{ asset('js/app/models/App.Models.ChartDimensionsModel.js') }}?bust={!!time()!!}"></script>
+		<script src="{{ asset('js/app/models/App.Models.ChartModel.js') }}?bust={!!time()!!}"></script>
 		
-		<script src="{{ asset('js/app/views/ui/App.Views.UI.ColorPicker.js') }}"></script>
-		<script src="{{ asset('js/app/views/ui/App.Views.UI.VariableSelects.js') }}"></script>
-		<script src="{{ asset('js/app/views/ui/App.Views.UI.SelectVarPopup.js') }}"></script>
+		<script src="{{ asset('js/app/views/ui/App.Views.UI.ColorPicker.js') }}?bust={!!time()!!}"></script>
+		<script src="{{ asset('js/app/views/ui/App.Views.UI.VariableSelects.js') }}?bust={!!time()!!}"></script>
+		<script src="{{ asset('js/app/views/ui/App.Views.UI.SelectVarPopup.js') }}?bust={!!time()!!}"></script>
 		
 		@yield('scripts')
 
-		<script src="{{ asset('js/app/views/App.Views.Main.js') }}"></script>
-		<script src="{{ asset('js/app/App.js') }}"></script>
-		<script src="{{ asset('js/main.js') }}"></script>
+		<script src="{{ asset('js/app/views/App.Views.Main.js') }}?bust={!!time()!!}"></script>
+		<script src="{{ asset('js/app/App.js') }}?bust={!!time()!!}"></script>
+		<script src="{{ asset('js/main.js') }}?bust={!!time()!!}"></script>
 
 		<!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
 		<script>

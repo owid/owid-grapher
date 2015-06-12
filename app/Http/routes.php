@@ -46,6 +46,7 @@ Route::group(['middleware' => 'auth'], function()
 	Route::resource( 'categories', 'CategoriesController' );
 	Route::resource( 'subcategories', 'SubcategoriesController' );
 	Route::resource( 'tags', 'TagsController' );
+	Route::resource( 'licenses', 'LicensesController' );
 	//Route::resource( 'dataValues', 'DataValuesController' );
 	Route::bind( 'entities', function($value, $route) {
 		return App\Entity::whereId($value)->first();
@@ -76,6 +77,9 @@ Route::group(['middleware' => 'auth'], function()
 	});
 	Route::bind( 'tags', function($value, $route) {
 		return App\DatasetTag::whereId($value)->first();
+	});
+	Route::bind( 'licenses', function($value, $route) {
+		return App\License::whereId($value)->first();
 	});
 
 	Route::get( 'import', [ 'as' => 'import', 'uses' => 'ImportController@index' ] );

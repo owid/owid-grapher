@@ -61,19 +61,19 @@
 		
 		<script src="{{ asset('js/libs/chosen.jquery.min.js') }}"></script>    
 		
-		<script src="{{ asset('js/namespaces.js') }}"></script>
+		<script src="{{ asset('js/namespaces.js') }}?bust={!!time()!!}"></script>
 		
-		<script src="{{ asset('js/app/App.Utils.js') }}"></script>
+		<script src="{{ asset('js/app/App.Utils.js') }}?bust={!!time()!!}"></script>
 		
-		<script src="{{ asset('js/app/models/App.Models.ChartModel.js') }}"></script>
+		<script src="{{ asset('js/app/models/App.Models.ChartModel.js') }}?bust={!!time()!!}"></script>
 		
-		<script src="{{ asset('js/app/views/ui/App.Views.UI.ColorPicker.js') }}"></script>
+		<script src="{{ asset('js/app/views/ui/App.Views.UI.ColorPicker.js') }}?bust={!!time()!!}"></script>
 		
 		@yield('scripts')
 
-		<script src="{{ asset('js/app/views/App.Views.Main.js') }}"></script>
-		<script src="{{ asset('js/app/App.js') }}"></script>
-		<script src="{{ asset('js/main.js') }}"></script>
+		<script src="{{ asset('js/app/views/App.Views.Main.js') }}?bust={!!time()!!}"></script>
+		<script src="{{ asset('js/app/App.js') }}?bust={!!time()!!}"></script>
+		<script src="{{ asset('js/main.js') }}?bust={!!time()!!}"></script>
 
 		<!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
 		<script>

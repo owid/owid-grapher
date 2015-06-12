@@ -1,21 +1,21 @@
-<script src="{{ asset('js/app/models/App.Models.AvailableTimeModel.js') }}"></script>
-<script src="{{ asset('js/app/models/App.Models.EntityModel.js') }}"></script>
-<script src="{{ asset('js/app/models/App.Models.ChartVariableModel.js') }}"></script>
+<script src="{{ asset('js/app/models/App.Models.AvailableTimeModel.js') }}?bust={!!time()!!}"></script>
+<script src="{{ asset('js/app/models/App.Models.EntityModel.js') }}?bust={!!time()!!}"></script>
+<script src="{{ asset('js/app/models/App.Models.ChartVariableModel.js') }}?bust={!!time()!!}"></script>
 
-<script src="{{ asset('js/app/collections/App.Collections.AvailableEntitiesCollection.js') }}"></script>
-<script src="{{ asset('js/app/collections/App.Collections.ChartVariablesCollection.js') }}"></script>
+<script src="{{ asset('js/app/collections/App.Collections.AvailableEntitiesCollection.js') }}?bust={!!time()!!}"></script>
+<script src="{{ asset('js/app/collections/App.Collections.ChartVariablesCollection.js') }}?bust={!!time()!!}"></script>
 
-<script src="{{ asset('js/app/views/form/basicTab/App.Views.Form.ChartTypeSectionView.js') }}"></script>
-<script src="{{ asset('js/app/views/form/basicTab/App.Views.Form.AddDataSectionView.js') }}"></script>
-<script src="{{ asset('js/app/views/form/basicTab/App.Views.Form.DimensionsSectionView.js') }}"></script>
-<script src="{{ asset('js/app/views/form/basicTab/App.Views.Form.SelectedCountriesSectionView.js') }}"></script>
-<script src="{{ asset('js/app/views/form/basicTab/App.Views.Form.EntitiesSectionView.js') }}"></script>
-<script src="{{ asset('js/app/views/form/basicTab/App.Views.Form.TimeSectionView.js') }}"></script>
+<script src="{{ asset('js/app/views/form/basicTab/App.Views.Form.ChartTypeSectionView.js') }}?bust={!!time()!!}"></script>
+<script src="{{ asset('js/app/views/form/basicTab/App.Views.Form.AddDataSectionView.js') }}?bust={!!time()!!}"></script>
+<script src="{{ asset('js/app/views/form/basicTab/App.Views.Form.DimensionsSectionView.js') }}?bust={!!time()!!}"></script>
+<script src="{{ asset('js/app/views/form/basicTab/App.Views.Form.SelectedCountriesSectionView.js') }}?bust={!!time()!!}"></script>
+<script src="{{ asset('js/app/views/form/basicTab/App.Views.Form.EntitiesSectionView.js') }}?bust={!!time()!!}"></script>
+<script src="{{ asset('js/app/views/form/basicTab/App.Views.Form.TimeSectionView.js') }}?bust={!!time()!!}"></script>
 
-<script src="{{ asset('js/app/views/form/App.Views.Form.BasicTabView.js') }}"></script>
-<script src="{{ asset('js/app/views/form/App.Views.Form.AxisTabView.js') }}"></script>
-<script src="{{ asset('js/app/views/form/App.Views.Form.DescriptionTabView.js') }}"></script>
-<script src="{{ asset('js/app/views/form/App.Views.Form.StylingTabView.js') }}"></script>
-<script src="{{ asset('js/app/views/form/App.Views.Form.ExportTabView.js') }}"></script>
+<script src="{{ asset('js/app/views/form/App.Views.Form.BasicTabView.js') }}?bust={!!time()!!}"></script>
+<script src="{{ asset('js/app/views/form/App.Views.Form.AxisTabView.js') }}?bust={!!time()!!}"></script>
+<script src="{{ asset('js/app/views/form/App.Views.Form.DescriptionTabView.js') }}?bust={!!time()!!}"></script>
+<script src="{{ asset('js/app/views/form/App.Views.Form.StylingTabView.js') }}?bust={!!time()!!}"></script>
+<script src="{{ asset('js/app/views/form/App.Views.Form.ExportTabView.js') }}?bust={!!time()!!}"></script>
 
-<script src="{{ asset('js/app/views/App.Views.FormView.js') }}"></script>
+<script src="{{ asset('js/app/views/App.Views.FormView.js') }}?bust={!!time()!!}"></script>
