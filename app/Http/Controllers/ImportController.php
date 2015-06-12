@@ -139,7 +139,6 @@ class ImportController extends Controller {
 			foreach( $variables as $variableJsonString ) {
 
 				$variableObj = json_decode( $variableJsonString );
-
 				$variableData = [ 'name' => $variableObj->name, 'fk_var_type_id' => $request->input( 'variable_type' ), 'fk_dst_id' => $datasetId, 'unit' => $variableObj->unit, 'description' => $variableObj->description, 'fk_dsr_id' => $datasource->id ];
 
 				//update of existing variable or new variable

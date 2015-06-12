@@ -28,7 +28,7 @@
 		<h3>Variables</h3>
 		<ul>
 			@foreach( $dataset->variables as $variable )
-				<li><a href="{{ route('variables.show', $variable->id) }}">{{ $variable->name }}</a></li>
+				<li><a href="{{ route('variables.show', $variable->id) }}">{{ (!empty($variable->name))?$variable->name: $variable->id }}</a></li>
 			@endforeach
 		</ul>
 	</div>

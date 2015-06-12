@@ -9,10 +9,10 @@
 				{!! Form::submit('Delete value', array('class' => 'btn btn-danger')) !!}
 			{!! Form::close() !!}
 		</div>
-		{!! Form::model($dataValue, ['method' => 'PATCH', 'route' => ['values.update', $dataValue->id]]) !!}
+		{!! Form::model($dataValue, [ 'class' => 'validate-form', 'method' => 'PATCH', 'route' => ['values.update', $dataValue->id]]) !!}
 			<div class="form-group">
 				{!! Form::label('value', 'Value:') !!}
-				{!! Form::text('value', null, array('class' => 'form-control')) !!}
+				{!! Form::text('value', null, array('class' => 'form-control required')) !!}
 			</div>
 			<div class="form-group">
 				{!! Form::label('description', 'Description:') !!}

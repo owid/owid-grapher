@@ -4,10 +4,10 @@
 	<div class="module-wrapper edit-dataset-module">
 		<a class="back-btn" href="{{ route( 'datasets.show', $dataset->id ) }}"><i class="fa fa-arrow-left"></i>Back to the dataset</a>
 		<h2>Edit dataset</h2>
-		{!! Form::model($dataset, ['method' => 'PATCH', 'route' => ['datasets.update', $dataset->id]]) !!}
+		{!! Form::model($dataset, ['class' => 'validate-form','method' => 'PATCH', 'route' => ['datasets.update', $dataset->id]]) !!}
 			<div class="form-group">
 				{!! Form::label('name', 'Name:') !!}
-				{!! Form::text('name', null, array('class' => 'form-control')) !!}
+				{!! Form::text('name', null, array('class' => 'form-control required')) !!}
 			</div>
 			<div class="form-group">
 				{!! Form::label('description', 'Description:') !!}
