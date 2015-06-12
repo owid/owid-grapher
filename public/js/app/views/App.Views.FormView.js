@@ -6,7 +6,7 @@
 
 		el: "#form-view",
 		events: {
-			"click": "onFormCollapse",
+			//"click": "onFormCollapse",
 			"change input[name=chart-name]": "onNameChange",
 			"change textarea[name=chart-subname]": "onSubnameChange",
 			"click .remove-uploaded-file-btn": "onRemoveUploadedFile",

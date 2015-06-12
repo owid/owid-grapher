@@ -5,7 +5,21 @@
 	App.Models.ChartModel = Backbone.Model.extend( {
 
 		//urlRoot: Global.rootUrl + '/charts/',
-		urlRoot: Global.rootUrl + '/data/config/',
+		//urlRoot: Global.rootUrl + '/data/config/',
+		url: function() {
+			if( $("#form-view").length ) {
+				if( this.id ) {
+					//editing existing
+					return Global.rootUrl + "/charts/" + this.id;
+				} else {
+					//saving new
+					return Global.rootUrl + "/charts";
+				}
+				
+			} else {
+				return Global.rootUrl + "/data/config/" + this.id;
+			}
+		},
 
 		defaults: {
 			"selected-countries": {},
