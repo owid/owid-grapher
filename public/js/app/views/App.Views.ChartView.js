@@ -38,18 +38,13 @@
 			this.$sourcesTab = this.$el.find( "#sources-chart-tab" );
 
 			var dimensionsString = App.ChartModel.get( "chart-dimensions" );
-			if( App.ChartModel.get( "chart-data" ) ) {
-			
-				this.updateChart( App.ChartModel.get( "chart-data" ) );
-			
-			} else if( dimensionsString ) {
+			if( dimensionsString ) {
 
 				var that = this;
 				$.ajax( {
 					url: Global.rootUrl + "/data/dimensions",
 					data: { "dimensions": dimensionsString, "chartType": App.ChartModel.get( "chart-type" ) },
 					success: function( response ) {
-						console.log( "response", response );
 						if( response.data ) {
 							that.updateChart( response.data, response.timeType );
 						}
@@ -62,20 +57,13 @@
 					}
 				} );
 
-			} 
-
-			/*if( App.ChartModel.get( "chart-variable" ) ) {
-				var that = this;
-				$.ajax( {
-					url: Global.rootUrl + "/variables/" + App.ChartModel.get( "chart-variable" ),
-					success: function( response ) {
-						that.updateChart( response.data.data );
-					}
-				});
 			} else {
-				this.updateChart( App.ChartModel.get( "chart-data" ) );
-			}*/
-			
+
+				//clear any previous chart
+				$( "svg" ).empty();
+
+			}
+
 		},
 
 		onChartModelChange: function( evt ) {

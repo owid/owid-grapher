@@ -27,8 +27,13 @@
 
 		onChartTypeChange: function( evt ) {
 
+			//clear uf something previously selected
+			App.ChartModel.unset( "variables", {silent:true} );
+			App.ChartModel.unset( "chart-dimensions", {silent:true} );
+
 			var $select = $( evt.currentTarget );
 			App.ChartModel.set( "chart-type", $select.val() );
+
 			App.ChartDimensionsModel.loadConfiguration( $select.val() );
 
 		}

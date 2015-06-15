@@ -56,7 +56,6 @@
 
 			//if editing chart - assign possible chart dimensions to available dimensions
 			var chartDimensions = App.ChartModel.get( "chart-dimensions" );
-			console.log( "chartDimension", chartDimensions );
 			this.setInputs( chartDimensions );
 
 

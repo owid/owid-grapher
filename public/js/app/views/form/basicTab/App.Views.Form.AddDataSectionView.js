@@ -30,7 +30,6 @@
 
 		render: function() {
 
-			console.log( "AddDataSectionView render" );
 			this.$dd = this.$el.find( ".dd" );
 			this.$ddList = this.$dd.find( ".dd-list" );
 			this.$el.find( ".dd" ).nestable({});
