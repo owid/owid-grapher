@@ -193,7 +193,8 @@ class DataController extends Controller {
 				foreach( $timeKeys as $time ) {
 					//does value exist for given time and entity?
 					if( !array_key_exists($time, $entityData) ) {
-						$rowData[] = "x"; 
+						//insert blank value
+						$rowData[] = ""; 
 					} else {
 						//value exists
 						$rowData[] = $entityData[$time];
