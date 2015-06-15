@@ -173,7 +173,9 @@ class DataController extends Controller {
 
 		//process data to csv friendly format
 		$timeKeys = array_keys( $times );
-			
+		//sort timeKeys by time
+		usort( $timeKeys, function ($a, $b) { if ( $a==$b ) return 0; else return ($a > $b) ? 1 : -1; });
+		
 		//get all the licence information
 		$license = License::find( 1 )->first();
 
