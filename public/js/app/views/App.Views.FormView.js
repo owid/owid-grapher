@@ -6,7 +6,7 @@
 
 		el: "#form-view",
 		events: {
-			//"click": "onFormCollapse",
+			"click .form-collapse-btn": "onFormCollapse",
 			"change input[name=chart-name]": "onNameChange",
 			"change textarea[name=chart-subname]": "onSubnameChange",
 			"click .remove-uploaded-file-btn": "onRemoveUploadedFile",
@@ -143,8 +143,11 @@
 		onFormCollapse: function( evt ) {
 
 			evt.preventDefault();
-			var $parent = this.$el.find( "parent" );
+			var $parent = this.$el.parent();
 			$parent.toggleClass( "form-panel-collapsed" );
+			
+			//trigger re-rendering of chart
+			App.ChartModel.trigger( "change" );
 
 		},
 

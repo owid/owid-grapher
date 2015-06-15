@@ -3,6 +3,26 @@
 		margin-bottom: 10px;
 	}
 
+.form-collapse-btn {
+	position: absolute;
+	z-index: 2;
+	top: 50%;
+	left: -22px;
+    padding-left: 8px;
+    font-size: 26px;
+    border: 1px solid gray;
+    background-color: #ecf0f5;
+	-webkit-transform: translateY(-50%);
+	transform: translateY(-50%);
+}    
+	.form-panel-collapsed .form-collapse-btn i {
+		position: relative;
+		left: -4px;
+		padding-left: -2px;
+		-webkit-transform: rotate(180deg);
+		transform: rotate(180deg);
+	}
+
 /**
 *	add variable section
 **/
