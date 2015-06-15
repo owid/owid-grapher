@@ -37,7 +37,7 @@ class DatasourcesController extends Controller {
 	public function store(Request $request)
 	{
 		Datasource::create($request->all());
-		return redirect()->route( 'datasources.index' )->with( 'message', 'Source created.');
+		return redirect()->route( 'datasources.index' )->with( 'message', 'Source created.')->with( 'message-class', 'success' );
 	}
 
 	/**
@@ -72,7 +72,7 @@ class DatasourcesController extends Controller {
 	{
 		$input = array_except( $request->all(), [ '_method', '_token' ] );
 		$datasource->update( $input );
-		return redirect()->route( 'datasources.show', $datasource->id)->with( 'message', 'Source updated.');
+		return redirect()->route( 'datasources.show', $datasource->id)->with( 'message', 'Source updated.')->with( 'message-class', 'success' );
 	}
 
 	/**
