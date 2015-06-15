@@ -16,8 +16,11 @@
 			this.selectVarPopup = new App.Views.UI.SelectVarPopup();
 			this.selectVarPopup.init( options );
 
+			App.ChartVariablesCollection.on( "reset", this.onVariableReset, this );
 			App.ChartVariablesCollection.on( "add", this.onVariableAdd, this );
 			App.ChartVariablesCollection.on( "remove", this.onVariableRemove, this );
+
+			this.dispatcher.on( "variable-label-moved", this.onVariableLabelMoved, this );
 
 			//App.ChartModel.on( "change:variables", this.onVariablesChange, this );
 
@@ -27,9 +30,12 @@
 
 		render: function() {
 
+			console.log( "AddDataSectionView render" );
 			this.$dd = this.$el.find( ".dd" );
 			this.$ddList = this.$dd.find( ".dd-list" );
 			this.$el.find( ".dd" ).nestable({});
+
+			this.onVariableReset();
 
 		},
 
@@ -37,12 +43,21 @@
 			var $removeBtns = this.$ddList.find( ".fa-close" );
 			$removeBtns.on( "click", $.proxy( this.onRemoveBtnClick, this ) );
 			this.$dd.nestable();
-			
 		},
 
 		onAddDataBtn: function() {
 
 			this.selectVarPopup.show();
+
+		},
+
+		onVariableReset: function() {
+
+			var that = this,
+				models = App.ChartVariablesCollection.models;
+			_.each( models, function( v, i ) {
+				that.onVariableAdd( v );
+			} );
 
 		},
 
@@ -71,12 +86,20 @@
 
 		onRemoveBtnClick: function( evt ) {
 
-			console.log( "onRemoveBtnClick" );
 			evt.preventDefault();
 			var $btn = $( evt.currentTarget ),
 				$label = $btn.parents( ".variable-label" ),
 				variableId = $label.attr( "data-variable-id" );
 			App.ChartVariablesCollection.remove( variableId );
+
+		},
+
+		onVariableLabelMoved: function( ) {
+
+			//check if there's any variable label left, if not insert empty dd placeholder
+			if( !this.$el.find( ".variable-label" ).length ) {
+				this.$el.find( ".dd-list" ).replaceWith( "<div class='dd-empty'></div>" ); 	
+			}
 
 		}
 

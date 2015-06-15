@@ -26,6 +26,7 @@
 			"tabs": [ "chart", "data", "sources" ],
 			"line-type": "2",
 			"chart-description": "",
+			"chart-dimensions": [],
 			//"selected-countries": [ "France", "Germany" ],
 			"variables": [],
 			"y-axis": {},

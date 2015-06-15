@@ -307,7 +307,7 @@
 				</section>
 			</div>
 			<section class="form-section form-section-submit">
-				<button type="submit" class="btn btn-lg btn-success btn-primary">Create Chart</button>
+				<button type="submit" class="btn btn-lg btn-success btn-primary">{{ $submitLabel }}</button>
 			</section>
 		{!! Form::close() !!}
 	</div>

@@ -12,11 +12,13 @@
 		initialize: function( options ) {
 			
 			this.dispatcher = options.dispatcher;
-			App.ChartDimensionsModel.on( "change", this.render, this );
+			App.ChartDimensionsModel.on( "reset change", this.render, this );
 
 			this.render();
 
 		},
+
+		inited: false,
 
 		render: function() {
 
@@ -31,7 +33,7 @@
 				htmlString = "<ol class='dimensions-list'>";
 
 			_.each( dimensions, function( v, k ) {
-				htmlString += "<li data-property='" + v.property + "' class='dimension-box dd'><h4>" + v.name + "</h4><div class='dd-wrapper'><div class='dd'><div class='dd-empty'></div></div></div></li>";
+				htmlString += "<li data-property='" + v.property + "' class='dimension-box'><h4>" + v.name + "</h4><div class='dd-wrapper'><div class='dd'><div class='dd-empty'></div></div></div></li>";
 			} );
 
 			htmlString += "</ol>";
@@ -41,8 +43,9 @@
 
 			//init nestable 
 			this.$dd = this.$el.find( ".dd" );
+			//nestable destroy
 			this.$dd.nestable();
-
+						
 			//fetch remaing dom
 			this.$dimensionBoxes = this.$el.find( ".dimension-box" );
 
@@ -51,13 +54,18 @@
 				that.updateInput();
 			});
 
+			//if editing chart - assign possible chart dimensions to available dimensions
+			var chartDimensions = App.ChartModel.get( "chart-dimensions" );
+			console.log( "chartDimension", chartDimensions );
+			this.setInputs( chartDimensions );
+
+
 		},
 
 		updateInput: function() {
 			
 			var dimensions = [];
 			$.each( this.$dimensionBoxes, function( i, v ) {
-				
 				var $box = $( v ),
 					$droppedVariables = $box.find( ".variable-label" );
 				if( $droppedVariables.length ) {
@@ -68,12 +76,42 @@
 						dimensions.push( dimension );
 					} );
 				}
-
 			} );
 
 			var json = JSON.stringify( dimensions );
 			this.$dimensionsInput.val( json );
 			App.ChartModel.set( "chart-dimensions", json );
+
+		},
+
+		setInputs: function( chartDimensions ) {
+
+			if( !chartDimensions || !chartDimensions.length ) {
+				return;
+			}
+
+			//convert to json
+			chartDimensions = $.parseJSON( chartDimensions ); 
+			
+			var that = this;
+			_.each( chartDimensions, function( chartDimension, i ) {
+
+				//find variable label box from available variables
+				var $variableLabel = $( ".variable-label[data-variable-id=" + chartDimension.variableId + "]" );
+				//find appropriate dimension box for it by data-property
+				var $dimensionBox = that.$el.find( ".dimension-box[data-property=" + chartDimension.property + "]" );
+				//remove empty and add variable box
+				$dimensionBox.find( ".dd-empty" ).remove();
+				var $ddList = $( "<ol class='dd-list'></ol>" );
+				$ddList.append( $variableLabel );
+				$dimensionBox.find( ".dd" ).append( $ddList ); 
+				that.dispatcher.trigger( "variable-label-moved" );
+
+			} );
+
+			$.each( this.$dimensionBoxes, function( i, v ) {
+
+			} );
 
 		},
 

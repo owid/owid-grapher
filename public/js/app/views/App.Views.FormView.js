@@ -17,12 +17,30 @@
 			
 			this.dispatcher = options.dispatcher;
 			
-			//create related models
-			App.ChartVariablesCollection = new App.Collections.ChartVariablesCollection();
-			App.AvailableEntitiesCollection = new App.Collections.AvailableEntitiesCollection();
-			App.ChartDimensionsModel = new App.Models.ChartDimensionsModel();
-			App.AvailableTimeModel = new App.Models.AvailableTimeModel();
+			var formConfig = App.ChartModel.get( "form-config" );
 
+			//create related models, either empty (when creating new chart), or prefilled from db (when editing existing chart)
+			if( formConfig && formConfig[ "variables-collection" ] ) {
+				App.ChartVariablesCollection = new App.Collections.ChartVariablesCollection( formConfig[ "variables-collection" ] );
+			} else {
+				App.ChartVariablesCollection = new App.Collections.ChartVariablesCollection();
+			}
+			if( formConfig && formConfig[ "entities-collection" ] ) {
+				App.AvailableEntitiesCollection = new App.Collections.AvailableEntitiesCollection( formConfig[ "entities-collection" ] );
+			} else {
+				App.AvailableEntitiesCollection = new App.Collections.AvailableEntitiesCollection();
+			}
+			if( formConfig && formConfig[ "dimensions" ] ) {
+				App.ChartDimensionsModel = new App.Models.ChartDimensionsModel( formConfig[ "dimensions" ] );
+			} else {
+				App.ChartDimensionsModel = new App.Models.ChartDimensionsModel();
+			}
+			if( formConfig && formConfig[ "available-time" ] ) {
+				App.AvailableTimeModel = new App.Models.AvailableTimeModel(formConfig[ "available-time" ]);
+			} else {
+				App.AvailableTimeModel = new App.Models.AvailableTimeModel();
+			}
+			
 			//create subviews
 			this.basicTabView = new App.Views.Form.BasicTabView( { dispatcher: this.dispatcher } );
 			this.axisTabView = new App.Views.Form.AxisTabView( { dispatcher: this.dispatcher } );
@@ -35,12 +53,29 @@
 			this.$filePicker = this.$el.find( ".file-picker-wrapper [type=file]" );
 			
 			//update related models from form config
-			var formConfig = App.ChartModel.get( "form-config" );
-			console.log( "formConfig", formConfig );
+			/*var formConfig = App.ChartModel.get( "form-config" );
 			if( formConfig ) {
 
+				//available variables
+				var variablesCollection = formConfig[ "variables-collection" ];
+				if( variablesCollection ) {
+					App.ChartVariablesCollection.reset( variablesCollection );
+				}*/
+
+				//available dimensions
+				/*var dimensionsCollection = formConfig[ "dimensions" ];
+				if( dimensionsCollection && dimensionsCollection.chartDimensions ) {
+					App.ChartDimensionsModel.reset( dimensionsCollection.chartDimensions );
+				}*/
+
+				//available entity section
+				/*var entitiesCollection = formConfig[ "entities-collection" ];
+				if( entitiesCollection ) {
+					App.AvailableEntitiesCollection.reset( entitiesCollection );
+				}*/
+
 				//available time section
-				var availableTime = formConfig[ "available-time" ];
+				/*var availableTime = formConfig[ "available-time" ];
 				if( availableTime.min ) {
 					App.AvailableTimeModel.set( "min", availableTime.min );
 				}
@@ -48,23 +83,7 @@
 					App.AvailableTimeModel.set( "max", availableTime.max );
 				}
 
-				//available entity section
-				var entitiesCollection = formConfig[ "entities-collection" ];
-				if( entitiesCollection ) {
-					App.AvailableEntitiesCollection.reset( entitiesCollection );
-				}
-
-			}
-
-			//setup events
-			/*var that = this;
-			CSV.begin( this.$filePicker.selector ).go( 
-				function( err, data ) {
-					that.onCsvSelected( err, data );
-				}
-			);
-			
-			this.$removeUploadedFileBtn.hide();*/
+			}*/
 
 			this.render();
 

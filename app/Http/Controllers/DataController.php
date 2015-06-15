@@ -32,7 +32,7 @@ class DataController extends Controller {
 		$datasourcesIdsArr = array();
 
 		if( !Input::has( 'dimensions' ) ) {
-			return false;
+			return "";
 		}
 
 		$dimensionsInput = Input::get( 'dimensions' );
