@@ -49,11 +49,12 @@
 					url: Global.rootUrl + "/data/dimensions",
 					data: { "dimensions": dimensionsString, "chartType": App.ChartModel.get( "chart-type" ) },
 					success: function( response ) {
+						console.log( "response", response );
 						if( response.data ) {
 							that.updateChart( response.data, response.timeType );
 						}
 						if( response.datasources ) {
-							that.updateSourceTab( response.datasources );
+							that.updateSourceTab( response.datasources, response.license );
 						}
 						if( response.exportData ) {
 							that.updateDataTab( response.exportData );
@@ -313,7 +314,7 @@
 
 		},
 
-		updateSourceTab: function( data ) {
+		updateSourceTab: function( sources, license ) {
 
 			var footerHtml = "",
 				tabHtml = "",
@@ -322,7 +323,7 @@
 				sourcesLongHtml = "Data sources: ";
 			
 			//construct source html
-			_.each( data, function( sourceData, sourceIndex ) {
+			_.each( sources, function( sourceData, sourceIndex ) {
 				if( sourceIndex > 0 ) {
 					sourcesShortHtml += ", ";
 				}
@@ -337,6 +338,12 @@
 			footerHtml = descriptiontionHtml + "<br />" + sourcesShortHtml;
 			tabHtml = descriptiontionHtml + "<br /><br />" + sourcesLongHtml;
 
+			//add license info
+			if( license && license.description ) {
+				footerHtml = license.description + " " + footerHtml;
+				tabHtml = license.description + " " + tabHtml;
+			}
+			
 			//append to DOM
 			this.$el.find( ".chart-description" ).html( footerHtml );
 			this.$sourcesTab.html( tabHtml );

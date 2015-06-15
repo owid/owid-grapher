@@ -31,12 +31,12 @@ class DatabaseSeeder extends Seeder {
 		$this->call('ChartTypesTableSeeder');
 		$this->call('ChartTypeDimensionsTableSeeder');
 		
-		/*$this->call('DatasourcesTableSeeder');
+		$this->call('DatasourcesTableSeeder');
 		$this->call('EntitiesTableSeeder');
 		$this->call('TimesTableSeeder');
 		$this->call('DatasetsTableSeeder');
 		$this->call('VariablesTableSeeder');
-		$this->call('DataValuesTableSeeder');*/
+		$this->call('DataValuesTableSeeder');
 		
 
 	}

@@ -100,9 +100,14 @@
 		font-size: 11px;
 		padding: 10px 20px;
 	}
-		#chart-view .chart-footer a:hover {
-			text-decoration: underline;
+		#chart-view .chart-footer a,
+		#chart-view #sources-chart-tab a {
+			color: #1059E5;
 		}
+			#chart-view #sources-chart-tab a:hover,
+			#chart-view #sources-chart-tab a:hover {
+				color: #FF4012;
+			}
 
 	.chart-wrapper {
 		background-color: #ffffff;

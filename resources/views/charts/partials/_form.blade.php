@@ -190,7 +190,7 @@
 			<div id="sources-tab" class="tab-pane">
 				<section class="form-section">
 					<div class="form-section-header">
-						<h2><span class="form-section-digit">h</span>Describe your sources</h2>
+						<h2><span class="form-section-digit">h</span>Add additional description</h2>
 					</div>
 					<div class="form-section-content">
 						<textarea name="description" placeholder="Enter all the sources information"></textarea>

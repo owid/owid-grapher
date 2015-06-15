@@ -25,7 +25,7 @@
 			"selected-countries": {},
 			"tabs": [ "chart", "data", "sources" ],
 			"line-type": "2",
-			"chart-description": "You are welcome to share but please refer to its source where you where you can find more information.",
+			"chart-description": "",
 			//"selected-countries": [ "France", "Germany" ],
 			"variables": [],
 			"y-axis": {},

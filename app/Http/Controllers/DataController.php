@@ -5,6 +5,7 @@ use Input;
 use App\Variable;
 use App\TimeType;
 use App\Datasource;
+use App\License;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
@@ -172,7 +173,10 @@ class DataController extends Controller {
 
 		//process data to csv friendly format
 		$timeKeys = array_keys( $times );
-		
+			
+		//get all the licence information
+		$license = License::find( 1 )->first();
+
 		//construct first row
 		$firstRow = $timeKeys;
 		array_unshift( $firstRow, "Times" ); 
@@ -221,7 +225,7 @@ class DataController extends Controller {
 
 		if( $request->ajax() ) {
 
-			return [ 'success' => true, 'data' => $data, 'datasources' => $datasources, 'timeType' => $timeType, 'exportData' => $exportData ];
+			return [ 'success' => true, 'data' => $data, 'datasources' => $datasources, 'timeType' => $timeType, 'exportData' => $exportData, 'license' => $license ];
 
 		} else {
 
