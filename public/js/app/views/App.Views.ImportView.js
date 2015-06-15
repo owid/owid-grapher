@@ -182,11 +182,15 @@
 				data.description = "";
 			}
 
+			var stringified = JSON.stringify( data );
+			//weird behaviour when single quote inserted into hidden input
+			stringified = stringified.replace( "'", "&#x00027;" );
+
 			var $li = $( "<li class='variable-item clearfix'></li>" ),
 				$inputName = $( "<label>Name*<input class='form-control' value='" + data.name + "' placeholder='Enter variable name'/></label>" ),
 				$inputUnit = $( "<label>Unit<input class='form-control' value='" + data.unit + "' placeholder='Enter variable unit' /></label>" ),
 				$inputDescription = $( "<label>Description<input class='form-control' value='" + data.description + "' placeholder='Enter variable description' /></label>" ),
-				$inputData = $( "<input type='hidden' name='variables[]' value='" + JSON.stringify( data ) + "' />" );
+				$inputData = $( "<input type='hidden' name='variables[]' value='" + stringified + "' />" );
 			
 			$li.append( $inputName );
 			$li.append( $inputUnit );
@@ -197,6 +201,7 @@
 			$inputs.on( "input", function( evt ) {
 
 				//update stored json
+				console.log( $inputData.val() );
 				var json = $.parseJSON( $inputData.val() );
 				json.name = $inputName.val();
 				json.unit = $inputUnit.val();

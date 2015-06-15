@@ -29,6 +29,7 @@ class ImportController extends Controller {
 	 */
 	public function index()
 	{	
+
 		/*$variable = Variable::find( 1 );
 		$data = [
 			new DataValue( [ 'value' => 'fads', 'description' => 'Description 1', 'fk_input_files_id' => 1 ] ),
@@ -138,7 +139,10 @@ class ImportController extends Controller {
 			$inserted_variables = array();
 			foreach( $variables as $variableJsonString ) {
 
+				//convert back single out to actual single quote
+				//$variableJsonString = str_replace( "'", "‘", $variableJsonString );
 				$variableObj = json_decode( $variableJsonString );
+
 				$variableData = [ 'name' => $variableObj->name, 'fk_var_type_id' => $request->input( 'variable_type' ), 'fk_dst_id' => $datasetId, 'unit' => $variableObj->unit, 'description' => $variableObj->description, 'fk_dsr_id' => $datasource->id ];
 
 				//update of existing variable or new variable
@@ -177,7 +181,8 @@ class ImportController extends Controller {
 							//delete itself
 							$dataset->delete();
 						}
-
+						\Log::error( 'Error non-existing entity in dataset.' );
+						\Log::error( $entityData['name'] );
 						return redirect()->route( 'import' )->with( 'message', 'Error non-existing entity in dataset.' )->with( 'message-class', 'error' );
 
 					}
