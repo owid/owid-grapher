@@ -25,7 +25,7 @@
 			var that = this,
 				selectedCountries = App.ChartModel.get( "selected-countries" );
 
-			$.each( selectedCountries, function( i, v ) {
+			_.each( selectedCountries, function( v, i ) {
 				var $li = $( "<li class='country-label' data-name='" + v.name + "'>" + v.name + "<span class='fa fa-remove'></span></li>" );
 				that.$el.append( $li );
 				if( v.color ) {

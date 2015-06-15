@@ -42,6 +42,12 @@
 
 		addSelectedCountry: function( country ) {
 
+			//make sure we're using object, not associative array
+			if( $.isArray( this.get( "selected-countries" ) ) ) {
+				//we got empty array from db, convert to object
+				this.set( "selected-countries", {} );
+			}
+
 			var selectedCountries = this.get( "selected-countries" );
 			selectedCountries[ country.name ] = country;
 			this.trigger( "change:selected-countries" );

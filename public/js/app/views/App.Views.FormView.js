@@ -34,11 +34,26 @@
 			this.$removeUploadedFileBtn = this.$el.find( ".remove-uploaded-file-btn" );
 			this.$filePicker = this.$el.find( ".file-picker-wrapper [type=file]" );
 			
-			//update related models
-			var chartTime = App.ChartModel.get( "chart-time" );
-			if( $.isArray( chartTime ) && chartTime.length == 2 ) {
-				App.AvailableTimeModel.set( "min", chartTime[ 0 ] );
-				App.AvailableTimeModel.set( "max", chartTime[ 1 ] );
+			//update related models from form config
+			var formConfig = App.ChartModel.get( "form-config" );
+			console.log( "formConfig", formConfig );
+			if( formConfig ) {
+
+				//available time section
+				var availableTime = formConfig[ "available-time" ];
+				if( availableTime.min ) {
+					App.AvailableTimeModel.set( "min", availableTime.min );
+				}
+				if( availableTime.max ) {
+					App.AvailableTimeModel.set( "max", availableTime.max );
+				}
+
+				//available entity section
+				var entitiesCollection = formConfig[ "entities-collection" ];
+				if( entitiesCollection ) {
+					App.AvailableEntitiesCollection.reset( entitiesCollection );
+				}
+
 			}
 
 			//setup events
@@ -108,7 +123,6 @@
 
 		onFormCollapse: function( evt ) {
 
-			console.log( "onFormCollapse" );
 			evt.preventDefault();
 			var $parent = this.$el.find( "parent" );
 			$parent.toggleClass( "form-panel-collapsed" );
