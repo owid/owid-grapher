@@ -147,8 +147,10 @@
 
 				var tr = "<tr>";
 				_.each( rowData, function( cellData, cellIndex ) {
-					var td = (rowIndex > 0)? "<td>" + cellData + "</td>": "<th>" + cellData + "</th>";
-					tr += td;
+					if(cellData) {
+						var td = (rowIndex > 0)? "<td>" + cellData + "</td>": "<th>" + cellData + "</th>";
+						tr += td;
+					}
 				} );
 				tr += "</tr>";
 				tableString += tr;
@@ -214,7 +216,6 @@
 			$inputs.on( "input", function( evt ) {
 
 				//update stored json
-				console.log( $inputData.val() );
 				var json = $.parseJSON( $inputData.val() );
 				json.name = $inputName.val();
 				json.unit = $inputUnit.val();
