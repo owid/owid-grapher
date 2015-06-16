@@ -76,12 +76,26 @@
 		initUpload: function() {
 
 			var that = this;
-			CSV.begin( this.$filePicker.selector )
+			this.$filePicker.on( "change", function( i, v ) {
+
+				var $this = $( this );
+				$this.parse( {
+					config: {
+						complete: function( obj ) {
+							var data = { rows: obj.data };
+							that.onCsvSelected( null, data );
+						}
+					}
+				} );
+
+			} );
+
+			/*CSV.begin( this.$filePicker.selector )
 				//.table( "csv-import-table-wrapper", { header:1, caption: "" } )
 				.go( function( err, data ) {
 					that.onCsvSelected( err, data );
 				} );
-			this.$removeUploadedFileBtn.hide();
+			this.$removeUploadedFileBtn.hide();*/
 
 		},
 
@@ -90,7 +104,6 @@
 			if( !data ) {
 				return;
 			}
-			
 			//do we need to transpose data?
 			var isOriented = this.detectOrientation( data.rows );
 			if( !isOriented ) {
@@ -100,7 +113,7 @@
 			this.uploadedData = data;
 			//store also original, this.uploadedData will be modified when being validated
 			this.origUploadedData = $.extend( true, {}, this.uploadedData);
-
+			
 			this.createDataTable( data.rows );
 
 			this.validateEntityData( data.rows );

@@ -82,7 +82,15 @@ class VariablesController extends Controller {
 			
 			//data
 			$values = $variable->data;
-			$source = DataValue::with( array('Entity','Time') )->where( 'fk_var_id', '=', $variable->id ); 
+
+			/*$source = DB::table( 'data_values' )
+				->leftJoin( 'entities', 'data_values.fk_ent_id', '=', 'entities.id' )
+				->leftJoin( 'times', 'data_values.fk_time_id', '=', 'times.id' )
+				->select( DB::raw( 'data_values.*, times.label, entities.name' ) );*/
+			
+			$source = DataValue::grid()->where( 'fk_var_id', '=', $variable->id ); 
+			
+			//$source = DataValue::with( array('Entity','Time') )->where( 'fk_var_id', '=', $variable->id ); 
 			$entityList = DataValue::where( 'fk_var_id', '=', $variable->id )->lists('fk_var_id');
 			$entities = Entity::whereIn( 'id', $entityList );
 
@@ -96,8 +104,8 @@ class VariablesController extends Controller {
 			$entitiesList = Entity::lists('name', 'name');
 			$entitiesList[''] = 'All';
 
-			$filter->add('Entity.name','Entity','select')->options( $entitiesList );
-			$filter->add('Time.label','Time', 'text');
+			$filter->add('Entities.name','Entity','select')->options( $entitiesList );
+			$filter->add('Times.label','Time', 'text');
 			//$filter->add('Time.label','Time','daterange')->format('m/d/Y', 'en');
         	$filter->submit('search');
 			$filter->build();
@@ -105,8 +113,8 @@ class VariablesController extends Controller {
 			$grid = \App\Components\BatchDataGrid::source( $filter );
 			$grid->add( 'id', 'ID', true)->style( 'width:100px' );
 			$grid->add( 'value', 'Value', true);
-			$grid->add( 'Entity.name', 'Entity', true);
-			$grid->add( 'Time.label', 'Time', true);
+			$grid->add( 'name', 'Entity', true);
+			$grid->add( 'label', 'Time', true);
 			$grid->add( 'description', 'Description' );
 			
 			//$grid->checkbox('title','Title');

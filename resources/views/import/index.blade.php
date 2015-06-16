@@ -165,6 +165,7 @@
 @endsection
 
 @section('scripts')
-	<script src="{{ asset('js/libs/moments.min.js') }}"></script>
-	<script src="{{ asset('js/app/views/App.Views.ImportView.js') }}"></script>
+	<script src="{{ asset('js/libs/papaparse.js') }}?bust={!!time()!!}"></script>
+	<script src="{{ asset('js/libs/moments.min.js') }}?bust={!!time()!!}"></script>
+	<script src="{{ asset('js/app/views/App.Views.ImportView.js') }}?bust={!!time()!!}"></script>
 @endsection
