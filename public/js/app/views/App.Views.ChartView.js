@@ -25,10 +25,20 @@
 
 		render: function() {
 			
-			this.$el.find( ".chart-name" ).text( App.ChartModel.get( "chart-name" ) );
-			this.$el.find( ".chart-subname" ).text( App.ChartModel.get( "chart-subname" ) );
-			this.$el.find( ".chart-description" ).html( App.ChartModel.get( "chart-description" ) );
+			//chart tab
+			this.$svg = this.$el.find( "svg" );
+			this.$chartName = this.$el.find( ".chart-name" );
+			this.$chartSubname = this.$el.find( ".chart-subname" );
+			this.$chartDescription = this.$el.find( ".chart-description" );
+			this.$chartSources = this.$el.find( ".chart-sources" );
 			
+			//update values
+			this.$chartName.text( App.ChartModel.get( "chart-name" ) );
+			this.$chartSubname.html( App.ChartModel.get( "chart-subname" ) );
+
+			var chartDescription = App.ChartModel.get( "chart-description" );
+			//this.$chartDescription.text( App.ChartModel.get( "chart-description" ) );
+
 			//data tab
 			this.$dataTab = this.$el.find( "#data-chart-tab" );
 			this.$downloadBtn = this.$dataTab.find( ".download-data-btn" );
@@ -85,15 +95,40 @@
 
 		onSaveSvg: function( evt ) {
 
+			//http://stackoverflow.com/questions/23218174/how-do-i-save-export-an-svg-file-after-creating-an-svg-with-d3-js-ie-safari-an
 			var $btn = $( evt.currentTarget ), 
 				//grab all svg
 				$svg = this.$el.find( "svg" ),
 				svg = $svg.get(0),
 				svgString = svg.outerHTML;
 
+			//inline styles for the export
+			var styleSheets = document.styleSheets;
+			for( var i = 0; i < styleSheets.length; i++ ) {
+				this.inlineCssStyle( styleSheets[ i ].cssRules );
+			}
+
+			var serializer = new XMLSerializer(),
+				source = serializer.serializeToString(svg);
+			//add name spaces.
+			if(!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)){
+				source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+			}
+			if(!source.match(/^<svg[^>]+"http\:\/\/www\.w3\.org\/1999\/xlink"/)){
+				source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
+			}
+			//TODO - ugly hack, replace height style that's messing things up
+			source = source.replace( 'height: 100%; background-color: rgb(255, 255, 255);', 'height: 1000px; background-color: rgb(255, 255, 255);' );
+
+			//add xml declaration
+			source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+
+			//convert svg source to URI data scheme.
+			var url = "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(source);
+			$btn.attr( "href", url );
 			
-			var $hiddenInput = this.$el.find( "[name='export-svg']" );
-			$hiddenInput.val( svgString );
+			//var $hiddenInput = this.$el.find( "[name='export-svg']" );
+			//$hiddenInput.val( svgString );
 
 		},
 
@@ -168,9 +203,8 @@
 
 				var chartOptions = {
 					transitionDuration: 300,
-					margin: App.ChartModel.get( "margins" ),
-					tooltipContent: tooltipContent/*,
-					defined: function( d ) { return d.y != 0; }*/								
+					margin: { top:0, left:50, right:30, bottom:0 },// App.ChartModel.get( "margins" ),
+					tooltipContent: tooltipContent
 				};
 
 				//line type
@@ -204,6 +238,7 @@
 					allValues = allValues.concat( v.values );
 				} );
 				
+				//domain setup
 				var xDomain = d3.extent( allValues.map( function( d ) { return d.x; } ) ),
 					yDomain = d3.extent( allValues.map( function( d ) { return d.y; } ) ),
 					isClamped = false;
@@ -218,6 +253,9 @@
 				if( yAxisMin && !isNaN( yAxisMin ) ) {
 					yDomain[ 0 ] = yAxisMin;
 					isClamped = true;
+				} else {
+					//default is zero
+					yDomain[ 0 ] = 0;
 				}
 				if( yAxisMax && !isNaN( yAxisMax ) ) {
 					yDomain[ 1 ] = yAxisMax;
@@ -248,11 +286,14 @@
 					.axisLabel( yAxis[ "axis-label" ] )
 					.axisLabelDistance( yAxisLabelDistance )
 					.tickFormat( function(d) { return yAxisPrefix + d + yAxisSuffix; });
-				var svgSelection = d3.select( "svg" )
+				
+				var svgSelection = d3.select( that.$svg.selector )
 					.datum(localData)
 					.call(that.chart);
 
-				nv.utils.windowResize(that.chart.update);
+				nv.utils.windowResize( $.proxy( that.onResize, that ) );
+
+				that.onResize();
 
 			});
 		
@@ -306,7 +347,7 @@
 
 			var footerHtml = "",
 				tabHtml = "",
-				descriptiontionHtml = App.ChartModel.get( "chart-description" ),
+				descriptionHtml = App.ChartModel.get( "chart-description" ),
 				sourcesShortHtml = "Data sources: ",
 				sourcesLongHtml = "Data sources: ";
 			
@@ -316,15 +357,15 @@
 					sourcesShortHtml += ", ";
 				}
 				if( sourceData.link ) {
-					sourcesShortHtml += "<a href='" + sourceData.link + "' target='_blank'>" + sourceData.name + "</a>";
+					sourcesShortHtml += "<a xlink:href='" + sourceData.link + "' target='_blank'>" + sourceData.name + "</a>";
 				} else {
 					sourcesShortHtml += sourceData.name;
 				}
 				sourcesLongHtml += sourceData.description;
 			} );
 
-			footerHtml = descriptiontionHtml + "<br />" + sourcesShortHtml;
-			tabHtml = descriptiontionHtml + "<br /><br />" + sourcesLongHtml;
+			footerHtml = descriptionHtml;
+			tabHtml = descriptionHtml + "<br /><br />" + sourcesLongHtml;
 
 			//add license info
 			if( license && license.description ) {
@@ -333,9 +374,59 @@
 			}
 			
 			//append to DOM
-			this.$el.find( ".chart-description" ).html( footerHtml );
+			this.$chartDescription.html( footerHtml );
+			this.$chartSources.html( sourcesLongHtml );
 			this.$sourcesTab.html( tabHtml );
 
+		},
+
+		onResize: function() {
+
+			//compute how much space for chart
+			var svgWidth = this.$svg.width(),
+				svgHeight = this.$svg.height(),
+				topChartMargin = 30,
+				bottomChartMargin = 30,
+				currY, footerDescriptionHeight, footerSourcesHeight, chartHeight;
+
+			//wrap header text
+			App.Utils.wrap( this.$chartName, svgWidth );
+			currY = parseInt( this.$chartName.attr( "y" ) ) + this.$chartName.outerHeight();
+			this.$chartSubname.attr( "y", currY );
+			
+			//wrap description
+			App.Utils.wrap( this.$chartSubname, svgWidth );
+			currY += this.$chartSubname.outerHeight();
+			
+			//add height of legend
+			currY += this.chart.legend.height();
+
+			//position chart
+			App.Utils.wrap( this.$chartDescription, svgWidth );
+			footerDescriptionHeight = this.$chartDescription.height();
+			App.Utils.wrap( this.$chartSources, svgWidth );
+			footerSourcesHeight = this.$chartSources.height();
+
+			//set chart height
+			chartHeight = svgHeight - currY - 1.25*footerDescriptionHeight - footerSourcesHeight - bottomChartMargin;
+
+			//position footer
+			this.$chartDescription.attr( "y", currY + chartHeight + bottomChartMargin );
+			App.Utils.wrap( this.$chartDescription, svgWidth );
+			this.$chartSources.attr( "y", parseInt( this.$chartDescription.attr( "y" ) ) + this.$chartDescription.height() + footerDescriptionHeight/3 );
+			App.Utils.wrap( this.$chartSources, svgWidth );
+			
+			//this.chart.margin( margin );
+			this.chart.width( svgWidth );
+			this.chart.height( chartHeight );
+
+			//need to call chart update for resizing of elements within chart
+			this.chart.update();
+
+			//manually reposition chart after update
+			var translateString = "translate(50," + currY + ")";
+			$( "svg > .nvd3" ).attr( "transform", translateString );
+			
 		},
 
 		formatTimeLabel: function( type, d, xAxisPrefix, xAxisSuffix ) {
@@ -401,6 +492,16 @@
 					break;
 			}
 			return xAxisPrefix + label + xAxisSuffix;
+		},
+
+		inlineCssStyle: function( rules ) {
+			//http://devintorr.es/blog/2010/05/26/turn-css-rules-into-inline-style-attributes-using-jquery/
+			for (var idx = 0, len = rules.length; idx < len; idx++) {
+				$(rules[idx].selectorText).each(function (i, elem) {
+					elem.style.cssText += rules[idx].style.cssText;
+				});
+			}
+
 		}
 
 	});

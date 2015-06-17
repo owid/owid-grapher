@@ -4805,7 +4805,6 @@ nv.models.lineChart = function() {
                 availableHeight = (height || parseInt(container.style('height')) || 400)
                     - margin.top - margin.bottom;
 
-
             chart.update = function() {
                 if (duration === 0)
                     container.call(chart);
@@ -10931,7 +10930,7 @@ nv.models.stackedAreaChart = function() {
                     - margin.left - margin.right,
                 availableHeight = (height || parseInt(container.style('height')) || 400)
                     - margin.top - margin.bottom;
-
+            console.log( "availableWidth", availableWidth );
             chart.update = function() { container.transition().duration(duration).call(chart); };
             chart.container = this;
 

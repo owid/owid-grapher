@@ -6,6 +6,8 @@
 
 	.standalone-chart-viewer #chart-view {
 		width: 100%;
+		padding-left: 0;
+		padding-right: 0;
 	}
 
 	#chart-view a {
@@ -65,7 +67,7 @@
 	*	CHART CONTENT
 	**/
 	#chart-view .tab-content {
-		height: calc(100% - 125px);
+		height: calc(100% - 25px);
 	}
 	#chart-view .tab-pane {
 		position: relative;
@@ -81,7 +83,8 @@
 		right: 0;
 		bottom: 100px;*/
 		width: 100%;
-		height: calc(100% - 80px);
+		height: 100%;
+		/*height: calc(100% - 80px);*/
 	}
 
 	/* modify tooltip position to account for header */
@@ -96,7 +99,6 @@
 		position: absolute;
 		bottom: 0px;
 		width: 100%;
-		background-color: #FAFAFA;
 		font-size: 11px;
 		padding: 10px 20px;
 	}
@@ -124,6 +126,7 @@
 
 	/* for saving image */
 	.nvd3-svg {
+		width: 100%;
 		background-color: #ffffff;
 	}
 

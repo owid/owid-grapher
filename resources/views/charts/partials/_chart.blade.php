@@ -1,8 +1,8 @@
 <div id="chart-view" class="col-sm-12 col-md-6 chart-wrapper chart-edit-wrapper" @if (isset($chart)) data-chart-id="{{ $chart->id }}" @endif>
 	<div class="chart-wrapper-inner">
 		<div class="chart-header clearfix">
-			<h2 class="chart-name"></h2>
-			<h3 class="chart-subname"></h3>
+			<!--<h2 class="chart-name"></h2>
+			<h3 class="chart-subname"></h3>-->
 			<ul class="chart-tabs clearfix">
 				<li class="chart-header-tab header-tab active">
 					<a href="#chart-chart-tab" data-toggle="tab" aria-expanded="false">Chart</a>
@@ -21,16 +21,15 @@
 		<div class="tab-content">
 			<div id="chart-chart-tab" class="tab-pane active">
 				<svg xmlns="http://www.w3.org/2000/svg" version="1.1">
-					<!--<text x="0" y="50" class="h2 chart-name"></text><text x="0" y="150" class="h3 chart-description"></text>-->
+					<text x="0" y="20" dy="0" class="h2 chart-name"></text>
+					<text x="0" y="100" dy="0" class="h3 chart-subname"></text>
+					<text x="0" y="100" dy="0" class="chart-description"></text>
+					<text x="0" y="100" dy="0" class="chart-sources"></text>
 				</svg>
 				<div class="chart-footer clearfix">
 					<a href="#" class="chart-save-png-btn pull-right">Save to png</a>
-					{{--*/ $actionUrl = route( 'exportToSvg' ) /*--}}
-					{!! Form::open( array( "url" => $actionUrl ) ) !!}
-						<input type="hidden" name="export-svg" />
-						<button type="submit"  class="chart-save-svg-btn pull-right" target="_blank">Save to svg</button>
-					{!! Form::close() !!}
-					<p class="chart-description"></p>
+					<a href="#" class="chart-save-svg-btn pull-right" target="_blank">Save to svg</a>
+					<!--<p class="chart-description"></p>-->
 				</div>
 			</div>
 			<div id="data-chart-tab" class="tab-pane">
