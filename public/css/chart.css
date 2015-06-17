@@ -17,6 +17,10 @@
 	/**
 	*	CHART HEADER
 	**/
+
+	#chart-view .chart-header {
+	}
+
 	#chart-view h2,
 	#chart-view .h2,
 	#chart-view h3,
@@ -25,23 +29,30 @@
 	}
 	#chart-view h2,
 	#chart-view .h2 {
+		margin-top: 0;
 		font-size: 24px;
 		font-weight: 400;
-		line-height: 1.2;
 	}
 	#chart-view h3,
 	#chart-view .h3 {
 		font-size: 15px;
 		opacity: .8;
+		line-height: 1.4;
 	}
 
-	/* chart tabs */
+	/**
+	*	CHART TABS
+	**/
 	#chart-view .chart-tabs {
 		float: right;
 		margin-bottom: 0;
 		list-style-type: none;
 		text-transform: uppercase;
 	}
+		#chart-view #chart-chart-tab {
+			overflow: hidden;
+		}
+
 		#chart-view .chart-tabs li { 
 			float: left;
 			padding: 8px 12px;
@@ -67,6 +78,8 @@
 	*	CHART CONTENT
 	**/
 	#chart-view .tab-content {
+		position: relative;
+		/* height is later modified in js */ 
 		height: calc(100% - 25px);
 	}
 	#chart-view .tab-pane {
@@ -97,10 +110,12 @@
 	**/
 	#chart-view .chart-footer {
 		position: absolute;
-		bottom: 0px;
+		bottom: 0;
+		z-index: 2;
 		width: 100%;
+		padding: 0px 10px;
 		font-size: 11px;
-		padding: 10px 20px;
+		background-color: #FAFAFA;
 	}
 		#chart-view .chart-footer a,
 		#chart-view #sources-chart-tab a {
@@ -110,6 +125,11 @@
 			#chart-view #sources-chart-tab a:hover {
 				color: #FF4012;
 			}
+
+	.chart-description,
+	.chart-sources {
+		font-size: 10px;
+	}
 
 	.chart-wrapper {
 		background-color: #ffffff;
@@ -147,3 +167,11 @@
 			#data-chart-tab .data-table td { 
 				border-bottom: 1px solid #AFAFAF;
 			}
+
+/**
+ * PRINTING STUFF
+ **/
+/*.chart-name-svg,
+.chart-subname-svg {
+	display: none;
+}*/

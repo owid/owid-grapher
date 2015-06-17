@@ -10930,7 +10930,6 @@ nv.models.stackedAreaChart = function() {
                     - margin.left - margin.right,
                 availableHeight = (height || parseInt(container.style('height')) || 400)
                     - margin.top - margin.bottom;
-            console.log( "availableWidth", availableWidth );
             chart.update = function() { container.transition().duration(duration).call(chart); };
             chart.container = this;
 

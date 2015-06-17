@@ -327,40 +327,23 @@
 				if( i > 0 ) {
 					textContent += " ";
 				}
-				textContent += $(v).html();
+				textContent += $(v).text();
 			} );	
 		} else {
 			//element has no tspans, possibly first run
-			textContent = $el.html();
+			textContent = $el.text();
 		}
 		
-		//replace hyperlinks with non-whitespace version and store the original for later, whitespace in hyperlink attributes would mess up splitting for tspans later
-		var storedAnchors = {},
-			$anchors = $el.find( "a" );
-		$.each( $anchors, function( i, v ) {
-			var $a = $( v ),
-				aOuterHtml = v.outerHTML,
-				key = $a.text();//aOuterHtml.replace( /\s+/g, "" );
-			
-			//convert html to xlink:html
-			aOuterHtml = aOuterHtml.replace( "href=", "xlink:href=" );
-
-			storedAnchors[ key ] = aOuterHtml;
-			textContent = textContent.replace( aOuterHtml, key );
-		} );
-
 		//append to element
 		if( textContent ) {
 			$el.text( textContent );
 		}
 		
-		$el.text( textContent );
-		
 		var text = d3.select( $el.selector );
 		text.each( function() {
 			var text = d3.select(this),
 				regex = /\s+/,
-				words = text.html().split(regex).reverse();
+				words = text.text().split(regex).reverse();
 
 			var word,
 				line = [],
@@ -375,7 +358,7 @@
 				tspan.html(line.join(" "));
 				if( tspan.node().getComputedTextLength() > width ) {
 					line.pop();
-					tspan.html(line.join(" "));
+					tspan.text(line.join(" "));
 					line = [word];
 					tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
 				}
@@ -383,21 +366,6 @@
 
 		} );
 
-		//replace back strings
-		if( $anchors.length ) {
-			$tspans = $el.find( "tspan" );
-			$.each( $tspans, function( i, v ) {
-				var $tspan = $( v ),
-					textContent = $tspan.text();
-				_.each( storedAnchors, function( v, i ) {
-					//replace truncated 
-					textContent = textContent.replace( i, v );
-				} );
-				console.log( "textContent", textContent );
-				console.log( "$tspan", $tspan );
-				$tspan[0].innerHTML = textContent;
-			} );	
-		}
 		
 	};
 

@@ -27,6 +27,10 @@
 			
 			//chart tab
 			this.$svg = this.$el.find( "svg" );
+			this.$tabContent = this.$el.find( ".tab-content" );
+			this.$tabPanes = this.$el.find( ".tab-pane" );
+			this.$chartHeader = this.$el.find( ".chart-header" );
+			this.$chartFooter = this.$el.find( ".chart-footer" );
 			this.$chartName = this.$el.find( ".chart-name" );
 			this.$chartSubname = this.$el.find( ".chart-subname" );
 			this.$chartDescription = this.$el.find( ".chart-description" );
@@ -385,38 +389,52 @@
 			//compute how much space for chart
 			var svgWidth = this.$svg.width(),
 				svgHeight = this.$svg.height(),
+				$chartNameSvg = this.$el.find( ".chart-name-svg" ),
+				$chartSubnameSvg = this.$el.find( ".chart-subname-svg" ),
+				$chartDescriptionSvg = this.$el.find( ".chart-description-svg" ),
+				$chartSourcesSvg = this.$el.find( ".chart-sources-svg" ),
 				topChartMargin = 30,
 				bottomChartMargin = 30,
 				currY, footerDescriptionHeight, footerSourcesHeight, chartHeight;
 
+			this.$tabContent.height( $( ".chart-wrapper-inner" ).height() - this.$chartHeader.height() );
+
 			//wrap header text
-			App.Utils.wrap( this.$chartName, svgWidth );
-			currY = parseInt( this.$chartName.attr( "y" ) ) + this.$chartName.outerHeight();
-			this.$chartSubname.attr( "y", currY );
+			App.Utils.wrap( $chartNameSvg, svgWidth );
+			currY = parseInt( $chartNameSvg.attr( "y" ) ) + $chartNameSvg.outerHeight() + 20;
+			$chartSubnameSvg.attr( "y", currY );
 			
 			//wrap description
-			App.Utils.wrap( this.$chartSubname, svgWidth );
-			currY += this.$chartSubname.outerHeight();
-			
+			App.Utils.wrap( $chartSubnameSvg, svgWidth );
+
+			//start positioning the graph, according 
+			currY = this.$chartHeader.height();
+
+			var translateY = currY;
+			this.$svg.css( "transform", "translate( 0px, -" + translateY + "px)" );
+			this.$svg.height( this.$tabContent.height() + currY );
+
 			//add height of legend
 			currY += this.chart.legend.height();
 
 			//position chart
-			App.Utils.wrap( this.$chartDescription, svgWidth );
-			footerDescriptionHeight = this.$chartDescription.height();
-			App.Utils.wrap( this.$chartSources, svgWidth );
-			footerSourcesHeight = this.$chartSources.height();
+			App.Utils.wrap( $chartDescriptionSvg, svgWidth );
+			footerDescriptionHeight = $chartDescriptionSvg.height();
+			App.Utils.wrap( $chartSourcesSvg, svgWidth );
+			footerSourcesHeight = $chartSourcesSvg.height();
+
+			var footerHeight = this.$chartFooter.height();
 
 			//set chart height
 			chartHeight = svgHeight - currY - 1.25*footerDescriptionHeight - footerSourcesHeight - bottomChartMargin;
+			chartHeight = svgHeight - translateY - footerHeight;
 
 			//position footer
-			this.$chartDescription.attr( "y", currY + chartHeight + bottomChartMargin );
-			App.Utils.wrap( this.$chartDescription, svgWidth );
-			this.$chartSources.attr( "y", parseInt( this.$chartDescription.attr( "y" ) ) + this.$chartDescription.height() + footerDescriptionHeight/3 );
-			App.Utils.wrap( this.$chartSources, svgWidth );
+			$chartDescriptionSvg.attr( "y", currY + chartHeight + bottomChartMargin );
+			App.Utils.wrap( $chartDescriptionSvg, svgWidth );
+			$chartSourcesSvg.attr( "y", parseInt( $chartDescriptionSvg.attr( "y" ) ) + $chartDescriptionSvg.height() + footerDescriptionHeight/3 );
+			App.Utils.wrap( $chartSourcesSvg, svgWidth );
 			
-			//this.chart.margin( margin );
 			this.chart.width( svgWidth );
 			this.chart.height( chartHeight );
 
