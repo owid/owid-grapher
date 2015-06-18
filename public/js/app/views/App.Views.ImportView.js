@@ -8,6 +8,7 @@
 		isDataMultiVariant: false,
 		origUploadedData: false,
 		uploadedData: false,
+		variableNameManual: false,
 
 		el: "#import-view",
 		events: {
@@ -212,17 +213,21 @@
 			$li.append( $inputDescription );
 			$li.append( $inputData );
 
-			var $inputs = $li.find( "input" );
+			var that = this,
+				$inputs = $li.find( "input" );
 			$inputs.on( "input", function( evt ) {
-
 				//update stored json
 				var json = $.parseJSON( $inputData.val() );
 				json.name = $inputName.val();
 				json.unit = $inputUnit.val();
 				json.description = $inputDescription.val();
 				$inputData.val( JSON.stringify( json ) );
-
 			} );
+			$inputs.on( "focus", function( evt ) {
+				console.log( "variableNameManual focus" );
+				//set flag so that values in input won't get overwritten by changes to dataset name
+				that.variableNameManual = true;
+			});
 
 			return $li;
 
@@ -513,6 +518,15 @@
 
 			var $input = $( evt.currentTarget );
 			this.datasetName = $input.val();
+
+			//check if we have value for variable, enter if not
+			var $variableItems = this.$variableSectionList.find( ".variable-item" );
+			if( $variableItems.length == 1 && !this.variableNameManual ) {
+				//we have just one, check 
+				var $variableItem = $variableItems.eq( 0 ),
+					$firstInput = $variableItem.find( "input" ).first();
+				$firstInput.val( this.datasetName );
+			}
 
 		},
 
