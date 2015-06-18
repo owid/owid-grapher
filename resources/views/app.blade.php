@@ -89,6 +89,7 @@
 						<li><a href="{!! route( 'licenses.index' ) !!}"><i class="fa fa-gavel"></i> Licenses</a></li>
 						<li><a href="{!! route( 'categories.index' ) !!}"><i class="fa fa-folder"></i> Categories</a></li>
 						<li><a href="{!! route( 'tags.index' ) !!}"><i class="fa fa-tags"></i> Tags</a></li>
+						<li><a href="{!! route( 'logo' ) !!}"><i class="fa fa-picture-o"></i> Logo</a></li>
 					</ul>
 				</section>
 				<!-- /.sidebar -->

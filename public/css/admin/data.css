@@ -19,12 +19,21 @@
 	.edit-variable-module form,
 	.edit-dataset-module form,
 	.edit-datasource-module form,
-	.edit-license-module form {
+	.edit-license-module form,
+	.logo-module form {
 		max-width: 500px;
 	}
 
 /* datasources */
 .btn-new-datasource {
+	margin: 10px 0px;
+}
+
+/* logo */
+.logo-module input[type="submit"] {
+	margin-top: 20px;
+}
+.logo-module .image-wrapper {
 	margin: 10px 0px;
 }
 

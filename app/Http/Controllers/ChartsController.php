@@ -2,6 +2,7 @@
 
 use Input;
 use App\Chart;
+use App\Setting;
 use App\Variable;
 use App\DatasetCategory;
 use App\DatasetSubcategory;
@@ -37,6 +38,7 @@ class ChartsController extends Controller {
 		$data->categories = DatasetCategory::all();
 		$data->subcategories = DatasetSubcategory::all();
 		$data->chartTypes = ChartType::lists( 'name', 'id' );
+		$data->logoUrl = url('/') .'/'. Setting::where( 'meta_name', 'logoUrl' )->first()->meta_value;
 		return view('charts.create')->with( 'data', $data );
 	}
 
@@ -93,6 +95,7 @@ class ChartsController extends Controller {
 			$data->categories = DatasetCategory::all();
 			$data->subcategories = DatasetSubcategory::all();
 			$data->chartTypes = ChartType::lists( 'name', 'id' );
+			$data->logoUrl = url('/') .'/'. Setting::where( 'meta_name', 'logoUrl' )->first()->meta_value;
 			return view('charts.show', compact( 'chart' ) );
 		}
 	}
@@ -120,6 +123,7 @@ class ChartsController extends Controller {
 			$data->categories = DatasetCategory::all();
 			$data->subcategories = DatasetSubcategory::all();
 			$data->chartTypes = ChartType::lists( 'name', 'id' );
+			$data->logoUrl = url('/') .'/'. Setting::where( 'meta_name', 'logoUrl' )->first()->meta_value;
 			return view('charts.edit', compact( 'chart' ) )->with( 'data', $data );
 		}
 	}

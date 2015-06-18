@@ -1,6 +1,7 @@
 <?php namespace App\Http\Controllers;
 
 use App\Chart;
+use App\Setting;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
@@ -48,7 +49,9 @@ class ViewController extends Controller {
 	{	
 		$chart = Chart::find( $id );
 		if( $chart ) {
-			return view( 'view.show', compact( 'chart' ) );
+			$data = new \StdClass;
+			$data->logoUrl = url('/') .'/'. Setting::where( 'meta_name', 'logoUrl' )->first()->meta_value;
+			return view( 'view.show', compact( 'chart', 'data' ) );
 		} else {
 			return 'No chart found to view';
 		}

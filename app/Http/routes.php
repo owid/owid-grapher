@@ -87,6 +87,9 @@ Route::group(['middleware' => 'auth'], function()
 
 	Route::get( 'entityIsoNames/validateData', 'EntityIsoNamesController@validateData' );
 	
+	Route::get( 'logo', [ 'as' => 'logo', 'uses' => 'LogoController@index' ] );
+	Route::post('logo/upload', 'LogoController@upload');
+
 });
 
 Route::get( 'view', 'ViewController@index' );

@@ -295,8 +295,11 @@
 					.datum(localData)
 					.call(that.chart);
 
-				nv.utils.windowResize( $.proxy( that.onResize, that ) );
-
+				var onResizeCallback = _.debounce( function(e) {
+					that.onResize();
+				}, 500 );
+				nv.utils.windowResize( onResizeCallback );
+					
 				that.onResize();
 
 			});
@@ -414,6 +417,9 @@
 			this.$svg.css( "transform", "translate( 0px, -" + translateY + "px)" );
 			this.$svg.height( this.$tabContent.height() + currY );
 
+			//update stored height
+			svgHeight = this.$svg.height();
+
 			//add height of legend
 			currY += this.chart.legend.height();
 
@@ -426,8 +432,9 @@
 			var footerHeight = this.$chartFooter.height();
 
 			//set chart height
-			chartHeight = svgHeight - currY - 1.25*footerDescriptionHeight - footerSourcesHeight - bottomChartMargin;
-			chartHeight = svgHeight - translateY - footerHeight;
+			//chartHeight = svgHeight - currY - 1.25*footerDescriptionHeight - footerSourcesHeight - bottomChartMargin;
+			console.log( "footerHeight", footerHeight, svgHeight );
+			chartHeight = svgHeight - translateY - footerHeight - bottomChartMargin;
 
 			//position footer
 			$chartDescriptionSvg.attr( "y", currY + chartHeight + bottomChartMargin );

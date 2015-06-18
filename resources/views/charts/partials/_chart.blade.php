@@ -1,6 +1,9 @@
 <div id="chart-view" class="col-sm-12 col-md-6 chart-wrapper chart-edit-wrapper" @if (isset($chart)) data-chart-id="{{ $chart->id }}" @endif>
 	<div class="chart-wrapper-inner">
 		<div class="chart-header clearfix">
+			@if( !empty($data->logoUrl) )
+				<img src="{{ $data->logoUrl }}" class="logo" title="Logo"/>
+			@endif
 			<h2 class="chart-name"></h2>
 			<h3 class="chart-subname"></h3>
 			<ul class="chart-tabs clearfix">
