@@ -102,8 +102,11 @@
 			//http://stackoverflow.com/questions/23218174/how-do-i-save-export-an-svg-file-after-creating-an-svg-with-d3-js-ie-safari-an
 			var $btn = $( evt.currentTarget ), 
 				//grab all svg
-				$svg = this.$el.find( "svg" ),
-				svg = $svg.get(0),
+				$svg = this.$el.find( "svg" );
+			
+			//add printing styles
+			$svg.attr( "class", "nvd3-svg export-svg" );
+			var svg = $svg.get(0),
 				svgString = svg.outerHTML;
 
 			//inline styles for the export
@@ -122,7 +125,7 @@
 				source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
 			}
 			//TODO - ugly hack, replace height style that's messing things up
-			source = source.replace( 'height: 100%; background-color: rgb(255, 255, 255);', 'height: 1000px; background-color: rgb(255, 255, 255);' );
+			//source = source.replace( 'height: 100%; background-color: rgb(255, 255, 255);', 'height: 1000px; background-color: rgb(255, 255, 255);' );
 
 			//add xml declaration
 			source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
@@ -130,6 +133,9 @@
 			//convert svg source to URI data scheme.
 			var url = "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(source);
 			$btn.attr( "href", url );
+			
+			//remove printing style
+			$svg.attr( "class", "nvd3-svg" );
 			
 			//var $hiddenInput = this.$el.find( "[name='export-svg']" );
 			//$hiddenInput.val( svgString );
@@ -232,7 +238,7 @@
 
 				that.chart.xAxis
 					.axisLabel( xAxis[ "axis-label" ] )
-					.staggerLabels( true )
+					//.staggerLabels( true )
 					.axisLabelDistance( xAxisLabelDistance )
 					.tickFormat( function(d) { return that.formatTimeLabel( timeType, d, xAxisPrefix, xAxisSuffix ); });
 				
@@ -260,12 +266,13 @@
 				} else {
 					//default is zero
 					yDomain[ 0 ] = 0;
+					isClamped = true;
 				}
 				if( yAxisMax && !isNaN( yAxisMax ) ) {
 					yDomain[ 1 ] = yAxisMax;
 					isClamped = true;
 				}
-
+			
 				//manually clamp values
 				if( isClamped ) {
 					that.chart.xDomain( xDomain );
@@ -297,7 +304,7 @@
 
 				var onResizeCallback = _.debounce( function(e) {
 					that.onResize();
-				}, 500 );
+				}, 250 );
 				nv.utils.windowResize( onResizeCallback );
 					
 				that.onResize();
@@ -417,7 +424,7 @@
 				margins = App.ChartModel.get( "margins" );
 			
 			//translateY = parseInt(translateY) + parseInt(margins.top);
-			this.$svg.css( "transform", "translate( 20px, -" + translateY + "px)" );
+			//this.$svg.css( "transform", "translate( 20px, -" + translateY + "px)" );
 			//this.$svg.css( "transform", "translate( " + margins.left + "px, -" + translateY + "px)" );
 			this.$svg.height( this.$tabContent.height() + currY );
 

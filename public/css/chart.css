@@ -20,6 +20,13 @@
 		left: 0;
 	}
 
+	.nvd3 .nv-axis line {
+		fill: none;
+		stroke: #666666;
+		stroke-dasharray: 2,2;
+		shape-rendering: crispEdges;
+	}
+
 	/**
 	*	CHART HEADER
 	**/
@@ -183,3 +190,16 @@
 .chart-sources-svg {
 	display: none;
 }
+
+.export-svg {
+	transform: translate(0px,0px) !important;
+	height: 1000px !important;
+}
+
+.export-svg .chart-name-svg,
+.export-svg .chart-subname-svg,
+.export-svg .chart-description-svg,
+.export-svg .chart-sources-svg {
+	display: block;
+}
+
