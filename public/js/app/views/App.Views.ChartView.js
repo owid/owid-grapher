@@ -397,7 +397,7 @@
 				$chartDescriptionSvg = this.$el.find( ".chart-description-svg" ),
 				$chartSourcesSvg = this.$el.find( ".chart-sources-svg" ),
 				topChartMargin = 30,
-				bottomChartMargin = 30,
+				bottomChartMargin = 60,
 				currY, footerDescriptionHeight, footerSourcesHeight, chartHeight;
 
 			this.$tabContent.height( $( ".chart-wrapper-inner" ).height() - this.$chartHeader.height() );
@@ -413,8 +413,12 @@
 			//start positioning the graph, according 
 			currY = this.$chartHeader.height();
 
-			var translateY = currY;
-			this.$svg.css( "transform", "translate( 0px, -" + translateY + "px)" );
+			var translateY = currY,
+				margins = App.ChartModel.get( "margins" );
+			
+			//translateY = parseInt(translateY) + parseInt(margins.top);
+			this.$svg.css( "transform", "translate( 20px, -" + translateY + "px)" );
+			//this.$svg.css( "transform", "translate( " + margins.left + "px, -" + translateY + "px)" );
 			this.$svg.height( this.$tabContent.height() + currY );
 
 			//update stored height
@@ -432,8 +436,7 @@
 			var footerHeight = this.$chartFooter.height();
 
 			//set chart height
-			//chartHeight = svgHeight - currY - 1.25*footerDescriptionHeight - footerSourcesHeight - bottomChartMargin;
-			console.log( "footerHeight", footerHeight, svgHeight );
+			//console.log( "footerHeight", footerHeight, svgHeight, margins );
 			chartHeight = svgHeight - translateY - footerHeight - bottomChartMargin;
 
 			//position footer

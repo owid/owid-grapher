@@ -96,7 +96,7 @@ class ChartsController extends Controller {
 			$data->subcategories = DatasetSubcategory::all();
 			$data->chartTypes = ChartType::lists( 'name', 'id' );
 			$data->logoUrl = url('/') .'/'. Setting::where( 'meta_name', 'logoUrl' )->first()->meta_value;
-			return view('charts.show', compact( 'chart' ) );
+			return view('charts.show', compact( 'chart' ) )->with( 'data', $data );
 		}
 	}
 

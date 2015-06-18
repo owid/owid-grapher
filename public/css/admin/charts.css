@@ -103,4 +103,10 @@
 .embed-section {}
 
 	
+/**
+*	chart show
+**/
+.chart-show-module .col-md-6 {
+	width: 100%;
+}
 

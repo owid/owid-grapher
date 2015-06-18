@@ -177,7 +177,9 @@
 /**
  * PRINTING STUFF
  **/
-/*.chart-name-svg,
-.chart-subname-svg {
+.chart-name-svg,
+.chart-subname-svg,
+.chart-description-svg,
+.chart-sources-svg {
 	display: none;
-}*/
+}
