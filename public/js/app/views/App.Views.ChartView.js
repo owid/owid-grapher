@@ -6,8 +6,8 @@
 
 		el: "#chart-view",
 		events: {
-			"click .chart-save-png-btn": "onSavePng",
-			"click .chart-save-svg-btn": "onSaveSvg"
+			"click .chart-save-png-btn": "exportContent",
+			"click .chart-save-svg-btn": "exportContent"
 		},
 
 		initialize: function( options ) {
@@ -86,28 +86,25 @@
 
 		},
 
-		onSavePng: function( evt ) {
+		exportContent: function( evt ) {
 
-			evt.preventDefault();
-			//App.Utils.encodeSvgToPng( $( ".nvd3-svg" ).get( 0 ).innerHTML );
-			var $svgCanvas = $( ".nvd3-svg" );
-			if( $svgCanvas.length ) {
-				saveSvgAsPng( $( ".nvd3-svg" ).get( 0 ), "chart.png");
-			}
 			
-		},
-
-		onSaveSvg: function( evt ) {
-
 			//http://stackoverflow.com/questions/23218174/how-do-i-save-export-an-svg-file-after-creating-an-svg-with-d3-js-ie-safari-an
-			var $btn = $( evt.currentTarget ), 
-				//grab all svg
-				$svg = this.$el.find( "svg" );
+			var $btn = $( evt.currentTarget ),
+				//store pre-printing svg
+				$oldEl = this.$el,
+				$newEl = $oldEl.clone(),
+				isSvg = ( $btn.hasClass( "chart-save-svg-btn" ) )? true: false;
 			
+			$oldEl.replaceWith( $newEl );
+
+			//grab all svg
+			var $svg = $newEl.find( "svg" ),
+				svg = $svg.get( 0 ),
+				svgString = svg.outerHTML;
+
 			//add printing styles
 			$svg.attr( "class", "nvd3-svg export-svg" );
-			var svg = $svg.get(0),
-				svgString = svg.outerHTML;
 
 			//inline styles for the export
 			var styleSheets = document.styleSheets;
@@ -115,30 +112,39 @@
 				this.inlineCssStyle( styleSheets[ i ].cssRules );
 			}
 
-			var serializer = new XMLSerializer(),
+			//depending whether we're creating svg or png, 
+			if( isSvg ) {
+
+				var serializer = new XMLSerializer(),
 				source = serializer.serializeToString(svg);
-			//add name spaces.
-			if(!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)){
-				source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
-			}
-			if(!source.match(/^<svg[^>]+"http\:\/\/www\.w3\.org\/1999\/xlink"/)){
-				source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
-			}
-			//TODO - ugly hack, replace height style that's messing things up
-			//source = source.replace( 'height: 100%; background-color: rgb(255, 255, 255);', 'height: 1000px; background-color: rgb(255, 255, 255);' );
+				//add name spaces.
+				if(!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)){
+					source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+				}
+				if(!source.match(/^<svg[^>]+"http\:\/\/www\.w3\.org\/1999\/xlink"/)){
+					source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
+				}
+				
+				//add xml declaration
+				source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
 
-			//add xml declaration
-			source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+				//convert svg source to URI data scheme.
+				var url = "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(source);
+				$btn.attr( "href", url );
 
-			//convert svg source to URI data scheme.
-			var url = "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(source);
-			$btn.attr( "href", url );
+			} else {
+
+				var $svgCanvas = $( ".nvd3-svg" );
+				if( $svgCanvas.length ) {
+					saveSvgAsPng( $( ".nvd3-svg" ).get( 0 ), "chart.png");
+				}
+
+			}
 			
-			//remove printing style
-			$svg.attr( "class", "nvd3-svg" );
-			
-			//var $hiddenInput = this.$el.find( "[name='export-svg']" );
-			//$hiddenInput.val( svgString );
+			//add back the printed svg
+			$newEl.replaceWith( $oldEl );
+			//refresh link
+			$oldEl.find( ".chart-save-png-btn" ).on( "click", $.proxy( this.exportContent, this ) );
 
 		},
 
