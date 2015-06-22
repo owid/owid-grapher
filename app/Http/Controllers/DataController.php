@@ -25,6 +25,8 @@ class DataController extends Controller {
 
 	public function dimensions( Request $request ) {
 
+		set_time_limit( 600 ); 
+		ini_set('memory_limit', '256M');
 		$data = array();
 		
 		//extra array for storing values for export
@@ -61,7 +63,7 @@ class DataController extends Controller {
 			
 			$id = $dimension->variableId;
 			$property = $dimension->property;
-
+			
 			//use query builder instead of eloquent
 			$variableData = DB::table( 'data_values' )
 				->join( 'entities', 'data_values.fk_ent_id', '=', 'entities.id' )

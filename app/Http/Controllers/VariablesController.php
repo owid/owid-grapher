@@ -81,8 +81,6 @@ class VariablesController extends Controller {
 		} else {
 			
 			//data
-			$values = $variable->data;
-
 			/*$source = DB::table( 'data_values' )
 				->leftJoin( 'entities', 'data_values.fk_ent_id', '=', 'entities.id' )
 				->leftJoin( 'times', 'data_values.fk_time_id', '=', 'times.id' )
@@ -91,38 +89,32 @@ class VariablesController extends Controller {
 			$source = DataValue::grid()->where( 'fk_var_id', '=', $variable->id ); 
 			
 			//$source = DataValue::with( array('Entity','Time') )->where( 'fk_var_id', '=', $variable->id ); 
+			
 			$entityList = DataValue::where( 'fk_var_id', '=', $variable->id )->lists('fk_var_id');
 			$entities = Entity::whereIn( 'id', $entityList );
-
+			
 			//datagrid & filter
 			$filter = \DataFilter::source( $source );
 			$filter->attributes(array('class'=>'form-inline'));
 			$filter->add('value','Value', 'text');
-			//$filter->add('Entity.name','Entity', 'text');
-			//$filter->add('Entity.name','Entity','select')->options($entities->lists('name','name'));
-
+			
 			$entitiesList = Entity::lists('name', 'name');
 			$entitiesList[''] = 'All';
-
+			
 			$filter->add('Entities.name','Entity','select')->options( $entitiesList );
 			$filter->add('Times.label','Time', 'text');
-			//$filter->add('Time.label','Time','daterange')->format('m/d/Y', 'en');
-        	$filter->submit('search');
+			$filter->submit('search');
 			$filter->build();
-
+			
 			$grid = \App\Components\BatchDataGrid::source( $filter );
 			$grid->add( 'id', 'ID', true)->style( 'width:100px' );
 			$grid->add( 'value', 'Value', true);
 			$grid->add( 'name', 'Entity', true);
 			$grid->add( 'label', 'Time', true);
 			$grid->add( 'description', 'Description' );
-			
-			
-			//$grid->checkbox('title','Title');
-
 			$grid->add( '<a href="' .route( 'values.index' ). '/{{$id}}/edit">Edit</a>', 'Edit' );
-			//$grid->paginate(10);
-
+			$grid->paginate( 50 );
+			
 			//is csv export?
 			if( Input::has( 'export' ) && Input::get( 'export' ) == 'csv' ) {
 				return $grid->buildCSV('export_variable', 'Y-m-d.His'); 

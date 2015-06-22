@@ -48,22 +48,6 @@
 
 				{!! $grid !!}
 
-				<!--<table class="values-table">
-					<tr><th>Value</th><th>Entity</th><th>Time</th></tr>
-					@foreach( $values as $value )
-						<tr>
-							<td>{{ $value->value }}</td>
-							<td>{{ $value->name }}</td>
-							<td>{{ $value->label }}</td>
-							<td><a href="{{ route( 'values.edit', $value->id) }}"><i class="fa fa-pencil"></i> Edit</a></td>
-							<td> 
-								{!! Form::open(array('class' => 'form-inline', 'method' => 'DELETE', 'route' => array('values.destroy', $value->id))) !!}
-									<button class="delete-btn" type="submit"><i class="fa fa-remove"></i> Delete</button>
-								{!! Form::close() !!}
-						   </td>
-						</tr>
-					@endforeach
-				</table>-->
 			</div>
 
 		</div>

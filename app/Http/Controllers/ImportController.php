@@ -238,6 +238,8 @@ class ImportController extends Controller {
 
 							//create value
 							$dataValueData = [ 'value' => $value->y, 'fk_time_id' => $timeId, 'fk_input_files_id' => $inputFileDataId, 'fk_var_id' => $variableId, 'fk_ent_id' => $entityId, 'fk_dsr_id' => $datasource->id ];
+							
+							//using mass insert instead
 							//$dataValue = DataValue::create( $dataValueData );
 							$values[] = $dataValueData;
 
@@ -245,6 +247,7 @@ class ImportController extends Controller {
 
 					}
 
+					//mass insertion
 					Time::insert( $times );
 					DataValue::insert( $values );
 				
