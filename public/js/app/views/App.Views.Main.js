@@ -48,6 +48,7 @@
 						valid = App.Utils.FormHelper.validate( $form );
 					if( !valid ) {
 						evt.preventDefault();
+						evt.stopImmediatePropagation();
 					}
 				} );
 			}
