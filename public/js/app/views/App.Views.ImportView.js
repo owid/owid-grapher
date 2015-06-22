@@ -234,7 +234,7 @@
 
 		mapData: function() {
 
-			var mappedData = ( this.isDataMultiVariant )? App.Utils.mapMultiVariantData( this.uploadedData.rows, "World" ): App.Utils.mapSingleVariantData( this.uploadedData.rows, this.datasetName ), 
+			var mappedData = ( this.isDataMultiVariant )? App.Utils.mapMultiVariantData( this.uploadedData.rows, "World" ): App.Utils.mapSingleVariantData( this.uploadedData.rows, this.datasetName ),
 				//var mappedData =  App.Utils.mapSingleVariantData( data.rows, "test" ), 
 				json = { "variables": mappedData },
 				jsonString = JSON.stringify( json );
