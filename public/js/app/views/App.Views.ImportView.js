@@ -344,7 +344,7 @@
 					//insert potentially modified value into cell
 					$timeCell.text( value );
 
-					newValue = { "date": date, "label": origValue };
+					newValue = { "d": App.Utils.roundTime( date ), "l": origValue };
 
 					if( timeDomain == "year" ) {
 						
@@ -360,8 +360,8 @@
 						year = moment( new Date( year.toString() ) );
 						nextYear = moment( new Date( nextYear.toString() ) ).seconds(-1);
 						//modify the initial value
-						newValue[ "startDate" ] = year;
-						newValue[ "endDate" ] = nextYear;
+						newValue[ "sd" ] =  App.Utils.roundTime( year );
+						newValue[ "ed" ] =  App.Utils.roundTime( nextYear );
 
 					} else if( timeDomain == "decade" ) {
 						
@@ -377,8 +377,8 @@
 						decade = moment( new Date( decade.toString() ) );
 						nextDecade = moment( new Date( nextDecade.toString() ) ).seconds(-1);
 						//modify the initial value
-						newValue[ "startDate" ] = decade;
-						newValue[ "endDate" ] = nextDecade;
+						newValue[ "sd" ] =  App.Utils.roundTime( decade );
+						newValue[ "ed" ] =  App.Utils.roundTime( nextDecade );
 
 					} else if( timeDomain == "quarter century" ) {
 						
@@ -408,8 +408,8 @@
 						quarterCentury = moment( new Date( quarterCentury.toString() ) );
 						nextQuarterCentury = moment( new Date( nextQuarterCentury.toString() ) ).seconds(-1);
 						//modify the initial value
-						newValue[ "startDate" ] = quarterCentury;
-						newValue[ "endDate" ] = nextQuarterCentury;
+						newValue[ "sd" ] =  App.Utils.roundTime( quarterCentury );
+						newValue[ "ed" ] =  App.Utils.roundTime( nextQuarterCentury );
 
 					} else if( timeDomain == "half century" ) {
 						
@@ -427,8 +427,8 @@
 						halfCentury = moment( new Date( halfCentury.toString() ) );
 						nextHalfCentury = moment( new Date( nextHalfCentury.toString() ) ).seconds(-1);
 						//modify the initial value
-						newValue[ "startDate" ] = halfCentury;
-						newValue[ "endDate" ] = nextHalfCentury;
+						newValue[ "sd" ] =  App.Utils.roundTime( halfCentury );
+						newValue[ "ed" ] =  App.Utils.roundTime( nextHalfCentury );
 
 					} else if( timeDomain == "century" ) {
 						
@@ -444,13 +444,13 @@
 						century = moment( new Date( century.toString() ) );
 						nextCentury = moment( new Date( nextCentury.toString() ) ).seconds(-1);
 						//modify the initial value
-						newValue[ "startDate" ] = century;
-						newValue[ "endDate" ] = nextCentury;
+						newValue[ "sd" ] = App.Utils.roundTime( century );
+						newValue[ "ed" ] = App.Utils.roundTime( nextCentury );
 
 					}
 
 					//insert info about time domain
-					newValue[ "timeDomain" ] = timeDomain;
+					newValue[ "td" ] = timeDomain;
 					
 					//initial was number/string so passed by value, need to insert it back to arreay
 					data[ 0 ][ i+1 ] = newValue;

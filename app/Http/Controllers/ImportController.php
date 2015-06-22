@@ -72,7 +72,11 @@ class ImportController extends Controller {
 	 * @return Response
 	 */
 	public function store(Request $request)
-	{
+	{	
+		//bump up limits
+		set_time_limit( 600 ); 
+		ini_set('memory_limit', '256M');
+
 		$v = \Validator::make( $request->all(), [
 			'variable_type' => 'required'
 		] );
@@ -86,12 +90,11 @@ class ImportController extends Controller {
 		$inputFileDataId = $inputFile->id;
 
 		$multivariantDataset = $request->input( 'multivariant_dataset' );
-
 		$variables = $request->input( 'variables' );
+		
 		if( !empty( $variables ) ) {
-			
-			$entityData = [];
 
+			$entityData = [];
 			//either fetch existing datasource or new one 
 			if( !empty( $request->input( 'datasource_id' ) ) ) {
 				//fetching existing one
@@ -109,7 +112,7 @@ class ImportController extends Controller {
 				}
 					
 			}
-
+			
 			//create new dataset or pick existing one
 			if( $request->input( 'new_dataset' ) === '1' ) {
 				$datasetName = $request->input( 'new_dataset_name' );
@@ -134,15 +137,15 @@ class ImportController extends Controller {
 				$dataset = Dataset::find( $datasetId );
 				$datasetName = $dataset->name;
 			}
-
 			//store inserted variables, for case of rolling back
 			$inserted_variables = array();
 			foreach( $variables as $variableJsonString ) {
-
+				
 				//convert back single out to actual single quote
 				//$variableJsonString = str_replace( "'", "‘", $variableJsonString );
-				$variableObj = json_decode( $variableJsonString );
-
+				
+				//setting json_decode second param to false, to try to save memory 
+				$variableObj = json_decode( $variableJsonString, false );
 				$variableData = [ 'name' => $variableObj->name, 'fk_var_type_id' => $request->input( 'variable_type' ), 'fk_dst_id' => $datasetId, 'unit' => $variableObj->unit, 'description' => $variableObj->description, 'fk_dsr_id' => $datasource->id ];
 
 				//update of existing variable or new variable
@@ -158,7 +161,6 @@ class ImportController extends Controller {
 				$variableId = $variable->id;
 
 				$inserted_variables[] = $variable;
-
 				$variableValues = $variableObj->values;
 				foreach( $variableValues as $countryValue ) {
 
@@ -186,7 +188,6 @@ class ImportController extends Controller {
 						return redirect()->route( 'import' )->with( 'message', 'Error non-existing entity in dataset.' )->with( 'message-class', 'error' );
 
 					}
-
 					//enter standardized info
 					$entityData['name'] = $entityIsoName->name;
 					$entityData['code'] = $entityIsoName->iso3;
@@ -197,41 +198,56 @@ class ImportController extends Controller {
 						//entity haven't found in database, so insert it
 						$entity = Entity::create( $entityData ); 
 					}
-
 					$entityId = $entity->id;
 					$countryValues = $countryValue->values;
+
+					//prepare vars for mass insert
+					$times = [];
+					$values = [];
+
+					//TODO - get latest time for base timeId 
+					$lastTime = Time::orderBy('id', 'desc')->first();
+					$timeId = ( !empty( $lastTime  ) )? $lastTime->id: 0;
+
 					foreach( $countryValues as $value ) {
 
 						if( !empty( $value->x ) && !empty( $value->y ) ) {
 
+							$timeId++;
+
 							//create time
 							$timeObj = $value->x;
 							$timeValue = [ 
-								'startDate' => ( isset($timeObj->startDate) )? $timeObj->startDate: "", 
-								'endDate' => ( isset($timeObj->endDate) )? $timeObj->endDate: "", 
-								'date' =>  ( isset($timeObj->date) )? $timeObj->date: "", 
-								'label' =>  ( isset($timeObj->label) )? $timeObj->label: ""
+								'startDate' => ( isset($timeObj->sd) )? $timeObj->sd: "", 
+								'endDate' => ( isset($timeObj->ed) )? $timeObj->ed: "", 
+								'date' =>  ( isset($timeObj->d) )? $timeObj->d: "", 
+								'label' =>  ( isset($timeObj->l) )? $timeObj->l: ""
 							];
-
 							//convert timedomain 
 							$fk_ttype_id = 1;
-							if( !empty($timeObj->timeDomain) ) {
+							if( !empty($timeObj->td) ) {
 								$ttQuery = TimeType::query();
-								$fk_ttype_id = $ttQuery->whereRaw( 'LOWER(`name`) like ?', [$timeObj->timeDomain] )->first()->id;
+								$fk_ttype_id = $ttQuery->whereRaw( 'LOWER(`name`) like ?', [$timeObj->td] )->first()->id;
 							} 	
 							$timeValue['fk_ttype_id'] = $fk_ttype_id;
 
-							$time = Time::create( $timeValue );
-							$timeId = $time->id;
+							//using mass insert instead
+							//$time = Time::create( $timeValue );
+							//$timeId = $time->id;
+							$times[] = $timeValue;
 
 							//create value
 							$dataValueData = [ 'value' => $value->y, 'fk_time_id' => $timeId, 'fk_input_files_id' => $inputFileDataId, 'fk_var_id' => $variableId, 'fk_ent_id' => $entityId, 'fk_dsr_id' => $datasource->id ];
-							$dataValue = DataValue::create( $dataValueData );
+							//$dataValue = DataValue::create( $dataValueData );
+							$values[] = $dataValueData;
 
 						}
 
 					}
 
+					Time::insert( $times );
+					DataValue::insert( $values );
+				
 				}
 
 			} 

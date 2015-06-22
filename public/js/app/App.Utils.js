@@ -146,7 +146,7 @@
 			case 3:  return "rd";
 			default: return "th";
 		}
-	} 
+	}
 
 	App.Utils.centuryString = function ( d ) {
 		//conver to number just in case
@@ -157,7 +157,7 @@
 			nth = App.Utils.nth( centuryString );
 
 		return centuryString + nth + " century";
-	} 
+	}
 
 	App.Utils.addZeros = function ( value ) {
 
@@ -171,6 +171,16 @@
 		}
 		return value;
 		
+	}
+
+	App.Utils.roundTime = function( momentTime ) {
+
+		if( typeof momentTime.format === "function" ) {
+			//use short format mysql expects - http://stackoverflow.com/questions/10539154/insert-into-db-datetime-string
+			return momentTime.format( "YYYY-MM-DD" );
+		}
+		return momentTime;
+
 	}
 
 	/** 

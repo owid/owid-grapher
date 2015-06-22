@@ -117,6 +117,7 @@ class VariablesController extends Controller {
 			$grid->add( 'label', 'Time', true);
 			$grid->add( 'description', 'Description' );
 			
+			
 			//$grid->checkbox('title','Title');
 
 			$grid->add( '<a href="' .route( 'values.index' ). '/{{$id}}/edit">Edit</a>', 'Edit' );
@@ -130,6 +131,7 @@ class VariablesController extends Controller {
 			//construct csv export url
 			$exportUrl = $request->fullUrl() .'&export=csv';
 			return view( 'variables.show', compact( 'variable', 'values', 'grid', 'filter', 'exportUrl' ) );
+
 		}
 	}
 
