@@ -219,7 +219,7 @@
 
 				var chartOptions = {
 					transitionDuration: 300,
-					margin: { top:0, left:50, right:30, bottom:0 },// App.ChartModel.get( "margins" ),
+					//margin: { top:0, left:50, right:30, bottom:0 },// App.ChartModel.get( "margins" ),
 					tooltipContent: tooltipContent
 				};
 
@@ -247,6 +247,10 @@
 					//.staggerLabels( true )
 					.axisLabelDistance( xAxisLabelDistance )
 					.tickFormat( function(d) { return that.formatTimeLabel( timeType, d, xAxisPrefix, xAxisSuffix ); });
+				
+				if( timeType == "Quarter Century" ) {
+					that.chart.xAxis.staggerLabels( true );
+				}
 				
 				//get extend
 				var allValues = [];
@@ -315,7 +319,7 @@
 					
 				that.onResize();
 
-				that.chart.dispatch.on( "stateChange", function(state) {
+				that.chart.dispatch.on( "stateChange", function( state ) {
 					//temp, re-update translateString
 					setTimeout( function() {
 						$( "svg > .nvd3" ).attr( "transform", that.translateString );
@@ -417,6 +421,7 @@
 				$chartDescriptionSvg = this.$el.find( ".chart-description-svg" ),
 				$chartSourcesSvg = this.$el.find( ".chart-sources-svg" ),
 				chartHeaderHeight = this.$chartHeader.height(),
+				margins = App.ChartModel.get( "margins" ),
 				topChartMargin = 30,
 				bottomChartMargin = 60,
 				currY, footerDescriptionHeight, footerSourcesHeight, chartHeight;
@@ -462,17 +467,20 @@
 			$chartSourcesSvg.attr( "y", parseInt( $chartDescriptionSvg.attr( "y" ) ) + $chartDescriptionSvg.height() + footerDescriptionHeight/3 );
 			App.Utils.wrap( $chartSourcesSvg, svgWidth );
 			
-			this.chart.width( svgWidth );
+			//compute chart width
+			var chartWidth = svgWidth;// - margins.right;
+			this.chart.width( chartWidth );
 			this.chart.height( chartHeight );
 
 			//need to call chart update for resizing of elements within chart
 			this.chart.update();
 
 			//manually reposition chart after update
+			//this.translateString = "translate(" + margins.left + "," + currY + ")";
 			this.translateString = "translate(50," + currY + ")";
-			$( "svg > .nvd3" ).attr( "transform", this.translateString );
-			$( "svg" ).css( "transform", "translate(0,-" + chartHeaderHeight + "px)" );
-		
+			this.$svg.find( "> .nvd3" ).attr( "transform", this.translateString );
+			this.$svg.css( "transform", "translate(0,-" + chartHeaderHeight + "px)" );
+
 		},
 
 		formatTimeLabel: function( type, d, xAxisPrefix, xAxisSuffix ) {

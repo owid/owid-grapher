@@ -27,6 +27,10 @@
 		shape-rendering: crispEdges;
 	}
 
+	#chart-view .nvd3 .nv-axis .nv-axisMaxMin text {
+		font-weight: normal;
+	}
+
 	/**
 	*	CHART HEADER
 	**/
@@ -114,9 +118,9 @@
 	}
 
 	/* modify tooltip position to account for header */
-	.nvtooltip { 
+	/*.nvtooltip { 
 		margin-top: -150px; 
-	}
+	}*/
 
 	/**
 	*	CHART FOOTER

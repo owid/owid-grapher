@@ -96,7 +96,8 @@ class ChartsController extends Controller {
 			$data->categories = DatasetCategory::all();
 			$data->subcategories = DatasetSubcategory::all();
 			$data->chartTypes = ChartType::lists( 'name', 'id' );
-			$data->logoUrl = url('/') .'/'. Setting::where( 'meta_name', 'logoUrl' )->first()->meta_value;
+			$logoUrl = Setting::where( 'meta_name', 'logoUrl' )->first();
+			$data->logoUrl = ( !empty( $logoUrl ) )? url('/') .'/'. $logoUrl->meta_value: '';
 			return view('charts.show', compact( 'chart' ) )->with( 'data', $data );
 		}
 	}
@@ -124,7 +125,8 @@ class ChartsController extends Controller {
 			$data->categories = DatasetCategory::all();
 			$data->subcategories = DatasetSubcategory::all();
 			$data->chartTypes = ChartType::lists( 'name', 'id' );
-			$data->logoUrl = url('/') .'/'. Setting::where( 'meta_name', 'logoUrl' )->first()->meta_value;
+			$logoUrl = Setting::where( 'meta_name', 'logoUrl' )->first();
+			$data->logoUrl = ( !empty( $logoUrl ) )? url('/') .'/'. $logoUrl->meta_value: '';
 			return view('charts.edit', compact( 'chart' ) )->with( 'data', $data );
 		}
 	}
