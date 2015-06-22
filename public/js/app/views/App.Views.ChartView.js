@@ -219,7 +219,7 @@
 
 				var chartOptions = {
 					transitionDuration: 300,
-					//margin: { top:0, left:50, right:30, bottom:0 },// App.ChartModel.get( "margins" ),
+					margin: { top:0, left:50, right:30, bottom:0 },// App.ChartModel.get( "margins" ),
 					tooltipContent: tooltipContent
 				};
 
