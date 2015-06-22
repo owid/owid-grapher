@@ -284,8 +284,8 @@
 						//remove preloader
 						$( ".entities-loading-notice" ).remove();
 						//result notice
-						$( ".entities-validation-result" ).remove();
-						var $resultNotice = (unmatched.length)? $( "<p class='entities-validation-result validation-result text-danger'><i class='fa fa-exclamation-circle'></i>Some countries do not have <a href='http://en.wikipedia.org/wiki/ISO_3166' target='_blank'>standardized name</a>! Rename the highlighted countries and reupload CSV.</p>" ): $( "<p class='entities-validation-result validation-result text-success'><i class='fa fa-check-circle'></i>All countries have standardized name, well done!</p>" );
+						$( ".entities-validation-wrapper" ).remove();
+						var $resultNotice = (unmatched.length)? $( "<div class='entities-validation-wrapper'><p class='entities-validation-result validation-result text-danger'><i class='fa fa-exclamation-circle'></i>Some countries do not have <a href='http://en.wikipedia.org/wiki/ISO_3166' target='_blank'>standardized name</a>! Rename the highlighted countries and reupload CSV.</p><label><input type='checkbox' name='validate_entities'/>Import countries anyway</label></div>" ): $( "<p class='entities-validation-result validation-result text-success'><i class='fa fa-check-circle'></i>All countries have standardized name, well done!</p>" );
 						$dataTableWrapper.before( $resultNotice );
 
 					}
@@ -631,8 +631,23 @@
 
 		onFormSubmit: function( evt ) {
 
-			//fetch validation results depending on type, for multivariant don't put 
-			var $validationResults = ( !this.isDataMultiVariant )? $( ".validation-result.text-danger" ): $( ".time-domain-validation-result.text-danger, .times-validation-result.text-danger" ) ;
+			var $validateEntitiesCheckbox = $( "[name='validate_entities']" ),
+				validateEntities = ( $validateEntitiesCheckbox.is( ":checked" ) )? false: true,
+				$validationResults = [];
+
+			//different scenarios of validation
+			if( validateEntities && !this.isDataMultiVariant ) {
+				//validate both time and entitiye
+				$validationResults = $( ".validation-result.text-danger" );
+			} else if( !validateEntities && !this.isDataMultiVariant ) {
+				//validate only time
+				$validationResults = $( ".time-domain-validation-result.text-danger, .times-validation-result.text-danger" );
+			} else if( validateEntities && this.isDataMultiVariant ) {
+				//validate only entities
+				$validationResults = $( ".entities-validation-result.text-danger" );
+			} else {
+				//do not validate
+			}
 			
 			if( $validationResults.length ) {
 				//do not send form and scroll to error message
@@ -642,7 +657,7 @@
 				}, 300);
 				return false;
 			}
-
+			
 			//evt 
 			var $btn = $( "[type=submit]" );
 			$btn.prop( "disabled", true );

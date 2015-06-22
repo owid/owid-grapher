@@ -83,6 +83,9 @@ class ImportController extends Controller {
 		if( $v->fails() ) {
 			return redirect()->back()->withErrors($v->errors());
 		}
+		
+		//will we be checking entities
+		$entityCheck = ( $request->input( 'validate_entities' ) == 'on' )? false: true;
 
 		//create new file
 		$inputFileData = [ 'raw_data' => $request->input( 'data' ), 'fk_user_id' => \Auth::user()->id ];
@@ -164,36 +167,39 @@ class ImportController extends Controller {
 				$variableValues = $variableObj->values;
 				foreach( $variableValues as $countryValue ) {
 
-					$entityData = [ 'name' => $countryValue->key, 'fk_ent_t_id' => 5 ];
+					$entityData = [ 'name' => $countryValue->key, 'fk_ent_t_id' => 5, 'validated' => 0 ];
 
-					//entity validation (only if not multivariant dataset)
-					//find corresponding iso code
-					$entityIsoName = EntityIsoName::match( $entityData['name'] )->first();
-					if(!$entityIsoName) {
-						//!haven't found corresponding country, throw an error!
-						
-						//rollback everything first
-						foreach($inserted_variables as $inserted_var) {
-							$inserted_var->data()->delete();
-							$inserted_var->delete();
-						}
-						//is new dataset
-						if( $request->input( 'new_dataset' ) === '1' ) {
-							$dataset = Dataset::find( $datasetId );
-							//delete itself
-							$dataset->delete();
-						}
-						\Log::error( 'Error non-existing entity in dataset.' );
-						\Log::error( $entityData['name'] );
-						return redirect()->route( 'import' )->with( 'message', 'Error non-existing entity in dataset.' )->with( 'message-class', 'error' );
+					if( $entityCheck ) {
+						//entity validation (only if not multivariant dataset)
+						//find corresponding iso code
+						$entityIsoName = EntityIsoName::match( $entityData['name'] )->first();
+						if(!$entityIsoName) {
+							//!haven't found corresponding country, throw an error!
+							
+							//rollback everything first
+							foreach($inserted_variables as $inserted_var) {
+								$inserted_var->data()->delete();
+								$inserted_var->delete();
+							}
+							//is new dataset
+							if( $request->input( 'new_dataset' ) === '1' ) {
+								$dataset = Dataset::find( $datasetId );
+								//delete itself
+								$dataset->delete();
+							}
+							\Log::error( 'Error non-existing entity in dataset.' );
+							\Log::error( $entityData['name'] );
+							return redirect()->route( 'import' )->with( 'message', 'Error non-existing entity in dataset.' )->with( 'message-class', 'error' );
 
+						}
+						//enter standardized info
+						$entityData['name'] = $entityIsoName->name;
+						$entityData['code'] = $entityIsoName->iso3;
+						$entityData['validated'] = 1;
 					}
-					//enter standardized info
-					$entityData['name'] = $entityIsoName->name;
-					$entityData['code'] = $entityIsoName->iso3;
 					
 					//find try finding entity in db
-					$entity = Entity::where( 'code', $entityIsoName->iso3 )->first();
+					$entity = Entity::where( 'code', ( isset( $entityIsoName )? $entityIsoName->iso3: $entityData['name'] ) )->first();
 					if( !$entity ) {
 						//entity haven't found in database, so insert it
 						$entity = Entity::create( $entityData ); 

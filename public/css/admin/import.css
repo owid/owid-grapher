@@ -65,6 +65,10 @@
 		background-color: #d2d6de;
 	}
 
+	.import-view [name='validate_entities'] {
+		margin-right: 10px;
+	}
+
 	/* datasource section */
 	.import-view .datasources-section .new-datasource-wrapper {
 		margin-top: 10px;

@@ -18,6 +18,7 @@ class CreateEntitiesTable extends Migration {
 			//data
 			$table->string('code');
 			$table->string('name');
+			$table->tinyInteger('validated');
 			//fks
 			$table->integer('fk_ent_t_id')->unsigned();
 			$table->foreign('fk_ent_t_id')->references('id')->on('entity_types');
