@@ -309,6 +309,13 @@
 					
 				that.onResize();
 
+				that.chart.dispatch.on( "stateChange", function(state) {
+					//temp, re-update translateString
+					setTimeout( function() {
+						$( "svg > .nvd3" ).attr( "transform", that.translateString );
+					}, 15 );
+				} );
+
 			});
 		
 		},
@@ -403,6 +410,7 @@
 				$chartSubnameSvg = this.$el.find( ".chart-subname-svg" ),
 				$chartDescriptionSvg = this.$el.find( ".chart-description-svg" ),
 				$chartSourcesSvg = this.$el.find( ".chart-sources-svg" ),
+				chartHeaderHeight = this.$chartHeader.height(),
 				topChartMargin = 30,
 				bottomChartMargin = 60,
 				currY, footerDescriptionHeight, footerSourcesHeight, chartHeight;
@@ -418,14 +426,11 @@
 			App.Utils.wrap( $chartSubnameSvg, svgWidth );
 
 			//start positioning the graph, according 
-			currY = this.$chartHeader.height();
+			currY = chartHeaderHeight;
 
 			var translateY = currY,
 				margins = App.ChartModel.get( "margins" );
 			
-			//translateY = parseInt(translateY) + parseInt(margins.top);
-			//this.$svg.css( "transform", "translate( 20px, -" + translateY + "px)" );
-			//this.$svg.css( "transform", "translate( " + margins.left + "px, -" + translateY + "px)" );
 			this.$svg.height( this.$tabContent.height() + currY );
 
 			//update stored height
@@ -443,7 +448,6 @@
 			var footerHeight = this.$chartFooter.height();
 
 			//set chart height
-			//console.log( "footerHeight", footerHeight, svgHeight, margins );
 			chartHeight = svgHeight - translateY - footerHeight - bottomChartMargin;
 
 			//position footer
@@ -459,9 +463,10 @@
 			this.chart.update();
 
 			//manually reposition chart after update
-			var translateString = "translate(50," + currY + ")";
-			$( "svg > .nvd3" ).attr( "transform", translateString );
-			
+			this.translateString = "translate(50," + currY + ")";
+			$( "svg > .nvd3" ).attr( "transform", this.translateString );
+			$( "svg" ).css( "transform", "translate(0,-" + chartHeaderHeight + "px)" );
+		
 		},
 
 		formatTimeLabel: function( type, d, xAxisPrefix, xAxisSuffix ) {

@@ -50,7 +50,8 @@ class ViewController extends Controller {
 		$chart = Chart::find( $id );
 		if( $chart ) {
 			$data = new \StdClass;
-			$data->logoUrl = url('/') .'/'. Setting::where( 'meta_name', 'logoUrl' )->first()->meta_value;
+			$logoUrl = Setting::where( 'meta_name', 'logoUrl' )->first();
+			$data->logoUrl = ( !empty( $logoUrl ) )? url('/') .'/'. $logoUrl->meta_value: '';
 			return view( 'view.show', compact( 'chart', 'data' ) );
 		} else {
 			return 'No chart found to view';
