@@ -161,7 +161,7 @@
 			tableString += "</table>";
 
 			var $table = $( tableString );
-			this.$csvImportTableWrapper.append( $table );	
+			this.$csvImportTableWrapper.append( $table );
 
 		},
 
@@ -218,13 +218,12 @@
 			$inputs.on( "input", function( evt ) {
 				//update stored json
 				var json = $.parseJSON( $inputData.val() );
-				json.name = $inputName.val();
-				json.unit = $inputUnit.val();
-				json.description = $inputDescription.val();
+				json.name = $inputName.find( "input" ).val();
+				json.unit = $inputUnit.find( "input" ).val();
+				json.description = $inputDescription.find( "input" ).val();
 				$inputData.val( JSON.stringify( json ) );
 			} );
 			$inputs.on( "focus", function( evt ) {
-				console.log( "variableNameManual focus" );
 				//set flag so that values in input won't get overwritten by changes to dataset name
 				that.variableNameManual = true;
 			});
@@ -490,9 +489,9 @@
 				this.$newDatasetDescription.show();
 				$btn.find( "span" ).text( "Nevermind, no description." );
 				$btn.find( "i" ).addClass( "fa-minus" );
-				$btn.find( "i" ).removeClass( "fa-plus" );;
+				$btn.find( "i" ).removeClass( "fa-plus" );
 			}
-			
+
 		},
 
 		onNewDatasetChange: function( evt ) {
@@ -526,6 +525,7 @@
 				var $variableItem = $variableItems.eq( 0 ),
 					$firstInput = $variableItem.find( "input" ).first();
 				$firstInput.val( this.datasetName );
+				$firstInput.trigger( "input" );
 			}
 
 		},
@@ -552,7 +552,7 @@
 		onExistingVariableChange: function( evt ) {
 
 			var $input = $( evt.currentTarget );
-			this.existingVariable = $input.find( 'option:selected' ); 
+			this.existingVariable = $input.find( 'option:selected' );
 	
 		},
 
@@ -646,7 +646,7 @@
 			//evt 
 			var $btn = $( "[type=submit]" );
 			$btn.prop( "disabled", true );
-			$btn.css( "opacity", .5 );
+			$btn.css( "opacity", 0.5 );
 
 			$btn.after( "<p class='send-notification'><i class='fa fa-spinner fa-spin'></i>Sending form</p>" );
 
