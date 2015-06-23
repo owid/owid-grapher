@@ -54,10 +54,17 @@
 				selectedCountriesIds = _.map( selectedCountries, function( v ) { return (v)? v.id: ""; } );
 			
 			this.$entitiesSelect.empty();
-			_.each( entities, function( d, i ) {
-				that.$entitiesSelect.append( "<option value='" + d.id + "'>" + d.name + "</option>" );
-			} );
-
+			if( selectedCountriesIds.length ) {
+				//append empty default option
+				that.$entitiesSelect.append( "<option disabled selected>Select country</option>" );
+				_.each( entities, function( d, i ) {
+					//add only those entities, which are not selected already
+					if( _.indexOf( selectedCountriesIds, d.id ) == -1 ) {
+						that.$entitiesSelect.append( "<option value='" + d.id + "'>" + d.name + "</option>" );
+					}
+				} );
+			}
+			
 			//data tab
 			this.$dataTab = this.$el.find( "#data-chart-tab" );
 			this.$downloadBtn = this.$dataTab.find( ".download-data-btn" );
@@ -375,6 +382,7 @@
 				val = $select.val(),
 				$option = $select.find( "[value=" + val + "]" ),
 				text = $option.text();
+
 			App.ChartModel.addSelectedCountry( { id: $select.val(), name: text } );
 
 		},
