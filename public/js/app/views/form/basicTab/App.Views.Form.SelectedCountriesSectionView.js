@@ -26,7 +26,7 @@
 				selectedCountries = App.ChartModel.get( "selected-countries" );
 
 			_.each( selectedCountries, function( v, i ) {
-				var $li = $( "<li class='country-label' data-name='" + v.name + "'>" + v.name + "<span class='fa fa-remove'></span></li>" );
+				var $li = $( "<li class='country-label' data-id='" + v.id + "' data-name='" + v.name + "'>" + v.name + "<span class='fa fa-remove'></span></li>" );
 				that.$el.append( $li );
 				if( v.color ) {
 					$li.css( "background-color", v.color );
@@ -59,11 +59,12 @@
 
 			$lisRemoveBtns.on( "click", function( evt ) {
 
-				evt.preventDefault();
+				evt.stopImmediatePropagation();
+				
 				var $this = $( this ),
 					$parent = $this.parent(),
-					countryName = $parent.attr( "data-name" );
-				App.ChartModel.removeSelectedCountry( countryName );
+					countryId = $parent.attr( "data-id" );
+				App.ChartModel.removeSelectedCountry( countryId );
 
 			})	
 			
