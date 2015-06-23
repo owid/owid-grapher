@@ -227,6 +227,11 @@ button > i {
 	border: 1px solid #bbb;
 	cursor: pointer;
 }
+	.country-label:hover,
+	.variable-label:hover {
+		border: 1px solid #666;
+    	color: #000;
+	}
 	.country-label .fa,
 	.variable-label .fa {
 		margin-right: -10px;
@@ -234,10 +239,15 @@ button > i {
 		color: #bbbbbb;
 		cursor: pointer;
 	}
-		.country-label .fa:hover,
-		.variable-label .fa:hover {
+		.country-label:hover .fa,
+		.variable-label:hover .fa {
+			color: #666666;
+		}
+		.country-label:hover .fa:hover,
+		.variable-label:hover .fa:hover {
 			color: #000000;
 		}
+
 	.variable-label .fa {
 		position: absolute;
 		top: 14px;
