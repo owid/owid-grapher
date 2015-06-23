@@ -54,10 +54,13 @@
 			var dimensionsString = App.ChartModel.get( "chart-dimensions" );
 			if( dimensionsString ) {
 
-				var that = this;
+				var that = this,
+					selectedCountries = App.ChartModel.get( "selected-countries" ),
+					selectedCountriesIds = _.map( selectedCountries, function( v ) { return v.id; } );
+
 				$.ajax( {
 					url: Global.rootUrl + "/data/dimensions",
-					data: { "dimensions": dimensionsString, "chartType": App.ChartModel.get( "chart-type" ) },
+					data: { "dimensions": dimensionsString, "chartType": App.ChartModel.get( "chart-type" ), "selectedCountries": selectedCountriesIds },
 					success: function( response ) {
 						if( response.data ) {
 							that.updateChart( response.data, response.timeType );
@@ -154,6 +157,8 @@
 				return;
 			}
 
+			console.log( "data", data );
+
 			//make local copy of data for our filtering needs
 			var localData = $.extend( true, localData, data );
 
@@ -175,7 +180,6 @@
 				//TODO - nonsense? just convert associative array to array
 				localData = _.map( localData, function( value ) { return value; } );
 			}
-			
 
 			//filter by chart time
 			var chartTime = App.ChartModel.get( "chart-time" );
@@ -226,8 +230,8 @@
 				//line type
 				var lineType = App.ChartModel.get( "line-type" );
 				if( lineType == 2 ) {
-					chartOptions.defined = function( d ) { return d.y !== 0; }
-				} 
+					chartOptions.defined = function( d ) { return d.y !== 0; };
+				}
 				if( lineType == 0 ) {
 					that.$el.addClass( "line-dots" );
 				} else {

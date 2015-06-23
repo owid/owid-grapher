@@ -44,6 +44,8 @@ class DataController extends Controller {
 		//there's special setting for linechart
 		$isLineChart = ( $chartType == "1" )? true: false;
 
+		$selectedCountriesIds = Input::get( "selectedCountries" );
+
 		//find out how many variables we have 
 		$groupByEntity = (!$isLineChart || count( $dimensions ) == 1)? true: false;
 
@@ -65,12 +67,21 @@ class DataController extends Controller {
 			$property = $dimension->property;
 			
 			//use query builder instead of eloquent
-			$variableData = DB::table( 'data_values' )
+			$variableQuery = DB::table( 'data_values' )
 				->join( 'entities', 'data_values.fk_ent_id', '=', 'entities.id' )
 				->join( 'times', 'data_values.fk_time_id', '=', 'times.id' )
 				//->join( 'variables', 'data_values.fk_var_id', '=', 'variables.id' )
-				->where( 'data_values.fk_var_id', $id )
-				->get();
+				->where( 'data_values.fk_var_id', $id );
+
+			//are we filtering 
+			if( !empty( $selectedCountriesIds ) && count( $selectedCountriesIds ) > 0 ) {
+				$variableQuery->whereIn( 'data_values.fk_ent_id', $selectedCountriesIds );
+			}
+
+			//TODO - filter by time as well
+
+			$variableData = $variableQuery->get();
+			//selectedCountries
 
 			if( $groupByEntity ) {
 			
