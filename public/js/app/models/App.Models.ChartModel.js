@@ -48,7 +48,6 @@
 				//we got empty array from db, convert to object
 				this.set( "selected-countries", {} );
 			}
-
 			var selectedCountries = this.get( "selected-countries" );
 			selectedCountries[ country.id ] = country;
 			this.trigger( "change:selected-countries" );

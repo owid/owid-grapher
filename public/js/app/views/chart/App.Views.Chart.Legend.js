@@ -25,7 +25,9 @@
 			;
 
 		function chart(selection) {
+			
 			selection.each(function(data) {
+				
 				var availableWidth = width - margin.left - margin.right,
 					container = d3.select(this);
 				nv.utils.initSVG(container);
@@ -46,8 +48,11 @@
 						});
 					});
 				
-				var seriesEnter = series.enter().append('g').attr('class', 'nv-series');
-				var seriesShape, seriesRemove;
+				var addEntityBtn = wrap.append('g').attr('class', 'nv-add-btn');
+				addEntityBtn.property('innerHTML','<path d="M0,0 L8,8" class="nv-box"></path><path d="M8,0 L0,8" class="nv-box"></path>');
+
+				var seriesEnter = series.enter().append('g').attr('class', 'nv-series'),
+					seriesShape, seriesRemove;
 
 				var versPadding = 20;
 				seriesEnter.append('rect')

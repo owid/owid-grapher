@@ -23,6 +23,9 @@
 		</div>
 		<div class="tab-content">
 			<div id="chart-chart-tab" class="tab-pane active">
+				<select class="available-countries-select" name="available_entities" style="position: relative;z-index: 10;">
+					
+				</select>
 				<svg xmlns="http://www.w3.org/2000/svg" version="1.1">
 					<text x="0" y="20" dy="0" class="h2 chart-name chart-name-svg"></text>
 					<text x="0" y="100" dy="0" class="h3 chart-subname chart-subname-svg"></text>

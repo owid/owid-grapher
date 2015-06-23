@@ -178,6 +178,12 @@
 				#chart-view .nv-legend .nv-remove-btn:hover .nv-box {
 					stroke: #FFFFFF;
 				}
+		/* add btn */
+		#chart-view .nv-legend .nv-add-btn {}
+			#chart-view .nv-legend .nv-add-btn .nv-box {
+				stroke-width: 3px;
+				stroke: #000000;
+			}
 
 	.chart-description,
 	.chart-sources {

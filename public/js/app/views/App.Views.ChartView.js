@@ -7,7 +7,8 @@
 		el: "#chart-view",
 		events: {
 			"click .chart-save-png-btn": "exportContent",
-			"click .chart-save-svg-btn": "exportContent"
+			"click .chart-save-svg-btn": "exportContent",
+			"change [name=available_entities]": "onAvailableCountries"
 		},
 
 		initialize: function( options ) {
@@ -25,11 +26,14 @@
 
 		render: function() {
 			
+			var that = this;
+
 			//chart tab
 			this.$svg = this.$el.find( "svg" );
 			this.$tabContent = this.$el.find( ".tab-content" );
 			this.$tabPanes = this.$el.find( ".tab-pane" );
 			this.$chartHeader = this.$el.find( ".chart-header" );
+			this.$entitiesSelect = this.$el.find( "[name=available_entities]" );
 			this.$chartFooter = this.$el.find( ".chart-footer" );
 			this.$chartName = this.$el.find( ".chart-name" );
 			this.$chartSubname = this.$el.find( ".chart-subname" );
@@ -43,6 +47,17 @@
 			var chartDescription = App.ChartModel.get( "chart-description" );
 			//this.$chartDescription.text( App.ChartModel.get( "chart-description" ) );
 
+			//update countries
+			var	formConfig = App.ChartModel.get( "form-config" ),
+				entities = ( formConfig && formConfig[ "entities-collection" ] )? formConfig[ "entities-collection" ]: [],
+				selectedCountries = App.ChartModel.get( "selected-countries" ),
+				selectedCountriesIds = _.map( selectedCountries, function( v ) { return (v)? v.id: ""; } );
+			
+			this.$entitiesSelect.empty();
+			_.each( entities, function( d, i ) {
+				that.$entitiesSelect.append( "<option value='" + d.id + "'>" + d.name + "</option>" );
+			} );
+
 			//data tab
 			this.$dataTab = this.$el.find( "#data-chart-tab" );
 			this.$downloadBtn = this.$dataTab.find( ".download-data-btn" );
@@ -54,9 +69,7 @@
 			var dimensionsString = App.ChartModel.get( "chart-dimensions" );
 			if( dimensionsString ) {
 
-				var that = this,
-					selectedCountries = App.ChartModel.get( "selected-countries" ),
-					selectedCountriesIds = _.map( selectedCountries, function( v ) { return (v)? v.id: ""; } );
+
 
 				$.ajax( {
 					url: Global.rootUrl + "/data/dimensions",
@@ -332,7 +345,7 @@
 						}
 					}
 				} );
-				
+
 				svgSelection.call( that.legend );
 
 				var onResizeCallback = _.debounce( function(e) {
@@ -354,6 +367,16 @@
 
 			});
 		
+		},
+
+		onAvailableCountries: function( evt ) {
+
+			var $select = $( evt.currentTarget ),
+				val = $select.val(),
+				$option = $select.find( "[value=" + val + "]" ),
+				text = $option.text();
+			App.ChartModel.addSelectedCountry( { id: $select.val(), name: text } );
+
 		},
 
 		updateDataTab: function( data ) {
