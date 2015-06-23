@@ -157,8 +157,6 @@
 				return;
 			}
 
-			console.log( "data", data );
-
 			//make local copy of data for our filtering needs
 			var localData = $.extend( true, localData, data );
 
@@ -224,7 +222,8 @@
 				var chartOptions = {
 					transitionDuration: 300,
 					margin: { top:0, left:50, right:30, bottom:0 },// App.ChartModel.get( "margins" ),
-					tooltipContent: tooltipContent
+					tooltipContent: tooltipContent,
+					showLegend: false
 				};
 
 				//line type
@@ -313,17 +312,24 @@
 					.tickFormat( function(d) { return yAxisPrefix + d + yAxisSuffix; });
 				
 				var svgSelection = d3.select( that.$svg.selector )
-					.datum(localData)
-					.call(that.chart);
+					.datum( localData )
+					.call( that.chart );
+
+				//set legend
+				that.legend = new App.Views.Chart.Legend( that.chart.legend ).vers( "owd" ); 
+				svgSelection.call( that.legend );
 
 				var onResizeCallback = _.debounce( function(e) {
 					that.onResize();
-				}, 250 );
+				}, 150 );
 				nv.utils.windowResize( onResizeCallback );
 					
 				that.onResize();
 
 				that.chart.dispatch.on( "stateChange", function( state ) {
+					
+					//refersh legend;
+					svgSelection.call( that.legend );
 					//temp, re-update translateString
 					setTimeout( function() {
 						$( "svg > .nvd3" ).attr( "transform", that.translateString );
