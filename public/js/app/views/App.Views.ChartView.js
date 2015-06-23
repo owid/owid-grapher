@@ -161,9 +161,6 @@
 			var selectedCountries = App.ChartModel.get( "selected-countries" ),
 				selectedCountriesIds = _.map( selectedCountries, function(v) { return +v.id; } );
 
-			console.log( "data", data );
-			console.log( "selectedCountriesIds", selectedCountriesIds );
-
 			if( selectedCountries && selectedCountriesIds.length ) {
 				localData = _.filter( localData, function( value, key, list ) {
 					//set color while in the loop
@@ -171,7 +168,6 @@
 					if( country && country.color ) {
 						value.color = country.color;
 					}
-					console.log( "selectCountriesIds", value.id );
 					//actual filtering
 					return ( _.indexOf( selectedCountriesIds, value.id ) > -1 );
 				} );
