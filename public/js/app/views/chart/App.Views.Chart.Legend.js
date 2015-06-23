@@ -49,65 +49,21 @@
 				var seriesEnter = series.enter().append('g').attr('class', 'nv-series');
 				var seriesShape, seriesRemove;
 
-				var versPadding;
-				switch(vers) {
-					case 'furious' :
-						versPadding = 23;
-						break;
-					case 'classic' :
-						versPadding = 20;
-					case 'owd' :
-						versPadding = 20;
-						break;
-				}
-
-				if(vers == 'classic') {
-					seriesEnter.append('circle')
-						.style('stroke-width', 2)
-						.attr('class','nv-legend-symbol')
-						.attr('r', 5);
-
-					seriesShape = series.select('circle');
-				} else if (vers == 'furious') {
-					seriesEnter.append('rect')
-						.style('stroke-width', 2)
-						.attr('class','nv-legend-symbol')
-						.attr('rx', 3)
-						.attr('ry', 3);
-
-					seriesShape = series.select('.nv-legend-symbol');
-
-					seriesEnter.append('g')
-						.attr('class', 'nv-check-box')
-						.property('innerHTML','<path d="M0.5,5 L22.5,5 L22.5,26.5 L0.5,26.5 L0.5,5 Z" class="nv-box"></path><path d="M5.5,12.8618467 L11.9185089,19.2803556 L31,0.198864511" class="nv-check"></path>')
-						.attr('transform', 'translate(-10,-8)scale(0.5)');
-
-					var seriesCheckbox = series.select('.nv-check-box');
-
-					seriesCheckbox.each(function(d,i) {
-						d3.select(this).selectAll('path')
-							.attr('stroke', setTextColor(d,i));
-					});
-				} else if (vers == 'owd') {
-					seriesEnter.append('rect')
-						.style('stroke-width', 2)
-						.attr('class','nv-legend-symbol');
-					seriesEnter.append('g')
-						.attr('class', 'nv-remove-btn')
-						.property('innerHTML','<path d="M0,0 L8,8" class="nv-box"></path><path d="M8,0 L0,8" class="nv-box"></path>')
-						.attr('transform', 'translate(10,10)');
-					seriesShape = series.select('.nv-legend-symbol');
-				}
-
+				var versPadding = 20;
+				seriesEnter.append('rect')
+					.style('stroke-width', 2)
+					.attr('class','nv-legend-symbol');
+				seriesEnter.append('g')
+					.attr('class', 'nv-remove-btn')
+					.property('innerHTML','<path d="M0,0 L8,8" class="nv-box"></path><path d="M8,0 L0,8" class="nv-box"></path>')
+					.attr('transform', 'translate(10,10)');
+				seriesShape = series.select('.nv-legend-symbol');
+				
 				seriesEnter.append('text')
 					.attr('text-anchor', 'start')
 					.attr('class','nv-legend-text')
 					.attr('dy', '.32em')
-					.attr('dx', '8');
-
-				if( vers == 'owd' ) {
-					seriesEnter.select( 'text' ).attr( 'dx', 0 );
-				}
+					.attr('dx', '0');
 
 				var seriesText = series.select('text.nv-legend-text'),
 					seriesRemove = series.select('.nv-remove-btn');
@@ -124,61 +80,26 @@
 						// make sure we re-get data in case it was modified
 						var data = series.data();
 						if (updateState) {
-							if(vers =='classic') {
-								if (radioButtonMode) {
-									//Radio button mode: set every series to disabled,
-									//  and enable the clicked series.
-									data.forEach(function(series) { series.disabled = true});
-									d.disabled = false;
-								}
-								else {
-									d.disabled = !d.disabled;
-									if (data.every(function(series) { return series.disabled})) {
-										//the default behavior of NVD3 legends is, if every single series
-										// is disabled, turn all series' back on.
-										data.forEach(function(series) { series.disabled = false});
-									}
-								}
-							} else if(vers == 'furious') {
-								if(expanded) {
-									d.disengaged = !d.disengaged;
-									d.userDisabled = d.userDisabled == undefined ? !!d.disabled : d.userDisabled;
-									d.disabled = d.disengaged || d.userDisabled;
-								} else if (!expanded) {
-									d.disabled = !d.disabled;
-									d.userDisabled = d.disabled;
-									var engaged = data.filter(function(d) { return !d.disengaged; });
-									if (engaged.every(function(series) { return series.userDisabled })) {
-										//the default behavior of NVD3 legends is, if every single series
-										// is disabled, turn all series' back on.
-										data.forEach(function(series) {
-											series.disabled = series.userDisabled = false;
-										});
-									}
-								}
-							} else if(vers == 'owd') {
-								if(expanded) {
-									d.disengaged = !d.disengaged;
-									d.userDisabled = d.userDisabled == undefined ? !!d.disabled : d.userDisabled;
-									d.disabled = d.disengaged || d.userDisabled;
-								} else if (!expanded) {
-									d.disabled = !d.disabled;
-									d.userDisabled = d.disabled;
-									var engaged = data.filter(function(d) { return !d.disengaged; });
-									if (engaged.every(function(series) { return series.userDisabled })) {
-										//the default behavior of NVD3 legends is, if every single series
-										// is disabled, turn all series' back on.
-										data.forEach(function(series) {
-											series.disabled = series.userDisabled = false;
-										});
-									}
+							if(expanded) {
+								d.disengaged = !d.disengaged;
+								d.userDisabled = d.userDisabled == undefined ? !!d.disabled : d.userDisabled;
+								d.disabled = d.disengaged || d.userDisabled;
+							} else if (!expanded) {
+								d.disabled = !d.disabled;
+								d.userDisabled = d.disabled;
+								var engaged = data.filter(function(d) { return !d.disengaged; });
+								if (engaged.every(function(series) { return series.userDisabled })) {
+									//the default behavior of NVD3 legends is, if every single series
+									// is disabled, turn all series' back on.
+									data.forEach(function(series) {
+										series.disabled = series.userDisabled = false;
+									});
 								}
 							}
 							chartLegend.dispatch.stateChange({
 								disabled: data.map(function(d) { return !!d.disabled }),
 								disengaged: data.map(function(d) { return !!d.disengaged })
 							});
-
 						}
 					})
 					.on('dblclick', function(d,i) {
@@ -314,66 +235,34 @@
 					height = margin.top + margin.bottom + ypos + 15;
 				}
 
-				if(vers == 'furious') {
-					// Size rectangles after text is placed
-					seriesShape
-						.attr('width', function(d,i) {
-							return seriesText[0][i].getComputedTextLength() + 27;
-						})
-						.attr('height', 18)
-						.attr('y', -9)
-						.attr('x', -15);
+				// Size rectangles after text is placed
+				seriesShape
+					.attr('width', function(d,i) {
+						//position remove btn
+						var width = seriesText[0][i].getComputedTextLength() + 5;
+						d3.select( seriesRemove[0][i] ).attr( 'transform', 'translate(' + width + ',-4)' );
+						return width+25;
+					})
+					.attr('height', 24)
+					.attr('y', -12)
+					.attr('x', -12);
 
-					// The background for the expanded legend (UI)
-					gEnter.insert('rect',':first-child')
-						.attr('class', 'nv-legend-bg')
-						.attr('fill', '#eee')
-						// .attr('stroke', '#444')
-						.attr('opacity',0);
+				// The background for the expanded legend (UI)
+				gEnter.insert('rect',':first-child')
+					.attr('class', 'nv-legend-bg')
+					.attr('fill', '#eee')
+					// .attr('stroke', '#444')
+					.attr('opacity',0);
 
-					var seriesBG = g.select('.nv-legend-bg');
+				var seriesBG = g.select('.nv-legend-bg');
 
-					seriesBG
-					.transition().duration(300)
-						.attr('x', -versPadding )
-						.attr('width', legendWidth + versPadding - 12)
-						.attr('height', height + 10)
-						.attr('y', -margin.top - 10)
-						.attr('opacity', expanded ? 1 : 0);
-
-
-				} else if( vers == 'owd' ) {
-					// Size rectangles after text is placed
-
-					seriesShape
-						.attr('width', function(d,i) {
-							//position remove btn
-							var width = seriesText[0][i].getComputedTextLength() + 5;
-							d3.select( seriesRemove[0][i] ).attr( 'transform', 'translate(' + width + ',-4)' );
-							return width+25;
-						})
-						.attr('height', 24)
-						.attr('y', -12)
-						.attr('x', -12);
-
-					// The background for the expanded legend (UI)
-					gEnter.insert('rect',':first-child')
-						.attr('class', 'nv-legend-bg')
-						.attr('fill', '#eee')
-						// .attr('stroke', '#444')
-						.attr('opacity',0);
-
-					var seriesBG = g.select('.nv-legend-bg');
-
-					seriesBG
-					.transition().duration(300)
-						.attr('x', -versPadding )
-						.attr('width', legendWidth + versPadding - 12)
-						.attr('height', height + 10)
-						.attr('y', -margin.top - 10)
-						.attr('opacity', expanded ? 1 : 0);
-
-				}
+				seriesBG
+				.transition().duration(300)
+					.attr('x', -versPadding )
+					.attr('width', legendWidth + versPadding - 12)
+					.attr('height', height + 10)
+					.attr('y', -margin.top - 10)
+					.attr('opacity', expanded ? 1 : 0);
 
 				seriesShape
 					.style('fill', setBGColor)

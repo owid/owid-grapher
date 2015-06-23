@@ -56,7 +56,7 @@
 
 				var that = this,
 					selectedCountries = App.ChartModel.get( "selected-countries" ),
-					selectedCountriesIds = _.map( selectedCountries, function( v ) { return v.id; } );
+					selectedCountriesIds = _.map( selectedCountries, function( v ) { return (v)? v.id: ""; } );
 
 				$.ajax( {
 					url: Global.rootUrl + "/data/dimensions",
@@ -319,9 +319,21 @@
 				that.legend = new App.Views.Chart.Legend( that.chart.legend ).vers( "owd" ); 
 				that.legend.dispatch.on( "removeEntity", function( id ) {
 					App.ChartModel.removeSelectedCountry( id );
+					var selectedCountries = App.ChartModel.get( "selected-countries" ),
+						countriesIds = _.keys( selectedCountries );
+					if( countriesIds.length == 0 ) {
+						//removed all selected countries, add all available countries as selected
+						var formConfig = App.ChartModel.get( "form-config" );
+						if( formConfig && formConfig[ "entities-collection" ] ) {
+							//remap
+							var entitiesCollection = {};
+							_.map( formConfig[ "entities-collection" ], function( d, i ) { entitiesCollection[ d.id ] = d; } );
+							App.ChartModel.set( "selected-countries", entitiesCollection );
+						}
+					}
 				} );
+				
 				svgSelection.call( that.legend );
-
 
 				var onResizeCallback = _.debounce( function(e) {
 					that.onResize();

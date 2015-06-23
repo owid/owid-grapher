@@ -163,16 +163,21 @@
 				stroke-width: 1px !important;
 			}
 				#chart-view .nv-legend .nv-series:hover .nv-legend-symbol {
-					stroke: #666666 !important;
+					stroke: #000000 !important;
 				}
-
-		#chart-view .nv-legend .nv-remove-btn .nv-box {
-			stroke-width: 3px;
-			stroke: #000000;
+		#chart-view .nv-legend .nv-remove-btn {
+			display: none;
 		}
-			#chart-view .nv-legend .nv-remove-btn:hover .nv-box {
-				stroke: #FFFFFF;
+			#chart-view .nv-legend .nv-series:hover .nv-remove-btn {
+				display: block;
 			}
+			#chart-view .nv-legend .nv-remove-btn .nv-box {
+				stroke-width: 3px;
+				stroke: #000000;
+			}
+				#chart-view .nv-legend .nv-remove-btn:hover .nv-box {
+					stroke: #FFFFFF;
+				}
 
 	.chart-description,
 	.chart-sources {
