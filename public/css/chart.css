@@ -134,6 +134,15 @@
 		font-size: 11px;
 		background-color: #FAFAFA;
 	}
+		#chart-view .export-footer-btns {
+			position: absolute;
+			top: 5px;
+			right: 5px;
+			font-size: 10px;
+		}
+			#chart-view .export-footer-btns a {
+				display: block;
+			}
 		#chart-view .chart-footer a,
 		#chart-view #sources-chart-tab a {
 			color: #1059E5;

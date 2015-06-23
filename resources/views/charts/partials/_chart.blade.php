@@ -30,8 +30,10 @@
 					<text x="0" y="100" dy="0" class="chart-sources chart-sources-svg"></text>
 				</svg>
 				<div class="chart-footer clearfix">
-					<a href="#" class="chart-save-png-btn pull-right">Save to png</a>
-					<a href="#" class="chart-save-svg-btn pull-right" target="_blank">Save to svg</a>
+					<div class="export-footer-btns">
+						<a href="#" class="chart-save-svg-btn" target="_blank">Save to svg</a>
+						<a href="#" class="chart-save-png-btn">Save to png</a>
+					</div>
 					<p class="chart-description"></p>
 					<p class="chart-sources"></p>
 				</div>

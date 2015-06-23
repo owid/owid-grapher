@@ -29,15 +29,19 @@
 			$entitiesSelect.append( $( "<option selected disabled>Select entity</option>" ) );	
 
 			App.AvailableEntitiesCollection.each( function( model ) {
-				$entitiesSelect.append( $( "<option>" + model.get( "name" ) + "</option>" ) );	
+				$entitiesSelect.append( $( "<option value='" + model.get( "id" ) + "'>" + model.get( "name" ) + "</option>" ) );	
 			});
 
 		},
 
 		onCountriesSelect: function( evt ) {
 
-			var $select = $( evt.target );
-			App.ChartModel.addSelectedCountry( { name: $select.val() } );
+			var $select = $( evt.target ),
+				val = $select.val(),
+				$option = $select.find( "option[value=" + val + "]" ),
+				text = $option.text();
+
+			App.ChartModel.addSelectedCountry( { id: val, name: text } );
 
 		}
 

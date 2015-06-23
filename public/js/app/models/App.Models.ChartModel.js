@@ -50,38 +50,32 @@
 			}
 
 			var selectedCountries = this.get( "selected-countries" );
-			selectedCountries[ country.name ] = country;
+			selectedCountries[ country.id ] = country;
 			this.trigger( "change:selected-countries" );
 			this.trigger( "change" );
 			
 		},
 
-		updateSelectedCountry: function( countryName, color ) {
+		updateSelectedCountry: function( countryId, color ) {
 
 			var selectedCountries = this.get( "selected-countries" ),
-				country = selectedCountries[ countryName ];
+				country = selectedCountries[ countryId ];
 			if( country ) {
 				country.color = color;
 				this.trigger( "change:selected-countries" );
 				this.trigger( "change" );
-			} 
+			}
 
 		},
 
-		removeSelectedCountry: function( countryName ) {
+		removeSelectedCountry: function( countryId ) {
 
 			var selectedCountries = this.get( "selected-countries" );
-			if( selectedCountries[ countryName ] ) {
-				delete selectedCountries[ countryName ];
+			if( selectedCountries[ countryId ] ) {
+				delete selectedCountries[ countryId ];
 				this.trigger( "change:selected-countries" );
 				this.trigger( "change" );
 			}
-
-			/*var selectedCountries = this.get( "selected-countries" ).slice( 0 );
-			selectedCountries = _.filter( selectedCountries, function( value, key, list ) {
-				return ( value != countryName )? true: false;
-			} );
-			this.set( "selected-countries", selectedCountries );*/
 
 		},
 

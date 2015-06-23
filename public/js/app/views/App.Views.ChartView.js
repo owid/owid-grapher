@@ -159,17 +159,21 @@
 
 			//filter data for selected countries
 			var selectedCountries = App.ChartModel.get( "selected-countries" ),
-				selectedCountriesNames = _.map( selectedCountries, function(v) { return v.name; } );
+				selectedCountriesIds = _.map( selectedCountries, function(v) { return +v.id; } );
 
-			if( selectedCountries && selectedCountriesNames.length ) {
+			console.log( "data", data );
+			console.log( "selectedCountriesIds", selectedCountriesIds );
+
+			if( selectedCountries && selectedCountriesIds.length ) {
 				localData = _.filter( localData, function( value, key, list ) {
 					//set color while in the loop
-					var country = selectedCountries[ value.key ];
+					var country = selectedCountries[ value.id ];
 					if( country && country.color ) {
 						value.color = country.color;
 					}
+					console.log( "selectCountriesIds", value.id );
 					//actual filtering
-					return ( _.indexOf( selectedCountriesNames, value.key ) > -1 );
+					return ( _.indexOf( selectedCountriesIds, value.id ) > -1 );
 				} );
 			} else {
 				//TODO - nonsense? just convert associative array to array

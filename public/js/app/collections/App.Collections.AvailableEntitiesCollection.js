@@ -32,7 +32,7 @@
 			this.url = this.urlRoot + "?variableIds=" + ids.join(",");
 			this.fetch( {
 				success: function( collection, response ) {
-					console.log( "response", response );
+					console.log( "update Entities response", response );
 				}
 			});	
 
