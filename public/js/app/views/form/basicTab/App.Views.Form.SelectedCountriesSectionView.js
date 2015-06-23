@@ -50,7 +50,7 @@
 				colorPicker.onSelected = function( value ) {
 					$countryLabel.css( "background-color", value );
 					$countryLabel.attr( "data-color", value );
-					App.ChartModel.updateSelectedCountry( $countryLabel.attr( "data-name" ), value );
+					App.ChartModel.updateSelectedCountry( $countryLabel.attr( "data-id" ), value );
 					colorPicker.close();
 					//that.$el.trigger( "change" );
 				};
