@@ -317,7 +317,11 @@
 
 				//set legend
 				that.legend = new App.Views.Chart.Legend( that.chart.legend ).vers( "owd" ); 
+				that.legend.dispatch.on( "removeEntity", function( id ) {
+					App.ChartModel.removeSelectedCountry( id );
+				} );
 				svgSelection.call( that.legend );
+
 
 				var onResizeCallback = _.debounce( function(e) {
 					that.onResize();

@@ -15,12 +15,12 @@
 			, getKey = function(d) { return d.key }
 			, color = nv.utils.getColor()
 			, align = true
-			, padding = 20 //define how much space between legend items. - recommend 32 for furious version
+			, padding = 40 //define how much space between legend items. - recommend 32 for furious version
 			, rightAlign = true
 			, updateState = true   //If true, legend will update data.disabled and trigger a 'stateChange' dispatch.
 			, radioButtonMode = false   //If true, clicking legend items will cause it to behave like a radio button. (only one can be selected at a time)
 			, expanded = false
-			, dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout', 'stateChange')
+			, dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout', 'stateChange', 'removeEntity')
 			, vers = 'classic' //Options are "classic" and "furious" and "owd"
 			;
 
@@ -47,7 +47,7 @@
 					});
 				
 				var seriesEnter = series.enter().append('g').attr('class', 'nv-series');
-				var seriesShape;
+				var seriesShape, seriesRemove;
 
 				var versPadding;
 				switch(vers) {
@@ -92,6 +92,10 @@
 					seriesEnter.append('rect')
 						.style('stroke-width', 2)
 						.attr('class','nv-legend-symbol');
+					seriesEnter.append('g')
+						.attr('class', 'nv-remove-btn')
+						.property('innerHTML','<path d="M0,0 L8,8" class="nv-box"></path><path d="M8,0 L0,8" class="nv-box"></path>')
+						.attr('transform', 'translate(10,10)');
 					seriesShape = series.select('.nv-legend-symbol');
 				}
 
@@ -105,7 +109,8 @@
 					seriesEnter.select( 'text' ).attr( 'dx', 0 );
 				}
 
-				var seriesText = series.select('text.nv-legend-text');
+				var seriesText = series.select('text.nv-legend-text'),
+					seriesRemove = series.select('.nv-remove-btn');
 
 				series
 					.on('mouseover', function(d,i) {
@@ -195,6 +200,15 @@
 							});
 						}
 					});
+
+				seriesRemove.on( 'click', function( d, i ) {
+
+					d3.event.stopImmediatePropagation();
+					//remove series straight away, so we don't have to wait for response from server
+					series[0][i].remove();
+					dispatch.removeEntity( d.id );
+					
+				} );	
 
 				series.classed('nv-disabled', function(d) { return d.userDisabled });
 				series.exit().remove();
@@ -330,13 +344,17 @@
 
 				} else if( vers == 'owd' ) {
 					// Size rectangles after text is placed
+
 					seriesShape
 						.attr('width', function(d,i) {
-							return seriesText[0][i].getComputedTextLength() + 14;
+							//position remove btn
+							var width = seriesText[0][i].getComputedTextLength() + 5;
+							d3.select( seriesRemove[0][i] ).attr( 'transform', 'translate(' + width + ',-4)' );
+							return width+25;
 						})
 						.attr('height', 24)
 						.attr('y', -12)
-						.attr('x', -7);
+						.attr('x', -12);
 
 					// The background for the expanded legend (UI)
 					gEnter.insert('rect',':first-child')

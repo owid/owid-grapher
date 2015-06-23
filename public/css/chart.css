@@ -152,6 +152,28 @@
 				color: #FF4012;
 			}
 
+	/**
+	*	CHART LEGEND
+	**/
+	#chart-view .nv-legend {}
+		#chart-view .nv-legend .nv-series {
+			cursor: pointer;
+		}
+			#chart-view .nv-legend .nv-series .nv-legend-symbol {
+				stroke-width: 1px !important;
+			}
+				#chart-view .nv-legend .nv-series:hover .nv-legend-symbol {
+					stroke: #666666 !important;
+				}
+
+		#chart-view .nv-legend .nv-remove-btn .nv-box {
+			stroke-width: 3px;
+			stroke: #000000;
+		}
+			#chart-view .nv-legend .nv-remove-btn:hover .nv-box {
+				stroke: #FFFFFF;
+			}
+
 	.chart-description,
 	.chart-sources {
 		font-size: 10px;
