@@ -199,6 +199,9 @@
 		position: relative;
 		z-index: 10;
 	}
+		#chart-view .available-countries-select-wrapper select {
+			display: none;
+		}
 		#chart-view .available-countries-select-wrapper .chosen-container {
 			width: 100% !important;
 		}

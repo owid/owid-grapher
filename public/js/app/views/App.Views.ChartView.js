@@ -348,6 +348,8 @@
 				svgSelection.call( that.legend );
 
 				var onResizeCallback = _.debounce( function(e) {
+					//invoke resize of legend
+					svgSelection.call( that.legend );
 					that.onResize();
 				}, 150 );
 				nv.utils.windowResize( onResizeCallback );
@@ -355,13 +357,12 @@
 				that.onResize();
 
 				that.chart.dispatch.on( "stateChange", function( state ) {
-					
 					//refersh legend;
 					svgSelection.call( that.legend );
-					//temp, re-update translateString
+					//need timeout 
 					setTimeout( function() {
-						$( "svg > .nvd3" ).attr( "transform", that.translateString );
-					}, 15 );
+						that.onResize();
+					}, 1);
 				} );
 
 			});
@@ -394,6 +395,16 @@
 				text = $option.text();
 
 			App.ChartModel.addSelectedCountry( { id: $select.val(), name: text } );
+
+			//double check if we don't have full selection of countries
+			var entitiesCollection = {},
+				formConfig = App.ChartModel.get( "form-config" );
+			if( formConfig && formConfig[ "entities-collection" ] ) {
+				var selectedCountriesIds = _.keys( App.ChartModel.get( "selected-countries" ) );
+				if( selectedCountriesIds.length == formConfig[ "entities-collection" ].length ) {
+					App.ChartModel.set( "selected-countries", {}, {silent:true} );
+				}
+			}
 
 			//hack, to make work chosen
 			var that = this;
@@ -522,7 +533,8 @@
 			svgHeight = this.$svg.height();
 
 			//add height of legend
-			currY += this.chart.legend.height();
+			//currY += this.chart.legend.height();
+			currY += this.legend.height();
 
 			//position chart
 			App.Utils.wrap( $chartDescriptionSvg, svgWidth );
@@ -533,7 +545,7 @@
 			var footerHeight = this.$chartFooter.height();
 
 			//set chart height
-			chartHeight = svgHeight - translateY - footerHeight - bottomChartMargin;
+			chartHeight = svgHeight - translateY - footerHeight - bottomChartMargin - this.legend.height();
 
 			//position footer
 			$chartDescriptionSvg.attr( "y", currY + chartHeight + bottomChartMargin );
@@ -542,7 +554,7 @@
 			App.Utils.wrap( $chartSourcesSvg, svgWidth );
 			
 			//compute chart width
-			var chartWidth = svgWidth;// - margins.right;
+			var chartWidth = svgWidth;
 			this.chart.width( chartWidth );
 			this.chart.height( chartHeight );
 
@@ -552,9 +564,14 @@
 			//manually reposition chart after update
 			//this.translateString = "translate(" + margins.left + "," + currY + ")";
 			this.translateString = "translate(50," + currY + ")";
-			this.$svg.find( "> .nvd3" ).attr( "transform", this.translateString );
-			this.$svg.css( "transform", "translate(0,-" + chartHeaderHeight + "px)" );
+			this.$svg.find( "> .nvd3.nv-wrap" ).attr( "transform", this.translateString );
 
+			//position legend
+			currY = currY - this.legend.height();
+			this.translateString = "translate(62," + currY + ")";
+			this.$svg.find( "> .nvd3.nv-legend" ).attr( "transform", this.translateString );
+			this.$svg.css( "transform", "translate(0,-" + chartHeaderHeight + "px)" );
+			
 		},
 
 		formatTimeLabel: function( type, d, xAxisPrefix, xAxisSuffix ) {

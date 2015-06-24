@@ -10,7 +10,7 @@
 		// Public Variables with Default Settings
 		//------------------------------------------------------------
 
-		var margin = {top: 5, right: 0, bottom: 5, left: 0}
+		var margin = {top: 5, right: 50, bottom: 5, left: 0}
 			, width = 800
 			, height = 20
 			, getKey = function(d) { return d.key }
@@ -29,8 +29,10 @@
 			
 			selection.each(function(data) {
 				
-				var availableWidth = width - margin.left - margin.right,
+				var $svg = $( "svg.nvd3-svg" ),
+					availableWidth = $svg.width() - margin.left - margin.right,
 					container = d3.select(this);
+				
 				nv.utils.initSVG(container);
 
 				// Setup containers and skeleton of chart
@@ -307,6 +309,7 @@
 					}
 						
 				}
+				
 			});
 			
 			function setTextColor(d,i) {
