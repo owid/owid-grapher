@@ -792,7 +792,7 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
             if (!dataSeriesExists(data)) return;
 
             convertViewBoxRatio();
-
+            
             var left = position.left;
             var top = (fixedTop !== null) ? fixedTop : position.top;
 
@@ -802,6 +802,7 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
                 // Bonus - If you override contentGenerator and return falsey you can use something like
                 //         React or Knockout to bind the data for your tooltip
                 var newContent = contentGenerator(data);
+                
                 if (newContent) {
                     tooltipElem.innerHTML = newContent;
                 }

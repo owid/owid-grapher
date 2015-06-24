@@ -235,14 +235,9 @@
 			var that = this;
 			nv.addGraph(function() {
 
-				function tooltipContent(key, y, e, graph) {
-					return "<h3>" + key + "</h3><p>" + e + App.ChartModel.get( "unit" ) + "</p>";
-				}
-
 				var chartOptions = {
 					transitionDuration: 300,
 					margin: { top:0, left:50, right:30, bottom:0 },// App.ChartModel.get( "margins" ),
-					tooltipContent: tooltipContent,
 					showLegend: false
 				};
 
@@ -334,6 +329,18 @@
 				var svgSelection = d3.select( that.$svg.selector )
 					.datum( localData )
 					.call( that.chart );
+
+				//set popup
+				that.chart.tooltip.contentGenerator( function( data ) {
+					//find relevant values for popup and display them
+					var series = data.series, key = "", value = "";
+					if( series && series.length ) {
+						var serie = series[ 0 ];
+						key = serie.key;
+						value = serie.value;
+					}
+					return "<h3>" + key + "</h3><p>" + value + " " + App.ChartModel.get( "unit" ) + "</p>";
+				} );
 
 				//set legend
 				that.legend = new App.Views.Chart.Legend( that.chart.legend ).vers( "owd" ); 
