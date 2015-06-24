@@ -44,7 +44,11 @@ class DataController extends Controller {
 		//there's special setting for linechart
 		$isLineChart = ( $chartType == "1" )? true: false;
 
+		//filtering by entities?
 		$selectedCountriesIds = Input::get( "selectedCountries" );
+
+		//filtering by time?
+		$chartTime = Input::get( "chartTime" );
 
 		//find out how many variables we have 
 		$groupByEntity = (!$isLineChart || count( $dimensions ) == 1)? true: false;
@@ -70,19 +74,23 @@ class DataController extends Controller {
 			$variableQuery = DB::table( 'data_values' )
 				->join( 'entities', 'data_values.fk_ent_id', '=', 'entities.id' )
 				->join( 'times', 'data_values.fk_time_id', '=', 'times.id' )
-				//->join( 'variables', 'data_values.fk_var_id', '=', 'variables.id' )
 				->where( 'data_values.fk_var_id', $id );
 
-			//are we filtering 
+			//are we filtering based on entity selection?
 			if( !empty( $selectedCountriesIds ) && count( $selectedCountriesIds ) > 0 ) {
 				$variableQuery->whereIn( 'data_values.fk_ent_id', $selectedCountriesIds );
 			}
-
-			//TODO - filter by time as well
+			//are we filtering based on time selection?
+			if( !empty( $chartTime ) && count( $chartTime ) > 1 ) {
+				$minTime = $chartTime[0];
+				$maxTime = $chartTime[1];
+				$variableQuery->where( 'times.date', '>=', $minTime );
+				$variableQuery->where( 'times.date', '<=', $maxTime );
+			}	
 
 			$variableData = $variableQuery->get();
+			
 			//selectedCountries
-
 			if( $groupByEntity ) {
 			
 				//group variable data by entities

@@ -51,7 +51,8 @@
 			var	formConfig = App.ChartModel.get( "form-config" ),
 				entities = ( formConfig && formConfig[ "entities-collection" ] )? formConfig[ "entities-collection" ]: [],
 				selectedCountries = App.ChartModel.get( "selected-countries" ),
-				selectedCountriesIds = _.map( selectedCountries, function( v ) { return (v)? v.id: ""; } );
+				selectedCountriesIds = _.map( selectedCountries, function( v ) { return (v)? v.id: ""; } ),
+				chartTime = App.ChartModel.get( "chart-time" );
 			
 			this.$entitiesSelect.empty();
 			if( selectedCountriesIds.length ) {
@@ -80,7 +81,7 @@
 
 				$.ajax( {
 					url: Global.rootUrl + "/data/dimensions",
-					data: { "dimensions": dimensionsString, "chartType": App.ChartModel.get( "chart-type" ), "selectedCountries": selectedCountriesIds },
+					data: { "dimensions": dimensionsString, "chartType": App.ChartModel.get( "chart-type" ), "selectedCountries": selectedCountriesIds, "chartTime": chartTime },
 					success: function( response ) {
 						if( response.data ) {
 							that.updateChart( response.data, response.timeType );
