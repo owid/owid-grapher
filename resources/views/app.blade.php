@@ -124,7 +124,7 @@
 		<script src="{{ asset('js/libs/admin-lte-app.min.js') }}"></script>    
 		
 		<script src="{{ asset('js/libs/ion.rangeSlider.min.js') }}"></script>    
-		<script src="{{ asset('js/libs/chosen.jquery.min.js') }}"></script>    
+		<script src="{{ asset('js/libs/chosen.jquery.js') }}"></script>    
 		
 		<script src="{{ asset('js/libs/jquery.nestable.js') }}"></script>    
 		

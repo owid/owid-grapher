@@ -7,9 +7,6 @@
 		el: "#form-view #basic-tab",
 		events: {
 			"click .add-data-btn": "onAddDataBtn",
-			//"change [name=chart-variable]": "onChartVariableChange",
-			//"change [name=category-id]": "onCategoryChange",
-			//"change [name=subcategory-id]": "onSubCategoryChange",
 		},
 
 		initialize: function( options ) {
@@ -33,15 +30,6 @@
 			this.$el.find( "[name=chart-subname]" ).val( App.ChartModel.get( "chart-subname" ) );
 
 		}
-
-
-		/*onChartVariableChange: function() {
-
-			console.log( "on chart onChartVariableChange" ); 
-			App.ChartModel.set( "chart-variable", this.$chartVariable.val() );
-
-		}*/
-
 
 	});
 

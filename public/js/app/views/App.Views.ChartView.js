@@ -64,6 +64,8 @@
 					}
 				} );
 			}
+			//make chosen update, make sure it looses blur as well
+			this.$entitiesSelect.trigger( "chosen:updated" );
 			
 			//data tab
 			this.$dataTab = this.$el.find( "#data-chart-tab" );
@@ -75,8 +77,6 @@
 
 			var dimensionsString = App.ChartModel.get( "chart-dimensions" );
 			if( dimensionsString ) {
-
-
 
 				$.ajax( {
 					url: Global.rootUrl + "/data/dimensions",
@@ -352,6 +352,10 @@
 						}
 					}
 				} );
+				that.legend.dispatch.on( "addEntity", function() {
+					//trigger open the chosen drop down
+					that.$entitiesSelect.trigger( "chosen:open" );
+				} );
 
 				svgSelection.call( that.legend );
 
@@ -385,6 +389,13 @@
 
 			App.ChartModel.addSelectedCountry( { id: $select.val(), name: text } );
 
+			//hack, to make work chosen
+			var that = this;
+			setTimeout( function() {
+				if( that.$entitiesSelect.data( "chosen" ) ) {
+					that.$entitiesSelect.data( "chosen" ).active_field = false;
+				}
+			}, 100 );
 		},
 
 		updateDataTab: function( data ) {

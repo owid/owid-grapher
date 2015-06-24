@@ -163,8 +163,16 @@
 				stroke-width: 1px !important;
 			}
 				#chart-view .nv-legend .nv-series:hover .nv-legend-symbol {
-					stroke: #000000 !important;
+					/*stroke: #000000 !important;*/
 				}
+			/* disabled */
+			#chart-view .nv-legend .nv-series.nv-disabled {}
+				#chart-view .nv-legend .nv-series.nv-disabled .nv-legend-symbol {
+					stroke: #666 !important;
+				}
+					#chart-view .nv-legend .nv-series.nv-disabled .nv-remove-btn .nv-box {
+						stroke: #999 !important;
+					}
 		#chart-view .nv-legend .nv-remove-btn {
 			display: none;
 		}
@@ -173,17 +181,38 @@
 			}
 			#chart-view .nv-legend .nv-remove-btn .nv-box {
 				stroke-width: 3px;
-				stroke: #000000;
+				stroke: #fff;
 			}
 				#chart-view .nv-legend .nv-remove-btn:hover .nv-box {
-					stroke: #FFFFFF;
+					stroke: #000;
 				}
 		/* add btn */
-		#chart-view .nv-legend .nv-add-btn {}
+		#chart-view .nv-legend .nv-add-btn {
+			cursor: pointer;
+		}
 			#chart-view .nv-legend .nv-add-btn .nv-box {
-				stroke-width: 3px;
-				stroke: #000000;
+				stroke-width: 4px;
+				stroke: #000;
 			}
+
+	#chart-view .available-countries-select-wrapper {
+		position: relative;
+		z-index: 10;
+	}
+		#chart-view .available-countries-select-wrapper .chosen-container {
+			width: 100% !important;
+		}
+			#chart-view .available-countries-select-wrapper .chosen-single {
+				display: none;
+			}
+			#chart-view .available-countries-select-wrapper .chosen-container .chosen-drop {
+				box-shadow: none;
+				border-top: 1px solid #aaa;
+				border-radius: 0;
+			}
+				#chart-view .available-countries-select-wrapper .chosen-container .chosen-results li.highlighted {
+					background: #002147;
+				}
 
 	.chart-description,
 	.chart-sources {
@@ -191,7 +220,7 @@
 	}
 
 	.chart-wrapper {
-		background-color: #ffffff;
+		background-color: #fff;
 	}
 	.chart-wrapper-inner {
 		padding: 25px 50px;
@@ -206,7 +235,7 @@
 	/* for saving image */
 	.nvd3-svg {
 		width: 100%;
-		background-color: #ffffff;
+		background-color: #fff;
 	}
 
 	/** 
@@ -221,10 +250,10 @@
 				padding: 5px 10px;
 			}
 			#data-chart-tab .data-table th { 
-				border-bottom: 1px solid #AAAAAA;
+				border-bottom: 1px solid #aaa;
 			}
 			#data-chart-tab .data-table td { 
-				border-bottom: 1px solid #AFAFAF;
+				border-bottom: 1px solid #afafaf;
 			}
 
 /**

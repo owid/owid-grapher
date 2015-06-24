@@ -22,8 +22,6 @@
 
 			this.dispatcher.on( "variable-label-moved", this.onVariableLabelMoved, this );
 
-			//App.ChartModel.on( "change:variables", this.onVariablesChange, this );
-
 			this.render();
 
 		},

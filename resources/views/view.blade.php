@@ -12,6 +12,8 @@
 
 		<link href="{{ asset('css/libs/bootstrap.min.css') }}" rel="stylesheet" type="text/css" />    
 		<link href="{{ asset('css/libs/font-awesome/css/font-awesome.min.css') }}" rel="stylesheet" type="text/css" />
+		<link href="{{ asset('css/libs/chosen.css') }}" rel="stylesheet" type="text/css" />
+		
 		<!-- <link href="http://code.ionicframework.com/ionicons/2.0.0/css/ionicons.min.css" rel="stylesheet" type="text/css" />  -->  
 		
 		<link href="{{ asset('css/nv.d3.css') }}" rel="stylesheet" type="text/css">
@@ -59,7 +61,7 @@
 		<script src="{{ asset('js/libs/backbone.js') }}"></script>    
 		<script src="{{ asset('js/libs/bootstrap.min.js') }}"></script>    
 		
-		<script src="{{ asset('js/libs/chosen.jquery.min.js') }}"></script>    
+		<script src="{{ asset('js/libs/chosen.jquery.js') }}"></script>    
 		
 		<script src="{{ asset('js/namespaces.js') }}?bust={!!time()!!}"></script>
 		

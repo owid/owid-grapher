@@ -12,11 +12,6 @@
 			this.dispatcher = options.dispatcher;
 			
 			this.$tabs = this.$el.find( ".header-tab" );
-			/*this.$chartTab = this.$el.find( ".chart-header-tab" );
-			this.$dataTab = this.$el.find( ".data-header-tab" );
-			this.$mapTab = this.$el.find( ".map-header-tab" );
-			this.$sourcesTab = this.$el.find( ".sources-header-tab" );*/
-
 			this.render();
 
 			

@@ -178,7 +178,7 @@ class VariablesController extends Controller {
 			$valueIds = $request->get( 'value_ids' );
 			$idsArr = json_decode($valueIds);
 			DataValue::destroy($idsArr);
-			return redirect()->route('variables.show', $variable->id)->with('message', 'Values deleted.')->( 'message-class', 'success' );
+			return redirect()->route('variables.show', $variable->id)->with('message', 'Values deleted.')->with( 'message-class', 'success' );
 		}
 		return redirect()->route('variables.show', $variable->id);
 	

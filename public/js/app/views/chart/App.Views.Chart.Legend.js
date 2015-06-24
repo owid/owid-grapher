@@ -4,23 +4,24 @@
 	
 	App.Views.Chart.Legend = function( chartLegend ) {
 	
+		//based on https://github.com/novus/nvd3/blob/master/src/models/legend.js
 
 		//============================================================
 		// Public Variables with Default Settings
 		//------------------------------------------------------------
 
 		var margin = {top: 5, right: 0, bottom: 5, left: 0}
-			, width = 400
+			, width = 800
 			, height = 20
 			, getKey = function(d) { return d.key }
 			, color = nv.utils.getColor()
 			, align = true
 			, padding = 40 //define how much space between legend items. - recommend 32 for furious version
-			, rightAlign = true
+			, rightAlign = false
 			, updateState = true   //If true, legend will update data.disabled and trigger a 'stateChange' dispatch.
 			, radioButtonMode = false   //If true, clicking legend items will cause it to behave like a radio button. (only one can be selected at a time)
 			, expanded = false
-			, dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout', 'stateChange', 'removeEntity')
+			, dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout', 'stateChange', 'removeEntity', 'addEntity')
 			, vers = 'classic' //Options are "classic" and "furious" and "owd"
 			;
 
@@ -33,34 +34,41 @@
 				nv.utils.initSVG(container);
 
 				// Setup containers and skeleton of chart
-				var wrap = container.selectAll('g.nv-legend').data([data]);
-				var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-legend').append('g');
-				var g = wrap.select('g');
+				var wrap = container.selectAll('g.nv-legend').data([data]),
+					gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-legend').append('g'),
+					g = wrap.select('g');
 
 				wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 				var series = g.selectAll('.nv-series')
 					.data(function(d) {
 						if(vers != 'furious') return d;
-
 						return d.filter(function(n) {
 							return expanded ? true : !n.disengaged;
 						});
 					});
 				
-				var addEntityBtn = wrap.append('g').attr('class', 'nv-add-btn');
-				addEntityBtn.property('innerHTML','<path d="M0,0 L8,8" class="nv-box"></path><path d="M8,0 L0,8" class="nv-box"></path>');
-
+				//if not existing, add nv-add-btn
+				var addEntityBtn =  wrap.select( 'g.nv-add-btn' );
+				if( addEntityBtn.empty() ) {
+					addEntityBtn = wrap.append('g').attr('class', 'nv-add-btn');
+					addEntityBtn.property('innerHTML','<path d="M7,0 L7,14" class="nv-box"></path><path d="M0,7 L14,7" class="nv-box"></path>');
+					addEntityBtn.on( 'click', function( d, i ) {
+						dispatch.addEntity();
+						d3.event.stopImmediatePropagation();
+					} );
+				}
+					
 				var seriesEnter = series.enter().append('g').attr('class', 'nv-series'),
 					seriesShape, seriesRemove;
 
-				var versPadding = 20;
+				var versPadding = 30;
 				seriesEnter.append('rect')
 					.style('stroke-width', 2)
 					.attr('class','nv-legend-symbol');
 				seriesEnter.append('g')
 					.attr('class', 'nv-remove-btn')
-					.property('innerHTML','<path d="M0,0 L8,8" class="nv-box"></path><path d="M8,0 L0,8" class="nv-box"></path>')
+					.property('innerHTML','<path d="M0,0 L7,7" class="nv-box"></path><path d="M7,0 L0,7" class="nv-box"></path>')
 					.attr('transform', 'translate(10,10)');
 				seriesShape = series.select('.nv-legend-symbol');
 				
@@ -149,18 +157,16 @@
 				if (align) {
 
 					var seriesWidths = [];
-					series.each(function(d,i) {
+					series.each( function(d,i) {
 						var legendText = d3.select(this).select('text');
 						var nodeTextLength;
 						try {
 							nodeTextLength = legendText.node().getComputedTextLength();
 							// If the legendText is display:none'd (nodeTextLength == 0), simulate an error so we approximate, instead
 							if(nodeTextLength <= 0) throw Error();
-						}
-						catch(e) {
+						} catch( e ) {
 							nodeTextLength = nv.utils.calcApproxTextWidth(legendText);
 						}
-
 						seriesWidths.push(nodeTextLength + padding);
 					});
 
@@ -168,13 +174,13 @@
 					var columnWidths = [];
 					legendWidth = 0;
 
-					while ( legendWidth < availableWidth && seriesPerRow < seriesWidths.length) {
+					while( legendWidth < availableWidth && seriesPerRow < seriesWidths.length ) {
 						columnWidths[seriesPerRow] = seriesWidths[seriesPerRow];
 						legendWidth += seriesWidths[seriesPerRow++];
 					}
-					if (seriesPerRow === 0) seriesPerRow = 1; //minimum of one series per row
+					if( seriesPerRow === 0 ) seriesPerRow = 1; //minimum of one series per row
 
-					while ( legendWidth > availableWidth && seriesPerRow > 1 ) {
+					while( legendWidth > availableWidth && seriesPerRow > 1 ) {
 						columnWidths = [];
 						seriesPerRow--;
 
@@ -194,9 +200,12 @@
 						curX += columnWidths[i];
 					}
 
+					var transformX, transformY;
 					series
 						.attr('transform', function(d, i) {
-							return 'translate(' + xPositions[i % seriesPerRow] + ',' + (5 + Math.floor(i / seriesPerRow) * versPadding) + ')';
+							transformX = xPositions[i % seriesPerRow];
+							transformY = (5 + Math.floor(i / seriesPerRow) * versPadding);
+							return 'translate(' + transformX + ',' + transformY + ')';
 						});
 
 					//position legend as far right as possible within the total width
@@ -245,7 +254,7 @@
 					.attr('width', function(d,i) {
 						//position remove btn
 						var width = seriesText[0][i].getComputedTextLength() + 5;
-						d3.select( seriesRemove[0][i] ).attr( 'transform', 'translate(' + width + ',-4)' );
+						d3.select( seriesRemove[0][i] ).attr( 'transform', 'translate(' + width + ',-3)' );
 						return width+25;
 					})
 					.attr('height', 24)
@@ -273,6 +282,25 @@
 					.style('fill', setBGColor)
 					.style('fill-opacity', setBGOpacity)
 					.style('stroke', setBGColor);
+
+				//position add btn
+				if( series.size() && transformX && transformY ) {
+
+					var seriesArr = series[0];
+					if( seriesArr && seriesArr.length ) {
+						//fetch last element to know its width
+						var lastEl = seriesArr[ seriesArr.length-1 ],
+							//need rect inside element that has set width
+							lastRect = d3.select( lastEl ).select( "rect" ),
+							lastRectWidth = lastRect.attr( "width" );
+						//position add btn
+						transformX = +transformX + parseInt( lastRectWidth ) + 5;
+						//centering
+						transformY = +transformY - 2;
+						addEntityBtn.attr( "transform", "translate( " + transformX + ", " + transformY + ")" );
+					}
+						
+				}
 			});
 
 			function setTextColor(d,i) {
@@ -281,7 +309,8 @@
 					return d.disengaged ? '#000' : '#fff';
 				} else if (!expanded) {
 					if(!d.color) d.color = color(d,i);
-					return !!d.disabled ? d.color : '#fff';
+					return !!d.disabled ? '#666' : '#fff';
+					//return !!d.disabled ? d.color : '#fff';
 				}
 			}
 

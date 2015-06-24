@@ -52,39 +52,6 @@
 			this.$removeUploadedFileBtn = this.$el.find( ".remove-uploaded-file-btn" );
 			this.$filePicker = this.$el.find( ".file-picker-wrapper [type=file]" );
 			
-			//update related models from form config
-			/*var formConfig = App.ChartModel.get( "form-config" );
-			if( formConfig ) {
-
-				//available variables
-				var variablesCollection = formConfig[ "variables-collection" ];
-				if( variablesCollection ) {
-					App.ChartVariablesCollection.reset( variablesCollection );
-				}*/
-
-				//available dimensions
-				/*var dimensionsCollection = formConfig[ "dimensions" ];
-				if( dimensionsCollection && dimensionsCollection.chartDimensions ) {
-					App.ChartDimensionsModel.reset( dimensionsCollection.chartDimensions );
-				}*/
-
-				//available entity section
-				/*var entitiesCollection = formConfig[ "entities-collection" ];
-				if( entitiesCollection ) {
-					App.AvailableEntitiesCollection.reset( entitiesCollection );
-				}*/
-
-				//available time section
-				/*var availableTime = formConfig[ "available-time" ];
-				if( availableTime.min ) {
-					App.AvailableTimeModel.set( "min", availableTime.min );
-				}
-				if( availableTime.max ) {
-					App.AvailableTimeModel.set( "max", availableTime.max );
-				}
-
-			}*/
-
 			this.render();
 
 		},

@@ -62,16 +62,13 @@
 				}
 
 			});
+
+			//chosen select
+			$( ".chosen-select" ).chosen();
 			
 		},
 
 		onResize: function() {
-
-			//var winHeight = this.$win.height();
-			//$( ".tab-content" ).height( $( ".chart-wrapper-inner" ).height() - $( ".chart-header" ).height() ); //chart-header$( ".tab-content" ).css( );
-			
-			//$(".content-wrapper").css( { position:"absolute", top:0 left:0, right: 0, bottom:0 } );
-			//$("svg").css('height', winHeight - $('.main-header').outerHeight() - 250);
 
 		}
 
