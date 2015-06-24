@@ -65,11 +65,14 @@ class DataController extends Controller {
 			$dataByVariableTime = array();
 		}
 
+		/**
+		 * 1) get data into variable
+		 **/
+
+		$variablesData = [];
 		foreach( $dimensions as $dimension ) {
-			
+
 			$id = $dimension->variableId;
-			$property = $dimension->property;
-			
 			//use query builder instead of eloquent
 			$variableQuery = DB::table( 'data_values' )
 				->join( 'entities', 'data_values.fk_ent_id', '=', 'entities.id' )
@@ -89,6 +92,39 @@ class DataController extends Controller {
 			}	
 
 			$variableData = $variableQuery->get();
+			$variablesData[ $id ] = $variableData;
+		
+		}
+
+		
+
+
+		foreach( $dimensions as $dimension ) {
+			
+			$id = $dimension->variableId;
+			$property = $dimension->property;
+			
+			//use query builder instead of eloquent
+			/*$variableQuery = DB::table( 'data_values' )
+				->join( 'entities', 'data_values.fk_ent_id', '=', 'entities.id' )
+				->join( 'times', 'data_values.fk_time_id', '=', 'times.id' )
+				->where( 'data_values.fk_var_id', $id );
+
+			//are we filtering based on entity selection?
+			if( !empty( $selectedCountriesIds ) && count( $selectedCountriesIds ) > 0 ) {
+				$variableQuery->whereIn( 'data_values.fk_ent_id', $selectedCountriesIds );
+			}
+			//are we filtering based on time selection?
+			if( !empty( $chartTime ) && count( $chartTime ) > 1 ) {
+				$minTime = $chartTime[0];
+				$maxTime = $chartTime[1];
+				$variableQuery->where( 'times.date', '>=', $minTime );
+				$variableQuery->where( 'times.date', '<=', $maxTime );
+			}	
+
+			$variableData = $variableQuery->get();*/
+
+			$variableData = $variablesData[ $id ];
 			
 			//selectedCountries
 			if( $groupByEntity ) {
@@ -122,7 +158,7 @@ class DataController extends Controller {
 					}
 					//store value
 					$dataByEntity[ $entityId ][ "values" ][ $i ][ $property ] = floatval( $datum->value );
-					//if is linechart, store 
+					//if is linechart, store time into x axis
 					if( $isLineChart ) {
 						$dataByEntity[ $entityId ][ "values" ][ $i ][ "x" ] = floatval( $datum->date );
 					}
