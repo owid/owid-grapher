@@ -12,7 +12,7 @@
 		initialize: function( options ) {
 			
 			this.dispatcher = options.dispatcher;
-			App.AvailableTimeModel.on( "change", this.updateTime, this );
+			App.AvailableTimeModel.on( "change", this.onAvailableTimeChange, this );
 			
 			this.render();
 
@@ -44,8 +44,11 @@
 			}, 250 );
 
 			var hasDynamicTime = ( App.ChartModel.get( "chart-time" ) )? false: true;
-			if( App.AvailableTimeModel.get( "min" ) && App.AvailableTimeModel.get( "max" ) ) {
-				this.updateTime();
+			if( !hasDynamicTime ) {
+				var chartTime = App.ChartModel.get( "chart-time" );
+				this.updateTime( chartTime[ 0 ], chartTime[ 1 ] );
+			} else if( App.AvailableTimeModel.get( "min" ) && App.AvailableTimeModel.get( "max" ) ) {
+				this.updateTime( App.AvailableTimeModel.get( "min" ), App.AvailableTimeModel.get( "max" ) );
 				if( hasDynamicTime ) {
 					this.$dynamicTime.prop( "checked", true );
 				}
@@ -53,10 +56,14 @@
 			
 		},
 
-		updateTime: function() {
+		onAvailableTimeChange: function() {
+			this.updateTime( App.AvailableTimeModel.get( "min" ), App.AvailableTimeModel.get( "max" ) );
+		},
+
+		updateTime: function( from, to ) {
 
 			var slider = $( "[name=chart-time]" ).data( "ionRangeSlider" );
-			slider.update( {from: App.AvailableTimeModel.get( "min" ), to: App.AvailableTimeModel.get( "max" ) } );
+			slider.update( {from: from, to: to } );
 			//updating slider, so have some set values and disabling dynamic table
 			this.$dynamicTime.prop( "checked", false );
 			this.$irs.removeClass( "disabled" );
