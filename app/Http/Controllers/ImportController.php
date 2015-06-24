@@ -204,6 +204,13 @@ class ImportController extends Controller {
 						//entity haven't found in database, so insert it
 						$entity = Entity::create( $entityData ); 
 					}
+
+					//check to override validation if stored in db not validated and now is validate
+					if( $entity->validated == 0 && $entityData[ 'validated' ] === 1 ) {
+						$entity->validated = 1;
+						$entity->save();
+					}
+
 					$entityId = $entity->id;
 					$countryValues = $countryValue->values;
 
