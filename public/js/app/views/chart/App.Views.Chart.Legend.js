@@ -153,7 +153,8 @@
 
 				//TODO: implement fixed-width and max-width options (max-width is especially useful with the align option)
 				// NEW ALIGNING CODE, TODO: clean up
-				var legendWidth = 0;
+				var legendWidth = 0,
+					transformX, transformY;
 				if (align) {
 
 					var seriesWidths = [];
@@ -200,7 +201,6 @@
 						curX += columnWidths[i];
 					}
 
-					var transformX, transformY;
 					series
 						.attr('transform', function(d, i) {
 							transformX = xPositions[i % seriesPerRow];
@@ -302,6 +302,8 @@
 						
 				}
 			});
+			
+			console.log( "selectedCountries", App.ChartModel.get( "selected-countries" ) );
 
 			function setTextColor(d,i) {
 				if(vers != 'furious' && vers != 'owd') return '#000';

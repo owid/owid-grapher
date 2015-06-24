@@ -338,19 +338,7 @@
 				//set legend
 				that.legend = new App.Views.Chart.Legend( that.chart.legend ).vers( "owd" ); 
 				that.legend.dispatch.on( "removeEntity", function( id ) {
-					App.ChartModel.removeSelectedCountry( id );
-					var selectedCountries = App.ChartModel.get( "selected-countries" ),
-						countriesIds = _.keys( selectedCountries );
-					if( countriesIds.length == 0 ) {
-						//removed all selected countries, add all available countries as selected
-						var formConfig = App.ChartModel.get( "form-config" );
-						if( formConfig && formConfig[ "entities-collection" ] ) {
-							//remap
-							var entitiesCollection = {};
-							_.map( formConfig[ "entities-collection" ], function( d, i ) { entitiesCollection[ d.id ] = d; } );
-							App.ChartModel.set( "selected-countries", entitiesCollection );
-						}
-					}
+					that.onRemoveEntity( id );
 				} );
 				that.legend.dispatch.on( "addEntity", function() {
 					//trigger open the chosen drop down
@@ -378,6 +366,24 @@
 
 			});
 		
+		},
+
+		onRemoveEntity: function( id ) {
+
+			var selectedCountries = App.ChartModel.get( "selected-countries" ),
+				countriesIds = _.keys( selectedCountries );
+
+			if( countriesIds.length == 0 ) {
+				//removing from empty selection, need to copy all countries available into selected countries selection
+				var entitiesCollection = {},
+					formConfig = App.ChartModel.get( "form-config" );
+				if( formConfig && formConfig[ "entities-collection" ] ) {
+					_.map( formConfig[ "entities-collection" ], function( d, i ) { entitiesCollection[ d.id ] = d; } );
+					App.ChartModel.set( "selected-countries", entitiesCollection, { silent: true } );
+				}
+			}
+			App.ChartModel.removeSelectedCountry( id );
+			
 		},
 
 		onAvailableCountries: function( evt ) {
