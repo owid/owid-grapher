@@ -31,6 +31,8 @@ class DatabaseSeeder extends Seeder {
 		$this->call('ChartTypesTableSeeder');
 		$this->call('ChartTypeDimensionsTableSeeder');
 		
+		$this->call('SettingsTableSeeder');
+		
 		//dummy data
 		/*$this->call('DatasourcesTableSeeder');
 		$this->call('EntitiesTableSeeder');
