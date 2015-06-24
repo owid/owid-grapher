@@ -58,6 +58,12 @@
 						d3.event.stopImmediatePropagation();
 					} );
 				}
+				//based on selected countries selection hide or show addEntityBtn
+				if( _.isEmpty( App.ChartModel.get( "selected-countries" ) ) ) {
+					addEntityBtn.attr( "display", "none" );
+				} else {
+					addEntityBtn.attr( "display", "block" );
+				}
 					
 				var seriesEnter = series.enter().append('g').attr('class', 'nv-series'),
 					seriesShape, seriesRemove;
@@ -303,8 +309,6 @@
 				}
 			});
 			
-			console.log( "selectedCountries", App.ChartModel.get( "selected-countries" ) );
-
 			function setTextColor(d,i) {
 				if(vers != 'furious' && vers != 'owd') return '#000';
 				if(expanded) {
