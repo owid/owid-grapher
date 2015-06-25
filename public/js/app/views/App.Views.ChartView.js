@@ -60,6 +60,7 @@
 				that.$entitiesSelect.append( "<option disabled selected>Select country</option>" );
 				_.each( entities, function( d, i ) {
 					//add only those entities, which are not selected already
+					console.log( "selectedCountriesIds", d.id );
 					if( _.indexOf( selectedCountriesIds, d.id ) == -1 ) {
 						that.$entitiesSelect.append( "<option value='" + d.id + "'>" + d.name + "</option>" );
 					}

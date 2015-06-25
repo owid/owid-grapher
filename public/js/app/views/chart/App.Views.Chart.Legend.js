@@ -213,7 +213,6 @@
 						.attr('transform', function(d, i) {
 							transformX = xPositions[i % seriesPerRow];
 							transformY = (5 + Math.floor(i / seriesPerRow) * versPadding);
-							console.log( transformX, transformY, i );
 							return 'translate(' + transformX + ',' + transformY + ')';
 						});
 
@@ -306,7 +305,6 @@
 						transformX = +transformX + parseInt( lastRectWidth ) - 3;
 						//centering
 						transformY = +transformY - 3;
-						console.log( "transformX", transformX, transformY );
 						//check for right edge
 						var buttonWidth = 120, buttonHeight = 35;
 						if( ( transformX + buttonWidth ) > availableWidth ) {
