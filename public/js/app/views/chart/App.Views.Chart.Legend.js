@@ -10,7 +10,7 @@
 		// Public Variables with Default Settings
 		//------------------------------------------------------------
 
-		var margin = {top: 5, right: 50, bottom: 5, left: 0}
+		var margin = {top: 5, right: 50, bottom: 5, left: 62}
 			, width = 800
 			, height = 20
 			, getKey = function(d) { return d.key }

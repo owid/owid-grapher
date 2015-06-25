@@ -51,17 +51,16 @@
 			var	formConfig = App.ChartModel.get( "form-config" ),
 				entities = ( formConfig && formConfig[ "entities-collection" ] )? formConfig[ "entities-collection" ]: [],
 				selectedCountries = App.ChartModel.get( "selected-countries" ),
-				selectedCountriesIds = _.map( selectedCountries, function( v ) { return (v)? v.id: ""; } ),
+				selectedCountriesIds = _.map( selectedCountries, function( v ) { return (v)? +v.id: ""; } ),
 				chartTime = App.ChartModel.get( "chart-time" );
-			
+
 			this.$entitiesSelect.empty();
 			if( selectedCountriesIds.length ) {
 				//append empty default option
 				that.$entitiesSelect.append( "<option disabled selected>Select country</option>" );
 				_.each( entities, function( d, i ) {
 					//add only those entities, which are not selected already
-					console.log( "selectedCountriesIds", d.id );
-					if( _.indexOf( selectedCountriesIds, d.id ) == -1 ) {
+					if( _.indexOf( selectedCountriesIds, +d.id ) == -1 ) {
 						that.$entitiesSelect.append( "<option value='" + d.id + "'>" + d.name + "</option>" );
 					}
 				} );
@@ -551,6 +550,8 @@
 
 			//set chart height
 			chartHeight = svgHeight - translateY - footerHeight - bottomChartMargin - this.legend.height();
+			//reflect margin top and down in chartHeight
+			chartHeight = chartHeight - margins.bottom - margins.top;
 
 			//position footer
 			$chartDescriptionSvg.attr( "y", currY + chartHeight + bottomChartMargin );
@@ -559,23 +560,28 @@
 			App.Utils.wrap( $chartSourcesSvg, svgWidth );
 			
 			//compute chart width
-			var chartWidth = svgWidth;
+			var chartWidth = svgWidth - margins.left - margins.right;
 			this.chart.width( chartWidth );
 			this.chart.height( chartHeight );
 
 			//need to call chart update for resizing of elements within chart
 			this.chart.update();
 
-			//manually reposition chart after update
-			//this.translateString = "translate(" + margins.left + "," + currY + ")";
-			this.translateString = "translate(50," + currY + ")";
-			this.$svg.find( "> .nvd3.nv-wrap" ).attr( "transform", this.translateString );
-
 			//position legend
+			var legendMargins = this.legend.margin();
 			currY = currY - this.legend.height();
-			this.translateString = "translate(62," + currY + ")";
+			this.translateString = "translate(" + legendMargins.left + " ," + currY + ")";
 			this.$svg.find( "> .nvd3.nv-legend" ).attr( "transform", this.translateString );
 			this.$svg.css( "transform", "translate(0,-" + chartHeaderHeight + "px)" );
+
+			//reflect margin top in currY
+			currY += +this.legend.height();
+			currY += +margins.top;
+			
+			//manually reposition chart after update
+			//this.translateString = "translate(" + margins.left + "," + currY + ")";
+			this.translateString = "translate(" + margins.left + "," + currY + ")";
+			this.$svg.find( "> .nvd3.nv-wrap" ).attr( "transform", this.translateString );
 			
 		},
 
