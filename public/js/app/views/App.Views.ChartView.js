@@ -349,6 +349,9 @@
 					that.onRemoveEntity( id );
 				} );
 				that.legend.dispatch.on( "addEntity", function() {
+					if( that.$entitiesSelect.data( "chosen" ) ) {
+						that.$entitiesSelect.data( "chosen" ).active_field = false;
+					}
 					//trigger open the chosen drop down
 					that.$entitiesSelect.trigger( "chosen:open" );
 				} );
@@ -414,13 +417,6 @@
 				}
 			}
 
-			//hack, to make work chosen
-			var that = this;
-			setTimeout( function() {
-				if( that.$entitiesSelect.data( "chosen" ) ) {
-					that.$entitiesSelect.data( "chosen" ).active_field = false;
-				}
-			}, 100 );
 		},
 
 		updateDataTab: function( data ) {
