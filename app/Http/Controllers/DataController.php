@@ -96,9 +96,6 @@ class DataController extends Controller {
 		
 		}
 
-		
-
-
 		foreach( $dimensions as $dimension ) {
 			
 			$id = $dimension->variableId;

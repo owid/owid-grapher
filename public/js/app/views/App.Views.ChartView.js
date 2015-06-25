@@ -183,12 +183,17 @@
 
 			//filter data for selected countries
 			var selectedCountries = App.ChartModel.get( "selected-countries" ),
-				selectedCountriesIds = _.map( selectedCountries, function(v) { return +v.id; } );
+				selectedCountriesById = [],
+				selectedCountriesIds = _.map( selectedCountries, function(v) { 
+					//store 
+					selectedCountriesById[ v.id ] = v;
+					return +v.id; 
+				} );
 
 			if( selectedCountries && selectedCountriesIds.length ) {
 				localData = _.filter( localData, function( value, key, list ) {
 					//set color while in the loop
-					var country = selectedCountries[ value.id ];
+					var country = selectedCountriesById[ value.id ];
 					if( country && country.color ) {
 						value.color = country.color;
 					}

@@ -22,7 +22,7 @@
 		},
 
 		defaults: {
-			"selected-countries": {},
+			"selected-countries": [],
 			"tabs": [ "chart", "data", "sources" ],
 			"line-type": "2",
 			"chart-description": "",
@@ -43,12 +43,13 @@
 		addSelectedCountry: function( country ) {
 
 			//make sure we're using object, not associative array
-			if( $.isArray( this.get( "selected-countries" ) ) ) {
+			/*if( $.isArray( this.get( "selected-countries" ) ) ) {
 				//we got empty array from db, convert to object
 				this.set( "selected-countries", {} );
-			}
+			}*/
 			var selectedCountries = this.get( "selected-countries" );
-			selectedCountries[ country.id ] = country;
+			selectedCountries.push( country );
+			//selectedCountries[ country.id ] = country;
 			this.trigger( "change:selected-countries" );
 			this.trigger( "change" );
 			
@@ -56,8 +57,7 @@
 
 		updateSelectedCountry: function( countryId, color ) {
 
-			var selectedCountries = this.get( "selected-countries" ),
-				country = selectedCountries[ countryId ];
+			var country = this.findCountryById( countryId );
 			if( country ) {
 				country.color = color;
 				this.trigger( "change:selected-countries" );
@@ -68,12 +68,22 @@
 
 		removeSelectedCountry: function( countryId ) {
 
-			var selectedCountries = this.get( "selected-countries" );
-			if( selectedCountries[ countryId ] ) {
-				delete selectedCountries[ countryId ];
+			var country = this.findCountryById( countryId );
+			if( country ) {
+				var selectedCountries = this.get( "selected-countries" ),
+					countryIndex = _.indexOf( selectedCountries, country );
+				selectedCountries.splice( countryIndex, 1 );
 				this.trigger( "change:selected-countries" );
 				this.trigger( "change" );
 			}
+
+		},
+
+		findCountryById: function( countryId ) {
+
+			var selectedCountries = this.get( "selected-countries" ),
+				country = _.findWhere( selectedCountries, { id: countryId.toString() } );
+			return country;
 
 		},
 
