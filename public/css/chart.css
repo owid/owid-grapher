@@ -16,8 +16,8 @@
 
 	#chart-view .logo {
 		position: absolute;
-		top: 0;
-		left: 0;
+		top: 25px;
+		left: 40px;
 	}
 
 	.nvd3 .nv-axis line {
@@ -42,6 +42,7 @@
 	#chart-view .h2,
 	#chart-view h3,
 	#chart-view .h3 {
+		margin-left: 50px;
 		font-family: Georgia, "Times New Roman", Serif;
 	}
 	#chart-view h2,
@@ -49,12 +50,14 @@
 		margin-top: 0;
 		font-size: 24px;
 		font-weight: 400;
+		color: #35322F;
 	}
 	#chart-view h3,
 	#chart-view .h3 {
 		font-size: 15px;
-		opacity: .8;
+		opacity: 1;
 		line-height: 1.4;
+		color: #35322F;
 	}
 
 	/**
@@ -134,14 +137,17 @@
 		font-size: 11px;
 		background-color: #FAFAFA;
 	}
+		#chart-view .chart-footer a:hover {
+			text-decoration: underline;
+		}
 		#chart-view .export-footer-btns {
 			position: absolute;
-			top: 5px;
 			right: 5px;
+			bottom: 5px;
 			font-size: 10px;
 		}
 			#chart-view .export-footer-btns a {
-				display: block;
+				display: inline;
 			}
 		#chart-view .chart-footer a,
 		#chart-view #sources-chart-tab a {

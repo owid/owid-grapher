@@ -34,11 +34,11 @@
 				</svg>
 				<div class="chart-footer clearfix">
 					<div class="export-footer-btns">
-						<a href="#" class="chart-save-svg-btn" target="_blank">Save to svg</a>
-						<a href="#" class="chart-save-png-btn">Save to png</a>
+						Save to <a href="#" class="chart-save-svg-btn" target="_blank">SVG</a> |
+						<a href="#" class="chart-save-png-btn">PNG</a>
 					</div>
-					<p class="chart-description"></p>
 					<p class="chart-sources"></p>
+					<p class="chart-description"></p>
 				</div>
 			</div>
 			<div id="data-chart-tab" class="tab-pane">
