@@ -190,6 +190,18 @@
 		#chart-view .nv-legend .nv-add-btn {
 			cursor: pointer;
 		}
+			#chart-view .nv-legend .nv-add-btn .add-btn-bg {
+				fill: #fff;
+			}
+				#chart-view .nv-legend .nv-add-btn:hover .add-btn-bg {
+					fill: #aaa;
+				}
+					#chart-view .nv-legend .nv-add-btn:hover text {
+						fill: #fff;
+					}
+					#chart-view .nv-legend .nv-add-btn:hover .nv-box {
+						stroke: #fff;
+					}
 			#chart-view .nv-legend .nv-add-btn .nv-box {
 				stroke-width: 4px;
 				stroke: #000;

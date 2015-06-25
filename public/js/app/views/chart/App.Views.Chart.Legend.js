@@ -54,7 +54,7 @@
 				var addEntityBtn =  wrap.select( 'g.nv-add-btn' );
 				if( addEntityBtn.empty() ) {
 					addEntityBtn = wrap.append('g').attr('class', 'nv-add-btn');
-					addEntityBtn.property('innerHTML','<path d="M7,0 L7,14" class="nv-box"></path><path d="M0,7 L14,7" class="nv-box"></path>');
+					addEntityBtn.property('innerHTML','<rect class="add-btn-bg" width="100" height="25" transform="translate(0,-5)"/><path d="M16,0 L16,14" class="nv-box"></path><path d="M9,7 L22,7" class="nv-box"></path><text x="28" y="11">Add country</text>');
 					addEntityBtn.on( 'click', function( d, i ) {
 						dispatch.addEntity();
 						d3.event.stopImmediatePropagation();
@@ -302,9 +302,9 @@
 							lastRect = d3.select( lastEl ).select( "rect" ),
 							lastRectWidth = lastRect.attr( "width" );
 						//position add btn
-						transformX = +transformX + parseInt( lastRectWidth ) + 5;
+						transformX = +transformX + parseInt( lastRectWidth ) - 3;
 						//centering
-						transformY = +transformY - 2;
+						transformY = +transformY - 3;
 						addEntityBtn.attr( "transform", "translate( " + transformX + ", " + transformY + ")" );
 					}
 						
