@@ -54,7 +54,10 @@
 				var addEntityBtn =  wrap.select( 'g.nv-add-btn' );
 				if( addEntityBtn.empty() ) {
 					addEntityBtn = wrap.append('g').attr('class', 'nv-add-btn');
-					addEntityBtn.property('innerHTML','<rect class="add-btn-bg" width="100" height="25" transform="translate(0,-5)"/><path d="M16,0 L16,14" class="nv-box"></path><path d="M9,7 L22,7" class="nv-box"></path><text x="28" y="11">Add country</text>');
+					addEntityBtn.append('rect').attr( { 'class': 'add-btn-bg', 'width': '100', 'height': '25', 'transform': 'translate(0,-5)' } );
+					addEntityBtn.append('path').attr( { 'd': 'M16,0 L16,14', 'class': 'nv-box' } );
+					addEntityBtn.append('path').attr( { 'd': 'M9,7 L22,7', 'class': 'nv-box' } );
+					addEntityBtn.append('text').attr( {'x':28,'y':11} ).text('Add country');
 					addEntityBtn.on( 'click', function( d, i ) {
 						dispatch.addEntity();
 						d3.event.stopImmediatePropagation();
@@ -74,10 +77,11 @@
 				seriesEnter.append('rect')
 					.style('stroke-width', 2)
 					.attr('class','nv-legend-symbol');
-				seriesEnter.append('g')
+				var removeBtns = seriesEnter.append('g')
 					.attr('class', 'nv-remove-btn')
-					.property('innerHTML','<path d="M0,0 L7,7" class="nv-box"></path><path d="M7,0 L0,7" class="nv-box"></path>')
 					.attr('transform', 'translate(10,10)');
+				removeBtns.append('path').attr( { 'd': 'M0,0 L7,7', 'class': 'nv-box' } );
+				removeBtns.append('path').attr( { 'd': 'M7,0 L0,7', 'class': 'nv-box' } );
 				seriesShape = series.select('.nv-legend-symbol');
 				
 				seriesEnter.append('text')
