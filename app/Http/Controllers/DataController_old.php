@@ -69,12 +69,7 @@ class DataController extends Controller {
 		 * 1) get data into variable
 		 **/
 
-		//store the longest variable, will be used as main one
-		$dimensionsByKey = [];
-		$minDataLength = false;
-		$mainDimId = false;
-		$otherDimIds = [];
-
+		$variablesData = [];
 		foreach( $dimensions as $dimension ) {
 
 			$id = $dimension->variableId;
@@ -97,35 +92,37 @@ class DataController extends Controller {
 			}	
 
 			$variableData = $variableQuery->get();
-			//insert data into existing variable
-			$dimension->data = $variableData;
-
-			//is shortes variable?
-			$dataLen = count( $variableData );
-			if( $dataLen > $minDataLength || !$minDataLength ) {
-				$minDataLength = $dataLen;
-				$mainDimId = $id;
-			}
-			
+			$variablesData[ $id ] = $variableData;
+		
 		}
 
-
-		/**
-		 * 2) assign data to entities
-		 **/
-
 		foreach( $dimensions as $dimension ) {
-
+			
 			$id = $dimension->variableId;
 			$property = $dimension->property;
-			$variableData = $dimension->data;
+			
+			//use query builder instead of eloquent
+			/*$variableQuery = DB::table( 'data_values' )
+				->join( 'entities', 'data_values.fk_ent_id', '=', 'entities.id' )
+				->join( 'times', 'data_values.fk_time_id', '=', 'times.id' )
+				->where( 'data_values.fk_var_id', $id );
 
-			//store in array for step 3
-			$dimensionsByKey[ $id ] = $dimension;
-			if( $id != $mainDimId ) {
-				$otherDimIds[] = $id;
+			//are we filtering based on entity selection?
+			if( !empty( $selectedCountriesIds ) && count( $selectedCountriesIds ) > 0 ) {
+				$variableQuery->whereIn( 'data_values.fk_ent_id', $selectedCountriesIds );
 			}
+			//are we filtering based on time selection?
+			if( !empty( $chartTime ) && count( $chartTime ) > 1 ) {
+				$minTime = $chartTime[0];
+				$maxTime = $chartTime[1];
+				$variableQuery->where( 'times.date', '>=', $minTime );
+				$variableQuery->where( 'times.date', '<=', $maxTime );
+			}	
 
+			$variableData = $variableQuery->get();*/
+
+			$variableData = $variablesData[ $id ];
+			
 			//selectedCountries
 			if( $groupByEntity ) {
 			
@@ -149,14 +146,15 @@ class DataController extends Controller {
 							"values" => []
 						);
 					}
+
+					//$dataByEntity[ $entityId ][ "values" ][] = array( "x" => floatval($datum->date), "y" => floatval($datum->value) );
 					
 					//is it first property being saved for given property
-					if( !array_key_exists( $property, $dataByEntity[ $entityId ][ "values" ] ) ) {
-						$dataByEntity[ $entityId ][ "values" ][ $property ] = [];
+					if( !array_key_exists( $i, $dataByEntity[ $entityId ][ "values" ] ) ) {
+						$dataByEntity[ $entityId ][ "values" ][ $i ] = [];// "x" => floatval($datum->label), "y" => floatval($datum->value) ];
 					}
 					//store value
-					$dataByEntity[ $entityId ][ "values" ][ $property ][ floatval( $datum->date ) ] = floatval( $datum->value );
-					
+					$dataByEntity[ $entityId ][ "values" ][ $i ][ $property ] = floatval( $datum->value );
 					//if is linechart, store time into x axis
 					if( $isLineChart ) {
 						$dataByEntity[ $entityId ][ "values" ][ $i ][ "x" ] = floatval( $datum->date );
@@ -210,76 +208,11 @@ class DataController extends Controller {
 			}
 
 		}
-
-
-		/**
-		 * 3) prepare array with the longest as main dataset 
-		 **/
-
-		$normalizedData = [];
-		$mainDimension = $dimensionsByKey[ $mainDimId ];
 		
-		//loop through all countries
-		foreach( $dataByEntity as $entityData ) {
-
-			$arr = array(
-				"id" => $entityData[ "id" ],
-				"key" => $entityData[ "key" ],
-				"values" => []
-			);
-
-			//main values
-			$mainValues = $entityData[ "values" ][ $mainDimension->property ];
-			$i = 0;
-			foreach( $mainValues as $time=>$mainValue ) {
-
-				//array where we store data for all properties for given time 
-				$timeArr = [];
-
-				//flag whether for given time, there's enough relevant data
-				$hasData = true;
-
-				//take value from 
-				$timeArr[ $mainDimension->property ] = $mainValue;
-				
-				//insert other properties for given main property
-				foreach( $otherDimIds as $otherDimId ) {
-
-					$otherDimension = $dimensionsByKey[ $otherDimId ];
-
-					$value = false;
-					//retrieve value
-					if( !empty( $entityData[ "values" ][ $otherDimension->property ] ) && array_key_exists( $time, $entityData[ "values" ][ $otherDimension->property ] ) ) {
-						$value = $entityData[ "values" ][ $otherDimension->property ][ $time ];
-					} else {
-						$hasData = false;
-						$value = 0;
-					}
-					$timeArr[ $otherDimension->property ] = $value;
-					
-				}
-
-				//if is valid array, insert
-				if( $hasData ) {
-					$arr[ "values" ][ $i ] = $timeArr;
-					$i++;
-				} 
-				
-			}
-
-			$normalizedData[ $entityData[ "id" ] ] = $arr;
-			
-		}
-
-
 		if( $groupByEntity ) {
 			//convert to array
-			foreach( $normalizedData as $entityData ) {
-			//foreach( $dataByEntity as $entityData ) {
-				//TODO better check for this?
-				if( $entityData[ "values" ] ) {
-					$data[] = $entityData;
-				}
+			foreach( $dataByEntity as $entityData ) {
+				$data[] = $entityData;
 			}
 		} else {
 			//convert to array
@@ -367,10 +300,6 @@ class DataController extends Controller {
 			}
 
 		}
-
-	}
-
-	public function getRelatedKey( $buffer = 4, $dir = "up" ) {
 
 	}
 

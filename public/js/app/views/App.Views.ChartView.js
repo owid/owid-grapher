@@ -252,7 +252,7 @@
 				if( lineType == 2 ) {
 					chartOptions.defined = function( d ) { return d.y !== 0; };
 				}
-				if( lineType == 0 ) {
+				if( lineType === 0 ) {
 					that.$el.addClass( "line-dots" );
 				} else {
 					that.$el.removeClass( "line-dots" );
@@ -263,7 +263,7 @@
 				if( chartType == "1" ) {
 					that.chart = nv.models.lineChart().options( chartOptions );
 				} else if( chartType == "2" ) {
-					that.chart = nv.models.scatterChart().showDistX(true).showDistY(true);
+					that.chart = nv.models.scatterChart().options( chartOptions ).showDistX(true).showDistY(true);
 				}
 
 				that.chart.xAxis
