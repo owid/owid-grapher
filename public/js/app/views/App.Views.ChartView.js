@@ -317,14 +317,14 @@
 
 				//set scales
 				if( xAxisScale === "linear" ) {
-					that.chart.xScale( d3.scale.linear() ); 
+					that.chart.xScale( d3.scale.linear() );
 				} else if( xAxisScale === "log" ) {
-					that.chart.xScale( d3.scale.log() ); 
+					that.chart.xScale( d3.scale.log() );
 				}
 				if( yAxisScale === "linear" ) {
-					that.chart.yScale( d3.scale.linear() ); 
+					that.chart.yScale( d3.scale.linear() );
 				} else if( yAxisScale === "log" ) {
-					that.chart.yScale( d3.scale.log() ); 
+					that.chart.yScale( d3.scale.log() );
 				}
 
 				that.chart.yAxis
@@ -339,17 +339,21 @@
 				//set popup
 				that.chart.tooltip.contentGenerator( function( data ) {
 					//find relevant values for popup and display them
-					var series = data.series, key = "", value = "";
+					var series = data.series, key = "", value = "", value2 = "";
 					if( series && series.length ) {
 						var serie = series[ 0 ];
 						key = serie.key;
 						value = serie.value;
+						//get second value for x axis
+						if( data.point ) {
+							value2 = data.point.x;
+						}
 					}
-					return "<h3>" + key + "</h3><p>" + value + " " + App.ChartModel.get( "unit" ) + "</p>";
+					return "<h3>" + key + "</h3><p>" + value + " " + App.ChartModel.get( "unit" ) + ", " + value2 + "</p>";
 				} );
 
 				//set legend
-				that.legend = new App.Views.Chart.Legend( that.chart.legend ).vers( "owd" ); 
+				that.legend = new App.Views.Chart.Legend( that.chart.legend ).vers( "owd" );
 				that.legend.dispatch.on( "removeEntity", function( id ) {
 					that.onRemoveEntity( id );
 				} );
