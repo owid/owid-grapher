@@ -217,8 +217,9 @@ class DataController extends Controller {
 		 **/
 
 		$normalizedData = [];
+
 		$mainDimension = $dimensionsByKey[ $mainDimId ];
-		
+	
 		//loop through all countries
 		foreach( $dataByEntity as $entityData ) {
 
@@ -249,14 +250,65 @@ class DataController extends Controller {
 
 					$value = false;
 					//retrieve value
-					if( !empty( $entityData[ "values" ][ $otherDimension->property ] ) && array_key_exists( $time, $entityData[ "values" ][ $otherDimension->property ] ) ) {
-						$value = $entityData[ "values" ][ $otherDimension->property ][ $time ];
-					} else {
+					//has property any values at all?
+					if( !empty( $entityData[ "values" ][ $otherDimension->property ] ) ) {
+						
+						//has property for given time
+						if( array_key_exists( $time, $entityData[ "values" ][ $otherDimension->property ] ) ) {
+							
+							$value = $entityData[ "values" ][ $otherDimension->property ][ $time ];
+						
+						} else {
+							
+							//no it doesn't, look around
+							$lookAroundLen = 3;
+							$currLook = $lookAroundLen;
+							$direction = "past";
+							$origTime = $time;
+							$currTime = $time;
+							
+							while( $currLook > -1 ) {
+
+								if( $direction == "past" ) {
+									$currTime--;
+								} else {
+									$currTime++;
+								}
+								//break if found value
+								if( array_key_exists( $currTime, $entityData[ "values" ][ $otherDimension->property ] ) ) {
+									$value = $entityData[ "values" ][ $otherDimension->property ][ $currTime ]; 
+									break;
+								}
+								//value not found this round
+								if( $currLook > 0 ) {
+									$currLook--;
+								} else {
+									if( $direction == "past" ) {
+										//finished searching into 
+										$direction = "future";	
+										$lookAroundLen = $currLook;
+									} else {
+										//no value found in both cycles, do nothing and let while loop exit on its own
+									}
+								}
+								
+							}
+
+						}
+
+					} 
+
+					if( !$value ) {
 						$hasData = false;
 						$value = 0;
 					}
 					$timeArr[ $otherDimension->property ] = $value;
 					
+				}
+
+				//if is linechart, has only one dimension
+				if( $isLineChart ) {
+					$timeArr[ "x" ] = $time;
 				}
 
 				//if is valid array, insert
@@ -275,7 +327,6 @@ class DataController extends Controller {
 		if( $groupByEntity ) {
 			//convert to array
 			foreach( $normalizedData as $entityData ) {
-			//foreach( $dataByEntity as $entityData ) {
 				//TODO better check for this?
 				if( $entityData[ "values" ] ) {
 					$data[] = $entityData;
