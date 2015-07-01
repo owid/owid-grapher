@@ -27,12 +27,20 @@ class DataController extends Controller {
 
 	public function dimensions( Request $request ) {
 
-		if( !Input::has( 'chartId' ) ) {
+		//check we have everything we should have
+		if( !Input::has( 'chartId' ) || !Input::has( 'dimensions' )  || !Input::has( "selectedCountries" ) ) {
+			//we don't have necessary info, bail out
 			return;
 		}
 
-		//caching 
-		$key = 'chart-dimensions-' . Input::get( 'chartId' );
+		//filtering by entities?
+		$selectedCountriesIds = Input::get( "selectedCountries" );
+		$selectedCountriesIdsString = ( !empty( $selectedCountriesIds ) && count( $selectedCountriesIds ) > 0 )? implode( ",", $selectedCountriesIds ) : "";
+		//filtering by time?
+		$chartTime = Input::get( "chartTime" );
+
+		//caching - construct key with selected countries as well
+		$key = 'chart-dimensions-' . Input::get( 'chartId' ). '-countries-' .$selectedCountriesIdsString;
 		//if there's something in cache and not exporting
 		if( Cache::has( $key ) && !Input::has( 'export' ) && ( Input::has( 'cache' ) && Input::get( 'cache' ) === "true" ) ) {
 			return Cache::get( $key );
@@ -46,22 +54,12 @@ class DataController extends Controller {
 		$times = array();
 		$datasourcesIdsArr = array();
 
-		if( !Input::has( 'dimensions' ) ) {
-			return "";
-		}
-
 		$dimensionsInput = Input::get( 'dimensions' );
 		$dimensions = json_decode( $dimensionsInput );
 
 		$chartType = Input::get( 'chartType' );
 		//there's special setting for linechart
 		$isLineChart = ( $chartType == "1" )? true: false;
-
-		//filtering by entities?
-		$selectedCountriesIds = Input::get( "selectedCountries" );
-
-		//filtering by time?
-		$chartTime = Input::get( "chartTime" );
 
 		//find out how many variables we have 
 		$groupByEntity = (!$isLineChart || count( $dimensions ) == 1)? true: false;
