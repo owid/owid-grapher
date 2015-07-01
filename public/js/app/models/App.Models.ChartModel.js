@@ -31,7 +31,7 @@
 			"variables": [],
 			"y-axis": {},
 			"x-axis": {},
-			"margins": { top: 100, left: 80, bottom: 100, right: 80 },
+			"margins": { top: 10, left: 60, bottom: 10, right: 10 },
 			"unit": "",
 			"iframe-width": "100%",
 			"iframe-height": "100%"
