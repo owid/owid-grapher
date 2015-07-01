@@ -9,6 +9,8 @@ use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
 
+use Cache;
+
 class DatasetsController extends Controller {
 
 	/**
@@ -81,6 +83,9 @@ class DatasetsController extends Controller {
 			Dataset::updateSource( $dataset->id, $request->get( "fk_dsr_id" ) );
 		}
 		$dataset->update( $input );
+
+		Cache::flush();
+
 		return redirect()->route( 'datasets.show', $dataset->id)->with( 'message', 'Dataset updated.');
 	}
 
@@ -101,6 +106,8 @@ class DatasetsController extends Controller {
 		$dataset->variables()->delete();
 		//delete itself
 		$dataset->delete();
+		
+		Cache::flush();
 		
 		return redirect()->route('datasets.index')->with('message', 'Dataset deleted.');
 	}

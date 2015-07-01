@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
 
+use Cache;
+
 class EntitiesController extends Controller {
 
 	/**
@@ -80,6 +82,9 @@ class EntitiesController extends Controller {
 	{
 		$input = array_except( $request->all(), [ '_method', '_token' ] );
 		$entity->update( $input );
+
+		Cache::flush();
+
 		return redirect()->route( 'entities.show', $entity->id)->with( 'message', 'Entity updated.');
 	}
 
@@ -92,6 +97,7 @@ class EntitiesController extends Controller {
 	public function destroy($id)
 	{
 		//
+		Cache::flush();
 	}
 
 }

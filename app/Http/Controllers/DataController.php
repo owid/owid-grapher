@@ -12,6 +12,8 @@ use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
 
+use Cache;
+
 class DataController extends Controller {
 
 	/**
@@ -24,6 +26,17 @@ class DataController extends Controller {
 	}
 
 	public function dimensions( Request $request ) {
+
+		if( !Input::has( 'chartId' ) ) {
+			return;
+		}
+
+		//caching 
+		$key = 'chart-dimensions-' . Input::get( 'chartId' );
+		//if there's something in cache and not exporting
+		if( Cache::has( $key ) && !Input::has( 'export' ) ) {
+			return Cache::get( $key );
+		}
 
 		//set_time_limit( 600 ); 
 		//ini_set('memory_limit', '256M');
@@ -400,7 +413,13 @@ class DataController extends Controller {
 
 		if( $request->ajax() ) {
 
-			return [ 'success' => true, 'data' => $data, 'datasources' => $datasources, 'timeType' => $timeType, 'exportData' => $exportData, 'license' => $license ];
+			$result = [ 'success' => true, 'data' => $data, 'datasources' => $datasources, 'timeType' => $timeType, 'exportData' => $exportData, 'license' => $license ];
+			
+			//store into cache
+			$minutes = 60*24;
+			Cache::put( $key, $result, $minutes );
+			
+			return $result;
 
 		} else {
 

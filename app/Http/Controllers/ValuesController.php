@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
 
+use Cache;
+
 class ValuesController extends Controller {
 
 	/**
@@ -79,6 +81,8 @@ class ValuesController extends Controller {
 		$input = [ 'label' => $request->input( 'time-label' ) ];
 		$dataValue->time->update( $input );
 
+		Cache::flush();
+
 		return redirect()->route( 'variables.show', $dataValue->fk_var_id)->with( 'message', 'Value updated.');
 	}
 
@@ -94,6 +98,9 @@ class ValuesController extends Controller {
 		$dataValue->delete();
 		//delete time
 		$deleteTime = $dataValue->time->delete();
+
+		Cache::flush();
+		
 		return redirect()->route('variables.show', $dataValue->fk_var_id)->with('message', 'Value deleted.');
 	}
 

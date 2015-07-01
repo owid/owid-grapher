@@ -13,6 +13,8 @@ use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
 
+use Cache;
+
 class ChartsController extends Controller {
 
 	/**
@@ -40,6 +42,9 @@ class ChartsController extends Controller {
 		$data->chartTypes = ChartType::lists( 'name', 'id' );
 		$logoUrl = Setting::where( 'meta_name', 'logoUrl' )->first();
 		$data->logoUrl = ( !empty( $logoUrl ) )? url('/') .'/'. $logoUrl->meta_value: '';
+
+		Cache::flush();
+
 		return view('charts.create')->with( 'data', $data );
 	}
 
@@ -61,19 +66,9 @@ class ChartsController extends Controller {
 			
 			$chart = Chart::create( [ 'config' => $json, 'name' => $chartName ] );
 			
-			return ['success' => true, 'data' => [ 'id' => $chart->id, 'viewUrl' => route( 'view', $chart->id ) ] ];
+			Cache::flush();
 
-			/*$u = new User;
-			$u->username = $data['username'];
-			$u->password = Hash::make(Input::get( $data['password']));
-			//if success
-			if($u->save()){
-				return 1;
-			}
-			//if not success
-			else{
-			return 0;
-			*/
+			return ['success' => true, 'data' => [ 'id' => $chart->id, 'viewUrl' => route( 'view', $chart->id ) ] ];
 
 		}
 
@@ -149,6 +144,9 @@ class ChartsController extends Controller {
 		
 		$chart->fill( [ 'name' => $chartName, 'config' => $json ] );
 		$chart->save();
+
+		Cache::flush();
+
 		return ['success' => true, 'data' => [ 'id' => $chart->id, 'viewUrl' => route( 'view', $chart->id ) ] ];
 	}
 
@@ -161,6 +159,9 @@ class ChartsController extends Controller {
 	public function destroy( Chart $chart )
 	{
 		$chart->delete();
+
+		Cache::flush();
+		
 		return redirect()->route( 'charts.index' )->with( 'message', 'Chart deleted.' );
 	}
 

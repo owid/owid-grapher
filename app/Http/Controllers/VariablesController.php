@@ -11,6 +11,8 @@ use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
 
+use Cache;
+
 class VariablesController extends Controller {
 
 	/**
@@ -153,6 +155,9 @@ class VariablesController extends Controller {
 			Variable::updateSource( $variable->id, $request->get( "fk_dsr_id" ) );
 		}
 		$variable->update( $input );
+
+		Cache::flush();
+
 		return redirect()->route( 'variables.show', $variable->id)->with( 'message', 'Variable updated.');
 	}
 
@@ -169,6 +174,8 @@ class VariablesController extends Controller {
 		//delete itself
 		$variable->delete();
 		
+		Cache::flush();
+
 		return redirect()->route('datasets.show', $variable->fk_dst_id)->with('message', 'Variable deleted.');
 	}
 
@@ -178,6 +185,9 @@ class VariablesController extends Controller {
 			$valueIds = $request->get( 'value_ids' );
 			$idsArr = json_decode($valueIds);
 			DataValue::destroy($idsArr);
+
+			Cache::flush();
+
 			return redirect()->route('variables.show', $variable->id)->with('message', 'Values deleted.')->with( 'message-class', 'success' );
 		}
 		return redirect()->route('variables.show', $variable->id);
@@ -194,6 +204,9 @@ class VariablesController extends Controller {
 				$variable->save();
 				//update all variable values
 				DataValue::where( 'fk_var_id', $variable->id )->update( array( 'fk_dsr_id' => $newDatasourceId ) );
+
+				Cache::flush();
+		
 			}
 		}
 

@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
 
+use Cache;
+
 class LicensesController extends Controller {
 
 	/**
@@ -71,6 +73,9 @@ class LicensesController extends Controller {
 	{
 		$input = array_except( $request->all(), [ '_method', '_token' ] );
 		$license->update( $input );
+
+		Cache::flush();
+		
 		return redirect()->route( 'licenses.show', $license->id)->with( 'message', 'License updated.')->with( 'message-class', 'success' );
 	}
 

@@ -21,6 +21,9 @@
 			$rules = array('image' => 'required',); //mimes:jpeg,bmp,png and for max size max:10000
 			// doing the validation, passing post data, rules and the messages
 			$validator = Validator::make($file, $rules);
+
+			Cache::flush();
+			
 			if ($validator->fails()) {
 				// send back to the page with the input data and errors
 				return Redirect::to('logo')->withInput()->withErrors($validator);
