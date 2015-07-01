@@ -10,8 +10,7 @@
 		// Public Variables with Default Settings
 		//------------------------------------------------------------
 
-		var margin = {top: 5, right: 50, bottom: 5, left: 62}
-			, width = 800
+		var margin = {top: 5, right: 50, bottom: 5, left: 62}, width = 800
 			, height = 20
 			, getKey = function(d) { return d.key }
 			, color = nv.utils.getColor()
@@ -142,7 +141,7 @@
 							d.disabled = false;
 							if(vers == 'furious' || vers == 'owd' ) d.userDisabled = d.disabled;
 							chartLegend.dispatch.stateChange({
-								disabled: data.map(function(d) { return !!d.disabled })
+								disabled: data.map(function(d) { return !!d.disabled; })
 							});
 						}
 					});
@@ -156,7 +155,7 @@
 					
 				} );	
 
-				series.classed('nv-disabled', function(d) { return d.userDisabled });
+				series.classed('nv-disabled', function(d) { return d.userDisabled; });
 				series.exit().remove();
 
 				seriesText
