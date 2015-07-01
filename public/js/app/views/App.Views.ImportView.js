@@ -642,7 +642,7 @@
 			} else if( !validateEntities && !this.isDataMultiVariant ) {
 				//validate only time
 				$validationResults = $( ".time-domain-validation-result.text-danger, .times-validation-result.text-danger" );
-			} else if( validateEntities && this.isDataMultiVariant ) {
+			} else if( validateEntities && !this.isDataMultiVariant ) {
 				//validate only entities
 				$validationResults = $( ".entities-validation-result.text-danger" );
 			} else {

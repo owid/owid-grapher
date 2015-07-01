@@ -28,11 +28,11 @@ class DataController extends Controller {
 	public function dimensions( Request $request ) {
 
 		//check we have everything we should have
-		if( !Input::has( 'chartId' ) || !Input::has( 'dimensions' )  || !Input::has( "selectedCountries" ) ) {
+		if( !Input::has( 'chartId' ) || !Input::has( 'dimensions' ) ) {
 			//we don't have necessary info, bail out
 			return;
 		}
-
+		
 		//filtering by entities?
 		$selectedCountriesIds = Input::get( "selectedCountries" );
 		$selectedCountriesIdsString = ( !empty( $selectedCountriesIds ) && count( $selectedCountriesIds ) > 0 )? implode( ",", $selectedCountriesIds ) : "";
@@ -43,7 +43,7 @@ class DataController extends Controller {
 		$key = 'chart-dimensions-' . Input::get( 'chartId' ). '-countries-' .$selectedCountriesIdsString;
 		//if there's something in cache and not exporting
 		if( Cache::has( $key ) && !Input::has( 'export' ) && ( Input::has( 'cache' ) && Input::get( 'cache' ) === "true" ) ) {
-			return Cache::get( $key );
+			//return Cache::get( $key );
 		} 
 		
 		//set_time_limit( 600 ); 
@@ -119,7 +119,6 @@ class DataController extends Controller {
 			}
 			
 		}
-
 
 		/**
 		 * 2) assign data to entities
@@ -228,113 +227,115 @@ class DataController extends Controller {
 		 **/
 
 		$normalizedData = [];
-
 		$mainDimension = $dimensionsByKey[ $mainDimId ];
 	
 		//loop through all countries
-		foreach( $dataByEntity as $entityData ) {
+		if( $groupByEntity ) {
 
-			$arr = array(
-				"id" => $entityData[ "id" ],
-				"key" => $entityData[ "key" ],
-				"values" => []
-			);
+			foreach( $dataByEntity as $entityData ) {
 
-			//main values
-			$mainValues = $entityData[ "values" ][ $mainDimension->property ];
-			$i = 0;
-			foreach( $mainValues as $time=>$mainValue ) {
+				$arr = array(
+					"id" => $entityData[ "id" ],
+					"key" => $entityData[ "key" ],
+					"values" => []
+				);
 
-				//array where we store data for all properties for given time 
-				$timeArr = [];
+				//main values
+				$mainValues = $entityData[ "values" ][ $mainDimension->property ];
+				$i = 0;
+				foreach( $mainValues as $time=>$mainValue ) {
 
-				//flag whether for given time, there's enough relevant data
-				$hasData = true;
+					//array where we store data for all properties for given time 
+					$timeArr = [];
 
-				//take value from 
-				$timeArr[ $mainDimension->property ] = $mainValue;
-				
-				//insert other properties for given main property
-				foreach( $otherDimIds as $otherDimId ) {
+					//flag whether for given time, there's enough relevant data
+					$hasData = true;
 
-					$otherDimension = $dimensionsByKey[ $otherDimId ];
+					//take value from 
+					$timeArr[ $mainDimension->property ] = $mainValue;
+					
+					//insert other properties for given main property
+					foreach( $otherDimIds as $otherDimId ) {
 
-					$value = false;
-					//retrieve value
-					//has property any values at all?
-					if( !empty( $entityData[ "values" ][ $otherDimension->property ] ) ) {
-						
-						//has property for given time
-						if( array_key_exists( $time, $entityData[ "values" ][ $otherDimension->property ] ) ) {
+						$otherDimension = $dimensionsByKey[ $otherDimId ];
+
+						$value = false;
+						//retrieve value
+						//has property any values at all?
+						if( !empty( $entityData[ "values" ][ $otherDimension->property ] ) ) {
 							
-							$value = $entityData[ "values" ][ $otherDimension->property ][ $time ];
-						
-						} else {
-							
-							//no it doesn't, look around
-							$lookAroundLen = 3;
-							$currLook = $lookAroundLen;
-							$direction = "past";
-							$origTime = $time;
-							$currTime = $time;
-							
-							while( $currLook > -1 ) {
-
-								if( $direction == "past" ) {
-									$currTime--;
-								} else {
-									$currTime++;
-								}
-								//break if found value
-								if( array_key_exists( $currTime, $entityData[ "values" ][ $otherDimension->property ] ) ) {
-									$value = $entityData[ "values" ][ $otherDimension->property ][ $currTime ]; 
-									break;
-								}
-								//value not found this round
-								if( $currLook > 0 ) {
-									$currLook--;
-								} else {
-									if( $direction == "past" ) {
-										//finished searching into 
-										$direction = "future";	
-										$lookAroundLen = $currLook;
-									} else {
-										//no value found in both cycles, do nothing and let while loop exit on its own
-									}
-								}
+							//has property for given time
+							if( array_key_exists( $time, $entityData[ "values" ][ $otherDimension->property ] ) ) {
 								
+								$value = $entityData[ "values" ][ $otherDimension->property ][ $time ];
+							
+							} else {
+								
+								//no it doesn't, look around
+								$lookAroundLen = 3;
+								$currLook = $lookAroundLen;
+								$direction = "past";
+								$origTime = $time;
+								$currTime = $time;
+								
+								while( $currLook > -1 ) {
+
+									if( $direction == "past" ) {
+										$currTime--;
+									} else {
+										$currTime++;
+									}
+									//break if found value
+									if( array_key_exists( $currTime, $entityData[ "values" ][ $otherDimension->property ] ) ) {
+										$value = $entityData[ "values" ][ $otherDimension->property ][ $currTime ]; 
+										break;
+									}
+									//value not found this round
+									if( $currLook > 0 ) {
+										$currLook--;
+									} else {
+										if( $direction == "past" ) {
+											//finished searching into 
+											$direction = "future";	
+											$lookAroundLen = $currLook;
+										} else {
+											//no value found in both cycles, do nothing and let while loop exit on its own
+										}
+									}
+									
+								}
+
 							}
 
+						} 
+
+						if( !$value ) {
+							$hasData = false;
+							$value = 0;
 						}
-
-					} 
-
-					if( !$value ) {
-						$hasData = false;
-						$value = 0;
+						$timeArr[ $otherDimension->property ] = $value;
+						
 					}
-					$timeArr[ $otherDimension->property ] = $value;
+
+					//if is linechart, has only one dimension
+					if( $isLineChart ) {
+						$timeArr[ "x" ] = $time;
+					}
+
+					//if is valid array, insert
+					if( $hasData ) {
+						$arr[ "values" ][ $i ] = $timeArr;
+						$i++;
+					} 
 					
 				}
 
-				//if is linechart, has only one dimension
-				if( $isLineChart ) {
-					$timeArr[ "x" ] = $time;
-				}
-
-				//if is valid array, insert
-				if( $hasData ) {
-					$arr[ "values" ][ $i ] = $timeArr;
-					$i++;
-				} 
+				$normalizedData[ $entityData[ "id" ] ] = $arr;
 				
 			}
 
-			$normalizedData[ $entityData[ "id" ] ] = $arr;
-			
 		}
-
-
+		
 		if( $groupByEntity ) {
 			//convert to array
 			foreach( $normalizedData as $entityData ) {

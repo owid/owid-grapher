@@ -172,7 +172,7 @@
 		},
 
 		updateChart: function( data, timeType ) {
-
+			debugger;
 			if( !data ) {
 				return;
 			}

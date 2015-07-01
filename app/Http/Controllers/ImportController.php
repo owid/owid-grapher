@@ -199,7 +199,13 @@ class ImportController extends Controller {
 					}
 					
 					//find try finding entity in db
-					$entity = Entity::where( 'code', ( isset( $entityIsoName )? $entityIsoName->iso3: $entityData['name'] ) )->first();
+					if( isset( $entityIsoName ) ) {
+						$entity = Entity::where( 'code', $entityIsoName->iso3 )->first();
+					} else {
+						//not standardized data
+						$entity = Entity::where( 'code', $entityData['name'] )->orWhere( 'name', $entityData['name'] )->first();
+					}
+					
 					if( !$entity ) {
 						//entity haven't found in database, so insert it
 						$entity = Entity::create( $entityData ); 
