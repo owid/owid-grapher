@@ -22,6 +22,11 @@
 				console.error( "Error loading chart model", xhr );
 			}
 		} );
+		//find out if it's in cache
+		if( !$( ".standalone-chart-viewer" ).length ) {
+			//disable caching for viewing within admin
+			App.ChartModel.set( "cache", false );
+		}
 		
 	} else {
 

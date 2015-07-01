@@ -34,10 +34,10 @@ class DataController extends Controller {
 		//caching 
 		$key = 'chart-dimensions-' . Input::get( 'chartId' );
 		//if there's something in cache and not exporting
-		if( Cache::has( $key ) && !Input::has( 'export' ) ) {
+		if( Cache::has( $key ) && !Input::has( 'export' ) && ( Input::has( 'cache' ) && Input::get( 'cache' ) === "true" ) ) {
 			return Cache::get( $key );
-		}
-
+		} 
+		
 		//set_time_limit( 600 ); 
 		//ini_set('memory_limit', '256M');
 		$data = array();

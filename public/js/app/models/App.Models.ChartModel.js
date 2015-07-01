@@ -22,6 +22,7 @@
 		},
 
 		defaults: {
+			"cache": true,
 			"selected-countries": [],
 			"tabs": [ "chart", "data", "sources" ],
 			"line-type": "2",

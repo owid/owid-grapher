@@ -75,13 +75,12 @@
 			
 			//sources tab
 			this.$sourcesTab = this.$el.find( "#sources-chart-tab" );
-
 			var dimensionsString = App.ChartModel.get( "chart-dimensions" );
 			if( dimensionsString ) {
 
 				$.ajax( {
 					url: Global.rootUrl + "/data/dimensions",
-					data: { "dimensions": dimensionsString, "chartType": App.ChartModel.get( "chart-type" ), "selectedCountries": selectedCountriesIds, "chartTime": chartTime },
+					data: { "dimensions": dimensionsString, "chartId": App.ChartModel.get( "id" ), "chartType": App.ChartModel.get( "chart-type" ), "selectedCountries": selectedCountriesIds, "chartTime": chartTime, "cache": App.ChartModel.get( "cache" ) },
 					success: function( response ) {
 						if( response.data ) {
 							that.updateChart( response.data, response.timeType );
@@ -184,10 +183,10 @@
 			//filter data for selected countries
 			var selectedCountries = App.ChartModel.get( "selected-countries" ),
 				selectedCountriesById = [],
-				selectedCountriesIds = _.map( selectedCountries, function(v) { 
+				selectedCountriesIds = _.map( selectedCountries, function(v) {
 					//store 
 					selectedCountriesById[ v.id ] = v;
-					return +v.id; 
+					return +v.id;
 				} );
 
 			if( selectedCountries && selectedCountriesIds.length ) {
@@ -394,7 +393,7 @@
 			var selectedCountries = App.ChartModel.get( "selected-countries" ),
 				countriesIds = _.keys( selectedCountries );
 
-			if( countriesIds.length == 0 ) {
+			if( countriesIds.length === 0 ) {
 				//removing from empty selection, need to copy all countries available into selected countries selection
 				var entitiesCollection = {},
 					formConfig = App.ChartModel.get( "form-config" );
