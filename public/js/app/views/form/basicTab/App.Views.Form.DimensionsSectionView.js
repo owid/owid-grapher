@@ -22,7 +22,7 @@
 
 		render: function() {
 
-			this.$formSectionContent = this.$el.find( ".form-section-content" ); 
+			this.$formSectionContent = this.$el.find( ".form-section-content" );
 			this.$dimensionsInput = this.$el.find( "[name='chart-dimensions']" );
 
 			//get rid of old content
@@ -58,7 +58,7 @@
 			var chartDimensions = App.ChartModel.get( "chart-dimensions" );
 			this.setInputs( chartDimensions );
 
-
+			
 		},
 
 		updateInput: function() {

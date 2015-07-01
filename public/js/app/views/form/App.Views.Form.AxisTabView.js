@@ -6,7 +6,7 @@
 
 		el: "#form-view #axis-tab",
 		events: {
-			"input input.form-control, select.form-control": "onFormControlChange",
+			"change input.form-control, select.form-control": "onFormControlChange",
 		},
 
 		initialize: function( options ) {
