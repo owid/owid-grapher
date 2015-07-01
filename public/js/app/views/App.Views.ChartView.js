@@ -80,7 +80,7 @@
 
 				$.ajax( {
 					url: Global.rootUrl + "/data/dimensions",
-					data: { "dimensions": dimensionsString, "chartId": App.ChartModel.get( "id" ), "chartType": App.ChartModel.get( "chart-type" ), "selectedCountries": selectedCountriesIds, "chartTime": chartTime, "cache": App.ChartModel.get( "cache" ) },
+					data: { "dimensions": dimensionsString, "chartId": App.ChartModel.get( "id" ), "chartType": App.ChartModel.get( "chart-type" ), "selectedCountries": selectedCountriesIds, "chartTime": chartTime, "cache": App.ChartModel.get( "cache" ), "onlyEntityMatch": App.ChartModel.get( "only-entity-match" )  },
 					success: function( response ) {
 						if( response.data ) {
 							that.updateChart( response.data, response.timeType );
@@ -172,7 +172,7 @@
 		},
 
 		updateChart: function( data, timeType ) {
-			debugger;
+
 			if( !data ) {
 				return;
 			}
@@ -337,8 +337,9 @@
 
 				//set popup
 				that.chart.tooltip.contentGenerator( function( data ) {
+					
 					//find relevant values for popup and display them
-					var series = data.series, key = "", value = "", value2 = "";
+					var series = data.series, key = "", value = "", value2 = "", time = "";
 					if( series && series.length ) {
 						var serie = series[ 0 ];
 						key = serie.key;
@@ -346,9 +347,17 @@
 						//get second value for x axis
 						if( data.point ) {
 							value2 = data.point.x;
+							time = data.point.time;
 						}
 					}
-					return "<h3>" + key + "</h3><p>" + value + " " + App.ChartModel.get( "unit" ) + ", " + value2 + "</p>";
+
+					var string = "<h3>" + key + "</h3><p>" + value + " " + App.ChartModel.get( "unit" ) + ", " + value2;
+					if( time ) {
+						string += " in " + time;
+					}
+					string += "</p>";
+					return string;
+
 				} );
 
 				//set legend
