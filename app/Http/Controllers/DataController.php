@@ -199,6 +199,7 @@ class DataController extends Controller {
 				);
 
 				foreach( $variableData as $datum ) {
+					
 					$dataByVariable[ "id-".$id ][ "values" ][] = array( "x" => floatval($datum->date), "y" => floatval($datum->value) );
 					$times[$datum->label] = true;
 					$datasourcesIdsArr[ $datum->fk_dsr_id ] = true;
@@ -253,6 +254,8 @@ class DataController extends Controller {
 
 					//take value from 
 					$timeArr[ $mainDimension->property ] = $mainValue;
+					//store time as one dimension, usefull for popup for scatter plot
+					$timeArr[ "time" ] = $time;
 					
 					//insert other properties for given main property
 					foreach( $otherDimIds as $otherDimId ) {
@@ -260,53 +263,70 @@ class DataController extends Controller {
 						$otherDimension = $dimensionsByKey[ $otherDimId ];
 
 						$value = false;
-						//retrieve value
+						//retrieve value for property
 						//has property any values at all?
 						if( !empty( $entityData[ "values" ][ $otherDimension->property ] ) ) {
 							
-							//has property for given time
-							if( array_key_exists( $time, $entityData[ "values" ][ $otherDimension->property ] ) ) {
-								
-								$value = $entityData[ "values" ][ $otherDimension->property ][ $time ];
-							
-							} else {
-								
-								//no it doesn't, look around
-								$lookAroundLen = 3;
-								$currLook = $lookAroundLen;
-								$direction = "past";
-								$origTime = $time;
-								$currTime = $time;
-								
-								while( $currLook > -1 ) {
+							$useLatestYear = false;
+							//aren't for this variable using the latest year
+							if( !$useLatestYear ) {
 
-									if( $direction == "past" ) {
-										$currTime--;
-									} else {
-										$currTime++;
-									}
-									//break if found value
-									if( array_key_exists( $currTime, $entityData[ "values" ][ $otherDimension->property ] ) ) {
-										$value = $entityData[ "values" ][ $otherDimension->property ][ $currTime ]; 
-										break;
-									}
-									//value not found this round
-									if( $currLook > 0 ) {
-										$currLook--;
-									} else {
-										if( $direction == "past" ) {
-											//finished searching into 
-											$direction = "future";	
-											$lookAroundLen = $currLook;
-										} else {
-											//no value found in both cycles, do nothing and let while loop exit on its own
-										}
-									}
+								//no, we're not, retrieve value normal way
+
+								//has property for given time
+								if( array_key_exists( $time, $entityData[ "values" ][ $otherDimension->property ] ) ) {
 									
+									$value = $entityData[ "values" ][ $otherDimension->property ][ $time ];
+								
+								} else {
+									
+									//no it doesn't, look around
+									$lookAroundLen = 3;
+									$currLook = $lookAroundLen;
+									$direction = "past";
+									
+									while( $currLook > -1 ) {
+
+										if( $direction == "past" ) {
+											$currTime--;
+										} else {
+											$currTime++;
+										}
+										//break if found value
+										if( array_key_exists( $currTime, $entityData[ "values" ][ $otherDimension->property ] ) ) {
+											$value = $entityData[ "values" ][ $otherDimension->property ][ $currTime ]; 
+											break;
+										}
+										//value not found this round
+										if( $currLook > 0 ) {
+											$currLook--;
+										} else {
+											if( $direction == "past" ) {
+												//finished searching into 
+												$direction = "future";	
+												$lookAroundLen = $currLook;
+											} else {
+												//no value found in both cycles, do nothing and let while loop exit on its own
+											}
+										}
+										
+									}
+
+								}
+
+							} else {
+
+								//special case, for this variable, we want to always use latest year
+								//find latest year then 
+								$allYears = array_keys( $entityData[ "values" ][ $otherDimension->property ] );
+								$latestYear = max( $allYears );
+								//check for sure, that we have value for that value (TODO - is this necessary, there shouldn't be any value here)
+								if( array_key_exists( $latestYear, $entityData[ "values" ][ $otherDimension->property ] ) ) {
+									$value = $entityData[ "values" ][ $otherDimension->property ][ $latestYear ];
 								}
 
 							}
-
+						
 						} 
 
 						if( !$value ) {
@@ -324,8 +344,17 @@ class DataController extends Controller {
 
 					//if is valid array, insert
 					if( $hasData ) {
-						$arr[ "values" ][ $i ] = $timeArr;
+
+						//are we matching agains entity and time, or only against entity
+						$onlyEntityMatch = ( Input::has( "onlyEntityMatch" ) && Input::get( "onlyEntityMatch" ) === "true" )? true: false;
+						if( !$onlyEntityMatch ) {
+							$arr[ "values" ][ $i ] = $timeArr;
+						} else {
+							//storing only one array for each country and entity
+							$arr[ "values" ][ 0 ] = $timeArr;
+						}
 						$i++;
+
 					} 
 					
 				}
@@ -350,6 +379,11 @@ class DataController extends Controller {
 				$data[] = $varData;
 			}
 		}
+
+		/**
+		 *	4) fetch all the other necessary data
+		 **/
+
 
 		//get all necessary info for datasources
 		$datasourcesIds = array_keys( $datasourcesIdsArr );

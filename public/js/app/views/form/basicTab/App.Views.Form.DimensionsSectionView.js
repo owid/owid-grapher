@@ -58,6 +58,16 @@
 			var chartDimensions = App.ChartModel.get( "chart-dimensions" );
 			this.setInputs( chartDimensions );
 
+			//if scatter plot, only entity match
+			var $onlyEntityMatchCheck = $( "<div class='only-entity-check-wrapper'><label><input type='checkbox' name='only-entity-check' />Match variables only by countries, not years.</label></div>" ),
+				$onlyEntityInput = $onlyEntityMatchCheck.find( "input" );
+			$onlyEntityInput.on( "change", function( evt ) {
+				var $this = $( this );
+				App.ChartModel.set( "only-entity-match", $this.prop( "checked" ) );
+			} );
+			//set default value
+			$onlyEntityInput.prop( "checked", App.ChartModel.get( "only-entity-match" ) );
+			this.$formSectionContent.append( $onlyEntityMatchCheck );
 			
 		},
 
@@ -90,8 +100,8 @@
 			}
 
 			//convert to json
-			chartDimensions = $.parseJSON( chartDimensions ); 
-			
+			chartDimensions = $.parseJSON( chartDimensions );
+
 			var that = this;
 			_.each( chartDimensions, function( chartDimension, i ) {
 
@@ -103,7 +113,7 @@
 				$dimensionBox.find( ".dd-empty" ).remove();
 				var $ddList = $( "<ol class='dd-list'></ol>" );
 				$ddList.append( $variableLabel );
-				$dimensionBox.find( ".dd" ).append( $ddList ); 
+				$dimensionBox.find( ".dd" ).append( $ddList );
 				that.dispatcher.trigger( "variable-label-moved" );
 
 			} );
