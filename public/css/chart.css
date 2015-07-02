@@ -60,6 +60,10 @@
 		color: #35322F;
 	}
 
+	#chart-view .nvd3 .nv-axis line {
+		opacity: .6;
+	}
+
 	/**
 	*	CHART TABS
 	**/

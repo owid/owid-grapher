@@ -77,7 +77,7 @@
 			//if already generated code, update it
 			if( this.$iframeTextArea.text() != "" ) {
 				this.generateIframeCode();
-			} 
+			}
 
 		},
 
@@ -86,7 +86,7 @@
 			if( viewUrl ) {
 				this.viewUrl = viewUrl;
 			}
-			this.$iframeTextArea.text( '<iframe src="' + this.viewUrl + '" style="width:' + App.ChartModel.get( "iframe-width" ) + ';height:' + App.ChartModel.get( "iframe-height" ) + ';"></iframe>' );
+			this.$iframeTextArea.text( '<iframe src="' + this.viewUrl + '" style="width:' + App.ChartModel.get( "iframe-width" ) + ';height:' + App.ChartModel.get( "iframe-height" ) + '; border: 0px none;"></iframe>' );
 		}
 
 	});
