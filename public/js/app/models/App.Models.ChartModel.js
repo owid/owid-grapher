@@ -34,7 +34,8 @@
 			"margins": { top: 10, left: 60, bottom: 10, right: 10 },
 			"unit": "",
 			"iframe-width": "100%",
-			"iframe-height": "100%"
+			"iframe-height": "660px",
+			"onlyEntityMatch": false
 		},
 
 		initialize: function() {
@@ -91,7 +92,7 @@
 		findCountryById: function( countryId ) {
 
 			var selectedCountries = this.get( "selected-countries" ),
-				country = _.findWhere( selectedCountries, { id: countryId.toString() } );
+				country = _.findWhere( selectedCountries, { id: countryId } );
 			return country;
 
 		},

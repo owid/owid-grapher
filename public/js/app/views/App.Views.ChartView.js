@@ -262,7 +262,7 @@
 				if( chartType == "1" ) {
 					that.chart = nv.models.lineChart().options( chartOptions );
 				} else if( chartType == "2" ) {
-					that.chart = nv.models.scatterChart().options( chartOptions ).showDistX(true).showDistY(true);
+					that.chart = nv.models.scatterChart().options( chartOptions );//f.showDistX(true).showDistY(true);
 				}
 
 				that.chart.xAxis
@@ -404,15 +404,18 @@
 
 			if( countriesIds.length === 0 ) {
 				//removing from empty selection, need to copy all countries available into selected countries selection
-				var entitiesCollection = {},
+				var entitiesCollection = [],
+				//var entitiesCollection = {},
 					formConfig = App.ChartModel.get( "form-config" );
 				if( formConfig && formConfig[ "entities-collection" ] ) {
 					_.map( formConfig[ "entities-collection" ], function( d, i ) { entitiesCollection[ d.id ] = d; } );
-					App.ChartModel.set( "selected-countries", entitiesCollection, { silent: true } );
+					//deep copy array
+					var entitiesCopy =  $.extend( true, [], formConfig[ "entities-collection" ] );
+					App.ChartModel.set( "selected-countries", entitiesCopy );
 				}
 			}
 			App.ChartModel.removeSelectedCountry( id );
-			
+
 		},
 
 		onAvailableCountries: function( evt ) {
@@ -430,7 +433,7 @@
 			if( formConfig && formConfig[ "entities-collection" ] ) {
 				var selectedCountriesIds = _.keys( App.ChartModel.get( "selected-countries" ) );
 				if( selectedCountriesIds.length == formConfig[ "entities-collection" ].length ) {
-					App.ChartModel.set( "selected-countries", {}, {silent:true} );
+					App.ChartModel.set( "selected-countries", [], {silent:true} );
 				}
 			}
 

@@ -240,22 +240,36 @@ button > i {
 		cursor: pointer;
 	}
 		.country-label:hover .fa,
-		.variable-label:hover .fa {
+		.variable-label:hover .fa,
+		.variable-label .look-around {
 			color: #666666;
 		}
 		.country-label:hover .fa:hover,
-		.variable-label:hover .fa:hover {
+		.variable-label:hover .fa:hover,
+		.variable-label .look-around:hover {
 			color: #000000;
 		}
 
-	.variable-label .fa {
+	.variable-label .fa, 
+	.variable-label .look-around {
 		position: absolute;
 		top: 14px;
 		right: 10px;
 		color: #666666;
-		margin-right: 0px;
-		margin-left: 0px;
+		margin-right: 0;
+		margin-left: 0;
 	}
+		.variable-label .fa-bullseye { 
+			right: 25px;
+			color: #aaaaaa;
+		}
+			.variable-label .fa-bullseye.active {
+				color: #000000;
+			}
+		.variable-label .look-around {
+			top: 11px;
+			right: 42px;
+		}
 
 /**
 *
