@@ -92,7 +92,7 @@
 		findCountryById: function( countryId ) {
 
 			var selectedCountries = this.get( "selected-countries" ),
-				country = _.findWhere( selectedCountries, { id: countryId } );
+				country = _.findWhere( selectedCountries, { id: countryId.toString() } );
 			return country;
 
 		},
