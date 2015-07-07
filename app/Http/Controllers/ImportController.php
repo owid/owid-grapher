@@ -99,13 +99,15 @@ class ImportController extends Controller {
 
 			$entityData = [];
 			//either fetch existing datasource or new one 
-			if( !empty( $request->input( 'datasource_id' ) ) ) {
+			$datasourceId = $request->input( 'datasource_id' );
+			if( !empty( $datasourceId ) ) {
 				//fetching existing one
 				$datasource = Datasource::find( $request->input( 'datasource_id' ) );
 			} else {
 
 				//creating new datasource, if there is some
-				if( !empty( $request->input( 'source_name' ) ) ) {
+				$sourceName = $request->input( 'source_name' );
+				if( !empty( $sourceName ) ) {
 					$datasourceData = [ 'name' => $request->input( 'source_name' ), 'link' => $request->input( 'source_link' ), 'description' => $request->input( 'source_description' ) ];
 					$datasource = Datasource::create( $datasourceData );
 				} else {
