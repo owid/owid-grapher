@@ -351,9 +351,10 @@
 						}
 					}
 
-					var string = "<h3>" + key + "</h3><p>" + value + " " + App.ChartModel.get( "unit" ) + ", " + value2;
-					if( time ) {
-						string += " in " + time;
+					var string = "<h3>" + key + "</h3><p>" + value + " " + App.ChartModel.get( "unit" );
+					//display time for line chart
+					if( time && App.ChartModel.get( "chart-type" ) != 1 ) {
+						string +=  ", " + value2 + " in " + time;
 					}
 					string += "</p>";
 					return string;
