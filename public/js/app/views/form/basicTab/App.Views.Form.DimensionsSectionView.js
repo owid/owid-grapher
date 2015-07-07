@@ -14,6 +14,9 @@
 			this.dispatcher = options.dispatcher;
 			App.ChartDimensionsModel.on( "reset change", this.render, this );
 
+			this.dispatcher.on( "use-latest-year-change", this.onUseLastYearChange, this );
+			this.dispatcher.on( "look-around-change", this.onLookAroundChange, this );
+
 			this.render();
 
 		},
@@ -81,7 +84,7 @@
 					//just in case there were more variables
 					$.each( $droppedVariables, function( i, v ) {
 						var $droppedVariable = $( v ),
-							dimension = { variableId: $droppedVariable.attr( "data-variable-id" ), property: $box.attr( "data-property" ), name: $box.find( "h4" ).text() };
+							dimension = { variableId: $droppedVariable.attr( "data-variable-id" ), property: $box.attr( "data-property" ), name: $box.find( "h4" ).text(), latestYear: $droppedVariable.attr( "data-use-latest-year" ), lookAround: $droppedVariable.attr( "data-look-around" ) };
 						dimensions.push( dimension );
 					} );
 				}
@@ -129,6 +132,16 @@
 			var $select = $( evt.currentTarget );
 			App.ChartDimensionsModel.loadConfiguration( $select.val() );
 
+		},
+
+		onUseLastYearChange: function( ) {
+			//refresh stored json
+			this.updateInput();
+		},
+
+		onLookAroundChange: function( ) {
+			//refresh stored json
+			this.updateInput();
 		}
 
 	});

@@ -27,6 +27,9 @@ class DataController extends Controller {
 
 	public function dimensions( Request $request ) {
 
+		set_time_limit( 600 ); 
+		ini_set('memory_limit', '256M');
+
 		//check we have everything we should have
 		if( !Input::has( 'dimensions' ) ) {
 			//we don't have necessary info, bail out
@@ -236,7 +239,7 @@ class DataController extends Controller {
 		if( $groupByEntity ) {
 
 			foreach( $dataByEntity as $entityData ) {
-
+				
 				$arr = array(
 					"id" => $entityData[ "id" ],
 					"key" => $entityData[ "key" ],
@@ -244,9 +247,63 @@ class DataController extends Controller {
 				);
 
 				//main values
+				//do we have some values for given entity at all?
+				if( !array_key_exists( $mainDimension->property, $entityData[ "values" ] ) ) {
+					//nope, bail on this entity
+					continue;
+				}
+
 				$mainValues = $entityData[ "values" ][ $mainDimension->property ];
 				$i = 0;
-				foreach( $mainValues as $time=>$mainValue ) {
+				
+				//temp 
+				//only getting one value per country per specify value
+				$hasData = true;
+				$time = 1982;
+				$timeArr = [];
+				$timeArr[ "time" ] = $time;
+				
+				//get main value
+				if( array_key_exists( $mainDimension->property, $entityData[ "values" ] ) ) {
+
+					$value = $this->getValue( $mainDimension, $time, $entityData[ "values" ][ $mainDimension->property ] );
+					if( $value ) {
+						$timeArr[ $mainDimension->property ] = $value; 
+					} else {
+						$hasData = false;
+					}
+					
+				} else {
+					$hasData = false;
+				}
+				
+				foreach( $otherDimIds as $otherDimId ) {
+
+					$otherDimension = $dimensionsByKey[ $otherDimId ];
+					
+					if( array_key_exists( $otherDimension->property, $entityData[ "values" ] ) ) {
+					
+						$value = $this->getValue( $otherDimension, $time, $entityData[ "values" ][ $otherDimension->property ] );
+						if( $value ) {
+							$timeArr[ $otherDimension->property ] = $value; 
+						} else {
+							$hasData = false;
+						}
+
+					} else {
+						$hasData = false;
+					}
+					
+				}
+
+				$arr[ "values" ][ 0 ] = $timeArr;
+				if( $hasData ) {
+					$normalizedData[ $entityData[ "id" ] ] = $arr;
+				}
+				//end temp
+
+				//case when getting data for whole range of values
+				/*foreach( $mainValues as $time=>$mainValue ) {
 
 					//array where we store data for all properties for given time 
 					$timeArr = [];
@@ -366,7 +423,8 @@ class DataController extends Controller {
 				}
 
 				$normalizedData[ $entityData[ "id" ] ] = $arr;
-				
+				*/
+
 			}
 
 		}
@@ -565,6 +623,54 @@ class DataController extends Controller {
 			return $data;
 		}
 
+	}
+
+	public function getValue( $dimension, $time, $values ) {
+
+		$value;
+		//do we have value for exact time
+		if( array_key_exists( $time, $values ) ) {
+			$value = $values[ $time ];
+		} else {
+			//no we don't, try to around in recent years
+			$value = $this->lookAround( $dimension, $time, $values );
+		}
+
+		return $value;
+
+	}
+
+	public function lookAround( $dimension, $time, $values ) {
+
+		$lookAroundLen = ( isset( $imension->lookAround ) )? $dimension->lookAround: 5;
+		$currLen = 0;
+		$currLook = $lookAroundLen;
+		
+		$origTime = $time;
+		$currTime = $time;
+
+		while( $currLen < $lookAroundLen ) {
+
+			//increase gap
+			$currLen++;
+			
+			//try going forward first
+			$currTime = $origTime + $currLen;
+			//break if found value
+			if( array_key_exists( $currTime, $values ) ) {
+				$value = $values[ $currTime ]; 
+				return $value;
+			}
+
+			//nothing forward, trying going backward
+			$currTime = $origTime - $currLen;
+			//break if found value
+			if( array_key_exists( $currTime, $values ) ) {
+				$value = $values[ $currTime ]; 
+				return $value;
+			}
+
+		}
 	}
 
 	public function exportToSvg( Request $request ) {

@@ -74,8 +74,8 @@ class ImportController extends Controller {
 	public function store(Request $request)
 	{	
 		//bump up limits
-		//set_time_limit( 600 ); 
-		//ini_set('memory_limit', '256M');
+		set_time_limit( 600 ); 
+		ini_set('memory_limit', '256M');
 
 		$v = \Validator::make( $request->all(), [
 			'variable_type' => 'required'

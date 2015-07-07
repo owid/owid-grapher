@@ -69,15 +69,23 @@
 				this.$ddList = this.$dd.find( ".dd-list" );
 			}
 
-			var $li = "<li class='variable-label dd-item' data-variable-id='" + model.get( "id" ) + "'><div class='dd-handle'>" + model.get( "name" ) + "</div><span class='fa fa-close'></span></li>";
+			var defaultLookAround = 5;
+
+			var $li = $( "<li class='variable-label dd-item' data-variable-id='" + model.get( "id" ) + "'><div class='dd-handle'>" + model.get( "name" ) + "</div><span class='look-around' title='Number of years to look around'>" + defaultLookAround + "</span><span class='fa fa-bullseye' title='Use only latest available year for this variable'></span><span class='fa fa-close'></span></li>" ),
+				$latestYear = $li.find( ".fa-bullseye" ),
+				$lookAround = $li.find( ".look-around" );
+
 			this.$ddList.append( $li );
+			
+			$latestYear.on( "click", $.proxy( this.onLatestYearClick, this ) );
+			$lookAround.on( "click", $.proxy( this.onLookAroundClick, this ) );
+
 			this.refreshHandlers();
 
 		},
 
 		onVariableRemove: function( model ) {
-			var $liToRemove = this.$ddList.find( "[data-variable-id='" + model.get( "id" ) + "']" ); 
-			console.log( "onVariableRemove", $liToRemove );
+			var $liToRemove = this.$ddList.find( "[data-variable-id='" + model.get( "id" ) + "']" );
 			$liToRemove.remove();
 		},
 
@@ -95,10 +103,47 @@
 
 			//check if there's any variable label left, if not insert empty dd placeholder
 			if( !this.$el.find( ".variable-label" ).length ) {
-				this.$el.find( ".dd-list" ).replaceWith( "<div class='dd-empty'></div>" ); 	
+				this.$el.find( ".dd-list" ).replaceWith( "<div class='dd-empty'></div>" );
 			}
 
+		},
+
+		onLatestYearClick: function( evt ) {
+
+			evt.stopImmediatePropagation();
+			
+			var $this = $( evt.currentTarget ),
+				$parent = $this.parent(),
+				id = $parent.attr( "data-variable-id" );
+			
+			var useLatestYear = confirm( "Use only latest available year for this variable?" );
+			if( useLatestYear ) {
+				$parent.attr( "data-use-latest-year", "true" );
+				$this.addClass( "active" );
+			} else {
+				$parent.attr( "data-use-latest-year", "false" );
+				$this.removeClass( "active" );
+			}
+			this.dispatcher.trigger( "use-latest-year-change" );
+
+		},
+
+		onLookAroundClick: function( evt ) {
+
+			evt.stopImmediatePropagation();
+			
+			var $this = $( evt.currentTarget ),
+				$parent = $this.parent(),
+				id = $parent.attr( "data-variable-id" );
+			
+			var lookAround = prompt( "Enter number for look around", 3 );
+			$parent.attr( "data-look-around", lookAround );
+			$this.text( lookAround );
+			this.dispatcher.trigger( "look-around-change" );
+
 		}
+
+		
 
 		
 		/*onChartVariableChange: function() {

@@ -132,13 +132,12 @@
 				"entities-collection": App.AvailableEntitiesCollection.toJSON(),
 				"dimensions": App.ChartDimensionsModel.toJSON(),
 				"available-time": App.AvailableTimeModel.toJSON()
-			}
+			};
 			App.ChartModel.set( "form-config", formConfig, { silent: true } );
 
 			var dispatcher = this.dispatcher;
 			App.ChartModel.save( {}, {
 				success: function ( model, response, options ) {
-					console.log( "response", response );
 					alert( "The chart saved succesfully" );
 					dispatcher.trigger( "chart-saved", response.data.id, response.data.viewUrl );
 					//update id of an existing model
