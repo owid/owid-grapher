@@ -28,7 +28,7 @@ class DataController extends Controller {
 	public function dimensions( Request $request ) {
 
 		//check we have everything we should have
-		if( !Input::has( 'chartId' ) || !Input::has( 'dimensions' ) ) {
+		if( !Input::has( 'dimensions' ) ) {
 			//we don't have necessary info, bail out
 			return;
 		}
@@ -39,12 +39,14 @@ class DataController extends Controller {
 		//filtering by time?
 		$chartTime = Input::get( "chartTime" );
 
-		//caching - construct key with selected countries as well
-		$key = 'chart-dimensions-' . Input::get( 'chartId' ). '-countries-' .$selectedCountriesIdsString;
-		//if there's something in cache and not exporting
-		if( Cache::has( $key ) && !Input::has( 'export' ) && ( Input::has( 'cache' ) && Input::get( 'cache' ) === "true" ) ) {
-			//return Cache::get( $key );
-		} 
+		if( Input::has( 'chartId' ) ) {
+			//caching - construct key with selected countries as well
+			$key = 'chart-dimensions-' . Input::get( 'chartId' ). '-countries-' .$selectedCountriesIdsString;
+			//if there's something in cache and not exporting
+			if( Cache::has( $key ) && !Input::has( 'export' ) && ( Input::has( 'cache' ) && Input::get( 'cache' ) === "true" ) ) {
+				//return Cache::get( $key );
+			}
+		}
 		
 		//set_time_limit( 600 ); 
 		//ini_set('memory_limit', '256M');
@@ -256,7 +258,7 @@ class DataController extends Controller {
 					$timeArr[ $mainDimension->property ] = $mainValue;
 					//store time as one dimension, usefull for popup for scatter plot
 					$timeArr[ "time" ] = $time;
-					
+
 					//insert other properties for given main property
 					foreach( $otherDimIds as $otherDimId ) {
 
@@ -267,7 +269,7 @@ class DataController extends Controller {
 						//has property any values at all?
 						if( !empty( $entityData[ "values" ][ $otherDimension->property ] ) ) {
 							
-							$useLatestYear = false;
+							$useLatestYear = ( isset( $otherDimension->latestYear ) && $otherDimension->latestYear === "true" )? true: false;
 							//aren't for this variable using the latest year
 							if( !$useLatestYear ) {
 
@@ -281,10 +283,13 @@ class DataController extends Controller {
 								} else {
 									
 									//no it doesn't, look around
-									$lookAroundLen = 3;
+									$lookAroundLen = ( isset( $otherDimension->lookAround ) )? $otherDimension->lookAround: 5;
 									$currLook = $lookAroundLen;
 									$direction = "past";
 									
+									$origTime = $time;
+									$currTime = $time;
+
 									while( $currLook > -1 ) {
 
 										if( $direction == "past" ) {
@@ -305,6 +310,7 @@ class DataController extends Controller {
 												//finished searching into 
 												$direction = "future";	
 												$lookAroundLen = $currLook;
+												$origTime = $time;
 											} else {
 												//no value found in both cycles, do nothing and let while loop exit on its own
 											}
