@@ -121,8 +121,8 @@
 								}
 							}
 							chartLegend.dispatch.stateChange({
-								disabled: data.map(function(d) { return !!d.disabled }),
-								disengaged: data.map(function(d) { return !!d.disengaged })
+								disabled: data.map(function(d) { return !!d.disabled; }),
+								disengaged: data.map(function(d) { return !!d.disengaged; })
 							});
 						}
 					})
