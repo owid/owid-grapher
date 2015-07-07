@@ -137,11 +137,9 @@ class ChartsController extends Controller {
 		$data = Input::all();
 		$chartName = $data[ "chart-name" ];
 		$json = json_encode( $data );
-		
 		$newData = new \stdClass();
 		$newData->config = $json;
 		$newData->name = $chartName;
-		
 		$chart->fill( [ 'name' => $chartName, 'config' => $json ] );
 		$chart->save();
 

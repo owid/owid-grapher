@@ -97,6 +97,12 @@ class DatasetsController extends Controller {
 	 */
 	public function destroy(Dataset $dataset, Request $request)
 	{	
+		//delete tags
+		$tags = $dataset->tags;
+		foreach( $tags as $tag ) {
+			$tag->delete();
+		}
+
 		//delete variables data 
 		$variables = $dataset->variables;
 		foreach( $variables as $variable ) {

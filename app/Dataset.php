@@ -18,6 +18,9 @@ class Dataset extends Model {
 	public function datasource() {
 		return $this->hasOne( 'App\Datasource', 'id', 'fk_dsr_id' );
 	}
+	public function tags() {
+		return $this->hasMany( 'App\LinkDatasetsTags', 'fk_dst_id' );
+	}
 
 	public function scopeUpdateSource( $query, $datasetId, $newDatasourceId ) {
 		if( !empty( $newDatasourceId ) ) {
