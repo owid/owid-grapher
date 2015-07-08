@@ -113,6 +113,7 @@ class DataController extends Controller {
 			}	
 
 			$variableData = $variableQuery->get();
+			
 			//insert data into existing variable
 			$dimension->data = $variableData;
 
@@ -271,6 +272,7 @@ class DataController extends Controller {
 
 						$defaultMode = "specific";
 						$mode = ( isset( $dimension->mode ) )? $dimension->mode: $defaultMode; 
+
 						if( $mode === "specific" ) {
 						
 							$time = $dimension->targetYear;

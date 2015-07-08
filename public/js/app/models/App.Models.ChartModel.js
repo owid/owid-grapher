@@ -49,14 +49,7 @@
 				//we got empty array from db, convert to object
 				this.set( "selected-countries", {} );
 			}*/
-			if( $.isArray( this.get( "y-axis" ) ) ) {
-				//we got empty array from db, convert to object
-				this.set( "y-axis", {} );
-			}
-			if( $.isArray( this.get( "x-axis" ) ) ) {
-				//we got empty array from db, convert to object
-				this.set( "x-axis", {} );
-			}
+			
 			var selectedCountries = this.get( "selected-countries" );
 			selectedCountries.push( country );
 			//selectedCountries[ country.id ] = country;
@@ -99,6 +92,15 @@
 
 		setAxisConfig: function( axisName, prop, value ) {
 
+			if( $.isArray( this.get( "y-axis" ) ) ) {
+				//we got empty array from db, convert to object
+				this.set( "y-axis", {} );
+			}
+			if( $.isArray( this.get( "x-axis" ) ) ) {
+				//we got empty array from db, convert to object
+				this.set( "x-axis", {} );
+			}
+			
 			var axis = this.get( axisName );
 			if( axis ) {
 				axis[ prop ] = value;
