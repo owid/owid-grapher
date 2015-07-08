@@ -17,8 +17,15 @@ class CreateEntityIsoNamesTable extends Migration {
 			$table->increments('id');
 			$table->text('iso2');
 			$table->text('iso3');
-			$table->text('cow3');
+			$table->text('numeric-string');
+			$table->text('iso31662');
 			$table->text('name');
+			$table->text('continent-code');
+			$table->text('continent-name');
+			$table->integer('numeric-num');
+			$table->integer('cow');
+			$table->text('cow-letters');
+			
 		});
 	}
 

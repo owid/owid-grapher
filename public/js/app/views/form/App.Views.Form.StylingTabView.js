@@ -23,6 +23,7 @@
 			this.$marginBottom = this.$el.find( "[name='margin-bottom']" );
 			//unit
 			this.$unit = this.$el.find( "[name='unit']" );
+			this.$formatter = this.$el.find( "[name='unit']" );
 			
 			this.render();
 

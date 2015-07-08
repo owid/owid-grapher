@@ -83,6 +83,7 @@
 				$this.parse( {
 					config: {
 						complete: function( obj ) {
+							console.log( obj );
 							var data = { rows: obj.data };
 							that.onCsvSelected( null, data );
 						}
