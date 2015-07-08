@@ -171,7 +171,7 @@
 
 			evt.preventDefault();
 			
-			//structure
+			// structure
 			// - period
 			//		- single 
 			//			- specific
@@ -185,7 +185,7 @@
 			//			- latest
 			//				- maximum age  
 
-			//attributes
+			//  attributes
 			//	- data-period [single|all] 
 			//	- data-mode [specific|latest|closest] 
 			//	- data-target-year [number] 

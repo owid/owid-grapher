@@ -127,8 +127,7 @@
 				if( chartDimension.maximumAge ) {
 					$variableLabel.attr( "data-maximum-age", chartDimension.maximumAge );
 				}
-				console.log( "chartDimension", chartDimension );
-
+				
 				//find appropriate dimension box for it by data-property
 				var $dimensionBox = that.$el.find( ".dimension-box[data-property=" + chartDimension.property + "]" );
 				//remove empty and add variable box
