@@ -5,6 +5,8 @@
 <script src="{{ asset('js/app/collections/App.Collections.AvailableEntitiesCollection.js') }}?bust={!!time()!!}"></script>
 <script src="{{ asset('js/app/collections/App.Collections.ChartVariablesCollection.js') }}?bust={!!time()!!}"></script>
 
+<script src="{{ asset('js/app/views/ui/App.Views.UI.SettingsVarPopup.js') }}?bust={!!time()!!}"></script>
+		
 <script src="{{ asset('js/app/views/form/basicTab/App.Views.Form.ChartTypeSectionView.js') }}?bust={!!time()!!}"></script>
 <script src="{{ asset('js/app/views/form/basicTab/App.Views.Form.AddDataSectionView.js') }}?bust={!!time()!!}"></script>
 <script src="{{ asset('js/app/views/form/basicTab/App.Views.Form.DimensionsSectionView.js') }}?bust={!!time()!!}"></script>

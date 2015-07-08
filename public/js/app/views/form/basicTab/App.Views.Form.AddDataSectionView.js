@@ -16,11 +16,15 @@
 			this.selectVarPopup = new App.Views.UI.SelectVarPopup();
 			this.selectVarPopup.init( options );
 
+			this.settingsVarPopup = new App.Views.UI.SettingsVarPopup();
+			this.settingsVarPopup.init( options );
+
 			App.ChartVariablesCollection.on( "reset", this.onVariableReset, this );
 			App.ChartVariablesCollection.on( "add", this.onVariableAdd, this );
 			App.ChartVariablesCollection.on( "remove", this.onVariableRemove, this );
 
 			this.dispatcher.on( "variable-label-moved", this.onVariableLabelMoved, this );
+			this.dispatcher.on( "dimension-setting-update", this.onDimensionSettingUpdate, this );
 
 			this.render();
 
@@ -71,14 +75,18 @@
 
 			var defaultLookAround = 5;
 
-			var $li = $( "<li class='variable-label dd-item' data-variable-id='" + model.get( "id" ) + "'><div class='dd-handle'>" + model.get( "name" ) + "</div><span class='look-around' title='Number of years to look around'>" + defaultLookAround + "</span><span class='fa fa-bullseye' title='Use only latest available year for this variable'></span><span class='fa fa-close'></span></li>" ),
-				$latestYear = $li.find( ".fa-bullseye" ),
-				$lookAround = $li.find( ".look-around" );
+			var $li = $( "<li class='variable-label dd-item' data-variable-id='" + model.get( "id" ) + "'><div class='dd-handle'>" + model.get( "name" ) + "</div><span class='fa fa-cog' title='Set varialbe'></span><span class='fa fa-close'></span></li>" ),
+				$settings = $li.find( ".fa-cog" );
+			//var $li = $( "<li class='variable-label dd-item' data-variable-id='" + model.get( "id" ) + "'><div class='dd-handle'>" + model.get( "name" ) + "</div><span class='look-around' title='Number of years to look around'>" + defaultLookAround + "</span><span class='fa fa-bullseye' title='Use only latest available year for this variable'></span><span class='fa fa-close'></span></li>" ),
+				//$latestYear = $li.find( ".fa-bullseye" ),
+				//$lookAround = $li.find( ".look-around" );
 
 			this.$ddList.append( $li );
 			
-			$latestYear.on( "click", $.proxy( this.onLatestYearClick, this ) );
-			$lookAround.on( "click", $.proxy( this.onLookAroundClick, this ) );
+			//$latestYear.on( "click", $.proxy( this.onLatestYearClick, this ) );
+			//$lookAround.on( "click", $.proxy( this.onLookAroundClick, this ) );
+
+			$settings.on( "click", $.proxy( this.onSettingsClick, this ) );
 
 			this.refreshHandlers();
 
@@ -108,51 +116,37 @@
 
 		},
 
-		onLatestYearClick: function( evt ) {
+		onSettingsClick: function( evt ) {
 
 			evt.stopImmediatePropagation();
-			
-			var $this = $( evt.currentTarget ),
-				$parent = $this.parent(),
-				id = $parent.attr( "data-variable-id" );
-			
-			var useLatestYear = confirm( "Use only latest available year for this variable?" );
-			if( useLatestYear ) {
-				$parent.attr( "data-use-latest-year", "true" );
-				$this.addClass( "active" );
-			} else {
-				$parent.attr( "data-use-latest-year", "false" );
-				$this.removeClass( "active" );
-			}
-			this.dispatcher.trigger( "use-latest-year-change" );
+
+			var $btn = $( evt.currentTarget ),
+				$parent = $btn.parent();
+				
+			this.settingsVarPopup.show( $parent );
 
 		},
 
-		onLookAroundClick: function( evt ) {
+		onDimensionSettingUpdate: function( data ) {
 
-			evt.stopImmediatePropagation();
-			
-			var $this = $( evt.currentTarget ),
-				$parent = $this.parent(),
-				id = $parent.attr( "data-variable-id" );
-			
-			var lookAround = prompt( "Enter number for look around", 3 );
-			$parent.attr( "data-look-around", lookAround );
-			$this.text( lookAround );
-			this.dispatcher.trigger( "look-around-change" );
+			//find updated variable
+			var $variableLabel = $( ".variable-label[data-variable-id='" + data.variableId + "']" );
+			//update all attributes
+			for( var i in data ) {
+				if( data.hasOwnProperty( i ) && i !== "variableId" ) {
+					var attrName = "data-" + i,
+						attrValue = data[ i ];
+					$variableLabel.attr( attrName, attrValue );
+				}
+			}
+
+			//hide popup
+			this.settingsVarPopup.hide();
+
+			//trigger updating model
+			this.dispatcher.trigger( "dimension-update" );
 
 		}
-
-		
-
-		
-		/*onChartVariableChange: function() {
-
-			console.log( "on chart onChartVariableChange" ); 
-			App.ChartModel.set( "chart-variable", this.$chartVariable.val() );
-
-		}*/
-
 
 	});
 

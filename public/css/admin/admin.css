@@ -259,7 +259,8 @@ button > i {
 		margin-right: 0;
 		margin-left: 0;
 	}
-		.variable-label .fa-bullseye { 
+		.variable-label .fa-bullseye,  
+		.variable-label .fa-cog { 
 			right: 25px;
 			color: #aaaaaa;
 		}

@@ -54,6 +54,31 @@
 	}
 
 /**
+*	settings var popup
+**/
+.settings-var-popup {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 1040;
+	display: none;
+}
+	.settings-var-popup .modal {
+		display: block;
+	}
+	.settings-var-popup .settings-var-header label {
+		margin-right: 20px;
+	}
+		.settings-var-popup .settings-var-content > div:not(:first-child) {
+			display: none;
+		}
+		.settings-var-popup .settings-var-content-single-content > div:not(:first-child),
+		.settings-var-popup .settings-var-content-all-content > div:not(:first-child) {
+			display: none;
+		}
+/**
 *	dimension section
 **/
 .dimensions-list {
@@ -67,6 +92,13 @@
 	.dimensions-list .dd-empty {
 		border: 2px dashed #fff;
 	}
+	.dimensions-list .fa-cog {
+		/* hide setting button by default */
+		display: none;
+	}
+		.dimensions-list.chart-type-2 .fa-cog {
+			display: inline-block;
+		} 
 
 /**
 *	time section

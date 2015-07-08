@@ -14,9 +14,8 @@
 			this.dispatcher = options.dispatcher;
 			App.ChartDimensionsModel.on( "reset change", this.render, this );
 
-			this.dispatcher.on( "use-latest-year-change", this.onUseLastYearChange, this );
-			this.dispatcher.on( "look-around-change", this.onLookAroundChange, this );
-
+			this.dispatcher.on( "dimension-update", this.onDimensionUpdate, this );
+			
 			this.render();
 
 		},
@@ -32,8 +31,9 @@
 			this.$formSectionContent.empty();
 
 			//construct html
-			var dimensions = App.ChartDimensionsModel.get( "chartDimensions" ),
-				htmlString = "<ol class='dimensions-list'>";
+			var chartType = App.ChartDimensionsModel.id,
+				dimensions = App.ChartDimensionsModel.get( "chartDimensions" ),
+				htmlString = "<ol class='dimensions-list chart-type-" + chartType + "'>";
 
 			_.each( dimensions, function( v, k ) {
 				htmlString += "<li data-property='" + v.property + "' class='dimension-box'><h4>" + v.name + "</h4><div class='dd-wrapper'><div class='dd'><div class='dd-empty'></div></div></div></li>";
@@ -62,7 +62,7 @@
 			this.setInputs( chartDimensions );
 
 			//if scatter plot, only entity match
-			var $onlyEntityMatchCheck = $( "<div class='only-entity-check-wrapper'><label><input type='checkbox' name='only-entity-check' />Match variables only by countries, not years.</label></div>" ),
+			/*var $onlyEntityMatchCheck = $( "<div class='only-entity-check-wrapper'><label><input type='checkbox' name='only-entity-check' />Match variables only by countries, not years.</label></div>" ),
 				$onlyEntityInput = $onlyEntityMatchCheck.find( "input" );
 			$onlyEntityInput.on( "change", function( evt ) {
 				var $this = $( this );
@@ -70,7 +70,7 @@
 			} );
 			//set default value
 			$onlyEntityInput.prop( "checked", App.ChartModel.get( "only-entity-match" ) );
-			this.$formSectionContent.append( $onlyEntityMatchCheck );
+			this.$formSectionContent.append( $onlyEntityMatchCheck );*/
 			
 		},
 
@@ -84,7 +84,7 @@
 					//just in case there were more variables
 					$.each( $droppedVariables, function( i, v ) {
 						var $droppedVariable = $( v ),
-							dimension = { variableId: $droppedVariable.attr( "data-variable-id" ), property: $box.attr( "data-property" ), name: $box.find( "h4" ).text(), latestYear: $droppedVariable.attr( "data-use-latest-year" ), lookAround: $droppedVariable.attr( "data-look-around" ) };
+							dimension = { variableId: $droppedVariable.attr( "data-variable-id" ), property: $box.attr( "data-property" ), name: $box.find( "h4" ).text(), period: $droppedVariable.attr( "data-period" ), mode: $droppedVariable.attr( "data-mode" ), targetYear: $droppedVariable.attr( "data-target-year" ), tolerance: $droppedVariable.attr( "data-tolerance" ), maximumAge: $droppedVariable.attr( "data-maximum-age" ) };
 						dimensions.push( dimension );
 					} );
 				}
@@ -110,6 +110,25 @@
 
 				//find variable label box from available variables
 				var $variableLabel = $( ".variable-label[data-variable-id=" + chartDimension.variableId + "]" );
+
+				//copy variables attributes
+				if( chartDimension.period ) {
+					$variableLabel.attr( "data-period", chartDimension.period );
+				}
+				if( chartDimension.mode ) {
+					$variableLabel.attr( "data-mode", chartDimension.mode );
+				}
+				if( chartDimension.targetYear ) {
+					$variableLabel.attr( "data-target-year", chartDimension.targetYear );
+				}
+				if( chartDimension.tolerance ) {
+					$variableLabel.attr( "data-tolerance", chartDimension.tolerance );
+				}
+				if( chartDimension.maximumAge ) {
+					$variableLabel.attr( "data-maximum-age", chartDimension.maximumAge );
+				}
+				console.log( "chartDimension", chartDimension );
+
 				//find appropriate dimension box for it by data-property
 				var $dimensionBox = that.$el.find( ".dimension-box[data-property=" + chartDimension.property + "]" );
 				//remove empty and add variable box
@@ -134,13 +153,8 @@
 
 		},
 
-		onUseLastYearChange: function( ) {
-			//refresh stored json
-			this.updateInput();
-		},
-
-		onLookAroundChange: function( ) {
-			//refresh stored json
+		onDimensionUpdate: function() {
+			console.log( "onDimensionUpdate" );
 			this.updateInput();
 		}
 
