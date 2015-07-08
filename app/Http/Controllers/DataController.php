@@ -271,14 +271,17 @@ class DataController extends Controller {
 
 						$defaultMode = "specific";
 						$mode = ( isset( $dimension->mode ) )? $dimension->mode: $defaultMode; 
-
 						if( $mode === "specific" ) {
+						
 							$time = $dimension->targetYear;
+						
 						} else if( $mode === "latest" ) {
+						
 							//need to fetch latest year for given property
 							$allYears = array_keys( $entityData[ "values" ][ $dimension->property ] );
 							$latestYear = max( $allYears );
 							$time = $latestYear;
+						
 						}
 
 						//store time if main property
@@ -333,37 +336,27 @@ class DataController extends Controller {
 							//has property any values at all?
 							if( !empty( $entityData[ "values" ][ $otherDimension->property ] ) ) {
 								
-								$useLatestYear = ( isset( $otherDimension->latestYear ) && $otherDimension->latestYear === "true" )? true: false;
-								//aren't for this variable using the latest year
-								if( !$useLatestYear ) {
+								$defaultMode = "closest";
+								$mode = ( isset( $otherDimension->mode ) )? $otherDimension->mode: $defaultMode;
+								
+								if( $mode === "latest" ) {
+									$allYears = array_keys( $entityData[ "values" ][ $otherDimension->property ] );
+									$latestYear = max( $allYears );
+									$time = $latestYear;
+								}
 
-									//no, we're not, retrieve value normal way
+								//try to find value for given dimension, entity and time
+								if( array_key_exists( $otherDimension->property, $entityData[ "values" ] ) ) {
 
-									//try to find value for given dimension, entity and time
-									if( array_key_exists( $otherDimension->property, $entityData[ "values" ] ) ) {
-
-										$value = $this->getValue( $otherDimension, $time, $entityData[ "values" ][ $otherDimension->property ] );
-										if( $value ) {
-											$timeArr[ $otherDimension->property ] = $value; 
-										} else {
-											$hasData = false;
-										}
-										
+									$value = $this->getValue( $otherDimension, $time, $entityData[ "values" ][ $otherDimension->property ] );
+									if( $value ) {
+										$timeArr[ $otherDimension->property ] = $value; 
 									} else {
 										$hasData = false;
 									}
-
+									
 								} else {
-
-									//special case, for this variable, we want to always use latest year
-									//find latest year then 
-									$allYears = array_keys( $entityData[ "values" ][ $otherDimension->property ] );
-									$latestYear = max( $allYears );
-									//check for sure, that we have value for that value (TODO - is this necessary, there shouldn't be any value here)
-									if( array_key_exists( $latestYear, $entityData[ "values" ][ $otherDimension->property ] ) ) {
-										$value = $entityData[ "values" ][ $otherDimension->property ][ $latestYear ];
-									}
-
+									$hasData = false;
 								}
 							
 							} 
