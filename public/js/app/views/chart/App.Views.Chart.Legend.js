@@ -100,6 +100,15 @@
 						chartLegend.dispatch.legendMouseout(d,i);
 					})
 					.on('click', function(d,i) {
+
+						//when clicking country label, remove the country
+						d3.event.stopImmediatePropagation();
+						//remove series straight away, so we don't have to wait for response from server
+						series[0][i].remove();
+						dispatch.removeEntity( d.id );
+						return false;
+
+						//original version, when clicking country label just deactivates it
 						chartLegend.dispatch.legendClick(d,i);
 						// make sure we re-get data in case it was modified
 						var data = series.data();

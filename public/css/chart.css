@@ -193,9 +193,10 @@
 				stroke-width: 3px;
 				stroke: #fff;
 			}
+				/* disable remove btn hover 
 				#chart-view .nv-legend .nv-remove-btn:hover .nv-box {
 					stroke: #000;
-				}
+				}*/
 		/* add btn */
 		#chart-view .nv-legend .nv-add-btn {
 			cursor: pointer;
