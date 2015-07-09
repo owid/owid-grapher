@@ -31,6 +31,8 @@
 			this.$unit = this.$el.find( "[name='unit']" );
 			this.$formatter = this.$el.find( "[name='unit']" );
 
+			App.ChartModel.on( "change:chart-type", this.onChartTypeChange, this );
+
 			this.render();
 
 		},
@@ -64,9 +66,9 @@
 
 			var $control = $( evt.currentTarget ),
 				controlName = $control.attr( "name" ),
-				marginsObj = { top: this.$marginTop.val(), 
-							left: this.$marginLeft.val(), 
-							right: this.$marginRight.val(), 
+				marginsObj = { top: this.$marginTop.val(),
+							left: this.$marginLeft.val(),
+							right: this.$marginRight.val(),
 							bottom: this.$marginBottom.val() };
 
 			App.ChartModel.set( "margins", marginsObj );
@@ -83,8 +85,16 @@
 
 			var $check = $( evt.currentTarget ),
 				hideLegend = ( $check.is( ":checked" ) )? true: false;
-			console.log( "hideLegend", hideLegend );
 			App.ChartModel.set( "hide-legend", hideLegend );
+
+		},
+
+		onChartTypeChange: function( evt ) {
+
+			if( App.ChartModel.get( "chart-type" ) === "2" ) {
+				//scatter plot has legend hidden by default
+				App.ChartModel.set( "hide-legend", true );
+			}
 
 		}
 
