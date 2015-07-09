@@ -68,16 +68,36 @@
 	.settings-var-popup .modal {
 		display: block;
 	}
-	.settings-var-popup .settings-var-header label {
-		margin-right: 20px;
+	.settings-var-popup .settings-var-header {
+		padding-bottom: 10px;
+		margin-bottom: 15px;
+		border-bottom: 1px solid black;
 	}
-		.settings-var-popup .settings-var-content > div:not(:first-child) {
-			display: none;
+		.settings-var-popup .settings-var-header label,
+		.settings-var-popup .settings-var-content-single-header label,
+		.settings-var-popup .settings-var-content-all-header label {
+			margin-right: 20px;
 		}
-		.settings-var-popup .settings-var-content-single-content > div:not(:first-child),
-		.settings-var-popup .settings-var-content-all-content > div:not(:first-child) {
-			display: none;
+			.settings-var-popup .settings-var-content > div:not(:first-child) {
+				display: none;
+			}
+			.settings-var-popup .settings-var-content-single-content > div:not(:first-child),
+			.settings-var-popup .settings-var-content-all-content > div:not(:first-child) {
+				display: none;
+			}
+		.settings-var-popup .settings-var-content-single-header,
+		.settings-var-popup .settings-var-content-all-header {
+			padding-bottom: 5px;
+			margin-bottom: 7px;
 		}
+
+		.settings-var-popup .settings-var-single-specific-content label,
+		.settings-var-popup .settings-var-single-latest-content label,
+		.settings-var-popup .settings-var-all-closest-content label,
+		.settings-var-popup .settings-var-all-latest-content label {
+			display: block;
+		}
+
 /**
 *	dimension section
 **/
