@@ -82,6 +82,11 @@
 					url: Global.rootUrl + "/data/dimensions",
 					data: { "dimensions": dimensionsString, "chartId": App.ChartModel.get( "id" ), "chartType": App.ChartModel.get( "chart-type" ), "selectedCountries": selectedCountriesIds, "chartTime": chartTime, "cache": App.ChartModel.get( "cache" ), "onlyEntityMatch": App.ChartModel.get( "only-entity-match" )  },
 					success: function( response ) {
+						//test removing chart when response false - doesn't work
+						/*if( !response.success ) {
+							//didn't get correct data, just erase chart
+							that.$svg.find( "> .nvd3.nv-wrap" ).empty();
+						}*/
 						if( response.data ) {
 							that.updateChart( response.data, response.timeType );
 						}

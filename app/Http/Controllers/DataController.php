@@ -33,7 +33,7 @@ class DataController extends Controller {
 		//check we have everything we should have
 		if( !Input::has( 'dimensions' ) ) {
 			//we don't have necessary info, bail out
-			return;
+			return [ 'success' => false ];
 		}
 		
 		//filtering by entities?
@@ -61,6 +61,11 @@ class DataController extends Controller {
 
 		$dimensionsInput = Input::get( 'dimensions' );
 		$dimensions = json_decode( $dimensionsInput );
+
+		//isn't it just empty object
+		if( empty( $dimensions ) ) {
+			return [ 'success' => false ];
+		}
 
 		$chartType = Input::get( 'chartType' );
 		//there's special setting for linechart
@@ -113,7 +118,7 @@ class DataController extends Controller {
 			}	
 
 			$variableData = $variableQuery->get();
-			
+
 			//insert data into existing variable
 			$dimension->data = $variableData;
 
@@ -538,12 +543,11 @@ class DataController extends Controller {
 
 	public function entities( Request $request ) {
 
-
 		$data = array();
 		if( !Input::has( 'variableIds' ) ) {
-			return false;
+			return [];
 		}
-
+		
 		$variableIdsInput = Input::get( 'variableIds' );
 		$variableIds = explode( ',', $variableIdsInput );
 
@@ -572,7 +576,7 @@ class DataController extends Controller {
 
 		$data = array();
 		if( !Input::has( 'variableIds' ) ) {
-			return false;
+			return [];
 		}
 
 		$variableIdsInput = Input::get( 'variableIds' );

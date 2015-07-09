@@ -66,6 +66,9 @@
 
 			//if there's empty element, remove it
 			this.$el.find( ".dd-empty" ).remove();
+			//refetch dd-list - needed if there was something removed
+			this.$ddList = this.$dd.find( ".dd-list" );
+
 			if( !this.$dd.find( ".dd-list" ).length ) {
 				//dd-list has been removed by nestable
 				var $ddList = $( "<ol class='dd-list'></ol>" );
@@ -80,7 +83,6 @@
 			//var $li = $( "<li class='variable-label dd-item' data-variable-id='" + model.get( "id" ) + "'><div class='dd-handle'>" + model.get( "name" ) + "</div><span class='look-around' title='Number of years to look around'>" + defaultLookAround + "</span><span class='fa fa-bullseye' title='Use only latest available year for this variable'></span><span class='fa fa-close'></span></li>" ),
 				//$latestYear = $li.find( ".fa-bullseye" ),
 				//$lookAround = $li.find( ".look-around" );
-
 			this.$ddList.append( $li );
 			
 			//$latestYear.on( "click", $.proxy( this.onLatestYearClick, this ) );
@@ -93,7 +95,8 @@
 		},
 
 		onVariableRemove: function( model ) {
-			var $liToRemove = this.$ddList.find( "[data-variable-id='" + model.get( "id" ) + "']" );
+			var $liToRemove = $( ".variable-label[data-variable-id='" + model.get( "id" ) + "']" );
+			console.log( "$liToRemove", this.$ddList,  $liToRemove );
 			$liToRemove.remove();
 		},
 

@@ -101,17 +101,20 @@
 /**
 *	dimension section
 **/
-.dimensions-list {
-	padding: 0;
-	list-style-type: none;
-}
-.dimension-box {}
-	.dimension-box .dd-wrapper {
-		min-height: 45px;
+	.dimensions-list {
+		padding: 0;
+		list-style-type: none;
 	}
-	.dimensions-list .dd-empty {
-		border: 2px dashed #fff;
-	}
+	.dimension-box {}
+		.dimension-box .dd-wrapper {
+			min-height: 45px;
+		}
+		.dimensions-list .dd-empty {
+			border: 2px dashed #fff;
+		}
+		.dimension-box .fa-close {
+			display: none;
+		}
 
 .variable-label .fa-cog {
 	/* hide setting button by default */
