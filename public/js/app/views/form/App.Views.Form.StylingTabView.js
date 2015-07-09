@@ -8,6 +8,7 @@
 		events: {
 			"change [name='line-type']": "onLineTypeChange",
 			"change [name^='margin-']": "onMarginChange",
+			"change [name='hide-legend']": "onHideLegendChange",
 			"change [name='unit']": "onUnitChange"
 		},
 
@@ -16,15 +17,20 @@
 			this.dispatcher = options.dispatcher;
 			
 			this.$lineTypeRadios = this.$el.find( "[name='line-type']" );
+			
 			//margins
 			this.$marginTop = this.$el.find( "[name='margin-top']" );
 			this.$marginLeft = this.$el.find( "[name='margin-left']" );
 			this.$marginRight = this.$el.find( "[name='margin-right']" );
 			this.$marginBottom = this.$el.find( "[name='margin-bottom']" );
+			
+			//legend
+			this.$hideLegend = this.$el.find( "[name='hide-legend']" );
+
 			//unit
 			this.$unit = this.$el.find( "[name='unit']" );
 			this.$formatter = this.$el.find( "[name='unit']" );
-			
+
 			this.render();
 
 		},
@@ -41,6 +47,9 @@
 			this.$marginBottom.val( margins.bottom );
 
 			this.$unit.val( App.ChartModel.get( "unit" ) );
+
+			var hideLegend = ( App.ChartModel.get( "hide-legend" ) )? true: false;
+			this.$hideLegend.prop( "checked", hideLegend );
 
 		},
 
@@ -68,6 +77,15 @@
 		onUnitChange: function( evt ) {
 			var $control = $( evt.currentTarget );
 			App.ChartModel.set( "unit", $control.val() );
+		},
+
+		onHideLegendChange: function( evt ) {
+
+			var $check = $( evt.currentTarget ),
+				hideLegend = ( $check.is( ":checked" ) )? true: false;
+			console.log( "hideLegend", hideLegend );
+			App.ChartModel.set( "hide-legend", hideLegend );
+
 		}
 
 

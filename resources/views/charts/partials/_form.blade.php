@@ -240,9 +240,20 @@
 						</label>
 					</div>
 				</section>
+				<section class="form-section legend-section">
+					<div class="form-section-header">
+						<h2><span class="form-section-digit">k</span>Legend</h2>
+					</div>
+					<div class="form-section-content">
+						<label>
+							<input type="checkbox" name="hide-legend" />
+							Hide legend
+						</label>
+					</div>
+				</section>
 				<section class="form-section margins-section">
 					<div class="form-section-header">
-						<h2><span class="form-section-digit">k</span>Popup unit</h2>
+						<h2><span class="form-section-digit">l</span>Popup unit</h2>
 					</div>
 					<div class="form-section-content">
 						<label>
@@ -255,7 +266,7 @@
 			<div id="export-tab" class="tab-pane">
 				<section class="form-section tabs-section">
 					<div class="form-section-header">
-						<h2><span class="form-section-digit">l</span>Which tabs</h2>
+						<h2><span class="form-section-digit">m</span>Which tabs</h2>
 					</div>
 					<div class="form-section-content">
 						<ol>
@@ -288,7 +299,7 @@
 				</section>
 				<section class="form-section">
 					<div class="form-section-header embed-section">
-						<h2><span class="form-section-digit">m</span>Embed your chart</h2>
+						<h2><span class="form-section-digit">n</span>Embed your chart</h2>
 					</div>
 					<div class="form-section-content">
 						<div class="embed-size-wrapper">

@@ -367,20 +367,26 @@
 				} );
 
 				//set legend
-				that.legend = new App.Views.Chart.Legend( that.chart.legend ).vers( "owd" );
-				that.legend.dispatch.on( "removeEntity", function( id ) {
-					that.onRemoveEntity( id );
-				} );
-				that.legend.dispatch.on( "addEntity", function() {
-					if( that.$entitiesSelect.data( "chosen" ) ) {
-						that.$entitiesSelect.data( "chosen" ).active_field = false;
-					}
-					//trigger open the chosen drop down
-					that.$entitiesSelect.trigger( "chosen:open" );
-				} );
-
-				svgSelection.call( that.legend );
-
+				if( !App.ChartModel.get( "hide-legend" ) ) {
+					//make sure wrapper is visible
+					that.$svg.find( "> .nvd3.nv-legend" ).show();
+					that.legend = new App.Views.Chart.Legend( that.chart.legend ).vers( "owd" );
+					that.legend.dispatch.on( "removeEntity", function( id ) {
+						that.onRemoveEntity( id );
+					} );
+					that.legend.dispatch.on( "addEntity", function() {
+						if( that.$entitiesSelect.data( "chosen" ) ) {
+							that.$entitiesSelect.data( "chosen" ).active_field = false;
+						}
+						//trigger open the chosen drop down
+						that.$entitiesSelect.trigger( "chosen:open" );
+					} );
+					svgSelection.call( that.legend );
+				} else {
+					//no legend, remove what might have previously been there
+					that.$svg.find( "> .nvd3.nv-legend" ).hide();
+				}
+				
 				var onResizeCallback = _.debounce( function(e) {
 					//invoke resize of legend
 					svgSelection.call( that.legend );
@@ -564,8 +570,10 @@
 
 			//add height of legend
 			//currY += this.chart.legend.height();
-			currY += this.legend.height();
-
+			if( !App.ChartModel.get( "hide-legend" ) ) {
+				currY += this.legend.height();
+			}
+			
 			//position chart
 			App.Utils.wrap( $chartDescriptionSvg, svgWidth );
 			footerDescriptionHeight = $chartDescriptionSvg.height();
@@ -575,7 +583,11 @@
 			var footerHeight = this.$chartFooter.height();
 
 			//set chart height
-			chartHeight = svgHeight - translateY - footerHeight - bottomChartMargin - this.legend.height();
+			chartHeight = svgHeight - translateY - footerHeight - bottomChartMargin;
+			if( !App.ChartModel.get( "hide-legend" ) ) {
+				chartHeight -= this.legend.height();
+			}
+
 			//reflect margin top and down in chartHeight
 			chartHeight = chartHeight - margins.bottom - margins.top;
 
@@ -593,15 +605,20 @@
 			//need to call chart update for resizing of elements within chart
 			this.chart.update();
 
-			//position legend
-			var legendMargins = this.legend.margin();
-			currY = currY - this.legend.height();
-			this.translateString = "translate(" + legendMargins.left + " ," + currY + ")";
-			this.$svg.find( "> .nvd3.nv-legend" ).attr( "transform", this.translateString );
+			if( !App.ChartModel.get( "hide-legend" ) ) {
+				//position legend
+				var legendMargins = this.legend.margin();
+				currY = currY - this.legend.height();
+				this.translateString = "translate(" + legendMargins.left + " ," + currY + ")";
+				this.$svg.find( "> .nvd3.nv-legend" ).attr( "transform", this.translateString );
+			} 
+			
 			this.$svg.css( "transform", "translate(0,-" + chartHeaderHeight + "px)" );
 
 			//reflect margin top in currY
-			currY += +this.legend.height();
+			if( !App.ChartModel.get( "hide-legend" ) ) {
+				currY += +this.legend.height();
+			}
 			currY += +margins.top;
 			
 			//manually reposition chart after update
