@@ -331,6 +331,7 @@
 /**
  * PRINTING STUFF
  **/
+.chart-logo-svg,
 .chart-name-svg,
 .chart-subname-svg,
 .chart-description-svg,
@@ -341,8 +342,10 @@
 .export-svg {
 	transform: translate(0px,0px) !important;
 	height: 1000px !important;
+	padding: 30px;
 }
 
+.export-svg .chart-logo-svg,
 .export-svg .chart-name-svg,
 .export-svg .chart-subname-svg,
 .export-svg .chart-description-svg,

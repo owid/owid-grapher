@@ -27,7 +27,12 @@
 					<select class="available-countries-select chosen-select" name="available_entities" style="position: relative;z-index: 10;"></select>
 				</div>
 				<svg xmlns="http://www.w3.org/2000/svg" version="1.1">
-					<text x="0" y="20" dy="0" class="h2 chart-name chart-name-svg"></text>
+					@if( !empty($data->logoUrl) )
+						<image class="chart-logo-svg" x="2" y="0" width="51" height="24" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{{ $data->logoUrl }}"></image>
+					@endif
+					<g transform="translate(60,0)">
+						<text x="0" y="20" dy="0" class="h2 chart-name chart-name-svg"></text>
+					</g>
 					<text x="0" y="100" dy="0" class="h3 chart-subname chart-subname-svg"></text>
 					<text x="0" y="100" dy="0" class="chart-description chart-description-svg"></text>
 					<text x="0" y="100" dy="0" class="chart-sources chart-sources-svg"></text>
