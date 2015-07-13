@@ -66,7 +66,8 @@
 
 			var dimensionString = App.ChartModel.get( "chart-dimensions" ),
 				timeFrom = Infinity,
-				timeTo = -Infinity;
+				timeTo = -Infinity,
+				limitTime = true;
 
 			if( !$.isEmptyObject( dimensionString ) ) {
 
@@ -79,13 +80,16 @@
 							localTo = year + parseInt( v.tolerance, 10 );
 						timeFrom = Math.min( localFrom, timeFrom );
 						timeTo = Math.max( localTo, timeTo );
+					} else {
+						//set flag that there is some dimension that cannot be limited automaticaly
+						limitTime = false;
 					}
 				} );
 
 			}
 
 			//if something has changed, set time interval only to necessary
-			if( timeFrom < Infinity && timeTo > -Infinity ) {
+			if( limitTime && timeFrom < Infinity && timeTo > -Infinity ) {
 				this.updateTime( timeFrom, timeTo );
 				App.ChartModel.set( "chart-time", [ timeFrom, timeTo ] );
 			}
