@@ -62,6 +62,6 @@
 		<i class="fa fa-spinner fa-spin"></i>
 	</div>
 	<div class="chart-error">
-		<p><i class="fa fa-exclamation-triangle"></i>Error receiving data for chart builder!</p>
+		<p><i class="fa fa-exclamation-triangle"></i>Error retrieving data for chart builder!</p>
 	</div>
 </div>

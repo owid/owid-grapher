@@ -12,8 +12,10 @@
 		initialize: function( options ) {
 			
 			this.dispatcher = options.dispatcher;
-			App.AvailableTimeModel.on( "change", this.onAvailableTimeChange, this );
+			this.dispatcher.on( "dimension-update", this.onDimensionUpdate, this );
 			
+			App.AvailableTimeModel.on( "change", this.onAvailableTimeChange, this );
+
 			this.render();
 
 		},
@@ -58,6 +60,36 @@
 
 		onAvailableTimeChange: function() {
 			this.updateTime( App.AvailableTimeModel.get( "min" ), App.AvailableTimeModel.get( "max" ) );
+		},
+
+		onDimensionUpdate: function() {
+
+			var dimensionString = App.ChartModel.get( "chart-dimensions" ),
+				timeFrom = Infinity,
+				timeTo = -Infinity;
+
+			if( !$.isEmptyObject( dimensionString ) ) {
+
+				var dimensions = $.parseJSON( dimensionString );
+				$.each( dimensions, function( i, v ) {
+					if( v.period === "single" && v.mode === "specific" ) {
+						//get min/max local
+						var year = parseInt( v.targetYear, 10 ),
+							localFrom = year - parseInt( v.tolerance, 10 ),
+							localTo = year + parseInt( v.tolerance, 10 );
+						timeFrom = Math.min( localFrom, timeFrom );
+						timeTo = Math.max( localTo, timeTo );
+					}
+				} );
+
+			}
+
+			//if something has changed, set time interval only to necessary
+			if( timeFrom < Infinity && timeTo > -Infinity ) {
+				this.updateTime( timeFrom, timeTo );
+				App.ChartModel.set( "chart-time", [ timeFrom, timeTo ] );
+			}
+
 		},
 
 		updateTime: function( from, to ) {
