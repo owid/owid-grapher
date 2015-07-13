@@ -34,17 +34,17 @@
 									<div class="settings-var-single-specific-content">
 										<label>
 											Which year?
-											<input type="text" name="single-year" />
+											<input type="text" class="form-control digit-input" name="single-year" />
 										</label>
 										<label>
 											What tolerance?
-											<input type="text" name="single-tolerance" />
+											<input type="text" class="form-control digit-input" name="single-tolerance" />
 										</label>
 									</div>
 									<div class="settings-var-single-latest-content">
 										<label>
 											Maximum age of data
-											<input type="text" name="single-maximum-age" />
+											<input type="text" class="form-control digit-input" name="single-maximum-age" />
 										</label>
 									</div>
 								</div>
@@ -64,13 +64,13 @@
 									<div class="settings-var-all-closest-content">
 										<label>
 											What tolerance?
-											<input type="text" name="all-tolerance" />
+											<input type="text" class="form-control digit-input" name="all-tolerance" />
 										</label>
 									</div>
 									<div class="settings-var-all-latest-content">
 										<label>
 											Maximum age of data
-											<input type="text" name="all-maximum-age" />
+											<input type="text" class="form-control digit-input" name="all-maximum-age" />
 										</label>
 									</div>
 								</div>

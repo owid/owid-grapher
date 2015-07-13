@@ -20,11 +20,15 @@
 			//will be filled when opening popup
 			this.variableId = -1;
 
+			//flag for 
+			this.valid = true;
+
 			this.$el = $( ".settings-var-popup" );
 			this.$closeBtn = this.$el.find( ".close" );
 			this.$saveBtn = this.$el.find( ".btn-primary" );
 			this.$cancelBtn = this.$el.find( ".btn-default" );
 
+			this.$digitInputs = this.$el.find( ".digit-input" );
 			this.$periodInputs = this.$el.find( "[name=period]" );
 			this.$singleInputs = this.$el.find( "[name=single]" );
 			this.$allInputs = this.$el.find( "[name=all]" );
@@ -40,10 +44,26 @@
 			this.$closeBtn.on( "click", $.proxy( this.onCloseBtn, this ) );
 			this.$saveBtn.on( "click", $.proxy( this.onSaveBtn, this ) );
 			this.$cancelBtn.on( "click", $.proxy( this.onCancelBtn, this ) );
-		
+			
+			this.$digitInputs.on( "change", $.proxy( this.onDigitInputs, this ) );
 			this.$periodInputs.on( "change", $.proxy( this.onPeriodInputs, this ) );
 			this.$singleInputs.on( "change", $.proxy( this.onSingleInputs, this ) );
 			this.$allInputs.on( "change", $.proxy( this.onAllInputs, this ) );
+
+		},
+
+		onDigitInputs: function( evt ) {
+
+			evt.preventDefault();
+
+			var $input = $( evt.currentTarget ),
+				value = $input.val();
+
+			if( isNaN( value ) ) {
+				$input.parent().addClass( "has-error" );
+			} else {
+				$input.parent().removeClass( "has-error" );
+			}
 
 		},
 
@@ -103,7 +123,10 @@
 			this.$el.find( "[name=single-maximum-age]" ).val( maximumAge );
 			this.$el.find( "[name=all-tolerance]" ).val( tolerance );
 			this.$el.find( "[name=all-maximum-age]" ).val( maximumAge );
-					
+
+			//remove all validation errors
+			this.$el.find( ".has-error" ).removeClass( "has-error" );
+
 			//based on set values, appear correct values
 			if( period ) {
 				
@@ -174,6 +197,13 @@
 
 			evt.preventDefault();
 			
+			//validate
+			var $invalidInputs = this.$el.find( ".has-error" );
+			if( $invalidInputs.length ) {
+				alert( "Please input numbers!" );
+				return false;
+			}
+
 			// structure
 			// - period
 			//		- single 
