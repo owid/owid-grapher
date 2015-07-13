@@ -29,6 +29,7 @@
 			var that = this;
 
 			this.$preloader = this.$el.find( ".chart-preloader" );
+			this.$error = this.$el.find( ".chart-error" );
 
 			//chart tab
 			this.$svg = this.$el.find( "svg" );
@@ -86,8 +87,6 @@
 				validDimensions = this.checkValidDimensions( dimension, App.ChartModel.get( "chart-type" ));
 			}
 			
-			console.log( "validDimensions", validDimensions );
-
 			if( !validDimensions ) {
 				return false;
 			}
@@ -96,11 +95,11 @@
 
 				this.$preloader.show();
 
-				var that = this;
 				$.ajax( {
 					url: Global.rootUrl + "/data/dimensions",
 					data: { "dimensions": dimensionsString, "chartId": App.ChartModel.get( "id" ), "chartType": App.ChartModel.get( "chart-type" ), "selectedCountries": selectedCountriesIds, "chartTime": chartTime, "cache": App.ChartModel.get( "cache" ), "onlyEntityMatch": App.ChartModel.get( "only-entity-match" )  },
 					success: function( response ) {
+						that.$error.hide();
 						//test removing chart when response false - doesn't work
 						/*if( !response.success ) {
 							//didn't get correct data, just erase chart
@@ -117,7 +116,7 @@
 						}
 					},
 					error: function( ) {
-						alert( "Error receiving data for chart builder!" );
+						that.$error.show();
 					},
 					complete: function() {
 						that.$preloader.hide();
