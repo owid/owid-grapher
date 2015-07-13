@@ -34,7 +34,6 @@
 			var that = this;
 			this.fetch( {
 				success: function( collection, response ) {
-					console.log( "update Entities response", response );
 					that.trigger( "fetched" );
 				}
 			});

@@ -51,10 +51,16 @@
 			}*/
 			
 			var selectedCountries = this.get( "selected-countries" );
-			selectedCountries.push( country );
-			//selectedCountries[ country.id ] = country;
-			this.trigger( "change:selected-countries" );
-			this.trigger( "change" );
+
+			//make sure the selected contry is not there 
+			if( !_.findWhere( selectedCountries, { id: country.id } ) ) {
+			
+				selectedCountries.push( country );
+				//selectedCountries[ country.id ] = country;
+				this.trigger( "change:selected-countries" );
+				this.trigger( "change" );
+			
+			}
 			
 		},
 

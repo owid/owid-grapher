@@ -14,7 +14,7 @@
 			this.dispatcher = options.dispatcher;
 			//App.AvailableEntitiesCollection.on( "change add remove reset", this.render, this );
 			//available entities are changing just on fetch so listen just for that
-			App.AvailableEntitiesCollection.on( "fetched", this.render, this );
+			App.AvailableEntitiesCollection.on( "reset fetched", this.render, this );
 			
 			this.$entitiesSelect = this.$el.find( ".countries-select" );
 
