@@ -127,13 +127,44 @@
 			display: none;
 		}
 
-.variable-label .fa-cog {
+.variable-label .variable-setting-btn {
 	/* hide setting button by default */
 	display: none;
+	position: absolute;
+	top: 12px;
+	right: 10px;
+	color: #aaaaaa;
+	font-size: 12px;
 }
-	.dimensions-list.chart-type-2 .variable-label .fa-cog {
+	.variable-label .variable-setting-btn span {
+    	margin-left: 5px;
+		display: none;
+	}
+	.variable-label .variable-setting-btn:hover {
+		color: #000000;
+	}
+		.variable-label .variable-setting-btn:hover span {
+			display: inline-block;
+		}
+		.variable-label .variable-setting-btn span.fa-cog {
+			display: inline-block;
+			position: relative;
+			top: 2px;
+			right: 0px;
+			font-size: 16px;
+		}	
+	.variable-label .variable-setting-btn .fa {
+		position: static;
+		display: none;
+	}
+		.variable-label .variable-setting-btn:hover .fa {
+			color: #000000;
+		}
+	.dimensions-list.chart-type-2 .variable-label .variable-setting-btn {
 		display: inline-block;
-	} 
+	}
+
+	
 
 /**
 *	time section

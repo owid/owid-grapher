@@ -153,7 +153,6 @@
 		},
 
 		onDimensionUpdate: function() {
-			console.log( "onDimensionUpdate" );
 			this.updateInput();
 		}
 

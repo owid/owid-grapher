@@ -240,18 +240,13 @@ button > i {
 		cursor: pointer;
 	}
 		.country-label:hover .fa,
-		.variable-label:hover .fa,
-		.variable-label .look-around {
+		.variable-label:hover .fa {
 			color: #666666;
 		}
-		.country-label:hover .fa:hover,
-		.variable-label:hover .fa:hover,
-		.variable-label .look-around:hover {
+		.country-label:hover .fa:hover {
 			color: #000000;
 		}
-
-	.variable-label .fa, 
-	.variable-label .look-around {
+	.variable-label .fa {
 		position: absolute;
 		top: 14px;
 		right: 10px;
@@ -259,18 +254,6 @@ button > i {
 		margin-right: 0;
 		margin-left: 0;
 	}
-		.variable-label .fa-bullseye,  
-		.variable-label .fa-cog { 
-			right: 25px;
-			color: #aaaaaa;
-		}
-			.variable-label .fa-bullseye.active {
-				color: #000000;
-			}
-		.variable-label .look-around {
-			top: 11px;
-			right: 42px;
-		}
 
 /**
 *

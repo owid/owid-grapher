@@ -83,13 +83,14 @@
 				defaultMaxAge = 5,
 				defaultTolerance = 5;
 
-			var $li = $( "<li class='variable-label dd-item' data-period='" + defaultPeriod + "' data-tolerance='" + defaultTolerance + "' data-maximum-age='" + defaultMaxAge + "' data-mode='" + defaultMode + "' data-target-year='" + defaultTargetYear + "' data-variable-id='" + model.get( "id" ) + "'><div class='dd-handle'>" + model.get( "name" ) + "</div><span class='fa fa-cog' title='Setting variable'></span><span class='fa fa-close'></span></li>" ),
-				$settings = $li.find( ".fa-cog" );
+			var $li = $( "<li class='variable-label dd-item' data-period='" + defaultPeriod + "' data-tolerance='" + defaultTolerance + "' data-maximum-age='" + defaultMaxAge + "' data-mode='" + defaultMode + "' data-target-year='" + defaultTargetYear + "' data-variable-id='" + model.get( "id" ) + "'><div class='dd-handle'>" + model.get( "name" ) + "</div><a href='' class='variable-setting-btn'><span class='fa period-icon'></span><span class='number-icon'></span><span class='fa fa-cog' title='Setting variable'></span></a><span class='fa fa-close'></span></li>" ),
+				$settings = $li.find( ".variable-setting-btn" );
 			this.$ddList.append( $li );
 			
 			$settings.on( "click", $.proxy( this.onSettingsClick, this ) );
 
 			this.refreshHandlers();
+			this.updateVarIcons();
 
 		},
 
@@ -120,6 +121,7 @@
 		onSettingsClick: function( evt ) {
 
 			evt.stopImmediatePropagation();
+			evt.preventDefault();
 
 			var $btn = $( evt.currentTarget ),
 				$parent = $btn.parent();
@@ -144,12 +146,55 @@
 			//if sync period values for all variables 
 			var $variableLabels = $( ".variable-label" );
 			$variableLabels.attr( "data-period", data.period );
-			
+
+			this.updateVarIcons();
+
 			//hide popup
 			this.settingsVarPopup.hide();
 
 			//trigger updating model
 			this.dispatcher.trigger( "dimension-update" );
+
+		},
+
+		updateVarIcons: function() {
+			
+			var $variableLabels = $( ".variable-label" );
+
+			//update icons
+			$.each( $variableLabels, function( i, v ) {
+
+				var $label = $( v ),
+					$periodIcon = $label.find( ".period-icon" ),
+					$modeIcon = $label.find( ".mode-icon" ),
+					$numberIcon = $label.find( ".number-icon" );
+
+				//mode
+				var period = $label.attr( "data-period" ),
+					mode = $label.attr( "data-mode" );
+				if( period === "all" ) {
+					$periodIcon.addClass( "fa-arrows-h" );
+					$periodIcon.removeClass( "fa-circle" );
+				} else {
+					$periodIcon.removeClass( "fa-arrows-h" );
+					$periodIcon.addClass( "fa-circle" );
+				}
+
+				if( period === "single" && mode === "specific" ) {
+					$numberIcon.html( $label.attr( "data-target-year" ) + "/" + $label.attr( "data-tolerance" ) );
+				} else if( period == "single" && mode === "latest" ) {
+					$numberIcon.html( "<span class='fa fa-long-arrow-right'></span>/" + $label.attr( "data-maximum-age" ) );
+				} else if( period == "all" && mode === "closest" ) {
+					$numberIcon.html( $label.attr( "data-tolerance" ) );
+				} else if( period == "all" && mode === "latest" ) {
+					$numberIcon.html( "<span class='fa fa-long-arrow-right'></span>/" + $label.attr( "data-maximum-age" ) );
+				}
+
+				/*$periodIcon.text( $label.attr( "data-period" ) );
+				$modeIcon.text( $label.attr( "data-mode" ) );
+				$numberIcon.text( $label.attr( "data-target-year" ) );*/
+
+			} );
 
 		}
 
