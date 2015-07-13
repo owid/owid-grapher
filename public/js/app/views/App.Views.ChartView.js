@@ -75,7 +75,21 @@
 			
 			//sources tab
 			this.$sourcesTab = this.$el.find( "#sources-chart-tab" );
-			var dimensionsString = App.ChartModel.get( "chart-dimensions" );
+			var dimensionsString = App.ChartModel.get( "chart-dimensions" ),
+				validDimensions = false;
+			
+			//check we have all dimensions necessary 
+			if( !$.isEmptyObject( dimensionsString ) ) {
+				var dimension = $.parseJSON( dimensionsString );
+				validDimensions = this.checkValidDimensions( dimension, App.ChartModel.get( "chart-type" ));
+			}
+			
+			console.log( "validDimensions", validDimensions );
+
+			if( !validDimensions ) {
+				return false;
+			}
+
 			if( dimensionsString ) {
 
 				$.ajax( {
@@ -221,7 +235,7 @@
 					values = _.filter( values, function( value ) {
 						return ( value.x >= timeFrom && value.x <= timeTo );
 					} );
-					singleData.values = values
+					singleData.values = values;
 				} );
 
 			}
@@ -700,6 +714,37 @@
 					elem.style.cssText += rules[idx].style.cssText;
 				});
 			}
+		},
+
+		checkValidDimensions: function( dimensions, chartType ) {
+			
+			var validDimensions = false,
+				xDimension, yDimension;
+			
+			switch( chartType ) {
+				case "1":
+					//check that dimensions have x property
+					yDimension = _.find( dimensions, function( dimension ) {
+						return dimension.property === "y";
+					} );
+					if( yDimension ) {
+						validDimensions = true;
+					}
+					break;
+				case "2":
+					//check that dimensions have x property
+					xDimension = _.find( dimensions, function( dimension ) {
+						return dimension.property === "x";
+					} );
+					yDimension = _.find( dimensions, function( dimension ) {
+						return dimension.property === "y";
+					} );
+					if( xDimension && yDimension ) {
+						validDimensions = true;
+					}
+					break;
+			}
+			return validDimensions;
 
 		}
 

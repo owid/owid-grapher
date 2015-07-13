@@ -28,10 +28,10 @@
 			$entitiesSelect.empty();
 			
 			//append default 
-			$entitiesSelect.append( $( "<option selected disabled>Select entity</option>" ) );	
+			$entitiesSelect.append( $( "<option selected disabled>Select entity</option>" ) );
 
 			App.AvailableEntitiesCollection.each( function( model ) {
-				$entitiesSelect.append( $( "<option value='" + model.get( "id" ) + "'>" + model.get( "name" ) + "</option>" ) );	
+				$entitiesSelect.append( $( "<option value='" + model.get( "id" ) + "'>" + model.get( "name" ) + "</option>" ) );
 			});
 
 		},
