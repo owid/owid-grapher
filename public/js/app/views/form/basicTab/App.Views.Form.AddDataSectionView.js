@@ -76,18 +76,13 @@
 				this.$ddList = this.$dd.find( ".dd-list" );
 			}
 
-			var defaultLookAround = 5;
+			//have default target year for scatter plot
+			var defaultTargetYear = 2000;
 
-			var $li = $( "<li class='variable-label dd-item' data-variable-id='" + model.get( "id" ) + "'><div class='dd-handle'>" + model.get( "name" ) + "</div><span class='fa fa-cog' title='Set varialbe'></span><span class='fa fa-close'></span></li>" ),
+			var $li = $( "<li class='variable-label dd-item' data-target-year='" + defaultTargetYear + "' data-variable-id='" + model.get( "id" ) + "'><div class='dd-handle'>" + model.get( "name" ) + "</div><span class='fa fa-cog' title='Setting variable'></span><span class='fa fa-close'></span></li>" ),
 				$settings = $li.find( ".fa-cog" );
-			//var $li = $( "<li class='variable-label dd-item' data-variable-id='" + model.get( "id" ) + "'><div class='dd-handle'>" + model.get( "name" ) + "</div><span class='look-around' title='Number of years to look around'>" + defaultLookAround + "</span><span class='fa fa-bullseye' title='Use only latest available year for this variable'></span><span class='fa fa-close'></span></li>" ),
-				//$latestYear = $li.find( ".fa-bullseye" ),
-				//$lookAround = $li.find( ".look-around" );
 			this.$ddList.append( $li );
 			
-			//$latestYear.on( "click", $.proxy( this.onLatestYearClick, this ) );
-			//$lookAround.on( "click", $.proxy( this.onLookAroundClick, this ) );
-
 			$settings.on( "click", $.proxy( this.onSettingsClick, this ) );
 
 			this.refreshHandlers();
@@ -96,7 +91,6 @@
 
 		onVariableRemove: function( model ) {
 			var $liToRemove = $( ".variable-label[data-variable-id='" + model.get( "id" ) + "']" );
-			console.log( "$liToRemove", this.$ddList,  $liToRemove );
 			$liToRemove.remove();
 		},
 

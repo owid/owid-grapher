@@ -263,7 +263,7 @@ class DataController extends Controller {
 				$i = 0;
 
 				//settings for parameters
-				$defaultPeriod = "all";
+				$defaultPeriod = "single";
 				$period = ( isset( $mainDimension->period ) )? $mainDimension->period: $defaultPeriod; 
 				
 				//depending on the mode, continue with the rest
@@ -276,11 +276,12 @@ class DataController extends Controller {
 					foreach( $dimensionsByKey as $dimension ) {
 
 						$defaultMode = "specific";
+						$defaultYear = 2000;
 						$mode = ( isset( $dimension->mode ) )? $dimension->mode: $defaultMode; 
 
 						if( $mode === "specific" ) {
 						
-							$time = $dimension->targetYear;
+							$time = ( isset( $dimension->targetYear ) )? $dimension->targetYear: $defaultYear;
 						
 						} else if( $mode === "latest" ) {
 						
