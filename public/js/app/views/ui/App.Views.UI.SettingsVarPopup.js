@@ -97,6 +97,14 @@
 				tolerance = $variableLabel.attr( "data-tolerance" ),
 				maximumAge = $variableLabel.attr( "data-maximum-age" );
 
+			//prefill values (regardless of what is selected)
+			this.$el.find( "[name=single-year]" ).val( targetYear );
+			this.$el.find( "[name=single-tolerance]" ).val( tolerance );
+			this.$el.find( "[name=single-maximum-age]" ).val( maximumAge );
+			this.$el.find( "[name=all-tolerance]" ).val( tolerance );
+			this.$el.find( "[name=all-maximum-age]" ).val( maximumAge );
+					
+			//based on set values, appear correct values
 			if( period ) {
 				
 				if( period === "single" ) {
@@ -111,16 +119,13 @@
 						this.$singleInputs.filter( "[value=specific]" ).prop( "checked", true );
 						this.$contentSingleSpecific.show();
 						this.$contentSingleLatest.hide();
-						this.$el.find( "[name=single-year]" ).val( targetYear );
-						this.$el.find( "[name=single-tolerance]" ).val( tolerance );
-
+						
 					} else if( mode === "latest" ) {
 
 						this.$singleInputs.filter( "[value=latest]" ).prop( "checked", true );
 						this.$contentSingleSpecific.hide();
 						this.$contentSingleLatest.show();
-						this.$el.find( "[name=single-maximum-age]" ).val( maximumAge );
-
+						
 					}
 
 				} else if( period === "all" ) {
@@ -135,14 +140,12 @@
 						this.$allInputs.filter( "[value=closest]" ).prop( "checked", true );
 						this.$contentAllClosest.show();
 						this.$contentAllLatest.hide();
-						this.$el.find( "[name=all-tolerance]" ).val( tolerance );
 					
 					} else if( mode === "latest" ) {
 						
 						this.$allInputs.filter( "[value=latest]" ).prop( "checked", true );
 						this.$contentAllClosest.hide();
 						this.$contentAllLatest.show();
-						this.$el.find( "[name=all-maximum-age]" ).val( maximumAge );
 						
 					}
 

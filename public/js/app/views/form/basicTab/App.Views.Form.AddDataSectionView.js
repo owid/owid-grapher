@@ -77,9 +77,13 @@
 			}
 
 			//have default target year for scatter plot
-			var defaultTargetYear = 2000;
+			var defaultPeriod = "single",
+				defaultMode = "specific",
+				defaultTargetYear = 2000,
+				defaultMaxAge = 5,
+				defaultTolerance = 5;
 
-			var $li = $( "<li class='variable-label dd-item' data-target-year='" + defaultTargetYear + "' data-variable-id='" + model.get( "id" ) + "'><div class='dd-handle'>" + model.get( "name" ) + "</div><span class='fa fa-cog' title='Setting variable'></span><span class='fa fa-close'></span></li>" ),
+			var $li = $( "<li class='variable-label dd-item' data-period='" + defaultPeriod + "' data-tolerance='" + defaultTolerance + "' data-maximum-age='" + defaultMaxAge + "' data-mode='" + defaultMode + "' data-target-year='" + defaultTargetYear + "' data-variable-id='" + model.get( "id" ) + "'><div class='dd-handle'>" + model.get( "name" ) + "</div><span class='fa fa-cog' title='Setting variable'></span><span class='fa fa-close'></span></li>" ),
 				$settings = $li.find( ".fa-cog" );
 			this.$ddList.append( $li );
 			
@@ -137,12 +141,10 @@
 				}
 			}
 
-			//if selected to display values for all years, need to update all variables, cannot have different dimensions with different modes
-			if( data.period === "all" ) {
-				var $variableLabels = $( ".variable-label" );
-				$variableLabels.attr( "data-period", "all" );
-			}
-
+			//if sync period values for all variables 
+			var $variableLabels = $( ".variable-label" );
+			$variableLabels.attr( "data-period", data.period );
+			
 			//hide popup
 			this.settingsVarPopup.hide();
 
