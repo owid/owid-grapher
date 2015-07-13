@@ -32,6 +32,7 @@
 			this.$formatter = this.$el.find( "[name='unit']" );
 
 			App.ChartModel.on( "change:chart-type", this.onChartTypeChange, this );
+			App.ChartDimensionsModel.on( "reset change", this.onChartDimensionsModel, this );
 
 			this.render();
 
@@ -95,6 +96,13 @@
 				//scatter plot has legend hidden by default
 				App.ChartModel.set( "hide-legend", true );
 			}
+
+		},
+
+		onChartDimensionsModel: function( evt ) {
+			
+			//console.log( "onChartDimensionsModel" );
+			//console.log( App.ChartDimensionsModel.get( "chartDimensions" ) );
 
 		}
 

@@ -243,7 +243,8 @@
 				_.each( localData, function( singleData, key, list ) {
 					var values = _.clone( singleData.values );
 					values = _.filter( values, function( value ) {
-						return ( value.x >= timeFrom && value.x <= timeTo );
+						return ( parseInt( value.time, 10 ) >= timeFrom && parseInt( value.time, 10 ) <= timeTo );
+						//return ( value.x >= timeFrom && value.x <= timeTo );
 					} );
 					singleData.values = values;
 				} );
