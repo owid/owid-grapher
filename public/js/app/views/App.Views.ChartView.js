@@ -28,6 +28,8 @@
 			
 			var that = this;
 
+			this.$preloader = this.$el.find( ".chart-preloader" );
+
 			//chart tab
 			this.$svg = this.$el.find( "svg" );
 			this.$tabContent = this.$el.find( ".tab-content" );
@@ -92,6 +94,9 @@
 
 			if( dimensionsString ) {
 
+				this.$preloader.show();
+
+				var that = this;
 				$.ajax( {
 					url: Global.rootUrl + "/data/dimensions",
 					data: { "dimensions": dimensionsString, "chartId": App.ChartModel.get( "id" ), "chartType": App.ChartModel.get( "chart-type" ), "selectedCountries": selectedCountriesIds, "chartTime": chartTime, "cache": App.ChartModel.get( "cache" ), "onlyEntityMatch": App.ChartModel.get( "only-entity-match" )  },
@@ -110,6 +115,12 @@
 						if( response.exportData ) {
 							that.updateDataTab( response.exportData );
 						}
+					},
+					error: function( ) {
+						alert( "Error receiving data for chart builder!" );
+					},
+					complete: function() {
+						that.$preloader.hide();
 					}
 				} );
 

@@ -53,4 +53,10 @@
 			</div>
 		</div>
 	</div>
+	<div class="chart-preloader">
+		<i class="fa fa-spinner fa-spin"></i>
+	</div>
+	<div class="chart-error">
+		
+	</div>
 </div>
