@@ -26,15 +26,18 @@
 			this.updateEntities();
 		},
 
-		updateEntities: function( ids ) {
+		updateEntities: function() {
 
 			var ids = this.getVariableIds();
 			this.url = this.urlRoot + "?variableIds=" + ids.join(",");
+
+			var that = this;
 			this.fetch( {
 				success: function( collection, response ) {
 					console.log( "update Entities response", response );
+					that.trigger( "fetched" );
 				}
-			});	
+			});
 
 		},
 
