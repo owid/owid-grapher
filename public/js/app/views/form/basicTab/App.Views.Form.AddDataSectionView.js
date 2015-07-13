@@ -137,6 +137,12 @@
 				}
 			}
 
+			//if selected to display values for all years, need to update all variables, cannot have different dimensions with different modes
+			if( data.period === "all" ) {
+				var $variableLabels = $( ".variable-label" );
+				$variableLabels.attr( "data-period", "all" );
+			}
+
 			//hide popup
 			this.settingsVarPopup.hide();
 

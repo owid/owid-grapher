@@ -219,8 +219,6 @@
 
 			}
 
-			console.log( "data", data );
-
 			this.dispatcher.trigger( "dimension-setting-update", data );
 
 		},
