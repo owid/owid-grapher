@@ -263,7 +263,7 @@ class DataController extends Controller {
 				$i = 0;
 
 				//settings for parameters
-				$defaultPeriod = "single";
+				$defaultPeriod = "all";
 				$period = ( isset( $mainDimension->period ) )? $mainDimension->period: $defaultPeriod; 
 				
 				//depending on the mode, continue with the rest

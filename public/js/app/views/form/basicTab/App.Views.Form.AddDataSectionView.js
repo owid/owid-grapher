@@ -77,8 +77,8 @@
 			}
 
 			//have default target year for scatter plot
-			var defaultPeriod = "single",
-				defaultMode = "specific",
+			var defaultPeriod = ( App.ChartModel.get( "chart-type" ) === "2" )? "single": "all",
+				defaultMode = ( App.ChartModel.get( "chart-type" ) === "2" )? "specific": "closest",
 				defaultTargetYear = 2000,
 				defaultMaxAge = 5,
 				defaultTolerance = 5;
