@@ -97,7 +97,7 @@
 
 				$.ajax( {
 					url: Global.rootUrl + "/data/dimensions",
-					data: { "dimensions": dimensionsString, "chartId": App.ChartModel.get( "id" ), "chartType": App.ChartModel.get( "chart-type" ), "selectedCountries": selectedCountriesIds, "chartTime": chartTime, "cache": App.ChartModel.get( "cache" ), "onlyEntityMatch": App.ChartModel.get( "only-entity-match" )  },
+					data: { "dimensions": dimensionsString, "chartId": App.ChartModel.get( "id" ), "chartType": App.ChartModel.get( "chart-type" ), "selectedCountries": selectedCountriesIds, "chartTime": chartTime, "cache": App.ChartModel.get( "cache" ), "groupByVariables": App.ChartModel.get( "group-by-variables" )  },
 					success: function( response ) {
 						that.$error.hide();
 						//test removing chart when response false - doesn't work
@@ -218,15 +218,20 @@
 					return +v.id;
 				} );
 
-			if( selectedCountries && selectedCountriesIds.length ) {
+			if( selectedCountries && selectedCountriesIds.length && !App.ChartModel.get( "group-by-variables" ) ) {
 				localData = _.filter( localData, function( value, key, list ) {
 					//set color while in the loop
-					var country = selectedCountriesById[ value.id ];
+					var id = value.id;
+					//need to check for special case, when we have more variables for the same countries (the ids will be then 21-1, 22-1, etc.)
+					if( id.indexOf( "-" ) > 0 ) {
+						id = parseInt( id.split( "-" )[ 0 ], 10 );
+					}
+					var country = selectedCountriesById[ id ];
 					if( country && country.color ) {
 						value.color = country.color;
 					}
 					//actual filtering
-					return ( _.indexOf( selectedCountriesIds, value.id ) > -1 );
+					return ( _.indexOf( selectedCountriesIds, id ) > -1 );
 				} );
 			} else {
 				//TODO - nonsense? just convert associative array to array

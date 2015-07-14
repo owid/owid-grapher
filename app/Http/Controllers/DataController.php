@@ -68,11 +68,18 @@ class DataController extends Controller {
 		}
 
 		$chartType = Input::get( 'chartType' );
+
 		//there's special setting for linechart
 		$isLineChart = ( $chartType == "1" )? true: false;
 
 		//find out how many variables we have 
-		$groupByEntity = (!$isLineChart || count( $dimensions ) == 1)? true: false;
+		$groupByEntity = ( Input::get( 'groupByVariables' ) == 'false' )? true: false;
+		
+		//special case for linechart with multiple variables 
+		$multiVariantByEntity = false;
+		if( $groupByEntity && $isLineChart && count( $dimensions ) > 1 ) {
+			$multiVariantByEntity = true;
+		}
 
 		$timeType = '';
 
@@ -101,7 +108,9 @@ class DataController extends Controller {
 			$id = $dimension->variableId;
 			//use query builder instead of eloquent
 			$variableQuery = DB::table( 'data_values' )
+				->select( 'data_values.*', 'times.*', 'entities.name as name', 'variables.name as variable_name' )
 				->join( 'entities', 'data_values.fk_ent_id', '=', 'entities.id' )
+				->join( 'variables', 'data_values.fk_var_id', '=', 'variables.id' )
 				->join( 'times', 'data_values.fk_time_id', '=', 'times.id' )
 				->where( 'data_values.fk_var_id', $id );
 
@@ -134,7 +143,6 @@ class DataController extends Controller {
 		/**
 		 * 2) assign data to entities
 		 **/
-
 		foreach( $dimensions as $dimension ) {
 
 			$id = $dimension->variableId;
@@ -155,7 +163,9 @@ class DataController extends Controller {
 				$oldEntityId = -1;
 				foreach( $variableData as $datum ) {
 
-					$entityId = $datum->fk_ent_id;
+					//$entityId = $datum->fk_ent_id;
+					$entityId = ( !$multiVariantByEntity )? $datum->fk_ent_id: $datum->fk_ent_id . "-" .$datum->fk_var_id;
+					
 					//check if new entity and we need to reset cycle
 					if( $oldEntityId != $entityId ) {
 						$i = 0;
@@ -165,8 +175,9 @@ class DataController extends Controller {
 					//do we have already object for that entity
 					if( !array_key_exists($entityId, $dataByEntity) ) {
 						$dataByEntity[ $entityId ] = array( 
-							"id" => intval($entityId),
-							"key" => $datum->name,
+							"id" => $entityId,
+							//"id" => intval($entityId),
+							"key" => ( !$multiVariantByEntity )? $datum->name: $datum->name . " - " . $datum->variable_name,
 							"values" => []
 						);
 					}

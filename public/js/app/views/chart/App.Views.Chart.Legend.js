@@ -49,7 +49,7 @@
 						});
 					});
 				
-				//if not existing, add nv-add-btn
+				//if not existing, add nv-add-btn, if not grouping by variables
 				var addEntityBtn =  wrap.select( 'g.nv-add-btn' );
 				if( addEntityBtn.empty() ) {
 					addEntityBtn = wrap.append('g').attr('class', 'nv-add-btn');
@@ -67,6 +67,10 @@
 					addEntityBtn.attr( "display", "none" );
 				} else {
 					addEntityBtn.attr( "display", "block" );
+				}
+				if( App.ChartModel.get( "group-by-variables" ) ) {
+					//if grouping by variable, legend will show variables instead of countries, so add country btn doesn't make sense
+					addEntityBtn.attr( "display", "none" );
 				}
 					
 				var seriesEnter = series.enter().append('g').attr('class', 'nv-series'),
@@ -101,6 +105,10 @@
 					})
 					.on('click', function(d,i) {
 
+						if( App.ChartModel.get( "group-by-variables" ) ) {
+							//if displaying variables, do not allow removing variables
+							return false;
+						}
 						//when clicking country label, remove the country
 						d3.event.stopImmediatePropagation();
 						//remove series straight away, so we don't have to wait for response from server

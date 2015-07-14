@@ -7,6 +7,7 @@
 		el: "#form-view #data-tab .dimensions-section",
 		events: {
 			"change [name='chart-type']": "onChartTypeChange",
+			"change [name='group-by-variable']": "onGroupByVariableChange",
 		},
 
 		initialize: function( options ) {
@@ -26,6 +27,7 @@
 
 			this.$formSectionContent = this.$el.find( ".form-section-content" );
 			this.$dimensionsInput = this.$el.find( "[name='chart-dimensions']" );
+			this.$groupByVariableInput = this.$el.find( "[name='group-by-variable']" );
 
 			//get rid of old content
 			this.$formSectionContent.empty();
@@ -61,6 +63,18 @@
 			var chartDimensions = App.ChartModel.get( "chart-dimensions" );
 			this.setInputs( chartDimensions );
 
+			//handle group by variable checkbox
+			if( App.ChartModel.get( "chart-type" ) == 1 ) {
+				//is linechart, so this checkbox is relevant
+				var groupByVariables = App.ChartModel.get( "group-by-variables" );
+				this.$groupByVariableInput.prop( "checked", groupByVariables );
+				this.$groupByVariableInput.show();
+			} else {
+				//is not linechart, make sure grouping of variables is off and hide input
+				App.ChartModel.set( "group-by-variables", false );
+				this.$groupByVariableInput.hide();
+			}
+			
 			//if scatter plot, only entity match
 			/*var $onlyEntityMatchCheck = $( "<div class='only-entity-check-wrapper'><label><input type='checkbox' name='only-entity-check' />Match variables only by countries, not years.</label></div>" ),
 				$onlyEntityInput = $onlyEntityMatchCheck.find( "input" );
@@ -154,6 +168,13 @@
 
 		onDimensionUpdate: function() {
 			this.updateInput();
+		},
+
+		onGroupByVariableChange: function( evt ) {
+
+			var $input = $( evt.currentTarget );
+			App.ChartModel.set( "group-by-variables", $input.is( ":checked" ) );
+
 		}
 
 	});

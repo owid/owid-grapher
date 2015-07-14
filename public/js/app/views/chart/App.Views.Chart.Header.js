@@ -14,7 +14,6 @@
 			this.$tabs = this.$el.find( ".header-tab" );
 			this.render();
 
-			
 			//setup events
 			App.ChartModel.on( "change", this.render, this );
 

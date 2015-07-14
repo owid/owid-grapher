@@ -35,7 +35,8 @@
 			"unit": "",
 			"iframe-width": "100%",
 			"iframe-height": "660px",
-			"hide-legend": false
+			"hide-legend": false,
+			"group-by-variables": false
 		},
 
 		initialize: function() {

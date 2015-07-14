@@ -148,6 +148,10 @@ button > i {
 			margin-right: 40px;
 			padding: 10px 0px;
 		}
+		.group-by-variable-wrapper {
+			margin-left: 65px;
+			margin-right: 40px;
+		}
 		.form-section-desc {
 			font-style: italic;
 		}

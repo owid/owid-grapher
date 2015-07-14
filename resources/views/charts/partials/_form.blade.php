@@ -81,7 +81,13 @@
 					<div class="form-section-content">
 						
 					</div>
-					<input type="hidden" name="chart-dimensions" value="" />
+					<div class="group-by-variable-wrapper">
+						<label>
+							<input type="checkbox" name="group-by-variable" />
+							Group by variables
+						</label>
+					</div>
+ 					<input type="hidden" name="chart-dimensions" value="" />
 				</section>
 				<section class="form-section entities-section">
 					<div class="form-section-header">
