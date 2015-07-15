@@ -139,7 +139,6 @@
 		},
 
 		exportContent: function( evt ) {
-
 			
 			//http://stackoverflow.com/questions/23218174/how-do-i-save-export-an-svg-file-after-creating-an-svg-with-d3-js-ie-safari-an
 			var $btn = $( evt.currentTarget ),
@@ -188,7 +187,15 @@
 
 				var $svgCanvas = $( ".nvd3-svg" );
 				if( $svgCanvas.length ) {
+				
+					//temp hack - remove image when exporting to png
+					var $svgLogo = $( ".chart-logo-svg" );
+					$svgLogo.remove();
+
 					saveSvgAsPng( $( ".nvd3-svg" ).get( 0 ), "chart.png");
+					
+					$svg.prepend( $svgLogo );
+					
 				}
 
 			}
@@ -196,7 +203,7 @@
 			//add back the printed svg
 			$newEl.replaceWith( $oldEl );
 			//refresh link
-			$oldEl.find( ".chart-save-png-btn" ).on( "click", $.proxy( this.exportContent, this ) );
+			$oldEl.find( ".chart-save-svg-btn" ).on( "click", $.proxy( this.exportContent, this ) );
 
 		},
 
@@ -371,27 +378,48 @@
 					.call( that.chart );
 
 				//set popup
+				var unitsString = App.ChartModel.get( "units" ),
+					units = ( !$.isEmptyObject( unitsString ) )? $.parseJSON( unitsString ): {},
+					string = "";
+					
 				that.chart.tooltip.contentGenerator( function( data ) {
 					
 					//find relevant values for popup and display them
-					var series = data.series, key = "", value = "", value2 = "", time = "";
+					var series = data.series, key = "", timeString = "";
 					if( series && series.length ) {
+						
 						var serie = series[ 0 ];
 						key = serie.key;
-						value = serie.value;
-						//get second value for x axis
-						if( data.point ) {
-							value2 = data.point.x;
-							time = data.point.time;
+						
+						//get source of information
+						var point = data.point;
+						//begin composting string
+						string = "<h3>" + key + "</h3><p>";
+
+						$.each( point, function( i, v ) {
+							//for each data point, find approprieate unit, and if we have it, display it
+							var unit = _.findWhere( units, { property: i } );
+							if( unit ) {
+								var value = v;
+								//try to format number
+								if( !isNaN( unit.format ) ) {
+									//enforce maximum 20 digits
+									var fixed = Math.min( 20, parseInt( unit.format, 10 ) );
+									value = v.toFixed( fixed );
+								}
+								string += value + " " + unit.unit + ", ";
+							} else if( i === "time" ) {
+								timeString = v;
+							}
+						} );
+
+						if( timeString && App.ChartModel.get( "chart-type" ) != 1 ) {
+							string += " in " + timeString;
 						}
+						string += "</p>";
+
 					}
 
-					var string = "<h3>" + key + "</h3><p>" + value + " " + App.ChartModel.get( "unit" );
-					//display time for line chart
-					if( time && App.ChartModel.get( "chart-type" ) != 1 ) {
-						string +=  ", " + value2 + " in " + time;
-					}
-					string += "</p>";
 					return string;
 
 				} );
