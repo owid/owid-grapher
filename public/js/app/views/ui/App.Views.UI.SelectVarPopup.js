@@ -57,9 +57,10 @@
 			if( this.$chartVariable.val() > 0 ) {
 				
 				var varId = this.$chartVariable.val(),
+					varUnit = this.$chartVariable.attr( "data-unit" ),
 					varName = this.$chartVariable.find( "option:selected" ).text();
 
-				var variable = new App.Models.ChartVariableModel( { id:varId, name: varName } );
+				var variable = new App.Models.ChartVariableModel( { id:varId, name: varName, unit: varUnit } );
 				App.ChartVariablesCollection.add( variable );
 				//App.ChartModel.updateVariables( { id:varId, name: varName } );
 				

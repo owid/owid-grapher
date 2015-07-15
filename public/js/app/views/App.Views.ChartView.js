@@ -232,6 +232,8 @@
 					//need to check for special case, when we have more variables for the same countries (the ids will be then 21-1, 22-1, etc.)
 					if( id.indexOf( "-" ) > 0 ) {
 						id = parseInt( id.split( "-" )[ 0 ], 10 );
+					} else {
+						id = parseInt( id, 10 );
 					}
 					var country = selectedCountriesById[ id ];
 					if( country && country.color ) {
@@ -244,7 +246,7 @@
 				//TODO - nonsense? just convert associative array to array
 				localData = _.map( localData, function( value ) { return value; } );
 			}
-
+			
 			//filter by chart time
 			var chartTime = App.ChartModel.get( "chart-time" );
 			if( chartTime && chartTime.length == 2 ) {

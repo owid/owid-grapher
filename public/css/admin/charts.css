@@ -196,6 +196,15 @@
 		}
 
 /**
+*	units-section
+**/
+.units-section {}
+	.units-section ul {
+		list-style-type: none;
+		padding-left: 0;
+	}
+
+/**
 *	embed section
 **/
 .embed-section {}

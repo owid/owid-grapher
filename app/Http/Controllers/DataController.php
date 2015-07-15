@@ -214,9 +214,13 @@ class DataController extends Controller {
 			} else {
 
 				//multivariables
+
+				//get variable names
+				$variable = Variable::find( $dimension->variableId );
+
 				$dataByVariable[ "id-".$id ] = array( 
 					"id" => $id,
-					"key" => $dimension->variableId,
+					"key" => ( !empty( $variable ) && isset( $variable->name ) )? $variable->name: "",
 					"values" => []
 				);
 
@@ -297,9 +301,16 @@ class DataController extends Controller {
 						} else if( $mode === "latest" ) {
 						
 							//need to fetch latest year for given property
-							$allYears = array_keys( $entityData[ "values" ][ $dimension->property ] );
-							$latestYear = max( $allYears );
-							$time = $latestYear;
+
+							//do we have some values for given entity at all?
+							if( isset( $entityData[ "values" ][ $dimension->property ] ) ) {
+								$allYears = array_keys( $entityData[ "values" ][ $dimension->property ] );
+								$latestYear = max( $allYears );
+								$time = $latestYear;
+							} else {
+								$hasData = false;
+								continue;
+							}
 						
 						}
 

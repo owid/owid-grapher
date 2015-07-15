@@ -31,7 +31,7 @@
 							<select name='chart-variable' class="form-control form-variable-select">
 								<option value="" disabled selected>Select your variable</option>
 								@foreach( $data->variables as $variable )
-									<option data-subcategory-id="{{ $variable->dataset->fk_dst_subcat_id }}" value="{{ $variable->id }}">{{ $variable->name }}</option>
+									<option data-unit="{{ $variable->unit }}" data-subcategory-id="{{ $variable->dataset->fk_dst_subcat_id }}" value="{{ $variable->id }}">{{ $variable->name }}</option>
 								@endforeach
 							</select>
 						</label>

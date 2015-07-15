@@ -31,8 +31,12 @@
 			this.$unit = this.$el.find( "[name='unit']" );
 			this.$formatter = this.$el.find( "[name='unit']" );
 
+			//units
+			this.$unitsSection = this.$el.find( ".units-section" );
+			this.$unitsContent = this.$unitsSection.find( ".form-section-content" );
+			
 			App.ChartModel.on( "change:chart-type", this.onChartTypeChange, this );
-			App.ChartDimensionsModel.on( "reset change", this.onChartDimensionsModel, this );
+			App.ChartDimensionsModel.on( "reset change", this.render, this );
 
 			this.render();
 
@@ -54,6 +58,9 @@
 			var hideLegend = ( App.ChartModel.get( "hide-legend" ) )? true: false;
 			this.$hideLegend.prop( "checked", hideLegend );
 
+			this.updateUnitsUI();
+			$( ".units-section .form-control[type=input]" ).on( "change", $.proxy( this.updateUnits, this ) );
+		
 		},
 
 		onLineTypeChange: function( evt ) {
@@ -99,13 +106,65 @@
 
 		},
 
-		onChartDimensionsModel: function( evt ) {
+		updateUnitsUI: function( evt ) {
 			
-			//console.log( "onChartDimensionsModel" );
-			//console.log( App.ChartDimensionsModel.get( "chartDimensions" ) );
+			var dimensions = App.ChartDimensionsModel.get( "chartDimensions" ),
+				unitsString = App.ChartModel.get( "units" ),
+				units = ( !$.isEmptyObject( unitsString ) )? $.parseJSON( unitsString ): {};
+			
+			//refresh whole unit section
+			this.$unitsContent.html( "<ul></ul>" );
+			var $ul = this.$unitsContent.find( "ul" );
 
+			if( dimensions ) {
+
+				$.each( dimensions, function( i, v ) {
+
+					var dimension = v,
+						unitObj = _.findWhere( units, { "property": dimension.property } ),
+						unit = ( unitObj && unitObj.unit )? unitObj.unit: "",
+						format = ( unitObj && unitObj.format )? unitObj.format: "";
+
+					if( !unitObj ) {
+						//if nothing stored, try to get default units for given variable
+					}
+
+					var $li = $( "<li data-property='" + dimension.property + "'><label>" + dimension.name + ":</label><input type='input' class='form-control unit-input' value='" + unit + "' placeholder='Unit' /><input type='input' class='form-control format-input' value='" + format + "' placeholder='Format' /></li>" );
+					$ul.append( $li );
+
+				} );
+
+			}
+			
+		},
+
+		updateUnits: function() {
+			
+			var units = [],
+				$unitLis = this.$unitsContent.find( "li" );
+
+			$.each( $unitLis, function( i, v ) {
+				
+				var $li = $( v ),
+					$unit = $li.find( ".unit-input" ),
+					$format = $li.find( ".format-input" );
+
+				//for each li with unit information, construct object with property, unit and format properties
+				var unitSettings = {
+					"property": $li.attr( "data-property" ),
+					"unit": $unit.val(),
+					"format": $format.val()
+				};
+					
+				units.push( unitSettings );
+
+			} );
+
+			var json = JSON.stringify( units );
+			//this.$unit.val( json );
+			App.ChartModel.set( "units", json );
+			
 		}
-
 
 	});
 

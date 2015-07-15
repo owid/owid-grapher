@@ -33,6 +33,7 @@
 			"x-axis": {},
 			"margins": { top: 10, left: 60, bottom: 10, right: 10 },
 			"unit": "",
+			"units": "",
 			"iframe-width": "100%",
 			"iframe-height": "660px",
 			"hide-legend": false,
