@@ -302,7 +302,7 @@ class DataController extends Controller {
 						
 							//need to fetch latest year for given property
 
-							//do we have some values for given entity at all?
+							//do we have some values for given entity and property at all?
 							if( isset( $entityData[ "values" ][ $dimension->property ] ) ) {
 								$allYears = array_keys( $entityData[ "values" ][ $dimension->property ] );
 								$latestYear = max( $allYears );

@@ -203,6 +203,20 @@
 		list-style-type: none;
 		padding-left: 0;
 	}
+	.units-section input {
+		display: inline-block;
+		width: 35%;
+		max-width: 150px;
+		margin-left: 5px;
+	}
+		.units-section input:last-child {
+			display: inline-block;
+			width: 35%;
+		}
+	.units-section label {
+		width: 15%;
+		max-width: 80px;
+	}
 
 /**
 *	embed section

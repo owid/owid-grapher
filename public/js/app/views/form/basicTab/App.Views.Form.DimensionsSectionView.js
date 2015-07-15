@@ -98,7 +98,7 @@
 					//just in case there were more variables
 					$.each( $droppedVariables, function( i, v ) {
 						var $droppedVariable = $( v ),
-							dimension = { variableId: $droppedVariable.attr( "data-variable-id" ), property: $box.attr( "data-property" ), name: $box.find( "h4" ).text(), period: $droppedVariable.attr( "data-period" ), mode: $droppedVariable.attr( "data-mode" ), targetYear: $droppedVariable.attr( "data-target-year" ), tolerance: $droppedVariable.attr( "data-tolerance" ), maximumAge: $droppedVariable.attr( "data-maximum-age" ) };
+							dimension = { variableId: $droppedVariable.attr( "data-variable-id" ), property: $box.attr( "data-property" ), unit: $droppedVariable.attr( "data-unit" ), name: $box.find( "h4" ).text(), period: $droppedVariable.attr( "data-period" ), mode: $droppedVariable.attr( "data-mode" ), targetYear: $droppedVariable.attr( "data-target-year" ), tolerance: $droppedVariable.attr( "data-tolerance" ), maximumAge: $droppedVariable.attr( "data-maximum-age" ) };
 						dimensions.push( dimension );
 					} );
 				}

@@ -36,7 +36,8 @@
 			this.$unitsContent = this.$unitsSection.find( ".form-section-content" );
 			
 			App.ChartModel.on( "change:chart-type", this.onChartTypeChange, this );
-			App.ChartDimensionsModel.on( "reset change", this.render, this );
+			App.ChartModel.on( "change:chart-dimensions", this.render, this );
+			//App.ChartDimensionsModel.on( "reset change", this.render, this );
 
 			this.render();
 
@@ -108,7 +109,8 @@
 
 		updateUnitsUI: function( evt ) {
 			
-			var dimensions = App.ChartDimensionsModel.get( "chartDimensions" ),
+			var dimensionsString = App.ChartModel.get( "chart-dimensions" ), //App.ChartDimensionsModel.get( "chartDimensions" ),
+				dimensions = ( !$.isEmptyObject( dimensionsString ) )? $.parseJSON( dimensionsString ): {},
 				unitsString = App.ChartModel.get( "units" ),
 				units = ( !$.isEmptyObject( unitsString ) )? $.parseJSON( unitsString ): {};
 			
@@ -124,12 +126,13 @@
 						unitObj = _.findWhere( units, { "property": dimension.property } ),
 						unit = ( unitObj && unitObj.unit )? unitObj.unit: "",
 						format = ( unitObj && unitObj.format )? unitObj.format: "";
-
-					if( !unitObj ) {
+					
+					if( !unitObj && dimension && dimension.unit ) {
 						//if nothing stored, try to get default units for given variable
+						unit = dimension.unit;
 					}
 
-					var $li = $( "<li data-property='" + dimension.property + "'><label>" + dimension.name + ":</label><input type='input' class='form-control unit-input' value='" + unit + "' placeholder='Unit' /><input type='input' class='form-control format-input' value='" + format + "' placeholder='Format' /></li>" );
+					var $li = $( "<li data-property='" + dimension.property + "'><label>" + dimension.name + ":</label><input type='input' class='form-control unit-input' value='" + unit + "' placeholder='Unit' /><input type='input' class='form-control format-input' value='" + format + "' placeholder='No of dec. places' /></li>" );
 					$ul.append( $li );
 
 				} );
