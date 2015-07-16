@@ -27,7 +27,8 @@
 
 			this.$formSectionContent = this.$el.find( ".form-section-content" );
 			this.$dimensionsInput = this.$el.find( "[name='chart-dimensions']" );
-			this.$groupByVariableInput = this.$el.find( "[name='group-by-variable']" );
+			this.$groupByVariable = this.$el.find( ".group-by-variable-wrapper" );
+			this.$groupByVariableInput = this.$groupByVariable.find( "[name='group-by-variable']" );
 
 			//get rid of old content
 			this.$formSectionContent.empty();
@@ -68,11 +69,11 @@
 				//is linechart, so this checkbox is relevant
 				var groupByVariables = App.ChartModel.get( "group-by-variables" );
 				this.$groupByVariableInput.prop( "checked", groupByVariables );
-				this.$groupByVariableInput.show();
+				this.$groupByVariable.show();
 			} else {
 				//is not linechart, make sure grouping of variables is off and hide input
 				App.ChartModel.set( "group-by-variables", false );
-				this.$groupByVariableInput.hide();
+				this.$groupByVariable.hide();
 			}
 			
 			//if scatter plot, only entity match
