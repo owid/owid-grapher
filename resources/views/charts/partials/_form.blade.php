@@ -149,6 +149,10 @@
 								<input class="form-control" type="text" name="chart-y-axis-suffix" />
 							</div>
 							<div class="input-wrapper">
+								<label for="chart-y-axis-format">Y-Axis No of decimal places</label>
+								<input class="form-control" type="text" name="chart-y-axis-format" />
+							</div>
+							<div class="input-wrapper">
 								<label for="chart-y-scale">Y-Axis Scale</label>
 								<select class="form-control" type="text" name="chart-y-axis-scale">
 									<option value="linear">Linear</option>
@@ -181,6 +185,10 @@
 							<div class="input-wrapper">
 								<label for="chart-x-axis-suffix">X-Axis Suffix</label>
 								<input class="form-control" type="text" name="chart-x-axis-suffix" />
+							</div>
+							<div class="input-wrapper">
+								<label for="chart-x-axis-format">X-Axis No of decimal places</label>
+								<input class="form-control" type="text" name="chart-x-axis-format" />
 							</div>
 							<div class="input-wrapper">
 								<label for="chart-y-scale">X-Axis Scale</label>

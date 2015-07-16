@@ -289,7 +289,9 @@
 				yAxisMin = ( yAxis[ "axis-min" ] || 0 ),
 				yAxisMax = ( yAxis[ "axis-max" ] || null ),
 				xAxisScale = ( xAxis[ "axis-scale" ] || "linear" ),
-				yAxisScale = ( yAxis[ "axis-scale" ] || "linear" );
+				yAxisScale = ( yAxis[ "axis-scale" ] || "linear" ),
+				xAxisFormat = ( xAxis[ "axis-format" ] || 0 ),
+				yAxisFormat = ( yAxis[ "axis-format" ] || 0 );
 
 			var that = this;
 			nv.addGraph(function() {
@@ -328,7 +330,7 @@
 					.axisLabel( xAxis[ "axis-label" ] )
 					//.staggerLabels( true )
 					.axisLabelDistance( xAxisLabelDistance )
-					.tickFormat( function(d) { return that.formatTimeLabel( timeType, d, xAxisPrefix, xAxisSuffix ); });
+					.tickFormat( function(d) { return that.formatTimeLabel( timeType, d, xAxisPrefix, xAxisSuffix, xAxisFormat ); });
 				
 				if( timeType == "Quarter Century" ) {
 					that.chart.xAxis.staggerLabels( true );
@@ -388,7 +390,7 @@
 				that.chart.yAxis
 					.axisLabel( yAxis[ "axis-label" ] )
 					.axisLabelDistance( yAxisLabelDistance )
-					.tickFormat( function(d) { return yAxisPrefix + d + yAxisSuffix; });
+					.tickFormat( function(d) { return yAxisPrefix + that.formatValue( d, yAxisFormat ) + yAxisSuffix; });
 				
 				var svgSelection = d3.select( that.$svg.selector )
 					.datum( localData )
@@ -681,7 +683,7 @@
 			//position footer
 			$chartDescriptionSvg.attr( "y", currY + chartHeight + bottomChartMargin );
 			App.Utils.wrap( $chartDescriptionSvg, svgWidth );
-			$chartSourcesSvg.attr( "y", parseInt( $chartDescriptionSvg.attr( "y" ) ) + $chartDescriptionSvg.height() + footerDescriptionHeight/3 );
+			$chartSourcesSvg.attr( "y", parseInt( $chartDescriptionSvg.attr( "y" ), 10 ) + $chartDescriptionSvg.height() + footerDescriptionHeight/3 );
 			App.Utils.wrap( $chartSourcesSvg, svgWidth );
 			
 			//compute chart width
@@ -715,7 +717,7 @@
 			
 		},
 
-		formatTimeLabel: function( type, d, xAxisPrefix, xAxisSuffix ) {
+		formatTimeLabel: function( type, d, xAxisPrefix, xAxisSuffix, format ) {
 			//depending on type format label
 			var label;
 			switch( type ) {
@@ -774,7 +776,9 @@
 					break;
 
 				default:
-					label = d.toString();
+
+					label = this.formatValue( d, format );
+					
 					break;
 			}
 			return xAxisPrefix + label + xAxisSuffix;
@@ -819,6 +823,20 @@
 			}
 			return validDimensions;
 
+		},
+
+		formatValue: function( value, format ) {
+			//make sure we do this on number
+			if( value && !isNaN( value ) ) {
+				if( format && !isNaN( format ) ) {
+					var fixed = Math.min( 20, parseInt( format, 10 ) );
+					value = value.toFixed( fixed );
+				} else {
+					//no format 
+					value = value.toString();
+				}
+			}
+			return value;
 		}
 
 	});
