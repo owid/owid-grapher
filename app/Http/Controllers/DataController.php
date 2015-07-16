@@ -71,10 +71,14 @@ class DataController extends Controller {
 
 		//there's special setting for linechart
 		$isLineChart = ( $chartType == "1" )? true: false;
+		//temp 
+		//$isLineChart = true;
 
 		//find out how many variables we have 
 		$groupByEntity = ( Input::get( 'groupByVariables' ) == 'false' )? true: false;
-		
+		//temp
+		//$groupByEntity = false;
+
 		//special case for linechart with multiple variables 
 		$multiVariantByEntity = false;
 		if( $groupByEntity && $isLineChart && count( $dimensions ) > 1 ) {
@@ -159,7 +163,7 @@ class DataController extends Controller {
 			if( $groupByEntity ) {
 			
 				//group variable data by entities
-				$i = 0;
+				//$i = 0;
 				$oldEntityId = -1;
 				foreach( $variableData as $datum ) {
 
@@ -168,7 +172,7 @@ class DataController extends Controller {
 					
 					//check if new entity and we need to reset cycle
 					if( $oldEntityId != $entityId ) {
-						$i = 0;
+						//$i = 0;
 					}
 					$oldEntityId = $entityId;
 					
@@ -190,10 +194,10 @@ class DataController extends Controller {
 					$dataByEntity[ $entityId ][ "values" ][ $property ][ floatval( $datum->date ) ] = floatval( $datum->value );
 					
 					//if is linechart, store time into x axis
-					if( $isLineChart ) {
+					/*if( $isLineChart ) {
 						$dataByEntity[ $entityId ][ "values" ][ $i ][ "x" ] = floatval( $datum->date );
 					}
-					$i++;
+					$i++;*/
 
 					//store time type if not stored
 					if( empty( $timeType ) ) {
@@ -206,7 +210,7 @@ class DataController extends Controller {
 						$entities[ $entityId ] = $datum->name; 
 					}
 					$dataByEntityTime[ $entityId ][ $datum->label ] = $datum->value;
-					$times[ $datum->label ] = true;
+					$times[ floatval( $datum->date ) ] = true;
 					$datasourcesIdsArr[ $datum->fk_dsr_id ] = true;
 
 				}
@@ -342,6 +346,48 @@ class DataController extends Controller {
 				
 				} else {
 
+					//format data for stack bar chart, need to always have time for all times
+					/*foreach( $times as $time=>$value ) {
+
+						//array where we store data for all properties for given time 
+						$timeArr = [];
+						//flag whether for given time, there's enough relevant data
+						$hasData = true;
+
+						//fill out values for all dimensions and foll times
+						foreach( $dimensionsByKey as $dimension ) {
+
+							if( !empty( $entityData[ "values" ][ $dimension->property ] ) ) {
+
+								$value = $this->getValue( $dimension, $time, $entityData[ "values" ][ $dimension->property ] );
+								if( !$value ) {
+									//always filled out values for stack bar chart
+									$value = 0;
+								}
+								$timeArr[ $dimension->property ] = $value; 
+
+							} else {
+
+								$hasData = false;
+
+							}
+
+						}
+
+						if( $isLineChart ) {
+							$timeArr[ "x" ] = $time;
+						}
+
+						//if is valid array, insert
+						if( $hasData ) {
+
+							$arr[ "values" ][ $i ] = $timeArr;
+							$i++;
+
+						}
+
+					}*/
+
 					//case when getting data for whole range of values
 					foreach( $mainValues as $time=>$mainValue ) {
 
@@ -382,6 +428,8 @@ class DataController extends Controller {
 									if( $value ) {
 										$timeArr[ $otherDimension->property ] = $value; 
 									} else {
+										//temp
+										//$value = 0;
 										$hasData = false;
 									}
 									
@@ -536,10 +584,6 @@ class DataController extends Controller {
 			}
 
 		}
-
-	}
-
-	public function getRelatedKey( $buffer = 4, $dir = "up" ) {
 
 	}
 
