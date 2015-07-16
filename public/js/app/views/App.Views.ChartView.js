@@ -226,6 +226,9 @@
 				} );
 
 			if( selectedCountries && selectedCountriesIds.length && !App.ChartModel.get( "group-by-variables" ) ) {
+				
+				//set local copy of countries color, to be able to create brighter
+				var countriesColors = [];
 				localData = _.filter( localData, function( value, key, list ) {
 					//set color while in the loop
 					var id = value.id;
@@ -237,7 +240,14 @@
 					}
 					var country = selectedCountriesById[ id ];
 					if( country && country.color ) {
-						value.color = country.color;
+						if( !countriesColors[ id ] ) {
+							countriesColors[ id ] = country.color;
+						} else {
+							//there is already color for country (multivariant dataset) - create brighter color
+							countriesColors[ id ] = d3.rgb( countriesColors[ id ] ).brighter( 1 ).toString();
+						}
+						value.color = countriesColors[ id ];
+
 					}
 					//actual filtering
 					return ( _.indexOf( selectedCountriesIds, id ) > -1 );
@@ -308,6 +318,11 @@
 				} else if( chartType == "2" ) {
 					that.chart = nv.models.scatterChart().options( chartOptions );//f.showDistX(true).showDistY(true);
 				}
+
+				/*console.log( "localData", localData );
+				that.chart = nv.models.stackedAreaChart()
+					.x(function(d) { return d[ "x" ] })
+					.y(function(d) { return d[ "y" ] })*/
 
 				that.chart.xAxis
 					.axisLabel( xAxis[ "axis-label" ] )
@@ -399,7 +414,7 @@
 						//begin composting string
 						string = "<h3>" + key + "</h3><p>";
 						valuesString = "";
-						
+
 						$.each( point, function( i, v ) {
 							//for each data point, find approprieate unit, and if we have it, display it
 							var unit = _.findWhere( units, { property: i } ),
@@ -429,7 +444,7 @@
 						if( timeString && App.ChartModel.get( "chart-type" ) != 1 ) {
 							valuesString += " in " + timeString;
 						}
-						string += valuesString; 
+						string += valuesString;
 						string += "</p>";
 
 					}
