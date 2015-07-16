@@ -8,8 +8,7 @@
 		events: {
 			"change [name='line-type']": "onLineTypeChange",
 			"change [name^='margin-']": "onMarginChange",
-			"change [name='hide-legend']": "onHideLegendChange",
-			"change [name='unit']": "onUnitChange"
+			"change [name='hide-legend']": "onHideLegendChange"
 		},
 
 		initialize: function( options ) {
@@ -27,18 +26,13 @@
 			//legend
 			this.$hideLegend = this.$el.find( "[name='hide-legend']" );
 
-			//unit
-			this.$unit = this.$el.find( "[name='unit']" );
-			this.$formatter = this.$el.find( "[name='unit']" );
-
 			//units
 			this.$unitsSection = this.$el.find( ".units-section" );
 			this.$unitsContent = this.$unitsSection.find( ".form-section-content" );
 			
 			App.ChartModel.on( "change:chart-type", this.onChartTypeChange, this );
 			App.ChartModel.on( "change:chart-dimensions", this.render, this );
-			//App.ChartDimensionsModel.on( "reset change", this.render, this );
-
+			
 			this.render();
 
 		},
@@ -53,8 +47,6 @@
 			this.$marginLeft.val( margins.left );
 			this.$marginRight.val( margins.right );
 			this.$marginBottom.val( margins.bottom );
-
-			this.$unit.val( App.ChartModel.get( "unit" ) );
 
 			var hideLegend = ( App.ChartModel.get( "hide-legend" ) )? true: false;
 			this.$hideLegend.prop( "checked", hideLegend );
@@ -164,7 +156,6 @@
 			} );
 
 			var json = JSON.stringify( units );
-			//this.$unit.val( json );
 			App.ChartModel.set( "units", json );
 			
 		}

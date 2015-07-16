@@ -257,20 +257,9 @@
 						</label>
 					</div>
 				</section>
-				<section class="form-section margins-section">
-					<div class="form-section-header">
-						<h2><span class="form-section-digit">l</span>Popup unit</h2>
-					</div>
-					<div class="form-section-content">
-						<label>
-							<span>Unit</span>
-							<input type="input" class="form-control" name="unit" value=""/>
-						</label>
-					</div>
-				</section>
 				<section class="form-section units-section">
 					<div class="form-section-header">
-						<h2><span class="form-section-digit">l</span>Units</h2>
+						<h2><span class="form-section-digit">l</span>Popup Units</h2>
 					</div>
 					<div class="form-section-content">
 					</div>
