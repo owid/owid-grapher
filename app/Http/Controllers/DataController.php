@@ -631,10 +631,24 @@ class DataController extends Controller {
 		$value;
 		//do we have value for exact time
 		if( array_key_exists( $time, $values ) ) {
+			
+			if( $dimension->mode === "latest" && isset( $dimension->maximumAge ) ) {
+				//for latest, we ahave to check the latest avaiable data is not too old
+				$nowTime = date( "Y" );
+				$oldestAllowedTime = $nowTime - $dimension->maximumAge;
+				if( $time < $oldestAllowedTime ) {
+					//latest available time is too old, bail
+					return;
+				}
+			} 
+
 			$value = $values[ $time ];
+			
 		} else {
 			//no we don't, try to around in recent years
-			$value = $this->lookAround( $dimension, $time, $values );
+			if( $dimension->mode !== "latest" ) {
+				$value = $this->lookAround( $dimension, $time, $values );
+			}
 		}
 
 		return $value;
@@ -651,7 +665,16 @@ class DataController extends Controller {
 		//set look around len depending on mode
 		if( isset( $dimension->mode ) ) {
 			if( $dimension->mode === "latest" && isset( $dimension->maximumAge ) ) {
-				$lookAroundLen = $dimension->maximumAge;
+				//for latest, set check latest time if it's within allowed age and set tolerance to zero
+				//$lookAroundLen = $dimension->maximumAge;
+				$lookAroundLen = 0;//$dimension->maximumAge;
+				$nowTime = date( "Y" );
+				$oldestAllowedTime = $nowTime - $dimension->maximumAge;
+				return false;
+				if( $time < $oldestAllowedTime ) {
+					//latest available time is too old, bail
+					return false;
+				}
 			}
 			if( ( $dimension->mode === "specific" || $dimension->mode === "closest" ) && isset( $dimension->tolerance ) ) {
 				$lookAroundLen = $dimension->tolerance;
