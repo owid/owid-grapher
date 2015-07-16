@@ -113,7 +113,15 @@
 						d3.event.stopImmediatePropagation();
 						//remove series straight away, so we don't have to wait for response from server
 						series[0][i].remove();
-						dispatch.removeEntity( d.id );
+						
+						var id = d.id;
+						//in case of multivarient chart
+						if( id.indexOf( "-" ) > 0 ) {
+							id = parseInt( id.split( "-" )[ 0 ], 10 );
+						} else {
+							id = parseInt( id, 10 );
+						}
+						dispatch.removeEntity( id );
 						return false;
 
 						//original version, when clicking country label just deactivates it
