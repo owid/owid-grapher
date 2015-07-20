@@ -330,7 +330,7 @@
 							lastRect = d3.select( lastEl ).select( "rect" ),
 							lastRectWidth = lastRect.attr( "width" );
 						//position add btn
-						transformX = +transformX + parseInt( lastRectWidth ) - 3;
+						transformX = +transformX + parseInt( lastRectWidth, 10 ) - 3;
 						//centering
 						transformY = +transformY - 3;
 						//check for right edge

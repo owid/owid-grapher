@@ -213,6 +213,7 @@
 				return;
 			}
 
+
 			//make local copy of data for our filtering needs
 			var localData = $.extend( true, localData, data );
 
@@ -322,9 +323,12 @@
 				}
 
 				/*console.log( "localData", localData );
+				chartOptions.showControls = false;
 				that.chart = nv.models.stackedAreaChart()
-					.x(function(d) { return d[ "x" ] })
-					.y(function(d) { return d[ "y" ] })*/
+					.options( chartOptions )
+					.useInteractiveGuideline( true )
+					.x( function( d ) { return d[ "x" ]; } )
+					.y( function( d ) { return d[ "y" ]; } );*/
 
 				that.chart.xAxis
 					.axisLabel( xAxis[ "axis-label" ] )
