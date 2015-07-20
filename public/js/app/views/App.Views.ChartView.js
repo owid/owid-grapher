@@ -319,7 +319,7 @@
 				if( chartType == "1" ) {
 					that.chart = nv.models.lineChart().options( chartOptions );
 				} else if( chartType == "2" ) {
-					that.chart = nv.models.scatterChart().options( chartOptions );//f.showDistX(true).showDistY(true);
+					that.chart = nv.models.scatterChart().options( chartOptions ).pointRange( [64, 256] );//f.showDistX(true).showDistY(true);
 				}
 
 				/*console.log( "localData", localData );
