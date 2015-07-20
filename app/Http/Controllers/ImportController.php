@@ -232,7 +232,7 @@ class ImportController extends Controller {
 
 					foreach( $countryValues as $value ) {
 
-						if( !empty( $value->x ) && !empty( $value->y ) ) {
+						if( $this->hasValue( $value->x ) && $this->hasValue( $value->y ) ) {
 
 							$timeId++;
 
@@ -280,6 +280,12 @@ class ImportController extends Controller {
 
 		}
 		
+	}
+
+	public function hasValue($value) {
+
+		return ( !empty( $value ) || $value === "0" || $value === 0 )? true: false;
+
 	}
 
 	/**

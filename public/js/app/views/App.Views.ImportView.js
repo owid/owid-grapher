@@ -83,7 +83,6 @@
 				$this.parse( {
 					config: {
 						complete: function( obj ) {
-							console.log( obj );
 							var data = { rows: obj.data };
 							that.onCsvSelected( null, data );
 						}
@@ -239,7 +238,7 @@
 				//var mappedData =  App.Utils.mapSingleVariantData( data.rows, "test" ), 
 				json = { "variables": mappedData },
 				jsonString = JSON.stringify( json );
-			
+
 			this.$dataInput.val( jsonString );
 			this.$removeUploadedFileBtn.show();
 

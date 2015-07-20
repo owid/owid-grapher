@@ -26,8 +26,12 @@
 				
 			//ommit rows with no colNmae
 			if( colName ) {
-				var singleData = _.map( singleRow, function( value, i ) {
-					return { x: timeArr[i], y: +value }
+				var singleData = [];
+				_.each( singleRow, function( value, i ) {
+					//check we have value
+					if( value !== "" ) {
+						singleData.push( { x: timeArr[i], y: +value } );
+					}
 				} );
 
 				//construct entity obj
@@ -53,7 +57,7 @@
 		};
 		return [variable];
 
-	},	
+	},
 
 	App.Utils.mapMultiVariantData = function( rawData, entityName ) {
 		
