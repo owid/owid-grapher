@@ -318,14 +318,12 @@
 
 				//depending on chart type create chart
 				var chartType = App.ChartModel.get( "chart-type" );
-				//temp
-				chartType = "3";
 				if( chartType == "1" ) {
 					that.chart = nv.models.lineChart().options( chartOptions );
 				} else if( chartType == "2" ) {
 					that.chart = nv.models.scatterChart().options( chartOptions ).pointRange( [64, 256] );//f.showDistX(true).showDistY(true);
 				} else if( chartType == "3" ) {
-					chartOptions.showControls = false;
+					//chartOptions.showControls = false;
 					that.chart = nv.models.stackedAreaChart()
 						.options( chartOptions )
 						.useInteractiveGuideline( true )
@@ -483,6 +481,9 @@
 						that.$entitiesSelect.trigger( "chosen:open" );
 					} );
 					svgSelection.call( that.legend );
+					//put legend above chart
+					
+
 				} else {
 					//no legend, remove what might have previously been there
 					that.$svg.find( "> .nvd3.nv-legend" ).hide();

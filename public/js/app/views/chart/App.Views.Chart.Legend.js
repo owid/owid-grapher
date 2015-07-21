@@ -35,7 +35,7 @@
 				nv.utils.initSVG(container);
 
 				// Setup containers and skeleton of chart
-				var wrap = container.selectAll('g.nv-legend').data([data]),
+				var wrap = container.selectAll('g.nv-custom-legend').data([data]),
 					gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-legend').append('g'),
 					g = wrap.select('g');
 
@@ -314,7 +314,7 @@
 				.transition().duration(300)
 					.attr('x', -versPadding )
 					.attr('width', legendWidth + versPadding - 12)
-					.attr('height', height + 10)
+					.attr('height', height )
 					.attr('y', -margin.top - 10)
 					.attr('opacity', expanded ? 1 : 0);
 
