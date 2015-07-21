@@ -812,7 +812,7 @@
 			
 			switch( chartType ) {
 				case "1":
-					//check that dimensions have x property
+					//check that dimensions have y property
 					yDimension = _.find( dimensions, function( dimension ) {
 						return dimension.property === "y";
 					} );
@@ -829,6 +829,15 @@
 						return dimension.property === "y";
 					} );
 					if( xDimension && yDimension ) {
+						validDimensions = true;
+					}
+					break;
+				case "3":
+					//check that dimensions have y property
+					yDimension = _.find( dimensions, function( dimension ) {
+						return dimension.property === "y";
+					} );
+					if( yDimension ) {
 						validDimensions = true;
 					}
 					break;

@@ -77,7 +77,7 @@ class DataController extends Controller {
 		//find out how many variables we have 
 		$groupByEntity = ( Input::get( 'groupByVariables' ) == 'false' )? true: false;
 		//temp
-		$groupByEntity = false;
+		//$groupByEntity = false;
 
 		//special case for linechart with multiple variables 
 		$multiVariantByEntity = false;
@@ -254,16 +254,14 @@ class DataController extends Controller {
 
 
 		/**
-		 * 3) prepare array for different chart types
+		 * 3) prepare array with the longest as main dataset 
 		 **/
 
-		//$normalizedData = [];
+		$normalizedData = [];
 		$mainDimension = $dimensionsByKey[ $mainDimId ];
-		//$normalizedData = $this->formatDataForChartType( 3, $dataByEntity, $dimensionsByKey, $times );
-		$dataByVariable = $this->formatDataForChartType( 3, $dataByVariableTime, $dimensionsByKey, $times, true );
-			
+	
 		//loop through all countries
-		/*if( $groupByEntity ) {
+		if( $groupByEntity ) {
 
 			foreach( $dataByEntity as $entityData ) {
 				
@@ -347,6 +345,48 @@ class DataController extends Controller {
 					}
 				
 				} else {
+
+					//format data for stack bar chart, need to always have time for all times
+					/*foreach( $times as $time=>$value ) {
+
+						//array where we store data for all properties for given time 
+						$timeArr = [];
+						//flag whether for given time, there's enough relevant data
+						$hasData = true;
+
+						//fill out values for all dimensions and foll times
+						foreach( $dimensionsByKey as $dimension ) {
+
+							if( !empty( $entityData[ "values" ][ $dimension->property ] ) ) {
+
+								$value = $this->getValue( $dimension, $time, $entityData[ "values" ][ $dimension->property ] );
+								if( !$value ) {
+									//always filled out values for stack bar chart
+									$value = 0;
+								}
+								$timeArr[ $dimension->property ] = $value; 
+
+							} else {
+
+								$hasData = false;
+
+							}
+
+						}
+
+						if( $isLineChart ) {
+							$timeArr[ "x" ] = $time;
+						}
+
+						//if is valid array, insert
+						if( $hasData ) {
+
+							$arr[ "values" ][ $i ] = $timeArr;
+							$i++;
+
+						}
+
+					}*/
 
 					//case when getting data for whole range of values
 					foreach( $mainValues as $time=>$mainValue ) {
@@ -435,7 +475,7 @@ class DataController extends Controller {
 
 			}
 				
-		}*/
+		}
 		
 		if( $groupByEntity ) {
 			//convert to array
@@ -722,201 +762,6 @@ class DataController extends Controller {
 		} 
 		$type = 'image/svg+xml';
 		return response( $svg )->header('Content-Type',$type);
-	}
-
-	public function formatDataForChartType( $chartType, $data, $dimensionsByKey, $times, $groupByVariable = false ) {
-
-		$normalizedData = [];
-		
-		switch( $chartType ) {
-			case 3:
-				$normalizedData = ( !$groupByVariable )? $this->formatDataForStackBarChart( $data, $dimensionsByKey, $times, $groupByVariable ): $this->formatDataForStackBarChartByVariable( $data, $dimensionsByKey, $times, $groupByVariable );
-				break;
-		}
-
-		return $normalizedData;
-
-	}
-
-	public function formatDataForStackBarChart( $dataByEntity, $dimensionsByKey, $times, $groupByVariable ) {
-
-		$normalizedData = [];
-		
-		//start stack bar chart
-		//need to sort times first, sort by key
-		ksort( $times );
-		
-		//main array, where we store data
-		$arr = [];
-
-		//format data for stack bar chart, need to always have time for all times
-		foreach( $times as $time=>$timeValue ) {
-
-			//array where we store data for all properties for all entities for given time 
-			$entitiesArr = [];
-
-			//flag whether for given time, there's enough relevant data
-			$hasData = true;
-
-			//loop through entities
-			foreach( $dataByEntity as $entityData ) {
-
-				//array where we store data for all properties for given entity for given time 
-				$entityTimeArr = [];
-
-				//for each dimension
-				foreach( $dimensionsByKey as $dimension ) {
-
-					if( !empty( $entityData[ "values" ][ $dimension->property ] ) ) {
-
-						$value = $this->getValue( $dimension, $time, $entityData[ "values" ][ $dimension->property ] );
-						if( $value ) {
-							$entityTimeArr[ $dimension->property ] = $value; 
-						} else {
-							//for stack bar chart, we need to have data for all properties
-							$hasData = false;
-							break 2;
-						}
-						
-					} else {
-
-						$hasData = false;
-						break 2;
-
-					}
-
-				}
-
-				//if we have all data for given property and time, store it
-				if( $hasData ) {
-					$entitiesArr[ $entityData[ "id" ] ] = $entityTimeArr;
-				}
-
-			} 
-
-			//if data for all entities, store it in the main array
-			if( $hasData ) {
-
-				$arr[] = $entitiesArr;
-				//$i++;
-
-			}
-
-		}
-
-		foreach( $dataByEntity as $entityData ) {
-				
-			$entity = array(
-				"id" => $entityData[ "id" ],
-				"key" => $entityData[ "key" ],
-				"values" => []
-			);
-			$normalizedData[ $entityData[ "id" ] ] = $entity;
-
-		}
-
-		//loop through all found times with data for all entities
-		foreach( $arr as $time=>$singleTimeArr ) {
-
-			//loop through all single times
-			foreach( $singleTimeArr as $entityId=>$values ) {
-
-				//fetch what we already have for entity
-				$entityArr;
-				if( array_key_exists( $entityId, $normalizedData ) ) {
-					//we don't have anything for entity, create object and put it into main result array
-					$entityArr = $normalizedData[ $entityId ];
-				} else {
-					//something weird, bail
-					continue;
-				}
-
-				//loop through all properties
-				$entityValues = [];
-				foreach( $values as $property=>$value ) {
-					$entityValues[ $property ] = $value;
-				}
-				$entityValues[ "x" ] = $time;
-				$entityArr[ "values" ][] = $entityValues;
-				
-				//reupdate 
-				$normalizedData[ $entityId ] = $entityArr;
-
-			}
-			
-		}
-
-		return $normalizedData;
-
-	}
-
-	public function formatDataForStackBarChartByVariable( $dataByVariable, $dimensionsByKey, $times ) {
-
-		//need to sort times first, sort by key
-		ksort( $times );
-		
-		//main array, where we store data
-		$arr = [];
-
-		foreach( $times as $time=>$timeValue ) {
-
-			$timeArr = [];
-			$timeArr[ "time" ] = $time;
-
-			//flag whether for given time, there's enough relevant data
-			$hasData = true;
-
-			foreach( $dataByVariable as $variableId=>$variableData ) {
-
-				if( array_key_exists( $time, $variableData ) ) {
-				
-					$value = $variableData[ $time ];
-					$timeArr[ $variableId ] = $value;
-					
-				} else {
-
-					//don't have data for this time and variable, we can bail on entire time, cause stack bar chart needs data for all variables
-					$hasData = false;
-					break 2;
-
-				}
-			
-			}
-
-			//if data for all entities, store it in the main array
-			if( $hasData ) {
-
-				$arr[] = $timeArr;
-			
-			}
-
-		}
-
-		$variablesByKey = [];
-		foreach( $dimensionsByKey as $dimension ) {
-
-			$variable = array(
-				"id" => $dimension->variableId,
-				"key" => $dimension->name,
-				"values" => []
-			);
-			$variablesByKey[ "id-" .$variable[ "id" ] ] = $variable; 
-
-		}
-		
-		foreach( $arr as $time=>$singleTimeArr ) {
-
-			//loop through all single times
-			foreach( $singleTimeArr as $variableId=>$value ) {
-				if( $variableId !== "time" ) {
-					$variablesByKey[ "id-" .$variableId ][ "values" ][] = array( "x" => floatval( $singleTimeArr[ "time" ] ), "y" => floatval( $value ) );
-				}
-			}
-
-		}
-
-		return $variablesByKey;
-
 	}
 
 

@@ -2,6 +2,7 @@
 
 use DB;
 use Input;
+use App\Chart;
 use App\Variable;
 use App\TimeType;
 use App\Datasource;
@@ -178,10 +179,11 @@ class DataController extends Controller {
 					
 					//do we have already object for that entity
 					if( !array_key_exists($entityId, $dataByEntity) ) {
+						$key = ( !$multiVariantByEntity )? $datum->name: $datum->name . " - " . $datum->variable_name;
 						$dataByEntity[ $entityId ] = array( 
 							"id" => $entityId,
 							//"id" => intval($entityId),
-							"key" => ( !$multiVariantByEntity )? $datum->name: $datum->name . " - " . $datum->variable_name,
+							"key" => $key,
 							"values" => []
 						);
 					}
@@ -222,12 +224,16 @@ class DataController extends Controller {
 				//get variable names
 				$variable = Variable::find( $dimension->variableId );
 
+				$key = ( !empty( $variable ) && isset( $variable->name ) )? $variable->name: "";
 				$dataByVariable[ "id-".$id ] = array( 
 					"id" => $id,
-					"key" => ( !empty( $variable ) && isset( $variable->name ) )? $variable->name: "",
+					"key" => $key,
 					"values" => []
 				);
 
+				//store variable name to dimension info (useful for stack bar chart)
+				$dimensionsByKey[ $id ]->variableName = $key;
+				
 				foreach( $variableData as $datum ) {
 					
 					$dataByVariable[ "id-".$id ][ "values" ][] = array( "x" => floatval($datum->date), "y" => floatval($datum->value) );
@@ -254,14 +260,19 @@ class DataController extends Controller {
 
 
 		/**
-		 * 3) prepare array with the longest as main dataset 
+		 * 3) prepare array for different chart types
 		 **/
 
-		$normalizedData = [];
+		//$normalizedData = [];
 		$mainDimension = $dimensionsByKey[ $mainDimId ];
-	
-		//loop through all countries
 		if( $groupByEntity ) {
+			$normalizedData = Chart::formatDataForChartType( 3, $dataByEntity, $dimensionsByKey, $times );
+		} else {
+			$dataByVariable = Chart::formatDataForChartType( 3, $dataByVariableTime, $dimensionsByKey, $times, true );
+		}
+			
+		//loop through all countries
+		/*if( $groupByEntity ) {
 
 			foreach( $dataByEntity as $entityData ) {
 				
@@ -345,48 +356,6 @@ class DataController extends Controller {
 					}
 				
 				} else {
-
-					//format data for stack bar chart, need to always have time for all times
-					/*foreach( $times as $time=>$value ) {
-
-						//array where we store data for all properties for given time 
-						$timeArr = [];
-						//flag whether for given time, there's enough relevant data
-						$hasData = true;
-
-						//fill out values for all dimensions and foll times
-						foreach( $dimensionsByKey as $dimension ) {
-
-							if( !empty( $entityData[ "values" ][ $dimension->property ] ) ) {
-
-								$value = $this->getValue( $dimension, $time, $entityData[ "values" ][ $dimension->property ] );
-								if( !$value ) {
-									//always filled out values for stack bar chart
-									$value = 0;
-								}
-								$timeArr[ $dimension->property ] = $value; 
-
-							} else {
-
-								$hasData = false;
-
-							}
-
-						}
-
-						if( $isLineChart ) {
-							$timeArr[ "x" ] = $time;
-						}
-
-						//if is valid array, insert
-						if( $hasData ) {
-
-							$arr[ "values" ][ $i ] = $timeArr;
-							$i++;
-
-						}
-
-					}*/
 
 					//case when getting data for whole range of values
 					foreach( $mainValues as $time=>$mainValue ) {
@@ -475,7 +444,7 @@ class DataController extends Controller {
 
 			}
 				
-		}
+		}*/
 		
 		if( $groupByEntity ) {
 			//convert to array

@@ -65,7 +65,7 @@
 			this.setInputs( chartDimensions );
 
 			//handle group by variable checkbox
-			if( App.ChartModel.get( "chart-type" ) == 1 ) {
+			if( App.ChartModel.get( "chart-type" ) == 1 || App.ChartModel.get( "chart-type" ) == 3 ) {
 				//is linechart, so this checkbox is relevant
 				var groupByVariables = App.ChartModel.get( "group-by-variables" );
 				this.$groupByVariableInput.prop( "checked", groupByVariables );

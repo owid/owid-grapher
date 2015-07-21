@@ -592,7 +592,6 @@
 		onDatasourceChange: function( evt ) {
 
 			var $target = $( evt.currentTarget );
-			console.log( "onDatasourceChange", $target.val() );
 			if( $target.val() < 1 ) {
 				this.$newDatasourceWrapper.slideDown();
 			} else {
