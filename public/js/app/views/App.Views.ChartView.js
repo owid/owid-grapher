@@ -326,6 +326,7 @@
 					//chartOptions.showControls = false;
 					that.chart = nv.models.stackedAreaChart()
 						.options( chartOptions )
+						.controlOptions( [ "Stacked", "Expanded" ] )
 						.useInteractiveGuideline( true )
 						.x( function( d ) { return d[ "x" ]; } )
 						.y( function( d ) { return d[ "y" ]; } );
@@ -482,7 +483,7 @@
 					} );
 					svgSelection.call( that.legend );
 					//put legend above chart
-					
+
 
 				} else {
 					//no legend, remove what might have previously been there
