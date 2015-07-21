@@ -20,6 +20,7 @@ class ChartTypeDimensionsTableSeeder extends Seeder {
 			[ 'property' => 'y', 'name' => 'Y axis', 'type' => 'number', 'fk_chart_type_id' => 2 ],
 			[ 'property' => 'size', 'name' => 'Size', 'type' => 'number', 'fk_chart_type_id' => 2 ],
 			[ 'property' => 'shape', 'name' => 'Shape', 'type' => 'string', 'fk_chart_type_id' => 2 ],
+			[ 'property' => 'y', 'name' => 'Y axis', 'type' => 'number', 'fk_chart_type_id' => 3 ]
 		);
 		
 		// Uncomment the below to run the seeder
