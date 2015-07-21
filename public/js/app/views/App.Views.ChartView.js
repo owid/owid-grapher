@@ -319,10 +319,15 @@
 				//depending on chart type create chart
 				var chartType = App.ChartModel.get( "chart-type" );
 				if( chartType == "1" ) {
+				
 					that.chart = nv.models.lineChart().options( chartOptions );
+				
 				} else if( chartType == "2" ) {
+				
 					that.chart = nv.models.scatterChart().options( chartOptions ).pointRange( [64, 256] );//f.showDistX(true).showDistY(true);
+				
 				} else if( chartType == "3" ) {
+				
 					//chartOptions.showControls = false;
 					that.chart = nv.models.stackedAreaChart()
 						.options( chartOptions )
@@ -330,6 +335,7 @@
 						.useInteractiveGuideline( true )
 						.x( function( d ) { return d[ "x" ]; } )
 						.y( function( d ) { return d[ "y" ]; } );
+
 				}
 
 				//console.log( "localData", localData );
@@ -412,59 +418,74 @@
 					units = ( !$.isEmptyObject( unitsString ) )? $.parseJSON( unitsString ): {},
 					string = "",
 					valuesString = "";
-					
-				that.chart.tooltip.contentGenerator( function( data ) {
-					
-					//find relevant values for popup and display them
-					var series = data.series, key = "", timeString = "";
-					if( series && series.length ) {
-						
-						var serie = series[ 0 ];
-						key = serie.key;
-						
-						//get source of information
-						var point = data.point;
-						//begin composting string
-						string = "<h3>" + key + "</h3><p>";
-						valuesString = "";
+				
+				if( chartType !== "3" ) {
 
-						$.each( point, function( i, v ) {
-							//for each data point, find approprieate unit, and if we have it, display it
-							var unit = _.findWhere( units, { property: i } ),
-								value = v;
-							if( unit ) {
-								//try to format number
-								if( !isNaN( unit.format ) ) {
-									//enforce maximum 20 digits
-									var fixed = Math.min( 20, parseInt( unit.format, 10 ) );
-									value = value.toFixed( fixed );
+					that.chart.tooltip.contentGenerator( function( data ) {
+					
+						//find relevant values for popup and display them
+						var series = data.series, key = "", timeString = "";
+						if( series && series.length ) {
+							
+							var serie = series[ 0 ];
+							key = serie.key;
+							
+							//get source of information
+							var point = data.point;
+							//begin composting string
+							string = "<h3>" + key + "</h3><p>";
+							valuesString = "";
+
+							$.each( point, function( i, v ) {
+								//for each data point, find approprieate unit, and if we have it, display it
+								var unit = _.findWhere( units, { property: i } ),
+									value = v;
+								if( unit ) {
+									//try to format number
+									if( !isNaN( unit.format ) ) {
+										//enforce maximum 20 digits
+										var fixed = Math.min( 20, parseInt( unit.format, 10 ) );
+										value = value.toFixed( fixed );
+									}
+									if( valuesString !== "" ) {
+										valuesString += ", ";
+									}
+									valuesString += value + " " + unit.unit;
+								} else if( i === "time" ) {
+									timeString = v;
+								} else if( i !== "color" && i !== "series" && ( i !== "x" || App.ChartModel.get( "chart-type" ) != 1 ) ) {
+									if( valuesString !== "" ) {
+										valuesString += ", ";
+									}
+									//just add plain value, omiting x value for linechart
+									valuesString += value;
 								}
-								if( valuesString !== "" ) {
-									valuesString += ", ";
-								}
-								valuesString += value + " " + unit.unit;
-							} else if( i === "time" ) {
-								timeString = v;
-							} else if( i !== "color" && i !== "series" && ( i !== "x" || App.ChartModel.get( "chart-type" ) != 1 ) ) {
-								if( valuesString !== "" ) {
-									valuesString += ", ";
-								}
-								//just add plain value, omiting x value for linechart
-								valuesString += value;
+							} );
+
+							if( timeString && App.ChartModel.get( "chart-type" ) != 1 ) {
+								valuesString += " in " + timeString;
 							}
-						} );
+							string += valuesString;
+							string += "</p>";
 
-						if( timeString && App.ChartModel.get( "chart-type" ) != 1 ) {
-							valuesString += " in " + timeString;
 						}
-						string += valuesString;
-						string += "</p>";
 
+						return string;
+
+					} );
+
+				} else {
+
+					//different popup setup for stack area chart
+					var unit = _.findWhere( units, { property: "y" } );
+					if( unit && unit.format ) {
+						var fixed = Math.min( 20, parseInt( unit.format, 10 ) ),
+							unitName = ( unit.unit )? unit.unit: "";
+						that.chart.interactiveLayer.tooltip.valueFormatter( d3.format("." + fixed + "f" ) );
 					}
-
-					return string;
-
-				} );
+					
+				}
+				
 
 				//set legend
 				if( !App.ChartModel.get( "hide-legend" ) ) {
