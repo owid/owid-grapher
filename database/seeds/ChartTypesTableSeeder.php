@@ -16,7 +16,7 @@ class ChartTypesTableSeeder extends Seeder {
 		$chart_types = array(
 			[ 'name' => 'Line Chart' ],
 			[ 'name' => 'Scatter Plot' ],
-			[ 'name' => 'Stack Bar Chart' ]
+			[ 'name' => 'Stacked Area Chart' ]
 		);
 		
 		// Uncomment the below to run the seeder
