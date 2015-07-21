@@ -14,7 +14,7 @@ class EntityIsoNamesTableSeeder extends Seeder {
 		DB::unprepared($statement);
 		
 		//load file with data
-		$filename = "/_projects/oxford/_pieces/data/iso2.csv";
+		$filename = "/_projects/oxford/_pieces/data/iso3.csv";
 		$csv = \League\Csv\Reader::createFromPath($filename); 
 		DB::table('entity_iso_names')->insert( $csv->fetchAssoc() );
 
