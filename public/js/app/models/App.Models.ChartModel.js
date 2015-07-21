@@ -89,6 +89,12 @@
 
 		},
 
+		replaceSelectedCountry: function( country ) {
+			if( country ) {
+				this.set( "selected-countries", [ country ] );
+			}
+		},
+
 		findCountryById: function( countryId ) {
 
 			var selectedCountries = this.get( "selected-countries" ),

@@ -58,6 +58,7 @@
 					addEntityBtn.append('path').attr( { 'd': 'M9,7 L22,7', 'class': 'nv-box' } );
 					addEntityBtn.append('text').attr( {'x':28,'y':11} ).text('Add country');
 					addEntityBtn.on( 'click', function( d, i ) {
+						//group by variables
 						dispatch.addEntity();
 						d3.event.stopImmediatePropagation();
 					} );
@@ -70,7 +71,10 @@
 				}
 				if( App.ChartModel.get( "group-by-variables" ) ) {
 					//if grouping by variable, legend will show variables instead of countries, so add country btn doesn't make sense
-					addEntityBtn.attr( "display", "none" );
+					//if enabling adding countries
+					//addEntityBtn.attr( "display", "none" );
+					addEntityBtn.select( "text" ).text( "Change country" );
+					addEntityBtn.select( "rect" ).attr( "width", "120" );
 				}
 					
 				var seriesEnter = series.enter().append('g').attr('class', 'nv-series'),

@@ -538,7 +538,11 @@
 				$option = $select.find( "[value=" + val + "]" ),
 				text = $option.text();
 
-			App.ChartModel.addSelectedCountry( { id: $select.val(), name: text } );
+			if( !App.ChartModel.get( "group-by-variables" ) ) {
+				App.ChartModel.addSelectedCountry( { id: $select.val(), name: text } );
+			} else {
+				App.ChartModel.replaceSelectedCountry( { id: $select.val(), name: text } );
+			}
 
 			//double check if we don't have full selection of countries
 			var entitiesCollection = {},
