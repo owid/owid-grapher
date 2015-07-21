@@ -187,14 +187,16 @@
 
 				var $svgCanvas = $( ".nvd3-svg" );
 				if( $svgCanvas.length ) {
-				
+					
+					saveSvgAsPng( $( ".nvd3-svg" ).get( 0 ), "chart.png");
+
 					//temp hack - remove image when exporting to png
-					var $svgLogo = $( ".chart-logo-svg" );
+					/*var $svgLogo = $( ".chart-logo-svg" );
 					$svgLogo.remove();
 
 					saveSvgAsPng( $( ".nvd3-svg" ).get( 0 ), "chart.png");
 					
-					$svg.prepend( $svgLogo );
+					$svg.prepend( $svgLogo );*/
 					
 				}
 
@@ -316,20 +318,23 @@
 
 				//depending on chart type create chart
 				var chartType = App.ChartModel.get( "chart-type" );
+				//temp
+				chartType = "3";
 				if( chartType == "1" ) {
 					that.chart = nv.models.lineChart().options( chartOptions );
 				} else if( chartType == "2" ) {
 					that.chart = nv.models.scatterChart().options( chartOptions ).pointRange( [64, 256] );//f.showDistX(true).showDistY(true);
+				} else if( chartType == "3" ) {
+					chartOptions.showControls = false;
+					that.chart = nv.models.stackedAreaChart()
+						.options( chartOptions )
+						.useInteractiveGuideline( true )
+						.x( function( d ) { return d[ "x" ]; } )
+						.y( function( d ) { return d[ "y" ]; } );
 				}
 
-				/*console.log( "localData", localData );
-				chartOptions.showControls = false;
-				that.chart = nv.models.stackedAreaChart()
-					.options( chartOptions )
-					.useInteractiveGuideline( true )
-					.x( function( d ) { return d[ "x" ]; } )
-					.y( function( d ) { return d[ "y" ]; } );*/
-
+				//console.log( "localData", localData );
+				
 				that.chart.xAxis
 					.axisLabel( xAxis[ "axis-label" ] )
 					//.staggerLabels( true )
@@ -350,6 +355,7 @@
 				var xDomain = d3.extent( allValues.map( function( d ) { return d.x; } ) ),
 					yDomain = d3.extent( allValues.map( function( d ) { return d.y; } ) ),
 					isClamped = false;
+
 				if( xAxisMin && !isNaN( xAxisMin ) ) {
 					xDomain[ 0 ] = xAxisMin;
 					isClamped = true;
@@ -362,15 +368,17 @@
 					yDomain[ 0 ] = yAxisMin;
 					isClamped = true;
 				} else {
-					//default is zero
-					yDomain[ 0 ] = 0;
-					isClamped = true;
+					//default is zero (don't do it for stack bar chart, messes up things)
+					if( chartType != "3" ) {
+						yDomain[ 0 ] = 0;
+						isClamped = true;
+					}
 				}
 				if( yAxisMax && !isNaN( yAxisMax ) ) {
 					yDomain[ 1 ] = yAxisMax;
 					isClamped = true;
 				}
-			
+				
 				//manually clamp values
 				if( isClamped ) {
 					that.chart.xDomain( xDomain );
