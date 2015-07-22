@@ -266,9 +266,9 @@ class DataController extends Controller {
 		//$normalizedData = [];
 		$mainDimension = $dimensionsByKey[ $mainDimId ];
 		if( $groupByEntity ) {
-			$normalizedData = Chart::formatDataForChartType( 3, $dataByEntity, $dimensionsByKey, $times );
+			$normalizedData = Chart::formatDataForChartType( $chartType, $dataByEntity, $dimensionsByKey, $times, false, $mainDimension );
 		} else {
-			$dataByVariable = Chart::formatDataForChartType( 3, $dataByVariableTime, $dimensionsByKey, $times, true );
+			$dataByVariable = Chart::formatDataForChartType( $chartType, $dataByVariableTime, $dimensionsByKey, $times, true, $mainDimension );
 		}
 			
 		//loop through all countries

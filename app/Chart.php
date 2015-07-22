@@ -10,14 +10,114 @@ class Chart extends Model {
 	*	DATA PROCESSING FUNCTIONS
 	**/
 
-	public static function formatDataForChartType( $chartType, $data, $dimensionsByKey, $times, $groupByVariable = false ) {
+	public static function formatDataForChartType( $chartType, $data, $dimensionsByKey, $times, $groupByVariable = false, $mainDimension = false ) {
 
 		$normalizedData = [];
 		
 		switch( $chartType ) {
-			case 3:
+			case "1":
+				$normalizedData = Chart::formatDataForLineChart( $data, $dimensionsByKey, $times, $groupByVariable, $mainDimension );
+				break;
+			case "3":
 				$normalizedData = ( !$groupByVariable )? Chart::formatDataForStackBarChart( $data, $dimensionsByKey, $times, $groupByVariable ): Chart::formatDataForStackBarChartByVariable( $data, $dimensionsByKey, $times, $groupByVariable );
 				break;
+		}
+
+		return $normalizedData;
+
+	}
+
+	/**
+	*	LINE CHART
+	**/
+
+	public static function formatDataForLineChart( $dataByEntity, $dimensionsByKey, $times, $groupByVariable, $mainDimension ) {
+		
+		foreach( $dataByEntity as $entityData ) {
+					
+			$arr = array(
+				"id" => $entityData[ "id" ],
+				"key" => $entityData[ "key" ],
+				"values" => []
+			);
+
+			//main values
+			//do we have some values for given entity at all?
+			if( !array_key_exists( $mainDimension->property, $entityData[ "values" ] ) ) {
+				//nope, bail on this entity
+				continue;
+			}
+
+			$mainValues = $entityData[ "values" ][ $mainDimension->property ];
+			$i = 0;
+					
+			//depending on the mode, continue with the rest
+			foreach( $mainValues as $time=>$mainValue ) {
+
+				//array where we store data for all properties for given time 
+				$timeArr = [];
+
+				//flag whether for given time, there's enough relevant data
+				$hasData = true;
+
+				//take value from 
+				$timeArr[ $mainDimension->property ] = $mainValue;
+				//store time as one dimension, usefull for popup for scatter plot
+				$timeArr[ "time" ] = $time;
+
+				//insert other properties for given main property
+				foreach( $dimensionsByKey as $otherDimension ) {
+
+					//skip main dimension
+					if( $otherDimension == $mainDimension ) {
+						continue;
+					}
+
+					$value = false;
+					//retrieve value for property
+					//has property any values at all?
+					if( !empty( $entityData[ "values" ][ $otherDimension->property ] ) ) {
+						
+						//try to find value for given dimension, entity and time
+						if( array_key_exists( $otherDimension->property, $entityData[ "values" ] ) ) {
+
+							$value = Chart::getValue( $otherDimension, $time, $entityData[ "values" ][ $otherDimension->property ] );
+							if( $value ) {
+								$timeArr[ $otherDimension->property ] = $value; 
+							} else {
+								$hasData = false;
+							}
+							
+						} else {
+							$hasData = false;
+						}
+					
+					} 
+
+					if( !$value ) {
+						$hasData = false;
+						$value = 0;
+					}
+					$timeArr[ $otherDimension->property ] = $value;
+					
+				}
+
+				//linechart, has only one dimension
+				$timeArr[ "x" ] = $time;
+				
+				//if is valid array, insert
+				if( $hasData ) {
+
+					//are we matching agains entity and time, or only against entity
+					$arr[ "values" ][ $i ] = $timeArr;
+					$i++;
+
+				} 
+				
+			}
+
+			$normalizedData[ $entityData[ "id" ] ] = $arr;
+			
 		}
 
 		return $normalizedData;
@@ -220,7 +320,7 @@ class Chart extends Model {
 		if( array_key_exists( $time, $values ) ) {
 			
 			if( $dimension->mode === "latest" && isset( $dimension->maximumAge ) ) {
-				//for latest, we ahave to check the latest avaiable data is not too old
+				//for latest, we a have to check the latest avaiable data is not too old
 				$nowTime = date( "Y" );
 				$oldestAllowedTime = $nowTime - $dimension->maximumAge;
 				if( $time < $oldestAllowedTime ) {
