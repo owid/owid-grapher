@@ -268,7 +268,10 @@ class DataController extends Controller {
 		if( $groupByEntity ) {
 			$normalizedData = Chart::formatDataForChartType( $chartType, $dataByEntity, $dimensionsByKey, $times, false, $mainDimension );
 		} else {
-			$dataByVariable = Chart::formatDataForChartType( $chartType, $dataByVariableTime, $dimensionsByKey, $times, true, $mainDimension );
+			//grouping by variable, for linechart, we already have what we need
+			if( $chartType != "1" ) {
+				$dataByVariable = Chart::formatDataForChartType( $chartType, $dataByVariableTime, $dimensionsByKey, $times, true, $mainDimension );
+			}
 		}
 			
 		//loop through all countries
@@ -445,7 +448,7 @@ class DataController extends Controller {
 			}
 				
 		}*/
-		
+
 		if( $groupByEntity ) {
 			//convert to array
 			foreach( $normalizedData as $entityData ) {
