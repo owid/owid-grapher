@@ -10,13 +10,16 @@ class Chart extends Model {
 	*	DATA PROCESSING FUNCTIONS
 	**/
 
-	public static function formatDataForChartType( $chartType, $data, $dimensionsByKey, $times, $groupByVariable = false, $mainDimension = false ) {
+	public static function formatDataForChartType( $chartType, $data, $dimensionsByKey, $times, $groupByVariable = false, $mainDimension = false, $otherDimIds = false ) {
 
 		$normalizedData = [];
 		
 		switch( $chartType ) {
 			case "1":
 				$normalizedData = Chart::formatDataForLineChart( $data, $dimensionsByKey, $times, $groupByVariable, $mainDimension );
+				break;
+			case "2":
+				$normalizedData = Chart::formatDataForScatterPlotChart( $data, $dimensionsByKey, $times, $groupByVariable, $mainDimension, $otherDimIds );
 				break;
 			case "3":
 				$normalizedData = ( !$groupByVariable )? Chart::formatDataForStackBarChart( $data, $dimensionsByKey, $times, $groupByVariable ): Chart::formatDataForStackBarChartByVariable( $data, $dimensionsByKey, $times, $groupByVariable );
@@ -125,7 +128,176 @@ class Chart extends Model {
 	}
 
 	/**
-	*	STACK CHART
+	* SCATTER PLOT
+	**/
+	
+	public static function formatDataForScatterPlotChart( $dataByEntity, $dimensionsByKey, $times, $groupByVariable, $mainDimension, $otherDimIds ) {
+
+		foreach( $dataByEntity as $entityData ) {
+			
+			$arr = array(
+				"id" => $entityData[ "id" ],
+				"key" => $entityData[ "key" ],
+				"values" => []
+			);
+
+			//main values
+			//do we have some values for given entity at all?
+			if( !array_key_exists( $mainDimension->property, $entityData[ "values" ] ) ) {
+				//nope, bail on this entity
+				continue;
+			}
+
+			$mainValues = $entityData[ "values" ][ $mainDimension->property ];
+			$i = 0;
+
+			//settings for parameters
+			$defaultPeriod = "all";
+			$period = ( isset( $mainDimension->period ) )? $mainDimension->period: $defaultPeriod; 
+			
+			//depending on the mode, continue with the rest
+			if( $period === "single" ) {
+				
+				//only getting one value per country per specify value
+				$hasData = true;
+				$timeArr = [];
+
+				foreach( $dimensionsByKey as $dimension ) {
+
+					$defaultMode = "specific";
+					$defaultYear = 2000;
+					$mode = ( isset( $dimension->mode ) )? $dimension->mode: $defaultMode; 
+
+					if( $mode === "specific" ) {
+					
+						$time = ( isset( $dimension->targetYear ) )? $dimension->targetYear: $defaultYear;
+					
+					} else if( $mode === "latest" ) {
+					
+						//need to fetch latest year for given property
+
+						//do we have some values for given entity and property at all?
+						if( isset( $entityData[ "values" ][ $dimension->property ] ) ) {
+							$allYears = array_keys( $entityData[ "values" ][ $dimension->property ] );
+							$latestYear = max( $allYears );
+							$time = $latestYear;
+						} else {
+							$hasData = false;
+							continue;
+						}
+					
+					}
+
+					//store time if main property
+					if( $dimension->variableId === $mainDimension->variableId ) {
+						$timeArr[ "time" ] = $time;
+					}
+					
+					//try to find value for given dimension, entity and time
+					if( array_key_exists( $dimension->property, $entityData[ "values" ] ) ) {
+
+						$value = Chart::getValue( $dimension, $time, $entityData[ "values" ][ $dimension->property ] );
+						if( $value ) {
+							$timeArr[ $dimension->property ] = $value; 
+						} else {
+							$hasData = false;
+						}
+						
+					} else {
+						$hasData = false;
+					}
+
+				}
+
+				$arr[ "values" ][ 0 ] = $timeArr;
+				if( $hasData ) {
+					$normalizedData[ $entityData[ "id" ] ] = $arr;
+				}
+			
+			} else {
+
+				//case when getting data for whole range of values
+				foreach( $mainValues as $time=>$mainValue ) {
+
+					//array where we store data for all properties for given time 
+					$timeArr = [];
+
+					//flag whether for given time, there's enough relevant data
+					$hasData = true;
+
+					//take value from 
+					$timeArr[ $mainDimension->property ] = $mainValue;
+					//store time as one dimension, usefull for popup for scatter plot
+					$timeArr[ "time" ] = $time;
+
+					//insert other properties for given main property
+					foreach( $otherDimIds as $otherDimId ) {
+
+						$otherDimension = $dimensionsByKey[ $otherDimId ];
+
+						$value = false;
+						//retrieve value for property
+						//has property any values at all?
+						if( !empty( $entityData[ "values" ][ $otherDimension->property ] ) ) {
+							
+							$defaultMode = "closest";
+							$mode = ( isset( $otherDimension->mode ) )? $otherDimension->mode: $defaultMode;
+							
+							if( $mode === "latest" ) {
+								$allYears = array_keys( $entityData[ "values" ][ $otherDimension->property ] );
+								$latestYear = max( $allYears );
+								$time = $latestYear;
+							}
+
+							//try to find value for given dimension, entity and time
+							if( array_key_exists( $otherDimension->property, $entityData[ "values" ] ) ) {
+
+								$value = Chart::getValue( $otherDimension, $time, $entityData[ "values" ][ $otherDimension->property ] );
+								if( $value ) {
+									$timeArr[ $otherDimension->property ] = $value; 
+								} else {
+									//temp
+									//$value = 0;
+									$hasData = false;
+								}
+								
+							} else {
+								$hasData = false;
+							}
+						
+						} 
+
+						if( !$value ) {
+							$hasData = false;
+							$value = 0;
+						}
+						$timeArr[ $otherDimension->property ] = $value;
+						
+					}
+
+					//if is valid array, insert
+					if( $hasData ) {
+
+						$arr[ "values" ][ $i ] = $timeArr;
+						$i++;
+
+					} 
+					
+				}
+
+				$normalizedData[ $entityData[ "id" ] ] = $arr;
+				
+			}
+
+		}
+
+		return $normalizedData;
+
+	}
+				
+	
+	/**
+	*	STACK AREA CHART
 	**/
 
 	public static function formatDataForStackBarChart( $dataByEntity, $dimensionsByKey, $times, $groupByVariable ) {
