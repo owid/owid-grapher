@@ -101,6 +101,12 @@
 						<select class="form-control countries-select" data-placeholder="Choose a Country...">
 							<option value=""></option>
 						</select>
+						<div class="add-country-control-wrapper">
+							<label>
+								<input type="checkbox" name="add-country-control" checked/>
+								User can add/replace countries
+							</label>
+						</div>
 					</div>
 				</section>
 				<section class="form-section time-section">

@@ -72,14 +72,10 @@ class DataController extends Controller {
 
 		//there's special setting for linechart
 		$isLineChart = ( $chartType == "1" )? true: false;
-		//temp 
-		//$isLineChart = true;
-
+		
 		//find out how many variables we have 
 		$groupByEntity = ( Input::get( 'groupByVariables' ) == 'false' )? true: false;
-		//temp
-		//$groupByEntity = false;
-
+		
 		//special case for linechart with multiple variables 
 		$multiVariantByEntity = false;
 		if( $groupByEntity && $isLineChart && count( $dimensions ) > 1 ) {

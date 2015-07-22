@@ -164,7 +164,15 @@
 		display: inline-block;
 	}
 
-	
+/**
+*	 entities section
+**/	
+.add-country-control-wrapper {
+	margin-top: 20px;
+}
+	.add-country-control-wrapper input {
+		margin-right: 5px;
+	}
 
 /**
 *	time section

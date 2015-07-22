@@ -36,7 +36,8 @@
 			"iframe-width": "100%",
 			"iframe-height": "660px",
 			"hide-legend": false,
-			"group-by-variables": false
+			"group-by-variables": false,
+			"add-country-control": true
 		},
 
 		initialize: function() {

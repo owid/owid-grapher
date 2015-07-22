@@ -76,6 +76,13 @@
 					addEntityBtn.select( "text" ).text( "Change country" );
 					addEntityBtn.select( "rect" ).attr( "width", "120" );
 				}
+
+				if( App.ChartModel.get( "add-country-control" ) ) {
+					addEntityBtn.attr( "display", "block" );
+				} else {
+					//user shouldn't be able to add/replace countries
+					addEntityBtn.attr( "display", "none" );
+				}
 					
 				var seriesEnter = series.enter().append('g').attr('class', 'nv-series'),
 					seriesShape, seriesRemove;
@@ -84,11 +91,16 @@
 				seriesEnter.append('rect')
 					.style('stroke-width', 2)
 					.attr('class','nv-legend-symbol');
-				var removeBtns = seriesEnter.append('g')
-					.attr('class', 'nv-remove-btn')
-					.attr('transform', 'translate(10,10)');
-				removeBtns.append('path').attr( { 'd': 'M0,0 L7,7', 'class': 'nv-box' } );
-				removeBtns.append('path').attr( { 'd': 'M7,0 L0,7', 'class': 'nv-box' } );
+
+				//enable removing countries only if Add/Replace country button present
+				if( App.ChartModel.get( "add-country-control" ) && !App.ChartModel.get( "group-by-variables" ) ) {
+					var removeBtns = seriesEnter.append('g')
+						.attr('class', 'nv-remove-btn')
+						.attr('transform', 'translate(10,10)');
+					removeBtns.append('path').attr( { 'd': 'M0,0 L7,7', 'class': 'nv-box' } );
+					removeBtns.append('path').attr( { 'd': 'M7,0 L0,7', 'class': 'nv-box' } );
+				}
+				
 				seriesShape = series.select('.nv-legend-symbol');
 				
 				seriesEnter.append('text')
