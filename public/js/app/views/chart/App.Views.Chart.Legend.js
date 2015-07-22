@@ -36,7 +36,7 @@
 
 				// Setup containers and skeleton of chart
 				var wrap = container.selectAll('g.nv-custom-legend').data([data]),
-					gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-legend').append('g'),
+					gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-custom-legend').append('g'),
 					g = wrap.select('g');
 
 				wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');

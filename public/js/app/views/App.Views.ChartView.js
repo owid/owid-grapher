@@ -738,7 +738,7 @@
 				var legendMargins = this.legend.margin();
 				currY = currY - this.legend.height();
 				this.translateString = "translate(" + legendMargins.left + " ," + currY + ")";
-				this.$svg.find( "> .nvd3.nv-legend" ).attr( "transform", this.translateString );
+				this.$svg.find( "> .nvd3.nv-custom-legend" ).attr( "transform", this.translateString );
 			} 
 			
 			this.$svg.css( "transform", "translate(0,-" + chartHeaderHeight + "px)" );

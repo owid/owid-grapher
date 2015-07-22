@@ -193,55 +193,55 @@
 	/**
 	*	CHART LEGEND
 	**/
-	#chart-view .nv-legend {}
-		#chart-view .nv-legend .nv-series {
+	#chart-view .nv-custom-legend {}
+		#chart-view .nv-custom-legend .nv-series {
 			cursor: pointer;
 		}
-			#chart-view .nv-legend .nv-series .nv-legend-symbol {
+			#chart-view .nv-custom-legend .nv-series .nv-custom-legend-symbol {
 				stroke-width: 1px !important;
 			}
-				#chart-view .nv-legend .nv-series:hover .nv-legend-symbol {
+				#chart-view .nv-custom-legend .nv-series:hover .nv-custom-legend-symbol {
 					/*stroke: #000000 !important;*/
 				}
 			/* disabled */
-			#chart-view .nv-legend .nv-series.nv-disabled {}
-				#chart-view .nv-legend .nv-series.nv-disabled .nv-legend-symbol {
+			#chart-view .nv-custom-legend .nv-series.nv-disabled {}
+				#chart-view .nv-custom-legend .nv-series.nv-disabled .nv-custom-legend-symbol {
 					stroke: #666 !important;
 				}
-					#chart-view .nv-legend .nv-series.nv-disabled .nv-remove-btn .nv-box {
+					#chart-view .nv-custom-legend .nv-series.nv-disabled .nv-remove-btn .nv-box {
 						stroke: #999 !important;
 					}
-		#chart-view .nv-legend .nv-remove-btn {
+		#chart-view .nv-custom-legend .nv-remove-btn {
 			display: none;
 		}
-			#chart-view .nv-legend .nv-series:hover .nv-remove-btn {
+			#chart-view .nv-custom-legend .nv-series:hover .nv-remove-btn {
 				display: block;
 			}
-			#chart-view .nv-legend .nv-remove-btn .nv-box {
+			#chart-view .nv-custom-legend .nv-remove-btn .nv-box {
 				stroke-width: 3px;
 				stroke: #fff;
 			}
 				/* disable remove btn hover 
-				#chart-view .nv-legend .nv-remove-btn:hover .nv-box {
+				#chart-view .nv-custom-legend .nv-remove-btn:hover .nv-box {
 					stroke: #000;
 				}*/
 		/* add btn */
-		#chart-view .nv-legend .nv-add-btn {
+		#chart-view .nv-custom-legend .nv-add-btn {
 			cursor: pointer;
 		}
-			#chart-view .nv-legend .nv-add-btn .add-btn-bg {
+			#chart-view .nv-custom-legend .nv-add-btn .add-btn-bg {
 				fill: #fff;
 			}
-				#chart-view .nv-legend .nv-add-btn:hover .add-btn-bg {
+				#chart-view .nv-custom-legend .nv-add-btn:hover .add-btn-bg {
 					fill: #aaa;
 				}
-					#chart-view .nv-legend .nv-add-btn:hover text {
+					#chart-view .nv-custom-legend .nv-add-btn:hover text {
 						fill: #fff;
 					}
-					#chart-view .nv-legend .nv-add-btn:hover .nv-box {
+					#chart-view .nv-custom-legend .nv-add-btn:hover .nv-box {
 						stroke: #fff;
 					}
-			#chart-view .nv-legend .nv-add-btn .nv-box {
+			#chart-view .nv-custom-legend .nv-add-btn .nv-box {
 				stroke-width: 4px;
 				stroke: #000;
 			}
