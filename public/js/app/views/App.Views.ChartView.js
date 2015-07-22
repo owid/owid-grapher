@@ -327,7 +327,10 @@
 					that.chart = nv.models.scatterChart().options( chartOptions ).pointRange( [64, 256] );//f.showDistX(true).showDistY(true);
 				
 				} else if( chartType == "3" ) {
-				
+					
+					//fixed probably a bug in nvd3 with previous tooltip not being removed
+					d3.select( ".xy-tooltip" ).remove();
+
 					//chartOptions.showControls = false;
 					that.chart = nv.models.stackedAreaChart()
 						.options( chartOptions )

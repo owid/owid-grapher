@@ -359,7 +359,7 @@ class Chart extends Model {
 			//if data for all entities, store it in the main array
 			if( $hasData ) {
 
-				$arr[] = $entitiesArr;
+				$arr[ $time ] = $entitiesArr;
 				//$i++;
 
 			}
