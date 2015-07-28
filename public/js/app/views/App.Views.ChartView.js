@@ -314,7 +314,7 @@
 				if( lineType == 2 ) {
 					chartOptions.defined = function( d ) { return d.y !== 0; };
 				}
-				if( lineType === 0 ) {
+				if( lineType == 0 ) {
 					that.$el.addClass( "line-dots" );
 				} else {
 					that.$el.removeClass( "line-dots" );
