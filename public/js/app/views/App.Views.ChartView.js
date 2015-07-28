@@ -348,8 +348,16 @@
 					.axisLabel( xAxis[ "axis-label" ] )
 					//.staggerLabels( true )
 					.axisLabelDistance( xAxisLabelDistance )
-					.tickFormat( function(d) { return that.formatTimeLabel( timeType, d, xAxisPrefix, xAxisSuffix, xAxisFormat ); });
-				
+					.tickFormat( function(d) {
+						if( chartType != 2 ) {
+							//x axis has time information
+							return that.formatTimeLabel( timeType, d, xAxisPrefix, xAxisSuffix, xAxisFormat );
+						} else {
+							//is scatter plot, x-axis has some other information
+							return xAxisPrefix + d3.format( "," )( that.formatValue( d, xAxisFormat ) ) + xAxisSuffix;
+						}
+					} );
+
 				if( timeType == "Quarter Century" ) {
 					that.chart.xAxis.staggerLabels( true );
 				}
@@ -413,94 +421,23 @@
 				that.chart.yAxis
 					.axisLabel( yAxis[ "axis-label" ] )
 					.axisLabelDistance( yAxisLabelDistance )
-					.tickFormat( function(d) { return yAxisPrefix + that.formatValue( d, yAxisFormat ) + yAxisSuffix; });
+					.tickFormat( function(d) { return yAxisPrefix + d3.format( "," )( that.formatValue( d, yAxisFormat ) ) + yAxisSuffix; });
 				
 				var svgSelection = d3.select( that.$svg.selector )
 					.datum( localData )
 					.call( that.chart );
 
-				//set popup
-				var unitsString = App.ChartModel.get( "units" ),
-					units = ( !$.isEmptyObject( unitsString ) )? $.parseJSON( unitsString ): {},
-					string = "",
-					valuesString = "";
-				
 				if( chartType !== "3" ) {
 
-					that.chart.tooltip.contentGenerator( function( data ) {
-					
-						//find relevant values for popup and display them
-						var series = data.series, key = "", timeString = "";
-						if( series && series.length ) {
-							
-							var serie = series[ 0 ];
-							key = serie.key;
-							
-							//get source of information
-							var point = data.point;
-							//begin composting string
-							string = "<h3>" + key + "</h3><p>";
-							valuesString = "";
-
-							$.each( point, function( i, v ) {
-								//for each data point, find appropriate unit, and if we have it, display it
-								var unit = _.findWhere( units, { property: i } ),
-									value = v,
-									isHidden = ( unit && unit.hasOwnProperty( "visible" ) && !unit.visible )? true: false;
-								if( unit ) {
-									if( !isHidden ) {
-										//try to format number
-										if( !isNaN( unit.format ) ) {
-											//enforce maximum 20 digits
-											var fixed = Math.min( 20, parseInt( unit.format, 10 ) );
-											value = value.toFixed( fixed );
-										}
-										//scatter plot has values displayed in separate rows
-										if( valuesString !== "" && chartType != 2 ) {
-											valuesString += ", ";
-										}
-										if( chartType == 2 ) {
-											valuesString += "<span class='var-popup-value'>";
-										}
-										valuesString += value + " " + unit.unit;
-										if( chartType == 2 ) {
-											valuesString += "</span>";
-										}
-									}
-								} else if( i === "time" ) {
-									timeString = v;
-								} else if( i !== "color" && i !== "series" && ( i !== "x" || chartType != 1 ) ) {
-									if( !isHidden ) {
-										if( valuesString !== "" && chartType != 2 ) {
-											valuesString += ", ";
-										}
-										if( chartType == 2 ) {
-											valuesString += "<span class='var-popup-value'>";
-										}
-										//just add plain value, omiting x value for linechart
-										valuesString += value;
-										if( chartType == 2 ) {
-											valuesString += "</span>";
-										}
-									}
-								}
-							} );
-
-							if( timeString && chartType != 1 && chartType != 2 ) {
-								valuesString += " in " + timeString;
-							} else if( timeString && chartType == 2 ) {
-								valuesString += "<span class='var-popup-value'>" + timeString + "</span>";
-							}
-							string += valuesString;
-							string += "</p>";
-
-						}
-
-						return string;
-
-					} );
+					that.chart.tooltip.contentGenerator( that.contentGenerator );
 
 				} else {
+
+					//set popup
+					var unitsString = App.ChartModel.get( "units" ),
+						units = ( !$.isEmptyObject( unitsString ) )? $.parseJSON( unitsString ): {},
+						string = "",
+						valuesString = "";
 
 					//different popup setup for stack area chart
 					var unit = _.findWhere( units, { property: "y" } );
@@ -915,6 +852,92 @@
 				}
 			}
 			return value;
+		},
+
+		contentGenerator: function( data ) {
+			
+			//set popup
+			var unitsString = App.ChartModel.get( "units" ),
+				chartType = App.ChartModel.get( "chart-type" ),
+				units = ( !$.isEmptyObject( unitsString ) )? $.parseJSON( unitsString ): {},
+				string = "",
+				valuesString = "";
+
+			//find relevant values for popup and display them
+			var series = data.series, key = "", timeString = "";
+			if( series && series.length ) {
+				
+				var serie = series[ 0 ];
+				key = serie.key;
+				
+				//get source of information
+				var point = data.point;
+				//begin composting string
+				string = "<h3>" + key + "</h3><p>";
+				valuesString = "";
+
+				$.each( point, function( i, v ) {
+					//for each data point, find appropriate unit, and if we have it, display it
+					var unit = _.findWhere( units, { property: i } ),
+						value = v,
+						isHidden = ( unit && unit.hasOwnProperty( "visible" ) && !unit.visible )? true: false;
+
+					//add thousands separator
+					value = d3.format( "," )( value );
+
+					if( unit ) {
+						if( !isHidden ) {
+							//try to format number
+							if( !isNaN( unit.format ) ) {
+								if( unit.format > 0 ) {
+									//enforce maximum 20 digits
+									var fixed = Math.min( 20, parseInt( unit.format, 10 ) );
+									value = value.toFixed( fixed );
+								}
+							}
+							//scatter plot has values displayed in separate rows
+							if( valuesString !== "" && chartType != 2 ) {
+								valuesString += ", ";
+							}
+							if( chartType == 2 ) {
+								valuesString += "<span class='var-popup-value'>";
+							}
+							valuesString += value + " " + unit.unit;
+							if( chartType == 2 ) {
+								valuesString += "</span>";
+							}
+						}
+					} else if( i === "time" ) {
+						timeString = v;
+					} else if( i !== "color" && i !== "series" && ( i !== "x" || chartType != 1 ) ) {
+						if( !isHidden ) {
+							if( valuesString !== "" && chartType != 2 ) {
+								valuesString += ", ";
+							}
+							if( chartType == 2 ) {
+								valuesString += "<span class='var-popup-value'>";
+							}
+							//just add plain value, omiting x value for linechart
+							valuesString += value;
+							if( chartType == 2 ) {
+								valuesString += "</span>";
+							}
+						}
+					}
+				} );
+
+				if( timeString && chartType != 1 && chartType != 2 ) {
+					valuesString += " in " + timeString;
+				} else if( timeString && chartType == 2 ) {
+					valuesString += "<span class='var-popup-value'>in " + timeString + "</span>";
+				}
+				string += valuesString;
+				string += "</p>";
+
+			}
+
+			return string;
+
 		}
 
 	});
