@@ -85,7 +85,7 @@ class Chart extends Model {
 						if( array_key_exists( $otherDimension->property, $entityData[ "values" ] ) ) {
 
 							$value = Chart::getValue( $otherDimension, $time, $entityData[ "values" ][ $otherDimension->property ] );
-							if( $value ) {
+							if( Chart::hasValue( $value ) ) {
 								$timeArr[ $otherDimension->property ] = $value; 
 							} else {
 								$hasData = false;
@@ -132,6 +132,8 @@ class Chart extends Model {
 	**/
 	
 	public static function formatDataForScatterPlotChart( $dataByEntity, $dimensionsByKey, $times, $groupByVariable, $mainDimension, $otherDimIds ) {
+
+		$normalizedData = [];
 
 		foreach( $dataByEntity as $entityData ) {
 			
@@ -192,12 +194,12 @@ class Chart extends Model {
 					if( $dimension->variableId === $mainDimension->variableId ) {
 						$timeArr[ "time" ] = $time;
 					}
-					
+
 					//try to find value for given dimension, entity and time
 					if( array_key_exists( $dimension->property, $entityData[ "values" ] ) ) {
 
 						$value = Chart::getValue( $dimension, $time, $entityData[ "values" ][ $dimension->property ] );
-						if( $value ) {
+						if( Chart::hasValue( $value ) ) {
 							$timeArr[ $dimension->property ] = $value; 
 						} else {
 							$hasData = false;
@@ -253,7 +255,7 @@ class Chart extends Model {
 							if( array_key_exists( $otherDimension->property, $entityData[ "values" ] ) ) {
 
 								$value = Chart::getValue( $otherDimension, $time, $entityData[ "values" ][ $otherDimension->property ] );
-								if( $value ) {
+								if( Chart::hasValue( $value ) ) {
 									$timeArr[ $otherDimension->property ] = $value; 
 								} else {
 									//temp
@@ -332,7 +334,7 @@ class Chart extends Model {
 					if( !empty( $entityData[ "values" ][ $dimension->property ] ) ) {
 
 						$value = Chart::getValue( $dimension, $time, $entityData[ "values" ][ $dimension->property ] );
-						if( $value ) {
+						if( Chart::hasValue( $value ) ) {
 							$entityTimeArr[ $dimension->property ] = $value; 
 						} else {
 							//for stack bar chart, we need to have data for all properties
@@ -341,7 +343,6 @@ class Chart extends Model {
 						}
 						
 					} else {
-
 						$hasData = false;
 						break 2;
 
@@ -352,7 +353,7 @@ class Chart extends Model {
 				//if we have all data for given property and time, store it
 				if( $hasData ) {
 					$entitiesArr[ $entityData[ "id" ] ] = $entityTimeArr;
-				}
+				} 
 
 			} 
 
@@ -362,7 +363,7 @@ class Chart extends Model {
 				$arr[ $time ] = $entitiesArr;
 				//$i++;
 
-			}
+			} 
 
 		}
 
@@ -567,6 +568,11 @@ class Chart extends Model {
 			}
 
 		}
+	}
+
+	public static function hasValue($value) {
+		return ( isset( $value ) )? true: false;
+		//return ( !empty( $value ) || $value === "0" || $value === 0 )? true: false;
 	}
 
 }
