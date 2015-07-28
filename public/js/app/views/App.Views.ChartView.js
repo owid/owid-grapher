@@ -453,7 +453,7 @@
 				//set legend
 				if( !App.ChartModel.get( "hide-legend" ) ) {
 					//make sure wrapper is visible
-					that.$svg.find( "> .nvd3.nv-legend" ).show();
+					that.$svg.find( "> .nvd3.nv-custom-legend" ).show();
 					that.legend = new App.Views.Chart.Legend( that.chart.legend ).vers( "owd" );
 					that.legend.dispatch.on( "removeEntity", function( id ) {
 						that.onRemoveEntity( id );
@@ -471,7 +471,7 @@
 
 				} else {
 					//no legend, remove what might have previously been there
-					that.$svg.find( "> .nvd3.nv-legend" ).hide();
+					that.$svg.find( "> .nvd3.nv-custom-legend" ).hide();
 				}
 				
 				var onResizeCallback = _.debounce( function(e) {
