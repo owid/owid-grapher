@@ -17,19 +17,19 @@ class DatasetCategoriesTableSeeder extends Seeder {
 			[ 'name' => 'Population Growth & Vital Statistics' ],
 			[ 'name' => 'Health' ],
 			[ 'name' => 'Food & Agriculture' ],
-			[ 'name' => 'Resources & The Environment' ],
+			[ 'name' => 'Resources & Energy' ],
+			[ 'name' => 'Environmental Change' ],
 			[ 'name' => 'Technology & Infrastructure' ],
 			[ 'name' => 'Growth & Distribution of Prosperity' ],
-			[ 'name' => 'Standard of Living' ],
-			[ 'name' => 'Economic Development & Work' ],
-			[ 'name' => 'The Public Sector' ],
+			[ 'name' => 'Economic Development, Work & Standard of Living' ],
+			[ 'name' => 'The Public Sector & Economic System' ],
 			[ 'name' => 'Global Interconnections' ],
 			[ 'name' => 'War & Peace' ],
 			[ 'name' => 'Political Regime' ],
 			[ 'name' => 'Violence & Rights' ],
 			[ 'name' => 'Education & Knowledge' ],
 			[ 'name' => 'Media & Communication' ],
-			[ 'name' => 'Culture, Values & Society' ],
+			[ 'name' => 'Culture, Values & Society' ]
 		);
 		
 		// Uncomment the below to run the seeder
