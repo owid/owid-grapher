@@ -445,38 +445,43 @@
 							$.each( point, function( i, v ) {
 								//for each data point, find appropriate unit, and if we have it, display it
 								var unit = _.findWhere( units, { property: i } ),
-									value = v;
+									value = v,
+									isHidden = ( unit && unit.hasOwnProperty( "visible" ) && !unit.visible )? true: false;
 								if( unit ) {
-									//try to format number
-									if( !isNaN( unit.format ) ) {
-										//enforce maximum 20 digits
-										var fixed = Math.min( 20, parseInt( unit.format, 10 ) );
-										value = value.toFixed( fixed );
-									}
-									//scatter plot has values displayed in separate rows
-									if( valuesString !== "" && chartType != 2 ) {
-										valuesString += ", ";
-									}
-									if( chartType == 2 ) {
-										valuesString += "<span class='var-popup-value'>";
-									}
-									valuesString += value + " " + unit.unit;
-									if( chartType == 2 ) {
-										valuesString += "</span>";
+									if( !isHidden ) {
+										//try to format number
+										if( !isNaN( unit.format ) ) {
+											//enforce maximum 20 digits
+											var fixed = Math.min( 20, parseInt( unit.format, 10 ) );
+											value = value.toFixed( fixed );
+										}
+										//scatter plot has values displayed in separate rows
+										if( valuesString !== "" && chartType != 2 ) {
+											valuesString += ", ";
+										}
+										if( chartType == 2 ) {
+											valuesString += "<span class='var-popup-value'>";
+										}
+										valuesString += value + " " + unit.unit;
+										if( chartType == 2 ) {
+											valuesString += "</span>";
+										}
 									}
 								} else if( i === "time" ) {
 									timeString = v;
 								} else if( i !== "color" && i !== "series" && ( i !== "x" || chartType != 1 ) ) {
-									if( valuesString !== "" && chartType != 2 ) {
-										valuesString += ", ";
-									}
-									if( chartType == 2 ) {
-										valuesString += "<span class='var-popup-value'>";
-									}
-									//just add plain value, omiting x value for linechart
-									valuesString += value;
-									if( chartType == 2 ) {
-										valuesString += "</span>";
+									if( !isHidden ) {
+										if( valuesString !== "" && chartType != 2 ) {
+											valuesString += ", ";
+										}
+										if( chartType == 2 ) {
+											valuesString += "<span class='var-popup-value'>";
+										}
+										//just add plain value, omiting x value for linechart
+										valuesString += value;
+										if( chartType == 2 ) {
+											valuesString += "</span>";
+										}
 									}
 								}
 							} );

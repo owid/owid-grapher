@@ -211,12 +211,18 @@
 		list-style-type: none;
 		padding-left: 0;
 	}
-	.units-section input {
+		.units-section li label {
+			display: block;
+		}
+	.units-section input[type=input] {
 		display: inline-block;
 		width: 35%;
 		max-width: 150px;
 		margin-left: 5px;
 	}
+		.units-section input[type=checkbox] {
+			margin-left: 5px;
+		}
 		.units-section input:last-child {
 			display: inline-block;
 			width: 35%;

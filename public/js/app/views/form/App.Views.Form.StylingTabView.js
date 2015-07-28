@@ -52,7 +52,7 @@
 			this.$hideLegend.prop( "checked", hideLegend );
 
 			this.updateUnitsUI();
-			$( ".units-section .form-control[type=input]" ).on( "change", $.proxy( this.updateUnits, this ) );
+			$( ".units-section .form-control[type=input], .units-section [type=checkbox]" ).on( "change", $.proxy( this.updateUnits, this ) );
 		
 		},
 
@@ -116,6 +116,9 @@
 
 					var dimension = v,
 						unitObj = _.findWhere( units, { "property": dimension.property } ),
+						//by default visible
+						visible = ( unitObj && unitObj.hasOwnProperty( "visible" )  )? unitObj.visible: true,
+						visibleProp = ( visible )? " checked": "",
 						unit = ( unitObj && unitObj.unit )? unitObj.unit: "",
 						format = ( unitObj && unitObj.format )? unitObj.format: "";
 					
@@ -124,7 +127,7 @@
 						unit = dimension.unit;
 					}
 
-					var $li = $( "<li data-property='" + dimension.property + "'><label>" + dimension.name + ":</label><input type='input' class='form-control unit-input' value='" + unit + "' placeholder='Unit' /><input type='input' class='form-control format-input' value='" + format + "' placeholder='No of dec. places' /></li>" );
+					var $li = $( "<li data-property='" + dimension.property + "'><label>" + dimension.name + ":</label>Visible:<input type='checkbox' class='visible-input' " + visibleProp + "/><input type='input' class='form-control unit-input' value='" + unit + "' placeholder='Unit' /><input type='input' class='form-control format-input' value='" + format + "' placeholder='No of dec. places' /></li>" );
 					$ul.append( $li );
 
 				} );
@@ -141,12 +144,14 @@
 			$.each( $unitLis, function( i, v ) {
 				
 				var $li = $( v ),
+					$visible = $li.find( ".visible-input" ),
 					$unit = $li.find( ".unit-input" ),
 					$format = $li.find( ".format-input" );
 
 				//for each li with unit information, construct object with property, unit and format properties
 				var unitSettings = {
 					"property": $li.attr( "data-property" ),
+					"visible": $visible.is( ":checked" ),
 					"unit": $unit.val(),
 					"format": $format.val()
 				};
@@ -157,6 +162,7 @@
 
 			var json = JSON.stringify( units );
 			App.ChartModel.set( "units", json );
+			console.log( "json", json );
 			
 		}
 
