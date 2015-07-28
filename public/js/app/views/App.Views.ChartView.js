@@ -214,8 +214,7 @@
 			if( !data ) {
 				return;
 			}
-
-
+			
 			//make local copy of data for our filtering needs
 			var localData = $.extend( true, localData, data );
 
@@ -278,6 +277,11 @@
 
 			}
 
+			//if legend displayed, sort data on key alphabetically (usefull when multivarian dataset)
+			if( !App.ChartModel.get( "hide-legend" ) ) {
+				localData = _.sortBy( localData, function( obj ) { return obj.key; } );
+			}
+
 			//get axis configs
 			var xAxis = App.ChartModel.get( "x-axis" ),
 				yAxis = App.ChartModel.get( "y-axis" ),
@@ -324,25 +328,22 @@
 				
 				} else if( chartType == "2" ) {
 				
-					that.chart = nv.models.scatterChart().options( chartOptions ).pointRange( [64, 256] );//f.showDistX(true).showDistY(true);
+					that.chart = nv.models.scatterChart().options( chartOptions ).pointRange( [54, 1000] );//.showDistX(true).showDistY(true);
 				
 				} else if( chartType == "3" ) {
 					
 					//fixed probably a bug in nvd3 with previous tooltip not being removed
 					d3.select( ".xy-tooltip" ).remove();
 
-					//chartOptions.showControls = false;
 					that.chart = nv.models.stackedAreaChart()
 						.options( chartOptions )
 						.controlOptions( [ "Stacked", "Expanded" ] )
 						.useInteractiveGuideline( true )
 						.x( function( d ) { return d[ "x" ]; } )
 						.y( function( d ) { return d[ "y" ]; } );
-
+					//console.log( that.chart.stacked.style() );
 				}
 
-				//console.log( "localData", localData );
-				
 				that.chart.xAxis
 					.axisLabel( xAxis[ "axis-label" ] )
 					//.staggerLabels( true )
@@ -363,6 +364,8 @@
 				var xDomain = d3.extent( allValues.map( function( d ) { return d.x; } ) ),
 					yDomain = d3.extent( allValues.map( function( d ) { return d.y; } ) ),
 					isClamped = false;
+
+				//console.log( "chart.stacked.style()", that.chart.stacked.style() );
 
 				if( xAxisMin && !isNaN( xAxisMin ) ) {
 					xDomain[ 0 ] = xAxisMin;
@@ -440,7 +443,7 @@
 							valuesString = "";
 
 							$.each( point, function( i, v ) {
-								//for each data point, find approprieate unit, and if we have it, display it
+								//for each data point, find appropriate unit, and if we have it, display it
 								var unit = _.findWhere( units, { property: i } ),
 									value = v;
 								if( unit ) {
@@ -450,23 +453,38 @@
 										var fixed = Math.min( 20, parseInt( unit.format, 10 ) );
 										value = value.toFixed( fixed );
 									}
-									if( valuesString !== "" ) {
+									//scatter plot has values displayed in separate rows
+									if( valuesString !== "" && chartType != 2 ) {
 										valuesString += ", ";
 									}
+									if( chartType == 2 ) {
+										valuesString += "<span class='var-popup-value'>";
+									}
 									valuesString += value + " " + unit.unit;
+									if( chartType == 2 ) {
+										valuesString += "</span>";
+									}
 								} else if( i === "time" ) {
 									timeString = v;
-								} else if( i !== "color" && i !== "series" && ( i !== "x" || App.ChartModel.get( "chart-type" ) != 1 ) ) {
-									if( valuesString !== "" ) {
+								} else if( i !== "color" && i !== "series" && ( i !== "x" || chartType != 1 ) ) {
+									if( valuesString !== "" && chartType != 2 ) {
 										valuesString += ", ";
+									}
+									if( chartType == 2 ) {
+										valuesString += "<span class='var-popup-value'>";
 									}
 									//just add plain value, omiting x value for linechart
 									valuesString += value;
+									if( chartType == 2 ) {
+										valuesString += "</span>";
+									}
 								}
 							} );
 
-							if( timeString && App.ChartModel.get( "chart-type" ) != 1 ) {
+							if( timeString && chartType != 1 && chartType != 2 ) {
 								valuesString += " in " + timeString;
+							} else if( timeString && chartType == 2 ) {
+								valuesString += "<span class='var-popup-value'>" + timeString + "</span>";
 							}
 							string += valuesString;
 							string += "</p>";
@@ -524,14 +542,14 @@
 				that.onResize();
 
 				that.chart.dispatch.on( "stateChange", function( state ) {
-					//refersh legend;
+					//refresh legend;
 					svgSelection.call( that.legend );
 					//need timeout 
 					setTimeout( function() {
 						that.onResize();
 					}, 1);
 				} );
-
+			
 			});
 		
 		},
@@ -599,7 +617,7 @@
 
 				var tr = "<tr>";
 				if( rowIndex == 0) {
-					
+
 					//create header file from cell information
 					_.each( rowData, function( value ) {
 						var th = "<th>" + value + "</th>";
@@ -622,7 +640,7 @@
 			tableString += "</table>";
 
 			var $table = $( tableString );
-			this.$dataTableWrapper.append( $table );	
+			this.$dataTableWrapper.append( $table );
 
 		},
 
@@ -644,11 +662,15 @@
 				} else {
 					sourcesShortHtml += sourceData.name;
 				}
+				if( sourceIndex > 0 && sourcesLongHtml !== "" && sourceData.description !== "" ) {
+					sourcesLongHtml += ", ";
+				}
 				sourcesLongHtml += sourceData.description;
 			} );
 
 			footerHtml = descriptionHtml;
 			tabHtml = descriptionHtml + "<br /><br />" + sourcesLongHtml;
+
 
 			//add license info
 			if( license && license.description ) {
@@ -658,7 +680,7 @@
 			
 			//append to DOM
 			this.$chartDescription.html( footerHtml );
-			this.$chartSources.html( sourcesLongHtml );
+			this.$chartSources.html( sourcesShortHtml );
 			this.$sourcesTab.html( tabHtml );
 
 		},

@@ -12320,7 +12320,6 @@ nv.models.stackedArea = function() {
             if (scatter.forceY().length == 0) {
                 scatter.forceY().push(0);
             }
-            
             scatter
                 .width(availableWidth)
                 .height(availableHeight)

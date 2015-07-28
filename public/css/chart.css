@@ -285,6 +285,10 @@
 		.nvtooltip p {
 			font-size: 16px;
 		}
+		/* scatter plot has values underneath each other */
+		.nvtooltip .var-popup-value {
+			display: block;
+		}
 	
 	.chart-description,
 	.chart-sources {
@@ -301,7 +305,7 @@
 		margin-top: 40px;
 	}
 	.chart-wrapper .chart-description {
-		    margin-top: 20px;
+		margin-top: 20px;
 	}
 
 	/* for saving image */
