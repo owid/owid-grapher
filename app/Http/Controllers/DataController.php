@@ -294,7 +294,6 @@ class DataController extends Controller {
 		 *	4) fetch all the other necessary data
 		 **/
 
-
 		//get all necessary info for datasources
 		$datasourcesIds = array_keys( $datasourcesIdsArr );
 		$datasources = Datasource::findMany( $datasourcesIds );
@@ -307,56 +306,9 @@ class DataController extends Controller {
 		//get all the licence information
 		$license = License::find( 1 )->first();
 
-		//construct first row
-		$firstRow = $timeKeys;
-		array_unshift( $firstRow, "Times" ); 
-
-		$exportData = [ $firstRow ];
-
-		if( $groupByEntity ) {
-
-			foreach( $dataByEntityTime as $entityId=>$entityData ) {
-				//first insert name
-				$entityName = ( array_key_exists($entityId, $entities) )? $entities[$entityId]: "";
-				$rowData = [ $entityName ];
-				//then insert times
-				foreach( $timeKeys as $time ) {
-					//does value exist for given time and entity?
-					if( !array_key_exists($time, $entityData) ) {
-						//insert blank value
-						$rowData[] = ""; 
-					} else {
-						//value exists
-						$rowData[] = $entityData[$time];
-					} 
-				}
-				$exportData[] = $rowData;
-			}
-
-		} else {
-
-			foreach( $dataByVariableTime as $variableId=>$variableData ) {
-				//first insert name
-				$variableName = ( array_key_exists($variableId, $variables) )? $variables[$variableId]: "";
-				$rowData = [ $variableName ];
-				//then insert times
-				foreach( $timeKeys as $time ) {
-					//does value exist for given time and entity?
-					if( !array_key_exists($time, $variableData) ) {
-						$rowData[] = "x"; 
-					} else {
-						//value exists
-						$rowData[] = $variableData[$time];
-					} 
-				}
-				$exportData[] = $rowData;
-			}
-
-		}
-
 		if( $request->ajax() ) {
 
-			$result = [ 'success' => true, 'data' => $data, 'dimensions' => $dimensions, 'datasources' => $datasources, 'timeType' => $timeType, 'exportData' => $exportData, 'license' => $license ];
+			$result = [ 'success' => true, 'data' => $data, 'dimensions' => $dimensions, 'datasources' => $datasources, 'timeType' => $timeType, 'license' => $license ];
 			
 			//store into cache - there is no cache 
 			if( !empty( $key ) ) {
@@ -368,11 +320,12 @@ class DataController extends Controller {
 
 		} else {
 
+			//export is now happening in front-end
 			if( Input::has( 'export' ) && Input::get( 'export' ) == 'csv' ) {
 				
 				//http://localhost:8888/oxford/our-world-in-data-chart-builder/public/data/dimensions?dimensions=%5B%7B%22variableId%22%3A%221%22%2C%22property%22%3A%22y%22%2C%22name%22%3A%22Y+axis%22%7D%5D
 				//return $data;
-				return $this->downloadCsv( $exportData );
+				//return $this->downloadCsv( $exportData );
 			
 			} else {
 
