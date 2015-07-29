@@ -336,6 +336,8 @@ class Chart extends Model {
 						$value = Chart::getValue( $dimension, $time, $entityData[ "values" ][ $dimension->property ] );
 						if( Chart::hasValue( $value ) ) {
 							$entityTimeArr[ $dimension->property ] = $value; 
+							//also store time, useful for legend
+							$entityTimeArr[ "time" ] = $time;
 						} else {
 							//for stack bar chart, we need to have data for all properties
 							$hasData = false;
@@ -472,7 +474,7 @@ class Chart extends Model {
 			//loop through all single times
 			foreach( $singleTimeArr as $variableId=>$value ) {
 				if( $variableId !== "time" ) {
-					$variablesByKey[ "id-" .$variableId ][ "values" ][] = array( "x" => floatval( $singleTimeArr[ "time" ] ), "y" => floatval( $value ) );
+					$variablesByKey[ "id-" .$variableId ][ "values" ][] = array( "x" => floatval( $singleTimeArr[ "time" ] ), "y" => floatval( $value ), "time" => floatval( $singleTimeArr[ "time" ] ) );
 				}
 			}
 

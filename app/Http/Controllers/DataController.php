@@ -191,6 +191,11 @@ class DataController extends Controller {
 					//store value
 					$dataByEntity[ $entityId ][ "values" ][ $property ][ floatval( $datum->date ) ] = floatval( $datum->value );
 					
+					//need to store dimension variablename, dimensions are returned
+					if( !array_key_exists( "variableName", $dimension ) ) {
+						$dimension->variableName = $datum->variable_name;
+					}
+
 					//if is linechart, store time into x axis
 					/*if( $isLineChart ) {
 						$dataByEntity[ $entityId ][ "values" ][ $i ][ "x" ] = floatval( $datum->date );
@@ -351,7 +356,7 @@ class DataController extends Controller {
 
 		if( $request->ajax() ) {
 
-			$result = [ 'success' => true, 'data' => $data, 'datasources' => $datasources, 'timeType' => $timeType, 'exportData' => $exportData, 'license' => $license ];
+			$result = [ 'success' => true, 'data' => $data, 'dimensions' => $dimensions, 'datasources' => $datasources, 'timeType' => $timeType, 'exportData' => $exportData, 'license' => $license ];
 			
 			//store into cache - there is no cache 
 			if( !empty( $key ) ) {

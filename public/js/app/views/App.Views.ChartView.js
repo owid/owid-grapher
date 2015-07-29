@@ -106,14 +106,15 @@
 							that.$svg.find( "> .nvd3.nv-wrap" ).empty();
 						}*/
 						if( response.data ) {
-							that.updateChart( response.data, response.timeType );
+							that.updateChart( response.data, response.timeType, response.dimensions );
 						}
 						if( response.datasources ) {
 							that.updateSourceTab( response.datasources, response.license );
 						}
-						if( response.exportData ) {
+						//table display of data is now directly taken from update chart
+						/*if( response.exportData ) {
 							that.updateDataTab( response.exportData );
-						}
+						}*/
 					},
 					error: function( ) {
 						that.$error.show();
@@ -209,7 +210,7 @@
 
 		},
 
-		updateChart: function( data, timeType ) {
+		updateChart: function( data, timeType, dimensions ) {
 
 			if( !data ) {
 				return;
@@ -491,7 +492,9 @@
 						that.onResize();
 					}, 1);
 				} );
-			
+				
+				that.updateDataTab( localData, dimensions );
+
 			});
 		
 		},
@@ -542,38 +545,98 @@
 
 		},
 
-		updateDataTab: function( data ) {
+		updateDataTab: function( data, dimensions ) {
 
 			this.$dataTableWrapper.empty();
 
 			//update link
-			var dimensionsString = App.ChartModel.get( "chart-dimensions" ),
-				chartType = App.ChartModel.get( "chart-type" ),
+			var chartType = App.ChartModel.get( "chart-type" ),
+				hasMultipleColumns = ( App.ChartModel.get( "group-by-variables" ) && chartType !== "3" )? true: false;/*,
 				baseUrl = this.$downloadBtn.attr( "data-base-url" ),
-				dimensionsUrl = encodeURIComponent( dimensionsString );
-			this.$downloadBtn.attr( "href", baseUrl + "?dimensions=" + dimensionsUrl + "&chartType=" + chartType + "&export=csv" );
+				dimensionsUrl = encodeURIComponent( dimensionsString );*/
+			//this.$downloadBtn.attr( "href", baseUrl + "?dimensions=" + dimensionsUrl + "&chartType=" + chartType + "&export=csv" );
 
-			var tableString = "<table class='data-table'>";
+			//get all times
+			var timesObj = [],
+				times = [];
+			_.each( data, function( entityData, entityId ) {
 
-			_.each( data, function( rowData, rowIndex ) {
+				var values = entityData.values,
+					valuesByTime = [];
 
-				var tr = "<tr>";
-				if( rowIndex == 0) {
+				_.each( values, function( value ) {
 
-					//create header file from cell information
-					_.each( rowData, function( value ) {
-						var th = "<th>" + value + "</th>";
+					//store given time as existing
+					var time = value.time;
+					if( !timesObj[ time ] ) {
+						timesObj[ time ] = true;
+						times.push( time );
+					}
+
+					//re-map values by time key
+					valuesByTime[ time ] = value;
+
+				} );
+
+				entityData.valuesByTime = valuesByTime;
+
+			} );
+
+			//sort gathered times
+			times = _.sortBy( times, function( v ) { return +v; } );
+			
+			//create first row
+			var tableString = "<table class='data-table'>",
+				tr = "<tr><td><strong> </strong></td>";
+			_.each( times, function( time ) {
+
+				//create column for every dimension
+				_.each( dimensions, function( dimension, i ) {
+					if( i === 0 || hasMultipleColumns ) {
+						var th = "<th>";
+						th += time;
+						if( dimensions.length > 1 && hasMultipleColumns ) {
+							//we have more than one dimension, need to distinguish them in 
+							th += " - " + dimension.variableName;
+						}
+						th += "</th>";
 						tr += th;
-					} );
-				
-				} else {
+					}
+				});
+
+			} );
+			tr += "</tr>";
+			tableString += tr;
+
+			console.log( "hasMultipleColumns", hasMultipleColumns );
+
+			_.each( data, function( entityData, entityId ) {
+
+				var tr = "<tr>",
+					//add name of entity
+					td = "<td><strong>" + entityData.key + "</strong></td>";
+				tr += td;
+
+				var valuesByTime = entityData.valuesByTime;
+				_.each( times, function( time ) {
 					
-					_.each( rowData, function( value, index ) {
-						var td = ( index == 0 )? "<td><strong>" + value + "</strong></td>": "<td>" + value + "</td>";
-						tr += td;
+					//create column for every dimension
+					_.each( dimensions, function( dimension, i ) {
+						if( i === 0 || hasMultipleColumns ) {
+							var td = "<td>",
+								tdValue = "";
+							//is there value for given time
+							if( valuesByTime[ time ] ) {
+								tdValue = valuesByTime[ time ][ dimension.property ];
+							}
+							td += tdValue;
+							td += "</td>";
+							tr += td;
+						}
 					} );
 				
-				}
+				} );
+				
 				tr += "</tr>";
 				tableString += tr;
 
@@ -892,6 +955,8 @@
 								if( unit.format > 0 ) {
 									//enforce maximum 20 digits
 									var fixed = Math.min( 20, parseInt( unit.format, 10 ) );
+									//make sure we're operating on number
+									value = parseFloat( value );
 									value = value.toFixed( fixed );
 								}
 							}
