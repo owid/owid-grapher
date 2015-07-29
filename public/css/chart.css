@@ -318,6 +318,12 @@
 	*	DATA TAB
 	**/
 	#data-chart-tab {}
+		#data-chart-tab .download-data-btn {
+			color: #ffffff;
+		}
+			#data-chart-tab .download-data-btn i {
+				margin-right: 5px;
+			}
 		#data-chart-tab .data-table {
 			margin-top: 20px;
 		}
