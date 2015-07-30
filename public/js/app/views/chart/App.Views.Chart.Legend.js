@@ -56,7 +56,12 @@
 					addEntityBtn.append('rect').attr( { 'class': 'add-btn-bg', 'width': '100', 'height': '25', 'transform': 'translate(0,-5)' } );
 					addEntityBtn.append('path').attr( { 'd': 'M16,0 L16,14', 'class': 'nv-box' } );
 					addEntityBtn.append('path').attr( { 'd': 'M9,7 L22,7', 'class': 'nv-box' } );
-					addEntityBtn.append('text').attr( {'x':28,'y':11} ).text('Add country');
+					if( App.ChartModel.get( "group-by-variables" ) ) {
+						addEntityBtn.append('text').attr( {'x':28,'y':11} ).text('Change country');
+						addEntityBtn.select( "rect" ).attr( "width", "120" );
+					} else {
+						addEntityBtn.append('text').attr( {'x':28,'y':11} ).text('Add country');
+					}
 					addEntityBtn.on( 'click', function( d, i ) {
 						//group by variables
 						dispatch.addEntity();

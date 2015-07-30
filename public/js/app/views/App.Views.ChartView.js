@@ -328,8 +328,9 @@
 					that.chart = nv.models.lineChart().options( chartOptions );
 				
 				} else if( chartType == "2" ) {
-				
-					that.chart = nv.models.scatterChart().options( chartOptions ).pointRange( [54, 1000] ).showDistX( true ).showDistY( true );
+					
+					var points = that.scatterBubbleSize();
+					that.chart = nv.models.scatterChart().options( chartOptions ).pointRange( points ).showDistX( true ).showDistY( true );
 					
 				} else if( chartType == "3" ) {
 					
@@ -1055,6 +1056,15 @@
 				that.chart.tooltip.position(evt.pos).data(evt).hidden(false);
 			});
 
+		},
+
+		scatterBubbleSize: function() {
+			//set size of the bubbles depending on browser width
+			var browserWidth = $( window ).width(),
+				browserCoef = Math.max( 1, browserWidth / 1280 ),
+				pointMin = 100 * browserCoef,
+				pointMax = 1000 * browserCoef;
+			return [ pointMin, pointMax ];
 		}
 
 	});
