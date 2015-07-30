@@ -797,6 +797,15 @@
 			//need to call chart update for resizing of elements within chart
 			this.chart.update();
 
+			if( App.ChartModel.get( "chart-type" ) == "3" ) {
+				//for stacked area chart, need to manually adjust height
+				var currIntLayerHeight = this.chart.interactiveLayer.height(),
+					//TODO - do not hardcode this
+					heightAdd = 150;
+				this.chart.interactiveLayer.height( currIntLayerHeight + heightAdd );
+				d3.select(".nv-interactive").call(this.chart.interactiveLayer);
+			}
+			
 			if( !App.ChartModel.get( "hide-legend" ) ) {
 				//position legend
 				var legendMargins = this.legend.margin();
