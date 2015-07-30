@@ -329,8 +329,8 @@
 				
 				} else if( chartType == "2" ) {
 				
-					that.chart = nv.models.scatterChart().options( chartOptions ).pointRange( [54, 1000] );//.showDistX(true).showDistY(true);
-				
+					that.chart = nv.models.scatterChart().options( chartOptions ).pointRange( [54, 1000] ).showDistX( true ).showDistY( true );
+					
 				} else if( chartType == "3" ) {
 					
 					//fixed probably a bug in nvd3 with previous tooltip not being removed
@@ -492,9 +492,13 @@
 						that.onResize();
 					}, 1);
 				} );
-				
 				that.updateDataTab( localData, dimensions );
-
+				
+				if( chartType == "2" ) {
+					//need to have own showDist implementation, cause there's a bug in nvd3
+					that.scatterDist();
+				}
+				
 			});
 		
 		},
@@ -638,8 +642,6 @@
 			} );
 			tr += "</tr>";
 			tableString += tr;
-
-			console.log( "hasMultipleColumns", hasMultipleColumns );
 
 			_.each( data, function( entityData, entityId ) {
 
@@ -1033,6 +1035,25 @@
 			}
 
 			return string;
+
+		},
+
+		scatterDist: function() {
+
+			var that = this,
+				margins = App.ChartModel.get( "margins" ),
+				nvDistrX = $( ".nv-distributionX" ).offset().top,
+				svgSelection = d3.select( "svg" );
+
+			that.chart.scatter.dispatch.on('elementMouseover.tooltip', function(evt) {
+				var svgOffset = that.$svg.offset(),
+					svgHeight = that.$svg.height();
+				svgSelection.select('.nv-series-' + evt.seriesIndex + ' .nv-distx-' + evt.pointIndex)
+					.attr('y1', evt.pos.top - nvDistrX );
+				svgSelection.select('.nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
+					.attr('x2', evt.pos.left - svgOffset.left - margins.left );
+				that.chart.tooltip.position(evt.pos).data(evt).hidden(false);
+			});
 
 		}
 
