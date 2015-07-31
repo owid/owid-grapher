@@ -96,6 +96,7 @@ button > i {
 .content-wrapper {
 	/*margin: 0;
 	padding: 0;*/
+	overflow: auto;
 	position: relative;
 	padding: 20px;
 }
