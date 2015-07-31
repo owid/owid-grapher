@@ -39,6 +39,10 @@
 			var addCountryControl = App.ChartModel.get( "add-country-control" );
 			this.$addCountryControlInput.prop( "checked", addCountryControl );
 
+			//based on stored add-country-mode
+			var addCountryMode = App.ChartModel.get( "add-country-mode" );
+			this.$el.find( "[name='add-country-mode']" ).filter( "[value='" + addCountryMode + "']" ).prop( "checked", true );
+
 		},
 
 		onCountriesSelect: function( evt ) {
