@@ -49,9 +49,21 @@
 						</div>
 					</div>
 			</section>
+			<section class="form-section dataset-type-section">
+					<div class="form-section-header">
+						<h3><span class="form-section-digit">2</span>Dataset type</h3>
+					</div>
+					<div class="form-section-content">
+						<p class="form-section-desc">Do you have multiple variables in your dataset? In most cases, it will be only single variable.</p>
+						<fieldset class="dataset-type-radiogroup">
+							<label><input type="radio" class="" name="multivariant_dataset" value="0" checked/> Single variable in dataset</label>
+							<label><input type="radio" class="" name="multivariant_dataset" value="1" /> Multiple variables in dataset</label>
+						</fieldset>
+					</div>
+			</section>
 			<section class="form-section upload-section">
 					<div class="form-section-header">
-						<h3><span class="form-section-digit">2</span>Upload file with data</h3>
+						<h3><span class="form-section-digit">3</span>Upload file with data</h3>
 					</div>
 					<div class="form-section-content">
 						<p class="form-section-desc">For now, just CSV files are working. We'll have xls and choice of external source (e.g. Gapminder) in the future.</p>
@@ -62,18 +74,6 @@
 						<div class="csv-import-result">
 							<div id="csv-import-table-wrapper" class="csv-import-table-wrapper"></div>
 						</div>
-					</div>
-			</section>
-			<section class="form-section dataset-type-section">
-					<div class="form-section-header">
-						<h3><span class="form-section-digit">3</span>Dataset type</h3>
-					</div>
-					<div class="form-section-content">
-						<p class="form-section-desc">Do you have multiple variables in your dataset? In most cases, it will be only single variable.</p>
-						<fieldset class="dataset-type-radiogroup">
-							<label><input type="radio" class="" name="multivariant_dataset" value="0" checked/> Single variable in dataset</label>
-							<label><input type="radio" class="" name="multivariant_dataset" value="1" /> Multiple variables in dataset</label>
-						</fieldset>
 					</div>
 			</section>
 			<section class="form-section variables-section">
