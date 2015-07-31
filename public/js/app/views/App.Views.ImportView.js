@@ -248,8 +248,11 @@
 
 		validateEntityData: function( data ) {
 
-			//validateEntityData doesn't modify the original data
+			if( this.isDataMultiVariant ) {
+				return true;
+			}
 
+			//validateEntityData doesn't modify the original data
 			var $dataTableWrapper = $( ".csv-import-table-wrapper" ),
 				$dataTable = $dataTableWrapper.find( "table" ),
 				$entitiesCells = $dataTable.find( "td:first-child" ),
@@ -609,10 +612,10 @@
 			var $input = $( evt.currentTarget );
 			if( $input.val() === "1" ) {
 				this.isDataMultiVariant = true;
-				//this.$variableSection.show();
+				$( ".validation-result" ).remove();
+				$( ".entities-validation-wrapper" ).remove();
 			} else {
 				this.isDataMultiVariant = false;
-				//this.$variableSection.hide();
 			}
 
 			if( this.uploadedData && this.origUploadedData ) {
