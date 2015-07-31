@@ -102,7 +102,7 @@
 							<option value=""></option>
 						</select>
 						<div class="add-country-control-wrapper">
-							<h3>Can user add/change countries?</h3>
+							<h4>Can user add/change countries?</h4>
 							<radiogroup>
 								<label>
 									<input type="radio" name="add-country-mode" value="add-country" checked></input>

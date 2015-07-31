@@ -173,6 +173,9 @@
 	.add-country-control-wrapper input {
 		margin-right: 5px;
 	}
+	.add-country-control-wrapper label {
+		display: block;
+	}
 
 /**
 *	time section
