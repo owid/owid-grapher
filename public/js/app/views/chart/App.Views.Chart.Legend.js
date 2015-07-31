@@ -56,12 +56,7 @@
 					addEntityBtn.append('rect').attr( { 'class': 'add-btn-bg', 'width': '100', 'height': '25', 'transform': 'translate(0,-5)' } );
 					addEntityBtn.append('path').attr( { 'd': 'M16,0 L16,14', 'class': 'nv-box' } );
 					addEntityBtn.append('path').attr( { 'd': 'M9,7 L22,7', 'class': 'nv-box' } );
-					if( App.ChartModel.get( "group-by-variables" ) ) {
-						addEntityBtn.append('text').attr( {'x':28,'y':11} ).text('Change country');
-						addEntityBtn.select( "rect" ).attr( "width", "120" );
-					} else {
-						addEntityBtn.append('text').attr( {'x':28,'y':11} ).text('Add country');
-					}
+					addEntityBtn.append('text').attr( {'x':28,'y':11} ).text('Add country');
 					addEntityBtn.on( 'click', function( d, i ) {
 						//group by variables
 						dispatch.addEntity();
@@ -74,18 +69,21 @@
 				} else {
 					addEntityBtn.attr( "display", "block" );
 				}
-				if( App.ChartModel.get( "group-by-variables" ) ) {
+
+				var addCountryMode = App.ChartModel.get( "add-country-mode" );
+				if( addCountryMode === "add-country" ) {
+				//if( App.ChartModel.get( "group-by-variables" ) ) {
 					//if grouping by variable, legend will show variables instead of countries, so add country btn doesn't make sense
 					//if enabling adding countries
 					//addEntityBtn.attr( "display", "none" );
+					addEntityBtn.select( "text" ).text( "Add country" );
+					addEntityBtn.select( "rect" ).attr( "width", "100" );
+					addEntityBtn.attr( "display", "block" );
+				} else if( addCountryMode === "change-country" ) {
 					addEntityBtn.select( "text" ).text( "Change country" );
 					addEntityBtn.select( "rect" ).attr( "width", "120" );
-				}
-
-				if( App.ChartModel.get( "add-country-control" ) ) {
 					addEntityBtn.attr( "display", "block" );
 				} else {
-					//user shouldn't be able to add/replace countries
 					addEntityBtn.attr( "display", "none" );
 				}
 					
@@ -98,7 +96,7 @@
 					.attr('class','nv-legend-symbol');
 
 				//enable removing countries only if Add/Replace country button present
-				if( App.ChartModel.get( "add-country-control" ) && !App.ChartModel.get( "group-by-variables" ) ) {
+				if( App.ChartModel.get( "add-country-control" ) == "change-country" && !App.ChartModel.get( "group-by-variables" ) ) {
 					var removeBtns = seriesEnter.append('g')
 						.attr('class', 'nv-remove-btn')
 						.attr('transform', 'translate(10,10)');

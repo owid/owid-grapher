@@ -532,7 +532,7 @@
 				$option = $select.find( "[value=" + val + "]" ),
 				text = $option.text();
 
-			if( !App.ChartModel.get( "group-by-variables" ) ) {
+			if( !App.ChartModel.get( "group-by-variables" ) && App.ChartModel.get( "add-country-mode" ) === "add-country" ) {
 				App.ChartModel.addSelectedCountry( { id: $select.val(), name: text } );
 			} else {
 				App.ChartModel.replaceSelectedCountry( { id: $select.val(), name: text } );

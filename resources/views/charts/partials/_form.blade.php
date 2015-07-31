@@ -102,10 +102,21 @@
 							<option value=""></option>
 						</select>
 						<div class="add-country-control-wrapper">
-							<label>
-								<input type="checkbox" name="add-country-control" checked/>
-								User can add/replace countries
-							</label>
+							<h3>Can user add/change countries?</h3>
+							<radiogroup>
+								<label>
+									<input type="radio" name="add-country-mode" value="add-country" checked></input>
+									User can add countries
+								</label>
+								<label>
+									<input type="radio" name="add-country-mode" value="change-country" selected></input>
+									User can change country
+								</label>
+								<label>
+									<input type="radio" name="add-country-mode" value="disabled" selected></input>
+									User cannot change/add country
+								</label>
+							</radiogroup>
 						</div>
 					</div>
 				</section>

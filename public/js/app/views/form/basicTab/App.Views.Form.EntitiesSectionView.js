@@ -7,7 +7,7 @@
 		el: "#form-view #data-tab .entities-section",
 		events: {
 			"change .countries-select": "onCountriesSelect",
-			"change [name='add-country-control']": "onAddCountryControlChange"
+			"change [name='add-country-mode']": "onAddCountryModeChange"
 		},
 
 		initialize: function( options ) {
@@ -52,10 +52,10 @@
 
 		},
 
-		onAddCountryControlChange: function( evt ) {
+		onAddCountryModeChange: function( evt ) {
 
-			var $input = $( evt.currentTarget );
-			App.ChartModel.set( "add-country-control", $input.is( ":checked" ) );
+			var $input = $( "[name='add-country-mode']:checked" );
+			App.ChartModel.set( "add-country-mode", $input.val() );
 
 		}
 
