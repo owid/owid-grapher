@@ -1076,9 +1076,9 @@
 		scatterBubbleSize: function() {
 			//set size of the bubbles depending on browser width
 			var browserWidth = $( window ).width(),
-				browserCoef = Math.max( 1, browserWidth / 1280 ),
-				pointMin = 100 * browserCoef,
-				pointMax = 1000 * browserCoef;
+				browserCoef = Math.max( 1, browserWidth / 1100 ),
+				pointMin = 100 * Math.pow( browserCoef, 2 ),
+				pointMax = 1000 * Math.pow( browserCoef, 2 );
 			return [ pointMin, pointMax ];
 		},
 
