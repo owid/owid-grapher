@@ -477,8 +477,10 @@
 				}
 				
 				var onResizeCallback = _.debounce( function(e) {
-					//invoke resize of legend
-					svgSelection.call( that.legend );
+					//invoke resize of legend, if there's one, scatter plot doesn't have any by default
+					if( that.legend ) {
+						svgSelection.call( that.legend );
+					}
 					that.onResize();
 				}, 150 );
 				nv.utils.windowResize( onResizeCallback );
