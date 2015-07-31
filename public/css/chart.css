@@ -240,6 +240,7 @@
 					}
 					#chart-view .nv-custom-legend .nv-add-btn:hover .nv-box {
 						stroke: #fff;
+						fill: #fff;
 					}
 			#chart-view .nv-custom-legend .nv-add-btn .nv-box {
 				stroke-width: 4px;
