@@ -11346,7 +11346,8 @@ nv.models.scatter = function() {
             groups.exit().selectAll('path.nv-point')
                 .watchTransition(renderWatch, 'scatter exit')
                 .attr('transform', function(d) {
-                    return 'translate(' + x(getX(d[0],d[1])) + ',' + y(getY(d[0],d[1])) + ')'
+                    //!! CUSTOM MODIFICATION - zdenek.hynek@gmail.com
+                    return (d[0].display && d[1].display)? 'translate(' + x(getX(d[0],d[1])) + ',' + y(getY(d[0],d[1])) + ')': '';
                 })
                 .remove();
             points.each(function(d) {
