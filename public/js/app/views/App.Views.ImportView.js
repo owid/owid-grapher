@@ -148,10 +148,10 @@
 
 				var tr = "<tr>";
 				_.each( rowData, function( cellData, cellIndex ) {
-					if(cellData) {
+					//if(cellData) {
 						var td = (rowIndex > 0)? "<td>" + cellData + "</td>": "<th>" + cellData + "</th>";
 						tr += td;
-					}
+					//}
 				} );
 				tr += "</tr>";
 				tableString += tr;
