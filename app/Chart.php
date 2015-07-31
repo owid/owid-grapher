@@ -10,7 +10,7 @@ class Chart extends Model {
 	*	DATA PROCESSING FUNCTIONS
 	**/
 
-	public static function formatDataForChartType( $chartType, $data, $dimensionsByKey, $times, $groupByVariable = false, $mainDimension = false, $otherDimIds = false ) {
+	public static function formatDataForChartType( $chartType, $data, $dimensionsByKey, $times, $groupByVariable = false, $mainDimension = false, $otherDimIds = false, $entity = false ) {
 
 		$normalizedData = [];
 		
@@ -22,7 +22,7 @@ class Chart extends Model {
 				$normalizedData = Chart::formatDataForScatterPlotChart( $data, $dimensionsByKey, $times, $groupByVariable, $mainDimension, $otherDimIds );
 				break;
 			case "3":
-				$normalizedData = ( !$groupByVariable )? Chart::formatDataForStackBarChart( $data, $dimensionsByKey, $times, $groupByVariable ): Chart::formatDataForStackBarChartByVariable( $data, $dimensionsByKey, $times, $groupByVariable );
+				$normalizedData = ( !$groupByVariable )? Chart::formatDataForStackBarChart( $data, $dimensionsByKey, $times, $groupByVariable ): Chart::formatDataForStackBarChartByVariable( $data, $dimensionsByKey, $times, $entity );
 				break;
 		}
 
@@ -41,6 +41,7 @@ class Chart extends Model {
 			$arr = array(
 				"id" => $entityData[ "id" ],
 				"key" => $entityData[ "key" ],
+				"entity" => $entityData[ "entity" ],
 				"values" => []
 			);
 
@@ -140,6 +141,7 @@ class Chart extends Model {
 			$arr = array(
 				"id" => $entityData[ "id" ],
 				"key" => $entityData[ "key" ],
+				"entity" => $entityData[ "entity" ],
 				"values" => []
 			);
 
@@ -374,6 +376,7 @@ class Chart extends Model {
 			$entity = array(
 				"id" => $entityData[ "id" ],
 				"key" => $entityData[ "key" ],
+				"entity" => $entityData[ "entity" ],
 				"values" => []
 			);
 			$normalizedData[ $entityData[ "id" ] ] = $entity;
@@ -415,7 +418,7 @@ class Chart extends Model {
 
 	}
 
-	public static function formatDataForStackBarChartByVariable( $dataByVariable, $dimensionsByKey, $times ) {
+	public static function formatDataForStackBarChartByVariable( $dataByVariable, $dimensionsByKey, $times, $entity ) {
 
 		//need to sort times first, sort by key
 		ksort( $times );
@@ -463,6 +466,7 @@ class Chart extends Model {
 			$variable = array(
 				"id" => $dimension->variableId,
 				"key" => $dimension->variableName,
+				"entity" => $entity,
 				"values" => []
 			);
 			$variablesByKey[ "id-" .$variable[ "id" ] ] = $variable; 
@@ -475,6 +479,7 @@ class Chart extends Model {
 			foreach( $singleTimeArr as $variableId=>$value ) {
 				if( $variableId !== "time" ) {
 					$variablesByKey[ "id-" .$variableId ][ "values" ][] = array( "x" => floatval( $singleTimeArr[ "time" ] ), "y" => floatval( $value ), "time" => floatval( $singleTimeArr[ "time" ] ) );
+
 				}
 			}
 

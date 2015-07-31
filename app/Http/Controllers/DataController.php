@@ -103,6 +103,8 @@ class DataController extends Controller {
 		$minDataLength = false;
 		$mainDimId = false;
 		$otherDimIds = [];
+		//for edge cases for legend, we need to store entityname
+		$entityName = "";
 
 		foreach( $dimensions as $dimension ) {
 
@@ -180,6 +182,8 @@ class DataController extends Controller {
 							"id" => $entityId,
 							//"id" => intval($entityId),
 							"key" => $key,
+							//store entity name for legend purposes
+							"entity" => $datum->name,
 							"values" => []
 						);
 					}
@@ -237,6 +241,9 @@ class DataController extends Controller {
 				
 				foreach( $variableData as $datum ) {
 					
+					//store entity name for legend purposes
+					$entityName = $datum->name;
+
 					$dataByVariable[ "id-".$id ][ "values" ][] = array( "x" => floatval($datum->date), "y" => floatval($datum->value) );
 					$times[$datum->label] = true;
 					$datasourcesIdsArr[ $datum->fk_dsr_id ] = true;
@@ -271,7 +278,7 @@ class DataController extends Controller {
 		} else {
 			//grouping by variable, for linechart, we already have what we need
 			if( $chartType !== "1" && $chartType !== "2" ) {
-				$dataByVariable = Chart::formatDataForChartType( $chartType, $dataByVariableTime, $dimensionsByKey, $times, true, $mainDimension, $otherDimIds );
+				$dataByVariable = Chart::formatDataForChartType( $chartType, $dataByVariableTime, $dimensionsByKey, $times, true, $mainDimension, $otherDimIds, $entityName );
 			}
 		}
 		

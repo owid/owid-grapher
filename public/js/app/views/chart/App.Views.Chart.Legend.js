@@ -36,7 +36,7 @@
 
 				// Setup containers and skeleton of chart
 				var wrap = container.selectAll('g.nv-custom-legend').data([data]),
-					gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-custom-legend').append('g'),
+					gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-custom-legend').append('g').attr( 'class', 'nv-legend-series-wrapper' ),
 					g = wrap.select('g');
 
 				wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
@@ -49,13 +49,40 @@
 						});
 					});
 				
+				//add entity label
+				var entityLabel = wrap.select( '.nv-entity-label' ),
+					entityLabelText = entityLabel.select( 'text' ),
+					entityLabelWidth = 0;
+				if( App.ChartModel.get( "add-country-mode" ) === "change-country" ) {
+					if( entityLabel.empty() ) {
+						entityLabel = wrap.append( 'g' ).attr('class', 'nv-entity-label').attr( 'transform', 'translate(0,15)' );
+						entityLabelText = entityLabel.append( 'text' );
+					}
+					if( data && data[0] && data[0].entity ) {
+						entityLabelText.text( data[0].entity + ": " );
+						try {
+							entityLabelWidth = entityLabelText.node().getComputedTextLength();
+							// If the legendText is display:none'd (nodeTextLength == 0), simulate an error so we approximate, instead
+							if( entityLabelWidth <= 0 ) throw new Error();
+						} catch( e ) {
+							entityLabelWidth = nv.utils.calcApproxTextWidth(entityLabelText);
+						}
+						//add padding for label
+						entityLabelWidth += 30;
+						availableWidth -= entityLabelWidth;
+					}
+				} else {
+					//make sure there is not label left
+					entityLabel.remove();
+				}
+				
 				//if not existing, add nv-add-btn, if not grouping by variables
 				var addEntityBtn =  wrap.select( 'g.nv-add-btn' );
 				if( addEntityBtn.empty() ) {
 					addEntityBtn = wrap.append('g').attr('class', 'nv-add-btn');
 					addEntityBtn.append('rect').attr( { 'class': 'add-btn-bg', 'width': '100', 'height': '25', 'transform': 'translate(0,-5)' } );
-					var addEntityBtnG = addEntityBtn.append('g').attr( { 'class': 'add-btn-path' } )
-					addEntityBtnG.append('path').attr( { 'd': 'M15,0 L15,14', 'class': 'nv-box' } )
+					var addEntityBtnG = addEntityBtn.append('g').attr( { 'class': 'add-btn-path' } );
+					addEntityBtnG.append('path').attr( { 'd': 'M15,0 L15,14', 'class': 'nv-box' } );
 					addEntityBtnG.append('path').attr( { 'd': 'M8,7 L22,7', 'class': 'nv-box' } );
 					//http://android-ui-utils.googlecode.com/hg-history/ac955e6376470d9599ead07b4599ef937824f919/asset-studio/dist/res/clipart/icons/refresh.svg?r=ac955e6376470d9599ead07b4599ef937824f919
 					addEntityBtn.append('path').attr( { 'd': 'M160.469,242.194c0-44.414,36.023-80.438,80.438-80.438c19.188,0,36.711,6.844,50.5,18.078L259.78,209.93l99.945,11.367    l0.805-107.242l-30.766,29.289c-23.546-21.203-54.624-34.164-88.804-34.164c-73.469,0-133.023,59.562-133.023,133.016    c0,2.742,0.242-2.266,0.414,0.445l53.68,7.555C161.03,245.108,160.469,247.562,160.469,242.194z M371.647,237.375l-53.681-7.555    c1.017,5.086,1.556,2.617,1.556,7.992c0,44.414-36.008,80.431-80.43,80.431c-19.133,0-36.602-6.798-50.383-17.97l31.595-30.078    l-99.93-11.366l-0.812,107.25l30.789-29.312c23.531,21.141,54.57,34.055,88.688,34.055c73.468,0,133.023-59.555,133.023-133.008    C372.062,235.078,371.812,240.085,371.647,237.375z', 'class': 'nv-box change-btn-path', 'transform': 'scale(.04) translate(150,-50)' } );
@@ -275,7 +302,7 @@
 						g.attr('transform', 'translate(' + (width - margin.right - legendWidth) + ',' + margin.top + ')');
 					}
 					else {
-						g.attr('transform', 'translate(0' + ',' + margin.top + ')');
+						g.attr('transform', 'translate(' + entityLabelWidth + ',' + margin.top + ')');
 					}
 
 					height = margin.top + margin.bottom + (Math.ceil(seriesWidths.length / seriesPerRow) * versPadding);
@@ -357,6 +384,7 @@
 							lastRectWidth = lastRect.attr( "width" );
 						//position add btn
 						transformX = +transformX + parseInt( lastRectWidth, 10 ) - 3;
+						transformX += entityLabelWidth;
 						//centering
 						transformY = +transformY - 3;
 						//check for right edge

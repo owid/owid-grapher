@@ -225,6 +225,12 @@
 				#chart-view .nv-custom-legend .nv-remove-btn:hover .nv-box {
 					stroke: #000;
 				}*/
+		
+		/* entity label */
+		#chart-view .nv-custom-legend .nv-entity-label text {
+			font-size: 15px;
+		}
+
 		/* add btn */
 		#chart-view .nv-custom-legend .nv-add-btn {
 			cursor: pointer;
