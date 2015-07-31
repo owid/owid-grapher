@@ -343,7 +343,7 @@
 						.useInteractiveGuideline( true )
 						.x( function( d ) { return d[ "x" ]; } )
 						.y( function( d ) { return d[ "y" ]; } );
-					//console.log( that.chart.stacked.style() );
+			
 				}
 
 				that.chart.xAxis
@@ -488,6 +488,12 @@
 				that.chart.dispatch.on( "stateChange", function( state ) {
 					//refresh legend;
 					svgSelection.call( that.legend );
+
+					//
+					if( chartType === "3" ) {
+						that.checkStackedAxis();
+					}
+
 					//need timeout 
 					setTimeout( function() {
 						that.onResize();
@@ -1074,6 +1080,25 @@
 				pointMin = 100 * browserCoef,
 				pointMax = 1000 * browserCoef;
 			return [ pointMin, pointMax ];
+		},
+
+		checkStackedAxis: function() {
+
+			//setting yAxisMax breaks expanded stacked chart, need to check manually
+			var stackedStyle = this.chart.stacked.style(),
+				yAxis = App.ChartModel.get( "y-axis" ),
+				yAxisMin = ( yAxis[ "axis-min" ] || 0 ),
+				yAxisMax = ( yAxis[ "axis-max" ] || null ),
+				yDomain = [ yAxisMin, yAxisMax ];
+			if( yAxisMax ) {
+				//chart has set yAxis to max, depending on stacked style set max
+				if( stackedStyle === "expand" ) {
+					console.log( "stackedstyle" );
+					yDomain = [ 0, 1 ];
+				}
+				this.chart.yDomain( yDomain );
+			}
+			
 		}
 
 	});
