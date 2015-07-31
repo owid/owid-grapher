@@ -103,7 +103,7 @@
 					.attr('class','nv-legend-symbol');
 
 				//enable removing countries only if Add/Replace country button present
-				if( App.ChartModel.get( "add-country-control" ) == "change-country" && !App.ChartModel.get( "group-by-variables" ) ) {
+				if( addCountryMode == "add-country" && !App.ChartModel.get( "group-by-variables" ) ) {
 					var removeBtns = seriesEnter.append('g')
 						.attr('class', 'nv-remove-btn')
 						.attr('transform', 'translate(10,10)');
