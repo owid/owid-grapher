@@ -363,4 +363,7 @@
 .export-svg .chart-sources-svg {
 	display: block;
 }
+.export-svg .nv-custom-legend .nv-add-btn {
+	display: none;
+}
 
