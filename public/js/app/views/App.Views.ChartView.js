@@ -425,6 +425,13 @@
 					.axisLabelDistance( yAxisLabelDistance )
 					.tickFormat( function(d) { return yAxisPrefix + d3.format( "," )( that.formatValue( d, yAxisFormat ) ) + yAxisSuffix; });
 				
+				//scatter plots need more ticks
+				if( chartType === "2" ) {
+					//hardcode
+					that.chart.xAxis.ticks( 7 );
+					that.chart.yAxis.ticks( 7 );
+				}
+				
 				var svgSelection = d3.select( that.$svg.selector )
 					.datum( localData )
 					.call( that.chart );
@@ -450,7 +457,6 @@
 					}
 					
 				}
-				
 
 				//set legend
 				if( !App.ChartModel.get( "hide-legend" ) ) {
@@ -705,7 +711,7 @@
 					sourcesShortHtml += ", ";
 				}
 				if( sourceData.link ) {
-					sourcesShortHtml += "<a xlink:href='" + sourceData.link + "' target='_blank'>" + sourceData.name + "</a>";
+					sourcesShortHtml += "<a href='" + sourceData.link + "' target='_blank'>" + sourceData.name + "</a>";
 				} else {
 					sourcesShortHtml += sourceData.name;
 				}
