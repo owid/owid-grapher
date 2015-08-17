@@ -8,7 +8,9 @@
 		events: {
 			"click .chart-save-png-btn": "exportContent",
 			"click .chart-save-svg-btn": "exportContent",
-			"change [name=available_entities]": "onAvailableCountries"
+			"change [name=x_axis_scale]": "onAxisScaleChange",
+			"change [name=y_axis_scale]": "onAxisScaleChange"
+		
 		},
 
 		initialize: function( options ) {
@@ -410,13 +412,17 @@
 
 				//set scales
 				if( xAxisScale === "linear" ) {
+					console.log( "x linear scale" );
 					that.chart.xScale( d3.scale.linear() );
 				} else if( xAxisScale === "log" ) {
+					console.log( "x log scale" );
 					that.chart.xScale( d3.scale.log() );
 				}
 				if( yAxisScale === "linear" ) {
+					console.log( "y linear scale" );
 					that.chart.yScale( d3.scale.linear() );
 				} else if( yAxisScale === "log" ) {
+					console.log( "y log scale" );
 					that.chart.yScale( d3.scale.log() );
 				}
 
@@ -736,6 +742,18 @@
 			this.$chartSources.html( sourcesShortHtml );
 			this.$sourcesTab.html( tabHtml );
 
+		},
+
+		onAxisScaleChange: function( evt ) {
+
+			var $select = $( evt.currentTarget ),
+				selectName = $select.attr( "name" ),
+				axisName = ( selectName === "x_axis_scale" )? "x-axis": "y-axis",
+				axisProp = "axis-scale",
+				selectValue = $select.val();
+
+			App.ChartModel.setAxisConfig( axisName, axisProp, selectValue );
+			
 		},
 
 		onResize: function() {

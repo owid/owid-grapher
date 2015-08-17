@@ -20,6 +20,14 @@
 					<a href="#sources-chart-tab" data-toggle="tab" aria-expanded="false">Sources</a>
 				</li>
 			</ul>
+			<select name="x_axis_scale">
+				<option value="linear">Linear</option>
+				<option value="log">Log</option>
+			</select>
+			<select name="y_axis_scale">
+				<option value="linear">Linear</option>
+				<option value="log">Log</option>
+			</select>
 		</div>
 		<div class="tab-content">
 			<div id="chart-chart-tab" class="tab-pane active">
