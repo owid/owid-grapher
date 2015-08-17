@@ -8,6 +8,7 @@
 		events: {
 			"click .chart-save-png-btn": "exportContent",
 			"click .chart-save-svg-btn": "exportContent",
+			"change [name=available_entities]": "onAvailableCountries",
 			"change [name=x_axis_scale]": "onAxisScaleChange",
 			"change [name=y_axis_scale]": "onAxisScaleChange"
 		
@@ -45,20 +46,32 @@
 			this.$chartDescription = this.$el.find( ".chart-description" );
 			this.$chartSources = this.$el.find( ".chart-sources" );
 			
+			var chartName = App.ChartModel.get( "chart-name" ),
+				addCountryMode = App.ChartModel.get( "add-country-mode" ),
+				formConfig = App.ChartModel.get( "form-config" ),
+				entities = ( formConfig && formConfig[ "entities-collection" ] )? formConfig[ "entities-collection" ]: [],
+				selectedCountries = App.ChartModel.get( "selected-countries" ),
+				selectedCountriesIds = _.map( selectedCountries, function( v ) { return (v)? +v.id: ""; } ),
+				chartTime = App.ChartModel.get( "chart-time" );
+				
+
+			//might need to replace country in title, if "change country" mode
+			if( addCountryMode === "change-country" ) {
+				//yep, probably need replacing country in title (select first country form stored one)
+				if( selectedCountries && selectedCountries.length ) {
+					var country = selectedCountries[0];
+					chartName = chartName.replace( "*country*", country.name );
+				}
+			}
+
 			//update values
-			this.$chartName.text( App.ChartModel.get( "chart-name" ) );
+			this.$chartName.text( chartName );
 			this.$chartSubname.html( App.ChartModel.get( "chart-subname" ) );
 
 			var chartDescription = App.ChartModel.get( "chart-description" );
 			//this.$chartDescription.text( App.ChartModel.get( "chart-description" ) );
 
 			//update countries
-			var	formConfig = App.ChartModel.get( "form-config" ),
-				entities = ( formConfig && formConfig[ "entities-collection" ] )? formConfig[ "entities-collection" ]: [],
-				selectedCountries = App.ChartModel.get( "selected-countries" ),
-				selectedCountriesIds = _.map( selectedCountries, function( v ) { return (v)? +v.id: ""; } ),
-				chartTime = App.ChartModel.get( "chart-time" );
-
 			this.$entitiesSelect.empty();
 			if( selectedCountriesIds.length ) {
 				//append empty default option
@@ -412,17 +425,13 @@
 
 				//set scales
 				if( xAxisScale === "linear" ) {
-					console.log( "x linear scale" );
 					that.chart.xScale( d3.scale.linear() );
 				} else if( xAxisScale === "log" ) {
-					console.log( "x log scale" );
 					that.chart.xScale( d3.scale.log() );
 				}
 				if( yAxisScale === "linear" ) {
-					console.log( "y linear scale" );
 					that.chart.yScale( d3.scale.linear() );
 				} else if( yAxisScale === "log" ) {
-					console.log( "y log scale" );
 					that.chart.yScale( d3.scale.log() );
 				}
 

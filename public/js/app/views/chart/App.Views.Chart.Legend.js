@@ -53,7 +53,8 @@
 				var entityLabel = wrap.select( '.nv-entity-label' ),
 					entityLabelText = entityLabel.select( 'text' ),
 					entityLabelWidth = 0;
-				if( App.ChartModel.get( "add-country-mode" ) === "change-country" ) {
+				//displaying of entity label is disabled
+				/*if( App.ChartModel.get( "add-country-mode" ) === "change-country" ) {
 					if( entityLabel.empty() ) {
 						entityLabel = wrap.append( 'g' ).attr('class', 'nv-entity-label').attr( 'transform', 'translate(0,15)' );
 						entityLabelText = entityLabel.append( 'text' );
@@ -74,7 +75,7 @@
 				} else {
 					//make sure there is not label left
 					entityLabel.remove();
-				}
+				}*/
 				
 				//if not existing, add nv-add-btn, if not grouping by variables
 				var addEntityBtn =  wrap.select( 'g.nv-add-btn' );
