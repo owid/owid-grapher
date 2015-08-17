@@ -63,6 +63,7 @@
 
 			//datasource section
 			this.$newDatasourceWrapper = this.$el.find( ".new-datasource-wrapper" );
+			this.$sourceDescription = this.$el.find( "[name=source_description]" );
 
 			//category section
 			this.$categorySelect = this.$el.find( "[name=category_id]" );
@@ -71,6 +72,8 @@
 			//hide optional elements
 			this.$newDatasetDescription.hide();
 			//this.$variableSection.hide();
+
+			this.$sourceDescription.wysihtml5();
 
 		},
 

@@ -90,25 +90,25 @@
 						<h3><span class="form-section-digit">5</span>Set source</h3>
 					</div>
 					<div class="form-section-content">
-						<p class="form-section-desc">Add source references which will be displayed with every chart using imported data.</p>
-						<select name='datasource_id' class="form-control">
+						<p class="form-section-desc">Please enter all the sources that were used in creating the data set – like: "World Bank, UN IGME, Atkinson and Morelli (2013), ...</p>
+						<!--<select name='datasource_id' class="form-control">
 							<option value="" selected>Create new datasources</option>
 							@foreach( $data['datasources'] as $datasource )
 								<option data-datasource-id="{{ $datasource->id }}" value="{{ $datasource->id }}">{{ $datasource->name }}</option>
 							@endforeach
-						</select>
+						</select>-->
 						<div class="new-datasource-wrapper">
 							<label>
 								<span>Source name:</span>
-								<input class="form-control" type="text" name="source_name" />
+								<input class="form-control required" type="text" name="source_name" />
 							</label>
 							<label>
 								<span>Source link:</span>
-								<input class="form-control" type="text" name="source_link" />
+								<input class="form-control required" type="text" name="source_link" />
 							</label>
 							<label>
 								<span>Source description:</span>
-								<textarea cols="50" rows="4" class="form-control" type="text" name="source_description"></textarea>
+								<textarea cols="65" rows="10" class="form-control required" type="text" name="source_description"></textarea>
 							</label>
 						</div>
 					</div>
@@ -136,7 +136,7 @@
 							</select>
 						</label>
 						<div>
-							<label>Tags
+							<label>Source Tags
 								{!! Form::text('new_dataset_tags', '', array('class' => 'form-control ', 'placeholder' => 'Enter tags separated by comma' )); !!}
 							</label>
 						</div>

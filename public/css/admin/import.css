@@ -77,6 +77,9 @@
 	.import-view .datasources-section label span {
 		display: block;
 	}
+		.import-view .datasources-section .wysihtml5-toolbar .btn span {
+			display: inline;
+		}
 	.import-view .datasources-section input {
 		width: 300px;
 	}
