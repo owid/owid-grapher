@@ -30,7 +30,7 @@
 				_.each( singleRow, function( value, i ) {
 					//check we have value
 					if( value !== "" ) {
-						singleData.push( { x: timeArr[i], y: +value } );
+						singleData.push( { x: timeArr[i], y: ( !isNaN( value ) )? +value: value } );
 					}
 				} );
 

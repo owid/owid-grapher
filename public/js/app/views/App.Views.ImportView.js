@@ -204,7 +204,8 @@
 			var stringified = JSON.stringify( data );
 			//weird behaviour when single quote inserted into hidden input
 			stringified = stringified.replace( "'", "&#x00027;" );
-
+			stringified = stringified.replace( "'", "&#x00027;" );
+			
 			var $li = $( "<li class='variable-item clearfix'></li>" ),
 				$inputName = $( "<label>Name*<input class='form-control' value='" + data.name + "' placeholder='Enter variable name'/></label>" ),
 				$inputUnit = $( "<label>Unit<input class='form-control' value='" + data.unit + "' placeholder='Enter variable unit' /></label>" ),
