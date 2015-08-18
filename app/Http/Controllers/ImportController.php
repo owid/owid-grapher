@@ -196,13 +196,13 @@ class ImportController extends Controller {
 						}
 						//enter standardized info
 						$entityData['name'] = $entityIsoName->name;
-						$entityData['code'] = $entityIsoName->iso3;
+						$entityData['code'] = $entityIsoName->code;
 						$entityData['validated'] = 1;
 					}
 					
 					//find try finding entity in db
 					if( isset( $entityIsoName ) ) {
-						$entity = Entity::where( 'code', $entityIsoName->iso3 )->first();
+						$entity = Entity::where( 'code', $entityIsoName->code )->first();
 					} else {
 						//not standardized data
 						$entity = Entity::where( 'code', $entityData['name'] )->orWhere( 'name', $entityData['name'] )->first();
