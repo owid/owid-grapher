@@ -384,6 +384,8 @@ class DatasetSubcategoriesTableSeeder extends Seeder {
 			[ 'name' => 'Atheism', 'fk_dst_cat_id' => 16 ],
 			[ 'name' => 'Contraception & Abortion', 'fk_dst_cat_id' => 16 ],
 			[ 'name' => 'Sex', 'fk_dst_cat_id' => 16 ],
+			
+			[ 'name' => 'Geographic', 'fk_dst_cat_id' => 17 ],
 
 		);
 		

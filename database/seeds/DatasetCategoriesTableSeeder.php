@@ -29,7 +29,8 @@ class DatasetCategoriesTableSeeder extends Seeder {
 			[ 'name' => 'Violence & Rights' ],
 			[ 'name' => 'Education & Knowledge' ],
 			[ 'name' => 'Media & Communication' ],
-			[ 'name' => 'Culture, Values & Society' ]
+			[ 'name' => 'Culture, Values & Society' ],
+			[ 'name' => 'Abstract' ]
 		);
 		
 		// Uncomment the below to run the seeder
