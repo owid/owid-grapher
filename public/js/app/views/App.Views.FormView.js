@@ -40,6 +40,9 @@
 			} else {
 				App.AvailableTimeModel = new App.Models.AvailableTimeModel();
 			}
+
+			//create search collection
+			App.SearchDataCollection = new App.Collections.SearchDataCollection();
 			
 			//create subviews
 			this.basicTabView = new App.Views.Form.BasicTabView( { dispatcher: this.dispatcher } );

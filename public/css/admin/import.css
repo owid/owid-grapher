@@ -83,6 +83,10 @@
 	.import-view .datasources-section input {
 		width: 300px;
 	}
+
+	.import-view .datasource-additional-information {
+		margin-top: 20px;
+	}
 	
 	/* data type section */
 	.import-view .dataset-type-radiogroup label {

@@ -3,6 +3,7 @@
 <script src="{{ asset('js/app/models/App.Models.ChartVariableModel.js') }}?bust={!!time()!!}"></script>
 
 <script src="{{ asset('js/app/collections/App.Collections.AvailableEntitiesCollection.js') }}?bust={!!time()!!}"></script>
+<script src="{{ asset('js/app/collections/App.Collections.SearchDataCollection.js') }}?bust={!!time()!!}"></script>
 <script src="{{ asset('js/app/collections/App.Collections.ChartVariablesCollection.js') }}?bust={!!time()!!}"></script>
 
 <script src="{{ asset('js/app/views/ui/App.Views.UI.SettingsVarPopup.js') }}?bust={!!time()!!}"></script>

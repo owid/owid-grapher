@@ -14,6 +14,7 @@
 		<link href="{{ asset('css/libs/font-awesome/css/font-awesome.min.css') }}" rel="stylesheet" type="text/css" />
 		<!-- <link href="http://code.ionicframework.com/ionicons/2.0.0/css/ionicons.min.css" rel="stylesheet" type="text/css" />  -->  
 		<link href="{{ asset('css/libs/AdminLTE.min.css') }}" rel="stylesheet" type="text/css" />
+		<link href="{{ asset('css/libs/datepicker3.css') }}" rel="stylesheet" type="text/css" />
 		<link href="{{ asset('css/libs/_all-skins.min.css') }}" rel="stylesheet" type="text/css" />
 		
 		<link href="{{ asset('css/libs/ion.rangeSlider.css') }}" rel="stylesheet" type="text/css" />
@@ -120,6 +121,7 @@
 		<script src="{{ asset('js/libs/backbone.js') }}"></script>    
 		
 		<script src="{{ asset('js/libs/bootstrap.min.js') }}"></script>    
+		<script src="{{ asset('js/libs/bootstrap-datepicker.js') }}"></script>    
 		<script src="{{ asset('js/libs/admin-lte-app.min.js') }}"></script>    
 		
 		<script src="{{ asset('js/libs/ion.rangeSlider.min.js') }}"></script>    
@@ -130,6 +132,7 @@
 		<script src="{{ asset('js/libs/bootstrap3-wysihtml5.all.min.js') }}"></script>    
 
 		<script src="{{ asset('js/namespaces.js') }}"></script>
+		<script src="{{ asset('js/admin.js') }}"></script>
 		
 		<script src="{{ asset('js/app/App.Utils.js') }}?bust={!!time()!!}"></script>
 		

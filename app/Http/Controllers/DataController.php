@@ -428,6 +428,31 @@ class DataController extends Controller {
 
 	}
 
+	public function search( Request $request ) {
+
+		$data = array();
+		
+		if( Input::has( 's' ) ) {
+			$search = Input::get( 's' );
+			$variablesData = DB::table( 'variables' )
+				->select( 'variables.id', 'variables.name', 'datasets.fk_dst_cat_id', 'datasets.fk_dst_subcat_id' )
+				->join( 'datasets', 'variables.fk_dst_id', '=' ,'datasets.id' )
+				->where( 'variables.name', 'LIKE', '%' .$search. '%' )
+				->get();
+			$data = $variablesData;
+		}
+
+		if( $request->ajax() ) {
+
+			return ['success' => true, 'data' => $data ];
+
+		} else {
+			//not ajax request, just spit out whatever is in data
+			return $data;
+		}
+
+	}
+
 	public function getValue( $dimension, $time, $values ) {
 
 		$value;

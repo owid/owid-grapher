@@ -100,4 +100,5 @@ Route::get( 'data/config/{id}', 'ChartsController@config' );
 Route::get( 'data/dimensions', [ 'as' => 'dimensions', 'uses' => 'DataController@dimensions' ] );
 Route::post( 'data/exportToSvg', [ 'as' => 'exportToSvg', 'uses' => 'DataController@exportToSvg' ] );
 Route::get( 'data/entities', 'DataController@entities' );
+Route::get( 'data/search', 'DataController@search' );
 Route::get( 'data/times', 'DataController@times' );

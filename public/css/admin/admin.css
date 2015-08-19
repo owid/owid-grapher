@@ -58,6 +58,9 @@ button > i {
 			border-top: 0px !important;
 			border-bottom: 0px !important;
 		}
+		.datepicker .table tr {
+			border-bottom: 0px;
+		}
 
 .flash {
 	padding: 10px;
@@ -168,6 +171,55 @@ button > i {
 				padding: 20px;
 				background-color: #ecf0f5;
 			}
+
+			/* select-var-popup */
+			.select-var-popup .form-variable-select-wrapper {}
+				.select-var-popup .form-variable-select-wrapper label {
+					display: block;
+					width: 100%;
+				}
+					.select-var-popup .form-variable-select-wrapper .chosen-container {
+						width: 100% !important;
+					}
+
+					.select-var-popup .select-var-search-wrapper {
+						position: relative;
+						padding: 20px;
+						margin-bottom: 20px;
+						background-color: #ecf0f5;
+					}
+
+					.select-var-popup .search-input-wrapper {
+						position: relative;
+					}
+						.select-var-popup .search-input-wrapper i {
+							position: absolute;
+							top: 10px;
+							right: 10px ;
+						}
+							.select-var-popup .search-input-wrapper .fa-times {
+								cursor: pointer;
+							}
+
+				.select-var-popup .search-results {
+					position: absolute;
+					left: 20px;
+					right: 20px;
+					padding-left: 0;
+					z-index: 1;
+    				background-color: white;
+    				border: 1px solid #d2d6de;
+    				border-top: 0;
+    				display: none;
+				}
+					.select-var-popup .search-results li {
+						padding: 6px 6px;
+						cursor: pointer;
+					}
+						.select-var-popup .search-results .selected,
+						.select-var-popup .search-results li:hover {
+							background-color: #eeeeee;
+						}
 
 			.remove-uploaded-file-btn {
 				position: absolute;
