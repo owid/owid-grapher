@@ -8,10 +8,7 @@
 		events: {
 			"click .chart-save-png-btn": "exportContent",
 			"click .chart-save-svg-btn": "exportContent",
-			"change [name=available_entities]": "onAvailableCountries",
-			"change [name=x_axis_scale]": "onAxisScaleChange",
-			"change [name=y_axis_scale]": "onAxisScaleChange"
-		
+			"change [name=available_entities]": "onAvailableCountries"
 		},
 
 		initialize: function( options ) {
@@ -19,6 +16,7 @@
 			this.dispatcher = options.dispatcher;
 			
 			this.header = new App.Views.Chart.Header( { dispatcher: this.dispatcher } );
+			this.scaleSelectors = new App.Views.Chart.ScaleSelectors( { dispatcher: this.dispatcher } );
 
 			this.render();
 
@@ -28,7 +26,7 @@
 		},
 
 		render: function() {
-			
+
 			var that = this;
 
 			this.$preloader = this.$el.find( ".chart-preloader" );
@@ -46,6 +44,11 @@
 			this.$chartDescription = this.$el.find( ".chart-description" );
 			this.$chartSources = this.$el.find( ".chart-sources" );
 			
+			this.$xAxisScaleSelector = this.$el.find( ".x-axis-scale-selector" );
+			this.$xAxisScale = this.$el.find( "[name=x_axis_scale]" );
+			this.$yAxisScaleSelector = this.$el.find( ".y-axis-scale-selector" );
+			this.$yAxisScale = this.$el.find( "[name=y_axis_scale]" );
+
 			var chartName = App.ChartModel.get( "chart-name" ),
 				addCountryMode = App.ChartModel.get( "add-country-mode" ),
 				formConfig = App.ChartModel.get( "form-config" ),
@@ -54,7 +57,6 @@
 				selectedCountriesIds = _.map( selectedCountries, function( v ) { return (v)? +v.id: ""; } ),
 				chartTime = App.ChartModel.get( "chart-time" );
 				
-
 			//might need to replace country in title, if "change country" mode
 			if( addCountryMode === "change-country" ) {
 				//yep, probably need replacing country in title (select first country form stored one)
@@ -86,6 +88,9 @@
 			//make chosen update, make sure it looses blur as well
 			this.$entitiesSelect.trigger( "chosen:updated" );
 			
+			//chart tab
+			this.$chartTab = this.$el.find( "#chart-chart-tab" );
+
 			//data tab
 			this.$dataTab = this.$el.find( "#data-chart-tab" );
 			this.$downloadBtn = this.$dataTab.find( ".download-data-btn" );
@@ -529,6 +534,8 @@
 					that.scatterDist();
 				}
 				
+				//that.scaleSelectors.initEvents();
+
 			});
 		
 		},
@@ -752,19 +759,7 @@
 			this.$sourcesTab.html( tabHtml );
 
 		},
-
-		onAxisScaleChange: function( evt ) {
-
-			var $select = $( evt.currentTarget ),
-				selectName = $select.attr( "name" ),
-				axisName = ( selectName === "x_axis_scale" )? "x-axis": "y-axis",
-				axisProp = "axis-scale",
-				selectValue = $select.val();
-
-			App.ChartModel.setAxisConfig( axisName, axisProp, selectValue );
-			
-		},
-
+	
 		onResize: function() {
 
 			//compute how much space for chart
@@ -784,7 +779,7 @@
 
 			//wrap header text
 			App.Utils.wrap( $chartNameSvg, svgWidth );
-			currY = parseInt( $chartNameSvg.attr( "y" ) ) + $chartNameSvg.outerHeight() + 20;
+			currY = parseInt( $chartNameSvg.attr( "y" ), 10 ) + $chartNameSvg.outerHeight() + 20;
 			$chartSubnameSvg.attr( "y", currY );
 			
 			//wrap description
@@ -793,8 +788,7 @@
 			//start positioning the graph, according 
 			currY = chartHeaderHeight;
 
-			var translateY = currY,
-				margins = App.ChartModel.get( "margins" );
+			var translateY = currY;
 			
 			this.$svg.height( this.$tabContent.height() + currY );
 
@@ -853,8 +847,8 @@
 				currY = currY - this.legend.height();
 				this.translateString = "translate(" + legendMargins.left + " ," + currY + ")";
 				this.$svg.find( "> .nvd3.nv-custom-legend" ).attr( "transform", this.translateString );
-			} 
-			
+			}
+
 			this.$svg.css( "transform", "translate(0,-" + chartHeaderHeight + "px)" );
 
 			//reflect margin top in currY
@@ -863,10 +857,30 @@
 			}
 			currY += +margins.top;
 			
+			var $wrap = this.$svg.find( "> .nvd3.nv-wrap" );
+
 			//manually reposition chart after update
 			//this.translateString = "translate(" + margins.left + "," + currY + ")";
 			this.translateString = "translate(" + margins.left + "," + currY + ")";
-			this.$svg.find( "> .nvd3.nv-wrap" ).attr( "transform", this.translateString );
+			$wrap.attr( "transform", this.translateString );
+			
+			//position scale dropdowns - TODO - isn't there a better way then with timeout
+			var that = this;
+			setTimeout( function() {
+			
+				var wrapOffset = $wrap.offset(),
+					chartTabOffset = that.$chartTab.offset(),
+					//dig into NVD3 chart to find background rect that has width of the actual chart
+					backRectWidth = parseInt( $wrap.find( "> g > rect" ).attr( "width" ), 10 ),
+					offsetDiff = wrapOffset.top - chartTabOffset.top,
+					//empiric offset
+					xScaleOffset = 10,
+					yScaleOffset = -5;
+
+				that.$xAxisScaleSelector.css( { "top": offsetDiff + chartHeight, "left": margins.left + backRectWidth + xScaleOffset } );
+				that.$yAxisScaleSelector.css( { "top": offsetDiff - 15, "left": margins.left + yScaleOffset } );
+				
+			}, 250 );
 			
 		},
 

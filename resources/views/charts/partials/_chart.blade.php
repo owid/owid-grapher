@@ -20,14 +20,6 @@
 					<a href="#sources-chart-tab" data-toggle="tab" aria-expanded="false">Sources</a>
 				</li>
 			</ul>
-			<select name="x_axis_scale">
-				<option value="linear">Linear</option>
-				<option value="log">Log</option>
-			</select>
-			<select name="y_axis_scale">
-				<option value="linear">Linear</option>
-				<option value="log">Log</option>
-			</select>
 		</div>
 		<div class="tab-content">
 			<div id="chart-chart-tab" class="tab-pane active">
@@ -90,6 +82,30 @@
 					</div>
 					<p class="chart-sources"></p>
 					<p class="chart-description"></p>
+				</div>
+				<div class="axis-scale-selectors-wrapper">
+					<div class="x-axis-scale-selector">
+						<a href="#" class="axis-scale-btn">
+							<i class="fa fa-cog"></i>
+						</a>
+						<div data-name="x-axis-scale" class="axis-scale">
+							<ul>
+								<li data-value="linear" class="selected">Linear scale</li>
+								<li data-value="log">Log scale</li>
+							</ul>
+						</div>
+					</div>
+					<div class="y-axis-scale-selector">
+						<a href="#" class="axis-scale-btn">
+							<i class="fa fa-cog"></i>
+						</a>
+						<div data-name="y-axis-scale" class="axis-scale">
+							<ul>
+								<li data-value="linear" class="selected">Linear scale</li>
+								<li data-value="log">Log scale</li>
+							</ul>
+						</div>
+					</div>
 				</div>
 			</div>
 			<div id="data-chart-tab" class="tab-pane">
