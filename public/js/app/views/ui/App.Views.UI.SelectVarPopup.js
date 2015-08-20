@@ -106,6 +106,7 @@
 
 			if( searchTerm.length >= 2 ) {
 				
+				this.$clearIcon.hide();
 				this.$searchIcon.hide();
 				this.$preloaderIcon.show();
 
