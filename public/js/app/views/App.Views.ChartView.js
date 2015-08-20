@@ -43,7 +43,7 @@
 			this.$chartSubname = this.$el.find( ".chart-subname" );
 			this.$chartDescription = this.$el.find( ".chart-description" );
 			this.$chartSources = this.$el.find( ".chart-sources" );
-			
+
 			this.$xAxisScaleSelector = this.$el.find( ".x-axis-scale-selector" );
 			this.$xAxisScale = this.$el.find( "[name=x_axis_scale]" );
 			this.$yAxisScaleSelector = this.$el.find( ".y-axis-scale-selector" );
@@ -101,6 +101,13 @@
 			var dimensionsString = App.ChartModel.get( "chart-dimensions" ),
 				validDimensions = false;
 			
+			//clicking anything in chart source will take you to sources tab
+			this.$chartSources.on( "click", function(evt) {
+				evt.preventDefault();
+				var $a = $( "[href='#sources-chart-tab']" );
+				$a.trigger( "click" );
+			} );
+
 			//check we have all dimensions necessary 
 			if( !$.isEmptyObject( dimensionsString ) ) {
 				var dimension = $.parseJSON( dimensionsString );
@@ -724,8 +731,8 @@
 			var footerHtml = "",
 				tabHtml = "",
 				descriptionHtml = App.ChartModel.get( "chart-description" ),
-				sourcesShortHtml = "Data sources: ",
-				sourcesLongHtml = "Data sources: ";
+				sourcesShortHtml = "Data obtained from: ",
+				sourcesLongHtml = "";
 			
 			//construct source html
 			_.each( sources, function( sourceData, sourceIndex ) {
@@ -737,16 +744,16 @@
 				} else {
 					sourcesShortHtml += sourceData.name;
 				}
-				if( sourceIndex > 0 && sourcesLongHtml !== "" && sourceData.description !== "" ) {
+				//sources now contain html, so no need to separate with comma
+				/*if( sourceIndex > 0 && sourcesLongHtml !== "" && sourceData.description !== "" ) {
 					sourcesLongHtml += ", ";
-				}
+				}*/
 				sourcesLongHtml += sourceData.description;
 			} );
 
 			footerHtml = descriptionHtml;
 			tabHtml = descriptionHtml + "<br /><br />" + sourcesLongHtml;
-
-
+			
 			//add license info
 			if( license && license.description ) {
 				footerHtml = license.description + " " + footerHtml;

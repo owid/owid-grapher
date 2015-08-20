@@ -277,7 +277,7 @@ class DataController extends Controller {
 			$normalizedData = Chart::formatDataForChartType( $chartType, $dataByEntity, $dimensionsByKey, $times, false, $mainDimension, $otherDimIds );
 		} else {
 			//grouping by variable, for linechart, we already have what we need
-			if( $chartType !== "1" && $chartType !== "2" ) {
+			if( $chartType !== '1' && $chartType !== '2' ) {
 				$dataByVariable = Chart::formatDataForChartType( $chartType, $dataByVariableTime, $dimensionsByKey, $times, true, $mainDimension, $otherDimIds, $entityName );
 			}
 		}
@@ -286,7 +286,7 @@ class DataController extends Controller {
 			//convert to array
 			foreach( $normalizedData as $entityData ) {
 				//TODO better check for this?
-				if( $entityData[ "values" ] ) {
+				if( $entityData[ 'values' ] ) {
 					$data[] = $entityData;
 				}
 			}
@@ -302,8 +302,39 @@ class DataController extends Controller {
 		 **/
 
 		//get all necessary info for datasources
-		$datasourcesIds = array_keys( $datasourcesIdsArr );
-		$datasources = Datasource::findMany( $datasourcesIds );
+		$datasources = array();
+		foreach( $dimensions as $dimension ) {
+			$datasource = new \stdClass();
+			//special dimension header for linechart
+			$dsr = Variable::getSource( $dimension->variableId )->first();
+			if( $isLineChart ) {
+				$dimension = false;
+			}
+			$datasource->description = ( !empty($dsr) )? $this->createSourceDescription( $dimension, $dsr ): '';
+			$datasource->name = ( !empty($dsr) && !empty($dsr->name) )? $dsr->name: '';
+			$datasource->link = ( !empty($dsr) && !empty($dsr->name) )? $dsr->link: '';
+			//$datasource->description = $datasourceSource->description;
+			$datasources[] = $datasource;
+		}
+
+		/*$datasourcesIds = array_keys( $datasourcesIdsArr );
+		$datasourcesSources = Variable::getSources( $datasourcesIds )->get();//Datasource::findMany( $datasourcesIds );
+		$datasources = array();
+
+		//format datasources info (create generated tables)
+		foreach( $datasourcesSources as $datasourceSource ) {
+			$datasource = new \stdClass();
+			$dimension = $this->findDimensionForVarId( $dimensions, $datasourceSource->var_id );
+			//special dimension header for linechart
+			if( $isLineChart ) {
+				$dimension = false;
+			}
+			$datasource->description = $this->createSourceDescription( $dimension, $datasourceSource );
+			$datasource->name = $datasourceSource->name;
+			$datasource->link = $datasourceSource->link;
+			//$datasource->description = $datasourceSource->description;
+			$datasources[] = $datasource;
+		}*/
 
 		//process data to csv friendly format
 		$timeKeys = array_keys( $times );
@@ -547,5 +578,39 @@ class DataController extends Controller {
 		return response( $svg )->header('Content-Type',$type);
 	}
 
+	public function createSourceDescription( $dimension, $datasource ) {
+		$html = "";
+		$html .= ( !empty( $dimension ) && isset( $dimension->name ) )? "<h2>Data on " .$dimension->name. ": </h2>": "<h2>Data: </h2>";
+		$html .= "<div class='datasource-wrapper'>";
+			$html .= "<div class='datasource-header'>";
+				$html .= "<h3>" .$datasource->dataset_name. "</h3>";
+				$html .= "<h4>" .$datasource->var_name. "</h4>";
+			$html .= "</div>";
+			$html .= "<table>";
+				$html .= "<tr><td>Full name</td><td>" .$datasource->var_name. "</td></tr>";
+				$html .= "<tr><td>Display name</td><td>" .$datasource->var_name. "</td></tr>";
+				$html .= "<tr><td>Definition</td><td>" .$datasource->var_desc. "</td></tr>";
+				$html .= "<tr><td>Unit</td><td>" .$datasource->var_unit. "</td></tr>";
+				$t = strtotime( $datasource->var_created );
+				$date = date('d/m/y',$t);
+				$html .= "<tr><td>Uploaded</td><td>" .$date. "</td></tr>";
+			$html .= "</table>";
+			$html .= $datasource->description;
+		$html .= "</div>";
+		return $html;
+	}
+
+	public function findDimensionForVarId( $dimensions, $varId ) {
+
+		foreach( $dimensions as $dimension ) {
+			if( !empty( $dimension ) && isset( $dimension ) ) {
+				if( $dimension->variableId == $varId ) {
+					return $dimension;
+				}
+			}
+		}
+
+		return false;
+	}
 
 }
