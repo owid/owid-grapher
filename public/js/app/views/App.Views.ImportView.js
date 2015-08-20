@@ -639,6 +639,29 @@
 				validateEntities = ( $validateEntitiesCheckbox.is( ":checked" ) )? false: true,
 				$validationResults = [];
 
+			//display validation results
+			//validate entered datasources
+			var $sourceDescription = $( "[name='source_description']" ),
+				sourceDescriptionValue = $sourceDescription.val(),
+				hasValidSource = true;
+			if( sourceDescriptionValue.search( "<td>e.g." ) > -1 || sourceDescriptionValue.search( "<p>e.g." ) > -1 ) {
+				hasValidSource = false;
+			}
+			var $sourceValidationNotice = $( ".source-validation-result" );
+			if( !hasValidSource ) {
+				//invalid
+				if( !$sourceValidationNotice.length ) {
+					//doens't have notice yet
+					$sourceValidationNotice = $( "<p class='source-validation-result validation-result text-danger'><i class='fa fa-exclamation-circle'> Please replace the sample data with real datasource info.</p>" );
+					$sourceDescription.before( $sourceValidationNotice );
+				} else {
+					$sourceValidationNotice.show();
+				}
+			} else {
+				//valid, make sure there's not 
+				$sourceValidationNotice.remove();
+			}
+
 			//different scenarios of validation
 			if( validateEntities && !this.isDataMultiVariant ) {
 				//validate both time and entitiye
@@ -653,30 +676,6 @@
 				//do not validate
 			}
 			
-			//validate entered datasources
-			var $sourceDescription = $( "[name='source_description']" ),
-				sourceDescriptionValue = $sourceDescription.val(),
-				hasValidSource = true;
-			if( sourceDescriptionValue.search( "<td>e.g." ) > -1 || sourceDescriptionValue.search( "<p>e.g." ) > -1 ) {
-				hasValidSource = false;
-			}
-			//display validation results
-			var $sourceValidationNotice = $( ".source-validation-result" );
-			if( !hasValidSource ) {
-				//invalid
-				if( !$sourceValidationNotice.length ) {
-					//doens't have notice yet
-					$sourceValidationNotice = $( "<p class='source-validation-result validation-result text-danger'><i class='fa fa-exclamation-circle'> Please replace the sample data with real datasource info.</p>" );
-					$sourceDescription.before( $sourceValidationNotice );
-				} else {
-					$sourceValidationNotice.show();
-				}
-				$validationResults = $sourceValidationNotice;
-			} else {
-				//valid, make sure there's not 
-				$sourceValidationNotice.remove();
-			}
-
 			if( $validationResults.length ) {
 				//do not send form and scroll to error message
 				evt.preventDefault();
