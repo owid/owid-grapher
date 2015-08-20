@@ -73,8 +73,20 @@
 			this.$newDatasetDescription.hide();
 			//this.$variableSection.hide();
 
-			this.$sourceDescription.wysihtml5();
-
+			//not using html5 wysiwyg
+			this.$sourceDescription.wysihtml5( 'deepExtend', {
+				parserRules: {
+					tags: {
+						table: {},
+						tr: {},
+						th: {},
+						td: {}
+					}
+				},
+				"html": true
+			});
+			//var editor = this.$sourceDescription.data( "wysihtml5" ).editor;*/
+	
 		},
 
 		initUpload: function() {
@@ -655,6 +667,30 @@
 				//do not validate
 			}
 			
+			//validate entered datasources
+			var $sourceDescription = $( "[name='source_description']" ),
+				sourceDescriptionValue = $sourceDescription.val(),
+				hasValidSource = true;
+			if( sourceDescriptionValue.search( "<td>e.g." ) > -1 || sourceDescriptionValue.search( "<p>e.g." ) > -1 ) {
+				hasValidSource = false;
+			}
+			//display validation results
+			var $sourceValidationNotice = $( ".source-validation-result" );
+			if( !hasValidSource ) {
+				//invalid
+				if( !$sourceValidationNotice.length ) {
+					//doens't have notice yet
+					$sourceValidationNotice = $( "<p class='source-validation-result validation-result text-danger'><i class='fa fa-exclamation-circle'> Please replace the sample data with real datasource info.</p>" );
+					$sourceDescription.before( $sourceValidationNotice );
+				} else {
+					$sourceValidationNotice.show();
+				}
+				$validationResults = $sourceValidationNotice;
+			} else {
+				//valid, make sure there's not 
+				$sourceValidationNotice.remove();
+			}
+
 			if( $validationResults.length ) {
 				//do not send form and scroll to error message
 				evt.preventDefault();

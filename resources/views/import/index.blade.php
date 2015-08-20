@@ -102,14 +102,16 @@
 								<span>Source name:</span>
 								<input class="form-control required" type="text" name="source_name" />
 							</label>
-							<label>
+							<!--<label>
 								<span>Source link:</span>
 								<input class="form-control required" type="text" name="source_link" />
-							</label>
+							</label>-->
 							<label>
 								<span>Source description:</span>
-								<textarea cols="65" rows="10" class="form-control required" type="text" name="source_description"></textarea>
+								<textarea cols="75" rows="18" class="form-control datasource-editor required" type="text" name="source_description">@include('import/partials/_sources-default')</textarea>
+								<span class="sources-default" style="display:none;"></span>
 							</label>
+
 						</div>
 					</div>
 			</section>

@@ -13,7 +13,7 @@
 		<div class="property-wrapper">
 			<h3>Description</h3>
 			<div class="property-value">
-				{{ $datasource->description }}
+				{!! $datasource->description !!}
 			</div>
 		</div>
 		<div class="property-wrapper">

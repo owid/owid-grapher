@@ -11,11 +11,7 @@
 			</div>
 			<div class="form-group">
 				{!! Form::label('description', 'Description:') !!}
-				{!! Form::textarea('description', null, array('class' => 'form-control')) !!}
-			</div>
-			<div class="form-group">
-				{!! Form::label('link', 'Link:') !!}
-				{!! Form::text('link', null, array('class' => 'form-control')) !!}
+				{!! Form::textarea('description', null, array('class' => 'form-control datasource-editor', 'rows' => 20)) !!}
 			</div>
 			<div class="form-group">
 				{!! Form::submit('Update source', ['class'=>'btn btn-success']) !!}
