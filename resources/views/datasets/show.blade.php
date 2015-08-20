@@ -21,7 +21,7 @@
 			<h3 class="property-title">Source</h3>
 			<div class="property-value">
 				@if ($dataset->datasource)
-					{{ $dataset->datasource->name }}
+					{!! Html::link('/datasources/' .$dataset->datasource->id, $dataset->datasource->name ) !!}
 				@endif
 			</div>
 		</div>
