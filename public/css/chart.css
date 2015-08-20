@@ -391,6 +391,46 @@
 				border-bottom: 1px solid #afafaf;
 			}
 
+	/**
+	* SOURCES TAB
+	**/
+	#sources-chart-tab .datasource-wrapper {
+		margin-bottom: 30px;
+		font-size: 12px;
+	}
+		#sources-chart-tab .datasource-wrapper h2 {
+			width: 70%;
+			padding-bottom: 5px;
+			text-transform: uppercase;
+			font-size: 14px;
+			font-family: inherit;
+			border-bottom: 1px solid #35322F;
+		}
+		#sources-chart-tab .datasource-wrapper h2,
+		#sources-chart-tab .datasource-wrapper h3,
+		#sources-chart-tab .datasource-wrapper h4 {
+			margin-left: 0px;
+			font-family: inherit;
+		}
+		#sources-chart-tab .datasource-wrapper h3,
+		#sources-chart-tab .datasource-wrapper h4 {
+			margin-top: 2px;
+			margin-bottom: 1px;
+			font-size: 14px;
+			font-weight: bold;
+		}
+		#sources-chart-tab .datasource-property {
+			display: inline-block;
+			width: 150px;
+		}
+		#sources-chart-tab table {
+			margin-top: 10px;
+			margin-bottom: 10px;
+		}
+		#sources-chart-tab .datasource-additional p {
+			margin-top: 5px;
+		}
+
 /**
  * PRINTING STUFF
  **/

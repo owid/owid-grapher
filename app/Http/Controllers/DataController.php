@@ -580,20 +580,20 @@ class DataController extends Controller {
 
 	public function createSourceDescription( $dimension, $datasource ) {
 		$html = "";
-		$html .= ( !empty( $dimension ) && isset( $dimension->name ) )? "<h2>Data on " .$dimension->name. ": </h2>": "<h2>Data: </h2>";
 		$html .= "<div class='datasource-wrapper'>";
+			$html .= ( !empty( $dimension ) && isset( $dimension->name ) )? "<h2>Data on " .$dimension->name. ": </h2>": "<h2>Data: </h2>";
 			$html .= "<div class='datasource-header'>";
-				$html .= "<h3>" .$datasource->dataset_name. "</h3>";
-				$html .= "<h4>" .$datasource->var_name. "</h4>";
+				$html .= "<h3><span class='datasource-property'>Dataset name:</span>" .$datasource->dataset_name. "</h3>";
+				$html .= "<h4><span class='datasource-property'>Variable name:</span>" .$datasource->var_name. "</h4>";
 			$html .= "</div>";
 			$html .= "<table>";
-				$html .= "<tr><td>Full name</td><td>" .$datasource->var_name. "</td></tr>";
-				$html .= "<tr><td>Display name</td><td>" .$datasource->var_name. "</td></tr>";
-				$html .= "<tr><td>Definition</td><td>" .$datasource->var_desc. "</td></tr>";
-				$html .= "<tr><td>Unit</td><td>" .$datasource->var_unit. "</td></tr>";
+				$html .= "<tr><td><span class='datasource-property'>Full name</span></td><td>" .$datasource->var_name. "</td></tr>";
+				$html .= "<tr><td><span class='datasource-property'>Display name</span></td><td>" .$datasource->var_name. "</td></tr>";
+				$html .= "<tr><td><span class='datasource-property'>Definition</span></td><td>" .$datasource->var_desc. "</td></tr>";
+				$html .= "<tr><td><span class='datasource-property'>Unit</span></td><td>" .$datasource->var_unit. "</td></tr>";
 				$t = strtotime( $datasource->var_created );
 				$date = date('d/m/y',$t);
-				$html .= "<tr><td>Uploaded</td><td>" .$date. "</td></tr>";
+				$html .= "<tr><td><span class='datasource-property'>Uploaded</span></td><td>" .$date. "</td></tr>";
 			$html .= "</table>";
 			$html .= $datasource->description;
 		$html .= "</div>";
