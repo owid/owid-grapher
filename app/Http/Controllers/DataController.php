@@ -467,14 +467,17 @@ class DataController extends Controller {
 			$search = Input::get( 's' );
 			$variablesData = DB::table( 'variables' )
 				->select( 'variables.id', 'variables.name', 'datasets.fk_dst_cat_id', 'datasets.fk_dst_subcat_id' )
-				->join( 'datasets', 'variables.fk_dst_id', '=' ,'datasets.id' )
-				->join( 'dataset_categories', 'datasets.fk_dst_cat_id', '=' ,'dataset_categories.id' )
-				->join( 'dataset_subcategories', 'datasets.fk_dst_subcat_id', '=' ,'dataset_subcategories.id' )
+					->join( 'datasets', 'variables.fk_dst_id', '=' ,'datasets.id' )
+					->join( 'dataset_categories', 'datasets.fk_dst_cat_id', '=' ,'dataset_categories.id' )
+					->join( 'dataset_subcategories', 'datasets.fk_dst_subcat_id', '=' ,'dataset_subcategories.id' )
+					->join( 'link_datasets_tags', 'link_datasets_tags.fk_dst_id', '=' ,'datasets.id' )
+					->join( 'dataset_tags', 'link_datasets_tags.fk_dst_tags_id', '=' ,'dataset_tags.id' )
 				->where( 'variables.name', 'LIKE', '%' .$search. '%' )
-				->orWhere( 'dataset_categories.name', 'LIKE', '%' .$search. '%' )
-				->orWhere( 'dataset_subcategories.name', 'LIKE', '%' .$search. '%' )
-				->orWhere( 'datasets.description', 'LIKE', '%' .$search. '%' )
-				->orWhere( 'datasets.name', 'LIKE', '%' .$search. '%' )
+					->orWhere( 'dataset_categories.name', 'LIKE', '%' .$search. '%' )
+					->orWhere( 'dataset_subcategories.name', 'LIKE', '%' .$search. '%' )
+					->orWhere( 'datasets.description', 'LIKE', '%' .$search. '%' )
+					->orWhere( 'datasets.name', 'LIKE', '%' .$search. '%' )
+					->orWhere( 'dataset_tags.name', 'LIKE', '%' .$search. '%' )
 				->get();
 			$data = $variablesData;
 		}
