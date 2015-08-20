@@ -73,20 +73,6 @@
 			this.$newDatasetDescription.hide();
 			//this.$variableSection.hide();
 
-			//not using html5 wysiwyg
-			this.$sourceDescription.wysihtml5( 'deepExtend', {
-				parserRules: {
-					tags: {
-						table: {},
-						tr: {},
-						th: {},
-						td: {}
-					}
-				},
-				"html": true
-			});
-			//var editor = this.$sourceDescription.data( "wysihtml5" ).editor;*/
-	
 		},
 
 		initUpload: function() {
