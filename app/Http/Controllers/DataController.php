@@ -590,7 +590,7 @@ class DataController extends Controller {
 	public function createSourceDescription( $dimension, $datasource ) {
 		$html = "";
 		$html .= "<div class='datasource-wrapper'>";
-			$html .= ( !empty( $dimension ) && isset( $dimension->name ) )? "<h2>Data on " .$dimension->name. ": </h2>": "<h2>Data: </h2>";
+			$html .= ( !empty( $dimension ) && isset( $dimension->name ) )? "<h2>Data for " .$dimension->name. ": </h2>": "<h2>Data: </h2>";
 			$html .= "<div class='datasource-header'>";
 				$html .= "<h3><span class='datasource-property'>Dataset name:</span>" .$datasource->dataset_name. "</h3>";
 				$html .= "<h4><span class='datasource-property'>Variable name:</span>" .$datasource->var_name. "</h4>";
