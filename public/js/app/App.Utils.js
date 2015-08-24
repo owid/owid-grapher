@@ -85,11 +85,60 @@
 			};
 			variables.push( variable );
 
-		} ); 
+		} );
 
 		return variables;
 
 	},
+
+	App.Utils.mapPanelData = function( rawData ) {
+		
+		var variables = [],
+			transposed = rawData,
+			headerArr = transposed.shift();
+
+		//get rid of entity and year column name
+		headerArr = headerArr.slice( 2 );
+
+		var varPerRowData = App.Utils.transpose( transposed ),
+			entitiesRow = varPerRowData.shift(),
+			timesRow = varPerRowData.shift(),
+			entities = {};
+
+		_.each( varPerRowData, function( values, varIndex ) {
+
+			//iterate through all values for given variable
+			_.each( values, function( value, key ) {
+				var entity = entitiesRow[ key ],
+					time = timesRow[ key ];
+				if( entity && time ) {
+					//do have already entity defined?
+					if( !entities[ entity ] ) {
+						entities[ entity ] = {
+							id: key,
+							key: entity,
+							values: []
+						};
+					}
+					entities[ entity ].values.push( { x: time, y: ( !isNaN( value ) )? +value: value } );
+				}
+			} );
+
+			//have data for all entities, just convert them to array
+			var varValues = _.map( entities, function( value ) { return value; } );
+			
+			var variable = {
+				name: headerArr[ varIndex ],
+				values: varValues
+			};
+			variables.push( variable );
+
+		} );
+
+		return variables;
+
+	},
+
 
 	App.Utils.transpose = function( arr ) {
 		var keys = _.keys( arr[0] );

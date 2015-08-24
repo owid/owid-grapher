@@ -81,6 +81,7 @@ class ImportController extends Controller {
 			'variable_type' => 'required'
 		] );
 		if( $v->fails() ) {
+
 			return redirect()->back()->withErrors($v->errors());
 		}
 		

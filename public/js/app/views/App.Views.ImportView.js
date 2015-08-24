@@ -106,6 +106,21 @@
 			if( !data ) {
 				return;
 			}
+			
+			/* testing massive import version 			
+			this.uploadedData = data;
+			//store also original, this.uploadedData will be modified when being validated
+			this.origUploadedData = $.extend( true, {}, this.uploadedData);
+
+			this.createDataTable( data.rows );
+			
+			this.validateEntityData( data.rows );
+			this.validateTimeData( data.rows );
+			
+			this.mapData();*/
+
+			//normal version
+
 			//do we need to transpose data?
 			var isOriented = this.detectOrientation( data.rows );
 			if( !isOriented ) {
@@ -236,8 +251,9 @@
 
 		mapData: function() {
 
+			//massive import version
+			//var mappedData = App.Utils.mapPanelData( this.uploadedData.rows ),
 			var mappedData = ( this.isDataMultiVariant )? App.Utils.mapMultiVariantData( this.uploadedData.rows, "World" ): App.Utils.mapSingleVariantData( this.uploadedData.rows, this.datasetName ),
-				//var mappedData =  App.Utils.mapSingleVariantData( data.rows, "test" ), 
 				json = { "variables": mappedData },
 				jsonString = JSON.stringify( json );
 
@@ -259,8 +275,11 @@
 				$dataTable = $dataTableWrapper.find( "table" ),
 				$entitiesCells = $dataTable.find( "td:first-child" ),
 				//$entitiesCells = $dataTable.find( "th" ),
-				entities = _.map( $entitiesCells, function( v ) { return $( v ).text() } );
+				entities = _.map( $entitiesCells, function( v ) { return $( v ).text(); } );
 
+			//make sure we're not validating one entity multiple times
+			entities = _.uniq( entities );
+			
 			//get rid of first one (time label)
 			//entities.shift();
 
@@ -303,16 +322,20 @@
 
 			var $dataTableWrapper = $( ".csv-import-table-wrapper" ),
 				$dataTable = $dataTableWrapper.find( "table" ),
+				//massive import version
+				//timeDomain = $dataTable.find( "th:nth-child(2)" ).text(),
 				timeDomain = $dataTable.find( "th:first-child" ).text(),
 				$timesCells = $dataTable.find( "th" );/*,
+				//massive import version
+				//$timesCells = $dataTable.find( "td:nth-child(2)" );/*,
 				times = _.map( $timesCells, function( v ) { return $( v ).text() } );*/
-			
 			//format time domain maybe
 			if( timeDomain ) {
 				timeDomain = timeDomain.toLowerCase();
 			}
 			
 			//the first cell (timeDomain) shouldn't be validated
+			//massive import version - commented out next row
 			$timesCells = $timesCells.slice( 1 );
 
 			//make sure time is from given domain
@@ -327,8 +350,10 @@
 				
 				//find corresponding value in loaded data
 				var newValue,
+					//massive import version
+					//origValue = data[ i+1 ][ 1 ];
 					origValue = data[ 0 ][ i+1 ];
-					
+				
 				//check value has 4 digits
 				origValue = App.Utils.addZeros( origValue );
 
@@ -458,6 +483,8 @@
 					
 					//initial was number/string so passed by value, need to insert it back to arreay
 					data[ 0 ][ i+1 ] = newValue;
+					//massive import version
+					//data[ i+1 ][ 1 ] = newValue;
 
 				}
 
