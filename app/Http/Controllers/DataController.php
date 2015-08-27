@@ -645,6 +645,9 @@ class DataController extends Controller {
 	}
 
 	public function createSourceDescription( $dimension, $datasource ) {
+
+		$displayName = ( !empty($dimension->displayName) )? $dimension->displayName: $datasource->var_name;
+
 		$html = "";
 		$html .= "<div class='datasource-wrapper'>";
 			$html .= ( !empty( $dimension ) && isset( $dimension->name ) )? "<h2>Data for " .$dimension->name. ": </h2>": "<h2>Data: </h2>";
@@ -654,7 +657,7 @@ class DataController extends Controller {
 			$html .= "</div>";
 			$html .= "<table>";
 				$html .= "<tr><td><span class='datasource-property'>Full name</span></td><td>" .$datasource->var_name. "</td></tr>";
-				$html .= "<tr><td><span class='datasource-property'>Display name</span></td><td>" .$datasource->var_name. "</td></tr>";
+				$html .= "<tr><td><span class='datasource-property'>Display name</span></td><td>" .$displayName. "</td></tr>";
 				$html .= "<tr><td><span class='datasource-property'>Definition</span></td><td>" .$datasource->var_desc. "</td></tr>";
 				$html .= "<tr><td><span class='datasource-property'>Unit</span></td><td>" .$datasource->var_unit. "</td></tr>";
 				$t = strtotime( $datasource->var_created );
