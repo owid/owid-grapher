@@ -268,6 +268,7 @@
 					} else {
 						id = parseInt( id, 10 );
 					}
+
 					var country = selectedCountriesById[ id ];
 					if( country && country.color ) {
 						if( !countriesColors[ id ] ) {
@@ -286,7 +287,8 @@
 				//TODO - nonsense? just convert associative array to array
 				localData = _.map( localData, function( value ) { return value; } );
 			}
-			
+
+
 			//filter by chart time
 			var chartTime = App.ChartModel.get( "chart-time" );
 			if( chartTime && chartTime.length == 2 ) {
@@ -458,7 +460,7 @@
 					that.chart.xAxis.ticks( 7 );
 					that.chart.yAxis.ticks( 7 );
 				}
-				
+
 				var svgSelection = d3.select( that.$svg.selector )
 					.datum( localData )
 					.call( that.chart );
