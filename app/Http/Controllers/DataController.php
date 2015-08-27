@@ -37,6 +37,8 @@ class DataController extends Controller {
 			return [ 'success' => false ];
 		}
 		
+		
+		
 		//filtering by entities?
 		$selectedCountriesIds = Input::get( "selectedCountries" );
 		$selectedCountriesIdsString = ( !empty( $selectedCountriesIds ) && count( $selectedCountriesIds ) > 0 )? implode( ",", $selectedCountriesIds ) : "";
@@ -79,7 +81,14 @@ class DataController extends Controller {
 		//special case for linechart with multiple variables 
 		$multiVariantByEntity = false;
 		if( $groupByEntity && $isLineChart && count( $dimensions ) > 1 ) {
-			$multiVariantByEntity = true;
+			//make sure they're all
+			foreach( $dimensions as $dimension ) {
+				if( $dimension->property !== "y" ) {
+					$multiVariantByEntity = false;
+					break;
+				}
+				$multiVariantByEntity = true;
+			}
 		}
 
 		$timeType = '';
@@ -106,9 +115,16 @@ class DataController extends Controller {
 		//for edge cases for legend, we need to store entityname
 		$entityName = "";
 
+		//categorical data
+		$categoricalData = array();
+		$categoricalData[ "color" ] = array();
+		$categoricalData[ "shape" ] = array();
+		$categoricalDimensions = array();
+
 		foreach( $dimensions as $dimension ) {
 
 			$id = $dimension->variableId;
+
 			//use query builder instead of eloquent
 			$variableQuery = DB::table( 'data_values' )
 				->select( 'data_values.*', 'times.*', 'entities.name as name', 'variables.name as variable_name' )
@@ -123,10 +139,13 @@ class DataController extends Controller {
 			}
 			//are we filtering based on time selection?
 			if( !empty( $chartTime ) && count( $chartTime ) > 1 ) {
-				$minTime = $chartTime[0];
-				$maxTime = $chartTime[1];
-				$variableQuery->where( 'times.date', '>=', $minTime );
-				$variableQuery->where( 'times.date', '<=', $maxTime );
+				//exclude categorical properties from time filtering
+				if( $dimension->property !== "color" && $dimension->property !== "shape" ) {
+					$minTime = $chartTime[0];
+					$maxTime = $chartTime[1];
+					$variableQuery->where( 'times.date', '>=', $minTime );
+					$variableQuery->where( 'times.date', '<=', $maxTime );
+				}
 			}	
 
 			$variableData = $variableQuery->get();
@@ -134,13 +153,20 @@ class DataController extends Controller {
 			//insert data into existing variable
 			$dimension->data = $variableData;
 
-			//is shortes variable?
+			//is shortes variable? cannot be color/shape variable
 			$dataLen = count( $variableData );
-			if( $dataLen > $minDataLength || !$minDataLength ) {
+			if( ( $dataLen > $minDataLength || !$minDataLength ) && 
+				( $dimension->property != "color" && $dimension->property != "shape" ) ) {
 				$minDataLength = $dataLen;
 				$mainDimId = $id;
 			}
 			
+			//is categorical data
+			if( $dimension->property === "color" || $dimension->property === "shape" ) {
+				//store it for later processing
+				$categoricalDimensions[] = $dimension;
+			}
+
 		}
 
 		/**
@@ -193,7 +219,7 @@ class DataController extends Controller {
 						$dataByEntity[ $entityId ][ "values" ][ $property ] = [];
 					}
 					//store value
-					$dataByEntity[ $entityId ][ "values" ][ $property ][ floatval( $datum->date ) ] = floatval( $datum->value );
+					$dataByEntity[ $entityId ][ "values" ][ $property ][ floatval( $datum->date ) ] = ( $property != "color" && $property != "shape" )? floatval( $datum->value ): $datum->value;
 					
 					//need to store dimension variablename, dimensions are returned
 					if( !array_key_exists( "variableName", $dimension ) ) {
@@ -266,7 +292,6 @@ class DataController extends Controller {
 
 		}
 
-
 		/**
 		 * 3) prepare array for different chart types
 		 **/
@@ -285,10 +310,37 @@ class DataController extends Controller {
 		if( $groupByEntity ) {
 			//convert to array
 			foreach( $normalizedData as $entityData ) {
+				
 				//TODO better check for this?
 				if( $entityData[ 'values' ] ) {
+					
+					//here we add any possible categorical data
+					foreach( $categoricalDimensions as $catDimension ) {
+						$entityId = $entityData[ 'id' ];
+
+						//is there data for specific property
+						if( array_key_exists( 'values', $dataByEntity[ $entityId ] ) && array_key_exists( $catDimension->property, $dataByEntity[ $entityId ][ 'values' ] ) ) {
+							
+							//get value - http://stackoverflow.com/questions/1028668/get-first-key-in-a-possibly-associative-array
+							$value = reset( $dataByEntity[ $entityId ][ 'values' ][ $catDimension->property ] );
+							$catValue = Chart::getValueForCategory( $catDimension->property, $categoricalData, $value );
+
+							//color is assinged to whole entity, shape is assigned to individual data entries
+							if( $catDimension->property === "color" ) {
+								$entityData[ $catDimension->property ] = $catValue;
+							} else if( $catDimension->property === "shape" ) {
+								foreach( $entityData[ "values" ] as &$entityValue ) {
+									$entityValue[ $catDimension->property ] = $catValue;
+								}
+							}
+
+						}
+					}
+
 					$data[] = $entityData;
+				
 				}
+
 			}
 		} else {
 			//convert to array
@@ -467,11 +519,11 @@ class DataController extends Controller {
 			$search = Input::get( 's' );
 			$variablesData = DB::table( 'variables' )
 				->select( 'variables.id', 'variables.name', 'datasets.fk_dst_cat_id', 'datasets.fk_dst_subcat_id' )
-					->join( 'datasets', 'variables.fk_dst_id', '=' ,'datasets.id' )
-					->join( 'dataset_categories', 'datasets.fk_dst_cat_id', '=' ,'dataset_categories.id' )
-					->join( 'dataset_subcategories', 'datasets.fk_dst_subcat_id', '=' ,'dataset_subcategories.id' )
-					->join( 'link_datasets_tags', 'link_datasets_tags.fk_dst_id', '=' ,'datasets.id' )
-					->join( 'dataset_tags', 'link_datasets_tags.fk_dst_tags_id', '=' ,'dataset_tags.id' )
+					->leftJoin( 'datasets', 'variables.fk_dst_id', '=' ,'datasets.id' )
+					->leftJoin( 'dataset_categories', 'datasets.fk_dst_cat_id', '=' ,'dataset_categories.id' )
+					->leftJoin( 'dataset_subcategories', 'datasets.fk_dst_subcat_id', '=' ,'dataset_subcategories.id' )
+					->leftJoin( 'link_datasets_tags', 'link_datasets_tags.fk_dst_id', '=' ,'datasets.id' )
+					->leftJoin( 'dataset_tags', 'link_datasets_tags.fk_dst_tags_id', '=' ,'dataset_tags.id' )
 				->where( 'variables.name', 'LIKE', '%' .$search. '%' )
 					->orWhere( 'dataset_categories.name', 'LIKE', '%' .$search. '%' )
 					->orWhere( 'dataset_subcategories.name', 'LIKE', '%' .$search. '%' )

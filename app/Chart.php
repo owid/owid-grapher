@@ -54,7 +54,7 @@ class Chart extends Model {
 
 			$mainValues = $entityData[ "values" ][ $mainDimension->property ];
 			$i = 0;
-					
+
 			//depending on the mode, continue with the rest
 			foreach( $mainValues as $time=>$mainValue ) {
 
@@ -74,6 +74,10 @@ class Chart extends Model {
 
 					//skip main dimension
 					if( $otherDimension == $mainDimension ) {
+						continue;
+					}
+					//skip categorical properties (color/shape)
+					if( $otherDimension->property === "color" || $otherDimension->property === "shape" ) {
 						continue;
 					}
 
@@ -168,6 +172,11 @@ class Chart extends Model {
 
 				foreach( $dimensionsByKey as $dimension ) {
 
+					//skip categorical properties (color/shape)
+					if( $dimension->property === "color" || $dimension->property === "shape" ) {
+						continue;
+					}
+
 					$defaultMode = "specific";
 					$defaultYear = 2000;
 					$mode = ( isset( $dimension->mode ) )? $dimension->mode: $defaultMode; 
@@ -238,6 +247,11 @@ class Chart extends Model {
 					foreach( $otherDimIds as $otherDimId ) {
 
 						$otherDimension = $dimensionsByKey[ $otherDimId ];
+
+						//skip categorical properties (color/shape)
+						if( $otherDimension->property === "color" || $otherDimension->property === "shape" ) {
+							continue;
+						}
 
 						$value = false;
 						//retrieve value for property
@@ -332,6 +346,11 @@ class Chart extends Model {
 
 				//for each dimension
 				foreach( $dimensionsByKey as $dimension ) {
+
+					//skip categorical properties (color/shape)
+					if( $dimension->property === "color" || $dimension->property === "shape" ) {
+						continue;
+					}
 
 					if( !empty( $entityData[ "values" ][ $dimension->property ] ) ) {
 
@@ -495,7 +514,6 @@ class Chart extends Model {
 
 	public static function getValue( $dimension, $time, $values ) {
 
-		$value;
 		//do we have value for exact time
 		if( array_key_exists( $time, $values ) ) {
 			
@@ -580,6 +598,40 @@ class Chart extends Model {
 	public static function hasValue($value) {
 		return ( isset( $value ) )? true: false;
 		//return ( !empty( $value ) || $value === "0" || $value === 0 )? true: false;
+	}
+
+	public static function getValueForCategory( $property, &$categoricalData, $value ) {
+
+		$colors = [ "#aec7e8", "#ff7f0e", "#1f77b4", "#ffbb78", "#2ca02c", "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b", "c49c94", "e377c2", "f7b6d2", "7f7f7f", "c7c7c7", "bcbd22", "dbdb8d", "17becf", "9edae5", "1f77b4" ];
+		$shapes = [ "circle", "cross", "triangle-up", "triangle-down", "diamond", "square" ];
+
+		//get existing data for given property
+		$existingData = &$categoricalData[ $property ];
+		if( !array_key_exists( $value, $existingData ) ) {
+
+			$valueIndex = count( $existingData );
+			$existingData[ $value ] = $valueIndex;
+		
+		} else {
+			
+			$valueIndex = $existingData[ $value ];
+			
+		}
+
+		if( $property === "color" ) {
+			
+			$valueIndex = $valueIndex % count( $colors );
+			$result = $colors[ $valueIndex ];
+		
+		} else if( $property === "shape" ) {
+			
+			$valueIndex = $valueIndex % count( $shapes );
+			$result = $shapes[ $valueIndex ];
+		
+		}
+		
+		return $result;		
+
 	}
 
 }
