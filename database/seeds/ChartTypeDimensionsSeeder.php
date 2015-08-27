@@ -21,9 +21,9 @@ class ChartTypeDimensionsTableSeeder extends Seeder {
 			[ 'property' => 'size', 'name' => 'Size', 'type' => 'number', 'fk_chart_type_id' => 2 ],
 			[ 'property' => 'shape', 'name' => 'Shape', 'type' => 'string', 'fk_chart_type_id' => 2 ],
 			[ 'property' => 'y', 'name' => 'Y axis', 'type' => 'number', 'fk_chart_type_id' => 3 ],
-			[ 'property' => 'color', 'name' => 'Color', 'type' => 'number', 'fk_chart_type_id' => 1 ],
-			[ 'property' => 'color', 'name' => 'Color', 'type' => 'number', 'fk_chart_type_id' => 2 ],
-			[ 'property' => 'color', 'name' => 'Color', 'type' => 'number', 'fk_chart_type_id' => 3 ]
+			[ 'property' => 'color', 'name' => 'Color', 'type' => 'string', 'fk_chart_type_id' => 1 ],
+			[ 'property' => 'color', 'name' => 'Color', 'type' => 'string', 'fk_chart_type_id' => 2 ],
+			[ 'property' => 'color', 'name' => 'Color', 'type' => 'string', 'fk_chart_type_id' => 3 ]
 		);
 		
 		// Uncomment the below to run the seeder
