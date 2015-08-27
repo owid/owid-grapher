@@ -9,11 +9,12 @@
 <script src="{{ asset('js/app/views/ui/App.Views.UI.SettingsVarPopup.js') }}?bust={!!time()!!}"></script>
 		
 <script src="{{ asset('js/app/views/form/basicTab/App.Views.Form.ChartTypeSectionView.js') }}?bust={!!time()!!}"></script>
-<script src="{{ asset('js/app/views/form/basicTab/App.Views.Form.AddDataSectionView.js') }}?bust={!!time()!!}"></script>
-<script src="{{ asset('js/app/views/form/basicTab/App.Views.Form.DimensionsSectionView.js') }}?bust={!!time()!!}"></script>
-<script src="{{ asset('js/app/views/form/basicTab/App.Views.Form.SelectedCountriesSectionView.js') }}?bust={!!time()!!}"></script>
-<script src="{{ asset('js/app/views/form/basicTab/App.Views.Form.EntitiesSectionView.js') }}?bust={!!time()!!}"></script>
-<script src="{{ asset('js/app/views/form/basicTab/App.Views.Form.TimeSectionView.js') }}?bust={!!time()!!}"></script>
+
+<script src="{{ asset('js/app/views/form/dataTab/App.Views.Form.AddDataSectionView.js') }}?bust={!!time()!!}"></script>
+<script src="{{ asset('js/app/views/form/dataTab/App.Views.Form.DimensionsSectionView.js') }}?bust={!!time()!!}"></script>
+<script src="{{ asset('js/app/views/form/dataTab/App.Views.Form.SelectedCountriesSectionView.js') }}?bust={!!time()!!}"></script>
+<script src="{{ asset('js/app/views/form/dataTab/App.Views.Form.EntitiesSectionView.js') }}?bust={!!time()!!}"></script>
+<script src="{{ asset('js/app/views/form/dataTab/App.Views.Form.TimeSectionView.js') }}?bust={!!time()!!}"></script>
 
 <script src="{{ asset('js/app/views/form/App.Views.Form.BasicTabView.js') }}?bust={!!time()!!}"></script>
 <script src="{{ asset('js/app/views/form/App.Views.Form.AxisTabView.js') }}?bust={!!time()!!}"></script>
