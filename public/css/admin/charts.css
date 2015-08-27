@@ -10,7 +10,7 @@
 	left: -22px;
     padding-left: 8px;
     font-size: 26px;
-    border: 1px solid gray;
+    border: 1px solid #ddd;
     background-color: #ecf0f5;
 	-webkit-transform: translateY(-50%);
 	transform: translateY(-50%);
