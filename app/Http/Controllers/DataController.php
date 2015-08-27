@@ -256,6 +256,11 @@ class DataController extends Controller {
 				$variable = Variable::find( $dimension->variableId );
 
 				$key = ( !empty( $variable ) && isset( $variable->name ) )? $variable->name: "";
+				//could have display name
+				if( !empty( $dimension ) && !empty( $dimension->displayName ) ) {
+					$key = $dimension->displayName;
+				}
+
 				$dataByVariable[ "id-".$id ] = array( 
 					"id" => $id,
 					"key" => $key,

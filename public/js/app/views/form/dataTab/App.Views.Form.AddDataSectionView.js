@@ -83,20 +83,25 @@
 				defaultMaxAge = 5,
 				defaultTolerance = 5;
 
-			var $li = $( "<li class='variable-label dd-item' data-unit='" + model.get( "unit" ) + "' data-period='" + defaultPeriod + "' data-tolerance='" + defaultTolerance + "' data-maximum-age='" + defaultMaxAge + "' data-mode='" + defaultMode + "' data-target-year='" + defaultTargetYear + "' data-variable-id='" + model.get( "id" ) + "'><div class='dd-handle'>" + model.get( "name" ) + "</div><a href='' class='variable-setting-btn'><span class='fa period-icon'></span><span class='number-icon'></span><span class='fa fa-cog' title='Setting variable'></span></a><span class='fa fa-close'></span></li>" ),
+			var $li = $( "<li class='variable-label dd-item' data-unit='" + model.get( "unit" ) + "' data-period='" + defaultPeriod + "' data-tolerance='" + defaultTolerance + "' data-maximum-age='" + defaultMaxAge + "' data-mode='" + defaultMode + "' data-target-year='" + defaultTargetYear + "' data-variable-id='" + model.get( "id" ) + "'><div class='dd-handle'><div class='dd-inner-handle'><span class='variable-label-name'>" + model.get( "name" ) + "</span><span class='variable-label-input'><input class='form-control'/><i class='fa fa-check'></i><i class='fa fa-times'></i></div></div><a href='' class='variable-setting-btn'><span class='fa period-icon'></span><span class='number-icon'></span><span class='fa fa-cog' title='Setting variable'></span></a><span class='fa fa-close'></span></li>" ),
 				$settings = $li.find( ".variable-setting-btn" );
 			this.$ddList.append( $li );
 			
 			$settings.on( "click", $.proxy( this.onSettingsClick, this ) );
+			
+			var $variableLabelName = $li.find( ".variable-label-name" ),
+				$variableLabelInput = $li.find( ".variable-label-input input" ),
+				$confirmNameBtn = $li.find( ".fa-check" ),
+				$cancelNameBtn = $li.find( ".fa-times" );
+
+			$variableLabelName.on( "mousedown", $.proxy( this.onVariableNameClick, this ) );
+			$confirmNameBtn.on( "mousedown", $.proxy( this.onNameBtnClick, this ) );
+			$cancelNameBtn.on( "mousedown", $.proxy( this.onNameBtnClick, this ) );
+			$variableLabelInput.on( "mousedown", $.proxy( this.onLabelInput, this ) );
 
 			this.refreshHandlers();
 			this.updateVarIcons();
 
-		},
-
-		onVariableRemove: function( model ) {
-			var $liToRemove = $( ".variable-label[data-variable-id='" + model.get( "id" ) + "']" );
-			$liToRemove.remove();
 		},
 
 		onRemoveBtnClick: function( evt ) {
@@ -196,6 +201,62 @@
 
 			} );
 
+		},
+
+		onVariableNameClick: function( evt ) {
+
+			evt.stopImmediatePropagation();
+			evt.preventDefault();
+
+			var $name = $( evt.currentTarget ),
+				$parent = $name.parent(),
+				$variableLabelInput = $parent.find( ".variable-label-input" ),
+				$input = $variableLabelInput.find( "input" );
+
+			$name.hide();
+			$variableLabelInput.show();
+			$input.val( $name.text() );
+
+		},
+
+		onNameBtnClick: function( evt ) {
+
+			evt.stopImmediatePropagation();
+			evt.preventDefault();
+
+			var $inputBtn = $( evt.currentTarget ),
+				$variableLabelInput = $inputBtn.parent(),
+				$parent = $variableLabelInput.parent(),
+				$variableLabelName = $parent.find( ".variable-label-name" );
+
+			if( $inputBtn.hasClass( "fa-check" ) ) {
+				//confirmation of change to variable name
+				var $input = $variableLabelInput.find( "input" ),
+					inputVal = $input.val(),
+					$variableLabel = $variableLabelInput.parents( ".variable-label" );
+				$variableLabelName.text( inputVal );
+				$variableLabel.attr( "data-display-name", inputVal );
+				this.dispatcher.trigger( "dimension-update" );
+			}
+
+			$variableLabelInput.hide();
+			$variableLabelName.show();
+
+		},
+
+		onLabelInput: function( evt ) {
+
+			evt.stopImmediatePropagation();
+			evt.preventDefault();
+
+			var $input = $( evt.currentTarget );
+			$input.focus();
+
+		},
+
+		onVariableRemove: function( model ) {
+			var $liToRemove = $( ".variable-label[data-variable-id='" + model.get( "id" ) + "']" );
+			$liToRemove.remove();
 		}
 
 	});
