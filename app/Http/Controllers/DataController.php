@@ -360,6 +360,8 @@ class DataController extends Controller {
 
 		//get all necessary info for datasources
 		$datasources = array();
+		$prevDimension = "";
+		
 		foreach( $dimensions as $dimension ) {
 			$datasource = new \stdClass();
 			//special dimension header for linechart
@@ -367,11 +369,15 @@ class DataController extends Controller {
 			if( $isLineChart ) {
 				$dimension = false;
 			}
-			$datasource->description = ( !empty($dsr) )? $this->createSourceDescription( $dimension, $dsr ): '';
+			$currDimension = ( !empty( $dimension ) && isset( $dimension->name ) )? $dimension->name: "undefined";
+			$datasource->description = ( !empty($dsr) )? $this->createSourceDescription( $dimension, $dsr, $currDimension === $prevDimension ): '';
 			$datasource->name = ( !empty($dsr) && !empty($dsr->name) )? $dsr->name: '';
 			$datasource->link = ( !empty($dsr) && !empty($dsr->name) )? $dsr->link: '';
 			//$datasource->description = $datasourceSource->description;
 			$datasources[] = $datasource;
+		
+			//store curr dimension so we don't have to repeat title for next if it's same
+			$prevDimension = ( !empty( $dimension ) && isset( $dimension->name ) )? $dimension->name: "";
 		}
 
 		/*$datasourcesIds = array_keys( $datasourcesIdsArr );
@@ -644,13 +650,15 @@ class DataController extends Controller {
 		return response( $svg )->header('Content-Type',$type);
 	}
 
-	public function createSourceDescription( $dimension, $datasource ) {
+	public function createSourceDescription( $dimension, $datasource, $omitHeader = false ) {
 
 		$displayName = ( !empty($dimension->displayName) )? $dimension->displayName: $datasource->var_name;
 
 		$html = "";
 		$html .= "<div class='datasource-wrapper'>";
-			$html .= ( !empty( $dimension ) && isset( $dimension->name ) )? "<h2>Data for " .$dimension->name. ": </h2>": "<h2>Data: </h2>";
+			if( !$omitHeader ) {
+				$html .= ( !empty( $dimension ) && isset( $dimension->name ) )? "<h2>Data for " .$dimension->name. ": </h2>": "<h2>Data: </h2>";
+			}
 			$html .= "<div class='datasource-header'>";
 				$html .= "<h3><span class='datasource-property'>Dataset name:</span>" .$datasource->dataset_name. "</h3>";
 				$html .= "<h4><span class='datasource-property'>Variable name:</span>" .$datasource->var_name. "</h4>";

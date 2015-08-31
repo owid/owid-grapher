@@ -734,23 +734,31 @@
 				tabHtml = "",
 				descriptionHtml = App.ChartModel.get( "chart-description" ),
 				sourcesShortHtml = "Data obtained from: ",
-				sourcesLongHtml = "";
-			
+				sourcesLongHtml = "",
+				//check that we're not adding sources with the same name more times
+				sourcesByName = [];
+				
 			//construct source html
 			_.each( sources, function( sourceData, sourceIndex ) {
-				if( sourceIndex > 0 ) {
-					sourcesShortHtml += ", ";
+				//make sure we don't have source with the same name in the short description already
+				if( !sourcesByName[ sourceData.name ] ) {
+					if( sourceIndex > 0 ) {
+						sourcesShortHtml += ", ";
+					}
+					if( sourceData.link ) {
+						sourcesShortHtml += "<a href='" + sourceData.link + "' target='_blank'>" + sourceData.name + "</a>";
+					} else {
+						sourcesShortHtml += sourceData.name;
+					}
+					sourcesByName[ sourceData.name ] = true;
 				}
-				if( sourceData.link ) {
-					sourcesShortHtml += "<a href='" + sourceData.link + "' target='_blank'>" + sourceData.name + "</a>";
-				} else {
-					sourcesShortHtml += sourceData.name;
-				}
+				
 				//sources now contain html, so no need to separate with comma
 				/*if( sourceIndex > 0 && sourcesLongHtml !== "" && sourceData.description !== "" ) {
 					sourcesLongHtml += ", ";
 				}*/
 				sourcesLongHtml += sourceData.description;
+				
 			} );
 
 			footerHtml = descriptionHtml;
