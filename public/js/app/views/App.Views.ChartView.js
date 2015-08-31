@@ -879,6 +879,7 @@
 			
 				var wrapOffset = $wrap.offset(),
 					chartTabOffset = that.$chartTab.offset(),
+					marginLeft = parseInt( margins.left, 10 ),
 					//dig into NVD3 chart to find background rect that has width of the actual chart
 					backRectWidth = parseInt( $wrap.find( "> g > rect" ).attr( "width" ), 10 ),
 					offsetDiff = wrapOffset.top - chartTabOffset.top,
@@ -886,8 +887,13 @@
 					xScaleOffset = 10,
 					yScaleOffset = -5;
 
-				that.$xAxisScaleSelector.css( { "top": offsetDiff + chartHeight, "left": margins.left + backRectWidth + xScaleOffset } );
-				that.$yAxisScaleSelector.css( { "top": offsetDiff - 15, "left": margins.left + yScaleOffset } );
+				//fallback for scatter plot where backRectWidth has no width
+				if( isNaN( backRectWidth ) ) {
+					backRectWidth = parseInt( $(".nv-x.nv-axis.nvd3-svg").get(0).getBoundingClientRect().width, 10 );
+				}
+
+				that.$xAxisScaleSelector.css( { "top": offsetDiff + chartHeight, "left": marginLeft + backRectWidth + xScaleOffset } );
+				that.$yAxisScaleSelector.css( { "top": offsetDiff - 15, "left": marginLeft + yScaleOffset } );
 				
 			}, 250 );
 			
@@ -1151,7 +1157,6 @@
 			if( yAxisMax ) {
 				//chart has set yAxis to max, depending on stacked style set max
 				if( stackedStyle === "expand" ) {
-					console.log( "stackedstyle" );
 					yDomain = [ 0, 1 ];
 				}
 				this.chart.yDomain( yDomain );
