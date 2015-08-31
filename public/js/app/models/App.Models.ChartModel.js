@@ -42,6 +42,24 @@
 
 		initialize: function() {
 
+			this.on( "sync", this.onSync, this );
+
+		},
+
+		onSync: function() {
+
+			if( this.get( "chart-type" ) == 2 ) {
+				//make sure for scatter plot, we have color set as continents
+				var chartDimensions = $.parseJSON( this.get( "chart-dimensions" ) );
+				if( !_.findWhere( chartDimensions, { "property": "color" } ) ) {
+					//this is where we add color property
+					var colorPropObj = { "variableId":"127","property":"color","unit":"","name":"Color","period":"single","mode":"specific","targetYear":"2000","tolerance":"5","maximumAge":"5"};
+					chartDimensions.push( colorPropObj );
+					var charDimensionsString = JSON.stringify( chartDimensions );
+					this.set( "chart-dimensions", charDimensionsString );
+				}
+			}
+			
 		},
 
 		addSelectedCountry: function( country ) {

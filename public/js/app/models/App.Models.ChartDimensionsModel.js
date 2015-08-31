@@ -12,7 +12,8 @@
 
 			this.set( "id", chartTypeId );
 			this.fetch( {
-				success: function( response ) {}
+				success: function( response ) {
+				}
 			} );
 
 		}

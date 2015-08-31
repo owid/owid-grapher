@@ -31,7 +31,8 @@
 				App.AvailableEntitiesCollection = new App.Collections.AvailableEntitiesCollection();
 			}
 			if( formConfig && formConfig[ "dimensions" ] ) {
-				App.ChartDimensionsModel = new App.Models.ChartDimensionsModel( formConfig[ "dimensions" ] );
+				App.ChartDimensionsModel = new App.Models.ChartDimensionsModel();
+				//App.ChartDimensionsModel = new App.Models.ChartDimensionsModel( formConfig[ "dimensions" ] );
 			} else {
 				App.ChartDimensionsModel = new App.Models.ChartDimensionsModel();
 			}
@@ -44,6 +45,23 @@
 			//create search collection
 			App.SearchDataCollection = new App.Collections.SearchDataCollection();
 			
+			//is it new or existing chart
+			if( formConfig && formConfig[ "dimensions" ] ) {
+				//existing chart, need to load fresh dimensions from database (in case we've added dimensions since creating chart)
+				var that = this;
+				App.ChartDimensionsModel.loadConfiguration( formConfig[ "dimensions" ].id );
+				App.ChartDimensionsModel.on( "change", function() {
+					that.render();
+				} );
+			} else {
+				//new chart, can render straight away
+				this.render();
+			}
+			
+		},
+
+		render: function() {
+			
 			//create subviews
 			this.basicTabView = new App.Views.Form.BasicTabView( { dispatcher: this.dispatcher } );
 			this.axisTabView = new App.Views.Form.AxisTabView( { dispatcher: this.dispatcher } );
@@ -54,13 +72,7 @@
 			//fetch doms
 			this.$removeUploadedFileBtn = this.$el.find( ".remove-uploaded-file-btn" );
 			this.$filePicker = this.$el.find( ".file-picker-wrapper [type=file]" );
-			
-			this.render();
 
-		},
-
-		render: function() {
-			
 		},
 
 		onNameChange: function( evt ) {

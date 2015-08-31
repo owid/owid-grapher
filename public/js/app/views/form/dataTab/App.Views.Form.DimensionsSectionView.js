@@ -156,11 +156,7 @@
 				that.dispatcher.trigger( "variable-label-moved" );
 
 			} );
-
-			$.each( this.$dimensionBoxes, function( i, v ) {
-
-			} );
-
+	
 		},
 
 		onChartTypeChange: function( evt ) {

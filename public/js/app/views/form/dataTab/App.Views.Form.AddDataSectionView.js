@@ -34,7 +34,7 @@
 
 			this.$dd = this.$el.find( ".dd" );
 			this.$ddList = this.$dd.find( ".dd-list" );
-			this.$el.find( ".dd" ).nestable({});
+			this.$dd.nestable();
 
 			this.onVariableReset();
 
@@ -211,11 +211,17 @@
 			var $name = $( evt.currentTarget ),
 				$parent = $name.parent(),
 				$variableLabelInput = $parent.find( ".variable-label-input" ),
-				$input = $variableLabelInput.find( "input" );
+				$input = $variableLabelInput.find( "input" ),
+				$cog = $parent.parent().parent().find( ".variable-setting-btn" );
+			
+			$cog.hide();
 
-			$name.hide();
-			$variableLabelInput.show();
-			$input.val( $name.text() );
+			//make sure variable is in dimension section
+			if( $parent.parents( ".dimensions-section" ).length ) {
+				$name.hide();
+				$variableLabelInput.show();
+				$input.val( $name.text() );
+			}
 
 		},
 
@@ -227,7 +233,10 @@
 			var $inputBtn = $( evt.currentTarget ),
 				$variableLabelInput = $inputBtn.parent(),
 				$parent = $variableLabelInput.parent(),
-				$variableLabelName = $parent.find( ".variable-label-name" );
+				$variableLabelName = $parent.find( ".variable-label-name" ),
+				$cog = $parent.parent().parent().find( ".variable-setting-btn" );
+			
+			$cog.show();
 
 			if( $inputBtn.hasClass( "fa-check" ) ) {
 				//confirmation of change to variable name
