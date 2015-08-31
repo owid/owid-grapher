@@ -471,7 +471,9 @@
 
             if (!plugin) {
                 $(this).data("nestable", new Plugin(this, params));
-                $(this).data("nestable-id", new Date().getTime());
+                //custom modification, zdenek.hynek@gmail.com, add truly random 
+                $(this).data("nestable-id", new Date().getTime() + "" + Math.random());
+                //$(this).data("nestable-id", new Date().getTime());
             } else {
                 if (typeof params === 'string' && typeof plugin[params] === 'function') {
                     retval = plugin[params]();
