@@ -1,23 +1,33 @@
-## Laravel PHP Framework
+## INTRO
+This project contains chart building tool which enables to upload csv data and create interactive charts with drag&drop interface.
+Backend is written in PHP using Laravel Framework. Frontend is written using Backbone.js and NVD3.js.
+	
+## SETUP
+1. make sure you have Apache and MySQL database setup in your machine 	
+2. use database dump from _data/ to create your database  
+3. open .env file and fill in lines 5-8 with your database info
 
-[![Build Status](https://travis-ci.org/laravel/framework.svg)](https://travis-ci.org/laravel/framework)
-[![Total Downloads](https://poser.pugx.org/laravel/framework/downloads.svg)](https://packagist.org/packages/laravel/framework)
-[![Latest Stable Version](https://poser.pugx.org/laravel/framework/v/stable.svg)](https://packagist.org/packages/laravel/framework)
-[![Latest Unstable Version](https://poser.pugx.org/laravel/framework/v/unstable.svg)](https://packagist.org/packages/laravel/framework)
-[![License](https://poser.pugx.org/laravel/framework/license.svg)](https://packagist.org/packages/laravel/framework)
+## COMPONENTS
+The entire tool can be divided into four main modules and here’s a very brief description what is going on in each one of them.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable, creative experience to be truly fulfilling. Laravel attempts to take the pain out of development by easing common tasks used in the majority of web projects, such as authentication, routing, sessions, queueing, and caching.
+1. Chart viewer module 
+Tool uses NVD3 to create charts from data stored in database. For each chart, we store json configuration which determines which datasets are used for different dimensions of chart (e.g. X axis, Y axis) together with other chart settings (labels, selected countries, period etc.).
+JSON configuration is loaded by Backbone model in public/js/app/models/App.Models.ChartModel.js which calls backed to retrieve data necessary for given chart.
+AJAX request from ChartModel is passed to DataController (app/Http/DataController.php ) which contains logic for composing response with data for charts. In most cases, DataController calls one the data processing methods of Chart model (app/Http/Chart.php), which correctly formats data for different chart types.
+Once response is received, ChartModel passes data to ChartView (public/js/app/views/App.Views.ChartView.js) which takes care of actually creating NVD3 chart with all the necessary configuration from JSON configuration. 
 
-Laravel is accessible, yet powerful, providing powerful tools needed for large, robust applications. A superb inversion of control container, expressive migration system, and tightly integrated unit testing support give you the tools you need to build any application with which you are tasked.
+2. Chart builder module
+Form for creating new chart is accessible at: public/charts/create
+Form dynamically creates charts by assigning properties of Backbone model: public/js/app/models/App.Models.ChartModel.js
+Most of the logic is contained in public/js/app/views/ui/App.Views.FormView.js and Backbone views stored in public/js/app/views/form folder.		
 
-## Official Documentation
+3. Import module
+Import module is accessible at: public/import
+Import pre-formatting and validation can be mainly found at public/js/app/views/App.Views.ImportView.js
+Import into db itself is performed by app/Http/Controllers/ImportController.php
+By default, all data is validated against internal list of valid country names (stored in entity_iso_names table)
+<insert sample format of correctly formatted csv>
 
-Documentation for the framework can be found on the [Laravel website](http://laravel.com/docs).
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](http://laravel.com/docs/contributions).
-
-### License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT)
+4. Data management module
+All uploaded data and most of the tool settings are editable from within admin, using Laravel views.
+When necessary, https://github.com/zofe/rapyd-laravel is used for data grids and filters.
