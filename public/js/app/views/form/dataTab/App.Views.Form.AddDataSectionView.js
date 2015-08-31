@@ -205,19 +205,20 @@
 
 		onVariableNameClick: function( evt ) {
 
-			evt.stopImmediatePropagation();
-			evt.preventDefault();
-
 			var $name = $( evt.currentTarget ),
 				$parent = $name.parent(),
 				$variableLabelInput = $parent.find( ".variable-label-input" ),
 				$input = $variableLabelInput.find( "input" ),
 				$cog = $parent.parent().parent().find( ".variable-setting-btn" );
 			
-			$cog.hide();
-
 			//make sure variable is in dimension section
 			if( $parent.parents( ".dimensions-section" ).length ) {
+
+				//stopping propagation not at the top, but here, to enable drag&drop outside of dimension section
+				evt.stopImmediatePropagation();
+				evt.preventDefault();
+
+				$cog.addClass( "hidden" );
 				$name.hide();
 				$variableLabelInput.show();
 				$input.val( $name.text() );
@@ -236,8 +237,8 @@
 				$variableLabelName = $parent.find( ".variable-label-name" ),
 				$cog = $parent.parent().parent().find( ".variable-setting-btn" );
 			
-			$cog.show();
-
+			$cog.removeClass( "hidden" );
+ 
 			if( $inputBtn.hasClass( "fa-check" ) ) {
 				//confirmation of change to variable name
 				var $input = $variableLabelInput.find( "input" ),
