@@ -309,9 +309,9 @@ class ImportController extends Controller {
 	public function inputfile(Request $request) {
 
 		$rawData = ( $request->has( 'rawData' ) )? $request->get( 'rawData' ): '';
-		$fkUserId = ( $request->has( 'fkUserId' ) )? $request->get( 'fkUserId' ): '';
+		$userId = ( $request->has( 'userId' ) )? $request->get( 'userId' ): '';
 
-		$inputFileData = [ 'raw_data' => $rawData, 'fk_user_id' => $fkUserId ];
+		$inputFileData = [ 'raw_data' => $rawData, 'fk_user_id' => $userId ];
 		$inputFile = InputFile::create( $inputFileData ); 
 		$inputFileDataId = $inputFile->id;
 		return [ 'success' => true, 'data' => [ 'inputFileId' => $inputFileDataId ] ];

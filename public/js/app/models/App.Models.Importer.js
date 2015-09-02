@@ -29,7 +29,7 @@ var testData = '{"variables":[{"name":"var name","unit":"var unit","description"
 					variables = json.variables;
 
 				//create import
-				var inputFileData = { "rawData": testData, "fkUserId": 1 };
+				var inputFileData = { "rawData": testData, "userId": 1 };
 				var inputFileModel = new App.Models.Import.InputFileModel( inputFileData );
 				inputFileModel.import();
 
@@ -40,7 +40,7 @@ var testData = '{"variables":[{"name":"var name","unit":"var unit","description"
 
 				//create dataset
 				var datasetData = { "name": "dataset name", "datasetTags": [], "description": "dataset description", "categoryId": 1, "subcategoryId": 1 };
-				var datasetModel = new App.Models.DatasetModel( datasetData );
+				var datasetModel = new App.Models.Import.DatasetModel( datasetData );
 				datasetModel.import();
 
 				$.each( variables, function( i, variableData ) {
@@ -66,7 +66,7 @@ var testData = '{"variables":[{"name":"var name","unit":"var unit","description"
 				variableData.variableType = variableType;
 
 				console.log( "variableData", variableData );
-				var variableModel = new App.Models.VariableModel( variableData );
+				var variableModel = new App.Models.Import.VariableModel( variableData );
 				console.log( "variableModel", variableModel );
 				variableModel.import();
 
@@ -86,7 +86,7 @@ var testData = '{"variables":[{"name":"var name","unit":"var unit","description"
 
 			console.log( "entityData", entityData );
 			entityData.name = entityData.key;
-			var entityModel = new App.Models.EntityModel( entityData );
+			var entityModel = new App.Models.Import.EntityModel( entityData );
 			console.log( entityModel );
 			entityModel.import();
 		}

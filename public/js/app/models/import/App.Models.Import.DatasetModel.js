@@ -2,7 +2,7 @@
 		
 	"use strict";
 
-	App.Models.DatasetModel = Backbone.Model.extend( {
+	App.Models.Import.DatasetModel = Backbone.Model.extend( {
 		
 		urlRoot: Global.rootUrl + "/dataset/",
 		defaults: { "id": "", "name": "", "values": [] },

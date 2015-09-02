@@ -2,10 +2,10 @@
 		
 	"use strict";
 
-	App.Models.Import.InputFileModel = Backbone.Model.extend( {
+	App.Models.Import.EntityModel = Backbone.Model.extend( {
 		
-		urlRoot: Global.rootUrl + "/inputfile/",
-		defaults: { "rawData": "", "userId": "" },
+		urlRoot: Global.rootUrl + "/entity/",
+		defaults: { "id": "", "name": "", "values": [] },
 
 		import: function() {
 
