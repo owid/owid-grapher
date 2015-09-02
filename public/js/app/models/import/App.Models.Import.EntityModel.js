@@ -5,7 +5,7 @@
 	App.Models.Import.EntityModel = Backbone.Model.extend( {
 		
 		urlRoot: Global.rootUrl + "/entity/",
-		defaults: { "id": "", "name": "", "values": [] },
+		defaults: { "id": "", "name": "", "entType": 5, "values": [] },
 
 		import: function() {
 

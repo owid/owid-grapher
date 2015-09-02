@@ -374,8 +374,7 @@ class ImportController extends Controller {
 		//end temp
 
 		$variableObj = $request->all();
-		\Log::info( $request->get( 'name' ) );
-
+		
 		$varId = ( $request->has( 'id' ) )? $request->get( 'id' ): '';
 		$varName = ( $request->has( 'name' ) )? $request->get( 'name' ): '';
 		$varType = ( $request->has( 'variableType' ) )? $request->get( 'variableType' ): 1;

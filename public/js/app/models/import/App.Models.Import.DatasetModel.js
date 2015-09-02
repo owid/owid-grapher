@@ -5,7 +5,7 @@
 	App.Models.Import.DatasetModel = Backbone.Model.extend( {
 		
 		urlRoot: Global.rootUrl + "/dataset/",
-		defaults: { "id": "", "name": "", "values": [] },
+		defaults: { "name": "", "datasetTags": "", "description": "", "categoryId": "", "subcategoryId": "" },
 
 		import: function() {
 
