@@ -90,6 +90,12 @@ Route::group(['middleware' => 'auth'], function()
 	Route::get( 'logo', [ 'as' => 'logo', 'uses' => 'LogoController@index' ] );
 	Route::post('logo/upload', 'LogoController@upload');
 
+	Route::post( 'inputfile/import', 'ImportController@inputfile' );
+	Route::post( 'datasource/import', 'ImportController@datasource' );
+	Route::post( 'dataset/import', 'ImportController@dataset' );
+	Route::post( 'variable/import', 'ImportController@variable' );
+	Route::post( 'entity/import', 'ImportController@entity' );
+
 });
 
 Route::get( 'view', 'ViewController@index' );

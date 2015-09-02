@@ -2,9 +2,9 @@
 		
 	"use strict";
 
-	App.Models.EntityModel = Backbone.Model.extend( {
+	App.Models.DatasetModel = Backbone.Model.extend( {
 		
-		urlRoot: Global.rootUrl + "/entity/",
+		urlRoot: Global.rootUrl + "/dataset/",
 		defaults: { "id": "", "name": "", "values": [] },
 
 		import: function() {

@@ -10,6 +10,8 @@
 		uploadedData: false,
 		variableNameManual: false,
 
+		massiveImport: false,
+
 		el: "#import-view",
 		events: {
 			"submit form": "onFormSubmit",
@@ -31,6 +33,9 @@
 			this.render();
 			this.initUpload();
 			
+			var importer = new App.Models.Importer();
+			importer.uploadFormData();
+
 		},
 
 		render: function() {
@@ -107,8 +112,8 @@
 				return;
 			}
 			
-			/* testing massive import version 			
-			this.uploadedData = data;
+			//testing massive import version 			
+			/*this.uploadedData = data;
 			//store also original, this.uploadedData will be modified when being validated
 			this.origUploadedData = $.extend( true, {}, this.uploadedData);
 
@@ -122,11 +127,13 @@
 			//normal version
 
 			//do we need to transpose data?
-			var isOriented = this.detectOrientation( data.rows );
-			if( !isOriented ) {
-				data.rows = App.Utils.transpose( data.rows );
+			if( !this.massiveImport ) {
+				var isOriented = this.detectOrientation( data.rows );
+				if( !isOriented ) {
+					data.rows = App.Utils.transpose( data.rows );
+				}
 			}
-
+			
 			this.uploadedData = data;
 			//store also original, this.uploadedData will be modified when being validated
 			this.origUploadedData = $.extend( true, {}, this.uploadedData);
@@ -251,9 +258,10 @@
 
 		mapData: function() {
 
+			
 			//massive import version
 			//var mappedData = App.Utils.mapPanelData( this.uploadedData.rows ),
-			var mappedData = ( this.isDataMultiVariant )? App.Utils.mapMultiVariantData( this.uploadedData.rows, "World" ): App.Utils.mapSingleVariantData( this.uploadedData.rows, this.datasetName ),
+			var mappedData = ( !this.massiveImport )? ( this.isDataMultiVariant )? App.Utils.mapMultiVariantData( this.uploadedData.rows, "World" ): App.Utils.mapSingleVariantData( this.uploadedData.rows, this.datasetName ): App.Utils.mapPanelData( this.uploadedData.rows ),
 				json = { "variables": mappedData },
 				jsonString = JSON.stringify( json );
 
@@ -324,8 +332,8 @@
 				$dataTable = $dataTableWrapper.find( "table" ),
 				//massive import version
 				//timeDomain = $dataTable.find( "th:nth-child(2)" ).text(),
-				timeDomain = $dataTable.find( "th:first-child" ).text(),
-				$timesCells = $dataTable.find( "th" );/*,
+				timeDomain = ( !this.massiveImport )? $dataTable.find( "th:first-child" ).text(): $dataTable.find( "th:nth-child(2)" ).text(),
+				$timesCells = ( !this.massiveImport )? $dataTable.find( "th" ): $dataTable.find( "td:nth-child(2)" );/*,
 				//massive import version
 				//$timesCells = $dataTable.find( "td:nth-child(2)" );/*,
 				times = _.map( $timesCells, function( v ) { return $( v ).text() } );*/
@@ -336,14 +344,17 @@
 			
 			//the first cell (timeDomain) shouldn't be validated
 			//massive import version - commented out next row
-			$timesCells = $timesCells.slice( 1 );
-
+			if( !this.massiveImport ) {
+				$timesCells = $timesCells.slice( 1 );
+			}
+			
 			//make sure time is from given domain
 			if( _.indexOf( [ "century", "decade", "quarter century", "half century", "year" ], timeDomain ) == -1 ) {
 				var $resultNotice = $( "<p class='time-domain-validation-result validation-result text-danger'><i class='fa fa-exclamation-circle'></i>First top-left cell should contain time domain infomartion. Either 'century', or'decade', or 'year'.</p>" );
 				$dataTableWrapper.before( $resultNotice );
 			}
 			
+			var that = this;
 			$.each( $timesCells, function( i, v ) {
 
 				var $timeCell = $( v );
@@ -352,7 +363,7 @@
 				var newValue,
 					//massive import version
 					//origValue = data[ i+1 ][ 1 ];
-					origValue = data[ 0 ][ i+1 ];
+					origValue = ( !that.massiveImport )? data[ 0 ][ i+1 ]: data[ i+1 ][ 1 ];
 				
 				//check value has 4 digits
 				origValue = App.Utils.addZeros( origValue );
@@ -482,7 +493,11 @@
 					newValue[ "td" ] = timeDomain;
 					
 					//initial was number/string so passed by value, need to insert it back to arreay
-					data[ 0 ][ i+1 ] = newValue;
+					if( !that.massiveImport ) {
+						data[ 0 ][ i+1 ] = newValue;
+					} else {
+						data[ i+1 ][ 1 ] = newValue;
+					}
 					//massive import version
 					//data[ i+1 ][ 1 ] = newValue;
 
@@ -703,14 +718,14 @@
 				//do not validate
 			}
 			
-			if( $validationResults.length ) {
+			/*if( $validationResults.length ) {
 				//do not send form and scroll to error message
 				evt.preventDefault();
 				$('html, body').animate({
 					scrollTop: $validationResults.offset().top - 18
 				}, 300);
 				return false;
-			}
+			}*/
 			
 			//evt 
 			var $btn = $( "[type=submit]" );

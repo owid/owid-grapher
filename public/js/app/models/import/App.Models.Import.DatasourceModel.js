@@ -2,9 +2,9 @@
 		
 	"use strict";
 
-	App.Models.EntityModel = Backbone.Model.extend( {
+	App.Models.Import.DatasourceModel = Backbone.Model.extend( {
 		
-		urlRoot: Global.rootUrl + "/entity/",
+		urlRoot: Global.rootUrl + "/datasource/",
 		defaults: { "id": "", "name": "", "values": [] },
 
 		import: function() {

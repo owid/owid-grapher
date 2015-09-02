@@ -2,9 +2,9 @@
 		
 	"use strict";
 
-	App.Models.EntityModel = Backbone.Model.extend( {
+	App.Models.VariableModel = Backbone.Model.extend( {
 		
-		urlRoot: Global.rootUrl + "/entity/",
+		urlRoot: Global.rootUrl + "/variable/",
 		defaults: { "id": "", "name": "", "values": [] },
 
 		import: function() {

@@ -26,7 +26,7 @@
 				var chartDimensions = $.parseJSON( App.ChartModel.get( "chart-dimensions" ) );
 				//if( !_.findWhere( chartDimensions, { "property": "color" } ) ) {
 					//this is where we add color property
-					var colorPropObj = { "id":"127","unit":"","name":"Color","period":"single","mode":"specific","targetYear":"2000","tolerance":"5","maximumAge":"5"};
+					var colorPropObj = { "id":"123","unit":"","name":"Color","period":"single","mode":"specific","targetYear":"2000","tolerance":"5","maximumAge":"5"};
 					if( models ) {
 						models.push( colorPropObj );
 					} else {

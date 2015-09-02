@@ -47,7 +47,7 @@ class EntitiesController extends Controller {
 	 */
 	public function store()
 	{
-		
+		return 'store';
 	}
 
 	/**
