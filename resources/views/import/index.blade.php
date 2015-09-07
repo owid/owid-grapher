@@ -55,11 +55,10 @@
 						<h3><span class="form-section-digit">2</span>Dataset type</h3>
 					</div>
 					<div class="form-section-content">
-						<p class="form-section-desc">Do you have multiple variables in your dataset? In most cases, it will be only single variable.</p>
+						<p class="form-section-desc">Do you have multiple variables in your dataset? Please note that all variables have to come from the same source, and first column has to be country name.</p>
 						<fieldset class="dataset-type-radiogroup">
 							<label><input type="radio" class="" name="multivariant_dataset" value="0" checked/> Single variable in dataset</label>
 							<label><input type="radio" class="" name="multivariant_dataset" value="1" /> Multiple variables in dataset</label>
-							<label><input type="radio" class="" name="multivariant_dataset" value="2" /> Panel variables in dataset</label>
 						</fieldset>
 					</div>
 			</section>

@@ -45,8 +45,8 @@
 			
 			} catch( err ) {
 
-				console.error( "Error uploading data", err );
-			
+				console.error( "Error uploading data", err, this );
+				
 			}
 
 		},
@@ -72,6 +72,8 @@
 					that.set( "inputFileId", resp.data.inputFileId );
 					that.createDatasource();
 					that.dispatcher.trigger( "import-progress", "Created input file", true );
+				} else {
+					that.dispatcher.trigger( "import-progress", "Error creating input file", false );
 				}
 
 			} );
@@ -92,6 +94,8 @@
 					that.set( "datasourceId", resp.data.datasourceId );
 					that.createDataset();
 					that.dispatcher.trigger( "import-progress", "Created datasource", true );
+				} else {
+					that.dispatcher.trigger( "import-progress", "Error creating datasource", false );
 				}
 
 			} );
@@ -106,11 +110,13 @@
 			
 			datasetModel.import();
 			datasetModel.on( "sync", function( model, resp ) {
-			
+				
 				if( resp && resp.success ) {
 					that.set( "datasetId", resp.data.datasetId );
 					that.createVariables();
 					that.dispatcher.trigger( "import-progress", "Created dataset", true );
+				} else {
+					that.dispatcher.trigger( "import-progress", "Error creating dataset", false );
 				}
 			
 			} );
@@ -172,6 +178,8 @@
 						var variableId = resp.data.variableId;
 						that.createEntities( variableData.values, variableId, callback );
 						that.dispatcher.trigger( "import-progress", "Created variable: " + variableData.name, true );
+					} else {
+						that.dispatcher.trigger( "import-progress", "Error creating variable", false );
 					}
 				
 				} );
@@ -228,6 +236,9 @@
 				if( callback ) {
 					callback();
 				}
+			} );
+			entityModel.on( "error", function( model, resp ) {
+				that.dispatcher.trigger( "import-progress", "Error creating entity", false );
 			} );
 
 		}

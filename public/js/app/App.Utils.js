@@ -59,7 +59,7 @@
 
 	},
 
-	App.Utils.mapMultiVariantData = function( rawData, entityName ) {
+	/*App.Utils.mapMultiVariantData = function( rawData, entityName ) {
 		
 		//transform multivariant into standard format ( time, entity )
 		var variables = [],
@@ -89,9 +89,9 @@
 
 		return variables;
 
-	},
+	},*/
 
-	App.Utils.mapPanelData = function( rawData ) {
+	App.Utils.mapMultiVariantData = function( rawData ) {
 		
 		var variables = [],
 			transposed = rawData,

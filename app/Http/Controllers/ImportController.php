@@ -308,190 +308,235 @@ class ImportController extends Controller {
 
 	public function inputfile(Request $request) {
 
-		$rawData = ( $request->has( 'rawData' ) )? $request->get( 'rawData' ): '';
-		$userId = ( $request->has( 'userId' ) )? $request->get( 'userId' ): '';
+		try {
+			
+			$rawData = ( $request->has( 'rawData' ) )? $request->get( 'rawData' ): '';
+			$userId = ( $request->has( 'userId' ) )? $request->get( 'userId' ): '';
 
-		$inputFileData = [ 'raw_data' => $rawData, 'fk_user_id' => $userId ];
-		$inputFile = InputFile::create( $inputFileData ); 
-		$inputFileDataId = $inputFile->id;
-		return [ 'success' => true, 'data' => [ 'inputFileId' => $inputFileDataId ] ];
+			$inputFileData = [ 'raw_data' => $rawData, 'fk_user_id' => $userId ];
+			$inputFile = InputFile::create( $inputFileData ); 
+			$inputFileDataId = $inputFile->id;
+			return [ 'success' => true, 'data' => [ 'inputFileId' => $inputFileDataId ] ];
+
+		} catch( Exception $e ) {
+
+			return ['success' => false];
+		
+		}
 
 	}
 
 	public function datasource(Request $request) {
 
-		$sourceName = ( $request->has( 'name' ) )? $request->get( 'name' ): '';
-		$sourceLink = ( $request->has( 'link' ) )? $request->get( 'link' ): '';
-		$sourceDescription = ( $request->has( 'description' ) )? $request->get( 'description' ): '';
+		try {
+			
+			$sourceName = ( $request->has( 'name' ) )? $request->get( 'name' ): '';
+			$sourceLink = ( $request->has( 'link' ) )? $request->get( 'link' ): '';
+			$sourceDescription = ( $request->has( 'description' ) )? $request->get( 'description' ): '';
 
-		if( !empty( $sourceName ) ) {
-			$datasourceData = [ 'name' => $sourceName, 'link' => $sourceLink, 'description' => $sourceDescription ];
-			$datasource = Datasource::create( $datasourceData );
-			$datasourceId = $datasource->id;
-			return [ 'success' => true, 'data' => [ 'datasourceId' => $datasourceId ] ];
+			if( !empty( $sourceName ) ) {
+				$datasourceData = [ 'name' => $sourceName, 'link' => $sourceLink, 'description' => $sourceDescription ];
+				$datasource = Datasource::create( $datasourceData );
+				$datasourceId = $datasource->id;
+				return [ 'success' => true, 'data' => [ 'datasourceId' => $datasourceId ] ];
+			}
+
+			return [ 'success' => false ];
+
+		} catch( Exception $e ) {
+
+			return ['success' => false ];
+		
 		}
-
-		return [ 'success' => false ];
 
 	}
 
 	public function dataset(Request $request) {
 
-		$datasetName = ( $request->has( 'name' ) )? $request->get( 'name' ): '';
-		$datasetTags = ( $request->has( 'datasetTags' ) )? $request->get( 'datasetTags' ): '';
-		$datasetDescription = ( $request->has( 'description' ) )? $request->get( 'description' ): '';
-		$datasourceId = ( $request->has( 'datasourceId' ) )? $request->get( 'datasourceId' ): '';
-		$datasetCategoryId = ( $request->has( 'categoryId' ) )? $request->get( 'categoryId' ): '';
-		$datasetSubcategoryId = ( $request->has( 'subcategoryId' ) )? $request->get( 'subcategoryId' ): '';
-
-		$datasetData = [ 'name' => $datasetName, 'fk_dst_cat_id' => $datasetCategoryId, 'fk_dst_subcat_id' => $datasetSubcategoryId, 'description' => $datasetDescription, 'fk_dsr_id' => $datasourceId ];
-		$dataset = Dataset::create( $datasetData );
-		$datasetId = $dataset->id;
+		try {
 			
-		//process possible tags
-		if( !empty( $datasetTags ) ) {
-			$tagsArr = explode( ',', $datasetTags );
-			foreach( $tagsArr as $tag ) {
-				$tag = DatasetTag::create( [ 'name' => $tag ] );
-				$tagId = $tag->id;
-				$datasetTagLink = LinkDatasetsTags::create( [ 'fk_dst_id' => $datasetId, 'fk_dst_tags_id' => $tagId ] );
+			$datasetName = ( $request->has( 'name' ) )? $request->get( 'name' ): '';
+			$datasetTags = ( $request->has( 'datasetTags' ) )? $request->get( 'datasetTags' ): '';
+			$datasetDescription = ( $request->has( 'description' ) )? $request->get( 'description' ): '';
+			$datasourceId = ( $request->has( 'datasourceId' ) )? $request->get( 'datasourceId' ): '';
+			$datasetCategoryId = ( $request->has( 'categoryId' ) )? $request->get( 'categoryId' ): '';
+			$datasetSubcategoryId = ( $request->has( 'subcategoryId' ) )? $request->get( 'subcategoryId' ): '';
+
+			$datasetData = [ 'name' => $datasetName, 'fk_dst_cat_id' => $datasetCategoryId, 'fk_dst_subcat_id' => $datasetSubcategoryId, 'description' => $datasetDescription, 'fk_dsr_id' => $datasourceId ];
+			$dataset = Dataset::create( $datasetData );
+			$datasetId = $dataset->id;
+				
+			//process possible tags
+			if( !empty( $datasetTags ) ) {
+				$tagsArr = explode( ',', $datasetTags );
+				foreach( $tagsArr as $tag ) {
+					$tag = DatasetTag::create( [ 'name' => $tag ] );
+					$tagId = $tag->id;
+					$datasetTagLink = LinkDatasetsTags::create( [ 'fk_dst_id' => $datasetId, 'fk_dst_tags_id' => $tagId ] );
+				}
 			}
+
+			return [ 'success' => true, 'data' => [ 'datasetId' => $datasetId ] ];
+
+		} catch( Exception $e ) {
+
+			return ['success' => false ];
+		
 		}
-
-		return [ 'success' => true, 'data' => [ 'datasetId' => $datasetId ] ];
-
+		
 	}
 
 
 	public function variable(Request $request) {
 
-		$variableObj = $request->all();
-		
-		$varId = ( $request->has( 'id' ) )? $request->get( 'id' ): '';
-		$varName = ( $request->has( 'name' ) )? $request->get( 'name' ): '';
-		$varType = ( $request->has( 'variableType' ) )? $request->get( 'variableType' ): 1;
-		$varUnit = ( $request->has( 'unit' ) )? $request->get( 'unit' ): '';
-		$varDescription = ( $request->has( 'description' ) )? $request->get( 'description' ): '';
+		try {
 
-		$datasetId = ( $request->has( 'datasetId' ) )? $request->get( 'datasetId' ): '';
-		$datasourceId = ( $request->has( 'datasourceId' ) )? $request->get( 'datasourceId' ): '';
-		
-		//$variableObj = json_decode( $variableJsonString, false );
-		$variableData = [ 'name' => $varName, 'fk_var_type_id' => $varType, 'fk_dst_id' => $datasetId, 'unit' => $varUnit, 'description' => $varDescription, 'fk_dsr_id' => $datasourceId ];
+			$variableObj = $request->all();
+			
+			$varId = ( $request->has( 'id' ) )? $request->get( 'id' ): '';
+			$varName = ( $request->has( 'name' ) )? $request->get( 'name' ): '';
+			$varType = ( $request->has( 'variableType' ) )? $request->get( 'variableType' ): 1;
+			$varUnit = ( $request->has( 'unit' ) )? $request->get( 'unit' ): '';
+			$varDescription = ( $request->has( 'description' ) )? $request->get( 'description' ): '';
 
-		//update of existing variable or new variable
-		if( empty( $varId ) ) {
-			//new variable
-			$variable = Variable::create( $variableData ); 
-		} else {
-			//update variable
-			$variable = Variable::find( $variableObj[ 'id' ] );
-			$variable->fill( $variableData );
-			$variable->save();
+			$datasetId = ( $request->has( 'datasetId' ) )? $request->get( 'datasetId' ): '';
+			$datasourceId = ( $request->has( 'datasourceId' ) )? $request->get( 'datasourceId' ): '';
+			
+			//$variableObj = json_decode( $variableJsonString, false );
+			$variableData = [ 'name' => $varName, 'fk_var_type_id' => $varType, 'fk_dst_id' => $datasetId, 'unit' => $varUnit, 'description' => $varDescription, 'fk_dsr_id' => $datasourceId ];
+
+			//update of existing variable or new variable
+			if( empty( $varId ) ) {
+				//new variable
+				$variable = Variable::create( $variableData ); 
+			} else {
+				//update variable
+				$variable = Variable::find( $variableObj[ 'id' ] );
+				if( !empty( $variable ) ) {
+					$variable->fill( $variableData );
+					$variable->save();
+				} else {
+					//not found existing variable
+					return [ 'success' => false ];
+				}
+			}
+			$variableId = $variable->id;
+
+			return [ 'success' => true, 'data' => [ 'variableId' => $variableId ] ];
+
+		} catch( Exception $e ) {
+
+			return ['success' => false ];
+		
 		}
-		$variableId = $variable->id;
 
-		return [ 'success' => true, 'data' => [ 'variableId' => $variableId ] ];
 	}
 
 	public function entity(Request $request) {
 		
-		$name = $request->get('name');
-		$entityCheck = ( $request->has( 'entityCheck' ) )? $request->get( 'entityCheck' ): false;
-		$inputFileDataId = ( $request->has( 'inputFileId' ) )? $request->get( 'inputFileId' ): '';
-		$datasourceId = ( $request->has( 'datasourceId' ) )? $request->get( 'datasourceId' ): '';
-		$variableId = ( $request->has( 'variableId' ) )? $request->get( 'variableId' ): '';
-		
-		$entityData = [ 'name' => $name, 'fk_ent_t_id' => 5, 'validated' => 0 ];
+		try {
 
-		if( $entityCheck ) {
-			//entity validation (only if not multivariant dataset)
-			//find corresponding iso code
-			$entityIsoName = EntityIsoName::match( $entityData['name'] )->first();
-			if(!$entityIsoName) {
-				return redirect()->route( 'import' )->with( 'message', 'Error non-existing entity in dataset.' )->with( 'message-class', 'error' );
-			}
-			//enter standardized info
-			$entityData['name'] = $entityIsoName->name;
-			$entityData['code'] = $entityIsoName->code;
-			$entityData['validated'] = 1;
-		}
-					
-		//find try finding entity in db
-		if( isset( $entityIsoName ) ) {
-			$entity = Entity::where( 'code', $entityIsoName->code )->first();
-		} else {
-			//not standardized data
-			$entity = Entity::where( 'code', $entityData['name'] )->orWhere( 'name', $entityData['name'] )->first();
-		}
-		
-		if( !$entity ) {
-			//entity haven't found in database, so insert it
-			$entity = Entity::create( $entityData ); 
-		}
-
-		//check to override validation if stored in db not validated and now is validate
-		if( $entity->validated == 0 && $entityData[ 'validated' ] === 1 ) {
-			$entity->validated = 1;
-			$entity->save();
-		}
-
-		$entityId = $entity->id;
-		$countryValues = $request->get( "values" );//$countryValue->values;
-
-		//prepare vars for mass insert
-		$times = [];
-		$values = [];
-
-		//TODO - get latest time for base timeId 
-		$lastTime = Time::orderBy('id', 'desc')->first();
-		$timeId = ( !empty( $lastTime  ) )? $lastTime->id: 0;
-
-		foreach( $countryValues as $value ) {
+			$name = $request->get('name');
+			$entityCheck = ( $request->has( 'entityCheck' ) )? $request->get( 'entityCheck' ): false;
+			$inputFileDataId = ( $request->has( 'inputFileId' ) )? $request->get( 'inputFileId' ): '';
+			$datasourceId = ( $request->has( 'datasourceId' ) )? $request->get( 'datasourceId' ): '';
+			$variableId = ( $request->has( 'variableId' ) )? $request->get( 'variableId' ): '';
 			
-			if( $this->hasValue( $value[ 'x' ] ) && $this->hasValue( $value[ 'y' ] ) ) {
+			$entityData = [ 'name' => $name, 'fk_ent_t_id' => 5, 'validated' => 0 ];
 
-				$timeId++;
+			if( $entityCheck ) {
+				//entity validation (only if not multivariant dataset)
+				//find corresponding iso code
+				$entityIsoName = EntityIsoName::match( $entityData['name'] )->first();
+				if(!$entityIsoName) {
+					return redirect()->route( 'import' )->with( 'message', 'Error non-existing entity in dataset.' )->with( 'message-class', 'error' );
+				}
+				//enter standardized info
+				$entityData['name'] = $entityIsoName->name;
+				$entityData['code'] = $entityIsoName->code;
+				$entityData['validated'] = 1;
+			}
+						
+			//find try finding entity in db
+			if( isset( $entityIsoName ) ) {
+				$entity = Entity::where( 'code', $entityIsoName->code )->first();
+			} else {
+				//not standardized data
+				$entity = Entity::where( 'code', $entityData['name'] )->orWhere( 'name', $entityData['name'] )->first();
+			}
+			
+			if( !$entity ) {
+				//entity haven't found in database, so insert it
+				$entity = Entity::create( $entityData ); 
+			}
 
-				//create time
-				$timeObj = $value[ 'x' ];
-				$timeValue = [ 
-					'startDate' => ( isset($timeObj['sd']) )? $timeObj['sd']: "", 
-					'endDate' => ( isset($timeObj['ed']) )? $timeObj['ed']: "", 
-					'date' =>  ( isset($timeObj['d']) )? $timeObj['d']: "", 
-					'label' =>  ( isset($timeObj['l']) )? $timeObj['l']: ""
-				];
-				//convert timedomain 
-				$fk_ttype_id = 1;
-				if( !empty($timeObj['td']) ) {
-					$ttQuery = TimeType::query();
-					$fk_ttype_id = $ttQuery->whereRaw( 'LOWER(`name`) like ?', [$timeObj['td']] )->first()->id;
-				} 	
-				$timeValue['fk_ttype_id'] = $fk_ttype_id;
+			//check to override validation if stored in db not validated and now is validate
+			if( $entity->validated == 0 && $entityData[ 'validated' ] === 1 ) {
+				$entity->validated = 1;
+				$entity->save();
+			}
 
-				//using mass insert instead
-				//$time = Time::create( $timeValue );
-				//$timeId = $time->id;
-				$times[] = $timeValue;
+			$entityId = $entity->id;
+			$countryValues = $request->get( "values" );//$countryValue->values;
 
-				//create value
-				$dataValueData = [ 'value' => $value['y'], 'fk_time_id' => $timeId, 'fk_input_files_id' => $inputFileDataId, 'fk_var_id' => $variableId, 'fk_ent_id' => $entityId, 'fk_dsr_id' => $datasourceId ];
+			//prepare vars for mass insert
+			$times = [];
+			$values = [];
+
+			//TODO - get latest time for base timeId 
+			$lastTime = Time::orderBy('id', 'desc')->first();
+			$timeId = ( !empty( $lastTime  ) )? $lastTime->id: 0;
+
+			foreach( $countryValues as $value ) {
 				
-				//using mass insert instead
-				//$dataValue = DataValue::create( $dataValueData );
-				$values[] = $dataValueData;
+				if( $this->hasValue( $value[ 'x' ] ) && $this->hasValue( $value[ 'y' ] ) ) {
+
+					$timeId++;
+
+					//create time
+					$timeObj = $value[ 'x' ];
+					$timeValue = [ 
+						'startDate' => ( isset($timeObj['sd']) )? $timeObj['sd']: "", 
+						'endDate' => ( isset($timeObj['ed']) )? $timeObj['ed']: "", 
+						'date' =>  ( isset($timeObj['d']) )? $timeObj['d']: "", 
+						'label' =>  ( isset($timeObj['l']) )? $timeObj['l']: ""
+					];
+					//convert timedomain 
+					$fk_ttype_id = 1;
+					if( !empty($timeObj['td']) ) {
+						$ttQuery = TimeType::query();
+						$fk_ttype_id = $ttQuery->whereRaw( 'LOWER(`name`) like ?', [$timeObj['td']] )->first()->id;
+					} 	
+					$timeValue['fk_ttype_id'] = $fk_ttype_id;
+
+					//using mass insert instead
+					//$time = Time::create( $timeValue );
+					//$timeId = $time->id;
+					$times[] = $timeValue;
+
+					//create value
+					$dataValueData = [ 'value' => $value['y'], 'fk_time_id' => $timeId, 'fk_input_files_id' => $inputFileDataId, 'fk_var_id' => $variableId, 'fk_ent_id' => $entityId, 'fk_dsr_id' => $datasourceId ];
+					
+					//using mass insert instead
+					//$dataValue = DataValue::create( $dataValueData );
+					$values[] = $dataValueData;
+
+				}
 
 			}
 
+			//mass insertion
+			Time::insert( $times );
+			DataValue::insert( $values );
+
+			return ['success' => true ];
+		
+		} catch( Exception $e ) {
+
+			return ['success' => false ];
+		
 		}
-
-		//mass insertion
-		Time::insert( $times );
-		DataValue::insert( $values );
-
-		return ['success' => true ];
-		//return ['success' => true, 'data' => [ 'id' => $chart->id, 'viewUrl' => route( 'view', $chart->id ) ] ];
-
+		
 	}
 
 	/**

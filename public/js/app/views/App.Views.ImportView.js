@@ -10,8 +10,6 @@
 		uploadedData: false,
 		variableNameManual: false,
 
-		massiveImport: false,
-
 		el: "#import-view",
 		events: {
 			"submit form": "onFormSubmit",
@@ -127,7 +125,7 @@
 			//normal version
 
 			//do we need to transpose data?
-			if( !this.massiveImport ) {
+			if( !this.isDataMultiVariant ) {
 				var isOriented = this.detectOrientation( data.rows );
 				if( !isOriented ) {
 					data.rows = App.Utils.transpose( data.rows );
@@ -261,7 +259,7 @@
 			
 			//massive import version
 			//var mappedData = App.Utils.mapPanelData( this.uploadedData.rows ),
-			var mappedData = ( !this.massiveImport )? ( this.isDataMultiVariant )? App.Utils.mapMultiVariantData( this.uploadedData.rows, "World" ): App.Utils.mapSingleVariantData( this.uploadedData.rows, this.datasetName ): App.Utils.mapPanelData( this.uploadedData.rows ),
+			var mappedData = ( !this.isDataMultiVariant )?  App.Utils.mapSingleVariantData( this.uploadedData.rows, this.datasetName ): App.Utils.mapMultiVariantData( this.uploadedData.rows ),
 				json = { "variables": mappedData },
 				jsonString = JSON.stringify( json );
 
@@ -274,9 +272,9 @@
 
 		validateEntityData: function( data ) {
 
-			if( this.isDataMultiVariant ) {
+			/*if( this.isDataMultiVariant ) {
 				return true;
-			}
+			}*/
 
 			//validateEntityData doesn't modify the original data
 			var $dataTableWrapper = $( ".csv-import-table-wrapper" ),
@@ -332,8 +330,8 @@
 				$dataTable = $dataTableWrapper.find( "table" ),
 				//massive import version
 				//timeDomain = $dataTable.find( "th:nth-child(2)" ).text(),
-				timeDomain = ( !this.massiveImport )? $dataTable.find( "th:first-child" ).text(): $dataTable.find( "th:nth-child(2)" ).text(),
-				$timesCells = ( !this.massiveImport )? $dataTable.find( "th" ): $dataTable.find( "td:nth-child(2)" );/*,
+				timeDomain = ( !this.isDataMultiVariant )? $dataTable.find( "th:first-child" ).text(): $dataTable.find( "th:nth-child(2)" ).text(),
+				$timesCells = ( !this.isDataMultiVariant )? $dataTable.find( "th" ): $dataTable.find( "td:nth-child(2)" );/*,
 				//massive import version
 				//$timesCells = $dataTable.find( "td:nth-child(2)" );/*,
 				times = _.map( $timesCells, function( v ) { return $( v ).text() } );*/
@@ -344,7 +342,7 @@
 			
 			//the first cell (timeDomain) shouldn't be validated
 			//massive import version - commented out next row
-			if( !this.massiveImport ) {
+			if( !this.isDataMultiVariant ) {
 				$timesCells = $timesCells.slice( 1 );
 			}
 			
@@ -363,7 +361,7 @@
 				var newValue,
 					//massive import version
 					//origValue = data[ i+1 ][ 1 ];
-					origValue = ( !that.massiveImport )? data[ 0 ][ i+1 ]: data[ i+1 ][ 1 ];
+					origValue = ( !that.isDataMultiVariant )? data[ 0 ][ i+1 ]: data[ i+1 ][ 1 ];
 				
 				//check value has 4 digits
 				origValue = App.Utils.addZeros( origValue );
@@ -493,7 +491,7 @@
 					newValue[ "td" ] = timeDomain;
 					
 					//initial was number/string so passed by value, need to insert it back to arreay
-					if( !that.massiveImport ) {
+					if( !that.isDataMultiVariant ) {
 						data[ 0 ][ i+1 ] = newValue;
 					} else {
 						data[ i+1 ][ 1 ] = newValue;
@@ -656,16 +654,10 @@
 			var $input = $( evt.currentTarget );
 			if( $input.val() === "1" ) {
 				this.isDataMultiVariant = true;
-				$( ".validation-result" ).remove();
-				$( ".entities-validation-wrapper" ).remove();
+				//$( ".validation-result" ).remove();
+				//$( ".entities-validation-wrapper" ).remove();
 			} else {
 				this.isDataMultiVariant = false;
-			}
-
-			if( $input.val() === "2" ) {
-				this.massiveImport = true;
-			} else {
-				this.massiveImport = false;
 			}
 
 			if( this.uploadedData && this.origUploadedData ) {
