@@ -16,6 +16,7 @@
 		@endif
 		<h2>Import</h2>
 		{!! Form::open(array('class' => 'form-inline validate-form', 'method' => 'post', 'url' => 'import/store')) !!}
+			<input name="user_id" class="" type="hidden" value="{!! \Auth::user()->id !!}" />
 			<section class="form-section dataset-section">
 					<div class="form-section-header">
 						<h3><span class="form-section-digit">1</span>Choose your dataset</h3>
@@ -58,6 +59,7 @@
 						<fieldset class="dataset-type-radiogroup">
 							<label><input type="radio" class="" name="multivariant_dataset" value="0" checked/> Single variable in dataset</label>
 							<label><input type="radio" class="" name="multivariant_dataset" value="1" /> Multiple variables in dataset</label>
+							<label><input type="radio" class="" name="multivariant_dataset" value="2" /> Panel variables in dataset</label>
 						</fieldset>
 					</div>
 			</section>
@@ -166,6 +168,10 @@
 	</div>
 @endsection
 
+@section('outter-content')
+	@include('import/partials/_import-progress-popup')
+@endsection
+
 @section('scripts')
 	<script src="{{ asset('js/libs/papaparse.js') }}?bust={!!time()!!}"></script>
 	<script src="{{ asset('js/libs/moments.min.js') }}?bust={!!time()!!}"></script>
@@ -174,6 +180,7 @@
 	<script src="{{ asset('js/app/models/import/App.Models.Import.DatasetModel.js') }}?bust={!!time()!!}"></script>
 	<script src="{{ asset('js/app/models/import/App.Models.Import.VariableModel.js') }}?bust={!!time()!!}"></script>
 	<script src="{{ asset('js/app/models/import/App.Models.Import.EntityModel.js') }}?bust={!!time()!!}"></script>
+	<script src="{{ asset('js/app/views/ui/App.Views.UI.ImportProgressPopup.js') }}?bust={!!time()!!}"></script>
 	<script src="{{ asset('js/app/models/App.Models.Importer.js') }}?bust={!!time()!!}"></script>
 	<script src="{{ asset('js/app/views/App.Views.ImportView.js') }}?bust={!!time()!!}"></script>
 @endsection

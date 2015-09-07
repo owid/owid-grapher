@@ -331,19 +331,16 @@ class ImportController extends Controller {
 			return [ 'success' => true, 'data' => [ 'datasourceId' => $datasourceId ] ];
 		}
 
-		return [ 'success' => false, 'data' => [ 'datasetId' => $datasetId ] ];
+		return [ 'success' => false ];
 
 	}
 
 	public function dataset(Request $request) {
 
-		//temp
-		$datasourceId = 1;
-		//end temp
-
 		$datasetName = ( $request->has( 'name' ) )? $request->get( 'name' ): '';
 		$datasetTags = ( $request->has( 'datasetTags' ) )? $request->get( 'datasetTags' ): '';
 		$datasetDescription = ( $request->has( 'description' ) )? $request->get( 'description' ): '';
+		$datasourceId = ( $request->has( 'datasourceId' ) )? $request->get( 'datasourceId' ): '';
 		$datasetCategoryId = ( $request->has( 'categoryId' ) )? $request->get( 'categoryId' ): '';
 		$datasetSubcategoryId = ( $request->has( 'subcategoryId' ) )? $request->get( 'subcategoryId' ): '';
 
@@ -368,11 +365,6 @@ class ImportController extends Controller {
 
 	public function variable(Request $request) {
 
-		//temp
-		$datasetId = 1;
-		$datasourceId = 1;
-		//end temp
-
 		$variableObj = $request->all();
 		
 		$varId = ( $request->has( 'id' ) )? $request->get( 'id' ): '';
@@ -381,6 +373,9 @@ class ImportController extends Controller {
 		$varUnit = ( $request->has( 'unit' ) )? $request->get( 'unit' ): '';
 		$varDescription = ( $request->has( 'description' ) )? $request->get( 'description' ): '';
 
+		$datasetId = ( $request->has( 'datasetId' ) )? $request->get( 'datasetId' ): '';
+		$datasourceId = ( $request->has( 'datasourceId' ) )? $request->get( 'datasourceId' ): '';
+		
 		//$variableObj = json_decode( $variableJsonString, false );
 		$variableData = [ 'name' => $varName, 'fk_var_type_id' => $varType, 'fk_dst_id' => $datasetId, 'unit' => $varUnit, 'description' => $varDescription, 'fk_dsr_id' => $datasourceId ];
 
@@ -401,14 +396,12 @@ class ImportController extends Controller {
 
 	public function entity(Request $request) {
 		
-		//temp
-		$entityCheck = false;
-		$inputFileDataId = 7;
-		$datasourceId = 1;
-		$variableId = 1;
-		//end temp
-
 		$name = $request->get('name');
+		$entityCheck = ( $request->has( 'entityCheck' ) )? $request->get( 'entityCheck' ): false;
+		$inputFileDataId = ( $request->has( 'inputFileId' ) )? $request->get( 'inputFileId' ): '';
+		$datasourceId = ( $request->has( 'datasourceId' ) )? $request->get( 'datasourceId' ): '';
+		$variableId = ( $request->has( 'variableId' ) )? $request->get( 'variableId' ): '';
+		
 		$entityData = [ 'name' => $name, 'fk_ent_t_id' => 5, 'validated' => 0 ];
 
 		if( $entityCheck ) {

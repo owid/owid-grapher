@@ -157,3 +157,58 @@
 		.import-view .send-notification i {
 			margin-right: 5px;
 		}
+
+/** 
+* progress import popup
+**/
+.import-progress-popup {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 1040;
+	display: none;
+}
+	.import-progress-popup .modal {
+		display: block;
+		text-align: center;
+		background: rgba(0,0,0,0.6);
+	}
+		.import-progress-popup .modal-title {
+			text-transform: uppercase;
+		}
+		.import-progress-popup .modal-body {
+			overflow: auto;
+			max-height: 200px;
+			margin-right: 10px;
+			font-size: 16px;
+    	}
+			.import-progress-popup .modal-body p.success,
+			.import-progress-popup .modal-title.success {
+				color: #00a65a;
+			}
+			.import-progress-popup .modal-body p.error,
+			.import-progress-popup .modal-title.error {
+				color: #dd4b39;
+			}
+			.import-progress-popup .modal-body p .fa {
+				margin-right: 10px;
+			}
+		.import-progress-popup .modal-dialog {
+			width: 300px;
+			margin: 15% auto;
+		}
+	
+	.import-progress-popup .modal-footer {
+		display: none;
+		text-align: center;
+	}
+		.import-progress-popup .modal-footer .btn-success {
+			padding: 8px 16px;
+			text-transform: uppercase;
+		}
+		.import-progress-popup .fa-spinner {
+			margin-left: 10px;
+		}
+		

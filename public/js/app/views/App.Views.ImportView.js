@@ -32,9 +32,9 @@
 			this.dispatcher = options.dispatcher;
 			this.render();
 			this.initUpload();
-			
-			var importer = new App.Models.Importer();
-			importer.uploadFormData();
+
+			/*var importer = new App.Models.Importer();
+			importer.uploadFormData();*/
 
 		},
 
@@ -662,6 +662,12 @@
 				this.isDataMultiVariant = false;
 			}
 
+			if( $input.val() === "2" ) {
+				this.massiveImport = true;
+			} else {
+				this.massiveImport = false;
+			}
+
 			if( this.uploadedData && this.origUploadedData ) {
 
 				//insert original uploadedData into array before processing
@@ -676,6 +682,8 @@
 		},
 
 		onFormSubmit: function( evt ) {
+
+			evt.preventDefault();
 
 			var $validateEntitiesCheckbox = $( "[name='validate_entities']" ),
 				validateEntities = ( $validateEntitiesCheckbox.is( ":checked" ) )? false: true,
@@ -733,6 +741,19 @@
 			$btn.css( "opacity", 0.5 );
 
 			$btn.after( "<p class='send-notification'><i class='fa fa-spinner fa-spin'></i>Sending form</p>" );
+
+			//serialize array
+			var $form = $( "#import-view > form" );
+			
+			var importer = new App.Models.Importer( { dispatcher: this.dispatcher } );
+			importer.uploadFormData($form);
+
+			var importProgress = new App.Views.UI.ImportProgressPopup();
+			importProgress.init( { dispatcher: this.dispatcher } );
+			importProgress.show();
+
+			return false;
+
 
 		}
 
