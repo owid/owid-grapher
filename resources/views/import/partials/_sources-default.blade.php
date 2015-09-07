@@ -27,7 +27,7 @@
 		<td><a href="http://www.blahblah.com">e.g. http://www.blahblah.com</a></td>
 	</tr>
 	<tr>
-		<td><span class="datasource-property">Retreived</span></td>
+		<td><span class="datasource-property">Retrieved</span></td>
 		<td>e.g. 18/08/2015</td>
 	</tr>
 </table>
