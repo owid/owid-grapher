@@ -102,11 +102,11 @@
 
 		var varPerRowData = App.Utils.transpose( transposed ),
 			entitiesRow = varPerRowData.shift(),
-			timesRow = varPerRowData.shift(),
-			entities = {};
+			timesRow = varPerRowData.shift();
 
 		_.each( varPerRowData, function( values, varIndex ) {
-
+			
+			var entities = {};
 			//iterate through all values for given variable
 			_.each( values, function( value, key ) {
 				var entity = entitiesRow[ key ],
