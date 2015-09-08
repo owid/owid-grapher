@@ -1,5 +1,9 @@
 ## INTRO
 This project contains chart building tool which enables to upload csv data and create interactive charts with drag&drop interface.
+
+We have decided that it doesn't make sense to develop it within private repo so here it is. Feel free to fork it and play around. Please be aware this is work in progress and things will keep changing.
+
+## STACK
 Backend is written in PHP using Laravel Framework. Frontend is written using Backbone.js and NVD3.js.
 	
 ## SETUP
