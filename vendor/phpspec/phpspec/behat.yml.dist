@@ -1,0 +1,13 @@
+default:
+  suites:
+    application:
+      contexts: [ ApplicationContext, FilesystemContext ]
+  formatters:
+    progress: ~
+
+smoke:
+  suites:
+    smoke:
+      contexts: [ IsolatedProcessContext, FilesystemContext ]
+      filters: { tags: @smoke }
+

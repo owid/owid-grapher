@@ -1,0 +1,35 @@
+
+.tt-dropdown-menu {
+    margin-top: 0;
+    padding: 0 0;
+    background-color: #fff;
+    border: 1px solid #ccc;
+}
+.tt-suggestion {
+    padding: 3px 10px;
+    line-height: 22px;
+    border-top: #e5e5e5 solid 1px;
+
+}
+.tt-suggestion.tt-cursor {
+    color: #fff;
+    background-color: #428bca;
+}
+.tt-suggestion:hover {
+    cursor: pointer;
+    color: #fff !important;
+}
+.tt-suggestion p {
+    margin: 0;
+    white-space: nowrap !important;
+}
+.twitter-typeahead {
+    width: 100%;
+}
+.tt-dropdown-menu {
+
+    width: 80%;
+}
+.tt-hint {
+    width: 100%;
+}
