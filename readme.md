@@ -23,7 +23,7 @@ Once response is received, ChartModel passes data to [ChartView](public/js/app/v
 2. Chart builder module
 Form for creating new chart is accessible at: public/charts/create
 Form dynamically creates charts by assigning properties of [Backbone model](public/js/app/models/App.Models.ChartModel.js)
-Most of the logic is contained in [FormView.js](public/js/app/views/ui/App.Views.FormView.js) and Backbone views stored in public/js/app/views/form folder.		
+Most of the logic is contained in [FormView.js](public/js/app/views/App.Views.FormView.js) and Backbone views stored in public/js/app/views/form folder.		
 
 3. Import module
 Import module is accessible at: public/import
