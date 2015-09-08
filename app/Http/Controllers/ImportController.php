@@ -355,25 +355,35 @@ class ImportController extends Controller {
 
 		try {
 			
-			$datasetName = ( $request->has( 'name' ) )? $request->get( 'name' ): '';
-			$datasetTags = ( $request->has( 'datasetTags' ) )? $request->get( 'datasetTags' ): '';
-			$datasetDescription = ( $request->has( 'description' ) )? $request->get( 'description' ): '';
-			$datasourceId = ( $request->has( 'datasourceId' ) )? $request->get( 'datasourceId' ): '';
-			$datasetCategoryId = ( $request->has( 'categoryId' ) )? $request->get( 'categoryId' ): '';
-			$datasetSubcategoryId = ( $request->has( 'subcategoryId' ) )? $request->get( 'subcategoryId' ): '';
+			if( $request->input( 'new_dataset' ) === '1' ) {
+			
+				//creating new dataset
+				$datasetName = ( $request->has( 'name' ) )? $request->get( 'name' ): '';
+				$datasetTags = ( $request->has( 'datasetTags' ) )? $request->get( 'datasetTags' ): '';
+				$datasetDescription = ( $request->has( 'description' ) )? $request->get( 'description' ): '';
+				$datasourceId = ( $request->has( 'datasourceId' ) )? $request->get( 'datasourceId' ): '';
+				$datasetCategoryId = ( $request->has( 'categoryId' ) )? $request->get( 'categoryId' ): '';
+				$datasetSubcategoryId = ( $request->has( 'subcategoryId' ) )? $request->get( 'subcategoryId' ): '';
 
-			$datasetData = [ 'name' => $datasetName, 'fk_dst_cat_id' => $datasetCategoryId, 'fk_dst_subcat_id' => $datasetSubcategoryId, 'description' => $datasetDescription, 'fk_dsr_id' => $datasourceId ];
-			$dataset = Dataset::create( $datasetData );
-			$datasetId = $dataset->id;
-				
-			//process possible tags
-			if( !empty( $datasetTags ) ) {
-				$tagsArr = explode( ',', $datasetTags );
-				foreach( $tagsArr as $tag ) {
-					$tag = DatasetTag::create( [ 'name' => $tag ] );
-					$tagId = $tag->id;
-					$datasetTagLink = LinkDatasetsTags::create( [ 'fk_dst_id' => $datasetId, 'fk_dst_tags_id' => $tagId ] );
+				$datasetData = [ 'name' => $datasetName, 'fk_dst_cat_id' => $datasetCategoryId, 'fk_dst_subcat_id' => $datasetSubcategoryId, 'description' => $datasetDescription, 'fk_dsr_id' => $datasourceId ];
+				$dataset = Dataset::create( $datasetData );
+				$datasetId = $dataset->id;
+					
+				//process possible tags
+				if( !empty( $datasetTags ) ) {
+					$tagsArr = explode( ',', $datasetTags );
+					foreach( $tagsArr as $tag ) {
+						$tag = DatasetTag::create( [ 'name' => $tag ] );
+						$tagId = $tag->id;
+						$datasetTagLink = LinkDatasetsTags::create( [ 'fk_dst_id' => $datasetId, 'fk_dst_tags_id' => $tagId ] );
+					}
 				}
+
+			} else {
+				
+				//existing dataset - do nothing for now
+				$datasetId = $request->input( 'existing_dataset_id' );
+				
 			}
 
 			return [ 'success' => true, 'data' => [ 'datasetId' => $datasetId ] ];
@@ -393,7 +403,7 @@ class ImportController extends Controller {
 
 			$variableObj = $request->all();
 			
-			$varId = ( $request->has( 'id' ) )? $request->get( 'id' ): '';
+			$varId = ( $request->has( 'varId' ) )? $request->get( 'varId' ): '';
 			$varName = ( $request->has( 'name' ) )? $request->get( 'name' ): '';
 			$varType = ( $request->has( 'variableType' ) )? $request->get( 'variableType' ): 1;
 			$varUnit = ( $request->has( 'unit' ) )? $request->get( 'unit' ): '';
@@ -411,7 +421,7 @@ class ImportController extends Controller {
 				$variable = Variable::create( $variableData ); 
 			} else {
 				//update variable
-				$variable = Variable::find( $variableObj[ 'id' ] );
+				$variable = Variable::find( $varId );
 				if( !empty( $variable ) ) {
 					$variable->fill( $variableData );
 					$variable->save();
@@ -489,7 +499,7 @@ class ImportController extends Controller {
 
 			foreach( $countryValues as $value ) {
 				
-				if( $this->hasValue( $value[ 'x' ] ) && $this->hasValue( $value[ 'y' ] ) ) {
+				if( isset( $value[ 'x' ] ) && isset( $value[ 'y' ] ) && $this->hasValue( $value[ 'x' ] ) && $this->hasValue( $value[ 'y' ] ) ) {
 
 					$timeId++;
 

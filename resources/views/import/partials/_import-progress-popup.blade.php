@@ -3,7 +3,7 @@
 		<div class="modal-dialog">
 			<div class="modal-content">
 				<div class="modal-header">
-					<h4 class="modal-title">Import progress <i class="fa fa-spin fa-spinner"></i></h4>
+					<h4 class="modal-title"><i class="fa fa-spin fa-spinner"></i>Import progress<span class="progress"></span></h4>
 				</div>
 				<div class="modal-body">
 					<div class="modal-body-inner"></div>

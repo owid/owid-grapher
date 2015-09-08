@@ -234,7 +234,7 @@
 			$li.append( $inputUnit );
 			$li.append( $inputDescription );
 			$li.append( $inputData );
-
+				
 			var that = this,
 				$inputs = $li.find( "input" );
 			$inputs.on( "input", function( evt ) {
@@ -704,28 +704,41 @@
 				$sourceValidationNotice.remove();
 			}
 
+			//category validation
+			var $categoryValidationNotice = $( ".category-validation-result" );
+			if( !this.$categorySelect.val() || !this.$subcategorySelect.val() ) {
+				if( !$categoryValidationNotice.length ) {
+					$categoryValidationNotice = $( "<p class='category-validation-result validation-result text-danger'><i class='fa fa-exclamation-circle'> Please choose category for uploaded data.</p>" );
+					this.$categorySelect.before( $categoryValidationNotice );
+				} {
+					$categoryValidationNotice.show();
+				}
+			} else {
+				//valid, make sure to remove
+				$categoryValidationNotice.remove();
+			}
+
 			//different scenarios of validation
-			if( validateEntities && !this.isDataMultiVariant ) {
+			if( validateEntities ) {
 				//validate both time and entitiye
 				$validationResults = $( ".validation-result.text-danger" );
-			} else if( !validateEntities && !this.isDataMultiVariant ) {
+			} else if( !validateEntities ) {
 				//validate only time
-				$validationResults = $( ".time-domain-validation-result.text-danger, .times-validation-result.text-danger" );
-			} else if( validateEntities && !this.isDataMultiVariant ) {
-				//validate only entities
-				$validationResults = $( ".entities-validation-result.text-danger" );
+				$validationResults = $( ".time-domain-validation-result.text-danger, .times-validation-result.text-danger, .source-validation-result, .category-validation-result" );
 			} else {
 				//do not validate
 			}
 			
-			/*if( $validationResults.length ) {
+			console.log( "validationResults.length", $validationResults.length );
+
+			if( $validationResults.length ) {
 				//do not send form and scroll to error message
 				evt.preventDefault();
 				$('html, body').animate({
 					scrollTop: $validationResults.offset().top - 18
 				}, 300);
 				return false;
-			}*/
+			}
 			
 			//evt 
 			var $btn = $( "[type=submit]" );
@@ -738,7 +751,7 @@
 			var $form = $( "#import-view > form" );
 			
 			var importer = new App.Models.Importer( { dispatcher: this.dispatcher } );
-			importer.uploadFormData($form);
+			importer.uploadFormData( $form, this.origUploadedData );
 
 			var importProgress = new App.Views.UI.ImportProgressPopup();
 			importProgress.init( { dispatcher: this.dispatcher } );

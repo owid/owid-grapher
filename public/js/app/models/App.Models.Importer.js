@@ -4,14 +4,17 @@
 
 	App.Models.Importer = Backbone.Model.extend( {
 
-	
+		numSteps: 0,
+		nowStep: 0,
+		nowVariableName: "",
+
 		initialize: function ( options ) {
 
 			this.dispatcher = options.dispatcher;
 
 		},
 
-		uploadFormData: function( $form ) {
+		uploadFormData: function( $form, origUploadedData ) {
 
 			if( !$form || !$form.length ) {
 				return false;
@@ -36,8 +39,16 @@
 				}
 			} );
 
+			var entityCheck = ( formData[ "validate_entities" ] == "on" )? false: true;
+
+			this.set( "entityCheck", entityCheck );
 			this.set( "formData", formData );
 			
+			//store number of steps needed
+			this.numSteps = this.getNumberOfSteps( formData );//( origUploadedData && origUploadedData.rows && origUploadedData.rows.length)? origUploadedData.rows.length : 0;
+			//add extra steps
+			this.numSteps += 3;
+
 			try {
 				
 				//start import
@@ -48,6 +59,22 @@
 				console.error( "Error uploading data", err, this );
 				
 			}
+
+		},
+
+		getNumberOfSteps: function( formData ) {
+			var numSteps = 0;
+			if( formData && formData.variables ) {
+				_.each( formData.variables, function( v, i ) {
+					numSteps++;
+					var varData = $.parseJSON( v )
+					if( varData && varData.values ) {
+						console.log( "varData", varData, varData.values );
+						numSteps += varData.values.length;
+					}
+				} );
+			}
+			return numSteps;
 
 		},
 
@@ -69,9 +96,10 @@
 			inputFileModel.on( "sync", function( model, resp ) {
 				
 				if( resp && resp.success ) {
+					that.nowStep++;
 					that.set( "inputFileId", resp.data.inputFileId );
 					that.createDatasource();
-					that.dispatcher.trigger( "import-progress", "Created input file", true );
+					that.dispatcher.trigger( "import-progress", "Created input file", true, that.nowStep + "/" + that.numSteps );
 				} else {
 					that.dispatcher.trigger( "import-progress", "Error creating input file", false );
 				}
@@ -91,9 +119,10 @@
 			datasourceModel.on( "sync", function( model, resp ) {
 				
 				if( resp && resp.success ) {
+					that.nowStep++;
 					that.set( "datasourceId", resp.data.datasourceId );
 					that.createDataset();
-					that.dispatcher.trigger( "import-progress", "Created datasource", true );
+					that.dispatcher.trigger( "import-progress", "Created datasource", true, that.nowStep + "/" + that.numSteps );
 				} else {
 					that.dispatcher.trigger( "import-progress", "Error creating datasource", false );
 				}
@@ -105,16 +134,18 @@
 			//create dataset
 			var that = this,
 				formData = this.get( "formData" ),
-				datasetData = { "name": formData.new_dataset_name, "datasetTags": formData.new_dataset_tags, "description": formData.new_dataset_description, "categoryId": formData.category_id, "subcategoryId": formData.subcategory_id, "datasourceId": this.get( "datasourceId" ) },
+				datasetData = { "name": formData.new_dataset_name, "datasetTags": formData.new_dataset_tags, "description": formData.new_dataset_description, "categoryId": formData.category_id, "subcategoryId": formData.subcategory_id, "datasourceId": this.get( "datasourceId" ),
+				"new_dataset": formData.new_dataset, "existing_dataset_id": formData.existing_dataset_id },
 				datasetModel = new App.Models.Import.DatasetModel( datasetData );
 			
 			datasetModel.import();
 			datasetModel.on( "sync", function( model, resp ) {
 				
 				if( resp && resp.success ) {
+					that.nowStep++;
 					that.set( "datasetId", resp.data.datasetId );
 					that.createVariables();
-					that.dispatcher.trigger( "import-progress", "Created dataset", true );
+					that.dispatcher.trigger( "import-progress", "Created dataset", true, that.nowStep + "/" + that.numSteps );
 				} else {
 					that.dispatcher.trigger( "import-progress", "Error creating dataset", false );
 				}
@@ -139,7 +170,6 @@
 
 			var next = function() {
 
-				console.log( "next", len, curr );
 				if( curr < len ) {
 
 					var variableDataString = variables[ curr ],
@@ -149,7 +179,7 @@
 
 				} else {
 
-					that.dispatcher.trigger( "import-progress", "Finish creating variables", true, true, that.get( "datasetId" ) );
+					that.dispatcher.trigger( "import-progress", "Finish creating variables", true, that.nowStep + "/" + that.numSteps, true, that.get( "datasetId" ) );
 
 				}
 
@@ -164,9 +194,16 @@
 			if( variableData && variableData.values ) {
 
 				var formData = this.get( "formData" );
+				
+				//transform variable id
+				variableData.varId = variableData.id;
+
 				variableData.variableType = formData.variable_type.value;
 				variableData.datasetId = this.get( "datasetId" );
 				variableData.datasourceId = this.get( "datasourceId" );
+
+				//store variable name
+				this.nowVariableName = variableData.name;
 
 				var that = this,
 					variableModel = new App.Models.Import.VariableModel( variableData );
@@ -196,14 +233,15 @@
 
 			var next = function() {
 
-				if( curr < len-1 ) {
+				if( curr < len ) {
 
 					that.createEntity( values[ curr ], variableId, next );
 					curr++;
 
 				} else {
 
-					that.dispatcher.trigger( "import-progress", "Finish creating entities", true );
+					that.nowStep++;
+					that.dispatcher.trigger( "import-progress", "Finish creating entities", true, that.nowStep + "/" + that.numSteps );
 
 					if( callback ) {
 						callback();
@@ -223,7 +261,7 @@
 
 			//insert all values that are necessary
 			entityData.name = entityData.key;
-			entityData.entityCheck = false;
+			entityData.entityCheck = this.get( "entityCheck" );
 			entityData.inputFileId = this.get( "inputFileId" );
 			entityData.datasourceId = this.get( "datasourceId" );
 			entityData.variableId = variableId;
@@ -231,8 +269,8 @@
 			var entityModel = new App.Models.Import.EntityModel( entityData );
 			entityModel.import();
 			entityModel.on( "sync", function( model, resp ) {
-				console.log( "finish creating entity" );
-				that.dispatcher.trigger( "import-progress", "Created entity: " + entityData.name, true );
+				that.nowStep++;
+				that.dispatcher.trigger( "import-progress", "Importing " + that.nowVariableName + " for " + entityData.name, true, that.nowStep + "/" + that.numSteps );
 				if( callback ) {
 					callback();
 				}

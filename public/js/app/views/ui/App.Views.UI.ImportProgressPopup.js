@@ -20,6 +20,7 @@
 
 			this.$el = $( ".import-progress-popup" );
 			this.$title = this.$el.find( ".modal-title" );
+			this.$progress = this.$title.find( ".progress" );
 			this.$body = this.$el.find( ".modal-body" );
 			this.$bodyInner = this.$el.find( ".modal-body-inner" );
 			this.$footer = this.$el.find( ".modal-footer" );
@@ -31,11 +32,16 @@
 
 		},
 
-		onImportProgress: function( msg, success, finish, datasetId ) {
+		onImportProgress: function( msg, success, progress, finish, datasetId ) {
 			
 			var className = ( success )? "success": "error",
 				icon = ( success )? "<i class='fa fa-check'></i>": "<i class='fa fa-times'></i>";
 			this.$bodyInner.append( "<p class='" + className + "'>" + icon + msg + "</p>" );
+
+			//update progress
+			if( progress ) {
+				this.$progress.text( progress );
+			}
 
 			//animate
 			this.$body.animate( {scrollTop: this.$bodyInner.height()}, 'fast');

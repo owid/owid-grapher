@@ -180,7 +180,7 @@
 		}
 		.import-progress-popup .modal-body {
 			overflow: auto;
-			max-height: 200px;
+			max-height: 300px;
 			margin-right: 10px;
 			font-size: 16px;
     	}
@@ -195,9 +195,16 @@
 			.import-progress-popup .modal-body p .fa {
 				margin-right: 10px;
 			}
+			.import-progress-popup .modal-title .progress {
+				margin-left: 5px;
+				font-size: 12px;
+				font-style: italic;
+				background-color: #fff;
+			}
+			
 		.import-progress-popup .modal-dialog {
-			width: 300px;
-			margin: 15% auto;
+			width: 500px;
+			margin: 11% auto;
 		}
 	
 	.import-progress-popup .modal-footer {
@@ -209,6 +216,7 @@
 			text-transform: uppercase;
 		}
 		.import-progress-popup .fa-spinner {
-			margin-left: 10px;
+			margin-left: 5px;
+			margin-right: 5px;
 		}
 		
