@@ -1,8 +1,4 @@
 @extends('app')
-
-@section('styles')
-	<link href="{{ asset('css/admin/charts.css') }}" rel="stylesheet" type="text/css">
-@endsection
  
 @section('content')
 	<div style="position:absolute;top:0;left:0;right:0;bottom:0;">

@@ -10,14 +10,8 @@
 		<link rel="apple-touch-icon" href="apple-touch-icon.png">
 		<!-- Place favicon.ico in the root directory -->
 
-		<link href="{{ asset('css/libs/bootstrap.min.css') }}" rel="stylesheet" type="text/css" />    
-		<link href="{{ asset('css/libs/font-awesome/css/font-awesome.min.css') }}" rel="stylesheet" type="text/css" />
-		<link href="{{ asset('css/libs/chosen.css') }}" rel="stylesheet" type="text/css" />
-		
-		<!-- <link href="http://code.ionicframework.com/ionicons/2.0.0/css/ionicons.min.css" rel="stylesheet" type="text/css" />  -->  
-		
-		<link href="{{ asset('css/nv.d3.css') }}" rel="stylesheet" type="text/css">
-		<link href="{{ asset('css/main.css') }}" rel="stylesheet" type="text/css">
+		<link href="{{ asset('css/libs/front.css') }}" rel="stylesheet" type="text/css" />
+		<link href="{{ asset('css/front.css') }}" rel="stylesheet" type="text/css" />
 		
 		@yield('styles')
 
