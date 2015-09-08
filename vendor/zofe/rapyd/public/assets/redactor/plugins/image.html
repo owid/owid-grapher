@@ -1,0 +1,39 @@
+<div id="redactor_tabs">
+	<a href="javascript:void(null);" class="redactor_tabs_act">%RLANG.upload%</a>	
+	<a href="javascript:void(null);">%RLANG.choose%</a>		
+	<a href="javascript:void(null);">%RLANG.link%</a>		
+</div>
+
+
+<form id="redactorInsertImageForm" method="post" action="" enctype="multipart/form-data">	
+	<div id="redactor_tab1" class="redactor_tab">
+		<input type="file" id="redactor_file" name="file" />
+	</div>	
+	<div id="redactor_tab2" class="redactor_tab" style="display: none;">
+		<div id="redactor_image_box"></div>
+	</div>	
+</form>	
+
+	
+<div id="redactor_tab3" class="redactor_tab" style="display: none;">
+	<table class="redactor_ruler" width="100%">
+		<tr>
+			<td nowrap>%RLANG.image_web_link%</td>
+			<td width="100%"><input name="redactor_file_link" id="redactor_file_link"  style="width: 99%"  /></td>
+		</tr>
+		<tr>
+			<td></td>
+			<td>
+
+				<span class="redactor_btns_box">
+					<input type="button" name="upload" id="redactor_upload_btn" value="%RLANG.insert%" />&nbsp;&nbsp;
+					<a href="javascript:void(null);" style="color: #777; font-size: 12px;" id="redactor_btn_modal_close">%RLANG.cancel%</a>
+				</span>
+				<div style="clear: both;"></div>					
+				
+			</td>
+		</tr>
+	
+	</table>
+</div>
+
