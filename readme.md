@@ -16,7 +16,7 @@ The entire tool can be divided into four main modules and here’s a very brief 
 
 1. Chart viewer module 
 Tool uses NVD3 to create charts from data stored in database. For each chart, we store json configuration which determines which datasets are used for different dimensions of chart (e.g. X axis, Y axis) together with other chart settings (labels, selected countries, period etc.).
-JSON configuration is loaded by Backbone model in [a relative link](public/js/app/models/App.Models.ChartModel.js) which calls backed to retrieve data necessary for given chart.
+JSON configuration is loaded by Backbone model in [a relative link](our-world-in-data-chart-builder/public/js/app/models/App.Models.ChartModel.js) which calls backed to retrieve data necessary for given chart.
 AJAX request from ChartModel is passed to DataController [a relative link](app/Http/DataController.php) which contains logic for composing response with data for charts. In most cases, DataController calls one the data processing methods of Chart model (app/Http/Chart.php), which correctly formats data for different chart types.
 Once response is received, ChartModel passes data to ChartView [a relative link](public/js/app/views/App.Views.ChartView.js) which takes care of actually creating NVD3 chart with all the necessary configuration from JSON configuration. 
 
