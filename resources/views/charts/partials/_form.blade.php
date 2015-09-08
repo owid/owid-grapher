@@ -13,14 +13,14 @@
 					<li>
 						<a href="#axis-tab" data-toggle="tab" aria-expanded="false">3. Axis</a>
 					</li>
-					<li>
+					<li style="display:none">
 						<a href="#sources-tab" data-toggle="tab" aria-expanded="false">4. Sources</a>
 					</li>
 					<li>
-						<a href="#styling-tab" data-toggle="tab" aria-expanded="false">5. Styling</a>
+						<a href="#styling-tab" data-toggle="tab" aria-expanded="false">4. Styling</a>
 					</li>
 					<li>
-						<a href="#export-tab" data-toggle="tab" aria-expanded="false">6. Export</a>
+						<a href="#export-tab" data-toggle="tab" aria-expanded="false">5. Export</a>
 					</li>
 				</ul>
 			</div>
