@@ -1,10 +1,5 @@
 @extends('view')
 
-@section('styles')
-	<link href="{{ asset('css/chart.css') }}" rel="stylesheet" type="text/css">
-	<link href="{{ asset('css/main.css') }}" rel="stylesheet" type="text/css">
-@endsection
-
 @section('content')
 	<div class="standalone-chart-viewer" style="position:absolute;top:0;left:0;right:0;bottom:0;">
 		@include('charts/partials/_chart')

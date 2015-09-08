@@ -1,9 +1,5 @@
 @extends('app')
 
-@section('styles')
-	<link href="{{ asset('css/admin/import.css') }}" rel="stylesheet" type="text/css">
-@endsection
-
 @section('content')
 	<div id="import-view" class="col-sm-12 import-view">
 		@if($errors->has())

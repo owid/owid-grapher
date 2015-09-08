@@ -10,28 +10,9 @@
 		<link rel="apple-touch-icon" href="apple-touch-icon.png">
 		<!-- Place favicon.ico in the root directory -->
 
-		<link href="{{ asset('css/libs/bootstrap.min.css') }}" rel="stylesheet" type="text/css" />    
-		<link href="{{ asset('css/libs/font-awesome/css/font-awesome.min.css') }}" rel="stylesheet" type="text/css" />
-		<!-- <link href="http://code.ionicframework.com/ionicons/2.0.0/css/ionicons.min.css" rel="stylesheet" type="text/css" />  -->  
-		<link href="{{ asset('css/libs/AdminLTE.min.css') }}" rel="stylesheet" type="text/css" />
-		<link href="{{ asset('css/libs/datepicker3.css') }}" rel="stylesheet" type="text/css" />
-		<link href="{{ asset('css/libs/_all-skins.min.css') }}" rel="stylesheet" type="text/css" />
-		
-		<link href="{{ asset('css/libs/ion.rangeSlider.css') }}" rel="stylesheet" type="text/css" />
-		<link href="{{ asset('css/libs/ion.rangeSlider.skinFlat.css') }}" rel="stylesheet" type="text/css" />
-		
-		<link href="{{ asset('css/libs/bootstrap3-wysihtml5.min.css') }}" rel="stylesheet" type="text/css" />
-		
-		<link href="{{ asset('css/libs/chosen.css') }}" rel="stylesheet" type="text/css" />
-		
-		<link href="{{ asset('css/nv.d3.css') }}" rel="stylesheet" type="text/css">
-		
-		<link href="{{ asset('css/admin/admin.css') }}" rel="stylesheet" type="text/css">
-		<link href="{{ asset('css/admin/data.css') }}" rel="stylesheet" type="text/css">
-		
-		<link href="{{ asset('css/chart.css') }}" rel="stylesheet" type="text/css">
-		<link href="{{ asset('css/main.css') }}" rel="stylesheet" type="text/css">
-		
+		<link href="{{ asset('css/libs/admin.css') }}" rel="stylesheet" type="text/css" />
+		<link href="{{ asset('css/admin.css') }}" rel="stylesheet" type="text/css" />
+
 		@yield('styles')
 
 		<script src="{{ asset('js/libs/modernizr-2.8.3.min.js') }}"></script>
