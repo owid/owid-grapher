@@ -28,7 +28,7 @@ Most of the logic is contained in [FormView.js](public/js/app/views/ui/App.Views
 3. Import module
 Import module is accessible at: public/import
 Import pre-formatting and validation can be mainly found at [ImportView.js](public/js/app/views/App.Views.ImportView.js)
-Import into db itself is performed by [Imported.js](public/js/app/models/App.Models.Imported.js) which makes ajax calls routed to [ImportController](app/Http/Controllers/ImportController.php).
+Import into db itself is performed by [Importer.js](public/js/app/models/App.Models.Importer.js) which makes ajax calls routed to [ImportController](app/Http/Controllers/ImportController.php).
 By default, all data is validated against internal list of valid country names (stored in entity_iso_names table)
 <insert sample format of correctly formatted csv>
 
