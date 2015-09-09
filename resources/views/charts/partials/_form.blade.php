@@ -176,6 +176,12 @@
 									<option value="log">Log</option>
 								</select>
 							</div>
+							<div class="input-wrapper axis-scale-selector-wrapper">
+								<label for="y-axis-scale-selector">
+									<input type="checkbox" name="y-axis-scale-selector" />
+									User can select Y axis scale
+								</label>
+							</div>
 						</div>
 						<div class="x-section">
 							<h3>X Axis</h3>
@@ -213,6 +219,12 @@
 									<option value="linear">Linear</option>
 									<option value="log">Log</option>
 								</select>
+							</div>
+							<div class="input-wrapper axis-scale-selector-wrapper">
+								<label for="x-axis-scale-selector">
+									<input type="checkbox" name="x-axis-scale-selector" />
+									User can select X axis scale
+								</label>
 							</div>
 						</div>
 					</div>
