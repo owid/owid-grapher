@@ -1,5 +1,5 @@
 ## INTRO
-This project contains the chart building tool which is used on OurWorldInData.org.
+This project contains the chart building tool which is used on [OurWorldInData.org](www.OurWorldInData.org).
 
 You can create:
 
@@ -9,12 +9,15 @@ You can create:
 
 – And *scatter plots* like [this one on the relation between education and economic prosperity](http://ourworldindata.org/data/education-knowledge/global-rise-of-education/#the-relationship-between-gdp-and-education)
 
-It enables you to upload csv data to a central SQL database and then to pull this data from the SQL database to create interactive charts in a drag&drop interface.
+We are now working on making bar charts and maps possible.
+
+
+The *OurWorldInData-Grapher* enables you to upload csv data to a central SQL database and then to pull this data from the SQL database to create interactive charts in a drag&drop interface.
 
 We have decided that it doesn't make sense to develop it within private repo, so here it is. Feel free to fork it and play around. Please be aware this is work in progress and that things will change, move and break.
 
 ## STACK
-Backend is written in PHP using Laravel Framework. Frontend is written using Backbone.js and NVD3.js.
+The backend is written in PHP using the Laravel Framework. The frontend is written using Backbone.js and [NVD3.js](http://nvd3.org/).
 	
 ## SETUP
 1. make sure you have Apache and MySQL database setup in your machine 	
