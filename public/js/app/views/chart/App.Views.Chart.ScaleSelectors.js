@@ -62,9 +62,10 @@
 
 			var $li = $( evt.currentTarget ),
 				$parent = $li.parent().parent().parent(),
+				$div = $parent.find( "div" ),
 				$btn = $parent.find( ".axis-scale-btn" ),
 				$select = $parent.find( ".axis-scale" ),
-				name = $parent.attr( "data-name" ),
+				name = $div.attr( "data-name" ),
 				axisName = ( name === "x-axis-scale" )? "x-axis": "y-axis",
 				axisProp = "axis-scale",
 				value = $li.attr( "data-value" );
