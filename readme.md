@@ -50,3 +50,10 @@ By default, all data is validated against internal list of valid country names (
 4. Data management module
 All uploaded data and most of the tool settings are editable from within admin, using Laravel views.
 When necessary, [Rapyd laravel](https://github.com/zofe/rapyd-laravel) is used for data grids and filters.
+
+## Screenshots
+![ourworldindata-grapher_dataupload](http://ourworldindata.org/wp-content/uploads/2015/09/ourworldindata_ourworldindata-grapher_dataupload.png "Optional title")
+
+
+http://ourworldindata.org/wp-content/uploads/2015/09/ourworldindata_ourworldindata-grapher_visualisationtool.png
+
