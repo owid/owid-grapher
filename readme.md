@@ -2,8 +2,12 @@
 This project contains the chart building tool which is used on OurWorldInData.org.
 
 You can create:
-– line charts like the first one in [this data entry on life expectancy](http://ourworldindata.org/data/population-growth-vital-statistics/life-expectancy/)
-– Stacked area charts like the first one in [this data entry on the rise of the Internet](http://ourworldindata.org/data/media-communication/internet/)
+
+– *Line charts* like the first one in [this data entry on life expectancy](http://ourworldindata.org/data/population-growth-vital-statistics/life-expectancy/)
+
+– *Stacked area charts* like the first one in [this data entry on the rise of the Internet](http://ourworldindata.org/data/media-communication/internet/)
+
+– And *scatter plots* like [this one on the relation between education and economic prosperity](http://ourworldindata.org/data/education-knowledge/global-rise-of-education/#the-relationship-between-gdp-and-education)
 
 It enables you to upload csv data to a central SQL database and then to pull this data from the SQL database to create interactive charts in a drag&drop interface.
 
