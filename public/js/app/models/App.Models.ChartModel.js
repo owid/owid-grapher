@@ -37,7 +37,9 @@
 			"iframe-height": "660px",
 			"hide-legend": false,
 			"group-by-variables": false,
-			"add-country-mode": "add-country"
+			"add-country-mode": "add-country",
+			"x-axis-scale-selector": false,
+			"y-axis-scale-selector": true
 		},
 
 		initialize: function() {

@@ -66,6 +66,7 @@
 				}
 			}
 
+
 			//update values
 			this.$chartName.text( chartName );
 			this.$chartSubname.html( App.ChartModel.get( "chart-subname" ) );
@@ -73,6 +74,20 @@
 			var chartDescription = App.ChartModel.get( "chart-description" );
 			//this.$chartDescription.text( App.ChartModel.get( "chart-description" ) );
 
+			//show/hide scale selectors
+			var showXScaleSelectors = App.ChartModel.get( "x-axis-scale-selector" );
+			if( showXScaleSelectors ) {
+				this.$xAxisScaleSelector.show();
+			} else {
+				this.$xAxisScaleSelector.hide();
+			}
+			var showYScaleSelectors = App.ChartModel.get( "y-axis-scale-selector" );
+			if( showYScaleSelectors ) {
+				this.$yAxisScaleSelector.show();
+			} else {
+				this.$yAxisScaleSelector.hide();
+			}
+			
 			//update countries
 			this.$entitiesSelect.empty();
 			if( selectedCountriesIds.length ) {

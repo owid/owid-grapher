@@ -261,6 +261,10 @@ button > i {
 		background-image: none;
 	}
 
+.axis-scale-selector-wrapper {
+	margin-top: 12px;
+}
+
 /* collapsed panel */
 .form-panel-collapsed {}
 	.form-panel-collapsed #chart-view {
