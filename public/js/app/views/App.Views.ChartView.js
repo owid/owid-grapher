@@ -87,7 +87,7 @@
 			} else {
 				this.$yAxisScaleSelector.hide();
 			}
-			
+
 			//update countries
 			this.$entitiesSelect.empty();
 			if( selectedCountriesIds.length ) {
@@ -102,7 +102,7 @@
 			}
 			//make chosen update, make sure it looses blur as well
 			this.$entitiesSelect.trigger( "chosen:updated" );
-			
+
 			//chart tab
 			this.$chartTab = this.$el.find( "#chart-chart-tab" );
 
@@ -556,6 +556,14 @@
 				if( chartType == "2" ) {
 					//need to have own showDist implementation, cause there's a bug in nvd3
 					that.scatterDist();
+				}
+				
+				//if y axis has zero, display solid line
+				var $pathDomain = $( ".nvd3 .nv-axis.nv-x path.domain" );
+				if( yDomain[ 0 ] === 0 ) {
+					$pathDomain.css( "stroke-opacity", "1" );
+				} else {
+					$pathDomain.css( "stroke-opacity", "0" );
 				}
 				
 				//that.scaleSelectors.initEvents();
