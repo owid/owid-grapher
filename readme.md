@@ -1,7 +1,10 @@
 ## INTRO
-This project contains the chart building tool which is used on [OurWorldInData.org](www.OurWorldInData.org).
+The *OurWorldInData-Grapher* is the chart building tool which is used on our web-publication [OurWorldInData.org](www.OurWorldInData.org).
 
-You can create:
+We have decided that it doesn't make sense to develop it within private repo, so here it is. Feel free to fork it and play around. Please be aware this is work in progress and that things will change, move and break. The [disclaimer from OurWorldInData](http://ourworldindata.org/about/#disclaimer-of-warranties-and-limitation-of-liability) applies also for the OurWorldInData-Grapher.
+
+
+With the *OurWorldInData-Grapher* you can create the following visualisations:
 
 – *Line charts* like the first one in [this data entry on life expectancy](http://ourworldindata.org/data/population-growth-vital-statistics/life-expectancy/)
 
@@ -9,12 +12,11 @@ You can create:
 
 – And *scatter plots* like [this one on the relation between education and economic prosperity](http://ourworldindata.org/data/education-knowledge/global-rise-of-education/#the-relationship-between-gdp-and-education)
 
-We are now working on making bar charts and maps possible.
+We are currently working on making bar charts and maps possible.
+
 
 
 The *OurWorldInData-Grapher* enables you to upload csv data to a central SQL database and then to pull this data from the SQL database to create interactive charts in a drag&drop interface.
-
-We have decided that it doesn't make sense to develop it within private repo, so here it is. Feel free to fork it and play around. Please be aware this is work in progress and that things will change, move and break.
 
 ## STACK
 The backend is written in PHP using the Laravel Framework. The frontend is written using Backbone.js and [NVD3.js](http://nvd3.org/).
