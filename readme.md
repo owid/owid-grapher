@@ -52,8 +52,13 @@ All uploaded data and most of the tool settings are editable from within admin, 
 When necessary, [Rapyd laravel](https://github.com/zofe/rapyd-laravel) is used for data grids and filters.
 
 ## Screenshots
+
+Once you have the OurWorldInData-Grapher setup you can make access of the two tools:
+
+1) First you upload data into the central SQL database. The tool recognizes country names and the time information (years, decades etc.). You also have to include the data source information at this stage so that source information and data are stored together and you keep everything in order.
 ![ourworldindata-grapher_dataupload](http://ourworldindata.org/wp-content/uploads/2015/09/ourworldindata_ourworldindata-grapher_dataupload.png "Optional title")
 
+2) With the visualisation tool – screenshot below – you then have the possibility to pull the data from the central SQL database to visualise it.
+![ourworldindata-grapher_visualisationtool](http://ourworldindata.org/wp-content/uploads/2015/09/ourworldindata_ourworldindata-grapher_visualisationtool.png "Optional title")
 
-http://ourworldindata.org/wp-content/uploads/2015/09/ourworldindata_ourworldindata-grapher_visualisationtool.png
 
