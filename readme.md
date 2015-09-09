@@ -1,5 +1,11 @@
 ## INTRO
-This project contains chart building tool which enables to upload csv data and create interactive charts with drag&drop interface.
+This project contains the chart building tool which is used on OurWorldInData.org.
+
+You can create:
+– line charts like the first one in [this data entry on life expectancy](http://ourworldindata.org/data/population-growth-vital-statistics/life-expectancy/)
+– Stacked area charts like the first one in [this data entry on the rise of the Internet](http://ourworldindata.org/data/media-communication/internet/)
+
+It enables you to upload csv data to a central SQL database and then to pull this data from the SQL database to create interactive charts in a drag&drop interface.
 
 We have decided that it doesn't make sense to develop it within private repo, so here it is. Feel free to fork it and play around. Please be aware this is work in progress and that things will change, move and break.
 
