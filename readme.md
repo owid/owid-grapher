@@ -51,7 +51,7 @@ By default, all data is validated against internal list of valid country names (
 All uploaded data and most of the tool settings are editable from within admin, using Laravel views.
 When necessary, [Rapyd laravel](https://github.com/zofe/rapyd-laravel) is used for data grids and filters.
 
-## Screenshots
+## Screenshots of the work flow
 
 Once you have the OurWorldInData-Grapher setup you can make access of the two tools:
 
