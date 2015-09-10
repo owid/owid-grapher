@@ -456,10 +456,12 @@
 				
 				//manually clamp values
 				if( isClamped ) {
-					that.chart.xDomain( xDomain );
+					that.chart.forceX( xDomain );
+					that.chart.forceY( yDomain );
+					/*that.chart.xDomain( xDomain );
 					that.chart.yDomain( yDomain );
 					that.chart.xScale().clamp( true );
-					that.chart.yScale().clamp( true );
+					that.chart.yScale().clamp( true );*/
 				}
 
 				//set scales
@@ -829,7 +831,7 @@
 				topChartMargin = 30,
 				bottomChartMargin = 60,
 				currY, footerDescriptionHeight, footerSourcesHeight, chartHeight;
-			
+
 			this.$tabContent.height( $( ".chart-wrapper-inner" ).height() - this.$chartHeader.height() );
 
 			//wrap header text
