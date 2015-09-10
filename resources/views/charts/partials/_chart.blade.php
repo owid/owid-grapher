@@ -80,6 +80,7 @@
 						Save to <a href="#" class="chart-save-svg-btn" target="_blank">SVG</a> |
 						<a href="#" class="chart-save-png-btn">PNG</a>
 					</div>
+					<a class="fancybox-iframe" href="{{ Request::url() }}">Full screen view</a>
 					<p class="chart-sources"></p>
 					<p class="chart-description"></p>
 				</div>

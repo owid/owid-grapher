@@ -166,7 +166,7 @@
 		z-index: 2;
 		width: 100%;
 		padding: 0px 10px;
-		font-size: 11px;
+		font-size: 10px;
 		background-color: #FAFAFA;
 	}
 		#chart-view .chart-footer a:hover {
@@ -176,7 +176,6 @@
 			position: absolute;
 			right: 5px;
 			bottom: 5px;
-			font-size: 10px;
 		}
 			#chart-view .export-footer-btns a {
 				display: inline;
@@ -189,6 +188,12 @@
 			#chart-view #sources-chart-tab a:hover {
 				color: #FF4012;
 			}
+		#chart-view .fancybox-iframe {
+			position: absolute;
+			left: 10px;
+			bottom: 5px;
+		}
+
 
 	/**
 	*	CHART LEGEND
@@ -357,8 +362,12 @@
 	.chart-wrapper .chart-name {
 		margin-top: 40px;
 	}
+	.chart-wrapper .chart-sources {
+		margin-top: 10px;
+	}
 	.chart-wrapper .chart-description {
-		margin-top: 20px;
+		margin-top: 10px;
+		margin-bottom: 25px;
 	}
 
 	/* for saving image */

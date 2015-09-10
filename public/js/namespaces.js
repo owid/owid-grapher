@@ -12,3 +12,6 @@ App.Utils.FormHelper = {};
 
 //export
 window.App = App;
+
+//export for iframe
+window.$ = jQuery;
