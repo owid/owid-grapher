@@ -44,6 +44,7 @@
 			this.$chartSubname = this.$el.find( ".chart-subname" );
 			this.$chartDescription = this.$el.find( ".chart-description" );
 			this.$chartSources = this.$el.find( ".chart-sources" );
+			this.$chartFullScreen = this.$el.find( ".fancybox-iframe" );
 
 			this.$xAxisScaleSelector = this.$el.find( ".x-axis-scale-selector" );
 			this.$xAxisScale = this.$el.find( "[name=x_axis_scale]" );
@@ -102,6 +103,12 @@
 			}
 			//make chosen update, make sure it looses blur as well
 			this.$entitiesSelect.trigger( "chosen:updated" );
+
+			this.$chartFullScreen.on( "click", function( evt ) {
+				evt.preventDefault();
+				var $this = $( this );
+				window.parent.openFancyBox( $this.attr( "href" ) );
+			} );
 
 			//chart tab
 			this.$chartTab = this.$el.find( "#chart-chart-tab" );
@@ -574,7 +581,6 @@
 				if( chartDimensionsString.indexOf( '"property":"color"' ) === -1 ) {
 					//check if string does not contain "property":"color"
 					that.cacheColors( localData );
-					console.log( "chaceColors" );
 				}
 
 			});
@@ -823,7 +829,7 @@
 				topChartMargin = 30,
 				bottomChartMargin = 60,
 				currY, footerDescriptionHeight, footerSourcesHeight, chartHeight;
-
+			
 			this.$tabContent.height( $( ".chart-wrapper-inner" ).height() - this.$chartHeader.height() );
 
 			//wrap header text
