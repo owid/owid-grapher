@@ -4,6 +4,7 @@
 
 	App.Views.ChartView = Backbone.View.extend({
 
+		cachedColors: [],
 		el: "#chart-view",
 		events: {
 			"click .chart-save-png-btn": "exportContent",
@@ -65,7 +66,6 @@
 					chartName = chartName.replace( "*country*", country.name );
 				}
 			}
-
 
 			//update values
 			this.$chartName.text( chartName );
@@ -153,10 +153,7 @@
 						if( response.datasources ) {
 							that.updateSourceTab( response.datasources, response.license );
 						}
-						//table display of data is now directly taken from update chart
-						/*if( response.exportData ) {
-							that.updateDataTab( response.exportData );
-						}*/
+						
 					},
 					error: function( ) {
 						that.$error.show();
@@ -258,6 +255,8 @@
 				return;
 			}
 			
+			var that = this;
+
 			//make local copy of data for our filtering needs
 			var localData = $.extend( true, localData, data );
 
@@ -294,15 +293,20 @@
 						}
 						value.color = countriesColors[ id ];
 
+					} else {
+						value = that.assignColorFromCache( value );
 					}
+					
 					//actual filtering
 					return ( _.indexOf( selectedCountriesIds, id ) > -1 );
 				} );
 			} else {
-				//TODO - nonsense? just convert associative array to array
-				localData = _.map( localData, function( value ) { return value; } );
+				//TODO - nonsense? convert associative array to array, assign colors from cache
+				localData = _.map( localData, function( value ) {
+					value = that.assignColorFromCache( value );
+					return value;
+				} );
 			}
-
 
 			//filter by chart time
 			var chartTime = App.ChartModel.get( "chart-time" );
@@ -345,7 +349,6 @@
 				xAxisFormat = ( xAxis[ "axis-format" ] || 0 ),
 				yAxisFormat = ( yAxis[ "axis-format" ] || 0 );
 
-			var that = this;
 			nv.addGraph(function() {
 
 				var chartOptions = {
@@ -534,7 +537,7 @@
 					that.onResize();
 				}, 150 );
 				nv.utils.windowResize( onResizeCallback );
-					
+						
 				that.onResize();
 
 				that.chart.dispatch.on( "stateChange", function( state ) {
@@ -567,6 +570,12 @@
 				}
 				
 				//that.scaleSelectors.initEvents();
+				var chartDimensionsString = App.ChartModel.get( "chart-dimensions" );
+				if( chartDimensionsString.indexOf( '"property":"color"' ) === -1 ) {
+					//check if string does not contain "property":"color"
+					that.cacheColors( localData );
+					console.log( "chaceColors" );
+				}
 
 			});
 		
@@ -1135,8 +1144,8 @@
 					}
 				} );
 
-				if( timeString && chartType != 1 && chartType != 2 ) {
-					valuesString += " in " + timeString;
+				if( timeString && chartType != 2 ) {
+					valuesString += " <br /> in <br /> " + timeString;
 				} else if( timeString && chartType == 2 ) {
 					valuesString += "<span class='var-popup-value'>in " + timeString + "</span>";
 				}
@@ -1193,6 +1202,29 @@
 				this.chart.yDomain( yDomain );
 			}
 			
+		},
+
+		cacheColors: function( data ) {
+			if( !this.cachedColors.length ) {
+				var that = this;
+				_.each( data, function( v, i ) {
+					that.cachedColors[ v.id ] = v.color;
+				} );
+			}
+		},
+
+		assignColorFromCache: function( value ) {
+			if( this.cachedColors.length ) {
+				//assing color frome cache
+				if( this.cachedColors[ value.id ] ) {
+					value.color = this.cachedColors[ value.id ];
+				} else {
+					var randomColor = App.Utils.getRandomColor();
+					value.color = randomColor;
+					this.cachedColors[ value.id ] = randomColor;
+				}
+			}
+			return value;
 		}
 
 	});
