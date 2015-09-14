@@ -228,6 +228,20 @@
 			margin-right: 5px;
 		}
 
+.chart-time-inputs-wrapper {
+	margin-top: 15px;
+}
+	.chart-time-inputs-wrapper input {
+		width: 120px;
+	}
+		.chart-time-inputs-wrapper label:last-child {
+			float: right;
+			text-align: right;
+		}
+			.chart-time-inputs-wrapper label:last-child input {
+				text-align: right;
+			}
+
 /**
 *	margins-section
 **/

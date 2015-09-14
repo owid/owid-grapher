@@ -130,6 +130,16 @@
 							Use entire time period of the selected data
 						</label>
 						<input type="text" name="chart-time" value=""/>
+						<div class="chart-time-inputs-wrapper">
+							<label>
+								Time from:
+								<input type="text" name="chart-time-from" class="form-control" value="" />
+							</label>
+							<label>
+								Time to:
+								<input type="text" name="chart-time-to" class="form-control" value="" />
+							</label>
+						</div>
 					</div>
 				</section>
 			</div>
