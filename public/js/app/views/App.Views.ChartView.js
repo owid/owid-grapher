@@ -387,15 +387,38 @@
 				//depending on chart type create chart
 				var chartType = App.ChartModel.get( "chart-type" );
 				if( chartType == "1" ) {
-				
+					
+					//line chart
 					that.chart = nv.models.lineChart().options( chartOptions );
 				
 				} else if( chartType == "2" ) {
 					
+					//scatter plot
 					var points = that.scatterBubbleSize();
 					that.chart = nv.models.scatterChart().options( chartOptions ).pointRange( points ).showDistX( true ).showDistY( true );
 					
 				} else if( chartType == "3" ) {
+					
+					//stacked area chart
+					//we need to make sure we have as much data as necessary
+					if( localData.length ) {
+						var baseSeries = localData[0];
+						_.each( localData, function( serie, i ) {
+							if( i > 0 ) {
+								//make sure we have values for given series
+								if( serie.values && !serie.values.length ) {
+									//clone base series
+									var copyValues = [];
+									$.extend(true, copyValues, baseSeries.values);
+									//nullify values
+									_.each( copyValues, function( v, i) {
+										v.y = 0;
+									});
+									serie.values = copyValues;
+								}
+							}
+						} );
+					}
 					
 					//fixed probably a bug in nvd3 with previous tooltip not being removed
 					d3.select( ".xy-tooltip" ).remove();
@@ -501,7 +524,7 @@
 				var svgSelection = d3.select( that.$svg.selector )
 					.datum( localData )
 					.call( that.chart );
-
+				
 				if( chartType !== "3" ) {
 
 					that.chart.tooltip.contentGenerator( that.contentGenerator );
