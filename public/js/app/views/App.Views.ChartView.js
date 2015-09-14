@@ -51,6 +51,8 @@
 			this.$yAxisScaleSelector = this.$el.find( ".y-axis-scale-selector" );
 			this.$yAxisScale = this.$el.find( "[name=y_axis_scale]" );
 
+			this.$reloadBtn = this.$el.find( ".reload-btn" );
+
 			var chartName = App.ChartModel.get( "chart-name" ),
 				addCountryMode = App.ChartModel.get( "add-country-mode" ),
 				formConfig = App.ChartModel.get( "form-config" ),
@@ -108,6 +110,13 @@
 				evt.preventDefault();
 				var $this = $( this );
 				window.parent.openFancyBox( $this.attr( "href" ) );
+			} );
+
+			//refresh btn
+			this.$reloadBtn.on( "click", function( evt ) {
+				console.log( "reloadBnt" );
+				evt.preventDefault();
+				window.location.reload();
 			} );
 
 			//chart tab
@@ -479,7 +488,8 @@
 				that.chart.yAxis
 					.axisLabel( yAxis[ "axis-label" ] )
 					.axisLabelDistance( yAxisLabelDistance )
-					.tickFormat( function(d) { return yAxisPrefix + d3.format( "," )( that.formatValue( d, yAxisFormat ) ) + yAxisSuffix; });
+					.tickFormat( function(d) { return yAxisPrefix + d3.format( "," )( that.formatValue( d, yAxisFormat ) ) + yAxisSuffix; })
+					.showMaxMin(false);
 				
 				//scatter plots need more ticks
 				if( chartType === "2" ) {

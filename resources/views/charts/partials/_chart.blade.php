@@ -19,6 +19,9 @@
 				<li class="sources-header-tab header-tab">
 					<a href="#sources-chart-tab" data-toggle="tab" aria-expanded="false">Sources</a>
 				</li>
+				<li class="reload-btn-wrapper">
+					<a href="#" class="reload-btn" title="Reload chart"><i class="fa fa-refresh"></i></a>
+				</li>
 			</ul>
 		</div>
 		<div class="tab-content">

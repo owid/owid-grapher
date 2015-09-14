@@ -107,19 +107,38 @@
 
 		#chart-view .chart-tabs li { 
 			float: left;
-			padding: 8px 12px;
 			font-size: 12px;
+			border: 1px solid #eee;
+			border-left: 0px;
 			background-color: #FAFAFA;
     	}
-			#chart-view .chart-tabs li.active {
+    		#chart-view .chart-tabs li:first-child {
+    			border-left: 1px solid #eee;
+    		}
+			#chart-view .chart-tabs li.active,
+			#chart-view .chart-tabs li:hover {
 				background-color: #FFFFFF;
-				border: 2px #FAFAFA;
+				/*border: 2px #FAFAFA;*/
 				border-top: 2px solid rgba(0,33,71,.9);
+				border-bottom: 0;
 			}
-			#chart-view .chart-tabs li a { 
+			#chart-view .chart-tabs li a {
+				display: block;
+				padding: 8px 12px;
 				text-decoration: none;
 			}
-
+			#chart-view .chart-tabs li.reload-btn-wrapper:hover {
+				background-color: #444;
+				border: 1px solid #444;
+				border-left: 0;
+			}
+				#chart-view .chart-tabs li.reload-btn-wrapper:hover a {
+					color: #FAFAFA;
+				}
+				#chart-view .chart-tabs li.reload-btn-wrapper i {
+					margin-right: 0;
+				}
+				
 	.chart-wrapper-inner {
 		position: relative;
 		overflow: auto;
@@ -244,7 +263,7 @@
 				fill: #fff;
 			}
 				#chart-view .nv-custom-legend .nv-add-btn:hover .add-btn-bg {
-					fill: #aaa;
+					fill: #444444;
 				}
 					#chart-view .nv-custom-legend .nv-add-btn:hover text {
 						fill: #fff;
