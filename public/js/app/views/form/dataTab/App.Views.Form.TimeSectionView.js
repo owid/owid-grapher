@@ -6,7 +6,9 @@
 
 		el: "#form-view #data-tab .time-section",
 		events: {
-			"change [name='dynamic-time']": "onDynamicTime"
+			"change [name='dynamic-time']": "onDynamicTime",
+			"change [name='chart-time-from']": "onChartTimeChange",
+			"change [name='chart-time-to']": "onChartTimeChange"
 		},
 
 		initialize: function( options ) {
@@ -22,10 +24,15 @@
 
 		render: function() {
 
+			var that = this;
+
 			this.$entitiesSelect = this.$el.find( ".countries-select" );
 			this.$chartTime = this.$el.find( "[name='chart-time']" );
 			this.$dynamicTime = this.$el.find( "[name='dynamic-time']" );
 			this.$irs = this.$el.find( ".irs" );
+
+			this.$chartTimeFrom = this.$el.find( "[name='chart-time-from']" );
+			this.$chartTimeTo = this.$el.find( "[name='chart-time-to']" );
 
 			this.$chartTime.ionRangeSlider({
 				type: "double",
@@ -35,10 +42,11 @@
 				to: 1500,
 				grid: true,
 				onChange: function( data ) {
+					that.$chartTimeFrom.val(data.from);
+					that.$chartTimeTo.val(data.to);
 					App.ChartModel.set( "chart-time", [data.from, data.to] );
-        		}
+				}
 			});
-			var that = this;
 			setTimeout( function() {
 				if( hasDynamicTime ) {
 					that.$irs.addClass( "disabled" );
@@ -53,6 +61,8 @@
 				this.updateTime( App.AvailableTimeModel.get( "min" ), App.AvailableTimeModel.get( "max" ) );
 				if( hasDynamicTime ) {
 					this.$dynamicTime.prop( "checked", true );
+					this.$chartTimeFrom.prop( "readonly", true);
+					this.$chartTimeTo.prop( "readonly", true);
 				}
 			}
 			
@@ -103,6 +113,8 @@
 			//updating slider, so have some set values and disabling dynamic table
 			this.$dynamicTime.prop( "checked", false );
 			this.$irs.removeClass( "disabled" );
+			this.$chartTimeFrom.val(from);
+			this.$chartTimeTo.val(to);
 
 		},
 
@@ -110,10 +122,23 @@
 
 			if( this.$dynamicTime.is( ":checked" ) ) {
 				this.$irs.addClass( "disabled" );
+				this.$chartTimeFrom.prop( "readonly", true);
+				this.$chartTimeTo.prop( "readonly", true);
 			} else {
 				this.$irs.removeClass( "disabled" );
+				this.$chartTimeFrom.prop( "readonly", false);
+				this.$chartTimeTo.prop( "readonly", false);
 			}
 		
+		},
+
+		onChartTimeChange: function( evt ) {
+			evt.preventDefault();
+			var slider = $( "[name=chart-time]" ).data( "ionRangeSlider" ),
+				from = this.$chartTimeFrom.val(),
+				to = this.$chartTimeTo.val();
+			App.ChartModel.set( "chart-time", [from, to] );
+			slider.update( {from: from, to: to } );
 		}
 
 
