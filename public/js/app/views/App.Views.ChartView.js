@@ -424,8 +424,7 @@
 					d3.select( ".xy-tooltip" ).remove();
 
 					chartOptions.showTotalInTooltip = true;
-					console.log( "chartOptions", chartOptions );
-
+					
 					that.chart = nv.models.stackedAreaChart()
 						.options( chartOptions )
 						.controlOptions( [ "Stacked", "Expanded" ] )
