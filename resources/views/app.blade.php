@@ -95,7 +95,7 @@
 		<script src="{{ asset('js/libs/jquery-1.11.3.min.js') }}"></script>
 		<script src="{{ asset('js/libs/html5csv.js') }}"></script>
 		<script src="{{ asset('js/libs/d3.js') }}"></script>
-		<script src="{{ asset('js/libs/nv.d3.js') }}"></script>
+		<script src="{{ asset('js/libs/nv.d3-1.8.1.js') }}"></script>
 		<script src="{{ asset('js/libs/saveSvgAsPng.js') }}"></script>
 
 		<script src="{{ asset('js/libs/underscore.js') }}"></script>    
