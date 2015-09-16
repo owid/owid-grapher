@@ -688,7 +688,9 @@ nv.models.tooltip = function() {
      */
     var positionTooltip = function() {
         nv.dom.read(function() {
-            var pos = position(),
+            //custom modification - zdenek.hynek@gmail.com
+            var pos = ( typeof position === "function" )? position(): position,
+            //var pos = position(),
                 gravityOffset = calcGravityOffset(pos),
                 left = pos.left + gravityOffset.left,
                 top = pos.top + gravityOffset.top;
