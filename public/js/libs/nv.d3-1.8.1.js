@@ -7644,7 +7644,7 @@ nv.models.multiBar = function() {
                         return { x: getX(d,i), y: getY(d,i), y0: d.y0, y1: d.y1, idx:idx }
                     })
                 });
-
+           
             x.domain(xDomain || d3.merge(seriesData).map(function(d) { return d.x }))
                 .rangeBands(xRange || [0, availableWidth], groupSpacing);
 
@@ -7940,7 +7940,7 @@ nv.models.multiBar = function() {
 };
 nv.models.multiBarChart = function() {
     "use strict";
-
+    
     //============================================================
     // Public Variables with Default Settings
     //------------------------------------------------------------
@@ -8093,7 +8093,7 @@ nv.models.multiBarChart = function() {
             gEnter.append('g').attr('class', 'nv-barsWrap');
             gEnter.append('g').attr('class', 'nv-legendWrap');
             gEnter.append('g').attr('class', 'nv-controlsWrap');
-
+            
             // Legend
             if (showLegend) {
                 legend.width(availableWidth - controlWidth());
