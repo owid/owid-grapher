@@ -544,9 +544,6 @@
 					if( chartType !== "4" ) {
 						that.chart.forceX( xDomain );
 						that.chart.forceY( yDomain );
-					} else {
-						//different xDomain 
-						that.chart.xDomain( allTimes );
 					}
 
 					/*that.chart.xDomain( xDomain );
@@ -556,12 +553,14 @@
 				}
 
 				//set scales, multibar chart
-				if( chartType !== "4" ) {
-					if( yAxisScale === "linear" ) {
-						that.chart.yScale( d3.scale.linear() );
-					} else if( yAxisScale === "log" ) {
-						that.chart.yScale( d3.scale.log() );
-					}
+				if( yAxisScale === "linear" ) {
+					that.chart.yScale( d3.scale.linear() );
+				} else if( yAxisScale === "log" ) {
+					that.chart.yScale( d3.scale.log() );
+				}
+
+				if( chartType === "4" ) {
+					that.chart.xDomain( allTimes );
 				}
 
 				that.chart.yAxis
