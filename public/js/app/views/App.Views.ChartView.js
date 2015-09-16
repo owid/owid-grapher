@@ -413,6 +413,7 @@
 									//nullify values
 									_.each( copyValues, function( v, i) {
 										v.y = 0;
+										v.fake = "true";
 									});
 									serie.values = copyValues;
 								}
@@ -432,6 +433,55 @@
 						.x( function( d ) { return d[ "x" ]; } )
 						.y( function( d ) { return d[ "y" ]; } );
 			
+				} else if( chartType == "4" ) {
+
+					
+					//multibar chart
+					//we need to make sure we have as much data as necessary
+					var allTimes = [],
+						//store values by [entity][time]
+						valuesCheck = [];
+					
+					//extract all times
+					_.each( localData, function( v, i ) {
+							
+						var entityData = [],
+							times = v.values.map( function( v2, i ) {
+								entityData[ v2.x ] = true;
+								return v2.x;
+							} );
+						valuesCheck[ v.id ] = entityData;	
+						allTimes = allTimes.concat( times );
+						
+					} );
+
+					allTimes = _.uniq( allTimes );
+					allTimes = _.sortBy( allTimes );
+					
+					if( localData.length ) {
+						_.each( localData, function( serie, serieIndex ) {
+							
+							//make sure we have values for given series
+							_.each( allTimes, function( time, timeIndex ) {
+								if( valuesCheck[ serie.id ] && !valuesCheck[ serie.id ][ time ] ) {
+									//time doesn't existig for given entity, insert zero value
+									var zeroObj = {
+										"key": serie.key,
+										"serie": serieIndex,
+										"time": time,
+										"x": time,
+										"y": 0,
+										"fake": true
+									};
+									serie.values.splice( timeIndex, 0, zeroObj );
+								}
+							} );
+							
+						} );
+					}
+
+					that.chart = nv.models.multiBarChart().options( chartOptions );
+
 				}
 
 				that.chart.xAxis
@@ -490,24 +540,28 @@
 				
 				//manually clamp values
 				if( isClamped ) {
-					that.chart.forceX( xDomain );
-					that.chart.forceY( yDomain );
+
+					if( chartType !== "4" ) {
+						that.chart.forceX( xDomain );
+						that.chart.forceY( yDomain );
+					} else {
+						//different xDomain 
+						that.chart.xDomain( d3.range( xDomain[0], xDomain[1]+1 ) );
+					}
+
 					/*that.chart.xDomain( xDomain );
 					that.chart.yDomain( yDomain );
 					that.chart.xScale().clamp( true );
 					that.chart.yScale().clamp( true );*/
 				}
 
-				//set scales
-				if( xAxisScale === "linear" ) {
-					that.chart.xScale( d3.scale.linear() );
-				} else if( xAxisScale === "log" ) {
-					that.chart.xScale( d3.scale.log() );
-				}
-				if( yAxisScale === "linear" ) {
-					that.chart.yScale( d3.scale.linear() );
-				} else if( yAxisScale === "log" ) {
-					that.chart.yScale( d3.scale.log() );
+				//set scales, multibar chart
+				if( chartType !== "4" ) {
+					if( yAxisScale === "linear" ) {
+						that.chart.yScale( d3.scale.linear() );
+					} else if( yAxisScale === "log" ) {
+						that.chart.yScale( d3.scale.log() );
+					}
 				}
 
 				that.chart.yAxis
@@ -539,7 +593,7 @@
 						string = "",
 						valuesString = "";
 
-					//different popup setup for stack area chart
+					//different popup setup for stacked area chart
 					var unit = _.findWhere( units, { property: "y" } );
 					if( unit && unit.format ) {
 						var fixed = Math.min( 20, parseInt( unit.format, 10 ) ),
@@ -781,7 +835,14 @@
 								tdValue = "";
 							//is there value for given time
 							if( valuesByTime[ time ] ) {
-								tdValue = valuesByTime[ time ][ dimension.property ];
+								console.log( "valuesByTime[time]", valuesByTime[ time ] );
+								if( !valuesByTime[ time ].fake ) {
+									tdValue = valuesByTime[ time ][ dimension.property ];
+								} else {
+									//just dummy values for correct rendering of chart, don't add into table
+									tdValue = "";
+								}
+								
 							}
 							td += tdValue;
 							td += "</td>";
@@ -924,13 +985,19 @@
 			//need to call chart update for resizing of elements within chart
 			this.chart.update();
 
-			if( App.ChartModel.get( "chart-type" ) == "3" ) {
+			var chartType = App.ChartModel.get( "chart-type" );
+			if( chartType === "3" ) {
 				//for stacked area chart, need to manually adjust height
 				var currIntLayerHeight = this.chart.interactiveLayer.height(),
 					//TODO - do not hardcode this
 					heightAdd = 150;
 				this.chart.interactiveLayer.height( currIntLayerHeight + heightAdd );
 				d3.select(".nv-interactive").call(this.chart.interactiveLayer);
+			}
+
+			//for multibarchart, need to move controls bit higher
+			if( chartType === "4" ) {
+				d3.select( ".nv-controlsWrap" ).attr( "transform", "translate(0,-25)" );
 			}
 			
 			if( !App.ChartModel.get( "hide-legend" ) ) {
@@ -956,7 +1023,7 @@
 			this.translateString = "translate(" + margins.left + "," + currY + ")";
 			$wrap.attr( "transform", this.translateString );
 			
-			//position scale dropdowns - TODO - isn't there a better way then with timeout
+			//position scale dropdowns - TODO - isn't there a better way then with timeout?
 			var that = this;
 			setTimeout( function() {
 			
@@ -1135,6 +1202,11 @@
 				string = "<h3>" + key + "</h3><p>";
 				valuesString = "";
 
+				if( App.ChartModel.get( "chart-type" ) === "4" ) {
+					//multibarchart has values in different format
+					point = { "y": serie.value, "time": data.data.time };
+				}
+				
 				$.each( point, function( i, v ) {
 					//for each data point, find appropriate unit, and if we have it, display it
 					var unit = _.findWhere( units, { property: i } ),
@@ -1143,7 +1215,6 @@
 
 					//add thousands separator
 					value = d3.format( "," )( value );
-
 					if( unit ) {
 						if( !isHidden ) {
 							//try to format number
