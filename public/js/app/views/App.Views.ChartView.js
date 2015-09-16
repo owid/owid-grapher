@@ -433,7 +433,7 @@
 						.x( function( d ) { return d[ "x" ]; } )
 						.y( function( d ) { return d[ "y" ]; } );
 			
-				} else if( chartType == "4" ) {
+				} else if( chartType == "4" || chartType == "5") {
 
 					
 					//multibar chart
@@ -480,9 +480,13 @@
 						} );
 					}
 
-					that.chart = nv.models.multiBarChart().options( chartOptions );
+					if( chartType == "4" ) {
+						that.chart = nv.models.multiBarChart().options( chartOptions );
+					} else if(  chartType == "5" ) {
+						that.chart = nv.models.multiBarHorizontalChart().options( chartOptions );//.showValues( true );
+					}
 
-				}
+				} 
 
 				that.chart.xAxis
 					.axisLabel( xAxis[ "axis-label" ] )
@@ -541,7 +545,7 @@
 				//manually clamp values
 				if( isClamped ) {
 
-					if( chartType !== "4" ) {
+					if( chartType !== "4" && chartType !== "5" ) {
 						that.chart.forceX( xDomain );
 						that.chart.forceY( yDomain );
 					}
@@ -559,7 +563,9 @@
 					that.chart.yScale( d3.scale.log() );
 				}
 
-				if( chartType === "4" ) {
+				if( chartType === "4" || chartType === "5" ) {
+					//for multibar chart, x axis has ordinal scale, so need to setup domain properly
+					//that.chart.xDomain( xDomain[0], xDomain[1] + 1 );
 					that.chart.xDomain( allTimes );
 				}
 
@@ -995,7 +1001,7 @@
 			}
 
 			//for multibarchart, need to move controls bit higher
-			if( chartType === "4" ) {
+			if( chartType === "4" || chartType === "5" ) {
 				d3.select( ".nv-controlsWrap" ).attr( "transform", "translate(0,-25)" );
 			}
 			
@@ -1219,7 +1225,7 @@
 				string = "<h3>" + key + "</h3><p>";
 				valuesString = "";
 
-				if( App.ChartModel.get( "chart-type" ) === "4" ) {
+				if( App.ChartModel.get( "chart-type" ) === "4" || App.ChartModel.get( "chart-type" ) === "5" ) {
 					//multibarchart has values in different format
 					point = { "y": serie.value, "time": data.data.time };
 				}

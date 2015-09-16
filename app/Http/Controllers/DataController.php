@@ -73,7 +73,7 @@ class DataController extends Controller {
 		$chartType = Input::get( 'chartType' );
 
 		//there's special setting for linechart
-		$isLineChart = ( $chartType == "1" )? true: false;
+		$isLineChart = ( $chartType == "1" || $chartType == "4" || $chartType == "5" )? true: false;
 		
 		//find out how many variables we have 
 		$groupByEntity = ( Input::get( 'groupByVariables' ) == 'false' )? true: false;
