@@ -421,9 +421,6 @@
 						} );
 					}
 					
-					//fixed probably a bug in nvd3 with previous tooltip not being removed
-					d3.select( ".xy-tooltip" ).remove();
-
 					chartOptions.showTotalInTooltip = true;
 					
 					that.chart = nv.models.stackedAreaChart()
@@ -486,7 +483,10 @@
 						that.chart = nv.models.multiBarHorizontalChart().options( chartOptions );//.showValues( true );
 					}
 
-				} 
+				}
+
+				//fixed probably a bug in nvd3 with previous tooltip not being removed
+				d3.select( ".xy-tooltip" ).remove(); 
 
 				that.chart.xAxis
 					.axisLabel( xAxis[ "axis-label" ] )
@@ -840,7 +840,6 @@
 								tdValue = "";
 							//is there value for given time
 							if( valuesByTime[ time ] ) {
-								console.log( "valuesByTime[time]", valuesByTime[ time ] );
 								if( !valuesByTime[ time ].fake ) {
 									tdValue = valuesByTime[ time ][ dimension.property ];
 								} else {
