@@ -546,7 +546,7 @@
 						that.chart.forceY( yDomain );
 					} else {
 						//different xDomain 
-						that.chart.xDomain( d3.range( xDomain[0], xDomain[1]+1 ) );
+						that.chart.xDomain( allTimes );
 					}
 
 					/*that.chart.xDomain( xDomain );
@@ -1153,6 +1153,24 @@
 					}
 					break;
 				case "3":
+					//check that dimensions have y property
+					yDimension = _.find( dimensions, function( dimension ) {
+						return dimension.property === "y";
+					} );
+					if( yDimension ) {
+						validDimensions = true;
+					}
+					break;
+				case "4":
+					//check that dimensions have y property
+					yDimension = _.find( dimensions, function( dimension ) {
+						return dimension.property === "y";
+					} );
+					if( yDimension ) {
+						validDimensions = true;
+					}
+					break;
+				case "5":
 					//check that dimensions have y property
 					yDimension = _.find( dimensions, function( dimension ) {
 						return dimension.property === "y";
