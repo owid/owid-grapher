@@ -16,14 +16,18 @@ class ChartTypeDimensionsTableSeeder extends Seeder {
 		$chart_types = array(
 			//[ 'property' => 'x', 'name' => 'X axis', 'type' => 'number', 'fk_chart_type_id' => 1 ],
 			[ 'property' => 'y', 'name' => 'Y axis', 'type' => 'number', 'fk_chart_type_id' => 1 ],
+			[ 'property' => 'color', 'name' => 'Color', 'type' => 'string', 'fk_chart_type_id' => 1 ],
 			[ 'property' => 'x', 'name' => 'X axis', 'type' => 'number', 'fk_chart_type_id' => 2 ],
 			[ 'property' => 'y', 'name' => 'Y axis', 'type' => 'number', 'fk_chart_type_id' => 2 ],
 			[ 'property' => 'size', 'name' => 'Size', 'type' => 'number', 'fk_chart_type_id' => 2 ],
 			[ 'property' => 'shape', 'name' => 'Shape', 'type' => 'string', 'fk_chart_type_id' => 2 ],
-			[ 'property' => 'y', 'name' => 'Y axis', 'type' => 'number', 'fk_chart_type_id' => 3 ],
-			[ 'property' => 'color', 'name' => 'Color', 'type' => 'string', 'fk_chart_type_id' => 1 ],
 			[ 'property' => 'color', 'name' => 'Color', 'type' => 'string', 'fk_chart_type_id' => 2 ],
-			[ 'property' => 'color', 'name' => 'Color', 'type' => 'string', 'fk_chart_type_id' => 3 ]
+			[ 'property' => 'y', 'name' => 'Y axis', 'type' => 'number', 'fk_chart_type_id' => 3 ],
+			[ 'property' => 'color', 'name' => 'Color', 'type' => 'string', 'fk_chart_type_id' => 3 ],
+			[ 'property' => 'y', 'name' => 'Y axis', 'type' => 'number', 'fk_chart_type_id' => 4 ],
+			[ 'property' => 'color', 'name' => 'Color', 'type' => 'string', 'fk_chart_type_id' => 4 ],
+			[ 'property' => 'y', 'name' => 'Y axis', 'type' => 'number', 'fk_chart_type_id' => 5 ],
+			[ 'property' => 'color', 'name' => 'Color', 'type' => 'string', 'fk_chart_type_id' => 5 ]
 		);
 		
 		// Uncomment the below to run the seeder
