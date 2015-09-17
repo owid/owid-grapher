@@ -159,10 +159,11 @@
 					})
 					.on('click', function(d,i) {
 
-						if( App.ChartModel.get( "group-by-variables" ) ) {
+						if( App.ChartModel.get( "group-by-variables" ) || addCountryMode !== "add-country" ) {
 							//if displaying variables, do not allow removing variables
 							return false;
 						}
+
 						//when clicking country label, remove the country
 						d3.event.stopImmediatePropagation();
 						//remove series straight away, so we don't have to wait for response from server
@@ -307,7 +308,7 @@
 					}
 
 					height = margin.top + margin.bottom + (Math.ceil(seriesWidths.length / seriesPerRow) * versPadding);
-
+					
 				} else {
 
 					var ypos = 5,
@@ -391,16 +392,20 @@
 						//check for right edge
 						var buttonWidth = 120, buttonHeight = 35;
 						if( ( transformX + buttonWidth ) > availableWidth ) {
-							transformX = 0;//availableWidth - buttonWidth;
-							transformY += buttonHeight;
-							//update whole chart height as well
-							height += buttonHeight;
+							//make sure we have button
+							var addEntityDisplay = addEntityBtn.attr( "display" );
+							if( addEntityDisplay !== "none" ) {
+								transformX = 0;//availableWidth - buttonWidth;
+								transformY += buttonHeight;
+								//update whole chart height as well
+								height += buttonHeight;
+							}
 						}
 						addEntityBtn.attr( "transform", "translate( " + transformX + ", " + transformY + ")" );
 					}
 						
 				}
-				
+			
 			});
 			
 			function setTextColor(d,i) {
