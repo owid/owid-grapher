@@ -430,9 +430,8 @@
 						.x( function( d ) { return d[ "x" ]; } )
 						.y( function( d ) { return d[ "y" ]; } );
 			
-				} else if( chartType == "4" || chartType == "5") {
+				} else if( chartType == "4" || chartType == "5" ) {
 
-					
 					//multibar chart
 					//we need to make sure we have as much data as necessary
 					var allTimes = [],
@@ -478,10 +477,18 @@
 					}
 
 					if( chartType == "4" ) {
+					
 						that.chart = nv.models.multiBarChart().options( chartOptions );
+					
 					} else if(  chartType == "5" ) {
+					
 						that.chart = nv.models.multiBarHorizontalChart().options( chartOptions );//.showValues( true );
-					}
+					
+					} 
+
+				} else if( chartType == "6" ) {
+
+					that.chart = nv.models.discreteBarChart().options( chartOptions );//.showValues( true );
 
 				}
 
@@ -545,7 +552,7 @@
 				//manually clamp values
 				if( isClamped ) {
 
-					if( chartType !== "4" && chartType !== "5" ) {
+					if( chartType !== "4" && chartType !== "5" && chartType !== "6" ) {
 						that.chart.forceX( xDomain );
 						that.chart.forceY( yDomain );
 					}
@@ -565,7 +572,7 @@
 
 				if( chartType === "4" || chartType === "5" ) {
 					//for multibar chart, x axis has ordinal scale, so need to setup domain properly
-					//that.chart.xDomain( xDomain[0], xDomain[1] + 1 );
+					//that.chart.xDomain( d3.range(xDomain[0], xDomain[1] + 1) );
 					that.chart.xDomain( allTimes );
 				}
 
@@ -1136,6 +1143,9 @@
 			
 			switch( chartType ) {
 				case "1":
+				case "4":
+				case "5":
+				case "6":
 					//check that dimensions have y property
 					yDimension = _.find( dimensions, function( dimension ) {
 						return dimension.property === "y";
@@ -1157,24 +1167,6 @@
 					}
 					break;
 				case "3":
-					//check that dimensions have y property
-					yDimension = _.find( dimensions, function( dimension ) {
-						return dimension.property === "y";
-					} );
-					if( yDimension ) {
-						validDimensions = true;
-					}
-					break;
-				case "4":
-					//check that dimensions have y property
-					yDimension = _.find( dimensions, function( dimension ) {
-						return dimension.property === "y";
-					} );
-					if( yDimension ) {
-						validDimensions = true;
-					}
-					break;
-				case "5":
 					//check that dimensions have y property
 					yDimension = _.find( dimensions, function( dimension ) {
 						return dimension.property === "y";
@@ -1224,7 +1216,7 @@
 				string = "<h3>" + key + "</h3><p>";
 				valuesString = "";
 
-				if( App.ChartModel.get( "chart-type" ) === "4" || App.ChartModel.get( "chart-type" ) === "5" ) {
+				if( App.ChartModel.get( "chart-type" ) === "4" || App.ChartModel.get( "chart-type" ) === "5" || App.ChartModel.get( "chart-type" ) === "6" ) {
 					//multibarchart has values in different format
 					point = { "y": serie.value, "time": data.data.time };
 				}

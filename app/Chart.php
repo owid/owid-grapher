@@ -16,6 +16,9 @@ class Chart extends Model {
 		
 		switch( $chartType ) {
 			case "1":
+			case "4":
+			case "5":
+			case "6":
 				$normalizedData = Chart::formatDataForLineChart( $data, $dimensionsByKey, $times, $groupByVariable, $mainDimension );
 				break;
 			case "2":
@@ -23,12 +26,6 @@ class Chart extends Model {
 				break;
 			case "3":
 				$normalizedData = ( !$groupByVariable )? Chart::formatDataForStackBarChart( $data, $dimensionsByKey, $times, $groupByVariable ): Chart::formatDataForStackBarChartByVariable( $data, $dimensionsByKey, $times, $entity );
-				break;
-			case "4":
-				$normalizedData = Chart::formatDataForLineChart( $data, $dimensionsByKey, $times, $groupByVariable, $mainDimension );
-				break;
-			case "5":
-				$normalizedData = Chart::formatDataForLineChart( $data, $dimensionsByKey, $times, $groupByVariable, $mainDimension );
 				break;
 		}
 

@@ -18,7 +18,8 @@ class ChartTypesTableSeeder extends Seeder {
 			[ 'name' => 'Scatter Plot' ],
 			[ 'name' => 'Stacked Area Chart' ],
 			[ 'name' => 'Multi-Bar Chart' ],
-			[ 'name' => 'Horizontal Multi-Bar Chart' ]
+			[ 'name' => 'Horizontal Multi-Bar Chart' ],
+			[ 'name' => 'Discrete Bar Chart' ]
 		);
 		
 		// Uncomment the below to run the seeder
