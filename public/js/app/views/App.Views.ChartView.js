@@ -693,7 +693,8 @@
 		onRemoveEntity: function( id ) {
 
 			var selectedCountries = App.ChartModel.get( "selected-countries" ),
-				countriesIds = _.keys( selectedCountries );
+				countriesIds = _.keys( selectedCountries ),
+				addCountryMode = App.ChartModel.get( "add-country-mode" );
 
 			if( countriesIds.length === 0 ) {
 				//removing from empty selection, need to copy all countries available into selected countries selection
@@ -929,6 +930,7 @@
 			//compute how much space for chart
 			var svgWidth = this.$svg.width(),
 				svgHeight = this.$svg.height(),
+				chartType = chartType = App.ChartModel.get( "chart-type" ),
 				$chartNameSvg = this.$el.find( ".chart-name-svg" ),
 				$chartSubnameSvg = this.$el.find( ".chart-subname-svg" ),
 				$chartDescriptionSvg = this.$el.find( ".chart-description-svg" ),
@@ -996,7 +998,6 @@
 			//need to call chart update for resizing of elements within chart
 			this.chart.update();
 
-			var chartType = App.ChartModel.get( "chart-type" );
 			if( chartType === "3" ) {
 				//for stacked area chart, need to manually adjust height
 				var currIntLayerHeight = this.chart.interactiveLayer.height(),
@@ -1004,11 +1005,6 @@
 					heightAdd = 150;
 				this.chart.interactiveLayer.height( currIntLayerHeight + heightAdd );
 				d3.select(".nv-interactive").call(this.chart.interactiveLayer);
-			}
-
-			//for multibarchart, need to move controls bit higher
-			if( chartType === "4" || chartType === "5" ) {
-				d3.select( ".nv-controlsWrap" ).attr( "transform", "translate(0,-25)" );
 			}
 			
 			if( !App.ChartModel.get( "hide-legend" ) ) {
@@ -1021,12 +1017,17 @@
 
 			this.$svg.css( "transform", "translate(0,-" + chartHeaderHeight + "px)" );
 
+			//for multibarchart, need to move controls bit higher
+			if( chartType === "4" || chartType === "5" ) {
+				d3.select( ".nv-controlsWrap" ).attr( "transform", "translate(0,-25)" );
+			}
+
 			//reflect margin top in currY
 			if( !App.ChartModel.get( "hide-legend" ) ) {
 				currY += +this.legend.height();
 			}
 			currY += +margins.top;
-			
+
 			var $wrap = this.$svg.find( "> .nvd3.nv-wrap" );
 
 			//manually reposition chart after update
