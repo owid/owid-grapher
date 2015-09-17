@@ -160,51 +160,53 @@
 					.on('click', function(d,i) {
 
 						if( App.ChartModel.get( "group-by-variables" ) || addCountryMode !== "add-country" ) {
-							//if displaying variables, do not allow removing variables
-							return false;
-						}
-
-						//when clicking country label, remove the country
-						d3.event.stopImmediatePropagation();
-						//remove series straight away, so we don't have to wait for response from server
-						series[0][i].remove();
-						
-						var id = d.id;
-						//in case of multivarient chart
-						if( id.indexOf( "-" ) > 0 ) {
-							id = parseInt( id.split( "-" )[ 0 ], 10 );
-						} else {
-							id = parseInt( id, 10 );
-						}
-						dispatch.removeEntity( id );
-						return false;
-
-						//original version, when clicking country label just deactivates it
-						chartLegend.dispatch.legendClick(d,i);
-						// make sure we re-get data in case it was modified
-						var data = series.data();
-						if (updateState) {
-							if(expanded) {
-								d.disengaged = !d.disengaged;
-								d.userDisabled = d.userDisabled == undefined ? !!d.disabled : d.userDisabled;
-								d.disabled = d.disengaged || d.userDisabled;
-							} else if (!expanded) {
-								d.disabled = !d.disabled;
-								d.userDisabled = d.disabled;
-								var engaged = data.filter(function(d) { return !d.disengaged; });
-								if (engaged.every(function(series) { return series.userDisabled })) {
-									//the default behavior of NVD3 legends is, if every single series
-									// is disabled, turn all series' back on.
-									data.forEach(function(series) {
-										series.disabled = series.userDisabled = false;
-									});
+							//if displaying variables, instead of removing, use original version just to turn stuff off
+							//original version, when clicking country label just deactivates it
+							chartLegend.dispatch.legendClick(d,i);
+							// make sure we re-get data in case it was modified
+							var data = series.data();
+							if (updateState) {
+								if(expanded) {
+									d.disengaged = !d.disengaged;
+									d.userDisabled = d.userDisabled == undefined ? !!d.disabled : d.userDisabled;
+									d.disabled = d.disengaged || d.userDisabled;
+								} else if (!expanded) {
+									d.disabled = !d.disabled;
+									d.userDisabled = d.disabled;
+									var engaged = data.filter(function(d) { return !d.disengaged; });
+									if (engaged.every(function(series) { return series.userDisabled })) {
+										//the default behavior of NVD3 legends is, if every single series
+										// is disabled, turn all series' back on.
+										data.forEach(function(series) {
+											series.disabled = series.userDisabled = false;
+										});
+									}
 								}
+								chartLegend.dispatch.stateChange({
+									disabled: data.map(function(d) { return !!d.disabled; }),
+									disengaged: data.map(function(d) { return !!d.disengaged; })
+								});
 							}
-							chartLegend.dispatch.stateChange({
-								disabled: data.map(function(d) { return !!d.disabled; }),
-								disengaged: data.map(function(d) { return !!d.disengaged; })
-							});
+							return false;
+						} else {
+
+							//when clicking country label, remove the country
+							d3.event.stopImmediatePropagation();
+							//remove series straight away, so we don't have to wait for response from server
+							series[0][i].remove();
+							
+							var id = d.id;
+							//in case of multivarient chart
+							if( id.indexOf( "-" ) > 0 ) {
+								id = parseInt( id.split( "-" )[ 0 ], 10 );
+							} else {
+								id = parseInt( id, 10 );
+							}
+							dispatch.removeEntity( id );
+							return false;
+
 						}
+
 					})
 					.on('dblclick', function(d,i) {
 						if((vers == 'furious' || vers == 'owd') && expanded) return;
