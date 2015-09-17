@@ -19,6 +19,8 @@
 			this.header = new App.Views.Chart.Header( { dispatcher: this.dispatcher } );
 			this.scaleSelectors = new App.Views.Chart.ScaleSelectors( { dispatcher: this.dispatcher } );
 
+			this.mapTab = new App.Views.Chart.MapTab( { dispatcher: this.dispatcher } );
+
 			this.render();
 
 			//setup events
@@ -341,6 +343,8 @@
 				} );
 
 			}
+
+			this.mapTab.update( localData );
 
 			//if legend displayed, sort data on key alphabetically (usefull when multivarian dataset)
 			if( !App.ChartModel.get( "hide-legend" ) ) {
