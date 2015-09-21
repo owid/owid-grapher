@@ -37,8 +37,6 @@ class DataController extends Controller {
 			return [ 'success' => false ];
 		}
 		
-		
-		
 		//filtering by entities?
 		$selectedCountriesIds = Input::get( "selectedCountries" );
 		$selectedCountriesIdsString = ( !empty( $selectedCountriesIds ) && count( $selectedCountriesIds ) > 0 )? implode( ",", $selectedCountriesIds ) : "";

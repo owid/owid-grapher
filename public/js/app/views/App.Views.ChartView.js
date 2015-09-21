@@ -19,6 +19,9 @@
 			this.header = new App.Views.Chart.Header( { dispatcher: this.dispatcher } );
 			this.scaleSelectors = new App.Views.Chart.ScaleSelectors( { dispatcher: this.dispatcher } );
 
+			//setup model that will fetch all the data for us
+			this.dataModel = new App.Models.ChartDataModel();
+
 			this.render();
 
 			//setup events
@@ -153,31 +156,24 @@
 
 				this.$preloader.show();
 
-				$.ajax( {
-					url: Global.rootUrl + "/data/dimensions",
-					data: { "dimensions": dimensionsString, "chartId": App.ChartModel.get( "id" ), "chartType": App.ChartModel.get( "chart-type" ), "selectedCountries": selectedCountriesIds, "chartTime": chartTime, "cache": App.ChartModel.get( "cache" ), "groupByVariables": App.ChartModel.get( "group-by-variables" )  },
-					success: function( response ) {
-						that.$error.hide();
-						//test removing chart when response false - doesn't work
-						/*if( !response.success ) {
-							//didn't get correct data, just erase chart
-							that.$svg.find( "> .nvd3.nv-wrap" ).empty();
-						}*/
-						if( response.data ) {
-							that.updateChart( response.data, response.timeType, response.dimensions );
-						}
-						if( response.datasources ) {
-							that.updateSourceTab( response.datasources, response.license );
-						}
-						
-					},
-					error: function( ) {
-						that.$error.show();
-					},
-					complete: function() {
-						that.$preloader.hide();
+				var dataProps = { "dimensions": dimensionsString, "chartId": App.ChartModel.get( "id" ), "chartType": App.ChartModel.get( "chart-type" ), "selectedCountries": selectedCountriesIds, "chartTime": chartTime, "cache": App.ChartModel.get( "cache" ), "groupByVariables": App.ChartModel.get( "group-by-variables" )  };
+				
+				this.dataModel.on( "sync", function( model, response ) {
+					that.$error.hide();
+					that.$preloader.hide();
+					if( response.data ) {
+						that.updateChart( response.data, response.timeType, response.dimensions );
+					}
+					if( response.datasources ) {
+						that.updateSourceTab( response.datasources, response.license );
 					}
 				} );
+				this.dataModel.on( "error", function() {
+					that.$error.show();
+					that.$preloader.hide();
+				} );
+
+				this.dataModel.fetch( { data: dataProps } );
 
 			} else {
 
