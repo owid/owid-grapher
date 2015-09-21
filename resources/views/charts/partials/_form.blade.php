@@ -13,7 +13,7 @@
 					<li>
 						<a href="#axis-tab" data-toggle="tab" aria-expanded="false">3. Axis</a>
 					</li>
-					<li style="display:none">
+					<li>
 						<a href="#sources-tab" data-toggle="tab" aria-expanded="false">4. Sources</a>
 					</li>
 					<li>
