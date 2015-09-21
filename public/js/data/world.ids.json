@@ -72,7 +72,7 @@
                 "properties": {
                     "name": "Antarctica"
                 },
-                "id": "ATA",
+                "id": "Antarctica",
                 "arcs": [
                     [
                         [36]
@@ -104,7 +104,7 @@
                 "properties": {
                     "name": "French Southern and Antarctic Lands"
                 },
-                "id": "ATF",
+                "id": "French_Southern_and_Antarctic_Lan",
                 "arcs": [
                     [44]
                 ]
@@ -127,7 +127,7 @@
                 "properties": {
                     "name": "Austria"
                 },
-                "id": "AUT",
+                "id": "Austria",
                 "arcs": [
                     [47, 48, 49, 50, 51, 52, 53]
                 ]
@@ -136,7 +136,7 @@
                 "properties": {
                     "name": "Azerbaijan"
                 },
-                "id": "AZE",
+                "id": "Azerbaijan",
                 "arcs": [
                     [
                         [54, -35]
@@ -150,7 +150,7 @@
                 "properties": {
                     "name": "Burundi"
                 },
-                "id": "BDI",
+                "id": "Burundi",
                 "arcs": [
                     [59, 60, 61]
                 ]
@@ -159,7 +159,7 @@
                 "properties": {
                     "name": "Belgium"
                 },
-                "id": "BEL",
+                "id": "Belgium",
                 "arcs": [
                     [62, 63, 64, 65, 66]
                 ]
@@ -168,7 +168,7 @@
                 "properties": {
                     "name": "Benin"
                 },
-                "id": "BEN",
+                "id": "Benin",
                 "arcs": [
                     [67, 68, 69, 70, 71]
                 ]
@@ -177,7 +177,7 @@
                 "properties": {
                     "name": "Burkina Faso"
                 },
-                "id": "BFA",
+                "id": "Burkina_Faso",
                 "arcs": [
                     [72, 73, 74, -70, 75, 76]
                 ]
@@ -186,7 +186,7 @@
                 "properties": {
                     "name": "Bangladesh"
                 },
-                "id": "BGD",
+                "id": "Bangladesh",
                 "arcs": [
                     [77, 78, 79]
                 ]
@@ -195,7 +195,7 @@
                 "properties": {
                     "name": "Bulgaria"
                 },
-                "id": "BGR",
+                "id": "Bulgaria",
                 "arcs": [
                     [80, 81, 82, 83, 84, 85]
                 ]
@@ -204,7 +204,7 @@
                 "properties": {
                     "name": "The Bahamas"
                 },
-                "id": "BHS",
+                "id": "The_Bahamas",
                 "arcs": [
                     [
                         [86]
@@ -221,7 +221,7 @@
                 "properties": {
                     "name": "Bosnia and Herzegovina"
                 },
-                "id": "BIH",
+                "id": "Bosnia_and_Herzegovina",
                 "arcs": [
                     [89, 90, 91]
                 ]
@@ -230,7 +230,7 @@
                 "properties": {
                     "name": "Belarus"
                 },
-                "id": "BLR",
+                "id": "Belarus",
                 "arcs": [
                     [92, 93, 94, 95, 96]
                 ]
@@ -239,7 +239,7 @@
                 "properties": {
                     "name": "Belize"
                 },
-                "id": "BLZ",
+                "id": "Belize",
                 "arcs": [
                     [97, 98, 99]
                 ]
@@ -257,7 +257,7 @@
                 "properties": {
                     "name": "Brazil"
                 },
-                "id": "BRA",
+                "id": "Brazil",
                 "arcs": [
                     [-27, 104, -103, 105, 106, 107, 108, 109, 110, 111, 112]
                 ]
@@ -266,7 +266,7 @@
                 "properties": {
                     "name": "Brunei"
                 },
-                "id": "BRN",
+                "id": "Brunei",
                 "arcs": [
                     [113, 114]
                 ]
@@ -275,7 +275,7 @@
                 "properties": {
                     "name": "Bhutan"
                 },
-                "id": "BTN",
+                "id": "Bhutan",
                 "arcs": [
                     [115, 116]
                 ]
@@ -284,7 +284,7 @@
                 "properties": {
                     "name": "Botswana"
                 },
-                "id": "BWA",
+                "id": "Botswana",
                 "arcs": [
                     [117, 118, 119, 120]
                 ]
@@ -293,7 +293,7 @@
                 "properties": {
                     "name": "Central African Republic"
                 },
-                "id": "CAF",
+                "id": "Central_African_Republic",
                 "arcs": [
                     [121, 122, 123, 124, 125, 126, 127]
                 ]
@@ -302,7 +302,7 @@
                 "properties": {
                     "name": "Canada"
                 },
-                "id": "CAN",
+                "id": "Canada",
                 "arcs": [
                     [
                         [128]
@@ -400,7 +400,7 @@
                 "properties": {
                     "name": "Switzerland"
                 },
-                "id": "CHE",
+                "id": "Switzerland",
                 "arcs": [
                     [-51, 161, 162, 163]
                 ]
@@ -409,7 +409,7 @@
                 "properties": {
                     "name": "Chile"
                 },
-                "id": "CHL",
+                "id": "Chile",
                 "arcs": [
                     [
                         [-24, 164]
@@ -437,7 +437,7 @@
                 "properties": {
                     "name": "Ivory Coast"
                 },
-                "id": "CIV",
+                "id": "Ivory_Coast",
                 "arcs": [
                     [184, 185, 186, 187, -73, 188]
                 ]
@@ -446,7 +446,7 @@
                 "properties": {
                     "name": "Cameroon"
                 },
-                "id": "CMR",
+                "id": "Cameroon",
                 "arcs": [
                     [189, 190, 191, 192, 193, 194, -128, 195]
                 ]
@@ -455,7 +455,7 @@
                 "properties": {
                     "name": "Democratic Republic of the Congo"
                 },
-                "id": "COD",
+                "id": "Democratic_Republic_of_the_Congo",
                 "arcs": [
                     [196, 197, -60, 198, 199, -10, 200, -13, 201, -126, 202]
                 ]
@@ -464,7 +464,7 @@
                 "properties": {
                     "name": "Republic of the Congo"
                 },
-                "id": "COG",
+                "id": "Republic_of_the_Congo",
                 "arcs": [
                     [-12, 203, 204, -196, -127, -202]
                 ]
@@ -473,7 +473,7 @@
                 "properties": {
                     "name": "Colombia"
                 },
-                "id": "COL",
+                "id": "Colombia",
                 "arcs": [
                     [205, 206, 207, 208, 209, -107, 210]
                 ]
@@ -482,7 +482,7 @@
                 "properties": {
                     "name": "Costa Rica"
                 },
-                "id": "CRI",
+                "id": "Costa_Rica",
                 "arcs": [
                     [211, 212, 213, 214]
                 ]
@@ -491,7 +491,7 @@
                 "properties": {
                     "name": "Cuba"
                 },
-                "id": "CUB",
+                "id": "Cuba",
                 "arcs": [
                     [215]
                 ]
@@ -500,7 +500,7 @@
                 "properties": {
                     "name": "Northern Cyprus"
                 },
-                "id": "-99",
+                "id": "Northern_Cyprus",
                 "arcs": [
                     [216, 217]
                 ]
@@ -509,7 +509,7 @@
                 "properties": {
                     "name": "Cyprus"
                 },
-                "id": "CYP",
+                "id": "Cyprus",
                 "arcs": [
                     [218, -218]
                 ]
@@ -518,7 +518,7 @@
                 "properties": {
                     "name": "Czech Republic"
                 },
-                "id": "CZE",
+                "id": "Czech_Republic",
                 "arcs": [
                     [-53, 219, 220, 221]
                 ]
@@ -536,7 +536,7 @@
                 "properties": {
                     "name": "Djibouti"
                 },
-                "id": "DJI",
+                "id": "Djibouti",
                 "arcs": [
                     [229, 230, 231, 232]
                 ]
@@ -545,7 +545,7 @@
                 "properties": {
                     "name": "Denmark"
                 },
-                "id": "DNK",
+                "id": "Denmark",
                 "arcs": [
                     [
                         [233]
@@ -559,7 +559,7 @@
                 "properties": {
                     "name": "Dominican Republic"
                 },
-                "id": "DOM",
+                "id": "Dominican_Republic",
                 "arcs": [
                     [235, 236]
                 ]
@@ -568,7 +568,7 @@
                 "properties": {
                     "name": "Algeria"
                 },
-                "id": "DZA",
+                "id": "Algeria",
                 "arcs": [
                     [237, 238, 239, 240, 241, 242, 243, 244]
                 ]
@@ -577,7 +577,7 @@
                 "properties": {
                     "name": "Ecuador"
                 },
-                "id": "ECU",
+                "id": "Ecuador",
                 "arcs": [
                     [245, -206, 246]
                 ]
@@ -586,7 +586,7 @@
                 "properties": {
                     "name": "Egypt"
                 },
-                "id": "EGY",
+                "id": "Egypt",
                 "arcs": [
                     [247, 248, 249, 250, 251]
                 ]
@@ -595,7 +595,7 @@
                 "properties": {
                     "name": "Eritrea"
                 },
-                "id": "ERI",
+                "id": "Eritrea",
                 "arcs": [
                     [252, 253, 254, -233]
                 ]
@@ -613,7 +613,7 @@
                 "properties": {
                     "name": "Estonia"
                 },
-                "id": "EST",
+                "id": "Estonia",
                 "arcs": [
                     [259, 260, 261]
                 ]
@@ -622,7 +622,7 @@
                 "properties": {
                     "name": "Ethiopia"
                 },
-                "id": "ETH",
+                "id": "Ethiopia",
                 "arcs": [
                     [-232, 262, 263, 264, 265, 266, 267, -253]
                 ]
@@ -631,7 +631,7 @@
                 "properties": {
                     "name": "Finland"
                 },
-                "id": "FIN",
+                "id": "Finland",
                 "arcs": [
                     [268, 269, 270, 271]
                 ]
@@ -640,7 +640,7 @@
                 "properties": {
                     "name": "Fiji"
                 },
-                "id": "FJI",
+                "id": "Fiji",
                 "arcs": [
                     [
                         [272]
@@ -657,7 +657,7 @@
                 "properties": {
                     "name": "Falkland Islands"
                 },
-                "id": "FLK",
+                "id": "Falkland_Islands",
                 "arcs": [
                     [276]
                 ]
@@ -680,7 +680,7 @@
                 "properties": {
                     "name": "French Guiana"
                 },
-                "id": "GUF",
+                "id": "French_Guiana",
                 "arcs": [
                     [282, 283, 284, 285, -111]
                 ]
@@ -689,7 +689,7 @@
                 "properties": {
                     "name": "Gabon"
                 },
-                "id": "GAB",
+                "id": "Gabon",
                 "arcs": [
                     [286, 287, -190, -205]
                 ]
@@ -712,7 +712,7 @@
                 "properties": {
                     "name": "Georgia"
                 },
-                "id": "GEO",
+                "id": "Georgia",
                 "arcs": [
                     [291, 292, -58, -32, 293]
                 ]
@@ -721,7 +721,7 @@
                 "properties": {
                     "name": "Ghana"
                 },
-                "id": "GHA",
+                "id": "Ghana",
                 "arcs": [
                     [294, -189, -77, 295]
                 ]
@@ -730,7 +730,7 @@
                 "properties": {
                     "name": "Guinea"
                 },
-                "id": "GIN",
+                "id": "Guinea",
                 "arcs": [
                     [296, 297, 298, 299, 300, 301, -187]
                 ]
@@ -739,7 +739,7 @@
                 "properties": {
                     "name": "Gambia"
                 },
-                "id": "GMB",
+                "id": "Gambia",
                 "arcs": [
                     [302, 303]
                 ]
@@ -748,7 +748,7 @@
                 "properties": {
                     "name": "Guinea Bissau"
                 },
-                "id": "GNB",
+                "id": "Guinea_Bissau",
                 "arcs": [
                     [304, 305, -300]
                 ]
@@ -757,7 +757,7 @@
                 "properties": {
                     "name": "Equatorial Guinea"
                 },
-                "id": "GNQ",
+                "id": "Equatorial_Guinea",
                 "arcs": [
                     [306, -191, -288]
                 ]
@@ -766,7 +766,7 @@
                 "properties": {
                     "name": "Greece"
                 },
-                "id": "GRC",
+                "id": "Greece",
                 "arcs": [
                     [
                         [307]
@@ -780,7 +780,7 @@
                 "properties": {
                     "name": "Greenland"
                 },
-                "id": "GRL",
+                "id": "Greenland",
                 "arcs": [
                     [311]
                 ]
@@ -789,7 +789,7 @@
                 "properties": {
                     "name": "Guatemala"
                 },
-                "id": "GTM",
+                "id": "Guatemala",
                 "arcs": [
                     [312, 313, -100, 314, 315, 316]
                 ]
@@ -798,7 +798,7 @@
                 "properties": {
                     "name": "Guyana"
                 },
-                "id": "GUY",
+                "id": "Guyana",
                 "arcs": [
                     [317, 318, -109, 319]
                 ]
@@ -807,7 +807,7 @@
                 "properties": {
                     "name": "Honduras"
                 },
-                "id": "HND",
+                "id": "Honduras",
                 "arcs": [
                     [320, 321, -316, 322, 323]
                 ]
@@ -816,7 +816,7 @@
                 "properties": {
                     "name": "Croatia"
                 },
-                "id": "HRV",
+                "id": "Croatia",
                 "arcs": [
                     [324, -92, 325, 326, 327, 328]
                 ]
@@ -825,7 +825,7 @@
                 "properties": {
                     "name": "Haiti"
                 },
-                "id": "HTI",
+                "id": "Haiti",
                 "arcs": [
                     [-237, 329]
                 ]
@@ -834,7 +834,7 @@
                 "properties": {
                     "name": "Hungary"
                 },
-                "id": "HUN",
+                "id": "Hungary",
                 "arcs": [
                     [-48, 330, 331, 332, 333, -329, 334]
                 ]
@@ -890,7 +890,7 @@
                 "properties": {
                     "name": "India"
                 },
-                "id": "IND",
+                "id": "India",
                 "arcs": [
                     [-177, 351, -175, -116, -174, 352, -80, 353, 354]
                 ]
@@ -899,7 +899,7 @@
                 "properties": {
                     "name": "Ireland"
                 },
-                "id": "IRL",
+                "id": "Ireland",
                 "arcs": [
                     [355, -289]
                 ]
@@ -908,7 +908,7 @@
                 "properties": {
                     "name": "Iran"
                 },
-                "id": "IRN",
+                "id": "Iran",
                 "arcs": [
                     [356, -6, 357, 358, 359, 360, -55, -34, -57, 361]
                 ]
@@ -917,7 +917,7 @@
                 "properties": {
                     "name": "Iraq"
                 },
-                "id": "IRQ",
+                "id": "Iraq",
                 "arcs": [
                     [362, 363, 364, 365, 366, 367, -360]
                 ]
@@ -926,7 +926,7 @@
                 "properties": {
                     "name": "Iceland"
                 },
-                "id": "ISL",
+                "id": "Iceland",
                 "arcs": [
                     [368]
                 ]
@@ -935,7 +935,7 @@
                 "properties": {
                     "name": "Israel"
                 },
-                "id": "ISR",
+                "id": "Israel",
                 "arcs": [
                     [369, 370, 371, -252, 372, 373, 374]
                 ]
@@ -944,7 +944,7 @@
                 "properties": {
                     "name": "Italy"
                 },
-                "id": "ITA",
+                "id": "Italy",
                 "arcs": [
                     [
                         [375]
@@ -961,7 +961,7 @@
                 "properties": {
                     "name": "Jamaica"
                 },
-                "id": "JAM",
+                "id": "Jamaica",
                 "arcs": [
                     [379]
                 ]
@@ -979,7 +979,7 @@
                 "properties": {
                     "name": "Japan"
                 },
-                "id": "JPN",
+                "id": "Japan",
                 "arcs": [
                     [
                         [384]
@@ -996,7 +996,7 @@
                 "properties": {
                     "name": "Kazakhstan"
                 },
-                "id": "KAZ",
+                "id": "Kazakhstan",
                 "arcs": [
                     [387, 388, 389, 390, -181, 391]
                 ]
@@ -1005,7 +1005,7 @@
                 "properties": {
                     "name": "Kenya"
                 },
-                "id": "KEN",
+                "id": "Kenya",
                 "arcs": [
                     [392, 393, 394, 395, -265, 396]
                 ]
@@ -1014,7 +1014,7 @@
                 "properties": {
                     "name": "Kyrgyzstan"
                 },
-                "id": "KGZ",
+                "id": "Kyrgyzstan",
                 "arcs": [
                     [-392, -180, 397, 398]
                 ]
@@ -1032,7 +1032,7 @@
                 "properties": {
                     "name": "South Korea"
                 },
-                "id": "KOR",
+                "id": "South_Korea",
                 "arcs": [
                     [403, 404]
                 ]
@@ -1041,7 +1041,7 @@
                 "properties": {
                     "name": "Kosovo"
                 },
-                "id": "-99",
+                "id": "Kosovo",
                 "arcs": [
                     [-18, 405, 406, 407]
                 ]
@@ -1050,7 +1050,7 @@
                 "properties": {
                     "name": "Kuwait"
                 },
-                "id": "KWT",
+                "id": "Kuwait",
                 "arcs": [
                     [408, 409, -364]
                 ]
@@ -1059,7 +1059,7 @@
                 "properties": {
                     "name": "Laos"
                 },
-                "id": "LAO",
+                "id": "Laos",
                 "arcs": [
                     [410, 411, -172, 412, -401]
                 ]
@@ -1068,7 +1068,7 @@
                 "properties": {
                     "name": "Lebanon"
                 },
-                "id": "LBN",
+                "id": "Lebanon",
                 "arcs": [
                     [-374, 413, 414]
                 ]
@@ -1077,7 +1077,7 @@
                 "properties": {
                     "name": "Liberia"
                 },
-                "id": "LBR",
+                "id": "Liberia",
                 "arcs": [
                     [415, 416, -297, -186]
                 ]
@@ -1086,7 +1086,7 @@
                 "properties": {
                     "name": "Libya"
                 },
-                "id": "LBY",
+                "id": "Libya",
                 "arcs": [
                     [417, -245, 418, 419, -250, 420, 421]
                 ]
@@ -1095,7 +1095,7 @@
                 "properties": {
                     "name": "Sri Lanka"
                 },
-                "id": "LKA",
+                "id": "Sri_Lanka",
                 "arcs": [
                     [422]
                 ]
@@ -1104,7 +1104,7 @@
                 "properties": {
                     "name": "Lesotho"
                 },
-                "id": "LSO",
+                "id": "Lesotho",
                 "arcs": [
                     [423]
                 ]
@@ -1113,7 +1113,7 @@
                 "properties": {
                     "name": "Lithuania"
                 },
-                "id": "LTU",
+                "id": "Lithuania",
                 "arcs": [
                     [424, 425, 426, -93, 427]
                 ]
@@ -1122,7 +1122,7 @@
                 "properties": {
                     "name": "Luxembourg"
                 },
-                "id": "LUX",
+                "id": "Luxembourg",
                 "arcs": [
                     [-226, -279, -65]
                 ]
@@ -1131,7 +1131,7 @@
                 "properties": {
                     "name": "Latvia"
                 },
-                "id": "LVA",
+                "id": "Latvia",
                 "arcs": [
                     [428, -262, 429, -94, -427]
                 ]
@@ -1140,7 +1140,7 @@
                 "properties": {
                     "name": "Morocco"
                 },
-                "id": "MAR",
+                "id": "Morocco",
                 "arcs": [
                     [-242, 430, 431]
                 ]
@@ -1149,7 +1149,7 @@
                 "properties": {
                     "name": "Moldova"
                 },
-                "id": "MDA",
+                "id": "Moldova",
                 "arcs": [
                     [432, 433]
                 ]
@@ -1158,7 +1158,7 @@
                 "properties": {
                     "name": "Madagascar"
                 },
-                "id": "MDG",
+                "id": "Madagascar",
                 "arcs": [
                     [434]
                 ]
@@ -1167,7 +1167,7 @@
                 "properties": {
                     "name": "Mexico"
                 },
-                "id": "MEX",
+                "id": "Mexico",
                 "arcs": [
                     [435, -98, -314, 436, 437]
                 ]
@@ -1176,7 +1176,7 @@
                 "properties": {
                     "name": "Macedonia"
                 },
-                "id": "MKD",
+                "id": "Macedonia",
                 "arcs": [
                     [-408, 438, -85, -310, -14]
                 ]
@@ -1185,7 +1185,7 @@
                 "properties": {
                     "name": "Mali"
                 },
-                "id": "MLI",
+                "id": "Mali",
                 "arcs": [
                     [439, -239, 440, -74, -188, -302, 441]
                 ]
@@ -1194,7 +1194,7 @@
                 "properties": {
                     "name": "Myanmar"
                 },
-                "id": "MMR",
+                "id": "Myanmar",
                 "arcs": [
                     [442, -78, -353, -173, -412, 443]
                 ]
@@ -1203,7 +1203,7 @@
                 "properties": {
                     "name": "Montenegro"
                 },
-                "id": "MNE",
+                "id": "Montenegro",
                 "arcs": [
                     [444, -326, -91, 445, -406, -17]
                 ]
@@ -1212,7 +1212,7 @@
                 "properties": {
                     "name": "Mongolia"
                 },
-                "id": "MNG",
+                "id": "Mongolia",
                 "arcs": [
                     [446, -183]
                 ]
@@ -1221,7 +1221,7 @@
                 "properties": {
                     "name": "Mozambique"
                 },
-                "id": "MOZ",
+                "id": "Mozambique",
                 "arcs": [
                     [447, 448, 449, 450, 451, 452, 453, 454]
                 ]
@@ -1230,7 +1230,7 @@
                 "properties": {
                     "name": "Mauritania"
                 },
-                "id": "MRT",
+                "id": "Mauritania",
                 "arcs": [
                     [455, 456, 457, -240, -440]
                 ]
@@ -1239,7 +1239,7 @@
                 "properties": {
                     "name": "Malawi"
                 },
-                "id": "MWI",
+                "id": "Malawi",
                 "arcs": [
                     [-455, 458, 459]
                 ]
@@ -1248,7 +1248,7 @@
                 "properties": {
                     "name": "Malaysia"
                 },
-                "id": "MYS",
+                "id": "Malaysia",
                 "arcs": [
                     [
                         [460, 461]
@@ -1262,7 +1262,7 @@
                 "properties": {
                     "name": "Namibia"
                 },
-                "id": "NAM",
+                "id": "Namibia",
                 "arcs": [
                     [464, -8, 465, -119, 466]
                 ]
@@ -1271,7 +1271,7 @@
                 "properties": {
                     "name": "New Caledonia"
                 },
-                "id": "NCL",
+                "id": "New_Caledonia",
                 "arcs": [
                     [467]
                 ]
@@ -1280,7 +1280,7 @@
                 "properties": {
                     "name": "Niger"
                 },
-                "id": "NER",
+                "id": "Niger",
                 "arcs": [
                     [-75, -441, -238, -418, 468, -194, 469, -71]
                 ]
@@ -1289,7 +1289,7 @@
                 "properties": {
                     "name": "Nigeria"
                 },
-                "id": "NGA",
+                "id": "Nigeria",
                 "arcs": [
                     [470, -72, -470, -193]
                 ]
@@ -1298,7 +1298,7 @@
                 "properties": {
                     "name": "Nicaragua"
                 },
-                "id": "NIC",
+                "id": "Nicaragua",
                 "arcs": [
                     [471, -324, 472, -213]
                 ]
@@ -1316,7 +1316,7 @@
                 "properties": {
                     "name": "Norway"
                 },
-                "id": "NOR",
+                "id": "Norway",
                 "arcs": [
                     [
                         [474, -272, 475, 476]
@@ -1336,7 +1336,7 @@
                 "properties": {
                     "name": "Nepal"
                 },
-                "id": "NPL",
+                "id": "Nepal",
                 "arcs": [
                     [-352, -176]
                 ]
@@ -1345,7 +1345,7 @@
                 "properties": {
                     "name": "New Zealand"
                 },
-                "id": "NZL",
+                "id": "New_Zealand",
                 "arcs": [
                     [
                         [480]
@@ -1359,7 +1359,7 @@
                 "properties": {
                     "name": "Oman"
                 },
-                "id": "OMN",
+                "id": "Oman",
                 "arcs": [
                     [
                         [482, 483, -22, 484]
@@ -1373,7 +1373,7 @@
                 "properties": {
                     "name": "Pakistan"
                 },
-                "id": "PAK",
+                "id": "Pakistan",
                 "arcs": [
                     [-178, -355, 486, -358, -5]
                 ]
@@ -1382,7 +1382,7 @@
                 "properties": {
                     "name": "Panama"
                 },
-                "id": "PAN",
+                "id": "Panama",
                 "arcs": [
                     [487, -215, 488, -208]
                 ]
@@ -1391,7 +1391,7 @@
                 "properties": {
                     "name": "Peru"
                 },
-                "id": "PER",
+                "id": "Peru",
                 "arcs": [
                     [-167, 489, -247, -211, -106, -102]
                 ]
@@ -1400,7 +1400,7 @@
                 "properties": {
                     "name": "Philippines"
                 },
-                "id": "PHL",
+                "id": "Philippines",
                 "arcs": [
                     [
                         [490]
@@ -1429,7 +1429,7 @@
                 "properties": {
                     "name": "Papua New Guinea"
                 },
-                "id": "PNG",
+                "id": "Papua_New_Guinea",
                 "arcs": [
                     [
                         [497]
@@ -1449,7 +1449,7 @@
                 "properties": {
                     "name": "Poland"
                 },
-                "id": "POL",
+                "id": "Poland",
                 "arcs": [
                     [-224, 501, 502, -428, -97, 503, 504, -221]
                 ]
@@ -1458,7 +1458,7 @@
                 "properties": {
                     "name": "Puerto Rico"
                 },
-                "id": "PRI",
+                "id": "Puerto_Rico",
                 "arcs": [
                     [505]
                 ]
@@ -1467,7 +1467,7 @@
                 "properties": {
                     "name": "North Korea"
                 },
-                "id": "PRK",
+                "id": "North_Korea",
                 "arcs": [
                     [506, 507, -405, 508, -169]
                 ]
@@ -1476,7 +1476,7 @@
                 "properties": {
                     "name": "Portugal"
                 },
-                "id": "PRT",
+                "id": "Portugal",
                 "arcs": [
                     [-259, 509]
                 ]
@@ -1485,7 +1485,7 @@
                 "properties": {
                     "name": "Paraguay"
                 },
-                "id": "PRY",
+                "id": "Paraguay",
                 "arcs": [
                     [-104, -105, -26]
                 ]
@@ -1494,7 +1494,7 @@
                 "properties": {
                     "name": "Qatar"
                 },
-                "id": "QAT",
+                "id": "Qatar",
                 "arcs": [
                     [510, 511]
                 ]
@@ -1503,7 +1503,7 @@
                 "properties": {
                     "name": "Romania"
                 },
-                "id": "ROU",
+                "id": "Romania",
                 "arcs": [
                     [512, -434, 513, 514, -81, 515, -333]
                 ]
@@ -1512,7 +1512,7 @@
                 "properties": {
                     "name": "Russia"
                 },
-                "id": "RUS",
+                "id": "Russia",
                 "arcs": [
                     [
                         [516]
@@ -1559,7 +1559,7 @@
                 "properties": {
                     "name": "Rwanda"
                 },
-                "id": "RWA",
+                "id": "Rwanda",
                 "arcs": [
                     [535, -61, -198, 536]
                 ]
@@ -1568,7 +1568,7 @@
                 "properties": {
                     "name": "Western Sahara"
                 },
-                "id": "ESH",
+                "id": "Western_Sahara",
                 "arcs": [
                     [-241, -458, 537, -431]
                 ]
@@ -1577,7 +1577,7 @@
                 "properties": {
                     "name": "Saudi Arabia"
                 },
-                "id": "SAU",
+                "id": "Saudi_Arabia",
                 "arcs": [
                     [538, -382, -365, -410, 539, -512, 540, -23, -484, 541]
                 ]
@@ -1586,7 +1586,7 @@
                 "properties": {
                     "name": "Sudan"
                 },
-                "id": "SDN",
+                "id": "Sudan",
                 "arcs": [
                     [542, 543, -123, 544, -421, -249, 545, -254, -268, 546]
                 ]
@@ -1595,7 +1595,7 @@
                 "properties": {
                     "name": "South Sudan"
                 },
-                "id": "SSD",
+                "id": "South_Sudan",
                 "arcs": [
                     [547, -266, -396, 548, -203, -125, 549, -543]
                 ]
@@ -1604,7 +1604,7 @@
                 "properties": {
                     "name": "Senegal"
                 },
-                "id": "SEN",
+                "id": "Senegal",
                 "arcs": [
                     [550, -456, -442, -301, -306, 551, -304]
                 ]
@@ -1613,7 +1613,7 @@
                 "properties": {
                     "name": "Solomon Islands"
                 },
-                "id": "SLB",
+                "id": "Solomon_Islands",
                 "arcs": [
                     [
                         [552]
@@ -1636,7 +1636,7 @@
                 "properties": {
                     "name": "Sierra Leone"
                 },
-                "id": "SLE",
+                "id": "Sierra_Leone",
                 "arcs": [
                     [557, -298, -417]
                 ]
@@ -1645,7 +1645,7 @@
                 "properties": {
                     "name": "El Salvador"
                 },
-                "id": "SLV",
+                "id": "El_Salvador",
                 "arcs": [
                     [558, -317, -322]
                 ]
@@ -1654,7 +1654,7 @@
                 "properties": {
                     "name": "Somaliland"
                 },
-                "id": "-99",
+                "id": "Somaliland",
                 "arcs": [
                     [-263, -231, 559, 560]
                 ]
@@ -1663,7 +1663,7 @@
                 "properties": {
                     "name": "Somalia"
                 },
-                "id": "SOM",
+                "id": "Somalia",
                 "arcs": [
                     [-397, -264, -561, 561]
                 ]
@@ -1672,7 +1672,7 @@
                 "properties": {
                     "name": "Republic of Serbia"
                 },
-                "id": "SRB",
+                "id": "Republic_of_Serbia",
                 "arcs": [
                     [-86, -439, -407, -446, -90, -325, -334, -516]
                 ]
@@ -1681,7 +1681,7 @@
                 "properties": {
                     "name": "Suriname"
                 },
-                "id": "SUR",
+                "id": "Suriname",
                 "arcs": [
                     [562, -285, 563, -283, -110, -319]
                 ]
@@ -1690,7 +1690,7 @@
                 "properties": {
                     "name": "Slovakia"
                 },
-                "id": "SVK",
+                "id": "Slovakia",
                 "arcs": [
                     [-505, 564, -331, -54, -222]
                 ]
@@ -1699,7 +1699,7 @@
                 "properties": {
                     "name": "Slovenia"
                 },
-                "id": "SVN",
+                "id": "Slovenia",
                 "arcs": [
                     [-49, -335, -328, 565, -378]
                 ]
@@ -1708,7 +1708,7 @@
                 "properties": {
                     "name": "Sweden"
                 },
-                "id": "SWE",
+                "id": "Sweden",
                 "arcs": [
                     [-476, -271, 566]
                 ]
@@ -1717,7 +1717,7 @@
                 "properties": {
                     "name": "Swaziland"
                 },
-                "id": "SWZ",
+                "id": "Swaziland",
                 "arcs": [
                     [567, -451]
                 ]
@@ -1726,7 +1726,7 @@
                 "properties": {
                     "name": "Syria"
                 },
-                "id": "SYR",
+                "id": "Syria",
                 "arcs": [
                     [-381, -375, -415, 568, 569, -367]
                 ]
@@ -1735,7 +1735,7 @@
                 "properties": {
                     "name": "Chad"
                 },
-                "id": "TCD",
+                "id": "Chad",
                 "arcs": [
                     [-469, -422, -545, -122, -195]
                 ]
@@ -1744,7 +1744,7 @@
                 "properties": {
                     "name": "Togo"
                 },
-                "id": "TGO",
+                "id": "Togo",
                 "arcs": [
                     [570, -296, -76, -69]
                 ]
@@ -1753,7 +1753,7 @@
                 "properties": {
                     "name": "Thailand"
                 },
-                "id": "THA",
+                "id": "Thailand",
                 "arcs": [
                     [571, -462, 572, -444, -411, -400]
                 ]
@@ -1762,7 +1762,7 @@
                 "properties": {
                     "name": "Tajikistan"
                 },
-                "id": "TJK",
+                "id": "Tajikistan",
                 "arcs": [
                     [-398, -179, -3, 573]
                 ]
@@ -1771,7 +1771,7 @@
                 "properties": {
                     "name": "Turkmenistan"
                 },
-                "id": "TKM",
+                "id": "Turkmenistan",
                 "arcs": [
                     [-357, 574, -389, 575, -1]
                 ]
@@ -1780,7 +1780,7 @@
                 "properties": {
                     "name": "East Timor"
                 },
-                "id": "TLS",
+                "id": "East_Timor",
                 "arcs": [
                     [576, -337]
                 ]
@@ -1789,7 +1789,7 @@
                 "properties": {
                     "name": "Trinidad and Tobago"
                 },
-                "id": "TTO",
+                "id": "Trinidad_and_Tobago",
                 "arcs": [
                     [577]
                 ]
@@ -1798,7 +1798,7 @@
                 "properties": {
                     "name": "Tunisia"
                 },
-                "id": "TUN",
+                "id": "Tunisia",
                 "arcs": [
                     [-244, 578, -419]
                 ]
@@ -1807,7 +1807,7 @@
                 "properties": {
                     "name": "Turkey"
                 },
-                "id": "TUR",
+                "id": "Turkey",
                 "arcs": [
                     [
                         [-294, -36, -361, -368, -570, 579]
@@ -1821,7 +1821,7 @@
                 "properties": {
                     "name": "Taiwan"
                 },
-                "id": "TWN",
+                "id": "Taiwan",
                 "arcs": [
                     [581]
                 ]
@@ -1830,7 +1830,7 @@
                 "properties": {
                     "name": "United Republic of Tanzania"
                 },
-                "id": "TZA",
+                "id": "United_Republic_of_Tanzania",
                 "arcs": [
                     [-394, 582, -448, -460, 583, -199, -62, -536, 584]
                 ]
@@ -1839,7 +1839,7 @@
                 "properties": {
                     "name": "Uganda"
                 },
-                "id": "UGA",
+                "id": "Uganda",
                 "arcs": [
                     [-537, -197, -549, -395, -585]
                 ]
@@ -1848,7 +1848,7 @@
                 "properties": {
                     "name": "Ukraine"
                 },
-                "id": "UKR",
+                "id": "Ukraine",
                 "arcs": [
                     [-530, 585, -514, -433, -513, -332, -565, -504, -96]
                 ]
@@ -1857,7 +1857,7 @@
                 "properties": {
                     "name": "Uruguay"
                 },
-                "id": "URY",
+                "id": "Uruguay",
                 "arcs": [
                     [-113, 586, -28]
                 ]
@@ -1904,7 +1904,7 @@
                 "properties": {
                     "name": "Uzbekistan"
                 },
-                "id": "UZB",
+                "id": "Uzbekistan",
                 "arcs": [
                     [-576, -388, -399, -574, -2]
                 ]
@@ -1913,7 +1913,7 @@
                 "properties": {
                     "name": "Venezuela"
                 },
-                "id": "VEN",
+                "id": "Venezuela",
                 "arcs": [
                     [598, -320, -108, -210]
                 ]
@@ -1922,7 +1922,7 @@
                 "properties": {
                     "name": "Vietnam"
                 },
-                "id": "VNM",
+                "id": "Vietnam",
                 "arcs": [
                     [599, -402, -413, -171]
                 ]
@@ -1931,7 +1931,7 @@
                 "properties": {
                     "name": "Vanuatu"
                 },
-                "id": "VUT",
+                "id": "Vanuatu",
                 "arcs": [
                     [
                         [600]
@@ -1945,7 +1945,7 @@
                 "properties": {
                     "name": "West Bank"
                 },
-                "id": "PSE",
+                "id": "West_Bank",
                 "arcs": [
                     [-384, -371]
                 ]
@@ -1954,7 +1954,7 @@
                 "properties": {
                     "name": "Yemen"
                 },
-                "id": "YEM",
+                "id": "Yemen",
                 "arcs": [
                     [602, -542, -483]
                 ]
@@ -1963,7 +1963,7 @@
                 "properties": {
                     "name": "South Africa"
                 },
-                "id": "ZAF",
+                "id": "South_Africa",
                 "arcs": [
                     [-467, -118, 603, -452, -568, -450, 604],
                     [-424]
@@ -1973,7 +1973,7 @@
                 "properties": {
                     "name": "Zambia"
                 },
-                "id": "ZMB",
+                "id": "Zambia",
                 "arcs": [
                     [-459, -454, 605, -120, -466, -7, -200, -584]
                 ]
@@ -1982,7 +1982,7 @@
                 "properties": {
                     "name": "Zimbabwe"
                 },
-                "id": "ZWE",
+                "id": "Zimbabwe",
                 "arcs": [
                     [-604, -121, -606, -453]
                 ]
