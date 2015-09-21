@@ -18,15 +18,17 @@
 			
 			this.header = new App.Views.Chart.Header( { dispatcher: this.dispatcher } );
 			this.scaleSelectors = new App.Views.Chart.ScaleSelectors( { dispatcher: this.dispatcher } );
+			this.mapTab = new App.Views.Chart.MapTab( { dispatcher: this.dispatcher } );
 
 			//setup model that will fetch all the data for us
 			this.dataModel = new App.Models.ChartDataModel();
-			this.mapTab = new App.Views.Chart.MapTab( { dispatcher: this.dispatcher } );
+			
+			//setup events
+			this.dataModel.on( "sync", this.onDataModelSync, this );
+			this.dataModel.on( "error", this.onDataModelError, this );
+			App.ChartModel.on( "change", this.onChartModelChange, this );
 
 			this.render();
-
-			//setup events
-			App.ChartModel.on( "change", this.onChartModelChange, this );
 
 		},
 
@@ -158,21 +160,6 @@
 
 				var dataProps = { "dimensions": dimensionsString, "chartId": App.ChartModel.get( "id" ), "chartType": App.ChartModel.get( "chart-type" ), "selectedCountries": selectedCountriesIds, "chartTime": chartTime, "cache": App.ChartModel.get( "cache" ), "groupByVariables": App.ChartModel.get( "group-by-variables" )  };
 				
-				this.dataModel.on( "sync", function( model, response ) {
-					that.$error.hide();
-					that.$preloader.hide();
-					if( response.data ) {
-						that.updateChart( response.data, response.timeType, response.dimensions );
-					}
-					if( response.datasources ) {
-						that.updateSourceTab( response.datasources, response.license );
-					}
-				} );
-				this.dataModel.on( "error", function() {
-					that.$error.show();
-					that.$preloader.hide();
-				} );
-
 				this.dataModel.fetch( { data: dataProps } );
 
 			} else {
@@ -188,6 +175,22 @@
 
 			this.render();
 
+		},
+
+		onDataModelSync: function( model, response ) {
+			this.$error.hide();
+			this.$preloader.hide();
+			if( response.data ) {
+				this.updateChart( response.data, response.timeType, response.dimensions );
+			}
+			if( response.datasources ) {
+				this.updateSourceTab( response.datasources, response.license );
+			}
+		},
+
+		onDataModelError: function() {
+			this.$error.show();
+			this.$preloader.hide();
 		},
 
 		exportContent: function( evt ) {
@@ -337,8 +340,6 @@
 				} );
 
 			}
-
-			this.mapTab.update( localData );
 
 			//if legend displayed, sort data on key alphabetically (usefull when multivarian dataset)
 			if( !App.ChartModel.get( "hide-legend" ) ) {

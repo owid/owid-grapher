@@ -12,12 +12,20 @@
 		events: {},
 
 		initialize: function( options ) {
+			
 			this.dispatcher = options.dispatcher;
-			return this.render();
+
+			//init map only if the map tab displayed
+			var that = this;
+			$( "[data-toggle='tab'][href='#map-chart-tab']" ).on( "shown.bs.tab", function( evt ) {
+				that.render();
+			} );
+			//return this.render();
+		
 		},
 
 		render: function() {
-			
+
 			this.dataMap = new Datamap( {
 				element: document.getElementById( "map-chart-tab" ),
 				geographyConfig: {
@@ -38,11 +46,53 @@
 				.attr( "height", 50)
 				.style( "fill", "url(#gradient)" );
 
+			var that = this;
+			this.mapDataModel = new App.Models.ChartDataModel();
+			this.mapDataModel.on( "sync", function( model, response ) {
+				if( response.data ) {
+					that.displayData( response.data );
+				}
+			} );
+			this.mapDataModel.on( "error", function() {
+				console.error( "Error loading map data." );
+			} );
+			App.ChartModel.on( "change", this.onChartModelChange, this );
+
+			this.update();
+
+		},
+
+		onChartModelChange: function( evt ) {
+
+			this.update();
+
+		},
+
+		update: function() {
+			
+			//construct dimension string
+			var that = this,
+				mapConfig = App.ChartModel.get( "map-config" ),
+				variableId = mapConfig.variableId,
+				targetYear = mapConfig.targetYear,
+				mode = mapConfig.mode,
+				tolerance = mapConfig.tolerance,
+				dimensions = [{ name: "Map", property: "map", variableId: variableId, targetYear: targetYear, mode: mode, tolerance: tolerance }],
+				chartTime = App.ChartModel.get( "chart-time" ),
+				dimensionsString = JSON.stringify( dimensions ),
+				chartType = 9999,
+				selectedCountries = App.ChartModel.get( "selected-countries" ),
+				selectedCountriesIds = _.map( selectedCountries, function( v ) { return (v)? +v.id: ""; } );
+
+			var dataProps = { "dimensions": dimensionsString, "chartId": App.ChartModel.get( "id" ), "chartType": chartType, "selectedCountries": selectedCountriesIds, "chartTime": chartTime, "cache": App.ChartModel.get( "cache" ), "groupByVariables": App.ChartModel.get( "group-by-variables" )  };
+
+			this.mapDataModel.fetch( { data: dataProps } );
+
 			return this;
 		},
 
-		update: function( data ) {
-
+		displayData: function( data ) {
+			//debugger;
 			var dataMin = Infinity,
 				dataMax = -Infinity;
 
@@ -50,7 +100,7 @@
 			var latestData = data.map( function( d, i ) {
 
 				var values = d.values,
-					latestTimeValue = ( values && values.length )? values[ values.length - 1].y: 0;
+					latestTimeValue = ( values && values.length )? values[ values.length - 1]: 0;
 
 				//also get min max values, could use d3.min, d3.max once we have all values, but this probably saves some time
 				dataMin = Math.min( dataMin, latestTimeValue );

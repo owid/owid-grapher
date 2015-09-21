@@ -309,6 +309,27 @@ class DataController extends Controller {
 				$dataByVariable = Chart::formatDataForChartType( $chartType, $dataByVariableTime, $dimensionsByKey, $times, true, $mainDimension, $otherDimIds, $entityName );
 			}
 		}
+
+
+		if( $chartType == '9999' ) {
+			
+			//if getting dimensions for map, don't need info bellow, just send of the data
+			$data = [];
+			foreach( $normalizedData as $entityData ) {
+				$data[] = $entityData;
+			}
+			$result = [ 'success' => true, 'data' => $data ];
+			
+			//TODO - put to cache
+			//store into cache - there is no cache 
+			/*if( !empty( $key ) ) {
+				$minutes = 60*24;
+				Cache::put( $key, $result, $minutes );
+			}*/
+			
+			return $result;
+		}
+
 		
 		if( $groupByEntity ) {
 			//convert to array
