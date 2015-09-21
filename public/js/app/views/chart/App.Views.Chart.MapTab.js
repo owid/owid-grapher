@@ -122,6 +122,7 @@
 				mapData[ d.key ] = { "key": d.key, "value": d.value, "color": colorScale( d.value ) };
 			} );
 
+			//TODO - somehow need to clear the existing data ( so that if removed country, it's removed from map), probably do d3.select on map units and set default color?
 			//update map
 			this.dataMap.updateChoropleth( mapData );
 
