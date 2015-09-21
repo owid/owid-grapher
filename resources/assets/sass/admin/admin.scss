@@ -2,28 +2,31 @@
    General
    ========================================================================== */
 
-.right-btns-wrapper {}
-	.right-btns-wrapper a, 
-	.right-btns-wrapper form {
+.right-btns-wrapper {
+	a, form {
 		float: left;
 		margin-left: 10px;
 	}
 
+}
+	
 a > i, 
 button > i {
 	margin-right: 3px;
 }
 
-.back-btn {}
-	.back-btn i {
+.back-btn {
+	i {
 		font-size: 12px;
 	}
+}
 
-.property-wrapper {}
+.property-wrapper {
 	.property-title {
 		font-weight: 700;
 		font-size: 14px;
 	}
+}
 
 .delete-btn {
 	margin-top: 0px;
@@ -50,24 +53,28 @@ button > i {
 }
 
 /* tables */
-.table {}
-	.table tr {
+.table {
+
+	tr {
 		border-bottom: 1px solid gray;
 	}
-		.table th, .table td {
-			border-top: 0px !important;
-			border-bottom: 0px !important;
-		}
-		.datepicker .table tr {
-			border-bottom: 0px;
-		}
+	th, td {
+		border-top: 0px !important;
+		border-bottom: 0px !important;
+	}
+}
+.datepicker .table tr {
+	border-bottom: 0px;
+}
 
 .flash {
 	padding: 10px;
-}
-	.flash p {
+
+	p {
 		margin: 0;
 	}
+
+}
 
 .text-danger i,
 .text-success i {
@@ -86,13 +93,13 @@ button > i {
 .main-header {
 	color: white;
 	/*box-shadow: -1px 2px 3px rgba(0,0,0,0.25);*/
-}
-	.main-header h1 {
+	h1 {
 		margin: 13px 30px;
 		text-transform: uppercase;
 		font-size: 22px;
 	}
-
+}
+	
 /* ==========================================================================
    Content wrapper - layout
    ========================================================================== */
