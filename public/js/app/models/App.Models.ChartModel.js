@@ -39,7 +39,13 @@
 			"group-by-variables": false,
 			"add-country-mode": "add-country",
 			"x-axis-scale-selector": false,
-			"y-axis-scale-selector": false
+			"y-axis-scale-selector": false,
+			"map-config": {
+				"variableId": "27",
+				"targetYear": 1980,
+				"mode": "specific",
+				"tolerance": 10
+			}
 		},
 
 		initialize: function() {

@@ -25,7 +25,7 @@
 			</ul>
 		</div>
 		<div class="tab-content">
-			<div id="chart-chart-tab" class="tab-pane ">
+			<div id="chart-chart-tab" class="tab-pane active">
 				<div class="available-countries-select-wrapper">
 					<select class="available-countries-select chosen-select" name="available_entities" style="position: relative;z-index: 10;"></select>
 				</div>
@@ -116,11 +116,9 @@
 				<a href="#" data-base-url="{!! route( 'dimensions' ) !!}" class="btn btn-primary download-data-btn" target="_blank"><i class="fa fa-download"></i>Download data</a>
 				<div class="data-table-wrapper"></div>
 			</div>
-			<div id="map-chart-tab" class="tab-pane active">
-				Map tab
+			<div id="map-chart-tab" class="tab-pane">
 			</div>		
 			<div id="sources-chart-tab" class="tab-pane">
-				Sources tab
 			</div>
 		</div>
 	</div>

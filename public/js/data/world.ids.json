@@ -40,7 +40,7 @@
                 "properties": {
                     "name": "United Arab Emirates"
                 },
-                "id": "ARE",
+                "id": "United_Arab_Emirates",
                 "arcs": [
                     [18, 19, 20, 21, 22]
                 ]
@@ -248,7 +248,7 @@
                 "properties": {
                     "name": "Bolivia"
                 },
-                "id": "BOL",
+                "id": "Bolivia",
                 "arcs": [
                     [100, 101, 102, 103, -31]
                 ]
@@ -527,7 +527,7 @@
                 "properties": {
                     "name": "Germany"
                 },
-                "id": "DEU",
+                "id": "Germany",
                 "arcs": [
                     [222, 223, -220, -52, -164, 224, 225, -64, 226, 227, 228]
                 ]
@@ -666,7 +666,7 @@
                 "properties": {
                     "name": "France"
                 },
-                "id": "FRA",
+                "id": "France",
                 "arcs": [
                     [
                         [277]
@@ -843,7 +843,7 @@
                 "properties": {
                     "name": "Indonesia"
                 },
-                "id": "IDN",
+                "id": "Indonesia",
                 "arcs": [
                     [
                         [335]
@@ -1023,7 +1023,7 @@
                 "properties": {
                     "name": "Cambodia"
                 },
-                "id": "KHM",
+                "id": "Cambodia",
                 "arcs": [
                     [399, 400, 401, 402]
                 ]
@@ -1307,7 +1307,7 @@
                 "properties": {
                     "name": "Netherlands"
                 },
-                "id": "NLD",
+                "id": "Netherlands",
                 "arcs": [
                     [-227, -63, 473]
                 ]
