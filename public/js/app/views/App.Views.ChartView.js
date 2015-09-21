@@ -21,6 +21,7 @@
 
 			//setup model that will fetch all the data for us
 			this.dataModel = new App.Models.ChartDataModel();
+			this.mapTab = new App.Views.Chart.MapTab( { dispatcher: this.dispatcher } );
 
 			this.render();
 
@@ -117,7 +118,6 @@
 
 			//refresh btn
 			this.$reloadBtn.on( "click", function( evt ) {
-				console.log( "reloadBnt" );
 				evt.preventDefault();
 				window.location.reload();
 			} );
@@ -337,6 +337,8 @@
 				} );
 
 			}
+
+			this.mapTab.update( localData );
 
 			//if legend displayed, sort data on key alphabetically (usefull when multivarian dataset)
 			if( !App.ChartModel.get( "hide-legend" ) ) {
