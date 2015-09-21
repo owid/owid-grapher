@@ -152,7 +152,7 @@
 	#chart-view .tab-content {
 		position: relative;
 		/* height is later modified in js */ 
-		height: calc(100% - 60px);
+		height: calc(100% - 100px);
 	}
 	#chart-view .tab-pane {
 		position: relative;
