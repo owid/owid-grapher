@@ -44,14 +44,17 @@
 				"variableId": "27",
 				"targetYear": 1980,
 				"mode": "specific",
-				"tolerance": 10
+				"tolerance": 10,
+				"interval": 10,
+				"colorSchemeName": "BuGn",
+				"colorSchemeInterval": 5
 			}
 		},
 
 		initialize: function() {
 
 			this.on( "sync", this.onSync, this );
-
+		
 		},
 
 		onSync: function() {
@@ -169,6 +172,16 @@
 				variables.push( newVar );
 				this.set( "variables", variables );
 			}
+		},
+
+		updateMapConfig: function( propName, propValue ) {
+
+			var mapConfig = this.get( "map-config" );
+			if( mapConfig[ propName ] ) {
+				mapConfig[ propName ] = propValue;
+				this.trigger( "change" );
+			}
+
 		}
 
 

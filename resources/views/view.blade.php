@@ -57,6 +57,8 @@
 		
 		<script src="{{ asset('js/libs/chosen.jquery.js') }}"></script>    
 		
+		<script src="{{ asset('js/libs/colorbrewer.js') }}?bust={!!time()!!}"></script>
+		
 		<script src="{{ asset('js/namespaces.js') }}?bust={!!time()!!}"></script>
 		
 		<script src="{{ asset('js/app/App.Utils.js') }}?bust={!!time()!!}"></script>

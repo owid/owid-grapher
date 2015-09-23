@@ -116,6 +116,8 @@
 		
 		<script src="{{ asset('js/libs/bootstrap3-wysihtml5.all.min.js') }}"></script>    
 
+		<script src="{{ asset('js/libs/colorbrewer.js') }}?bust={!!time()!!}"></script>
+		
 		<script src="{{ asset('js/namespaces.js') }}"></script>
 		<script src="{{ asset('js/admin.js') }}"></script>
 		
