@@ -174,7 +174,7 @@
 		onChartModelChange: function( evt ) {
 
 			this.render();
-
+			
 		},
 
 		onDataModelSync: function( model, response ) {
@@ -929,7 +929,7 @@
 			//compute how much space for chart
 			var svgWidth = this.$svg.width(),
 				svgHeight = this.$svg.height(),
-				chartType = chartType = App.ChartModel.get( "chart-type" ),
+				chartType = App.ChartModel.get( "chart-type" ),
 				$chartNameSvg = this.$el.find( ".chart-name-svg" ),
 				$chartSubnameSvg = this.$el.find( ".chart-subname-svg" ),
 				$chartDescriptionSvg = this.$el.find( ".chart-description-svg" ),
@@ -995,8 +995,10 @@
 			this.chart.height( chartHeight );
 
 			//need to call chart update for resizing of elements within chart
-			this.chart.update();
-
+			if( this.$chartTab.is( ":visible" ) ) {
+				this.chart.update();
+			}
+			
 			if( chartType === "3" ) {
 				//for stacked area chart, need to manually adjust height
 				var currIntLayerHeight = this.chart.interactiveLayer.height(),

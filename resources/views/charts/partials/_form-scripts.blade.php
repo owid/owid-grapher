@@ -21,5 +21,6 @@
 <script src="{{ asset('js/app/views/form/App.Views.Form.DescriptionTabView.js') }}?bust={!!time()!!}"></script>
 <script src="{{ asset('js/app/views/form/App.Views.Form.StylingTabView.js') }}?bust={!!time()!!}"></script>
 <script src="{{ asset('js/app/views/form/App.Views.Form.ExportTabView.js') }}?bust={!!time()!!}"></script>
+<script src="{{ asset('js/app/views/form/App.Views.Form.MapTabView.js') }}?bust={!!time()!!}"></script>
 
 <script src="{{ asset('js/app/views/App.Views.FormView.js') }}?bust={!!time()!!}"></script>

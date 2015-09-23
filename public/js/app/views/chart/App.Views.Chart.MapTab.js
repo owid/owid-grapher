@@ -4,8 +4,6 @@
 
 	App.Views.Chart.MapTab = Backbone.View.extend({
 
-		COLOR_SCHEME: [ "#dadaeb", "#bcbddc", "#9e9ac8", "#807dba", "#6a51a3", "#54278f", "#3f007d" ],
-
 		dataMap: null,
 		legend: null,
 
@@ -92,8 +90,9 @@
 		},
 
 		displayData: function( data ) {
-			//debugger;
-			var dataMin = Infinity,
+			
+			var mapConfig = App.ChartModel.get( "map-config" ),
+				dataMin = Infinity,
 				dataMax = -Infinity;
 
 			//need to extract latest time
@@ -111,10 +110,12 @@
 
 			} );
 
+			var colorScheme = ( colorbrewer[ mapConfig.colorSchemeName ] && colorbrewer[ mapConfig.colorSchemeName ][ mapConfig.colorSchemeInterval ] )? colorbrewer[ mapConfig.colorSchemeName ][ mapConfig.colorSchemeInterval ]: [];
+			
 			//need to create color scheme
 			var colorScale = d3.scale.quantize()
 				.domain( [ dataMin, dataMax ] )
-				.range( this.COLOR_SCHEME );
+				.range( colorScheme );
 
 			//need to encode colors properties
 			var mapData = {};
@@ -127,7 +128,7 @@
 			this.dataMap.updateChoropleth( mapData );
 
 			//update legend
-			this.updateGradient( this.COLOR_SCHEME, "gradient");
+			this.updateGradient( colorScheme, "gradient");
 
 		},
 

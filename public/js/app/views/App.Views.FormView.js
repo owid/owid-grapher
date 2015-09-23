@@ -68,6 +68,7 @@
 			this.descriptionTabView = new App.Views.Form.DescriptionTabView( { dispatcher: this.dispatcher } );
 			this.stylingTabView = new App.Views.Form.StylingTabView( { dispatcher: this.dispatcher } );
 			this.exportTabView = new App.Views.Form.ExportTabView( { dispatcher: this.dispatcher } );
+			this.mapTabView = new App.Views.Form.MapTabView( { dispatcher: this.dispatcher } );
 
 			//fetch doms
 			this.$removeUploadedFileBtn = this.$el.find( ".remove-uploaded-file-btn" );
