@@ -69,6 +69,7 @@
 				console.error( "Error loading map data." );
 			} );
 			App.ChartModel.on( "change", this.onChartModelChange, this );
+			App.ChartModel.on( "resize", this.onChartModelResize, this );
 			App.AvailableTimeModel.on( "change", this.onChartModelChange, this );
 
 			this.update();
@@ -196,6 +197,10 @@
 			if( this.dataMap ) {
 				this.dataMap.resize();
 			}
+		},
+
+		onChartModelResize: function() {
+			this.onResize();
 		}
 
 	});

@@ -131,6 +131,8 @@
 			
 			//trigger re-rendering of chart
 			App.ChartModel.trigger( "change" );
+			//also triger custom event so that map can resize
+			App.ChartModel.trigger( "resize" );
 
 		},
 
