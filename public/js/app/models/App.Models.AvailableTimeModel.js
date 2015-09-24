@@ -18,8 +18,7 @@
 			var max = d3.max( response.data, function(d) { return parseFloat( d.label ); } ),
 						min = d3.min( response.data, function(d) { return parseFloat( d.label ); } );
 			this.set( { "max": max, "min": min } );
-			console.log( "parse" );
-
+		
 		},
 
 		onVariableAdd: function( model ) {

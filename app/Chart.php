@@ -524,7 +524,6 @@ class Chart extends Model {
 	public static function formatDataForMap( $dataByEntity, $dimension, $times ) {
 
 		$normalizedData = [];
-
 		foreach( $dataByEntity as $entityData ) {
 			
 			$arr = array(
@@ -561,7 +560,7 @@ class Chart extends Model {
 			if( $hasData ) {
 				$normalizedData[ $entityData[ "id" ] ] = $arr;
 			}
-	
+			
 		}
 
 		return $normalizedData;

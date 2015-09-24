@@ -381,13 +381,43 @@
 					</section>
 					<section class="form-section tabs-section">
 						<div class="form-section-header">
-							<h2><span class="form-section-digit">p</span>Color scheme</h2>
+							<h2><span class="form-section-digit">p</span>Timeline</h2>
 						</div>
 						<div class="form-section-content">
-							<select name="map-color-scheme" class="form-control">
-							<select>
-							<select name="map-color-interval" class="form-control">
-							<select>
+							<label>
+								Tolerance of data:
+								<input name="map-time-tolerance" class="form-control" placeholder="Tolerance of data" />
+							</label>
+							<label>
+								Gap between years:
+								<input name="map-time-interval" class="form-control" placeholder="Gap between years" />
+							</label>
+						</div>
+					</section>
+					<section class="form-section tabs-section">
+						<div class="form-section-header">
+							<h2><span class="form-section-digit">q</span>Colors</h2>
+						</div>
+						<div class="form-section-content">
+							<label>
+								Color scheme:
+								<select name="map-color-scheme" class="form-control"></select>
+							</label>
+							<label>
+								Number of intervals:
+								<select name="map-color-interval" class="form-control"></select>
+							</label>
+						</div>
+					</section>
+					<section class="form-section tabs-section">
+						<div class="form-section-header">
+							<h2><span class="form-section-digit">r</span>Extent</h2>
+						</div>
+						<div class="form-section-content">
+							<label>
+								Which region map should be focused:
+								<select name="map-projections" class="form-control"></select>
+							</label>
 						</div>
 					</section>
 				</div>

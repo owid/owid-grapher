@@ -7,18 +7,27 @@
 		el: "#form-view #map-tab",
 		events: {
 			"change [name='map-variable-id']": "onVariableIdChange",
+			"change [name='map-time-tolerance']": "onTimeToleranceChange",
+			"change [name='map-time-interval']": "onTimeIntervalChange",
 			"change [name='map-color-scheme']": "onColorSchemeChange",
-			"change [name='map-color-interval']": "onColorIntervalChange"
+			"change [name='map-color-interval']": "onColorIntervalChange",
+			"change [name='map-projections']": "onProjectionChange"
 		},
 
 		initialize: function( options ) {
 			this.dispatcher = options.dispatcher;
 
-			App.ChartVariablesCollection.on( "change", this.onVariablesCollectionChange, this );
-
+			App.ChartVariablesCollection.on( "add remove change reset", this.onVariablesCollectionChange, this );
+			
 			this.$variableIdSelect = this.$el.find( "[name='map-variable-id']" );
+			
+			this.$timeToleranceInput = this.$el.find( "[name='map-time-tolerance']" );
+			this.$timeIntervalInput = this.$el.find( "[name='map-time-interval']" );
+			
 			this.$colorSchemeSelect = this.$el.find( "[name='map-color-scheme']" );
 			this.$colorIntervalSelect = this.$el.find( "[name='map-color-interval']" );
+			
+			this.$projectionsSelect = this.$el.find( "[name='map-projections']" );
 
 			this.render();
 		},
@@ -28,20 +37,53 @@
 			//populate variable select with the available ones
 			this.$variableIdSelect.empty();
 
-			var mapConfig = App.ChartModel.get( "map-config" ),
-				models = App.ChartVariablesCollection.models,
-				html = "";
-			_.each( models, function( v, i ) {
-				var model = v;
-				html += "<option value='" + v.get( "id" ) + "'>" + v.get( "name" ) + "</option>";
-			} );
-			this.$variableIdSelect.append( $( html ) );
+			var mapConfig = App.ChartModel.get( "map-config" );
+				
+			this.updateVariableSelect();
+
+			this.$timeToleranceInput.val( mapConfig.timeTolerance );
+			this.$timeIntervalInput.val( mapConfig.timeInterval );
 
 			this.updateColorSchemeSelect();
 			this.updateColorIntervalSelect();
+			this.updateProjectionsSelect();
 
 		},
 
+		updateVariableSelect: function() {
+
+			var mapConfig = App.ChartModel.get( "map-config" ),
+				models = App.ChartVariablesCollection.models,
+				html = "";
+
+			if( models && models.length ) {
+				html += "<option selected disabled>Select variable to display on map</option>";
+			}
+
+			_.each( models, function( v, i ) {
+				//if no variable selected, try to select first
+				var selected = ( i == mapConfig.variableId )? " selected": "";
+				html += "<option value='" + v.get( "id" ) + "' " + selected + ">" + v.get( "name" ) + "</option>";
+			} );
+
+			//check for empty html
+			if( !html ) {
+				html += "<option selected disabled>Add some variables in 2.Data tab first</option>";
+				this.$variableIdSelect.addClass( "disabled" );
+			} else {
+				this.$variableIdSelect.removeClass( "disabled" );
+			}
+			this.$variableIdSelect.append( $( html ) );
+
+			//check if we should select first variable
+			if( models.length && !this.$variableIdSelect.val() ) {
+				var firstOption = this.$variableIdSelect.find( "option" ).eq( 1 ).val();
+				this.$variableIdSelect.val( firstOption );
+				App.ChartModel.updateMapConfig( "variableId", firstOption );
+			}
+
+		},
+		
 		updateColorSchemeSelect: function() {
 			
 			var html = "",
@@ -79,6 +121,20 @@
 
 		},
 
+		updateProjectionsSelect: function() {
+			
+			var html = "",
+				mapConfig = App.ChartModel.get( "map-config" );
+
+			this.$projectionsSelect.empty();
+			_.each( App.Views.Chart.MapTab.projections, function( v, i ) {
+				var selected = ( i == mapConfig.projections )? " selected": "";
+				html += "<option value='" + i + "' " + selected + ">" + i + "</option>";
+			} );
+			this.$projectionsSelect.append( $( html ) );
+
+		},
+
 		onVariablesCollectionChange: function() {
 			this.render();
 		},
@@ -86,6 +142,16 @@
 		onVariableIdChange: function( evt ) {
 			var $this = $( evt.target );
 			App.ChartModel.updateMapConfig( "variableId", $this.val() );
+		},
+
+		onTimeToleranceChange: function( evt ) {
+			var $this = $( evt.target );
+			App.ChartModel.updateMapConfig( "timeTolerance", parseInt( $this.val(), 10 ) );
+		},
+
+		onTimeIntervalChange: function( evt ) {
+			var $this = $( evt.target );
+			App.ChartModel.updateMapConfig( "timeInterval", parseInt( $this.val(), 10 ) );
 		},
 
 		onColorSchemeChange: function( evt ) {
@@ -97,7 +163,12 @@
 
 		onColorIntervalChange: function( evt ) {
 			var $this = $( evt.target );
-			App.ChartModel.updateMapConfig( "colorSchemeInterval", $this.val() );
+			App.ChartModel.updateMapConfig( "colorSchemeInterval", parseInt( $this.val(), 10 ) );
+		},
+
+		onProjectionChange: function( evt ) {
+			var $this = $( evt.target );
+			App.ChartModel.updateMapConfig( "projection", $this.val() );
 		}
 
 	});

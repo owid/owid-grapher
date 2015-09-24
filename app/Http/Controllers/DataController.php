@@ -301,6 +301,7 @@ class DataController extends Controller {
 
 		//$normalizedData = [];
 		$mainDimension = $dimensionsByKey[ $mainDimId ];
+
 		if( $groupByEntity ) {
 			$normalizedData = Chart::formatDataForChartType( $chartType, $dataByEntity, $dimensionsByKey, $times, false, $mainDimension, $otherDimIds );
 		} else {
@@ -309,8 +310,7 @@ class DataController extends Controller {
 				$dataByVariable = Chart::formatDataForChartType( $chartType, $dataByVariableTime, $dimensionsByKey, $times, true, $mainDimension, $otherDimIds, $entityName );
 			}
 		}
-
-
+		
 		if( $chartType == '9999' ) {
 			
 			//if getting dimensions for map, don't need info bellow, just send of the data
