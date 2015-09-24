@@ -4,6 +4,7 @@
 
 	App.Views.Chart.MapTab = Backbone.View.extend({
 
+		$tab: null,
 		dataMap: null,
 		legend: null,
 
@@ -26,8 +27,15 @@
 
 		render: function() {
 
+			var that = this;
+			//fetch created dom
+			this.$tab = $( "#map-chart-tab" );
+
 			var defaultProjection = App.Views.Chart.MapTab.projections.World;
 			this.dataMap = new Datamap( {
+				width: that.$tab.width(),
+				height: that.$tab.height(),
+				responsive: true,
 				element: document.getElementById( "map-chart-tab" ),
 				geographyConfig: {
 					dataUrl: Global.rootUrl + "/js/data/world.ids.json",
@@ -51,7 +59,6 @@
 				.attr( "height", 50)
 				.style( "fill", "url(#gradient)" );
 
-			var that = this;
 			this.mapDataModel = new App.Models.ChartDataModel();
 			this.mapDataModel.on( "sync", function( model, response ) {
 				if( response.data ) {
@@ -65,6 +72,9 @@
 			App.AvailableTimeModel.on( "change", this.onChartModelChange, this );
 
 			this.update();
+
+			nv.utils.windowResize( $.proxy( this.onResize, this ) );
+			this.onResize();
 
 		},
 
@@ -180,6 +190,12 @@
 				newProjection = ( projections[ projectionName ] )? projections[ projectionName ]: projections.World;
 			return newProjection;
 			
+		},
+
+		onResize: function() {
+			if( this.dataMap ) {
+				this.dataMap.resize();
+			}
 		}
 
 	});
