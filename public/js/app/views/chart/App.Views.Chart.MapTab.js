@@ -16,22 +16,29 @@
 			//init map only if the map tab displayed
 			var that = this;
 			$( "[data-toggle='tab'][href='#map-chart-tab']" ).on( "shown.bs.tab", function( evt ) {
-				that.render();
+				//render only if no map yet
+				if( !that.dataMap ) {
+					that.render();
+				}
 			} );
-			//return this.render();
-		
+			
 		},
 
 		render: function() {
 
+			var defaultProjection = App.Views.Chart.MapTab.projections.World;
 			this.dataMap = new Datamap( {
 				element: document.getElementById( "map-chart-tab" ),
 				geographyConfig: {
 					dataUrl: Global.rootUrl + "/js/data/world.ids.json",
 					popupTemplate: function(geo, data) {
-							return [ "<div class='hoverinfo'><strong>","Number of things in " + geo.properties.name, ": " + data.value, "</strong></div>" ].join("");
-						}
-				}
+						return [ "<div class='hoverinfo'><strong>","Number of things in " + geo.properties.name, ": " + data.value, "</strong></div>" ].join("");
+					}
+				},
+				fills: {
+					defaultFill: '#DDDDDD'
+				},
+				setProjection: defaultProjection
 			} );
 
 			this.legend = d3.select( ".datamap" ).append( "g" )
@@ -55,6 +62,7 @@
 				console.error( "Error loading map data." );
 			} );
 			App.ChartModel.on( "change", this.onChartModelChange, this );
+			App.AvailableTimeModel.on( "change", this.onChartModelChange, this );
 
 			this.update();
 
@@ -71,12 +79,12 @@
 			//construct dimension string
 			var that = this,
 				mapConfig = App.ChartModel.get( "map-config" ),
-				variableId = mapConfig.variableId,
-				targetYear = mapConfig.targetYear,
-				mode = mapConfig.mode,
-				tolerance = mapConfig.tolerance,
-				dimensions = [{ name: "Map", property: "map", variableId: variableId, targetYear: targetYear, mode: mode, tolerance: tolerance }],
 				chartTime = App.ChartModel.get( "chart-time" ),
+				variableId = mapConfig.variableId,
+				targetYear = ( chartTime )? chartTime[0]: App.AvailableTimeModel.get( "min" ),
+				mode = mapConfig.mode,
+				tolerance = mapConfig.timeTolerance,
+				dimensions = [{ name: "Map", property: "map", variableId: variableId, targetYear: targetYear, mode: mode, tolerance: tolerance }],
 				dimensionsString = JSON.stringify( dimensions ),
 				chartType = 9999,
 				selectedCountries = App.ChartModel.get( "selected-countries" ),
@@ -91,7 +99,8 @@
 
 		displayData: function( data ) {
 			
-			var mapConfig = App.ChartModel.get( "map-config" ),
+			var that = this,
+				mapConfig = App.ChartModel.get( "map-config" ),
 				dataMin = Infinity,
 				dataMax = -Infinity;
 
@@ -123,10 +132,25 @@
 				mapData[ d.key ] = { "key": d.key, "value": d.value, "color": colorScale( d.value ) };
 			} );
 
-			//TODO - somehow need to clear the existing data ( so that if removed country, it's removed from map), probably do d3.select on map units and set default color?
 			//update map
-			this.dataMap.updateChoropleth( mapData );
-
+			//are we changing projections?
+			var oldProjection = this.dataMap.options.setProjection,
+				newProjection = this.getProjection( mapConfig.projection );
+			if( oldProjection === newProjection ) {
+				//projection stays the same, no need to redraw units
+				//need to set all units to default color first, cause updateChopleth just updates new data leaves the old data for units no longer in dataset
+				d3.selectAll( "path.datamaps-subunit" ).style( "fill", this.dataMap.options.fills.defaultFill );
+				this.dataMap.updateChoropleth( mapData );
+			} else {
+				//changing projection, need to remove existing units, redraw everything and after done drawing, update data
+				d3.selectAll('path.datamaps-subunit').remove();
+				this.dataMap.options.setProjection = newProjection;
+				this.dataMap.draw();
+				this.dataMap.options.done = function() {
+					that.dataMap.updateChoropleth( mapData );
+				};
+			}
+			
 			//update legend
 			this.updateGradient( colorScheme, "gradient");
 
@@ -148,8 +172,46 @@
 							.attr( "offset", function(d, i) { return i/(palette.length-1)*100.0 + "%"; })
 							.attr( "stop-color", function(d) { return d; });
 			d3.select( "#gradientRect" ).style( "fill", "url(#" + gradientId + ")" );
+		},
+
+		getProjection: function( projectionName ) {
+
+			var projections = App.Views.Chart.MapTab.projections,
+				newProjection = ( projections[ projectionName ] )? projections[ projectionName ]: projections.World;
+			return newProjection;
+			
 		}
 
 	});
+
+	App.Views.Chart.MapTab.projections = {
+			
+		"World": function(element) {
+			var projection = d3.geo.equirectangular()
+				.scale((element.offsetWidth + 1) / 2 / Math.PI)
+				.translate([element.offsetWidth / 2, element.offsetHeight / 1.8]);
+			var path = d3.geo.path().projection(projection);
+			return {path: path, projection: projection};
+		},
+		"Africa": function(element) {
+			var projection = d3.geo.equirectangular()
+				.center([19, 0])
+				.rotate([4.4, 0])
+				.scale(400)
+				.translate([element.offsetWidth / 2, element.offsetHeight / 2]);
+			var path = d3.geo.path().projection(projection);
+			return {path: path, projection: projection};
+		},
+		"Europe": function(element) {
+			var projection = d3.geo.equirectangular()
+				.center([5, 65])
+				.rotate([4.4, 0])
+				.scale(400)
+				.translate([element.offsetWidth / 2, element.offsetHeight / 2]);
+			var path = d3.geo.path().projection(projection);
+			return {path: path, projection: projection};
+		}
+
+	};
 
 })();

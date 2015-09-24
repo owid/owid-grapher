@@ -41,13 +41,14 @@
 			"x-axis-scale-selector": false,
 			"y-axis-scale-selector": false,
 			"map-config": {
-				"variableId": "27",
+				"variableId": -1,
 				"targetYear": 1980,
 				"mode": "specific",
-				"tolerance": 10,
-				"interval": 10,
+				"timeTolerance": 10,
+				"timeInterval": 10,
 				"colorSchemeName": "BuGn",
-				"colorSchemeInterval": 5
+				"colorSchemeInterval": 5,
+				"projection": "World"
 			}
 		},
 

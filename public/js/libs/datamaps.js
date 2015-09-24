@@ -624,7 +624,7 @@
 
     this.path = pathAndProjection.path;
     this.projection = pathAndProjection.projection;
-
+    
     //if custom URL for topojson data, retrieve it and render
     if ( options.geographyConfig.dataUrl ) {
       d3.json( options.geographyConfig.dataUrl, function(error, results) {
