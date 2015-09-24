@@ -29,7 +29,7 @@
 				<div class="available-countries-select-wrapper">
 					<select class="available-countries-select chosen-select" name="available_entities" style="position: relative;z-index: 10;"></select>
 				</div>
-				<svg xmlns="http://www.w3.org/2000/svg" version="1.1">
+				<svg xmlns="http://www.w3.org/2000/svg" class="nvd3-svg" version="1.1">
 					<g class="chart-logo-svg" transform="scale(0.24,0.24), translate(0,-20)">
 						<rect x="0" y="0" fill="#1B2543" width="211.2" height="130.1"/>
 						<rect x="0" y="112.2" fill="#E63912" width="211.2" height="17.9"/>

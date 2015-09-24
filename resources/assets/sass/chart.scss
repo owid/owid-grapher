@@ -139,7 +139,9 @@
 				#chart-view .chart-tabs li.reload-btn-wrapper i {
 					margin-right: 0;
 				}
-				
+		#chart-view #map-chart-tab {
+			height: auto;
+		}		
 	.chart-wrapper-inner {
 		position: relative;
 		overflow: auto;
