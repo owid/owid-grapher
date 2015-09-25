@@ -33,9 +33,7 @@
 
 			var ids = this.getVariableIds();
 			this.url = this.urlRoot + "?variableIds=" + ids.join(",");
-
-			var that = this;
-			this.fetch();	
+			this.fetch();
 
 		},
 

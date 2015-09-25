@@ -117,6 +117,41 @@
 				<div class="data-table-wrapper"></div>
 			</div>
 			<div id="map-chart-tab" class="tab-pane">
+				<div class="map-controls-header clearfix">
+					<div class="target-year-control control clearfix">
+						<div class="control-head">
+							<i class="fa fa-clock-o"></i>
+							<label class="target-year-label"></label>
+						</div>
+						<div class="control-body">
+							<input type="range" min="1950" max="2010" step="10"  orient="vertical" />
+						</div>
+					</div>
+					<div class="region-control control clearfix">
+						<div class="control-head">
+							<i class="fa fa-map"></i>
+							<label class="region-label">World</label>
+						</div>
+						<div class="control-body">
+							<ul class="clearfix">
+								<li>World</li>
+								<li>Africa</li>
+								<li>America</li>
+								<li>Asia</li>
+								<li>Australia</li>
+								<li>Europe</li>
+							</ul>
+						</div>
+					</div>
+					<div class="settings-control control clearfix">
+						<div class="control-head">
+							<i class="fa fa-cog"></i>
+							<label class="region-label">Inter</label>
+						</div>
+						<div class="control-body">
+						</div>
+					</div>
+				</div>
 			</div>		
 			<div id="sources-chart-tab" class="tab-pane">
 			</div>

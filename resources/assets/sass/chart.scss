@@ -464,7 +464,93 @@
 	**/
 	#chart-view #map-chart-tab {
 		height: auto;
+		overflow: inherit;
 		
+		.map-controls-header {
+			position: absolute;
+			top: 10px;
+			left: 10px;
+			z-index: 1;
+
+			.control {
+				float: left;
+				height: 31px;
+				margin-right: 2px;
+				padding: 5px 10px;
+				border: 1px solid #EEEEEE;
+				background-color: #FAFAFA;
+				transition: .3s height;
+				white-space: nowrap;
+				overflow: hidden;
+
+				&:hover {
+					height: 300px;
+					color: #fff;
+					background-color: #444;
+    				border: 1px solid #444;
+
+    				.control-body {
+    					/*width:calc(100% - 60px);*/
+    				}
+				}
+
+				.control-head, .control-body {
+					/*display: inline-block;
+					white-space: nowrap;*/
+				}
+				.control-head label {
+					margin-bottom: 0;
+				}
+				
+			}
+
+			.target-year-control {
+				width: 70px;
+				&:hover {
+					height: 180px;
+				}
+				.control-head {
+				}
+				input {
+					display: inline-block;
+					margin: 10px 0;
+					writing-mode: bt-lr;
+					-webkit-appearance: slider-vertical;
+				}
+			}
+
+			.region-control {
+				width: 100px;
+				&:hover {
+					height: 205px;
+				}
+				.region-label {
+					width: calc(100% - 14px);
+					text-align: center;
+				}
+				ul {
+					margin: 5px 0;
+					padding: 0;
+					//padding-left: 5px;
+					list-style-type: none;
+					//white-space: nowrap;
+				}
+				li {
+					//display: inline-block;
+					padding: 4px 0;
+					//border-right: 1px solid #fff;
+					&:last-child {
+					//	border-right: 0;
+					}
+					&:hover {
+						cursor: pointer;
+						color: #FFEC38;
+					}
+				}
+			}
+
+		}
+
 		.datamap {
 
 			background-color: #ECF6FC;

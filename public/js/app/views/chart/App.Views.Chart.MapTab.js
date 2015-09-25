@@ -6,6 +6,7 @@
 
 		$tab: null,
 		dataMap: null,
+		mapControls: null,
 		legend: null,
 
 		events: {},
@@ -13,6 +14,7 @@
 		initialize: function( options ) {
 			
 			this.dispatcher = options.dispatcher;
+			this.mapControls = new App.Views.Chart.Map.MapControls( { dispatcher: options.dispatcher } );
 
 			//init map only if the map tab displayed
 			var that = this;
