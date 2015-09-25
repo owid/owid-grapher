@@ -20,8 +20,9 @@
 
 			selection.each( function( data ) {
 
-				var container = d3.select( this ),
-					containerHeight = container.node().getBoundingClientRect().height,
+				var datamap = d3.select( ".datamap" ),
+					container = d3.select( this ),
+					containerHeight = datamap.node().getBoundingClientRect().height,
 					legendOffset = 10,
 					stepGap = 2,
 					g = container.select( ".legend" );

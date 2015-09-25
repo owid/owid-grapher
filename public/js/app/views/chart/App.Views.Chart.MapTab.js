@@ -156,7 +156,11 @@
 			} );
 
 			this.legend.scale( colorScale );
-			d3.select( ".datamap" ).datum( colorScheme ).call( this.legend );
+			if( d3.select( ".legend-wrapper" ).empty() ) {
+				d3.select( ".datamap" ).append( "g" ).attr( "class", "legend-wrapper" );
+			}
+			d3.select( ".legend-wrapper" ).datum( colorScheme ).call( this.legend );
+			//d3.select( ".datamap" ).datum( colorScheme ).call( this.legend );
 
 			//update map
 			//are we changing projections?
