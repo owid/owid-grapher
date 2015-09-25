@@ -175,12 +175,14 @@
 			}
 		},
 
-		updateMapConfig: function( propName, propValue ) {
+		updateMapConfig: function( propName, propValue, silent ) {
 
 			var mapConfig = this.get( "map-config" );
 			if( mapConfig[ propName ] ) {
 				mapConfig[ propName ] = propValue;
-				this.trigger( "change" );
+				if( !silent ) {
+					this.trigger( "change" );
+				}
 			}
 
 		}

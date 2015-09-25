@@ -18,6 +18,8 @@
 			this.dispatcher = options.dispatcher;
 
 			App.ChartVariablesCollection.on( "add remove change reset", this.onVariablesCollectionChange, this );
+			App.AvailableTimeModel.on( "change", this.onAvailableTimeChange, this );
+			//App.ChartModel.on( "change", this.onChartModelChange, this );
 			
 			this.$variableIdSelect = this.$el.find( "[name='map-variable-id']" );
 			
@@ -135,6 +137,12 @@
 
 		},
 
+		updateTargetYear: function( silent ) {
+			var chartTime = App.ChartModel.get( "chart-time" ),
+				targetYear = ( chartTime )? chartTime[0]: App.AvailableTimeModel.get( "min" );
+			App.ChartModel.updateMapConfig( "targetYear", targetYear, silent );
+		},
+
 		onVariablesCollectionChange: function() {
 			this.render();
 		},
@@ -169,6 +177,14 @@
 		onProjectionChange: function( evt ) {
 			var $this = $( evt.target );
 			App.ChartModel.updateMapConfig( "projection", $this.val() );
+		},
+
+		onChartModelChange: function( evt ) {
+			this.updateTargetYear( true );
+		},
+
+		onAvailableTimeChange: function( evt ) {
+			this.updateTargetYear( false );
 		}
 
 	});

@@ -21,7 +21,7 @@
 			, radioButtonMode = false   //If true, clicking legend items will cause it to behave like a radio button. (only one can be selected at a time)
 			, expanded = false
 			, dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout', 'stateChange', 'removeEntity', 'addEntity')
-			, vers = 'classic' //Options are "classic" and "furious" and "owd"
+		, vers = 'classic' //Options are "classic" and "furious" and "owd"
 			;
 
 		function chart(selection) {

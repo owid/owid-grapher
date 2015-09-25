@@ -139,9 +139,6 @@
 				#chart-view .chart-tabs li.reload-btn-wrapper i {
 					margin-right: 0;
 				}
-		#chart-view #map-chart-tab {
-			height: auto;
-		}		
 	.chart-wrapper-inner {
 		position: relative;
 		overflow: auto;
@@ -461,6 +458,30 @@
 		#sources-chart-tab .datasource-additional p {
 			margin-top: 5px;
 		}
+
+	/**
+	*	MAP TAB
+	**/
+	#chart-view #map-chart-tab {
+		height: auto;
+		
+		.datamap {
+
+			background-color: #ECF6FC;
+
+			.datamaps-subunits {
+
+				path {
+					stroke-width: 0.3px;
+					stroke: rgb(79, 79, 79);
+				}
+
+			}
+
+		}
+
+	}
+	
 
 /**
  * PRINTING STUFF

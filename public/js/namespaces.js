@@ -2,6 +2,7 @@
 var App = {};
 App.Views = {};
 App.Views.Chart = {};
+App.Views.Chart.Map = {};
 App.Views.Form = {};
 App.Views.UI = {};
 App.Models = {};
