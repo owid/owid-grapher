@@ -1077,9 +1077,6 @@ button[type="submit"]:not(".delete-btn") {
 #chart-view .chart-tabs li.reload-btn-wrapper i {
   margin-right: 0; }
 
-#chart-view #map-chart-tab {
-  height: auto; }
-
 .chart-wrapper-inner {
   position: relative;
   overflow: auto;
@@ -1375,6 +1372,17 @@ button[type="submit"]:not(".delete-btn") {
 
 #sources-chart-tab .datasource-additional p {
   margin-top: 5px; }
+
+/**
+	*	MAP TAB
+	**/
+#chart-view #map-chart-tab {
+  height: auto; }
+  #chart-view #map-chart-tab .datamap {
+    background-color: #ECF6FC; }
+    #chart-view #map-chart-tab .datamap .datamaps-subunits path {
+      stroke-width: 0.3px;
+      stroke: #4f4f4f; }
 
 /**
  * PRINTING STUFF

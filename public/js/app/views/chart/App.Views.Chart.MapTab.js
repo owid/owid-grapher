@@ -39,6 +39,11 @@
 				element: document.getElementById( "map-chart-tab" ),
 				geographyConfig: {
 					dataUrl: Global.rootUrl + "/js/data/world.ids.json",
+					borderWidth: 0.3,
+					borderColor: '#4F4F4F',
+					highlightBorderColor: 'black',
+					highlightBorderWidth: 0.5,
+					highlightFillColor: '#FFEC38',
 					popupTemplate: function(geo, data) {
 						return [ "<div class='hoverinfo'><strong>","Number of things in " + geo.properties.name, ": " + data.value, "</strong></div>" ].join("");
 					}
@@ -49,7 +54,10 @@
 				setProjection: defaultProjection
 			} );
 
-			this.legend = d3.select( ".datamap" ).append( "g" )
+			this.legend = new App.Views.Chart.Map.Legend();
+			//d3.select( ".datamap" ).call( this.legend );
+
+			/*this.legend = d3.select( ".datamap" ).append( "g" )
 				.attr( "id", "colorBar" )
 				.attr( "class", "colorbar" );
 
@@ -57,7 +65,7 @@
 				.attr( "id", "gradientRect" )
 				.attr( "width", 200)
 				.attr( "height", 50)
-				.style( "fill", "url(#gradient)" );
+				.style( "fill", "url(#gradient)" );*/
 
 			this.mapDataModel = new App.Models.ChartDataModel();
 			this.mapDataModel.on( "sync", function( model, response ) {
@@ -70,8 +78,7 @@
 			} );
 			App.ChartModel.on( "change", this.onChartModelChange, this );
 			App.ChartModel.on( "resize", this.onChartModelResize, this );
-			App.AvailableTimeModel.on( "change", this.onChartModelChange, this );
-
+			
 			this.update();
 
 			nv.utils.windowResize( $.proxy( this.onResize, this ) );
@@ -92,7 +99,7 @@
 				mapConfig = App.ChartModel.get( "map-config" ),
 				chartTime = App.ChartModel.get( "chart-time" ),
 				variableId = mapConfig.variableId,
-				targetYear = ( chartTime )? chartTime[0]: App.AvailableTimeModel.get( "min" ),
+				targetYear = mapConfig.targetYear,
 				mode = mapConfig.mode,
 				tolerance = mapConfig.timeTolerance,
 				dimensions = [{ name: "Map", property: "map", variableId: variableId, targetYear: targetYear, mode: mode, tolerance: tolerance }],
@@ -102,7 +109,7 @@
 				selectedCountriesIds = _.map( selectedCountries, function( v ) { return (v)? +v.id: ""; } );
 
 			var dataProps = { "dimensions": dimensionsString, "chartId": App.ChartModel.get( "id" ), "chartType": chartType, "selectedCountries": selectedCountriesIds, "chartTime": chartTime, "cache": App.ChartModel.get( "cache" ), "groupByVariables": App.ChartModel.get( "group-by-variables" )  };
-
+			console.log( "mapConfig", mapConfig );
 			this.mapDataModel.fetch( { data: dataProps } );
 
 			return this;
@@ -138,10 +145,16 @@
 				.range( colorScheme );
 
 			//need to encode colors properties
-			var mapData = {};
+			var mapData = {},
+				colors = [];
 			latestData.forEach( function( d, i ) {
-				mapData[ d.key ] = { "key": d.key, "value": d.value, "color": colorScale( d.value ) };
+				var color = colorScale( d.value );
+				mapData[ d.key ] = { "key": d.key, "value": d.value, "color": color };
+				colors.push( color );
 			} );
+
+			this.legend.scale( colorScale );
+			d3.select( ".datamap" ).datum( colorScheme ).call( this.legend );
 
 			//update map
 			//are we changing projections?
@@ -162,27 +175,6 @@
 				};
 			}
 			
-			//update legend
-			this.updateGradient( colorScheme, "gradient");
-
-		},
-
-		updateGradient: function( palette, gradientId ) {
-			d3.select( ".datamap" )
-				.append( "linearGradient" )
-				.attr( "id", gradientId)
-					.attr( "gradientUnits", "userSpaceOnUse")
-					.attr( "x1", 0)
-					.attr( "y1", 0)
-					.attr( "x2", 200)
-					.attr( "y2", 0)
-					.selectAll( "stop" )
-						.data(palette)
-						.enter()
-							.append( "stop" )
-							.attr( "offset", function(d, i) { return i/(palette.length-1)*100.0 + "%"; })
-							.attr( "stop-color", function(d) { return d; });
-			d3.select( "#gradientRect" ).style( "fill", "url(#" + gradientId + ")" );
 		},
 
 		getProjection: function( projectionName ) {
