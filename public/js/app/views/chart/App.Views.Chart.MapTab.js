@@ -39,17 +39,18 @@
 				element: document.getElementById( "map-chart-tab" ),
 				geographyConfig: {
 					dataUrl: Global.rootUrl + "/js/data/world.ids.json",
-					borderWidth: 0.3,
+					borderWidth: 0.1,
 					borderColor: '#4F4F4F',
 					highlightBorderColor: 'black',
-					highlightBorderWidth: 0.5,
+					highlightBorderWidth: 0.2,
 					highlightFillColor: '#FFEC38',
 					popupTemplate: function(geo, data) {
 						return [ "<div class='hoverinfo'><strong>","Number of things in " + geo.properties.name, ": " + data.value, "</strong></div>" ].join("");
 					}
 				},
 				fills: {
-					defaultFill: '#DDDDDD'
+					defaultFill: '#FFFFFF'
+					//defaultFill: '#DDDDDD'
 				},
 				setProjection: defaultProjection
 			} );
@@ -186,7 +187,14 @@
 
 		onResize: function() {
 			if( this.dataMap ) {
-				this.dataMap.resize();
+				//instead of calling datamaps resize, there's modified version of the same method
+				var options = this.dataMap.options,
+					prefix = '-webkit-transform' in document.body.style ? '-webkit-' : '-moz-transform' in document.body.style ? '-moz-' : '-ms-transform' in document.body.style ? '-ms-' : '',
+					newsize = options.element.clientWidth,
+					oldsize = d3.select( options.element).select('svg').attr('data-width');
+					//different selector from default datamaps implementation, doesn't scale legend
+					d3.select(options.element).select('svg').selectAll('g:not(.legend-step)').style(prefix + 'transform', 'scale(' + (newsize / oldsize) + ')');
+				//this.dataMap.resize();
 			}
 		},
 

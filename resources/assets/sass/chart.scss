@@ -480,6 +480,17 @@
 
 		}
 
+		//legend
+		.legend-step {
+			rect {
+				stroke: #4F4F4F;
+				stroke-width: .1px;
+			}
+			text {
+				font-size: 9px;
+			}
+		}
+
 	}
 	
 

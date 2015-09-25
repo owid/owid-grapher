@@ -568,6 +568,11 @@ select.disabled {
     #chart-view #map-chart-tab .datamap .datamaps-subunits path {
       stroke-width: 0.3px;
       stroke: #4f4f4f; }
+  #chart-view #map-chart-tab .legend-step rect {
+    stroke: #4F4F4F;
+    stroke-width: .1px; }
+  #chart-view #map-chart-tab .legend-step text {
+    font-size: 9px; }
 
 /**
  * PRINTING STUFF
