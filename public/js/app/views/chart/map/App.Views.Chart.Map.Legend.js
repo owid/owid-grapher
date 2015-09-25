@@ -9,11 +9,15 @@
 			stepClass = "legend-step",
 			scale;
 
-		var formatLegendLabel = function( valueArr ) {
+		var formatLegendLabel = function( valueArr, i, length ) {
 			valueArr = valueArr.map( function( d ) {
 				return Math.round( d );
 			} );
-			return valueArr.join( " – " );
+			if( i < (length - 1) ) {
+				return valueArr[ 0 ];
+			} else {
+				return valueArr.join( " &nbsp; " );
+			}
 		};
 
 		function legend( selection ) {
@@ -32,7 +36,10 @@
 							.attr( "id", "legend" )
 							.attr( "class", "legend" );
 				}
-			
+				
+				//start with highest value
+				data.reverse();
+
 				//data join
 				var legendSteps = g.selectAll( "." + stepClass ).data( data );
 				
@@ -40,12 +47,14 @@
 				var legendStepsEnter = legendSteps.enter()
 					.append( "g" )
 						.attr( "class", stepClass )
-						.attr( "transform", function( d, i ) { var translateY = containerHeight - legendOffset - stepSize - ( i*(stepSize+stepGap) ); return "translate(" + legendOffset + "," + translateY + ")"; } );
+						.attr( "transform", function( d, i ) { var translateX = legendOffset + (i*(stepSize+stepGap)), translateY = containerHeight - legendOffset - stepSize; return "translate(" + translateX + "," + translateY + ")"; } );
+						//.attr( "transform", function( d, i ) { var translateY = containerHeight - legendOffset - stepSize - ( i*(stepSize+stepGap) ); return "translate(" + legendOffset + "," + translateY + ")"; } );
 				legendStepsEnter.append( "rect" )
 					.attr( "width", stepSize + "px" )
 					.attr( "height", stepSize + "px" );
 				legendStepsEnter.append( "text" )
-					.attr( "transform", function( d, i ) { return "translate( " + (parseInt( stepSize/1.4, 10 ) + 10) + ", " + parseInt( stepSize/1.4, 10 ) + " )"; } );
+					//.attr( "transform", function( d, i ) { return "translate( " + (parseInt( stepSize/1.4, 10 ) + 10) + ", " + parseInt( stepSize/1.4, 10 ) + " )"; } );
+					.attr( "transform", function( d, i ) { return "translate(-2,-5)"; } );
 
 				//update
 				legendSteps.select( "rect" )
@@ -53,7 +62,7 @@
 							return d;
 						} );
 				legendSteps.select( "text" )
-					.text( function( d, i ) { return formatLegendLabel( scale.invertExtent( d ) ); } );
+					.html( function( d, i ) { return formatLegendLabel( scale.invertExtent( d ), i, data.length ); } );
 
 				//exit
 				legendSteps.exit().remove();
