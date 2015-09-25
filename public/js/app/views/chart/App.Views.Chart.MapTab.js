@@ -199,7 +199,7 @@
 					newsize = options.element.clientWidth,
 					oldsize = d3.select( options.element).select('svg').attr('data-width');
 					//different selector from default datamaps implementation, doesn't scale legend
-					d3.select(options.element).select('svg').selectAll('g:not(.legend-step)').style(prefix + 'transform', 'scale(' + (newsize / oldsize) + ')');
+					d3.select(options.element).select('svg').selectAll('g:not(.legend-step):not(.legend)').style(prefix + 'transform', 'scale(' + (newsize / oldsize) + ')');
 				//this.dataMap.resize();
 			}
 		},
