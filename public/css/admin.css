@@ -1377,7 +1377,60 @@ button[type="submit"]:not(".delete-btn") {
 	*	MAP TAB
 	**/
 #chart-view #map-chart-tab {
-  height: auto; }
+  height: auto;
+  overflow: inherit; }
+  #chart-view #map-chart-tab .map-controls-header {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 1; }
+    #chart-view #map-chart-tab .map-controls-header .control {
+      float: left;
+      height: 31px;
+      margin-right: 2px;
+      padding: 5px 10px;
+      border: 1px solid #EEEEEE;
+      background-color: #FAFAFA;
+      transition: .3s height;
+      white-space: nowrap;
+      overflow: hidden; }
+      #chart-view #map-chart-tab .map-controls-header .control:hover {
+        height: 300px;
+        color: #fff;
+        background-color: #444;
+        border: 1px solid #444; }
+        #chart-view #map-chart-tab .map-controls-header .control:hover .control-body {
+          /*width:calc(100% - 60px);*/ }
+      #chart-view #map-chart-tab .map-controls-header .control .control-head, #chart-view #map-chart-tab .map-controls-header .control .control-body {
+        /*display: inline-block;
+					white-space: nowrap;*/ }
+      #chart-view #map-chart-tab .map-controls-header .control .control-head label {
+        margin-bottom: 0; }
+    #chart-view #map-chart-tab .map-controls-header .target-year-control {
+      width: 70px; }
+      #chart-view #map-chart-tab .map-controls-header .target-year-control:hover {
+        height: 180px; }
+      #chart-view #map-chart-tab .map-controls-header .target-year-control input {
+        display: inline-block;
+        margin: 10px 0;
+        writing-mode: bt-lr;
+        -webkit-appearance: slider-vertical; }
+    #chart-view #map-chart-tab .map-controls-header .region-control {
+      width: 100px; }
+      #chart-view #map-chart-tab .map-controls-header .region-control:hover {
+        height: 205px; }
+      #chart-view #map-chart-tab .map-controls-header .region-control .region-label {
+        width: calc(100% - 14px);
+        text-align: center; }
+      #chart-view #map-chart-tab .map-controls-header .region-control ul {
+        margin: 5px 0;
+        padding: 0;
+        list-style-type: none; }
+      #chart-view #map-chart-tab .map-controls-header .region-control li {
+        padding: 4px 0; }
+        #chart-view #map-chart-tab .map-controls-header .region-control li:hover {
+          cursor: pointer;
+          color: #FFEC38; }
   #chart-view #map-chart-tab .datamap {
     background-color: #ECF6FC; }
     #chart-view #map-chart-tab .datamap .datamaps-subunits path {

@@ -3,6 +3,7 @@
 <script src="{{ asset('js/app/views/chart/App.Views.Chart.ScaleSelectors.js') }}?bust={!!time()!!}"></script>
 
 <script src="{{ asset('js/app/models/App.Models.ChartDataModel.js') }}?bust={!!time()!!}"></script>
+<script src="{{ asset('js/app/views/chart/map/App.Views.Chart.Map.MapControls.js') }}?bust={!!time()!!}"></script>
 <script src="{{ asset('js/app/views/chart/map/App.Views.Chart.Map.Legend.js') }}?bust={!!time()!!}"></script>
 <script src="{{ asset('js/app/views/chart/App.Views.Chart.MapTab.js') }}?bust={!!time()!!}"></script>
 
