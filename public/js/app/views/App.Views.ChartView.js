@@ -490,7 +490,7 @@
 					that.chart = nv.models.discreteBarChart().options( chartOptions );//.showValues( true );
 
 				}
-
+				
 				//fixed probably a bug in nvd3 with previous tooltip not being removed
 				d3.select( ".xy-tooltip" ).remove(); 
 
@@ -587,7 +587,6 @@
 					that.chart.xAxis.ticks( 7 );
 					that.chart.yAxis.ticks( 7 );
 				}
-
 				var svgSelection = d3.select( that.$svg.selector )
 					.datum( localData )
 					.call( that.chart );
@@ -613,7 +612,7 @@
 					}
 					
 				}
-
+				
 				//set legend
 				if( !App.ChartModel.get( "hide-legend" ) ) {
 					//make sure wrapper is visible
@@ -925,7 +924,7 @@
 		},
 	
 		onResize: function() {
-
+			
 			//compute how much space for chart
 			var svgWidth = this.$svg.width(),
 				svgHeight = this.$svg.height(),
