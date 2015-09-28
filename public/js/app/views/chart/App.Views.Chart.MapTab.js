@@ -207,7 +207,7 @@
 	});
 
 	App.Views.Chart.MapTab.projections = {
-			
+		
 		"World": function(element) {
 			var projection = d3.geo.equirectangular()
 				.scale((element.offsetWidth + 1) / 2 / Math.PI)
@@ -216,48 +216,65 @@
 			return {path: path, projection: projection};
 		},
 		"Africa": function(element) {
-			var projection = d3.geo.equirectangular()
-				.center([19, 0])
-				.rotate([4.4, 0])
-				.scale(400)
+			var projection = d3.geo.conicConformal()
+				.rotate([-25, 0])
+				.center([0, 0])
+				.parallels([30, -20])
+				.scale(300)
 				.translate([element.offsetWidth / 2, element.offsetHeight / 2]);
 			var path = d3.geo.path().projection(projection);
 			return {path: path, projection: projection};
 		},
 		"N.America": function(element) {
-			var projection = d3.geo.albers()
-				.rotate([96, 0])
-				.center([-0.6, 38.7])
+			var projection = d3.geo.conicConformal()
+				.rotate([98, 0])
+				.center([0, 38])
 				.parallels([29.5, 45.5])
-				.scale(700)
+				.scale(300)
 				.translate([element.offsetWidth / 2, element.offsetHeight / 2]);
 			var path = d3.geo.path().projection(projection);
 			return {path: path, projection: projection};
 		},
 		"S.America": function(element) {
-			var projection = d3.geo.albers()
-				.rotate([96, 0])
-				.center([-0.6, -38.7])
-				.parallels([29.5, 45.5])
-				.scale(700)
+			var projection = d3.geo.conicConformal()
+				.rotate([68, 0])
+				.center([0, -8])
+				.parallels([10, -30])
+				.scale(300)
 				.translate([element.offsetWidth / 2, element.offsetHeight / 2]);
 			var path = d3.geo.path().projection(projection);
 			return {path: path, projection: projection};
 		},
 		"Asia": function(element) {
 			var projection = d3.geo.conicConformal()
-				.scale(500)
 				.rotate([-105, 0])
-				.center([-60, 45])
-				.parallels([30, 62]);
+				.center([0, 50])
+				.parallels([10, 60])
+				.scale(300)
+				.translate([element.offsetWidth / 2, element.offsetHeight / 2])
+				.precision(0.1);
 			var path = d3.geo.path().projection(projection);
 			return {path: path, projection: projection};
 		},
 		"Europe": function(element) {
-			var projection = d3.geo.stereographic()
-				.center([-13.9,33.0])
-				.scale(1500)
-				.translate([element.offsetWidth / 4 , element.offsetWidth / 2]);
+			var projection = d3.geo.conicConformal()
+				.rotate([-15, 0])
+				.center([0, 50])
+				.parallels([60, 40])
+				.scale(300)
+				.translate([element.offsetWidth / 2, element.offsetHeight / 2])
+				.precision(0.1);
+			var path = d3.geo.path().projection(projection);
+			return {path: path, projection: projection};
+		},
+		"Australia": function(element) {
+			var projection = d3.geo.conicConformal()
+				.rotate([-135, 0])
+				.center([0, -20])
+				.parallels([-10, -30])
+				.scale(300)
+				.translate([element.offsetWidth / 2, element.offsetHeight / 2])
+				.precision(0.1);
 			var path = d3.geo.path().projection(projection);
 			return {path: path, projection: projection};
 		}
