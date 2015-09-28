@@ -25,7 +25,7 @@
 			this.$targetYearInput.attr( "min", mapConfig.minYear );
 			this.$targetYearInput.attr( "max", mapConfig.maxYear );
 			this.$targetYearInput.attr( "step", mapConfig.timeInterval );
-			this.$targetYearInput.val( mapConfig.minYear );
+			this.$targetYearInput.val( parseInt( mapConfig.minYear, 10 ) );
 			
 			//region selector
 			this.$regionControl = this.$el.find( ".region-control" );

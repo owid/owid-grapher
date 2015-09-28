@@ -108,3 +108,4 @@ Route::post( 'data/exportToSvg', [ 'as' => 'exportToSvg', 'uses' => 'DataControl
 Route::get( 'data/entities', 'DataController@entities' );
 Route::get( 'data/search', 'DataController@search' );
 Route::get( 'data/times', 'DataController@times' );
+Route::get( 'data/matchIsoName', 'DataController@matchIsoName' );
