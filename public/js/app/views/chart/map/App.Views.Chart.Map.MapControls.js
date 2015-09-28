@@ -9,6 +9,7 @@
 			"input .target-year-control input": "onTargetYearInput",
 			"change .target-year-control input": "onTargetYearChange",
 			"click .region-control li": "onRegionClick",
+			"click .settings-control input": "onSettingsInput",
 		},
 
 		initialize: function( options ) {
@@ -60,6 +61,13 @@
 		onRegionClick: function( evt ) {
 			var $this = $( evt.target );
 			App.ChartModel.updateMapConfig( "projection", $this.text() );
+			this.render();
+		},
+
+		onSettingsInput: function( evt ) {
+			var $this = $( evt.target ),
+				mode = ( $this.is( ":checked" ) )? "specific": "no-interpolation";
+			App.ChartModel.updateMapConfig( "mode", mode );
 			this.render();
 		}
 
