@@ -50,7 +50,7 @@
 				"timeInterval": 10,
 				"colorSchemeName": "BuGn",
 				"colorSchemeInterval": 5,
-				"projection": "World"
+				"projection": "World",
 			}
 		},
 

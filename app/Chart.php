@@ -546,6 +546,11 @@ class Chart extends Model {
 			//only getting one value per country per specify value
 			$hasData = true;
 
+			//if user chose not to get interpolated data, zero out tolerance
+			if( $dimension->mode == "no-interpolation" ) {
+				$dimension->tolerance = 0;
+			}
+
 			$defaultYear = 1960;
 			$time = ( isset( $dimension->targetYear ) )? $dimension->targetYear: $defaultYear;
 			
