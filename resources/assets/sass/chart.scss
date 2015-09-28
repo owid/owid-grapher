@@ -463,9 +463,11 @@
 	*	MAP TAB
 	**/
 	#chart-view #map-chart-tab {
-		height: auto;
+		//height: auto;
 		overflow: inherit;
-		
+		//override datamaps
+		padding: 0 !important;
+
 		.map-controls-header {
 			position: absolute;
 			top: 10px;
@@ -582,6 +584,8 @@
 
 		.datamap {
 
+			margin-top: -1px;
+			border: 1px solid #eee;
 			background-color: #ECF6FC;
 
 			.datamaps-subunits {

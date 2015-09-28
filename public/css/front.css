@@ -648,8 +648,8 @@ select.disabled {
 	*	MAP TAB
 	**/
 #chart-view #map-chart-tab {
-  height: auto;
-  overflow: inherit; }
+  overflow: inherit;
+  padding: 0 !important; }
   #chart-view #map-chart-tab .map-controls-header {
     position: absolute;
     top: 10px;
@@ -720,6 +720,8 @@ select.disabled {
         #chart-view #map-chart-tab .map-controls-header .settings-control .control-body input[type=checkbox] {
           margin-right: 6px; }
   #chart-view #map-chart-tab .datamap {
+    margin-top: -1px;
+    border: 1px solid #eee;
     background-color: #ECF6FC; }
     #chart-view #map-chart-tab .datamap .datamaps-subunits path {
       stroke-width: 0.3px;

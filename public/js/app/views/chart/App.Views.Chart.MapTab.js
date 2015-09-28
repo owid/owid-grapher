@@ -191,6 +191,7 @@
 
 		onResize: function() {
 			if( this.dataMap ) {
+				
 				//instead of calling datamaps resize, there's modified version of the same method
 				var options = this.dataMap.options,
 					prefix = '-webkit-transform' in document.body.style ? '-webkit-' : '-moz-transform' in document.body.style ? '-moz-' : '-ms-transform' in document.body.style ? '-ms-' : '',
