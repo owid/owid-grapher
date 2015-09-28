@@ -618,7 +618,6 @@
     var self = this;
     var options = self.options;
 
-    console.log( "draw", options );
     //set projections and paths based on scope
     var pathAndProjection = options.setProjection.apply(self, [options.element, options] );
 
