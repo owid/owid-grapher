@@ -7,6 +7,7 @@ use App\Variable;
 use App\TimeType;
 use App\Datasource;
 use App\License;
+use App\EntityIsoName;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
@@ -708,5 +709,14 @@ class DataController extends Controller {
 
 		return false;
 	}
+
+	public function matchIsoName() {
+		$name = Input::get( "name" );
+		$entityIsoName = EntityIsoName::match( $name )->first();
+		$success = ( $entityIsoName && $entityIsoName->id > 1 && $entityIsoName->name != "" )? true: false;
+		$result = [ 'success' => $success ];
+		return $result;
+	}
+
 
 }

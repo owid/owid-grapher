@@ -204,7 +204,7 @@
                 "properties": {
                     "name": "The Bahamas"
                 },
-                "id": "The_Bahamas",
+                "id": "Bahamas",
                 "arcs": [
                     [
                         [86]
@@ -437,7 +437,7 @@
                 "properties": {
                     "name": "Ivory Coast"
                 },
-                "id": "Ivory_Coast",
+                "id": "Cote_d'Ivoire",
                 "arcs": [
                     [184, 185, 186, 187, -73, 188]
                 ]
@@ -455,7 +455,7 @@
                 "properties": {
                     "name": "Democratic Republic of the Congo"
                 },
-                "id": "Democratic_Republic_of_the_Congo",
+                "id": "Democratic_Republic_of_Congo",
                 "arcs": [
                     [196, 197, -60, 198, 199, -10, 200, -13, 201, -126, 202]
                 ]
@@ -464,7 +464,7 @@
                 "properties": {
                     "name": "Republic of the Congo"
                 },
-                "id": "Republic_of_the_Congo",
+                "id": "Congo",
                 "arcs": [
                     [-12, 203, 204, -196, -127, -202]
                 ]
@@ -748,7 +748,7 @@
                 "properties": {
                     "name": "Guinea Bissau"
                 },
-                "id": "Guinea_Bissau",
+                "id": "Guinea-Bissau",
                 "arcs": [
                     [304, 305, -300]
                 ]
@@ -1672,7 +1672,7 @@
                 "properties": {
                     "name": "Republic of Serbia"
                 },
-                "id": "Republic_of_Serbia",
+                "id": "Serbia",
                 "arcs": [
                     [-86, -439, -407, -446, -90, -325, -334, -516]
                 ]
@@ -1780,7 +1780,7 @@
                 "properties": {
                     "name": "East Timor"
                 },
-                "id": "East_Timor",
+                "id": "Timor",
                 "arcs": [
                     [576, -337]
                 ]
@@ -1830,7 +1830,7 @@
                 "properties": {
                     "name": "United Republic of Tanzania"
                 },
-                "id": "United_Republic_of_Tanzania",
+                "id": "Tanzania",
                 "arcs": [
                     [-394, 582, -448, -460, 583, -199, -62, -536, 584]
                 ]
