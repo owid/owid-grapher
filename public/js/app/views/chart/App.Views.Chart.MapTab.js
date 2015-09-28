@@ -216,65 +216,71 @@
 			return {path: path, projection: projection};
 		},
 		"Africa": function(element) {
+			//empiric
+			var k = 3;
 			var projection = d3.geo.conicConformal()
 				.rotate([-25, 0])
 				.center([0, 0])
 				.parallels([30, -20])
-				.scale(300)
+				.scale(element.offsetWidth/k)
 				.translate([element.offsetWidth / 2, element.offsetHeight / 2]);
 			var path = d3.geo.path().projection(projection);
 			return {path: path, projection: projection};
 		},
 		"N.America": function(element) {
+			var k = 3;
 			var projection = d3.geo.conicConformal()
 				.rotate([98, 0])
 				.center([0, 38])
 				.parallels([29.5, 45.5])
-				.scale(300)
+				.scale(element.offsetWidth/k)
 				.translate([element.offsetWidth / 2, element.offsetHeight / 2]);
 			var path = d3.geo.path().projection(projection);
 			return {path: path, projection: projection};
 		},
 		"S.America": function(element) {
+			var k = 3.4;
 			var projection = d3.geo.conicConformal()
 				.rotate([68, 0])
-				.center([0, -8])
+				.center([0, -14])
 				.parallels([10, -30])
-				.scale(300)
+				.scale(element.offsetWidth/k)
 				.translate([element.offsetWidth / 2, element.offsetHeight / 2]);
 			var path = d3.geo.path().projection(projection);
 			return {path: path, projection: projection};
 		},
 		"Asia": function(element) {
+			//empiric
+			var k = 3;
 			var projection = d3.geo.conicConformal()
 				.rotate([-105, 0])
-				.center([0, 50])
+				.center([0, 37])
 				.parallels([10, 60])
-				.scale(300)
-				.translate([element.offsetWidth / 2, element.offsetHeight / 2])
-				.precision(0.1);
+				.scale(element.offsetWidth/k)
+				.translate([element.offsetWidth / 2, element.offsetHeight / 2]);
 			var path = d3.geo.path().projection(projection);
 			return {path: path, projection: projection};
 		},
 		"Europe": function(element) {
+			//empiric
+			var k = 1.5;
 			var projection = d3.geo.conicConformal()
 				.rotate([-15, 0])
-				.center([0, 50])
+				.center([0, 55])
 				.parallels([60, 40])
-				.scale(300)
-				.translate([element.offsetWidth / 2, element.offsetHeight / 2])
-				.precision(0.1);
+				.scale(element.offsetWidth/k)
+				.translate([element.offsetWidth / 2, element.offsetHeight / 2]);
 			var path = d3.geo.path().projection(projection);
 			return {path: path, projection: projection};
 		},
 		"Australia": function(element) {
+			var k = 3;
 			var projection = d3.geo.conicConformal()
 				.rotate([-135, 0])
 				.center([0, -20])
 				.parallels([-10, -30])
-				.scale(300)
-				.translate([element.offsetWidth / 2, element.offsetHeight / 2])
-				.precision(0.1);
+				.scale(element.offsetWidth/k)
+				.translate([element.offsetWidth / 2, element.offsetHeight / 2]);
 			var path = d3.geo.path().projection(projection);
 			return {path: path, projection: projection};
 		}
