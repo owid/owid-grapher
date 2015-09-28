@@ -48,26 +48,26 @@
 		onTargetYearInput: function( evt ) {
 			var $this = $( evt.target ),
 				targetYear = parseInt( $this.val(), 10 );
-			this.$targetYearLabel.text( targetYear );
+			this.$targetYearLabel.text( targetYear, false, "change-map" );
 		},
 
 		onTargetYearChange: function( evt ) {
 			var $this = $( evt.target ),
 				targetYear = parseInt( $this.val(), 10 );
-			App.ChartModel.updateMapConfig( "targetYear", targetYear );
+			App.ChartModel.updateMapConfig( "targetYear", targetYear, false, "change-map" );
 			this.render();
 		},
 
 		onRegionClick: function( evt ) {
 			var $this = $( evt.target );
-			App.ChartModel.updateMapConfig( "projection", $this.text() );
+			App.ChartModel.updateMapConfig( "projection", $this.text(), false, "change-map" );
 			this.render();
 		},
 
 		onSettingsInput: function( evt ) {
 			var $this = $( evt.target ),
 				mode = ( $this.is( ":checked" ) )? "specific": "no-interpolation";
-			App.ChartModel.updateMapConfig( "mode", mode );
+			App.ChartModel.updateMapConfig( "mode", mode, false, "change-map" );
 			this.render();
 		}
 
