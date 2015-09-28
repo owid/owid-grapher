@@ -33,7 +33,9 @@
 			//fetch created dom
 			this.$tab = $( "#map-chart-tab" );
 
-			var defaultProjection = App.Views.Chart.MapTab.projections.World;
+			var mapConfig = App.ChartModel.get( "map-config" ),
+				defaultProjection = this.getProjection( mapConfig.projection );
+			
 			this.dataMap = new Datamap( {
 				width: that.$tab.width(),
 				height: that.$tab.height(),
@@ -228,6 +230,7 @@
 			return {path: path, projection: projection};
 		},
 		"N.America": function(element) {
+			//empiric
 			var k = 3;
 			var projection = d3.geo.conicConformal()
 				.rotate([98, 0])
@@ -239,6 +242,7 @@
 			return {path: path, projection: projection};
 		},
 		"S.America": function(element) {
+			//empiric
 			var k = 3.4;
 			var projection = d3.geo.conicConformal()
 				.rotate([68, 0])
@@ -274,6 +278,7 @@
 			return {path: path, projection: projection};
 		},
 		"Australia": function(element) {
+			//empiric
 			var k = 3;
 			var projection = d3.geo.conicConformal()
 				.rotate([-135, 0])
