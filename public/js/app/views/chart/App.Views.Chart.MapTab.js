@@ -58,17 +58,13 @@
 			} );
 
 			this.legend = new App.Views.Chart.Map.Legend();
-			//d3.select( ".datamap" ).call( this.legend );
+			
+			/*var zoom = d3.behavior.zoom()
+				.translate([width / 2, height / 2])
+				.scale(scale0)
+				.scaleExtent([scale0, 8 * scale0])
+				.on("zoom", zoomed);*/
 
-			/*this.legend = d3.select( ".datamap" ).append( "g" )
-				.attr( "id", "colorBar" )
-				.attr( "class", "colorbar" );
-
-			this.legend.append( "rect" )
-				.attr( "id", "gradientRect" )
-				.attr( "width", 200)
-				.attr( "height", 50)
-				.style( "fill", "url(#gradient)" );*/
 
 			this.mapDataModel = new App.Models.ChartDataModel();
 			this.mapDataModel.on( "sync", function( model, response ) {
@@ -228,12 +224,40 @@
 			var path = d3.geo.path().projection(projection);
 			return {path: path, projection: projection};
 		},
-		"Europe": function(element) {
-			var projection = d3.geo.equirectangular()
-				.center([5, 65])
-				.rotate([4.4, 0])
-				.scale(400)
+		"N.America": function(element) {
+			var projection = d3.geo.albers()
+				.rotate([96, 0])
+				.center([-0.6, 38.7])
+				.parallels([29.5, 45.5])
+				.scale(700)
 				.translate([element.offsetWidth / 2, element.offsetHeight / 2]);
+			var path = d3.geo.path().projection(projection);
+			return {path: path, projection: projection};
+		},
+		"S.America": function(element) {
+			var projection = d3.geo.albers()
+				.rotate([96, 0])
+				.center([-0.6, -38.7])
+				.parallels([29.5, 45.5])
+				.scale(700)
+				.translate([element.offsetWidth / 2, element.offsetHeight / 2]);
+			var path = d3.geo.path().projection(projection);
+			return {path: path, projection: projection};
+		},
+		"Asia": function(element) {
+			var projection = d3.geo.conicConformal()
+				.scale(500)
+				.rotate([-105, 0])
+				.center([-60, 45])
+				.parallels([30, 62]);
+			var path = d3.geo.path().projection(projection);
+			return {path: path, projection: projection};
+		},
+		"Europe": function(element) {
+			var projection = d3.geo.stereographic()
+				.center([-13.9,33.0])
+				.scale(1500)
+				.translate([element.offsetWidth / 4 , element.offsetWidth / 2]);
 			var path = d3.geo.path().projection(projection);
 			return {path: path, projection: projection};
 		}
