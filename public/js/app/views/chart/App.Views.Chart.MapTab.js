@@ -78,6 +78,7 @@
 				console.error( "Error loading map data." );
 			} );
 			App.ChartModel.on( "change", this.onChartModelChange, this );
+			App.ChartModel.on( "change-map", this.onChartModelChange, this );
 			App.ChartModel.on( "resize", this.onChartModelResize, this );
 			
 			this.update();

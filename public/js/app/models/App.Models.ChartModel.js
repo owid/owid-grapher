@@ -177,13 +177,14 @@
 			}
 		},
 
-		updateMapConfig: function( propName, propValue, silent ) {
+		updateMapConfig: function( propName, propValue, silent, eventName ) {
 
 			var mapConfig = this.get( "map-config" );
 			if( mapConfig[ propName ] ) {
 				mapConfig[ propName ] = propValue;
 				if( !silent ) {
-					this.trigger( "change" );
+					var evt = ( eventName )? eventName: "change";
+					this.trigger( evt );
 				}
 			}
 
