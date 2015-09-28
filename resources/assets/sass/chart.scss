@@ -599,6 +599,19 @@
 
 		}
 
+		.datamaps-hoverover {
+			font-family: inherit !important;
+			text-align: center;
+			h3 {
+				margin: 0;
+			}
+
+			.hoverinfo {
+				padding: 0;
+				box-shadow: none;
+			}
+		}
+
 		//legend
 		.legend-step {
 			rect {

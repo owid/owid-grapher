@@ -48,9 +48,7 @@
 					highlightBorderColor: 'black',
 					highlightBorderWidth: 0.2,
 					highlightFillColor: '#FFEC38',
-					popupTemplate: function(geo, data) {
-						return [ "<div class='hoverinfo'><strong>","Number of things in " + geo.properties.name, ": " + data.value, "</strong></div>" ].join("");
-					}
+					popupTemplate: that.popupTemplateGenerator
 				},
 				fills: {
 					defaultFill: '#FFFFFF'
@@ -61,13 +59,6 @@
 
 			this.legend = new App.Views.Chart.Map.Legend();
 			
-			/*var zoom = d3.behavior.zoom()
-				.translate([width / 2, height / 2])
-				.scale(scale0)
-				.scaleExtent([scale0, 8 * scale0])
-				.on("zoom", zoomed);*/
-
-
 			this.mapDataModel = new App.Models.ChartDataModel();
 			this.mapDataModel.on( "sync", function( model, response ) {
 				if( response.data ) {
@@ -92,6 +83,24 @@
 
 			this.update();
 
+		},
+
+		popupTemplateGenerator: function( geo, data ) {
+			//transform datamaps data into format close to nvd3 so that we can reuse the same popup generator
+			var mapConfig = App.ChartModel.get( "map-config" );
+			var propertyName = App.Utils.getPropertyByVariableId( App.ChartModel, mapConfig.variableId );
+			if( !propertyName ) {
+				propertyName = "y";
+			}
+			var obj = {
+				point: {
+					time: mapConfig.targetYear },
+				series: [ {
+					key: geo.properties.name
+				} ]
+			};
+			obj.point[ propertyName ] = data.value;
+			return [ "<div class='hoverinfo nvtooltip'>" + App.Utils.contentGenerator( obj, true ) + "</div>" ];
 		},
 
 		update: function() {
@@ -212,12 +221,20 @@
 	App.Views.Chart.MapTab.projections = {
 		
 		"World": function(element) {
+			var projection = d3.geo.eckert3()
+				.scale(175)
+				.translate([element.offsetWidth / 2, element.offsetHeight / 2])
+				.precision(.1);
+			var path = d3.geo.path().projection(projection);
+			return {path: path, projection: projection};
+		},
+		/*"World": function(element) {
 			var projection = d3.geo.equirectangular()
 				.scale((element.offsetWidth + 1) / 2 / Math.PI)
 				.translate([element.offsetWidth / 2, element.offsetHeight / 1.8]);
 			var path = d3.geo.path().projection(projection);
 			return {path: path, projection: projection};
-		},
+		},*/
 		"Africa": function(element) {
 			//empiric
 			var k = 3;
@@ -293,4 +310,37 @@
 
 	};
 
+})();
+
+(function() {
+	var ε = 1e-6, ε2 = ε * ε, π = Math.PI, halfπ = π / 2, sqrtπ = Math.sqrt(π), radians = π / 180, degrees = 180 / π;
+	function sinci(x) {
+		return x ? x / Math.sin(x) : 1;
+	}
+	function sgn(x) {
+		return x > 0 ? 1 : x < 0 ? -1 : 0;
+	}
+	function asin(x) {
+		return x > 1 ? halfπ : x < -1 ? -halfπ : Math.asin(x);
+	}
+	function acos(x) {
+		return x > 1 ? 0 : x < -1 ? π : Math.acos(x);
+	}
+	function asqrt(x) {
+		return x > 0 ? Math.sqrt(x) : 0;
+	}
+	var projection = d3.geo.projection;
+ 
+	function eckert3(λ, φ) {
+		var k = Math.sqrt(π * (4 + π));
+		return [ 2 / k * λ * (1 + Math.sqrt(1 - 4 * φ * φ / (π * π))), 4 / k * φ ];
+	}
+	eckert3.invert = function(x, y) {
+		var k = Math.sqrt(π * (4 + π)) / 2;
+		return [ x * k / (1 + asqrt(1 - y * y * (4 + π) / (4 * π))), y * k / 2 ];
+	};
+	(d3.geo.eckert3 = function() {
+		return projection(eckert3);
+	}).raw = eckert3;
+	
 })();

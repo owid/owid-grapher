@@ -726,6 +726,14 @@ select.disabled {
     #chart-view #map-chart-tab .datamap .datamaps-subunits path {
       stroke-width: 0.3px;
       stroke: #4f4f4f; }
+  #chart-view #map-chart-tab .datamaps-hoverover {
+    font-family: inherit !important;
+    text-align: center; }
+    #chart-view #map-chart-tab .datamaps-hoverover h3 {
+      margin: 0; }
+    #chart-view #map-chart-tab .datamaps-hoverover .hoverinfo {
+      padding: 0;
+      box-shadow: none; }
   #chart-view #map-chart-tab .legend-step rect {
     stroke: #4F4F4F;
     stroke-width: .1px; }

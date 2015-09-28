@@ -595,7 +595,7 @@
 				
 				if( chartType !== "3" ) {
 
-					that.chart.tooltip.contentGenerator( that.contentGenerator );
+					that.chart.tooltip.contentGenerator( App.Utils.contentGenerator );
 
 				} else {
 
@@ -1195,98 +1195,6 @@
 				}
 			}
 			return value;
-		},
-
-		contentGenerator: function( data ) {
-			
-			//set popup
-			var unitsString = App.ChartModel.get( "units" ),
-				chartType = App.ChartModel.get( "chart-type" ),
-				units = ( !$.isEmptyObject( unitsString ) )? $.parseJSON( unitsString ): {},
-				string = "",
-				valuesString = "";
-
-			//find relevant values for popup and display them
-			var series = data.series, key = "", timeString = "";
-			if( series && series.length ) {
-				
-				var serie = series[ 0 ];
-				key = serie.key;
-				
-				//get source of information
-				var point = data.point;
-				//begin composting string
-				string = "<h3>" + key + "</h3><p>";
-				valuesString = "";
-
-				if( App.ChartModel.get( "chart-type" ) === "4" || App.ChartModel.get( "chart-type" ) === "5" || App.ChartModel.get( "chart-type" ) === "6" ) {
-					//multibarchart has values in different format
-					point = { "y": serie.value, "time": data.data.time };
-				}
-				
-				$.each( point, function( i, v ) {
-					//for each data point, find appropriate unit, and if we have it, display it
-					var unit = _.findWhere( units, { property: i } ),
-						value = v,
-						isHidden = ( unit && unit.hasOwnProperty( "visible" ) && !unit.visible )? true: false;
-
-					//add thousands separator
-					value = d3.format( "," )( value );
-					if( unit ) {
-						if( !isHidden ) {
-							//try to format number
-							if( !isNaN( unit.format ) ) {
-								if( unit.format > 0 ) {
-									//enforce maximum 20 digits
-									var fixed = Math.min( 20, parseInt( unit.format, 10 ) );
-									//make sure we're operating on number
-									value = parseFloat( value );
-									value = value.toFixed( fixed );
-								}
-							}
-							//scatter plot has values displayed in separate rows
-							if( valuesString !== "" && chartType != 2 ) {
-								valuesString += ", ";
-							}
-							if( chartType == 2 ) {
-								valuesString += "<span class='var-popup-value'>";
-							}
-							valuesString += value + " " + unit.unit;
-							if( chartType == 2 ) {
-								valuesString += "</span>";
-							}
-						}
-					} else if( i === "time" ) {
-						timeString = v;
-					} else if( i !== "color" && i !== "series" && ( i !== "x" || chartType != 1 ) ) {
-						if( !isHidden ) {
-							if( valuesString !== "" && chartType != 2 ) {
-								valuesString += ", ";
-							}
-							if( chartType == 2 ) {
-								valuesString += "<span class='var-popup-value'>";
-							}
-							//just add plain value, omiting x value for linechart
-							valuesString += value;
-							if( chartType == 2 ) {
-								valuesString += "</span>";
-							}
-						}
-					}
-				} );
-
-				if( timeString && chartType != 2 ) {
-					valuesString += " <br /> in <br /> " + timeString;
-				} else if( timeString && chartType == 2 ) {
-					valuesString += "<span class='var-popup-value'>in " + timeString + "</span>";
-				}
-				string += valuesString;
-				string += "</p>";
-
-			}
-
-			return string;
-
 		},
 
 		scatterDist: function() {
