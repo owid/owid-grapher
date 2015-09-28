@@ -6164,7 +6164,7 @@ nv.models.lineChart = function() {
                 .datum(data.filter(function(d) { return !d.disabled }));
 
             linesWrap.call(lines);
-
+           
             // Setup Axes
             if (showXAxis) {
                 xAxis

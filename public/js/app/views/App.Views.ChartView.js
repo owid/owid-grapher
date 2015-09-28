@@ -40,7 +40,9 @@
 			this.$error = this.$el.find( ".chart-error" );
 
 			//chart tab
-			this.$svg = this.$el.find( ".nvd3-svg" );
+			//this.$svg = this.$el.find( ".nvd3-svg" );
+			this.$svg = this.$el.find( "#chart-chart-tab svg" );
+			//this.$svg = this.$el.find( "svg" );
 			this.$tabContent = this.$el.find( ".tab-content" );
 			this.$tabPanes = this.$el.find( ".tab-pane" );
 			this.$chartHeader = this.$el.find( ".chart-header" );
