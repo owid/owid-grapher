@@ -7,29 +7,42 @@
 		el: "#map-chart-tab .map-controls-header",
 		events: {
 			"input .target-year-control input": "onTargetYearInput",
-			"change .target-year-control input": "onTargetYearChange"
+			"change .target-year-control input": "onTargetYearChange",
+			"click .region-control li": "onRegionClick",
 		},
 
 		initialize: function( options ) {
 
 			this.dispatcher = options.dispatcher;
 
+			var mapConfig = App.ChartModel.get( "map-config" );
+			
+			//year slider
 			this.$targetYearControl = this.$el.find( ".target-year-control" );
 			this.$targetYearLabel = this.$targetYearControl.find( ".target-year-label" );
 			this.$targetYearInput = this.$targetYearControl.find( "input" );
-			
-			//initial setup of slider
-			var mapConfig = App.ChartModel.get( "map-config" );
 			this.$targetYearInput.attr( "min", mapConfig.minYear );
 			this.$targetYearInput.attr( "max", mapConfig.maxYear );
 			this.$targetYearInput.attr( "step", mapConfig.timeInterval );
 			this.$targetYearInput.val( mapConfig.minYear );
-			this.$targetYearLabel.text( mapConfig.targetYear );
 			
+			//region selector
+			this.$regionControl = this.$el.find( ".region-control" );
+			this.$regionControlLabel = this.$regionControl.find( ".region-label" );
+			this.$regionControlLis = this.$regionControl.find( "li" );
+
 			return this.render();
 		},
 
-		render: function() {},
+		render: function() {
+			var mapConfig = App.ChartModel.get( "map-config" );
+			this.$targetYearLabel.text( mapConfig.targetYear );
+			this.$regionControlLabel.text( mapConfig.projection );
+
+			this.$regionControlLis.removeClass( "highlight" );
+			this.$regionControlLis.filter( "." + mapConfig.projection + "-projection" ).addClass( "highlight" );
+
+		},
 		
 		onTargetYearInput: function( evt ) {
 			var $this = $( evt.target ),
@@ -41,6 +54,13 @@
 			var $this = $( evt.target ),
 				targetYear = parseInt( $this.val(), 10 );
 			App.ChartModel.updateMapConfig( "targetYear", targetYear );
+			this.render();
+		},
+
+		onRegionClick: function( evt ) {
+			var $this = $( evt.target );
+			App.ChartModel.updateMapConfig( "projection", $this.text() );
+			this.render();
 		}
 
 	});

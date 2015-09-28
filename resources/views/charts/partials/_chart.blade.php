@@ -124,7 +124,7 @@
 							<label class="target-year-label"></label>
 						</div>
 						<div class="control-body">
-							<input type="range" min="1950" max="2010" step="10"  orient="vertical" />
+							<input type="range" min="1950" max="2010" step="10"  />
 						</div>
 					</div>
 					<div class="region-control control clearfix">
@@ -134,21 +134,25 @@
 						</div>
 						<div class="control-body">
 							<ul class="clearfix">
-								<li>World</li>
-								<li>Africa</li>
-								<li>America</li>
-								<li>Asia</li>
-								<li>Australia</li>
-								<li>Europe</li>
+								<li class="World-projection">World</li>
+								<li class="Africa-projection">Africa</li>
+								<li class="N.America-projection">N.America</li>
+								<li class="S.America-projection">S.America</li>
+								<li class="Asia-projection">Asia</li>
+								<li class="Australia-projection">Australia</li>
+								<li class="Europe-projection">Europe</li>
 							</ul>
 						</div>
 					</div>
 					<div class="settings-control control clearfix">
 						<div class="control-head">
 							<i class="fa fa-cog"></i>
-							<label class="region-label">Inter</label>
 						</div>
 						<div class="control-body">
+							<label>
+								<input type="checkbox" name="interpolate-data" checked/>
+								Interpolate data between years
+							</label>
 						</div>
 					</div>
 				</div>

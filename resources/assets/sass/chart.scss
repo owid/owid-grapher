@@ -473,56 +473,65 @@
 			z-index: 1;
 
 			.control {
-				float: left;
-				height: 31px;
-				margin-right: 2px;
-				padding: 5px 10px;
-				border: 1px solid #EEEEEE;
-				background-color: #FAFAFA;
+				position: absolute;
+				height: 32px;
+				cursor: pointer;
 				transition: .3s height;
 				white-space: nowrap;
 				overflow: hidden;
 
 				&:hover {
 					height: 300px;
-					color: #fff;
-					background-color: #444;
-    				border: 1px solid #444;
-
-    				.control-body {
+					.control-head, .control-body {
+						color: #fff;
+						background-color: #444;
+						border: 1px solid #444;
+					}
+					.control-body {
     					/*width:calc(100% - 60px);*/
     				}
 				}
 
 				.control-head, .control-body {
+					padding: 5px 10px;
+					border: 1px solid #EEEEEE;
+					background-color: #FAFAFA;
 					/*display: inline-block;
 					white-space: nowrap;*/
 				}
 				.control-head label {
 					margin-bottom: 0;
+					cursor: pointer;
 				}
 				
 			}
 
 			.target-year-control {
-				width: 70px;
+				
 				&:hover {
-					height: 180px;
+					height: 72px;
 				}
 				.control-head {
+					width: 70px;
+				}
+				.control-body {
+					width: 208px;
 				}
 				input {
 					display: inline-block;
 					margin: 10px 0;
-					writing-mode: bt-lr;
-					-webkit-appearance: slider-vertical;
+					/*writing-mode: bt-lr;
+					-webkit-appearance: slider-vertical;*/
 				}
 			}
 
 			.region-control {
+				
+				left: 72px;
 				width: 100px;
+
 				&:hover {
-					height: 205px;
+					height: 250px;
 				}
 				.region-label {
 					width: calc(100% - 14px);
@@ -542,11 +551,31 @@
 					&:last-child {
 					//	border-right: 0;
 					}
-					&:hover {
+					&:hover,
+					&.highlight {
 						cursor: pointer;
 						color: #FFEC38;
 					}
 				}
+			}
+
+			.settings-control {
+
+				left: 174px;
+				&:hover {
+					height: 65px
+				}
+				.control-head {
+					width: 34px;
+				}
+				.control-body {
+					width: 100%;
+					padding: 5px 15px 1px 10px;
+					input[type=checkbox] {
+						margin-right: 6px;
+					}
+				}
+
 			}
 
 		}

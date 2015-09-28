@@ -26,7 +26,7 @@ elixir(function(mix) {
     ], 'public/css/front.css' );*/
     
     mix.sass( [
-        //'range.scss',
+        'range.scss',
         'main.scss',
         'chart.scss'
     ], 'public/css/front.css' );
@@ -58,7 +58,7 @@ elixir(function(mix) {
         'admin/data.scss',
         'admin/import.scss',
         'admin/charts.scss',
-        //'range.scss',
+        'range.scss',
         'chart.scss',
         'main.scss'
     ], 'public/css/admin.css' );

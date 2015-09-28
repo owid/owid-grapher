@@ -38,7 +38,7 @@
 				}
 				
 				//start with highest value
-				data.reverse();
+				//data.reverse();
 
 				//data join
 				var legendSteps = g.selectAll( "." + stepClass ).data( data );
