@@ -283,6 +283,13 @@
 	}
 	
 /**
+*	export section
+**/
+.nav-tabs-custom>.nav-tabs>li [href="#map-tab"] {
+	display: none;
+}
+
+/**
 *	embed section
 **/
 .embed-section {}

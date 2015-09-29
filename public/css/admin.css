@@ -946,6 +946,12 @@ button[type="submit"]:not(".delete-btn") {
   max-width: 80px; }
 
 /**
+*	export section
+**/
+.nav-tabs-custom > .nav-tabs > li [href="#map-tab"] {
+  display: none; }
+
+/**
 *	embed section
 **/
 /**

@@ -118,7 +118,7 @@
 				chartType = 9999,
 				selectedCountries = App.ChartModel.get( "selected-countries" ),
 				selectedCountriesIds = _.map( selectedCountries, function( v ) { return (v)? +v.id: ""; } );
-
+				
 			var dataProps = { "dimensions": dimensionsString, "chartId": App.ChartModel.get( "id" ), "chartType": chartType, "selectedCountries": selectedCountriesIds, "chartTime": chartTime, "cache": App.ChartModel.get( "cache" ), "groupByVariables": App.ChartModel.get( "group-by-variables" )  };
 			this.mapDataModel.fetch( { data: dataProps } );
 

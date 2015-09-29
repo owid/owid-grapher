@@ -21,10 +21,12 @@
 
 		render: function() {
 			
-			this.$checkboxes = this.$el.find( "[type='checkbox']" ); 
+			this.$checkboxes = this.$el.find( "[type='checkbox']" );
 			this.$widthInput = this.$el.find( "[name='iframe-width']" );
 			this.$heightInput = this.$el.find( "[name='iframe-height']" );
 			this.$iframeTextArea = this.$el.find( "[name='iframe']" );
+
+			this.$mapTab = $( "[href='#map-tab']" );
 
 			//update line-type from model
 			var that = this,
@@ -32,6 +34,9 @@
 			_.each( tabs, function( v, i ) {
 				var $checkbox = that.$checkboxes.filter( "[value='" + v + "']" );
 				$checkbox.prop( "checked", true );
+				if( v === "map" ) {
+					that.$mapTab.css( "display", "block" );
+				}
 			} );
 
 			//update size from model
@@ -53,7 +58,8 @@
 
 		onTabsCheck: function( evt ) {
 
-			var checked = [];
+			var that = this,
+				checked = [];
 			$.each( this.$checkboxes, function( i, v ) {
 
 				var $checkbox = $( this );
@@ -61,6 +67,14 @@
 					checked.push( $checkbox.val() );
 				}
 
+				if( $checkbox.val() === "map" ) {
+					if( $checkbox.is( ":checked" ) ) {
+						that.$mapTab.css( "display", "block" );
+					} else {
+						that.$mapTab.css( "display", "none" );
+					}
+				}
+		
 			} );
 
 			App.ChartModel.set( "tabs", checked );
