@@ -22,27 +22,37 @@
 			this.$targetYearControl = this.$el.find( ".target-year-control" );
 			this.$targetYearLabel = this.$targetYearControl.find( ".target-year-label" );
 			this.$targetYearInput = this.$targetYearControl.find( "input" );
-			this.$targetYearInput.attr( "min", mapConfig.minYear );
-			this.$targetYearInput.attr( "max", mapConfig.maxYear );
-			this.$targetYearInput.attr( "step", mapConfig.timeInterval );
-			this.$targetYearInput.val( parseInt( mapConfig.minYear, 10 ) );
 			
 			//region selector
 			this.$regionControl = this.$el.find( ".region-control" );
 			this.$regionControlLabel = this.$regionControl.find( ".region-label" );
 			this.$regionControlLis = this.$regionControl.find( "li" );
 
+			App.ChartModel.on( "change", this.onChartModelChange, this );
+			App.ChartModel.on( "change-map", this.onChartModelChange, this );
+
 			return this.render();
 		},
 
 		render: function() {
+			
 			var mapConfig = App.ChartModel.get( "map-config" );
+			
 			this.$targetYearLabel.text( mapConfig.targetYear );
 			this.$regionControlLabel.text( mapConfig.projection );
+
+			this.$targetYearInput.attr( "min", mapConfig.minYear );
+			this.$targetYearInput.attr( "max", mapConfig.maxYear );
+			this.$targetYearInput.attr( "step", mapConfig.timeInterval );
+			this.$targetYearInput.val( parseInt( mapConfig.minYear, 10 ) );
 
 			this.$regionControlLis.removeClass( "highlight" );
 			this.$regionControlLis.filter( "." + mapConfig.projection + "-projection" ).addClass( "highlight" );
 
+		},
+
+		onChartModelChange: function( evt ) {
+			this.render();
 		},
 		
 		onTargetYearInput: function( evt ) {
