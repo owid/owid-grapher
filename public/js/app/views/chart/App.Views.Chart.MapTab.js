@@ -54,26 +54,28 @@
 					defaultFill: '#FFFFFF'
 					//defaultFill: '#DDDDDD'
 				},
-				setProjection: defaultProjection
+				setProjection: defaultProjection,
+				//wait for json to load before loading map data
+				done: function() {
+					that.mapDataModel = new App.Models.ChartDataModel();
+					that.mapDataModel.on( "sync", function( model, response ) {
+						if( response.data ) {
+							that.displayData( response.data );
+						}
+					} );
+					that.mapDataModel.on( "error", function() {
+						console.error( "Error loading map data." );
+					} );
+					that.update();
+				}
 			} );
 
 			this.legend = new App.Views.Chart.Map.Legend();
 			
-			this.mapDataModel = new App.Models.ChartDataModel();
-			this.mapDataModel.on( "sync", function( model, response ) {
-				if( response.data ) {
-					that.displayData( response.data );
-				}
-			} );
-			this.mapDataModel.on( "error", function() {
-				console.error( "Error loading map data." );
-			} );
 			App.ChartModel.on( "change", this.onChartModelChange, this );
 			App.ChartModel.on( "change-map", this.onChartModelChange, this );
 			App.ChartModel.on( "resize", this.onChartModelResize, this );
 			
-			this.update();
-
 			nv.utils.windowResize( $.proxy( this.onResize, this ) );
 			this.onResize();
 
@@ -221,8 +223,10 @@
 	App.Views.Chart.MapTab.projections = {
 		
 		"World": function(element) {
+			//empiric
+			var k = 6;
 			var projection = d3.geo.eckert3()
-				.scale(175)
+				.scale(element.offsetWidth/k)
 				.translate([element.offsetWidth / 2, element.offsetHeight / 2])
 				.precision(.1);
 			var path = d3.geo.path().projection(projection);

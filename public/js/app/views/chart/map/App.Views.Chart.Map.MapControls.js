@@ -44,7 +44,7 @@
 			this.$targetYearInput.attr( "min", mapConfig.minYear );
 			this.$targetYearInput.attr( "max", mapConfig.maxYear );
 			this.$targetYearInput.attr( "step", mapConfig.timeInterval );
-			this.$targetYearInput.val( parseInt( mapConfig.minYear, 10 ) );
+			this.$targetYearInput.val( parseInt( mapConfig.targetYear, 10 ) );
 
 			this.$regionControlLis.removeClass( "highlight" );
 			this.$regionControlLis.filter( "." + mapConfig.projection + "-projection" ).addClass( "highlight" );
