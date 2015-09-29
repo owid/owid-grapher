@@ -7,7 +7,7 @@
 			<h2 class="chart-name"></h2>
 			<h3 class="chart-subname"></h3>
 			<ul class="chart-tabs clearfix">
-				<li class="chart-header-tab header-tab active">
+				<li class="chart-header-tab header-tab">
 					<a href="#chart-chart-tab" data-toggle="tab" aria-expanded="false">Chart</a>
 				</li>
 				<li class="data-header-tab header-tab">
@@ -25,7 +25,7 @@
 			</ul>
 		</div>
 		<div class="tab-content">
-			<div id="chart-chart-tab" class="tab-pane active">
+			<div id="chart-chart-tab" class="tab-pane">
 				<div class="available-countries-select-wrapper">
 					<select class="available-countries-select chosen-select" name="available_entities" style="position: relative;z-index: 10;"></select>
 				</div>

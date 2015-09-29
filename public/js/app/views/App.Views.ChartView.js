@@ -151,6 +151,19 @@
 				var dimension = $.parseJSON( dimensionsString );
 				validDimensions = this.checkValidDimensions( dimension, App.ChartModel.get( "chart-type" ));
 			}
+
+			//make sure to appear only first tab tabs that are necessary
+			//appear only first tab if none visible
+			if( !this.$tabPanes.filter( ".active" ).length ) {
+				var tabs = App.ChartModel.get( "tabs" ),
+					firstTabName = tabs[ 0 ],
+					firstTabPane = this.$tabPanes.filter( "#" + firstTabName + "-chart-tab" );
+				firstTabPane.addClass( "active" );
+				if( firstTabName === "map" ) {
+					//map tab needs special inialitization
+					this.mapTab.display();
+				}
+			}
 			
 			if( !validDimensions ) {
 				return false;
