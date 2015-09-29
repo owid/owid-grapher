@@ -51,6 +51,9 @@
 		<script src="{{ asset('js/libs/nv.d3-1.8.1.js') }}"></script>
 		<script src="{{ asset('js/libs/saveSvgAsPng.js') }}"></script>
 		
+		<script src="{{ asset('js/libs/topojson.js') }}"></script>
+		<script src="{{ asset('js/libs/datamaps.js') }}"></script>
+
 		<script src="{{ asset('js/libs/underscore.js') }}"></script>    
 		<script src="{{ asset('js/libs/backbone.js') }}"></script>    
 		<script src="{{ asset('js/libs/bootstrap.min.js') }}"></script>    
