@@ -180,7 +180,7 @@
 		updateMapConfig: function( propName, propValue, silent, eventName ) {
 
 			var mapConfig = this.get( "map-config" );
-			if( mapConfig[ propName ] ) {
+			if( mapConfig.hasOwnProperty( propName ) ) {
 				mapConfig[ propName ] = propValue;
 				if( !silent ) {
 					var evt = ( eventName )? eventName: "change";

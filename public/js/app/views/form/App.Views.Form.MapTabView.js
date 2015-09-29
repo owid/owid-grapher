@@ -145,6 +145,7 @@
 				targetYear = ( chartTime )? chartTime[0]: App.AvailableTimeModel.get( "min" ),
 				minYear = targetYear,
 				maxYear = ( chartTime )? chartTime[1]: App.AvailableTimeModel.get( "max" );
+
 			App.ChartModel.updateMapConfig( "minYear", minYear, true );
 			App.ChartModel.updateMapConfig( "maxYear", maxYear, true );
 			App.ChartModel.updateMapConfig( "targetYear", targetYear, silent );
