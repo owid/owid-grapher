@@ -28,8 +28,12 @@
 
 			var that = this;
 			_.each( tabs, function( v, i ) {
-				that.$tabs.filter( "." + v + "-header-tab" ).show();
-			} );	
+				var tab = that.$tabs.filter( "." + v + "-header-tab" );
+				tab.show();
+				if( i === 0 ) {
+					tab.addClass( "active" );
+				}
+			} );
 
 		}
 

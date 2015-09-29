@@ -19,12 +19,16 @@
 			//init map only if the map tab displayed
 			var that = this;
 			$( "[data-toggle='tab'][href='#map-chart-tab']" ).on( "shown.bs.tab", function( evt ) {
-				//render only if no map yet
-				if( !that.dataMap ) {
-					that.render();
-				}
+				that.display();
 			} );
 			
+		},
+
+		display: function() {
+			//render only if no map yet
+			if( !this.dataMap ) {
+				this.render();
+			}
 		},
 
 		render: function() {
