@@ -162,7 +162,6 @@
 
 			var json = JSON.stringify( units );
 			App.ChartModel.set( "units", json );
-			console.log( "json", json );
 			
 		}
 

@@ -510,20 +510,19 @@
 					value = v,
 					isHidden = ( unit && unit.hasOwnProperty( "visible" ) && !unit.visible )? true: false;
 
-				//add thousands separator
-				value = d3.format( "," )( value );
+				//format number
+				if( unit && !isNaN( unit.format ) && unit.format >= 0 ) {
+					//fixed format
+					var fixed = Math.min( 20, parseInt( unit.format, 10 ) );
+					value = d3.format( ",." + fixed + "f" )( value );
+				} else {
+					//add thousands separator
+					value = d3.format( "," )( value );
+				}
+
 				if( unit ) {
 					if( !isHidden ) {
 						//try to format number
-						if( !isNaN( unit.format ) ) {
-							if( unit.format > 0 ) {
-								//enforce maximum 20 digits
-								var fixed = Math.min( 20, parseInt( unit.format, 10 ) );
-								//make sure we're operating on number
-								value = parseFloat( value );
-								value = value.toFixed( fixed );
-							}
-						}
 						//scatter plot has values displayed in separate rows
 						if( valuesString !== "" && chartType != 2 ) {
 							valuesString += ", ";
