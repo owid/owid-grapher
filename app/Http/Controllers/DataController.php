@@ -401,7 +401,7 @@ class DataController extends Controller {
 			$nameDimKey = $currDimension ."-". $datasource->name;
 			if( !isset( $sourcesByNameDim[ $nameDimKey ] ) ) {
 				$datasources[] = $datasource;
-				$sourcesByNameDim[ $nameDimKey ] = true; 
+				$sourcesByNameDim[ $nameDimKey ] = true;
 			}
 			
 			//store curr dimension so we don't have to repeat title for next if it's same
