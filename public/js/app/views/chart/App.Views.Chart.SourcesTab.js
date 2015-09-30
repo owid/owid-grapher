@@ -53,7 +53,7 @@
 					sourcesLongHtml += ", ";
 				}*/
 				sourcesLongHtml += sourceData.description;
-				console.log( "sourceData", sourceData );	
+			
 			} );
 
 			footerHtml = descriptionHtml;
