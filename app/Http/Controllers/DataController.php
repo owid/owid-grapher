@@ -49,7 +49,7 @@ class DataController extends Controller {
 			$key = 'chart-dimensions-' . Input::get( 'chartId' ). '-countries-' .$selectedCountriesIdsString;
 			//if there's something in cache and not exporting
 			if( Cache::has( $key ) && !Input::has( 'export' ) && ( Input::has( 'cache' ) && Input::get( 'cache' ) === "true" ) ) {
-				//return Cache::get( $key );
+				return Cache::get( $key );
 			}
 		}
 		
