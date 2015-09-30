@@ -49,7 +49,7 @@ class DataController extends Controller {
 			$key = 'chart-dimensions-' . Input::get( 'chartId' ). '-countries-' .$selectedCountriesIdsString;
 			//if there's something in cache and not exporting
 			if( Cache::has( $key ) && !Input::has( 'export' ) && ( Input::has( 'cache' ) && Input::get( 'cache' ) === "true" ) ) {
-				return Cache::get( $key );
+				//return Cache::get( $key );
 			}
 		}
 		
@@ -382,6 +382,8 @@ class DataController extends Controller {
 		$datasources = array();
 		$prevDimension = "";
 		
+		$sourcesByNameDim = array();
+
 		foreach( $dimensions as $dimension ) {
 			$datasource = new \stdClass();
 			//special dimension header for linechart
@@ -389,15 +391,22 @@ class DataController extends Controller {
 			if( $isLineChart ) {
 				$dimension = false;
 			}
+
 			$currDimension = ( !empty( $dimension ) && isset( $dimension->name ) )? $dimension->name: "undefined";
 			$datasource->description = ( !empty($dsr) )? $this->createSourceDescription( $dimension, $dsr, $currDimension === $prevDimension ): '';
 			$datasource->name = ( !empty($dsr) && !empty($dsr->name) )? $dsr->name: '';
 			$datasource->link = ( !empty($dsr) && !empty($dsr->name) )? $dsr->link: '';
-			//$datasource->description = $datasourceSource->description;
-			$datasources[] = $datasource;
-		
+			
+			//make sure we don't repeat for the same name and dimension
+			$nameDimKey = $currDimension ."-". $datasource->name;
+			if( !isset( $sourcesByNameDim[ $nameDimKey ] ) ) {
+				$datasources[] = $datasource;
+				$sourcesByNameDim[ $nameDimKey ] = true; 
+			}
+			
 			//store curr dimension so we don't have to repeat title for next if it's same
 			$prevDimension = ( !empty( $dimension ) && isset( $dimension->name ) )? $dimension->name: "";
+		
 		}
 
 		/*$datasourcesIds = array_keys( $datasourcesIdsArr );
