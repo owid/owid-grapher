@@ -355,6 +355,18 @@
     	border: 1px solid rgba(0,0,0,.2);
 		border-radius: 0;
 		box-shadow: none;
+		//make sure popup stays on top even in full screen mode
+		z-index: 11102;
+
+		table {
+			tbody {
+				border: 0;
+			}
+			td {
+				border: 0;
+			}
+		}
+
 	}
 		.nvtooltip h3 {
 			font-size: 14px;
