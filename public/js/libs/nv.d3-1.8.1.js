@@ -639,7 +639,6 @@ nv.models.tooltip = function() {
             clientWidth = document.documentElement.clientWidth, // Don't want scrollbars.
             clientHeight = document.documentElement.clientHeight, // Don't want scrollbars.
             left, top, tmp;
-
         // calculate position based on gravity
         switch (gravity) {
             case 'e':
@@ -694,7 +693,6 @@ nv.models.tooltip = function() {
                 gravityOffset = calcGravityOffset(pos),
                 left = pos.left + gravityOffset.left,
                 top = pos.top + gravityOffset.top;
-
             // delay hiding a bit to avoid flickering
             if (hidden) {
                 tooltip

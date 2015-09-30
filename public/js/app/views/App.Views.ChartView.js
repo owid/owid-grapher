@@ -1029,7 +1029,8 @@
 					.attr('y1', evt.pos.top - nvDistrX );
 				svgSelection.select('.nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
 					.attr('x2', evt.pos.left - svgOffset.left - margins.left );
-				that.chart.tooltip.position(evt.pos).data(evt).hidden(false);
+				var position = {left: d3.event.clientX, top: d3.event.clientY };
+				that.chart.tooltip.position(position).data(evt).hidden(false);
 			});
 
 		},
