@@ -89,7 +89,7 @@ class DataController extends Controller {
 				$multiVariantByEntity = true;
 			}
 		}
-		
+
 		$timeType = '';
 
 		if( $groupByEntity ) {
@@ -337,42 +337,33 @@ class DataController extends Controller {
 			foreach( $normalizedData as $entityData ) {
 				
 				//TODO better check for this?
-				if( $chartType !== '6' ) {
-
-					if( $entityData[ 'values' ] ) {
+				if( $entityData[ 'values' ] ) {
 						
-						//here we add any possible categorical data
-						foreach( $categoricalDimensions as $catDimension ) {
-							$entityId = $entityData[ 'id' ];
+					//here we add any possible categorical data
+					foreach( $categoricalDimensions as $catDimension ) {
+						$entityId = $entityData[ 'id' ];
 
-							//is there data for specific property
-							if( array_key_exists( 'values', $dataByEntity[ $entityId ] ) && array_key_exists( $catDimension->property, $dataByEntity[ $entityId ][ 'values' ] ) ) {
-								
-								//get value - http://stackoverflow.com/questions/1028668/get-first-key-in-a-possibly-associative-array
-								$value = reset( $dataByEntity[ $entityId ][ 'values' ][ $catDimension->property ] );
-								$catValue = Chart::getValueForCategory( $catDimension->property, $categoricalData, $value );
+						//is there data for specific property
+						if( array_key_exists( 'values', $dataByEntity[ $entityId ] ) && array_key_exists( $catDimension->property, $dataByEntity[ $entityId ][ 'values' ] ) ) {
+							
+							//get value - http://stackoverflow.com/questions/1028668/get-first-key-in-a-possibly-associative-array
+							$value = reset( $dataByEntity[ $entityId ][ 'values' ][ $catDimension->property ] );
+							$catValue = Chart::getValueForCategory( $catDimension->property, $categoricalData, $value );
 
-								//color is assinged to whole entity, shape is assigned to individual data entries
-								if( $catDimension->property === "color" ) {
-									$entityData[ $catDimension->property ] = $catValue;
-								} else if( $catDimension->property === "shape" ) {
-									foreach( $entityData[ "values" ] as &$entityValue ) {
-										$entityValue[ $catDimension->property ] = $catValue;
-									}
+							//color is assinged to whole entity, shape is assigned to individual data entries
+							if( $catDimension->property === "color" ) {
+								$entityData[ $catDimension->property ] = $catValue;
+							} else if( $catDimension->property === "shape" ) {
+								foreach( $entityData[ "values" ] as &$entityValue ) {
+									$entityValue[ $catDimension->property ] = $catValue;
 								}
-
 							}
-						}
 
-						$data[] = $entityData;
-					
+						}
 					}
 
-				} else {
-
-					//special case for 
-					$data = $normalizedData;
-
+					$data[] = $entityData;
+				
 				}
 				
 			}
