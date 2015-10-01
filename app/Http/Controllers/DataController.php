@@ -49,7 +49,7 @@ class DataController extends Controller {
 			$key = 'chart-dimensions-' . Input::get( 'chartId' ). '-countries-' .$selectedCountriesIdsString;
 			//if there's something in cache and not exporting
 			if( Cache::has( $key ) && !Input::has( 'export' ) && ( Input::has( 'cache' ) && Input::get( 'cache' ) === "true" ) ) {
-				return Cache::get( $key );
+				//return Cache::get( $key );
 			}
 		}
 		
@@ -337,35 +337,44 @@ class DataController extends Controller {
 			foreach( $normalizedData as $entityData ) {
 				
 				//TODO better check for this?
-				if( $entityData[ 'values' ] ) {
-					
-					//here we add any possible categorical data
-					foreach( $categoricalDimensions as $catDimension ) {
-						$entityId = $entityData[ 'id' ];
+				if( $chartType !== '6' ) {
 
-						//is there data for specific property
-						if( array_key_exists( 'values', $dataByEntity[ $entityId ] ) && array_key_exists( $catDimension->property, $dataByEntity[ $entityId ][ 'values' ] ) ) {
-							
-							//get value - http://stackoverflow.com/questions/1028668/get-first-key-in-a-possibly-associative-array
-							$value = reset( $dataByEntity[ $entityId ][ 'values' ][ $catDimension->property ] );
-							$catValue = Chart::getValueForCategory( $catDimension->property, $categoricalData, $value );
+					if( $entityData[ 'values' ] ) {
+						
+						//here we add any possible categorical data
+						foreach( $categoricalDimensions as $catDimension ) {
+							$entityId = $entityData[ 'id' ];
 
-							//color is assinged to whole entity, shape is assigned to individual data entries
-							if( $catDimension->property === "color" ) {
-								$entityData[ $catDimension->property ] = $catValue;
-							} else if( $catDimension->property === "shape" ) {
-								foreach( $entityData[ "values" ] as &$entityValue ) {
-									$entityValue[ $catDimension->property ] = $catValue;
+							//is there data for specific property
+							if( array_key_exists( 'values', $dataByEntity[ $entityId ] ) && array_key_exists( $catDimension->property, $dataByEntity[ $entityId ][ 'values' ] ) ) {
+								
+								//get value - http://stackoverflow.com/questions/1028668/get-first-key-in-a-possibly-associative-array
+								$value = reset( $dataByEntity[ $entityId ][ 'values' ][ $catDimension->property ] );
+								$catValue = Chart::getValueForCategory( $catDimension->property, $categoricalData, $value );
+
+								//color is assinged to whole entity, shape is assigned to individual data entries
+								if( $catDimension->property === "color" ) {
+									$entityData[ $catDimension->property ] = $catValue;
+								} else if( $catDimension->property === "shape" ) {
+									foreach( $entityData[ "values" ] as &$entityValue ) {
+										$entityValue[ $catDimension->property ] = $catValue;
+									}
 								}
-							}
 
+							}
 						}
+
+						$data[] = $entityData;
+					
 					}
 
-					$data[] = $entityData;
-				
-				}
+				} else {
 
+					//special case for 
+					$data = $normalizedData;
+
+				}
+				
 			}
 		} else {
 			//convert to array

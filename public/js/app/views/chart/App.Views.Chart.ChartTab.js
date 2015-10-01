@@ -31,6 +31,8 @@
 			//make local copy of data for our filtering needs
 			var localData = $.extend( true, localData, data );
 
+			var chartType = App.ChartModel.get( "chart-type" );
+
 			//filter data for selected countries
 			var selectedCountries = App.ChartModel.get( "selected-countries" ),
 				selectedCountriesById = [],
@@ -77,6 +79,15 @@
 					value = that.assignColorFromCache( value );
 					return value;
 				} );
+			}
+
+			var discreteData;
+			if( chartType == "6" ) {
+				var flattenValues = _.map( localData, function( v ) {
+					return v.values[0];
+				} );
+				discreteData = [{ key: "variable", values: flattenValues }];
+				localData = discreteData;
 			}
 
 			//filter by chart time
@@ -140,7 +151,6 @@
 				}
 
 				//depending on chart type create chart
-				var chartType = App.ChartModel.get( "chart-type" );
 				if( chartType == "1" ) {
 					
 					//line chart
@@ -239,16 +249,21 @@
 					
 						that.chart = nv.models.multiBarHorizontalChart().options( chartOptions );//.showValues( true );
 					
-					} 
+					}
 
 				} else if( chartType == "6" ) {
 
-					that.chart = nv.models.discreteBarChart().options( chartOptions );//.showValues( true );
+					chartOptions.showValues = true;
+
+					that.chart = nv.models.discreteBarChart()
+						.x( function( d ) { return d.x; } )
+						.y( function( d ) { return d.y; } )
+						.options( chartOptions );
 
 				}
-				
+
 				//fixed probably a bug in nvd3 with previous tooltip not being removed
-				d3.select( ".xy-tooltip" ).remove(); 
+				d3.select( ".xy-tooltip" ).remove();
 
 				that.chart.xAxis
 					.axisLabel( xAxis[ "axis-label" ] )
@@ -271,9 +286,14 @@
 				//get extend
 				var allValues = [];
 				_.each( localData, function( v, i ) {
-					allValues = allValues.concat( v.values );
+					if( v.values ) {
+						allValues = allValues.concat( v.values );
+					} else if( $.isArray( v ) ){
+						//special case for discrete bar chart
+						allValues = v;
+					}
 				} );
-				
+
 				//domain setup
 				var xDomain = d3.extent( allValues.map( function( d ) { return d.x; } ) ),
 					yDomain = d3.extent( allValues.map( function( d ) { return d.y; } ) ),
@@ -343,6 +363,7 @@
 					that.chart.xAxis.ticks( 7 );
 					that.chart.yAxis.ticks( 7 );
 				}
+				
 				var svgSelection = d3.select( that.$svg.selector )
 					.datum( localData )
 					.call( that.chart );
@@ -407,13 +428,14 @@
 					if( that.legend ) {
 						svgSelection.call( that.legend );
 					}
-					that.onResize();
+					that.parentView.onResize();
 				}, 150 );
 				nv.utils.windowResize( onResizeCallback );
 						
 				that.parentView.onResize();
 
-				that.chart.dispatch.on( "stateChange", function( state ) {
+				var stateChangeEvent = ( chartType !== "6" )? "stateChange": "renderEnd";
+				that.chart.dispatch.on( stateChangeEvent, function( state ) {
 					//refresh legend;
 					svgSelection.call( that.legend );
 

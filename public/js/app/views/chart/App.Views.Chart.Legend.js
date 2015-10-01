@@ -10,7 +10,9 @@
 		// Public Variables with Default Settings
 		//------------------------------------------------------------
 
-		var margin = {top: 5, right: 50, bottom: 5, left: 62}, width = 800
+		var chartType = App.ChartModel.get( "chart-type" )
+			, margin = {top: 5, right: 50, bottom: 5, left: 62}
+			, width = 800
 			, height = 20
 			, getKey = function(d) { return d.key }
 			, color = nv.utils.getColor()
@@ -21,7 +23,7 @@
 			, radioButtonMode = false   //If true, clicking legend items will cause it to behave like a radio button. (only one can be selected at a time)
 			, expanded = false
 			, dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout', 'stateChange', 'removeEntity', 'addEntity')
-		, vers = 'classic' //Options are "classic" and "furious" and "owd"
+			, vers = 'classic' //Options are "classic" and "furious" and "owd"
 			;
 
 		function chart(selection) {
@@ -34,8 +36,21 @@
 				
 				nv.utils.initSVG(container);
 
+				var bindableData = data;
+
+				//discrete bar chart needs unpack data
+				if( chartType === "6" ) {
+					if( data && data.length && data[0].values ) {
+						var discreteData = _.map( data[0].values, function( v, i ) {
+							return { id: v.id, key: v.x, color: v.color, values: v };
+						} );
+						bindableData = discreteData;
+					}
+				}
+				
 				// Setup containers and skeleton of chart
-				var wrap = container.selectAll('g.nv-custom-legend').data([data]),
+				var wrap = container.selectAll('g.nv-custom-legend').data([bindableData]),
+				//var wrap = container.selectAll('g.nv-custom-legend').data([data]),
 					gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-custom-legend').append('g').attr( 'class', 'nv-legend-series-wrapper' ),
 					g = wrap.select('g');
 
