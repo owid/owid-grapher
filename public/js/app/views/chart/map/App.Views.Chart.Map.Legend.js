@@ -10,8 +10,14 @@
 			scale;
 
 		var formatLegendLabel = function( valueArr, i, length ) {
+			
 			valueArr = valueArr.map( function( d ) {
-				return Math.round( d );
+				var len = d.toString().length,
+					formattedNumber = d;
+				if( len > 3 ) {
+					formattedNumber = d3.format( ".3r" )( d );
+				}
+				return formattedNumber;
 			} );
 			if( i < (length - 1) ) {
 				return valueArr[ 0 ];
