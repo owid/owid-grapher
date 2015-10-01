@@ -18,7 +18,6 @@ class Chart extends Model {
 			case "1":
 			case "4":
 			case "5":
-			case "6":
 				$normalizedData = Chart::formatDataForLineChart( $data, $dimensionsByKey, $times, $groupByVariable, $mainDimension );
 				break;
 			case "2":
@@ -26,6 +25,9 @@ class Chart extends Model {
 				break;
 			case "3":
 				$normalizedData = ( !$groupByVariable )? Chart::formatDataForStackBarChart( $data, $dimensionsByKey, $times, $groupByVariable ): Chart::formatDataForStackBarChartByVariable( $data, $dimensionsByKey, $times, $entity );
+				break;
+			case "6":
+				$normalizedData = Chart::formatDataForDiscreteBarChart( $data, $dimensionsByKey, $times, $groupByVariable, $mainDimension, $otherDimIds );
 				break;
 			case "9999":
 				//map case - has only one dimension
@@ -513,6 +515,75 @@ class Chart extends Model {
 		}
 
 		return $variablesByKey;
+
+	}
+
+	/**
+	*	DISCRETE BAR CHART
+	**/
+
+	public static function formatDataForDiscreteBarChart( $dataByEntity, $dimensionsByKey, $times, $groupByVariable, $mainDimension, $otherDimIds ) {
+
+		$normalizedData = [];
+		
+		foreach( $dataByEntity as $entityData ) {
+			
+			$arr = array(
+				"id" => $entityData[ "id" ],
+				"key" => $entityData[ "key" ],
+				"entity" => $entityData[ "entity" ],
+				"values" => []
+			);
+
+			//main values
+			//do we have some values for given entity at all?
+			if( !array_key_exists( $mainDimension->property, $entityData[ "values" ] ) ) {
+				//nope, bail on this entity
+				continue;
+			}
+				
+			//only getting one value per country per specify value
+			$hasData = true;
+			$timeArr = [];
+
+			foreach( $dimensionsByKey as $dimension ) {
+
+				//skip categorical properties (color/shape)
+				if( $dimension->property === "color" || $dimension->property === "shape" ) {
+					continue;
+				}
+
+				$defaultYear = 2000;
+				$time = ( isset( $dimension->targetYear ) )? $dimension->targetYear: $defaultYear;
+				$timeArr[ "time" ] = $time;
+				//discrete bar chart needs key 
+				$timeArr[ "id" ] = $entityData[ "id" ];
+				$timeArr[ "x" ] = $entityData[ "key" ];
+
+				//try to find value for given dimension, entity and time
+				if( array_key_exists( $dimension->property, $entityData[ "values" ] ) ) {
+
+					$value = Chart::getValue( $dimension, $time, $entityData[ "values" ][ $dimension->property ] );
+					if( Chart::hasValue( $value ) ) {
+						$timeArr[ $dimension->property ] = $value; 
+					} else {
+						$hasData = false;
+					}
+					
+				} else {
+					$hasData = false;
+				}
+
+			}
+
+			$arr[ "values" ][ 0 ] = $timeArr;
+			if( $hasData ) {
+				$normalizedData[ $entityData[ "id" ] ] = $arr;
+			}
+			
+		}
+
+		return $normalizedData;
 
 	}
 
