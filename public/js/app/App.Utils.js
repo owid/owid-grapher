@@ -569,5 +569,138 @@
 	};
 
 
+	App.Utils.formatTimeLabel = function( type, d, xAxisPrefix, xAxisSuffix, format ) {
+		//depending on type format label
+		var label;
+		switch( type ) {
+			
+			case "Decade":
+				
+				var decadeString = d.toString();
+				decadeString = decadeString.substring( 0, decadeString.length - 1);
+				decadeString = decadeString + "0s";
+				label = decadeString;
+
+				break;
+
+			case "Quarter Century":
+				
+				var quarterString = "",
+					quarter = d % 100;
+				
+				if( quarter < 25 ) {
+					quarterString = "1st quarter of the";
+				} else if( quarter < 50 ) {
+					quarterString = "half of the";
+				} else if( quarter < 75 ) {
+					quarterString = "3rd quarter of the";
+				} else {
+					quarterString = "4th quarter of the";
+				}
+					
+				var centuryString = App.Utils.centuryString( d );
+
+				label = quarterString + " " + centuryString;
+
+				break;
+
+			case "Half Century":
+				
+				var halfString = "",
+					half = d % 100;
+				
+				if( half < 50 ) {
+					halfString = "1st half of the";
+				} else {
+					halfString = "2nd half of the";
+				}
+					
+				var centuryString = App.Utils.centuryString( d );
+
+				label = halfString + " " + centuryString;
+
+				break;
+
+			case "Century":
+				
+				label = App.Utils.centuryString( d );
+
+				break;
+
+			default:
+
+				label = App.Utils.formatValue( d, format );
+				
+				break;
+		}
+		return xAxisPrefix + label + xAxisSuffix;
+	};
+
+	App.Utils.inlineCssStyle = function( rules ) {
+		//http://devintorr.es/blog/2010/05/26/turn-css-rules-into-inline-style-attributes-using-jquery/
+		for (var idx = 0, len = rules.length; idx < len; idx++) {
+			$(rules[idx].selectorText).each(function (i, elem) {
+				elem.style.cssText += rules[idx].style.cssText;
+			});
+		}
+	};
+
+	App.Utils.checkValidDimensions = function( dimensions, chartType ) {
+			
+		var validDimensions = false,
+			xDimension, yDimension;
+		
+		switch( chartType ) {
+			case "1":
+			case "4":
+			case "5":
+			case "6":
+				//check that dimensions have y property
+				yDimension = _.find( dimensions, function( dimension ) {
+					return dimension.property === "y";
+				} );
+				if( yDimension ) {
+					validDimensions = true;
+				}
+				break;
+			case "2":
+				//check that dimensions have x property
+				xDimension = _.find( dimensions, function( dimension ) {
+					return dimension.property === "x";
+				} );
+				yDimension = _.find( dimensions, function( dimension ) {
+					return dimension.property === "y";
+				} );
+				if( xDimension && yDimension ) {
+					validDimensions = true;
+				}
+				break;
+			case "3":
+				//check that dimensions have y property
+				yDimension = _.find( dimensions, function( dimension ) {
+					return dimension.property === "y";
+				} );
+				if( yDimension ) {
+					validDimensions = true;
+				}
+				break;
+		}
+		return validDimensions;
+
+	};
+
+	App.Utils.formatValue = function( value, format ) {
+		//make sure we do this on number
+		if( value && !isNaN( value ) ) {
+			if( format && !isNaN( format ) ) {
+				var fixed = Math.min( 20, parseInt( format, 10 ) );
+				value = value.toFixed( fixed );
+			} else {
+				//no format 
+				value = value.toString();
+			}
+		}
+		return value;
+	};
 
 })();
