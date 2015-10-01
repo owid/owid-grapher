@@ -89,7 +89,7 @@ class DataController extends Controller {
 				$multiVariantByEntity = true;
 			}
 		}
-
+		
 		$timeType = '';
 
 		if( $groupByEntity ) {
