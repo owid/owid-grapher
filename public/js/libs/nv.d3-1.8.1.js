@@ -3899,7 +3899,7 @@ nv.models.discreteBar = function() {
             } else {
                 bars.selectAll('text').remove();
             }
-
+            
             bars
                 .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive' })
                 .style('fill', function(d,i) { return d.color || color(d,i) })
@@ -3982,6 +3982,7 @@ nv.models.discreteBar = function() {
     return chart;
 };
 
+
 nv.models.discreteBarChart = function() {
     "use strict";
 
@@ -3992,6 +3993,7 @@ nv.models.discreteBarChart = function() {
     var discretebar = nv.models.discreteBar()
         , xAxis = nv.models.axis()
         , yAxis = nv.models.axis()
+    , legend = nv.models.legend()
         , tooltip = nv.models.tooltip()
         ;
 
@@ -3999,6 +4001,7 @@ nv.models.discreteBarChart = function() {
         , width = null
         , height = null
         , color = nv.utils.getColor()
+    , showLegend = false
         , showXAxis = true
         , showYAxis = true
         , rightAlignYAxis = false
@@ -4081,8 +4084,30 @@ nv.models.discreteBarChart = function() {
                 .append('line');
 
             gEnter.append('g').attr('class', 'nv-barsWrap');
+        gEnter.append('g').attr('class', 'nv-legendWrap');
 
             g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+        
+            if (showLegend) {
+                legend.width(availableWidth);
+
+                g.select('.nv-legendWrap')
+                    .datum(data)
+                    .call(legend);
+
+                if ( margin.top != legend.height()) {
+                    margin.top = legend.height();
+                    availableHeight = nv.utils.availableHeight(height, container, margin);
+                }
+
+                wrap.select('.nv-legendWrap')
+                    .attr('transform', 'translate(0,' + (-margin.top) +')')
+            }
+            
+            if (rightAlignYAxis) {
+                g.select(".nv-y.nv-axis")
+                    .attr("transform", "translate(" + availableWidth + ",0)");
+            }       
 
             if (rightAlignYAxis) {
                 g.select(".nv-y.nv-axis")
@@ -4189,6 +4214,7 @@ nv.models.discreteBarChart = function() {
 
     chart.dispatch = dispatch;
     chart.discretebar = discretebar;
+    chart.legend = legend;
     chart.xAxis = xAxis;
     chart.yAxis = yAxis;
     chart.tooltip = tooltip;
@@ -4199,6 +4225,7 @@ nv.models.discreteBarChart = function() {
         // simple options, just get/set the necessary values
         width:      {get: function(){return width;}, set: function(_){width=_;}},
         height:     {get: function(){return height;}, set: function(_){height=_;}},
+    showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
         staggerLabels: {get: function(){return staggerLabels;}, set: function(_){staggerLabels=_;}},
         rotateLabels:  {get: function(){return rotateLabels;}, set: function(_){rotateLabels=_;}},
         wrapLabels:  {get: function(){return wrapLabels;}, set: function(_){wrapLabels=!!_;}},
@@ -4223,6 +4250,7 @@ nv.models.discreteBarChart = function() {
         color:  {get: function(){return color;}, set: function(_){
             color = nv.utils.getColor(_);
             discretebar.color(color);
+        legend.color(color);
         }},
         rightAlignYAxis: {get: function(){return rightAlignYAxis;}, set: function(_){
             rightAlignYAxis = _;
