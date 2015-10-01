@@ -84,6 +84,9 @@
 			var discreteData;
 			if( chartType == "6" ) {
 				var flattenValues = _.map( localData, function( v ) {
+					if( v && v.color ) {
+						v.values[ 0 ].color = v.color;
+					}
 					return v.values[0];
 				} );
 				discreteData = [{ key: "variable", values: flattenValues }];
