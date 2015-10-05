@@ -1,4 +1,5 @@
 var elixir = require('laravel-elixir');
+var browserify = require('laravel-elixir-browserify');
 
 /*
  |--------------------------------------------------------------------------
@@ -63,6 +64,8 @@ elixir(function(mix) {
         'main.scss'
     ], 'public/css/admin.css' );
 
-        
+    browserify.init();
+    //mix.browserify('app.js', null, 'assets/js');
+    mix.browserify('app/App.js');
 
 });

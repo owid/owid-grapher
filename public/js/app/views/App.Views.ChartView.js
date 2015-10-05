@@ -416,5 +416,7 @@
 		}
 
 	});
+	
+	module.exports = App.Views.ChartView;
 
 })();
