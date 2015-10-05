@@ -1,1 +1,9 @@
 /node_modules
+/public/build/css/libs/admin*
+/public/build/css/libs/front*
+/public/build/css/admin*
+/public/build/css/front*
+/public/build/js/ChartApp*
+/public/build/js/FormApp*
+/public/build/js/ImportApp*
+/public/build/js/libs*
