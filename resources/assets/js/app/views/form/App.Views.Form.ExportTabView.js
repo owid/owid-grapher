@@ -2,6 +2,8 @@
 	
 	"use strict";
 
+	var App = require( "./../../namespaces.js" );
+
 	App.Views.Form.ExportTabView = Backbone.View.extend({
 
 		el: "#form-view #export-tab",

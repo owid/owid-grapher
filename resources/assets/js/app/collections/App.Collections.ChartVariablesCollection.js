@@ -2,7 +2,8 @@
 		
 	"use strict";
 
-	var ChartVariableModel = require( "./../models/App.Models.ChartVariableModel.js" );
+	var App = require( "./../namespaces.js" ),
+		ChartVariableModel = require( "./../models/App.Models.ChartVariableModel.js" );
 	
 	App.Collections.ChartVariablesCollection = Backbone.Collection.extend( {
 

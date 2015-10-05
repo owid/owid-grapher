@@ -2,7 +2,8 @@
 	
 	"use strict";
 
-	var ColorPicker = require( "./../../ui/App.Views.UI.ColorPicker.js" );
+	var App = require( "./../../../namespaces.js" ),
+		ColorPicker = require( "./../../ui/App.Views.UI.ColorPicker.js" );
 
 	App.Views.Form.SelectedCountriesSectionView = Backbone.View.extend({
 

@@ -4,6 +4,7 @@
 
 	var papaparse = require( "papaparse" ),
 		moment = require( "moment" ),
+		App = require( "./../namespaces.js" ),
 		Importer = require( "./../models/App.Models.Importer.js" ),
 		ImportProgressPopup = require( "./ui/App.Views.UI.ImportProgressPopup.js" ),
 		Utils = require( "./../App.Utils.js" );

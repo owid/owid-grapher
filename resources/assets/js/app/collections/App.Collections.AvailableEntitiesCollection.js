@@ -2,7 +2,8 @@
 		
 	"use strict";
 
-	var EntityModel = require( "./../models/App.Models.EntityModel.js" );
+	var App = require( "./../namespaces.js" ),
+		EntityModel = require( "./../models/App.Models.EntityModel.js" );
 
 	App.Collections.AvailableEntitiesCollection = Backbone.Collection.extend( {
 

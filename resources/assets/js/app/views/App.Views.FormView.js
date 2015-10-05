@@ -2,7 +2,8 @@
 	
 	"use strict";
 
-	var ChartVariablesCollection = require( "./../collections/App.Collections.ChartVariablesCollection.js" ),
+	var App = require( "./../namespaces.js" ),
+		ChartVariablesCollection = require( "./../collections/App.Collections.ChartVariablesCollection.js" ),
 		AvailableEntitiesCollection = require( "./../collections/App.Collections.AvailableEntitiesCollection.js" ),
 		ChartDimensionsModel = require( "./../models/App.Models.ChartDimensionsModel.js" ),
 		AvailableTimeModel = require( "./../models/App.Models.AvailableTimeModel.js" ),

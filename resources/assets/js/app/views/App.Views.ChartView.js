@@ -2,7 +2,8 @@
 	
 	"use strict";
 
-	var Header = require( "./chart/App.Views.Chart.Header.js" ),
+	var App = require( "./../namespaces.js" ),
+		Header = require( "./chart/App.Views.Chart.Header.js" ),
 		ScaleSelectors = require( "./chart/App.Views.Chart.ScaleSelectors" ),
 		ChartTab = require( "./chart/App.Views.Chart.ChartTab.js" ),
 		DataTab = require( "./chart/App.Views.Chart.DataTab.js" ),

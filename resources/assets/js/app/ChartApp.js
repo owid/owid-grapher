@@ -2,7 +2,9 @@
 	
 	"use strict";
 
-	var Chart = require( "./views/App.Views.Chart.js" ),
+	var App = require( "./namespaces.js" ),
+		Backbone = require( "backbone" ),
+		Chart = require( "./views/App.Views.Chart.js" ),
 		ChartModel = require( "./models/App.Models.ChartModel.js" ),
 		ChartDataModel = require( "./models/App.Models.ChartDataModel.js" );
 
@@ -40,7 +42,7 @@
 
 	}
 
-	
-	
+	//chosen select
+	$( ".chosen-select" ).chosen();
 
 })();

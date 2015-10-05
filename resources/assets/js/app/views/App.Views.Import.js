@@ -2,7 +2,8 @@
 	
 	"use strict";
 
-	var ImportView = require( "./App.Views.ImportView.js" );
+	var App = require( "./../namespaces.js" ),
+		ImportView = require( "./App.Views.ImportView.js" );
 	
 	App.Views.Import = Backbone.View.extend({
 

@@ -2,6 +2,8 @@
 	
 	"use strict";
 
+	var App = require( "./../../../namespaces.js" );
+
 	App.Views.Chart.Map.MapControls = Backbone.View.extend({
 
 		el: "#map-chart-tab .map-controls-header",

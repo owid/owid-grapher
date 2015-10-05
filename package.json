@@ -1,8 +1,8 @@
 {
   "private": true,
   "dependencies": {
-  	"papaparse": "*",
-  	"moment": "*"
+    "moment": "*",
+    "papaparse": "*"
   },
   "devDependencies": {
     "gulp": "^3.8.8",

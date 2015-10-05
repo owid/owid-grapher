@@ -7,5 +7,5 @@
 @endsection
 
 @section('scripts')
-	<script src="{{ asset('js/ChartApp.js') }}?bust={!!time()!!}"></script>
+	<script src="{{ elixir('js/ChartApp.js') }}"></script>
 @endsection

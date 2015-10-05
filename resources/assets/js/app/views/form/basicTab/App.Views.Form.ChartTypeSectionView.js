@@ -2,6 +2,8 @@
 	
 	"use strict";
 
+	var App = require( "./../../../namespaces.js" );
+
 	App.Views.Form.ChartTypeSectionView = Backbone.View.extend({
 
 		el: "#form-view #basic-tab .chart-type-section",

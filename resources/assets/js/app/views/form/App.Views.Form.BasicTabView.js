@@ -2,7 +2,8 @@
 	
 	"use strict";
 
-	var ChartTypeSectionView = require( "./basicTab/App.Views.Form.ChartTypeSectionView.js" ),
+	var App = require( "./../../namespaces.js" ),
+		ChartTypeSectionView = require( "./basicTab/App.Views.Form.ChartTypeSectionView.js" ),
 		AddDataSectionView = require( "./dataTab/App.Views.Form.AddDataSectionView.js" ),
 		DimensionsSectionView = require( "./dataTab/App.Views.Form.DimensionsSectionView.js" ),
 		SelectedCountriesSectionView = require( "./dataTab/App.Views.Form.SelectedCountriesSectionView.js" ),

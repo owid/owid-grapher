@@ -2,6 +2,8 @@
 
 	"use strict";
 	
+	var App = require( "./namespaces.js" );
+
 	App.Utils.mapData = function( rawData, transposed ) {
 
 		var data = [],

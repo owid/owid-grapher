@@ -2,7 +2,8 @@
 	
 	"use strict";
 
-	var FormView = require( "./App.Views.FormView.js" ),
+	var App = require( "./../namespaces.js" ),
+		FormView = require( "./App.Views.FormView.js" ),
 		ChartView = require( "./App.Views.ChartView.js" ),
 		VariableSelects = require( "./ui/App.Views.UI.VariableSelects.js" );
 

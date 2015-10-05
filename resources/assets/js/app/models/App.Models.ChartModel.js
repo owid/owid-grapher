@@ -2,6 +2,8 @@
 		
 	"use strict";
 
+	var App = require( "./../namespaces.js" );
+	
 	App.Models.ChartModel = Backbone.Model.extend( {
 
 		//urlRoot: Global.rootUrl + '/charts/',
