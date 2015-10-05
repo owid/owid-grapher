@@ -4,7 +4,7 @@
 
 	var ImportView = require( "./App.Views.ImportView.js" );
 	
-	App.Views.Form = Backbone.View.extend({
+	App.Views.Import = Backbone.View.extend({
 
 		events: {},
 

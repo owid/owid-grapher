@@ -3,7 +3,7 @@
 	"use strict";
 
 	var Import = require( "./views/App.Views.Import.js" ),
-		ChartDataModel = require( "./models/App.Models.ChartDataModel.js" );
+		ChartModel = require( "./models/App.Models.ChartModel.js" );
 
 	//setup models
 	//is new chart or display old chart
@@ -16,7 +16,7 @@
 	if( $chartShowWrapper.length && chartId ) {
 		
 		//showing existing chart
-		App.ChartModel = new App.Models.ChartModel( { id: chartId } );
+		App.ChartModel = new ChartModel( { id: chartId } );
 		App.ChartModel.fetch( {
 			success: function( data ) {
 				App.View.start();
@@ -34,7 +34,7 @@
 	} else {
 
 		//is new chart
-		App.ChartModel = new App.Models.ChartModel();
+		App.ChartModel = new ChartModel();
 		App.View.start();
 
 	}
