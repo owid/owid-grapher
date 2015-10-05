@@ -39,7 +39,8 @@
 
 		}
 
-
 	} );
+
+	module.exports = App.Collections.SearchDataCollection;
 
 })();

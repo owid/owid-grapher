@@ -7,5 +7,5 @@
 @endsection
 
 @section('scripts')
-	@include('charts/partials/_chart-scripts')
+	<script src="{{ asset('js/ChartApp.js') }}?bust={!!time()!!}"></script>
 @endsection

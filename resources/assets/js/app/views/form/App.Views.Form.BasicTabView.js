@@ -2,23 +2,28 @@
 	
 	"use strict";
 
+	var ChartTypeSectionView = require( "./basicTab/App.Views.Form.ChartTypeSectionView.js" ),
+		AddDataSectionView = require( "./dataTab/App.Views.Form.AddDataSectionView.js" ),
+		DimensionsSectionView = require( "./dataTab/App.Views.Form.DimensionsSectionView.js" ),
+		SelectedCountriesSectionView = require( "./dataTab/App.Views.Form.SelectedCountriesSectionView.js" ),
+		EntitiesSectionView = require( "./dataTab/App.Views.Form.EntitiesSectionView.js" ),
+		TimeSectionView = require( "./dataTab/App.Views.Form.TimeSectionView.js" );
+
 	App.Views.Form.BasicTabView = Backbone.View.extend({
 
 		el: "#form-view #basic-tab",
-		events: {
-			"click .add-data-btn": "onAddDataBtn",
-		},
+		events: {},
 
 		initialize: function( options ) {
 			
 			this.dispatcher = options.dispatcher;
 
-			this.chartTypeSection = new App.Views.Form.ChartTypeSectionView( { dispatcher: this.dispatcher } );
-			this.addDataSection = new App.Views.Form.AddDataSectionView( { dispatcher: this.dispatcher } );
-			this.dimensionsSection = new App.Views.Form.DimensionsSectionView( { dispatcher: this.dispatcher } );
-			this.selectedCountriesSection = new App.Views.Form.SelectedCountriesSectionView( { dispatcher: this.dispatcher } );
-			this.entitiesSection = new App.Views.Form.EntitiesSectionView( { dispatcher: this.dispatcher } );
-			this.timeSection = new App.Views.Form.TimeSectionView( { dispatcher: this.dispatcher } );
+			this.chartTypeSection = new ChartTypeSectionView( { dispatcher: this.dispatcher } );
+			this.addDataSection = new AddDataSectionView( { dispatcher: this.dispatcher } );
+			this.dimensionsSection = new DimensionsSectionView( { dispatcher: this.dispatcher } );
+			this.selectedCountriesSection = new SelectedCountriesSectionView( { dispatcher: this.dispatcher } );
+			this.entitiesSection = new EntitiesSectionView( { dispatcher: this.dispatcher } );
+			this.timeSection = new TimeSectionView( { dispatcher: this.dispatcher } );
 
 			this.render();
 

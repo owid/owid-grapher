@@ -2,6 +2,8 @@
 	
 	"use strict";
 
+	var ColorPicker = require( "./../../ui/App.Views.UI.ColorPicker.js" );
+
 	App.Views.Form.SelectedCountriesSectionView = Backbone.View.extend({
 
 		el: "#form-view #data-tab .selected-countries-box",
@@ -45,7 +47,7 @@
 				if( colorPicker ) {
 					colorPicker.close();
 				}
-				colorPicker = new App.Views.UI.ColorPicker( $countryLabel );
+				colorPicker = new ColorPicker( $countryLabel );
 				colorPicker.init( $countryLabel );
 				colorPicker.onSelected = function( value ) {
 					$countryLabel.css( "background-color", value );

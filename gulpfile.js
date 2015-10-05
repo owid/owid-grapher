@@ -66,6 +66,9 @@ elixir(function(mix) {
 
     browserify.init();
     //mix.browserify('app.js', null, 'assets/js');
-    mix.browserify('app/App.js');
+    
+    mix.browserify('app/ChartApp.js');
+    mix.browserify('app/FormApp.js');
+    mix.browserify('app/ImportApp.js');
 
 });

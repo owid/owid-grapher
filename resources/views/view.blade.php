@@ -64,11 +64,9 @@
 		
 		<script src="{{ asset('js/namespaces.js') }}?bust={!!time()!!}"></script>
 		
-		<script src="{{ asset('js/app.js') }}?bust={!!time()!!}"></script>
+		@yield('scripts')
 
-		<!--<script src="{{ asset('js/app/views/App.Views.Main.js') }}?bust={!!time()!!}"></script>
-		<script src="{{ asset('js/app/App.js') }}?bust={!!time()!!}"></script>
-		<script src="{{ asset('js/main.js') }}?bust={!!time()!!}"></script>-->
+		<script src="{{ asset('js/main.js') }}?bust={!!time()!!}"></script>
 
 		<!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
 		<script>

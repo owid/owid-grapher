@@ -2,18 +2,22 @@
 	
 	"use strict";
 
+	var Chart = require( "./views/App.Views.Chart.js" ),
+		ChartModel = require( "./models/App.Models.ChartModel.js" ),
+		ChartDataModel = require( "./models/App.Models.ChartDataModel.js" );
+
 	//setup models
 	//is new chart or display old chart
 	var $chartShowWrapper = $( ".chart-show-wrapper, .chart-edit-wrapper" ),
 		chartId = $chartShowWrapper.attr( "data-chart-id" );
 
 	//setup views
-	App.View = new App.Views.Main();
+	App.View = new Chart();
 
 	if( $chartShowWrapper.length && chartId ) {
 		
 		//showing existing chart
-		App.ChartModel = new App.Models.ChartModel( { id: chartId } );
+		App.ChartModel = new ChartModel( { id: chartId } );
 		App.ChartModel.fetch( {
 			success: function( data ) {
 				App.View.start();
@@ -31,7 +35,7 @@
 	} else {
 
 		//is new chart
-		App.ChartModel = new App.Models.ChartModel();
+		App.ChartModel = new ChartModel();
 		App.View.start();
 
 	}
