@@ -2,9 +2,11 @@
 		
 	"use strict";
 
+	var ChartVariableModel = require( "./../models/App.Models.ChartVariableModel.js" );
+	
 	App.Collections.ChartVariablesCollection = Backbone.Collection.extend( {
 
-		model: App.Models.ChartVariableModel,
+		model: ChartVariableModel,
 
 		initialize: function( models, options ) {
 			if( models && models.length ) {
@@ -30,7 +32,7 @@
 					if( models ) {
 						models.push( colorPropObj );
 					} else {
-						this.add( new App.Models.ChartVariableModel( colorPropObj ) );
+						this.add( newChartVariableModel( colorPropObj ) );
 					}
 				//}
 			}
@@ -38,4 +40,6 @@
 
 	} );
 
+	module.exports = App.Collections.ChartVariablesCollection;
+	
 })();

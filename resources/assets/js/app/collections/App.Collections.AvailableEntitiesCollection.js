@@ -2,9 +2,11 @@
 		
 	"use strict";
 
+	var EntityModel = require( "./../models/App.Models.EntityModel.js" );
+
 	App.Collections.AvailableEntitiesCollection = Backbone.Collection.extend( {
 
-		model: App.Models.EntityModel,
+		model: EntityModel,
 		urlRoot: Global.rootUrl + '/data/entities',
 		
 		initialize: function () {
@@ -53,4 +55,6 @@
 
 	} );
 
+	module.exports = App.Collections.AvailableEntitiesCollection;
+	
 })();

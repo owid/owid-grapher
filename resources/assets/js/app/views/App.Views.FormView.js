@@ -2,6 +2,19 @@
 	
 	"use strict";
 
+	var ChartVariablesCollection = require( "./../collections/App.Collections.ChartVariablesCollection.js" ),
+		AvailableEntitiesCollection = require( "./../collections/App.Collections.AvailableEntitiesCollection.js" ),
+		ChartDimensionsModel = require( "./../models/App.Models.ChartDimensionsModel.js" ),
+		AvailableTimeModel = require( "./../models/App.Models.AvailableTimeModel.js" ),
+		SearchDataCollection = require( "./../collections/App.Collections.SearchDataCollection.js" ),
+		
+		BasicTabView = require( "./form/App.Views.Form.BasicTabView.js" ),
+		AxisTabView = require( "./form/App.Views.Form.AxisTabView.js" ),
+		DescriptionTabView = require( "./form/App.Views.Form.DescriptionTabView.js" ),
+		StylingTabView = require( "./form/App.Views.Form.StylingTabView.js" ),
+		ExportTabView = require( "./form/App.Views.Form.ExportTabView.js" ),
+		MapTabView = require( "./form/App.Views.Form.MapTabView.js" );
+
 	App.Views.FormView = Backbone.View.extend({
 
 		el: "#form-view",
@@ -21,29 +34,29 @@
 
 			//create related models, either empty (when creating new chart), or prefilled from db (when editing existing chart)
 			if( formConfig && formConfig[ "variables-collection" ] ) {
-				App.ChartVariablesCollection = new App.Collections.ChartVariablesCollection( formConfig[ "variables-collection" ] );
+				App.ChartVariablesCollection = new ChartVariablesCollection( formConfig[ "variables-collection" ] );
 			} else {
-				App.ChartVariablesCollection = new App.Collections.ChartVariablesCollection();
+				App.ChartVariablesCollection = new ChartVariablesCollection();
 			}
 			if( formConfig && formConfig[ "entities-collection" ] ) {
-				App.AvailableEntitiesCollection = new App.Collections.AvailableEntitiesCollection( formConfig[ "entities-collection" ] );
+				App.AvailableEntitiesCollection = new AvailableEntitiesCollection( formConfig[ "entities-collection" ] );
 			} else {
-				App.AvailableEntitiesCollection = new App.Collections.AvailableEntitiesCollection();
+				App.AvailableEntitiesCollection = new AvailableEntitiesCollection();
 			}
 			if( formConfig && formConfig[ "dimensions" ] ) {
-				App.ChartDimensionsModel = new App.Models.ChartDimensionsModel();
+				App.ChartDimensionsModel = new ChartDimensionsModel();
 				//App.ChartDimensionsModel = new App.Models.ChartDimensionsModel( formConfig[ "dimensions" ] );
 			} else {
-				App.ChartDimensionsModel = new App.Models.ChartDimensionsModel();
+				App.ChartDimensionsModel = new ChartDimensionsModel();
 			}
 			if( formConfig && formConfig[ "available-time" ] ) {
-				App.AvailableTimeModel = new App.Models.AvailableTimeModel(formConfig[ "available-time" ]);
+				App.AvailableTimeModel = new AvailableTimeModel(formConfig[ "available-time" ]);
 			} else {
-				App.AvailableTimeModel = new App.Models.AvailableTimeModel();
+				App.AvailableTimeModel = new AvailableTimeModel();
 			}
 
 			//create search collection
-			App.SearchDataCollection = new App.Collections.SearchDataCollection();
+			App.SearchDataCollection = new SearchDataCollection();
 			
 			//is it new or existing chart
 			if( formConfig && formConfig[ "dimensions" ] ) {
@@ -63,12 +76,12 @@
 		render: function() {
 			
 			//create subviews
-			this.basicTabView = new App.Views.Form.BasicTabView( { dispatcher: this.dispatcher } );
-			this.axisTabView = new App.Views.Form.AxisTabView( { dispatcher: this.dispatcher } );
-			this.descriptionTabView = new App.Views.Form.DescriptionTabView( { dispatcher: this.dispatcher } );
-			this.stylingTabView = new App.Views.Form.StylingTabView( { dispatcher: this.dispatcher } );
-			this.exportTabView = new App.Views.Form.ExportTabView( { dispatcher: this.dispatcher } );
-			this.mapTabView = new App.Views.Form.MapTabView( { dispatcher: this.dispatcher } );
+			this.basicTabView = new BasicTabView( { dispatcher: this.dispatcher } );
+			this.axisTabView = new AxisTabView( { dispatcher: this.dispatcher } );
+			this.descriptionTabView = new DescriptionTabView( { dispatcher: this.dispatcher } );
+			this.stylingTabView = new StylingTabView( { dispatcher: this.dispatcher } );
+			this.exportTabView = new ExportTabView( { dispatcher: this.dispatcher } );
+			this.mapTabView = new MapTabView( { dispatcher: this.dispatcher } );
 
 			//fetch doms
 			this.$removeUploadedFileBtn = this.$el.find( ".remove-uploaded-file-btn" );

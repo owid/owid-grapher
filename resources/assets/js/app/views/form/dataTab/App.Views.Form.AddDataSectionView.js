@@ -2,6 +2,9 @@
 	
 	"use strict";
 
+	var SelectVarPopup = require( "./../../ui/App.Views.UI.SelectVarPopup.js" ),
+		SettingsVarPopup = require( "./../../ui/App.Views.UI.SettingsVarPopup.js" );
+
 	App.Views.Form.AddDataSectionView = Backbone.View.extend({
 
 		el: "#form-view #data-tab .add-data-section",
@@ -13,10 +16,10 @@
 			
 			this.dispatcher = options.dispatcher;
 
-			this.selectVarPopup = new App.Views.UI.SelectVarPopup();
+			this.selectVarPopup = new SelectVarPopup();
 			this.selectVarPopup.init( options );
 
-			this.settingsVarPopup = new App.Views.UI.SettingsVarPopup();
+			this.settingsVarPopup = new SettingsVarPopup();
 			this.settingsVarPopup.init( options );
 
 			App.ChartVariablesCollection.on( "reset", this.onVariableReset, this );
