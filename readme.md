@@ -1,8 +1,9 @@
+[Short explanatory video](https://www.youtube.com/watch?v=Fods4ygADLg)
+
 ## INTRO
 The *OurWorldInData-Grapher* is the chart building tool which is used on our web-publication [OurWorldInData.org](www.OurWorldInData.org).
 
 We have decided that it doesn't make sense to develop it within private repo, so here it is. Feel free to fork it and play around. Please be aware this is work in progress and that things will change, move and break. The [disclaimer from OurWorldInData](http://ourworldindata.org/about/#disclaimer-of-warranties-and-limitation-of-liability) applies also for the OurWorldInData-Grapher.
-
 
 With the *OurWorldInData-Grapher* you can create the following visualisations:
 
