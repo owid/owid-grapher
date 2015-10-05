@@ -13,6 +13,5 @@
 @endsection
 
 @section('scripts')
-	@include('charts/partials/_form-scripts')
-	@include('charts/partials/_chart-scripts')
+	<script src="{{ elixir('js/FormApp.js') }}"></script>
 @endsection

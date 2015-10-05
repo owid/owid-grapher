@@ -1,7 +1,12 @@
 {
   "private": true,
+  "dependencies": {
+    "moment": "*",
+    "papaparse": "*"
+  },
   "devDependencies": {
     "gulp": "^3.8.8",
-    "laravel-elixir": "*"
+    "laravel-elixir": "2.3.13",
+    "laravel-elixir-browserify": "^0.8.1"
   }
 }
