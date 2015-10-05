@@ -407,8 +407,9 @@
 		var text = d3.select( $el.selector );
 		text.each( function() {
 			var text = d3.select(this),
+				string = $.trim(text.text()),
 				regex = /\s+/,
-				words = text.text().split(regex).reverse();
+				words = string.split(regex).reverse();
 
 			var word,
 				line = [],
