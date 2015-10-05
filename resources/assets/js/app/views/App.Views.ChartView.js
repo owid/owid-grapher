@@ -304,7 +304,7 @@
 				currY, footerDescriptionHeight, footerSourcesHeight, chartHeight;
 
 			this.$tabContent.height( $( ".chart-wrapper-inner" ).height() - this.$chartHeader.height() );
-
+			
 			//wrap header text
 			Utils.wrap( $chartNameSvg, svgWidth );
 			currY = parseInt( $chartNameSvg.attr( "y" ), 10 ) + $chartNameSvg.outerHeight() + 20;
