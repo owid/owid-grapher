@@ -168,7 +168,7 @@
 @endsection
 
 @section('scripts')
-	<script src="{{ asset('js/libs/papaparse.js') }}?bust={!!time()!!}"></script>
+	<!--<script src="{{ asset('js/libs/papaparse.js') }}?bust={!!time()!!}"></script>
 	<script src="{{ asset('js/libs/moments.min.js') }}?bust={!!time()!!}"></script>
 	<script src="{{ asset('js/app/models/import/App.Models.Import.InputFileModel.js') }}?bust={!!time()!!}"></script>
 	<script src="{{ asset('js/app/models/import/App.Models.Import.DatasourceModel.js') }}?bust={!!time()!!}"></script>
@@ -177,5 +177,6 @@
 	<script src="{{ asset('js/app/models/import/App.Models.Import.EntityModel.js') }}?bust={!!time()!!}"></script>
 	<script src="{{ asset('js/app/views/ui/App.Views.UI.ImportProgressPopup.js') }}?bust={!!time()!!}"></script>
 	<script src="{{ asset('js/app/models/App.Models.Importer.js') }}?bust={!!time()!!}"></script>
-	<script src="{{ asset('js/app/views/App.Views.ImportView.js') }}?bust={!!time()!!}"></script>
+	<script src="{{ asset('js/app/views/App.Views.ImportView.js') }}?bust={!!time()!!}"></script>-->
+	<script src="{{ asset('js/ImportApp.js') }}?bust={!!time()!!}"></script>
 @endsection

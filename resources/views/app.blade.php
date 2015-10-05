@@ -10,12 +10,12 @@
 		<link rel="apple-touch-icon" href="apple-touch-icon.png">
 		<!-- Place favicon.ico in the root directory -->
 
-		<link href="{{ asset('css/libs/admin.css') }}" rel="stylesheet" type="text/css" />
-		<link href="{{ asset('css/admin.css') }}" rel="stylesheet" type="text/css" />
+		<link href="{{ elixir('css/libs/admin.css') }}" rel="stylesheet" type="text/css" />
+		<link href="{{ elixir('css/admin.css') }}" rel="stylesheet" type="text/css" />
 
 		@yield('styles')
 
-		<script src="{{ asset('js/libs/modernizr-2.8.3.min.js') }}"></script>
+		<script src="{{ asset('build/js/modernizr-2.8.3.min.js') }}"></script>
 		
 		<style>
 
@@ -91,50 +91,9 @@
 			Global.rootUrl = "{!! Request::root() !!}";
 		</script>
 
-		
-		<script src="{{ asset('js/libs/jquery-1.11.3.min.js') }}"></script>
-		<script src="{{ asset('js/libs/html5csv.js') }}"></script>
-		<script src="{{ asset('js/libs/d3.js') }}"></script>
-		<script src="{{ asset('js/libs/nv.d3.js') }}"></script>
-		
-		<script src="{{ asset('js/libs/topojson.js') }}"></script>
-		<script src="{{ asset('js/libs/datamaps.js') }}"></script>
-		
-		<script src="{{ asset('js/libs/saveSvgAsPng.js') }}"></script>
-
-		<script src="{{ asset('js/libs/underscore.js') }}"></script>    
-		<script src="{{ asset('js/libs/backbone.js') }}"></script>    
-		
-		<script src="{{ asset('js/libs/bootstrap.min.js') }}"></script>    
-		<script src="{{ asset('js/libs/bootstrap-datepicker.js') }}"></script>    
-		<script src="{{ asset('js/libs/admin-lte-app.min.js') }}"></script>    
-		
-		<script src="{{ asset('js/libs/ion.rangeSlider.min.js') }}"></script>    
-		<script src="{{ asset('js/libs/chosen.jquery.js') }}"></script>    
-		
-		<script src="{{ asset('js/libs/jquery.nestable.js') }}"></script>    
-		
-		<script src="{{ asset('js/libs/bootstrap3-wysihtml5.all.min.js') }}"></script>    
-
-		<script src="{{ asset('js/libs/colorbrewer.js') }}?bust={!!time()!!}"></script>
-		
-		<script src="{{ asset('js/namespaces.js') }}"></script>
-		<script src="{{ asset('js/admin.js') }}"></script>
-		
-		<script src="{{ asset('js/app/App.Utils.js') }}?bust={!!time()!!}"></script>
-		
-		<script src="{{ asset('js/app/models/App.Models.ChartDimensionsModel.js') }}?bust={!!time()!!}"></script>
-		<script src="{{ asset('js/app/models/App.Models.ChartModel.js') }}?bust={!!time()!!}"></script>
-		
-		<script src="{{ asset('js/app/views/ui/App.Views.UI.ColorPicker.js') }}?bust={!!time()!!}"></script>
-		<script src="{{ asset('js/app/views/ui/App.Views.UI.VariableSelects.js') }}?bust={!!time()!!}"></script>
-		<script src="{{ asset('js/app/views/ui/App.Views.UI.SelectVarPopup.js') }}?bust={!!time()!!}"></script>
+		<script src="{{ elixir('js/libs-admin.js') }}"></script>
 		
 		@yield('scripts')
-
-		<script src="{{ asset('js/app/views/App.Views.Main.js') }}?bust={!!time()!!}"></script>
-		<script src="{{ asset('js/app/App.js') }}?bust={!!time()!!}"></script>
-		<script src="{{ asset('js/main.js') }}?bust={!!time()!!}"></script>
 
 		<!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
 		<script>

@@ -14,5 +14,5 @@
 @endsection
 
 @section('scripts')
-	@include('charts/partials/_chart-scripts')
+	<script src="{{ elixir('js/ChartApp.js') }}"></script>
 @endsection
