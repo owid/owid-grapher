@@ -2,7 +2,8 @@
 		
 	"use strict";
 
-	var InputFileModel = require( "./import/App.Models.Import.InputFileModel.js" ),
+	var App = require( "./../namespaces.js" ),
+		InputFileModel = require( "./import/App.Models.Import.InputFileModel.js" ),
 		DatasourceModel = require( "./import/App.Models.Import.DatasourceModel.js" ),
 		DatasetModel = require( "./import/App.Models.Import.DatasetModel.js" ),
 		VariableModel = require( "./import/App.Models.Import.VariableModel.js" ),

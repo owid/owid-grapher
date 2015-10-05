@@ -2,6 +2,8 @@
 	
 	"use strict";
 
+	var App = require( "./../../../namespaces.js" );
+
 	App.Views.Form.TimeSectionView = Backbone.View.extend({
 
 		el: "#form-view #data-tab .time-section",

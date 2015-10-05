@@ -10,12 +10,12 @@
 		<link rel="apple-touch-icon" href="apple-touch-icon.png">
 		<!-- Place favicon.ico in the root directory -->
 
-		<link href="{{ asset('css/libs/front.css') }}" rel="stylesheet" type="text/css" />
-		<link href="{{ asset('css/front.css') }}" rel="stylesheet" type="text/css" />
+		<link href="{{ elixir('css/libs/front.css') }}" rel="stylesheet" type="text/css" />
+		<link href="{{ elixir('css/front.css') }}" rel="stylesheet" type="text/css" />
 		
 		@yield('styles')
 
-		<script src="{{ asset('js/libs/modernizr-2.8.3.min.js') }}"></script>
+		<script src="{{ asset('build/js/modernizr-2.8.3.min.js') }}"></script>
 		
 		<style>
 
@@ -43,30 +43,9 @@
 			Global.rootUrl = "{!! Request::root() !!}";
 		</script>
 		
-		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-		<script>window.jQuery || document.write('<script src="js/libs/jquery-1.11.3.min.js"><\/script>')</script>
-		
-		<script src="{{ asset('js/libs/html5csv.js') }}"></script>
-		<script src="{{ asset('js/libs/d3.js') }}"></script>
-		<script src="{{ asset('js/libs/nv.d3.js') }}"></script>
-		<script src="{{ asset('js/libs/saveSvgAsPng.js') }}"></script>
-		
-		<script src="{{ asset('js/libs/topojson.js') }}"></script>
-		<script src="{{ asset('js/libs/datamaps.js') }}"></script>
-
-		<script src="{{ asset('js/libs/underscore.js') }}"></script>    
-		<script src="{{ asset('js/libs/backbone.js') }}"></script>    
-		<script src="{{ asset('js/libs/bootstrap.min.js') }}"></script>    
-		
-		<script src="{{ asset('js/libs/chosen.jquery.js') }}"></script>    
-		
-		<script src="{{ asset('js/libs/colorbrewer.js') }}?bust={!!time()!!}"></script>
-		
-		<script src="{{ asset('js/namespaces.js') }}?bust={!!time()!!}"></script>
+		<script src="{{ ltrim( elixir('js/libs.js'), '/' ) }}"></script>
 		
 		@yield('scripts')
-
-		<script src="{{ asset('js/main.js') }}?bust={!!time()!!}"></script>
 
 		<!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
 		<script>

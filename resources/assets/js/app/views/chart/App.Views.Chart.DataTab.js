@@ -2,6 +2,8 @@
 	
 	"use strict";
 
+	var App = require( "./../../namespaces.js" );
+
 	App.Views.Chart.DataTab = Backbone.View.extend( {
 
 		el: "#chart-view",

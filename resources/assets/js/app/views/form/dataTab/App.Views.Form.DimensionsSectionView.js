@@ -1,6 +1,8 @@
 ;( function() {
 	
 	"use strict";
+	
+	var App = require( "./../../../namespaces.js" );
 
 	App.Views.Form.DimensionsSectionView = Backbone.View.extend({
 

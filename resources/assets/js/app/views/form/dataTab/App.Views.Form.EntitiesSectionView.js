@@ -2,6 +2,8 @@
 	
 	"use strict";
 
+	var App = require( "./../../../namespaces.js" );
+
 	App.Views.Form.EntitiesSectionView = Backbone.View.extend({
 
 		el: "#form-view #data-tab .entities-section",

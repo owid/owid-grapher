@@ -2,7 +2,8 @@
 	
 	"use strict";
 
-	var Form = require( "./views/App.Views.Form.js" ),
+	var App = require( "./namespaces.js" ),
+		Form = require( "./views/App.Views.Form.js" ),
 		ChartModel = require( "./models/App.Models.ChartModel.js" ),
 		ChartDataModel = require( "./models/App.Models.ChartDataModel.js" );
 

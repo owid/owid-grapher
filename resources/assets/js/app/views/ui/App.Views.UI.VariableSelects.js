@@ -2,6 +2,8 @@
 
 	"use strict";
 
+	var App = require( "./../../namespaces.js" );
+	
 	var that;
 
 	App.Views.UI.VariableSelects = function() {

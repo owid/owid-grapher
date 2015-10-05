@@ -2,7 +2,8 @@
 	
 	"use strict";
 
-	var MapControls = require( "./map/App.Views.Chart.Map.MapControls.js" );
+	var App = require( "./../../namespaces.js" ),
+		MapControls = require( "./map/App.Views.Chart.Map.MapControls.js" );
 
 	App.Views.Chart.MapTab = Backbone.View.extend({
 

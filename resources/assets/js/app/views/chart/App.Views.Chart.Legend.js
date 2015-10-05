@@ -2,6 +2,8 @@
 	
 	"use strict";
 	
+	var App = require( "./../../namespaces.js" );
+
 	App.Views.Chart.Legend = function( chartLegend ) {
 	
 		//based on https://github.com/novus/nvd3/blob/master/src/models/legend.js

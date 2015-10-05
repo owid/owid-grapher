@@ -2,7 +2,8 @@
 	
 	"use strict";
 
-	var ChartView = require( "./App.Views.ChartView.js" );
+	var App = require( "./../namespaces.js" ),
+		ChartView = require( "./App.Views.ChartView.js" );
 
 	App.Views.Chart = Backbone.View.extend({
 

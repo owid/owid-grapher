@@ -1,6 +1,8 @@
 ;( function() {
 	
 	"use strict";
+	
+	var App = require( "./../../namespaces.js" );
 
 	App.Views.Chart.Header = Backbone.View.extend({
 

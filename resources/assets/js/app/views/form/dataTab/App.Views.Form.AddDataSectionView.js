@@ -2,7 +2,8 @@
 	
 	"use strict";
 
-	var SelectVarPopup = require( "./../../ui/App.Views.UI.SelectVarPopup.js" ),
+	var App = require( "./../../../namespaces.js" ),
+		SelectVarPopup = require( "./../../ui/App.Views.UI.SelectVarPopup.js" ),
 		SettingsVarPopup = require( "./../../ui/App.Views.UI.SettingsVarPopup.js" );
 
 	App.Views.Form.AddDataSectionView = Backbone.View.extend({

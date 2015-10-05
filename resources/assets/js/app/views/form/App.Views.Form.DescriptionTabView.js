@@ -2,6 +2,8 @@
 	
 	"use strict";
 
+	var App = require( "./../../namespaces.js" );
+
 	App.Views.Form.DescriptionTabView = Backbone.View.extend({
 
 		el: "#form-view #sources-tab",

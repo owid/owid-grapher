@@ -2,6 +2,8 @@
 		
 	"use strict";
 
+	var App = require( "./../namespaces.js" );
+
 	App.Models.AvailableTimeModel = Backbone.Model.extend( {
 
 		urlRoot: Global.rootUrl + '/data/times',

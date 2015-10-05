@@ -2,7 +2,8 @@
 	
 	"use strict";
 
-	var Legend = require( "./App.Views.Chart.Legend.js" );
+	var App = require( "./../../namespaces.js" ),
+		Legend = require( "./App.Views.Chart.Legend" );
 
 	App.Views.Chart.ChartTab = Backbone.View.extend( {
 

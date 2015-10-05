@@ -2,6 +2,8 @@
 	
 	"use strict";
 
+	var App = require( "./../../namespaces.js" );
+
 	App.Views.Chart.ScaleSelectors = Backbone.View.extend({
 
 		el: "#chart-view .axis-scale-selectors-wrapper",
