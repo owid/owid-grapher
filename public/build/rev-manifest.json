@@ -1,11 +1,11 @@
 {
-  "js/ChartApp.js": "js/ChartApp-a58640e6.js",
-  "js/FormApp.js": "js/FormApp-9f736886.js",
-  "js/ImportApp.js": "js/ImportApp-672623a7.js",
-  "js/libs.js": "js/libs-cba56435.js",
-  "js/libs-admin.js": "js/libs-admin-a54f49b8.js",
   "css/libs/front.css": "css/libs/front-a0f1fe29.css",
   "css/front.css": "css/front-61f21758.css",
   "css/libs/admin.css": "css/libs/admin-2692386a.css",
-  "css/admin.css": "css/admin-e1f98e02.css"
+  "css/admin.css": "css/admin-e1f98e02.css",
+  "js/ChartApp.js": "js/ChartApp-6499c784.js",
+  "js/FormApp.js": "js/FormApp-9caf68ae.js",
+  "js/ImportApp.js": "js/ImportApp-672623a7.js",
+  "js/libs.js": "js/libs-cba56435.js",
+  "js/libs-admin.js": "js/libs-admin-96061775.js"
 }

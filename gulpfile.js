@@ -82,7 +82,7 @@ elixir(function(mix) {
         'libs/bootstrap.min.js',
         'libs/chosen.jquery.js',
         'libs/colorbrewer.js'
-    ], 'public/build/js/libs.js' );
+    ], 'public/js/libs.js' );
 
     //back-end lib scripts
     mix.scripts([
@@ -104,26 +104,26 @@ elixir(function(mix) {
         'libs/bootstrap3-wysihtml5.all.min.js',
         'libs/colorbrewer.js',
         'admin.js'
-    ], 'public/build/js/libs-admin.js' );
+    ], 'public/js/libs-admin.js' );
 
     browserify.init();
     
-    mix.browserify('app/ChartApp.js','build/ChartApp.js');
-    mix.browserify('app/FormApp.js','build/FormApp.js');
-    mix.browserify('app/ImportApp.js','build/ImportApp.js');
+    mix.browserify('app/ChartApp.js');
+    mix.browserify('app/FormApp.js');
+    mix.browserify('app/ImportApp.js');
 
     mix.version( [
+        'css/libs/front.css',
+        'css/front.css',
+        'css/libs/admin.css',
+        'css/admin.css',
         'js/ChartApp.js',
         'js/FormApp.js',
         'js/ImportApp.js',
         'js/libs.js',
-        'js/libs-admin.js',
-        'css/libs/front.css',
-        'css/front.css',
-        'css/libs/admin.css',
-        'css/admin.css'
+        'js/libs-admin.js'
     ]);
 
-     mix.copy( 'resources/assets/css/libs/font-awesome/fonts/*', 'public/build/css/fonts/font-awesome/' );
+    //mix.copy( 'resources/assets/css/libs/font-awesome/fonts/*', 'public/build/css/fonts/font-awesome/' );
 
 });
