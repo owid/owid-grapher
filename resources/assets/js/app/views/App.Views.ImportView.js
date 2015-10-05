@@ -2,6 +2,12 @@
 	
 	"use strict";
 
+	var papaparse = require( "papaparse" ),
+		moment = require( "moment" ),
+		Importer = require( "./../models/App.Models.Importer.js" ),
+		ImportProgressPopup = require( "./ui/App.Views.UI.ImportProgressPopup.js" ),
+		Utils = require( "./../App.Utils.js" );
+
 	App.Views.ImportView = Backbone.View.extend({
 
 		datasetName: "",
@@ -128,7 +134,7 @@
 			if( !this.isDataMultiVariant ) {
 				var isOriented = this.detectOrientation( data.rows );
 				if( !isOriented ) {
-					data.rows = App.Utils.transpose( data.rows );
+					data.rows = Utils.transpose( data.rows );
 				}
 			}
 			
@@ -259,7 +265,7 @@
 			
 			//massive import version
 			//var mappedData = App.Utils.mapPanelData( this.uploadedData.rows ),
-			var mappedData = ( !this.isDataMultiVariant )?  App.Utils.mapSingleVariantData( this.uploadedData.rows, this.datasetName ): App.Utils.mapMultiVariantData( this.uploadedData.rows ),
+			var mappedData = ( !this.isDataMultiVariant )?  Utils.mapSingleVariantData( this.uploadedData.rows, this.datasetName ): Utils.mapMultiVariantData( this.uploadedData.rows ),
 				json = { "variables": mappedData },
 				jsonString = JSON.stringify( json );
 
@@ -364,7 +370,7 @@
 					origValue = ( !that.isDataMultiVariant )? data[ 0 ][ i+1 ]: data[ i+1 ][ 1 ];
 				
 				//check value has 4 digits
-				origValue = App.Utils.addZeros( origValue );
+				origValue = Utils.addZeros( origValue );
 
 				var value = origValue,
 					date = moment( new Date( value ) );
@@ -382,7 +388,7 @@
 					//insert potentially modified value into cell
 					$timeCell.text( value );
 
-					newValue = { "d": App.Utils.roundTime( date ), "l": origValue };
+					newValue = { "d": Utils.roundTime( date ), "l": origValue };
 
 					if( timeDomain == "year" ) {
 						
@@ -391,15 +397,15 @@
 							nextYear = year + 1;
 
 						//add zeros
-						year = App.Utils.addZeros( year );
-						nextYear = App.Utils.addZeros( nextYear );
+						year = Utils.addZeros( year );
+						nextYear = Utils.addZeros( nextYear );
 						
 						//convert it to datetime values
 						year = moment( new Date( year.toString() ) );
 						nextYear = moment( new Date( nextYear.toString() ) ).seconds(-1);
 						//modify the initial value
-						newValue[ "sd" ] =  App.Utils.roundTime( year );
-						newValue[ "ed" ] =  App.Utils.roundTime( nextYear );
+						newValue[ "sd" ] =  Utils.roundTime( year );
+						newValue[ "ed" ] =  Utils.roundTime( nextYear );
 
 					} else if( timeDomain == "decade" ) {
 						
@@ -408,15 +414,15 @@
 							nextDecade = decade + 10;
 						
 						//add zeros
-						decade = App.Utils.addZeros( decade );
-						nextDecade = App.Utils.addZeros( nextDecade );
+						decade = Utils.addZeros( decade );
+						nextDecade = Utils.addZeros( nextDecade );
 
 						//convert it to datetime values
 						decade = moment( new Date( decade.toString() ) );
 						nextDecade = moment( new Date( nextDecade.toString() ) ).seconds(-1);
 						//modify the initial value
-						newValue[ "sd" ] =  App.Utils.roundTime( decade );
-						newValue[ "ed" ] =  App.Utils.roundTime( nextDecade );
+						newValue[ "sd" ] =  Utils.roundTime( decade );
+						newValue[ "ed" ] =  Utils.roundTime( nextDecade );
 
 					} else if( timeDomain == "quarter century" ) {
 						
@@ -439,15 +445,15 @@
 						var nextQuarterCentury = quarterCentury + 25;
 
 						//add zeros
-						quarterCentury = App.Utils.addZeros( quarterCentury );
-						nextQuarterCentury = App.Utils.addZeros( nextQuarterCentury );
+						quarterCentury = Utils.addZeros( quarterCentury );
+						nextQuarterCentury = Utils.addZeros( nextQuarterCentury );
 
 						//convert it to datetime values
 						quarterCentury = moment( new Date( quarterCentury.toString() ) );
 						nextQuarterCentury = moment( new Date( nextQuarterCentury.toString() ) ).seconds(-1);
 						//modify the initial value
-						newValue[ "sd" ] =  App.Utils.roundTime( quarterCentury );
-						newValue[ "ed" ] =  App.Utils.roundTime( nextQuarterCentury );
+						newValue[ "sd" ] =  Utils.roundTime( quarterCentury );
+						newValue[ "ed" ] =  Utils.roundTime( nextQuarterCentury );
 
 					} else if( timeDomain == "half century" ) {
 						
@@ -458,15 +464,15 @@
 							nextHalfCentury = halfCentury + 50;
 
 						//add zeros
-						halfCentury = App.Utils.addZeros( halfCentury );
-						nextHalfCentury = App.Utils.addZeros( nextHalfCentury );
+						halfCentury = Utils.addZeros( halfCentury );
+						nextHalfCentury = Utils.addZeros( nextHalfCentury );
 
 						//convert it to datetime values
 						halfCentury = moment( new Date( halfCentury.toString() ) );
 						nextHalfCentury = moment( new Date( nextHalfCentury.toString() ) ).seconds(-1);
 						//modify the initial value
-						newValue[ "sd" ] =  App.Utils.roundTime( halfCentury );
-						newValue[ "ed" ] =  App.Utils.roundTime( nextHalfCentury );
+						newValue[ "sd" ] =  Utils.roundTime( halfCentury );
+						newValue[ "ed" ] =  Utils.roundTime( nextHalfCentury );
 
 					} else if( timeDomain == "century" ) {
 						
@@ -475,15 +481,15 @@
 							nextCentury = century + 100;
 
 						//add zeros
-						century = App.Utils.addZeros( century );
-						nextCentury = App.Utils.addZeros( nextCentury );
+						century = Utils.addZeros( century );
+						nextCentury = Utils.addZeros( nextCentury );
 
 						//convert it to datetime values
 						century = moment( new Date( century.toString() ) );
 						nextCentury = moment( new Date( nextCentury.toString() ) ).seconds(-1);
 						//modify the initial value
-						newValue[ "sd" ] = App.Utils.roundTime( century );
-						newValue[ "ed" ] = App.Utils.roundTime( nextCentury );
+						newValue[ "sd" ] = Utils.roundTime( century );
+						newValue[ "ed" ] = Utils.roundTime( nextCentury );
 
 					}
 
@@ -729,8 +735,6 @@
 				//do not validate
 			}
 			
-			console.log( "validationResults.length", $validationResults.length );
-
 			if( $validationResults.length ) {
 				//do not send form and scroll to error message
 				evt.preventDefault();
@@ -750,10 +754,10 @@
 			//serialize array
 			var $form = $( "#import-view > form" );
 			
-			var importer = new App.Models.Importer( { dispatcher: this.dispatcher } );
+			var importer = new Importer( { dispatcher: this.dispatcher } );
 			importer.uploadFormData( $form, this.origUploadedData );
 
-			var importProgress = new App.Views.UI.ImportProgressPopup();
+			var importProgress = new ImportProgressPopup();
 			importProgress.init( { dispatcher: this.dispatcher } );
 			importProgress.show();
 

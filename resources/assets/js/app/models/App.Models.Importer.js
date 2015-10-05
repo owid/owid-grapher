@@ -2,6 +2,12 @@
 		
 	"use strict";
 
+	var InputFileModel = require( "./import/App.Models.Import.InputFileModel.js" ),
+		DatasourceModel = require( "./import/App.Models.Import.DatasourceModel.js" ),
+		DatasetModel = require( "./import/App.Models.Import.DatasetModel.js" ),
+		VariableModel = require( "./import/App.Models.Import.VariableModel.js" ),
+		EntityModel = require( "./import/App.Models.Import.EntityModel.js" );
+		
 	App.Models.Importer = Backbone.Model.extend( {
 
 		numSteps: 0,
@@ -90,7 +96,7 @@
 				userId = formData.user_id,
 				stringifiedVarData = JSON.stringify( formData["variables[]"] ),
 				inputFileData = { "rawData": JSON.stringify( stringifiedVarData ), "userId": userId },
-				inputFileModel = new App.Models.Import.InputFileModel( inputFileData );
+				inputFileModel = new InputFileModel( inputFileData );
 			
 			inputFileModel.import();
 			inputFileModel.on( "sync", function( model, resp ) {
@@ -113,7 +119,7 @@
 			var that = this,
 				formData = this.get( "formData" ),
 				datasourceData = { "name": formData.source_name, "link": "", "description": formData.source_description },
-				datasourceModel = new App.Models.Import.DatasourceModel( datasourceData );
+				datasourceModel = new DatasourceModel( datasourceData );
 			
 			datasourceModel.import();
 			datasourceModel.on( "sync", function( model, resp ) {
@@ -136,7 +142,7 @@
 				formData = this.get( "formData" ),
 				datasetData = { "name": formData.new_dataset_name, "datasetTags": formData.new_dataset_tags, "description": formData.new_dataset_description, "categoryId": formData.category_id, "subcategoryId": formData.subcategory_id, "datasourceId": this.get( "datasourceId" ),
 				"new_dataset": formData.new_dataset, "existing_dataset_id": formData.existing_dataset_id },
-				datasetModel = new App.Models.Import.DatasetModel( datasetData );
+				datasetModel = new DatasetModel( datasetData );
 			
 			datasetModel.import();
 			datasetModel.on( "sync", function( model, resp ) {
@@ -206,7 +212,7 @@
 				this.nowVariableName = variableData.name;
 
 				var that = this,
-					variableModel = new App.Models.Import.VariableModel( variableData );
+					variableModel = new VariableModel( variableData );
 				
 				variableModel.import();
 				variableModel.on( "sync", function( model, resp ) {
@@ -266,7 +272,7 @@
 			entityData.datasourceId = this.get( "datasourceId" );
 			entityData.variableId = variableId;
 
-			var entityModel = new App.Models.Import.EntityModel( entityData );
+			var entityModel = new EntityModel( entityData );
 			entityModel.import();
 			entityModel.on( "sync", function( model, resp ) {
 				that.nowStep++;
