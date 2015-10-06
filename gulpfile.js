@@ -19,7 +19,7 @@ elixir(function(mix) {
         'libs/font-awesome/css/font-awesome.min.css',
         'libs/chosen.css',
         'libs/nv.d3.css'
-    ], 'public/build/css/libs/front.css' );
+    ], 'public/css/libs/front.css' );
 
     /*mix.styles( [
         'main.css',
@@ -43,7 +43,7 @@ elixir(function(mix) {
         'libs/bootstrap3-wysihtml5.min.css',
         'libs/chosen.css',
         'libs/nv.d3.css',
-    ], 'public/build/css/libs/admin.css' );
+    ], 'public/css/libs/admin.css' );
 
     /*mix.styles( [
         'admin/admin.css',
@@ -62,7 +62,7 @@ elixir(function(mix) {
         'range.scss',
         'chart.scss',
         'main.scss'
-    ], 'public/build/css/admin.css' );
+    ], 'public/css/admin.css' );
 
     /** 
     *   SCRIPTS
