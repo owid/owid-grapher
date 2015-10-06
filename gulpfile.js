@@ -102,8 +102,7 @@ elixir(function(mix) {
         'libs/chosen.jquery.js',
         'libs/jquery.nestable.js',
         'libs/bootstrap3-wysihtml5.all.min.js',
-        'libs/colorbrewer.js',
-        'admin.js'
+        'libs/colorbrewer.js'
     ], 'public/js/libs-admin.js' );
 
     browserify.init();
