@@ -1244,6 +1244,12 @@ input[type=range]:focus::-ms-fill-upper {
 #chart-view .nv-custom-legend .nv-series {
   cursor: pointer; }
 
+/* special case for opaque legend */
+#chart-view .nv-custom-legend.transparent .nv-series {
+  opacity: .8; }
+  #chart-view .nv-custom-legend.transparent .nv-series.highlight {
+    opacity: 1; }
+
 #chart-view .nv-custom-legend .nv-series .nv-custom-legend-symbol {
   stroke-width: 1px !important; }
 

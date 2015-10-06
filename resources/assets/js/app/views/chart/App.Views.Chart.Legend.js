@@ -65,6 +65,11 @@
 							return expanded ? true : !n.disengaged;
 						});
 					});
+
+				//special styling for stacked area chart legend
+				if( chartType === "3" ) {
+					container.selectAll('g.nv-custom-legend').classed( "transparent", true );
+				}
 				
 				//add entity label
 				var entityLabel = wrap.select( '.nv-entity-label' ),
@@ -139,7 +144,7 @@
 					addEntityBtn.attr( "display", "none" );
 				}
 					
-				var seriesEnter = series.enter().append('g').attr('class', 'nv-series'),
+				var seriesEnter = series.enter().append('g').attr('class', function(d) { return 'nv-series nv-series-' + d.id; } ),
 					seriesShape, seriesRemove;
 
 				var versPadding = 30;
@@ -489,6 +494,17 @@
 				color = nv.utils.getColor(_);
 			}}
 		});
+
+		chart.highlightPoint = function(evt) {
+			chart.clearHighlight();
+			var id = ( evt && evt.point )? evt.point.id: "";
+			if( id ) {
+				d3.selectAll( ".nv-custom-legend .nv-series-" + id ).classed( "highlight", true );
+			}
+		};
+		chart.clearHighlight = function(evt) {
+			d3.selectAll( ".nv-custom-legend .nv-series" ).classed( "highlight", false );
+		};
 
 		nv.utils.initOptions(chart);
 
