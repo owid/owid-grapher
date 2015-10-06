@@ -373,7 +373,7 @@
 				var svgSelection = d3.select( that.$svg.selector )
 					.datum( localData )
 					.call( that.chart );
-				
+
 				if( chartType !== "3" ) {
 
 					that.chart.tooltip.contentGenerator( App.Utils.contentGenerator );
@@ -422,6 +422,16 @@
 					} );
 					svgSelection.call( that.legend );
 					//put legend above chart
+
+					//if stacked area chart
+					if( chartType === "3" ) {
+						that.chart.stacked.dispatch.on( "areaMouseover", function( evt ) {
+							that.legend.highlightPoint( evt );
+						} );
+						that.chart.stacked.dispatch.on( "areaMouseout", function( evt ) {
+							that.legend.clearHighlight();
+						} );
+					}
 
 
 				} else {
