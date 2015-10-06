@@ -7,3 +7,5 @@
 /public/build/js/FormApp*
 /public/build/js/ImportApp*
 /public/build/js/libs*
+/public/js/*
+/public/css/*
