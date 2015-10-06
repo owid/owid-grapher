@@ -13,5 +13,4 @@
 @endsection
 
 @section('scripts')
-	<script src="{{ elixir('js/FormApp.js') }}"></script>
 @endsection

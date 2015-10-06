@@ -7,5 +7,4 @@
 @endsection
 
 @section('scripts')
-	<script src="{{ elixir('js/ChartApp.js') }}"></script>
 @endsection

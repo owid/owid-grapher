@@ -19,6 +19,7 @@ class TimeTypesTableSeeder extends Seeder {
 			[ 'name' => 'Quarter Century' ],
 			[ 'name' => 'Half Century' ],
 			[ 'name' => 'Century' ],
+			[ 'name' => 'Years' ],
 		);
 		
 		// Uncomment the below to run the seeder
