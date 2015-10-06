@@ -102,13 +102,6 @@
 
 			} );
 
-			/*CSV.begin( this.$filePicker.selector )
-				//.table( "csv-import-table-wrapper", { header:1, caption: "" } )
-				.go( function( err, data ) {
-					that.onCsvSelected( err, data );
-				} );
-			this.$removeUploadedFileBtn.hide();*/
-
 		},
 
 		onCsvSelected: function( err, data ) {
@@ -117,27 +110,13 @@
 				return;
 			}
 			
-			//testing massive import version 			
-			/*this.uploadedData = data;
-			//store also original, this.uploadedData will be modified when being validated
-			this.origUploadedData = $.extend( true, {}, this.uploadedData);
-
-			this.createDataTable( data.rows );
-			
-			this.validateEntityData( data.rows );
-			this.validateTimeData( data.rows );
-			
-			this.mapData();*/
-
-			//normal version
-
-			//do we need to transpose data?
-			if( !this.isDataMultiVariant ) {
+			//do we need to transpose data? - DISABLED, introduction of intervals made the automatic detection of format difficult
+			/*if( !this.isDataMultiVariant ) {
 				var isOriented = this.detectOrientation( data.rows );
 				if( !isOriented ) {
 					data.rows = Utils.transpose( data.rows );
 				}
-			}
+			}*/
 			
 			this.uploadedData = data;
 			//store also original, this.uploadedData will be modified when being validated
@@ -335,27 +314,21 @@
 
 			var $dataTableWrapper = $( ".csv-import-table-wrapper" ),
 				$dataTable = $dataTableWrapper.find( "table" ),
-				//massive import version
-				//timeDomain = $dataTable.find( "th:nth-child(2)" ).text(),
 				timeDomain = ( !this.isDataMultiVariant )? $dataTable.find( "th:first-child" ).text(): $dataTable.find( "th:nth-child(2)" ).text(),
-				$timesCells = ( !this.isDataMultiVariant )? $dataTable.find( "th" ): $dataTable.find( "td:nth-child(2)" );/*,
-				//massive import version
-				//$timesCells = $dataTable.find( "td:nth-child(2)" );/*,
-				times = _.map( $timesCells, function( v ) { return $( v ).text() } );*/
-			//format time domain maybe
+				$timesCells = ( !this.isDataMultiVariant )? $dataTable.find( "th" ): $dataTable.find( "td:nth-child(2)" );
+			
 			if( timeDomain ) {
 				timeDomain = timeDomain.toLowerCase();
 			}
 			
 			//the first cell (timeDomain) shouldn't be validated
-			//massive import version - commented out next row
 			if( !this.isDataMultiVariant ) {
 				$timesCells = $timesCells.slice( 1 );
 			}
 			
 			//make sure time is from given domain
-			if( _.indexOf( [ "century", "decade", "quarter century", "half century", "year" ], timeDomain ) == -1 ) {
-				var $resultNotice = $( "<p class='time-domain-validation-result validation-result text-danger'><i class='fa fa-exclamation-circle'></i>First top-left cell should contain time domain infomartion. Either 'century', or'decade', or 'year'.</p>" );
+			if( _.indexOf( [ "century", "decade", "quarter century", "half century", "year", "years" ], timeDomain ) == -1 ) {
+				var $resultNotice = $( "<p class='time-domain-validation-result validation-result text-danger'><i class='fa fa-exclamation-circle'></i>First top-left cell should contain time domain infomartion. Either 'century', or 'decade', or 'quarter century', or 'half century' or 'year' or 'years' for time intervals.</p>" );
 				$dataTableWrapper.before( $resultNotice );
 			}
 			
@@ -366,17 +339,34 @@
 				
 				//find corresponding value in loaded data
 				var newValue,
-					//massive import version
-					//origValue = data[ i+1 ][ 1 ];
 					origValue = ( !that.isDataMultiVariant )? data[ 0 ][ i+1 ]: data[ i+1 ][ 1 ];
 				
 				//check value has 4 digits
 				origValue = Utils.addZeros( origValue );
 
 				var value = origValue,
-					date = moment( new Date( value ) );
-				
-				if( !date.isValid() ) {
+					date = moment( new Date( value ) ),
+					valid = false,
+					timeArr, date1, date2;
+
+				//if uploading interval data, need different validation
+				if( timeDomain !== "years" ) {
+					valid = !date.isValid();
+				} else {
+					//remove all whitespace
+					value = value.replace(/ /g,'');
+					timeArr = value.split( "-" );
+					if( timeArr.length === 2) {
+						//validate both dates
+						date1 = moment( new Date( timeArr[0] ) );
+						date2 = moment( new Date( timeArr[1] ) );
+						if( date1.isValid() && date2.isValid() ) {
+							valid = true;
+						}
+					}
+				}
+
+				if( !valid ) {
 
 					$timeCell.addClass( "alert-error" );
 					$timeCell.removeClass( "alert-success" );
@@ -491,6 +481,36 @@
 						//modify the initial value
 						newValue[ "sd" ] = Utils.roundTime( century );
 						newValue[ "ed" ] = Utils.roundTime( nextCentury );
+
+					} else if( timeDomain == "years" ) {
+						
+						//remove all whitespace
+						origValue = origValue.replace(/ /g,'');
+						timeArr = origValue.split( "-" );
+						
+						if( timeArr.length === 2) {
+							//validate both dates
+							var year = Math.floor( timeArr[0] ),
+								nextYear = Math.floor( timeArr[1] ),
+								middleYear = Math.floor( ( year + nextYear ) / 2 );
+							
+							//add zeros
+							year = Utils.addZeros( year );
+							nextYear = Utils.addZeros( nextYear );
+							middleYear = Utils.addZeros( middleYear );
+							
+							//convert it to datetime values
+							year = moment( new Date( year.toString() ) );
+							nextYear = moment( new Date( nextYear.toString() ) );
+							middleYear = moment( new Date( middleYear.toString() ) );
+
+							//modify the initial value
+							newValue[ "sd" ] =  Utils.roundTime( year );
+							newValue[ "ed" ] =  Utils.roundTime( nextYear );
+							//as single date for object, take one in the middle
+							newValue[ "d" ] = Utils.roundTime( middleYear );
+
+						}
 
 					}
 

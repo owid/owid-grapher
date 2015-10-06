@@ -92,6 +92,7 @@
 		</script>
 
 		<script src="{{ elixir('js/libs-admin.js') }}"></script>
+		<script src="{{ elixir('js/FormApp.js') }}"></script>
 		
 		@yield('scripts')
 
