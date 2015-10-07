@@ -111,13 +111,15 @@
 		updateTime: function( from, to ) {
 
 			var slider = $( "[name=chart-time]" ).data( "ionRangeSlider" );
-			slider.update( {from: from, to: to } );
-			//updating slider, so have some set values and disabling dynamic table
-			this.$dynamicTime.prop( "checked", false );
-			this.$irs.removeClass( "disabled" );
-			this.$chartTimeFrom.val(from);
-			this.$chartTimeTo.val(to);
-
+			if( slider ) {
+				slider.update( {from: from, to: to } );
+				//updating slider, so have some set values and disabling dynamic table
+				this.$dynamicTime.prop( "checked", false );
+				this.$irs.removeClass( "disabled" );
+				this.$chartTimeFrom.val(from);
+				this.$chartTimeTo.val(to);
+			}
+			
 		},
 
 		onDynamicTime: function() {

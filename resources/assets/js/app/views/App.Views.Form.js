@@ -23,12 +23,16 @@
 			var dispatcher = _.clone( Backbone.Events );
 			this.dispatcher = dispatcher;
 
-			this.formView = new FormView( { dispatcher: dispatcher } );
 			this.chartView = new ChartView( { dispatcher: dispatcher } );
 			
-			//variable select
-			var variableSelects = new VariableSelects();
-			variableSelects.init();
+			//is edit/create module
+			if( $( ".chart-edit-module" ).length ) {
+				this.formView = new FormView( { dispatcher: dispatcher } );
+				//variable select
+				var variableSelects = new VariableSelects();
+				variableSelects.init();
+			}
+			
 			
 		}
 

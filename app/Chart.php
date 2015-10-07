@@ -649,6 +649,20 @@ class Chart extends Model {
 
 	public static function getValue( $dimension, $time, $values ) {
 
+		//different logic whether time is single or interval
+		$firstKey = ( isset( $values ) )? key( $values ): "";
+		if( strpos( $firstKey, "-" ) === false && strpos( $time, "-" ) === false ) {
+			$value = Chart::getSingleTimeValue( $dimension, $time, $values );
+		} else {
+			$value = Chart::getIntervalTimeValue( $dimension, $time, $values );
+		}
+
+		return $value;
+
+	}
+
+	public static function getSingleTimeValue( $dimension, $time, $values ) {
+
 		//do we have value for exact time
 		if( array_key_exists( $time, $values ) ) {
 			
@@ -672,6 +686,42 @@ class Chart extends Model {
 		}
 
 		return $value;
+
+	}
+
+	public static function getIntervalTimeValue( $dimension, $time, $values ) {
+
+		//loop through all values, deconstruct their keys to start/end years and see if $time falls in between
+		foreach( $values as $key => $value ) {
+
+			//is value within interval
+			$timeArr = explode( "-", $key );
+			if( count( $timeArr ) == 2 ) {
+				$timeMin = floatval( $timeArr[ 0 ] );
+				$timeMax = floatval( $timeArr[ 1 ] );
+			} else {
+				$timeMin = floatval( $key );
+				$timeMax = $timeMin;
+			}
+
+			//is target year with interval
+			$targetYearArr = explode( "-", $time );
+			if( count( $targetYearArr ) == 2 ) {
+				$targetYearMin = floatval( $targetYearArr[ 0 ] ); 
+				$targetYearMax = floatval( $targetYearArr[ 1 ] ); 
+			} else {
+				$targetYearMin = $time; 
+				$targetYearMax = $time; 
+			}
+
+			//does time of interest fall between interval
+			if( $targetYearMin >= $timeMin && $timeMax <= $targetYearMax ) {
+				return $value;
+			}
+
+		}
+		
+		return false;
 
 	}
 

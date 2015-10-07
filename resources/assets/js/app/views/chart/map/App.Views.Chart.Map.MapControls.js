@@ -30,6 +30,9 @@
 			this.$regionControlLabel = this.$regionControl.find( ".region-label" );
 			this.$regionControlLis = this.$regionControl.find( "li" );
 
+			//settings-control selector
+			this.$settingsControl = this.$el.find( ".settings-control" );
+
 			App.ChartModel.on( "change", this.onChartModelChange, this );
 			App.ChartModel.on( "change-map", this.onChartModelChange, this );
 
