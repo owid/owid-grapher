@@ -536,11 +536,16 @@ class DataController extends Controller {
 
 		//use query builder instead of eloquent
 		$timesData = DB::table( 'data_values' )
-			->select( 'times.id', 'times.date', 'times.label' )
+			->select( 'times.id', 'times.date', 'times.startDate', 'times.endDate', 'times.label', 'times.fk_ttype_id' )
 			->join( 'times', 'data_values.fk_time_id', '=', 'times.id' )
 			->whereIn( 'data_values.fk_var_id', $variableIds )
 			->groupBy( 'date' )
 			->get();
+
+		//go through times data and make sure it's not interval data
+		foreach( $timesData as $timeData ) {
+
+		}
 
 		$data = $timesData;
 

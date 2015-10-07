@@ -17,8 +17,23 @@
 
 		parse: function( response ) {
 
-			var max = d3.max( response.data, function(d) { return parseFloat( d.label ); } ),
-						min = d3.min( response.data, function(d) { return parseFloat( d.label ); } );
+			//isn't it interval data?
+			var max, min;
+			_.some( response.data, function( d,i ) {
+				if( d.fk_ttype_id === "5" ) {
+					var intervalString = parseInt( d.startDate, 10 ) + "-" + parseInt( d.endDate, 10 );
+					max = intervalString;
+					min = intervalString;
+					return true;
+				}
+			} );
+
+			if( !max && !min ) {
+				//is not interval data
+				max = d3.max( response.data, function(d) { return parseFloat( d.label ); } );
+				min = d3.min( response.data, function(d) { return parseFloat( d.label ); } );
+			}
+			
 			this.set( { "max": max, "min": min } );
 		
 		},

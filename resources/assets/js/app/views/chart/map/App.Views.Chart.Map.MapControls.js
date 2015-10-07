@@ -54,6 +54,11 @@
 			this.$regionControlLis.removeClass( "highlight" );
 			this.$regionControlLis.filter( "." + mapConfig.projection + "-projection" ).addClass( "highlight" );
 
+			//is interval mode display
+			if( isNaN( mapConfig.minYear ) || isNaN( mapConfig.maxYear ) ) {
+				this.$targetYearInput.attr( "disabled", false );
+			}
+
 		},
 
 		onChartModelChange: function( evt ) {
