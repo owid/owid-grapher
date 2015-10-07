@@ -30,8 +30,8 @@ elixir(function(mix) {
         'range.scss',
         'main.scss',
         'chart.scss'
-    ], 'public/css/front.css' );
-
+    ], 'public/css/front.css', {errLogToConsole: true} );
+    
     mix.styles( [
         'libs/bootstrap.min.css',
         'libs/font-awesome/css/font-awesome.min.css',
@@ -62,7 +62,7 @@ elixir(function(mix) {
         'range.scss',
         'chart.scss',
         'main.scss'
-    ], 'public/css/admin.css' );
+    ], 'public/css/admin.css', {errLogToConsole: true} );
 
     /** 
     *   SCRIPTS

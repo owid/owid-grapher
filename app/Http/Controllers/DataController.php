@@ -53,8 +53,6 @@ class DataController extends Controller {
 			}
 		}
 		
-		//set_time_limit( 600 ); 
-		//ini_set('memory_limit', '256M');
 		$data = array();
 		
 		//extra array for storing values for export
@@ -68,7 +66,7 @@ class DataController extends Controller {
 		if( empty( $dimensions ) ) {
 			return [ 'success' => false ];
 		}
-
+		
 		$chartType = Input::get( 'chartType' );
 
 		//there's special setting for linechart
@@ -101,7 +99,7 @@ class DataController extends Controller {
 			$dataByVariable = array();
 			$dataByVariableTime = array();
 		}
-
+		
 		/**
 		 * 1) get data into variable
 		 **/
@@ -142,8 +140,10 @@ class DataController extends Controller {
 				if( $dimension->property !== "color" && $dimension->property !== "shape" ) {
 					$minTime = $chartTime[0];
 					$maxTime = $chartTime[1];
-					$variableQuery->where( 'times.date', '>=', $minTime );
-					$variableQuery->where( 'times.date', '<=', $maxTime );
+					$variableQuery->where( 'times.startDate', '>=', $minTime );
+					//$variableQuery->where( 'times.date', '>=', $minTime );
+					$variableQuery->where( 'times.endDate', '<=', $maxTime );
+					//$variableQuery->where( 'times.date', '<=', $maxTime );
 				}
 			}	
 
@@ -218,7 +218,9 @@ class DataController extends Controller {
 						$dataByEntity[ $entityId ][ "values" ][ $property ] = [];
 					}
 					//store value
-					$dataByEntity[ $entityId ][ "values" ][ $property ][ floatval( $datum->date ) ] = ( $property != "color" && $property != "shape" )? floatval( $datum->value ): $datum->value;
+					//AMMEND HERE - store as startYear-endYear?
+					$timeId = ( $datum->fk_ttype_id !== "5" )? floatval( $datum->date ): floatval( $datum->startDate ) . "-" . floatval( $datum->endDate );
+					$dataByEntity[ $entityId ][ "values" ][ $property ][ $timeId ] = ( $property != "color" && $property != "shape" )? floatval( $datum->value ): $datum->value;
 					
 					//need to store dimension variablename, dimensions are returned
 					if( !array_key_exists( "variableName", $dimension ) ) {
@@ -242,6 +244,7 @@ class DataController extends Controller {
 						$entities[ $entityId ] = $datum->name; 
 					}
 					$dataByEntityTime[ $entityId ][ $datum->label ] = $datum->value;
+					//AMMEND HERE - store simply as a string?
 					$times[ floatval( $datum->date ) ] = true;
 					$datasourcesIdsArr[ $datum->fk_dsr_id ] = true;
 
@@ -295,7 +298,7 @@ class DataController extends Controller {
 			}
 
 		}
-
+					
 		/**
 		 * 3) prepare array for different chart types
 		 **/
@@ -431,6 +434,7 @@ class DataController extends Controller {
 		//process data to csv friendly format
 		$timeKeys = array_keys( $times );
 		//sort timeKeys by time
+		//AMMEND HERE - what is intervals
 		usort( $timeKeys, function ($a, $b) { if ( $a==$b ) return 0; else return ($a > $b) ? 1 : -1; });
 		
 		//get all the licence information

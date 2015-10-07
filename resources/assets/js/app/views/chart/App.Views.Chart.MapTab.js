@@ -26,7 +26,7 @@
 			$( "[data-toggle='tab'][href='#map-chart-tab']" ).on( "shown.bs.tab", function( evt ) {
 				that.display();
 			} );
-			
+
 		},
 
 		display: function() {
@@ -98,14 +98,15 @@
 
 		popupTemplateGenerator: function( geo, data ) {
 			//transform datamaps data into format close to nvd3 so that we can reuse the same popup generator
-			var mapConfig = App.ChartModel.get( "map-config" );
-			var propertyName = App.Utils.getPropertyByVariableId( App.ChartModel, mapConfig.variableId );
+			var mapConfig = App.ChartModel.get( "map-config" ),
+				propertyName = App.Utils.getPropertyByVariableId( App.ChartModel, mapConfig.variableId );
 			if( !propertyName ) {
 				propertyName = "y";
 			}
 			var obj = {
 				point: {
-					time: mapConfig.targetYear },
+					time: mapConfig.targetYear 
+				},
 				series: [ {
 					key: geo.properties.name
 				} ]

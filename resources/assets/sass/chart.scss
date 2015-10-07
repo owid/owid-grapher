@@ -496,15 +496,14 @@
 			z-index: 1;
 
 			.control {
-				position: absolute;
-				height: 32px;
+				float: left;
+				margin-right: 3px;
 				cursor: pointer;
 				transition: .3s height;
 				white-space: nowrap;
 				overflow: hidden;
 
 				&:hover {
-					height: 300px;
 					.control-head, .control-body {
 						color: #fff;
 						background-color: #444;
@@ -512,9 +511,9 @@
 					}
 					.control-body {
     					/*width:calc(100% - 60px);*/
+    					display: block;
     				}
 				}
-
 				.control-head, .control-body {
 					padding: 5px 10px;
 					border: 1px solid #EEEEEE;
@@ -522,21 +521,26 @@
 					/*display: inline-block;
 					white-space: nowrap;*/
 				}
-				.control-head label {
-					margin-bottom: 0;
-					cursor: pointer;
+				.control-head {
+					display: inline-block;
+					width: auto;
+					label {
+						margin-bottom: 0;
+					}
+				}
+				.control-body {
+					display: none;
+					position: absolute;
+					label {
+						margin-bottom: 0;
+						cursor: pointer;
+					}
 				}
 				
 			}
 
 			.target-year-control {
 				
-				&:hover {
-					height: 72px;
-				}
-				.control-head {
-					width: 70px;
-				}
 				.control-body {
 					width: 208px;
 				}
@@ -550,12 +554,6 @@
 
 			.region-control {
 				
-				left: 72px;
-				width: 100px;
-
-				&:hover {
-					height: 250px;
-				}
 				.region-label {
 					width: calc(100% - 14px);
 					text-align: center;
@@ -584,16 +582,9 @@
 
 			.settings-control {
 
-				left: 174px;
-				&:hover {
-					height: 65px
-				}
-				.control-head {
-					width: 34px;
-				}
 				.control-body {
-					width: 100%;
-					padding: 5px 15px 1px 10px;
+					width: 280px;
+					padding: 5px 15px 5px 10px;
 					input[type=checkbox] {
 						margin-right: 6px;
 					}
