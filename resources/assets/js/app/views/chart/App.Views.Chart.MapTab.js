@@ -240,7 +240,7 @@
 			},
 			"Africa": function(element) {
 				//empiric
-				var k = 3;
+				var k = 3.2;
 				var projection = d3.geo.conicConformal()
 					.rotate([-25, 0])
 					.center([0, 0])
@@ -252,7 +252,7 @@
 			},
 			"N.America": function(element) {
 				//empiric
-				var k = 3;
+				var k = 3.2;
 				var projection = d3.geo.conicConformal()
 					.rotate([98, 0])
 					.center([0, 38])
@@ -264,7 +264,7 @@
 			},
 			"S.America": function(element) {
 				//empiric
-				var k = 3.4;
+				var k = 3.6;
 				var projection = d3.geo.conicConformal()
 					.rotate([68, 0])
 					.center([0, -14])
@@ -276,7 +276,7 @@
 			},
 			"Asia": function(element) {
 				//empiric
-				var k = 3;
+				var k = 3.2;
 				var projection = d3.geo.conicConformal()
 					.rotate([-105, 0])
 					.center([0, 37])
@@ -288,7 +288,7 @@
 			},
 			"Europe": function(element) {
 				//empiric
-				var k = 1.5;
+				var k = 1.7;
 				var projection = d3.geo.conicConformal()
 					.rotate([-15, 0])
 					.center([0, 55])
@@ -300,7 +300,7 @@
 			},
 			"Australia": function(element) {
 				//empiric
-				var k = 3;
+				var k = 3.2;
 				var projection = d3.geo.conicConformal()
 					.rotate([-135, 0])
 					.center([0, -20])
