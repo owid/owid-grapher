@@ -2,10 +2,10 @@
   "css/libs/front.css": "css/libs/front-a0f1fe29.css",
   "css/front.css": "css/front-fdf709b2.css",
   "css/libs/admin.css": "css/libs/admin-2692386a.css",
-  "css/admin.css": "css/admin-0a03f085.css",
-  "js/ChartApp.js": "js/ChartApp-2de35aee.js",
-  "js/FormApp.js": "js/FormApp-68071cfa.js",
-  "js/ImportApp.js": "js/ImportApp-7888ce71.js",
+  "css/admin.css": "css/admin-64cba840.css",
+  "js/ChartApp.js": "js/ChartApp-065c83d6.js",
+  "js/FormApp.js": "js/FormApp-a465aacb.js",
+  "js/ImportApp.js": "js/ImportApp-cfcb7c27.js",
   "js/libs.js": "js/libs-cba56435.js",
   "js/libs-admin.js": "js/libs-admin-a54f49b8.js"
 }
