@@ -168,9 +168,13 @@ class VariablesController extends Controller {
 	 * @return Response
 	 */
 	public function destroy(Variable $variable, Request $request)
-	{
+	{	
 		//delete data
-		$variable->data()->delete();
+		foreach( $variable->data()->get()->all() as $varData ) {
+			$varData->delete();
+			$varData->time->delete();
+		}
+		
 		//delete itself
 		$variable->delete();
 		

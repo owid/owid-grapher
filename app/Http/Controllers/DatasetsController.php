@@ -106,7 +106,11 @@ class DatasetsController extends Controller {
 		//delete variables data 
 		$variables = $dataset->variables;
 		foreach( $variables as $variable ) {
-			$variable->data()->delete();
+			//delete time
+			foreach( $variable->data()->get()->all() as $varData ) {
+				$varData->delete();
+				$varData->time->delete();
+			}
 		}
 		//delete variables
 		$dataset->variables()->delete();
