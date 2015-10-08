@@ -219,7 +219,7 @@ class DataController extends Controller {
 					}
 					//store value
 					//AMMEND HERE - store as startYear-endYear?
-					$timeId = ( $datum->fk_ttype_id !== "5" )? floatval( $datum->date ): floatval( $datum->startDate ) . "-" . floatval( $datum->endDate );
+					$timeId = ( $datum->fk_ttype_id !== "6" )? floatval( $datum->date ): floatval( $datum->startDate ) . "-" . floatval( $datum->endDate );
 					$dataByEntity[ $entityId ][ "values" ][ $property ][ $timeId ] = ( $property != "color" && $property != "shape" )? floatval( $datum->value ): $datum->value;
 					
 					//need to store dimension variablename, dimensions are returned
