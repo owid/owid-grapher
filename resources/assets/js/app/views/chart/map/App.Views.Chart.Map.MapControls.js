@@ -56,7 +56,7 @@
 
 			//is interval mode display
 			if( isNaN( mapConfig.minYear ) || isNaN( mapConfig.maxYear ) ) {
-				this.$targetYearInput.attr( "disabled", false );
+				this.$targetYearInput.attr( "disabled", true );
 			}
 
 		},

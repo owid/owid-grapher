@@ -20,7 +20,7 @@
 			//isn't it interval data?
 			var max, min;
 			_.some( response.data, function( d,i ) {
-				if( d.fk_ttype_id === "5" ) {
+				if( d.fk_ttype_id === "6" ) {
 					var intervalString = parseInt( d.startDate, 10 ) + "-" + parseInt( d.endDate, 10 );
 					max = intervalString;
 					min = intervalString;
