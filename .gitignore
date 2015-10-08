@@ -7,5 +7,6 @@
 /public/build/js/FormApp*
 /public/build/js/ImportApp*
 /public/build/js/libs*
+/public/build/rev-manifest.json
 /public/js/*
 /public/css/*
