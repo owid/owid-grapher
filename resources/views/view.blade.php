@@ -37,7 +37,8 @@
 		<div class="wrapper">
 			@yield('content')
 		</div>
-
+		@yield('outter-content')
+		
 		<script>
 			var Global = {};
 			Global.rootUrl = "{!! Request::root() !!}";

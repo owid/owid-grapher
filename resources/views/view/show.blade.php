@@ -13,6 +13,10 @@
 	</div>-->
 @endsection
 
+@section('outter-content')
+	@include('charts/partials/_export-popup')
+@endsection
+
 @section('scripts')
 	<script src="{{ elixir('js/ChartApp.js') }}"></script>
 @endsection

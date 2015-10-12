@@ -74,14 +74,14 @@
 					<g transform="translate(60,0)">
 						<text x="0" y="20" dy="0" class="h2 chart-name chart-name-svg"></text>
 					</g>
-					<text x="0" y="100" dy="0" class="h3 chart-subname chart-subname-svg"></text>
+					<text x="0" y="100" dy="0" transform="translate(60,0)" class="h3 chart-subname chart-subname-svg"></text>
 					<text x="0" y="100" dy="0" class="chart-description chart-description-svg"></text>
 					<text x="0" y="100" dy="0" class="chart-sources chart-sources-svg"></text>
 				</svg>
 				<div class="chart-footer clearfix">
 					<div class="export-footer-btns">
-						Save to <a href="#" class="chart-save-svg-btn" target="_blank">SVG</a> |
-						<a href="#" class="chart-save-png-btn">PNG</a>
+						<a href="#" class="chart-export-btn" target="_blank">Save chart</a>
+						<a href="#" class="chart-save-btn" target="_blank" style="display:none;"></a>
 					</div>
 					<a class="fancybox-iframe" href="{{ Request::url() }}">Full screen view</a>
 					<p class="chart-sources"></p>
