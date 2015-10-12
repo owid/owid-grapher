@@ -6,5 +6,9 @@
 	</div>
 @endsection
 
+@section('outter-content')
+	@include('charts/partials/_export-popup')
+@endsection
+
 @section('scripts')
 @endsection

@@ -82,10 +82,13 @@
 	}
 	#chart-view h3,
 	#chart-view .h3 {
+		margin-top: 10px;
+		margin-bottom: 5px;
 		font-size: 15px;
 		opacity: 1;
 		line-height: 1.4;
-		color: #35322F;
+		color: #4F4B49;
+		fill: #4F4B49;
 	}
 
 	#chart-view .nvd3 .nv-axis line {
@@ -651,7 +654,7 @@
 
 .export-svg {
 	transform: translate(0px,0px) !important;
-	height: 1000px !important;
+	//height: 1000px !important;
 	padding: 30px;
 }
 
@@ -665,4 +668,62 @@
 .export-svg .nv-custom-legend .nv-add-btn {
 	display: none;
 }
+.export-svg {
+	.chart-description-svg, .chart-sources-svg {
+		font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+	}
+}
 
+/**
+*	EXPORT POPUP
+**/
+.export-popup {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 1040;
+	display: none;
+
+	.modal {
+		display: block;
+		background: rgba(0,0,0,0.3);
+	}
+	.modal-content {
+		box-shadow: 0 2px 3px rgba(0,0,0,0.125) !important;
+		border-radius: 0;
+	}
+		.form-export-select-wrapper {
+			padding: 20px;
+    		background-color: #ecf0f5;
+		}
+
+	.modal-dialog {
+		width: 300px;
+	}
+
+	.format-section {
+		text-align: center;
+		label {
+			width: 100px;
+		}
+	}
+
+	hr {
+		margin-top: 10px;
+		margin-bottom: 20px;
+		border-top: 1px solid #ccc;
+	}
+	
+	.form-control[type=text] {
+		display: inline-block;
+		width: 40%;
+	}
+
+	.dimension-section span:first-child {
+		width: 60px;
+		display: inline-block;
+	}
+
+}

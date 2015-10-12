@@ -10,14 +10,14 @@
 		SourcesTab = require( "./chart/App.Views.Chart.SourcesTab.js" ),
 		MapTab = require( "./chart/App.Views.Chart.MapTab.js" ),
 		ChartDataModel = require( "./../models/App.Models.ChartDataModel.js" ),
-		Utils = require( "./../App.Utils.js" );
+		Utils = require( "./../App.Utils.js" ),
+		ExportPopup = require( "./ui/App.Views.UI.ExportPopup.js" );
 
 	App.Views.ChartView = Backbone.View.extend({
 
 		el: "#chart-view",
 		events: {
-			"click .chart-save-png-btn": "exportContent",
-			"click .chart-save-svg-btn": "exportContent"
+			"click .chart-export-btn": "exportContent"
 		},
 
 		initialize: function( options ) {
@@ -36,10 +36,17 @@
 			//setup model that will fetch all the data for us
 			this.dataModel = new ChartDataModel();
 			
+			this.exportPopup = new ExportPopup( options );
+			this.exportPopup.init( options );
+
 			//setup events
 			this.dataModel.on( "sync", this.onDataModelSync, this );
 			this.dataModel.on( "error", this.onDataModelError, this );
 			App.ChartModel.on( "change", this.onChartModelChange, this );
+
+			this.dispatcher.on( "dimension-export-update", this.onDimensionExportUpdate, this );
+			this.dispatcher.on( "dimension-export", this.onDimensionExport, this );
+			this.dispatcher.on( "dimension-export-cancel", this.onDimensionExportCancel, this );
 
 			this.render();
 
@@ -212,72 +219,89 @@
 
 		exportContent: function( evt ) {
 			
-			//http://stackoverflow.com/questions/23218174/how-do-i-save-export-an-svg-file-after-creating-an-svg-with-d3-js-ie-safari-an
-			var $btn = $( evt.currentTarget ),
-				//store pre-printing svg
-				$oldEl = this.$el,
-				$newEl = $oldEl.clone(),
-				isSvg = ( $btn.hasClass( "chart-save-svg-btn" ) )? true: false;
+			evt.preventDefault();
+			this.exportPopup.show();
+			return false;
+
+		},
+
+		onDimensionExportUpdate: function( data ) {
+
+			if( !this.oldWidth ) {
+				this.oldWidth = this.$el.width();
+				this.oldHeight = this.$el.height();
+			}
+
+			this.$el.width( data.width );
+			this.$el.height( data.height );
+			this.onResize();
+
+		},
+
+		onDimensionExportCancel: function() {
+			this.resetExportResize();
+		},
+
+		onDimensionExport: function( data ) {
+
+			var that = this,
+				format = data.format,
+				width = data.width,
+				height = data.height,
+				isSvg = ( format === "svg" )? true: false;
 			
+			//http://stackoverflow.com/questions/23218174/how-do-i-save-export-an-svg-file-after-creating-an-svg-with-d3-js-ie-safari-an
+			var $oldEl = this.$el,
+				$newEl = $oldEl.clone();
+
 			$oldEl.replaceWith( $newEl );
 
 			//grab all svg
-			var $svg = $newEl.find( "svg" ),
-				svg = $svg.get( 0 ),
-				svgString = svg.outerHTML;
-
+			var $svg = $newEl.find( "svg" );
 			//add printing styles
 			$svg.attr( "class", "nvd3-svg export-svg" );
-
+			
 			//inline styles for the export
 			var styleSheets = document.styleSheets;
 			for( var i = 0; i < styleSheets.length; i++ ) {
 				Utils.inlineCssStyle( styleSheets[ i ].cssRules );
 			}
 
+			$svg.width( width );
+			$svg.height( height );
+
 			//depending whether we're creating svg or png, 
 			if( isSvg ) {
-
-				var serializer = new XMLSerializer(),
-				source = serializer.serializeToString(svg);
-				//add name spaces.
-				if(!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)){
-					source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
-				}
-				if(!source.match(/^<svg[^>]+"http\:\/\/www\.w3\.org\/1999\/xlink"/)){
-					source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
-				}
 				
-				//add xml declaration
-				source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+				var cb = function( url ) {
+					//activate click on dummy button
+					var $chartSaveBtn = $( ".chart-save-btn" );
+					$chartSaveBtn.attr( "href", url );
+					$chartSaveBtn[ 0 ].click();
+					setTimeout( function() {
+						window.location.reload();
+					}, 50 );
 
-				//convert svg source to URI data scheme.
-				var url = "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(source);
-				$btn.attr( "href", url );
+				};
+				svgAsDataUri( $( ".nvd3-svg" ).get( 0 ), {}, cb );
 
 			} else {
-
-				var $svgCanvas = $( ".nvd3-svg" );
-				if( $svgCanvas.length ) {
-					
-					saveSvgAsPng( $( ".nvd3-svg" ).get( 0 ), "chart.png");
-
-					//temp hack - remove image when exporting to png
-					/*var $svgLogo = $( ".chart-logo-svg" );
-					$svgLogo.remove();
-
-					saveSvgAsPng( $( ".nvd3-svg" ).get( 0 ), "chart.png");
-					
-					$svg.prepend( $svgLogo );*/
-					
-				}
-
+				
+				saveSvgAsPng( $svg.get( 0 ), "chart.png" );
+				setTimeout( function() {
+					window.location.reload();
+				}, 50 );
+				
 			}
 			
-			//add back the printed svg
-			$newEl.replaceWith( $oldEl );
-			//refresh link
-			$oldEl.find( ".chart-save-svg-btn" ).on( "click", $.proxy( this.exportContent, this ) );
+		},
+
+		resetExportResize: function() {
+
+			//$newEl.replaceWith( $oldEl );
+			this.$el.width( this.oldWidth );
+			this.$el.height( this.oldHeight );
+			this.onResize();
 
 		},
 
@@ -302,13 +326,13 @@
 				topChartMargin = 30,
 				bottomChartMargin = 60,
 				currY, footerDescriptionHeight, footerSourcesHeight, chartHeight;
-
+			
 			this.$tabContent.height( $( ".chart-wrapper-inner" ).height() - this.$chartHeader.height() );
 			
 			//wrap header text
 			Utils.wrap( $chartNameSvg, svgWidth );
-			currY = parseInt( $chartNameSvg.attr( "y" ), 10 ) + $chartNameSvg.outerHeight() + 20;
-			$chartSubnameSvg.attr( "y", currY );
+			currY = parseInt( $chartNameSvg.attr( "y" ), 10 ) + $( ".chart-name" ).outerHeight() + 20;
+			$chartSubnameSvg.attr( "y", currY - 20 );
 			
 			//wrap description
 			Utils.wrap( $chartSubnameSvg, svgWidth );
@@ -349,7 +373,7 @@
 			//position footer
 			$chartDescriptionSvg.attr( "y", currY + chartHeight + bottomChartMargin );
 			Utils.wrap( $chartDescriptionSvg, svgWidth );
-			$chartSourcesSvg.attr( "y", parseInt( $chartDescriptionSvg.attr( "y" ), 10 ) + $chartDescriptionSvg.height() + footerDescriptionHeight/3 );
+			$chartSourcesSvg.attr( "y", parseInt( $chartDescriptionSvg.attr( "y" ), 10 ) + $( ".chart-description" ).height() + footerDescriptionHeight/3 );
 			Utils.wrap( $chartSourcesSvg, svgWidth );
 			
 			//compute chart width

@@ -46,6 +46,8 @@ class Chart extends Model {
 
 	public static function formatDataForLineChart( $dataByEntity, $dimensionsByKey, $times, $groupByVariable, $mainDimension ) {
 		
+		$normalizedData = [];
+
 		foreach( $dataByEntity as $entityData ) {
 					
 			$arr = array(
