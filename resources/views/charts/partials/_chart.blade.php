@@ -8,16 +8,16 @@
 			<h3 class="chart-subname"></h3>
 			<ul class="chart-tabs clearfix">
 				<li class="chart-header-tab header-tab">
-					<a href="#chart-chart-tab" data-toggle="tab" aria-expanded="false">Chart</a>
+					<a href="#chart-chart-tab" data-toggle="tab" aria-expanded="false"><i class="fa fa-line-chart"></i>Chart</a>
 				</li>
 				<li class="data-header-tab header-tab">
-					<a href="#data-chart-tab" data-toggle="tab" aria-expanded="false">Data</a>
+					<a href="#data-chart-tab" data-toggle="tab" aria-expanded="false"><i class="fa fa-table"></i>Data</a>
 				</li>
 				<li class="map-header-tab header-tab">
-					<a href="#map-chart-tab" data-toggle="tab" aria-expanded="false">Map</a>
+					<a href="#map-chart-tab" data-toggle="tab" aria-expanded="false"><i class="fa fa-map"></i>Map</a>
 				</li>
 				<li class="sources-header-tab header-tab">
-					<a href="#sources-chart-tab" data-toggle="tab" aria-expanded="false">Sources</a>
+					<a href="#sources-chart-tab" data-toggle="tab" aria-expanded="false"><i class="fa fa-link"></i>Sources</a>
 				</li>
 				<li class="reload-btn-wrapper">
 					<a href="#" class="reload-btn" title="Reload chart"><i class="fa fa-refresh"></i></a>
