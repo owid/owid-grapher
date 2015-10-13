@@ -351,7 +351,7 @@
 
 				//if uploading interval data, need different validation
 				if( timeDomain !== "years" ) {
-					valid = !date.isValid();
+					valid = date.isValid();
 				} else {
 					//remove all whitespace
 					value = value.replace(/ /g,'');
