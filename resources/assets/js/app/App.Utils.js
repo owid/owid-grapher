@@ -642,9 +642,12 @@
 	App.Utils.inlineCssStyle = function( rules ) {
 		//http://devintorr.es/blog/2010/05/26/turn-css-rules-into-inline-style-attributes-using-jquery/
 		for (var idx = 0, len = rules.length; idx < len; idx++) {
-			$(rules[idx].selectorText).each(function (i, elem) {
-				elem.style.cssText += rules[idx].style.cssText;
-			});
+			//in Safari - Error: Syntax error, unrecognized expression: input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button
+			try {
+				$(rules[idx].selectorText).each(function (i, elem) {
+					elem.style.cssText += rules[idx].style.cssText;
+				});	
+			} catch(err) {}
 		}
 	};
 

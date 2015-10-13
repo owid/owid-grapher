@@ -274,13 +274,15 @@
 			if( isSvg ) {
 				
 				var cb = function( url ) {
+					console.log( "cb" );
 					//activate click on dummy button
 					var $chartSaveBtn = $( ".chart-save-btn" );
 					$chartSaveBtn.attr( "href", url );
 					$chartSaveBtn[ 0 ].click();
 					setTimeout( function() {
+						console.log( "cb timeout" );
 						window.location.reload();
-					}, 50 );
+					}, 250 );
 
 				};
 				svgAsDataUri( $( ".nvd3-svg" ).get( 0 ), {}, cb );
@@ -290,7 +292,7 @@
 				saveSvgAsPng( $svg.get( 0 ), "chart.png" );
 				setTimeout( function() {
 					window.location.reload();
-				}, 50 );
+				}, 250 );
 				
 			}
 			
