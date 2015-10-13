@@ -2,6 +2,7 @@
 	font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 	color: #000000;
 	height: 100%;
+	background-color: #f2f2f2;
 }
 
 	.standalone-chart-viewer #chart-view {
@@ -17,7 +18,7 @@
 	#chart-view .logo {
 		position: absolute;
 		top: 25px;
-		left: 40px;
+		right: 50px;
 	}
 
 	.nvd3 .nv-axis line {
@@ -70,7 +71,7 @@
 	#chart-view .h2,
 	#chart-view h3,
 	#chart-view .h3 {
-		margin-left: 50px;
+		/*margin-left: 50px;*/
 		font-family: Georgia, "Times New Roman", Serif;
 	}
 	#chart-view h2,
@@ -110,14 +111,17 @@
 		}
 
 		#chart-view .chart-tabs li { 
+			position: relative;
+			top: 1px;
+			z-index: 1;
 			float: left;
 			font-size: 12px;
-			border: 1px solid #eee;
+			border: 1px solid #ddd;
 			border-left: 0px;
 			background-color: #FAFAFA;
     	}
     		#chart-view .chart-tabs li:first-child {
-    			border-left: 1px solid #eee;
+    			border-left: 1px solid #ddd;
     		}
 			#chart-view .chart-tabs li.active,
 			#chart-view .chart-tabs li:hover {
@@ -130,6 +134,9 @@
 				display: block;
 				padding: 8px 12px;
 				text-decoration: none;
+				i {
+					margin-right: 5px;
+				}
 			}
 			#chart-view .chart-tabs li.reload-btn-wrapper:hover {
 				background-color: #444;
@@ -155,6 +162,8 @@
 		position: relative;
 		/* height is later modified in js */ 
 		height: calc(100% - 100px);
+		border: 1px solid #ddd;
+		background-color: #fff;
 	}
 	#chart-view .tab-pane {
 		position: relative;
@@ -190,6 +199,8 @@
 		padding: 0px 10px;
 		font-size: 10px;
 		background-color: #FAFAFA;
+		color: #fff;
+		background-color: #474747;
 	}
 		#chart-view .chart-footer a:hover {
 			text-decoration: underline;
@@ -205,10 +216,13 @@
 		#chart-view .chart-footer a,
 		#chart-view #sources-chart-tab a {
 			color: #1059E5;
+			color: #fff;
+			text-decoration: underline;
 		}
 			#chart-view #sources-chart-tab a:hover,
 			#chart-view #sources-chart-tab a:hover {
 				color: #FF4012;
+				color: #fff;
 			}
 		#chart-view .fancybox-iframe {
 			position: absolute;
@@ -446,6 +460,9 @@
 	/**
 	* SOURCES TAB
 	**/
+	#sources-chart-tab {
+		padding: 20px 0;
+	}
 	#sources-chart-tab .datasource-wrapper {
 		margin-bottom: 30px;
 		font-size: 12px;
