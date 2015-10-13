@@ -4,6 +4,10 @@
 
 	var App = require( "./../../namespaces.js" );
 	
+
+	var MAX_WIDTH = 2200,
+		MAX_HEIGHT = 1800;
+
 	var that;
 
 	App.Views.UI.ExportPopup = function() {
@@ -26,10 +30,12 @@
 			this.$exportFormat = this.$el.find( "[name='export-format']" );
 			this.$exportWidth = this.$el.find( "[name='export-width']" );
 			this.$exportHeight = this.$el.find( "[name='export-height']" );
+			this.$pngConstraintLabel = this.$el.find( ".png-constraint-label" );
 
 			this.$exportWidth.on( "input", $.proxy( this.onDimensionChange, this ) );
 			this.$exportHeight.on( "input", $.proxy( this.onDimensionChange, this ) );
-			
+			this.$exportFormat.on( "change", $.proxy( this.onExportFormat, this ) );
+
 			this.$closeBtn.on( "click", $.proxy( this.onCloseBtn, this ) );
 			this.$exportBtn.on( "click", $.proxy( this.onExportBtn, this ) );
 			
@@ -57,7 +63,8 @@
 		},
 
 		onDimensionChange: function( evt ) {
-			
+
+			this.checkPngConstraint();
 			this.dispatcher.trigger( "dimension-export-update", this.serializeForm() );
 
 		},
@@ -65,8 +72,28 @@
 		onExportBtn: function( evt ) {
 
 			evt.preventDefault();
-			this.dispatcher.trigger( "dimension-export", this.serializeForm() );
+			if( !this.$pngConstraintLabel.is( ":visible" ) ) {
+				this.dispatcher.trigger( "dimension-export", this.serializeForm() );
+			}
+			
+		},
 
+		onExportFormat: function( evt ) {
+			this.checkPngConstraint();
+		},
+
+		checkPngConstraint: function() {
+			
+			if( ( this.$exportFormat.filter( ":checked" ).val() === "png" ) && ( parseInt( this.$exportWidth.val(), 10 ) > MAX_WIDTH || parseInt( this.$exportHeight.val(), 10 ) > MAX_HEIGHT ) ) {
+				this.$pngConstraintLabel.show();
+			} else {
+				this.clearPngConstraint();
+			}
+			
+		},
+
+		clearPngConstraint: function() {
+			this.$pngConstraintLabel.hide();
 		},
 
 		serializeForm: function() {

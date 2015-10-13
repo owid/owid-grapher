@@ -674,6 +674,10 @@
 	}
 }
 
+.error-label {
+	color: red;
+}
+
 /**
 *	EXPORT POPUP
 **/
@@ -686,6 +690,16 @@
 	z-index: 1040;
 	display: none;
 
+	.png-constraint-label {
+		font-size: 12px;
+		text-align: center;
+		/* hidden by default*/
+		display: none;
+		i {
+			margin-right: 10px;
+		}
+	}
+	
 	.modal {
 		display: block;
 		background: rgba(0,0,0,0.3);

@@ -20,6 +20,7 @@
 						</div>
 						<hr />
 						<div class="dimension-section">
+							<p class="png-constraint-label error-label"><i class="fa fa-exclamation-triangle"></i>Maximum size for PNG is 2200x1800px.</p>
 							<label>
 								<span>Width</span>
 								<input type="text" class="form-control" name="export-width" value="3000" />
