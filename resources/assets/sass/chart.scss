@@ -3,6 +3,7 @@
 	color: #000000;
 	height: 100%;
 	background-color: #f2f2f2;
+	background-color: #ffffff;
 }
 
 	.standalone-chart-viewer #chart-view {
@@ -100,10 +101,23 @@
 	*	CHART TABS
 	**/
 	#chart-view .chart-tabs {
+		position: relative;
 		float: right;
 		margin-bottom: 0;
 		list-style-type: none;
 		text-transform: uppercase;
+		/*border-bottom: 1px solid #ddd;
+		&:after {
+			content: " ";
+			position: absolute;
+			display: inline-block;
+			width: 1px;
+			height: 40px;
+			border-left: 1px solid #ddd;
+			bottom: -40px;
+			right: 0px;
+			z-index: 1;
+		}*/
 	}
 		
 		#chart-view #chart-chart-tab {
@@ -162,7 +176,6 @@
 		position: relative;
 		/* height is later modified in js */ 
 		height: calc(100% - 100px);
-		border: 1px solid #ddd;
 		background-color: #fff;
 	}
 	#chart-view .tab-pane {
@@ -199,8 +212,8 @@
 		padding: 0px 10px;
 		font-size: 10px;
 		background-color: #FAFAFA;
-		color: #fff;
-		background-color: #474747;
+		//color: #fff;
+		//background-color: #474747;
 	}
 		#chart-view .chart-footer a:hover {
 			text-decoration: underline;
@@ -216,13 +229,13 @@
 		#chart-view .chart-footer a,
 		#chart-view #sources-chart-tab a {
 			color: #1059E5;
-			color: #fff;
+			//color: #fff;
 			text-decoration: underline;
 		}
 			#chart-view #sources-chart-tab a:hover,
 			#chart-view #sources-chart-tab a:hover {
 				color: #FF4012;
-				color: #fff;
+				//color: #fff;
 			}
 		#chart-view .fancybox-iframe {
 			position: absolute;
