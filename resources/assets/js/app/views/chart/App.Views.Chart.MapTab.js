@@ -179,7 +179,8 @@
 			if( d3.select( ".legend-wrapper" ).empty() ) {
 				d3.select( ".datamap" ).append( "g" ).attr( "class", "legend-wrapper" );
 			}
-			d3.select( ".legend-wrapper" ).datum( colorScheme ).call( this.legend );
+			var legendData = { scheme: colorScheme, description: mapConfig.legendDescription };
+			d3.select( ".legend-wrapper" ).datum( legendData ).call( this.legend );
 			//d3.select( ".datamap" ).datum( colorScheme ).call( this.legend );
 
 			//update map

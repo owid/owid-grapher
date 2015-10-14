@@ -13,7 +13,8 @@
 			"change [name='map-time-interval']": "onTimeIntervalChange",
 			"change [name='map-color-scheme']": "onColorSchemeChange",
 			"change [name='map-color-interval']": "onColorIntervalChange",
-			"change [name='map-projections']": "onProjectionChange"
+			"change [name='map-projections']": "onProjectionChange",
+			"change [name='map-legend-description']": "onLegendDescriptionChange"
 		},
 
 		initialize: function( options ) {
@@ -32,6 +33,7 @@
 			this.$colorIntervalSelect = this.$el.find( "[name='map-color-interval']" );
 			
 			this.$projectionsSelect = this.$el.find( "[name='map-projections']" );
+			this.$legendDescription = this.$el.find( "[name='map-legend-description']" );
 
 			//make sure we have current data
 			this.updateTargetYear( true );
@@ -50,6 +52,7 @@
 
 			this.$timeToleranceInput.val( mapConfig.timeTolerance );
 			this.$timeIntervalInput.val( mapConfig.timeInterval );
+			this.$legendDescription.val( mapConfig.legendDescription );
 
 			this.updateColorSchemeSelect();
 			this.updateColorIntervalSelect();
@@ -195,6 +198,12 @@
 
 		onAvailableTimeChange: function( evt ) {
 			this.updateTargetYear( false );
+		},
+
+		onLegendDescriptionChange: function( evt ) {
+			var $this = $( evt.target );
+			console.log( "onLegendDescriptionChange", $this.val() );
+			App.ChartModel.updateMapConfig( "legendDescription", $this.val() );
 		}
 
 	});

@@ -31,11 +31,12 @@
 		function legend( selection ) {
 
 			selection.each( function( data ) {
-
+				
 				var datamap = d3.select( ".datamap" ),
 					container = d3.select( this ),
 					containerHeight = datamap.node().getBoundingClientRect().height,
 					legendOffset = 10,
+					descriptionHeight = ( data.description && data.description.length )? 12: 0,
 					stepGap = 2,
 					g = container.select( ".legend" );
 
@@ -49,22 +50,20 @@
 				//data.reverse();
 
 				//data join
-				var legendSteps = g.selectAll( "." + stepClass ).data( data );
+				var legendSteps = g.selectAll( "." + stepClass ).data( data.scheme );
 				
 				//enter
 				var legendStepsEnter = legendSteps.enter()
 					.append( "g" )
-						.attr( "class", stepClass )
-						.attr( "transform", function( d, i ) { var translateX = legendOffset + (i*(stepSize+stepGap)), translateY = containerHeight - legendOffset - stepSize; return "translate(" + translateX + "," + translateY + ")"; } );
-						//.attr( "transform", function( d, i ) { var translateY = containerHeight - legendOffset - stepSize - ( i*(stepSize+stepGap) ); return "translate(" + legendOffset + "," + translateY + ")"; } );
+						.attr( "class", stepClass );
 				legendStepsEnter.append( "rect" )
 					.attr( "width", stepSize + "px" )
 					.attr( "height", stepSize + "px" );
 				legendStepsEnter.append( "text" )
-					//.attr( "transform", function( d, i ) { return "translate( " + (parseInt( stepSize/1.4, 10 ) + 10) + ", " + parseInt( stepSize/1.4, 10 ) + " )"; } );
 					.attr( "transform", function( d, i ) { return "translate(-2,-5)"; } );
 
 				//update
+				legendSteps.attr( "transform", function( d, i ) { var translateX = legendOffset + (i*(stepSize+stepGap)), translateY = containerHeight - legendOffset - stepSize - descriptionHeight; return "translate(" + translateX + "," + translateY + ")"; } );
 				legendSteps.select( "rect" )
 					.style( "fill", function( d, i ) {
 							return d;
@@ -75,6 +74,15 @@
 				//exit
 				legendSteps.exit().remove();
 
+				//legend description
+				var gDesc = container.selectAll( ".legend-description" ).data( [data.description] );
+				gDesc.enter()
+					.append( "text" )
+					.attr( "class", "legend-description" );
+				gDesc
+					.text( data.description )
+					.attr( "transform", function( d, i ) { var translateX = legendOffset, translateY = containerHeight - legendOffset; return "translate(" + translateX + "," + translateY + ")"; } );
+			
 			} );
 
 			return legend;
