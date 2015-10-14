@@ -53,6 +53,7 @@
 				"colorSchemeName": "BuGn",
 				"colorSchemeInterval": 5,
 				"projection": "World",
+				"legendDescription": "",
 			}
 		},
 
@@ -181,8 +182,10 @@
 
 		updateMapConfig: function( propName, propValue, silent, eventName ) {
 			
-			var mapConfig = this.get( "map-config" );
-			if( mapConfig.hasOwnProperty( propName ) ) {
+			var mapConfig = this.get( "map-config" ),
+				keys = _.keys( this.defaults["map-config"] );
+				
+			if( $.inArray( propName, keys ) > - 1 ) {
 				mapConfig[ propName ] = propValue;
 				if( !silent ) {
 					var evt = ( eventName )? eventName: "change";

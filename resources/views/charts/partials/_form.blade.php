@@ -415,8 +415,18 @@
 						</div>
 						<div class="form-section-content">
 							<label>
-								Which region map should be focused:
+								Which region map should be focused on:
 								<select name="map-projections" class="form-control"></select>
+							</label>
+						</div>
+					</section>
+					<section class="form-section tabs-section">
+						<div class="form-section-header">
+							<h2><span class="form-section-digit">s</span>Legend description</h2>
+						</div>
+						<div class="form-section-content">
+							<label>
+								<input type="text" name="map-legend-description" class="form-control" />
 							</label>
 						</div>
 					</section>
