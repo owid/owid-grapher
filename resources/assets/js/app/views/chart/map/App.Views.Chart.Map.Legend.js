@@ -75,7 +75,7 @@
 							return d;
 						} );
 				legendSteps.select( "text" )
-					.html( function( d, i ) { return ( !isOrdinalScale )? formatLegendLabel( scale.invertExtent( d ), i, data.length ): formatOrdinalLegendLabel( i, scale ) ; } );
+					.html( function( d, i ) { return ( !isOrdinalScale )? formatLegendLabel( scale.invertExtent( d ), i, data.scheme.length ): formatOrdinalLegendLabel( i, scale ) ; } );
 
 				//exit
 				legendSteps.exit().remove();
