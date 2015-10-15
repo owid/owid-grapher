@@ -654,6 +654,7 @@
             Datamaps.prototype.updateChoropleth.call(self, data);
           });
         }
+
         drawSubunits.call(self, data);
         handleGeographyConfig.call(self);
 
