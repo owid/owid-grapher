@@ -26,6 +26,11 @@
 			} else {
 				return valueArr.join( " &nbsp; " );
 			}
+
+		};
+
+		var formatOrdinalLegendLabel = function( i, scale ) {
+			return scale.domain()[ i ];
 		};
 
 		function legend( selection ) {
@@ -36,6 +41,7 @@
 					container = d3.select( this ),
 					containerHeight = datamap.node().getBoundingClientRect().height,
 					legendOffset = 10,
+					isOrdinalScale = ( !scale || !scale.hasOwnProperty( "invertExtent" ) )? true: false,
 					descriptionHeight = ( data.description && data.description.length )? 12: 0,
 					stepGap = 2,
 					g = container.select( ".legend" );
@@ -60,7 +66,7 @@
 					.attr( "width", stepSize + "px" )
 					.attr( "height", stepSize + "px" );
 				legendStepsEnter.append( "text" )
-					.attr( "transform", function( d, i ) { return "translate(-2,-5)"; } );
+					.attr( "transform", function( d, i ) { return ( !isOrdinalScale )? "translate(-2,-5)": "translate(15,-5) rotate(270)"; } );
 
 				//update
 				legendSteps.attr( "transform", function( d, i ) { var translateX = legendOffset + (i*(stepSize+stepGap)), translateY = containerHeight - legendOffset - stepSize - descriptionHeight; return "translate(" + translateX + "," + translateY + ")"; } );
@@ -69,7 +75,7 @@
 							return d;
 						} );
 				legendSteps.select( "text" )
-					.html( function( d, i ) { return formatLegendLabel( scale.invertExtent( d ), i, data.length ); } );
+					.html( function( d, i ) { return ( !isOrdinalScale )? formatLegendLabel( scale.invertExtent( d ), i, data.length ): formatOrdinalLegendLabel( i, scale ) ; } );
 
 				//exit
 				legendSteps.exit().remove();
