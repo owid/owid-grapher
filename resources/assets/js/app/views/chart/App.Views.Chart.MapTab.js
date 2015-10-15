@@ -141,6 +141,8 @@
 			
 			var that = this,
 				mapConfig = App.ChartModel.get( "map-config" ),
+				ordinalScale = false,
+				keysArr =[],
 				dataMin = Infinity,
 				dataMax = -Infinity;
 
@@ -154,6 +156,12 @@
 				dataMin = Math.min( dataMin, latestTimeValue );
 				dataMax = Math.max( dataMax, latestTimeValue );
 
+				//is some of the values is not number, consider this qualitative variable and use scale
+				if( isNaN( latestTimeValue ) ) {
+					ordinalScale = true;
+				}
+				keysArr[ latestTimeValue ] = true;
+
 				//ids in world json are name countries with underscore (datamaps.js uses id for selector, so cannot have whitespace), also cover Cote d'Ivoire, Saint Martin (French_part) cases
 				var key = d.key.replace( /[ '\(\)]/g, "_" );
 				return { "key": key, "value": latestTimeValue };
@@ -163,10 +171,17 @@
 			var colorScheme = ( colorbrewer[ mapConfig.colorSchemeName ] && colorbrewer[ mapConfig.colorSchemeName ][ mapConfig.colorSchemeInterval ] )? colorbrewer[ mapConfig.colorSchemeName ][ mapConfig.colorSchemeInterval ]: [];
 			
 			//need to create color scheme
-			var colorScale = d3.scale.quantize()
-				.domain( [ dataMin, dataMax ] )
-				.range( colorScheme );
-
+			var colorScale;
+			if( !ordinalScale ) {
+				colorScale = d3.scale.quantize()
+					.domain( [ dataMin, dataMax ] )
+					.range( colorScheme );
+			} else {
+				colorScale = d3.scale.ordinal()
+					.domain( _.keys( keysArr ) )
+					.range( colorScheme );
+			}
+			
 			//need to encode colors properties
 			var mapData = {},
 				colors = [];

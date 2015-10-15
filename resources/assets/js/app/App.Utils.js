@@ -512,7 +512,6 @@
 				var unit = _.findWhere( units, { property: i } ),
 					value = v,
 					isHidden = ( unit && unit.hasOwnProperty( "visible" ) && !unit.visible )? true: false;
-
 				//format number
 				if( unit && !isNaN( unit.format ) && unit.format >= 0 ) {
 					//fixed format
@@ -520,7 +519,9 @@
 					value = d3.format( ",." + fixed + "f" )( value );
 				} else {
 					//add thousands separator
-					value = d3.format( "," )( value );
+					if( !isNaN( value ) ) {
+						value = d3.format( "," )( value );
+					}
 				}
 
 				if( unit ) {
