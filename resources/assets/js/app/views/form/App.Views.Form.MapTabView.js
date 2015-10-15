@@ -100,7 +100,8 @@
 				mapConfig = App.ChartModel.get( "map-config" );
 
 			this.$colorSchemeSelect.empty();
-			_.each( colorbrewer, function( v, i ) {
+			console.log( "owdColorbrewer", owdColorbrewer );
+			_.each( owdColorbrewer, function( v, i ) {
 				var selected = ( i == mapConfig.colorSchemeName )? " selected": "";
 				html += "<option value='" + i + "' " + selected + ">" + i + "</option>";
 			} );
@@ -115,7 +116,7 @@
 				hasSelected = false;
 
 			this.$colorIntervalSelect.empty();
-			_.each( colorbrewer[  mapConfig.colorSchemeName ], function( v, i ) {
+			_.each( owdColorbrewer[ mapConfig.colorSchemeName ], function( v, i ) {
 				var selected = ( i == mapConfig.colorSchemeInterval )? " selected": "";
 				if( selected === " selected" ) {
 					hasSelected = true;
