@@ -154,8 +154,9 @@
 				dataMin = Math.min( dataMin, latestTimeValue );
 				dataMax = Math.max( dataMax, latestTimeValue );
 
-				//ids in world json are name countries with underscore (datamaps.js uses id for selector, so cannot have whitespace)
-				return { "key": d.key.replace( " ", "_" ), "value": latestTimeValue };
+				//ids in world json are name countries with underscore (datamaps.js uses id for selector, so cannot have whitespace), also cover Cote d'Ivoire, Saint Martin (French_part) cases
+				var key = d.key.replace( /[ '\(\)]/g, "_" );
+				return { "key": key, "value": latestTimeValue };
 
 			} );
 
