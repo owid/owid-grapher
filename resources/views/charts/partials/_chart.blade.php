@@ -156,6 +156,32 @@
 						</div>
 					</div>
 				</div>
+				<div class="map-timeline-controls clearfix">
+					<div class="play-pause-control control">
+						<a href="#" class="play-btn btn"><i class="fa fa-play-circle-o"></i></a>
+						<a href="#" class="pause-btn btn">
+							<span class="fa-stack fa">
+								<i class="fa fa-circle-o fa-stack-2x"></i>
+								<i class="fa fa-pause fa-stack-1x"></i>
+							</span>
+						</a>
+					</div>
+					<div class="timeline-control control">
+						<div class="timeline-start-year">1950</div>
+						<div class="timeline-end-year">2000</div>
+						<div class="timeline-wrapper">
+							<div class="timeline-slider">
+								<span class="timeline-slider-label">1980</span>
+								<span class="timeline-slider-graphic"></span>
+							</div>
+							<div class="timeline"></div>
+						</div>
+					</div>
+					<div class="buttons-control control">
+						<a href="#" class="year-btn btn">1980</a>
+						<a href="#" class="year-btn btn">1985</a>
+					</div>
+				</div>
 			</div>		
 			<div id="sources-chart-tab" class="tab-pane">
 			</div>
