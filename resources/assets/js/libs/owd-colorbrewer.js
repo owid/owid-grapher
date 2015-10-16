@@ -18,3 +18,4 @@ for( var schemeName in colorbrewer ) {
 	}
 
 }
+owdColorbrewer[ "custom" ] = {};

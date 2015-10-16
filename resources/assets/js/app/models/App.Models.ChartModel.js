@@ -52,6 +52,7 @@
 				"timeInterval": 10,
 				"colorSchemeName": "BuGn",
 				"colorSchemeInterval": 5,
+				"customColorScheme": [ "#000", "#c00", "#0c0", "#00c", "#c0c" ],
 				"projection": "World",
 				"legendDescription": "",
 			}
@@ -186,7 +187,14 @@
 				keys = _.keys( this.defaults["map-config"] );
 				
 			if( $.inArray( propName, keys ) > - 1 ) {
+				
+				//if changing colorschem interval and custom colorscheme is used, update it
+				if( propName === "colorSchemeInterval" && mapConfig.colorSchemeName === "custom" ) {
+					mapConfig.customColorScheme = mapConfig.customColorScheme.slice( 0, propValue - 1 );
+				}
+
 				mapConfig[ propName ] = propValue;
+
 				if( !silent ) {
 					var evt = ( eventName )? eventName: "change";
 					this.trigger( evt );

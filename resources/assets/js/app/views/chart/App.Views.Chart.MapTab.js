@@ -168,7 +168,13 @@
 
 			} );
 
-			var colorScheme = ( owdColorbrewer[ mapConfig.colorSchemeName ] && owdColorbrewer[ mapConfig.colorSchemeName ][ mapConfig.colorSchemeInterval ] )? owdColorbrewer[ mapConfig.colorSchemeName ][ mapConfig.colorSchemeInterval ]: [];
+			//are we using colorbrewer schemes
+			var colorScheme;
+			if( mapConfig.colorSchemeName !== "custom" ) {
+				colorScheme = ( owdColorbrewer[ mapConfig.colorSchemeName ] && owdColorbrewer[ mapConfig.colorSchemeName ][ mapConfig.colorSchemeInterval ] )? owdColorbrewer[ mapConfig.colorSchemeName ][ mapConfig.colorSchemeInterval ]: [];
+			} else if( mapConfig.colorSchemeName ) {
+				colorScheme = mapConfig.customColorScheme;
+			}
 			
 			//need to create color scheme
 			var colorScale;

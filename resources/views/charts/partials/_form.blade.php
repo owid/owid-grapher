@@ -405,8 +405,11 @@
 							</label>
 							<label>
 								Number of intervals:
-								<select name="map-color-interval" class="form-control"></select>
+								<input name="map-color-interval" type="number" class="form-control"></select>
 							</label>
+							<ul class="map-color-scheme-preview clearfix">
+
+							</ul>
 						</div>
 					</section>
 					<section class="form-section tabs-section">
