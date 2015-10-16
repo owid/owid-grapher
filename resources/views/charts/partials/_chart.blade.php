@@ -177,8 +177,8 @@
 						</div>
 					</div>
 					<div class="buttons-control control">
-						<a href="#" class="year-btn btn">1980</a>
-						<a href="#" class="year-btn btn">1985</a>
+						<ul class="buttons-wrapper">
+						</ul>
 					</div>
 				</div>
 			</div>		

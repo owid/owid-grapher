@@ -6,7 +6,7 @@
 
 	App.Views.Chart.Map.TimelineControl = Backbone.View.extend({
 
-		el: "#map-chart-tab .timeline-control",
+		el: "#map-chart-tab .map-timeline-controls .timeline-control",
 		events: {
 			"input [type='range']": "onTargetYearInput",
 			"change [type='range']": "onTargetYearChange",
