@@ -172,9 +172,8 @@
 						<div class="timeline-wrapper">
 							<div class="timeline-slider">
 								<span class="timeline-slider-label">1980</span>
-								<span class="timeline-slider-graphic"></span>
 							</div>
-							<div class="timeline"></div>
+							<input type="range" min="1950" max="2010" step="10"  />
 						</div>
 					</div>
 					<div class="buttons-control control">

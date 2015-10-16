@@ -4,6 +4,7 @@
 
 	var App = require( "./../../namespaces.js" ),
 		MapControls = require( "./map/App.Views.Chart.Map.MapControls.js" ),
+		TimelineControls = require( "./map/timeline/App.Views.Chart.Map.TimelineControls.js" ),
 		Legend = require( "./map/App.Views.Chart.Map.Legend.js" ),
 		ChartDataModel = require( "./../../models/App.Models.ChartDataModel.js" );
 
@@ -20,6 +21,7 @@
 			
 			this.dispatcher = options.dispatcher;
 			this.mapControls = new MapControls( { dispatcher: options.dispatcher } );
+			this.timelineControls = new TimelineControls( { dispatcher: options.dispatcher } );
 
 			//init map only if the map tab displayed
 			var that = this;

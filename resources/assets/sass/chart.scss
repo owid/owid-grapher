@@ -685,21 +685,41 @@ body {
 
 		.map-timeline-controls {
 
+			height: 50px;
+			color: #ffffff;
+			background-color: #444;
+
 			.control {
 				float: left;
 			}
 
 			/* play/pause control */
+			$play-pause-control: 60px;
 			.play-pause-control {
-				width: 100px;
+				width: $play-pause-control;
+				height: 100%;
+				.btn {
+					display: block;
+					color: #ffffff;
+				}
+				.play-btn,
+				.pause-btn {
+					position: absolute;
+					top: 0;
+				}
 				.play-btn {
 					font-size: 27px;
+
+				}
+				.pause-btn {
+					display: none;
+					top: 5px;
 				}
 			}
 
 			.timeline-control, 
 			.buttons-control {
-				width: calc(100% - 100px);
+				width: calc(100% - #{$play-pause-control});
 			}
 
 			/* timeline-control */
@@ -708,20 +728,20 @@ body {
 
 				.timeline-start-year {
 					position: absolute;
-					top: 10px;
+					top: 20px;
 					left: 10px;
 				}
 				.timeline-end-year {
 					position: absolute;
-					top: 10px;
+					top: 20px;
 					right: 10px;
 				}
 				.timeline-wrapper {
 					position: absolute;
+					top: 10px;
 					left: 50px;
 					right: 50px;
-					padding: 15px 0;
-
+					
 					.timeline {
 						width: 100%;
 						height: 10px;
@@ -735,6 +755,8 @@ body {
 						top: -10px;
 						z-index: 1;
 						cursor: pointer;
+						-webkit-transform: translate(-50%,0);
+						transform: translate(-50%,0);
 
 						> span {
 							display: block;
@@ -758,8 +780,8 @@ body {
 				display: none;
 
 				.btn {
-					color: #fff !important;
-					background-color: black;
+					color: #000 !important;
+					background-color: #fff;
 				}
 
 			}
