@@ -2,7 +2,8 @@
 	
 	"use strict";
 
-	var App = require( "./../../namespaces.js" );
+	var App = require( "./../../namespaces.js" ),
+		ColorSchemeView = require( "./mapTab/App.Views.Form.MapColorSchemeView.js" );
 
 	App.Views.Form.MapTabView = Backbone.View.extend({
 
@@ -22,7 +23,7 @@
 
 			App.ChartVariablesCollection.on( "add remove change reset", this.onVariablesCollectionChange, this );
 			App.AvailableTimeModel.on( "change", this.onAvailableTimeChange, this );
-			//App.ChartModel.on( "change", this.onChartModelChange, this );
+			App.ChartModel.on( "change", this.onChartModelChange, this );
 			
 			this.$variableIdSelect = this.$el.find( "[name='map-variable-id']" );
 			
@@ -34,6 +35,8 @@
 			
 			this.$projectionsSelect = this.$el.find( "[name='map-projections']" );
 			this.$legendDescription = this.$el.find( "[name='map-legend-description']" );
+
+			this.colorSchemeView = new ColorSchemeView( options );
 
 			//make sure we have current data
 			this.updateTargetYear( true );
@@ -100,7 +103,6 @@
 				mapConfig = App.ChartModel.get( "map-config" );
 
 			this.$colorSchemeSelect.empty();
-			console.log( "owdColorbrewer", owdColorbrewer );
 			_.each( owdColorbrewer, function( v, i ) {
 				var selected = ( i == mapConfig.colorSchemeName )? " selected": "";
 				html += "<option value='" + i + "' " + selected + ">" + i + "</option>";
@@ -113,19 +115,15 @@
 			
 			var html = "",
 				mapConfig = App.ChartModel.get( "map-config" ),
-				hasSelected = false;
+				keys = _.keys( owdColorbrewer[ mapConfig.colorSchemeName ] ),
+				max = parseInt( keys[ keys.length - 1 ], 10 ),
+				min = parseInt( keys[ 0 ], 10 );
 
-			this.$colorIntervalSelect.empty();
-			_.each( owdColorbrewer[ mapConfig.colorSchemeName ], function( v, i ) {
-				var selected = ( i == mapConfig.colorSchemeInterval )? " selected": "";
-				if( selected === " selected" ) {
-					hasSelected = true;
-				}
-				html += "<option value='" + i + "' " + selected + ">" + i + "</option>";
-			} );
-			this.$colorIntervalSelect.append( $( html ) );
+			this.$colorIntervalSelect.attr( "min", min );
+			this.$colorIntervalSelect.attr( "max", max );
 
-			if( !hasSelected ) {
+			if( mapConfig.colorSchemeInterval ) {
+				this.$colorIntervalSelect.val( mapConfig.colorSchemeInterval );
 				//there's not selected interval that would exist with current color scheme, select that first
 				App.ChartModel.updateMapConfig( "colorSchemeInterval", this.$colorIntervalSelect.val() );
 			}
@@ -194,7 +192,8 @@
 		},
 
 		onChartModelChange: function( evt ) {
-			this.updateTargetYear( true );
+			this.updateColorSchemeSelect();
+			//this.updateTargetYear( true );
 		},
 
 		onAvailableTimeChange: function( evt ) {
@@ -203,7 +202,6 @@
 
 		onLegendDescriptionChange: function( evt ) {
 			var $this = $( evt.target );
-			console.log( "onLegendDescriptionChange", $this.val() );
 			App.ChartModel.updateMapConfig( "legendDescription", $this.val() );
 		}
 
