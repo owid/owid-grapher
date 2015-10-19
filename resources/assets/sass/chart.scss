@@ -687,8 +687,8 @@ body {
 		.map-timeline-controls {
 
 			height: 50px;
-			color: #ffffff;
-			background-color: #444;
+			color: #404040;
+			background-color: #FAFAFA;
 
 			.control {
 				float: left;
@@ -697,12 +697,12 @@ body {
 			/* play/pause control */
 			$play-pause-control: 60px;
 			.play-pause-control {
-				display: none;
+				/*display: none;*/
 				width: $play-pause-control;
 				height: 100%;
 				.btn {
 					display: block;
-					color: #ffffff;
+					color: #404040;
 				}
 				.play-btn,
 				.pause-btn {
@@ -721,7 +721,7 @@ body {
 
 			/* timeline-control */
 			.timeline-control {
-				display: none;
+				/*display: none;*/
 				width: calc(100% - #{$play-pause-control});
 				position: relative;
 
@@ -770,13 +770,34 @@ body {
 
 					}
 
+					.timeline-ticks {
+						position: absolute;
+						top: 15px;
+						left: 0;
+						width: 100%;
+						padding-left: 0;
+						list-style-type: none;
+						li {
+							position: absolute;
+							display: inline-block;
+							width: 4px;
+							height: 8px;
+							border: 1px solid #FAFAFA;
+							font-size: 0;
+							list-style-type: none;
+							background-color: #404040;
+							transform-style: preserve-3d;
+							backface-visibility: hidden;
+						}
+					}
+
 				}
 
 			}
 
 			/* buttons-control */
 			.buttons-control {
-				/*display: none;*/
+				display: none;
 				width: 100%;
 
 				ul {
