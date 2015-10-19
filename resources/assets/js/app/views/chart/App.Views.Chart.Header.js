@@ -24,7 +24,8 @@
 		render: function() {
 			
 			var tabs = App.ChartModel.get( "tabs" ),
-				defaultTab = App.ChartModel.get( "default-tab" );
+				defaultTab = App.ChartModel.get( "default-tab" ),
+				openDefault = ( this.$tabs.filter( ".active" ).length )? false: true;
 			
 			//hide first everything
 			this.$tabs.hide();
@@ -33,11 +34,15 @@
 			_.each( tabs, function( v, i ) {
 				var tab = that.$tabs.filter( "." + v + "-header-tab" );
 				tab.show();
-				if( v === defaultTab ) {
+				if( v === defaultTab && openDefault ) {
 					tab.addClass( "active" );
 				}
 			} );
 
+			//for first visible tab, add class for border-left, cannot be done in pure css http://stackoverflow.com/questions/18765814/targeting-first-visible-element-with-pure-css
+			this.$tabs.removeClass( "first" );
+			this.$tabs.filter( ":visible:first" ).addClass( "first" );
+			
 		}
 
 	});
