@@ -680,22 +680,22 @@ body {
 		/**
 		*	MAP TIMELINE CONTROL
 		**/
-		//temp
-		.map-controls-header { display: none; }
-		//end temp
-
 		.map-timeline-controls {
-
+			position: absolute;
+			bottom: 0;
+			z-index: 1;
+			width: 100%;
 			height: 50px;
 			color: #404040;
 			background-color: #FAFAFA;
+			border-top: 1px solid #ddd;
 
 			.control {
 				float: left;
 			}
 
 			/* play/pause control */
-			$play-pause-control: 60px;
+			$play-pause-control: 50px;
 			.play-pause-control {
 				/*display: none;*/
 				width: $play-pause-control;
@@ -703,19 +703,33 @@ body {
 				.btn {
 					display: block;
 					color: #404040;
+					width: 50px;
+					height: 100%;
 				}
 				.play-btn,
 				.pause-btn {
 					position: absolute;
 					top: 0;
+					&:hover {
+						color: #666;
+					}
+					&:active {
+						box-shadow: none;
+					}
 				}
 				.play-btn {
+					top: -1px;
+					left: 8px;
 					font-size: 27px;
-
 				}
 				.pause-btn {
 					display: none;
-					top: 5px;
+					top: 4px;
+					left: 6px;
+					.fa-stack-1x {
+						font-size: 10px;
+						top: 0px;
+					}
 				}
 			}
 
@@ -727,19 +741,28 @@ body {
 
 				.timeline-start-year {
 					position: absolute;
-					top: 20px;
+					top: 9px;
 					left: 10px;
+					padding: 5px 12px;
 				}
 				.timeline-end-year {
 					position: absolute;
-					top: 20px;
+					top: 9px;
 					right: 10px;
+					padding: 5px 12px;
+				}
+				.timeline-slider-label,
+				.timeline-end-year.highlight,
+				.timeline-start-year.highlight {
+					padding: 5px 12px;
+					background-color: #404040;
+					color: #fff;
 				}
 				.timeline-wrapper {
 					position: absolute;
-					top: 10px;
-					left: 50px;
-					right: 50px;
+					top: 6px;
+					left: 70px;
+					right: 70px;
 					
 					.timeline {
 						width: 100%;
@@ -748,11 +771,15 @@ body {
 						padding: 0;
 						background-color: #ddd;
 					}
+					input[type="range"] {
+						height: 2px;
+					}
 					.timeline-slider {
+						pointer-events: none;
 						position: absolute;
 						left: 100px;
-						top: -10px;
-						z-index: 1;
+						top: -20px;
+						z-index: 2;
 						cursor: pointer;
 						-webkit-transform: translate(-50%,0);
 						transform: translate(-50%,0);
@@ -760,7 +787,6 @@ body {
 						> span {
 							display: block;
 						}
-
 						.timeline-slider-graphic {
 							width: 5px;
 							height: 20px;
@@ -771,6 +797,7 @@ body {
 					}
 
 					.timeline-ticks {
+						pointer-events: none;
 						position: absolute;
 						top: 15px;
 						left: 0;
@@ -798,26 +825,38 @@ body {
 			/* buttons-control */
 			.buttons-control {
 				display: none;
+				/*display: table;*/
 				width: 100%;
+				height: 100%;
 
 				ul {
-					margin-top: 5px;
 					list-style-type: none;
+					display: table-cell;
+					text-align: center;
+					vertical-align: middle;
+					padding-left: 0px;
 				}
 				.year-btn {
-					float: left;
+					display: inline-block;
 					margin-right: 5px;
 					&:last-child {
 						margin-right: 0;
 					}
-					&.selected {
+					&.selected,
+					&:hover {
 						.btn {
-							background-color: #FF0;	
+							color: #404040 !important;
+							background-color: #ffffff;
+							border: 1px solid #ddd;
 						}
 					}
 					.btn {
-						color: #000 !important;
-						background-color: #fff;
+						color: #ffffff !important;
+						background-color: #404040;
+						border-radius: 0;
+						&.btn:active {
+							box-shadow: none;
+						}
 					}
 				}
 
