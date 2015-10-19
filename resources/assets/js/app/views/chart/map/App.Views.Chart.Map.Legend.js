@@ -40,7 +40,8 @@
 				var datamap = d3.select( ".datamap" ),
 					container = d3.select( this ),
 					containerHeight = datamap.node().getBoundingClientRect().height,
-					legendOffset = 10,
+					legendOffsetX = 10,
+					legendOffsetY = 60,
 					isOrdinalScale = ( !scale || !scale.hasOwnProperty( "invertExtent" ) )? true: false,
 					descriptionHeight = ( data.description && data.description.length )? 12: 0,
 					stepGap = 2,
@@ -69,7 +70,7 @@
 					.attr( "transform", function( d, i ) { return ( !isOrdinalScale )? "translate(-2,-5)": "translate(15,-5) rotate(270)"; } );
 
 				//update
-				legendSteps.attr( "transform", function( d, i ) { var translateX = legendOffset + (i*(stepSize+stepGap)), translateY = containerHeight - legendOffset - stepSize - descriptionHeight; return "translate(" + translateX + "," + translateY + ")"; } );
+				legendSteps.attr( "transform", function( d, i ) { var translateX = legendOffsetX + (i*(stepSize+stepGap)), translateY = containerHeight - legendOffsetY - stepSize - descriptionHeight; return "translate(" + translateX + "," + translateY + ")"; } );
 				legendSteps.select( "rect" )
 					.style( "fill", function( d, i ) {
 							return d;
@@ -87,7 +88,7 @@
 					.attr( "class", "legend-description" );
 				gDesc
 					.text( data.description )
-					.attr( "transform", function( d, i ) { var translateX = legendOffset, translateY = containerHeight - legendOffset; return "translate(" + translateX + "," + translateY + ")"; } );
+					.attr( "transform", function( d, i ) { var translateX = legendOffsetX, translateY = containerHeight - legendOffsetY; return "translate(" + translateX + "," + translateY + ")"; } );
 			
 			} );
 

@@ -74,8 +74,19 @@
 
 			if( intTime === min || intTime === max ) {
 				this.$sliderLabel.hide();
+				this.$sliderInput.removeClass( "thumb-label" );
+				if( intTime === min ) {
+					this.$startYear.addClass( "highlight" );
+					this.$endYear.removeClass( "highlight" );
+				} else {
+					this.$startYear.removeClass( "highlight" );
+					this.$endYear.addClass( "highlight" );
+				}
 			} else {
 				this.$sliderLabel.show();
+				this.$sliderInput.addClass( "thumb-label" );
+				this.$startYear.removeClass( "highlight" );
+				this.$endYear.removeClass( "highlight" );
 			}
 
 		},
@@ -143,8 +154,6 @@
 
 			htmlString += "</ol>";
 			$input.after( $( htmlString ) );
-
-			console.log( "step", numSteps, step, max, min );
 
 		}
 

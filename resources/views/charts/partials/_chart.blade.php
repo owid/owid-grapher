@@ -118,7 +118,7 @@
 			</div>
 			<div id="map-chart-tab" class="tab-pane">
 				<div class="map-controls-header clearfix">
-					<div class="target-year-control control clearfix">
+					<!--<div class="target-year-control control clearfix">
 						<div class="control-head">
 							<i class="fa fa-clock-o"></i>
 							<label class="target-year-label"></label>
@@ -126,7 +126,7 @@
 						<div class="control-body">
 							<input type="range" min="1950" max="2010" step="10"  />
 						</div>
-					</div>
+					</div>-->
 					<div class="region-control control clearfix">
 						<div class="control-head">
 							<i class="fa fa-map"></i>
