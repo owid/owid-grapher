@@ -19,10 +19,35 @@
 			this.timelineControl = new TimelineControl( options );
 			this.buttonsControl = new ButtonsControl( options );
 
+			App.ChartModel.on( "change-map", this.onChartModelChange, this );
+
 			return this.render();
 		},
 
-		render: function() {}
+		render: function() {
+
+			var mapConfig = App.ChartModel.get( "map-config" );
+			
+			//depending on the mode used display timeline mode or buttons mode
+			if( mapConfig.timelineMode === "buttons" ) {
+				
+				this.playPauseControl.hide();
+				this.timelineControl.hide();
+				this.buttonsControl.show();
+
+			} else {
+
+				this.playPauseControl.show();
+				this.timelineControl.show();
+				this.buttonsControl.hide();
+
+			}
+
+		},
+
+		onChartModelChange: function() {
+			this.render();
+		}
 
 	});
 

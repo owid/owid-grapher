@@ -76,6 +76,14 @@
 			if( this.interval ) {
 				clearInterval( this.interval );
 			}
+		},
+
+		show: function() {
+			this.$el.css( "display", "block" );
+		},
+
+		hide: function() {
+			this.$el.css( "display", "none" );
 		}
 
 	});

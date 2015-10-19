@@ -50,6 +50,7 @@
 				"mode": "specific",
 				"timeTolerance": 10,
 				"timeInterval": 10,
+				"timelineMode": "timeline",
 				"colorSchemeName": "BuGn",
 				"colorSchemeInterval": 5,
 				"customColorScheme": [ "#000", "#c00", "#0c0", "#00c", "#c0c" ],
@@ -185,7 +186,7 @@
 			
 			var mapConfig = this.get( "map-config" ),
 				keys = _.keys( this.defaults["map-config"] );
-				
+			
 			if( $.inArray( propName, keys ) > - 1 ) {
 				
 				//if changing colorschem interval and custom colorscheme is used, update it
