@@ -160,8 +160,7 @@
 		},
 
 		updateTimelineMode: function() {
-			console.log( "updateTimelineMode" );
-
+			
 			var mapConfig = App.ChartModel.get( "map-config" );
 			if( mapConfig.timelineMode ) {
 
@@ -180,7 +179,7 @@
 					this.$timeModeSelect.val( "buttons" );
 					this.$timeModeSelect.trigger( "change" );
 				}
-				
+
 			}
 
 		},
