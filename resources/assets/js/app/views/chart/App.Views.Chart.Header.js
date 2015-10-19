@@ -23,7 +23,8 @@
 
 		render: function() {
 			
-			var tabs = App.ChartModel.get( "tabs" );
+			var tabs = App.ChartModel.get( "tabs" ),
+				defaultTab = App.ChartModel.get( "default-tab" );
 			
 			//hide first everything
 			this.$tabs.hide();
@@ -32,7 +33,7 @@
 			_.each( tabs, function( v, i ) {
 				var tab = that.$tabs.filter( "." + v + "-header-tab" );
 				tab.show();
-				if( i === 0 ) {
+				if( v === defaultTab ) {
 					tab.addClass( "active" );
 				}
 			} );

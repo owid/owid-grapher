@@ -27,6 +27,7 @@
 			"cache": true,
 			"selected-countries": [],
 			"tabs": [ "chart", "data", "sources" ],
+			"default-tab": "chart",
 			"line-type": "2",
 			"chart-description": "",
 			"chart-dimensions": [],
