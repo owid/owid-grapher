@@ -22,12 +22,14 @@
 			this.$sliderWrapper = this.$el.find( ".timeline-wrapper" );
 			this.$slider = this.$el.find( ".timeline-slider" );
 			this.$sliderLabel = this.$slider.find( ".timeline-slider-label" );
-			this.$sliderInput =this.$sliderWrapper.find( "[type='range']" );
+			this.$sliderInput = this.$sliderWrapper.find( "[type='range']" );
 
 			this.$startYear = this.$el.find( ".timeline-start-year" );
 			this.$endYear = this.$el.find( ".timeline-end-year" );
 
 			this.dispatcher.on( "increment-time", this.onIncrementTime, this );
+
+			this.$win.on( "resize", this.onResize, this );
 
 			//year slider
 			/*  App.ChartModel.on( "change", this.onChartModelChange, this );
@@ -55,6 +57,8 @@
 				this.$sliderInput.attr( "disabled", false );
 			}
 
+			this.createTicks( this.$sliderInput );
+		
 		},
 
 		updateSliderInput: function( time ) {
@@ -110,6 +114,37 @@
 			}
 			this.$sliderInput.val( newValue );
 			this.$sliderInput.trigger( "change" );
+
+		},
+
+		createTicks: function( $input ) {
+
+			if( this.$el.find( ".timeline-ticks" ).length ) {
+				//already has ticks, bail
+				return;
+			}
+
+			var step = parseInt( $input.attr( "step" ), 10 ),
+				max = parseInt( $input.attr( "max" ), 10 ),
+				min = parseInt( $input.attr( "min" ), 10 ),
+				numSteps = Math.floor( ( max - min ) / step ),
+				inputWidth = this.$sliderInput.width(),
+				stepSize = inputWidth / numSteps,
+				currStep = min,
+				htmlString = "<ol class='timeline-ticks'>";
+
+			for( var i = 0; i <= numSteps; i++ ) {
+				var percent = i * stepSize + "%",
+					translate = "translate(-" + Math.floor( i * stepSize ) + "%, 0)",
+					tickString = "<li style='left:" + percent + ";-webkit-transform:" + translate + ";-ms-transform:" + translate + ";transform:" + translate + "'>" + currStep + "</li>";
+				htmlString += tickString;
+				currStep += step;
+			}
+
+			htmlString += "</ol>";
+			$input.after( $( htmlString ) );
+
+			console.log( "step", numSteps, step, max, min );
 
 		}
 
