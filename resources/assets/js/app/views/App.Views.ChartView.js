@@ -166,11 +166,10 @@
 			//make sure to appear only first tab tabs that are necessary
 			//appear only first tab if none visible
 			if( !this.$tabPanes.filter( ".active" ).length ) {
-				var tabs = App.ChartModel.get( "tabs" ),
-					firstTabName = tabs[ 0 ],
-					firstTabPane = this.$tabPanes.filter( "#" + firstTabName + "-chart-tab" );
-				firstTabPane.addClass( "active" );
-				if( firstTabName === "map" ) {
+				var defaultTab = App.ChartModel.get( "default-tab" ),
+					visibleTabPane = this.$tabPanes.filter( "#" + defaultTab + "-chart-tab" );
+				visibleTabPane.addClass( "active" );
+				if( defaultTab === "map" ) {
 					//map tab needs special inialitization
 					this.mapTab.display();
 				}

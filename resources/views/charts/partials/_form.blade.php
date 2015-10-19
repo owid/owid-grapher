@@ -347,6 +347,15 @@
 									</label>
 								</li>
 							</ol>
+							<label>
+								<span>Open by default:</span>
+								<select type="text" name="default-tab" class="form-control">
+									<option value="chart">Chart tab</option>
+									<option value="data">Data tab</option>
+									<option value="map">Map tab</option>
+									<option value="sources">Sources tab</option>
+								</select>
+							</label>
 						</div>
 					</section>
 					<section class="form-section">

@@ -9,6 +9,7 @@
 		el: "#form-view #export-tab",
 		events: {
 			"click [type='checkbox']": "onTabsCheck",
+			"change [name='default-tab']": "onDefaultTabChange",
 			"change .embed-size-wrapper input": "onEmbedSizeChange"
 		},
 
@@ -24,6 +25,7 @@
 		render: function() {
 			
 			this.$checkboxes = this.$el.find( "[type='checkbox']" );
+			this.$defaultTabSelect = this.$el.find( "[name='default-tab']" );
 			this.$widthInput = this.$el.find( "[name='iframe-width']" );
 			this.$heightInput = this.$el.find( "[name='iframe-height']" );
 			this.$iframeTextArea = this.$el.find( "[name='iframe']" );
@@ -40,6 +42,9 @@
 					that.$mapTab.css( "display", "block" );
 				}
 			} );
+
+			//update default tab from model
+			this.$defaultTabSelect.val( App.ChartModel.get( "default-tab" ) );
 
 			//update size from model
 			this.$widthInput.val( App.ChartModel.get( "iframe-width" ) );
@@ -80,6 +85,13 @@
 			} );
 
 			App.ChartModel.set( "tabs", checked );
+
+		},
+
+		onDefaultTabChange: function( evt ) {
+
+			var $input = $( evt.currentTarget );
+			App.ChartModel.set( "default-tab", $input.val() );
 
 		},
 
