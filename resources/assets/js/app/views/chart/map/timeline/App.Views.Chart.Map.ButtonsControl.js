@@ -14,6 +14,7 @@
 			this.dispatcher = options.dispatcher;
 			this.$buttonsWrapper = this.$el.find( ".buttons-wrapper" );
 
+			App.ChartModel.on( "change", this.onChartModelChange, this );
 			App.ChartModel.on( "change-map", this.onChartModelChange, this );
 
 			return this.render();
@@ -55,6 +56,14 @@
 
 		onChartModelChange: function() {
 			this.render();
+		},
+
+		show: function() {
+			this.$el.css( "display", "table" );
+		},
+
+		hide: function() {
+			this.$el.css( "display", "none" );
 		}
 
 	});

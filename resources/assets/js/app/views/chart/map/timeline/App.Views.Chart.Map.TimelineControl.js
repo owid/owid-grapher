@@ -58,7 +58,7 @@
 			}
 
 			this.createTicks( this.$sliderInput );
-		
+			
 		},
 
 		updateSliderInput: function( time ) {
@@ -155,6 +155,14 @@
 			htmlString += "</ol>";
 			$input.after( $( htmlString ) );
 
+		},
+
+		show: function() {
+			this.$el.css( "display", "block" );
+		},
+
+		hide: function() {
+			this.$el.css( "display", "none" );
 		}
 
 	});

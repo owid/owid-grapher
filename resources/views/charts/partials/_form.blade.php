@@ -392,6 +392,13 @@
 								Gap between years:
 								<input name="map-time-interval" class="form-control" placeholder="Gap between years" />
 							</label>
+							<label>
+								Switch between years, using:
+								<select name="map-time-mode" class="form-control">
+									<option value="slider">Slider</option>
+									<option value="buttons">Buttons</option>
+								</select>
+							</label>
 						</div>
 					</section>
 					<section class="form-section tabs-section">

@@ -12,6 +12,7 @@
 			"change [name='map-variable-id']": "onVariableIdChange",
 			"change [name='map-time-tolerance']": "onTimeToleranceChange",
 			"change [name='map-time-interval']": "onTimeIntervalChange",
+			"change [name='map-time-mode']": "onTimeModeChange",
 			"change [name='map-color-scheme']": "onColorSchemeChange",
 			"change [name='map-color-interval']": "onColorIntervalChange",
 			"change [name='map-projections']": "onProjectionChange",
@@ -30,6 +31,8 @@
 			this.$timeToleranceInput = this.$el.find( "[name='map-time-tolerance']" );
 			this.$timeIntervalInput = this.$el.find( "[name='map-time-interval']" );
 			
+			this.$timeModeSelect = this.$el.find( "[name='map-time-mode']" );
+			
 			this.$colorSchemeSelect = this.$el.find( "[name='map-color-scheme']" );
 			this.$colorIntervalSelect = this.$el.find( "[name='map-color-interval']" );
 			
@@ -45,7 +48,7 @@
 		},
 
 		render: function() {
-					
+				
 			//populate variable select with the available ones
 			this.$variableIdSelect.empty();
 
@@ -56,10 +59,11 @@
 			this.$timeToleranceInput.val( mapConfig.timeTolerance );
 			this.$timeIntervalInput.val( mapConfig.timeInterval );
 			this.$legendDescription.val( mapConfig.legendDescription );
-
+			
 			this.updateColorSchemeSelect();
 			this.updateColorIntervalSelect();
 			this.updateProjectionsSelect();
+			this.updateTimelineMode();
 
 		},
 
@@ -155,6 +159,32 @@
 			App.ChartModel.updateMapConfig( "targetYear", targetYear, silent );
 		},
 
+		updateTimelineMode: function() {
+			console.log( "updateTimelineMode" );
+
+			var mapConfig = App.ChartModel.get( "map-config" );
+			if( mapConfig.timelineMode ) {
+
+				this.$timeModeSelect.val( mapConfig.timelineMode );
+			
+			} else {
+			
+				//no timeline mode set
+				var min = mapConfig.minYear,
+					max = mapConfig.maxYear,
+					step = mapConfig.timeInterval,
+					numBtns = Math.floor( ( max - min ) / step );
+
+				if( numBtns < 8 ) {
+					//has limited number of buttons
+					this.$timeModeSelect.val( "buttons" );
+					this.$timeModeSelect.trigger( "change" );
+				}
+				
+			}
+
+		},
+
 		onVariablesCollectionChange: function() {
 			this.render();
 		},
@@ -193,6 +223,7 @@
 
 		onChartModelChange: function( evt ) {
 			this.updateColorSchemeSelect();
+			this.updateTimelineMode();
 			//this.updateTargetYear( true );
 		},
 
@@ -203,6 +234,11 @@
 		onLegendDescriptionChange: function( evt ) {
 			var $this = $( evt.target );
 			App.ChartModel.updateMapConfig( "legendDescription", $this.val() );
+		},
+
+		onTimeModeChange: function( evt ) {
+			var $this = $( evt.target );
+			App.ChartModel.updateMapConfig( "timelineMode", $this.val(), false, "change-map" );
 		}
 
 	});
