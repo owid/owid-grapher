@@ -249,14 +249,17 @@
 				format = data.format,
 				width = data.width,
 				height = data.height,
-				isSvg = ( format === "svg" )? true: false;
+				isSvg = ( format === "svg" )? true: false,
+				exportMap = ( this.$el.find( "#map-chart-tab" ).is( ":visible" ) )? true: false;
 			
 			//http://stackoverflow.com/questions/23218174/how-do-i-save-export-an-svg-file-after-creating-an-svg-with-d3-js-ie-safari-an
 			var $oldEl = this.$el,
 				$newEl = $oldEl.clone();
 
-			$oldEl.replaceWith( $newEl );
-
+			if( !exportMap ) {
+				$oldEl.replaceWith( $newEl );
+			}
+			
 			//grab all svg
 			var $svg = $newEl.find( "svg" );
 			//add printing styles
@@ -271,26 +274,27 @@
 			$svg.width( width );
 			$svg.height( height );
 
+			var $exportSvg = ( exportMap )? $( ".datamap" ): $( ".nvd3-svg" );
+
 			//depending whether we're creating svg or png, 
 			if( isSvg ) {
 				
 				var cb = function( url ) {
-					console.log( "cb" );
 					//activate click on dummy button
 					var $chartSaveBtn = $( ".chart-save-btn" );
 					$chartSaveBtn.attr( "href", url );
 					$chartSaveBtn[ 0 ].click();
 					setTimeout( function() {
-						console.log( "cb timeout" );
 						window.location.reload();
 					}, 250 );
 
 				};
-				svgAsDataUri( $( ".nvd3-svg" ).get( 0 ), {}, cb );
+
+				svgAsDataUri( $exportSvg.get( 0 ), {}, cb );
 
 			} else {
 				
-				saveSvgAsPng( $svg.get( 0 ), "chart.png" );
+				saveSvgAsPng( $exportSvg.get( 0 ), "chart.png" );
 				setTimeout( function() {
 					window.location.reload();
 				}, 250 );
@@ -427,6 +431,8 @@
 			this.translateString = "translate(" + margins.left + "," + currY + ")";
 			$wrap.attr( "transform", this.translateString );
 			
+			this.mapTab.onResize();
+
 			//position scale dropdowns - TODO - isn't there a better way then with timeout?
 			var that = this;
 			setTimeout( function() {
