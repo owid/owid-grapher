@@ -24,7 +24,7 @@
 			if( i < (length - 1) ) {
 				return valueArr[ 0 ];
 			} else {
-				return valueArr.join( " &nbsp; " );
+				return valueArr.join( "  " );
 			}
 
 		};

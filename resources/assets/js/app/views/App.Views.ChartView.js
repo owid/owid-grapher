@@ -4,6 +4,7 @@
 
 	var App = require( "./../namespaces.js" ),
 		Header = require( "./chart/App.Views.Chart.Header.js" ),
+		Footer = require( "./chart/App.Views.Chart.Footer.js" ),
 		ScaleSelectors = require( "./chart/App.Views.Chart.ScaleSelectors" ),
 		ChartTab = require( "./chart/App.Views.Chart.ChartTab.js" ),
 		DataTab = require( "./chart/App.Views.Chart.DataTab.js" ),
@@ -26,6 +27,7 @@
 			
 			var childViewOptions = { dispatcher: this.dispatcher, parentView: this };
 			this.header = new Header( childViewOptions );
+			this.footer = new Footer( childViewOptions );
 			this.scaleSelectors = new ScaleSelectors( childViewOptions );
 			//tabs
 			this.chartTab = new ChartTab( childViewOptions );
@@ -328,7 +330,7 @@
 				bottomChartMargin = 60,
 				currY, footerDescriptionHeight, footerSourcesHeight, chartHeight;
 			
-			this.$tabContent.height( $( ".chart-wrapper-inner" ).height() - this.$chartHeader.height() );
+			this.$tabContent.height( $( ".chart-wrapper-inner" ).height() - this.$chartHeader.height() - this.$chartFooter.height() );
 			
 			//wrap header text
 			Utils.wrap( $chartNameSvg, svgWidth );
@@ -364,6 +366,7 @@
 
 			//set chart height
 			chartHeight = svgHeight - translateY - footerHeight - bottomChartMargin;
+			chartHeight = svgHeight - translateY - bottomChartMargin;
 			if( !App.ChartModel.get( "hide-legend" ) ) {
 				chartHeight -= this.chartTab.legend.height();
 			}
