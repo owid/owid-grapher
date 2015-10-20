@@ -22,6 +22,17 @@
 
 		render: function() {
 
+			var defaultTab = App.ChartModel.get( "default-tab" );
+			if( defaultTab === "chart" ) {
+				this.toggleFooter( true );
+				this.toggleExport( true );
+			} else if( defaultTab === "data" || defaultTab === "map" ) {
+				this.toggleFooter( true );
+				this.toggleExport( false );
+			} else {
+				this.toogleFooter( false );
+			}
+			
 		},
 
 		toggleFooter: function( enable ) {
