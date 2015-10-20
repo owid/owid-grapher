@@ -29,7 +29,7 @@
 
 			this.dispatcher.on( "increment-time", this.onIncrementTime, this );
 
-			this.$win.on( "resize", this.onResize, this );
+			//this.$win.on( "resize", $.proxy( this.onResize, this ) );
 
 			//year slider
 			/*  App.ChartModel.on( "change", this.onChartModelChange, this );
