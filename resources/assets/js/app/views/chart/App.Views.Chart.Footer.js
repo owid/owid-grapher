@@ -57,8 +57,6 @@
 				this.toggleFooter( false );
 			}
 
-			console.log( "href", href );
-
 		}
 
 	});
