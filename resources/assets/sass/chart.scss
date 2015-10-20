@@ -215,9 +215,10 @@ body {
 	*	CHART FOOTER
 	**/
 	#chart-view .chart-footer {
-		position: absolute;
+		/*position: absolute;
 		bottom: 0;
-		z-index: 2;
+		z-index: 2;*/
+		position: relative;
 		width: 100%;
 		padding: 0px 10px;
 		font-size: 10px;
@@ -242,10 +243,10 @@ body {
 			color: #fff;
 			text-decoration: underline;
 		}
-			#chart-view #sources-chart-tab a:hover,
+			#chart-view #sources-chart-tab a,
 			#chart-view #sources-chart-tab a:hover {
 				//color: #FF4012;
-				color: #fff;
+				color: #1059E5;
 			}
 		#chart-view .fancybox-iframe {
 			position: absolute;
@@ -253,7 +254,8 @@ body {
 			bottom: 5px;
 		}
 
-
+		
+	
 	/**
 	*	CHART LEGEND
 	**/

@@ -29,7 +29,7 @@
 				<div class="available-countries-select-wrapper">
 					<select class="available-countries-select chosen-select" name="available_entities" style="position: relative;z-index: 10;"></select>
 				</div>
-				<svg xmlns="http://www.w3.org/2000/svg" class="nvd3-svg" version="1.1">
+				<svg xmlns="http://www.w3.org/2000/svg" class="nvd3-svg"  version="1.1">
 					<g class="chart-logo-svg" transform="scale(0.24,0.24), translate(0,-20)">
 						<rect x="0" y="0" fill="#1B2543" width="211.2" height="130.1"/>
 						<rect x="0" y="112.2" fill="#E63912" width="211.2" height="17.9"/>
@@ -78,15 +78,6 @@
 					<text x="0" y="100" dy="0" class="chart-description chart-description-svg"></text>
 					<text x="0" y="100" dy="0" class="chart-sources chart-sources-svg"></text>
 				</svg>
-				<div class="chart-footer clearfix">
-					<div class="export-footer-btns">
-						<a href="#" class="chart-export-btn" target="_blank">Save chart</a>
-						<a href="#" class="chart-save-btn" target="_blank" style="display:none;"></a>
-					</div>
-					<a class="fancybox-iframe" href="{{ Request::url() }}">Full screen view</a>
-					<p class="chart-sources"></p>
-					<p class="chart-description"></p>
-				</div>
 				<div class="axis-scale-selectors-wrapper">
 					<div class="x-axis-scale-selector">
 						<a href="#" class="axis-scale-btn">
@@ -182,9 +173,9 @@
 					</div>
 				</div>
 			</div>		
-			<div id="sources-chart-tab" class="tab-pane">
-			</div>
+			<div id="sources-chart-tab" class="tab-pane"></div>
 		</div>
+		@include('charts/partials/_chart-footer')
 	</div>
 	<div class="chart-preloader">
 		<i class="fa fa-spinner fa-spin"></i>
