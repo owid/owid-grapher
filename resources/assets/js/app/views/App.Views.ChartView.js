@@ -287,8 +287,18 @@
 					setTimeout( function() {
 						window.location.reload();
 					}, 250 );
-
 				};
+
+				if( exportMap ) {
+					//for exporting map, we need to add sources
+					var $chartLogoSvg = $( ".chart-logo-svg" ),
+						$chartNameSvg = $( ".chart-name-svg" ).parent(),
+						$chartSourcesSvg = $( ".chart-sources-svg" );
+					
+					$exportSvg.append( $chartLogoSvg );
+					$exportSvg.append( $chartNameSvg );
+					$exportSvg.append( $chartSourcesSvg );
+				}
 
 				svgAsDataUri( $exportSvg.get( 0 ), {}, cb );
 
@@ -369,7 +379,7 @@
 			var footerHeight = this.$chartFooter.height();
 
 			//set chart height
-			chartHeight = svgHeight - translateY - footerHeight - bottomChartMargin;
+			//chartHeight = svgHeight - translateY - footerHeight - bottomChartMargin;
 			chartHeight = svgHeight - translateY - bottomChartMargin;
 			if( !App.ChartModel.get( "hide-legend" ) ) {
 				chartHeight -= this.chartTab.legend.height();
@@ -384,8 +394,8 @@
 			$chartSourcesSvg.attr( "y", parseInt( $chartDescriptionSvg.attr( "y" ), 10 ) + $( ".chart-description" ).height() + footerDescriptionHeight/3 );
 			Utils.wrap( $chartSourcesSvg, svgWidth );
 			
-			//compute chart width
-			var chartWidth = svgWidth - margins.left - margins.right;
+			//compute chart width - add 60px
+			var chartWidth = svgWidth - margins.left - margins.right + 60;
 			this.chartTab.chart.width( chartWidth );
 			this.chartTab.chart.height( chartHeight );
 
@@ -425,10 +435,9 @@
 			currY += +margins.top;
 
 			var $wrap = this.$svg.find( "> .nvd3.nv-wrap" );
-
-			//manually reposition chart after update
-			//this.translateString = "translate(" + margins.left + "," + currY + ")";
-			this.translateString = "translate(" + margins.left + "," + currY + ")";
+			//add 20px offset
+			var translateLeft = parseInt( margins.left, 10 );
+			this.translateString = "translate(" + translateLeft + "," + currY + ")";
 			$wrap.attr( "transform", this.translateString );
 			
 			this.mapTab.onResize();
