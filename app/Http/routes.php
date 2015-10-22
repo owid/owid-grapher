@@ -31,6 +31,16 @@ Route::controllers([
 	'password' => 'Auth\PasswordController',
 ]);
 
+Route::group( [ 'prefix' => 'api/v1' ], function() {
+
+	//all API routes
+	Route::get( '/data', 'ApiController@data' );
+	Route::get( '/variables', 'ApiController@variables' );
+	Route::get( '/entities', 'ApiController@entities' );
+
+} );
+
+
 Route::get('/logout', [ 'as' => 'logout', 'uses' => 'Auth\AuthController@getLogout' ] );
 
 Route::group(['middleware' => 'auth'], function()
