@@ -108,6 +108,26 @@ Route::group(['middleware' => 'auth'], function()
 
 });
 
+Response::macro( 'xml', function($vars, $status = 200, array $header = [], $xml = null, $elName = 'el' ) {
+	if( is_null( $xml ) ) {
+		$xml = new SimpleXMLElement( '<?xml version="1.0" encoding="UTF-8"?><response/>' );
+	}
+	foreach( $vars as $key => $value) {
+		if( is_array( $value ) ) {
+			Response::xml( $value, $status, $header, $xml->addChild( $key ), $elName );
+		} else if( is_object( $value ) ) {
+			$key = $elName;
+			Response::xml( $value, $status, $header, $xml->addChild( $key ), $elName );
+		} else {
+			$xml->addChild( $key, htmlspecialchars( $value ) );
+		}
+	}
+	if( empty( $header ) ) {
+		$header[ 'Content-Type' ] = 'application/xml';
+	}
+	return Response::make( $xml->asXML(), $status, $header );
+} );
+
 Route::get( 'view', 'ViewController@index' );
 Route::get( 'view/{id}', [ 'as' => 'view', 'uses' => 'ViewController@show' ] );
 
