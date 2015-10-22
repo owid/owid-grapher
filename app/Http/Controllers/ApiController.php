@@ -30,8 +30,40 @@ class ApiController extends Controller {
 	public function data() {
 
 		//params
+		$variableIdsInput = Input::get( 'variables' );
+		$variableIds = explode( ',', $variableIdsInput );
+		
+		$query = DB::table( 'data_values' )
+			->select( 
+				'data_values.id as id', 
+				'data_values.value as value', 
+				'variables.name as variable', 
+				'times.startDate as from',
+				'times.endDate as to',
+				'entities.id as entityId' )
+			->leftJoin( 'variables', 'data_values.fk_var_id', '=', 'variables.id' )
+			->leftJoin( 'entities', 'data_values.fk_ent_id', '=', 'entities.id' )
+			->leftJoin( 'times', 'data_values.fk_time_id', '=', 'times.id' )
+			->whereIn( 'data_values.fk_var_id', $variableIds );
 
-		return [ 'success' => 'data' ];
+		if( Input::has( 'entities' ) ) {
+			$entitiesIdsInput = Input::get( 'entities' );
+			$entitiesIds = explode( ',', $entitiesIdsInput );
+			$query = $query->whereIn( 'data_values.fk_ent_id', $entitiesIds );
+		}
+		if( Input::has( 'from' ) ) {
+			$query = $query->where( 'times.startDate', '>=', Input::get( 'from' ) );
+		}
+		if( Input::has( 'to' ) ) {
+			$query = $query->where( 'times.endDate', '<=', Input::get( 'to' ) );
+		}
+
+		$data = $query->get();
+
+		$outputFormat = ( Input::has( 'format' ) && Input::get( 'format' ) === 'xml' )? 'xml': 'json';
+		$responseData = [ 'success' => 'true', 'data' => $data ];
+
+		return \Response::$outputFormat( $responseData, 200, [], null, 'data_el' );
 
 	}
 
@@ -52,7 +84,10 @@ class ApiController extends Controller {
 			->orderBy( 'id' )
 			->get();
 
-		return [ 'success' => 'true', 'data' => $variables ];
+		$outputFormat = ( Input::has( 'format' ) && Input::get( 'format' ) === 'xml' )? 'xml': 'json';
+		$responseData = [ 'success' => 'true', 'data' => $variables ];
+
+		return \Response::$outputFormat( $responseData, 200, [], null, 'variable' );
 
 	}
 
@@ -68,7 +103,10 @@ class ApiController extends Controller {
 			->orderBy( 'id' )
 			->get();
 
-		return [ 'success' => 'true', 'data' => $entities ];
+		$outputFormat = ( Input::has( 'format' ) && Input::get( 'format' ) === 'xml' )? 'xml': 'json';
+		$responseData = [ 'success' => 'true', 'data' => $entities ];
+
+		return \Response::$outputFormat( $responseData, 200, [], null, 'entity' );
 
 	}
 
