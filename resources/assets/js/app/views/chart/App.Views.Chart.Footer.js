@@ -26,7 +26,10 @@
 			if( defaultTab === "chart" ) {
 				this.toggleFooter( true );
 				this.toggleExport( true );
-			} else if( defaultTab === "data" || defaultTab === "map" ) {
+			} else if( defaultTab === "data" ) {
+				this.toggleFooter( true );
+				this.toggleExport( false );
+			} else if( defaultTab === "map" ) {
 				this.toggleFooter( true );
 				this.toggleExport( false );
 			} else {
@@ -62,6 +65,9 @@
 				this.toggleFooter( true );
 				this.toggleExport( true );
 			} else if( href === "#data-chart-tab" || href === "#map-chart-tab" ) {
+				this.toggleFooter( true );
+				this.toggleExport( false );
+			} else if( href === "#map-chart-tab" ) {
 				this.toggleFooter( true );
 				this.toggleExport( false );
 			} else if( href === "#sources-chart-tab" ) {
