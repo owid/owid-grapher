@@ -57,7 +57,7 @@ class ApiController extends Controller {
 		if( Input::has( 'to' ) ) {
 			$query = $query->where( 'times.endDate', '<=', Input::get( 'to' ) );
 		}
-
+		
 		$data = $query->get();
 
 		$outputFormat = ( Input::has( 'format' ) && Input::get( 'format' ) === 'xml' )? 'xml': 'json';

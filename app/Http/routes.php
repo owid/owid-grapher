@@ -31,14 +31,35 @@ Route::controllers([
 	'password' => 'Auth\PasswordController',
 ]);
 
-Route::group( [ 'prefix' => 'api/v1' ], function() {
-
-	//all API routes
+//api routes
+Route::group( [ 'prefix' => 'api/v1', 'before' => 'auth.token' ], function() {
 	Route::get( '/data', 'ApiController@data' );
 	Route::get( '/variables', 'ApiController@variables' );
 	Route::get( '/entities', 'ApiController@entities' );
+} );
+
+Route::filter( 'auth.token', function( $route, $request ) {
+
+	$apiKey = ( Input::has( 'api_key' ) )? Input::get( 'api_key' ): '';
+
+	/*$userModel = Sentry::getUserProvider()->createModel();
+	$user =  $userModel->where('api_token',$payload)->first();
+
+	if(!$payload || !$user) {
+	*/
+		$response = Response::json([
+			'error' => true,
+			'message' => 'All API calls have to be made with an API key.',
+			'code' => 401],
+			401
+		);
+
+		$response->header('Content-Type', 'application/json');
+		return $response;
+	//}
 
 } );
+
 
 
 Route::get('/logout', [ 'as' => 'logout', 'uses' => 'Auth\AuthController@getLogout' ] );
