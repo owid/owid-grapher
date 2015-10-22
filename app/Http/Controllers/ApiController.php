@@ -58,7 +58,17 @@ class ApiController extends Controller {
 
 	public function entities() {
 
-		return [ 'success' => 'entities' ];
+		$entities = DB::table( 'entities' )
+			->select( 
+				'entities.id as id', 
+				'entities.code as code', 
+				'entities.name as name', 
+				'entity_types.name as type' )
+			->leftJoin( 'entity_types', 'entities.fk_ent_t_id', '=', 'entity_types.id' )
+			->orderBy( 'id' )
+			->get();
+
+		return [ 'success' => 'true', 'data' => $entities ];
 
 	}
 
