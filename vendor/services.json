@@ -28,7 +28,8 @@
         "App\\Providers\\EventServiceProvider",
         "App\\Providers\\RouteServiceProvider",
         "Collective\\Html\\HtmlServiceProvider",
-        "Zofe\\Rapyd\\RapydServiceProvider"
+        "Zofe\\Rapyd\\RapydServiceProvider",
+        "Irazasyed\\LaravelGAMP\\LaravelGAMPServiceProvider"
     ],
     "eager": [
         "Illuminate\\Auth\\AuthServiceProvider",
@@ -129,7 +130,8 @@
         "html": "Collective\\Html\\HtmlServiceProvider",
         "form": "Collective\\Html\\HtmlServiceProvider",
         "Collective\\Html\\HtmlBuilder": "Collective\\Html\\HtmlServiceProvider",
-        "Collective\\Html\\FormBuilder": "Collective\\Html\\HtmlServiceProvider"
+        "Collective\\Html\\FormBuilder": "Collective\\Html\\HtmlServiceProvider",
+        "gamp": "Irazasyed\\LaravelGAMP\\LaravelGAMPServiceProvider"
     },
     "when": {
         "Illuminate\\Foundation\\Providers\\ArtisanServiceProvider": [
@@ -166,6 +168,9 @@
 
         ],
         "Collective\\Html\\HtmlServiceProvider": [
+
+        ],
+        "Irazasyed\\LaravelGAMP\\LaravelGAMPServiceProvider": [
 
         ]
     }

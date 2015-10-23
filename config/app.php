@@ -147,6 +147,10 @@ return [
 
 		'Collective\Html\HtmlServiceProvider',
 		'Zofe\Rapyd\RapydServiceProvider',
+
+		/* google analytics */
+		'Irazasyed\LaravelGAMP\LaravelGAMPServiceProvider',
+
 	],
 
 	/*
@@ -197,6 +201,8 @@ return [
 
 		'Form' => 'Collective\Html\FormFacade',
 		'Html' => 'Collective\Html\HtmlFacade',
+
+		'GAMP' => 'Irazasyed\LaravelGAMP\Facades\GAMP',
 
 	],
 

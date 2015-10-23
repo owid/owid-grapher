@@ -1,0 +1,33 @@
+{
+    "name": "irazasyed/laravel-gamp",
+    "description": "Send analytics data to Google Analytics from Laravel. A package for GA Measurement Protocol API",
+    "keywords": [
+        "laravel google analytics",
+        "google analytics",
+        "analytics",
+        "tracking",
+        "ga measurement protocol",
+        "measurement protocol"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Syed Irfaq R.",
+            "email": "syed+gh@lukonet.com",
+            "homepage": "https://github.com/irazasyed"
+        }
+    ],
+    "require": {
+        "php": ">=5.5.0",
+        "illuminate/support": "5.0.*|5.1.*",
+        "theiconic/php-ga-measurement-protocol": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Irazasyed\\LaravelGAMP\\": "src/"
+        }
+    },
+    "suggest": {
+        "irazasyed/larasupport": "Adds Package Support in Lumen, Lets you install any Laravel Package."
+    }
+}
