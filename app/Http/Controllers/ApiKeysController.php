@@ -26,7 +26,8 @@ class ApiKeysController extends Controller {
 
 	public function create()
 	{
-		return view( 'apiKeys.create' );
+		$randomKey = str_random( 20 );
+		return view( 'apiKeys.create' )->with( 'randomKey', $randomKey );
 	}
 
 	/**

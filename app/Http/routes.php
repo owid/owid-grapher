@@ -1,5 +1,7 @@
 <?php
 
+use App\ApiKey;
+
 /*
 |--------------------------------------------------------------------------
 | Application Routes
@@ -43,21 +45,32 @@ Route::filter( 'auth.api_key', function( $route, $request ) {
 
 	$apiKey = ( Input::has( 'api_key' ) )? Input::get( 'api_key' ): '';
 
-	/*$userModel = Sentry::getUserProvider()->createModel();
-	$user =  $userModel->where('api_token',$payload)->first();
+	$errorMessage = '';
+	if( empty( $apiKey ) ) {
 
-	if(!$payload || !$user) {
-	*/
+		$errorMessage = 'All API calls have to be made with an api_key paramater.';
+	
+	} else {
+
+		$validKeys = ApiKey::where( 'value', $apiKey )->get();
+		if( $validKeys->isEmpty() ) {
+			$errorMessage = 'Invalid API key.';
+		}
+
+	}
+
+	if( !empty( $errorMessage ) ) {
+		
 		$response = Response::json([
 			'error' => true,
-			'message' => 'All API calls have to be made with an API key.',
+			'message' => $errorMessage,
 			'code' => 401],
 			401
 		);
 
 		$response->header('Content-Type', 'application/json');
 		return $response;
-	//}
+	}
 
 } );
 
@@ -80,7 +93,7 @@ Route::group(['middleware' => 'auth'], function()
 	Route::resource( 'tags', 'TagsController' );
 	Route::resource( 'licenses', 'LicensesController' );
 	Route::resource( 'apiKeys', 'ApiKeysController' );
-	
+
 	//Route::resource( 'dataValues', 'DataValuesController' );
 	Route::bind( 'entities', function($value, $route) {
 		return App\Entity::whereId($value)->first();
