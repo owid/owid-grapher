@@ -21,6 +21,7 @@ Route::model( 'chartTypes', 'ChartTypes' );
 Route::model( 'categories', 'DatasetCategory' );
 Route::model( 'subcategories', 'DatasetSubcategory' );
 Route::model( 'tags', 'DatasetTag' );
+Route::model( 'apiKeys', 'ApiKey' );
 
 //Route::get('/', 'WelcomeController@index');
 Route::get('/', 'HomeController@index');
@@ -32,13 +33,13 @@ Route::controllers([
 ]);
 
 //api routes
-Route::group( [ 'prefix' => 'api/v1', 'before' => 'auth.token' ], function() {
+Route::group( [ 'prefix' => 'api/v1', 'before' => 'auth.api_key' ], function() {
 	Route::get( '/data', 'ApiController@data' );
 	Route::get( '/variables', 'ApiController@variables' );
 	Route::get( '/entities', 'ApiController@entities' );
 } );
 
-Route::filter( 'auth.token', function( $route, $request ) {
+Route::filter( 'auth.api_key', function( $route, $request ) {
 
 	$apiKey = ( Input::has( 'api_key' ) )? Input::get( 'api_key' ): '';
 
@@ -78,6 +79,8 @@ Route::group(['middleware' => 'auth'], function()
 	Route::resource( 'subcategories', 'SubcategoriesController' );
 	Route::resource( 'tags', 'TagsController' );
 	Route::resource( 'licenses', 'LicensesController' );
+	Route::resource( 'apiKeys', 'ApiKeysController' );
+	
 	//Route::resource( 'dataValues', 'DataValuesController' );
 	Route::bind( 'entities', function($value, $route) {
 		return App\Entity::whereId($value)->first();
@@ -111,6 +114,9 @@ Route::group(['middleware' => 'auth'], function()
 	});
 	Route::bind( 'licenses', function($value, $route) {
 		return App\License::whereId($value)->first();
+	});
+	Route::bind( 'apiKeys', function($value, $route) {
+		return App\ApiKey::whereId($value)->first();
 	});
 
 	Route::get( 'import', [ 'as' => 'import', 'uses' => 'ImportController@index' ] );

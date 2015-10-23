@@ -8,6 +8,7 @@ $baseDir = dirname($vendorDir);
 return array(
     'ChartTypeDimensionsTableSeeder' => $baseDir . '/database/seeds/ChartTypeDimensionsSeeder.php',
     'ChartTypesTableSeeder' => $baseDir . '/database/seeds/ChartTypesTableSeeder.php',
+    'CreateApiKeysTable' => $baseDir . '/database/migrations/2015_10_22_165512_create_api_keys_table.php',
     'CreateChartTypeDimensionsTable' => $baseDir . '/database/migrations/2015_05_26_173446_create_chart_type_dimensions_table.php',
     'CreateChartTypesTable' => $baseDir . '/database/migrations/2015_05_26_172956_create_chart_types_table.php',
     'CreateChartsTable' => $baseDir . '/database/migrations/2015_05_14_111718_create_charts_table.php',
