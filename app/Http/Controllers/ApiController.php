@@ -57,7 +57,7 @@ class ApiController extends Controller {
 		if( Input::has( 'to' ) ) {
 			$query = $query->where( 'times.endDate', '<=', Input::get( 'to' ) );
 		}
-		
+
 		$data = $query->get();
 
 		$outputFormat = ( Input::has( 'format' ) && Input::get( 'format' ) === 'xml' )? 'xml': 'json';
@@ -109,37 +109,5 @@ class ApiController extends Controller {
 		return \Response::$outputFormat( $responseData, 200, [], null, 'entity' );
 
 	}
-
-	/*public function entities( Request $request ) {
-
-		$data = array();
-		if( !Input::has( 'variableIds' ) ) {
-			return [];
-		}
-		
-		$variableIdsInput = Input::get( 'variableIds' );
-		$variableIds = explode( ',', $variableIdsInput );
-
-		//use query builder instead of eloquent
-		$entitiesData = DB::table( 'data_values' )
-			->select( 'entities.id', 'entities.name' )
-			->join( 'entities', 'data_values.fk_ent_id', '=', 'entities.id' )
-			->whereIn( 'data_values.fk_var_id', $variableIds )
-			->groupBy( 'name' )
-			->get();
-
-		$data = $entitiesData;
-
-		if( $request->ajax() ) {
-
-			return ['success' => true, 'data' => $data ];
-
-		} else {
-			//not ajax request, just spit out whatever is in data
-			return $data;
-		}
-
-	}*/
-
 
 }
