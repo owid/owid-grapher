@@ -63,6 +63,8 @@ class ApiController extends Controller {
 		$outputFormat = ( Input::has( 'format' ) && Input::get( 'format' ) === 'xml' )? 'xml': 'json';
 		$responseData = [ 'success' => 'true', 'data' => $data ];
 
+		$this->logRequestToGa();
+
 		return \Response::$outputFormat( $responseData, 200, [], null, 'data_el' );
 
 	}
@@ -87,6 +89,8 @@ class ApiController extends Controller {
 		$outputFormat = ( Input::has( 'format' ) && Input::get( 'format' ) === 'xml' )? 'xml': 'json';
 		$responseData = [ 'success' => 'true', 'data' => $variables ];
 
+		$this->logRequestToGa();
+
 		return \Response::$outputFormat( $responseData, 200, [], null, 'variable' );
 
 	}
@@ -106,8 +110,27 @@ class ApiController extends Controller {
 		$outputFormat = ( Input::has( 'format' ) && Input::get( 'format' ) === 'xml' )? 'xml': 'json';
 		$responseData = [ 'success' => 'true', 'data' => $entities ];
 
+		$this->logRequestToGa();
+
 		return \Response::$outputFormat( $responseData, 200, [], null, 'entity' );
 
 	}
+
+	public function logRequestToGa() {
+
+		//api key
+		$clientId = Input::get( 'api_key' );
+		
+		//ga
+		$gamp = \GAMP::setClientId( $clientId );
+
+		$fullUrl = \Request::fullUrl();
+		$root = \Request::root();
+		$url = str_replace( $root,'', $fullUrl ); 
+		
+		$gamp->setDocumentPath( $url );
+		$gamp->sendPageview();
+
+	} 
 
 }
