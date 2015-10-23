@@ -24,7 +24,8 @@
 			if( i < (length - 1) ) {
 				return valueArr[ 0 ];
 			} else {
-				return valueArr.join( "  " );
+				//need to use tspan with preserve to have the whitespcae
+				return "<tspan xml:space='preserve'>" + valueArr.join( "   " ) + "</tspan>";
 			}
 
 		};
