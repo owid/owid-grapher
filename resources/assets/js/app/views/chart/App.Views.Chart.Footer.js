@@ -31,7 +31,7 @@
 				this.toggleExport( false );
 			} else if( defaultTab === "map" ) {
 				this.toggleFooter( true );
-				this.toggleExport( false );
+				this.toggleExport( true );
 			} else {
 				this.toogleFooter( false );
 			}
@@ -69,7 +69,7 @@
 				this.toggleExport( false );
 			} else if( href === "#map-chart-tab" ) {
 				this.toggleFooter( true );
-				this.toggleExport( false );
+				this.toggleExport( true );
 			} else if( href === "#sources-chart-tab" ) {
 				this.toggleFooter( false );
 			}
