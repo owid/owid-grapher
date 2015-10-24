@@ -261,9 +261,28 @@
 			}
 			
 			//grab all svg
-			var $svg = $newEl.find( "svg" );
+			var $exportSvg;
+			if( exportMap ) {
+				$exportSvg = $( ".datamap" );
+			} else {
+				$exportSvg = $( "svg.nvd3-svg" );
+			}
 			//add printing styles
-			$svg.attr( "class", "nvd3-svg export-svg" );
+			if( exportMap ) {
+				$exportSvg.attr( "class", "datamap nvd3-svg export-svg" );
+				
+				//for exporting map, we need to add sources
+				var $chartLogoSvg = $( ".chart-logo-svg" ),
+					$chartNameSvg = $( ".chart-name-svg" ).parent(),
+					$chartSourcesSvg = $( ".chart-sources-svg" );
+				$exportSvg.append( $chartLogoSvg );
+				$exportSvg.append( $chartNameSvg );
+				$exportSvg.append( $chartSourcesSvg );
+			
+			} else {
+				//add classes 
+				$exportSvg.attr( "class", "nvd3-svg export-svg" );
+			}
 			
 			//inline styles for the export
 			var styleSheets = document.styleSheets;
@@ -271,11 +290,9 @@
 				Utils.inlineCssStyle( styleSheets[ i ].cssRules );
 			}
 
-			$svg.width( width );
-			$svg.height( height );
-
-			var $exportSvg = ( exportMap )? $( ".datamap" ): $( ".nvd3-svg" );
-
+			$exportSvg.width( width );
+			$exportSvg.height( height );
+			
 			//depending whether we're creating svg or png, 
 			if( isSvg ) {
 				
@@ -288,17 +305,6 @@
 						window.location.reload();
 					}, 250 );
 				};
-
-				if( exportMap ) {
-					//for exporting map, we need to add sources
-					var $chartLogoSvg = $( ".chart-logo-svg" ),
-						$chartNameSvg = $( ".chart-name-svg" ).parent(),
-						$chartSourcesSvg = $( ".chart-sources-svg" );
-					
-					$exportSvg.append( $chartLogoSvg );
-					$exportSvg.append( $chartNameSvg );
-					$exportSvg.append( $chartSourcesSvg );
-				}
 
 				svgAsDataUri( $exportSvg.get( 0 ), {}, cb );
 
