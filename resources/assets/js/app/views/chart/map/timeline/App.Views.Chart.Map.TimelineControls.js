@@ -43,6 +43,16 @@
 
 			}
 
+			//should be timline disabled
+			var isRange = ( isNaN( mapConfig.minYear ) || isNaN( mapConfig.maxYear ) )? true: false,
+				isSingleYear = ( !isRange && ( mapConfig.minYear == mapConfig.maxYear ) )? true: false;
+
+			if( isRange || isSingleYear ) {
+				this.$el.addClass( "single-year" );
+			} else {
+				this.$el.removeClass( "single-year" );
+			}
+
 		},
 
 		onChartModelChange: function() {
