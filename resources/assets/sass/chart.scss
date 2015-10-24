@@ -864,6 +864,14 @@ body {
 
 			}
 
+			/* single-year mode */
+			&.single-year {
+				.play-pause-control,
+				.timeline-end-year,
+				.timeline-wrapper {
+					display: none !important;
+				}
+			}
 
 		}
 
