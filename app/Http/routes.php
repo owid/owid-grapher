@@ -35,11 +35,12 @@ Route::controllers([
 ]);
 
 //api routes
-Route::get( 'api/v1', 'ApiController@index' );
 Route::group( [ 'prefix' => 'api/v1', 'before' => 'auth.api_key' ], function() {
+	Route::get( '/data', 'ApiController@data' );
 	Route::get( '/variables', 'ApiController@variables' );
 	Route::get( '/entities', 'ApiController@entities' );
 } );
+Route::get( 'api', 'ApiController@index' );
 
 Route::filter( 'auth.api_key', function( $route, $request ) {
 

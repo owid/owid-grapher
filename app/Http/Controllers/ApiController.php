@@ -55,7 +55,8 @@ class ApiController extends Controller {
 				'variables.name as variable', 
 				'times.startDate as from',
 				'times.endDate as to',
-				'entities.id as entityId' )
+				'entities.id as entityId',
+				'entities.name as entityName' )
 			->leftJoin( 'variables', 'data_values.fk_var_id', '=', 'variables.id' )
 			->leftJoin( 'entities', 'data_values.fk_ent_id', '=', 'entities.id' )
 			->leftJoin( 'times', 'data_values.fk_time_id', '=', 'times.id' )
