@@ -6,7 +6,6 @@
 		<title>Our World In Data - Chart Builder</title>
 		<meta name="description" content="">
 		<meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no'>
-		
 		<link rel="apple-touch-icon" href="apple-touch-icon.png">
 		<!-- Place favicon.ico in the root directory -->
 
