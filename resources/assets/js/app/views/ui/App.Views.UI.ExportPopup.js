@@ -79,13 +79,22 @@
 		},
 
 		onExportFormat: function( evt ) {
-			this.checkPngConstraint();
+			this.checkPngConstraint( true );
 		},
 
-		checkPngConstraint: function() {
+		checkPngConstraint: function( forceConstraint ) {
 			
 			if( ( this.$exportFormat.filter( ":checked" ).val() === "png" ) && ( parseInt( this.$exportWidth.val(), 10 ) > MAX_WIDTH || parseInt( this.$exportHeight.val(), 10 ) > MAX_HEIGHT ) ) {
-				this.$pngConstraintLabel.show();
+				
+				if( forceConstraint ) {
+					//change dimension to maximum size available for png
+					this.$exportWidth.val( MAX_WIDTH );
+					this.$exportHeight.val( MAX_HEIGHT );
+					this.onDimensionChange();
+				} else {
+					this.$pngConstraintLabel.show();
+				}
+				
 			} else {
 				this.clearPngConstraint();
 			}
