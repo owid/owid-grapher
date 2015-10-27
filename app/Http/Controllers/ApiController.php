@@ -29,6 +29,21 @@ class ApiController extends Controller {
 
 	public function data() {
 
+		$key = 'api-data-' . Input::get( 'variables' );
+		if( Input::has( 'entities' ) ) {
+			$key = '-entities-' . Input::get( 'entities' );
+		}
+		if( Input::has( 'from' ) ) {
+			$key = '-from-' . Input::get( 'from' );
+		}
+		if( Input::has( 'to' ) ) {
+			$key = '-to-' . Input::get( 'to' );
+		}
+
+		if( Cache::has( $key ) ) {
+			return Cache::get( $key );
+		}
+
 		//params
 		$variableIdsInput = Input::get( 'variables' );
 		$variableIds = explode( ',', $variableIdsInput );
@@ -65,11 +80,19 @@ class ApiController extends Controller {
 
 		$this->logRequestToGa();
 
+		//store into cache - there is no cache 
+		if( !empty( $key ) ) {
+			$minutes = 60*24;
+			Cache::put( $key, $responseData, $minutes );
+		}
+
 		return \Response::$outputFormat( $responseData, 200, [], null, 'data_el' );
 
 	}
 
 	public function variables() {
+
+		$key = 'api-variables-';
 
 		$variables = DB::table( 'variables' )
 			->select( 
@@ -91,11 +114,19 @@ class ApiController extends Controller {
 
 		$this->logRequestToGa();
 
+		//store into cache - there is no cache 
+		if( !empty( $key ) ) {
+			$minutes = 60*24;
+			Cache::put( $key, $responseData, $minutes );
+		}
+
 		return \Response::$outputFormat( $responseData, 200, [], null, 'variable' );
 
 	}
 
 	public function entities() {
+
+		$key = 'api-entities-';
 
 		$entities = DB::table( 'entities' )
 			->select( 
@@ -112,11 +143,20 @@ class ApiController extends Controller {
 
 		$this->logRequestToGa();
 
+		//store into cache - there is no cache 
+		if( !empty( $key ) ) {
+			$minutes = 60*24;
+			Cache::put( $key, $responseData, $minutes );
+		}
+
 		return \Response::$outputFormat( $responseData, 200, [], null, 'entity' );
 
 	}
 
 	public function logRequestToGa() {
+
+		//this is disabled as not working in php 5.4
+		return;
 
 		//api key
 		$clientId = Input::get( 'api_key' );
