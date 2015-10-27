@@ -24,7 +24,7 @@ class ApiController extends Controller {
 	 * @return Response
 	 */
 	public function index() {
-		return "Controller for API";
+		return "<a href='http://docs.ourworldindataorg.apiary.io/' target='_blank'>Please see documentation on how to use API</a>";
 	}
 
 	public function data() {
