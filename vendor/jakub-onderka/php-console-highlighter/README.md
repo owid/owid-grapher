@@ -14,7 +14,7 @@ Just create a `composer.json` file and run the `php composer.phar install` comma
 
 ```json
 {
-    "require-dev": {
+    "require": {
         "jakub-onderka/php-console-highlighter": "0.*"
     }
 }
@@ -34,3 +34,7 @@ $highlighter = new Highlighter(new ConsoleColor());
 $fileContent = file_get_contents(__FILE__);
 echo $highlighter->getWholeFile($fileContent);
 ```
+
+------
+
+[![Build Status](https://travis-ci.org/JakubOnderka/PHP-Console-Highlighter.svg?branch=master)](https://travis-ci.org/JakubOnderka/PHP-Console-Highlighter)

@@ -6,6 +6,24 @@ use Stringy\StaticStringy as S;
 
 class StaticStringyTestCase extends CommonTest
 {
+	/**
+     * @dataProvider indexOfProvider()
+     */
+    public function testIndexOf($expected, $str, $subStr, $offset = 0, $encoding = null)
+    {
+        $result = S::indexOf($str, $subStr, $offset, $encoding);
+        $this->assertEquals($expected, $result);
+    }
+
+    /**
+     * @dataProvider indexOfLastProvider()
+     */
+    public function testIndexOfLast($expected, $str, $subStr, $offset = 0, $encoding = null)
+    {
+        $result = S::indexOfLast($str, $subStr, $offset, $encoding);
+        $this->assertEquals($expected, $result);
+    }
+
     /**
      * @dataProvider charsProvider()
      */
@@ -384,9 +402,31 @@ class StaticStringyTestCase extends CommonTest
     /**
      * @dataProvider trimProvider()
      */
-    public function testTrim($expected, $str)
+    public function testTrim($expected, $str, $chars = null, $encoding = null)
     {
-        $result = S::trim($str);
+        $result = S::trim($str, $chars, $encoding);
+        $this->assertInternalType('string', $result);
+        $this->assertEquals($expected, $result);
+    }
+
+    /**
+     * @dataProvider trimLeftProvider()
+     */
+    public function testTrimLeft($expected, $str, $chars = null,
+                                 $encoding = null)
+    {
+        $result = S::trimLeft($str, $chars, $encoding);
+        $this->assertInternalType('string', $result);
+        $this->assertEquals($expected, $result);
+    }
+
+    /**
+     * @dataProvider trimRightProvider()
+     */
+    public function testTrimRight($expected, $str, $chars = null,
+                                  $encoding = null)
+    {
+        $result = S::trimRight($str, $chars, $encoding);
         $this->assertInternalType('string', $result);
         $this->assertEquals($expected, $result);
     }
@@ -644,6 +684,26 @@ class StaticStringyTestCase extends CommonTest
                                      $options = 'msr', $encoding = null)
     {
         $result = S::regexReplace($str, $pattern, $replacement, $options, $encoding);
+        $this->assertInternalType('string', $result);
+        $this->assertEquals($expected, $result);
+    }
+
+    /**
+     * @dataProvider htmlEncodeProvider()
+     */
+    public function testHtmlEncode($expected, $str, $flags = ENT_COMPAT, $encoding = null)
+    {
+        $result = S::htmlEncode($str, $flags, $encoding);
+        $this->assertInternalType('string', $result);
+        $this->assertEquals($expected, $result);
+    }
+
+    /**
+     * @dataProvider htmlDecodeProvider()
+     */
+    public function testHtmlDecode($expected, $str, $flags = ENT_COMPAT, $encoding = null)
+    {
+        $result = S::htmlDecode($str, $flags, $encoding);
         $this->assertInternalType('string', $result);
         $this->assertEquals($expected, $result);
     }

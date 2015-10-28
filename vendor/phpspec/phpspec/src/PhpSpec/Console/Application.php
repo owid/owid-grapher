@@ -14,6 +14,7 @@
 namespace PhpSpec\Console;
 
 use PhpSpec\Console\Prompter\Factory;
+use PhpSpec\Process\Context\JsonExecutionContext;
 use Symfony\Component\Console\Application as BaseApplication;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -29,7 +30,7 @@ use RuntimeException;
 class Application extends BaseApplication
 {
     /**
-     * @var \PhpSpec\ServiceContainer
+     * @var ServiceContainer
      */
     private $container;
 
@@ -67,6 +68,10 @@ class Application extends BaseApplication
                 $c->get('console.output'),
                 $helperSet
             );
+        });
+
+        $this->container->setShared('process.executioncontext', function () {
+            return JsonExecutionContext::fromEnv($_SERVER);
         });
 
         $assembler = new ContainerAssembler();
@@ -166,18 +171,57 @@ class Application extends BaseApplication
             $paths = array($customPath);
         }
 
-        $config = array();
+        $config = $this->extractConfigFromFirstParsablePath($paths);
+
+        if ($homeFolder = getenv('HOME')) {
+            $config = array_replace_recursive($this->parseConfigFromExistingPath($homeFolder.'/.phpspec.yml'), $config);
+        }
+
+        return $config;
+    }
+
+    /**
+     * @param array $paths
+     *
+     * @return array
+     */
+    private function extractConfigFromFirstParsablePath(array $paths)
+    {
         foreach ($paths as $path) {
-            if ($path && file_exists($path) && $parsedConfig = Yaml::parse(file_get_contents($path))) {
-                $config = $parsedConfig;
-                break;
+            $config = $this->parseConfigFromExistingPath($path);
+            if (!empty($config)) {
+                return $this->addPathsToEachSuiteConfig(dirname($path), $config);
             }
         }
 
-        if ($homeFolder = getenv('HOME')) {
-            $localPath = $homeFolder.'/.phpspec.yml';
-            if (file_exists($localPath) && $parsedConfig = Yaml::parse(file_get_contents($localPath))) {
-                $config = array_replace_recursive($parsedConfig, $config);
+        return array();
+    }
+
+    /**
+     * @param string $path
+     *
+     * @return array
+     */
+    private function parseConfigFromExistingPath($path)
+    {
+        if (!file_exists($path)) {
+            return array();
+        }
+
+        return Yaml::parse(file_get_contents($path));
+    }
+
+    /**
+     * @param string $configDir
+     * @param array $config
+     *
+     * @return array
+     */
+    private function addPathsToEachSuiteConfig($configDir, $config)
+    {
+        if (isset($config['suites']) && is_array($config['suites'])) {
+            foreach ($config['suites'] as $suiteKey => $suiteConfig) {
+                $config['suites'][$suiteKey] = str_replace('%paths.config%', $configDir, $suiteConfig);
             }
         }
 

@@ -12,7 +12,8 @@ class Persistence
         $old_params = parse_url($s, PHP_URL_QUERY);
         
         if ($qs) {
-            $url = trim(parse_url($s, PHP_URL_PATH),'/');
+            $base = str_replace(Request::path(),'',strtok(Request::fullUrl(),'?'));
+            $url = str_replace($base, '/', strtok($url,'?'));
             $old_params_arr = array();
             $qs_arr = array();
             parse_str($old_params, $old_params_arr);

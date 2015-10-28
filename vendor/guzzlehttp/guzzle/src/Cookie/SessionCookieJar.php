@@ -1,6 +1,8 @@
 <?php
 namespace GuzzleHttp\Cookie;
 
+use GuzzleHttp\Utils;
+
 /**
  * Persists cookies in the client session
  */
@@ -8,22 +10,15 @@ class SessionCookieJar extends CookieJar
 {
     /** @var string session key */
     private $sessionKey;
-    
-    /** @var bool Control whether to presist session cookies or not. */
-    private $storeSessionCookies;
 
     /**
      * Create a new SessionCookieJar object
      *
-     * @param string $sessionKey        Session key name to store the cookie 
-     *                                  data in session
-     * @param bool $storeSessionCookies Set to true to store session cookies
-     *                                  in the cookie jar.
+     * @param string $sessionKey Session key name to store the cookie data in session
      */
-    public function __construct($sessionKey, $storeSessionCookies = false)
+    public function __construct($sessionKey)
     {
         $this->sessionKey = $sessionKey;
-        $this->storeSessionCookies = $storeSessionCookies;
         $this->load();
     }
 
@@ -42,8 +37,7 @@ class SessionCookieJar extends CookieJar
     {
         $json = [];
         foreach ($this as $cookie) {
-            /** @var SetCookie $cookie */
-            if (CookieJar::shouldPersist($cookie, $this->storeSessionCookies)) {
+            if ($cookie->getExpires() && !$cookie->getDiscard()) {
                 $json[] = $cookie->toArray();
             }
         }
@@ -60,7 +54,7 @@ class SessionCookieJar extends CookieJar
             ? $_SESSION[$this->sessionKey]
             : null;
 
-        $data = json_decode($cookieJar, true);
+        $data = Utils::jsonDecode($cookieJar, true);
         if (is_array($data)) {
             foreach ($data as $cookie) {
                 $this->setCookie(new SetCookie($cookie));

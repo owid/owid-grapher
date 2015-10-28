@@ -14,6 +14,26 @@ abstract class CommonTest extends PHPUnit_Framework_TestCase
         $this->assertInstanceOf('Stringy\Stringy', $actual);
     }
 
+    public function indexOfProvider()
+    {
+        return array(
+            array(2, 'This is the string', 'is'),
+            array(2, 'This is the string', 'is', 0, 'UTF-8'),
+            array(false, 'This is the string', 'not-found', 0, 'UTF-8'),
+            array(32, 'This is the string... and there is another thing', 'is', 10, 'UTF-8'),
+        );
+    }
+
+    public function indexOfLastProvider()
+    {
+        return array(
+            array(5, 'This is the string', 'is'),
+            array(5, 'This is the string', 'is', 0, 'UTF-8'),
+            array(false, 'This is the string', 'not-found', 0, 'UTF-8'),
+            array(32, 'This is the string... and there is another thing', 'is', 0, 'UTF-8'),
+        );
+    }
+
     public function charsProvider()
     {
         return array(
@@ -122,6 +142,26 @@ abstract class CommonTest extends PHPUnit_Framework_TestCase
             array('test_σase', 'test Σase', 'UTF-8'),
             array('στανιλ_case', 'Στανιλ case', 'UTF-8'),
             array('σash_case', 'Σash  Case', 'UTF-8')
+        );
+    }
+
+    public function delimitProvider()
+    {
+        return array(
+            array('test*case', 'testCase', '*'),
+            array('test&case', 'Test-Case', '&'),
+            array('test#case', 'test case', '#'),
+            array('test**case', 'test -case', '**'),
+            array('~!~test~!~case', '-test - case', '~!~'),
+            array('test*case', 'test_case', '*'),
+            array('test%c%test', '  test c test', '%'),
+            array('test+u+case', 'TestUCase', '+'),
+            array('test=c=c=test', 'TestCCTest', '='),
+            array('string#>with1number', 'string_with1number', '#>'),
+            array('1test2case', '1test2case', '*'),
+            array('test ύα σase', 'test Σase', ' ύα ', 'UTF-8',),
+            array('στανιλαcase', 'Στανιλ case', 'α', 'UTF-8',),
+            array('σashΘcase', 'Σash  Case', 'Θ', 'UTF-8')
         );
     }
 
@@ -600,7 +640,49 @@ abstract class CommonTest extends PHPUnit_Framework_TestCase
             array('fòô   bàř', '  fòô   bàř  '),
             array('fòô bàř', ' fòô bàř'),
             array('fòô bàř', 'fòô bàř '),
-            array('fòô bàř', "\n\t fòô bàř \n\t")
+            array(' foo bar ', "\n\t foo bar \n\t", "\n\t"),
+            array('fòô bàř', "\n\t fòô bàř \n\t", null, 'UTF-8'),
+            array('fòô', ' fòô ', null, 'UTF-8'), // narrow no-break space (U+202F)
+            array('fòô', '  fòô  ', null, 'UTF-8'), // medium mathematical space (U+205F)
+            array('fòô', '           fòô', null, 'UTF-8') // spaces U+2000 to U+200A
+        );
+    }
+
+    public function trimLeftProvider()
+    {
+        return array(
+            array('foo   bar  ', '  foo   bar  '),
+            array('foo bar', ' foo bar'),
+            array('foo bar ', 'foo bar '),
+            array("foo bar \n\t", "\n\t foo bar \n\t"),
+            array('fòô   bàř  ', '  fòô   bàř  '),
+            array('fòô bàř', ' fòô bàř'),
+            array('fòô bàř ', 'fòô bàř '),
+            array('foo bar', '--foo bar', '-'),
+            array('fòô bàř', 'òòfòô bàř', 'ò', 'UTF-8'),
+            array("fòô bàř \n\t", "\n\t fòô bàř \n\t", null, 'UTF-8'),
+            array('fòô ', ' fòô ', null, 'UTF-8'), // narrow no-break space (U+202F)
+            array('fòô  ', '  fòô  ', null, 'UTF-8'), // medium mathematical space (U+205F)
+            array('fòô', '           fòô', null, 'UTF-8') // spaces U+2000 to U+200A
+        );
+    }
+
+    public function trimRightProvider()
+    {
+        return array(
+            array('  foo   bar', '  foo   bar  '),
+            array('foo bar', 'foo bar '),
+            array(' foo bar', ' foo bar'),
+            array("\n\t foo bar", "\n\t foo bar \n\t"),
+            array('  fòô   bàř', '  fòô   bàř  '),
+            array('fòô bàř', 'fòô bàř '),
+            array(' fòô bàř', ' fòô bàř'),
+            array('foo bar', 'foo bar--', '-'),
+            array('fòô bàř', 'fòô bàřòò', 'ò', 'UTF-8'),
+            array("\n\t fòô bàř", "\n\t fòô bàř \n\t", null, 'UTF-8'),
+            array(' fòô', ' fòô ', null, 'UTF-8'), // narrow no-break space (U+202F)
+            array('  fòô', '  fòô  ', null, 'UTF-8'), // medium mathematical space (U+205F)
+            array('fòô', 'fòô           ', null, 'UTF-8') // spaces U+2000 to U+200A
         );
     }
 
@@ -1021,6 +1103,28 @@ abstract class CommonTest extends PHPUnit_Framework_TestCase
             array('', '', '', '', 'msr', 'UTF-8'),
             array('bàř', 'fòô ', 'f[òô]+\s', 'bàř', 'msr', 'UTF-8'),
             array('fòô', 'bàř', '[[:alpha:]]{3}', 'fòô', 'msr', 'UTF-8')
+        );
+    }
+
+    public function htmlEncodeProvider()
+    {
+        return array(
+            array('&amp;', '&'),
+            array('&quot;', '"'),
+            array('&#039;', "'", ENT_QUOTES),
+            array('&lt;', '<'),
+            array('&gt;', '>'),
+        );
+    }
+
+    public function htmlDecodeProvider()
+    {
+        return array(
+            array('&', '&amp;'),
+            array('"', '&quot;'),
+            array("'", '&#039;', ENT_QUOTES),
+            array('<', '&lt;'),
+            array('>', '&gt;'),
         );
     }
 }

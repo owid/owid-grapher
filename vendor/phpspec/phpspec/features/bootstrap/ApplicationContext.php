@@ -126,6 +126,21 @@ class ApplicationContext implements Context, MatchersProviderInterface
     }
 
     /**
+     * @When I run phpspec and answer :answer to both questions
+     */
+    public function iRunPhpspecAndAnswerToBothQuestions($answer)
+    {
+        $arguments = array (
+            'command' => 'run'
+        );
+
+        $this->prompter->setAnswer($answer=='y');
+        $this->prompter->setAnswer($answer=='y');
+
+        $this->lastExitCode = $this->tester->run($arguments, array('interactive' => true));
+    }
+
+    /**
      * @param string $option
      * @param array $arguments
      */
@@ -171,6 +186,14 @@ class ApplicationContext implements Context, MatchersProviderInterface
     public function theSuiteShouldPass()
     {
         expect($this->lastExitCode)->toBeLike(0);
+    }
+
+    /**
+     * @Then the suite should not pass
+     */
+    public function theSuiteShouldNotPass()
+    {
+        expect($this->lastExitCode)->notToBeLike(0);
     }
 
     /**
@@ -227,6 +250,36 @@ class ApplicationContext implements Context, MatchersProviderInterface
     public function iShouldBePromptedWith(PyStringNode $question)
     {
         expect($this->prompter)->toHaveBeenAsked((string)$question);
+    }
+
+    /**
+     * @Given I have started describing the :class class with the :config (custom) config
+     * @Given I start describing the :class class with the :config (custom) config
+     */
+    public function iDescribeTheClassWithTheConfig($class, $config)
+    {
+        $arguments = array(
+            'command' => 'describe',
+            'class' => $class,
+            '--config' => $config
+        );
+
+        expect($this->tester->run($arguments, array('interactive' => false)))->toBe(0);
+    }
+
+    /**
+     * @When I run phpspec with the :config (custom) config and answer :answer when asked if I want to generate the code
+     */
+    public function iRunPhpspecWithConfigAndAnswerIfIWantToGenerateTheCode($config, $answer)
+    {
+        $arguments = array (
+            'command' => 'run',
+            '--config' => $config
+        );
+
+        $this->prompter->setAnswer($answer=='y');
+
+        $this->lastExitCode = $this->tester->run($arguments, array('interactive' => true));
     }
 
     /**

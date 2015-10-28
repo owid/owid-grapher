@@ -387,7 +387,7 @@ class DataForm extends Widget
                 }
                 if (isset($this->model)) {
                     $return = $this->model->save();
-                    if (!$return) {
+                    if (is_null($return)) {
                         // in the cases where an error has not been returned, but a record has been inserted or updated
                         // the model->save() method returns null which need to interpret as success
                         $return = true;
@@ -527,7 +527,7 @@ class DataForm extends Widget
                 call_user_func($previousHandler, $e);
                 die;
             }
-            
+
         }
 
         return $this->output;

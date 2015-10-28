@@ -116,7 +116,7 @@ class MountManager
     }
 
     /**
-     * Retrieve the prefix form an arguments array.
+     * Retrieve the prefix from an arguments array.
      *
      * @param array $arguments
      *
@@ -134,8 +134,8 @@ class MountManager
             throw new InvalidArgumentException('First argument should be a string');
         }
 
-        if (! preg_match('#^[a-zA-Z0-9]+\:\/\/.*#', $path)) {
-            throw new InvalidArgumentException('No prefix detected in for path: '.$path);
+        if (! preg_match('#^.+\:\/\/.*#', $path)) {
+            throw new InvalidArgumentException('No prefix detected in path: '.$path);
         }
 
         list($prefix, $path) = explode('://', $path, 2);
@@ -211,9 +211,9 @@ class MountManager
     /**
      * List with plugin adapter.
      *
-     * @param array $keys
+     * @param array  $keys
      * @param string $directory
-     * @param bool $recursive
+     * @param bool   $recursive
      */
     public function listWith(array $keys = [], $directory = '', $recursive = false)
     {
@@ -229,6 +229,7 @@ class MountManager
      *
      * @param $from
      * @param $to
+     *
      * @return bool
      */
     public function move($from, $to)
@@ -248,6 +249,7 @@ class MountManager
      * @param $method
      * @param $arguments
      * @param $prefix
+     *
      * @return mixed
      */
     public function invokePluginOnFilesystem($method, $arguments, $prefix)

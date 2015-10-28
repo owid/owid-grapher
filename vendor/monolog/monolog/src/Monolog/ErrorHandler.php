@@ -13,6 +13,7 @@ namespace Monolog;
 
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
+use Monolog\Handler\AbstractHandler;
 
 /**
  * Monolog error handler
@@ -33,6 +34,7 @@ class ErrorHandler
     private $previousErrorHandler;
     private $errorLevelMap;
 
+    private $hasFatalErrorHandler;
     private $fatalLevel;
     private $reservedMemory;
     private static $fatalErrors = array(E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR);
@@ -93,6 +95,7 @@ class ErrorHandler
 
         $this->reservedMemory = str_repeat(' ', 1024 * $reservedMemorySize);
         $this->fatalLevel = $level;
+        $this->hasFatalErrorHandler = true;
     }
 
     protected function defaultErrorLevelMap()
@@ -119,7 +122,7 @@ class ErrorHandler
     /**
      * @private
      */
-    public function handleException(\Exception $e)
+    public function handleException($e)
     {
         $this->logger->log(
             $this->uncaughtExceptionLevel === null ? LogLevel::ERROR : $this->uncaughtExceptionLevel,
@@ -130,6 +133,8 @@ class ErrorHandler
         if ($this->previousExceptionHandler) {
             call_user_func($this->previousExceptionHandler, $e);
         }
+
+        exit(255);
     }
 
     /**
@@ -141,8 +146,11 @@ class ErrorHandler
             return;
         }
 
-        $level = isset($this->errorLevelMap[$code]) ? $this->errorLevelMap[$code] : LogLevel::CRITICAL;
-        $this->logger->log($level, self::codeToString($code).': '.$message, array('code' => $code, 'message' => $message, 'file' => $file, 'line' => $line));
+        // fatal error codes are ignored if a fatal error handler is present as well to avoid duplicate log entries
+        if (!$this->hasFatalErrorHandler || !in_array($code, self::$fatalErrors, true)) {
+            $level = isset($this->errorLevelMap[$code]) ? $this->errorLevelMap[$code] : LogLevel::CRITICAL;
+            $this->logger->log($level, self::codeToString($code).': '.$message, array('code' => $code, 'message' => $message, 'file' => $file, 'line' => $line));
+        }
 
         if ($this->previousErrorHandler === true) {
             return false;
@@ -159,12 +167,20 @@ class ErrorHandler
         $this->reservedMemory = null;
 
         $lastError = error_get_last();
-        if ($lastError && in_array($lastError['type'], self::$fatalErrors)) {
+        if ($lastError && in_array($lastError['type'], self::$fatalErrors, true)) {
             $this->logger->log(
                 $this->fatalLevel === null ? LogLevel::ALERT : $this->fatalLevel,
                 'Fatal Error ('.self::codeToString($lastError['type']).'): '.$lastError['message'],
                 array('code' => $lastError['type'], 'message' => $lastError['message'], 'file' => $lastError['file'], 'line' => $lastError['line'])
             );
+
+            if ($this->logger instanceof Logger) {
+                foreach ($this->logger->getHandlers() as $handler) {
+                    if ($handler instanceof AbstractHandler) {
+                        $handler->close();
+                    }
+                }
+            }
         }
     }
 

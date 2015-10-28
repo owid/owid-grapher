@@ -13,17 +13,16 @@
     "authors": [
         {
             "name": "Syed Irfaq R.",
-            "email": "syed+gh@lukonet.com",
-            "homepage": "https://github.com/irazasyed"
+            "email": "syed+gh@lukonet.com"
         }
     ],
     "require": {
-        "php": ">=5.5.0",
-        "illuminate/support": "5.0.*|5.1.*",
-        "theiconic/php-ga-measurement-protocol": "^2.0"
+        "php": ">=5.4.0",
+        "illuminate/support": "4.2.*|5.0.*",
+        "theiconic/php-ga-measurement-protocol": "^1.1"
     },
     "autoload": {
-        "psr-4": {
+        "psr-0": {
             "Irazasyed\\LaravelGAMP\\": "src/"
         }
     },

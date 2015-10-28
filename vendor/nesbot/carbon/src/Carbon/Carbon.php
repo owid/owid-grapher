@@ -121,6 +121,28 @@ class Carbon extends DateTime
      */
     protected static $toStringFormat = self::DEFAULT_TO_STRING_FORMAT;
 
+
+    /**
+     * First day of week
+     *
+     * @var int
+     */
+    protected static $weekStartsAt = self::MONDAY;
+
+    /**
+     * Last day of week
+     *
+     * @var int
+     */
+    protected static $weekEndsAt = self::SUNDAY;
+
+    /**
+     * Days of weekend
+     *
+     * @var array
+     */
+    protected static $weekendDays = array(self::SATURDAY, self::SUNDAY);
+
     /**
      * A test Carbon instance to be returned when now instances are created
      *
@@ -715,6 +737,73 @@ class Carbon extends DateTime
         return $this;
     }
 
+
+
+    ///////////////////////////////////////////////////////////////////
+    /////////////////////// WEEK SPECIAL DAYS /////////////////////////
+    ///////////////////////////////////////////////////////////////////
+
+    /**
+     * Get the first day of week
+     *
+     * @return int
+     */
+    public static function getWeekStartsAt()
+    {
+        return static::$weekStartsAt;
+    }
+
+    /**
+     * Set the first day of week
+     *
+     * @param int
+     */
+    public static function setWeekStartsAt($day)
+    {
+        static::$weekStartsAt = $day;
+    }
+
+    /**
+     * Get the last day of week
+     *
+     * @return int
+     */
+    public static function getWeekEndsAt()
+    {
+        return static::$weekEndsAt;
+    }
+
+    /**
+     * Set the first day of week
+     *
+     * @param int
+     */
+    public static function setWeekEndsAt($day)
+    {
+        static::$weekEndsAt = $day;
+    }
+
+    /**
+     * Get weekend days
+     *
+     * @return array
+     */
+    public static function getWeekendDays()
+    {
+        return static::$weekendDays;
+    }
+
+    /**
+     * Set weekend days
+     *
+     * @param array
+     */
+    public static function setWeekendDays($days)
+    {
+        static::$weekendDays = $days;
+    }
+
+
     ///////////////////////////////////////////////////////////////////
     ///////////////////////// TESTING AIDS ////////////////////////////
     ///////////////////////////////////////////////////////////////////
@@ -1194,7 +1283,7 @@ class Carbon extends DateTime
      */
     public function isWeekday()
     {
-        return ($this->dayOfWeek != static::SUNDAY && $this->dayOfWeek != static::SATURDAY);
+        return !$this->isWeekend();
     }
 
     /**
@@ -1204,7 +1293,7 @@ class Carbon extends DateTime
      */
     public function isWeekend()
     {
-        return !$this->isWeekDay();
+        return in_array($this->dayOfWeek, self::$weekendDays);
     }
 
     /**
@@ -1278,6 +1367,76 @@ class Carbon extends DateTime
         return $this->toDateString() === $dt->toDateString();
     }
 
+    /**
+     * Checks if this day is a Sunday.
+     * 
+     * @return boolean
+     */
+    public function isSunday()
+    {
+        return $this->dayOfWeek === static::SUNDAY;
+    }
+
+    /**
+     * Checks if this day is a Monday.
+     * 
+     * @return boolean
+     */
+    public function isMonday()
+    {
+        return $this->dayOfWeek === static::MONDAY;
+    }
+
+    /**
+     * Checks if this day is a Tuesday.
+     * 
+     * @return boolean
+     */
+    public function isTuesday()
+    {
+        return $this->dayOfWeek === static::TUESDAY;
+    }
+
+    /**
+     * Checks if this day is a Wednesday.
+     * 
+     * @return boolean
+     */
+    public function isWednesday()
+    {
+        return $this->dayOfWeek === static::WEDNESDAY;
+    }
+
+    /**
+     * Checks if this day is a Thursday.
+     * 
+     * @return boolean
+     */
+    public function isThursday()
+    {
+        return $this->dayOfWeek === static::THURSDAY;
+    }
+
+    /**
+     * Checks if this day is a Friday.
+     * 
+     * @return boolean
+     */
+    public function isFriday()
+    {
+        return $this->dayOfWeek === static::FRIDAY;
+    }
+
+    /**
+     * Checks if this day is a Saturday.
+     * 
+     * @return boolean
+     */
+    public function isSaturday()
+    {
+        return $this->dayOfWeek === static::SATURDAY;
+    }
+    
     ///////////////////////////////////////////////////////////////////
     /////////////////// ADDITIONS AND SUBTRACTIONS ////////////////////
     ///////////////////////////////////////////////////////////////////
@@ -1298,6 +1457,8 @@ class Carbon extends DateTime
     /**
      * Add a year to the instance
      *
+     * @param integer $value
+     *
      * @return static
      */
     public function addYear($value = 1)
@@ -1307,6 +1468,8 @@ class Carbon extends DateTime
 
     /**
      * Remove a year from the instance
+     *
+     * @param integer $value
      *
      * @return static
      */
@@ -1343,6 +1506,8 @@ class Carbon extends DateTime
     /**
      * Add a month to the instance
      *
+     * @param integer $value
+     *
      * @return static
      */
     public function addMonth($value = 1)
@@ -1352,6 +1517,8 @@ class Carbon extends DateTime
 
     /**
      * Remove a month from the instance
+     *
+     * @param integer $value
      *
      * @return static
      */
@@ -1394,6 +1561,8 @@ class Carbon extends DateTime
     /**
      * Add a month with no overflow to the instance
      *
+     * @param integer $value
+     *
      * @return static
      */
     public function addMonthNoOverflow($value = 1)
@@ -1403,6 +1572,8 @@ class Carbon extends DateTime
 
     /**
      * Remove a month with no overflow from the instance
+     *
+     * @param integer $value
      *
      * @return static
      */
@@ -1439,6 +1610,8 @@ class Carbon extends DateTime
     /**
      * Add a day to the instance
      *
+     * @param integer $value
+     *
      * @return static
      */
     public function addDay($value = 1)
@@ -1448,6 +1621,8 @@ class Carbon extends DateTime
 
     /**
      * Remove a day from the instance
+     *
+     * @param integer $value
      *
      * @return static
      */
@@ -1484,6 +1659,8 @@ class Carbon extends DateTime
     /**
      * Add a weekday to the instance
      *
+     * @param integer $value
+     *
      * @return static
      */
     public function addWeekday($value = 1)
@@ -1493,6 +1670,8 @@ class Carbon extends DateTime
 
     /**
      * Remove a weekday from the instance
+     *
+     * @param integer $value
      *
      * @return static
      */
@@ -1529,6 +1708,8 @@ class Carbon extends DateTime
     /**
      * Add a week to the instance
      *
+     * @param integer $value
+     *
      * @return static
      */
     public function addWeek($value = 1)
@@ -1538,6 +1719,8 @@ class Carbon extends DateTime
 
     /**
      * Remove a week from the instance
+     *
+     * @param integer $value
      *
      * @return static
      */
@@ -1574,6 +1757,8 @@ class Carbon extends DateTime
     /**
      * Add an hour to the instance
      *
+     * @param integer $value
+     *
      * @return static
      */
     public function addHour($value = 1)
@@ -1583,6 +1768,8 @@ class Carbon extends DateTime
 
     /**
      * Remove an hour from the instance
+     *
+     * @param integer $value
      *
      * @return static
      */
@@ -1619,6 +1806,8 @@ class Carbon extends DateTime
     /**
      * Add a minute to the instance
      *
+     * @param integer $value
+     *
      * @return static
      */
     public function addMinute($value = 1)
@@ -1628,6 +1817,8 @@ class Carbon extends DateTime
 
     /**
      * Remove a minute from the instance
+     *
+     * @param integer $value
      *
      * @return static
      */
@@ -1664,6 +1855,8 @@ class Carbon extends DateTime
     /**
      * Add a second to the instance
      *
+     * @param integer $value
+     *
      * @return static
      */
     public function addSecond($value = 1)
@@ -1673,6 +1866,8 @@ class Carbon extends DateTime
 
     /**
      * Remove a second from the instance
+     *
+     * @param integer $value
      *
      * @return static
      */
@@ -2105,28 +2300,28 @@ class Carbon extends DateTime
     }
 
     /**
-     * Resets the date to the first day of the ISO-8601 week (Monday) and the time to 00:00:00
+     * Resets the date to the first day of week (defined in $weekStartsAt) and the time to 00:00:00
      *
      * @return static
      */
     public function startOfWeek()
     {
-        if ($this->dayOfWeek != static::MONDAY) {
-            $this->previous(static::MONDAY);
+        if ($this->dayOfWeek != static::$weekStartsAt) {
+            $this->previous(static::$weekStartsAt);
         }
 
         return $this->startOfDay();
     }
 
     /**
-     * Resets the date to end of the ISO-8601 week (Sunday) and time to 23:59:59
+     * Resets the date to end of week (defined in $weekEndsAt) and time to 23:59:59
      *
      * @return static
      */
     public function endOfWeek()
     {
-        if ($this->dayOfWeek != static::SUNDAY) {
-            $this->next(static::SUNDAY);
+        if ($this->dayOfWeek != static::$weekEndsAt) {
+            $this->next(static::$weekEndsAt);
         }
 
         return $this->endOfDay();

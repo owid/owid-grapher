@@ -29,27 +29,24 @@
                 <div class="row">
 
                     <div class="col-sm-4">
-                        Title: {!! $form->field('title') !!}
-                        <p class="bg-danger">{!! $form->field('title')->message !!}</p>
+                        {!! $form->render('title') !!}
 
-                        Categories: {!! $form->field('categories.name') !!}
-                        <p class="bg-danger">{!! $form->field('categories.name')->message !!}</p>
+                        {!! $form->render('categories.name') !!}
 
-                        Photo: {!! $form->field('photo') !!}
-                        <p class="bg-danger">{!! $form->field('photo')->message !!}</p>
-
+                        {!! $form->render('photo') !!}
 
                     </div>
 
                     <div class="col-sm-8">
 
-                         Body: {!! $form->field('body') !!}<br />
+                         {!! $form->render('body') !!}
                     </div>
-
+                    
+                    
                 </div>
             @endif
 
-
+            <br />
         {!! $form->footer !!}
 
        </div>

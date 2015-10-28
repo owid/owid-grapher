@@ -13,8 +13,20 @@
     
     {!! Rapyd::styles(true) !!}
 </head>
+<?php $is_rapyd = (Request::server('HTTP_HOST') == "www.rapyd.com") ? true : false; ?>
 
 <body>
+@if (isset($is_rapyd) AND $is_rapyd)
+    <!-- Google Tag Manager -->
+    <noscript><iframe src="//www.googletagmanager.com/ns.html?id=GTM-5VL356"
+                      height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+                new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+                j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+                '//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+        })(window,document,'script','dataLayer','GTM-5VL356');</script>
+    <!-- End Google Tag Manager -->
+@endif
 
 <div id="wrap">
 
@@ -29,7 +41,14 @@
                 @yield('content')
             </div>
 
+            @if (isset($is_rapyd) AND $is_rapyd)
 
+                <br />
+                <br />
+                <div id="disqus_thread"></div>
+
+
+            @endif
         </div>
 
 
@@ -44,5 +63,13 @@
 <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
 <script src="//netdna.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 {!! Rapyd::scripts() !!}
+@if (isset($is_rapyd) AND $is_rapyd)
+    
+    <div class="privacy-overlay">
+        <div class="privacy-modal"></div>
+    </div>
+    <link href="/css/policy.css" rel="stylesheet">
+    <script src="/js/policy.js"></script>
+@endif
 </body>
 </html>

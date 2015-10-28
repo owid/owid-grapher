@@ -2,9 +2,6 @@
 
 namespace TheIconic\Tracking\GoogleAnalytics;
 
-use GuzzleHttp\Psr7\Uri;
-use Psr\Http\Message\RequestInterface;
-
 class AnalyticsResponseTest extends \PHPUnit_Framework_TestCase
 {
     /**
@@ -17,14 +14,9 @@ class AnalyticsResponseTest extends \PHPUnit_Framework_TestCase
      */
     private $analyticsResponseAsync;
 
-    /**
-     * @var RequestInterface
-     */
-    private $mockRequest;
-
     public function setUp()
     {
-        $mockResponse = $this->getMockBuilder('GuzzleHttp\Psr7\Response')
+        $mockResponse = $this->getMockBuilder('GuzzleHttp\Message\Response')
             ->setMethods(['getStatusCode'])
             ->disableOriginalConstructor()
             ->getMock();
@@ -33,30 +25,22 @@ class AnalyticsResponseTest extends \PHPUnit_Framework_TestCase
             ->method('getStatusCode')
             ->will($this->returnValue('200'));
 
-        $this->mockRequest = $this->getMockBuilder('GuzzleHttp\Psr7\Request')
-            ->setMethods(['getUri'])
+        $mockRequest = $this->getMockBuilder('GuzzleHttp\Message\Request')
+            ->setMethods(['getUrl'])
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->mockRequest->expects($this->atLeast(1))
-            ->method('getUri')
-            ->will($this->returnValue(new Uri('http://test-collector/hello')));
+        $mockRequest->expects($this->atLeast(1))
+            ->method('getUrl')
+            ->will($this->returnValue('http://test-collector/hello'));
 
-        $this->analyticsResponse = new AnalyticsResponse($this->mockRequest, $mockResponse);
+        $this->analyticsResponse = new AnalyticsResponse($mockRequest, $mockResponse);
 
-        $mockResponseAsync = $this->getMockBuilder('GuzzleHttp\Promise\Promise')
+        $mockResponseAsync = $this->getMockBuilder('GuzzleHttp\Message\FutureResponse')
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->analyticsResponseAsync = new AnalyticsResponse($this->mockRequest, $mockResponseAsync);
-    }
-
-    /**
-     * @expectedException \InvalidArgumentException
-     */
-    public function testConstructorWithWrongResponseValue()
-    {
-        new AnalyticsResponse($this->mockRequest, new \stdClass());
+        $this->analyticsResponseAsync = new AnalyticsResponse($mockRequest, $mockResponseAsync);
     }
 
     public function testStatusCode()

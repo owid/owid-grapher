@@ -29,11 +29,12 @@ if ( ! function_exists('action'))
 	 *
 	 * @param  string  $name
 	 * @param  array   $parameters
+	 * @param  bool    $absolute
 	 * @return string
 	 */
-	function action($name, $parameters = array())
+	function action($name, $parameters = array(), $absolute = true)
 	{
-		return app('url')->action($name, $parameters);
+		return app('url')->action($name, $parameters, $absolute);
 	}
 }
 
@@ -293,7 +294,7 @@ if ( ! function_exists('logger'))
 	 *
 	 * @param  string  $message
 	 * @param  array  $context
-	 * @return void
+	 * @return null|\Illuminate\Contracts\Logging\Log
 	 */
 	function logger($message = null, array $context = array())
 	{

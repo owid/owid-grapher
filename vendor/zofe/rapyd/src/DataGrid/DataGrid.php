@@ -44,7 +44,7 @@ class DataGrid extends DataSet
         parent::build();
 
         Persistence::save();
-   
+
         foreach ($this->data as $tablerow) {
 
             $row = new Row($tablerow);

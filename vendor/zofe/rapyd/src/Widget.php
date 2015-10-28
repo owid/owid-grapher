@@ -4,6 +4,7 @@ use Illuminate\Html\FormFacade as Form;
 use Illuminate\Html\HtmlFacade as HTML;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Request;
+use Illuminate\Support\Facades\Session;
 
 class Widget
 {
@@ -73,8 +74,8 @@ class Widget
      */
     public function link($url, $name, $position="BL", $attributes=array())
     {
-        $match_url = trim(parse_url($url, PHP_URL_PATH),'/');
-        
+        $base = str_replace(Request::path(),'',strtok(Request::fullUrl(),'?'));
+        $match_url = str_replace($base, '/', strtok($url,'?'));
         if (Request::path()!= $match_url) {
             $url = Persistence::get($match_url, parse_url($url, PHP_URL_QUERY));
         }

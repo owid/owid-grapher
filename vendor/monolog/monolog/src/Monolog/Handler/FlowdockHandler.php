@@ -12,6 +12,8 @@
 namespace Monolog\Handler;
 
 use Monolog\Logger;
+use Monolog\Formatter\FlowdockFormatter;
+use Monolog\Formatter\FormatterInterface;
 
 /**
  * Sends notifications through the Flowdock push API
@@ -46,6 +48,28 @@ class FlowdockHandler extends SocketHandler
 
         parent::__construct('ssl://api.flowdock.com:443', $level, $bubble);
         $this->apiToken = $apiToken;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setFormatter(FormatterInterface $formatter)
+    {
+        if (!$formatter instanceof FlowdockFormatter) {
+            throw new \InvalidArgumentException('The FlowdockHandler requires an instance of Monolog\Formatter\FlowdockFormatter to function correctly');
+        }
+
+        return parent::setFormatter($formatter);
+    }
+
+    /**
+     * Gets the default formatter.
+     *
+     * @return FormatterInterface
+     */
+    protected function getDefaultFormatter()
+    {
+        throw new \InvalidArgumentException('The FlowdockHandler must be configured (via setFormatter) with an instance of Monolog\Formatter\FlowdockFormatter to function correctly');
     }
 
     /**

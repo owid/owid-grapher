@@ -2,9 +2,9 @@
 
 namespace TheIconic\Tracking\GoogleAnalytics;
 
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
-use GuzzleHttp\Promise\PromiseInterface;
+use GuzzleHttp\Message\RequestInterface;
+use GuzzleHttp\Message\ResponseInterface;
+use GuzzleHttp\Message\FutureResponse;
 
 /**
  * Class AnalyticsResponse
@@ -33,21 +33,17 @@ class AnalyticsResponse
      * Gets the relevant data from the Guzzle clients.
      *
      * @param RequestInterface $request
-     * @param ResponseInterface|PromiseInterface $response
+     * @param ResponseInterface $response
      */
-    public function __construct(RequestInterface $request, $response)
+    public function __construct(RequestInterface $request, ResponseInterface $response)
     {
-        if ($response instanceof ResponseInterface) {
-            $this->httpStatusCode = $response->getStatusCode();
-        } elseif ($response instanceof PromiseInterface) {
+        if ($response instanceof FutureResponse) {
             $this->httpStatusCode = null;
         } else {
-            throw new \InvalidArgumentException(
-                'Second constructor argument "response" must be instance of ResponseInterface or PromiseInterface'
-            );
+            $this->httpStatusCode = $response->getStatusCode();
         }
 
-        $this->requestUrl = (string)$request->getUri();
+        $this->requestUrl = $request->getUrl();
     }
 
     /**

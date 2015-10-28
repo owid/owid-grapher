@@ -15,6 +15,8 @@ namespace PhpSpec\CodeGenerator\Generator;
 
 use PhpSpec\Console\IO;
 use PhpSpec\CodeGenerator\TemplateRenderer;
+use PhpSpec\Process\Context\JsonExecutionContext;
+use PhpSpec\Process\Context\ExecutionContextInterface;
 use PhpSpec\Util\Filesystem;
 use PhpSpec\Locator\ResourceInterface;
 
@@ -24,30 +26,35 @@ use PhpSpec\Locator\ResourceInterface;
 abstract class PromptingGenerator implements GeneratorInterface
 {
     /**
-     * @var \PhpSpec\Console\IO
+     * @var IO
      */
     private $io;
 
     /**
-     * @var \PhpSpec\CodeGenerator\TemplateRenderer
+     * @var TemplateRenderer
      */
     private $templates;
 
     /**
-     * @var \PhpSpec\Util\Filesystem
+     * @var Filesystem
      */
     private $filesystem;
+    /**
+     * @var ExecutionContextInterface
+     */
+    private $executionContext;
 
     /**
      * @param IO               $io
      * @param TemplateRenderer $templates
      * @param Filesystem       $filesystem
      */
-    public function __construct(IO $io, TemplateRenderer $templates, Filesystem $filesystem = null)
+    public function __construct(IO $io, TemplateRenderer $templates, Filesystem $filesystem = null, ExecutionContextInterface $executionContext = null)
     {
         $this->io         = $io;
         $this->templates  = $templates;
         $this->filesystem = $filesystem ?: new Filesystem();
+        $this->executionContext = $executionContext ?: new JsonExecutionContext();
     }
 
     /**
@@ -68,6 +75,7 @@ abstract class PromptingGenerator implements GeneratorInterface
 
         $this->createDirectoryIfItDoesExist($filepath);
         $this->generateFileAndRenderTemplate($resource, $filepath);
+        $this->executionContext->addGeneratedType($resource->getSrcClassname());
     }
 
     /**
