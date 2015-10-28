@@ -10,9 +10,9 @@
 
 /**
  * DKIM Signer used to apply DKIM Signature to a message
- * Takes advantage of pecl extension
+ * Takes advantage of pecl extension.
  *
- * @author     Xavier De Cock <xdecock@gmail.com>
+ * @author Xavier De Cock <xdecock@gmail.com>
  */
 class Swift_Signers_OpenDKIMSigner extends Swift_Signers_DKIMSigner
 {
@@ -59,7 +59,7 @@ class Swift_Signers_OpenDKIMSigner extends Swift_Signers_DKIMSigner
     {
         $bodyLen = $this->_bodyLen;
         if (is_bool($bodyLen)) {
-            $bodyLen = - 1;
+            $bodyLen = -1;
         }
         $hash = ($this->_hashAlgorithm == 'rsa-sha1') ? OpenDKIMSign::ALG_RSASHA1 : OpenDKIMSign::ALG_RSASHA256;
         $bodyCanon = ($this->_bodyCanon == 'simple') ? OpenDKIMSign::CANON_SIMPLE : OpenDKIMSign::CANON_RELAXED;
@@ -81,7 +81,7 @@ class Swift_Signers_OpenDKIMSigner extends Swift_Signers_DKIMSigner
         $listHeaders = $headers->listAll();
         foreach ($listHeaders as $hName) {
             // Check if we need to ignore Header
-            if (! isset($this->_ignoredHeaders[strtolower($hName)])) {
+            if (!isset($this->_ignoredHeaders[strtolower($hName)])) {
                 $tmp = $headers->getAll($hName);
                 if ($headers->has($hName)) {
                     foreach ($tmp as $header) {
@@ -100,7 +100,7 @@ class Swift_Signers_OpenDKIMSigner extends Swift_Signers_DKIMSigner
 
     public function startBody()
     {
-        if (! $this->_peclLoaded) {
+        if (!$this->_peclLoaded) {
             return parent::startBody();
         }
         $this->dropFirstLF = true;
@@ -111,7 +111,7 @@ class Swift_Signers_OpenDKIMSigner extends Swift_Signers_DKIMSigner
 
     public function endBody()
     {
-        if (! $this->_peclLoaded) {
+        if (!$this->_peclLoaded) {
             return parent::endBody();
         }
         $this->_dkimHandler->eom();
@@ -128,9 +128,10 @@ class Swift_Signers_OpenDKIMSigner extends Swift_Signers_DKIMSigner
     }
 
     /**
-     * Set the signature timestamp
+     * Set the signature timestamp.
      *
      * @param timestamp $time
+     *
      * @return Swift_Signers_DKIMSigner
      */
     public function setSignatureTimestamp($time)
@@ -141,9 +142,10 @@ class Swift_Signers_OpenDKIMSigner extends Swift_Signers_DKIMSigner
     }
 
     /**
-     * Set the signature expiration timestamp
+     * Set the signature expiration timestamp.
      *
      * @param timestamp $time
+     *
      * @return Swift_Signers_DKIMSigner
      */
     public function setSignatureExpiration($time)
@@ -154,9 +156,10 @@ class Swift_Signers_OpenDKIMSigner extends Swift_Signers_DKIMSigner
     }
 
     /**
-     * Enable / disable the DebugHeaders
+     * Enable / disable the DebugHeaders.
      *
-     * @param bool    $debug
+     * @param bool $debug
+     *
      * @return Swift_Signers_DKIMSigner
      */
     public function setDebugHeaders($debug)
@@ -170,7 +173,7 @@ class Swift_Signers_OpenDKIMSigner extends Swift_Signers_DKIMSigner
 
     protected function _canonicalizeBody($string)
     {
-        if (! $this->_peclLoaded) {
+        if (!$this->_peclLoaded) {
             return parent::_canonicalizeBody($string);
         }
         if (false && $this->dropFirstLF === true) {

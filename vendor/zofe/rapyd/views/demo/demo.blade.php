@@ -2,8 +2,10 @@
 
 @section('title','Demo')
 
-<?php $is_rapyd = (Request::server('HTTP_HOST') == "www.rapyd.com") ? true : false; ?>
+
 @section('body')
+    
+    
     <h1>Demo Index</h1>
 
     @if(Session::has('message'))
@@ -43,6 +45,7 @@
 
     @yield('body')
 
-    @include('rapyd::demo.disqus')
+
+
 
 @stop

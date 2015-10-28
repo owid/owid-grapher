@@ -6,4 +6,3 @@ phpunit.xml
 Gemfile
 Gemfile.lock
 autotest.rb
-Dockerfile

@@ -14,7 +14,7 @@ class Url
 
     public static function unparse_str($array)
     {
-        return '?' . urldecode(http_build_query($array));//preg_replace('/%5B[0-9]+%5D/simU', '[]', http_build_query($array));
+        return '?' . preg_replace('/%5B[0-9]+%5D/simU', '%5B%5D', http_build_query($array));
     }
 
     public function set($url)

@@ -127,8 +127,7 @@ class RavenHandler extends AbstractProcessingHandler
      */
     protected function write(array $record)
     {
-        // ensures user context is empty
-        $this->ravenClient->user_context(null);
+        $previousUserContext = false;
         $options = array();
         $options['level'] = $this->logLevels[$record['level']];
         $options['tags'] = array();
@@ -146,9 +145,18 @@ class RavenHandler extends AbstractProcessingHandler
         } else {
             $options['logger'] = $record['channel'];
         }
+        foreach ($this->getExtraParameters() as $key) {
+            foreach (array('extra', 'context') as $source) {
+                if (!empty($record[$source][$key])) {
+                    $options[$key] = $record[$source][$key];
+                    unset($record[$source][$key]);
+                }
+            }
+        }
         if (!empty($record['context'])) {
             $options['extra']['context'] = $record['context'];
             if (!empty($record['context']['user'])) {
+                $previousUserContext = $this->ravenClient->context->user;
                 $this->ravenClient->user_context($record['context']['user']);
                 unset($options['extra']['context']['user']);
             }
@@ -160,11 +168,13 @@ class RavenHandler extends AbstractProcessingHandler
         if (isset($record['context']['exception']) && $record['context']['exception'] instanceof \Exception) {
             $options['extra']['message'] = $record['formatted'];
             $this->ravenClient->captureException($record['context']['exception'], $options);
-
-            return;
+        } else {
+            $this->ravenClient->captureMessage($record['formatted'], array(), $options);
         }
 
-        $this->ravenClient->captureMessage($record['formatted'], array(), $options);
+        if ($previousUserContext !== false) {
+            $this->ravenClient->user_context($previousUserContext);
+        }
     }
 
     /**
@@ -183,5 +193,15 @@ class RavenHandler extends AbstractProcessingHandler
     protected function getDefaultBatchFormatter()
     {
         return new LineFormatter();
+    }
+
+    /**
+     * Gets extra parameters supported by Raven that can be found in "extra" and "context"
+     *
+     * @return array
+     */
+    protected function getExtraParameters()
+    {
+        return array('checksum', 'release');
     }
 }

@@ -1,6 +1,8 @@
 rapyd-laravel
 =============
 
+[![Join the chat at https://gitter.im/zofe/rapyd-laravel](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/zofe/rapyd-laravel?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 <a href="https://packagist.org/packages/zofe/rapyd">
     <img src="http://img.shields.io/packagist/v/zofe/rapyd.svg?style=flat" style="vertical-align: text-top">
 </a>
@@ -154,19 +156,23 @@ You can directly customize form  using build() in your controller
  
 ```php
    #article.blade.php
-    {{ $form->header }}
+    {!! $form->header !!}
 
-        {{ $form->message }} <br />
+        {!! $form->message !!} <br />
 
         @if(!$form->message)
-        
-            Title:  {{ $form->field('title') }}<br /> 
-            Body:  {{ $form->field('body') }}
+            <div class="row">
+                <div class="col-sm-4">
+                     {!! $form->render('title') !!}
+                </div>
+                <div class="col-sm-8">
+                    {!! $form->render('body') !!}
+                </div>
+            </div> 
             ...
-            
         @endif
 
-    {{ $form->footer }}
+    {!! $form->footer !!}
 ```
 [custom form layout explained](https://github.com/zofe/rapyd-laravel/wiki/Custom-Form-Layout)  
 [custom form layout demo](http://www.rapyd.com/rapyd-demo/styledform)  
@@ -261,6 +267,32 @@ In `app/config/app.php` add:
 
 then run: `$ composer update zofe/rapyd`.
 
+
+## Namespace consideration, Extending etc.
+
+To use widgets you can: 
+- just use the global aliases: `\DataGrid::source()...` (please note the '\')
+- or import facades:
+```php
+    use Zofe\Rapyd\Facades\DataSet;
+    use Zofe\Rapyd\Facades\DataGrid;
+    use Zofe\Rapyd\Facades\DataForm;
+    use Zofe\Rapyd\Facades\DataForm;
+    use Zofe\Rapyd\Facades\DataEdit;
+    ..
+    DataGrid::source()... 
+```
+- or you can extend each class 
+```php
+    Class MyDataGrid extends Zofe\Rapyd\DataGrid\DataGrid {
+    ...
+    }
+    Class MyDataEdit extends Zofe\Rapyd\DataEdit\DataEdit {
+    ...
+    }
+    ..
+    MyDataGrid::source()
+```
 
 ## Publish & override configuration and assets
 

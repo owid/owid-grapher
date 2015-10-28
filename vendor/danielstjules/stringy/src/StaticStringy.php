@@ -98,6 +98,22 @@ class StaticStringy
     }
 
     /**
+     * Returns a lowercase and trimmed string separated by the given delimiter.
+     * Delimiters are inserted before uppercase characters (with the exception
+     * of the first character of the string), and in place of spaces, dashes,
+     * and underscores. Alpha delimiters are not converted to lowercase.
+     *
+     * @param  string  $str       String to convert
+     * @param  string  $delimiter Sequence used to separate parts of the string
+     * @param  string  $encoding  The character encoding
+     * @return string  String with delimiter
+     */
+    public static function delimit($str, $delimiter, $encoding = null)
+    {
+        return (string) Stringy::create($str, $encoding)->delimit($delimiter);
+    }
+
+    /**
      * Returns a case swapped version of the string.
      *
      * @param  string $str      String to swap case
@@ -422,6 +438,40 @@ class StaticStringy
     }
 
     /**
+     * Returns the index of the first occurrence of $needle in the string,
+     * and false if not found. Accepts an optional offset from which to begin
+     * the search.
+     *
+     * @param  string   $haystack String to search
+     * @param  string   $needle   Substring to look for
+     * @param  int      $offset   Offset from which to search
+     * @return int|bool The occurrence's index if found, otherwise false
+     */
+    public static function indexOf($haystack, $needle, $offset = 0,
+                                   $encoding = null)
+    {
+        return Stringy::create($haystack, $encoding)
+            ->indexOf($needle, $offset);
+    }
+
+    /**
+     * Returns the index of the last occurrence of $needle in the string,
+     * and false if not found. Accepts an optional offset from which to begin
+     * the search.
+     *
+     * @param  string   $haystack String to search
+     * @param  string   $needle   Substring to look for
+     * @param  int      $offset   Offset from which to search
+     * @return int|bool The last occurrence's index if found, otherwise false
+     */
+    public static function indexOfLast($haystack, $needle, $offset = 0,
+                                       $encoding = null)
+    {
+        return Stringy::create($haystack, $encoding)
+            ->indexOfLast($needle, $offset);
+    }
+
+    /**
      * Surrounds a string with the given substring.
      *
      * @param  string $str       The string to surround
@@ -511,14 +561,48 @@ class StaticStringy
     }
 
     /**
-     * Returns the trimmed string. An alias for PHP's trim() function.
+     * Returns a string with whitespace removed from the start and end of the
+     * string. Supports the removal of unicode whitespace. Accepts an optional
+     * string of characters to strip instead of the defaults.
      *
-     * @param  string $str String to trim
+     * @param  string $str      String to trim
+     * @param  string $chars    Optional string of characters to strip
+     * @param  string $encoding The character encoding
      * @return string Trimmed $str
      */
-    public static function trim($str)
+    public static function trim($str, $chars = null, $encoding = null)
     {
-        return trim($str);
+        return (string) Stringy::create($str, $encoding)->trim($chars);
+    }
+
+    /**
+     * Returns a string with whitespace removed from the start of the string.
+     * Supports the removal of unicode whitespace. Accepts an optional
+     * string of characters to strip instead of the defaults.
+     *
+     * @param  string $str      String to trim
+     * @param  string $chars    Optional string of characters to strip
+     * @param  string $encoding The character encoding
+     * @return string Trimmed $str
+     */
+    public static function trimLeft($str, $chars = null, $encoding = null)
+    {
+        return (string) Stringy::create($str, $encoding)->trimLeft($chars);
+    }
+
+    /**
+     * Returns a string with whitespace removed from the end of the string.
+     * Supports the removal of unicode whitespace. Accepts an optional
+     * string of characters to strip instead of the defaults.
+     *
+     * @param  string $str      String to trim
+     * @param  string $chars    Optional string of characters to strip
+     * @param  string $encoding The character encoding
+     * @return string Trimmed $str
+     */
+    public static function trimRight($str, $chars = null, $encoding = null)
+    {
+        return (string) Stringy::create($str, $encoding)->trimRight($chars);
     }
 
     /**
@@ -865,5 +949,31 @@ class StaticStringy
     {
         return (string) Stringy::create($str, $encoding)
             ->regexReplace($pattern, $replacement, $options, $encoding);
+    }
+
+    /**
+     * Convert all applicable characters to HTML entities.
+     *
+     * @param  string   $str   The string to encode.
+     * @param  int|null $flags See http://php.net/manual/en/function.htmlentities.php
+     * @param  string   $encoding    The character encoding
+     * @return Stringy  Object with the resulting $str after being html encoded.
+     */
+    public static function htmlEncode($str, $flags = ENT_COMPAT, $encoding = null)
+    {
+        return (string) Stringy::create($str, $encoding)->htmlEncode($flags);
+    }
+
+    /**
+     * Convert all HTML entities to their applicable characters.
+     *
+     * @param  string   $str   The string to decode.
+     * @param  int|null $flags See http://php.net/manual/en/function.html-entity-decode.php
+     * @param  string   $encoding    The character encoding
+     * @return Stringy  Object with the resulting $str after being html decoded.
+     */
+    public static function htmlDecode($str, $flags = ENT_COMPAT, $encoding = null)
+    {
+        return (string) Stringy::create($str, $encoding)->htmlDecode($flags);
     }
 }

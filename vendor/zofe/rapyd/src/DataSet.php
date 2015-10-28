@@ -252,7 +252,7 @@ class DataSet extends Widget
             else
                 $links =  $this->paginator->appends($this->url->remove('page'.$this->cid)->getArray())->render($view);
             
-            return str_replace('/?', '?', urldecode($links));
+            return str_replace('/?', '?', $links);
         }
     }
 

@@ -45,7 +45,7 @@ class PSR0Locator implements ResourceLocatorInterface
      */
     private $fullSpecPath;
     /**
-     * @var \PhpSpec\Util\Filesystem
+     * @var Filesystem
      */
     private $filesystem;
 
@@ -60,6 +60,7 @@ class PSR0Locator implements ResourceLocatorInterface
      * @param string     $srcPath
      * @param string     $specPath
      * @param Filesystem $filesystem
+     * @param string     $psr4Prefix
      */
     public function __construct(
         $srcNamespace = '',
@@ -82,8 +83,12 @@ class PSR0Locator implements ResourceLocatorInterface
         $srcNamespacePath = null === $this->psr4Prefix ?
             $this->srcNamespace :
             substr($this->srcNamespace, strlen($this->psr4Prefix));
-        $this->specNamespace = trim($specNamespacePrefix, ' \\').'\\'.$this->srcNamespace;
-        $specNamespacePath = trim($specNamespacePrefix, ' \\').'\\'.$srcNamespacePath;
+        $this->specNamespace = $specNamespacePrefix ?
+            trim($specNamespacePrefix, ' \\').'\\'.$this->srcNamespace :
+            $this->srcNamespace;
+        $specNamespacePath = $specNamespacePrefix ?
+            trim($specNamespacePrefix, ' \\').'\\'.$srcNamespacePath :
+            $srcNamespacePath;
 
         $this->fullSrcPath   = $this->srcPath.str_replace('\\', $sepr, $srcNamespacePath);
         $this->fullSpecPath  = $this->specPath.str_replace('\\', $sepr, $specNamespacePath);

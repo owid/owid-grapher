@@ -1,3 +1,51 @@
+### 1.17.2 (2015-10-14)
+
+  * Fixed ErrorHandler compatibility with non-Monolog PSR-3 loggers
+  * Fixed SlackHandler handling to use slack functionalities better
+  * Fixed SwiftMailerHandler bug when sending multiple emails they all had the same id
+  * Fixed 5.3 compatibility regression
+
+### 1.17.1 (2015-08-31)
+
+  * Fixed RollbarHandler triggering PHP notices
+
+### 1.17.0 (2015-08-30)
+
+  * Added support for `checksum` and `release` context/extra values in RavenHandler
+  * Added better support for exceptions in RollbarHandler
+  * Added UidProcessor::getUid
+  * Added support for showing the resource type in NormalizedFormatter
+  * Fixed IntrospectionProcessor triggering PHP notices
+
+### 1.16.0 (2015-08-09)
+
+  * Added IFTTTHandler to notify ifttt.com triggers
+  * Added Logger::setHandlers() to allow setting/replacing all handlers
+  * Added $capSize in RedisHandler to cap the log size
+  * Fixed StreamHandler creation of directory to only trigger when the first log write happens
+  * Fixed bug in the handling of curl failures
+  * Fixed duplicate logging of fatal errors when both error and fatal error handlers are registered in monolog's ErrorHandler
+  * Fixed missing fatal errors records with handlers that need to be closed to flush log records
+  * Fixed TagProcessor::addTags support for associative arrays
+
+### 1.15.0 (2015-07-12)
+
+  * Added addTags and setTags methods to change a TagProcessor
+  * Added automatic creation of directories if they are missing for a StreamHandler to open a log file
+  * Added retry functionality to Loggly, Cube and Mandrill handlers so they retry up to 5 times in case of network failure
+  * Fixed process exit code being incorrectly reset to 0 if ErrorHandler::registerExceptionHandler was used
+  * Fixed HTML/JS escaping in BrowserConsoleHandler
+  * Fixed JSON encoding errors being silently suppressed (PHP 5.5+ only)
+
+### 1.14.0 (2015-06-19)
+
+  * Added PHPConsoleHandler to send record to Chrome's PHP Console extension and library
+  * Added support for objects implementing __toString in the NormalizerFormatter
+  * Added support for HipChat's v2 API in HipChatHandler
+  * Added Logger::setTimezone() to initialize the timezone monolog should use in case date.timezone isn't correct for your app
+  * Added an option to send formatted message instead of the raw record on PushoverHandler via ->useFormattedMessage(true)
+  * Fixed curl errors being silently suppressed
+
 ### 1.13.1 (2015-03-09)
 
   * Fixed regression in HipChat requiring a new token to be created

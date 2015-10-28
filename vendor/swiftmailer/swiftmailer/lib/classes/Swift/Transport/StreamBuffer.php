@@ -11,7 +11,7 @@
 /**
  * A generic IoBuffer implementation supporting remote sockets and local processes.
  *
- * @author     Chris Corbyn
+ * @author Chris Corbyn
  */
 class Swift_Transport_StreamBuffer extends Swift_ByteStream_AbstractFilterableInputStream implements Swift_Transport_IoBuffer
 {
@@ -151,11 +151,11 @@ class Swift_Transport_StreamBuffer extends Swift_ByteStream_AbstractFilterableIn
      * The $sequence number comes from any writes and may or may not be used
      * depending upon the implementation.
      *
-     * @param int     $sequence of last write to scan from
-     *
-     * @return string
+     * @param int $sequence of last write to scan from
      *
      * @throws Swift_IoException
+     *
+     * @return string
      */
     public function readLine($sequence)
     {
@@ -183,11 +183,11 @@ class Swift_Transport_StreamBuffer extends Swift_ByteStream_AbstractFilterableIn
      * If less bytes exist than are requested the remaining bytes are given instead.
      * If no bytes are remaining at all, boolean false is returned.
      *
-     * @param int     $length
-     *
-     * @return string|bool
+     * @param int $length
      *
      * @throws Swift_IoException
+     *
+     * @return string|bool
      */
     public function read($length)
     {
@@ -273,8 +273,8 @@ class Swift_Transport_StreamBuffer extends Swift_ByteStream_AbstractFilterableIn
             stream_set_blocking($this->_stream, 0);
         }
         stream_set_timeout($this->_stream, $timeout);
-        $this->_in = & $this->_stream;
-        $this->_out = & $this->_stream;
+        $this->_in = &$this->_stream;
+        $this->_out = &$this->_stream;
     }
 
     /**
@@ -295,8 +295,8 @@ class Swift_Transport_StreamBuffer extends Swift_ByteStream_AbstractFilterableIn
                 'Process could not be started ['.$err.']'
                 );
         }
-        $this->_in = & $pipes[0];
-        $this->_out = & $pipes[1];
+        $this->_in = &$pipes[0];
+        $this->_out = &$pipes[1];
     }
 
     private function _getReadConnectionDescription()

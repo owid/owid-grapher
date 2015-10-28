@@ -112,7 +112,57 @@ class StreamHandlerTest extends TestCase
      */
     public function testWriteNonExistingResource()
     {
-        $handler = new StreamHandler('/foo/bar/baz/'.rand(0, 10000));
+        $handler = new StreamHandler('ftp://foo/bar/baz/'.rand(0, 10000));
+        $handler->handle($this->getRecord());
+    }
+
+    /**
+     * @covers Monolog\Handler\StreamHandler::__construct
+     * @covers Monolog\Handler\StreamHandler::write
+     */
+    public function testWriteNonExistingPath()
+    {
+        $handler = new StreamHandler(sys_get_temp_dir().'/bar/'.rand(0, 10000).DIRECTORY_SEPARATOR.rand(0, 10000));
+        $handler->handle($this->getRecord());
+    }
+
+    /**
+     * @covers Monolog\Handler\StreamHandler::__construct
+     * @covers Monolog\Handler\StreamHandler::write
+     */
+    public function testWriteNonExistingFileResource()
+    {
+        $handler = new StreamHandler('file://'.sys_get_temp_dir().'/bar/'.rand(0, 10000).DIRECTORY_SEPARATOR.rand(0, 10000));
+        $handler->handle($this->getRecord());
+    }
+
+    /**
+     * @expectedException Exception
+     * @expectedExceptionMessageRegExp /There is no existing directory at/
+     * @covers Monolog\Handler\StreamHandler::__construct
+     * @covers Monolog\Handler\StreamHandler::write
+     */
+    public function testWriteNonExistingAndNotCreatablePath()
+    {
+        if (defined('PHP_WINDOWS_VERSION_BUILD')) {
+            $this->markTestSkipped('Permissions checks can not run on windows');
+        }
+        $handler = new StreamHandler('/foo/bar/'.rand(0, 10000).DIRECTORY_SEPARATOR.rand(0, 10000));
+        $handler->handle($this->getRecord());
+    }
+
+    /**
+     * @expectedException Exception
+     * @expectedExceptionMessageRegExp /There is no existing directory at/
+     * @covers Monolog\Handler\StreamHandler::__construct
+     * @covers Monolog\Handler\StreamHandler::write
+     */
+    public function testWriteNonExistingAndNotCreatableFileResource()
+    {
+        if (defined('PHP_WINDOWS_VERSION_BUILD')) {
+            $this->markTestSkipped('Permissions checks can not run on windows');
+        }
+        $handler = new StreamHandler('file:///foo/bar/'.rand(0, 10000).DIRECTORY_SEPARATOR.rand(0, 10000));
         $handler->handle($this->getRecord());
     }
 }

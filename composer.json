@@ -9,7 +9,7 @@
 		"laravelcollective/html": "~5.0",
 		"zofe/rapyd": "2.0.*",
 		"league/csv": "7.1.1",
-		"irazasyed/laravel-gamp": "^1.0"
+		"irazasyed/laravel-gamp": "~0.5"
 	},
 	"require-dev": {
 		"phpunit/phpunit": "~4.0",

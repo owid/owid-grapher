@@ -1,9 +1,11 @@
 <?php
 namespace GuzzleHttp\Exception;
 
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
-use GuzzleHttp\Promise\PromiseInterface;
+use GuzzleHttp\Message\RequestInterface;
+use GuzzleHttp\Message\ResponseInterface;
+use GuzzleHttp\Ring\Exception\ConnectException;
+use GuzzleHttp\Exception\ConnectException as HttpConnectException;
+use GuzzleHttp\Ring\Future\FutureInterface;
 
 /**
  * HTTP Request exception
@@ -16,24 +18,19 @@ class RequestException extends TransferException
     /** @var ResponseInterface */
     private $response;
 
-    /** @var array */
-    private $handlerContext;
-
     public function __construct(
         $message,
         RequestInterface $request,
         ResponseInterface $response = null,
-        \Exception $previous = null,
-        array $handlerContext = []
+        \Exception $previous = null
     ) {
         // Set the code of the exception if the response is set and not future.
-        $code = $response && !($response instanceof PromiseInterface)
+        $code = $response && !($response instanceof FutureInterface)
             ? $response->getStatusCode()
             : 0;
         parent::__construct($message, $code, $previous);
         $this->request = $request;
         $this->response = $response;
-        $this->handlerContext = $handlerContext;
     }
 
     /**
@@ -46,9 +43,13 @@ class RequestException extends TransferException
      */
     public static function wrapException(RequestInterface $request, \Exception $e)
     {
-        return $e instanceof RequestException
-            ? $e
-            : new RequestException($e->getMessage(), $request, null, $e);
+        if ($e instanceof RequestException) {
+            return $e;
+        } elseif ($e instanceof ConnectException) {
+            return new HttpConnectException($e->getMessage(), $request, null, $e);
+        } else {
+            return new RequestException($e->getMessage(), $request, null, $e);
+        }
     }
 
     /**
@@ -57,24 +58,16 @@ class RequestException extends TransferException
      * @param RequestInterface  $request  Request
      * @param ResponseInterface $response Response received
      * @param \Exception        $previous Previous exception
-     * @param array             $ctx      Optional handler context.
      *
      * @return self
      */
     public static function create(
         RequestInterface $request,
         ResponseInterface $response = null,
-        \Exception $previous = null,
-        array $ctx = []
+        \Exception $previous = null
     ) {
         if (!$response) {
-            return new self(
-                'Error completing request',
-                $request,
-                null,
-                $previous,
-                $ctx
-            );
+            return new self('Error completing request', $request, null, $previous);
         }
 
         $level = floor($response->getStatusCode() / 100);
@@ -89,12 +82,11 @@ class RequestException extends TransferException
             $className = __CLASS__;
         }
 
-        $message = $label . ' [url] ' . $request->getUri()
-            . ' [http method] ' . $request->getMethod()
+        $message = $label . ' [url] ' . $request->getUrl()
             . ' [status code] ' . $response->getStatusCode()
             . ' [reason phrase] ' . $response->getReasonPhrase();
 
-        return new $className($message, $request, $response, $previous, $ctx);
+        return new $className($message, $request, $response, $previous);
     }
 
     /**
@@ -125,20 +117,5 @@ class RequestException extends TransferException
     public function hasResponse()
     {
         return $this->response !== null;
-    }
-
-    /**
-     * Get contextual information about the error from the underlying handler.
-     *
-     * The contents of this array will vary depending on which handler you are
-     * using. It may also be just an empty array. Relying on this data will
-     * couple you to a specific handler, but can give more debug information
-     * when needed.
-     *
-     * @return array
-     */
-    public function getHandlerContext()
-    {
-        return $this->handlerContext;
     }
 }

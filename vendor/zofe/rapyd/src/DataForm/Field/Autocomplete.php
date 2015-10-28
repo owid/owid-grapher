@@ -117,7 +117,13 @@ class Autocomplete extends Field
                 } elseif ($this->value == "") {
                     $output = "";
                 } else {
-                    $output = nl2br(htmlspecialchars($this->value));
+                    if ($this->relation != null) {
+                        $name = $this->rel_field;
+                        $value = @$this->relation->get()->first()->$name;
+                    } else {
+                        $value = $this->value;
+                    }
+                    $output = nl2br(htmlspecialchars($value));
                 }
                 $output = "<div class='help-block'>".$output."&nbsp;</div>";
                 break;

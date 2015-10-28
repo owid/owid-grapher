@@ -362,6 +362,10 @@ abstract class Field extends Widget
         } else {
             $this->action = "idle";
         }
+
+        if ($this->new_value == "") {
+            $this->new_value = null;
+        }
     }
 
     public function getMode()

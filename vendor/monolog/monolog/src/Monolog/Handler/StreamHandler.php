@@ -27,6 +27,7 @@ class StreamHandler extends AbstractProcessingHandler
     private $errorMessage;
     protected $filePermission;
     protected $useLocking;
+    private $dirCreated;
 
     /**
      * @param resource|string $stream
@@ -35,6 +36,7 @@ class StreamHandler extends AbstractProcessingHandler
      * @param int|null        $filePermission Optional file permissions (default (0644) are only for owner read/write)
      * @param Boolean         $useLocking     Try to lock log file before doing any writes
      *
+     * @throws \Exception                If a missing directory is not buildable
      * @throws \InvalidArgumentException If stream is not a resource or string
      */
     public function __construct($stream, $level = Logger::DEBUG, $bubble = true, $filePermission = null, $useLocking = false)
@@ -72,6 +74,7 @@ class StreamHandler extends AbstractProcessingHandler
             if (!$this->url) {
                 throw new \LogicException('Missing stream url, the stream can not be opened. This may be caused by a premature call to close().');
             }
+            $this->createDir();
             $this->errorMessage = null;
             set_error_handler(array($this, 'customErrorHandler'));
             $this->stream = fopen($this->url, 'a');
@@ -99,6 +102,45 @@ class StreamHandler extends AbstractProcessingHandler
 
     private function customErrorHandler($code, $msg)
     {
-        $this->errorMessage = preg_replace('{^fopen\(.*?\): }', '', $msg);
+        $this->errorMessage = preg_replace('{^(fopen|mkdir)\(.*?\): }', '', $msg);
+    }
+
+    /**
+     * @param string $stream
+     *
+     * @return null|string
+     */
+    private function getDirFromStream($stream)
+    {
+        $pos = strpos($stream, '://');
+        if ($pos === false) {
+            return dirname($stream);
+        }
+
+        if ('file://' === substr($stream, 0, 7)) {
+            return dirname(substr($stream, 7));
+        }
+
+        return;
+    }
+
+    private function createDir()
+    {
+        // Do not try to create dir if it has already been tried.
+        if ($this->dirCreated) {
+            return;
+        }
+
+        $dir = $this->getDirFromStream($this->url);
+        if (null !== $dir && !is_dir($dir)) {
+            $this->errorMessage = null;
+            set_error_handler(array($this, 'customErrorHandler'));
+            $status = mkdir($dir, 0777, true);
+            restore_error_handler();
+            if (false === $status) {
+                throw new \UnexpectedValueException(sprintf('There is no existing directory at "%s" and its not buildable: '.$this->errorMessage, $dir));
+            }
+        }
+        $this->dirCreated = true;
     }
 }

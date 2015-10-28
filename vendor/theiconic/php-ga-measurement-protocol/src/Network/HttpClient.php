@@ -6,11 +6,8 @@ use TheIconic\Tracking\GoogleAnalytics\AnalyticsResponse;
 use TheIconic\Tracking\GoogleAnalytics\Parameters\SingleParameter;
 use TheIconic\Tracking\GoogleAnalytics\Parameters\CompoundParameterCollection;
 use GuzzleHttp\Client;
-use GuzzleHttp\Psr7\Request;
-use GuzzleHttp\Promise;
-use GuzzleHttp\Promise\PromiseInterface;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
+use GuzzleHttp\Message\RequestInterface;
+use GuzzleHttp\Message\ResponseInterface;
 
 /**
  * Class HttpClient
@@ -42,21 +39,6 @@ class HttpClient
      * @var array
      */
     private $payloadParameters;
-
-    /**
-     * Holds the promises (async responses).
-     *
-     * @var PromiseInterface[]
-     */
-    private static $promises = [];
-
-    /**
-     * We have to unwrap and send all promises at the end before analytics objects is destroyed.
-     */
-    public function __destruct()
-    {
-        Promise\unwrap(self::$promises);
-    }
 
     /**
      * Sets HTTP client.
@@ -109,23 +91,17 @@ class HttpClient
 
         $this->payloadParameters = array_merge($singlesPost, $compoundsPost);
 
-        $request = new Request(
-            'GET',
-            $url . '?' . http_build_query($this->payloadParameters),
-            ['User-Agent' => self::PHP_GA_MEASUREMENT_PROTOCOL_USER_AGENT]
-        );
-
-        $response = $this->getClient()->sendAsync($request, [
-            'synchronous' => !$nonBlocking,
+        $request = $this->getClient()->createRequest('GET', $url, [
+            'future' => $nonBlocking,
             'timeout' => self::REQUEST_TIMEOUT_SECONDS,
             'connect_timeout' => self::REQUEST_TIMEOUT_SECONDS,
+            'query' => $this->payloadParameters,
+            'headers' => [
+                'User-Agent' => self::PHP_GA_MEASUREMENT_PROTOCOL_USER_AGENT,
+            ],
         ]);
 
-        if ($nonBlocking) {
-            self::$promises[] = $response;
-        } else {
-            $response = $response->wait();
-        }
+        $response = $this->getClient()->send($request);
 
         return $this->getAnalyticsResponse($request, $response);
     }
@@ -133,11 +109,11 @@ class HttpClient
     /**
      * Creates an analytics response object.
      *
-     * @param RequestInterface $request
-     * @param ResponseInterface|PromiseInterface $response
+     * @param $request
+     * @param $response
      * @return AnalyticsResponse
      */
-    protected function getAnalyticsResponse(RequestInterface $request, $response)
+    private function getAnalyticsResponse(RequestInterface $request, ResponseInterface $response)
     {
         return new AnalyticsResponse($request, $response);
     }

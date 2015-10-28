@@ -61,7 +61,7 @@ class DataEdit extends DataForm
             $this->status = "delete";
             $this->method = "delete";
             $this->process_url = $this->url->replace('delete' . $this->cid, 'do_delete' . $this->cid)->get();
-            $this->undo_url = $this->url->replace('delete' . $this->cid, 'show' . $this->cid);
+            $this->undo_url = $this->url->replace('delete' . $this->cid, 'show' . $this->cid)->get();
             if (!$this->find($this->url->value('delete' . $this->cid))) {
                 $this->status = "unknow_record";
             }
@@ -195,7 +195,8 @@ class DataEdit extends DataForm
                 return $this;
             }
         } else {
-            $match_url = trim(parse_url($url, PHP_URL_PATH),'/');
+            $base = str_replace(Request::path(),'',strtok(Request::fullUrl(),'?'));
+            $match_url = str_replace($base, '/', strtok($url,'?'));
             if (Request::path()!= $match_url) {
                 $url = Persistence::get($match_url);
             }

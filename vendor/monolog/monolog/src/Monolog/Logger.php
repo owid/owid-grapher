@@ -152,10 +152,13 @@ class Logger implements LoggerInterface
      * Pushes a handler on to the stack.
      *
      * @param HandlerInterface $handler
+     * @return $this
      */
     public function pushHandler(HandlerInterface $handler)
     {
         array_unshift($this->handlers, $handler);
+
+        return $this;
     }
 
     /**
@@ -173,6 +176,24 @@ class Logger implements LoggerInterface
     }
 
     /**
+     * Set handlers, replacing all existing ones.
+     *
+     * If a map is passed, keys will be ignored.
+     *
+     * @param HandlerInterface[] $handlers
+     * @return $this
+     */
+    public function setHandlers(array $handlers)
+    {
+        $this->handlers = array();
+        foreach (array_reverse($handlers) as $handler) {
+            $this->pushHandler($handler);
+        }
+
+        return $this;
+    }
+
+    /**
      * @return HandlerInterface[]
      */
     public function getHandlers()
@@ -184,6 +205,7 @@ class Logger implements LoggerInterface
      * Adds a processor on to the stack.
      *
      * @param callable $callback
+     * @return $this
      */
     public function pushProcessor($callback)
     {
@@ -191,6 +213,8 @@ class Logger implements LoggerInterface
             throw new \InvalidArgumentException('Processors must be valid callables (callback or object with an __invoke method), '.var_export($callback, true).' given');
         }
         array_unshift($this->processors, $callback);
+
+        return $this;
     }
 
     /**
@@ -438,9 +462,7 @@ class Logger implements LoggerInterface
      */
     public function log($level, $message, array $context = array())
     {
-        if (is_string($level) && defined(__CLASS__.'::'.strtoupper($level))) {
-            $level = constant(__CLASS__.'::'.strtoupper($level));
-        }
+        $level = static::toMonologLevel($level);
 
         return $this->addRecord($level, $message, $context);
     }
@@ -611,5 +633,17 @@ class Logger implements LoggerInterface
     public function emergency($message, array $context = array())
     {
         return $this->addRecord(static::EMERGENCY, $message, $context);
+    }
+
+    /**
+     * Set the timezone to be used for the timestamp of log records.
+     *
+     * This is stored globally for all Logger instances
+     *
+     * @param \DateTimeZone $tz Timezone object
+     */
+    public static function setTimezone(\DateTimeZone $tz)
+    {
+        self::$timezone = $tz;
     }
 }
