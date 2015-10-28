@@ -35,7 +35,7 @@ Route::controllers([
 ]);
 
 //api routes
-Route::group( [ 'prefix' => 'api/v1', 'before' => 'auth.api_key' ], function() {
+Route::group( [ 'prefix' => 'v1', 'before' => 'auth.api_key' ], function() {
 	Route::get( '/data', 'ApiController@data' );
 	Route::get( '/variables', 'ApiController@variables' );
 	Route::get( '/entities', 'ApiController@entities' );
