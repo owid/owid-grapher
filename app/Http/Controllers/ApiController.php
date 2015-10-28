@@ -29,6 +29,8 @@ class ApiController extends Controller {
 
 	public function data() {
 
+		$this->logRequestToGa();
+		
 		$key = 'api-data-' . Input::get( 'variables' );
 		if( Input::has( 'entities' ) ) {
 			$key = '-entities-' . Input::get( 'entities' );
@@ -79,8 +81,6 @@ class ApiController extends Controller {
 		$outputFormat = ( Input::has( 'format' ) && Input::get( 'format' ) === 'xml' )? 'xml': 'json';
 		$responseData = [ 'success' => 'true', 'data' => $data ];
 
-		$this->logRequestToGa();
-
 		//store into cache - there is no cache 
 		if( !empty( $key ) ) {
 			$minutes = 60*24;
@@ -93,7 +93,12 @@ class ApiController extends Controller {
 
 	public function variables() {
 
+		$this->logRequestToGa();
+
 		$key = 'api-variables-';
+		if( Cache::has( $key ) ) {
+			return Cache::get( $key );
+		}
 
 		$variables = DB::table( 'variables' )
 			->select( 
@@ -113,8 +118,6 @@ class ApiController extends Controller {
 		$outputFormat = ( Input::has( 'format' ) && Input::get( 'format' ) === 'xml' )? 'xml': 'json';
 		$responseData = [ 'success' => 'true', 'data' => $variables ];
 
-		$this->logRequestToGa();
-
 		//store into cache - there is no cache 
 		if( !empty( $key ) ) {
 			$minutes = 60*24;
@@ -127,7 +130,12 @@ class ApiController extends Controller {
 
 	public function entities() {
 
+		$this->logRequestToGa();
+
 		$key = 'api-entities-';
+		if( Cache::has( $key ) ) {
+			return Cache::get( $key );
+		}
 
 		$entities = DB::table( 'entities' )
 			->select( 
@@ -142,8 +150,6 @@ class ApiController extends Controller {
 		$outputFormat = ( Input::has( 'format' ) && Input::get( 'format' ) === 'xml' )? 'xml': 'json';
 		$responseData = [ 'success' => 'true', 'data' => $entities ];
 
-		$this->logRequestToGa();
-
 		//store into cache - there is no cache 
 		if( !empty( $key ) ) {
 			$minutes = 60*24;
@@ -155,9 +161,6 @@ class ApiController extends Controller {
 	}
 
 	public function logRequestToGa() {
-
-		//this is disabled as not working in php 5.4
-		return;
 
 		//api key
 		$clientId = Input::get( 'api_key' );
