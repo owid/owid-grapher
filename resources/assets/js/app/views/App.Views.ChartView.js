@@ -306,6 +306,14 @@
 					}, 250 );
 				};
 
+				//add white background
+				var $rect = $( "<rect width='" + width + "' height='" + height + "' style='fill:#ffffff;'></rect>" );
+				$exportSvg.prepend( $rect );
+
+				//remove add country button, display:none won't work in illustrator
+				var $addCountryBtn = $exportSvg.find( ".nv-add-btn,.nv-remove-btn" );
+				$addCountryBtn.remove();
+
 				svgAsDataUri( $exportSvg.get( 0 ), {}, cb );
 
 			} else {
@@ -344,6 +352,7 @@
 				$chartSubnameSvg = this.$el.find( ".chart-subname-svg" ),
 				$chartDescriptionSvg = this.$el.find( ".chart-description-svg" ),
 				$chartSourcesSvg = this.$el.find( ".chart-sources-svg" ),
+				$chartLogoSvg = this.$el.find( ".chart-logo-svg" ),
 				chartHeaderHeight = this.$chartHeader.height(),
 				margins = App.ChartModel.get( "margins" ),
 				topChartMargin = 30,
@@ -409,6 +418,15 @@
 			if( this.$chartTab.is( ":visible" ) ) {
 				this.chartTab.chart.update();
 			}
+			
+			//position svg logo
+			var elWidth = this.$el.width(),
+				scale = 0.24,
+				translate = elWidth / scale;
+			
+			translate -= 50 / scale;
+		
+			$chartLogoSvg.attr( "transform", "scale(" + scale + "," + scale + "), translate(" + translate + ",-20)" );
 			
 			if( chartType === "3" ) {
 				//for stacked area chart, need to manually adjust height
