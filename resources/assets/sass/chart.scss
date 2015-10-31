@@ -909,6 +909,14 @@ body {
 	.chart-description-svg, .chart-sources-svg {
 		font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 	}
+	#chart-view {
+		background-color: #ffffff;
+	}
+	/* make sure there's solid line at the bottom */
+	.nv-x.nv-axis .domain {
+		stroke-opacity: 1 !important;
+		stroke-width: 1.1 !important;
+	}
 }
 
 .error-label {
