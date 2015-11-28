@@ -11,10 +11,11 @@ With the *OurWorldInData-Grapher* you can create the following visualisations:
 
 – *Stacked area charts* like the first one in [this data entry on the rise of the Internet](http://ourworldindata.org/data/media-communication/internet/)
 
-– And *scatter plots* like [this one on the relation between education and economic prosperity](http://ourworldindata.org/data/education-knowledge/global-rise-of-education/#the-relationship-between-gdp-and-education)
+– *Scatter plots* like [this one on the relation between education and economic prosperity](http://ourworldindata.org/data/education-knowledge/global-rise-of-education/#the-relationship-between-gdp-and-education)
 
-We are currently working on making bar charts and maps possible.
+– *bar chart* (horizontal and vertical; single- and multi-bar charts)
 
+– *choropleth maps* (world maps and maps of all countries and continents)
 
 
 The *OurWorldInData-Grapher* enables you to upload csv data to a central SQL database and then to pull this data from the SQL database to create interactive charts in a drag&drop interface.
