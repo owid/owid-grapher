@@ -334,14 +334,16 @@
 				if( isClamped ) {
 
 					if( chartType !== "4" && chartType !== "5" && chartType !== "6" ) {
+						//version which makes sure min/max values are present, but will display values outside of the range
 						that.chart.forceX( xDomain );
 						that.chart.forceY( yDomain );
+						//version which forces domains to contain values just between min/max, won't extend if there is data outside of domain
+						/*that.chart.xDomain( xDomain );
+						that.chart.yDomain( yDomain );
+						that.chart.xScale().clamp( true );
+						that.chart.yScale().clamp( true );*/
 					}
 
-					/*that.chart.xDomain( xDomain );
-					that.chart.yDomain( yDomain );
-					that.chart.xScale().clamp( true );
-					that.chart.yScale().clamp( true );*/
 				}
 
 				//set scales, multibar chart
