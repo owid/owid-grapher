@@ -71,7 +71,8 @@
 				this.toggleFooter( true );
 				this.toggleExport( true );
 			} else if( href === "#sources-chart-tab" ) {
-				this.toggleFooter( false );
+				this.toggleFooter( true );
+				this.toggleExport( false );
 			}
 
 		}
