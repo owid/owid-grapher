@@ -148,7 +148,7 @@ class DataController extends Controller {
 			}	
 
 			$variableData = $variableQuery->get();
-
+			
 			//insert data into existing variable
 			$dimension->data = $variableData;
 
