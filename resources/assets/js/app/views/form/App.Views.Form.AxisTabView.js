@@ -45,7 +45,6 @@
 
 		onFormControlChange: function( evt ) {
 
-			console.log( "onFormControlChange" );
 			var $control = $( evt.currentTarget ),
 				controlName = $control.attr( "name" ),
 				controlValue = $control.val(),
