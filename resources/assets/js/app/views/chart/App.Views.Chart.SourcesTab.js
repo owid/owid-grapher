@@ -59,13 +59,17 @@
 			} );
 
 			footerHtml = descriptionHtml;
-			tabHtml = descriptionHtml + "<br /><br />" + sourcesLongHtml;
+			tabHtml = descriptionHtml;
+			if(descriptionHtml) {
+				tabHtml += "<br /><br />";
+			}
+			tabHtml += sourcesLongHtml;
 			
-			//add license info
-			if( license && license.description ) {
+			//add license info - disabled
+			/*if( license && license.description ) {
 				footerHtml = license.description + " " + footerHtml;
 				tabHtml = license.description + " " + tabHtml;
-			}
+			}*/
 			
 			//append to DOM
 			this.$chartDescription.html( footerHtml );
