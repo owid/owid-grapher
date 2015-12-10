@@ -180,3 +180,15 @@ Route::get( 'data/entities', 'DataController@entities' );
 Route::get( 'data/search', 'DataController@search' );
 Route::get( 'data/times', 'DataController@times' );
 Route::get( 'data/matchIsoName', 'DataController@matchIsoName' );
+
+/*use App\Chart;
+Route::get( '/temp', function() {
+
+	$charts = Chart::all();
+	foreach($charts as $chart) {
+		$config = json_decode($chart->config);
+		echo $chart->id. ': '. $config->{'chart-description'};
+		echo '<br />';
+	}
+	
+});*/
