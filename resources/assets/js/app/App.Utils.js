@@ -404,6 +404,9 @@
 			$el.text( textContent );
 		}
 		
+		//make el visible for the time of being computed, otherwise getComputedTextLength returns 0
+		$el.show();
+
 		var text = d3.select( $el.selector );
 		text.each( function() {
 			var text = d3.select(this),
@@ -429,10 +432,19 @@
 					tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
 				}
 			}
-
+			
 		} );
 
+		//cache element height while it's still visible
+		var elBoundingBox = $el.get(0).getBoundingClientRect(),
+			elHeight = elBoundingBox.bottom - elBoundingBox.top;
+
+		//done with the dimension computations, hide element again
+		$el.hide();	
 		
+		//in some user cases, can be useful to return height
+		return elHeight;
+
 	};
 
 	/**
