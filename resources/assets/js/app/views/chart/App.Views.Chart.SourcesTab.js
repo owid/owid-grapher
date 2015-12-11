@@ -59,17 +59,15 @@
 			} );
 
 			footerHtml = descriptionHtml;
-			tabHtml = descriptionHtml;
-			if(descriptionHtml) {
-				tabHtml += "<br /><br />";
+			if (descriptionHtml) {
+				tabHtml = descriptionHtml + "<br /><br />";
 			}
 			tabHtml += sourcesLongHtml;
 			
-			//add license info - disabled
-			/*if( license && license.description ) {
+			if( license && license.description ) {
 				footerHtml = license.description + " " + footerHtml;
-				tabHtml = license.description + " " + tabHtml;
-			}*/
+				//tabHtml = license.description + " " + tabHtml;
+			}
 			
 			//append to DOM
 			this.$chartDescription.html( footerHtml );
