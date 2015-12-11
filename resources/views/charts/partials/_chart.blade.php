@@ -30,7 +30,7 @@
 					<select class="available-countries-select chosen-select" name="available_entities" style="position: relative;z-index: 10;"></select>
 				</div>
 				<svg xmlns="http://www.w3.org/2000/svg" class="nvd3-svg"  version="1.1">
-					<g class="chart-logo-svg" transform="scale(0.24,0.24), translate(0,-20)">
+					<g class="chart-logo-svg" transform="scale(0.24,0.24), translate(0,0)">
 						<rect x="0" y="0" fill="#1B2543" width="211.2" height="130.1"/>
 						<rect x="0" y="112.2" fill="#E63912" width="211.2" height="17.9"/>
 						<g>
@@ -71,12 +71,14 @@
 								H171.4z M170.7,84.4c-5.3-0.1-11.2,0.8-11.2,5.9c0,3.1,2.1,4.6,4.5,4.6c3.4,0,5.6-2.2,6.4-4.4c0.2-0.5,0.3-1,0.3-1.5V84.4z"/>
 						</g>
 					</g>
-					<g transform="translate(60,0)">
-						<text x="0" y="20" dy="0" class="h2 chart-name chart-name-svg"></text>
+					<g transform="translate(15,0)">
+						<text x="0" y="0" dy="0" class="h2 chart-name chart-name-svg"></text>
 					</g>
-					<text x="0" y="100" dy="0" transform="translate(60,0)" class="h3 chart-subname chart-subname-svg"></text>
-					<text x="0" y="100" dy="0" class="chart-description chart-description-svg"></text>
-					<text x="0" y="100" dy="0" class="chart-sources chart-sources-svg"></text>
+					<g transform="translate(15,0)">
+						<text x="0" y="0" dy="0" class="h3 chart-subname chart-subname-svg"></text>
+					</g>
+					<text x="0" y="0" dy="0" class="chart-description chart-description-svg"></text>
+					<text x="0" y="0" dy="0" class="chart-sources chart-sources-svg"></text>
 				</svg>
 				<div class="axis-scale-selectors-wrapper">
 					<div class="x-axis-scale-selector">

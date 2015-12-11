@@ -50,6 +50,11 @@
 			this.dispatcher.on( "dimension-export", this.onDimensionExport, this );
 			this.dispatcher.on( "dimension-export-cancel", this.onDimensionExportCancel, this );
 
+			var that = this;
+			$( "[data-toggle='tab']" ).on( "shown.bs.tab", function( evt ) {
+				that.onResize();
+			} );
+
 			this.render();
 
 		},
@@ -233,6 +238,16 @@
 				this.oldHeight = this.$el.height();
 			}
 
+			//need to account for padding
+			var $chartWrapperInner = $( ".chart-wrapper-inner" ),
+				paddingLeft = parseInt( $chartWrapperInner.css( "padding-left" ), 10 ),
+				paddingRight = parseInt( $chartWrapperInner.css( "padding-right" ), 10 ),
+				paddingTop = parseInt( $chartWrapperInner.css( "padding-top" ), 10 ),
+				paddingBottom = parseInt( $chartWrapperInner.css( "padding-bottom" ), 10 );
+			
+			data.width = parseInt( data.width,10 ) + paddingLeft + paddingRight;
+			data.height = parseInt( data.height,10 ) + paddingTop + paddingBottom;
+
 			this.$el.width( data.width );
 			this.$el.height( data.height );
 			this.onResize();
@@ -300,15 +315,18 @@
 					//activate click on dummy button
 					var $chartSaveBtn = $( ".chart-save-btn" );
 					$chartSaveBtn.attr( "href", url );
+					//$chartSaveBtn.attr( "download", "ourworldindata-grapher" );
 					$chartSaveBtn[ 0 ].click();
 					setTimeout( function() {
 						window.location.reload();
 					}, 250 );
 				};
 
-				//add white background
-				var $rect = $( "<rect width='" + width + "' height='" + height + "' style='fill:#ffffff;'></rect>" );
-				$exportSvg.prepend( $rect );
+				//add white background - MAX wanted to remove
+				/*var $rect = $( "<rect width='" + width + "' height='" + height + "' style='fill:#ffffff;'></rect>" );
+				$exportSvg.prepend( $rect );*/
+				//remove voronoi
+				$exportSvg.find(".nv-point-paths").remove();
 
 				//remove add country button, display:none won't work in illustrator
 				var $addCountryBtn = $exportSvg.find( ".nv-add-btn,.nv-remove-btn" );
@@ -344,10 +362,14 @@
 	
 		onResize: function() {
 			
+			this.chartTab.onResize();
+			
 			//compute how much space for chart
 			var svgWidth = this.$svg.width(),
 				svgHeight = this.$svg.height(),
 				chartType = App.ChartModel.get( "chart-type" ),
+				$chartWrapperInner = $( ".chart-wrapper-inner" ),
+				innerPaddingLeft = parseInt( $chartWrapperInner.css("padding-left"), 10), innerPaddingRight = parseInt( $chartWrapperInner.css("padding-right"), 10), innerPaddingTop = parseInt( $chartWrapperInner.css("padding-top"), 10), innerPaddingBottom = parseInt( $chartWrapperInner.css("padding-bottom"), 10),
 				$chartNameSvg = this.$el.find( ".chart-name-svg" ),
 				$chartSubnameSvg = this.$el.find( ".chart-subname-svg" ),
 				$chartDescriptionSvg = this.$el.find( ".chart-description-svg" ),
@@ -355,19 +377,21 @@
 				$chartLogoSvg = this.$el.find( ".chart-logo-svg" ),
 				chartHeaderHeight = this.$chartHeader.height(),
 				margins = App.ChartModel.get( "margins" ),
-				topChartMargin = 30,
 				bottomChartMargin = 60,
-				currY, footerDescriptionHeight, footerSourcesHeight, chartHeight;
+				currY, chartNameSvgY, chartNameSvgHeight, chartSubnameSvgHeight, footerDescriptionHeight, footerSourcesHeight, chartHeight;
 			
-			this.$tabContent.height( $( ".chart-wrapper-inner" ).height() - this.$chartHeader.height() - this.$chartFooter.height() );
+			this.$tabContent.height( $chartWrapperInner.height() - this.$chartHeader.height() - this.$chartFooter.height() );
 			
-			//wrap header text
-			Utils.wrap( $chartNameSvg, svgWidth );
 			currY = parseInt( $chartNameSvg.attr( "y" ), 10 ) + $( ".chart-name" ).outerHeight() + 20;
-			$chartSubnameSvg.attr( "y", currY - 20 );
+			//$chartSubnameSvg.attr( "y", currY - 20 );
 			
-			//wrap description
-			Utils.wrap( $chartSubnameSvg, svgWidth );
+			//wrap header text, description
+			chartNameSvgHeight = Utils.wrap( $chartNameSvg, svgWidth );
+			chartSubnameSvgHeight = Utils.wrap( $chartSubnameSvg, svgWidth );
+			//position name and subname so that they are exactly
+			chartNameSvgY = chartHeaderHeight - chartSubnameSvgHeight - chartNameSvgHeight;
+			$chartSubnameSvg.attr("transform", "translate(15," + (chartHeaderHeight - chartSubnameSvgHeight) + ")" );
+			$chartNameSvg.attr("transform", "translate(15," + chartNameSvgY + ")" );
 
 			//start positioning the graph, according 
 			currY = chartHeaderHeight;
@@ -380,21 +404,15 @@
 			svgHeight = this.$svg.height();
 
 			//add height of legend
-			//currY += this.chart.legend.height();
 			if( !App.ChartModel.get( "hide-legend" ) ) {
 				currY += this.chartTab.legend.height();
 			}
 			
-			//position chart
-			Utils.wrap( $chartDescriptionSvg, svgWidth );
-			footerDescriptionHeight = $chartDescriptionSvg.height();
-			Utils.wrap( $chartSourcesSvg, svgWidth );
-			footerSourcesHeight = $chartSourcesSvg.height();
-
-			var footerHeight = this.$chartFooter.height();
+			//wrap svg texts in footer
+			footerDescriptionHeight = Utils.wrap( $chartDescriptionSvg, svgWidth );
+			footerSourcesHeight = Utils.wrap( $chartSourcesSvg, svgWidth );
 
 			//set chart height
-			//chartHeight = svgHeight - translateY - footerHeight - bottomChartMargin;
 			chartHeight = svgHeight - translateY - bottomChartMargin;
 			if( !App.ChartModel.get( "hide-legend" ) ) {
 				chartHeight -= this.chartTab.legend.height();
@@ -404,11 +422,12 @@
 			chartHeight = chartHeight - margins.bottom - margins.top;
 
 			//position footer
-			$chartDescriptionSvg.attr( "y", currY + chartHeight + bottomChartMargin );
-			Utils.wrap( $chartDescriptionSvg, svgWidth );
-			$chartSourcesSvg.attr( "y", parseInt( $chartDescriptionSvg.attr( "y" ), 10 ) + $( ".chart-description" ).height() + footerDescriptionHeight/3 );
-			Utils.wrap( $chartSourcesSvg, svgWidth );
-			
+			var chartSourcesX = 20, //hardcoded some visual offset
+				chartSourcesY = currY + chartHeight + bottomChartMargin;
+
+			$chartSourcesSvg.attr( "transform", "translate(" + chartSourcesX + "," + chartSourcesY + ")" );
+			$chartDescriptionSvg.attr( "transform", "translate(" + chartSourcesX + "," + parseInt(chartSourcesY + footerSourcesHeight,10) + ")" );
+
 			//compute chart width - add 60px
 			var chartWidth = svgWidth - margins.left - margins.right + 60;
 			this.chartTab.chart.width( chartWidth );
@@ -420,14 +439,12 @@
 			}
 			
 			//position svg logo
-			var elWidth = this.$el.width(),
-				scale = 0.24,
+			var elWidth = this.$el.width() - innerPaddingLeft - innerPaddingRight - margins.left - margins.right,
+				scale = 0.4,
 				translate = elWidth / scale;
-			
-			translate -= 50 / scale;
-		
-			$chartLogoSvg.attr( "transform", "scale(" + scale + "," + scale + "), translate(" + translate + ",-20)" );
-			
+
+			$chartLogoSvg.attr( "transform", "scale(" + scale + "," + scale + "), translate(" + translate + "," + (chartNameSvgY/scale) + ")" );
+
 			if( chartType === "3" ) {
 				//for stacked area chart, need to manually adjust height
 				var currIntLayerHeight = this.chartTab.chart.interactiveLayer.height(),

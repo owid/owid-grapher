@@ -27,11 +27,13 @@ body {
 		right: 50px;
 	}
 
-	.nvd3 .nv-axis line {
-		fill: none;
-		stroke: #666666;
-		stroke-dasharray: 2,2;
-		shape-rendering: crispEdges;
+	.nvd3 .nv-axis {
+		line {
+			fill: none;
+			stroke: #a5a5a5;
+			stroke-dasharray: 2,2;
+			shape-rendering: crispEdges;
+		}
 	}
 
 	#chart-view .nvd3 .nv-axis .nv-axisMaxMin text {
@@ -908,6 +910,8 @@ body {
 .export-svg {
 	.chart-description-svg, .chart-sources-svg {
 		font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+		font-size: 11.5px;
+		color: #5d5d5d;
 	}
 	#chart-view {
 		background-color: #ffffff;
@@ -916,6 +920,12 @@ body {
 	.nv-x.nv-axis .domain {
 		stroke-opacity: 1 !important;
 		stroke-width: 1.1 !important;
+	}
+
+	.nvd3 .nv-axis {
+		text {
+			font-size: 15px;
+		}
 	}
 }
 

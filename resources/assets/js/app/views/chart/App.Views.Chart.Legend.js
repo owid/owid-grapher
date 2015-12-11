@@ -13,7 +13,7 @@
 		//------------------------------------------------------------
 
 		var chartType = App.ChartModel.get( "chart-type" )
-			, margin = {top: 5, right: 50, bottom: 5, left: 62}
+			, margin = {top: 5, right: 50, bottom: 5, left: 30}
 			, width = 800
 			, height = 20
 			, getKey = function(d) { return d.key }
