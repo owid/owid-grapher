@@ -53,6 +53,8 @@
 				"timeInterval": 10,
 				"timelineMode": "timeline",
 				"colorSchemeName": "BuGn",
+				"colorSchemeValues": false,
+				"colorSchemeValuesAutomatic": true,
 				"colorSchemeInterval": 5,
 				"customColorScheme": [ "#000", "#c00", "#0c0", "#00c", "#c0c" ],
 				"projection": "World",

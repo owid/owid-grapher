@@ -14,10 +14,15 @@
 		var formatLegendLabel = function( valueArr, i, length ) {
 			
 			valueArr = valueArr.map( function( d ) {
-				var len = d.toString().length,
-					formattedNumber = d;
-				if( len > 3 ) {
-					formattedNumber = d3.format( ".3r" )( d );
+				//make sure it's not undefined
+				if( d ) {
+					var len = d.toString().length,
+						formattedNumber = d;
+					if( len > 3 ) {
+						formattedNumber = d3.format( ".3r" )( d );
+					}
+				} else {
+					formattedNumber = 0;
 				}
 				return formattedNumber;
 			} );
@@ -76,6 +81,7 @@
 					.style( "fill", function( d, i ) {
 							return d;
 						} );
+
 				legendSteps.select( "text" )
 					.html( function( d, i ) { return ( !isOrdinalScale )? formatLegendLabel( scale.invertExtent( d ), i, data.scheme.length ): formatOrdinalLegendLabel( i, scale ) ; } );
 

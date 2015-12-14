@@ -35,7 +35,7 @@
 			/*  App.ChartModel.on( "change", this.onChartModelChange, this );
 				App.ChartModel.on( "change-map", this.onChartModelChange, this );*/
 
-			return this.render();
+			return;
 		},
 
 		render: function() {
@@ -49,8 +49,9 @@
 			this.$sliderInput.attr( "max", mapConfig.maxYear );
 			this.$sliderInput.attr( "step", mapConfig.timeInterval );
 			
+			console.log("mapConfig.targetYear", mapConfig.targetYear);
 			this.updateSliderInput( mapConfig.targetYear );
-
+			
 			if( isNaN( mapConfig.minYear ) || isNaN( mapConfig.maxYear ) ) {
 				this.$sliderInput.attr( "disabled", true );
 			} else {

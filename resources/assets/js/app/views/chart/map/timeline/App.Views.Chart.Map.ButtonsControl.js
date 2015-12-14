@@ -17,7 +17,7 @@
 			App.ChartModel.on( "change", this.onChartModelChange, this );
 			App.ChartModel.on( "change-map", this.onChartModelChange, this );
 
-			return this.render();
+			return;
 		},
 
 		render: function() {

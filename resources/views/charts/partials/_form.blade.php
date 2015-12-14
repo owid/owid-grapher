@@ -408,6 +408,10 @@
 									<option value="buttons">Buttons</option>
 								</select>
 							</label>
+							<label>
+								Which year should be displayed by default:
+								<input name="map-target-year" class="form-control" placeholder="" />
+							</label>
 						</div>
 					</section>
 					<section class="form-section tabs-section">
@@ -423,7 +427,11 @@
 								Number of intervals:
 								<input name="map-color-interval" type="number" class="form-control"></select>
 							</label>
-							<ul class="map-color-scheme-preview clearfix">
+							<label>
+								<input name="map-color-automatic-classification" type="checkbox" checked/>
+								Automatically classify data
+							</label>
+							<ul class="map-color-scheme-preview clearfix automatic-values">
 
 							</ul>
 						</div>

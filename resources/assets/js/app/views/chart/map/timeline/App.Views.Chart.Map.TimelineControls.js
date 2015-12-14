@@ -28,6 +28,10 @@
 
 			var mapConfig = App.ChartModel.get( "map-config" );
 			
+			this.playPauseControl.render();
+			this.timelineControl.render();
+			this.buttonsControl.render();
+
 			//depending on the mode used display timeline mode or buttons mode
 			if( mapConfig.timelineMode === "buttons" ) {
 				
