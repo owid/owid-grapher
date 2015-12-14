@@ -13,6 +13,7 @@
 			"change [name='map-time-tolerance']": "onTimeToleranceChange",
 			"change [name='map-time-interval']": "onTimeIntervalChange",
 			"change [name='map-time-mode']": "onTimeModeChange",
+			"change [name='map-target-year']": "onTargetYearChange",
 			"change [name='map-color-scheme']": "onColorSchemeChange",
 			"change [name='map-color-interval']": "onColorIntervalChange",
 			"change [name='map-projections']": "onProjectionChange",
@@ -149,14 +150,20 @@
 		},
 
 		updateTargetYear: function( silent ) {
-			var chartTime = App.ChartModel.get( "chart-time" ),
+			var mapConfig = App.ChartModel.get( "map-config" ),
+				chartTime = App.ChartModel.get( "chart-time" ),
+				savedTargetYear = mapConfig.targetYear,
 				targetYear = ( chartTime )? chartTime[0]: App.AvailableTimeModel.get( "min" ),
 				minYear = targetYear,
 				maxYear = ( chartTime )? chartTime[1]: App.AvailableTimeModel.get( "max" );
 
 			App.ChartModel.updateMapConfig( "minYear", minYear, true );
 			App.ChartModel.updateMapConfig( "maxYear", maxYear, true );
-			App.ChartModel.updateMapConfig( "targetYear", targetYear, silent );
+			//override target year only if we don't have manually chosen custom year, or custom year is nonsense
+			if( !savedTargetYear || (savedTargetYear < minYear) ) {
+				App.ChartModel.updateMapConfig( "targetYear", targetYear, silent );
+			}
+			
 		},
 
 		updateTimelineMode: function() {
@@ -201,6 +208,11 @@
 		onTimeIntervalChange: function( evt ) {
 			var $this = $( evt.target );
 			App.ChartModel.updateMapConfig( "timeInterval", parseInt( $this.val(), 10 ) );
+		},
+
+		onTargetYearChange: function( evt ) {
+			var $this = $( evt.target );
+			App.ChartModel.updateMapConfig( "targetYear", parseInt( $this.val(), 10 ) );
 		},
 
 		onColorSchemeChange: function( evt ) {

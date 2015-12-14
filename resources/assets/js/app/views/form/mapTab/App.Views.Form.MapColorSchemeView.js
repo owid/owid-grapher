@@ -14,7 +14,11 @@
 			
 			this.dispatcher = options.dispatcher;
 			
+			this.$colorAutomaticClassification = $("[name='map-color-automatic-classification']");
+
 			App.ChartModel.on( "change", this.onChartModelChange, this );
+
+			this.$colorAutomaticClassification.on( "change", this.onAutomaticClassification.bind(this) );
 
 			this.render();
 
@@ -35,18 +39,22 @@
 			this.$el.empty();
 
 			var html = "",
+				//get values stored in the database
 				colorSchemeKeys = _.map( colorScheme, function( d, i ) {
 					return i;
 				} ),
-				colorSchemeInterval = mapConfig.colorSchemeInterval;
+				colorSchemeInterval = mapConfig.colorSchemeInterval,
+				colorSchemeValues = mapConfig.colorSchemeValues;
+
 			for( var i = 0; i < colorSchemeInterval; i++ ) {
 				var key = colorSchemeKeys[ i ],
-					color = ( colorScheme[ key ] )? colorScheme[ key ]: "#fff";
-				html += "<li style='background-color:" + color + ";' data-color='" + color + "'></li>";
+					color = ( colorScheme[ key ] )? colorScheme[ key ]: "#fff",
+					value = ( colorSchemeValues && colorSchemeValues[ i ])? colorSchemeValues[ i ]: "";
+				html += "<li class='clearfix'><span class='map-color-scheme-icon' style='background-color:" + color + ";' data-color='" + color + "'></span><input class='map-color-scheme-value form-control' name='map-scheme[]' type='text' placeholder='Maximum value' value='" + value + "' /></li>";
 			}
 			this.$el.append( $( html ) );
 			
-			this.$lis = this.$el.find( "li" );
+			this.$lis = this.$el.find( ".map-color-scheme-icon" );
 			this.$lis.on( "click", function( evt ) {
 
 				evt.preventDefault();
@@ -67,6 +75,14 @@
 
 			} );
 
+			this.$el.toggleClass( "colorSchemeValuesAutomatic", mapConfig.colorSchemeValuesAutomatic );
+			
+			//react to user entering custom values
+			this.$inputs = this.$el.find(".map-color-scheme-value");
+			this.$inputs.on( "change", function( evt ) {
+				that.updateSchemeValues();
+			} );
+
 		},
 
 		updateColorScheme: function() {
@@ -78,8 +94,27 @@
 			App.ChartModel.updateMapConfig( "colorSchemeName", "custom" );
 		},
 
+		updateSchemeValues: function() {
+			var values = [];
+			$.each( this.$inputs, function( i, d ) {
+				var inputValue = $( d ).val();
+				if( inputValue ) {
+					values.push( inputValue );
+				}
+			} );
+			App.ChartModel.updateMapConfig( "colorSchemeValues", values );
+		},
+
 		onChartModelChange: function() {
 			this.render();
+		},
+
+		onAutomaticClassification: function(evt) {
+			var $target = $( evt.target ),
+				checked = $target.prop( "checked" );
+			this.$el.toggleClass( "automatic-values", checked );
+
+			App.ChartModel.updateMapConfig( "colorSchemeValuesAutomatic", checked );
 		}
 
 	});

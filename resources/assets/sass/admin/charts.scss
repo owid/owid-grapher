@@ -295,13 +295,35 @@
 .map-color-scheme-preview {
 	padding-left: 0;
 	list-style-type: none;
+
 	> li {
 		position: relative;
-		float: left;
-		width: 30px;
-		height: 30px;
 		margin-right: 2px;
 		margin-top: 10px;
+
+		.map-color-scheme-icon, .map-color-scheme-value {
+			float: left;
+		}
+		.map-color-scheme-icon {
+			display: inline-block;
+			width: 33px;
+			height: 33px;
+			border: 1px solid #d2d6de;
+		}
+		.map-color-scheme-value {
+			width: 50%;
+			margin-left: 10px;
+		}
+
+	}
+
+	&.automatic-values {
+		> li {
+			float: left;	
+		}
+		.map-color-scheme-value {
+			display: none;
+		}
 	}
 }
 
