@@ -115,7 +115,7 @@
 			}
 			var obj = {
 				point: {
-					time: mapConfig.targetYear 
+					time: mapConfig.targetYear
 				},
 				series: [ {
 					key: geo.properties.name
@@ -127,9 +127,20 @@
 
 		update: function() {
 			
+			var mapConfig = App.ChartModel.get( "map-config" );
+
+			//target year can be either number, or "latest", "earliest", if not number, need to translate inot number
+			if( mapConfig.targetYear === "earliest" ) {
+				//use first available year
+				mapConfig.targetYear = mapConfig.minYear;
+			}
+			if( mapConfig.targetYear === "latest" ) {
+				//use latest avalable year
+				mapConfig.targetYear = mapConfig.maxYear;
+			}
+
 			//construct dimension string
 			var that = this,
-				mapConfig = App.ChartModel.get( "map-config" ),
 				chartTime = App.ChartModel.get( "chart-time" ),
 				variableId = mapConfig.variableId,
 				targetYear = mapConfig.targetYear,
@@ -240,7 +251,7 @@
 				this.dataMap.updateChoropleth( mapData );
 			} else {
 				//changing projection, need to remove existing units, redraw everything and after done drawing, update data
-				d3.selectAll('path.datamaps-subunit').remove();
+				d3.selectAll( "path.datamaps-subunit" ).remove();
 				this.dataMap.options.setProjection = newProjection;
 				this.dataMap.draw();
 				this.dataMap.options.done = function() {

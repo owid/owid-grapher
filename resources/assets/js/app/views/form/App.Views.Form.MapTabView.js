@@ -31,7 +31,7 @@
 			
 			this.$timeToleranceInput = this.$el.find( "[name='map-time-tolerance']" );
 			this.$timeIntervalInput = this.$el.find( "[name='map-time-interval']" );
-			
+			this.$targetYearInput = this.$el.find( "[name='map-target-year']" );			
 			this.$timeModeSelect = this.$el.find( "[name='map-time-mode']" );
 			
 			this.$colorSchemeSelect = this.$el.find( "[name='map-color-scheme']" );
@@ -61,10 +61,49 @@
 			this.$timeIntervalInput.val( mapConfig.timeInterval );
 			this.$legendDescription.val( mapConfig.legendDescription );
 			
+			this.renderTargetYearSelect( this.$targetYearInput, mapConfig );
+			//this.$targetYearInput.val( mapConfig.targetYear );
+			
 			this.updateColorSchemeSelect();
 			this.updateColorIntervalSelect();
 			this.updateProjectionsSelect();
 			this.updateTimelineMode();
+
+		},
+
+		renderTargetYearSelect: function( $el, config ) {
+
+			var options = [ { "title": "Earliest year", "value": "earliest" }, { "title": "Latest year", "value": "latest" } ],
+				minYear = config.minYear,
+				maxYear = config.maxYear,
+				targetYear = config.targetYear,
+				interval = config.timeInterval,
+				nowYear = minYear,
+				loopIndex = 0;
+
+			while( ( nowYear <= maxYear ) && ( loopIndex < 1000 ) ) {
+				options.push( { "title": nowYear, "value": nowYear } );
+				
+				nowYear = nowYear + interval;
+				//make sure that we don't skip over maxYear if next interval would over it
+				if( (nowYear > maxYear) && (nowYear - interval) < maxYear ) {
+					nowYear = maxYear;
+				}
+
+				//just safeguard for loop
+				loopIndex++;
+			}
+
+			$el.empty();
+
+			var innerHtml = "";
+			$.each( options, function( i, option ) {
+				innerHtml += "<option value='" + option.value + "'>" + option.title + "</option>";
+			} );
+			$el.html( innerHtml );
+
+			//select current value
+			$el.val( targetYear );
 
 		},
 
@@ -159,8 +198,8 @@
 
 			App.ChartModel.updateMapConfig( "minYear", minYear, true );
 			App.ChartModel.updateMapConfig( "maxYear", maxYear, true );
-			//override target year only if we don't have manually chosen custom year, or custom year is nonsense
-			if( !savedTargetYear || (savedTargetYear < minYear) ) {
+			//override target year only if we don't have manually chosen custom year
+			if( !savedTargetYear ) {
 				App.ChartModel.updateMapConfig( "targetYear", targetYear, silent );
 			}
 			
@@ -212,7 +251,7 @@
 
 		onTargetYearChange: function( evt ) {
 			var $this = $( evt.target );
-			App.ChartModel.updateMapConfig( "targetYear", parseInt( $this.val(), 10 ) );
+			App.ChartModel.updateMapConfig( "targetYear", $this.val() );
 		},
 
 		onColorSchemeChange: function( evt ) {
