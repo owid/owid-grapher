@@ -49,7 +49,6 @@
 			this.$sliderInput.attr( "max", mapConfig.maxYear );
 			this.$sliderInput.attr( "step", mapConfig.timeInterval );
 			
-			console.log("mapConfig.targetYear", mapConfig.targetYear);
 			this.updateSliderInput( mapConfig.targetYear );
 			
 			if( isNaN( mapConfig.minYear ) || isNaN( mapConfig.maxYear ) ) {

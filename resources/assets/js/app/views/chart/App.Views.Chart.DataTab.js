@@ -158,6 +158,14 @@
 			this.$dataTableWrapper.append( $table );
 
 
+		},
+
+		show: function() {
+			this.$el.show();
+		},
+
+		hide: function() {
+			this.$el.hide();
 		}
 
 	} );

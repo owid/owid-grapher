@@ -3,6 +3,7 @@
 	"use strict";
 
 	var App = require( "./namespaces.js" ),
+		Router = require( "./App.Router.js" ),
 		Form = require( "./views/App.Views.Form.js" ),
 		ChartModel = require( "./models/App.Models.ChartModel.js" ),
 		ChartDataModel = require( "./models/App.Models.ChartDataModel.js" );
@@ -11,6 +12,9 @@
 	//is new chart or display old chart
 	var $chartShowWrapper = $( ".chart-show-wrapper, .chart-edit-wrapper" ),
 		chartId = $chartShowWrapper.attr( "data-chart-id" );
+
+	//setup router
+	App.Router = new Router();
 
 	//setup views
 	App.View = new Form();
@@ -41,6 +45,9 @@
 
 	}
 
+	//setup router
+	App.Router = new Router();
+	
 	//chosen select
 	$( ".chosen-select" ).chosen();
 	
