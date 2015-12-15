@@ -410,7 +410,7 @@
 							</label>
 							<label>
 								Which year should be displayed by default:
-								<input name="map-target-year" class="form-control" placeholder="" />
+								<select name="map-target-year" class="form-control"></select>
 							</label>
 						</div>
 					</section>
