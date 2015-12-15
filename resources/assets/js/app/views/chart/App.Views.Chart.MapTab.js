@@ -92,6 +92,14 @@
 
 		},
 
+		show: function() {
+			this.$el.show();
+		},
+
+		hide: function() {
+			this.$el.hide();
+		},
+
 		onChartModelChange: function( evt ) {
 
 			this.update();
@@ -132,9 +140,12 @@
 				chartType = 9999,
 				selectedCountries = App.ChartModel.get( "selected-countries" ),
 				//display all countries on the map
-				selectedCountriesIds = []
+				selectedCountriesIds = [];
 				//selectedCountriesIds = _.map( selectedCountries, function( v ) { return (v)? +v.id: ""; } );
 			
+			this.mapControls.render();
+			this.timelineControls.render();
+
 			var dataProps = { "dimensions": dimensionsString, "chartId": App.ChartModel.get( "id" ), "chartType": chartType, "selectedCountries": selectedCountriesIds, "chartTime": chartTime, "cache": App.ChartModel.get( "cache" ), "groupByVariables": App.ChartModel.get( "group-by-variables" )  };
 			this.mapDataModel.fetch( { data: dataProps } );
 
@@ -166,8 +177,8 @@
 				}
 				keysArr[ latestTimeValue ] = true;
 
-				//ids in world json are name countries with underscore (datamaps.js uses id for selector, so cannot have whitespace), also cover Cote d'Ivoire, Saint Martin (French_part) cases
-				var key = d.key.replace( /[ '\(\)]/g, "_" );
+				//ids in world json are name countries with underscore (datamaps.js uses id for selector, so cannot have whitespace), also cover Cote d'Ivoire, Saint Martin (French_part) cases, also get rid of ampersands
+				var key = d.key.replace( /[ '&:\(\)]/g, "_" );
 				return { "key": key, "value": latestTimeValue };
 
 			} );
@@ -181,22 +192,31 @@
 			}
 			
 			//need to create color scheme
-			var colorScale;
-			if( !ordinalScale ) {
+			var colorScale,
+				//do we have custom values for intervals
+				customValues = (mapConfig.colorSchemeValues)? mapConfig.colorSchemeValues: false,
+				automaticValues = mapConfig.colorSchemeValuesAutomatic;
+
+			//use quantize, if we have numerica scale and not using automatic values, or if we're trying not to use automatic scale, but there no manually entered custom values
+			if( !ordinalScale && ( automaticValues || (!automaticValues && !customValues) ) ) {
+				//we have quantitave scale
 				colorScale = d3.scale.quantize()
-					.domain( [ dataMin, dataMax ] )
-					.range( colorScheme );
+					.domain( [ dataMin, dataMax ] );
+			} else if( customValues && !automaticValues ) {
+				//create threshold scale which divides data into buckets based on values provided 
+				colorScale = d3.scale.threshold()
+					.domain( customValues );
 			} else {
 				colorScale = d3.scale.ordinal()
-					.domain( _.keys( keysArr ) )
-					.range( colorScheme );
+					.domain( _.keys( keysArr ) );
 			}
+			colorScale.range( colorScheme );
 			
 			//need to encode colors properties
 			var mapData = {},
 				colors = [];
 			latestData.forEach( function( d, i ) {
-				var color = colorScale( d.value );
+				var color = (ordinalScale)? colorScale( +d.value ): colorScale( +d.value );
 				mapData[ d.key ] = { "key": d.key, "value": d.value, "color": color };
 				colors.push( color );
 			} );
