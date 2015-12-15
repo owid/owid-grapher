@@ -48,6 +48,7 @@
 				"minYear": 1980,
 				"maxYear": 2000,
 				"targetYear": 1980,
+				"targetYearMode": "normal",
 				"mode": "specific",
 				"timeTolerance": 10,
 				"timeInterval": 10,

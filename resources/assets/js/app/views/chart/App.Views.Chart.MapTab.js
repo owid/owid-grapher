@@ -129,16 +129,6 @@
 			
 			var mapConfig = App.ChartModel.get( "map-config" );
 
-			//target year can be either number, or "latest", "earliest", if not number, need to translate inot number
-			if( mapConfig.targetYear === "earliest" ) {
-				//use first available year
-				mapConfig.targetYear = mapConfig.minYear;
-			}
-			if( mapConfig.targetYear === "latest" ) {
-				//use latest avalable year
-				mapConfig.targetYear = mapConfig.maxYear;
-			}
-
 			//construct dimension string
 			var that = this,
 				chartTime = App.ChartModel.get( "chart-time" ),

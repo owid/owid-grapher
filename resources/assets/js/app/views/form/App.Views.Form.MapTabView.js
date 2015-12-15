@@ -31,7 +31,7 @@
 			
 			this.$timeToleranceInput = this.$el.find( "[name='map-time-tolerance']" );
 			this.$timeIntervalInput = this.$el.find( "[name='map-time-interval']" );
-			this.$targetYearInput = this.$el.find( "[name='map-target-year']" );			
+			this.$targetYearInput = this.$el.find( "[name='map-target-year']" );
 			this.$timeModeSelect = this.$el.find( "[name='map-time-mode']" );
 			
 			this.$colorSchemeSelect = this.$el.find( "[name='map-color-scheme']" );
@@ -61,9 +61,7 @@
 			this.$timeIntervalInput.val( mapConfig.timeInterval );
 			this.$legendDescription.val( mapConfig.legendDescription );
 			
-			this.renderTargetYearSelect( this.$targetYearInput, mapConfig );
-			//this.$targetYearInput.val( mapConfig.targetYear );
-			
+			this.updateTargetYearSelect();
 			this.updateColorSchemeSelect();
 			this.updateColorIntervalSelect();
 			this.updateProjectionsSelect();
@@ -71,19 +69,21 @@
 
 		},
 
-		renderTargetYearSelect: function( $el, config ) {
+		updateTargetYearSelect: function() {
 
-			var options = [ { "title": "Earliest year", "value": "earliest" }, { "title": "Latest year", "value": "latest" } ],
-				minYear = config.minYear,
-				maxYear = config.maxYear,
-				targetYear = config.targetYear,
-				interval = config.timeInterval,
+			var mapConfig = App.ChartModel.get( "map-config" ),
+				options = [ { "title": "Earliest year", "value": "earliest" }, { "title": "Latest year", "value": "latest" } ],
+				minYear = mapConfig.minYear,
+				maxYear = mapConfig.maxYear,
+				targetYear = mapConfig.targetYear,
+				targetYearMode = mapConfig.targetYearMode,
+				interval = mapConfig.timeInterval,
 				nowYear = minYear,
 				loopIndex = 0;
 
 			while( ( nowYear <= maxYear ) && ( loopIndex < 1000 ) ) {
 				options.push( { "title": nowYear, "value": nowYear } );
-				
+
 				nowYear = nowYear + interval;
 				//make sure that we don't skip over maxYear if next interval would over it
 				if( (nowYear > maxYear) && (nowYear - interval) < maxYear ) {
@@ -94,16 +94,24 @@
 				loopIndex++;
 			}
 
-			$el.empty();
+			this.$targetYearInput.empty();
 
 			var innerHtml = "";
 			$.each( options, function( i, option ) {
 				innerHtml += "<option value='" + option.value + "'>" + option.title + "</option>";
 			} );
-			$el.html( innerHtml );
+			this.$targetYearInput.html( innerHtml );
 
+
+			//update current value on select
+			var currentValue;
+			if( targetYearMode === "earliest" || targetYearMode === "latest" ) {
+				currentValue = targetYearMode;
+			} else {
+				currentValue = targetYear;
+			}
 			//select current value
-			$el.val( targetYear );
+			this.$targetYearInput.val( currentValue );
 
 		},
 
@@ -247,11 +255,27 @@
 		onTimeIntervalChange: function( evt ) {
 			var $this = $( evt.target );
 			App.ChartModel.updateMapConfig( "timeInterval", parseInt( $this.val(), 10 ) );
+			this.updateTargetYearSelect();
 		},
 
 		onTargetYearChange: function( evt ) {
-			var $this = $( evt.target );
-			App.ChartModel.updateMapConfig( "targetYear", $this.val() );
+			var $this = $( evt.target ),
+				mapConfig = App.ChartModel.get( "map-config" ),
+				val = $this.val(),
+				targetYear, targetYearMode = "normal";
+
+			if( val === "earliest" ) {
+				targetYearMode = val;
+				targetYear = mapConfig.minYear;
+			} else if( val === "latest" ) {
+				targetYearMode = val;
+				targetYear = mapConfig.maxYear;
+			} else {
+				targetYear = $this.val();
+			}
+
+			App.ChartModel.updateMapConfig( "targetYear", targetYear );
+			App.ChartModel.updateMapConfig( "targetYearMode", targetYearMode );
 		},
 
 		onColorSchemeChange: function( evt ) {
