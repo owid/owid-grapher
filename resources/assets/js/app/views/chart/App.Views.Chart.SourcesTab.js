@@ -74,6 +74,14 @@
 			this.$chartSources.html( sourcesShortHtml );
 			this.$sourcesTab.html( tabHtml );
 
+		},
+
+		show: function() {
+			this.$el.show();
+		},
+
+		hide: function() {
+			this.$el.hide();
 		}
 
 	} );

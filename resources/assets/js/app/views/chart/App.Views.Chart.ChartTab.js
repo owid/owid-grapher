@@ -372,7 +372,7 @@
 					that.chart.yAxis.ticks( 7 );
 				}
 				
-				var svgSelection = d3.select( that.$svg.selector )
+				that.svgSelection = d3.select( that.$svg.selector )
 					.datum( localData )
 					.call( that.chart );
 
@@ -422,7 +422,7 @@
 						//trigger open the chosen drop down
 						that.$entitiesSelect.trigger( "chosen:open" );
 					} );
-					svgSelection.call( that.legend );
+					that.svgSelection.call( that.legend );
 					//put legend above chart
 
 					//if stacked area chart
@@ -444,7 +444,7 @@
 				var onResizeCallback = _.debounce( function(e) {
 					//invoke resize of legend, if there's one, scatter plot doesn't have any by default
 					if( that.legend ) {
-						svgSelection.call( that.legend );
+						that.svgSelection.call( that.legend );
 					}
 					that.parentView.onResize();
 				}, 150 );
@@ -491,6 +491,14 @@
 
 			});
 
+		},
+
+		show: function() {
+			this.$el.show();
+		},
+
+		hide: function() {
+			this.$el.hide();
 		},
 
 		scatterDist: function() {
@@ -608,6 +616,12 @@
 				}
 			}
 			return value;
+		},
+
+		onResize: function() {
+			if( this.legend ) {
+				this.svgSelection.call( this.legend );
+			}
 		}
 		
 	} );

@@ -16,6 +16,7 @@
 
 	App.Views.ChartView = Backbone.View.extend({
 
+		activeTab: false,
 		el: "#chart-view",
 		events: {
 			"click .chart-export-btn": "exportContent"
@@ -200,6 +201,12 @@
 				$( "svg" ).empty();
 
 			}
+
+		},
+
+		displayTab: function( id ) {
+
+			console.log( "ChartView id", id );
 
 		},
 
