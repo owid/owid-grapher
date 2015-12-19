@@ -28,10 +28,11 @@
 
 			var that = this,
 				mapConfig = App.ChartModel.get( "map-config" ),
-				colorScheme;
+				colorScheme,
+				colorSchemeName;
 
 			if( mapConfig.colorSchemeName !== "custom" ) {
-				colorScheme = ( owdColorbrewer[ mapConfig.colorSchemeName ] && owdColorbrewer[ mapConfig.colorSchemeName ][ mapConfig.colorSchemeInterval ] )? owdColorbrewer[ mapConfig.colorSchemeName ][ mapConfig.colorSchemeInterval ]: [];
+				colorScheme = ( owdColorbrewer[ mapConfig.colorSchemeName ] && owdColorbrewer[ mapConfig.colorSchemeName ][ "colors" ][ mapConfig.colorSchemeInterval ] )? owdColorbrewer[ mapConfig.colorSchemeName ][ "colors" ][ mapConfig.colorSchemeInterval ]: [];
 			} else if( mapConfig.colorSchemeName ) {
 				colorScheme = mapConfig.customColorScheme;
 			}
