@@ -5,6 +5,7 @@
 	var App = require( "./../../namespaces.js" ),
 		MapControls = require( "./map/App.Views.Chart.Map.MapControls.js" ),
 		TimelineControls = require( "./map/timeline/App.Views.Chart.Map.TimelineControls.js" ),
+		owdProjections = require( "./map/App.Views.Chart.Map.Projections.js" ),
 		Legend = require( "./map/App.Views.Chart.Map.Legend.js" ),
 		ChartDataModel = require( "./../../models/App.Models.ChartDataModel.js" );
 
@@ -54,15 +55,16 @@
 				element: document.getElementById( "map-chart-tab" ),
 				geographyConfig: {
 					dataUrl: Global.rootUrl + "/build/js/data/world.ids.json",
-					borderWidth: 0.1,
-					borderColor: '#4F4F4F',
+					borderWidth: 0.3,
+					borderColor: '#4b4b4b',
 					highlightBorderColor: 'black',
 					highlightBorderWidth: 0.2,
 					highlightFillColor: '#FFEC38',
-					popupTemplate: that.popupTemplateGenerator
+					popupTemplate: that.popupTemplateGenerator,
+					hideAntarctica: true
 				},
 				fills: {
-					defaultFill: '#FFFFFF'
+					defaultFill: '#8b8b8b'
 					//defaultFill: '#DDDDDD'
 				},
 				setProjection: defaultProjection,
@@ -187,7 +189,7 @@
 			//are we using colorbrewer schemes
 			var colorScheme;
 			if( mapConfig.colorSchemeName !== "custom" ) {
-				colorScheme = ( owdColorbrewer[ mapConfig.colorSchemeName ] && owdColorbrewer[ mapConfig.colorSchemeName ][ mapConfig.colorSchemeInterval ] )? owdColorbrewer[ mapConfig.colorSchemeName ][ mapConfig.colorSchemeInterval ]: [];
+				colorScheme = ( owdColorbrewer[ mapConfig.colorSchemeName ] && owdColorbrewer[ mapConfig.colorSchemeName ][ "colors" ][ mapConfig.colorSchemeInterval ] )? owdColorbrewer[ mapConfig.colorSchemeName ][ "colors" ][ mapConfig.colorSchemeInterval ]: [];
 			} else if( mapConfig.colorSchemeName ) {
 				colorScheme = mapConfig.customColorScheme;
 			}
@@ -197,6 +199,8 @@
 				//do we have custom values for intervals
 				customValues = (mapConfig.colorSchemeValues)? mapConfig.colorSchemeValues: false,
 				automaticValues = mapConfig.colorSchemeValuesAutomatic;
+
+			//
 
 			//use quantize, if we have numerica scale and not using automatic values, or if we're trying not to use automatic scale, but there no manually entered custom values
 			if( !ordinalScale && ( automaticValues || (!automaticValues && !customValues) ) ) {
@@ -217,7 +221,7 @@
 			var mapData = {},
 				colors = [];
 			latestData.forEach( function( d, i ) {
-				var color = (ordinalScale)? colorScale( +d.value ): colorScale( +d.value );
+				var color = (ordinalScale)? colorScale( d.value ): colorScale( +d.value );
 				mapData[ d.key ] = { "key": d.key, "value": d.value, "color": color };
 				colors.push( color );
 			} );
@@ -252,7 +256,7 @@
 		},
 
 		getProjection: function( projectionName ) {
-			var projections = App.Views.Chart.MapTab.projections,
+			var projections = owdProjections,
 				newProjection = ( projections[ projectionName ] )? projections[ projectionName ]: projections.World;
 			return newProjection;
 			
@@ -276,91 +280,6 @@
 		}
 	
 	});
-
-	App.Views.Chart.MapTab.projections = {
-		"World": function(element) {
-			//empiric
-			var k = 6;
-			var projection = d3.geo.eckert3()
-				.scale(element.offsetWidth/k)
-				.translate([element.offsetWidth / 2, element.offsetHeight / 2])
-				.precision(.1);
-			var path = d3.geo.path().projection(projection);
-			return {path: path, projection: projection};
-		},
-		"Africa": function(element) {
-			//empiric
-			var k = 3.2;
-			var projection = d3.geo.conicConformal()
-				.rotate([-25, 0])
-				.center([0, 0])
-				.parallels([30, -20])
-				.scale(element.offsetWidth/k)
-				.translate([element.offsetWidth / 2, element.offsetHeight / 2]);
-			var path = d3.geo.path().projection(projection);
-			return {path: path, projection: projection};
-		},
-		"N.America": function(element) {
-			//empiric
-			var k = 3.2;
-			var projection = d3.geo.conicConformal()
-				.rotate([98, 0])
-				.center([0, 38])
-				.parallels([29.5, 45.5])
-				.scale(element.offsetWidth/k)
-				.translate([element.offsetWidth / 2, element.offsetHeight / 2]);
-			var path = d3.geo.path().projection(projection);
-			return {path: path, projection: projection};
-		},
-		"S.America": function(element) {
-			//empiric
-			var k = 3.6;
-			var projection = d3.geo.conicConformal()
-				.rotate([68, 0])
-				.center([0, -14])
-				.parallels([10, -30])
-				.scale(element.offsetWidth/k)
-				.translate([element.offsetWidth / 2, element.offsetHeight / 2]);
-			var path = d3.geo.path().projection(projection);
-			return {path: path, projection: projection};
-		},
-		"Asia": function(element) {
-			//empiric
-			var k = 3.2;
-			var projection = d3.geo.conicConformal()
-				.rotate([-105, 0])
-				.center([0, 37])
-				.parallels([10, 60])
-				.scale(element.offsetWidth/k)
-				.translate([element.offsetWidth / 2, element.offsetHeight / 2]);
-			var path = d3.geo.path().projection(projection);
-			return {path: path, projection: projection};
-		},
-		"Europe": function(element) {
-			//empiric
-			var k = 1.7;
-			var projection = d3.geo.conicConformal()
-				.rotate([-15, 0])
-				.center([0, 55])
-				.parallels([60, 40])
-				.scale(element.offsetWidth/k)
-				.translate([element.offsetWidth / 2, element.offsetHeight / 2]);
-			var path = d3.geo.path().projection(projection);
-			return {path: path, projection: projection};
-		},
-		"Australia": function(element) {
-			//empiric
-			var k = 3.2;
-			var projection = d3.geo.conicConformal()
-				.rotate([-135, 0])
-				.center([0, -20])
-				.parallels([-10, -30])
-				.scale(element.offsetWidth/k)
-				.translate([element.offsetWidth / 2, element.offsetHeight / 2]);
-			var path = d3.geo.path().projection(projection);
-			return {path: path, projection: projection};
-		}
-	};
 
 	module.exports = App.Views.Chart.MapTab;
 
