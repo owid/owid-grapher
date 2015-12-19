@@ -3,6 +3,7 @@
 	"use strict";
 
 	var App = require( "./../../namespaces.js" ),
+		owdProjections = require( "./../chart/map/App.Views.Chart.Map.Projections.js" ),
 		ColorSchemeView = require( "./mapTab/App.Views.Form.MapColorSchemeView.js" );
 
 	App.Views.Form.MapTabView = Backbone.View.extend({
@@ -157,7 +158,7 @@
 			this.$colorSchemeSelect.empty();
 			_.each( owdColorbrewer, function( v, i ) {
 				var selected = ( i == mapConfig.colorSchemeName )? " selected": "";
-				html += "<option value='" + i + "' " + selected + ">" + i + "</option>";
+				html += "<option value='" + i + "' " + selected + ">" + v.name + "</option>";
 			} );
 			this.$colorSchemeSelect.append( $( html ) );
 
@@ -188,7 +189,7 @@
 				mapConfig = App.ChartModel.get( "map-config" );
 
 			this.$projectionsSelect.empty();
-			_.each( App.Views.Chart.MapTab.projections, function( v, i ) {
+			_.each( owdProjections, function( v, i ) {
 				var selected = ( i == mapConfig.projections )? " selected": "";
 				html += "<option value='" + i + "' " + selected + ">" + i + "</option>";
 			} );
