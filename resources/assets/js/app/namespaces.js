@@ -19,7 +19,7 @@
 	window.$ = jQuery;
 
 	//export
-	//window.App = App;
+	window.App = App;
 
 	module.exports = App;
 
