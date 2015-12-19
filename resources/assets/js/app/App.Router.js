@@ -4,9 +4,9 @@
 
 	var App = require( "./namespaces.js" ),
 		Backbone = require( "backbone" );
-
-	App.Router = Backbone.Router.extend({
-
+	
+	var Router = new Backbone.Router.extend({
+		
 		routes: {
 				"chart": "onChartRoute",
 				"data": "onDataRoute",
@@ -38,6 +38,6 @@
 
 	});
 
-	module.exports = App.Router;
-
+	module.exports = Router;
+	
 })();

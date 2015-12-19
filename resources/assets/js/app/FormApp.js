@@ -3,7 +3,6 @@
 	"use strict";
 
 	var App = require( "./namespaces.js" ),
-		Router = require( "./App.Router.js" ),
 		Form = require( "./views/App.Views.Form.js" ),
 		ChartModel = require( "./models/App.Models.ChartModel.js" ),
 		ChartDataModel = require( "./models/App.Models.ChartDataModel.js" );
@@ -13,19 +12,18 @@
 	var $chartShowWrapper = $( ".chart-show-wrapper, .chart-edit-wrapper" ),
 		chartId = $chartShowWrapper.attr( "data-chart-id" );
 
-	//setup router
-	App.Router = new Router();
-
 	//setup views
 	App.View = new Form();
-
+	
 	if( $chartShowWrapper.length && chartId ) {
 		
 		//showing existing chart
 		App.ChartModel = new ChartModel( { id: chartId } );
 		App.ChartModel.fetch( {
 			success: function( data ) {
+				
 				App.View.start();
+			
 			},
 			error: function( xhr ) {
 				console.error( "Error loading chart model", xhr );
@@ -44,12 +42,11 @@
 		App.View.start();
 
 	}
-
-	//setup router
-	App.Router = new Router();
 	
 	//chosen select
 	$( ".chosen-select" ).chosen();
 	
+
+
 
 })();
