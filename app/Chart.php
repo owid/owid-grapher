@@ -653,6 +653,7 @@ class Chart extends Model {
 
 		//different logic whether time is single or interval
 		$firstKey = ( isset( $values ) )? key( $values ): "";
+
 		if( strpos( $firstKey, "-" ) === false && strpos( $time, "-" ) === false ) {
 			$value = Chart::getSingleTimeValue( $dimension, $time, $values );
 		} else {
