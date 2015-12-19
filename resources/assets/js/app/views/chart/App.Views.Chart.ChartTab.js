@@ -51,7 +51,7 @@
 				var countriesColors = [];
 				localData = _.filter( localData, function( value, key, list ) {
 					//set color while in the loop
-					var id = value.id;
+					var id = value.id.toString();
 					//need to check for special case, when we have more variables for the same countries (the ids will be then 21-1, 22-1, etc.)
 					if( id.indexOf( "-" ) > 0 ) {
 						id = parseInt( id.split( "-" )[ 0 ], 10 );
