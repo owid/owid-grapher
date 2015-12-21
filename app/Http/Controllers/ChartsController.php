@@ -85,8 +85,10 @@ class ChartsController extends Controller {
 	public function show( Chart $chart, Request $request )
 	{
 		if( $request->ajax() ) {
-			$config = json_decode( $chart->config );
-			return response()->json( $config );
+
+			$config = $chart->config;
+			$decodedConfig = json_decode( $config );
+			return response()->json( $decodedConfig );
 		} else {
 			$data = new \StdClass;
 			$data->variables = Variable::with('Dataset')->get();
@@ -103,6 +105,18 @@ class ChartsController extends Controller {
 	public function config( $chartId ) {
 		$chart = Chart::find( $chartId );
 		$config = ( $chart )? json_decode( $chart->config ): false;
+
+		//possibly there could logo query parameter
+		if( !empty( $config ) && !empty( Input::get('logo') ) ) {
+			//there's logo query parameter, we want to display chart with different logo
+			//find logo by name
+			$logo = Logo::where('name','=',Input::get('logo'))->first();
+			if( !empty( $logo ) ) {
+				//override logo in config with logo from query parameter
+				$config->logo = $logo->url;
+			}
+		}
+
 		return response()->json( $config );
 	}
 

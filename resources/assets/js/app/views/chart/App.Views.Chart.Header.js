@@ -26,7 +26,8 @@
 
 		render: function() {
 			
-			var logo = App.ChartModel.get( "logo" ),
+			var that = this,
+				logo = App.ChartModel.get( "logo" ),
 				tabs = App.ChartModel.get( "tabs" ),
 				defaultTab = App.ChartModel.get( "default-tab" ),
 				openDefault = ( this.$tabs.filter( ".active" ).length )? false: true;
@@ -39,10 +40,9 @@
 				this.$logo.css( "visibility", "visible" );
 				this.$logoSvg.attr( "xlink:href", fullUrl );
 
-				var that = this;
 				//after logo is loaded, resize svg image to the same 
 				this.$logo.on( "load", function() {
-					this.$logoSvg.attr( { "width": this.width, "height": this.height } );
+					that.$logoSvg.attr( { "width": this.width, "height": this.height } );
 				} );
 
 			}
@@ -50,7 +50,6 @@
 			//hide first everything
 			this.$tabs.hide();
 
-			var that = this;
 			_.each( tabs, function( v, i ) {
 				var tab = that.$tabs.filter( "." + v + "-header-tab" );
 				tab.show();

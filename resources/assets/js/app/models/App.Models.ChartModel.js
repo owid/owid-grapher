@@ -2,7 +2,8 @@
 		
 	"use strict";
 
-	var App = require( "./../namespaces.js" );
+	var App = require( "./../namespaces.js" ),
+		Utils = require( "./../App.Utils.js" );
 	
 	App.Models.ChartModel = Backbone.Model.extend( {
 
@@ -19,7 +20,11 @@
 				}
 				
 			} else {
-				return Global.rootUrl + "/data/config/" + this.id;
+
+				var logo = Utils.getQueryVariable( "logo" ),
+					logoUrl = ( logo )? "?logo=" + logo: "";
+				
+				return Global.rootUrl + "/data/config/" + this.id + logoUrl;
 			}
 		},
 
