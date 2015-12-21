@@ -20,7 +20,7 @@
 	.edit-dataset-module form,
 	.edit-datasource-module form,
 	.edit-license-module form,
-	.logo-module form {
+	.edit-logo-module form {
 		max-width: 500px;
 	}
 
@@ -30,10 +30,9 @@
 }
 
 /* logo */
-.logo-module input[type="submit"] {
-	margin-top: 20px;
-}
-.logo-module .image-wrapper {
+.btn-new-logo {
 	margin: 10px 0px;
 }
-
+.edit-logo-module input[name="image"] {
+	margin: 10px 0px;
+}

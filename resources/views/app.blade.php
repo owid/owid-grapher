@@ -72,7 +72,7 @@
 						<li><a href="{!! route( 'categories.index' ) !!}"><i class="fa fa-folder"></i> Categories</a></li>
 						<li><a href="{!! route( 'tags.index' ) !!}"><i class="fa fa-tags"></i> Tags</a></li>
 						<li><a href="{!! route( 'apiKeys.index' ) !!}"><i class="fa fa-credit-card"></i> API keys</a></li>
-						<li><a href="{!! route( 'logo' ) !!}"><i class="fa fa-picture-o"></i> Logo</a></li>
+						<li><a href="{!! route( 'logos.index' ) !!}"><i class="fa fa-picture-o"></i> Logo</a></li>
 					</ul>
 				</section>
 				<!-- /.sidebar -->
