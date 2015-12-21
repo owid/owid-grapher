@@ -14,6 +14,8 @@
 			this.dispatcher = options.dispatcher;
 			
 			this.$logo = this.$el.find( ".logo" );
+			this.$logoSvg = $( ".chart-logo-svg .logo" );
+
 			this.$tabs = this.$el.find( ".header-tab" );
 			this.render();
 
@@ -31,8 +33,18 @@
 			
 			//setup image for header
 			if( logo ) {
-				this.$logo.attr( "src", Global.rootUrl + "/" + logo );
+
+				var fullUrl = Global.rootUrl + "/" + logo;
+				this.$logo.attr( "src", fullUrl );
 				this.$logo.css( "visibility", "visible" );
+				this.$logoSvg.attr( "xlink:href", fullUrl );
+
+				var that = this;
+				//after logo is loaded, resize svg image to the same 
+				this.$logo.on( "load", function() {
+					this.$logoSvg.attr( { "width": this.width, "height": this.height } );
+				} );
+
 			}
 			
 			//hide first everything
