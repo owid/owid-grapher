@@ -8,6 +8,7 @@
 
 		el: "#form-view #styling-tab",
 		events: {
+			"change [name='logo']": "onLogoChange",
 			"change [name='line-type']": "onLineTypeChange",
 			"change [name^='margin-']": "onMarginChange",
 			"change [name='hide-legend']": "onHideLegendChange"
@@ -17,6 +18,9 @@
 			
 			this.dispatcher = options.dispatcher;
 			
+			//logos
+			this.$logo = this.$el.find( "[name='logo']" );
+
 			this.$lineTypeRadios = this.$el.find( "[name='line-type']" );
 			
 			//margins
@@ -40,6 +44,9 @@
 		},
 
 		render: function() {
+			
+			var logoId = App.ChartModel.get( "logo" );
+			this.$logo.val( logoId );
 
 			var lineType = App.ChartModel.get( "line-type" );
 			this.$lineTypeRadios.filter( "[value='" + lineType + "']" ).prop( "checked", true );
@@ -56,6 +63,14 @@
 			this.updateUnitsUI();
 			$( ".units-section .form-control[type=input], .units-section [type=checkbox]" ).on( "change", $.proxy( this.updateUnits, this ) );
 		
+		},
+
+		onLogoChange: function( evt ) {
+
+			var $select = $( evt.currentTarget ),
+				logoId = $select.val();
+			App.ChartModel.set( "logo", logoId );
+
 		},
 
 		onLineTypeChange: function( evt ) {

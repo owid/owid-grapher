@@ -254,9 +254,22 @@
 					</section>
 				</div>
 				<div id="styling-tab" class="tab-pane">
+					<section class="form-section logo-section">
+						<div class="form-section-header">
+							<h2><span class="form-section-digit">i</span>Logo</h2>
+						</div>
+						<div class="form-section-content">
+							<select name="logo" class="form-control logo-select">
+								<option value="" disabled selected>Select type</option>
+								@foreach( $data->logos as $logoId=>$logoName )
+									<option value="{{ $logoId }}">{{ $logoName }}</option>
+								@endforeach
+							</select>
+						</div>
+					</section>
 					<section class="form-section type-of-line-section">
 						<div class="form-section-header">
-							<h2><span class="form-section-digit">i</span>Choose Type of Line</h2>
+							<h2><span class="form-section-digit">j</span>Choose Type of Line</h2>
 						</div>
 						<div class="form-section-content">
 							<label>
@@ -275,7 +288,7 @@
 					</section>
 					<section class="form-section margins-section">
 						<div class="form-section-header">
-							<h2><span class="form-section-digit">j</span>Set margins</h2>
+							<h2><span class="form-section-digit">k</span>Set margins</h2>
 						</div>
 						<div class="form-section-content">
 							<label>
@@ -298,7 +311,7 @@
 					</section>
 					<section class="form-section legend-section">
 						<div class="form-section-header">
-							<h2><span class="form-section-digit">k</span>Legend</h2>
+							<h2><span class="form-section-digit">l</span>Legend</h2>
 						</div>
 						<div class="form-section-content">
 							<label>
@@ -309,7 +322,7 @@
 					</section>
 					<section class="form-section units-section">
 						<div class="form-section-header">
-							<h2><span class="form-section-digit">l</span>Popup Units</h2>
+							<h2><span class="form-section-digit">m</span>Popup Units</h2>
 						</div>
 						<div class="form-section-content">
 						</div>
@@ -318,7 +331,7 @@
 				<div id="export-tab" class="tab-pane">
 					<section class="form-section tabs-section">
 						<div class="form-section-header">
-							<h2><span class="form-section-digit">m</span>Which tabs</h2>
+							<h2><span class="form-section-digit">n</span>Which tabs</h2>
 						</div>
 						<div class="form-section-content">
 							<ol>
@@ -360,7 +373,7 @@
 					</section>
 					<section class="form-section">
 						<div class="form-section-header embed-section">
-							<h2><span class="form-section-digit">n</span>Embed your chart</h2>
+							<h2><span class="form-section-digit">o</span>Embed your chart</h2>
 						</div>
 						<div class="form-section-content">
 							<div class="embed-size-wrapper">
@@ -381,7 +394,7 @@
 				<div id="map-tab" class="tab-pane">
 					<section class="form-section tabs-section">
 						<div class="form-section-header">
-							<h2><span class="form-section-digit">o</span>Which variable on map</h2>
+							<h2><span class="form-section-digit">p</span>Which variable on map</h2>
 						</div>
 						<div class="form-section-content">
 							<select name="map-variable-id" class="form-control">
@@ -390,7 +403,7 @@
 					</section>
 					<section class="form-section tabs-section">
 						<div class="form-section-header">
-							<h2><span class="form-section-digit">p</span>Timeline</h2>
+							<h2><span class="form-section-digit">q</span>Timeline</h2>
 						</div>
 						<div class="form-section-content">
 							<label>
@@ -416,7 +429,7 @@
 					</section>
 					<section class="form-section tabs-section">
 						<div class="form-section-header">
-							<h2><span class="form-section-digit">q</span>Colors</h2>
+							<h2><span class="form-section-digit">r</span>Colors</h2>
 						</div>
 						<div class="form-section-content">
 							<label>
@@ -438,7 +451,7 @@
 					</section>
 					<section class="form-section tabs-section">
 						<div class="form-section-header">
-							<h2><span class="form-section-digit">r</span>Extent</h2>
+							<h2><span class="form-section-digit">s</span>Extent</h2>
 						</div>
 						<div class="form-section-content">
 							<label>
@@ -449,7 +462,7 @@
 					</section>
 					<section class="form-section tabs-section">
 						<div class="form-section-header">
-							<h2><span class="form-section-digit">s</span>Legend description</h2>
+							<h2><span class="form-section-digit">t</span>Legend description</h2>
 						</div>
 						<div class="form-section-content">
 							<label>

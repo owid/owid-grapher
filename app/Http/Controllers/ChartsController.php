@@ -7,6 +7,7 @@ use App\Variable;
 use App\DatasetCategory;
 use App\DatasetSubcategory;
 use App\ChartType;
+use App\Logo;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
@@ -40,6 +41,7 @@ class ChartsController extends Controller {
 		$data->categories = DatasetCategory::all();
 		$data->subcategories = DatasetSubcategory::all();
 		$data->chartTypes = ChartType::lists( 'name', 'id' );
+		$data->logos = Logo::lists( 'name', 'id' );
 		$logoUrl = Setting::where( 'meta_name', 'logoUrl' )->first();
 		$data->logoUrl = ( !empty( $logoUrl ) )? url('/') .'/'. $logoUrl->meta_value: '';
 
@@ -91,6 +93,7 @@ class ChartsController extends Controller {
 			$data->categories = DatasetCategory::all();
 			$data->subcategories = DatasetSubcategory::all();
 			$data->chartTypes = ChartType::lists( 'name', 'id' );
+			$data->logos = Logo::lists( 'name', 'id' );
 			$logoUrl = Setting::where( 'meta_name', 'logoUrl' )->first();
 			$data->logoUrl = ( !empty( $logoUrl ) )? url('/') .'/'. $logoUrl->meta_value: '';
 			return view('charts.show', compact( 'chart' ) )->with( 'data', $data );
@@ -120,6 +123,7 @@ class ChartsController extends Controller {
 			$data->categories = DatasetCategory::all();
 			$data->subcategories = DatasetSubcategory::all();
 			$data->chartTypes = ChartType::lists( 'name', 'id' );
+			$data->logos = Logo::lists( 'name', 'id' );
 			$logoUrl = Setting::where( 'meta_name', 'logoUrl' )->first();
 			$data->logoUrl = ( !empty( $logoUrl ) )? url('/') .'/'. $logoUrl->meta_value: '';
 			return view('charts.edit', compact( 'chart' ) )->with( 'data', $data );
