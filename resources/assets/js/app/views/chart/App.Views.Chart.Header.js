@@ -13,6 +13,7 @@
 			
 			this.dispatcher = options.dispatcher;
 			
+			this.$logo = this.$el.find( ".logo" );
 			this.$tabs = this.$el.find( ".header-tab" );
 			this.render();
 
@@ -23,9 +24,16 @@
 
 		render: function() {
 			
-			var tabs = App.ChartModel.get( "tabs" ),
+			var logo = App.ChartModel.get( "logo" ),
+				tabs = App.ChartModel.get( "tabs" ),
 				defaultTab = App.ChartModel.get( "default-tab" ),
 				openDefault = ( this.$tabs.filter( ".active" ).length )? false: true;
+			
+			//setup image for header
+			if( logo ) {
+				this.$logo.attr( "src", Global.rootUrl + "/" + logo );
+				this.$logo.css( "visibility", "visible" );
+			}
 			
 			//hide first everything
 			this.$tabs.hide();
