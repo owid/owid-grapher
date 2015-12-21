@@ -1,7 +1,5 @@
 <?php
 
-use App\ApiKey;
-
 /*
 |--------------------------------------------------------------------------
 | Application Routes
@@ -24,6 +22,7 @@ Route::model( 'categories', 'DatasetCategory' );
 Route::model( 'subcategories', 'DatasetSubcategory' );
 Route::model( 'tags', 'DatasetTag' );
 Route::model( 'apiKeys', 'ApiKey' );
+Route::model( 'logos', 'Logo' );
 
 //Route::get('/', 'WelcomeController@index');
 Route::get('/', 'HomeController@index');
@@ -94,6 +93,7 @@ Route::group(['middleware' => 'auth'], function()
 	Route::resource( 'tags', 'TagsController' );
 	Route::resource( 'licenses', 'LicensesController' );
 	Route::resource( 'apiKeys', 'ApiKeysController' );
+	Route::resource( 'logos', 'LogosController' );
 
 	//Route::resource( 'dataValues', 'DataValuesController' );
 	Route::bind( 'entities', function($value, $route) {
@@ -132,14 +132,17 @@ Route::group(['middleware' => 'auth'], function()
 	Route::bind( 'apiKeys', function($value, $route) {
 		return App\ApiKey::whereId($value)->first();
 	});
+	Route::bind( 'logos', function($value, $route) {
+		return App\Logo::whereId($value)->first();
+	});
 
 	Route::get( 'import', [ 'as' => 'import', 'uses' => 'ImportController@index' ] );
 	Route::post( 'import/store', 'ImportController@store' );
 
 	Route::get( 'entityIsoNames/validateData', 'EntityIsoNamesController@validateData' );
 	
-	Route::get( 'logo', [ 'as' => 'logo', 'uses' => 'LogoController@index' ] );
-	Route::post('logo/upload', 'LogoController@upload');
+	//Route::get( 'logo', [ 'as' => 'logo', 'uses' => 'LogoController@index' ] );
+	//Route::post('logo/upload', 'LogoController@upload');
 
 	Route::post( 'inputfile/import', 'ImportController@inputfile' );
 	Route::post( 'datasource/import', 'ImportController@datasource' );
