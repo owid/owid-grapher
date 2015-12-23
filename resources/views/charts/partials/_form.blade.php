@@ -451,7 +451,7 @@
 					</section>
 					<section class="form-section tabs-section">
 						<div class="form-section-header">
-							<h2><span class="form-section-digit">s</span>Extent</h2>
+							<h2><span class="form-section-digit">s</span>Displayed map section</h2>
 						</div>
 						<div class="form-section-content">
 							<label>
