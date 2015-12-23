@@ -41,7 +41,7 @@
 			"x-axis": {},
 			"margins": { top: 10, left: 60, bottom: 10, right: 10 },
 			"units": "",
-			"logo": "1",
+			"logo": "uploads/26538.png",
 			"iframe-width": "100%",
 			"iframe-height": "660px",
 			"hide-legend": false,
