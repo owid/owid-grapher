@@ -6,6 +6,8 @@
 
 	App.Views.Chart.Header = Backbone.View.extend({
 
+		DEFAULT_LOGO_URL: "uploads/26538.png",
+
 		el: "#chart-view .chart-header",
 		events: {},
 
@@ -14,7 +16,9 @@
 			this.dispatcher = options.dispatcher;
 			
 			this.$logo = this.$el.find( ".logo" );
-			this.$logoSvg = $( ".chart-logo-svg .logo" );
+			this.$logoSvg = $( ".chart-logo-svg" );
+			this.$logoSvgImage = this.$logoSvg.find( ".chart-logo-svg-image" );
+			this.$logoSvgVector = this.$logoSvg.find( ".chart-logo-svg-vector" );
 
 			this.$tabs = this.$el.find( ".header-tab" );
 			this.render();
@@ -38,15 +42,22 @@
 				var fullUrl = Global.rootUrl + "/" + logo;
 				this.$logo.attr( "src", fullUrl );
 				this.$logo.css( "visibility", "visible" );
-				this.$logoSvg.attr( "xlink:href", fullUrl );
+				this.$logoSvgImage.attr( "xlink:href", fullUrl );
 
 				//after logo is loaded, resize svg image to the same 
 				this.$logo.on( "load", function() {
-					that.$logoSvg.attr( { "width": this.width, "height": this.height } );
+					that.$logoSvgImage.attr( { "width": this.width, "height": this.height } );
 				} );
 
 			}
-			
+
+			//should be displayed
+			if( logo === this.DEFAULT_LOGO_URL ) {
+				this.$logoSvg.attr( "class", "chart-logo-svg default-logo" );
+			} else {
+				this.$logoSvg.attr( "class", "chart-logo-svg" );
+			}
+
 			//hide first everything
 			this.$tabs.hide();
 

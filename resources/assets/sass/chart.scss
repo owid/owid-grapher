@@ -927,6 +927,24 @@ body {
 			font-size: 15px;
 		}
 	}
+
+	.chart-logo-svg {
+		.chart-logo-svg-vector {
+			display: none;
+		}
+		.chart-logo-svg-image {
+			display: block;
+		}
+		&.default-logo {
+			.chart-logo-svg-vector {
+				display: block;
+			}
+			.chart-logo-svg-image {
+				display: none;
+			}
+		}
+	}
+
 }
 
 .error-label {

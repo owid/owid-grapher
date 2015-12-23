@@ -450,7 +450,7 @@
 			
 			//position svg logo
 			var elWidth = this.$el.width() - innerPaddingLeft - innerPaddingRight - margins.left - margins.right,
-				scale = 1,
+				scale = ( $chartLogoSvg.hasClass( "default-logo" ) )? .4: 1,
 				translate = elWidth / scale;
 
 			$chartLogoSvg.attr( "transform", "scale(" + scale + "," + scale + "), translate(" + translate + "," + (chartNameSvgY/scale) + ")" );
