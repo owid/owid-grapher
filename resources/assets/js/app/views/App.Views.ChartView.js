@@ -24,6 +24,9 @@
 
 		initialize: function( options ) {
 			
+			//enable overriding default tab setting with tab query parameter
+			this.setDefaultTabFromUrl();
+
 			this.dispatcher = options.dispatcher;
 			
 			var childViewOptions = { dispatcher: this.dispatcher, parentView: this };
@@ -56,6 +59,7 @@
 				that.onResize();
 			} );
 
+			//init router and deeplinking
 			//new Router();
 			//Backbone.history.start();
 
@@ -207,11 +211,24 @@
 
 		},
 
-		displayTab: function( id ) {
+		setDefaultTabFromUrl: function() {
+
+			var tab = Utils.getQueryVariable( "tab" );
+			if( tab ) {
+				//there is something in the url, check that it's not non-sensical value
+				var tabs = [ "chart", "data", "map", "sources" ];
+				if( _.contains( tabs, tab ) ) {
+					App.ChartModel.set( "default-tab", tab, { silent: true } );
+				}
+			}
+		
+		},
+
+		/*displayTab: function( id ) {
 
 			console.log( "ChartView id", id );
 
-		},
+		},*/
 
 		onChartModelChange: function( evt ) {
 
@@ -550,9 +567,13 @@
 			this.displayTab( "sources" );
 		},
 
+		onDefaultRoute: function() {
+			console.log( "onDefault router" );
+		},
+
 		displayTab: function( id ) {
 			console.log("displayTab",id);
-			App.View.chartView.displayTab( id );
+			//App.View.chartView.displayTab( id );
 		}
 
 	});*/

@@ -33,7 +33,7 @@
 				this.toggleFooter( true );
 				this.toggleExport( true );
 			} else {
-				this.toogleFooter( false );
+				this.toggleFooter( false );
 			}
 			
 		},
