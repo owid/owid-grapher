@@ -157,8 +157,11 @@
 		 */
 		public function destroy(Logo $logo, Request $request)
 		{	
+			//delete database record
 			$logo->delete();
-			
+			//delete actual file
+			\File::delete($logo->url);
+
 			Cache::flush();
 			
 			return redirect()->route('logos.index')->with('message', 'Logo deleted.');
