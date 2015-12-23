@@ -433,12 +433,12 @@
 						</div>
 						<div class="form-section-content">
 							<label>
-								Color scheme:
+								<a href="http://www.datavis.ca/sasmac/brewerpal.html" title="Color brewer schemes" target="_blank"><i class="fa fa-info-circle"></i></a> Color scheme:
 								<select name="map-color-scheme" class="form-control"></select>
 							</label>
 							<label>
 								Number of intervals:
-								<input name="map-color-interval" type="number" class="form-control"></select>
+								<input name="map-color-interval" type="number" class="form-control" />
 							</label>
 							<label>
 								<input name="map-color-automatic-classification" type="checkbox" checked/>
