@@ -1,0 +1,23 @@
+<html>
+	<head>
+		<style>
+		</style>
+
+	</head>
+	<body>
+		<a id="real-btn" href="http://www.google.com" target="_blank">Google</a>
+		<div id="btn">Btn</div>
+		<script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+		<script>
+
+			var $btn = $( "#btn" ),
+				$realBtn = $( "#real-btn");
+
+			$btn.on( "click", function(evt) {
+				$realBtn.get(0).click();
+			} );
+			//btn.onclick
+
+		</script>
+	</body>
+</html>
