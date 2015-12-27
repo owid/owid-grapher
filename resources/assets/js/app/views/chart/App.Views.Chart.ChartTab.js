@@ -137,6 +137,7 @@
 				xAxisFormat = ( xAxis[ "axis-format" ] || 0 ),
 				yAxisFormat = ( yAxis[ "axis-format" ] || 0 );
 
+			//setting up nvd3 chart
 			nv.addGraph(function() {
 
 				var chartOptions = {
@@ -372,7 +373,8 @@
 					that.chart.yAxis.ticks( 7 );
 				}
 				
-				that.svgSelection = d3.select( that.$svg.selector )
+				that.svgSelection = d3.select( ".nvd3-chart-holder" )
+				//that.svgSelection = d3.select( that.$svg.selector )
 					.datum( localData )
 					.call( that.chart );
 

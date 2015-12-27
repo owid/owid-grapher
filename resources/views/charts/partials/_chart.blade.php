@@ -78,6 +78,8 @@
 					<g transform="translate(15,0)">
 						<text x="0" y="0" dy="0" class="h3 chart-subname chart-subname-svg"></text>
 					</g>
+					<g class="nvd3-chart-holder">
+					</g>
 					<text x="0" y="0" dy="0" class="chart-description chart-description-svg"></text>
 					<text x="0" y="0" dy="0" class="chart-sources chart-sources-svg"></text>
 				</svg>
