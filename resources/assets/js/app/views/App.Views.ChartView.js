@@ -287,6 +287,8 @@
 
 		onDimensionExport: function( data ) {
 
+			//export chart into svg or png
+
 			var that = this,
 				format = data.format,
 				width = data.width,
@@ -316,9 +318,11 @@
 				//for exporting map, we need to add sources
 				var $chartLogoSvg = $( ".chart-logo-svg" ),
 					$chartNameSvg = $( ".chart-name-svg" ).parent(),
+					$chartSubNameSvg = $( ".chart-subname-svg" ).parent(),
 					$chartSourcesSvg = $( ".chart-sources-svg" );
 				$exportSvg.append( $chartLogoSvg );
 				$exportSvg.append( $chartNameSvg );
+				$exportSvg.append( $chartSubNameSvg );
 				$exportSvg.append( $chartSourcesSvg );
 			
 			} else {
@@ -523,7 +527,12 @@
 			//position scale dropdowns - TODO - isn't there a better way then with timeout?
 			var that = this;
 			setTimeout( function() {
-			
+				
+				//make sure the chart is created
+				if( !$wrap.length ) {
+					return false;
+				}
+
 				var wrapOffset = $wrap.offset(),
 					chartTabOffset = that.$chartTab.offset(),
 					marginLeft = parseInt( margins.left, 10 ),

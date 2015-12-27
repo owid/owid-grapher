@@ -64,7 +64,7 @@
 			if( href === "#chart-chart-tab" ) {
 				this.toggleFooter( true );
 				this.toggleExport( true );
-			} else if( href === "#data-chart-tab" || href === "#map-chart-tab" ) {
+			} else if( href === "#data-chart-tab" ) {
 				this.toggleFooter( true );
 				this.toggleExport( false );
 			} else if( href === "#map-chart-tab" ) {
