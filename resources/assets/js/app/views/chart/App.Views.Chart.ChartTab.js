@@ -405,8 +405,6 @@
 						that.chart.interactiveLayer.tooltip.valueFormatter( customFormatter("." + fixed + "f", unitName ) );
 						//that.chart.interactiveLayer.tooltip.valueFormatter( d3.format("." + fixed + "f" ) );
 					}
-
-					//that.chart.interactiveLayer.tooltip.chartContainer( document.body );
 					
 				}
 				

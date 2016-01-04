@@ -974,6 +974,13 @@ body {
 		}
 	}
 
+	/* hide custom legend if printing custom legend */
+	&.datamap  {
+		.nv-custom-legend {
+			display: none;
+		}
+	}
+
 }
 
 .error-label {
