@@ -72,8 +72,6 @@
 							</g>
 						</g>
 					</g>
-					<g class="nvd3-chart-holder">
-					</g>
 				</svg>
 				<div class="axis-scale-selectors-wrapper">
 					<div class="x-axis-scale-selector">
