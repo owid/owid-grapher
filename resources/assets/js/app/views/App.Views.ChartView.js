@@ -427,13 +427,14 @@
 				sourcesEl = $( ".chart-sources-svg").get(0), sourcesRect = sourcesEl.getBoundingClientRect(), sourcesHeight = sourcesRect.bottom - sourcesRect.top,
 				descriptionEl = $( ".chart-description-svg").get(0), descriptionRect = descriptionEl.getBoundingClientRect(), descriptionHeight = descriptionRect.bottom - descriptionRect.top,
 				left = 15,//parseInt( margins.left, 10),
+				titleLeft = left + 16,
 				//start with margin top and also height of the title, cause text has weird anchor at the bottom
 				currY = parseInt( margins.top, 10) + titleHeight;
 			
-			titleEl.setAttribute("transform", "translate(" + left + "," + currY + ")" );
+			titleEl.setAttribute("transform", "translate(" + titleLeft + "," + currY + ")" );
 
 			currY += titleHeight;
-			subTitleEl.setAttribute("transform", "translate(" + left + "," + currY + ")" );
+			subTitleEl.setAttribute("transform", "translate(" + titleLeft + "," + currY + ")" );
 
 			currY += subTitleHeight;
 			chartHolderEl.setAttribute("transform", "translate(" + left + "," + currY + ")" );
