@@ -276,9 +276,9 @@
 			data.height = parseInt( data.height, 10) + (paddingTop + paddingBottom);
 
 			//account for different heights of html and svg header
-			data.height += 56;
+			data.height += 36;//56;
 			//account for different heights of html and svg footer
-			data.height += 49;
+			data.height += 29;//49;
 
 			this.$el.width( data.width );
 			this.$el.height( data.height );
