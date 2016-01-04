@@ -511,6 +511,8 @@
 			if( !App.ChartModel.get( "hide-legend" ) ) {
 				currY += this.chartTab.legend.height();
 			}
+
+			console.log( "currY 1", currY );
 			
 			//wrap svg texts in footer
 			/*footerDescriptionHeight = Utils.wrap( $chartDescriptionSvg, svgWidth );
@@ -560,6 +562,8 @@
 					heightAdd = 150;
 				this.chartTab.chart.interactiveLayer.height( currIntLayerHeight + heightAdd );
 				d3.select(".nv-interactive").call(this.chartTab.chart.interactiveLayer);
+				//and add extra offset to of the .nv-wrap to account for Stacked and Expanded controls
+				currY += 20;
 			}
 			
 			if( !App.ChartModel.get( "hide-legend" ) ) {
@@ -569,7 +573,7 @@
 				this.translateString = "translate(" + legendMargins.left + " ," + currY + ")";
 				this.$svg.find( "> .nvd3.nv-custom-legend" ).attr( "transform", this.translateString );
 			}
-
+			
 			//this.$svg.css( "transform", "translate(0,-" + chartHeaderHeight + "px)" );
 
 			//for multibarchart, need to move controls bit higher
@@ -582,7 +586,7 @@
 				currY += +this.chartTab.legend.height();
 			}
 			currY += +margins.top;
-
+			
 			var $wrap = this.$svg.find( ".nvd3-chart-holder > .nvd3.nv-wrap" );
 			//add 20px offset
 			var translateLeft = parseInt( margins.left, 10 );
