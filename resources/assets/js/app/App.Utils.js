@@ -404,6 +404,8 @@
 			$el.text( textContent );
 		}
 		
+		var isVisible = $el.is( ":visible" );
+
 		//make el visible for the time of being computed, otherwise getComputedTextLength returns 0
 		$el.show();
 
@@ -439,9 +441,11 @@
 		var elBoundingBox = $el.get(0).getBoundingClientRect(),
 			elHeight = elBoundingBox.bottom - elBoundingBox.top;
 
-		//done with the dimension computations, hide element again
-		$el.hide();	
-		
+		//done with the dimension computations, hide element again, if it was invisible
+		if( !isVisible ) {
+			$el.hide();	
+		}
+
 		//in some user cases, can be useful to return height
 		return elHeight;
 
