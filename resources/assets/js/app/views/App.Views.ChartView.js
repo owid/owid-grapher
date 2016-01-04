@@ -271,12 +271,18 @@
 				paddingRight = parseInt( $chartWrapperInner.css( "padding-right" ), 10 ),
 				paddingTop = parseInt( $chartWrapperInner.css( "padding-top" ), 10 ),
 				paddingBottom = parseInt( $chartWrapperInner.css( "padding-bottom" ), 10 );
-			
-			data.width = parseInt( data.width,10 ) + paddingLeft + paddingRight;
-			data.height = parseInt( data.height,10 ) + paddingTop + paddingBottom;
+
+			data.width = parseInt( data.width, 10) + (paddingLeft + paddingRight);
+			data.height = parseInt( data.height, 10) + (paddingTop + paddingBottom);
+
+			//account for different heights of html and svg header
+			data.height += 56;
+			//account for different heights of html and svg footer
+			data.height += 49;
 
 			this.$el.width( data.width );
 			this.$el.height( data.height );
+			
 			this.onResize();
 
 		},
@@ -288,11 +294,10 @@
 		onDimensionExport: function( data ) {
 
 			//export chart into svg or png
-
 			var that = this,
 				format = data.format,
-				width = data.width,
-				height = data.height,
+				width = parseInt( data.width, 10 ),
+				height = parseInt( data.height, 10 ),
 				isSvg = ( format === "svg" )? true: false,
 				exportMap = ( this.$el.find( "#map-chart-tab" ).is( ":visible" ) )? true: false;
 			
@@ -329,6 +334,9 @@
 				//add classes 
 				$exportSvg.attr( "class", "nvd3-svg export-svg" );
 			}
+
+			//we need to add all elements that are in html so they wouldn't be printed
+			this.addTextsForExport( $exportSvg, width, height );
 			
 			//inline styles for the export
 			var styleSheets = document.styleSheets;
@@ -386,6 +394,58 @@
 			
 		},
 
+		addTextsForExport: function( $svg, width, height ) {
+
+			var margins = App.ChartModel.get( "margins" );
+
+			//add elements
+			var selectors = [ "chart-name", "chart-subname", "chart-sources", "chart-description" ];
+			_.each( selectors, function( selector ) {
+
+				var $el = $( "#chart-view ." + selector ),
+					className = selector + "-svg",
+					svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+
+				//setup attributes
+				svgEl.setAttribute('class', className);
+				svgEl.setAttribute('dy', 0);
+				svgEl.textContent = $el.text();
+
+				$svg.append( svgEl );
+				
+				//fetch jquery object for use in Utils wrap
+				var $svgEl = $( "." + className );
+				//convert single line text into multi-line wrapped tspan
+				Utils.wrap( $svgEl, width );
+
+			} );
+			
+			//resize them
+			var titleEl = $( ".chart-name-svg").get(0), titleRect = titleEl.getBoundingClientRect(), titleHeight = titleRect.bottom - titleRect.top,
+				subTitleEl = $( ".chart-subname-svg").get(0), subTitleRect = subTitleEl.getBoundingClientRect(), subTitleHeight = subTitleRect.bottom - subTitleRect.top,
+				chartHolderEl = $( ".nvd3-chart-holder").get(0), chartHolderRect = chartHolderEl.getBoundingClientRect(), chartHolderHeight = chartHolderRect.bottom - chartHolderRect.top,
+				sourcesEl = $( ".chart-sources-svg").get(0), sourcesRect = sourcesEl.getBoundingClientRect(), sourcesHeight = sourcesRect.bottom - sourcesRect.top,
+				descriptionEl = $( ".chart-description-svg").get(0), descriptionRect = descriptionEl.getBoundingClientRect(), descriptionHeight = descriptionRect.bottom - descriptionRect.top,
+				left = 15,//parseInt( margins.left, 10),
+				//start with margin top and also height of the title, cause text has weird anchor at the bottom
+				currY = parseInt( margins.top, 10) + titleHeight;
+			
+			titleEl.setAttribute("transform", "translate(" + left + "," + currY + ")" );
+
+			currY += titleHeight;
+			subTitleEl.setAttribute("transform", "translate(" + left + "," + currY + ")" );
+
+			currY += subTitleHeight;
+			chartHolderEl.setAttribute("transform", "translate(" + left + "," + currY + ")" );
+			
+			currY += chartHolderHeight + parseInt( margins.bottom, 10) + 20;
+			sourcesEl.setAttribute("transform", "translate(" + left + "," + currY + ")" );
+			
+			currY += sourcesHeight;
+			descriptionEl.setAttribute("transform", "translate(" + left + "," + currY + ")" );
+			
+		},
+
 		resetExportResize: function() {
 
 			//$newEl.replaceWith( $oldEl );
@@ -411,10 +471,10 @@
 				chartType = App.ChartModel.get( "chart-type" ),
 				$chartWrapperInner = $( ".chart-wrapper-inner" ),
 				innerPaddingLeft = parseInt( $chartWrapperInner.css("padding-left"), 10), innerPaddingRight = parseInt( $chartWrapperInner.css("padding-right"), 10), innerPaddingTop = parseInt( $chartWrapperInner.css("padding-top"), 10), innerPaddingBottom = parseInt( $chartWrapperInner.css("padding-bottom"), 10),
-				$chartNameSvg = this.$el.find( ".chart-name-svg" ),
+				/*$chartNameSvg = this.$el.find( ".chart-name-svg" ),
 				$chartSubnameSvg = this.$el.find( ".chart-subname-svg" ),
 				$chartDescriptionSvg = this.$el.find( ".chart-description-svg" ),
-				$chartSourcesSvg = this.$el.find( ".chart-sources-svg" ),
+				$chartSourcesSvg = this.$el.find( ".chart-sources-svg" ),*/
 				$chartLogoSvg = this.$el.find( ".chart-logo-svg" ),
 				chartHeaderHeight = this.$chartHeader.height(),
 				margins = App.ChartModel.get( "margins" ),
@@ -423,7 +483,7 @@
 			
 			this.$tabContent.height( $chartWrapperInner.height() - this.$chartHeader.height() - this.$chartFooter.height() );
 			
-			currY = parseInt( $chartNameSvg.attr( "y" ), 10 ) + $( ".chart-name" ).outerHeight() + 20;
+			/*currY = parseInt( $chartNameSvg.attr( "y" ), 10 ) + $( ".chart-name" ).outerHeight() + 20;
 			//$chartSubnameSvg.attr( "y", currY - 20 );
 			
 			//wrap header text, description
@@ -432,14 +492,16 @@
 			//position name and subname so that they are exactly
 			chartNameSvgY = chartHeaderHeight - chartSubnameSvgHeight - chartNameSvgHeight;
 			$chartSubnameSvg.attr("transform", "translate(15," + (chartHeaderHeight - chartSubnameSvgHeight) + ")" );
-			$chartNameSvg.attr("transform", "translate(15," + chartNameSvgY + ")" );
+			$chartNameSvg.attr("transform", "translate(15," + chartNameSvgY + ")" );*/
 
 			//start positioning the graph, according 
-			currY = chartHeaderHeight;
+			//currY = chartHeaderHeight;
+			currY = 0;
 
-			var translateY = currY;
+			//var translateY = currY;
 			
-			this.$svg.height( this.$tabContent.height() + currY );
+			//this.$svg.height( this.$tabContent.height() + currY );
+			this.$svg.height( this.$tabContent.height() );
 
 			//update stored height
 			svgHeight = this.$svg.height();
@@ -450,11 +512,12 @@
 			}
 			
 			//wrap svg texts in footer
-			footerDescriptionHeight = Utils.wrap( $chartDescriptionSvg, svgWidth );
-			footerSourcesHeight = Utils.wrap( $chartSourcesSvg, svgWidth );
+			/*footerDescriptionHeight = Utils.wrap( $chartDescriptionSvg, svgWidth );
+			footerSourcesHeight = Utils.wrap( $chartSourcesSvg, svgWidth );*/
 
 			//set chart height
-			chartHeight = svgHeight - translateY - bottomChartMargin;
+			chartHeight = svgHeight - bottomChartMargin;
+			//chartHeight = svgHeight - translateY - bottomChartMargin;
 			if( !App.ChartModel.get( "hide-legend" ) ) {
 				chartHeight -= this.chartTab.legend.height();
 			}
@@ -466,8 +529,8 @@
 			var chartSourcesX = 20, //hardcoded some visual offset
 				chartSourcesY = currY + chartHeight + bottomChartMargin;
 
-			$chartSourcesSvg.attr( "transform", "translate(" + chartSourcesX + "," + chartSourcesY + ")" );
-			$chartDescriptionSvg.attr( "transform", "translate(" + chartSourcesX + "," + parseInt(chartSourcesY + footerSourcesHeight,10) + ")" );
+			//$chartSourcesSvg.attr( "transform", "translate(" + chartSourcesX + "," + chartSourcesY + ")" );
+			//$chartDescriptionSvg.attr( "transform", "translate(" + chartSourcesX + "," + parseInt(chartSourcesY + footerSourcesHeight,10) + ")" );
 
 			//compute chart width - add 60px
 			var chartWidth = svgWidth - margins.left - margins.right + 60;
@@ -478,14 +541,17 @@
 			if( this.$chartTab.is( ":visible" ) ) {
 				this.chartTab.chart.update();
 			}
-			
+
 			//position svg logo
-			var elWidth = this.$el.width() - innerPaddingLeft - innerPaddingRight - margins.left - margins.right,
-				scale = ( $chartLogoSvg.hasClass( "default-logo" ) )? .4: 1,
-				translate = elWidth / scale;
-
-			$chartLogoSvg.attr( "transform", "scale(" + scale + "," + scale + "), translate(" + translate + "," + (chartNameSvgY/scale) + ")" );
-
+			var elWidth = svgWidth,//this.$el.width() - innerPaddingLeft - innerPaddingRight - margins.left - margins.right,
+				boundingRect = $chartLogoSvg.get(0).getBoundingClientRect(),
+				logoSvg = boundingRect.right - boundingRect.left,
+				scale = ( $chartLogoSvg.hasClass( "default-logo" ) )? 0.4: 1,
+				translateX = svgWidth - margins.right - logoSvg,//elWidth;
+				translateY = 20;
+			
+			$chartLogoSvg.attr( "transform", "scale(" + scale + "," + scale + "), translate(" + translateX + "," + translateY + ")" );
+			
 			if( chartType === "3" ) {
 				//for stacked area chart, need to manually adjust height
 				var currIntLayerHeight = this.chartTab.chart.interactiveLayer.height(),
@@ -503,7 +569,7 @@
 				this.$svg.find( "> .nvd3.nv-custom-legend" ).attr( "transform", this.translateString );
 			}
 
-			this.$svg.css( "transform", "translate(0,-" + chartHeaderHeight + "px)" );
+			//this.$svg.css( "transform", "translate(0,-" + chartHeaderHeight + "px)" );
 
 			//for multibarchart, need to move controls bit higher
 			if( chartType === "4" || chartType === "5" ) {
@@ -516,7 +582,7 @@
 			}
 			currY += +margins.top;
 
-			var $wrap = this.$svg.find( "> .nvd3.nv-wrap" );
+			var $wrap = this.$svg.find( ".nvd3-chart-holder > .nvd3.nv-wrap" );
 			//add 20px offset
 			var translateLeft = parseInt( margins.left, 10 );
 			this.translateString = "translate(" + translateLeft + "," + currY + ")";

@@ -36,6 +36,11 @@ body {
 		}
 	}
 
+	//override nvd3 css
+	.nvd3 text {
+		font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+	}
+
 	#chart-view .nvd3 .nv-axis .nv-axisMaxMin text {
 		font-weight: normal;
 	}
@@ -892,22 +897,41 @@ body {
 }
 
 .export-svg {
+
 	transform: translate(0px,0px) !important;
 	//height: 1000px !important;
-	padding: 30px;
-}
+	//padding: 30px;
+	font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 
-.export-svg .chart-logo-svg,
-.export-svg .chart-name-svg,
-.export-svg .chart-subname-svg,
-.export-svg .chart-description-svg,
-.export-svg .chart-sources-svg {
-	display: block;
-}
-.export-svg .nv-custom-legend .nv-add-btn {
-	display: none;
-}
-.export-svg {
+	.chart-name-svg, .chart-subname-svg {
+		font-family: Georgia, "Times New Roman", Serif;
+		stroke-width: 0;
+	}
+	.chart-name-svg {
+		font-size: 24px;
+	    font-weight: 400;
+	    color: #35322F;
+		stroke: #35322F;
+		opacity: .8;
+	}
+	.chart-subname-svg {
+		font-size: 15px;
+	    opacity: 1;
+	    line-height: 1.4;
+	    color: #4F4B49;
+	}
+
+	.chart-logo-svg,
+	.chart-name-svg,
+	.chart-subname-svg,
+	.chart-description-svg,
+	.chart-sources-svg {
+		display: block;
+	}
+	.nv-custom-legend .nv-add-btn {
+		display: none;
+	}
+
 	.chart-description-svg, .chart-sources-svg {
 		font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 		font-size: 11.5px;
@@ -920,6 +944,10 @@ body {
 	.nv-x.nv-axis .domain {
 		stroke-opacity: 1 !important;
 		stroke-width: 1.1 !important;
+	}
+
+	.nv-y.nv-axis .domain {
+		stroke-opacity: .5;
 	}
 
 	.nvd3 .nv-axis {
