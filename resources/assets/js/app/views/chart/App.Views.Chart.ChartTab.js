@@ -457,7 +457,7 @@
 				var stateChangeEvent = ( chartType !== "6" )? "stateChange": "renderEnd";
 				that.chart.dispatch.on( stateChangeEvent, function( state ) {
 					//refresh legend;
-					svgSelection.call( that.legend );
+					that.svgSelection.call( that.legend );
 
 					//
 					if( chartType === "3" ) {
