@@ -299,7 +299,8 @@
 				width = parseInt( data.width, 10 ),
 				height = parseInt( data.height, 10 ),
 				isSvg = ( format === "svg" )? true: false,
-				exportMap = ( this.$el.find( "#map-chart-tab" ).is( ":visible" ) )? true: false;
+				exportMap = ( this.$el.find( "#map-chart-tab" ).is( ":visible" ) )? true: false,
+				$chartLogoSvg = $( ".chart-logo-svg" );
 			
 			//http://stackoverflow.com/questions/23218174/how-do-i-save-export-an-svg-file-after-creating-an-svg-with-d3-js-ie-safari-an
 			var $oldEl = this.$el,
@@ -320,20 +321,29 @@
 			if( exportMap ) {
 				$exportSvg.attr( "class", "datamap nvd3-svg export-svg" );
 				
-				//for exporting map, we need to add sources
-				var $chartLogoSvg = $( ".chart-logo-svg" ),
-					$chartNameSvg = $( ".chart-name-svg" ).parent(),
-					$chartSubNameSvg = $( ".chart-subname-svg" ).parent(),
-					$chartSourcesSvg = $( ".chart-sources-svg" );
+				//for exporting map, we need to add logo
 				$exportSvg.append( $chartLogoSvg );
-				$exportSvg.append( $chartNameSvg );
-				$exportSvg.append( $chartSubNameSvg );
-				$exportSvg.append( $chartSourcesSvg );
-			
+				
 			} else {
 				//add classes 
 				$exportSvg.attr( "class", "nvd3-svg export-svg" );
 			}
+
+			$chartLogoSvg = $( ".chart-logo-svg" );
+
+			//position svg logo
+			var $chartWrapperInner = $( ".chart-wrapper-inner" ),
+				innerPaddingLeft = parseInt( $chartWrapperInner.css("padding-left"), 10),
+				innerPaddingRight = parseInt( $chartWrapperInner.css("padding-right"), 10),
+				margins = App.ChartModel.get( "margins" ),
+				elWidth = this.$el.width() - innerPaddingLeft - innerPaddingRight,//svgWidth
+				boundingRect = $chartLogoSvg.get(0).getBoundingClientRect(),
+				logoSvg = boundingRect.right - boundingRect.left,
+				scale = ( $chartLogoSvg.hasClass( "default-logo" ) )? 0.4: 1,
+				translateX = elWidth - margins.right - logoSvg,//elWidth;
+				translateY = 20;
+			
+			$chartLogoSvg.attr( "transform", "scale(" + scale + "," + scale + "), translate(" + translateX + "," + translateY + ")" );
 
 			//we need to add all elements that are in html so they wouldn't be printed
 			this.addTextsForExport( $exportSvg, width, height );
@@ -421,7 +431,7 @@
 			} );
 
 			//create wrapper and put everything but logo into it, so that we can then offset it 
-			var $parentEl = $( "svg.nvd3-svg" ),
+			var $parentEl = $svg,
 				holderClass = "nvd3-print-chart-holder";
 			$parentEl.append( "<g class='" + holderClass + "'></g>" );
 			
@@ -481,11 +491,10 @@
 				svgHeight = this.$svg.height(),
 				chartType = App.ChartModel.get( "chart-type" ),
 				$chartWrapperInner = $( ".chart-wrapper-inner" ),
-				innerPaddingLeft = parseInt( $chartWrapperInner.css("padding-left"), 10), innerPaddingRight = parseInt( $chartWrapperInner.css("padding-right"), 10), innerPaddingTop = parseInt( $chartWrapperInner.css("padding-top"), 10), innerPaddingBottom = parseInt( $chartWrapperInner.css("padding-bottom"), 10),
-				/*$chartNameSvg = this.$el.find( ".chart-name-svg" ),
-				$chartSubnameSvg = this.$el.find( ".chart-subname-svg" ),
-				$chartDescriptionSvg = this.$el.find( ".chart-description-svg" ),
-				$chartSourcesSvg = this.$el.find( ".chart-sources-svg" ),*/
+				innerPaddingLeft = parseInt( $chartWrapperInner.css("padding-left"), 10),
+				innerPaddingRight = parseInt( $chartWrapperInner.css("padding-right"), 10),
+				innerPaddingTop = parseInt( $chartWrapperInner.css("padding-top"), 10),
+				innerPaddingBottom = parseInt( $chartWrapperInner.css("padding-bottom"), 10),
 				$chartLogoSvg = this.$el.find( ".chart-logo-svg" ),
 				chartHeaderHeight = this.$chartHeader.height(),
 				margins = App.ChartModel.get( "margins" ),
@@ -493,25 +502,10 @@
 				currY, chartNameSvgY, chartNameSvgHeight, chartSubnameSvgHeight, footerDescriptionHeight, footerSourcesHeight, chartHeight;
 			
 			this.$tabContent.height( $chartWrapperInner.height() - this.$chartHeader.height() - this.$chartFooter.height() );
-			
-			/*currY = parseInt( $chartNameSvg.attr( "y" ), 10 ) + $( ".chart-name" ).outerHeight() + 20;
-			//$chartSubnameSvg.attr( "y", currY - 20 );
-			
-			//wrap header text, description
-			chartNameSvgHeight = Utils.wrap( $chartNameSvg, svgWidth );
-			chartSubnameSvgHeight = Utils.wrap( $chartSubnameSvg, svgWidth );
-			//position name and subname so that they are exactly
-			chartNameSvgY = chartHeaderHeight - chartSubnameSvgHeight - chartNameSvgHeight;
-			$chartSubnameSvg.attr("transform", "translate(15," + (chartHeaderHeight - chartSubnameSvgHeight) + ")" );
-			$chartNameSvg.attr("transform", "translate(15," + chartNameSvgY + ")" );*/
-
+	
 			//start positioning the graph, according 
-			//currY = chartHeaderHeight;
 			currY = 0;
 
-			//var translateY = currY;
-			
-			//this.$svg.height( this.$tabContent.height() + currY );
 			this.$svg.height( this.$tabContent.height() );
 
 			//update stored height
@@ -521,11 +515,7 @@
 			if( !App.ChartModel.get( "hide-legend" ) ) {
 				currY += this.chartTab.legend.height();
 			}
-			
-			//wrap svg texts in footer
-			/*footerDescriptionHeight = Utils.wrap( $chartDescriptionSvg, svgWidth );
-			footerSourcesHeight = Utils.wrap( $chartSourcesSvg, svgWidth );*/
-
+	
 			//set chart height
 			chartHeight = svgHeight - bottomChartMargin;
 			//chartHeight = svgHeight - translateY - bottomChartMargin;
@@ -540,9 +530,6 @@
 			var chartSourcesX = 20, //hardcoded some visual offset
 				chartSourcesY = currY + chartHeight + bottomChartMargin;
 
-			//$chartSourcesSvg.attr( "transform", "translate(" + chartSourcesX + "," + chartSourcesY + ")" );
-			//$chartDescriptionSvg.attr( "transform", "translate(" + chartSourcesX + "," + parseInt(chartSourcesY + footerSourcesHeight,10) + ")" );
-
 			//compute chart width - add 60px
 			var chartWidth = svgWidth - margins.left - margins.right + 60;
 			this.chartTab.chart.width( chartWidth );
@@ -553,16 +540,6 @@
 				this.chartTab.chart.update();
 			}
 
-			//position svg logo
-			var elWidth = svgWidth,//this.$el.width() - innerPaddingLeft - innerPaddingRight - margins.left - margins.right,
-				boundingRect = $chartLogoSvg.get(0).getBoundingClientRect(),
-				logoSvg = boundingRect.right - boundingRect.left,
-				scale = ( $chartLogoSvg.hasClass( "default-logo" ) )? 0.4: 1,
-				translateX = svgWidth - margins.right - logoSvg,//elWidth;
-				translateY = 20;
-			
-			$chartLogoSvg.attr( "transform", "scale(" + scale + "," + scale + "), translate(" + translateX + "," + translateY + ")" );
-			
 			if( chartType === "3" ) {
 				//for stacked area chart, need to manually adjust height
 				var currIntLayerHeight = this.chartTab.chart.interactiveLayer.height(),
