@@ -419,11 +419,21 @@
 				Utils.wrap( $svgEl, width );
 
 			} );
+
+			//create wrapper and put everything but logo into it, so that we can then offset it 
+			var $parentEl = $( "svg.nvd3-svg" ),
+				holderClass = "nvd3-print-chart-holder";
+			$parentEl.append( "<g class='" + holderClass + "'></g>" );
+			
+			var $printHolder = $parentEl.find( "." + holderClass );
+			$printHolder.append( $( "svg.nvd3-svg > .nv-wrap" ) );
+			$printHolder.append( $( ".nv-custom-legend" ) );
 			
 			//resize them
 			var titleEl = $( ".chart-name-svg").get(0), titleRect = titleEl.getBoundingClientRect(), titleHeight = titleRect.bottom - titleRect.top,
 				subTitleEl = $( ".chart-subname-svg").get(0), subTitleRect = subTitleEl.getBoundingClientRect(), subTitleHeight = subTitleRect.bottom - subTitleRect.top,
-				chartHolderEl = $( ".nvd3-chart-holder").get(0), chartHolderRect = chartHolderEl.getBoundingClientRect(), chartHolderHeight = chartHolderRect.bottom - chartHolderRect.top,
+				//printHolder doesn't have height at this point, so using parentEl bounding rect as replacement here
+				chartHolderEl = $printHolder.get(0), chartHolderRect = $parentEl.get(0).getBoundingClientRect(), chartHolderHeight = chartHolderRect.bottom - chartHolderRect.top,
 				sourcesEl = $( ".chart-sources-svg").get(0), sourcesRect = sourcesEl.getBoundingClientRect(), sourcesHeight = sourcesRect.bottom - sourcesRect.top,
 				descriptionEl = $( ".chart-description-svg").get(0), descriptionRect = descriptionEl.getBoundingClientRect(), descriptionHeight = descriptionRect.bottom - descriptionRect.top,
 				left = 15,//parseInt( margins.left, 10),
@@ -511,8 +521,6 @@
 			if( !App.ChartModel.get( "hide-legend" ) ) {
 				currY += this.chartTab.legend.height();
 			}
-
-			console.log( "currY 1", currY );
 			
 			//wrap svg texts in footer
 			/*footerDescriptionHeight = Utils.wrap( $chartDescriptionSvg, svgWidth );
@@ -586,8 +594,9 @@
 				currY += +this.chartTab.legend.height();
 			}
 			currY += +margins.top;
-			
-			var $wrap = this.$svg.find( ".nvd3-chart-holder > .nvd3.nv-wrap" );
+
+			var $wrap = this.$svg.find( "> .nvd3.nv-wrap" );
+			//var $wrap = this.$svg.find( ".nvd3-chart-holder > .nvd3.nv-wrap" );
 			//add 20px offset
 			var translateLeft = parseInt( margins.left, 10 );
 			this.translateString = "translate(" + translateLeft + "," + currY + ")";

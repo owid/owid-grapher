@@ -373,8 +373,7 @@
 					that.chart.yAxis.ticks( 7 );
 				}
 				
-				that.svgSelection = d3.select( ".nvd3-chart-holder" )
-				//that.svgSelection = d3.select( that.$svg.selector )
+				that.svgSelection = d3.select( that.$svg.selector )
 					.datum( localData )
 					.call( that.chart );
 
@@ -406,6 +405,8 @@
 						that.chart.interactiveLayer.tooltip.valueFormatter( customFormatter("." + fixed + "f", unitName ) );
 						//that.chart.interactiveLayer.tooltip.valueFormatter( d3.format("." + fixed + "f" ) );
 					}
+
+					//that.chart.interactiveLayer.tooltip.chartContainer( document.body );
 					
 				}
 				
