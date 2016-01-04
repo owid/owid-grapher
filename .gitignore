@@ -11,3 +11,6 @@
 /public/js/*
 /public/css/*
 /public/uploads/*
+.env
+.env-localhost
+.env-bluehost
