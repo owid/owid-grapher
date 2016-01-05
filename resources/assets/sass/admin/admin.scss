@@ -144,10 +144,16 @@ button > i {
 		.form-section:nth-child(2n) {
 			background-color: #d2d6de;
 		}
-		.form-section-header {}
+		.form-section-header {
+			position: relative;
+		}
+		.form-section h2 {
+			margin-left: 65px;
+		}
 			.form-section-digit {
 				display: inline-block;
-				margin-right: 20px;
+			    position: absolute;
+			    left: 0;
 				padding: 9px 14px;
 				font-size: 18px;
 				font-weight: 700;

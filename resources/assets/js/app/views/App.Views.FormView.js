@@ -10,6 +10,7 @@
 		SearchDataCollection = require( "./../collections/App.Collections.SearchDataCollection.js" ),
 		
 		BasicTabView = require( "./form/App.Views.Form.BasicTabView.js" ),
+		DataTabView = require( "./form/App.Views.Form.DataTabView.js" ),
 		AxisTabView = require( "./form/App.Views.Form.AxisTabView.js" ),
 		DescriptionTabView = require( "./form/App.Views.Form.DescriptionTabView.js" ),
 		StylingTabView = require( "./form/App.Views.Form.StylingTabView.js" ),
@@ -78,6 +79,7 @@
 			
 			//create subviews
 			this.basicTabView = new BasicTabView( { dispatcher: this.dispatcher } );
+			this.dataTabView = new DataTabView( { dispatcher: this.dispatcher } );
 			this.axisTabView = new AxisTabView( { dispatcher: this.dispatcher } );
 			this.descriptionTabView = new DescriptionTabView( { dispatcher: this.dispatcher } );
 			this.stylingTabView = new StylingTabView( { dispatcher: this.dispatcher } );

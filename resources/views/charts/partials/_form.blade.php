@@ -14,9 +14,6 @@
 						<a href="#axis-tab" data-toggle="tab" aria-expanded="false">3. Axis</a>
 					</li>
 					<li>
-						<a href="#sources-tab" data-toggle="tab" aria-expanded="false">4. Sources</a>
-					</li>
-					<li>
 						<a href="#styling-tab" data-toggle="tab" aria-expanded="false">4. Styling</a>
 					</li>
 					<li>
@@ -92,9 +89,17 @@
 						</div>
 	 					<input type="hidden" name="chart-dimensions" value="" />
 					</section>
+					<section class="form-section">
+						<div class="form-section-header">
+							<h2><span class="form-section-digit">e</span>Additional data source explanation to be shown in the footer</h2>
+						</div>
+						<div class="form-section-content">
+							<textarea name="description" placeholder="Enter all the sources information"></textarea>
+						</div>
+					</section>
 					<section class="form-section entities-section">
 						<div class="form-section-header">
-							<h2><span class="form-section-digit">e</span>Pick your countries</h2>
+							<h2><span class="form-section-digit">f</span>Pick your countries</h2>
 						</div>
 						<div class="form-section-content">
 							<p class="form-section-desc">Select countries from drop down below. You can set countries colors by clicking on the country label itself.</p>
@@ -125,7 +130,7 @@
 					</section>
 					<section class="form-section time-section">
 						<div class="form-section-header">
-							<h2><span class="form-section-digit">f</span>Define your time</h2>
+							<h2><span class="form-section-digit">g</span>Define your time</h2>
 						</div>
 						<div class="form-section-content">
 							<label>
@@ -149,7 +154,7 @@
 				<div id="axis-tab" class="tab-pane">
 					<section class="form-section">
 						<div class="form-section-header">
-							<h2><span class="form-section-digit">g</span>Refine your axis</h2>
+							<h2><span class="form-section-digit">h</span>Refine your axis</h2>
 						</div>
 						<div class="form-section-content">
 							<div class="y-section">
@@ -240,16 +245,6 @@
 									</label>
 								</div>
 							</div>
-						</div>
-					</section>
-				</div>
-				<div id="sources-tab" class="tab-pane">
-					<section class="form-section">
-						<div class="form-section-header">
-							<h2><span class="form-section-digit">h</span>Add additional description</h2>
-						</div>
-						<div class="form-section-content">
-							<textarea name="description" placeholder="Enter all the sources information"></textarea>
 						</div>
 					</section>
 				</div>
