@@ -51,7 +51,7 @@
 			this.dataMap = new Datamap( {
 				width: that.$tab.width(),
 				height: that.$tab.height(),
-				responsive: true,
+				responsive: false,
 				element: document.getElementById( "map-chart-tab" ),
 				geographyConfig: {
 					dataUrl: Global.rootUrl + "/build/js/data/world.ids.json",
@@ -262,19 +262,54 @@
 		},
 
 		onResize: function() {
+
 			if( this.dataMap ) {
-				//instead of calling datamaps resize, there's modified version of the same method
-				var options = this.dataMap.options,
-					prefix = '-webkit-transform' in document.body.style ? '-webkit-' : '-moz-transform' in document.body.style ? '-moz-' : '-ms-transform' in document.body.style ? '-ms-' : '',
-					newsize = options.element.clientWidth,
-					oldsize = d3.select( options.element).select('svg').attr('data-width');
-					//different selector from default datamaps implementation, doesn't scale legend
-					d3.select(options.element).select('svg').selectAll('.datamaps-subunits, .datamaps-subunits g').style(prefix + 'transform', 'scale(' + (newsize / oldsize) + ')');
-				//this.dataMap.resize();
+
+				var map = d3.select( ".datamaps-subunits" );
+				if( !map.empty() ) {
+
+					//translate
+					var wrapper = d3.select( ".datamap" ),
+						wrapperBoundingRect = wrapper.node().getBoundingClientRect(),
+						wrapperHeight = wrapperBoundingRect.bottom - wrapperBoundingRect.top,
+						mapBoundingRect = map.node().getBoundingClientRect(),
+						mapHeight = mapBoundingRect.bottom - mapBoundingRect.top;
+					
+					//compensate for possible 
+					var timelineControls = d3.select( ".map-timeline-controls" );
+					if( !timelineControls.empty() ) {
+						var controlsBoundingRect = timelineControls.node().getBoundingClientRect(),
+							controlsHeight = controlsBoundingRect.bottom - controlsBoundingRect.top;
+						wrapperHeight -= controlsHeight;
+						console.log( "controlsHeight", controlsHeight, "wrapperHeight", wrapperHeight );
+					}
+
+					//map might have already offset
+					var mapOffset = mapBoundingRect.top - wrapperBoundingRect.top;
+					wrapperHeight -= mapOffset;
+
+					//compute necessary vertical offset
+					var	mapOffsetY = (wrapperHeight - mapHeight) / 2;
+					
+					console.log( "wrapperHeight", wrapperHeight, map, mapHeight, mapOffsetY );
+
+					//scaling
+					var options = this.dataMap.options,
+						prefix = "-webkit-transform" in document.body.style ? "-webkit-" : "-moz-transform" in document.body.style ? "-moz-" : "-ms-transform" in document.body.style ? "-ms-" : "",
+						newsize = options.element.clientWidth,
+						oldsize = d3.select( options.element).select("svg").attr("data-width"),
+						scale = (newsize / oldsize);
+						
+					map.style(prefix + "transform", "scale(" + scale + ") translate(0," + mapOffsetY/scale + "px)" );
+					
+				}
+
 			}
+			
 			if( this.legend ) {
 				this.legend.resize();
 			}
+
 		},
 
 		onChartModelResize: function() {
