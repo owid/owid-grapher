@@ -301,8 +301,7 @@
 						scale = (newsize / oldsize);
 						
 					map.style(prefix + "transform", "scale(" + scale + ") translate(0," + mapOffsetY/scale + "px)" );
-					console.log( "map style" );
-
+					
 				}
 
 			}
