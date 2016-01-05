@@ -49,9 +49,7 @@
 				containerHeight = datamap.node().getBoundingClientRect().height;
 				//position legend vertically
 				var legendY = containerHeight - legendOffsetY - stepSize - descriptionHeight;
-				g.attr( "transform", "translate(0," + legendY + ")" );
-
-				gDesc.attr( "transform", function( d, i ) { var translateX = legendOffsetX, translateY = containerHeight - legendOffsetY; return "translate(" + translateX + "," + translateY + ")"; } );
+				container.attr( "transform", "translate(0," + legendY + ")" );
 			}
 		};
 
@@ -107,6 +105,7 @@
 					.attr( "class", "legend-description" );
 				gDesc
 					.text( data.description );
+				gDesc.attr( "transform", function( d, i ) { var translateX = legendOffsetX, translateY = stepSize+descriptionHeight; return "translate(" + translateX + "," + translateY + ")"; } );
 
 				//position legend vertically
 				resize();

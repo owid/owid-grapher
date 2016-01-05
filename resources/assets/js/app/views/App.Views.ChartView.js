@@ -458,10 +458,20 @@
 
 			currY += subTitleHeight;
 			chartHolderEl.setAttribute("transform", "translate(" + left + "," + currY + ")" );
-			
+
 			currY += chartHolderHeight + parseInt( margins.bottom, 10) + 20;
 			sourcesEl.setAttribute("transform", "translate(" + left + "," + currY + ")" );
 			
+			//possibly also map legend
+			var $mapLegend = $( ".map-legend-wrapper" );
+			if( $mapLegend.length ) {
+				var mapLegendEl = $mapLegend.get(0),
+					mapLegendRect = mapLegendEl.getBoundingClientRect(), 
+					mapLegendHeight = mapLegendRect.bottom - mapLegendRect.top,
+					mapLegendY = currY - mapLegendHeight - 20;
+				mapLegendEl.setAttribute("transform", "translate(" + left + "," + mapLegendY + ")" );
+			}
+
 			currY += sourcesHeight;
 			descriptionEl.setAttribute("transform", "translate(" + left + "," + currY + ")" );
 			
@@ -579,6 +589,7 @@
 			this.translateString = "translate(" + translateLeft + "," + currY + ")";
 			$wrap.attr( "transform", this.translateString );
 			
+			//mapTab has own logic for doing resizes
 			this.mapTab.onResize();
 
 			//position scale dropdowns - TODO - isn't there a better way then with timeout?
