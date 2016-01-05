@@ -911,15 +911,13 @@ body {
 	.chart-name-svg {
 		font-size: 24px;
 	    font-weight: 400;
-	    color: #35322F;
-		stroke: #35322F;
-		opacity: .8;
+	    fill: #000000;
 	}
 	.chart-subname-svg {
 		font-size: 15px;
 	    opacity: 1;
 	    line-height: 1.4;
-	    color: #4F4B49;
+	    fill: #4f4b49;
 	}
 
 	.chart-logo-svg,
