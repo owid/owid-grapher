@@ -370,6 +370,8 @@
 
 					//safari will ingore click event on anchor, need to have work around that opens the svg at least in the same browser
 					var isSafari = navigator.userAgent.indexOf("Safari") > -1 && navigator.userAgent.indexOf("Chrome") === -1;
+					//temp try to always open new window
+					isSafari = true;
 					if( !isSafari ) {
 						setTimeout( function() {
 							window.location.reload();
@@ -426,6 +428,10 @@
 				//fetch jquery object for use in Utils wrap
 				var $svgEl = $( "." + className );
 				//convert single line text into multi-line wrapped tspan
+				if( selector === "chart-name" || selector === "chart-subname" ) {
+					//account for logo on the right
+					width -= 50;
+				}
 				Utils.wrap( $svgEl, width );
 
 			} );
@@ -448,9 +454,9 @@
 				descriptionEl = $( ".chart-description-svg").get(0), descriptionRect = descriptionEl.getBoundingClientRect(), descriptionHeight = descriptionRect.bottom - descriptionRect.top,
 				left = 15,//parseInt( margins.left, 10),
 				titleLeft = left + 16,
-				//start with margin top and also height of the title, cause text has weird anchor at the bottom
-				currY = parseInt( margins.top, 10) + titleHeight;
-			
+				//start with margin top and also height of first line of title, cause text contains tspans
+				currY = parseInt( margins.top, 10) + 25;
+
 			titleEl.setAttribute("transform", "translate(" + titleLeft + "," + currY + ")" );
 
 			currY += titleHeight;
