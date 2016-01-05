@@ -936,7 +936,7 @@ body {
 	.chart-description-svg, .chart-sources-svg {
 		font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 		font-size: 11.5px;
-		color: #5d5d5d;
+		fill: #5d5d5d;
 	}
 	#chart-view {
 		background-color: #ffffff;
@@ -948,7 +948,11 @@ body {
 	}
 
 	.nv-y.nv-axis .domain {
-		stroke-opacity: .5;
+		opacity: .5;
+		stroke-width: 1;
+	}
+	.nv-x.nv-axis .domain {
+		opacity: .6;
 	}
 
 	.nvd3 .nv-axis {
@@ -979,6 +983,11 @@ body {
 		.nv-custom-legend {
 			display: none;
 		}
+	}
+
+	.chart-sources-svg, .chart-description-svg {
+		color: #474294;
+		font-size: 11.5px;
 	}
 
 }

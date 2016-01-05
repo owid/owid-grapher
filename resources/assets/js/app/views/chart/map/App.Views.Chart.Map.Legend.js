@@ -9,7 +9,10 @@
 		//private
 		var stepSize = 20,
 			stepClass = "legend-step",
-			scale;
+			legendOffsetX = 10,
+			legendOffsetY = 60,
+			stepGap = 2,
+			scale, datamap, container, containerHeight, isOrdinalScale, descriptionHeight, g, gDesc;
 
 		var formatLegendLabel = function( valueArr, i, length ) {
 			
@@ -39,19 +42,28 @@
 			return scale.domain()[ i ];
 		};
 
+		var resize = function() {
+			//check legend is constructed already
+			if( g ) {
+				//refresh container height
+				containerHeight = datamap.node().getBoundingClientRect().height;
+				//position legend vertically
+				var legendY = containerHeight - legendOffsetY - stepSize - descriptionHeight;
+				g.attr( "transform", "translate(0," + legendY + ")" );
+
+				gDesc.attr( "transform", function( d, i ) { var translateX = legendOffsetX, translateY = containerHeight - legendOffsetY; return "translate(" + translateX + "," + translateY + ")"; } );
+			}
+		};
+
 		function legend( selection ) {
 
 			selection.each( function( data ) {
 				
-				var datamap = d3.select( ".datamap" ),
-					container = d3.select( this ),
-					containerHeight = datamap.node().getBoundingClientRect().height,
-					legendOffsetX = 10,
-					legendOffsetY = 60,
-					isOrdinalScale = ( !scale || !scale.hasOwnProperty( "invertExtent" ) )? true: false,
-					descriptionHeight = ( data.description && data.description.length )? 12: 0,
-					stepGap = 2,
-					g = container.select( ".legend" );
+				datamap = d3.select( ".datamap" );
+				container = d3.select( this );
+				isOrdinalScale = ( !scale || !scale.hasOwnProperty( "invertExtent" ) )? true: false;
+				descriptionHeight = ( data.description && data.description.length )? 12: 0;
+				g = container.select( ".legend" );
 
 				if( g.empty() ) {
 					g = selection.append( "g" )
@@ -76,7 +88,7 @@
 					.attr( "transform", function( d, i ) { return ( !isOrdinalScale )? "translate(-2,-5)": "translate(15,-5) rotate(270)"; } );
 
 				//update
-				legendSteps.attr( "transform", function( d, i ) { var translateX = legendOffsetX + (i*(stepSize+stepGap)), translateY = containerHeight - legendOffsetY - stepSize - descriptionHeight; return "translate(" + translateX + "," + translateY + ")"; } );
+				legendSteps.attr( "transform", function( d, i ) { var translateX = legendOffsetX + (i*(stepSize+stepGap)), translateY = 0; return "translate(" + translateX + "," + translateY + ")"; } );
 				legendSteps.select( "rect" )
 					.style( "fill", function( d, i ) {
 							return d;
@@ -89,19 +101,23 @@
 				legendSteps.exit().remove();
 
 				//legend description
-				var gDesc = container.selectAll( ".legend-description" ).data( [data.description] );
+				gDesc = container.selectAll( ".legend-description" ).data( [data.description] );
 				gDesc.enter()
 					.append( "text" )
 					.attr( "class", "legend-description" );
 				gDesc
-					.text( data.description )
-					.attr( "transform", function( d, i ) { var translateX = legendOffsetX, translateY = containerHeight - legendOffsetY; return "translate(" + translateX + "," + translateY + ")"; } );
-			
+					.text( data.description );
+
+				//position legend vertically
+				resize();
+
 			} );
 
 			return legend;
 
 		}
+
+		legend.resize = resize;
 
 		//public methods
 		legend.scale = function( value ) {

@@ -259,7 +259,6 @@
 			var projections = owdProjections,
 				newProjection = ( projections[ projectionName ] )? projections[ projectionName ]: projections.World;
 			return newProjection;
-			
 		},
 
 		onResize: function() {
@@ -270,8 +269,11 @@
 					newsize = options.element.clientWidth,
 					oldsize = d3.select( options.element).select('svg').attr('data-width');
 					//different selector from default datamaps implementation, doesn't scale legend
-					d3.select(options.element).select('svg').selectAll('g:not(.legend-step):not(.legend)').style(prefix + 'transform', 'scale(' + (newsize / oldsize) + ')');
+					d3.select(options.element).select('svg').selectAll('.datamaps-subunits, .datamaps-subunits g').style(prefix + 'transform', 'scale(' + (newsize / oldsize) + ')');
 				//this.dataMap.resize();
+			}
+			if( this.legend ) {
+				this.legend.resize();
 			}
 		},
 
