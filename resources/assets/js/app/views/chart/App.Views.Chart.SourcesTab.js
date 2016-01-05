@@ -59,9 +59,10 @@
 			} );
 
 			footerHtml = descriptionHtml;
-			if (descriptionHtml) {
+			//do not display description at sources tab
+			/*if (descriptionHtml) {
 				tabHtml = descriptionHtml + "<br /><br />";
-			}
+			}*/
 			tabHtml += sourcesLongHtml;
 			
 			if( license && license.description ) {
