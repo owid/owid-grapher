@@ -36,11 +36,14 @@
 			//render only if no map yet
 			if( !this.dataMap ) {
 				this.render();
+			} else {
+				//map exists, so only resize it to current dimensions, (in case window was resized while on other tab)
+				this.onResize();
 			}
 		},
 
 		render: function() {
-
+			
 			var that = this;
 			//fetch created dom
 			this.$tab = $( "#map-chart-tab" );
@@ -89,7 +92,8 @@
 			App.ChartModel.on( "change-map", this.onChartModelChange, this );
 			App.ChartModel.on( "resize", this.onChartModelResize, this );
 			
-			nv.utils.windowResize( $.proxy( this.onResize, this ) );
+			//var lazyResize = _.debounce( $.proxy( this.onResize, this ), 250 );
+			//nv.utils.windowResize( lazyResize );
 			this.onResize();
 
 		},
@@ -228,7 +232,7 @@
 
 			this.legend.scale( colorScale );
 			if( d3.select( ".legend-wrapper" ).empty() ) {
-				d3.select( ".datamap" ).append( "g" ).attr( "class", "legend-wrapper" );
+				d3.select( ".datamap" ).append( "g" ).attr( "class", "legend-wrapper map-legend-wrapper" );
 			}
 			var legendData = { scheme: colorScheme, description: mapConfig.legendDescription };
 			d3.select( ".legend-wrapper" ).datum( legendData ).call( this.legend );
@@ -262,7 +266,6 @@
 		},
 
 		onResize: function() {
-
 			if( this.dataMap ) {
 
 				var map = d3.select( ".datamaps-subunits" );
@@ -281,7 +284,6 @@
 						var controlsBoundingRect = timelineControls.node().getBoundingClientRect(),
 							controlsHeight = controlsBoundingRect.bottom - controlsBoundingRect.top;
 						wrapperHeight -= controlsHeight;
-						console.log( "controlsHeight", controlsHeight, "wrapperHeight", wrapperHeight );
 					}
 
 					//map might have already offset
@@ -291,8 +293,6 @@
 					//compute necessary vertical offset
 					var	mapOffsetY = (wrapperHeight - mapHeight) / 2;
 					
-					console.log( "wrapperHeight", wrapperHeight, map, mapHeight, mapOffsetY );
-
 					//scaling
 					var options = this.dataMap.options,
 						prefix = "-webkit-transform" in document.body.style ? "-webkit-" : "-moz-transform" in document.body.style ? "-moz-" : "-ms-transform" in document.body.style ? "-ms-" : "",
@@ -301,7 +301,8 @@
 						scale = (newsize / oldsize);
 						
 					map.style(prefix + "transform", "scale(" + scale + ") translate(0," + mapOffsetY/scale + "px)" );
-					
+					console.log( "map style" );
+
 				}
 
 			}
