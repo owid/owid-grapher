@@ -54,8 +54,10 @@
 			//update name
 			this.$chartName.text( chartName );
 			//if there's time placeholder - time
-			if( chartName.indexOf( "*time*" ) > -1 || chartName.indexOf( "*timeFrom*" ) > -1 || chartName.indexOf( "*timeTo*" ) > -1 ) {
-				this.$chartName.css( "visibility", "hidden" );
+			if( chartName ) {
+				if( chartName.indexOf( "*time*" ) > -1 || chartName.indexOf( "*timeFrom*" ) > -1 || chartName.indexOf( "*timeTo*" ) > -1 ) {
+					this.$chartName.css( "visibility", "hidden" );
+				}
 			}
 			
 			//update subname
