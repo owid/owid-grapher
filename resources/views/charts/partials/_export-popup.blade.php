@@ -17,6 +17,10 @@
 								<input type="radio" name="export-format" value="png" />
 								PNG
 							</label>
+							<label class="">
+								<input type="radio" name="export-format" value="iframe" />
+								IFrame
+							</label>
 						</div>
 						<hr />
 						<div class="dimension-section">
@@ -31,6 +35,9 @@
 								<input type="text" class="form-control" name="export-height" value="700"/>
 								<span>px</span>
 							</label>
+						</div>
+						<div class="iframe-section">
+							<textarea class="form-control" rows="4" cols="50" @if (isset($chart)) data-view-url="{!! route( 'view', $chart->id ) !!}" @endif></textarea>
 						</div>
 					</div>
 				</div>

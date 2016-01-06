@@ -1010,6 +1010,10 @@ body {
 			margin-right: 10px;
 		}
 	}
+
+	.iframe-section {
+		display: none;
+	}
 	
 	.modal {
 		display: block;
@@ -1031,7 +1035,7 @@ body {
 	.format-section {
 		text-align: center;
 		label {
-			width: 100px;
+			width: 70px;
 		}
 	}
 

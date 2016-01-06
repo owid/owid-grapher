@@ -27,6 +27,11 @@
 			this.$closeBtn = this.$el.find( ".close" );
 			this.$exportBtn = this.$el.find( ".btn-primary" );
 			
+			//sections
+			this.$formatSection = this.$el.find( ".format-section" );
+			this.$dimensionSection = this.$el.find( ".dimension-section" );
+			this.$iframeSection = this.$el.find( ".iframe-section" );
+
 			this.$exportFormat = this.$el.find( "[name='export-format']" );
 			this.$exportWidth = this.$el.find( "[name='export-width']" );
 			this.$exportHeight = this.$el.find( "[name='export-height']" );
@@ -36,9 +41,18 @@
 			this.$exportHeight.on( "input", $.proxy( this.onDimensionChange, this ) );
 			this.$exportFormat.on( "change", $.proxy( this.onExportFormat, this ) );
 
+			this.$iframeSrc = this.$iframeSection.find( "textarea" );
+
 			this.$closeBtn.on( "click", $.proxy( this.onCloseBtn, this ) );
 			this.$exportBtn.on( "click", $.proxy( this.onExportBtn, this ) );
 			
+			//update export code from 
+			var chartId = App.ChartModel.get( "id" );
+			if( chartId ) {
+				var viewUrl = this.$iframeSrc.attr( "data-view-url" );
+				this.generateIframeCode( chartId, viewUrl );
+			}
+
 		},
 
 		show: function() {
@@ -80,6 +94,7 @@
 
 		onExportFormat: function( evt ) {
 			this.checkPngConstraint( true );
+			this.toggleSections();
 		},
 
 		checkPngConstraint: function( forceConstraint ) {
@@ -105,11 +120,36 @@
 			this.$pngConstraintLabel.hide();
 		},
 
+		toggleSections: function() {
+
+			var format = this.$exportFormat.filter( ":checked" ).val();
+			if( format === "png" || format === "svg" ) {
+				this.$dimensionSection.show();
+				this.$iframeSection.hide();
+				//make sure the save button is visible
+				this.$exportBtn.show();
+			} else {
+				this.$dimensionSection.hide();
+				this.$iframeSection.show();
+				//we don't need save button for iframe
+				this.$exportBtn.hide();
+			}
+
+		},
+
 		serializeForm: function() {
 			
 			var obj = { width: this.$exportWidth.val(), height: this.$exportHeight.val(), format: this.$exportFormat.filter( ":checked" ).val() };
 			return obj;
 			
+		},
+
+		generateIframeCode: function( id, viewUrl ) {
+			//store view url
+			if( viewUrl ) {
+				this.viewUrl = viewUrl;
+			}
+			this.$iframeSrc.text( '<iframe src="' + this.viewUrl + '" style="width:' + App.ChartModel.get( "iframe-width" ) + ';height:' + App.ChartModel.get( "iframe-height" ) + '; border: 0px none;"></iframe>' );
 		}
 
 	};
