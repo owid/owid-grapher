@@ -175,14 +175,30 @@ Response::macro( 'xml', function($vars, $status = 200, array $header = [], $xml 
 Route::get( 'view', 'ViewController@index' );
 Route::get( 'view/{id}', [ 'as' => 'view', 'uses' => 'ViewController@show' ] );
 
-Route::get( 'data', 'DataController@index' );
-Route::get( 'data/config/{id}', 'ChartsController@config' );
-Route::get( 'data/dimensions', [ 'as' => 'dimensions', 'uses' => 'DataController@dimensions' ] );
-Route::post( 'data/exportToSvg', [ 'as' => 'exportToSvg', 'uses' => 'DataController@exportToSvg' ] );
-Route::get( 'data/entities', 'DataController@entities' );
-Route::get( 'data/search', 'DataController@search' );
-Route::get( 'data/times', 'DataController@times' );
-Route::get( 'data/matchIsoName', 'DataController@matchIsoName' );
+Route::group( [ 'before' => 'auth.domain' ], function() {
+
+	Route::get( 'data', 'DataController@index' );
+	Route::get( 'data/config/{id}', 'ChartsController@config' );
+	Route::get( 'data/dimensions', [ 'as' => 'dimensions', 'uses' => 'DataController@dimensions' ] );
+	Route::post( 'data/exportToSvg', [ 'as' => 'exportToSvg', 'uses' => 'DataController@exportToSvg' ] );
+	Route::get( 'data/entities', 'DataController@entities' );
+	Route::get( 'data/search', 'DataController@search' );
+	Route::get( 'data/times', 'DataController@times' );
+	Route::get( 'data/matchIsoName', 'DataController@matchIsoName' );
+
+} );
+
+Route::filter( 'auth.domain', function( $route, $request ) {
+
+	$allowedDomains = [ 'localhost:8888', 'ourworldindata.org' ];
+	$requestDomain = $request->header('Host');
+
+	if( !in_array( $requestDomain, $allowedDomains ) ) {
+		//request not coming from one of the allowed domains
+		App::abort(401, 'Request allowed only from certain hosts.');
+	}
+
+} );
 
 /*use App\Chart;
 Route::get( '/temp', function() {
