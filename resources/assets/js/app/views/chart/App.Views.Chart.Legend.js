@@ -219,7 +219,8 @@
 							
 							var id = d.id;
 							//in case of multivarient chart
-							if( id.indexOf( "-" ) > 0 ) {
+							//id could be string or integer
+							if( typeof id.indexOf === "function" && id.indexOf( "-" ) > 0 ) {
 								id = parseInt( id.split( "-" )[ 0 ], 10 );
 							} else {
 								id = parseInt( id, 10 );
