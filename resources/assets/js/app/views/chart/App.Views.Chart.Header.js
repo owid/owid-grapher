@@ -15,6 +15,9 @@
 			
 			this.dispatcher = options.dispatcher;
 			
+			this.$chartName = this.$el.find( ".chart-name" );
+			this.$chartSubname = this.$el.find( ".chart-subname" );
+
 			this.$logo = this.$el.find( ".logo" );
 			this.$logoSvg = $( ".chart-logo-svg" );
 			this.$logoSvgImage = this.$logoSvg.find( ".chart-logo-svg-image" );
@@ -28,14 +31,36 @@
 
 		},
 
-		render: function() {
+		render: function( data ) {
 			
 			var that = this,
+				chartName = App.ChartModel.get( "chart-name" ),
+				addCountryMode = App.ChartModel.get( "add-country-mode" ),
 				logo = App.ChartModel.get( "logo" ),
 				tabs = App.ChartModel.get( "tabs" ),
 				defaultTab = App.ChartModel.get( "default-tab" ),
 				openDefault = ( this.$tabs.filter( ".active" ).length )? false: true;
 			
+
+			//might need to replace country in title, if "change country" mode
+			if( addCountryMode === "change-country" ) {
+				//yep, probably need replacing country in title (select first country form stored one)
+				if( selectedCountries && selectedCountries.length ) {
+					var country = selectedCountries[0];
+					chartName = chartName.replace( "*country*", country.name );
+				}
+			}
+
+			//update name
+			this.$chartName.text( chartName );
+			//if there's time placeholder - time
+			if( chartName.indexOf( "*time*" ) > -1 || chartName.indexOf( "*timeFrom*" ) > -1 || chartName.indexOf( "*timeTo*" ) > -1 ) {
+				this.$chartName.css( "visibility", "hidden" );
+			}
+			
+			//update subname
+			this.$chartSubname.html( App.ChartModel.get( "chart-subname" ) );
+
 			//setup image for header
 			if( logo ) {
 
@@ -73,6 +98,35 @@
 			this.$tabs.removeClass( "first" );
 			this.$tabs.filter( ":visible:first" ).addClass( "first" );
 			
+		},
+
+		updateTime: function( data ) {
+
+			//find minimum and maximum in all displayed data
+			var chartName = App.ChartModel.get( "chart-name" ),
+				timeFrom = d3.min( data, function( entityData ) {
+					return d3.min( entityData.values, function( d ) { return parseInt( d.time, 10 ); } );
+				} ),
+				timeTo = d3.max( data, function( entityData ) {
+					return d3.max( entityData.values, function( d ) { return parseInt( d.time, 10 ); } );
+				} );
+
+			chartName = this.replaceTimePlaceholder( chartName, timeFrom, timeTo );
+			this.$chartName.text( chartName );
+			this.$chartName.css( "visibility", "visible" );
+
+		},
+
+		replaceTimePlaceholder: function( string, timeFrom, timeTo ) {
+
+			var time = ( timeFrom !== timeTo )? timeFrom + " to " + timeTo: timeFrom;
+
+			string = string.replace( "*time*", time );
+			string = string.replace( "*timeFrom*", timeFrom );
+			string = string.replace( "*timeTo*", timeTo );
+
+			return string;
+
 		}
 
 	});

@@ -469,6 +469,7 @@
 					}, 1);
 				} );
 				that.parentView.dataTab.render( data, localData, dimensions );
+				that.parentView.header.updateTime( localData );
 				
 				if( chartType == "2" ) {
 					//need to have own showDist implementation, cause there's a bug in nvd3

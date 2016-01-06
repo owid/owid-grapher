@@ -81,8 +81,7 @@
 			this.$chartHeader = this.$el.find( ".chart-header" );
 			this.$entitiesSelect = this.$el.find( "[name=available_entities]" );
 			this.$chartFooter = this.$el.find( ".chart-footer" );
-			this.$chartName = this.$el.find( ".chart-name" );
-			this.$chartSubname = this.$el.find( ".chart-subname" );
+			
 			this.$chartDescription = this.$el.find( ".chart-description" );
 			this.$chartSources = this.$el.find( ".chart-sources" );
 			this.$chartFullScreen = this.$el.find( ".fancybox-iframe" );
@@ -94,26 +93,11 @@
 
 			this.$reloadBtn = this.$el.find( ".reload-btn" );
 
-			var chartName = App.ChartModel.get( "chart-name" ),
-				addCountryMode = App.ChartModel.get( "add-country-mode" ),
-				formConfig = App.ChartModel.get( "form-config" ),
+			var formConfig = App.ChartModel.get( "form-config" ),
 				entities = ( formConfig && formConfig[ "entities-collection" ] )? formConfig[ "entities-collection" ]: [],
 				selectedCountries = App.ChartModel.get( "selected-countries" ),
 				selectedCountriesIds = _.map( selectedCountries, function( v ) { return (v)? +v.id: ""; } ),
 				chartTime = App.ChartModel.get( "chart-time" );
-				
-			//might need to replace country in title, if "change country" mode
-			if( addCountryMode === "change-country" ) {
-				//yep, probably need replacing country in title (select first country form stored one)
-				if( selectedCountries && selectedCountries.length ) {
-					var country = selectedCountries[0];
-					chartName = chartName.replace( "*country*", country.name );
-				}
-			}
-
-			//update values
-			this.$chartName.text( chartName );
-			this.$chartSubname.html( App.ChartModel.get( "chart-subname" ) );
 
 			var chartDescription = App.ChartModel.get( "chart-description" );
 			//this.$chartDescription.text( App.ChartModel.get( "chart-description" ) );
