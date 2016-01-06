@@ -37,7 +37,7 @@
 			"chart-description": "",
 			"chart-dimensions": [],
 			"variables": [],
-			"y-axis": {},
+			"y-axis": {"axis-label-distance":"-10"},
 			"x-axis": {},
 			"margins": { top: 10, left: 60, bottom: 10, right: 10 },
 			"units": "",
