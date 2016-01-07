@@ -141,6 +141,11 @@
 							</label>
 						</div>
 					</div>
+					<div class="color-blind-control control clearfix" title="Colorblind safe color scheme">
+						<div class="control-head">
+							<i class="fa fa-eye"></i>
+						</div>
+					</div>
 				</div>
 				<div class="map-timeline-controls clearfix">
 					<div class="play-pause-control control">

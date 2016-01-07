@@ -12,6 +12,7 @@
 			"change .target-year-control input": "onTargetYearChange",
 			"click .region-control li": "onRegionClick",
 			"click .settings-control input": "onSettingsInput",
+			"click .color-blind-control": "onColorBlindClick",
 		},
 
 		initialize: function( options ) {
@@ -32,6 +33,11 @@
 
 			//settings-control selector
 			this.$settingsControl = this.$el.find( ".settings-control" );
+
+			//color blind control selector
+			this.$colorBlindControl = this.$el.find( ".color-blind-control" );
+			//cache original
+			this.originalColorSchemeName = mapConfig.colorSchemeName;
 
 			App.ChartModel.on( "change", this.onChartModelChange, this );
 			App.ChartModel.on( "change-map", this.onChartModelChange, this );
@@ -89,7 +95,20 @@
 				mode = ( $this.is( ":checked" ) )? "specific": "no-interpolation";
 			App.ChartModel.updateMapConfig( "mode", mode, false, "change-map" );
 			this.render();
-		}
+		},
+
+		onColorBlindClick: function( evt ) {
+			var $this = $( evt.currentTarget );
+			$this.toggleClass( "active" );
+			if( $this.hasClass( "active" ) ) {
+				var colorBlindSchemeName = "RdYlBu";
+				App.ChartModel.updateMapConfig( "colorSchemeName", colorBlindSchemeName, false, "change-map" );
+			} else {
+				//restore original color scheme
+				App.ChartModel.updateMapConfig( "colorSchemeName", this.originalColorSchemeName, false, "change-map" );
+			}
+			
+		},
 
 	});
 

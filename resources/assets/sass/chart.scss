@@ -549,7 +549,7 @@ body {
 				white-space: nowrap;
 				overflow: hidden;
 
-				&:hover {
+				&:hover, &.active {
 					.control-head, .control-body {
 						color: #fff;
 						background-color: #444;
