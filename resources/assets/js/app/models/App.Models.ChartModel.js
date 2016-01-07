@@ -63,6 +63,7 @@
 				"colorSchemeValues": false,
 				"colorSchemeValuesAutomatic": true,
 				"colorSchemeInterval": 5,
+				"colorSchemeMinValue": null,
 				"customColorScheme": [ "#000", "#c00", "#0c0", "#00c", "#c0c" ],
 				"projection": "World",
 				"legendDescription": "",

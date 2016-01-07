@@ -45,7 +45,11 @@
 					return i;
 				} ),
 				colorSchemeInterval = mapConfig.colorSchemeInterval,
-				colorSchemeValues = mapConfig.colorSchemeValues;
+				colorSchemeValues = mapConfig.colorSchemeValues,
+				minimalColorSchemeValue = ( mapConfig.colorSchemeMinValue )? mapConfig.colorSchemeMinValue: "";
+
+			//minimal value option
+			html += "<li class='clearfix min-color-wrapper'><span>Minimal value:</span><input class='map-color-scheme-value form-control' name='min-color-scheme-value' type='text' placeholder='Minimal value' value='" + minimalColorSchemeValue + "' /></li>";
 
 			for( var i = 0; i < colorSchemeInterval; i++ ) {
 				var key = colorSchemeKeys[ i ],
@@ -76,8 +80,8 @@
 
 			} );
 
-			this.$el.toggleClass( "colorSchemeValuesAutomatic", mapConfig.colorSchemeValuesAutomatic );
-			
+			this.$el.toggleClass( "automatic-values", mapConfig.colorSchemeValuesAutomatic );
+			this.$colorAutomaticClassification.prop( "checked", mapConfig.colorSchemeValuesAutomatic );
 			//react to user entering custom values
 			this.$inputs = this.$el.find(".map-color-scheme-value");
 			this.$inputs.on( "change", function( evt ) {
@@ -96,14 +100,25 @@
 		},
 
 		updateSchemeValues: function() {
+			//update minimal value
+			var $minValueInput = this.$inputs.eq( 0 );
+			if( $minValueInput.val() ) {
+				App.ChartModel.updateMapConfig( "colorSchemeMinValue", $minValueInput.val(), false );
+			}
+
+			//update values
 			var values = [];
 			$.each( this.$inputs, function( i, d ) {
-				var inputValue = $( d ).val();
-				if( inputValue ) {
-					values.push( inputValue );
+				//first input is minimal value
+				if( i > 0 ) {
+					var inputValue = $( d ).val();
+					if( inputValue ) {
+						values.push( inputValue );
+					}
 				}
 			} );
 			App.ChartModel.updateMapConfig( "colorSchemeValues", values );
+			
 		},
 
 		onChartModelChange: function() {

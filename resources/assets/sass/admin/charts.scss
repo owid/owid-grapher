@@ -296,6 +296,14 @@
 	padding-left: 0;
 	list-style-type: none;
 
+	.min-color-wrapper {
+		span {
+			float: left;
+			margin-top: 6px;
+			margin-left: -56px;
+		}
+	}
+
 	> li {
 		position: relative;
 		margin-right: 2px;
@@ -322,6 +330,9 @@
 			float: left;	
 		}
 		.map-color-scheme-value {
+			display: none;
+		}
+		.min-color-wrapper {
 			display: none;
 		}
 	}

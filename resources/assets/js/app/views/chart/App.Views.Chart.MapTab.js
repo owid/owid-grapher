@@ -235,6 +235,12 @@
 			} );
 
 			this.legend.scale( colorScale );
+
+			//see if we have minimal value in map config
+			if( !isNaN( mapConfig.colorSchemeMinValue ) ) {
+				mapMin = mapConfig.colorSchemeMinValue;
+			}
+
 			this.legend.minData( mapMin );
 			this.legend.maxData( mapMax );
 

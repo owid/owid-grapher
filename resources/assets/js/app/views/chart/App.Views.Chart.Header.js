@@ -36,19 +36,23 @@
 			var that = this,
 				chartName = App.ChartModel.get( "chart-name" ),
 				addCountryMode = App.ChartModel.get( "add-country-mode" ),
+				selectedCountries = App.ChartModel.get( "selected-countries" ),
 				logo = App.ChartModel.get( "logo" ),
 				tabs = App.ChartModel.get( "tabs" ),
 				defaultTab = App.ChartModel.get( "default-tab" ),
 				openDefault = ( this.$tabs.filter( ".active" ).length )? false: true;
-			
+
 			//might need to replace country in title, if "change country" mode
 			if( addCountryMode === "change-country" ) {
+				console.log( "addCountryMode", selectedCountries );
 				//yep, probably need replacing country in title (select first country form stored one)
 				if( selectedCountries && selectedCountries.length ) {
 					var country = selectedCountries[0];
 					chartName = chartName.replace( "*country*", country.name );
 				}
 			}
+
+			console.log( "chartName", chartName );
 
 			//update name
 			this.$chartName.text( chartName );
@@ -104,7 +108,7 @@
 		updateTime: function( data ) {
 
 			//find minimum and maximum in all displayed data
-			var chartName = App.ChartModel.get( "chart-name" ),
+			var chartName = this.$chartName.text(),
 				timeFrom = d3.min( data, function( entityData ) {
 					return d3.min( entityData.values, function( d ) { return parseInt( d.time, 10 ); } );
 				} ),
