@@ -41,7 +41,6 @@
 				defaultTab = App.ChartModel.get( "default-tab" ),
 				openDefault = ( this.$tabs.filter( ".active" ).length )? false: true;
 			
-
 			//might need to replace country in title, if "change country" mode
 			if( addCountryMode === "change-country" ) {
 				//yep, probably need replacing country in title (select first country form stored one)
