@@ -220,7 +220,6 @@ class Chart extends Model {
 
 					//try to find value for given dimension, entity and time
 					if( array_key_exists( $dimension->property, $entityData[ "values" ] ) ) {
-
 						$value = Chart::getValue( $dimension, $time, $entityData[ "values" ][ $dimension->property ] );
 						if( Chart::hasValue( $value ) ) {
 							$timeArr[ $dimension->property ] = $value; 

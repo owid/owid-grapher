@@ -1,7 +1,7 @@
 App.Views.Chart.Map.Projections = {
 	"World": function(element) {
 		//empiric
-		var k = 6;
+		var k = 7.5;
 		var projection = d3.geo.eckert3()
 			.scale(element.offsetWidth/k)
 			.translate([element.offsetWidth / 2, element.offsetHeight / 2])
