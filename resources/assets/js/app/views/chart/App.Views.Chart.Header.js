@@ -52,8 +52,6 @@
 				}
 			}
 
-			console.log( "chartName", chartName );
-
 			//update name
 			this.$chartName.text( chartName );
 			//if there's time placeholder - time
@@ -107,24 +105,47 @@
 
 		updateTime: function( data ) {
 
-			//find minimum and maximum in all displayed data
-			var chartName = this.$chartName.text(),
-				timeFrom = d3.min( data, function( entityData ) {
-					return d3.min( entityData.values, function( d ) { return parseInt( d.time, 10 ); } );
-				} ),
-				timeTo = d3.max( data, function( entityData ) {
-					return d3.max( entityData.values, function( d ) { return parseInt( d.time, 10 ); } );
+			//is there any time placeholder to update at all?
+			var chartName = this.$chartName.text();
+			if( chartName.indexOf( "*time*" ) > -1 || chartName.indexOf( "*timeFrom*" ) > -1 || chartName.indexOf( "*timeTo*" ) > -1 ) {
+
+				//find minimum and maximum in all displayed data
+				var dimsString = App.ChartModel.get("chart-dimensions"),
+					dims = $.parseJSON( dimsString ),
+					latestAvailable = false,
+					timeFrom = d3.min( data, function( entityData ) {
+						return d3.min( entityData.values, function( d ) { return parseInt( d.time, 10 ); } );
+					} ),
+					timeTo = d3.max( data, function( entityData ) {
+						return d3.max( entityData.values, function( d ) { return parseInt( d.time, 10 ); } );
+					} );
+
+				_.each( dims, function( dimension ) {
+					if( dimension.mode === "specific" && dimension.period === "single" ) {
+						var tolerance = +dimension.tolerance,
+							dimMax = +dimension.targetYear + tolerance,
+							dimMin = +dimension.targetYear - tolerance;
+						//possibly set new timeFrom/timeTo values based on dimension settings
+						console.log( tolerance, dimension.targetYear, dimMax, dimMin, timeFrom, timeTo );
+						timeFrom = Math.min( timeFrom, dimMin );
+						timeTo = Math.max( timeTo, dimMax );
+					} else if( dimension.mode === "latest" ) {
+						latestAvailable = true;
+					}
+
 				} );
 
-			chartName = this.replaceTimePlaceholder( chartName, timeFrom, timeTo );
-			this.$chartName.text( chartName );
-			this.$chartName.css( "visibility", "visible" );
+				chartName = this.replaceTimePlaceholder( chartName, timeFrom, timeTo, latestAvailable );
+				this.$chartName.text( chartName );
+				this.$chartName.css( "visibility", "visible" );
+
+			}
 
 		},
 
-		replaceTimePlaceholder: function( string, timeFrom, timeTo ) {
+		replaceTimePlaceholder: function( string, timeFrom, timeTo, latestAvailable ) {
 
-			var time = ( timeFrom !== timeTo )? timeFrom + " to " + timeTo: timeFrom;
+			var time = ( !latestAvailable )? ( timeFrom !== timeTo )? timeFrom + " to " + timeTo: timeFrom: " latest available";
 
 			string = string.replace( "*time*", time );
 			string = string.replace( "*timeFrom*", timeFrom );
