@@ -12,7 +12,7 @@
 			legendOffsetX = 10,
 			legendOffsetY = 60,
 			stepGap = 2,
-			scale, datamap, container, containerHeight, isOrdinalScale, descriptionHeight, g, gDesc;
+			scale, minData, maxData, datamap, container, containerHeight, isOrdinalScale, descriptionHeight, g, gDesc;
 
 		var formatLegendLabel = function( valueArr, i, length ) {
 			
@@ -25,7 +25,7 @@
 						formattedNumber = d3.format( ".3r" )( d );
 					}
 				} else {
-					formattedNumber = 0;
+					formattedNumber = ( minData )? minData: 0;
 				}
 				return formattedNumber;
 			} );
@@ -124,6 +124,20 @@
 				return scale;
 			} else {
 				scale = value;
+			}
+		};
+		legend.minData = function( value ) {
+			if( !arguments.length ) {
+				return minData;
+			} else {
+				minData = value;
+			}
+		};
+		legend.maxData = function( value ) {
+			if( !arguments.length ) {
+				return maxData;
+			} else {
+				maxData = value;
 			}
 		};
 

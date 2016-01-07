@@ -197,7 +197,7 @@
 			} else if( mapConfig.colorSchemeName ) {
 				colorScheme = mapConfig.customColorScheme;
 			}
-			
+
 			//need to create color scheme
 			var colorScale,
 				//do we have custom values for intervals
@@ -213,7 +213,7 @@
 					.domain( [ dataMin, dataMax ] );
 			} else if( customValues && !automaticValues ) {
 				//create threshold scale which divides data into buckets based on values provided 
-				colorScale = d3.scale.threshold()
+				colorScale = d3.scale.equal_threshold()
 					.domain( customValues );
 			} else {
 				colorScale = d3.scale.ordinal()
@@ -223,14 +223,21 @@
 			
 			//need to encode colors properties
 			var mapData = {},
-				colors = [];
+				colors = [],
+				mapMin = Infinity,
+				mapMax = -Infinity;
 			latestData.forEach( function( d, i ) {
 				var color = (ordinalScale)? colorScale( d.value ): colorScale( +d.value );
 				mapData[ d.key ] = { "key": d.key, "value": d.value, "color": color };
 				colors.push( color );
+				mapMin = Math.min( mapMin, d.value );
+				mapMax = Math.max( mapMax, d.value );
 			} );
 
 			this.legend.scale( colorScale );
+			this.legend.minData( mapMin );
+			this.legend.maxData( mapMax );
+
 			if( d3.select( ".legend-wrapper" ).empty() ) {
 				d3.select( ".datamap" ).append( "g" ).attr( "class", "legend-wrapper map-legend-wrapper" );
 			}
@@ -354,3 +361,38 @@
 	}).raw = eckert3;
 	
 })();
+
+//custom implementation of d3_treshold which uses greaterThan (by using bisectorLeft instead of bisectorRight)
+d3.scale.equal_threshold = function() {
+  return d3_scale_equal_threshold([0.5], [0, 1]);
+};
+
+function d3_scale_equal_threshold(domain, range) {
+
+  function scale(x) {
+    if (x <= x) return range[d3.bisectLeft(domain, x)];
+  }
+
+  scale.domain = function(_) {
+    if (!arguments.length) return domain;
+    domain = _;
+    return scale;
+  };
+
+  scale.range = function(_) {
+    if (!arguments.length) return range;
+    range = _;
+    return scale;
+  };
+
+  scale.invertExtent = function(y) {
+    y = range.indexOf(y);
+    return [domain[y - 1], domain[y]];
+  };
+
+  scale.copy = function() {
+    return d3_scale_threshold(domain, range);
+  };
+
+  return scale;
+}
