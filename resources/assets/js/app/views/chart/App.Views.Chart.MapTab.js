@@ -299,21 +299,29 @@
 						wrapperHeight -= controlsHeight;
 					}
 
-					//map might have already offset
-					var mapOffset = mapBoundingRect.top - wrapperBoundingRect.top;
-					wrapperHeight -= mapOffset;
-
 					//compute necessary vertical offset
-					var	mapOffsetY = (wrapperHeight - mapHeight) / 2;
+					var	mapOffsetY = (wrapperHeight - mapHeight) / 2,
+						currMapOffsetY = mapBoundingRect.top - wrapperBoundingRect.top;
+
+					mapOffsetY -= currMapOffsetY;
 					
 					//scaling
 					var options = this.dataMap.options,
 						prefix = "-webkit-transform" in document.body.style ? "-webkit-" : "-moz-transform" in document.body.style ? "-moz-" : "-ms-transform" in document.body.style ? "-ms-" : "",
 						newsize = options.element.clientWidth,
-						oldsize = d3.select( options.element).select("svg").attr("data-width"),
+						oldsize = d3.select( options.element ).select("svg").attr("data-width"),
 						scale = (newsize / oldsize);
-						
-					map.style(prefix + "transform", "scale(" + scale + ") translate(0," + mapOffsetY/scale + "px)" );
+
+					mapOffsetY /= scale;
+					if( this.mapOffsetY ) {
+						mapOffsetY += this.mapOffsetY;
+					}
+					
+					map.style(prefix + "transform", "scale(" + scale + ") translate(0," + mapOffsetY + "px)" );
+
+					//stash value
+					this.mapOffsetY = mapOffsetY;
+					
 					
 				}
 
