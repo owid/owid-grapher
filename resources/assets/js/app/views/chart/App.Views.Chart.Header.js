@@ -145,7 +145,7 @@
 
 		replaceTimePlaceholder: function( string, timeFrom, timeTo, latestAvailable ) {
 
-			var time = ( !latestAvailable )? ( timeFrom !== timeTo )? timeFrom + " to " + timeTo: timeFrom: " latest available";
+			var time = ( !latestAvailable )? ( timeFrom !== timeTo )? timeFrom + " to " + timeTo: timeFrom: " latest available data";
 
 			string = string.replace( "*time*", time );
 			string = string.replace( "*timeFrom*", timeFrom );
