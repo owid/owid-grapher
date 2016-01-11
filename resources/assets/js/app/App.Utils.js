@@ -1,7 +1,6 @@
 ;( function() {
 
 	"use strict";
-	//test comment
 	var App = require( "./namespaces.js" );
 
 	App.Utils.mapData = function( rawData, transposed ) {
