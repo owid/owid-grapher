@@ -14,3 +14,4 @@
 .env
 .env-localhost
 .env-bluehost
+.htaccess
