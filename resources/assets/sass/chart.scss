@@ -933,7 +933,7 @@ body {
 
 	.chart-description-svg, .chart-sources-svg {
 		font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-		font-size: 11.5px;
+		font-size: 11px;
 		fill: #5d5d5d;
 	}
 	#chart-view {
@@ -980,6 +980,11 @@ body {
 	&.datamap  {
 		.nv-custom-legend {
 			display: none;
+		}
+	
+		path {
+			stroke-width: 0.3px !important;
+			stroke: rgb(75, 75, 75) !important;
 		}
 	}
 

@@ -330,7 +330,7 @@
 			$chartLogoSvg.attr( "transform", "scale(" + scale + "," + scale + "), translate(" + translateX + "," + translateY + ")" );
 
 			//we need to add all elements that are in html so they wouldn't be printed
-			this.addTextsForExport( $exportSvg, width, height );
+			this.addTextsForExport( $exportSvg, width, height, exportMap );
 			
 			//inline styles for the export
 			var styleSheets = document.styleSheets;
@@ -390,7 +390,7 @@
 			
 		},
 
-		addTextsForExport: function( $svg, width, height ) {
+		addTextsForExport: function( $svg, width, height, exportMap ) {
 
 			var margins = App.ChartModel.get( "margins" );
 
@@ -420,14 +420,19 @@
 
 			} );
 
-			//create wrapper and put everything but logo into it, so that we can then offset it 
+			//if exporting chart tab, create wrapper and put everything but logo into it, so that we can then offset it 
 			var $parentEl = $svg,
-				holderClass = "nvd3-print-chart-holder";
-			$parentEl.append( "<g class='" + holderClass + "'></g>" );
-			
-			var $printHolder = $parentEl.find( "." + holderClass );
-			$printHolder.append( $( "svg.nvd3-svg > .nv-wrap" ) );
-			$printHolder.append( $( ".nv-custom-legend" ) );
+				holderClass = "nvd3-print-chart-holder",
+				$printHolder;
+
+			if( !exportMap ) {
+				$parentEl.append( "<g class='" + holderClass + "'></g>" );
+				$printHolder = $parentEl.find( "." + holderClass );
+				$printHolder.append( $( "svg.nvd3-svg > .nv-wrap" ) );
+				$printHolder.append( $( ".nv-custom-legend" ) );
+			} else {
+				$printHolder = $svg;
+			}
 			
 			//resize them
 			var titleEl = $( ".chart-name-svg").get(0), titleRect = titleEl.getBoundingClientRect(), titleHeight = titleRect.bottom - titleRect.top,
