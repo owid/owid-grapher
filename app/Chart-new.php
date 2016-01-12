@@ -103,7 +103,7 @@ class Chart extends Model {
 
 							$value = Chart::getValue( $otherDimension, $time, $entityData[ "values" ][ $otherDimension->property ] );
 							if( Chart::hasValue( $value ) ) {
-								$timeArr[ $otherDimension->property ] = $value[ "value" ]; 
+								$timeArr[ $otherDimension->property ] = $value; 
 							} else {
 								$hasData = false;
 							}
@@ -214,25 +214,15 @@ class Chart extends Model {
 					}
 
 					//store time if main property
-					/*if( $dimension->variableId === $mainDimension->variableId ) {
+					if( $dimension->variableId === $mainDimension->variableId ) {
 						$timeArr[ "time" ] = $time;
-					}*/
+					}
 
 					//try to find value for given dimension, entity and time
 					if( array_key_exists( $dimension->property, $entityData[ "values" ] ) ) {
 						$value = Chart::getValue( $dimension, $time, $entityData[ "values" ][ $dimension->property ] );
 						if( Chart::hasValue( $value ) ) {
-							$timeArr[ $dimension->property ] = $value[ "value" ];
-							//for scatter plot, we need to store exact time
-							if( empty( $timeArr[ "time" ] ) ) {
-								//there isn't anything stored for time yet
-								$timeArr[ "time" ] = $value[ "time" ];
-							} else {
-								//there's time stored already, if not the same add it to string
-								if( $timeArr[ "time" ] !== $value[ "time" ] ) {
-									$timeArr[ "time" ] .= ", " .$value[ "time" ];
-								}
-							}
+							$timeArr[ $dimension->property ] = $value; 
 						} else {
 							$hasData = false;
 						}
@@ -293,7 +283,7 @@ class Chart extends Model {
 
 								$value = Chart::getValue( $otherDimension, $time, $entityData[ "values" ][ $otherDimension->property ] );
 								if( Chart::hasValue( $value ) ) {
-									$timeArr[ $otherDimension->property ] = $value[ "value" ]; 
+									$timeArr[ $otherDimension->property ] = $value; 
 								} else {
 									//temp
 									//$value = 0;
@@ -377,7 +367,7 @@ class Chart extends Model {
 
 						$value = Chart::getValue( $dimension, $time, $entityData[ "values" ][ $dimension->property ] );
 						if( Chart::hasValue( $value ) ) {
-							$entityTimeArr[ $dimension->property ] = $value[ "value" ]; 
+							$entityTimeArr[ $dimension->property ] = $value; 
 							//also store time, useful for legend
 							$entityTimeArr[ "time" ] = $time;
 						} else {
@@ -576,7 +566,7 @@ class Chart extends Model {
 
 					$value = Chart::getValue( $dimension, $time, $entityData[ "values" ][ $dimension->property ] );
 					if( Chart::hasValue( $value ) ) {
-						$timeArr[ $dimension->property ] = $value[ "value" ]; 
+						$timeArr[ $dimension->property ] = $value; 
 					} else {
 						$hasData = false;
 					}
@@ -638,7 +628,7 @@ class Chart extends Model {
 			
 			$value = Chart::getValue( $dimension, $time, $entityData[ "values" ][ $dimension->property ] );
 			if( Chart::hasValue( $value ) ) {
-				$timeArr[ $dimension->property ] = $value[ "value" ]; 
+				$timeArr[ $dimension->property ] = $value; 
 			} else {
 				$hasData = false;
 			}
@@ -688,7 +678,6 @@ class Chart extends Model {
 				}
 			} 
 
-			//return exact time of data as well, in case it was needed 
 			$value = [ "time" => $time, "value" => $values[ $time ] ];
 			
 		} else {
@@ -729,7 +718,6 @@ class Chart extends Model {
 
 			//does time of interest fall between interval
 			if( $targetYearMin >= $timeMin && $timeMax <= $targetYearMax ) {
-				//return exact time of data as well, in case it was needed 
 				return [ "value" => $value, "time" => $targetYearMin ." – ". $targetYearMax ];
 			}
 
@@ -779,8 +767,7 @@ class Chart extends Model {
 			$currTime = $origTime + $currLen;
 			//break if found value
 			if( array_key_exists( $currTime, $values ) ) {
-				$value = $values[ $currTime ];
-				//return exact time of data as well, in case it was needed 
+				$value = $values[ $currTime ]; 
 				return [ "value" => $value, "time" => $currTime ];
 			}
 
@@ -789,7 +776,6 @@ class Chart extends Model {
 			//break if found value
 			if( array_key_exists( $currTime, $values ) ) {
 				$value = $values[ $currTime ]; 
-				//return exact time of data as well, in case it was needed 
 				return [ "value" => $value, "time" => $currTime ];
 			}
 
@@ -797,7 +783,7 @@ class Chart extends Model {
 	}
 
 	public static function hasValue($value) {
-		return ( isset( $value ) && isset( $value["value"] ) )? true: false;
+		return ( isset( $value ) )? true: false;
 		//return ( !empty( $value ) || $value === "0" || $value === 0 )? true: false;
 	}
 

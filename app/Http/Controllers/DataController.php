@@ -217,8 +217,7 @@ class DataController extends Controller {
 					if( !array_key_exists( $property, $dataByEntity[ $entityId ][ "values" ] ) ) {
 						$dataByEntity[ $entityId ][ "values" ][ $property ] = [];
 					}
-					//store value
-					//AMMEND HERE - store as startYear-endYear?
+					//store value, if range time type - store as startYear-endYear?
 					$timeId = ( $datum->fk_ttype_id !== 6 )? floatval( $datum->date ): floatval( $datum->startDate ) . "-" . floatval( $datum->endDate );
 					$dataByEntity[ $entityId ][ "values" ][ $property ][ $timeId ] = ( $property != "color" && $property != "shape" && $property != "map" )? floatval( $datum->value ): $datum->value;
 					
@@ -323,13 +322,6 @@ class DataController extends Controller {
 				$data[] = $entityData;
 			}
 			$result = [ 'success' => true, 'data' => $data ];
-			
-			//TODO - put to cache
-			//store into cache - there is no cache 
-			/*if( !empty( $key ) ) {
-				$minutes = 60*24;
-				Cache::put( $key, $result, $minutes );
-			}*/
 			
 			return $result;
 		}
@@ -444,7 +436,7 @@ class DataController extends Controller {
 
 			$result = [ 'success' => true, 'data' => $data, 'dimensions' => $dimensions, 'datasources' => $datasources, 'timeType' => $timeType, 'license' => $license ];
 			
-			//store into cache - there is no cache 
+			//store into cache
 			if( !empty( $key ) ) {
 				$minutes = 60*24;
 				Cache::put( $key, $result, $minutes );
@@ -454,19 +446,8 @@ class DataController extends Controller {
 
 		} else {
 
-			//export is now happening in front-end
-			if( Input::has( 'export' ) && Input::get( 'export' ) == 'csv' ) {
-				
-				//http://localhost:8888/oxford/our-world-in-data-chart-builder/public/data/dimensions?dimensions=%5B%7B%22variableId%22%3A%221%22%2C%22property%22%3A%22y%22%2C%22name%22%3A%22Y+axis%22%7D%5D
-				//return $data;
-				//return $this->downloadCsv( $exportData );
-			
-			} else {
-
-				//not ajax request, nor csv export, just spit out whatever is in data
-				return $data;
-
-			}
+			//not ajax request, just spit out whatever is in data
+			return $data;
 
 		}
 

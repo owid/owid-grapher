@@ -126,7 +126,6 @@
 							dimMax = +dimension.targetYear + tolerance,
 							dimMin = +dimension.targetYear - tolerance;
 						//possibly set new timeFrom/timeTo values based on dimension settings
-						console.log( tolerance, dimension.targetYear, dimMax, dimMin, timeFrom, timeTo );
 						timeFrom = Math.min( timeFrom, dimMin );
 						timeTo = Math.max( timeTo, dimMax );
 					} else if( dimension.mode === "latest" ) {

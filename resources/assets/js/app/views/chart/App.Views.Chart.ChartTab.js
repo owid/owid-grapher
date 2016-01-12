@@ -34,6 +34,8 @@
 			//make local copy of data for our filtering needs
 			var localData = $.extend( true, localData, data );
 
+			console.log( localData );
+
 			var chartType = App.ChartModel.get( "chart-type" );
 
 			//filter data for selected countries
