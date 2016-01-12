@@ -1,4 +1,6 @@
+
 <div id="form-view" class="col-sm-12 col-md-6 form-wrapper">
+
 	<a href="#" class="form-collapse-btn"><i class="fa fa-caret-right"></i><span class="visuallyhidden">Collapse btn</span></a>
 	<div class="form-wrapper-inner">
 		{!! Form::open( array( 'method' => $method ) ) !!}
@@ -28,7 +30,7 @@
 				<div id="basic-tab" class="tab-pane active">
 					<section class="form-section">
 						<div class="form-section-header">
-							<h2><span class="form-section-digit">a</span>Name your chart</h2>
+							<h2><span class="form-section-digit">a</span>Name your chart.</h2>
 							<p class="form-section-desc">This will be shown as the title of the chart.</p>
 
 						</div>
