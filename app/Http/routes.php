@@ -149,6 +149,9 @@ Route::group(['middleware' => 'auth'], function()
 	Route::post( 'dataset/import', 'ImportController@dataset' );
 	Route::post( 'variable/import', 'ImportController@variable' );
 	Route::post( 'entity/import', 'ImportController@entity' );
+	
+	Route::get( 'sourceTemplate', [ 'as' => 'sourceTemplate', 'uses' => 'SourceTemplateController@edit' ] );
+	Route::patch( 'sourceTemplate', [ 'as' => 'sourceTemplate.update', 'uses' => 'SourceTemplateController@update' ] );
 
 });
 

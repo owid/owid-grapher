@@ -73,6 +73,7 @@
 						<li><a href="{!! route( 'tags.index' ) !!}"><i class="fa fa-tags"></i> Tags</a></li>
 						<li><a href="{!! route( 'apiKeys.index' ) !!}"><i class="fa fa-credit-card"></i> API keys</a></li>
 						<li><a href="{!! route( 'logos.index' ) !!}"><i class="fa fa-picture-o"></i> Logos</a></li>
+						<li><a href="{!! route( 'sourceTemplate' ) !!}"><i class="fa fa-link"></i> Datasource template</a></li>
 					</ul>
 				</section>
 				<!-- /.sidebar -->
@@ -82,6 +83,13 @@
 					<div class="flash alert-@if(Session::has('message-class')){{Session::get('message-class')}}@else{{'info'}}@endif">
 						<p>{{ Session::get('message') }}</p>
 					</div>
+				@endif
+				@if($errors->has())
+					@foreach ($errors->all() as $error)
+					  <div class="flash alert-error">
+					  	<p>{{ $error }}</p>
+					  </div>
+					@endforeach
 				@endif
 				@yield('content')
 			</div>
