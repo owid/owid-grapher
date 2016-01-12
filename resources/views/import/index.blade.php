@@ -106,7 +106,7 @@
 							</label>-->
 							<label>
 								<span>Source description:</span>
-								<textarea cols="75" rows="18" class="form-control datasource-editor required" type="text" name="source_description">@include('import/partials/_sources-default')</textarea>
+								<textarea cols="75" rows="18" class="form-control datasource-editor required" type="text" name="source_description">{{ $data['sourceTemplate']->meta_value }}</textarea>
 								<span class="sources-default" style="display:none;"></span>
 							</label>
 

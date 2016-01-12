@@ -14,6 +14,7 @@ use App\TimeType;
 use App\DataValue;
 use App\EntityIsoName;
 use App\Entity;
+use App\Setting;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
@@ -45,6 +46,7 @@ class ImportController extends Controller {
 		$categories = DatasetCategory::all();
 		$subcategories = DatasetSubcategory::all();
 		$varTypes = VariableType::all();
+		$sourceTemplate = Setting::where( 'meta_name', 'sourceTemplate' )->first();
 
 		$data = [
 			'datasets' => $datasets,
@@ -52,7 +54,8 @@ class ImportController extends Controller {
 			'variables' => $variables,
 			'categories' => $categories,
 			'subcategories' => $subcategories,
-			'varTypes' => $varTypes
+			'varTypes' => $varTypes,
+			'sourceTemplate' => $sourceTemplate
 		];	
 
 		return view( 'import.index' )->with( 'data', $data );
