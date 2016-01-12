@@ -21,7 +21,7 @@
 	</tr>
 	<tr>
 		<td><span class="datasource-property">Link</span></td>
-		<td><a href="http://www.blahblah.com">e.g. http://www.com</a></td>
+		<td><a href="http://www.com">e.g. http://www.com</a></td>
 	</tr>
 	<tr>
 		<td><span class="datasource-property">Retrieved</span></td>
