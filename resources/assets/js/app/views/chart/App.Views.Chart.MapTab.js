@@ -121,7 +121,8 @@
 			}
 			var obj = {
 				point: {
-					time: mapConfig.targetYear
+					time: data.time
+					//time: mapConfig.targetYear
 				},
 				series: [ {
 					key: geo.properties.name
@@ -186,7 +187,7 @@
 
 				//ids in world json are name countries with underscore (datamaps.js uses id for selector, so cannot have whitespace), also cover Cote d'Ivoire, Saint Martin (French_part) cases, also get rid of ampersands
 				var key = d.key.replace( /[ '&:\(\)]/g, "_" );
-				return { "key": key, "value": latestTimeValue };
+				return { "key": key, "value": latestTimeValue, "time": d.time };
 
 			} );
 
@@ -228,7 +229,7 @@
 				mapMax = -Infinity;
 			latestData.forEach( function( d, i ) {
 				var color = (ordinalScale)? colorScale( d.value ): colorScale( +d.value );
-				mapData[ d.key ] = { "key": d.key, "value": d.value, "color": color };
+				mapData[ d.key ] = { "key": d.key, "value": d.value, "color": color, "time": d.time };
 				colors.push( color );
 				mapMin = Math.min( mapMin, d.value );
 				mapMax = Math.max( mapMax, d.value );
