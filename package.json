@@ -1,12 +1,22 @@
 {
   "private": true,
-  "dependencies": {
-    "moment": "*",
-    "papaparse": "*"
-  },
+  "dependencies": {},
   "devDependencies": {
+    "backbone": "^1.2.3",
+    "bootstrap": "^3.3.6",
+    "chosen-jquery-browserify": "^1.0.0",
+    "colorbrewer": "0.0.2",
+    "d3": "^3.4.4",
+    "datamaps": "^0.4.2",
     "gulp": "^3.8.8",
+    "jquery": "^2.2.0",
     "laravel-elixir": "2.3.13",
-    "laravel-elixir-browserify": "^0.8.1"
+    "laravel-elixir-browserify": "^0.8.1",
+    "moment": "^2.11.1",
+    "nvd3": "^1.8.1",
+    "papaparse": "^4.1.2",
+    "save-svg-as-png": "^1.0.2",
+    "topojson": "^1.6.19",
+    "underscore": "^1.8.3"
   }
 }

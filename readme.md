@@ -27,6 +27,7 @@ The backend is written in PHP using the Laravel Framework. The frontend is writt
 1. make sure you have Apache and MySQL database setup in your machine 	
 2. use database dump from _data/ to create your database  
 3. open .env file and fill in lines 5-8 with your database info
+4. 
 
 ## COMPONENTS
 The entire tool can be divided into four main modules and here’s a very brief description what is going on in each one of them.
