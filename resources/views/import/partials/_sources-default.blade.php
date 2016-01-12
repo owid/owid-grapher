@@ -1,8 +1,5 @@
 <table>
 	<tr>
-		<th colspan="2">e.g. Source 1</th>
-	</tr>
-	<tr>
 		<td><span class="datasource-property"><span class="datasource-property">Data provider</span></td>
 		<td>e.g. World Bank</td>
 	</tr>
@@ -24,7 +21,7 @@
 	</tr>
 	<tr>
 		<td><span class="datasource-property">Link</span></td>
-		<td><a href="http://www.blahblah.com">e.g. http://www.blahblah.com</a></td>
+		<td><a href="http://www.blahblah.com">e.g. http://www.com</a></td>
 	</tr>
 	<tr>
 		<td><span class="datasource-property">Retrieved</span></td>

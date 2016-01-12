@@ -16,6 +16,7 @@
 		origUploadedData: false,
 		uploadedData: false,
 		variableNameManual: false,
+		sourceNameManual: false,
 
 		el: "#import-view",
 		events: {
@@ -29,7 +30,8 @@
 			"change [name=existing_variable_id]": "onExistingVariableChange",
 			"change [name=subcategory_id]": "onSubCategoryChange",
 			"change [name=multivariant_dataset]": "onMultivariantDatasetChange",
-			"click .new-dataset-description-btn": "onDatasetDescription"
+			"click .new-dataset-description-btn": "onDatasetDescription",
+			"focus [name=source_name]": "onSourceNameFocus"
 		},
 
 		initialize: function( options ) {
@@ -73,6 +75,7 @@
 
 			//datasource section
 			this.$newDatasourceWrapper = this.$el.find( ".new-datasource-wrapper" );
+			this.$sourceName = this.$el.find( "[name=source_name]" );
 			this.$sourceDescription = this.$el.find( "[name=source_description]" );
 
 			//category section
@@ -600,6 +603,11 @@
 				$firstInput.trigger( "input" );
 			}
 
+			//check if we have value for datasource name, enter it if not
+			if( !this.sourceNameManual ) {
+				this.$sourceName.val( this.datasetName );
+			}
+
 		},
 
 		onExistingDatasetChange: function( evt ) {
@@ -674,6 +682,11 @@
 
 		onSubCategoryChange: function( evt ) {
 			
+		},
+
+		onSourceNameFocus: function( evt ) {
+			console.log( "onSourceNameFocus" );
+			this.sourceNameManual = true;
 		},
 
 		onMultivariantDatasetChange: function( evt ) {
