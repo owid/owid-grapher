@@ -309,7 +309,7 @@
 		margin-right: 2px;
 		margin-top: 10px;
 
-		.map-color-scheme-icon, .map-color-scheme-value {
+		.map-color-scheme-icon, .map-color-scheme-value, .map-color-scheme-label {
 			float: left;
 		}
 		.map-color-scheme-icon {
@@ -319,10 +319,13 @@
 			border: 1px solid #d2d6de;
 		}
 		.map-color-scheme-value {
+			width: 30%;
+			margin-left: 10px;
+		}
+		.map-color-scheme-label {
 			width: 50%;
 			margin-left: 10px;
 		}
-
 	}
 
 	&.automatic-values {

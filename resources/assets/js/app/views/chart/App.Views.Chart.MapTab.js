@@ -205,8 +205,6 @@
 				customValues = (mapConfig.colorSchemeValues)? mapConfig.colorSchemeValues: false,
 				automaticValues = mapConfig.colorSchemeValuesAutomatic;
 
-			//
-
 			//use quantize, if we have numerica scale and not using automatic values, or if we're trying not to use automatic scale, but there no manually entered custom values
 			if( !ordinalScale && ( automaticValues || (!automaticValues && !customValues) ) ) {
 				//we have quantitave scale
@@ -257,6 +255,8 @@
 			var legendSize = ( mapConfig.legendStepSize )? mapConfig.legendStepSize: 20;
 			this.legend.stepSize( legendSize );
 
+			//custom values for labels?
+			this.legend.labels( mapConfig.colorSchemeLabels );
 
 			if( d3.select( ".legend-wrapper" ).empty() ) {
 				d3.select( ".datamap" ).append( "g" ).attr( "class", "legend-wrapper map-legend-wrapper" );

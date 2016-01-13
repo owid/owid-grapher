@@ -61,6 +61,7 @@
 				"timelineMode": "timeline",
 				"colorSchemeName": "BuGn",
 				"colorSchemeValues": false,
+				"colorSchemeLabels": [],
 				"colorSchemeValuesAutomatic": true,
 				"colorSchemeInterval": 5,
 				"colorSchemeMinValue": null,

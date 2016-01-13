@@ -46,6 +46,7 @@
 				} ),
 				colorSchemeInterval = mapConfig.colorSchemeInterval,
 				colorSchemeValues = mapConfig.colorSchemeValues,
+				colorSchemeLabels = mapConfig.colorSchemeLabels,
 				minimalColorSchemeValue = ( mapConfig.colorSchemeMinValue )? mapConfig.colorSchemeMinValue: "";
 
 			//minimal value option
@@ -54,8 +55,9 @@
 			for( var i = 0; i < colorSchemeInterval; i++ ) {
 				var key = colorSchemeKeys[ i ],
 					color = ( colorScheme[ key ] )? colorScheme[ key ]: "#fff",
-					value = ( colorSchemeValues && colorSchemeValues[ i ])? colorSchemeValues[ i ]: "";
-				html += "<li class='clearfix'><span class='map-color-scheme-icon' style='background-color:" + color + ";' data-color='" + color + "'></span><input class='map-color-scheme-value form-control' name='map-scheme[]' type='text' placeholder='Maximum value' value='" + value + "' /></li>";
+					value = ( colorSchemeValues && colorSchemeValues[ i ] )? colorSchemeValues[ i ]: "",
+					label = ( colorSchemeLabels && colorSchemeLabels[ i ] )? colorSchemeLabels[ i ]: "";
+				html += "<li class='clearfix'><span class='map-color-scheme-icon' style='background-color:" + color + ";' data-color='" + color + "'></span><input class='map-color-scheme-value form-control' name='map-scheme[]' type='text' placeholder='Maximum value' value='" + value + "' /><input class='map-color-scheme-label form-control' name='map-label[]' type='text' placeholder='Category label' value='" + label + "' /></li>";
 			}
 			this.$el.append( $( html ) );
 			
@@ -88,6 +90,11 @@
 				that.updateSchemeValues();
 			} );
 
+			this.$labelInputs = this.$el.find(".map-color-scheme-label");
+			this.$labelInputs.on( "change", function( evt ) {
+				that.updateSchemeLabels();
+			} );
+
 		},
 
 		updateColorScheme: function() {
@@ -116,6 +123,19 @@
 				}
 			} );
 			App.ChartModel.updateMapConfig( "colorSchemeValues", values );
+			
+		},
+
+		updateSchemeLabels: function() {
+			//update values
+			var values = [];
+			$.each( this.$labelInputs, function( i, d ) {
+				var inputValue = $( d ).val();
+				if( inputValue ) {
+					values.push( inputValue );
+				}
+			} );
+			App.ChartModel.updateMapConfig( "colorSchemeLabels", values );
 			
 		},
 

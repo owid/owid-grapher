@@ -13,6 +13,7 @@
 			legendOffsetY = 60,
 			stepGap = 2,
 			displayMinLabel = true,
+			labels = [], 
 			scale, minData, maxData, datamap, container, containerHeight, isOrdinalScale, descriptionHeight, g, gDesc;
 
 		var formatLegendLabel = function( valueArr, i, length ) {
@@ -85,8 +86,7 @@
 						.attr( "class", stepClass );
 				legendStepsEnter.append( "rect" );
 				legendStepsEnter.append( "line" );
-				legendStepsEnter.append( "text" )
-					.attr( "transform", function( d, i ) { return ( !isOrdinalScale )? "translate(-2,-5)": "translate(15,-5) rotate(270)"; } );
+				legendStepsEnter.append( "text" );
 
 				//update
 				legendSteps
@@ -101,10 +101,12 @@
 					.style( "fill", function( d, i ) {
 							return d;
 						} );
+				legendSteps.selectAll( "text" ).attr( "transform", function( d, i ) { var stepSizeX = stepSize/2 + 4; return ( !isOrdinalScale && !labels.length )? "translate(-2,-5)": "translate(" + stepSizeX + ",-5) rotate(270)"; } );
 
+				//is there custom labeling for 
 				var legendStepsTexts = legendSteps.select( "text" )
-					.html( function( d, i ) { return ( !isOrdinalScale )? formatLegendLabel( scale.invertExtent( d ), i, data.scheme.length ): formatOrdinalLegendLabel( i, scale ) ; } );
-
+							.html( function( d, i ) { return ( labels && labels[ i ] )? labels[ i ]: ( !isOrdinalScale )? formatLegendLabel( scale.invertExtent( d ), i, data.scheme.length ): formatOrdinalLegendLabel( i, scale ) ; } );
+				
 				//position last tspans
 				var legendStepsTspans = legendStepsTexts.selectAll( "tspan.last-label-tspan" ),
 					firstTspanLength = 0;
@@ -174,6 +176,13 @@
 				return displayMinLabel;
 			} else {
 				displayMinLabel = value;
+			}
+		};
+		legend.labels = function( value ) {
+			if( !arguments.length ) {
+				return labels;
+			} else {
+				labels = value;
 			}
 		};
 
