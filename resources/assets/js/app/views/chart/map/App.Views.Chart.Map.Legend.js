@@ -84,6 +84,7 @@
 					.append( "g" )
 						.attr( "class", stepClass );
 				legendStepsEnter.append( "rect" );
+				legendStepsEnter.append( "line" );
 				legendStepsEnter.append( "text" )
 					.attr( "transform", function( d, i ) { return ( !isOrdinalScale )? "translate(-2,-5)": "translate(15,-5) rotate(270)"; } );
 
@@ -93,6 +94,9 @@
 				legendSteps.selectAll( "rect" )
 					.attr( "width", stepSize + "px" )
 					.attr( "height", stepSize + "px" );
+				/*legendSteps.selectAll( "line" )
+					.attr( "x1", 0 ).attr( "y1", -5 )
+					.attr( "x2", 0 ).attr( "y2", stepSize+5 );*/
 				legendSteps.select( "rect" )
 					.style( "fill", function( d, i ) {
 							return d;

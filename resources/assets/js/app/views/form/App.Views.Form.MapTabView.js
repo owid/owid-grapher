@@ -63,7 +63,8 @@
 			this.$timeToleranceInput.val( mapConfig.timeTolerance );
 			this.$timeIntervalInput.val( mapConfig.timeInterval );
 			this.$legendDescription.val( mapConfig.legendDescription );
-			this.$legendStepSize.val( mapConfig.legendStepSize );
+			var legendStepSize = ( mapConfig.legendStepSize )? mapConfig.legendStepSize: 20;
+			this.$legendStepSize.val( legendStepSize );
 			
 			this.updateTargetYearSelect();
 			this.updateColorSchemeSelect();
