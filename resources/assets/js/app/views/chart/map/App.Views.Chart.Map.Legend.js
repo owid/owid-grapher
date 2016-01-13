@@ -12,6 +12,7 @@
 			legendOffsetX = 10,
 			legendOffsetY = 60,
 			stepGap = 2,
+			displayMinLabel = true,
 			scale, minData, maxData, datamap, container, containerHeight, isOrdinalScale, descriptionHeight, g, gDesc;
 
 		var formatLegendLabel = function( valueArr, i, length ) {
@@ -25,7 +26,10 @@
 						formattedNumber = d3.format( ".3r" )( d );
 					}
 				} else {
-					formattedNumber = ( minData )? minData: 0;
+					//see if we're suppose to display minimal value
+					if( displayMinLabel ) {
+						formattedNumber = ( minData )? minData: 0;
+					}
 				}
 				return formattedNumber;
 			} );
@@ -138,6 +142,13 @@
 				return maxData;
 			} else {
 				maxData = value;
+			}
+		};
+		legend.displayMinLabel = function( value ) {
+			if( !arguments.length ) {
+				return displayMinLabel;
+			} else {
+				displayMinLabel = value;
 			}
 		};
 

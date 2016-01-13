@@ -102,10 +102,8 @@
 		updateSchemeValues: function() {
 			//update minimal value
 			var $minValueInput = this.$inputs.eq( 0 );
-			if( $minValueInput.val() ) {
-				App.ChartModel.updateMapConfig( "colorSchemeMinValue", $minValueInput.val(), false );
-			}
-
+			App.ChartModel.updateMapConfig( "colorSchemeMinValue", $minValueInput.val(), false );
+			
 			//update values
 			var values = [];
 			$.each( this.$inputs, function( i, d ) {

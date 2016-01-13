@@ -245,6 +245,14 @@
 			this.legend.minData( mapMin );
 			this.legend.maxData( mapMax );
 
+			//see if we display minimal value in legend
+			if( mapConfig.colorSchemeMinValue || mapConfig.colorSchemeValuesAutomatic ) {
+				this.legend.displayMinLabel( true );
+			} else {
+				//lowest value isn't visible for not automatic scale with minimal value
+				this.legend.displayMinLabel( false );
+			}
+
 			if( d3.select( ".legend-wrapper" ).empty() ) {
 				d3.select( ".datamap" ).append( "g" ).attr( "class", "legend-wrapper map-legend-wrapper" );
 			}
