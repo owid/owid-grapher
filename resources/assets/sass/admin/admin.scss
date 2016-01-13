@@ -281,6 +281,12 @@ button > i {
 		background-image: none;
 	}
 
+	.map-legend-section {
+		label {
+			display: block;
+		}
+	}
+
 .axis-scale-selector-wrapper {
 	margin-top: 12px;
 }

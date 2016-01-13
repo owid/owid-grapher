@@ -253,6 +253,11 @@
 				this.legend.displayMinLabel( false );
 			}
 
+			//size of legend square
+			var legendSize = ( mapConfig.legendStepSize )? mapConfig.legendStepSize: 20;
+			this.legend.stepSize( legendSize );
+
+
 			if( d3.select( ".legend-wrapper" ).empty() ) {
 				d3.select( ".datamap" ).append( "g" ).attr( "class", "legend-wrapper map-legend-wrapper" );
 			}

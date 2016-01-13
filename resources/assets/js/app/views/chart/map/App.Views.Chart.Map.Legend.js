@@ -37,7 +37,7 @@
 				return valueArr[ 0 ];
 			} else {
 				//need to use tspan with preserve to have the whitespcae
-				return "<tspan xml:space='preserve'>" + valueArr.join( "   " ) + "</tspan>";
+				return "<tspan class='last-label-tspan'>" + valueArr[ 0 ] + "</tspan><tspan class='last-label-tspan'>" + valueArr[ 1 ] + "</tspan>";
 			}
 
 		};
@@ -83,22 +83,36 @@
 				var legendStepsEnter = legendSteps.enter()
 					.append( "g" )
 						.attr( "class", stepClass );
-				legendStepsEnter.append( "rect" )
-					.attr( "width", stepSize + "px" )
-					.attr( "height", stepSize + "px" );
+				legendStepsEnter.append( "rect" );
 				legendStepsEnter.append( "text" )
 					.attr( "transform", function( d, i ) { return ( !isOrdinalScale )? "translate(-2,-5)": "translate(15,-5) rotate(270)"; } );
 
 				//update
-				legendSteps.attr( "transform", function( d, i ) { var translateX = legendOffsetX + (i*(stepSize+stepGap)), translateY = 0; return "translate(" + translateX + "," + translateY + ")"; } );
+				legendSteps
+					.attr( "transform", function( d, i ) { var translateX = legendOffsetX + (i*(stepSize+stepGap)), translateY = 0; return "translate(" + translateX + "," + translateY + ")"; } );
+				legendSteps.selectAll( "rect" )
+					.attr( "width", stepSize + "px" )
+					.attr( "height", stepSize + "px" );
 				legendSteps.select( "rect" )
 					.style( "fill", function( d, i ) {
 							return d;
 						} );
 
-				legendSteps.select( "text" )
+				var legendStepsTexts = legendSteps.select( "text" )
 					.html( function( d, i ) { return ( !isOrdinalScale )? formatLegendLabel( scale.invertExtent( d ), i, data.scheme.length ): formatOrdinalLegendLabel( i, scale ) ; } );
 
+				//position last tspans
+				var legendStepsTspans = legendStepsTexts.selectAll( "tspan.last-label-tspan" ),
+					firstTspanLength = 0;
+				legendStepsTspans.each( function( d, i ) {
+					if( i === 0 ) {
+						firstTspanLength = this.getComputedTextLength();
+					} else {
+						var dx = stepSize - firstTspanLength;
+						d3.select( this ).attr( "dx", dx );
+					}
+				} );
+				
 				//exit
 				legendSteps.exit().remove();
 
@@ -123,6 +137,13 @@
 		legend.resize = resize;
 
 		//public methods
+		legend.stepSize = function( value ) {
+			if( !arguments.length ) {
+				return stepSize;
+			} else {
+				stepSize = parseInt( value, 10);
+			}
+		};
 		legend.scale = function( value ) {
 			if( !arguments.length ) {
 				return scale;

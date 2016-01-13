@@ -391,7 +391,7 @@
 					</section>
 				</div>
 				<div id="map-tab" class="tab-pane">
-					<section class="form-section tabs-section">
+					<section class="form-section map-variable-section">
 						<div class="form-section-header">
 							<h2><span class="form-section-digit">p</span>Which variable on map</h2>
 						</div>
@@ -400,7 +400,7 @@
 							<select>
 						</div>
 					</section>
-					<section class="form-section tabs-section">
+					<section class="form-section map-timeline-section">
 						<div class="form-section-header">
 							<h2><span class="form-section-digit">q</span>Timeline</h2>
 						</div>
@@ -426,7 +426,7 @@
 							</label>
 						</div>
 					</section>
-					<section class="form-section tabs-section">
+					<section class="form-section map-colors-section">
 						<div class="form-section-header">
 							<h2><span class="form-section-digit">r</span>Colors</h2>
 						</div>
@@ -448,7 +448,7 @@
 							</ul>
 						</div>
 					</section>
-					<section class="form-section tabs-section">
+					<section class="form-section map-regions-section">
 						<div class="form-section-header">
 							<h2><span class="form-section-digit">s</span>Displayed map section</h2>
 						</div>
@@ -459,13 +459,18 @@
 							</label>
 						</div>
 					</section>
-					<section class="form-section tabs-section">
+					<section class="form-section map-legend-section">
 						<div class="form-section-header">
-							<h2><span class="form-section-digit">t</span>Legend description</h2>
+							<h2><span class="form-section-digit">t</span>Legend</h2>
 						</div>
 						<div class="form-section-content">
 							<label>
+								Legend description:
 								<input type="text" name="map-legend-description" class="form-control" />
+							</label>
+							<label>
+								Legend square size:
+								<input type="number" name="map-legend-step-size" class="form-control" min="5" max="100" step="1" />
 							</label>
 						</div>
 					</section>
