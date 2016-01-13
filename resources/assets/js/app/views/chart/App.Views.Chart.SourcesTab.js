@@ -42,11 +42,7 @@
 					if( sourceIndex > 0 ) {
 						sourcesShortHtml += ", ";
 					}
-					if( sourceData.link ) {
-						sourcesShortHtml += "<a href='" + sourceData.link + "' target='_blank'>" + sourceData.name + "</a>";
-					} else {
-						sourcesShortHtml += sourceData.name;
-					}
+					sourcesShortHtml += "<a href='#'>" + sourceData.name + "</a>";
 					sourcesByName[ sourceData.name ] = true;
 				}
 				

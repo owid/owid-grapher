@@ -118,7 +118,7 @@ class Chart extends Model {
 						$hasData = false;
 						$value = 0;
 					}
-					$timeArr[ $otherDimension->property ] = $value;
+					$timeArr[ $otherDimension->property ] = $value[ "value" ];
 					
 				}
 
@@ -629,7 +629,7 @@ class Chart extends Model {
 
 			$defaultYear = 1960;
 			$time = ( isset( $dimension->targetYear ) )? $dimension->targetYear: $defaultYear;
-			
+
 			$value = Chart::getValue( $dimension, $time, $entityData[ "values" ][ $dimension->property ] );
 			if( Chart::hasValue( $value ) ) {
 				$timeArr[ $dimension->property ] = $value[ "value" ];
@@ -639,7 +639,7 @@ class Chart extends Model {
 				$hasData = false;
 			}
 			
-			$arr[ "values" ] = [ $value[ "value" ] ];
+			$arr[ "values" ] = ( $hasData )? [ $value[ "value" ] ]: [ false ];
 			if( $hasData ) {
 				$normalizedData[ $entityData[ "id" ] ] = $arr;
 			}
@@ -719,8 +719,8 @@ class Chart extends Model {
 				$targetYearMin = floatval( $targetYearArr[ 0 ] ); 
 				$targetYearMax = floatval( $targetYearArr[ 1 ] ); 
 			} else {
-				$targetYearMin = $time; 
-				$targetYearMax = $time; 
+				$targetYearMin = floatval( $time ); 
+				$targetYearMax = floatval( $time ); 
 			}
 
 			//does time of interest fall between interval
@@ -731,7 +731,7 @@ class Chart extends Model {
 
 		}
 		
-		return false;
+		return [ "value" => false, "time" => "" ];
 
 	}
 
