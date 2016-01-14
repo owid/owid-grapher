@@ -31,10 +31,9 @@
 					<section class="form-section">
 						<div class="form-section-header">
 							<h2><span class="form-section-digit">a</span>Name your chart.</h2>
-							<p class="form-section-desc">This will be shown as the title of the chart.</p>
-
 						</div>
 						<div class="form-section-content">
+							<p class="form-section-desc">This will be shown as the title of the chart.</p>
 							<input class="form-control input-lg .col-xs-12" placeholder="Chart name" type="text" name="chart-name" value=""/>
 						</div>
 					</section>
