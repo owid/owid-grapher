@@ -76,7 +76,7 @@
 					that.mapDataModel = new ChartDataModel();
 					that.mapDataModel.on( "sync", function( model, response ) {
 						if( response.data ) {
-							that.displayData( response.data );
+							that.displayData( response.data, response.variableName );
 						}
 					} );
 					that.mapDataModel.on( "error", function() {
@@ -160,7 +160,7 @@
 			return this;
 		},
 
-		displayData: function( data ) {
+		displayData: function( data, variableName ) {
 			
 			var that = this,
 				mapConfig = App.ChartModel.get( "map-config" ),
@@ -261,7 +261,7 @@
 			if( d3.select( ".legend-wrapper" ).empty() ) {
 				d3.select( ".datamap" ).append( "g" ).attr( "class", "legend-wrapper map-legend-wrapper" );
 			}
-			var legendData = { scheme: colorScheme, description: mapConfig.legendDescription };
+			var legendData = { scheme: colorScheme, description: ( mapConfig.legendDescription )? mapConfig.legendDescription: variableName };
 			d3.select( ".legend-wrapper" ).datum( legendData ).call( this.legend );
 			//d3.select( ".datamap" ).datum( colorScheme ).call( this.legend );
 

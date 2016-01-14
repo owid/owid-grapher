@@ -321,7 +321,10 @@ class DataController extends Controller {
 			foreach( $normalizedData as $entityData ) {
 				$data[] = $entityData;
 			}
-			$result = [ 'success' => true, 'data' => $data ];
+
+			//add dimension name
+			$variableName = Variable::find( $mainDimId )->name;
+			$result = [ 'success' => true, 'data' => $data, 'variableName' => $variableName ];
 			
 			return $result;
 		}
