@@ -146,10 +146,9 @@
 
 		update: function() {
 			
-			var mapConfig = App.ChartModel.get( "map-config" );
-
 			//construct dimension string
 			var that = this,
+				mapConfig = App.ChartModel.get( "map-config" ),
 				chartTime = App.ChartModel.get( "chart-time" ),
 				variableId = mapConfig.variableId,
 				targetYear = mapConfig.targetYear,
@@ -168,7 +167,7 @@
 
 			var dataProps = { "dimensions": dimensionsString, "chartId": App.ChartModel.get( "id" ), "chartType": chartType, "selectedCountries": selectedCountriesIds, "chartTime": chartTime, "cache": App.ChartModel.get( "cache" ), "groupByVariables": App.ChartModel.get( "group-by-variables" )  };
 			this.mapDataModel.fetch( { data: dataProps } );
-
+			
 			return this;
 		},
 
@@ -268,7 +267,7 @@
 			if( oldProjection === newProjection ) {
 				//projection stays the same, no need to redraw units
 				//need to set all units to default color first, cause updateChopleth just updates new data leaves the old data for units no longer in dataset
-				d3.selectAll( "path.datamaps-subunit" ).style( "fill", this.dataMap.options.fills.defaultFill );
+				d3.selectAll( "path.datamaps-subunit" ).transition().style( "fill", this.dataMap.options.fills.defaultFill );
 				this.dataMap.updateChoropleth( mapData );
 			} else {
 				//changing projection, need to remove existing units, redraw everything and after done drawing, update data
