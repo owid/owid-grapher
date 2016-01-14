@@ -19,7 +19,8 @@
 			"change [name='map-color-interval']": "onColorIntervalChange",
 			"change [name='map-projections']": "onProjectionChange",
 			"change [name='map-legend-description']": "onLegendDescriptionChange",
-			"change [name='map-legend-step-size']": "onLegendStepSizeChange"
+			"change [name='map-legend-step-size']": "onLegendStepSizeChange",
+			"change [name='map-legend-orientation']": "onLegendOrientationChange"
 		},
 
 		initialize: function( options ) {
@@ -42,6 +43,7 @@
 			this.$projectionsSelect = this.$el.find( "[name='map-projections']" );
 			this.$legendDescription = this.$el.find( "[name='map-legend-description']" );
 			this.$legendStepSize = this.$el.find( "[name='map-legend-step-size']" );
+			this.$legendOrientation = this.$el.find( "[name='map-legend-orientation']" );
 
 			this.colorSchemeView = new ColorSchemeView( options );
 
@@ -65,7 +67,9 @@
 			this.$legendDescription.val( mapConfig.legendDescription );
 			var legendStepSize = ( mapConfig.legendStepSize )? mapConfig.legendStepSize: 20;
 			this.$legendStepSize.val( legendStepSize );
-			
+			var legendOrientation = ( mapConfig.legendOrientation )? mapConfig.legendOrientation: "landscape";
+			this.$legendOrientation.val( legendOrientation );
+
 			this.updateTargetYearSelect();
 			this.updateColorSchemeSelect();
 			this.updateColorIntervalSelect();
@@ -308,6 +312,11 @@
 
 		onAvailableTimeChange: function( evt ) {
 			this.updateTargetYear( false );
+		},
+
+		onLegendOrientationChange: function( evt ) {
+			var $this = $( evt.target );
+			App.ChartModel.updateMapConfig( "legendOrientation", $this.val() );
 		},
 
 		onLegendDescriptionChange: function( evt ) {

@@ -225,6 +225,7 @@
 				colors = [],
 				mapMin = Infinity,
 				mapMax = -Infinity;
+
 			latestData.forEach( function( d, i ) {
 				var color = (ordinalScale)? colorScale( d.value ): colorScale( +d.value );
 				mapData[ d.key ] = { "key": d.key, "value": d.value, "color": color, "time": d.time };
@@ -233,37 +234,20 @@
 				mapMax = Math.max( mapMax, d.value );
 			} );
 
+			//create legend
+			this.legend = this.setupLegend();
 			this.legend.scale( colorScale );
-
 			//see if we have minimal value in map config
 			if( !isNaN( mapConfig.colorSchemeMinValue ) ) {
 				mapMin = mapConfig.colorSchemeMinValue;
 			}
-
 			this.legend.minData( mapMin );
 			this.legend.maxData( mapMax );
-
-			//see if we display minimal value in legend
-			if( mapConfig.colorSchemeMinValue || mapConfig.colorSchemeValuesAutomatic ) {
-				this.legend.displayMinLabel( true );
-			} else {
-				//lowest value isn't visible for not automatic scale with minimal value
-				this.legend.displayMinLabel( false );
-			}
-
-			//size of legend square
-			var legendSize = ( mapConfig.legendStepSize )? mapConfig.legendStepSize: 20;
-			this.legend.stepSize( legendSize );
-
-			//custom values for labels?
-			this.legend.labels( mapConfig.colorSchemeLabels );
-
 			if( d3.select( ".legend-wrapper" ).empty() ) {
 				d3.select( ".datamap" ).append( "g" ).attr( "class", "legend-wrapper map-legend-wrapper" );
 			}
 			var legendData = { scheme: colorScheme, description: ( mapConfig.legendDescription )? mapConfig.legendDescription: variableName };
 			d3.select( ".legend-wrapper" ).datum( legendData ).call( this.legend );
-			//d3.select( ".datamap" ).datum( colorScheme ).call( this.legend );
 
 			//update map
 			//are we changing projections?
@@ -284,6 +268,34 @@
 				};
 			}
 			
+		},
+
+		setupLegend: function() {
+			
+			var legend = ( !this.legend )? new Legend(): this.legend,
+				mapConfig = App.ChartModel.get( "map-config" );
+			
+			//see if we display minimal value in legend
+			if( mapConfig.colorSchemeMinValue || mapConfig.colorSchemeValuesAutomatic ) {
+				legend.displayMinLabel( true );
+			} else {
+				//lowest value isn't visible for not automatic scale with minimal value
+				legend.displayMinLabel( false );
+			}
+
+			//size of legend square
+			var legendSize = ( mapConfig.legendStepSize )? mapConfig.legendStepSize: 20;
+			legend.stepSize( legendSize );
+
+			//custom values for labels?
+			legend.labels( mapConfig.colorSchemeLabels );
+
+			//custom legend orientation
+			var legendOrientation = ( mapConfig.legendOrientation )? mapConfig.legendOrientation: "landscape";
+			legend.orientation( legendOrientation );
+
+			return legend;
+
 		},
 
 		getProjection: function( projectionName ) {

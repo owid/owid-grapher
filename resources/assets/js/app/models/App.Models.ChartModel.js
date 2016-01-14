@@ -69,6 +69,7 @@
 				"projection": "World",
 				"legendDescription": "",
 				"legendStepSize": 20,
+				"legendOrientation": "landscape",
 			}
 		},
 

@@ -465,6 +465,13 @@
 						</div>
 						<div class="form-section-content">
 							<label>
+								Legend orientation:
+								<select name="map-legend-orientation" class="form-control">
+									<option value="landscape">Landscape</option>
+									<option value="portrait">Portrait</option>
+								</select>
+							</label>
+							<label>
 								Legend description:
 								<input type="text" name="map-legend-description" class="form-control" />
 							</label>

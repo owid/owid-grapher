@@ -14,6 +14,7 @@
 			stepGap = 2,
 			displayMinLabel = true,
 			labels = [], 
+			orientation = "landscape",
 			scale, minData, maxData, datamap, container, containerHeight, isOrdinalScale, descriptionHeight, g, gDesc;
 
 		var formatLegendLabel = function( valueArr, i, length ) {
@@ -53,7 +54,10 @@
 				//refresh container height
 				containerHeight = datamap.node().getBoundingClientRect().height;
 				//position legend vertically
-				var legendY = containerHeight - legendOffsetY - stepSize - descriptionHeight;
+				var legendY = containerHeight - legendOffsetY - stepSize;
+				if( orientation === "landscape" ) {
+					legendY -= descriptionHeight;
+				}
 				container.attr( "transform", "translate(0," + legendY + ")" );
 			}
 		};
@@ -88,9 +92,16 @@
 				legendStepsEnter.append( "line" );
 				legendStepsEnter.append( "text" );
 
+				//vars for landscape
+				var maxDataIndex = data.scheme.length - 1,
+					legendStepsOffsetX = legendOffsetX;
+				if( orientation === "portrait" && data.description ) {
+					legendStepsOffsetX += 5;
+				}
+				
 				//update
 				legendSteps
-					.attr( "transform", function( d, i ) { var translateX = legendOffsetX + (i*(stepSize+stepGap)), translateY = 0; return "translate(" + translateX + "," + translateY + ")"; } );
+					.attr( "transform", function( d, i ) { var translateX = ( orientation === "landscape" )? legendStepsOffsetX + (i*(stepSize+stepGap)): legendStepsOffsetX, translateY = ( orientation === "landscape" )? 0: ( -( maxDataIndex - i ) * ( stepSize + stepGap ) ); return "translate(" + translateX + "," + translateY + ")"; } );
 				legendSteps.selectAll( "rect" )
 					.attr( "width", stepSize + "px" )
 					.attr( "height", stepSize + "px" );
@@ -101,7 +112,7 @@
 					.style( "fill", function( d, i ) {
 							return d;
 						} );
-				legendSteps.selectAll( "text" ).attr( "transform", function( d, i ) { var stepSizeX = stepSize/2 + 4; return ( !isOrdinalScale && !labels.length )? "translate(-2,-5)": "translate(" + stepSizeX + ",-5) rotate(270)"; } );
+				legendSteps.selectAll( "text" ).attr( "transform", function( d, i ) { var stepSizeX = stepSize/2 + 4; return ( orientation === "portrait" )? "translate(" + (stepSize+5) + "," + (stepSize/2+3) + ")": ( !isOrdinalScale && !labels.length )? "translate(-2,-5)": "translate(" + stepSizeX + ",-5) rotate(270)"; } );
 
 				//is there custom labeling for 
 				var legendStepsTexts = legendSteps.select( "text" )
@@ -129,7 +140,7 @@
 					.attr( "class", "legend-description" );
 				gDesc
 					.text( data.description );
-				gDesc.attr( "transform", function( d, i ) { var translateX = legendOffsetX, translateY = stepSize+descriptionHeight; return "translate(" + translateX + "," + translateY + ")"; } );
+				gDesc.attr( "transform", function( d, i ) { var translateX = legendOffsetX, translateY = ( orientation === "landscape" )? stepSize+descriptionHeight: stepSize; return ( orientation === "landscape" )? "translate(" + translateX + "," + translateY + ")": "translate(" + translateX + "," + translateY + ") rotate(270)"; } );
 
 				//position legend vertically
 				resize();
@@ -183,6 +194,13 @@
 				return labels;
 			} else {
 				labels = value;
+			}
+		};
+		legend.orientation = function( value ) {
+			if( !arguments.length ) {
+				return orientation;
+			} else {
+				orientation = value;
 			}
 		};
 
