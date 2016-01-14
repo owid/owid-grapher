@@ -87,12 +87,12 @@
 			//react to user entering custom values
 			this.$inputs = this.$el.find(".map-color-scheme-value");
 			this.$inputs.on( "change", function( evt ) {
-				that.updateSchemeValues();
+				that.updateSchemeValues( evt );
 			} );
 
 			this.$labelInputs = this.$el.find(".map-color-scheme-label");
 			this.$labelInputs.on( "change", function( evt ) {
-				that.updateSchemeLabels();
+				that.updateSchemeLabels( evt );
 			} );
 
 		},
@@ -106,23 +106,31 @@
 			App.ChartModel.updateMapConfig( "colorSchemeName", "custom" );
 		},
 
-		updateSchemeValues: function() {
-			//update minimal value
-			var $minValueInput = this.$inputs.eq( 0 );
-			App.ChartModel.updateMapConfig( "colorSchemeMinValue", $minValueInput.val(), false );
+		updateSchemeValues: function( evt ) {
 			
-			//update values
-			var values = [];
-			$.each( this.$inputs, function( i, d ) {
-				//first input is minimal value
-				if( i > 0 ) {
-					var inputValue = $( d ).val();
-					if( inputValue ) {
-						values.push( inputValue );
+			//updating minimal value?
+			var $minValueInput = this.$inputs.eq( 0 );
+			if( $minValueInput.get( 0 ) == evt.currentTarget ) {
+
+				App.ChartModel.updateMapConfig( "colorSchemeMinValue", $minValueInput.val() );
+				
+			} else {
+
+				//update values
+				var values = [];
+				$.each( this.$inputs, function( i, d ) {
+					//first input is minimal value
+					if( i > 0 ) {
+						var inputValue = $( d ).val();
+						if( inputValue ) {
+							values.push( inputValue );
+						}
 					}
-				}
-			} );
-			App.ChartModel.updateMapConfig( "colorSchemeValues", values );
+				} );
+			
+				App.ChartModel.updateMapConfig( "colorSchemeValues", values );
+
+			}
 			
 		},
 

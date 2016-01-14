@@ -193,6 +193,10 @@
 			if( !arguments.length ) {
 				return labels;
 			} else {
+				//set sensible default
+				if( !value ) {
+					value = [];
+				}
 				labels = value;
 			}
 		};
