@@ -11,10 +11,13 @@
 
 	App.Views.Chart.MapTab = Backbone.View.extend({
 
+		BORDERS_DISCLAIMER_TEXT: "Mapped on current borders",
+
 		$tab: null,
 		dataMap: null,
 		mapControls: null,
 		legend: null,
+		bordersDisclaimer: null,
 
 		events: {},
 
@@ -88,10 +91,19 @@
 
 			this.legend = new Legend();
 			
+			//border disclaimer - only displayed Add only for all maps displaying years 2011 and earlier 
+			if( mapConfig.minYear <= 2011 ) {
+				this.bordersDisclaimer = d3.select( ".border-disclaimer" );
+				if( this.bordersDisclaimer.empty() ) {
+					this.bordersDisclaimer = d3.select( ".datamap" ).append( "text" );
+					this.bordersDisclaimer.attr( "class", "border-disclaimer" ).text( this.BORDERS_DISCLAIMER_TEXT );
+				}
+			}
+			
 			App.ChartModel.on( "change", this.onChartModelChange, this );
 			App.ChartModel.on( "change-map", this.onChartModelChange, this );
 			App.ChartModel.on( "resize", this.onChartModelResize, this );
-			
+
 			//var lazyResize = _.debounce( $.proxy( this.onResize, this ), 250 );
 			//nv.utils.windowResize( lazyResize );
 			this.onResize();
@@ -267,7 +279,7 @@
 					that.dataMap.updateChoropleth( mapData );
 				};
 			}
-			
+
 		},
 
 		setupLegend: function() {
@@ -285,7 +297,7 @@
 
 			//size of legend square
 			var legendSize = ( mapConfig.legendStepSize )? mapConfig.legendStepSize: 20;
-			legend.stepSize( legendSize );
+			legend.stepSizeWidth( legendSize );
 
 			//custom values for labels?
 			legend.labels( mapConfig.colorSchemeLabels );
@@ -313,6 +325,7 @@
 					//translate
 					var wrapper = d3.select( ".datamap" ),
 						wrapperBoundingRect = wrapper.node().getBoundingClientRect(),
+						wrapperWidth = wrapperBoundingRect.right - wrapperBoundingRect.left,
 						wrapperHeight = wrapperBoundingRect.bottom - wrapperBoundingRect.top,
 						mapBoundingRect = map.node().getBoundingClientRect(),
 						mapHeight = mapBoundingRect.bottom - mapBoundingRect.top;
@@ -348,7 +361,13 @@
 					//stash value
 					this.mapOffsetY = mapOffsetY;
 					
-					
+					if( this.bordersDisclaimer && !this.bordersDisclaimer.empty() ) {
+						var bordersDisclaimerEl = this.bordersDisclaimer.node(),
+							bordersDisclaimerX = wrapperWidth - bordersDisclaimerEl.getComputedTextLength() - 10,
+							bordersDisclaimerY = wrapperHeight - 10;
+						this.bordersDisclaimer.attr( "transform", "translate(" + bordersDisclaimerX + "," + bordersDisclaimerY + ")" );
+					}
+
 				}
 
 			}

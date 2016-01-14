@@ -692,6 +692,13 @@ body {
 		}
 
 		/**
+		*	MAP BORDERS DISCLAIMER
+		**/
+		.border-disclaimer {
+			font-size: 9px;
+		}
+
+		/**
 		*	MAP TIMELINE CONTROL
 		**/
 		.map-timeline-controls {
@@ -937,7 +944,7 @@ body {
 
 	.chart-description-svg, .chart-sources-svg {
 		font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-		font-size: 11px;
+		font-size: 10.5px;
 		fill: #5d5d5d;
 	}
 	#chart-view {

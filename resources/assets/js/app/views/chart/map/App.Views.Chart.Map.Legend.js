@@ -7,7 +7,8 @@
 	App.Views.Chart.Map.Legend = function() {
 
 		//private
-		var stepSize = 20,
+		var stepSizeWidth = 20,
+			stepSizeHeight = 20,
 			stepClass = "legend-step",
 			legendOffsetX = 10,
 			legendOffsetY = 60,
@@ -54,7 +55,7 @@
 				//refresh container height
 				containerHeight = datamap.node().getBoundingClientRect().height;
 				//position legend vertically
-				var legendY = containerHeight - legendOffsetY - stepSize;
+				var legendY = containerHeight - legendOffsetY - stepSizeHeight;
 				if( orientation === "landscape" ) {
 					legendY -= descriptionHeight;
 				}
@@ -101,10 +102,10 @@
 				
 				//update
 				legendSteps
-					.attr( "transform", function( d, i ) { var translateX = ( orientation === "landscape" )? legendStepsOffsetX + (i*(stepSize+stepGap)): legendStepsOffsetX, translateY = ( orientation === "landscape" )? 0: ( -( maxDataIndex - i ) * ( stepSize + stepGap ) ); return "translate(" + translateX + "," + translateY + ")"; } );
+					.attr( "transform", function( d, i ) { var translateX = ( orientation === "landscape" )? legendStepsOffsetX + (i*(stepSizeWidth+stepGap)): legendStepsOffsetX, translateY = ( orientation === "landscape" )? 0: ( -( maxDataIndex - i ) * ( stepSizeHeight + stepGap ) ); return "translate(" + translateX + "," + translateY + ")"; } );
 				legendSteps.selectAll( "rect" )
-					.attr( "width", stepSize + "px" )
-					.attr( "height", stepSize + "px" );
+					.attr( "width", stepSizeWidth + "px" )
+					.attr( "height", stepSizeHeight + "px" );
 				/*legendSteps.selectAll( "line" )
 					.attr( "x1", 0 ).attr( "y1", -5 )
 					.attr( "x2", 0 ).attr( "y2", stepSize+5 );*/
@@ -112,11 +113,23 @@
 					.style( "fill", function( d, i ) {
 							return d;
 						} );
-				legendSteps.selectAll( "text" ).attr( "transform", function( d, i ) { var stepSizeX = stepSize/2 + 4; return ( orientation === "portrait" )? "translate(" + (stepSize+5) + "," + (stepSize/2+3) + ")": ( !isOrdinalScale && !labels.length )? "translate(-2,-5)": "translate(" + stepSizeX + ",-5) rotate(270)"; } );
-
+				
 				//is there custom labeling for 
 				var legendStepsTexts = legendSteps.select( "text" )
-							.html( function( d, i ) { return ( labels && labels[ i ] )? labels[ i ]: ( !isOrdinalScale )? formatLegendLabel( scale.invertExtent( d ), i, data.scheme.length ): formatOrdinalLegendLabel( i, scale ) ; } );
+							.attr( "transform", function( d, i ) {
+								var stepSizeX = stepSizeWidth/2 + 4;
+								return ( orientation === "portrait" )?
+											"translate(" + (stepSizeWidth+5) + "," + (stepSizeHeight/2+3) + ")":
+										( !isOrdinalScale && ( !labels.length || !labels[i] ) )?
+												"translate(-2,-5)":
+												"translate(" + stepSizeX + ",-5) rotate(270)";
+											} )
+							.html( function( d, i ) {
+								return ( labels && labels[ i ] )? labels[ i ]:
+								( !isOrdinalScale )?
+									formatLegendLabel( scale.invertExtent( d ), i, data.scheme.length ):
+									formatOrdinalLegendLabel( i, scale );
+							} );
 				
 				//position last tspans
 				var legendStepsTspans = legendStepsTexts.selectAll( "tspan.last-label-tspan" ),
@@ -125,7 +138,7 @@
 					if( i === 0 ) {
 						firstTspanLength = this.getComputedTextLength();
 					} else {
-						var dx = stepSize - firstTspanLength;
+						var dx = stepSizeWidth - firstTspanLength;
 						d3.select( this ).attr( "dx", dx );
 					}
 				} );
@@ -140,7 +153,7 @@
 					.attr( "class", "legend-description" );
 				gDesc
 					.text( data.description );
-				gDesc.attr( "transform", function( d, i ) { var translateX = legendOffsetX, translateY = ( orientation === "landscape" )? stepSize+descriptionHeight: stepSize; return ( orientation === "landscape" )? "translate(" + translateX + "," + translateY + ")": "translate(" + translateX + "," + translateY + ") rotate(270)"; } );
+				gDesc.attr( "transform", function( d, i ) { var translateX = legendOffsetX, translateY = ( orientation === "landscape" )? stepSizeHeight+descriptionHeight: stepSizeHeight; return ( orientation === "landscape" )? "translate(" + translateX + "," + translateY + ")": "translate(" + translateX + "," + translateY + ") rotate(270)"; } );
 
 				//position legend vertically
 				resize();
@@ -154,11 +167,11 @@
 		legend.resize = resize;
 
 		//public methods
-		legend.stepSize = function( value ) {
+		legend.stepSizeWidth = function( value ) {
 			if( !arguments.length ) {
-				return stepSize;
+				return stepSizeWidth;
 			} else {
-				stepSize = parseInt( value, 10);
+				stepSizeWidth = parseInt( value, 10);
 			}
 		};
 		legend.scale = function( value ) {
