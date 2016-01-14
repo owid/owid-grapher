@@ -47,7 +47,7 @@
 			
 			this.$sliderInput.attr( "min", mapConfig.minYear );
 			this.$sliderInput.attr( "max", mapConfig.maxYear );
-			this.$sliderInput.attr( "step", mapConfig.timeInterval );
+			//this.$sliderInput.attr( "step", mapConfig.timeInterval );
 			
 			this.updateSliderInput( mapConfig.targetYear );
 			
@@ -110,8 +110,9 @@
 
 		onIncrementTime: function( evt ) {
 
-			var nowValue = parseInt( this.$sliderInput.val(), 10 ),
-				step = parseInt( this.$sliderInput.attr( "step" ), 10 ),
+			var mapConfig = App.ChartModel.get( "map-config" ),
+				nowValue = parseInt( this.$sliderInput.val(), 10 ),
+				step = parseInt( mapConfig.timeInterval, 10 ),
 				newValue = nowValue + step,
 				max = parseInt( this.$sliderInput.attr( "max" ), 10 );
 
@@ -123,6 +124,7 @@
 				newValue = max;
 				this.dispatcher.trigger( "max-increment-time" );
 			}
+			
 			this.$sliderInput.val( newValue );
 			this.$sliderInput.trigger( "change" );
 
@@ -135,7 +137,8 @@
 				return;
 			}
 
-			var step = parseInt( $input.attr( "step" ), 10 ),
+			var mapConfig = App.ChartModel.get( "map-config" ),
+				step = parseInt( mapConfig.timeInterval, 10 ),
 				max = parseInt( $input.attr( "max" ), 10 ),
 				min = parseInt( $input.attr( "min" ), 10 ),
 				numSteps = Math.floor( ( max - min ) / step ),
