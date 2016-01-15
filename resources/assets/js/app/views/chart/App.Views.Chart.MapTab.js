@@ -175,7 +175,7 @@
 			
 			var that = this,
 				mapConfig = App.ChartModel.get( "map-config" ),
-				ordinalScale = false,
+				categoricalScale = false,
 				keysArr =[],
 				dataMin = Infinity,
 				dataMax = -Infinity;
@@ -192,7 +192,7 @@
 
 				//is some of the values is not number, consider this qualitative variable and use scale
 				if( isNaN( latestTimeValue ) ) {
-					ordinalScale = true;
+					categoricalScale = true;
 				}
 				keysArr[ latestTimeValue ] = true;
 
@@ -215,13 +215,13 @@
 				//do we have custom values for intervals
 				customValues = (mapConfig.colorSchemeValues)? mapConfig.colorSchemeValues: false,
 				automaticValues = mapConfig.colorSchemeValuesAutomatic;
-
+			
 			//use quantize, if we have numerica scale and not using automatic values, or if we're trying not to use automatic scale, but there no manually entered custom values
-			if( !ordinalScale && ( automaticValues || (!automaticValues && !customValues) ) ) {
+			if( !categoricalScale && ( automaticValues || (!automaticValues && !customValues) ) ) {
 				//we have quantitave scale
 				colorScale = d3.scale.quantize()
 					.domain( [ dataMin, dataMax ] );
-			} else if( customValues && !automaticValues ) {
+			} else if( !categoricalScale && customValues && !automaticValues ) {
 				//create threshold scale which divides data into buckets based on values provided 
 				colorScale = d3.scale.equal_threshold()
 					.domain( customValues );
@@ -238,7 +238,7 @@
 				mapMax = -Infinity;
 
 			latestData.forEach( function( d, i ) {
-				var color = (ordinalScale)? colorScale( d.value ): colorScale( +d.value );
+				var color = (categoricalScale)? colorScale( d.value ): colorScale( +d.value );
 				mapData[ d.key ] = { "key": d.key, "value": d.value, "color": color, "time": d.time };
 				colors.push( color );
 				mapMin = Math.min( mapMin, d.value );

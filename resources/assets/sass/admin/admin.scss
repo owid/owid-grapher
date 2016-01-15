@@ -367,6 +367,7 @@ button > i {
 	left: 45px;
 }
 	.popup-picker-wrapper ul {
+		margin-top: 10px;
 		padding-left: 0px;
 	}
 	.popup-picker-wrapper li {
@@ -378,6 +379,13 @@ button > i {
 		.popup-picker-wrapper li:hover {
 			border: 1px solid white;
 		}
+	.popup-picker-wrapper .close-btn {
+		position: absolute;
+		right: 0;
+		top: 0;
+		color: #ffffff;
+	}
+
 	.popup-picker-wrapper::before {
 		position: absolute;
 		top: 10px;
