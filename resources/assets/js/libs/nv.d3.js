@@ -6124,7 +6124,6 @@ nv.models.lineChart = function() {
                 container.selectAll('.nv-noData').remove();
             }
 
-
             // Setup Scales
             x = lines.xScale();
             y = lines.yScale();
