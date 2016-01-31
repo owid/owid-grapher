@@ -21,27 +21,44 @@ With the *OurWorldInData-Grapher* you can create the following visualisations:
 The *OurWorldInData-Grapher* enables you to upload csv data to a central SQL database and then to pull this data from the SQL database to create interactive charts in a drag&drop interface.
 
 ## STACK
+
 The backend is written in PHP using the Laravel Framework. The frontend is written using Backbone.js and [NVD3.js](http://nvd3.org/).
-	
-## SETUP
-1. make sure you have Apache and MySQL database setup in your machine 	
-2. use database dump from _data/ to create your database  
-3. open .env file and fill in lines 5-8 with your database info
-4. 
+
+## INITIAL SETUP
+
+You will need: [MySQL](https://www.mysql.com/), [PHP 5.5.9+](http://php.net/downloads.php), [Composer](https://getcomposer.org/), and [NPM](https://nodejs.org/en/download/). The [Laravel Homestead](https://laravel.com/docs/4.2/homestead) vagrant box comes with these installed.
+
+Running `composer install` and `npm install` in the repo root will grab the remaining dependencies. You may wish to install [gulp](https://github.com/gulpjs/gulp/blob/master/docs/getting-started.md) globally using `npm install -g` so that it ends up on your PATH.
+
+Once you have `gulp`, run it in the repo to generate public asset files.
+
+## DATABASE SETUP
+
+The inital database schema can be imported from `_data/db.sql`. For example, if your database is called `forge`:
+
+`mysql -u root -p -D forge  < _data/db.sql`
+
+Copy `.env.example` to `.env` and fill in lines 5-8 with your database details.
+
+Run `php artisan serve` and head to `localhost:8000`. If everything is going to plan, you should see a login screen! If not, error logs can be found in `storage/logs`.
+
+## USER SETUP
+
+The default test user is `test@email.com`. You can reset the password for this user by configuring `.env` to work with [mailtrap.io](https://mailtrap.io/), so that all local emails end up there.
 
 ## COMPONENTS
 The entire tool can be divided into four main modules and here’s a very brief description what is going on in each one of them.
 
-1. Chart viewer module 
+1. Chart viewer module
 Tool uses NVD3 to create charts from data stored in database. For each chart, we store json configuration which determines which datasets are used for different dimensions of chart (e.g. X axis, Y axis) together with other chart settings (labels, selected countries, period etc.).
 JSON configuration is loaded by [Backbone model](public/js/app/models/App.Models.ChartModel.js) which calls backend to retrieve data necessary for given chart.
 AJAX request from ChartModel is passed to [DataController](app/Http/Controllers/DataController.php) which contains logic for composing response with data for charts. In most cases, DataController calls one the data processing methods of the [Chart model] (app/Chart.php), which correctly formats data for different chart types.
-Once response is received, ChartModel passes data to [ChartView](public/js/app/views/App.Views.ChartView.js) which takes care of actually creating NVD3 chart with all the necessary configuration from JSON configuration. 
+Once response is received, ChartModel passes data to [ChartView](public/js/app/views/App.Views.ChartView.js) which takes care of actually creating NVD3 chart with all the necessary configuration from JSON configuration.
 
 2. Chart builder module
 Form for creating new chart is accessible at: public/charts/create
 Form dynamically creates charts by assigning properties of [Backbone model](public/js/app/models/App.Models.ChartModel.js)
-Most of the logic is contained in [FormView.js](public/js/app/views/App.Views.FormView.js) and Backbone views stored in public/js/app/views/form folder.		
+Most of the logic is contained in [FormView.js](public/js/app/views/App.Views.FormView.js) and Backbone views stored in public/js/app/views/form folder.
 
 3. Import module
 Import module is accessible at: public/import
