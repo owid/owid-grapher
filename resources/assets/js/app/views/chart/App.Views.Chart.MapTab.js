@@ -1,5 +1,5 @@
 ;( function() {
-	
+
 	"use strict";
 
 	var App = require( "./../../namespaces.js" ),
@@ -22,7 +22,7 @@
 		events: {},
 
 		initialize: function( options ) {
-			
+
 			this.dispatcher = options.dispatcher;
 			this.mapControls = new MapControls( { dispatcher: options.dispatcher } );
 			this.timelineControls = new TimelineControls( { dispatcher: options.dispatcher } );
@@ -46,14 +46,14 @@
 		},
 
 		render: function() {
-			
+
 			var that = this;
 			//fetch created dom
 			this.$tab = $( "#map-chart-tab" );
 
 			var mapConfig = App.ChartModel.get( "map-config" ),
 				defaultProjection = this.getProjection( mapConfig.projection );
-			
+
 			this.dataMap = new Datamap( {
 				width: that.$tab.width(),
 				height: that.$tab.height(),
@@ -90,8 +90,8 @@
 			} );
 
 			this.legend = new Legend();
-			
-			//border disclaimer - only displayed Add only for all maps displaying years 2011 and earlier 
+
+			//border disclaimer - only displayed Add only for all maps displaying years 2011 and earlier
 			if( mapConfig.minYear <= 2011 ) {
 				this.bordersDisclaimer = d3.select( ".border-disclaimer" );
 				if( this.bordersDisclaimer.empty() ) {
@@ -99,7 +99,7 @@
 					this.bordersDisclaimer.attr( "class", "border-disclaimer" ).text( this.BORDERS_DISCLAIMER_TEXT );
 				}
 			}
-			
+
 			App.ChartModel.on( "change", this.onChartModelChange, this );
 			App.ChartModel.on( "change-map", this.onChartModelChange, this );
 			App.ChartModel.on( "resize", this.onChartModelResize, this );
@@ -145,7 +145,7 @@
 		},
 
 		update: function() {
-			
+
 			//construct dimension string
 			var that = this,
 				mapConfig = App.ChartModel.get( "map-config" ),
@@ -161,18 +161,18 @@
 				//display all countries on the map
 				selectedCountriesIds = [];
 				//selectedCountriesIds = _.map( selectedCountries, function( v ) { return (v)? +v.id: ""; } );
-			
+
 			this.mapControls.render();
 			this.timelineControls.render();
 
 			var dataProps = { "dimensions": dimensionsString, "chartId": App.ChartModel.get( "id" ), "chartType": chartType, "selectedCountries": selectedCountriesIds, "chartTime": chartTime, "cache": App.ChartModel.get( "cache" ), "groupByVariables": App.ChartModel.get( "group-by-variables" )  };
 			this.mapDataModel.fetch( { data: dataProps } );
-			
+
 			return this;
 		},
 
 		displayData: function( data, variableName ) {
-			
+
 			var that = this,
 				mapConfig = App.ChartModel.get( "map-config" ),
 				categoricalScale = false,
@@ -196,8 +196,8 @@
 				}
 				keysArr[ latestTimeValue ] = true;
 
-				//ids in world json are name countries with underscore (datamaps.js uses id for selector, so cannot have whitespace), also cover Cote d'Ivoire, Saint Martin (French_part) cases, also get rid of ampersands
-				var key = d.key.replace( /[ '&:\(\)]/g, "_" );
+				//ids in world json are name countries with underscore (datamaps.js uses id for selector, so cannot have whitespace), also cover Cote d'Ivoire, Saint Martin (French_part) cases, also get rid of ampersands, and slash
+				var key = d.key.replace( /[ '&:\(\)\/]/g, "_" );
 				return { "key": key, "value": latestTimeValue, "time": d.time };
 
 			} );
@@ -215,22 +215,25 @@
 				//do we have custom values for intervals
 				customValues = (mapConfig.colorSchemeValues)? mapConfig.colorSchemeValues: false,
 				automaticValues = mapConfig.colorSchemeValuesAutomatic;
-			
+
 			//use quantize, if we have numerica scale and not using automatic values, or if we're trying not to use automatic scale, but there no manually entered custom values
 			if( !categoricalScale && ( automaticValues || (!automaticValues && !customValues) ) ) {
 				//we have quantitave scale
 				colorScale = d3.scale.quantize()
 					.domain( [ dataMin, dataMax ] );
 			} else if( !categoricalScale && customValues && !automaticValues ) {
-				//create threshold scale which divides data into buckets based on values provided 
+				//create threshold scale which divides data into buckets based on values provided
 				colorScale = d3.scale.equal_threshold()
 					.domain( customValues );
 			} else {
+				var keys = _.keys( keysArr );
+				keys = keys.sort();
 				colorScale = d3.scale.ordinal()
 					.domain( _.keys( keysArr ) );
+				console.log( "keys", keys );
 			}
 			colorScale.range( colorScheme );
-			
+
 			//need to encode colors properties
 			var mapData = {},
 				colors = [],
@@ -240,6 +243,7 @@
 			latestData.forEach( function( d, i ) {
 				var color = (categoricalScale)? colorScale( d.value ): colorScale( +d.value );
 				mapData[ d.key ] = { "key": d.key, "value": d.value, "color": color, "time": d.time };
+				console.log( "d.key", d.key, d.value, color );
 				colors.push( color );
 				mapMin = Math.min( mapMin, d.value );
 				mapMax = Math.max( mapMax, d.value );
@@ -282,10 +286,10 @@
 		},
 
 		setupLegend: function() {
-			
+
 			var legend = ( !this.legend )? new Legend(): this.legend,
 				mapConfig = App.ChartModel.get( "map-config" );
-			
+
 			//see if we display minimal value in legend
 			if( mapConfig.colorSchemeMinValue || mapConfig.colorSchemeValuesAutomatic ) {
 				legend.displayMinLabel( true );
@@ -328,8 +332,8 @@
 						wrapperHeight = wrapperBoundingRect.bottom - wrapperBoundingRect.top,
 						mapBoundingRect = map.node().getBoundingClientRect(),
 						mapHeight = mapBoundingRect.bottom - mapBoundingRect.top;
-					
-					//compensate for possible 
+
+					//compensate for possible
 					var timelineControls = d3.select( ".map-timeline-controls" );
 					if( !timelineControls.empty() ) {
 						var controlsBoundingRect = timelineControls.node().getBoundingClientRect(),
@@ -342,7 +346,7 @@
 						currMapOffsetY = mapBoundingRect.top - wrapperBoundingRect.top;
 
 					mapOffsetY -= currMapOffsetY;
-					
+
 					//scaling
 					var options = this.dataMap.options,
 						prefix = "-webkit-transform" in document.body.style ? "-webkit-" : "-moz-transform" in document.body.style ? "-moz-" : "-ms-transform" in document.body.style ? "-ms-" : "",
@@ -354,12 +358,12 @@
 					if( this.mapOffsetY ) {
 						mapOffsetY += this.mapOffsetY;
 					}
-					
+
 					map.style(prefix + "transform", "scale(" + scale + ") translate(0," + mapOffsetY + "px)" );
 
 					//stash value
 					this.mapOffsetY = mapOffsetY;
-					
+
 					if( this.bordersDisclaimer && !this.bordersDisclaimer.empty() ) {
 						var bordersDisclaimerEl = this.bordersDisclaimer.node(),
 							bordersDisclaimerX = wrapperWidth - bordersDisclaimerEl.getComputedTextLength() - 10,
@@ -370,7 +374,7 @@
 				}
 
 			}
-			
+
 			if( this.legend ) {
 				this.legend.resize();
 			}
@@ -380,7 +384,7 @@
 		onChartModelResize: function() {
 			this.onResize();
 		}
-	
+
 	});
 
 	module.exports = App.Views.Chart.MapTab;
@@ -405,7 +409,7 @@
 		return x > 0 ? Math.sqrt(x) : 0;
 	}
 	var projection = d3.geo.projection;
- 
+
 	function eckert3(λ, φ) {
 		var k = Math.sqrt(π * (4 + π));
 		return [ 2 / k * λ * (1 + Math.sqrt(1 - 4 * φ * φ / (π * π))), 4 / k * φ ];
@@ -417,7 +421,7 @@
 	(d3.geo.eckert3 = function() {
 		return projection(eckert3);
 	}).raw = eckert3;
-	
+
 })();
 
 //custom implementation of d3_treshold which uses greaterThan (by using bisectorLeft instead of bisectorRight)
