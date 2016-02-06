@@ -12,7 +12,7 @@
 /public/css/*
 /public/uploads/*
 .env
-.env-localhost
-.env-bluehost
+.env.localhost
+.env.bluehost
 .htaccess
 vendor/compiled.php
