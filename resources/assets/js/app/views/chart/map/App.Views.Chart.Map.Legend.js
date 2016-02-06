@@ -16,7 +16,7 @@
 			displayMinLabel = true,
 			labels = [], 
 			orientation = "landscape",
-			scale, minData, maxData, datamap, container, containerHeight, isOrdinalScale, descriptionHeight, g, gDesc;
+			scale, minData, maxData, datamap, container, containerHeight, isCategoricalScale, descriptionHeight, g, gDesc;
 
 		var formatLegendLabel = function( valueArr, i, length ) {
 			
@@ -45,7 +45,7 @@
 
 		};
 
-		var formatOrdinalLegendLabel = function( i, scale ) {
+		var formatCategoricalLegendLabel = function( i, scale ) {
 			return scale.domain()[ i ];
 		};
 
@@ -69,7 +69,7 @@
 				
 				datamap = d3.select( ".datamap" );
 				container = d3.select( this );
-				isOrdinalScale = ( !scale || !scale.hasOwnProperty( "invertExtent" ) )? true: false;
+				isCategoricalScale = ( !scale || !scale.hasOwnProperty( "invertExtent" ) )? true: false;
 				descriptionHeight = ( data.description && data.description.length )? 12: 0;
 				g = container.select( ".legend" );
 
@@ -118,28 +118,54 @@
 				var legendStepsTexts = legendSteps.select( "text" )
 							.attr( "transform", function( d, i ) {
 								var stepSizeX = stepSizeWidth/2 + 4;
-								return ( orientation === "portrait" )?
-											"translate(" + (stepSizeWidth+5) + "," + (stepSizeHeight/2+3) + ")":
-										( !isOrdinalScale && ( !labels.length || !labels[i] ) )?
-												"translate(-2,-5)":
-												"translate(" + stepSizeX + ",-5) rotate(270)";
-											} )
+
+								if ( orientation === "portrait" ) {
+									//translate for portrait
+									if( isCategoricalScale || ( labels.length && labels[i] ) ) {
+										return "translate(" + (stepSizeWidth+5) + "," + (stepSizeHeight/2+3) + ")";
+									} else {
+										return "translate(" + (stepSizeWidth+5) + "," + (2) + ")";
+									}
+								} else {
+									//translate for landscape
+									if( !isCategoricalScale && ( !labels.length || !labels[i] ) ) {
+										return "translate(-2,-5)";
+									} else {
+										return "translate(" + stepSizeX + ",-5) rotate(270)";
+									}
+								}
+							} )
 							.html( function( d, i ) {
 								return ( labels && labels[ i ] )? labels[ i ]:
-								( !isOrdinalScale )?
+								( !isCategoricalScale )?
 									formatLegendLabel( scale.invertExtent( d ), i, data.scheme.length ):
-									formatOrdinalLegendLabel( i, scale );
+									formatCategoricalLegendLabel( i, scale );
 							} );
 				
 				//position last tspans
 				var legendStepsTspans = legendStepsTexts.selectAll( "tspan.last-label-tspan" ),
 					firstTspanLength = 0;
 				legendStepsTspans.each( function( d, i ) {
-					if( i === 0 ) {
-						firstTspanLength = this.getComputedTextLength();
+					
+					var dx, dy;
+
+					if ( orientation === "landscape" ) {
+						if( i === 0 ) {
+							firstTspanLength = this.getComputedTextLength();
+						} else {
+							dx = stepSizeWidth - firstTspanLength;
+							dy = 0; //need to reset possible previous offset
+							d3.select( this ).attr( { "dx": dx, "dy": dy } );
+						}
 					} else {
-						var dx = stepSizeWidth - firstTspanLength;
-						d3.select( this ).attr( "dx", dx );
+						//portrait 
+						if( i === 0 ) {
+							firstTspanLength = this.getComputedTextLength();
+						} else if( i === 1 ) {
+							dx = -firstTspanLength; //need to reset possible previous offset
+							dy = stepSizeHeight;
+							d3.select( this ).attr( { "dx": dx, "dy": dy } );
+						}
 					}
 				} );
 				
