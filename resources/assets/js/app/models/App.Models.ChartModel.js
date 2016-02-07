@@ -207,7 +207,7 @@
 				
 				//if changing colorschem interval and custom colorscheme is used, update it
 				if( propName === "colorSchemeInterval" && mapConfig.colorSchemeName === "custom" ) {
-					mapConfig.customColorScheme = mapConfig.customColorScheme.slice( 0, propValue - 1 );
+					mapConfig.customColorScheme = mapConfig.customColorScheme.slice( 0, propValue );
 				}
 
 				mapConfig[ propName ] = propValue;
