@@ -47,7 +47,7 @@
 			
 			this.$sliderInput.attr( "min", mapConfig.minYear );
 			this.$sliderInput.attr( "max", mapConfig.maxYear );
-			//this.$sliderInput.attr( "step", mapConfig.timeInterval );
+			//this.$sliderInput.attr( "step", mapConfig.timeInterval ); // had to disable this because wouldn't allow to chose starting and ending year outside of steo
 			
 			this.updateSliderInput( mapConfig.targetYear );
 			
@@ -67,11 +67,10 @@
 				min = parseInt( this.$sliderInput.attr( "min" ), 10 ),
 				max = parseInt( this.$sliderInput.attr( "max" ), 10 ),
 				newPoint = ( intTime - min ) / ( max - min );
-
+			
 			this.$sliderLabel.text( time );
 			this.$slider.css( "left", this.$sliderWrapper.width()*newPoint );
 			this.$sliderInput.val( intTime );
-
 			if( intTime === min || intTime === max ) {
 				this.$sliderLabel.hide();
 				this.$sliderInput.removeClass( "thumb-label" );
@@ -98,12 +97,44 @@
 		onTargetYearInput: function( evt ) {
 			var $this = $( evt.target ),
 				targetYear = parseInt( $this.val(), 10 );
+
+			//make sure target year is withing allowed interval (e.g. if we start 1980 with interval 5, you shouldn't be allowed to select 1982)
+			//needs to be in place because had to disable step on the timeline control
+			var mapConfig = App.ChartModel.get( "map-config" ),
+				diffFromMinYear = targetYear - mapConfig.minYear,
+				//let's see if we're off the chosen gap
+				yearsOutsideOfStep = diffFromMinYear % mapConfig.timeInterval,
+				//need flag to fire change event if manually adjusting value
+				manualAdjustment = false;
+
+			if( yearsOutsideOfStep ) {
+				//we're off, so we have to snap the value to closest value
+				if( yearsOutsideOfStep > mapConfig.timeInterval/2 ) {
+					//we're closer to the higher value, snap to it
+					targetYear += mapConfig.timeInterval - yearsOutsideOfStep;
+				} else {
+					//we're close to the lower value, snap to it
+					targetYear -= yearsOutsideOfStep;
+				}
+				//make sure we don't somehow go over bounds
+				targetYear = Math.min( targetYear, mapConfig.maxYear );
+				targetYear = Math.max( targetYear, mapConfig.minYear );
+
+				//set flag
+				manualAdjustment = true;
+			}
+
 			this.updateSliderInput( targetYear );
+		
+			if( manualAdjustment ) {
+				this.$sliderInput.trigger("change");
+			}
 		},
 
 		onTargetYearChange: function( evt ) {
 			var $this = $( evt.target ),
 				targetYear = parseInt( $this.val(), 10 );
+			
 			App.ChartModel.updateMapConfig( "targetYear", targetYear, false, "change-map" );
 			this.render();
 		},
