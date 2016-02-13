@@ -193,10 +193,10 @@ Route::group( [ 'before' => 'auth.domain' ], function() {
 
 Route::filter( 'auth.domain', function( $route, $request ) {
 
-	$allowedDomains = [ 'localhost:8888', 'ourworldindata.org' ];
+	$allowedDomains = [ 'ourworldindata.org' ];
 	$requestDomain = $request->header('Host');
 
-	if( !in_array( $requestDomain, $allowedDomains ) ) {
+	if(!Config::get('app.debug') && !in_array( $requestDomain, $allowedDomains ) ) {
 		//request not coming from one of the allowed domains
 		App::abort(401, 'Request allowed only from certain hosts.');
 	}
