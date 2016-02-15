@@ -1,5 +1,5 @@
 ;( function() {
-	
+
 	"use strict";
 
 	var App = require( "./../../namespaces.js" );
@@ -8,20 +8,19 @@
 
 		el: "#form-view #axis-tab",
 		events: {
-			"change input.form-control, select.form-control": "onFormControlChange",
+			"change select.form-control": "onFormControlChange",
+			"input input.form-control": "onFormControlChangeDebounced",
 			"change [name='x-axis-scale-selector']": "onXaxisScaleSelector",
 			"change [name='y-axis-scale-selector']": "onYaxisScaleSelector"
 		},
 
 		initialize: function( options ) {
-			
 			this.dispatcher = options.dispatcher;
+			this.onFormControlChangeDebounced = _.debounce( this.onFormControlChange, 250 );
 			this.render();
-
 		},
 
 		render: function() {
-
 			//setup initial values
 			var that = this,
 				chartXaxis = App.ChartModel.get( "x-axis" ),
@@ -39,12 +38,9 @@
 
 			$xAxisScaleSelector.prop( "checked", App.ChartModel.get( "x-axis-scale-selector" ) );
 			$yAxisScaleSelector.prop( "checked", App.ChartModel.get( "y-axis-scale-selector" ) );
-			
-
 		},
 
 		onFormControlChange: function( evt ) {
-
 			var $control = $( evt.currentTarget ),
 				controlName = $control.attr( "name" ),
 				controlValue = $control.val(),
@@ -69,7 +65,7 @@
 
 
 	});
-	
+
 	module.exports = App.Views.Form.AxisTabView;
 
 })();
