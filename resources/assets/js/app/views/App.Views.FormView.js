@@ -89,7 +89,7 @@
 			//fetch doms
 			this.$removeUploadedFileBtn = this.$el.find( ".remove-uploaded-file-btn" );
 			this.$filePicker = this.$el.find( ".file-picker-wrapper [type=file]" );
-
+			$('.nav-tabs').stickyTabs();
 		},
 
 		onNameChange: _.debounce( function( evt ) {
