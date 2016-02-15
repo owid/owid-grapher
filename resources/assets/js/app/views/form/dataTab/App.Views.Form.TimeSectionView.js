@@ -9,8 +9,8 @@
 		el: "#form-view #data-tab .time-section",
 		events: {
 			"change [name='dynamic-time']": "onDynamicTime",
-			"change [name='chart-time-from']": "onChartTimeChange",
-			"change [name='chart-time-to']": "onChartTimeChange"
+			"input [name='chart-time-from']": "onChartTimeChange",
+			"input [name='chart-time-to']": "onChartTimeChange"
 		},
 
 		initialize: function( options ) {
@@ -20,6 +20,7 @@
 			
 			App.AvailableTimeModel.on( "change", this.onAvailableTimeChange, this );
 
+			this.onChartTimeChangeDebounced = _.debounce( this.onChartTimeChange, 250 );
 			this.render();
 
 		},
@@ -136,14 +137,14 @@
 		
 		},
 
-		onChartTimeChange: function( evt ) {
+		onChartTimeChange: _.debounce( function( evt ) {
 			evt.preventDefault();
 			var slider = $( "[name=chart-time]" ).data( "ionRangeSlider" ),
 				from = this.$chartTimeFrom.val(),
 				to = this.$chartTimeTo.val();
 			App.ChartModel.set( "chart-time", [from, to] );
 			slider.update( {from: from, to: to } );
-		}
+		}, 250 ),
 
 
 	});

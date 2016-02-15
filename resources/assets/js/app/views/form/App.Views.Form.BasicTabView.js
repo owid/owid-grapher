@@ -10,7 +10,10 @@
 		events: {},
 
 		initialize: function( options ) {
-			
+
+			if (window.location.hash === "")
+				window.location.hash = "#basic-tab";
+
 			this.dispatcher = options.dispatcher;
 			this.render();
 
