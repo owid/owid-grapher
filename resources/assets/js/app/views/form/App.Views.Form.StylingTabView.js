@@ -10,7 +10,7 @@
 		events: {
 			"change [name='logo']": "onLogoChange",
 			"change [name='line-type']": "onLineTypeChange",
-			"change [name^='margin-']": "onMarginChange",
+			"input [name^='margin-']": "onMarginChange",
 			"change [name='hide-legend']": "onHideLegendChange"
 		},
 
@@ -38,7 +38,7 @@
 			
 			App.ChartModel.on( "change:chart-type", this.onChartTypeChange, this );
 			App.ChartModel.on( "change:chart-dimensions", this.render, this );
-			
+
 			this.render();
 
 		},
@@ -61,8 +61,9 @@
 			this.$hideLegend.prop( "checked", hideLegend );
 
 			this.updateUnitsUI();
-			$( ".units-section .form-control[type=input], .units-section [type=checkbox]" ).on( "change", $.proxy( this.updateUnits, this ) );
-		
+			this.updateUnitsDebounced = _.debounce( this.updateUnits, 250 );
+			$( ".units-section [type=checkbox]" ).on( "change", $.proxy( this.updateUnits, this ) );
+			$( ".units-section .form-control[type=input]" ).on( "input", $.proxy( this.updateUnitsDebounced, this ) );
 		},
 
 		onLogoChange: function( evt ) {
@@ -80,7 +81,7 @@
 
 		},
 
-		onMarginChange: function( evt ) {
+		onMarginChange: _.debounce( function( evt ) {
 
 			var $control = $( evt.currentTarget ),
 				controlName = $control.attr( "name" ),
@@ -92,7 +93,7 @@
 			App.ChartModel.set( "margins", marginsObj );
 			App.ChartModel.trigger( "update" );
 
-		},
+		}, 250 ),
 
 		onUnitChange: function( evt ) {
 			var $control = $( evt.currentTarget );

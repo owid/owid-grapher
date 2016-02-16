@@ -104,7 +104,8 @@ elixir(function(mix) {
         'libs/jquery.nestable.js',
         'libs/bootstrap3-wysihtml5.all.min.js',
         'libs/colorbrewer.js',
-        'libs/owd-colorbrewer.js'
+        'libs/owd-colorbrewer.js',
+        'libs/jquery.stickytabs.js'
     ], 'public/js/libs-admin.js' );
 
     browserify.init();

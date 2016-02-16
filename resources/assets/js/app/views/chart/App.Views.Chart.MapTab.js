@@ -243,7 +243,7 @@
 			latestData.forEach( function( d, i ) {
 				var color = (categoricalScale)? colorScale( d.value ): colorScale( +d.value );
 				mapData[ d.key ] = { "key": d.key, "value": d.value, "color": color, "time": d.time };
-				console.log( "d.key", d.key, d.value, color );
+				//console.log( "d.key", d.key, d.value, color );
 				colors.push( color );
 				mapMin = Math.min( mapMin, d.value );
 				mapMax = Math.max( mapMax, d.value );

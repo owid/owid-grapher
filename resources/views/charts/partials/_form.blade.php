@@ -71,6 +71,7 @@
 
 								</ol>
 							</div>
+						<p class="form-section-desc hidden">Assign variables to the graph dimensions below by dragging them.</p>
 						</div>
 						<!--<div class="form-section-content">
 							<p class="form-section-desc">Or choose CSV file from your computer with data to chart. Each country data should be in their own colum,time should it be first column, otherwise it's not gonna work.</p>

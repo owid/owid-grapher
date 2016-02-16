@@ -106,6 +106,7 @@
 			this.refreshHandlers();
 			this.updateVarIcons();
 
+			this.$el.find( ".form-section-desc" ).removeClass( "hidden" );
 		},
 
 		onRemoveBtnClick: function( evt ) {
@@ -271,6 +272,10 @@
 		onVariableRemove: function( model ) {
 			var $liToRemove = $( ".variable-label[data-variable-id='" + model.get( "id" ) + "']" );
 			$liToRemove.remove();
+
+			if( App.ChartVariablesCollection.models.length == 0 ) {
+				this.$el.find( ".form-section-desc" ).addClass( "hidden" );
+			}
 		}
 
 	});

@@ -14,7 +14,8 @@
 		initialize: function( options ) {
 			
 			this.dispatcher = options.dispatcher;
-			
+			this.parentView = options.parentView;
+
 			this.$chartName = this.$el.find( ".chart-name" );
 			this.$chartSubname = this.$el.find( ".chart-subname" );
 
@@ -28,11 +29,11 @@
 
 			//setup events
 			App.ChartModel.on( "change", this.render, this );
+			App.ChartModel.on( "change-map", this.render, this );
 
 		},
 
 		render: function( data ) {
-			
 			var that = this,
 				chartName = App.ChartModel.get( "chart-name" ),
 				addCountryMode = App.ChartModel.get( "add-country-mode" ),
@@ -60,7 +61,7 @@
 					this.$chartName.css( "visibility", "hidden" );
 				}
 			}
-			
+
 			//update subname
 			this.$chartSubname.html( App.ChartModel.get( "chart-subname" ) );
 
@@ -100,7 +101,15 @@
 			//for first visible tab, add class for border-left, cannot be done in pure css http://stackoverflow.com/questions/18765814/targeting-first-visible-element-with-pure-css
 			this.$tabs.removeClass( "first" );
 			this.$tabs.filter( ":visible:first" ).addClass( "first" );
-			
+
+			var activeTab = _.find(tabs, function(tab) { return that.$tabs.filter("." + tab + "-header-tab.active").length > 0});
+			if (activeTab == "map") {
+				var mapConfig = App.ChartModel.get( "map-config" );
+				this.updateTimeFromMap(mapConfig);
+			} else {
+				if (this.parentView.chartTab != null)
+					this.updateTime(this.parentView.chartTab.localData);
+			}
 		},
 
 		updateTime: function( data ) {
@@ -108,7 +117,6 @@
 			//is there any time placeholder to update at all?
 			var chartName = this.$chartName.text();
 			if( chartName.indexOf( "*time*" ) > -1 || chartName.indexOf( "*timeFrom*" ) > -1 || chartName.indexOf( "*timeTo*" ) > -1 ) {
-
 				//find minimum and maximum in all displayed data
 				var dimsString = App.ChartModel.get("chart-dimensions"),
 					dims = $.parseJSON( dimsString ),
@@ -137,9 +145,17 @@
 				chartName = this.replaceTimePlaceholder( chartName, timeFrom, timeTo, latestAvailable );
 				this.$chartName.text( chartName );
 				this.$chartName.css( "visibility", "visible" );
-
 			}
 
+		},
+
+		updateTimeFromMap: function( mapConfig ) {
+			var chartName = this.$chartName.text();
+			var minYear = Math.max( mapConfig.minYear, mapConfig.targetYear - mapConfig.timeTolerance );
+			var maxYear = Math.min( mapConfig.maxYear, mapConfig.targetYear + mapConfig.timeTolerance );
+			chartName = this.replaceTimePlaceholder( chartName, minYear, maxYear, false );
+			this.$chartName.text( chartName );
+			this.$chartName.css( "visibility", "visible" );
 		},
 
 		replaceTimePlaceholder: function( string, timeFrom, timeTo, latestAvailable ) {

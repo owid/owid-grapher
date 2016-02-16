@@ -87,7 +87,6 @@
 				this.$startYear.removeClass( "highlight" );
 				this.$endYear.removeClass( "highlight" );
 			}
-
 		},
 
 		onChartModelChange: function( evt ) {
