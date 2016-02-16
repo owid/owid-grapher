@@ -199,7 +199,6 @@
 		},
 
 		updateMapConfig: function( propName, propValue, silent, eventName ) {
-			
 			var mapConfig = this.get( "map-config" ),
 				keys = _.keys( this.defaults["map-config"] );
 			

@@ -615,7 +615,8 @@
 				that.$yAxisScaleSelector.css( { "top": offsetDiff - 15, "left": marginLeft + yScaleOffset } );
 				
 			}, 250 );
-			
+
+			this.header.render();
 		}
 
 	});

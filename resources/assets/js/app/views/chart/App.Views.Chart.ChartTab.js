@@ -24,7 +24,6 @@
 		},
 
 		render: function( data, timeType, dimensions ) {
-			
 			if( !data ) {
 				return;
 			}
@@ -493,6 +492,7 @@
 
 			});
 
+			this.localData = localData;
 		},
 
 		show: function() {
