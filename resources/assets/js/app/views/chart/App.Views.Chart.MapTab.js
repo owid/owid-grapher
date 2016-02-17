@@ -323,30 +323,25 @@
 			var map = d3.select(".datamaps-subunits");
 			if (!this.dataMap || map.empty())
 				return;
+			console.log("onResize");
 
 			var options = this.dataMap.options,
 				prefix = "-webkit-transform" in document.body.style ? "-webkit-" : "-moz-transform" in document.body.style ? "-moz-" : "-ms-transform" in document.body.style ? "-ms-" : "";
 
-			// First, undo any existing scale/translation
-			//map.style(prefix + "transform", null);
+			// First, undo any existing scale/translation and get our reference points
+			//console.log(map.node().getBoundingClientRect().left);
+			map.style(prefix + "transform", "scale(1) translate(0px,0px)");
+			//console.log(map.node().getBoundingClientRect().left);
 
 			var wrapper = d3.select( ".datamap" ),
 				wrapperBoundingRect = wrapper.node().getBoundingClientRect(),
 				wrapperWidth = wrapperBoundingRect.right - wrapperBoundingRect.left,
-				wrapperHeight = wrapperBoundingRect.bottom - wrapperBoundingRect.top;
-
-			var mapBoundingRect;
-			if (this.origBoundingRect) {
-				mapBoundingRect = this.origBoundingRect;
-			} else {
-				mapBoundingRect = map.node().getBoundingClientRect();
-				this.origBoundingRect = mapBoundingRect;
-			}
-
-			var mapWidth = mapBoundingRect.right - mapBoundingRect.left,
+				wrapperHeight = wrapperBoundingRect.bottom - wrapperBoundingRect.top,
+				mapBoundingRect = map.node().getBoundingClientRect(),
+				mapWidth = mapBoundingRect.right - mapBoundingRect.left,
 				mapHeight = mapBoundingRect.bottom - mapBoundingRect.top;
 
-
+			//console.log("wrapperWidth " + wrapperWidth + " wrapperHeight " + wrapperHeight + " mapWidth " + mapWidth + " mapHeight " + mapHeight);
 
 			// Adjust wrapperHeight to compensate for timeline controls
 			var timelineControls = d3.select( ".map-timeline-controls" );
@@ -356,32 +351,25 @@
 				wrapperHeight -= controlsHeight;
 			}
 
-			// Center the map
-			var wrapperCenterX = wrapperBoundingRect.left + wrapperWidth / 2,
+			// Calculate scaling to match container while retaining aspect ratio
+			var scaleFactor = Math.min(wrapperWidth/mapWidth, wrapperHeight/mapHeight),
+				scaleStr = "scale(" + scaleFactor + ")";
+
+			map.style(prefix + "transform", scaleStr + " translate(0px,0px)");
+
+			// Now that we've scaled the map, we can get our new dimensions and center it
+			var newBoundingRect = map.node().getBoundingClientRect(),
+				newWidth = newBoundingRect.right - newBoundingRect.left,
+				newHeight = newBoundingRect.bottom - newBoundingRect.top,
+				wrapperCenterX = wrapperBoundingRect.left + wrapperWidth / 2,
 				wrapperCenterY = wrapperBoundingRect.top + wrapperHeight / 2,
-				mapCenterX = mapBoundingRect.left + mapWidth / 2,
-				mapCenterY = mapBoundingRect.top + mapHeight / 2,
-				mapOffsetX = wrapperCenterX - mapCenterX,
-				mapOffsetY = wrapperCenterY - mapCenterY;
+				newCenterX = newBoundingRect.left + newWidth / 2,
+				newCenterY = newBoundingRect.top + newHeight / 2,
+				newOffsetX = wrapperCenterX - newCenterX,
+				newOffsetY = wrapperCenterY - newCenterY,
+				translateStr = "translate(" + newOffsetX + "px," + newOffsetY + "px)";
 
-
-			var translation = "translate(" + mapOffsetX + "px," + mapOffsetY + "px)";
-			map.style(prefix + "transform", translation);
-/*
-			//scaling
-				newWidth = options.element.clientWidth,
-				newHeight = options.element.clientHeight,
-
-
-			mapOffsetY /= scaleHeight;
-			if( this.mapOffsetY ) {
-				mapOffsetY += this.mapOffsetY;
-			}
-
-			map.style(prefix + "transform", "scale(" + scaleWidth + "," + scaleHeight + ") translate(0," + mapOffsetY + "px)" );
-
-			//stash value
-			this.mapOffsetY = mapOffsetY;*/
+			map.style(prefix + "transform", "matrix(" + scaleFactor + ",0,0," + scaleFactor + "," + newOffsetX + "," + newOffsetY);
 
 			if( this.bordersDisclaimer && !this.bordersDisclaimer.empty() ) {
 				var bordersDisclaimerEl = this.bordersDisclaimer.node(),
