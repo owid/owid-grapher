@@ -325,6 +325,8 @@
 				return;
 			console.log("onResize");
 
+			var viewport = { x: 0.5, y: 0.5, width: 1, height: 1 };
+
 			var options = this.dataMap.options,
 				prefix = "-webkit-transform" in document.body.style ? "-webkit-" : "-moz-transform" in document.body.style ? "-moz-" : "-ms-transform" in document.body.style ? "-ms-" : "";
 
@@ -339,7 +341,9 @@
 				wrapperHeight = wrapperBoundingRect.bottom - wrapperBoundingRect.top,
 				mapBoundingRect = map.node().getBoundingClientRect(),
 				mapWidth = mapBoundingRect.right - mapBoundingRect.left,
-				mapHeight = mapBoundingRect.bottom - mapBoundingRect.top;
+				mapHeight = mapBoundingRect.bottom - mapBoundingRect.top,
+				viewportWidth = viewport.width*mapWidth,
+				viewportHeight = viewport.height*mapHeight;
 
 			console.log("wrapperWidth " + wrapperWidth + " wrapperHeight " + wrapperHeight + " mapWidth " + mapWidth + " mapHeight " + mapHeight);
 
@@ -351,8 +355,8 @@
 				wrapperHeight -= controlsHeight;
 			}
 
-			// Calculate scaling to match container while retaining aspect ratio
-			var scaleFactor = Math.min(wrapperWidth/mapWidth, wrapperHeight/mapHeight),
+			// Calculate scaling to match the viewport to the container while retaining aspect ratio
+			var scaleFactor = Math.min(wrapperWidth/viewportWidth, wrapperHeight/viewportHeight),
 				scaleStr = "scale(" + scaleFactor + ")";
 
 			map.style(prefix + "transform", scaleStr + " translate(0px,0px)");
@@ -363,8 +367,8 @@
 				newHeight = newBoundingRect.bottom - newBoundingRect.top,
 				wrapperCenterX = wrapperBoundingRect.left + wrapperWidth / 2,
 				wrapperCenterY = wrapperBoundingRect.top + wrapperHeight / 2,
-				newCenterX = newBoundingRect.left + newWidth / 2,
-				newCenterY = newBoundingRect.top + newHeight / 2,
+				newCenterX = newBoundingRect.left + viewport.x*newWidth,
+				newCenterY = newBoundingRect.top + viewport.y*newHeight,
 				newOffsetX = wrapperCenterX - newCenterX,
 				newOffsetY = wrapperCenterY - newCenterY,
 				translateStr = "translate(" + newOffsetX + "px," + newOffsetY + "px)";
