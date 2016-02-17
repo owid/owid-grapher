@@ -57,7 +57,7 @@
 			this.dataMap = new Datamap( {
 				width: that.$tab.width(),
 				height: that.$tab.height(),
-				responsive: false,
+				responsive: true,
 				element: document.getElementById( "map-chart-tab" ),
 				geographyConfig: {
 					dataUrl: Global.rootUrl + "/build/js/data/world.ids.json",
@@ -320,59 +320,74 @@
 		},
 
 		onResize: function() {
-			if( this.dataMap ) {
+			var map = d3.select(".datamaps-subunits");
+			if (!this.dataMap || map.empty())
+				return;
 
-				var map = d3.select( ".datamaps-subunits" );
-				if( !map.empty() ) {
+			var options = this.dataMap.options,
+				prefix = "-webkit-transform" in document.body.style ? "-webkit-" : "-moz-transform" in document.body.style ? "-moz-" : "-ms-transform" in document.body.style ? "-ms-" : "";
 
-					//translate
-					var wrapper = d3.select( ".datamap" ),
-						wrapperBoundingRect = wrapper.node().getBoundingClientRect(),
-						wrapperWidth = wrapperBoundingRect.right - wrapperBoundingRect.left,
-						wrapperHeight = wrapperBoundingRect.bottom - wrapperBoundingRect.top,
-						mapBoundingRect = map.node().getBoundingClientRect(),
-						mapHeight = mapBoundingRect.bottom - mapBoundingRect.top;
+			// First, undo any existing scale/translation
+			//map.style(prefix + "transform", null);
 
-					//compensate for possible
-					var timelineControls = d3.select( ".map-timeline-controls" );
-					if( !timelineControls.empty() ) {
-						var controlsBoundingRect = timelineControls.node().getBoundingClientRect(),
-							controlsHeight = controlsBoundingRect.bottom - controlsBoundingRect.top;
-						wrapperHeight -= controlsHeight;
-					}
+			var wrapper = d3.select( ".datamap" ),
+				wrapperBoundingRect = wrapper.node().getBoundingClientRect(),
+				wrapperWidth = wrapperBoundingRect.right - wrapperBoundingRect.left,
+				wrapperHeight = wrapperBoundingRect.bottom - wrapperBoundingRect.top;
 
-					//compute necessary vertical offset
-					var	mapOffsetY = (wrapperHeight - mapHeight) / 2,
-						currMapOffsetY = mapBoundingRect.top - wrapperBoundingRect.top;
+			var mapBoundingRect;
+			if (this.origBoundingRect) {
+				mapBoundingRect = this.origBoundingRect;
+			} else {
+				mapBoundingRect = map.node().getBoundingClientRect();
+				this.origBoundingRect = mapBoundingRect;
+			}
 
-					mapOffsetY -= currMapOffsetY;
+			var mapWidth = mapBoundingRect.right - mapBoundingRect.left,
+				mapHeight = mapBoundingRect.bottom - mapBoundingRect.top;
 
-					//scaling
-					var options = this.dataMap.options,
-						prefix = "-webkit-transform" in document.body.style ? "-webkit-" : "-moz-transform" in document.body.style ? "-moz-" : "-ms-transform" in document.body.style ? "-ms-" : "",
-						newsize = options.element.clientWidth,
-						oldsize = d3.select( options.element ).select("svg").attr("data-width"),
-						scale = (newsize / oldsize);
 
-					mapOffsetY /= scale;
-					if( this.mapOffsetY ) {
-						mapOffsetY += this.mapOffsetY;
-					}
 
-					map.style(prefix + "transform", "scale(" + scale + ") translate(0," + mapOffsetY + "px)" );
+			// Adjust wrapperHeight to compensate for timeline controls
+			var timelineControls = d3.select( ".map-timeline-controls" );
+			if( !timelineControls.empty() ) {
+				var controlsBoundingRect = timelineControls.node().getBoundingClientRect(),
+					controlsHeight = controlsBoundingRect.bottom - controlsBoundingRect.top;
+				wrapperHeight -= controlsHeight;
+			}
 
-					//stash value
-					this.mapOffsetY = mapOffsetY;
+			// Center the map
+			var wrapperCenterX = wrapperBoundingRect.left + wrapperWidth / 2,
+				wrapperCenterY = wrapperBoundingRect.top + wrapperHeight / 2,
+				mapCenterX = mapBoundingRect.left + mapWidth / 2,
+				mapCenterY = mapBoundingRect.top + mapHeight / 2,
+				mapOffsetX = wrapperCenterX - mapCenterX,
+				mapOffsetY = wrapperCenterY - mapCenterY;
 
-					if( this.bordersDisclaimer && !this.bordersDisclaimer.empty() ) {
-						var bordersDisclaimerEl = this.bordersDisclaimer.node(),
-							bordersDisclaimerX = wrapperWidth - bordersDisclaimerEl.getComputedTextLength() - 10,
-							bordersDisclaimerY = wrapperHeight - 10;
-						this.bordersDisclaimer.attr( "transform", "translate(" + bordersDisclaimerX + "," + bordersDisclaimerY + ")" );
-					}
 
-				}
+			var translation = "translate(" + mapOffsetX + "px," + mapOffsetY + "px)";
+			map.style(prefix + "transform", translation);
+/*
+			//scaling
+				newWidth = options.element.clientWidth,
+				newHeight = options.element.clientHeight,
 
+
+			mapOffsetY /= scaleHeight;
+			if( this.mapOffsetY ) {
+				mapOffsetY += this.mapOffsetY;
+			}
+
+			map.style(prefix + "transform", "scale(" + scaleWidth + "," + scaleHeight + ") translate(0," + mapOffsetY + "px)" );
+
+			//stash value
+			this.mapOffsetY = mapOffsetY;*/
+
+			if( this.bordersDisclaimer && !this.bordersDisclaimer.empty() ) {
+				var bordersDisclaimerEl = this.bordersDisclaimer.node(),
+					bordersDisclaimerX = wrapperWidth - bordersDisclaimerEl.getComputedTextLength() - 10,
+					bordersDisclaimerY = wrapperHeight - 10;
+				this.bordersDisclaimer.attr( "transform", "translate(" + bordersDisclaimerX + "," + bordersDisclaimerY + ")" );
 			}
 
 			if( this.legend ) {
