@@ -283,6 +283,7 @@
 					that.onResize();
 				};
 			}
+
 		},
 
 		setupLegend: function() {
@@ -325,7 +326,12 @@
 				return;
 			console.log("onResize");
 
-			var viewport = { x: 0.5, y: 0.5, width: 1, height: 1 };
+			var viewports = {
+				"World": { x: 0.5, y: 0.5, width: 1, height: 1 },
+				"Africa": { x: 0.48, y: 0.70, width: 0.21, height: 0.38 },
+			};
+
+			var viewport = viewports[App.ChartModel.get("map-config").projection];
 
 			var options = this.dataMap.options,
 				prefix = "-webkit-transform" in document.body.style ? "-webkit-" : "-moz-transform" in document.body.style ? "-moz-" : "-ms-transform" in document.body.style ? "-ms-" : "";
@@ -386,6 +392,14 @@
 				this.legend.resize();
 			}
 
+			wrapper.on("mousemove", function() {
+				var point = d3.mouse(this);
+				var rect = map.node().getBoundingClientRect();
+				var wrapRect = wrapper.node().getBoundingClientRect();
+				var x = point[0] - (rect.left - wrapRect.left);
+				var y = point[1] - (rect.top - wrapRect.top);
+				console.log([x/newWidth, y/newHeight]);
+			});
 		},
 
 		onChartModelResize: function() {
