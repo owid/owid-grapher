@@ -329,6 +329,11 @@
 			var viewports = {
 				"World": { x: 0.5, y: 0.5, width: 1, height: 1 },
 				"Africa": { x: 0.48, y: 0.70, width: 0.21, height: 0.38 },
+				"N.America": { x: 0.49, y: 0.40, width: 0.19, height: 0.32 },
+				"S.America": { x: 0.52, y: 0.815, width: 0.10, height: 0.26 },
+				"Asia": { x: 0.49, y: 0.52, width: 0.22, height: 0.38 },
+				"Australia": { x: 0.51, y: 0.77, width: 0.1, height: 0.12 },
+				"Europe": { x: 0.56, y: 0.54, width: 0.15, height: 0.30 },
 			};
 
 			var viewport = viewports[App.ChartModel.get("map-config").projection];
