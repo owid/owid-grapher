@@ -280,9 +280,9 @@
 				this.dataMap.draw();
 				this.dataMap.options.done = function() {
 					that.dataMap.updateChoropleth( mapData );
+					that.onResize();
 				};
 			}
-
 		},
 
 		setupLegend: function() {
@@ -341,7 +341,7 @@
 				mapWidth = mapBoundingRect.right - mapBoundingRect.left,
 				mapHeight = mapBoundingRect.bottom - mapBoundingRect.top;
 
-			//console.log("wrapperWidth " + wrapperWidth + " wrapperHeight " + wrapperHeight + " mapWidth " + mapWidth + " mapHeight " + mapHeight);
+			console.log("wrapperWidth " + wrapperWidth + " wrapperHeight " + wrapperHeight + " mapWidth " + mapWidth + " mapHeight " + mapHeight);
 
 			// Adjust wrapperHeight to compensate for timeline controls
 			var timelineControls = d3.select( ".map-timeline-controls" );
