@@ -63,7 +63,7 @@
 						<h3><span class="form-section-digit">3</span>Upload file with data</h3>
 					</div>
 					<div class="form-section-content">
-						<p class="form-section-desc">For now, just CSV files are working. We'll have xls and choice of external source (e.g. Gapminder) in the future.</p>
+						<p class="form-section-desc">Here is an <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_single-var.png">example</a> of the expected format. For now, just CSV files are working. We'll have xls and choice of external source (e.g. Gapminder) in the future.</p>
 						<div class="file-picker-wrapper">
 							<input type="file" autocomplete="off"/>
 							<a href="#" title="Remove uploaded file" class="remove-uploaded-file-btn"><span class="visuallyhidden">Remove uploaded file</span><i class="fa fa-remove"></i></a>
