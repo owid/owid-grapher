@@ -165,8 +165,10 @@
 			var chartName = this.$chartName.text();
 			var chartSubname = this.$chartSubname.html();
 			chartName = this.replaceTimePlaceholder( chartName, targetYear, targetYear, false );
-			if (timeFrom != timeTo)
+			if (timeFrom != timeTo && timeTo != targetYear)
 				chartSubname += " Since observations made in " + targetYear + " are not available in all countries the map displays data from " + timeFrom + " to " + timeTo + ".";
+			else if (timeTo != targetYear)
+				chartSubname += " Since observations made in " + targetYear + " are not available the map displays data from " + timeFrom + ".";
 			this.$chartName.text( chartName );
 			this.$chartName.css( "visibility", "visible" );
 			this.$chartSubname.html(chartSubname);
