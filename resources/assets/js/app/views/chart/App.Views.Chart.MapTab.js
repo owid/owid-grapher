@@ -22,8 +22,8 @@
 		events: {},
 
 		initialize: function( options ) {
-
 			this.dispatcher = options.dispatcher;
+			this.parentView = options.parentView;
 			this.mapControls = new MapControls( { dispatcher: options.dispatcher } );
 			this.timelineControls = new TimelineControls( { dispatcher: options.dispatcher } );
 
@@ -32,7 +32,6 @@
 			$( "[data-toggle='tab'][href='#map-chart-tab']" ).on( "shown.bs.tab", function( evt ) {
 				that.display();
 			} );
-
 		},
 
 		display: function() {
@@ -172,7 +171,6 @@
 		},
 
 		displayData: function( data, variableName ) {
-
 			var that = this,
 				mapConfig = App.ChartModel.get( "map-config" ),
 				categoricalScale = false,
@@ -284,6 +282,8 @@
 					that.onResize();
 				};
 			}
+
+			this.trigger("tab-ready");
 		},
 
 		setupLegend: function() {

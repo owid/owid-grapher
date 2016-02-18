@@ -14,20 +14,18 @@
 		},
 
 		initialize: function( options ) {
-
 			this.dispatcher = options.dispatcher;
 			this.parentView = options.parentView;
 
 			this.$svg = this.$el.find( "#chart-chart-tab svg" );
 			this.$entitiesSelect = this.$el.find( "[name=available_entities]" );
-			
 		},
 
 		render: function( data, timeType, dimensions ) {
 			if( !data ) {
 				return;
 			}
-			
+
 			var that = this;
 
 			//make local copy of data for our filtering needs
@@ -45,7 +43,6 @@
 				} );
 
 			if( selectedCountries && selectedCountriesIds.length && !App.ChartModel.get( "group-by-variables" ) ) {
-				
 				//set local copy of countries color, to be able to create brighter
 				var countriesColors = [];
 				localData = _.filter( localData, function( value, key, list ) {
@@ -493,6 +490,7 @@
 			});
 
 			this.localData = localData;
+			this.trigger("tab-ready");
 		},
 
 		show: function() {

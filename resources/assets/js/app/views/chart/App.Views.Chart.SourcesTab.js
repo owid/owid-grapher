@@ -10,7 +10,7 @@
 		events: {},
 
 		initialize: function( options ) {
-			
+			this.parentView = options.parentView;
 			this.dispatcher = options.dispatcher;
 
 			this.$chartDescription = this.$el.find( ".chart-description" );
@@ -20,7 +20,6 @@
 		},
 
 		render: function( response ) {
-
 			if( !response || !response.datasources ) {
 				return false;
 			}
@@ -70,7 +69,7 @@
 			this.$chartDescription.html( footerHtml );
 			this.$chartSources.html( sourcesShortHtml );
 			this.$sourcesTab.html( tabHtml );
-
+			this.trigger("tab-ready");
 		},
 
 		show: function() {

@@ -23,7 +23,7 @@
 		},
 
 		initialize: function( options ) {
-			
+			var that = this;
 			//enable overriding default tab setting with tab query parameter
 			this.setDefaultTabFromUrl();
 
@@ -38,6 +38,8 @@
 			this.dataTab = new DataTab( childViewOptions );
 			this.sourcesTab = new SourcesTab( childViewOptions );
 			this.mapTab = new MapTab( childViewOptions );
+			// Header needs to know about map data
+			this.mapTab.on("tab-ready", function() { that.header.render(); });
 
 			//setup model that will fetch all the data for us
 			this.dataModel = new ChartDataModel();
@@ -54,7 +56,6 @@
 			this.dispatcher.on( "dimension-export", this.onDimensionExport, this );
 			this.dispatcher.on( "dimension-export-cancel", this.onDimensionExportCancel, this );
 
-			var that = this;
 			$( "[data-toggle='tab']" ).on( "shown.bs.tab", function( evt ) {
 				that.onResize();
 			} );
@@ -81,7 +82,7 @@
 			this.$chartHeader = this.$el.find( ".chart-header" );
 			this.$entitiesSelect = this.$el.find( "[name=available_entities]" );
 			this.$chartFooter = this.$el.find( ".chart-footer" );
-			
+
 			this.$chartDescription = this.$el.find( ".chart-description" );
 			this.$chartSources = this.$el.find( ".chart-sources" );
 			this.$chartFullScreen = this.$el.find( ".fancybox-iframe" );
@@ -148,7 +149,7 @@
 
 			var dimensionsString = App.ChartModel.get( "chart-dimensions" ),
 				validDimensions = false;
-			
+
 			//clicking anything in chart source will take you to sources tab
 			this.$chartSources.on( "click", function(evt) {
 				evt.preventDefault();
@@ -173,26 +174,21 @@
 					this.mapTab.display();
 				}
 			}
-			
+
 			if( !validDimensions ) {
 				return false;
 			}
 
 			if( dimensionsString ) {
-
 				this.$preloader.show();
 
 				var dataProps = { "dimensions": dimensionsString, "chartId": App.ChartModel.get( "id" ), "chartType": App.ChartModel.get( "chart-type" ), "selectedCountries": selectedCountriesIds, "chartTime": chartTime, "cache": App.ChartModel.get( "cache" ), "groupByVariables": App.ChartModel.get( "group-by-variables" )  };
-				
+
 				this.dataModel.fetch( { data: dataProps } );
-
 			} else {
-
 				//clear any previous chart
 				$( "svg" ).empty();
-
 			}
-
 		},
 
 		setDefaultTabFromUrl: function() {
@@ -488,9 +484,8 @@
 		},
 	
 		onResize: function() {
-			
 			this.chartTab.onResize();
-			
+
 			//compute how much space for chart
 			var svgWidth = this.$svg.width(),
 				svgHeight = this.$svg.height(),
@@ -505,9 +500,9 @@
 				margins = App.ChartModel.get( "margins" ),
 				bottomChartMargin = 60,
 				currY, chartNameSvgY, chartNameSvgHeight, chartSubnameSvgHeight, footerDescriptionHeight, footerSourcesHeight, chartHeight;
-			
+
 			this.$tabContent.height( $chartWrapperInner.height() - this.$chartHeader.height() - this.$chartFooter.height() );
-	
+
 			//start positioning the graph, according 
 			currY = 0;
 
@@ -520,7 +515,7 @@
 			if( !App.ChartModel.get( "hide-legend" ) ) {
 				currY += this.chartTab.legend.height();
 			}
-	
+
 			//set chart height
 			chartHeight = svgHeight - bottomChartMargin;
 			//chartHeight = svgHeight - translateY - bottomChartMargin;
@@ -613,12 +608,10 @@
 
 				that.$xAxisScaleSelector.css( { "top": offsetDiff + chartHeight, "left": marginLeft + backRectWidth + xScaleOffset } );
 				that.$yAxisScaleSelector.css( { "top": offsetDiff - 15, "left": marginLeft + yScaleOffset } );
-				
 			}, 250 );
 
 			this.header.render();
 		}
-
 	});
 	
 	module.exports = App.Views.ChartView;

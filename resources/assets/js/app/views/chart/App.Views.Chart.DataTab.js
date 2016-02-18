@@ -10,18 +10,16 @@
 		events: {},
 
 		initialize: function( options ) {
-			
+			this.parentView = options.parentView;
 			this.dispatcher = options.dispatcher;
 
 			//data tab
 			this.$dataTab = this.$el.find( "#data-chart-tab" );
 			this.$downloadBtn = this.$dataTab.find( ".download-data-btn" );
 			this.$dataTableWrapper = this.$dataTab.find( ".data-table-wrapper" );
-
 		},
 
 		render: function( data, localData, dimensions ) {
-			
 			this.$dataTableWrapper.empty();
 
 			//update link
@@ -157,7 +155,7 @@
 			var $table = $( tableString );
 			this.$dataTableWrapper.append( $table );
 
-
+			this.trigger("tab-ready");
 		},
 
 		show: function() {

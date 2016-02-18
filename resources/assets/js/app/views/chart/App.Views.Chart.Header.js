@@ -25,12 +25,11 @@
 			this.$logoSvgVector = this.$logoSvg.find( ".chart-logo-svg-vector" );
 
 			this.$tabs = this.$el.find( ".header-tab" );
-			this.render();
+//			this.render();
 
 			//setup events
 			App.ChartModel.on( "change", this.render, this );
 			App.ChartModel.on( "change-map", this.render, this );
-
 		},
 
 		render: function( data ) {
@@ -102,64 +101,80 @@
 			this.$tabs.removeClass( "first" );
 			this.$tabs.filter( ":visible:first" ).addClass( "first" );
 
-			var activeTab = _.find(tabs, function(tab) { return that.$tabs.filter("." + tab + "-header-tab.active").length > 0});
+			this.updateTime();
+		},
+
+		updateTime: function() {
+			// Replace *time* and similar in the chart title, but only if we need to
+			var chartName = this.$chartName.text();
+			if (chartName.indexOf("*time*") == -1 && chartName.indexOf("*timeFrom*") == -1 && chartName.indexOf("*timeTo*") == -1)
+				return;
+
+			var that = this;
+			var tabs =	App.ChartModel.get( "tabs" ),
+				activeTab = _.find(tabs, function(tab) { return that.$tabs.filter("." + tab + "-header-tab.active").length > 0});
+
 			if (activeTab == "map") {
-				var mapConfig = App.ChartModel.get( "map-config" );
-				this.updateTimeFromMap(mapConfig);
+				if (this.parentView.mapTab.mapDataModel !== undefined) {
+					var data = this.parentView.mapTab.mapDataModel.get("data");
+					if (data !== undefined)
+						this.updateTimeFromMap(data);
+				}
 			} else {
-				if (this.parentView.chartTab != null)
-					this.updateTime(this.parentView.chartTab.localData);
+				if (this.parentView.chartTab !== undefined)
+					this.updateTimeFromChart(this.parentView.chartTab.localData);
 			}
 		},
 
-		updateTime: function( data ) {
-
+		updateTimeFromChart: function( data ) {
 			//is there any time placeholder to update at all?
 			var chartName = this.$chartName.text();
-			if( chartName.indexOf( "*time*" ) > -1 || chartName.indexOf( "*timeFrom*" ) > -1 || chartName.indexOf( "*timeTo*" ) > -1 ) {
-				//find minimum and maximum in all displayed data
-				var dimsString = App.ChartModel.get("chart-dimensions"),
-					dims = $.parseJSON( dimsString ),
-					latestAvailable = false,
-					timeFrom = d3.min( data, function( entityData ) {
-						return d3.min( entityData.values, function( d ) { return parseInt( d.time, 10 ); } );
-					} ),
-					timeTo = d3.max( data, function( entityData ) {
-						return d3.max( entityData.values, function( d ) { return parseInt( d.time, 10 ); } );
-					} );
-
-				_.each( dims, function( dimension ) {
-					if( dimension.mode === "specific" && dimension.period === "single" ) {
-						var tolerance = +dimension.tolerance,
-							dimMax = +dimension.targetYear + tolerance,
-							dimMin = +dimension.targetYear - tolerance;
-						//possibly set new timeFrom/timeTo values based on dimension settings
-						timeFrom = Math.min( timeFrom, dimMin );
-						timeTo = Math.max( timeTo, dimMax );
-					} else if( dimension.mode === "latest" ) {
-						latestAvailable = true;
-					}
-
+			//find minimum and maximum in all displayed data
+			var dimsString = App.ChartModel.get("chart-dimensions"),
+				dims = $.parseJSON( dimsString ),
+				latestAvailable = false,
+				timeFrom = d3.min( data, function( entityData ) {
+					return d3.min( entityData.values, function( d ) { return parseInt( d.time, 10 ); } );
+				} ),
+				timeTo = d3.max( data, function( entityData ) {
+					return d3.max( entityData.values, function( d ) { return parseInt( d.time, 10 ); } );
 				} );
 
-				chartName = this.replaceTimePlaceholder( chartName, timeFrom, timeTo, latestAvailable );
-				this.$chartName.text( chartName );
-				this.$chartName.css( "visibility", "visible" );
-			}
+			_.each( dims, function( dimension ) {
+				if( dimension.mode === "specific" && dimension.period === "single" ) {
+					var tolerance = +dimension.tolerance,
+						dimMax = +dimension.targetYear + tolerance,
+						dimMin = +dimension.targetYear - tolerance;
+					//possibly set new timeFrom/timeTo values based on dimension settings
+					timeFrom = Math.min( timeFrom, dimMin );
+					timeTo = Math.max( timeTo, dimMax );
+				} else if( dimension.mode === "latest" ) {
+					latestAvailable = true;
+				}
 
-		},
+			} );
 
-		updateTimeFromMap: function( mapConfig ) {
-			var chartName = this.$chartName.text();
-			var minYear = Math.max( mapConfig.minYear, mapConfig.targetYear - mapConfig.timeTolerance );
-			var maxYear = Math.min( mapConfig.maxYear, mapConfig.targetYear + mapConfig.timeTolerance );
-			chartName = this.replaceTimePlaceholder( chartName, minYear, maxYear, false );
+			chartName = this.replaceTimePlaceholder( chartName, timeFrom, timeTo, latestAvailable );
 			this.$chartName.text( chartName );
 			this.$chartName.css( "visibility", "visible" );
 		},
 
-		replaceTimePlaceholder: function( string, timeFrom, timeTo, latestAvailable ) {
+		updateTimeFromMap: function(data) {
+			var timeFrom = d3.min(data, function(d) { return parseInt(d.time); }),
+				timeTo = d3.max(data, function(d) { return parseInt(d.time); }),
+				targetYear = App.ChartModel.get("map-config").targetYear;
 
+			var chartName = this.$chartName.text();
+			var chartSubname = this.$chartSubname.text();
+			chartName = this.replaceTimePlaceholder( chartName, targetYear, targetYear, false );
+			if (timeFrom != timeTo)
+				chartSubname += " Since observations made in " + targetYear + " are not available in all countries the map displays data from " + timeFrom + " to " + timeTo + ".";
+			this.$chartName.text( chartName );
+			this.$chartName.css( "visibility", "visible" );
+			this.$chartSubname.text(chartSubname);
+		},
+
+		replaceTimePlaceholder: function( string, timeFrom, timeTo, latestAvailable ) {
 			var time = ( !latestAvailable )? ( timeFrom !== timeTo )? timeFrom + " to " + timeTo: timeFrom: " latest available data";
 
 			string = string.replace( "*time*", time );
@@ -167,7 +182,6 @@
 			string = string.replace( "*timeTo*", timeTo );
 
 			return string;
-
 		}
 
 	});

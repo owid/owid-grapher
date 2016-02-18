@@ -172,14 +172,14 @@
 			var dispatcher = this.dispatcher;
 			App.ChartModel.save( {}, {
 				success: function ( model, response, options ) {
-					alert( "The chart saved succesfully" );
+					alert( "The chart saved successfully" );
 					dispatcher.trigger( "chart-saved", response.data.id, response.data.viewUrl );
 					//update id of an existing model
 					App.ChartModel.set( "id", response.data.id );
 				},
 				error: function (model, xhr, options) {
 					console.error("Something went wrong while saving the model", xhr );
-					alert( "Opps, there was a problem saving your chart." );
+					alert( "Oops, there was a problem saving your chart." );
 				}
 			});
 
