@@ -78,7 +78,7 @@
 						<h3><span class="form-section-digit">4</span>Check Variables</h3>
 					</div>
 					<div class="form-section-content">
-						<p class="form-section-desc">Here you can check which variables will be stored for your dataset. Names for variable are either taken from dataset name, if you have just one variable, or from name of the columns in uploaded data, if you have more variables. For each variable you can optionally add unit and its description. If you think that's usefull.</p>
+						<p class="form-section-desc">Here you can check which variables will be stored for your dataset. Names for variables are either taken from dataset name, if you have just one variable, or from names of the columns in uploaded data, if you have more variables. For each variable you can optionally add a unit and its description. If you think that's useful.</p>
 						<ol></ol>
 					</div>
 			</section>
@@ -147,7 +147,7 @@
 						<h3><span class="form-section-digit">7</span>Select variable type</h3>
 					</div>
 					<div class="form-section-content">
-						<p class="form-section-desc">Choosing right type of variable will help us to determin for which properties in chart it can be used. This will probably be semi-automated in future.</p>
+						<p class="form-section-desc">Choosing the right type of variable will help us determine which properties in chart it can be used for. This will probably be semi-automated in future.</p>
 						<select name='variable_type' class="form-control">
 							<option value="" disabled>Select variable type</option>
 							@foreach( $data['varTypes'] as $varType )
