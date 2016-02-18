@@ -273,6 +273,7 @@
 				//need to set all units to default color first, cause updateChopleth just updates new data leaves the old data for units no longer in dataset
 				d3.selectAll( "path.datamaps-subunit" ).transition().style( "fill", this.dataMap.options.fills.defaultFill );
 				this.dataMap.updateChoropleth( mapData );
+				this.onResize();
 			} else {
 				//changing projection, need to remove existing units, redraw everything and after done drawing, update data
 				d3.selectAll( "path.datamaps-subunit" ).remove();
@@ -283,7 +284,6 @@
 					that.onResize();
 				};
 			}
-
 		},
 
 		setupLegend: function() {
@@ -324,7 +324,6 @@
 			var map = d3.select(".datamaps-subunits");
 			if (!this.dataMap || map.empty())
 				return;
-			console.log("onResize");
 
 			var viewports = {
 				"World": { x: 0.5, y: 0.5, width: 1, height: 1 },
@@ -356,7 +355,7 @@
 				viewportWidth = viewport.width*mapWidth,
 				viewportHeight = viewport.height*mapHeight;
 
-			console.log("wrapperWidth " + wrapperWidth + " wrapperHeight " + wrapperHeight + " mapWidth " + mapWidth + " mapHeight " + mapHeight);
+			//console.log("wrapperWidth " + wrapperWidth + " wrapperHeight " + wrapperHeight + " mapWidth " + mapWidth + " mapHeight " + mapHeight);
 
 			// Adjust wrapperHeight to compensate for timeline controls
 			var timelineControls = d3.select( ".map-timeline-controls" );
@@ -397,14 +396,14 @@
 				this.legend.resize();
 			}
 
-			wrapper.on("mousemove", function() {
+			/*wrapper.on("mousemove", function() {
 				var point = d3.mouse(this);
 				var rect = map.node().getBoundingClientRect();
 				var wrapRect = wrapper.node().getBoundingClientRect();
 				var x = point[0] - (rect.left - wrapRect.left);
 				var y = point[1] - (rect.top - wrapRect.top);
 				console.log([x/newWidth, y/newHeight]);
-			});
+			});*/
 		},
 
 		onChartModelResize: function() {
