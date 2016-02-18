@@ -29,12 +29,12 @@
 
 			//setup events
 			App.ChartModel.on( "change", this.render, this );
-			App.ChartModel.on( "change-map", this.render, this );
 		},
 
 		render: function( data ) {
 			var that = this,
 				chartName = App.ChartModel.get( "chart-name" ),
+				chartSubname = App.ChartModel.get( "chart-subname" ) || "",
 				addCountryMode = App.ChartModel.get( "add-country-mode" ),
 				selectedCountries = App.ChartModel.get( "selected-countries" ),
 				logo = App.ChartModel.get( "logo" ),
@@ -60,10 +60,8 @@
 					this.$chartName.css( "visibility", "hidden" );
 				}
 			}
-
 			//update subname
-			this.$chartSubname.html( App.ChartModel.get( "chart-subname" ) );
-
+			this.$chartSubname.html(chartSubname);
 			//setup image for header
 			if( logo ) {
 
@@ -165,13 +163,13 @@
 				targetYear = App.ChartModel.get("map-config").targetYear;
 
 			var chartName = this.$chartName.text();
-			var chartSubname = this.$chartSubname.text();
+			var chartSubname = this.$chartSubname.html();
 			chartName = this.replaceTimePlaceholder( chartName, targetYear, targetYear, false );
 			if (timeFrom != timeTo)
 				chartSubname += " Since observations made in " + targetYear + " are not available in all countries the map displays data from " + timeFrom + " to " + timeTo + ".";
 			this.$chartName.text( chartName );
 			this.$chartName.css( "visibility", "visible" );
-			this.$chartSubname.text(chartSubname);
+			this.$chartSubname.html(chartSubname);
 		},
 
 		replaceTimePlaceholder: function( string, timeFrom, timeTo, latestAvailable ) {

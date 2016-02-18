@@ -465,13 +465,12 @@
 					}, 1);
 				} );
 				that.parentView.dataTab.render( data, localData, dimensions );
-				that.parentView.header.updateTime( localData );
-				
+
 				if( chartType == "2" ) {
 					//need to have own showDist implementation, cause there's a bug in nvd3
 					that.scatterDist();
 				}
-				
+
 				//if y axis has zero, display solid line
 				var $pathDomain = $( ".nvd3 .nv-axis.nv-x path.domain" );
 				if( yDomain[ 0 ] === 0 ) {
