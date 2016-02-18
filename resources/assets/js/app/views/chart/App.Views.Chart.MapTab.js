@@ -326,7 +326,7 @@
 				return;
 
 			var viewports = {
-				"World": { x: 0.53, y: 0.5, width: 1, height: 1 },
+				"World": { x: 0.525, y: 0.5, width: 1, height: 1 },
 				"Africa": { x: 0.48, y: 0.70, width: 0.21, height: 0.38 },
 				"N.America": { x: 0.49, y: 0.40, width: 0.19, height: 0.32 },
 				"S.America": { x: 0.52, y: 0.815, width: 0.10, height: 0.26 },

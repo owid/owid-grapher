@@ -151,7 +151,7 @@
 						<select name='variable_type' class="form-control">
 							<option value="" disabled>Select variable type</option>
 							@foreach( $data['varTypes'] as $varType )
-								<option value="{{ $varType->id }}" @if($varType->id == 2) {{'selected'}}@endif>{{ $varType->name }}</option>
+								<option value="{{ $varType->id }}" @if($varType->id == 3) {{'selected'}}@endif>{{ $varType->name }}</option>
 							@endforeach
 						</select>
 					</div>
