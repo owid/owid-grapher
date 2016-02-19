@@ -12,6 +12,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 use Cache;
+use Debugbar;
 
 class VariablesController extends Controller {
 
@@ -94,7 +95,7 @@ class VariablesController extends Controller {
 			
 			$entityList = DataValue::where( 'fk_var_id', '=', $variable->id )->lists('fk_var_id');
 			$entities = Entity::whereIn( 'id', $entityList );
-			
+
 			//datagrid & filter
 			$filter = \DataFilter::source( $source );
 			$filter->attributes(array('class'=>'form-inline'));
@@ -104,7 +105,7 @@ class VariablesController extends Controller {
 			$entitiesList[''] = 'All';
 			
 			$filter->add('Entities.name','Entity','select')->options( $entitiesList );
-			$filter->add('Times.label','Time', 'text');
+			$filter->add('Times.date','Time', 'text');
 			$filter->submit('search');
 			$filter->build();
 			
@@ -112,7 +113,7 @@ class VariablesController extends Controller {
 			$grid->add( 'id', 'ID', true)->style( 'width:100px' );
 			$grid->add( 'value', 'Value', true);
 			$grid->add( 'name', 'Entity', true);
-			$grid->add( 'label', 'Time', true);
+			$grid->add( 'date', 'Time', true);
 			$grid->add( 'description', 'Description' );
 			$grid->add( '<a href="' .route( 'values.index' ). '/{{$id}}/edit">Edit</a>', 'Edit' );
 			$grid->paginate( 50 );

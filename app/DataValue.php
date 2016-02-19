@@ -21,7 +21,7 @@ class DataValue extends Model {
 
 	public function scopeGrid($query)
     {
-        return $query->leftJoin( 'entities', 'data_values.fk_ent_id', '=', 'entities.id' )->leftJoin( 'times', 'data_values.fk_time_id', '=', 'times.id' )->select( \DB::raw( 'data_values.*, times.label, entities.name' ) );
+        return $query->leftJoin( 'entities', 'data_values.fk_ent_id', '=', 'entities.id' )->leftJoin( 'times', 'data_values.fk_time_id', '=', 'times.id' )->select( \DB::raw( 'data_values.*, times.date, entities.name' ) );
     }
 
 }
