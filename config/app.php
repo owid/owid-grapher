@@ -154,7 +154,7 @@ return [
 
 		// Debugging tool
 		'Barryvdh\Debugbar\ServiceProvider',
-
+		Fideloper\Proxy\TrustedProxyServiceProvider::class,
 	],
 
 	/*
