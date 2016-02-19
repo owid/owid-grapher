@@ -15,6 +15,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 use Cache;
+use Debugbar;
 
 class DataController extends Controller {
 
@@ -148,6 +149,7 @@ class DataController extends Controller {
 			}	
 
 			$variableData = $variableQuery->get();
+			Debugbar::info($variableData);
 			
 			//insert data into existing variable
 			$dimension->data = $variableData;

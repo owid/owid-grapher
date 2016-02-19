@@ -207,7 +207,7 @@ return [
 		'Html' => 'Collective\Html\HtmlFacade',
 
 		'GAMP' => 'Irazasyed\LaravelGAMP\Facades\GAMP',
-
+		'Debugbar' => Barryvdh\Debugbar\Facade::class,
 	],
 
 ];
