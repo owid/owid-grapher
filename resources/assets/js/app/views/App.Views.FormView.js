@@ -22,8 +22,8 @@
 		el: "#form-view",
 		events: {
 			"click .form-collapse-btn": "onFormCollapse",
-			"input input[name=chart-name]": "onNameChange",
-			"input textarea[name=chart-subname]": "onSubnameChange",
+			"change input[name=chart-name]": "onNameChange",
+			"change textarea[name=chart-subname]": "onSubnameChange",
 			"click .remove-uploaded-file-btn": "onRemoveUploadedFile",
 			"submit form": "onFormSubmit",
 		},
@@ -92,19 +92,19 @@
 			$('.nav-tabs').stickyTabs();
 		},
 
-		onNameChange: _.debounce( function( evt ) {
+		onNameChange: function( evt ) {
 
 			var $input = $( evt.target );
 			App.ChartModel.set( "chart-name", $input.val() );
 
-		}, 250 ),
+		},
 
-		onSubnameChange: _.debounce( function( evt ) {
+		onSubnameChange: function( evt ) {
 
 			var $textarea = $( evt.target );
 			App.ChartModel.set( "chart-subname", $textarea.val() );
 
-		}, 250 ),
+		},
 
 		onCsvSelected: function( err, data ) {
 
