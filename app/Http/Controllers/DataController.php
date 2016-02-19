@@ -29,7 +29,7 @@ class DataController extends Controller {
 
 	public function dimensions( Request $request ) {
 
-		set_time_limit( 10 ); 
+		set_time_limit( 10 );
 		ini_set('memory_limit', '256M');
 
 		//check we have everything we should have
@@ -37,7 +37,7 @@ class DataController extends Controller {
 			//we don't have necessary info, bail out
 			return [ 'success' => false ];
 		}
-		
+
 		//filtering by entities?
 		$selectedCountriesIds = Input::get( "selectedCountries" );
 		$selectedCountriesIdsString = ( !empty( $selectedCountriesIds ) && count( $selectedCountriesIds ) > 0 )? implode( ",", $selectedCountriesIds ) : "";
@@ -52,9 +52,9 @@ class DataController extends Controller {
 				//return Cache::get( $key );
 			}
 		}
-		
+
 		$data = array();
-		
+
 		//extra array for storing values for export
 		$times = array();
 		$datasourcesIdsArr = array();
@@ -66,12 +66,12 @@ class DataController extends Controller {
 		if( empty( $dimensions ) ) {
 			return [ 'success' => false ];
 		}
-		
+
 		$chartType = Input::get( 'chartType' );
 
 		//there's special setting for linechart
 		$isLineChart = ( $chartType == "1" || $chartType == "4" || $chartType == "5" || $chartType == "6" )? true: false;
-		
+
 		//find out how many variables we have 
 		$groupByEntity = ( Input::get( 'groupByVariables' ) == 'false' )? true: false;
 		

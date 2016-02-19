@@ -37,7 +37,7 @@
 			var selectedCountries = App.ChartModel.get( "selected-countries" ),
 				selectedCountriesById = [],
 				selectedCountriesIds = _.map( selectedCountries, function(v) {
-					//store 
+					//store
 					selectedCountriesById[ v.id ] = v;
 					return +v.id;
 				} );
