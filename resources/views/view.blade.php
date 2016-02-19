@@ -9,8 +9,8 @@
 		<link rel="apple-touch-icon" href="apple-touch-icon.png">
 		<!-- Place favicon.ico in the root directory -->
 
-		<link href="{{ elixir('css/libs/front.css') }}" rel="stylesheet" type="text/css" />
-		<link href="{{ elixir('css/front.css') }}" rel="stylesheet" type="text/css" />
+		<link href="{{ asset(elixir('css/libs/front.css')) }}" rel="stylesheet" type="text/css" />
+		<link href="{{ asset(elixir('css/front.css')) }}" rel="stylesheet" type="text/css" />
 		
 		@yield('styles')
 
@@ -43,7 +43,7 @@
 			Global.rootUrl = "{!! Request::root() !!}";
 		</script>
 		
-		<script src="{{ ltrim( elixir('js/libs.js'), '/' ) }}"></script>
+		<script src="{{ asset(elixir('js/libs.js')) }}"></script>
 		
 		@yield('scripts')
 

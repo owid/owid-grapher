@@ -18,5 +18,5 @@
 @endsection
 
 @section('scripts')
-	<script src="{{ elixir('js/ChartApp.js') }}"></script>
+	<script src="{{ asset(elixir('js/ChartApp.js')) }}"></script>
 @endsection
