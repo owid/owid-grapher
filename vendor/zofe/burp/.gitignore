@@ -1,6 +1,0 @@
-.DS_Store
-.idea
-.htaccess
-/vendor
-composer.lock
-index.php

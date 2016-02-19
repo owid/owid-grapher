@@ -15,5 +15,5 @@
 .env.localhost
 .env.bluehost
 .htaccess
-vendor/compiled.php
+vendor
 sftp-config.json
