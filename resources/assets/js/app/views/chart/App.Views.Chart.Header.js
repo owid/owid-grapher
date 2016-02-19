@@ -160,15 +160,22 @@
 		updateTimeFromMap: function(data) {
 			var timeFrom = d3.min(data, function(d) { return parseInt(d.time); }),
 				timeTo = d3.max(data, function(d) { return parseInt(d.time); }),
-				targetYear = App.ChartModel.get("map-config").targetYear;
+				targetYear = App.ChartModel.get("map-config").targetYear,
+				hasTargetYear = _.find(data, function(d) { return parseInt(d.time) == targetYear; });
 
 			var chartName = this.$chartName.text();
 			var chartSubname = this.$chartSubname.html();
 			chartName = this.replaceTimePlaceholder( chartName, targetYear, targetYear, false );
-			if (timeFrom != timeTo && timeTo != targetYear)
-				chartSubname += " Since observations made in " + targetYear + " are not available in all countries the map displays data from " + timeFrom + " to " + timeTo + ".";
-			else if (timeTo != targetYear)
-				chartSubname += " Since observations made in " + targetYear + " are not available the map displays data from " + timeFrom + ".";
+			if (hasTargetYear && timeFrom != timeTo) {
+				// The target year is in the data but we're displaying a range, meaning not available for all countries
+				chartSubname += " Since some observations for " + targetYear + " are not available the map displays the closest available data (" + timeFrom + " to " + timeTo + ").";
+			} else if (!hasTargetYear && timeFrom != timeTo) {
+				// The target year isn't in the data at all and we're displaying a range of other nearby values
+				chartSubname += " Since observations for " + targetYear + " are not available the map displays the closest available data (" + timeFrom + " to " + timeTo + ").";
+			} else if (!hasTargetYear && timeFrom == timeTo) {
+				// The target year isn't in the data and we're displaying some other single year
+				chartSubname += " Since observations for " + targetYear + " are not available the map displays the closest available data (from " + timeFrom + ").";
+			}
 			this.$chartName.text( chartName );
 			this.$chartName.css( "visibility", "visible" );
 			this.$chartSubname.html(chartSubname);
