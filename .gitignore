@@ -17,3 +17,4 @@
 .htaccess
 vendor
 sftp-config.json
+storage/debugbar
