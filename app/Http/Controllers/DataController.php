@@ -220,7 +220,7 @@ class DataController extends Controller {
 						$dataByEntity[ $entityId ][ "values" ][ $property ] = [];
 					}
 					//store value, if range time type - store as startYear-endYear?
-					$timeId = ( $datum->fk_ttype_id != 6 )? floatval( $datum->date ): floatval( $datum->startDate ) . "-" . floatval( $datum->endDate );
+					$timeId = ( $datum->fk_ttype_id != 6 )? floatval( $datum->label ): floatval( $datum->startDate ) . "-" . floatval( $datum->endDate );
 					$dataByEntity[ $entityId ][ "values" ][ $property ][ $timeId ] = ( $property != "color" && $property != "shape" && $property != "map" )? floatval( $datum->value ): $datum->value;
 					
 					//need to store dimension variablename, dimensions are returned
@@ -245,8 +245,7 @@ class DataController extends Controller {
 						$entities[ $entityId ] = $datum->name; 
 					}
 					$dataByEntityTime[ $entityId ][ $datum->label ] = $datum->value;
-					//AMMEND HERE - store simply as a string?
-					$times[ floatval( $datum->date ) ] = true;
+					$times[floatval($datum->label)] = true;
 					$datasourcesIdsArr[ $datum->fk_dsr_id ] = true;
 
 				}
@@ -278,7 +277,7 @@ class DataController extends Controller {
 					//store entity name for legend purposes
 					$entityName = $datum->name;
 
-					$dataByVariable[ "id-".$id ][ "values" ][] = array( "x" => floatval($datum->date), "y" => floatval($datum->value) );
+					$dataByVariable[ "id-".$id ][ "values" ][] = array( "x" => floatval($datum->label), "y" => floatval($datum->value) );
 					$times[$datum->label] = true;
 					$datasourcesIdsArr[ $datum->fk_dsr_id ] = true;
 
