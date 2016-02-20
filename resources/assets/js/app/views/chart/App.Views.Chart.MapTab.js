@@ -124,6 +124,8 @@
 		},
 
 		popupTemplateGenerator: function( geo, data ) {
+			if (_.isEmpty(data)) return;
+
 			//transform datamaps data into format close to nvd3 so that we can reuse the same popup generator
 			var mapConfig = App.ChartModel.get( "map-config" ),
 				propertyName = App.Utils.getPropertyByVariableId( App.ChartModel, mapConfig.variableId );
@@ -270,7 +272,7 @@
 				//projection stays the same, no need to redraw units
 				//need to set all units to default color first, cause updateChopleth just updates new data leaves the old data for units no longer in dataset
 				d3.selectAll( "path.datamaps-subunit" ).transition().style( "fill", this.dataMap.options.fills.defaultFill );
-				this.dataMap.updateChoropleth( mapData );
+				this.dataMap.updateChoropleth( mapData, { reset: true } );
 				this.onResize();
 			} else {
 				//changing projection, need to remove existing units, redraw everything and after done drawing, update data
@@ -278,7 +280,7 @@
 				this.dataMap.options.setProjection = newProjection;
 				this.dataMap.draw();
 				this.dataMap.options.done = function() {
-					that.dataMap.updateChoropleth( mapData );
+					that.dataMap.updateChoropleth( mapData, { reset: true } );
 					that.onResize();
 				};
 			}
