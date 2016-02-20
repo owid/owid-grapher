@@ -94,9 +94,6 @@
 			this.$filePicker.on( "change", function( i, v ) {
 
 				var $this = $( this );
-				// This is Papa Parse CSV parsing. "a powerful CSV parser for big boys and girls".
-				// Yes, it defines something as confusingly generic as $.fn.parse. Maybe it's a dad joke of some kind.
-				// - mispy
 				$this.parse( {
 					config: {
 						complete: function( obj ) {
