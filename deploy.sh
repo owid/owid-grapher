@@ -1,7 +1,7 @@
 #!/bin/bash
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-RSYNC="rsync -havz --no-perms --progress --delete --delete-excluded --exclude .git --exclude node_modules --exclude \"storage/logs/*\" --exclude \"storage/debugbar/*\" --exclude .env"
-HOST="explain3@ourworldindata.org"
+RSYNC="rsync -havz --no-perms --progress --delete --delete-excluded --exclude-from=$DIR/.rsync-ignore"
+HOST="explain3@whm.ourworldindata.org"
 ROOT="/home/explain3"
 
 if [ "$1" == "test" ]; then
@@ -23,6 +23,7 @@ ssh $HOST "rm -r $OLD_REPO"
 $RSYNC $DIR/ $HOST:$SYNC_TARGET
 ssh $HOST 'bash -l -e -s' <<EOF
   cp -r $SYNC_TARGET $TMP_NEW
+  cp -r $LIVE_TARGET/storage/framework/sessions $TMP_NEW/storage/framework/sessions
   mv $LIVE_TARGET $OLD_REPO
   mv $TMP_NEW $LIVE_TARGET
   ln -sf $LIVE_DATA/.htaccess $LIVE_TARGET/public/.htaccess
