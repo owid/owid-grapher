@@ -14,26 +14,27 @@ class FixGraphEntityRefs extends Migration
      */
     public function up()
     {
+        DB::transaction(function() {
+            DataValue::where('fk_ent_id', 341)->update(array('fk_ent_id' => 355));
+            Entity::where('id', 341)->delete();
 
-        $charts = Chart::all();
-        foreach ($charts as $chart) {
-            $config = json_decode($chart->config);
-            $countries = $config->{'selected-countries'};
-            if (empty($countries)) continue;
+            $charts = Chart::all();
+            foreach ($charts as $chart) {
+                $config = json_decode($chart->config);
+                $countries = $config->{'selected-countries'};
+                if (empty($countries)) continue;
 
-            foreach ($countries as $country) {
-                if ($country->id == "341") {
-                    echo("Updating chart config for " . $chart->id . "\n");
-                    $country->id = $newEntId;
-                    $country->name = "World";
+                foreach ($countries as $country) {
+                    if ($country->id == "341") {
+                        echo("Updating chart config for " . $chart->id . "\n");
+                        $country->id = "355";
+                        $country->name = "World";
+                    }
                 }
+
+                $chart->config = json_encode($config);
+                $chart->save();
             }
-
-            $chart->config = json_encode($config);
-            $chart->save();
-        }
-
-        DataValue::where('fk_ent_id', 341)->update(array('fk_ent_id' => 355));
-        Entity::where('id', 341)->delete();
+        });
     }
 }
