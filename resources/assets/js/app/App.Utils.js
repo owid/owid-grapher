@@ -496,7 +496,6 @@
 
 
 	App.Utils.contentGenerator = function( data, isMapPopup ) {
-			
 		//set popup
 		var unitsString = App.ChartModel.get( "units" ),
 			chartType = App.ChartModel.get( "chart-type" ),
@@ -507,10 +506,9 @@
 		//find relevant values for popup and display them
 		var series = data.series, key = "", timeString = "";
 		if( series && series.length ) {
-			
 			var serie = series[ 0 ];
 			key = serie.key;
-			
+
 			//get source of information
 			var point = data.point;
 			//begin composting string
@@ -521,7 +519,7 @@
 				//multibarchart has values in different format
 				point = { "y": serie.value, "time": data.data.time };
 			}
-			
+
 			$.each( point, function( i, v ) {
 				//for each data point, find appropriate unit, and if we have it, display it
 				var unit = _.findWhere( units, { property: i } ),
@@ -540,6 +538,9 @@
 				}
 
 				if( unit ) {
+					var unitSetting = unit.unit||"";
+					var titleSetting = unit.title||"";
+
 					if( !isHidden ) {
 						//try to format number
 						//scatter plot has values displayed in separate rows
@@ -549,7 +550,7 @@
 						if( chartType == 2 ) {
 							valuesString += "<span class='var-popup-value'>";
 						}
-						valuesString += value + " " + unit.unit;
+						valuesString += (_.isEmpty(titleSetting) ? "" : titleSetting + ": ") + value + " " + unitSetting;
 						if( chartType == 2 ) {
 							valuesString += "</span>";
 						}
