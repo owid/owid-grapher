@@ -14,6 +14,14 @@
 	App.Collections = {};
 	App.Utils = {};
 	App.Utils.FormHelper = {};
+	App.ChartType = {
+		LineChart: 1,
+		ScatterPlot: 2,
+		StackedArea: 3,
+		MultiBar: 4,
+		HorizontalMultiBar: 5,
+		DiscreteBar: 6
+	};
 
 	//export for iframe
 	window.$ = jQuery;

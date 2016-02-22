@@ -515,7 +515,7 @@
 			string = "<h3>" + key + "</h3><p>";
 			valuesString = "";
 
-			if( !isMapPopup && ( App.ChartModel.get( "chart-type" ) === "4" || App.ChartModel.get( "chart-type" ) === "5" || App.ChartModel.get( "chart-type" ) === "6" ) ) {
+			if (!isMapPopup && (chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar || chartType == App.ChartType.DiscreteBar)) {
 				//multibarchart has values in different format
 				point = { "y": serie.value, "time": data.data.time };
 			}
@@ -544,44 +544,44 @@
 					if( !isHidden ) {
 						//try to format number
 						//scatter plot has values displayed in separate rows
-						if( valuesString !== "" && chartType != 2 ) {
+						if( valuesString !== "" && chartType != App.ChartType.ScatterPlot ) {
 							valuesString += ", ";
 						}
-						if( chartType == 2 ) {
+						if( chartType == App.ChartType.ScatterPlot ) {
 							valuesString += "<span class='var-popup-value'>";
 						}
 						valuesString += (_.isEmpty(titleSetting) ? "" : titleSetting + ": ") + value + " " + unitSetting;
-						if( chartType == 2 ) {
+						if( chartType == App.ChartType.ScatterPlot ) {
 							valuesString += "</span>";
 						}
 					}
 				} else if( i === "time" ) {
 					timeString = v;
-				} else if( i !== "color" && i !== "series" && ( i !== "x" || chartType != 1 ) ) {
+				} else if( i !== "color" && i !== "series" && ( i !== "x" || chartType != App.ChartType.LineChart ) ) {
 					if( !isHidden ) {
-						if( valuesString !== "" && chartType != 2 ) {
+						if( valuesString !== "" && chartType != App.ChartType.ScatterPlot ) {
 							valuesString += ", ";
 						}
-						if( chartType == 2 ) {
+						if( chartType == App.ChartType.ScatterPlot ) {
 							valuesString += "<span class='var-popup-value'>";
 						}
 						//just add plain value, omiting x value for linechart
 						valuesString += value;
-						if( chartType == 2 ) {
+						if( chartType == App.ChartType.ScatterPlot ) {
 							valuesString += "</span>";
 						}
 					}
 				}
 			} );
 
-			if( isMapPopup || ( timeString && chartType != 2 ) ) {
+			if( isMapPopup || ( timeString && chartType != App.ChartType.ScatterPlot ) ) {
 				valuesString += " <br /> in <br /> " + timeString;
-			} else if( timeString && chartType == 2 ) {
+			} else if( timeString && chartType == App.ChartType.ScatterPlot ) {
 				valuesString += "<span class='var-popup-value'>in " + timeString + "</span>";
 			}
+
 			string += valuesString;
 			string += "</p>";
-
 		}
 
 		return string;

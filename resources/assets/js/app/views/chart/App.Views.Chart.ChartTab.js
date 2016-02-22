@@ -370,19 +370,19 @@
 					.axisLabelDistance( yAxisLabelDistance )
 					.tickFormat( function(d) { return yAxisPrefix + d3.format( "," )( App.Utils.formatValue( d, yAxisFormat ) ) + yAxisSuffix; })
 					.showMaxMin(false);
-				
+
 				//scatter plots need more ticks
-				if( chartType === "2" ) {
+				if( chartType === App.ChartType.ScatterPlot ) {
 					//hardcode
 					that.chart.xAxis.ticks( 7 );
 					that.chart.yAxis.ticks( 7 );
 				}
-				
+
 				that.svgSelection = d3.select( that.$svg.selector )
 					.datum( localData )
 					.call( that.chart );
 
-				if( chartType !== "3" ) {
+				if( chartType !== App.ChartType.StackedArea ) {
 
 					that.chart.tooltip.contentGenerator( App.Utils.contentGenerator );
 
@@ -432,7 +432,7 @@
 					//put legend above chart
 
 					//if stacked area chart
-					if( chartType === "3" ) {
+					if( chartType === App.ChartType.StackedArea ) {
 						that.chart.stacked.dispatch.on( "areaMouseover", function( evt ) {
 							that.legend.highlightPoint( evt );
 						} );
