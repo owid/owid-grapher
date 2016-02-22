@@ -285,7 +285,7 @@
 				if( timeType == "Quarter Century" ) {
 					that.chart.xAxis.staggerLabels( true );
 				}
-				
+
 				//get extend
 				var allValues = [];
 				_.each( localData, function( v, i ) {
@@ -301,7 +301,6 @@
 				var xDomain = d3.extent( allValues.map( function( d ) { return d.x; } ) ),
 					yDomain = d3.extent( allValues.map( function( d ) { return d.y; } ) ),
 					isClamped = false;
-
 				//console.log( "chart.stacked.style()", that.chart.stacked.style() );
 
 				if( xAxisMin && !isNaN( xAxisMin ) ) {
@@ -316,8 +315,8 @@
 					yDomain[ 0 ] = yAxisMin;
 					isClamped = true;
 				} else {
-					//default is zero (don't do it for stack bar chart, messes up things)
-					if( chartType != "3" ) {
+					//default is zero (don't do it for stack bar chart or log scale, messes up things)
+					if( chartType != "3" && yAxisScale != "log" ) {
 						yDomain[ 0 ] = 0;
 						isClamped = true;
 					}
@@ -326,7 +325,7 @@
 					yDomain[ 1 ] = yAxisMax;
 					isClamped = true;
 				}
-				
+
 				//manually clamp values
 				if( isClamped ) {
 
