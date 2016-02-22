@@ -61,8 +61,8 @@
 			this.$hideLegend.prop( "checked", hideLegend );
 
 			this.updateUnitsUI();
+			this.updateUnits();
 			$( ".units-section .form-control[type=input], .units-section [type=checkbox]" ).on( "change", $.proxy( this.updateUnits, this ) );
-		
 		},
 
 		onLogoChange: function( evt ) {
@@ -117,12 +117,11 @@
 		},
 
 		updateUnitsUI: function( evt ) {
-			
 			var dimensionsString = App.ChartModel.get( "chart-dimensions" ), //App.ChartDimensionsModel.get( "chartDimensions" ),
 				dimensions = ( !$.isEmptyObject( dimensionsString ) )? $.parseJSON( dimensionsString ): {},
 				unitsString = App.ChartModel.get( "units" ),
 				units = ( !$.isEmptyObject( unitsString ) )? $.parseJSON( unitsString ): {};
-			
+
 			//refresh whole unit section
 			this.$unitsContent.html( "<ul></ul>" );
 			var $ul = this.$unitsContent.find( "ul" );
@@ -138,7 +137,7 @@
 						visibleProp = ( visible )? " checked": "",
 						unit = ( unitObj && unitObj.unit )? unitObj.unit: "",
 						format = ( unitObj && unitObj.format )? unitObj.format: "";
-					
+
 					if( !unitObj && dimension && dimension.unit ) {
 						//if nothing stored, try to get default units for given variable
 						unit = dimension.unit;
@@ -150,16 +149,13 @@
 				} );
 
 			}
-			
 		},
 
 		updateUnits: function() {
-			
 			var units = [],
 				$unitLis = this.$unitsContent.find( "li" );
 
 			$.each( $unitLis, function( i, v ) {
-				
 				var $li = $( v ),
 					$visible = $li.find( ".visible-input" ),
 					$unit = $li.find( ".unit-input" ),
@@ -172,14 +168,12 @@
 					"unit": $unit.val(),
 					"format": $format.val()
 				};
-					
-				units.push( unitSettings );
 
+				units.push( unitSettings );
 			} );
 
 			var json = JSON.stringify( units );
 			App.ChartModel.set( "units", json );
-			
 		}
 
 	});
