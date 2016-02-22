@@ -19,9 +19,9 @@ TMP_NEW="$ROOT/tmp/$NAME-new"
 LIVE_TARGET="$ROOT/$NAME-code"
 LIVE_DATA="$ROOT/$NAME-data"
 
-ssh $HOST "rm -r $OLD_REPO"
+ssh -t $HOST "rm -r $OLD_REPO"
 $RSYNC $DIR/ $HOST:$SYNC_TARGET
-ssh $HOST 'bash -l -e -s' <<EOF
+ssh -t $HOST 'bash -e -s' <<EOF
   cp -r $SYNC_TARGET $TMP_NEW
   cp -r $LIVE_TARGET/storage/framework/sessions $TMP_NEW/storage/framework/sessions
   mv $LIVE_TARGET $OLD_REPO
@@ -30,4 +30,6 @@ ssh $HOST 'bash -l -e -s' <<EOF
   ln -sf $LIVE_DATA/env $LIVE_TARGET/.env
   ln -sf $LIVE_DATA/uploads $LIVE_TARGET/public/uploads
   ln -sf $LIVE_TARGET/public $ROOT/public_html/$NAME
+  cd $LIVE_TARGET && /usr/php/56/bin/php artisan migrate --force
 EOF
+
