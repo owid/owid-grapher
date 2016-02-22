@@ -13,14 +13,10 @@
 		},
 
 		initialize: function( options ) {
-			
 			this.dispatcher = options.dispatcher;
 			App.ChartDimensionsModel.on( "reset change", this.render, this );
-
 			this.dispatcher.on( "dimension-update", this.onDimensionUpdate, this );
-			
 			this.render();
-
 		},
 
 		inited: false,
@@ -53,7 +49,7 @@
 			this.$dd = this.$el.find( ".dd" );
 			//nestable destroy
 			this.$dd.nestable();
-						
+
 			//fetch remaing dom
 			this.$dimensionBoxes = this.$el.find( ".dimension-box" );
 
@@ -92,7 +88,6 @@
 		},
 
 		updateInput: function() {
-			
 			var dimensions = [];
 			$.each( this.$dimensionBoxes, function( i, v ) {
 				var $box = $( v ),
@@ -110,7 +105,6 @@
 			var json = JSON.stringify( dimensions );
 			this.$dimensionsInput.val( json );
 			App.ChartModel.set( "chart-dimensions", json );
-
 		},
 
 		setInputs: function( chartDimensions ) {
@@ -162,10 +156,8 @@
 		},
 
 		onChartTypeChange: function( evt ) {
-
 			var $select = $( evt.currentTarget );
 			App.ChartDimensionsModel.loadConfiguration( $select.val() );
-
 		},
 
 		onDimensionUpdate: function() {
@@ -173,14 +165,10 @@
 		},
 
 		onGroupByVariableChange: function( evt ) {
-
 			var $input = $( evt.currentTarget );
 			App.ChartModel.set( "group-by-variables", $input.is( ":checked" ) );
-
 		}
-
 	});
-	
+
 	module.exports = App.Views.Form.DimensionsSectionView;
-	
 })();

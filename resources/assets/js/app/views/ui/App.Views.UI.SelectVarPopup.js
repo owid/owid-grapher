@@ -74,12 +74,10 @@
 		},
 
 		onSaveBtn: function( evt ) {
-
 			evt.preventDefault();
-			
+
 			//trigger event only if something selected
 			if( this.$chartVariable.val() > 0 ) {
-				
 				var varId = this.$chartVariable.val(),
 					varUnit = this.$chartVariable.find( "option:selected" ).attr( "data-unit" ),
 					varName = this.$chartVariable.find( "option:selected" ).text();
@@ -87,11 +85,9 @@
 				var variable = new App.Models.ChartVariableModel( { id:varId, name: varName, unit: varUnit } );
 				App.ChartVariablesCollection.add( variable );
 				//App.ChartModel.updateVariables( { id:varId, name: varName } );
-				
 				this.hide();
 
 			}
-
 		},
 
 		onCancelBtn: function( evt ) {
@@ -102,29 +98,22 @@
 		},
 
 		onSearchInput: function( evt ) {
-			
 			var $input = $( evt.currentTarget ),
 				searchTerm = $input.val();
 
 			if( searchTerm.length >= 2 ) {
-				
 				this.$clearIcon.hide();
 				this.$searchIcon.hide();
 				this.$preloaderIcon.show();
 
 				App.SearchDataCollection.search( searchTerm );
-
 			} else {
-
 				//clear selection
 				this.$selectResults.empty();
 				this.$selectResults.hide();
-				
 				this.$clearIcon.hide();
 				this.$searchIcon.show();
-
 			}
-
 		},
 
 		onSearchFetched: function( evt ) {

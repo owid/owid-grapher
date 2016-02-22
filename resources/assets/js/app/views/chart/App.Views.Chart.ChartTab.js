@@ -34,8 +34,17 @@
 			var chartType = App.ChartModel.get( "chart-type" );
 
 			//filter data for selected countries
-			var selectedCountries = App.ChartModel.get( "selected-countries" ),
-				selectedCountriesById = [],
+			var selectedCountries = App.ChartModel.get("selected-countries");
+
+			if (_.isEmpty(selectedCountries)) {
+				var countriesInData = _.uniq(_.map(localData, function(d) { return { id: d.id, name: d.entity }; }));
+				var random = _.sample(countriesInData, 3);
+				selectedCountries.push.apply(selectedCountries, random);
+				App.ChartModel.set("selected-countries", selectedCountries);
+				App.ChartModel.trigger("change:selected-countries");
+			}
+
+			var selectedCountriesById = [],
 				selectedCountriesIds = _.map( selectedCountries, function(v) {
 					//store
 					selectedCountriesById[ v.id ] = v;
@@ -68,7 +77,7 @@
 					} else {
 						value = that.assignColorFromCache( value );
 					}
-					
+
 					//actual filtering
 					return ( _.indexOf( selectedCountriesIds, id ) > -1 );
 				} );

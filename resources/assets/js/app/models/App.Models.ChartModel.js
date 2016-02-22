@@ -1,10 +1,9 @@
 ;( function() {
-		
 	"use strict";
 
 	var App = require( "./../namespaces.js" ),
 		Utils = require( "./../App.Utils.js" );
-	
+
 	App.Models.ChartModel = Backbone.Model.extend( {
 
 		//urlRoot: Global.rootUrl + '/charts/',
@@ -18,19 +17,18 @@
 					//saving new
 					return Global.rootUrl + "/charts";
 				}
-				
-			} else {
 
+			} else {
 				var logo = Utils.getQueryVariable( "logo" ),
 					logoUrl = ( logo )? "?logo=" + logo: "";
-				
+
 				return Global.rootUrl + "/data/config/" + this.id + logoUrl;
 			}
 		},
 
 		defaults: {
 			"cache": true,
-			"selected-countries": [],
+			"selected-countries": [], // e.g. [{id: "1", name: "United Kingdom"}]
 			"tabs": [ "chart", "data", "sources" ],
 			"default-tab": "chart",
 			"line-type": "2",
@@ -74,15 +72,11 @@
 		},
 
 		initialize: function() {
-
 			this.on( "sync", this.onSync, this );
-		
 		},
 
 		onSync: function() {
-
 			if( this.get( "chart-type" ) == 2 ) {
-				
 				//make sure for scatter plot, we have color set as continents
 				var chartDimensions = $.parseJSON( this.get( "chart-dimensions" ) );
 				if( !_.findWhere( chartDimensions, { "property": "color" } ) ) {
@@ -92,46 +86,31 @@
 					var charDimensionsString = JSON.stringify( chartDimensions );
 					this.set( "chart-dimensions", charDimensionsString );
 				}
-
 			}
-
 		},
 
 		addSelectedCountry: function( country ) {
-
-			//make sure we're using object, not associative array
-			/*if( $.isArray( this.get( "selected-countries" ) ) ) {
-				//we got empty array from db, convert to object
-				this.set( "selected-countries", {} );
-			}*/
-			
 			var selectedCountries = this.get( "selected-countries" );
 
 			//make sure the selected contry is not there 
 			if( !_.findWhere( selectedCountries, { id: country.id } ) ) {
-			
 				selectedCountries.push( country );
 				//selectedCountries[ country.id ] = country;
 				this.trigger( "change:selected-countries" );
 				this.trigger( "change" );
-			
 			}
-			
 		},
 
 		updateSelectedCountry: function( countryId, color ) {
-
 			var country = this.findCountryById( countryId );
 			if( country ) {
 				country.color = color;
 				this.trigger( "change:selected-countries" );
 				this.trigger( "change" );
 			}
-
 		},
 
 		removeSelectedCountry: function( countryId ) {
-
 			var country = this.findCountryById( countryId );
 			if( country ) {
 				var selectedCountries = this.get( "selected-countries" ),
@@ -140,7 +119,6 @@
 				this.trigger( "change:selected-countries" );
 				this.trigger( "change" );
 			}
-
 		},
 
 		replaceSelectedCountry: function( country ) {
@@ -150,15 +128,12 @@
 		},
 
 		findCountryById: function( countryId ) {
-
 			var selectedCountries = this.get( "selected-countries" ),
 				country = _.findWhere( selectedCountries, { id: countryId.toString() } );
 			return country;
-
 		},
 
 		setAxisConfig: function( axisName, prop, value ) {
-
 			if( $.isArray( this.get( "y-axis" ) ) ) {
 				//we got empty array from db, convert to object
 				this.set( "y-axis", {} );
@@ -167,13 +142,12 @@
 				//we got empty array from db, convert to object
 				this.set( "x-axis", {} );
 			}
-			
+
 			var axis = this.get( axisName );
 			if( axis ) {
 				axis[ prop ] = value;
 			}
 			this.trigger( "change" );
-
 		},
 
 		updateVariables: function( newVar ) {
@@ -201,9 +175,8 @@
 		updateMapConfig: function( propName, propValue, silent, eventName ) {
 			var mapConfig = this.get( "map-config" ),
 				keys = _.keys( this.defaults["map-config"] );
-			
+
 			if( $.inArray( propName, keys ) > - 1 ) {
-				
 				//if changing colorschem interval and custom colorscheme is used, update it
 				if( propName === "colorSchemeInterval" && mapConfig.colorSchemeName === "custom" ) {
 					mapConfig.customColorScheme = mapConfig.customColorScheme.slice( 0, propValue );

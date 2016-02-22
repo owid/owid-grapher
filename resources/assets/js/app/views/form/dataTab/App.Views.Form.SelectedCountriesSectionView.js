@@ -11,9 +11,8 @@
 		events: {},
 
 		initialize: function( options ) {
-			
 			this.dispatcher = options.dispatcher;
-			
+
 			App.ChartModel.on( "change:selected-countries", this.render, this );
 
 			this.render();

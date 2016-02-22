@@ -67,7 +67,6 @@
 		},
 
 		onVariableAdd: function( model ) {
-
 			//if there's empty element, remove it
 			this.$el.find( ".dd-empty" ).remove();
 			//refetch dd-list - needed if there was something removed
@@ -90,9 +89,9 @@
 			var $li = $( "<li class='variable-label dd-item' data-unit='" + model.get( "unit" ) + "' data-period='" + defaultPeriod + "' data-tolerance='" + defaultTolerance + "' data-maximum-age='" + defaultMaxAge + "' data-mode='" + defaultMode + "' data-target-year='" + defaultTargetYear + "' data-variable-id='" + model.get( "id" ) + "'><div class='dd-handle'><div class='dd-inner-handle'><span class='variable-label-name'>" + model.get( "name" ) + "</span><span class='variable-label-input'><input class='form-control'/><i class='fa fa-check'></i><i class='fa fa-times'></i></div></div><a href='' class='variable-setting-btn'><span class='fa period-icon'></span><span class='number-icon'></span><span class='fa fa-cog' title='Setting variable'></span></a><span class='fa fa-close'></span></li>" ),
 				$settings = $li.find( ".variable-setting-btn" );
 			this.$ddList.append( $li );
-			
+
 			$settings.on( "click", $.proxy( this.onSettingsClick, this ) );
-			
+
 			var $variableLabelName = $li.find( ".variable-label-name" ),
 				$variableLabelInput = $li.find( ".variable-label-input input" ),
 				$confirmNameBtn = $li.find( ".fa-check" ),
@@ -129,19 +128,16 @@
 		},
 
 		onSettingsClick: function( evt ) {
-
 			evt.stopImmediatePropagation();
 			evt.preventDefault();
 
 			var $btn = $( evt.currentTarget ),
 				$parent = $btn.parent();
-				
-			this.settingsVarPopup.show( $parent );
 
+			this.settingsVarPopup.show( $parent );
 		},
 
 		onDimensionSettingUpdate: function( data ) {
-
 			//find updated variable
 			var $variableLabel = $( ".variable-label[data-variable-id='" + data.variableId + "']" );
 			//update all attributes
