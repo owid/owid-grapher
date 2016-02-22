@@ -37,7 +37,7 @@
 			var selectedCountries = App.ChartModel.get("selected-countries");
 
 			if (_.isEmpty(selectedCountries)) {
-				var countries = _.map(localData, function(d) { return { id: d.id.split('-')[0], name: d.entity }; });
+				var countries = _.map(localData, function(d) { return { id: d.id.toString().split('-')[0], name: d.entity }; });
 				var countrySet = _.uniq(countries, function(c) { return c.id; });
 				var random = _.sample(countrySet, 3);
 				selectedCountries.push.apply(selectedCountries, random);
