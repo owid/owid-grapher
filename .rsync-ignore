@@ -5,3 +5,4 @@ storage/logs/*
 storage/debugbar/*
 storage/framework/sessions/*
 storage/framework/cache/*
+public/uploads
