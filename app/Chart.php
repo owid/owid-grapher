@@ -45,11 +45,9 @@ class Chart extends Model {
 	**/
 
 	public static function formatDataForLineChart( $dataByEntity, $dimensionsByKey, $times, $groupByVariable, $mainDimension ) {
-		
 		$normalizedData = [];
 
 		foreach( $dataByEntity as $entityData ) {
-					
 			$arr = array(
 				"id" => $entityData[ "id" ],
 				"key" => $entityData[ "key" ],
@@ -66,7 +64,7 @@ class Chart extends Model {
 
 			$mainValues = $entityData[ "values" ][ $mainDimension->property ];
 			$i = 0;
-			
+
 			//depending on the mode, continue with the rest
 			foreach( $mainValues as $time=>$mainValue ) {
 
@@ -76,7 +74,7 @@ class Chart extends Model {
 				//flag whether for given time, there's enough relevant data
 				$hasData = true;
 
-				//take value from 
+				//take value from
 				$timeArr[ $mainDimension->property ] = $mainValue;
 				//store time as one dimension, usefull for popup for scatter plot
 				$timeArr[ "time" ] = $time;
@@ -147,13 +145,12 @@ class Chart extends Model {
 	/**
 	* SCATTER PLOT
 	**/
-	
-	public static function formatDataForScatterPlotChart( $dataByEntity, $dimensionsByKey, $times, $groupByVariable, $mainDimension, $otherDimIds ) {
 
+	public static function formatDataForScatterPlotChart( $dataByEntity, $dimensionsByKey, $times, $groupByVariable, $mainDimension, $otherDimIds ) {
 		$normalizedData = [];
 
 		foreach( $dataByEntity as $entityData ) {
-			
+
 			$arr = array(
 				"id" => $entityData[ "id" ],
 				"key" => $entityData[ "key" ],
@@ -224,7 +221,7 @@ class Chart extends Model {
 						if( Chart::hasValue( $value ) ) {
 							$timeArr[ $dimension->property ] = $value[ "value" ];
 							//for scatter plot, we need to store exact time
-							$timeArr = Chart::storeExactTime( $timeArr, $value );
+							$timeArr = Chart::storeExactTime( $timeArr, $dimension->property, $value );
 						} else {
 							$hasData = false;
 						}
@@ -287,7 +284,7 @@ class Chart extends Model {
 								if( Chart::hasValue( $value ) ) {
 									$timeArr[ $otherDimension->property ] = $value[ "value" ]; 
 									//for scatter plot, we need to store exact time
-									$timeArr = Chart::storeExactTime( $timeArr, $value );
+									$timeArr = Chart::storeExactTime( $timeArr, $otherDimension->property, $value );
 								} else {
 									//temp
 									//$value = 0;
@@ -634,7 +631,7 @@ class Chart extends Model {
 			if( Chart::hasValue( $value ) ) {
 				$timeArr[ $dimension->property ] = $value[ "value" ];
 				//map needs exact time
-				$arr = Chart::storeExactTime( $arr, $value ); 
+				$arr = Chart::storeExactTime( $arr, $dimension->property, $value ); 
 			} else {
 				$hasData = false;
 			}
@@ -831,18 +828,14 @@ class Chart extends Model {
 
 	}
 
-	public static function storeExactTime( $timeArr, $value ) {
+	public static function storeExactTime( $timeArr, $key, $value ) {
 		//for scatter plot, we need to store exact time
 		if( !empty( $timeArr ) && !empty( $value ) && !empty( $value[ "time" ] ) ) {
 			if( empty( $timeArr[ "time" ] ) ) {
-				//there isn't anything stored for time yet
-				$timeArr[ "time" ] = $value[ "time" ];
-			} else {
-				//there's time stored already, if not the same add it to string
-				if( $timeArr[ "time" ] !== $value[ "time" ] ) {
-					$timeArr[ "time" ] .= ", " .$value[ "time" ];
-				}
+				$timeArr["time"] = [];
 			}
+			
+			$timeArr["time"][$key] = $value["time"];
 		}
 		return $timeArr;
 	}

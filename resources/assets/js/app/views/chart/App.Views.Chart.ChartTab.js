@@ -91,7 +91,7 @@
 			}
 
 			var discreteData;
-			if( chartType == "6" ) {
+			if( chartType == App.ChartType.DiscreteBar ) {
 				var flattenValues = _.map( localData, function( v ) {
 					if( v && v.color ) {
 						v.values[ 0 ].color = v.color;
@@ -112,7 +112,9 @@
 				_.each( localData, function( singleData, key, list ) {
 					var values = _.clone( singleData.values );
 					values = _.filter( values, function( value ) {
-						return ( parseInt( value.time, 10 ) >= timeFrom && parseInt( value.time, 10 ) <= timeTo );
+						return _.every(value.time, function(val, key) {
+							return ( val >= timeFrom && val <= timeTo );
+						});
 						//return ( value.x >= timeFrom && value.x <= timeTo );
 					} );
 					singleData.values = values;
@@ -202,7 +204,7 @@
 						.useInteractiveGuideline( true )
 						.x( function( d ) { return d.x; } )
 						.y( function( d ) { return d.y; } );
-				} else if( chartType == "4" || chartType == "5" ) {
+				} else if( chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar ) {
 
 					//multibar chart
 					//we need to make sure we have as much data as necessary
@@ -318,7 +320,7 @@
 					isClamped = true;
 				} else {
 					//default is zero (don't do it for stack bar chart or log scale, messes up things)
-					if( chartType != "3" && yAxisScale != "log" ) {
+					if( chartType != App.ChartType.StackedArea && yAxisScale != "log" ) {
 						yDomain[ 0 ] = 0;
 						isClamped = true;
 					}
@@ -467,7 +469,7 @@
 				} );
 				that.parentView.dataTab.render( data, localData, dimensions );
 
-				if( chartType == "2" ) {
+				if( chartType == App.ChartType.ScatterPlot ) {
 					//need to have own showDist implementation, cause there's a bug in nvd3
 					that.scatterDist();
 				}

@@ -494,6 +494,47 @@
 		
 	};
 
+	App.Utils.scatterPlotContentGenerator = function(data) {
+		var unitsString = App.ChartModel.get("units"),
+			units = !_.isEmpty(unitsString) ? $.parseJSON(unitsString) : {},
+			outputHtml = "";
+
+		var times = data.point.time; // e.g. { x: 1990 }
+		var heading = data.series[0].key; // e.g. "United Arab Emirates"
+		outputHtml += "<h3>" + heading + "</h3><p>";
+		_.each(data.point, function(value, key) {
+			if (key == "time" || key == "series" || key == "color") return;
+
+			var unit = _.findWhere(units, { property: key }),
+				isHidden = ( unit && unit.hasOwnProperty( "visible" ) && !unit.visible )? true: false;
+			value = App.Utils.formatNumeric(unit, value);
+
+			var unitSetting = (unit && unit.unit)||"";
+			var titleSetting = (unit && unit.title)||"";
+
+			var valueString = (_.isEmpty(titleSetting) ? "" : titleSetting + ": ") + value + " " + unitSetting;
+			valueString += " (in " + times[key] + ")";
+			outputHtml += "<span class='var-popup-value'>" + valueString + "</span>";
+		});
+
+		outputHtml += "</p>";
+		return outputHtml;
+	}
+
+	App.Utils.formatNumeric = function(unit, value) {
+		//format number
+		if( unit && !isNaN( unit.format ) && unit.format >= 0 ) {
+			//fixed format
+			var fixed = Math.min( 20, parseInt( unit.format, 10 ) );
+			return d3.format( ",." + fixed + "f" )( value );
+		} else {
+			//add thousands separator
+			if( !isNaN( value ) ) {
+				return d3.format( "," )( value );
+			}
+		}
+	}
+
 
 	App.Utils.contentGenerator = function( data, isMapPopup ) {
 		//set popup
@@ -502,6 +543,9 @@
 			units = ( !$.isEmptyObject( unitsString ) )? $.parseJSON( unitsString ): {},
 			string = "",
 			valuesString = "";
+
+		if (chartType == App.ChartType.ScatterPlot)
+			return App.Utils.scatterPlotContentGenerator(data);
 
 		//find relevant values for popup and display them
 		var series = data.series, key = "", timeString = "";
@@ -525,17 +569,8 @@
 				var unit = _.findWhere( units, { property: i } ),
 					value = v,
 					isHidden = ( unit && unit.hasOwnProperty( "visible" ) && !unit.visible )? true: false;
-				//format number
-				if( unit && !isNaN( unit.format ) && unit.format >= 0 ) {
-					//fixed format
-					var fixed = Math.min( 20, parseInt( unit.format, 10 ) );
-					value = d3.format( ",." + fixed + "f" )( value );
-				} else {
-					//add thousands separator
-					if( !isNaN( value ) ) {
-						value = d3.format( "," )( value );
-					}
-				}
+
+				value = App.Utils.formatNumeric(unit, value);
 
 				if( unit ) {
 					var unitSetting = unit.unit||"";
@@ -544,40 +579,29 @@
 					if( !isHidden ) {
 						//try to format number
 						//scatter plot has values displayed in separate rows
-						if( valuesString !== "" && chartType != App.ChartType.ScatterPlot ) {
+						if( valuesString !== "") {
 							valuesString += ", ";
-						}
-						if( chartType == App.ChartType.ScatterPlot ) {
-							valuesString += "<span class='var-popup-value'>";
 						}
 						valuesString += (_.isEmpty(titleSetting) ? "" : titleSetting + ": ") + value + " " + unitSetting;
-						if( chartType == App.ChartType.ScatterPlot ) {
-							valuesString += "</span>";
-						}
 					}
 				} else if( i === "time" ) {
-					timeString = v;
+					if (v.hasOwnProperty("map"))
+						timeString = v.map.toString();
+					else
+						timeString = v;
 				} else if( i !== "color" && i !== "series" && ( i !== "x" || chartType != App.ChartType.LineChart ) ) {
 					if( !isHidden ) {
-						if( valuesString !== "" && chartType != App.ChartType.ScatterPlot ) {
+						if( valuesString !== "") {
 							valuesString += ", ";
-						}
-						if( chartType == App.ChartType.ScatterPlot ) {
-							valuesString += "<span class='var-popup-value'>";
 						}
 						//just add plain value, omiting x value for linechart
 						valuesString += value;
-						if( chartType == App.ChartType.ScatterPlot ) {
-							valuesString += "</span>";
-						}
 					}
 				}
 			} );
 
-			if( isMapPopup || ( timeString && chartType != App.ChartType.ScatterPlot ) ) {
+			if(isMapPopup || timeString) {
 				valuesString += " <br /> in <br /> " + timeString;
-			} else if( timeString && chartType == App.ChartType.ScatterPlot ) {
-				valuesString += "<span class='var-popup-value'>in " + timeString + "</span>";
 			}
 
 			string += valuesString;
