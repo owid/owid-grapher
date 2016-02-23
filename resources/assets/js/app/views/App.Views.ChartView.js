@@ -60,10 +60,19 @@
 				that.onResize();
 			} );
 
-			this.mapTab.on("tab-ready", $.proxy(this.onResize, this));
-			this.chartTab.on("tab-ready", $.proxy(this.onResize, this));
-			this.dataTab.on("tab-ready", $.proxy(this.onResize, this));
-			this.sourcesTab.on("tab-ready", $.proxy(this.onResize, this));
+			var tab = App.ChartModel.get("default-tab");
+			if (tab == "chart")
+				this.defaultTab = this.chartTab;
+			else if (tab == "data")
+				this.defaultTab = this.dataTab;
+			else if (tab == "map")
+				this.defaultTab = this.mapTab;
+			else if (tab == "sources")
+				this.defaultTab = this.sourcesTab;
+			else
+				this.defaultTab = this.chartTab;
+
+			this.defaultTab.on("tab-ready", $.proxy(this.onResize, this));
 
 			//init router and deeplinking
 			//new Router();
