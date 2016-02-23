@@ -487,10 +487,10 @@
 					that.cacheColors( localData );
 				}
 
+				that.trigger("tab-ready");
 			});
 
 			this.localData = localData;
-			this.trigger("tab-ready");
 		},
 
 		show: function() {
