@@ -350,6 +350,8 @@
 				mapBBox = map.node().getBBox(), // contains original, untransformed width+height
 				mapWidth = mapBBox.width,
 				mapHeight = mapBBox.height,
+				mapX = wrapperBoundingRect.left + mapBBox.x + 1,
+				mapY = wrapperBoundingRect.top + mapBBox.y + 1,
 				viewportWidth = viewport.width*mapWidth,
 				viewportHeight = viewport.height*mapHeight;
 
@@ -367,16 +369,13 @@
 			var scaleFactor = Math.min(wrapperWidth/viewportWidth, wrapperHeight/viewportHeight),
 				scaleStr = "scale(" + scaleFactor + ")";
 
-			map.style(prefix + "transform", scaleStr + " translate(0px,0px)");
-
-			// Now that we've scaled the map, we can get our new dimensions and center it
-			var newBoundingRect = map.node().getBoundingClientRect(),
-				newWidth = newBoundingRect.right - newBoundingRect.left,
-				newHeight = newBoundingRect.bottom - newBoundingRect.top,
+			// Work out how to center the map accounting for the new scaling
+			var newWidth = mapWidth*scaleFactor,
+				newHeight = mapHeight*scaleFactor,
 				wrapperCenterX = wrapperBoundingRect.left + wrapperWidth / 2,
 				wrapperCenterY = wrapperBoundingRect.top + wrapperHeight / 2,
-				newCenterX = newBoundingRect.left + viewport.x*newWidth,
-				newCenterY = newBoundingRect.top + viewport.y*newHeight,
+				newCenterX = mapX + (scaleFactor-1)*mapBBox.x + viewport.x*newWidth,
+				newCenterY = mapY + (scaleFactor-1)*mapBBox.y + viewport.y*newHeight,
 				newOffsetX = wrapperCenterX - newCenterX,
 				newOffsetY = wrapperCenterY - newCenterY,
 				translateStr = "translate(" + newOffsetX + "px," + newOffsetY + "px)";
