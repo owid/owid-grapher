@@ -507,6 +507,9 @@
 
 			var unit = _.findWhere(units, { property: key }),
 				isHidden = ( unit && unit.hasOwnProperty( "visible" ) && !unit.visible )? true: false;
+
+			if (isHidden) return;
+			
 			value = App.Utils.formatNumeric(unit, value);
 
 			var unitSetting = (unit && unit.unit)||"";
