@@ -60,12 +60,16 @@
 				that.onResize();
 			} );
 
+			this.mapTab.on("tab-ready", $.proxy(this.onResize, this));
+			this.chartTab.on("tab-ready", $.proxy(this.onResize, this));
+			this.dataTab.on("tab-ready", $.proxy(this.onResize, this));
+			this.sourcesTab.on("tab-ready", $.proxy(this.onResize, this));
+
 			//init router and deeplinking
 			//new Router();
 			//Backbone.history.start();
 
 			this.render();
-
 		},
 
 		render: function() {
@@ -192,7 +196,6 @@
 		},
 
 		setDefaultTabFromUrl: function() {
-
 			var tab = Utils.getQueryVariable( "tab" );
 			if( tab ) {
 				//there is something in the url, check that it's not non-sensical value
@@ -201,7 +204,6 @@
 					App.ChartModel.set( "default-tab", tab, { silent: true } );
 				}
 			}
-		
 		},
 
 		/*displayTab: function( id ) {
@@ -613,12 +615,12 @@
 			this.header.render();
 		}
 	});
-	
+
 	module.exports = App.Views.ChartView;
 
 	//backbone router doesn't work properly with browserify, so it's directly inserted here
 	/*var Router = Backbone.Router.extend({
-		
+
 		routes: {
 				"chart": "onChartRoute",
 				"data": "onDataRoute",

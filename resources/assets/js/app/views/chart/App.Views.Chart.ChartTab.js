@@ -164,19 +164,14 @@
 				}
 
 				//depending on chart type create chart
-				if( chartType == "1" ) {
-					
-					//line chart
+				if( chartType == App.ChartType.LineChart ) {
 					that.chart = nv.models.lineChart().options( chartOptions );
-				
-				} else if( chartType == "2" ) {
-					
-					//scatter plot
+
+				} else if( chartType == App.ChartType.ScatterPlot ) {
 					var points = that.scatterBubbleSize();
 					that.chart = nv.models.scatterChart().options( chartOptions ).pointRange( points ).showDistX( true ).showDistY( true );
-					
-				} else if( chartType == "3" ) {
-					
+
+				} else if( chartType == App.ChartType.StackedArea ) {
 					//stacked area chart
 					//we need to make sure we have as much data as necessary
 					if( localData.length ) {
@@ -198,16 +193,15 @@
 							}
 						} );
 					}
-					
+
 					chartOptions.showTotalInTooltip = true;
-					
+
 					that.chart = nv.models.stackedAreaChart()
 						.options( chartOptions )
 						.controlOptions( [ "Stacked", "Expanded" ] )
 						.useInteractiveGuideline( true )
-						.x( function( d ) { return d[ "x" ]; } )
-						.y( function( d ) { return d[ "y" ]; } );
-			
+						.x( function( d ) { return d.x; } )
+						.y( function( d ) { return d.y; } );
 				} else if( chartType == "4" || chartType == "5" ) {
 
 					//multibar chart
@@ -215,10 +209,9 @@
 					var allTimes = [],
 						//store values by [entity][time]
 						valuesCheck = [];
-					
+
 					//extract all times
 					_.each( localData, function( v, i ) {
-							
 						var entityData = [],
 							times = v.values.map( function( v2, i ) {
 								entityData[ v2.x ] = true;
@@ -226,7 +219,6 @@
 							} );
 						valuesCheck[ v.id ] = entityData;
 						allTimes = allTimes.concat( times );
-						
 					} );
 
 					allTimes = _.uniq( allTimes );
