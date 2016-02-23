@@ -323,7 +323,7 @@
 		},
 
 		onResize: function() {
-			var map = d3.select(".datamaps-subunits");
+			var map = d3.select(".datamaps-subunits");			
 			if (!this.dataMap || map.empty())
 				return;
 
@@ -380,7 +380,8 @@
 				newOffsetY = wrapperCenterY - newCenterY,
 				translateStr = "translate(" + newOffsetX + "px," + newOffsetY + "px)";
 
-			map.style(prefix + "transform", "matrix(" + scaleFactor + ",0,0," + scaleFactor + "," + newOffsetX + "," + newOffsetY);
+			var matrixStr = "matrix(" + scaleFactor + ",0,0," + scaleFactor + "," + newOffsetX + "," + newOffsetY + ")";
+			map.style(prefix + "transform", matrixStr);
 
 			if( this.bordersDisclaimer && !this.bordersDisclaimer.empty() ) {
 				var bordersDisclaimerEl = this.bordersDisclaimer.node(),
