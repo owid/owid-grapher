@@ -342,18 +342,14 @@
 			var options = this.dataMap.options,
 				prefix = "-webkit-transform" in document.body.style ? "-webkit-" : "-moz-transform" in document.body.style ? "-moz-" : "-ms-transform" in document.body.style ? "-ms-" : "";
 
-			// First, undo any existing scale/translation and get our reference points
-			//console.log(map.node().getBoundingClientRect().left);
-			map.style(prefix + "transform", "scale(1) translate(0px,0px)");
-			//console.log(map.node().getBoundingClientRect().left);
-
 			var wrapper = d3.select( ".datamap" ),
 				wrapperBoundingRect = wrapper.node().getBoundingClientRect(),
 				wrapperWidth = wrapperBoundingRect.right - wrapperBoundingRect.left,
 				wrapperHeight = wrapperBoundingRect.bottom - wrapperBoundingRect.top,
 				mapBoundingRect = map.node().getBoundingClientRect(),
-				mapWidth = mapBoundingRect.right - mapBoundingRect.left,
-				mapHeight = mapBoundingRect.bottom - mapBoundingRect.top,
+				mapBBox = map.node().getBBox(), // contains original, untransformed width+height
+				mapWidth = mapBBox.width,
+				mapHeight = mapBBox.height,
 				viewportWidth = viewport.width*mapWidth,
 				viewportHeight = viewport.height*mapHeight;
 
