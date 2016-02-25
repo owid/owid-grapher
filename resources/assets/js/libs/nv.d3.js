@@ -11644,17 +11644,19 @@ nv.models.scatterChart = function() {
             // mouseover needs availableHeight so we just keep scatter mouse events inside the chart block
             scatter.dispatch.on('elementMouseout.tooltip', function(evt) {
                 tooltip.hidden(true);
-                container.select('.nv-chart-' + scatter.id() + ' .nv-series-' + evt.seriesIndex + ' .nv-distx-' + evt.pointIndex)
+                wrap.select('.nv-series-' + evt.seriesIndex + ' .nv-distx-' + evt.pointIndex)
                     .attr('y1', 0);
-                container.select('.nv-chart-' + scatter.id() + ' .nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
+                wrap.select('.nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
                     .attr('x2', distY.size());
             });
 
             scatter.dispatch.on('elementMouseover.tooltip', function(evt) {
-                container.select('.nv-series-' + evt.seriesIndex + ' .nv-distx-' + evt.pointIndex)
-                    .attr('y1', evt.pos.top - availableHeight - margin.top);
-                container.select('.nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
-                    .attr('x2', evt.pos.left + distX.size() - margin.left);
+                var bbox = wrap.selectAll(' .nv-group.nv-series-' + evt.seriesIndex).node().getBBox();
+
+                wrap.select('.nv-series-' + evt.seriesIndex + ' .nv-distx-' + evt.pointIndex)
+                    .attr('y1', bbox.y + bbox.height - availableHeight);
+                wrap.select('.nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
+                    .attr('x2', bbox.x + distX.size());
                 tooltip.position(evt.pos).data(evt).hidden(false);
             });
 
