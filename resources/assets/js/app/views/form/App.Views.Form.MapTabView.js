@@ -78,14 +78,10 @@
 
 		updateTargetYearSelect: function() {
 			var mapConfig = App.ChartModel.get( "map-config" ),
-				options = [ { "title": "Earliest year", "value": "earliest" }, { "title": "Latest year", "value": "latest" } ],
-				minYear = mapConfig.minYear,
-				maxYear = mapConfig.maxYear,
 				targetYear = mapConfig.targetYear,
 				targetYearMode = mapConfig.targetYearMode,
-				timeRanges = mapConfig.timeRanges;
-
-			var years = App.Utils.timeRangesToYears(timeRanges, minYear, maxYear);
+				years = App.Utils.timeRangesToYears(mapConfig.timeRanges, mapConfig.minYear, mapConfig.maxYear),
+				options = [ { "title": "Earliest year", "value": "earliest" }, { "title": "Latest year", "value": "latest" } ];
 
 			_.each(years, function(year) {
 				options.push({ "title": year, "value": year });
@@ -274,14 +270,15 @@
 			var $this = $( evt.target ),
 				mapConfig = App.ChartModel.get( "map-config" ),
 				val = $this.val(),
-				targetYear, targetYearMode = "normal";
+				targetYear, targetYearMode = "normal",
+				years = App.Utils.timeRangesToYears(mapConfig.timeRanges, mapConfig.minYear, mapConfig.maxYear);
 
 			if( val === "earliest" ) {
 				targetYearMode = val;
-				targetYear = mapConfig.minYear;
+				targetYear = years[0];
 			} else if( val === "latest" ) {
 				targetYearMode = val;
-				targetYear = mapConfig.maxYear;
+				targetYear = years[years.length-1];
 			} else {
 				targetYear = $this.val();
 			}
