@@ -21,23 +21,18 @@
 		},
 
 		render: function() {
-			
 			var mapConfig = App.ChartModel.get( "map-config" ),
-				year = mapConfig.targetYear,
-				min = mapConfig.minYear,
-				max = mapConfig.maxYear,
-				step = mapConfig.timeInterval;
-			
+				targetYear = mapConfig.targetYear,
+				years = App.Utils.parseTimeRangeConfig(mapConfig.timeRangeConfig, mapConfig.minYear, mapConfig.maxYear);
+
 			//create all necessary buttons
 			this.$buttonsWrapper.empty();
 
-			var nowYear = min,
-				htmlString = "";
-			while( nowYear <= max ) {
-				var selected = ( nowYear === year )? "selected": "";
-				htmlString += "<li data-year='" + nowYear + "' class='year-btn " + selected + "'><a href='#' class='btn'>" + nowYear + "</a></li>";
-				nowYear += step;
-			}
+			var htmlString = "";
+			_.each(years, function(year) {
+				var selected = ( year === targetYear )? "selected": "";
+				htmlString += "<li data-year='" + year + "' class='year-btn " + selected + "'><a href='#' class='btn'>" + year + "</a></li>";
+			});
 			
 			this.$buttonsWrapper.append( $( htmlString ) );
 			

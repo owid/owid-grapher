@@ -12,7 +12,7 @@
 		events: {
 			"change [name='map-variable-id']": "onVariableIdChange",
 			"change [name='map-time-tolerance']": "onTimeToleranceChange",
-			"change [name='map-time-interval']": "onTimeIntervalChange",
+			"change [name='map-time-range-config']": "onTimeRangeChange",
 			"change [name='map-time-mode']": "onTimeModeChange",
 			"change [name='map-target-year']": "onTargetYearChange",
 			"change [name='map-color-scheme']": "onColorSchemeChange",
@@ -33,7 +33,7 @@
 			this.$variableIdSelect = this.$el.find( "[name='map-variable-id']" );
 			
 			this.$timeToleranceInput = this.$el.find( "[name='map-time-tolerance']" );
-			this.$timeIntervalInput = this.$el.find( "[name='map-time-interval']" );
+			this.$timeRangeConfigInput = this.$el.find( "[name='map-time-range-config']" );
 			this.$targetYearInput = this.$el.find( "[name='map-target-year']" );
 			this.$timeModeSelect = this.$el.find( "[name='map-time-mode']" );
 			
@@ -63,7 +63,7 @@
 			this.updateVariableSelect();
 
 			this.$timeToleranceInput.val( mapConfig.timeTolerance );
-			this.$timeIntervalInput.val( mapConfig.timeInterval );
+			this.$timeRangeConfigInput.val( mapConfig.timeRangeConfig );
 			this.$legendDescription.val( mapConfig.legendDescription );
 			var legendStepSize = ( mapConfig.legendStepSize )? mapConfig.legendStepSize: 20;
 			this.$legendStepSize.val( legendStepSize );
@@ -79,29 +79,19 @@
 		},
 
 		updateTargetYearSelect: function() {
-
 			var mapConfig = App.ChartModel.get( "map-config" ),
 				options = [ { "title": "Earliest year", "value": "earliest" }, { "title": "Latest year", "value": "latest" } ],
 				minYear = mapConfig.minYear,
 				maxYear = mapConfig.maxYear,
 				targetYear = mapConfig.targetYear,
 				targetYearMode = mapConfig.targetYearMode,
-				interval = mapConfig.timeInterval,
-				nowYear = minYear,
-				loopIndex = 0;
+				rangeConfig = mapConfig.timeRangeConfig;
 
-			while( ( nowYear <= maxYear ) && ( loopIndex < 1000 ) ) {
-				options.push( { "title": nowYear, "value": nowYear } );
+			var years = App.Utils.parseTimeRangeConfig(rangeConfig, minYear, maxYear);
 
-				nowYear = nowYear + interval;
-				//make sure that we don't skip over maxYear if next interval would over it
-				if( (nowYear > maxYear) && (nowYear - interval) < maxYear ) {
-					nowYear = maxYear;
-				}
-
-				//just safeguard for loop
-				loopIndex++;
-			}
+			_.each(years, function(year) {
+				options.push({ "title": year, "value": year });
+			});
 
 			this.$targetYearInput.empty();
 
@@ -111,7 +101,6 @@
 			} );
 			this.$targetYearInput.html( innerHtml );
 
-
 			//update current value on select
 			var currentValue;
 			if( targetYearMode === "earliest" || targetYearMode === "latest" ) {
@@ -119,9 +108,9 @@
 			} else {
 				currentValue = targetYear;
 			}
+
 			//select current value
 			this.$targetYearInput.val( currentValue );
-
 		},
 
 		updateVariableSelect: function() {
@@ -261,9 +250,9 @@
 			App.ChartModel.updateMapConfig( "timeTolerance", parseInt( $this.val(), 10 ) );
 		},
 
-		onTimeIntervalChange: function( evt ) {
-			var $this = $( evt.target );
-			App.ChartModel.updateMapConfig( "timeInterval", parseInt( $this.val(), 10 ) );
+		onTimeRangeChange: function(evt) {
+			var $this = $(evt.target);
+			App.ChartModel.updateMapConfig("timeRangeConfig", $this.val());
 			this.updateTargetYearSelect();
 		},
 

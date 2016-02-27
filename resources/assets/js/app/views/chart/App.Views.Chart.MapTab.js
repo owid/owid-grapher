@@ -146,7 +146,6 @@
 		},
 
 		update: function() {
-
 			//construct dimension string
 			var that = this,
 				mapConfig = App.ChartModel.get( "map-config" ),
@@ -167,7 +166,9 @@
 			this.timelineControls.render();
 
 			var dataProps = { "dimensions": dimensionsString, "chartId": App.ChartModel.get( "id" ), "chartType": chartType, "selectedCountries": selectedCountriesIds, "chartTime": chartTime, "cache": App.ChartModel.get( "cache" ), "groupByVariables": App.ChartModel.get( "group-by-variables" )  };
-			this.mapDataModel.fetch( { data: dataProps } );
+
+			if (this.mapDataModel)
+				this.mapDataModel.fetch( { data: dataProps } );
 
 			return this;
 		},

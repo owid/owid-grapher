@@ -17,6 +17,7 @@
 			this.dispatcher = options.dispatcher;
 			
 			var mapConfig = App.ChartModel.get( "map-config" );
+			//this.mapYears = App.Utils.parseTimeRangeConfig(mapConfig.timeRangeConfig, mapConfig.minYear, mapConfig.maxYear);
 			
 			this.$win = $( window );
 			this.$sliderWrapper = this.$el.find( ".timeline-wrapper" );
@@ -35,34 +36,35 @@
 			/*  App.ChartModel.on( "change", this.onChartModelChange, this );
 				App.ChartModel.on( "change-map", this.onChartModelChange, this );*/
 
-			return;
 		},
 
 		render: function() {
-
 			var mapConfig = App.ChartModel.get( "map-config" );
 			
-			this.$startYear.text( mapConfig.minYear );
-			this.$endYear.text( mapConfig.maxYear );
+			this.years = App.Utils.parseTimeRangeConfig(mapConfig.timeRangeConfig, mapConfig.minYear, mapConfig.maxYear);
+			this.minYear = this.years[0];
+			this.maxYear = this.years[this.years.length-1];
+			this.targetYear = mapConfig.targetYear;
+
+			this.$startYear.text(this.minYear);
+			this.$endYear.text(this.maxYear);
 			
-			this.$sliderInput.attr( "min", mapConfig.minYear );
-			this.$sliderInput.attr( "max", mapConfig.maxYear );
+			this.$sliderInput.attr( "min", this.minYear );
+			this.$sliderInput.attr( "max", this.maxYear );
 			//this.$sliderInput.attr( "step", mapConfig.timeInterval ); // had to disable this because wouldn't allow to chose starting and ending year outside of steo
 			
-			this.updateSliderInput( mapConfig.targetYear );
+			this.updateSliderInput( this.targetYear );
 			
-			if( isNaN( mapConfig.minYear ) || isNaN( mapConfig.maxYear ) ) {
+			if (this.minYear == this.maxYear) {
 				this.$sliderInput.attr( "disabled", true );
 			} else {
 				this.$sliderInput.attr( "disabled", false );
 			}
 
 			this.createTicks( this.$sliderInput );
-			
 		},
 
 		updateSliderInput: function( time ) {
-
 			var intTime = parseInt( time, 10 ),
 				min = parseInt( this.$sliderInput.attr( "min" ), 10 ),
 				max = parseInt( this.$sliderInput.attr( "max" ), 10 ),
@@ -95,37 +97,17 @@
 
 		onTargetYearInput: function( evt ) {
 			var $this = $( evt.target ),
-				targetYear = parseInt( $this.val(), 10 );
+				targetYear = parseInt($this.val());
 
-			//make sure target year is withing allowed interval (e.g. if we start 1980 with interval 5, you shouldn't be allowed to select 1982)
-			//needs to be in place because had to disable step on the timeline control
-			var mapConfig = App.ChartModel.get( "map-config" ),
-				diffFromMinYear = targetYear - mapConfig.minYear,
-				//let's see if we're off the chosen gap
-				yearsOutsideOfStep = diffFromMinYear % mapConfig.timeInterval,
-				//need flag to fire change event if manually adjusting value
-				manualAdjustment = false;
+			// Since we may have arbitrary year ranges with no consistent "step", we must instead
+			// set the slider to step 1 and then lock to the nearest actual year on input
+			var closestYear = _.min(this.years, function(year) {
+				return Math.abs(year-targetYear);
+			});
 
-			if( yearsOutsideOfStep ) {
-				//we're off, so we have to snap the value to closest value
-				if( yearsOutsideOfStep > mapConfig.timeInterval/2 ) {
-					//we're closer to the higher value, snap to it
-					targetYear += mapConfig.timeInterval - yearsOutsideOfStep;
-				} else {
-					//we're close to the lower value, snap to it
-					targetYear -= yearsOutsideOfStep;
-				}
-				//make sure we don't somehow go over bounds
-				targetYear = Math.min( targetYear, mapConfig.maxYear );
-				targetYear = Math.max( targetYear, mapConfig.minYear );
-
-				//set flag
-				manualAdjustment = true;
-			}
-
-			this.updateSliderInput( targetYear );
+			this.updateSliderInput(closestYear);
 		
-			if( manualAdjustment ) {
+			if (closestYear != targetYear) {
 				this.$sliderInput.trigger("change");
 			}
 		},
@@ -163,21 +145,26 @@
 		createTicks: function( $input ) {
 
 			if( this.$el.find( ".timeline-ticks" ).length ) {
+				//this.$el.find(".timeline-ticks").remove();
 				//already has ticks, bail
 				return;
 			}
 
-			var mapConfig = App.ChartModel.get( "map-config" ),
-				step = parseInt( mapConfig.timeInterval, 10 ),
-				max = parseInt( $input.attr( "max" ), 10 ),
-				min = parseInt( $input.attr( "min" ), 10 ),
+			// Calculate the minimum step between any two years we have to show
+			var step = (this.maxYear - this.minYear);
+			for (var i = 1; i < this.years.length; i++) {
+				step = Math.min(step, this.years[i] - this.years[i-1]);
+			}
+
+			var min = this.minYear,
+				max = this.maxYear,
 				numSteps = Math.floor( ( max - min ) / step ),
 				inputWidth = this.$sliderInput.width(),
 				stepSize = inputWidth / numSteps,
 				currStep = min,
-				htmlString = "<ol class='timeline-ticks'>";
+				htmlString = "<ol class='timeline-ticks'>";	
 
-			for( var i = 0; i <= numSteps; i++ ) {
+			for( i = 0; i <= numSteps; i++ ) {
 				var percent = i * stepSize + "%",
 					translate = "translate(-" + Math.floor( i * stepSize ) + "%, 0)",
 					tickString = "<li style='left:" + percent + ";-webkit-transform:" + translate + ";-ms-transform:" + translate + ";transform:" + translate + "'>" + currStep + "</li>";

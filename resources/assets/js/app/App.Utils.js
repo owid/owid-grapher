@@ -140,6 +140,56 @@
 
 	},
 
+	App.Utils.parseTimeRangeConfig = function(timeRangeStr, first, last) {
+		if (!timeRangeStr) {
+			timeRangeStr = "first to last every 1"; // default
+		}
+
+		var outputYears = [];
+		var rangeStrs = timeRangeStr.split(';');
+
+		var parseYear = function(yearStr) {
+			var year;
+			if (yearStr == "first") year = first;
+			else if (yearStr == "last") year = last;
+			else year = parseInt(yearStr);
+
+			if (!year) {
+				throw RangeError("Invalid year " + yearStr);				
+			} else {
+				return year;
+			}
+		};
+
+		_.each(rangeStrs, function(rangeStr) {
+			rangeStr = $.trim(rangeStr);
+
+			var range = rangeStr.match(/^(\d+|first|last|) to (\d+|first|last)(?: every (\d+))?$/);
+			if (range) {
+				var startYear = parseYear(range[1]);
+				var endYear = parseYear(range[2]);
+				var interval = range[3] ? parseInt(range[3]) : 1;
+
+				if (startYear > endYear) {
+					var tmp = startYear;
+					endYear = tmp;
+					startYear = endYear;
+				}
+
+				for (var i = startYear; i <= endYear; i += interval) {
+					outputYears.push(i);
+				}
+			}
+
+			if (rangeStr.match(/^(\d+|first|last)$/)) {
+				var year = parseYear(rangeStr);
+				outputYears.push(year);
+			}
+		});
+
+		return _.sortBy(outputYears);
+	},
+
 
 	App.Utils.transpose = function( arr ) {
 		var keys = _.keys( arr[0] );

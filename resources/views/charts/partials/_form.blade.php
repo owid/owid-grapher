@@ -410,10 +410,6 @@
 								<input name="map-time-tolerance" class="form-control" placeholder="Tolerance of data" />
 							</label>
 							<label>
-								Gap between years:
-								<input name="map-time-interval" class="form-control" placeholder="Gap between years" />
-							</label>
-							<label>
 								Switch between years, using:
 								<select name="map-time-mode" class="form-control">
 									<option value="slider">Slider</option>
@@ -421,7 +417,12 @@
 								</select>
 							</label>
 							<label>
-								Which year should be displayed by default:
+								<i class="fa fa-info-circle" data-toggle="tooltip" title="Various ranges can be specified. For example: <br>&quot;1990 to 2000 every 5; 2003; 2009&quot;<br>Will show the years 1990, 1995, 2000, 2003 and 2009."></i>							
+								Years to show:
+								<input name="map-time-range-config" class="form-control" placeholder="first to last every 1" />
+							</label>
+							<label>
+								Default year to show:
 								<select name="map-target-year" class="form-control"></select>
 							</label>
 						</div>

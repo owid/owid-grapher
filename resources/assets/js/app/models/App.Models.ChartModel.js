@@ -55,7 +55,9 @@
 				"targetYearMode": "normal",
 				"mode": "specific",
 				"timeTolerance": 1,
-				"timeInterval": 1,
+				// timeRangeConfig is a string with its own syntax for specifying time ranges
+				// e.g. "1990 to 2005 every 5; 2003; 2009"
+				"timeRangeConfig": "",
 				"timelineMode": "timeline",
 				"colorSchemeName": "BuGn",
 				"colorSchemeValues": false,
