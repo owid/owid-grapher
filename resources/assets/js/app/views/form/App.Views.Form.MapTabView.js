@@ -12,7 +12,7 @@
 		events: {
 			"change [name='map-variable-id']": "onVariableIdChange",
 			"change [name='map-time-tolerance']": "onTimeToleranceChange",
-			"change [name='map-time-range-config']": "onTimeRangeChange",
+			"change [name='map-time-ranges']": "onTimeRangesChange",
 			"change [name='map-time-mode']": "onTimeModeChange",
 			"change [name='map-target-year']": "onTargetYearChange",
 			"change [name='map-color-scheme']": "onColorSchemeChange",
@@ -33,7 +33,7 @@
 			this.$variableIdSelect = this.$el.find( "[name='map-variable-id']" );
 			
 			this.$timeToleranceInput = this.$el.find( "[name='map-time-tolerance']" );
-			this.$timeRangeConfigInput = this.$el.find( "[name='map-time-range-config']" );
+			this.$timeRangesInput = this.$el.find( "[name='map-time-ranges']" );
 			this.$targetYearInput = this.$el.find( "[name='map-target-year']" );
 			this.$timeModeSelect = this.$el.find( "[name='map-time-mode']" );
 			
@@ -63,7 +63,7 @@
 			this.updateVariableSelect();
 
 			this.$timeToleranceInput.val( mapConfig.timeTolerance );
-			this.$timeRangeConfigInput.val( mapConfig.timeRangeConfig );
+			this.$timeRangesInput.val( mapConfig.timeRanges );
 			this.$legendDescription.val( mapConfig.legendDescription );
 			var legendStepSize = ( mapConfig.legendStepSize )? mapConfig.legendStepSize: 20;
 			this.$legendStepSize.val( legendStepSize );
@@ -85,9 +85,9 @@
 				maxYear = mapConfig.maxYear,
 				targetYear = mapConfig.targetYear,
 				targetYearMode = mapConfig.targetYearMode,
-				rangeConfig = mapConfig.timeRangeConfig;
+				timeRanges = mapConfig.timeRanges;
 
-			var years = App.Utils.parseTimeRangeConfig(rangeConfig, minYear, maxYear);
+			var years = App.Utils.timeRangesToYears(timeRanges, minYear, maxYear);
 
 			_.each(years, function(year) {
 				options.push({ "title": year, "value": year });
@@ -250,9 +250,10 @@
 			App.ChartModel.updateMapConfig( "timeTolerance", parseInt( $this.val(), 10 ) );
 		},
 
-		onTimeRangeChange: function(evt) {
+		onTimeRangesChange: function(evt) {
 			var $this = $(evt.target);
-			App.ChartModel.updateMapConfig("timeRangeConfig", $this.val());
+			var timeRanges = App.Utils.timeRangesFromString($this.val());
+			App.ChartModel.updateMapConfig("timeRanges", timeRanges);
 			this.updateTargetYearSelect();
 		},
 

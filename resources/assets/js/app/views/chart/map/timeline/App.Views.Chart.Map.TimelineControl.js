@@ -17,7 +17,6 @@
 			this.dispatcher = options.dispatcher;
 			
 			var mapConfig = App.ChartModel.get( "map-config" );
-			//this.mapYears = App.Utils.parseTimeRangeConfig(mapConfig.timeRangeConfig, mapConfig.minYear, mapConfig.maxYear);
 			
 			this.$win = $( window );
 			this.$sliderWrapper = this.$el.find( ".timeline-wrapper" );
@@ -41,7 +40,7 @@
 		render: function() {
 			var mapConfig = App.ChartModel.get( "map-config" );
 			
-			this.years = App.Utils.parseTimeRangeConfig(mapConfig.timeRangeConfig, mapConfig.minYear, mapConfig.maxYear);
+			this.years = App.Utils.timeRangesToYears(mapConfig.timeRanges, mapConfig.minYear, mapConfig.maxYear);
 			this.minYear = this.years[0];
 			this.maxYear = this.years[this.years.length-1];
 			this.targetYear = mapConfig.targetYear;

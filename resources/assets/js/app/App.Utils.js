@@ -137,38 +137,44 @@
 		} );
 
 		return variables;
-
 	},
 
-	App.Utils.parseTimeRangeConfig = function(timeRangeStr, first, last) {
-		if (!timeRangeStr) {
-			timeRangeStr = "first to last every 1"; // default
+	App.Utils.timeRangesToString = function(timeRanges) {
+		var timeRangeStrs = [];
+
+		_.each(timeRanges, function(timeRange) {
+			if (timeRange.year) 
+				timeRangeStrs.push(timeRange.year.toString());
+			else {
+				var s = timeRange.startYear + " to " + timeRange.endYear;
+				if (timeRange.interval) s += " every " + timeRange.interval;
+				timeRangeStrs.push(s);
+			}
+		});
+
+		return timeRangeStrs.join("; ");
+	},
+
+	App.Utils.timeRangesToYears = function(timeRanges, first, last) {
+		if (_.isEmpty(timeRanges)) {
+			timeRanges = [{ startYear: 'first', endYear: 'last' }];
 		}
 
 		var outputYears = [];
-		var rangeStrs = timeRangeStr.split(';');
 
-		var parseYear = function(yearStr) {
-			var year;
-			if (yearStr == "first") year = first;
-			else if (yearStr == "last") year = last;
-			else year = parseInt(yearStr);
-
-			if (!year) {
-				throw RangeError("Invalid year " + yearStr);				
-			} else {
-				return year;
-			}
+		var parseYear = function(year) {
+			if (year == "first") return first;
+			else if (year == "last") return last;
+			else return parseInt(year);
 		};
 
-		_.each(rangeStrs, function(rangeStr) {
-			rangeStr = $.trim(rangeStr);
-
-			var range = rangeStr.match(/^(\d+|first|last|) to (\d+|first|last)(?: every (\d+))?$/);
-			if (range) {
-				var startYear = parseYear(range[1]);
-				var endYear = parseYear(range[2]);
-				var interval = range[3] ? parseInt(range[3]) : 1;
+		_.each(timeRanges, function(timeRange) {
+			if (timeRange.year)
+				outputYears.push(parseYear(timeRange.year));
+			else {
+				var startYear = parseYear(timeRange.startYear);
+				var endYear = parseYear(timeRange.endYear);
+				var interval = timeRange.interval || 1;
 
 				if (startYear > endYear) {
 					var tmp = startYear;
@@ -180,16 +186,56 @@
 					outputYears.push(i);
 				}
 			}
-
-			if (rangeStr.match(/^(\d+|first|last)$/)) {
-				var year = parseYear(rangeStr);
-				outputYears.push(year);
-			}
 		});
 
 		return _.sortBy(outputYears);
 	},
 
+	App.Utils.timeRangesFromString = function(timeRangesStr) {
+		if (!timeRangesStr)
+			return [];
+		
+		var timeRanges = [];
+		var rangeStrs = timeRangesStr.split(';');
+
+		var validateYear = function(yearStr) {
+			if (yearStr == "first" || yearStr == "last") 
+				return yearStr;
+			else {
+				var year = parseInt(yearStr);
+				if (!year) {
+					throw RangeError("Invalid year " + yearStr);
+				} else {
+					return year;
+				}
+			}
+		};
+
+		_.each(rangeStrs, function(rangeStr) {
+			var timeRange = {};
+			rangeStr = $.trim(rangeStr);
+
+			var range = rangeStr.match(/^(\d+|first|last|) to (\d+|first|last)(?: every (\d+))?$/);
+			if (range) {
+				var startYear = validateYear(range[1]);
+				var endYear = validateYear(range[2]);
+				var interval = range[3] ? parseInt(range[3]) : null;
+
+				timeRange.startYear = startYear;
+				timeRange.endYear = endYear;
+				if (interval) timeRange.interval = interval;
+			} else if (rangeStr.match(/^(\d+|first|last)$/)) {
+				var year = validateYear(rangeStr);
+				timeRange.year = year;
+			} else {
+				throw RangeError("Invalid range " + rangeStr);
+			}
+
+			timeRanges.push(timeRange);
+		});
+
+		return timeRanges;
+	},
 
 	App.Utils.transpose = function( arr ) {
 		var keys = _.keys( arr[0] );

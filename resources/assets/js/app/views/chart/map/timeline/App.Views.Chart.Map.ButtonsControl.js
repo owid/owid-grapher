@@ -23,7 +23,7 @@
 		render: function() {
 			var mapConfig = App.ChartModel.get( "map-config" ),
 				targetYear = mapConfig.targetYear,
-				years = App.Utils.parseTimeRangeConfig(mapConfig.timeRangeConfig, mapConfig.minYear, mapConfig.maxYear);
+				years = App.Utils.timeRangesToYears(mapConfig.timeRanges, mapConfig.minYear, mapConfig.maxYear);
 
 			//create all necessary buttons
 			this.$buttonsWrapper.empty();

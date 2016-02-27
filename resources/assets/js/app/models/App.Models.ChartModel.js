@@ -55,9 +55,16 @@
 				"targetYearMode": "normal",
 				"mode": "specific",
 				"timeTolerance": 1,
-				// timeRangeConfig is a string with its own syntax for specifying time ranges
-				// e.g. "1990 to 2005 every 5; 2003; 2009"
-				"timeRangeConfig": "",
+				// timeRanges is a collection of objects specifying year ranges e.g.
+				//
+				// [
+				//   { year: 1980 },
+				//   { startYear: 1990, endYear: 2000, interval: 5 },
+				//   { startYear: 2005, endYear: 2008 }
+				// ]
+				//
+				// Produces the years: 1980, 1990, 1995, 2000, 2005, 2007, 2008
+				"timeRanges": [],
 				"timelineMode": "timeline",
 				"colorSchemeName": "BuGn",
 				"colorSchemeValues": false,
