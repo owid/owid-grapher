@@ -142,7 +142,6 @@
 		},
 
 		createTicks: function( $input ) {
-
 			if( this.$el.find( ".timeline-ticks" ).length ) {
 				//this.$el.find(".timeline-ticks").remove();
 				//already has ticks, bail
@@ -173,7 +172,6 @@
 
 			htmlString += "</ol>";
 			$input.after( $( htmlString ) );
-
 		},
 
 		show: function() {

@@ -54,7 +54,6 @@
 		},
 
 		render: function() {
-				
 			//populate variable select with the available ones
 			this.$variableIdSelect.empty();
 
@@ -63,7 +62,7 @@
 			this.updateVariableSelect();
 
 			this.$timeToleranceInput.val( mapConfig.timeTolerance );
-			this.$timeRangesInput.val( mapConfig.timeRanges );
+			this.$timeRangesInput.val( App.Utils.timeRangesToString(mapConfig.timeRanges) );
 			this.$legendDescription.val( mapConfig.legendDescription );
 			var legendStepSize = ( mapConfig.legendStepSize )? mapConfig.legendStepSize: 20;
 			this.$legendStepSize.val( legendStepSize );
@@ -75,7 +74,6 @@
 			this.updateColorIntervalSelect();
 			this.updateProjectionsSelect();
 			this.updateTimelineMode();
-
 		},
 
 		updateTargetYearSelect: function() {
@@ -252,7 +250,22 @@
 
 		onTimeRangesChange: function(evt) {
 			var $this = $(evt.target);
-			var timeRanges = App.Utils.timeRangesFromString($this.val());
+			try {
+				var timeRanges = App.Utils.timeRangesFromString($this.val());
+			} catch (e) {
+				if (e instanceof RangeError) {
+					$this.closest('.form-group').addClass('has-error');
+					$this.attr('data-original-title', e.toString());
+					$this.tooltip('show');
+					return;
+				} else {
+					throw e;
+				}
+			}
+
+			$this.tooltip('hide');
+			$this.attr('data-original-title', '');
+			$this.closest('.form-group').removeClass('has-error');
 			App.ChartModel.updateMapConfig("timeRanges", timeRanges);
 			this.updateTargetYearSelect();
 		},

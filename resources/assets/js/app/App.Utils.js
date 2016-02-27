@@ -188,7 +188,7 @@
 			}
 		});
 
-		return _.sortBy(outputYears);
+		return _.uniq(_.sortBy(outputYears), true);
 	},
 
 	App.Utils.timeRangesFromString = function(timeRangesStr) {
