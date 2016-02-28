@@ -181,6 +181,7 @@ Route::get( 'view/{id}', [ 'as' => 'view', 'uses' => 'ViewController@show' ] );
 Route::group( [ 'before' => 'auth.domain' ], function() {
 
 	Route::get( 'data', 'DataController@index' );
+	Route::get('data/variable/{id}', 'DataController@variable');
 	Route::get( 'data/config/{id}', 'ChartsController@config' );
 	Route::get( 'data/dimensions', [ 'as' => 'dimensions', 'uses' => 'DataController@dimensions' ] );
 	Route::post( 'data/exportToSvg', [ 'as' => 'exportToSvg', 'uses' => 'DataController@exportToSvg' ] );

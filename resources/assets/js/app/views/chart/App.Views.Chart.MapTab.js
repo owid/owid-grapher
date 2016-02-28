@@ -27,37 +27,39 @@
 			this.mapControls = new MapControls( { dispatcher: options.dispatcher } );
 			this.timelineControls = new TimelineControls( { dispatcher: options.dispatcher } );
 
-			//init map only if the map tab displayed
-			var that = this;
-			$( "[data-toggle='tab'][href='#map-chart-tab']" ).on( "shown.bs.tab", function( evt ) {
-				that.display();
-			} );
+			App.ChartModel.on("change", this.update, this);
+			App.ChartModel.on("change-map", this.update, this);
+			App.ChartModel.on("resize", this.onResize, this);
+
+			this.update();
 		},
 
-		display: function() {
-			//render only if no map yet
-			if( !this.dataMap ) {
-				this.render();
-			} else {
-				//map exists, so only resize it to current dimensions, (in case window was resized while on other tab)
-				this.onResize();
+		update: function() {
+			this.mapConfig = App.ChartModel.get("map-config");
+			// Preload the variable data for all years and all countries
+			if (!this.variableData || this.variableData.id != this.mapConfig.variableId) {
+				this.variableData = null;
+				this.dataRequest = $.getJSON("/data/variable/" + this.mapConfig.variableId);
+			}
+
+			// We can start datamaps going before we actually have any data to show
+			// if (this.parentView.activeTab...)			
+			if (!this.dataMap)
+				this.initializeMap();
+			else {
+				var self = this;
+				this.dataRequest.done(function(data) {
+					self.receiveData(data);
+				});
 			}
 		},
 
-		render: function() {
-
-			var that = this;
-			//fetch created dom
-			this.$tab = $( "#map-chart-tab" );
-
-			var mapConfig = App.ChartModel.get( "map-config" ),
-				defaultProjection = this.getProjection( mapConfig.projection );
+		initializeMap: function() {
+			var self = this;
+			var defaultProjection = this.getProjection(this.mapConfig.projection);
 
 			this.dataMap = new Datamap( {
-				width: that.$tab.width(),
-				height: that.$tab.height(),
-				responsive: true,
-				element: document.getElementById( "map-chart-tab" ),
+				element: $("#map-chart-tab").get(0),
 				geographyConfig: {
 					dataUrl: Global.rootUrl + "/build/js/data/world.ids.json",
 					borderWidth: 0.3,
@@ -65,48 +67,40 @@
 					highlightBorderColor: 'black',
 					highlightBorderWidth: 0.2,
 					highlightFillColor: '#FFEC38',
-					popupTemplate: that.popupTemplateGenerator,
+					popupTemplate: self.popupTemplateGenerator,
 					hideAntarctica: true
 				},
 				fills: {
 					defaultFill: '#8b8b8b'
-					//defaultFill: '#DDDDDD'
 				},
 				setProjection: defaultProjection,
-				//wait for json to load before loading map data
 				done: function() {
-					that.mapDataModel = new ChartDataModel();
-					that.mapDataModel.on( "sync", function( model, response ) {
-						if( response.data ) {
-							that.displayData( response.data, response.variableName );
-						}
-					} );
-					that.mapDataModel.on( "error", function() {
-						console.error( "Error loading map data." );
-					} );
-					that.update();
+					self.dataRequest.done(function(data) {
+						self.receiveData(data);
+					});
 				}
 			} );
 
 			this.legend = new Legend();
 
-			//border disclaimer - only displayed Add only for all maps displaying years 2011 and earlier
-			if( mapConfig.minYear <= 2011 ) {
+			// For maps earlier than 2011, display a disclaimer noting that data is mapped
+			// on current rather than historical borders
+			if (self.mapConfig.minYear <= 2011) {
 				this.bordersDisclaimer = d3.select( ".border-disclaimer" );
-				if( this.bordersDisclaimer.empty() ) {
-					this.bordersDisclaimer = d3.select( ".datamap" ).append( "text" );
-					this.bordersDisclaimer.attr( "class", "border-disclaimer" ).text( this.BORDERS_DISCLAIMER_TEXT );
+				if (this.bordersDisclaimer.empty()) {
+					this.bordersDisclaimer = d3.select(".datamap").append("text");
+					this.bordersDisclaimer.attr("class", "border-disclaimer").text(this.BORDERS_DISCLAIMER_TEXT);
 				}
 			}
+		},
 
-			App.ChartModel.on( "change", this.onChartModelChange, this );
-			App.ChartModel.on( "change-map", this.onChartModelChange, this );
-			App.ChartModel.on( "resize", this.onChartModelResize, this );
+		render: function() {
+			var that = this;
+			//fetch created dom
+			this.$tab = $( "#map-chart-tab" );
 
-			//var lazyResize = _.debounce( $.proxy( this.onResize, this ), 250 );
-			//nv.utils.windowResize( lazyResize );
-			this.onResize();
-
+			this.mapControls.render();
+			this.timelineControls.render();
 		},
 
 		show: function() {
@@ -117,13 +111,8 @@
 			this.$el.hide();
 		},
 
-		onChartModelChange: function( evt ) {
-
-			this.update();
-
-		},
-
 		popupTemplateGenerator: function( geo, data ) {
+			console.log(data);
 			if (_.isEmpty(data)) return;
 
 			//transform datamaps data into format close to nvd3 so that we can reuse the same popup generator
@@ -145,35 +134,66 @@
 			return [ "<div class='hoverinfo nvtooltip'>" + App.Utils.contentGenerator( obj, true ) + "</div>" ];
 		},
 
-		update: function() {
-			//construct dimension string
-			var that = this,
-				mapConfig = App.ChartModel.get( "map-config" ),
-				chartTime = App.ChartModel.get( "chart-time" ),
-				variableId = mapConfig.variableId,
-				targetYear = mapConfig.targetYear,
-				mode = mapConfig.mode,
-				tolerance = mapConfig.timeTolerance,
-				dimensions = [{ name: "Map", property: "map", variableId: variableId, targetYear: targetYear, mode: mode, tolerance: tolerance }],
-				dimensionsString = JSON.stringify( dimensions ),
-				chartType = 9999,
-				selectedCountries = App.ChartModel.get( "selected-countries" ),
-				//display all countries on the map
-				selectedCountriesIds = [];
-				//selectedCountriesIds = _.map( selectedCountries, function( v ) { return (v)? +v.id: ""; } );
-
-			this.mapControls.render();
-			this.timelineControls.render();
-
-			var dataProps = { "dimensions": dimensionsString, "chartId": App.ChartModel.get( "id" ), "chartType": chartType, "selectedCountries": selectedCountriesIds, "chartTime": chartTime, "cache": App.ChartModel.get( "cache" ), "groupByVariables": App.ChartModel.get( "group-by-variables" )  };
-
-			if (this.mapDataModel)
-				this.mapDataModel.fetch( { data: dataProps } );
-
-			return this;
+		onChartModelChange: function( evt ) {
+			this.update();
 		},
 
-		displayData: function( data, variableName ) {
+
+		/**
+		 * Transforms raw variable data into datamaps format
+		 * @param {Object} variableData - of the form { entities: [], values: [], years: [] }
+		 * @return {Object} mapData - of the form { 'Country': { value: 120.11 }, ...}
+		 */
+		transformData: function(variableData) {
+			var years = variableData.years,
+				values = variableData.values,
+				entities = variableData.entities,
+				entityKey = variableData.entityKey,
+				targetYear = parseInt(this.mapConfig.targetYear),
+				tolerance = parseInt(this.mapConfig.tolerance) || 1,
+				mapData = {};
+
+			for (var i = 0; i < values.length; i++) {
+				var year = years[i];
+				if (year < targetYear-tolerance || year > targetYear+tolerance) 
+					continue;
+
+				// Make sure we use the closest year within tolerance (favoring later years)
+				var current = mapData[entityName];
+				if (current && Math.abs(current.year - targetYear) < Math.abs(year - targetYear))
+					continue;
+
+				// Transform entity name to match counterpart in world.ids.json
+				// Covers e.g. Cote d'Ivoire -> Cote_d_Ivoire
+				var entityName = entityKey[entities[i]].replace(/[ '&:\(\)\/]/g, "_");
+
+				mapData[entityName] = {
+					value: values[i],
+					year: years[i]
+				};
+			}
+
+			return mapData;
+		},
+
+		receiveData: function(variableData) {
+			//var mapConfig = App.ChartModel.get("map-config");
+			this.variableData = variableData;
+			var mapData = this.transformData(variableData);
+
+			// Apply colors to the transformed data
+			var colorScale = this.makeColorScale();
+			_.each(mapData, function(d, i) {
+				d.color = colorScale(d.value);
+			});
+
+			d3.selectAll( "path.datamaps-subunit" ).transition().style( "fill", this.dataMap.options.fills.defaultFill );
+			this.dataMap.updateChoropleth(mapData, { reset: true });
+			this.onResize();
+			return;
+			//var dataForYear = owid.dataForYear(data, mapConfig.targetYear, mapConfig.tolerance);
+
+
 			var that = this,
 				mapConfig = App.ChartModel.get( "map-config" ),
 				categoricalScale = false,
@@ -197,43 +217,10 @@
 				}
 				keysArr[ latestTimeValue ] = true;
 
-				//ids in world json are name countries with underscore (datamaps.js uses id for selector, so cannot have whitespace), also cover Cote d'Ivoire, Saint Martin (French_part) cases, also get rid of ampersands, and slash
-				var key = d.key.replace( /[ '&:\(\)\/]/g, "_" );
 				return { "key": key, "value": latestTimeValue, "time": d.time };
 
 			} );
 
-			//are we using colorbrewer schemes
-			var colorScheme;
-			if( mapConfig.colorSchemeName !== "custom" ) {
-				colorScheme = ( owdColorbrewer[ mapConfig.colorSchemeName ] && owdColorbrewer[ mapConfig.colorSchemeName ][ "colors" ][ mapConfig.colorSchemeInterval ] )? owdColorbrewer[ mapConfig.colorSchemeName ][ "colors" ][ mapConfig.colorSchemeInterval ]: [];
-			} else if( mapConfig.colorSchemeName ) {
-				colorScheme = mapConfig.customColorScheme;
-			}
-
-			//need to create color scheme
-			var colorScale,
-				//do we have custom values for intervals
-				customValues = (mapConfig.colorSchemeValues)? mapConfig.colorSchemeValues: false,
-				automaticValues = mapConfig.colorSchemeValuesAutomatic;
-
-			//use quantize, if we have numerica scale and not using automatic values, or if we're trying not to use automatic scale, but there no manually entered custom values
-			if( !categoricalScale && ( automaticValues || (!automaticValues && !customValues) ) ) {
-				//we have quantitave scale
-				colorScale = d3.scale.quantize()
-					.domain( [ dataMin, dataMax ] );
-			} else if( !categoricalScale && customValues && !automaticValues ) {
-				//create threshold scale which divides data into buckets based on values provided
-				colorScale = d3.scale.equal_threshold()
-					.domain( customValues );
-			} else {
-				var keys = _.keys( keysArr );
-				keys = keys.sort();
-				colorScale = d3.scale.ordinal()
-					.domain( _.keys( keysArr ) );
-				console.log( "keys", keys );
-			}
-			colorScale.range( colorScheme );
 
 			//need to encode colors properties
 			var mapData = {},
@@ -262,8 +249,11 @@
 			if( d3.select( ".legend-wrapper" ).empty() ) {
 				d3.select( ".datamap" ).append( "g" ).attr( "class", "legend-wrapper map-legend-wrapper" );
 			}
+
 			var legendData = { scheme: colorScheme, description: ( mapConfig.legendDescription )? mapConfig.legendDescription: variableName };
 			d3.select( ".legend-wrapper" ).datum( legendData ).call( this.legend );
+
+			window.mapData = mapData;
 
 			//update map
 			//are we changing projections?
@@ -287,6 +277,47 @@
 			}
 
 			this.trigger("tab-ready");
+		},
+
+		makeColorScale: function() {
+			var mapConfig = App.ChartModel.get("map-config");
+
+			var colorScheme;						
+			if (mapConfig.colorSchemeName === "custom") {
+				colorScheme = mapConfig.customColorScheme;
+			} else {
+				// Non-custom, using a predefined colorbrewer interval
+				var brewer = owdColorbrewer[mapConfig.colorSchemeName];				
+				colorScheme = (brewer && brewer.colors[mapConfig.colorSchemeInterval]) || [];
+
+				if (_.isEmpty(colorScheme))
+					console.warn("Invalid color scheme + interval: " + mapConfig.colorSchemeName + " " + mapConfig.colorSchemeInterval);
+			}
+
+			var colorScale,
+				customValues = mapConfig.colorSchemeValues,
+				automaticValues = mapConfig.colorSchemeValuesAutomatic;
+
+			var categoricalScale = false;
+
+			//use quantize, if we have numerica scale and not using automatic values, or if we're trying not to use automatic scale, but there no manually entered custom values
+			if( !categoricalScale && ( automaticValues || (!automaticValues && !customValues) ) ) {
+				//we have quantitave scale
+				colorScale = d3.scale.quantize()
+					.domain( [ dataMin, dataMax ] );
+			} else if( !categoricalScale && customValues && !automaticValues ) {
+				//create threshold scale which divides data into buckets based on values provided
+				colorScale = d3.scale.equal_threshold()
+					.domain( customValues );
+			} else {
+/*				var keys = _.keys( keysArr );
+				keys = keys.sort();
+				colorScale = d3.scale.ordinal()
+					.domain( _.keys( keysArr ) );*/
+			}
+			colorScale.range( colorScheme );
+
+			return colorScale;
 		},
 
 		setupLegend: function() {
@@ -404,10 +435,6 @@
 				console.log([x/newWidth, y/newHeight]);
 			});*/
 		},
-
-		onChartModelResize: function() {
-			this.onResize();
-		}
 
 	});
 

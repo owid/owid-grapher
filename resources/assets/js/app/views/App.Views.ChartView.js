@@ -182,10 +182,6 @@
 				var defaultTab = App.ChartModel.get( "default-tab" ),
 					visibleTabPane = this.$tabPanes.filter( "#" + defaultTab + "-chart-tab" );
 				visibleTabPane.addClass( "active" );
-				if( defaultTab === "map" ) {
-					//map tab needs special inialitization
-					this.mapTab.display();
-				}
 			}
 
 			if( !validDimensions ) {
