@@ -158,10 +158,10 @@
 		},
 
 		updateTimeFromMap: function(data) {
-			var timeFrom = d3.min(data, function(d) { return parseInt(d.time); }),
-				timeTo = d3.max(data, function(d) { return parseInt(d.time); }),
+			var timeFrom = d3.min(data, function(d) { return parseInt(d.time.map); }),
+				timeTo = d3.max(data, function(d) { return parseInt(d.time.map); }),
 				targetYear = App.ChartModel.get("map-config").targetYear,
-				hasTargetYear = _.find(data, function(d) { return parseInt(d.time) == targetYear; });
+				hasTargetYear = _.find(data, function(d) { return parseInt(d.time.map) == targetYear; });
 
 			var chartName = this.$chartName.text();
 			var chartSubname = this.$chartSubname.html();
