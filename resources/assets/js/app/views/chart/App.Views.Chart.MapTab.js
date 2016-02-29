@@ -81,8 +81,6 @@
 				}
 			} );
 
-			this.legend = new Legend();
-
 			// For maps earlier than 2011, display a disclaimer noting that data is mapped
 			// on current rather than historical borders
 			if (self.mapConfig.minYear <= 2011) {
@@ -111,27 +109,24 @@
 			this.$el.hide();
 		},
 
-		popupTemplateGenerator: function( geo, data ) {
-			console.log(data);
+		popupTemplateGenerator: function(geo, data) {
 			if (_.isEmpty(data)) return;
 
 			//transform datamaps data into format close to nvd3 so that we can reuse the same popup generator
 			var mapConfig = App.ChartModel.get( "map-config" ),
-				propertyName = App.Utils.getPropertyByVariableId( App.ChartModel, mapConfig.variableId );
-			if( !propertyName ) {
-				propertyName = "y";
-			}
+				propertyName = App.Utils.getPropertyByVariableId(App.ChartModel, mapConfig.variableId) || "y";
+
+			console.log(propertyName);
 			var obj = {
 				point: {
-					time: data.time
-					//time: mapConfig.targetYear
+					time: data.year
 				},
-				series: [ {
+				series: [{
 					key: geo.properties.name
-				} ]
+				}]
 			};
-			obj.point[ propertyName ] = data.value;
-			return [ "<div class='hoverinfo nvtooltip'>" + App.Utils.contentGenerator( obj, true ) + "</div>" ];
+			obj.point[propertyName] = data.value;
+			return ["<div class='hoverinfo nvtooltip'>" + App.Utils.contentGenerator( obj, true ) + "</div>"];
 		},
 
 		onChartModelChange: function( evt ) {
@@ -173,110 +168,44 @@
 				};
 			}
 
+			this.minValue = _.min(mapData, function(d, i) { return d.value; });
+			this.maxValue = _.max(mapData, function(d, i) { return d.value; });
+
 			return mapData;
 		},
 
 		receiveData: function(variableData) {
-			//var mapConfig = App.ChartModel.get("map-config");
 			this.variableData = variableData;
-			var mapData = this.transformData(variableData);
+			this.mapData = this.transformData(variableData);
 
 			// Apply colors to the transformed data
 			var colorScale = this.makeColorScale();
-			_.each(mapData, function(d, i) {
+			_.each(this.mapData, function(d, i) {
 				d.color = colorScale(d.value);
 			});
 
-			d3.selectAll( "path.datamaps-subunit" ).transition().style( "fill", this.dataMap.options.fills.defaultFill );
-			this.dataMap.updateChoropleth(mapData, { reset: true });
-			this.onResize();
-			return;
-			//var dataForYear = owid.dataForYear(data, mapConfig.targetYear, mapConfig.tolerance);
+			this.legend = this.makeLegend(colorScale);
 
-
-			var that = this,
-				mapConfig = App.ChartModel.get( "map-config" ),
-				categoricalScale = false,
-				keysArr =[],
-				dataMin = Infinity,
-				dataMax = -Infinity;
-
-			//need to extract latest time
-			var latestData = data.map( function( d, i ) {
-
-				var values = d.values,
-					latestTimeValue = ( values && values.length )? values[ values.length - 1]: 0;
-
-				//also get min max values, could use d3.min, d3.max once we have all values, but this probably saves some time
-				dataMin = Math.min( dataMin, latestTimeValue );
-				dataMax = Math.max( dataMax, latestTimeValue );
-
-				//is some of the values is not number, consider this qualitative variable and use scale
-				if( isNaN( latestTimeValue ) ) {
-					categoricalScale = true;
-				}
-				keysArr[ latestTimeValue ] = true;
-
-				return { "key": key, "value": latestTimeValue, "time": d.time };
-
-			} );
-
-
-			//need to encode colors properties
-			var mapData = {},
-				colors = [],
-				mapMin = Infinity,
-				mapMax = -Infinity;
-
-			latestData.forEach( function( d, i ) {
-				var color = (categoricalScale)? colorScale( d.value ): colorScale( +d.value );
-				mapData[ d.key ] = { "key": d.key, "value": d.value, "color": color, "time": d.time };
-				//console.log( "d.key", d.key, d.value, color );
-				colors.push( color );
-				mapMin = Math.min( mapMin, d.value );
-				mapMax = Math.max( mapMax, d.value );
-			} );
-
-			//create legend
-			this.legend = this.setupLegend();
-			this.legend.scale( colorScale );
-			//see if we have minimal value in map config
-			if( !isNaN( mapConfig.colorSchemeMinValue ) ) {
-				mapMin = mapConfig.colorSchemeMinValue;
-			}
-			this.legend.minData( mapMin );
-			this.legend.maxData( mapMax );
-			if( d3.select( ".legend-wrapper" ).empty() ) {
-				d3.select( ".datamap" ).append( "g" ).attr( "class", "legend-wrapper map-legend-wrapper" );
-			}
-
-			var legendData = { scheme: colorScheme, description: ( mapConfig.legendDescription )? mapConfig.legendDescription: variableName };
-			d3.select( ".legend-wrapper" ).datum( legendData ).call( this.legend );
-
-			window.mapData = mapData;
-
-			//update map
-			//are we changing projections?
+			// If we've changed the projection (i.e. zooming on Africa or similar) we need
+			// to redraw the datamap before injecting new data
 			var oldProjection = this.dataMap.options.setProjection,
-				newProjection = this.getProjection( mapConfig.projection );
-			if( oldProjection === newProjection ) {
-				//projection stays the same, no need to redraw units
-				//need to set all units to default color first, cause updateChopleth just updates new data leaves the old data for units no longer in dataset
-				d3.selectAll( "path.datamaps-subunit" ).transition().style( "fill", this.dataMap.options.fills.defaultFill );
-				this.dataMap.updateChoropleth( mapData, { reset: true } );
-				this.onResize();
+				newProjection = this.getProjection(this.mapConfig.projection);
+
+			var self = this;
+			var updateMap = function() {
+				self.dataMap.updateChoropleth(self.mapData, { reset: true });
+				self.onResize();				
+				self.trigger("tab-ready");
+			};
+
+			if (oldProjection === newProjection) {
+				updateMap();
 			} else {
-				//changing projection, need to remove existing units, redraw everything and after done drawing, update data
 				d3.selectAll( "path.datamaps-subunit" ).remove();
 				this.dataMap.options.setProjection = newProjection;
 				this.dataMap.draw();
-				this.dataMap.options.done = function() {
-					that.dataMap.updateChoropleth( mapData, { reset: true } );
-					that.onResize();
-				};
+				this.dataMap.options.done = updateMap;
 			}
-
-			this.trigger("tab-ready");
 		},
 
 		makeColorScale: function() {
@@ -315,37 +244,44 @@
 				colorScale = d3.scale.ordinal()
 					.domain( _.keys( keysArr ) );*/
 			}
-			colorScale.range( colorScheme );
+			colorScale.range(colorScheme);
 
 			return colorScale;
 		},
 
-		setupLegend: function() {
+		makeLegend: function(colorScale) {
+			var legend = this.legend || new Legend(),
+				minValue = this.minValue,
+				maxValue = this.maxValue,
+				mapConfig = this.mapConfig;
 
-			var legend = ( !this.legend )? new Legend(): this.legend,
-				mapConfig = App.ChartModel.get( "map-config" );
-
-			//see if we display minimal value in legend
-			if( mapConfig.colorSchemeMinValue || mapConfig.colorSchemeValuesAutomatic ) {
-				legend.displayMinLabel( true );
+			if (mapConfig.colorSchemeMinValue || mapConfig.colorSchemeValuesAutomatic) {
+				legend.displayMinLabel(true);
 			} else {
-				//lowest value isn't visible for not automatic scale with minimal value
-				legend.displayMinLabel( false );
+				legend.displayMinLabel(false);
 			}
 
-			//size of legend square
-			var legendSize = ( mapConfig.legendStepSize )? mapConfig.legendStepSize: 20;
-			legend.stepSizeWidth( legendSize );
+			var legendSize = mapConfig.legendStepSize || 20;
+			legend.stepSizeWidth(legendSize);
+			legend.labels(mapConfig.colorSchemeLabels);
+			var legendOrientation = mapConfig.legendOrientation || "landscape";
+			legend.orientation(legendOrientation);
+			legend.scale(colorScale);
 
-			//custom values for labels?
-			legend.labels( mapConfig.colorSchemeLabels );
+			// Allow min value to overridden by config
+			if (!isNaN(mapConfig.colorSchemeMinValue)) {
+				minValue = mapConfig.colorSchemeMinValue;
+			}
+			legend.minData(minValue);
+			legend.maxData(maxValue);
 
-			//custom legend orientation
-			var legendOrientation = ( mapConfig.legendOrientation )? mapConfig.legendOrientation: "landscape";
-			legend.orientation( legendOrientation );
+			if (d3.select(".legend-wrapper").empty()) {
+				d3.select(".datamap").append("g").attr("class", "legend-wrapper map-legend-wrapper");
+			}
 
+			var legendData = { scheme: colorScale.range(), description: mapConfig.legendDescription || this.variableData.name };
+			d3.select(".legend-wrapper").datum(legendData).call(legend);
 			return legend;
-
 		},
 
 		getProjection: function( projectionName ) {
