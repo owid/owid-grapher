@@ -29,6 +29,7 @@
 
 			App.ChartModel.on("change", this.update, this);
 			App.ChartModel.on("change-map", this.update, this);
+			App.ChartModel.on("change-map-year", this.updateYearOnly, this);
 			App.ChartModel.on("resize", this.onResize, this);
 
 			this.update();
@@ -39,26 +40,35 @@
 			// Preload the variable data for all years and all countries
 			if (!this.variableData || this.variableData.id != this.mapConfig.variableId) {
 				this.variableData = null;
-				this.dataRequest = $.getJSON("/data/variable/" + this.mapConfig.variableId);
+				this.dataRequest = $.getJSON(Global.rootUrl + "/data/variable/" + this.mapConfig.variableId);
 			}
 
-			// We can start datamaps going before we actually have any data to show
-			// if (this.parentView.activeTab...)			
-			if (!this.dataMap)
-				this.initializeMap();
-			else {
-				var self = this;
-				this.dataRequest.done(function(data) {
+			// We need to wait for both datamaps to finish its setup and the variable data
+			// to come in before the map can be fully rendered
+			var self = this;
+			function onMapReady() {
+				self.dataRequest.done(function(data) {
 					self.receiveData(data);
 				});
 			}
+
+			if (!this.dataMap)
+				this.initializeMap(onMapReady);
+			else
+				onMapReady();
 		},
 
-		initializeMap: function() {
+		// Optimized method for updating the target year with the slider
+		updateYearOnly: _.throttle(function() {
+			this.mapData = this.transformData(this.variableData);
+			this.dataMap.updateChoropleth(this.mapData, { reset: true });
+		}, 100),
+
+		initializeMap: function(onMapReady) {
 			var self = this;
 			var defaultProjection = this.getProjection(this.mapConfig.projection);
 
-			this.dataMap = new Datamap( {
+			this.dataMap = new Datamap({
 				element: $("#map-chart-tab").get(0),
 				geographyConfig: {
 					dataUrl: Global.rootUrl + "/build/js/data/world.ids.json",
@@ -74,16 +84,12 @@
 					defaultFill: '#8b8b8b'
 				},
 				setProjection: defaultProjection,
-				done: function() {
-					self.dataRequest.done(function(data) {
-						self.receiveData(data);
-					});
-				}
-			} );
+				done: onMapReady
+			});
 
 			// For maps earlier than 2011, display a disclaimer noting that data is mapped
 			// on current rather than historical borders
-			if (self.mapConfig.minYear <= 2011) {
+			if (parseInt(self.mapConfig.minYear) <= 2011) {
 				this.bordersDisclaimer = d3.select( ".border-disclaimer" );
 				if (this.bordersDisclaimer.empty()) {
 					this.bordersDisclaimer = d3.select(".datamap").append("text");
@@ -97,8 +103,6 @@
 			//fetch created dom
 			this.$tab = $( "#map-chart-tab" );
 
-			this.mapControls.render();
-			this.timelineControls.render();
 		},
 
 		show: function() {
@@ -116,7 +120,6 @@
 			var mapConfig = App.ChartModel.get( "map-config" ),
 				propertyName = App.Utils.getPropertyByVariableId(App.ChartModel, mapConfig.variableId) || "y";
 
-			console.log(propertyName);
 			var obj = {
 				point: {
 					time: data.year
@@ -137,7 +140,7 @@
 		/**
 		 * Transforms raw variable data into datamaps format
 		 * @param {Object} variableData - of the form { entities: [], values: [], years: [] }
-		 * @return {Object} mapData - of the form { 'Country': { value: 120.11 }, ...}
+		 * @return {Object} mapData - of the form { 'Country': { value: 120.11, year: 2006 }, ...}
 		 */
 		transformData: function(variableData) {
 			var years = variableData.years,
@@ -164,27 +167,24 @@
 
 				mapData[entityName] = {
 					value: values[i],
-					year: years[i]
+					year: years[i],
+					color: this.colorScale(values[i])
 				};
 			}
 
-			this.minValue = _.min(mapData, function(d, i) { return d.value; });
-			this.maxValue = _.max(mapData, function(d, i) { return d.value; });
+			this.minValue = _.min(mapData, function(d, i) { return d.value; }).value;
+			this.maxValue = _.max(mapData, function(d, i) { return d.value; }).value;
+			this.minYear = _.min(mapData, function(d, i) { return d.year; }).year;
+			this.maxYear = _.max(mapData, function(d, i) { return d.year; }).year;
 
 			return mapData;
 		},
 
 		receiveData: function(variableData) {
 			this.variableData = variableData;
+			this.colorScale = this.makeColorScale();
 			this.mapData = this.transformData(variableData);
-
-			// Apply colors to the transformed data
-			var colorScale = this.makeColorScale();
-			_.each(this.mapData, function(d, i) {
-				d.color = colorScale(d.value);
-			});
-
-			this.legend = this.makeLegend(colorScale);
+			this.legend = this.makeLegend();
 
 			// If we've changed the projection (i.e. zooming on Africa or similar) we need
 			// to redraw the datamap before injecting new data
@@ -194,22 +194,24 @@
 			var self = this;
 			var updateMap = function() {
 				self.dataMap.updateChoropleth(self.mapData, { reset: true });
-				self.onResize();				
+				self.mapControls.render();
+				self.timelineControls.render();
 				self.trigger("tab-ready");
 			};
 
 			if (oldProjection === newProjection) {
 				updateMap();
 			} else {
-				d3.selectAll( "path.datamaps-subunit" ).remove();
+				d3.selectAll("path.datamaps-subunit").remove();
 				this.dataMap.options.setProjection = newProjection;
 				this.dataMap.draw();
 				this.dataMap.options.done = updateMap;
 			}
+
 		},
 
 		makeColorScale: function() {
-			var mapConfig = App.ChartModel.get("map-config");
+			var mapConfig = this.mapConfig;
 
 			var colorScheme;						
 			if (mapConfig.colorSchemeName === "custom") {
@@ -249,11 +251,12 @@
 			return colorScale;
 		},
 
-		makeLegend: function(colorScale) {
+		makeLegend: function() {
 			var legend = this.legend || new Legend(),
 				minValue = this.minValue,
 				maxValue = this.maxValue,
-				mapConfig = this.mapConfig;
+				mapConfig = this.mapConfig,
+				colorScale = this.colorScale;
 
 			if (mapConfig.colorSchemeMinValue || mapConfig.colorSchemeValuesAutomatic) {
 				legend.displayMinLabel(true);

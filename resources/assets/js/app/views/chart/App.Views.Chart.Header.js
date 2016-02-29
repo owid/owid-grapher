@@ -113,11 +113,7 @@
 				activeTab = _.find(tabs, function(tab) { return that.$tabs.filter("." + tab + "-header-tab.active").length > 0});
 
 			if (activeTab == "map") {
-				if (this.parentView.mapTab.mapDataModel !== undefined) {
-					var data = this.parentView.mapTab.mapDataModel.get("data");
-					if (data !== undefined)
-						this.updateTimeFromMap(data);
-				}
+				this.updateTimeFromMap(this.parentView.mapTab);
 			} else {
 				if (this.parentView.chartTab !== undefined)
 					this.updateTimeFromChart(this.parentView.chartTab.localData);
@@ -157,11 +153,13 @@
 			this.$chartName.css( "visibility", "visible" );
 		},
 
-		updateTimeFromMap: function(data) {
-			var timeFrom = d3.min(data, function(d) { return parseInt(d.time.map); }),
-				timeTo = d3.max(data, function(d) { return parseInt(d.time.map); }),
-				targetYear = App.ChartModel.get("map-config").targetYear,
-				hasTargetYear = _.find(data, function(d) { return parseInt(d.time.map) == targetYear; });
+		updateTimeFromMap: function(map) {			
+			if (!map.minYear) return;
+
+			var timeFrom = map.minYear,
+				timeTo = map.maxYear,
+				targetYear = map.mapConfig.targetYear,
+				hasTargetYear = _.find(map.mapData, function(d) { return d.year == targetYear; });
 
 			var chartName = this.$chartName.text();
 			var chartSubname = this.$chartSubname.html();

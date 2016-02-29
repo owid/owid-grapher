@@ -109,14 +109,8 @@
 			if (closestYear != targetYear) {
 				this.$sliderInput.trigger("change");
 			}
-		},
 
-		onTargetYearChange: function( evt ) {
-			var $this = $( evt.target ),
-				targetYear = parseInt( $this.val(), 10 );
-			
-			App.ChartModel.updateMapConfig( "targetYear", targetYear, false, "change-map" );
-			this.render();
+			App.ChartModel.updateMapConfig("targetYear", closestYear, false, "change-map-year");
 		},
 
 		onIncrementTime: function( evt ) {
