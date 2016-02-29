@@ -57,10 +57,15 @@
 			var self = this;
 			$(".chart-preloader").show();
 			function onMapReady() {
-				self.dataRequest.done(function(data) {
-					self.receiveData(data);
-					$(".chart-preloader").hide();
-				});
+				if (self.variableData) {
+					self.receiveData(self.variableData);
+					$(".chart-preloader").hide();					
+				} else {
+					self.dataRequest.done(function(data) {
+						self.receiveData(data);
+						$(".chart-preloader").hide();
+					});
+				}
 			}
 
 			if (!this.dataMap)
@@ -217,8 +222,8 @@
 			} else {
 				d3.selectAll("path.datamaps-subunit").remove();
 				this.dataMap.options.setProjection = newProjection;
-				this.dataMap.draw();
 				this.dataMap.options.done = updateMap;
+				this.dataMap.draw();
 			}
 		},
 
