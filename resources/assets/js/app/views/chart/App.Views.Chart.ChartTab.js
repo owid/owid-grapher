@@ -15,9 +15,17 @@
 		initialize: function( options ) {
 			this.dispatcher = options.dispatcher;
 			this.parentView = options.parentView;
-
+			this.$tab = this.$el.find("#chart-chart-tab");
 			this.$svg = this.$el.find( "#chart-chart-tab svg" );
 			this.$entitiesSelect = this.$el.find( "[name=available_entities]" );
+		},
+
+		activate: function() {
+			// TODO - move functionality out of ChartView into here
+			var that = this;
+			setTimeout(function() {
+				that.parentView.onResize();
+			}, 0);
 		},
 
 		render: function( data, timeType, dimensions ) {

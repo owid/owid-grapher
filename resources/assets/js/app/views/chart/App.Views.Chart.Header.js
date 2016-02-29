@@ -12,7 +12,6 @@
 		events: {},
 
 		initialize: function( options ) {
-			
 			this.dispatcher = options.dispatcher;
 			this.parentView = options.parentView;
 
@@ -25,9 +24,7 @@
 			this.$logoSvgVector = this.$logoSvg.find( ".chart-logo-svg-vector" );
 
 			this.$tabs = this.$el.find( ".header-tab" );
-//			this.render();
 
-			//setup events
 			App.ChartModel.on( "change", this.render, this );
 		},
 
@@ -38,9 +35,7 @@
 				addCountryMode = App.ChartModel.get( "add-country-mode" ),
 				selectedCountries = App.ChartModel.get( "selected-countries" ),
 				logo = App.ChartModel.get( "logo" ),
-				tabs = App.ChartModel.get( "tabs" ),
-				defaultTab = App.ChartModel.get( "default-tab" ),
-				openDefault = ( this.$tabs.filter( ".active" ).length )? false: true;
+				tabs = App.ChartModel.get( "tabs" );
 
 			//might need to replace country in title, if "change country" mode
 			if( addCountryMode === "change-country" ) {
@@ -87,13 +82,10 @@
 			//hide first everything
 			this.$tabs.hide();
 
-			_.each( tabs, function( v, i ) {
-				var tab = that.$tabs.filter( "." + v + "-header-tab" );
+			_.each(tabs, function( v, i ) {
+				var tab = that.$tabs.filter("." + v + "-header-tab");
 				tab.show();
-				if( v === defaultTab && openDefault ) {
-					tab.addClass( "active" );
-				}
-			} );
+			});
 
 			//for first visible tab, add class for border-left, cannot be done in pure css http://stackoverflow.com/questions/18765814/targeting-first-visible-element-with-pure-css
 			this.$tabs.removeClass( "first" );

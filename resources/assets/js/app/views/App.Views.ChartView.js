@@ -30,17 +30,15 @@
 			this.dispatcher = options.dispatcher;
 			
 			var childViewOptions = { dispatcher: this.dispatcher, parentView: this };
-			this.header = new Header( childViewOptions );
-			this.footer = new Footer( childViewOptions );
-			this.scaleSelectors = new ScaleSelectors( childViewOptions );
+			this.header = new Header(childViewOptions);
+			this.footer = new Footer(childViewOptions);
+			this.scaleSelectors = new ScaleSelectors(childViewOptions);
 			//tabs
-			this.chartTab = new ChartTab( childViewOptions );
-			this.dataTab = new DataTab( childViewOptions );
-			this.sourcesTab = new SourcesTab( childViewOptions );
-			this.mapTab = new MapTab( childViewOptions );
-			// Header needs to know about map data
-			this.mapTab.on("tab-ready", function() { that.header.render(); });
-
+			this.chartTab = new ChartTab(childViewOptions);
+			this.dataTab = new DataTab(childViewOptions);
+			this.sourcesTab = new SourcesTab(childViewOptions);
+			this.mapTab = new MapTab(childViewOptions);
+			this.tabs = [this.chartTab, this.dataTab, this.sourcesTab, this.mapTab];
 			//setup model that will fetch all the data for us
 			this.dataModel = new ChartDataModel();
 			
@@ -56,33 +54,23 @@
 			this.dispatcher.on( "dimension-export", this.onDimensionExport, this );
 			this.dispatcher.on( "dimension-export-cancel", this.onDimensionExportCancel, this );
 
-			$( "[data-toggle='tab']" ).on( "shown.bs.tab", function( evt ) {
-				that.onResize();
-			} );
-
-			var tab = App.ChartModel.get("default-tab");
-			if (tab == "chart")
-				this.defaultTab = this.chartTab;
-			else if (tab == "data")
-				this.defaultTab = this.dataTab;
-			else if (tab == "map")
-				this.defaultTab = this.mapTab;
-			else if (tab == "sources")
-				this.defaultTab = this.sourcesTab;
-			else
-				this.defaultTab = this.chartTab;
-
-			this.defaultTab.on("tab-ready", $.proxy(this.onResize, this));
-
-			//init router and deeplinking
-			//new Router();
-			//Backbone.history.start();
+			$("[data-toggle='tab']").on("shown.bs.tab", function(evt) {
+				_.each(that.tabs, function(tab) { 
+					if ($(evt.target).attr('href') === "#"+tab.$tab.attr('id')) {
+						that.activeTab = tab;
+						that.activeTab.once("tab-ready", function() { that.onResize(); });
+						tab.activate();
+					}
+				});
+			});
 
 			this.render();
+
+			var defaultTab = App.ChartModel.get("default-tab");
+			$("." + defaultTab + "-header-tab a").tab('show');
 		},
 
 		render: function() {
-
 			var that = this;
 
 			this.$preloader = this.$el.find( ".chart-preloader" );
@@ -174,14 +162,6 @@
 			if( !$.isEmptyObject( dimensionsString ) ) {
 				var dimension = $.parseJSON( dimensionsString );
 				validDimensions = Utils.checkValidDimensions( dimension, App.ChartModel.get( "chart-type" ));
-			}
-
-			//make sure to appear only first tab tabs that are necessary
-			//appear only first tab if none visible
-			if( !this.$tabPanes.filter( ".active" ).length ) {
-				var defaultTab = App.ChartModel.get( "default-tab" ),
-					visibleTabPane = this.$tabPanes.filter( "#" + defaultTab + "-chart-tab" );
-				visibleTabPane.addClass( "active" );
 			}
 
 			if( !validDimensions ) {
@@ -491,6 +471,7 @@
 		},
 	
 		onResize: function() {
+			console.log("onResize");
 			this.chartTab.onResize();
 
 			//compute how much space for chart

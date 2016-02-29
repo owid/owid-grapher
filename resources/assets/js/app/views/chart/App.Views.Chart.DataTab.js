@@ -14,9 +14,13 @@
 			this.dispatcher = options.dispatcher;
 
 			//data tab
-			this.$dataTab = this.$el.find( "#data-chart-tab" );
-			this.$downloadBtn = this.$dataTab.find( ".download-data-btn" );
-			this.$dataTableWrapper = this.$dataTab.find( ".data-table-wrapper" );
+			this.$tab = this.$el.find( "#data-chart-tab" );
+			this.$downloadBtn = this.$tab.find( ".download-data-btn" );
+			this.$dataTableWrapper = this.$tab.find( ".data-table-wrapper" );
+		},
+
+		activate: function() {
+			// TODO - move functionality out of ChartView / ChartTab
 		},
 
 		render: function( data, localData, dimensions ) {

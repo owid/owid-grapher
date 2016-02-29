@@ -13,7 +13,7 @@
 
 		BORDERS_DISCLAIMER_TEXT: "Mapped on current borders",
 
-		$tab: null,
+		el: "#chart-view",
 		dataMap: null,
 		mapControls: null,
 		legend: null,
@@ -26,17 +26,26 @@
 			this.parentView = options.parentView;
 			this.mapControls = new MapControls( { dispatcher: options.dispatcher } );
 			this.timelineControls = new TimelineControls( { dispatcher: options.dispatcher } );
+			this.$tab = this.$el.find("#map-chart-tab");
+			this.isAwake = false;
+		},
+
+		activate: function() {
+			if (this.isAwake) {
+				this.onResize();
+				return;
+			}
 
 			App.ChartModel.on("change", this.update, this);
 			App.ChartModel.on("change-map", this.update, this);
 			App.ChartModel.on("change-map-year", this.updateYearOnly, this);
-			App.ChartModel.on("resize", this.onResize, this);
-
 			this.update();
+			this.isAwake = true;
 		},
 
 		update: function() {
 			this.mapConfig = App.ChartModel.get("map-config");
+
 			// Preload the variable data for all years and all countries
 			if (!this.variableData || this.variableData.id != this.mapConfig.variableId) {
 				this.variableData = null;
@@ -46,9 +55,12 @@
 			// We need to wait for both datamaps to finish its setup and the variable data
 			// to come in before the map can be fully rendered
 			var self = this;
+			$(".chart-preloader").show();
 			function onMapReady() {
 				self.dataRequest.done(function(data) {
 					self.receiveData(data);
+					self.onResize();
+					$(".chart-preloader").hide();
 				});
 			}
 
@@ -62,6 +74,7 @@
 		updateYearOnly: _.throttle(function() {
 			this.mapData = this.transformData(this.variableData);
 			this.dataMap.updateChoropleth(this.mapData, { reset: true });
+			this.trigger('tab-ready');
 		}, 100),
 
 		initializeMap: function(onMapReady) {
@@ -294,6 +307,7 @@
 		},
 
 		onResize: function() {
+			console.log("mapResize");
 			var map = d3.select(".datamaps-subunits");			
 			if (!this.dataMap || map.empty())
 				return;

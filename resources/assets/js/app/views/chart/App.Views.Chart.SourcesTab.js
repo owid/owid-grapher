@@ -15,8 +15,12 @@
 
 			this.$chartDescription = this.$el.find( ".chart-description" );
 			this.$chartSources = this.$el.find( ".chart-sources" );
-			this.$sourcesTab = this.$el.find( "#sources-chart-tab" );
+			this.$tab = this.$el.find( "#sources-chart-tab" );
 
+		},
+
+		activate: function() {
+			// TODO - move functionality out of ChartView
 		},
 
 		render: function( response ) {
@@ -68,7 +72,7 @@
 			//append to DOM
 			this.$chartDescription.html( footerHtml );
 			this.$chartSources.html( sourcesShortHtml );
-			this.$sourcesTab.html( tabHtml );
+			this.$tab.html( tabHtml );
 			this.trigger("tab-ready");
 		},
 
