@@ -59,7 +59,6 @@
 			function onMapReady() {
 				self.dataRequest.done(function(data) {
 					self.receiveData(data);
-					self.onResize();
 					$(".chart-preloader").hide();
 				});
 			}
@@ -209,6 +208,7 @@
 				self.dataMap.updateChoropleth(self.mapData, { reset: true });
 				self.mapControls.render();
 				self.timelineControls.render();
+				self.onResize();
 				self.trigger("tab-ready");
 			};
 
@@ -220,7 +220,6 @@
 				this.dataMap.draw();
 				this.dataMap.options.done = updateMap;
 			}
-
 		},
 
 		makeColorScale: function() {
