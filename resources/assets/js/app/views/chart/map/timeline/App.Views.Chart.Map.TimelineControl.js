@@ -9,7 +9,7 @@
 		el: "#map-chart-tab .map-timeline-controls .timeline-control",
 		events: {
 			"input [type='range']": "onTargetYearInput",
-			"change [type='range']": "onTargetYearChange",
+			"change [type='range']": "onTargetYearInput",
 		},
 
 		initialize: function( options ) {
@@ -114,7 +114,6 @@
 		},
 
 		onIncrementTime: function( evt ) {
-
 			var mapConfig = App.ChartModel.get( "map-config" ),
 				nowValue = parseInt( this.$sliderInput.val(), 10 ),
 				step = parseInt( mapConfig.timeInterval, 10 ),
@@ -132,7 +131,6 @@
 			
 			this.$sliderInput.val( newValue );
 			this.$sliderInput.trigger( "change" );
-
 		},
 
 		createTicks: function( $input ) {

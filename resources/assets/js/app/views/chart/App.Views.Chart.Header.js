@@ -146,10 +146,8 @@
 		},
 
 		updateTimeFromMap: function(map) {			
-			if (!map.minYear) return;
-
-			var timeFrom = map.minYear,
-				timeTo = map.maxYear,
+			var timeFrom = map.minYear || map.mapConfig.targetYear,
+				timeTo = map.maxYear || map.mapConfig.targetYear,
 				targetYear = map.mapConfig.targetYear,
 				hasTargetYear = _.find(map.mapData, function(d) { return d.year == targetYear; });
 

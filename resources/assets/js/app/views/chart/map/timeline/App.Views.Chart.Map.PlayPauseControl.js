@@ -5,8 +5,7 @@
 	var App = require( "./../../../../namespaces.js" );
 
 	App.Views.Chart.Map.PlayPauseControl = Backbone.View.extend({
-
-		PLAY_INTERVAL: 1000,
+		PLAY_INTERVAL: 500,
 
 		el: "#map-chart-tab .map-timeline-controls .play-pause-control",
 		events: {
@@ -15,7 +14,6 @@
 		},
 
 		initialize: function( options ) {
-
 			this.dispatcher = options.dispatcher;
 
 			this.interval = null;

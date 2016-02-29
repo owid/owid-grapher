@@ -38,6 +38,7 @@
 			this.dataTab = new DataTab(childViewOptions);
 			this.sourcesTab = new SourcesTab(childViewOptions);
 			this.mapTab = new MapTab(childViewOptions);
+			this.mapTab.on("tab-ready", function() { that.header.render(); });
 			this.tabs = [this.chartTab, this.dataTab, this.sourcesTab, this.mapTab];
 			//setup model that will fetch all the data for us
 			this.dataModel = new ChartDataModel();
@@ -58,8 +59,10 @@
 				_.each(that.tabs, function(tab) { 
 					if ($(evt.target).attr('href') === "#"+tab.$tab.attr('id')) {
 						that.activeTab = tab;
-						that.activeTab.once("tab-ready", function() { that.onResize(); });
+						that.activeTab.once("tab-ready", function() { that.onResize(); });						
 						tab.activate();
+						if (tab == that.mapTab)
+							that.header.render();
 					}
 				});
 			});
