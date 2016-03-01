@@ -629,11 +629,137 @@
 		},
 
 		onResize: function() {
+			return;
 			if( this.legend ) {
 				this.svgSelection.call( this.legend );
 			}
-		}
-		
+
+			this.chartTab.onResize();
+
+			//compute how much space for chart
+			var svgWidth = this.$svg.width(),
+				svgHeight = this.$svg.height(),
+				chartType = App.ChartModel.get( "chart-type" ),
+				$chartWrapperInner = $( ".chart-wrapper-inner" ),
+				innerPaddingLeft = parseInt( $chartWrapperInner.css("padding-left"), 10),
+				innerPaddingRight = parseInt( $chartWrapperInner.css("padding-right"), 10),
+				innerPaddingTop = parseInt( $chartWrapperInner.css("padding-top"), 10),
+				innerPaddingBottom = parseInt( $chartWrapperInner.css("padding-bottom"), 10),
+				$chartLogoSvg = this.$el.find( ".chart-logo-svg" ),
+				chartHeaderHeight = this.$chartHeader.height(),
+				margins = App.ChartModel.get( "margins" ),
+				bottomChartMargin = 60,
+				currY, chartNameSvgY, chartNameSvgHeight, chartSubnameSvgHeight, footerDescriptionHeight, footerSourcesHeight, chartHeight;
+
+			this.$tabContent.height( $chartWrapperInner.height() - this.$chartHeader.height() - this.$chartFooter.height() );
+
+			//start positioning the graph, according 
+			currY = 0;
+
+			this.$svg.height( this.$tabContent.height() );
+
+			//update stored height
+			svgHeight = this.$svg.height();
+
+			//add height of legend
+			if( !App.ChartModel.get( "hide-legend" ) ) {
+				currY += this.chartTab.legend.height();
+			}
+
+			//set chart height
+			chartHeight = svgHeight - bottomChartMargin;
+			//chartHeight = svgHeight - translateY - bottomChartMargin;
+			if( !App.ChartModel.get( "hide-legend" ) ) {
+				chartHeight -= this.chartTab.legend.height();
+			}
+
+			//reflect margin top and down in chartHeight
+			chartHeight = chartHeight - margins.bottom - margins.top;
+
+			//position footer
+			var chartSourcesX = 20, //hardcoded some visual offset
+				chartSourcesY = currY + chartHeight + bottomChartMargin;
+
+			//compute chart width - add 60px
+			var chartWidth = svgWidth - margins.left - margins.right + 60;
+			this.chartTab.chart.width( chartWidth );
+			this.chartTab.chart.height( chartHeight );
+
+			//need to call chart update for resizing of elements within chart
+			if( this.$chartTab.is( ":visible" ) ) {
+				this.chartTab.chart.update();
+			}
+
+			if( chartType === "3" ) {
+				//for stacked area chart, need to manually adjust height
+				var currIntLayerHeight = this.chartTab.chart.interactiveLayer.height(),
+					//TODO - do not hardcode this
+					heightAdd = 150;
+				this.chartTab.chart.interactiveLayer.height( currIntLayerHeight + heightAdd );
+				d3.select(".nv-interactive").call(this.chartTab.chart.interactiveLayer);
+				//and add extra offset to of the .nv-wrap to account for Stacked and Expanded controls
+				currY += 20;
+			}
+			
+			if( !App.ChartModel.get( "hide-legend" ) ) {
+				//position legend
+				var legendMargins = this.chartTab.legend.margin();
+				currY = currY - this.chartTab.legend.height();
+				this.translateString = "translate(" + legendMargins.left + " ," + currY + ")";
+				this.$svg.find( "> .nvd3.nv-custom-legend" ).attr( "transform", this.translateString );
+			}
+			
+			//this.$svg.css( "transform", "translate(0,-" + chartHeaderHeight + "px)" );
+
+			//for multibarchart, need to move controls bit higher
+			if( chartType === "4" || chartType === "5" ) {
+				d3.select( ".nv-controlsWrap" ).attr( "transform", "translate(0,-25)" );
+			}
+
+			//reflect margin top in currY
+			if( !App.ChartModel.get( "hide-legend" ) ) {
+				currY += +this.chartTab.legend.height();
+			}
+			currY += +margins.top;
+
+			var $wrap = this.$svg.find( "> .nvd3.nv-wrap" );
+			//var $wrap = this.$svg.find( ".nvd3-chart-holder > .nvd3.nv-wrap" );
+			//add 20px offset
+			var translateLeft = parseInt( margins.left, 10 );
+			this.translateString = "translate(" + translateLeft + "," + currY + ")";
+			$wrap.attr( "transform", this.translateString );
+			
+			//mapTab has own logic for doing resizes
+			this.mapTab.onResize();
+
+			//position scale dropdowns - TODO - isn't there a better way then with timeout?
+			var that = this;
+			setTimeout( function() {
+				
+				//make sure the chart is created
+				if( !$wrap.length ) {
+					return false;
+				}
+
+				var wrapOffset = $wrap.offset(),
+					chartTabOffset = that.$chartTab.offset(),
+					marginLeft = parseInt( margins.left, 10 ),
+					//dig into NVD3 chart to find background rect that has width of the actual chart
+					backRectWidth = parseInt( $wrap.find( "> g > rect" ).attr( "width" ), 10 ),
+					offsetDiff = wrapOffset.top - chartTabOffset.top,
+					//empiric offset
+					xScaleOffset = 10,
+					yScaleOffset = -5;
+
+				//fallback for scatter plot where backRectWidth has no width
+				if( isNaN( backRectWidth ) ) {
+					backRectWidth = parseInt( $(".nv-x.nv-axis.nvd3-svg").get(0).getBoundingClientRect().width, 10 );
+				}
+
+				that.$xAxisScaleSelector.css( { "top": offsetDiff + chartHeight, "left": marginLeft + backRectWidth + xScaleOffset } );
+				that.$yAxisScaleSelector.css( { "top": offsetDiff - 15, "left": marginLeft + yScaleOffset } );
+			}, 250 );
+		}					
 	} );
 
 	module.exports = App.Views.Chart.ChartTab;

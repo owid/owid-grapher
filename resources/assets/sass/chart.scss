@@ -178,8 +178,10 @@ body {
 				}
 	.chart-wrapper-inner {
 		position: relative;
-		height: 100%;
 		padding: 25px 50px;
+		display: table;
+		height: 100%;
+		width: 100%;
 	}
 
 	/**
@@ -187,8 +189,8 @@ body {
 	**/
 	#chart-view .tab-content {
 		position: relative;
-		/* height is later modified in js */ 
-		height: calc(100% - 100px);
+		display: table-row;
+		height: 100%;
 		background-color: #fff;
 		border: 1px solid #ccc;
 	}
