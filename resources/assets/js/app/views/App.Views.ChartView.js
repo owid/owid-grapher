@@ -26,10 +26,13 @@
 			var that = this;
 			//enable overriding default tab setting with tab query parameter
 			this.setDefaultTabFromUrl();
-
 			this.dispatcher = options.dispatcher;
+			// Data model used for fetching variables
+			// TODO - consider switching to a more client-side data processing system
+			// for all the tabs, like the map uses
+			this.dataModel = new ChartDataModel();
 			
-			var childViewOptions = { dispatcher: this.dispatcher, parentView: this };
+			var childViewOptions = { dispatcher: this.dispatcher, parentView: this, dataModel: this.dataModel };
 			this.header = new Header(childViewOptions);
 			this.footer = new Footer(childViewOptions);
 			this.scaleSelectors = new ScaleSelectors(childViewOptions);
@@ -40,11 +43,12 @@
 			this.mapTab = new MapTab(childViewOptions);
 			this.mapTab.on("tab-ready", function() { that.header.render(); });
 			this.tabs = [this.chartTab, this.dataTab, this.sourcesTab, this.mapTab];
-			//setup model that will fetch all the data for us
-			this.dataModel = new ChartDataModel();
 			
 			this.exportPopup = new ExportPopup( options );
 			this.exportPopup.init( options );
+
+			this.$preloader = this.$el.find( ".chart-preloader" );
+			this.$error = this.$el.find( ".chart-error" );
 
 			//setup events
 			this.dataModel.on( "sync", this.onDataModelSync, this );
@@ -59,133 +63,21 @@
 				_.each(that.tabs, function(tab) { 
 					if ($(evt.target).attr('href') === "#"+tab.$tab.attr('id')) {
 						that.activeTab = tab;
-						that.activeTab.once("tab-ready", function() { that.onResize(); });						
-						tab.activate();
-						if (tab == that.mapTab)
+						that.activeTab.once("tab-ready", function() { 
 							that.header.render();
+							that.onResize(); 
+						});
+						tab.activate();
 					}
 				});
 			});
 
-
 			nv.utils.windowResize(_.debounce(function() {
 				that.onResize();
-			}, 150));
-					
+			}, 150));					
 
 			var defaultTab = App.ChartModel.get("default-tab");
 			$("." + defaultTab + "-header-tab a").tab('show');
-		},
-
-		render: function() {
-			return;
-			var that = this;
-
-			this.$preloader = this.$el.find( ".chart-preloader" );
-			this.$error = this.$el.find( ".chart-error" );
-
-			//chart tab
-			this.$svg = this.$el.find( "#chart-chart-tab svg" );
-			this.$tabContent = this.$el.find( ".tab-content" );
-			this.$tabPanes = this.$el.find( ".tab-pane" );
-			this.$chartHeader = this.$el.find( ".chart-header" );
-			this.$entitiesSelect = this.$el.find( "[name=available_entities]" );
-			this.$chartFooter = this.$el.find( ".chart-footer" );
-
-			this.$chartDescription = this.$el.find( ".chart-description" );
-			this.$chartSources = this.$el.find( ".chart-sources" );
-			this.$chartFullScreen = this.$el.find( ".fancybox-iframe" );
-
-			this.$xAxisScaleSelector = this.$el.find( ".x-axis-scale-selector" );
-			this.$xAxisScale = this.$el.find( "[name=x_axis_scale]" );
-			this.$yAxisScaleSelector = this.$el.find( ".y-axis-scale-selector" );
-			this.$yAxisScale = this.$el.find( "[name=y_axis_scale]" );
-
-			this.$reloadBtn = this.$el.find( ".reload-btn" );
-
-			var formConfig = App.ChartModel.get( "form-config" ),
-				entities = ( formConfig && formConfig[ "entities-collection" ] )? formConfig[ "entities-collection" ]: [],
-				selectedCountries = App.ChartModel.get( "selected-countries" ),
-				selectedCountriesIds = _.map( selectedCountries, function( v ) { return (v)? +v.id: ""; } ),
-				chartTime = App.ChartModel.get( "chart-time" );
-
-			var chartDescription = App.ChartModel.get( "chart-description" );
-			//this.$chartDescription.text( App.ChartModel.get( "chart-description" ) );
-
-			//show/hide scale selectors
-			var showXScaleSelectors = App.ChartModel.get( "x-axis-scale-selector" );
-			if( showXScaleSelectors ) {
-				this.$xAxisScaleSelector.show();
-			} else {
-				this.$xAxisScaleSelector.hide();
-			}
-			var showYScaleSelectors = App.ChartModel.get( "y-axis-scale-selector" );
-			if( showYScaleSelectors ) {
-				this.$yAxisScaleSelector.show();
-			} else {
-				this.$yAxisScaleSelector.hide();
-			}
-
-			//update countries
-			this.$entitiesSelect.empty();
-			if( selectedCountriesIds.length ) {
-				//append empty default option
-				that.$entitiesSelect.append( "<option disabled selected>Select country</option>" );
-				_.each( entities, function( d, i ) {
-					//add only those entities, which are not selected already
-					if( _.indexOf( selectedCountriesIds, +d.id ) == -1 ) {
-						that.$entitiesSelect.append( "<option value='" + d.id + "'>" + d.name + "</option>" );
-					}
-				} );
-			}
-			//make chosen update, make sure it looses blur as well
-			this.$entitiesSelect.trigger( "chosen:updated" );
-
-			this.$chartFullScreen.on( "click", function( evt ) {
-				evt.preventDefault();
-				var $this = $( this );
-				window.parent.openFancyBox( $this.attr( "href" ) );
-			} );
-
-			//refresh btn
-			this.$reloadBtn.on( "click", function( evt ) {
-				evt.preventDefault();
-				window.location.reload();
-			} );
-
-			//chart tab
-			this.$chartTab = this.$el.find( "#chart-chart-tab" );
-
-			var dimensionsString = App.ChartModel.get( "chart-dimensions" ),
-				validDimensions = false;
-
-			//clicking anything in chart source will take you to sources tab
-			this.$chartSources.on( "click", function(evt) {
-				evt.preventDefault();
-				var $a = $( "[href='#sources-chart-tab']" );
-				$a.trigger( "click" );
-			} );
-
-			//check we have all dimensions necessary 
-			if( !$.isEmptyObject( dimensionsString ) ) {
-				var dimension = $.parseJSON( dimensionsString );
-				validDimensions = Utils.checkValidDimensions( dimension, App.ChartModel.get( "chart-type" ));
-			}
-
-			if( !validDimensions ) {
-				return false;
-			}
-
-			if( dimensionsString ) {
-				this.$preloader.show();
-
-				var dataProps = { "dimensions": dimensionsString, "chartId": App.ChartModel.get( "id" ), "chartType": App.ChartModel.get( "chart-type" ), "selectedCountries": selectedCountriesIds, "chartTime": chartTime, "cache": App.ChartModel.get( "cache" ), "groupByVariables": App.ChartModel.get( "group-by-variables" )  };
-
-				this.dataModel.fetch( { data: dataProps } );
-			} else {
-				//clear any previous chart
-				$( "svg" ).empty();
-			}
 		},
 
 		setDefaultTabFromUrl: function() {
@@ -214,9 +106,6 @@
 		onDataModelSync: function( model, response ) {
 			this.$error.hide();
 			this.$preloader.hide();
-			if( response.data ) {
-				this.updateChart( response.data, response.timeType, response.dimensions );
-			}
 			this.sourcesTab.render( response );
 		},
 
@@ -479,7 +368,6 @@
 		},
 	
 		onResize: function() {
-			console.log(this.activeTab.onResize);
 			if (this.activeTab.onResize)
 				this.activeTab.onResize();
 		},

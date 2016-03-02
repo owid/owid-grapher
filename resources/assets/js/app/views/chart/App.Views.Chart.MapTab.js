@@ -31,8 +31,10 @@
 		},
 
 		activate: function() {
+			this.parentView.chartTab.activate();
+			
 			if (this.isAwake) {
-				this.onResize();
+				this.trigger("tab-ready");
 				return;
 			}
 
@@ -213,7 +215,6 @@
 				self.dataMap.updateChoropleth(self.mapData, { reset: true });
 				self.mapControls.render();
 				self.timelineControls.render();
-				self.onResize();
 				self.trigger("tab-ready");
 			};
 

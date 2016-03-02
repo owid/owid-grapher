@@ -12,16 +12,20 @@
 		initialize: function( options ) {
 			this.parentView = options.parentView;
 			this.dispatcher = options.dispatcher;
+			this.dataModel = options.dataModel;
 
 			//data tab
 			this.$tab = this.$el.find( "#data-chart-tab" );
 			this.$downloadBtn = this.$tab.find( ".download-data-btn" );
 			this.$dataTableWrapper = this.$tab.find( ".data-table-wrapper" );
+
+			this.dataModel.on("sync", this.onDataModelSync, this);
 		},
 
 		activate: function() {
-			// TODO - move functionality out of ChartView / ChartTab
+			this.parentView.chartTab.activate();
 		},
+
 
 		render: function( data, localData, dimensions ) {
 			this.$dataTableWrapper.empty();

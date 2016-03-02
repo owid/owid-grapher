@@ -15,17 +15,132 @@
 		initialize: function( options ) {
 			this.dispatcher = options.dispatcher;
 			this.parentView = options.parentView;
+			this.dataModel = options.dataModel;
 			this.$tab = this.$el.find("#chart-chart-tab");
 			this.$svg = this.$el.find( "#chart-chart-tab svg" );
 			this.$entitiesSelect = this.$el.find( "[name=available_entities]" );
+			this.isActive = false;
+
+			this.dataModel.on("sync", this.onDataModelSync, this);
+		},
+
+		onDataModelSync: function(model, response) {
+			if (response.data) {
+				this.render(response.data, response.timeType, response.dimensions);
+			}
 		},
 
 		activate: function() {
-			// TODO - move functionality out of ChartView into here
+			if (this.isActive) {
+				this.trigger("tab-ready");
+				return;
+			}
+			this.isActive = true;
+
 			var that = this;
-			setTimeout(function() {
-				that.parentView.onResize();
-			}, 0);
+
+			//chart tab
+			this.$svg = this.$el.find( "#chart-chart-tab svg" );
+			this.$tabContent = this.$el.find( ".tab-content" );
+			this.$tabPanes = this.$el.find( ".tab-pane" );
+			this.$chartHeader = this.$el.find( ".chart-header" );
+			this.$entitiesSelect = this.$el.find( "[name=available_entities]" );
+			this.$chartFooter = this.$el.find( ".chart-footer" );
+
+			this.$chartDescription = this.$el.find( ".chart-description" );
+			this.$chartSources = this.$el.find( ".chart-sources" );
+			this.$chartFullScreen = this.$el.find( ".fancybox-iframe" );
+
+			this.$xAxisScaleSelector = this.$el.find( ".x-axis-scale-selector" );
+			this.$xAxisScale = this.$el.find( "[name=x_axis_scale]" );
+			this.$yAxisScaleSelector = this.$el.find( ".y-axis-scale-selector" );
+			this.$yAxisScale = this.$el.find( "[name=y_axis_scale]" );
+
+			this.$reloadBtn = this.$el.find( ".reload-btn" );
+
+			var formConfig = App.ChartModel.get( "form-config" ),
+				entities = ( formConfig && formConfig[ "entities-collection" ] )? formConfig[ "entities-collection" ]: [],
+				selectedCountries = App.ChartModel.get( "selected-countries" ),
+				selectedCountriesIds = _.map( selectedCountries, function( v ) { return (v)? +v.id: ""; } ),
+				chartTime = App.ChartModel.get( "chart-time" );
+
+			var chartDescription = App.ChartModel.get( "chart-description" );
+			//this.$chartDescription.text( App.ChartModel.get( "chart-description" ) );
+
+			//show/hide scale selectors
+			var showXScaleSelectors = App.ChartModel.get( "x-axis-scale-selector" );
+			if( showXScaleSelectors ) {
+				this.$xAxisScaleSelector.show();
+			} else {
+				this.$xAxisScaleSelector.hide();
+			}
+			var showYScaleSelectors = App.ChartModel.get( "y-axis-scale-selector" );
+			if( showYScaleSelectors ) {
+				this.$yAxisScaleSelector.show();
+			} else {
+				this.$yAxisScaleSelector.hide();
+			}
+
+			//update countries
+			this.$entitiesSelect.empty();
+			if( selectedCountriesIds.length ) {
+				//append empty default option
+				that.$entitiesSelect.append( "<option disabled selected>Select country</option>" );
+				_.each( entities, function( d, i ) {
+					//add only those entities, which are not selected already
+					if( _.indexOf( selectedCountriesIds, +d.id ) == -1 ) {
+						that.$entitiesSelect.append( "<option value='" + d.id + "'>" + d.name + "</option>" );
+					}
+				} );
+			}
+			//make chosen update, make sure it looses blur as well
+			this.$entitiesSelect.trigger( "chosen:updated" );
+
+			this.$chartFullScreen.on( "click", function( evt ) {
+				evt.preventDefault();
+				var $this = $( this );
+				window.parent.openFancyBox( $this.attr( "href" ) );
+			} );
+
+			//refresh btn
+			this.$reloadBtn.on( "click", function( evt ) {
+				evt.preventDefault();
+				window.location.reload();
+			} );
+
+			//chart tab
+			this.$chartTab = this.$el.find( "#chart-chart-tab" );
+
+			var dimensionsString = App.ChartModel.get( "chart-dimensions" ),
+				validDimensions = false;
+
+			//clicking anything in chart source will take you to sources tab
+			this.$chartSources.on( "click", function(evt) {
+				evt.preventDefault();
+				var $a = $( "[href='#sources-chart-tab']" );
+				$a.trigger( "click" );
+			} );
+
+			//check we have all dimensions necessary 
+			if( !$.isEmptyObject( dimensionsString ) ) {
+				var dimension = $.parseJSON( dimensionsString );
+				validDimensions = App.Utils.checkValidDimensions( dimension, App.ChartModel.get( "chart-type" ));
+			}
+
+			if( !validDimensions ) {
+				return false;
+			}
+
+			if( dimensionsString ) {
+				this.parentView.$preloader.show();
+
+				var dataProps = { "dimensions": dimensionsString, "chartId": App.ChartModel.get( "id" ), "chartType": App.ChartModel.get( "chart-type" ), "selectedCountries": selectedCountriesIds, "chartTime": chartTime, "cache": App.ChartModel.get( "cache" ), "groupByVariables": App.ChartModel.get( "group-by-variables" )  };
+
+				this.dataModel.fetch( { data: dataProps } );
+			} else {
+				//clear any previous chart
+				$( "svg" ).empty();
+			}		
 		},
 
 		render: function( data, timeType, dimensions ) {
@@ -157,7 +272,7 @@
 			nv.addGraph(function() {
 
 				var chartOptions = {
-					transitionDuration: 300,
+					transitionDuration: 0,
 					margin: { top:0, left:50, right:30, bottom:0 },// App.ChartModel.get( "margins" ),
 					showLegend: false
 				};
@@ -449,17 +564,6 @@
 					that.$svg.find( "> .nvd3.nv-custom-legend" ).hide();
 				}
 				
-				var onResizeCallback = _.debounce( function(e) {
-					//invoke resize of legend, if there's one, scatter plot doesn't have any by default
-					if( that.legend ) {
-						that.svgSelection.call( that.legend );
-					}
-					that.parentView.onResize();
-				}, 150 );
-				nv.utils.windowResize( onResizeCallback );
-						
-				that.parentView.onResize();
-
 				var stateChangeEvent = ( chartType !== "6" )? "stateChange": "renderEnd";
 				that.chart.dispatch.on( stateChangeEvent, function( state ) {
 					//refresh legend;
@@ -629,12 +733,9 @@
 		},
 
 		onResize: function() {
-			return;
 			if( this.legend ) {
 				this.svgSelection.call( this.legend );
 			}
-
-			this.chartTab.onResize();
 
 			//compute how much space for chart
 			var svgWidth = this.$svg.width(),
@@ -651,26 +752,22 @@
 				bottomChartMargin = 60,
 				currY, chartNameSvgY, chartNameSvgHeight, chartSubnameSvgHeight, footerDescriptionHeight, footerSourcesHeight, chartHeight;
 
-			this.$tabContent.height( $chartWrapperInner.height() - this.$chartHeader.height() - this.$chartFooter.height() );
-
 			//start positioning the graph, according 
 			currY = 0;
-
-			this.$svg.height( this.$tabContent.height() );
 
 			//update stored height
 			svgHeight = this.$svg.height();
 
 			//add height of legend
 			if( !App.ChartModel.get( "hide-legend" ) ) {
-				currY += this.chartTab.legend.height();
+				currY += this.legend.height();
 			}
 
 			//set chart height
 			chartHeight = svgHeight - bottomChartMargin;
 			//chartHeight = svgHeight - translateY - bottomChartMargin;
 			if( !App.ChartModel.get( "hide-legend" ) ) {
-				chartHeight -= this.chartTab.legend.height();
+				chartHeight -= this.legend.height();
 			}
 
 			//reflect margin top and down in chartHeight
@@ -682,29 +779,29 @@
 
 			//compute chart width - add 60px
 			var chartWidth = svgWidth - margins.left - margins.right + 60;
-			this.chartTab.chart.width( chartWidth );
-			this.chartTab.chart.height( chartHeight );
+			this.chart.width( chartWidth );
+			this.chart.height( chartHeight );
 
 			//need to call chart update for resizing of elements within chart
-			if( this.$chartTab.is( ":visible" ) ) {
-				this.chartTab.chart.update();
+			if( this.$tab.is( ":visible" ) ) {
+				this.chart.update();
 			}
 
-			if( chartType === "3" ) {
+			if( chartType == App.ChartType.StackedArea ) {
 				//for stacked area chart, need to manually adjust height
-				var currIntLayerHeight = this.chartTab.chart.interactiveLayer.height(),
+				var currIntLayerHeight = this.chart.interactiveLayer.height(),
 					//TODO - do not hardcode this
 					heightAdd = 150;
-				this.chartTab.chart.interactiveLayer.height( currIntLayerHeight + heightAdd );
-				d3.select(".nv-interactive").call(this.chartTab.chart.interactiveLayer);
+				this.chart.interactiveLayer.height( currIntLayerHeight + heightAdd );
+				d3.select(".nv-interactive").call(this.chart.interactiveLayer);
 				//and add extra offset to of the .nv-wrap to account for Stacked and Expanded controls
 				currY += 20;
 			}
 			
 			if( !App.ChartModel.get( "hide-legend" ) ) {
 				//position legend
-				var legendMargins = this.chartTab.legend.margin();
-				currY = currY - this.chartTab.legend.height();
+				var legendMargins = this.legend.margin();
+				currY = currY - this.legend.height();
 				this.translateString = "translate(" + legendMargins.left + " ," + currY + ")";
 				this.$svg.find( "> .nvd3.nv-custom-legend" ).attr( "transform", this.translateString );
 			}
@@ -712,13 +809,13 @@
 			//this.$svg.css( "transform", "translate(0,-" + chartHeaderHeight + "px)" );
 
 			//for multibarchart, need to move controls bit higher
-			if( chartType === "4" || chartType === "5" ) {
+			if( chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar ) {
 				d3.select( ".nv-controlsWrap" ).attr( "transform", "translate(0,-25)" );
 			}
 
 			//reflect margin top in currY
 			if( !App.ChartModel.get( "hide-legend" ) ) {
-				currY += +this.chartTab.legend.height();
+				currY += +this.legend.height();
 			}
 			currY += +margins.top;
 
@@ -728,9 +825,6 @@
 			var translateLeft = parseInt( margins.left, 10 );
 			this.translateString = "translate(" + translateLeft + "," + currY + ")";
 			$wrap.attr( "transform", this.translateString );
-			
-			//mapTab has own logic for doing resizes
-			this.mapTab.onResize();
 
 			//position scale dropdowns - TODO - isn't there a better way then with timeout?
 			var that = this;
@@ -742,7 +836,7 @@
 				}
 
 				var wrapOffset = $wrap.offset(),
-					chartTabOffset = that.$chartTab.offset(),
+					chartTabOffset = that.$tab.offset(),
 					marginLeft = parseInt( margins.left, 10 ),
 					//dig into NVD3 chart to find background rect that has width of the actual chart
 					backRectWidth = parseInt( $wrap.find( "> g > rect" ).attr( "width" ), 10 ),

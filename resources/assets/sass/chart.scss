@@ -11,10 +11,9 @@ body {
 	//background-color: #ffffff;
 }
 
-	.standalone-chart-viewer #chart-view {
+	#chart-view {
 		width: 100%;
-		padding-left: 0;
-		padding-right: 0;
+		padding: 25px 50px;
 	}
 
 	#chart-view a {
@@ -176,12 +175,16 @@ body {
 				#chart-view .chart-tabs li.reload-btn-wrapper i {
 					margin-right: 0;
 				}
+
+
 	.chart-wrapper-inner {
 		position: relative;
-		padding: 25px 50px;
 		display: table;
+		table-layout: fixed;
+		border-collapse: collapse;
 		height: 100%;
 		width: 100%;
+		margin: 1px;
 	}
 
 	/**
@@ -214,6 +217,10 @@ body {
 
 	#data-chart-tab, #sources-chart-tab {
 		padding: 40px;
+	}
+
+	#data-chart-tab .data-table-wrapper {
+		overflow: auto;
 	}
 
 	/* modify tooltip position to account for header */

@@ -20,7 +20,7 @@
 		},
 
 		activate: function() {
-			// TODO - move functionality out of ChartView
+			this.parentView.chartTab.activate();
 		},
 
 		render: function( response ) {
