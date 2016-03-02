@@ -22,12 +22,20 @@
 			this.isActive = false;
 
 			this.dataModel.on("sync", this.onDataModelSync, this);
+			App.ChartModel.on("change", this.onChartModelChange, this);
 		},
 
 		onDataModelSync: function(model, response) {
 			if (response.data) {
 				this.render(response.data, response.timeType, response.dimensions);
 			}
+		},
+
+		onChartModelChange: function() {
+			// TODO - this is a hack to keep old behavior working, the chart should not
+			// need to refetch everything when it is updated
+			this.isActive = false;
+			this.activate();
 		},
 
 		activate: function() {

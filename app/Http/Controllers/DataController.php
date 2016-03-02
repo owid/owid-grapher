@@ -31,21 +31,25 @@ class DataController extends Controller {
 	public function variable($var_id, Request $request) {
 		$response = [];
 
+		$var_name = DB::table('variables')->select('name')->where('id', $var_id)->get()[0]->name;
+
 		$variableQuery = DB::table('data_values')
-			->select('data_values.value', 'data_values.fk_ent_id', 'times.label', 'entities.name as name')
+			->select('data_values.value', 'data_values.fk_ent_id', 'times.label', 'entities.name as entity_name')
+			->join('variables', 'data_values.fk_var_id', '=', 'variables.id')
 			->join('entities', 'data_values.fk_ent_id', '=', 'entities.id')
 			->join('times', 'data_values.fk_time_id', '=', 'times.id')
 			->where('data_values.fk_var_id', $var_id)
 			->orderBy('times.date');
 
 		$response['id'] = $var_id;
+		$response['name'] = $var_name;
 		$response['entityKey'] = [];
 		$response['entities'] = [];
 		$response['values'] = [];
 		$response['years'] = [];
 
 		foreach ($variableQuery->get() as $result) {
-			$response['entityKey'][floatval($result->fk_ent_id)] = $result->name;
+			$response['entityKey'][floatval($result->fk_ent_id)] = $result->entity_name;
 			$response['entities'][] = floatval($result->fk_ent_id);
 			$response['values'][] = floatval($result->value);
 			$response['years'][] = floatval($result->label);

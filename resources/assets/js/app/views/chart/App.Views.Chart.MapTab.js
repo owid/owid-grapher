@@ -32,7 +32,7 @@
 
 		activate: function() {
 			this.parentView.chartTab.activate();
-			
+
 			if (this.isAwake) {
 				this.trigger("tab-ready");
 				return;
@@ -79,6 +79,7 @@
 		// Optimized method for updating the target year with the slider
 		updateYearOnly: _.throttle(function() {
 			this.mapData = this.transformData(this.variableData);
+			this.applyColors(this.mapData, this.colorScale);
 			this.dataMap.updateChoropleth(this.mapData, { reset: true });
 			this.trigger('tab-ready');
 		}, 100),
@@ -167,8 +168,9 @@
 				entities = variableData.entities,
 				entityKey = variableData.entityKey,
 				targetYear = parseInt(this.mapConfig.targetYear),
-				tolerance = parseInt(this.mapConfig.tolerance) || 1,
+				tolerance = parseInt(this.mapConfig.timeTolerance) || 1,
 				mapData = {};
+
 
 			for (var i = 0; i < values.length; i++) {
 				var year = years[i];
@@ -186,8 +188,7 @@
 
 				mapData[entityName] = {
 					value: values[i],
-					year: years[i],
-					color: this.colorScale(values[i])
+					year: years[i]
 				};
 			}
 
@@ -196,13 +197,21 @@
 			this.minYear = _.min(mapData, function(d, i) { return d.year; }).year;
 			this.maxYear = _.max(mapData, function(d, i) { return d.year; }).year;
 
+			debugger;
 			return mapData;
+		},
+
+		applyColors: function(mapData, colorScale) {
+			_.each(mapData, function(d, i) {
+				d.color = colorScale(d.value);
+			});
 		},
 
 		receiveData: function(variableData) {
 			this.variableData = variableData;
-			this.colorScale = this.makeColorScale();
 			this.mapData = this.transformData(variableData);
+			this.colorScale = this.makeColorScale();
+			this.applyColors(this.mapData, this.colorScale);
 			this.legend = this.makeLegend();
 
 			// If we've changed the projection (i.e. zooming on Africa or similar) we need
@@ -253,7 +262,7 @@
 			if( !categoricalScale && ( automaticValues || (!automaticValues && !customValues) ) ) {
 				//we have quantitave scale
 				colorScale = d3.scale.quantize()
-					.domain( [ dataMin, dataMax ] );
+					.domain( [ this.minValue, this.maxValue ] );
 			} else if( !categoricalScale && customValues && !automaticValues ) {
 				//create threshold scale which divides data into buckets based on values provided
 				colorScale = d3.scale.equal_threshold()

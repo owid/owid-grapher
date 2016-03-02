@@ -97,12 +97,6 @@
 
 		},*/
 
-		onChartModelChange: function( evt ) {
-
-			this.render();
-			
-		},
-
 		onDataModelSync: function( model, response ) {
 			this.$error.hide();
 			this.$preloader.hide();
