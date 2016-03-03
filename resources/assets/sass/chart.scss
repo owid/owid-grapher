@@ -183,6 +183,7 @@ body {
 		display: table;
 		table-layout: fixed;
 		border-collapse: collapse;
+		border-spacing: 0;
 		height: 100%;
 		width: 100%;
 		margin: 1px;
@@ -201,6 +202,13 @@ body {
 		height: 100%;
 		background-color: #fff;
 		border: 1px solid #ccc;
+	}
+
+	/* hack to fix border-collapse bug in firefox */
+	@-moz-document url-prefix() {
+		#chart-view .tab-content {
+			border: 2px solid #ccc;
+		}
 	}
 	#chart-view .tab-pane {
 		position: relative;

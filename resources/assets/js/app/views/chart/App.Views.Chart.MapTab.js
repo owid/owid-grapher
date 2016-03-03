@@ -90,6 +90,7 @@
 
 			this.dataMap = new Datamap({
 				element: $("#map-chart-tab").get(0),
+				responsive: true,
 				geographyConfig: {
 					dataUrl: Global.rootUrl + "/build/js/data/world.ids.json",
 					borderWidth: 0.3,
