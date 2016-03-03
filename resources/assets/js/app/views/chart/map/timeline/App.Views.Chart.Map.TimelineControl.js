@@ -114,23 +114,19 @@
 		},
 
 		onIncrementTime: function( evt ) {
-			var mapConfig = App.ChartModel.get( "map-config" ),
-				nowValue = parseInt( this.$sliderInput.val(), 10 ),
-				step = parseInt( mapConfig.timeInterval, 10 ),
-				newValue = nowValue + step,
-				max = parseInt( this.$sliderInput.attr( "max" ), 10 );
+			var currentYear = parseInt(this.$sliderInput.val()),
+				index = this.years.indexOf(currentYear);
 
-			if( nowValue === max ) {
-				newValue = parseInt( this.$sliderInput.attr( "min" ), 10 );
-			}
-
-			if( newValue >= max ) {
-				newValue = max;
+			var nextIndex = index+1;
+			if (nextIndex >= this.years.length) {
 				this.dispatcher.trigger( "max-increment-time" );
+				return;				
 			}
+
+			var nextYear = this.years[nextIndex];
 			
-			this.$sliderInput.val( newValue );
-			this.$sliderInput.trigger( "change" );
+			this.$sliderInput.val(this.years[nextIndex]);
+			this.$sliderInput.trigger("change");
 		},
 
 		createTicks: function( $input ) {

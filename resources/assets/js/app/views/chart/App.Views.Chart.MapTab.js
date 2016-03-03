@@ -88,7 +88,7 @@
 			this.mapData = this.transformData(this.variableData);
 			this.applyColors(this.mapData, this.colorScale);
 			this.dataMap.updateChoropleth(this.mapData, { reset: true });
-			this.trigger('tab-ready');
+			this.parentView.header.render();
 		}, 100),
 
 		initializeMap: function(onMapReady) {
