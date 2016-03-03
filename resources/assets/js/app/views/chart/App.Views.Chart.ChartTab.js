@@ -34,16 +34,16 @@
 		onChartModelChange: function() {
 			// TODO - this is a hack to keep old behavior working, the chart should not
 			// need to refetch everything when it is updated
-			this.isActive = false;
+			this.isAwake = false;
 			this.activate();
 		},
 
 		activate: function() {
-			if (this.isActive) {
+			if (this.isAwake) {
 				this.trigger("tab-ready");
 				return;
 			}
-			this.isActive = true;
+			this.isAwake = true;
 
 			var that = this;
 

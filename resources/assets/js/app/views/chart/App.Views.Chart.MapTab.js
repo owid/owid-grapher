@@ -31,7 +31,14 @@
 		},
 
 		activate: function() {
-			this.parentView.chartTab.activate();
+			// HACK - the chart tab is still responsible for the footer info
+			if (!this.parentView.chartTab.isAwake) {
+				this.parentView.chartTab.once("tab-ready", function() {
+					this.activate();
+				}.bind(this))
+				this.parentView.chartTab.activate();				
+				return;
+			}
 
 			if (this.isAwake) {
 				this.trigger("tab-ready");
