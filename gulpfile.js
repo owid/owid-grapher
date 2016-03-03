@@ -82,7 +82,7 @@ elixir(function(mix) {
         'libs/bootstrap.min.js',
         'libs/chosen.jquery.js',
         'libs/colorbrewer.js',
-        'libs/owd-colorbrewer.js'
+        'libs/owd-colorbrewer.js',
     ], 'public/js/libs.js' );
 
     //back-end lib scripts
@@ -105,7 +105,8 @@ elixir(function(mix) {
         'libs/bootstrap3-wysihtml5.all.min.js',
         'libs/colorbrewer.js',
         'libs/owd-colorbrewer.js',
-        'libs/jquery.stickytabs.js'
+        'libs/jquery.stickytabs.js',
+        'libs/jquery.timeago.js'
     ], 'public/js/libs-admin.js' );
 
     browserify.init();

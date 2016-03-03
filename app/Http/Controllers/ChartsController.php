@@ -25,7 +25,7 @@ class ChartsController extends Controller {
 	 */
 	public function index()
 	{
-		$charts = Chart::all();
+		$charts = Chart::orderBy("updated_at", "desc")->get();
 		return view( 'charts.index', compact('charts') );
 	}
 
@@ -158,6 +158,8 @@ class ChartsController extends Controller {
 		$newData = new \stdClass();
 		$newData->config = $json;
 		$newData->name = $chartName;
+		$user = \Auth::user();
+		$chart->updated_by = $user->name;
 		$chart->fill( [ 'name' => $chartName, 'config' => $json ] );
 		$chart->save();
 

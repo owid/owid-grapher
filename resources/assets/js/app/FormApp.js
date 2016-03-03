@@ -45,7 +45,7 @@
 	
 	//chosen select
 	$( ".chosen-select" ).chosen();
-	
+	$(".timeago").timeago();	
 
 
 

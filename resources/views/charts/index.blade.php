@@ -11,9 +11,23 @@
 					There are no charts.
 				@else
 					<table class="table table-bordered table-hover dataTable">
+						<thead>
+							<tr>
+								<th>Name</th>
+								<th>Last Updated</th>
+								<th></th>
+								<th></th>
+							</tr>
+						</thead>
+						<tbody>
 						@foreach( $charts as $chart )
 							<tr>
 								<td><a href="{{ route('charts.show', $chart->id) }}">{{ $chart->name }}</a></td>
+									<td>
+										<time class="timeago" datetime="{{ $chart->updated_at->toIso8601String() }}">{{ $chart->updated_at }}</time>
+										@if ( $chart->updated_by )
+											by {{ $chart->updated_by }}
+										@endif
 								<td><a href="{{ route('charts.edit', $chart->id) }}" class="btn btn-primary">Edit</a></td>
 								<td>
 									{!! Form::open(array('class' => 'form-inline', 'method' => 'DELETE', 'route' => array('charts.destroy', $chart->id))) !!}
@@ -21,6 +35,7 @@
 									{!! Form::close() !!}
 							</tr>
 						@endforeach
+						</tbody>
 					</table>
 				@endif
 		</div>
