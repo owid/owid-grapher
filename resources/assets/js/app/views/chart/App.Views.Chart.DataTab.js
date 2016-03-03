@@ -26,14 +26,13 @@
 			this.parentView.chartTab.activate();
 		},
 
-
 		render: function( data, localData, dimensions ) {
 			this.$dataTableWrapper.empty();
 
 			//update link
 			var that = this,
 				chartType = App.ChartModel.get( "chart-type" ),
-				hasMultipleColumns = ( App.ChartModel.get( "group-by-variables" ) && chartType !== "3" )? true: false;/*,
+				hasMultipleColumns = ( App.ChartModel.get( "group-by-variables" ) && chartType != App.ChartType.StackedArea )? true: false;/*,
 				baseUrl = this.$downloadBtn.attr( "data-base-url" ),
 				dimensionsUrl = encodeURIComponent( dimensionsString );*/
 			//this.$downloadBtn.attr( "href", baseUrl + "?dimensions=" + dimensionsUrl + "&chartType=" + chartType + "&export=csv" );
@@ -101,12 +100,11 @@
 			var tableString = "<table class='data-table'>",
 				tr = "<tr><td><strong> </strong></td>";
 			_.each( times, function( time ) {
-
 				//create column for every dimension
-				_.each( dimensions, function( dimension, i ) {
+				_.each( dimensions, function( dimension, i ) {					
 					if( i === 0 || hasMultipleColumns ) {
 						var th = "<th>";
-						th += time;
+						th += time[dimension.property];
 						if( dimensions.length > 1 && hasMultipleColumns ) {
 							//we have more than one dimension, need to distinguish them in 
 							th += " - " + dimension.variableName;
