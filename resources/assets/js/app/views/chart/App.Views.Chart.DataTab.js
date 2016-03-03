@@ -104,7 +104,10 @@
 				_.each( dimensions, function( dimension, i ) {					
 					if( i === 0 || hasMultipleColumns ) {
 						var th = "<th>";
-						th += time[dimension.property];
+						if (time.hasOwnProperty(dimension.property))
+							th += time[dimension.property];
+						else
+							th += time;
 						if( dimensions.length > 1 && hasMultipleColumns ) {
 							//we have more than one dimension, need to distinguish them in 
 							th += " - " + dimension.variableName;
