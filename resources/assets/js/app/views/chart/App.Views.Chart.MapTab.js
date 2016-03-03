@@ -198,7 +198,6 @@
 			this.minYear = _.min(mapData, function(d, i) { return d.year; }).year;
 			this.maxYear = _.max(mapData, function(d, i) { return d.year; }).year;
 
-			debugger;
 			return mapData;
 		},
 

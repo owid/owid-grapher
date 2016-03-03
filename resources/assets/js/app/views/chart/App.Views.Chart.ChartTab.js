@@ -116,9 +116,6 @@
 				window.location.reload();
 			} );
 
-			//chart tab
-			this.$chartTab = this.$el.find( "#chart-chart-tab" );
-
 			var dimensionsString = App.ChartModel.get( "chart-dimensions" ),
 				validDimensions = false;
 
@@ -278,7 +275,6 @@
 
 			//setting up nvd3 chart
 			nv.addGraph(function() {
-
 				var chartOptions = {
 					transitionDuration: 0,
 					margin: { top:0, left:50, right:30, bottom:0 },// App.ChartModel.get( "margins" ),
@@ -609,6 +605,7 @@
 					that.cacheColors( localData );
 				}
 
+				console.log("addGraph!");
 				that.trigger("tab-ready");
 			});
 
@@ -741,6 +738,7 @@
 		},
 
 		onResize: function() {
+			console.log("onResize");
 			if( this.legend ) {
 				this.svgSelection.call( this.legend );
 			}

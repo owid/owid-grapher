@@ -53,7 +53,6 @@
 			//setup events
 			this.dataModel.on( "sync", this.onDataModelSync, this );
 			this.dataModel.on( "error", this.onDataModelError, this );
-			App.ChartModel.on( "change", this.onChartModelChange, this );
 
 			this.dispatcher.on( "dimension-export-update", this.onDimensionExportUpdate, this );
 			this.dispatcher.on( "dimension-export", this.onDimensionExport, this );
@@ -61,12 +60,14 @@
 
 			$("[data-toggle='tab']").on("shown.bs.tab", function(evt) {
 				_.each(that.tabs, function(tab) { 
-					if ($(evt.target).attr('href') === "#"+tab.$tab.attr('id')) {
+					if ($(evt.target).attr('href') === "#"+tab.$tab.attr('id')) {						
+						if (that.activeTab)
+							that.activeTab.off("tab-ready");
 						that.activeTab = tab;
-						that.activeTab.once("tab-ready", function() { 
+						tab.on("tab-ready", function() { 
 							that.header.render();
 							that.onResize(); 
-						});
+						});			
 						tab.activate();
 					}
 				});
