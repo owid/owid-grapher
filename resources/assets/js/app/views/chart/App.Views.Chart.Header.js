@@ -19,9 +19,9 @@
 			this.$chartSubname = this.$el.find( ".chart-subname" );
 
 			this.$logo = this.$el.find( ".logo" );
-			this.$logoSvg = $( ".chart-logo-svg" );
-			this.$logoSvgImage = this.$logoSvg.find( ".chart-logo-svg-image" );
-			this.$logoSvgVector = this.$logoSvg.find( ".chart-logo-svg-vector" );
+			this.$logoSvg = d3.select( ".chart-logo-svg" );
+			this.$logoSvgImage = this.$logoSvg.select( ".chart-logo-svg-image" );
+			this.$logoSvgVector = this.$logoSvg.select( ".chart-logo-svg-vector" );
 
 			this.$tabs = this.$el.find( ".header-tab" );
 
