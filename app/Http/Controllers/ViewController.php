@@ -6,6 +6,7 @@ use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
+use Debugbar;
 
 class ViewController extends Controller {
 
@@ -48,6 +49,18 @@ class ViewController extends Controller {
 	public function show($id)
 	{	
 		$chart = Chart::find( $id );
+
+		$referer_s = \Request::header('referer'); 
+		if ($referer_s) {
+			$root = parse_url(\Request::root());
+			$referer = parse_url($referer_s);
+			if ($root['host'] == $referer['host']) {
+				$chart->last_referer_url = $referer_s;
+				$chart->save();
+			}
+		}
+
+		Debugbar::info(\Request::header('referer'));
 		if( $chart ) {
 			$data = new \StdClass;
 			$logoUrl = Setting::where( 'meta_name', 'logoUrl' )->first();
@@ -56,7 +69,6 @@ class ViewController extends Controller {
 		} else {
 			return 'No chart found to view';
 		}
-		
 	}
 
 	/**

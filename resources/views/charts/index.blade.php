@@ -14,6 +14,7 @@
 						<thead>
 							<tr>
 								<th>Name</th>
+								<th>Seen On</th>
 								<th>Last Updated</th>
 								<th></th>
 								<th></th>
@@ -23,11 +24,17 @@
 						@foreach( $charts as $chart )
 							<tr>
 								<td><a href="{{ route('charts.show', $chart->id) }}">{{ $chart->name }}</a></td>
-									<td>
-										<time class="timeago" datetime="{{ $chart->last_edited_at->toIso8601String() }}">{{ $chart->last_edited_at }}</time>
-										@if ( $chart->last_edited_by )
-											by {{ $chart->last_edited_by }}
-										@endif
+								<td>
+									@if ( $chart->last_referer_url )
+										<a href="{{ $chart->last_referer_url }}">{{ $chart->last_referer_url }}</a>									
+									@endif
+								</td>
+								<td>
+									<time class="timeago" datetime="{{ $chart->last_edited_at->toIso8601String() }}">{{ $chart->last_edited_at }}</time>
+									@if ( $chart->last_edited_by )
+										by {{ $chart->last_edited_by }}
+									@endif
+								</td>
 								<td><a href="{{ route('charts.edit', $chart->id) }}" class="btn btn-primary">Edit</a></td>
 								<td>
 									{!! Form::open(array('class' => 'form-inline', 'method' => 'DELETE', 'route' => array('charts.destroy', $chart->id))) !!}
