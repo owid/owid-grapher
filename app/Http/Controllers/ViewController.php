@@ -54,13 +54,12 @@ class ViewController extends Controller {
 		if ($referer_s) {
 			$root = parse_url(\Request::root());
 			$referer = parse_url($referer_s);
-			if ($root['host'] == $referer['host']) {
+			if ($root['host'] == $referer['host'] && !str_contains($referer_s, "wp-admin") && !str_contains($referer_s, "preview=true")) {
 				$chart->last_referer_url = $referer_s;
 				$chart->save();
 			}
 		}
 
-		Debugbar::info(\Request::header('referer'));
 		if( $chart ) {
 			$data = new \StdClass;
 			$logoUrl = Setting::where( 'meta_name', 'logoUrl' )->first();
