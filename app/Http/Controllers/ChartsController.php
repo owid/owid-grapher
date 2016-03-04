@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 
 use Cache;
 use Carbon\Carbon;
+use Debugbar;
 
 class ChartsController extends Controller {
 
@@ -65,10 +66,13 @@ class ChartsController extends Controller {
 			//todo validation
 			
 			$chartName = $data[ "chart-name" ];
+			$notes = $data["chart-notes"];
+			unset($data["chart-notes"]);
 			$json = json_encode( $data );
 			
 			$user = \Auth::user();
-			$chart = Chart::create( [ 'config' => $json, 'name' => $chartName, 'last_edited_at' => Carbon::now(), 'last_edited_by' => $user->name ] );
+			$chart = Chart::create( [ 'config' => $json, 
+				'name' => $chartName, 'last_edited_at' => Carbon::now(), 'last_edited_by' => $user->name, 'notes' => $notes ] );
 
 			Cache::flush();
 
@@ -87,10 +91,9 @@ class ChartsController extends Controller {
 	public function show( Chart $chart, Request $request )
 	{
 		if( $request->ajax() ) {
-
-			$config = $chart->config;
-			$decodedConfig = json_decode( $config );
-			return response()->json( $decodedConfig );
+			$config = json_decode($chart->config);
+			$config->{"chart-notes"} = $chart->notes;
+			return response()->json( $config );
 		} else {
 			$data = new \StdClass;
 			$data->variables = Variable::with('Dataset')->get();
@@ -156,6 +159,9 @@ class ChartsController extends Controller {
 	{	
 		$data = Input::all();
 		$chartName = $data[ "chart-name" ];
+		$notes = $data["chart-notes"];
+		unset($data["chart-notes"]);
+		$chart->notes = $notes;		
 		$json = json_encode( $data );
 		$newData = new \stdClass();
 		$newData->config = $json;
@@ -164,6 +170,7 @@ class ChartsController extends Controller {
 		$chart->last_edited_at = Carbon::now();
 		$chart->last_edited_by = $user->name;
 		$chart->fill( [ 'name' => $chartName, 'config' => $json ] );
+		
 		$chart->save();
 
 		Cache::flush();

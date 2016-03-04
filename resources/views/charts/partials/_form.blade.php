@@ -58,6 +58,14 @@
 							</select>
 						</div>
 					</section>
+					<section class="form-section">
+						<div class="form-section-header">
+							<h2><span class="form-section-digit">d</span>Any notes</h2>
+						</div>
+						<div class="form-section-content">
+							<textarea class="form-control input-lg .col-xs-12" placeholder="What are we using this chart for?" type="text" name="chart-notes" value=""></textarea>
+						</div>
+					</section>
 				</div>
 				<div id="data-tab" class="tab-pane">
 					<section class="form-section add-data-section">

@@ -14,7 +14,8 @@
 						<thead>
 							<tr>
 								<th>Name</th>
-								<th>Seen On</th>
+								<th>Notes</th>
+								<th>Last Seen On</th>
 								<th>Last Updated</th>
 								<th></th>
 								<th></th>
@@ -24,6 +25,7 @@
 						@foreach( $charts as $chart )
 							<tr>
 								<td><a href="{{ route('charts.show', $chart->id) }}">{{ $chart->name }}</a></td>
+								<td>{{ $chart->notes }}</td>
 								<td>
 									@if ( $chart->last_referer_url )
 										<a href="{{ $chart->last_referer_url }}">{{ $chart->last_referer_url }}</a>									
