@@ -5,7 +5,7 @@ use Illuminate\Database\Eloquent\Model;
 class Chart extends Model {
 
 	protected $guarded = ['id'];
-
+	protected $dates = ['created_at', 'updated_at', 'last_edited_at'];
 	/**
 	*	DATA PROCESSING FUNCTIONS
 	**/

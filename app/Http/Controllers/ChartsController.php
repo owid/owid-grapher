@@ -15,6 +15,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 use Cache;
+use Carbon\Carbon;
 
 class ChartsController extends Controller {
 
@@ -25,7 +26,7 @@ class ChartsController extends Controller {
 	 */
 	public function index()
 	{
-		$charts = Chart::orderBy("updated_at", "desc")->get();
+		$charts = Chart::orderBy("last_edited_at", "desc")->get();
 		return view( 'charts.index', compact('charts') );
 	}
 
@@ -66,8 +67,9 @@ class ChartsController extends Controller {
 			$chartName = $data[ "chart-name" ];
 			$json = json_encode( $data );
 			
-			$chart = Chart::create( [ 'config' => $json, 'name' => $chartName ] );
-			
+			$user = \Auth::user();
+			$chart = Chart::create( [ 'config' => $json, 'name' => $chartName, 'last_edited_at' => Carbon::now(), 'last_edited_by' => $user->name ] );
+
 			Cache::flush();
 
 			return ['success' => true, 'data' => [ 'id' => $chart->id, 'viewUrl' => route( 'view', $chart->id ) ] ];
@@ -159,7 +161,8 @@ class ChartsController extends Controller {
 		$newData->config = $json;
 		$newData->name = $chartName;
 		$user = \Auth::user();
-		$chart->updated_by = $user->name;
+		$chart->last_edited_at = Carbon::now();
+		$chart->last_edited_by = $user->name;
 		$chart->fill( [ 'name' => $chartName, 'config' => $json ] );
 		$chart->save();
 

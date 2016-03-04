@@ -24,9 +24,9 @@
 							<tr>
 								<td><a href="{{ route('charts.show', $chart->id) }}">{{ $chart->name }}</a></td>
 									<td>
-										<time class="timeago" datetime="{{ $chart->updated_at->toIso8601String() }}">{{ $chart->updated_at }}</time>
-										@if ( $chart->updated_by )
-											by {{ $chart->updated_by }}
+										<time class="timeago" datetime="{{ $chart->last_edited_at->toIso8601String() }}">{{ $chart->last_edited_at }}</time>
+										@if ( $chart->last_edited_by )
+											by {{ $chart->last_edited_by }}
 										@endif
 								<td><a href="{{ route('charts.edit', $chart->id) }}" class="btn btn-primary">Edit</a></td>
 								<td>
