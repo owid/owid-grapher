@@ -8,11 +8,12 @@
 
 		//urlRoot: Global.rootUrl + '/charts/',
 		//urlRoot: Global.rootUrl + '/data/config/',
-		url: function() {
+		url: function(id) {
+			id = id || this.id;
 			if( $("#form-view").length ) {
-				if( this.id ) {
+				if( id ) {
 					//editing existing
-					return Global.rootUrl + "/charts/" + this.id;
+					return Global.rootUrl + "/charts/" + id;
 				} else {
 					//saving new
 					return Global.rootUrl + "/charts";
@@ -22,7 +23,7 @@
 				var logo = Utils.getQueryVariable( "logo" ),
 					logoUrl = ( logo )? "?logo=" + logo: "";
 
-				return Global.rootUrl + "/data/config/" + this.id + logoUrl;
+				return Global.rootUrl + "/data/config/" + id + logoUrl;
 			}
 		},
 

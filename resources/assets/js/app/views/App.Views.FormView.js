@@ -25,6 +25,7 @@
 			"change input[name=chart-name]": "onNameChange",
 			"change textarea[name=chart-subname]": "onSubnameChange",
 			"click .remove-uploaded-file-btn": "onRemoveUploadedFile",
+			"click #save-new": "onSaveNew",
 			"submit form": "onFormSubmit",
 		},
 
@@ -152,8 +153,40 @@
 
 		},
 
+		onSaveNew: function(evt) {
+			$.ajaxSetup( {
+				headers: { 'X-CSRF-TOKEN': $('[name="_token"]').val() }
+			} );
+
+			evt.preventDefault();
+
+			//put all changes to chart model
+			var formConfig = {
+				"variables-collection": App.ChartVariablesCollection.toJSON(),
+				"entities-collection": App.AvailableEntitiesCollection.toJSON(),
+				"dimensions": App.ChartDimensionsModel.toJSON(),
+				"available-time": App.AvailableTimeModel.toJSON()
+			};
+
+			App.ChartModel.set( "form-config", formConfig, { silent: true } );			
+			var origId = App.ChartModel.get('id');
+			App.ChartModel.set("id", null, { silent: true });
+
+			// Need to open intermediary tab before AJAX to avoid popup blockers
+			var w = window.open("/", "_blank");
+			App.ChartModel.save({}, {
+				success: function ( model, response, options ) {
+					w.location = App.ChartModel.url(response.data.id) + "/edit";
+					App.ChartModel.set('id', origId);
+				},
+				error: function (model, xhr, options) {
+					console.error("Something went wrong while saving the model", xhr );
+					alert( "Oops, there was a problem saving your chart." );
+				}
+			});
+		},
+
 		onFormSubmit: function( evt ) {
-			
 			$.ajaxSetup( {
 				headers: { 'X-CSRF-TOKEN': $('[name="_token"]').val() }
 			} );
@@ -168,14 +201,18 @@
 				"available-time": App.AvailableTimeModel.toJSON()
 			};
 			App.ChartModel.set( "form-config", formConfig, { silent: true } );
+			var currentId = App.ChartModel.get("id");
 
 			var dispatcher = this.dispatcher;
 			App.ChartModel.save( {}, {
 				success: function ( model, response, options ) {
-					alert( "The chart saved successfully" );
-					dispatcher.trigger( "chart-saved", response.data.id, response.data.viewUrl );
-					//update id of an existing model
-					App.ChartModel.set( "id", response.data.id );
+					if (!currentId) {
+						// New chart saved, switch to edit mode
+						window.location = App.ChartModel.url(response.data.id) + '/edit';
+					} else {
+						alert( "The chart saved successfully" );
+						dispatcher.trigger( "chart-saved", response.data.id, response.data.viewUrl );						
+					}
 				},
 				error: function (model, xhr, options) {
 					console.error("Something went wrong while saving the model", xhr );

@@ -485,6 +485,9 @@
 			</div>
 			<section class="form-section form-section-submit">
 				<button type="submit" class="btn btn-lg btn-success btn-primary">{{ $submitLabel }}</button>
+				@if ($submitLabel == "Update chart")
+					<button id="save-new" class="btn btn-lg btn-primary">Save as new</button>
+				@endif
 			</section>
 		{!! Form::close() !!}
 	</div>
