@@ -22,8 +22,6 @@
 		el: "#form-view",
 		events: {
 			"click .form-collapse-btn": "onFormCollapse",
-			"change input[name=chart-name]": "onNameChange",
-			"change textarea[name=chart-subname]": "onSubnameChange",
 			"click .remove-uploaded-file-btn": "onRemoveUploadedFile",
 			"click #save-new": "onSaveNew",
 			"submit form": "onFormSubmit",
@@ -91,20 +89,6 @@
 			this.$removeUploadedFileBtn = this.$el.find( ".remove-uploaded-file-btn" );
 			this.$filePicker = this.$el.find( ".file-picker-wrapper [type=file]" );
 			$('.nav-tabs').stickyTabs();
-		},
-
-		onNameChange: function( evt ) {
-
-			var $input = $( evt.target );
-			App.ChartModel.set( "chart-name", $input.val() );
-
-		},
-
-		onSubnameChange: function( evt ) {
-
-			var $textarea = $( evt.target );
-			App.ChartModel.set( "chart-subname", $textarea.val() );
-
 		},
 
 		onCsvSelected: function( err, data ) {
