@@ -136,27 +136,18 @@
 				return;
 			}
 
-			// Calculate the minimum step between any two years we have to show
-			var step = (this.maxYear - this.minYear);
-			for (var i = 1; i < this.years.length; i++) {
-				step = Math.min(step, this.years[i] - this.years[i-1]);
-			}
-
 			var min = this.minYear,
 				max = this.maxYear,
-				numSteps = Math.floor( ( max - min ) / step ),
-				inputWidth = this.$sliderInput.width(),
-				stepSize = inputWidth / numSteps,
-				currStep = min,
+				rangeSize = max-min,
 				htmlString = "<ol class='timeline-ticks'>";	
 
-			for( i = 0; i <= numSteps; i++ ) {
-				var percent = i * stepSize + "%",
-					translate = "translate(-" + Math.floor( i * stepSize ) + "%, 0)",
-					tickString = "<li style='left:" + percent + ";-webkit-transform:" + translate + ";-ms-transform:" + translate + ";transform:" + translate + "'>" + currStep + "</li>";
+			_.each(this.years, function(year, i) {
+				var progress = (year-min) / rangeSize,
+					percent = progress*100,
+					translate = "translate(-" + percent + "%, 0)",
+					tickString = "<li style='left:" + percent + "%;-webkit-transform:" + translate + ";-ms-transform:" + translate + ";transform:" + translate + "'>" + year + "</li>";
 				htmlString += tickString;
-				currStep += step;
-			}
+			});
 
 			htmlString += "</ol>";
 			$input.after( $( htmlString ) );
