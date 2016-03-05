@@ -72,7 +72,7 @@
                 "properties": {
                     "name": "Antarctica"
                 },
-                "id": "Antarctica",
+                "id": "ATA",
                 "arcs": [
                     [
                         [36]
@@ -437,7 +437,7 @@
                 "properties": {
                     "name": "Ivory Coast"
                 },
-                "id": "Cote_d'Ivoire",
+                "id": "Cote_d_Ivoire",
                 "arcs": [
                     [184, 185, 186, 187, -73, 188]
                 ]
@@ -970,7 +970,7 @@
                 "properties": {
                     "name": "Jordan"
                 },
-                "id": "JOR",
+                "id": "Jordan",
                 "arcs": [
                     [-370, 380, -366, 381, 382, -372, 383]
                 ]
@@ -1726,7 +1726,7 @@
                 "properties": {
                     "name": "Syria"
                 },
-                "id": "Syria",
+                "id": "Syrian_Arab_Republic",
                 "arcs": [
                     [-381, -375, -415, 568, 569, -367]
                 ]
