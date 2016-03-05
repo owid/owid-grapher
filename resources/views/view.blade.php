@@ -9,7 +9,6 @@
 		<link rel="apple-touch-icon" href="apple-touch-icon.png">
 		<!-- Place favicon.ico in the root directory -->
 
-		<link href="{{ asset(elixir('css/libs/front.css')) }}" rel="stylesheet" type="text/css" />
 		<link href="{{ asset(elixir('css/front.css')) }}" rel="stylesheet" type="text/css" />
 		
 		@yield('styles')

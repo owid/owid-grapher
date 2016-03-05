@@ -1,5 +1,4 @@
 var elixir = require('laravel-elixir');
-var browserify = require('laravel-elixir-browserify');
 
 /*
  |--------------------------------------------------------------------------
@@ -13,26 +12,35 @@ var browserify = require('laravel-elixir-browserify');
  */
 
 elixir(function(mix) {
+    // These assets are referred to in lib css urls and must be in the right relative place
+    mix.copy('resources/assets/css/libs/font-awesome/fonts', 'public/build/fonts');
+    mix.copy('resources/assets/css/libs/chosen-sprite.png', 'public/build/css/');
+    mix.copy('resources/assets/css/libs/chosen-sprite@2x.png', 'public/build/css/');
+    mix.copy('resources/assets/js/data', 'public/build/js/data');
+    mix.copy('resources/assets/js/libs/modernizr-2.8.3.min.js', 'public/build/js/');
 
-    mix.styles( [
-        'libs/bootstrap.min.css',
-        'libs/font-awesome/css/font-awesome.min.css',
-        'libs/chosen.css',
-        'libs/nv.d3.css'
-    ], 'public/css/libs/front.css' );
-
-    /*mix.styles( [
-        'main.css',
-        'chart.css'
-    ], 'public/css/front.css' );*/
     
-    mix.sass( [
+    mix.sass([
         'range.scss',
         'main.scss',
         'chart.scss'
-    ], 'public/css/front.css', {errLogToConsole: true} );
-    
-    mix.styles( [
+    ], 'resources/tmp/front-sass.css').styles([
+        'libs/bootstrap.min.css',
+        'libs/font-awesome/css/font-awesome.min.css',
+        'libs/chosen.css',
+        'libs/nv.d3.css',
+        '../../tmp/front-sass.css'
+    ], 'public/css/front.css');
+
+    mix.sass([
+        'admin/admin.scss',
+        'admin/data.scss',
+        'admin/import.scss',
+        'admin/charts.scss',
+        'range.scss',
+        'chart.scss',
+        'main.scss'
+    ], 'resources/tmp/admin-sass.css').styles([
         'libs/bootstrap.min.css',
         'libs/font-awesome/css/font-awesome.min.css',
         'libs/AdminLTE.min.css',
@@ -43,27 +51,8 @@ elixir(function(mix) {
         'libs/bootstrap3-wysihtml5.min.css',
         'libs/chosen.css',
         'libs/nv.d3.css',
-    ], 'public/css/libs/admin.css' );
-
-    /*mix.styles( [
-        'admin/admin.css',
-        'admin/data.css',
-        'admin/import.css',
-        'admin/charts.css',
-        'chart.css',
-        'main.css'
-    ], 'public/css/admin.css' );*/
-
-    mix.sass([
-        'admin/admin.scss',
-        'admin/data.scss',
-        'admin/import.scss',
-        'admin/charts.scss',
-        'range.scss',
-        'chart.scss',
-        'main.scss'
-    ], 'public/css/admin.css', {errLogToConsole: true} );
-
+        '../../tmp/admin-sass.css',
+    ], 'public/css/admin.css');
     /** 
     *   SCRIPTS
     **/
@@ -109,13 +98,21 @@ elixir(function(mix) {
         'libs/jquery.timeago.js'
     ], 'public/js/libs-admin.js' );
 
-    browserify.init();
-    
     mix.browserify('app/ChartApp.js');
     mix.browserify('app/FormApp.js');
     mix.browserify('app/ImportApp.js');
 
-    mix.version( [
+    mix.version([
+        'css/front.css',
+        'css/admin.css',
+        'js/ChartApp.js',
+        'js/FormApp.js',
+        'js/ImportApp.js',
+        'js/libs.js',
+        'js/libs-admin.js'
+    ]);
+
+/*    mix.version( [
         'css/libs/front.css',
         'css/front.css',
         'css/libs/admin.css',
@@ -125,8 +122,5 @@ elixir(function(mix) {
         'js/ImportApp.js',
         'js/libs.js',
         'js/libs-admin.js'
-    ]);
-
-    //mix.copy( 'resources/assets/css/libs/font-awesome/fonts/*', 'public/build/css/fonts/font-awesome/' );
-
+    ]);*/
 });
