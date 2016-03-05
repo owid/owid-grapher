@@ -14,6 +14,7 @@ var elixir = require('laravel-elixir');
 elixir(function(mix) {
     // These assets are referred to in lib css urls and must be in the right relative place
     mix.copy('resources/assets/css/libs/font-awesome/fonts', 'public/build/fonts');
+    mix.copy('/vendor/zofe/rapyd/public/assets/lib/bootstrap/dist/fonts', 'public/build/fonts');
     mix.copy('resources/assets/css/libs/chosen-sprite.png', 'public/build/css/');
     mix.copy('resources/assets/css/libs/chosen-sprite@2x.png', 'public/build/css/');
     mix.copy('resources/assets/js/data', 'public/build/js/data');
