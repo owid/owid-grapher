@@ -3,7 +3,7 @@
 	"use strict";
 
 	var App = require( "./../namespaces.js" );
-	
+
 	App.Models.ChartDataModel = Backbone.Model.extend( {
 
 		defaults: {},

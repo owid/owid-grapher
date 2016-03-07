@@ -24,6 +24,7 @@
 		initialize: function( options ) {
 			this.dispatcher = options.dispatcher;
 			this.parentView = options.parentView;
+			this.vardataModel = options.vardataModel;
 			this.mapControls = new MapControls( { dispatcher: options.dispatcher } );
 			this.timelineControls = new TimelineControls( { dispatcher: options.dispatcher } );
 			this.$tab = this.$el.find("#map-chart-tab");
@@ -55,26 +56,16 @@
 		update: function() {
 			this.mapConfig = App.ChartModel.get("map-config");
 
-			// Preload the variable data for all years and all countries
-			if (!this.variableData || this.variableData.id != this.mapConfig.variableId) {
-				this.variableData = null;
-				this.dataRequest = $.getJSON(Global.rootUrl + "/data/variables/" + this.mapConfig.variableId);
-			}
 
 			// We need to wait for both datamaps to finish its setup and the variable data
 			// to come in before the map can be fully rendered
 			var self = this;
 			$(".chart-preloader").show();
 			function onMapReady() {
-				if (self.variableData) {
-					self.receiveData(self.variableData);
+				self.vardataModel.ready(function(variableData) {
+					self.receiveData(variableData);
 					$(".chart-preloader").hide();					
-				} else {
-					self.dataRequest.done(function(data) {
-						self.receiveData(data);
-						$(".chart-preloader").hide();
-					});
-				}
+				});
 			}
 
 			if (!this.dataMap)
@@ -85,10 +76,12 @@
 
 		// Optimized method for updating the target year with the slider
 		updateYearOnly: _.throttle(function() {
-			this.mapData = this.transformData(this.variableData);
-			this.applyColors(this.mapData, this.colorScale);
-			this.dataMap.updateChoropleth(this.mapData, { reset: true });
-			this.parentView.header.render();
+			this.vardataModel.ready(function(variableData) {
+				this.mapData = this.transformData(variableData);
+				this.applyColors(this.mapData, this.colorScale);
+				this.dataMap.updateChoropleth(this.mapData, { reset: true });
+				this.parentView.header.render();
+			}.bind(this));
 		}, 100),
 
 		initializeMap: function(onMapReady) {
@@ -171,8 +164,7 @@
 		 * @return {Object} mapData - of the form { 'Country': { value: 120.11, year: 2006 }, ...}
 		 */
 		transformData: function(variableData) {
-			window.variableData = variableData;
-			var firstVariable = variableData.variables[Object.keys(variableData.variables)[0]],
+			var firstVariable = variableData.variables[this.mapConfig.variableId],
 				years = firstVariable.years,
 				values = firstVariable.values,
 				entities = firstVariable.entities,
@@ -206,6 +198,7 @@
 			this.maxValue = _.max(mapData, function(d, i) { return d.value; }).value;
 			this.minYear = _.min(mapData, function(d, i) { return d.year; }).year;
 			this.maxYear = _.max(mapData, function(d, i) { return d.year; }).year;
+			this.variableName = firstVariable.name;
 
 			return mapData;
 		},
@@ -217,7 +210,6 @@
 		},
 
 		receiveData: function(variableData) {
-			this.variableData = variableData;
 			this.mapData = this.transformData(variableData);
 			this.colorScale = this.makeColorScale();
 			this.applyColors(this.mapData, this.colorScale);
@@ -318,7 +310,7 @@
 				d3.select(".datamap").append("g").attr("class", "legend-wrapper map-legend-wrapper");
 			}
 
-			var legendData = { scheme: colorScale.range(), description: mapConfig.legendDescription || this.variableData.name };
+			var legendData = { scheme: colorScale.range(), description: mapConfig.legendDescription || this.variableName };
 			d3.select(".legend-wrapper").datum(legendData).call(legend);
 			return legend;
 		},

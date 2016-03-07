@@ -14,6 +14,44 @@
 		Utils = require( "./../App.Utils.js" ),
 		ExportPopup = require( "./ui/App.Views.UI.ExportPopup.js" );
 
+
+	App.Models.ChartVardataModel = Backbone.Model.extend( {
+		defaults: {},
+
+		update: function() 	{		
+			if (this.dataRequest) {
+				this.dataRequest.abort();
+				this.dataRequest = null;
+			}
+
+			var dims = JSON.parse(App.ChartModel.get("chart-dimensions"));
+			var varIds = _.map(dims, function(dim) { return dim.variableId; });
+			this.set("variableData", null, { silent: true });
+			this.dataRequest = $.getJSON(Global.rootUrl + "/data/variables/" + varIds.join("+"));
+			this.dataRequest.done(function(data) {
+				this.dataRequest = null;
+				this.set("variableData", data);
+			}.bind(this));
+		},
+
+		ready: function(callback) {
+			var variableData = this.get("variableData");
+			if (!variableData) {
+				this.on("change:variableData", function() {
+					callback(this.get("variableData"));
+				}.bind(this));
+			} else {
+				callback(variableData);
+			}
+		},
+
+		initialize: function () {
+			App.ChartModel.on("change:chart-dimensions", this.update, this);
+			this.update();
+		},
+	});
+
+
 	App.Views.ChartView = Backbone.View.extend({
 
 		activeTab: false,
@@ -31,8 +69,9 @@
 			// TODO - consider switching to a more client-side data processing system
 			// for all the tabs, like the map uses
 			this.dataModel = new ChartDataModel();
-			
-			var childViewOptions = { dispatcher: this.dispatcher, parentView: this, dataModel: this.dataModel };
+			this.vardataModel = new App.Models.ChartVardataModel();
+
+			var childViewOptions = { dispatcher: this.dispatcher, parentView: this, dataModel: this.dataModel, vardataModel: this.vardataModel };
 			this.header = new Header(childViewOptions);
 			this.footer = new Footer(childViewOptions);
 			this.scaleSelectors = new ScaleSelectors(childViewOptions);
