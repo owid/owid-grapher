@@ -28,32 +28,42 @@ class DataController extends Controller {
 		return "Controller for data";
 	}
 
-	public function variable($var_id, Request $request) {
-		$response = [];
+	public function variables($var_ids_str, Request $request) {
+		$var_ids = array_map("floatval", explode("+", $var_ids_str));
 
-		$var_name = DB::table('variables')->select('name')->where('id', $var_id)->get()[0]->name;
-
-		$variableQuery = DB::table('data_values')
-			->select('data_values.value', 'data_values.fk_ent_id', 'times.label', 'entities.name as entity_name')
-			->join('variables', 'data_values.fk_var_id', '=', 'variables.id')
+		$variableQuery = DB::table('variables')
+			->whereIn('variables.id', $var_ids)
+			->select('data_values.value as value', 'times.label as year',
+					 'variables.id as var_id', 'variables.name as var_name', 
+					 'entities.id as entity_id', 'entities.name as entity_name')
+			->join('data_values', 'data_values.fk_var_id', '=', 'variables.id')
 			->join('entities', 'data_values.fk_ent_id', '=', 'entities.id')
 			->join('times', 'data_values.fk_time_id', '=', 'times.id')
-			->where('data_values.fk_var_id', $var_id)
 			->orderBy('times.date');
 
-		$response['id'] = $var_id;
-		$response['name'] = $var_name;
+
+		$response = [];
 		$response['entityKey'] = [];
-		$response['entities'] = [];
-		$response['values'] = [];
-		$response['years'] = [];
+		$response['variables'] = [];
 
 		foreach ($variableQuery->get() as $result) {
-			$response['entityKey'][floatval($result->fk_ent_id)] = $result->entity_name;
-			$response['entities'][] = floatval($result->fk_ent_id);
-			$response['values'][] = floatval($result->value);
-			$response['years'][] = floatval($result->label);
+			if (!array_key_exists($result->var_id, $response['variables'])) {
+				$var = [];
+				$var['id'] = $result->var_id;
+				$var['name'] = $result->var_name;
+				$var['entities'] = [];
+				$var['years'] = [];
+				$var['values'] = [];
+				$response['variables'][$result->var_id] = $var;
+			}
+
+			$var = &$response['variables'][$result->var_id];
+			$response['entityKey'][floatval($result->entity_id)] = $result->entity_name;
+			$var['entities'][] = floatval($result->entity_id);
+			$var['values'][] = floatval($result->value);
+			$var['years'][] = floatval($result->year);
 		}
+
 		return $response;
 	}
 

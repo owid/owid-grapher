@@ -58,7 +58,7 @@
 			// Preload the variable data for all years and all countries
 			if (!this.variableData || this.variableData.id != this.mapConfig.variableId) {
 				this.variableData = null;
-				this.dataRequest = $.getJSON(Global.rootUrl + "/data/variable/" + this.mapConfig.variableId);
+				this.dataRequest = $.getJSON(Global.rootUrl + "/data/variables/" + this.mapConfig.variableId);
 			}
 
 			// We need to wait for both datamaps to finish its setup and the variable data
@@ -171,9 +171,11 @@
 		 * @return {Object} mapData - of the form { 'Country': { value: 120.11, year: 2006 }, ...}
 		 */
 		transformData: function(variableData) {
-			var years = variableData.years,
-				values = variableData.values,
-				entities = variableData.entities,
+			window.variableData = variableData;
+			var firstVariable = variableData.variables[Object.keys(variableData.variables)[0]],
+				years = firstVariable.years,
+				values = firstVariable.values,
+				entities = firstVariable.entities,
 				entityKey = variableData.entityKey,
 				targetYear = parseInt(this.mapConfig.targetYear),
 				tolerance = parseInt(this.mapConfig.timeTolerance) || 1,

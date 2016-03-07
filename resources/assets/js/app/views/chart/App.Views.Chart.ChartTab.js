@@ -499,6 +499,8 @@
 					that.chart.yAxis.ticks( 7 );
 				}
 
+				window.localData = localData;
+
 				that.svgSelection = d3.select( that.$svg.selector )
 					.datum( localData )
 					.call( that.chart );
