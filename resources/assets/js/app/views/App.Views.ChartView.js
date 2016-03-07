@@ -78,10 +78,7 @@
 			this.scaleSelectors = new ScaleSelectors(childViewOptions);
 			//tabs
 			var chartType = App.ChartModel.get("chart-type");
-			if (chartType == App.ChartType.LineChart)
-				this.chartTab = new LineChartTab(childViewOptions);
-			else
-				this.chartTab = new ChartTab(childViewOptions);
+			this.chartTab = new ChartTab(childViewOptions);
 			this.dataTab = new DataTab(childViewOptions);
 			this.sourcesTab = new SourcesTab(childViewOptions);
 			this.mapTab = new MapTab(childViewOptions);

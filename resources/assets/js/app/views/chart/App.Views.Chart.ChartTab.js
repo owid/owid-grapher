@@ -20,22 +20,16 @@
 			this.$tab = this.$el.find("#chart-chart-tab");
 			this.$svg = this.$el.find( "#chart-chart-tab svg" );
 			this.$entitiesSelect = this.$el.find( "[name=available_entities]" );
-			this.isActive = false
 
 			App.ChartModel.on("change", this.onChartModelChange, this);
 		},
 
-		onDataModelSync: function(model, response) {
-			if (response.data) {
-				this.render(response.data, response.timeType, response.dimensions);
-			}
-		},
-
 		onChartModelChange: function() {
-			// TODO - this is a hack to keep old behavior working, the chart should not
-			// need to refetch everything when it is updated
-			this.isAwake = false;
-			this.activate();
+			if (!this.isAwake) return;
+
+			this.vardataModel.ready(function(variableData) {
+				this.render(variableData);
+			}.bind(this));
 		},
 
 		activate: function() {
@@ -136,19 +130,81 @@
 				return false;
 			}
 
-			if( dimensionsString ) {
-				var dataProps = { "dimensions": dimensionsString, "chartId": App.ChartModel.get( "id" ), "chartType": App.ChartModel.get( "chart-type" ), "selectedCountries": selectedCountriesIds, "chartTime": chartTime, "cache": App.ChartModel.get( "cache" ), "groupByVariables": App.ChartModel.get( "group-by-variables" )  };
-
-				this.dataModel.fetch( { data: dataProps } );
-			} else {
-				//clear any previous chart
-				$( "svg" ).empty();
-			}	
+			this.vardataModel.ready(function(variableData) {
+				this.render(variableData);
+			}.bind(this));
 		},
-		render: function( data, timeType, dimensions ) {
+
+		getSelectedCountriesById: function() {
+			var selectedCountries = App.ChartModel.get("selected-countries"),
+				chartType = App.ChartModel.get("chart-type"),
+				selectedCountriesById = {};
+
+			if (_.isEmpty(selectedCountries)) {
+				var countries = _.map(localData, function(d) { return { id: d.id.toString().split('-')[0], name: d.entity }; });
+				var countrySet = _.uniq(countries, function(c) { return c.id; });
+				var random = _.sample(countrySet, 3);
+				selectedCountries = [];
+				selectedCountries.push.apply(selectedCountries, random);
+				App.ChartModel.set("selected-countries", selectedCountries);
+			}
+
+			_.each(selectedCountries, function(entity) {
+				selectedCountriesById[entity.id] = entity;
+			});
+
+			return selectedCountriesById;
+		},
+
+		transformData: function(variableData) {
+			var variables = variableData.variables,
+				entityKey = variableData.entityKey,
+				selectedCountriesById = this.getSelectedCountriesById(),
+				localData = [];
+
+			_.each(variables, function(variable) {
+				var seriesByEntity = {};
+
+				for (var i = 0; i < variable.years.length; i++) {
+					var year = variable.years[i],
+						value = variable.values[i],
+						entityId = variable.entities[i],
+						entity = selectedCountriesById[entityId],
+						series = seriesByEntity[entityId];
+
+					// Not a selected entity, don't add any data for it
+					if (!entity) continue;
+
+					if (!series) {
+						series = {
+							values: [],
+							key: entityKey[entityId],
+							id: entityId
+						};
+						seriesByEntity[entityId] = series;
+					}
+
+					series.values.push({ x: year, y: value });
+				}
+
+				_.each(seriesByEntity, function(v, k) {
+					localData.push(v);
+				});
+			});
+
+			return localData;
+		},
+
+
+		render: function(variableData) {
+			var data = this.transformData(variableData);
+			var timeType = "Year";
+
 			if( !data ) {
 				return;
 			}
+
+
 
 			var that = this;
 
@@ -582,7 +638,7 @@
 						that.parentView.onResize();
 					}, 1);
 				} );
-				that.parentView.dataTab.render( data, localData, dimensions );
+				//that.parentView.dataTab.render( data, localData, dimensions );
 
 				if( chartType == App.ChartType.ScatterPlot ) {
 					//need to have own showDist implementation, cause there's a bug in nvd3
