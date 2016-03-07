@@ -7,6 +7,7 @@
 		Footer = require( "./chart/App.Views.Chart.Footer.js" ),
 		ScaleSelectors = require( "./chart/App.Views.Chart.ScaleSelectors" ),
 		ChartTab = require( "./chart/App.Views.Chart.ChartTab.js" ),
+		LineChartTab = require("./chart/App.Views.Chart.LineChartTab.js"),
 		DataTab = require( "./chart/App.Views.Chart.DataTab.js" ),
 		SourcesTab = require( "./chart/App.Views.Chart.SourcesTab.js" ),
 		MapTab = require( "./chart/App.Views.Chart.MapTab.js" ),
@@ -76,7 +77,11 @@
 			this.footer = new Footer(childViewOptions);
 			this.scaleSelectors = new ScaleSelectors(childViewOptions);
 			//tabs
-			this.chartTab = new ChartTab(childViewOptions);
+			var chartType = App.ChartModel.get("chart-type");
+			if (chartType == App.ChartType.LineChart)
+				this.chartTab = new LineChartTab(childViewOptions);
+			else
+				this.chartTab = new ChartTab(childViewOptions);
 			this.dataTab = new DataTab(childViewOptions);
 			this.sourcesTab = new SourcesTab(childViewOptions);
 			this.mapTab = new MapTab(childViewOptions);

@@ -16,12 +16,12 @@
 			this.dispatcher = options.dispatcher;
 			this.parentView = options.parentView;
 			this.dataModel = options.dataModel;
+			this.vardataModel = options.vardataModel;
 			this.$tab = this.$el.find("#chart-chart-tab");
 			this.$svg = this.$el.find( "#chart-chart-tab svg" );
 			this.$entitiesSelect = this.$el.find( "[name=available_entities]" );
-			this.isActive = false;
+			this.isActive = false
 
-			this.dataModel.on("sync", this.onDataModelSync, this);
 			App.ChartModel.on("change", this.onChartModelChange, this);
 		},
 
@@ -137,17 +137,14 @@
 			}
 
 			if( dimensionsString ) {
-				this.parentView.$preloader.show();
-
 				var dataProps = { "dimensions": dimensionsString, "chartId": App.ChartModel.get( "id" ), "chartType": App.ChartModel.get( "chart-type" ), "selectedCountries": selectedCountriesIds, "chartTime": chartTime, "cache": App.ChartModel.get( "cache" ), "groupByVariables": App.ChartModel.get( "group-by-variables" )  };
 
 				this.dataModel.fetch( { data: dataProps } );
 			} else {
 				//clear any previous chart
 				$( "svg" ).empty();
-			}		
+			}	
 		},
-
 		render: function( data, timeType, dimensions ) {
 			if( !data ) {
 				return;
