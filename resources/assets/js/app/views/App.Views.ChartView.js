@@ -25,10 +25,14 @@
 				this.dataRequest = null;
 			}
 
+			// Get the chart dimensions and map them by variable id
+			// So we can use the extra info for data transformation alter
 			var dims = JSON.parse(App.ChartModel.get("chart-dimensions"));
-			var varIds = _.map(dims, function(dim) { return dim.variableId; });
+			this.dimensions = {};
+			_.each(dims, function(dim) { this.dimensions[dim.variableId] = dim; }.bind(this));
+
 			this.set("variableData", null, { silent: true });
-			this.dataRequest = $.getJSON(Global.rootUrl + "/data/variables/" + varIds.join("+"));
+			this.dataRequest = $.getJSON(Global.rootUrl + "/data/variables/" + Object.keys(this.dimensions).join("+"));
 			this.dataRequest.done(function(data) {
 				this.dataRequest = null;
 				this.set("variableData", data);
@@ -44,6 +48,132 @@
 			} else {
 				callback(variableData);
 			}
+		},
+
+
+		getSelectedCountriesById: function() {
+			var variableData = this.get("variableData"),
+				selectedCountries = App.ChartModel.get("selected-countries"),
+				chartType = App.ChartModel.get("chart-type"),
+				selectedCountriesById = {};
+
+			if (chartType != App.ChartType.ScatterPlot && _.isEmpty(selectedCountries)) {
+				var random = _.sample(_.uniq(Object.keys(variableData.entityKey)), 3);
+				selectedCountries = [];
+				selectedCountries.push.apply(selectedCountries, random);
+				App.ChartModel.set("selected-countries", selectedCountries);
+			}
+
+			_.each(selectedCountries, function(entity) {
+				selectedCountriesById[entity.id] = entity;
+			});
+
+			return selectedCountriesById;
+		},
+
+		transformDataForLineChart: function() {
+			var variableData = this.get('variableData'),
+				variables = variableData.variables,
+				entityKey = variableData.entityKey,
+				selectedCountriesById = this.getSelectedCountriesById(),
+				localData = [];
+
+			_.each(variables, function(variable) {
+				var seriesByEntity = {};
+
+				for (var i = 0; i < variable.years.length; i++) {
+					var year = variable.years[i],
+						value = variable.values[i],
+						entityId = variable.entities[i],
+						entity = selectedCountriesById[entityId],
+						series = seriesByEntity[entityId];
+
+					// Not a selected entity, don't add any data for it
+					if (!entity) continue;
+
+					if (!series) {
+						series = {
+							values: [],
+							key: entityKey[entityId],
+							id: entityId
+						};
+						seriesByEntity[entityId] = series;
+					}
+
+					series.values.push({ x: year, y: value });
+				}
+
+				_.each(seriesByEntity, function(v, k) {
+					localData.push(v);
+				});
+			});
+
+			return localData;
+		},
+
+		transformDataForScatterplot: function() {
+			var variableData = this.get('variableData'),
+				variables = variableData.variables,
+				entityKey = variableData.entityKey,
+				selectedCountriesById = this.getSelectedCountriesById(),
+				dimensions = this.dimensions,
+				seriesByEntity = {},
+				localData = [];
+
+			_.each(variables, function(variable) {
+				for (var i = 0; i < variable.years.length; i++) {
+					var year = parseInt(variable.years[i]),
+						value = variable.values[i],
+						entityId = variable.entities[i],
+						entity = selectedCountriesById[entityId],
+						series = seriesByEntity[entityId],
+						dimension = dimensions[variable.id],
+						targetYear = parseInt(dimension.targetYear),
+						tolerance = parseInt(dimension.tolerance);
+
+					// Scatterplot defaults to showing all countries if none selected
+					if (!_.isEmpty(selectedCountriesById) && !entity) continue;
+
+					// Not within target year range, ignore
+					if (year != targetYear)//year < targetYear-tolerance || year > targetYear+tolerance)
+						continue;
+
+					if (!series) {
+						series = {
+							values: [{ time: {} }],
+							key: entityKey[entityId],
+							entity: entityKey[entityId],
+							id: entityId
+						};
+						seriesByEntity[entityId] = series;
+					}
+
+					var datum = series.values[0];
+					datum[dimension.property] = value;
+					datum.time[dimension.property] = year;
+				}
+			}.bind(this));
+
+			// Exclude any countries which lack data for one or more variables
+			_.each(seriesByEntity, function(series) {
+				var isComplete = _.every(dimensions, function(dim) {
+					return dim.property == "color" || series.values[0].hasOwnProperty(dim.property);
+				});
+
+				if (isComplete)
+					localData.push(series);
+			}.bind(this));
+
+			window.localData = localData;
+			return localData;
+		},
+
+		transformData: function() {
+			var chartType = App.ChartModel.get("chart-type");
+			if (chartType == App.ChartType.LineChart)
+				return this.transformDataForLineChart();
+			else
+				return this.transformDataForScatterplot();	
 		},
 
 		initialize: function () {
@@ -71,6 +201,7 @@
 			// for all the tabs, like the map uses
 			this.dataModel = new ChartDataModel();
 			this.vardataModel = new App.Models.ChartVardataModel();
+			window.vardataModel = this.vardataModel;
 
 			var childViewOptions = { dispatcher: this.dispatcher, parentView: this, dataModel: this.dataModel, vardataModel: this.vardataModel };
 			this.header = new Header(childViewOptions);

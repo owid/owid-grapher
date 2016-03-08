@@ -48,13 +48,13 @@ class DataController extends Controller {
 
 		foreach ($variableQuery->get() as $result) {
 			if (!array_key_exists($result->var_id, $response['variables'])) {
-				$var = [];
-				$var['id'] = $result->var_id;
-				$var['name'] = $result->var_name;
-				$var['entities'] = [];
-				$var['years'] = [];
-				$var['values'] = [];
-				$response['variables'][$result->var_id] = $var;
+				$nvar = [];
+				$nvar['id'] = $result->var_id;
+				$nvar['name'] = $result->var_name;
+				$nvar['entities'] = [];
+				$nvar['years'] = [];
+				$nvar['values'] = [];
+				$response['variables'][$result->var_id] = $nvar;
 			}
 
 			$var = &$response['variables'][$result->var_id];

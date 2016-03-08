@@ -27,9 +27,7 @@
 		onChartModelChange: function() {
 			if (!this.isAwake) return;
 
-			this.vardataModel.ready(function(variableData) {
-				this.render(variableData);
-			}.bind(this));
+			this.vardataModel.ready(this.render.bind(this));
 		},
 
 		activate: function() {
@@ -135,69 +133,8 @@
 			}.bind(this));
 		},
 
-		getSelectedCountriesById: function() {
-			var selectedCountries = App.ChartModel.get("selected-countries"),
-				chartType = App.ChartModel.get("chart-type"),
-				selectedCountriesById = {};
-
-			if (_.isEmpty(selectedCountries)) {
-				var countries = _.map(localData, function(d) { return { id: d.id.toString().split('-')[0], name: d.entity }; });
-				var countrySet = _.uniq(countries, function(c) { return c.id; });
-				var random = _.sample(countrySet, 3);
-				selectedCountries = [];
-				selectedCountries.push.apply(selectedCountries, random);
-				App.ChartModel.set("selected-countries", selectedCountries);
-			}
-
-			_.each(selectedCountries, function(entity) {
-				selectedCountriesById[entity.id] = entity;
-			});
-
-			return selectedCountriesById;
-		},
-
-		transformData: function(variableData) {
-			var variables = variableData.variables,
-				entityKey = variableData.entityKey,
-				selectedCountriesById = this.getSelectedCountriesById(),
-				localData = [];
-
-			_.each(variables, function(variable) {
-				var seriesByEntity = {};
-
-				for (var i = 0; i < variable.years.length; i++) {
-					var year = variable.years[i],
-						value = variable.values[i],
-						entityId = variable.entities[i],
-						entity = selectedCountriesById[entityId],
-						series = seriesByEntity[entityId];
-
-					// Not a selected entity, don't add any data for it
-					if (!entity) continue;
-
-					if (!series) {
-						series = {
-							values: [],
-							key: entityKey[entityId],
-							id: entityId
-						};
-						seriesByEntity[entityId] = series;
-					}
-
-					series.values.push({ x: year, y: value });
-				}
-
-				_.each(seriesByEntity, function(v, k) {
-					localData.push(v);
-				});
-			});
-
-			return localData;
-		},
-
-
-		render: function(variableData) {
-			var data = this.transformData(variableData);
+		render: function() {
+			var data = this.vardataModel.transformData();
 			var timeType = "Year";
 
 			if( !data ) {
@@ -660,7 +597,6 @@
 					that.cacheColors( localData );
 				}
 
-				console.log("addGraph!");
 				that.trigger("tab-ready");
 			});
 
@@ -793,7 +729,6 @@
 		},
 
 		onResize: function() {
-			console.log("onResize");
 			if( this.legend ) {
 				this.svgSelection.call( this.legend );
 			}

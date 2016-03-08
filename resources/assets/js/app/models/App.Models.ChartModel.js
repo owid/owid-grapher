@@ -199,10 +199,7 @@
 					this.trigger( evt );
 				}
 			}
-
 		}
-
-
 	} );
 
 	module.exports = App.Models.ChartModel;
