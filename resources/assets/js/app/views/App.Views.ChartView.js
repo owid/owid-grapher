@@ -111,7 +111,7 @@
 						};
 						seriesByEntity[entityId] = series;
 					}
-
+					
 					series.values.push({ x: year, y: value, time: year });
 				}
 
