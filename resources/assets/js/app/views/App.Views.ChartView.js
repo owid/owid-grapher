@@ -247,6 +247,73 @@
 			return localData;
 		},
 
+/*	public function createSourceDescription( $dimension, $datasource, $omitHeader = false ) {
+
+		$displayName = ( !empty($dimension->displayName) )? $dimension->displayName: $datasource->var_name;
+
+		$html = "";
+		$html .= "<div class='datasource-wrapper'>";
+			if( !$omitHeader ) {
+				$html .= ( !empty( $dimension ) && isset( $dimension->name ) )? "<h2>Data for " .$dimension->name. ": </h2>": "<h2>Data: </h2>";
+			}
+			$html .= "<div class='datasource-header'>";
+				$html .= "<h3><span class='datasource-property'>Dataset name:</span>" .$datasource->dataset_name. "</h3>";
+				$html .= "<h4><span class='datasource-property'>Variable name:</span>" .$datasource->var_name. "</h4>";
+			$html .= "</div>";
+			$html .= "<table>";
+				$html .= "<tr><td><span class='datasource-property'>Full name</span></td><td>" .$datasource->var_name. "</td></tr>";
+				$html .= "<tr><td><span class='datasource-property'>Display name</span></td><td>" .$displayName. "</td></tr>";
+				$html .= "<tr><td><span class='datasource-property'>Definition</span></td><td>" .$datasource->var_desc. "</td></tr>";
+				$html .= "<tr><td><span class='datasource-property'>Unit</span></td><td>" .$datasource->var_unit. "</td></tr>";
+				$t = strtotime( $datasource->var_created );
+				$date = date('d/m/y',$t);
+				$html .= "<tr><td><span class='datasource-property'>Uploaded</span></td><td>" .$date. "</td></tr>";
+			$html .= "</table>";
+			$html .= $datasource->description;
+		$html .= "</div>";
+		return $html;
+	}*/
+
+		getSourceDescHtml: function(variable) {
+			var source = variable.source,
+				dimension = this.dimensions[variable.id];
+
+			var displayName = _.isEmpty(dimension.displayName) ? variable.name : dimension.displayName;
+			var hideDimName = _.isEmpty(dimension.name) || _.size(this.get("variableData").variables) == 1;
+
+			var html = "<div class='datasource-wrapper'>";
+			html += (hideDimName ? "<h2>Data</h2>" : "<h2>Data for " + dimension.name + ": </h2>");
+			html += "<div class='datasource-header'>" +
+					    "<h3><span class='datasource-property'>Dataset name:</span>" + variable.dataset_name + "</h3>" +
+					    "<h4><span class='datasource-property'>Variable name:</span>" + variable.name + "</h4>" +
+					"</div>";
+			html += "<table>" +
+					    "<tr><td><span class='datasource-property'>Full name</span></td><td>" + variable.name + "</td></tr>" +
+					    "<tr><td><span class='datasource-property'>Display name</span></td><td>" + displayName + "</td></tr>" +
+					    "<tr><td><span class='datasource-property'>Definition</span></td><td>" + variable.description + "</td></tr>" +
+					    "<tr><td><span class='datasource-property'>Unit</span></td><td>" + variable.unit + "</td></tr>" +
+					    "<tr><td><span class='datasource-property'>Uploaded</span></td><td>" + variable.created_at + "</td></tr>" +
+					"</table>";
+			html += source.description;
+			html += "</div>"
+			return html;
+		},
+
+		transformDataForSources: function() {
+			var variableData = this.get("variableData");			
+			var orderedDims = JSON.parse(App.ChartModel.get("chart-dimensions"));
+			var variableIdsInOrder = _.uniq(_.map(orderedDims, function(dim) { return dim.variableId; }));
+
+			return _.map(variableIdsInOrder, function(id) {
+				var variable = variableData.variables[id],
+					dimension = this.dimensions[id],
+					source = _.extend({}, variable.source);
+
+				source.description = this.getSourceDescHtml(variable);
+				return source;
+			}.bind(this));
+		},
+
 		transformData: function() {
 			var chartType = App.ChartModel.get("chart-type");
 			if (chartType == App.ChartType.LineChart)

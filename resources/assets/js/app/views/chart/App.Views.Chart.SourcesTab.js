@@ -12,24 +12,25 @@
 		initialize: function( options ) {
 			this.parentView = options.parentView;
 			this.dispatcher = options.dispatcher;
+			this.vardataModel = options.vardataModel;
 
 			this.$chartDescription = this.$el.find( ".chart-description" );
 			this.$chartSources = this.$el.find( ".chart-sources" );
 			this.$tab = this.$el.find( "#sources-chart-tab" );
 
+			this.vardataModel.on("change:variableData", this.render.bind(this));			
 		},
 
 		activate: function() {
-			this.parentView.chartTab.activate();
+			this.vardataModel.ready(function() {
+				this.render();
+			}.bind(this));
 		},
 
-		render: function( response ) {
-			if( !response || !response.datasources ) {
-				return false;
-			}
-
-			var sources = response.datasources,
-				license = response.license,
+		render: function() {
+			var variableData = this.vardataModel.get("variableData"),
+				sources = this.vardataModel.transformDataForSources(),
+				license = variableData.license,
 				footerHtml = "",
 				tabHtml = "",
 				descriptionHtml = App.ChartModel.get( "chart-description" ),

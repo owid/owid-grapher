@@ -31,31 +31,54 @@ class DataController extends Controller {
 	public function variables($var_ids_str, Request $request) {
 		$var_ids = array_map("floatval", explode("+", $var_ids_str));
 
+		$response = [];
+		$response['variables'] = [];
+
+		// First we make a query to get the general variable info
+		// name, sources, etc. Mainly used by the sources tab
 		$variableQuery = DB::table('variables')
 			->whereIn('variables.id', $var_ids)
+			->join('datasets', 'variables.fk_dst_id', '=', 'datasets.id')
+			->join('datasources', 'variables.fk_dsr_id', '=', 'datasources.id')
+			->select('variables.id as var_id', 'variables.name as var_name',
+					 'variables.description as var_desc', 'variables.unit as var_unit',
+					 'variables.created_at',
+					 'datasources.name as source_name', 'datasources.description as source_desc',
+					 'datasources.link as source_link', 'datasets.name as dataset_name');
+
+		foreach ($variableQuery->get() as $result) {
+			$source = [];
+			$source['name'] = $result->source_name;
+			$source['description'] = $result->source_desc;
+			$source['link'] = $result->source_link;
+
+			$var = [];
+			$var['id'] = $result->var_id;
+			$var['name'] = $result->var_name;
+			$var['dataset_name'] = $result->dataset_name;
+			$var['created_at'] = $result->created_at;
+			$var['description'] = $result->var_desc;
+			$var['unit'] = $result->var_unit;
+			$var['source'] = $source;
+			$var['entities'] = [];
+			$var['years'] = [];
+			$var['values'] = [];
+			$response['variables'][$result->var_id] = $var;
+		}
+
+		// Now we pull out all the actual data
+		$dataQuery = DB::table('data_values')
+			->whereIn('data_values.fk_var_id', $var_ids)
 			->select('data_values.value as value', 'times.label as year',
-					 'variables.id as var_id', 'variables.name as var_name', 
+					 'data_values.fk_var_id as var_id', 
 					 'entities.id as entity_id', 'entities.name as entity_name')
-			->join('data_values', 'data_values.fk_var_id', '=', 'variables.id')
 			->join('entities', 'data_values.fk_ent_id', '=', 'entities.id')
 			->join('times', 'data_values.fk_time_id', '=', 'times.id')
 			->orderBy('times.date');
 
-		$response = [];
 		$response['entityKey'] = [];
-		$response['variables'] = [];
 
-		foreach ($variableQuery->get() as $result) {
-			if (!array_key_exists($result->var_id, $response['variables'])) {
-				$nvar = [];
-				$nvar['id'] = $result->var_id;
-				$nvar['name'] = $result->var_name;
-				$nvar['entities'] = [];
-				$nvar['years'] = [];
-				$nvar['values'] = [];
-				$response['variables'][$result->var_id] = $nvar;
-			}
-
+		foreach ($dataQuery->get() as $result) {
 			$var = &$response['variables'][$result->var_id];
 			$response['entityKey'][floatval($result->entity_id)] = $result->entity_name;
 			$var['entities'][] = floatval($result->entity_id);
@@ -63,6 +86,8 @@ class DataController extends Controller {
 			$var['years'][] = floatval($result->year);
 		}
 
+		// Add license info
+		$response['license'] = License::find(1)->first();
 		return $response;
 	}
 
@@ -474,24 +499,17 @@ class DataController extends Controller {
 		//get all the licence information
 		$license = License::find( 1 )->first();
 
-		if( $request->ajax() ) {
 
-			$result = [ 'success' => true, 'data' => $data, 'dimensions' => $dimensions, 'datasources' => $datasources, 'timeType' => $timeType, 'license' => $license ];
-			
-			//store into cache
-			if( !empty( $key ) ) {
-				$minutes = 60*24;
-				Cache::put( $key, $result, $minutes );
-			}
-			
-			return $result;
-
-		} else {
-
-			//not ajax request, just spit out whatever is in data
-			return $data;
-
+		$result = [ 'success' => true, 'data' => $data, 'dimensions' => $dimensions, 'datasources' => $datasources, 'timeType' => $timeType, 'license' => $license ];
+		
+		//store into cache
+		if( !empty( $key ) ) {
+			$minutes = 60*24;
+			Cache::put( $key, $result, $minutes );
 		}
+		
+		return $result;
+
 
 	}
 
