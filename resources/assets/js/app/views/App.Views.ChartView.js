@@ -60,7 +60,12 @@
 			if (chartType != App.ChartType.ScatterPlot && _.isEmpty(selectedCountries)) {
 				var random = _.sample(_.uniq(Object.keys(variableData.entityKey)), 3);
 				selectedCountries = [];
-				selectedCountries.push.apply(selectedCountries, random);
+				_.each(random, function(entityId) {
+					selectedCountries.push({
+						id: entityId,
+						name: variableData.entityKey[entityId]
+					});
+				});
 				App.ChartModel.set("selected-countries", selectedCountries);
 			}
 
@@ -76,10 +81,12 @@
 				variables = variableData.variables,
 				entityKey = variableData.entityKey,
 				selectedCountriesById = this.getSelectedCountriesById(),
+				dimensions = this.dimensions,
 				localData = [];
 
 			_.each(variables, function(variable) {
-				var seriesByEntity = {};
+				var dimension = dimensions[variable.id],
+					seriesByEntity = {};
 
 				for (var i = 0; i < variable.years.length; i++) {
 					var year = parseInt(variable.years[i]),
@@ -92,9 +99,14 @@
 					if (!entity) continue;
 
 					if (!series) {
+						var key = entityKey[entityId];
+						// If there are multiple variables per entity, we disambiguate the legend
+						if (_.size(variables) > 1)
+							key += " - " + variable.name;
+
 						series = {
 							values: [],
-							key: entityKey[entityId],
+							key: key,
 							id: entityId
 						};
 						seriesByEntity[entityId] = series;
@@ -125,7 +137,7 @@
 
 				var series = {
 					id: variable.id,
-					key: dimension.displayName,
+					key: dimension.displayName || variable.name,
 					entity: selectedCountry.name,
 					values: []
 				};
