@@ -82,8 +82,8 @@
 				var seriesByEntity = {};
 
 				for (var i = 0; i < variable.years.length; i++) {
-					var year = variable.years[i],
-						value = variable.values[i],
+					var year = parseInt(variable.years[i]),
+						value = parseFloat(variable.values[i]),
 						entityId = variable.entities[i],
 						entity = selectedCountriesById[entityId],
 						series = seriesByEntity[entityId];
@@ -100,12 +100,47 @@
 						seriesByEntity[entityId] = series;
 					}
 
-					series.values.push({ x: year, y: value });
+					series.values.push({ x: year, y: value, time: year });
 				}
 
 				_.each(seriesByEntity, function(v, k) {
 					localData.push(v);
 				});
+			});
+
+			return localData;
+		},
+
+		transformDataForStackedArea: function() {
+			var variableData = this.get('variableData'),
+				variables = variableData.variables,
+				entityKey = variableData.entityKey,
+				// Stacked area chart can only have one selected country at a time
+				selectedCountry = _.values(this.getSelectedCountriesById())[0],
+				dimensions = this.dimensions,
+				localData = [];
+
+			_.each(variables, function(variable) {
+				var dimension = dimensions[variable.id];
+
+				var series = {
+					id: selectedCountry.id,
+					key: dimension.displayName,
+					entity: selectedCountry.name,
+					values: []
+				};
+
+				for (var i = 0; i < variable.years.length; i++) {
+					var year = parseInt(variable.years[i]),
+						value = parseFloat(variable.values[i]),
+						entityId = variable.entities[i];
+
+					if (entityId != selectedCountry.id) continue;
+
+					series.values.push({ x: year, y: value, time: year });
+				}
+
+				localData.push(series);
 			});
 
 			return localData;
@@ -128,7 +163,7 @@
 			return categoryTransform;
 		},
 
-		transformDataForScatterplot: function() {
+		transformDataForScatterPlot: function() {
 			var variableData = this.get('variableData'),
 				variables = variableData.variables,
 				entityKey = variableData.entityKey,
@@ -204,8 +239,12 @@
 			var chartType = App.ChartModel.get("chart-type");
 			if (chartType == App.ChartType.LineChart)
 				return this.transformDataForLineChart();
+			else if (chartType == App.ChartType.ScatterPlot)
+				return this.transformDataForScatterPlot();
+			else if (chartType == App.ChartType.StackedArea)
+				return this.transformDataForStackedArea();	
 			else
-				return this.transformDataForScatterplot();	
+				return this.transformDataForLineChart();
 		},
 
 		initialize: function () {
