@@ -177,6 +177,7 @@ Response::macro( 'xml', function($vars, $status = 200, array $header = [], $xml 
 
 Route::get( 'view', 'ViewController@index' );
 Route::get( 'view/{id}', [ 'as' => 'view', 'uses' => 'ViewController@show' ] );
+Route::get( 'testall', 'ViewController@testall' );
 
 Route::group( [ 'before' => 'auth.domain' ], function() {
 

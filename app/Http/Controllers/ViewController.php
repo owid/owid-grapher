@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
 use Debugbar;
+use DB;
 
 class ViewController extends Controller {
 
@@ -18,6 +19,21 @@ class ViewController extends Controller {
 	public function index()
 	{
 		return 'No chart selected to view';
+	}
+
+	public function testall()
+	{
+		$ids = DB::table('charts')->select('id')->where('last_referer_url', '!=', "")->limit(50)->lists('id');
+		$charts = [];
+
+		foreach ($ids as $id) {
+			$charts[] = [
+				'localUrl' => \Request::root() . "/view/" . $id,
+				'liveUrl' => "http://ourworldindata.org/grapher/view/" . $id
+			];
+		}
+
+		return view('testall')->with([ 'charts' => $charts ]);
 	}
 
 	/**
