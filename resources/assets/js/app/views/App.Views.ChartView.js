@@ -124,7 +124,7 @@
 				var dimension = dimensions[variable.id];
 
 				var series = {
-					id: selectedCountry.id,
+					id: variable.id,
 					key: dimension.displayName,
 					entity: selectedCountry.name,
 					values: []

@@ -27,14 +27,14 @@
 		onChartModelChange: function() {
 			if (!this.isAwake) return;
 
-			this.vardataModel.ready(this.render.bind(this));
+			this.vardataModel.ready(this.activate.bind(this));
 		},
 
 		activate: function() {
-			if (this.isAwake) {
+/*			if (this.isAwake) {
 				this.trigger("tab-ready");
 				return;
-			}
+			}*/
 			this.isAwake = true;
 
 			var that = this;
