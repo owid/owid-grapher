@@ -233,10 +233,13 @@
 				_.each( localData, function( singleData, key, list ) {
 					var values = _.clone( singleData.values );
 					values = _.filter( values, function( value ) {
-						return _.every(value.time, function(val, key) {
-							return ( val >= timeFrom && val <= timeTo );
-						});
-						//return ( value.x >= timeFrom && value.x <= timeTo );
+						if (_.isObject(value.time)) {
+							return _.every(value.time, function(val, key) {
+								return ( val >= timeFrom && val <= timeTo );
+							});							
+						} else {
+							return ( value.x >= timeFrom && value.x <= timeTo );
+						}
 					} );
 					singleData.values = values;
 				} );

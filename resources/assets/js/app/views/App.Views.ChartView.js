@@ -98,6 +98,8 @@
 
 					// Not a selected entity, don't add any data for it
 					if (!entity) continue;
+					// Values <= 0 break d3 log scales horribly
+					if (yAxis['axis-scale'] === 'log' && value <= 0) continue;					
 
 					if (!series) {
 						var key = entityKey[entityId];
@@ -115,8 +117,6 @@
 					}
 
 
-					// Omit values <= 0 from log scale data
-					if (yAxis['axis-scale'] !== 'log' || value > 0)
 						series.values.push({ x: year, y: value, time: year });
 				}
 
