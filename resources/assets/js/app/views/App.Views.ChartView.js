@@ -111,6 +111,23 @@
 			return localData;
 		},
 
+		makeCategoryTransform: function(property, values) {
+			var colors = [ "#aec7e8", "#ff7f0e", "#1f77b4", "#ffbb78", "#2ca02c", "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b", "c49c94", "e377c2", "f7b6d2", "7f7f7f", "c7c7c7", "bcbd22", "dbdb8d", "17becf", "9edae5", "1f77b4" ];
+			var shapes = [ "circle", "cross", "triangle-up", "triangle-down", "diamond", "square" ];
+
+			var outputValues = property == "color" ? colors : shapes,
+				index = 0,
+				categoryTransform = {};
+
+			_.each(_.sortBy(_.uniq(values)), function(value) { 
+				categoryTransform[value] = outputValues[index];
+				index += 1;
+				if (index >= outputValues.length) index = 0;
+			});
+
+			return categoryTransform;
+		},
+
 		transformDataForScatterplot: function() {
 			var variableData = this.get('variableData'),
 				variables = variableData.variables,
@@ -118,25 +135,30 @@
 				selectedCountriesById = this.getSelectedCountriesById(),
 				dimensions = this.dimensions,
 				seriesByEntity = {},
+				// e.g. for colors { var_id: { 'Oceania': '#ff00aa' } }
+				categoryTransforms = {},
 				localData = [];
 
 			_.each(variables, function(variable) {
+				var dimension = dimensions[variable.id],
+				    targetYear = parseInt(dimension.targetYear),
+				    tolerance = parseInt(dimension.tolerance),
+				    isCategorical = _.include(['color', 'shape'], dimension.property),
+				    categoryTransform = categoryTransforms[variable.id];
+
+				if (isCategorical && !categoryTransform) {
+					categoryTransform = this.makeCategoryTransform(dimension.property, variable.values);
+				}
+
 				for (var i = 0; i < variable.years.length; i++) {
 					var year = parseInt(variable.years[i]),
 						value = variable.values[i],
 						entityId = variable.entities[i],
 						entity = selectedCountriesById[entityId],
-						series = seriesByEntity[entityId],
-						dimension = dimensions[variable.id],
-						targetYear = parseInt(dimension.targetYear),
-						tolerance = parseInt(dimension.tolerance);
+						series = seriesByEntity[entityId];						
 
 					// Scatterplot defaults to showing all countries if none selected
 					if (!_.isEmpty(selectedCountriesById) && !entity) continue;
-
-					// Not within target year range, ignore
-					if (year != targetYear)//year < targetYear-tolerance || year > targetYear+tolerance)
-						continue;
 
 					if (!series) {
 						series = {
@@ -148,8 +170,18 @@
 						seriesByEntity[entityId] = series;
 					}
 
+					// Categorical data like color or shape just goes straight on the series
+					if (isCategorical) {
+						series[dimension.property] = categoryTransform[value];
+						continue;
+					}
+
+					// Not within target year range, ignore
+					if (year != targetYear)//year < targetYear-tolerance || year > targetYear+tolerance)
+						continue;
+
 					var datum = series.values[0];
-					datum[dimension.property] = value;
+					datum[dimension.property] = parseFloat(value);
 					datum.time[dimension.property] = year;
 				}
 			}.bind(this));

@@ -41,7 +41,6 @@ class DataController extends Controller {
 			->join('times', 'data_values.fk_time_id', '=', 'times.id')
 			->orderBy('times.date');
 
-
 		$response = [];
 		$response['entityKey'] = [];
 		$response['variables'] = [];
@@ -60,7 +59,7 @@ class DataController extends Controller {
 			$var = &$response['variables'][$result->var_id];
 			$response['entityKey'][floatval($result->entity_id)] = $result->entity_name;
 			$var['entities'][] = floatval($result->entity_id);
-			$var['values'][] = floatval($result->value);
+			$var['values'][] = $result->value;
 			$var['years'][] = floatval($result->year);
 		}
 
