@@ -425,12 +425,6 @@
 					isClamped = false;
 				//console.log( "chart.stacked.style()", that.chart.stacked.style() );
 
-				// 0 values in a log scale will break the chart
-				if (yAxisScale === "log" && yDomain[0] == 0) {
-					var values = allValues.map(function(d) { return d.y; });					
-					yDomain = d3.extent(_.filter(values, function(v) { return v > 0; }));
-				}
-
 				if( xAxisMin && !isNaN( xAxisMin ) ) {
 					xDomain[ 0 ] = xAxisMin;
 					isClamped = true;

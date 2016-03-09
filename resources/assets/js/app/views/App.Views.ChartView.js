@@ -82,6 +82,7 @@
 				entityKey = variableData.entityKey,
 				selectedCountriesById = this.getSelectedCountriesById(),
 				dimensions = this.dimensions,
+				yAxis = App.ChartModel.get("y-axis"),
 				localData = [];
 
 			_.each(variables, function(variable) {
@@ -111,8 +112,11 @@
 						};
 						seriesByEntity[entityId] = series;
 					}
-					
-					series.values.push({ x: year, y: value, time: year });
+
+
+					// Omit values <= 0 from log scale data
+					if (yAxis['axis-scale'] !== 'log' || value > 0)
+						series.values.push({ x: year, y: value, time: year });
 				}
 
 				_.each(seriesByEntity, function(v, k) {
