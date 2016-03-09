@@ -186,12 +186,13 @@
 				if (current && Math.abs(current.year - targetYear) < Math.abs(year - targetYear))
 					continue;
 
+
 				// Transform entity name to match counterpart in world.ids.json
 				// Covers e.g. Cote d'Ivoire -> Cote_d_Ivoire
 				var entityName = entityKey[entities[i]].replace(/[ '&:\(\)\/]/g, "_");
 
 				mapData[entityName] = {
-					value: values[i],
+					value: parseFloat(values[i]),
 					year: years[i]
 				};
 			}

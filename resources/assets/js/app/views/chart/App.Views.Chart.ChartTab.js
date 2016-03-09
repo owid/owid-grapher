@@ -27,6 +27,7 @@
 		onChartModelChange: function() {
 			if (!this.isAwake) return;
 
+			$(".chart-preloader").show();
 			this.vardataModel.ready(this.activate.bind(this));
 		},
 
@@ -597,6 +598,7 @@
 					that.cacheColors( localData );
 				}
 
+				$(".chart-preloader").hide();
 				that.trigger("tab-ready");
 			});
 
