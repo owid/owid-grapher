@@ -108,6 +108,7 @@
 						series = {
 							values: [],
 							key: key,
+							entity: entityKey[entityId],
 							id: entityId
 						};
 						seriesByEntity[entityId] = series;
@@ -128,6 +129,9 @@
 		},
 
 		transformDataForStackedArea: function() {
+			if (App.ChartModel.get("group-by-variables") == false)
+				return this.transformDataForLineChart();
+
 			var variableData = this.get('variableData'),
 				variables = variableData.variables,
 				entityKey = variableData.entityKey,
@@ -228,7 +232,13 @@
 					}
 
 					// Not within target year range, ignore
-					if (year != targetYear)//year < targetYear-tolerance || year > targetYear+tolerance)
+					if (year < targetYear-tolerance || year > targetYear+tolerance)
+						continue;
+
+
+					// Make sure we use the closest year within tolerance (favoring later years)
+					var current = series.values[0].time[dimension.property];
+					if (current && Math.abs(current - targetYear) < Math.abs(year - targetYear))
 						continue;
 
 					var datum = series.values[0];

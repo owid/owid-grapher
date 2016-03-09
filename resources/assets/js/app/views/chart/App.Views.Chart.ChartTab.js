@@ -28,14 +28,16 @@
 			if (!this.isAwake) return;
 
 			$(".chart-preloader").show();
+			this.isAwake = false;
 			this.vardataModel.ready(this.activate.bind(this));
 		},
 
 		activate: function() {
-/*			if (this.isAwake) {
+			if (this.isAwake) {
 				this.trigger("tab-ready");
 				return;
-			}*/
+			}
+
 			this.isAwake = true;
 
 			var that = this;
@@ -576,7 +578,9 @@
 						that.parentView.onResize();
 					}, 1);
 				} );
-				//that.parentView.dataTab.render( data, localData, dimensions );
+				
+				var dimensions = JSON.parse(App.ChartModel.get("chart-dimensions"));
+				that.parentView.dataTab.render( data, localData, dimensions );
 
 				if( chartType == App.ChartType.ScatterPlot ) {
 					//need to have own showDist implementation, cause there's a bug in nvd3
