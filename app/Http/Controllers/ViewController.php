@@ -1,5 +1,6 @@
 <?php namespace App\Http\Controllers;
 
+use App;
 use App\Chart;
 use App\Setting;
 use App\Http\Requests;
@@ -65,12 +66,18 @@ class ViewController extends Controller {
 	public function showId($id)
 	{	
 		$chart = Chart::find( $id );
+		if (!$chart)
+			return App::abort(404, "No such chart");
+
 		return $this->showChart($chart);
 	}
 
 	public function showSlug($slug)
 	{
 		$chart = Chart::where('slug', $slug)->first();		
+		if (!$chart)
+			return App::abort(404, "No such chart");
+
 		return $this->showChart($chart);
 	}
 
