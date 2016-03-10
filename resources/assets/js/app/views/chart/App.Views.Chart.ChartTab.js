@@ -15,7 +15,6 @@
 		initialize: function( options ) {
 			this.dispatcher = options.dispatcher;
 			this.parentView = options.parentView;
-			this.dataModel = options.dataModel;
 			this.vardataModel = options.vardataModel;
 			this.$tab = this.$el.find("#chart-chart-tab");
 			this.$svg = this.$el.find( "#chart-chart-tab svg" );
@@ -574,6 +573,7 @@
 				
 				var dimensions = JSON.parse(App.ChartModel.get("chart-dimensions"));
 				that.parentView.dataTab.render( data, localData, dimensions );
+				that.parentView.sourcesTab.render();
 
 				if( chartType == App.ChartType.ScatterPlot ) {
 					//need to have own showDist implementation, cause there's a bug in nvd3

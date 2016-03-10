@@ -18,13 +18,11 @@
 			this.$chartSources = this.$el.find( ".chart-sources" );
 			this.$tab = this.$el.find( "#sources-chart-tab" );
 
-			this.vardataModel.on("change:variableData", this.render.bind(this));			
+			//this.vardataModel.on("change:variableData", this.render.bind(this));			
 		},
 
 		activate: function() {
-			this.vardataModel.ready(function() {
-				this.render();
-			}.bind(this));
+			this.parentView.chartTab.activate();
 		},
 
 		render: function() {
