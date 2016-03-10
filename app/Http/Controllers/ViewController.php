@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Debugbar;
 use DB;
+use URL;
 
 class ViewController extends Controller {
 
@@ -87,7 +88,7 @@ class ViewController extends Controller {
 		if ($referer_s) {
 			$root = parse_url(\Request::root());
 			$referer = parse_url($referer_s);
-			if ($root['host'] == $referer['host'] && !str_contains($referer_s, "wp-admin") && !str_contains($referer_s, "preview=true") && !str_contains($referer_s, "how-to-our-world-in-data")) {
+			if ($root['host'] == $referer['host'] && !str_contains($referer_s, "/grapher/") && !str_contains($referer_s, "wp-admin") && !str_contains($referer_s, "preview=true") && !str_contains($referer_s, "how-to-our-world-in-data")) {
 				$chart->last_referer_url = $root['scheme'] . "://" . $root['host'] . $referer['path'];
 				$chart->save();
 			}
@@ -97,7 +98,8 @@ class ViewController extends Controller {
 			$data = new \StdClass;
 			$logoUrl = Setting::where( 'meta_name', 'logoUrl' )->first();
 			$data->logoUrl = ( !empty( $logoUrl ) )? url('/') .'/'. $logoUrl->meta_value: '';
-			return view( 'view.show', compact( 'chart', 'data' ) );
+			$canonicalUrl = URL::to($chart->slug);			
+			return view( 'view.show', compact( 'chart', 'data', 'canonicalUrl' ));
 		} else {
 			return 'No chart found to view';
 		}
