@@ -24,7 +24,7 @@
 						<tbody>
 						@foreach( $charts as $chart )
 							<tr>
-								<td><a href="{{ route('charts.show', $chart->id) }}">{{ $chart->name }}</a></td>
+								<td><a href="{{ URL::to($chart->slug) }}">{{ $chart->name }}</a></td>
 								<td>{{ $chart->notes }}</td>
 								<td>
 									@if ( $chart->last_referer_url )
