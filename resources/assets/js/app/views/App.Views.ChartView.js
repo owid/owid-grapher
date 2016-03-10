@@ -24,6 +24,8 @@
 		},
 
 		initialize: function( options ) {
+			$(".chart-preloader").show();
+			
 			var that = this;
 			//enable overriding default tab setting with tab query parameter
 			this.setDefaultTabFromUrl();
@@ -78,6 +80,14 @@
 
 			var defaultTab = App.ChartModel.get("default-tab");
 			$("." + defaultTab + "-header-tab a").tab('show');
+
+			$(document).ajaxStart(function() {
+				$(".chart-preloader").show();
+			});
+
+			$(document).ajaxStop(function() {
+				$(".chart-preloader").hide();
+			});
 		},
 
 		setDefaultTabFromUrl: function() {

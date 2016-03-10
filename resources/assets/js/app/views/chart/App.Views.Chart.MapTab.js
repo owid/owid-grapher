@@ -62,11 +62,9 @@
 			// We need to wait for both datamaps to finish its setup and the variable data
 			// to come in before the map can be fully rendered
 			var self = this;
-			$(".chart-preloader").show();
 			function onMapReady() {
 				self.vardataModel.ready(function(variableData) {
 					self.receiveData(variableData);
-					$(".chart-preloader").hide();					
 				});
 			}
 
