@@ -176,7 +176,7 @@ Response::macro( 'xml', function($vars, $status = 200, array $header = [], $xml 
 } );
 
 Route::get( 'view', 'ViewController@index' );
-Route::get( 'view/{id}', [ 'as' => 'view', 'uses' => 'ViewController@show' ] );
+Route::get( 'view/{id}', [ 'as' => 'view', 'uses' => 'ViewController@showId' ] );
 Route::get( 'testall', 'ViewController@testall' );
 
 Route::group( [ 'before' => 'auth.domain' ], function() {
@@ -190,7 +190,6 @@ Route::group( [ 'before' => 'auth.domain' ], function() {
 	Route::get( 'data/search', 'DataController@search' );
 	Route::get( 'data/times', 'DataController@times' );
 	Route::get( 'data/matchIsoName', 'DataController@matchIsoName' );
-
 } );
 
 Route::filter( 'auth.domain', function( $route, $request ) {
@@ -204,6 +203,9 @@ Route::filter( 'auth.domain', function( $route, $request ) {
 	}
 
 } );
+
+Route::any('{all}', array('uses' => 'ViewController@showSlug'))->where('all', '(?!_debugbar).*');
+
 
 /*use App\Chart;
 Route::get( '/temp', function() {

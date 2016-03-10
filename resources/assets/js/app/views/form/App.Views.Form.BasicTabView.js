@@ -8,7 +8,9 @@
 
 		el: "#form-view #basic-tab",
 		events: {
+			"input input[name=chart-name]": "onNameInput",
 			"change input[name=chart-name]": "onNameChange",
+			"change input[name=chart-slug]": "onSlugChange",
 			"change textarea[name=chart-subname]": "onSubnameChange",			
 			"change textarea[name=chart-notes]": "onNotesChange"
 		},
@@ -22,24 +24,48 @@
 		},
 
 		render: function() {
-			this.$el.find( "[name=chart-name]" ).val( App.ChartModel.get( "chart-name" ) );
-			this.$el.find( "[name=chart-subname]" ).val( App.ChartModel.get( "chart-subname" ) );
-			this.$el.find("[name=chart-notes]").val(App.ChartModel.get("chart-notes"));
+			this.$chartName = this.$el.find("[name=chart-name]");
+			this.$chartSlug = this.$el.find("[name=chart-slug]");
+			this.$chartSubname = this.$el.find("[name=chart-subname]");
+			this.$chartNotes = this.$el.find("[name=chart-notes]");
+
+			this.$chartName.val(App.ChartModel.get("chart-name"));
+			this.$chartSlug.val(App.ChartModel.get("chart-slug"));
+			this.$chartSubname.val(App.ChartModel.get("chart-subname"));
+			this.$chartNotes.val(App.ChartModel.get("chart-notes"));
 		},
 
-		onNameChange: function( evt ) {
-			var $input = $( evt.target );
-			App.ChartModel.set( "chart-name", $input.val() );
+		convertToSlug: function(s) {
+			s = s.toLowerCase().replace(/\s*\*.+\*/, '').replace(/[^\w- ]+/g,'');
+			return $.trim(s).replace(/ +/g,'-');
 		},
 
-		onSubnameChange: function( evt ) {
-			var $textarea = $( evt.target );
-			App.ChartModel.set( "chart-subname", $textarea.val() );
+		onNameInput: function() {
+			var currentName = App.ChartModel.get("chart-name");
+			var currentExpectedSlug = this.convertToSlug(currentName);
+			var currentSlug = App.ChartModel.get("chart-slug");
+
+			if (_.isEmpty(currentSlug) || currentExpectedSlug == currentSlug) {
+				var slug = this.convertToSlug(this.$chartName.val());
+				this.$chartSlug.val(slug);
+			}
 		},
 
-		onNotesChange: function(evt) {
-			var $textarea = $(evt.target);
-			App.ChartModel.set("chart-notes", $textarea.val());
+		onNameChange: function() {
+			App.ChartModel.set("chart-name", this.$chartName.val());
+			this.onSlugChange();
+		},
+
+		onSlugChange: function() {
+			App.ChartModel.set("chart-slug", this.$chartSlug.val());
+		},
+
+		onSubnameChange: function() {
+			App.ChartModel.set("chart-subname", this.$chartSubname.val());
+		},
+
+		onNotesChange: function() {
+			App.ChartModel.set("chart-notes", this.$chartNotes.val());
 		}
 
 	});

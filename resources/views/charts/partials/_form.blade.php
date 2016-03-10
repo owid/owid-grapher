@@ -35,6 +35,10 @@
 						<div class="form-section-content">
 							<p class="form-section-desc">This will be shown as the title of the chart.</p>
 							<input class="form-control input-lg .col-xs-12" placeholder="Chart name" type="text" name="chart-name" value=""/>
+							<div class="input-group">
+								<span class="input-group-addon">/grapher/</span>
+								<input class="form-control .col-xs-12" title="Human-friendly URL slug for this chart" type="text" name="chart-slug" value=""/>
+							</div>
 						</div>
 					</section>
 					<section class="form-section">

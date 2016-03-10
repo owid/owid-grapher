@@ -65,14 +65,17 @@ class ChartsController extends Controller {
 		{
 			//todo validation
 			
-			$chartName = $data[ "chart-name" ];
+			$chartName = $data["chart-name"];
+			$slug = $data["chart-slug"];
 			$notes = $data["chart-notes"];
 			unset($data["chart-notes"]);
+			unset($data["chart-slug"]);
 			$json = json_encode( $data );
 			
 			$user = \Auth::user();
-			$chart = Chart::create( [ 'config' => $json, 
-				'name' => $chartName, 'last_edited_at' => Carbon::now(), 'last_edited_by' => $user->name, 'notes' => $notes ] );
+			$chart = Chart::create([ 
+				'config' => $json, 'name' => $chartName, 'slug' => $slug, 'notes' => $notes,
+				'last_edited_at' => Carbon::now(), 'last_edited_by' => $user->name ] );
 
 			Cache::flush();
 
@@ -93,6 +96,7 @@ class ChartsController extends Controller {
 		if( $request->ajax() ) {
 			$config = json_decode($chart->config);
 			$config->{"chart-notes"} = $chart->notes;
+			$config->{"chart-slug"} = $chart->slug;
 			return response()->json( $config );
 		} else {
 			$data = new \StdClass;
@@ -160,8 +164,11 @@ class ChartsController extends Controller {
 		$data = Input::all();
 		$chartName = $data[ "chart-name" ];
 		$notes = $data["chart-notes"];
+		$slug = $data["chart-slug"];
 		unset($data["chart-notes"]);
+		unset($data["chart-slug"]);
 		$chart->notes = $notes;		
+		$chart->slug = $slug;
 		$json = json_encode( $data );
 		$newData = new \stdClass();
 		$newData->config = $json;

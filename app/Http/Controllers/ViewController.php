@@ -62,10 +62,20 @@ class ViewController extends Controller {
 	 * @param  int  $id
 	 * @return Response
 	 */
-	public function show($id)
+	public function showId($id)
 	{	
 		$chart = Chart::find( $id );
+		return $this->showChart($chart);
+	}
 
+	public function showSlug($slug)
+	{
+		$chart = Chart::where('slug', $slug)->first();		
+		return $this->showChart($chart);
+	}
+
+	public function showChart(Chart $chart) 
+	{
 		$referer_s = \Request::header('referer'); 
 		if ($referer_s) {
 			$root = parse_url(\Request::root());
