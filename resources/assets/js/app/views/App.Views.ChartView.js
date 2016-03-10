@@ -191,12 +191,13 @@
 				dimensions = this.dimensions,
 				seriesByEntity = {},
 				// e.g. for colors { var_id: { 'Oceania': '#ff00aa' } }
-				categoryTransforms = {},
+				categoryTransforms = {},				
 				localData = [];
 
 			_.each(variables, function(variable) {
 				var dimension = dimensions[variable.id],
 				    targetYear = parseInt(dimension.targetYear),
+				    targetMode = dimension.mode,
 				    tolerance = parseInt(dimension.tolerance),
 				    isCategorical = _.include(['color', 'shape'], dimension.property),
 				    categoryTransform = categoryTransforms[variable.id];
@@ -231,15 +232,17 @@
 						continue;
 					}
 
-					// Not within target year range, ignore
-					if (year < targetYear-tolerance || year > targetYear+tolerance)
-						continue;
+					if (targetMode === "specific") {
+						// Not within target year range, ignore
+						if (year < targetYear-tolerance || year > targetYear+tolerance)
+							continue;
 
 
-					// Make sure we use the closest year within tolerance (favoring later years)
-					var current = series.values[0].time[dimension.property];
-					if (current && Math.abs(current - targetYear) < Math.abs(year - targetYear))
-						continue;
+						// Make sure we use the closest year within tolerance (favoring later years)
+						var current = series.values[0].time[dimension.property];
+						if (current && Math.abs(current - targetYear) < Math.abs(year - targetYear))
+							continue;
+					}
 
 					var datum = series.values[0];
 					datum[dimension.property] = parseFloat(value);
