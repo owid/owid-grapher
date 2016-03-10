@@ -22,7 +22,7 @@
         // We use pushState if it's available so the page won't jump, otherwise a shim.
         var changeHash = function(hash) {
           if (history && history.pushState) {
-            history.pushState(null, null, '#' + hash);
+            history.replaceState(null, null, '#' + hash);
           } else {
             scrollV = document.body.scrollTop;
             scrollH = document.body.scrollLeft;
@@ -36,7 +36,7 @@
         showTabFromHash(context)
 
         // Set the correct tab when a user uses their back/forward button
-        $(window).on('hashchange', showTabFromHash);
+        //$(window).on('hashchange', showTabFromHash);
 
         // Change the URL when tabs are clicked
         $('a', context).on('click', function(e) {

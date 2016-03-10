@@ -19,7 +19,6 @@
 
 			this.dispatcher = options.dispatcher;
 			this.render();
-
 		},
 
 		render: function() {
