@@ -7,7 +7,14 @@
 	App.Models.ChartDataModel = Backbone.Model.extend( {
 		defaults: {},
 
-		update: function() 	{		
+		initialize: function () {
+			App.ChartModel.on("change:chart-dimensions", this.update, this);
+			this.update();
+		},
+
+		update: function() 	{	
+			if (_.isEmpty(App.ChartModel.get("chart-dimensions"))) return;
+
 			if (this.dataRequest) {
 				this.dataRequest.abort();
 				this.dataRequest = null;
@@ -336,11 +343,6 @@
 				return this.transformDataForStackedArea();	
 			else
 				return this.transformDataForLineChart();
-		},
-
-		initialize: function () {
-			App.ChartModel.on("change:chart-dimensions", this.update, this);
-			this.update();
 		},
 	});
 
