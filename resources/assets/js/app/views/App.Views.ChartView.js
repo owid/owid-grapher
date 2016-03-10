@@ -95,6 +95,9 @@
 
 					// Not a selected entity, don't add any data for it
 					if (!entity) continue;
+					// It's possible we may be missing data for this year/entity combination
+					// e.g. http://ourworldindata.org/grapher/view/101
+					if (isNaN(value)) continue;
 					// Values <= 0 break d3 log scales horribly
 					if (yAxis['axis-scale'] === 'log' && value <= 0) continue;					
 
