@@ -25,14 +25,11 @@
 				this.dataRequest = null;
 			}
 
-			// Get the chart dimensions and map them by variable id
-			// So we can use the extra info for data transformation alter
-			var dims = JSON.parse(App.ChartModel.get("chart-dimensions"));
-			this.dimensions = {};
-			_.each(dims, function(dim) { this.dimensions[dim.variableId] = dim; }.bind(this));
+			this.dimensions = JSON.parse(App.ChartModel.get("chart-dimensions"));
+			var variableIds = _.map(this.dimensions, function(dim) { return dim.variableId; });
 
 			this.set("variableData", null, { silent: true });
-			this.dataRequest = $.getJSON(Global.rootUrl + "/data/variables/" + Object.keys(this.dimensions).join("+"));
+			this.dataRequest = $.getJSON(Global.rootUrl + "/data/variables/" + variableIds.join("+"));
 			this.dataRequest.done(function(data) {
 				this.dataRequest = null;
 				this.set("variableData", data);
@@ -77,16 +74,16 @@
 		},
 
 		transformDataForLineChart: function() {
-			var variableData = this.get('variableData'),
+			var dimensions = this.dimensions,
+				variableData = this.get('variableData'),
 				variables = variableData.variables,
 				entityKey = variableData.entityKey,
 				selectedCountriesById = this.getSelectedCountriesById(),
-				dimensions = this.dimensions,
 				yAxis = App.ChartModel.get("y-axis"),
 				localData = [];
 
-			_.each(variables, function(variable) {
-				var dimension = dimensions[variable.id],
+			_.each(dimensions, function(dimension) {
+				var variable = variables[dimension.variableId],
 					seriesByEntity = {};
 
 				for (var i = 0; i < variable.years.length; i++) {
@@ -117,7 +114,7 @@
 					}
 
 
-						series.values.push({ x: year, y: value, time: year });
+					series.values.push({ x: year, y: value, time: year });
 				}
 
 				_.each(seriesByEntity, function(v, k) {
@@ -128,20 +125,51 @@
 			return localData;
 		},
 
-		transformDataForStackedArea: function() {
-			if (App.ChartModel.get("group-by-variables") == false)
-				return this.transformDataForLineChart();
+		// Ensures that every series has a value entry for every year in the data
+		// Even if that value is just 0
+		// Stacked area charts with incomplete data will fail to render otherwise
+		zeroPadData: function(localData) {
+			var allYears = {};			
+			var yearsForSeries = {};
 
-			var variableData = this.get('variableData'),
+			_.each(localData, function(series) {
+				yearsForSeries[series.id] = {};
+				_.each(series.values, function(d, i) {
+					allYears[d.x] = true;
+					yearsForSeries[series.id][d.x] = true;
+				});
+			});
+
+			_.each(localData, function(series) {
+				_.each(Object.keys(allYears), function(year) {
+					year = parseInt(year);
+					if (!yearsForSeries[series.id][year])
+						series.values.push({ x: year, y: 0, time: year, fake: true });
+				});
+
+				series.values = _.sortBy(series.values, function(d) { return d.x; });
+			});
+
+			return localData;
+		},
+
+		transformDataForStackedArea: function() {
+//			return [{ key: 'North America', entity: 'North America', id: 294, values: [{ x: 1990, y: 100, time: 1990}, { x: 1992, y: 200, time: 1992 }]},
+//					{ key: 'South Asia', entity: 'South Asia', id: 302, values: [{ x: 1990, y: 200, time: 1990 }, { x: 1991, y: 200, time: 1991 }]}];
+
+			if (App.ChartModel.get("group-by-variables") == false)
+				return this.zeroPadData(this.transformDataForLineChart());
+
+			var dimensions = this.dimensions,
+				variableData = this.get('variableData'),
 				variables = variableData.variables,
 				entityKey = variableData.entityKey,
-				// Stacked area chart can only have one selected country at a time
+				// Group-by-variable chart only has one selected country
 				selectedCountry = _.values(this.getSelectedCountriesById())[0],
-				dimensions = this.dimensions,
 				localData = [];
 
-			_.each(variables, function(variable) {
-				var dimension = dimensions[variable.id];
+			_.each(dimensions, function(dimension) {
+				var variable = variables[dimension.variableId];
 
 				var series = {
 					id: variable.id,
@@ -163,7 +191,7 @@
 				localData.push(series);
 			});
 
-			return localData;
+			return this.zeroPadData(localData);
 		},
 
 		makeCategoryTransform: function(property, values) {
@@ -184,21 +212,24 @@
 		},
 
 		transformDataForScatterPlot: function() {
-			var variableData = this.get('variableData'),
+			var dimensions = this.dimensions,
+				variableData = this.get('variableData'),
 				variables = variableData.variables,
 				entityKey = variableData.entityKey,
 				selectedCountriesById = this.getSelectedCountriesById(),
-				dimensions = this.dimensions,
 				seriesByEntity = {},
 				// e.g. for colors { var_id: { 'Oceania': '#ff00aa' } }
 				categoryTransforms = {},				
 				localData = [];
 
-			_.each(variables, function(variable) {
-				var dimension = dimensions[variable.id],
+			var latestYearInData = _.max(_.map(variables, function(v) { return _.max(v.years); }));
+
+			_.each(dimensions, function(dimension) {
+				var variable = variables[dimension.variableId],
 				    targetYear = parseInt(dimension.targetYear),
 				    targetMode = dimension.mode,
 				    tolerance = parseInt(dimension.tolerance),
+				    maximumAge = parseInt(dimension.maximumAge),
 				    isCategorical = _.include(['color', 'shape'], dimension.property),
 				    categoryTransform = categoryTransforms[variable.id];
 
@@ -237,10 +268,12 @@
 						if (year < targetYear-tolerance || year > targetYear+tolerance)
 							continue;
 
-
 						// Make sure we use the closest year within tolerance (favoring later years)
 						var current = series.values[0].time[dimension.property];
 						if (current && Math.abs(current - targetYear) < Math.abs(year - targetYear))
+							continue;
+					} else if (targetMode == "latest" && !isNaN(maximumAge)) {
+						if (year < latestYearInData-maximumAge)
 							continue;
 					}
 
@@ -291,9 +324,10 @@
 		return $html;
 	}*/
 
-		getSourceDescHtml: function(variable) {
-			var source = variable.source,
-				dimension = this.dimensions[variable.id];
+		getSourceDescHtml: function(dimension) {
+			var variableData = this.get("variableData"),
+				variable = variableData.variables[dimension.variableId],
+				source = variable.source;
 
 			var displayName = _.isEmpty(dimension.displayName) ? variable.name : dimension.displayName;
 			var hideDimName = _.isEmpty(dimension.name) || _.size(this.get("variableData").variables) == 1;
@@ -318,15 +352,12 @@
 
 		transformDataForSources: function() {
 			var variableData = this.get("variableData");			
-			var orderedDims = JSON.parse(App.ChartModel.get("chart-dimensions"));
-			var variableIdsInOrder = _.uniq(_.map(orderedDims, function(dim) { return dim.variableId; }));
 
-			return _.map(variableIdsInOrder, function(id) {
-				var variable = variableData.variables[id],
-					dimension = this.dimensions[id],
+			return _.map(this.dimensions, function(dimension) {
+				var variable = variableData.variables[dimension.variableId],
 					source = _.extend({}, variable.source);
 
-				source.description = this.getSourceDescHtml(variable);
+				source.description = this.getSourceDescHtml(dimension);
 				return source;
 			}.bind(this));
 		},

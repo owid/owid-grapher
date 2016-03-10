@@ -23,7 +23,7 @@ class ViewController extends Controller {
 
 	public function testall()
 	{
-		$ids = DB::table('charts')->select('id')->where('last_referer_url', '!=', "")->limit(50)->lists('id');
+		$ids = DB::table('charts')->select('id')->where('last_referer_url', '!=', "")->lists('id');
 		$charts = [];
 
 		foreach ($ids as $id) {
