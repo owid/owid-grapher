@@ -41,7 +41,7 @@
 		},
 
 		onNameInput: function() {
-			var currentName = App.ChartModel.get("chart-name");
+			var currentName = App.ChartModel.get("chart-name") || "";
 			var currentExpectedSlug = this.convertToSlug(currentName);
 			var currentSlug = App.ChartModel.get("chart-slug");
 

@@ -28,6 +28,9 @@
 		},
 
 		defaults: {
+			"chart-name": "",
+			"chart-slug": "",
+			"chart-notes": "",
 			"cache": true,
 			"selected-countries": [], // e.g. [{id: "1", name: "United Kingdom"}]
 			"tabs": [ "chart", "data", "sources" ],

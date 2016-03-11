@@ -24,7 +24,8 @@
 		},
 
 		initialize: function( options ) {
-			$(".chart-preloader").show();
+			if (App.ChartModel.get("chart-name"))
+				$(".chart-preloader").show();
 			
 			var that = this;
 			//enable overriding default tab setting with tab query parameter
@@ -52,7 +53,6 @@
 			this.exportPopup = new ExportPopup( options );
 			this.exportPopup.init( options );
 
-			this.$preloader = this.$el.find( ".chart-preloader" );
 			this.$error = this.$el.find( ".chart-error" );
 
 			this.dispatcher.on( "dimension-export-update", this.onDimensionExportUpdate, this );
