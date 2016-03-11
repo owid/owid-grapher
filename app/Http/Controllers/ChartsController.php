@@ -95,6 +95,7 @@ class ChartsController extends Controller {
 	{
 		if( $request->ajax() ) {
 			$config = json_decode($chart->config);
+			$config->id = $chart->id;
 			$config->{"chart-notes"} = $chart->notes;
 			$config->{"chart-slug"} = $chart->slug;
 			return response()->json( $config );
