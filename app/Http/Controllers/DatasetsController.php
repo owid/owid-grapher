@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 use Cache;
+use DB;
 
 class DatasetsController extends Controller {
 
@@ -20,8 +21,16 @@ class DatasetsController extends Controller {
 	 */
 	public function index()
 	{
-		$datasets = Dataset::all();
-		return view( 'datasets.index', compact('datasets') );
+		$variables = DB::table('variables')
+			->select('variables.id', 'variables.name', 'variables.created_at',
+					 'datasets.id as dataset_id', 'datasets.name as dataset_name',
+					 'datasources.id as source_id', 'datasources.name as source_name')
+			->join('datasets', 'variables.fk_dst_id', '=', 'datasets.id')
+			->join('datasources', 'variables.fk_dsr_id', '=', 'datasources.id')
+			->orderBy('datasets.created_at', 'desc')
+			->get();
+
+		return view('datasets.index', compact('variables'));
 	}
 
 	/**
