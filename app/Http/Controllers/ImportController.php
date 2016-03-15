@@ -22,6 +22,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 use App\Commands\ImportCommand;
+use Carbon\Carbon;
 
 class ImportController extends Controller {
 
@@ -172,7 +173,8 @@ class ImportController extends Controller {
 				
 				//setting json_decode second param to false, to try to save memory 
 				$variableObj = json_decode( $variableJsonString, false );
-				$variableData = [ 'name' => $variableObj->name, 'fk_var_type_id' => $request->input( 'variable_type' ), 'fk_dst_id' => $datasetId, 'unit' => $variableObj->unit, 'description' => $variableObj->description, 'fk_dsr_id' => $datasource->id ];
+				$variableData = [ 'name' => $variableObj->name, 'fk_var_type_id' => $request->input( 'variable_type' ), 'fk_dst_id' => $datasetId, 'unit' => $variableObj->unit, 'description' => $variableObj->description, 'fk_dsr_id' => $datasource->id, 'uploaded_by' => \Auth::user()->name,
+					'uploaded_at' => Carbon::now() ];
 
 				//update of existing variable or new variable
 				if( !isset( $variableObj->id ) ) {
@@ -416,7 +418,7 @@ class ImportController extends Controller {
 			$datasourceId = ( $request->has( 'datasourceId' ) )? $request->get( 'datasourceId' ): '';
 			
 			//$variableObj = json_decode( $variableJsonString, false );
-			$variableData = [ 'name' => $varName, 'fk_var_type_id' => $varType, 'fk_dst_id' => $datasetId, 'unit' => $varUnit, 'description' => $varDescription, 'fk_dsr_id' => $datasourceId ];
+			$variableData = [ 'name' => $varName, 'fk_var_type_id' => $varType, 'fk_dst_id' => $datasetId, 'unit' => $varUnit, 'description' => $varDescription, 'fk_dsr_id' => $datasourceId, 'uploaded_by' => \Auth::user()->name, 'uploaded_at' => Carbon::now() ];
 
 			//update of existing variable or new variable
 			if( empty( $varId ) ) {

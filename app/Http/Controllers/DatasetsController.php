@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 
 use Cache;
 use DB;
+use Carbon\Carbon;
 
 class DatasetsController extends Controller {
 
@@ -22,7 +23,7 @@ class DatasetsController extends Controller {
 	public function index()
 	{
 		$variables = DB::table('variables')
-			->select('variables.id', 'variables.name', 'variables.created_at',
+			->select('variables.id', 'variables.name', 'variables.uploaded_at', 'variables.uploaded_by',
 					 'datasets.id as dataset_id', 'datasets.name as dataset_name',
 					 'datasources.id as source_id', 'datasources.name as source_name')
 			->join('datasets', 'variables.fk_dst_id', '=', 'datasets.id')

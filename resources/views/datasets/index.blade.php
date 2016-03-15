@@ -19,10 +19,10 @@
 				<td><a href="{{ route('datasets.show', $variable->dataset_id) }}">{{ $variable->dataset_name }}</a></td>
 				<td><a href="{{ route('datasources.show', $variable->source_id) }}">{{ $variable->source_name }}</a></td>
 				<td>
-					<time class="timeago" datetime="{{ $variable->created_at }}">{{ $variable->created_at }}</time>
-					{{-- @if ( $variable->uploaded_by )
+					<time class="timeago" datetime="{{ $variable->uploaded_at }}">{{ $variable->uploaded_at }}</time>
+					@if ( $variable->uploaded_by )
 						by {{ $variable->uploaded_by }}
-					@endif --}}
+					@endif
 				</td>
 			</tr>
 			@endforeach
