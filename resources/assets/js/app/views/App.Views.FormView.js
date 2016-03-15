@@ -60,7 +60,7 @@
 			App.SearchDataCollection = new SearchDataCollection();
 			
 			//is it new or existing chart
-			if( formConfig && formConfig[ "dimensions" ] ) {
+			if( formConfig && !_.isEmpty(formConfig[ "dimensions" ]) ) {
 				//existing chart, need to load fresh dimensions from database (in case we've added dimensions since creating chart)
 				var that = this;
 				App.ChartDimensionsModel.loadConfiguration( formConfig[ "dimensions" ].id );
@@ -75,7 +75,6 @@
 		},
 
 		render: function() {
-			
 			//create subviews
 			this.basicTabView = new BasicTabView( { dispatcher: this.dispatcher } );
 			this.dataTabView = new DataTabView( { dispatcher: this.dispatcher } );

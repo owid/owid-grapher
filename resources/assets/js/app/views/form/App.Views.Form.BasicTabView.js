@@ -48,12 +48,12 @@
 			if (_.isEmpty(currentSlug) || currentExpectedSlug == currentSlug) {
 				var slug = this.convertToSlug(this.$chartName.val());
 				this.$chartSlug.val(slug);
+				this.onSlugChange();				
 			}
 		},
 
 		onNameChange: function() {
 			App.ChartModel.set("chart-name", this.$chartName.val());
-			this.onSlugChange();
 		},
 
 		onSlugChange: function() {

@@ -11,7 +11,9 @@
 
 		events: {},
 
-		initialize: function() {},
+		initialize: function() {
+
+		},
 
 		start: function() {
 			//render everything for the first time
@@ -19,7 +21,6 @@
 		},
 
 		render: function() {
-			
 			var dispatcher = _.clone( Backbone.Events );
 			this.dispatcher = dispatcher;
 
