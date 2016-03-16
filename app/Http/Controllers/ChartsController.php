@@ -94,11 +94,7 @@ class ChartsController extends Controller {
 	public function show( Chart $chart, Request $request )
 	{
 		if( $request->ajax() ) {
-			$config = json_decode($chart->config);
-			$config->id = $chart->id;
-			$config->{"chart-notes"} = $chart->notes;
-			$config->{"chart-slug"} = $chart->slug;
-			return response()->json( $config );
+			return $this->config($chart->id);
 		} else {
 			$data = new \StdClass;
 			$data->variables = Variable::with('Dataset')->get();
@@ -114,7 +110,14 @@ class ChartsController extends Controller {
 
 	public function config( $chartId ) {
 		$chart = Chart::find( $chartId );
-		$config = ( $chart )? json_decode( $chart->config ): false;
+		if (!$chart)
+			return App::abort(404, "No such chart");
+
+		$config = json_decode($chart->config);
+		$config->id = $chart->id;
+		$config->{"chart-notes"} = $chart->notes;
+		$config->{"chart-slug"} = $chart->slug;
+		$config->{"data-entry-url"} = $chart->last_referer_url;
 
 		//possibly there could logo query parameter
 		if( !empty( $config ) && !empty( Input::get('logo') ) ) {
@@ -127,7 +130,7 @@ class ChartsController extends Controller {
 			}
 		}
 
-		return response()->json( $config );
+		return response()->json($config);
 	}
 
 	/**

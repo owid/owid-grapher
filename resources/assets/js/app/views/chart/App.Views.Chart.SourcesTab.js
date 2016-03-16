@@ -64,7 +64,17 @@
 			tabHtml += sourcesLongHtml;
 			
 			if( license && license.description ) {
-				footerHtml = license.description + " " + footerHtml;
+				var desc = license.description,
+					dataUrl = App.ChartModel.get("data-entry-url");
+				console.log(dataUrl);
+
+				// Link to the blog post that is the canonical embed location for this chart
+				if (dataUrl && dataUrl.indexOf("ourworldindata.org/data") != -1)
+					desc = desc.replace(/\*data-entry\*/, "<a class='source-link' target='_blank' href='" + dataUrl + "'>" + dataUrl + "</a>");
+				else
+					desc = desc.replace(/\*data-entry\*/, 
+						"<a class='source-link' target='_blank' href='http://ourworldindata.org'>http://ourworldindata.org</a>");
+				footerHtml = desc + " " + footerHtml;								
 				//tabHtml = license.description + " " + tabHtml;
 			}
 			

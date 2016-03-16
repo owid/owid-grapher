@@ -88,7 +88,7 @@ class ViewController extends Controller {
 		if ($referer_s) {
 			$root = parse_url(\Request::root());
 			$referer = parse_url($referer_s);
-			if ($root['host'] == $referer['host'] && !str_contains($referer_s, "/grapher/") && !str_contains($referer_s, "wp-admin") && !str_contains($referer_s, "preview=true") && !str_contains($referer_s, "how-to-our-world-in-data")) {
+			if ($root['host'] == $referer['host'] && str_contains($referer_s, "/data/") && !str_contains($referer_s, "wp-admin") && !str_contains($referer_s, "preview=true")) {
 				$chart->last_referer_url = $root['scheme'] . "://" . $root['host'] . $referer['path'];
 				$chart->save();
 			}
