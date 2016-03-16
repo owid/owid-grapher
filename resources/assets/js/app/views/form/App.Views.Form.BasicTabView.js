@@ -41,15 +41,18 @@
 		},
 
 		onNameInput: function() {
-			var currentName = App.ChartModel.get("chart-name") || "";
+			var currentName = this.lastChartName || App.ChartModel.get("chart-name") || "";
 			var currentExpectedSlug = this.convertToSlug(currentName);
-			var currentSlug = App.ChartModel.get("chart-slug");
+			var currentSlug = this.$chartSlug.val();
+			console.log(currentName, currentExpectedSlug, currentSlug);
 
 			if (_.isEmpty(currentSlug) || currentExpectedSlug == currentSlug) {
 				var slug = this.convertToSlug(this.$chartName.val());
 				this.$chartSlug.val(slug);
 				this.onSlugChange();				
 			}
+
+			this.lastChartName = this.$chartName.val();
 		},
 
 		onNameChange: function() {
