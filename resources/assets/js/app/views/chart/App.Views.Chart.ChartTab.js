@@ -359,17 +359,17 @@
 						} );
 					}
 
-					if( chartType == "4" ) {
+					if( chartType == App.ChartType.MultiBar ) {
 					
 						that.chart = nv.models.multiBarChart().options( chartOptions );
 					
-					} else if(  chartType == "5" ) {
+					} else if( App.ChartType.HorizontalMultiBar ) {
 					
 						that.chart = nv.models.multiBarHorizontalChart().options( chartOptions );//.showValues( true );
 					
 					}
 
-				} else if( chartType == "6" ) {
+				} else if( chartType == App.ChartType.DiscreteBar ) {
 
 					chartOptions.showValues = true;
 

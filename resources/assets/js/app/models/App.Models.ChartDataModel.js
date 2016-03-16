@@ -75,7 +75,9 @@
 				entityKey = variableData.entityKey,
 				selectedCountriesById = this.getSelectedCountriesById(),
 				yAxis = App.ChartModel.get("y-axis"),
-				localData = [];
+				localData = [],
+				hasManyVariables = _.size(variables) > 1,
+				hasManyEntities = _.size(selectedCountriesById) > 1;
 
 			_.each(dimensions, function(dimension) {
 				var variable = variables[dimension.variableId],
@@ -100,9 +102,14 @@
 						var key = entityKey[entityId],
 							id = entityId;
 						// If there are multiple variables per entity, we disambiguate the legend
-						if (_.size(variables) > 1) {
-							key += " - " + variable.name;
-							id += "-" + variable.id;
+						if (hasManyVariables) {
+							if (hasManyEntities) {
+								key = variable.name;
+								id = variable.id;
+							} else {
+								key += " - " + variable.name;
+								id += "-" + variable.id;
+							}
 						}
 
 						series = {
