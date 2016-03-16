@@ -103,12 +103,12 @@
 							id = entityId;
 						// If there are multiple variables per entity, we disambiguate the legend
 						if (hasManyVariables) {
-							if (hasManyEntities) {
+							id += "-" + variable.id;
+
+							if (!hasManyEntities) {
 								key = variable.name;
-								id = variable.id;
 							} else {
 								key += " - " + variable.name;
-								id += "-" + variable.id;
 							}
 						}
 
