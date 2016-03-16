@@ -97,16 +97,19 @@
 					if (yAxis['axis-scale'] === 'log' && value <= 0) continue;					
 
 					if (!series) {
-						var key = entityKey[entityId];
+						var key = entityKey[entityId],
+							id = entityId;
 						// If there are multiple variables per entity, we disambiguate the legend
-						if (_.size(variables) > 1)
+						if (_.size(variables) > 1) {
 							key += " - " + variable.name;
+							id += "-" + variable.id;
+						}
 
 						series = {
 							values: [],
 							key: key,
 							entity: entityKey[entityId],
-							id: entityId
+							id: id
 						};
 						seriesByEntity[entityId] = series;
 					}
