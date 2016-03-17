@@ -11,30 +11,27 @@
 		events: {},
 
 		initialize: function( options ) {
-			
 			this.dispatcher = options.dispatcher;
 			
 			this.$colorAutomaticClassification = $("[name='map-color-automatic-classification']");
 			this.$colorAutomaticClassification.on( "change", this.onAutomaticClassification.bind(this) );
+			this.$colorInvert = $("[name='map-color-invert']");
+			this.$colorInvert.on("change", this.onColorInvert.bind(this));
 
 			App.ChartModel.on( "change", this.onChartModelChange, this );
 
 			this.render();
+		},
 
+		onChartModelChange: function() {
+			this.mapConfig = App.ChartModel.get("map-config");
+			this.render();
 		},
 
 		render: function() {
-
 			var that = this,
-				mapConfig = App.ChartModel.get( "map-config" ),
-				colorScheme,
-				colorSchemeName;
-
-			if( mapConfig.colorSchemeName !== "custom" ) {
-				colorScheme = owdColorbrewer.getColors(mapConfig.colorSchemeName, mapConfig.colorSchemeInterval);
-			} else if( mapConfig.colorSchemeName ) {
-				colorScheme = mapConfig.customColorScheme;
-			}
+				mapConfig = App.ChartModel.get("map-config"),
+				colorScheme = owdColorbrewer.getColors(mapConfig);
 			
 			this.$el.empty();
 
@@ -82,6 +79,7 @@
 			var colorSchemeValuesAutomatic = ( mapConfig.colorSchemeValuesAutomatic !== undefined )? mapConfig.colorSchemeValuesAutomatic: true;
 			this.$el.toggleClass( "automatic-values", colorSchemeValuesAutomatic );
 			this.$colorAutomaticClassification.prop( "checked", colorSchemeValuesAutomatic );
+			this.$colorInvert.prop("checked", mapConfig.colorSchemeInvert);
 
 			//react to user entering custom values
 			this.$inputs = this.$el.find(".map-color-scheme-value");
@@ -97,12 +95,15 @@
 		},
 
 		updateColorScheme: function() {
-			var colors = [];
-			$.each( this.$lis, function( i, d ) {
-				colors.push( $( d ).attr( "data-color" ) );
-			} );
-			App.ChartModel.updateMapConfig( "customColorScheme", colors, true );
-			App.ChartModel.updateMapConfig( "colorSchemeName", "custom" );
+			var colors = _.map(this.$lis, function(el) {
+				return $(el).attr("data-color");
+			});
+
+			if (this.mapConfig.colorSchemeInvert)
+				colors.reverse();
+
+			App.ChartModel.updateMapConfig("customColorScheme", colors, true);
+			App.ChartModel.updateMapConfig("colorSchemeName", "custom");
 		},
 
 		updateSchemeValues: function( evt ) {
@@ -136,28 +137,25 @@
 		updateSchemeLabels: function() {
 			//update values
 			var values = [];
-			$.each( this.$labelInputs, function( i, d ) {
+			$.each(this.$labelInputs, function( i, d ) {
 				var inputValue = $( d ).val();
-				//if( inputValue ) {
 					values.push( inputValue );
-				//}
-			} );
-			App.ChartModel.updateMapConfig( "colorSchemeLabels", values );
-			
-		},
+			});
 
-		onChartModelChange: function() {
-			this.render();
+
+			App.ChartModel.updateMapConfig("colorSchemeLabels", values);			
 		},
 
 		onAutomaticClassification: function(evt) {
-			var $target = $( evt.target ),
-				checked = $target.prop( "checked" );
-			this.$el.toggleClass( "automatic-values", checked );
+			var checked = this.$colorAutomaticClassification.prop("checked");
+			this.$el.toggleClass("automatic-values", checked);
+			App.ChartModel.updateMapConfig("colorSchemeValuesAutomatic", checked);
+		},
 
-			App.ChartModel.updateMapConfig( "colorSchemeValuesAutomatic", checked );
+		onColorInvert: function(evt) {
+			var checked = this.$colorInvert.prop("checked");
+			App.ChartModel.updateMapConfig("colorSchemeInvert", checked);
 		}
-
 	});
 	
 	module.exports = App.Views.Form.MapColorSchemeView;

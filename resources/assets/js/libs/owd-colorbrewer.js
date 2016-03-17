@@ -61,20 +61,37 @@ for( var schemeName in colorbrewer ) {
 
 owdColorbrewer[ "custom" ] = { "name": "custom", "colors": []};
 
-owdColorbrewer.getColors = function(schemeName, numColors) {
-	var scheme = owdColorbrewer[schemeName];
-	if (!scheme) return null;
+owdColorbrewer.getColors = function(mapConfig) {
+	var colorSchemeName = mapConfig.colorSchemeName || "",
+		colorSchemeInterval = mapConfig.colorSchemeInterval || 2,
+		colorSchemeInvert = mapConfig.colorSchemeInvert || false,
+		customColorScheme = mapConfig.customColorScheme || [];
 
-	if (!_.isEmpty(scheme.colors[numColors]))
-		return scheme.colors[numColors];
+	if (colorSchemeInvert) {
+		var colors = this.getColors(_.extend({}, mapConfig, { colorSchemeInvert: false }));
+		return colors.reverse();
+	}
 
-	if (numColors == 1 && !_.isEmpty(scheme.colors[2]))
+	if (colorSchemeName === "custom")
+		return _.clone(customColorScheme);
+
+	var scheme = owdColorbrewer[colorSchemeName];
+	if (!scheme) {
+		console.error("No such color scheme: " + scheme);
+		// Return a default color scheme
+		return this.getColors(_.extend({}, mapConfig, { colorSchemeName: _.keys(owdColorbrewer)[0] }));
+	}
+
+	if (!_.isEmpty(scheme.colors[colorSchemeInterval]))
+		return _.clone(scheme.colors[colorSchemeInterval]);
+
+	// Handle the case of a single color (just for completeness' sake)
+	if (colorSchemeInterval == 1 && !_.isEmpty(scheme.colors[2]))
 		return [scheme.colors[2][0]];
 
 	// If there's no preset color scheme for this many colors, improvise a new one
-
 	var colors = _.clone(scheme.colors[scheme.colors.length-1]);
-	while (colors.length < numColors) {
+	while (colors.length < colorSchemeInterval) {
 		for (var i = 1; i < colors.length; i++) {
 			console.log(i);
 			var startColor = d3.rgb(colors[i-1]);
@@ -83,7 +100,7 @@ owdColorbrewer.getColors = function(schemeName, numColors) {
 			colors.splice(i, 0, newColor);
 			i += 1;
 
-			if (colors.length >= numColors) break;
+			if (colors.length >= colorSchemeInterval) break;
 		}		
 	}
 	return colors;

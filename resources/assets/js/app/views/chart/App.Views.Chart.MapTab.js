@@ -238,17 +238,7 @@
 
 		makeColorScale: function() {
 			var mapConfig = this.mapConfig;
-
-			var colorScheme;						
-			if (mapConfig.colorSchemeName === "custom") {
-				colorScheme = mapConfig.customColorScheme;
-			} else {
-				// Non-custom, using a predefined colorbrewer interval
-				var colorScheme = owdColorbrewer.getColors(mapConfig.colorSchemeName, mapConfig.colorSchemeInterval);				
-
-				if (_.isEmpty(colorScheme))
-					console.warn("Invalid color scheme + interval: " + mapConfig.colorSchemeName + " " + mapConfig.colorSchemeInterval);
-			}
+			var colorScheme = owdColorbrewer.getColors(mapConfig);						
 
 			var colorScale,
 				customValues = mapConfig.colorSchemeValues,
@@ -319,7 +309,6 @@
 		},
 
 		onResize: function() {
-			console.log("mapResize");
 			var map = d3.select(".datamaps-subunits");			
 			if (!this.dataMap || map.empty())
 				return;

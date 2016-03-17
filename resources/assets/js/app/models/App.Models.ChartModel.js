@@ -75,6 +75,8 @@
 				"colorSchemeLabels": [],
 				"colorSchemeValuesAutomatic": true,
 				"colorSchemeInterval": 5,
+				// Whether to reverse the color scheme on output
+				"colorSchemeInvert": false,
 				"colorSchemeMinValue": null,
 				"customColorScheme": [ "#000", "#c00", "#0c0", "#00c", "#c0c" ],
 				"projection": "World",
@@ -89,7 +91,7 @@
 		},
 
 		onSync: function() {
-			if( this.get( "chart-type" ) == 2 ) {
+			if( this.get( "chart-type" ) == App.ChartType.ScatterPlot ) {
 				//make sure for scatter plot, we have color set as continents
 				var chartDimensions = $.parseJSON( this.get( "chart-dimensions" ) );
 				if( !_.findWhere( chartDimensions, { "property": "color" } ) ) {
@@ -185,23 +187,20 @@
 			}
 		},
 
-		updateMapConfig: function( propName, propValue, silent, eventName ) {
-			var mapConfig = this.get( "map-config" ),
-				keys = _.keys( this.defaults["map-config"] );
+		updateMapConfig: function(propName, propValue, silent, eventName) {
+			var mapConfig = this.get("map-config");
 
-			if( $.inArray( propName, keys ) > - 1 ) {
-				//if changing colorschem interval and custom colorscheme is used, update it
-				if( propName === "colorSchemeInterval" && mapConfig.colorSchemeName === "custom" ) {
-					mapConfig.customColorScheme = mapConfig.customColorScheme.slice( 0, propValue );
-				}
+			if (!_.has(this.defaults["map-config"], propName))
+				console.warn("No defined default for map config property '" + propName + "'");
 
-				mapConfig[ propName ] = propValue;
+			//if changing colorschem interval and custom colorscheme is used, update it
+			if (propName === "colorSchemeInterval" && mapConfig.colorSchemeName === "custom")
+				mapConfig.customColorScheme = mapConfig.customColorScheme.slice( 0, propValue );
 
-				if( !silent ) {
-					var evt = ( eventName )? eventName: "change";
-					this.trigger( evt );
-				}
-			}
+			mapConfig[propName] = propValue;
+
+			if (!silent)
+				this.trigger(eventName || "change");
 		}
 	} );
 
