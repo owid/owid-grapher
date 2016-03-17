@@ -107,7 +107,7 @@
 			if (activeTab == "map") {
 				this.updateTimeFromMap(this.parentView.mapTab);
 			} else {
-				if (this.parentView.chartTab !== undefined)
+				if (this.parentView.chartTab && this.parentView.chartTab.localData)
 					this.updateTimeFromChart(this.parentView.chartTab.localData);
 			}
 		},
