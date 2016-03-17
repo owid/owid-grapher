@@ -68,6 +68,9 @@ owdColorbrewer.getColors = function(schemeName, numColors) {
 	if (!_.isEmpty(scheme.colors[numColors]))
 		return scheme.colors[numColors];
 
+	if (numColors == 1 && !_.isEmpty(scheme.colors[2]))
+		return [scheme.colors[2][0]];
+
 	// If there's no preset color scheme for this many colors, improvise a new one
 
 	var colors = _.clone(scheme.colors[scheme.colors.length-1]);
