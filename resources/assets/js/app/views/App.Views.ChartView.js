@@ -25,12 +25,10 @@
 
 		initialize: function( options ) {			
 			$(document).ajaxStart(function() {
-				console.log("ajaxStart");
 				$(".chart-preloader").show();
 			});
 
 			$(document).ajaxStop(function() {
-				console.log("ajaxStop");
 				$(".chart-preloader").hide();
 			});
 

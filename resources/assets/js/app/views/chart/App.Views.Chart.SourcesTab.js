@@ -66,7 +66,6 @@
 			if( license && license.description ) {
 				var desc = license.description,
 					dataUrl = App.ChartModel.get("data-entry-url");
-				console.log(dataUrl);
 
 				// Link to the blog post that is the canonical embed location for this chart
 				if (dataUrl && dataUrl.indexOf("ourworldindata.org/data") != -1)

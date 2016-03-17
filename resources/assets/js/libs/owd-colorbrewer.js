@@ -93,7 +93,6 @@ owdColorbrewer.getColors = function(mapConfig) {
 	var colors = _.clone(scheme.colors[scheme.colors.length-1]);
 	while (colors.length < colorSchemeInterval) {
 		for (var i = 1; i < colors.length; i++) {
-			console.log(i);
 			var startColor = d3.rgb(colors[i-1]);
 			var endColor = d3.rgb(colors[i]);
 			var newColor = d3.interpolate(startColor, endColor)(0.5);

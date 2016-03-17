@@ -275,7 +275,7 @@
 
 			// If this is the first time we switch to custom, populate custom
 			// values with the current color scheme
-			if (colorSchemeName == "custom" && _.isEmpty(mapConfig.customColorScheme));
+			if (colorSchemeName == "custom" && _.isEmpty(mapConfig.customColorScheme))
 				App.ChartModel.updateMapConfig("customColorScheme", owdColorbrewer.getColors(mapConfig));
 
 			App.ChartModel.updateMapConfig("colorSchemeName", colorSchemeName);
