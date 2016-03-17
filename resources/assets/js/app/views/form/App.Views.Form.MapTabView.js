@@ -270,8 +270,15 @@
 		},
 
 		onColorSchemeChange: function( evt ) {
-			var $this = $( evt.target );
-			App.ChartModel.updateMapConfig( "colorSchemeName", $this.val() );
+			var mapConfig = App.ChartModel.get("map-config");
+			var colorSchemeName = $(evt.target).val();
+
+			// If this is the first time we switch to custom, populate custom
+			// values with the current color scheme
+			if (colorSchemeName == "custom" && _.isEmpty(mapConfig.customColorScheme));
+				App.ChartModel.updateMapConfig("customColorScheme", owdColorbrewer.getColors(mapConfig));
+
+			App.ChartModel.updateMapConfig("colorSchemeName", colorSchemeName);
 			//need to update number of classes
 			this.updateColorIntervalSelect();
 		},

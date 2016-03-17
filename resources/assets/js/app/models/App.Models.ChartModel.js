@@ -78,7 +78,8 @@
 				// Whether to reverse the color scheme on output
 				"colorSchemeInvert": false,
 				"colorSchemeMinValue": null,
-				"customColorScheme": [ "#000", "#c00", "#0c0", "#00c", "#c0c" ],
+				// e.g. ["#000", "#c00", "#0c0", "#00c", "#c0c"]
+				"customColorScheme": [],
 				"projection": "World",
 				"legendDescription": "",
 				"legendStepSize": 20,

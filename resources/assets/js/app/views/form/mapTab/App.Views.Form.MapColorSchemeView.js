@@ -104,8 +104,7 @@
 			App.ChartModel.updateMapConfig("colorSchemeName", "custom");
 		},
 
-		updateSchemeValues: function( evt ) {
-			
+		updateSchemeValues: function( evt ) {			
 			//updating minimal value?
 			var $minValueInput = this.$inputs.eq( 0 );
 			if( $minValueInput.get( 0 ) == evt.currentTarget ) {
@@ -128,8 +127,7 @@
 			
 				App.ChartModel.updateMapConfig( "colorSchemeValues", values );
 
-			}
-			
+			}			
 		},
 
 		updateSchemeLabels: function() {
