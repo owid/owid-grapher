@@ -60,18 +60,16 @@
 
 				evt.preventDefault();
 
-				var $country = $( evt.currentTarget );
-				if( that.colorPicker ) {
-					that.colorPicker.close();
-				}
-				that.colorPicker = new ColorPicker( $country );
-				that.colorPicker.init( $country );
+				var $country = $(evt.currentTarget);
+				if (that.colorPicker)
+					that.colorPicker.onClose();
+
+				that.colorPicker = new ColorPicker({ target: $country, currentColor: $country.attr("data-color") });
 				that.colorPicker.onSelected = function( value ) {
 					$country.css( "background-color", value );
 					$country.attr( "data-color", value );
 					that.updateColorScheme();
 					//App.ChartModel.updateSelectedCountry( $countryLabel.attr( "data-id" ), value );
-					that.colorPicker.close();
 				};
 
 			} );

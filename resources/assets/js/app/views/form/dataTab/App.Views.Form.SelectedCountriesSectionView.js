@@ -32,6 +32,7 @@
 				that.$el.append( $li );
 				if( v.color ) {
 					$li.css( "background-color", v.color );
+					$li.attr("data-color", v.color);
 				}
 			} );
 
@@ -47,13 +48,11 @@
 				if( colorPicker ) {
 					colorPicker.close();
 				}
-				colorPicker = new ColorPicker( $countryLabel );
-				colorPicker.init( $countryLabel );
+				colorPicker = new ColorPicker({ target: $countryLabel, currentColor: $countryLabel.attr("data-color") });
 				colorPicker.onSelected = function( value ) {
 					$countryLabel.css( "background-color", value );
 					$countryLabel.attr( "data-color", value );
 					App.ChartModel.updateSelectedCountry( $countryLabel.attr( "data-id" ), value );
-					colorPicker.close();
 					//that.$el.trigger( "change" );
 				};
 
