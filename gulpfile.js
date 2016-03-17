@@ -15,6 +15,7 @@ elixir(function(mix) {
     mix.copy('resources/assets/css/libs/font-awesome/fonts', 'public/build/fonts');
     mix.copy('vendor/zofe/rapyd/public/assets/lib/bootstrap/dist/fonts', 'public/build/fonts');
     mix.copy('resources/assets/css/libs/chosen-sprite.png', 'public/build/css/');
+    mix.copy('resources/assets/css/img', 'public/build/img');
     mix.copy('resources/assets/css/libs/chosen-sprite@2x.png', 'public/build/css/');
     mix.copy('resources/assets/js/data', 'public/build/js/data');
     mix.copy('resources/assets/js/libs/modernizr-2.8.3.min.js', 'public/build/js/');

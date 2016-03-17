@@ -71,10 +71,8 @@
 		},
 
 		activate: function() {
-			$(".chart-preloader").show();
 			this.vardataModel.ready(function(variableData) {
 				this.render(variableData);
-				$(".chart-preloader").hide();
 			}.bind(this));				
 		},
 

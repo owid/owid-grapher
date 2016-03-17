@@ -20,7 +20,6 @@
 		App.ChartModel = new ChartModel( { id: chartId } );
 		App.ChartModel.fetch( {
 			success: function( data ) {
-				
 				App.View.start();
 			
 			},

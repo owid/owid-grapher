@@ -23,7 +23,17 @@
 			"click .chart-export-btn": "exportContent"
 		},
 
-		initialize: function( options ) {
+		initialize: function( options ) {			
+			$(document).ajaxStart(function() {
+				console.log("ajaxStart");
+				$(".chart-preloader").show();
+			});
+
+			$(document).ajaxStop(function() {
+				console.log("ajaxStop");
+				$(".chart-preloader").hide();
+			});
+
 			if (App.ChartModel.get("chart-name"))
 				$(".chart-preloader").show();
 			
@@ -80,14 +90,6 @@
 
 			var defaultTab = App.ChartModel.get("default-tab");
 			$("." + defaultTab + "-header-tab a").tab('show');
-
-			$(document).ajaxStart(function() {
-				$(".chart-preloader").show();
-			});
-
-			$(document).ajaxStop(function() {
-				$(".chart-preloader").hide();
-			});
 		},
 
 		setDefaultTabFromUrl: function() {
