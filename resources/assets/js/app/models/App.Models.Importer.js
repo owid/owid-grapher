@@ -22,7 +22,6 @@
 		},
 
 		uploadFormData: function( $form, origUploadedData ) {
-
 			if( !$form || !$form.length ) {
 				return false;
 			}

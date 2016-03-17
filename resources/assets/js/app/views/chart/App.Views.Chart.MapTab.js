@@ -41,8 +41,6 @@
 				return;
 			}*/
 
-			
-
 			if (this.isAwake) {
 				this.trigger("tab-ready");
 				return;
@@ -57,7 +55,6 @@
 
 		update: function() {
 			this.mapConfig = App.ChartModel.get("map-config");
-
 
 			// We need to wait for both datamaps to finish its setup and the variable data
 			// to come in before the map can be fully rendered

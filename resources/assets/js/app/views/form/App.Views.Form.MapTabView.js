@@ -108,7 +108,6 @@
 		},
 
 		updateVariableSelect: function() {
-
 			var mapConfig = App.ChartModel.get( "map-config" ),
 				models = App.ChartVariablesCollection.models,
 				html = "";
@@ -138,11 +137,9 @@
 				this.$variableIdSelect.val( firstOption );
 				App.ChartModel.updateMapConfig( "variableId", firstOption );
 			}
-
 		},
 		
-		updateColorSchemeSelect: function() {
-			
+		updateColorSchemeSelect: function() {			
 			var html = "",
 				mapConfig = App.ChartModel.get( "map-config" );
 
@@ -152,26 +149,27 @@
 				html += "<option value='" + i + "' " + selected + ">" + v.name + "</option>";
 			} );
 			this.$colorSchemeSelect.append( $( html ) );
-
 		},
 
 		updateColorIntervalSelect: function() {
-			
 			var html = "",
 				mapConfig = App.ChartModel.get( "map-config" ),
-				keys = _.keys( owdColorbrewer[ mapConfig.colorSchemeName ] ),
-				max = parseInt( keys[ keys.length - 1 ], 10 ),
-				min = parseInt( keys[ 0 ], 10 );
+				colors = owdColorbrewer[mapConfig.colorSchemeName].colors,
+				max = mapConfig.colorSchemeName == "custom" ? NaN : colors.length-1,
+				min = 1;
 
-			this.$colorIntervalSelect.attr( "min", min );
-			this.$colorIntervalSelect.attr( "max", max );
+			this.$colorIntervalSelect.attr("min", min);
+			this.$colorIntervalSelect.attr("max", max);
 
-			if( mapConfig.colorSchemeInterval ) {
-				this.$colorIntervalSelect.val( mapConfig.colorSchemeInterval );
-				//there's not selected interval that would exist with current color scheme, select that first
-				App.ChartModel.updateMapConfig( "colorSchemeInterval", this.$colorIntervalSelect.val() );
-			}
+			// Match the currently selected interval to the closest one that is
+			// actually available for this color scheme
+			var currentInterval = parseInt(mapConfig.colorSchemeInterval);
+			if (currentInterval < min) currentInterval = min;
+			if (currentInterval > max) currentInterval = max;
 
+			this.$colorIntervalSelect.val(currentInterval);
+			if (currentInterval != mapConfig.colorSchemeInterval)
+				App.ChartModel.updateMapConfig("colorSchemeInterval", currentInterval);
 		},
 
 		updateProjectionsSelect: function() {
