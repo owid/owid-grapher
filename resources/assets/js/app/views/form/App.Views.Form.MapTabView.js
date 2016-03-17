@@ -152,24 +152,8 @@
 		},
 
 		updateColorIntervalSelect: function() {
-			var html = "",
-				mapConfig = App.ChartModel.get( "map-config" ),
-				colors = owdColorbrewer[mapConfig.colorSchemeName].colors,
-				max = mapConfig.colorSchemeName == "custom" ? NaN : colors.length-1,
-				min = 1;
-
-			this.$colorIntervalSelect.attr("min", min);
-			this.$colorIntervalSelect.attr("max", max);
-
-			// Match the currently selected interval to the closest one that is
-			// actually available for this color scheme
-			var currentInterval = parseInt(mapConfig.colorSchemeInterval);
-			if (currentInterval < min) currentInterval = min;
-			if (currentInterval > max) currentInterval = max;
-
-			this.$colorIntervalSelect.val(currentInterval);
-			if (currentInterval != mapConfig.colorSchemeInterval)
-				App.ChartModel.updateMapConfig("colorSchemeInterval", currentInterval);
+			var mapConfig = App.ChartModel.get("map-config");
+			this.$colorIntervalSelect.val(mapConfig.colorSchemeInterval);
 		},
 
 		updateProjectionsSelect: function() {

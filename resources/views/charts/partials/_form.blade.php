@@ -449,7 +449,7 @@
 							</label>
 							<label>
 								Number of intervals:
-								<input name="map-color-interval" type="number" class="form-control" />
+								<input name="map-color-interval" type="number" class="form-control" min="1" max="99" />
 							</label>
 							<label>
 								<input name="map-color-automatic-classification" type="checkbox" checked/>

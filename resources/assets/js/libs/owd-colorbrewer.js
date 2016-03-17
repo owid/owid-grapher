@@ -1,5 +1,6 @@
 // http://colorbrewer.org/ with added binary scaleThis product includes color specifications and designs developed by Cynthia Brewer (http://colorbrewer.org/).
 var owdColorbrewer = {};
+
 for( var schemeName in colorbrewer ) {
 
 	var longSchemeNames = {
@@ -56,6 +57,31 @@ for( var schemeName in colorbrewer ) {
 		owdColorbrewer[ schemeName ][ "colors" ][ i ] = scheme;
 	
 	}
-
 }
+
 owdColorbrewer[ "custom" ] = { "name": "custom", "colors": []};
+
+owdColorbrewer.getColors = function(schemeName, numColors) {
+	var scheme = owdColorbrewer[schemeName];
+	if (!scheme) return null;
+
+	if (!_.isEmpty(scheme.colors[numColors]))
+		return scheme.colors[numColors];
+
+	// If there's no preset color scheme for this many colors, improvise a new one
+
+	var colors = _.clone(scheme.colors[scheme.colors.length-1]);
+	while (colors.length < numColors) {
+		for (var i = 1; i < colors.length; i++) {
+			console.log(i);
+			var startColor = d3.rgb(colors[i-1]);
+			var endColor = d3.rgb(colors[i]);
+			var newColor = d3.interpolate(startColor, endColor)(0.5);
+			colors.splice(i, 0, newColor);
+			i += 1;
+
+			if (colors.length >= numColors) break;
+		}		
+	}
+	return colors;
+};

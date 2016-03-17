@@ -244,8 +244,7 @@
 				colorScheme = mapConfig.customColorScheme;
 			} else {
 				// Non-custom, using a predefined colorbrewer interval
-				var brewer = owdColorbrewer[mapConfig.colorSchemeName];				
-				colorScheme = (brewer && brewer.colors[mapConfig.colorSchemeInterval]) || [];
+				var colorScheme = owdColorbrewer.getColors(mapConfig.colorSchemeName, mapConfig.colorSchemeInterval);				
 
 				if (_.isEmpty(colorScheme))
 					console.warn("Invalid color scheme + interval: " + mapConfig.colorSchemeName + " " + mapConfig.colorSchemeInterval);

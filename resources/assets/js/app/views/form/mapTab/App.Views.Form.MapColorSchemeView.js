@@ -31,7 +31,7 @@
 				colorSchemeName;
 
 			if( mapConfig.colorSchemeName !== "custom" ) {
-				colorScheme = ( owdColorbrewer[ mapConfig.colorSchemeName ] && owdColorbrewer[ mapConfig.colorSchemeName ][ "colors" ][ mapConfig.colorSchemeInterval ] )? owdColorbrewer[ mapConfig.colorSchemeName ][ "colors" ][ mapConfig.colorSchemeInterval ]: [];
+				colorScheme = owdColorbrewer.getColors(mapConfig.colorSchemeName, mapConfig.colorSchemeInterval);
 			} else if( mapConfig.colorSchemeName ) {
 				colorScheme = mapConfig.customColorScheme;
 			}
