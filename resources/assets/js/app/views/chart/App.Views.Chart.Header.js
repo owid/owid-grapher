@@ -19,6 +19,7 @@
 			this.$chartSubname = this.$el.find( ".chart-subname" );
 
 			this.$logo = this.$el.find( ".logo" );
+			this.$secondLogo = this.$el.find(".second-logo");
 			this.$logoSvg = d3.select( ".chart-logo-svg" );
 			this.$logoSvgImage = this.$logoSvg.select( ".chart-logo-svg-image" );
 			this.$logoSvgVector = this.$logoSvg.select( ".chart-logo-svg-vector" );
@@ -34,7 +35,8 @@
 				chartSubname = App.ChartModel.get( "chart-subname" ) || "",
 				addCountryMode = App.ChartModel.get( "add-country-mode" ),
 				selectedCountries = App.ChartModel.get( "selected-countries" ),
-				logo = App.ChartModel.get( "logo" ),
+				logo = App.ChartModel.get("logo"),
+				secondLogo = App.ChartModel.get("second-logo"),
 				tabs = App.ChartModel.get( "tabs" );
 
 			//might need to replace country in title, if "change country" mode
@@ -59,7 +61,6 @@
 			this.$chartSubname.html(chartSubname);
 			//setup image for header
 			if( logo ) {
-
 				var fullUrl = Global.rootUrl + "/" + logo;
 				this.$logo.attr( "src", fullUrl );
 				this.$logo.css( "visibility", "visible" );
@@ -69,7 +70,14 @@
 				this.$logo.on( "load", function() {
 					that.$logoSvgImage.attr( { "width": this.width, "height": this.height } );
 				} );
+			}
 
+			if( secondLogo ) {
+				var fullUrl = Global.rootUrl + "/" + secondLogo;
+				this.$secondLogo.attr( "src", fullUrl );
+				this.$secondLogo.show();
+			} else {
+				this.$secondLogo.hide();
 			}
 
 			//should be displayed

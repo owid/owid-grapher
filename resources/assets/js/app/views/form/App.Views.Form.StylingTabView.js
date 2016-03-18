@@ -9,6 +9,7 @@
 		el: "#form-view #styling-tab",
 		events: {
 			"change [name='logo']": "onLogoChange",
+			"change [name='second-logo']": "onLogoChange",
 			"change [name='line-type']": "onLineTypeChange",
 			"change [name^='margin-']": "onMarginChange",
 			"change [name='hide-legend']": "onHideLegendChange",
@@ -22,6 +23,7 @@
 			
 			//logos
 			this.$logo = this.$el.find( "[name='logo']" );
+			this.$secondLogo = this.$el.find("[name='second-logo']");
 
 			this.$lineTypeRadios = this.$el.find( "[name='line-type']" );
 			
@@ -46,9 +48,10 @@
 		},
 
 		render: function() {
-			
-			var logoId = App.ChartModel.get( "logo" );
-			this.$logo.val( logoId );
+			var logoId = App.ChartModel.get("logo");
+			this.$logo.val(logoId);
+			var secondLogoId = App.ChartModel.get("second-logo");
+			this.$secondLogo.val(secondLogoId);
 
 			var lineType = App.ChartModel.get( "line-type" );
 			this.$lineTypeRadios.filter( "[value='" + lineType + "']" ).prop( "checked", true );
@@ -66,12 +69,9 @@
 			this.updateUnits();
 		},
 
-		onLogoChange: function( evt ) {
-
-			var $select = $( evt.currentTarget ),
-				logoId = $select.val();
-			App.ChartModel.set( "logo", logoId );
-
+		onLogoChange: function(evt) {
+			App.ChartModel.set("logo", this.$logo.val());
+			App.ChartModel.set("second-logo", this.$secondLogo.val());
 		},
 
 		onLineTypeChange: function( evt ) {

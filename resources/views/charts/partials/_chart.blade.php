@@ -1,7 +1,10 @@
 <div id="chart-view" class="col-sm-12 col-md-6 chart-wrapper chart-edit-wrapper" @if (isset($chart)) data-chart-id="{{ $chart->id }}" @endif>
 	<div class="chart-wrapper-inner">
 		<div class="chart-header clearfix">
-			<img src="" class="logo" title="Logo" style="visibility:hidden"/>
+			<div class="logos">
+				<img src="" class="logo" title="Logo" style="visibility:hidden"/>
+				<img src="" class="second-logo" title="Logo" style="display: none;"/>
+			</div>
 			<h2 class="chart-name"></h2>
 			<h3 class="chart-subname"></h3>
 			<ul class="chart-tabs clearfix">

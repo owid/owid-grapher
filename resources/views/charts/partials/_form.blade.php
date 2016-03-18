@@ -67,7 +67,7 @@
 							<h2><span class="form-section-digit">d</span>Any notes</h2>
 						</div>
 						<div class="form-section-content">
-							<textarea class="form-control input-lg .col-xs-12" placeholder="What are we using this chart for?" type="text" name="chart-notes" value=""></textarea>
+							<textarea class="form-control input-lg .col-xs-12" placeholder="WIP, needs review, etc" type="text" name="chart-notes" value=""></textarea>
 						</div>
 					</section>
 				</div>
@@ -267,7 +267,7 @@
 				<div id="styling-tab" class="tab-pane">
 					<section class="form-section logo-section">
 						<div class="form-section-header">
-							<h2><span class="form-section-digit">i</span>Logo</h2>
+							<h2><span class="form-section-digit">i</span>Logos</h2>
 						</div>
 						<div class="form-section-content">
 							<select name="logo" class="form-control logo-select">
@@ -276,6 +276,12 @@
 									<option value="{{ $logoId }}">{{ $logoName }}</option>
 								@endforeach
 							</select>
+							<select name="second-logo" class="form-control logo-select">
+								<option value="" selected>None</option>
+								@foreach( $data->logos as $logoId=>$logoName )
+									<option value="{{ $logoId }}">{{ $logoName }}</option>
+								@endforeach
+							</select>							
 						</div>
 					</section>
 					<section class="form-section type-of-line-section">

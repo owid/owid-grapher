@@ -28,9 +28,9 @@ body {
 		color: #000000;
 	}
 
-	#chart-view .logo {
-		position: absolute;
-		right: 0px;
+	#chart-view .logos {
+		float: right;
+		padding-left: 10px;
 	}
 
 	.nvd3 .nv-axis {

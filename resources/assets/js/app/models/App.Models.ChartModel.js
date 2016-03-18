@@ -44,6 +44,7 @@
 			"margins": { top: 10, left: 60, bottom: 10, right: 10 },
 			"units": "",
 			"logo": "uploads/26538.png",
+			"second-logo": null,
 			"iframe-width": "100%",
 			"iframe-height": "660px",
 			"hide-legend": false,
