@@ -107,25 +107,21 @@ class DatasetsController extends Controller {
 	 */
 	public function destroy(Dataset $dataset, Request $request)
 	{	
-		//delete tags
-		$tags = $dataset->tags;
-		foreach( $tags as $tag ) {
-			$tag->delete();
-		}
 
-		//delete variables data 
-		$variables = $dataset->variables;
-		foreach( $variables as $variable ) {
-			//delete time
-			foreach( $variable->data()->get()->all() as $varData ) {
-				$varData->delete();
-				$varData->time->delete();
-			}
-		}
-		//delete variables
-		$dataset->variables()->delete();
-		//delete itself
-		$dataset->delete();
+		DB::transaction(function() use ($dataset) {
+			// XXX (Mispy): The times don't actually foreign key into anything so
+			// they can't be deleted by cascade from the variable
+			DB::table('times')
+				->join('data_values', 'data_values.fk_time_id', '=', 'times.id')
+				->join('variables', 'data_values.fk_var_id', '=', 'variables.id')
+				->where('variables.fk_dst_id', $dataset->id)
+				->delete();
+
+			// Cascade will handle the rest
+			DB::table('datasets')
+				->where('datasets.id', $dataset->id)
+				->delete();
+		});
 		
 		Cache::flush();
 		
