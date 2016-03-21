@@ -163,9 +163,16 @@
 		var outputYears = [];
 
 		var parseYear = function(year) {
-			if (year == "first") return first;
-			else if (year == "last") return last;
-			else return parseInt(year);
+			var result;
+
+			if (year == "first") result = parseInt(first);
+			else if (year == "last") result = parseInt(last);
+			else result = parseInt(year);
+
+			if (isNaN(result))
+				throw new TypeError("Couldn't parse year: " + result);
+
+			return result;
 		};
 
 		_.each(timeRanges, function(timeRange) {
@@ -204,7 +211,7 @@
 			else {
 				var year = parseInt(yearStr);
 				if (!year) {
-					throw RangeError("Invalid year " + yearStr);
+					throw new RangeError("Invalid year " + yearStr);
 				} else {
 					return year;
 				}
