@@ -24,61 +24,8 @@ Route::model( 'tags', 'DatasetTag' );
 Route::model( 'apiKeys', 'ApiKey' );
 Route::model( 'logos', 'Logo' );
 
-//Route::get('/', 'WelcomeController@index');
-Route::get('/', 'HomeController@index');
-Route::get('/home', 'HomeController@index');
 
-Route::controllers([
-	'auth' => 'Auth\AuthController',
-	'password' => 'Auth\PasswordController',
-]);
-
-//api routes
-Route::group( [ 'prefix' => 'v1', 'before' => 'auth.api_key' ], function() {
-	Route::get( '/data', 'ApiController@data' );
-	Route::get( '/variables', 'ApiController@variables' );
-	Route::get( '/entities', 'ApiController@entities' );
-} );
-Route::get( 'api', 'ApiController@index' );
-
-Route::filter( 'auth.api_key', function( $route, $request ) {
-
-	$apiKey = ( Input::has( 'api_key' ) )? Input::get( 'api_key' ): '';
-
-	$errorMessage = '';
-	if( empty( $apiKey ) ) {
-
-		$errorMessage = 'All API calls have to be made with an api_key paramater.';
-	
-	} else {
-
-		$validKeys = ApiKey::where( 'value', $apiKey )->get();
-		if( $validKeys->isEmpty() ) {
-			$errorMessage = 'Invalid API key.';
-		}
-
-	}
-
-	if( !empty( $errorMessage ) ) {
-		
-		$response = Response::json([
-			'error' => true,
-			'message' => $errorMessage,
-			'code' => 401],
-			401
-		);
-
-		$response->header('Content-Type', 'application/json');
-		return $response;
-	}
-
-} );
-
-
-
-Route::get('/logout', [ 'as' => 'logout', 'uses' => 'Auth\AuthController@getLogout' ] );
-
-Route::group(['middleware' => 'auth'], function()
+Route::group(['middleware' => ['web', 'auth']], function()
 {
 	Route::resource( 'entities', 'EntitiesController' );
 	Route::resource( 'datasources', 'DatasourcesController' );
@@ -138,6 +85,7 @@ Route::group(['middleware' => 'auth'], function()
 
 	Route::get( 'import', [ 'as' => 'import', 'uses' => 'ImportController@index' ] );
 	Route::post( 'import/store', 'ImportController@store' );
+	Route::post('import/variables', 'ImportController@variables');
 
 	Route::get( 'entityIsoNames/validateData', 'EntityIsoNamesController@validateData' );
 	
@@ -152,8 +100,46 @@ Route::group(['middleware' => 'auth'], function()
 	
 	Route::get( 'sourceTemplate', [ 'as' => 'sourceTemplate', 'uses' => 'SourceTemplateController@edit' ] );
 	Route::patch( 'sourceTemplate', [ 'as' => 'sourceTemplate.update', 'uses' => 'SourceTemplateController@update' ] );
-
 });
+
+Route::group(['middleware' => ['web']], function () {
+	//Route::get('/', 'WelcomeController@index');
+	Route::get('/', 'HomeController@index');
+	Route::get('/home', 'HomeController@index');
+
+	Route::controllers([
+		'auth' => 'Auth\AuthController',
+		'password' => 'Auth\PasswordController',
+	]);
+
+	//api routes
+	Route::group( [ 'prefix' => 'v1', 'before' => 'auth.api_key' ], function() {
+		Route::get( '/data', 'ApiController@data' );
+		Route::get( '/variables', 'ApiController@variables' );
+		Route::get( '/entities', 'ApiController@entities' );
+	} );
+	Route::get( 'api', 'ApiController@index' );
+
+	Route::get('/logout', [ 'as' => 'logout', 'uses' => 'Auth\AuthController@getLogout' ] );
+
+
+	Route::get( 'view', 'ViewController@index' );
+	Route::get( 'view/{id}', [ 'as' => 'view', 'uses' => 'ViewController@showId' ] );
+	Route::get( 'testall', 'ViewController@testall' );
+
+	Route::get('data', 'DataController@index');
+	Route::get('data/variables/{ids}', 'DataController@variables');
+	Route::get('data/config/{id}', 'ChartsController@config');
+	Route::get('data/dimensions', [ 'as' => 'dimensions', 'uses' => 'DataController@dimensions' ]);
+	Route::post('data/exportToSvg', [ 'as' => 'exportToSvg', 'uses' => 'DataController@exportToSvg' ]);
+	Route::get('data/entities', 'DataController@entities');
+	Route::get('data/search', 'DataController@search');
+	Route::get('data/times', 'DataController@times');
+	Route::get('data/matchIsoName', 'DataController@matchIsoName');
+
+	Route::any('{all}', array('uses' => 'ViewController@showSlug'))->where('all', '(?!_debugbar).*');
+});
+
 
 Response::macro( 'xml', function($vars, $status = 200, array $header = [], $xml = null, $elName = 'el' ) {
 	if( is_null( $xml ) ) {
@@ -174,37 +160,6 @@ Response::macro( 'xml', function($vars, $status = 200, array $header = [], $xml 
 	}
 	return Response::make( $xml->asXML(), $status, $header );
 } );
-
-Route::get( 'view', 'ViewController@index' );
-Route::get( 'view/{id}', [ 'as' => 'view', 'uses' => 'ViewController@showId' ] );
-Route::get( 'testall', 'ViewController@testall' );
-
-Route::group( [ 'before' => 'auth.domain' ], function() {
-
-	Route::get( 'data', 'DataController@index' );
-	Route::get('data/variables/{ids}', 'DataController@variables');
-	Route::get( 'data/config/{id}', 'ChartsController@config' );
-	Route::get( 'data/dimensions', [ 'as' => 'dimensions', 'uses' => 'DataController@dimensions' ] );
-	Route::post( 'data/exportToSvg', [ 'as' => 'exportToSvg', 'uses' => 'DataController@exportToSvg' ] );
-	Route::get( 'data/entities', 'DataController@entities' );
-	Route::get( 'data/search', 'DataController@search' );
-	Route::get( 'data/times', 'DataController@times' );
-	Route::get( 'data/matchIsoName', 'DataController@matchIsoName' );
-} );
-
-Route::filter( 'auth.domain', function( $route, $request ) {
-
-	$allowedDomains = [ 'ourworldindata.org' ];
-	$requestDomain = $request->header('Host');
-
-	if(!Config::get('app.debug') && !in_array( $requestDomain, $allowedDomains ) ) {
-		//request not coming from one of the allowed domains
-		App::abort(401, 'Request allowed only from certain hosts.');
-	}
-
-} );
-
-Route::any('{all}', array('uses' => 'ViewController@showSlug'))->where('all', '(?!_debugbar).*');
 
 
 /*use App\Chart;

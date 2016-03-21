@@ -63,6 +63,13 @@ class ImportController extends Controller {
 	}
 
 	/**
+	 * Import a collection of variables
+	 */
+	public function variables() {
+		return ['success' => true];
+	}
+
+	/**
 	 * Show the form for creating a new resource.
 	 *
 	 * @return Response

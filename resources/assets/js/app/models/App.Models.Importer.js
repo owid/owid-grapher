@@ -55,6 +55,8 @@
 			//add extra steps
 			this.numSteps += 3;
 
+
+			debugger;
 			try {
 				
 				//start import
