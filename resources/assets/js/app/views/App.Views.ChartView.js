@@ -43,7 +43,7 @@
 			// TODO - consider switching to a more client-side data processing system
 			// for all the tabs, like the map uses
 			this.vardataModel = new ChartDataModel();
-			window.vardataModel = this.vardataModel;
+			App.DataModel = this.vardataModel;
 
 			var childViewOptions = { dispatcher: this.dispatcher, parentView: this, vardataModel: this.vardataModel };
 			this.header = new Header(childViewOptions);

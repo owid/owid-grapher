@@ -8,144 +8,80 @@
 
 		el: "#form-view #data-tab .time-section",
 		events: {
-			"change [name='dynamic-time']": "onDynamicTime",
+			"change [name='dynamic-time']": "onDynamicTimeToggle",
 			"change [name='chart-time-from']": "onChartTimeChange",
 			"change [name='chart-time-to']": "onChartTimeChange"
 		},
 
-		initialize: function( options ) {
-			
+		initialize: function( options ) {			
 			this.dispatcher = options.dispatcher;
-			this.dispatcher.on( "dimension-update", this.onDimensionUpdate, this );
-			
-			App.AvailableTimeModel.on( "change", this.onAvailableTimeChange, this );
-
+			App.DataModel.on("change", this.render, this);
 			this.render();
-
 		},
 
 		render: function() {
+			this.$entitiesSelect = this.$el.find(".countries-select");
+			this.$chartTime = this.$el.find("[name='chart-time']");
+			this.$dynamicTime = this.$el.find("[name='dynamic-time']");
 
-			var that = this;
+			this.$chartTimeFrom = this.$el.find("[name='chart-time-from']");
+			this.$chartTimeTo = this.$el.find("[name='chart-time-to']");
 
-			this.$entitiesSelect = this.$el.find( ".countries-select" );
-			this.$chartTime = this.$el.find( "[name='chart-time']" );
-			this.$dynamicTime = this.$el.find( "[name='dynamic-time']" );
-			this.$irs = this.$el.find( ".irs" );
+			var chartTime = App.ChartModel.get("chart-time"),
+				isDynamicTime = _.isEmpty(chartTime),
+				minDataYear = App.DataModel.get("minYear") || 0,
+				maxDataYear = App.DataModel.get("maxYear") || new Date().getFullYear(),
+				minYear = isDynamicTime ? minDataYear : chartTime[0],
+				maxYear = isDynamicTime ? maxDataYear : chartTime[1],
+				slider = this.$chartTime.data("ionRangeSlider");
 
-			this.$chartTimeFrom = this.$el.find( "[name='chart-time-from']" );
-			this.$chartTimeTo = this.$el.find( "[name='chart-time-to']" );
+			this.$dynamicTime.prop("checked", isDynamicTime);
+			this.$chartTimeFrom.val(minYear);
+			this.$chartTimeTo.val(maxYear);
 
-			this.$chartTime.ionRangeSlider({
+			var sliderOptions = {
 				type: "double",
-				min: 0,
-				max: 2015,
-				from: 1000,
-				to: 1500,
+				min: minDataYear,
+				max: maxDataYear,
+				from: minYear,
+				to: maxYear,
 				grid: true,
-				onChange: function( data ) {
-					that.$chartTimeFrom.val(data.from);
-					that.$chartTimeTo.val(data.to);
-					App.ChartModel.set( "chart-time", [data.from, data.to] );
-				}
-			});
-			setTimeout( function() {
-				if( hasDynamicTime ) {
-					that.$irs.addClass( "disabled" );
-				}
-			}, 250 );
+				onChange: function(data) {
+					this.$chartTimeFrom.val(data.from);
+					this.$chartTimeTo.val(data.to);
+					App.ChartModel.set("chart-time", [data.from, data.to]); 
+				}.bind(this),
+				onStart: function() {
+					this.onDynamicTimeToggle();
+				}.bind(this)
+			};
 
-			var hasDynamicTime = ( App.ChartModel.get( "chart-time" ) )? false: true;
-			if( !hasDynamicTime ) {
-				var chartTime = App.ChartModel.get( "chart-time" );
-				this.updateTime( chartTime[ 0 ], chartTime[ 1 ] );
-			} else if( App.AvailableTimeModel.get( "min" ) && App.AvailableTimeModel.get( "max" ) ) {
-				this.updateTime( App.AvailableTimeModel.get( "min" ), App.AvailableTimeModel.get( "max" ) );
-				if( hasDynamicTime ) {
-					this.$dynamicTime.prop( "checked", true );
-					this.$chartTimeFrom.prop( "readonly", true);
-					this.$chartTimeTo.prop( "readonly", true);
-				}
-			}
-			
+			if (!slider)
+				this.$chartTime.ionRangeSlider(sliderOptions);
+			else
+				slider.update(sliderOptions);
 		},
 
-		onAvailableTimeChange: function() {
-			this.updateTime( App.AvailableTimeModel.get( "min" ), App.AvailableTimeModel.get( "max" ) );
+		onDynamicTimeToggle: function() {
+			var isDynamicTime = this.$dynamicTime.prop("checked");
+			this.$chartTimeFrom.prop("readonly", isDynamicTime);
+			this.$chartTimeTo.prop("readonly", isDynamicTime);
+			this.$el.find(".irs").toggleClass("disabled", isDynamicTime);
+			if (isDynamicTime)
+				App.ChartModel.set("chart-time", null);
+			else
+				this.onChartTimeChange();
 		},
 
-		onDimensionUpdate: function() {
+		onChartTimeChange: function() {
+			var slider = this.$chartTime.data("ionRangeSlider"),
+				minYear = this.$chartTimeFrom.val(),
+				maxYear = this.$chartTimeTo.val();
 
-			var dimensionString = App.ChartModel.get( "chart-dimensions" ),
-				timeFrom = Infinity,
-				timeTo = -Infinity,
-				limitTime = true;
-
-			if( !$.isEmptyObject( dimensionString ) ) {
-
-				var dimensions = $.parseJSON( dimensionString );
-				$.each( dimensions, function( i, v ) {
-					if( v.period === "single" && v.mode === "specific" ) {
-						//get min/max local
-						var year = parseInt( v.targetYear, 10 ),
-							localFrom = year - parseInt( v.tolerance, 10 ),
-							localTo = year + parseInt( v.tolerance, 10 );
-						timeFrom = Math.min( localFrom, timeFrom );
-						timeTo = Math.max( localTo, timeTo );
-					} else {
-						//set flag that there is some dimension that cannot be limited automaticaly
-						limitTime = false;
-					}
-				} );
-
-			}
-
-			//if something has changed, set time interval only to necessary
-			if( limitTime && timeFrom < Infinity && timeTo > -Infinity ) {
-				this.updateTime( timeFrom, timeTo );
-				App.ChartModel.set( "chart-time", [ timeFrom, timeTo ] );
-			}
-
+			App.ChartModel.set("chart-time", [minYear, maxYear]); 
+			if (slider)
+				slider.update({'from': minYear, 'to': maxYear});
 		},
-
-		updateTime: function( from, to ) {
-
-			var slider = $( "[name=chart-time]" ).data( "ionRangeSlider" );
-			if( slider ) {
-				slider.update( {from: from, to: to } );
-				//updating slider, so have some set values and disabling dynamic table
-				this.$dynamicTime.prop( "checked", false );
-				this.$irs.removeClass( "disabled" );
-				this.$chartTimeFrom.val(from);
-				this.$chartTimeTo.val(to);
-			}
-			
-		},
-
-		onDynamicTime: function() {
-
-			if( this.$dynamicTime.is( ":checked" ) ) {
-				this.$irs.addClass( "disabled" );
-				this.$chartTimeFrom.prop( "readonly", true);
-				this.$chartTimeTo.prop( "readonly", true);
-			} else {
-				this.$irs.removeClass( "disabled" );
-				this.$chartTimeFrom.prop( "readonly", false);
-				this.$chartTimeTo.prop( "readonly", false);
-			}
-		
-		},
-
-		onChartTimeChange: function( evt ) {
-			evt.preventDefault();
-			var slider = $( "[name=chart-time]" ).data( "ionRangeSlider" ),
-				from = this.$chartTimeFrom.val(),
-				to = this.$chartTimeTo.val();
-			App.ChartModel.set( "chart-time", [from, to] );
-			slider.update( {from: from, to: to } );
-		}
-
-
 	});
 
 	module.exports = App.Views.Form.TimeSectionView;

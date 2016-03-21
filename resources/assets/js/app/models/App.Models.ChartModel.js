@@ -31,6 +31,8 @@
 			"chart-name": "",
 			"chart-slug": "",
 			"chart-notes": "",
+			// A range of form e.g. [0, 2015] with null meaning "all of it"
+			"chart-time": null,
 			"cache": true,
 			"selected-countries": [], // e.g. [{id: "1", name: "United Kingdom"}]
 			"tabs": [ "chart", "data", "sources" ],

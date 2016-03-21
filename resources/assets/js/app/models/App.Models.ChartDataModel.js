@@ -4,6 +4,11 @@
 
 	var App = require( "./../namespaces.js" );
 
+	/**
+	 * This model handles the mass retrieval of data values associated with one
+	 * or more variables, and is responsible for transforming the raw data into
+	 * formats appropriate for use by the charts or other frontend systems.
+	 **/
 	App.Models.ChartDataModel = Backbone.Model.extend( {
 		defaults: {},
 
@@ -27,8 +32,18 @@
 			this.dataRequest = $.getJSON(Global.rootUrl + "/data/variables/" + variableIds.join("+"));
 			this.dataRequest.done(function(data) {
 				this.dataRequest = null;
-				this.set("variableData", data);
+				this.receiveData(data);
 			}.bind(this));
+		},
+
+		receiveData: function(variableData) {
+			// We calculate some basic metadata that is likely to be useful to everyone
+			var startYears = _.map(variableData.variables, function(v) { return _.first(v.years); });
+			var endYears = _.map(variableData.variables, function(v) { return _.last(v.years); });
+			var minYear = _.min(startYears);
+			var maxYear = _.max(endYears);
+
+			this.set({ variableData: variableData, minYear: minYear, maxYear: maxYear });
 		},
 
 		ready: function(callback) {
@@ -41,7 +56,6 @@
 				callback(variableData);
 			}
 		},
-
 
 		getSelectedCountriesById: function() {
 			var variableData = this.get("variableData"),
@@ -355,8 +369,6 @@
 				return this.transformDataForLineChart();
 		},
 	});
-
-
 
 	module.exports = App.Models.ChartDataModel;
 
