@@ -24,7 +24,6 @@ Route::model( 'tags', 'DatasetTag' );
 Route::model( 'apiKeys', 'ApiKey' );
 Route::model( 'logos', 'Logo' );
 
-
 Route::group(['middleware' => ['web', 'auth']], function()
 {
 	Route::resource( 'entities', 'EntitiesController' );
@@ -103,14 +102,13 @@ Route::group(['middleware' => ['web', 'auth']], function()
 });
 
 Route::group(['middleware' => ['web']], function () {
-	//Route::get('/', 'WelcomeController@index');
 	Route::get('/', 'HomeController@index');
-	Route::get('/home', 'HomeController@index');
 
-	Route::controllers([
-		'auth' => 'Auth\AuthController',
-		'password' => 'Auth\PasswordController',
-	]);
+    Route::controllers([
+        'auth' => 'Auth\AuthController',
+        'password' => 'Auth\PasswordController',
+    ]);
+
 
 	//api routes
 	Route::group( [ 'prefix' => 'v1', 'before' => 'auth.api_key' ], function() {
@@ -120,7 +118,9 @@ Route::group(['middleware' => ['web']], function () {
 	} );
 	Route::get( 'api', 'ApiController@index' );
 
-	Route::get('/logout', [ 'as' => 'logout', 'uses' => 'Auth\AuthController@getLogout' ] );
+	Route::get('login', 'Auth\AuthController@getLogin');
+	Route::post('login', 'Auth\AuthController@postLogin')->name('login');
+	Route::get('logout', 'Auth\AuthController@logout')->name('logout');
 
 
 	Route::get( 'view', 'ViewController@index' );
