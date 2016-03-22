@@ -73,7 +73,8 @@ elixir(function(mix) {
         'libs/chosen.jquery.js',
         'libs/colorbrewer.js',
         'libs/owd-colorbrewer.js',
-        'libs/jquery.lazyloadxt.extra.js'
+        'libs/jquery.lazyloadxt.extra.js',
+        'owid.js',
     ], 'public/js/libs.js' );
 
     //back-end lib scripts
@@ -97,7 +98,8 @@ elixir(function(mix) {
         'libs/colorbrewer.js',
         'libs/owd-colorbrewer.js',
         'libs/jquery.stickytabs.js',
-        'libs/jquery.timeago.js'
+        'libs/jquery.timeago.js',
+        'owid.js',
     ], 'public/js/libs-admin.js' );
 
     mix.browserify('app/ChartApp.js');

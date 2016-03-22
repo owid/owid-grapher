@@ -177,8 +177,11 @@
 			this.$chartSubname.html(chartSubname);
 		},
 
-		replaceTimePlaceholder: function( string, timeFrom, timeTo, latestAvailable ) {
-			var time = ( !latestAvailable )? ( timeFrom !== timeTo )? timeFrom + " to " + timeTo: timeFrom: " latest available data";
+		replaceTimePlaceholder: function( string, timeFrom, timeTo, latestAvailable ) {			
+			timeFrom = owid.displayYear(timeFrom);
+			timeTo = owid.displayYear(timeTo);
+						
+			var time = (!latestAvailable) ? (timeFrom !== timeTo) ? timeFrom + " to " + timeTo : timeFrom : " latest available data";
 
 			string = string.replace( "*time*", time );
 			string = string.replace( "*timeFrom*", timeFrom );

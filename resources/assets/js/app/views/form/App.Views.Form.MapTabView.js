@@ -3,7 +3,6 @@
 	"use strict";
 
 	var App = require( "./../../namespaces.js" ),
-		Utils = require("./../../App.Utils.js"),
 		owdProjections = require( "./../chart/map/App.Views.Chart.Map.Projections.js" ),
 		ColorSchemeView = require( "./mapTab/App.Views.Form.MapColorSchemeView.js" );
 
@@ -63,7 +62,7 @@
 			this.updateVariableSelect();
 
 			this.$timeToleranceInput.val( mapConfig.timeTolerance );
-			this.$timeRangesInput.val( Utils.timeRangesToString(mapConfig.timeRanges) );
+			this.$timeRangesInput.val( owid.timeRangesToString(mapConfig.timeRanges) );
 			this.$legendDescription.val( mapConfig.legendDescription );
 			var legendStepSize = ( mapConfig.legendStepSize )? mapConfig.legendStepSize: 20;
 			this.$legendStepSize.val( legendStepSize );
@@ -81,7 +80,7 @@
 			var mapConfig = App.ChartModel.get( "map-config" ),
 				targetYear = mapConfig.targetYear,
 				targetYearMode = mapConfig.targetYearMode,
-				years = Utils.timeRangesToYears(mapConfig.timeRanges, mapConfig.minYear, mapConfig.maxYear),
+				years = owid.timeRangesToYears(mapConfig.timeRanges, mapConfig.minYear, mapConfig.maxYear),
 				options = [ { "title": "Earliest year", "value": "earliest" }, { "title": "Latest year", "value": "latest" } ];
 
 			_.each(years, function(year) {
@@ -230,7 +229,7 @@
 		onTimeRangesChange: function(evt) {
 			var $this = $(evt.target);
 			try {
-				var timeRanges = Utils.timeRangesFromString($this.val());
+				var timeRanges = owid.timeRangesFromString($this.val());
 			} catch (e) {
 				if (e instanceof RangeError) {
 					$this.closest('.form-group').addClass('has-error');
@@ -254,7 +253,7 @@
 				mapConfig = App.ChartModel.get( "map-config" ),
 				val = $this.val(),
 				targetYear, targetYearMode = "normal",
-				years = Utils.timeRangesToYears(mapConfig.timeRanges, mapConfig.minYear, mapConfig.maxYear);
+				years = owid.timeRangesToYears(mapConfig.timeRanges, mapConfig.minYear, mapConfig.maxYear);
 
 			if( val === "earliest" ) {
 				targetYearMode = val;
