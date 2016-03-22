@@ -113,7 +113,8 @@
 				activeTab = _.find(tabs, function(tab) { return that.$tabs.filter("." + tab + "-header-tab.active").length > 0});
 
 			if (activeTab == "map") {
-				this.updateTimeFromMap(this.parentView.mapTab);
+				if (this.parentView.mapTab.mapConfig)
+					this.updateTimeFromMap(this.parentView.mapTab);
 			} else {
 				if (this.parentView.chartTab && this.parentView.chartTab.localData)
 					this.updateTimeFromChart(this.parentView.chartTab.localData);

@@ -31,7 +31,8 @@
 			var htmlString = "";
 			_.each(years, function(year) {
 				var selected = ( year === targetYear )? "selected": "";
-				htmlString += "<li data-year='" + year + "' class='year-btn " + selected + "'><a href='#' class='btn'>" + year + "</a></li>";
+				console.log(owid.displayYear(year));
+				htmlString += "<li data-year='" + year + "' class='year-btn " + selected + "'><a href='#' class='btn'>" + owid.displayYear(year) + "</a></li>";
 			});
 			
 			this.$buttonsWrapper.append( $( htmlString ) );
