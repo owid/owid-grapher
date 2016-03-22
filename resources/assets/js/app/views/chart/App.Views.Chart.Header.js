@@ -155,23 +155,27 @@
 		},
 
 		updateTimeFromMap: function(map) {			
-			var timeFrom = owid.displayYear(map.minYear || map.mapConfig.targetYear),
-				timeTo = owid.displayYear(map.maxYear || map.mapConfig.targetYear),
-				targetYear = owid.displayYear(map.mapConfig.targetYear),
-				hasTargetYear = _.find(map.mapData, function(d) { return d.year == map.mapConfig.targetYear; });
+			var timeFrom = map.minYear || map.mapConfig.targetYear,
+				timeTo = map.maxYear || map.mapConfig.targetYear,
+				targetYear = map.mapConfig.targetYear,
+				hasTargetYear = _.find(map.mapData, function(d) { return d.year == targetYear; }),
+				d = owid.displayYear;
 
 			var chartName = this.$chartName.text();
 			var chartSubname = this.$chartSubname.html();
 			chartName = this.replaceTimePlaceholder( chartName, targetYear, targetYear, false );
+			console.log(timeFrom, timeTo, hasTargetYear);
 			if (hasTargetYear && timeFrom != timeTo) {
 				// The target year is in the data but we're displaying a range, meaning not available for all countries
-				chartSubname += " Since some observations for " + targetYear + " are not available the map displays the closest available data (" + timeFrom + " to " + timeTo + ").";
+				chartSubname += " Since some observations for " + d(targetYear) + " are not available the map displays the closest available data (" + d(timeFrom) + " to " + d(timeTo) + ").";
 			} else if (!hasTargetYear && timeFrom != timeTo) {
 				// The target year isn't in the data at all and we're displaying a range of other nearby values
-				chartSubname += " Since observations for " + targetYear + " are not available the map displays the closest available data (" + timeFrom + " to " + timeTo + ").";
-			} else if (!hasTargetYear && timeFrom == timeTo) {
+				chartSubname += " Since observations for " + d(targetYear) + " are not available the map displays the closest available data (" + d(timeFrom) + " to " + d(timeTo) + ").";
+			} else if (!hasTargetYear && timeFrom == timeTo && timeFrom != targetYear) {
 				// The target year isn't in the data and we're displaying some other single year
-				chartSubname += " Since observations for " + targetYear + " are not available the map displays the closest available data (from " + timeFrom + ").";
+				chartSubname += " Since observations for " + d(targetYear) + " are not available the map displays the closest available data (from " + d(timeFrom) + ").";
+			} else if (!hasTargetYear) {
+				chartSubname += " No observations are available for this year.";
 			}
 			this.$chartName.text( chartName );
 			this.$chartName.css( "visibility", "visible" );
