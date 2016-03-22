@@ -222,7 +222,7 @@
 			var timeRange = {};
 			rangeStr = $.trim(rangeStr);
 
-			var range = rangeStr.match(/^(\d+|first|last|) to (\d+|first|last)(?: every (\d+))?$/);
+			var range = rangeStr.match(/^([0-9-]+|first|last|) to ([0-9-]+|first|last)(?: every ([0-9-]+))?$/);
 			if (range) {
 				var startYear = validateYear(range[1]);
 				var endYear = validateYear(range[2]);
@@ -231,7 +231,7 @@
 				timeRange.startYear = startYear;
 				timeRange.endYear = endYear;
 				if (interval) timeRange.interval = interval;
-			} else if (rangeStr.match(/^(\d+|first|last)$/)) {
+			} else if (rangeStr.match(/^([0-9-]+|first|last)$/)) {
 				var year = validateYear(rangeStr);
 				timeRange.year = year;
 			} else {

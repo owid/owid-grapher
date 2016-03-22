@@ -23,7 +23,7 @@
 			App.ChartModel.on("change", this.onChartModelChange, this);
 		},
 
-		onChartModelChange: _function() {
+		onChartModelChange: function() {
 			if (!this.isAwake) return;
 
 			this.isAwake = false;
