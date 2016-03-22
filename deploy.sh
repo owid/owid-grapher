@@ -23,7 +23,6 @@ ssh -t $HOST "rm -r $OLD_REPO"
 $RSYNC $DIR/ $HOST:$SYNC_TARGET
 ssh -t $HOST 'bash -e -s' <<EOF
   cp -r $SYNC_TARGET $TMP_NEW
-  cp -r $LIVE_TARGET/storage/framework/sessions $TMP_NEW/storage/framework/sessions
   mv $LIVE_TARGET $OLD_REPO
   mv $TMP_NEW $LIVE_TARGET
   ln -sf $LIVE_DATA/.htaccess $LIVE_TARGET/public/.htaccess
