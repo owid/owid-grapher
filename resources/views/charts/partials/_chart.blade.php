@@ -2,8 +2,8 @@
 	<div class="chart-wrapper-inner">
 		<div class="chart-header clearfix">
 			<div class="logos">
-				<img src="" class="logo" title="Logo" style="visibility:hidden"/>
 				<img src="" class="second-logo" title="Logo" style="display: none;"/>
+				<img src="" class="logo" title="Logo" style="visibility:hidden"/>
 			</div>
 			<h2 class="chart-name"></h2>
 			<h3 class="chart-subname"></h3>

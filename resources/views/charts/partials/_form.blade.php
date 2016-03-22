@@ -276,12 +276,6 @@
 									<option value="{{ $logoId }}">{{ $logoName }}</option>
 								@endforeach
 							</select>
-							<select name="second-logo" class="form-control logo-select">
-								<option value="" selected>None</option>
-								@foreach( $data->logos as $logoId=>$logoName )
-									<option value="{{ $logoId }}">{{ $logoName }}</option>
-								@endforeach
-							</select>							
 						</div>
 					</section>
 					<section class="form-section type-of-line-section">

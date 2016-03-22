@@ -125,8 +125,8 @@ class ChartsController extends Controller {
 			//find logo by name
 			$logo = Logo::where('name','=',Input::get('logo'))->first();
 			if( !empty( $logo ) ) {
-				//override logo in config with logo from query parameter
-				$config->logo = $logo->url;
+				//set logo in config with logo from query parameter
+				$config->{"second-logo"} = $logo->url;
 			}
 		}
 
