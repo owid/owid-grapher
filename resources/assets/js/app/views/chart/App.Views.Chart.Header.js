@@ -155,10 +155,10 @@
 		},
 
 		updateTimeFromMap: function(map) {			
-			var timeFrom = map.minYear || map.mapConfig.targetYear,
-				timeTo = map.maxYear || map.mapConfig.targetYear,
-				targetYear = map.mapConfig.targetYear,
-				hasTargetYear = _.find(map.mapData, function(d) { return d.year == targetYear; });
+			var timeFrom = owid.displayYear(map.minYear || map.mapConfig.targetYear),
+				timeTo = owid.displayYear(map.maxYear || map.mapConfig.targetYear),
+				targetYear = owid.displayYear(map.mapConfig.targetYear),
+				hasTargetYear = _.find(map.mapData, function(d) { return d.year == map.mapConfig.targetYear; });
 
 			var chartName = this.$chartName.text();
 			var chartSubname = this.$chartSubname.html();
