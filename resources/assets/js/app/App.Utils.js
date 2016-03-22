@@ -514,7 +514,7 @@
 			var titleSetting = (unit && unit.title)||"";
 
 			var valueString = (_.isEmpty(titleSetting) ? "" : titleSetting + ": ") + value + " " + unitSetting;
-			valueString += " (in " + times[key] + ")";
+			valueString += " (in " + owid.displayYear(times[key]) + ")";
 			outputHtml += "<span class='var-popup-value'>" + valueString + "</span>";
 		});
 
@@ -587,9 +587,9 @@
 					}
 				} else if( i === "time" ) {
 					if (v.hasOwnProperty("map"))
-						timeString = v.map.toString();
+						timeString = owid.displayYear(v.map);
 					else
-						timeString = v;
+						timeString = owid.displayYear(v);
 				} else if( i !== "color" && i !== "series" && ( i !== "x" || chartType != App.ChartType.LineChart ) ) {
 					if( !isHidden ) {
 						if( valuesString !== "") {
