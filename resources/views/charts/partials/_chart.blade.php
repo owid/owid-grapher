@@ -161,9 +161,9 @@
 						</a>
 					</div>
 					<div class="timeline-control control">
-						<div class="timeline-start-year">1950</div>
-						<div class="timeline-end-year">2000</div>
 						<div class="timeline-wrapper">
+							<div class="timeline-start-year">1950</div>
+							<div class="timeline-end-year">2000</div>
 							<div class="timeline-slider">
 								<span class="timeline-slider-label">1980</span>
 							</div>

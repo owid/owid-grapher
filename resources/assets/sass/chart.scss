@@ -786,25 +786,35 @@ body {
 			/* timeline-control */
 			.timeline-control {
 				/*display: none;*/
+				height: 100%;
 				width: calc(100% - #{$play-pause-control});
 				position: relative;
 
+				.timeline-start-year,
+				.timeline-end-year {
+					min-height: 29px;
+					line-height: 19px;
+					white-space: nowrap;
+				};
+
 				.timeline-start-year {
 					position: absolute;
-					top: 9px;
-					left: 10px;
-					padding: 5px 12px;
+					top: 4px;
+					right: calc(100% + 5px);
+					padding: 5px 8px;
 				}
 				.timeline-end-year {
 					position: absolute;
-					top: 9px;
-					right: 10px;
+					top: 4px;
+					left: calc(100% + 5px);
+					padding: 5px 8px;
+				}
+				.timeline-slider-label {
 					padding: 5px 12px;
 				}
 				.timeline-slider-label,
 				.timeline-end-year.highlight,
 				.timeline-start-year.highlight {
-					padding: 5px 12px;
 					background-color: #404040;
 					color: #fff;
 				}

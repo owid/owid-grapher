@@ -45,8 +45,18 @@
 			this.maxYear = this.years[this.years.length-1];
 			this.targetYear = mapConfig.targetYear;
 
-			this.$startYear.text(this.minYear);
-			this.$endYear.text(this.maxYear);
+			this.$startYear.text(owid.displayYear(this.minYear));
+			this.$endYear.text(owid.displayYear(this.maxYear));
+
+			if (owid.displayYear(this.minYear).length > 4) 
+				this.$startYear.css('font-size', '10px');
+			else
+				this.$startYear.css('font-size', "");
+
+			if (owid.displayYear(this.maxYear).length > 4) 
+				this.$endYear.css('font-size', '10px');
+			else
+				this.$endYear.css('font-size', "");
 			
 			this.$sliderInput.attr( "min", this.minYear );
 			this.$sliderInput.attr( "max", this.maxYear );
@@ -69,7 +79,7 @@
 				max = parseInt( this.$sliderInput.attr( "max" ), 10 ),
 				newPoint = ( intTime - min ) / ( max - min );
 			
-			this.$sliderLabel.text( time );
+			this.$sliderLabel.text(owid.displayYear(time));
 			this.$slider.css( "left", this.$sliderWrapper.width()*newPoint );
 			this.$sliderInput.val( intTime );
 			if( intTime === min || intTime === max ) {
