@@ -74,7 +74,7 @@ class DataController extends Controller {
 					 'entities.id as entity_id', 'entities.name as entity_name')
 			->join('entities', 'data_values.fk_ent_id', '=', 'entities.id')
 			->join('times', 'data_values.fk_time_id', '=', 'times.id')
-			->orderBy('times.date');
+			->orderBy('times.label');
 
 		$response['entityKey'] = [];
 
