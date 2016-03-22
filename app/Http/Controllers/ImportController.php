@@ -65,8 +65,8 @@ class ImportController extends Controller {
 	/**
 	 * Import a collection of variables
 	 */
-	public function variables() {
-		return ['success' => true];
+	public function variables(Request $request) {
+		return $request->input();
 	}
 
 	/**
