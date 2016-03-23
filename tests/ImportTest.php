@@ -38,7 +38,12 @@ class ImportTest extends TestCase
                 1990, 2000, 2010
             ],
             'variables' => [
-
+                [ 
+                  'name' => 'New Variable', 
+                  'description' => 'New variable description.',
+                  'typeId' => 3,
+                  'values' => [1.0, 2.0, 3.0]
+                ]
             ]
         ];
 
@@ -56,8 +61,23 @@ class ImportTest extends TestCase
             'fk_dsr_id' => $sourceId
         ]);
 
+        $this->seeInDatabase('datasources', [
+            'name' => 'New Source',
+            'description' => 'New source description.'
+        ]);
+
         $this->seeInDatabase('entities', [
             'name' => 'New Entity'
+        ]);
+
+        $this->seeInDatabase('data_values', [
+            'year' => 1990,
+            'value' => 1.0
+        ]);
+
+        $this->seeInDatabase('data_values', [
+            'year' => 2000,
+            'value' => 2.0
         ]);
     }
 }

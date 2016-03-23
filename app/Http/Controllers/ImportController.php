@@ -74,6 +74,7 @@ class ImportController extends Controller {
 			$dataset = $input['dataset'];
 			$entities = $input['entities'];
 			$years = $input['years'];
+			$variables = $input['variables'];
 
 			if (isset($dataset['id']))
 				$datasetId = $dataset['id'];			
@@ -86,8 +87,10 @@ class ImportController extends Controller {
 					'fk_dsr_id' => $dataset['sourceId']
 				];
 
-				$datasetId = Dataset::create($datasetProps);
+				$datasetId = Dataset::create($datasetProps)->id;
 			}
+
+			$sourceId = $dataset['sourceId'];
 
 			// Now map the entity names we've been given to ids, and
 			// create any new ones that aren't in the database
@@ -107,12 +110,45 @@ class ImportController extends Controller {
 			if (!empty($newEntities)) {
 				DB::table('entities')->insert($newEntities);
 				$lastId = DB::getPdo()->lastInsertId();
-				$firstId = $lastId - sizeof($newEntities);
-				for ($id = $firstId; $id < $lastId; $id++) {
+				$firstId = $lastId - (sizeof($newEntities) - 1);
+				for ($id = $firstId; $id <= $lastId; $id++) {
 					$name = $newEntities[$id-$firstId]['name'];
 					$entityNameToId[$name] = $id;
 				}
 			}
+
+			// Now we build our set of variables and associated data
+
+			foreach ($variables as $variable) {
+				$values = $variable['values'];
+
+				$newVariable = [
+					'name' => $variable['name'],
+					'description' => $variable['description'],
+					'fk_var_type_id' => $variable['typeId'],
+					'fk_dst_id' => $datasetId,
+					'fk_dsr_id' => $sourceId,
+					'uploaded_by' => \Auth::user()->name, 
+					'uploaded_at' => Carbon::now()
+				];
+
+				$varId = DB::table('variables')->insertGetId($newVariable);
+
+				$newDataValues = [];
+				for ($i = 0; $i < sizeof($years); $i++) {
+					$newDataValues[] = [
+						'fk_var_id' => $varId,
+						'fk_ent_id' => $entityNameToId[$entities[$i]],
+						'year' => $years[$i],
+						'value' => $values[$i],
+					];
+				}
+
+				var_dump($newDataValues);
+
+				DB::table('data_values')->insert($newDataValues);
+			}
+
 		});
 
 		return [ 'success' => true ];
