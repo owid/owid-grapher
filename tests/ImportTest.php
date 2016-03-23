@@ -31,7 +31,15 @@ class ImportTest extends TestCase
                 'name' => 'New Source',
                 'description' => 'New source description.'
             ],
-            'variables' => []
+            'entities' => [
+                'United States', 'Australia', 'New Entity'
+            ],
+            'years' => [
+                1990, 2000, 2010
+            ],
+            'variables' => [
+
+            ]
         ];
 
         $this->actingAs($user)
@@ -46,6 +54,10 @@ class ImportTest extends TestCase
             'fk_dst_cat_id' => $categoryId,
             'fk_dst_subcat_id' => $subcategoryId,
             'fk_dsr_id' => $sourceId
+        ]);
+
+        $this->seeInDatabase('entities', [
+            'name' => 'New Entity'
         ]);
     }
 }

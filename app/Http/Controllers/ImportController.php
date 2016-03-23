@@ -70,7 +70,11 @@ class ImportController extends Controller {
 		$input = $request->all();
 
 		DB::transaction(function() use ($input) {
+			// First, we create the dataset object itself
 			$dataset = $input['dataset'];
+			$entities = $input['entities'];
+			$years = $input['years'];
+
 			if (isset($dataset['id']))
 				$datasetId = $dataset['id'];			
 			else {
@@ -83,6 +87,31 @@ class ImportController extends Controller {
 				];
 
 				$datasetId = Dataset::create($datasetProps);
+			}
+
+			// Now map the entity names we've been given to ids, and
+			// create any new ones that aren't in the database
+			$entityNames = array_unique($entities);
+
+			$entityNameToId = DB::table('entities')
+				->select('id', 'name')
+				->whereIn('name', $entityNames)
+				->lists('id', 'name');
+
+			$newEntities = [];
+			foreach ($entityNames as $name) {
+				if (isset($entityNameToId[$name])) continue;
+				$newEntities[] = [ 'name' => $name, 'fk_ent_t_id' => 5 ];
+			}
+
+			if (!empty($newEntities)) {
+				DB::table('entities')->insert($newEntities);
+				$lastId = DB::getPdo()->lastInsertId();
+				$firstId = $lastId - sizeof($newEntities);
+				for ($id = $firstId; $id < $lastId; $id++) {
+					$name = $newEntities[$id-$firstId]['name'];
+					$entityNameToId[$name] = $id;
+				}
 			}
 		});
 
