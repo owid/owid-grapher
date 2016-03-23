@@ -55,18 +55,25 @@
 			//add extra steps
 			this.numSteps += 3;
 
-
-			debugger;
-			try {
-				
-				//start import
-				this.startImport();
-			
-			} catch( err ) {
-
-				console.error( "Error uploading data", err, this );
-				
+			var requestData = {
+				dataset: {
+					id: formData.existing_dataset_id,
+					name: formData.new_dataset_name,	
+					categoryId: formData.category_id,
+					subcategoryId: formData.subcategory_id
+				},
+				source: {
+					name: formData.source_name,
+					description: formData.source_description
+				},
+				variables: formData.variables
 			}
+
+			$.ajax(Global.rootUrl + "/import/variables", {
+				data: JSON.stringify(requestData),
+				contentType: 'application/json',
+				type: 'POST'
+			});
 
 		},
 

@@ -19,3 +19,22 @@ $factory->define(App\User::class, function (Faker\Generator $faker) {
         'remember_token' => str_random(10),
     ];
 });
+
+$factory->define(App\DatasetCategory::class, function (Faker\Generator $faker) {
+    return [
+        'name' => "Category",
+    ];
+});
+
+$factory->define(App\DatasetSubcategory::class, function (Faker\Generator $faker) {
+    return [
+        'name' => "Subcategory",
+    ];
+});
+
+$factory->define(App\Datasource::class, function (Faker\Generator $faker) {
+    return [
+        'name' => "Source",
+        'description' => "Description of source.",
+    ];
+});

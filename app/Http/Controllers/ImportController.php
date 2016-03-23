@@ -21,6 +21,7 @@ use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
 
+use DB;
 use App\Commands\ImportCommand;
 use Carbon\Carbon;
 
@@ -66,8 +67,26 @@ class ImportController extends Controller {
 	 * Import a collection of variables
 	 */
 	public function variables(Request $request) {
-		
-		return $request->input();
+		$input = $request->all();
+
+		DB::transaction(function() use ($input) {
+			$dataset = $input['dataset'];
+			if (isset($dataset['id']))
+				$datasetId = $dataset['id'];			
+			else {
+				$datasetProps = [
+					'name' => $dataset['name'],
+					'description' => $dataset['description'],					
+					'fk_dst_cat_id' => $dataset['categoryId'],
+					'fk_dst_subcat_id' => $dataset['subcategoryId'],
+					'fk_dsr_id' => $dataset['sourceId']
+				];
+
+				$datasetId = Dataset::create($datasetProps);
+			}
+		});
+
+		return [ 'success' => true ];
 	}
 
 	/**
