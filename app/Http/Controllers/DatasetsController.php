@@ -109,14 +109,6 @@ class DatasetsController extends Controller {
 	{	
 
 		DB::transaction(function() use ($dataset) {
-			// XXX (Mispy): The times don't actually foreign key into anything so
-			// they can't be deleted by cascade from the variable
-			DB::table('times')
-				->join('data_values', 'data_values.fk_time_id', '=', 'times.id')
-				->join('variables', 'data_values.fk_var_id', '=', 'variables.id')
-				->where('variables.fk_dst_id', $dataset->id)
-				->delete();
-
 			// Cascade will handle the rest
 			DB::table('datasets')
 				->where('datasets.id', $dataset->id)

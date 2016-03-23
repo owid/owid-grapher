@@ -69,12 +69,11 @@ class DataController extends Controller {
 		// Now we pull out all the actual data
 		$dataQuery = DB::table('data_values')
 			->whereIn('data_values.fk_var_id', $var_ids)
-			->select('data_values.value as value', 'times.label as year',
+			->select('value', 'year',
 					 'data_values.fk_var_id as var_id', 
 					 'entities.id as entity_id', 'entities.name as entity_name')
 			->join('entities', 'data_values.fk_ent_id', '=', 'entities.id')
-			->join('times', 'data_values.fk_time_id', '=', 'times.id')
-			->orderBy('times.label');
+			->orderBy('year');
 
 		$response['entityKey'] = [];
 
@@ -565,41 +564,6 @@ class DataController extends Controller {
 
 	}
 
-	public function times( Request $request ) {
-
-		$data = array();
-		if( !Input::has( 'variableIds' ) ) {
-			return [];
-		}
-
-		$variableIdsInput = Input::get( 'variableIds' );
-		$variableIds = explode( ',', $variableIdsInput );
-
-		//use query builder instead of eloquent
-		$timesData = DB::table( 'data_values' )
-			->select( 'times.id', 'times.date', 'times.startDate', 'times.endDate', 'times.label', 'times.fk_ttype_id' )
-			->join( 'times', 'data_values.fk_time_id', '=', 'times.id' )
-			->whereIn( 'data_values.fk_var_id', $variableIds )
-			->groupBy( 'date' )
-			->get();
-
-		//go through times data and make sure it's not interval data
-		foreach( $timesData as $timeData ) {
-
-		}
-
-		$data = $timesData;
-
-		if( $request->ajax() ) {
-
-			return ['success' => true, 'data' => $data ];
-
-		} else {
-			//not ajax request, just spit out whatever is in data
-			return $data;
-		}
-
-	}
 
 	public function search( Request $request ) {
 

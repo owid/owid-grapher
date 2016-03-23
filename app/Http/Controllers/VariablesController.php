@@ -59,7 +59,6 @@ class VariablesController extends Controller {
 			//use query builder instead of eloquent
 			$rawData = DB::table( 'data_values' )
 				->join( 'entities', 'data_values.fk_ent_id', '=', 'entities.id' )
-				->join( 'times', 'data_values.fk_time_id', '=', 'times.id' )
 				->where( 'data_values.fk_var_id', $variable->id )
 				->get();
 			
@@ -82,12 +81,6 @@ class VariablesController extends Controller {
 			return ['success' => true, 'data' => [ 'variable' => $variable, 'data' => $data ] ];
 		} else {
 			
-			//data
-			/*$source = DB::table( 'data_values' )
-				->leftJoin( 'entities', 'data_values.fk_ent_id', '=', 'entities.id' )
-				->leftJoin( 'times', 'data_values.fk_time_id', '=', 'times.id' )
-				->select( DB::raw( 'data_values.*, times.label, entities.name' ) );*/
-			
 			$source = DataValue::grid()->where( 'fk_var_id', '=', $variable->id ); 
 			
 			//$source = DataValue::with( array('Entity','Time') )->where( 'fk_var_id', '=', $variable->id ); 
@@ -104,7 +97,7 @@ class VariablesController extends Controller {
 			$entitiesList[''] = 'All';
 			
 			$filter->add('Entities.name','Entity','select')->options( $entitiesList );
-			$filter->add('Times.label','Time', 'text');
+			$filter->add('year','Time', 'text');
 			$filter->submit('search');
 			$filter->build();
 			
@@ -112,7 +105,7 @@ class VariablesController extends Controller {
 			$grid->add( 'id', 'ID', true)->style( 'width:100px' );
 			$grid->add( 'value', 'Value', true);
 			$grid->add( 'name', 'Entity', true);
-			$grid->add( 'label', 'Time', true);
+			$grid->add( 'year', 'Time', true);
 			$grid->add( 'description', 'Description' );
 			$grid->add( '<a href="' .route( 'values.index' ). '/{{$id}}/edit">Edit</a>', 'Edit' );
 			$grid->paginate( 50 );
