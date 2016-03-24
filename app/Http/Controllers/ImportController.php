@@ -123,11 +123,14 @@ class ImportController extends Controller {
 
 			if (!empty($newEntities)) {
 				DB::table('entities')->insert($newEntities);
-				$lastId = DB::getPdo()->lastInsertId();
-				$firstId = $lastId - (sizeof($newEntities) - 1);
-				for ($id = $firstId; $id <= $lastId; $id++) {
-					$name = $newEntities[$id-$firstId]['name'];
-					$entityNameToId[$name] = $id;
+				$newEntityNames = array_map(function($e) { return $e['name']; }, $newEntities);
+				$inserted = DB::table('entities')
+					->select('id', 'name')
+					->whereIn('name', $newEntityNames)
+					->get();
+
+				foreach ($inserted as $entity) {
+					$entityNameToId[$entity->name] = $entity->id;
 				}
 			}
 

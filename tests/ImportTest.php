@@ -30,13 +30,13 @@ class ImportTest extends TestCase
                 'description' => 'New source description.'
             ],
             'entityKey' => [
-                'USA', 'Australia', 'New Entity'
+                'USA', 'Australia', 'New Entity', 'New Entity 2'
             ],
             'entities' => [
-                0, 1, 2
+                0, 1, 2, 3, 3
             ],
             'years' => [
-                1990, 2000, 2010
+                1990, 2000, 2010, 2020, 2030
             ],
             'variables' => [
                 [ 
@@ -44,14 +44,14 @@ class ImportTest extends TestCase
                   'description' => 'New variable description.',
                   'unit' => '%',
                   'typeId' => 3,
-                  'values' => [10, 20, 30]
+                  'values' => [10, 20, 30, 40, 50]
                 ],
                 [
                   'name' => 'Second Variable', 
                   'description' => 'Second variable description.',
                   'unit' => '%',
                   'typeId' => 3,
-                  'values' => [9, 18, 27]
+                  'values' => [9, 18, 27, 31, 49]
                 ]
 
             ]
@@ -75,6 +75,10 @@ class ImportTest extends TestCase
 
         $this->seeInDatabase('entities', [
             'name' => 'New Entity'
+        ]);
+
+        $this->seeInDatabase('entities', [
+            'name' => 'New Entity 2'
         ]);
 
         $this->dontSeeInDatabase('entities', [
