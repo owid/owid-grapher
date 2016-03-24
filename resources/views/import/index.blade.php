@@ -34,7 +34,7 @@
 									<option value="{{ $dataset->id }}">{{ $dataset->name }}</option>
 								@endforeach
 							</select>
-							<label class="existing-variable-wrapper">
+							<!--<label class="existing-variable-wrapper">
 								Insert data into new variable or select existing one.
 								<select name='existing_variable_id' class="form-control">
 									<option value="" selected>Create new variable</option>
@@ -42,7 +42,7 @@
 										<option data-id="{{ $variable->id }}" data-dataset-id="{{ $variable->fk_dst_id }}" data-name="{{ $variable->name }}" data-unit="{{ $variable->unit }}" data-description="{{ $variable->description }}" value="{{ $variable->id }}">{{ $variable->name }}</option>
 									@endforeach
 								</select>
-							</label>
+							</label>-->
 						</div>
 					</div>
 			</section>
