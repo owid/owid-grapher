@@ -40,9 +40,6 @@
 			this.render();
 			this.initUpload();
 
-			/*var importer = new App.Models.Importer();
-			importer.uploadFormData();*/
-
 		},
 
 		render: function() {
@@ -789,7 +786,7 @@
 			var $form = $( "#import-view > form" );
 			
 			var importer = new Importer( { dispatcher: this.dispatcher } );
-			importer.uploadFormData( $form, this.origUploadedData );
+			importer.uploadFormData( $form, this.origUploadedData, this.isDataMultiVariant );
 
 			var importProgress = new ImportProgressPopup();
 			importProgress.init( { dispatcher: this.dispatcher } );

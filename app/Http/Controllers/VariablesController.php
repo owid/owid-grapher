@@ -162,18 +162,9 @@ class VariablesController extends Controller {
 	 */
 	public function destroy(Variable $variable, Request $request)
 	{	
-		DB::transaction(function() use ($variable) {
-			// XXX (Mispy): The times don't actually foreign key into anything so
-			// they can't be deleted by cascade from the variable
-			DB::table('times')
-				->join('data_values', 'data_values.fk_time_id', '=', 'times.id')
-				->where('data_values.fk_var_id', $variable->id)
-				->delete();
-
-			DB::table('variables')
-				->where('id', $variable->id)
-				->delete();
-		});
+		DB::table('variables')
+			->where('id', $variable->id)
+			->delete();
 
 		Cache::flush();
 

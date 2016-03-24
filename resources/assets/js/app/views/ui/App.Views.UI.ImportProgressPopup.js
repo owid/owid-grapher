@@ -50,6 +50,7 @@
 			
 			if( finish ) {
 				this.datasetId = datasetId;
+				window.location = Global.rootUrl + "/datasets/" + this.datasetId;
 				this.$body.append( "<p class='success'><i class='fa fa-check'></i>Import finished!</p>" );
 				this.$footer.show();
 				this.$title.addClass( "success" );
@@ -77,10 +78,9 @@
 			evt.preventDefault();
 			this.hide();
 
-			//redirect
-			var $btn = $( evt.currentTarget ),
+/*			var $btn = $( evt.currentTarget ),
 				redirectUrl = $btn.attr( "data-redirect-url" );
-			window.location = redirectUrl + "/" + this.datasetId;
+			window.location = redirectUrl + "/" + this.datasetId;*/
 
 		}
 

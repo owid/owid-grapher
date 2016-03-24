@@ -17,22 +17,20 @@ class ImportTest extends TestCase
         $user = factory(App\User::class)->create();
         $categoryId = factory(App\DatasetCategory::class)->create()->id;
         $subcategoryId = factory(App\DatasetSubcategory::class)->create()->id;
-        $sourceId = factory(App\Datasource::class)->create()->id;
 
         $requestData = [
             'dataset' => [
                 'name' => 'New Dataset',
                 'description' => 'New dataset description.',
                 'categoryId' => $categoryId,
-                'subcategoryId' => $subcategoryId,
-                'sourceId' => $sourceId
+                'subcategoryId' => $subcategoryId
             ],
             'source' => [
                 'name' => 'New Source',
                 'description' => 'New source description.'
             ],
             'entities' => [
-                'United States', 'Australia', 'New Entity'
+                'USA', 'Australia', 'New Entity'
             ],
             'years' => [
                 1990, 2000, 2010
@@ -41,24 +39,30 @@ class ImportTest extends TestCase
                 [ 
                   'name' => 'New Variable', 
                   'description' => 'New variable description.',
+                  'unit' => '%',
                   'typeId' => 3,
-                  'values' => [1.0, 2.0, 3.0]
+                  'values' => [10, 20, 30]
+                ],
+                [
+                  'name' => 'Second Variable', 
+                  'description' => 'Second variable description.',
+                  'unit' => '%',
+                  'typeId' => 3,
+                  'values' => [9, 18, 27]
                 ]
+
             ]
         ];
 
-        $this->actingAs($user)
+        $result = $this->actingAs($user)
     		 ->post('/import/variables', $requestData)
-    		 ->seeJson([
-    		 	'success' => true,
-    		 ]);
+             ->see('datasetId');
 
         $this->seeInDatabase('datasets', [
             'name' => 'New Dataset',
             'description' => 'New dataset description.',
             'fk_dst_cat_id' => $categoryId,
-            'fk_dst_subcat_id' => $subcategoryId,
-            'fk_dsr_id' => $sourceId
+            'fk_dst_subcat_id' => $subcategoryId
         ]);
 
         $this->seeInDatabase('datasources', [
@@ -70,14 +74,35 @@ class ImportTest extends TestCase
             'name' => 'New Entity'
         ]);
 
+        $this->dontSeeInDatabase('entities', [
+            'name' => 'USA'
+        ]);
+
+        $this->seeInDatabase('variables', [
+            'name' => 'New Variable',
+            'description' => 'New variable description.',
+            'unit' => '%'
+        ]);
+
+        $this->seeInDatabase('variables', [
+            'name' => 'Second Variable',
+            'description' => 'Second variable description.',
+            'unit' => '%'
+        ]);
+
         $this->seeInDatabase('data_values', [
             'year' => 1990,
-            'value' => 1.0
+            'value' => 9
+        ]);
+
+        $this->seeInDatabase('data_values', [
+            'year' => 1990,
+            'value' => 10
         ]);
 
         $this->seeInDatabase('data_values', [
             'year' => 2000,
-            'value' => 2.0
+            'value' => 20
         ]);
     }
 }

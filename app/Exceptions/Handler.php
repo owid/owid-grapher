@@ -47,6 +47,8 @@ class Handler extends ExceptionHandler
     {
         if (\App::environment() == 'testing') {
             throw $e;
+        } else if ($request->ajax() || $request->wantsJson()) {
+            return response()->json($e->getMessage(), 422);
         } else {
             return parent::render($request, $e);            
         }

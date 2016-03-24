@@ -108,12 +108,9 @@ class DatasetsController extends Controller {
 	public function destroy(Dataset $dataset, Request $request)
 	{	
 
-		DB::transaction(function() use ($dataset) {
-			// Cascade will handle the rest
-			DB::table('datasets')
-				->where('datasets.id', $dataset->id)
-				->delete();
-		});
+		DB::table('datasets')
+			->where('datasets.id', $dataset->id)
+			->delete();
 		
 		Cache::flush();
 		
