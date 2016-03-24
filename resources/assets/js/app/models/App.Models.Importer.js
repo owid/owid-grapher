@@ -138,7 +138,7 @@
 				contentType: 'application/json',
 				type: 'POST'			
 			}).done(function(result) {
-				this.dispatcher.trigger("import-progress", "Imported everything", true, "2/2", true, result.datasetId);
+				this.dispatcher.trigger("import-progress", "Importing everything", true, "2/2", true, result.datasetId);
 			}.bind(this)).fail(function(xhr) {
 				this.dispatcher.trigger("import-progress", 'Error: "' + xhr.responseJSON + '"', false, "0/1");
 			}.bind(this));

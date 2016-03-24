@@ -108,12 +108,8 @@ class DatasetsController extends Controller {
 	public function destroy(Dataset $dataset, Request $request)
 	{	
 
-		DB::table('datasets')
-			->where('datasets.id', $dataset->id)
-			->delete();
-		
-		Cache::flush();
-		
+		$dataset->delete();
+		Cache::flush();		
 		return redirect()->route('datasets.index')->with('message', 'Dataset deleted.');
 	}
 

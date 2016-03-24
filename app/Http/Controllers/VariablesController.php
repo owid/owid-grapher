@@ -162,12 +162,8 @@ class VariablesController extends Controller {
 	 */
 	public function destroy(Variable $variable, Request $request)
 	{	
-		DB::table('variables')
-			->where('id', $variable->id)
-			->delete();
-
+		$variable->delete();
 		Cache::flush();
-
 		return redirect()->route('datasets.show', $variable->fk_dst_id)->with('message', 'Variable deleted.');
 	}
 
