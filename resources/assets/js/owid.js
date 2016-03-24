@@ -18,6 +18,14 @@
 			return year.toString();
 	};
 
+	owid.tryParseFloat = function(val) {
+		var asFloat = parseFloat(val);
+		if (isNaN(asFloat))
+			return val;
+		else
+			return asFloat;
+	};
+
 	owid.timeRangesToString = function(timeRanges) {
 		var timeRangeStrs = [];
 
@@ -32,7 +40,7 @@
 		});
 
 		return timeRangeStrs.join("; ");
-	},
+	};
 
 	owid.timeRangesToYears = function(timeRanges, first, last) {
 		if (_.isEmpty(timeRanges)) {
@@ -75,7 +83,7 @@
 		});
 
 		return _.uniq(_.sortBy(outputYears), true);
-	},
+	};
 
 	owid.timeRangesFromString = function(timeRangesStr) {
 		if (!timeRangesStr)

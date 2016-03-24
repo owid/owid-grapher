@@ -65,6 +65,9 @@ class ImportController extends Controller {
 		return DB::transaction(function() use ($input) {
 			// First, we create the dataset object itself
 			$dataset = $input['dataset'];
+			// entityKey is a unique list of entity names/codes e.g. ['Germany', 'Afghanistan', 'USA']
+			$entityKey = $input['entityKey'];
+			// entities is a list of indices for entityKey 
 			$entities = $input['entities'];
 			$years = $input['years'];
 			$variables = $input['variables'];
@@ -98,13 +101,11 @@ class ImportController extends Controller {
 
 			// Now map the entity names we've been given to ids, and
 			// create any new ones that aren't in the database
-			$entityNames = array_unique($entities);
-
 			$existingEntities = DB::table('entities')
 				->select('id', 'name', 'code')
-				->whereIn('code', $entityNames)
-				->orWhere(function($query) use ($entityNames) {
-					$query->whereIn('name', $entityNames);
+				->whereIn('code', $entityKey)
+				->orWhere(function($query) use ($entityKey) {
+					$query->whereIn('name', $entityKey);
 				})->get();
 
 			$entityNameToId = [];
@@ -115,7 +116,7 @@ class ImportController extends Controller {
 			}
 
 			$newEntities = [];
-			foreach ($entityNames as $name) {
+			foreach ($entityKey as $name) {
 				if (isset($entityNameToId[$name])) continue;
 				$newEntities[] = [ 'name' => $name, 'fk_ent_t_id' => 5 ];
 			}
@@ -151,7 +152,7 @@ class ImportController extends Controller {
 				for ($i = 0; $i < sizeof($years); $i++) {
 					$newDataValues[] = [
 						'fk_var_id' => $varId,
-						'fk_ent_id' => $entityNameToId[$entities[$i]],
+						'fk_ent_id' => $entityNameToId[$entityKey[$entities[$i]]],
 						'year' => $years[$i],
 						'value' => $values[$i],
 					];

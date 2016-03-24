@@ -3,6 +3,15 @@
 
 	var App = require("./../namespaces.js");
 		
+	function indexEntity(entityName, entityKey) {
+		var index = entityKey.indexOf(entityName);
+		if (index != -1)
+			return index;
+
+		entityKey.push(entityName);
+		return entityKey.length-1;
+	}
+
 	// TODO (Mispy): I have renovated the uploading side of the importer in isolation
 	// from ImportView itself, so there's probably some unneeded duplication here.
 	App.Models.Importer = Backbone.Model.extend( {
@@ -11,22 +20,26 @@
 		},
 
 		transformSingleVariableData: function(rows) {
+			var entityKey = [];
 			var years = [];
 			var entities = [];
 			var values = [];
 
-			var yearSet = rows[0].slice(1);			
+			var yearSet = _.map(rows[0].slice(1), function(cell) { return parseInt(cell); });			
 			_.each(rows.slice(1), function(row) {
+				var entityIndex = indexEntity(row[0], entityKey);
+
 				_.each(row.slice(1), function(cell, i) {
 					if (!_.isEmpty(cell)) {
 						years.push(yearSet[i]);
-						entities.push(row[0]);
-						values.push(cell);						
+						entities.push(entityIndex);
+						values.push(owid.tryParseFloat(cell));
 					}
 				});				
 			});
 
 			return {
+				entityKey: entityKey,
 				years: years,
 				entities: entities,
 				values: [values]
@@ -34,6 +47,7 @@
 		},
 
 		transformMultiVariableData: function(rows) {
+			var entityKey = [];
 			var years = [];
 			var entities = [];
 			var values = [];
@@ -44,14 +58,15 @@
 
 			for (i = 1; i < rows.length; i++) {
 				var row = rows[i];
-				entities.push(row[0]);
-				years.push(row[1]);
+				entities.push(indexEntity(row[0], entityKey));
+				years.push(parseInt(row[1]));
 				for (var j = 0; j < values.length; j++) {
-					values[j].push(row[2+j]);
+					values[j].push(owid.tryParseFloat(row[2+j]));
 				}
 			}
 
 			return {
+				entityKey: entityKey,
 				years: years,
 				entities: entities,
 				values: values
@@ -104,6 +119,7 @@
 					name: formData.source_name,
 					description: formData.source_description
 				},
+				entityKey: importData.entityKey,
 				years: importData.years,
 				entities: importData.entities,
 				variables: variables
@@ -113,12 +129,16 @@
 				headers: { 'X-CSRF-TOKEN': $('[name="_token"]').val() }
 			});
 
+			setTimeout(function() {
+				this.dispatcher.trigger("import-progress", "Preparing import for " + variables.length*importData.years.length + " values", true, "1/1");
+			}.bind(this), 100);
+
 			$.ajax(Global.rootUrl + "/import/variables", {
 				data: JSON.stringify(requestData),
 				contentType: 'application/json',
 				type: 'POST'			
 			}).done(function(result) {
-				this.dispatcher.trigger("import-progress", "Imported everything", true, "1/1", true, result.datasetId);
+				this.dispatcher.trigger("import-progress", "Imported everything", true, "2/2", true, result.datasetId);
 			}.bind(this)).fail(function(xhr) {
 				this.dispatcher.trigger("import-progress", 'Error: "' + xhr.responseJSON + '"', false, "0/1");
 			}.bind(this));

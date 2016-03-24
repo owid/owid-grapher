@@ -29,8 +29,11 @@ class ImportTest extends TestCase
                 'name' => 'New Source',
                 'description' => 'New source description.'
             ],
-            'entities' => [
+            'entityKey' => [
                 'USA', 'Australia', 'New Entity'
+            ],
+            'entities' => [
+                0, 1, 2
             ],
             'years' => [
                 1990, 2000, 2010
