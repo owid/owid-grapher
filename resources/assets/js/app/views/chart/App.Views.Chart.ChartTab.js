@@ -142,8 +142,6 @@
 				return;
 			}
 
-
-
 			var that = this;
 
 			//make local copy of data for our filtering needs
@@ -726,6 +724,8 @@
 		},
 
 		onResize: function() {
+			if (_.isEmpty(this.localData)) return;
+			
 			if( this.legend ) {
 				this.svgSelection.call( this.legend );
 			}

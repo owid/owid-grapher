@@ -6,7 +6,6 @@
 		ChartVariablesCollection = require( "./../collections/App.Collections.ChartVariablesCollection.js" ),
 		AvailableEntitiesCollection = require( "./../collections/App.Collections.AvailableEntitiesCollection.js" ),
 		ChartDimensionsModel = require( "./../models/App.Models.ChartDimensionsModel.js" ),
-		AvailableTimeModel = require( "./../models/App.Models.AvailableTimeModel.js" ),
 		SearchDataCollection = require( "./../collections/App.Collections.SearchDataCollection.js" ),
 		
 		BasicTabView = require( "./form/App.Views.Form.BasicTabView.js" ),
@@ -49,11 +48,6 @@
 				//App.ChartDimensionsModel = new App.Models.ChartDimensionsModel( formConfig[ "dimensions" ] );
 			} else {
 				App.ChartDimensionsModel = new ChartDimensionsModel();
-			}
-			if( formConfig && formConfig[ "available-time" ] ) {
-				App.AvailableTimeModel = new AvailableTimeModel(formConfig[ "available-time" ]);
-			} else {
-				App.AvailableTimeModel = new AvailableTimeModel();
 			}
 
 			//create search collection
@@ -147,8 +141,7 @@
 			var formConfig = {
 				"variables-collection": App.ChartVariablesCollection.toJSON(),
 				"entities-collection": App.AvailableEntitiesCollection.toJSON(),
-				"dimensions": App.ChartDimensionsModel.toJSON(),
-				"available-time": App.AvailableTimeModel.toJSON()
+				"dimensions": App.ChartDimensionsModel.toJSON()
 			};
 
 			App.ChartModel.set( "form-config", formConfig, { silent: true } );			
@@ -181,7 +174,6 @@
 				"variables-collection": App.ChartVariablesCollection.toJSON(),
 				"entities-collection": App.AvailableEntitiesCollection.toJSON(),
 				"dimensions": App.ChartDimensionsModel.toJSON(),
-				"available-time": App.AvailableTimeModel.toJSON()
 			};
 			App.ChartModel.set( "form-config", formConfig, { silent: true } );
 			var currentId = App.ChartModel.get("id");

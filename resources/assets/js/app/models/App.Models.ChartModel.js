@@ -37,7 +37,7 @@
 			"selected-countries": [], // e.g. [{id: "1", name: "United Kingdom"}]
 			"tabs": [ "chart", "data", "sources" ],
 			"default-tab": "chart",
-			"line-type": "2",
+			"line-type": "0",
 			"chart-description": "",
 			"chart-dimensions": [],
 			"variables": [],

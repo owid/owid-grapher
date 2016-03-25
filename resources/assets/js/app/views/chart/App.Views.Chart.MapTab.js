@@ -25,8 +25,6 @@
 			this.dispatcher = options.dispatcher;
 			this.parentView = options.parentView;
 			this.vardataModel = options.vardataModel;
-			this.mapControls = new MapControls( { dispatcher: options.dispatcher } );
-			this.timelineControls = new TimelineControls( { dispatcher: options.dispatcher } );
 			this.$tab = this.$el.find("#map-chart-tab");
 			this.isAwake = false;
 		},
@@ -45,6 +43,9 @@
 				this.trigger("tab-ready");
 				return;
 			}
+
+			this.mapControls = new MapControls( { dispatcher: options.dispatcher } );
+			this.timelineControls = new TimelineControls( { dispatcher: options.dispatcher } );
 
 			App.ChartModel.on("change", this.update, this);
 			App.ChartModel.on("change-map", this.update, this);

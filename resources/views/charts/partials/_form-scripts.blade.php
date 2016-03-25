@@ -1,4 +1,3 @@
-<script src="{{ asset('js/app/models/App.Models.AvailableTimeModel.js') }}?bust={!!time()!!}"></script>
 <script src="{{ asset('js/app/models/App.Models.EntityModel.js') }}?bust={!!time()!!}"></script>
 <script src="{{ asset('js/app/models/App.Models.ChartVariableModel.js') }}?bust={!!time()!!}"></script>
 

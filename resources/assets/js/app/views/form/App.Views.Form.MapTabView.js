@@ -27,8 +27,8 @@
 			this.dispatcher = options.dispatcher;
 
 			App.ChartVariablesCollection.on( "add remove change reset", this.onVariablesCollectionChange, this );
-			App.AvailableTimeModel.on( "change", this.onAvailableTimeChange, this );
 			App.ChartModel.on( "change", this.onChartModelChange, this );
+
 			
 			this.$variableIdSelect = this.$el.find( "[name='map-variable-id']" );
 			
@@ -77,7 +77,7 @@
 		},
 
 		updateTargetYearSelect: function() {
-			var mapConfig = App.ChartModel.get( "map-config" ),
+			var mapConfig = App.ChartModel.get("map-config"),
 				targetYear = mapConfig.targetYear,
 				targetYearMode = mapConfig.targetYearMode,
 				years = owid.timeRangesToYears(mapConfig.timeRanges, mapConfig.minYear, mapConfig.maxYear),
@@ -170,21 +170,18 @@
 
 		},
 
-		updateTargetYear: function( silent ) {
+		updateTargetYear: function() {
 			var mapConfig = App.ChartModel.get( "map-config" ),
 				chartTime = App.ChartModel.get( "chart-time" ),
+				minYear = App.DataModel.get("minYear"),
+				maxYear = App.DataModel.get("maxYear"),
 				savedTargetYear = mapConfig.targetYear,
-				targetYear = ( chartTime )? chartTime[0]: App.AvailableTimeModel.get( "min" ),
-				minYear = targetYear,
-				maxYear = ( chartTime )? chartTime[1]: App.AvailableTimeModel.get( "max" );
+				targetYear = ( chartTime )? chartTime[0]: minYear;
 
-			App.ChartModel.updateMapConfig( "minYear", minYear, true );
-			App.ChartModel.updateMapConfig( "maxYear", maxYear, true );
 			//override target year only if we don't have manually chosen custom year
 			if( !savedTargetYear ) {
 				App.ChartModel.updateMapConfig( "targetYear", targetYear, silent );
-			}
-			
+			}			
 		},
 
 		updateTimelineMode: function() {
@@ -294,13 +291,11 @@
 		},
 
 		onChartModelChange: function( evt ) {
-			this.updateColorSchemeSelect();
-			this.updateTimelineMode();
-			//this.updateTargetYear( true );
-		},
-
-		onAvailableTimeChange: function( evt ) {
-			this.updateTargetYear( false );
+			App.DataModel.ready(function() {
+				this.updateColorSchemeSelect();
+				this.updateTimelineMode();
+				this.updateTargetYear(true);
+			}.bind(this));
 		},
 
 		onLegendOrientationChange: function( evt ) {

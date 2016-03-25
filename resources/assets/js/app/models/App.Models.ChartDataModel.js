@@ -27,6 +27,10 @@
 
 			this.dimensions = JSON.parse(App.ChartModel.get("chart-dimensions"));
 			var variableIds = _.map(this.dimensions, function(dim) { return dim.variableId; });
+			if (_.isEmpty(variableIds)) {
+				this.clear();
+				return;
+			}
 
 			this.set("variableData", null, { silent: true });
 			this.dataRequest = $.getJSON(Global.rootUrl + "/data/variables/" + variableIds.join("+"));
@@ -341,7 +345,6 @@
 					localData.push(series);
 			}.bind(this));
 
-			window.localData = localData;
 			return localData;
 		},
 
@@ -373,6 +376,7 @@
 
 		transformDataForSources: function() {
 			var variableData = this.get("variableData");			
+			if (!variableData) return [];
 
 			return _.map(this.dimensions, function(dimension) {
 				var variable = variableData.variables[dimension.variableId],
@@ -384,6 +388,9 @@
 		},
 
 		transformData: function() {
+			var variableData = this.get("variableData")
+			if (!variableData) return [];
+
 			var chartType = App.ChartModel.get("chart-type");
 			if (chartType == App.ChartType.LineChart)
 				return this.transformDataForLineChart();

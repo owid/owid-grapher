@@ -28,7 +28,7 @@
 		render: function() {
 			var variableData = this.vardataModel.get("variableData"),
 				sources = this.vardataModel.transformDataForSources(),
-				license = variableData.license,
+				license = variableData && variableData.license,
 				footerHtml = "",
 				tabHtml = "",
 				descriptionHtml = App.ChartModel.get( "chart-description" ),

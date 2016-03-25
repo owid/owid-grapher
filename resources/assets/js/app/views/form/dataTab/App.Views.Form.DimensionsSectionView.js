@@ -14,7 +14,7 @@
 
 		initialize: function( options ) {
 			this.dispatcher = options.dispatcher;
-			App.ChartDimensionsModel.on( "reset change", this.render, this );
+			App.ChartDimensionsModel.on("change", this.render, this);
 			this.dispatcher.on( "dimension-update", this.onDimensionUpdate, this );
 			this.render();
 		},
@@ -22,7 +22,6 @@
 		inited: false,
 
 		render: function() {
-
 			this.$formSectionContent = this.$el.find( ".form-section-content" );
 			this.$dimensionsInput = this.$el.find( "[name='chart-dimensions']" );
 			this.$groupByVariable = this.$el.find( ".group-by-variable-wrapper" );
@@ -35,6 +34,7 @@
 			var chartType = App.ChartDimensionsModel.id,
 				dimensions = App.ChartDimensionsModel.get( "chartDimensions" ),
 				htmlString = "<ol class='dimensions-list chart-type-" + chartType + "'>";
+			console.log(dimensions);
 
 			_.each( dimensions, function( v, k ) {
 				htmlString += "<li data-property='" + v.property + "' class='dimension-box'><h4>" + v.name + "</h4><div class='dd-wrapper'><div class='dd'><div class='dd-empty'></div></div></div></li>";

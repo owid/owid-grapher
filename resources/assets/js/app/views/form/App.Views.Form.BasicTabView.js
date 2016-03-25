@@ -44,7 +44,6 @@
 			var currentName = this.lastChartName || App.ChartModel.get("chart-name") || "";
 			var currentExpectedSlug = this.convertToSlug(currentName);
 			var currentSlug = this.$chartSlug.val();
-			console.log(currentName, currentExpectedSlug, currentSlug);
 
 			if (_.isEmpty(currentSlug) || currentExpectedSlug == currentSlug) {
 				var slug = this.convertToSlug(this.$chartName.val());
