@@ -23,6 +23,12 @@
 		DiscreteBar: 6
 	};
 
+	App.LineType = {
+		WithDots: 0,
+		WithoutDots: 1,
+		UnjoinedIfMissing: 2		
+	}
+
 	//export for iframe
 	window.$ = jQuery;
 

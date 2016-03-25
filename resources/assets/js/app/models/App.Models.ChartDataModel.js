@@ -110,7 +110,7 @@
 					// e.g. http://ourworldindata.org/grapher/view/101
 					if (isNaN(value)) continue;
 					// Values <= 0 break d3 log scales horribly
-					if (yAxis['axis-scale'] === 'log' && value <= 0) continue;					
+					if (yAxis['axis-scale'] === 'log' && value <= 0) continue;
 
 					if (!series) {
 						var key = entityKey[entityId],
@@ -135,7 +135,9 @@
 						seriesByEntity[entityId] = series;
 					}
 
-
+					var prevValue = series.values[series.values.length-1];
+					if (prevValue)
+						prevValue.gapYearsToNext = year-prevValue.x;
 					series.values.push({ x: year, y: value, time: year });
 				}
 
@@ -175,10 +177,34 @@
 			return localData;
 		},
 
-		transformDataForStackedArea: function() {
-//			return [{ key: 'North America', entity: 'North America', id: 294, values: [{ x: 1990, y: 100, time: 1990}, { x: 1992, y: 200, time: 1992 }]},
-//					{ key: 'South Asia', entity: 'South Asia', id: 302, values: [{ x: 1990, y: 200, time: 1990 }, { x: 1991, y: 200, time: 1991 }]}];
+		// Zero pads for every single year in the data
+		zeroPadDataRange: function(localData) {
+			var minYear = Infinity, maxYear = -Infinity;
+			_.each(localData, function(series) {
+				minYear = Math.min(minYear, series.values[0].x);
+				maxYear = Math.max(maxYear, series.values[series.values.length-1].x);
+			});
 
+			var yearsForSeries = {};
+			_.each(localData, function(series) {
+				yearsForSeries[series.id] = {};
+				_.each(series.values, function(d, i) {
+					yearsForSeries[series.id][d.x] = true;
+				});
+			});
+
+			_.each(localData, function(series) {
+				for (var year = minYear; year <= maxYear; year++) {					
+					if (!yearsForSeries[series.id][year])
+						series.values.push({ x: year, y: 0, time: year, fake: true });
+				}
+				series.values = _.sortBy(series.values, function(d) { return d.x; });
+			});
+
+			return localData;			
+		},
+
+		transformDataForStackedArea: function() {
 			if (App.ChartModel.get("group-by-variables") == false)
 				return this.zeroPadData(this.transformDataForLineChart());
 
