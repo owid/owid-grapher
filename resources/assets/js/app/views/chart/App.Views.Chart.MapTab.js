@@ -44,8 +44,8 @@
 				return;
 			}
 
-			this.mapControls = new MapControls( { dispatcher: options.dispatcher } );
-			this.timelineControls = new TimelineControls( { dispatcher: options.dispatcher } );
+			this.mapControls = new MapControls( { dispatcher: this.dispatcher } );
+			this.timelineControls = new TimelineControls( { dispatcher: this.dispatcher } );
 
 			App.ChartModel.on("change", this.update, this);
 			App.ChartModel.on("change-map", this.update, this);
