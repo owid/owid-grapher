@@ -27,7 +27,7 @@
 		WithDots: 0,
 		WithoutDots: 1,
 		UnjoinedIfMissing: 2,
-		DottedIfMissing: 3		
+		DashedIfMissing: 3
 	}
 
 	//export for iframe

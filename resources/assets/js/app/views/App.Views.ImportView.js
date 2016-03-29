@@ -276,15 +276,16 @@
 			//entities.shift();
 
 			$.ajax( {
-				url: Global.rootUrl + "/entityIsoNames/validateData",
-				data: { "entities": JSON.stringify( entities ) },
+				url: Global.rootUrl + "/entityIsoNames/validate",
+				data: { entities: JSON.stringify(entities) },
+				contentType: 'application/json',
+				type: 'GET',								
 				beforeSend: function() {
 					$dataTableWrapper.before( "<p class='entities-loading-notice loading-notice'>Validating entities</p>" );
 				},
 				success: function( response ) {
-					if( response.data ) {
-							
-						var unmatched = response.data;
+					if (response.unmatched) {							
+						var unmatched = response.unmatched;
 						$entitiesCells.removeClass( "alert-error" );
 						$.each( $entitiesCells, function( i, v ) {
 							var $entityCell = $( this ),

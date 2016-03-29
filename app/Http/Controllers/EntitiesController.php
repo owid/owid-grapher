@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 use Cache;
+use Input;
+use DB;
 
 class EntitiesController extends Controller {
 
@@ -26,8 +28,37 @@ class EntitiesController extends Controller {
 		$grid->add( '<a href="' .route( 'entities.index' ). '/{{$id}}/edit">Edit</a>', 'Edit');
         $grid->paginate(10);
 
-		return view( 'entities.index', compact('grid') );
+		return view( 'entities.index', compact('grid')) ;
 
+	}
+
+	/**
+	 * Validate that a set of entity names/codes corresponds to ISO standard countries
+	 */
+	public function validateISO(Request $request) {
+		$entities = json_decode(Input::get('entities'));
+
+		$query = DB::table("entities")
+			->select('name', 'code')
+			->where('validated', true)
+			->where(function ($query) use ($entities) {
+				$query->whereIn('name', $entities)
+		   			  ->orWhereIn('code', $entities);
+			});
+
+		$matched = [];
+		foreach ($query->get() as $row) {
+			$matched[$row->name] = true;
+			$matched[$row->code] = true;
+		}
+		
+		$unmatched = [];
+		foreach ($entities as $entityName) {
+			if (!isset($matched[$entityName]))
+				$unmatched[] = $entityName;
+		}
+
+		return ['unmatched' => $unmatched];
 	}
 
 	/**

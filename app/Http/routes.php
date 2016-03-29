@@ -86,7 +86,7 @@ Route::group(['middleware' => ['web', 'auth']], function()
 	Route::post( 'import/store', 'ImportController@store' );
 	Route::post('import/variables', 'ImportController@variables');
 
-	Route::get( 'entityIsoNames/validateData', 'EntityIsoNamesController@validateData' );
+	Route::get( 'entityIsoNames/validate', 'EntitiesController@validateISO' );
 	
 	//Route::get( 'logo', [ 'as' => 'logo', 'uses' => 'LogoController@index' ] );
 	//Route::post('logo/upload', 'LogoController@upload');
@@ -135,7 +135,6 @@ Route::group(['middleware' => ['web']], function () {
 	Route::get('data/entities', 'DataController@entities');
 	Route::get('data/search', 'DataController@search');
 	Route::get('data/times', 'DataController@times');
-	Route::get('data/matchIsoName', 'DataController@matchIsoName');
 
 	Route::any('{all}', array('uses' => 'ViewController@showSlug'))->where('all', '(?!_debugbar).*');
 });

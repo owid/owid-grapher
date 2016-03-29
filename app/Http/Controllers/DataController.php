@@ -732,14 +732,4 @@ class DataController extends Controller {
 
 		return false;
 	}
-
-	public function matchIsoName() {
-		$name = Input::get( "name" );
-		$entityIsoName = EntityIsoName::match( $name )->first();
-		$success = ( $entityIsoName && $entityIsoName->id > 1 && $entityIsoName->name != "" )? true: false;
-		$result = [ 'success' => $success ];
-		return $result;
-	}
-
-
 }

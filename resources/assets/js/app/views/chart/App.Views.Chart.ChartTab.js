@@ -266,7 +266,7 @@
 				//line type
 				var lineType = App.ChartModel.get( "line-type" );
 				if( lineType == App.LineType.UnjoinedIfMissing ) {
-					chartOptions.defined = function( d ) { return d.gapYearsToNext === undefined || d.gapYearsToNext === 1 };
+					//chartOptions.defined = function( d ) { return d.y == 0; };
 				}
 				if( lineType == App.LineType.WithDots ) {
 					that.$el.addClass( "line-dots" );

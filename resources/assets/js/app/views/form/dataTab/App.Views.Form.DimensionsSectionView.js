@@ -34,7 +34,6 @@
 			var chartType = App.ChartDimensionsModel.id,
 				dimensions = App.ChartDimensionsModel.get( "chartDimensions" ),
 				htmlString = "<ol class='dimensions-list chart-type-" + chartType + "'>";
-			console.log(dimensions);
 
 			_.each( dimensions, function( v, k ) {
 				htmlString += "<li data-property='" + v.property + "' class='dimension-box'><h4>" + v.name + "</h4><div class='dd-wrapper'><div class='dd'><div class='dd-empty'></div></div></div></li>";

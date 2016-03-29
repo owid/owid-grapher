@@ -295,6 +295,10 @@
 								<input type="radio" name="line-type" value="2"/>
 								Do not join values if observations are missing
 							</label>
+							<label>
+								<input type="radio" name="line-type" value="3"/>
+								Dotted with dashed line for missing observations
+							</label>
 						</div>
 					</section>
 					<section class="form-section margins-section">
