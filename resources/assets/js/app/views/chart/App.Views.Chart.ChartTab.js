@@ -258,7 +258,6 @@
 			//setting up nvd3 chart
 			nv.addGraph(function() {
 				var chartOptions = {
-					transitionDuration: 0,
 					margin: { top:0, left:50, right:30, bottom:0 },// App.ChartModel.get( "margins" ),
 					showLegend: false
 				};
@@ -592,6 +591,7 @@
 					that.cacheColors( localData );
 				}
 
+				window.chart = that.chart;
 				that.trigger("tab-ready");
 			});
 
@@ -604,6 +604,70 @@
 
 		hide: function() {
 			this.$el.hide();
+		},
+
+		applyLineDashing: function() {
+			var localData = this.localData,
+				paths = d3.selectAll(".nv-group path")[0];
+
+			var dashSequence = function(startLength, endLength) {
+				var dashLength = 2, gapLength = 2;
+				var totalLength = endLength-startLength;
+				var sequence = [];
+
+				var i = 0, isDash = true;
+				while (i < totalLength) {
+					var length = isDash ? dashLength : gapLength;
+					if (i + length > totalLength) length = totalLength-i;
+					sequence.push(length);
+					i += length;
+
+					isDash = !isDash;
+				}
+
+				// Make sure we leave off on a line segment
+				if (!isDash)
+					sequence.push(0);
+
+				return sequence;
+			};
+
+			_.each(localData, function(series, i) {
+				var totalLength = paths[i].getTotalLength(),
+					segmentStartLength = 0, // where along the line the current segment starts
+					segmentIsDashed = null, // whether the current segment is dashed or not
+					currentLength = 0, // position on the line of the current data value
+					nextIsDashed = null, // whether the next segment is part of a dashed line
+					dashArray = []; // final output to stroke-dasharray
+
+				function closeSegment() {						
+					if (segmentIsDashed === true) {
+						var dashedSegment = dashSequence(segmentStartLength, currentLength);
+						dashArray.push.apply(dashArray, dashedSegment);
+					} else if (segmentIsDashed === false) {
+						dashArray.push(currentLength-segmentStartLength);
+						dashArray.push(0);							
+					}
+
+					segmentStartLength = currentLength;
+					segmentIsDashed = nextIsDashed;
+				}
+
+				_.each(series.values, function(d, j) {					
+					nextIsDashed = d.gapYearsToNext > 1;
+					currentLength = owid.getLengthForPoint(paths[i], j);
+					if (nextIsDashed === null)
+						segmentIsDashed = nextIsDashed;
+					else if (nextIsDashed !== segmentIsDashed)
+						closeSegment();				
+				});
+
+				// Close off the final segment
+				closeSegment();
+
+				window.dashArray = dashArray;
+				d3.select(paths[i]).style("stroke-dasharray", dashArray.join(","));
+			});
 		},
 
 		scatterDist: function() {
@@ -822,7 +886,6 @@
 			//position scale dropdowns - TODO - isn't there a better way then with timeout?
 			var that = this;
 			setTimeout( function() {
-				
 				//make sure the chart is created
 				if( !$wrap.length ) {
 					return false;
@@ -845,6 +908,10 @@
 
 				that.$xAxisScaleSelector.css( { "top": offsetDiff + chartHeight, "left": marginLeft + backRectWidth + xScaleOffset } );
 				that.$yAxisScaleSelector.css( { "top": offsetDiff - 15, "left": marginLeft + yScaleOffset } );
+
+				if (chartType == App.ChartType.LineChart) {
+					that.applyLineDashing();
+				}
 			}, 250 );
 		}					
 	} );

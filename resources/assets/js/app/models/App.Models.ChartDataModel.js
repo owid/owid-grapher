@@ -150,11 +150,10 @@
 				});
 			});
 
-//			if (App.ChartModel.get("line-type") == App.LineType.)
 			return localData;
 		},
 
-		splitSeriesByMissing: function(localData) {
+		/*splitSeriesByMissing: function(localData) {
 			var newData = [];
 
 			_.each(localData, function(series) {
@@ -166,7 +165,7 @@
 					if (isMissing !== currentMissing) {
 						if (currentSeries !== null)
 							newData.push(currentSeries);
-						currentSeries = _.extend({}, series, { values: [] });
+						currentSeries = _.extend({}, series, { values: [], styled: 'dashed' });
 						currentMissing = isMissing;
 					}
 
@@ -179,7 +178,7 @@
 			});
 
 			return newData;
-		},
+		},*/
 
 		// Ensures that every series has a value entry for every year in the data
 		// Even if that value is just 0

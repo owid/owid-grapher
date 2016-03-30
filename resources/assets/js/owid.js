@@ -204,9 +204,18 @@
 			string += "</p>";
 		}
 
-		console.log(string);
 		return string;
 
+	};
+
+	owid.getLengthForPoint = function(path, pointNum) {
+		if (pointNum == 0) return 0;
+
+		var points = path.getAttribute("d").split(/L/);
+
+		var phantomPath = document.createElementNS("http://www.w3.org/2000/svg", 'path');
+		phantomPath.setAttribute('d', points.slice(0, pointNum+1).join("L"));
+		return phantomPath.getTotalLength();
 	};
 
 
