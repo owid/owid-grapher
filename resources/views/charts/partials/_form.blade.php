@@ -299,6 +299,11 @@
 								<input type="radio" name="line-type" value="3"/>
 								Dotted with dashed line for missing observations
 							</label>
+							<br>
+							<label style="display: none;">
+								Maximum year gap to tolerate
+								<input type="input" class="form-control" name="line-tolerance" value=""/>
+							</label>
 						</div>
 					</section>
 					<section class="form-section margins-section">

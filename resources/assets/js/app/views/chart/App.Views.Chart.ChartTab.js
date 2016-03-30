@@ -483,7 +483,7 @@
 				window.localData = localData;
 
 				var displayData = localData;
-				if (chartType == App.ChartType.LineChart && lineType == App.LineType.DashedIfMissing)
+				if (chartType == App.ChartType.LineChart && (lineType == App.LineType.DashedIfMissing))// || lineType == App.LineType.UnjoinedIfMissing))
 					displayData = that.splitSeriesByMissing(localData);
 				window.displayData = displayData;
 				that.svgSelection = d3.select( that.$svg.selector )
@@ -631,14 +631,16 @@
 		},
 
 		splitSeriesByMissing: function(localData) {
-			var newData = [];
+			var lineType = App.ChartModel.get("line-type"),
+				lineTolerance = parseInt(App.ChartModel.get("line-tolerance")) || 1,
+				newData = [];
 
 			_.each(localData, function(series) {
 				var currentSeries = null;
 				var currentMissing = null;
 
 				_.each(series.values, function(d) {
-					var isMissing = (d.gapYearsToNext && d.gapYearsToNext > 1);
+					var isMissing = (d.gapYearsToNext && d.gapYearsToNext > lineTolerance);
 					if (isMissing !== currentMissing) {
 						if (currentSeries !== null) {
 							// There's a single overlapping value to keep the lines joined
@@ -646,8 +648,10 @@
 							newData.push(currentSeries);
 						}
 						currentSeries = _.extend({}, series, { values: [] });
-						if (isMissing)
+						if (isMissing && lineType == App.LineType.DashedIfMissing)
 							currentSeries.classed = 'dashed';
+						else if (isMissing)
+							currentSeries.classed = 'unstroked';
 						currentMissing = isMissing;
 					}
 

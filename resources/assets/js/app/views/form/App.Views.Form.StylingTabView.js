@@ -11,6 +11,7 @@
 			"change [name='logo']": "onLogoChange",
 			"change [name='second-logo']": "onLogoChange",
 			"change [name='line-type']": "onLineTypeChange",
+			"change [name='line-tolerance']": "onLineToleranceChange",
 			"change [name^='margin-']": "onMarginChange",
 			"change [name='hide-legend']": "onHideLegendChange",
 			"change .units-section .form-control[type=input]": "updateUnits",
@@ -26,6 +27,7 @@
 			this.$secondLogo = this.$el.find("[name='second-logo']");
 
 			this.$lineTypeRadios = this.$el.find( "[name='line-type']" );
+			this.$lineTolerance = this.$el.find("[name='line-tolerance']");
 			
 			//margins
 			this.$marginTop = this.$el.find( "[name='margin-top']" );
@@ -42,6 +44,7 @@
 			
 			App.ChartModel.on( "change:chart-type", this.onChartTypeChange, this );
 			App.ChartModel.on( "change:chart-dimensions", this.render, this );
+			App.ChartModel.on("change:line-type", this.renderLineType, this);
 			
 			this.render();
 
@@ -53,8 +56,7 @@
 			var secondLogoId = App.ChartModel.get("second-logo");
 			this.$secondLogo.val(secondLogoId);
 
-			var lineType = App.ChartModel.get( "line-type" );
-			this.$lineTypeRadios.filter( "[value='" + lineType + "']" ).prop( "checked", true );
+			this.renderLineType();
 
 			var margins = App.ChartModel.get( "margins" );
 			this.$marginTop.val( margins.top );
@@ -69,16 +71,29 @@
 			this.updateUnits();
 		},
 
+		renderLineType: function() {
+			var lineType = App.ChartModel.get( "line-type" );
+			this.$lineTypeRadios.filter( "[value='" + lineType + "']" ).prop( "checked", true );
+			this.$lineTolerance.val(App.ChartModel.get("line-tolerance"));
+
+			if (lineType == App.LineType.UnjoinedIfMissing || lineType == App.LineType.DashedIfMissing)
+				this.$lineTolerance.closest("label").show();
+			else
+				this.$lineTolerance.closest("label").hide();
+		},
+
 		onLogoChange: function(evt) {
 			App.ChartModel.set("logo", this.$logo.val());
 			App.ChartModel.set("second-logo", this.$secondLogo.val());
 		},
 
-		onLineTypeChange: function( evt ) {
+		onLineTypeChange: function(evt) {
+			var $radio = $(evt.currentTarget);
+			App.ChartModel.set("line-type", $radio.val());
+		},
 
-			var $radio = $( evt.currentTarget );
-			App.ChartModel.set( "line-type", $radio.val() );
-
+		onLineToleranceChange: function(evt) {
+			App.ChartModel.set("line-tolerance", this.$lineTolerance.val());
 		},
 
 		onMarginChange: function( evt ) {
