@@ -147,7 +147,7 @@
 		var series = data.series, key = "", timeString = "";
 		if( series && series.length ) {
 			var serie = series[ 0 ];
-			key = serie.key;
+			key = serie.origKey || serie.key;
 
 			//get source of information
 			var point = data.point;

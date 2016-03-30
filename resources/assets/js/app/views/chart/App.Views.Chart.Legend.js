@@ -4,6 +4,17 @@
 	
 	var App = require( "./../../namespaces.js" );
 
+
+	// HACK (Mispy): Avoid duplication in legend when there are multiple
+	// split series for styling purposes.
+	function getData(data) {
+		if (data.length == 0 || !data[0].origKey)
+			return data;
+		return _.uniq(data, false, function(d) {
+			return d.origKey || d.key;
+		});
+	}
+
 	App.Views.Chart.Legend = function( chartLegend ) {
 	
 		//based on https://github.com/novus/nvd3/blob/master/src/models/legend.js
@@ -16,7 +27,7 @@
 			, margin = {top: 5, right: 50, bottom: 5, left: 30}
 			, width = 800
 			, height = 20
-			, getKey = function(d) { return d.key }
+			, getKey = function(d) { return d.origKey || d.key }
 			, color = nv.utils.getColor()
 			, align = true
 			, padding = 40 //define how much space between legend items. - recommend 32 for furious version
@@ -38,7 +49,7 @@
 				
 				nv.utils.initSVG(container);
 
-				var bindableData = data;
+				var bindableData = getData(data);
 
 				//discrete bar chart needs unpack data
 				if( chartType === "6" ) {
@@ -186,7 +197,7 @@
 							//original version, when clicking country label just deactivates it
 							chartLegend.dispatch.legendClick(d,i);
 							// make sure we re-get data in case it was modified
-							var data = series.data();
+							var data = getData(series.data());
 							if (updateState) {
 								if(expanded) {
 									d.disengaged = !d.disengaged;
@@ -236,7 +247,7 @@
 						chartLegend.dispatch.legendDblclick(d,i);
 						if (updateState) {
 							// make sure we re-get data in case it was modified
-							var data = series.data();
+							var data = getData(series.data());
 							//the default behavior of NVD3 legends, when double clicking one,
 							// is to set all other series' to false, and make the double clicked series enabled.
 							data.forEach(function(series) {
@@ -508,6 +519,7 @@
 		};
 
 		nv.utils.initOptions(chart);
+
 
 		return chart;
 	};

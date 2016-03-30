@@ -267,7 +267,7 @@
 				if( lineType == App.LineType.UnjoinedIfMissing ) {
 					//chartOptions.defined = function( d ) { return d.y == 0; };
 				}
-				if( lineType == App.LineType.WithDots ) {
+				if( lineType == App.LineType.WithDots || lineType == App.LineType.DashedIfMissing ) {
 					that.$el.addClass( "line-dots" );
 				} else {
 					that.$el.removeClass( "line-dots" );
@@ -482,8 +482,12 @@
 
 				window.localData = localData;
 
+				var displayData = localData;
+				if (chartType == App.ChartType.LineChart && lineType == App.LineType.DashedIfMissing)
+					displayData = that.splitSeriesByMissing(localData);
+				window.displayData = displayData;
 				that.svgSelection = d3.select( that.$svg.selector )
-					.datum( localData )
+					.datum(displayData)
 					.call( that.chart );
 
 				if( chartType !== App.ChartType.StackedArea ) {
@@ -606,70 +610,6 @@
 			this.$el.hide();
 		},
 
-		applyLineDashing: function() {
-			var localData = this.localData,
-				paths = d3.selectAll(".nv-group path")[0];
-
-			var dashSequence = function(startLength, endLength) {
-				var dashLength = 2, gapLength = 2;
-				var totalLength = endLength-startLength;
-				var sequence = [];
-
-				var i = 0, isDash = true;
-				while (i < totalLength) {
-					var length = isDash ? dashLength : gapLength;
-					if (i + length > totalLength) length = totalLength-i;
-					sequence.push(length);
-					i += length;
-
-					isDash = !isDash;
-				}
-
-				// Make sure we leave off on a line segment
-				if (!isDash)
-					sequence.push(0);
-
-				return sequence;
-			};
-
-			_.each(localData, function(series, i) {
-				var totalLength = paths[i].getTotalLength(),
-					segmentStartLength = 0, // where along the line the current segment starts
-					segmentIsDashed = null, // whether the current segment is dashed or not
-					currentLength = 0, // position on the line of the current data value
-					nextIsDashed = null, // whether the next segment is part of a dashed line
-					dashArray = []; // final output to stroke-dasharray
-
-				function closeSegment() {						
-					if (segmentIsDashed === true) {
-						var dashedSegment = dashSequence(segmentStartLength, currentLength);
-						dashArray.push.apply(dashArray, dashedSegment);
-					} else if (segmentIsDashed === false) {
-						dashArray.push(currentLength-segmentStartLength);
-						dashArray.push(0);							
-					}
-
-					segmentStartLength = currentLength;
-					segmentIsDashed = nextIsDashed;
-				}
-
-				_.each(series.values, function(d, j) {					
-					nextIsDashed = d.gapYearsToNext > 1;
-					currentLength = owid.getLengthForPoint(paths[i], j);
-					if (nextIsDashed === null)
-						segmentIsDashed = nextIsDashed;
-					else if (nextIsDashed !== segmentIsDashed)
-						closeSegment();				
-				});
-
-				// Close off the final segment
-				closeSegment();
-
-				window.dashArray = dashArray;
-				d3.select(paths[i]).style("stroke-dasharray", dashArray.join(","));
-			});
-		},
-
 		scatterDist: function() {
 
 			var that = this,
@@ -688,6 +628,46 @@
 				that.chart.tooltip.position(position).data(evt).hidden(false);
 			});
 
+		},
+
+		splitSeriesByMissing: function(localData) {
+			var newData = [];
+
+			_.each(localData, function(series) {
+				var currentSeries = null;
+				var currentMissing = null;
+
+				_.each(series.values, function(d) {
+					var isMissing = (d.gapYearsToNext && d.gapYearsToNext > 1);
+					if (isMissing !== currentMissing) {
+						if (currentSeries !== null) {
+							// There's a single overlapping value to keep the lines joined
+							currentSeries.values.push(d);
+							newData.push(currentSeries);
+						}
+						currentSeries = _.extend({}, series, { values: [] });
+						if (isMissing)
+							currentSeries.classed = 'dashed';
+						currentMissing = isMissing;
+					}
+
+					currentSeries.values.push(d);
+				});
+			});
+
+			// HACK (Mispy): Mutate the keys so nvd3 actually draws the new series.
+			// Kludgy but necessary for now.
+			var keys = {};
+			_.each(newData, function(series, i) {
+				series.origKey = series.key;
+				if (keys[series.key]) {
+					series.key = series.key + i;
+					series.id = "copy-"+i;
+				} else
+					keys[series.key] = true;
+			});
+
+			return newData;
 		},
 
 		scatterBubbleSize: function() {
@@ -774,6 +754,7 @@
 		},
 
 		assignColorFromCache: function( value ) {
+			this.cachedColors = this.cachedColors || {};
 			if( this.cachedColors.length ) {
 				//assing color frome cache
 				if( this.cachedColors[ value.id ] ) {
@@ -783,6 +764,10 @@
 					value.color = randomColor;
 					this.cachedColors[ value.id ] = randomColor;
 				}
+			} else if (!value.color && App.ChartModel.get("chart-type") == App.ChartType.LineChart) {
+				this.colorScale = this.colorScale || nv.utils.getColor(d3.scale.category20().range());
+				this.colorIndex = this.colorIndex || 0;
+				value.color = this.colorScale(this.colorIndex += 1);	
 			}
 			return value;
 		},
@@ -908,10 +893,6 @@
 
 				that.$xAxisScaleSelector.css( { "top": offsetDiff + chartHeight, "left": marginLeft + backRectWidth + xScaleOffset } );
 				that.$yAxisScaleSelector.css( { "top": offsetDiff - 15, "left": marginLeft + yScaleOffset } );
-
-				if (chartType == App.ChartType.LineChart) {
-					that.applyLineDashing();
-				}
 			}, 250 );
 		}					
 	} );

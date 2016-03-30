@@ -153,33 +153,6 @@
 			return localData;
 		},
 
-		/*splitSeriesByMissing: function(localData) {
-			var newData = [];
-
-			_.each(localData, function(series) {
-				var currentSeries = null;
-				var currentMissing = null;
-
-				_.each(series.values, function(d) {
-					var isMissing = (d.gapYearsToNext && d.gapYearsToNext > 1);
-					if (isMissing !== currentMissing) {
-						if (currentSeries !== null)
-							newData.push(currentSeries);
-						currentSeries = _.extend({}, series, { values: [], styled: 'dashed' });
-						currentMissing = isMissing;
-					}
-
-					currentSeries.values.push(d);
-				});
-			});
-
-			_.each(newData, function(series, i) {
-				series.key = series.key + i;
-			});
-
-			return newData;
-		},*/
-
 		// Ensures that every series has a value entry for every year in the data
 		// Even if that value is just 0
 		// Stacked area charts with incomplete data will fail to render otherwise
