@@ -131,5 +131,84 @@
 		return timeRanges;
 	};
 
+
+	owid.contentGenerator = function( data, isMapPopup ) {
+		//set popup
+		var unitsString = App.ChartModel.get( "units" ),
+			chartType = App.ChartModel.get( "chart-type" ),
+			units = ( !$.isEmptyObject( unitsString ) )? $.parseJSON( unitsString ): {},
+			string = "",
+			valuesString = "";
+
+		if (chartType == App.ChartType.ScatterPlot)
+			return App.Utils.scatterPlotContentGenerator(data);
+
+		//find relevant values for popup and display them
+		var series = data.series, key = "", timeString = "";
+		if( series && series.length ) {
+			var serie = series[ 0 ];
+			key = serie.key;
+
+			//get source of information
+			var point = data.point;
+			//begin composting string
+			string = "<h3>" + key + "</h3><p>";
+			valuesString = "";
+
+			if (!isMapPopup && (chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar || chartType == App.ChartType.DiscreteBar)) {
+				//multibarchart has values in different format
+				point = { "y": serie.value, "time": data.data.time };
+			}
+
+			$.each( point, function( i, v ) {
+				//for each data point, find appropriate unit, and if we have it, display it
+				var unit = _.findWhere( units, { property: i } ),
+					value = v,
+					isHidden = ( unit && unit.hasOwnProperty( "visible" ) && !unit.visible )? true: false;
+
+				value = App.Utils.formatNumeric(unit, value);
+
+				if( unit ) {
+					var unitSetting = unit.unit||"";
+					var titleSetting = unit.title||"";
+
+					if( !isHidden ) {
+						//try to format number
+						//scatter plot has values displayed in separate rows
+						if( valuesString !== "") {
+							valuesString += ", ";
+						}
+						valuesString += (_.isEmpty(titleSetting) ? "" : titleSetting + ": ") + value + " " + unitSetting;
+					}
+				} else if( i === "time" ) {
+					if (v.hasOwnProperty("map"))
+						timeString = owid.displayYear(v.map);
+					else
+						timeString = owid.displayYear(v);
+				} else if(i === "y" || ( i === "x" && chartType != App.ChartType.LineChart ) ) {
+					if( !isHidden ) {
+						if( valuesString !== "") {
+							valuesString += ", ";
+						}
+						//just add plain value, omiting x value for linechart
+						valuesString += value;
+					}
+				}
+			} );
+
+			if(isMapPopup || timeString) {
+				valuesString += " <br /> in <br /> " + timeString;
+			}
+
+			string += valuesString;
+			string += "</p>";
+		}
+
+		console.log(string);
+		return string;
+
+	};
+
+
 	window.owid = owid;
 })();

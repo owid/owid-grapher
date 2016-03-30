@@ -590,7 +590,7 @@
 						timeString = owid.displayYear(v.map);
 					else
 						timeString = owid.displayYear(v);
-				} else if( i !== "color" && i !== "series" && ( i !== "x" || chartType != App.ChartType.LineChart ) ) {
+				} else if(i === "y" || ( i === "x" && chartType == App.ChartType.LineChart ) ) {
 					if( !isHidden ) {
 						if( valuesString !== "") {
 							valuesString += ", ";
@@ -609,6 +609,7 @@
 			string += "</p>";
 		}
 
+		console.log(string);
 		return string;
 
 	};

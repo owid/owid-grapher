@@ -489,7 +489,7 @@
 
 				if( chartType !== App.ChartType.StackedArea ) {
 
-					that.chart.tooltip.contentGenerator( App.Utils.contentGenerator );
+					that.chart.tooltip.contentGenerator( owid.contentGenerator );
 
 				} else {
 

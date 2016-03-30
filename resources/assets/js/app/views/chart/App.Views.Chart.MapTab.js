@@ -148,7 +148,7 @@
 				}]
 			};
 			obj.point[propertyName] = data.value;
-			return ["<div class='hoverinfo nvtooltip'>" + App.Utils.contentGenerator( obj, true ) + "</div>"];
+			return ["<div class='hoverinfo nvtooltip'>" + owid.contentGenerator( obj, true ) + "</div>"];
 		},
 
 		onChartModelChange: function( evt ) {
