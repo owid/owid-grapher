@@ -43,7 +43,7 @@
 			evt.preventDefault();
 			var $btn = $( evt.currentTarget ),
 				targetYear = parseInt( $btn.attr( "data-year" ), 10 );
-			App.ChartModel.updateMapConfig( "targetYear", targetYear, false, "change-map" );
+			App.ChartModel.updateMapConfig( "targetYear", targetYear, false, "change-map-year" );
 		
 		},
 
