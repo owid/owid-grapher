@@ -1,16 +1,14 @@
-;( function() {
-	
+;(function() {	
 	"use strict";
+	owid.namespace("App.Views.ImportView");
 
-	var papaparse = require( "papaparse" ),
-		moment = require( "moment" ),
-		App = require( "./../namespaces.js" ),
-		Importer = require( "./../models/App.Models.Importer.js" ),
-		ImportProgressPopup = require( "./ui/App.Views.UI.ImportProgressPopup.js" ),
-		Utils = require( "./../App.Utils.js" );
+	var papaparse = require("Papa"),
+		moment = require("moment"),
+		Importer = require("App.Models.Importer"),
+		ImportProgressPopup = require("App.Views.UI.ImportProgressPopup"),
+		Utils = require("App.Utils");
 
 	App.Views.ImportView = Backbone.View.extend({
-
 		datasetName: "",
 		isDataMultiVariant: false,
 		origUploadedData: false,
@@ -794,13 +792,6 @@
 			importProgress.show();
 
 			return false;
-
-
 		}
-
-
 	});
-
-	module.exports = App.Views.ImportView;
-
 })();

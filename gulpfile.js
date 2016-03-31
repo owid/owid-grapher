@@ -170,9 +170,17 @@ elixir(function(mix) {
         'public/js/FormApp.js'
     );
 
-    //mix.browserify('app/ChartApp.js');
-    //mix.browserify('app/FormApp.js');
-    //mix.browserify('app/ImportApp.js');
+    mix.scripts([
+        'libs/papaparse.js',
+        'libs/moments.min.js',
+        'app/App.Utils.js',
+        'app/App.Models.ChartModel.js',        
+        'app/App.Models.Importer.js',
+        'app/App.Views.UI.ImportProgressPopup.js',
+        'app/App.Views.ImportView.js',
+        'app/App.Views.Import.js',
+        'app/ImportApp.js'
+    ], 'public/js/ImportApp.js');
 
     mix.version([
         'css/front.css',

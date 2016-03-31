@@ -1,10 +1,10 @@
-;( function() {
-	
+;$(document).ready(function() {	
 	"use strict";
+	owid.namespace("App.View");
 
-	var App = require( "./namespaces.js" ),
-		Import = require( "./views/App.Views.Import.js" ),
-		ChartModel = require( "./models/App.Models.ChartModel.js" );
+	var Import = require("App.Views.Import"),
+		ChartModel = require("App.Models.ChartModel"),
+		Utils = require("App.Utils");
 
 	//setup models
 	//is new chart or display old chart
@@ -39,9 +39,6 @@
 		App.View.start();
 
 	}
-
-	//small bits of functionality, previously in seperate file
-	var Utils = require( "./App.Utils.js" );
 
 	$( ".datepicker" ).datepicker();
 
@@ -100,4 +97,4 @@
 	//chosen select
 	$( ".chosen-select" ).chosen();
 
-})();
+});

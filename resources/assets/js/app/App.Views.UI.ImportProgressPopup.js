@@ -1,8 +1,6 @@
-;( function() {
-
+;(function() {
 	"use strict";
-
-	var App = require( "./../../namespaces.js" );
+	owid.namespace("App.Views.UI.ImportProgressPopup");
 	
 	var that;
 
@@ -81,11 +79,6 @@
 			var $btn = $( evt.currentTarget ),
 				redirectUrl = $btn.attr( "data-redirect-url" );
 			window.location = redirectUrl + "/" + this.datasetId;
-
 		}
-
 	};
-
-	module.exports = App.Views.UI.ImportProgressPopup;
-
 })();

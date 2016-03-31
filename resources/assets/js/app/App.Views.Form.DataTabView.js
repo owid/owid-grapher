@@ -16,8 +16,7 @@
 			"change textarea[name=description]": "onDescriptionChange",
 		},
 
-		initialize: function( options ) {
-			
+		initialize: function( options ) {			
 			this.dispatcher = options.dispatcher;
 
 			this.chartTypeSection = new ChartTypeSectionView( { dispatcher: this.dispatcher } );
@@ -28,7 +27,6 @@
 			this.timeSection = new TimeSectionView( { dispatcher: this.dispatcher } );
 
 			this.render();
-
 		},
 
 		render: function() {

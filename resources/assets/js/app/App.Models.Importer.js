@@ -1,7 +1,6 @@
 ;(function() {
 	"use strict";
-
-	var App = require("./../namespaces.js");
+	owid.namespace("App.Models.Importer");
 		
 	function indexEntity(entityName, entityKey) {
 		var index = entityKey.indexOf(entityName);
@@ -144,7 +143,4 @@
 			}.bind(this));
 		},
 	});
-
-	module.exports = App.Models.Importer;
-
 })();
