@@ -1,8 +1,6 @@
-;( function() {
-	
+;(function() {	
 	"use strict";
-
-	var App = require( "./../../../namespaces.js" );
+	owid.namespace("App.Views.Chart.Map.Legend");
 
 	App.Views.Chart.Map.Legend = function() {
 
@@ -250,7 +248,4 @@
 		return legend;
 
 	};
-
-	module.exports = App.Views.Chart.Map.Legend;
-
 })();

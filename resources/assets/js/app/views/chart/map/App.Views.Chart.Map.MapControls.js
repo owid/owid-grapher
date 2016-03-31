@@ -1,11 +1,9 @@
-;( function() {
-	
+;(function() {	
 	"use strict";
 
-	var App = require( "./../../../namespaces.js" );
+	owid.namespace("App.Views.Chart.Map.MapControls");
 
 	App.Views.Chart.Map.MapControls = Backbone.View.extend({
-
 		el: "#map-chart-tab .map-controls-header",
 		events: {
 			"input .target-year-control input": "onTargetYearInput",
@@ -111,7 +109,4 @@
 		},
 
 	});
-
-	module.exports = App.Views.Chart.Map.MapControls;
-
 })();

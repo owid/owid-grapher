@@ -1,8 +1,9 @@
-;( function() {
-
+;(function() {
 	"use strict";
-	var App = require( "./namespaces.js" );
-
+	window.App = window.App || {};
+	App.Utils = App.Utils || {};
+	App.Utils.FormHelper = App.Utils.FormHelper || {};
+	
 	App.Utils.mapData = function( rawData, transposed ) {
 
 		var data = [],
@@ -751,7 +752,4 @@
 		}
 		return value;
 	};
-
-	module.exports = App.Utils;
-	
 })();

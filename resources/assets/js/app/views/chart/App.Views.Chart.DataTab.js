@@ -1,11 +1,8 @@
-;( function() {
-	
+;(function() {	
 	"use strict";
+	owid.namespace("App.Views.Chart.DataTab");
 
-	var App = require( "./../../namespaces.js" );
-
-	App.Views.Chart.DataTab = Backbone.View.extend( {
-
+	App.Views.Chart.DataTab = Backbone.View.extend({
 		el: "#chart-view",
 		events: {},
 
@@ -173,7 +170,4 @@
 		}
 
 	} );
-	
-	module.exports = App.Views.Chart.DataTab;
-
 })();

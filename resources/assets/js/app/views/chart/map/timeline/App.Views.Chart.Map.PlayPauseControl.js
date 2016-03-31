@@ -1,8 +1,6 @@
-;( function() {
-	
+;(function() {	
 	"use strict";
-
-	var App = require( "./../../../../namespaces.js" );
+	owid.namespace("App.Views.Chart.Map.PlayPauseControl");
 
 	App.Views.Chart.Map.PlayPauseControl = Backbone.View.extend({
 		PLAY_INTERVAL: 500,
@@ -21,9 +19,6 @@
 			this.$pauseBtn = this.$el.find( ".pause-btn" );
 			
 			this.dispatcher.on( "max-increment-time", this.onMaxIncrement, this );
-
-			//App.ChartModel.on( "change", this.onChartModelChange, this );
-			//App.ChartModel.on( "change-map", this.onChartModelChange, this );
 		},
 
 		render: function() {
@@ -83,7 +78,4 @@
 		}
 
 	});
-
-	module.exports = App.Views.Chart.Map.PlayPauseControl;
-
 })();

@@ -1,13 +1,11 @@
-;( function() {
-	
+;(function() {	
 	"use strict";
+	owid.namespace("App.Views.Chart.Map.TimelineControls");
+	var PlayPauseControl = App.Views.Chart.Map.PlayPauseControl,
+		TimelineControl = App.Views.Chart.Map.TimelineControl,
+		ButtonsControl = App.Views.Chart.Map.ButtonsControl;
 
-	var App = require( "./../../../../namespaces.js" ),
-		PlayPauseControl = require( "./App.Views.Chart.Map.PlayPauseControl" ),
-		TimelineControl = require( "./App.Views.Chart.Map.TimelineControl.js" ),
-		ButtonsControl = require( "./App.Views.Chart.Map.ButtonsControl.js" );
-
-	App.Views.Chart.Map.TimelineControl = Backbone.View.extend({
+	App.Views.Chart.Map.TimelineControls = Backbone.View.extend({
 
 		el: "#map-chart-tab .map-timeline-controls",
 		events: {},
@@ -64,7 +62,4 @@
 		}
 
 	});
-
-	module.exports = App.Views.Chart.Map.TimelineControl;
-
 })();

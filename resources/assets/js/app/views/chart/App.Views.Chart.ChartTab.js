@@ -1,8 +1,6 @@
-;( function() {
+;(function() {
 	"use strict";
-
-	var App = require( "./../../namespaces.js" ),
-		Legend = require( "./App.Views.Chart.Legend" );
+	owid.namespace("App.Views.Chart.ChartTab");
 
 	App.Views.Chart.ChartTab = Backbone.View.extend( {
 
@@ -525,7 +523,7 @@
 				if( !App.ChartModel.get( "hide-legend" ) ) {
 					//make sure wrapper is visible
 					that.$svg.find( "> .nvd3.nv-custom-legend" ).show();
-					that.legend = new Legend( that.chart.legend ).vers( "owd" );
+					that.legend = new App.Views.Chart.Legend( that.chart.legend ).vers( "owd" );
 					that.legend.dispatch.on( "removeEntity", function( id ) {
 						that.onRemoveEntity( id );
 					} );
@@ -900,7 +898,5 @@
 			}, 250 );
 		}					
 	} );
-
-	module.exports = App.Views.Chart.ChartTab;
 
 })();

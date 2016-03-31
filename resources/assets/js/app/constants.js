@@ -1,6 +1,7 @@
 ;(function() {	
 	"use strict";
-	owid.namespace("App");
+
+	window.App = window.App || {};
 
 	App.ChartType = {
 		LineChart: 1,
@@ -16,9 +17,12 @@
 		WithoutDots: 1,
 		UnjoinedIfMissing: 2,
 		DashedIfMissing: 3
-	};
+	}
 
 	//export for iframe
 	window.$ = jQuery;
+
+	//export
+	window.App = App;
 })();
 

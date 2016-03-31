@@ -99,12 +99,39 @@ elixir(function(mix) {
         'libs/owd-colorbrewer.js',
         'libs/jquery.stickytabs.js',
         'libs/jquery.timeago.js',
-        'owid.js',
+        'owid.js'
     ], 'public/js/libs-admin.js' );
 
-    mix.browserify('app/ChartApp.js');
-    mix.browserify('app/FormApp.js');
-    mix.browserify('app/ImportApp.js');
+    mix.scripts([
+        'app/constants.js',
+        'app/App.Utils.js',
+        'app/models/App.Models.ChartModel.js',
+        'app/models/App.Models.ChartDataModel.js',
+        'app/views/chart/App.Views.Chart.Header.js',
+        'app/views/chart/App.Views.Chart.Footer.js',
+        'app/views/chart/App.Views.Chart.ScaleSelectors.js',
+        'app/views/chart/App.Views.Chart.Legend.js',
+        'app/views/chart/App.Views.Chart.ChartTab.js',
+        'app/views/chart/App.Views.Chart.DataTab.js',
+        'app/views/chart/App.Views.Chart.SourcesTab.js',
+
+        'app/views/chart/map/App.Views.Chart.Map.MapControls.js',
+        'app/views/chart/map/timeline/App.Views.Chart.Map.PlayPauseControl.js',
+        'app/views/chart/map/timeline/App.Views.Chart.Map.TimelineControl.js',
+        'app/views/chart/map/timeline/App.Views.Chart.Map.ButtonsControl.js',
+        'app/views/chart/map/timeline/App.Views.Chart.Map.TimelineControls.js',
+        'app/views/chart/map/App.Views.Chart.Map.Projections.js',
+        'app/views/chart/map/App.Views.Chart.Map.Legend.js',
+        'app/views/chart/App.Views.Chart.MapTab.js',
+
+        'app/views/ui/App.Views.UI.ExportPopup.js',
+        'app/views/App.Views.ChartView.js',
+        'app/ChartApp.js'
+    ], 'public/js/ChartApp.js');
+
+    //mix.browserify('app/ChartApp.js');
+    //mix.browserify('app/FormApp.js');
+    //mix.browserify('app/ImportApp.js');
 
     mix.version([
         'css/front.css',

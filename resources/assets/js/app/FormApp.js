@@ -13,6 +13,7 @@
 
 	//setup views
 	App.View = new Form();
+	App.isEditor = true;
 	
 	if( $chartShowWrapper.length && chartId ) {
 		

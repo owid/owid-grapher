@@ -1,9 +1,7 @@
-;( function() {
-	
+;(function() {	
 	"use strict";
-
-	var App = require( "./../../../../namespaces.js" );
-
+	owid.namespace("App.Views.Chart.Map.ButtonsControl");
+	
 	App.Views.Chart.Map.ButtonsControl = Backbone.View.extend({
 
 		el: "#map-chart-tab .map-timeline-controls .buttons-control",
@@ -62,7 +60,4 @@
 		}
 
 	});
-
-	module.exports = App.Views.Chart.Map.ButtonsControl;
-
 })();

@@ -1,8 +1,6 @@
-;( function() {
+;(function() {
 	"use strict";
-
-	var App = require( "./../namespaces.js" ),
-		Utils = require( "./../App.Utils.js" );
+	owid.namespace("App.Models.ChartModel");
 
 	App.Models.ChartModel = Backbone.Model.extend( {
 
@@ -206,7 +204,5 @@
 				this.trigger(eventName || "change");
 		}
 	} );
-
-	module.exports = App.Models.ChartModel;
 
 })();

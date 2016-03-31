@@ -1,8 +1,6 @@
-;( function() {
-	
+;(function() {	
 	"use strict";
-
-	var App = require( "./../../namespaces.js" );
+	owid.namespace("App.Views.Chart.SourcesTab");
 
 	App.Views.Chart.SourcesTab = Backbone.View.extend( {
 
@@ -93,7 +91,4 @@
 		}
 
 	} );
-	
-	module.exports = App.Views.Chart.SourcesTab;
-
 })();

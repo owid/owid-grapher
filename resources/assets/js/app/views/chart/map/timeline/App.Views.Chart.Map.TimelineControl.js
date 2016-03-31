@@ -1,9 +1,7 @@
-;( function() {
-	
+;(function() {
 	"use strict";
-
-	var App = require( "./../../../../namespaces.js" );
-
+	owid.namespace("App.Views.Chart.Map.TimelineControl");
+	
 	App.Views.Chart.Map.TimelineControl = Backbone.View.extend({
 
 		el: "#map-chart-tab .map-timeline-controls .timeline-control",
@@ -172,7 +170,4 @@
 		}
 
 	});
-
-	module.exports = App.Views.Chart.Map.TimelineControl;
-
 })();

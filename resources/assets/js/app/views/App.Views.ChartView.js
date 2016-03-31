@@ -1,29 +1,30 @@
-;( function() {
-	
+;(function() {	
 	"use strict";
+	owid.namespace("App.Views.ChartView");
 
-	var App = require( "./../namespaces.js" ),
-		Header = require( "./chart/App.Views.Chart.Header.js" ),
-		Footer = require( "./chart/App.Views.Chart.Footer.js" ),
-		ScaleSelectors = require( "./chart/App.Views.Chart.ScaleSelectors" ),
-		ChartTab = require( "./chart/App.Views.Chart.ChartTab.js" ),
-		LineChartTab = require("./chart/App.Views.Chart.LineChartTab.js"),
-		DataTab = require( "./chart/App.Views.Chart.DataTab.js" ),
-		SourcesTab = require( "./chart/App.Views.Chart.SourcesTab.js" ),
-		MapTab = require( "./chart/App.Views.Chart.MapTab.js" ),
-		ChartDataModel = require( "./../models/App.Models.ChartDataModel.js" ),
-		Utils = require( "./../App.Utils.js" ),
-		ExportPopup = require( "./ui/App.Views.UI.ExportPopup.js" );
+	var Header = App.Views.Chart.Header,
+		Footer = App.Views.Chart.Footer,
+		ScaleSelectors = App.Views.Chart.ScaleSelectors,
+		ChartTab = App.Views.Chart.ChartTab,
+		DataTab = App.Views.Chart.DataTab,
+		SourcesTab = App.Views.Chart.SourcesTab,
+		MapTab = App.Views.Chart.MapTab,
+		ChartDataModel = App.Models.ChartDataModel,
+		Utils = App.Utils,
+		ExportPopup = App.Views.UI.ExportPopup;
 
 	App.Views.ChartView = Backbone.View.extend({
-
 		activeTab: false,
 		el: "#chart-view",
 		events: {
 			"click .chart-export-btn": "exportContent"
 		},
 
-		initialize: function( options ) {			
+		initialize: function(options) {	
+			options = options || {};
+			this.dispatcher = _.clone(Backbone.Events);
+			options.dispatcher = this.dispatcher;
+		
 			$(document).ajaxStart(function() {
 				$(".chart-preloader").show();
 			});
@@ -38,7 +39,7 @@
 			var that = this;
 			//enable overriding default tab setting with tab query parameter
 			this.setDefaultTabFromUrl();
-			this.dispatcher = options.dispatcher;
+
 			// Data model used for fetching variables
 			this.vardataModel = new ChartDataModel();
 			App.DataModel = this.vardataModel;
@@ -363,8 +364,6 @@
 				this.activeTab.onResize();
 		},
 	});
-
-	module.exports = App.Views.ChartView;
 
 	//backbone router doesn't work properly with browserify, so it's directly inserted here
 	/*var Router = Backbone.Router.extend({

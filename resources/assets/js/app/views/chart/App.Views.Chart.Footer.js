@@ -1,8 +1,9 @@
-;( function() {
-	
+;(function() {	
 	"use strict";
 	
-	var App = require( "./../../namespaces.js" );
+	window.App = window.App || {};
+	App.Views = App.Views || {};
+	App.Views.Chart = App.Views.Chart || {};
 
 	App.Views.Chart.Footer = Backbone.View.extend({
 
@@ -78,7 +79,4 @@
 		}
 
 	});
-
-	module.exports = App.Views.Chart.Footer;
-
 })();

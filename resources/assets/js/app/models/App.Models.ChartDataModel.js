@@ -1,8 +1,8 @@
-;( function() {
-		
+;(function() {		
 	"use strict";
 
-	var App = require( "./../namespaces.js" );
+	window.App = window.App || {};
+	App.Models = App.Models || {};
 
 	/**
 	 * This model handles the mass retrieval of data values associated with one
@@ -403,7 +403,4 @@
 				return this.transformDataForLineChart();
 		},
 	});
-
-	module.exports = App.Models.ChartDataModel;
-
 })();

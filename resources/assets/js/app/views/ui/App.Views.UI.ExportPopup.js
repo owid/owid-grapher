@@ -1,9 +1,6 @@
-;( function() {
-
+;(function() {
 	"use strict";
-
-	var App = require( "./../../namespaces.js" );
-	
+	owid.namespace("App.Views.UI.ExportPopup");	
 
 	var MAX_WIDTH = 2200,
 		MAX_HEIGHT = 1800;
@@ -18,9 +15,7 @@
 	};
 
 	App.Views.UI.ExportPopup.prototype = {
-
-		init: function( options ) {
-
+		init: function(options) {
 			this.dispatcher = options.dispatcher;
 
 			this.$el = $( ".export-popup" );
@@ -153,7 +148,4 @@
 		}
 
 	};
-
-	module.exports = App.Views.UI.ExportPopup;
-
 })();

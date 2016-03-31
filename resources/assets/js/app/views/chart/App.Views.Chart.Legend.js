@@ -1,9 +1,6 @@
-;( function() {
-	
+;(function() {	
 	"use strict";
-	
-	var App = require( "./../../namespaces.js" );
-
+	owid.namespace("App.Views.Chart.Legend");
 
 	// HACK (Mispy): Avoid duplication in legend when there are multiple
 	// split series for styling purposes.
@@ -523,7 +520,4 @@
 
 		return chart;
 	};
-
-	module.exports = App.Views.Chart.Legend;
-
 })();

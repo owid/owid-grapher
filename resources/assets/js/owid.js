@@ -250,5 +250,17 @@
 	    history.replaceState(null, null, newQueryStr + window.location.hash);
 	};
 
+	/**
+	 * A very simple shorthand to ensure a top-level namespace exists.
+	 * e.g. owid.namespace("App.Views.UI.ExportPopup")
+	 **/
+	owid.namespace = function(namespace) {
+		var obj = window;
+		_.each(namespace.split("."), function(level) {
+			obj[level] = obj[level] || {};
+			obj = obj[level];
+		});
+	};
+
 	window.owid = owid;
 })();

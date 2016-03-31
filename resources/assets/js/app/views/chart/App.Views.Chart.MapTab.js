@@ -1,13 +1,12 @@
-;( function() {
-
+;(function() {
 	"use strict";
+	owid.namespace("App.Views.Chart.MapTab");
 
-	var App = require( "./../../namespaces.js" ),
-		MapControls = require( "./map/App.Views.Chart.Map.MapControls.js" ),
-		TimelineControls = require( "./map/timeline/App.Views.Chart.Map.TimelineControls.js" ),
-		owdProjections = require( "./map/App.Views.Chart.Map.Projections.js" ),
-		Legend = require( "./map/App.Views.Chart.Map.Legend.js" ),
-		ChartDataModel = require( "./../../models/App.Models.ChartDataModel.js" );
+	var MapControls = App.Views.Chart.Map.MapControls,
+		TimelineControls = App.Views.Chart.Map.TimelineControls,
+		owdProjections = App.Views.Chart.Map.Projections,
+		Legend = App.Views.Chart.Map.Legend,
+		ChartDataModel = App.Models.ChartDataModel;
 
 	App.Views.Chart.MapTab = Backbone.View.extend({
 
@@ -392,9 +391,6 @@
 		},
 
 	});
-
-	module.exports = App.Views.Chart.MapTab;
-
 })();
 
 (function() {
