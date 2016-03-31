@@ -262,5 +262,16 @@
 		});
 	};
 
+	window.require = function(namespace) {
+		var obj = window;
+		_.each(namespace.split("."), function(level) {
+			if (!_.isObject(obj[level]))
+				throw "Failed to load " + namespace;
+			obj = obj[level];
+		});
+
+		return obj;
+	};
+
 	window.owid = owid;
 })();

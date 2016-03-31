@@ -1,10 +1,9 @@
-;( function() {
+;$(document).ready(function() {
 	"use strict";
 
-	var App = require( "./namespaces.js" ),
-		Form = require( "./views/App.Views.Form.js" ),
-		ChartModel = require( "./models/App.Models.ChartModel.js" ),
-		ChartDataModel = require( "./models/App.Models.ChartDataModel.js" );
+	var Form = App.Views.Form,
+		ChartModel = App.Models.ChartModel,
+		ChartDataModel = App.Models.ChartDataModel;
 
 	//setup models
 	//is new chart or display old chart
@@ -12,8 +11,8 @@
 		chartId = $chartShowWrapper.attr( "data-chart-id" );
 
 	//setup views
-	App.View = new Form();
 	App.isEditor = true;
+	App.View = new Form();
 	
 	if( $chartShowWrapper.length && chartId ) {
 		
@@ -45,7 +44,4 @@
 	//chosen select
 	$( ".chosen-select" ).chosen();
 	$(".timeago").timeago();	
-
-
-
-})();
+});

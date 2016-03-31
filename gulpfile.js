@@ -102,32 +102,73 @@ elixir(function(mix) {
         'owid.js'
     ], 'public/js/libs-admin.js' );
 
-    mix.scripts([
+    var chartScripts = [
         'app/constants.js',
         'app/App.Utils.js',
-        'app/models/App.Models.ChartModel.js',
-        'app/models/App.Models.ChartDataModel.js',
-        'app/views/chart/App.Views.Chart.Header.js',
-        'app/views/chart/App.Views.Chart.Footer.js',
-        'app/views/chart/App.Views.Chart.ScaleSelectors.js',
-        'app/views/chart/App.Views.Chart.Legend.js',
-        'app/views/chart/App.Views.Chart.ChartTab.js',
-        'app/views/chart/App.Views.Chart.DataTab.js',
-        'app/views/chart/App.Views.Chart.SourcesTab.js',
+        'app/App.Models.ChartModel.js',
+        'app/App.Models.ChartDataModel.js',
+        'app/App.Views.Chart.Header.js',
+        'app/App.Views.Chart.Footer.js',
+        'app/App.Views.Chart.ScaleSelectors.js',
+        'app/App.Views.Chart.Legend.js',
+        'app/App.Views.Chart.ChartTab.js',
+        'app/App.Views.Chart.DataTab.js',
+        'app/App.Views.Chart.SourcesTab.js',
 
-        'app/views/chart/map/App.Views.Chart.Map.MapControls.js',
-        'app/views/chart/map/timeline/App.Views.Chart.Map.PlayPauseControl.js',
-        'app/views/chart/map/timeline/App.Views.Chart.Map.TimelineControl.js',
-        'app/views/chart/map/timeline/App.Views.Chart.Map.ButtonsControl.js',
-        'app/views/chart/map/timeline/App.Views.Chart.Map.TimelineControls.js',
-        'app/views/chart/map/App.Views.Chart.Map.Projections.js',
-        'app/views/chart/map/App.Views.Chart.Map.Legend.js',
-        'app/views/chart/App.Views.Chart.MapTab.js',
+        'app/App.Views.Chart.Map.MapControls.js',
+        'app/App.Views.Chart.Map.PlayPauseControl.js',
+        'app/App.Views.Chart.Map.TimelineControl.js',
+        'app/App.Views.Chart.Map.ButtonsControl.js',
+        'app/App.Views.Chart.Map.TimelineControls.js',
+        'app/App.Views.Chart.Map.Projections.js',
+        'app/App.Views.Chart.Map.Legend.js',
+        'app/App.Views.Chart.MapTab.js',
 
-        'app/views/ui/App.Views.UI.ExportPopup.js',
-        'app/views/App.Views.ChartView.js',
-        'app/ChartApp.js'
-    ], 'public/js/ChartApp.js');
+        'app/App.Views.UI.ExportPopup.js',  
+        'app/App.Views.ChartView.js',
+    ];
+
+    mix.scripts(
+        chartScripts.concat(['app/ChartApp.js']),
+        'public/js/ChartApp.js'
+    );
+
+    mix.scripts(
+        chartScripts.concat([
+            'app/App.Models.ChartVariableModel.js',
+            'app/App.Models.ChartDimensionsModel.js',
+            'app/App.Models.EntityModel.js',
+
+            'app/App.Collections.ChartVariablesCollection.js',
+            'app/App.Collections.SearchDataCollection.js',
+            'app/App.Collections.AvailableEntitiesCollection.js',
+
+            'app/App.Views.UI.SelectVarPopup.js',
+            'app/App.Views.UI.SettingsVarPopup.js',
+            'app/App.Views.UI.ColorPicker.js',
+            'app/App.Views.UI.VariableSelects.js',
+
+            'app/App.Views.Form.BasicTabView.js',
+            'app/App.Views.Form.ChartTypeSectionView.js',
+            'app/App.Views.Form.AddDataSectionView.js',
+            'app/App.Views.Form.DimensionsSectionView.js',
+            'app/App.Views.Form.SelectedCountriesSectionView.js',
+            'app/App.Views.Form.EntitiesSectionView.js',
+            'app/App.Views.Form.TimeSectionView.js',            
+            'app/App.Views.Form.DataTabView.js',
+            'app/App.Views.Form.AxisTabView.js',
+            'app/App.Views.Form.DescriptionTabView.js',
+            'app/App.Views.Form.StylingTabView.js',
+            'app/App.Views.Form.ExportTabView.js',
+            'app/App.Views.Form.MapColorSchemeView.js',
+            'app/App.Views.Form.MapTabView.js',
+            'app/App.Views.FormView.js',
+            'app/App.Views.Form.js',
+
+            'app/FormApp.js'
+        ]),
+        'public/js/FormApp.js'
+    );
 
     //mix.browserify('app/ChartApp.js');
     //mix.browserify('app/FormApp.js');
