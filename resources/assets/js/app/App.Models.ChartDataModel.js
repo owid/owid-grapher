@@ -134,7 +134,7 @@
 						series = {
 							values: [],
 							key: key,
-							entity: entityKey[entityId].name,
+							entityName: entityKey[entityId].name,
 							id: id
 						};
 						seriesByEntity[entityId] = series;
@@ -227,7 +227,7 @@
 				var series = {
 					id: variable.id,
 					key: dimension.displayName || variable.name,
-					entity: selectedCountry.name,
+					entityName: selectedCountry.name,
 					values: []
 				};
 
@@ -304,7 +304,7 @@
 						series = {
 							values: [{ time: {} }],
 							key: entityKey[entityId].name,
-							entity: entityKey[entityId].name,
+							entityName: entityKey[entityId].name,
 							id: entityId
 						};
 						seriesByEntity[entityId] = series;

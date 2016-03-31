@@ -524,9 +524,6 @@
 					//make sure wrapper is visible
 					that.$svg.find( "> .nvd3.nv-custom-legend" ).show();
 					that.legend = new App.Views.Chart.Legend( that.chart.legend ).vers( "owd" );
-					that.legend.dispatch.on( "removeEntity", function( id ) {
-						that.onRemoveEntity( id );
-					} );
 					that.legend.dispatch.on( "addEntity", function() {
 						if( that.$entitiesSelect.data( "chosen" ) ) {
 							that.$entitiesSelect.data( "chosen" ).active_field = false;
@@ -665,6 +662,7 @@
 				if (keys[series.key]) {
 					series.key = series.key + i;
 					series.id = "copy-"+series.id;
+					series.isCopy = true;
 				} else
 					keys[series.key] = true;
 			});
@@ -699,27 +697,6 @@
 			
 		},
 
-		onRemoveEntity: function( id ) {
-
-			var selectedCountries = App.ChartModel.get( "selected-countries" ),
-				countriesIds = _.keys( selectedCountries ),
-				addCountryMode = App.ChartModel.get( "add-country-mode" );
-
-			if( countriesIds.length === 0 ) {
-				//removing from empty selection, need to copy all countries available into selected countries selection
-				var entitiesCollection = [],
-				//var entitiesCollection = {},
-					formConfig = App.ChartModel.get( "form-config" );
-				if( formConfig && formConfig[ "entities-collection" ] ) {
-					_.map( formConfig[ "entities-collection" ], function( d, i ) { entitiesCollection[ d.id ] = d; } );
-					//deep copy array
-					var entitiesCopy =  $.extend( true, [], formConfig[ "entities-collection" ] );
-					App.ChartModel.set( "selected-countries", entitiesCopy );
-				}
-			}
-			App.ChartModel.removeSelectedCountry( id );
-
-		},
 
 		onAvailableCountries: function( evt ) {
 

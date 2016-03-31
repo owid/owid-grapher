@@ -127,15 +127,16 @@
 			}
 		},
 
-		removeSelectedCountry: function( countryId ) {
-			var country = this.findCountryById( countryId );
-			if( country ) {
-				var selectedCountries = this.get( "selected-countries" ),
-					countryIndex = _.indexOf( selectedCountries, country );
-				selectedCountries.splice( countryIndex, 1 );
-				this.trigger( "change:selected-countries" );
-				this.trigger( "change" );
-			}
+		removeSelectedCountry: function(entityName) {
+			var selectedCountries = this.get("selected-countries");
+			var entity = _.findWhere(selectedCountries, { name: entityName });
+			if (!entity) return;
+
+			selectedCountries = _.filter(selectedCountries, function(entity) {
+				return entity.name != entityName;
+			})
+
+			this.set("selected-countries", selectedCountries);
 		},
 
 		replaceSelectedCountry: function( country ) {
@@ -146,7 +147,7 @@
 
 		findCountryById: function( countryId ) {
 			var selectedCountries = this.get( "selected-countries" ),
-				country = _.findWhere( selectedCountries, { id: countryId.toString() } );
+				country = _.findWhere(selectedCountries, { id: countryId });
 			return country;
 		},
 

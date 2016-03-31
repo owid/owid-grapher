@@ -7,9 +7,7 @@
 	function getData(data) {
 		if (data.length == 0 || !data[0].origKey)
 			return data;
-		return _.uniq(data, false, function(d) {
-			return d.origKey || d.key;
-		});
+		return _.filter(data, function(series) { return !series.isCopy; });
 	}
 
 	App.Views.Chart.Legend = function( chartLegend ) {
@@ -32,7 +30,7 @@
 			, updateState = true   //If true, legend will update data.disabled and trigger a 'stateChange' dispatch.
 			, radioButtonMode = false   //If true, clicking legend items will cause it to behave like a radio button. (only one can be selected at a time)
 			, expanded = false
-			, dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout', 'stateChange', 'removeEntity', 'addEntity')
+			, dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout', 'stateChange', 'addEntity')
 			, vers = 'classic' //Options are "classic" and "furious" and "owd"
 			;
 
@@ -83,30 +81,7 @@
 				var entityLabel = wrap.select( '.nv-entity-label' ),
 					entityLabelText = entityLabel.select( 'text' ),
 					entityLabelWidth = 0;
-				//displaying of entity label is disabled
-				/*if( App.ChartModel.get( "add-country-mode" ) === "change-country" ) {
-					if( entityLabel.empty() ) {
-						entityLabel = wrap.append( 'g' ).attr('class', 'nv-entity-label').attr( 'transform', 'translate(0,15)' );
-						entityLabelText = entityLabel.append( 'text' );
-					}
-					if( data && data[0] && data[0].entity ) {
-						entityLabelText.text( data[0].entity + ": " );
-						try {
-							entityLabelWidth = entityLabelText.node().getComputedTextLength();
-							// If the legendText is display:none'd (nodeTextLength == 0), simulate an error so we approximate, instead
-							if( entityLabelWidth <= 0 ) throw new Error();
-						} catch( e ) {
-							entityLabelWidth = nv.utils.calcApproxTextWidth(entityLabelText);
-						}
-						//add padding for label
-						entityLabelWidth += 30;
-						availableWidth -= entityLabelWidth;
-					}
-				} else {
-					//make sure there is not label left
-					entityLabel.remove();
-				}*/
-				
+
 				//if not existing, add nv-add-btn, if not grouping by variables
 				var addEntityBtn =  wrap.select( 'g.nv-add-btn' );
 				if( addEntityBtn.empty() ) {
@@ -228,12 +203,12 @@
 							var id = d.id;
 							//in case of multivarient chart
 							//id could be string or integer
-							if( typeof id.indexOf === "function" && id.indexOf( "-" ) > 0 ) {
+							if (id.indexOf && id.indexOf("-") > 0 ) {
 								id = parseInt( id.split( "-" )[ 0 ], 10 );
 							} else {
 								id = parseInt( id, 10 );
 							}
-							dispatch.removeEntity( id );
+							App.ChartModel.removeSelectedCountry(d.entityName);
 							return false;
 
 						}
@@ -264,7 +239,7 @@
 					d3.event.stopImmediatePropagation();
 					//remove series straight away, so we don't have to wait for response from server
 					series[0][i].remove();
-					dispatch.removeEntity( d.id );
+					App.ChartModel.removeSelectedCountry(d.entityName);
 					
 				} );	
 
