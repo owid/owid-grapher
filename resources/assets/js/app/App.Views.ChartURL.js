@@ -24,6 +24,7 @@
 			this.chartQueryStr = "?";
 
 			this.populateFromURL();
+			$(window).on("query-change", this.onQueryChange.bind(this));
 			options.dispatcher.on("tab-change", this.onTabChange, this);
 			App.ChartModel.on("change:selected-countries", this.updateCountryParam, this);			
 			App.ChartModel.on("change-map-year", this.updateYearParam, this);
@@ -64,6 +65,13 @@
 			}
 			owid.setQueryVariable("tab", tabName);
 			this.lastTabName = tabName;
+		},
+
+		/**
+		 * When the current url changes, we want to update the permalinks.
+		 */
+		onQueryChange: function() {
+			$(".fullscreen-link").attr("href", window.location.toString());
 		},
 
 		/**

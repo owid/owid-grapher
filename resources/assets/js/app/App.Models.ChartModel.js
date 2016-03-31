@@ -134,7 +134,7 @@
 
 			selectedCountries = _.filter(selectedCountries, function(entity) {
 				return entity.name != entityName;
-			})
+			});
 
 			this.set("selected-countries", selectedCountries);
 		},

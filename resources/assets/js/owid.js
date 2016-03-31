@@ -252,6 +252,7 @@
 
 	owid.setQueryStr = function(str) {
 		history.replaceState(null, null, str + window.location.hash);
+		$(window).trigger("query-change");
 	}
 
 	/**

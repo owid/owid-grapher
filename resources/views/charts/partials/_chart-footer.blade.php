@@ -3,9 +3,7 @@
 		<a href="#" class="chart-export-btn" target="_blank">Save chart</a>
 		<a href="#" class="chart-save-btn" style="display:none;"></a>
 	</div>
-	@if (!empty(Request::header('referer')) && parse_url(Request::header('referer'))['host'] == parse_url(Config::get("app.url"))['host'])
-		<a class="fancybox-iframe" href="{{ Request::url() }}">Full screen view</a>
-	@endif
+	<a class="fullscreen-link" href="{{ Request::url() }}" target="_blank">Full screen view</a>
 	<p class="chart-sources"></p>
 	<p class="chart-description"></p>
 </div>
