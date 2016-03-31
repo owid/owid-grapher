@@ -40,8 +40,6 @@
 			this.setDefaultTabFromUrl();
 			this.dispatcher = options.dispatcher;
 			// Data model used for fetching variables
-			// TODO - consider switching to a more client-side data processing system
-			// for all the tabs, like the map uses
 			this.vardataModel = new ChartDataModel();
 			App.DataModel = this.vardataModel;
 
@@ -91,7 +89,7 @@
 		},
 
 		setDefaultTabFromUrl: function() {
-			var tab = Utils.getQueryVariable( "tab" );
+			var tab = owid.getQueryVariable( "tab" );
 			if( tab ) {
 				//there is something in the url, check that it's not non-sensical value
 				var tabs = [ "chart", "data", "map", "sources" ];

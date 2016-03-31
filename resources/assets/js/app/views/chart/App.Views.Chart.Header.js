@@ -164,7 +164,6 @@
 			var chartName = this.$chartName.text();
 			var chartSubname = this.$chartSubname.html();
 			chartName = this.replaceTimePlaceholder( chartName, targetYear, targetYear, false );
-			console.log(timeFrom, timeTo, hasTargetYear);
 			if (hasTargetYear && timeFrom != timeTo) {
 				// The target year is in the data but we're displaying a range, meaning not available for all countries
 				chartSubname += " Since some observations for " + d(targetYear) + " are not available the map displays the closest available data (" + d(timeFrom) + " to " + d(timeTo) + ").";

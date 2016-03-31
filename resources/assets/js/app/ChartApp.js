@@ -27,6 +27,30 @@
 				console.error( "Error loading chart model", xhr );
 			}
 		} );
+
+		// Update the url if selected countries changes
+		// Lives in ChartApp because we don't want it to happen in the editor
+		// - mispy
+		App.ChartModel.on("change:selected-countries", function() {
+			var selectedCountries = App.ChartModel.get("selected-countries"),
+				entityCodes = [];
+
+			if (!App.DataModel) return;
+
+			App.DataModel.ready(function(variableData) {
+				// Sort them by name so the order in the url matches the legend
+				var sortedCountries = _.sortBy(selectedCountries, function(entity) {
+					return entity.name;
+				})
+
+				var entityCodes = _.map(sortedCountries, function(entity) {
+					return variableData.entityKey[entity.id].code || entity.name;
+				});
+
+				owid.setQueryVariable("country", entityCodes.join("+"));
+			});
+		});
+
 		//find out if it's in cache
 		if( !$( ".standalone-chart-viewer" ).length ) {
 			//disable caching for viewing within admin

@@ -63,7 +63,7 @@
 
 		getSelectedCountriesById: function() {
 			var variableData = this.get("variableData"),
-				selectedCountries = App.ChartModel.get("selected-countries"),
+				selectedCountries = App.ChartModel.get("selected-countries"),				
 				chartType = App.ChartModel.get("chart-type"),
 				selectedCountriesById = {};
 
@@ -73,7 +73,7 @@
 				_.each(random, function(entityId) {
 					selectedCountries.push({
 						id: entityId,
-						name: variableData.entityKey[entityId]
+						name: variableData.entityKey[entityId].name
 					});
 				});
 				App.ChartModel.set("selected-countries", selectedCountries);
@@ -117,7 +117,7 @@
 					if (yAxis['axis-scale'] === 'log' && value <= 0) continue;
 
 					if (!series) {
-						var key = entityKey[entityId],
+						var key = entityKey[entityId].name,
 							id = entityId;
 						// If there are multiple variables per entity, we disambiguate the legend
 						if (hasManyVariables) {
@@ -133,7 +133,7 @@
 						series = {
 							values: [],
 							key: key,
-							entity: entityKey[entityId],
+							entity: entityKey[entityId].name,
 							id: id
 						};
 						seriesByEntity[entityId] = series;
@@ -302,8 +302,8 @@
 					if (!series) {
 						series = {
 							values: [{ time: {} }],
-							key: entityKey[entityId],
-							entity: entityKey[entityId],
+							key: entityKey[entityId].name,
+							entity: entityKey[entityId].name,
 							id: entityId
 						};
 						seriesByEntity[entityId] = series;

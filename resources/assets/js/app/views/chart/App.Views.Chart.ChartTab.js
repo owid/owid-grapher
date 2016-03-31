@@ -666,7 +666,7 @@
 				series.origKey = series.key;
 				if (keys[series.key]) {
 					series.key = series.key + i;
-					series.id = "copy-"+i;
+					series.id = "copy-"+series.id;
 				} else
 					keys[series.key] = true;
 			});

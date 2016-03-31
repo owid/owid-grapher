@@ -33,7 +33,6 @@
 			_.each(localData, function(series) {
 				var id = series.key;
 				var entity = selectedCountriesByName[id];
-				console.log(id, entity);
 				if (entity && entity.color) {
 					if (!countryColors[id])
 						countryColors[id] = entity.color;

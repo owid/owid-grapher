@@ -218,6 +218,37 @@
 		return phantomPath.getTotalLength();
 	};
 
+	owid.getQueryVariable = function(variable) {
+		var query = window.location.search.substring(1);
+		var vars = query.split("&");
+		for (var i=0;i<vars.length;i++) {
+			var pair = vars[i].split("=");
+			if(pair[0] == variable){return pair[1];}
+		}
+		return(false);
+	};
+
+	owid.setQueryVariable = function(key, val) {
+		var queryStr = window.location.search.substring(1),
+			querySplit = _.filter(queryStr.split("&"), function(s) { return !_.isEmpty(s); }),
+			params = {};
+
+		_.each(querySplit, function(param) {
+			var spl = param.split('=');
+			params[spl[0]] = spl[1];
+		});
+
+		params[key] = val;
+
+		var newQueryStr = "";
+		_.each(params, function(v,k) {
+			if (_.isEmpty(newQueryStr)) newQueryStr += "?";
+			else newQueryStr += "&";
+			newQueryStr += k + '=' + v;
+		});
+
+	    history.replaceState(null, null, newQueryStr + window.location.hash);
+	};
 
 	window.owid = owid;
 })();

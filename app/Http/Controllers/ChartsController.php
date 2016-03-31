@@ -17,6 +17,7 @@ use Illuminate\Http\Request;
 use Cache;
 use Carbon\Carbon;
 use Debugbar;
+use DB;
 
 class ChartsController extends Controller {
 
@@ -91,21 +92,12 @@ class ChartsController extends Controller {
 	 * @param  int  $id
 	 * @return Response
 	 */
-	public function show( Chart $chart, Request $request )
+	public function show(Chart $chart, Request $request)
 	{
-		if( $request->ajax() ) {
+		if ($request->ajax())
 			return $this->config($chart->id);
-		} else {
-			$data = new \StdClass;
-			$data->variables = Variable::with('Dataset')->get();
-			$data->categories = DatasetCategory::all();
-			$data->subcategories = DatasetSubcategory::all();
-			$data->chartTypes = ChartType::lists( 'name', 'id' );
-			$data->logos = Logo::lists( 'name', 'url' );
-			//$logoUrl = Setting::where( 'meta_name', 'logoUrl' )->first();
-			//$data->logoUrl = ( !empty( $logoUrl ) )? url('/') .'/'. $logoUrl->meta_value: '';
-			return view('charts.show', compact( 'chart' ) )->with( 'data', $data );
-		}
+		else
+			return redirect()->to('view/' . $chart->id);
 	}
 
 	public function config( $chartId ) {
@@ -118,6 +110,17 @@ class ChartsController extends Controller {
 		$config->{"chart-notes"} = $chart->notes;
 		$config->{"chart-slug"} = $chart->slug;
 		$config->{"data-entry-url"} = $chart->last_referer_url;
+
+		// Allow url parameters to override the chart's default
+		// selected countries configuration.
+		$countryStr = Input::get('country');
+		if (!empty($countryStr)) {
+			$countryCodes = explode(" ", $countryStr);
+			$query = DB::table('entities')
+				->select('id', 'name')
+				->whereIn('code', $countryCodes);
+			$config->{"selected-countries"} = $query->get();
+		}
 
 		//possibly there could logo query parameter
 		if( !empty( $config ) && !empty( Input::get('logo') ) ) {

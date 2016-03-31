@@ -20,10 +20,8 @@
 				}
 
 			} else {
-				var logo = Utils.getQueryVariable( "logo" ),
-					logoUrl = ( logo )? "?logo=" + logo: "";
-
-				return Global.rootUrl + "/data/config/" + id + logoUrl;
+				// Pass any query parameters on to config
+				return Global.rootUrl + "/data/config/" + id + window.location.search;
 			}
 		},
 

@@ -291,10 +291,10 @@
 								<input type="radio" name="line-type" value="1"/>
 								Line without dots
 							</label>
-							<label>
+							{{-- <label>
 								<input type="radio" name="line-type" value="2"/>
 								Do not join values if observations are missing
-							</label>
+							</label> --}}
 							<label>
 								<input type="radio" name="line-type" value="3"/>
 								Dotted with dashed line for missing observations

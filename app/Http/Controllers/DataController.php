@@ -28,6 +28,10 @@ class DataController extends Controller {
 		return "Controller for data";
 	}
 
+	/**
+	 * Primary JSON endpoint for mass retrieval of data for one or more variables
+	 * @return Response in the form of { entityKey: {}, entities: {}, values: {}, years: {} }
+	 */
 	public function variables($var_ids_str, Request $request) {
 		$var_ids = array_map("floatval", explode("+", $var_ids_str));
 
@@ -71,7 +75,8 @@ class DataController extends Controller {
 			->whereIn('data_values.fk_var_id', $var_ids)
 			->select('value', 'year',
 					 'data_values.fk_var_id as var_id', 
-					 'entities.id as entity_id', 'entities.name as entity_name')
+					 'entities.id as entity_id', 'entities.name as entity_name',
+					 'entities.code as entity_code')
 			->join('entities', 'data_values.fk_ent_id', '=', 'entities.id')
 			->orderBy('year');
 
@@ -79,7 +84,7 @@ class DataController extends Controller {
 
 		foreach ($dataQuery->get() as $result) {
 			$var = &$response['variables'][$result->var_id];
-			$response['entityKey'][floatval($result->entity_id)] = $result->entity_name;
+			$response['entityKey'][floatval($result->entity_id)] = [ 'name' => $result->entity_name, 'code' => $result->entity_code ];
 			$var['entities'][] = floatval($result->entity_id);
 			$var['values'][] = $result->value;
 			$var['years'][] = floatval($result->year);
