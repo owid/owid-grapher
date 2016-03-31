@@ -79,7 +79,9 @@
 			var mapConfig = App.ChartModel.get("map-config"),
 				targetYear = mapConfig.targetYear,
 				targetYearMode = mapConfig.targetYearMode,
-				years = owid.timeRangesToYears(mapConfig.timeRanges, mapConfig.minYear, mapConfig.maxYear),
+				minYear = App.DataModel.get("minYear"),
+				maxYear = App.DataModel.get("maxYear"),
+				years = owid.timeRangesToYears(mapConfig.timeRanges, minYear, maxYear),
 				options = [ { "title": "Earliest year", "value": "earliest" }, { "title": "Latest year", "value": "latest" } ];
 
 			_.each(years, function(year) {

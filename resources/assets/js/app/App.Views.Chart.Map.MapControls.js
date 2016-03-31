@@ -14,7 +14,6 @@
 		},
 
 		initialize: function( options ) {
-
 			this.dispatcher = options.dispatcher;
 
 			var mapConfig = App.ChartModel.get( "map-config" );
@@ -45,13 +44,16 @@
 
 		render: function() {
 			
-			var mapConfig = App.ChartModel.get( "map-config" );
+			var mapConfig = App.ChartModel.get( "map-config" ),
+				minYear = App.DataModel.get("minYear"),
+				maxYear = App.DataModel.get("maxYear");
 			
 			this.$targetYearLabel.text( mapConfig.targetYear );
 			this.$regionControlLabel.text( mapConfig.projection );
 
-			this.$targetYearInput.attr( "min", mapConfig.minYear );
-			this.$targetYearInput.attr( "max", mapConfig.maxYear );
+
+			this.$targetYearInput.attr( "min", minYear );
+			this.$targetYearInput.attr( "max", maxYear );
 			this.$targetYearInput.attr( "step", mapConfig.timeInterval );
 			this.$targetYearInput.val( parseInt( mapConfig.targetYear, 10 ) );
 
@@ -59,7 +61,7 @@
 			this.$regionControlLis.filter( "." + mapConfig.projection + "-projection" ).addClass( "highlight" );
 
 			//is interval mode display
-			if( isNaN( mapConfig.minYear ) || isNaN( mapConfig.maxYear ) ) {
+			if( isNaN( minYear ) || isNaN( maxYear ) ) {
 				this.$targetYearInput.attr( "disabled", true );
 			}
 

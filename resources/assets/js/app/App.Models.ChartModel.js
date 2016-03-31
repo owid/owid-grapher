@@ -53,8 +53,6 @@
 			"y-axis-scale-selector": false,
 			"map-config": {
 				"variableId": -1,
-				"minYear": 1980,
-				"maxYear": 2000,
 				"targetYear": 1980,
 				"targetYearMode": "normal",
 				"mode": "specific",

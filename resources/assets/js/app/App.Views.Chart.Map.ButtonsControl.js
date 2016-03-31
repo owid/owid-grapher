@@ -14,6 +14,7 @@
 
 			App.ChartModel.on( "change", this.onChartModelChange, this );
 			App.ChartModel.on( "change-map", this.onChartModelChange, this );
+			App.ChartModel.on( "change-map-year", this.onChartModelChange, this );
 
 			return;
 		},
@@ -21,14 +22,16 @@
 		render: function() {
 			var mapConfig = App.ChartModel.get( "map-config" ),
 				targetYear = mapConfig.targetYear,
-				years = owid.timeRangesToYears(mapConfig.timeRanges, mapConfig.minYear, mapConfig.maxYear);
+				minYear = App.DataModel.get("minYear"),
+				maxYear = App.DataModel.get("maxYear"),
+				years = owid.timeRangesToYears(mapConfig.timeRanges, minYear, maxYear);
 
 			//create all necessary buttons
 			this.$buttonsWrapper.empty();
 
 			var htmlString = "";
 			_.each(years, function(year) {
-				var selected = ( year === targetYear )? "selected": "";
+				var selected = ( year == targetYear )? "selected": "";
 				htmlString += "<li data-year='" + year + "' class='year-btn " + selected + "'><a href='#' class='btn'>" + owid.displayYear(year) + "</a></li>";
 			});
 			
@@ -43,7 +46,7 @@
 			evt.preventDefault();
 			var $btn = $( evt.currentTarget ),
 				targetYear = parseInt( $btn.attr( "data-year" ), 10 );
-			App.ChartModel.updateMapConfig( "targetYear", targetYear, false, "change-map-year" );
+			App.ChartModel.updateMapConfig("targetYear", targetYear, false, "change-map-year");
 		
 		},
 
