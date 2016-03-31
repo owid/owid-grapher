@@ -41,10 +41,13 @@
 				// Sort them by name so the order in the url matches the legend
 				var sortedCountries = _.sortBy(selectedCountries, function(entity) {
 					return entity.name;
-				})
+				});
 
-				var entityCodes = _.map(sortedCountries, function(entity) {
-					return variableData.entityKey[entity.id].code || entity.name;
+				var entityCodes = [];
+				_.each(sortedCountries, function(entity) {
+					var foundEntity = variableData.entityKey[entity.id];
+					if (!foundEntity) return;
+					entityCodes.push(foundEntity.code || foundEntity.name);
 				});
 
 				owid.setQueryVariable("country", entityCodes.join("+"));

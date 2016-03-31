@@ -47,6 +47,7 @@
 			var minYear = _.min(startYears);
 			var maxYear = _.max(endYears);
 
+			window.variableData = variableData;
 			this.set({ variableData: variableData, minYear: minYear, maxYear: maxYear });
 		},
 
