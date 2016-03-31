@@ -12,17 +12,64 @@
 
 ;(function() {
 	"use strict";
-
-	window.App = window.App || {};
-	App.Views = App.Views || {};
+	owid.namespace("App.Views.ChartURL");
 
 	App.Views.ChartURL = Backbone.View.extend({
-		initialize: function() {
+		initialize: function(options) {
 			if (App.isEditor) return false; // No URL stuff while editing charts
 
-			App.ChartModel.on("change:selected-countries", this.updateCountryParam, this);
+			// Keep the query params separate between map and the other tabs
+			this.lastTabName = null;
+			this.mapQueryStr = "?";
+			this.chartQueryStr = "?";
+
+			this.populateFromURL();
+			options.dispatcher.on("tab-change", this.onTabChange, this);
+			App.ChartModel.on("change:selected-countries", this.updateCountryParam, this);			
+			App.ChartModel.on("change-map-year", this.updateYearParam, this);
 		},
 
+		/**
+		 * Apply any url query parameters on chart startup
+		 */
+		populateFromURL: function() {
+			// Set tab if specified
+			var tab = owid.getQueryVariable("tab");
+			if (tab) {
+				if (!_.contains(App.ChartModel.get("tabs"), tab))
+					console.error("Unexpected tab: " + tab);
+				else
+					App.ChartModel.set("default-tab", tab, { silent: true });
+			}
+
+			var year = owid.getQueryVariable("year");
+			if (year !== undefined) {
+				App.ChartModel.updateMapConfig("targetYear", year);
+			}
+
+			// TODO: Countries are currently done server-side, might be more consistent
+			// to do them here too - mispy
+		},
+
+		/**
+		 * Save the current tab the user is on, and keep url params correctly isolated
+		 */
+		onTabChange: function(tabName) {
+			if (this.lastTabName == "map" && tabName != "map") {
+				this.mapQueryStr = window.location.search;
+				owid.setQueryStr(this.chartQueryStr);
+			} else if (this.lastTabName != "map" && this.lastTabName != null && tabName == "map") {				
+				this.chartQueryStr = window.location.search;
+				owid.setQueryStr(this.mapQueryStr);
+			}
+			owid.setQueryVariable("tab", tabName);
+			this.lastTabName = tabName;
+		},
+
+		/**
+		 * Set e.g. &country=AFG+USA when user adds Afghanistan and the United States
+		 * using the legend add country buttons
+		 */
 		updateCountryParam: function() {
 			var selectedCountries = App.ChartModel.get("selected-countries"),
 				entityCodes = [];
@@ -42,10 +89,14 @@
 
 				owid.setQueryVariable("country", entityCodes.join("+"));
 			});			
-		}
-	});
+		},
 
-	$(document).ready(function() {
-		App.ChartURL = new App.Views.ChartURL();
+		/**
+		 * Set e.g. &year=1990 when the user uses the map slider to go to 1990
+		 */
+		updateYearParam: function() {
+			var targetYear = App.ChartModel.get("map-config").targetYear;
+			owid.setQueryVariable("year", targetYear);
+		},
 	});
 })();

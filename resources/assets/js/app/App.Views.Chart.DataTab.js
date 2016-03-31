@@ -18,6 +18,7 @@
 
 		activate: function() {
 			this.parentView.chartTab.activate();
+			this.trigger("tab-ready");
 		},
 
 		render: function( data, localData, dimensions ) {

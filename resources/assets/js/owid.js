@@ -225,7 +225,7 @@
 			var pair = vars[i].split("=");
 			if(pair[0] == variable){return pair[1];}
 		}
-		return(false);
+		return undefined;
 	};
 
 	owid.setQueryVariable = function(key, val) {
@@ -247,8 +247,12 @@
 			newQueryStr += k + '=' + v;
 		});
 
-	    history.replaceState(null, null, newQueryStr + window.location.hash);
+		owid.setQueryStr(newQueryStr);
 	};
+
+	owid.setQueryStr = function(str) {
+		history.replaceState(null, null, str + window.location.hash);
+	}
 
 	/**
 	 * A very simple shorthand to ensure a top-level namespace exists.

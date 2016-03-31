@@ -1,5 +1,7 @@
 ;$(document).ready(function() {	
 	"use strict";
+	owid.namespace("App.ChartView");
+	App.isEditor = false;
 
 	var	ChartView = App.Views.ChartView,
 		ChartModel = App.Models.ChartModel,
@@ -10,6 +12,7 @@
 
 	if (!$chartShowWrapper.length || !chartId)
 		return; // No chart to show here
+
 
 	App.ChartModel = new ChartModel({ id: chartId });
 	App.ChartModel.fetch({

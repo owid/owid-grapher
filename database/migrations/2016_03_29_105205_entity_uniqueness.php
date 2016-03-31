@@ -43,6 +43,7 @@ class EntityUniqueness extends Migration
 
             DB::statement("update data_values as dv inner join unique_entities as e on e.orig_id=dv.fk_ent_id set dv.fk_ent_id=e.uniq_id;");
             DB::statement("delete from entities where entities.id in (select orig_id from unique_entities where orig_id != uniq_id);");
+            DB::statement("drop table unique_entities;");
         });
 
         Schema::table("entities", function($table) {

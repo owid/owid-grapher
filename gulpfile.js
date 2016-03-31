@@ -124,7 +124,8 @@ elixir(function(mix) {
         'app/App.Views.Chart.Map.Legend.js',
         'app/App.Views.Chart.MapTab.js',
 
-        'app/App.Views.UI.ExportPopup.js',  
+        'app/App.Views.UI.ExportPopup.js',
+        'app/App.Views.ChartURL.js',
         'app/App.Views.ChartView.js',
     ];
 

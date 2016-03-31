@@ -89,6 +89,7 @@
 
 		initialize: function() {
 			this.on( "sync", this.onSync, this );
+			$(document).trigger("chart-model");
 		},
 
 		onSync: function() {

@@ -2,16 +2,17 @@
 	"use strict";
 	owid.namespace("App.Views.ChartView");
 
-	var Header = App.Views.Chart.Header,
-		Footer = App.Views.Chart.Footer,
-		ScaleSelectors = App.Views.Chart.ScaleSelectors,
-		ChartTab = App.Views.Chart.ChartTab,
-		DataTab = App.Views.Chart.DataTab,
-		SourcesTab = App.Views.Chart.SourcesTab,
-		MapTab = App.Views.Chart.MapTab,
-		ChartDataModel = App.Models.ChartDataModel,
-		Utils = App.Utils,
-		ExportPopup = App.Views.UI.ExportPopup;
+	var Header = require("App.Views.Chart.Header"),
+		Footer = require("App.Views.Chart.Footer"),
+		ChartURL = require("App.Views.ChartURL"),
+		ScaleSelectors = require("App.Views.Chart.ScaleSelectors"),
+		ChartTab = require("App.Views.Chart.ChartTab"),
+		DataTab = require("App.Views.Chart.DataTab"),
+		SourcesTab = require("App.Views.Chart.SourcesTab"),
+		MapTab = require("App.Views.Chart.MapTab"),
+		ChartDataModel = require("App.Models.ChartDataModel"),
+		Utils = require("App.Utils"),
+		ExportPopup = require("App.Views.UI.ExportPopup");
 
 	App.Views.ChartView = Backbone.View.extend({
 		activeTab: false,
@@ -22,8 +23,7 @@
 
 		initialize: function(options) {	
 			options = options || {};
-			this.dispatcher = _.clone(Backbone.Events);
-			options.dispatcher = this.dispatcher;
+			this.dispatcher = options.dispatcher || _.clone(Backbone.Events);
 		
 			$(document).ajaxStart(function() {
 				$(".chart-preloader").show();
@@ -37,14 +37,14 @@
 				$(".chart-preloader").show();
 			
 			var that = this;
-			//enable overriding default tab setting with tab query parameter
-			this.setDefaultTabFromUrl();
 
 			// Data model used for fetching variables
 			this.vardataModel = new ChartDataModel();
 			App.DataModel = this.vardataModel;
 
 			var childViewOptions = { dispatcher: this.dispatcher, parentView: this, vardataModel: this.vardataModel };
+			this.urlBinder = new ChartURL(childViewOptions);
+
 			this.header = new Header(childViewOptions);
 			this.footer = new Footer(childViewOptions);
 			this.scaleSelectors = new ScaleSelectors(childViewOptions);
@@ -57,8 +57,8 @@
 			this.mapTab.on("tab-ready", function() { that.header.render(); });
 			this.tabs = [this.chartTab, this.dataTab, this.sourcesTab, this.mapTab];
 			
-			this.exportPopup = new ExportPopup( options );
-			this.exportPopup.init( options );
+			this.exportPopup = new ExportPopup(childViewOptions);
+			this.exportPopup.init(childViewOptions);
 
 			this.$error = this.$el.find( ".chart-error" );
 
@@ -75,6 +75,7 @@
 						tab.on("tab-ready", function() { 
 							that.header.render();
 							that.onResize(); 
+							that.dispatcher.trigger("tab-change", tab.$tab.attr('id').split("-")[0]);
 						});			
 						tab.activate();
 					}
@@ -89,16 +90,6 @@
 			$("." + defaultTab + "-header-tab a").tab('show');
 		},
 
-		setDefaultTabFromUrl: function() {
-			var tab = owid.getQueryVariable( "tab" );
-			if( tab ) {
-				//there is something in the url, check that it's not non-sensical value
-				var tabs = [ "chart", "data", "map", "sources" ];
-				if( _.contains( tabs, tab ) ) {
-					App.ChartModel.set( "default-tab", tab, { silent: true } );
-				}
-			}
-		},
 
 		/*displayTab: function( id ) {
 
