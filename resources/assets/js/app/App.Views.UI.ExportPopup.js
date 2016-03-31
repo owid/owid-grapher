@@ -41,20 +41,16 @@
 			this.$closeBtn.on( "click", $.proxy( this.onCloseBtn, this ) );
 			this.$exportBtn.on( "click", $.proxy( this.onExportBtn, this ) );
 			
-			//update export code from 
+		},
+
+		show: function() {
+			this.$el.show();
+			this.dispatcher.trigger( "dimension-export-update", this.serializeForm() );
 			var chartId = App.ChartModel.get( "id" );
 			if( chartId ) {
 				var viewUrl = this.$iframeSrc.attr( "data-view-url" );
 				this.generateIframeCode( chartId, viewUrl );
 			}
-
-		},
-
-		show: function() {
-
-			this.$el.show();
-			this.dispatcher.trigger( "dimension-export-update", this.serializeForm() );
-
 		},
 
 		hide: function() {
@@ -144,6 +140,8 @@
 			if( viewUrl ) {
 				this.viewUrl = viewUrl;
 			}
+			if (!App.isEditor)
+				this.viewUrl = window.location.toString();
 			this.$iframeSrc.text( '<iframe src="' + this.viewUrl + '" style="width:' + App.ChartModel.get( "iframe-width" ) + ';height:' + App.ChartModel.get( "iframe-height" ) + '; border: 0px none;"></iframe>' );
 		}
 
