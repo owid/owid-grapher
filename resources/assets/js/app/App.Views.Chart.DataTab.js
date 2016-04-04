@@ -27,40 +27,8 @@
 			//update link
 			var that = this,
 				chartType = App.ChartModel.get( "chart-type" ),
-				hasMultipleColumns = ( App.ChartModel.get( "group-by-variables" ) && chartType != App.ChartType.StackedArea )? true: false;/*,
-				baseUrl = this.$downloadBtn.attr( "data-base-url" ),
-				dimensionsUrl = encodeURIComponent( dimensionsString );*/
-			//this.$downloadBtn.attr( "href", baseUrl + "?dimensions=" + dimensionsUrl + "&chartType=" + chartType + "&export=csv" );
-			this.$downloadBtn.on( "click", function( evt ) {
-
-				evt.preventDefault();
-
-				var data = [],
-					$trs = that.$el.find( "tr" );
-				$.each( $trs, function( i, v ) {
-
-					var trData = [],
-						$tr = $( this ),
-						$cells = $tr.find( "th, td" );
-					
-					$.each( $cells, function( i2, v2 ) {
-						trData.push( $( v2 ).text() );
-					} );
-
-					data.push( trData );
-
-				} );
-
-				var csvString = "data:text/csv;charset=utf-8,";
-				_.each( data, function( v, i ) {
-					var dataString = v.join(",");
-					csvString += ( i < data.length )? dataString+ "\n" : dataString;
-				} );
-				
-				var encodedUri = encodeURI( csvString );
-				window.open( encodedUri );
-
-			} );
+				hasMultipleColumns = ( App.ChartModel.get( "group-by-variables" ) && chartType != App.ChartType.StackedArea )? true: false;
+			this.$downloadBtn.attr("href", this.$downloadBtn.attr("data-base-url") + window.location.search.replace(/\?tab=\w+/, ""));
 
 			//get all times
 			var timesObj = [],

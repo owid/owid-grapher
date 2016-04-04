@@ -15,8 +15,6 @@
 			App.ChartModel.on( "change", this.onChartModelChange, this );
 			App.ChartModel.on( "change-map", this.onChartModelChange, this );
 			App.ChartModel.on( "change-map-year", this.onChartModelChange, this );
-
-			return;
 		},
 
 		render: function() {

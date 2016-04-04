@@ -102,7 +102,7 @@
 				</div>
 			</div>
 			<div id="data-chart-tab" class="tab-pane">
-				<a href="#" data-base-url="{!! route( 'dimensions' ) !!}" class="btn btn-primary download-data-btn" target="_blank"><i class="fa fa-download"></i>Download data</a>
+				<a href="#" data-base-url="{!! isset($chart) ? Request::root() . '/' . $chart->slug . '.csv' : '' !!}" class="btn btn-primary download-data-btn" target="_blank"><i class="fa fa-download"></i>Download data</a>
 				<div class="data-table-wrapper"></div>
 			</div>
 			<div id="map-chart-tab" class="tab-pane">

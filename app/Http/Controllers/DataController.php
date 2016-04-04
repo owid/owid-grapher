@@ -95,6 +95,7 @@ class DataController extends Controller {
 		return $response;
 	}
 
+
 	public function dimensions( Request $request ) {
 
 		set_time_limit( 10 );

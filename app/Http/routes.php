@@ -124,19 +124,21 @@ Route::group(['middleware' => ['web']], function () {
 
 
 	Route::get( 'view', 'ViewController@index' );
-	Route::get( 'view/{id}', [ 'as' => 'view', 'uses' => 'ViewController@showId' ] );
+	Route::get( 'view/{id}', [ 'as' => 'view', 'uses' => 'ViewController@show' ] );
 	Route::get( 'testall', 'ViewController@testall' );
 
 	Route::get('data', 'DataController@index');
 	Route::get('data/variables/{ids}', 'DataController@variables');
+	Route::get('data/exportCSV', 'DataController@exportCSV');
 	Route::get('data/config/{id}', 'ChartsController@config');
-	Route::get('data/dimensions', [ 'as' => 'dimensions', 'uses' => 'DataController@dimensions' ]);
+	Route::get('data/dimensions', [ 'as' => 'dimensions', 'uses' => 'DataController@dimensions' ]);	
 	Route::post('data/exportToSvg', [ 'as' => 'exportToSvg', 'uses' => 'DataController@exportToSvg' ]);
 	Route::get('data/entities', 'DataController@entities');
 	Route::get('data/search', 'DataController@search');
 	Route::get('data/times', 'DataController@times');
 
-	Route::any('{all}', array('uses' => 'ViewController@showSlug'))->where('all', '(?!_debugbar).*');
+	Route::any('{all}.csv', ['uses' => 'ViewController@exportCSV'])->where('all', '(?!_debugbar).*');
+	Route::any('{all}', ['uses' => 'ViewController@show'])->where('all', '(?!_debugbar).*');
 });
 
 

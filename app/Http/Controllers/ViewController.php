@@ -38,49 +38,104 @@ class ViewController extends Controller {
 		return view('testall')->with([ 'charts' => $charts ]);
 	}
 
-	/**
-	 * Show the form for creating a new resource.
-	 *
-	 * @return Response
-	 */
-	public function create()
+	public function show($slug)
 	{
-		//
-	}
-
-	/**
-	 * Store a newly created resource in storage.
-	 *
-	 * @return Response
-	 */
-	public function store()
-	{
-		//
-	}
-
-	/**
-	 * Display the specified resource.
-	 *
-	 * @param  int  $id
-	 * @return Response
-	 */
-	public function showId($id)
-	{	
-		$chart = Chart::find( $id );
+		$chart = Chart::where('slug', $slug)->orWhere('id', $slug)->first();		
 		if (!$chart)
 			return App::abort(404, "No such chart");
 
 		return $this->showChart($chart);
 	}
 
-	public function showSlug($slug)
-	{
-		$chart = Chart::where('slug', $slug)->first();		
+	public function exportCSV($slug, Request $request) {
+		$chart = Chart::where('slug', $slug)
+					  ->orWhere('id', $slug)
+					  ->first();
+
 		if (!$chart)
 			return App::abort(404, "No such chart");
 
-		return $this->showChart($chart);
+		$config = json_decode($chart->config);
+
+		// Allow overriding selected-countries with url param
+		$countryStr = $request->input('country');
+		if (!empty($countryStr)) {
+			$countryCodes = explode(" ", $countryStr);
+			$query = DB::table('entities')
+				->select('id', 'name')
+				->whereIn('code', $countryCodes);
+			$config->{"selected-countries"} = $query->get();
+		}
+
+		$dims = json_decode($config->{"chart-dimensions"});
+		$varIds = array_map(function($dim) { return $dim->variableId; }, $dims);
+
+		// Grab the variable names for the header row
+		$variableNameById = DB::table('variables')
+			->whereIn('id', $varIds)
+			->select('id', 'name')
+			->lists('name', 'id');
+
+		$entityNames = array_map(function($entity) { return $entity->name; }, $config->{"selected-countries"});
+		$entityIds = DB::table('entities')
+			->whereIn('name', $entityNames)
+			->lists('id');
+
+		$rows = [];
+		$headerRow = ['Country', 'Year'];
+		foreach ($varIds as $id) {
+			$headerRow[]= $variableNameById[$id];
+		}
+		$rows[]= $headerRow;
+
+		$currentRow = null;
+
+		// Now we pull out all the actual data
+		$dataQuery = DB::table('data_values')
+			->whereIn('data_values.fk_var_id', $varIds);
+		
+		if ($entityIds)
+			$dataQuery = $dataQuery->whereIn('data_values.fk_ent_id', $entityIds);
+
+		$dataQuery = $dataQuery
+			->select('value', 'year',
+					 'data_values.fk_var_id as var_id', 
+					 'entities.id as entity_id', 'entities.name as entity_name',
+					 'entities.code as entity_code')
+			->join('entities', 'data_values.fk_ent_id', '=', 'entities.id')
+			->orderBy('entities.name', 'DESC')
+			->orderBy('year', 'ASC')
+			->orderBy('fk_var_id', 'ASC');
+
+		foreach ($dataQuery->get() as $result) {
+			if (!$currentRow || $currentRow[0] != $result->entity_name || $currentRow[1] != $result->year) {
+				if ($currentRow)
+					$rows[]= $currentRow;
+
+				// New row
+				$currentRow = [$result->entity_name, $result->year];
+				for ($i = 0; $i < sizeof($varIds); $i++) {
+					$currentRow[]= "";
+				}
+			}
+
+			$index = 2+array_search($result->var_id, $varIds);
+			$currentRow[$index] = $result->value;
+		}
+
+		// Use memory file pointer so we can have fputcsv escape for us
+		$fp = fopen('php://memory', 'w+');
+		foreach ($rows as $row) {
+			fputcsv($fp, $row);
+		}
+		rewind($fp);
+		$csv = stream_get_contents($fp);
+		fclose($fp); 
+		return response($csv, 200)
+				->header('Content-Type', 'text/csv')
+				->header('Content-Disposition', 'attachment; filename="' . $chart->slug . '.csv' . '"');		
 	}
+
 
 	public function showChart(Chart $chart) 
 	{
@@ -104,38 +159,4 @@ class ViewController extends Controller {
 			return 'No chart found to view';
 		}
 	}
-
-	/**
-	 * Show the form for editing the specified resource.
-	 *
-	 * @param  int  $id
-	 * @return Response
-	 */
-	public function edit($id)
-	{
-		//
-	}
-
-	/**
-	 * Update the specified resource in storage.
-	 *
-	 * @param  int  $id
-	 * @return Response
-	 */
-	public function update($id)
-	{
-		//
-	}
-
-	/**
-	 * Remove the specified resource from storage.
-	 *
-	 * @param  int  $id
-	 * @return Response
-	 */
-	public function destroy($id)
-	{
-		//
-	}
-
 }
