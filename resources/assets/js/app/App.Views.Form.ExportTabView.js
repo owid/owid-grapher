@@ -46,18 +46,11 @@
 			//update size from model
 			this.$widthInput.val( App.ChartModel.get( "iframe-width" ) );
 			this.$heightInput.val( App.ChartModel.get( "iframe-height" ) );
-
-			//update export code from 
-			var chartId = App.ChartModel.get( "id" );
-			if( chartId ) {
-				var viewUrl = this.$iframeTextArea.attr( "data-view-url" );
-				this.generateIframeCode( chartId, viewUrl );
-			}
-
+			this.generateIframeCode();
 		},
 
-		onChartSaved: function( id, viewUrl ) {
-			this.generateIframeCode( id, viewUrl );
+		onChartSaved: function() {
+			this.generateIframeCode();
 		},
 
 		onTabsCheck: function( evt ) {
@@ -107,11 +100,8 @@
 		},
 
 		generateIframeCode: function( id, viewUrl ) {
-			//store view url
-			if( viewUrl ) {
-				this.viewUrl = viewUrl;
-			}
-			this.$iframeTextArea.text( '<iframe src="' + this.viewUrl + '" style="width:' + App.ChartModel.get( "iframe-width" ) + ';height:' + App.ChartModel.get( "iframe-height" ) + '; border: 0px none;"></iframe>' );
+			var viewUrl = Global.rootUrl + '/' + App.ChartModel.get("chart-slug");
+			this.$iframeTextArea.text( '<iframe src="' +viewUrl + '" style="width:' + App.ChartModel.get( "iframe-width" ) + ';height:' + App.ChartModel.get( "iframe-height" ) + '; border: 0px none;"></iframe>' );
 		}
 
 	});

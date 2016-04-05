@@ -510,7 +510,6 @@
 
 					//different popup setup for stacked area chart
 					var unit = _.findWhere( units, { property: "y" } );
-					debugger;
 					if( unit && unit.format ) {
 						var fixed = Math.min(20, parseInt(unit.format, 10)),
 							unitName = ( unit.unit )? " " + unit.unit: "";
