@@ -78,26 +78,16 @@
 				</svg>
 				<div class="axis-scale-selectors-wrapper">
 					<div class="x-axis-scale-selector">
-						<a href="#" class="axis-scale-btn">
+						<a class="axis-scale-btn" style="cursor: pointer;">
 							<i class="fa fa-cog"></i>
+							<span>Linear</span>
 						</a>
-						<div data-name="x-axis-scale" class="axis-scale">
-							<ul>
-								<li data-value="linear" class="selected">Linear scale</li>
-								<li data-value="log">Log scale</li>
-							</ul>
-						</div>
 					</div>
 					<div class="y-axis-scale-selector">
-						<a href="#" class="axis-scale-btn">
+						<a class="axis-scale-btn" style="cursor: pointer;">
 							<i class="fa fa-cog"></i>
+							<span>Linear</span>
 						</a>
-						<div data-name="y-axis-scale" class="axis-scale">
-							<ul>
-								<li data-value="linear" class="selected">Linear scale</li>
-								<li data-value="log">Log scale</li>
-							</ul>
-						</div>
 					</div>
 				</div>
 			</div>

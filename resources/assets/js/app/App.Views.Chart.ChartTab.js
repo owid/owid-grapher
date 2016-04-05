@@ -583,7 +583,6 @@
 					$pathDomain.css( "stroke-opacity", "0" );
 				}
 				
-				//that.scaleSelectors.initEvents();
 				var chartDimensionsString = App.ChartModel.get( "chart-dimensions" );
 				if( chartDimensionsString.indexOf( '"property":"color"' ) === -1 ) {
 					//check if string does not contain "property":"color"

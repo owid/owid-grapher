@@ -166,6 +166,11 @@
 			this.trigger( "change" );
 		},
 
+		getAxisConfig: function(axisName, prop) {
+			var axis = this.get(axisName);
+			if (axis) return axis[prop];
+		},
+
 		updateVariables: function( newVar ) {
 			//copy array
 			var variables = this.get( "variables" ).slice(),
