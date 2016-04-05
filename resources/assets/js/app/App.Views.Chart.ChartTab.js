@@ -488,7 +488,7 @@
 					.datum(displayData)
 					.call( that.chart );
 
-				if( chartType !== App.ChartType.StackedArea ) {
+				if( chartType != App.ChartType.StackedArea ) {
 
 					that.chart.tooltip.contentGenerator( owid.contentGenerator );
 
@@ -510,8 +510,9 @@
 
 					//different popup setup for stacked area chart
 					var unit = _.findWhere( units, { property: "y" } );
+					debugger;
 					if( unit && unit.format ) {
-						var fixed = Math.min( 20, parseInt( unit.format, 10 ) ),
+						var fixed = Math.min(20, parseInt(unit.format, 10)),
 							unitName = ( unit.unit )? " " + unit.unit: "";
 						that.chart.interactiveLayer.tooltip.valueFormatter( customFormatter("." + fixed + "f", unitName ) );
 						//that.chart.interactiveLayer.tooltip.valueFormatter( d3.format("." + fixed + "f" ) );
