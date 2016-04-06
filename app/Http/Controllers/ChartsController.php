@@ -46,9 +46,6 @@ class ChartsController extends Controller {
 
 	public function editorData() {
 		$data = new \StdClass;
-		$data->variables = Variable::with('Dataset')->get();
-		$data->categories = DatasetCategory::all();
-		$data->subcategories = DatasetSubcategory::all();
 		$data->chartTypes = ChartType::lists( 'name', 'id' );
 		$data->logos = Logo::lists( 'name', 'url' );
 
@@ -147,6 +144,15 @@ class ChartsController extends Controller {
 			$config->{"selected-countries"} = $query->get();
 		}
 
+		// Remove any invalid variables from the chart config
+		$dims = json_decode($config->{"chart-dimensions"});
+		$varIds = array_map(function($d) { return $d->variableId; }, $dims);
+		$existingIds = DB::table("variables")->select('id')->whereIn('id', $varIds)->lists('name', 'id');
+		if (sizeof($existingIds) != sizeof($varIds)) {		
+			$config->{"chart-dimensions"} = "[]";
+			$config->{"form-config"}->{"variables-collection"} = [];
+		}
+
 		//possibly there could logo query parameter
 		if( !empty( $config ) && !empty( Input::get('logo') ) ) {
 			//there's logo query parameter, we want to display chart with different logo
@@ -169,13 +175,8 @@ class ChartsController extends Controller {
 	 */
 	public function edit( Chart $chart, Request $request )
 	{
-		$config = json_decode( $chart->config );
-		if($request->ajax()) {
-			return response()->json($config);
-		} else {
-			$data = $this->editorData();
-			return view('charts.edit', compact('chart'))->with('data', $data);
-		}
+		$data = $this->editorData();
+		return view('charts.edit', compact('chart'))->with('data', $data);
 	}
 
 	/**
