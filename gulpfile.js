@@ -28,7 +28,7 @@ elixir(function(mix) {
     ], 'resources/tmp/front-sass.css').styles([
         'libs/bootstrap.min.css',
         'libs/font-awesome/css/font-awesome.min.css',
-        'libs/chosen.css',
+        'libs/bootstrap-chosen.css',
         'libs/nv.d3.css',
         '../../tmp/front-sass.css'
     ], 'public/css/front.css');
@@ -50,7 +50,7 @@ elixir(function(mix) {
         'libs/ion.rangeSlider.css',
         'libs/ion.rangeSlider.skinFlat.css',
         'libs/bootstrap3-wysihtml5.min.css',
-        'libs/chosen.css',
+        'libs/bootstrap-chosen.css',
         'libs/nv.d3.css',
         '../../tmp/admin-sass.css',
     ], 'public/css/admin.css');
@@ -149,7 +149,6 @@ elixir(function(mix) {
             'app/App.Views.UI.SelectVarPopup.js',
             'app/App.Views.UI.SettingsVarPopup.js',
             'app/App.Views.UI.ColorPicker.js',
-            'app/App.Views.UI.VariableSelects.js',
 
             'app/App.Views.Form.BasicTabView.js',
             'app/App.Views.Form.ChartTypeSectionView.js',

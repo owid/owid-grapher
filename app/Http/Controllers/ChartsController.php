@@ -39,18 +39,43 @@ class ChartsController extends Controller {
 	 */
 	public function create()
 	{
+		Cache::flush();
+		$data = $this->editorData();
+		return view('charts.create')->with('data', $data);
+	}
+
+	public function editorData() {
 		$data = new \StdClass;
 		$data->variables = Variable::with('Dataset')->get();
 		$data->categories = DatasetCategory::all();
 		$data->subcategories = DatasetSubcategory::all();
 		$data->chartTypes = ChartType::lists( 'name', 'id' );
 		$data->logos = Logo::lists( 'name', 'url' );
-		//$logoUrl = Setting::where( 'meta_name', 'logoUrl' )->first();
-		//$data->logoUrl = ( !empty( $logoUrl ) )? url('/') .'/'. $logoUrl->meta_value: '';
 
-		Cache::flush();
+		$query = DB::table("variables")
+			->join('datasets', 'variables.fk_dst_id', '=', 'datasets.id')
+			->join('dataset_categories', 'datasets.fk_dst_cat_id', '=', 'dataset_categories.id')
+			->join('dataset_subcategories', 'datasets.fk_dst_subcat_id', '=', 'dataset_subcategories.id')
+			->orderBy('dataset_categories.id', 'ASC')
+			->orderBy('dataset_subcategories.id', 'ASC')
+			->select('variables.name', 'variables.id', 'variables.unit', 'datasets.name as dataset',
+					 'dataset_categories.name as category', 'dataset_subcategories.name as subcategory');
 
-		return view('charts.create')->with( 'data', $data );
+		$optgroups = [];
+		foreach ($query->get() as $result) {
+			if (!isset($optgroups[$result->subcategory])) {
+				$optgroup = new \StdClass;
+				$optgroup->name = $result->subcategory;
+				$optgroup->variables = [];
+				$optgroups[$result->subcategory] = $optgroup;
+			}
+
+			if ($result->name != $result->dataset) 
+				$result->name = $result->dataset . " - " . $result->name;
+			$optgroups[$result->subcategory]->variables[]= $result;
+		}
+		$data->optgroups = $optgroups;
+		return $data;		
 	}
 
 	/**
@@ -145,18 +170,11 @@ class ChartsController extends Controller {
 	public function edit( Chart $chart, Request $request )
 	{
 		$config = json_decode( $chart->config );
-		if( $request->ajax() ) {
-			return response()->json( $config );
+		if($request->ajax()) {
+			return response()->json($config);
 		} else {
-			$data = new \StdClass;
-			$data->variables = Variable::with('Dataset')->get();
-			$data->categories = DatasetCategory::all();
-			$data->subcategories = DatasetSubcategory::all();
-			$data->chartTypes = ChartType::lists( 'name', 'id' );
-			$data->logos = Logo::lists( 'name', 'url' );
-			//$logoUrl = Setting::where( 'meta_name', 'logoUrl' )->first();
-			//$data->logoUrl = ( !empty( $logoUrl ) )? url('/') .'/'. $logoUrl->meta_value: '';
-			return view('charts.edit', compact( 'chart' ) )->with( 'data', $data );
+			$data = $this->editorData();
+			return view('charts.edit', compact('chart'))->with('data', $data);
 		}
 	}
 

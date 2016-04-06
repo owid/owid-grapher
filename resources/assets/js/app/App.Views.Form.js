@@ -3,8 +3,7 @@
 	owid.namespace("App.Views.Form");
 
 	var FormView = require("App.Views.FormView"),
-		ChartView = require("App.Views.ChartView"),
-		VariableSelects = require("App.Views.UI.VariableSelects");
+		ChartView = require("App.Views.ChartView");
 
 	App.Views.Form = Backbone.View.extend({
 		events: {},
@@ -28,8 +27,6 @@
 			if( $( ".chart-edit-module" ).length ) {
 				this.formView = new FormView( { dispatcher: dispatcher } );
 				//variable select
-				var variableSelects = new VariableSelects();
-				variableSelects.init();
 			}			
 		}
 	});

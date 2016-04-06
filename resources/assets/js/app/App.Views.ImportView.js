@@ -650,7 +650,6 @@
 		},
 
 		onCategoryChange: function( evt ) {
-			
 			var $input = $( evt.currentTarget );
 			if( $input.val() != "" ) {
 				this.$subcategorySelect.show();
@@ -662,7 +661,7 @@
 			//filter subcategories select
 			this.$subcategorySelect.find( "option" ).hide();
 			this.$subcategorySelect.find( "option[data-category-id=" + $input.val() + "]" ).show();
-
+			this.$subcategorySelect.val("");
 		},
 
 		onDatasourceChange: function( evt ) {

@@ -77,7 +77,7 @@
 							<h2><span class="form-section-digit">d</span>Add your data</h2>
 						</div>
 						<div class="form-section-content">
-							<a href="#" class="add-data-btn"><i class="fa fa-plus"></i>Add variable</a>
+							<a class="add-data-btn"><i class="fa fa-plus"></i>Add variable</a>
 							<div class="dd">
 								<ol class="dd-list">
 

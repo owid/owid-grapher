@@ -16,8 +16,7 @@
 			
 			this.dispatcher = options.dispatcher;
 
-			this.selectVarPopup = new SelectVarPopup();
-			this.selectVarPopup.init( options );
+			this.selectVarPopup = new SelectVarPopup(options);
 
 			this.settingsVarPopup = new SettingsVarPopup();
 			this.settingsVarPopup.init( options );
