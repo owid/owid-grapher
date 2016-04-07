@@ -10,11 +10,8 @@
 
 		initialize: function( options ) {
 			this.dispatcher = options.dispatcher;
-
-			App.ChartModel.on( "change:selected-countries", this.render, this );
-
+			App.ChartModel.on("change:selected-countries", this.render, this);
 			this.render();
-
 		},
 
 		render: function() {
@@ -56,17 +53,11 @@
 
 			} );	
 
-			$lisRemoveBtns.on( "click", function( evt ) {
-
-				evt.stopImmediatePropagation();
-				
-				var $this = $( this ),
-					$parent = $this.parent(),
-					countryId = $parent.attr( "data-id" );
-				App.ChartModel.removeSelectedCountry( countryId );
-
-			})	
-			
+			$lisRemoveBtns.on("click", function(evt) {
+				var $parent = $(this).parent(),
+					countryName = $parent.attr("data-name");
+				App.ChartModel.removeSelectedCountry(countryName);
+			});			
 		}
 
 	});
