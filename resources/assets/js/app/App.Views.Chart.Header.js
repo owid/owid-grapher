@@ -88,8 +88,10 @@
 				this.$logoSvg.attr( "class", "chart-logo-svg" );
 			}
 
-			//hide first everything
-			this.$tabs.hide();
+			// HACK (Mispy): Since bootstrap sets list-item on these directly
+			// our css has to use !important to make them table-cell, but that
+			// means we can't just hide them normally.
+			this.$tabs.attr("style", "display: none !important;");
 
 			_.each(tabs, function( v, i ) {
 				var tab = that.$tabs.filter("." + v + "-header-tab");
