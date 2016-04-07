@@ -23,8 +23,7 @@
 		},
 
 		render: function() {
-
-			var mapConfig = App.ChartModel.get( "map-config" );
+			var mapConfig = App.ChartModel.get("map-config");
 			
 			this.playPauseControl.render();
 			this.timelineControl.render();
