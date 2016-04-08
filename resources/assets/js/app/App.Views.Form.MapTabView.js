@@ -84,9 +84,6 @@
 				years = owid.timeRangesToYears(mapConfig.timeRanges, minYear, maxYear),
 				options = [ { "title": "Earliest year", "value": "earliest" }, { "title": "Latest year", "value": "latest" } ];
 
-			mapConfig.minYear = years[0] || minYear;
-			mapConfig.maxYear = years[years.length-1] || maxYear;
-
 			_.each(years, function(year) {
 				options.push({ "title": year, "value": year });
 			});

@@ -170,7 +170,6 @@
 				tolerance = parseInt(this.mapConfig.timeTolerance) || 1,
 				mapData = {};
 
-
 			for (var i = 0; i < values.length; i++) {
 				var year = years[i];
 				if (year < targetYear-tolerance || year > targetYear+tolerance) 
@@ -194,9 +193,17 @@
 
 			this.minValue = _.min(mapData, function(d, i) { return d.value; }).value;
 			this.maxValue = _.max(mapData, function(d, i) { return d.value; }).value;
-			this.minYear = _.min(mapData, function(d, i) { return d.year; }).year;
-			this.maxYear = _.max(mapData, function(d, i) { return d.year; }).year;
+			this.minToleranceYear = _.min(mapData, function(d, i) { return d.year; }).year;
+			this.maxToleranceYear = _.max(mapData, function(d, i) { return d.year; }).year;
 			this.variableName = firstVariable.name;
+
+
+			// HACK (Mispy): Ideally these calculated values shouldn't go in mapConfig,
+			// but for backwards compatibility it's easier to have them there.
+			var rangeYears = owid.timeRangesToYears(this.mapConfig.timeRanges, years[0], years[years.length-1]);
+			App.ChartModel.updateMapConfig("minYear", rangeYears[0], true);
+			App.ChartModel.updateMapConfig("maxYear", rangeYears[rangeYears.length-1], true);
+
 
 			return mapData;
 		},

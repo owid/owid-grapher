@@ -158,8 +158,8 @@
 		},
 
 		updateTimeFromMap: function(map) {			
-			var timeFrom = map.minYear || map.mapConfig.targetYear,
-				timeTo = map.maxYear || map.mapConfig.targetYear,
+			var timeFrom = map.minToleranceYear || map.mapConfig.targetYear,
+				timeTo = map.maxToleranceYear || map.mapConfig.targetYear,
 				targetYear = map.mapConfig.targetYear,
 				hasTargetYear = _.find(map.mapData, function(d) { return d.year == targetYear; }),
 				d = owid.displayYear;
