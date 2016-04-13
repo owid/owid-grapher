@@ -57,6 +57,8 @@
 				"targetYearMode": "normal",
 				"mode": "specific",
 				"timeTolerance": 1,
+				"minYear": 1980,
+				"maxYear": 2000,
 				// timeRanges is a collection of objects specifying year ranges e.g.
 				//
 				// [

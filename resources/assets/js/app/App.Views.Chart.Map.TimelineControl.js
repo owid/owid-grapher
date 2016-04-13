@@ -26,7 +26,8 @@
 			this.$endYear = this.$el.find( ".timeline-end-year" );
 
 			this.dispatcher.on( "increment-time", this.onIncrementTime, this );
-
+			App.ChartModel.on("change-map", this.onChangeYear, this);
+			App.ChartModel.on("change-map-year", this.onChangeYear, this);
 			//this.$win.on( "resize", $.proxy( this.onResize, this ) );
 
 			//year slider
@@ -114,13 +115,18 @@
 				return Math.abs(year-targetYear);
 			});
 
-			this.updateSliderInput(closestYear);
-		
-			if (closestYear != targetYear) {
-				this.$sliderInput.trigger("change");
-			}
-
 			App.ChartModel.updateMapConfig("targetYear", closestYear, false, "change-map-year");
+
+			if (closestYear != targetYear) {
+			}
+		},
+
+		onChangeYear: function() {
+			var targetYear = App.ChartModel.get("map-config").targetYear;
+			this.updateSliderInput(targetYear);
+
+			if (targetYear != parseInt(this.$sliderInput.val()))
+				this.$sliderInput.trigger("change");		
 		},
 
 		onIncrementTime: function( evt ) {
@@ -134,8 +140,7 @@
 			}
 
 			var nextYear = this.years[nextIndex];
-			
-			this.$sliderInput.val(this.years[nextIndex]);
+			this.$sliderInput.val(nextYear);
 			this.$sliderInput.trigger("change");
 		},
 

@@ -25,12 +25,19 @@
 			
 		},
 
-		onPlayClick: function( evt ) {
-			if( evt ) {
+		onPlayClick: function(evt) {
+			if (evt)
 				evt.preventDefault();
-			}
-			this.startTimer();
 
+			var mapConfig = App.ChartModel.get("map-config"),
+				targetYear = mapConfig.targetYear,
+				minYear = mapConfig.minYear,
+				maxYear = mapConfig.maxYear;
+
+			if (targetYear == maxYear)
+				App.ChartModel.updateMapConfig("targetYear", minYear, false, "change-map-year");
+			
+			this.startTimer();
 			this.$pauseBtn.show();
 			this.$playBtn.hide();
 		},
