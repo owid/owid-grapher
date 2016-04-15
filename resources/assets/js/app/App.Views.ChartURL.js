@@ -92,7 +92,7 @@
 				_.each(sortedCountries, function(entity) {
 					var foundEntity = variableData.entityKey[entity.id];
 					if (!foundEntity) return;
-					entityCodes.push(foundEntity.code || foundEntity.name);
+					entityCodes.push(encodeURIComponent(foundEntity.code || foundEntity.name));
 				});
 
 				owid.setQueryVariable("country", entityCodes.join("+"));
