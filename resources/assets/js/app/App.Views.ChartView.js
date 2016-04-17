@@ -97,16 +97,13 @@
 
 		},*/
 
-		exportContent: function( evt ) {
-			
+		exportContent: function(evt) {
 			evt.preventDefault();
 			this.exportPopup.show();
 			return false;
-
 		},
 
-		onDimensionExportUpdate: function( data ) {
-
+		onDimensionExportUpdate: function(data) {
 			if( !this.oldWidth ) {
 				this.oldWidth = this.$el.width();
 				this.oldHeight = this.$el.height();
@@ -131,7 +128,6 @@
 			this.$el.height( data.height );
 			
 			this.onResize();
-
 		},
 
 		onDimensionExportCancel: function() {
@@ -139,7 +135,6 @@
 		},
 
 		onDimensionExport: function( data ) {
-
 			//export chart into svg or png
 			var that = this,
 				format = data.format,
@@ -159,21 +154,21 @@
 			
 			//grab all svg
 			var $exportSvg;
-			if( exportMap ) {
+			if (exportMap) {
 				$exportSvg = $( ".datamap" );
 			} else {
 				$exportSvg = $( "svg.nvd3-svg" );
 			}
+
 			//add printing styles
-			if( exportMap ) {
+			if (exportMap) {
 				$exportSvg.attr( "class", "datamap nvd3-svg export-svg" );
 				
 				//for exporting map, we need to add logo
-				$exportSvg.append( $chartLogoSvg );
-				
+				$exportSvg.append($chartLogoSvg);
 			} else {
 				//add classes 
-				$exportSvg.attr( "class", "nvd3-svg export-svg" );
+				$exportSvg.attr("class", "nvd3-svg export-svg");
 			}
 
 			$chartLogoSvg = $( ".chart-logo-svg" );
@@ -240,17 +235,14 @@
 				//remove add country button, display:none won't work in illustrator
 				var $addCountryBtn = $exportSvg.find( ".nv-add-btn,.nv-remove-btn" );
 				$addCountryBtn.remove();
-				svgAsDataUri( $exportSvg.get( 0 ), {}, cb );
+				svgAsDataUri($exportSvg.get(0), {}, cb);
 				
 			} else {
-				
-				saveSvgAsPng( $exportSvg.get( 0 ), "chart.png" );
-				setTimeout( function() {
-					window.location.reload();
-				}, 250 );
-				
+				saveSvgAsPng($exportSvg.get(0), "chart.png");
+                setTimeout(function() {
+                    window.location.reload();
+                }, 250);
 			}
-			
 		},
 
 		addTextsForExport: function( $svg, width, height, exportMap ) {

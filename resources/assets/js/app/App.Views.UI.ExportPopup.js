@@ -8,10 +8,8 @@
 	var that;
 
 	App.Views.UI.ExportPopup = function() {
-
 		that = this;
 		this.$div = null;
-
 	};
 
 	App.Views.UI.ExportPopup.prototype = {
@@ -112,7 +110,6 @@
 		},
 
 		toggleSections: function() {
-
 			var format = this.$exportFormat.filter( ":checked" ).val();
 			if( format === "png" || format === "svg" ) {
 				this.$dimensionSection.show();
@@ -125,14 +122,11 @@
 				//we don't need save button for iframe
 				this.$exportBtn.hide();
 			}
-
 		},
 
 		serializeForm: function() {
-			
 			var obj = { width: this.$exportWidth.val(), height: this.$exportHeight.val(), format: this.$exportFormat.filter( ":checked" ).val() };
 			return obj;
-			
 		},
 
 		generateIframeCode: function( id, viewUrl ) {
