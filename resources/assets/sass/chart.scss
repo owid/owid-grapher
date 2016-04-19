@@ -231,7 +231,7 @@ a {
 	display: table-row;
 	height: 100%;
 	background-color: #fff;
-	border: 1px solid #ccc;
+	border-top: 1px solid #ccc;
 }
 
 /* hack to fix border-collapse bug in firefox */
@@ -282,10 +282,9 @@ a {
 	position: relative;
 	width: 100%;
 	padding: 0px 10px;
-	font-size: 10px;
+	font-size: 12px;
 	//background-color: #FAFAFA;
-	color: #fff;
-	background-color: #474747;
+	background-color: white;
 }
 	#chart-view .chart-footer a:hover {
 		text-decoration: underline;
@@ -301,7 +300,6 @@ a {
 	#chart-view .chart-footer a,
 	#chart-view #sources-chart-tab a {
 		//color: #1059E5;
-		color: #fff;
 		text-decoration: underline;
 	}
 		#chart-view #sources-chart-tab a,
@@ -492,10 +490,6 @@ a {
 		display: block;
 	}
 
-.chart-description,
-.chart-sources {
-	font-size: 10px;
-}
 .chart-wrapper {
 	background-color: #fff;
 }
