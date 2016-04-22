@@ -28,6 +28,7 @@
 			options.dispatcher.on("tab-change", this.onTabChange, this);
 			App.ChartModel.on("change:selected-countries", this.updateCountryParam, this);			
 			App.ChartModel.on("change-map-year", this.updateYearParam, this);
+			App.ChartModel.on("change-map", this.updateMapParams, this);
 		},
 
 		/**
@@ -46,6 +47,11 @@
 			var year = owid.getQueryVariable("year");
 			if (year !== undefined) {
 				App.ChartModel.updateMapConfig("targetYear", year);
+			}
+
+			var region = owid.getQueryVariable("region");
+			if (region !== undefined) {
+				App.ChartModel.updateMapConfig("projection", region);
 			}
 
 			// TODO: Countries are currently done server-side, might be more consistent
@@ -106,5 +112,13 @@
 			var targetYear = App.ChartModel.get("map-config").targetYear;
 			owid.setQueryVariable("year", targetYear);
 		},
+
+		/**
+		 * Store current projection in URL
+		 */
+		updateMapParams: function() {
+			var projection = App.ChartModel.get("map-config").projection;
+			owid.setQueryVariable("region", projection);
+		}
 	});
 })();
