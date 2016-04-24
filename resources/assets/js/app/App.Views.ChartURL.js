@@ -59,6 +59,11 @@
 				App.ChartModel.updateMapConfig("isColorblind", true);
 			}
 
+			var interpolate = owid.getQueryVariable("interpolate");
+			if (interpolate == 0) {
+				App.ChartModel.updateMapConfig("mode", "no-interpolation");
+			}
+
 			// TODO: Countries are currently done server-side, might be more consistent
 			// to do them here too - mispy
 		},
@@ -122,14 +127,22 @@
 		 * Store current projection in URL
 		 */
 		updateMapParams: function() {
-			var projection = App.ChartModel.get("map-config").projection;
+			var mapConfig = App.ChartModel.get("map-config");
+
+			var projection = mapConfig.projection;
 			owid.setQueryVariable("region", projection);
 
-			var colorblind = App.ChartModel.get("map-config").isColorblind;
+			var colorblind = mapConfig.isColorblind;
 			if (colorblind)
 				owid.setQueryVariable("colorblind", 1);
 			else
 				owid.setQueryVariable("colorblind", null);
+
+			var interpolate = (mapConfig.mode !== "no-interpolation");
+			if (interpolate)
+				owid.setQueryVariable("interpolate", null);
+			else
+				owid.setQueryVariable("interpolate", 0);
 		}
 	});
 })();

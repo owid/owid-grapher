@@ -58,7 +58,8 @@
 			this.$regionControlLis.removeClass( "highlight" );
 			this.$regionControlLis.filter( "." + mapConfig.projection + "-projection" ).addClass( "highlight" );
 
-			this.$colorBlindControl.toggleClass("active", mapConfig.isColorblind);
+			this.$settingsControl.find("input").prop("checked", mapConfig.mode !== "no-interpolation");
+			this.$colorBlindControl.toggleClass("active", !!mapConfig.isColorblind);
 
 			//is interval mode display
 			if( isNaN( minYear ) || isNaN( maxYear ) ) {
@@ -90,10 +91,11 @@
 			this.render();
 		},
 
-		onSettingsInput: function( evt ) {
-			var $this = $( evt.target ),
-				mode = ( $this.is( ":checked" ) )? "specific": "no-interpolation";
-			App.ChartModel.updateMapConfig( "mode", mode, false, "change-map" );
+		onSettingsInput: function(evt) {
+			var $this = $(evt.target),
+				currentMode = App.ChartModel.get("map-config").mode,
+				mode = currentMode === "no-interpolation" ? "specific" : "no-interpolation";
+			App.ChartModel.updateMapConfig("mode", mode, false, "change-map");
 			this.render();
 		},
 

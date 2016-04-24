@@ -170,6 +170,9 @@
 				tolerance = parseInt(this.mapConfig.timeTolerance) || 1,
 				mapData = {};
 
+			if (this.mapConfig.mode === "no-interpolation")
+				tolerance = 0;
+
 			for (var i = 0; i < values.length; i++) {
 				var year = years[i];
 				if (year < targetYear-tolerance || year > targetYear+tolerance) 
