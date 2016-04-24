@@ -73,8 +73,8 @@ elixir(function(mix) {
         'libs/bootstrap.min.js',
         'libs/chosen.jquery.js',
         'libs/colorbrewer.js',
-        'libs/owd-colorbrewer.js',
         'libs/jquery.lazyloadxt.extra.js',
+        'owd-colorbrewer.js',
         'owid.js',
     ], 'public/js/libs.js' );
 
@@ -98,10 +98,10 @@ elixir(function(mix) {
         'libs/jquery.nestable.js',
         'libs/bootstrap3-wysihtml5.all.min.js',
         'libs/colorbrewer.js',
-        'libs/owd-colorbrewer.js',
         'libs/jquery.stickytabs.js',
         'libs/jquery.timeago.js',
-        'owid.js'
+        'owd-colorbrewer.js',
+        'owid.js',
     ], 'public/js/libs-admin.js' );
 
     var chartScripts = [

@@ -43,14 +43,12 @@
 		},
 
 		render: function() {
-			
 			var mapConfig = App.ChartModel.get( "map-config" ),
 				minYear = App.DataModel.get("minYear"),
 				maxYear = App.DataModel.get("maxYear");
 			
 			this.$targetYearLabel.text( mapConfig.targetYear );
 			this.$regionControlLabel.text( mapConfig.projection );
-
 
 			this.$targetYearInput.attr( "min", minYear );
 			this.$targetYearInput.attr( "max", maxYear );
@@ -59,6 +57,8 @@
 
 			this.$regionControlLis.removeClass( "highlight" );
 			this.$regionControlLis.filter( "." + mapConfig.projection + "-projection" ).addClass( "highlight" );
+
+			this.$colorBlindControl.toggleClass("active", mapConfig.isColorblind);
 
 			//is interval mode display
 			if( isNaN( minYear ) || isNaN( maxYear ) ) {
@@ -97,17 +97,13 @@
 			this.render();
 		},
 
-		onColorBlindClick: function( evt ) {
-			var $this = $( evt.currentTarget );
-			$this.toggleClass( "active" );
-			if( $this.hasClass( "active" ) ) {
-				var colorBlindSchemeName = "RdYlBu";
-				App.ChartModel.updateMapConfig( "colorSchemeName", colorBlindSchemeName, false, "change-map" );
+		onColorBlindClick: function(evt) {
+			var $this = $(evt.currentTarget);
+			if (!$this.hasClass("active")) {
+				App.ChartModel.updateMapConfig("isColorblind", true, false, "change-map");
 			} else {
-				//restore original color scheme
-				App.ChartModel.updateMapConfig( "colorSchemeName", this.originalColorSchemeName, false, "change-map" );
+				App.ChartModel.updateMapConfig("isColorblind", false, false, "change-map");
 			}
-			
 		},
 
 	});

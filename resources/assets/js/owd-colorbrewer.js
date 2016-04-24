@@ -62,7 +62,8 @@ for( var schemeName in colorbrewer ) {
 owdColorbrewer[ "custom" ] = { "name": "custom", "colors": []};
 
 owdColorbrewer.getColors = function(mapConfig) {
-	var colorSchemeName = mapConfig.colorSchemeName || "",
+	var isColorblind = mapConfig.isColorblind,
+		colorSchemeName = (isColorblind ? "RdYlBu" : mapConfig.colorSchemeName) || "",
 		colorSchemeInterval = mapConfig.colorSchemeInterval || 2,
 		colorSchemeInvert = mapConfig.colorSchemeInvert || false,
 		customColorScheme = mapConfig.customColorScheme || [];

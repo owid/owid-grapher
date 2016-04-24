@@ -238,7 +238,11 @@
 			params[spl[0]] = spl[1];
 		});
 
-		params[key] = val;
+		if (val === null || val === undefined) {
+			delete params[key];
+		} else {
+			params[key] = val;
+		}
 
 		var newQueryStr = "";
 		_.each(params, function(v,k) {
@@ -253,7 +257,7 @@
 	owid.setQueryStr = function(str) {
 		history.replaceState(null, null, str + window.location.hash);
 		$(window).trigger("query-change");
-	}
+	};
 
 	/**
 	 * A very simple shorthand to ensure a top-level namespace exists.

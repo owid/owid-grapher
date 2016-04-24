@@ -245,7 +245,7 @@
 
 		makeColorScale: function() {
 			var mapConfig = this.mapConfig;
-			var colorScheme = owdColorbrewer.getColors(mapConfig);						
+			var colorScheme = owdColorbrewer.getColors(mapConfig);
 
 			var colorScale,
 				customValues = mapConfig.colorSchemeValues,

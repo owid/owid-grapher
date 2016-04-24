@@ -80,6 +80,7 @@
 				"colorSchemeMinValue": null,
 				// e.g. ["#000", "#c00", "#0c0", "#00c", "#c0c"]
 				"customColorScheme": [],
+				"isColorblind": false,
 				"projection": "World",
 				"legendDescription": "",
 				"legendStepSize": 20,

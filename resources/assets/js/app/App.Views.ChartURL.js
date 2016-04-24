@@ -54,6 +54,11 @@
 				App.ChartModel.updateMapConfig("projection", region);
 			}
 
+			var colorblind = owid.getQueryVariable("colorblind");
+			if (colorblind == 1) {
+				App.ChartModel.updateMapConfig("isColorblind", true);
+			}
+
 			// TODO: Countries are currently done server-side, might be more consistent
 			// to do them here too - mispy
 		},
@@ -119,6 +124,12 @@
 		updateMapParams: function() {
 			var projection = App.ChartModel.get("map-config").projection;
 			owid.setQueryVariable("region", projection);
+
+			var colorblind = App.ChartModel.get("map-config").isColorblind;
+			if (colorblind)
+				owid.setQueryVariable("colorblind", 1);
+			else
+				owid.setQueryVariable("colorblind", null);
 		}
 	});
 })();
