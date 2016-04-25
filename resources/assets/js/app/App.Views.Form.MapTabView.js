@@ -13,7 +13,7 @@
 			"change [name='map-time-tolerance']": "onTimeToleranceChange",
 			"change [name='map-time-ranges']": "onTimeRangesChange",
 			"change [name='map-time-mode']": "onTimeModeChange",
-			"change [name='map-target-year']": "onTargetYearChange",
+			"change [name='map-default-year']": "onDefaultYearChange",
 			"change [name='map-color-scheme']": "onColorSchemeChange",
 			"change [name='map-color-interval']": "onColorIntervalChange",
 			"change [name='map-projections']": "onProjectionChange",
@@ -33,7 +33,7 @@
 			
 			this.$timeToleranceInput = this.$el.find( "[name='map-time-tolerance']" );
 			this.$timeRangesInput = this.$el.find( "[name='map-time-ranges']" );
-			this.$targetYearInput = this.$el.find( "[name='map-target-year']" );
+			this.$defaultYearInput = this.$el.find( "[name='map-default-year']" );
 			this.$timeModeSelect = this.$el.find( "[name='map-time-mode']" );
 			
 			this.$colorSchemeSelect = this.$el.find( "[name='map-color-scheme']" );
@@ -68,16 +68,16 @@
 			var legendOrientation = ( mapConfig.legendOrientation )? mapConfig.legendOrientation: "landscape";
 			this.$legendOrientation.val( legendOrientation );
 
-			this.updateTargetYearSelect();
+			this.updateDefaultYearSelect();
 			this.updateColorSchemeSelect();
 			this.updateColorIntervalSelect();
 			this.updateProjectionsSelect();
 			this.updateTimelineMode();
 		},
 
-		updateTargetYearSelect: function() {
+		updateDefaultYearSelect: function() {
 			var mapConfig = App.ChartModel.get("map-config"),
-				targetYear = mapConfig.targetYear,
+				defaultYear = mapConfig.defaultYear,
 				targetYearMode = mapConfig.targetYearMode,
 				minYear = App.DataModel.get("minYear") || new Date().getFullYear(),
 				maxYear = App.DataModel.get("maxYear") || new Date().getFullYear(),
@@ -88,24 +88,24 @@
 				options.push({ "title": year, "value": year });
 			});
 
-			this.$targetYearInput.empty();
+			this.$defaultYearInput.empty();
 
 			var innerHtml = "";
 			$.each( options, function( i, option ) {
 				innerHtml += "<option value='" + option.value + "'>" + option.title + "</option>";
 			} );
-			this.$targetYearInput.html( innerHtml );
+			this.$defaultYearInput.html( innerHtml );
 
 			//update current value on select
 			var currentValue;
 			if( targetYearMode === "earliest" || targetYearMode === "latest" ) {
 				currentValue = targetYearMode;
 			} else {
-				currentValue = targetYear;
+				currentValue = defaultYear;
 			}
 
 			//select current value
-			this.$targetYearInput.val( currentValue );
+			this.$defaultYearInput.val(currentValue);
 		},
 
 		updateVariableSelect: function() {
@@ -243,27 +243,27 @@
 			$this.attr('data-original-title', '');
 			$this.closest('.form-group').removeClass('has-error');
 			App.ChartModel.updateMapConfig("timeRanges", timeRanges);
-			this.updateTargetYearSelect();
+			this.updateDefaultYearSelect();
 		},
 
-		onTargetYearChange: function( evt ) {
+		onDefaultYearChange: function( evt ) {
 			var $this = $( evt.target ),
 				mapConfig = App.ChartModel.get( "map-config" ),
 				val = $this.val(),
-				targetYear, targetYearMode = "normal",
+				defaultYear, targetYearMode = "normal",
 				years = owid.timeRangesToYears(mapConfig.timeRanges, mapConfig.minYear, mapConfig.maxYear);
 
 			if( val === "earliest" ) {
 				targetYearMode = val;
-				targetYear = years[0];
+				defaultYear = years[0];
 			} else if( val === "latest" ) {
 				targetYearMode = val;
-				targetYear = years[years.length-1];
+				defaultYear = years[years.length-1];
 			} else {
-				targetYear = $this.val();
+				defaultYear = $this.val();
 			}
 
-			App.ChartModel.updateMapConfig( "targetYear", targetYear );
+			App.ChartModel.updateMapConfig( "defaultYear", defaultYear );
 			App.ChartModel.updateMapConfig( "targetYearMode", targetYearMode );
 		},
 

@@ -114,6 +114,9 @@
 					this.bordersDisclaimer.attr("class", "border-disclaimer").text(this.BORDERS_DISCLAIMER_TEXT);
 				}
 			}
+
+			// Set target year from default
+			this.mapConfig.targetYear = this.mapConfig.defaultYear || this.mapConfig.targetYear;
 		},
 
 		render: function() {

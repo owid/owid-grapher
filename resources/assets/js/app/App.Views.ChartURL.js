@@ -46,7 +46,7 @@
 
 			var year = owid.getQueryVariable("year");
 			if (year !== undefined) {
-				App.ChartModel.updateMapConfig("targetYear", year);
+				App.ChartModel.updateMapConfig("defaultYear", year);
 			}
 
 			var region = owid.getQueryVariable("region");

@@ -65,7 +65,6 @@
 			if( isNaN( minYear ) || isNaN( maxYear ) ) {
 				this.$targetYearInput.attr( "disabled", true );
 			}
-
 		},
 
 		onChartModelChange: function( evt ) {

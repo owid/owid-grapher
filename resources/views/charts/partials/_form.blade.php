@@ -443,7 +443,7 @@
 							</div>
 							<label>
 								Default year to show:
-								<select name="map-target-year" class="form-control"></select>
+								<select name="map-default-year" class="form-control"></select>
 							</label>
 						</div>
 					</section>

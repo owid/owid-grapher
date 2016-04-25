@@ -55,6 +55,7 @@
 				"variableId": -1,
 				"targetYear": 1980,
 				"targetYearMode": "normal",
+				"defaultYear": 1980,
 				"mode": "specific",
 				"timeTolerance": 1,
 				"minYear": 1980,
