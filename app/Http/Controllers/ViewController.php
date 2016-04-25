@@ -162,7 +162,7 @@ class ViewController extends Controller {
 		if ($referer_s) {
 			$root = parse_url(\Request::root());
 			$referer = parse_url($referer_s);
-			if ($root['host'] == $referer['host'] && !str_contains($referer_s, ".html") && !str_contains($referer_s, "wp-admin") && !str_contains($referer_s, "preview=true") && !str_contains($referer_s, "OWID-grapher") && !str_contains($referer_s, "how-to")) {
+			if ($root['host'] == $referer['host'] && !str_contains($referer_s, ".html") && !str_contains($referer_s, "wp-admin") && !str_contains($referer_s, "preview=true") && !str_contains($referer_s, "how-to") && !str_contains($referer_s, "grapher")) {
 				$chart->origin_url = "https://" . $root['host'] . $referer['path'];
 				$chart->save();
 			}

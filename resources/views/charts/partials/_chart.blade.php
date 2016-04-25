@@ -3,7 +3,9 @@
 		<div class="chart-header clearfix">
 			<div class="logos">
 				<img src="" class="second-logo" title="Logo" style="display: none;"/>
-				<img src="" class="logo" title="Logo" style="visibility:hidden"/>
+				<a href="https://ourworldindata.org">
+					<img src="" class="logo" title="Logo" style="visibility:hidden"/>
+				</a>
 			</div>
 			<h2 class="chart-name"></h2>
 			<h3 class="chart-subname"></h3>
