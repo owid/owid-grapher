@@ -923,14 +923,13 @@ a {
 				&.selected,
 				&:hover {
 					.btn {
-						color: #404040 !important;
-						background-color: #ffffff;
+						color: white;
+						background-color: #404040;
 						border: 1px solid #ddd;
 					}
 				}
 				.btn {
-					color: #ffffff !important;
-					background-color: #404040;
+					background-color: white;
 					border-radius: 0;
 					&.btn:active {
 						box-shadow: none;
