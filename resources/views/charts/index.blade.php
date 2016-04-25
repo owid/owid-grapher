@@ -27,8 +27,8 @@
 								<td><a href="{{ URL::to($chart->slug) }}">{{ $chart->name }}</a></td>
 								<td>{{ $chart->notes }}</td>
 								<td>
-									@if ( $chart->last_referer_url )
-										<a href="{{ $chart->last_referer_url }}">{{ $chart->last_referer_url }}</a>									
+									@if ( $chart->origin_url )
+										<a href="{{ $chart->origin_url }}">{{ $chart->origin_url }}</a>									
 									@endif
 								</td>
 								<td>

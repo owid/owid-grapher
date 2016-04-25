@@ -131,7 +131,7 @@ class ChartsController extends Controller {
 		$config->id = $chart->id;
 		$config->{"chart-notes"} = $chart->notes;
 		$config->{"chart-slug"} = $chart->slug;
-		$config->{"data-entry-url"} = $chart->last_referer_url;
+		$config->{"data-entry-url"} = $chart->origin_url;
 
 		// Allow url parameters to override the chart's default
 		// selected countries configuration.

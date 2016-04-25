@@ -25,7 +25,7 @@ class ViewController extends Controller {
 
 	public function testall()
 	{
-		$ids = DB::table('charts')->select('id')->where('last_referer_url', '!=', "")->lists('id');
+		$ids = DB::table('charts')->select('id')->where('origin_url', '!=', "")->lists('id');
 		$charts = [];
 
 		foreach ($ids as $id) {
@@ -143,8 +143,8 @@ class ViewController extends Controller {
 		if ($referer_s) {
 			$root = parse_url(\Request::root());
 			$referer = parse_url($referer_s);
-			if ($root['host'] == $referer['host'] && str_contains($referer_s, "/data/") && !str_contains($referer_s, "wp-admin") && !str_contains($referer_s, "preview=true")) {
-				$chart->last_referer_url = $root['scheme'] . "://" . $root['host'] . $referer['path'];
+			if ($root['host'] == $referer['host'] && !str_contains($referer_s, ".html") && !str_contains($referer_s, "wp-admin") && !str_contains($referer_s, "preview=true") && !str_contains($referer_s, "OWID-grapher") && !str_contains($referer_s, "how-to")) {
+				$chart->origin_url = "https://" . $root['host'] . $referer['path'];
 				$chart->save();
 			}
 		}

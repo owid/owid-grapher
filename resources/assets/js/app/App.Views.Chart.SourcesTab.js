@@ -67,11 +67,14 @@
 					dataUrl = App.ChartModel.get("data-entry-url");
 
 				// Link to the blog post that is the canonical embed location for this chart
-				if (dataUrl && dataUrl.indexOf("ourworldindata.org/data") != -1)
-					desc = desc.replace(/\*data-entry\*/, "<a class='source-link' target='_blank' href='" + dataUrl + "'>" + dataUrl + "</a>");
-				else
+				if (dataUrl && dataUrl.indexOf("ourworldindata.org") != -1) {
+					var a = document.createElement('a');
+					a.href = dataUrl;
+					var finalUrl = "https://ourworldindata.org" + a.pathname + a.search + a.hash;
+					desc = desc.replace(/\*data-entry\*/, "<a class='source-link' target='_blank' href='" + finalUrl + "'>" + finalUrl + "</a>");
+				} else
 					desc = desc.replace(/\*data-entry\*/, 
-						"<a class='source-link' target='_blank' href='http://ourworldindata.org'>http://ourworldindata.org</a>");
+						"<a class='source-link' target='_blank' href='http://ourworldindata.org'>https://ourworldindata.org</a>");
 				footerHtml = desc + " " + footerHtml;								
 				//tabHtml = license.description + " " + tabHtml;
 			}
