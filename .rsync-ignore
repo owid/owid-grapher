@@ -6,3 +6,4 @@ storage/debugbar/*
 storage/framework/sessions/*
 storage/framework/cache/*
 public/uploads
+public/exports

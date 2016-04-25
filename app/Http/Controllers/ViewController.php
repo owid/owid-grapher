@@ -47,6 +47,25 @@ class ViewController extends Controller {
 		return $this->showChart($chart);
 	}
 
+	public function exportPNG($slug, Request $request) {
+		$chart = Chart::where('slug', $slug)
+					  ->orWhere('id', $slug)
+					  ->first();
+
+		if (!$chart)
+			return App::abort(404, "No such chart");
+
+		$phantomjs = base_path() . "/node_modules/.bin/phantomjs";
+		$rasterize = base_path() . "/phantomjs/rasterize.js";
+		$target = $request->root() . "/" . $slug . ".export" . "?" . $request->getQueryString();
+		$file = public_path() . "/exports/" . $slug . ".png";
+		$command = $phantomjs . " " . $rasterize . " " . escapeshellarg($target) . " " . escapeshellarg($file);
+		exec($command);
+
+		$file = public_path() . "/exports/life-expectancy.png";
+		return response()->file($file);
+	}
+
 	public function exportCSV($slug, Request $request) {
 		$chart = Chart::where('slug', $slug)
 					  ->orWhere('id', $slug)

@@ -18,6 +18,10 @@
 		initialize: function(options) {
 			if (App.isEditor) return false; // No URL stuff while editing charts
 
+			if (window.location.pathname.match(/.export$/)) {
+				$("#chart-view").addClass("export");
+			}
+
 			// Keep the query params separate between map and the other tabs
 			this.lastTabName = null;
 			this.mapQueryStr = "?";

@@ -87,7 +87,6 @@
 		},
 
 		checkPngConstraint: function( forceConstraint ) {
-			
 			if( ( this.$exportFormat.filter( ":checked" ).val() === "png" ) && ( parseInt( this.$exportWidth.val(), 10 ) > MAX_WIDTH || parseInt( this.$exportHeight.val(), 10 ) > MAX_HEIGHT ) ) {
 				
 				if( forceConstraint ) {
@@ -102,7 +101,6 @@
 			} else {
 				this.clearPngConstraint();
 			}
-			
 		},
 
 		clearPngConstraint: function() {
