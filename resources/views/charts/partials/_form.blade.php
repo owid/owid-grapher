@@ -480,7 +480,7 @@
 						<div class="form-section-content">
 							<label>
 								Which region map should be focused on:
-								<select name="map-projections" class="form-control"></select>
+								<select name="map-default-projection" class="form-control"></select>
 							</label>
 						</div>
 					</section>

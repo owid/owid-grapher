@@ -51,7 +51,7 @@
 
 			var region = owid.getQueryVariable("region");
 			if (region !== undefined) {
-				App.ChartModel.updateMapConfig("projection", region);
+				App.ChartModel.updateMapConfig("defaultProjection", region);
 			}
 
 			var colorblind = owid.getQueryVariable("colorblind");

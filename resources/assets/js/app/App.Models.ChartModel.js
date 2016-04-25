@@ -83,6 +83,7 @@
 				"customColorScheme": [],
 				"isColorblind": false,
 				"projection": "World",
+				"defaultProjection": "World",
 				"legendDescription": "",
 				"legendStepSize": 20,
 				"legendOrientation": "landscape",

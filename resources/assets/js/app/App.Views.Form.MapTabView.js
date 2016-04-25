@@ -16,7 +16,7 @@
 			"change [name='map-default-year']": "onDefaultYearChange",
 			"change [name='map-color-scheme']": "onColorSchemeChange",
 			"change [name='map-color-interval']": "onColorIntervalChange",
-			"change [name='map-projections']": "onProjectionChange",
+			"change [name='map-default-projection']": "onDefaultProjectionChange",
 			"change [name='map-legend-description']": "onLegendDescriptionChange",
 			"change [name='map-legend-step-size']": "onLegendStepSizeChange",
 			"change [name='map-legend-orientation']": "onLegendOrientationChange"
@@ -39,7 +39,7 @@
 			this.$colorSchemeSelect = this.$el.find( "[name='map-color-scheme']" );
 			this.$colorIntervalSelect = this.$el.find( "[name='map-color-interval']" );
 			
-			this.$projectionsSelect = this.$el.find( "[name='map-projections']" );
+			this.$defaultProjectionSelect = this.$el.find( "[name='map-default-projection']" );
 			this.$legendDescription = this.$el.find( "[name='map-legend-description']" );
 			this.$legendStepSize = this.$el.find( "[name='map-legend-step-size']" );
 			this.$legendOrientation = this.$el.find( "[name='map-legend-orientation']" );
@@ -71,7 +71,7 @@
 			this.updateDefaultYearSelect();
 			this.updateColorSchemeSelect();
 			this.updateColorIntervalSelect();
-			this.updateProjectionsSelect();
+			this.updateDefaultProjectionSelect();
 			this.updateTimelineMode();
 		},
 
@@ -157,17 +157,16 @@
 			this.$colorIntervalSelect.val(mapConfig.colorSchemeInterval);
 		},
 
-		updateProjectionsSelect: function() {
-			
+		updateDefaultProjectionSelect: function() {			
 			var html = "",
 				mapConfig = App.ChartModel.get( "map-config" );
 
-			this.$projectionsSelect.empty();
+			this.$defaultProjectionSelect.empty();
 			_.each( owdProjections, function( v, i ) {
-				var selected = ( i == mapConfig.projections )? " selected": "";
+				var selected = ( i == mapConfig.defaultProjection )? " selected": "";
 				html += "<option value='" + i + "' " + selected + ">" + i + "</option>";
 			} );
-			this.$projectionsSelect.append( $( html ) );
+			this.$defaultProjectionSelect.append( $( html ) );
 
 		},
 
@@ -263,8 +262,9 @@
 				defaultYear = $this.val();
 			}
 
-			App.ChartModel.updateMapConfig( "defaultYear", defaultYear );
-			App.ChartModel.updateMapConfig( "targetYearMode", targetYearMode );
+			App.ChartModel.updateMapConfig("defaultYear", defaultYear, true);
+			App.ChartModel.updateMapConfig("targetYear", defaultYear, true);
+			App.ChartModel.updateMapConfig("targetYearMode", targetYearMode);
 		},
 
 		onColorSchemeChange: function( evt ) {
@@ -286,9 +286,10 @@
 			App.ChartModel.updateMapConfig( "colorSchemeInterval", parseInt( $this.val(), 10 ) );
 		},
 
-		onProjectionChange: function( evt ) {
-			var $this = $( evt.target );
-			App.ChartModel.updateMapConfig( "projection", $this.val() );
+		onDefaultProjectionChange: function(evt) {
+			var $this = $(evt.target);
+			App.ChartModel.updateMapConfig("defaultProjection", $this.val(), true);
+			App.ChartModel.updateMapConfig("projection", $this.val());
 		},
 
 		onChartModelChange: function( evt ) {
