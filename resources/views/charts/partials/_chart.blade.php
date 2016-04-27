@@ -25,7 +25,7 @@
 				<li class="reload-btn-wrapper">
 					<a href="#" class="reload-btn" title="Reload chart"><i class="fa fa-refresh"></i></a>
 				</li>
-				@if (Auth::user())
+				@if (Auth::user() && isset($chart))
 					<li class="edit-btn-wrapper">
 						<a href="{{ Request::root() }}/charts/{{ $chart->id }}/edit" class="edit-btn" title="Edit chart"><i class="fa fa-pencil"></i></a>
 					</li>
