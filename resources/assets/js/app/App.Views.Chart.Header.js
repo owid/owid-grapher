@@ -178,6 +178,8 @@
 				chartSubname += " Since observations for " + d(targetYear) + " are not available the map displays the closest available data (from " + d(timeFrom) + ").";
 			} else if (!hasTargetYear) {
 				chartSubname += " No observations are available for this year.";
+			} else {
+				chartSubname += "<span style='visibility: hidden;'>A rather long placeholder to ensure that the text flow remains the same when changing between various years.</span>";
 			}
 			this.$chartName.text( chartName );
 			this.$chartName.css( "visibility", "visible" );
