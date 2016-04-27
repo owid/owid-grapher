@@ -70,11 +70,11 @@
 				if (dataUrl && dataUrl.indexOf("ourworldindata.org") != -1) {
 					var a = document.createElement('a');
 					a.href = dataUrl;
-					var finalUrl = "https://ourworldindata.org" + a.pathname + a.search + a.hash;
-					desc = desc.replace(/\*data-entry\*/, "<a class='source-link' target='_blank' href='" + finalUrl + "'>" + finalUrl + "</a>");
+					var finalUrl = "https://ourworldindata.org" + a.pathname + a.search;
+					desc = desc.replace(/\*data-entry\*/, "<a class='source-link' target='_blank' href='" + finalUrl + "'>" + "OurWorldInData.org" + a.pathname + a.search + "</a>");
 				} else
 					desc = desc.replace(/\*data-entry\*/, 
-						"<a class='source-link' target='_blank' href='http://ourworldindata.org'>https://ourworldindata.org</a>");
+						"<a class='source-link' target='_blank' href='http://ourworldindata.org'>OurWorldInData.org</a>");
 				footerHtml = desc + " " + footerHtml;								
 				//tabHtml = license.description + " " + tabHtml;
 			}

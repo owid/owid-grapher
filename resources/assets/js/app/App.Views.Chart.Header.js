@@ -6,7 +6,6 @@
 	App.Views.Chart = App.Views.Chart || {};	
 
 	App.Views.Chart.Header = Backbone.View.extend({
-
 		DEFAULT_LOGO_URL: "uploads/26538.png",
 
 		el: "#chart-view .chart-header",

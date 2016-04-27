@@ -55,14 +55,22 @@ class ViewController extends Controller {
 		if (!$chart)
 			return App::abort(404, "No such chart");
 
+		$size = $request->input("size");
+		if (!$size) $size = "1000x700";
+		$split = explode("x", $size);
+		$width = min(intval($split[0]), 3000);
+		$height = min(intval($split[1]), 3000);
+
 		$phantomjs = base_path() . "/node_modules/.bin/phantomjs";
 		$rasterize = base_path() . "/phantomjs/rasterize.js";
 		$target = $request->root() . "/" . $slug . ".export" . "?" . $request->getQueryString();
-		$file = public_path() . "/exports/" . $slug . ".png";
-		$command = $phantomjs . " " . $rasterize . " " . escapeshellarg($target) . " " . escapeshellarg($file);
-		exec($command);
+		$file = public_path() . "/exports/" . $slug . ".png" . "?" . $request->getQueryString();
+		$command = $phantomjs . " " . $rasterize . " " . escapeshellarg($target) . " " . escapeshellarg($file) . " '" . $width . "px*" . $height . "px'";
+		exec($command, $output, $retval);
 
-		$file = public_path() . "/exports/life-expectancy.png";
+		if ($retval != 0)
+			return App::abort(500, $output);
+
 		return response()->file($file);
 	}
 
