@@ -189,6 +189,19 @@ a {
 	margin-right: 0;
 }
 
+#chart-view .chart-tabs li.edit-btn-wrapper:hover {
+	background-color: #444;
+	border: 1px solid #444;
+	border-left: 0;
+}
+#chart-view .chart-tabs li.edit-btn-wrapper:hover a {
+	color: #FAFAFA;
+}
+#chart-view .chart-tabs li.edit-btn-wrapper i {
+	margin-right: 0;
+}
+
+
 /* On mobile, the tabs should fill all the available width */
 
 @media (max-width: 800px) {
