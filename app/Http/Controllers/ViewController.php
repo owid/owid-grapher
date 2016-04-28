@@ -174,7 +174,7 @@ class ViewController extends Controller {
 		if ($referer_s) {
 			$root = parse_url(\Request::root());
 			$referer = parse_url($referer_s);
-			if ($root['host'] == $referer['host'] && !str_contains($referer_s, ".html") && !str_contains($referer_s, "wp-admin") && !str_contains($referer_s, "preview=true") && !str_contains($referer_s, "how-to") && !str_contains($referer_s, "grapher") && !str_contains($referer_s, "about")) {
+			if ($root['host'] == $referer['host'] && strlen($referer['path']) > 1 && !str_contains($referer_s, ".html") && !str_contains($referer_s, "wp-admin") && !str_contains($referer_s, "preview=true") && !str_contains($referer_s, "how-to") && !str_contains($referer_s, "grapher") && !str_contains($referer_s, "about")) {
 				$chart->origin_url = "https://" . $root['host'] . $referer['path'];
 				$chart->save();
 			}
@@ -191,7 +191,7 @@ class ViewController extends Controller {
 
 			// Replace the chart title placeholders with generic equivalents
 			$title = $config->{"chart-name"};
-			$title = preg_replace("/, \*time\*/", "over time", $title);
+			$title = preg_replace("/, \*time\*/", " over time", $title);
 			$title = preg_replace("/\*time\*/", "over time", $title);	
 			$chartMeta->title = $title;
 
