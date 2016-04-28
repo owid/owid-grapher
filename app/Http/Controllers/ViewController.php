@@ -65,11 +65,14 @@ class ViewController extends Controller {
 		$rasterize = base_path() . "/phantomjs/rasterize.js";
 		$target = $request->root() . "/" . $slug . ".export" . "?" . $request->getQueryString();
 		$file = public_path() . "/exports/" . $slug . ".png" . "?" . $request->getQueryString();
-		$command = $phantomjs . " " . $rasterize . " " . escapeshellarg($target) . " " . escapeshellarg($file) . " '" . $width . "px*" . $height . "px'";
-		exec($command, $output, $retval);
+		if (!file_exists($file)) {
+			$command = $phantomjs . " " . $rasterize . " " . escapeshellarg($target) . " " . escapeshellarg($file) . " '" . $width . "px*" . $height . "px'" . " 2>&1";
+			exec($command, $output, $retval);			
 
-		if ($retval != 0)
-			return App::abort(500, $output);
+			if ($retval != 0)
+           		return App::abort(406, json_encode($output));
+		}
+
 
 		return response()->file($file);
 	}
@@ -170,7 +173,7 @@ class ViewController extends Controller {
 		if ($referer_s) {
 			$root = parse_url(\Request::root());
 			$referer = parse_url($referer_s);
-			if ($root['host'] == $referer['host'] && !str_contains($referer_s, ".html") && !str_contains($referer_s, "wp-admin") && !str_contains($referer_s, "preview=true") && !str_contains($referer_s, "how-to") && !str_contains($referer_s, "grapher")) {
+			if ($root['host'] == $referer['host'] && !str_contains($referer_s, ".html") && !str_contains($referer_s, "wp-admin") && !str_contains($referer_s, "preview=true") && !str_contains($referer_s, "how-to") && !str_contains($referer_s, "grapher") && !str_contains($referer_s, "about")) {
 				$chart->origin_url = "https://" . $root['host'] . $referer['path'];
 				$chart->save();
 			}

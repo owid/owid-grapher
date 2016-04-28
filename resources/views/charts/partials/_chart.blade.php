@@ -27,7 +27,7 @@
 				</li>
 				@if (Auth::user() && isset($chart))
 					<li class="edit-btn-wrapper">
-						<a href="{{ Request::root() }}/charts/{{ $chart->id }}/edit" class="edit-btn" title="Edit chart"><i class="fa fa-pencil"></i></a>
+						<a href="{{ Request::root() }}/charts/{{ $chart->id }}/edit" class="edit-btn" target="_blank" title="Edit chart"><i class="fa fa-pencil"></i></a>
 					</li>
 				@endif
 			</ul>

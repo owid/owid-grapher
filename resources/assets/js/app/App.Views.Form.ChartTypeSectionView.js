@@ -9,11 +9,9 @@
 		},
 
 		initialize: function( options ) {
-			
 			this.dispatcher = options.dispatcher;
 			App.ChartDimensionsModel.on( "change", this.render, this );
 			this.render();
-
 		},
 
 		render: function() {

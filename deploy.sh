@@ -29,6 +29,7 @@ ssh -t $HOST 'bash -e -s' <<EOF
   ln -sf $LIVE_DATA/env $LIVE_TARGET/.env
   ln -sf $LIVE_DATA/uploads $LIVE_TARGET/public/uploads
   ln -sf $LIVE_DATA/exports $LIVE_TARGET/public/exports
+  ln -sf $LIVE_DATA/node_modules $LIVE_TARGET/node_modules
   ln -sf $LIVE_TARGET/public $ROOT/public_html/$NAME
   cd $LIVE_TARGET && /usr/php/56/bin/php artisan migrate --force
 EOF

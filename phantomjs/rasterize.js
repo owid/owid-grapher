@@ -33,19 +33,23 @@ if (system.args.length < 3 || system.args.length > 5) {
     if (system.args.length > 4) {
         page.zoomFactor = system.args[4];
     }
+    page.onCallback = function(data) { 
+        try {
+           page.render(output, { format: 'png' });
+        } catch (e) {
+            console.log(e);
+        }
+        phantom.exit();
+    }
     page.open(address, function (status) {
         if (status !== 'success') {
             console.log('Unable to load the address!');
             phantom.exit(1);
         } else {
-            window.setTimeout(function () {
-                try {
-                   page.render(output, { format: 'png' });
-                } catch (e) {
-                    console.log(e);
-                }
-                phantom.exit();
-            }, 1000);
+            /// In case the chart never loads, have a timeout
+            window.setTimeout(function() {
+                phantom.exit(1);
+            }, 5000);
         }
     });
 }

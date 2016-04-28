@@ -375,6 +375,11 @@
 
 				}
 
+				that.chart.dispatch.on("renderEnd", function(state) {
+					if (that.parentView.activeTab == that.parentView.chartTab)
+						$(window).trigger('chart-loaded');
+				});
+
 				//fixed probably a bug in nvd3 with previous tooltip not being removed
 				d3.select( ".xy-tooltip" ).remove();
 
@@ -543,28 +548,22 @@
 							that.legend.clearHighlight();
 						} );
 					}
-
-
 				} else {
 					//no legend, remove what might have previously been there
 					that.$svg.find( "> .nvd3.nv-custom-legend" ).hide();
 				}
 				
-				var stateChangeEvent = ( chartType !== "6" )? "stateChange": "renderEnd";
-				that.chart.dispatch.on( stateChangeEvent, function( state ) {
+				/*var stateChangeEvent =  (chartType !== "6") ? "stateChange" : "renderEnd";
+				that.chart.dispatch.on("renderEnd", function(state) {
+					console.log("hi");
 					//refresh legend;
 					that.svgSelection.call( that.legend );
 
-					//
 					if( chartType === "3" ) {
 						that.checkStackedAxis();
 					}
 
-					//TODO - ugly! needs timeout and reaching to chartview  
-					setTimeout( function() {
-						that.parentView.onResize();
-					}, 1);
-				} );
+				});*/
 				
 				var dimensions = JSON.parse(App.ChartModel.get("chart-dimensions"));
 				that.parentView.dataTab.render( data, localData, dimensions );
@@ -590,7 +589,7 @@
 				}
 
 				window.chart = that.chart;
-				that.trigger("tab-ready");
+				that.trigger('tab-ready');
 			});
 
 			this.localData = localData;

@@ -20,6 +20,10 @@
 
 			if (window.location.pathname.match(/.export$/)) {
 				$("#chart-view").addClass("export");
+				$(window).on("chart-loaded", function() {
+					if (window.callPhantom) window.callPhantom();
+					else console.log("Chart loaded!");
+				});
 			}
 
 			// Keep the query params separate between map and the other tabs

@@ -235,6 +235,9 @@
 			var self = this;
 			var updateMap = function() {
 				self.dataMap.updateChoropleth(self.mapData, { reset: true });
+				d3.selectAll("svg.datamap").transition().each("end", function() {
+					$(window).trigger("chart-loaded");
+				});
 				self.mapControls.render();
 				self.timelineControls.render();
 				self.trigger("tab-ready");
