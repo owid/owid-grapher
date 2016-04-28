@@ -28,7 +28,10 @@
 			var that = this,
 				chartType = App.ChartModel.get( "chart-type" ),
 				hasMultipleColumns = ( App.ChartModel.get( "group-by-variables" ) && chartType != App.ChartType.StackedArea )? true: false;
-			this.$downloadBtn.attr("href", this.$downloadBtn.attr("data-base-url") + window.location.search.replace(/\?tab=\w+/, ""));
+
+			var params = owid.getQueryParams();
+			delete(params.tab);
+			this.$downloadBtn.attr("href", this.$downloadBtn.attr("data-base-url") + owid.queryParamsToStr(params));
 
 			//get all times
 			var timesObj = [],

@@ -218,25 +218,33 @@
 		return phantomPath.getTotalLength();
 	};
 
-	owid.getQueryVariable = function(variable) {
-		var query = window.location.search.substring(1);
-		var vars = query.split("&");
-		for (var i=0;i<vars.length;i++) {
-			var pair = vars[i].split("=");
-			if(pair[0] == variable){return pair[1];}
-		}
-		return undefined;
-	};
-
-	owid.setQueryVariable = function(key, val) {
+	owid.getQueryParams = function() {
 		var queryStr = window.location.search.substring(1),
 			querySplit = _.filter(queryStr.split("&"), function(s) { return !_.isEmpty(s); }),
 			params = {};
+		
+		for (var i = 0; i < querySplit.length; i++) {
+			var pair = querySplit[i].split("=");
+			params[pair[0]] = pair[1];
+		}
 
-		_.each(querySplit, function(param) {
-			var spl = param.split('=');
-			params[spl[0]] = spl[1];
-		});
+		return params;
+	};
+
+	owid.queryParamsToStr = function(params) {
+		var newQueryStr = "";
+
+		_.each(params, function(v,k) {
+			if (_.isEmpty(newQueryStr)) newQueryStr += "?";
+			else newQueryStr += "&";
+			newQueryStr += k + '=' + v;
+		});		
+
+		return newQueryStr;
+	};
+
+	owid.setQueryVariable = function(key, val) {
+		var params = owid.getQueryParams();
 
 		if (val === null || val === undefined) {
 			delete params[key];
@@ -244,14 +252,7 @@
 			params[key] = val;
 		}
 
-		var newQueryStr = "";
-		_.each(params, function(v,k) {
-			if (_.isEmpty(newQueryStr)) newQueryStr += "?";
-			else newQueryStr += "&";
-			newQueryStr += k + '=' + v;
-		});
-
-		owid.setQueryStr(newQueryStr);
+		owid.setQueryStr(owid.queryParamsToStr(params));
 	};
 
 	owid.setQueryStr = function(str) {

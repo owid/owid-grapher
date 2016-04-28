@@ -187,18 +187,20 @@ class ViewController extends Controller {
 			$data->logoUrl = ( !empty( $logoUrl ) )? url('/') .'/'. $logoUrl->meta_value: '';
 			$canonicalUrl = URL::to($chart->slug);			
 
+			// Make metadata for twitter embed cards!
 			$chartMeta = new \StdClass;
 
-			// Replace the chart title placeholders with generic equivalents
+			// Replace the chart title placeholders with generic equivalents for now
 			$title = $config->{"chart-name"};
 			$title = preg_replace("/, \*time\*/", " over time", $title);
 			$title = preg_replace("/\*time\*/", "over time", $title);	
 			$chartMeta->title = $title;
 
+			// Description is required by twitter
 			if (isset($config->{"chart-subname"}))
 				$chartMeta->description = $config->{"chart-subname"};
-			else
-				$chartMeta->description = "";			
+			else 
+				$chartMeta->description = "An interactive visualization from Our World In Data.";
 
 			$query = \Request::getQueryString();			
 			$imageUrl = \Request::root() . "/" . $chart->slug . ".png";

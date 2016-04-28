@@ -19,7 +19,7 @@
 			if (App.isEditor) return false; // No URL stuff while editing charts
 
 			if (window.location.pathname.match(/.export$/)) {
-				$("#chart-view").addClass("export");
+				$("body").attr("id", "chart-export");
 				$(window).on("chart-loaded", function() {
 					if (window.callPhantom) window.callPhantom();
 					else console.log("Chart loaded!");
@@ -43,8 +43,10 @@
 		 * Apply any url query parameters on chart startup
 		 */
 		populateFromURL: function() {
+			var params = owid.getQueryParams();
+
 			// Set tab if specified
-			var tab = owid.getQueryVariable("tab");
+			var tab = params.tab;
 			if (tab) {
 				if (!_.contains(App.ChartModel.get("tabs"), tab))
 					console.error("Unexpected tab: " + tab);
@@ -52,22 +54,22 @@
 					App.ChartModel.set("default-tab", tab, { silent: true });
 			}
 
-			var year = owid.getQueryVariable("year");
+			var year = params.year;
 			if (year !== undefined) {
 				App.ChartModel.updateMapConfig("defaultYear", year);
 			}
 
-			var region = owid.getQueryVariable("region");
+			var region = params.region;
 			if (region !== undefined) {
 				App.ChartModel.updateMapConfig("defaultProjection", region);
 			}
 
-			var colorblind = owid.getQueryVariable("colorblind");
+			var colorblind = params.colorblind;
 			if (colorblind == 1) {
 				App.ChartModel.updateMapConfig("isColorblind", true);
 			}
 
-			var interpolate = owid.getQueryVariable("interpolate");
+			var interpolate = params.interpolate;
 			if (interpolate == 0) {
 				App.ChartModel.updateMapConfig("mode", "no-interpolation");
 			}
