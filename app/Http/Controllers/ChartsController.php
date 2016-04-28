@@ -208,6 +208,13 @@ class ChartsController extends Controller {
 
 		Cache::flush();
 
+		// Purge exported png files so we can regenerate them
+		$files = glob(public_path() . "/exports/" . $slug . ".*");
+		foreach ($files as $file) {
+			unlink($file);
+		}
+
+
 		return ['success' => true, 'data' => [ 'id' => $chart->id, 'viewUrl' => route( 'view', $chart->id ) ] ];
 	}
 
