@@ -9,6 +9,15 @@
 		<link rel="apple-touch-icon" href="apple-touch-icon.png">
 		<!-- Place favicon.ico in the root directory -->
 
+		@if (isset($chartMeta))
+			<meta name="twitter:card" content="summary_large_image">
+			<meta name="twitter:site" content="@MaxCRoser">
+			<meta name="twitter:creator" content="@MaxCRoser">
+			<meta name="twitter:title" content="{{ $chartMeta->title }}">
+			<meta name="twitter:description" content="{{ $chartMeta->description }}">
+			<meta name="twitter:image" content="{{ $chartMeta->imageUrl }}">
+		@endif
+
 		<link href="{{ asset(elixir('css/front.css')) }}" rel="stylesheet" type="text/css" />		
 
 		@if (!empty($canonicalUrl))

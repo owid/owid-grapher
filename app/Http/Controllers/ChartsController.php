@@ -188,17 +188,14 @@ class ChartsController extends Controller {
 	public function update( Chart $chart )
 	{	
 		$data = Input::all();
-		$chartName = $data[ "chart-name" ];
-		$notes = $data["chart-notes"];
-		$slug = $data["chart-slug"];
+		$chartName = $data["chart-name"];
+		$chart->name = $data["chart-name"];
+		$chart->notes = $data["chart-notes"];
+		$chart->slug = $data["chart-slug"];
 		unset($data["chart-notes"]);
 		unset($data["chart-slug"]);
-		$chart->notes = $notes;		
-		$chart->slug = $slug;
-		$json = json_encode( $data );
-		$newData = new \stdClass();
-		$newData->config = $json;
-		$newData->name = $chartName;
+
+		$json = json_encode($data);
 		$user = \Auth::user();
 		$chart->last_edited_at = Carbon::now();
 		$chart->last_edited_by = $user->name;

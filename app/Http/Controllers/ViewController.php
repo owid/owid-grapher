@@ -180,12 +180,34 @@ class ViewController extends Controller {
 			}
 		}
 
-		if( $chart ) {
+		if ($chart) {
+			$config = json_decode($chart->config);
 			$data = new \StdClass;
 			$logoUrl = Setting::where( 'meta_name', 'logoUrl' )->first();
 			$data->logoUrl = ( !empty( $logoUrl ) )? url('/') .'/'. $logoUrl->meta_value: '';
 			$canonicalUrl = URL::to($chart->slug);			
-			return view( 'view.show', compact( 'chart', 'data', 'canonicalUrl' ));
+
+			$chartMeta = new \StdClass;
+
+			// Replace the chart title placeholders with generic equivalents
+			$title = $config->{"chart-name"};
+			$title = preg_replace("/, \*time\*/", "over time", $title);
+			$title = preg_replace("/\*time\*/", "over time", $title);	
+			$chartMeta->title = $title;
+
+			if (isset($config->{"chart-subname"}))
+				$chartMeta->description = $config->{"chart-subname"};
+			else
+				$chartMeta->description = "";			
+
+			$query = \Request::getQueryString();			
+			$imageUrl = \Request::root() . "/" . $chart->slug . ".png";
+			if ($query != '')
+				$imageUrl .= "?" . $query;
+
+			$chartMeta->imageUrl = $imageUrl;
+
+			return view( 'view.show', compact( 'chart', 'data', 'canonicalUrl', 'chartMeta' ));
 		} else {
 			return 'No chart found to view';
 		}
