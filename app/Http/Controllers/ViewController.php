@@ -88,14 +88,21 @@ class ViewController extends Controller {
 
 		$config = json_decode($chart->config);
 
-		// Allow overriding selected-countries with url param
-		$countryStr = $request->input('country');
-		if (!empty($countryStr)) {
-			$countryCodes = explode(" ", $countryStr);
+		// Allow url parameters to override the chart's default
+		// selected countries configuration. We need to use the raw
+		// query string for this because we want to distinguish between
+		// %20 and +.
+		preg_match("/country=([^&]+)/", $_SERVER['QUERY_STRING'], $matches);
+		if ($matches) {
+			$countryCodes = array_map(function($code) { return urldecode($code); }, explode("+", $matches[1]));
 			$query = DB::table('entities')
 				->select('id', 'name')
-				->whereIn('code', $countryCodes);
-			$config->{"selected-countries"} = $query->get();
+				->whereIn('code', $countryCodes)
+				->orWhere(function($query) use ($countryCodes) {
+					$query->whereIn('name', $countryCodes);
+				});
+
+			$config->{"selected-countries"} = $query->get();			
 		}
 
 		$dims = json_decode($config->{"chart-dimensions"});

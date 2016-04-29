@@ -134,14 +134,23 @@ class ChartsController extends Controller {
 		$config->{"data-entry-url"} = $chart->origin_url;
 
 		// Allow url parameters to override the chart's default
-		// selected countries configuration.
-		$countryStr = Input::get('country');
-		if (!empty($countryStr)) {
-			$countryCodes = explode(" ", $countryStr);
+		// selected countries configuration. We need to use the raw
+		// query string for this because we want to distinguish between
+		// %20 and +.
+		preg_match("/country=([^&]+)/", $_SERVER['QUERY_STRING'], $matches);
+		if ($matches) {
+			$countryCodes = array_map(function($code) { return urldecode($code); }, explode("+", $matches[1]));
 			$query = DB::table('entities')
 				->select('id', 'name')
-				->whereIn('code', $countryCodes);
-			$config->{"selected-countries"} = $query->get();
+				->whereIn('code', $countryCodes)
+				->orWhere(function($query) use ($countryCodes) {
+					$query->whereIn('name', $countryCodes);
+				});
+
+			$config->{"selected-countries"} = $query->get();			
+		}
+
+		if (!empty($countryStr)) {
 		}
 
 		// Remove any invalid variables from the chart config
@@ -154,10 +163,10 @@ class ChartsController extends Controller {
 		}
 
 		//possibly there could logo query parameter
-		if( !empty( $config ) && !empty( Input::get('logo') ) ) {
+		if (!empty($config) && !empty(Input::get('logo'))) {
 			//there's logo query parameter, we want to display chart with different logo
 			//find logo by name
-			$logo = Logo::where('name','=',Input::get('logo'))->first();
+			$logo = Logo::where('name', '=', Input::get('logo'))->first();
 			if( !empty( $logo ) ) {
 				//set logo in config with logo from query parameter
 				$config->{"second-logo"} = $logo->url;

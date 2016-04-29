@@ -74,7 +74,7 @@
 				App.ChartModel.updateMapConfig("mode", "no-interpolation");
 			}
 
-			// TODO: Countries are currently done server-side, might be more consistent
+			// TODO: 'country' is currently done server-side, might be more consistent
 			// to do them here too - mispy
 		},
 
