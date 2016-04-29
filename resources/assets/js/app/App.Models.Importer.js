@@ -129,7 +129,7 @@
 			});
 
 			setTimeout(function() {
-				this.dispatcher.trigger("import-progress", "Preparing import for " + variables.length*importData.years.length + " values", true, "1/1");
+				this.dispatcher.trigger("import-progress", "Preparing import for " + variables.length*importData.years.length + " values", true, "1/2");
 			}.bind(this), 100);
 
 			$.ajax(Global.rootUrl + "/import/variables", {
@@ -139,7 +139,7 @@
 			}).done(function(result) {
 				this.dispatcher.trigger("import-progress", "Importing everything", true, "2/2", true, result.datasetId);
 			}.bind(this)).fail(function(xhr) {
-				this.dispatcher.trigger("import-progress", 'Error: "' + xhr.responseJSON + '"', false, "0/1");
+				this.dispatcher.trigger("import-progress", 'Error: "' + xhr.responseJSON + '"', false, "1/2");
 			}.bind(this));
 		},
 	});

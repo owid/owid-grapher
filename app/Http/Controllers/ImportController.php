@@ -159,9 +159,17 @@ class ImportController extends Controller {
 						'year' => $years[$i],
 						'value' => $values[$i],
 					];
+
+					// For very big datasets, there may be too many to do in a single insert
+					// Limit is about 25565 placeholders. So we stop and push in a bunch every so often
+					if (sizeof($newDataValues) > 10000) {
+						DB::table('data_values')->insert($newDataValues);
+						$newDataValues = [];
+					}
 				}
 
-				DB::table('data_values')->insert($newDataValues);
+				if (sizeof($newDataValues) > 0)
+					DB::table('data_values')->insert($newDataValues);
 			}
 
 			return [ 'datasetId' => $datasetId ];
