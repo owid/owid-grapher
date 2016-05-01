@@ -153,6 +153,9 @@ class ImportController extends Controller {
 
 				$newDataValues = [];
 				for ($i = 0; $i < sizeof($years); $i++) {
+					if ($values[$i] === '') // Empty cells, as opposed to zeroes, most likely should not be inserted at all
+						continue;
+
 					$newDataValues[] = [
 						'fk_var_id' => $varId,
 						'fk_ent_id' => $entityNameToId[$entityKey[$entities[$i]]],

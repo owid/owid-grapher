@@ -7,7 +7,7 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 class ImportTest extends TestCase
 {
     /**
-     * Importer test.
+     * General test of importer functionality.
      *
      * @return void
      */
@@ -44,7 +44,7 @@ class ImportTest extends TestCase
                   'description' => 'New variable description.',
                   'unit' => '%',
                   'typeId' => 3,
-                  'values' => [10, 20, 30, 40, 50]
+                  'values' => [10, 20, 30, 40, '']
                 ],
                 [
                   'name' => 'Second Variable', 
@@ -110,6 +110,11 @@ class ImportTest extends TestCase
         $this->seeInDatabase('data_values', [
             'year' => 2000,
             'value' => 20
+        ]);
+
+        $this->dontSeeInDatabase('data_values', [
+            'year' => 2030,
+            'value' => ''
         ]);
     }
 }
