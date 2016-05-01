@@ -63,8 +63,8 @@ class ViewController extends Controller {
 
 		$phantomjs = base_path() . "/node_modules/.bin/phantomjs";
 		$rasterize = base_path() . "/phantomjs/rasterize.js";
-		$target = $request->root() . "/" . $slug . ".export" . "?" . $request->getQueryString();
-		$file = public_path() . "/exports/" . $slug . ".png" . "?" . $request->getQueryString();
+		$target = $request->root() . "/" . $slug . ".export" . "?" . $_SERVER['QUERY_STRING'];
+		$file = public_path() . "/exports/" . $slug . ".png" . "?" . $_SERVER['QUERY_STRING'];
 
 		if (!file_exists($file)) {
 			$command = $phantomjs . " " . $rasterize . " " . escapeshellarg($target) . " " . escapeshellarg($file) . " '" . $width . "px*" . $height . "px'" . " 2>&1";
