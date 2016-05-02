@@ -150,9 +150,6 @@ class ChartsController extends Controller {
 			$config->{"selected-countries"} = $query->get();			
 		}
 
-		if (!empty($countryStr)) {
-		}
-
 		// Remove any invalid variables from the chart config
 		$dims = json_decode($config->{"chart-dimensions"});
 		$varIds = array_map(function($d) { return $d->variableId; }, $dims);

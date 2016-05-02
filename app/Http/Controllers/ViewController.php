@@ -188,7 +188,7 @@ class ViewController extends Controller {
 		}
 
 		if ($chart) {
-			$config = json_decode($chart->config);
+			$config = Chart::getConfigWithUrl($chart);
 			$data = new \StdClass;
 			$logoUrl = Setting::where( 'meta_name', 'logoUrl' )->first();
 			$data->logoUrl = ( !empty( $logoUrl ) )? url('/') .'/'. $logoUrl->meta_value: '';
@@ -216,7 +216,7 @@ class ViewController extends Controller {
 
 			$chartMeta->imageUrl = $imageUrl;
 
-			return view( 'view.show', compact( 'chart', 'data', 'canonicalUrl', 'chartMeta' ));
+			return view( 'view.show', compact( 'chart', 'config', 'data', 'canonicalUrl', 'chartMeta' ));
 		} else {
 			return 'No chart found to view';
 		}
