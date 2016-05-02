@@ -106,7 +106,7 @@
 					var charDimensionsString = JSON.stringify( chartDimensions );
 					this.set( "chart-dimensions", charDimensionsString );
 				}
-			}
+			}			
 		},
 
 		addSelectedCountry: function( country ) {

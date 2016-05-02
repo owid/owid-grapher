@@ -160,21 +160,4 @@ class ApiController extends Controller {
 
 	}
 
-	public function logRequestToGa() {
-
-		//api key
-		$clientId = Input::get( 'api_key' );
-		
-		//ga
-		$gamp = \GAMP::setClientId( $clientId );
-
-		$fullUrl = \Request::fullUrl();
-		$root = \Request::root();
-		$url = str_replace( $root,'', $fullUrl ); 
-		
-		$gamp->setDocumentPath( $url );
-		$gamp->sendPageview();
-
-	} 
-
 }

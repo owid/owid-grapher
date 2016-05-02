@@ -159,9 +159,6 @@ return [
         Collective\Html\HtmlServiceProvider::class,
         Zofe\Rapyd\RapydServiceProvider::class,
 
-		/* google analytics */
-		Irazasyed\LaravelGAMP\LaravelGAMPServiceProvider::class,
-
 		// Debugging tool
 		Barryvdh\Debugbar\ServiceProvider::class,
 		Fideloper\Proxy\TrustedProxyServiceProvider::class,
@@ -217,7 +214,6 @@ return [
 		'Form' => Collective\Html\FormFacade::class,
 		'Html' => Collective\Html\HtmlFacade::class,
 
-		'GAMP' => Irazasyed\LaravelGAMP\Facades\GAMP::class,
 		'Debugbar' => Barryvdh\Debugbar\Facade::class,
 	],
 

@@ -31,7 +31,6 @@
 			this.mapQueryStr = "?";
 			this.chartQueryStr = "?";
 
-			this.populateFromURL();
 			$(window).on("query-change", this.onQueryChange.bind(this));
 			options.dispatcher.on("tab-change", this.onTabChange, this);
 			App.ChartModel.on("change:selected-countries", this.updateCountryParam, this);			
