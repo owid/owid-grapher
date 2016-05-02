@@ -184,23 +184,4 @@ class ImportController extends Controller {
 		return ( !empty( $value ) || $value === "0" || $value === 0 )? true: false;
 
 	}
-
-	public function inputfile(Request $request) {
-
-		try {
-			
-			$rawData = ( $request->has( 'rawData' ) )? $request->get( 'rawData' ): '';
-			$userId = ( $request->has( 'userId' ) )? $request->get( 'userId' ): '';
-
-			$inputFileData = [ 'raw_data' => $rawData, 'fk_user_id' => $userId ];
-			$inputFile = InputFile::create( $inputFileData ); 
-			$inputFileDataId = $inputFile->id;
-			return [ 'success' => true, 'data' => [ 'inputFileId' => $inputFileDataId ] ];
-
-		} catch( Exception $e ) {
-
-			return ['success' => false];
-		
-		}
-	}
 }
