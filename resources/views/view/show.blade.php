@@ -19,4 +19,7 @@
 
 @section('scripts')
 	<script src="{{ asset(elixir('js/ChartApp.js')) }}"></script>
+	<script>
+		App.loadChart({!! $chart->config !!});
+	</script>
 @endsection

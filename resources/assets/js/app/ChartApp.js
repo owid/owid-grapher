@@ -1,35 +1,30 @@
-;$(document).ready(function() {	
+
+;(function() {	
 	"use strict";
 	owid.namespace("App.ChartView");
 	App.isEditor = false;
 
-	var	ChartView = App.Views.ChartView,
-		ChartModel = App.Models.ChartModel,
-		ChartDataModel = App.Models.ChartDataModel;
+	App.loadChart = function(chartConfig) {
+		var	ChartView = App.Views.ChartView,
+			ChartModel = App.Models.ChartModel,
+			ChartDataModel = App.Models.ChartDataModel;
 
-	var $chartShowWrapper = $(".chart-show-wrapper, .chart-edit-wrapper"),
-		chartId = $chartShowWrapper.attr("data-chart-id");
+		var $chartShowWrapper = $(".chart-show-wrapper, .chart-edit-wrapper"),
+			chartId = $chartShowWrapper.attr("data-chart-id");
 
-	if (!$chartShowWrapper.length || !chartId)
-		return; // No chart to show here
+		if (!$chartShowWrapper.length || !chartId)
+			return; // No chart to show here
 
+		App.ChartModel = new ChartModel(chartConfig);
+		App.ChartView = new App.Views.ChartView();
 
-	App.ChartModel = new ChartModel({ id: chartId });
-	App.ChartModel.fetch({
-		success: function(data) {
-			App.ChartView = new App.Views.ChartView();
-		},
-		error: function(xhr) {
-			console.error("Error loading chart model", xhr);
+		//find out if it's in cache
+		if( !$( ".standalone-chart-viewer" ).length ) {
+			//disable caching for viewing within admin
+			App.ChartModel.set( "cache", false );
 		}
-	});
 
-	//find out if it's in cache
-	if( !$( ".standalone-chart-viewer" ).length ) {
-		//disable caching for viewing within admin
-		App.ChartModel.set( "cache", false );
+		//chosen select
+		$( ".chosen-select" ).chosen();		
 	}
-
-	//chosen select
-	$( ".chosen-select" ).chosen();
-});
+})();

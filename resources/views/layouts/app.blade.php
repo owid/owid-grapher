@@ -13,8 +13,6 @@
 		<link href="{{ asset(elixir('css/admin.css')) }}" rel="stylesheet" type="text/css" />
 
 		@yield('styles')
-
-		<script src="{{ asset('build/js/modernizr-2.8.3.min.js') }}"></script>
 		
 		<style>
 

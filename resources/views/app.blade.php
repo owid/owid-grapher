@@ -13,20 +13,6 @@
 		<link href="{{ asset(elixir('css/admin.css')) }}" rel="stylesheet" type="text/css" />
 
 		@yield('styles')
-
-		<script src="{{ asset('build/js/modernizr-2.8.3.min.js') }}"></script>
-		
-		<style>
-
-			/*.nv-point {
-				fill-opacity: 1 !important;
-			}
-			path.nv-line {
-				opacity: 0;
-			}*/
-
-		</style>
-
 	</head>
 	<body class="skin-blue">
 		<!--[if lt IE 9]>
