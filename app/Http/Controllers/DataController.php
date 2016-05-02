@@ -13,6 +13,7 @@ use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 use Cache;
 use Debugbar;
@@ -29,14 +30,16 @@ class DataController extends Controller {
 	}
 
 	/**
-	 * Primary JSON endpoint for mass retrieval of data for one or more variables
-	 * @return Response in the form of { entityKey: {}, entities: {}, values: {}, years: {} }
+	 * Primary endpoint for mass retrieval of data for one or more variables
 	 */
 	public function variables($var_ids_str, Request $request) {
-		$var_ids = array_map("floatval", explode("+", $var_ids_str));
+		set_time_limit(10);
+		ini_set('memory_limit', '256M');
 
-		$response = [];
-		$response['variables'] = [];
+		$var_ids = array_map("floatval", explode("+", $var_ids_str));
+		$meta = [];
+		$meta['variables'] = [];
+		$meta['license'] = License::find(1)->first();
 
 		// First we make a query to get the general variable info
 		// name, sources, etc. Mainly used by the sources tab
@@ -67,7 +70,7 @@ class DataController extends Controller {
 			$var['entities'] = [];
 			$var['years'] = [];
 			$var['values'] = [];
-			$response['variables'][$result->var_id] = $var;
+			$meta['variables'][$result->var_id] = $var;
 		}
 
 		// Now we pull out all the actual data
@@ -78,9 +81,39 @@ class DataController extends Controller {
 					 'entities.id as entity_id', 'entities.name as entity_name',
 					 'entities.code as entity_code')
 			->join('entities', 'data_values.fk_ent_id', '=', 'entities.id')
-			->orderBy('year');
+			->orderBy('var_id', 'ASC')
+			->orderBy('year', 'ASC');
 
-		$response['entityKey'] = [];
+		$response = new StreamedResponse(function() use ($dataQuery, $meta) {
+			$out = fopen('php://output', 'w');
+			fwrite($out, json_encode($meta));
+
+			$entityKey = [];
+			$var_id = null;
+			foreach ($dataQuery->get() as $result) {
+				if ($result->var_id != $var_id) {
+					$var_id = $result->var_id;
+					fwrite($out, "\r\n" . $var_id);
+				}
+
+				fwrite($out, ";");
+				fwrite($out, $result->year);
+				fwrite($out, ",");
+				fwrite($out, $result->entity_id);
+				fwrite($out, ",");
+				fwrite($out, $result->value);
+
+				if (!isset($entityKey[floatval($result->entity_id)]))
+					$entityKey[floatval($result->entity_id)] = [ 'name' => $result->entity_name, 'code' => $result->entity_code ];
+			}
+
+			fwrite($out, "\r\n");
+			fwrite($out, json_encode($entityKey));
+		}, 200, [
+			"Content-Type" => "text/plain"
+		]);
+		return $response;
+/*		$response['entityKey'] = [];
 
 		foreach ($dataQuery->get() as $result) {
 			$var = &$response['variables'][$result->var_id];
@@ -88,10 +121,9 @@ class DataController extends Controller {
 			$var['entities'][] = floatval($result->entity_id);
 			$var['values'][] = $result->value;
 			$var['years'][] = floatval($result->year);
-		}
+		}*/
 
 		// Add license info
-		$response['license'] = License::find(1)->first();
 		return $response;
 	}
 

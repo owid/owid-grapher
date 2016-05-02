@@ -33,14 +33,39 @@
 			}
 
 			this.set("variableData", null, { silent: true });
-			this.dataRequest = $.getJSON(Global.rootUrl + "/data/variables/" + variableIds.join("+"));
-			this.dataRequest.done(function(data) {
+			this.dataRequest = $.get(Global.rootUrl + "/data/variables/" + variableIds.join("+"));
+			this.dataRequest.done(function(rawData) {
 				this.dataRequest = null;
-				this.receiveData(data);
+				this.receiveData(rawData);
 			}.bind(this));
 		},
 
-		receiveData: function(variableData) {
+		receiveData: function(rawData) {
+			var variableData = {};
+
+			var lines = rawData.split("\r\n");
+
+			lines.forEach(function(line, i) {
+				if (i == 0) { // First line contains the basic variable metadata 
+					variableData = JSON.parse(line);
+				} else if (i == lines.length-1) { // Final line is entity id => name mapping
+					variableData.entityKey = JSON.parse(line);
+				} else {
+					var points = line.split(";");
+					var variable;
+					points.forEach(function(d, j) {
+						if (j == 0) {
+							variable = variableData.variables[d];
+						} else {
+							var spl = d.split(",");
+							variable.years.push(spl[0]);
+							variable.entities.push(spl[1]);
+							variable.values.push(spl[2]);
+						}
+					});
+				}
+			});
+
 			// We calculate some basic metadata that is likely to be useful to everyone
 			var startYears = _.map(variableData.variables, function(v) { return _.first(v.years); });
 			var endYears = _.map(variableData.variables, function(v) { return _.last(v.years); });
