@@ -36,6 +36,7 @@
 			App.ChartModel.on("change:selected-countries", this.updateCountryParam, this);			
 			App.ChartModel.on("change-map-year", this.updateYearParam, this);
 			App.ChartModel.on("change-map", this.updateMapParams, this);
+			this.populateFromURL();
 		},
 
 		/**
