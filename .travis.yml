@@ -3,8 +3,8 @@ php:
   - 5.5.9
 before_script:
   - cp .env.travis .env
-  - mysql -e 'create database forge;'
-  - mysql -D forge < database/db.sql
+  - mysql -e 'create database forge_test;'
+  - mysql -D forge_test < database/db.sql
   - composer install --no-interaction
 script:
   - phpunit
