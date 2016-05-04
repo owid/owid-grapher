@@ -171,7 +171,7 @@ class ChartsController extends Controller {
 		Cache::flush();
 
 		// Purge exported png files so we can regenerate them
-		$files = glob(public_path() . "/exports/" . $slug . ".*");
+		$files = glob(public_path() . "/exports/" . $chart->slug . ".*");
 		foreach ($files as $file) {
 			unlink($file);
 		}
