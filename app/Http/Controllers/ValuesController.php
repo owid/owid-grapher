@@ -92,8 +92,6 @@ class ValuesController extends Controller {
 	{	
 		//delete itself
 		$dataValue->delete();
-		//delete time
-		$deleteTime = $dataValue->time->delete();
 
 		Cache::flush();
 		
