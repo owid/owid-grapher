@@ -116,7 +116,7 @@ class VariablesController extends Controller {
 			}
 
 			//construct csv export url
-			$exportUrl = $request->fullUrl() .'&export=csv';
+			$exportUrl = $request->fullUrl() . (str_contains($request->fullUrl(), '?') ? '&' : '?') . 'export=csv';
 			return view( 'variables.show', compact( 'variable', 'values', 'grid', 'filter', 'exportUrl' ) );
 
 		}
@@ -169,8 +169,8 @@ class VariablesController extends Controller {
 
 	public function batchDestroy(Variable $variable, Request $request)
 	{	
-		if( $request->has( 'value_ids' ) ) {
-			$valueIds = $request->get( 'value_ids' );
+		if ($request->has('value_ids')) {
+			$valueIds = $request->get('value_ids');
 			$idsArr = json_decode($valueIds);
 			DataValue::destroy($idsArr);
 

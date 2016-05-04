@@ -39,11 +39,11 @@
 			<div class="property-value">
 				{!! $filter !!} 
 				<div class="pull-right">
-					{!! Form::open(array('class' => 'form-inline', 'method' => 'DELETE', 'route' => array('valuesBatchDestroy'))) !!}
+					{!! Form::open(array('class' => 'form-inline', 'route' => array('valuesBatchDestroy', $variable->id))) !!}
 						<input type="hidden" name="value_ids" value=""/>
-						<button type="submit" class="delete-btn"><i class="fa fa-remove"></i>Delete displayed values</a>
+						<button type="submit" class="delete-btn"><i class="fa fa-remove"></i>Delete displayed values</button>
+						<a href="{!! $exportUrl !!}">Export to CSV</a>
 					{!! Form::close() !!}
-					<a href="{!! $exportUrl !!}">Export to CSV</a>
 				</div>
 
 				{!! $grid !!}

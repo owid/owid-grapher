@@ -29,7 +29,7 @@ Route::group(['middleware' => ['web', 'auth']], function()
 	Route::resource( 'entities', 'EntitiesController' );
 	Route::resource( 'datasources', 'DatasourcesController' );
 	Route::resource( 'datasets', 'DatasetsController' );
-	Route::delete( 'variables/batchDestroy', ['as' => 'valuesBatchDestroy' ,'uses' => 'VariablesController@batchDestroy'] );
+	Route::post('variables/{variable}/batchDestroy', [ 'as' => 'valuesBatchDestroy', 'uses' => 'VariablesController@batchDestroy' ]);
 	Route::resource( 'variables', 'VariablesController' );
 	Route::resource( 'values', 'ValuesController' );
 	Route::resource( 'charts', 'ChartsController' );

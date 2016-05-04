@@ -101,6 +101,7 @@ elixir(function(mix) {
         'libs/jquery.timeago.js',
         'owd-colorbrewer.js',
         'owid.js',
+        'admin.js',
     ], 'public/js/libs-admin.js' );
 
     var chartScripts = [
