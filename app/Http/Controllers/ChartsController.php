@@ -84,28 +84,21 @@ class ChartsController extends Controller {
 	{
 		$data = Input::all();
 		
-		if( $request->ajax() )
-		{
-			//todo validation
-			
-			$chartName = $data["chart-name"];
-			$slug = $data["chart-slug"];
-			$notes = $data["chart-notes"];
-			unset($data["chart-notes"]);
-			unset($data["chart-slug"]);
-			$json = json_encode( $data );
-			
-			$user = \Auth::user();
-			$chart = Chart::create([ 
-				'config' => $json, 'name' => $chartName, 'slug' => $slug, 'notes' => $notes,
-				'last_edited_at' => Carbon::now(), 'last_edited_by' => $user->name ] );
+		$chartName = $data["chart-name"];
+		$slug = $data["chart-slug"];
+		$notes = $data["chart-notes"];
+		unset($data["chart-notes"]);
+		unset($data["chart-slug"]);
+		$json = json_encode( $data );
+		
+		$user = \Auth::user();
+		$chart = Chart::create([ 
+			'config' => $json, 'name' => $chartName, 'slug' => $slug, 'notes' => $notes,
+			'last_edited_at' => Carbon::now(), 'last_edited_by' => $user->name ] );
 
-			Cache::flush();
+		Cache::flush();
 
-			return ['success' => true, 'data' => [ 'id' => $chart->id, 'viewUrl' => route( 'view', $chart->id ) ] ];
-
-		}
-
+		return ['success' => true, 'data' => [ 'id' => $chart->id, 'viewUrl' => route( 'view', $chart->id )]];
 	}
 
 	/**
