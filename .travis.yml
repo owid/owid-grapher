@@ -1,0 +1,6 @@
+language: php
+script:
+  - phpunit
+notifications:
+  email:
+    - jaiden@mispy.me
