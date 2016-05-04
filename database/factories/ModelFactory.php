@@ -38,3 +38,12 @@ $factory->define(App\Datasource::class, function (Faker\Generator $faker) {
         'description' => "Description of source.",
     ];
 });
+
+$factory->define(App\Entity::class, function (Faker\Generator $faker) {
+    return [
+        'name' => $faker->name,
+        'code' => $faker->name,
+        'validated' => 1,
+        'fk_ent_t_id' => 5
+    ];
+});

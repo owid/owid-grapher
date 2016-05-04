@@ -18,6 +18,16 @@ class ImportTest extends TestCase
         $categoryId = factory(App\DatasetCategory::class)->create()->id;
         $subcategoryId = factory(App\DatasetSubcategory::class)->create()->id;
 
+        factory(App\Entity::class)->create([
+            'name' => 'United States',
+            'code' => 'USA'
+        ]);
+
+        factory(App\Entity::class)->create([
+            'name' => 'Australia',
+            'code' => 'AUS'
+        ]);
+
         $requestData = [
             'dataset' => [
                 'name' => 'New Dataset',
