@@ -63,7 +63,7 @@ class ValuesController extends Controller {
 	{
 		$entities = Entity::lists( 'name', 'id' );
 		$datasources = Datasource::lists( 'name', 'id' );
-		return view( 'values.edit', compact( 'dataValue', 'entities', 'datasources' ) );
+			return view( 'values.edit', compact( 'dataValue', 'entities', 'datasources' ) );
 	}
 
 	/**
@@ -76,10 +76,6 @@ class ValuesController extends Controller {
 	{
 		$input = array_except( $request->all(), [ '_method', '_token', 'time-label' ] );
 		$dataValue->update( $input );
-
-		//update time
-		$input = [ 'label' => $request->input( 'time-label' ) ];
-		$dataValue->time->update( $input );
 
 		Cache::flush();
 

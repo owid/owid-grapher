@@ -15,20 +15,12 @@
 				{!! Form::text('value', null, array('class' => 'form-control required')) !!}
 			</div>
 			<div class="form-group">
-				{!! Form::label('description', 'Description:') !!}
-				{!! Form::textarea('description', null, array('class' => 'form-control')) !!}
-			</div>
-			<div class="form-group">
-				{!! Form::label('time-label', 'Time Label:') !!}
-				{!! Form::text('time-label', $dataValue->time->label, array('class' => 'form-control')) !!}
+				{!! Form::label('year', 'Year:') !!}
+				{!! Form::text('year', $dataValue->year, array('class' => 'form-control')) !!}
 			</div>
 			<div class="form-group">
 				{!! Form::label('fk_ent_id', 'Entity:') !!}
-				{!! Form::select('fk_ent_id', $entities, $dataValue->entity->id, array('class' => 'form-control')) !!}
-			</div>
-			<div class="form-group">
-				{!! Form::label('fk_dsr_id', 'Source:') !!}
-				{!! Form::select('fk_dsr_id', $datasources, ($dataValue->datasource)? $dataValue->datasource->id: null, array('class' => 'form-control')) !!}
+				{!! Form::select('fk_ent_id', $entities, $dataValue->fk_ent_id, array('class' => 'form-control')) !!}
 			</div>
 			<div class="form-group">
 				{!! Form::submit('Update value', ['class'=>'btn btn-success']) !!}
