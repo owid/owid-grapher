@@ -1,4 +1,10 @@
 language: php
+php:
+  - 5.5.9
+before_script:
+  - cp .env.travis .env
+  - mysql -e 'create database forge;'
+  - composer install --no-interaction
 script:
   - phpunit
 notifications:
