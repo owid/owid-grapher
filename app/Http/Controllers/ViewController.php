@@ -161,6 +161,10 @@ class ViewController extends Controller {
 			$currentRow[$index] = $result->value;
 		}
 
+		// Add the final row
+		if ($currentRow)
+			$rows[] = $currentRow;
+
 		// Use memory file pointer so we can have fputcsv escape for us
 		$fp = fopen('php://memory', 'w+');
 		foreach ($rows as $row) {
