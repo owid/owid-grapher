@@ -4,6 +4,7 @@ php:
 before_script:
   - cp .env.travis .env
   - mysql -e 'create database forge;'
+  - mysql -D forge < database/db.sql
   - composer install --no-interaction
 script:
   - phpunit
