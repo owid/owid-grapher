@@ -102,6 +102,7 @@
 			this.$tabs.filter( ":visible:first" ).addClass( "first" );
 
 			this.updateTime();
+			this.dispatcher.trigger("header-rendered");
 		},
 
 		updateTime: function() {
@@ -143,13 +144,12 @@
 						dimMax = +dimension.targetYear + tolerance,
 						dimMin = +dimension.targetYear - tolerance;
 					//possibly set new timeFrom/timeTo values based on dimension settings
-					timeFrom = Math.min( timeFrom, dimMin );
-					timeTo = Math.max( timeTo, dimMax );
-				} else if( dimension.mode === "latest" ) {
+					timeFrom = Math.min(timeFrom, dimMin);
+					timeTo = Math.max(timeTo, dimMax);
+				} else if (dimension.mode === "latest") {
 					latestAvailable = true;
 				}
-
-			} );
+			});
 
 			chartName = this.replaceTimePlaceholder( chartName, timeFrom, timeTo, latestAvailable );
 			this.$chartName.text( chartName );
@@ -180,8 +180,8 @@
 			} else {
 				chartSubname += "<span style='visibility: hidden;'>A rather long placeholder to ensure that the text flow remains the same when changing between various years.</span>";
 			}
-			this.$chartName.text( chartName );
-			this.$chartName.css( "visibility", "visible" );
+			this.$chartName.text(chartName);
+			this.$chartName.css("visibility", "visible");
 			this.$chartSubname.html(chartSubname);
 		},
 

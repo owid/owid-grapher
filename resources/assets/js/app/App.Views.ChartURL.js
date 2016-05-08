@@ -97,7 +97,7 @@
 		 * When the current url changes, we want to update the permalinks.
 		 */
 		onQueryChange: function() {
-			$(".fullscreen-link").attr("href", window.location.toString());
+			$(".chart-link-btn").attr("href", window.location.toString());
 		},
 
 		/**

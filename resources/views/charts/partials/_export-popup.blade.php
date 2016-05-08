@@ -1,50 +1,20 @@
-<div class="export-popup">	
+<div class="embed-modal">	
 	<div class="modal">
 		<div class="modal-dialog">
 			<div class="modal-content">
 				<div class="modal-header">
 					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-					<h4 class="modal-title">Save chart</h4>
+					<h4 class="modal-title">Embed</h4>
 				</div>
 				<div class="modal-body">
 					<div class="form-export-select-wrapper">
-						<div class="format-section">
-							<label class="">
-								<input type="radio" name="export-format" value="svg" checked/>
-								SVG
-							</label>
-							<label class="">
-								<input type="radio" name="export-format" value="png" />
-								PNG
-							</label>
-							<label class="">
-								<input type="radio" name="export-format" value="iframe" />
-								IFrame
-							</label>
-						</div>
-						<hr />
-						<div class="dimension-section">
-							<p class="png-constraint-label error-label"><i class="fa fa-exclamation-triangle"></i>Maximum size for PNG is 2200x1800px.</p>
-							<label>
-								<span>Width</span>
-								<input type="text" class="form-control" name="export-width" value="1000" />
-								<span>px</span>
-							</label>
-							<label>
-								<span>Height</span>
-								<input type="text" class="form-control" name="export-height" value="700"/>
-								<span>px</span>
-							</label>
-						</div>
-						<div class="iframe-section">
-							<textarea class="form-control" rows="4" cols="50" @if (isset($chart)) data-view-url="{!! route( 'view', $chart->id ) !!}" @endif></textarea>
-						</div>
+						<textarea class="form-control" rows="4" cols="50"></textarea>
 					</div>
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-primary">Save</button>
 				</div>
-			</div><!-- /.modal-content -->
+			</div><!-- /.modal-content -->	
 		</div><!-- /.modal-dialog -->
 	</div>
 </div>

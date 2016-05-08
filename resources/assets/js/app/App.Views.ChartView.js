@@ -11,9 +11,8 @@
 		SourcesTab = require("App.Views.Chart.SourcesTab"),
 		MapTab = require("App.Views.Chart.MapTab"),
 		ChartDataModel = require("App.Models.ChartDataModel"),
-		Utils = require("App.Utils"),
-		ExportPopup = require("App.Views.UI.ExportPopup");
-
+		Utils = require("App.Utils");
+	
 	App.Views.ChartView = Backbone.View.extend({
 		activeTab: false,
 		el: "#chart-view",
@@ -57,9 +56,6 @@
 			this.mapTab.on("tab-ready", function() { that.header.render(); });
 			this.tabs = [this.chartTab, this.dataTab, this.sourcesTab, this.mapTab];
 			
-			this.exportPopup = new ExportPopup(childViewOptions);
-			this.exportPopup.init(childViewOptions);
-
 			this.$error = this.$el.find( ".chart-error" );
 
 			this.dispatcher.on( "dimension-export-update", this.onDimensionExportUpdate, this );
@@ -96,12 +92,6 @@
 			console.log( "ChartView id", id );
 
 		},*/
-
-		exportContent: function(evt) {
-			evt.preventDefault();
-			this.exportPopup.show();
-			return false;
-		},
 
 		onDimensionExportUpdate: function(data) {
 			if( !this.oldWidth ) {

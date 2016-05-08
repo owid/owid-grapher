@@ -262,7 +262,7 @@
 
 	/**
 	 * A very simple shorthand to ensure a top-level namespace exists.
-	 * e.g. owid.namespace("App.Views.UI.ExportPopup")
+	 * e.g. owid.namespace("App.Views.UI.EmbedModal")
 	 **/
 	owid.namespace = function(namespace) {
 		var obj = window;
