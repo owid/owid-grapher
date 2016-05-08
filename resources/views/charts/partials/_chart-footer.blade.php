@@ -10,6 +10,10 @@
 			<i class="fa fa-twitter"></i>
 			Tweet
 		</a>
+		<a class="facebook-btn" target="_blank">
+			<i class="fa fa-facebook"></i>
+			Share
+		</a>
 		<a class="embed-btn">
 			<i class="fa fa-code"></i>
 			Embed

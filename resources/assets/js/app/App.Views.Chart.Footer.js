@@ -12,6 +12,7 @@
 			this.dispatcher = options.dispatcher;
 			this.$linkBtn = this.$el.find(".chart-link-btn");
 			this.$tweetBtn = this.$el.find(".tweet-btn");
+			this.$facebookBtn = this.$el.find(".facebook-btn");
 			this.$embedBtn = this.$el.find(".embed-btn");
 			this.$downloadImageBtn = this.$el.find(".download-image-btn");
 			this.$embedModal = $(".embed-modal");
@@ -26,6 +27,9 @@
 
 			var tweetHref = "https://twitter.com/intent/tweet/?text=" + encodeURIComponent(headerText) + "&url=" + encodeURIComponent(currentUrl) + "&via=MaxCRoser";
 			this.$tweetBtn.attr('href', tweetHref);
+
+			var facebookHref = "https://www.facebook.com/dialog/share?app_id=1149943818390250&display=page&href=" + encodeURIComponent(currentUrl);
+			this.$facebookBtn.attr('href', facebookHref);
 
 			var pngHref = currentUrl.replace(/($|[?])/, '.png$&'),
 				defaultSize = "1000x700";
