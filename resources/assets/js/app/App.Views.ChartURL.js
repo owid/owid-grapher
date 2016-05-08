@@ -93,11 +93,7 @@
 			this.lastTabName = tabName;
 		},
 
-		/**
-		 * When the current url changes, we want to update the permalinks.
-		 */
 		onQueryChange: function() {
-			$(".chart-link-btn").attr("href", window.location.toString());
 		},
 
 		/**

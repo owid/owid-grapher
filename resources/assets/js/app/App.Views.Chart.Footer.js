@@ -10,7 +10,7 @@
 
 		initialize: function(options) {
 			this.dispatcher = options.dispatcher;
-			this.$linkBtn = this.$el.find(".chart-link-btn");
+			this.$chartLinkBtn = this.$el.find(".chart-link-btn");
 			this.$tweetBtn = this.$el.find(".tweet-btn");
 			this.$facebookBtn = this.$el.find(".facebook-btn");
 			this.$embedBtn = this.$el.find(".embed-btn");
@@ -23,21 +23,25 @@
 
 		render: function() {
 			var headerText = $(".chart-header .chart-name").text(),				
-				currentUrl = window.location.toString();
+				baseUrl = Global.rootUrl + "/" + App.ChartModel.get("chart-slug"),
+				queryStr = window.location.search,
+				canonicalUrl = baseUrl + queryStr;
 
-			var tweetHref = "https://twitter.com/intent/tweet/?text=" + encodeURIComponent(headerText) + "&url=" + encodeURIComponent(currentUrl) + "&via=MaxCRoser";
+			this.$chartLinkBtn.attr('href', canonicalUrl);
+
+			var tweetHref = "https://twitter.com/intent/tweet/?text=" + encodeURIComponent(headerText) + "&url=" + encodeURIComponent(canonicalUrl) + "&via=MaxCRoser";
 			this.$tweetBtn.attr('href', tweetHref);
 
-			var facebookHref = "https://www.facebook.com/dialog/share?app_id=1149943818390250&display=page&href=" + encodeURIComponent(currentUrl);
+			var facebookHref = "https://www.facebook.com/dialog/share?app_id=1149943818390250&display=page&href=" + encodeURIComponent(canonicalUrl);
 			this.$facebookBtn.attr('href', facebookHref);
 
-			var pngHref = currentUrl.replace(/($|[?])/, '.png$&'),
+			var pngHref = baseUrl + ".png" + queryStr,
 				defaultSize = "1000x700";
 			this.$downloadImageBtn.attr('href', pngHref + (_.include(pngHref, "?") ? "&" : "?") + "size=" + defaultSize);
 
 			var iframeWidth = App.ChartModel.get("iframe-width") || "100%";
 			var iframeHeight = App.ChartModel.get("iframe-height") || "660px";
-			var embedCode = '<iframe src="' + currentUrl + '" width="' + iframeWidth + '" height="' + iframeHeight + '"></iframe>';
+			var embedCode = '<iframe src="' + canonicalUrl + '" width="' + iframeWidth + '" height="' + iframeHeight + '"></iframe>';
 			this.$embedModal.find("textarea").text(embedCode);
 		},
 

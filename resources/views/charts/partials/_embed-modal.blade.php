@@ -6,7 +6,7 @@
 				<h4 class="modal-title">Embed chart</h4>
 			</div>
 			<div class="modal-body">
-				<p>Copy and paste the code below to show this chart on your website.</p>
+				<p>Copy and paste the code below to show this chart anywhere on your own website.</p>
 				<textarea class="form-control" rows="4" cols="50"></textarea>
 			</div>
 		</div><!-- /.modal-content -->
