@@ -213,12 +213,18 @@ class ViewController extends Controller {
 			else 
 				$chartMeta->description = "An interactive visualization from Our World In Data.";
 
-			$query = \Request::getQueryString();			
-			$imageUrl = \Request::root() . "/" . $chart->slug . ".png";
-			if ($query != '')
+			$query = $_SERVER['QUERY_STRING'];
+
+			$baseUrl = \Request::root() . "/" . $chart->slug;
+			$canonicalUrl = $baseUrl;
+			$imageUrl = $baseUrl . ".png";
+			if ($query != '') {
+				$canonicalUrl .= "?" . $query;
 				$imageUrl .= "?" . $query;
+			}
 
 			$chartMeta->imageUrl = $imageUrl;
+			$chartMeta->canonicalUrl = $canonicalUrl;
 
 			return view( 'view.show', compact( 'chart', 'config', 'data', 'canonicalUrl', 'chartMeta' ));
 		} else {
