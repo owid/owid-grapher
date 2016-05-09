@@ -65,14 +65,15 @@ class Chart extends Model {
 	 * @param int $height Desired height in pixels of the exported image. 
 	 * @return string Path to exported file.
 	 */
-	public static function exportPNG($slug, $width, $height) {
+	public static function exportPNG($slug, $query, $width, $height) {
 		$phantomjs = base_path() . "/node_modules/.bin/phantomjs";
 		$rasterize = base_path() . "/phantomjs/rasterize.js";
-		$target = \Request::root() . "/" . $slug . ".export" . "?" . $_SERVER['QUERY_STRING'];
-		$file = public_path() . "/exports/" . $slug . ".png" . "?" . $_SERVER['QUERY_STRING'];
+		$target = \Request::root() . "/" . $slug . ".export" . "?" . $query;
+		$file = public_path() . "/exports/" . $slug . ".png" . "?" . $query;
 
 		if (!file_exists($file)) {
 			$command = $phantomjs . " " . $rasterize . " " . escapeshellarg($target) . " " . escapeshellarg($file) . " '" . $width . "px*" . $height . "px'" . " 2>&1";
+			Log::info($command);
 			exec($command, $output, $retval);
 
 			if ($retval != 0)
@@ -82,11 +83,11 @@ class Chart extends Model {
 		return $file;
 	}
 
-	public static function exportPNGAsync($slug, $width, $height) {
+	public static function exportPNGAsync($slug, $query, $width, $height) {
 		$phantomjs = base_path() . "/node_modules/.bin/phantomjs";
 		$rasterize = base_path() . "/phantomjs/rasterize.js";
-		$target = \Request::root() . "/" . $slug . ".export" . "?" . $_SERVER['QUERY_STRING'];
-		$file = public_path() . "/exports/" . $slug . ".png" . "?" . $_SERVER['QUERY_STRING'];
+		$target = \Request::root() . "/" . $slug . ".export" . "?" . $query;
+		$file = public_path() . "/exports/" . $slug . ".png" . "?" . $query;
 		$tmpfile = $file . "#tmp";
 
 		if (!file_exists($file) && !file_exists($tmpfile)) {

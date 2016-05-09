@@ -61,7 +61,7 @@ class ViewController extends Controller {
 		$width = min(intval($split[0]), 3000);
 		$height = min(intval($split[1]), 3000);
 
-		$file = Chart::exportPNG($slug, $width, $height);
+		$file = Chart::exportPNG($slug, $_SERVER['QUERY_STRING'], $width, $height);
 
 		return response()->file($file);
 	}
@@ -217,7 +217,7 @@ class ViewController extends Controller {
 
 			// Give the image exporter a head start on the request for imageUrl
 			if (!str_contains(\Request::path(), ".export"))
-				Chart::exportPNGAsync($chart->slug, 1000, 700);
+				Chart::exportPNGAsync($chart->slug, $_SERVER['QUERY_STRING'] . "&size=1000x700", 1000, 700);
 			return view( 'view.show', compact( 'chart', 'config', 'data', 'canonicalUrl', 'chartMeta' ));
 		} else {
 			return 'No chart found to view';
