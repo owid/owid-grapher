@@ -3,6 +3,7 @@
 use Illuminate\Database\Eloquent\Model;
 use Input;
 use DB;
+use Log;
 
 class Chart extends Model {
 
@@ -55,4 +56,46 @@ class Chart extends Model {
 
 		return $config;		
 	}
+
+	/**
+	 * Shell out to phantomjs to take a screenshot of our chart 
+	 *
+	 * @param string $slug The chart slug to export.
+	 * @param int $width Desired width in pixels of the exported image.
+	 * @param int $height Desired height in pixels of the exported image. 
+	 * @return string Path to exported file.
+	 */
+	public static function exportPNG($slug, $width, $height) {
+		$phantomjs = base_path() . "/node_modules/.bin/phantomjs";
+		$rasterize = base_path() . "/phantomjs/rasterize.js";
+		$target = \Request::root() . "/" . $slug . ".export" . "?" . $_SERVER['QUERY_STRING'];
+		$file = public_path() . "/exports/" . $slug . ".png" . "?" . $_SERVER['QUERY_STRING'];
+
+		if (!file_exists($file)) {
+			$command = $phantomjs . " " . $rasterize . " " . escapeshellarg($target) . " " . escapeshellarg($file) . " '" . $width . "px*" . $height . "px'" . " 2>&1";
+			exec($command, $output, $retval);
+
+			if ($retval != 0)
+           		return App::abort(406, json_encode($output));
+		}
+
+		return $file;
+	}
+
+	public static function exportPNGAsync($slug, $width, $height) {
+		$phantomjs = base_path() . "/node_modules/.bin/phantomjs";
+		$rasterize = base_path() . "/phantomjs/rasterize.js";
+		$target = \Request::root() . "/" . $slug . ".export" . "?" . $_SERVER['QUERY_STRING'];
+		$file = public_path() . "/exports/" . $slug . ".png" . "?" . $_SERVER['QUERY_STRING'];
+		$tmpfile = $file . "#tmp";
+
+		if (!file_exists($file) && !file_exists($tmpfile)) {
+			// Create a temporary marker file so we don't double up on requests
+			touch($tmpfile);
+			$command = $phantomjs . " " . $rasterize . " " . escapeshellarg($target) . " " . escapeshellarg($file) . " '" . $width . "px*" . $height . "px'" . " >/dev/null 2>/dev/null &";
+			Log::info($command);
+			exec($command);
+		}
+	}
+
 }

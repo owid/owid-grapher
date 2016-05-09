@@ -61,19 +61,7 @@ class ViewController extends Controller {
 		$width = min(intval($split[0]), 3000);
 		$height = min(intval($split[1]), 3000);
 
-		$phantomjs = base_path() . "/node_modules/.bin/phantomjs";
-		$rasterize = base_path() . "/phantomjs/rasterize.js";
-		$target = $request->root() . "/" . $slug . ".export" . "?" . $_SERVER['QUERY_STRING'];
-		$file = public_path() . "/exports/" . $slug . ".png" . "?" . $_SERVER['QUERY_STRING'];
-
-		if (!file_exists($file)) {
-			$command = $phantomjs . " " . $rasterize . " " . escapeshellarg($target) . " " . escapeshellarg($file) . " '" . $width . "px*" . $height . "px'" . " 2>&1";
-			exec($command, $output, $retval);			
-
-			if ($retval != 0)
-           		return App::abort(406, json_encode($output));
-		}
-
+		$file = Chart::exportPNG($slug, $width, $height);
 
 		return response()->file($file);
 	}
@@ -226,6 +214,10 @@ class ViewController extends Controller {
 			$chartMeta->imageUrl = $imageUrl;
 			$chartMeta->canonicalUrl = $canonicalUrl;
 
+
+			// Give the image exporter a head start on the request for imageUrl
+			if (!str_contains(\Request::path(), ".export"))
+				Chart::exportPNGAsync($chart->slug, 1000, 700);
 			return view( 'view.show', compact( 'chart', 'config', 'data', 'canonicalUrl', 'chartMeta' ));
 		} else {
 			return 'No chart found to view';
