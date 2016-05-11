@@ -305,11 +305,18 @@
 					chartOptions.showTotalInTooltip = true;
 
 					that.chart = nv.models.stackedAreaChart()
-						.options( chartOptions )
-						.controlOptions( [ "Stacked", "Expanded" ] )
-						.useInteractiveGuideline( true )
-						.x( function( d ) { return d.x; } )
-						.y( function( d ) { return d.y; } );
+						.options(chartOptions)
+						.controlOptions(["Stacked", "Expanded"])
+						.controlLabels({
+							"stacked": "Absolute",
+							"expanded": "Relative"
+						})
+						.useInteractiveGuideline(true)
+						.x(function(d) { return d.x; })
+						.y(function(d) { return d.y; });
+
+			
+
 				} else if( chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar ) {
 
 					//multibar chart
@@ -378,8 +385,19 @@
 				that.chart.dispatch.on("renderEnd", function(state) {
 					if (that.parentView.activeTab == that.parentView.chartTab)
 						$(window).trigger('chart-loaded');
-				});
 
+					/* HACK (Mispy): Ensure stacked area charts maintain the correct dimensions on 
+					 * transition between stacked and expanded modes. It cannot be done on renderEnd
+					 * or stateChange because the delay causes the chart to jump; overriding update
+					 * seems to be the only way to get it to synchronously flow into resizing. It must
+					 * be re-overridden in renderEnd because the nvd3 chart render function resets it. Note
+					 * that stacked area charts also pay no attention to the margin setting. */
+					var origUpdate = that.chart.update;
+					that.chart.update = function() {
+						origUpdate.call(that.chart);
+						that.onResize();
+					};								
+				});
 				//fixed probably a bug in nvd3 with previous tooltip not being removed
 				d3.select( ".xy-tooltip" ).remove();
 
@@ -552,18 +570,6 @@
 					//no legend, remove what might have previously been there
 					that.$svg.find( "> .nvd3.nv-custom-legend" ).hide();
 				}
-				
-				/*var stateChangeEvent =  (chartType !== "6") ? "stateChange" : "renderEnd";
-				that.chart.dispatch.on("renderEnd", function(state) {
-					console.log("hi");
-					//refresh legend;
-					that.svgSelection.call( that.legend );
-
-					if( chartType === "3" ) {
-						that.checkStackedAxis();
-					}
-
-				});*/
 				
 				var dimensions = JSON.parse(App.ChartModel.get("chart-dimensions"));
 				that.parentView.dataTab.render( data, localData, dimensions );
