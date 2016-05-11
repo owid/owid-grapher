@@ -12189,7 +12189,11 @@ nv.models.stackedArea = function() {
                 .width(availableWidth)
                 .height(availableHeight)
                 .x(getX)
-                .y(function(d) { return d.display.y + d.display.y0 })
+                .y(function(d) {
+                  // MISPY: Workaround for strange nvd3 bug https://github.com/novus/nvd3/issues/1093
+                  if (d.display !== undefined) { return d.display.y + d.display.y0; }
+                  else return 0                    
+                })
                 .forceY([0])
                 .color(data.map(function(d,i) {
                     return d.color || color(d, d.seriesIndex);
