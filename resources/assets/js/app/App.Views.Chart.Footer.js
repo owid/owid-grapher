@@ -16,6 +16,7 @@
 			this.$embedBtn = this.$el.find(".embed-btn");
 			this.$downloadImageBtn = this.$el.find(".download-image-btn");
 			this.$embedModal = $(".embed-modal");
+			this.$embedModal.appendTo("body");
 
 			this.render();
 			this.dispatcher.on("header-rendered", this.render.bind(this));

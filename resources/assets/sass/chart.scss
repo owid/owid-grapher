@@ -899,3 +899,8 @@ body#chart-export {
 .unstroked {
 	display: none;
 }
+
+/* HACK (Mispy): Once we properly update to Bootstrap 4 javascript this shouldn't be needed. */
+.modal-backdrop {
+	z-index: -1;
+}
