@@ -8,8 +8,8 @@
 		var stepSizeWidth = 20,
 			stepSizeHeight = 20,
 			stepClass = "legend-step",
-			legendOffsetX = 10,
-			legendOffsetY = 60,
+			legendOffsetX = 15,
+			legendOffsetY = 10,
 			stepGap = 2,
 			displayMinLabel = true,
 			labels = [], 
@@ -57,6 +57,14 @@
 				if( orientation === "landscape" ) {
 					legendY -= descriptionHeight;
 				}
+
+				var timelineControls = d3.select( ".map-timeline-controls" );
+				if (!timelineControls.empty()) {
+					var controlsBoundingRect = timelineControls.node().getBoundingClientRect(),
+						controlsHeight = controlsBoundingRect.bottom - controlsBoundingRect.top;
+					legendY -= controlsHeight;
+				}
+
 				container.attr( "transform", "translate(0," + legendY + ")" );
 			}
 		};

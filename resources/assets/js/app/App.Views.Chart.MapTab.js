@@ -362,7 +362,7 @@
 
 			// Adjust wrapperHeight to compensate for timeline controls
 			var timelineControls = d3.select( ".map-timeline-controls" );
-			if( !timelineControls.empty() ) {
+			if (!timelineControls.empty()) {
 				var controlsBoundingRect = timelineControls.node().getBoundingClientRect(),
 					controlsHeight = controlsBoundingRect.bottom - controlsBoundingRect.top;
 				wrapperHeight -= controlsHeight;
