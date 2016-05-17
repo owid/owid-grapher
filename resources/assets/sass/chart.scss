@@ -94,7 +94,7 @@
 #chart-view .chart-header {
 	h2 {
 		margin-top: 0;
-		margin-right: 3.1rem;
+		margin-right: 2.8rem;
 		margin-bottom: 0.2em;
 		font-size: 1.5rem;
 		font-weight: 400;
@@ -103,7 +103,7 @@
 	h3 {
 		margin-top: 0;
 		margin-bottom: 0.5em;
-		font-size: 0.9rem;
+		font-size: 0.8rem;
 		color: #4F4B49;
 	}	
 }
@@ -120,7 +120,7 @@
 		position: relative;
 		top: 0.06rem;
 		z-index: 1;
-		font-size: 0.75rem;
+		font-size: 0.7rem;
 		border: 1px solid #ddd;
 		border-left: 0px;
 		background-color: #FAFAFA;
@@ -162,9 +162,16 @@
 	position: relative;
 	width: 100%;
 	padding: 0px 0.6rem;
-	font-size: 0.8rem;
 	background-color: white;	
 
+	p {
+		font-size: 0.6rem;
+		margin-bottom: 0.8rem;
+	}
+
+	.footer-btns {
+		font-size: 0.8rem;
+	}
 	.footer-btns a {
 		text-decoration: none;
 		margin-right: 0.5em;
@@ -296,7 +303,7 @@
 /* Tooltips
 --------------------------------------------- */
 
-#chart-view .nvtooltip {
+.nvtooltip {
 	background-color: rgba(255,255,255,1.0);
     color: rgba(0,0,0,1.0);
 	border: 1px solid rgba(0,0,0,.2);
@@ -307,7 +314,7 @@
 		border: 0;
 	}
 	h3 {
-		font-size: 0.9rem;
+		font-size: 0.8rem;
 	}
 	/* scatter plot has values underneath each other */
 	.var-popup-value {
@@ -849,7 +856,7 @@ body#chart-export {
 		padding: 0.6rem;
 	}
 	#chart-view:not(.embedded) {
-		padding: 1.25rem;
+		padding: 1rem;
 	}
 
 	/* Tabs should fill the entire width */
@@ -860,9 +867,6 @@ body#chart-export {
 	#chart-view ul.chart-tabs li {
 		display: table-cell;
 	}	
-	#chart-view ul.chart-tabs li > a {
-		padding: 0.5rem 0.5rem;
-	}
 	#chart-view ul.chart-tabs li.edit-btn-wrapper {
 		display: none;
 	}
@@ -870,16 +874,15 @@ body#chart-export {
 
 @media (min-width: 800px) {
 	#chart-view.embedded {
-		padding: 1.5rem;
+		padding: 1rem 2rem;
 	}
 	#chart-view:not(.embedded) {
-		padding: 1.25rem;
+		padding: 1.5rem 3rem;
 	}
 
 	#chart-view ul.chart-tabs {
 		float: right;
 	}
-
 	#chart-view ul.chart-tabs li {
 		float: left;
 	}
