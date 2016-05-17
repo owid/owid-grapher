@@ -13,12 +13,6 @@ body {
 	padding: 25px 50px;
 }
 
-@media (max-width: 800px) {
-	#chart-view {
-		padding: 0px 0px;
-	}
-}
-
 .chart-edit-module #chart-view {
 	width: 50%;
 }
@@ -200,30 +194,6 @@ a {
 #chart-view .chart-tabs li.edit-btn-wrapper i {
 	margin-right: 0;
 }
-
-
-/* On mobile, the tabs should fill all the available width */
-
-@media (max-width: 800px) {
-	#chart-view ul.chart-tabs {
-		display: table;
-		width: 100%;
-	}
-	#chart-view ul.chart-tabs li {
-		display: table-cell !important;
-	}	
-}
-
-@media (min-width: 800px) {
-	#chart-view ul.chart-tabs {
-		float: right;
-	}
-
-	#chart-view ul.chart-tabs li {
-		float: left;
-	}
-}
-
 
 .chart-wrapper-inner {
 	position: relative;
@@ -973,73 +943,6 @@ a {
 	color: red;
 }
 
-/**
-*	EXPORT POPUP
-**/
-.export-popup {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	z-index: 1040;
-	display: none;
-
-	.png-constraint-label {
-		font-size: 12px;
-		text-align: center;
-		/* hidden by default*/
-		display: none;
-		i {
-			margin-right: 10px;
-		}
-	}
-
-	.iframe-section {
-		display: none;
-	}
-	
-	.modal {
-		display: block;
-		background: rgba(0,0,0,0.3);
-	}
-	.modal-content {
-		box-shadow: 0 2px 3px rgba(0,0,0,0.125) !important;
-		border-radius: 0;
-	}
-		.form-export-select-wrapper {
-			padding: 20px;
-    		background-color: #ecf0f5;
-		}
-
-	.modal-dialog {
-		width: 300px;
-	}
-
-	.format-section {
-		text-align: center;
-		label {
-			width: 70px;
-		}
-	}
-
-	hr {
-		margin-top: 10px;
-		margin-bottom: 20px;
-		border-top: 1px solid #ccc;
-	}
-	
-	.form-control[type=text] {
-		display: inline-block;
-		width: 40%;
-	}
-
-	.dimension-section span:first-child {
-		width: 60px;
-		display: inline-block;
-	}
-}
-
 .dashed {
 	stroke-dasharray: 2,2;
 }
@@ -1072,4 +975,42 @@ body#chart-export {
 	.nv-add-btn {
 		display: none;	
 	}	
+}
+
+
+/* Responsiveness
+--------------------------------------------- */
+
+
+@media (max-width: 800px) {
+	/* Less room on mobile - pad the chart less */
+	#chart-view {
+		padding: 20px;
+	}
+
+	/* Tabs should fill the entire width */
+	#chart-view ul.chart-tabs {
+		display: table;
+		width: 100%;
+	}
+	#chart-view ul.chart-tabs li {
+		display: table-cell;
+	}	
+	#chart-view ul.chart-tabs li > a {
+
+	}
+	#chart-view ul.chart-tabs li.edit-btn-wrapper {
+		display: none;
+	}
+}
+
+
+@media (min-width: 800px) {
+	#chart-view ul.chart-tabs {
+		float: right;
+	}
+
+	#chart-view ul.chart-tabs li {
+		float: left;
+	}
 }

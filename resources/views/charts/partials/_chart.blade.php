@@ -22,9 +22,6 @@
 				<li class="sources-header-tab header-tab">
 					<a href="#sources-chart-tab" data-toggle="tab" aria-expanded="false"><i class="fa fa-link"></i>Sources</a>
 				</li>
-				<li class="reload-btn-wrapper">
-					<a href="#" class="reload-btn" title="Reload chart"><i class="fa fa-refresh"></i></a>
-				</li>
 				@if (Auth::user() && isset($chart))
 					<li class="edit-btn-wrapper">
 						<a href="{{ Request::root() }}/charts/{{ $chart->id }}/edit" class="edit-btn" target="_blank" title="Edit chart"><i class="fa fa-pencil"></i></a>
