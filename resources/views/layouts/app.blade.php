@@ -15,14 +15,9 @@
 		@yield('styles')
 		
 		<style>
-
-			/*.nv-point {
-				fill-opacity: 1 !important;
+			html {
+				font-size: 14px !important;
 			}
-			path.nv-line {
-				opacity: 0;
-			}*/
-
 		</style>
 
 	</head>

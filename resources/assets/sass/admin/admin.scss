@@ -2,6 +2,12 @@
    General
    ========================================================================== */
 
+body.skin-blue {
+	h2 {
+		margin-top: 20px;
+	}
+}
+
 .right-btns-wrapper {
 	a, form {
 		float: left;
@@ -54,7 +60,6 @@ button > i {
 
 /* tables */
 .table {
-
 	tr {
 		border-bottom: 1px solid gray;
 	}
@@ -62,6 +67,9 @@ button > i {
 		border-top: 0px !important;
 		border-bottom: 0px !important;
 	}
+}
+.dataTable td:nth-child(1) {
+	width: 100%;
 }
 .datepicker .table tr {
 	border-bottom: 0px;

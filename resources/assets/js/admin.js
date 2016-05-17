@@ -3,7 +3,6 @@
 ;(function() {
 	"use strict";
 
-
 	//delete buttons
 	$(".delete-btn, .btn-danger").on("click", function(evt) {
 		var confirm = window.confirm("Are you sure?");
@@ -30,4 +29,11 @@
 	//chosen select
 	$( ".chosen-select" ).chosen();
 
+	// MISPY: Hack for zofe/rapyd bootstrap 4 compatibility.
+	$(".btn-toolbar li").each(function() {
+		$(this).replaceWith("<div class='btn-group' role='group'>" + $(this).html() + "</div>");
+	});
+	$(".btn-toolbar .btn-group").each(function() {
+		$(this).children().addClass("btn btn-default");
+	});
 })();

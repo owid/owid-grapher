@@ -1,4 +1,3 @@
-
 /* Chart General
 --------------------------------------------- */
 #chart-view {
@@ -96,14 +95,14 @@
 		margin-top: 0;
 		margin-right: 2.8rem;
 		margin-bottom: 0.2em;
-		font-size: 1.5rem;
+		font-size: 1.3rem;
 		font-weight: 400;
 		color: #35322F;
 	}
 	h3 {
 		margin-top: 0;
 		margin-bottom: 0.5em;
-		font-size: 0.8rem;
+		font-size: 0.7rem;
 		color: #4F4B49;
 	}	
 }
@@ -165,7 +164,7 @@
 	background-color: white;	
 
 	p {
-		font-size: 0.6rem;
+		font-size: 12px;
 		margin-bottom: 0.8rem;
 	}
 
@@ -867,6 +866,10 @@ body#chart-export {
 	#chart-view ul.chart-tabs li {
 		display: table-cell;
 	}	
+    #chart-view ul.chart-tabs li > a {
+        padding: 0.5rem 0.3rem;
+    }
+
 	#chart-view ul.chart-tabs li.edit-btn-wrapper {
 		display: none;
 	}

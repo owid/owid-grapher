@@ -13,6 +13,12 @@
 		<link href="{{ asset(elixir('css/admin.css')) }}" rel="stylesheet" type="text/css" />
 
 		@yield('styles')
+
+		<style>
+			html {
+				font-size: 14px !important;
+			}
+		</style>
 	</head>
 	<body class="skin-blue">
 		<!--[if lt IE 9]>

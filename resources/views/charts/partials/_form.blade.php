@@ -6,23 +6,23 @@
 		{!! Form::open( array( 'method' => $method ) ) !!}
 			<div class="nav-tabs-custom">
 				<ul class="nav nav-tabs no-bullets">
-					<li class="active">
-						<a href="#basic-tab" data-toggle="tab" aria-expanded="false">1. Basic</a>
+					<li class="nav-item active">
+						<a class="nav-link" href="#basic-tab" data-toggle="tab" aria-expanded="false">1. Basic</a>
 					</li>
-					<li>
-						<a href="#data-tab" data-toggle="tab" aria-expanded="false">2. Data</a>
+					<li class="nav-item">
+						<a class="nav-link" href="#data-tab" data-toggle="tab" aria-expanded="false">2. Data</a>
 					</li>
-					<li>
-						<a href="#axis-tab" data-toggle="tab" aria-expanded="false">3. Axis</a>
+					<li class="nav-item">
+						<a class="nav-link" href="#axis-tab" data-toggle="tab" aria-expanded="false">3. Axis</a>
 					</li>
-					<li>
-						<a href="#styling-tab" data-toggle="tab" aria-expanded="false">4. Styling</a>
+					<li class="nav-item">
+						<a class="nav-link" href="#styling-tab" data-toggle="tab" aria-expanded="false">4. Styling</a>
 					</li>
-					<li>
-						<a href="#export-tab" data-toggle="tab" aria-expanded="false">5. Export</a>
+					<li class="nav-item">
+						<a class="nav-link" href="#export-tab" data-toggle="tab" aria-expanded="false">5. Export</a>
 					</li>
-					<li>
-						<a href="#map-tab" data-toggle="tab" aria-expanded="false">6. Map</a>
+					<li class="nav-item">
+						<a class="nav-link" href="#map-tab" data-toggle="tab" aria-expanded="false">6. Map</a>
 					</li>
 				</ul>
 			</div>
