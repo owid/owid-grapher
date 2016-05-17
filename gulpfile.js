@@ -19,13 +19,16 @@ elixir(function(mix) {
     mix.copy('resources/assets/css/libs/chosen-sprite@2x.png', 'public/build/css/');
     mix.copy('resources/assets/js/data', 'public/build/js/data');
 
+    mix.sass([
+        'bootstrap/scss/bootstrap.scss'
+    ], 'resources/tmp/bootstrap.css');
     
     mix.sass([
         'range.scss',
         'main.scss',
         'chart.scss'
     ], 'resources/tmp/front-sass.css').styles([
-        'libs/bootstrap.min.css',
+        '../../tmp/bootstrap.css',
         'libs/font-awesome/css/font-awesome.min.css',
         'libs/bootstrap-chosen.css',
         'libs/nv.d3.css',
@@ -41,7 +44,7 @@ elixir(function(mix) {
         'chart.scss',
         'main.scss'
     ], 'resources/tmp/admin-sass.css').styles([
-        'libs/bootstrap.min.css',
+        '../../tmp/bootstrap.css',
         'libs/font-awesome/css/font-awesome.min.css',
         'libs/AdminLTE.min.css',
         'libs/datepicker3.css',
