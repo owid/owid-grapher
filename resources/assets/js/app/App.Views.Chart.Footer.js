@@ -19,6 +19,7 @@
 
 			this.render();
 			this.dispatcher.on("header-rendered", this.render.bind(this));
+			$(window).on("query-change", this.render.bind(this));
 		},
 
 		render: function() {
