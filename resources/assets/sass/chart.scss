@@ -98,14 +98,15 @@ a {
 #chart-view .h2 {
 	margin-top: 0;
 	margin-right: 50px;
+	margin-bottom: 0.2em;
 	font-size: 24px;
 	font-weight: 400;
 	color: #35322F;
 }
 #chart-view h3,
 #chart-view .h3 {
-	margin-top: 10px;
-	margin-bottom: 5px;
+	margin-top: 0;
+	margin-bottom: 0.5em;
 	font-size: 15px;
 	opacity: 1;
 	color: #4F4B49;
@@ -983,10 +984,14 @@ body#chart-export {
 
 
 @media (max-width: 800px) {
-	/* Less room on mobile - pad the chart less */
-	#chart-view {
+	/* Charts on mobile don't have as much room for padding */
+	#chart-view.embedded {
+		padding: 10px;
+	}
+	#chart-view:not(.embedded) {
 		padding: 20px;
 	}
+
 
 	/* Tabs should fill the entire width */
 	#chart-view ul.chart-tabs {
@@ -997,7 +1002,7 @@ body#chart-export {
 		display: table-cell;
 	}	
 	#chart-view ul.chart-tabs li > a {
-
+		padding: 8px 8px;
 	}
 	#chart-view ul.chart-tabs li.edit-btn-wrapper {
 		display: none;

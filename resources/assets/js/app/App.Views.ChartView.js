@@ -34,6 +34,10 @@
 
 			if (App.ChartModel.get("chart-name"))
 				$(".chart-preloader").show();
+
+			if (window.self != window.top) {
+				$("#chart-view").addClass("embedded");
+			}
 			
 			var that = this;
 
