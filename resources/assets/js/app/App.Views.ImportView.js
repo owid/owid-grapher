@@ -87,17 +87,16 @@
 
 			var that = this;
 			this.$filePicker.on( "change", function( i, v ) {
-
-				var $this = $( this );
+				var $this = $(this);
 				$this.parse( {
 					config: {
+						skipEmptyLines: true,
 						complete: function( obj ) {
 							var data = { rows: obj.data };
 							that.onCsvSelected( null, data );
 						}
 					}
 				} );
-
 			} );
 
 		},
