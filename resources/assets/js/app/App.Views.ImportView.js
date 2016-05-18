@@ -32,16 +32,65 @@
 			"focus [name=source_name]": "onSourceNameFocus"
 		},
 
-		initialize: function( options ) {
-			
+		initialize: function( options ) {	
 			this.dispatcher = options.dispatcher;
 			this.render();
 			this.initUpload();
 
+			setTimeout(function() {
+				this.loadForm(window.localStorage);
+				this.$el.find("form").on("change", function() {
+					this.saveForm(window.localStorage);
+				}.bind(this));
+			}.bind(this), 0);
+		},
+
+		/* Save the contents of the form (barring file upload) to a (local)storage object
+		 * We use this to remember input between page loads, especially handy for debugging */
+		saveForm: function(storage) {
+			this.$el.find("input, select, textarea").each(function(i, el) {
+				var type = $(el).attr("type");
+				if (type == "file" || type == "hidden") return;
+
+				var key = "importer-" + $(el).attr('name');
+				if (type == "radio") {
+					key += "-" + $(el).val();
+					storage[key] = JSON.stringify($(el).prop("checked"));
+				} else {
+					storage[key] = JSON.stringify($(el).val());
+				}
+			}.bind(this));
+		},
+
+		loadForm: function(storage) {
+			this.$el.find("input, select, textarea").each(function(i, el) {
+				var type = $(el).attr("type");
+				if (type == "file" || type == "hidden") return;
+
+				var key = "importer-" + $(el).attr('name');
+				if (type == "radio")
+					key += "-" + $(el).val();
+
+				var data = storage[key];
+				if (data == undefined || data == "undefined") return;
+				var val = JSON.parse(data);
+
+				if (type == "radio") {
+					if (val)
+						$(el).prop("checked", true);
+				} else {
+					$(el).val(val);
+				}
+				$(el).change();
+			}.bind(this));
+
+			// Make sure the dataset description is expanded if needed
+			if (!_.isEmpty(this.$newDatasetDescription.val())) {
+				this.$newDatasetDescriptionBtn.click();
+			}
 		},
 
 		render: function() {
-
 			//sections
 			this.$datasetSection = this.$el.find( ".dataset-section" );
 			this.$datasetTypeSection = this.$el.find( ".dataset-type-section" );
@@ -51,6 +100,7 @@
 			this.$variableTypeSection = this.$el.find( ".variable-type-section" );
 				
 			//random els
+			this.$newDatasetDescriptionBtn = this.$el.find(".new-dataset-description-btn");
 			this.$newDatasetDescription = this.$el.find( "[name=new_dataset_description]" );
 			this.$existingDatasetSelect = this.$el.find( "[name=existing_dataset_id]" );
 			this.$existingVariablesWrapper = this.$el.find( ".existing-variable-wrapper" );
@@ -118,12 +168,9 @@
 			this.uploadedData = data;
 			//store also original, this.uploadedData will be modified when being validated
 			this.origUploadedData = $.extend( true, {}, this.uploadedData);
-			
 			this.createDataTable( data.rows );
-
 			this.validateEntityData( data.rows );
 			this.validateTimeData( data.rows );
-
 			this.mapData();
 
 		},
@@ -443,9 +490,10 @@
 		},
 
 		onNewDatasetChange: function( evt ) {
-
 			var $input = $( evt.currentTarget );
-			if( $input.val() === "0" ) {
+			if (!$input.prop("checked")) return;
+			
+			if ($input.val() === "0") {
 				this.$newDatasetSection.hide();
 				this.$existingDatasetSection.show();
 				//should we appear variable select as well?
@@ -562,7 +610,6 @@
 		},
 
 		onMultivariantDatasetChange: function( evt ) {
-
 			var $input = $( evt.currentTarget );
 			if( $input.val() === "1" ) {
 				this.isDataMultiVariant = true;

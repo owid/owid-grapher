@@ -53,7 +53,8 @@ class ImportController extends Controller {
 			'sourceTemplate' => $sourceTemplate
 		];	
 
-		return view( 'import.index' )->with( 'data', $data );
+		$response = view('import.index')->with('data', $data);
+		return $response;
 	}
 
 	/**
