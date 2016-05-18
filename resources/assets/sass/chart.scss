@@ -6,7 +6,9 @@
 	width: 100%;
 	height: 100%;
 	background: white;
-	overflow: auto;
+	overflow-y: auto;
+	/* Hidden overflow x so that tooltips in iframes don't cause scrollbars */
+	overflow-x: hidden;
 
 	a {
 		cursor: pointer;
