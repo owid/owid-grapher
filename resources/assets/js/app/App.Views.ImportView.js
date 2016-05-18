@@ -340,17 +340,13 @@
 				var newValue,
 					origValue = ( !that.isDataMultiVariant )? data[ 0 ][ i+1 ]: data[ i+1 ][ 1 ];
 				
-				//check value has 4 digits
-				origValue = Utils.addZeros( origValue );
-
 				var value = origValue,
 					date = moment( new Date( value ) ),
 					valid = false,
 					timeArr, date1, date2;
 
-				//if uploading interval data, need different validation
-				if( timeDomain !== "years" ) {
-					valid = date.isValid();
+				if (parseInt(value).toString() === value) {
+					valid = true;
 				} else {
 					//remove all whitespace
 					value = value.replace(/ /g,'');
@@ -380,138 +376,20 @@
 
 					newValue = { "d": Utils.roundTime( date ), "l": origValue };
 
-					if( timeDomain == "year" ) {
-						
-						//try to guess century
-						var year = Math.floor( origValue ),
-							nextYear = year + 1;
+					//try to guess century
+					var year = Math.floor( origValue ),
+						nextYear = year + 1;
 
-						//add zeros
-						year = Utils.addZeros( year );
-						nextYear = Utils.addZeros( nextYear );
-						
-						//convert it to datetime values
-						year = moment( new Date( year.toString() ) );
-						nextYear = moment( new Date( nextYear.toString() ) ).seconds(-1);
-						//modify the initial value
-						newValue[ "sd" ] =  Utils.roundTime( year );
-						newValue[ "ed" ] =  Utils.roundTime( nextYear );
-
-					} else if( timeDomain == "decade" ) {
-						
-						//try to guess century
-						var decade = Math.floor( origValue / 10 ) * 10,
-							nextDecade = decade + 10;
-						
-						//add zeros
-						decade = Utils.addZeros( decade );
-						nextDecade = Utils.addZeros( nextDecade );
-
-						//convert it to datetime values
-						decade = moment( new Date( decade.toString() ) );
-						nextDecade = moment( new Date( nextDecade.toString() ) ).seconds(-1);
-						//modify the initial value
-						newValue[ "sd" ] =  Utils.roundTime( decade );
-						newValue[ "ed" ] =  Utils.roundTime( nextDecade );
-
-					} else if( timeDomain == "quarter century" ) {
-						
-						//try to guess quarter century
-						var century = Math.floor( origValue / 100 ) * 100,
-							modulo = ( origValue % 100 ),
-							quarterCentury;
-						
-						//which quarter is it
-						if( modulo < 25 ) {
-							quarterCentury = century;
-						} else if( modulo < 50 ) {
-							quarterCentury = century+25;
-						} else if( modulo < 75 ) {
-							quarterCentury = century+50;
-						} else {
-							quarterCentury = century+75;
-						}
-							
-						var nextQuarterCentury = quarterCentury + 25;
-
-						//add zeros
-						quarterCentury = Utils.addZeros( quarterCentury );
-						nextQuarterCentury = Utils.addZeros( nextQuarterCentury );
-
-						//convert it to datetime values
-						quarterCentury = moment( new Date( quarterCentury.toString() ) );
-						nextQuarterCentury = moment( new Date( nextQuarterCentury.toString() ) ).seconds(-1);
-						//modify the initial value
-						newValue[ "sd" ] =  Utils.roundTime( quarterCentury );
-						newValue[ "ed" ] =  Utils.roundTime( nextQuarterCentury );
-
-					} else if( timeDomain == "half century" ) {
-						
-						//try to guess half century
-						var century = Math.floor( origValue / 100 ) * 100,
-							//is it first or second half?
-							halfCentury = ( origValue % 100 < 50 )? century: century+50,
-							nextHalfCentury = halfCentury + 50;
-
-						//add zeros
-						halfCentury = Utils.addZeros( halfCentury );
-						nextHalfCentury = Utils.addZeros( nextHalfCentury );
-
-						//convert it to datetime values
-						halfCentury = moment( new Date( halfCentury.toString() ) );
-						nextHalfCentury = moment( new Date( nextHalfCentury.toString() ) ).seconds(-1);
-						//modify the initial value
-						newValue[ "sd" ] =  Utils.roundTime( halfCentury );
-						newValue[ "ed" ] =  Utils.roundTime( nextHalfCentury );
-
-					} else if( timeDomain == "century" ) {
-						
-						//try to guess century
-						var century = Math.floor( origValue / 100 ) * 100,
-							nextCentury = century + 100;
-
-						//add zeros
-						century = Utils.addZeros( century );
-						nextCentury = Utils.addZeros( nextCentury );
-
-						//convert it to datetime values
-						century = moment( new Date( century.toString() ) );
-						nextCentury = moment( new Date( nextCentury.toString() ) ).seconds(-1);
-						//modify the initial value
-						newValue[ "sd" ] = Utils.roundTime( century );
-						newValue[ "ed" ] = Utils.roundTime( nextCentury );
-
-					} else if( timeDomain == "years" ) {
-						
-						//remove all whitespace
-						origValue = origValue.replace(/ /g,'');
-						timeArr = origValue.split( "-" );
-						
-						if( timeArr.length === 2) {
-							//validate both dates
-							var year = Math.floor( timeArr[0] ),
-								nextYear = Math.floor( timeArr[1] ),
-								middleYear = Math.floor( ( year + nextYear ) / 2 );
-							
-							//add zeros
-							year = Utils.addZeros( year );
-							nextYear = Utils.addZeros( nextYear );
-							middleYear = Utils.addZeros( middleYear );
-							
-							//convert it to datetime values
-							year = moment( new Date( year.toString() ) );
-							nextYear = moment( new Date( nextYear.toString() ) );
-							middleYear = moment( new Date( middleYear.toString() ) );
-
-							//modify the initial value
-							newValue[ "sd" ] =  Utils.roundTime( year );
-							newValue[ "ed" ] =  Utils.roundTime( nextYear );
-							//as single date for object, take one in the middle
-							newValue[ "d" ] = Utils.roundTime( middleYear );
-
-						}
-
-					}
+					//add zeros
+					year = Utils.addZeros( year );
+					nextYear = Utils.addZeros( nextYear );
+					
+					//convert it to datetime values
+					year = moment( new Date( year.toString() ) );
+					nextYear = moment( new Date( nextYear.toString() ) ).seconds(-1);
+					//modify the initial value
+					newValue[ "sd" ] =  Utils.roundTime( year );
+					newValue[ "ed" ] =  Utils.roundTime( nextYear );
 
 					//insert info about time domain
 					newValue[ "td" ] = timeDomain;
