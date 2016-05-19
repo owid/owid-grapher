@@ -45,7 +45,7 @@
 			this.saveForm(this.defaultSettings);
 
 			setTimeout(function() {
-				if (!_.isMatch(window.localStorage, this.defaultSettings)) {
+				if (window.localStorage.importerSaved && !_.isMatch(window.localStorage, this.defaultSettings)) {
 					this.loadForm(window.localStorage);
 					this.$clearSettingsBtn.show();
 				}
@@ -70,6 +70,8 @@
 					storage[key] = JSON.stringify($(el).val());
 				}
 			}.bind(this));
+
+			storage.importerSaved = "true";
 		},
 
 		loadForm: function(storage) {
@@ -101,9 +103,8 @@
 		},
 
 		onClearSettings: function() {
-			this.loadForm(this.defaultSettings);
-			this.$clearSettingsBtn.hide();
-			this.saveForm(window.localStorage);
+			window.localStorage.clear();
+			window.location.reload();
 		},
 
 		render: function() {
@@ -547,20 +548,21 @@
 		},
 
 		onExistingVariableChange: function( evt ) {
-
 			var $input = $( evt.currentTarget );
 			this.existingVariable = $input.find( 'option:selected' );
-	
 		},
 
-
 		onFileChange: function() {
+			// Clear anything that was already there
+			this.$csvImportTableWrapper.empty();
+			this.$dataInput.val("");
+			this.$csvImportResult.find(".validation-result").remove();
+
 			// $.fn.parse comes from Papa Parse for some weird namespace-carefree reason
 			this.$filePicker.parse({
 				config: {
 					skipEmptyLines: true,
 					complete: function(obj) {
-						this.onRemoveUploadedFile(); // Clear anything that was already there
 						var data = { rows: obj.data };
 						this.onCsvSelected(null, data);
 					}.bind(this)
@@ -577,7 +579,6 @@
 			//reset related components
 			this.$csvImportTableWrapper.empty();
 			this.$dataInput.val("");
-			//remove notifications
 			this.$csvImportResult.find(".validation-result").remove();
 		},
 
@@ -620,25 +621,14 @@
 			var $input = $(evt.currentTarget);
 			if (!$input.prop("checked")) return;
 
-			if( $input.val() === "1" ) {
+			if ($input.val() === "1" && !this.isDataMultiVariant) {
 				this.isDataMultiVariant = true;
-				//$( ".validation-result" ).remove();
-				//$( ".entities-validation-wrapper" ).remove();
-			} else {
+				// Trigger revalidation
+				this.onFileChange();
+			} else if ($input.val() === "0" && this.isDataMultiVariant) {
 				this.isDataMultiVariant = false;
-			}
-
-			if( this.uploadedData && this.origUploadedData ) {
-
-				//insert original uploadedData into array before processing
-				this.uploadedData = $.extend( true, {}, this.origUploadedData);
-				//re-validate
-				this.validateEntityData( this.uploadedData.rows );
-				this.validateTimeData( this.uploadedData.rows );
-				this.mapData();
-
-			}
-			
+				this.onFileChange();
+			}			
 		},
 
 		onFormSubmit: function( evt ) {
