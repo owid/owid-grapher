@@ -91,7 +91,7 @@ class ImportController extends Controller {
 			else {
 				$datasetProps = [
 					'name' => $dataset['name'],
-					'description' => $dataset['description'],					
+					'description' => isset($dataset['description']) ? $dataset['description'] : "",
 					'fk_dst_cat_id' => $dataset['categoryId'],
 					'fk_dst_subcat_id' => $dataset['subcategoryId'],
 					'fk_dsr_id' => $sourceId

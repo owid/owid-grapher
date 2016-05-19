@@ -85,6 +85,10 @@
             var formData = {};
             _.each(serializedArr, function(v, i) {
             	if (v.name !== "variables[]") {
+            		// Don't set existing dataset id if it's not actually the selected option
+            		if (v.name == "existing_dataset_id" && !$("[name=existing_dataset_id]").is(":visible"))
+	            		return;
+
             		formData[v.name] = v.value;
             	} else {
             		if (!formData.variables)

@@ -19,8 +19,10 @@
 		el: "#import-view",
 		events: {
 			"submit form": "onFormSubmit",
+			"click .clear-settings-btn": "onClearSettings",
 			"input [name=new_dataset_name]": "onNewDatasetNameChange",
 			"change [name=new_dataset]": "onNewDatasetChange",
+			"change [type=file]": "onFileChange",
 			"click .remove-uploaded-file-btn": "onRemoveUploadedFile",
 			"change [name=category_id]": "onCategoryChange",
 			"change [name=existing_dataset_id]": "onExistingDatasetChange",
@@ -35,14 +37,22 @@
 		initialize: function( options ) {	
 			this.dispatcher = options.dispatcher;
 			this.render();
-			this.initUpload();
+
+			// Clear any back button cache we might have and save the
+			// true form defaults
+			this.$el.find("form")[0].reset();
+			this.defaultSettings = {};
+			this.saveForm(this.defaultSettings);
 
 			setTimeout(function() {
-				this.loadForm(window.localStorage);
+				if (!_.isMatch(window.localStorage, this.defaultSettings)) {
+					this.loadForm(window.localStorage);
+					this.$clearSettingsBtn.show();
+				}
 				this.$el.find("form").on("change", function() {
 					this.saveForm(window.localStorage);
 				}.bind(this));
-			}.bind(this), 0);
+			}.bind(this), 1);
 		},
 
 		/* Save the contents of the form (barring file upload) to a (local)storage object
@@ -90,6 +100,12 @@
 			}
 		},
 
+		onClearSettings: function() {
+			this.loadForm(this.defaultSettings);
+			this.$clearSettingsBtn.hide();
+			this.saveForm(window.localStorage);
+		},
+
 		render: function() {
 			//sections
 			this.$datasetSection = this.$el.find( ".dataset-section" );
@@ -100,6 +116,7 @@
 			this.$variableTypeSection = this.$el.find( ".variable-type-section" );
 				
 			//random els
+			this.$clearSettingsBtn = this.$el.find(".clear-settings-btn");
 			this.$newDatasetDescriptionBtn = this.$el.find(".new-dataset-description-btn");
 			this.$newDatasetDescription = this.$el.find( "[name=new_dataset_description]" );
 			this.$existingDatasetSelect = this.$el.find( "[name=existing_dataset_id]" );
@@ -130,24 +147,6 @@
 			//hide optional elements
 			this.$newDatasetDescription.hide();
 			//this.$variableSection.hide();
-
-		},
-
-		initUpload: function() {
-
-			var that = this;
-			this.$filePicker.on( "change", function( i, v ) {
-				var $this = $(this);
-				$this.parse( {
-					config: {
-						skipEmptyLines: true,
-						complete: function( obj ) {
-							var data = { rows: obj.data };
-							that.onCsvSelected( null, data );
-						}
-					}
-				} );
-			} );
 
 		},
 
@@ -373,7 +372,7 @@
 			
 			//make sure time is from given domain
 			if( _.indexOf( [ "century", "decade", "quarter century", "half century", "year", "years" ], timeDomain ) == -1 ) {
-				var $resultNotice = $( "<p class='time-domain-validation-result validation-result text-danger'><i class='fa fa-exclamation-circle'></i>First top-left cell should contain time domain infomartion. Either 'century', or 'decade', or 'quarter century', or 'half century' or 'year' or 'years' for time intervals.</p>" );
+				var $resultNotice = $( "<p class='time-domain-validation-result validation-result text-danger'><i class='fa fa-exclamation-circle'></i>First top-left cell should contain time domain information. Either 'century', or 'decade', or 'quarter century', or 'half century' or 'year' or 'years' for time intervals.</p>" );
 				$dataTableWrapper.before( $resultNotice );
 			}
 			
@@ -472,7 +471,6 @@
 		},
 
 		onDatasetDescription: function( evt ) {
-
 			var $btn = $( evt.currentTarget );
 			
 			if( this.$newDatasetDescription.is( ":visible" ) ) {
@@ -486,13 +484,12 @@
 				$btn.find( "i" ).addClass( "fa-minus" );
 				$btn.find( "i" ).removeClass( "fa-plus" );
 			}
-
 		},
 
 		onNewDatasetChange: function( evt ) {
 			var $input = $( evt.currentTarget );
 			if (!$input.prop("checked")) return;
-			
+
 			if ($input.val() === "0") {
 				this.$newDatasetSection.hide();
 				this.$existingDatasetSection.show();
@@ -510,7 +507,6 @@
 		},
 
 		onNewDatasetNameChange: function( evt ) {
-
 			var $input = $( evt.currentTarget );
 			this.datasetName = $input.val();
 
@@ -557,21 +553,32 @@
 	
 		},
 
-		onRemoveUploadedFile: function( evt ) {
 
-			this.$filePicker.replaceWith( this.$filePicker.clone() );
+		onFileChange: function() {
+			// $.fn.parse comes from Papa Parse for some weird namespace-carefree reason
+			this.$filePicker.parse({
+				config: {
+					skipEmptyLines: true,
+					complete: function(obj) {
+						this.onRemoveUploadedFile(); // Clear anything that was already there
+						var data = { rows: obj.data };
+						this.onCsvSelected(null, data);
+					}.bind(this)
+				}
+			});
+		},
+
+		onRemoveUploadedFile: function() {
+			this.$filePicker.replaceWith(this.$filePicker.clone());
 			//refetch dom
-			this.$filePicker = this.$el.find( ".file-picker-wrapper [type=file]" );
-			this.$filePicker.prop( "disabled", false);
+			this.$filePicker = this.$el.find( ".file-picker-wrapper [type=file]");
+			this.$filePicker.prop("disabled", false);
 
 			//reset related components
 			this.$csvImportTableWrapper.empty();
 			this.$dataInput.val("");
 			//remove notifications
-			this.$csvImportResult.find( ".validation-result" ).remove();
-
-			this.initUpload();
-
+			this.$csvImportResult.find(".validation-result").remove();
 		},
 
 		onCategoryChange: function( evt ) {
@@ -610,7 +617,9 @@
 		},
 
 		onMultivariantDatasetChange: function( evt ) {
-			var $input = $( evt.currentTarget );
+			var $input = $(evt.currentTarget);
+			if (!$input.prop("checked")) return;
+
 			if( $input.val() === "1" ) {
 				this.isDataMultiVariant = true;
 				//$( ".validation-result" ).remove();

@@ -10,7 +10,7 @@
 				@endforeach
 			</div>
 		@endif
-		<h2>Import</h2>
+		<h2>Import <a class="clear-settings-btn" style="display: none;">Clear Settings</a></h2>
 		{!! Form::open(array('class' => 'form-inline validate-form', 'method' => 'post', 'url' => 'import/store')) !!}
 			<input name="user_id" class="" type="hidden" value="{!! \Auth::user()->id !!}" />
 			<section class="form-section dataset-section">
