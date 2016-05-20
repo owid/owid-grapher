@@ -40,7 +40,7 @@ class ImportTest extends TestCase
                 'description' => 'New source description.'
             ],
             'entityKey' => [
-                'USA', 'Australia', 'New Entity', 'New Entity 2'
+                'United States', 'Australia', 'New Entity', 'New Entity 2'
             ],
             'entities' => [
                 0, 1, 2, 3, 3
@@ -89,10 +89,6 @@ class ImportTest extends TestCase
 
         $this->seeInDatabase('entities', [
             'name' => 'New Entity 2'
-        ]);
-
-        $this->dontSeeInDatabase('entities', [
-            'name' => 'USA'
         ]);
 
         $this->seeInDatabase('variables', [

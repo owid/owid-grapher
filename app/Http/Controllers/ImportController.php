@@ -100,40 +100,26 @@ class ImportController extends Controller {
 				$datasetId = Dataset::create($datasetProps)->id;
 			}
 
-			// Now map the entity names we've been given to ids, and
-			// create any new ones that aren't in the database
-			$existingEntities = DB::table('entities')
-				->select('id', 'name', 'code')
-				->whereIn('code', $entityKey)
-				->orWhere(function($query) use ($entityKey) {
-					$query->whereIn('name', $entityKey);
-				})->get();
+			// First, we insert all of the entities with "on duplicate key update", ensuring
+			// they all exist in the database.
+			$insertQuery = "INSERT INTO entities (name, fk_ent_t_id) VALUES";
 
-			$entityNameToId = [];
-
-			foreach ($existingEntities as $entity) {
-				$entityNameToId[$entity->code] = $entity->id;
-				$entityNameToId[$entity->name] = $entity->id;
-			}
-
-			$newEntities = [];
+			$pdo = DB::connection()->getPdo();
 			foreach ($entityKey as $name) {
-				if (isset($entityNameToId[$name])) continue;
-				$newEntities[] = [ 'name' => $name, 'fk_ent_t_id' => 5 ];
+				if ($name != $entityKey[0])
+					$insertQuery .= ",";
+				$insertQuery .= " (" . $pdo->quote($name) . ",5)";
 			}
 
-			if (!empty($newEntities)) {
-				DB::table('entities')->insert($newEntities);
-				$newEntityNames = array_map(function($e) { return $e['name']; }, $newEntities);
-				$inserted = DB::table('entities')
-					->select('id', 'name')
-					->whereIn('name', $newEntityNames)
-					->get();
+			$insertQuery .= " ON DUPLICATE KEY UPDATE name=VALUES(name);";
 
-				foreach ($inserted as $entity) {
-					$entityNameToId[$entity->name] = $entity->id;
-				}
-			}
+			DB::statement($insertQuery);
+
+			// Now we need to pull them back out again so we know what ids to go with what names
+			$entityNameToId = DB::table('entities')
+				->select('id', 'name')
+				->whereIn('name', $entityKey)
+				->lists('id', 'name');
 
 			// Now we feed in our set of variables and associated data
 			foreach ($variables as $variable) {
