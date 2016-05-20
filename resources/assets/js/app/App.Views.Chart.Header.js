@@ -30,7 +30,7 @@
 		},
 
 
-		render: function( data ) {
+		render: function(data) {
 			var that = this,
 				chartName = App.ChartModel.get( "chart-name" ),
 				chartSubname = App.ChartModel.get( "chart-subname" ) || "",
@@ -45,9 +45,32 @@
 			chartName = this.replaceContextPlaceholders(chartName);
 			chartSubname = this.replaceContextPlaceholders(chartSubname);
 			if (this.mapDisclaimer) chartSubname += this.mapDisclaimer;
-			
-			this.$chartName.html(chartName);
-			this.$chartSubname.html(chartSubname);
+
+			var svg = d3.select("svg"),
+				svgWidth = $(svg[0][0]).width(),
+				svgHeight = $(svg[0][0]).height();
+
+			svg.selectAll(".chart-header").remove();
+
+			var g = svg.insert("g").attr("class", "chart-header");
+
+			var chartName = g.append("text")
+				.attr("class", "chart-name")
+				.attr("x", 0)
+				.attr("y", 0)
+				.attr("dy", "1rem")
+				.text(chartName);
+
+			owid.svgTextWrap(chartName, svgWidth);
+
+			var chartSubname = g.append("text")
+				.attr("class", "chart-subname")
+				.attr("x", 0)
+				.attr("y", 0)
+				.attr("dy", "2.4rem")
+				.text(chartSubname);
+
+			owid.svgTextWrap(chartSubname, svgWidth);
 
 			if( logo ) {
 				var fullUrl = Global.rootUrl + "/" + logo;
@@ -94,6 +117,10 @@
 			this.dispatcher.trigger("header-rendered");
 		},
 
+		onResize: function() {
+			this.render();
+		},
+
 		// Replaces things like *time* and *country* with the actual time and
 		// country displayed by the current chart context
 		replaceContextPlaceholders: function(text) {
@@ -101,7 +128,6 @@
 				var selectedCountries = App.ChartModel.get("selected-countries");
 				text = text.replace("*country*", _.pluck(selectedCountries, "name").join(", "));
 			}
-
 
 			if (s.contains(text, "*time")) {
 				var latestAvailable = this.timeGoesToLatest,
@@ -189,11 +215,6 @@
 			this.timeGoesToLatest = false;
 			this.targetYear = targetYear;
 		},
-
-		replaceTimePlaceholder: function( string, timeFrom, timeTo, latestAvailable ) {			
-
-			return string;
-		}
 
 	});
 

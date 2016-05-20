@@ -306,15 +306,6 @@
 			
 		},
 
-		resetExportResize: function() {
-
-			//$newEl.replaceWith( $oldEl );
-			this.$el.width( this.oldWidth );
-			this.$el.height( this.oldHeight );
-			this.onResize();
-
-		},
-
 		updateChart: function( data, timeType, dimensions ) {
 
 			this.chartTab.render( data, timeType, dimensions );
@@ -322,8 +313,21 @@
 		},
 	
 		onResize: function() {
+			var isMap = this.$el.find("#map-chart-tab").is(":visible");
+			var svg = isMap ? d3.select("svg.datamap") : d3.select("svg.nvd3-svg");
+
+			this.header.onResize();
+
+			// Figure out how much space we have left for the actual tab content
+
+			var svgBounds = svg.node().getBoundingClientRect(),
+				headerBBox = svg.select(".chart-header").node().getBBox(),
+				tabOffsetY = headerBBox.y + headerBBox.height,
+				tabHeight = svgBounds.height - headerBBox.height;
+			console.log(tabOffsetY, tabHeight);
+
 			if (this.activeTab.onResize)
-				this.activeTab.onResize();
+				this.activeTab.onResize(tabOffsetY, tabHeight);
 		},
 	});
 

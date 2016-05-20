@@ -272,6 +272,74 @@
 		});
 	};
 
+	owid.svgTextWrap = function(text, width) {
+		var $el = $(text[0][0]);
+		//get rid of potential tspans and get pure content (including hyperlinks)
+		var textContent = "",
+			$tspans = $el.find( "tspan" );
+		if( $tspans.length ) {
+			$.each( $tspans, function( i, v ) {
+				if( i > 0 ) {
+					textContent += " ";
+				}
+				textContent += $(v).text();
+			} );	
+		} else {
+			//element has no tspans, possibly first run
+			textContent = $el.text();
+		}
+		
+		//append to element
+		if( textContent ) {
+			$el.text( textContent );
+		}
+		
+		var isVisible = $el.is( ":visible" );
+
+		//make el visible for the time of being computed, otherwise getComputedTextLength returns 0
+		$el.show();
+
+		text.each( function() {
+			var text = d3.select(this),
+				string = $.trim(text.text()),
+				regex = /\s+/,
+				words = string.split(regex).reverse();
+
+			var word,
+				line = [],
+				lineNumber = 0,
+				lineHeight = 1.4, // ems
+				y = text.attr("y"),
+				dy = parseFloat(text.attr("dy")),
+				tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em");
+			
+			while( word = words.pop() ) {
+				line.push(word);
+				tspan.html(line.join(" "));
+				if( tspan.node().getComputedTextLength() > width ) {
+					line.pop();
+					tspan.text(line.join(" "));
+					line = [word];
+					tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+				}
+			}
+			
+		} );
+
+		//cache element height while it's still visible
+		var elBoundingBox = $el.get(0).getBoundingClientRect(),
+			elHeight = elBoundingBox.bottom - elBoundingBox.top;
+
+		//done with the dimension computations, hide element again, if it was invisible
+		if( !isVisible ) {
+			$el.hide();	
+		}
+
+		//in some user cases, can be useful to return height
+		return elHeight;
+	};
+
+
 	window.require = function(namespace) {
 		var obj = window;
 		_.each(namespace.split("."), function(level) {
