@@ -751,7 +751,7 @@
 			return value;
 		},
 
-		onResize: function() {
+		onResize: function(offsetY, availableHeight) {
 			if (_.isEmpty(this.localData)) return;
 			
 			if( this.legend ) {
@@ -763,32 +763,28 @@
 				svgHeight = this.$svg.height(),
 				chartType = App.ChartModel.get( "chart-type" ),
 				$chartWrapperInner = $( ".chart-wrapper-inner" ),
-				innerPaddingLeft = parseInt( $chartWrapperInner.css("padding-left"), 10),
-				innerPaddingRight = parseInt( $chartWrapperInner.css("padding-right"), 10),
-				innerPaddingTop = parseInt( $chartWrapperInner.css("padding-top"), 10),
-				innerPaddingBottom = parseInt( $chartWrapperInner.css("padding-bottom"), 10),
 				$chartLogoSvg = this.$el.find( ".chart-logo-svg" ),
 				chartHeaderHeight = this.$chartHeader.height(),
 				margins = App.ChartModel.get( "margins" ),
 				bottomChartMargin = 60,
-				currY, chartNameSvgY, chartNameSvgHeight, chartSubnameSvgHeight, footerDescriptionHeight, footerSourcesHeight, chartHeight;
+				chartNameSvgY, chartNameSvgHeight, chartSubnameSvgHeight, footerDescriptionHeight, footerSourcesHeight;
 
-			//start positioning the graph, according 
-			currY = 0;
+			var currY = offsetY;
+			var chartHeight = availableHeight;
 
 			//update stored height
 			svgHeight = this.$svg.height();
 
 			//add height of legend
 			if( !App.ChartModel.get( "hide-legend" ) ) {
-				currY += this.legend.height();
+				//currY += this.legend.height();
 			}
 
 			//set chart height
-			chartHeight = svgHeight - bottomChartMargin;
+			chartHeight -= bottomChartMargin;
 			//chartHeight = svgHeight - translateY - bottomChartMargin;
 			if( !App.ChartModel.get( "hide-legend" ) ) {
-				chartHeight -= this.legend.height();
+				//chartHeight -= this.legend.height();
 			}
 
 			//reflect margin top and down in chartHeight
@@ -826,8 +822,6 @@
 				this.translateString = "translate(" + legendMargins.left + " ," + currY + ")";
 				this.$svg.find( "> .nvd3.nv-custom-legend" ).attr( "transform", this.translateString );
 			}
-			
-			//this.$svg.css( "transform", "translate(0,-" + chartHeaderHeight + "px)" );
 
 			//for multibarchart, need to move controls bit higher
 			if( chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar ) {
