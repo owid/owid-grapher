@@ -13,7 +13,6 @@
 		initialize: function( options ) {
 			this.dispatcher = options.dispatcher;
 			this.parentView = options.parentView;
-			this.vardataModel = options.vardataModel;
 			this.$tab = this.$el.find("#chart-chart-tab");
 			this.$svg = this.$el.find( "#chart-chart-tab svg" );
 			this.$entitiesSelect = this.$el.find( "[name=available_entities]" );
@@ -25,7 +24,7 @@
 			if (!this.isAwake) return;
 
 			this.isAwake = false;
-			this.vardataModel.ready(this.activate.bind(this));
+			App.DataModel.ready(this.activate.bind(this));
 		},
 
 		activate: function() {
@@ -57,11 +56,10 @@
 
 			this.$reloadBtn = this.$el.find( ".reload-btn" );
 
-			var formConfig = App.ChartModel.get( "form-config" ),
-				entities = ( formConfig && formConfig[ "entities-collection" ] )? formConfig[ "entities-collection" ]: [],
-				selectedCountries = App.ChartModel.get( "selected-countries" ),
-				selectedCountriesIds = _.map( selectedCountries, function( v ) { return (v)? +v.id: ""; } ),
-				chartTime = App.ChartModel.get( "chart-time" );
+			var availableEntities = App.DataModel.get("availableEntities"),
+				selectedCountries = App.ChartModel.get("selected-countries"),
+				selectedCountriesIds = _.map(selectedCountries, function(v) { return (v)? +v.id: ""; }),
+				chartTime = App.ChartModel.get("chart-time");
 
 			var chartDescription = App.ChartModel.get( "chart-description" );
 			//this.$chartDescription.text( App.ChartModel.get( "chart-description" ) );
@@ -80,20 +78,6 @@
 				this.$yAxisScaleSelector.hide();
 			}
 
-			//update countries
-			this.$entitiesSelect.empty();
-			if( selectedCountriesIds.length ) {
-				//append empty default option
-				that.$entitiesSelect.append( "<option disabled selected>Select country</option>" );
-				_.each( entities, function( d, i ) {
-					//add only those entities, which are not selected already
-					if( _.indexOf( selectedCountriesIds, +d.id ) == -1 ) {
-						that.$entitiesSelect.append( "<option value='" + d.id + "'>" + d.name + "</option>" );
-					}
-				} );
-			}
-			//make chosen update, make sure it looses blur as well
-			this.$entitiesSelect.trigger( "chosen:updated" );
 
 			this.$chartFullScreen.on( "click", function( evt ) {
 				evt.preventDefault();
@@ -127,18 +111,30 @@
 				return false;
 			}
 
-			this.vardataModel.ready(function(variableData) {
-				this.render(variableData);
+			// Fill entity selector with all entities not currently selected
+			this.$entitiesSelect.empty();
+			this.$entitiesSelect.append( "<option disabled selected>Select country</option>" );
+			_.each(availableEntities, function(entity) {
+				if (!_.contains(selectedCountriesIds, +entity.id)) {
+					this.$entitiesSelect.append("<option value='" + entity.id + "'>" + entity.name + "</option>");
+				}
 			}.bind(this));
+
+			//make chosen update, make sure it looses blur as well
+			this.$entitiesSelect.trigger( "chosen:updated" );
+
+			this.render();
 		},
 
 		render: function() {
-			var data = this.vardataModel.transformData();
+			var data = App.DataModel.transformData();
 			var timeType = "Year";
 
 			if( !data ) {
 				return;
 			}
+
+
 
 			var that = this;
 

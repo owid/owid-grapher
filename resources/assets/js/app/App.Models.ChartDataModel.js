@@ -72,14 +72,19 @@
 			var minYear = _.min(startYears);
 			var maxYear = _.max(endYears);
 
+			var availableEntities = [];
+			_.each(variableData.entityKey, function(entity, id) {
+				availableEntities.push(_.extend({}, entity, { "id": +id }));
+			});
+
 			window.variableData = variableData;
-			this.set({ variableData: variableData, minYear: minYear, maxYear: maxYear });
+			this.set({ variableData: variableData, minYear: minYear, maxYear: maxYear, availableEntities: availableEntities });
 		},
 
 		ready: function(callback) {
 			var variableData = this.get("variableData");
 			if (!variableData) {
-				this.on("change:variableData", function() {
+				this.once("change:variableData", function() {
 					callback(this.get("variableData"));
 				}.bind(this));
 			} else {

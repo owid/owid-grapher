@@ -73,8 +73,10 @@
 							that.header.render();
 							that.onResize(); 
 							that.dispatcher.trigger("tab-change", tab.$tab.attr('id').split("-")[0]);
-						});			
-						tab.activate();
+						});
+						App.DataModel.ready(function() {
+							tab.activate();
+						});
 					}
 				});
 			});
