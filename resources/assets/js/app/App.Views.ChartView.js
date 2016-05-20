@@ -134,7 +134,6 @@
 				format = data.format,
 				width = parseInt( data.width, 10 ),
 				height = parseInt( data.height, 10 ),
-				isSvg = ( format === "svg" )? true: false,
 				exportMap = ( this.$el.find( "#map-chart-tab" ).is( ":visible" ) )? true: false,
 				$chartLogoSvg = $( ".chart-logo-svg" );
 			
@@ -192,51 +191,37 @@
 
 			$exportSvg.width( width );
 			$exportSvg.height( height );
+		
+			var cb = function( url ) {
+				
+				//activate click on dummy button
+				var $chartSaveBtn = $( ".chart-save-btn" );
+				$chartSaveBtn.attr( "href", url );
+				//$chartSaveBtn.attr( "download", "ourworldindata-grapher" );
+				$chartSaveBtn.get(0).click();
+
+				//safari will ingore click event on anchor, need to have work around that opens the svg at least in the same browser
+				var isSafari = navigator.userAgent.indexOf("Safari") > -1 && navigator.userAgent.indexOf("Chrome") === -1;
+				//temp try to always open new window
+				isSafari = true;
+				if( !isSafari ) {
+					setTimeout( function() {
+						window.location.reload();
+					}, 250 );
+				} else {
+					//safari workaround
+					window.location = url;
+				}
+				
+			};
 			
-			//depending whether we're creating svg or png, 
-			if( isSvg ) {
-				
-				var cb = function( url ) {
-					
-					//activate click on dummy button
-					var $chartSaveBtn = $( ".chart-save-btn" );
-					$chartSaveBtn.attr( "href", url );
-					//$chartSaveBtn.attr( "download", "ourworldindata-grapher" );
-					$chartSaveBtn.get(0).click();
+			//remove voronoi
+			$exportSvg.find(".nv-point-paths").remove();
 
-					//safari will ingore click event on anchor, need to have work around that opens the svg at least in the same browser
-					var isSafari = navigator.userAgent.indexOf("Safari") > -1 && navigator.userAgent.indexOf("Chrome") === -1;
-					//temp try to always open new window
-					isSafari = true;
-					if( !isSafari ) {
-						setTimeout( function() {
-							window.location.reload();
-						}, 250 );
-					} else {
-						//safari workaround
-						window.location = url;
-					}
-					
-				};
-
-				//add white background - MAX wanted to remove
-				/*var $rect = $( "<rect width='" + width + "' height='" + height + "' style='fill:#ffffff;'></rect>" );
-				$exportSvg.prepend( $rect );*/
-				
-				//remove voronoi
-				$exportSvg.find(".nv-point-paths").remove();
-
-				//remove add country button, display:none won't work in illustrator
-				var $addCountryBtn = $exportSvg.find( ".nv-add-btn,.nv-remove-btn" );
-				$addCountryBtn.remove();
-				svgAsDataUri($exportSvg.get(0), {}, cb);
-				
-			} else {
-				saveSvgAsPng($exportSvg.get(0), "chart.png");
-                setTimeout(function() {
-                    window.location.reload();
-                }, 250);
-			}
+			//remove add country button, display:none won't work in illustrator
+			var $addCountryBtn = $exportSvg.find( ".nv-add-btn,.nv-remove-btn" );
+			$addCountryBtn.remove();
+			svgAsDataUri($exportSvg.get(0), {}, cb);
 		},
 
 		addTextsForExport: function( $svg, width, height, exportMap ) {

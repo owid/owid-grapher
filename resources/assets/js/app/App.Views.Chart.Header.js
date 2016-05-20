@@ -29,6 +29,7 @@
 			App.ChartModel.on( "change", this.render, this );
 		},
 
+
 		render: function( data ) {
 			var that = this,
 				chartName = App.ChartModel.get( "chart-name" ),
@@ -39,27 +40,15 @@
 				secondLogo = App.ChartModel.get("second-logo"),
 				tabs = App.ChartModel.get( "tabs" );
 
-			//might need to replace country in title, if "change country" mode
-			if( addCountryMode === "change-country" ) {
-				console.log( "addCountryMode", selectedCountries );
-				//yep, probably need replacing country in title (select first country form stored one)
-				if( selectedCountries && selectedCountries.length ) {
-					var country = selectedCountries[0];
-					chartName = chartName.replace( "*country*", country.name );
-				}
-			}
+			this.updateTime();
 
-			//update name
-			this.$chartName.text( chartName );
-			//if there's time placeholder - time
-			if( chartName ) {
-				if( chartName.indexOf( "*time*" ) > -1 || chartName.indexOf( "*timeFrom*" ) > -1 || chartName.indexOf( "*timeTo*" ) > -1 ) {
-					this.$chartName.css( "visibility", "hidden" );
-				}
-			}
-			//update subname
+			chartName = this.replaceContextPlaceholders(chartName);
+			chartSubname = this.replaceContextPlaceholders(chartSubname);
+			if (this.mapDisclaimer) chartSubname += this.mapDisclaimer;
+			
+			this.$chartName.html(chartName);
 			this.$chartSubname.html(chartSubname);
-			//setup image for header
+
 			if( logo ) {
 				var fullUrl = Global.rootUrl + "/" + logo;
 				this.$logo.attr( "src", fullUrl );
@@ -105,15 +94,32 @@
 			this.dispatcher.trigger("header-rendered");
 		},
 
-		updateTime: function() {
-			// Replace *time* and similar in the chart title, but only if we need to
-			var chartName = this.$chartName.text();
-			if (chartName.indexOf("*time*") == -1 && chartName.indexOf("*timeFrom*") == -1 && chartName.indexOf("*timeTo*") == -1)
-				return;
+		// Replaces things like *time* and *country* with the actual time and
+		// country displayed by the current chart context
+		replaceContextPlaceholders: function(text) {
+			if (s.contains(text, "*country*")) {
+				var selectedCountries = App.ChartModel.get("selected-countries");
+				text = text.replace("*country*", _.pluck(selectedCountries, "name").join(", "));
+			}
 
-			var that = this;
+
+			if (s.contains(text, "*time")) {
+				var latestAvailable = this.timeGoesToLatest,
+					timeFrom = owid.displayYear(this.selectedTimeFrom),
+					timeTo = latestAvailable ? "latest available data" : owid.displayYear(this.selectedTimeTo),
+					time = this.targetYear || (timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo);
+
+				text = text.replace("*time*", time);
+				text = text.replace("*timeFrom*", timeFrom);
+				text = text.replace("*timeTo*", timeTo);
+			}
+
+			return text;
+		},
+
+		updateTime: function() {
 			var tabs =	App.ChartModel.get( "tabs" ),
-				activeTab = _.find(tabs, function(tab) { return that.$tabs.filter("." + tab + "-header-tab.active").length > 0});
+				activeTab = _.find(tabs, function(tab) { return this.$tabs.filter("." + tab + "-header-tab.active").length > 0}.bind(this));
 
 			if (activeTab == "map") {
 				if (this.parentView.mapTab.mapConfig)
@@ -125,8 +131,6 @@
 		},
 
 		updateTimeFromChart: function( data ) {
-			//is there any time placeholder to update at all?
-			var chartName = this.$chartName.text();
 			//find minimum and maximum in all displayed data
 			var dimsString = App.ChartModel.get("chart-dimensions"),
 				dims = $.parseJSON( dimsString ),
@@ -151,9 +155,11 @@
 				}
 			});
 
-			chartName = this.replaceTimePlaceholder( chartName, timeFrom, timeTo, latestAvailable );
-			this.$chartName.text( chartName );
-			this.$chartName.css( "visibility", "visible" );
+			this.selectedTimeFrom = timeFrom;
+			this.selectedTimeTo = timeTo;
+			this.timeGoesToLatest = latestAvailable;
+			this.mapDisclaimer = null;
+			this.targetYear = null;
 		},
 
 		updateTimeFromMap: function(map) {			
@@ -163,37 +169,28 @@
 				hasTargetYear = _.find(map.mapData, function(d) { return d.year == targetYear; }),
 				d = owid.displayYear;
 
-			var chartName = this.$chartName.text();
-			var chartSubname = this.$chartSubname.html();
-			chartName = this.replaceTimePlaceholder( chartName, targetYear, targetYear, false );
 			if (hasTargetYear && timeFrom != timeTo) {
 				// The target year is in the data but we're displaying a range, meaning not available for all countries
-				chartSubname += " Since some observations for " + d(targetYear) + " are not available the map displays the closest available data (" + d(timeFrom) + " to " + d(timeTo) + ").";
+				this.mapDisclaimer = " Since some observations for " + d(targetYear) + " are not available the map displays the closest available data (" + d(timeFrom) + " to " + d(timeTo) + ").";
 			} else if (!hasTargetYear && timeFrom != timeTo) {
 				// The target year isn't in the data at all and we're displaying a range of other nearby values
-				chartSubname += " Since observations for " + d(targetYear) + " are not available the map displays the closest available data (" + d(timeFrom) + " to " + d(timeTo) + ").";
+				this.mapDisclaimer = " Since observations for " + d(targetYear) + " are not available the map displays the closest available data (" + d(timeFrom) + " to " + d(timeTo) + ").";
 			} else if (!hasTargetYear && timeFrom == timeTo && timeFrom != targetYear) {
 				// The target year isn't in the data and we're displaying some other single year
-				chartSubname += " Since observations for " + d(targetYear) + " are not available the map displays the closest available data (from " + d(timeFrom) + ").";
+				this.mapDisclaimer = " Since observations for " + d(targetYear) + " are not available the map displays the closest available data (from " + d(timeFrom) + ").";
 			} else if (!hasTargetYear) {
-				chartSubname += " No observations are available for this year.";
+				this.mapDisclaimer = " No observations are available for this year.";
 			} else {
-				chartSubname += "<span style='visibility: hidden;'>A rather long placeholder to ensure that the text flow remains the same when changing between various years.</span>";
+				this.mapDisclaimer = "<span style='visibility: hidden;'>A rather long placeholder to ensure that the text flow remains the same when changing between various years.</span>";
 			}
-			this.$chartName.text(chartName);
-			this.$chartName.css("visibility", "visible");
-			this.$chartSubname.html(chartSubname);
+
+			this.selectedTimeFrom = timeFrom;
+			this.selectedTimeTo = timeTo;
+			this.timeGoesToLatest = false;
+			this.targetYear = targetYear;
 		},
 
 		replaceTimePlaceholder: function( string, timeFrom, timeTo, latestAvailable ) {			
-			timeFrom = owid.displayYear(timeFrom);
-			timeTo = owid.displayYear(timeTo);
-						
-			var time = (!latestAvailable) ? (timeFrom !== timeTo) ? timeFrom + " to " + timeTo : timeFrom : " latest available data";
-
-			string = string.replace( "*time*", time );
-			string = string.replace( "*timeFrom*", timeFrom );
-			string = string.replace( "*timeTo*", timeTo );
 
 			return string;
 		}
