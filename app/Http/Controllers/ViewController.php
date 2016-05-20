@@ -47,7 +47,7 @@ class ViewController extends Controller {
 		return $this->showChart($chart);
 	}
 
-	public function exportPNG($slug, Request $request) {
+	private function export($slug, Request $request, $format) {
 		$chart = Chart::where('slug', $slug)
 					  ->orWhere('id', $slug)
 					  ->first();
@@ -61,9 +61,17 @@ class ViewController extends Controller {
 		$width = min(intval($split[0]), 3000);
 		$height = min(intval($split[1]), 3000);
 
-		$file = Chart::exportPNG($slug, $_SERVER['QUERY_STRING'], $width, $height);
+		$file = Chart::export($slug, $_SERVER['QUERY_STRING'], $width, $height, $format);
 
 		return response()->file($file);
+	}
+
+	public function exportPNG($slug, Request $request) {
+		return $this->export($slug, $request, "png");
+	}
+
+	public function exportSVG($slug, Request $request) {
+		return $this->export($slug, $request, "svg");
 	}
 
 	public function exportCSV($slug, Request $request) {

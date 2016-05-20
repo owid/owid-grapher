@@ -20,7 +20,11 @@
 		</a>
 		<a class="download-image-btn" target="_blank">
 			<i class="fa fa-download"></i>
-			Download image
+			PNG
 		</a>
+		<!--<a class="download-svg-btn" target="_blank">
+			<i class="fa fa-download"></i>
+			SVG
+		</a>-->
 	</div>
 </div>

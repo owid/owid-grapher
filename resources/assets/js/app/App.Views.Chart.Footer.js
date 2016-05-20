@@ -5,7 +5,8 @@
 	App.Views.Chart.Footer = Backbone.View.extend({
 		el: "#chart-view .chart-footer",
 		events: {
-			"click .embed-btn": "onEmbed"
+			"click .embed-btn": "onEmbed",
+			"click .download-svg-btn": "tmpSVG"
 		},
 
 		initialize: function(options) {
@@ -14,7 +15,8 @@
 			this.$tweetBtn = this.$el.find(".tweet-btn");
 			this.$facebookBtn = this.$el.find(".facebook-btn");
 			this.$embedBtn = this.$el.find(".embed-btn");
-			this.$downloadImageBtn = this.$el.find(".download-image-btn");
+			this.$downloadPNGButton = this.$el.find(".download-image-btn");
+			this.$downloadSVGButton = this.$el.find(".download-svg-btn");
 			this.$embedModal = $(".embed-modal");
 			this.$embedModal.appendTo("body");
 
@@ -24,7 +26,7 @@
 		},
 
 		render: function() {
-			var headerText = $(".chart-header .chart-name").text(),				
+			var headerText = $(".chart-header .chart-name").text(),
 				baseUrl = Global.rootUrl + "/" + App.ChartModel.get("chart-slug"),
 				queryStr = window.location.search,
 				canonicalUrl = baseUrl + queryStr;
@@ -38,8 +40,11 @@
 			this.$facebookBtn.attr('href', facebookHref);
 
 			var pngHref = baseUrl + ".png" + queryStr,
+				svgHref = baseUrl + ".svg" + queryStr,
 				defaultSize = "1000x700";
-			this.$downloadImageBtn.attr('href', pngHref + (_.include(pngHref, "?") ? "&" : "?") + "size=" + defaultSize);
+			this.$downloadPNGButton.attr('href', pngHref + (_.include(pngHref, "?") ? "&" : "?") + "size=" + defaultSize);
+			this.$downloadSVGButton.attr('href', svgHref + (_.include(svgHref, "?") ? "&" : "?") + "size=" + defaultSize);
+
 
 			var iframeWidth = App.ChartModel.get("iframe-width") || "100%";
 			var iframeHeight = App.ChartModel.get("iframe-height") || "660px";

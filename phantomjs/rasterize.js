@@ -1,7 +1,9 @@
 "use strict";
 var page = require('webpage').create(),
     system = require('system'),
+    fs = require('fs'),
     address, output, size;
+
 
 if (system.args.length < 3 || system.args.length > 5) {
     console.log('Usage: rasterize.js URL filename [paperwidth*paperheight|paperformat] [zoom]');
@@ -12,6 +14,7 @@ if (system.args.length < 3 || system.args.length > 5) {
 } else {
     address = system.args[1];
     output = system.args[2];
+    fs.write(output, "foobar", 'w');
     page.viewportSize = { width: 600, height: 600 };
     if (system.args.length > 3 && system.args[2].substr(-4) === ".pdf") {
         size = system.args[3].split('*');
@@ -35,11 +38,16 @@ if (system.args.length < 3 || system.args.length > 5) {
     }
     page.onCallback = function(data) { 
         try {
-           page.render(output, { format: 'png' });
+            if (data && data.svg) {
+                var target = output.replace(".png", ".svg");
+                fs.write(target, data.svg, 'w');
+                phantom.exit();
+            } else {
+                page.render(output, { format: 'png' });
+            }
         } catch (e) {
             console.log(e);
         }
-        phantom.exit();
     }
     page.open(address, function (status) {
         if (status !== 'success') {
@@ -48,6 +56,7 @@ if (system.args.length < 3 || system.args.length > 5) {
         } else {
             /// In case the chart never loads, have a timeout
             window.setTimeout(function() {
+                console.log("Timeout!");
                 phantom.exit(1);
             }, 5000);
         }

@@ -138,6 +138,7 @@ Route::group(['middleware' => ['web']], function () {
 	Route::get('data/times', 'DataController@times');
 
 	Route::any('{all}.csv', ['uses' => 'ViewController@exportCSV'])->where('all', '(?!_debugbar).*');
+	Route::any('{all}.svg', ['uses' => 'ViewController@exportSVG'])->where('all', '(?!_debugbar).*');	
 	Route::any('{all}.png', ['uses' => 'ViewController@exportPNG'])->where('all', '(?!_debugbar).*');
 	Route::any('{all}.export', ['uses' => 'ViewController@show'])->where('all', '(?!_debugbar).*');
 	Route::any('{all}', ['uses' => 'ViewController@show'])->where('all', '(?!_debugbar).*');

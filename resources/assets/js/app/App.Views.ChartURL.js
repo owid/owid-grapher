@@ -20,9 +20,12 @@
 
 			if (window.location.pathname.match(/.export$/)) {
 				$("body").attr("id", "chart-export");
+				
 				$(window).on("chart-loaded", function() {
 					if (window.callPhantom) window.callPhantom();
 					else console.log("Chart loaded!");
+
+					App.ChartView.onDimensionExport();
 				});
 			}
 

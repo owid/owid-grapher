@@ -16,9 +16,6 @@
 	App.Views.ChartView = Backbone.View.extend({
 		activeTab: false,
 		el: "#chart-view",
-		events: {
-			"click .chart-export-btn": "exportContent"
-		},
 
 		initialize: function(options) {	
 			options = options || {};
@@ -91,52 +88,16 @@
 		},
 
 
-		/*displayTab: function( id ) {
-
-			console.log( "ChartView id", id );
-
-		},*/
-
-		onDimensionExportUpdate: function(data) {
-			if( !this.oldWidth ) {
-				this.oldWidth = this.$el.width();
-				this.oldHeight = this.$el.height();
-			}
-
-			//need to account for padding
-			var $chartWrapperInner = $( ".chart-wrapper-inner" ),
-				paddingLeft = parseInt( $chartWrapperInner.css( "padding-left" ), 10 ),
-				paddingRight = parseInt( $chartWrapperInner.css( "padding-right" ), 10 ),
-				paddingTop = parseInt( $chartWrapperInner.css( "padding-top" ), 10 ),
-				paddingBottom = parseInt( $chartWrapperInner.css( "padding-bottom" ), 10 );
-
-			data.width = parseInt( data.width, 10) + (paddingLeft + paddingRight);
-			data.height = parseInt( data.height, 10) + (paddingTop + paddingBottom);
-
-			//account for different heights of html and svg header
-			//data.height += 36;//56;
-			//account for different heights of html and svg footer
-			//data.height += 29;//49;
-
-			this.$el.width( data.width );
-			this.$el.height( data.height );
-			
-			this.onResize();
-		},
-
-		onDimensionExportCancel: function() {
-			this.resetExportResize();
-		},
-
-		onDimensionExport: function( data ) {
-			//export chart into svg or png
+		onDimensionExport: function() {
+			//export chart into svg
 			var that = this,
-				format = data.format,
-				width = parseInt( data.width, 10 ),
-				height = parseInt( data.height, 10 ),
+				format = "svg",
+				width = 1000,
+				height = 700,
 				exportMap = ( this.$el.find( "#map-chart-tab" ).is( ":visible" ) )? true: false,
 				$chartLogoSvg = $( ".chart-logo-svg" );
-			
+
+
 			//http://stackoverflow.com/questions/23218174/how-do-i-save-export-an-svg-file-after-creating-an-svg-with-d3-js-ie-safari-an
 			var $oldEl = this.$el,
 				$newEl = $oldEl.clone();
@@ -144,6 +105,10 @@
 			if( !exportMap ) {
 				$oldEl.replaceWith( $newEl );
 			}
+
+			$(".chart-header").hide();
+			$(".chart-footer").hide();
+
 			
 			//grab all svg
 			var $exportSvg;
@@ -163,6 +128,7 @@
 				//add classes 
 				$exportSvg.attr("class", "nvd3-svg export-svg");
 			}
+
 
 			$chartLogoSvg = $( ".chart-logo-svg" );
 
@@ -188,40 +154,25 @@
 			for( var i = 0; i < styleSheets.length; i++ ) {
 				Utils.inlineCssStyle( styleSheets[ i ].cssRules );
 			}
-
+		
 			$exportSvg.width( width );
 			$exportSvg.height( height );
-		
-			var cb = function( url ) {
-				
-				//activate click on dummy button
-				var $chartSaveBtn = $( ".chart-save-btn" );
-				$chartSaveBtn.attr( "href", url );
-				//$chartSaveBtn.attr( "download", "ourworldindata-grapher" );
-				$chartSaveBtn.get(0).click();
 
-				//safari will ingore click event on anchor, need to have work around that opens the svg at least in the same browser
-				var isSafari = navigator.userAgent.indexOf("Safari") > -1 && navigator.userAgent.indexOf("Chrome") === -1;
-				//temp try to always open new window
-				isSafari = true;
-				if( !isSafari ) {
-					setTimeout( function() {
-						window.location.reload();
-					}, 250 );
-				} else {
-					//safari workaround
-					window.location = url;
-				}
-				
-			};
-			
 			//remove voronoi
 			$exportSvg.find(".nv-point-paths").remove();
 
 			//remove add country button, display:none won't work in illustrator
 			var $addCountryBtn = $exportSvg.find( ".nv-add-btn,.nv-remove-btn" );
 			$addCountryBtn.remove();
-			svgAsDataUri($exportSvg.get(0), {}, cb);
+
+			$exportSvg.wrap("<div></div>");
+			var svg = $exportSvg.parent().html();
+
+
+			svgAsDataUri($exportSvg.get(0), {}, function(uri) {
+				var svg = uri.substring('data:image/svg+xml;base64,'.length);
+				window.callPhantom({ "svg": window.atob(svg) });
+			});
 		},
 
 		addTextsForExport: function( $svg, width, height, exportMap ) {
@@ -304,15 +255,6 @@
 			currY += sourcesHeight;
 			descriptionEl.setAttribute("transform", "translate(" + left + "," + currY + ")" );
 			
-		},
-
-		resetExportResize: function() {
-
-			//$newEl.replaceWith( $oldEl );
-			this.$el.width( this.oldWidth );
-			this.$el.height( this.oldHeight );
-			this.onResize();
-
 		},
 
 		updateChart: function( data, timeType, dimensions ) {

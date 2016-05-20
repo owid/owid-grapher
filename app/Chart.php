@@ -58,29 +58,32 @@ class Chart extends Model {
 	}
 
 	/**
-	 * Shell out to phantomjs to take a screenshot of our chart 
+	 * Shell out to phantomjs to take a screenshot of our chart + download the svg
 	 *
 	 * @param string $slug The chart slug to export.
 	 * @param int $width Desired width in pixels of the exported image.
 	 * @param int $height Desired height in pixels of the exported image. 
+	 * @param string $format Either "svg" or "png". Both will be saved, only affects return
 	 * @return string Path to exported file.
 	 */
-	public static function exportPNG($slug, $query, $width, $height) {
+	public static function export($slug, $query, $width, $height, $format) {
 		$phantomjs = base_path() . "/node_modules/.bin/phantomjs";
 		$rasterize = base_path() . "/phantomjs/rasterize.js";
 		$target = \Request::root() . "/" . $slug . ".export" . "?" . $query;
-		$file = public_path() . "/exports/" . $slug . ".png" . "?" . $query;
+		$pngFile = public_path() . "/exports/" . $slug . ".png" . "?" . $query;		
+		$returnFile = public_path() . "/exports/" . $slug . "." . $format . "?" . $query;	
 
-		if (!file_exists($file)) {
-			$command = $phantomjs . " " . $rasterize . " " . escapeshellarg($target) . " " . escapeshellarg($file) . " '" . $width . "px*" . $height . "px'" . " 2>&1";
+		if (!file_exists($returnFile)) {
+			$command = $phantomjs . " " . $rasterize . " " . escapeshellarg($target) . " " . escapeshellarg($pngFile) . " '" . $width . "px*" . $height . "px'" . " 2>&1";
 			Log::info($command);
 			exec($command, $output, $retval);
 
 			if ($retval != 0)
-           		return App::abort(406, json_encode($output));
+           		return \App::abort(406, json_encode($output));
 		}
 
-		return $file;
+
+		return $returnFile;
 	}
 
 	public static function exportPNGAsync($slug, $query, $width, $height) {
