@@ -265,22 +265,9 @@
 					</section>
 				</div>
 				<div id="styling-tab" class="tab-pane">
-					<section class="form-section logo-section">
-						<div class="form-section-header">
-							<h2><span class="form-section-digit">i</span>Logos</h2>
-						</div>
-						<div class="form-section-content">
-							<select name="logo" class="form-control logo-select">
-								<option value="" disabled selected>Select type</option>
-								@foreach( $data->logos as $logoId=>$logoName )
-									<option value="{{ $logoId }}">{{ $logoName }}</option>
-								@endforeach
-							</select>
-						</div>
-					</section>
 					<section class="form-section type-of-line-section">
 						<div class="form-section-header">
-							<h2><span class="form-section-digit">j</span>Choose Type of Line</h2>
+							<h2><span class="form-section-digit">i</span>Choose Type of Line</h2>
 						</div>
 						<div class="form-section-content">
 							<label>
@@ -308,7 +295,7 @@
 					</section>
 					<section class="form-section margins-section">
 						<div class="form-section-header">
-							<h2><span class="form-section-digit">k</span>Set margins</h2>
+							<h2><span class="form-section-digit">j</span>Set margins</h2>
 						</div>
 						<div class="form-section-content">
 							<label>
@@ -331,7 +318,7 @@
 					</section>
 					<section class="form-section legend-section">
 						<div class="form-section-header">
-							<h2><span class="form-section-digit">l</span>Legend</h2>
+							<h2><span class="form-section-digit">k</span>Legend</h2>
 						</div>
 						<div class="form-section-content">
 							<label>
@@ -342,7 +329,7 @@
 					</section>
 					<section class="form-section units-section">
 						<div class="form-section-header">
-							<h2><span class="form-section-digit">m</span>Popup Units</h2>
+							<h2><span class="form-section-digit">l</span>Popup Units</h2>
 						</div>
 						<div class="form-section-content">
 						</div>
@@ -351,7 +338,7 @@
 				<div id="export-tab" class="tab-pane">
 					<section class="form-section tabs-section">
 						<div class="form-section-header">
-							<h2><span class="form-section-digit">n</span>Which tabs</h2>
+							<h2><span class="form-section-digit">m</span>Which tabs</h2>
 						</div>
 						<div class="form-section-content">
 							<ol>
@@ -393,7 +380,7 @@
 					</section>
 					<section class="form-section">
 						<div class="form-section-header embed-section">
-							<h2><span class="form-section-digit">o</span>Embed your chart</h2>
+							<h2><span class="form-section-digit">n</span>Embed your chart</h2>
 						</div>
 						<div class="form-section-content">
 							<div class="embed-size-wrapper">

@@ -259,17 +259,12 @@
 			
 		},
 
-		updateChart: function( data, timeType, dimensions ) {
-
-			this.chartTab.render( data, timeType, dimensions );
-		
-		},
-	
 		onResize: function() {
 			var isMap = this.$el.find("#map-chart-tab").is(":visible");
 			var svg = isMap ? d3.select("svg.datamap") : d3.select("svg.nvd3-svg");
 
 			this.header.onResize();
+			this.footer.onResize();
 
 			// Figure out how much space we have left for the actual tab content
 

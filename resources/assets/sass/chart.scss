@@ -170,16 +170,17 @@
 		margin-bottom: 0.8rem;
 	}
 
-	.footer-btns {
-		font-size: 0.8rem;
-	}
-	.footer-btns a {
-		text-decoration: none;
-		margin-right: 0.5em;
-	}
-	.footer-btns a:hover {
-		text-decoration: none;
-	}
+}
+
+.footer-btns {
+	font-size: 0.8rem;
+}
+.footer-btns a {
+	text-decoration: none;
+	margin-right: 0.5em;
+}
+.footer-btns a:hover {
+	text-decoration: none;
 }
 
 /* Legend
@@ -245,6 +246,8 @@
 #chart-view .available-countries-select-wrapper {
 	position: relative;
 	z-index: 10;
+	line-height: 0;
+
 	select {
 		display: none;
 	}
@@ -804,17 +807,6 @@ body#chart-export {
 	.nv-add-btn {
 		display: none;	
 	}	
-}
-
-/**
- * PRINTING STUFF
- **/
-.chart-logo-svg,
-.chart-name-svg,
-.chart-subname-svg,
-.chart-description-svg,
-.chart-sources-svg {
-	display: none;
 }
 
 .export-svg {

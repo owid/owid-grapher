@@ -15,16 +15,9 @@
 			this.dispatcher = options.dispatcher;
 			this.parentView = options.parentView;
 
-			this.$chartName = this.$el.find( ".chart-name" );
-			this.$chartSubname = this.$el.find( ".chart-subname" );
-
-			this.$logo = this.$el.find( ".logo" );
-			this.$secondLogo = this.$el.find(".second-logo");
-			this.$logoSvg = d3.select( ".chart-logo-svg" );
-			this.$logoSvgImage = this.$logoSvg.select( ".chart-logo-svg-image" );
-			this.$logoSvgVector = this.$logoSvg.select( ".chart-logo-svg-vector" );
-
-			this.$tabs = this.$el.find( ".header-tab" );
+			this.logo = d3.select(".logo");
+			this.partnerLogo = d3.select(".partner-logo");
+			this.$tabs = $( ".header-tab" );
 
 			App.ChartModel.on( "change", this.render, this );
 		},
@@ -36,85 +29,103 @@
 				chartSubname = App.ChartModel.get( "chart-subname" ) || "",
 				addCountryMode = App.ChartModel.get( "add-country-mode" ),
 				selectedCountries = App.ChartModel.get( "selected-countries" ),
-				logo = App.ChartModel.get("logo"),
-				secondLogo = App.ChartModel.get("second-logo"),
+				logoUrl = App.ChartModel.get("logo"),
+				partnerLogoUrl = Global.rootUrl + "/" + App.ChartModel.get("second-logo"),
 				tabs = App.ChartModel.get( "tabs" );
 
-			this.updateTime();
+			/* Figure out the final header text */
 
+			this.updateTime();
 			chartName = this.replaceContextPlaceholders(chartName);
 			chartSubname = this.replaceContextPlaceholders(chartSubname);
 			if (this.mapDisclaimer) chartSubname += this.mapDisclaimer;
+
+			/* Position the logos first, because we shall need to wrap the text around them.
+			   Currently our logo is SVG but we must use image uris for the partner logos.
+			   TODO: Convert partner logos to SVG too, so that they can be scaled. */
 
 			var svg = d3.select("svg"),
 				svgWidth = $(svg[0][0]).width(),
 				svgHeight = $(svg[0][0]).height();
 
-			svg.selectAll(".chart-header").remove();
+			var logoWidth = this.logo.node().getBBox().width,
+				scaleFactor =  0.28,
+				logoX = svgWidth - logoWidth*scaleFactor;
+			this.logo.attr("transform", "translate(" + logoX + ", 0) scale(" + scaleFactor + ", " + scaleFactor + ")");
+			this.logo.style("visibility", "inherit");
 
-			var g = svg.insert("g").attr("class", "chart-header");
+			// Since SVG images aren't auto sized, we need to calculate the width and height
+			var img = new Image();
+			img.src = partnerLogoUrl;
+			img.onload = function() {
+				var partnerLogoWidth = this.partnerLogo.node().getBBox().width,
+					partnerLogoX = logoX - partnerLogoWidth;
 
-			var chartName = g.append("text")
-				.attr("class", "chart-name")
-				.attr("x", 0)
-				.attr("y", 0)
-				.attr("dy", "1rem")
-				.text(chartName);
+				this.partnerLogo.attr('width', img.width);
+				this.partnerLogo.attr('height', img.height);
+	
+				this.partnerLogo.node().setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", partnerLogoUrl);
+				this.partnerLogo.attr("transform", "translate(" + partnerLogoX + ", 0)");				
+				this.partnerLogo.style("visibility", "inherit");
 
-			owid.svgTextWrap(chartName, svgWidth);
+				svg.selectAll(".chart-name").remove();
+				svg.selectAll(".chart-subname").remove();
 
-			var chartSubname = g.append("text")
-				.attr("class", "chart-subname")
-				.attr("x", 0)
-				.attr("y", 0)
-				.attr("dy", "2.4rem")
-				.text(chartSubname);
+				var g = svg.select(".chart-header");
 
-			owid.svgTextWrap(chartSubname, svgWidth);
+				var chartNameText = g.append("text")
+					.attr("class", "chart-name")
+					.attr("x", 0)
+					.attr("y", 0)
+					.attr("dy", "1rem")
+					.text(chartName);
 
-			if( logo ) {
-				var fullUrl = Global.rootUrl + "/" + logo;
-				this.$logo.attr( "src", fullUrl );
-				this.$logo.css( "visibility", "visible" );
-				this.$logoSvgImage.attr( "xlink:href", fullUrl );
+				owid.svgTextWrap(chartNameText, svgWidth);
 
-				//after logo is loaded, resize svg image to the same 
-				this.$logo.on( "load", function() {
-					that.$logoSvgImage.attr( { "width": this.width, "height": this.height } );
-				} );
-			}
+				var chartSubnameText = g.append("text")
+					.attr("class", "chart-subname")
+					.attr("x", 0)
+					.attr("y", 0)
+					.attr("dy", "2.7rem")
+					.text(chartSubname)
+					.style("font-size", "0.8rem");
 
-			if( secondLogo ) {
+				owid.svgTextWrap(chartSubnameText, svgWidth);
+
+				this.$tabs.attr("style", "display: none !important;");
+
+				_.each(tabs, function( v, i ) {
+					var tab = that.$tabs.filter("." + v + "-header-tab");
+					tab.show();
+				});
+
+				//for first visible tab, add class for border-left, cannot be done in pure css http://stackoverflow.com/questions/18765814/targeting-first-visible-element-with-pure-css
+				this.$tabs.removeClass( "first" );
+				this.$tabs.filter( ":visible:first" ).addClass( "first" );
+
+				this.dispatcher.trigger("header-rendered");
+			}.bind(this);
+
+			/*if( secondLogo ) {
 				var fullUrl = Global.rootUrl + "/" + secondLogo;
 				this.$secondLogo.attr( "src", fullUrl );
 				this.$secondLogo.show();
 			} else {
 				this.$secondLogo.hide();
-			}
+			}*/
 
-			//should be displayed
-			if( logo === this.DEFAULT_LOGO_URL ) {
+						//should be displayed
+			/*if( logo === this.DEFAULT_LOGO_URL ) {
 				this.$logoSvg.attr( "class", "chart-logo-svg default-logo" );
 			} else {
 				this.$logoSvg.attr( "class", "chart-logo-svg" );
-			}
+			}*/
+
+
 
 			// HACK (Mispy): Since bootstrap sets list-item on these directly
 			// our css has to use !important to make them table-cell, but that
 			// means we can't just hide them normally.
-			this.$tabs.attr("style", "display: none !important;");
-
-			_.each(tabs, function( v, i ) {
-				var tab = that.$tabs.filter("." + v + "-header-tab");
-				tab.show();
-			});
-
-			//for first visible tab, add class for border-left, cannot be done in pure css http://stackoverflow.com/questions/18765814/targeting-first-visible-element-with-pure-css
-			this.$tabs.removeClass( "first" );
-			this.$tabs.filter( ":visible:first" ).addClass( "first" );
-
-			this.updateTime();
-			this.dispatcher.trigger("header-rendered");
 		},
 
 		onResize: function() {

@@ -25,7 +25,7 @@
 					if (window.callPhantom) window.callPhantom();
 					else console.log("Chart loaded!");
 
-					App.ChartView.onDimensionExport();
+//					App.ChartView.onDimensionExport();
 				});
 			}
 

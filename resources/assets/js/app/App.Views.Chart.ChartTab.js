@@ -759,15 +759,16 @@
 			}
 
 			//compute how much space for chart
-			var svgWidth = this.$svg.width(),
+			var svg = d3.select(this.$svg[0]),
+				svgWidth = this.$svg.width(),
 				svgHeight = this.$svg.height(),
 				chartType = App.ChartModel.get( "chart-type" ),
 				$chartWrapperInner = $( ".chart-wrapper-inner" ),
 				$chartLogoSvg = this.$el.find( ".chart-logo-svg" ),
-				chartHeaderHeight = this.$chartHeader.height(),
+				footerHeight = svg.select(".chart-footer-svg").node().getBBox().height,
 				margins = App.ChartModel.get( "margins" ),
 				bottomChartMargin = 60,
-				chartNameSvgY, chartNameSvgHeight, chartSubnameSvgHeight, footerDescriptionHeight, footerSourcesHeight;
+				chartNameSvgY, chartNameSvgHeight, chartSubnameSvgHeight;
 
 			var currY = offsetY;
 			var chartHeight = availableHeight;
@@ -777,14 +778,15 @@
 
 			//add height of legend
 			if( !App.ChartModel.get( "hide-legend" ) ) {
-				//currY += this.legend.height();
+				currY += this.legend.height();
 			}
 
 			//set chart height
 			chartHeight -= bottomChartMargin;
+			chartHeight -= footerHeight;
 			//chartHeight = svgHeight - translateY - bottomChartMargin;
 			if( !App.ChartModel.get( "hide-legend" ) ) {
-				//chartHeight -= this.legend.height();
+				chartHeight -= this.legend.height();
 			}
 
 			//reflect margin top and down in chartHeight
@@ -818,7 +820,6 @@
 			if( !App.ChartModel.get( "hide-legend" ) ) {
 				//position legend
 				var legendMargins = this.legend.margin();
-				currY = currY - this.legend.height();
 				this.translateString = "translate(" + legendMargins.left + " ," + currY + ")";
 				this.$svg.find( "> .nvd3.nv-custom-legend" ).attr( "transform", this.translateString );
 			}
