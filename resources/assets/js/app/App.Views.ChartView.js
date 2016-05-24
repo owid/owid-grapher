@@ -63,7 +63,7 @@
 			this.dispatcher.on( "dimension-export", this.onDimensionExport, this );
 			this.dispatcher.on( "dimension-export-cancel", this.onDimensionExportCancel, this );
 
-			$("[data-toggle='tab']").on("shown.bs.tab", function(evt) {
+			$("[data-toggle='tab']").on("shown.bs.tab", function(evt) { 
 				_.each(that.tabs, function(tab) { 
 					if ($(evt.target).attr('href') === "#"+tab.$tab.attr('id')) {						
 						if (that.activeTab)

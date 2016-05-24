@@ -64,6 +64,7 @@ elixir(function(mix) {
     mix.scripts([
         'libs/jquery-1.11.3.min.js',
         'libs/html5csv.js',
+        'libs/papaparse.js',
         'libs/d3.js',
         'libs/nv.d3.js',
         'libs/saveSvgAsPng.js',
