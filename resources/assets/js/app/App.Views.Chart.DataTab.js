@@ -17,8 +17,15 @@
 		},
 
 		activate: function() {
-			this.parentView.chartTab.activate();
-			this.trigger("tab-ready");
+			App.ChartModel.on("change", function() {
+				App.DataModel.ready(function() {
+					this.render();
+				}.bind(this));
+			}.bind(this), this);
+		},
+
+		deactivate: function() {
+			App.ChartModel.off(null, null, this);
 		},
 
 		render: function( data, localData, dimensions ) {
@@ -132,14 +139,5 @@
 
 			this.trigger("tab-ready");
 		},
-
-		show: function() {
-			this.$el.show();
-		},
-
-		hide: function() {
-			this.$el.hide();
-		}
-
 	} );
 })();

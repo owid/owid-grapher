@@ -25,19 +25,9 @@
 			this.parentView = options.parentView;
 			this.vardataModel = options.vardataModel;
 			this.$tab = this.$el.find("#map-chart-tab");
-			this.isAwake = false;
 		},
 
 		activate: function() {
-			// HACK - the chart tab is still responsible for the footer info
-			if (!this.parentView.chartTab.isAwake) {
-				this.parentView.chartTab.once("tab-ready", function() {
-					this.activate();
-				}.bind(this))
-				this.parentView.chartTab.activate();				
-				return;
-			}
-
 			if (this.isAwake) {
 				this.trigger("tab-ready");
 				return;
@@ -50,7 +40,10 @@
 			App.ChartModel.on("change-map", this.update, this);
 			App.ChartModel.on("change-map-year", this.updateYearOnly, this);
 			this.update();
-			this.isAwake = true;
+		},
+
+		deactivate: function() {
+			App.ChartModel.off(null, null, this);
 		},
 
 		update: function() {
@@ -86,7 +79,7 @@
 			var defaultProjection = this.getProjection(this.mapConfig.projection);
 
 			this.dataMap = new Datamap({
-				element: $("#map-chart-tab").get(0),
+				element: $(".chart-wrapper-inner").get(0),
 				responsive: true,
 				geographyConfig: {
 					dataUrl: Global.rootUrl + "/build/js/data/world.ids.json",

@@ -20,19 +20,6 @@
 		initialize: function(options) {
 			options = options || {};
 			this.dispatcher = options.dispatcher || _.clone(Backbone.Events);
-			this.vardataModel = new ChartDataModel();
-			App.DataModel = this.vardataModel;
-			var childViewOptions = { dispatcher: this.dispatcher, parentView: this, vardataModel: this.vardataModel };
-			this.header = new Header(childViewOptions);
-			this.footer = new Footer(childViewOptions);
-			var defaultTab = App.ChartModel.get("default-tab");
-			$("." + defaultTab + "-header-tab a").tab('show');
-			this.header.render();
-			this.footer.render();
-
-			return;
-			options = options || {};
-			this.dispatcher = options.dispatcher || _.clone(Backbone.Events);
 		
 			$(document).ajaxStart(function() {
 				$(".chart-preloader").show();
@@ -190,88 +177,6 @@
 				var svg = uri.substring('data:image/svg+xml;base64,'.length);
 				window.callPhantom({ "svg": window.atob(svg) });
 			});
-		},
-
-		addTextsForExport: function( $svg, width, height, exportMap ) {
-
-			var margins = App.ChartModel.get( "margins" );
-
-			//add elements
-			var selectors = [ "chart-name", "chart-subname", "chart-sources", "chart-description" ];
-			_.each( selectors, function( selector ) {
-
-				var $el = $( "#chart-view ." + selector ),
-					className = selector + "-svg",
-					svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-
-				//setup attributes
-				svgEl.setAttribute('class', className);
-				svgEl.setAttribute('dy', 0);
-				svgEl.textContent = $el.text();
-
-				$svg.append( svgEl );
-				
-				//fetch jquery object for use in Utils wrap
-				var $svgEl = $( "." + className );
-				//convert single line text into multi-line wrapped tspan
-				if( selector === "chart-name" || selector === "chart-subname" ) {
-					//account for logo on the right
-					width -= 50;
-				}
-				Utils.wrap( $svgEl, width );
-
-			} );
-
-			//if exporting chart tab, create wrapper and put everything but logo into it, so that we can then offset it 
-			var $parentEl = $svg,
-				holderClass = "nvd3-print-chart-holder",
-				$printHolder;
-
-			if( !exportMap ) {
-				$parentEl.append( "<g class='" + holderClass + "'></g>" );
-				$printHolder = $parentEl.find( "." + holderClass );
-				$printHolder.append( $( "svg.nvd3-svg > .nv-wrap" ) );
-				$printHolder.append( $( ".nv-custom-legend" ) );
-			} else {
-				$printHolder = $svg;
-			}
-			
-			//resize them
-			var titleEl = $( ".chart-name-svg").get(0), titleRect = titleEl.getBoundingClientRect(), titleHeight = titleRect.bottom - titleRect.top,
-				subTitleEl = $( ".chart-subname-svg").get(0), subTitleRect = subTitleEl.getBoundingClientRect(), subTitleHeight = subTitleRect.bottom - subTitleRect.top,
-				//printHolder doesn't have height at this point, so using parentEl bounding rect as replacement here
-				chartHolderEl = $printHolder.get(0), chartHolderRect = $parentEl.get(0).getBoundingClientRect(), chartHolderHeight = chartHolderRect.bottom - chartHolderRect.top,
-				sourcesEl = $( ".chart-sources-svg").get(0), sourcesRect = sourcesEl.getBoundingClientRect(), sourcesHeight = sourcesRect.bottom - sourcesRect.top,
-				descriptionEl = $( ".chart-description-svg").get(0), descriptionRect = descriptionEl.getBoundingClientRect(), descriptionHeight = descriptionRect.bottom - descriptionRect.top,
-				left = 15,//parseInt( margins.left, 10),
-				titleLeft = left + 16,
-				//start with margin top and also height of first line of title, cause text contains tspans
-				currY = parseInt( margins.top, 10) + 25;
-
-			titleEl.setAttribute("transform", "translate(" + titleLeft + "," + currY + ")" );
-
-			currY += titleHeight;
-			subTitleEl.setAttribute("transform", "translate(" + titleLeft + "," + currY + ")" );
-
-			currY += subTitleHeight;
-			chartHolderEl.setAttribute("transform", "translate(" + left + "," + currY + ")" );
-
-			currY += chartHolderHeight + parseInt( margins.bottom, 10) + 20;
-			sourcesEl.setAttribute("transform", "translate(" + left + "," + currY + ")" );
-			
-			//possibly also map legend
-			var $mapLegend = $( ".map-legend-wrapper" );
-			if( $mapLegend.length ) {
-				var mapLegendEl = $mapLegend.get(0),
-					mapLegendRect = mapLegendEl.getBoundingClientRect(), 
-					mapLegendHeight = mapLegendRect.bottom - mapLegendRect.top,
-					mapLegendY = currY - mapLegendHeight - 20;
-				mapLegendEl.setAttribute("transform", "translate(" + left + "," + mapLegendY + ")" );
-			}
-
-			currY += sourcesHeight;
-			descriptionEl.setAttribute("transform", "translate(" + left + "," + currY + ")" );
-			
 		},
 
 		onResize: function() {

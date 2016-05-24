@@ -62,7 +62,7 @@
 					.attr("class", "chart-name-svg")
 					.attr("x", 0)
 					.attr("y", 0)
-					.attr("dy", "1rem");
+					.attr("dy", "1em");
 
 				owid.svgSetWrappedText(chartNameText, chartName, availableWidth);
 
@@ -70,7 +70,7 @@
 					.attr("class", "chart-subname-svg")
 					.attr("x", 0)
 					.attr("y", 0)
-					.attr("dy", "2.7rem")
+					.attr("dy", "2.7em")
 					.style("font-size", "0.8rem");
 
 				owid.svgSetWrappedText(chartSubnameText, chartSubname, availableWidth);

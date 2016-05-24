@@ -9,10 +9,12 @@
 	overflow-y: auto;
 	/* Hidden overflow x so that tooltips in iframes don't cause scrollbars */
 	overflow-x: hidden;
+	position: relative;
 
 	a {
 		cursor: pointer;
 		color: #0645ad;
+		fill: #0645ad;
 	}
 	a:hover {
 		text-decoration: underline;
@@ -45,6 +47,9 @@
 		min-height: 300px;
 	}
 	svg {
+		position: absolute;
+		top: 0;
+		left: 0;
 		width: 100%;
 		height: 100%;
 	}
@@ -159,17 +164,8 @@
 
 /* Footer
 --------------------------------------------- */
-#chart-view .chart-footer {
-	position: relative;
-	width: 100%;
-	padding: 0px 0.6rem;
-	background-color: white;	
-
-	p {
-		font-size: 12px;
-		margin-bottom: 0.8rem;
-	}
-
+.chart-footer-svg {
+	font-size: 12px;
 }
 
 .footer-btns {

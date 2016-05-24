@@ -14,7 +14,7 @@
 			this.dispatcher = options.dispatcher;
 			this.parentView = options.parentView;
 			this.$tab = this.$el.find("#chart-chart-tab");
-			this.$svg = this.$el.find( "#chart-chart-tab svg" );
+			this.$svg = this.$el.find("svg");
 			this.$entitiesSelect = this.$el.find( "[name=available_entities]" );
 
 			App.ChartModel.on("change", this.onChartModelChange, this);

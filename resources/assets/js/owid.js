@@ -273,18 +273,60 @@
 	};
 
 	owid.svgSetWrappedText = function(text, content, width) {
+		// Use a dummy p element to extract the link info
+		var links = [],
+			$p = $("<p></p>");
+		$p.html(content);
+		$p.find("a").each(function(i, el) {
+			links.push($(el).attr("href"));
+		});
+
+		// Now indicate them with our own tags
+		content = content.replace(/<a[^>]+>/g, " <LINKSTART> ");
+		content = content.replace(/<\/a>/g, " <LINKSTOP> ");
+
 		var words = content.split(/ +/),
-			x = text.attr("x"),
-			y = text.attr("y"),
+			x = parseFloat(text.attr("x")),
+			y = parseFloat(text.attr("y")),
+			currentX = x,
 			currentDY = parseFloat(text.attr("dy")),
-			line = [],
+			currentLine = [],
+			linkIndex = -1,
+			currentLink = null,
 			lineNumber = 0,
 			lineHeight = 1.4,
-			word, tspan;
+			tspan = text.append("tspan").attr("x", x).attr("y", y).attr("dy", currentDY + "em"),
+			word = null;
+
+		// Terminate the current tspan and begin a new one
+		var breakSpan = function(isNewLine) {
+			tspan.node().textContent = currentLine.join(" ");
+
+			if (isNewLine) {
+				currentDY += lineHeight;				
+				currentX = x;
+			} else {
+				currentX += tspan.node().getComputedTextLength();
+			}
+
+			var container = text;
+			if (currentLink)
+				container = text.append("a").attr("xlink:href", currentLink);				
+			tspan = container.append("tspan").attr("x", currentX).attr("y", y).attr("dy", currentDY + "em");
+			currentLine = [];
+		};
 
 		while (word = words.shift()) {
-			if (!tspan)
-				tspan = text.append("tspan").attr("x", x).attr("y", y).attr("dy", currentDY + "em");
+			if (word == "<LINKSTART>") {
+				linkIndex += 1;
+				currentLink = links[linkIndex];
+				breakSpan();
+				continue;
+			} else if (word == "<LINKSTOP>") {
+				currentLink = null;
+				breakSpan();
+				continue;
+			}
 
 			var forceNewline = false;
 			if (s.contains(word, "\n")) {
@@ -297,21 +339,22 @@
 				forceNewline = true;
 			}
 
-			line.push(word);
-			tspan.html(line.join(" "));
+			currentLine.push(word);
+			tspan.node().textContent = currentLine.join(" ");
+			var newWidth = tspan.node().getComputedTextLength();
 
-			if (tspan.node().getComputedTextLength() > width) {
-				if (forceNewline) word += "\n"; // Forced newline goes to next line
-				// Exceeded width, make a new line
-				line.pop();
-				tspan.text(line.join(" "));
-				line = [word];
-				tspan = null;
-				currentDY += lineHeight;
+			if (newWidth > width) {				
+				if (forceNewline) word += "\n"; // Forced newline goes to next line if we're wrapping for other reasons
+
+				// Since this word goes over the limit, we wrap and send it to the next line
+				// If it's a single word over the limit however no wrapping can be done so we just leave it
+				if (currentLine.length > 1) {
+					words.unshift(currentLine.pop());
+				}
+
+				breakSpan(true);
 			} else if (forceNewline) {
-				line = [];
-				tspan = null;
-				currentDY += lineHeight;		
+				breakSpan(true);
 			}
 		}
 	};
