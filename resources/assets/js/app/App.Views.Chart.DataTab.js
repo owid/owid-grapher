@@ -15,8 +15,8 @@
 			this.$dataTable = this.$el.find(".data-table");
 		},
 
-		activate: function() {
-			this.render();
+		activate: function(callback) {
+			this.render(callback);
 			App.ChartModel.on("change", this.render.bind(this), this);
 		},
 
@@ -24,7 +24,7 @@
 			App.ChartModel.off(null, null, this);
 		},
 
-		render: function() {
+		render: function(callback) {
 			var params = owid.getQueryParams();
 			delete(params.tab);
 			var queryStr = owid.queryParamsToStr(params),
@@ -46,6 +46,7 @@
 					});
 
 					this.$dataTable.html(rowHtml);
+					if (callback) callback();
 				}.bind(this)
 			});
 		},

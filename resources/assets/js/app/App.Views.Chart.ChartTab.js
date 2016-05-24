@@ -16,29 +16,19 @@
 			this.$tab = this.$el.find("#chart-chart-tab");
 			this.$svg = this.$el.find("svg");
 			this.$entitiesSelect = this.$el.find( "[name=available_entities]" );
-
-			App.ChartModel.on("change", this.onChartModelChange, this);
 		},
 
 		onChartModelChange: function() {
-			if (!this.isAwake) return;
-
-			this.isAwake = false;
 			App.DataModel.ready(this.activate.bind(this));
 		},
 
-		activate: function() {
-			if (this.isAwake) {
-				this.trigger("tab-ready");
-				return;
-			}
-
-			this.isAwake = true;
+		activate: function(callback) {
+			App.ChartModel.on("change", this.onChartModelChange, this);
 
 			var that = this;
 
 			//chart tab
-			this.$svg = this.$el.find( "#chart-chart-tab svg" );
+			this.$svg = $("svg");
 			this.$tabContent = this.$el.find( ".tab-content" );
 			this.$tabPanes = this.$el.find( ".tab-pane" );
 			this.$chartHeader = this.$el.find( ".chart-header" );
@@ -123,10 +113,14 @@
 			//make chosen update, make sure it looses blur as well
 			this.$entitiesSelect.trigger( "chosen:updated" );
 
-			this.render();
+			this.render(callback);
 		},
 
-		render: function() {
+		deactivate: function() {
+			d3.selectAll(".nvd3").remove();
+		},
+
+		render: function(callback) {
 			var data = App.DataModel.transformData();
 			var timeType = "Year";
 
@@ -568,8 +562,6 @@
 				}
 				
 				var dimensions = JSON.parse(App.ChartModel.get("chart-dimensions"));
-				that.parentView.dataTab.render( data, localData, dimensions );
-				that.parentView.sourcesTab.render();
 
 				if( chartType == App.ChartType.ScatterPlot ) {
 					//need to have own showDist implementation, cause there's a bug in nvd3
@@ -591,7 +583,7 @@
 				}
 
 				window.chart = that.chart;
-				that.trigger('tab-ready');
+				if (callback) callback();
 			});
 
 			this.localData = localData;
@@ -765,9 +757,7 @@
 				chartType = App.ChartModel.get( "chart-type" ),
 				$chartWrapperInner = $( ".chart-wrapper-inner" ),
 				$chartLogoSvg = this.$el.find( ".chart-logo-svg" ),
-				footerHeight = svg.select(".chart-footer-svg").node().getBBox().height,
 				margins = App.ChartModel.get( "margins" ),
-				bottomChartMargin = 60,
 				chartNameSvgY, chartNameSvgHeight, chartSubnameSvgHeight;
 
 			var currY = offsetY;
@@ -781,9 +771,6 @@
 				currY += this.legend.height();
 			}
 
-			//set chart height
-			chartHeight -= bottomChartMargin;
-			chartHeight -= footerHeight;
 			//chartHeight = svgHeight - translateY - bottomChartMargin;
 			if( !App.ChartModel.get( "hide-legend" ) ) {
 				chartHeight -= this.legend.height();
@@ -791,10 +778,6 @@
 
 			//reflect margin top and down in chartHeight
 			chartHeight = chartHeight - margins.bottom - margins.top;
-
-			//position footer
-			var chartSourcesX = 20, //hardcoded some visual offset
-				chartSourcesY = currY + chartHeight + bottomChartMargin;
 
 			//compute chart width - add 60px
 			var chartWidth = svgWidth - margins.left - margins.right + 60;

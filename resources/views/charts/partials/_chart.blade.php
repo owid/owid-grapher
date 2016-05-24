@@ -51,29 +51,30 @@
 			</g>
 		</svg>
 
-		<div class="clearfix">
-			<ul class="chart-tabs clearfix">
-				<li class="chart-header-tab header-tab">
-					<a href="#chart-chart-tab" data-toggle="tab" aria-expanded="false"><i class="fa fa-line-chart"></i>Chart</a>
-				</li>
-				<li class="data-header-tab header-tab">
-					<a href="#data-chart-tab" data-toggle="tab" aria-expanded="false"><i class="fa fa-table"></i>Data</a>
-				</li>
-				<li class="map-header-tab header-tab">
-					<a href="#map-chart-tab" data-toggle="tab" aria-expanded="false"><i class="fa fa-map"></i>Map</a>
-				</li>
-				<li class="sources-header-tab header-tab">
-					<a href="#sources-chart-tab" data-toggle="tab" aria-expanded="false"><i class="fa fa-link"></i>Sources</a>
-				</li>
-				@if (Auth::user() && isset($chart))
-					<li class="edit-btn-wrapper">
-						<a href="{{ Request::root() }}/charts/{{ $chart->id }}/edit" class="edit-btn" target="_blank" title="Edit chart"><i class="fa fa-pencil"></i></a>
-					</li>
-				@endif
-			</ul>
-		</div>
 
 		<div class="tab-content">
+			<div class="clearfix">
+				<ul class="chart-tabs">
+					<li class="chart-header-tab header-tab">
+						<a href="#chart-chart-tab" data-toggle="tab" aria-expanded="false"><i class="fa fa-line-chart"></i>Chart</a>
+					</li>
+					<li class="data-header-tab header-tab">
+						<a href="#data-chart-tab" data-toggle="tab" aria-expanded="false"><i class="fa fa-table"></i>Data</a>
+					</li>
+					<li class="map-header-tab header-tab">
+						<a href="#map-chart-tab" data-toggle="tab" aria-expanded="false"><i class="fa fa-map"></i>Map</a>
+					</li>
+					<li class="sources-header-tab header-tab">
+						<a href="#sources-chart-tab" data-toggle="tab" aria-expanded="false"><i class="fa fa-link"></i>Sources</a>
+					</li>
+					@if (Auth::user() && isset($chart))
+						<li class="edit-btn-wrapper">
+							<a href="{{ Request::root() }}/charts/{{ $chart->id }}/edit" class="edit-btn" target="_blank" title="Edit chart"><i class="fa fa-pencil"></i></a>
+						</li>
+					@endif
+				</ul>
+			</div>
+
 			<div id="chart-chart-tab" class="tab-pane">
 				<div class="available-countries-select-wrapper">
 					<select class="available-countries-select chosen-select" name="available_entities" style="position: relative;z-index: 10;"></select>
@@ -94,7 +95,7 @@
 				</div>
 			</div>
 			<div id="data-chart-tab" class="tab-pane">
-				<a href="#" data-base-url="{!! isset($chart) ? Request::root() . '/' . $chart->slug . '.csv' : '' !!}" class="btn btn-primary download-data-btn" target="_blank"><i class="fa fa-download"></i>Download data</a>
+				<a href="#" class="btn btn-primary download-data-btn" target="_blank"><i class="fa fa-download"></i>Download data</a>
 				<table class="data-table"></table>
 			</div>
 			<div id="map-chart-tab" class="tab-pane">

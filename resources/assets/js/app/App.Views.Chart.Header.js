@@ -54,9 +54,9 @@
 			this.logo.style("visibility", "inherit");
 
 			var renderText = function(availableWidth) {
-				var g = svg.select(".chart-header-svg");
-				g.selectAll(".chart-name-svg").remove();
-				g.selectAll(".chart-subname-svg").remove();
+				svg.select(".chart-header-svg").remove();				
+				var g = svg.append("g")
+					.attr("class", "chart-header-svg");
 
 				var chartNameText = g.append("text")
 					.attr("class", "chart-name-svg")

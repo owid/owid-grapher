@@ -34,10 +34,8 @@
 			, vers = 'classic' //Options are "classic" and "furious" and "owd"
 			;
 
-		function chart(selection) {
-			
+		function chart(selection) {			
 			selection.each(function(data) {
-				
 				var $svg = $( "svg.nvd3-svg" ),
 					availableWidth = $svg.width() - margin.left - margin.right,
 					container = d3.select(this);

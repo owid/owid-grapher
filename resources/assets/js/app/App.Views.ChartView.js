@@ -17,6 +17,10 @@
 		activeTab: false,
 		el: "#chart-view",
 
+		events: {
+			"click li.header-tab a": "onTabClick"
+		},
+
 		initialize: function(options) {
 			options = options || {};
 			this.dispatcher = options.dispatcher || _.clone(Backbone.Events);
@@ -63,7 +67,7 @@
 			this.dispatcher.on( "dimension-export", this.onDimensionExport, this );
 			this.dispatcher.on( "dimension-export-cancel", this.onDimensionExportCancel, this );
 
-			$("[data-toggle='tab']").on("shown.bs.tab", function(evt) { 			
+			/*$("[data-toggle='tab']").on("shown.bs.tab", function(evt) { 			
 				_.each(that.tabs, function(tab) { 
 					if ($(evt.target).attr('href') === "#"+tab.$tab.attr('id')) {						
 						if (that.activeTab)
@@ -78,19 +82,34 @@
 						});
 					}
 				});
-			});
+			});*/
 
 			nv.utils.windowResize(_.debounce(function() {
-				that.onResize();
-			}, 150));					
+				this.onResize();
+			}.bind(this), 150));			
 
-			var defaultTab = App.ChartModel.get("default-tab");
-			$("." + defaultTab + "-header-tab a").tab('show');
+			var defaultTabName = App.ChartModel.get("default-tab");
+			this.activateTab(defaultTabName);
+		},
 
+		onTabClick: function(evt) {
+			var tabName = $(evt.target).closest("li").attr("class").match(/(\w+)-header-tab/)[1];
+			this.activateTab(tabName);
+		},
+
+		activateTab: function(tabName) {
+			$("." + tabName + "-header-tab a").tab('show');
+			var tab = this[tabName + "Tab"];
+			if (this.activeTab) this.activeTab.deactivate();
+
+			$(".chart-preloader").show();
 			App.DataModel.ready(function() {
-				this.header.render();
-				this.footer.render();
-				this.onResize();				
+				tab.activate(function() {
+					$(".chart-preloader").hide();		
+					this.activeTab = tab;
+					this.onResize();
+					this.dispatcher.trigger("tab-change", tabName);			
+				}.bind(this));
 			}.bind(this));
 		},
 
@@ -196,50 +215,16 @@
 				tabOffsetY = (headerBounds.top - svgBounds.top) + headerBounds.height,
 				tabHeight = (footerBounds.top - svgBounds.top) - tabOffsetY*2;
 
-			$(".tab-pane").css("margin-top", tabOffsetY);
-			$(".tab-pane").css("height", tabHeight);
+			$(".tab-content").css("margin-top", tabOffsetY);
+			$(".tab-content").css("height", tabHeight);
+
+			if ($(".chart-tabs").is(":visible")) {
+				tabOffsetY += $(".chart-tabs").height();
+				tabHeight -= $(".chart-tabs").height();
+			}
 
 			if (this.activeTab.onResize)
 				this.activeTab.onResize(tabOffsetY, tabHeight);
 		},
 	});
-
-	//backbone router doesn't work properly with browserify, so it's directly inserted here
-	/*var Router = Backbone.Router.extend({
-
-		routes: {
-				"chart": "onChartRoute",
-				"data": "onDataRoute",
-				"map": "onMapRoute",
-				"sources": "onSourcesRoute",
-				"*default": "onDefaultRoute"
-		},
-
-		onChartRoute: function() {
-			this.displayTab( "chart" );
-		},
-
-		onDataRoute: function() {
-			this.displayTab( "data" );
-		},
-
-		onMapRoute: function() {
-			this.displayTab( "map" );
-		},
-
-		onSourcesRoute: function() {
-			this.displayTab( "sources" );
-		},
-
-		onDefaultRoute: function() {
-			console.log( "onDefault router" );
-		},
-
-		displayTab: function( id ) {
-			console.log("displayTab",id);
-			//App.View.chartView.displayTab( id );
-		}
-
-	});*/
-
 })();
