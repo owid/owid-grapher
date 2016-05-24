@@ -27,10 +27,10 @@
 					<select class="available-countries-select chosen-select" name="available_entities" style="position: relative;z-index: 10;"></select>
 				</div>
 				<svg xmlns="http://www.w3.org/2000/svg" class="nvd3-svg"  version="1.1">
-					<g class="chart-header">
-						<image class="partner-logo" style="visibility: hidden;"/>
+					<g class="chart-header-svg">
+						<image class="partner-logo-svg" style="visibility: hidden;"/>
 						<a xlink:href="https://ourworldindata.org" target="_blank">
-							<g class="logo" style="visibility: hidden;">
+							<g class="logo-svg" style="visibility: hidden;">
 								<g class="chart-logo-svg-vector">
 									<rect x="0" y="0" fill="#1B2543" width="211.2" height="130.1"/>
 									<rect x="0" y="112.2" fill="#E63912" width="211.2" height="17.9"/>

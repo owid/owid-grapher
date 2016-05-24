@@ -15,22 +15,21 @@
 			this.dispatcher = options.dispatcher;
 			this.parentView = options.parentView;
 
-			this.logo = d3.select(".logo");
-			this.partnerLogo = d3.select(".partner-logo");
-			this.$tabs = $( ".header-tab" );
+			this.logo = d3.select(".logo-svg");
+			this.partnerLogo = d3.select(".partner-logo-svg");
+			this.$tabs = $(".header-tab");
 
 			App.ChartModel.on( "change", this.render, this );
 		},
 
-
 		render: function(data) {
-			var that = this,
-				chartName = App.ChartModel.get( "chart-name" ),
+			var chartName = App.ChartModel.get( "chart-name" ),
 				chartSubname = App.ChartModel.get( "chart-subname" ) || "",
 				addCountryMode = App.ChartModel.get( "add-country-mode" ),
 				selectedCountries = App.ChartModel.get( "selected-countries" ),
-				logoUrl = App.ChartModel.get("logo"),
-				partnerLogoUrl = Global.rootUrl + "/" + App.ChartModel.get("second-logo"),
+				logoPath = App.ChartModel.get("logo"),
+				partnerLogoPath = App.ChartModel.get("second-logo"),
+				partnerLogoUrl = partnerLogoPath && Global.rootUrl + "/" + partnerLogoPath,
 				tabs = App.ChartModel.get( "tabs" );
 
 			/* Figure out the final header text */
@@ -54,24 +53,10 @@
 			this.logo.attr("transform", "translate(" + logoX + ", 0) scale(" + scaleFactor + ", " + scaleFactor + ")");
 			this.logo.style("visibility", "inherit");
 
-			// Since SVG images aren't auto sized, we need to calculate the width and height
-			var img = new Image();
-			img.src = partnerLogoUrl;
-			img.onload = function() {
-				var partnerLogoWidth = this.partnerLogo.node().getBBox().width,
-					partnerLogoX = logoX - partnerLogoWidth;
-
-				this.partnerLogo.attr('width', img.width);
-				this.partnerLogo.attr('height', img.height);
-	
-				this.partnerLogo.node().setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", partnerLogoUrl);
-				this.partnerLogo.attr("transform", "translate(" + partnerLogoX + ", 0)");				
-				this.partnerLogo.style("visibility", "inherit");
-
+			var renderText = function(availableWidth) {
 				svg.selectAll(".chart-name").remove();
 				svg.selectAll(".chart-subname").remove();
-
-				var g = svg.select(".chart-header");
+				var g = svg.select(".chart-header-svg");
 
 				var chartNameText = g.append("text")
 					.attr("class", "chart-name")
@@ -80,9 +65,9 @@
 					.attr("dy", "1rem")
 					.text(chartName);
 
-				owid.svgTextWrap(chartNameText, svgWidth);
+				owid.svgTextWrap(chartNameText, availableWidth);
 
-				var chartSubnameText = g.append("text")
+				var chartSubnameText = g.append("text")	
 					.attr("class", "chart-subname")
 					.attr("x", 0)
 					.attr("y", 0)
@@ -90,42 +75,43 @@
 					.text(chartSubname)
 					.style("font-size", "0.8rem");
 
-				owid.svgTextWrap(chartSubnameText, svgWidth);
+				owid.svgTextWrap(chartSubnameText, availableWidth);
 
 				this.$tabs.attr("style", "display: none !important;");
 
 				_.each(tabs, function( v, i ) {
-					var tab = that.$tabs.filter("." + v + "-header-tab");
+					var tab = this.$tabs.filter("." + v + "-header-tab");
 					tab.show();
-				});
+				}.bind(this));
 
 				//for first visible tab, add class for border-left, cannot be done in pure css http://stackoverflow.com/questions/18765814/targeting-first-visible-element-with-pure-css
 				this.$tabs.removeClass( "first" );
 				this.$tabs.filter( ":visible:first" ).addClass( "first" );
 
-				this.dispatcher.trigger("header-rendered");
+				this.dispatcher.trigger("header-rendered");								
 			}.bind(this);
 
-			/*if( secondLogo ) {
-				var fullUrl = Global.rootUrl + "/" + secondLogo;
-				this.$secondLogo.attr( "src", fullUrl );
-				this.$secondLogo.show();
+			if (partnerLogoUrl) {
+				// HACK (Mispy): Since SVG image elements aren't autosized, any partner logo needs to 
+				// be loaded separately in HTML and then the width and height extracted
+				var img = new Image();
+				img.onload = function() {
+					var partnerLogoWidth = this.partnerLogo.node().getBBox().width,
+						partnerLogoX = logoX - partnerLogoWidth;
+
+					this.partnerLogo.attr('width', img.width);
+					this.partnerLogo.attr('height', img.height);
+		
+					this.partnerLogo.node().setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", partnerLogoUrl);
+					this.partnerLogo.attr("transform", "translate(" + partnerLogoX + ", 0)");				
+					this.partnerLogo.style("visibility", "inherit");
+
+					renderText(partnerLogoX);
+				}.bind(this);
+				img.src = partnerLogoUrl;
 			} else {
-				this.$secondLogo.hide();
-			}*/
-
-						//should be displayed
-			/*if( logo === this.DEFAULT_LOGO_URL ) {
-				this.$logoSvg.attr( "class", "chart-logo-svg default-logo" );
-			} else {
-				this.$logoSvg.attr( "class", "chart-logo-svg" );
-			}*/
-
-
-
-			// HACK (Mispy): Since bootstrap sets list-item on these directly
-			// our css has to use !important to make them table-cell, but that
-			// means we can't just hide them normally.
+				renderText(logoX);
+			}
 		},
 
 		onResize: function() {

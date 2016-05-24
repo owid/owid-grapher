@@ -269,7 +269,7 @@
 			// Figure out how much space we have left for the actual tab content
 
 			var svgBounds = svg.node().getBoundingClientRect(),
-				headerBBox = svg.select(".chart-header").node().getBBox(),
+				headerBBox = svg.select(".chart-header-svg").node().getBBox(),
 				tabOffsetY = headerBBox.y + headerBBox.height,
 				tabHeight = svgBounds.height - headerBBox.height;
 			console.log(tabOffsetY, tabHeight);
