@@ -32,6 +32,7 @@
 				return;
 			}
 
+			this.isReady = false;
 			this.set("variableData", null, { silent: true });
 			this.dataRequest = $.get(Global.rootUrl + "/data/variables/" + variableIds.join("+"));
 			this.dataRequest.done(function(rawData) {
@@ -78,6 +79,7 @@
 			});
 
 			window.variableData = variableData;
+			this.isReady = true;
 			this.set({ variableData: variableData, minYear: minYear, maxYear: maxYear, availableEntities: availableEntities });
 		},
 

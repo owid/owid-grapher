@@ -63,7 +63,7 @@
 			this.dispatcher.on( "dimension-export", this.onDimensionExport, this );
 			this.dispatcher.on( "dimension-export-cancel", this.onDimensionExportCancel, this );
 
-			$("[data-toggle='tab']").on("shown.bs.tab", function(evt) { 
+			$("[data-toggle='tab']").on("shown.bs.tab", function(evt) { 			
 				_.each(that.tabs, function(tab) { 
 					if ($(evt.target).attr('href') === "#"+tab.$tab.attr('id')) {						
 						if (that.activeTab)
@@ -87,8 +87,11 @@
 			var defaultTab = App.ChartModel.get("default-tab");
 			$("." + defaultTab + "-header-tab a").tab('show');
 
-			this.header.render();
-			this.footer.render();
+			App.DataModel.ready(function() {
+				this.header.render();
+				this.footer.render();
+				this.onResize();				
+			}.bind(this));
 		},
 
 
@@ -187,12 +190,14 @@
 			this.footer.onResize();
 
 			// Figure out how much space we have left for the actual tab content
-
 			var svgBounds = svg.node().getBoundingClientRect(),
-				headerBBox = svg.select(".chart-header-svg").node().getBBox(),
-				tabOffsetY = headerBBox.y + headerBBox.height,
-				tabHeight = svgBounds.height - headerBBox.height;
-			console.log(tabOffsetY, tabHeight);
+				headerBounds = svg.select(".chart-header-svg").node().getBoundingClientRect(),
+				footerBounds = svg.select(".chart-footer-svg").node().getBoundingClientRect(),
+				tabOffsetY = (headerBounds.top - svgBounds.top) + headerBounds.height,
+				tabHeight = (footerBounds.top - svgBounds.top) - tabOffsetY*2;
+
+			$(".tab-pane").css("margin-top", tabOffsetY);
+			$(".tab-pane").css("height", tabHeight);
 
 			if (this.activeTab.onResize)
 				this.activeTab.onResize(tabOffsetY, tabHeight);

@@ -25,13 +25,16 @@
 		},
 
 		render: function() {
-			App.DataModel.ready(function() {
-				this.renderSVG();
-				this.updateSharingButtons();
-			}.bind(this));
+			this.renderSVG();
+			this.updateSharingButtons();
 		},
 
 		renderSVG: function() {
+			if (!App.DataModel.isReady) {
+				App.DataModel.ready(this.renderSVG.bind(this));
+				return;
+			}
+
 			var sources = App.DataModel.transformDataForSources(),
 				sourceNames = _.pluck(sources, "name"),
  				license = App.DataModel.get("variableData").license,

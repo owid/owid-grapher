@@ -47,8 +47,7 @@
 
 					this.$dataTable.html(rowHtml);
 				}.bind(this)
-			})
-
+			});
 		},
 	});
 })();
