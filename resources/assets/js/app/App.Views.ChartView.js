@@ -17,7 +17,20 @@
 		activeTab: false,
 		el: "#chart-view",
 
-		initialize: function(options) {	
+		initialize: function(options) {
+			options = options || {};
+			this.dispatcher = options.dispatcher || _.clone(Backbone.Events);
+			this.vardataModel = new ChartDataModel();
+			App.DataModel = this.vardataModel;
+			var childViewOptions = { dispatcher: this.dispatcher, parentView: this, vardataModel: this.vardataModel };
+			this.header = new Header(childViewOptions);
+			this.footer = new Footer(childViewOptions);
+			var defaultTab = App.ChartModel.get("default-tab");
+			$("." + defaultTab + "-header-tab a").tab('show');
+			this.header.render();
+			this.footer.render();
+
+			return;
 			options = options || {};
 			this.dispatcher = options.dispatcher || _.clone(Backbone.Events);
 		
@@ -70,7 +83,6 @@
 							that.activeTab.off("tab-ready");
 						that.activeTab = tab;
 						tab.on("tab-ready", function() { 
-							that.header.render();
 							that.onResize(); 
 							that.dispatcher.trigger("tab-change", tab.$tab.attr('id').split("-")[0]);
 						});
@@ -87,6 +99,9 @@
 
 			var defaultTab = App.ChartModel.get("default-tab");
 			$("." + defaultTab + "-header-tab a").tab('show');
+
+			this.header.render();
+			this.footer.render();
 		},
 
 

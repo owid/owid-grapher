@@ -54,28 +54,26 @@
 			this.logo.style("visibility", "inherit");
 
 			var renderText = function(availableWidth) {
-				svg.selectAll(".chart-name").remove();
-				svg.selectAll(".chart-subname").remove();
 				var g = svg.select(".chart-header-svg");
+				g.selectAll(".chart-name-svg").remove();
+				g.selectAll(".chart-subname-svg").remove();
 
 				var chartNameText = g.append("text")
-					.attr("class", "chart-name")
+					.attr("class", "chart-name-svg")
 					.attr("x", 0)
 					.attr("y", 0)
-					.attr("dy", "1rem")
-					.text(chartName);
+					.attr("dy", "1rem");
 
-				owid.svgTextWrap(chartNameText, availableWidth);
+				owid.svgSetWrappedText(chartNameText, chartName, availableWidth);
 
 				var chartSubnameText = g.append("text")	
-					.attr("class", "chart-subname")
+					.attr("class", "chart-subname-svg")
 					.attr("x", 0)
 					.attr("y", 0)
 					.attr("dy", "2.7rem")
-					.text(chartSubname)
 					.style("font-size", "0.8rem");
 
-				owid.svgTextWrap(chartSubnameText, availableWidth);
+				owid.svgSetWrappedText(chartSubnameText, chartSubname, availableWidth);
 
 				this.$tabs.attr("style", "display: none !important;");
 

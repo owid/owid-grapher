@@ -272,71 +272,48 @@
 		});
 	};
 
-	owid.svgTextWrap = function(text, width) {
-		var $el = $(text[0][0]);
-		//get rid of potential tspans and get pure content (including hyperlinks)
-		var textContent = "",
-			$tspans = $el.find( "tspan" );
-		if( $tspans.length ) {
-			$.each( $tspans, function( i, v ) {
-				if( i > 0 ) {
-					textContent += " ";
-				}
-				textContent += $(v).text();
-			} );	
-		} else {
-			//element has no tspans, possibly first run
-			textContent = $el.text();
-		}
-		
-		//append to element
-		if( textContent ) {
-			$el.text( textContent );
-		}
-		
-		var isVisible = $el.is( ":visible" );
+	owid.svgSetWrappedText = function(text, content, width) {
+		var words = content.split(/ +/),
+			x = text.attr("x"),
+			y = text.attr("y"),
+			currentDY = parseFloat(text.attr("dy")),
+			line = [],
+			lineNumber = 0,
+			lineHeight = 1.4,
+			word, tspan;
 
-		//make el visible for the time of being computed, otherwise getComputedTextLength returns 0
-		$el.show();
+		while (word = words.shift()) {
+			if (!tspan)
+				tspan = text.append("tspan").attr("x", x).attr("y", y).attr("dy", currentDY + "em");
 
-		text.each( function() {
-			var text = d3.select(this),
-				string = $.trim(text.text()),
-				regex = /\s+/,
-				words = string.split(regex).reverse();
+			var forceNewline = false;
+			if (s.contains(word, "\n")) {
+				var spl = word.split("\n");
+				var beforeLine = spl.shift();
+				var afterLine = spl.join("\n");
 
-			var word,
-				line = [],
-				lineNumber = 0,
-				lineHeight = 1.4, // ems
-				y = text.attr("y"),
-				dy = parseFloat(text.attr("dy")),
-				tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em");
-			
-			while( word = words.pop() ) {
-				line.push(word);
-				tspan.html(line.join(" "));
-				if( tspan.node().getComputedTextLength() > width ) {
-					line.pop();
-					tspan.text(line.join(" "));
-					line = [word];
-					tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
-				}
+				word = beforeLine;
+				if (afterLine) words.unshift(afterLine);
+				forceNewline = true;
 			}
-			
-		} );
 
-		//cache element height while it's still visible
-		var elBoundingBox = $el.get(0).getBoundingClientRect(),
-			elHeight = elBoundingBox.bottom - elBoundingBox.top;
+			line.push(word);
+			tspan.html(line.join(" "));
 
-		//done with the dimension computations, hide element again, if it was invisible
-		if( !isVisible ) {
-			$el.hide();	
+			if (tspan.node().getComputedTextLength() > width) {
+				if (forceNewline) word += "\n"; // Forced newline goes to next line
+				// Exceeded width, make a new line
+				line.pop();
+				tspan.text(line.join(" "));
+				line = [word];
+				tspan = null;
+				currentDY += lineHeight;
+			} else if (forceNewline) {
+				line = [];
+				tspan = null;
+				currentDY += lineHeight;		
+			}
 		}
-
-		//in some user cases, can be useful to return height
-		return elHeight;
 	};
 
 
