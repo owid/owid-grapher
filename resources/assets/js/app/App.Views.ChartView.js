@@ -43,12 +43,9 @@
 			var that = this;
 
 			// Data model used for fetching variables
-			this.vardataModel = new ChartDataModel();
-			App.DataModel = this.vardataModel;
-
-			var childViewOptions = { dispatcher: this.dispatcher, parentView: this, vardataModel: this.vardataModel };
+			App.DataModel = new ChartDataModel();			
+			var childViewOptions = { dispatcher: this.dispatcher, parentView: this };
 			this.urlBinder = new ChartURL(childViewOptions);
-
 			this.header = new Header(childViewOptions);
 			this.footer = new Footer(childViewOptions);
 			this.scaleSelectors = new ScaleSelectors(childViewOptions);
@@ -84,7 +81,7 @@
 			}
 
 			this.dispatcher.trigger("tab-change", tabName);			
-			$(".chart-preloader").show();
+			$(".chart-preloader").show();			
 			App.DataModel.ready(function() {
 				tab.activate(function() {
 					$(".chart-preloader").hide();		
@@ -94,17 +91,17 @@
 			}.bind(this));
 		},
 
-
 		onSVGExport: function() {	
+			return;
 			var svg = d3.select("svg");
 
 			// Remove SVG UI elements that aren't needed for export
 			svg.selectAll(".nv-add-btn").remove();
 
 			var styleSheets = document.styleSheets;
-			for( var i = 0; i < styleSheets.length; i++ ) {
-				Utils.inlineCssStyle(styleSheets[i].cssRules);
-			}
+			_.each(document.styleSheets, function(styleSheet) {
+				Utils.inlineCssStyle(styleSheet.cssRules);
+			});
 
 			svgAsDataUri(svg.node(), {}, function(uri) {
 				var svg = uri.substring('data:image/svg+xml;base64,'.length);
@@ -112,11 +109,11 @@
 			});
 		},
 
-		onResize: function() {
+		onResize: function(callback) {
 			var svg = d3.select("svg");
 
 			async.series([this.header.onResize.bind(this.header), 
-						 this.footer.onResize.bind(this.footer)]	, 
+						 this.footer.onResize.bind(this.footer)], 
 			function() {
 				// Figure out how much space we have left for the actual tab content
 				var svgBounds = svg.node().getBoundingClientRect(),
@@ -133,10 +130,12 @@
 					tabHeight -= $(".chart-tabs").height();
 				}
 
-				$(".tab-pane").css("height", "calc(100% - " + ($(".tab-content > .clearfix").height() + $(".footer-btns").height) + "px)");
+				$(".tab-pane").css("height", "calc(100% - " + $(".tab-content > .clearfix").height() + "px)");
 
 				if (this.activeTab && this.activeTab.onResize)
-					this.activeTab.onResize();
+					this.activeTab.onResize(callback);
+				else
+					if (callback) callback();
 			}.bind(this));
 		},
 	});

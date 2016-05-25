@@ -272,7 +272,17 @@
 		});
 	};
 
+	var ctx;
 	owid.svgSetWrappedText = function(text, content, width) {
+		if (!ctx) {
+			var canvas = $("<canvas></canvas>").get(0);
+			ctx = canvas.getContext("2d");
+		}
+		ctx.font = $(text.node()).css("font-size") + " " + $(text.node()).css("font-family");
+
+		// Empty it out first
+		text.text("");
+
 		// Use a dummy p element to extract the link info
 		var links = [],
 			$p = $("<p></p>");
@@ -300,13 +310,14 @@
 
 		// Terminate the current tspan and begin a new one
 		var breakSpan = function(isNewLine) {
-			tspan.node().textContent = currentLine.join(" ");
+			var textContent = currentLine.join(" ");
+			tspan.node().textContent = textContent;
 
 			if (isNewLine) {
 				currentDY += lineHeight;				
 				currentX = x;
 			} else {
-				currentX += tspan.node().getComputedTextLength();
+				currentX += ctx.measureText(textContent).width;
 			}
 
 			var container = text;
@@ -340,10 +351,9 @@
 			}
 
 			currentLine.push(word);
-			tspan.node().textContent = currentLine.join(" ");
-			var newWidth = tspan.node().getComputedTextLength();
+			var newWidth = ctx.measureText(currentLine.join(" ")).width;
 
-			if (newWidth > width) {				
+			if (currentX + newWidth > width) {				
 				if (forceNewline) word += "\n"; // Forced newline goes to next line if we're wrapping for other reasons
 
 				// Since this word goes over the limit, we wrap and send it to the next line
@@ -357,6 +367,8 @@
 				breakSpan(true);
 			}
 		}
+
+		breakSpan();
 	};
 
 

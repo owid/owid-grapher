@@ -45,7 +45,8 @@
 
 			var svg = d3.select("svg"),
 				svgWidth = $(svg[0][0]).width(),
-				svgHeight = $(svg[0][0]).height();
+				svgHeight = $(svg[0][0]).height(),
+				g = svg.select(".chart-header-svg");
 
 			var logoWidth = this.logo.node().getBBox().width,
 				scaleFactor =  0.28,
@@ -54,33 +55,15 @@
 			this.logo.style("visibility", "inherit");
 
 			var renderText = function(availableWidth) {
-				svg.select(".chart-header-svg").remove();				
-				var g = svg.append("g")
-					.attr("class", "chart-header-svg");
-
-				var chartNameText = g.append("text")
-					.attr("class", "chart-name-svg")
-					.attr("x", 0)
-					.attr("y", 0)
-					.attr("dy", "1em");
-
+				var chartNameText = g.select(".chart-name-svg");
 				owid.svgSetWrappedText(chartNameText, chartName, availableWidth);
 
-				var chartSubnameText = g.append("text")	
-					.attr("class", "chart-subname-svg")
-					.attr("x", 0)
-					.attr("y", 0)
-					.attr("dy", "2.7em")
-					.style("font-size", "0.8rem");
-
+				var chartSubnameText = g.select(".chart-subname-svg");
 				owid.svgSetWrappedText(chartSubnameText, chartSubname, availableWidth);
-
-				g.insert("rect", "*")
-					.attr("x", 0).attr("y", 0)			
+				var bgHeight = chartSubnameText.node().getBoundingClientRect().bottom - chartNameText.node().getBoundingClientRect().top;
+				g.select(".header-bg-svg")
 					.attr("width", svgWidth)
-					.attr("height", g.node().getBBox().height + 10)
-					.style("fill", "#fff");
-
+					.attr("height", bgHeight + 10);
 				this.$tabs.attr("style", "display: none !important;");
 
 				_.each(tabs, function( v, i ) {
@@ -93,7 +76,7 @@
 				this.$tabs.filter( ":visible:first" ).addClass( "first" );
 
 				this.dispatcher.trigger("header-rendered");			
-				if (callback) callback();					
+				if (_.isFunction(callback)) callback();					
 			}.bind(this);
 
 			if (partnerLogoUrl) {

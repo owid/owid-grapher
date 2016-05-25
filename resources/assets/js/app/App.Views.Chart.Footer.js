@@ -69,7 +69,6 @@
 			var g = svg.append("g").attr("class", "chart-footer-svg");
 
 			var footerText = g.append("text")
-				.attr("class", "license-svg")
 				.attr("x", 0)
 				.attr("y", 0)
 				.attr("dy", 0);

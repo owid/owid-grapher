@@ -375,8 +375,7 @@
 				}
 
 				that.chart.dispatch.on("renderEnd", function(state) {
-					if (that.parentView.activeTab == that.parentView.chartTab)
-						$(window).trigger('chart-loaded');
+					$(window).trigger('chart-loaded');
 
 					/* HACK (Mispy): Ensure stacked area charts maintain the correct dimensions on 
 					 * transition between stacked and expanded modes. It cannot be done on renderEnd
@@ -585,6 +584,7 @@
 				}
 
 				window.chart = that.chart;
+				that.onResize();
 				if (callback) callback();
 			});
 

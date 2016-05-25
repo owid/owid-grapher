@@ -38,6 +38,7 @@
 
 		deactivate: function() {
 			App.ChartModel.off(null, null, this);
+			$(".datamaps-hoverover").remove();
 			d3.selectAll(".datamaps-subunits, .border-disclaimer, .legend-wrapper").remove();			
 			$("svg").removeClass("datamap");
 			this.dataMap = null;
@@ -63,7 +64,7 @@
 
 		// Optimized method for updating the target year with the slider
 		updateYearOnly: _.throttle(function() {
-			this.vardataModel.ready(function(variableData) {
+			App.DataModel.ready(function(variableData) {
 				this.mapData = this.transformData(variableData);
 				this.applyColors(this.mapData, this.colorScale);
 				this.dataMap.updateChoropleth(this.mapData, { reset: true });
@@ -75,10 +76,10 @@
 			var self = this;
 			var defaultProjection = this.getProjection(this.mapConfig.projection);
 
-			$("svg").remove();
+			var $oldSvg = $("svg");
 			this.dataMap = new Datamap({
 				element: $(".chart-wrapper-inner").get(0),
-				responsive: true,
+				responsive: false,
 				geographyConfig: {
 					dataUrl: Global.rootUrl + "/build/js/data/world.ids.json",
 					borderWidth: 0.3,
@@ -93,7 +94,13 @@
 					defaultFill: '#8b8b8b'
 				},
 				setProjection: defaultProjection,
-				done: onMapReady
+				done: function() {
+					// HACK (Mispy): Workaround for the fact that datamaps insists on creating
+					// its own SVG element instead of injecting into an existing one.
+					$oldSvg.children().appendTo($("svg.datamap"));
+					$oldSvg.remove();
+					onMapReady();
+				}
 			});
 
 			// For maps earlier than 2011, display a disclaimer noting that data is mapped
@@ -369,15 +376,15 @@
 			var matrixStr = "matrix(" + scaleFactor + ",0,0," + scaleFactor + "," + newOffsetX + "," + newOffsetY + ")";
 			map.style(prefix + "transform", matrixStr);
 
-/*			if (this.bordersDisclaimer && !this.bordersDisclaimer.empty()) {
+			if (this.bordersDisclaimer && !this.bordersDisclaimer.empty()) {
 				var bordersDisclaimerEl = this.bordersDisclaimer.node(),
-					bordersDisclaimerX = wrapperWidth - bordersDisclaimerEl.getComputedTextLength() - 10,
-					bordersDisclaimerY = wrapperHeight - 10;
+					bordersDisclaimerX = availableWidth - bordersDisclaimerEl.getComputedTextLength() - 10,
+					bordersDisclaimerY = (tabBounds.top - svgBounds.top) + availableHeight - 10;
 				this.bordersDisclaimer.attr("transform", "translate(" + bordersDisclaimerX + "," + bordersDisclaimerY + ")");
-			}*/
+			}
 
 			if (this.legend) {
-//				this.legend.onResize();
+				this.legend.onResize(tabBounds.top - svgBounds.top, availableHeight);
 			}
 
 			if (callback) callback();

@@ -54,15 +54,8 @@
 			containerHeight = datamap.node().getBoundingClientRect().height;
 			//position legend vertically
 			var legendY = (offsetY+availableHeight) - legendOffsetY - stepSizeHeight;
-			if( orientation === "landscape" ) {
+			if (orientation === "landscape") {
 				legendY -= descriptionHeight;
-			}
-
-			var timelineControls = d3.select( ".map-timeline-controls" );
-			if (!timelineControls.empty()) {
-				var controlsBoundingRect = timelineControls.node().getBoundingClientRect(),
-					controlsHeight = controlsBoundingRect.bottom - controlsBoundingRect.top;
-				legendY -= controlsHeight;
 			}
 
 			container.attr( "transform", "translate(0," + legendY + ")" );

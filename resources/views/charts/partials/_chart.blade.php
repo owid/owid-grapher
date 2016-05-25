@@ -2,6 +2,10 @@
 	<div class="chart-wrapper-inner">
 		<svg xmlns="http://www.w3.org/2000/svg" class="nvd3-svg"  version="1.1">
 			<g class="chart-header-svg">
+				<rect class="header-bg-svg" x="0" y="0" style="fill: #fff;"></rect>
+				<text class="chart-name-svg" x="0" y="0" dy="1rem" />		
+				<text class="chart-subname-svg" x="0" y="0" dy="2.7rem" />
+
 				<image class="partner-logo-svg" style="visibility: hidden;"/>
 				<a xlink:href="https://ourworldindata.org" target="_blank">
 					<g class="logo-svg" style="visibility: hidden;">
