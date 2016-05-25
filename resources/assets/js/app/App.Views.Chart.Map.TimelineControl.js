@@ -28,12 +28,6 @@
 			this.dispatcher.on( "increment-time", this.onIncrementTime, this );
 			App.ChartModel.on("change-map", this.onChangeYear, this);
 			App.ChartModel.on("change-map-year", this.onChangeYear, this);
-			//this.$win.on( "resize", $.proxy( this.onResize, this ) );
-
-			//year slider
-			/*  App.ChartModel.on( "change", this.onChartModelChange, this );
-				App.ChartModel.on( "change-map", this.onChartModelChange, this );*/
-
 		},
 
 		render: function() {

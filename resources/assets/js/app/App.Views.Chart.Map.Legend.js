@@ -47,32 +47,29 @@
 			return scale.domain()[ i ];
 		};
 
-		var resize = function() {
-			//check legend is constructed already
-			if( g ) {
-				//refresh container height
-				containerHeight = datamap.node().getBoundingClientRect().height;
-				//position legend vertically
-				var legendY = containerHeight - legendOffsetY - stepSizeHeight;
-				if( orientation === "landscape" ) {
-					legendY -= descriptionHeight;
-				}
+		var onResize = function(offsetY, availableHeight) {
+			if (!g) return;
 
-				var timelineControls = d3.select( ".map-timeline-controls" );
-				if (!timelineControls.empty()) {
-					var controlsBoundingRect = timelineControls.node().getBoundingClientRect(),
-						controlsHeight = controlsBoundingRect.bottom - controlsBoundingRect.top;
-					legendY -= controlsHeight;
-				}
-
-				container.attr( "transform", "translate(0," + legendY + ")" );
+			//refresh container height
+			containerHeight = datamap.node().getBoundingClientRect().height;
+			//position legend vertically
+			var legendY = (offsetY+availableHeight) - legendOffsetY - stepSizeHeight;
+			if( orientation === "landscape" ) {
+				legendY -= descriptionHeight;
 			}
+
+			var timelineControls = d3.select( ".map-timeline-controls" );
+			if (!timelineControls.empty()) {
+				var controlsBoundingRect = timelineControls.node().getBoundingClientRect(),
+					controlsHeight = controlsBoundingRect.bottom - controlsBoundingRect.top;
+				legendY -= controlsHeight;
+			}
+
+			container.attr( "transform", "translate(0," + legendY + ")" );
 		};
 
 		function legend( selection ) {
-
 			selection.each( function( data ) {
-				
 				datamap = d3.select( ".datamap" );
 				container = d3.select( this );
 				isCategoricalScale = ( !scale || !scale.hasOwnProperty( "invertExtent" ) )? true: false;
@@ -187,16 +184,13 @@
 					.text( data.description );
 				gDesc.attr( "transform", function( d, i ) { var translateX = legendOffsetX, translateY = ( orientation === "landscape" )? stepSizeHeight+descriptionHeight: stepSizeHeight; return ( orientation === "landscape" )? "translate(" + translateX + "," + translateY + ")": "translate(" + translateX + "," + translateY + ") rotate(270)"; } );
 
-				//position legend vertically
-				resize();
-
 			} );
 
 			return legend;
 
 		}
 
-		legend.resize = resize;
+		legend.onResize = onResize;
 
 		//public methods
 		legend.stepSizeWidth = function( value ) {

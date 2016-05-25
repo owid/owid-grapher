@@ -63,27 +63,6 @@
 			
 			this.$error = this.$el.find( ".chart-error" );
 
-			this.dispatcher.on( "dimension-export-update", this.onDimensionExportUpdate, this );
-			this.dispatcher.on( "dimension-export", this.onDimensionExport, this );
-			this.dispatcher.on( "dimension-export-cancel", this.onDimensionExportCancel, this );
-
-			/*$("[data-toggle='tab']").on("shown.bs.tab", function(evt) { 			
-				_.each(that.tabs, function(tab) { 
-					if ($(evt.target).attr('href') === "#"+tab.$tab.attr('id')) {						
-						if (that.activeTab)
-							that.activeTab.off("tab-ready");
-						that.activeTab = tab;
-						tab.on("tab-ready", function() { 
-							that.onResize(); 
-							that.dispatcher.trigger("tab-change", tab.$tab.attr('id').split("-")[0]);
-						});
-						App.DataModel.ready(function() {
-							tab.activate();
-						});
-					}
-				});
-			});*/
-
 			nv.utils.windowResize(_.debounce(function() {
 				this.onResize();
 			}.bind(this), 150));			
@@ -102,13 +81,13 @@
 			var tab = this[tabName + "Tab"];
 			if (this.activeTab) this.activeTab.deactivate();
 
+			this.dispatcher.trigger("tab-change", tabName);			
 			$(".chart-preloader").show();
 			App.DataModel.ready(function() {
 				tab.activate(function() {
 					$(".chart-preloader").hide();		
 					this.activeTab = tab;
 					this.onResize();
-					this.dispatcher.trigger("tab-change", tabName);			
 				}.bind(this));
 			}.bind(this));
 		},
@@ -202,8 +181,7 @@
 		},
 
 		onResize: function() {
-			var isMap = this.$el.find("#map-chart-tab").is(":visible");
-			var svg = isMap ? d3.select("svg.datamap") : d3.select("svg.nvd3-svg");
+			var svg = d3.select("svg");
 
 			this.header.onResize();
 			this.footer.onResize();
@@ -212,8 +190,8 @@
 			var svgBounds = svg.node().getBoundingClientRect(),
 				headerBounds = svg.select(".chart-header-svg").node().getBoundingClientRect(),
 				footerBounds = svg.select(".chart-footer-svg").node().getBoundingClientRect(),
-				tabOffsetY = (headerBounds.top - svgBounds.top) + headerBounds.height,
-				tabHeight = (footerBounds.top - svgBounds.top) - tabOffsetY*2;
+				tabOffsetY = headerBounds.bottom - svgBounds.top,
+				tabHeight = footerBounds.top - headerBounds.bottom;
 
 			$(".tab-content").css("margin-top", tabOffsetY);
 			$(".tab-content").css("height", tabHeight);
@@ -222,6 +200,8 @@
 				tabOffsetY += $(".chart-tabs").height();
 				tabHeight -= $(".chart-tabs").height();
 			}
+
+			$(".tab-pane").css("height", "calc(100% - " + $(".tab-content > .clearfix").height() + "px)");
 
 			if (this.activeTab.onResize)
 				this.activeTab.onResize(tabOffsetY, tabHeight);

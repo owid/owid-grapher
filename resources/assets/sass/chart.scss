@@ -38,6 +38,11 @@
 		width: 100%;
 		height: 100%;
 	}
+	.tab-content > .clearfix {
+		position: relative;
+		z-index: 2;
+		background-color: #fff;
+	}
 	.tab-pane {
 		border-top: 1px solid #ccc;
 		position: relative;
@@ -440,7 +445,7 @@
 		position: absolute;
 		top: 0.6rem;
 		left: 0.6rem;
-		z-index: 1;
+		z-index: 2;
 
 		.control {
 			float: left;
@@ -589,8 +594,8 @@
 	/* MAP TIMELINE CONTROL */
 	.map-timeline-controls {
 		position: absolute;
-		bottom: 0;
-		z-index: 1;
+		bottom: -1px;
+		z-index: 2;
 		width: 100%;
 		height: 3.1rem;
 		color: #404040;

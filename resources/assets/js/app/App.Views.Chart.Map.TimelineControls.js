@@ -6,7 +6,6 @@
 		ButtonsControl = App.Views.Chart.Map.ButtonsControl;
 
 	App.Views.Chart.Map.TimelineControls = Backbone.View.extend({
-
 		el: "#map-chart-tab .map-timeline-controls",
 		events: {},
 
@@ -30,18 +29,14 @@
 			this.buttonsControl.render();
 
 			//depending on the mode used display timeline mode or buttons mode
-			if( mapConfig.timelineMode === "buttons" ) {
-				
+			if (mapConfig.timelineMode === "buttons") {	
 				this.playPauseControl.hide();
 				this.timelineControl.hide();
 				this.buttonsControl.show();
-
 			} else {
-
 				this.playPauseControl.show();
 				this.timelineControl.show();
 				this.buttonsControl.hide();
-
 			}
 
 			//should be timline disabled
@@ -53,7 +48,6 @@
 			} else {
 				this.$el.removeClass( "single-year" );
 			}
-
 		},
 
 		onChartModelChange: function() {

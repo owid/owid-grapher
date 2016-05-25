@@ -75,6 +75,12 @@
 
 				owid.svgSetWrappedText(chartSubnameText, chartSubname, availableWidth);
 
+				g.insert("rect", "*")
+					.attr("x", 0).attr("y", 0)			
+					.attr("width", svgWidth)
+					.attr("height", g.node().getBBox().height + 10)
+					.style("fill", "#fff");
+
 				this.$tabs.attr("style", "display: none !important;");
 
 				_.each(tabs, function( v, i ) {
@@ -202,7 +208,8 @@
 			} else if (!hasTargetYear) {
 				this.mapDisclaimer = " No observations are available for this year.";
 			} else {
-				this.mapDisclaimer = "<span style='visibility: hidden;'>A rather long placeholder to ensure that the text flow remains the same when changing between various years.</span>";
+//				this.mapDisclaimer = "<span style='visibility: hidden;'>A rather long placeholder to ensure that the text flow remains the same when changing between various years.</span>";
+				this.mapDisclaimer = null;
 			}
 
 			this.selectedTimeFrom = timeFrom;

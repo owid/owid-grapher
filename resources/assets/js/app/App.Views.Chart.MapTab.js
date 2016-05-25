@@ -17,7 +17,6 @@
 		mapControls: null,
 		legend: null,
 		bordersDisclaimer: null,
-
 		events: {},
 
 		initialize: function( options ) {
@@ -27,36 +26,34 @@
 			this.$tab = this.$el.find("#map-chart-tab");
 		},
 
-		activate: function() {
-			if (this.isAwake) {
-				this.trigger("tab-ready");
-				return;
-			}
-
+		activate: function(callback) {
 			this.mapControls = new MapControls( { dispatcher: this.dispatcher } );
 			this.timelineControls = new TimelineControls( { dispatcher: this.dispatcher } );
 
 			App.ChartModel.on("change", this.update, this);
 			App.ChartModel.on("change-map", this.update, this);
 			App.ChartModel.on("change-map-year", this.updateYearOnly, this);
-			this.update();
+			this.dataMap = null;
+			$("svg").remove();
+			this.update(callback);
 		},
 
 		deactivate: function() {
 			App.ChartModel.off(null, null, this);
+			d3.selectAll(".datamaps-subunits, .border-disclaimer, .legend-wrapper").remove();			
 		},
 
-		update: function() {
+		update: function(callback) {
 			this.mapConfig = App.ChartModel.get("map-config");
 
 			// We need to wait for both datamaps to finish its setup and the variable data
 			// to come in before the map can be fully rendered
-			var self = this;
-			function onMapReady() {
-				self.vardataModel.ready(function(variableData) {
-					self.receiveData(variableData);
-				});
-			}
+			var onMapReady = function() {
+				$(".chart-wrapper-inner").attr("style", "");
+				App.DataModel.ready(function() {
+					this.render(callback);
+				}.bind(this));				
+			}.bind(this);
 
 			if (!this.dataMap)
 				this.initializeMap(onMapReady);
@@ -111,21 +108,6 @@
 			// Set configurable targets from defaults
 			this.mapConfig.targetYear = this.mapConfig.defaultYear || this.mapConfig.targetYear;
 			this.mapConfig.projection = this.mapConfig.defaultProjection || this.mapConfig.projection;
-		},
-
-		render: function() {
-			var that = this;
-			//fetch created dom
-			this.$tab = $( "#map-chart-tab" );
-
-		},
-
-		show: function() {
-			this.$el.show();
-		},
-
-		hide: function() {
-			this.$el.hide();
 		},
 
 		popupTemplateGenerator: function(geo, data) {
@@ -214,7 +196,8 @@
 			});
 		},
 
-		receiveData: function(variableData) {
+		render: function(callback) {
+			var variableData = App.DataModel.get("variableData");
 			this.mapData = this.transformData(variableData);
 			this.colorScale = this.makeColorScale();
 			this.applyColors(this.mapData, this.colorScale);
@@ -233,7 +216,7 @@
 				});
 				self.mapControls.render();
 				self.timelineControls.render();
-				self.trigger("tab-ready");
+				if (callback) callback();
 			};
 
 			if (oldProjection === newProjection) {
@@ -318,7 +301,7 @@
 			return newProjection;
 		},
 
-		onResize: function() {
+		onResize: function(offsetY, availableHeight) {
 			var map = d3.select(".datamaps-subunits");			
 			if (!this.dataMap || map.empty())
 				return;
@@ -338,10 +321,10 @@
 			var options = this.dataMap.options,
 				prefix = "-webkit-transform" in document.body.style ? "-webkit-" : "-moz-transform" in document.body.style ? "-moz-" : "-ms-transform" in document.body.style ? "-ms-" : "";
 
-			var wrapper = d3.select( ".datamap" ),
+			var wrapper = d3.select(".datamap"),
 				wrapperBoundingRect = wrapper.node().getBoundingClientRect(),
 				wrapperWidth = wrapperBoundingRect.right - wrapperBoundingRect.left,
-				wrapperHeight = wrapperBoundingRect.bottom - wrapperBoundingRect.top,
+				wrapperHeight = availableHeight,//wrapperBoundingRect.bottom - wrapperBoundingRect.top,
 				mapBoundingRect = map.node().getBoundingClientRect(),
 				mapBBox = map.node().getBBox(), // contains original, untransformed width+height
 				mapWidth = mapBBox.width,
@@ -354,7 +337,7 @@
 			//console.log("wrapperWidth " + wrapperWidth + " wrapperHeight " + wrapperHeight + " mapWidth " + mapWidth + " mapHeight " + mapHeight);
 
 			// Adjust wrapperHeight to compensate for timeline controls
-			var timelineControls = d3.select( ".map-timeline-controls" );
+			var timelineControls = d3.select(".map-timeline-controls");
 			if (!timelineControls.empty()) {
 				var controlsBoundingRect = timelineControls.node().getBoundingClientRect(),
 					controlsHeight = controlsBoundingRect.bottom - controlsBoundingRect.top;
@@ -373,21 +356,21 @@
 				newCenterX = mapX + (scaleFactor-1)*mapBBox.x + viewport.x*newWidth,
 				newCenterY = mapY + (scaleFactor-1)*mapBBox.y + viewport.y*newHeight,
 				newOffsetX = wrapperCenterX - newCenterX,
-				newOffsetY = wrapperCenterY - newCenterY,
+				newOffsetY = offsetY + (wrapperCenterY - newCenterY),
 				translateStr = "translate(" + newOffsetX + "px," + newOffsetY + "px)";
 
 			var matrixStr = "matrix(" + scaleFactor + ",0,0," + scaleFactor + "," + newOffsetX + "," + newOffsetY + ")";
 			map.style(prefix + "transform", matrixStr);
 
-			if( this.bordersDisclaimer && !this.bordersDisclaimer.empty() ) {
+			if (this.bordersDisclaimer && !this.bordersDisclaimer.empty()) {
 				var bordersDisclaimerEl = this.bordersDisclaimer.node(),
 					bordersDisclaimerX = wrapperWidth - bordersDisclaimerEl.getComputedTextLength() - 10,
-					bordersDisclaimerY = wrapperHeight - 10;
+					bordersDisclaimerY = offsetY + wrapperHeight - 10;
 				this.bordersDisclaimer.attr( "transform", "translate(" + bordersDisclaimerX + "," + bordersDisclaimerY + ")" );
 			}
 
-			if( this.legend ) {
-				this.legend.resize();
+			if (this.legend) {
+				this.legend.onResize(offsetY, availableHeight);
 			}
 
 			/*wrapper.on("mousemove", function() {

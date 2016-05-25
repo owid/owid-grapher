@@ -23,6 +23,7 @@
 		},
 
 		deactivate: function() {
+			App.ChartModel.off(null, null, this);
 			this.$tab.empty();
 		},
 

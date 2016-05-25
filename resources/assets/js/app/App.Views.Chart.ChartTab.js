@@ -117,6 +117,7 @@
 		},
 
 		deactivate: function() {
+			App.ChartModel.off(null, null, this);
 			d3.selectAll(".nvd3").remove();
 		},
 

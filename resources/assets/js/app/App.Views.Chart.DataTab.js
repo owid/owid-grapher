@@ -22,6 +22,7 @@
 
 		deactivate: function() {
 			App.ChartModel.off(null, null, this);
+			this.$dataTable.empty();
 		},
 
 		render: function(callback) {

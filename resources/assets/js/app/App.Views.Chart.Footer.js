@@ -36,7 +36,7 @@
 			}
 
 			var sources = App.DataModel.transformDataForSources(),
-				sourceNames = _.pluck(sources, "name"),
+				sourceNames = _.uniq(_.pluck(sources, "name")),
  				license = App.DataModel.get("variableData").license,
 				footerSvgContent = "Data obtained from: ";
 				
@@ -79,10 +79,17 @@
 			owid.svgSetWrappedText(footerText, footerSvgContent, svgWidth);
 
 			var footerHeight = g.node().getBBox().height;
+			g.insert("rect", "*")
+				.attr("x", 0).attr("y", -25)			
+				.attr("width", svgWidth)
+				.attr("height", footerHeight + 25)
+				.style("fill", "#fff");
 			g.attr("transform", "translate(0, " + (svgHeight - footerHeight) + ")");
 		},
 
 		updateSharingButtons: function() {
+			if (!d3.select(".chart-name-svg").size()) return;
+
 			var headerText = d3.select(".chart-name-svg").text(),
 				baseUrl = Global.rootUrl + "/" + App.ChartModel.get("chart-slug"),
 				queryStr = window.location.search,
