@@ -49,17 +49,17 @@
 				g = svg.select(".chart-header-svg");
 
 			var logoWidth = this.logo.node().getBBox().width,
-				scaleFactor =  0.28,
-				logoX = svgWidth - logoWidth*scaleFactor - 5;
+				scaleFactor =  0.3,
+				logoX = svgWidth - logoWidth*scaleFactor;
 			this.logo.attr("transform", "translate(" + logoX + ", 5) scale(" + scaleFactor + ", " + scaleFactor + ")");
 			this.logo.style("visibility", "inherit");
 
 			var renderText = function(availableWidth) {
 				var chartNameText = g.select(".chart-name-svg");
-				owid.svgSetWrappedText(chartNameText, chartName, availableWidth);
+				owid.svgSetWrappedText(chartNameText, chartName, availableWidth - 5);
 
 				var chartSubnameText = g.select(".chart-subname-svg");
-				owid.svgSetWrappedText(chartSubnameText, chartSubname, availableWidth);
+				owid.svgSetWrappedText(chartSubnameText, chartSubname, availableWidth - 5);
 				var bgHeight = chartSubnameText.node().getBoundingClientRect().bottom - chartNameText.node().getBoundingClientRect().top;
 				g.select(".header-bg-svg")
 					.attr("width", svgWidth)

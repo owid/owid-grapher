@@ -343,9 +343,7 @@
 /* Chart Tab
 --------------------------------------------- */
 	
-#chart-view #chart-chart-tab {
-	overflow: hidden;
-
+#chart-view .nvd3-svg {
 	/* Tweak some nvd3 styling */
 	.nvd3 .nv-axis {
 		line {
@@ -357,6 +355,7 @@
 	}
 	.nvd3 text {
 		font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+		font-size: 0.8rem;
 	}
 	.nvd3 .nv-axis .nv-axisMaxMin text {
 		font-weight: normal;
@@ -364,6 +363,8 @@
 	.nvd3 .nv-axis line {
 		opacity: .6;
 	}	
+	.nv-custom-legend .nv-series text {
+	}
 }
 
 /* Data Tab
@@ -437,10 +438,45 @@
 
 /* Map Tab
 --------------------------------------------- */
+#chart-view svg.datamap {
+	.datamaps-subunits {
+		path {
+			stroke-width: 0.3px;
+			stroke: rgb(79, 79, 79);
+		}
+	}
+
+	/* MAP LEGEND */
+	.legend-step {
+		rect {
+			stroke: #4F4F4F;
+			stroke-width: .1px;
+		}
+		text {
+			font-size: 0.6rem;
+		}
+		line {
+			stroke: #4F4F4F;
+			stroke-width: 1px;
+		}
+	}
+	.legend-description {
+		font-size: 0.6rem;
+	}
+
+	/* MAP BORDERS DISCLAIMER */
+	.border-disclaimer {
+		font-size: 0.6rem;
+	}	
+}
+
 #chart-view #map-chart-tab {
 	overflow: inherit;
 	//override datamaps
 	padding: 0 !important;
+	border: 1px solid #eee;
+	background-color: #ECF6FC;
+
 
 	.map-controls-header {
 		position: absolute;
@@ -502,7 +538,6 @@
 		}
 
 		.region-control {
-			
 			.region-label {
 				width: calc(100% - 0.9rem);
 				text-align: center;
@@ -542,19 +577,6 @@
 
 	}
 
-	.datamap {
-		margin-top: -1px;
-		border: 1px solid #eee;
-		background-color: #ECF6FC;
-
-		.datamaps-subunits {
-			path {
-				stroke-width: 0.3px;
-				stroke: rgb(79, 79, 79);
-			}
-		}
-	}
-
 	.datamaps-hoverover {
 		font-family: inherit !important;
 		text-align: center;
@@ -567,29 +589,6 @@
 			padding: 0;
 			box-shadow: none;
 		}
-	}
-
-	/* MAP LEGEND */
-	.legend-step {
-		rect {
-			stroke: #4F4F4F;
-			stroke-width: .1px;
-		}
-		text {
-			font-size: 0.6rem;
-		}
-		line {
-			stroke: #4F4F4F;
-			stroke-width: 1px;
-		}
-	}
-	.legend-description {
-		font-size: 0.6rem;
-	}
-
-	/* MAP BORDERS DISCLAIMER */
-	.border-disclaimer {
-		font-size: 0.6rem;
 	}
 
 	/* MAP TIMELINE CONTROL */

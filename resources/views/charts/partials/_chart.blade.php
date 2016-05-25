@@ -4,7 +4,7 @@
 			<g class="chart-header-svg">
 				<rect class="header-bg-svg" x="0" y="0" style="fill: #fff;"></rect>
 				<text class="chart-name-svg" x="0" y="0" dy="1em" />		
-				<text class="chart-subname-svg" x="0" y="0" dy="3.2em" />
+				<text class="chart-subname-svg" x="0" y="0" dy="3.4em" />
 
 				<image class="partner-logo-svg" style="visibility: hidden;"/>
 				<a xlink:href="https://ourworldindata.org" target="_blank">
