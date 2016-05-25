@@ -92,16 +92,25 @@
 		},
 
 		onSVGExport: function() {	
-			return;
 			var svg = d3.select("svg");
 
 			// Remove SVG UI elements that aren't needed for export
 			svg.selectAll(".nv-add-btn").remove();
 
+			// Inline the CSS styles, since the exported SVG won't have a stylesheet
 			var styleSheets = document.styleSheets;
 			_.each(document.styleSheets, function(styleSheet) {
-				Utils.inlineCssStyle(styleSheet.cssRules);
-			});
+				_.each(styleSheet.cssRules, function(rule) {
+					try {
+						$(rule.selectorText).each(function(i, elem) {
+							if ($(elem).parent().closest("svg").length)
+								elem.style.cssText += rule.style.cssText;
+						});	
+					} catch (e) {}						
+				});
+			});		
+
+			$("svg").css("font-size", $("html").css("font-size"));	
 
 			svgAsDataUri(svg.node(), {}, function(uri) {
 				var svg = uri.substring('data:image/svg+xml;base64,'.length);

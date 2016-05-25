@@ -3,13 +3,13 @@
 		<svg xmlns="http://www.w3.org/2000/svg" class="nvd3-svg"  version="1.1">
 			<g class="chart-header-svg">
 				<rect class="header-bg-svg" x="0" y="0" style="fill: #fff;"></rect>
-				<text class="chart-name-svg" x="0" y="0" dy="1rem" />		
-				<text class="chart-subname-svg" x="0" y="0" dy="2.7rem" />
+				<text class="chart-name-svg" x="0" y="0" dy="1em" />		
+				<text class="chart-subname-svg" x="0" y="0" dy="3.2em" />
 
 				<image class="partner-logo-svg" style="visibility: hidden;"/>
 				<a xlink:href="https://ourworldindata.org" target="_blank">
 					<g class="logo-svg" style="visibility: hidden;">
-						<g class="chart-logo-svg-vector">
+						<g class="chart-logo-svg">
 							<rect x="0" y="0" fill="#1B2543" width="211.2" height="130.1"/>
 							<rect x="0" y="112.2" fill="#E63912" width="211.2" height="17.9"/>
 							<g>

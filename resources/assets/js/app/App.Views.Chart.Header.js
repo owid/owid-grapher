@@ -50,8 +50,8 @@
 
 			var logoWidth = this.logo.node().getBBox().width,
 				scaleFactor =  0.28,
-				logoX = svgWidth - logoWidth*scaleFactor;
-			this.logo.attr("transform", "translate(" + logoX + ", 0) scale(" + scaleFactor + ", " + scaleFactor + ")");
+				logoX = svgWidth - logoWidth*scaleFactor - 5;
+			this.logo.attr("transform", "translate(" + logoX + ", 5) scale(" + scaleFactor + ", " + scaleFactor + ")");
 			this.logo.style("visibility", "inherit");
 
 			var renderText = function(availableWidth) {
@@ -84,14 +84,12 @@
 				// be loaded separately in HTML and then the width and height extracted
 				var img = new Image();
 				img.onload = function() {
-					var partnerLogoWidth = this.partnerLogo.node().getBBox().width,
-						partnerLogoX = logoX - partnerLogoWidth;
-
 					this.partnerLogo.attr('width', img.width);
 					this.partnerLogo.attr('height', img.height);
 		
+					var partnerLogoX = logoX - img.width - 5;
 					this.partnerLogo.node().setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", partnerLogoUrl);
-					this.partnerLogo.attr("transform", "translate(" + partnerLogoX + ", 0)");				
+					this.partnerLogo.attr("transform", "translate(" + partnerLogoX + ", 5)");				
 					this.partnerLogo.style("visibility", "inherit");
 
 					renderText(partnerLogoX);

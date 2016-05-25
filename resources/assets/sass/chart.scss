@@ -106,20 +106,22 @@
 /* Header
 --------------------------------------------- */
 
-#chart-view .chart-header {
-	h2 {
-		margin-top: 0;
-		margin-right: 2.8rem;
-		margin-bottom: 0.2em;
+#chart-view .chart-header-svg {
+	.chart-name-svg {
 		font-size: 1.3rem;
-		font-weight: 400;
-		color: #35322F;
+		fill: #35322F;
 	}
-	h3 {
+	.chart-subname-svg {
 		margin-top: 0;
 		margin-bottom: 0.5em;
 		font-size: 0.7rem;
-		color: #4F4B49;
+		fill: #4F4B49;
+	}	
+	.chart-logo-svg {
+		path {
+		    stroke: #FFFFFF;
+		    stroke-width: 1px;
+		}
 	}	
 }
 
@@ -813,6 +815,7 @@ body#chart-export {
 	.map-timeline-controls,
 	.settings-control,
 	.color-blind-control,
+	.map-controls-header,
 	.nv-add-btn {
 		display: none;	
 	}	
@@ -881,23 +884,6 @@ body#chart-export {
 	.nvd3 .nv-axis {
 		text {
 			font-size: 15px;
-		}
-	}
-
-	.chart-logo-svg {
-		.chart-logo-svg-vector {
-			display: none;
-		}
-		.chart-logo-svg-image {
-			display: block;
-		}
-		&.default-logo {
-			.chart-logo-svg-vector {
-				display: block;
-			}
-			.chart-logo-svg-image {
-				display: none;
-			}
 		}
 	}
 

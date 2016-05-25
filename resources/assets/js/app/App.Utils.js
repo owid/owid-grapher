@@ -693,6 +693,8 @@
 				});	
 			} catch(err) {}
 		}
+
+		$("style").remove();
 	};
 
 	App.Utils.checkValidDimensions = function( dimensions, chartType ) {
