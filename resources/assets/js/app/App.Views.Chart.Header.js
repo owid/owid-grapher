@@ -22,7 +22,7 @@
 			App.ChartModel.on( "change", this.render, this );
 		},
 
-		render: function(data) {
+		render: function(callback) {
 			var chartName = App.ChartModel.get( "chart-name" ),
 				chartSubname = App.ChartModel.get( "chart-subname" ) || "",
 				addCountryMode = App.ChartModel.get( "add-country-mode" ),
@@ -92,7 +92,8 @@
 				this.$tabs.removeClass( "first" );
 				this.$tabs.filter( ":visible:first" ).addClass( "first" );
 
-				this.dispatcher.trigger("header-rendered");								
+				this.dispatcher.trigger("header-rendered");			
+				if (callback) callback();					
 			}.bind(this);
 
 			if (partnerLogoUrl) {
@@ -118,8 +119,8 @@
 			}
 		},
 
-		onResize: function() {
-			this.render();
+		onResize: function(callback) {
+			this.render(callback);
 		},
 
 		// Replaces things like *time* and *country* with the actual time and

@@ -77,6 +77,7 @@ elixir(function(mix) {
         'libs/chosen.jquery.js',
         'libs/colorbrewer.js',
         'libs/jquery.lazyloadxt.extra.js',
+        'libs/async.min.js',
         'owd-colorbrewer.js',
         'owid.js',
     ], 'public/js/libs.js' );

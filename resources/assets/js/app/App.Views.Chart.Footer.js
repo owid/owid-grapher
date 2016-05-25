@@ -24,17 +24,15 @@
 			$(window).on("query-change", this.updateSharingButtons.bind(this));
 		},
 
-		render: function() {
-			this.renderSVG();
-			this.updateSharingButtons();
+		render: function(callback) {
+			App.DataModel.ready(function() {
+				this.renderSVG();
+				this.updateSharingButtons();
+				if (callback) callback();
+			}.bind(this));
 		},
 
-		renderSVG: function() {
-			if (!App.DataModel.isReady) {
-				App.DataModel.ready(this.renderSVG.bind(this));
-				return;
-			}
-
+		renderSVG: function(callback) {
 			var sources = App.DataModel.transformDataForSources(),
 				sourceNames = _.uniq(_.pluck(sources, "name")),
  				license = App.DataModel.get("variableData").license,
@@ -85,6 +83,9 @@
 				.attr("height", footerHeight + 25)
 				.style("fill", "#fff");
 			g.attr("transform", "translate(0, " + (svgHeight - footerHeight) + ")");
+
+
+			if (callback) callback();
 		},
 
 		updateSharingButtons: function() {
@@ -115,8 +116,8 @@
 			this.$embedModal.find("textarea").text(embedCode);
 		},
 
-		onResize: function() {
-			this.renderSVG();
+		onResize: function(callback) {
+			this.renderSVG(callback);
 		},
 
 		onEmbed: function() {

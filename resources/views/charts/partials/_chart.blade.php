@@ -172,35 +172,33 @@
 			<div id="sources-chart-tab" class="tab-pane"></div>
 		</div>
 	</div>
-
-	<div class="footer-btns">
-		<a class="chart-link-btn" target="_blank">
-			<i class="fa fa-link"></i>
-			Link to chart
-		</a>
-		<a class="tweet-btn" target="_blank">
-			<i class="fa fa-twitter"></i>
-			Tweet
-		</a>
-		<a class="facebook-btn" target="_blank">
-			<i class="fa fa-facebook"></i>
-			Share
-		</a>
-		<a class="embed-btn">
-			<i class="fa fa-code"></i>
-			Embed
-		</a>
-		<a class="download-image-btn" target="_blank">
-			<i class="fa fa-download"></i>
-			PNG
-		</a>
-	</div>
+		<div class="footer-btns">
+			<a class="chart-link-btn" target="_blank">
+				<i class="fa fa-link"></i>
+				Link to chart
+			</a>
+			<a class="tweet-btn" target="_blank">
+				<i class="fa fa-twitter"></i>
+				Tweet
+			</a>
+			<a class="facebook-btn" target="_blank">
+				<i class="fa fa-facebook"></i>
+				Share
+			</a>
+			<a class="embed-btn">
+				<i class="fa fa-code"></i>
+				Embed
+			</a>
+			<a class="download-image-btn" target="_blank">
+				<i class="fa fa-download"></i>
+				PNG
+			</a>
+		</div>
 
 	<div class="chart-preloader">
-			<i class="fa fa-spinner fa-spin"></i>
-		</div>
-		<div class="chart-error">
-			<p><i class="fa fa-exclamation-triangle"></i>Error retrieving data for chart builder!</p>
-		</div>
+		<i class="fa fa-spinner fa-spin"></i>
+	</div>
+	<div class="chart-error">
+		<p><i class="fa fa-exclamation-triangle"></i>Error retrieving data for chart builder!</p>
 	</div>
 </div>

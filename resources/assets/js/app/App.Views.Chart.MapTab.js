@@ -33,14 +33,14 @@
 			App.ChartModel.on("change", this.update, this);
 			App.ChartModel.on("change-map", this.update, this);
 			App.ChartModel.on("change-map-year", this.updateYearOnly, this);
-			this.dataMap = null;
-			$("svg").remove();
 			this.update(callback);
 		},
 
 		deactivate: function() {
 			App.ChartModel.off(null, null, this);
 			d3.selectAll(".datamaps-subunits, .border-disclaimer, .legend-wrapper").remove();			
+			$("svg").removeClass("datamap");
+			this.dataMap = null;
 		},
 
 		update: function(callback) {
@@ -75,6 +75,7 @@
 			var self = this;
 			var defaultProjection = this.getProjection(this.mapConfig.projection);
 
+			$("svg").remove();
 			this.dataMap = new Datamap({
 				element: $(".chart-wrapper-inner").get(0),
 				responsive: true,
@@ -217,6 +218,7 @@
 				self.mapControls.render();
 				self.timelineControls.render();
 				if (callback) callback();
+				else self.onResize();
 			};
 
 			if (oldProjection === newProjection) {
@@ -301,10 +303,12 @@
 			return newProjection;
 		},
 
-		onResize: function(offsetY, availableHeight) {
+		onResize: function(callback) {
 			var map = d3.select(".datamaps-subunits");			
-			if (!this.dataMap || map.empty())
+			if (!this.dataMap || map.empty()) {
+				if (callback) callback();
 				return;
+			}
 
 			var viewports = {
 				"World": { x: 0.525, y: 0.5, width: 1, height: 1 },
@@ -321,58 +325,62 @@
 			var options = this.dataMap.options,
 				prefix = "-webkit-transform" in document.body.style ? "-webkit-" : "-moz-transform" in document.body.style ? "-moz-" : "-ms-transform" in document.body.style ? "-ms-" : "";
 
-			var wrapper = d3.select(".datamap"),
-				wrapperBoundingRect = wrapper.node().getBoundingClientRect(),
-				wrapperWidth = wrapperBoundingRect.right - wrapperBoundingRect.left,
-				wrapperHeight = availableHeight,//wrapperBoundingRect.bottom - wrapperBoundingRect.top,
-				mapBoundingRect = map.node().getBoundingClientRect(),
-				mapBBox = map.node().getBBox(), // contains original, untransformed width+height
+			// Calculate our reference dimensions. All of these values are independent of the current
+			// map translation and scaling-- getBBox() gives us the original, untransformed values.
+			var svg = d3.select("svg"),
+				svgBounds = svg.node().getBoundingClientRect(),
+				$tab = $(".tab-pane.active"),
+				tabBounds = $tab.get(0).getBoundingClientRect(),
+				availableWidth = tabBounds.right - tabBounds.left,
+				availableHeight = tabBounds.bottom - tabBounds.top,
+				mapBBox = map.node().getBBox(),
 				mapWidth = mapBBox.width,
 				mapHeight = mapBBox.height,
-				mapX = wrapperBoundingRect.left + mapBBox.x + 1,
-				mapY = wrapperBoundingRect.top + mapBBox.y + 1,
+				mapX = svgBounds.left + mapBBox.x + 1,
+				mapY = svgBounds.top + mapBBox.y + 1,
 				viewportWidth = viewport.width*mapWidth,
 				viewportHeight = viewport.height*mapHeight;
 
 			//console.log("wrapperWidth " + wrapperWidth + " wrapperHeight " + wrapperHeight + " mapWidth " + mapWidth + " mapHeight " + mapHeight);
 
-			// Adjust wrapperHeight to compensate for timeline controls
+			// Adjust availableHeight to compensate for timeline controls
 			var timelineControls = d3.select(".map-timeline-controls");
 			if (!timelineControls.empty()) {
 				var controlsBoundingRect = timelineControls.node().getBoundingClientRect(),
 					controlsHeight = controlsBoundingRect.bottom - controlsBoundingRect.top;
-				wrapperHeight -= controlsHeight;
+				availableHeight -= controlsHeight;
 			}
 
-			// Calculate scaling to match the viewport to the container while retaining aspect ratio
-			var scaleFactor = Math.min(wrapperWidth/viewportWidth, wrapperHeight/viewportHeight),
+			// Calculate what scaling should be applied to the untransformed map to match the current viewport to the container
+			var scaleFactor = Math.min(availableWidth/viewportWidth, availableHeight/viewportHeight),
 				scaleStr = "scale(" + scaleFactor + ")";
 
-			// Work out how to center the map accounting for the new scaling
+			// Work out how to center the map, accounting for the new scaling we've worked out
 			var newWidth = mapWidth*scaleFactor,
 				newHeight = mapHeight*scaleFactor,
-				wrapperCenterX = wrapperBoundingRect.left + wrapperWidth / 2,
-				wrapperCenterY = wrapperBoundingRect.top + wrapperHeight / 2,
+				tabCenterX = tabBounds.left + availableWidth / 2,
+				tabCenterY = tabBounds.top + availableHeight / 2,
 				newCenterX = mapX + (scaleFactor-1)*mapBBox.x + viewport.x*newWidth,
 				newCenterY = mapY + (scaleFactor-1)*mapBBox.y + viewport.y*newHeight,
-				newOffsetX = wrapperCenterX - newCenterX,
-				newOffsetY = offsetY + (wrapperCenterY - newCenterY),
+				newOffsetX = tabCenterX - newCenterX,
+				newOffsetY = tabCenterY - newCenterY,
 				translateStr = "translate(" + newOffsetX + "px," + newOffsetY + "px)";
 
 			var matrixStr = "matrix(" + scaleFactor + ",0,0," + scaleFactor + "," + newOffsetX + "," + newOffsetY + ")";
 			map.style(prefix + "transform", matrixStr);
 
-			if (this.bordersDisclaimer && !this.bordersDisclaimer.empty()) {
+/*			if (this.bordersDisclaimer && !this.bordersDisclaimer.empty()) {
 				var bordersDisclaimerEl = this.bordersDisclaimer.node(),
 					bordersDisclaimerX = wrapperWidth - bordersDisclaimerEl.getComputedTextLength() - 10,
-					bordersDisclaimerY = offsetY + wrapperHeight - 10;
-				this.bordersDisclaimer.attr( "transform", "translate(" + bordersDisclaimerX + "," + bordersDisclaimerY + ")" );
-			}
+					bordersDisclaimerY = wrapperHeight - 10;
+				this.bordersDisclaimer.attr("transform", "translate(" + bordersDisclaimerX + "," + bordersDisclaimerY + ")");
+			}*/
 
 			if (this.legend) {
-				this.legend.onResize(offsetY, availableHeight);
+//				this.legend.onResize();
 			}
 
+			if (callback) callback();
 			/*wrapper.on("mousemove", function() {
 				var point = d3.mouse(this);
 				var rect = map.node().getBoundingClientRect();

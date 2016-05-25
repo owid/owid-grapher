@@ -806,7 +806,8 @@
 body#chart-export {
 	background: white;
 
-	/* Remove interactive UI elements since obviously they can't be used in a static image */
+	/* Remove interactive UI elements since obviously they can't be used in a static image
+	 * NOTE (Mispy): Unneeded SVG elements should be removed entirely by the JS as well as hidden here. */
 	.chart-tabs,
 	.footer-btns,
 	.fullscreen-link,
@@ -816,6 +817,10 @@ body#chart-export {
 	.nv-add-btn {
 		display: none;	
 	}	
+
+	.tab-pane {
+		border-top: none;
+	}
 }
 
 .export-svg {

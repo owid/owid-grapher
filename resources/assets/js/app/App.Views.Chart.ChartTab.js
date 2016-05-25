@@ -19,7 +19,9 @@
 		},
 
 		onChartModelChange: function() {
-			App.DataModel.ready(this.activate.bind(this));
+			App.DataModel.ready(function() {
+				this.render(this.onResize.bind(this));
+			}.bind(this));
 		},
 
 		activate: function(callback) {
@@ -29,6 +31,7 @@
 
 			//chart tab
 			this.$svg = $("svg");
+			this.$svg.attr("class", "nvd3-svg");
 			this.$tabContent = this.$el.find( ".tab-content" );
 			this.$tabPanes = this.$el.find( ".tab-pane" );
 			this.$chartHeader = this.$el.find( ".chart-header" );
@@ -128,8 +131,6 @@
 			if( !data ) {
 				return;
 			}
-
-
 
 			var that = this;
 
@@ -744,53 +745,55 @@
 			return value;
 		},
 
-		onResize: function(offsetY, availableHeight) {
-			if (_.isEmpty(this.localData)) return;
+		onResize: function(callback) {
+			if (_.isEmpty(this.localData)) {
+				if (callback) callback();
+				return;
+			}
 			
-			if( this.legend ) {
-				this.svgSelection.call( this.legend );
+			if (this.legend) {
+				this.svgSelection.call(this.legend);
 			}
 
 			//compute how much space for chart
-			var svg = d3.select(this.$svg[0]),
-				svgWidth = this.$svg.width(),
-				svgHeight = this.$svg.height(),
-				chartType = App.ChartModel.get( "chart-type" ),
-				$chartWrapperInner = $( ".chart-wrapper-inner" ),
-				$chartLogoSvg = this.$el.find( ".chart-logo-svg" ),
-				margins = App.ChartModel.get( "margins" ),
-				chartNameSvgY, chartNameSvgHeight, chartSubnameSvgHeight;
+			var margins = App.ChartModel.get("margins"),
+				svg = d3.select(this.$svg[0]),
+				svgBounds = svg.node().getBoundingClientRect(),
+				tabBounds = $(".tab-pane.active").get(0).getBoundingClientRect(),
+				chartOffsetY = tabBounds.top - svgBounds.top + parseFloat(margins.top),
+				chartOffsetX = parseFloat(margins.left),
+				// MISPY: The constant modifiers here are to account for nvd3 not entirely matching our specified dimensions
+				chartHeight = tabBounds.height - parseFloat(margins.bottom) - parseFloat(margins.top) - 10,
+				chartWidth = tabBounds.width - parseFloat(margins.left) - parseFloat(margins.right) + 60,
+				chartType = App.ChartModel.get("chart-type");
 
-			var currY = offsetY;
-			var chartHeight = availableHeight;
+			// Account for and position legend
+			if (this.legend) {
+				var legendMargins = this.legend.margin();
+				this.translateString = "translate(" + legendMargins.left + " ," + chartOffsetY + ")";
+				svg.select(".nvd3.nv-custom-legend").attr("transform", this.translateString);
 
-			//update stored height
-			svgHeight = this.$svg.height();
-
-			//add height of legend
-			if( !App.ChartModel.get( "hide-legend" ) ) {
-				currY += this.legend.height();
-			}
-
-			//chartHeight = svgHeight - translateY - bottomChartMargin;
-			if( !App.ChartModel.get( "hide-legend" ) ) {
+				chartOffsetY += this.legend.height();
 				chartHeight -= this.legend.height();
 			}
 
-			//reflect margin top and down in chartHeight
-			chartHeight = chartHeight - margins.bottom - margins.top;
-
-			//compute chart width - add 60px
-			var chartWidth = svgWidth - margins.left - margins.right + 60;
-			this.chart.width( chartWidth );
-			this.chart.height( chartHeight );
-
-			//need to call chart update for resizing of elements within chart
-			if( this.$tab.is( ":visible" ) ) {
-				this.chart.update();
+			// MISPY: Stacked area chart needs a special offset because nvd3 doesn't seem
+			// to count the absolute/relative controls as part of the width and height
+			if (chartType == App.ChartType.StackedArea) {
+				chartOffsetY += 20;
+				chartHeight -= 20;
 			}
 
-			if( chartType == App.ChartType.StackedArea ) {
+			// Inform nvd3 of the situation
+			this.chart.width(chartWidth);
+			this.chart.height(chartHeight);
+			this.chart.update();
+
+			var wrap = svg.select(".nvd3.nv-wrap");
+			this.translateString = "translate(" + chartOffsetX + "," + chartOffsetY + ")";
+			wrap.attr("transform", this.translateString);
+
+			/*if (chartType == App.ChartType.StackedArea) {
 				//for stacked area chart, need to manually adjust height
 				var currIntLayerHeight = this.chart.interactiveLayer.height(),
 					//TODO - do not hardcode this
@@ -798,36 +801,18 @@
 				this.chart.interactiveLayer.height( currIntLayerHeight + heightAdd );
 				d3.select(".nv-interactive").call(this.chart.interactiveLayer);
 				//and add extra offset to of the .nv-wrap to account for Stacked and Expanded controls
-				currY += 20;
-			}
-			
-			if( !App.ChartModel.get( "hide-legend" ) ) {
-				//position legend
-				var legendMargins = this.legend.margin();
-				this.translateString = "translate(" + legendMargins.left + " ," + currY + ")";
-				this.$svg.find( "> .nvd3.nv-custom-legend" ).attr( "transform", this.translateString );
-			}
+				chartOffsetY += 20;
+			}*/
 
 			//for multibarchart, need to move controls bit higher
-			if( chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar ) {
+			/*if (chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar) {
 				d3.select( ".nv-controlsWrap" ).attr( "transform", "translate(0,-25)" );
-			}
+			}*/
 
-			//reflect margin top in currY
-			if( !App.ChartModel.get( "hide-legend" ) ) {
-				currY += +this.legend.height();
-			}
-			currY += +margins.top;
 
-			var $wrap = this.$svg.find( "> .nvd3.nv-wrap" );
-			//var $wrap = this.$svg.find( ".nvd3-chart-holder > .nvd3.nv-wrap" );
-			//add 20px offset
-			var translateLeft = parseInt( margins.left, 10 );
-			this.translateString = "translate(" + translateLeft + "," + currY + ")";
-			$wrap.attr( "transform", this.translateString );
 
 			//position scale dropdowns - TODO - isn't there a better way then with timeout?
-			var that = this;
+			/*var that = this;
 			setTimeout( function() {
 				//make sure the chart is created
 				if( !$wrap.length ) {
@@ -851,7 +836,9 @@
 
 				that.$xAxisScaleSelector.css( { "top": offsetDiff + chartHeight, "left": marginLeft + backRectWidth + xScaleOffset } );
 				that.$yAxisScaleSelector.css( { "top": offsetDiff - 15, "left": marginLeft + yScaleOffset } );
-			}, 250 );
+			}, 250 );*/
+
+			if (callback) callback();
 		}					
 	} );
 
