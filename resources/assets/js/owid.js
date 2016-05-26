@@ -305,7 +305,7 @@
 			currentLink = null,
 			lineNumber = 0,
 			lineHeight = 1.4,
-			tspan = text.append("tspan").attr("x", x).attr("y", y).attr("dy", currentDY + "em"),
+			tspan = text.append("tspan").attr("dy", currentDY + "em"),
 			word = null;
 
 		// Terminate the current tspan and begin a new one
@@ -313,17 +313,19 @@
 			var textContent = currentLine.join(" ");
 			tspan.node().textContent = textContent;
 
+			var container = text;
+			if (currentLink)
+				container = text.append("a").attr("xlink:href", currentLink);				
+			tspan = container.append("tspan");
+
 			if (isNewLine) {
-				currentDY += lineHeight;				
+				currentDY += lineHeight;
 				currentX = x;
+				tspan.attr("x", x).attr("y", y).attr("dy", currentDY + "em");
 			} else {
 				currentX += ctx.measureText(textContent).width;
 			}
 
-			var container = text;
-			if (currentLink)
-				container = text.append("a").attr("xlink:href", currentLink);				
-			tspan = container.append("tspan").attr("x", currentX).attr("y", y).attr("dy", currentDY + "em");
 			currentLine = [];
 		};
 
@@ -332,6 +334,7 @@
 				linkIndex += 1;
 				currentLink = links[linkIndex];
 				breakSpan();
+				words.unshift(" "); // HACK (Mispy): this isn't proper whitespace handling but I'm tired of fiddly text stuff
 				continue;
 			} else if (word == "<LINKSTOP>") {
 				currentLink = null;

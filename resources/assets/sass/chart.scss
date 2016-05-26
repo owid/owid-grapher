@@ -439,13 +439,6 @@
 /* Map Tab
 --------------------------------------------- */
 #chart-view svg.datamap {
-	.datamaps-subunits {
-		path {
-			stroke-width: 0.3px;
-			stroke: rgb(79, 79, 79);
-		}
-	}
-
 	/* MAP LEGEND */
 	.legend-step {
 		rect {
@@ -468,6 +461,10 @@
 	.border-disclaimer {
 		font-size: 0.6rem;
 	}	
+
+	.map-bg {
+		fill: #ECF6FC;	
+	}
 }
 
 #chart-view #map-chart-tab {
@@ -475,8 +472,6 @@
 	//override datamaps
 	padding: 0 !important;
 	border: 1px solid #eee;
-	background-color: #ECF6FC;
-
 
 	.map-controls-header {
 		position: absolute;
@@ -823,83 +818,6 @@ body#chart-export {
 		border-top: none;
 	}
 }
-
-.export-svg {
-
-	transform: translate(0px,0px) !important;
-	//height: 1000px !important;
-	//padding: 30px;
-	font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-
-	.chart-name-svg, .chart-subname-svg {
-		font-family: Georgia, "Times New Roman", Serif;
-		stroke-width: 0;
-	}
-	.chart-name-svg {
-		font-size: 24px;
-	    font-weight: 400;
-	    fill: #000000;
-	}
-	.chart-subname-svg {
-		font-size: 15px;
-	    opacity: 1;
-	    line-height: 1.4;
-	    fill: #4f4b49;
-	}
-
-	.chart-logo-svg,
-	.chart-name-svg,
-	.chart-subname-svg,
-	.chart-description-svg,
-	.chart-sources-svg {
-		display: block;
-	}
-	.nv-custom-legend .nv-add-btn {
-		display: none;
-	}
-
-	.chart-description-svg, .chart-sources-svg {
-		font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-		font-size: 10.5px;
-		fill: #5d5d5d;
-	}
-	#chart-view {
-		background-color: #ffffff;
-	}
-	/* make sure there's solid line at the bottom */
-	.nv-x.nv-axis .domain {
-		stroke-opacity: 1 !important;
-		stroke-width: 1.1 !important;
-	}
-
-	.nv-y.nv-axis .domain {
-		opacity: .5;
-		stroke-width: 1;
-	}
-	.nv-x.nv-axis .domain {
-		opacity: .6;
-	}
-
-	.nvd3 .nv-axis {
-		text {
-			font-size: 15px;
-		}
-	}
-
-	/* hide custom legend if printing custom legend */
-	&.datamap  {
-		.nv-custom-legend {
-			display: none;
-		}
-	
-		path {
-			stroke-width: 0.3px !important;
-			stroke: rgb(75, 75, 75) !important;
-		}
-	}
-
-}
-
 
 
 /* Responsiveness

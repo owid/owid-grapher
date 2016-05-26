@@ -197,6 +197,10 @@
 				<i class="fa fa-download"></i>
 				PNG
 			</a>
+			<a class="download-svg-btn" target="_blank">
+				<i class="fa fa-download"></i>
+				SVG
+			</a>
 		</div>
 
 	<div class="chart-preloader">

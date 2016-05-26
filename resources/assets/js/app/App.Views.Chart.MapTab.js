@@ -39,7 +39,7 @@
 		deactivate: function() {
 			App.ChartModel.off(null, null, this);
 			$(".datamaps-hoverover").remove();
-			d3.selectAll(".datamaps-subunits, .border-disclaimer, .legend-wrapper").remove();			
+			d3.selectAll(".datamaps-subunits, .border-disclaimer, .legend-wrapper, .map-bg").remove();			
 			$("svg").removeClass("datamap");
 			this.dataMap = null;
 		},
@@ -99,6 +99,10 @@
 					// its own SVG element instead of injecting into an existing one.
 					$oldSvg.children().appendTo($("svg.datamap"));
 					$oldSvg.remove();
+
+					d3.select("svg.datamap").insert("rect", "*")
+						.attr("class", "map-bg")
+						.attr("x", 0).attr("y", 0);
 					onMapReady();
 				}
 			});
@@ -349,6 +353,11 @@
 				viewportHeight = viewport.height*mapHeight;
 
 			//console.log("wrapperWidth " + wrapperWidth + " wrapperHeight " + wrapperHeight + " mapWidth " + mapWidth + " mapHeight " + mapHeight);
+
+			// Resize background
+			svg.select(".map-bg")
+				.attr("width", svgBounds.width)
+				.attr("height", svgBounds.height);
 
 			// Adjust availableHeight to compensate for timeline controls
 			var timelineControls = d3.select(".map-timeline-controls");

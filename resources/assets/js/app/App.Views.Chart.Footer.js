@@ -28,7 +28,7 @@
 			App.DataModel.ready(function() {
 				this.renderSVG();
 				this.updateSharingButtons();
-				if (callback) callback();
+				if (_.isFunction(callback)) callback();
 			}.bind(this));
 		},
 
