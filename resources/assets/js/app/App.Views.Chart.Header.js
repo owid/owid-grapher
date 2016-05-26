@@ -26,7 +26,7 @@
 			var chartName = App.ChartModel.get( "chart-name" ),
 				chartSubname = App.ChartModel.get( "chart-subname" ) || "",
 				addCountryMode = App.ChartModel.get( "add-country-mode" ),
-				selectedCountries = App.ChartModel.get( "selected-countries" ),
+				selectedCountries = App.ChartModel.get("selected-countries"),
 				logoPath = App.ChartModel.get("logo"),
 				partnerLogoPath = App.ChartModel.get("second-logo"),
 				partnerLogoUrl = partnerLogoPath && Global.rootUrl + "/" + partnerLogoPath,
@@ -57,12 +57,12 @@
 
 			var renderText = function(availableWidth) {
 				var chartNameText = g.select(".chart-name-svg");
-				owid.svgSetWrappedText(chartNameText, chartName, availableWidth - 5);
+				owid.svgSetWrappedText(chartNameText, chartName, availableWidth - 10);
 
 				var chartSubnameText = g.select(".chart-subname-svg")
 					.attr("y", chartNameText.node().getBoundingClientRect().bottom - svgBounds.top);
 
-				owid.svgSetWrappedText(chartSubnameText, chartSubname, availableWidth - 5);
+				owid.svgSetWrappedText(chartSubnameText, chartSubname, availableWidth - 10);
 
 				var bgHeight = chartSubnameText.node().getBoundingClientRect().bottom - chartNameText.node().getBoundingClientRect().top;
 				g.select(".header-bg-svg")

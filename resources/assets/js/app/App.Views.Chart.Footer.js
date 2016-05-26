@@ -36,6 +36,7 @@
 			var sources = App.DataModel.transformDataForSources(),
 				sourceNames = _.uniq(_.pluck(sources, "name")),
  				license = App.DataModel.get("variableData").license,
+ 				chartDesc = App.ChartModel.get("chart-description"),
 				footerSvgContent = "Data obtained from: ";
 				
 			_.each(sourceNames, function(sourceName, i) {
@@ -60,6 +61,10 @@
 
 				footerSvgContent += "\n\n" + desc;
 			}			
+
+			// Any additional, manually inputed footer text
+			if (chartDesc)
+				footerSvgContent += "\n" + chartDesc;
 
 			var svg = d3.select("svg"),
 				svgWidth = svg.node().getBoundingClientRect().width,
@@ -92,8 +97,6 @@
 		},
 
 		updateSharingButtons: function() {
-			if (!d3.select(".chart-name-svg").size()) return;
-
 			var headerText = d3.select(".chart-name-svg").text(),
 				baseUrl = Global.rootUrl + "/" + App.ChartModel.get("chart-slug"),
 				queryParams = owid.getQueryParams(),
