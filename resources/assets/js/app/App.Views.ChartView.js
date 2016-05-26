@@ -116,8 +116,10 @@
 				});
 			});		
 
+			// MISPY: Need to propagate a few additional styles from the external document into the SVG
 			$("svg").css("font-size", $("html").css("font-size"));	
-
+			$("svg").css("margin", "10px");
+			
 			svgAsDataUri(svg.node(), {}, function(uri) {
 				var svg = uri.substring('data:image/svg+xml;base64,'.length);
 				if (_.isFunction(window.callPhantom))
