@@ -69,8 +69,10 @@
 			this.activateTab(defaultTabName);
 		},
 
-		onTabClick: function(evt) {
-			var tabName = $(evt.target).closest("li").attr("class").match(/(\w+)-header-tab/)[1];
+		onTabClick: function(ev) {
+			ev.preventDefault();
+			ev.stopPropagation();
+			var tabName = $(ev.target).closest("li").attr("class").match(/(\w+)-header-tab/)[1];
 			this.activateTab(tabName);
 		},
 
@@ -89,7 +91,7 @@
 			App.DataModel.ready(function() {
 				tab.activate(function() {
 					$(".chart-preloader").hide();							
-					this.activeTab = tab;
+						this.activeTab = tab;
 					this.onResize();
 				}.bind(this));
 			}.bind(this));
