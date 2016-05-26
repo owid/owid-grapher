@@ -84,7 +84,8 @@
 			$(".chart-preloader").show();			
 			App.DataModel.ready(function() {
 				tab.activate(function() {
-					$(".chart-preloader").hide();		
+					$(".chart-preloader").hide();							
+					this.activeTabName = tabName;
 					this.activeTab = tab;
 					this.onResize();
 				}.bind(this));

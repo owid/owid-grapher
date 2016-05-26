@@ -92,7 +92,9 @@
 
 			var headerText = d3.select(".chart-name-svg").text(),
 				baseUrl = Global.rootUrl + "/" + App.ChartModel.get("chart-slug"),
-				queryStr = window.location.search,
+				queryParams = owid.getQueryParams(),
+				queryStr = owid.queryParamsToStr(queryParams),				
+				tab = App.ChartView.activeTabName,
 				canonicalUrl = baseUrl + queryStr;
 
 			this.$chartLinkBtn.attr('href', canonicalUrl);
@@ -103,11 +105,18 @@
 			var facebookHref = "https://www.facebook.com/dialog/share?app_id=1149943818390250&display=page&href=" + encodeURIComponent(canonicalUrl);
 			this.$facebookBtn.attr('href', facebookHref);
 
-			var pngHref = baseUrl + ".png" + queryStr,
-				svgHref = baseUrl + ".svg" + queryStr,
-				defaultSize = "1000x700";
-			this.$downloadPNGButton.attr('href', pngHref + (_.include(pngHref, "?") ? "&" : "?") + "size=" + defaultSize);
-			this.$downloadSVGButton.attr('href', svgHref + (_.include(svgHref, "?") ? "&" : "?") + "size=" + defaultSize);
+			if (tab == "data" || tab == "sources") {
+				this.$downloadPNGButton.hide();
+				this.$downloadSVGButton.hide();
+			} else {			
+				var pngHref = baseUrl + ".png" + queryStr,
+					svgHref = baseUrl + ".svg" + queryStr,
+					defaultSize = "1000x700";
+				this.$downloadPNGButton.attr('href', pngHref + (_.include(pngHref, "?") ? "&" : "?") + "size=" + defaultSize);
+				this.$downloadSVGButton.attr('href', svgHref + (_.include(svgHref, "?") ? "&" : "?") + "size=" + defaultSize);
+				this.$downloadPNGButton.show();
+				this.$downloadSVGButton.show();
+			}
 
 			var iframeWidth = App.ChartModel.get("iframe-width") || "100%";
 			var iframeHeight = App.ChartModel.get("iframe-height") || "660px";
