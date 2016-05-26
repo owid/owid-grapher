@@ -127,8 +127,12 @@
 			});
 		},
 
-		onResize: function(callback) {
-			var svg = d3.select("svg");
+		onResize: function(callback, isRepeat) {
+			var $wrapper = this.$el.find(".chart-wrapper-inner"),
+				svg = d3.select("svg");
+			if (!isRepeat) {
+				$wrapper.css("height", "calc(100% - 24px)");
+			}
 
 			async.series([this.header.onResize.bind(this.header), 
 						 this.footer.onResize.bind(this.footer)], 
@@ -139,6 +143,17 @@
 					footerBounds = svg.select(".chart-footer-svg").node().getBoundingClientRect(),
 					tabOffsetY = headerBounds.bottom - svgBounds.top,
 					tabHeight = footerBounds.top - headerBounds.bottom;
+
+				// MISPY: Ideally we want to fit all of our contents into the space that we are given.
+				// However, if there is much header and footer text and the screen is small then we may
+				// need to demand extra scrollable height so that the user can actually see the chart.
+				var minHeight = 300;
+				if (tabHeight < minHeight) {
+					//svg.style("height", svgBounds.height + (minHeight-tabHeight) + "px");
+					$wrapper.css("height", $wrapper.height() + (minHeight-tabHeight) + 10 + "px");
+					this.onResize(callback, true);
+					return;
+				}
 
 				this.$el.find(".tab-content").css("margin-top", tabOffsetY);
 				this.$el.find(".tab-content").css("height", tabHeight);
