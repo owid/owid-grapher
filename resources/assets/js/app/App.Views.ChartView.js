@@ -79,15 +79,16 @@
 			var tab = this[tabName + "Tab"];
 			if (this.activeTab) {
 				this.activeTab.deactivate();
+				this.activeTabName = tabName;
 				this.activeTab = null;
-			}
+			} else if (this.activeTabName)
+				return; // Already loading a tab, don't double up
 
 			this.dispatcher.trigger("tab-change", tabName);			
 			$(".chart-preloader").show();			
 			App.DataModel.ready(function() {
 				tab.activate(function() {
 					$(".chart-preloader").hide();							
-					this.activeTabName = tabName;
 					this.activeTab = tab;
 					this.onResize();
 				}.bind(this));
