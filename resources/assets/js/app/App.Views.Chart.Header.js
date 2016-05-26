@@ -65,7 +65,7 @@
 				owid.svgSetWrappedText(chartSubnameText, chartSubname, availableWidth - 10, { lineHeight: 1.3 });
 
 				g.select(".header-bg-svg").remove();
-				var bgHeight = g.node().getBoundingClientRect().height + 10;
+				var bgHeight = g.node().getBoundingClientRect().height + 20;
 				g.insert("rect", "*")
 					.attr("class", "header-bg-svg")
 					.attr("x", 0)
