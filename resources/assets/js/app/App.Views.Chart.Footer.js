@@ -52,8 +52,9 @@
 				if (originUrl && s.contains(originUrl, "ourworldindata.org")) {
 					var a = document.createElement('a');
 					a.href = originUrl;
-					var finalUrl = "https://ourworldindata.org" + a.pathname + a.search;
-					desc = desc.replace(/\*data-entry\*/, "<a class='origin-link' target='_blank' href='" + finalUrl + "'>" + "OurWorldInData.org" + a.pathname + a.search + "</a>");					
+					var path = a.pathname[0] == "/" ? a.pathname : "/" + a.pathname; // MISPY: cross-browser compat (Internet Explorer doesn't have a slash)
+					var finalUrl = "https://ourworldindata.org" + path + a.search;
+					desc = desc.replace(/\*data-entry\*/, "<a class='origin-link' target='_blank' href='" + finalUrl + "'>" + "OurWorldInData.org" + path + a.search + "</a>");					
 				} else {
 					desc = desc.replace(/\*data-entry\*/, 
 						"<a class='origin-link' target='_blank' href='http://ourworldindata.org'>OurWorldInData.org</a>");					

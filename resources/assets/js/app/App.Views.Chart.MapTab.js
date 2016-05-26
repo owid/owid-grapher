@@ -27,8 +27,10 @@
 		},
 
 		activate: function(callback) {
-			this.mapControls = new MapControls( { dispatcher: this.dispatcher } );
-			this.timelineControls = new TimelineControls( { dispatcher: this.dispatcher } );
+			if (!this.mapControls)
+				this.mapControls = new MapControls( { dispatcher: this.dispatcher } );
+			if (!this.timelineControls)
+				this.timelineControls = new TimelineControls( { dispatcher: this.dispatcher } );
 
 			App.ChartModel.on("change", this.update, this);
 			App.ChartModel.on("change-map", this.update, this);
