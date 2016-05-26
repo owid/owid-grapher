@@ -101,7 +101,7 @@
 			var svg = d3.select("svg");
 
 			// Remove SVG UI elements that aren't needed for export
-			svg.selectAll(".nv-add-btn").remove();
+			svg.selectAll(".nv-add-btn, .nv-controlsWrap").remove();
 
 			// Inline the CSS styles, since the exported SVG won't have a stylesheet
 			var styleSheets = document.styleSheets;
