@@ -79,7 +79,7 @@
 				.attr("y", 0)
 				.attr("dy", 0);
 
-			owid.svgSetWrappedText(footerText, footerSvgContent, svgWidth);
+			owid.svgSetWrappedText(footerText, footerSvgContent, svgWidth, { lineHeight: 1.2 });
 
 			$(".chart-footer-svg .source-link").click(function(ev) {
 				ev.preventDefault();

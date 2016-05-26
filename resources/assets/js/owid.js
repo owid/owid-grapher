@@ -275,7 +275,7 @@
 	var ctx;
 	owid.svgSetWrappedText = function(text, content, width, options) {
 		options = options || {};
-		options.lineHeight = options.lineHeight || 1.4;
+		options.lineHeight = options.lineHeight || 1.3;
 
 		if (!ctx) {
 			var canvas = $("<canvas></canvas>").get(0);

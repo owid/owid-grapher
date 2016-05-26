@@ -47,7 +47,7 @@
 					});
 
 					this.$dataTable.html(rowHtml);
-					if (callback) callback();
+					if (_.isFunction(callback)) callback();
 				}.bind(this)
 			});
 		},

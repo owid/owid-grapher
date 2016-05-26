@@ -784,7 +784,8 @@
 			// to count the controls as part of the width and height.
 			if (chartType == App.ChartType.StackedArea || chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar) {
 				chartOffsetY += 20;
-				chartHeight -= 20;
+				if (chartType != App.ChartType.StackedArea)
+					chartHeight -= 20;
 			}
 
 			// Inform nvd3 of the situation
