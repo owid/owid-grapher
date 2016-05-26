@@ -57,12 +57,12 @@
 
 			var renderText = function(availableWidth) {
 				var chartNameText = g.select(".chart-name-svg");
-				owid.svgSetWrappedText(chartNameText, chartName, availableWidth - 10);
+				owid.svgSetWrappedText(chartNameText, chartName, availableWidth - 10, { lineHeight: 1.1 });
 
 				var chartSubnameText = g.select(".chart-subname-svg")
 					.attr("y", chartNameText.node().getBoundingClientRect().bottom - svgBounds.top);
 
-				owid.svgSetWrappedText(chartSubnameText, chartSubname, availableWidth - 10);
+				owid.svgSetWrappedText(chartSubnameText, chartSubname, availableWidth - 10, { lineHeight: 1.3 });
 
 				var bgHeight = chartSubnameText.node().getBoundingClientRect().bottom - chartNameText.node().getBoundingClientRect().top;
 				g.select(".header-bg-svg")

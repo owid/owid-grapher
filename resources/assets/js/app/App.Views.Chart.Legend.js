@@ -84,7 +84,6 @@
 				var addEntityBtn =  wrap.select( 'g.nv-add-btn' );
 				if( addEntityBtn.empty() ) {
 					addEntityBtn = wrap.append('g').attr('class', 'nv-add-btn');
-					addEntityBtn.append('rect').attr( { 'class': 'add-btn-bg', 'width': '100', 'height': '25', 'transform': 'translate(0,-5)' } );
 					var addEntityBtnG = addEntityBtn.append('g').attr( { 'class': 'add-btn-path' } );
 					addEntityBtnG.append('path').attr( { 'd': 'M15,0 L15,14', 'class': 'nv-box' } );
 					addEntityBtnG.append('path').attr( { 'd': 'M8,7 L22,7', 'class': 'nv-box' } );
@@ -124,6 +123,9 @@
 				} else {
 					addEntityBtn.attr( "display", "none" );
 				}
+
+				addEntityBtn.insert('rect', '*').attr( { 'class': 'add-btn-bg', 'width': addEntityBtn.node().getBoundingClientRect().width + 10, 'height': '25', 'transform': 'translate(0,-5)' } );
+
 					
 				var seriesEnter = series.enter().append('g').attr('class', function(d) { return 'nv-series nv-series-' + d.id; } ),
 					seriesShape, seriesRemove;

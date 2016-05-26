@@ -758,10 +758,10 @@
 				svg = d3.select(this.$svg[0]),
 				svgBounds = svg.node().getBoundingClientRect(),
 				tabBounds = $(".tab-pane.active").get(0).getBoundingClientRect(),
-				chartOffsetY = tabBounds.top - svgBounds.top + parseFloat(margins.top) + 10,
+				chartOffsetY = tabBounds.top - svgBounds.top + parseFloat(margins.top) + 20,
 				chartOffsetX = parseFloat(margins.left),
 				// MISPY: The constant modifiers here are to account for nvd3 not entirely matching our specified dimensions
-				chartHeight = tabBounds.height - parseFloat(margins.bottom) - parseFloat(margins.top) - 30 - 10,
+				chartHeight = tabBounds.height - parseFloat(margins.bottom) - parseFloat(margins.top) - 20 - 10,
 				chartWidth = tabBounds.width - parseFloat(margins.left) - parseFloat(margins.right) + 60,
 				chartType = App.ChartModel.get("chart-type");
 
@@ -775,10 +775,13 @@
 				chartHeight -= this.legend.height();
 			}
 
-			// MISPY: Stacked area chart needs a special offset because nvd3 doesn't seem
-			// to count the absolute/relative controls as part of the width and height.
-			// Scatterplots also have issues with their labels.
-			if (chartType == App.ChartType.StackedArea || chartType == App.ChartType.ScatterPlot) {
+			if (App.ChartModel.get("x-axis")["axis-label"]) {
+				chartHeight -= 30;
+			}
+
+			// MISPY: These charts need a special offset because nvd3 doesn't seem
+			// to count the controls as part of the width and height.
+			if (chartType == App.ChartType.StackedArea || chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar) {
 				chartOffsetY += 20;
 				chartHeight -= 20;
 			}
@@ -792,6 +795,11 @@
 			this.translateString = "translate(" + chartOffsetX + "," + chartOffsetY + ")";
 			wrap.attr("transform", this.translateString);
 
+			// Move controls up for multibar chart
+			if (chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar) {
+				d3.select( ".nv-controlsWrap" ).attr( "transform", "translate(0,-30)" );
+			}
+
 			/*if (chartType == App.ChartType.StackedArea) {
 				//for stacked area chart, need to manually adjust height
 				var currIntLayerHeight = this.chart.interactiveLayer.height(),
@@ -804,9 +812,6 @@
 			}*/
 
 			//for multibarchart, need to move controls bit higher
-			/*if (chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar) {
-				d3.select( ".nv-controlsWrap" ).attr( "transform", "translate(0,-25)" );
-			}*/
 
 
 

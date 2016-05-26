@@ -273,7 +273,10 @@
 	};
 
 	var ctx;
-	owid.svgSetWrappedText = function(text, content, width) {
+	owid.svgSetWrappedText = function(text, content, width, options) {
+		options = options || {};
+		options.lineHeight = options.lineHeight || 1.4;
+
 		if (!ctx) {
 			var canvas = $("<canvas></canvas>").get(0);
 			ctx = canvas.getContext("2d");
@@ -304,7 +307,7 @@
 			linkIndex = -1,
 			$currentLink = null,
 			lineNumber = 0,
-			lineHeight = 1.4,
+			lineHeight = options.lineHeight,
 			tspan = text.append("tspan").attr("dy", currentDY + "em"),
 			word = null;
 
