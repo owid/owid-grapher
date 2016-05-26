@@ -61,6 +61,7 @@
 		left: 0;
 		width: 100%;
 		height: 100%;
+
 	}
 }
 
@@ -364,6 +365,17 @@
 		opacity: .6;
 	}	
 	.nv-custom-legend .nv-series text {
+	}
+
+	/* Allow user to select text */
+	.chart-header-svg,
+	.chart-footer-svg {
+		-webkit-touch-callout: initial !important;
+		-webkitr-user-select: initial !important;
+		-khtml-user-select: initial !important;
+		-ms-user-select: initial !important;
+		-moz-user-select: initial !important;
+		user-select: initial !important;
 	}
 }
 
@@ -801,6 +813,10 @@
 body#chart-export {
 	background: white;
 
+	#chart-view {
+		padding: 0 !important;
+	}
+
 	/* Remove interactive UI elements since obviously they can't be used in a static image
 	 * NOTE (Mispy): Unneeded SVG elements should be removed entirely by the JS as well as hidden here. */
 	.chart-tabs,
@@ -811,7 +827,7 @@ body#chart-export {
 	.color-blind-control,
 	.map-controls-header,
 	.nv-add-btn {
-		display: none;	
+		display: none !important;	
 	}	
 
 	.tab-pane {

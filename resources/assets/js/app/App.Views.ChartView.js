@@ -22,6 +22,8 @@
 		},
 
 		initialize: function(options) {
+			App.ChartView = this;
+
 			options = options || {};
 			this.dispatcher = options.dispatcher || _.clone(Backbone.Events);
 		
@@ -133,15 +135,15 @@
 					tabOffsetY = headerBounds.bottom - svgBounds.top,
 					tabHeight = footerBounds.top - headerBounds.bottom;
 
-				$(".tab-content").css("margin-top", tabOffsetY);
-				$(".tab-content").css("height", tabHeight);
+				this.$el.find(".tab-content").css("margin-top", tabOffsetY);
+				this.$el.find(".tab-content").css("height", tabHeight);
 
-				if ($(".chart-tabs").is(":visible")) {
-					tabOffsetY += $(".chart-tabs").height();
-					tabHeight -= $(".chart-tabs").height();
+				if (this.$el.find(".chart-tabs").is(":visible")) {
+					tabOffsetY += this.$el.find(".chart-tabs").height();
+					tabHeight -= this.$el.find(".chart-tabs").height();
 				}
 
-				$(".tab-pane").css("height", "calc(100% - " + $(".tab-content > .clearfix").height() + "px)");
+				this.$el.find(".tab-pane").css("height", "calc(100% - " + $(".tab-content > .clearfix").height() + "px)");
 
 				if (this.activeTab && this.activeTab.onResize)
 					this.activeTab.onResize(callback);

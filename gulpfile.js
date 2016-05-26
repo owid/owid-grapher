@@ -104,6 +104,7 @@ elixir(function(mix) {
         'libs/colorbrewer.js',
         'libs/jquery.stickytabs.js',
         'libs/jquery.timeago.js',
+        'libs/async.min.js',
         'owd-colorbrewer.js',
         'owid.js',
         'admin.js',

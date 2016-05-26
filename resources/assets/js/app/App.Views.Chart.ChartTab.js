@@ -761,7 +761,7 @@
 				chartOffsetY = tabBounds.top - svgBounds.top + parseFloat(margins.top) + 10,
 				chartOffsetX = parseFloat(margins.left),
 				// MISPY: The constant modifiers here are to account for nvd3 not entirely matching our specified dimensions
-				chartHeight = tabBounds.height - parseFloat(margins.bottom) - parseFloat(margins.top) - 10 - 10,
+				chartHeight = tabBounds.height - parseFloat(margins.bottom) - parseFloat(margins.top) - 30 - 10,
 				chartWidth = tabBounds.width - parseFloat(margins.left) - parseFloat(margins.right) + 60,
 				chartType = App.ChartModel.get("chart-type");
 
@@ -776,8 +776,9 @@
 			}
 
 			// MISPY: Stacked area chart needs a special offset because nvd3 doesn't seem
-			// to count the absolute/relative controls as part of the width and height
-			if (chartType == App.ChartType.StackedArea) {
+			// to count the absolute/relative controls as part of the width and height.
+			// Scatterplots also have issues with their labels.
+			if (chartType == App.ChartType.StackedArea || chartType == App.ChartType.ScatterPlot) {
 				chartOffsetY += 20;
 				chartHeight -= 20;
 			}
