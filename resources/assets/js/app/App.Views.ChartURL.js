@@ -21,7 +21,7 @@
 			if (window.location.pathname.match(/.export$/)) {
 				$("body").attr("id", "chart-export");
 				
-				$(window).on("chart-loaded", function() {
+				$(window).one("chart-loaded", function() {
 					App.ChartView.onResize(function() {
 						if (window.callPhantom) window.callPhantom();
 						else console.log("Chart loaded!");

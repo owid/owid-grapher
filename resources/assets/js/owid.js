@@ -288,7 +288,7 @@
 			$p = $("<p></p>");
 		$p.html(content);
 		$p.find("a").each(function(i, el) {
-			links.push($(el).attr("href"));
+			links.push($(el));
 		});
 
 		// Now indicate them with our own tags
@@ -302,7 +302,7 @@
 			currentDY = parseFloat(text.attr("dy")),
 			currentLine = [],
 			linkIndex = -1,
-			currentLink = null,
+			$currentLink = null,
 			lineNumber = 0,
 			lineHeight = 1.4,
 			tspan = text.append("tspan").attr("dy", currentDY + "em"),
@@ -314,8 +314,13 @@
 			tspan.node().textContent = textContent;
 
 			var container = text;
-			if (currentLink)
-				container = text.append("a").attr("xlink:href", currentLink);				
+			if ($currentLink) {
+				container = text.append("a")
+					.attr("xlink:href", $currentLink.attr("href"))
+				_.each($currentLink.get(0).attributes, function(attrib) {
+					container.attr(attrib.name, attrib.value);
+				});
+			}
 			tspan = container.append("tspan");
 
 			if (isNewLine) {
@@ -332,12 +337,12 @@
 		while (word = words.shift()) {
 			if (word == "<LINKSTART>") {
 				linkIndex += 1;
-				currentLink = links[linkIndex];
+				$currentLink = links[linkIndex];
 				breakSpan();
 				words.unshift(" "); // HACK (Mispy): this isn't proper whitespace handling but I'm tired of fiddly text stuff
 				continue;
 			} else if (word == "<LINKSTOP>") {
-				currentLink = null;
+				$currentLink = null;
 				breakSpan();
 				continue;
 			}

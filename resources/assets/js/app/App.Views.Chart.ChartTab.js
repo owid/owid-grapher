@@ -693,7 +693,6 @@
 
 
 		onAvailableCountries: function( evt ) {
-
 			var $select = $( evt.currentTarget ),
 				val = $select.val(),
 				$option = $select.find( "[value=" + val + "]" ),
@@ -714,7 +713,6 @@
 					App.ChartModel.set( "selected-countries", [], {silent:true} );
 				}
 			}
-
 		},
 
 		cacheColors: function( data ) {
@@ -760,10 +758,10 @@
 				svg = d3.select(this.$svg[0]),
 				svgBounds = svg.node().getBoundingClientRect(),
 				tabBounds = $(".tab-pane.active").get(0).getBoundingClientRect(),
-				chartOffsetY = tabBounds.top - svgBounds.top + parseFloat(margins.top),
+				chartOffsetY = tabBounds.top - svgBounds.top + parseFloat(margins.top) + 10,
 				chartOffsetX = parseFloat(margins.left),
 				// MISPY: The constant modifiers here are to account for nvd3 not entirely matching our specified dimensions
-				chartHeight = tabBounds.height - parseFloat(margins.bottom) - parseFloat(margins.top) - 10,
+				chartHeight = tabBounds.height - parseFloat(margins.bottom) - parseFloat(margins.top) - 10 - 10,
 				chartWidth = tabBounds.width - parseFloat(margins.left) - parseFloat(margins.right) + 60,
 				chartType = App.ChartModel.get("chart-type");
 
@@ -838,7 +836,7 @@
 				that.$yAxisScaleSelector.css( { "top": offsetDiff - 15, "left": marginLeft + yScaleOffset } );
 			}, 250 );*/
 
-			if (callback) callback();
+			if (_.isFunction(callback)) callback();
 		}					
 	} );
 

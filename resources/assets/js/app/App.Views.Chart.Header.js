@@ -44,8 +44,9 @@
 			   TODO: Convert partner logos to SVG too, so that they can be scaled. */
 
 			var svg = d3.select("svg"),
-				svgWidth = $(svg[0][0]).width(),
-				svgHeight = $(svg[0][0]).height(),
+				svgBounds = svg.node().getBoundingClientRect(),
+				svgWidth = svgBounds.width,
+				svgHeight = svgBounds.height,
 				g = svg.select(".chart-header-svg");
 
 			var logoWidth = this.logo.node().getBBox().width,
@@ -58,8 +59,11 @@
 				var chartNameText = g.select(".chart-name-svg");
 				owid.svgSetWrappedText(chartNameText, chartName, availableWidth - 5);
 
-				var chartSubnameText = g.select(".chart-subname-svg");
+				var chartSubnameText = g.select(".chart-subname-svg")
+					.attr("y", chartNameText.node().getBoundingClientRect().bottom - svgBounds.top);
+
 				owid.svgSetWrappedText(chartSubnameText, chartSubname, availableWidth - 5);
+
 				var bgHeight = chartSubnameText.node().getBoundingClientRect().bottom - chartNameText.node().getBoundingClientRect().top;
 				g.select(".header-bg-svg")
 					.attr("width", svgWidth)

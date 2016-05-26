@@ -17,7 +17,7 @@
 			this.$downloadPNGButton = this.$el.find(".download-image-btn");
 			this.$downloadSVGButton = this.$el.find(".download-svg-btn");
 			this.$embedModal = $(".embed-modal");
-			this.$embedModal.appendTo("body");
+			this.$embedModal.appendTo("body");			
 
 			App.ChartModel.on("change", this.render.bind(this));
 			this.dispatcher.on("header-rendered", this.updateSharingButtons.bind(this));
@@ -40,7 +40,7 @@
 				
 			_.each(sourceNames, function(sourceName, i) {
 				if (i > 0) footerSvgContent += ", ";
-				footerSvgContent += "<a href='#'>" + sourceName + "</a>";
+				footerSvgContent += "<a class='source-link' href='#'>" + sourceName + "</a>";
 			});
 
 			if (license && license.description) {
@@ -52,10 +52,10 @@
 					var a = document.createElement('a');
 					a.href = originUrl;
 					var finalUrl = "https://ourworldindata.org" + a.pathname + a.search;
-					desc = desc.replace(/\*data-entry\*/, "<a class='source-link' target='_blank' href='" + finalUrl + "'>" + "OurWorldInData.org" + a.pathname + a.search + "</a>");					
+					desc = desc.replace(/\*data-entry\*/, "<a class='origin-link' target='_blank' href='" + finalUrl + "'>" + "OurWorldInData.org" + a.pathname + a.search + "</a>");					
 				} else {
 					desc = desc.replace(/\*data-entry\*/, 
-						"<a class='source-link' target='_blank' href='http://ourworldindata.org'>OurWorldInData.org</a>");					
+						"<a class='origin-link' target='_blank' href='http://ourworldindata.org'>OurWorldInData.org</a>");					
 				}
 
 				footerSvgContent += "\n\n" + desc;
@@ -75,6 +75,11 @@
 
 			owid.svgSetWrappedText(footerText, footerSvgContent, svgWidth);
 
+			$(".chart-footer-svg .source-link").click(function(ev) {
+				ev.preventDefault();
+				App.ChartView.activateTab("sources");
+			});
+
 			var footerHeight = g.node().getBBox().height;
 			g.insert("rect", "*")
 				.attr("x", 0).attr("y", -25)			
@@ -82,7 +87,6 @@
 				.attr("height", footerHeight + 25)
 				.style("fill", "#fff");
 			g.attr("transform", "translate(0, " + (svgHeight - footerHeight) + ")");
-
 
 			if (callback) callback();
 		},
