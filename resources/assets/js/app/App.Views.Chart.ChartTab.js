@@ -122,6 +122,7 @@
 		deactivate: function() {
 			App.ChartModel.off(null, null, this);
 			d3.selectAll(".nvd3").remove();
+			this.$yAxisScaleSelector.show();
 		},
 
 		render: function(callback) {
@@ -816,31 +817,15 @@
 
 
 			//position scale dropdowns - TODO - isn't there a better way then with timeout?
-			/*var that = this;
-			setTimeout( function() {
-				//make sure the chart is created
-				if( !$wrap.length ) {
-					return false;
-				}
+			setTimeout(function() {
+				var chartRect = svg.select(".nvd3 g > rect"),
+					chartBounds = chartRect.node().getBoundingClientRect(),
+					offsetX = chartBounds.left - svgBounds.left,
+					offsetY = 0;
 
-				var wrapOffset = $wrap.offset(),
-					chartTabOffset = that.$tab.offset(),
-					marginLeft = parseInt( margins.left, 10 ),
-					//dig into NVD3 chart to find background rect that has width of the actual chart
-					backRectWidth = parseInt( $wrap.find( "> g > rect" ).attr( "width" ), 10 ),
-					offsetDiff = wrapOffset.top - chartTabOffset.top,
-					//empiric offset
-					xScaleOffset = 10,
-					yScaleOffset = -5;
-
-				//fallback for scatter plot where backRectWidth has no width
-				if( isNaN( backRectWidth ) ) {
-					backRectWidth = parseInt( $(".nv-x.nv-axis.nvd3-svg").get(0).getBoundingClientRect().width, 10 );
-				}
-
-				that.$xAxisScaleSelector.css( { "top": offsetDiff + chartHeight, "left": marginLeft + backRectWidth + xScaleOffset } );
-				that.$yAxisScaleSelector.css( { "top": offsetDiff - 15, "left": marginLeft + yScaleOffset } );
-			}, 250 );*/
+				this.$xAxisScaleSelector.css({ left: offsetX + chartBounds.width, top: offsetY + chartBounds.height });
+				this.$yAxisScaleSelector.css({ left: offsetX, top: offsetY });
+			}.bind(this), 250);
 
 			if (_.isFunction(callback)) callback();
 		}					

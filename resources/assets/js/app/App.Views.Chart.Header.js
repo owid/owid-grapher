@@ -64,10 +64,15 @@
 
 				owid.svgSetWrappedText(chartSubnameText, chartSubname, availableWidth - 10, { lineHeight: 1.3 });
 
-				var bgHeight = chartSubnameText.node().getBoundingClientRect().bottom - chartNameText.node().getBoundingClientRect().top;
-				g.select(".header-bg-svg")
+				g.select(".header-bg-svg").remove();
+				var bgHeight = g.node().getBoundingClientRect().height + 10;
+				g.insert("rect", "*")
+					.attr("class", "header-bg-svg")
+					.attr("x", 0)
+					.attr("y", 0)
+					.style("fill", "#fff")
 					.attr("width", svgWidth)
-					.attr("height", bgHeight + 10);
+					.attr("height", bgHeight);
 				this.$tabs.attr("style", "display: none !important;");
 
 				_.each(tabs, function( v, i ) {

@@ -298,7 +298,10 @@
 		content = content.replace(/<a[^>]+>/g, " <LINKSTART> ");
 		content = content.replace(/<\/a>/g, " <LINKSTOP> ");
 
-		var words = content.split(/ +/),
+		// Clean the content
+		content = s.trim(content.replace("</br>", "\n").replace("<br>", "\n"));
+
+		var words = s.trim(content).split(/ +/),
 			x = parseFloat(text.attr("x")),
 			y = parseFloat(text.attr("y")),
 			currentX = x,
