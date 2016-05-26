@@ -16,8 +16,7 @@
 			orientation = "landscape",
 			scale, minData, maxData, datamap, container, containerHeight, isCategoricalScale, descriptionHeight, g, gDesc;
 
-		var formatLegendLabel = function( valueArr, i, length ) {
-			
+		var formatLegendLabel = function(text, valueArr, i, length) {
 			valueArr = valueArr.map( function( d ) {
 				//make sure it's not undefined
 				if( d ) {
@@ -35,10 +34,15 @@
 				return formattedNumber;
 			} );
 			if( i < (length - 1) ) {
-				return valueArr[ 0 ];
+				text.text(valueArr[0]);
 			} else {
-				//need to use tspan with preserve to have the whitespcae
-				return "<tspan class='last-label-tspan'>" + valueArr[ 0 ] + "</tspan><tspan class='last-label-tspan'>" + valueArr[ 1 ] + "</tspan>";
+				//need to use tspan with preserve to have the whitespcae (??)
+				text.append("tspan")
+					.attr("class", "last-label-tspan")
+					.text(valueArr[0]);
+				text.append("tspan")
+					.attr("class", "last-label-tspan")
+					.text(valueArr[1]);
 			}
 
 		};
@@ -60,10 +64,11 @@
 
 			container.attr( "transform", "translate(0," + legendY + ")" );
 		};
+;
 
 		function legend( selection ) {
-			selection.each( function( data ) {
-				datamap = d3.select( ".datamap" );
+			selection.each(function(data) {
+				datamap = d3.select(".datamap");
 				container = d3.select( this );
 				isCategoricalScale = ( !scale || !scale.hasOwnProperty( "invertExtent" ) )? true: false;
 				descriptionHeight = ( data.description && data.description.length )? 12: 0;
@@ -74,9 +79,6 @@
 							.attr( "id", "legend" )
 							.attr( "class", "legend" );
 				}
-				
-				//start with highest value
-				//data.reverse();
 
 				//data join
 				var legendSteps = g.selectAll( "." + stepClass ).data( data.scheme );
@@ -85,9 +87,9 @@
 				var legendStepsEnter = legendSteps.enter()
 					.append( "g" )
 						.attr( "class", stepClass );
-				legendStepsEnter.append( "rect" );
-				legendStepsEnter.append( "line" );
-				legendStepsEnter.append( "text" );
+				legendStepsEnter.append("rect");
+				legendStepsEnter.append("line");
+				legendStepsEnter.append("text");
 
 				//vars for landscape
 				var maxDataIndex = data.scheme.length - 1,
@@ -102,16 +104,14 @@
 				legendSteps.selectAll( "rect" )
 					.attr( "width", stepSizeWidth + "px" )
 					.attr( "height", stepSizeHeight + "px" );
-				/*legendSteps.selectAll( "line" )
-					.attr( "x1", 0 ).attr( "y1", -5 )
-					.attr( "x2", 0 ).attr( "y2", stepSize+5 );*/
+
 				legendSteps.select( "rect" )
 					.style( "fill", function( d, i ) {
 							return d;
 						} );
 				
 				//is there custom labeling for 
-				var legendStepsTexts = legendSteps.select( "text" )
+				var legendStepsTexts = legendSteps.select("text")
 							.attr( "transform", function( d, i ) {
 								var stepSizeX = stepSizeWidth/2 + 4;
 
@@ -130,13 +130,18 @@
 										return "translate(" + stepSizeX + ",-5) rotate(270)";
 									}
 								}
-							} )
-							.html( function( d, i ) {
-								return ( labels && labels[ i ] )? labels[ i ]:
-								( !isCategoricalScale )?
-									formatLegendLabel( scale.invertExtent( d ), i, data.scheme.length ):
-									formatCategoricalLegendLabel( i, scale );
-							} );
+							})
+							.each(function(d, i) {
+								var text = d3.select(this);
+
+								if (labels[i]) {
+									text.text(labels[i])
+								} else if (isCategoricalScale) {
+									text.text(formatCategoricalLegendLabel(i, scale));
+								} else {
+									formatLegendLabel(text, scale.invertExtent( d ), i, data.scheme.length);
+								}
+							});
 				
 				//position last tspans
 				var legendStepsTspans = legendStepsTexts.selectAll( "tspan.last-label-tspan" ),
