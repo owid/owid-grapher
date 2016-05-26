@@ -58,7 +58,7 @@
 			var renderText = function(availableWidth) {
 				var chartNameText = g.select(".chart-name-svg");
 				owid.svgSetWrappedText(chartNameText, chartName, availableWidth - 10, { lineHeight: 1.1 });
-				$("title").html(chartName + " - Our World In Data");
+				document.title = chartName + " - Our World In Data";
 
 				var chartSubnameText = g.select(".chart-subname-svg")
 					.attr("y", chartNameText.node().getBoundingClientRect().bottom - svgBounds.top);
