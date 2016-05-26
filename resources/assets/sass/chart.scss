@@ -479,6 +479,21 @@
 	}
 }
 
+.datamaps-hoverover {
+	font-family: inherit !important;
+	text-align: center;
+	h3 {
+		margin: 0;
+		font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	}
+
+	.hoverinfo {
+		padding: 0;
+		box-shadow: none;
+	}
+}
+
+
 #chart-view #map-chart-tab {
 	overflow: inherit;
 	//override datamaps
@@ -582,20 +597,6 @@
 
 		}
 
-	}
-
-	.datamaps-hoverover {
-		font-family: inherit !important;
-		text-align: center;
-		h3 {
-			margin: 0;
-			font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-		}
-
-		.hoverinfo {
-			padding: 0;
-			box-shadow: none;
-		}
 	}
 
 	/* MAP TIMELINE CONTROL */
