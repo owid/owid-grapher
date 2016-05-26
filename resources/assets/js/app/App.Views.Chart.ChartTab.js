@@ -759,7 +759,7 @@
 				svg = d3.select(this.$svg[0]),
 				svgBounds = svg.node().getBoundingClientRect(),
 				tabBounds = $(".tab-pane.active").get(0).getBoundingClientRect(),
-				chartOffsetY = tabBounds.top - svgBounds.top + parseFloat(margins.top) + 20,
+				chartOffsetY = tabBounds.top - svgBounds.top + parseFloat(margins.top) + 10,
 				chartOffsetX = parseFloat(margins.left),
 				// MISPY: The constant modifiers here are to account for nvd3 not entirely matching our specified dimensions
 				chartHeight = tabBounds.height - parseFloat(margins.bottom) - parseFloat(margins.top) - 20 - 10,
