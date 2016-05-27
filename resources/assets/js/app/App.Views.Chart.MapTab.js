@@ -33,7 +33,10 @@
 				this.timelineControls = new TimelineControls( { dispatcher: this.dispatcher } );
 
 			App.ChartModel.on("change", this.update, this);
-			App.ChartModel.on("change-map", this.update, this);
+			App.ChartModel.on("change-map", function() {
+				this.update();
+				App.ChartView.onResize();
+			}.bind(this), this);
 			App.ChartModel.on("change-map-year", this.updateYearOnly, this);
 			this.update(callback);
 		},
