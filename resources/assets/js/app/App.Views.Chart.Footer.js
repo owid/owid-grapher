@@ -98,7 +98,7 @@
 		},
 
 		updateSharingButtons: function() {
-			var headerText = d3.select(".chart-name-svg").text(),
+			var headerText = d3.select("title").text().replace(" - Our World In Data", ""),
 				baseUrl = Global.rootUrl + "/" + App.ChartModel.get("chart-slug"),
 				queryParams = owid.getQueryParams(),
 				queryStr = owid.queryParamsToStr(queryParams),				
