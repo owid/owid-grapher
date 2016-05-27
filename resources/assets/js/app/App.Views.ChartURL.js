@@ -35,6 +35,7 @@
 			this.lastTabName = null;
 			this.mapQueryStr = "?";
 			this.chartQueryStr = "?";
+			this.originalDefaultTab = App.ChartModel.get("default-tab");
 
 			$(window).on("query-change", this.onQueryChange.bind(this));
 			options.dispatcher.on("tab-change", this.onTabChange, this);
@@ -94,7 +95,10 @@
 				this.chartQueryStr = window.location.search;
 				owid.setQueryStr(this.mapQueryStr);
 			}
-			owid.setQueryVariable("tab", tabName);
+			if (tabName == this.originalDefaultTab)
+				owid.setQueryVariable("tab", null);
+			else
+				owid.setQueryVariable("tab", tabName);
 			this.lastTabName = tabName;
 		},
 

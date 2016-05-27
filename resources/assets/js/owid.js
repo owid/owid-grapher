@@ -256,6 +256,10 @@
 	};
 
 	owid.setQueryStr = function(str) {
+		var uri = window.location.toString();
+		if (!str && s.contains(uri, "?")) {
+			str = uri.substring(0, uri.indexOf("?"));
+		}
 		history.replaceState(null, null, str + window.location.hash);
 		$(window).trigger("query-change");
 	};
