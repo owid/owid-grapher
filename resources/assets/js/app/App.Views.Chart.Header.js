@@ -123,9 +123,8 @@
 			}
 
 			if (s.contains(text, "*time")) {
-				var latestAvailable = this.timeGoesToLatest,
-					timeFrom = owid.displayYear(this.selectedTimeFrom),
-					timeTo = latestAvailable ? "latest available data" : owid.displayYear(this.selectedTimeTo),
+				var timeFrom = owid.displayYear(this.selectedTimeFrom),
+					timeTo = owid.displayYear(this.selectedTimeTo),
 					time = this.targetYear || (timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo);
 
 				text = text.replace("*time*", time);
@@ -145,38 +144,20 @@
 					this.updateTimeFromMap(this.parentView.mapTab);
 			} else {
 				if (this.parentView.chartTab && this.parentView.chartTab.localData)
-					this.updateTimeFromChart(this.parentView.chartTab.localData);
+					this.updateTimeFromChart();
 			}
 		},
 
-		updateTimeFromChart: function( data ) {
+		updateTimeFromChart: function() {
 			//find minimum and maximum in all displayed data
 			var dimsString = App.ChartModel.get("chart-dimensions"),
 				dims = $.parseJSON( dimsString ),
 				latestAvailable = false,
-				timeFrom = d3.min( data, function( entityData ) {
-					return d3.min( entityData.values, function( d ) { return parseInt( d.time, 10 ); } );
-				} ),
-				timeTo = d3.max( data, function( entityData ) {
-					return d3.max( entityData.values, function( d ) { return parseInt( d.time, 10 ); } );
-				} );
-
-			_.each( dims, function( dimension ) {
-				if( dimension.mode === "specific" && dimension.period === "single" ) {
-					var tolerance = +dimension.tolerance,
-						dimMax = +dimension.targetYear + tolerance,
-						dimMin = +dimension.targetYear - tolerance;
-					//possibly set new timeFrom/timeTo values based on dimension settings
-					timeFrom = Math.min(timeFrom, dimMin);
-					timeTo = Math.max(timeTo, dimMax);
-				} else if (dimension.mode === "latest") {
-					latestAvailable = true;
-				}
-			});
+				timeFrom = App.DataModel.minTransformedYear,
+				timeTo = App.DataModel.maxTransformedYear;
 
 			this.selectedTimeFrom = timeFrom;
 			this.selectedTimeTo = timeTo;
-			this.timeGoesToLatest = latestAvailable;
 			this.mapDisclaimer = null;
 			this.targetYear = null;
 		},

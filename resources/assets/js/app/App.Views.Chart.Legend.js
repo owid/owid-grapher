@@ -24,7 +24,6 @@
 			, height = 20
 			, getKey = function(d) { return d.origKey || d.key }
 			, color = nv.utils.getColor()
-			, align = true
 			, padding = 40 //define how much space between legend items. - recommend 32 for furious version
 			, rightAlign = false
 			, updateState = true   //If true, legend will update data.disabled and trigger a 'stateChange' dispatch.
@@ -45,7 +44,7 @@
 				var bindableData = getData(data);
 
 				//discrete bar chart needs unpack data
-				if( chartType === "6" ) {
+				if( chartType === App.ChartType.DiscreteBar ) {
 					if( data && data.length && data[0].values ) {
 						var discreteData = _.map( data[0].values, function( v, i ) {
 							return { id: v.id, key: v.x, color: v.color, values: v };
@@ -250,103 +249,87 @@
 					.attr('fill', setTextColor)
 					.text(getKey);
 
+				var transformX = 0, transformY = 0;
+				series.each(function(d, i) {
+					var legendText = d3.select(this).select('text');
+					var nodeTextLength = legendText.node().getComputedTextLength();
+
+					if (transformX+nodeTextLength > availableWidth)  {
+						transformY += versPadding;
+						transformX = 0;
+					}
+
+					d3.select(this).attr("transform", "translate(" + transformX + "," + transformY + ")");
+
+					transformX += nodeTextLength + padding;
+				});
+				var legendWidth = availableWidth;
+
+
 				//TODO: implement fixed-width and max-width options (max-width is especially useful with the align option)
 				// NEW ALIGNING CODE, TODO: clean up
-				var legendWidth = 0,
+				/*var legendWidth = 0,
 					transformX, transformY;
-				if (align) {
-
-					var seriesWidths = [];
-					series.each( function(d,i) {
-						var legendText = d3.select(this).select('text');
-						var nodeTextLength;
-						try {
-							nodeTextLength = legendText.node().getComputedTextLength();
-							// If the legendText is display:none'd (nodeTextLength == 0), simulate an error so we approximate, instead
-							if(nodeTextLength <= 0) throw Error();
-						} catch( e ) {
-							nodeTextLength = nv.utils.calcApproxTextWidth(legendText);
-						}
-						seriesWidths.push(nodeTextLength + padding);
-					});
-
-					var seriesPerRow = 0;
-					var columnWidths = [];
-					legendWidth = 0;
-
-					while( legendWidth < availableWidth && seriesPerRow < seriesWidths.length ) {
-						columnWidths[seriesPerRow] = seriesWidths[seriesPerRow];
-						legendWidth += seriesWidths[seriesPerRow++];
+				var seriesWidths = [];
+				series.each(function(d,i) {
+					var legendText = d3.select(this).select('text');
+					var nodeTextLength;
+					try {
+						nodeTextLength = legendText.node().getComputedTextLength();
+						// If the legendText is display:none'd (nodeTextLength == 0), simulate an error so we approximate, instead
+						if(nodeTextLength <= 0) throw Error();
+					} catch( e ) {
+						nodeTextLength = nv.utils.calcApproxTextWidth(legendText);
 					}
-					if( seriesPerRow === 0 ) seriesPerRow = 1; //minimum of one series per row
+					seriesWidths.push(nodeTextLength + padding);
+				});
 
-					while( legendWidth > availableWidth && seriesPerRow > 1 ) {
-						columnWidths = [];
-						seriesPerRow--;
+				var seriesPerRow = 0;
+				var columnWidths = [];
+				legendWidth = 0;
 
-						for (var k = 0; k < seriesWidths.length; k++) {
-							if (seriesWidths[k] > (columnWidths[k % seriesPerRow] || 0) )
-								columnWidths[k % seriesPerRow] = seriesWidths[k];
-						}
-
-						legendWidth = columnWidths.reduce(function(prev, cur, index, array) {
-							return prev + cur;
-						});
-					}
-
-					var xPositions = [];
-					for (var i = 0, curX = 0; i < seriesPerRow; i++) {
-						xPositions[i] = curX;
-						curX += columnWidths[i];
-					}
-
-					series
-						.attr('transform', function(d, i) {
-							transformX = xPositions[i % seriesPerRow];
-							transformY = (5 + Math.floor(i / seriesPerRow) * versPadding);
-							return 'translate(' + transformX + ',' + transformY + ')';
-						});
-
-					//position legend as far right as possible within the total width
-					if (rightAlign) {
-						g.attr('transform', 'translate(' + (width - margin.right - legendWidth) + ',' + margin.top + ')');
-					}
-					else {
-						g.attr('transform', 'translate(' + entityLabelWidth + ',' + margin.top + ')');
-					}
-
-					height = margin.top + margin.bottom + (Math.ceil(seriesWidths.length / seriesPerRow) * versPadding);
-					
-				} else {
-
-					var ypos = 5,
-						newxpos = 5,
-						maxwidth = 0,
-						xpos;
-					series
-						.attr('transform', function(d, i) {
-							var length = d3.select(this).select('text').node().getComputedTextLength() + padding;
-							xpos = newxpos;
-
-							if (width < margin.left + margin.right + xpos + length) {
-								newxpos = xpos = 5;
-								ypos += versPadding;
-							}
-
-							newxpos += length;
-							if (newxpos > maxwidth) maxwidth = newxpos;
-
-							if(legendWidth < xpos + maxwidth) {
-								legendWidth = xpos + maxwidth;
-							}
-							return 'translate(' + xpos + ',' + ypos + ')';
-						});
-
-					//position legend as far right as possible within the total width
-					g.attr('transform', 'translate(' + (width - margin.right - maxwidth) + ',' + margin.top + ')');
-
-					height = margin.top + margin.bottom + ypos + 15;
+				while( legendWidth < availableWidth && seriesPerRow < seriesWidths.length ) {
+					columnWidths[seriesPerRow] = seriesWidths[seriesPerRow];
+					legendWidth += seriesWidths[seriesPerRow++];
 				}
+				if( seriesPerRow === 0 ) seriesPerRow = 1; //minimum of one series per row
+
+				while( legendWidth > availableWidth && seriesPerRow > 1 ) {
+					columnWidths = [];
+					seriesPerRow--;
+
+					for (var k = 0; k < seriesWidths.length; k++) {
+						if (seriesWidths[k] > (columnWidths[k % seriesPerRow] || 0) )
+							columnWidths[k % seriesPerRow] = seriesWidths[k];
+					}
+
+					legendWidth = columnWidths.reduce(function(prev, cur, index, array) {
+						return prev + cur;
+					});
+				}
+
+				var xPositions = [];
+				for (var i = 0, curX = 0; i < seriesPerRow; i++) {
+					xPositions[i] = curX;
+					curX += columnWidths[i];
+				}
+
+				series
+					.attr('transform', function(d, i) {
+						transformX = xPositions[i % seriesPerRow];
+						transformY = (5 + Math.floor(i / seriesPerRow) * versPadding);
+						return 'translate(' + transformX + ',' + transformY + ')';
+					});*/
+
+				//position legend as far right as possible within the total width
+				if (rightAlign) {
+					g.attr('transform', 'translate(' + (width - margin.right - legendWidth) + ',' + margin.top + ')');
+				}
+				else {
+					g.attr('transform', 'translate(' + entityLabelWidth + ',' + margin.top + ')');
+				}
+
+				height = margin.top + margin.bottom + transformY + versPadding;// + (Math.ceil(seriesWidths.length / seriesPerRow) * versPadding);
 
 				// Size rectangles after text is placed
 				seriesShape
@@ -383,8 +366,7 @@
 					.style('stroke', setBGColor);
 
 				//position add btn
-				if( series.size() ) {
-
+				if (series.size()) {
 					var seriesArr = series[0];
 					if( seriesArr && seriesArr.length ) {
 						//fetch last element to know its width
@@ -393,8 +375,7 @@
 							lastRect = d3.select( lastEl ).select( "rect" ),
 							lastRectWidth = lastRect.attr( "width" );
 						//position add btn
-						transformX = +transformX + parseInt( lastRectWidth, 10 ) - 3;
-						transformX += entityLabelWidth;
+						transformX -= 3;
 						//centering
 						transformY = +transformY - 3;
 						//check for right edge
@@ -411,9 +392,7 @@
 						}
 						addEntityBtn.attr( "transform", "translate( " + transformX + ", " + transformY + ")" );
 					}
-						
 				}
-			
 			});
 			
 			function setTextColor(d,i) {
@@ -459,7 +438,6 @@
 			width:      {get: function(){return width;}, set: function(_){width=_;}},
 			height:     {get: function(){return height;}, set: function(_){height=_;}},
 			key:        {get: function(){return getKey;}, set: function(_){getKey=_;}},
-			align:      {get: function(){return align;}, set: function(_){align=_;}},
 			rightAlign:    {get: function(){return rightAlign;}, set: function(_){rightAlign=_;}},
 			padding:       {get: function(){return padding;}, set: function(_){padding=_;}},
 			updateState:   {get: function(){return updateState;}, set: function(_){updateState=_;}},

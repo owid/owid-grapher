@@ -36,6 +36,7 @@
 			if( i < (length - 1) ) {
 				text.text(valueArr[0]);
 			} else {
+				text.selectAll("tspan").remove();
 				//need to use tspan with preserve to have the whitespcae (??)
 				text.append("tspan")
 					.attr("class", "last-label-tspan")

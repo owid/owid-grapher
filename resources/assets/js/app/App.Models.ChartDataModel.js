@@ -128,7 +128,9 @@
 				yAxis = App.ChartModel.get("y-axis"),
 				localData = [],
 				hasManyVariables = _.size(variables) > 1,
-				hasManyEntities = _.size(selectedCountriesById) > 1;
+				hasManyEntities = _.size(selectedCountriesById) > 1,
+				minTransformedYear = Infinity,
+				maxTransformedYear = -Infinity;
 
 			_.each(dimensions, function(dimension) {
 				var variable = variables[dimension.variableId],
@@ -176,6 +178,8 @@
 					if (prevValue)
 						prevValue.gapYearsToNext = year-prevValue.x;
 					series.values.push({ x: year, y: value, time: year });
+					minTransformedYear = Math.min(minTransformedYear, year);
+					maxTransformedYear = Math.max(maxTransformedYear, year);
 				}
 
 				_.each(seriesByEntity, function(v, k) {
@@ -183,6 +187,8 @@
 				});
 			});
 
+			this.minTransformedYear = minTransformedYear;
+			this.maxTransformedYear = maxTransformedYear;
 			return localData;
 		},
 
@@ -251,7 +257,9 @@
 				entityKey = variableData.entityKey,
 				// Group-by-variable chart only has one selected country
 				selectedCountry = _.values(this.getSelectedCountriesById())[0],
-				localData = [];
+				localData = [],
+				minTransformedYear = Infinity,
+				maxTransformedYear = -Infinity;
 
 			_.each(dimensions, function(dimension) {
 				var variable = variables[dimension.variableId];
@@ -271,11 +279,15 @@
 					if (entityId != selectedCountry.id) continue;
 
 					series.values.push({ x: year, y: value, time: year });
+					minTransformedYear = Math.min(minTransformedYear, year);
+					maxTransformedYear = Math.max(maxTransformedYear, year);
 				}
 
 				localData.push(series);
 			});
 
+			this.minTransformedYear = minTransformedYear;
+			this.maxTransformedYear = maxTransformedYear;
 			return this.zeroPadData(localData);
 		},
 
@@ -362,6 +374,7 @@
 							continue;
 					}
 
+					// All good, put the data in. Note that a scatter plot only has one value per entity.
 					var datum = series.values[0];
 					datum[dimension.property] = parseFloat(value);
 					datum.time[dimension.property] = year;
@@ -377,6 +390,13 @@
 				if (isComplete)
 					localData.push(series);
 			}.bind(this));
+
+			this.minTransformedYear = _.min(_.map(localData, function(entityData) {
+				return _.min(_.values(entityData.values[0].time));
+			}));
+			this.maxTransformedYear = _.max(_.map(localData, function(entityData) {
+				return _.max(_.values(entityData.values[0].time));
+			}));
 
 			return localData;
 		},
@@ -421,7 +441,7 @@
 		},
 
 		transformData: function() {
-			var variableData = this.get("variableData")
+			var variableData = this.get("variableData");
 			if (!variableData) return [];
 
 			var chartType = App.ChartModel.get("chart-type");

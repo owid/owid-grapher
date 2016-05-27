@@ -788,6 +788,15 @@
 					chartHeight -= 20;
 			}
 
+			// Make sure we actually have enough room for the chart to be visible!
+			var minHeight = 150;
+			if (chartHeight < minHeight) {
+				var $wrapper = App.ChartView.$(".chart-wrapper-inner");
+				$wrapper.css("height", $wrapper.height() + (minHeight-chartHeight) + 10 + "px");
+				App.ChartView.onResize(callback, true);
+				return;
+			}
+
 			// Inform nvd3 of the situation
 			this.chart.width(chartWidth);
 			this.chart.height(chartHeight);

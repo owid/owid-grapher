@@ -86,8 +86,9 @@
 			} else if (this.activeTabName)
 				return; // Already loading a tab, don't double up
 
-			this.dispatcher.trigger("tab-change", tabName);			
-			$(".chart-preloader").show();			
+			this.dispatcher.trigger("tab-change", tabName);		
+			if (!_.isEmpty(App.ChartModel.get("chart-dimensions")))
+				$(".chart-preloader").show();			
 			App.DataModel.ready(function() {
 				tab.activate(function() {
 					$(".chart-preloader").hide();							

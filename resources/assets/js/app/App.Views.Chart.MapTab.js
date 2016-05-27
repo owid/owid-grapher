@@ -290,7 +290,7 @@
 			var legendSize = mapConfig.legendStepSize || 20;
 			legend.stepSizeWidth(legendSize);
 			legend.labels(mapConfig.colorSchemeLabels);
-			var legendOrientation = mapConfig.legendOrientation || "landscape";
+			var legendOrientation = mapConfig.legendOrientation || "portrait";
 			legend.orientation(legendOrientation);
 			legend.scale(colorScale);
 
