@@ -184,6 +184,7 @@
 .footer-btns a {
 	text-decoration: none;
 	margin-right: 0.5em;
+	display: inline-block;
 }
 .footer-btns a:hover {
 	text-decoration: none;
@@ -905,6 +906,18 @@ body#chart-export {
 
 	#chart-view ul.chart-tabs li.edit-btn-wrapper {
 		display: none;
+	}
+	#chart-view .footer-btns {
+		a.chart-link-btn,
+		a.tweet-btn,
+		a.facebook-btn,
+		a.embed-btn {
+			span { display: none; }
+		}
+
+		i {
+			font-size: 1.2rem;
+		}		
 	}
 }
 

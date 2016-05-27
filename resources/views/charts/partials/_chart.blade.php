@@ -179,27 +179,27 @@
 		<div class="footer-btns">
 			<a class="chart-link-btn" target="_blank">
 				<i class="fa fa-link"></i>
-				Link to chart
+				<span>Link</span>
 			</a>
 			<a class="tweet-btn" target="_blank">
 				<i class="fa fa-twitter"></i>
-				Tweet
+				<span>Tweet</span>
 			</a>
 			<a class="facebook-btn" target="_blank">
 				<i class="fa fa-facebook"></i>
-				Share
+				<span>Share</span>
 			</a>
 			<a class="embed-btn">
 				<i class="fa fa-code"></i>
-				Embed
+				<span>Embed</span>
 			</a>
 			<a class="download-image-btn" target="_blank">
 				<i class="fa fa-download"></i>
-				PNG
+				<span>PNG</span>
 			</a>
 			<a class="download-svg-btn" target="_blank">
 				<i class="fa fa-download"></i>
-				SVG
+				<span>SVG</span>
 			</a>
 		</div>
 
