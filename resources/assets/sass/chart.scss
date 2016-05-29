@@ -919,7 +919,11 @@ body#chart-export {
 			font-size: 1.2rem;
 		}		
 	}
+	#chart-view .nv-add-btn {
+		display: none;
+	}
 }
+
 
 @media (min-width: 800px) {
 	#chart-view.embedded {
