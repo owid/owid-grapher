@@ -70,8 +70,8 @@
 					});
 
 				//special styling for stacked area chart legend
-				if( chartType === "3" ) {
-					container.selectAll('g.nv-custom-legend').classed( "transparent", true );
+				if (chartType === App.ChartType.StackedArea) {
+					container.selectAll('g.nv-custom-legend').classed("transparent", true);
 				}
 				
 				//add entity label
@@ -80,8 +80,9 @@
 					entityLabelWidth = 0;
 
 				//if not existing, add nv-add-btn, if not grouping by variables
-				var addEntityBtn =  wrap.select( 'g.nv-add-btn' );
-				if( addEntityBtn.empty() ) {
+				var addEntityBtn =  wrap.select('g.nv-add-btn'),
+					isNewAddBtn = addEntityBtn.empty();
+				if (isNewAddBtn) {
 					addEntityBtn = wrap.append('g').attr('class', 'nv-add-btn');
 					var addEntityBtnG = addEntityBtn.append('g').attr( { 'class': 'add-btn-path' } );
 					addEntityBtnG.append('path').attr( { 'd': 'M15,0 L15,14', 'class': 'nv-box' } );
@@ -89,12 +90,13 @@
 					//http://android-ui-utils.googlecode.com/hg-history/ac955e6376470d9599ead07b4599ef937824f919/asset-studio/dist/res/clipart/icons/refresh.svg?r=ac955e6376470d9599ead07b4599ef937824f919
 					addEntityBtn.append('path').attr( { 'd': 'M160.469,242.194c0-44.414,36.023-80.438,80.438-80.438c19.188,0,36.711,6.844,50.5,18.078L259.78,209.93l99.945,11.367    l0.805-107.242l-30.766,29.289c-23.546-21.203-54.624-34.164-88.804-34.164c-73.469,0-133.023,59.562-133.023,133.016    c0,2.742,0.242-2.266,0.414,0.445l53.68,7.555C161.03,245.108,160.469,247.562,160.469,242.194z M371.647,237.375l-53.681-7.555    c1.017,5.086,1.556,2.617,1.556,7.992c0,44.414-36.008,80.431-80.43,80.431c-19.133,0-36.602-6.798-50.383-17.97l31.595-30.078    l-99.93-11.366l-0.812,107.25l30.789-29.312c23.531,21.141,54.57,34.055,88.688,34.055c73.468,0,133.023-59.555,133.023-133.008    C372.062,235.078,371.812,240.085,371.647,237.375z', 'class': 'nv-box change-btn-path', 'transform': 'scale(.04) translate(150,-50)' } );
 					addEntityBtn.append('text').attr( {'x':28,'y':11} ).text('Add country');
-					addEntityBtn.on( 'click', function( d, i ) {
-						//group by variables
+					addEntityBtn.on('click', function(d, i) {
 						dispatch.addEntity();
 						d3.event.stopImmediatePropagation();
-					} );
+					});
+					addEntityBtn.insert('rect', '*').attr('class', 'add-btn-bg');
 				}
+
 				//based on selected countries selection hide or show addEntityBtn
 				if (_.isEmpty(App.ChartModel.get("selected-countries"))) {
 					addEntityBtn.attr( "display", "none" );
@@ -103,29 +105,24 @@
 				}
 
 				var addCountryMode = App.ChartModel.get( "add-country-mode" );
-				if( addCountryMode === "add-country" ) {
-				//if( App.ChartModel.get( "group-by-variables" ) ) {
-					//if grouping by variable, legend will show variables instead of countries, so add country btn doesn't make sense
-					//if enabling adding countries
-					//addEntityBtn.attr( "display", "none" );
-					addEntityBtn.select( "text" ).text( "Add country" );
-					addEntityBtn.select( "rect" ).attr( "width", "100" );
-					addEntityBtn.select( ".add-btn-path" ).attr( "display", "block" );
-					addEntityBtn.select( ".change-btn-path" ).attr( "display", "none" );
+				if (addCountryMode === "add-country") {
+					addEntityBtn.select("text" ).text("Add country");
+					addEntityBtn.select(".add-btn-path" ).attr( "display", "block");
+					addEntityBtn.select(".change-btn-path" ).attr( "display", "none");
 					addEntityBtn.attr( "display", "block" );
-				} else if( addCountryMode === "change-country" ) {
-					addEntityBtn.select( ".add-btn-path" ).attr( "display", "none" );
-					addEntityBtn.select( ".change-btn-path" ).attr( "display", "block" );
-					addEntityBtn.select( "text" ).text( "Change country" );
-					addEntityBtn.select( "rect" ).attr( "width", "120" );
-					addEntityBtn.attr( "display", "block" );
+				} else if (addCountryMode === "change-country") {
+					addEntityBtn.select(".add-btn-path").attr("display", "none");
+					addEntityBtn.select(".change-btn-path").attr("display", "block");
+					addEntityBtn.select("text").text("Change country");
+					addEntityBtn.attr("display", "block");
 				} else {
-					addEntityBtn.attr( "display", "none" );
+					addEntityBtn.attr("display", "none");
 				}
 
-				addEntityBtn.select("rect").remove();
-				addEntityBtn.insert('rect', '*').attr( { 'class': 'add-btn-bg', 'width': addEntityBtn.node().getBoundingClientRect().width + 10, 'height': '25', 'transform': 'translate(0,-5)' } );
-
+				if (isNewAddBtn) {
+					addEntityBtn.select("rect")
+						.attr({ width: addEntityBtn.node().getBoundingClientRect().width + 15, height: '25', transform: 'translate(0,-5)' });
+				}
 					
 				var seriesEnter = series.enter().append('g').attr('class', function(d) { return 'nv-series nv-series-' + d.id; } ),
 					seriesShape, seriesRemove;
@@ -163,8 +160,7 @@
 						chartLegend.dispatch.legendMouseout(d,i);
 					})
 					.on('click', function(d,i) {
-
-						if( App.ChartModel.get( "group-by-variables" ) || addCountryMode !== "add-country" ) {
+						if (App.ChartModel.get("group-by-variables") || addCountryMode !== "add-country") {
 							//if displaying variables, instead of removing, use original version just to turn stuff off
 							//original version, when clicking country label just deactivates it
 							chartLegend.dispatch.legendClick(d,i);
@@ -194,7 +190,6 @@
 							}
 							return false;
 						} else {
-
 							//when clicking country label, remove the country
 							d3.event.stopImmediatePropagation();
 							//remove series straight away, so we don't have to wait for response from server
@@ -210,38 +205,8 @@
 							}
 							App.ChartModel.removeSelectedCountry(d.entityName);
 							return false;
-
-						}
-
-					})
-					.on('dblclick', function(d,i) {
-						if((vers == 'furious' || vers == 'owd') && expanded) return;
-						chartLegend.dispatch.legendDblclick(d,i);
-						if (updateState) {
-							// make sure we re-get data in case it was modified
-							var data = getData(series.data());
-							//the default behavior of NVD3 legends, when double clicking one,
-							// is to set all other series' to false, and make the double clicked series enabled.
-							data.forEach(function(series) {
-								series.disabled = true;
-								if(vers == 'furious' || vers == 'owd') series.userDisabled = series.disabled;
-							});
-							d.disabled = false;
-							if(vers == 'furious' || vers == 'owd' ) d.userDisabled = d.disabled;
-							chartLegend.dispatch.stateChange({
-								disabled: data.map(function(d) { return !!d.disabled; })
-							});
 						}
 					});
-
-				seriesRemove.on( 'click', function( d, i ) {
-
-					d3.event.stopImmediatePropagation();
-					//remove series straight away, so we don't have to wait for response from server
-					series[0][i].remove();
-					App.ChartModel.removeSelectedCountry(d.entityName);
-					
-				} );	
 
 				series.classed('nv-disabled', function(d) { return d.userDisabled; });
 				series.exit().remove();

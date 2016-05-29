@@ -66,18 +66,11 @@
 				this.$yAxisScaleSelector.hide();
 			}
 
-
-			this.$chartFullScreen.on( "click", function( evt ) {
-				evt.preventDefault();
-				var $this = $( this );
-				window.parent.openFancyBox( $this.attr( "href" ) );
-			} );
-
 			//refresh btn
-			this.$reloadBtn.on( "click", function( evt ) {
+			this.$reloadBtn.on("click", function(evt) {
 				evt.preventDefault();
 				window.location.reload();
-			} );
+			});
 
 			var dimensionsString = App.ChartModel.get( "chart-dimensions" ),
 				validDimensions = false;
@@ -541,12 +534,12 @@
 					//make sure wrapper is visible
 					that.$svg.find( "> .nvd3.nv-custom-legend" ).show();
 					that.legend = new App.Views.Chart.Legend( that.chart.legend ).vers( "owd" );
-					that.legend.dispatch.on( "addEntity", function() {
-						if( that.$entitiesSelect.data( "chosen" ) ) {
-							that.$entitiesSelect.data( "chosen" ).active_field = false;
+					that.legend.dispatch.on("addEntity", function() {
+						if (that.$entitiesSelect.data("chosen")) {
+							that.$entitiesSelect.data("chosen").active_field = false;
 						}
 						//trigger open the chosen drop down
-						that.$entitiesSelect.trigger( "chosen:open" );
+						that.$entitiesSelect.trigger("chosen:open");
 					} );
 					that.svgSelection.call( that.legend );
 					//put legend above chart
