@@ -123,6 +123,7 @@
 					addEntityBtn.attr( "display", "none" );
 				}
 
+				addEntityBtn.select("rect").remove();
 				addEntityBtn.insert('rect', '*').attr( { 'class': 'add-btn-bg', 'width': addEntityBtn.node().getBoundingClientRect().width + 10, 'height': '25', 'transform': 'translate(0,-5)' } );
 
 					
@@ -413,7 +414,6 @@
 		};
 
 		nv.utils.initOptions(chart);
-
 
 		return chart;
 	};
