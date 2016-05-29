@@ -96,7 +96,7 @@
 					} );
 				}
 				//based on selected countries selection hide or show addEntityBtn
-				if( _.isEmpty( App.ChartModel.get( "selected-countries" ) ) ) {
+				if (_.isEmpty(App.ChartModel.get("selected-countries"))) {
 					addEntityBtn.attr( "display", "none" );
 				} else {
 					addEntityBtn.attr( "display", "block" );
@@ -264,62 +264,6 @@
 					transformX += nodeTextLength + padding;
 				});
 				var legendWidth = availableWidth;
-
-
-				//TODO: implement fixed-width and max-width options (max-width is especially useful with the align option)
-				// NEW ALIGNING CODE, TODO: clean up
-				/*var legendWidth = 0,
-					transformX, transformY;
-				var seriesWidths = [];
-				series.each(function(d,i) {
-					var legendText = d3.select(this).select('text');
-					var nodeTextLength;
-					try {
-						nodeTextLength = legendText.node().getComputedTextLength();
-						// If the legendText is display:none'd (nodeTextLength == 0), simulate an error so we approximate, instead
-						if(nodeTextLength <= 0) throw Error();
-					} catch( e ) {
-						nodeTextLength = nv.utils.calcApproxTextWidth(legendText);
-					}
-					seriesWidths.push(nodeTextLength + padding);
-				});
-
-				var seriesPerRow = 0;
-				var columnWidths = [];
-				legendWidth = 0;
-
-				while( legendWidth < availableWidth && seriesPerRow < seriesWidths.length ) {
-					columnWidths[seriesPerRow] = seriesWidths[seriesPerRow];
-					legendWidth += seriesWidths[seriesPerRow++];
-				}
-				if( seriesPerRow === 0 ) seriesPerRow = 1; //minimum of one series per row
-
-				while( legendWidth > availableWidth && seriesPerRow > 1 ) {
-					columnWidths = [];
-					seriesPerRow--;
-
-					for (var k = 0; k < seriesWidths.length; k++) {
-						if (seriesWidths[k] > (columnWidths[k % seriesPerRow] || 0) )
-							columnWidths[k % seriesPerRow] = seriesWidths[k];
-					}
-
-					legendWidth = columnWidths.reduce(function(prev, cur, index, array) {
-						return prev + cur;
-					});
-				}
-
-				var xPositions = [];
-				for (var i = 0, curX = 0; i < seriesPerRow; i++) {
-					xPositions[i] = curX;
-					curX += columnWidths[i];
-				}
-
-				series
-					.attr('transform', function(d, i) {
-						transformX = xPositions[i % seriesPerRow];
-						transformY = (5 + Math.floor(i / seriesPerRow) * versPadding);
-						return 'translate(' + transformX + ',' + transformY + ')';
-					});*/
 
 				//position legend as far right as possible within the total width
 				if (rightAlign) {

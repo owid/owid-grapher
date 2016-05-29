@@ -15,7 +15,6 @@
 			this.parentView = options.parentView;
 			this.$tab = this.$el.find("#chart-chart-tab");
 			this.$svg = this.$el.find("svg");
-			this.$entitiesSelect = this.$el.find( "[name=available_entities]" );
 		},
 
 		onChartModelChange: function() {
@@ -48,11 +47,7 @@
 			this.$yAxisScale = this.$el.find( "[name=y_axis_scale]" );
 
 			this.$reloadBtn = this.$el.find( ".reload-btn" );
-
-			var availableEntities = App.DataModel.get("availableEntities"),
-				selectedCountries = App.ChartModel.get("selected-countries"),
-				selectedCountriesIds = _.map(selectedCountries, function(v) { return (v)? +v.id: ""; }),
-				chartTime = App.ChartModel.get("chart-time");
+			var chartTime = App.ChartModel.get("chart-time");
 
 			var chartDescription = App.ChartModel.get( "chart-description" );
 			//this.$chartDescription.text( App.ChartModel.get( "chart-description" ) );
@@ -104,18 +99,6 @@
 				return false;
 			}
 
-			// Fill entity selector with all entities not currently selected
-			this.$entitiesSelect.empty();
-			this.$entitiesSelect.append( "<option disabled selected>Select country</option>" );
-			_.each(availableEntities, function(entity) {
-				if (!_.contains(selectedCountriesIds, +entity.id)) {
-					this.$entitiesSelect.append("<option value='" + entity.id + "'>" + entity.name + "</option>");
-				}
-			}.bind(this));
-
-			//make chosen update, make sure it looses blur as well
-			this.$entitiesSelect.trigger( "chosen:updated" );
-
 			this.render(callback);
 		},
 
@@ -125,13 +108,32 @@
 			this.$yAxisScaleSelector.show();
 		},
 
+		updateAvailableCountries: function() {
+			var availableEntities = App.DataModel.get("availableEntities"),
+				selectedCountries = App.ChartModel.get("selected-countries"),
+				selectedCountriesIds = _.map(selectedCountries, function(v) { return (v)? +v.id: ""; });
+
+			// Fill entity selector with all entities not currently selected
+			this.$entitiesSelect.empty();
+			this.$entitiesSelect.append("<option disabled selected>Select country</option>");
+			_.each(availableEntities, function(entity) {
+				if (!_.contains(selectedCountriesIds, +entity.id)) {
+					this.$entitiesSelect.append("<option value='" + entity.id + "'>" + entity.name + "</option>");
+				}
+			}.bind(this));
+
+			this.$entitiesSelect.trigger("chosen:updated");
+		},
+
 		render: function(callback) {
 			var data = App.DataModel.transformData();
 			var timeType = "Year";
 
-			if( !data ) {
+			if (!data) {
 				return;
 			}
+
+			this.updateAvailableCountries();
 
 			var that = this;
 
