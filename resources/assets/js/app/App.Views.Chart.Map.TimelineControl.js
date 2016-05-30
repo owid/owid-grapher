@@ -6,7 +6,7 @@
 		el: "#map-chart-tab .map-timeline-controls .timeline-control",
 		events: {
 			"mousedown": "onMousedown",
-			"touchstart": "onMousedown"
+			"touchstart": "onTouchstart"
 		},
 
 		initialize: function( options ) {
@@ -22,21 +22,29 @@
 			this.$startYear = this.$el.find( ".timeline-start-year" );
 			this.$endYear = this.$el.find( ".timeline-end-year" );
 
-			this.dispatcher.on( "increment-time", this.onIncrementTime, this );
+			this.dispatcher.on("increment-time", this.onIncrementTime, this);
 			App.ChartModel.on("change-map", this.onChangeYear, this);
 			App.ChartModel.on("change-map-year", this.onChangeYear, this);			
 		},
 
 		onMousedown: function(evt) {
 			this.isDragging = true;
-			$(window).one("touchend mouseup", this.onMouseup.bind(this));
-			$(window).on("touchmove.timeline mousemove.timeline", this.onMousemove.bind(this));
+			$(window).one("mouseup", this.onMouseup.bind(this));
+			$(window).on("mousemove.timeline", this.onMousemove.bind(this));
 			this.onMousemove(evt);
+		},
+
+		onTouchstart: function(evt) {
+			this.isDragging = true;
+			$(window).one("touchend", this.onMouseup.bind(this));
+			$(window).on("touchmove.timeline", this.onMousemove.bind(this));
+			this.onMousemove(evt);			
 		},
 
 		onMouseup: function() {
 			this.isDragging = false;
-			$(window).off("touchend.timeline mousemove.timeline");
+			$(window).off("touchend.timeline");
+			$(window).off("mousemove.timeline");
 		},
 
 		onMousemove: function(evt) {

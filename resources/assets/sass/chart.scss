@@ -656,6 +656,7 @@
 			height: 100%;
 			width: calc(100% - #{$play-pause-control});
 			position: relative;
+			cursor: pointer;
 
 			.timeline-start-year,
 			.timeline-end-year {
@@ -696,8 +697,7 @@
 				top: 0.4rem;
 				left: 4.4rem;
 				right: 4.4rem;
-				cursor: pointer;
-				
+
 				.timeline {
 					width: 100%;
 					height: 0.6rem;
