@@ -684,12 +684,19 @@
 			.timeline-start-year.highlight {
 				background-color: #404040;
 				color: #fff;
+				cursor: pointer;
+				user-select: none;           
+				-webkit-user-select: none;   /* Chrome/Safari/Opera */
+				-moz-user-select: none;      /* Firefox */
+				-ms-user-select: none;       /* IE/Edge */
+				-webkit-touch-callout: none; /* iOS Safari */
 			}
 			.timeline-wrapper {
 				position: absolute;
 				top: 0.4rem;
 				left: 4.4rem;
 				right: 4.4rem;
+				cursor: pointer;
 				
 				.timeline {
 					width: 100%;

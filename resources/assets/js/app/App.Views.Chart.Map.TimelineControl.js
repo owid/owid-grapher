@@ -3,20 +3,17 @@
 	owid.namespace("App.Views.Chart.Map.TimelineControl");
 	
 	App.Views.Chart.Map.TimelineControl = Backbone.View.extend({
-
 		el: "#map-chart-tab .map-timeline-controls .timeline-control",
 		events: {
-			"input [type='range']": "onTargetYearInput",
-			"change [type='range']": "onTargetYearInput",
+			"mousedown": "onMousedown",
+			"touchstart": "onMousedown"
 		},
 
 		initialize: function( options ) {
-			
 			this.dispatcher = options.dispatcher;
 			
 			var mapConfig = App.ChartModel.get( "map-config" );
 			
-			this.$win = $( window );
 			this.$sliderWrapper = this.$el.find( ".timeline-wrapper" );
 			this.$slider = this.$el.find( ".timeline-slider" );
 			this.$sliderLabel = this.$slider.find( ".timeline-slider-label" );
@@ -27,7 +24,40 @@
 
 			this.dispatcher.on( "increment-time", this.onIncrementTime, this );
 			App.ChartModel.on("change-map", this.onChangeYear, this);
-			App.ChartModel.on("change-map-year", this.onChangeYear, this);
+			App.ChartModel.on("change-map-year", this.onChangeYear, this);			
+		},
+
+		onMousedown: function(evt) {
+			this.isDragging = true;
+			$(window).one("touchend mouseup", this.onMouseup.bind(this));
+			$(window).on("touchmove.timeline mousemove.timeline", this.onMousemove.bind(this));
+			this.onMousemove(evt);
+		},
+
+		onMouseup: function() {
+			this.isDragging = false;
+			$(window).off("touchend.timeline mousemove.timeline");
+		},
+
+		onMousemove: function(evt) {
+			if (!this.isDragging) return;
+			evt.preventDefault();
+
+			var pageX = evt.pageX || evt.originalEvent.touches[0].pageX,
+				xPos = pageX - this.$sliderInput.offset().left,
+				fracWidth = xPos / this.$sliderInput.width(),
+				targetYear = this.minYear + fracWidth*(this.maxYear-this.minYear);
+
+			this.setTargetYear(targetYear);
+		},
+
+		setTargetYear: function(targetYear) {
+			// Find the closest year that is a valid selection
+			var closestYear = _.min(this.years, function(year) {
+				return Math.abs(year-targetYear);
+			});
+
+			App.ChartModel.updateMapConfig("targetYear", closestYear, false, "change-map-year");			
 		},
 
 		render: function() {
@@ -55,29 +85,28 @@
 			
 			this.$sliderInput.attr( "min", this.minYear );
 			this.$sliderInput.attr( "max", this.maxYear );
-			//this.$sliderInput.attr( "step", mapConfig.timeInterval ); // had to disable this because wouldn't allow to chose starting and ending year outside of steo
 			
 			this.updateSliderInput( this.targetYear );
 			
 			if (this.minYear == this.maxYear) {
-				this.$sliderInput.attr( "disabled", true );
+				this.$sliderInput.attr("disabled", true);
 			} else {
-				this.$sliderInput.attr( "disabled", false );
+				this.$sliderInput.attr("disabled", false);
 			}
 
-			this.createTicks( this.$sliderInput );
+			this.createTicks(this.$sliderInput);
 		},
 
-		updateSliderInput: function( time ) {
-			var intTime = parseInt( time, 10 ),
+		updateSliderInput: function(time) {
+			var intTime = parseInt(time, 10),
 				min = parseInt( this.$sliderInput.attr( "min" ), 10 ),
 				max = parseInt( this.$sliderInput.attr( "max" ), 10 ),
 				newPoint = ( intTime - min ) / ( max - min );
 			
 			this.$sliderLabel.text(owid.displayYear(time));
-			this.$slider.css( "left", this.$sliderWrapper.width()*newPoint );
-			this.$sliderInput.val( intTime );
-			if( intTime === min || intTime === max ) {
+			this.$slider.css("left", this.$sliderWrapper.width()*newPoint);
+			this.$sliderInput.val(intTime);
+			if (intTime === min || intTime === max) {
 				this.$sliderLabel.hide();
 				this.$sliderInput.removeClass( "thumb-label" );
 				if( intTime === min ) {
@@ -92,26 +121,6 @@
 				this.$sliderInput.addClass( "thumb-label" );
 				this.$startYear.removeClass( "highlight" );
 				this.$endYear.removeClass( "highlight" );
-			}
-		},
-
-		onChartModelChange: function( evt ) {
-			this.render();
-		},
-
-		onTargetYearInput: function( evt ) {
-			var $this = $( evt.target ),
-				targetYear = parseInt($this.val());
-
-			// Since we may have arbitrary year ranges with no consistent "step", we must instead
-			// set the slider to step 1 and then lock to the nearest actual year on input
-			var closestYear = _.min(this.years, function(year) {
-				return Math.abs(year-targetYear);
-			});
-
-			App.ChartModel.updateMapConfig("targetYear", closestYear, false, "change-map-year");
-
-			if (closestYear != targetYear) {
 			}
 		},
 
@@ -134,8 +143,7 @@
 			}
 
 			var nextYear = this.years[nextIndex];
-			this.$sliderInput.val(nextYear);
-			this.$sliderInput.trigger("change");
+			this.setTargetYear(nextYear);
 		},
 
 		createTicks: function( $input ) {
