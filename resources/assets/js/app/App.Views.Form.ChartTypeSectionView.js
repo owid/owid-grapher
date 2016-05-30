@@ -10,22 +10,21 @@
 
 		initialize: function( options ) {
 			this.dispatcher = options.dispatcher;
-			App.ChartDimensionsModel.on( "change", this.render, this );
+			this.$chartTypeSelect = this.$el.find("[name='chart-type']");
+
+			App.ChartModel.on("change:chart-type", this.render, this);
 			this.render();
 		},
 
 		render: function() {
-			var $select = this.$el.find( "[name='chart-type']" ),
-				selectedChartType = App.ChartModel.get( "chart-type" );
-			if( selectedChartType ) {
-				$select.val( selectedChartType );
-			}
+			var selectedChartType = App.ChartModel.get("chart-type");
+			this.$chartTypeSelect.val(selectedChartType);
 		},
 
-		onChartTypeChange: function( evt ) {
-			var $select = $( evt.currentTarget );
-			App.ChartDimensionsModel.loadConfiguration($select.val());
-			App.ChartModel.set( "chart-type", $select.val() );
+		onChartTypeChange: function() {
+			var newChartType = this.$chartTypeSelect.val();
+			App.ChartModel.set("chart-type", newChartType);
+			App.ChartDimensionsModel.loadConfiguration(newChartType);
 		}
 	});
 })();

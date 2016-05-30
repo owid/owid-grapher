@@ -18,39 +18,33 @@
 		},
 
 		onChartModelChange: function() {
+			var chartType = App.ChartModel.get("chart-type");
+			var needFullRender = (chartType != this.chartType);
+
 			App.DataModel.ready(function() {
-				this.render(this.onResize.bind(this));
+				if (needFullRender) {
+					this.deactivate();
+					this.activate();
+				} else {
+					this.render(this.onResize.bind(this));					
+				}
 			}.bind(this));
 		},
 
 		activate: function(callback) {
 			App.ChartModel.on("change", this.onChartModelChange, this);
 
-			var that = this;
+			this.chartType = App.ChartModel.get("chart-type");
 
-			//chart tab
 			this.$svg = $("svg");
 			this.$svg.attr("class", "nvd3-svg");
-			this.$tabContent = this.$el.find( ".tab-content" );
-			this.$tabPanes = this.$el.find( ".tab-pane" );
-			this.$chartHeader = this.$el.find( ".chart-header" );
 			this.$entitiesSelect = this.$el.find( "[name=available_entities]" );
-			this.$chartFooter = this.$el.find( ".chart-footer" );
-
-			this.$chartDescription = this.$el.find( ".chart-description" );
-			this.$chartSources = this.$el.find( ".chart-sources" );
-			this.$chartFullScreen = this.$el.find( ".fancybox-iframe" );
-
 			this.$xAxisScaleSelector = this.$el.find( ".x-axis-scale-selector" );
 			this.$xAxisScale = this.$el.find( "[name=x_axis_scale]" );
 			this.$yAxisScaleSelector = this.$el.find( ".y-axis-scale-selector" );
 			this.$yAxisScale = this.$el.find( "[name=y_axis_scale]" );
-
 			this.$reloadBtn = this.$el.find( ".reload-btn" );
 			var chartTime = App.ChartModel.get("chart-time");
-
-			var chartDescription = App.ChartModel.get( "chart-description" );
-			//this.$chartDescription.text( App.ChartModel.get( "chart-description" ) );
 
 			//show/hide scale selectors
 			var showXScaleSelectors = App.ChartModel.get( "x-axis-scale-selector" );
@@ -74,13 +68,6 @@
 
 			var dimensionsString = App.ChartModel.get( "chart-dimensions" ),
 				validDimensions = false;
-
-			//clicking anything in chart source will take you to sources tab
-			this.$chartSources.on( "click", function(evt) {
-				evt.preventDefault();
-				var $a = $( "[href='#sources-chart-tab']" );
-				$a.trigger( "click" );
-			} );
 
 			//check we have all dimensions necessary 
 			if( !$.isEmptyObject( dimensionsString ) ) {

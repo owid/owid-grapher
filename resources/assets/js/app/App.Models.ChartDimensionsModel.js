@@ -8,15 +8,11 @@
 
 		defaults: {},
 
-		loadConfiguration: function( chartTypeId ) {
-
-			this.set( "id", chartTypeId );
-			this.fetch( {
-				success: function( response ) {
-				}
-			} );
-
+		loadConfiguration: function(chartTypeId, callback)  {
+			this.set("id", chartTypeId);
+			this.fetch({
+				success: callback
+			});
 		}
-
 	} );
 })();
