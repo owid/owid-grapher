@@ -70,8 +70,9 @@ class Chart extends Model {
 		$phantomjs = base_path() . "/node_modules/.bin/phantomjs";
 		$rasterize = base_path() . "/phantomjs/rasterize.js";
 		$target = \Request::root() . "/" . $slug . ".export" . "?" . $query;
-		$pngFile = public_path() . "/exports/" . $slug . ".png" . "?" . $query;		
-		$returnFile = public_path() . "/exports/" . $slug . "." . $format . "?" . $query;	
+		$queryHash = hash('md5', $query);
+		$pngFile = public_path() . "/exports/" . $slug . "-" . $queryHash . ".png";		
+		$returnFile = public_path() . "/exports/" . $slug . "-" . $queryHash . "." . $format;	
 
 		if (!file_exists($returnFile)) {
 			$command = $phantomjs . " " . $rasterize . " " . escapeshellarg($target) . " " . escapeshellarg($pngFile) . " '" . $width . "px*" . $height . "px'" . " 2>&1";
@@ -90,7 +91,8 @@ class Chart extends Model {
 		$phantomjs = base_path() . "/node_modules/.bin/phantomjs";
 		$rasterize = base_path() . "/phantomjs/rasterize.js";
 		$target = \Request::root() . "/" . $slug . ".export" . "?" . $query;
-		$file = public_path() . "/exports/" . $slug . ".png" . "?" . $query;
+		$queryHash = hash('md5', $query);
+		$file = public_path() . "/exports/" . $slug . "-" . $queryHash . ".png";
 		$tmpfile = $file . "#tmp";
 
 		if (!file_exists($file) && !file_exists($tmpfile)) {
@@ -101,5 +103,4 @@ class Chart extends Model {
 			exec($command);
 		}
 	}
-
 }
