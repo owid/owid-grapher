@@ -6,62 +6,51 @@
 		SettingsVarPopup = App.Views.UI.SettingsVarPopup;
 
 	App.Views.Form.AddDataSectionView = Backbone.View.extend({
-
 		el: "#form-view #data-tab .add-data-section",
 		events: {
 			"click .add-data-btn": "onAddDataBtn",
 		},
 
-		initialize: function( options ) {
-			
+		initialize: function(options) {
 			this.dispatcher = options.dispatcher;
-
 			this.selectVarPopup = new SelectVarPopup(options);
-
 			this.settingsVarPopup = new SettingsVarPopup();
-			this.settingsVarPopup.init( options );
+			this.settingsVarPopup.init(options);
 
-			App.ChartVariablesCollection.on( "reset", this.onVariableReset, this );
-			App.ChartVariablesCollection.on( "add", this.onVariableAdd, this );
-			App.ChartVariablesCollection.on( "remove", this.onVariableRemove, this );
+			App.ChartVariablesCollection.on("reset", this.onVariableReset, this);
+			App.ChartVariablesCollection.on("add", this.onVariableAdd, this);
+			App.ChartVariablesCollection.on("remove", this.onVariableRemove, this);
 
 			this.dispatcher.on( "variable-label-moved", this.onVariableLabelMoved, this );
 			this.dispatcher.on( "dimension-setting-update", this.onDimensionSettingUpdate, this );
 
 			this.render();
+		},
 
+		onAddDataBtn: function() {
+			this.selectVarPopup.show();
 		},
 
 		render: function() {
-
-			this.$dd = this.$el.find( ".dd" );
-			this.$ddList = this.$dd.find( ".dd-list" );
+			this.$dd = this.$el.find(".dd");
+			this.$ddList = this.$dd.find(".dd-list");
 			this.$dd.nestable();
 
 			this.onVariableReset();
-
 		},
 
 		refreshHandlers: function() {
-			var $removeBtns = this.$ddList.find( ".fa-close" );
+			var $removeBtns = this.$ddList.find(".fa-close");
 			$removeBtns.on( "click", $.proxy( this.onRemoveBtnClick, this ) );
 			this.$dd.nestable();
 		},
 
-		onAddDataBtn: function() {
-
-			this.selectVarPopup.show();
-
-		},
 
 		onVariableReset: function() {
-
-			var that = this,
-				models = App.ChartVariablesCollection.models;
-			_.each( models, function( v, i ) {
-				that.onVariableAdd( v );
-			} );
-
+			var models = App.ChartVariablesCollection.models;
+			_.each(models, function(v, i) {
+				this.onVariableAdd(v);
+			}.bind(this));
 		},
 
 		onVariableAdd: function( model ) {
@@ -107,22 +96,18 @@
 		},
 
 		onRemoveBtnClick: function( evt ) {
-
 			evt.preventDefault();
 			var $btn = $( evt.currentTarget ),
 				$label = $btn.parents( ".variable-label" ),
 				variableId = $label.attr( "data-variable-id" );
 			App.ChartVariablesCollection.remove( variableId );
-
 		},
 
-		onVariableLabelMoved: function( ) {
-
+		onVariableLabelMoved: function() {
 			//check if there's any variable label left, if not insert empty dd placeholder
 			if( !this.$el.find( ".variable-label" ).length ) {
 				this.$el.find( ".dd-list" ).replaceWith( "<div class='dd-empty'></div>" );
 			}
-
 		},
 
 		onSettingsClick: function( evt ) {

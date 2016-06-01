@@ -3,21 +3,17 @@
 	owid.namespace("App.Views.Form.DimensionsSectionsView");
 
 	App.Views.Form.DimensionsSectionView = Backbone.View.extend({
-
 		el: "#form-view #data-tab .dimensions-section",
 		events: {
-			"change [name='chart-type']": "onChartTypeChange",
-			"change [name='group-by-variable']": "onGroupByVariableChange",
+			"change [name='group-by-variable']": "onGroupByVariableChange"
 		},
 
-		initialize: function( options ) {
+		initialize: function(options) {
 			this.dispatcher = options.dispatcher;
 			App.ChartDimensionsModel.on("change", this.render, this);
 			this.dispatcher.on( "dimension-update", this.onDimensionUpdate, this );
 			this.render();
 		},
-
-		inited: false,
 
 		render: function() {
 			this.$formSectionContent = this.$el.find( ".form-section-content" );
@@ -29,59 +25,39 @@
 			this.$formSectionContent.empty();
 
 			//construct html
-			var chartType = App.ChartDimensionsModel.id,
-				dimensions = App.ChartDimensionsModel.get( "chartDimensions" ),
+			var chartType = App.ChartModel.get("chart-type"),
+				dimensions = App.ChartDimensionsModel.get("chartDimensions"),
 				htmlString = "<ol class='dimensions-list chart-type-" + chartType + "'>";
 
-			_.each( dimensions, function( v, k ) {
+			_.each(dimensions, function(v, k) {
 				htmlString += "<li data-property='" + v.property + "' class='dimension-box'><h4>" + v.name + "</h4><div class='dd-wrapper'><div class='dd'><div class='dd-empty'></div></div></div></li>";
-			} );
+			});
 
 			htmlString += "</ol>";
 
-			var $html = $( htmlString );
-			this.$formSectionContent.append( $html );
+			var $html = $(htmlString);
+			this.$formSectionContent.append($html);
 
-			//init nestable 
-			this.$dd = this.$el.find( ".dd" );
-			//nestable destroy
+			this.$dd = this.$el.find(".dd");
 			this.$dd.nestable();
-
-			//fetch remaing dom
-			this.$dimensionBoxes = this.$el.find( ".dimension-box" );
-
-			var that = this;
+			this.$dimensionBoxes = this.$el.find(".dimension-box");
 			this.$dd.on('change', function() {
-				that.updateInput();
-			});
+				this.updateInput();
+			}.bind(this));
 
 			//if editing chart - assign possible chart dimensions to available dimensions
-			var chartDimensions = App.ChartModel.get( "chart-dimensions" );
-			this.setInputs( chartDimensions );
+			var chartDimensions = App.ChartModel.get("chart-dimensions");
+			this.setInputs(chartDimensions);
 
-			//handle group by variable checkbox
-			if( App.ChartModel.get( "chart-type" ) == 1 || App.ChartModel.get( "chart-type" ) == 3 ) {
-				//is linechart, so this checkbox is relevant
-				var groupByVariables = App.ChartModel.get( "group-by-variables" );
-				this.$groupByVariableInput.prop( "checked", groupByVariables );
+			// For line and stacked area charts, allow optional grouping by variable
+			if (chartType == App.ChartType.LineChart || chartType == App.ChartType.StackedArea) {
+				var groupByVariables = App.ChartModel.get("group-by-variables");
+				this.$groupByVariableInput.prop("checked", groupByVariables);
 				this.$groupByVariable.show();
 			} else {
-				//is not linechart, make sure grouping of variables is off and hide input
-				App.ChartModel.set( "group-by-variables", false );
+				App.ChartModel.set("group-by-variables", false);
 				this.$groupByVariable.hide();
 			}
-			
-			//if scatter plot, only entity match
-			/*var $onlyEntityMatchCheck = $( "<div class='only-entity-check-wrapper'><label><input type='checkbox' name='only-entity-check' />Match variables only by countries, not years.</label></div>" ),
-				$onlyEntityInput = $onlyEntityMatchCheck.find( "input" );
-			$onlyEntityInput.on( "change", function( evt ) {
-				var $this = $( this );
-				App.ChartModel.set( "only-entity-match", $this.prop( "checked" ) );
-			} );
-			//set default value
-			$onlyEntityInput.prop( "checked", App.ChartModel.get( "only-entity-match" ) );
-			this.$formSectionContent.append( $onlyEntityMatchCheck );*/
-			
 		},
 
 		updateInput: function() {
@@ -99,13 +75,12 @@
 				}
 			} );
 
-			var json = JSON.stringify( dimensions );
-			this.$dimensionsInput.val( json );
-			App.ChartModel.set( "chart-dimensions", json );
+			var json = JSON.stringify(dimensions);
+			this.$dimensionsInput.val(json);
+			App.ChartModel.set("chart-dimensions", json);
 		},
 
-		setInputs: function( chartDimensions ) {
-
+		setInputs: function(chartDimensions) {
 			if( !chartDimensions || !chartDimensions.length ) {
 				return;
 			}
@@ -114,8 +89,7 @@
 			chartDimensions = $.parseJSON( chartDimensions );
 
 			var that = this;
-			_.each( chartDimensions, function( chartDimension, i ) {
-
+			_.each(chartDimensions, function(chartDimension, i) {
 				//find variable label box from available variables
 				var $variableLabel = $( ".variable-label[data-variable-id=" + chartDimension.variableId + "]" );
 
@@ -147,23 +121,16 @@
 				$ddList.append( $variableLabel );
 				$dimensionBox.find( ".dd" ).append( $ddList );
 				that.dispatcher.trigger( "variable-label-moved" );
-
-			} );
-	
-		},
-
-		onChartTypeChange: function( evt ) {
-			var $select = $( evt.currentTarget );
-			App.ChartDimensionsModel.loadConfiguration( $select.val() );
+			});	
 		},
 
 		onDimensionUpdate: function() {
 			this.updateInput();
 		},
 
-		onGroupByVariableChange: function( evt ) {
-			var $input = $( evt.currentTarget );
-			App.ChartModel.set( "group-by-variables", $input.is( ":checked" ) );
+		onGroupByVariableChange: function() {
+			var groupByVariable = this.$groupByVariableInput.is(":checked");
+			App.ChartModel.set("group-by-variables", groupByVariable);
 		}
 	});
 })();

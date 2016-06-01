@@ -198,16 +198,4 @@ elixir(function(mix) {
         'js/libs.js',
         'js/libs-admin.js'
     ]);
-
-/*    mix.version( [
-        'css/libs/front.css',
-        'css/front.css',
-        'css/libs/admin.css',
-        'css/admin.css',
-        'js/ChartApp.js',
-        'js/FormApp.js',
-        'js/ImportApp.js',
-        'js/libs.js',
-        'js/libs-admin.js'
-    ]);*/
 });

@@ -321,7 +321,8 @@ button > i {
 	padding: 10px 20px;
 	background-color: #fff;
 	border: 1px solid #bbb;
-	cursor: pointer;
+	cursor: move;
+	cursor: -webkit-grab;
 }
 	.country-label:hover,
 	.variable-label:hover {
@@ -349,6 +350,9 @@ button > i {
 		color: #666666;
 		margin-right: 0;
 		margin-left: 0;
+	}
+	.variable-label .fa-close:hover {
+		color: red;
 	}
 
 /**
