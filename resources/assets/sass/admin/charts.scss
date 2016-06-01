@@ -26,46 +26,49 @@
 /**
 *	add variable section
 **/
-.variable-label {}
-	.variable-label .dd-handle {
+.variable-label {
+	user-select: none;           
+	-webkit-user-select: none;   /* Chrome/Safari/Opera */
+	-moz-user-select: none;      /* Firefox */
+	-ms-user-select: none;       /* IE/Edge */
+	-webkit-touch-callout: none; /* iOS Safari */
+
+	.dd-handle {
 		background: transparent;
 	}	
-		.variable-label:hover {
-			background-color: #ddd;
-		}
-		.variable-label .dd-handle:hover {
-			color: inherit;
-		}
-		.variable-label .variable-label-input {
-			/* hidden by default */
-			display: none;
-		}
-			.variable-label .variable-label-input input {
-				position: relative;
-				top: -6px;
-			}
-			.variable-label .variable-label-input .fa {
-				position: absolute;
-				top: 14px;
-				font-size: 16px;
-				cursor: pointer;
-			}
-			.variable-label .variable-label-input .fa-check {
-				right: 40px;
-			}
-				.variable-label .variable-label-input .fa-check:hover {
-					color: #00a65a;
-				}
-			.variable-label .variable-label-input .fa-times {
-				right: 20px;
-			}
-				.variable-label .variable-label-input .fa-times:hover {
-					color: #dd4b39;
-				}
-
-	.dimensions-section .variable-label .variable-label-name {
-		cursor: text;
+	.variable-label:hover {
+		background-color: #ddd;
 	}
+	.dd-handle:hover {
+		color: inherit;
+	}
+	.variable-label-input {
+		/* hidden by default */
+		display: none;
+	}
+	.variable-label-input input {
+		position: relative;
+		top: -6px;
+	}
+	.variable-label-input .fa {
+		position: absolute;
+		top: 14px;
+		font-size: 16px;
+		cursor: pointer;
+	}
+	.variable-label-input .fa-check {
+		right: 40px;
+	}
+	.variable-label-input .fa-check:hover {
+		color: #00a65a;
+	}
+	.variable-label-input .fa-times {
+		right: 20px;
+	}
+	.variable-label-input .fa-times:hover {
+		color: #dd4b39;
+	}	
+}
 
 /**
 *	select var popup

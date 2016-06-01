@@ -79,16 +79,6 @@
 
 			$settings.on( "click", $.proxy( this.onSettingsClick, this ) );
 
-			var $variableLabelName = $li.find( ".variable-label-name" ),
-				$variableLabelInput = $li.find( ".variable-label-input input" ),
-				$confirmNameBtn = $li.find( ".fa-check" ),
-				$cancelNameBtn = $li.find( ".fa-times" );
-
-			$variableLabelName.on( "mousedown", $.proxy( this.onVariableNameClick, this ) );
-			$confirmNameBtn.on( "mousedown", $.proxy( this.onNameBtnClick, this ) );
-			$cancelNameBtn.on( "mousedown", $.proxy( this.onNameBtnClick, this ) );
-			$variableLabelInput.on( "mousedown", $.proxy( this.onLabelInput, this ) );
-
 			this.refreshHandlers();
 			this.updateVarIcons();
 
@@ -110,7 +100,7 @@
 			}
 		},
 
-		onSettingsClick: function( evt ) {
+		onSettingsClick: function(evt) {
 			evt.stopImmediatePropagation();
 			evt.preventDefault();
 
@@ -187,7 +177,7 @@
 
 		},
 
-		onVariableNameClick: function( evt ) {
+		/*onVariableNameClick: function( evt ) {
 
 			var $name = $( evt.currentTarget ),
 				$parent = $name.parent(),
@@ -208,7 +198,7 @@
 				$input.val( $name.text() );
 			}
 
-		},
+		},*/
 
 		onNameBtnClick: function( evt ) {
 
@@ -235,16 +225,6 @@
 
 			$variableLabelInput.hide();
 			$variableLabelName.show();
-
-		},
-
-		onLabelInput: function( evt ) {
-
-			evt.stopImmediatePropagation();
-			evt.preventDefault();
-
-			var $input = $( evt.currentTarget );
-			$input.focus();
 
 		},
 
