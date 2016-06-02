@@ -208,7 +208,6 @@
 		return html;
 	};
 
-
 	owid.contentGenerator = function(data, isMapPopup) {
 		//set popup
 		var unitsString = App.ChartModel.get("units"),

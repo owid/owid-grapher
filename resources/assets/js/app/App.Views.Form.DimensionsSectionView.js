@@ -117,9 +117,11 @@
 				var $dimensionBox = that.$el.find( ".dimension-box[data-property=" + chartDimension.property + "]" );
 				//remove empty and add variable box
 				$dimensionBox.find( ".dd-empty" ).remove();
-				var $ddList = $( "<ol class='dd-list'></ol>" );
-				$ddList.append( $variableLabel );
-				$dimensionBox.find( ".dd" ).append( $ddList );
+				if (!$dimensionBox.find(".dd-list").length) {
+					var $ddList = $("<ol class='dd-list'></ol>");
+					$dimensionBox.find(".dd").append($ddList);
+				}
+				$dimensionBox.find(".dd-list").append($variableLabel);
 				that.dispatcher.trigger( "variable-label-moved" );
 			});	
 		},
