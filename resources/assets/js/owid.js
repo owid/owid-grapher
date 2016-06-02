@@ -176,7 +176,13 @@
 			stackMode = App.ChartModel.get("currentStackMode"),
 			html = "<table>";
 
-		html += '<thead><tr><td colspan="3"><strong class="x-value">' + data.value + '</strong></td></tr></thead>';
+		var total = 0;
+		_.each(data.series, function(series) {
+			total += series.value;
+		});		
+		total = App.Utils.formatNumeric(unit, total);
+
+		html += '<thead><tr><td colspan="2"><strong class="x-value">' + data.value + '</strong></td><td class="value">' + total + '</tr></thead>';
 
 		html += '<tbody>';
 
@@ -195,14 +201,6 @@
 			html += '<td class="value">' + value + '</td>';
 			html += '</tr>';
 		});
-
-		if (stackMode != "relative") {
-			html += '<tr>';
-			html += '<td></td>';
-			html += '<td class="key">Total</td>';
-			html += '<td class="value">' + App.Utils.formatNumeric(unit, total) + '</td>';
-			html += '</tr>';			
-		}
 
 		html += "</tbody></table>";
 		return html;
