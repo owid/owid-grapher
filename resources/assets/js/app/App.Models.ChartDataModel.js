@@ -120,7 +120,7 @@
 		},
 
 		transformDataForLineChart: function() {
-			var dimensions = this.dimensions,
+			var dimensions = _.clone(this.dimensions).reverse(), // Keep them stacked in the same visual order as editor
 				variableData = this.get('variableData'),
 				variables = variableData.variables,
 				entityKey = variableData.entityKey,

@@ -106,19 +106,16 @@
 		},
 
 		render: function(callback) {
-			var data = App.DataModel.transformData();
+			var localData = App.DataModel.transformData();
 			var timeType = "Year";
 
-			if (!data) {
+			if (!localData) {
 				return;
 			}
 
 			this.updateAvailableCountries();
 
 			var that = this;
-
-			//make local copy of data for our filtering needs
-			var localData = $.extend( true, localData, data );
 
 			var chartType = App.ChartModel.get( "chart-type" );
 
@@ -135,7 +132,7 @@
 			if( selectedCountries && selectedCountriesIds.length && !App.ChartModel.get( "group-by-variables" ) ) {
 				//set local copy of countries color, to be able to create brighter
 				var countriesColors = [];
-				localData = _.filter( localData, function( value, key, list ) {
+				_.each( localData, function( value, key, list ) {
 					//set color while in the loop
 					var id = value.id.toString();
 					//need to check for special case, when we have more variables for the same countries (the ids will be then 21-1, 22-1, etc.)
@@ -158,9 +155,6 @@
 					} else {
 						value = that.assignColorFromCache( value );
 					}
-
-					//actual filtering
-					return ( _.indexOf( selectedCountriesIds, id ) > -1 );
 				} );
 			} else {
 				//TODO - nonsense? convert associative array to array, assign colors from cache
@@ -205,9 +199,11 @@
 
 			}
 
-			//if legend displayed, sort data on key alphabetically (usefull when multivarian dataset)
-			if( !App.ChartModel.get( "hide-legend" ) ) {
-				localData = _.sortBy( localData, function( obj ) { return obj.key; } );
+			// For stacked area chart, the order of the series matters. For other chart
+			// types we sort them alphabetically.
+			if (chartType == App.ChartType.StackedArea) {
+			} else {
+				localData = _.sortBy(localData, function(obj) { return obj.key; });
 			}
 
 			//get axis configs
