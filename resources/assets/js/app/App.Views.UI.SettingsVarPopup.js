@@ -97,7 +97,7 @@
 			this.variableId = $variableLabel.attr("data-variable-id");
 			
 			//repopulate from element
-			var name = $variableLabel.find(".variable-label-name").text(),
+			var name = $variableLabel.attr("data-display-name"),
 				period = $variableLabel.attr("data-period"),
 				mode = $variableLabel.attr("data-mode"),
 				targetYear = $variableLabel.attr("data-target-year"),
@@ -200,7 +200,7 @@
 			//	- data-maximum-age [number] 
 
 			var data = { variableId: this.variableId };
-			data.name = this.$nameInput.val();
+			data["display-name"] = this.$nameInput.val();
 			data.period = this.$periodInputs.filter(":checked").val();
 
 			if (data.period === "single") {

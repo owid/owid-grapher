@@ -31,19 +31,20 @@
 			var formConfig = App.ChartModel.get( "form-config" );
 
 			//create related models, either empty (when creating new chart), or prefilled from db (when editing existing chart)
-			if( formConfig && formConfig[ "variables-collection" ] ) {
-				App.ChartVariablesCollection = new ChartVariablesCollection( formConfig[ "variables-collection" ] );
+			if (formConfig && formConfig["variables-collection"]) {
+				App.ChartVariablesCollection = new ChartVariablesCollection(formConfig["variables-collection"]);
 			} else {
 				App.ChartVariablesCollection = new ChartVariablesCollection();
 			}
-			if( formConfig && formConfig[ "entities-collection" ] ) {
-				App.AvailableEntitiesCollection = new AvailableEntitiesCollection( formConfig[ "entities-collection" ] );
+		
+			if (formConfig && formConfig["entities-collection"]) {
+				App.AvailableEntitiesCollection = new AvailableEntitiesCollection(formConfig["entities-collection"]);
 			} else {
 				App.AvailableEntitiesCollection = new AvailableEntitiesCollection();
 			}
-			if( formConfig && formConfig[ "dimensions" ] ) {
+		
+			if (formConfig && formConfig["dimensions"]) {
 				App.ChartDimensionsModel = new ChartDimensionsModel();
-				//App.ChartDimensionsModel = new App.Models.ChartDimensionsModel( formConfig[ "dimensions" ] );
 			} else {
 				App.ChartDimensionsModel = new ChartDimensionsModel();
 			}

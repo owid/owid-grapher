@@ -79,7 +79,7 @@
 			});
 
 			window.variableData = variableData;
-			this.isReady = true;
+			this.isReady = true;	
 			this.set({ variableData: variableData, minYear: minYear, maxYear: maxYear, availableEntities: availableEntities });
 		},
 

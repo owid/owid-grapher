@@ -69,7 +69,7 @@
 					//just in case there were more variables
 					$.each( $droppedVariables, function( i, v ) {
 						var $droppedVariable = $( v ),
-							dimension = { variableId: $droppedVariable.attr( "data-variable-id" ), displayName: $droppedVariable.find(".variable-label-name").text(), property: $box.attr( "data-property" ), unit: $droppedVariable.attr( "data-unit" ), name: $box.find( "h4" ).text(), period: $droppedVariable.attr( "data-period" ), mode: $droppedVariable.attr( "data-mode" ), targetYear: $droppedVariable.attr( "data-target-year" ), tolerance: $droppedVariable.attr( "data-tolerance" ), maximumAge: $droppedVariable.attr( "data-maximum-age" ) };
+							dimension = { variableId: $droppedVariable.attr( "data-variable-id" ), displayName: $droppedVariable.attr("data-display-name"), property: $box.attr( "data-property" ), unit: $droppedVariable.attr( "data-unit" ), name: $box.find( "h4" ).text(), period: $droppedVariable.attr( "data-period" ), mode: $droppedVariable.attr( "data-mode" ), targetYear: $droppedVariable.attr( "data-target-year" ), tolerance: $droppedVariable.attr( "data-tolerance" ), maximumAge: $droppedVariable.attr( "data-maximum-age" ) };
 						dimensions.push( dimension );
 					} );
 				}
@@ -94,23 +94,23 @@
 				var $variableLabel = $( ".variable-label[data-variable-id=" + chartDimension.variableId + "]" );
 
 				//copy variables attributes
-				if( chartDimension.period ) {
-					$variableLabel.attr( "data-period", chartDimension.period );
+				if (chartDimension.period) {
+					$variableLabel.attr("data-period", chartDimension.period);
 				}
-				if( chartDimension.mode ) {
-					$variableLabel.attr( "data-mode", chartDimension.mode );
+				if (chartDimension.mode) {
+					$variableLabel.attr("data-mode", chartDimension.mode);
 				}
-				if( chartDimension.targetYear ) {
-					$variableLabel.attr( "data-target-year", chartDimension.targetYear );
+				if (chartDimension.targetYear) {
+					$variableLabel.attr("data-target-year", chartDimension.targetYear);
 				}
-				if( chartDimension.tolerance ) {
-					$variableLabel.attr( "data-tolerance", chartDimension.tolerance );
+				if (chartDimension.tolerance) {
+					$variableLabel.attr("data-tolerance", chartDimension.tolerance);
 				}
-				if( chartDimension.maximumAge ) {
-					$variableLabel.attr( "data-maximum-age", chartDimension.maximumAge );
+				if (chartDimension.maximumAge) {
+					$variableLabel.attr("data-maximum-age", chartDimension.maximumAge);
 				}
-				if( chartDimension.displayName ) {
-					$variableLabel.find( ".variable-label-name" ).text( chartDimension.displayName );
+				if (chartDimension.displayName) {
+					$variableLabel.attr("data-display-name", chartDimension.displayName);
 				}
 
 				//find appropriate dimension box for it by data-property
