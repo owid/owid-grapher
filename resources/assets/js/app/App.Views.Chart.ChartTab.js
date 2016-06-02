@@ -290,7 +290,8 @@
 						.x(function(d) { return d.x; })
 						.y(function(d) { return d.y; });
 
-			
+					if (App.ChartModel.get("currentStackMode") == "relative")
+						that.chart.style("expand");			
 
 				} else if( chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar ) {
 
@@ -355,9 +356,19 @@
 
 				that.chart.dispatch.on("renderEnd", function(state) {
 					$(window).trigger('chart-loaded');
-				});
-	
 
+					/* HACK (Mispy): Hijack nvd3 mode switch for stacked area charts. */
+					if (chartType == App.ChartType.StackedArea) {
+						d3.selectAll(".nv-controlsWrap .nv-series").on("click", function(opt) {
+							if (opt.key == "Relative") {
+								App.ChartModel.set("currentStackMode", "relative");
+							} else {
+								App.ChartModel.set("currentStackMode", "absolute");
+							}
+						});
+					}
+				});				
+	
 				that.chart.dispatch.on("stateChange", function() {
 					/* HACK (Mispy): Ensure stacked area charts maintain the correct dimensions on 
 					 * transition between stacked and expanded modes. It cannot be done on renderEnd
@@ -380,7 +391,7 @@
 					//.staggerLabels( true )
 					.axisLabelDistance( xAxisLabelDistance )
 					.tickFormat( function(d) {
-						if( chartType != 2 ) {
+						if (chartType != App.ChartType.ScatterPlot) {
 							//x axis has time information
 							return App.Utils.formatTimeLabel( timeType, d, xAxisPrefix, xAxisSuffix, xAxisFormat );
 						} else {
@@ -388,10 +399,6 @@
 							return xAxisPrefix + d3.format( "," )( App.Utils.formatValue( d, xAxisFormat ) ) + xAxisSuffix;
 						}
 					} );
-
-				if( timeType == "Quarter Century" ) {
-					that.chart.xAxis.staggerLabels( true );
-				}
 
 				//get extend
 				var allValues = [];

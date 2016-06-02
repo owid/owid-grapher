@@ -42,6 +42,7 @@
 			App.ChartModel.on("change:selected-countries", this.updateCountryParam, this);			
 			App.ChartModel.on("change-map-year", this.updateYearParam, this);
 			App.ChartModel.on("change-map", this.updateMapParams, this);
+			App.ChartModel.on("change:currentStackMode", this.updateStackMode, this);
 			this.populateFromURL();
 		},
 
@@ -59,6 +60,12 @@
 				else
 					App.ChartModel.set("default-tab", tab, { silent: true });
 			}
+
+			var stackMode = params.stackMode;
+			if (stackMode == "relative")
+				App.ChartModel.set("currentStackMode", stackMode);
+
+			// Map stuff below
 
 			var year = params.year;
 			if (year !== undefined) {
@@ -78,7 +85,7 @@
 			var interpolate = params.interpolate;
 			if (interpolate == 0) {
 				App.ChartModel.updateMapConfig("mode", "no-interpolation");
-			}
+			}			
 
 			// TODO: 'country' is currently done server-side, might be more consistent
 			// to do them here too - mispy
@@ -158,6 +165,17 @@
 				owid.setQueryVariable("interpolate", null);
 			else
 				owid.setQueryVariable("interpolate", 0);
-		}
+		},
+
+		/**
+		 * Special config for stacked area charts
+		 */
+		updateStackMode: function() {
+			var stackMode = App.ChartModel.get("currentStackMode");
+			if (stackMode == "relative")
+				owid.setQueryVariable("stackMode", "relative");
+			else
+				owid.setQueryVariable("stackMode", null);
+		},
 	});
 })();

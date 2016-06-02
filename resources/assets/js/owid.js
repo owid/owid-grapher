@@ -170,9 +170,10 @@
 			return $.parseJSON(unitsString);
 	},
 
-	// MISPY: The default nvd3 stacked area tooltip is nice, but we also want to add a total
+	// MISPY: The default nvd3 stacked area tooltip is nice, but we also want to add a total.
 	owid.stackedAreaTooltipGenerator = function(data) {
 		var unit = owid.getUnits()[0] || {},
+			stackMode = App.ChartModel.get("currentStackMode"),
 			html = "<table>";
 
 		html += '<thead><tr><td colspan="3"><strong class="x-value">' + data.value + '</strong></td></tr></thead>';
@@ -181,8 +182,12 @@
 
 		var total = 0;
 		_.each(data.series, function(series, i) {
-			total += series.value;
-			var value = App.Utils.formatNumeric(unit, series.value);
+			total += series.value;	
+			var value = series.value;		
+			if (stackMode == "relative") 
+				value = d3.format(".2p")(series.value);
+			else
+				value = App.Utils.formatNumeric(unit, series.value);
 
 			html += '<tr>';
 			html += '<td class="legend-color-guide"><div style="background-color: ' + series.color + ';"></div></td>';
@@ -191,11 +196,13 @@
 			html += '</tr>';
 		});
 
-		html += '<tr>';
-		html += '<td></td>';
-		html += '<td class="key">Total</td>';
-		html += '<td class="value">' + App.Utils.formatNumeric(unit, total) + '</td>';
-		html += '</tr>';
+		if (stackMode != "relative") {
+			html += '<tr>';
+			html += '<td></td>';
+			html += '<td class="key">Total</td>';
+			html += '<td class="value">' + App.Utils.formatNumeric(unit, total) + '</td>';
+			html += '</tr>';			
+		}
 
 		html += "</tbody></table>";
 		return html;
