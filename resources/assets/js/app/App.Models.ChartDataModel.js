@@ -413,18 +413,24 @@
 			var html = "<div class='datasource-wrapper'>";
 			html += (hideDimName ? "<h2>Data</h2>" : "<h2>Data for " + dimension.name + ": </h2>");
 			html += "<div class='datasource-header'>" +
-					    "<h3><span class='datasource-property'>Dataset name:</span>" + variable.dataset_name + "</h3>" +
-					    "<h4><span class='datasource-property'>Variable name:</span>" + variable.name + "</h4>" +
-					"</div>";
-			html += "<table>";
+					    "<h3><span class='datasource-property'>Dataset:</span>" + variable.dataset_name + "</h3>";
 
+			if (variable.name != variable.dataset_name)
+				html += "<h4><span class='datasource-property'>Variable:</span>" + variable.name + "</h4>";
+
+			html += "</div>";
+
+			html += "<table>";
 			if (displayName != variable.name)
 				html += "<tr><td><span class='datasource-property'>Display name</span></td><td>" + displayName + "</td></tr>";
-
-			html += 	"<tr><td><span class='datasource-property'>Definition</span></td><td>" + variable.description + "</td></tr>" +
-					    "<tr><td><span class='datasource-property'>Unit</span></td><td>" + variable.unit + "</td></tr>" +
-					    "<tr><td><span class='datasource-property'>Uploaded</span></td><td>" + variable.created_at + "</td></tr>" +
-					"</table>";
+			if (variable.description)
+				html += "<tr><td><span class='datasource-property'>Definition</span></td><td>" + variable.description + "</td></tr>";
+			if (variable.unit)
+				html += "<tr><td><span class='datasource-property'>Unit</span></td><td>" + variable.unit + "</td></tr>";
+			if (variable.created_at)
+				html += "<tr><td><span class='datasource-property'>Uploaded</span></td><td>" + variable.created_at + "</td></tr>";
+			html += "</table>";
+			
 			html += source.description;
 			html += "</div>"
 			return html;
