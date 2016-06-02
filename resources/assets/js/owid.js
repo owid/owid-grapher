@@ -182,7 +182,10 @@
 		});		
 		total = App.Utils.formatNumeric(unit, total);
 
-		html += '<thead><tr><td colspan="2"><strong class="x-value">' + data.value + '</strong></td><td class="value">' + total + '</tr></thead>';
+		if (stackMode == "relative")
+			html += '<thead><tr><td colspan="3"><strong class="x-value">' + data.value + '</strong></td></tr></thead>';
+		else
+			html += '<thead><tr><td colspan="2"><strong class="x-value">' + data.value + '</strong></td><td class="value">' + total + '</tr></thead>';
 
 		html += '<tbody>';
 
