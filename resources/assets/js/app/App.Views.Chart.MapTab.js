@@ -87,7 +87,10 @@
 				responsive: false,
 				geographyConfig: {
 					dataUrl: Global.rootUrl + "/build/js/data/world.ids.json",
-					highlightOnHover: false, // handled by css
+					borderWidth: 0.3,
+					borderColor: '#4b4b4b',
+					highlightBorderWidth: 3,
+					highlightBorderColor: '#FFEC38',
 					popupTemplate: self.popupTemplateGenerator,
 					hideAntarctica: true
 				},
@@ -206,6 +209,7 @@
 		applyColors: function(mapData, colorScale) {
 			_.each(mapData, function(d, i) {
 				d.color = colorScale(d.value);
+				d.highlightFillColor = d.color;
 			});
 		},
 
