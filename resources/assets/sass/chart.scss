@@ -475,6 +475,8 @@
 		fill: #ECF6FC;	
 	}
 
+	// This is mainly here for the SVG export's benefit, since it's
+	// specified in the javascript too
 	path {
 		stroke: #4b4b4b !important;
 		stroke-width: 0.3px !important;

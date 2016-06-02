@@ -89,6 +89,7 @@
 					dataUrl: Global.rootUrl + "/build/js/data/world.ids.json",
 					borderWidth: 0.3,
 					borderColor: '#4b4b4b',
+					highlightFillColor: '#8b8b8b',
 					highlightBorderWidth: 3,
 					highlightBorderColor: '#FFEC38',
 					popupTemplate: self.popupTemplateGenerator,
