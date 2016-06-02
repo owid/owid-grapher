@@ -116,7 +116,7 @@
 			//update all attributes
 			for (var i in data) {
 				if (i == "name") {
-					$variableLabel.find(".variable-label-name").html(data[i]);
+					$variableLabel.find(".variable-label-name").text(data[i]);
 				} else if (data.hasOwnProperty(i) && i !== "variableId") {
 					var attrName = "data-" + i,
 						attrValue = data[ i ];

@@ -87,11 +87,7 @@
 				responsive: false,
 				geographyConfig: {
 					dataUrl: Global.rootUrl + "/build/js/data/world.ids.json",
-					borderWidth: 0.3,
-					borderColor: '#4b4b4b',
-					highlightBorderColor: 'black',
-					highlightBorderWidth: 0.2,
-					highlightFillColor: '#FFEC38',
+					highlightOnHover: false, // handled by css
 					popupTemplate: self.popupTemplateGenerator,
 					hideAntarctica: true
 				},

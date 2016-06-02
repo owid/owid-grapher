@@ -474,6 +474,16 @@
 	.map-bg {
 		fill: #ECF6FC;	
 	}
+
+	path {
+		stroke: #4b4b4b !important;
+		stroke-width: 0.3px !important;
+	}
+
+	path:hover {
+		stroke: #FFEC38 !important;
+		stroke-width: 3px !important;
+	}
 }
 
 .datamaps-hoverover {
