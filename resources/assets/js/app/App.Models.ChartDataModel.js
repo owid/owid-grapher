@@ -134,6 +134,7 @@
 
 			_.each(dimensions, function(dimension) {
 				var variable = variables[dimension.variableId],
+					variableName = dimension.displayName || variable.name,
 					seriesByEntity = {};
 
 				for (var i = 0; i < variable.years.length; i++) {
@@ -159,9 +160,9 @@
 							id += "-" + variable.id;
 
 							if (!hasManyEntities) {
-								key = variable.name;
+								key = variableName;
 							} else {
-								key += " - " + variable.name;
+								key += " - " + variableName;
 							}
 						}
 

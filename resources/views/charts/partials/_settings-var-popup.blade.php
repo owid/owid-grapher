@@ -1,4 +1,4 @@
-<div class="settings-var-popup">	
+<form class="settings-var-popup">	
 	<div class="modal">
 		<div class="modal-dialog">
 			<div class="modal-content">
@@ -9,11 +9,12 @@
 				<div class="modal-body">
 					<div class="form-variable-select-wrapper">
 						<div class="settings-var-name">
-							<label>
-								Name
-								<input type="text" />								
-							</label>
+							<div class="input-wrapper">
+								<label for="display-name">Display Name</label>
+								<input class="form-control" type="text" name="display-name" style="width: 100%;"/>																
+							</div>
 						</div>
+						<br>
 						<div class="advanced-settings">
 							<div class="settings-var-header">
 								<label class="">
@@ -83,14 +84,14 @@
 									</div>
 								</div>							
 							</div>
-						</div> <!-- advanced-settings -->
+						</div> <!-- /.advanced-settings -->
 					</div>
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cancel</button>
-					<button type="button" class="btn btn-primary">Save</button>
+					<input type="submit" class="btn btn-primary" value="Save">
 				</div>
 			</div><!-- /.modal-content -->
 		</div><!-- /.modal-dialog -->
 	</div>
-</div>
+</form>

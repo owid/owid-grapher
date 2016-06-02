@@ -37,6 +37,7 @@
 			this.$contentAllLatest = this.$el.find(".settings-var-all-latest-content");
 
 			this.$closeBtn.on("click", $.proxy(this.onCloseBtn, this));
+			this.$el.find("form").on("submit", $.proxy(this.onSaveBtn, this));
 			this.$saveBtn.on("click", $.proxy(this.onSaveBtn, this));
 			this.$cancelBtn.on("click", $.proxy(this.onCancelBtn, this));
 			
@@ -44,7 +45,6 @@
 			this.$periodInputs.on("change", $.proxy(this.onPeriodInputs, this));
 			this.$singleInputs.on("change", $.proxy(this.onSingleInputs, this));
 			this.$allInputs.on("change", $.proxy(this.onAllInputs, this));
-
 		},
 
 		onDigitInputs: function(evt) {
