@@ -416,10 +416,12 @@
 					    "<h3><span class='datasource-property'>Dataset name:</span>" + variable.dataset_name + "</h3>" +
 					    "<h4><span class='datasource-property'>Variable name:</span>" + variable.name + "</h4>" +
 					"</div>";
-			html += "<table>" +
-					    "<tr><td><span class='datasource-property'>Full name</span></td><td>" + variable.name + "</td></tr>" +
-					    "<tr><td><span class='datasource-property'>Display name</span></td><td>" + displayName + "</td></tr>" +
-					    "<tr><td><span class='datasource-property'>Definition</span></td><td>" + variable.description + "</td></tr>" +
+			html += "<table>";
+
+			if (displayName != variable.name)
+				html += "<tr><td><span class='datasource-property'>Display name</span></td><td>" + displayName + "</td></tr>";
+
+			html += 	"<tr><td><span class='datasource-property'>Definition</span></td><td>" + variable.description + "</td></tr>" +
 					    "<tr><td><span class='datasource-property'>Unit</span></td><td>" + variable.unit + "</td></tr>" +
 					    "<tr><td><span class='datasource-property'>Uploaded</span></td><td>" + variable.created_at + "</td></tr>" +
 					"</table>";
