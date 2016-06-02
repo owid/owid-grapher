@@ -59,30 +59,30 @@
 			//refetch dd-list - needed if there was something removed
 			this.$ddList = this.$dd.find( ".dd-list" );
 
-			if( !this.$dd.find( ".dd-list" ).length ) {
+			if(!this.$dd.find(".dd-list").length) {
 				//dd-list has been removed by nestable
-				var $ddList = $( "<ol class='dd-list'></ol>" );
-				this.$dd.append( $ddList );
-				this.$ddList = this.$dd.find( ".dd-list" );
+				var $ddList = $("<ol class='dd-list'></ol>");
+				this.$dd.append($ddList);
+				this.$ddList = this.$dd.find(".dd-list");
 			}
 
 			//have default target year for scatter plot
-			var defaultPeriod = ( App.ChartModel.get( "chart-type" ) === "2" )? "single": "all",
-				defaultMode = ( App.ChartModel.get( "chart-type" ) === "2" )? "specific": "closest",
+			var defaultPeriod = (App.ChartModel.get("chart-type") == App.ChartType.ScatterPlot ) ? "single" : "all",
+				defaultMode = (App.ChartModel.get("chart-type") == App.ChartType.ScatterPlot) ? "specific" : "closest",
 				defaultTargetYear = 2000,
 				defaultMaxAge = 5,
 				defaultTolerance = 5;
 
-			var $li = $( "<li class='variable-label dd-item' data-unit='" + model.get( "unit" ) + "' data-period='" + defaultPeriod + "' data-tolerance='" + defaultTolerance + "' data-maximum-age='" + defaultMaxAge + "' data-mode='" + defaultMode + "' data-target-year='" + defaultTargetYear + "' data-variable-id='" + model.get( "id" ) + "'><div class='dd-handle'><div class='dd-inner-handle'><span class='variable-label-name'>" + model.get( "name" ) + "</span><span class='variable-label-input'><input class='form-control'/><i class='fa fa-check'></i><i class='fa fa-times'></i></div></div><a href='' class='variable-setting-btn'><span class='fa period-icon'></span><span class='number-icon'></span><span class='fa fa-cog' title='Setting variable'></span></a><span class='fa fa-close'></span></li>" ),
-				$settings = $li.find( ".variable-setting-btn" );
-			this.$ddList.append( $li );
+			var $li = $("<li class='variable-label dd-item' data-unit='" + model.get("unit") + "' data-period='" + defaultPeriod + "' data-tolerance='" + defaultTolerance + "' data-maximum-age='" + defaultMaxAge + "' data-mode='" + defaultMode + "' data-target-year='" + defaultTargetYear + "' data-variable-id='" + model.get("id") + "'><div class='dd-handle'><div class='dd-inner-handle'><span class='variable-label-name'>" + model.get("name") + "</span><span class='variable-label-input'><input class='form-control'/><i class='fa fa-check'></i><i class='fa fa-times'></i></div></div><a href='' class='variable-setting-btn'><span class='fa fa-cog' title='Setting variable'></span></a><span class='fa fa-close'></span></li>"),
+				$settings = $li.find(".variable-setting-btn");
+			this.$ddList.append($li);
 
-			$settings.on( "click", $.proxy( this.onSettingsClick, this ) );
+			$settings.on("click", $.proxy(this.onSettingsClick, this));
 
 			this.refreshHandlers();
 			this.updateVarIcons();
 
-			this.$el.find( ".form-section-desc" ).removeClass( "hidden" );
+			this.$el.find(".form-section-desc").removeClass( "hidden" );
 		},
 
 		onRemoveBtnClick: function( evt ) {
@@ -114,13 +114,15 @@
 			//find updated variable
 			var $variableLabel = $( ".variable-label[data-variable-id='" + data.variableId + "']" );
 			//update all attributes
-			for( var i in data ) {
-				if( data.hasOwnProperty( i ) && i !== "variableId" ) {
+			for (var i in data) {
+				if (i == "name") {
+					$variableLabel.find(".variable-label-name").html(data[i]);
+				} else if (data.hasOwnProperty(i) && i !== "variableId") {
 					var attrName = "data-" + i,
 						attrValue = data[ i ];
 					$variableLabel.attr( attrName, attrValue );
 				}
-			}
+			} 
 
 			//if sync period values for all variables 
 			var $variableLabels = $( ".variable-label" );
@@ -168,63 +170,7 @@
 				} else if( period == "all" && mode === "latest" ) {
 					$numberIcon.html( "<span class='fa fa-long-arrow-right'></span>/" + $label.attr( "data-maximum-age" ) );
 				}
-
-				/*$periodIcon.text( $label.attr( "data-period" ) );
-				$modeIcon.text( $label.attr( "data-mode" ) );
-				$numberIcon.text( $label.attr( "data-target-year" ) );*/
-
 			} );
-
-		},
-
-		/*onVariableNameClick: function( evt ) {
-
-			var $name = $( evt.currentTarget ),
-				$parent = $name.parent(),
-				$variableLabelInput = $parent.find( ".variable-label-input" ),
-				$input = $variableLabelInput.find( "input" ),
-				$cog = $parent.parent().parent().find( ".variable-setting-btn" );
-			
-			//make sure variable is in dimension section
-			if( $parent.parents( ".dimensions-section" ).length ) {
-
-				//stopping propagation not at the top, but here, to enable drag&drop outside of dimension section
-				evt.stopImmediatePropagation();
-				evt.preventDefault();
-
-				$cog.addClass( "hidden" );
-				$name.hide();
-				$variableLabelInput.show();
-				$input.val( $name.text() );
-			}
-
-		},*/
-
-		onNameBtnClick: function( evt ) {
-
-			evt.stopImmediatePropagation();
-			evt.preventDefault();
-
-			var $inputBtn = $( evt.currentTarget ),
-				$variableLabelInput = $inputBtn.parent(),
-				$parent = $variableLabelInput.parent(),
-				$variableLabelName = $parent.find( ".variable-label-name" ),
-				$cog = $parent.parent().parent().find( ".variable-setting-btn" );
-			
-			$cog.removeClass( "hidden" );
- 
-			if( $inputBtn.hasClass( "fa-check" ) ) {
-				//confirmation of change to variable name
-				var $input = $variableLabelInput.find( "input" ),
-					inputVal = $input.val(),
-					$variableLabel = $variableLabelInput.parents( ".variable-label" );
-				$variableLabelName.text( inputVal );
-				$variableLabel.attr( "data-display-name", inputVal );
-				this.dispatcher.trigger( "dimension-update" );
-			}
-
-			$variableLabelInput.hide();
-			$variableLabelName.show();
 
 		},
 
@@ -232,7 +178,7 @@
 			var $liToRemove = $( ".variable-label[data-variable-id='" + model.get( "id" ) + "']" );
 			$liToRemove.remove();
 
-			if( App.ChartVariablesCollection.models.length == 0 ) {
+			if (App.ChartVariablesCollection.models.length == 0) {
 				this.$el.find( ".form-section-desc" ).addClass( "hidden" );
 			}
 		}
