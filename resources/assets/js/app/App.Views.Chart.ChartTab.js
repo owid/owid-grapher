@@ -485,39 +485,13 @@
 					.datum(displayData)
 					.call( that.chart );
 
-				if( chartType != App.ChartType.StackedArea ) {
-
-					that.chart.tooltip.contentGenerator( owid.contentGenerator );
-
-				} else {
-
-					//set popup
-					var unitsString = App.ChartModel.get( "units" ),
-						units = ( !$.isEmptyObject( unitsString ) )? $.parseJSON( unitsString ): {},
-						string = "",
-						valuesString = "";
-
-					//d3.format with added params to add arbitrary string at the end
-					var customFormatter = function( formatString, suffix ) {
-						var func = d3.format( formatString );
-						return function( d, i ) {
-							return func( d ) + suffix;
-						};
-					};
-
-					//different popup setup for stacked area chart
-					var unit = _.findWhere( units, { property: "y" } );
-					if( unit && unit.format ) {
-						var fixed = Math.min(20, parseInt(unit.format, 10)),
-							unitName = ( unit.unit )? " " + unit.unit: "";
-						that.chart.interactiveLayer.tooltip.valueFormatter( customFormatter("." + fixed + "f", unitName ) );
-						//that.chart.interactiveLayer.tooltip.valueFormatter( d3.format("." + fixed + "f" ) );
-					}
-					
-				}
+				if (chartType == App.ChartType.StackedArea)
+					that.chart.interactiveLayer.tooltip.contentGenerator(owid.contentGenerator);
+				else
+					that.chart.tooltip.contentGenerator(owid.contentGenerator);
 				
 				//set legend
-				if( !App.ChartModel.get( "hide-legend" ) ) {
+				if (!App.ChartModel.get("hide-legend")) {
 					//make sure wrapper is visible
 					that.$svg.find( "> .nvd3.nv-custom-legend" ).show();
 					that.legend = new App.Views.Chart.Legend( that.chart.legend ).vers( "owd" );
@@ -532,13 +506,13 @@
 					//put legend above chart
 
 					//if stacked area chart
-					if( chartType === App.ChartType.StackedArea ) {
-						that.chart.stacked.dispatch.on( "areaMouseover", function( evt ) {
-							that.legend.highlightPoint( evt );
-						} );
-						that.chart.stacked.dispatch.on( "areaMouseout", function( evt ) {
+					if (chartType == App.ChartType.StackedArea) {
+						that.chart.stacked.dispatch.on("areaMouseover", function(evt) {
+							that.legend.highlightPoint(evt);
+						});
+						that.chart.stacked.dispatch.on("areaMouseout", function(evt) {
 							that.legend.clearHighlight();
-						} );
+						});
 					}
 				} else {
 					//no legend, remove what might have previously been there

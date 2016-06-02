@@ -131,17 +131,112 @@
 		return timeRanges;
 	};
 
+	owid.scatterPlotContentGenerator = function(data) {
+		var unitsString = App.ChartModel.get("units"),
+			units = !_.isEmpty(unitsString) ? $.parseJSON(unitsString) : {},
+			outputHtml = "";
 
-	owid.contentGenerator = function( data, isMapPopup ) {
+		var times = data.point.time; // e.g. { x: 1990 }
+		var heading = data.series[0].key; // e.g. "United Arab Emirates"
+		outputHtml += "<h3>" + heading + "</h3><p>";
+		_.each(data.point, function(value, key) {
+			if (key == "time" || key == "series" || key == "color") return;
+
+			var unit = _.findWhere(units, { property: key }),
+				isHidden = ( unit && unit.hasOwnProperty( "visible" ) && !unit.visible )? true: false;
+
+			if (isHidden) return;
+			
+			value = App.Utils.formatNumeric(unit, value);
+
+			var unitSetting = (unit && unit.unit)||"";
+			var titleSetting = (unit && unit.title)||"";
+
+			var valueString = (_.isEmpty(titleSetting) ? "" : titleSetting + ": ") + value + " " + unitSetting;
+			valueString += " (in " + owid.displayYear(times[key]) + ")";
+			outputHtml += "<span class='var-popup-value'>" + valueString + "</span>";
+		});
+
+		outputHtml += "</p>";
+		return outputHtml;
+	};
+//<table><thead><tr><td colspan="3"><strong class="x-value">1890</strong></td></tr></thead><tbody><tr><td class="legend-color-guide"><div style="background-color: rgb(174, 199, 232);"></div></td><td class="key">Number of people not in extreme poverty</td><td class="value">222,681,713.8</td></tr><tr><td class="legend-color-guide"><div style="background-color: rgb(31, 119, 180);"></div></td><td class="key">Number of people living in extreme poverty</td><td class="value">1,334,533,068</td></tr></tbody></table>
+
+	owid.getUnits = function() {
+		var unitsString = App.ChartModel.get("units");
+		if (_.isEmpty(unitsString))
+			return [];
+		else
+			return $.parseJSON(unitsString);
+	},
+
+	// MISPY: The default nvd3 stacked area tooltip is nice, but we also want to add a total
+	owid.stackedAreaTooltipGenerator = function(data) {
+		var unit = owid.getUnits()[0] || {},
+			html = "<table>";
+
+		html += '<thead><tr><td colspan="3"><strong class="x-value">' + data.value + '</strong></td></tr></thead>';
+
+		html += '<tbody>';
+
+		var total = 0;
+		_.each(data.series, function(series, i) {
+			total += series.value;
+			var value = App.Utils.formatNumeric(unit, series.value);
+
+			html += '<tr>';
+			html += '<td class="legend-color-guide"><div style="background-color: ' + series.color + ';"></div></td>';
+			html += '<td class="key">' + series.key + '</td>';
+			html += '<td class="value">' + value + '</td>';
+			html += '</tr>';
+		});
+
+		html += '<tr>';
+		html += '<td></td>';
+		html += '<td class="key">Total</td>';
+		html += '<td class="value">' + App.Utils.formatNumeric(unit, total) + '</td>';
+		html += '</tr>';
+
+		html += "</tbody></table>";
+		return html;
+
 		//set popup
-		var unitsString = App.ChartModel.get( "units" ),
-			chartType = App.ChartModel.get( "chart-type" ),
+		/*var unitsString = App.ChartModel.get( "units" ),
 			units = ( !$.isEmptyObject( unitsString ) )? $.parseJSON( unitsString ): {},
 			string = "",
 			valuesString = "";
 
+		//d3.format with added params to add arbitrary string at the end
+		var customFormatter = function( formatString, suffix ) {
+			var func = d3.format( formatString );
+			return function( d, i ) {
+				return func( d ) + suffix;
+			};
+		};
+
+		//different popup setup for stacked area chart
+		var unit = _.findWhere( units, { property: "y" } );
+		if( unit && unit.format ) {
+			var fixed = Math.min(20, parseInt(unit.format, 10)),
+				unitName = ( unit.unit )? " " + unit.unit: "";
+			that.chart.interactiveLayer.tooltip.valueFormatter( customFormatter("." + fixed + "f", unitName ) );
+			//that.chart.interactiveLayer.tooltip.valueFormatter( d3.format("." + fixed + "f" ) );
+		}*/
+	};
+
+
+	owid.contentGenerator = function(data, isMapPopup) {
+		//set popup
+		var unitsString = App.ChartModel.get("units"),
+			chartType = App.ChartModel.get("chart-type"),
+			units = (!$.isEmptyObject(unitsString)) ? $.parseJSON(unitsString) : {},
+			string = "",
+			valuesString = "";
+
 		if (chartType == App.ChartType.ScatterPlot)
-			return App.Utils.scatterPlotContentGenerator(data);
+			return owid.scatterPlotTooltipGenerator(data);
+		else if (chartType == App.ChartType.StackedArea)
+			return owid.stackedAreaTooltipGenerator(data);
 
 		//find relevant values for popup and display them
 		var series = data.series, key = "", timeString = "";
@@ -205,7 +300,6 @@
 		}
 
 		return string;
-
 	};
 
 	owid.getLengthForPoint = function(path, pointNum) {
