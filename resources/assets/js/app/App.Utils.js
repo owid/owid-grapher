@@ -527,7 +527,7 @@
 		//format number
 		if( unit && !isNaN( unit.format ) && unit.format >= 0 ) {
 			//fixed format
-			var fixed = Math.min( 20, parseInt( unit.format, 10 ) );
+			var fixed = Math.min(20, parseInt(unit.format, 10));
 			return d3.format( ",." + fixed + "f" )( value );
 		} else {
 			//add thousands separator

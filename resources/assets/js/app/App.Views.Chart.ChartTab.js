@@ -336,14 +336,10 @@
 						} );
 					}
 
-					if( chartType == App.ChartType.MultiBar ) {
-					
-						that.chart = nv.models.multiBarChart().options( chartOptions );
-					
+					if (chartType == App.ChartType.MultiBar) {
+						that.chart = nv.models.multiBarChart().options(chartOptions);					
 					} else if( App.ChartType.HorizontalMultiBar ) {
-					
-						that.chart = nv.models.multiBarHorizontalChart().options( chartOptions );//.showValues( true );
-					
+						that.chart = nv.models.multiBarHorizontalChart().options(chartOptions);					
 					}
 
 				} else if( chartType == App.ChartType.DiscreteBar ) {
@@ -359,7 +355,10 @@
 
 				that.chart.dispatch.on("renderEnd", function(state) {
 					$(window).trigger('chart-loaded');
+				});
+	
 
+				that.chart.dispatch.on("stateChange", function() {
 					/* HACK (Mispy): Ensure stacked area charts maintain the correct dimensions on 
 					 * transition between stacked and expanded modes. It cannot be done on renderEnd
 					 * or stateChange because the delay causes the chart to jump; overriding update
@@ -370,8 +369,9 @@
 					that.chart.update = function() {
 						origUpdate.call(that.chart);
 						that.onResize();
-					};								
+					};														
 				});
+	
 				//fixed probably a bug in nvd3 with previous tooltip not being removed
 				d3.select( ".xy-tooltip" ).remove();
 
@@ -435,18 +435,11 @@
 
 				//manually clamp values
 				if( isClamped ) {
-
 					if( chartType !== "4" && chartType !== "5" && chartType !== "6" ) {
 						//version which makes sure min/max values are present, but will display values outside of the range
 						that.chart.forceX( xDomain );
 						that.chart.forceY( yDomain );
-						//version which forces domains to contain values just between min/max, won't extend if there is data outside of domain
-						/*that.chart.xDomain( xDomain );
-						that.chart.yDomain( yDomain );
-						that.chart.xScale().clamp( true );
-						that.chart.yScale().clamp( true );*/
 					}
-
 				}
 
 				//set scales, multibar chart
@@ -521,7 +514,7 @@
 				
 				var dimensions = JSON.parse(App.ChartModel.get("chart-dimensions"));
 
-				if( chartType == App.ChartType.ScatterPlot ) {
+				if (chartType == App.ChartType.ScatterPlot) {
 					//need to have own showDist implementation, cause there's a bug in nvd3
 					that.scatterDist();
 				}
@@ -557,7 +550,6 @@
 		},
 
 		scatterDist: function() {
-
 			var that = this,
 				margins = App.ChartModel.get( "margins" ),
 				nvDistrX = $( ".nv-distributionX" ).offset().top,
@@ -573,7 +565,6 @@
 				var position = {left: d3.event.clientX, top: d3.event.clientY };
 				that.chart.tooltip.position(position).data(evt).hidden(false);
 			});
-
 		},
 
 		splitSeriesByMissing: function(localData) {
@@ -645,11 +636,10 @@
 				}
 				this.chart.yDomain( yDomain );
 			}
-			
 		},
 
 
-		onAvailableCountries: function( evt ) {
+		onAvailableCountries: function(evt) {
 			var $select = $( evt.currentTarget ),
 				val = $select.val(),
 				$option = $select.find( "[value=" + val + "]" ),
@@ -672,7 +662,7 @@
 			}
 		},
 
-		cacheColors: function( data ) {
+		cacheColors: function(data) {
 			if( !this.cachedColors.length ) {
 				var that = this;
 				_.each( data, function( v, i ) {
@@ -766,21 +756,6 @@
 			if (chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar) {
 				d3.select( ".nv-controlsWrap" ).attr( "transform", "translate(0,-30)" );
 			}
-
-			/*if (chartType == App.ChartType.StackedArea) {
-				//for stacked area chart, need to manually adjust height
-				var currIntLayerHeight = this.chart.interactiveLayer.height(),
-					//TODO - do not hardcode this
-					heightAdd = 150;
-				this.chart.interactiveLayer.height( currIntLayerHeight + heightAdd );
-				d3.select(".nv-interactive").call(this.chart.interactiveLayer);
-				//and add extra offset to of the .nv-wrap to account for Stacked and Expanded controls
-				chartOffsetY += 20;
-			}*/
-
-			//for multibarchart, need to move controls bit higher
-
-
 
 			//position scale dropdowns - TODO - isn't there a better way then with timeout?
 			setTimeout(function() {
