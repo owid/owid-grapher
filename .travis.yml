@@ -6,7 +6,7 @@ before_script:
   - mysql -e 'create database forge_test;'
   - mysql -D forge_test < database/db.sql
   - composer install --no-interaction
-  - npm install gulp
+  - npm install
   - gulp
 script:
   - phpunit
