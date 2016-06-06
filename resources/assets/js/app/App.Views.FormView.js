@@ -83,41 +83,7 @@
 			$('.nav-tabs').stickyTabs();
 		},
 
-		onCsvSelected: function( err, data ) {
-
-			if( err ) {
-				console.error( err );
-				return;
-			}
-
-			this.$removeUploadedFileBtn.show();
-
-			if( data && data.rows ) {
-				var mappedData = App.Utils.mapData( data.rows );
-				App.ChartModel.set( "chart-data", mappedData );
-			}
-
-		},
-
-		onRemoveUploadedFile: function( evt ) {
-
-			this.$filePicker.replaceWith( this.$filePicker.clone() );
-			//refetch dom
-			this.$filePicker = this.$el.find( ".file-picker-wrapper [type=file]" );
-			this.$filePicker.prop( "disabled", false);
-
-			var that = this;
-			CSV.begin( this.$filePicker.selector ).go( function( err, data ) {
-					that.onCsvSelected( err, data );
-			} );
-
-			this.$removeUploadedFileBtn.hide();
-
-		},
-
-
 		onFormCollapse: function( evt ) {
-
 			evt.preventDefault();
 			var $parent = this.$el.parent();
 			$parent.toggleClass( "form-panel-collapsed" );
@@ -126,7 +92,6 @@
 			App.ChartModel.trigger( "change" );
 			//also triger custom event so that map can resize
 			App.ChartModel.trigger( "resize" );
-
 		},
 
 		onSaveNew: function(evt) {

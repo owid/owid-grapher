@@ -24,7 +24,7 @@ Route::model( 'tags', 'DatasetTag' );
 Route::model( 'apiKeys', 'ApiKey' );
 Route::model( 'logos', 'Logo' );
 
-Route::group(['middleware' => ['web', 'auth']], function()
+Route::group(['middleware' => ['basic', 'session', 'auth']], function()
 {
 	Route::resource( 'entities', 'EntitiesController' );
 	Route::resource( 'datasources', 'DatasourcesController' );
@@ -101,7 +101,7 @@ Route::group(['middleware' => ['web', 'auth']], function()
 	Route::patch( 'sourceTemplate', [ 'as' => 'sourceTemplate.update', 'uses' => 'SourceTemplateController@update' ] );
 });
 
-Route::group(['middleware' => ['web']], function() {
+Route::group(['middleware' => ['basic', 'session']], function() {
 	Route::get('/', 'HomeController@index');
 
 	Route::get('login', 'Auth\AuthController@getLogin');
@@ -114,7 +114,7 @@ Route::group(['middleware' => ['web']], function() {
     ]);
 });
 
-Route::group(['middleware' => ['public']], function () {
+Route::group(['middleware' => ['basic']], function () {
 	//api routes
 	Route::group( [ 'prefix' => 'v1', 'before' => 'auth.api_key' ], function() {
 		Route::get( '/data', 'ApiController@data' );

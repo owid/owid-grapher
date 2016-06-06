@@ -63,11 +63,9 @@ elixir(function(mix) {
     //front-end lib scripts
     mix.scripts([
         'libs/jquery-1.11.3.min.js',
-        'libs/html5csv.js',
         'libs/papaparse.js',
         'libs/d3.js',
         'libs/nv.d3.js',
-        'libs/saveSvgAsPng.js',
         'libs/topojson.js',
         'libs/datamaps.js',
         'libs/underscore.js',
@@ -85,12 +83,10 @@ elixir(function(mix) {
     //back-end lib scripts
     mix.scripts([
         'libs/jquery-1.11.3.min.js',
-        'libs/html5csv.js',
         'libs/d3.js',
         'libs/nv.d3.js',
         'libs/topojson.js',
         'libs/datamaps.js',
-        'libs/saveSvgAsPng.js',
         'libs/underscore.js',
         'libs/underscore.string.js',
         'libs/backbone.js',
