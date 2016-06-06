@@ -467,6 +467,31 @@
 		breakSpan();
 	};
 
+	owid.modal = function(options) {
+		$(".owidModal").remove();
+
+		var html = '<div class="modal owidModal fade" role="dialog">' +
+						'<div class="modal-dialog modal-lg">' +
+							'<div class="modal-content">' +
+								'<div class="modal-header">' +
+									'<button type="button" class="close" data-dismiss="modal" aria-label="Close">' +
+										'<span aria-hidden="true">&times;</span>' +
+									'</button>' +
+									'<h4 class="modal-title"></h4>' +
+								'</div>' +
+								'<div class="modal-body">' +
+								'</div>' +
+							'</div>' +
+						'</div>' +
+					'</div>';
+
+		$("body").prepend(html);			
+		var $modal = $(".owidModal");
+		$modal.find(".modal-title").html(options.title);
+		$modal.find(".modal-body").html(options.content);
+		$modal.modal("show");
+		return $modal;
+	};
 
 	window.require = function(namespace) {
 		var obj = window;

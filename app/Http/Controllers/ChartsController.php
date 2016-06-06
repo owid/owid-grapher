@@ -75,31 +75,55 @@ class ChartsController extends Controller {
 		return $data;		
 	}
 
+	private function saveChart(Chart $chart, $data) {
+		$user = \Auth::user();
+		$jsonConfig = json_encode($data);
+
+		$chart->name = $data["chart-name"];
+		$chart->notes = $data["chart-notes"];
+		$chart->slug = $data["chart-slug"];
+		unset($data["chart-notes"]);
+		unset($data["chart-slug"]);
+		$chart->last_edited_at = Carbon::now();
+		$chart->last_edited_by = $user->name;
+		$chart->config = $jsonConfig;		
+		$chart->save();
+
+		Cache::flush();
+
+		// Purge exported png files so we can regenerate them
+		$files = glob(public_path() . "/exports/" . $chart->slug . ".*");
+		foreach ($files as $file) {
+			unlink($file);
+		}
+	}
+
 	/**
-	 * Store a newly created resource in storage.
+	 * Create a new chart.
 	 *
 	 * @return Response
 	 */
 	public function store(Request $request)
 	{
 		$data = Input::all();
-		
-		$chartName = $data["chart-name"];
-		$slug = $data["chart-slug"];
-		$notes = $data["chart-notes"];
-		unset($data["chart-notes"]);
-		unset($data["chart-slug"]);
-		$json = json_encode( $data );
-		
-		$user = \Auth::user();
-		$chart = Chart::create([ 
-			'config' => $json, 'name' => $chartName, 'slug' => $slug, 'notes' => $notes,
-			'last_edited_at' => Carbon::now(), 'last_edited_by' => $user->name ] );
-
-		Cache::flush();
-
+		$chart = new Chart;
+		$this->saveChart($chart, $data);
 		return ['success' => true, 'data' => [ 'id' => $chart->id, 'viewUrl' => route( 'view', $chart->id )]];
 	}
+
+	/**
+	 * Update an existing chart.
+	 *
+	 * @param  int  $id
+	 * @return Response
+	 */
+	public function update( Chart $chart )
+	{	
+		$data = Input::all();
+		$this->saveChart($chart, $data);
+		return ['success' => true, 'data' => [ 'id' => $chart->id, 'viewUrl' => route( 'view', $chart->id ) ] ];
+	}
+
 
 	/**
 	 * Display the specified resource.
@@ -135,42 +159,6 @@ class ChartsController extends Controller {
 	{
 		$data = $this->editorData();
 		return view('charts.edit', compact('chart'))->with('data', $data);
-	}
-
-	/**
-	 * Update the specified resource in storage.
-	 *
-	 * @param  int  $id
-	 * @return Response
-	 */
-	public function update( Chart $chart )
-	{	
-		$data = Input::all();
-		$chartName = $data["chart-name"];
-		$chart->name = $data["chart-name"];
-		$chart->notes = $data["chart-notes"];
-		$chart->slug = $data["chart-slug"];
-		unset($data["chart-notes"]);
-		unset($data["chart-slug"]);
-
-		$json = json_encode($data);
-		$user = \Auth::user();
-		$chart->last_edited_at = Carbon::now();
-		$chart->last_edited_by = $user->name;
-		$chart->fill( [ 'name' => $chartName, 'config' => $json ] );
-		
-		$chart->save();
-
-		Cache::flush();
-
-		// Purge exported png files so we can regenerate them
-		$files = glob(public_path() . "/exports/" . $chart->slug . ".*");
-		foreach ($files as $file) {
-			unlink($file);
-		}
-
-
-		return ['success' => true, 'data' => [ 'id' => $chart->id, 'viewUrl' => route( 'view', $chart->id ) ] ];
 	}
 
 	/**

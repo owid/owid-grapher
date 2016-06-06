@@ -167,8 +167,6 @@ class ImportController extends Controller {
 	}
 
 	public function hasValue($value) {
-
 		return ( !empty( $value ) || $value === "0" || $value === 0 )? true: false;
-
 	}
 }

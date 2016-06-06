@@ -130,9 +130,9 @@
 		},
 
 		onSaveNew: function(evt) {
-			$.ajaxSetup( {
+			$.ajaxSetup({
 				headers: { 'X-CSRF-TOKEN': $('[name="_token"]').val() }
-			} );
+			});
 
 			evt.preventDefault();
 
@@ -150,13 +150,15 @@
 			// Need to open intermediary tab before AJAX to avoid popup blockers
 			var w = window.open("/", "_blank");
 			App.ChartModel.save({}, {
-				success: function ( model, response, options ) {
+				success: function (model, response, options) {
 					w.location = App.ChartModel.url(response.data.id) + "/edit";
 					App.ChartModel.set('id', origId);
 				},
 				error: function (model, xhr, options) {
-					console.error("Something went wrong while saving the model", xhr );
-					alert( "Oops, there was a problem saving your chart." );
+					w.close();
+					App.ChartModel.set('id', origId);
+					var $modal = owid.modal({ title: "Error saving chart", content: xhr.responseText });
+					$modal.addClass("error");
 				}
 			});
 		},
@@ -189,8 +191,8 @@
 					}
 				},
 				error: function (model, xhr, options) {
-					console.error("Something went wrong while saving the model", xhr );
-					alert( "Oops, there was a problem saving your chart." );
+					var $modal = owid.modal({ title: "Error saving chart", content: xhr.responseText });
+					$modal.addClass("error");
 				}
 			});
 
