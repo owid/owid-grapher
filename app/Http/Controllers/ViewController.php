@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Debugbar;
 use DB;
 use URL;
+use Config;
 
 class ViewController extends Controller {
 
@@ -229,11 +230,18 @@ class ViewController extends Controller {
 			$chartMeta->imageUrl = $imageUrl;
 			$chartMeta->canonicalUrl = $canonicalUrl;
 
-
 			// Give the image exporter a head start on the request for imageUrl
 			if (!str_contains(\Request::path(), ".export"))
 				Chart::exportPNGAsync($chart->slug, Chart::getQueryString() . "&size=1000x700", 1000, 700);
-			return view( 'view.show', compact( 'chart', 'config', 'data', 'canonicalUrl', 'chartMeta' ));
+
+			// MISPY: Calculate a cache tag for this chart + settings
+			// A particular chart state should be uniquely identifiable by the current url combined with
+			// the last time the chart was updated and the current git commit hash
+			$cacheTag = $chart->slug . "?" . Chart::getQueryString() . '-' . strval($chart->updated_at) . '-' . Config::get('owid.commit');
+
+			return response()
+					->view('view.show', compact('chart', 'config', 'data', 'canonicalUrl', 'chartMeta'))
+					->header('ETag', 'W/"' . $cacheTag . '"');
 		} else {
 			return 'No chart found to view';
 		}
