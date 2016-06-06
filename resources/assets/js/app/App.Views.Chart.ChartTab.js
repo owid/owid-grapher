@@ -362,6 +362,13 @@
 								App.ChartModel.set("currentStackMode", "absolute");
 							}
 						});
+	
+						// Stop the tooltip from overlapping the chart controls
+						d3.selectAll("svg").on("mousemove.stackedarea", function() {
+							var $target = $(d3.event.target);
+							if (!$target.is("rect, path") || $target.closest(".nv-custom-legend").length)
+								that.chart.interactiveLayer.tooltip.hidden(true);							
+						});
 					}
 				});				
 	
