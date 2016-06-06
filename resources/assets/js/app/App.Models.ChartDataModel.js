@@ -34,7 +34,12 @@
 
 			this.isReady = false;
 			this.set("variableData", null, { silent: true });
-			this.dataRequest = $.get(Global.rootUrl + "/data/variables/" + variableIds.join("+") + "?v=" + App.ChartModel.get("variableCacheTag"));
+			// There's no cache tag in the editor
+			var cacheTag = App.ChartModel.get("variableCacheTag");
+			if (cacheTag)
+				this.dataRequest = $.get(Global.rootUrl + "/data/variables/" + variableIds.join("+") + "?v=" + App.ChartModel.get("variableCacheTag"));
+			else
+				this.dataRequest = $.get(Global.rootUrl + "/data/variables/" + variableIds.join("+"));
 			this.dataRequest.done(function(rawData) {
 				this.dataRequest = null;
 				this.receiveData(rawData);
