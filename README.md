@@ -20,9 +20,9 @@ Once you have `gulp`, run it in the repo to generate public asset files.
 
 ## Database setup
 
-The database schema can be imported from `database/db.sql`. For example, if your database is called `forge`:
+The database schema can be imported from `database/db.sql`. For example, if your database is called `grapher`:
 
-`mysql -u root -p -D forge  < database/db.sql`
+`mysql -u root -p -D grapher < database/db.sql`
 
 Now copy `.env.example` to `.env` and fill in lines 5-8 with your database details.
 
