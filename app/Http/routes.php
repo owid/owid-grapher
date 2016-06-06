@@ -101,15 +101,20 @@ Route::group(['middleware' => ['web', 'auth']], function()
 	Route::patch( 'sourceTemplate', [ 'as' => 'sourceTemplate.update', 'uses' => 'SourceTemplateController@update' ] );
 });
 
-Route::group(['middleware' => ['web']], function () {
+Route::group(['middleware' => ['web']], function() {
 	Route::get('/', 'HomeController@index');
+
+	Route::get('login', 'Auth\AuthController@getLogin');
+	Route::post('login', 'Auth\AuthController@postLogin')->name('login');
+	Route::get('logout', 'Auth\AuthController@logout')->name('logout');
 
     Route::controllers([
         'auth' => 'Auth\AuthController',
         'password' => 'Auth\PasswordController',
     ]);
+});
 
-
+Route::group(['middleware' => ['public']], function () {
 	//api routes
 	Route::group( [ 'prefix' => 'v1', 'before' => 'auth.api_key' ], function() {
 		Route::get( '/data', 'ApiController@data' );
@@ -117,11 +122,6 @@ Route::group(['middleware' => ['web']], function () {
 		Route::get( '/entities', 'ApiController@entities' );
 	} );
 	Route::get( 'api', 'ApiController@index' );
-
-	Route::get('login', 'Auth\AuthController@getLogin');
-	Route::post('login', 'Auth\AuthController@postLogin')->name('login');
-	Route::get('logout', 'Auth\AuthController@logout')->name('logout');
-
 
 	Route::get( 'view', 'ViewController@index' );
 	Route::get( 'view/{id}', [ 'as' => 'view', 'uses' => 'ViewController@show' ] );
