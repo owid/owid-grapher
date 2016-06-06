@@ -1,4 +1,4 @@
-[Short explanatory video](https://www.youtube.com/watch?v=Fods4ygADLg)
+[![Build Status](https://travis-ci.org/OurWorldInData/owid-grapher.png)](https://travis-ci.org/OurWorldInData/owid-grapher)
 
 ## INTRO
 The *OurWorldInData-Grapher* is the chart building tool which is used on our web-publication [OurWorldInData.org](http://OurWorldInData.org).
