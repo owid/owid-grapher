@@ -1,3 +1,4 @@
+sudo: required
 language: php
 php:
   - 5.5.9
@@ -6,9 +7,9 @@ before_script:
   - mysql -e 'create database forge_test;'
   - mysql -D forge_test < database/db.sql
   - composer install --no-interaction
-  - npm install -g npm@next
-  - npm install -g n
-  - n stable
+  - sudo npm install -g npm@next
+  - sudo npm install -g n
+  - sudo n stable
   - npm install
   - gulp
 script:
