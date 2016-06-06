@@ -3,7 +3,6 @@
 /public/js/*
 /public/css/*
 /public/uploads/*
-/public/exports/*
 .env
 .env.localhost
 .env.bluehost
