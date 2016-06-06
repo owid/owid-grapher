@@ -76,26 +76,35 @@ class ChartsController extends Controller {
 	}
 
 	private function saveChart(Chart $chart, $data) {
-		$user = \Auth::user();
-		$jsonConfig = json_encode($data);
+		DB::transaction(function() use ($chart, $data) {
+			$user = \Auth::user();
+			$jsonConfig = json_encode($data);
 
-		$chart->name = $data["chart-name"];
-		$chart->notes = $data["chart-notes"];
-		$chart->slug = $data["chart-slug"];
-		unset($data["chart-notes"]);
-		unset($data["chart-slug"]);
-		$chart->last_edited_at = Carbon::now();
-		$chart->last_edited_by = $user->name;
-		$chart->config = $jsonConfig;		
-		$chart->save();
+			$chart->name = $data["chart-name"];
+			$chart->notes = $data["chart-notes"];
+			if ($chart->exists && $chart->slug && $chart->slug != $data["chart-slug"]) {
+				// Changing slug, create redirect
+	            DB::statement("INSERT INTO chart_slug_redirects (slug, chart_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE chart_id=VALUES(chart_id);", [$chart->slug, $chart->id]);                
+			}
+			$chart->slug = $data["chart-slug"];
+			unset($data["chart-notes"]);
+			unset($data["chart-slug"]);
+			$chart->last_edited_at = Carbon::now();
+			$chart->last_edited_by = $user->name;
+			$chart->config = $jsonConfig;		
 
-		Cache::flush();
+			Cache::flush();
 
-		// Purge exported png files so we can regenerate them
-		$files = glob(public_path() . "/exports/" . $chart->slug . ".*");
-		foreach ($files as $file) {
-			unlink($file);
-		}
+			if ($chart->exists) {
+				// Purge exported png files so we can regenerate them
+				$files = glob(public_path() . "/exports/" . $chart->slug . ".*");
+				foreach ($files as $file) {
+					unlink($file);
+				}			
+			}
+
+			$chart->save();
+		});
 	}
 
 	/**
@@ -139,8 +148,8 @@ class ChartsController extends Controller {
 			return redirect()->to('view/' . $chart->id);
 	}
 
-	public function config( $chartId ) {
-		$chart = Chart::find( $chartId );
+	public function config($chartId) {
+		$chart = Chart::find($chartId);
 		if (!$chart)
 			return App::abort(404, "No such chart");
 

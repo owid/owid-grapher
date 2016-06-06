@@ -41,8 +41,14 @@ class ViewController extends Controller {
 	public function show($slug)
 	{
 		$chart = Chart::where('slug', $slug)->orWhere('id', $slug)->first();		
-		if (!$chart)
-			return App::abort(404, "No such chart");
+		if (!$chart) {
+			// Check and see if this was an old chart slug
+			$redirect = DB::table('chart_slug_redirects')->select('chart_id')->where('slug', '=', $slug)->first();
+			if ($redirect)
+				$chart = Chart::find($redirect->chart_id);
+			else
+				return App::abort(404, "No such chart");
+		}
 
 		return $this->showChart($chart);
 	}
@@ -61,7 +67,8 @@ class ViewController extends Controller {
 		$width = min(intval($split[0]), 3000);
 		$height = min(intval($split[1]), 3000);
 
-		$file = Chart::export($slug, $_SERVER['QUERY_STRING'], $width, $height, $format);
+		if (isset($_SERVER['QUERY_STRING']))
+			$file = Chart::export($slug, $_SERVER['QUERY_STRING'], $width, $height, $format);
 
 		return response()->file($file);
 	}
@@ -209,7 +216,7 @@ class ViewController extends Controller {
 			else 
 				$chartMeta->description = "An interactive visualization from Our World In Data.";
 
-			$query = $_SERVER['QUERY_STRING'];
+			$query = Chart::getQueryString();
 
 			$baseUrl = \Request::root() . "/" . $chart->slug;
 			$canonicalUrl = $baseUrl;
@@ -225,7 +232,7 @@ class ViewController extends Controller {
 
 			// Give the image exporter a head start on the request for imageUrl
 			if (!str_contains(\Request::path(), ".export"))
-				Chart::exportPNGAsync($chart->slug, $_SERVER['QUERY_STRING'] . "&size=1000x700", 1000, 700);
+				Chart::exportPNGAsync($chart->slug, Chart::getQueryString() . "&size=1000x700", 1000, 700);
 			return view( 'view.show', compact( 'chart', 'config', 'data', 'canonicalUrl', 'chartMeta' ));
 		} else {
 			return 'No chart found to view';

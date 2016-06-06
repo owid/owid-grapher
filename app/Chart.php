@@ -10,6 +10,14 @@ class Chart extends Model {
 	protected $guarded = ['id'];
 	protected $dates = ['created_at', 'updated_at', 'last_edited_at'];
 
+	// HACK (Mispy): Tests don't set $_SERVER['QUERY_STRING']
+	public static function getQueryString() {
+		if (isset($_SERVER['QUERY_STRING']))
+			return $_SERVER['QUERY_STRING'];
+		else
+			return "";
+	}
+
 	public static function getConfigWithUrl($chart) {
 		$config = json_decode($chart->config);
 		$config->id = $chart->id;
@@ -21,7 +29,7 @@ class Chart extends Model {
 		// selected countries configuration. We need to use the raw
 		// query string for this because we want to distinguish between
 		// %20 and +.
-		preg_match("/country=([^&]+)/", $_SERVER['QUERY_STRING'], $matches);
+		preg_match("/country=([^&]+)/", Chart::getQueryString(), $matches);
 		if ($matches) {
 			$countryCodes = array_map(function($code) { return urldecode($code); }, explode("+", $matches[1]));
 			$query = DB::table('entities')

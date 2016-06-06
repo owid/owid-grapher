@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use App\Chart;
 
 class EditorTest extends TestCase
 {
@@ -19,8 +20,22 @@ EOT;
     
         $user = factory(App\User::class)->create();
 
-        $this->actingAs($user)
+        return $this->actingAs($user)
              ->post('/charts', $config)
+             ->seeJSON([
+                 'success' => true
+             ])->response->original["data"]["id"];
+    }
+
+    public function updateChart($id, $config=[]) {
+        $chart = Chart::find($id);
+
+        $config = array_merge(json_decode($chart->config, true), $config);
+
+        $user = factory(App\User::class)->create();
+
+        $this->actingAs($user)
+             ->put('/charts/' . $id, $config)
              ->seeJSON([
                  'success' => true
              ]);
@@ -33,7 +48,6 @@ EOT;
      */
     public function testChartCreation()
     {
-
         $this->createChart([ 
             'chart-name' => "An excellent chart",
             'chart-slug' => "an-excellent-chart"
@@ -50,7 +64,23 @@ EOT;
      * @expectedException Illuminate\Database\QueryException
      **/
     public function testChartSlugConflict() {
-        $this->createChart([ 'slug' => "slug" ]);
-        $this->createChart([ 'slug' => "slug" ]);        
+        $this->createChart([ 'chart-slug' => "slug" ]);
+        $this->createChart([ 'chart-slug' => "slug" ]);        
+    }
+
+    public function testChartSlugRenameRedirect() {
+        $chartId = $this->createChart([ 'chart-name' => "Original chart", 'chart-slug' => "original-slug" ]);
+        $this->updateChart($chartId, [ 'chart-slug' => "some-other-slug" ]);
+
+        $this->seeInDatabase('chart_slug_redirects', [
+            'slug' => "original-slug",
+            'chart_id' => $chartId
+        ]);
+
+        $this->visit('/some-other-slug')
+            ->see("<title>Original chart");
+        
+        $this->visit('/original-slug')
+            ->see("<title>Original chart");
     }
 }
