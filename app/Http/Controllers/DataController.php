@@ -110,8 +110,10 @@ class DataController extends Controller {
 			fwrite($out, "\r\n");
 			fwrite($out, json_encode($entityKey));
 		}, 200, [
-			"Content-Type" => "text/plain"
+			"Content-Type" => "text/plain",
+			"Cache-Control" => Chart::getQueryString() ? "max-age=14400" : "no-cache"
 		]);
+
 		return $response;
 /*		$response['entityKey'] = [];
 
@@ -124,7 +126,6 @@ class DataController extends Controller {
 		}*/
 
 		// Add license info
-		return $response;
 	}
 
 

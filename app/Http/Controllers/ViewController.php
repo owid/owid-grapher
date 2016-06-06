@@ -234,14 +234,11 @@ class ViewController extends Controller {
 			if (!str_contains(\Request::path(), ".export"))
 				Chart::exportPNGAsync($chart->slug, Chart::getQueryString() . "&size=1000x700", 1000, 700);
 
-			// MISPY: Calculate a cache tag for this chart + settings
-			// A particular chart state should be uniquely identifiable by the current url combined with
-			// the last time the chart was updated and the current git commit hash
-			$cacheTag = $chart->slug . "?" . Chart::getQueryString() . '-' . strval($chart->updated_at) . '-' . Config::get('owid.commit');
+			$variableCacheTag = hash('md5', strval($chart->updated_at) . '-' . Config::get('owid.commit'));
+			$config->variableCacheTag = $variableCacheTag;
 
 			return response()
-					->view('view.show', compact('chart', 'config', 'data', 'canonicalUrl', 'chartMeta'))
-					->header('ETag', 'W/"' . $cacheTag . '"');
+					->view('view.show', compact('chart', 'config', 'data', 'canonicalUrl', 'chartMeta'));
 		} else {
 			return 'No chart found to view';
 		}
