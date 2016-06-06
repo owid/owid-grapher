@@ -1,24 +1,14 @@
+# owid-grapher
+
 [![Build Status](https://travis-ci.org/OurWorldInData/owid-grapher.png)](https://travis-ci.org/OurWorldInData/owid-grapher)
 
-## INTRO
-The *OurWorldInData-Grapher* is the chart building tool which is used on our web-publication [OurWorldInData.org](http://OurWorldInData.org).
+A web application which helps you quickly make various kinds of interactive d3.js visualizations. Used to create embeddable maps and charts for [Our World In Data](ourworldindata.org).
 
-We have decided that it doesn't make sense to develop it within private repo, so here it is. Feel free to fork it and play around. Please be aware this is work in progress and that things will change, move and break. The [disclaimer from OurWorldInData](http://ourworldindata.org/about/#disclaimer-of-warranties-and-limitation-of-liability) applies also for the OurWorldInData-Grapher.
+An example of what this can make (click for interactive):
 
-With the *OurWorldInData-Grapher* you can create the following visualisations:
+[![Life Expectancy](https://ourworldindata.org/grapher/life-expectancy.png?tab=map)](https://ourworldindata.org/grapher/life-expectancy?tab=map)
 
-– *Line charts* like the first one in [this data entry on life expectancy](http://ourworldindata.org/data/population-growth-vital-statistics/life-expectancy/)
-
-– *Stacked area charts* like the first one in [this data entry on the rise of the Internet](http://ourworldindata.org/data/media-communication/internet/)
-
-– *Scatter plots* like [this one on the relation between education and economic prosperity](http://ourworldindata.org/data/education-knowledge/global-rise-of-education/#the-relationship-between-gdp-and-education)
-
-– *bar chart* (horizontal and vertical; single- and multi-bar charts)
-
-– *choropleth maps* (world maps and maps of all countries and continents)
-
-
-The *OurWorldInData-Grapher* enables you to upload csv data to a central SQL database and then to pull this data from the SQL database to create interactive charts in a drag&drop interface.
+One of the neat things owid-grapher can do is automatically export an interactive JS visualization as a static PNG or SVG using [phantomjs](http://phantomjs.org/), which is how the above image works.
 
 ## STACK
 
