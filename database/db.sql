@@ -234,7 +234,7 @@ CREATE TABLE `entities` (
   UNIQUE KEY `entities_code_unique` (`code`),
   KEY `entities_fk_ent_t_id_foreign` (`fk_ent_t_id`),
   CONSTRAINT `entities_fk_ent_t_id_foreign` FOREIGN KEY (`fk_ent_t_id`) REFERENCES `entity_types` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2090 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1969 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -414,7 +414,7 @@ CREATE TABLE `users` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `users_email_unique` (`email`),
   UNIQUE KEY `users_name_unique` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -457,7 +457,7 @@ CREATE TABLE `variables` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2016-06-06 12:17:40
+-- Dump completed on 2016-06-06 14:31:38
 -- MySQL dump 10.13  Distrib 5.5.47, for debian-linux-gnu (x86_64)
 --
 -- Host: localhost    Database: forge
@@ -507,7 +507,7 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2016-06-06 12:17:40
+-- Dump completed on 2016-06-06 14:31:38
 -- MySQL dump 10.13  Distrib 5.5.47, for debian-linux-gnu (x86_64)
 --
 -- Host: localhost    Database: forge
@@ -559,7 +559,7 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2016-06-06 12:17:40
+-- Dump completed on 2016-06-06 14:31:38
 -- MySQL dump 10.13  Distrib 5.5.47, for debian-linux-gnu (x86_64)
 --
 -- Host: localhost    Database: forge
@@ -610,7 +610,7 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2016-06-06 12:17:40
+-- Dump completed on 2016-06-06 14:31:38
 -- MySQL dump 10.13  Distrib 5.5.47, for debian-linux-gnu (x86_64)
 --
 -- Host: localhost    Database: forge
@@ -662,4 +662,5 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2016-06-06 12:17:40
+-- Dump completed on 2016-06-06 14:31:38
+INSERT INTO users (name, email, password) VALUES ('admin', 'admin@example.com', '$2y$10$T4Ye2Yce8GkRPpfCw8J0X.NwjHeu4FOLRMKVjAyT78cpU53YKyZSy');
