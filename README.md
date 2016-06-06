@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/OurWorldInData/owid-grapher.png)](https://travis-ci.org/OurWorldInData/owid-grapher)
 
-A web application which helps you quickly make various kinds of interactive d3.js visualizations. Used to create embeddable maps and charts for [Our World In Data](ourworldindata.org).
+A web application which helps you quickly make various kinds of interactive d3.js visualizations. Used to create embeddable maps and charts for [Our World In Data](https://ourworldindata.org).
 
 An example of what this can make (click for interactive):
 
