@@ -6,7 +6,9 @@ before_script:
   - mysql -e 'create database forge_test;'
   - mysql -D forge_test < database/db.sql
   - composer install --no-interaction
-  - npm -g install npm@next
+  - npm install -g npm@next
+  - npm install -g n
+  - n stable
   - npm install
   - gulp
 script:
