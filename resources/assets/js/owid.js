@@ -131,7 +131,7 @@
 		return timeRanges;
 	};
 
-	owid.scatterPlotContentGenerator = function(data) {
+	owid.scatterPlotTooltipGenerator = function(data) {
 		var unitsString = App.ChartModel.get("units"),
 			units = !_.isEmpty(unitsString) ? $.parseJSON(unitsString) : {},
 			outputHtml = "";
