@@ -105,8 +105,14 @@
 #chart-view .chart-header-svg {
 	.chart-name-svg {
 		font-size: 1.3rem;
-		fill: #35322F;
 	}
+	.chart-name-svg a {
+		fill: #35322F;		 
+	}
+	.chart-name-svg a {
+		text-decoration: none !important;
+	}
+
 	.chart-subname-svg {
 		margin-top: 0;
 		margin-bottom: 0.5em;

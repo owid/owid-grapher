@@ -57,7 +57,13 @@
 
 			var renderText = function(availableWidth) {
 				var chartNameText = g.select(".chart-name-svg");
-				owid.svgSetWrappedText(chartNameText, chartName, availableWidth - 10, { lineHeight: 1.1 });
+				var baseUrl = Global.rootUrl + "/" + App.ChartModel.get("chart-slug"),
+					queryParams = owid.getQueryParams(),
+					queryStr = owid.queryParamsToStr(queryParams),				
+					canonicalUrl = baseUrl + queryStr;
+
+				var linkedName = "<a href='" + canonicalUrl + "' target='_blank'>" + chartName + "</a>";
+				owid.svgSetWrappedText(chartNameText, linkedName, availableWidth - 10, { lineHeight: 1.1 });
 				document.title = chartName + " - Our World In Data";
 
 				var chartSubnameText = g.select(".chart-subname-svg")
