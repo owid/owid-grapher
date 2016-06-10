@@ -123,13 +123,17 @@
 			}
 
 			if (s.contains(text, "*time")) {
-				var timeFrom = owid.displayYear(this.selectedTimeFrom),
-					timeTo = owid.displayYear(this.selectedTimeTo),
-					time = this.targetYear || (timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo);
+				if (!this.selectedTimeFrom) {
+					text = text.replace("*time*", "over time");
+				} else {
+					var timeFrom = owid.displayYear(this.selectedTimeFrom),
+						timeTo = owid.displayYear(this.selectedTimeTo),
+						time = this.targetYear || (timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo);				
 
-				text = text.replace("*time*", time);
-				text = text.replace("*timeFrom*", timeFrom);
-				text = text.replace("*timeTo*", timeTo);
+					text = text.replace("*time*", time);
+					text = text.replace("*timeFrom*", timeFrom);
+					text = text.replace("*timeTo*", timeTo);					
+				}
 			}
 
 			return text;
