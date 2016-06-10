@@ -97,7 +97,7 @@ class ChartsController extends Controller {
 
 			if ($chart->exists) {
 				// Purge exported png files so we can regenerate them
-				$files = glob(public_path() . "/exports/" . $chart->slug . ".*");
+				$files = glob(public_path() . "/exports/" . $chart->slug . "*");
 				foreach ($files as $file) {
 					unlink($file);
 				}			

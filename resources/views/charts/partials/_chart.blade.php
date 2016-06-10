@@ -99,7 +99,8 @@
 				</div>
 			</div>
 			<div id="data-chart-tab" class="tab-pane">
-				<a href="#" class="btn btn-primary download-data-btn" target="_blank"><i class="fa fa-download"></i>Download data</a>
+				<a href="#" class="btn btn-success download-data-btn" target="_blank" title="Export CSV for this data"><i class="fa fa-download"></i>CSV</a>
+				<a href="#" class="btn btn-primary download-full-btn" target="_blank" title="Export CSV for all available countries"><i class="fa fa-download"></i>CSV (all available countries)</a>
 				<table class="data-table"></table>
 			</div>
 			<div id="map-chart-tab" class="tab-pane">

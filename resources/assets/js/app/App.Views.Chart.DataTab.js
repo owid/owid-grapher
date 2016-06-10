@@ -12,6 +12,7 @@
 
 			this.$tab = this.$el;
 			this.$downloadBtn = this.$el.find(".download-data-btn");
+			this.$downloadFullBtn = this.$el.find(".download-full-btn");
 			this.$dataTable = this.$el.find(".data-table");
 		},
 
@@ -33,6 +34,7 @@
 				csvUrl = baseUrl + ".csv" + queryStr;
 
 			this.$downloadBtn.attr("href", csvUrl);
+			this.$downloadFullBtn.attr("href", baseUrl + ".csv" + "?country=ALL");
 
 			Papa.parse(csvUrl, {
 				download: true,

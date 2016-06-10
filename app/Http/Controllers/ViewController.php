@@ -5,6 +5,7 @@ use App\Chart;
 use App\Setting;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 use Illuminate\Http\Request;
 use Debugbar;
@@ -96,17 +97,21 @@ class ViewController extends Controller {
 		// selected countries configuration. We need to use the raw
 		// query string for this because we want to distinguish between
 		// %20 and +.
-		preg_match("/country=([^&]+)/", $_SERVER['QUERY_STRING'], $matches);
+		preg_match("/country=([^&]+)/", Chart::getQueryString(), $matches);
 		if ($matches) {
 			$countryCodes = array_map(function($code) { return urldecode($code); }, explode("+", $matches[1]));
-			$query = DB::table('entities')
-				->select('id', 'name')
-				->whereIn('code', $countryCodes)
-				->orWhere(function($query) use ($countryCodes) {
-					$query->whereIn('name', $countryCodes);
-				});
 
-			$config->{"selected-countries"} = $query->get();			
+			$query = DB::table('entities')
+				->select('id', 'name');
+
+			if ($countryCodes[0] != "ALL") {
+				$query = $query->whereIn('code', $countryCodes)
+					->orWhere(function($query) use ($countryCodes) {
+						$query->whereIn('name', $countryCodes);
+					});
+			}
+
+			$config->{"selected-countries"} = $query->get();
 		}
 
 		$dims = json_decode($config->{"chart-dimensions"});
@@ -122,15 +127,6 @@ class ViewController extends Controller {
 		$entityIds = DB::table('entities')
 			->whereIn('name', $entityNames)
 			->lists('id');
-
-		$rows = [];
-		$headerRow = ['Country', 'Year'];
-		foreach ($varIds as $id) {
-			$headerRow[]= $variableNameById[$id];
-		}
-		$rows[]= $headerRow;
-
-		$currentRow = null;
 
 		// Now we pull out all the actual data
 		$dataQuery = DB::table('data_values')
@@ -149,37 +145,43 @@ class ViewController extends Controller {
 			->orderBy('year', 'ASC')
 			->orderBy('fk_var_id', 'ASC');
 
-		foreach ($dataQuery->get() as $result) {
-			if (!$currentRow || $currentRow[0] != $result->entity_name || $currentRow[1] != $result->year) {
-				if ($currentRow)
-					$rows[]= $currentRow;
+		// MISPY: Streaming response to handle memory limitations when
+		// exporting very large amounts of data
+		$response = new StreamedResponse(function() use ($varIds, $variableNameById, $dataQuery) {
+			$out = fopen('php://output', 'w');
 
-				// New row
-				$currentRow = [$result->entity_name, $result->year];
-				for ($i = 0; $i < sizeof($varIds); $i++) {
-					$currentRow[]= "";
+			$headerRow = ['Country', 'Year'];
+			foreach ($varIds as $id) {
+				$headerRow[]= $variableNameById[$id];
+			}
+			fputcsv($out, $headerRow);
+
+			$currentRow = null;
+
+			foreach ($dataQuery->get() as $result) {
+				if (!$currentRow || $currentRow[0] != $result->entity_name || $currentRow[1] != $result->year) {
+					if ($currentRow)
+						fputcsv($out, $currentRow);
+
+					// New row
+					$currentRow = [$result->entity_name, $result->year];
+					for ($i = 0; $i < sizeof($varIds); $i++) {
+						$currentRow[]= "";
+					}
 				}
+
+				$index = 2+array_search($result->var_id, $varIds);
+				$currentRow[$index] = $result->value;
 			}
 
-			$index = 2+array_search($result->var_id, $varIds);
-			$currentRow[$index] = $result->value;
-		}
+			// Final row
+			fputcsv($out, $currentRow);
+		}, 200, [
+			"Content-Type" => "text/csv",
+			"Content-Disposition" => 'attachment; filename="' . $chart->slug . '.csv' . '"'	
+		]);
 
-		// Add the final row
-		if ($currentRow)
-			$rows[] = $currentRow;
-
-		// Use memory file pointer so we can have fputcsv escape for us
-		$fp = fopen('php://memory', 'w+');
-		foreach ($rows as $row) {
-			fputcsv($fp, $row);
-		}
-		rewind($fp);
-		$csv = stream_get_contents($fp);
-		fclose($fp); 
-		return response($csv, 200)
-				->header('Content-Type', 'text/csv')
-				->header('Content-Disposition', 'attachment; filename="' . $chart->slug . '.csv' . '"');		
+		return $response;
 	}
 
 
@@ -242,5 +244,10 @@ class ViewController extends Controller {
 		} else {
 			return 'No chart found to view';
 		}
+	}
+
+	// Redirect to the most recent visualization, for use on the home page
+	public function latest() {
+
 	}
 }
