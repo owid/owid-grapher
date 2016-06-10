@@ -248,6 +248,14 @@ class ViewController extends Controller {
 
 	// Redirect to the most recent visualization, for use on the home page
 	public function latest() {
+		$slug = DB::table("charts")
+			->orderBy("created_at", "DESC")
+			->whereNotNull("origin_url")
+			->select("slug")
+			->first()->slug;
 
+		$query = Chart::getQueryString();
+
+		return redirect()->to("/" . $slug . ($query ? "?" : "") . $query);
 	}
 }
