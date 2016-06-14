@@ -27,7 +27,7 @@
 				} else {
 					//see if we're suppose to display minimal value
 					if (displayMinLabel)
-						formattedNumber = minData || 0;
+						formattedNumber = owid.unitFormat(unit, minData || 0);
 				}
 				return formattedNumber;
 			} );
