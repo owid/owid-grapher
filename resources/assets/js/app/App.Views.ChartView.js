@@ -22,7 +22,7 @@
 		},
 
 		initialize: function(options) {
-			App.ChartView = this;
+			App.ChartView = this;			
 
 			options = options || {};
 			this.dispatcher = options.dispatcher || _.clone(Backbone.Events);

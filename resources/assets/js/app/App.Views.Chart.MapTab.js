@@ -290,7 +290,12 @@
 				legend.displayMinLabel(false);
 			}
 
+			var unitsString = App.ChartModel.get("units"),
+				units = !_.isEmpty(unitsString) ? $.parseJSON(unitsString) : {},
+				yUnit = _.findWhere(units, { property: 'y' });
+			legend.unit(yUnit);
 			legend.labels(mapConfig.colorSchemeLabels);
+
 			var legendOrientation = mapConfig.legendOrientation || "portrait";
 			legend.orientation(legendOrientation);
 			legend.scale(colorScale);

@@ -13,26 +13,26 @@
 			labels = [], 
 			orientation = "landscape",
 			availableHeight = 0,
+			unit = {},
 			scale, minData, maxData, datamap, container, containerHeight, isCategoricalScale, descriptionHeight, g, gDesc;
 
 		var formatLegendLabel = function(text, valueArr, i, length) {
-			valueArr = valueArr.map( function( d ) {
-				//make sure it's not undefined
-				if( d ) {
-					var len = d.toString().length,
-						formattedNumber = d;
-					if( len > 3 ) {
-						formattedNumber = d3.format( ".3r" )( d );
-					}
+			valueArr = valueArr.map(function(d) {
+				var formattedNumber;
+				if (d) {
+					formattedNumber = owid.unitFormat(unit, d);
+					// HACK (Mispy): Don't use the unit suffix if it's too long
+					if (formattedNumber.length >= 12)
+						formattedNumber = formattedNumber.match(/[0-9,.]+/)[0] || formattedNumber;
 				} else {
 					//see if we're suppose to display minimal value
-					if( displayMinLabel ) {
-						formattedNumber = ( minData )? minData: 0;
-					}
+					if (displayMinLabel)
+						formattedNumber = minData || 0;
 				}
 				return formattedNumber;
 			} );
-			if( i < (length - 1) ) {
+
+			if (i < (length - 1)) {
 				text.text(valueArr[0]);
 			} else {
 				text.selectAll("tspan").remove();
@@ -58,7 +58,7 @@
 					availableWidth = tabBounds.width,
 					availableSpace = (orientation == "landscape" ? availableWidth : availableHeight) * 0.8;
 
-				var effectiveStepSize = Math.max((availableSpace / data.scheme.length) - 10, 10),
+				var effectiveStepSize = Math.min(30, Math.max((availableSpace / data.scheme.length) - 10, 10)),
 					stepSizeWidth = effectiveStepSize,
 					stepSizeHeight = effectiveStepSize,
 					stepGap = Math.min(effectiveStepSize/8, 2);
@@ -120,7 +120,7 @@
 								} else {
 									//translate for landscape
 									if( !isCategoricalScale && ( !labels.length || !labels[i] ) ) {
-										return "translate(-2,-5)";
+										return "translate(-2,-5) rotate(270)";
 									} else {
 										return "translate(" + stepSizeX + ",-5) rotate(270)";
 									}
@@ -130,37 +130,24 @@
 								var text = d3.select(this);
 
 								if (labels[i]) {
-									text.text(labels[i])
+									text.text(labels[i]);
 								} else if (isCategoricalScale) {
 									text.text(formatCategoricalLegendLabel(i, scale));
 								} else {
-									formatLegendLabel(text, scale.invertExtent( d ), i, data.scheme.length);
+									formatLegendLabel(text, scale.invertExtent(d), i, data.scheme.length);
 								}
 							});
 				
 				//position last tspans
 				var legendStepsTspans = legendStepsTexts.selectAll( "tspan.last-label-tspan" ),
 					firstTspanLength = 0;
-				legendStepsTspans.each( function(d, i) {
-					var dx, dy;
-
-					if (orientation === "landscape") {
-						if (i === 0) {
-							firstTspanLength = this.getComputedTextLength();
-						} else {
-							dx = stepSizeWidth - firstTspanLength;
-							dy = 0; //need to reset possible previous offset
-							d3.select( this ).attr( { "dx": dx, "dy": dy } );
-						}
-					} else {
-						//portrait 
-						if (i === 0) {
-							firstTspanLength = this.getComputedTextLength();
-						} else if (i === 1) {
-							dx = -firstTspanLength; //need to reset possible previous offset
-							dy = stepSizeHeight;
-							d3.select(this).attr({ "dx": dx, "dy": dy });
-						}
+				legendStepsTspans.each(function(d, i) {
+					if (i === 0) {
+						firstTspanLength = this.getComputedTextLength();
+					} else if (i === 1) {
+						var dx = -firstTspanLength; //need to reset possible previous offset
+						var dy = stepSizeHeight;
+						d3.select(this).attr({ "dx": dx, "dy": dy });
 					}
 				} );
 				
@@ -249,6 +236,12 @@
 				return availableHeight;
 			else
 				availableHeight = value;
+		};
+		legend.unit = function(value) {
+			if (!arguments.length)
+				return unit;
+			else
+				unit = value;
 		};
 
 		return legend;

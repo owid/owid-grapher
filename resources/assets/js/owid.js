@@ -131,6 +131,38 @@
 		return timeRanges;
 	};
 
+	owid.unitFormat = function(unit, value, options) {
+		unit = unit || {};
+		options = options || {};
+		options.noTrailingZeroes = options.noTrailingZeroes || true;
+
+		var titlePrefix = (unit.title ? unit.title + ": " : ""),
+			unitSuffix = (unit.unit ? s.trim(unit.unit) : "");
+
+
+		if (!isNaN(unit.format) && unit.format >= 0) {
+			var fixed = Math.min(20, parseInt(unit.format, 10));
+			value = d3.format(",." + fixed + "f")(value);
+		} else {
+			value = d3.format(",")(value);
+		}
+
+		if (options.noTrailingZeroes) {
+			var m = value.match(/([0-9,]+.[0-9,]*?)0*$/);
+			if (m) value = m[1];
+			if (value[value.length-1] == ".")
+				value = value.slice(0, value.length-1);
+		}
+
+		if (unitSuffix == "$" || unitSuffix == "£")
+			return titlePrefix + unitSuffix + value;
+		else {
+			if (unitSuffix[0] != "%")
+				unitSuffix = " " + unitSuffix;
+			return titlePrefix + value + unitSuffix;
+		}
+	};
+
 	owid.scatterPlotTooltipGenerator = function(data) {
 		var unitsString = App.ChartModel.get("units"),
 			units = !_.isEmpty(unitsString) ? $.parseJSON(unitsString) : {},
@@ -147,12 +179,7 @@
 
 			if (isHidden) return;
 			
-			value = App.Utils.formatNumeric(unit, value);
-
-			var unitSetting = (unit && unit.unit)||"";
-			var titleSetting = (unit && unit.title)||"";
-
-			var valueString = (_.isEmpty(titleSetting) ? "" : titleSetting + ": ") + value + " " + unitSetting;
+			var valueString = owid.unitFormat(unit, value);
 			valueString += " (in " + owid.displayYear(times[key]) + ")";
 			outputHtml += "<span class='var-popup-value'>" + valueString + "</span>";
 		});
@@ -180,7 +207,7 @@
 		_.each(data.series, function(series) {
 			total += series.value;
 		});		
-		total = App.Utils.formatNumeric(unit, total);
+		total = owid.unitFormat(unit, total);
 
 		if (stackMode == "relative")
 			html += '<thead><tr><td colspan="3"><strong class="x-value">' + data.value + '</strong></td></tr></thead>';
@@ -189,14 +216,12 @@
 
 		html += '<tbody>';
 
-		var total = 0;
 		_.each(data.series, function(series, i) {
-			total += series.value;	
 			var value = series.value;		
 			if (stackMode == "relative") 
 				value = d3.format(".2p")(series.value);
 			else
-				value = App.Utils.formatNumeric(unit, series.value);
+				value = owid.unitFormat(unit, series.value);
 
 			html += '<tr>';
 			html += '<td class="legend-color-guide"><div style="background-color: ' + series.color + ';"></div></td>';
@@ -245,32 +270,20 @@
 					value = v,
 					isHidden = ( unit && unit.hasOwnProperty( "visible" ) && !unit.visible )? true: false;
 
-				value = App.Utils.formatNumeric(unit, value);
-
-				if( unit ) {
-					var unitSetting = unit.unit||"";
-					var titleSetting = unit.title||"";
-
-					if( !isHidden ) {
-						//try to format number
-						//scatter plot has values displayed in separate rows
-						if( valuesString !== "") {
-							valuesString += ", ";
-						}
-						valuesString += (_.isEmpty(titleSetting) ? "" : titleSetting + ": ") + value + " " + unitSetting;
-					}
-				} else if( i === "time" ) {
+				if (unit) {
+					if (!isHidden)
+						valuesString += owid.unitFormat(unit, value);
+				} else if (i === "time") {
 					if (v.hasOwnProperty("map"))
 						timeString = owid.displayYear(v.map);
 					else
 						timeString = owid.displayYear(v);
-				} else if(i === "y" || ( i === "x" && chartType != App.ChartType.LineChart ) ) {
-					if( !isHidden ) {
-						if( valuesString !== "") {
+				} else if (i === "y" || (i === "x" && chartType != App.ChartType.LineChart)) {
+					if (!isHidden) {
+						if (valuesString !== "")
 							valuesString += ", ";
-						}
 						//just add plain value, omiting x value for linechart
-						valuesString += value;
+						valuesString += owid.unitFormat(_.extend({}, unit, { unit: null, title: null }), value);
 					}
 				}
 			} );
