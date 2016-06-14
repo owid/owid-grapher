@@ -219,7 +219,6 @@
 			this.mapData = this.transformData(variableData);
 			this.colorScale = this.makeColorScale();
 			this.applyColors(this.mapData, this.colorScale);
-			this.legend = this.makeLegend();
 
 			// If we've changed the projection (i.e. zooming on Africa or similar) we need
 			// to redraw the datamap before injecting new data
@@ -278,7 +277,7 @@
 			return colorScale;
 		},
 
-		makeLegend: function() {
+		makeLegend: function(availableHeight) {
 			var legend = this.legend || new Legend(),
 				minValue = this.minValue,
 				maxValue = this.maxValue,
@@ -291,8 +290,6 @@
 				legend.displayMinLabel(false);
 			}
 
-			var legendSize = mapConfig.legendStepSize || 20;
-			legend.stepSizeWidth(legendSize);
 			legend.labels(mapConfig.colorSchemeLabels);
 			var legendOrientation = mapConfig.legendOrientation || "portrait";
 			legend.orientation(legendOrientation);
@@ -304,7 +301,7 @@
 			}
 			legend.minData(minValue);
 			legend.maxData(maxValue);
-
+			legend.availableHeight(availableHeight);
 			if (d3.select(".legend-wrapper").empty()) {
 				d3.select(".datamap").append("g").attr("class", "legend-wrapper map-legend-wrapper");
 			}
@@ -398,9 +395,7 @@
 				this.bordersDisclaimer.attr("transform", "translate(" + bordersDisclaimerX + "," + bordersDisclaimerY + ")");
 			}
 
-			if (this.legend) {
-				this.legend.onResize(tabBounds.top - svgBounds.top, availableHeight);
-			}
+			this.legend = this.makeLegend(availableHeight);
 
 			if (callback) callback();
 			/*wrapper.on("mousemove", function() {

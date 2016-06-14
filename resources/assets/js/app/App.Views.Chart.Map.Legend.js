@@ -5,15 +5,14 @@
 	App.Views.Chart.Map.Legend = function() {
 
 		//private
-		var stepSizeWidth = 20,
-			stepSizeHeight = 20,
+		var stepSize = 20,
 			stepClass = "legend-step",
 			legendOffsetX = 15,
 			legendOffsetY = 10,
-			stepGap = 2,
 			displayMinLabel = true,
 			labels = [], 
 			orientation = "landscape",
+			availableHeight = 0,
 			scale, minData, maxData, datamap, container, containerHeight, isCategoricalScale, descriptionHeight, g, gDesc;
 
 		var formatLegendLabel = function(text, valueArr, i, length) {
@@ -52,37 +51,32 @@
 			return scale.domain()[ i ];
 		};
 
-		var onResize = function(offsetY, availableHeight) {
-			if (!g) return;
-
-			//refresh container height
-			containerHeight = datamap.node().getBoundingClientRect().height;
-			//position legend vertically
-			var legendY = (offsetY+availableHeight) - legendOffsetY - stepSizeHeight;
-			if (orientation === "landscape") {
-				legendY -= descriptionHeight;
-			}
-
-			container.attr( "transform", "translate(0," + legendY + ")" );
-		};
-;
-
-		function legend( selection ) {
+		function legend(selection) {
 			selection.each(function(data) {
+				var svgBounds = $("svg").get(0).getBoundingClientRect(),
+					tabBounds = $(".tab-pane.active").get(0).getBoundingClientRect(),
+					availableWidth = tabBounds.width,
+					availableSpace = (orientation == "landscape" ? availableWidth : availableHeight-legendOffsetY) - 30;
+
+				var effectiveStepSize = Math.max((availableSpace / data.scheme.length) - 10, 10),
+					stepSizeWidth = effectiveStepSize,
+					stepSizeHeight = effectiveStepSize,
+					stepGap = Math.min(effectiveStepSize/8, 2);
+
 				datamap = d3.select(".datamap");
-				container = d3.select( this );
+				container = d3.select(this);
 				isCategoricalScale = ( !scale || !scale.hasOwnProperty( "invertExtent" ) )? true: false;
 				descriptionHeight = ( data.description && data.description.length )? 12: 0;
 				g = container.select( ".legend" );
 
-				if( g.empty() ) {
+				if (g.empty()) {
 					g = selection.append( "g" )
 							.attr( "id", "legend" )
 							.attr( "class", "legend" );
 				}
 
 				//data join
-				var legendSteps = g.selectAll( "." + stepClass ).data( data.scheme );
+				var legendSteps = g.selectAll("." + stepClass).data(data.scheme);
 				
 				//enter
 				var legendStepsEnter = legendSteps.enter()
@@ -147,12 +141,11 @@
 				//position last tspans
 				var legendStepsTspans = legendStepsTexts.selectAll( "tspan.last-label-tspan" ),
 					firstTspanLength = 0;
-				legendStepsTspans.each( function( d, i ) {
-					
+				legendStepsTspans.each( function(d, i) {
 					var dx, dy;
 
-					if ( orientation === "landscape" ) {
-						if( i === 0 ) {
+					if (orientation === "landscape") {
+						if (i === 0) {
 							firstTspanLength = this.getComputedTextLength();
 						} else {
 							dx = stepSizeWidth - firstTspanLength;
@@ -161,12 +154,12 @@
 						}
 					} else {
 						//portrait 
-						if( i === 0 ) {
+						if (i === 0) {
 							firstTspanLength = this.getComputedTextLength();
-						} else if( i === 1 ) {
+						} else if (i === 1) {
 							dx = -firstTspanLength; //need to reset possible previous offset
 							dy = stepSizeHeight;
-							d3.select( this ).attr( { "dx": dx, "dy": dy } );
+							d3.select(this).attr({ "dx": dx, "dy": dy });
 						}
 					}
 				} );
@@ -175,28 +168,34 @@
 				legendSteps.exit().remove();
 
 				//legend description
-				gDesc = container.selectAll( ".legend-description" ).data( [data.description] );
+				gDesc = container.selectAll(".legend-description").data([data.description]);
 				gDesc.enter()
-					.append( "text" )
-					.attr( "class", "legend-description" );
+					.append("text")
+					.attr("class", "legend-description");
 				gDesc
-					.text( data.description );
+					.text(data.description);
 				gDesc.attr( "transform", function( d, i ) { var translateX = legendOffsetX, translateY = ( orientation === "landscape" )? stepSizeHeight+descriptionHeight: stepSizeHeight; return ( orientation === "landscape" )? "translate(" + translateX + "," + translateY + ")": "translate(" + translateX + "," + translateY + ") rotate(270)"; } );
 
-			} );
+				//position legend vertically
+				var legendY = (tabBounds.top - svgBounds.top) + availableHeight - legendOffsetY - stepSizeHeight;
+				if (orientation === "landscape") {
+					legendY -= descriptionHeight;
+				}
+
+				container.attr("transform", "translate(0," + legendY + ")");
+
+			});
 
 			return legend;
 
 		}
 
-		legend.onResize = onResize;
-
 		//public methods
-		legend.stepSizeWidth = function( value ) {
-			if( !arguments.length ) {
-				return stepSizeWidth;
+		legend.stepSize = function(value) {
+			if(!arguments.length) {
+				return stepSize;
 			} else {
-				stepSizeWidth = parseInt( value, 10);
+				stepSize = parseInt(value, 10);
 			}
 		};
 		legend.scale = function( value ) {
@@ -244,6 +243,12 @@
 			} else {
 				orientation = value;
 			}
+		};
+		legend.availableHeight = function(value) {
+			if (!arguments.length)
+				return availableHeight;
+			else
+				availableHeight = value;
 		};
 
 		return legend;
