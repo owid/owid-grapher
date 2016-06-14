@@ -139,11 +139,16 @@ class ViewController extends Controller {
 			->select('value', 'year',
 					 'data_values.fk_var_id as var_id', 
 					 'entities.id as entity_id', 'entities.name as entity_name',
-					 'entities.code as entity_code')
-			->join('entities', 'data_values.fk_ent_id', '=', 'entities.id')
+					 'entities.code as entity_code');
+
+		if ($request->input('year'))
+			$dataQuery = $dataQuery->where("year", "=", $request->input('year'));
+
+		$dataQuery = $dataQuery->join('entities', 'data_values.fk_ent_id', '=', 'entities.id')
 			->orderBy('entities.name', 'ASC')
 			->orderBy('year', 'ASC')
 			->orderBy('fk_var_id', 'ASC');
+
 
 		// MISPY: Streaming response to handle memory limitations when
 		// exporting very large amounts of data
