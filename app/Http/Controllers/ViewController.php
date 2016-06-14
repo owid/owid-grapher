@@ -236,7 +236,22 @@ class ViewController extends Controller {
 			if (!str_contains(\Request::path(), ".export"))
 				Chart::exportPNGAsync($chart->slug, Chart::getQueryString() . "&size=1000x700", 1000, 700);
 
-			$variableCacheTag = hash('md5', strval($chart->updated_at) . '-' . Config::get('owid.commit'));
+
+			// Create a cache tag we can send along to the client. This uniquely identifies a particular
+			// combination of dataset variables, and is sent along to DataController when the chart requests
+			// all of its data. Allows us to reduce chart loading times by caching most of the data in
+			// CloudFlare or the browser.
+			$variableCacheTag = strval($chart->updated_at) . ' + ' . Config::get('owid.commit');
+			$dims = json_decode($config->{"chart-dimensions"});
+			$varIds = array_pluck($dims, "variableId");
+
+			$varTimestamps = DB::table("variables")
+				->whereIn("id", $varIds)
+				->select("updated_at")
+				->lists("updated_at");
+
+			$variableCacheTag .= implode(" + ", $varTimestamps);
+			$variableCacheTag = hash("md5", $variableCacheTag);
 			$config->variableCacheTag = $variableCacheTag;
 
 			return response()
