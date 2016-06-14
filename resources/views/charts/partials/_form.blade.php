@@ -487,10 +487,6 @@
 								Legend description:
 								<input type="text" name="map-legend-description" class="form-control" />
 							</label>
-							<label>
-								Legend square size:
-								<input type="number" name="map-legend-step-size" class="form-control" min="5" max="100" step="1" />
-							</label>
 						</div>
 					</section>
 				</div>
