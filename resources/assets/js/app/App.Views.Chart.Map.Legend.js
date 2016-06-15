@@ -21,14 +21,14 @@
 				var formattedNumber;
 				if (d) {
 					formattedNumber = owid.unitFormat(unit, d);
-					// HACK (Mispy): Don't use the unit suffix if it's too long
-					if (formattedNumber.length >= 12)
-						formattedNumber = formattedNumber.match(/[0-9,.]+/)[0] || formattedNumber;
 				} else {
 					//see if we're suppose to display minimal value
 					if (displayMinLabel)
 						formattedNumber = owid.unitFormat(unit, minData || 0);
 				}
+				// HACK (Mispy): Don't use the unit suffix if it's too long
+				if (formattedNumber.length >= 12)
+					formattedNumber = formattedNumber.match(/[0-9,.]+/)[0] || formattedNumber;
 				return formattedNumber;
 			} );
 

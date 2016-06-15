@@ -148,7 +148,7 @@
 		}
 
 		if (options.noTrailingZeroes) {
-			var m = value.match(/([0-9,]+.[0-9,]*?)0*$/);
+			var m = value.match(/([0-9,-]+.[0-9,]*?)0*$/);
 			if (m) value = m[1];
 			if (value[value.length-1] == ".")
 				value = value.slice(0, value.length-1);
