@@ -18,18 +18,20 @@
 		initialize: function(options) {
 			if (App.isEditor) return false; // No URL stuff while editing charts
 
-			if (window.location.pathname.match(/.export$/)) {
+			if (window.location.pathname.match(/.export$/))
 				$("body").attr("id", "chart-export");
 				
-				$(window).one("chart-loaded", function() {
-					App.ChartView.onResize(function() {
-						if (window.callPhantom) window.callPhantom();
-						else console.log("Chart loaded!");
-
+			$(window).one("chart-loaded", function() {
+				App.ChartView.onResize(function() {
+					if (window.callPhantom) {
+						window.callPhantom();
 						App.ChartView.onSVGExport();
-					});
+					} else {
+						window.top.postMessage("chartLoaded", "*");
+						console.log("Loaded chart: " + App.ChartModel.get("chart-name"));
+										}
 				});
-			}
+			});
 
 			// Keep the query params separate between map and the other tabs
 			this.lastTabName = null;

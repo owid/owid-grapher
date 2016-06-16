@@ -56,7 +56,7 @@
 				var svgBounds = $("svg").get(0).getBoundingClientRect(),
 					tabBounds = $(".tab-pane.active").get(0).getBoundingClientRect(),
 					availableWidth = tabBounds.width,
-					availableSpace = (orientation == "landscape" ? availableWidth : availableHeight) * 0.8;
+					availableSpace = (orientation == "landscape" ? availableWidth : availableHeight) * 0.6;
 
 				var effectiveStepSize = Math.min(30, Math.max((availableSpace / data.scheme.length) - 10, 10)),
 					stepSizeWidth = effectiveStepSize,
