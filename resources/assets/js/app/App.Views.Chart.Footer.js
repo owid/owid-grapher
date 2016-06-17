@@ -128,7 +128,7 @@
 
 			var iframeWidth = App.ChartModel.get("iframe-width") || "100%";
 			var iframeHeight = App.ChartModel.get("iframe-height") || "660px";
-			var embedCode = '<iframe src="' + canonicalUrl + '" width="' + iframeWidth + '" height="' + iframeHeight + '"></iframe>';
+			var embedCode = '<iframe src="' + canonicalUrl + '" width="' + iframeWidth + '" height="' + iframeHeight + '" frameborder="0"></iframe>';
 			this.$embedModal.find("textarea").text(embedCode);
 		},
 

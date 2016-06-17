@@ -910,9 +910,14 @@ body#chart-export {
   }
 }*/
 
-@media (max-width: 800px) {
+@media (max-width: 720px) {
 	#chart-view.embedded {
-		padding: 0;
+		padding: 0.6rem;
+		padding-left: 0;
+		padding-right: 0;
+		border: 1px solid #ccc;
+		border-left: none;
+		border-right: none;		
 	}
 	#chart-view:not(.embedded) {
 		padding: 1rem;
@@ -951,9 +956,10 @@ body#chart-export {
 }
 
 
-@media (min-width: 800px) {
+@media (min-width: 720px) {
 	#chart-view.embedded {
-		padding: 1rem 2rem;
+		padding: 1rem 1.5rem;
+		border: 1px solid #ccc;
 	}
 	#chart-view:not(.embedded) {
 		padding: 1.5rem 3rem;
