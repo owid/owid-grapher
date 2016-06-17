@@ -77,6 +77,7 @@ elixir(function(mix) {
         'libs/colorbrewer.js',
         'libs/jquery.lazyloadxt.extra.js',
         'libs/async.min.js',
+        'libs/js.cookie.js',
         'owd-colorbrewer.js',
         'owid.js',
     ], 'public/js/libs.js' );
@@ -103,6 +104,7 @@ elixir(function(mix) {
         'libs/jquery.stickytabs.js',
         'libs/jquery.timeago.js',
         'libs/async.min.js',
+        'libs/js.cookie.js',
         'owd-colorbrewer.js',
         'owid.js',
         'admin.js',

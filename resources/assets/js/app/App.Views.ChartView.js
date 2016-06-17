@@ -42,6 +42,12 @@
 				$("#chart-view").addClass("embedded");
 			}
 			
+			// Determine if we're logged in and show the edit button
+			// Done here instead of PHP to allow for caching etc optimization on public-facing content
+			if (Cookies.get("wordpress_test_cookie")) {
+				$(".edit-btn-wrapper").removeClass("hidden");
+			}
+			
 			var that = this;
 
 			// Data model used for fetching variables
