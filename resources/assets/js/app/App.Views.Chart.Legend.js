@@ -19,7 +19,7 @@
 		//------------------------------------------------------------
 
 		var chartType = App.ChartModel.get( "chart-type" )
-			, margin = {top: 5, right: 50, bottom: 5, left: 30}
+			, margin = {top: 5, right: 50, bottom: 5, left: 40}
 			, width = 800
 			, height = 20
 			, getKey = function(d) { return d.origKey || d.key }

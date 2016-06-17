@@ -519,8 +519,8 @@
 
 	.map-controls-header {
 		position: absolute;
-		top: 0.6rem;
-		left: 0.6rem;
+		top: 10px;
+		left: 20px;
 		z-index: 2;
 
 		.control {
@@ -912,7 +912,7 @@ body#chart-export {
 
 @media (max-width: 800px) {
 	#chart-view.embedded {
-		padding: 0.6rem;
+		padding: 0;
 	}
 	#chart-view:not(.embedded) {
 		padding: 1rem;
