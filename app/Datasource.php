@@ -3,8 +3,8 @@
 use Illuminate\Database\Eloquent\Model;
 
 class Datasource extends Model {
-
 	protected $guarded = ['id'];
+    protected $touches = ['datasets', 'variables'];
 	
 	public function datasets()
     {

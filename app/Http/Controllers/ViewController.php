@@ -241,7 +241,6 @@ class ViewController extends Controller {
 			if (!str_contains(\Request::path(), ".export"))
 				Chart::exportPNGAsync($chart->slug, Chart::getQueryString() . "&size=1000x700", 1000, 700);
 
-
 			// Create a cache tag we can send along to the client. This uniquely identifies a particular
 			// combination of dataset variables, and is sent along to DataController when the chart requests
 			// all of its data. Allows us to reduce chart loading times by caching most of the data in

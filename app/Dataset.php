@@ -3,7 +3,6 @@
 use Illuminate\Database\Eloquent\Model;
 
 class Dataset extends Model {
-
 	protected $guarded = ['id'];
 
 	public function variables() {
@@ -27,13 +26,11 @@ class Dataset extends Model {
 			$dataset = Dataset::find( $datasetId );
 			//is it event necessary to update source?
 			if( $dataset->fk_dsr_id != $newDatasourceId ) {
-				
 				//get all variables
 				$variables = $dataset->variables;
 				foreach( $variables as $variable ) {
 					Variable::updateSource( $variable->id, $newDatasourceId );
-				}
-				
+				}				
 			}
 		}
 	}

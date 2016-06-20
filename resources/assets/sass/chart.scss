@@ -913,11 +913,7 @@ body#chart-export {
 @media (max-width: 720px) {
 	#chart-view.embedded {
 		padding: 0.6rem;
-		padding-left: 0;
-		padding-right: 0;
 		border: 1px solid #ccc;
-		border-left: none;
-		border-right: none;		
 	}
 	#chart-view:not(.embedded) {
 		padding: 1rem;

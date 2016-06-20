@@ -9,8 +9,6 @@ use App\LinkDatasetsTags;
 use App\VariableType;
 use App\InputFile;
 use App\Variable;
-use App\Time;
-use App\TimeType;
 use App\DataValue;
 use App\EntityIsoName;
 use App\Entity;
@@ -133,7 +131,8 @@ class ImportController extends Controller {
 					'fk_dst_id' => $datasetId,
 					'fk_dsr_id' => $sourceId,
 					'uploaded_by' => \Auth::user()->name, 
-					'uploaded_at' => Carbon::now()
+					'uploaded_at' => Carbon::now(),
+					'updated_at' => Carbon::now()
 				];
 
 				$varId = DB::table('variables')->insertGetId($newVariable);

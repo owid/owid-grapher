@@ -4,7 +4,6 @@ use DB;
 use Input;
 use App\Chart;
 use App\Variable;
-use App\TimeType;
 use App\Datasource;
 use App\License;
 use App\EntityIsoName;

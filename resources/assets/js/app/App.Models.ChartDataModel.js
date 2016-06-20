@@ -432,7 +432,7 @@
 				html += "<tr><td><span class='datasource-property'>Definition</span></td><td>" + variable.description + "</td></tr>";
 			if (variable.unit)
 				html += "<tr><td><span class='datasource-property'>Unit</span></td><td>" + variable.unit + "</td></tr>";
-			if (variable.created_at)
+			if (variable.created_at && variable.created_at != "0000-00-00 00:00:00")
 				html += "<tr><td><span class='datasource-property'>Uploaded</span></td><td>" + variable.created_at + "</td></tr>";
 			html += "</table>";
 			
