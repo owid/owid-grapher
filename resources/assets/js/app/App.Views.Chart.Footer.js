@@ -103,7 +103,8 @@
 				queryParams = owid.getQueryParams(),
 				queryStr = owid.queryParamsToStr(queryParams),				
 				tab = App.ChartView.activeTabName,
-				canonicalUrl = baseUrl + queryStr;
+				canonicalUrl = baseUrl + queryStr,
+				version = App.ChartModel.get("variableCacheTag");
 
 			this.$chartLinkBtn.attr('href', canonicalUrl);
 
@@ -120,8 +121,8 @@
 				var pngHref = baseUrl + ".png" + queryStr,
 					svgHref = baseUrl + ".svg" + queryStr,
 					defaultSize = "1000x700";
-				this.$downloadPNGButton.attr('href', pngHref + (_.include(pngHref, "?") ? "&" : "?") + "size=" + defaultSize);
-				this.$downloadSVGButton.attr('href', svgHref + (_.include(svgHref, "?") ? "&" : "?") + "size=" + defaultSize);
+				this.$downloadPNGButton.attr('href', pngHref + (_.include(pngHref, "?") ? "&" : "?") + "size=" + defaultSize + "&v=" + version);
+				this.$downloadSVGButton.attr('href', svgHref + (_.include(svgHref, "?") ? "&" : "?") + "size=" + defaultSize + "&v=" + version);
 				this.$downloadPNGButton.show();
 				this.$downloadSVGButton.show();
 			}
