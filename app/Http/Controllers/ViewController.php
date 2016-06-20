@@ -237,10 +237,6 @@ class ViewController extends Controller {
 			$chartMeta->imageUrl = $imageUrl;
 			$chartMeta->canonicalUrl = $canonicalUrl;
 
-			// Give the image exporter a head start on the request for imageUrl
-			if (!str_contains(\Request::path(), ".export"))
-				Chart::exportPNGAsync($chart->slug, Chart::getQueryString() . "&size=1000x700", 1000, 700);
-
 			// Create a cache tag we can send along to the client. This uniquely identifies a particular
 			// combination of dataset variables, and is sent along to DataController when the chart requests
 			// all of its data. Allows us to reduce chart loading times by caching most of the data in
@@ -257,6 +253,12 @@ class ViewController extends Controller {
 			$variableCacheTag .= implode(" + ", $varTimestamps);
 			$variableCacheTag = hash("md5", $variableCacheTag);
 			$config->variableCacheTag = $variableCacheTag;
+
+			// Give the image exporter a head start on the request for imageUrl
+			if (!str_contains(\Request::path(), ".export")) {
+				$query = Chart::getQueryString();
+				Chart::exportPNGAsync($chart->slug, $query . ($query ? "&" : "") . "size=1000x700&v=" . $variableCacheTag, 1000, 700);
+			}
 
 			return response()
 					->view('view.show', compact('chart', 'config', 'data', 'canonicalUrl', 'chartMeta'));
