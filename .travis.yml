@@ -10,7 +10,7 @@ before_script:
   - composer install --no-interaction
   - mysql -e 'create database forge_test;'
   - mysql -D forge_test < database/schema.sql
-  - gulp
+  - ./node_modules/gulp/bin/gulp.js
 script:
   - phpunit
 notifications:
