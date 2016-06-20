@@ -2,7 +2,7 @@
   "private": true,
   "devDependencies": {
     "gulp": "^3.9.1",
-    "laravel-elixir": "^6.0.0-2",
-    "phantomjs": "^2.1.7"
+    "laravel-elixir": "6.0.0-2",
+    "phantomjs": "2.1.7"
   }
 }
