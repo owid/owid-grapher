@@ -85,7 +85,8 @@
 		deactivate: function() {
 			App.ChartModel.off(null, null, this);
 			d3.selectAll(".nvd3").remove();
-			this.$yAxisScaleSelector.show();
+			if (this.$yAxisScaleSelector)
+				this.$yAxisScaleSelector.show();
 		},
 
 		updateAvailableCountries: function() {

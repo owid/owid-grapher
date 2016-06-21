@@ -215,35 +215,39 @@
 		},
 
 		render: function(callback) {
-			var variableData = App.DataModel.get("variableData");
-			this.mapData = this.transformData(variableData);
-			this.colorScale = this.makeColorScale();
-			this.applyColors(this.mapData, this.colorScale);
+			try {
+				var variableData = App.DataModel.get("variableData");
+				this.mapData = this.transformData(variableData);
+				this.colorScale = this.makeColorScale();
+				this.applyColors(this.mapData, this.colorScale);
 
-			// If we've changed the projection (i.e. zooming on Africa or similar) we need
-			// to redraw the datamap before injecting new data
-			var oldProjection = this.dataMap.options.setProjection,
-				newProjection = this.getProjection(this.mapConfig.projection);
+				// If we've changed the projection (i.e. zooming on Africa or similar) we need
+				// to redraw the datamap before injecting new data
+				var oldProjection = this.dataMap.options.setProjection,
+					newProjection = this.getProjection(this.mapConfig.projection);
 
-			var self = this;
-			var updateMap = function() {
-				self.dataMap.updateChoropleth(self.mapData, { reset: true });
-				d3.selectAll("svg.datamap").transition().each("end", function() {
-					$(window).trigger("chart-loaded");
-				});
-				self.mapControls.render();
-				self.timelineControls.render();
-				if (callback) callback();
-				else self.onResize();
-			};
+				var self = this;
+				var updateMap = function() {
+					self.dataMap.updateChoropleth(self.mapData, { reset: true });
+					d3.selectAll("svg.datamap").transition().each("end", function() {
+						$(window).trigger("chart-loaded");
+					});
+					self.mapControls.render();
+					self.timelineControls.render();
+					if (callback) callback();
+					else self.onResize();
+				};
 
-			if (oldProjection === newProjection) {
-				updateMap();
-			} else {
-				d3.selectAll("path.datamaps-subunit").remove();
-				this.dataMap.options.setProjection = newProjection;
-				this.dataMap.options.done = updateMap;
-				this.dataMap.draw();
+				if (oldProjection === newProjection) {
+					updateMap();
+				} else {
+					d3.selectAll("path.datamaps-subunit").remove();
+					this.dataMap.options.setProjection = newProjection;
+					this.dataMap.options.done = updateMap;
+					this.dataMap.draw();
+				}				
+			} catch (err) {
+				App.ChartView.handleError(err);
 			}
 		},
 

@@ -36,22 +36,28 @@
 			this.$downloadBtn.attr("href", csvUrl);
 			this.$downloadFullBtn.attr("href", baseUrl + ".csv" + "?country=ALL");
 
-			Papa.parse(csvUrl, {
-				download: true,
-				complete: function(results) {
-					var rowHtml = "";
-					_.each(results.data, function(row) {
-						rowHtml += "<tr>";
-						_.each(row, function(value) {
-							rowHtml += "<td>" + value + "</td>";
-						});
-						rowHtml += "</tr>";
-					});
+			$.get(csvUrl)
+				.done(function(csv) {
+					Papa.parse(csv, {
+						complete: function(results) {
+							console.log(results);
+							var rowHtml = "";
+							_.each(results.data, function(row) {
+								rowHtml += "<tr>";
+								_.each(row, function(value) {
+									rowHtml += "<td>" + value + "</td>";
+								});
+								rowHtml += "</tr>";
+							});
 
-					this.$dataTable.html(rowHtml);
-					if (_.isFunction(callback)) callback();
-				}.bind(this)
-			});
+							this.$dataTable.html(rowHtml);
+							if (_.isFunction(callback)) callback();
+						}.bind(this)
+					});
+				}.bind(this))
+				.fail(function(err) {
+					App.ChartView.handleError(err);
+				});
 		},
 	});
 })();

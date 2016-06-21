@@ -86,17 +86,30 @@
 }
 
 #chart-view .chart-error { 
-	position: absolute;
-	top: 50%;
-	left: 50%;
 	font-size: 0.9rem;
+	position: absolute;
+	left: 0;
+	top: 0;
+	z-index: 100;
+	text-align: center;
+	height: 100%;
+	width: 100%;
+}
+
+#chart-view .chart-error:before {
+    content: '';
+    display: inline-block;
+    height: 100%;
+    vertical-align: middle;	
+}
+
+#chart-view .chart-error > pre {
+	display: inline-block;
 	color: red;
-	transform: translate(-50%,-50%);
-	-webkit-transform: translate(-50%,-50%);
-	display: none;
-	.fa-exclamation-triangle {
-		margin-right: 0.6rem;
-	}
+	text-align: left;
+	vertical-align: middle;
+	white-space: pre-wrap;
+	max-width: 95%;
 }
 
 /* Header

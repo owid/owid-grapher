@@ -73,6 +73,14 @@
 
 			var defaultTabName = App.ChartModel.get("default-tab");
 			this.activateTab(defaultTabName);
+
+			App.ChartModel.on("change", function() {
+				// When the model changes and there's been an error, rebuild the whole current tab
+				// Allows the editor to recover from failure states
+				if ($(".chart-error").length != 0) {
+					this.activateTab(this.activeTabName);
+				}
+			}.bind(this));
 		},
 
 		onTabClick: function(ev) {
@@ -83,25 +91,50 @@
 		},
 
 		activateTab: function(tabName) {
+			$(".chart-error").remove();
+
 			$("." + tabName + "-header-tab a").tab('show');
 			var tab = this[tabName + "Tab"];
 			if (this.activeTab) {
 				this.activeTab.deactivate();
-				this.activeTabName = tabName;
 				this.activeTab = null;
-			} else if (this.activeTabName)
-				return; // Already loading a tab, don't double up
+			} else if (this.loadingTab) {
+				this.loadingTab.deactivate();				
+			}
 
+			this.loadingTab = tab;
+			this.activeTabName = tabName;
 			this.dispatcher.trigger("tab-change", tabName);		
 			if (!_.isEmpty(App.ChartModel.get("chart-dimensions")))
 				$(".chart-preloader").show();			
 			App.DataModel.ready(function() {
-				tab.activate(function() {
-					$(".chart-preloader").hide();							
-						this.activeTab = tab;
-					this.onResize();
-				}.bind(this));
+				try {
+					tab.activate(function() {
+						$(".chart-preloader").hide();							
+							this.loadingTab = null;
+							this.activeTab = tab;
+						this.onResize();
+					}.bind(this));					
+				} catch (err) {
+					App.ChartView.handleError(err);
+				}
 			}.bind(this));
+		},
+
+		handleError: function(err) {
+			if (err.responseText) {
+				err = err.status + " " + err.statusText + "\n" + "    " + err.responseText;
+			} else {
+				err = err.stack;
+			}
+			console.error(err);
+			var tab = this.activeTab || this.loadingTab;
+			if (tab)
+				tab.deactivate();
+			this.activeTab = null;
+			this.loadingTab = null;
+			this.$(".chart-preloader").hide();
+			this.$(".tab-pane.active").prepend('<div class="chart-error"><pre>' + err + '</pre></div>');
 		},
 
 		onSVGExport: function() {	
@@ -172,9 +205,13 @@
 
 				this.$el.find(".tab-pane").css("height", "calc(100% - " + $(".tab-content > .clearfix").height() + "px)");
 
-				if (this.activeTab && this.activeTab.onResize)
-					this.activeTab.onResize(callback);
-				else
+				if (this.activeTab && this.activeTab.onResize) {
+					try {
+						this.activeTab.onResize(callback);
+					} catch (err) {
+						App.ChartView.handleError(err);
+					}
+				} else
 					if (callback) callback();
 			}.bind(this));
 		},
