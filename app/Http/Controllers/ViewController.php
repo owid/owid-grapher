@@ -271,7 +271,7 @@ class ViewController extends Controller {
 	public function latest() {
 		$slug = DB::table("charts")
 			->orderBy("created_at", "DESC")
-			->whereNotNull("origin_url")
+			->where("origin_url", "!=", "")
 			->select("slug")
 			->first()->slug;
 

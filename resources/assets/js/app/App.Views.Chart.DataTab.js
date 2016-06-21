@@ -40,7 +40,6 @@
 				.done(function(csv) {
 					Papa.parse(csv, {
 						complete: function(results) {
-							console.log(results);
 							var rowHtml = "";
 							_.each(results.data, function(row) {
 								rowHtml += "<tr>";
