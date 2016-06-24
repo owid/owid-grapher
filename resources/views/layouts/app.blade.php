@@ -12,6 +12,8 @@
 
 		<link href="{{ asset(elixir('css/admin.css')) }}" rel="stylesheet" type="text/css" />
 
+		<?php Assets::add("admin"); ?>
+		<?php echo Assets::css(); ?>
 		@yield('styles')
 		
 		<style>
@@ -92,8 +94,7 @@
 			Global.rootUrl = "{!! Request::root() !!}";
 		</script>
 
-		<script src="{{ asset(elixir('js/libs-admin.js')) }}"></script>
-		<script src="{{ asset(elixir('js/FormApp.js')) }}"></script>
+		<?php echo Assets::js(); ?>
 		
 		@yield('scripts')
 	</body>

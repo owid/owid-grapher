@@ -11,7 +11,6 @@
 @endsection
 
 @section('scripts')
-	<script src="{{ asset(elixir('js/ChartApp.js')) }}"></script>
 	<script>
 		App.loadChart({!! json_encode($config) !!});
 	</script>

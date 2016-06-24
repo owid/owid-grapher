@@ -1,0 +1,982 @@
+input[type=range] {
+  -webkit-appearance: none;
+  margin: 18px 0;
+  width: 100%; }
+
+input[type=range]:focus {
+  outline: none; }
+
+input[type=range]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 2px;
+  cursor: pointer;
+  background: #404040;
+  border-radius: 0;
+  border: 0.2px solid #404040; }
+
+input[type=range]::-webkit-slider-thumb {
+  width: 8px;
+  height: 16px;
+  animate: .2s;
+  border: 1px solid #FAFAFA;
+  background: #404040;
+  cursor: pointer;
+  -webkit-appearance: none;
+  margin-top: -7px;
+  position: relative;
+  z-index: 1; }
+
+/*input[type=range].thumb-label::-webkit-slider-thumb {
+	position: relative;
+	top: 0px;
+	left: -24px;
+	width: 58px;
+	height: 32px;
+}*/
+/*input[type=range]:focus::-webkit-slider-thumb {
+	background: #8c8a8a;
+	border: 1px solid #585757;
+}*/
+input[type=range]::-moz-range-track {
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  height: 2px;
+  cursor: pointer;
+  background: #404040;
+  border-radius: 0;
+  border: 0.2px solid #404040; }
+
+input[type=range]::-moz-range-thumb {
+  height: 16px;
+  width: 8px;
+  animate: .2s;
+  border-radius: 0;
+  border: 1px solid #FAFAFA;
+  background: #404040;
+  cursor: pointer;
+  -webkit-appearance: none;
+  margin-top: -7px;
+  position: relative;
+  z-index: 1; }
+
+input[type=range]::-ms-track {
+  width: 100%;
+  height: 2px;
+  cursor: pointer;
+  background: #404040;
+  border-radius: 0;
+  border: 0.2px solid #404040; }
+
+input[type=range]::-ms-thumb {
+  height: 16px;
+  width: 8px;
+  animate: .2s;
+  border: 1px solid #FAFAFA;
+  background: #404040;
+  cursor: pointer;
+  -webkit-appearance: none;
+  margin-top: -7px;
+  position: relative;
+  z-index: 1; }
+
+html, body {
+  width: 100%;
+  height: 100%; }
+
+.browserupgrade {
+  margin: 0.2em 0;
+  background: #ccc;
+  color: #000;
+  padding: 0.2em 0; }
+
+.flash {
+  margin: 10px; }
+
+/* ==========================================================================
+   Helper classes
+   ========================================================================== */
+.hidden {
+  display: none !important; }
+
+.visuallyhidden {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px; }
+
+/*
+ * Extends the .visuallyhidden class to allow the element
+ * to be focusable when navigated to via the keyboard:
+ * https://www.drupal.org/node/897638
+ */
+.visuallyhidden.focusable:active,
+.visuallyhidden.focusable:focus {
+  clip: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  position: static;
+  width: auto; }
+
+/*
+ * Hide visually and from screen readers, but maintain layout
+ */
+.invisible {
+  visibility: hidden; }
+
+/*
+ * Clearfix: contain floats
+ *
+ * For modern browsers
+ * 1. The space content is one way to avoid an Opera bug when the
+ *    `contenteditable` attribute is included anywhere else in the document.
+ *    Otherwise it causes space to appear at the top and bottom of elements
+ *    that receive the `clearfix` class.
+ * 2. The use of `table` rather than `block` is only necessary if using
+ *    `:before` to contain the top-margins of child elements.
+ */
+.clearfix:before,
+.clearfix:after {
+  content: " ";
+  /* 1 */
+  display: table;
+  /* 2 */ }
+
+.clearfix:after {
+  clear: both; }
+
+.no-bullets {
+  list-style-type: none; }
+
+select.disabled {
+  color: #ccc; }
+
+/**
+*	CHARTS
+**/
+#chart-view.line-dots .nvd3.nv-line .nvd3.nv-scatter .nv-groups .nv-point {
+  stroke-opacity: 1;
+  fill-opacity: 1; }
+
+/* ==========================================================================
+   EXAMPLE Media Queries for Responsive Design.
+   These examples override the primary ('mobile first') styles.
+   Modify as content requires.
+   ========================================================================== */
+@media only screen and (min-width: 35em) {
+  /* Style adjustments for viewports that meet the condition */ }
+
+@media print, (-webkit-min-device-pixel-ratio: 1.25), (min-resolution: 1.25dppx), (min-resolution: 120dpi) {
+  /* Style adjustments for high resolution devices */ }
+
+/* ==========================================================================
+   Print styles.
+   Inlined to avoid the additional HTTP request:
+   http://www.phpied.com/delay-loading-your-print-css/
+   ========================================================================== */
+@media print {
+  *,
+  *:before,
+  *:after {
+    background: transparent !important;
+    color: #000 !important;
+    /* Black prints faster:
+								   http://www.sanbeiji.com/archives/953 */
+    box-shadow: none !important;
+    text-shadow: none !important; }
+  a,
+  a:visited {
+    text-decoration: underline; }
+  a[href]:after {
+    content: " (" attr(href) ")"; }
+  abbr[title]:after {
+    content: " (" attr(title) ")"; }
+  /*
+	 * Don't show links that are fragment identifiers,
+	 * or use the `javascript:` pseudo protocol
+	 */
+  a[href^="#"]:after,
+  a[href^="javascript:"]:after {
+    content: ""; }
+  pre,
+  blockquote {
+    border: 1px solid #999;
+    page-break-inside: avoid; }
+  /*
+	 * Printing Tables:
+	 * http://css-discuss.incutio.com/wiki/Printing_Tables
+	 */
+  thead {
+    display: table-header-group; }
+  tr,
+  img {
+    page-break-inside: avoid; }
+  img {
+    max-width: 100% !important; }
+  p,
+  h2,
+  h3 {
+    orphans: 3;
+    widows: 3; }
+  h2,
+  h3 {
+    page-break-after: avoid; } }
+
+/* Chart General
+--------------------------------------------- */
+#chart-view {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  color: #000000;
+  width: 100%;
+  height: 100%;
+  background: white;
+  overflow-y: auto;
+  /* Hidden overflow x so that tooltips in iframes don't cause scrollbars */
+  overflow-x: hidden;
+  position: relative; }
+  #chart-view a {
+    cursor: pointer;
+    color: #0645ad;
+    fill: #0645ad; }
+  #chart-view a:hover {
+    text-decoration: underline; }
+  #chart-view .logos {
+    float: right;
+    padding-left: 0.6rem; }
+  #chart-view .chart-wrapper-inner {
+    position: relative;
+    table-layout: fixed;
+    border-collapse: collapse;
+    border-spacing: 0;
+    height: calc(100% - 24px);
+    width: 100%; }
+  #chart-view .tab-content {
+    position: absolute;
+    width: 100%;
+    height: 100%; }
+  #chart-view .tab-content > .clearfix {
+    position: relative;
+    z-index: 2;
+    background-color: #fff; }
+  #chart-view .tab-pane {
+    border-top: 1px solid #ccc;
+    position: relative;
+    overflow: auto;
+    width: 100%;
+    height: 100%;
+    min-height: 300px; }
+  #chart-view #data-chart-tab,
+  #chart-view #sources-chart-tab {
+    position: relative;
+    z-index: 2; }
+  #chart-view svg {
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%; }
+  #chart-view svg text {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+
+/* The chart in the editor only takes up half the space */
+.chart-edit-module #chart-view {
+  width: 50%; }
+
+/* The little loading icon */
+#chart-view .chart-preloader {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: 1.25rem;
+  transform: translate(-50%, -50%);
+  -webkit-transform: translate(-50%, -50%);
+  /*hidden by default*/
+  display: none; }
+
+#chart-view .chart-error {
+  font-size: 0.9rem;
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 100;
+  text-align: center;
+  height: 100%;
+  width: 100%; }
+
+#chart-view .chart-error:before {
+  content: '';
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle; }
+
+#chart-view .chart-error > pre {
+  display: inline-block;
+  color: red;
+  text-align: left;
+  vertical-align: middle;
+  white-space: pre-wrap;
+  max-width: 95%; }
+
+/* Header
+--------------------------------------------- */
+#chart-view .chart-header-svg .chart-name-svg {
+  font-size: 1.3rem; }
+
+#chart-view .chart-header-svg .chart-name-svg a {
+  fill: #35322F; }
+
+#chart-view .chart-header-svg .chart-name-svg a {
+  text-decoration: none !important; }
+
+#chart-view .chart-header-svg .chart-subname-svg {
+  margin-top: 0;
+  margin-bottom: 0.5em;
+  font-size: 0.7rem;
+  fill: #4F4B49; }
+
+#chart-view .chart-header-svg .chart-logo-svg path {
+  stroke: #FFFFFF;
+  stroke-width: 1px; }
+
+/* Tab Menu (Chart, Data, Map, Sources)
+--------------------------------------------- */
+#chart-view .chart-tabs {
+  position: relative;
+  margin-bottom: 0;
+  list-style-type: none;
+  text-transform: uppercase;
+  padding-left: 0;
+  z-index: 2; }
+  #chart-view .chart-tabs li {
+    position: relative;
+    top: 0.06rem;
+    z-index: 1;
+    font-size: 0.7rem;
+    border: 1px solid #ddd;
+    border-left: 0px;
+    background-color: #FAFAFA; }
+  #chart-view .chart-tabs li.first {
+    border-left: 1px solid #ddd; }
+  #chart-view .chart-tabs li.active,
+  #chart-view .chart-tabs li:hover {
+    background-color: #FFFFFF;
+    border-top: 2px solid rgba(0, 33, 71, 0.9);
+    border-bottom: 0; }
+  #chart-view .chart-tabs li a {
+    color: #000;
+    display: block;
+    padding: 0.5rem 0.8rem;
+    text-decoration: none; }
+    #chart-view .chart-tabs li a i {
+      margin-right: 0.3rem; }
+  #chart-view .chart-tabs li.edit-btn-wrapper:hover {
+    background-color: #444;
+    border: 1px solid #444;
+    border-left: 0; }
+  #chart-view .chart-tabs li.edit-btn-wrapper:hover a {
+    color: #FAFAFA; }
+  #chart-view .chart-tabs li.edit-btn-wrapper i {
+    margin-right: 0; }
+
+/* Footer
+--------------------------------------------- */
+.chart-footer-svg {
+  font-size: 12px; }
+
+.footer-btns {
+  font-size: 0.8rem;
+  height: 24px; }
+
+.footer-btns a {
+  text-decoration: none;
+  margin-right: 0.5em;
+  display: inline-block; }
+
+.footer-btns a:hover {
+  text-decoration: none; }
+
+/* Legend
+--------------------------------------------- */
+#chart-view .nv-custom-legend {
+  /* special case for opaque legend */
+  /* disabled */ }
+  #chart-view .nv-custom-legend.transparent .nv-series {
+    opacity: .8; }
+  #chart-view .nv-custom-legend.transparent .nv-series.highlight {
+    opacity: 1; }
+  #chart-view .nv-custom-legend .nv-series {
+    cursor: pointer; }
+  #chart-view .nv-custom-legend .nv-series .nv-custom-legend-symbol {
+    stroke-width: 1px !important; }
+  #chart-view .nv-custom-legend .nv-series.nv-disabled .nv-custom-legend-symbol {
+    stroke: #666 !important; }
+  #chart-view .nv-custom-legend .nv-series.nv-disabled .nv-remove-btn .nv-box {
+    stroke: #999 !important; }
+  #chart-view .nv-custom-legend .nv-remove-btn {
+    display: none; }
+  #chart-view .nv-custom-legend .nv-series:hover .nv-remove-btn {
+    display: block; }
+  #chart-view .nv-custom-legend .nv-remove-btn .nv-box {
+    stroke-width: 3px;
+    stroke: #fff; }
+  #chart-view .nv-custom-legend .nv-entity-label text {
+    font-size: 0.9rem; }
+  #chart-view .nv-custom-legend .nv-add-btn {
+    cursor: pointer; }
+  #chart-view .nv-custom-legend .nv-add-btn .add-btn-bg {
+    fill: #fff; }
+  #chart-view .nv-custom-legend .nv-add-btn:hover .add-btn-bg {
+    fill: #444444; }
+  #chart-view .nv-custom-legend .nv-add-btn:hover text {
+    fill: #fff; }
+  #chart-view .nv-custom-legend .nv-add-btn:hover .nv-box {
+    stroke: #fff;
+    fill: #fff; }
+  #chart-view .nv-custom-legend .nv-add-btn .nv-box {
+    stroke-width: 4px;
+    stroke: #000; }
+
+#chart-view .available-countries-select-wrapper {
+  position: relative;
+  z-index: 10;
+  line-height: 0; }
+  #chart-view .available-countries-select-wrapper select {
+    display: none; }
+  #chart-view .available-countries-select-wrapper .chosen-container {
+    width: 100% !important; }
+  #chart-view .available-countries-select-wrapper .chosen-single {
+    display: none; }
+  #chart-view .available-countries-select-wrapper .chosen-container .chosen-drop {
+    box-shadow: none;
+    border-top: 1px solid #aaa;
+    border-radius: 0; }
+  #chart-view .available-countries-select-wrapper .chosen-container .chosen-results li.highlighted {
+    background: #002147; }
+
+/* Axis Scale Selectors
+--------------------------------------------- */
+#chart-view .axis-scale-selectors-wrapper .x-axis-scale-selector,
+#chart-view .axis-scale-selectors-wrapper .y-axis-scale-selector {
+  position: absolute;
+  z-index: 11;
+  display: none; }
+
+#chart-view .axis-scale-selectors-wrapper .axis-scale-btn {
+  position: relative;
+  font-size: 0.8rem; }
+
+#chart-view .axis-scale-selectors-wrapper .axis-scale {
+  text-transform: uppercase;
+  font-size: 0.6rem;
+  border: 1px solid #eeeeee;
+  background-color: white;
+  display: none; }
+
+#chart-view .axis-scale-selectors-wrapper ul {
+  list-style-type: none;
+  margin-bottom: 0;
+  padding-left: 0; }
+
+#chart-view .axis-scale-selectors-wrapper li {
+  cursor: pointer;
+  padding: 0.3rem;
+  white-space: nowrap; }
+
+#chart-view .axis-scale-selectors-wrapper li.selected {
+  font-weight: bold; }
+
+#chart-view .axis-scale-selectors-wrapper li:hover {
+  background-color: #eeeeee; }
+
+/* Tooltips
+--------------------------------------------- */
+.nvtooltip {
+  background-color: white;
+  color: black;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 0;
+  box-shadow: none;
+  /* scatter plot has values underneath each other */ }
+  .nvtooltip table tbody, .nvtooltip table td {
+    border: 0; }
+  .nvtooltip h3 {
+    padding: 0.3rem 0.9rem;
+    font-size: 1rem; }
+  .nvtooltip p {
+    font-size: 0.8rem; }
+  .nvtooltip .var-popup-value {
+    display: block; }
+
+/* Chart Tab
+--------------------------------------------- */
+#chart-view .nvd3-svg {
+  /* Tweak some nvd3 styling */
+  /* Allow user to select text */ }
+  #chart-view .nvd3-svg .nvd3 .nv-axis line {
+    fill: none;
+    stroke: #a5a5a5;
+    stroke-dasharray: 2,2;
+    shape-rendering: crispEdges; }
+  #chart-view .nvd3-svg .nvd3 text {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 0.7rem; }
+  #chart-view .nvd3-svg .nvd3 .nv-axis .nv-axisMaxMin text {
+    font-weight: normal; }
+  #chart-view .nvd3-svg .nvd3 .nv-axis line {
+    opacity: .6; }
+  #chart-view .nvd3-svg .chart-header-svg,
+  #chart-view .nvd3-svg .chart-footer-svg {
+    -webkit-touch-callout: initial !important;
+    -webkitr-user-select: initial !important;
+    -ms-user-select: initial !important;
+    -moz-user-select: initial !important;
+    -webkit-user-select: initial !important;
+    user-select: initial !important; }
+
+/* Data Tab
+--------------------------------------------- */
+#chart-view #data-chart-tab {
+  padding-top: 1.5rem;
+  padding-left: 1rem;
+  font-size: 16px; }
+  #chart-view #data-chart-tab .download-data-btn,
+  #chart-view #data-chart-tab .download-full-btn {
+    color: #fff; }
+  #chart-view #data-chart-tab .download-data-btn i,
+  #chart-view #data-chart-tab .download-full-btn i {
+    margin-right: 0.3rem; }
+  #chart-view #data-chart-tab .data-table {
+    margin-top: 1.25rem; }
+  #chart-view #data-chart-tab .data-table th, #chart-view #data-chart-tab .data-table td {
+    padding: 4px 4px; }
+  #chart-view #data-chart-tab .data-table th {
+    border-bottom: 1px solid #aaa; }
+  #chart-view #data-chart-tab .data-table td {
+    border-bottom: 1px solid #afafaf; }
+
+/* Sources Tab
+--------------------------------------------- */
+#chart-view #sources-chart-tab {
+  padding: 2.5rem; }
+  #chart-view #sources-chart-tab .datasource-wrapper {
+    margin-bottom: 1.9rem;
+    font-size: 0.8rem; }
+  #chart-view #sources-chart-tab .datasource-wrapper h2 {
+    width: 70%;
+    padding-bottom: 0.3rem;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    font-family: inherit;
+    border-bottom: 1px solid #35322F; }
+  #chart-view #sources-chart-tab .datasource-wrapper h2,
+  #chart-view #sources-chart-tab .datasource-wrapper h3,
+  #chart-view #sources-chart-tab .datasource-wrapper h4 {
+    margin-left: 0px;
+    font-family: inherit; }
+  #chart-view #sources-chart-tab .datasource-wrapper h3,
+  #chart-view #sources-chart-tab .datasource-wrapper h4 {
+    margin-top: 2px;
+    margin-bottom: 1px;
+    font-size: 0.9rem;
+    font-weight: bold; }
+  #chart-view #sources-chart-tab .datasource-property {
+    display: inline-block;
+    width: 150px; }
+  #chart-view #sources-chart-tab table {
+    margin-top: 0.6rem;
+    margin-bottom: 0.6rem; }
+  #chart-view #sources-chart-tab .datasource-additional p {
+    margin-top: 0.3rem; }
+
+/* Map Tab
+--------------------------------------------- */
+#chart-view svg.datamap {
+  /* MAP LEGEND */
+  /* MAP BORDERS DISCLAIMER */ }
+  #chart-view svg.datamap .legend-step rect {
+    stroke: #4F4F4F;
+    stroke-width: .1px; }
+  #chart-view svg.datamap .legend-step text {
+    font-size: 0.6rem; }
+  #chart-view svg.datamap .legend-step line {
+    stroke: #4F4F4F;
+    stroke-width: 1px; }
+  #chart-view svg.datamap .legend-description {
+    font-size: 0.7rem; }
+  #chart-view svg.datamap .border-disclaimer {
+    font-size: 0.6rem; }
+  #chart-view svg.datamap .map-bg {
+    fill: #ECF6FC; }
+  #chart-view svg.datamap path {
+    stroke: #4b4b4b !important;
+    stroke-width: 0.3px !important; }
+  #chart-view svg.datamap path:hover {
+    stroke: #FFEC38 !important;
+    stroke-width: 3px !important; }
+
+.datamaps-hoverover {
+  font-family: inherit !important;
+  text-align: center; }
+  .datamaps-hoverover h3 {
+    margin: 0;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+  .datamaps-hoverover .hoverinfo {
+    padding: 0;
+    box-shadow: none; }
+
+#chart-view #map-chart-tab {
+  overflow: inherit;
+  padding: 0 !important;
+  border: 1px solid #eee;
+  /* MAP TIMELINE CONTROL */ }
+  #chart-view #map-chart-tab .map-controls-header {
+    position: absolute;
+    top: 10px;
+    left: 20px;
+    z-index: 2; }
+    #chart-view #map-chart-tab .map-controls-header .control {
+      float: left;
+      margin-right: 0.2rem;
+      cursor: pointer;
+      -webkit-transition: .3s height;
+      transition: .3s height;
+      white-space: nowrap;
+      overflow: hidden; }
+      #chart-view #map-chart-tab .map-controls-header .control:hover .control-head, #chart-view #map-chart-tab .map-controls-header .control:hover .control-body, #chart-view #map-chart-tab .map-controls-header .control.active .control-head, #chart-view #map-chart-tab .map-controls-header .control.active .control-body {
+        color: #fff;
+        background-color: #444;
+        border: 1px solid #444; }
+      #chart-view #map-chart-tab .map-controls-header .control:hover .control-body, #chart-view #map-chart-tab .map-controls-header .control.active .control-body {
+        display: block; }
+      #chart-view #map-chart-tab .map-controls-header .control .control-head, #chart-view #map-chart-tab .map-controls-header .control .control-body {
+        padding: 0.3rem 0.6rem;
+        border: 1px solid #EEEEEE;
+        background-color: #FAFAFA; }
+      #chart-view #map-chart-tab .map-controls-header .control .control-head {
+        display: inline-block;
+        width: auto; }
+        #chart-view #map-chart-tab .map-controls-header .control .control-head label {
+          margin-bottom: 0; }
+      #chart-view #map-chart-tab .map-controls-header .control .control-body {
+        display: none;
+        position: absolute; }
+        #chart-view #map-chart-tab .map-controls-header .control .control-body label {
+          margin-bottom: 0;
+          cursor: pointer; }
+    #chart-view #map-chart-tab .map-controls-header .target-year-control .control-body {
+      width: 200.5rem; }
+    #chart-view #map-chart-tab .map-controls-header .target-year-control input {
+      display: inline-block;
+      margin: 0.6rem 0;
+      /*writing-mode: bt-lr;
+				-webkit-appearance: slider-vertical;*/ }
+    #chart-view #map-chart-tab .map-controls-header .region-control .region-label {
+      width: calc(100% - 0.9rem);
+      text-align: center; }
+    #chart-view #map-chart-tab .map-controls-header .region-control ul {
+      margin: 0.3rem 0;
+      padding: 0;
+      list-style-type: none; }
+    #chart-view #map-chart-tab .map-controls-header .region-control li {
+      padding: 4px 0; }
+      #chart-view #map-chart-tab .map-controls-header .region-control li:hover, #chart-view #map-chart-tab .map-controls-header .region-control li.highlight {
+        cursor: pointer;
+        color: #FFEC38; }
+    #chart-view #map-chart-tab .map-controls-header .settings-control .control-body {
+      width: 17.5rem;
+      padding: 0.3rem 0.9rem 0.3rem 0.6rem; }
+      #chart-view #map-chart-tab .map-controls-header .settings-control .control-body input[type=checkbox] {
+        margin-right: 6px; }
+  #chart-view #map-chart-tab .map-timeline-controls {
+    position: absolute;
+    bottom: -1px;
+    z-index: 2;
+    width: 100%;
+    height: 3.1rem;
+    color: #404040;
+    background-color: #FAFAFA;
+    border-top: 1px solid #ddd;
+    /* play/pause control */
+    /* timeline-control */
+    /* buttons-control */
+    /* single-year mode */ }
+    #chart-view #map-chart-tab .map-timeline-controls .control {
+      float: left; }
+    #chart-view #map-chart-tab .map-timeline-controls .play-pause-control {
+      /*display: none;*/
+      width: 3.1rem;
+      height: 100%; }
+      #chart-view #map-chart-tab .map-timeline-controls .play-pause-control .btn {
+        display: block;
+        color: #404040;
+        width: 3.1rem;
+        height: 100%; }
+      #chart-view #map-chart-tab .map-timeline-controls .play-pause-control .play-btn,
+      #chart-view #map-chart-tab .map-timeline-controls .play-pause-control .pause-btn {
+        position: absolute;
+        top: 0; }
+        #chart-view #map-chart-tab .map-timeline-controls .play-pause-control .play-btn:hover,
+        #chart-view #map-chart-tab .map-timeline-controls .play-pause-control .pause-btn:hover {
+          color: #666; }
+        #chart-view #map-chart-tab .map-timeline-controls .play-pause-control .play-btn:active,
+        #chart-view #map-chart-tab .map-timeline-controls .play-pause-control .pause-btn:active {
+          box-shadow: none; }
+      #chart-view #map-chart-tab .map-timeline-controls .play-pause-control .play-btn {
+        top: -1px;
+        left: 0.5rem;
+        font-size: 1.6rem; }
+      #chart-view #map-chart-tab .map-timeline-controls .play-pause-control .pause-btn {
+        display: none;
+        top: 4px;
+        left: 6px; }
+        #chart-view #map-chart-tab .map-timeline-controls .play-pause-control .pause-btn .fa-stack-1x {
+          font-size: 0.6rem;
+          top: 0px; }
+    #chart-view #map-chart-tab .map-timeline-controls .timeline-control {
+      /*display: none;*/
+      height: 100%;
+      width: calc(100% - 3.1rem);
+      position: relative;
+      cursor: pointer; }
+      #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-start-year,
+      #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-end-year {
+        min-height: 1.8rem;
+        line-height: 1.2rem;
+        white-space: nowrap; }
+      #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-start-year {
+        position: absolute;
+        top: 0.25rem;
+        right: calc(100% + 0.3rem);
+        padding: 0.3rem 0.5rem; }
+      #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-end-year {
+        position: absolute;
+        top: 0.25rem;
+        left: calc(100% + 0.3rem);
+        padding: 0.3rem 0.5rem; }
+      #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-slider-label {
+        padding: 0.3rem 0.8rem; }
+      #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-slider-label,
+      #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-end-year.highlight,
+      #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-start-year.highlight {
+        background-color: #404040;
+        color: #fff;
+        cursor: pointer;
+        user-select: none;
+        -webkit-user-select: none;
+        /* Chrome/Safari/Opera */
+        -moz-user-select: none;
+        /* Firefox */
+        -ms-user-select: none;
+        /* IE/Edge */
+        -webkit-touch-callout: none;
+        /* iOS Safari */ }
+      #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper {
+        position: absolute;
+        top: 0.4rem;
+        left: 4.4rem;
+        right: 4.4rem; }
+        #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper .timeline {
+          width: 100%;
+          height: 0.6rem;
+          margin: 0;
+          padding: 0;
+          background-color: #ddd; }
+        #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper input[type="range"] {
+          height: 0.1rem; }
+        #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper .timeline-slider {
+          position: absolute;
+          left: 6.25rem;
+          top: -1.25rem;
+          z-index: 2;
+          cursor: pointer;
+          -webkit-transform: translate(-50%, 0);
+          transform: translate(-50%, 0); }
+          #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper .timeline-slider > span {
+            display: block; }
+          #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper .timeline-slider .timeline-slider-graphic {
+            width: 0.3rem;
+            height: 1.25rem;
+            background-color: #000000;
+            margin: 0 auto; }
+        #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper .timeline-ticks {
+          pointer-events: none;
+          position: absolute;
+          top: 0.9rem;
+          left: 0;
+          width: 100%;
+          padding-left: 0;
+          list-style-type: none; }
+          #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper .timeline-ticks li {
+            position: absolute;
+            display: inline-block;
+            width: 0.25rem;
+            height: 0.5rem;
+            border: 1px solid #FAFAFA;
+            font-size: 0;
+            list-style-type: none;
+            background-color: #404040;
+            -webkit-transform-style: preserve-3d;
+            transform-style: preserve-3d;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden; }
+    #chart-view #map-chart-tab .map-timeline-controls .buttons-control {
+      display: none;
+      /*display: table;*/
+      width: 100%;
+      height: 100%; }
+      #chart-view #map-chart-tab .map-timeline-controls .buttons-control ul {
+        list-style-type: none;
+        display: table-cell;
+        text-align: center;
+        vertical-align: middle;
+        padding-left: 0; }
+      #chart-view #map-chart-tab .map-timeline-controls .buttons-control .year-btn {
+        display: inline-block;
+        margin-right: 0.3rem; }
+        #chart-view #map-chart-tab .map-timeline-controls .buttons-control .year-btn:last-child {
+          margin-right: 0; }
+        #chart-view #map-chart-tab .map-timeline-controls .buttons-control .year-btn.selected .btn, #chart-view #map-chart-tab .map-timeline-controls .buttons-control .year-btn:hover .btn {
+          color: white;
+          background-color: #404040;
+          border: 1px solid #ddd; }
+        #chart-view #map-chart-tab .map-timeline-controls .buttons-control .year-btn .btn {
+          background-color: white;
+          border-radius: 0; }
+          #chart-view #map-chart-tab .map-timeline-controls .buttons-control .year-btn .btn.btn:active {
+            box-shadow: none; }
+    #chart-view #map-chart-tab .map-timeline-controls.single-year .play-pause-control,
+    #chart-view #map-chart-tab .map-timeline-controls.single-year .timeline-end-year,
+    #chart-view #map-chart-tab .map-timeline-controls.single-year .timeline-wrapper {
+      display: none !important; }
+
+/* Export
+--------------------------------------------- */
+/* MISPY: When the "download image" button is clicked, the backend fires up phantomjs and hits
+ * a special .export url to screenshot the chart. #chart-export styles therefore apply specifically
+ * to these screenshots. */
+body#chart-export {
+  background: white;
+  /* Remove interactive UI elements since obviously they can't be used in a static image
+	 * NOTE (Mispy): Unneeded SVG elements should be removed entirely by the JS as well as hidden here. */ }
+  body#chart-export #chart-view {
+    padding: 20px !important; }
+  body#chart-export .chart-tabs,
+  body#chart-export .footer-btns,
+  body#chart-export .fullscreen-link,
+  body#chart-export .map-timeline-controls,
+  body#chart-export .settings-control,
+  body#chart-export .color-blind-control,
+  body#chart-export .map-controls-header,
+  body#chart-export .nv-add-btn,
+  body#chart-export .nv-controlsWrap {
+    display: none !important; }
+  body#chart-export .tab-pane {
+    border-top: none; }
+
+/* Responsiveness
+--------------------------------------------- */
+@media screen and (min-width: 500px) {
+  html {
+    font-size: 14px; } }
+
+@media screen and (min-width: 570px) {
+  html {
+    font-size: 15px; } }
+
+@media screen and (min-width: 620px) {
+  html {
+    font-size: 16px; } }
+
+@media screen and (min-width: 680px) {
+  html {
+    font-size: 17px; } }
+
+@media screen and (min-width: 720px) {
+  html {
+    font-size: 18px; } }
+
+@media screen and (min-width: 800px) {
+  html {
+    font-size: 19px; } }
+
+@media screen and (min-width: 860px) {
+  html {
+    font-size: 20px; } }
+
+/*@media screen and (min-width: 920px){
+  html{
+    font-size: 21px;
+  }
+}
+@media screen and (min-width: 1000px){
+  html{
+    font-size: 22px;
+  }
+}*/
+@media (max-width: 720px) {
+  #chart-view.embedded {
+    padding: 0.6rem;
+    border: 1px solid #ccc; }
+  #chart-view:not(.embedded) {
+    padding: 1rem; }
+  /* Tabs should fill the entire width */
+  #chart-view ul.chart-tabs {
+    display: table;
+    width: 100%; }
+  #chart-view ul.chart-tabs li {
+    display: table-cell; }
+  #chart-view ul.chart-tabs li > a {
+    padding: 0.5rem 0.3rem; }
+  #chart-view ul.chart-tabs li.edit-btn-wrapper {
+    display: none; }
+  #chart-view .footer-btns a.chart-link-btn span,
+  #chart-view .footer-btns a.tweet-btn span,
+  #chart-view .footer-btns a.facebook-btn span,
+  #chart-view .footer-btns a.embed-btn span {
+    display: none; }
+  #chart-view .footer-btns i {
+    font-size: 1.2rem; }
+  #chart-view .nv-add-btn {
+    display: none; } }
+
+@media (min-width: 720px) {
+  #chart-view.embedded {
+    padding: 1rem 1.5rem;
+    border: 1px solid #ccc; }
+  #chart-view:not(.embedded) {
+    padding: 1.5rem 3rem; }
+  #chart-view ul.chart-tabs {
+    float: right; }
+  #chart-view ul.chart-tabs li {
+    float: left; } }
+
+/* Miscellaneous
+--------------------------------------------- */
+.error-label {
+  color: red; }
+
+.owidModal.error .modal-content {
+  color: #dd4b39; }
+
+.owidModal .modal-body {
+  overflow: scroll;
+  font-size: 16px;
+  max-height: 800px; }
+
+.dashed {
+  stroke-dasharray: 2,2; }
+
+.unstroked {
+  display: none; }
+
+/* HACK (Mispy): Once we properly update to Bootstrap 4 javascript this shouldn't be needed. */
+.modal-backdrop {
+  z-index: -1; }
+
+/*# sourceMappingURL=front-sass.css.map */

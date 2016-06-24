@@ -26,25 +26,12 @@
 			<meta name="twitter:image" content="{{ $chartMeta->imageUrl }}">
 		@endif
 
-		<link href="{{ asset(elixir('css/front.css')) }}" rel="stylesheet" type="text/css" />		
-
 		@if (!empty($canonicalUrl))
 			<link rel="canonical" href="{{ $canonicalUrl }}" />
 		@endif
 
-		@yield('styles')
-		
-		<style>
-
-			/*.nv-point {
-				fill-opacity: 1 !important;
-			}
-			path.nv-line {
-				opacity: 0;
-			}*/
-
-		</style>
-
+		<?php Assets::add("chart"); ?>
+		<?php echo App\Util::css(); ?>
 	</head>
 	<body>
 		<!--[if lt IE 9]>
@@ -61,9 +48,10 @@
 			Global.rootUrl = "{!! Request::root() !!}";
 		</script>
 		
-		<script src="{{ asset(elixir('js/libs.js')) }}"></script>
+		<?php echo App\Util::js(); ?>
 		
 		@yield('scripts')
+
 	</body>
 </html>
 

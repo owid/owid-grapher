@@ -162,6 +162,7 @@ return [
 		// Debugging tool
 		Barryvdh\Debugbar\ServiceProvider::class,
 		Fideloper\Proxy\TrustedProxyServiceProvider::class,
+		Stolz\Assets\Laravel\ServiceProvider::class
 	],
 
 	/*

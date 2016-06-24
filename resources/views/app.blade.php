@@ -10,9 +10,8 @@
 		<link rel="apple-touch-icon" href="apple-touch-icon.png">
 		<!-- Place favicon.ico in the root directory -->
 
-		<link href="{{ asset(elixir('css/admin.css')) }}" rel="stylesheet" type="text/css" />
-
-		@yield('styles')
+		<?php Assets::add('admin'); ?>
+		<?php echo App\Util::css(); ?>
 
 		<style>
 			html {
@@ -90,11 +89,9 @@
 			var Global = {};
 			Global.rootUrl = "{!! Request::root() !!}";
 		</script>
-
-		<script src="{{ asset(elixir('js/libs-admin.js')) }}"></script>
-		<script src="{{ asset(elixir('js/FormApp.js')) }}"></script>
 		
 		@yield('scripts')
+		<?php echo App\Util::js(); ?>
 	</body>
 </html>
 

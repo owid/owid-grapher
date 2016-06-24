@@ -45,7 +45,7 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $e)
     {
-        if ($e instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException) {
+        if (\App::environment() == 'production' && $e instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException) {
             $uriSegments = explode("/", trim($request->path(), "/"));
             $lastUriSegment = array_pop($uriSegments);
             return redirect()->away("/?s=" . str_replace("-", "+", $lastUriSegment));

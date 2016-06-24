@@ -170,5 +170,4 @@
 @endsection
 
 @section('scripts')
-	<script src="{{ asset('js/ImportApp.js') }}?bust={!!time()!!}"></script>
 @endsection

@@ -1,8 +1,8 @@
 /node_modules
 /public/build
-/public/js/*
-/public/css/*
 /public/uploads/*
+/public/js/min
+/public/css/min
 .env
 .env.localhost
 .env.bluehost
