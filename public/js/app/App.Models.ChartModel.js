@@ -142,9 +142,9 @@
 			this.set("selected-countries", selectedCountries);
 		},
 
-		replaceSelectedCountry: function( country ) {
-			if( country ) {
-				this.set( "selected-countries", [ country ] );
+		replaceSelectedCountry: function(country) {
+			if (country) {
+				this.set("selected-countries", [country]);
 			}
 		},
 

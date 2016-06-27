@@ -3,9 +3,13 @@
 use Illuminate\Database\Eloquent\Model;
 
 class DataValue extends Model {
-
 	protected $guarded = ['id'];
+	protected $touches = ['variable'];
 	protected $table = 'data_values';
+
+	public function variable() {
+		return $this->hasOne('App\Variable', 'id', 'fk_var_id');
+	}
 
 	public function entity() {
 		return $this->hasOne( 'App\Entity', 'id', 'fk_ent_id' );
