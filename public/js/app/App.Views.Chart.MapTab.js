@@ -234,7 +234,7 @@
 					});
 					self.mapControls.render();
 					self.timelineControls.render();
-					if (callback) callback();
+					if (_.isFunction(callback)) callback();
 					else self.onResize();
 				};
 

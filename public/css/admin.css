@@ -273,8 +273,16 @@ button[type="submit"]:not(".delete-btn") {
   padding: 10px 20px;
   background-color: #fff;
   border: 1px solid #bbb;
+}
+
+.country-label {
+  cursor: pointer;
+}
+
+.variable-label {
   cursor: move;
-  cursor: -webkit-grab; }
+  cursor: -webkit-grab;   
+}
 
 .country-label:hover,
 .variable-label:hover {

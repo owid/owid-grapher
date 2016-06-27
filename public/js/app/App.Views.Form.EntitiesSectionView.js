@@ -18,6 +18,7 @@
 			this.$entitiesSelect = this.$el.find(".countries-select");
 			this.$addCountryControlInput = this.$el.find("[name='add-country-control']");
 			App.DataModel.on("change:availableEntities", this.render.bind(this));
+			this.render();
 		},
 
 		render: function() {
