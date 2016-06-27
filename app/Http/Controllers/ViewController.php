@@ -42,7 +42,11 @@ class ViewController extends Controller {
 
 	public function show($slug)
 	{
-		$chart = Chart::where('slug', $slug)->orWhere('id', $slug)->first();		
+		$chart = Chart::where('published', true)->where(function($query) use ($slug) {
+			$query->where('slug', $slug)
+				  ->orWhere('id', $slug);
+		})->first();
+		
 		if (!$chart) {
 			// Check and see if this was an old chart slug
 			$redirect = DB::table('chart_slug_redirects')->select('chart_id')->where('slug', '=', $slug)->first();
@@ -272,6 +276,7 @@ class ViewController extends Controller {
 		$slug = DB::table("charts")
 			->orderBy("created_at", "DESC")
 			->where("origin_url", "!=", "")
+			->whereNotNull("published")
 			->select("slug")
 			->first()->slug;
 

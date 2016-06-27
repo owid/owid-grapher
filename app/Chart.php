@@ -23,7 +23,8 @@ class Chart extends Model {
 		$config->{"chart-notes"} = $chart->notes;
 		$config->{"chart-slug"} = $chart->slug;
 		$config->{"data-entry-url"} = $chart->origin_url;
-
+		$config->{"published"} = $chart->published;
+		
 		// Allow url parameters to override the chart's default
 		// selected countries configuration. We need to use the raw
 		// query string for this because we want to distinguish between

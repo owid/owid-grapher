@@ -87,8 +87,10 @@ class ChartsController extends Controller {
 	            DB::statement("INSERT INTO chart_slug_redirects (slug, chart_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE chart_id=VALUES(chart_id);", [$chart->slug, $chart->id]);                
 			}
 			$chart->slug = $data["chart-slug"];
+			$chart->published = $data["published"];
 			unset($data["chart-notes"]);
 			unset($data["chart-slug"]);
+			unset($data["published"]);
 			$chart->last_edited_at = Carbon::now();
 			$chart->last_edited_by = $user->name;
 			$chart->config = $jsonConfig;		
