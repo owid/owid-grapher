@@ -214,6 +214,10 @@
 
 			if (!silent)
 				this.trigger(eventName || "change");
+		},
+
+		isNew: function() {
+			return !this.get("id");
 		}
 	} );
 
