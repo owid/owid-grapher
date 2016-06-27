@@ -20,7 +20,7 @@
 		events: {
 			"click .form-collapse-btn": "onFormCollapse",
 			"click .remove-uploaded-file-btn": "onRemoveUploadedFile",
-			"click #save-new": "onSaveNew",
+			"click #save-new": "onSaveAsNew",
 			"submit form": "onFormSubmit",
 		},
 
@@ -94,7 +94,7 @@
 			App.ChartModel.trigger( "resize" );
 		},
 
-		onSaveNew: function(evt) {
+		onSaveAsNew: function(evt) {
 			$.ajaxSetup({
 				headers: { 'X-CSRF-TOKEN': $('[name="_token"]').val() }
 			});
@@ -109,19 +109,20 @@
 			};
 
 			App.ChartModel.set( "form-config", formConfig, { silent: true } );			
-			var origId = App.ChartModel.get('id');
-			App.ChartModel.set("id", null, { silent: true });
+			var origId = App.ChartModel.get('id'),
+				origPublished = App.ChartModel.get("published");
+			App.ChartModel.set({ id: null, published: null }, { silent: true });
 
 			// Need to open intermediary tab before AJAX to avoid popup blockers
 			var w = window.open("/", "_blank");
 			App.ChartModel.save({}, {
 				success: function (model, response, options) {
 					w.location = App.ChartModel.url(response.data.id) + "/edit";
-					App.ChartModel.set('id', origId);
+					App.ChartModel.set({ id: origId, published: origPublished }, { silent: true });
 				},
 				error: function (model, xhr, options) {
 					w.close();
-					App.ChartModel.set('id', origId);
+					App.ChartModel.set({ id: origId, published: origPublished }, { silent: true });
 					var $modal = owid.modal({ title: "Error saving chart", content: xhr.responseText });
 					$modal.addClass("error");
 				}

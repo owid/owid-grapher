@@ -43,9 +43,9 @@
 			var currentExpectedSlug = this.convertToSlug(currentName);
 			var currentSlug = this.$chartSlug.val();
 
-			// We only automatically update the slug to match title if it's a new chart, to discourage changing them later
+			// We only automatically update the slug to match title if it's an unpublished chart, to discourage changing them later
 			// Also if the user manually enters a slug we should honour that and not change it
-			if (App.ChartModel.isNew() && (_.isEmpty(currentSlug) || currentExpectedSlug == currentSlug)) {
+			if (!App.ChartModel.get("published") && (_.isEmpty(currentSlug) || currentExpectedSlug == currentSlug)) {
 				var slug = this.convertToSlug(this.$chartName.val());
 				this.$chartSlug.val(slug);
 				this.onSlugChange();				
