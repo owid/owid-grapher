@@ -247,7 +247,7 @@ select.disabled {
     text-decoration: underline; }
   #chart-view .logos {
     float: right;
-    padding-left: 0.6rem; }
+    padding-left: 0.6em; }
   #chart-view .chart-wrapper-inner {
     position: relative;
     table-layout: fixed;
@@ -293,14 +293,14 @@ select.disabled {
   position: absolute;
   top: 50%;
   left: 50%;
-  font-size: 1.25rem;
+  font-size: 1.25em;
   transform: translate(-50%, -50%);
   -webkit-transform: translate(-50%, -50%);
   /*hidden by default*/
   display: none; }
 
 #chart-view .chart-error {
-  font-size: 0.9rem;
+  font-size: 0.9em;
   position: absolute;
   left: 0;
   top: 0;
@@ -326,7 +326,7 @@ select.disabled {
 /* Header
 --------------------------------------------- */
 #chart-view .chart-header-svg .chart-name-svg {
-  font-size: 1.3rem; }
+  font-size: 1.3em; }
 
 #chart-view .chart-header-svg .chart-name-svg a {
   fill: #35322F; }
@@ -337,7 +337,7 @@ select.disabled {
 #chart-view .chart-header-svg .chart-subname-svg {
   margin-top: 0;
   margin-bottom: 0.5em;
-  font-size: 0.7rem;
+  font-size: 0.7em;
   fill: #4F4B49; }
 
 #chart-view .chart-header-svg .chart-logo-svg path {
@@ -355,9 +355,8 @@ select.disabled {
   z-index: 2; }
   #chart-view .chart-tabs li {
     position: relative;
-    top: 0.06rem;
+    top: 0.06em;
     z-index: 1;
-    font-size: 0.7rem;
     border: 1px solid #ddd;
     border-left: 0px;
     background-color: #FAFAFA; }
@@ -371,10 +370,11 @@ select.disabled {
   #chart-view .chart-tabs li a {
     color: #000;
     display: block;
-    padding: 0.5rem 0.8rem;
+    font-size: 0.6em;
+    padding: 0.5em 1em;
     text-decoration: none; }
     #chart-view .chart-tabs li a i {
-      margin-right: 0.3rem; }
+      margin-right: 0.3em; }
   #chart-view .chart-tabs li.edit-btn-wrapper:hover {
     background-color: #444;
     border: 1px solid #444;
@@ -390,7 +390,7 @@ select.disabled {
   font-size: 12px; }
 
 .footer-btns {
-  font-size: 0.8rem;
+  font-size: 0.8em;
   height: 24px; }
 
 .footer-btns a {
@@ -469,11 +469,11 @@ select.disabled {
 
 #chart-view .axis-scale-selectors-wrapper .axis-scale-btn {
   position: relative;
-  font-size: 0.8rem; }
+  font-size: 0.8em; }
 
 #chart-view .axis-scale-selectors-wrapper .axis-scale {
   text-transform: uppercase;
-  font-size: 0.6rem;
+  font-size: 0.6em;
   border: 1px solid #eeeeee;
   background-color: white;
   display: none; }
@@ -485,7 +485,7 @@ select.disabled {
 
 #chart-view .axis-scale-selectors-wrapper li {
   cursor: pointer;
-  padding: 0.3rem;
+  padding: 0.3em;
   white-space: nowrap; }
 
 #chart-view .axis-scale-selectors-wrapper li.selected {
@@ -506,10 +506,10 @@ select.disabled {
   .nvtooltip table tbody, .nvtooltip table td {
     border: 0; }
   .nvtooltip h3 {
-    padding: 0.3rem 0.9rem;
-    font-size: 1rem; }
+    padding: 0.3em 0.9em;
+    font-size: 1em; }
   .nvtooltip p {
-    font-size: 0.8rem; }
+    font-size: 0.8em; }
   .nvtooltip .var-popup-value {
     display: block; }
 
@@ -525,7 +525,7 @@ select.disabled {
     shape-rendering: crispEdges; }
   #chart-view .nvd3-svg .nvd3 text {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    font-size: 0.7rem; }
+    font-size: 0.7em; }
   #chart-view .nvd3-svg .nvd3 .nv-axis .nv-axisMaxMin text {
     font-weight: normal; }
   #chart-view .nvd3-svg .nvd3 .nv-axis line {
@@ -542,17 +542,17 @@ select.disabled {
 /* Data Tab
 --------------------------------------------- */
 #chart-view #data-chart-tab {
-  padding-top: 1.5rem;
-  padding-left: 1rem;
+  padding-top: 1.5em;
+  padding-left: 1em;
   font-size: 16px; }
   #chart-view #data-chart-tab .download-data-btn,
   #chart-view #data-chart-tab .download-full-btn {
     color: #fff; }
   #chart-view #data-chart-tab .download-data-btn i,
   #chart-view #data-chart-tab .download-full-btn i {
-    margin-right: 0.3rem; }
+    margin-right: 0.3em; }
   #chart-view #data-chart-tab .data-table {
-    margin-top: 1.25rem; }
+    margin-top: 1.25em; }
   #chart-view #data-chart-tab .data-table th, #chart-view #data-chart-tab .data-table td {
     padding: 4px 4px; }
   #chart-view #data-chart-tab .data-table th {
@@ -563,15 +563,15 @@ select.disabled {
 /* Sources Tab
 --------------------------------------------- */
 #chart-view #sources-chart-tab {
-  padding: 2.5rem; }
+  padding: 2.5em; }
   #chart-view #sources-chart-tab .datasource-wrapper {
-    margin-bottom: 1.9rem;
-    font-size: 0.8rem; }
+    margin-bottom: 1.9em;
+    font-size: 0.8em; }
   #chart-view #sources-chart-tab .datasource-wrapper h2 {
     width: 70%;
-    padding-bottom: 0.3rem;
+    padding-bottom: 0.3em;
     text-transform: uppercase;
-    font-size: 0.9rem;
+    font-size: 0.9em;
     font-family: inherit;
     border-bottom: 1px solid #35322F; }
   #chart-view #sources-chart-tab .datasource-wrapper h2,
@@ -583,16 +583,16 @@ select.disabled {
   #chart-view #sources-chart-tab .datasource-wrapper h4 {
     margin-top: 2px;
     margin-bottom: 1px;
-    font-size: 0.9rem;
+    font-size: 0.9em;
     font-weight: bold; }
   #chart-view #sources-chart-tab .datasource-property {
     display: inline-block;
     width: 150px; }
   #chart-view #sources-chart-tab table {
-    margin-top: 0.6rem;
-    margin-bottom: 0.6rem; }
+    margin-top: 0.6em;
+    margin-bottom: 0.6em; }
   #chart-view #sources-chart-tab .datasource-additional p {
-    margin-top: 0.3rem; }
+    margin-top: 0.3em; }
 
 /* Map Tab
 --------------------------------------------- */
@@ -603,14 +603,14 @@ select.disabled {
     stroke: #4F4F4F;
     stroke-width: .1px; }
   #chart-view svg.datamap .legend-step text {
-    font-size: 0.6rem; }
+    font-size: 0.6em; }
   #chart-view svg.datamap .legend-step line {
     stroke: #4F4F4F;
     stroke-width: 1px; }
   #chart-view svg.datamap .legend-description {
-    font-size: 0.7rem; }
+    font-size: 0.7em; }
   #chart-view svg.datamap .border-disclaimer {
-    font-size: 0.6rem; }
+    font-size: 0.6em; }
   #chart-view svg.datamap .map-bg {
     fill: #ECF6FC; }
   #chart-view svg.datamap path {
@@ -642,7 +642,7 @@ select.disabled {
     z-index: 2; }
     #chart-view #map-chart-tab .map-controls-header .control {
       float: left;
-      margin-right: 0.2rem;
+      margin-right: 0.2em;
       cursor: pointer;
       -webkit-transition: .3s height;
       transition: .3s height;
@@ -655,7 +655,7 @@ select.disabled {
       #chart-view #map-chart-tab .map-controls-header .control:hover .control-body, #chart-view #map-chart-tab .map-controls-header .control.active .control-body {
         display: block; }
       #chart-view #map-chart-tab .map-controls-header .control .control-head, #chart-view #map-chart-tab .map-controls-header .control .control-body {
-        padding: 0.3rem 0.6rem;
+        padding: 0.3em 0.6em;
         border: 1px solid #EEEEEE;
         background-color: #FAFAFA; }
       #chart-view #map-chart-tab .map-controls-header .control .control-head {
@@ -670,17 +670,17 @@ select.disabled {
           margin-bottom: 0;
           cursor: pointer; }
     #chart-view #map-chart-tab .map-controls-header .target-year-control .control-body {
-      width: 200.5rem; }
+      width: 200.5em; }
     #chart-view #map-chart-tab .map-controls-header .target-year-control input {
       display: inline-block;
-      margin: 0.6rem 0;
+      margin: 0.6em 0;
       /*writing-mode: bt-lr;
 				-webkit-appearance: slider-vertical;*/ }
     #chart-view #map-chart-tab .map-controls-header .region-control .region-label {
-      width: calc(100% - 0.9rem);
+      width: calc(100% - 0.9em);
       text-align: center; }
     #chart-view #map-chart-tab .map-controls-header .region-control ul {
-      margin: 0.3rem 0;
+      margin: 0.3em 0;
       padding: 0;
       list-style-type: none; }
     #chart-view #map-chart-tab .map-controls-header .region-control li {
@@ -689,8 +689,8 @@ select.disabled {
         cursor: pointer;
         color: #FFEC38; }
     #chart-view #map-chart-tab .map-controls-header .settings-control .control-body {
-      width: 17.5rem;
-      padding: 0.3rem 0.9rem 0.3rem 0.6rem; }
+      width: 17.5em;
+      padding: 0.3em 0.9em 0.3em 0.6em; }
       #chart-view #map-chart-tab .map-controls-header .settings-control .control-body input[type=checkbox] {
         margin-right: 6px; }
   #chart-view #map-chart-tab .map-timeline-controls {
@@ -698,7 +698,7 @@ select.disabled {
     bottom: -1px;
     z-index: 2;
     width: 100%;
-    height: 3.1rem;
+    height: 3.1em;
     color: #404040;
     background-color: #FAFAFA;
     border-top: 1px solid #ddd;
@@ -710,12 +710,12 @@ select.disabled {
       float: left; }
     #chart-view #map-chart-tab .map-timeline-controls .play-pause-control {
       /*display: none;*/
-      width: 3.1rem;
+      width: 3.1em;
       height: 100%; }
       #chart-view #map-chart-tab .map-timeline-controls .play-pause-control .btn {
         display: block;
         color: #404040;
-        width: 3.1rem;
+        width: 3.1em;
         height: 100%; }
       #chart-view #map-chart-tab .map-timeline-controls .play-pause-control .play-btn,
       #chart-view #map-chart-tab .map-timeline-controls .play-pause-control .pause-btn {
@@ -729,38 +729,38 @@ select.disabled {
           box-shadow: none; }
       #chart-view #map-chart-tab .map-timeline-controls .play-pause-control .play-btn {
         top: -1px;
-        left: 0.5rem;
-        font-size: 1.6rem; }
+        left: 0.5em;
+        font-size: 1.6em; }
       #chart-view #map-chart-tab .map-timeline-controls .play-pause-control .pause-btn {
         display: none;
         top: 4px;
         left: 6px; }
         #chart-view #map-chart-tab .map-timeline-controls .play-pause-control .pause-btn .fa-stack-1x {
-          font-size: 0.6rem;
+          font-size: 0.6em;
           top: 0px; }
     #chart-view #map-chart-tab .map-timeline-controls .timeline-control {
       /*display: none;*/
       height: 100%;
-      width: calc(100% - 3.1rem);
+      width: calc(100% - 3.1em);
       position: relative;
       cursor: pointer; }
       #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-start-year,
       #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-end-year {
-        min-height: 1.8rem;
-        line-height: 1.2rem;
+        min-height: 1.8em;
+        line-height: 1.2em;
         white-space: nowrap; }
       #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-start-year {
         position: absolute;
-        top: 0.25rem;
-        right: calc(100% + 0.3rem);
-        padding: 0.3rem 0.5rem; }
+        top: 0.25em;
+        right: calc(100% + 0.3em);
+        padding: 0.3em 0.5em; }
       #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-end-year {
         position: absolute;
-        top: 0.25rem;
-        left: calc(100% + 0.3rem);
-        padding: 0.3rem 0.5rem; }
+        top: 0.25em;
+        left: calc(100% + 0.3em);
+        padding: 0.3em 0.5em; }
       #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-slider-label {
-        padding: 0.3rem 0.8rem; }
+        padding: 0.3em 0.8em; }
       #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-slider-label,
       #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-end-year.highlight,
       #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-start-year.highlight {
@@ -778,21 +778,21 @@ select.disabled {
         /* iOS Safari */ }
       #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper {
         position: absolute;
-        top: 0.4rem;
-        left: 4.4rem;
-        right: 4.4rem; }
+        top: 0.4em;
+        left: 4.4em;
+        right: 4.4em; }
         #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper .timeline {
           width: 100%;
-          height: 0.6rem;
+          height: 0.6em;
           margin: 0;
           padding: 0;
           background-color: #ddd; }
         #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper input[type="range"] {
-          height: 0.1rem; }
+          height: 0.1em; }
         #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper .timeline-slider {
           position: absolute;
-          left: 6.25rem;
-          top: -1.25rem;
+          left: 6.25em;
+          top: -1.25em;
           z-index: 2;
           cursor: pointer;
           -webkit-transform: translate(-50%, 0);
@@ -800,14 +800,14 @@ select.disabled {
           #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper .timeline-slider > span {
             display: block; }
           #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper .timeline-slider .timeline-slider-graphic {
-            width: 0.3rem;
-            height: 1.25rem;
+            width: 0.3em;
+            height: 1.25em;
             background-color: #000000;
             margin: 0 auto; }
         #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper .timeline-ticks {
           pointer-events: none;
           position: absolute;
-          top: 0.9rem;
+          top: 0.9em;
           left: 0;
           width: 100%;
           padding-left: 0;
@@ -815,8 +815,8 @@ select.disabled {
           #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper .timeline-ticks li {
             position: absolute;
             display: inline-block;
-            width: 0.25rem;
-            height: 0.5rem;
+            width: 0.25em;
+            height: 0.5em;
             border: 1px solid #FAFAFA;
             font-size: 0;
             list-style-type: none;
@@ -838,7 +838,7 @@ select.disabled {
         padding-left: 0; }
       #chart-view #map-chart-tab .map-timeline-controls .buttons-control .year-btn {
         display: inline-block;
-        margin-right: 0.3rem; }
+        margin-right: 0.3em; }
         #chart-view #map-chart-tab .map-timeline-controls .buttons-control .year-btn:last-child {
           margin-right: 0; }
         #chart-view #map-chart-tab .map-timeline-controls .buttons-control .year-btn.selected .btn, #chart-view #map-chart-tab .map-timeline-controls .buttons-control .year-btn:hover .btn {
@@ -882,31 +882,37 @@ body#chart-export {
 /* Responsiveness
 --------------------------------------------- */
 @media screen and (min-width: 500px) {
-  html {
-    font-size: 14px; } }
+  #chart-view {
+    font-size: 14px; 
+  } 
+}
 
 @media screen and (min-width: 570px) {
-  html {
-    font-size: 15px; } }
+  #chart-view {
+    font-size: 15px; 
+  } 
+}
 
 @media screen and (min-width: 620px) {
-  html {
-    font-size: 16px; } }
+  #chart-view {
+    font-size: 16px; 
+  } 
+}
 
 @media screen and (min-width: 680px) {
-  html {
+  #chart-view {
     font-size: 17px; } }
 
 @media screen and (min-width: 720px) {
-  html {
+  #chart-view {
     font-size: 18px; } }
 
 @media screen and (min-width: 800px) {
-  html {
+  #chart-view {
     font-size: 19px; } }
 
 @media screen and (min-width: 860px) {
-  html {
+  #chart-view {
     font-size: 20px; } }
 
 /*@media screen and (min-width: 920px){
@@ -921,10 +927,10 @@ body#chart-export {
 }*/
 @media (max-width: 720px) {
   #chart-view.embedded {
-    padding: 0.6rem;
+    padding: 0.6em;
     border: 1px solid #ccc; }
   #chart-view:not(.embedded) {
-    padding: 1rem; }
+    padding: 1em; }
   /* Tabs should fill the entire width */
   #chart-view ul.chart-tabs {
     display: table;
@@ -932,7 +938,8 @@ body#chart-export {
   #chart-view ul.chart-tabs li {
     display: table-cell; }
   #chart-view ul.chart-tabs li > a {
-    padding: 0.5rem 0.3rem; }
+    padding: 0.5em 1em; 
+  }
   #chart-view ul.chart-tabs li.edit-btn-wrapper {
     display: none; }
   #chart-view .footer-btns a.chart-link-btn span,
@@ -941,16 +948,16 @@ body#chart-export {
   #chart-view .footer-btns a.embed-btn span {
     display: none; }
   #chart-view .footer-btns i {
-    font-size: 1.2rem; }
+    font-size: 1.2em; }
   #chart-view .nv-add-btn {
     display: none; } }
 
 @media (min-width: 720px) {
   #chart-view.embedded {
-    padding: 1rem 1.5rem;
+    padding: 1em 1.5em;
     border: 1px solid #ccc; }
   #chart-view:not(.embedded) {
-    padding: 1.5rem 3rem; }
+    padding: 1.5em 3em; }
   #chart-view ul.chart-tabs {
     float: right; }
   #chart-view ul.chart-tabs li {

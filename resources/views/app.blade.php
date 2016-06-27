@@ -12,12 +12,6 @@
 
 		<?php Assets::add('admin'); ?>
 		<?php echo App\Util::css(); ?>
-
-		<style>
-			html {
-				font-size: 14px !important;
-			}
-		</style>
 	</head>
 	<body class="skin-blue">
 		<!--[if lt IE 9]>
