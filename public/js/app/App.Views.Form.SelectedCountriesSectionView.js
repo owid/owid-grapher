@@ -15,7 +15,6 @@
 		},
 
 		render: function() {
-
 			//remove everything
 			this.$el.empty();
 
@@ -35,23 +34,20 @@
 				$lisRemoveBtns = $lis.find( ".fa-remove" ),
 				colorPicker = null;
 
-			$lis.on( "click", function( evt ) {
-
+			$lis.on("click", function(evt) {
 				evt.preventDefault();
-
-				var $countryLabel = $( evt.currentTarget );
-				if( colorPicker ) {
+				var $countryLabel = $(evt.currentTarget);
+				if (colorPicker) {
 					colorPicker.close();
 				}
 				colorPicker = new ColorPicker({ target: $countryLabel, currentColor: $countryLabel.attr("data-color") });
-				colorPicker.onSelected = function( value ) {
-					$countryLabel.css( "background-color", value );
-					$countryLabel.attr( "data-color", value );
-					App.ChartModel.updateSelectedCountry( $countryLabel.attr( "data-id" ), value );
-					//that.$el.trigger( "change" );
+				colorPicker.onSelected = function(value) {
+					$countryLabel.css("background-color", value);
+					$countryLabel.attr("data-color", value);
+					App.ChartModel.updateSelectedCountry($countryLabel.attr("data-id"), value);
+					that.$el.trigger("change");
 				};
-
-			} );	
+			});	
 
 			$lisRemoveBtns.on("click", function(evt) {
 				var $parent = $(this).parent(),
@@ -59,6 +55,5 @@
 				App.ChartModel.removeSelectedCountry(countryName);
 			});			
 		}
-
 	});
 })();

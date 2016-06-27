@@ -121,12 +121,12 @@
 			}
 		},
 
-		updateSelectedCountry: function( countryId, color ) {
-			var country = this.findCountryById( countryId );
-			if( country ) {
+		updateSelectedCountry: function(countryId, color) {
+			var country = this.findCountryById(countryId);
+			if (country) {
 				country.color = color;
-				this.trigger( "change:selected-countries" );
-				this.trigger( "change" );
+				this.trigger("change:selected-countries");
+				this.trigger("change");
 			}
 		},
 
@@ -150,7 +150,9 @@
 
 		findCountryById: function( countryId ) {
 			var selectedCountries = this.get( "selected-countries" ),
-				country = _.findWhere(selectedCountries, { id: countryId });
+				country = _.find(selectedCountries, function(entity) {
+					return entity.id == countryId;
+				});
 			return country;
 		},
 
