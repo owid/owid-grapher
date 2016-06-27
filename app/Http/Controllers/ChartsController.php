@@ -82,7 +82,7 @@ class ChartsController extends Controller {
 
 			$chart->name = $data["chart-name"];
 			$chart->notes = $data["chart-notes"];
-			if ($chart->exists && $chart->slug && $chart->slug != $data["chart-slug"]) {
+			if ($chart->published && $chart->slug && $chart->slug != $data["chart-slug"]) {
 				// Changing slug, create redirect
 	            DB::statement("INSERT INTO chart_slug_redirects (slug, chart_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE chart_id=VALUES(chart_id);", [$chart->slug, $chart->id]);                
 			}
