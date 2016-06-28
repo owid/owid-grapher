@@ -16,7 +16,7 @@
 			this.$saveNewBtn = this.$("#save-as-new");
 			this.$publishBtn = this.$("#publish-toggle");
 
-			App.ChartModel.on("change:published", this.render.bind(this));
+			App.ChartModel.on("change", this.render.bind(this));
 			this.render();
 		},
 
@@ -67,6 +67,8 @@
 						for (var key in newAttrs) {
 							App.ChartModel.trigger("change:" + key);
 						}
+
+						this.$saveBtn.text("Saved");
 					}
 				}.bind(this),
 				error: function (model, xhr, options) {
