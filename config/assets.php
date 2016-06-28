@@ -240,7 +240,6 @@ return [
 	            'app/App.Views.Form.TimeSectionView.js',            
 	            'app/App.Views.Form.DataTabView.js',
 	            'app/App.Views.Form.AxisTabView.js',
-	            'app/App.Views.Form.DescriptionTabView.js',
 	            'app/App.Views.Form.StylingTabView.js',
 	            'app/App.Views.Form.ExportTabView.js',
 	            'app/App.Views.Form.MapColorSchemeView.js',

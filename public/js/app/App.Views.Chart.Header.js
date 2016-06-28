@@ -5,7 +5,7 @@
 	App.Views = App.Views || {};
 	App.Views.Chart = App.Views.Chart || {};	
 
-	App.Views.Chart.Header = Backbone.View.extend({
+	App.Views.Chart.Header = owid.View.extend({
 		DEFAULT_LOGO_URL: "uploads/26538.png",
 
 		el: "#chart-view .chart-header",
@@ -19,8 +19,8 @@
 			this.partnerLogo = d3.select(".partner-logo-svg");
 			this.$tabs = $(".header-tab");
 
-			App.ChartModel.on("change", this.render, this);
-			App.DataModel.on("transform", this.render, this);
+			this.listenTo(App.ChartModel, "change", this.render.bind(this));
+			this.listenTo(App.DataModel, "transform", this.render.bind(this));
 		},
 
 		render: function(callback) {

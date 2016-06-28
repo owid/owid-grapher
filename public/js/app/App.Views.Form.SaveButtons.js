@@ -2,7 +2,7 @@
 	"use strict";
 	owid.namespace("App.Views.Form.SaveButtons");
 
-	App.Views.Form.SaveButtons = Backbone.View.extend({
+	App.Views.Form.SaveButtons = owid.View.extend({
 		el: "#form-view .form-section-submit",
 		events: {
 			"click #save-chart": "onSaveChart",
@@ -16,7 +16,7 @@
 			this.$saveNewBtn = this.$("#save-as-new");
 			this.$publishBtn = this.$("#publish-toggle");
 
-			App.ChartModel.on("change", this.render.bind(this));
+			this.listenTo(App.ChartModel, "change", this.render.bind(this));
 			this.render();
 		},
 

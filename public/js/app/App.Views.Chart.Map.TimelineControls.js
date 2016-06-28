@@ -5,18 +5,18 @@
 		TimelineControl = App.Views.Chart.Map.TimelineControl,
 		ButtonsControl = App.Views.Chart.Map.ButtonsControl;
 
-	App.Views.Chart.Map.TimelineControls = Backbone.View.extend({
+	App.Views.Chart.Map.TimelineControls = owid.View.extend({
 		el: "#map-chart-tab .map-timeline-controls",
 		events: {},
 
 		initialize: function( options ) {
 			this.dispatcher = options.dispatcher;
 
-			this.playPauseControl = new PlayPauseControl( options );
-			this.timelineControl = new TimelineControl( options );
-			this.buttonsControl = new ButtonsControl( options );
+			this.playPauseControl = this.addChild(PlayPauseControl, options);
+			this.timelineControl = this.addChild(TimelineControl, options);
+			this.buttonsControl = this.addChild(ButtonsControl, options);
 
-			App.ChartModel.on( "change-map", this.onChartModelChange, this );
+			this.listenTo(App.ChartModel, "change-map", this.onChartModelChange.bind(this));
 
 			return this.render();
 		},

@@ -519,6 +519,29 @@
 			callback();
 	};
 
+	// MISPY: Extension of Backbone view to allow tracking of child views
+	owid.View = Backbone.View.extend({
+		addChild: function(viewClass, options) {
+			this.children = this.children || [];
+
+			var child = new viewClass(options);
+			if (!_.isFunction(child.cleanup))
+				console.error("Attempted to add child without cleanup method");
+			this.children.push(child);
+			return child;
+		},
+
+		cleanup: function() {
+			this.children = this.children || [];
+			
+			this.stopListening();
+			_.each(this.children, function(child) {
+				child.cleanup();
+			});
+			this.children = [];
+		}
+	});
+
 	window.require = function(namespace) {
 		var obj = window;
 		_.each(namespace.split("."), function(level) {

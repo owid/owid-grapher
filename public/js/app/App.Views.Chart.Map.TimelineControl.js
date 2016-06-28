@@ -2,7 +2,7 @@
 	"use strict";
 	owid.namespace("App.Views.Chart.Map.TimelineControl");
 	
-	App.Views.Chart.Map.TimelineControl = Backbone.View.extend({
+	App.Views.Chart.Map.TimelineControl = owid.View.extend({
 		el: "#map-chart-tab .map-timeline-controls .timeline-control",
 		events: {
 			"mousedown": "onMousedown",
@@ -12,8 +12,6 @@
 		initialize: function( options ) {
 			this.dispatcher = options.dispatcher;
 			
-			var mapConfig = App.ChartModel.get( "map-config" );
-			
 			this.$sliderWrapper = this.$el.find( ".timeline-wrapper" );
 			this.$slider = this.$el.find( ".timeline-slider" );
 			this.$sliderLabel = this.$slider.find( ".timeline-slider-label" );
@@ -22,9 +20,9 @@
 			this.$startYear = this.$el.find( ".timeline-start-year" );
 			this.$endYear = this.$el.find( ".timeline-end-year" );
 
-			this.dispatcher.on("increment-time", this.onIncrementTime, this);
-			App.ChartModel.on("change-map", this.onChangeYear, this);
-			App.ChartModel.on("change-map-year", this.onChangeYear, this);			
+			this.listenTo(this.dispatcher, "increment-time", this.onIncrementTime.bind(this));
+			this.listenTo(App.ChartModel, "change-map", this.onChangeYear.bind(this));
+			this.listenTo(App.ChartModel, "change-map-year", this.onChangeYear.bind(this));
 		},
 
 		onMousedown: function(evt) {

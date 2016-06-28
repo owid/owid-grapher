@@ -2,8 +2,7 @@
 	"use strict";
 	owid.namespace("App.Views.Form.AxisTabView");
 
-	App.Views.Form.AxisTabView = Backbone.View.extend({
-
+	App.Views.Form.AxisTabView = owid.View.extend({
 		el: "#form-view #axis-tab",
 		events: {
 			"change input.form-control, select.form-control": "onFormControlChange",
@@ -11,11 +10,9 @@
 			"change [name='y-axis-scale-selector']": "onYaxisScaleSelector"
 		},
 
-		initialize: function( options ) {
-			
+		initialize: function(options) {
 			this.dispatcher = options.dispatcher;
 			this.render();
-
 		},
 
 		render: function() {

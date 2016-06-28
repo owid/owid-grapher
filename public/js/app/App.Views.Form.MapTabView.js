@@ -5,7 +5,7 @@
 	var	owdProjections = App.Views.Chart.Map.Projections,
 		ColorSchemeView = App.Views.Form.MapColorSchemeView;
 
-	App.Views.Form.MapTabView = Backbone.View.extend({
+	App.Views.Form.MapTabView = owid.View.extend({
 
 		el: "#form-view #map-tab",
 		events: {
@@ -47,8 +47,8 @@
 
 			this.render();
 
-			App.ChartVariablesCollection.on("add remove change reset", this.onVariablesCollectionChange, this);
-			App.ChartModel.on("change", this.onChartModelChange, this);			
+			this.listenTo(App.ChartVariablesCollection, "add remove change reset", this.onVariablesCollectionChange.bind(this));
+			this.listenTo(App.ChartModel, "change", this.onChartModelChange.bind(this));
 			this.onChartModelChange();
 		},
 

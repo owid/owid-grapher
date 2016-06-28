@@ -3,7 +3,7 @@
 
 	owid.namespace("App.Views.Chart.Map.MapControls");
 
-	App.Views.Chart.Map.MapControls = Backbone.View.extend({
+	App.Views.Chart.Map.MapControls = owid.View.extend({
 		el: "#map-chart-tab .map-controls-header",
 		events: {
 			"input .target-year-control input": "onTargetYearInput",
@@ -36,8 +36,8 @@
 			//cache original
 			this.originalColorSchemeName = mapConfig.colorSchemeName;
 
-			App.ChartModel.on( "change", this.onChartModelChange, this );
-			App.ChartModel.on( "change-map", this.onChartModelChange, this );
+			this.listenTo(App.ChartModel, "change", this.onChartModelChange.bind(this));
+			this.listenTo(App.ChartModel, "change-map", this.onChartModelChange.bind(this));
 
 			return this.render();
 		},

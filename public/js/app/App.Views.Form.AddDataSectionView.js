@@ -5,7 +5,7 @@
 	var	SelectVarPopup = App.Views.UI.SelectVarPopup,
 		SettingsVarPopup = App.Views.UI.SettingsVarPopup;
 
-	App.Views.Form.AddDataSectionView = Backbone.View.extend({
+	App.Views.Form.AddDataSectionView = owid.View.extend({
 		el: "#form-view #data-tab .add-data-section",
 		events: {
 			"click .add-data-btn": "onAddDataBtn",
@@ -17,12 +17,12 @@
 			this.settingsVarPopup = new SettingsVarPopup();
 			this.settingsVarPopup.init(options);
 
-			App.ChartVariablesCollection.on("reset", this.onVariableReset, this);
-			App.ChartVariablesCollection.on("add", this.onVariableAdd, this);
-			App.ChartVariablesCollection.on("remove", this.onVariableRemove, this);
+			this.listenTo(App.ChartVariablesCollection, "reset", this.onVariableReset.bind(this));
+			this.listenTo(App.ChartVariablesCollection, "add", this.onVariableAdd.bind(this));
+			this.listenTo(App.ChartVariablesCollection, "remove", this.onVariableRemove.bind(this));
 
-			this.dispatcher.on( "variable-label-moved", this.onVariableLabelMoved, this );
-			this.dispatcher.on( "dimension-setting-update", this.onDimensionSettingUpdate, this );
+			this.listenTo(this.dispatcher, "variable-label-moved", this.onVariableLabelMoved.bind(this));
+			this.listenTo(this.dispatcher, "dimension-setting-update", this.onDimensionSettingUpdate.bind(this));
 
 			this.render();
 		},

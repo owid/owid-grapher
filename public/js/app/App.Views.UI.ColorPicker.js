@@ -4,7 +4,7 @@
 
 	var that;
 
-	App.Views.UI.ColorPicker = Backbone.View.extend({
+	App.Views.UI.ColorPicker = owid.View.extend({
 		events: {
 			"click .close-btn": "onClose",
 			"click": "onClick",

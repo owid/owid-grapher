@@ -5,7 +5,7 @@
 	var FormView = require("App.Views.FormView"),
 		ChartView = require("App.Views.ChartView");
 
-	App.Views.Form = Backbone.View.extend({
+	App.Views.Form = owid.View.extend({
 		events: {},
 
 		initialize: function() {

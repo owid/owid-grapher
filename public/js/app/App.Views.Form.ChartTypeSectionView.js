@@ -2,7 +2,7 @@
 	"use strict";
 	owid.namespace("App.Views.Form.ChartTypeSectionView");
 
-	App.Views.Form.ChartTypeSectionView = Backbone.View.extend({
+	App.Views.Form.ChartTypeSectionView = owid.View.extend({
 		el: "#form-view #basic-tab .chart-type-section",
 		events: {
 			"change [name='chart-type']": "onChartTypeChange",
@@ -12,7 +12,7 @@
 			this.dispatcher = options.dispatcher;
 			this.$chartTypeSelect = this.$el.find("[name='chart-type']");
 
-			App.ChartModel.on("change:chart-type", this.render, this);
+			this.listenTo(App.ChartModel, "change:chart-type", this.render.bind(this));
 			this.render();
 		},
 

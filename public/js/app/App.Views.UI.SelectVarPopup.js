@@ -2,7 +2,7 @@
 	"use strict";
 	owid.namespace("App.Views.UI.SelectVarPopup");
 
-	App.Views.UI.SelectVarPopup = Backbone.View.extend({
+	App.Views.UI.SelectVarPopup = owid.View.extend({
 		events: {
 			"click .close": "onCloseBtn",
 			"click .btn-primary": "onSaveBtn",

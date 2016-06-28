@@ -8,7 +8,7 @@
 		Legend = App.Views.Chart.Map.Legend,
 		ChartDataModel = App.Models.ChartDataModel;
 
-	App.Views.Chart.MapTab = Backbone.View.extend({
+	App.Views.Chart.MapTab = owid.View.extend({
 
 		BORDERS_DISCLAIMER_TEXT: "Mapped on current borders",
 
@@ -27,22 +27,22 @@
 		},
 
 		activate: function(callback) {
-			if (!this.mapControls)
-				this.mapControls = new MapControls( { dispatcher: this.dispatcher } );
-			if (!this.timelineControls)
-				this.timelineControls = new TimelineControls( { dispatcher: this.dispatcher } );
+			this.mapControls = this.addChild(MapControls, { dispatcher: this.dispatcher });
+			this.timelineControls = this.addChild(TimelineControls, { dispatcher: this.dispatcher });
 
-			App.ChartModel.on("change", this.update, this);
-			App.ChartModel.on("change-map", function() {
+			this.listenTo(App.ChartModel, "change", this.update.bind(this));
+			this.listenTo(App.ChartModel, "change-map", function() {
 				this.update();
 				App.ChartView.onResize();
-			}.bind(this), this);
-			App.ChartModel.on("change-map-year", this.updateYearOnly, this);
+			});
+			this.listenTo(App.ChartModel, "change-map-year", this.updateYearOnly.bind(this));
+
 			this.update(callback);
 		},
 
 		deactivate: function() {
-			App.ChartModel.off(null, null, this);
+			this.cleanup();
+
 			$(".datamaps-hoverover").remove();
 			d3.selectAll(".datamaps-subunits, .border-disclaimer, .legend-wrapper, .map-bg").remove();			
 			$("svg").removeClass("datamap");

@@ -13,7 +13,7 @@
 		ChartDataModel = require("App.Models.ChartDataModel"),
 		Utils = require("App.Utils");
 	
-	App.Views.ChartView = Backbone.View.extend({
+	App.Views.ChartView = owid.View.extend({
 		activeTab: false,
 		el: "#chart-view",
 
@@ -22,7 +22,7 @@
 		},
 
 		initialize: function(options) {
-			App.ChartView = this;			
+			App.ChartView = this;
 
 			options = options || {};
 			this.dispatcher = options.dispatcher || _.clone(Backbone.Events);
@@ -74,7 +74,7 @@
 			var defaultTabName = App.ChartModel.get("default-tab");
 			this.activateTab(defaultTabName);
 
-			App.ChartModel.on("change", function() {
+			this.listenTo(App.ChartModel, "change", function() {
 				// When the model changes and there's been an error, rebuild the whole current tab
 				// Allows the editor to recover from failure states
 				if ($(".chart-error").length != 0) {

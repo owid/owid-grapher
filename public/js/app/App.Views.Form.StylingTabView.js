@@ -2,7 +2,7 @@
 	"use strict";
 	owid.namespace("App.Views.Form.StylingTabView");
 
-	App.Views.Form.StylingTabView = Backbone.View.extend({
+	App.Views.Form.StylingTabView = owid.View.extend({
 		el: "#form-view #styling-tab",
 		events: {
 			"change [name='logo']": "onLogoChange",
@@ -16,7 +16,6 @@
 		},
 
 		initialize: function( options ) {
-			
 			this.dispatcher = options.dispatcher;
 			
 			//logos
@@ -39,12 +38,11 @@
 			this.$unitsSection = this.$el.find( ".units-section" );
 			this.$unitsContent = this.$unitsSection.find( ".form-section-content" );
 			
-			App.ChartModel.on( "change:chart-type", this.onChartTypeChange, this );
-			App.ChartModel.on( "change:chart-dimensions", this.render, this );
-			App.ChartModel.on("change:line-type", this.renderLineType, this);
+			this.listenTo(App.ChartModel, "change:chart-type", this.onChartTypeChange.bind(this));
+			this.listenTo(App.ChartModel, "change:chart-dimensions", this.render.bind(this));
+			this.listenTo(App.ChartModel, "change:line-type", this.renderLineType.bind(this));
 			
 			this.render();
-
 		},
 
 		render: function() {

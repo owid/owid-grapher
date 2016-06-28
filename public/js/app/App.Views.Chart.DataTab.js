@@ -2,7 +2,7 @@
 	"use strict";
 	owid.namespace("App.Views.Chart.DataTab");
 
-	App.Views.Chart.DataTab = Backbone.View.extend({
+	App.Views.Chart.DataTab = owid.View.extend({
 		el: "#chart-view #data-chart-tab",
 		events: {},
 
@@ -18,11 +18,11 @@
 
 		activate: function(callback) {
 			this.render(callback);
-			App.ChartModel.on("change", this.render.bind(this), this);
+			this.listenTo(App.ChartModel, "change", this.render.bind(this));
 		},
 
 		deactivate: function() {
-			App.ChartModel.off(null, null, this);
+			this.cleanup();
 			this.$dataTable.empty();
 		},
 

@@ -9,13 +9,12 @@
 		BasicTabView = require("App.Views.Form.BasicTabView"),
 		DataTabView = require("App.Views.Form.DataTabView"),
 		AxisTabView = require("App.Views.Form.AxisTabView"),
-		DescriptionTabView = require("App.Views.Form.DescriptionTabView"),
 		StylingTabView = require("App.Views.Form.StylingTabView"),
 		ExportTabView = require("App.Views.Form.ExportTabView"),
 		MapTabView = require("App.Views.Form.MapTabView"),
 		SaveButtonsView = require("App.Views.Form.SaveButtons");
 
-	App.Views.FormView = Backbone.View.extend({
+	App.Views.FormView = owid.View.extend({
 		el: "#form-view",
 		events: {
 			"click .form-collapse-btn": "onFormCollapse",
@@ -65,14 +64,13 @@
 
 		render: function() {
 			//create subviews
-			this.basicTabView = new BasicTabView( { dispatcher: this.dispatcher } );
-			this.dataTabView = new DataTabView( { dispatcher: this.dispatcher } );
-			this.axisTabView = new AxisTabView( { dispatcher: this.dispatcher } );
-			this.descriptionTabView = new DescriptionTabView( { dispatcher: this.dispatcher } );
-			this.stylingTabView = new StylingTabView( { dispatcher: this.dispatcher } );
-			this.exportTabView = new ExportTabView( { dispatcher: this.dispatcher } );
-			this.mapTabView = new MapTabView( { dispatcher: this.dispatcher } );
-			this.saveButtons = new SaveButtonsView( { dispatcher: this.dispatcher } );
+			this.basicTabView = this.addChild(BasicTabView, { dispatcher: this.dispatcher });
+			this.dataTabView = this.addChild(DataTabView, { dispatcher: this.dispatcher });
+			this.axisTabView = this.addChild(AxisTabView, { dispatcher: this.dispatcher });
+			this.stylingTabView = this.addChild(StylingTabView, { dispatcher: this.dispatcher });
+			this.exportTabView = this.addChild(ExportTabView, { dispatcher: this.dispatcher });
+			this.mapTabView = this.addChild(MapTabView, { dispatcher: this.dispatcher });
+			this.saveButtons = this.addChild(SaveButtonsView, { dispatcher: this.dispatcher });
 
 			//fetch doms
 			this.$removeUploadedFileBtn = this.$el.find( ".remove-uploaded-file-btn" );

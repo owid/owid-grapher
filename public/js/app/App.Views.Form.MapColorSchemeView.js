@@ -4,19 +4,19 @@
 
 	var ColorPicker = App.Views.UI.ColorPicker;
 
-	App.Views.Form.MapColorSchemeView = Backbone.View.extend({
+	App.Views.Form.MapColorSchemeView = owid.View.extend({
 		el: "#form-view #map-tab .map-color-scheme-preview",
 		events: {},
 
-		initialize: function( options ) {
+		initialize: function(options) {
 			this.dispatcher = options.dispatcher;
 			
 			this.$colorAutomaticClassification = $("[name='map-color-automatic-classification']");
-			this.$colorAutomaticClassification.on( "change", this.onAutomaticClassification.bind(this) );
+			this.listenTo(this.$colorAutomaticClassification, "change", this.onAutomaticClassification.bind(this));
 			this.$colorInvert = $("[name='map-color-invert']");
-			this.$colorInvert.on("change", this.onColorInvert.bind(this));
+			this.listenTo(this.$colorInvert, "change", this.onColorInvert.bind(this));
 
-			App.ChartModel.on( "change", this.onChartModelChange, this );
+			this.listenTo(App.ChartModel, "change", this.onChartModelChange.bind(this));
 
 			this.render();
 		},

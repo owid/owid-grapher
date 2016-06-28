@@ -1,12 +1,8 @@
 ;(function() {	
 	"use strict";
+	owid.namespace("App.Views.Chart.ScaleSelectors");
 
-	window.App = window.App || {};
-	App.Views = App.Views || {};
-	App.Views.Chart = App.Views.Chart || {};
-
-	App.Views.Chart.ScaleSelectors = Backbone.View.extend({
-
+	App.Views.Chart.ScaleSelectors = owid.View.extend({
 		el: "#chart-view .axis-scale-selectors-wrapper",
 		events: {
 			"click .axis-scale-btn": "onAxisScaleBtn",
@@ -26,7 +22,7 @@
 
 
 			this.render();
-			App.ChartModel.on( "change", this.render, this );
+			this.listenTo(App.ChartModel, "change", this.render.bind(this));
 		},
 
 		render: function() {			

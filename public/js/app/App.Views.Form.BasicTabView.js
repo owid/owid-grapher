@@ -2,7 +2,7 @@
 	"use strict";
 	owid.namespace("App.Views.Form.BasicTabView");
 
-	App.Views.Form.BasicTabView = Backbone.View.extend({
+	App.Views.Form.BasicTabView = owid.View.extend({
 
 		el: "#form-view #basic-tab",
 		events: {

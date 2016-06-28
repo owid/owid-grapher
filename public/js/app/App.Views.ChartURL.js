@@ -14,7 +14,7 @@
 	"use strict";
 	owid.namespace("App.Views.ChartURL");
 
-	App.Views.ChartURL = Backbone.View.extend({
+	App.Views.ChartURL = owid.View.extend({
 		initialize: function(options) {
 			if (App.isEditor) return false; // No URL stuff while editing charts
 
@@ -28,8 +28,7 @@
 						App.ChartView.onSVGExport();
 					} else {
 						window.top.postMessage("chartLoaded", "*");
-						console.log("Loaded chart: " + App.ChartModel.get("chart-name"));
-										}
+						console.log("Loaded chart: " + App.ChartModel.get("chart-name"));						}
 				});
 			});
 
@@ -39,12 +38,12 @@
 			this.chartQueryStr = "?";
 			this.originalDefaultTab = App.ChartModel.get("default-tab");
 
-			$(window).on("query-change", this.onQueryChange.bind(this));
-			options.dispatcher.on("tab-change", this.onTabChange, this);
-			App.ChartModel.on("change:selected-countries", this.updateCountryParam, this);			
-			App.ChartModel.on("change-map-year", this.updateYearParam, this);
-			App.ChartModel.on("change-map", this.updateMapParams, this);
-			App.ChartModel.on("change:currentStackMode", this.updateStackMode, this);
+			this.listenTo($(window), "query-change", this.onQueryChange.bind(this));
+			this.listenTo(options.dispatcher, "tab-change", this.onTabChange.bind(this));
+			this.listenTo(App.ChartModel, "change:selected-countries", this.updateCountryParam.bind(this));			
+			this.listenTo(App.ChartModel, "change-map-year", this.updateYearParam.bind(this));
+			this.listenTo(App.ChartModel, "change-map", this.updateMapParams.bind(this));
+			this.listenTo(App.ChartModel, "change:currentStackMode", this.updateStackMode.bind(this));
 			this.populateFromURL();
 		},
 

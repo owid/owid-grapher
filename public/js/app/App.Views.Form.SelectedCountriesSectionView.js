@@ -4,13 +4,13 @@
 
 	var ColorPicker = App.Views.UI.ColorPicker;
 
-	App.Views.Form.SelectedCountriesSectionView = Backbone.View.extend({
+	App.Views.Form.SelectedCountriesSectionView = owid.View.extend({
 		el: "#form-view #data-tab .selected-countries-box",
 		events: {},
 
-		initialize: function( options ) {
+		initialize: function(options) {
 			this.dispatcher = options.dispatcher;
-			App.ChartModel.on("change:selected-countries", this.render, this);
+			this.listenTo(App.ChartModel, "change:selected-countries", this.render.bind(this));
 			this.render();
 		},
 
@@ -19,7 +19,7 @@
 			this.$el.empty();
 
 			var that = this,
-				selectedCountries = App.ChartModel.get( "selected-countries" );
+				selectedCountries = App.ChartModel.get("selected-countries");
 
 			_.each( selectedCountries, function( v, i ) {
 				var $li = $( "<li class='country-label' data-id='" + v.id + "' data-name='" + v.name + "'>" + v.name + "<span class='fa fa-remove'></span></li>" );

@@ -2,7 +2,7 @@
 	"use strict";
 	owid.namespace("App.Views.Form.ExportTabView");
 
-	App.Views.Form.ExportTabView = Backbone.View.extend({
+	App.Views.Form.ExportTabView = owid.View.extend({
 		el: "#form-view #export-tab",
 		events: {
 			"click [type='checkbox']": "onTabsCheck",
@@ -11,12 +11,10 @@
 		},
 
 		initialize: function( options ) {
-			
 			this.dispatcher = options.dispatcher;
-			this.dispatcher.on( "chart-saved", this.onChartSaved, this );
+			this.listenTo(this.dispatcher, "chart-saved", this.onChartSaved.bind(this));
 			
 			this.render();
-
 		},
 
 		render: function() {

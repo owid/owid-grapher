@@ -2,8 +2,7 @@
 	"use strict";
 	owid.namespace("App.Views.Chart.ChartTab");
 
-	App.Views.Chart.ChartTab = Backbone.View.extend( {
-
+	App.Views.Chart.ChartTab = owid.View.extend({
 		cachedColors: [],
 		el: "#chart-view",
 		events: {
@@ -32,8 +31,6 @@
 		},
 
 		activate: function(callback) {
-			App.ChartModel.on("change", this.onChartModelChange, this);
-
 			this.chartType = App.ChartModel.get("chart-type");
 
 			this.$svg = $("svg");
@@ -75,7 +72,9 @@
 				validDimensions = App.Utils.checkValidDimensions( dimension, App.ChartModel.get( "chart-type" ));
 			}
 
-			if( !validDimensions ) {
+			this.listenTo(App.ChartModel, "change", this.onChartModelChange.bind(this));
+
+			if (!validDimensions) {
 				return false;
 			}
 

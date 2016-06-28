@@ -4,7 +4,7 @@
 
 	var ImportView = require("App.Views.ImportView");
 	
-	App.Views.Import = Backbone.View.extend({
+	App.Views.Import = owid.View.extend({
 		events: {},
 
 		initialize: function() {},

@@ -8,7 +8,7 @@
 		ImportProgressPopup = require("App.Views.UI.ImportProgressPopup"),
 		Utils = require("App.Utils");
 
-	App.Views.ImportView = Backbone.View.extend({
+	App.Views.ImportView = owid.View.extend({
 		datasetName: "",
 		isDataMultiVariant: false,
 		origUploadedData: false,

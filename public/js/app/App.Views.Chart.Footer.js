@@ -2,7 +2,7 @@
 	"use strict";
 	owid.namespace("App.Views.Chart.Footer");
 
-	App.Views.Chart.Footer = Backbone.View.extend({
+	App.Views.Chart.Footer = owid.View.extend({
 		el: "#chart-view .footer-btns",
 		events: {
 			"click .embed-btn": "onEmbed"
@@ -19,9 +19,9 @@
 			this.$embedModal = $(".embed-modal");
 			this.$embedModal.appendTo("body");			
 
-			App.ChartModel.on("change", this.render.bind(this));
-			this.dispatcher.on("header-rendered", this.updateSharingButtons.bind(this));
-			$(window).on("query-change", this.updateSharingButtons.bind(this));
+			this.listenTo(App.ChartModel, "change", this.render.bind(this));
+			this.listenTo(this.dispatcher, "header-rendered", this.updateSharingButtons.bind(this));
+			this.listenTo($(window), "query-change", this.updateSharingButtons.bind(this));
 		},
 
 		render: function(callback) {

@@ -2,7 +2,7 @@
 	"use strict";
 	owid.namespace("App.Views.Chart.Map.PlayPauseControl");
 
-	App.Views.Chart.Map.PlayPauseControl = Backbone.View.extend({
+	App.Views.Chart.Map.PlayPauseControl = owid.View.extend({
 		PLAY_INTERVAL: 500,
 
 		el: "#map-chart-tab .map-timeline-controls .play-pause-control",
@@ -15,10 +15,10 @@
 			this.dispatcher = options.dispatcher;
 
 			this.interval = null;
-			this.$playBtn = this.$el.find( ".play-btn" );
-			this.$pauseBtn = this.$el.find( ".pause-btn" );
+			this.$playBtn = this.$el.find(".play-btn");
+			this.$pauseBtn = this.$el.find(".pause-btn");
 			
-			this.dispatcher.on( "max-increment-time", this.onMaxIncrement, this );
+			this.listenTo(this.dispatcher, "max-increment-time", this.onMaxIncrement.bind(this));
 		},
 
 		render: function() {

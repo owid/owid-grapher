@@ -2,7 +2,7 @@
 	"use strict";
 	owid.namespace("App.Views.Chart.SourcesTab");
 
-	App.Views.Chart.SourcesTab = Backbone.View.extend( {
+	App.Views.Chart.SourcesTab = owid.View.extend( {
 		el: "#chart-view",
 		events: {},
 
@@ -15,15 +15,16 @@
 		activate: function(callback) {
 			this.render();
 
-			App.ChartModel.on("change", function() {
-				App.DataModel.ready(this.render.bind(this));								
-			}.bind(this), this);
+
+			this.listenTo(App.ChartModel, "change", function() {
+				App.DataModel.ready(this.render.bind(this));
+			}.bind(this));
 
 			if (callback) callback();
 		},
 
 		deactivate: function() {
-			App.ChartModel.off(null, null, this);
+			this.cleanup();
 			this.$tab.empty();
 		},
 

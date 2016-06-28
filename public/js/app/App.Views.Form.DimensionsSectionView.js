@@ -2,7 +2,7 @@
 	"use strict";
 	owid.namespace("App.Views.Form.DimensionsSectionsView");
 
-	App.Views.Form.DimensionsSectionView = Backbone.View.extend({
+	App.Views.Form.DimensionsSectionView = owid.View.extend({
 		el: "#form-view #data-tab .dimensions-section",
 		events: {
 			"change [name='group-by-variable']": "onGroupByVariableChange"
@@ -10,8 +10,8 @@
 
 		initialize: function(options) {
 			this.dispatcher = options.dispatcher;
-			App.ChartDimensionsModel.on("change", this.render, this);
-			this.dispatcher.on( "dimension-update", this.onDimensionUpdate, this );
+			this.listenTo(App.ChartDimensionsModel, "change", this.render.bind(this));
+			this.listenTo(this.dispatcher, "dimension-update", this.onDimensionUpdate.bind(this));
 			this.render();
 		},
 

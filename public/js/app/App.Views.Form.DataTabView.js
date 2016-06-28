@@ -9,7 +9,7 @@
 		EntitiesSectionView = require("App.Views.Form.EntitiesSectionView"),
 		TimeSectionView = require("App.Views.Form.TimeSectionView");
 
-	App.Views.Form.DataTabView = Backbone.View.extend({
+	App.Views.Form.DataTabView = owid.View.extend({
 
 		el: "#form-view #data-tab",
 		events: {
@@ -19,12 +19,12 @@
 		initialize: function( options ) {			
 			this.dispatcher = options.dispatcher;
 
-			this.chartTypeSection = new ChartTypeSectionView( { dispatcher: this.dispatcher } );
-			this.addDataSection = new AddDataSectionView( { dispatcher: this.dispatcher } );
-			this.dimensionsSection = new DimensionsSectionView( { dispatcher: this.dispatcher } );
-			this.selectedCountriesSection = new SelectedCountriesSectionView( { dispatcher: this.dispatcher } );
-			this.entitiesSection = new EntitiesSectionView( { dispatcher: this.dispatcher } );
-			this.timeSection = new TimeSectionView( { dispatcher: this.dispatcher } );
+			this.chartTypeSection = this.addChild(ChartTypeSectionView, { dispatcher: this.dispatcher });
+			this.addDataSection = this.addChild(AddDataSectionView, { dispatcher: this.dispatcher });
+			this.dimensionsSection = this.addChild(DimensionsSectionView, { dispatcher: this.dispatcher });
+			this.selectedCountriesSection = this.addChild(SelectedCountriesSectionView, { dispatcher: this.dispatcher });
+			this.entitiesSection = this.addChild(EntitiesSectionView, { dispatcher: this.dispatcher });
+			this.timeSection = this.addChild(TimeSectionView, { dispatcher: this.dispatcher });
 
 			this.render();
 		},

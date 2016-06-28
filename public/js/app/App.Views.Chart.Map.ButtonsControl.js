@@ -2,19 +2,18 @@
 	"use strict";
 	owid.namespace("App.Views.Chart.Map.ButtonsControl");
 	
-	App.Views.Chart.Map.ButtonsControl = Backbone.View.extend({
+	App.Views.Chart.Map.ButtonsControl = owid.View.extend({
 
 		el: "#map-chart-tab .map-timeline-controls .buttons-control",
 		events: {},
 
 		initialize: function( options ) {
-
 			this.dispatcher = options.dispatcher;
 			this.$buttonsWrapper = this.$el.find( ".buttons-wrapper" );
 
-			App.ChartModel.on( "change", this.onChartModelChange, this );
-			App.ChartModel.on( "change-map", this.onChartModelChange, this );
-			App.ChartModel.on( "change-map-year", this.onChartModelChange, this );
+			this.listenTo(App.ChartModel, "change", this.onChartModelChange.bind(this));
+			this.listenTo(App.ChartModel, "change-map", this.onChartModelChange.bind(this));
+			this.listenTo(App.ChartModel, "change-map-year", this.onChartModelChange.bind(this));
 		},
 
 		render: function() {

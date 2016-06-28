@@ -2,7 +2,7 @@
 	"use strict";
 	owid.namespace("App.Views.Form.TimeSectionView");
 
-	App.Views.Form.TimeSectionView = Backbone.View.extend({
+	App.Views.Form.TimeSectionView = owid.View.extend({
 
 		el: "#form-view #data-tab .time-section",
 		events: {
@@ -13,7 +13,7 @@
 
 		initialize: function( options ) {			
 			this.dispatcher = options.dispatcher;
-			App.DataModel.on("change", this.render, this);
+			this.listenTo(App.DataModel, this.render.bind(this));
 			this.render();
 		},
 
