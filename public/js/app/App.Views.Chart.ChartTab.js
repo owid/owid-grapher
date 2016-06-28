@@ -31,6 +31,7 @@
 		},
 
 		activate: function(callback) {
+			this.delegateEvents();
 			this.chartType = App.ChartModel.get("chart-type");
 
 			this.$svg = $("svg");

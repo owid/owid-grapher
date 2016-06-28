@@ -961,7 +961,12 @@ body#chart-export {
   #chart-view ul.chart-tabs {
     float: right; }
   #chart-view ul.chart-tabs li {
-    float: left; } }
+    float: left; } 
+
+  .datamaps-subunits {
+    cursor: pointer;
+  }
+}
 
 /* Miscellaneous
 --------------------------------------------- */

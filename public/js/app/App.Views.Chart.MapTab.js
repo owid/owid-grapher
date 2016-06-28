@@ -57,6 +57,7 @@
 			});
 			this.listenTo(App.ChartModel, "change-map-year", this.updateYearOnly.bind(this));
 
+			this.delegateEvents();
 			this.update(callback);
 		},
 
