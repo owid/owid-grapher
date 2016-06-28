@@ -531,10 +531,25 @@
 			return child;
 		},
 
+		listenTo: function(obj, name, handler) {
+			if (obj.jquery) {
+				this.jqueryListens = this.jqueryListens || [];
+				this.jqueryListens.push({ obj: obj, name: name, handler: handler });
+				obj.on(name, handler);
+			} else {
+				Backbone.View.prototype.listenTo.apply(this, [obj, name, handler]);
+			}
+		},
+
 		cleanup: function() {
 			this.children = this.children || [];
 			
 			this.stopListening();
+			_.each(this.jqueryListens, function(binding) {
+				binding.obj.off(binding.name, binding.handler);
+			});
+			this.jqueryListens = [];			
+
 			_.each(this.children, function(child) {
 				child.cleanup();
 			});
