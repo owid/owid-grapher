@@ -199,10 +199,7 @@
 				if (current && Math.abs(current.year - targetYear) < Math.abs(year - targetYear))
 					continue;
 
-
-				// Transform entity name to match counterpart in world.ids.json
-				// Covers e.g. Cote d'Ivoire -> Cote_d_Ivoire
-				var entityName = entityKey[entities[i]].name.replace(/[ '&:\(\)\/]/g, "_");
+				var entityName = owid.entityNameForMap(entityKey[entities[i]].name)
 
 				mapData[entityName] = {
 					value: parseFloat(values[i]),

@@ -551,6 +551,8 @@
 			this.children = this.children || [];
 			
 			this.stopListening();
+			this.undelegateEvents();
+			
 			_.each(this.jqueryListens, function(binding) {
 				binding.obj.off(binding.name, binding.handler);
 			});

@@ -9,7 +9,7 @@
 		el: "#map-chart-tab .map-timeline-controls",
 		events: {},
 
-		initialize: function( options ) {
+		initialize: function(options) {
 			this.dispatcher = options.dispatcher;
 
 			this.playPauseControl = this.addChild(PlayPauseControl, options);
