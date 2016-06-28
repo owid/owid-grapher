@@ -456,17 +456,22 @@
 
 		transformData: function() {
 			var variableData = this.get("variableData");
-			if (!variableData) return [];
+			var result = [];
 
-			var chartType = App.ChartModel.get("chart-type");
-			if (chartType == App.ChartType.LineChart)
-				return this.transformDataForLineChart();
-			else if (chartType == App.ChartType.ScatterPlot)
-				return this.transformDataForScatterPlot();
-			else if (chartType == App.ChartType.StackedArea)
-				return this.transformDataForStackedArea();	
-			else
-				return this.transformDataForLineChart();
+			if (variableData) {		
+				var chartType = App.ChartModel.get("chart-type");
+				if (chartType == App.ChartType.LineChart)
+					result = this.transformDataForLineChart();
+				else if (chartType == App.ChartType.ScatterPlot)
+					result = this.transformDataForScatterPlot();
+				else if (chartType == App.ChartType.StackedArea)
+					result = this.transformDataForStackedArea();	
+				else
+					result = this.transformDataForLineChart();
+			}
+
+			this.trigger("transform");
+			return result;
 		},
 	});
 })();

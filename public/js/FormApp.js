@@ -19,14 +19,13 @@
 	if( $chartShowWrapper.length && chartId ) {
 		
 		//showing existing chart
-		App.ChartModel = new ChartModel( { id: chartId } );
+		App.ChartModel = new ChartModel({ id: chartId });
 		App.ChartModel.fetch( {
-			success: function( data ) {
-				App.View.start();
-			
+			success: function(data) {
+				App.View.start();			
 			},
-			error: function( xhr ) {
-				console.error( "Error loading chart model", xhr );
+			error: function(xhr) {
+				console.error("Error loading chart model", xhr);
 			}
 		} );
 		//find out if it's in cache

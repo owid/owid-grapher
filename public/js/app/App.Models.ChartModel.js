@@ -27,6 +27,7 @@
 			"chart-name": "",
 			"chart-slug": "",
 			"chart-notes": "",
+			"published": false,
 			// A range of form e.g. [0, 2015] with null meaning "all of it"
 			"chart-time": null,
 			"cache": true,

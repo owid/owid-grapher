@@ -245,6 +245,7 @@ return [
 	            'app/App.Views.Form.ExportTabView.js',
 	            'app/App.Views.Form.MapColorSchemeView.js',
 	            'app/App.Views.Form.MapTabView.js',
+	            'app/App.Views.Form.SaveButtons.js',
 	            'app/App.Views.FormView.js',
 	            'app/App.Views.Form.js',
 

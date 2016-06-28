@@ -5,7 +5,7 @@
 		<div class="box">
 			<div class="box-header">
 				<h2>Charts</h2>
-				<a href="{!! route('charts.create') !!}" class="btn btn-success">Create new chart</a>
+				<a href="{!! route('charts.create') !!}" class="btn btn-success">New chart</a>
 			</div>
 				@if ( !$charts->count() )
 					There are no charts.
@@ -24,7 +24,12 @@
 						<tbody>
 						@foreach( $charts as $chart )
 							<tr>
-								<td><a href="{{ URL::to($chart->slug) }}">{{ $chart->name }}</a></td>
+								<td>
+									@if (!$chart->published)
+										<span style="color: red;">Draft: </span> {{ $chart->name }}
+									@else
+										<a href="{{ URL::to($chart->slug) }}">{{ $chart->name }}</a></td>
+									@endif
 								<td>{{ $chart->notes }}</td>
 								<td>
 									@if ( $chart->origin_url )

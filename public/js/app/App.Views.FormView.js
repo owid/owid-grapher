@@ -12,23 +12,20 @@
 		DescriptionTabView = require("App.Views.Form.DescriptionTabView"),
 		StylingTabView = require("App.Views.Form.StylingTabView"),
 		ExportTabView = require("App.Views.Form.ExportTabView"),
-		MapTabView = require("App.Views.Form.MapTabView");
+		MapTabView = require("App.Views.Form.MapTabView"),
+		SaveButtonsView = require("App.Views.Form.SaveButtons");
 
 	App.Views.FormView = Backbone.View.extend({
-
 		el: "#form-view",
 		events: {
 			"click .form-collapse-btn": "onFormCollapse",
 			"click .remove-uploaded-file-btn": "onRemoveUploadedFile",
-			"click #save-new": "onSaveAsNew",
-			"submit form": "onFormSubmit",
 		},
 
 		initialize: function( options ) {
-			
 			this.dispatcher = options.dispatcher;
 			
-			var formConfig = App.ChartModel.get( "form-config" );
+			var formConfig = App.ChartModel.get("form-config");
 
 			//create related models, either empty (when creating new chart), or prefilled from db (when editing existing chart)
 			if (formConfig && formConfig["variables-collection"]) {
@@ -57,14 +54,13 @@
 				//existing chart, need to load fresh dimensions from database (in case we've added dimensions since creating chart)
 				var that = this;
 				App.ChartDimensionsModel.loadConfiguration( formConfig[ "dimensions" ].id );
-				App.ChartDimensionsModel.on( "change", function() {
+				App.ChartDimensionsModel.on("change", function() {
 					that.render();
-				} );
+				});
 			} else {
 				//new chart, can render straight away
 				this.render();
 			}
-			
 		},
 
 		render: function() {
@@ -76,6 +72,7 @@
 			this.stylingTabView = new StylingTabView( { dispatcher: this.dispatcher } );
 			this.exportTabView = new ExportTabView( { dispatcher: this.dispatcher } );
 			this.mapTabView = new MapTabView( { dispatcher: this.dispatcher } );
+			this.saveButtons = new SaveButtonsView( { dispatcher: this.dispatcher } );
 
 			//fetch doms
 			this.$removeUploadedFileBtn = this.$el.find( ".remove-uploaded-file-btn" );
@@ -83,86 +80,14 @@
 			$('.nav-tabs').stickyTabs();
 		},
 
-		onFormCollapse: function( evt ) {
-			evt.preventDefault();
+		onFormCollapse: function(ev) {
+			ev.preventDefault();
 			var $parent = this.$el.parent();
-			$parent.toggleClass( "form-panel-collapsed" );
-			
+			$parent.toggleClass("form-panel-collapsed");			
 			//trigger re-rendering of chart
 			App.ChartModel.trigger( "change" );
 			//also triger custom event so that map can resize
 			App.ChartModel.trigger( "resize" );
 		},
-
-		onSaveAsNew: function(evt) {
-			$.ajaxSetup({
-				headers: { 'X-CSRF-TOKEN': $('[name="_token"]').val() }
-			});
-
-			evt.preventDefault();
-
-			//put all changes to chart model
-			var formConfig = {
-				"variables-collection": App.ChartVariablesCollection.toJSON(),
-				"entities-collection": App.AvailableEntitiesCollection.toJSON(),
-				"dimensions": App.ChartDimensionsModel.toJSON()
-			};
-
-			App.ChartModel.set( "form-config", formConfig, { silent: true } );			
-			var origId = App.ChartModel.get('id'),
-				origPublished = App.ChartModel.get("published");
-			App.ChartModel.set({ id: null, published: null }, { silent: true });
-
-			// Need to open intermediary tab before AJAX to avoid popup blockers
-			var w = window.open("/", "_blank");
-			App.ChartModel.save({}, {
-				success: function (model, response, options) {
-					w.location = App.ChartModel.url(response.data.id) + "/edit";
-					App.ChartModel.set({ id: origId, published: origPublished }, { silent: true });
-				},
-				error: function (model, xhr, options) {
-					w.close();
-					App.ChartModel.set({ id: origId, published: origPublished }, { silent: true });
-					var $modal = owid.modal({ title: "Error saving chart", content: xhr.responseText });
-					$modal.addClass("error");
-				}
-			});
-		},
-
-		onFormSubmit: function( evt ) {
-			$.ajaxSetup( {
-				headers: { 'X-CSRF-TOKEN': $('[name="_token"]').val() }
-			} );
-
-			evt.preventDefault();
-
-			//put all changes to chart model
-			var formConfig = {
-				"variables-collection": App.ChartVariablesCollection.toJSON(),
-				"entities-collection": App.AvailableEntitiesCollection.toJSON(),
-				"dimensions": App.ChartDimensionsModel.toJSON(),
-			};
-			App.ChartModel.set( "form-config", formConfig, { silent: true } );
-			var currentId = App.ChartModel.get("id");
-
-			var dispatcher = this.dispatcher;
-			App.ChartModel.save( {}, {
-				success: function ( model, response, options ) {
-					if (!currentId) {
-						// New chart saved, switch to edit mode
-						window.location = App.ChartModel.url(response.data.id) + '/edit';
-					} else {
-						alert( "The chart saved successfully" );
-						dispatcher.trigger( "chart-saved", response.data.id, response.data.viewUrl );						
-					}
-				},
-				error: function (model, xhr, options) {
-					var $modal = owid.modal({ title: "Error saving chart", content: xhr.responseText });
-					$modal.addClass("error");
-				}
-			});
-
-		}
-
 	});
 })();

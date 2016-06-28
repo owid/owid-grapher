@@ -8,6 +8,9 @@ use Log;
 class Chart extends Model {
 	protected $guarded = ['id'];
 	protected $dates = ['created_at', 'updated_at', 'last_edited_at'];
+	protected $casts = [
+		'published' => 'boolean'
+	];
 
 	// HACK (Mispy): Tests don't set $_SERVER['QUERY_STRING']
 	public static function getQueryString() {
@@ -24,7 +27,7 @@ class Chart extends Model {
 		$config->{"chart-slug"} = $chart->slug;
 		$config->{"data-entry-url"} = $chart->origin_url;
 		$config->{"published"} = $chart->published;
-		
+
 		// Allow url parameters to override the chart's default
 		// selected countries configuration. We need to use the raw
 		// query string for this because we want to distinguish between
@@ -110,5 +113,19 @@ class Chart extends Model {
 			Log::info($command);
 			exec($command);
 		}
+	}
+
+	// We're using a null/true boolean so that the uniqueness index doesn't
+	// try to verify slugs for unpublished charts
+	public function setPublishedAttribute($value) {
+		if ($value) {
+			$this->attributes['published'] = true;
+		} else {
+			$this->attributes['published'] = null;
+		}
+	}
+
+	public function getPublishedAttribute($value) {
+		return !!$value;
 	}
 }

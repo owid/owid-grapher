@@ -139,7 +139,6 @@
 		var titlePrefix = (unit.title ? unit.title + ": " : ""),
 			unitSuffix = (unit.unit ? s.trim(unit.unit) : "");
 
-
 		if (!isNaN(unit.format) && unit.format >= 0) {
 			var fixed = Math.min(20, parseInt(unit.format, 10));
 			value = d3.format(",." + fixed + "f")(value);
@@ -157,7 +156,7 @@
 		if (unitSuffix == "$" || unitSuffix == "£")
 			return titlePrefix + unitSuffix + value;
 		else {
-			if (unitSuffix[0] != "%")
+			if (unitSuffix && unitSuffix[0] != "%")
 				unitSuffix = " " + unitSuffix;
 			return titlePrefix + value + unitSuffix;
 		}
@@ -481,6 +480,7 @@
 	};
 
 	owid.modal = function(options) {
+		options = _.extend({}, options);		
 		$(".owidModal").remove();
 
 		var html = '<div class="modal owidModal fade" role="dialog">' +
@@ -494,6 +494,8 @@
 								'</div>' +
 								'<div class="modal-body">' +
 								'</div>' +
+								'<div class="modal-footer">' +
+								'</div>' +
 							'</div>' +
 						'</div>' +
 					'</div>';
@@ -504,6 +506,17 @@
 		$modal.find(".modal-body").html(options.content);
 		$modal.modal("show");
 		return $modal;
+	};
+
+	owid.confirm = function(options, callback) {
+		if (_.isFunction(options)) {
+			callback = options;
+			options = {};
+		}
+
+		options = _.extend({ text: "Are you sure?" }, options);
+		if (window.confirm(options.text))
+			callback();
 	};
 
 	window.require = function(namespace) {

@@ -222,8 +222,8 @@
 				yAxisMax = ( yAxis[ "axis-max" ] || null ),
 				xAxisScale = ( xAxis[ "axis-scale" ] || "linear" ),
 				yAxisScale = ( yAxis[ "axis-scale" ] || "linear" ),
-				xAxisFormat = ( xAxis[ "axis-format" ] || 0 ),
-				yAxisFormat = ( yAxis[ "axis-format" ] || 0 );
+				xAxisFormat = xAxis["axis-format"],
+				yAxisFormat = yAxis["axis-format"] || 5;
 
 			//setting up nvd3 chart
 			nv.addGraph(function() {
@@ -400,7 +400,7 @@
 							return App.Utils.formatTimeLabel( timeType, d, xAxisPrefix, xAxisSuffix, xAxisFormat );
 						} else {
 							//is scatter plot, x-axis has some other information
-							return xAxisPrefix + d3.format( "," )( App.Utils.formatValue( d, xAxisFormat ) ) + xAxisSuffix;
+							return xAxisPrefix + owid.unitFormat({ format: xAxisFormat }, d) + xAxisSuffix;
 						}
 					} );
 
@@ -467,9 +467,9 @@
 				}
 
 				that.chart.yAxis
-					.axisLabel( yAxis[ "axis-label" ] )
-					.axisLabelDistance( yAxisLabelDistance )
-					.tickFormat( function(d) { return yAxisPrefix + d3.format( "," )( App.Utils.formatValue( d, yAxisFormat ) ) + yAxisSuffix; })
+					.axisLabel(yAxis["axis-label"])
+					.axisLabelDistance(yAxisLabelDistance)
+					.tickFormat(function(d) { return yAxisPrefix + owid.unitFormat({ format: yAxisFormat }, d) + yAxisSuffix; })
 					.showMaxMin(false);
 
 				//scatter plots need more ticks

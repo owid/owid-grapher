@@ -5,8 +5,11 @@
 
 	//delete buttons
 	$(".delete-btn, .btn-danger").on("click", function(evt) {
+		if ($(evt.target).closest("#form-view").length)
+			return;
+		
 		var confirm = window.confirm("Are you sure?");
-		if( !confirm ) {
+		if(!confirm) {
 			evt.preventDefault();
 		}
 	});

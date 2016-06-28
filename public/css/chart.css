@@ -972,7 +972,7 @@ body#chart-export {
   color: #dd4b39; }
 
 .owidModal .modal-body {
-  overflow: scroll;
+  overflow: auto;
   font-size: 16px;
   max-height: 800px; }
 

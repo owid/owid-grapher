@@ -492,9 +492,10 @@
 				</div>
 			</div>
 			<section class="form-section form-section-submit">
-				<button type="submit" class="btn btn-lg btn-success btn-primary">{{ $submitLabel }}</button>
+				<button id="save-chart" type="submit" class="btn btn-lg btn-success btn-primary">{{ $submitLabel }}</button>
 				@if ($submitLabel == "Update chart")
-					<button id="save-new" class="btn btn-lg btn-primary">Save as new</button>
+					<button id="save-as-new" class="btn btn-lg btn-primary">Save as new</button>
+					<button id="publish-toggle" class="btn btn-lg btn-danger">Publish</button>
 				@endif
 			</section>
 		{!! Form::close() !!}

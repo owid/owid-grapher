@@ -19,7 +19,8 @@
 			this.partnerLogo = d3.select(".partner-logo-svg");
 			this.$tabs = $(".header-tab");
 
-			App.ChartModel.on( "change", this.render, this );
+			App.ChartModel.on("change", this.render, this);
+			App.DataModel.on("transform", this.render, this);
 		},
 
 		render: function(callback) {
