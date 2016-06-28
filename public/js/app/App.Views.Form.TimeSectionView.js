@@ -13,7 +13,7 @@
 
 		initialize: function( options ) {			
 			this.dispatcher = options.dispatcher;
-			this.listenTo(App.DataModel, this.render.bind(this));
+			this.listenTo(App.DataModel, "change", this.render.bind(this));
 			this.render();
 		},
 

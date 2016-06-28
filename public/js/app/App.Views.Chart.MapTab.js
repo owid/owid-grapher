@@ -17,13 +17,33 @@
 		mapControls: null,
 		legend: null,
 		bordersDisclaimer: null,
-		events: {},
+		events: {
+			"click .datamaps-subunit": "onMapClick"
+		},
 
 		initialize: function( options ) {
 			this.dispatcher = options.dispatcher;
 			this.parentView = options.parentView;
 			this.vardataModel = options.vardataModel;
 			this.$tab = this.$el.find("#map-chart-tab");
+		},
+
+		// Open the chart tab for a country when it is clicked (but not on mobile)
+		onMapClick: function(ev) {
+			if (Modernizr.touchevents) return;
+
+			d3.select(ev.target).each(function(d) {
+				var entityName = d.id,
+					availableEntities = App.DataModel.get("availableEntities"),
+					entity = _.find(availableEntities, function(e) {
+						return owid.entityNameForMap(e.name) == d.id;
+					});
+
+				if (!entity) return;
+				App.ChartModel.set({ "selected-countries": [entity] }, { silent: true });
+				App.ChartView.activateTab("chart");
+				App.ChartView.urlBinder.updateCountryParam();
+			});
 		},
 
 		activate: function(callback) {

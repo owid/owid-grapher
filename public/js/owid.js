@@ -233,6 +233,12 @@
 		return html;
 	};
 
+	// Transform entity name to match counterpart in world.ids.json
+	// Covers e.g. Cote d'Ivoire -> Cote_d_Ivoire
+	owid.entityNameForMap = function(name) {
+		return name.replace(/[ '&:\(\)\/]/g, "_");
+	}
+
 	owid.contentGenerator = function(data, isMapPopup) {
 		//set popup
 		var unitsString = App.ChartModel.get("units"),

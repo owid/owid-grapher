@@ -149,7 +149,7 @@
 			}
 		},
 
-		findCountryById: function( countryId ) {
+		findCountryById: function(countryId) {
 			var selectedCountries = this.get( "selected-countries" ),
 				country = _.find(selectedCountries, function(entity) {
 					return entity.id == countryId;

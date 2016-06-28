@@ -141,6 +141,7 @@ return [
 		    ],
 
 		    'chart-js' => [
+		    	'libs/modernizr-custom.js',
 		        'libs/jquery-1.11.3.js',
 		        'libs/papaparse.js',
 		        'libs/d3.js',

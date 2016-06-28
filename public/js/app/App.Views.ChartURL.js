@@ -28,7 +28,8 @@
 						App.ChartView.onSVGExport();
 					} else {
 						window.top.postMessage("chartLoaded", "*");
-						console.log("Loaded chart: " + App.ChartModel.get("chart-name"));						}
+						console.log("Loaded chart: " + App.ChartModel.get("chart-name"));					
+					}
 				});
 			});
 
