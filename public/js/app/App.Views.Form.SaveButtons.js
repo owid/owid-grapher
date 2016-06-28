@@ -67,6 +67,7 @@
 						for (var key in newAttrs) {
 							App.ChartModel.trigger("change:" + key);
 						}
+						App.ChartModel.trigger("change");
 
 						this.$saveBtn.text("Saved");
 					}

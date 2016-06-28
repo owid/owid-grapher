@@ -25,10 +25,6 @@
 		initialize: function( options ) {
 			this.dispatcher = options.dispatcher;
 
-			App.ChartVariablesCollection.on( "add remove change reset", this.onVariablesCollectionChange, this );
-			App.ChartModel.on( "change", this.onChartModelChange, this );
-
-			
 			this.$variableIdSelect = this.$el.find( "[name='map-variable-id']" );
 			
 			this.$timeToleranceInput = this.$el.find( "[name='map-time-tolerance']" );
@@ -50,6 +46,10 @@
 			this.updateTargetYear( true );
 
 			this.render();
+
+			App.ChartVariablesCollection.on("add remove change reset", this.onVariablesCollectionChange, this);
+			App.ChartModel.on("change", this.onChartModelChange, this);			
+			this.onChartModelChange();
 		},
 
 		render: function() {
@@ -58,8 +58,6 @@
 
 			var mapConfig = App.ChartModel.get( "map-config" );
 				
-			this.updateVariableSelect();
-
 			this.$timeToleranceInput.val( mapConfig.timeTolerance );
 			this.$timeRangesInput.val( owid.timeRangesToString(mapConfig.timeRanges) );
 			this.$legendDescription.val( mapConfig.legendDescription );
@@ -109,34 +107,33 @@
 		},
 
 		updateVariableSelect: function() {
-			var mapConfig = App.ChartModel.get( "map-config" ),
-				models = App.ChartVariablesCollection.models,
+			var mapConfig = App.ChartModel.get("map-config"),
+				variables = App.DataModel.get("variableData").variables,
 				html = "";
 
-			if( models && models.length ) {
+			if (!_.isEmpty(variables)) {
 				html += "<option selected disabled>Select variable to display on map</option>";
 			}
 
-			_.each( models, function( v, i ) {
-				//if no variable selected, try to select first
-				var selected = ( i == mapConfig.variableId )? " selected": "";
-				html += "<option value='" + v.get( "id" ) + "' " + selected + ">" + v.get( "name" ) + "</option>";
-			} );
+			_.each(variables, function(v) {
+				var selected = (v.id == mapConfig.variableId) ? " selected" : "";
+				html += "<option value='" + v.id + "' " + selected + ">" + v.name + "</option>";
+			});
 
 			//check for empty html
-			if( !html ) {
-				html += "<option selected disabled>Add some variables in 2.Data tab first</option>";
-				this.$variableIdSelect.addClass( "disabled" );
+			if (!html) {
+				html += "<option selected disabled>Add some variables in Data tab first</option>";
+				this.$variableIdSelect.addClass("disabled");
 			} else {
-				this.$variableIdSelect.removeClass( "disabled" );
+				this.$variableIdSelect.removeClass("disabled");
 			}
-			this.$variableIdSelect.append( $( html ) );
+			this.$variableIdSelect.html(html);
 
-			//check if we should select first variable
-			if( models.length && !this.$variableIdSelect.val() ) {
-				var firstOption = this.$variableIdSelect.find( "option" ).eq( 1 ).val();
-				this.$variableIdSelect.val( firstOption );
-				App.ChartModel.updateMapConfig( "variableId", firstOption );
+			// If we don't have a variable selected, pick first one
+			if (!_.isEmpty(variables) && mapConfig.variableId <= 0) {
+				var firstOption = this.$variableIdSelect.find("option").eq(1).val();
+				this.$variableIdSelect.val(firstOption);
+				App.ChartModel.updateMapConfig("variableId", firstOption);
 			}
 		},
 		
@@ -213,9 +210,8 @@
 			this.render();
 		},
 
-		onVariableIdChange: function( evt ) {
-			var $this = $( evt.target );
-			App.ChartModel.updateMapConfig( "variableId", $this.val() );
+		onVariableIdChange: function() {
+			App.ChartModel.updateMapConfig("variableId", this.$variableIdSelect.val());
 		},
 
 		onTimeToleranceChange: function( evt ) {
@@ -292,11 +288,12 @@
 			App.ChartModel.updateMapConfig("projection", $this.val());
 		},
 
-		onChartModelChange: function( evt ) {
+		onChartModelChange: function(evt) {
 			App.DataModel.ready(function() {
 				this.updateColorSchemeSelect();
 				this.updateTimelineMode();
 				this.updateTargetYear(true);
+				this.updateVariableSelect();
 			}.bind(this));
 		},
 
