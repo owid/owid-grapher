@@ -2,15 +2,10 @@ language: php
 php:
   - 5.5.9
 before_script:
-  - nvm install 6.2.1
-  - nvm use 6.2.1
-  - npm install -g npm@next
   - cp .env.travis .env
-  - npm install
   - composer install --no-interaction
   - mysql -e 'create database forge_test;'
   - mysql -D forge_test < database/schema.sql
-  - gulp
 script:
   - phpunit
 notifications:
