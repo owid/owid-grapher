@@ -32,6 +32,8 @@ Route::group(['middleware' => ['basic', 'session', 'auth']], function()
 	Route::post('variables/{variable}/batchDestroy', [ 'as' => 'valuesBatchDestroy', 'uses' => 'VariablesController@batchDestroy' ]);
 	Route::resource( 'variables', 'VariablesController' );
 	Route::resource( 'values', 'ValuesController' );
+	Route::post('charts/{id}/star', 'ChartsController@star');
+	Route::post('charts/{id}/unstar', 'ChartsController@unstar');
 	Route::resource( 'charts', 'ChartsController' );
 	Route::resource( 'chartTypes', 'ChartTypesController' );
 	Route::resource( 'categories', 'CategoriesController' );

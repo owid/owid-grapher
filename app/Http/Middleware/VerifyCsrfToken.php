@@ -14,11 +14,10 @@ class VerifyCsrfToken extends BaseVerifier {
 	 */
 	public function handle($request, Closure $next)
 	{
-    if (\App::environment() == 'testing') {
-      return $next($request);
-    } else {
+	    if (\App::environment() == 'testing') {
+	      return $next($request);
+	    } else {
 		  return parent::handle($request, $next);
-    }
+	    }
 	}
-
 }

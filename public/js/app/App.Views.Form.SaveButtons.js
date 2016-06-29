@@ -53,10 +53,6 @@
 			App.ChartModel.set(attrs, { silent: true });
 
 
-			$.ajaxSetup({
-				headers: { 'X-CSRF-TOKEN': $('[name="_token"]').val() }
-			});
-
 			App.ChartModel.save({}, {
 				success: function (model, response, options) {
 					if (isNew) {
@@ -97,10 +93,6 @@
 			// Need to open intermediary tab before AJAX to avoid popup blockers
 			var w = window.open("/", "_blank");
 
-			$.ajaxSetup({
-				headers: { 'X-CSRF-TOKEN': $('[name="_token"]').val() }
-			});
-
 			App.ChartModel.save({}, {
 				success: function (model, response, options) {
 					w.location = App.ChartModel.url(response.data.id) + "/edit";
@@ -132,12 +124,12 @@
 			$modal.find(".modal-body").html(
 				'<p>This chart will be available at:</p>' +
 				'<p><a href="' + url + '" target="_blank">' + url + '</a></p>' +
-				'<p>And displayed on the front page under Latest Visualization. Proceed?</p>'
-			)
+				'<p>Proceed?</p>'
+			);
 			$modal.find(".modal-footer").html(
 				'<button class="btn btn-danger">Publish chart</button>' +
 				'<button class="btn btn-cancel" data-dismiss="modal">Cancel</button>'
-			)
+			);
 
 			$modal.find(".btn-danger").on("click", function() {
 				$modal.modal('hide');

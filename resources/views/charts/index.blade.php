@@ -10,20 +10,32 @@
 				@if ( !$charts->count() )
 					There are no charts.
 				@else
-					<table class="table table-bordered table-hover dataTable">
+					<table id="charts-index" class="table table-bordered table-hover dataTable">
 						<thead>
 							<tr>
+								<th><i class="fa fa-star"></i></th>
 								<th>Name</th>
 								<th>Notes</th>
 								<th>Last Seen On</th>
 								<th>Last Updated</th>
 								<th></th>
-								<th></th>
+								<th></th>								
 							</tr>
 						</thead>
 						<tbody>
 						@foreach( $charts as $chart )
 							<tr>
+								<td>
+									@if ($chart->published)
+										<a class="star-toggle" data-chart-id="{{$chart->id}}">
+											@if ($chart->starred)
+												<i class="fa fa-star"></i>
+											@else
+												<i class="fa fa-star-o"></i>
+											@endif
+										</a>
+									@endif
+								</td>
 								<td>
 									@if (!$chart->published)
 										<span style="color: red;">Draft: </span> {{ $chart->name }}

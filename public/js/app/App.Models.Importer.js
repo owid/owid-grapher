@@ -127,11 +127,6 @@
 				entities: importData.entities,
 				variables: variables
 			};
-
-			$.ajaxSetup({
-				headers: { 'X-CSRF-TOKEN': $('[name="_token"]').val() }
-			});
-
 			setTimeout(function() {
 				this.dispatcher.trigger("import-progress", "Preparing import for " + variables.length*importData.years.length + " values", true, "1/2");
 			}.bind(this), 100);

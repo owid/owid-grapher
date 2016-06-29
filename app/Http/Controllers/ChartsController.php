@@ -187,4 +187,18 @@ class ChartsController extends Controller {
 		return redirect()->route( 'charts.index' )->with( 'message', 'Chart deleted.' );
 	}
 
+	public function star($chartId) {
+		DB::transaction(function() use ($chartId) {
+			DB::statement("UPDATE charts SET starred = FALSE WHERE starred = TRUE");
+			Chart::whereId($chartId)->update([ 'starred' => true ]);
+		});
+		return response()->json([ 'starred' => true ]);
+	}
+
+	public function unstar($chartId) {
+		DB::transaction(function() use ($chartId) {
+			Chart::whereId($chartId)->update([ 'starred' => false ]);
+		});
+		return response()->json([ 'starred' => false ]);
+	}
 }

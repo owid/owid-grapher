@@ -3,6 +3,12 @@
 ;(function() {
 	"use strict";
 
+	// CSRF setup
+	$.ajaxSetup({
+		headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr("value") }
+	});
+
+
 	//delete buttons
 	$(".delete-btn, .btn-danger").on("click", function(evt) {
 		if ($(evt.target).closest("#form-view").length)
@@ -38,5 +44,29 @@
 	});
 	$(".btn-toolbar .btn-group").each(function() {
 		$(this).children().addClass("btn btn-default");
+	});
+
+	// MISPY: Starring of charts from the index page.
+	$("#charts-index").each(function() {
+		$(this).find("a.star-toggle").click(function(ev) {
+			var $toggle = $(ev.target.closest('a')),
+				chartId = parseInt($toggle.attr("data-chart-id")),
+				starred = $toggle.find('i').hasClass('fa-star'),
+				route = Global.rootUrl + "/charts/" + chartId + "/" + (starred ? "unstar" : "star");
+
+			$.post(route, function() {
+				starred = !starred;
+				// Currently only one chart starred at a time
+				$("a.star-toggle > i").removeClass("fa-star");
+				$("a.star-toggle > i").addClass("fa-star-o");
+				if (starred) {
+					$toggle.find('i').removeClass('fa-star-o');
+					$toggle.find('i').addClass('fa-star');
+				} else {
+					$toggle.find('i').removeClass('fa-star');
+					$toggle.find('i').addClass('fa-star-o');
+				}
+			});
+		});
 	});
 })();
