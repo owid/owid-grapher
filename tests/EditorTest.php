@@ -61,7 +61,7 @@ EOT;
     }
 
     /**
-     * @expectedException Illuminate\Database\QueryException
+     * @expectedException Symfony\Component\HttpKernel\Exception\HttpException
      **/
     public function testChartSlugConflict() {
         $this->createChart([ 'chart-slug' => "slug" ]);
