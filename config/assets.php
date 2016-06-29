@@ -156,7 +156,7 @@ return [
 		        'libs/chosen.jquery.js',
 		        'libs/colorbrewer.js',
 		        'libs/jquery.lazyloadxt.extra.js',
-		        'libs/async.min.js',
+		        'libs/async.js',
 		        'libs/js.cookie.js',
 
 		        'owd-colorbrewer.js',
