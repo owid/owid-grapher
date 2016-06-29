@@ -1,6 +1,7 @@
 <?php namespace App\Http\Controllers;
 
 use Input;
+use App;
 use App\Chart;
 use App\Setting;
 use App\Variable;
@@ -82,9 +83,15 @@ class ChartsController extends Controller {
 
 			$chart->name = $data["chart-name"];
 			$chart->notes = $data["chart-notes"];
-			if ($chart->published && $chart->slug && $chart->slug != $data["chart-slug"]) {
-				// Changing slug, create redirect
-	            DB::statement("INSERT INTO chart_slug_redirects (slug, chart_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE chart_id=VALUES(chart_id);", [$chart->slug, $chart->id]);                
+			if ($data["published"]) {
+				if (DB::table("chart_slug_redirects")->where("chart_id", "!=", $chart->id)->where("slug", "=", $data["chart-slug"])->exists()) {
+					App::abort(422, "This chart slug was previously used by another chart: " . $data["chart-slug"]);
+				} else if (DB::table("charts")->where("id", "!=", $chart->id)->where("slug", "=", $data["chart-slug"])->exists()) {
+					App::abort(422, "This chart slug is currently in use by another chart: " . $data["chart-slug"]);
+				} else if ($chart->published && $chart->slug && $chart->slug != $data["chart-slug"]) {
+					// Changing slug of an already published chart, create redirect
+		            DB::statement("INSERT INTO chart_slug_redirects (slug, chart_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE chart_id=VALUES(chart_id);", [$chart->slug, $chart->id]);                
+				}
 			}
 			$chart->slug = $data["chart-slug"];
 			$chart->published = $data["published"];
