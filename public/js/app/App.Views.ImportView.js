@@ -155,6 +155,11 @@
 			if (!data)
 				return;
 			
+			// Strip out rows full of empty cells
+			data.rows = _.filter(data.rows, function(row) { 
+				return !_.every(row, function(cell) { return _.isEmpty(cell); });
+			});
+
 			this.uploadedData = data;
 			//store also original, this.uploadedData will be modified when being validated
 			this.origUploadedData = $.extend( true, {}, this.uploadedData);
