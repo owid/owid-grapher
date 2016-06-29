@@ -27,7 +27,7 @@
 							<tr>
 								<td>
 									@if ($chart->published)
-										<a class="star-toggle" data-chart-id="{{$chart->id}}">
+										<a class="star-toggle" data-chart-id="{{$chart->id}}" title="Show this chart on the front page of the website.">
 											@if ($chart->starred)
 												<i class="fa fa-star"></i>
 											@else
