@@ -127,6 +127,7 @@
 				entities: importData.entities,
 				variables: variables
 			};
+
 			setTimeout(function() {
 				this.dispatcher.trigger("import-progress", "Preparing import for " + variables.length*importData.years.length + " values", true, "1/2");
 			}.bind(this), 100);
@@ -138,7 +139,7 @@
 			}).done(function(result) {
 				this.dispatcher.trigger("import-progress", "Importing everything", true, "2/2", true, result.datasetId);
 			}.bind(this)).fail(function(xhr) {
-				this.dispatcher.trigger("import-progress", 'Error: "' + xhr.responseJSON + '"', false, "1/2");
+				this.dispatcher.trigger("import-progress", 'Error: "' + JSON.stringify(xhr.responseJSON) + '"', false, "1/2");
 			}.bind(this));
 		},
 	});
