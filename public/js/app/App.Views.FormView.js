@@ -18,7 +18,6 @@
 		el: "#form-view",
 		events: {
 			"click .form-collapse-btn": "onFormCollapse",
-			"click .remove-uploaded-file-btn": "onRemoveUploadedFile",
 		},
 
 		initialize: function( options ) {
@@ -72,9 +71,6 @@
 			this.mapTabView = this.addChild(MapTabView, { dispatcher: this.dispatcher });
 			this.saveButtons = this.addChild(SaveButtonsView, { dispatcher: this.dispatcher });
 
-			//fetch doms
-			this.$removeUploadedFileBtn = this.$el.find( ".remove-uploaded-file-btn" );
-			this.$filePicker = this.$el.find( ".file-picker-wrapper [type=file]" );
 			$('.nav-tabs').stickyTabs();
 		},
 

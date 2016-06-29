@@ -151,48 +151,21 @@
 
 		},
 
-		onCsvSelected: function( err, data ) {
-			
-			if( !data ) {
+		onCsvSelected: function(err, data) {
+			if (!data)
 				return;
-			}
-			
-			//do we need to transpose data? - DISABLED, introduction of intervals made the automatic detection of format difficult
-			/*if( !this.isDataMultiVariant ) {
-				var isOriented = this.detectOrientation( data.rows );
-				if( !isOriented ) {
-					data.rows = Utils.transpose( data.rows );
-				}
-			}*/
 			
 			this.uploadedData = data;
 			//store also original, this.uploadedData will be modified when being validated
 			this.origUploadedData = $.extend( true, {}, this.uploadedData);
-			this.createDataTable( data.rows );
-			this.validateEntityData( data.rows );
-			this.validateTimeData( data.rows );
+			this.createDataTable(data.rows);
+			this.validateEntityData(data.rows);
+			this.validateTimeData(data.rows);
 			this.mapData();
 
 		},
 
-		detectOrientation: function( data ) {
-
-			var isOriented = true;
-
-			//first row, second cell, should be number (time)
-			if( data.length > 0 && data[0].length > 0 ) {
-				var secondCell = data[ 0 ][ 1 ];
-				if( isNaN( secondCell ) ) {
-					isOriented = false;
-				}
-			}
-
-			return isOriented;
-
-		},
-
 		createDataTable: function( data ) {
-
 			var tableString = "<table>";
 
 			_.each( data, function( rowData, rowIndex ) {
@@ -213,18 +186,15 @@
 
 			var $table = $( tableString );
 			this.$csvImportTableWrapper.append( $table );
-
 		},
 
 		updateVariableList: function( data ) {
-
 			var $list = this.$variableSectionList;
 			$list.empty();
 			
 			var that = this;
-			if( data && data.variables ) {
-				_.each( data.variables, function( v, k ) {
-					
+			if (data && data.variables) {
+				_.each(data.variables, function(v, k) {					
 					//if we're creating new variables injects into data object existing variables
 					if( that.existingVariable && that.existingVariable.attr( "data-id" ) > 0 ) {
 						v.id = that.existingVariable.attr( "data-id" );
@@ -235,17 +205,15 @@
 					var $li = that.createVariableEl( v );
 					$list.append( $li );
 				
-				} );
+				});
 			}
-
 		},
 
 		createVariableEl: function( data ) {
-
-			if( !data.unit ) {
+			if (!data.unit) {
 				data.unit = "";
 			}
-			if( !data.description ) {
+			if (!data.description) {
 				data.description = "";
 			}
 
@@ -285,8 +253,6 @@
 		},
 
 		mapData: function() {
-
-			
 			//massive import version
 			//var mappedData = App.Utils.mapPanelData( this.uploadedData.rows ),
 			var mappedData = ( !this.isDataMultiVariant )?  Utils.mapSingleVariantData( this.uploadedData.rows, this.datasetName ): Utils.mapMultiVariantData( this.uploadedData.rows ),
@@ -297,15 +263,9 @@
 			this.$removeUploadedFileBtn.show();
 
 			this.updateVariableList( json );
-
 		},
 
 		validateEntityData: function( data ) {
-
-			/*if( this.isDataMultiVariant ) {
-				return true;
-			}*/
-
 			//validateEntityData doesn't modify the original data
 			var $dataTableWrapper = $( ".csv-import-table-wrapper" ),
 				$dataTable = $dataTableWrapper.find( "table" ),
@@ -316,9 +276,6 @@
 			//make sure we're not validating one entity multiple times
 			entities = _.uniq( entities );
 			
-			//get rid of first one (time label)
-			//entities.shift();
-
 			$.ajax( {
 				url: Global.rootUrl + "/entityIsoNames/validate",
 				data: { entities: JSON.stringify(entities) },
@@ -356,7 +313,6 @@
 		},
 
 		validateTimeData: function( data ) {
-
 			var $dataTableWrapper = $( ".csv-import-table-wrapper" ),
 				$dataTable = $dataTableWrapper.find( "table" ),
 				timeDomain = ( !this.isDataMultiVariant )? $dataTable.find( "th:first-child" ).text(): $dataTable.find( "th:nth-child(2)" ).text(),
@@ -559,16 +515,40 @@
 			this.$dataInput.val("");
 			this.$csvImportResult.find(".validation-result").remove();
 
-			// $.fn.parse comes from Papa Parse for some weird namespace-carefree reason
-			this.$filePicker.parse({
-				config: {
+			var file = this.$filePicker.get(0).files[0];
+			if (!file) return;				
+
+			var filetype = 'csv';
+			if (file.name.match(/\.xlsx?$/i))
+				filetype = 'xls';
+
+
+			var reader = new FileReader();
+			
+			reader.onload = function(e) {
+				var data = e.target.result,
+					csv = null;
+				
+				if (filetype == 'xls') {
+					var workbook = XLSX.read(data, {type: 'binary'});
+					csv = XLSX.utils.sheet_to_csv(workbook.Sheets[workbook.SheetNames[0]]);
+				} else {
+					csv = data;
+				}
+
+				Papa.parse(csv, {
 					skipEmptyLines: true,
 					complete: function(obj) {
 						var data = { rows: obj.data };
 						this.onCsvSelected(null, data);
 					}.bind(this)
-				}
-			});
+				});
+			}.bind(this);
+
+			if (filetype == 'xls')
+				reader.readAsBinaryString(file);
+			else
+				reader.readAsText(file);
 		},
 
 		onRemoveUploadedFile: function() {
@@ -599,17 +579,15 @@
 		},
 
 		onDatasourceChange: function( evt ) {
-
 			var $target = $( evt.currentTarget );
 			if( $target.val() < 1 ) {
 				this.$newDatasourceWrapper.slideDown();
 			} else {
 				this.$newDatasourceWrapper.slideUp();
 			}
-
 		},
 
-		onSubCategoryChange: function( evt ) {
+		onSubCategoryChange: function(evt) {
 			
 		},
 
@@ -633,7 +611,6 @@
 		},
 
 		onFormSubmit: function( evt ) {
-
 			evt.preventDefault();
 
 			var $validateEntitiesCheckbox = $( "[name='validate_entities']" ),

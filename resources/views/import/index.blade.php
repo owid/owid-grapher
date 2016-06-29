@@ -63,8 +63,7 @@
 						<h3><span class="form-section-digit">3</span>Upload file with data</h3>
 					</div>
 					<div class="form-section-content">
-						<p class="form-section-desc">For now, just CSV files are working. We'll have xls and choice of external source (e.g. Gapminder) in the future.</p>
-						<p class="form-section-desc">Examples of valid formats: <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_single-var.png">single variable</a>, <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_multi-var.png">multiple variables</a>.
+						<p class="form-section-desc">Can be a CSV or XLSX file. Examples of valid row layouts: <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_single-var.png">single variable</a>, <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_multi-var.png">multiple variables</a>.
 						<div class="file-picker-wrapper">
 							<input type="file" autocomplete="off"/>
 							<a href="#" title="Remove uploaded file" class="remove-uploaded-file-btn"><span class="visuallyhidden">Remove uploaded file</span><i class="fa fa-remove"></i></a>
@@ -89,22 +88,12 @@
 					</div>
 					<div class="form-section-content">
 						<p class="form-section-desc">Please enter all the sources that were used in creating the data set – like: "World Bank, UN IGME, Atkinson and Morelli (2013), ...</p>
-						<!--<select name='datasource_id' class="form-control">
-							<option value="" selected>Create new datasources</option>
-							@foreach( $data['datasources'] as $datasource )
-								<option data-datasource-id="{{ $datasource->id }}" value="{{ $datasource->id }}">{{ $datasource->name }}</option>
-							@endforeach
-						</select>-->
 						<div class="new-datasource-wrapper">
 							<label>
 								<span>Source name:</span>
 								<p class="form-section-desc">This name will be shown in the visualization footer.</p>
 								<input class="form-control required" type="text" name="source_name" />
 							</label>
-							<!--<label>
-								<span>Source link:</span>
-								<input class="form-control required" type="text" name="source_link" />
-							</label>-->
 							<label>
 								<span>Source description:</span>
 								<textarea cols="75" rows="18" class="form-control datasource-editor required" type="text" name="source_description">{{ $data['sourceTemplate']->meta_value }}</textarea>

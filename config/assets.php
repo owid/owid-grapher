@@ -254,6 +254,8 @@ return [
 
 			/* Importer collection: assets specific to the importer part of the admin. */
 			'importer' => [
+				'libs/jszip.js',
+				'libs/xlsx.js',
 		        'libs/papaparse.js',
 		        'libs/moments.min.js',
 		        'app/App.Utils.js',
