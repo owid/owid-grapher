@@ -63,7 +63,7 @@
 						<h3><span class="form-section-digit">3</span>Upload file with data</h3>
 					</div>
 					<div class="form-section-content">
-						<p class="form-section-desc">Can be a CSV or XLSX file. Examples of valid row layouts: <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_single-var.png">single variable</a>, <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_multi-var.png">multiple variables</a>.
+						<p class="form-section-desc">CSV file is preferred. Examples of valid row layouts: <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_single-var.png">single variable</a>, <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_multi-var.png">multiple variables</a>.
 						<div class="file-picker-wrapper">
 							<input type="file" autocomplete="off"/>
 							<a href="#" title="Remove uploaded file" class="remove-uploaded-file-btn"><span class="visuallyhidden">Remove uploaded file</span><i class="fa fa-remove"></i></a>
@@ -108,7 +108,7 @@
 						<h3><span class="form-section-digit">6</span>Select category</h3>
 					</div>
 					<div class="form-section-content">
-						<p class="form-section-desc">Properly categorizing dataset by selecting category and sub-category will help you to find it easier later. If you feel like there are some keywords that describe dataset well, you can add them as tags. For now just write tags separated by comma.</p>
+						<p class="form-section-desc">Select an appropriate category for the dataset. </p>
 						<label>Category
 							<select name='category_id' class="form-control">
 								<option value="" disabled selected>Select your category</option>
@@ -125,11 +125,6 @@
 								@endforeach
 							</select>
 						</label>
-						<div>
-							<label>Source Tags
-								{!! Form::text('new_dataset_tags', '', array('class' => 'form-control ', 'placeholder' => 'Enter tags separated by comma' )); !!}
-							</label>
-						</div>
 					</div>
 			</section>
 			<section class="form-section variable-type-section">

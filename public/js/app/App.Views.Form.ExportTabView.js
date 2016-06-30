@@ -97,10 +97,9 @@
 
 		},
 
-		generateIframeCode: function( id, viewUrl ) {
+		generateIframeCode: function(id, viewUrl) {
 			var viewUrl = Global.rootUrl + '/' + App.ChartModel.get("chart-slug");
-			this.$iframeTextArea.text( '<iframe src="' +viewUrl + '" style="width:' + App.ChartModel.get( "iframe-width" ) + ';height:' + App.ChartModel.get( "iframe-height" ) + '; border: 0px none;"></iframe>' );
+			this.$iframeTextArea.text('<iframe src="' + viewUrl + '" style="width: 100%; height: 660px; border: 0px none;"></iframe>');
 		}
-
 	});
 })();

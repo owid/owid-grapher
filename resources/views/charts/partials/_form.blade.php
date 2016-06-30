@@ -383,16 +383,6 @@
 							<h2><span class="form-section-digit">n</span>Embed your chart</h2>
 						</div>
 						<div class="form-section-content">
-							<div class="embed-size-wrapper">
-								<label>
-									<span>Width</span>
-									<input type="text" name="iframe-width" class="form-control" />
-								</label>
-								<label>
-									<span>Height</span>
-									<input type="text" name="iframe-height" class="form-control" />
-								</label>
-							</div>
 							<p class="form-section-desc">Copy and paste code below to use the chart on your page.</p>
 							<textarea rows="4" cols="50" name="iframe" @if (isset($chart)) data-view-url="{!! route( 'view', $chart->id ) !!}" @endif placeholder="No chart created, yet. Click 'Create chart' button at the bottom to get code for embedding." readonly></textarea>
 						</div>

@@ -127,9 +127,7 @@
 				this.$downloadSVGButton.show();
 			}
 
-			var iframeWidth = App.ChartModel.get("iframe-width") || "100%";
-			var iframeHeight = App.ChartModel.get("iframe-height") || "660px";
-			var embedCode = '<iframe src="' + canonicalUrl + '" width="' + iframeWidth + '" height="' + iframeHeight + '" frameborder="0"></iframe>';
+			var embedCode = '<iframe src="' + canonicalUrl + '" style="width: 100%; height: 660px; border: 0px none;"></iframe>';
 			this.$embedModal.find("textarea").text(embedCode);
 		},
 
