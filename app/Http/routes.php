@@ -28,6 +28,7 @@ Route::group(['middleware' => ['basic', 'session', 'auth']], function()
 {
 	Route::resource( 'entities', 'EntitiesController' );
 	Route::resource( 'datasources', 'DatasourcesController' );
+	Route::get('datasets/{dataset}.json', 'DatasetsController@showJson');
 	Route::resource( 'datasets', 'DatasetsController' );
 	Route::post('variables/{variable}/batchDestroy', [ 'as' => 'valuesBatchDestroy', 'uses' => 'VariablesController@batchDestroy' ]);
 	Route::resource( 'variables', 'VariablesController' );

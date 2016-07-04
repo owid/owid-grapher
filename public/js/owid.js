@@ -514,6 +514,24 @@
 		return $modal;
 	};
 
+	// A generic "this went really wrong" error handler for errors which
+	// ought to be totally fatal and unrecoverable for that page
+	owid.reportError = function(err, title) {
+		if (err.responseText) {
+			err = err.status + " " + err.statusText + "\n" + "    " + err.responseText;
+		} else {
+			err = err.stack;
+		}
+		console.error(err);
+
+		var $modal = owid.modal();
+		$modal.find(".modal-title").html(title || "Error");
+		$modal.find(".modal-body").text(err);
+		$modal.addClass("error");
+		$modal.on('hidden.bs.modal', function() { window.location.reload(); });
+		return $modal;
+	};
+
 	owid.confirm = function(options, callback) {
 		if (_.isFunction(options)) {
 			callback = options;

@@ -15,6 +15,10 @@
 		uploadedData: false,
 		variableNameManual: false,
 		sourceNameManual: false,
+		// Info for existing variables is retrieved if the user selects an existing dataset
+		existingVariables: [],
+		// New variables extracted from the CSV
+		newVariables: [],
 
 		el: "#import-view",
 		events: {
@@ -193,25 +197,14 @@
 			this.$csvImportTableWrapper.append( $table );
 		},
 
-		updateVariableList: function( data ) {
+		updateVariableList: function() {
 			var $list = this.$variableSectionList;
 			$list.empty();
 			
-			var that = this;
-			if (data && data.variables) {
-				_.each(data.variables, function(v, k) {					
-					//if we're creating new variables injects into data object existing variables
-					if( that.existingVariable && that.existingVariable.attr( "data-id" ) > 0 ) {
-						v.id = that.existingVariable.attr( "data-id" );
-						v.name = that.existingVariable.attr( "data-name" );
-						v.unit = that.existingVariable.attr( "data-unit" );
-						v.description = that.existingVariable.attr( "data-description" );
-					}
-					var $li = that.createVariableEl( v );
-					$list.append( $li );
-				
-				});
-			}
+			_.each(this.newVariables, function(v, k) {					
+				var $li = this.createVariableEl(v);
+				$list.append($li);				
+			}.bind(this));
 		},
 
 		createVariableEl: function( data ) {
@@ -267,7 +260,8 @@
 			this.$dataInput.val( jsonString );
 			this.$removeUploadedFileBtn.show();
 
-			this.updateVariableList( json );
+			this.newVariables = json.variables;
+			this.updateVariableList();
 		},
 
 		validateEntityData: function( data ) {
@@ -490,23 +484,21 @@
 
 		},
 
-		onExistingDatasetChange: function( evt ) {
+		onExistingDatasetChange: function() {
+			var $option = this.$existingDatasetSelect.find('option:selected');
+			this.datasetId = $option.val();
+			this.datasetName = $option.text();
 
-			var $input = $( evt.currentTarget );
-			this.datasetName = $input.find( 'option:selected' ).text();
+			if (!this.datasetId) return;
 
-			if( $input.val() ) {
-				//filter variable select to show variables only from given dataset
-				var $options = this.$existingVariablesSelect.find( "option" );
-				$options.hide();
-				$options.filter( "[data-dataset-id=" + $input.val() + "]" ).show();
-				//appear also the first default
-				$options.first().show();
-				this.$existingVariablesWrapper.show();
-			} else {
-				this.$existingVariablesWrapper.hide();
-			}
-
+			$.get(Global.rootUrl + "/datasets/" + this.datasetId + ".json")
+				.done(function(dataset) { 
+					this.existingVariables = dataset.variables;
+					this.updateVariableList();
+				}.bind(this))
+				.fail(function(err) {
+					owid.reportError(err, "Unable to load dataset " + this.datasetId + " \"" + this.datasetName + "\"");
+				}.bind(this));
 		},
 
 		onExistingVariableChange: function( evt ) {

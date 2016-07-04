@@ -61,8 +61,28 @@ class DatasetsController extends Controller {
 	 * @return Response
 	 */
 	public function show(Dataset $dataset)
-	{
-		return view( 'datasets.show', compact('dataset') );
+	{	
+		return view('datasets.show', compact('dataset'));
+	}
+
+	public function showJson(Dataset $dataset) {
+		$data = [
+			'name' => $dataset->name,
+			'variables' => []
+		];
+
+		$variables = [];
+		foreach ($dataset->variables as $var) {
+			$vardata = [
+				'name' => $var->name,
+				'unit' => $var->unit,
+				'description' => $var->description
+			];
+
+			$data['variables'][] = $vardata;
+		}
+
+		return $data;
 	}
 
 	/**
@@ -76,7 +96,7 @@ class DatasetsController extends Controller {
 		$datasources = Datasource::lists( 'name', 'id' );
 		$categories = DatasetCategory::all()->lists( 'name', 'id' );
 		$subcategories = DatasetSubcategory::all()->lists( 'name', 'id' );
-		return view( 'datasets.edit', compact( 'dataset', 'categories', 'subcategories', 'datasources' ) );
+		return view('datasets.edit', compact('dataset', 'categories', 'subcategories', 'datasources'));
 	}
 
 	/**
