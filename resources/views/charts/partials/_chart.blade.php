@@ -150,13 +150,8 @@
 				</div>
 				<div class="map-timeline-controls clearfix">
 					<div class="play-pause-control control">
-						<a href="#" class="play-btn btn"><i class="fa fa-play-circle-o"></i></a>
-						<a href="#" class="pause-btn btn">
-							<span class="fa-stack fa">
-								<i class="fa fa-circle-o fa-stack-2x"></i>
-								<i class="fa fa-pause fa-stack-1x"></i>
-							</span>
-						</a>
+						<a class="play-btn btn"><i class="fa fa-play-circle-o"></i></a>
+						<a class="pause-btn btn"><i class="fa fa-pause-circle-o"></i></a>
 					</div>
 					<div class="timeline-control control">
 						<div class="timeline-wrapper">
