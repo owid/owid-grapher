@@ -5,6 +5,7 @@
 	var papaparse = require("Papa"),
 		moment = require("moment"),
 		Importer = require("App.Models.Importer"),
+
 		ImportProgressPopup = require("App.Views.UI.ImportProgressPopup"),
 		Utils = require("App.Utils");
 
@@ -15,7 +16,6 @@
 		uploadedData: false,
 		variableNameManual: false,
 		sourceNameManual: false,
-		// Info for existing variables is retrieved if the user selects an existing dataset
 		existingVariables: [],
 		// New variables extracted from the CSV
 		newVariables: [],
@@ -31,7 +31,6 @@
 			"change [name=category_id]": "onCategoryChange",
 			"change [name=existing_dataset_id]": "onExistingDatasetChange",
 			"change [name=datasource_id]": "onDatasourceChange",
-			"change [name=existing_variable_id]": "onExistingVariableChange",
 			"change [name=subcategory_id]": "onSubCategoryChange",
 			"change [name=multivariant_dataset]": "onMultivariantDatasetChange",
 			"click .new-dataset-description-btn": "onDatasetDescription",
@@ -40,6 +39,7 @@
 
 		initialize: function( options ) {	
 			this.dispatcher = options.dispatcher;
+			App.DatasetModel = new App.Models.Import.DatasetModel({ dispatcher: this.dispatcher });
 			this.render();
 
 			// Clear any back button cache we might have and save the
@@ -57,6 +57,8 @@
 					this.saveForm(window.localStorage);
 				}.bind(this));
 			}.bind(this), 1);
+
+			App.DatasetModel.on("change:newVariables change:oldVariables", this.updateVariableList.bind(this));
 		},
 
 		/* Save the contents of the form (barring file upload) to a (local)storage object
@@ -125,8 +127,6 @@
 			this.$newDatasetDescriptionBtn = this.$el.find(".new-dataset-description-btn");
 			this.$newDatasetDescription = this.$el.find( "[name=new_dataset_description]" );
 			this.$existingDatasetSelect = this.$el.find( "[name=existing_dataset_id]" );
-			this.$existingVariablesWrapper = this.$el.find( ".existing-variable-wrapper" );
-			this.$existingVariablesSelect = this.$el.find( "[name=existing_variable_id]" );
 			this.$variableSectionList = this.$variableSection.find( "ol" );
 
 			//import section
@@ -198,56 +198,77 @@
 		},
 
 		updateVariableList: function() {
+			var newVariables = App.DatasetModel.get("newVariables");
+
 			var $list = this.$variableSectionList;
 			$list.empty();
 			
-			_.each(this.newVariables, function(v, k) {					
+			_.each(newVariables, function(v, k) {					
 				var $li = this.createVariableEl(v);
 				$list.append($li);				
 			}.bind(this));
 		},
 
-		createVariableEl: function( data ) {
-			if (!data.unit) {
-				data.unit = "";
-			}
-			if (!data.description) {
-				data.description = "";
-			}
+		createVariableEl: function(data) {
+			var oldVariables = App.DatasetModel.get("oldVariables");
 
-			var stringified = JSON.stringify( data );
+			data.name = data.name || '';
+			data.unit = data.unit || '';
+			data.description = data.description || '';
+
+			var stringified = JSON.stringify(data);
 			//weird behaviour when single quote inserted into hidden input
 			stringified = stringified.replace( "'", "&#x00027;" );
 			stringified = stringified.replace( "'", "&#x00027;" );
 			
-			var $li = $( "<li class='variable-item clearfix'></li>" ),
-				$inputName = $( "<label>Name*<input class='form-control' value='" + data.name + "' placeholder='Enter variable name'/></label>" ),
-				$inputUnit = $( "<label>Unit<input class='form-control' value='" + data.unit + "' placeholder='Enter variable unit' /></label>" ),
-				$inputDescription = $( "<label>Description<input class='form-control' value='" + data.description + "' placeholder='Enter variable description' /></label>" ),
-				$inputData = $( "<input type='hidden' name='variables[]' value='" + stringified + "' />" );
-			
-			$li.append( $inputName );
-			$li.append( $inputUnit );
-			$li.append( $inputDescription );
-			$li.append( $inputData );
-				
-			var that = this,
-				$inputs = $li.find( "input" );
-			$inputs.on( "input", function( evt ) {
-				//update stored json
-				var json = $.parseJSON( $inputData.val() );
-				json.name = $inputName.find( "input" ).val();
-				json.unit = $inputUnit.find( "input" ).val();
-				json.description = $inputDescription.find( "input" ).val();
-				$inputData.val( JSON.stringify( json ) );
-			} );
-			$inputs.on( "focus", function( evt ) {
-				//set flag so that values in input won't get overwritten by changes to dataset name
-				that.variableNameManual = true;
+			var $li = $(
+				'<li class="variable-item clearfix">' +
+					'<label>Name<input name="name" class="form-control" value="' + data.name + '" placeholder="Enter variable name"/></label>' +
+					'<label>Unit<input name="unit" class="form-control" value="' + data.unit + '" placeholder="Enter variable unit"/></label>' +
+					'<label>Description<input name="description" class="form-control" value="' + data.description + '" placeholder="Enter variable description"/></label>' +
+					'<label style="display: none;">Overwrite existing<input type="checkbox" name="overwrite"/></label>' +
+				'</li>'
+			);
+
+			var $inputName = $li.find("[name=name]"),
+				$inputUnit = $li.find("[name=unit]"),
+				$inputDescription = $li.find("[name=description]"),
+				$inputOverwriteExisting = $li.find("[name=overwrite]"),
+				$inputs = $li.find("input");
+
+			function checkExisting() {
+				var existing = _.findWhere(oldVariables, { name: data.name });
+				if (existing) {
+					console.log(data.overwrite);
+					if (!data.overwrite) {
+						$inputs.prop("disabled", true);
+						$inputName.prop("disabled", null);
+						$inputOverwriteExisting.prop("disabled", null);						
+					} else {
+						$inputs.prop("disabled", null);
+					}
+					$inputOverwriteExisting.closest("label").show();
+				} else {
+					$inputs.prop("disabled", null);
+					$inputOverwriteExisting.closest("label").hide();
+				}
+			}
+
+			checkExisting();
+			$inputs.on("input, change", function() {
+				data.name = $inputName.val();
+				data.unit = $inputUnit.val();
+				data.description = $inputDescription.val();
+				data.overwrite = $inputOverwriteExisting.is(":checked");
+				checkExisting();
 			});
 
-			return $li;
+			$inputs.on("focus", function() {
+				//set flag so that values in input won't get overwritten by changes to dataset name
+				this.variableNameManual = true;
+			}.bind(this));
 
+			return $li;
 		},
 
 		mapData: function() {
@@ -260,8 +281,7 @@
 			this.$dataInput.val( jsonString );
 			this.$removeUploadedFileBtn.show();
 
-			this.newVariables = json.variables;
-			this.updateVariableList();
+			App.DatasetModel.set("newVariables", json.variables);
 		},
 
 		validateEntityData: function( data ) {
@@ -363,12 +383,9 @@
 				}
 
 				if( !valid ) {
-
 					$timeCell.addClass( "alert-error" );
-					$timeCell.removeClass( "alert-success" );
-				
+					$timeCell.removeClass( "alert-success" );				
 				} else {
-					
 					//correct date
 					$timeCell.addClass( "alert-success" );
 					$timeCell.removeClass( "alert-error" );
@@ -450,17 +467,12 @@
 			if ($input.val() === "0") {
 				this.$newDatasetSection.hide();
 				this.$existingDatasetSection.show();
-				//should we appear variable select as well?
-				if( !this.$existingDatasetSelect.val() ) {
-					this.$existingVariablesWrapper.hide();
-				} else {
-					this.$existingVariablesWrapper.show();
-				}
+				this.existingVariables = [];
+				this.updateVariableList();
 			} else {
 				this.$newDatasetSection.show();
 				this.$existingDatasetSection.hide();
 			}
-
 		},
 
 		onNewDatasetNameChange: function( evt ) {
@@ -486,24 +498,8 @@
 
 		onExistingDatasetChange: function() {
 			var $option = this.$existingDatasetSelect.find('option:selected');
-			this.datasetId = $option.val();
-			this.datasetName = $option.text();
-
-			if (!this.datasetId) return;
-
-			$.get(Global.rootUrl + "/datasets/" + this.datasetId + ".json")
-				.done(function(dataset) { 
-					this.existingVariables = dataset.variables;
-					this.updateVariableList();
-				}.bind(this))
-				.fail(function(err) {
-					owid.reportError(err, "Unable to load dataset " + this.datasetId + " \"" + this.datasetName + "\"");
-				}.bind(this));
-		},
-
-		onExistingVariableChange: function( evt ) {
-			var $input = $( evt.currentTarget );
-			this.existingVariable = $input.find( 'option:selected' );
+			var id = $option.val();
+			App.DatasetModel.set("id", id);
 		},
 
 		onFileChange: function() {

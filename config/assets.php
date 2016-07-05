@@ -260,6 +260,7 @@ return [
 		        'libs/moments.min.js',
 		        'app/App.Utils.js',
 		        'app/App.Models.ChartModel.js',        
+		        'app/App.Models.Import.DatasetModel.js',
 		        'app/App.Models.Importer.js',
 		        'app/App.Views.UI.ImportProgressPopup.js',
 		        'app/App.Views.ImportView.js',

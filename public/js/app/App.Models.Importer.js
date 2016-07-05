@@ -13,7 +13,7 @@
 
 	// TODO (Mispy): I have renovated the uploading side of the importer in isolation
 	// from ImportView itself, so there's probably some unneeded duplication here.
-	App.Models.Importer = Backbone.Model.extend( {
+	App.Models.Importer = Backbone.Model.extend({
 		initialize: function (options) {
 			this.dispatcher = options.dispatcher;
 		},
