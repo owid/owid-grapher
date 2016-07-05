@@ -44,6 +44,5 @@ $factory->define(App\Entity::class, function (Faker\Generator $faker) {
         'name' => $faker->name,
         'code' => $faker->name,
         'validated' => 1,
-        'fk_ent_t_id' => 5
     ];
 });
