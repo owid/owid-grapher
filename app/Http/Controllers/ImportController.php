@@ -91,8 +91,7 @@ class ImportController extends Controller {
 					'name' => $dataset['name'],
 					'description' => isset($dataset['description']) ? $dataset['description'] : "",
 					'fk_dst_cat_id' => $dataset['categoryId'],
-					'fk_dst_subcat_id' => $dataset['subcategoryId'],
-					'fk_dsr_id' => $sourceId
+					'fk_dst_subcat_id' => $dataset['subcategoryId']
 				];
 
 				$datasetId = Dataset::create($datasetProps)->id;

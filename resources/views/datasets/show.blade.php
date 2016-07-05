@@ -17,14 +17,6 @@
 				{{ $dataset->description }}
 			</div>
 		</div>
-		<div class="property-wrapper">
-			<h3 class="property-title">Source</h3>
-			<div class="property-value">
-				@if ($dataset->datasource)
-					{!! Html::link('/datasources/' .$dataset->datasource->id, $dataset->datasource->name ) !!}
-				@endif
-			</div>
-		</div>
 		<h3>Variables</h3>
 		<ul>
 			@foreach( $dataset->variables as $variable )
