@@ -33,7 +33,7 @@ class ViewController extends Controller {
 		foreach ($ids as $id) {
 			$charts[] = [
 				'localUrl' => \Request::root() . "/view/" . $id,
-				'liveUrl' => "http://ourworldindata.org/grapher/view/" . $id
+				'liveUrl' => "https://ourworldindata.org/grapher/view/" . $id
 			];
 		}
 

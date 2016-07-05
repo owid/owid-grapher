@@ -142,7 +142,6 @@ class ApiController extends Controller {
 				'entities.code as code', 
 				'entities.name as name', 
 				'entity_types.name as type' )
-			->leftJoin( 'entity_types', 'entities.fk_ent_t_id', '=', 'entity_types.id' )
 			->orderBy( 'id' )
 			->get();
 

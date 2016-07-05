@@ -99,13 +99,13 @@ class ImportController extends Controller {
 
 			// First, we insert all of the entities with "on duplicate key update", ensuring
 			// they all exist in the database.
-			$insertQuery = "INSERT INTO entities (name, fk_ent_t_id) VALUES";
+			$insertQuery = "INSERT INTO entities (name) VALUES";
 
 			$pdo = DB::connection()->getPdo();
 			foreach ($entityKey as $name) {
 				if ($name != $entityKey[0])
 					$insertQuery .= ",";
-				$insertQuery .= " (" . $pdo->quote($name) . ",5)";
+				$insertQuery .= " (" . $pdo->quote($name) . ")";
 			}
 
 			$insertQuery .= " ON DUPLICATE KEY UPDATE name=VALUES(name);";
