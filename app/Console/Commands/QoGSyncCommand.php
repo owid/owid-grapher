@@ -105,7 +105,7 @@ class QoGSyncCommand extends Command
         }
 
         $this->idempotentInsert("variables", $columns, $values);
-    }
+}
 
     public function sync() {
         $path = public_path() . "/../tmp/qog_std_ts_jan16.csv";
@@ -126,10 +126,10 @@ class QoGSyncCommand extends Command
 
         $this->info("Reading entities from CSV");
 
-        $entities = [];
+/*        $entities = [];
         $entityCheck = [];
         $count = 0;
-        /*while ($row = fgetcsv($handle)) {
+        while ($row = fgetcsv($handle)) {
             $entity = $row[1];
             if (!isset($entityCheck[$entity])) {
                 $entities[]= $entity;
@@ -139,10 +139,10 @@ class QoGSyncCommand extends Command
             $count += 1;
             if ($count % 1000 == 0)
                 $this->info($count);
-        } */    
+        }*/
 
         $this->info("Writing entities to database");
-        //$this->idempotentInsert("entities", ["name"], $entities);
+//        $this->idempotentInsert("entities", ["name"], $entities);
 
         $entityNameToId = DB::table('entities')
             ->select('id', 'name')
@@ -157,6 +157,7 @@ class QoGSyncCommand extends Command
         $this->info("Removing old data values");
         DB::statement("DELETE FROM data_values WHERE fk_var_id IN (" . implode(array_values($varNameToId), ",") . ")");
 
+        DB::statement("SET foreign_key_checks=0;");
         $this->info("Importing data values from CSV");
         fseek($handle, 0);
         fgetcsv($handle);
@@ -166,11 +167,19 @@ class QoGSyncCommand extends Command
 
         $count = 0;
         while ($row = fgetcsv($handle)) {
-            $entityId = intval($entityNameToId[$row[1]]);
+            $entityName = $row[1];
+            if (!isset($entityNameToId[$entityName])) {
+                $this->idempotentInsert("entities", ["name"], [$entityName]);
+                $entityNameToId[$entityName] = DB::select("SELECT id FROM entities WHERE name=?", [$entityName])[0]->id;
+            }
+
+            $entityId = intval($entityNameToId[$entityName]);
             $year = intval($row[2]);
-            for ($i = 9; $i < sizeof($row); $i++) {
+            for ($i = 9; $i < sizeof($row); $i++) {                
                 $varId = intval($varNameToId[$header[$i]]);
                 $value = $row[$i];
+
+                if ($value == "") continue;
 
                 $values[]= $varId;
                 $values[]= $entityId;
@@ -179,22 +188,22 @@ class QoGSyncCommand extends Command
             }
 
             $count += 1;
-            if ($count % 10 == 0) {
+            if ($count % 200 == 0) {
                 $this->insert("data_values", $columns, $values);
                 $values = [];
                 $this->info($count);
-                return;
             }
         }
 
         // Final insert
         if (sizeof($values) > 0)
             $this->idempotentInsert("data_values", $columns, $values);            
+        DB::statement("SET foreign_key_checks=1;");
     }
 
     public function handle() {
-        DB::transaction(function() {
+//        DB::transaction(function() {
             $this->sync();            
-        });
+//        });
     }
 }
