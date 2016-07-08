@@ -1169,4 +1169,11 @@ body#chart-export .tab-pane {
 .modal-backdrop {
     z-index: -1;
 }
+
+/* Make World line slightly thicker */
+
+.nv-group.world {
+    stroke-width: 5 !important;
+}
+
 /*# sourceMappingURL=front-sass.css.map */

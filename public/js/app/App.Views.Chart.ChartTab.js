@@ -107,12 +107,13 @@
 		},
 
 		render: function(callback) {
-			var localData = App.DataModel.transformData();
-			var timeType = "Year";
+			var localData = App.DataModel.transformData(),
+				chartType = App.ChartModel.get("chart-type"),
+				svg = d3.select("svg");
 
 			if (!localData) {
 				return;
-			}
+			}			
 
 			this.updateAvailableCountries();
 
@@ -206,6 +207,11 @@
 			} else {
 				localData = _.sortBy(localData, function(obj) { return obj.key; });
 			}
+			
+			// Add classes to the series so we can style e.g. the World line differently
+			_.each(localData, function(d) {
+				d.classed = owid.makeSafeForCSS(d.key);
+			});
 
 			//get axis configs
 			var xAxis = App.ChartModel.get( "x-axis" ),
@@ -371,7 +377,8 @@
 								that.chart.interactiveLayer.tooltip.hidden(true);							
 						});
 					}
-				});				
+				});			
+
 	
 				that.chart.dispatch.on("stateChange", function() {
 					/* HACK (Mispy): Ensure stacked area charts maintain the correct dimensions on 
@@ -397,7 +404,7 @@
 					.tickFormat( function(d) {
 						if (chartType != App.ChartType.ScatterPlot) {
 							//x axis has time information
-							return App.Utils.formatTimeLabel( timeType, d, xAxisPrefix, xAxisSuffix, xAxisFormat );
+							return App.Utils.formatTimeLabel("Year", d, xAxisPrefix, xAxisSuffix, xAxisFormat );
 						} else {
 							//is scatter plot, x-axis has some other information
 							return xAxisPrefix + owid.unitFormat({ format: xAxisFormat }, d) + xAxisSuffix;

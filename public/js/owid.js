@@ -585,6 +585,15 @@
 		}
 	});
 
+	owid.makeSafeForCSS = function(name) {
+	    return name.replace(/[^a-z0-9]/g, function(s) {
+	        var c = s.charCodeAt(0);
+	        if (c == 32) return '-';
+	        if (c >= 65 && c <= 90) return s.toLowerCase();
+	        return '__' + ('000' + c.toString(16)).slice(-4);
+	    });
+	};
+
 	window.require = function(namespace) {
 		var obj = window;
 		_.each(namespace.split("."), function(level) {
