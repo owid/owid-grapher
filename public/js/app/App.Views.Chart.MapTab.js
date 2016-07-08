@@ -94,6 +94,7 @@
 				this.mapData = this.transformData(variableData);
 				this.applyColors(this.mapData, this.colorScale);
 				this.dataMap.updateChoropleth(this.mapData, { reset: true });
+				this.dataMap.options.data = this.mapData;
 				this.parentView.header.render();
 			}.bind(this));
 		}, 100),
@@ -200,7 +201,7 @@
 				if (current && Math.abs(current.year - targetYear) < Math.abs(year - targetYear))
 					continue;
 
-				var entityName = owid.entityNameForMap(entityKey[entities[i]].name)
+				var entityName = owid.entityNameForMap(entityKey[entities[i]].name);
 
 				mapData[entityName] = {
 					value: parseFloat(values[i]),
