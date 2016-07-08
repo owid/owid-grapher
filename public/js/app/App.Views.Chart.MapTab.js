@@ -30,7 +30,7 @@
 
 		// Open the chart tab for a country when it is clicked (but not on mobile)
 		onMapClick: function(ev) {
-			if (Modernizr.touchevents) return;
+			if (Modernizr.touchevents || !_.includes(App.ChartModel.get("tabs"), "chart")) return;
 
 			d3.select(ev.target).each(function(d) {
 				var entityName = d.id,
