@@ -94,6 +94,8 @@
 				this.mapData = this.transformData(variableData);
 				this.applyColors(this.mapData, this.colorScale);
 				this.dataMap.updateChoropleth(this.mapData, { reset: true });
+				// HACK (Mispy): When changing to a year without data for a country, need to do this
+				// to get the right highlightFillColor.
 				this.dataMap.options.data = this.mapData;
 				this.parentView.header.render();
 			}.bind(this));

@@ -35,7 +35,6 @@
 		renderSVG: function(callback) {
 			var sources = App.DataModel.transformDataForSources(),
 				sourceNames = _.uniq(_.pluck(sources, "name")),
- 				license = App.DataModel.get("variableData").license,
  				chartDesc = App.ChartModel.get("chart-description"),
 				footerSvgContent = "Data obtained from: ";
 				
@@ -44,24 +43,27 @@
 				footerSvgContent += "<a class='source-link' href='#'>" + sourceName + "</a>";
 			});
 
-			if (license && license.description) {
-				var desc = license.description;
-				var originUrl = App.ChartModel.get("data-entry-url");
+			// Static image export has slightly different footer text
+			if ($("#chart-export").length > 0)
+				var desc = 'The author Max Roser licensed this visualization under a <a class="licence-link" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA license</a>. At the source - *data-entry* - you find the data for download and the empirical research on this topic that puts this visualization in context.';
+			else
+				var desc = 'The author Max Roser licensed this visualization under a <a class="licence-link" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA license</a>. At the source - *data-entry* - you find the empirical research on this topic that puts this visualization in context.';
 
-				// Make sure the link back to OWID is consistent
-				if (originUrl && s.contains(originUrl, "ourworldindata.org")) {
-					var a = document.createElement('a');
-					a.href = originUrl;
-					var path = a.pathname[0] == "/" ? a.pathname : "/" + a.pathname; // MISPY: cross-browser compat (Internet Explorer doesn't have a slash)
-					var finalUrl = "https://ourworldindata.org" + path + a.search;
-					desc = desc.replace(/\*data-entry\*/, "<a class='origin-link' target='_blank' href='" + finalUrl + "'>" + "OurWorldInData.org" + path + a.search + "</a>");					
-				} else {
-					desc = desc.replace(/\*data-entry\*/, 
-						"<a class='origin-link' target='_blank' href='http://ourworldindata.org'>OurWorldInData.org</a>");					
-				}
+			var originUrl = App.ChartModel.get("data-entry-url");
 
-				footerSvgContent += "\n\n" + desc;
-			}			
+			// Make sure the link back to OWID is consistent
+			if (originUrl && s.contains(originUrl, "ourworldindata.org")) {
+				var a = document.createElement('a');
+				a.href = originUrl;
+				var path = a.pathname[0] == "/" ? a.pathname : "/" + a.pathname; // MISPY: cross-browser compat (Internet Explorer doesn't have a slash)
+				var finalUrl = "https://ourworldindata.org" + path + a.search;
+				desc = desc.replace(/\*data-entry\*/, "<a class='origin-link' target='_blank' href='" + finalUrl + "'>" + "OurWorldInData.org" + path + a.search + "</a>");					
+			} else {
+				desc = desc.replace(/\*data-entry\*/, 
+					"<a class='origin-link' target='_blank' href='http://ourworldindata.org'>OurWorldInData.org</a>");					
+			}
+
+			footerSvgContent += "\n\n" + desc;
 
 			// Any additional, manually inputed footer text
 			if (chartDesc)

@@ -450,6 +450,8 @@
 			} else if (word == "<LINKSTOP>") {
 				$currentLink = null;
 				breakSpan();
+				if (words[0] && words[0] != ".")
+					words.unshift(" ");
 				continue;
 			}
 
