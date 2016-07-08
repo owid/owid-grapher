@@ -30,10 +30,10 @@
 				<div id="basic-tab" class="tab-pane active">
 					<section class="form-section">
 						<div class="form-section-header">
-							<h2><span class="form-section-digit">a</span>Name your chart.</h2>
+							<h2><span class="form-section-digit">a</span>Title of the visualization</h2>
 						</div>
-						<div class="form-section-content">
-							<p class="form-section-desc">This will be shown as the title of the chart.</p>
+						<div class="form-section-content">						
+							<p class="form-section-desc">Never use specific countries or years since these can be changed by the viewer. Instead use <b>*time*</b> or <b>*country*</b> as placeholders. These will be interpreted by the grapher to match what is being looked at.</p>
 							<input class="form-control input-lg .col-xs-12" placeholder="Chart name" type="text" name="chart-name" value=""/>
 							<div class="input-group">
 								<span class="input-group-addon">/grapher/</span>
@@ -43,7 +43,7 @@
 					</section>
 					<section class="form-section">
 						<div class="form-section-header">
-							<h2><span class="form-section-digit">b</span>Describe your chart</h2>
+							<h2><span class="form-section-digit">b</span>Subtitle of the visualization</h2>
 						</div>
 						<div class="form-section-content">
 							<textarea class="form-control input-lg .col-xs-12" placeholder="Chart subname" type="text" name="chart-subname" value=""></textarea>
@@ -64,7 +64,7 @@
 					</section>
 					<section class="form-section">
 						<div class="form-section-header">
-							<h2><span class="form-section-digit">d</span>Any notes</h2>
+							<h2><span class="form-section-digit">d</span>Internal author notes</h2>
 						</div>
 						<div class="form-section-content">
 							<textarea class="form-control input-lg .col-xs-12" placeholder="WIP, needs review, etc" type="text" name="chart-notes" value=""></textarea>
@@ -404,6 +404,7 @@
 						</div>
 						<div class="form-section-content">
 							<label>
+								<i class="fa fa-info-circle" data-toggle="tooltip" title="Specify a range of years from which to pull data. For example, if the map shows 1990 and tolerance is set to 1, then data from 1989 or 1991 will be shown if no data is available for 1990."></i>
 								Tolerance of data:
 								<input name="map-time-tolerance" class="form-control" placeholder="Tolerance of data" />
 							</label>
