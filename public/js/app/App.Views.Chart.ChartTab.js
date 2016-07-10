@@ -461,17 +461,29 @@
 					}
 				}
 
-				//set scales, multibar chart
-				if( yAxisScale === "linear" ) {
-					that.chart.yScale( d3.scale.linear() );
+				if (yAxisScale === "linear") {
+					that.chart.yScale(d3.scale.linear());
 				} else if( yAxisScale === "log" ) {
-					that.chart.yScale( d3.scale.log() );
+					that.chart.yScale(d3.scale.log());
+
+					// MISPY: Custom calculation of axis ticks, since nvd3 doesn't
+					// account for log scale when doing its own calc and that can result in
+					// overlapping axis labels.
+					var minPower10 = Math.ceil(Math.log(yDomain[0]) / Math.log(10));
+					var maxPower10 = Math.floor(Math.log(yDomain[1]) / Math.log(10));
+
+					var tickValues = [];
+					for (var i = minPower10; i <= maxPower10; i++) {
+						tickValues.push(Math.pow(10, i));
+					}
+					console.log(tickValues);
+					that.chart.yAxis.tickValues(tickValues);
 				}
 
-				if( chartType === "4" || chartType === "5" ) {
+				if (chartType == App.ChartType.MultiBar || chartType === App.ChartType.HorizontalMultiBar) {
 					//for multibar chart, x axis has ordinal scale, so need to setup domain properly
 					//that.chart.xDomain( d3.range(xDomain[0], xDomain[1] + 1) );
-					that.chart.xDomain( allTimes );
+					that.chart.xDomain(allTimes);
 				}
 
 				that.chart.yAxis
@@ -483,9 +495,10 @@
 				//scatter plots need more ticks
 				if( chartType === App.ChartType.ScatterPlot ) {
 					//hardcode
-					that.chart.xAxis.ticks( 7 );
-					that.chart.yAxis.ticks( 7 );
+					that.chart.xAxis.ticks(7);
+					that.chart.yAxis.ticks(7);
 				}
+
 
 				window.localData = localData;
 
@@ -780,8 +793,8 @@
 			setTimeout(function() {
 				var chartRect = svg.select(".nvd3 g > rect"),
 					chartBounds = chartRect.node().getBoundingClientRect(),
-					offsetX = chartBounds.left - svgBounds.left,
-					offsetY = 0;
+					offsetX = chartBounds.left - svgBounds.left + 5,
+					offsetY = this.legend.height() - 5;
 
 				this.$xAxisScaleSelector.css({ left: offsetX + chartBounds.width, top: offsetY + chartBounds.height });
 				this.$yAxisScaleSelector.css({ left: offsetX, top: offsetY });

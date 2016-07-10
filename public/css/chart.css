@@ -546,6 +546,10 @@ select.disabled {
 #chart-view .axis-scale-selectors-wrapper .axis-scale-btn {
     position: relative;
     font-size: 0.8em;
+    color: black;
+}
+#chart-view .axis-scale-btn:hover {
+    text-decoration: none;
 }
 #chart-view .axis-scale-selectors-wrapper .axis-scale {
     text-transform: uppercase;
