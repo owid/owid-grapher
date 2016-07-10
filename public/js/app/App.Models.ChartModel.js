@@ -48,6 +48,7 @@
 			"iframe-width": "100%",
 			"iframe-height": "660px",
 			"hide-legend": false,
+			"entity-type": "country",
 			"group-by-variables": false,
 			"add-country-mode": "add-country",
 			"x-axis-scale-selector": false,

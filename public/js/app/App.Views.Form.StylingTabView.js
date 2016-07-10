@@ -11,6 +11,7 @@
 			"change [name='line-tolerance']": "onLineToleranceChange",
 			"change [name^='margin-']": "onMarginChange",
 			"change [name='hide-legend']": "onHideLegendChange",
+			"change [name='entity-type']": "onEntityTypeChange",
 			"change .units-section .form-control[type=input]": "updateUnits",
 			"change .units-section [type=checkbox]": "updateUnits"
 		},
@@ -33,6 +34,7 @@
 			
 			//legend
 			this.$hideLegend = this.$el.find( "[name='hide-legend']" );
+			this.$entityType = this.$el.find("[name='entity-type']");
 
 			//units
 			this.$unitsSection = this.$el.find( ".units-section" );
@@ -61,7 +63,8 @@
 
 			var hideLegend = ( App.ChartModel.get( "hide-legend" ) )? true: false;
 			this.$hideLegend.prop( "checked", hideLegend );
-
+			this.$entityType.val(App.ChartModel.get("entity-type"));
+			
 			this.updateUnitsUI();
 			this.updateUnits();
 		},
@@ -92,7 +95,6 @@
 		},
 
 		onMarginChange: function( evt ) {
-
 			var $control = $( evt.currentTarget ),
 				controlName = $control.attr( "name" ),
 				marginsObj = { top: this.$marginTop.val(),
@@ -102,7 +104,6 @@
 
 			App.ChartModel.set( "margins", marginsObj );
 			App.ChartModel.trigger( "update" );
-
 		},
 
 		onUnitChange: function( evt ) {
@@ -111,11 +112,13 @@
 		},
 
 		onHideLegendChange: function( evt ) {
-
 			var $check = $( evt.currentTarget ),
 				hideLegend = ( $check.is( ":checked" ) )? true: false;
 			App.ChartModel.set( "hide-legend", hideLegend );
+		},
 
+		onEntityTypeChange: function() {
+			App.ChartModel.set("entity-type", this.$entityType.val());
 		},
 
 		onChartTypeChange: function( evt ) {

@@ -92,11 +92,12 @@
 		updateAvailableCountries: function() {
 			var availableEntities = App.DataModel.get("availableEntities"),
 				selectedCountries = App.ChartModel.get("selected-countries"),
-				selectedCountriesIds = _.map(selectedCountries, function(v) { return (v)? +v.id: ""; });
+				selectedCountriesIds = _.map(selectedCountries, function(v) { return (v)? +v.id: ""; }),
+				entityType = App.ChartModel.get("entity-type");
 
 			// Fill entity selector with all entities not currently selected
 			this.$entitiesSelect.empty();
-			this.$entitiesSelect.append("<option disabled selected>Select country</option>");
+			this.$entitiesSelect.append("<option disabled selected>Select " + entityType + "</option>");
 			_.each(availableEntities, function(entity) {
 				if (!_.contains(selectedCountriesIds, +entity.id)) {
 					this.$entitiesSelect.append("<option value='" + entity.id + "'>" + entity.name + "</option>");

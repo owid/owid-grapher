@@ -324,6 +324,10 @@
 							<label>
 								<input type="checkbox" name="hide-legend" />
 								Hide legend
+							</label><br>
+							<label>
+								<span>Type of entity shown</span>
+								<input type="input" class="form-control" name="entity-type" value=""/>
 							</label>
 						</div>
 					</section>

@@ -38,7 +38,7 @@
 				evt.preventDefault();
 				var $countryLabel = $(evt.currentTarget);
 				if (colorPicker) {
-					colorPicker.close();
+					colorPicker.onClose();
 				}
 				colorPicker = new ColorPicker({ target: $countryLabel, currentColor: $countryLabel.attr("data-color") });
 				colorPicker.onSelected = function(value) {
