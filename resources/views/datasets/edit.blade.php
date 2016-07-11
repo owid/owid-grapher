@@ -22,10 +22,6 @@
 				{!! Form::select('fk_dst_subcat_id', $subcategories, $dataset->fk_dst_subcat_id, array( 'class' => 'form-control' ) ) !!}
 			</div>
 			<div class="form-group">
-				{!! Form::label('fk_dsr_id', 'Source:') !!}
-				{!! Form::select('fk_dsr_id', $datasources, ($dataset->datasource) ? $dataset->datasource->id: null, array('class' => 'form-control')) !!}
-			</div>
-			<div class="form-group">
 				{!! Form::submit('Update dataset', ['class'=>'btn btn-success']) !!}
 			</div>
 	    {!! Form::close() !!}

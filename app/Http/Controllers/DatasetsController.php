@@ -108,10 +108,6 @@ class DatasetsController extends Controller {
 	public function update(Dataset $dataset, Request $request)
 	{
 		$input = array_except( $request->all(), [ '_method', '_token' ] );
-		//need to update data value sources?
-		if( $request->has( "fk_dsr_id" ) ) {
-			Dataset::updateSource( $dataset->id, $request->get( "fk_dsr_id" ) );
-		}
 		$dataset->update( $input );
 
 		Cache::flush();
