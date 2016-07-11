@@ -56,7 +56,7 @@ class ChartsController extends Controller {
 			->join('dataset_subcategories', 'datasets.fk_dst_subcat_id', '=', 'dataset_subcategories.id')
 			->orderBy('dataset_categories.id', 'ASC')
 			->orderBy('dataset_subcategories.id', 'ASC')
-			->select('variables.name', 'variables.id', 'variables.unit', 'datasets.name as dataset',
+			->select('variables.name', 'variables.id', 'variables.unit', 'variables.description', 'datasets.name as dataset',
 					 'dataset_categories.name as category', 'dataset_subcategories.name as subcategory',
 					 'datasets.namespace as namespace');
 

@@ -407,37 +407,11 @@
 			return localData;
 		},
 
-		getSourceDescHtml: function(dimension) {
-			var variableData = this.get("variableData"),
-				variable = variableData.variables[dimension.variableId],
-				source = variable.source;
-
-			var displayName = _.isEmpty(dimension.displayName) ? variable.name : dimension.displayName;
-			var hideDimName = _.isEmpty(dimension.name) || _.size(this.get("variableData").variables) == 1;
-
+		getSourceDescHtml: function(source) {
 			var html = "<div class='datasource-wrapper'>";
-			html += (hideDimName ? "<h2>Data</h2>" : "<h2>Data for " + dimension.name + ": </h2>");
-			html += "<div class='datasource-header'>" +
-					    "<h3><span class='datasource-property'>Dataset:</span>" + variable.dataset_name + "</h3>";
-
-			if (variable.name != variable.dataset_name)
-				html += "<h4><span class='datasource-property'>Variable:</span>" + variable.name + "</h4>";
-
-			html += "</div>";
-
-			html += "<table>";
-			if (displayName != variable.name)
-				html += "<tr><td><span class='datasource-property'>Display name</span></td><td>" + displayName + "</td></tr>";
-			if (variable.description)
-				html += "<tr><td><span class='datasource-property'>Definition</span></td><td>" + variable.description + "</td></tr>";
-			if (variable.unit)
-				html += "<tr><td><span class='datasource-property'>Unit</span></td><td>" + variable.unit + "</td></tr>";
-			if (variable.created_at && variable.created_at != "0000-00-00 00:00:00")
-				html += "<tr><td><span class='datasource-property'>Uploaded</span></td><td>" + variable.created_at + "</td></tr>";
-			html += "</table>";
-			
+			html += "<h2>" + source.name + "</h2>";			
 			html += source.description;
-			html += "</div>"
+			html += "</div>";
 			return html;
 		},
 
@@ -445,13 +419,15 @@
 			var variableData = this.get("variableData");			
 			if (!variableData) return [];
 
-			return _.map(this.dimensions, function(dimension) {
+			var sources = _.map(this.dimensions, function(dimension) {
 				var variable = variableData.variables[dimension.variableId],
 					source = _.extend({}, variable.source);
 
-				source.description = this.getSourceDescHtml(dimension);
+				source.description = this.getSourceDescHtml(variable.source);
 				return source;
 			}.bind(this));
+
+			return _.uniq(sources, function(source) { return source.name; });
 		},
 
 		transformData: function() {

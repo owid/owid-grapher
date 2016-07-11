@@ -21,7 +21,7 @@
 								@foreach ($data->optgroups as $optgroup)
 									<optgroup label="{{ $optgroup->name }}">
 										@foreach ($optgroup->variables as $variable)
-											<option data-namespace="{{ $optgroup->namespace }}" data-unit="{{ $variable->unit }}" value="{{ $variable->id }}">{{ $variable->name }}</option>
+											<option title="{{ $variable->description }}" data-namespace="{{ $optgroup->namespace }}" data-unit="{{ $variable->unit }}" value="{{ $variable->id }}">{{ $variable->name }}</option>
 										@endforeach
 									</optgroup>
 								@endforeach

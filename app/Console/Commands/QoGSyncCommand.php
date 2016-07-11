@@ -168,19 +168,28 @@ class QoGSyncCommand extends Command
             if (!$prefix) continue;
 
             $html = "<table>";
-            $html .= "<tr><td>Data publisher</td><td>University of Gothenburg: The Quality of Government Institute</td></tr>";
+            $html .= "<tr><td>Data provider</td><td>University of Gothenburg: The Quality of Government Institute</td></tr>";
             $html .= "<tr><td>Dataset</td><td>The Quality of Government Standard Dataset</td></tr>";
             if ($sourceName)
                 $html .= "<tr><td>Original source</td><td>{$sourceName}</td></tr>";
             if ($originalDataset)
                 $html .= "<tr><td>Original dataset</td><td>{$originalDataset}</td></tr>";
-            if ($sourceLink)
-                $html .= "<tr><td>Link</td><td>{$sourceLink}</td></tr>";
+            if ($sourceLink) {
+                $html .= "<tr><td>Link</td><td>";
+                $i = 0;
+                foreach (explode(" ", $sourceLink) as $url) {
+                    if ($i > 0) $html .= " ";
+                    $html .= "<a href=\"{$url}\">{$url}</a>";
+                    $i += 1;
+                }
+                $html .= "</td></tr>";
+            }
             if ($retrievalDate)
                 $html .= "<tr><td>Retrieved</td><td>{$retrievalDate}</td></tr>";
+            $html .= "</table>";
+
             if ($sourceDesc)
                 $html .= "<p>{$sourceDesc}</p>";                    
-            $html .= "</table>";
 
             $values[]= $sourceName . " via the Quality of Government Institute";
             $values[]= $html;
@@ -200,7 +209,7 @@ class QoGSyncCommand extends Command
         fseek($handle, 0);
         $header = fgetcsv($handle);
 
-        $columns = ["name", "code", "fk_dst_id", "fk_dsr_id", "fk_var_type_id", "uploaded_by", "uploaded_at", "updated_at"];
+        $columns = ["name", "code", "description", "fk_dst_id", "fk_dsr_id", "fk_var_type_id", "uploaded_by", "uploaded_at", "updated_at"];
         $values = [];
         while ($row = fgetcsv($handle)) {
             $data = [];
@@ -233,6 +242,7 @@ class QoGSyncCommand extends Command
 
             $values[]= str_replace("\\", "", $data['varlab']) . " (" . $data['varname'] . ")";
             $values[]= $data['varname'];
+            $values[]= $data['description'];
             $values[]= $datasetId;
             $values[]= $sourceId;
             $values[]= 4;
