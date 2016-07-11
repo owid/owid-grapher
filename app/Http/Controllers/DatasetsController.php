@@ -28,6 +28,7 @@ class DatasetsController extends Controller {
 					 'datasources.id as source_id', 'datasources.name as source_name')
 			->join('datasets', 'variables.fk_dst_id', '=', 'datasets.id')
 			->join('datasources', 'variables.fk_dsr_id', '=', 'datasources.id')
+			->where('datasets.namespace', '=', 'owid')
 			->orderBy('datasets.created_at', 'desc')
 			->get();
 
@@ -123,7 +124,6 @@ class DatasetsController extends Controller {
 	 */
 	public function destroy(Dataset $dataset, Request $request)
 	{	
-
 		$dataset->delete();
 		Cache::flush();		
 		return redirect()->route('datasets.index')->with('message', 'Dataset deleted.');

@@ -123,7 +123,6 @@ class QoGSyncCommand extends Command
             ->select('id', 'name')
             ->lists('id', 'name');
 
-
         // Create a dataset for each of the subcategories
         $columns = ['namespace', 'name', 'description', 'fk_dst_cat_id', 'fk_dst_subcat_id', 'updated_at'];
         $values = [];
@@ -140,7 +139,6 @@ class QoGSyncCommand extends Command
             ->where('namespace', '=', 'qog')
             ->select('id', 'name')
             ->lists('id', 'name');
-
 
         $this->info("Reading sources from metadata file");
 
@@ -184,11 +182,11 @@ class QoGSyncCommand extends Command
                 $html .= "<p>{$sourceDesc}</p>";                    
             $html .= "</table>";
 
-            $values[]= $sourceName;
+            $values[]= $sourceName . " via the Quality of Government Institute";
             $values[]= $html;
             $values[]= $now;
 
-            $prefixToSourceName[$prefix] = $sourceName;
+            $prefixToSourceName[$prefix] = $sourceName  . " via the Quality of Government Institute";
         }
 
         $this->idempotentInsert("datasources", $columns, $values);
@@ -254,10 +252,10 @@ class QoGSyncCommand extends Command
             ->select('id', 'code')
             ->lists('id', 'code');
 
-        var_dump(sizeof(array_values($variableCodeToId)));
-
         $this->info("Removing old data values");
-        DB::statement("DELETE FROM data_values WHERE fk_var_id IN (" . implode(array_values($variableCodeToId), ",") . ")");
+        foreach (array_values($variableCodeToId) as $variableId) {
+            DB::statement("DELETE FROM data_values WHERE fk_var_id=?", [$variableId]);
+        }
 
         $this->info("Importing data values from CSV");
 

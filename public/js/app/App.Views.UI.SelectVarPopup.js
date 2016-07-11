@@ -6,13 +6,24 @@
 		events: {
 			"click .close": "onCloseBtn",
 			"click .btn-primary": "onSaveBtn",
-			"click .btn-default": "onCancelBtn"
+			"click .btn-default": "onCancelBtn",
+			"change [name=database]": "onChangeDatabase"
 		},
 
 		initialize: function(options) {
 			this.$el = $(".select-var-popup");
-			this.$chartVariable = this.$el.find("[name=chart-variable]");
-			this.$el.find(".chosen-select").chosen();			
+			this.$databaseSelect = this.$el.find("[name=database]");
+			this.$variableSelect = this.$el.find("[name=chart-variable]");
+			this.$origVariableSelect = this.$variableSelect.clone();
+			this.$el.find(".chosen-select").chosen();
+			this.onChangeDatabase();
+		},
+
+		onChangeDatabase: function() {
+			var namespace = this.$databaseSelect.val();
+			this.$variableSelect.html(this.$origVariableSelect.html());
+			this.$variableSelect.find('option').not('[data-namespace=' + namespace + ']').remove();
+			this.$variableSelect.trigger("chosen:updated");
 		},
 
 		show: function() {
@@ -28,11 +39,11 @@
 		},
 
 		onSaveBtn: function(evt) {
-			if (this.$chartVariable.val() <= 0) return;
+			if (this.$variableSelect.val() <= 0) return;
 
-			var varId = this.$chartVariable.val(),
-				varUnit = this.$chartVariable.find( "option:selected" ).attr( "data-unit" ),
-				varName = this.$chartVariable.find( "option:selected" ).text(),
+			var varId = this.$variableSelect.val(),
+				varUnit = this.$variableSelect.find( "option:selected" ).attr( "data-unit" ),
+				varName = this.$variableSelect.find( "option:selected" ).text(),
 				variable = new App.Models.ChartVariableModel({ id: varId, name: varName, unit: varUnit });
 
 			App.ChartVariablesCollection.add(variable);

@@ -57,13 +57,15 @@ class ChartsController extends Controller {
 			->orderBy('dataset_categories.id', 'ASC')
 			->orderBy('dataset_subcategories.id', 'ASC')
 			->select('variables.name', 'variables.id', 'variables.unit', 'datasets.name as dataset',
-					 'dataset_categories.name as category', 'dataset_subcategories.name as subcategory');
+					 'dataset_categories.name as category', 'dataset_subcategories.name as subcategory',
+					 'datasets.namespace as namespace');
 
 		$optgroups = [];
 		foreach ($query->get() as $result) {
 			if (!isset($optgroups[$result->subcategory])) {
 				$optgroup = new \StdClass;
 				$optgroup->name = $result->subcategory;
+				$optgroup->namespace = $result->namespace;
 				$optgroup->variables = [];
 				$optgroups[$result->subcategory] = $optgroup;
 			}

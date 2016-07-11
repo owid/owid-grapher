@@ -164,7 +164,7 @@ button > i {
 
 .file-picker-wrapper input, .form-variable-select-wrapper select {
   width: 100%;
-  padding: 20px; }
+}
 
 .form-variable-select-wrapper {
   padding: 20px;

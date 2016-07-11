@@ -9,12 +9,19 @@
 				<div class="modal-body">
 					<div class="form-variable-select-wrapper">
 						<label class="variable-wrapper">
+							Database:
+							<select name='database' class='form-control'>
+								<option value="owid" selected>OWID</option>
+								<option value="qog">QoG Standard</option>
+							</select>
+						</label>
+						<label class="variable-wrapper">
 							Variable:
 							<select name='chart-variable' data-placeholder="Select your variable" class="form-control form-variable-select chosen-select">
 								@foreach ($data->optgroups as $optgroup)
 									<optgroup label="{{ $optgroup->name }}">
 										@foreach ($optgroup->variables as $variable)
-											<option data-unit="{{ $variable->unit }}" value="{{ $variable->id }}">{{ $variable->name }}</option>
+											<option data-namespace="{{ $optgroup->namespace }}" data-unit="{{ $variable->unit }}" value="{{ $variable->id }}">{{ $variable->name }}</option>
 										@endforeach
 									</optgroup>
 								@endforeach
