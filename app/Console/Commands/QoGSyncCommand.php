@@ -75,97 +75,203 @@ class QoGSyncCommand extends Command
 
         $statement .= ")";
 
+        //var_dump($statement);
         DB::statement($statement);
     }
 
-    public function syncVariables($datasetId, $header) {
-        $columns = ["name", "fk_dst_id", "fk_var_type_id", "uploaded_by", "uploaded_at", "updated_at"];
-        $values = [];
-        $now = Carbon::now()->toDateTimeString();
-
-        for ($i = 0; $i < sizeof($header); $i++) {
-            if ($i < 9) continue;
-            $values[]= $header[$i];
-            $values[]= $datasetId;
-            $values[]= 4;
-            $values[]= "jaiden";
-            $values[]= $now;
-            $values[]= $now;
-/*            $newVariable = [
-                'name' => $variable['name'],
-                'description' => $variable['description'],
-                'unit' => $variable['unit'],
-                'fk_var_type_id' => $variable['typeId'],
-                'fk_dst_id' => $datasetId,
-                'fk_dsr_id' => $sourceId,
-                'uploaded_by' => \Auth::user()->name, 
-                'uploaded_at' => Carbon::now(),
-                'updated_at' => Carbon::now()
-            ];*/
-        }
-
-        $this->idempotentInsert("variables", $columns, $values);
-}
-
     public function sync() {
-        $path = public_path() . "/../tmp/qog_std_ts_jan16.csv";
-
-        $handle = fopen($path, 'r');
-        $header = NULL;
-
         $now = Carbon::now()->toDateTimeString();
 
-        $this->idempotentInsert("datasets", 
-            ["name", "description", "fk_dst_cat_id", "fk_dst_subcat_id", "updated_at"], 
-            ["QoG Standard", "Quality of Government Institute - Standard Dataset", 17, 17, $now]
-        );
-        $datasetId = DB::select("SELECT id FROM datasets WHERE name='QoG Standard'")[0]->id;
+        $this->info("Creating datasets and categories to store QoG data");
 
+        // Create a single top-level category representing QoG data
+        $this->idempotentInsert("dataset_categories", ["name"], ["QoG Standard Dataset"]);
+        $categoryId = DB::select("SELECT id FROM dataset_categories WHERE name='Qog Standard Dataset'")[0]->id;
+
+        // Create QoG categories as OWID subcategories
+        $subcategoryCodeToName = [
+            'cat_id' => "Identification Variables",
+            'cat_health' => "Health", 
+            'cat_educ' => "Education", 
+            'cat_civil' => "Civil Society", 
+            'cat_confl' => "Conflict/Violence", 
+            'cat_elec' => "Election", 
+            'cat_energy' => "Energy and Infrastructure", 
+            'cat_env' => "Environment", 
+            'cat_polsys' => "Political System", 
+            'cat_jud' => "Judicial", 
+            'cat_qog' => "Quality of Government", 
+            'cat_mig' => "Migration", 
+            'cat_media' => "Media", 
+            'cat_welfare' => "Welfare", 
+            'cat_econpub' => "Public Economy", 
+            'cat_econpriv' => "Private Economy", 
+            'cat_labour' => "Labour Market", 
+            'cat_religion' => "Religion", 
+            'cat_history' => "History"
+        ];
+
+        $columns = ["name", "fk_dst_cat_id"];
+        $values = [];
+        $subcategories = array_values($subcategoryCodeToName);
+        foreach ($subcategories as $name) {
+            $values[]= $name;
+            $values[]= $categoryId;
+        }
+        $this->idempotentInsert("dataset_subcategories", $columns, $values);
+        $subcategoryNameToId = DB::table('dataset_subcategories')
+            ->select('id', 'name')
+            ->lists('id', 'name');
+
+
+        // Create a dataset for each of the subcategories
+        $columns = ['namespace', 'name', 'description', 'fk_dst_cat_id', 'fk_dst_subcat_id', 'updated_at'];
+        $values = [];
+        foreach ($subcategories as $name) {
+            $values[]= 'qog';
+            $values[]= "{$name}";
+            $values[]= "Quality of Government Institute - Standard Dataset ({$name})";
+            $values[]= $categoryId;
+            $values[]= $subcategoryNameToId[$name];
+            $values[]= $now;
+        }
+        $this->idempotentInsert("datasets", $columns, $values);
+        $datasetNameToId = DB::table('datasets')
+            ->where('namespace', '=', 'qog')
+            ->select('id', 'name')
+            ->lists('id', 'name');
+
+
+        $this->info("Reading sources from metadata file");
+
+        $metadataPath = public_path() . "/../tmp/metadata_part.csv";
+        $handle = fopen($metadataPath, 'r');
         $header = fgetcsv($handle);
-        $this->syncVariables($datasetId, $header);
 
-        $this->info("Reading entities from CSV");
-
-/*        $entities = [];
-        $entityCheck = [];
-        $count = 0;
+        $columns = ['name', 'description', 'updated_at'];
+        $values = [];        
+        $prefixToSourceName = [];
         while ($row = fgetcsv($handle)) {
-            $entity = $row[1];
-            if (!isset($entityCheck[$entity])) {
-                $entities[]= $entity;
-                $entityCheck[$entity] = true;
+            $data = [];
+            for ($i = 0; $i < sizeof($row); $i++) {
+                $data[$header[$i]] = $row[$i];
             }
 
-            $count += 1;
-            if ($count % 1000 == 0)
-                $this->info($count);
-        }*/
+            $isSource = !$data['variable'];
+            if (!$isSource) continue;
 
-        $this->info("Writing entities to database");
-//        $this->idempotentInsert("entities", ["name"], $entities);
+            $sourceName = $data['datasource'];
+            $sourceLink = $data['url'];
+            $retrievalDate = $data['date'];
+            $prefix = $data['reference'];
+            $originalDataset = $data['dataset'];
+            $sourceDesc = $data['description'];            
 
+            if (!$prefix) continue;
+
+            $html = "<table>";
+            $html .= "<tr><td>Data publisher</td><td>University of Gothenburg: The Quality of Government Institute</td></tr>";
+            $html .= "<tr><td>Dataset</td><td>The Quality of Government Standard Dataset</td></tr>";
+            if ($sourceName)
+                $html .= "<tr><td>Original source</td><td>{$sourceName}</td></tr>";
+            if ($originalDataset)
+                $html .= "<tr><td>Original dataset</td><td>{$originalDataset}</td></tr>";
+            if ($sourceLink)
+                $html .= "<tr><td>Link</td><td>{$sourceLink}</td></tr>";
+            if ($retrievalDate)
+                $html .= "<tr><td>Retrieved</td><td>{$retrievalDate}</td></tr>";
+            if ($sourceDesc)
+                $html .= "<p>{$sourceDesc}</p>";                    
+            $html .= "</table>";
+
+            $values[]= $sourceName;
+            $values[]= $html;
+            $values[]= $now;
+
+            $prefixToSourceName[$prefix] = $sourceName;
+        }
+
+        $this->idempotentInsert("datasources", $columns, $values);
+
+        $sourceNameToId = DB::table('datasources')
+            ->select('id', 'name')
+            ->lists('id', 'name');
+
+
+        $this->info("Reading variables from metadata file");
+        fseek($handle, 0);
+        $header = fgetcsv($handle);
+
+        $columns = ["name", "code", "fk_dst_id", "fk_dsr_id", "fk_var_type_id", "uploaded_by", "uploaded_at", "updated_at"];
+        $values = [];
+        while ($row = fgetcsv($handle)) {
+            $data = [];
+            for ($i = 0; $i < sizeof($row); $i++) {
+                $data[$header[$i]] = $row[$i];
+            }
+
+            $isVariable = !!$data['variable'];
+            // Ignore country code meta variable
+            if (!$isVariable) continue;
+
+            // Figure out which dataset and source to attach this to by checking category
+            $datasetId = null;
+            $sourceId = null;
+            foreach (array_keys($subcategoryCodeToName) as $code) {
+                if ($data[$code] == "1") {
+                    $subcategory = $subcategoryCodeToName[$code];                    
+                    $datasetId = $datasetNameToId[$subcategory];
+                    $prefix = explode('_', $data['varname'])[0];
+                    if (isset($prefixToSourceName[$prefix]))
+                        $sourceId = $sourceNameToId[$prefixToSourceName[$prefix]];
+                    break;
+                }
+            }
+
+            if ($sourceId == null || $datasetId == null) {
+                $this->info("Ignoring variable with missing source or category information: {$data['varname']}");
+                continue;
+            }
+
+            $values[]= str_replace("\\", "", $data['varlab']) . " (" . $data['varname'] . ")";
+            $values[]= $data['varname'];
+            $values[]= $datasetId;
+            $values[]= $sourceId;
+            $values[]= 4;
+            $values[]= 'jaiden';
+            $values[]= $now;
+            $values[]= $now;            
+        }
+        $this->idempotentInsert("variables", $columns, $values);
+
+        // Now read the entities and data values
         $entityNameToId = DB::table('entities')
             ->select('id', 'name')
-            //->whereIn('name', $entities)
             ->lists('id', 'name');
 
-        $varNameToId = DB::table('variables')
-            ->select('id', 'name')
-            ->whereIn('name', $header)
-            ->lists('id', 'name');
+        $variableCodeToId = DB::table('variables')
+            ->whereIn('fk_dst_id', array_values($datasetNameToId))
+            ->select('id', 'code')
+            ->lists('id', 'code');
+
+        var_dump(sizeof(array_values($variableCodeToId)));
 
         $this->info("Removing old data values");
-        DB::statement("DELETE FROM data_values WHERE fk_var_id IN (" . implode(array_values($varNameToId), ",") . ")");
+        DB::statement("DELETE FROM data_values WHERE fk_var_id IN (" . implode(array_values($variableCodeToId), ",") . ")");
 
-        DB::statement("SET foreign_key_checks=0;");
         $this->info("Importing data values from CSV");
-        fseek($handle, 0);
+
+        $path = public_path() . "/../tmp/qog_std_ts_jan16.csv";
+        $handle = fopen($path, 'r');
+        $header = fgetcsv($handle);
         fgetcsv($handle);
 
+        DB::statement("SET foreign_key_checks=0;");
         $columns = ['fk_var_id', 'fk_ent_id', 'year', 'value'];
         $values = [];
 
         $count = 0;
+        $ignoredVariables = [];
         while ($row = fgetcsv($handle)) {
             $entityName = $row[1];
             if (!isset($entityNameToId[$entityName])) {
@@ -175,12 +281,20 @@ class QoGSyncCommand extends Command
 
             $entityId = intval($entityNameToId[$entityName]);
             $year = intval($row[2]);
-            for ($i = 9; $i < sizeof($row); $i++) {                
-                $varId = intval($varNameToId[$header[$i]]);
+            for ($i = 9; $i < sizeof($row); $i++) {            
                 $value = $row[$i];
-
                 if ($value == "") continue;
 
+                if (!isset($variableCodeToId[$header[$i]])) {
+                    if (!isset($ignoredVariables[$header[$i]])) {
+                        $this->info("Ignoring variable with no associated metadata: {$header[$i]}");
+                        $ignoredVariables[$header[$i]] = true;
+                    }
+                    continue;
+                }
+
+                $varId = intval($variableCodeToId[$header[$i]]);
+ 
                 $values[]= $varId;
                 $values[]= $entityId;
                 $values[]= $year;
