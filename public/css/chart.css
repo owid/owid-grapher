@@ -514,7 +514,7 @@ select.disabled {
 }
 #chart-view .available-countries-select-wrapper {
     position: relative;
-    z-index: 10;
+    z-index: 12;
     line-height: 0;
 }
 #chart-view .available-countries-select-wrapper select {
