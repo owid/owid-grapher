@@ -691,6 +691,11 @@ select.disabled {
     font-size: 0.9em;
     font-weight: bold;
 }
+
+#chart-view #sources-chart-tab .datasource-wrapper td {
+    padding-right: 5px;
+}
+
 #chart-view #sources-chart-tab .datasource-property {
     display: inline-block;
     width: 150px;
