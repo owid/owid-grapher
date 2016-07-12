@@ -10,7 +10,6 @@
 		},
 
 		initialize: function( options ) {
-			
 			this.dispatcher = options.dispatcher;
 			
 			this.$tabs = this.$el.find( ".header-tab" );
@@ -20,17 +19,16 @@
 			this.$xAxisBtn = this.$el.find(".x-axis-scale-selector .axis-scale-btn");
 			this.$yAxisBtn = this.$el.find(".y-axis-scale-selector .axis-scale-btn");
 
-
 			this.render();
 			this.listenTo(App.ChartModel, "change", this.render.bind(this));
 		},
 
 		render: function() {			
 			var xScale = App.ChartModel.getAxisConfig("x-axis", "axis-scale");
-			this.$xAxisBtn.find('span').text(s.capitalize(xScale));
+			this.$xAxisBtn.find('span').text(s.capitalize(xScale) || "Linear");
 
 			var yScale = App.ChartModel.getAxisConfig("y-axis", "axis-scale");
-			this.$yAxisBtn.find('span').text(s.capitalize(yScale));
+			this.$yAxisBtn.find('span').text(s.capitalize(yScale) || "Linear");
 		},
 
 		onAxisScaleBtn: function(evt) {			

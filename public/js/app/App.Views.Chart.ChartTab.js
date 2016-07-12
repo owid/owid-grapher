@@ -476,7 +476,6 @@
 					for (var i = minPower10; i <= maxPower10; i++) {
 						tickValues.push(Math.pow(10, i));
 					}
-					console.log(tickValues);
 					that.chart.yAxis.tickValues(tickValues);
 				}
 
@@ -794,7 +793,7 @@
 				var chartRect = svg.select(".nvd3 g > rect"),
 					chartBounds = chartRect.node().getBoundingClientRect(),
 					offsetX = chartBounds.left - svgBounds.left + 5,
-					offsetY = this.legend.height() - 5;
+					offsetY = (this.legend ? this.legend.height() : 0) - 5;
 
 				this.$xAxisScaleSelector.css({ left: offsetX + chartBounds.width, top: offsetY + chartBounds.height });
 				this.$yAxisScaleSelector.css({ left: offsetX, top: offsetY });
