@@ -24,7 +24,6 @@
 		onChartTypeChange: function() {
 			var newChartType = this.$chartTypeSelect.val();
 			App.ChartModel.set("chart-type", newChartType);
-			App.ChartDimensionsModel.loadConfiguration(newChartType);
 		}
 	});
 })();

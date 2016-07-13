@@ -221,7 +221,6 @@ return [
 		        'admin.js',
 
 	            'app/App.Models.ChartVariableModel.js',
-	            'app/App.Models.ChartDimensionsModel.js',
 	            'app/App.Models.EntityModel.js',
 
 	            'app/App.Collections.ChartVariablesCollection.js',

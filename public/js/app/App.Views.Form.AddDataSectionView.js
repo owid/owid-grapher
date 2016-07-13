@@ -6,15 +6,75 @@
 		SettingsVarPopup = App.Views.UI.SettingsVarPopup;
 
 	App.Views.Form.AddDataSectionView = owid.View.extend({
-		el: "#form-view #data-tab .add-data-section",
+		el: "#form-view #data-tab",
+		events: {
+			"click .add-data-btn": "onAddDataBtn",
+			"change [name='group-by-variable']": "onGroupByVariableChange"
+		},
+
+		initialize: function(options) {
+			this.selectVarPopup = this.addChild(SelectVarPopup, options);
+			this.render();
+		},
+
+		render: function() {
+			this.$reserveSection = this.$el.find(".add-data-section");
+			this.$dimensionsContent = this.$el.find(".dimensions-section .form-section-content");
+			this.$groupByVariableWrapper = this.$el.find(".group-by-variable-wrapper");			
+			this.$groupByVariable = this.$el.find("[name='group-by-variable']");
+
+			// Create slots for the variables to go in by what dimensions the chart has available
+			var html = '<ol class="dimensions-list>';
+			var dimensions = JSON.parse(App.ChartModel.get("chart-dimensions"));
+			_.each(dimensions, function(dimension) {
+				html += '<li data-property="' + dimension.property + '" class="dimension-box">' +
+					        '<h4>' + dimension.name + '</h4>' +
+					        '<div class="dd-wrapper">' + 
+					             '<div class="dd">' +
+					                  '<div class="dd-empty">' +
+					             '</div>' +
+					        '</div>' +
+					    '</li>';
+			});
+			this.$dimensionsContent.html(html);
+
+			// Now assign any current variables to the appropriate slots
+			_.each(dimensions, function(dimension) {
+
+			});
+
+			// For line and stacked area charts, give an option to group by variable
+			var chartType = App.ChartModel.get("chart-type");
+			if (chartType == App.ChartType.LineChart || chartType == App.ChartType.StackedArea) {
+				var groupByVariables = App.ChartModel.get("group-by-variables");
+				this.$groupByVariable.prop("checked", groupByVariables);
+				this.$groupByVariableWrapper.show();
+			} else {
+				App.ChartModel.set("group-by-variables", false);
+				this.$groupByVariableWrapper.hide();
+			}
+		},
+
+		onAddDataBtn: function() {
+			this.selectVarPopup.show();
+		},
+
+		onGroupByVariableChange: function() {
+			var groupByVariable = this.$groupByVariableInput.is(":checked");
+			App.ChartModel.set("group-by-variables", groupByVariable);
+		}
+	});
+
+	App.Views.Form.OldAddDataSectionView = owid.View.extend({
+		el: "#form-view #data-tab",
 		events: {
 			"click .add-data-btn": "onAddDataBtn",
 		},
 
 		initialize: function(options) {
 			this.dispatcher = options.dispatcher;
-			this.selectVarPopup = new SelectVarPopup(options);
-			this.settingsVarPopup = new SettingsVarPopup();
+			this.selectVarPopup = this.addChild(SelectVarPopup, options);
+			this.settingsVarPopup = this.addChild(SettingsVarPopup, options);
 			this.settingsVarPopup.init(options);
 
 			this.listenTo(App.ChartVariablesCollection, "reset", this.onVariableReset.bind(this));
@@ -29,14 +89,6 @@
 
 		onAddDataBtn: function() {
 			this.selectVarPopup.show();
-		},
-
-		render: function() {
-			this.$dd = this.$el.find(".dd");
-			this.$ddList = this.$dd.find(".dd-list");
-			this.$dd.nestable();
-
-			this.onVariableReset();
 		},
 
 		refreshHandlers: function() {
@@ -67,8 +119,8 @@
 			}
 
 			//have default target year for scatter plot
-			var defaultPeriod = (App.ChartModel.get("chart-type") == App.ChartType.ScatterPlot ) ? "single" : "all",
-				defaultMode = (App.ChartModel.get("chart-type") == App.ChartType.ScatterPlot) ? "specific" : "closest",
+			var defaultPeriod = App.ChartModel.get("chart-type") == App.ChartType.ScatterPlot ? "single" : "all",
+				defaultMode = App.ChartModel.get("chart-type") == App.ChartType.ScatterPlot ? "specific" : "closest",
 				defaultTargetYear = 2000,
 				defaultMaxAge = 5,
 				defaultTolerance = 5;
@@ -119,8 +171,8 @@
 					$variableLabel.find(".variable-label-name").text(data[i]);
 				} else if (data.hasOwnProperty(i) && i !== "variableId") {
 					var attrName = "data-" + i,
-						attrValue = data[ i ];
-					$variableLabel.attr( attrName, attrValue );
+						attrValue = data[i];
+					$variableLabel.attr(attrName, attrValue);
 				}
 			} 
 
@@ -175,6 +227,7 @@
 		},
 
 		onVariableRemove: function( model ) {
+			console.log("variable removed");
 			var $liToRemove = $( ".variable-label[data-variable-id='" + model.get( "id" ) + "']" );
 			$liToRemove.remove();
 

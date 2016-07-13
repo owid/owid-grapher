@@ -4,7 +4,6 @@
 	
 	var	ChartVariablesCollection = require("App.Collections.ChartVariablesCollection"),
 		AvailableEntitiesCollection = require("App.Collections.AvailableEntitiesCollection"),
-		ChartDimensionsModel = require("App.Models.ChartDimensionsModel"),
 		SearchDataCollection = require("App.Collections.SearchDataCollection"),
 		BasicTabView = require("App.Views.Form.BasicTabView"),
 		DataTabView = require("App.Views.Form.DataTabView"),
@@ -37,28 +36,11 @@
 			} else {
 				App.AvailableEntitiesCollection = new AvailableEntitiesCollection();
 			}
-		
-			if (formConfig && formConfig["dimensions"]) {
-				App.ChartDimensionsModel = new ChartDimensionsModel();
-			} else {
-				App.ChartDimensionsModel = new ChartDimensionsModel();
-			}
 
 			//create search collection
 			App.SearchDataCollection = new SearchDataCollection();
 			
-			//is it new or existing chart
-			if( formConfig && !_.isEmpty(formConfig[ "dimensions" ]) ) {
-				//existing chart, need to load fresh dimensions from database (in case we've added dimensions since creating chart)
-				var that = this;
-				App.ChartDimensionsModel.loadConfiguration( formConfig[ "dimensions" ].id );
-				App.ChartDimensionsModel.on("change", function() {
-					that.render();
-				});
-			} else {
-				//new chart, can render straight away
-				this.render();
-			}
+			this.render();
 		},
 
 		render: function() {

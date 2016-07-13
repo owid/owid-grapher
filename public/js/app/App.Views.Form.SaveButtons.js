@@ -41,8 +41,7 @@
 		saveChart: function(newAttrs) {
 			var formConfig = {
 				"variables-collection": App.ChartVariablesCollection.toJSON(),
-				"entities-collection": App.AvailableEntitiesCollection.toJSON(),
-				"dimensions": App.ChartDimensionsModel.toJSON(),
+				"entities-collection": App.AvailableEntitiesCollection.toJSON()
 			};
 
 			var isNew = App.ChartModel.isNew();
@@ -51,7 +50,6 @@
 			var attrs = _.extend({}, prevAttrs, newAttrs);
 			attrs["form-config"] = formConfig;
 			App.ChartModel.set(attrs, { silent: true });
-
 
 			App.ChartModel.save({}, {
 				success: function (model, response, options) {
@@ -81,8 +79,7 @@
 
 			var formConfig = {
 				"variables-collection": App.ChartVariablesCollection.toJSON(),
-				"entities-collection": App.AvailableEntitiesCollection.toJSON(),
-				"dimensions": App.ChartDimensionsModel.toJSON()
+				"entities-collection": App.AvailableEntitiesCollection.toJSON()
 			};
 
 			App.ChartModel.set( "form-config", formConfig, { silent: true } );			
