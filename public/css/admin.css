@@ -265,7 +265,7 @@ button[type="submit"]:not(".delete-btn") {
   margin: 20px 0px;
   padding: 0; }
 
-.country-label, .variable-label {
+.country-label, .variable-item {
   position: relative;
   display: inline-block;
   margin-right: 10px;
@@ -279,31 +279,31 @@ button[type="submit"]:not(".delete-btn") {
   cursor: pointer;
 }
 
-.variable-label {
+.variable-item {
   cursor: move;
   cursor: -webkit-grab;   
 }
 
 .country-label:hover,
-.variable-label:hover {
+.variable-item:hover {
   border: 1px solid #666;
   color: #000; }
 
 .country-label .fa,
-.variable-label .fa {
+.variable-item .fa {
   margin-right: -10px;
   margin-left: 10px;
   color: #bbbbbb;
   cursor: pointer; }
 
 .country-label:hover .fa,
-.variable-label:hover .fa {
+.variable-item:hover .fa {
   color: #666666; }
 
 .country-label:hover .fa:hover {
   color: #000000; }
 
-.variable-label .fa {
+.variable-item .fa {
   position: absolute;
   top: 14px;
   right: 10px;
@@ -311,7 +311,7 @@ button[type="submit"]:not(".delete-btn") {
   margin-right: 0;
   margin-left: 0; }
 
-.variable-label .fa-close:hover {
+.variable-item .fa-close:hover {
   color: red; }
 
 /**
@@ -762,7 +762,7 @@ a.clear-settings-btn {
 /**
 *	add variable section
 **/
-.variable-label {
+.variable-item {
   user-select: none;
   -webkit-user-select: none;
   /* Chrome/Safari/Opera */
@@ -772,31 +772,27 @@ a.clear-settings-btn {
   /* IE/Edge */
   -webkit-touch-callout: none;
   /* iOS Safari */ }
-  .variable-label .dd-handle {
+  .variable-item .dd-handle {
     background: transparent; }
-  .variable-label .variable-label:hover {
+  .variable-item .variable-item:hover {
     background-color: #ddd; }
-  .variable-label .dd-handle:hover {
+  .variable-item .dd-handle:hover {
     color: inherit; }
-  .variable-label .variable-label-input {
+  .variable-item .variable-item-input {
     /* hidden by default */
     display: none; }
-  .variable-label .variable-label-input input {
+  .variable-item .variable-item-input input {
     position: relative;
     top: -6px; }
-  .variable-label .variable-label-input .fa {
+  .variable-item .variable-item-input .fa {
     position: absolute;
     top: 14px;
     font-size: 16px;
     cursor: pointer; }
-  .variable-label .variable-label-input .fa-check {
-    right: 40px; }
-  .variable-label .variable-label-input .fa-check:hover {
-    color: #00a65a; }
-  .variable-label .variable-label-input .fa-times {
-    right: 20px; }
-  .variable-label .variable-label-input .fa-times:hover {
-    color: #dd4b39; }
+
+.add-data-section .variable-item .fa-cog {
+  display: none;
+}
 
 /**
 *	select var popup
@@ -883,38 +879,38 @@ a.clear-settings-btn {
 .dimension-box .fa-close {
   display: none; }
 
-.variable-label .variable-setting-btn {
+.variable-item .variable-setting-btn {
   position: absolute;
   top: 12px;
   right: 10px;
   color: #aaaaaa;
   font-size: 12px; }
 
-.variable-label .variable-setting-btn.hidden {
+.variable-item .variable-setting-btn.hidden {
   display: none; }
 
-.variable-label .variable-setting-btn span {
+.variable-item .variable-setting-btn span {
   margin-left: 5px;
   display: none; }
 
-.variable-label .variable-setting-btn:hover {
+.variable-item .variable-setting-btn:hover {
   color: #000000; }
 
-.variable-label .variable-setting-btn:hover span {
+.variable-item .variable-setting-btn:hover span {
   display: inline-block; }
 
-.variable-label .variable-setting-btn span.fa-cog {
+.variable-item .variable-setting-btn span.fa-cog {
   display: inline-block;
   position: relative;
   top: 2px;
   right: 0px;
   font-size: 16px; }
 
-.variable-label .variable-setting-btn .fa {
+.variable-item .variable-setting-btn .fa {
   position: static;
   display: none; }
 
-.variable-label .variable-setting-btn:hover .fa {
+.variable-item .variable-setting-btn:hover .fa {
   color: #000000; }
 
 .add-data-section .variable-setting-btn {

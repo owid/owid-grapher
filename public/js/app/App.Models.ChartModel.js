@@ -37,7 +37,7 @@
 			"line-type": 0,
 			"line-tolerance": 1,
 			"chart-description": "",
-			"chart-dimensions": [],
+			"chart-dimensions": "[]",
 			"variables": [],
 			"y-axis": {"axis-label-distance":"-10"},
 			"x-axis": {},

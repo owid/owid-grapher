@@ -41,12 +41,13 @@
 		onSaveBtn: function(evt) {
 			if (this.$variableSelect.val() <= 0) return;
 
-			var varId = this.$variableSelect.val(),
-				varUnit = this.$variableSelect.find( "option:selected" ).attr( "data-unit" ),
-				varName = this.$variableSelect.find( "option:selected" ).text(),
-				variable = new App.Models.ChartVariableModel({ id: varId, name: varName, unit: varUnit });
+			var variable = {
+				variableId: this.$variableSelect.val(),
+				variableName: this.$variableSelect.find("option:selected").text(),
+				unit: this.$variableSelect.find("option:selected").attr("data-unit")
+			};
 
-			App.ChartVariablesCollection.add(variable);
+			this.trigger("new-variable", variable);
 			this.hide();
 		},
 

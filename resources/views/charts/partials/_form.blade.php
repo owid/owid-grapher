@@ -79,9 +79,7 @@
 						<div class="form-section-content">
 							<a class="add-data-btn"><i class="fa fa-plus"></i>Add variable</a>
 							<div class="dd">
-								<ol class="dd-list">
-
-								</ol>
+								<div class="dd-empty"></div>
 							</div>
 						<p class="form-section-desc hidden">Assign variables to the graph dimensions below by dragging them.</p>
 						</div>
