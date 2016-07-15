@@ -24,9 +24,9 @@
 		},
 
 		render: function(callback) {
-			var chartName = App.ChartModel.get( "chart-name" ),
-				chartSubname = App.ChartModel.get( "chart-subname" ) || "",
-				addCountryMode = App.ChartModel.get( "add-country-mode" ),
+			var chartName = App.ChartModel.get("chart-name"),
+				chartSubname = App.ChartModel.get("chart-subname"),
+				addCountryMode = App.ChartModel.get( "add-country-mode"),
 				selectedCountries = App.ChartModel.get("selected-countries"),
 				logoPath = App.ChartModel.get("logo"),
 				partnerLogoPath = App.ChartModel.get("second-logo"),

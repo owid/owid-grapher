@@ -18,8 +18,6 @@
 		},
 
 		update: function() 	{	
-			if (_.isEmpty(App.ChartModel.get("chart-dimensions"))) return;
-
 			if (this.dataRequest) {
 				this.dataRequest.abort();
 				this.dataRequest = null;
@@ -28,7 +26,7 @@
 			this.dimensions = JSON.parse(App.ChartModel.get("chart-dimensions"));
 			var variableIds = _.map(this.dimensions, function(dim) { return dim.variableId; });
 			if (_.isEmpty(variableIds)) {
-				this.clear();
+				this.setEmptyData();
 				return;
 			}
 
@@ -52,7 +50,7 @@
 			var lines = rawData.split("\r\n");
 
 			lines.forEach(function(line, i) {
-				if (i == 0) { // First line contains the basic variable metadata 
+				if (i === 0) { // First line contains the basic variable metadata 
 					variableData = JSON.parse(line);
 				} else if (i == lines.length-1) { // Final line is entity id => name mapping
 					variableData.entityKey = JSON.parse(line);
@@ -60,7 +58,7 @@
 					var points = line.split(";");
 					var variable;
 					points.forEach(function(d, j) {
-						if (j == 0) {
+						if (j === 0) {
 							variable = variableData.variables[d];
 						} else {
 							var spl = d.split(",");
@@ -84,8 +82,18 @@
 			});
 
 			window.variableData = variableData;
-			this.isReady = true;	
+			this.isReady = true;
 			this.set({ variableData: variableData, minYear: minYear, maxYear: maxYear, availableEntities: availableEntities });
+		},
+
+		// Replicates the state we would expect if there were simply no available data
+		setEmptyData: function() {
+			this.set({
+				variableData: { variables: {}, entityKey: {} },
+				minYear: Infinity,
+				maxYear: -Infinity,
+				availableEntities: []
+			});
 		},
 
 		ready: function(callback) {
@@ -448,6 +456,6 @@
 
 			this.trigger("transform");
 			return result;
-		},
+		}
 	});
 })();

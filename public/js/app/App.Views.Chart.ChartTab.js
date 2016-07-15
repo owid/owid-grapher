@@ -2,6 +2,34 @@
 	"use strict";
 	owid.namespace("App.Views.Chart.ChartTab");
 
+	// Override nvd3 handling of zero data charts to prevent it removing
+	// all of our svg stuff
+	nv.utils.noData = function(chart, container) {
+	    var opt = chart.options(),
+	        margin = opt.margin(),
+	        noData = opt.noData(),
+	        data = (noData == null) ? ["No data available."] : [noData],
+	        height = nv.utils.availableHeight(opt.height(), container, margin),
+	        width = nv.utils.availableWidth(opt.width(), container, margin),
+	        x = margin.left + width/2,
+	        y = margin.top + height/2;
+
+	    //Remove any previously created chart components
+	    container.selectAll('g.nvd3').remove();
+
+	    var noDataText = container.selectAll('.nv-noData').data(data);
+
+	    noDataText.enter().append('text')
+	        .attr('class', 'nvd3 nv-noData')
+	        .attr('dy', '-.7em')
+	        .style('text-anchor', 'middle');
+
+	    noDataText
+	        .attr('x', x)
+	        .attr('y', y)
+	        .text(function(t){ return t; });
+	};
+
 	App.Views.Chart.ChartTab = owid.View.extend({
 		cachedColors: [],
 		el: "#chart-view",
@@ -64,21 +92,7 @@
 				window.location.reload();
 			});
 
-			var dimensionsString = App.ChartModel.get( "chart-dimensions" ),
-				validDimensions = false;
-
-			//check we have all dimensions necessary 
-			if( !$.isEmptyObject( dimensionsString ) ) {
-				var dimension = $.parseJSON( dimensionsString );
-				validDimensions = App.Utils.checkValidDimensions( dimension, App.ChartModel.get( "chart-type" ));
-			}
-
 			this.listenTo(App.ChartModel, "change", this.onChartModelChange.bind(this));
-
-			if (!validDimensions) {
-				return false;
-			}
-
 			this.render(callback);
 		},
 
@@ -111,10 +125,6 @@
 			var localData = App.DataModel.transformData(),
 				chartType = App.ChartModel.get("chart-type"),
 				svg = d3.select("svg");
-
-			if (!localData) {
-				return;
-			}			
 
 			this.updateAvailableCountries();
 
@@ -566,7 +576,7 @@
 
 				window.chart = that.chart;
 				that.onResize();
-				if (callback) callback();
+				if (_.isFunction(callback)) callback();
 			});
 
 			this.localData = localData;
@@ -721,12 +731,7 @@
 			return value;
 		},
 
-		onResize: function(callback) {
-			if (_.isEmpty(this.localData)) {
-				if (callback) callback();
-				return;
-			}
-			
+		onResize: function(callback) {			
 			if (this.legend) {
 				this.svgSelection.call(this.legend);
 			}
@@ -790,8 +795,10 @@
 
 			//position scale dropdowns - TODO - isn't there a better way then with timeout?
 			setTimeout(function() {
-				var chartRect = svg.select(".nvd3 g > rect"),
-					chartBounds = chartRect.node().getBoundingClientRect(),
+				var chartRect = svg.select(".nvd3 g > rect");
+				if (chartRect.empty()) return;
+
+				var chartBounds = chartRect.node().getBoundingClientRect(),
 					offsetX = chartBounds.left - svgBounds.left + 5,
 					offsetY = (this.legend ? this.legend.height() : 0) - 5;
 

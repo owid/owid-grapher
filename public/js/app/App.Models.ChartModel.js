@@ -25,8 +25,10 @@
 
 		defaults: {
 			"chart-name": "",
+			"chart-subname": "",
 			"chart-slug": "",
 			"chart-notes": "",
+			"chart-type": App.ChartType.LineChart,
 			"published": false,
 			// A range of form e.g. [0, 2015] with null meaning "all of it"
 			"chart-time": null,
@@ -220,7 +222,11 @@
 
 		isNew: function() {
 			return !this.get("id");
-		}
+		},
+
+		hasVariables: function() {
+			return this.get("chart-dimensions") && this.get("chart-dimensions") != "[]";
+		},
 	} );
 
 })();
