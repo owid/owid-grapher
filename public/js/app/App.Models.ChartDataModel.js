@@ -23,8 +23,8 @@
 				this.dataRequest = null;
 			}
 
-			this.dimensions = JSON.parse(App.ChartModel.get("chart-dimensions"));
-			var variableIds = _.map(this.dimensions, function(dim) { return dim.variableId; });
+			var dimensions = App.ChartModel.getDimensions();
+			var variableIds = _.map(dimensions, function(dim) { return dim.variableId; });
 			if (_.isEmpty(variableIds)) {
 				this.setEmptyData();
 				return;
@@ -133,7 +133,7 @@
 		},
 
 		transformDataForLineChart: function() {
-			var dimensions = _.clone(this.dimensions).reverse(), // Keep them stacked in the same visual order as editor
+			var dimensions = _.clone(App.ChartModel.getDimensions()).reverse(), // Keep them stacked in the same visual order as editor
 				variableData = this.get('variableData'),
 				variables = variableData.variables,
 				entityKey = variableData.entityKey,
@@ -265,7 +265,7 @@
 			if (App.ChartModel.get("group-by-variables") == false)
 				return this.zeroPadData(this.transformDataForLineChart());
 
-			var dimensions = this.dimensions,
+			var dimensions = App.ChartModel.getDimensions(),
 				variableData = this.get('variableData'),
 				variables = variableData.variables,
 				entityKey = variableData.entityKey,
@@ -323,7 +323,7 @@
 		},
 
 		transformDataForScatterPlot: function() {
-			var dimensions = this.dimensions,
+			var dimensions = App.ChartModel.getDimensions(),
 				variableData = this.get('variableData'),
 				variables = variableData.variables,
 				entityKey = variableData.entityKey,
@@ -427,7 +427,7 @@
 			var variableData = this.get("variableData");			
 			if (!variableData) return [];
 
-			var sources = _.map(this.dimensions, function(dimension) {
+			var sources = _.map(App.ChartModel.getDimensions(), function(dimension) {
 				var variable = variableData.variables[dimension.variableId],
 					source = _.extend({}, variable.source);
 

@@ -9,10 +9,6 @@
 		urlRoot: Global.rootUrl + '/data/entities',
 		
 		initialize: function () {
-
-			App.ChartVariablesCollection.on( "add", this.onVariableAdd, this );
-			App.ChartVariablesCollection.on( "remove", this.onVariableRemove, this );
-			
 		},
 
 		parse: function( response ){
@@ -43,11 +39,11 @@
 
 		getVariableIds: function() {
 
-			var variables = App.ChartVariablesCollection.models,
+/*			var variables = App.ChartVariablesCollection.models,
 				ids = _.map( variables, function( v, k ) {
 					return v.get( "id" );
 				} );
-			return ids;
+			return ids;*/
 
 		}
 

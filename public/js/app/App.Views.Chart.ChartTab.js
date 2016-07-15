@@ -391,20 +391,21 @@
 					}
 				});			
 
-	
-				that.chart.dispatch.on("stateChange", function() {
-					/* HACK (Mispy): Ensure stacked area charts maintain the correct dimensions on 
-					 * transition between stacked and expanded modes. It cannot be done on renderEnd
-					 * or stateChange because the delay causes the chart to jump; overriding update
-					 * seems to be the only way to get it to synchronously flow into resizing. It must
-					 * be re-overridden in renderEnd because the nvd3 chart render function resets it. Note
-					 * that stacked area charts also pay no attention to the margin setting. */
-					var origUpdate = that.chart.update;
-					that.chart.update = function() {
-						origUpdate.call(that.chart);
-						that.onResize();
-					};														
-				});
+				if (chartType != App.ChartType.DiscreteBar) {
+					that.chart.dispatch.on("stateChange", function() {
+						/* HACK (Mispy): Ensure stacked area charts maintain the correct dimensions on 
+						 * transition between stacked and expanded modes. It cannot be done on renderEnd
+						 * or stateChange because the delay causes the chart to jump; overriding update
+						 * seems to be the only way to get it to synchronously flow into resizing. It must
+						 * be re-overridden in stateChange because the nvd3 chart render function resets it. Note
+						 * that stacked area charts also pay no attention to the margin setting. */
+						var origUpdate = that.chart.update;
+						that.chart.update = function() {
+							origUpdate.call(that.chart);
+							that.onResize();
+						};														
+					});					
+				}
 	
 				//fixed probably a bug in nvd3 with previous tooltip not being removed
 				d3.select( ".xy-tooltip" ).remove();
@@ -554,7 +555,7 @@
 					that.$svg.find( "> .nvd3.nv-custom-legend" ).hide();
 				}
 				
-				var dimensions = JSON.parse(App.ChartModel.get("chart-dimensions"));
+				var dimensions = App.ChartModel.getDimensions();
 
 				if (chartType == App.ChartType.ScatterPlot) {
 					//need to have own showDist implementation, cause there's a bug in nvd3
@@ -569,8 +570,8 @@
 					$pathDomain.css( "stroke-opacity", "0" );
 				}
 				
-				var chartDimensionsString = App.ChartModel.get( "chart-dimensions" );
-				if( chartDimensionsString.indexOf( '"property":"color"' ) === -1 ) {
+				var chartDimensions = App.ChartModel.getDimensions();
+				if (!_.findWhere(chartDimensions, { property: 'color' })) {
 					//check if string does not contain "property":"color"
 					that.cacheColors( localData );
 				}

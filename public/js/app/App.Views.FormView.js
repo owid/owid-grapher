@@ -2,8 +2,7 @@
 	"use strict";
 	owid.namespace("App.Views.FormView");
 	
-	var	ChartVariablesCollection = require("App.Collections.ChartVariablesCollection"),
-		AvailableEntitiesCollection = require("App.Collections.AvailableEntitiesCollection"),
+	var	AvailableEntitiesCollection = require("App.Collections.AvailableEntitiesCollection"),
 		SearchDataCollection = require("App.Collections.SearchDataCollection"),
 		BasicTabView = require("App.Views.Form.BasicTabView"),
 		DataTabView = require("App.Views.Form.DataTabView"),
@@ -25,12 +24,6 @@
 			var formConfig = App.ChartModel.get("form-config");
 
 			//create related models, either empty (when creating new chart), or prefilled from db (when editing existing chart)
-			if (formConfig && formConfig["variables-collection"]) {
-				App.ChartVariablesCollection = new ChartVariablesCollection(formConfig["variables-collection"]);
-			} else {
-				App.ChartVariablesCollection = new ChartVariablesCollection();
-			}
-		
 			if (formConfig && formConfig["entities-collection"]) {
 				App.AvailableEntitiesCollection = new AvailableEntitiesCollection(formConfig["entities-collection"]);
 			} else {

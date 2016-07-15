@@ -102,7 +102,7 @@
 		onSync: function() {
 			if( this.get( "chart-type" ) == App.ChartType.ScatterPlot ) {
 				//make sure for scatter plot, we have color set as continents
-				var chartDimensions = $.parseJSON( this.get( "chart-dimensions" ) );
+				var chartDimensions = this.getDimensions();
 				if( !_.findWhere( chartDimensions, { "property": "color" } ) ) {
 					//this is where we add color property
 					var colorPropObj = { "variableId":"123","property":"color","unit":"","name":"Color","period":"single","mode":"specific","targetYear":"2000","tolerance":"5","maximumAge":"5"};
@@ -225,8 +225,35 @@
 		},
 
 		hasVariables: function() {
-			return this.get("chart-dimensions") && this.get("chart-dimensions") != "[]";
+			return !_.isEmpty(this.getDimensions);
 		},
+
+		// Get the empty dimension slots appropriate for this type of chart
+		getEmptyDimensions: function() {
+			var chartType = this.get("chart-type");
+
+			var xAxis = { property: 'x', name: 'X axis', },
+				yAxis = { property: 'y', name: 'Y axis', },
+				color = { property: 'color', name: 'Color' },
+				shape = { property: 'shape', name: 'Shape' },
+				size = { property: 'size', name: 'size' };
+
+			if (chartType == App.ChartType.ScatterPlot)
+				return [xAxis, yAxis, size, shape, color];
+			else
+				return [yAxis];
+		},
+
+		// Get chart dimensions, ensuring we return only those appropriate for the type
+		getDimensions: function() {
+			var dimensionsString = this.get("chart-dimensions");
+			if (!dimensionsString) return [];
+			var dimensions = JSON.parse(dimensionsString),
+				validProperties = _.pluck(this.getEmptyDimensions(), 'property'),
+				validDimensions = _.filter(dimensions, function(dim) { return _.include(validProperties, dim.property); });
+
+			return validDimensions;
+		}
 	} );
 
 })();

@@ -223,7 +223,6 @@ return [
 	            'app/App.Models.ChartVariableModel.js',
 	            'app/App.Models.EntityModel.js',
 
-	            'app/App.Collections.ChartVariablesCollection.js',
 	            'app/App.Collections.SearchDataCollection.js',
 	            'app/App.Collections.AvailableEntitiesCollection.js',
 
@@ -234,7 +233,6 @@ return [
 	            'app/App.Views.Form.BasicTabView.js',
 	            'app/App.Views.Form.ChartTypeSectionView.js',
 	            'app/App.Views.Form.AddDataSectionView.js',
-	            'app/App.Views.Form.DimensionsSectionView.js',
 	            'app/App.Views.Form.SelectedCountriesSectionView.js',
 	            'app/App.Views.Form.EntitiesSectionView.js',
 	            'app/App.Views.Form.TimeSectionView.js',            

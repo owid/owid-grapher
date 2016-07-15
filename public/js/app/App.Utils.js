@@ -477,12 +477,11 @@
 	};
 
 	App.Utils.getPropertyByVariableId = function( model, variableId ) {
+		if (!model) return false;
+		var chartDimensions = model.getDimensions();
 
-		if( model && model.get( "chart-dimensions" ) ) {
-
-			var chartDimensionsString = model.get( "chart-dimensions" ),
-				chartDimensions = $.parseJSON( chartDimensionsString ),
-				dimension = _.where( chartDimensions, { "variableId": variableId } );
+		if (chartDimensions) {
+			var dimension = _.where( chartDimensions, { "variableId": variableId } );
 			if( dimension && dimension.length ) {
 				return dimension[0].property;
 			}
@@ -490,7 +489,6 @@
 		}
 
 		return false;
-		
 	};
 
 	App.Utils.formatTimeLabel = function( type, d, xAxisPrefix, xAxisSuffix, format ) {

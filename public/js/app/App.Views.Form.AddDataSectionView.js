@@ -106,7 +106,7 @@
 		render: function() {
 			// Create slots for the variables to go in by what dimensions the chart has available
 			var html = '<ol class="dimensions-list">';
-			var emptyDimensions = this.getDimensionsForChartType();
+			var emptyDimensions = App.ChartModel.getEmptyDimensions();
 			_.each(emptyDimensions, function(dimension) {
 				html += '<li data-property="' + dimension.property + '" class="dimension-box">' +
 					        '<h4>' + dimension.name + '</h4>' +
@@ -120,7 +120,7 @@
 			this.$dimensionsContent.html(html);
 
 			// Now assign any current variables to the appropriate slots
-			var dimensions = JSON.parse(App.ChartModel.get("chart-dimensions"));
+			var dimensions = App.ChartModel.getDimensions();
 			_.each(dimensions, function(dimension) {
 				var variable = App.DataModel.get("variableData").variables[dimension.variableId],
 					$slot = this.$el.find('[data-property='+dimension.property+']'),
@@ -141,21 +141,6 @@
 			}
 
 			this.$el.find(".dd").nestable();
-		},
-
-		getDimensionsForChartType: function() {
-			var chartType = App.ChartModel.get("chart-type");
-
-			var xAxis = { property: 'x', name: 'X axis', },
-				yAxis = { property: 'y', name: 'Y axis', },
-				color = { property: 'color', name: 'Color' },
-				shape = { property: 'shape', name: 'Shape' },
-				size = { property: 'size', name: 'size' };
-
-			if (chartType == App.ChartType.ScatterPlot)
-				return [xAxis, yAxis, size, shape, color];
-			else
-				return [yAxis, color];
 		},
 
 		makeVariableItem: function(dimensionSettings) {

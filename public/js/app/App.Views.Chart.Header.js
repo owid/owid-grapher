@@ -161,8 +161,7 @@
 
 		updateTimeFromChart: function() {
 			//find minimum and maximum in all displayed data
-			var dimsString = App.ChartModel.get("chart-dimensions"),
-				dims = $.parseJSON( dimsString ),
+			var dims = App.ChartModel.getDimensions(),
 				latestAvailable = false,
 				timeFrom = App.DataModel.minTransformedYear,
 				timeTo = App.DataModel.maxTransformedYear;

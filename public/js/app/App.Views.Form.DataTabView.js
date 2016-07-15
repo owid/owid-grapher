@@ -4,7 +4,6 @@
 
 	var ChartTypeSectionView = require("App.Views.Form.ChartTypeSectionView"),
 		AddDataSectionView = require("App.Views.Form.AddDataSectionView"),
-		DimensionsSectionView = require("App.Views.Form.DimensionsSectionView"),
 		SelectedCountriesSectionView = require("App.Views.Form.SelectedCountriesSectionView"),
 		EntitiesSectionView = require("App.Views.Form.EntitiesSectionView"),
 		TimeSectionView = require("App.Views.Form.TimeSectionView");
@@ -21,7 +20,6 @@
 
 			this.chartTypeSection = this.addChild(ChartTypeSectionView, { dispatcher: this.dispatcher });
 			this.addDataSection = this.addChild(AddDataSectionView, { dispatcher: this.dispatcher });
-			//this.dimensionsSection = this.addChild(DimensionsSectionView, { dispatcher: this.dispatcher });
 			this.selectedCountriesSection = this.addChild(SelectedCountriesSectionView, { dispatcher: this.dispatcher });
 			this.entitiesSection = this.addChild(EntitiesSectionView, { dispatcher: this.dispatcher });
 			this.timeSection = this.addChild(TimeSectionView, { dispatcher: this.dispatcher });

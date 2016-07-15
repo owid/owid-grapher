@@ -47,7 +47,6 @@
 
 			this.render();
 
-			this.listenTo(App.ChartVariablesCollection, "add remove change reset", this.onVariablesCollectionChange.bind(this));
 			this.listenTo(App.ChartModel, "change", this.onChartModelChange.bind(this));
 			this.onChartModelChange();
 		},
@@ -204,10 +203,6 @@
 
 			}
 
-		},
-
-		onVariablesCollectionChange: function() {
-			this.render();
 		},
 
 		onVariableIdChange: function() {
