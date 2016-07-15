@@ -101,6 +101,7 @@
 			d3.selectAll(".nvd3").remove();
 			if (this.$yAxisScaleSelector)
 				this.$yAxisScaleSelector.show();
+			d3.selectAll("svg").on("mousemove.stackedarea", null);
 		},
 
 		updateAvailableCountries: function() {
@@ -591,6 +592,8 @@
 		},
 
 		scatterDist: function() {
+			if (!$(".nv-distributionX").length) return;
+
 			var that = this,
 				margins = App.ChartModel.get( "margins" ),
 				nvDistrX = $( ".nv-distributionX" ).offset().top,

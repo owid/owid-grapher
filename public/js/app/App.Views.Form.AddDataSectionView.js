@@ -23,7 +23,7 @@
 			this.settingsVarPopup.init(options);
 
 			this.listenTo(this.selectVarPopup, "new-variable", this.onNewVariable.bind(this));
-			this.listenTo(this.settingsVarPopup, "settings-update", this.onVariableSettingsUpdate.bind(this));
+			this.listenTo(this.settingsVarPopup, "variable-settings", this.onVariableSettingsUpdate.bind(this));
 
 
 			this.$reserveSection = this.$el.find(".add-data-section");
@@ -61,6 +61,16 @@
 		onVariableSettingsUpdate: function(settings) {
 			var $li = $(".variable-item[data-variable-id='" + settings.variableId + "']");
 			this.applySettingsToItem($li, settings);
+
+			// settings already come back in the form e.g. 'target-year'
+            for (var i in settings) {
+                if (settings.hasOwnProperty(i) && i !== "variableId") {
+                    var attrName = "data-" + i,
+                        attrValue = settings[i];
+                    $li.attr(attrName, attrValue);
+                }
+            } 
+
 			this.settingsVarPopup.hide();
 			this.saveDimensions();
 		},
