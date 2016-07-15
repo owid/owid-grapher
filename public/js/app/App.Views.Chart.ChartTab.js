@@ -178,18 +178,6 @@
 				} );
 			}
 
-			var discreteData;
-			if( chartType == App.ChartType.DiscreteBar ) {
-				var flattenValues = _.map( localData, function( v ) {
-					if( v && v.color ) {
-						v.values[ 0 ].color = v.color;
-					}
-					return v.values[0];
-				} );
-				discreteData = [{ key: "variable", values: flattenValues }];
-				localData = discreteData;
-			}
-
 			//filter by chart time
 			var chartTime = App.ChartModel.get( "chart-time" );
 			if( chartTime && chartTime.length == 2 ) {
@@ -358,15 +346,13 @@
 						that.chart = nv.models.multiBarHorizontalChart().options(chartOptions);					
 					}
 
-				} else if( chartType == App.ChartType.DiscreteBar ) {
-
+				} else if (chartType == App.ChartType.DiscreteBar) {
 					chartOptions.showValues = true;
 
 					that.chart = nv.models.discreteBarChart()
-						.x( function( d ) { return d.x; } )
-						.y( function( d ) { return d.y; } )
-						.options( chartOptions );
-
+						.x(function(d) { return d.x; })
+						.y(function(d) { return d.y; })
+						.options(chartOptions);
 				}
 
 				that.chart.dispatch.on("renderEnd", function(state) {

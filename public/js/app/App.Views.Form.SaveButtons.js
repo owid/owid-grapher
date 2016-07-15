@@ -40,7 +40,6 @@
 		// @param newAttrs Attributes which will only be set on the model if the save is successful.
 		saveChart: function(newAttrs) {
 			var formConfig = {
-				"variables-collection": App.ChartVariablesCollection.toJSON(),
 				"entities-collection": App.AvailableEntitiesCollection.toJSON()
 			};
 
@@ -78,7 +77,6 @@
 			ev.preventDefault();
 
 			var formConfig = {
-				"variables-collection": App.ChartVariablesCollection.toJSON(),
 				"entities-collection": App.AvailableEntitiesCollection.toJSON()
 			};
 

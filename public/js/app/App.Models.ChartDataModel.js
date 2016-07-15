@@ -415,6 +415,79 @@
 			return localData;
 		},
 
+
+		transformDataForDiscreteBar: function() {
+			var dimensions = App.ChartModel.getDimensions(),
+				variableData = this.get('variableData'),
+				variables = variableData.variables,
+				entityKey = variableData.entityKey,
+				selectedCountriesById = this.getSelectedCountriesById(),
+				localData = [];
+
+			var latestYearInData = _.max(_.map(variables, function(v) { return _.max(v.years); }));
+
+
+			_.each(dimensions, function(dimension) {
+				var series = {
+					values: [],
+					key: "Discrete bar",
+					id: dimension.variableId
+				};
+
+				var variable = variables[dimension.variableId],
+				    targetYear = parseInt(dimension.targetYear),
+				    targetMode = dimension.mode,
+				    tolerance = parseInt(dimension.tolerance),
+				    maximumAge = parseInt(dimension.maximumAge),
+				    valuesByEntity = {};
+
+				for (var i = 0; i < variable.years.length; i++) {
+					var year = parseInt(variable.years[i]),
+						entityId = variable.entities[i],
+						entity = selectedCountriesById[entityId];
+
+					if (!_.isEmpty(selectedCountriesById) && !entity) continue;
+
+					var value = valuesByEntity[entityId];
+
+					if (targetMode === "specific") {
+						// Not within target year range, ignore
+						if (year < targetYear-tolerance || year > targetYear+tolerance)
+							continue;
+
+						// Make sure we use the closest year within tolerance (favoring later years)
+						if (value && Math.abs(value.time - targetYear) < Math.abs(year - targetYear))
+							continue;
+					} else if (targetMode == "latest" && !isNaN(maximumAge)) {
+						if (year < latestYearInData-maximumAge)
+							continue;
+					}
+
+					value = {
+						time: year,
+						x: entityKey[entityId].name,
+						y: variable.values[i]
+					};
+
+					valuesByEntity[entityId] = value;
+				}
+
+				_.each(valuesByEntity, function(value) {
+					series.values.push(value);
+				});
+				localData.push(series);
+			}.bind(this));
+
+			this.minTransformedYear = _.min(_.map(localData, function(entityData) {
+				return entityData.values[0].time;
+			}));
+			this.maxTransformedYear = _.max(_.map(localData, function(entityData) {
+				return entityData.values[0].time;
+			}));
+
+			return localData;
+		},
+
 		getSourceDescHtml: function(source) {
 			var html = "<div class='datasource-wrapper'>";
 			html += "<h2>" + source.name + "</h2>";			
@@ -450,6 +523,8 @@
 					result = this.transformDataForScatterPlot();
 				else if (chartType == App.ChartType.StackedArea)
 					result = this.transformDataForStackedArea();	
+				else if (chartType == App.ChartType.DiscreteBar)
+					result = this.transformDataForDiscreteBar();
 				else
 					result = this.transformDataForLineChart();
 			}
