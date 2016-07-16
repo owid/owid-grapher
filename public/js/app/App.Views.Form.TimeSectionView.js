@@ -58,6 +58,8 @@
 				this.$chartTime.ionRangeSlider(sliderOptions);
 			else
 				slider.update(sliderOptions);
+
+			this.$el.find(".irs").toggleClass("disabled", isDynamicTime);
 		},
 
 		onDynamicTimeToggle: function() {
