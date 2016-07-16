@@ -424,11 +424,6 @@
 
 
 			_.each(dimensions, function(dimension) {
-				var series = {
-					values: [],
-					key: "Discrete bar",
-					id: dimension.variableId
-				};
 
 				var variable = variables[dimension.variableId],
 				    targetYear = parseInt(dimension.targetYear),
@@ -436,6 +431,12 @@
 				    tolerance = parseInt(dimension.tolerance),
 				    maximumAge = parseInt(dimension.maximumAge),
 				    valuesByEntity = {};
+
+				var series = {
+					values: [],
+					key: variable.name,
+					id: dimension.variableId
+				};
 
 				for (var i = 0; i < variable.years.length; i++) {
 					var year = parseInt(variable.years[i]),
@@ -471,6 +472,9 @@
 				_.each(valuesByEntity, function(value) {
 					series.values.push(value);
 				});
+
+				series.values = _.sortBy(series.values, 'y');
+
 				localData.push(series);
 			}.bind(this));
 

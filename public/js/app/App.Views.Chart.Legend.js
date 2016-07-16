@@ -30,7 +30,6 @@
 			, radioButtonMode = false   //If true, clicking legend items will cause it to behave like a radio button. (only one can be selected at a time)
 			, expanded = false
 			, dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout', 'stateChange', 'addEntity')
-			, vers = 'classic' //Options are "classic" and "furious" and "owd"
 			;
 
 		function chart(selection) {			
@@ -63,10 +62,7 @@
 
 				var series = g.selectAll('.nv-series')
 					.data(function(d) {
-						if(vers != 'furious') return d;
-						return d.filter(function(n) {
-							return expanded ? true : !n.disengaged;
-						});
+						return d;						
 					});
 
 				//special styling for stacked area chart legend
@@ -307,7 +303,6 @@
 			});
 			
 			function setTextColor(d,i) {
-				if(vers != 'furious' && vers != 'owd') return '#000';
 				if(expanded) {
 					return d.disengaged ? '#000' : '#fff';
 				} else if (!expanded) {
@@ -318,7 +313,7 @@
 			}
 
 			function setBGColor(d,i) {
-				if(expanded && (vers == 'furious' || vers == 'owd')) {
+				if (expanded) {
 					return d.disengaged ? '#eee' : d.color || color(d,i);
 				} else {
 					return d.color || color(d,i);
@@ -327,7 +322,7 @@
 
 
 			function setBGOpacity(d,i) {
-				if(expanded && (vers == 'furious' || vers == 'owd')) {
+				if (expanded) {
 					return 1;
 				} else {
 					return !!d.disabled ? 0 : 1;
@@ -354,7 +349,6 @@
 			updateState:   {get: function(){return updateState;}, set: function(_){updateState=_;}},
 			radioButtonMode:    {get: function(){return radioButtonMode;}, set: function(_){radioButtonMode=_;}},
 			expanded:   {get: function(){return expanded;}, set: function(_){expanded=_;}},
-			vers:   {get: function(){return vers;}, set: function(_){vers=_;}},
 
 			// options that require extra logic in the setter
 			margin: {get: function(){return margin;}, set: function(_){

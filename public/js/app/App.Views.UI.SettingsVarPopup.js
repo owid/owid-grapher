@@ -100,7 +100,8 @@
 				tolerance = $variableLabel.attr("data-tolerance"),
 				maximumAge = $variableLabel.attr("data-maximum-age");
 
-			if (App.ChartModel.get("chart-type") == App.ChartType.ScatterPlot) {
+			var chartType = App.ChartModel.get("chart-type");
+			if (chartType == App.ChartType.ScatterPlot || chartType == App.ChartType.DiscreteBar) {
 				this.$advancedSettings.show();
 			} else {
 				this.$advancedSettings.hide();

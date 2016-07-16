@@ -95,6 +95,17 @@ body {
 .flash {
     margin: 10px;
 }
+.clickable {
+    cursor: pointer;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+input[type=checkbox] {
+    cursor: pointer;
+}
 /* ==========================================================================
    Helper classes
    ========================================================================== */
@@ -626,7 +637,7 @@ select.disabled {
 #chart-view .nvd3-svg .chart-header-svg,
 #chart-view .nvd3-svg .chart-footer-svg {
     -webkit-touch-callout: initial !important;
-    -webkitr-user-select: initial !important;
+    -webkit-user-select: initial !important;
     -ms-user-select: initial !important;
     -moz-user-select: initial !important;
     -webkit-user-select: initial !important;

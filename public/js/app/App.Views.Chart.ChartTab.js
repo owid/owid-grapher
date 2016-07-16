@@ -520,7 +520,7 @@
 				if (!App.ChartModel.get("hide-legend")) {
 					//make sure wrapper is visible
 					that.$svg.find( "> .nvd3.nv-custom-legend" ).show();
-					that.legend = new App.Views.Chart.Legend( that.chart.legend ).vers( "owd" );
+					that.legend = new App.Views.Chart.Legend(that.chart.legend);
 					that.legend.dispatch.on("addEntity", function() {
 						if (that.$entitiesSelect.data("chosen")) {
 							that.$entitiesSelect.data("chosen").active_field = false;
@@ -528,7 +528,7 @@
 						//trigger open the chosen drop down
 						that.$entitiesSelect.trigger("chosen:open");
 					} );
-					that.svgSelection.call( that.legend );
+					that.svgSelection.call(that.legend);
 					//put legend above chart
 
 					//if stacked area chart
@@ -542,7 +542,8 @@
 					}
 				} else {
 					//no legend, remove what might have previously been there
-					that.$svg.find( "> .nvd3.nv-custom-legend" ).hide();
+					that.$svg.find("> .nvd3.nv-custom-legend").hide();
+					that.legend = null;
 				}
 				
 				var dimensions = App.ChartModel.getDimensions();

@@ -319,7 +319,7 @@
 							<h2><span class="form-section-digit">k</span>Legend</h2>
 						</div>
 						<div class="form-section-content">
-							<label>
+							<label class="clickable">
 								<input type="checkbox" name="hide-legend" />
 								Hide legend
 							</label><br>
