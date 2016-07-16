@@ -26,14 +26,14 @@
 		render: function(callback) {
 			var chartName = App.ChartModel.get("chart-name"),
 				chartSubname = App.ChartModel.get("chart-subname"),
-				addCountryMode = App.ChartModel.get( "add-country-mode"),
+				addCountryMode = App.ChartModel.get("add-country-mode"),
 				selectedCountries = App.ChartModel.get("selected-countries"),
 				logoPath = App.ChartModel.get("logo"),
 				partnerLogoPath = App.ChartModel.get("second-logo"),
 				partnerLogoUrl = partnerLogoPath && Global.rootUrl + "/" + partnerLogoPath,
-				tabs = App.ChartModel.get( "tabs" );
+				tabs = App.ChartModel.get("tabs");
 
-			/* Figure out the final header text */
+			// Figure out the header text we're going to display
 
 			this.updateTime();
 			chartName = this.replaceContextPlaceholders(chartName);
@@ -125,12 +125,14 @@
 		// country displayed by the current chart context
 		replaceContextPlaceholders: function(text) {
 			if (s.contains(text, "*country*")) {
-				var selectedCountries = App.ChartModel.get("selected-countries");
-				text = text.replace("*country*", _.pluck(selectedCountries, "name").join(", "));
+				var selectedEntities = App.ChartModel.get("selected-countries"),
+					entityText = _.pluck(selectedEntities, "name");
+
+				text = text.replace("*country*", entityText || ("in selected " + App.ChartModel.get("entity-type")));
 			}
 
 			if (s.contains(text, "*time")) {
-				if (!this.selectedTimeFrom) {
+				if (!_.isFinite(this.selectedTimeFrom)) {
 					text = text.replace("*time*", "over time");
 				} else {
 					var timeFrom = owid.displayYear(this.selectedTimeFrom),
@@ -161,9 +163,7 @@
 
 		updateTimeFromChart: function() {
 			//find minimum and maximum in all displayed data
-			var dims = App.ChartModel.getDimensions(),
-				latestAvailable = false,
-				timeFrom = App.DataModel.minTransformedYear,
+			var timeFrom = App.DataModel.minTransformedYear,
 				timeTo = App.DataModel.maxTransformedYear;
 
 			this.selectedTimeFrom = timeFrom;

@@ -104,7 +104,6 @@
 				validEntities = _.sample(availableEntities, 3);
 			}
 
-			console.log(validEntities);
 			App.ChartModel.set("selected-countries", validEntities);
 		},
 
