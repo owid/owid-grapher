@@ -10,7 +10,17 @@
 		return _.filter(data, function(series) { return !series.isCopy; });
 	}
 
-	App.Views.Chart.Legend = function( chartLegend ) {
+	App.Views.Chart.Legend = owid.View.extend({
+		initialize: function() {
+
+		},
+
+		render: function() {
+
+		},
+	});
+
+	App.Views.Chart.Legend = function(chartLegend) {
 	
 		//based on https://github.com/novus/nvd3/blob/master/src/models/legend.js
 
@@ -65,11 +75,6 @@
 						return d;						
 					});
 
-				//special styling for stacked area chart legend
-				if (chartType === App.ChartType.StackedArea) {
-					container.selectAll('g.nv-custom-legend').classed("transparent", true);
-				}
-				
 				//add entity label
 				var entityLabel = wrap.select( '.nv-entity-label' ),
 					entityLabelText = entityLabel.select( 'text' ),
@@ -159,7 +164,6 @@
 					.on('click', function(d,i) {
 						if (App.ChartModel.get("group-by-variables") || addCountryMode !== "add-country") {
 							//if displaying variables, instead of removing, use original version just to turn stuff off
-							//original version, when clicking country label just deactivates it
 							chartLegend.dispatch.legendClick(d,i);
 							// make sure we re-get data in case it was modified
 							var data = getData(series.data());

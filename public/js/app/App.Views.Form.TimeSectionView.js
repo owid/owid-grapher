@@ -27,8 +27,8 @@
 
 			var chartTime = App.ChartModel.get("chart-time"),
 				isDynamicTime = _.isEmpty(chartTime),
-				minDataYear = App.DataModel.get("minYear") || 0,
-				maxDataYear = App.DataModel.get("maxYear") || new Date().getFullYear(),
+				minDataYear = App.DataModel.get("minYear"),
+				maxDataYear = App.DataModel.get("maxYear"),
 				minYear = isDynamicTime ? minDataYear : chartTime[0],
 				maxYear = isDynamicTime ? maxDataYear : chartTime[1],
 				slider = this.$chartTime.data("ionRangeSlider");
@@ -47,7 +47,7 @@
 				onChange: function(data) {
 					this.$chartTimeFrom.val(data.from);
 					this.$chartTimeTo.val(data.to);
-					App.ChartModel.set("chart-time", [data.from, data.to]); 
+					this.onChartTimeChange(false);
 				}.bind(this),
 				onStart: function() {
 					this.onDynamicTimeToggle();
@@ -70,17 +70,20 @@
 			if (isDynamicTime)
 				App.ChartModel.set("chart-time", null);
 			else
-				this.onChartTimeChange();
+				this.onChartTimeChange(true);
 		},
 
-		onChartTimeChange: function() {
+		onChartTimeChange: function(shouldUpdateSlider) {
 			var slider = this.$chartTime.data("ionRangeSlider"),
 				minYear = this.$chartTimeFrom.val(),
 				maxYear = this.$chartTimeTo.val();
 
+			if (!_.isFinite(minYear) || !_.isFinite(maxYear)) return;
+
 			App.ChartModel.set("chart-time", [minYear, maxYear]); 
-			if (slider)
+			if (slider && shouldUpdateSlider) {
 				slider.update({'from': minYear, 'to': maxYear});
+			}
 		},
 	});
 })();

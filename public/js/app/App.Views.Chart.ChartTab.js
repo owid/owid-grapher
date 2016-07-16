@@ -507,9 +507,9 @@
 				if (chartType == App.ChartType.LineChart && (lineType == App.LineType.DashedIfMissing))// || lineType == App.LineType.UnjoinedIfMissing))
 					displayData = that.splitSeriesByMissing(localData);
 				window.displayData = displayData;
-				that.svgSelection = d3.select( that.$svg.selector )
+				that.svgSelection = d3.select(that.$svg.selector)
 					.datum(displayData)
-					.call( that.chart );
+					.call(that.chart);
 
 				if (chartType == App.ChartType.StackedArea)
 					that.chart.interactiveLayer.tooltip.contentGenerator(owid.contentGenerator);
@@ -518,8 +518,7 @@
 				
 				//set legend
 				if (!App.ChartModel.get("hide-legend")) {
-					//make sure wrapper is visible
-					that.$svg.find( "> .nvd3.nv-custom-legend" ).show();
+					that.$svg.find("> .nvd3.nv-custom-legend").show();
 					that.legend = new App.Views.Chart.Legend(that.chart.legend);
 					that.legend.dispatch.on("addEntity", function() {
 						if (that.$entitiesSelect.data("chosen")) {
@@ -527,19 +526,9 @@
 						}
 						//trigger open the chosen drop down
 						that.$entitiesSelect.trigger("chosen:open");
-					} );
+					});
 					that.svgSelection.call(that.legend);
 					//put legend above chart
-
-					//if stacked area chart
-					if (chartType == App.ChartType.StackedArea) {
-						that.chart.stacked.dispatch.on("areaMouseover", function(evt) {
-							that.legend.highlightPoint(evt);
-						});
-						that.chart.stacked.dispatch.on("areaMouseout", function(evt) {
-							that.legend.clearHighlight();
-						});
-					}
 				} else {
 					//no legend, remove what might have previously been there
 					that.$svg.find("> .nvd3.nv-custom-legend").hide();
