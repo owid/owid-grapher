@@ -16,10 +16,10 @@
 	    container.selectAll('g.nv-wrap').remove();
 
 	    var msg = "No data available.";
-	    if (_.isEmpty(App.ChartModel.get("selected-countries")))
-	    	msg = "No " + App.ChartModel.get("entity-type") + " selected.";
-	    else if (!App.ChartModel.hasVariables())
+	    if (!App.ChartModel.hasVariables())
 	    	msg = "No variables have been added.";
+	    else if (_.isEmpty(App.ChartModel.get("selected-countries")))
+	    	msg = "No " + App.ChartModel.get("entity-type") + " selected.";
 
 	    var noDataText = container.selectAll('.nv-noData').data([msg]);
 

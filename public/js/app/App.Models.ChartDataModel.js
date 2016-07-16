@@ -84,6 +84,28 @@
 			window.variableData = variableData;
 			this.isReady = true;
 			this.set({ variableData: variableData, minYear: minYear, maxYear: maxYear, availableEntities: availableEntities });
+			this.validateEntities();
+		},
+
+		// When chart dimensions change, double check that our selected entities are valid
+		// And set some new defaults if they're not or missing
+		validateEntities: function() {
+			var chartType = App.ChartModel.get("chart-type"),
+				availableEntities = App.DataModel.get("availableEntities"),
+				selectedEntities = App.ChartModel.get("selected-countries"),
+				availableEntitiesById = _.indexBy(availableEntities, 'id');
+
+			var validEntities = _.filter(selectedEntities, function(entity) {
+				return availableEntitiesById[entity.id];
+			});
+
+			if (_.isEmpty(validEntities) && chartType != App.ChartType.ScatterPlot && chartType != App.ChartType.DiscreteBar) {
+				// Select a few random ones
+				validEntities = _.sample(availableEntities, 3);
+			}
+
+			console.log(validEntities);
+			App.ChartModel.set("selected-countries", validEntities);
 		},
 
 		// Replicates the state we would expect if there were simply no available data

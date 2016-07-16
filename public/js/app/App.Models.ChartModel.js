@@ -140,6 +140,7 @@
 			if (!_.isEmpty(changes)) this.set(changes);
 		},
 
+
 		onSync: function() {
 			if( this.get( "chart-type" ) == App.ChartType.ScatterPlot ) {
 				//make sure for scatter plot, we have color set as continents
@@ -254,7 +255,7 @@
 		},
 
 		hasVariables: function() {
-			return !_.isEmpty(this.getDimensions);
+			return !_.isEmpty(this.getDimensions());
 		},
 
 		// Get the empty dimension slots appropriate for this type of chart
