@@ -40,7 +40,7 @@
 			this.$unitsSection = this.$el.find( ".units-section" );
 			this.$unitsContent = this.$unitsSection.find( ".form-section-content" );
 			
-			this.listenTo(App.ChartModel, "change:chart-type", this.onChartTypeChange.bind(this));
+			this.listenTo(App.ChartModel, "change:chart-type", this.render.bind(this));
 			this.listenTo(App.ChartModel, "change:chart-dimensions", this.render.bind(this));
 			this.listenTo(App.ChartModel, "change:line-type", this.renderLineType.bind(this));
 			
@@ -67,6 +67,16 @@
 			
 			this.updateUnitsUI();
 			this.updateUnits();
+
+			var chartType = App.ChartModel.get("chart-type");
+			if (chartType == App.ChartType.LineChart) {
+				if (this.$typeOfLine) {
+					this.$el.prepend(this.$typeOfLine);
+					this.$typeOfLine = null;					
+				}
+			} else {
+				this.$typeOfLine = this.$el.find(".type-of-line-section").remove();
+			}
 		},
 
 		renderLineType: function() {
@@ -119,15 +129,6 @@
 
 		onEntityTypeChange: function() {
 			App.ChartModel.set("entity-type", this.$entityType.val());
-		},
-
-		onChartTypeChange: function( evt ) {
-
-			if( App.ChartModel.get( "chart-type" ) === "2" ) {
-				//scatter plot has legend hidden by default
-				App.ChartModel.set( "hide-legend", true );
-			}
-
 		},
 
 		updateUnitsUI: function( evt ) {
