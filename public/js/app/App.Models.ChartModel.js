@@ -113,6 +113,16 @@
 			}			
 		},
 
+		getSelectedEntitiesById: function() {
+			var entities = {};
+
+			_.each(App.ChartModel.get("selected-countries"), function(entity) {
+				entities[entity.id] = entity;
+			});
+
+			return entities;
+		},
+
 		addSelectedCountry: function( country ) {
 			var selectedCountries = this.get( "selected-countries" );
 

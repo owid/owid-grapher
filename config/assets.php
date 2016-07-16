@@ -233,7 +233,6 @@ return [
 	            'app/App.Views.Form.BasicTabView.js',
 	            'app/App.Views.Form.ChartTypeSectionView.js',
 	            'app/App.Views.Form.AddDataSectionView.js',
-	            'app/App.Views.Form.SelectedCountriesSectionView.js',
 	            'app/App.Views.Form.EntitiesSectionView.js',
 	            'app/App.Views.Form.TimeSectionView.js',            
 	            'app/App.Views.Form.DataTabView.js',

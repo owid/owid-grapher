@@ -8,7 +8,7 @@ html {
 a {
   cursor: pointer; }
 
-body.skin-blue h2, body.skin-blue h3 {
+.skin-blue h2, .skin-blue h3 {
   margin-top: 20px; }
 
 .right-btns-wrapper a, .right-btns-wrapper form {
@@ -289,7 +289,13 @@ button[type="submit"]:not(".delete-btn") {
   border: 1px solid #666;
   color: #000; }
 
-.country-label .fa,
+.country-label .fa {
+  color: #bbb;
+  cursor: pointer;
+  margin-right: 5px;
+  margin-left: -10px;
+}
+
 .variable-item .fa {
   margin-right: -10px;
   margin-left: 10px;
