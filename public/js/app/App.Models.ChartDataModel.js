@@ -107,37 +107,12 @@
 			}
 		},
 
-		getSelectedCountriesById: function() {
-			var variableData = this.get("variableData"),
-				selectedCountries = App.ChartModel.get("selected-countries"),				
-				chartType = App.ChartModel.get("chart-type"),
-				selectedCountriesById = {};
-
-			if (chartType != App.ChartType.ScatterPlot && _.isEmpty(selectedCountries)) {
-				var random = _.sample(_.uniq(Object.keys(variableData.entityKey)), 3);
-				selectedCountries = [];
-				_.each(random, function(entityId) {
-					selectedCountries.push({
-						id: entityId,
-						name: variableData.entityKey[entityId].name
-					});
-				});
-				App.ChartModel.set("selected-countries", selectedCountries);
-			}
-
-			_.each(selectedCountries, function(entity) {
-				selectedCountriesById[entity.id] = entity;
-			});
-
-			return selectedCountriesById;
-		},
-
 		transformDataForLineChart: function() {
 			var dimensions = _.clone(App.ChartModel.getDimensions()).reverse(), // Keep them stacked in the same visual order as editor
 				variableData = this.get('variableData'),
 				variables = variableData.variables,
 				entityKey = variableData.entityKey,
-				selectedCountriesById = this.getSelectedCountriesById(),
+				selectedCountriesById = App.ChartModel.getSelectedEntitiesById(),
 				yAxis = App.ChartModel.get("y-axis"),
 				localData = [],
 				hasManyVariables = _.size(variables) > 1,
@@ -270,7 +245,7 @@
 				variables = variableData.variables,
 				entityKey = variableData.entityKey,
 				// Group-by-variable chart only has one selected country
-				selectedCountry = _.values(this.getSelectedCountriesById())[0],
+				selectedCountry = _.values(App.ChartModel.getSelectedEntitiesById())[0],
 				localData = [],
 				minTransformedYear = Infinity,
 				maxTransformedYear = -Infinity;
@@ -327,7 +302,7 @@
 				variableData = this.get('variableData'),
 				variables = variableData.variables,
 				entityKey = variableData.entityKey,
-				selectedCountriesById = this.getSelectedCountriesById(),
+				selectedCountriesById = App.ChartModel.getSelectedEntitiesById(),
 				seriesByEntity = {},
 				// e.g. for colors { var_id: { 'Oceania': '#ff00aa' } }
 				categoryTransforms = {},				
@@ -421,7 +396,7 @@
 				variableData = this.get('variableData'),
 				variables = variableData.variables,
 				entityKey = variableData.entityKey,
-				selectedCountriesById = this.getSelectedCountriesById(),
+				selectedCountriesById = App.ChartModel.getSelectedEntitiesById(),
 				localData = [];
 
 			var latestYearInData = _.max(_.map(variables, function(v) { return _.max(v.years); }));

@@ -7,17 +7,21 @@
 	nv.utils.noData = function(chart, container) {
 	    var opt = chart.options(),
 	        margin = opt.margin(),
-	        noData = opt.noData(),
-	        data = (noData == null) ? ["No data available."] : [noData],
 	        height = nv.utils.availableHeight(opt.height(), container, margin),
 	        width = nv.utils.availableWidth(opt.width(), container, margin),
 	        x = margin.left + width/2,
 	        y = margin.top + height/2;
 
 	    //Remove any previously created chart components
-	    container.selectAll('g.nvd3').remove();
+	    container.selectAll('g.nv-wrap').remove();
 
-	    var noDataText = container.selectAll('.nv-noData').data(data);
+	    var msg = "No data available.";
+	    if (_.isEmpty(App.ChartModel.get("selected-countries")))
+	    	msg = "No " + App.ChartModel.get("entity-type") + " selected.";
+	    else if (!App.ChartModel.hasVariables())
+	    	msg = "No variables have been added.";
+
+	    var noDataText = container.selectAll('.nv-noData').data([msg]);
 
 	    noDataText.enter().append('text')
 	        .attr('class', 'nvd3 nv-noData')

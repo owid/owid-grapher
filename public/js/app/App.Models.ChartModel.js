@@ -94,9 +94,50 @@
 			}
 		},
 
+		// Get defaults appropriate for this kind of chart
+		getDefaults: function(chartType) {
+			chartType = chartType || App.ChartModel.get("chart-type");
+			var defaults = _.clone(this.defaults);
+
+			if (chartType == App.ChartType.ScatterPlot) {
+				_.extend(defaults, {
+					"hide-legend": true
+				});
+			}
+
+			return defaults;
+		},
+
+		getDefault: function(key) {
+			return this.getDefaults()[key];
+		},
+
+		hasChangedFromDefault: function(key) {
+			return this.get(key) != this.getDefault(key);
+		},
+
 		initialize: function() {
-			this.on( "sync", this.onSync, this );
+			this.on("sync", this.onSync, this);
+			this.on("change:chart-type", this.onChangeType, this);
 			$(document).trigger("chart-model");
+		},
+
+		// When the chart type is changed, we update values to the new defaults
+		// Unless those values have been altered by the user
+		onChangeType: function() {
+			var oldDefaults = this.getDefaults(this.previous("chart-type")),
+				newDefaults = this.getDefaults(),
+				changes = {};
+
+			_.each(newDefaults, function(value, key) {
+				var current = this.get(key);
+				if (current == oldDefaults[key] && current != newDefaults[key])
+					changes[key] = newDefaults[key];
+			}.bind(this));
+
+			console.log(changes);
+
+			if (!_.isEmpty(changes)) this.set(changes);
 		},
 
 		onSync: function() {
@@ -190,28 +231,6 @@
 		getAxisConfig: function(axisName, prop) {
 			var axis = this.get(axisName);
 			if (axis) return axis[prop];
-		},
-
-		updateVariables: function( newVar ) {
-			//copy array
-			var variables = this.get( "variables" ).slice(),
-				varInArr = _.find( variables, function( v ){ return v.id == newVar.id; } );
-
-			if( !varInArr ) {
-				variables.push( newVar );
-				this.set( "variables", variables );
-			}
-		},
-
-		removeVariable: function( varIdToRemove ) {
-			//copy array
-			var variables = this.get( "variables" ).slice(),
-				varInArr = _.find( variables, function( v ){ return v.id == newVar.id; } );
-
-			if( !varInArr ) {
-				variables.push( newVar );
-				this.set( "variables", variables );
-			}
 		},
 
 		updateMapConfig: function(propName, propValue, silent, eventName) {
