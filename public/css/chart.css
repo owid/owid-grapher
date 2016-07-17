@@ -500,8 +500,8 @@ select.disabled {
     stroke-width: 3px;
     stroke: #fff;
 }
-#chart-view .nv-custom-legend .nv-entity-label text {
-    font-size: 0.9rem;
+#chart-view .nv-custom-legend .nv-legend-text {
+    fill: #fff;
 }
 #chart-view .nv-custom-legend .nv-add-btn {
     cursor: pointer;

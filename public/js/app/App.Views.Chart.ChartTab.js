@@ -35,7 +35,6 @@
 	};
 
 	App.Views.Chart.ChartTab = owid.View.extend({
-		cachedColors: [],
 		el: "#chart-view",
 		events: {
 			"change [name=available_entities]": "onAvailableCountries"
@@ -127,7 +126,7 @@
 		},
 
 		render: function(callback) {
-			var localData = App.DataModel.transformData(),
+			var localData = App.Colors.assignColorsForChart(App.DataModel.transformData()),
 				chartType = App.ChartModel.get("chart-type"),
 				svg = d3.select("svg");
 
@@ -146,41 +145,6 @@
 					selectedCountriesById[ v.id ] = v;
 					return +v.id;
 				} );
-
-			if( selectedCountries && selectedCountriesIds.length && !App.ChartModel.get( "group-by-variables" ) ) {
-				//set local copy of countries color, to be able to create brighter
-				var countriesColors = [];
-				_.each( localData, function( value, key, list ) {
-					//set color while in the loop
-					var id = value.id.toString();
-					//need to check for special case, when we have more variables for the same countries (the ids will be then 21-1, 22-1, etc.)
-					if( id.indexOf( "-" ) > 0 ) {
-						id = parseInt( id.split( "-" )[ 0 ], 10 );
-					} else {
-						id = parseInt( id, 10 );
-					}
-
-					var country = selectedCountriesById[ id ];
-					if( country && country.color ) {
-						if( !countriesColors[ id ] ) {
-							countriesColors[ id ] = country.color;
-						} else {
-							//there is already color for country (multivariant dataset) - create brighter color
-							countriesColors[ id ] = d3.rgb( countriesColors[ id ] ).brighter( 1 ).toString();
-						}
-						value.color = countriesColors[ id ];
-
-					} else {
-						value = that.assignColorFromCache( value );
-					}
-				} );
-			} else {
-				//TODO - nonsense? convert associative array to array, assign colors from cache
-				localData = _.map( localData, function( value ) {
-					value = that.assignColorFromCache( value );
-					return value;
-				} );
-			}
 
 			//filter by chart time
 			var chartTime = App.ChartModel.get( "chart-time" );
@@ -527,8 +491,7 @@
 						//trigger open the chosen drop down
 						that.$entitiesSelect.trigger("chosen:open");
 					});
-					that.svgSelection.call(that.legend);
-					//put legend above chart
+					that.legend.render();
 				} else {
 					//no legend, remove what might have previously been there
 					that.$svg.find("> .nvd3.nv-custom-legend").hide();
@@ -548,12 +511,6 @@
 					$pathDomain.css( "stroke-opacity", "1" );
 				} else {
 					$pathDomain.css( "stroke-opacity", "0" );
-				}
-				
-				var chartDimensions = App.ChartModel.getDimensions();
-				if (!_.findWhere(chartDimensions, { property: 'color' })) {
-					//check if string does not contain "property":"color"
-					that.cacheColors( localData );
 				}
 
 				window.chart = that.chart;
@@ -647,7 +604,6 @@
 		},
 
 		checkStackedAxis: function() {
-
 			//setting yAxisMax breaks expanded stacked chart, need to check manually
 			var stackedStyle = this.chart.stacked.style(),
 				yAxis = App.ChartModel.get( "y-axis" ),
@@ -687,38 +643,8 @@
 			}
 		},
 
-		cacheColors: function(data) {
-			if( !this.cachedColors.length ) {
-				var that = this;
-				_.each( data, function( v, i ) {
-					that.cachedColors[ v.id ] = v.color;
-				} );
-			}
-		},
-
-		assignColorFromCache: function( value ) {
-			this.cachedColors = this.cachedColors || {};
-			if( this.cachedColors.length ) {
-				//assing color frome cache
-				if( this.cachedColors[ value.id ] ) {
-					value.color = this.cachedColors[ value.id ];
-				} else {
-					var randomColor = App.Utils.getRandomColor();
-					value.color = randomColor;
-					this.cachedColors[ value.id ] = randomColor;
-				}
-			} else if (!value.color && App.ChartModel.get("chart-type") == App.ChartType.LineChart) {
-				this.colorScale = this.colorScale || nv.utils.getColor(d3.scale.category20().range());
-				this.colorIndex = this.colorIndex || 0;
-				value.color = this.colorScale(this.colorIndex += 1);	
-			}
-			return value;
-		},
-
 		onResize: function(callback) {			
-			if (this.legend) {
-				this.svgSelection.call(this.legend);
-			}
+			if (this.legend) this.legend.render();
 
 			//compute how much space for chart
 			var margins = App.ChartModel.get("margins"),
@@ -734,12 +660,11 @@
 
 			// Account for and position legend
 			if (this.legend) {
-				var legendMargins = this.legend.margin();
-				this.translateString = "translate(" + legendMargins.left + " ," + chartOffsetY + ")";
+				this.translateString = "translate(" + 0 + " ," + chartOffsetY + ")";
 				svg.select(".nvd3.nv-custom-legend").attr("transform", this.translateString);
 
-				chartOffsetY += this.legend.height();
-				chartHeight -= this.legend.height();
+				chartOffsetY += this.legend.height() + 10;
+				chartHeight -= this.legend.height() + 10;
 			}
 
 			if (App.ChartModel.get("x-axis")["axis-label"]) {
@@ -784,7 +709,7 @@
 
 				var chartBounds = chartRect.node().getBoundingClientRect(),
 					offsetX = chartBounds.left - svgBounds.left + 5,
-					offsetY = (this.legend ? this.legend.height() : 0) - 5;
+					offsetY = (this.legend ? this.legend.height() + 5 : 0);
 
 				this.$xAxisScaleSelector.css({ left: offsetX + chartBounds.width, top: offsetY + chartBounds.height });
 				this.$yAxisScaleSelector.css({ left: offsetX, top: offsetY });

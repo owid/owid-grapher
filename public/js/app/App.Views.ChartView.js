@@ -11,6 +11,7 @@
 		SourcesTab = require("App.Views.Chart.SourcesTab"),
 		MapTab = require("App.Views.Chart.MapTab"),
 		ChartDataModel = require("App.Models.ChartDataModel"),
+		Colors = require("App.Models.Colors"),
 		Utils = require("App.Utils");
 	
 	App.Views.ChartView = owid.View.extend({
@@ -51,7 +52,8 @@
 			var that = this;
 
 			// Data model used for fetching variables
-			App.DataModel = new ChartDataModel();			
+			App.DataModel = new ChartDataModel();		
+			App.Colors = new Colors();	
 			var childViewOptions = { dispatcher: this.dispatcher, parentView: this };
 			this.urlBinder = new ChartURL(childViewOptions);
 			this.header = new Header(childViewOptions);

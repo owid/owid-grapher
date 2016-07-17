@@ -166,6 +166,7 @@ return [
 		        'app/App.Utils.js',
 		        'app/App.Models.ChartModel.js',
 		        'app/App.Models.ChartDataModel.js',
+		        'app/App.Models.Colors.js',
 		        'app/App.Views.Chart.Header.js',
 		        'app/App.Views.Chart.Footer.js',
 		        'app/App.Views.Chart.ScaleSelectors.js',

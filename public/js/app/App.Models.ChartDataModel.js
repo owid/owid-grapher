@@ -179,6 +179,7 @@
 							values: [],
 							key: key,
 							entityName: entityKey[entityId].name,
+							entityId: entityId,
 							id: id
 						};
 						seriesByEntity[entityId] = series;

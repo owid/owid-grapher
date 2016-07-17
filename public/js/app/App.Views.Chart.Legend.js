@@ -12,15 +12,106 @@
 
 	App.Views.Chart.Legend = owid.View.extend({
 		initialize: function() {
-
+			this.dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout', 'stateChange', 'addEntity')
 		},
 
 		render: function() {
+			var localData = App.Colors.assignColorsForChart(App.DataModel.transformData()),
+				entityType = App.ChartModel.get("entity-type"),
+				addCountryMode = App.ChartModel.get("add-country-mode"),
+				groupByVariables = App.ChartModel.get("group-by-variables");
 
+			var $svg = $("svg.nvd3-svg"),
+				container = d3.select($svg[0]),
+				offsetX = 35, offsetY = 0,
+				availableWidth = $svg.width() - offsetX,
+				spaceBetweenLabels = 38,
+				spaceBetweenLines = 32;
+
+			var wrap = container.selectAll('g.nv-custom-legend').data([1]),
+				gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-custom-legend').append('g').attr('class', 'nv-legend-series-wrapper'),
+				g = wrap.select('g');
+
+			var series = g.selectAll('.nv-series')
+				.data(localData);
+
+			var seriesEnter = series.enter().append('g').attr('class', function(d) { return 'nv-series nv-series-' + d.id; } );
+
+			seriesEnter.append('rect')
+				.style('stroke-width', 2)
+				.attr('class','nv-legend-symbol');
+
+			if (addCountryMode == "add-country" && !groupByVariables) {
+				var removeBtns = seriesEnter.append('g')
+					.attr('class', 'nv-remove-btn')
+					.attr('transform', 'translate(10,10)');
+				removeBtns.append('path').attr({ 'd': 'M0,0 L7,7', 'class': 'nv-box' });
+				removeBtns.append('path').attr({ 'd': 'M7,0 L0,7', 'class': 'nv-box' });
+			}
+				
+			seriesEnter.append('text')
+				.attr('text-anchor', 'start')
+				.attr('class','nv-legend-text')
+				.attr('dy', '.32em')
+				.attr('dx', '0');
+
+			var seriesShape = series.select('.nv-legend-symbol'),
+				seriesText = series.select('text.nv-legend-text'),
+				seriesRemove = series.select('.nv-remove-btn');
+
+			series
+				.on('click', function(d,i) {
+					if (App.ChartModel.get("group-by-variables") || addCountryMode !== "add-country") {
+						return;
+					} 
+					App.ChartModel.removeSelectedCountry(d.entityName);
+				});
+
+			series.exit().remove();
+
+			seriesText.text(function(d) { return d.key; });
+
+			// Position the labels
+			var transformX = 0, transformY = 0;
+			series.each(function(d, i) {
+				var legendText = d3.select(this).select('text');
+				var nodeTextLength = legendText.node().getComputedTextLength();
+
+				if (transformX+nodeTextLength > availableWidth)  {
+					transformY += spaceBetweenLines;
+					transformX = 0;
+				}
+
+				d3.select(this).attr("transform", "translate(" + transformX + "," + transformY + ")");
+
+				transformX += nodeTextLength + spaceBetweenLabels;
+			});
+
+			g.attr('transform', 'translate(' + offsetX + ',' + offsetY + ')');			
+			
+			// Size the rectangles around the positioned text	
+			seriesShape
+				.attr('width', function(d,i) {
+					//position remove btn
+					var width = seriesText[0][i].getComputedTextLength() + 5;
+					d3.select(seriesRemove[0][i]).attr('transform', 'translate(' + width + ',-3)');
+					return width+29;
+				})
+				.attr('height', 26)
+				.attr('y', -13)
+				.attr('x', -13);
+
+			seriesShape.style('fill', function(d, i) {
+				return d.color || nv.utils.getColor(d, i);
+			});
 		},
+
+		height: function() {
+			return d3.select(".nv-custom-legend").node().getBBox().height;
+		}
 	});
 
-	App.Views.Chart.Legend = function(chartLegend) {
+	/*App.Views.Chart.Legend2 = function(chartLegend) {
 	
 		//based on https://github.com/novus/nvd3/blob/master/src/models/legend.js
 
@@ -39,7 +130,6 @@
 			, updateState = true   //If true, legend will update data.disabled and trigger a 'stateChange' dispatch.
 			, radioButtonMode = false   //If true, clicking legend items will cause it to behave like a radio button. (only one can be selected at a time)
 			, expanded = false
-			, dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout', 'stateChange', 'addEntity')
 			;
 
 		function chart(selection) {			
@@ -51,16 +141,6 @@
 				nv.utils.initSVG(container);
 
 				var bindableData = getData(data);
-
-				//discrete bar chart needs unpack data
-				if( chartType === App.ChartType.DiscreteBar ) {
-					if( data && data.length && data[0].values ) {
-						var discreteData = _.map( data[0].values, function( v, i ) {
-							return { id: v.id, key: v.x, color: v.color, values: v };
-						} );
-						bindableData = discreteData;
-					}
-				}
 				
 				// Setup containers and skeleton of chart
 				var wrap = container.selectAll('g.nv-custom-legend').data([bindableData]),
@@ -380,5 +460,5 @@
 		nv.utils.initOptions(chart);
 
 		return chart;
-	};
+	};*/
 })();
