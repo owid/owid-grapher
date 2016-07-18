@@ -10,8 +10,8 @@
 		basicScheme: ["#3360a9", "#ca2628", "#34983f", "#ed6c2d", "#df3c64", "#a85a4a", "#e6332e", "#6bb537", "#ffd53e", "#f07f59", "#b077b1", "#932834", "#674c98", "#5eb77e", "#f6a324", "#2a939b", "#818282", "#7ec7ce", "#fceb8c", "#cfcd1e", "#58888f", "#ce8ebd", "#9ecc8a", "#db2445", "#f9bc8f", "#d26e66", "#c8c8c8"],
  
 		initialize: function() {
-			this.colorCache = {};
 			this.colorScale = d3.scale.ordinal().range(this.basicScheme);
+			this.colorCache = {};
 			this.colorIndex = 0;
 
 			// Clear the color cache in the editor so chart creator can see the
@@ -19,13 +19,14 @@
 			if (App.isEditor) {
 				App.ChartModel.on("change:selected-countries", function() {
 					this.colorCache = {};
+					this.colorIndex = 0;
 				}.bind(this));				
 			}
 		},
 
-		assignColor: function(key) {
+		assignColor: function(key, color) {
 			if (!this.colorCache[key]) {
-				this.colorCache[key] = this.colorScale(this.colorIndex);
+				this.colorCache[key] = color || this.colorScale(this.colorIndex);
 				this.colorIndex += 1;
 			}
 
@@ -38,8 +39,7 @@
 			_.each(localData, function(series, i) {
 				var entity = selectedEntitiesById[series.entityId];
 				if (entity.color) {
-					series.color = entity.color;
-					this.colorIndex += 1; // To keep same color distribution for other entities when manual colors are set
+					series.color = this.assignColor(series.entityId, entity.color);
 				} else {					
 					series.color = this.assignColor(series.entityId);
 				}
