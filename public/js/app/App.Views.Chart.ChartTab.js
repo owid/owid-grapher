@@ -126,7 +126,7 @@
 		},
 
 		render: function(callback) {
-			var localData = App.Colors.assignColorsForChart(App.DataModel.transformData()),
+			var localData = App.DataModel.transformData(),
 				chartType = App.ChartModel.get("chart-type"),
 				svg = d3.select("svg");
 

@@ -13,7 +13,8 @@
 		defaults: {},
 
 		initialize: function () {
-			App.ChartModel.on("change:chart-dimensions", this.update, this);
+			App.ChartModel.on("change:chart-dimensions", this.update.bind(this));
+			App.ChartModel.on("change", function() { this.chartData = null; }.bind(this));
 			this.update();
 		},
 
@@ -513,6 +514,9 @@
 		},
 
 		transformData: function() {
+			if (this.chartData)
+				return this.chartData;
+
 			var variableData = this.get("variableData");
 			var result = [];
 
@@ -530,6 +534,8 @@
 					result = this.transformDataForLineChart();
 			}
 
+			result = App.Colors.assignColorsForChart(result);
+			this.chartData = result;
 			this.trigger("transform");
 			return result;
 		}

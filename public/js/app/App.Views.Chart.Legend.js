@@ -16,7 +16,7 @@
 		},
 
 		render: function() {
-			var localData = App.Colors.assignColorsForChart(App.DataModel.transformData()),
+			var localData = App.DataModel.transformData(),
 				entityType = App.ChartModel.get("entity-type"),
 				addCountryMode = App.ChartModel.get("add-country-mode"),
 				groupByVariables = App.ChartModel.get("group-by-variables");
