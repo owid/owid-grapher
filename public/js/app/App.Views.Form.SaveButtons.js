@@ -91,11 +91,11 @@
 			App.ChartModel.save({}, {
 				success: function (model, response, options) {
 					w.location = App.ChartModel.url(response.data.id) + "/edit";
-					App.ChartModel.set({ id: origId, published: origPublished }, { silent: true });
+					App.ChartModel.set({ id: origId, published: origPublished });
 				},
 				error: function (model, xhr, options) {
 					w.close();
-					App.ChartModel.set({ id: origId, published: origPublished }, { silent: true });
+					App.ChartModel.set({ id: origId, published: origPublished });
 					var $modal = owid.modal({ title: "Error saving chart", content: xhr.responseText });
 					$modal.addClass("error");
 				}

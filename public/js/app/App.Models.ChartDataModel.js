@@ -423,9 +423,7 @@
 
 			var latestYearInData = _.max(_.map(variables, function(v) { return _.max(v.years); }));
 
-
 			_.each(dimensions, function(dimension) {
-
 				var variable = variables[dimension.variableId],
 				    targetYear = parseInt(dimension.targetYear),
 				    targetMode = dimension.mode,

@@ -83,23 +83,10 @@
 							</div>
 						<p class="form-section-desc hidden">Assign variables to the graph dimensions below by dragging them.</p>
 						</div>
-						<!--<div class="form-section-content">
-							<p class="form-section-desc">Or choose CSV file from your computer with data to chart. Each country data should be in their own colum,time should it be first column, otherwise it's not gonna work.</p>
-							<div class="file-picker-wrapper">
-								<input type="file" />
-								<a href="#" title="Remove uploaded file" class="remove-uploaded-file-btn"><span class="visuallyhidden">Remove uploaded file</span><i class="fa fa-remove"></i></a>
-							</div>
-						</div>-->
 					</section>
 					<section class="form-section dimensions-section">
 						<div class="form-section-content">
 							
-						</div>
-						<div class="group-by-variable-wrapper">
-							<label>
-								<input type="checkbox" name="group-by-variable" />
-								Group by variables
-							</label>
 						</div>
 	 					<input type="hidden" name="chart-dimensions" value="" />
 					</section>
@@ -128,7 +115,7 @@
 								<radiogroup>
 									<label>
 										<input type="radio" name="add-country-mode" value="add-country" checked></input>
-										User can add countries
+										User can add and remove countries
 									</label>
 									<label>
 										<input type="radio" name="add-country-mode" value="change-country" selected></input>
