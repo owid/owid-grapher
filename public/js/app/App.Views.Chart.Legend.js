@@ -77,7 +77,7 @@
 				var legendText = d3.select(this).select('text');
 				var nodeTextLength = legendText.node().getComputedTextLength();
 
-				if (transformX+nodeTextLength > availableWidth)  {
+				if (transformX+nodeTextLength+spaceBetweenLabels > availableWidth)  {
 					transformY += spaceBetweenLines;
 					transformX = 0;
 				}

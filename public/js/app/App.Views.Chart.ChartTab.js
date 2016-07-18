@@ -704,7 +704,7 @@
 
 			//position scale dropdowns - TODO - isn't there a better way then with timeout?
 			setTimeout(function() {
-				var chartRect = svg.select(".nvd3 g > rect");
+				var chartRect = svg.select(".nv-wrap g > rect");
 				if (chartRect.empty()) return;
 
 				var chartBounds = chartRect.node().getBoundingClientRect(),
