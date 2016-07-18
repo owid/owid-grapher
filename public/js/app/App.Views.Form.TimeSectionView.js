@@ -13,7 +13,7 @@
 
 		initialize: function( options ) {			
 			this.dispatcher = options.dispatcher;
-			this.listenTo(App.DataModel, "change", this.render.bind(this));
+			this.listenTo(App.VariableData, "change", this.render.bind(this));
 			this.render();
 		},
 
@@ -27,8 +27,8 @@
 
 			var chartTime = App.ChartModel.get("chart-time"),
 				isDynamicTime = _.isEmpty(chartTime),
-				minDataYear = App.DataModel.get("minYear"),
-				maxDataYear = App.DataModel.get("maxYear"),
+				minDataYear = App.VariableData.get("minYear"),
+				maxDataYear = App.VariableData.get("maxYear"),
 				minYear = isDynamicTime ? minDataYear : chartTime[0],
 				maxYear = isDynamicTime ? maxDataYear : chartTime[1],
 				slider = this.$chartTime.data("ionRangeSlider");

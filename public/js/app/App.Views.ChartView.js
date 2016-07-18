@@ -54,7 +54,8 @@
 
 			// Data model used for fetching variables
 			App.VariableData = new VariableData();	
-			App.DataModel = new ChartData();	
+			App.ChartData = new ChartData();
+			App.DataModel = App.ChartData; // tmp	
 			App.Colors = new Colors();	
 			var childViewOptions = { dispatcher: this.dispatcher, parentView: this };
 			this.urlBinder = new ChartURL(childViewOptions);

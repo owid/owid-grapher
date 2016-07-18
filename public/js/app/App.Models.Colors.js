@@ -24,7 +24,7 @@
 			}
 		},
 
-		assignColor: function(key, color) {
+		assignColorForKey: function(key, color) {
 			if (!this.colorCache[key]) {
 				this.colorCache[key] = color || this.colorScale(this.colorIndex);
 				this.colorIndex += 1;
@@ -33,37 +33,38 @@
 			return this.colorCache[key];
 		},
 
-		assignColorsForChart: function(localData) {
-			var chartType = App.ChartModel.get("chart-type"),
-				selectedEntitiesById = App.ChartModel.getSelectedEntitiesById();
+		// We set colors for the legend data separately to give more precise control
+		// over the priority and ordering, since legend data doesn't move around as much.
+		assignColorsForLegend: function(legendData) {
+			var selectedEntitiesById = App.ChartModel.getSelectedEntitiesById();
 
-			if (chartType == App.ChartType.DiscreteBar) {
-				_.each(localData, function(series) {
-					_.each(series.values, function(value) {
-						var entity = selectedEntitiesById[value.entityId];						
-						if (value.color) {
-							return;
-						} else if (entity && entity.color) {
-							value.color = this.assignColor(value.entityId, entity.color);
-						} else {
-							value.color = this.assignColor(value.entityId);
-						}
-					}.bind(this));
-				}.bind(this));
-			} else {
-				_.each(localData, function(series) {
-					var entity = selectedEntitiesById[series.entityId];
-					if (series.color) {
-						return;
-					} else if (entity && entity.color && series.key == entity.name) {
-						series.color = this.assignColor(series.key, entity.color);
-					} else {					
-						series.color = this.assignColor(series.key);
-					}
-				}.bind(this));
-			}
+			_.each(legendData, function(group) {
+				var entity = selectedEntitiesById[group.entityId];
 
-			return localData;
+				if (group.color) {
+					group.color = this.assignColorForKey(group.key, group.color);
+				} else if (entity && entity.color && group.key == entity.name) {
+					group.color = this.assignColorForKey(group.key, entity.color);
+				} else {
+					group.color = this.assignColorForKey(group.key);
+				}
+			}.bind(this));
+		},
+
+		assignColorsForChart: function(chartData) {
+			var chartType = App.ChartModel.get("chart-type");
+
+			_.each(chartData, function(series) {
+				if (chartType == App.ChartType.DiscreteBar) {
+					_.each(series.values, function(d) {
+						d.color = this.assignColorForKey(d.key, d.color);
+					}.bind(this));					
+				} else {
+					series.color = this.assignColorForKey(series.key, series.color);
+				}
+			}.bind(this));
+
+			return chartData;
 		}
 	});
 

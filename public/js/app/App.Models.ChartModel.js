@@ -283,7 +283,23 @@
 				validDimensions = _.filter(dimensions, function(dim) { return _.include(validProperties, dim.property); });
 
 			return validDimensions;
-		}
+		},
+
+		getTimeFrom: function() {
+			var chartTime = this.get("chart-time");
+			if (_.isEmpty(chartTime))
+				return -Infinity;
+			else
+				return chartTime[0];
+		},
+
+		getTimeTo: function() {
+			var chartTime = this.get("chart-time");
+			if (_.isEmpty(chartTime) || chartTime.length < 2)
+				return Infinity;
+			else
+				return chartTime[1];
+		},
 	} );
 
 })();

@@ -16,7 +16,7 @@
 		},
 
 		render: function() {
-			var localData = App.DataModel.transformData(),
+			var legendData = App.ChartData.get("legendData"),
 				entityType = App.ChartModel.get("entity-type"),
 				addCountryMode = App.ChartModel.get("add-country-mode"),
 				groupByVariables = App.ChartModel.get("group-by-variables");
@@ -33,7 +33,7 @@
 				g = wrap.select('g');
 
 			var series = g.selectAll('.nv-series')
-				.data(localData);
+				.data(legendData);
 
 			var seriesEnter = series.enter().append('g').attr('class', function(d) { return 'nv-series nv-series-' + d.id; } );
 
@@ -69,7 +69,7 @@
 
 			series.exit().remove();
 
-			seriesText.text(function(d) { return d.key; });
+			seriesText.text(function(d) { return d.label||d.key; });
 
 			// Position the labels
 			var transformX = 0, transformY = 0;

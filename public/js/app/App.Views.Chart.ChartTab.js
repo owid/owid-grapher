@@ -105,7 +105,7 @@
 		},
 
 		updateAvailableCountries: function() {
-			var availableEntities = App.DataModel.get("availableEntities"),
+			var availableEntities = App.VariableData.get("availableEntities"),
 				selectedCountries = App.ChartModel.get("selected-countries"),
 				selectedCountriesIds = _.map(selectedCountries, function(v) { return (v)? +v.id: ""; }),
 				entityType = App.ChartModel.get("entity-type");
@@ -142,29 +142,6 @@
 					selectedCountriesById[ v.id ] = v;
 					return +v.id;
 				} );
-
-			//filter by chart time
-			var chartTime = App.ChartModel.get( "chart-time" );
-			if( chartTime && chartTime.length == 2 ) {
-				
-				var timeFrom = chartTime[ 0 ],
-					timeTo = chartTime[ 1 ];
-				
-				_.each( localData, function( singleData, key, list ) {
-					var values = _.clone( singleData.values );
-					values = _.filter( values, function( value ) {
-						if (_.isObject(value.time)) {
-							return _.every(value.time, function(val, key) {
-								return ( val >= timeFrom && val <= timeTo );
-							});							
-						} else {
-							return ( value.x >= timeFrom && value.x <= timeTo );
-						}
-					} );
-					singleData.values = values;
-				} );
-
-			}
 
 			// For stacked area chart, the order of the series matters. For other chart
 			// types we sort them alphabetically.
@@ -261,8 +238,7 @@
 					if (App.ChartModel.get("currentStackMode") == "relative")
 						that.chart.style("expand");			
 
-				} else if (chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar || chartType == App.ChartType.DiscreteBar) {
-
+				} else if (chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar) {
 					//multibar chart
 					//we need to make sure we have as much data as necessary
 					var allTimes = [],
@@ -309,10 +285,16 @@
 						that.chart = nv.models.multiBarChart().options(chartOptions);					
 					} else if (chartType == App.ChartType.HorizontalMultiBar) {
 						that.chart = nv.models.multiBarHorizontalChart().options(chartOptions);					
-					} else if (chartType == App.ChartType.DiscreteBar) {
-						that.chart = nv.models.multiBarChart().options(chartOptions);
 					}
+				} else if (chartType == App.ChartType.DiscreteBar) {
+					chartOptions.showValues = true;
+
+					that.chart = nv.models.discreteBarChart()
+						.x(function(d) { return d.x; })
+						.y(function(d) { return d.y; })
+						.options(chartOptions);					
 				}
+
 				that.chart.dispatch.on("renderEnd", function(state) {
 					$(window).trigger('chart-loaded');
 
@@ -361,7 +343,7 @@
 						if (chartType == App.ChartType.ScatterPlot) {
 							return xAxisPrefix + owid.unitFormat({ format: xAxisFormat }, d) + xAxisSuffix;
 						} else if (chartType == App.ChartType.DiscreteBar) {
-							return App.VariableData.get("entityKey")[d].name;
+							return d;
 						} else {
 							return App.Utils.formatTimeLabel("Year", d, xAxisPrefix, xAxisSuffix, xAxisFormat );
 						}
@@ -607,7 +589,6 @@
 				this.chart.yDomain( yDomain );
 			}
 		},
-
 
 		onAvailableCountries: function(evt) {
 			var $select = $( evt.currentTarget ),

@@ -162,12 +162,8 @@
 		},
 
 		updateTimeFromChart: function() {
-			//find minimum and maximum in all displayed data
-			var timeFrom = App.DataModel.minTransformedYear,
-				timeTo = App.DataModel.maxTransformedYear;
-
-			this.selectedTimeFrom = timeFrom;
-			this.selectedTimeTo = timeTo;
+			this.selectedTimeFrom = App.ChartData.get("minYear");
+			this.selectedTimeTo = App.ChartData.get("maxYear");
 			this.mapDisclaimer = null;
 			this.targetYear = null;
 		},

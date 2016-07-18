@@ -107,7 +107,7 @@
 
 		updateVariableSelect: function() {
 			var mapConfig = App.ChartModel.get("map-config"),
-				variables = App.DataModel.get("variableData").variables,
+				variables = App.VariableData.get("variables"),
 				html = "";
 
 			if (!_.isEmpty(variables)) {

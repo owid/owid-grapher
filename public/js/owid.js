@@ -263,7 +263,7 @@
 		//get source of information
 		var point = data.point;
 		//begin composting string
-		string = "<h3>" + (value.label||key) + "</h3><p>";
+		string = "<h3>" + key + "</h3><p>";
 		valuesString = "";
 
 		if (!isMapPopup && (chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar || chartType == App.ChartType.DiscreteBar)) {
