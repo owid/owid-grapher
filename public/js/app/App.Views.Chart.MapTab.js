@@ -41,6 +41,7 @@
 
 				if (!entity) return;
 				App.ChartModel.set({ "selected-countries": [entity] }, { silent: true });
+				App.DataModel.chartData = null;
 				App.ChartView.activateTab("chart");
 				App.ChartView.urlBinder.updateCountryParam();
 			});

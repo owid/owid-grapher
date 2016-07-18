@@ -9,7 +9,7 @@
 	 * or more variables, and is responsible for transforming the raw data into
 	 * formats appropriate for use by the charts or other frontend systems.
 	 **/
-	App.Models.ChartDataModel = Backbone.Model.extend( {
+	App.Models.ChartDataModel = Backbone.Model.extend({
 		defaults: {},
 
 		initialize: function () {
@@ -136,7 +136,7 @@
 				entityKey = variableData.entityKey,
 				selectedCountriesById = App.ChartModel.getSelectedEntitiesById(),
 				yAxis = App.ChartModel.get("y-axis"),
-				localData = [],
+				chartData = [],
 				hasManyVariables = _.size(variables) > 1,
 				hasManyEntities = _.size(selectedCountriesById) > 1,
 				minTransformedYear = Infinity,
@@ -194,24 +194,23 @@
 					maxTransformedYear = Math.max(maxTransformedYear, year);
 				}
 
-				_.each(seriesByEntity, function(v, k) {
-					localData.push(v);
-				});
+				var sorted = _.sortBy(seriesByEntity, function(v) { return v.entityName; });
+				chartData = chartData.concat(sorted);
 			});
 
 			this.minTransformedYear = minTransformedYear;
 			this.maxTransformedYear = maxTransformedYear;
-			return localData;
+			return chartData;
 		},
 
 		// Ensures that every series has a value entry for every year in the data
 		// Even if that value is just 0
 		// Stacked area charts with incomplete data will fail to render otherwise
-		zeroPadData: function(localData) {
+		zeroPadData: function(chartData) {
 			var allYears = {};			
 			var yearsForSeries = {};
 
-			_.each(localData, function(series) {
+			_.each(chartData, function(series) {
 				yearsForSeries[series.id] = {};
 				_.each(series.values, function(d, i) {
 					allYears[d.x] = true;
@@ -219,7 +218,7 @@
 				});
 			});
 
-			_.each(localData, function(series) {
+			_.each(chartData, function(series) {
 				_.each(Object.keys(allYears), function(year) {
 					year = parseInt(year);
 					if (!yearsForSeries[series.id][year])
@@ -229,26 +228,26 @@
 				series.values = _.sortBy(series.values, function(d) { return d.x; });
 			});
 
-			return localData;
+			return chartData;
 		},
 
 		// Zero pads for every single year in the data
-		zeroPadDataRange: function(localData) {
+		zeroPadDataRange: function(chartData) {
 			var minYear = Infinity, maxYear = -Infinity;
-			_.each(localData, function(series) {
+			_.each(chartData, function(series) {
 				minYear = Math.min(minYear, series.values[0].x);
 				maxYear = Math.max(maxYear, series.values[series.values.length-1].x);
 			});
 
 			var yearsForSeries = {};
-			_.each(localData, function(series) {
+			_.each(chartData, function(series) {
 				yearsForSeries[series.id] = {};
 				_.each(series.values, function(d, i) {
 					yearsForSeries[series.id][d.x] = true;
 				});
 			});
 
-			_.each(localData, function(series) {
+			_.each(chartData, function(series) {
 				for (var year = minYear; year <= maxYear; year++) {					
 					if (!yearsForSeries[series.id][year])
 						series.values.push({ x: year, y: 0, time: year, fake: true });
@@ -256,7 +255,7 @@
 				series.values = _.sortBy(series.values, function(d) { return d.x; });
 			});
 
-			return localData;			
+			return chartData;			
 		},
 
 		transformDataForStackedArea: function() {
@@ -269,7 +268,7 @@
 				entityKey = variableData.entityKey,
 				// Group-by-variable chart only has one selected country
 				selectedCountry = _.values(App.ChartModel.getSelectedEntitiesById())[0],
-				localData = [],
+				chartData = [],
 				minTransformedYear = Infinity,
 				maxTransformedYear = -Infinity;
 
@@ -295,12 +294,12 @@
 					maxTransformedYear = Math.max(maxTransformedYear, year);
 				}
 
-				localData.push(series);
+				chartData.push(series);
 			});
 
 			this.minTransformedYear = minTransformedYear;
 			this.maxTransformedYear = maxTransformedYear;
-			return this.zeroPadData(localData);
+			return this.zeroPadData(chartData);
 		},
 
 		makeCategoryTransform: function(property, values) {
@@ -329,7 +328,7 @@
 				seriesByEntity = {},
 				// e.g. for colors { var_id: { 'Oceania': '#ff00aa' } }
 				categoryTransforms = {},				
-				localData = [];
+				chartData = [];
 
 			var latestYearInData = _.max(_.map(variables, function(v) { return _.max(v.years); }));
 
@@ -400,17 +399,17 @@
 				});
 
 				if (isComplete)
-					localData.push(series);
+					chartData.push(series);
 			}.bind(this));
 
-			this.minTransformedYear = _.min(_.map(localData, function(entityData) {
+			this.minTransformedYear = _.min(_.map(chartData, function(entityData) {
 				return _.min(_.values(entityData.values[0].time));
 			}));
-			this.maxTransformedYear = _.max(_.map(localData, function(entityData) {
+			this.maxTransformedYear = _.max(_.map(chartData, function(entityData) {
 				return _.max(_.values(entityData.values[0].time));
 			}));
 
-			return localData;
+			return chartData;
 		},
 
 
@@ -420,7 +419,7 @@
 				variables = variableData.variables,
 				entityKey = variableData.entityKey,
 				selectedCountriesById = App.ChartModel.getSelectedEntitiesById(),
-				localData = [];
+				chartData = [];
 
 			var latestYearInData = _.max(_.map(variables, function(v) { return _.max(v.years); }));
 
@@ -477,17 +476,17 @@
 
 				series.values = _.sortBy(series.values, 'y');
 
-				localData.push(series);
+				chartData.push(series);
 			}.bind(this));
 
-			this.minTransformedYear = _.min(_.map(localData, function(entityData) {
+			this.minTransformedYear = _.min(_.map(chartData, function(entityData) {
 				return entityData.values[0].time;
 			}));
-			this.maxTransformedYear = _.max(_.map(localData, function(entityData) {
+			this.maxTransformedYear = _.max(_.map(chartData, function(entityData) {
 				return entityData.values[0].time;
 			}));
 
-			return localData;
+			return chartData;
 		},
 
 		getSourceDescHtml: function(source) {

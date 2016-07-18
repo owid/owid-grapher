@@ -38,10 +38,12 @@
 
 			_.each(localData, function(series, i) {
 				var entity = selectedEntitiesById[series.entityId];
-				if (entity.color) {
-					series.color = this.assignColor(series.entityId, entity.color);
+				if (series.color) {
+					return;
+				} else if (entity && entity.color && series.key == entity.name) {
+					series.color = this.assignColor(series.key, entity.color);
 				} else {					
-					series.color = this.assignColor(series.entityId);
+					series.color = this.assignColor(series.key);
 				}
 			}.bind(this));
 

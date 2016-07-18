@@ -47,23 +47,8 @@
 			this.$svg = this.$el.find("svg");
 		},
 
-		onChartModelChange: function() {
-			var chartType = App.ChartModel.get("chart-type");
-			var needFullRender = (chartType != this.chartType);
-
-			App.DataModel.ready(function() {
-				if (needFullRender) {
-					this.deactivate();
-					this.activate();
-				} else {
-					this.render(this.onResize.bind(this));					
-				}
-			}.bind(this));
-		},
-
 		activate: function(callback) {
 			this.delegateEvents();
-			this.chartType = App.ChartModel.get("chart-type");
 
 			this.$svg = $("svg");
 			this.$svg.attr("class", "nvd3-svg");
@@ -95,7 +80,8 @@
 				window.location.reload();
 			});
 
-			this.listenTo(App.ChartModel, "change", this.onChartModelChange.bind(this));
+			this.listenTo(App.ChartModel, "change:chart-type", function() { this.needsFullRender = true; }.bind(this));
+			this.listenTo(App.ChartModel, "change", this.update.bind(this));
 			this.render(callback);
 		},
 
@@ -105,6 +91,17 @@
 			if (this.$yAxisScaleSelector)
 				this.$yAxisScaleSelector.show();
 			d3.selectAll("svg").on("mousemove.stackedarea", null);
+		},
+
+		update: function() {
+			App.DataModel.ready(function() {
+				if (this.needsFullRender) {
+					this.deactivate();
+					this.activate();
+				} else {
+					this.render(this.onResize.bind(this));					
+				}
+			}.bind(this));
 		},
 
 		updateAvailableCountries: function() {
