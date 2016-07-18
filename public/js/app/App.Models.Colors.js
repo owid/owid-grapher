@@ -34,18 +34,34 @@
 		},
 
 		assignColorsForChart: function(localData) {
-			var selectedEntitiesById = App.ChartModel.getSelectedEntitiesById();
+			var chartType = App.ChartModel.get("chart-type"),
+				selectedEntitiesById = App.ChartModel.getSelectedEntitiesById();
 
-			_.each(localData, function(series, i) {
-				var entity = selectedEntitiesById[series.entityId];
-				if (series.color) {
-					return;
-				} else if (entity && entity.color && series.key == entity.name) {
-					series.color = this.assignColor(series.key, entity.color);
-				} else {					
-					series.color = this.assignColor(series.key);
-				}
-			}.bind(this));
+			if (chartType == App.ChartType.DiscreteBar) {
+				_.each(localData, function(series) {
+					_.each(series.values, function(value) {
+						var entity = selectedEntitiesById[value.entityId];						
+						if (value.color) {
+							return;
+						} else if (entity && entity.color) {
+							value.color = this.assignColor(value.entityId, entity.color);
+						} else {
+							value.color = this.assignColor(value.entityId);
+						}
+					}.bind(this));
+				}.bind(this));
+			} else {
+				_.each(localData, function(series) {
+					var entity = selectedEntitiesById[series.entityId];
+					if (series.color) {
+						return;
+					} else if (entity && entity.color && series.key == entity.name) {
+						series.color = this.assignColor(series.key, entity.color);
+					} else {					
+						series.color = this.assignColor(series.key);
+					}
+				}.bind(this));
+			}
 
 			return localData;
 		}

@@ -243,66 +243,64 @@
 	}
 
 	owid.contentGenerator = function(data, isMapPopup) {
-		//set popup
 		var unitsString = App.ChartModel.get("units"),
 			chartType = App.ChartModel.get("chart-type"),
 			units = (!$.isEmptyObject(unitsString)) ? $.parseJSON(unitsString) : {},
-			string = "",
-			valuesString = "";
+			series = data.series[0], value = data.data,
+			string = "", valuesString = "";
 
 		if (chartType == App.ChartType.ScatterPlot)
 			return owid.scatterPlotTooltipGenerator(data);
 		else if (chartType == App.ChartType.StackedArea)
 			return owid.stackedAreaTooltipGenerator(data);
 
+		if (!series) return "";
+
 		//find relevant values for popup and display them
-		var series = data.series, key = "", timeString = "";
-		if( series && series.length ) {
-			var serie = series[ 0 ];
-			key = serie.origKey || serie.key;
+		var key = "", timeString = "";
+		key = series.origKey || series.key;
 
-			//get source of information
-			var point = data.point;
-			//begin composting string
-			string = "<h3>" + key + "</h3><p>";
-			valuesString = "";
+		//get source of information
+		var point = data.point;
+		//begin composting string
+		string = "<h3>" + (value.label||key) + "</h3><p>";
+		valuesString = "";
 
-			if (!isMapPopup && (chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar || chartType == App.ChartType.DiscreteBar)) {
-				//multibarchart has values in different format
-				point = { "y": serie.value, "time": data.data.time };
-			}
-
-			$.each( point, function( i, v ) {
-				//for each data point, find appropriate unit, and if we have it, display it
-				var unit = _.findWhere( units, { property: i } ),
-					value = v,
-					isHidden = ( unit && unit.hasOwnProperty( "visible" ) && !unit.visible )? true: false;
-
-				if (unit) {
-					if (!isHidden)
-						valuesString += owid.unitFormat(unit, value);
-				} else if (i === "time") {
-					if (v.hasOwnProperty("map"))
-						timeString = owid.displayYear(v.map);
-					else
-						timeString = owid.displayYear(v);
-				} else if (i === "y" || (i === "x" && chartType != App.ChartType.LineChart)) {
-					if (!isHidden) {
-						if (valuesString !== "")
-							valuesString += ", ";
-						//just add plain value, omiting x value for linechart
-						valuesString += owid.unitFormat(_.extend({}, unit, { unit: null, title: null }), value);
-					}
-				}
-			} );
-
-			if(isMapPopup || timeString) {
-				valuesString += " <br /> in <br /> " + timeString;
-			}
-
-			string += valuesString;
-			string += "</p>";
+		if (!isMapPopup && (chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar || chartType == App.ChartType.DiscreteBar)) {
+			//multibarchart has values in different format
+			point = { "y": series.value, "time": data.data.time };
 		}
+
+		$.each( point, function( i, v ) {
+			//for each data point, find appropriate unit, and if we have it, display it
+			var unit = _.findWhere( units, { property: i } ),
+				value = v,
+				isHidden = ( unit && unit.hasOwnProperty( "visible" ) && !unit.visible )? true: false;
+
+			if (unit) {
+				if (!isHidden)
+					valuesString += owid.unitFormat(unit, value);
+			} else if (i === "time") {
+				if (v.hasOwnProperty("map"))
+					timeString = owid.displayYear(v.map);
+				else
+					timeString = owid.displayYear(v);
+			} else if (i === "y" || (i === "x" && chartType != App.ChartType.LineChart)) {
+				if (!isHidden) {
+					if (valuesString !== "")
+						valuesString += ", ";
+					//just add plain value, omiting x value for linechart
+					valuesString += owid.unitFormat(_.extend({}, unit, { unit: null, title: null }), value);
+				}
+			}
+		} );
+
+		if(isMapPopup || timeString) {
+			valuesString += " <br /> in <br /> " + timeString;
+		}
+
+		string += valuesString;
+		string += "</p>";
 
 		return string;
 	};

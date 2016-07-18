@@ -261,7 +261,7 @@
 					if (App.ChartModel.get("currentStackMode") == "relative")
 						that.chart.style("expand");			
 
-				} else if( chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar ) {
+				} else if (chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar || chartType == App.ChartType.DiscreteBar) {
 
 					//multibar chart
 					//we need to make sure we have as much data as necessary
@@ -276,7 +276,7 @@
 								entityData[ v2.x ] = true;
 								return v2.x;
 							} );
-						valuesCheck[ v.id ] = entityData;
+						valuesCheck[v.id] = entityData;
 						allTimes = allTimes.concat( times );
 					} );
 
@@ -307,19 +307,12 @@
 
 					if (chartType == App.ChartType.MultiBar) {
 						that.chart = nv.models.multiBarChart().options(chartOptions);					
-					} else if( App.ChartType.HorizontalMultiBar ) {
+					} else if (chartType == App.ChartType.HorizontalMultiBar) {
 						that.chart = nv.models.multiBarHorizontalChart().options(chartOptions);					
+					} else if (chartType == App.ChartType.DiscreteBar) {
+						that.chart = nv.models.multiBarChart().options(chartOptions);
 					}
-
-				} else if (chartType == App.ChartType.DiscreteBar) {
-					chartOptions.showValues = true;
-
-					that.chart = nv.models.discreteBarChart()
-						.x(function(d) { return d.x; })
-						.y(function(d) { return d.y; })
-						.options(chartOptions);
 				}
-
 				that.chart.dispatch.on("renderEnd", function(state) {
 					$(window).trigger('chart-loaded');
 
@@ -354,7 +347,7 @@
 						that.chart.update = function() {
 							origUpdate.call(that.chart);
 							that.onResize();
-						};														
+						};
 					});					
 				}
 	
@@ -362,18 +355,17 @@
 				d3.select( ".xy-tooltip" ).remove();
 
 				that.chart.xAxis
-					.axisLabel( xAxis[ "axis-label" ] )
-					//.staggerLabels( true )
-					.axisLabelDistance( xAxisLabelDistance )
-					.tickFormat( function(d) {
-						if (chartType != App.ChartType.ScatterPlot) {
-							//x axis has time information
-							return App.Utils.formatTimeLabel("Year", d, xAxisPrefix, xAxisSuffix, xAxisFormat );
-						} else {
-							//is scatter plot, x-axis has some other information
+					.axisLabel(xAxis["axis-label"])
+					.axisLabelDistance(xAxisLabelDistance)
+					.tickFormat(function(d) {
+						if (chartType == App.ChartType.ScatterPlot) {
 							return xAxisPrefix + owid.unitFormat({ format: xAxisFormat }, d) + xAxisSuffix;
+						} else if (chartType == App.ChartType.DiscreteBar) {
+							return App.VariableData.get("entityKey")[d].name;
+						} else {
+							return App.Utils.formatTimeLabel("Year", d, xAxisPrefix, xAxisSuffix, xAxisFormat );
 						}
-					} );
+					});
 
 				//get extend
 				var allValues = [];

@@ -91,8 +91,8 @@
 
 		// Optimized method for updating the target year with the slider
 		updateYearOnly: _.throttle(function() {
-			App.DataModel.ready(function(variableData) {
-				this.mapData = this.transformData(variableData);
+			App.DataModel.ready(function() {
+				this.mapData = this.transformData();
 				this.applyColors(this.mapData, this.colorScale);
 				this.dataMap.updateChoropleth(this.mapData, { reset: true });
 				// HACK (Mispy): When changing to a year without data for a country, need to do this
@@ -178,15 +178,15 @@
 
 		/**
 		 * Transforms raw variable data into datamaps format
-		 * @param {Object} variableData - of the form { entities: [], values: [], years: [] }
 		 * @return {Object} mapData - of the form { 'Country': { value: 120.11, year: 2006 }, ...}
 		 */
-		transformData: function(variableData) {
-			var firstVariable = variableData.variables[this.mapConfig.variableId],
+		transformData: function() {
+			var variables = App.VariableData.get("variables"),
+				entityKey = App.VariableData.get("entityKey"),
+				firstVariable = variables[this.mapConfig.variableId],
 				years = firstVariable.years,
 				values = firstVariable.values,
 				entities = firstVariable.entities,
-				entityKey = variableData.entityKey,
 				targetYear = parseInt(this.mapConfig.targetYear),
 				tolerance = parseInt(this.mapConfig.timeTolerance) || 1,
 				mapData = {};
@@ -238,8 +238,7 @@
 
 		render: function(callback) {
 			try {
-				var variableData = App.DataModel.get("variableData");
-				this.mapData = this.transformData(variableData);
+				this.mapData = this.transformData();
 				this.colorScale = this.makeColorScale();
 				this.applyColors(this.mapData, this.colorScale);
 

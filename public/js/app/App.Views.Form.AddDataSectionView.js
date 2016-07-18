@@ -122,7 +122,7 @@
 			// Now assign any current variables to the appropriate slots
 			var dimensions = App.ChartModel.getDimensions();
 			_.each(dimensions, function(dimension) {
-				var variable = App.DataModel.get("variableData").variables[dimension.variableId],
+				var variable = App.VariableData.get("variables")[dimension.variableId],
 					$slot = this.$el.find('[data-property='+dimension.property+']'),
 					$li = this.makeVariableItem(_.extend({}, dimension, { variableName: variable.name }));
 

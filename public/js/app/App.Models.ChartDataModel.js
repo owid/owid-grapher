@@ -1,24 +1,18 @@
 ;(function() {		
 	"use strict";
-
-	window.App = window.App || {};
-	App.Models = App.Models || {};
+	owid.namespace("App.Models.VariableData");
 
 	/**
 	 * This model handles the mass retrieval of data values associated with one
-	 * or more variables, and is responsible for transforming the raw data into
-	 * formats appropriate for use by the charts or other frontend systems.
-	 **/
-	App.Models.ChartDataModel = Backbone.Model.extend({
-		defaults: {},
-
-		initialize: function () {
+	 * or more variables, the raw data stuff that is then processed for the charts.
+	 */
+	App.Models.VariableData = Backbone.Model.extend({
+		initialize: function() {
 			App.ChartModel.on("change:chart-dimensions", this.update.bind(this));
-			App.ChartModel.on("change", function() { this.chartData = null; }.bind(this));
 			this.update();
 		},
 
-		update: function() 	{	
+		update: function() {
 			if (this.dataRequest) {
 				this.dataRequest.abort();
 				this.dataRequest = null;
@@ -42,7 +36,18 @@
 			this.dataRequest.done(function(rawData) {
 				this.dataRequest = null;
 				this.receiveData(rawData);
-			}.bind(this));
+			}.bind(this));			
+		},
+
+		// Replicates the state we would expect if there were simply no available data
+		setEmptyData: function() {
+			this.set({
+				variables: {}, 
+				entityKey: {},
+				minYear: Infinity,
+				maxYear: -Infinity,
+				availableEntities: []
+			});
 		},
 
 		receiveData: function(rawData) {
@@ -77,24 +82,27 @@
 			var minYear = _.min(startYears);
 			var maxYear = _.max(endYears);
 
-			var availableEntities = [];
+			// Slap the ids onto the entities
 			_.each(variableData.entityKey, function(entity, id) {
-				availableEntities.push(_.extend({}, entity, { "id": +id }));
+				entity.id = +id;
 			});
 
-			window.variableData = variableData;
 			this.isReady = true;
-			this.set({ variableData: variableData, minYear: minYear, maxYear: maxYear, availableEntities: availableEntities });
+			this.set(_.extend(variableData, { minYear: minYear, maxYear: maxYear, availableEntities: _.values(variableData.entityKey) }));
 			this.validateEntities();
+		},
+
+		getAvailableEntitiesById: function() {
+			return this.get("entityKey");
 		},
 
 		// When chart dimensions change, double check that our selected entities are valid
 		// And set some new defaults if they're not or missing
 		validateEntities: function() {
 			var chartType = App.ChartModel.get("chart-type"),
-				availableEntities = App.DataModel.get("availableEntities"),
-				selectedEntities = App.ChartModel.get("selected-countries"),
-				availableEntitiesById = _.indexBy(availableEntities, 'id');
+				availableEntities = App.VariableData.get("availableEntities"),
+				availableEntitiesById = App.VariableData.getAvailableEntitiesById(),
+				selectedEntities = App.ChartModel.get("selected-countries");
 
 			var validEntities = _.filter(selectedEntities, function(entity) {
 				return availableEntitiesById[entity.id];
@@ -107,33 +115,29 @@
 
 			App.ChartModel.set("selected-countries", validEntities);
 		},
+	});
 
-		// Replicates the state we would expect if there were simply no available data
-		setEmptyData: function() {
-			this.set({
-				variableData: { variables: {}, entityKey: {} },
-				minYear: Infinity,
-				maxYear: -Infinity,
-				availableEntities: []
-			});
+	App.Models.ChartData = Backbone.Model.extend({
+		initialize: function() {
+			App.ChartModel.on("change", function() { this.chartData = null; }.bind(this));
 		},
 
 		ready: function(callback) {
-			var variableData = this.get("variableData");
-			if (!variableData) {
-				this.once("change:variableData", function() {
-					callback(this.get("variableData"));
+			var variables = App.VariableData.get("variables");
+			if (!variables) {
+				App.VariableData.once("change:variables", function() {
+					callback();
 				}.bind(this));
 			} else {
-				callback(variableData);
+				callback();
 			}
 		},
 
 		transformDataForLineChart: function() {
 			var dimensions = _.clone(App.ChartModel.getDimensions()).reverse(), // Keep them stacked in the same visual order as editor
 				variableData = this.get('variableData'),
-				variables = variableData.variables,
-				entityKey = variableData.entityKey,
+				variables = App.VariableData.get("variables"),
+				entityKey = App.VariableData.get("entityKey"),
 				selectedCountriesById = App.ChartModel.getSelectedEntitiesById(),
 				yAxis = App.ChartModel.get("y-axis"),
 				chartData = [],
@@ -259,13 +263,13 @@
 		},
 
 		transformDataForStackedArea: function() {
-			if (App.ChartModel.get("group-by-variables") == false)
+			if (!App.ChartModel.get("group-by-variables"))
 				return this.zeroPadData(this.transformDataForLineChart());
 
 			var dimensions = App.ChartModel.getDimensions(),
 				variableData = this.get('variableData'),
-				variables = variableData.variables,
-				entityKey = variableData.entityKey,
+				variables = App.VariableData.get("variables"),
+				entityKey = App.VariableData.get("entityKey"),
 				// Group-by-variable chart only has one selected country
 				selectedCountry = _.values(App.ChartModel.getSelectedEntitiesById())[0],
 				chartData = [],
@@ -322,8 +326,8 @@
 		transformDataForScatterPlot: function() {
 			var dimensions = App.ChartModel.getDimensions(),
 				variableData = this.get('variableData'),
-				variables = variableData.variables,
-				entityKey = variableData.entityKey,
+				variables = App.VariableData.get("variables"),
+				entityKey = App.VariableData.get("entityKey"),
 				selectedCountriesById = App.ChartModel.getSelectedEntitiesById(),
 				seriesByEntity = {},
 				// e.g. for colors { var_id: { 'Oceania': '#ff00aa' } }
@@ -414,76 +418,61 @@
 
 
 		transformDataForDiscreteBar: function() {
-			var dimensions = App.ChartModel.getDimensions(),
+			var dimensions = _.clone(App.ChartModel.getDimensions()).reverse(), // Keep them stacked in the same visual order as editor
 				variableData = this.get('variableData'),
-				variables = variableData.variables,
-				entityKey = variableData.entityKey,
+				variables = App.VariableData.get("variables"),
+				entityKey = App.VariableData.get("entityKey"),
 				selectedCountriesById = App.ChartModel.getSelectedEntitiesById(),
-				chartData = [];
-
-			var latestYearInData = _.max(_.map(variables, function(v) { return _.max(v.years); }));
+				yAxis = App.ChartModel.get("y-axis"),
+				chartData = [],
+				hasManyVariables = _.size(variables) > 1,
+				hasManyEntities = _.size(selectedCountriesById) > 1,
+				minTransformedYear = Infinity,
+				maxTransformedYear = -Infinity;
 
 			_.each(dimensions, function(dimension) {
 				var variable = variables[dimension.variableId],
-				    targetYear = parseInt(dimension.targetYear),
-				    targetMode = dimension.mode,
-				    tolerance = parseInt(dimension.tolerance),
-				    maximumAge = parseInt(dimension.maximumAge),
-				    valuesByEntity = {};
-
-				var series = {
-					values: [],
-					key: variable.name,
-					id: dimension.variableId
-				};
+					variableName = dimension.displayName || variable.name,
+					seriesByYear = {};
 
 				for (var i = 0; i < variable.years.length; i++) {
 					var year = parseInt(variable.years[i]),
+						value = parseFloat(variable.values[i]),
 						entityId = variable.entities[i],
-						entity = selectedCountriesById[entityId];
+						entity = entityKey[entityId],
+						isSelected = selectedCountriesById[entityId],
+						series = seriesByYear[year];
 
-					if (!_.isEmpty(selectedCountriesById) && !entity) continue;
+					// Not a selected entity, don't add any data for it
+					if (!isSelected) continue;
+					// It's possible we may be missing data for this year/entity combination
+					// e.g. http://ourworldindata.org/grapher/view/101
+					if (isNaN(value)) continue;
+					// Values <= 0 break d3 log scales horribly
+					if (yAxis['axis-scale'] === 'log' && value <= 0) continue;
 
-					var value = valuesByEntity[entityId];
-
-					if (targetMode === "specific") {
-						// Not within target year range, ignore
-						if (year < targetYear-tolerance || year > targetYear+tolerance)
-							continue;
-
-						// Make sure we use the closest year within tolerance (favoring later years)
-						if (value && Math.abs(value.time - targetYear) < Math.abs(year - targetYear))
-							continue;
-					} else if (targetMode == "latest" && !isNaN(maximumAge)) {
-						if (year < latestYearInData-maximumAge)
-							continue;
+					if (!series) {
+						series = {
+							values: [],
+							key: year.toString(),
+							id: year
+						};
+						seriesByYear[year] = series;
 					}
 
-					value = {
-						time: year,
-						x: entityKey[entityId].name,
-						y: variable.values[i]
-					};
-
-					valuesByEntity[entityId] = value;
+					var prevValue = series.values[series.values.length-1];
+					if (prevValue)
+						prevValue.gapYearsToNext = year-prevValue.x;
+					series.values.push({ x: entityId, entityId: entityId, label: entity.name, y: value, time: year });
+					minTransformedYear = Math.min(minTransformedYear, year);
+					maxTransformedYear = Math.max(maxTransformedYear, year);
 				}
 
-				_.each(valuesByEntity, function(value) {
-					series.values.push(value);
-				});
+				chartData = chartData.concat(_.values(seriesByYear));
+			});
 
-				series.values = _.sortBy(series.values, 'y');
-
-				chartData.push(series);
-			}.bind(this));
-
-			this.minTransformedYear = _.min(_.map(chartData, function(entityData) {
-				return entityData.values[0].time;
-			}));
-			this.maxTransformedYear = _.max(_.map(chartData, function(entityData) {
-				return entityData.values[0].time;
-			}));
-
+			this.minTransformedYear = minTransformedYear;
+			this.maxTransformedYear = maxTransformedYear;
 			return chartData;
 		},
 
@@ -496,11 +485,11 @@
 		},
 
 		transformDataForSources: function() {
-			var variableData = this.get("variableData");			
-			if (!variableData) return [];
+			var variables = App.VariableData.get("variables");
+			if (!variables) return [];
 
 			var sources = _.map(App.ChartModel.getDimensions(), function(dimension) {
-				var variable = variableData.variables[dimension.variableId],
+				var variable = variables[dimension.variableId],
 					source = _.extend({}, variable.source);
 
 				source.description = this.getSourceDescHtml(variable.source);
@@ -514,21 +503,26 @@
 			if (this.chartData)
 				return this.chartData;
 
-			var variableData = this.get("variableData");
+			var variables = App.VariableData.get("variables");
 			var result = [];
 
-			if (variableData) {		
-				var chartType = App.ChartModel.get("chart-type");
-				if (chartType == App.ChartType.LineChart)
-					result = this.transformDataForLineChart();
-				else if (chartType == App.ChartType.ScatterPlot)
-					result = this.transformDataForScatterPlot();
-				else if (chartType == App.ChartType.StackedArea)
-					result = this.transformDataForStackedArea();	
-				else if (chartType == App.ChartType.DiscreteBar)
-					result = this.transformDataForDiscreteBar();
-				else
-					result = this.transformDataForLineChart();
+			try {
+				if (variables) {		
+					var chartType = App.ChartModel.get("chart-type");
+					if (chartType == App.ChartType.LineChart)
+						result = this.transformDataForLineChart();
+					else if (chartType == App.ChartType.ScatterPlot)
+						result = this.transformDataForScatterPlot();
+					else if (chartType == App.ChartType.StackedArea)
+						result = this.transformDataForStackedArea();	
+					else if (chartType == App.ChartType.DiscreteBar)
+						result = this.transformDataForDiscreteBar();
+					else
+						result = this.transformDataForLineChart();
+				}				
+			} catch (err) {
+				console.error(err);
+				return result;
 			}
 
 			result = App.Colors.assignColorsForChart(result);
