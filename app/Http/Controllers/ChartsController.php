@@ -88,7 +88,7 @@ class ChartsController extends Controller {
 			if ($data["published"]) {
 				if (DB::table("chart_slug_redirects")->where("chart_id", "!=", ($chart->id ? $chart->id : ''))->where("slug", "=", $data["chart-slug"])->exists()) {
 					App::abort(422, "This chart slug was previously used by another chart: " . $data["chart-slug"]);
-				} else if (DB::table("charts")->where("id", "!=", ($chart->id ? $chart->id : ''))->where("slug", "=", $data["chart-slug"])->exists()) {
+				} else if (DB::table("charts")->where("id", "!=", ($chart->id ? $chart->id : ''))->where("slug", "=", $data["chart-slug"])->whereNotNull('published')->exists()) {
 					App::abort(422, "This chart slug is currently in use by another chart: " . $data["chart-slug"]);
 				} else if ($chart->published && $chart->slug && $chart->slug != $data["chart-slug"]) {
 					// Changing slug of an already published chart, create redirect
