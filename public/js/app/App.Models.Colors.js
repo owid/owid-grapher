@@ -11,14 +11,22 @@
  
 		initialize: function() {
 			this.colorCache = {};
-			this.colorCounter = 0;
 			this.colorScale = d3.scale.ordinal().range(this.basicScheme);
+			this.colorIndex = 0;
+
+			// Clear the color cache in the editor so chart creator can see the
+			// true final colors on the chart
+			if (App.isEditor) {
+				App.ChartModel.on("change:selected-countries", function() {
+					this.colorCache = {};
+				}.bind(this));				
+			}
 		},
 
 		assignColor: function(key) {
 			if (!this.colorCache[key]) {
-				this.colorCache[key] = this.colorScale(this.colorCounter);
-				this.colorCounter += 1;
+				this.colorCache[key] = this.colorScale(this.colorIndex);
+				this.colorIndex += 1;
 			}
 
 			return this.colorCache[key];
@@ -27,11 +35,12 @@
 		assignColorsForChart: function(localData) {
 			var selectedEntitiesById = App.ChartModel.getSelectedEntitiesById();
 
-			_.each(localData, function(series) {
+			_.each(localData, function(series, i) {
 				var entity = selectedEntitiesById[series.entityId];
 				if (entity.color) {
 					series.color = entity.color;
-				} else {
+					this.colorIndex += 1; // To keep same color distribution for other entities when manual colors are set
+				} else {					
 					series.color = this.assignColor(series.entityId);
 				}
 			}.bind(this));
