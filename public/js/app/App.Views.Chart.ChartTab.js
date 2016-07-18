@@ -15,10 +15,12 @@
 	    //Remove any previously created chart components
 	    container.selectAll('g.nv-wrap').remove();
 
+	    var chartType = App.ChartModel.get("chart-type");
+
 	    var msg = "No data available.";
 	    if (!App.ChartModel.hasVariables())
 	    	msg = "No variables have been added.";
-	    else if (_.isEmpty(App.ChartModel.get("selected-countries")))
+	    else if (!App.ChartModel.hasEntities() && chartType != App.ChartType.ScatterPlot) 
 	    	msg = "No " + App.ChartModel.get("entity-type") + " selected.";
 
 	    var noDataText = container.selectAll('.nv-noData').data([msg]);

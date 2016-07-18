@@ -20,7 +20,7 @@
 			this.$tabs = $(".header-tab");
 
 			this.listenTo(App.ChartModel, "change", this.render.bind(this));
-			this.listenTo(App.DataModel, "transform", this.render.bind(this));
+			this.listenTo(App.ChartData, "change", this.render.bind(this));
 		},
 
 		render: function(callback) {

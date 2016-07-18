@@ -254,6 +254,10 @@
 			return !_.isEmpty(this.getDimensions());
 		},
 
+		hasEntities: function() {
+			return !_.isEmpty(this.get("selected-countries"));
+		},
+
 		// Get the empty dimension slots appropriate for this type of chart
 		getEmptyDimensions: function() {
 			var chartType = this.get("chart-type");
