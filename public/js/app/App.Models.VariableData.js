@@ -115,5 +115,12 @@
 
 			App.ChartModel.set("selected-countries", validEntities);
 		},
+
+		getRemainingEntities: function() {
+			var availableEntities = App.VariableData.get("availableEntities"),
+				selectedEntitiesById = App.ChartModel.getSelectedEntitiesById();
+
+			return _.filter(availableEntities, function(entity) { return !selectedEntitiesById[entity.id]; });
+		},
 	});
 })();

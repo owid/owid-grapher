@@ -2,14 +2,6 @@
 	"use strict";
 	owid.namespace("App.Views.Chart.Legend");
 
-	// HACK (Mispy): Avoid duplication in legend when there are multiple
-	// split series for styling purposes.
-	function getData(data) {
-		if (data.length == 0 || !data[0].origKey)
-			return data;
-		return _.filter(data, function(series) { return !series.isCopy; });
-	}
-
 	App.Views.Chart.Legend = owid.View.extend({
 		initialize: function() {
 			this.dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout', 'stateChange', 'addEntity');
@@ -18,8 +10,11 @@
 		render: function() {
 			var legendData = App.ChartData.get("legendData"),
 				entityType = App.ChartModel.get("entity-type"),
+				groupByVariables = App.ChartModel.get("group-by-variables"),
 				addCountryMode = App.ChartModel.get("add-country-mode"),
-				groupByVariables = App.ChartModel.get("group-by-variables");
+				remainingEntities = App.VariableData.getRemainingEntities(),
+				isAddBtnShown = (remainingEntities.length && (addCountryMode === "add-country" || addCountryMode === "change-country"));
+
 
 			var $svg = $("svg.nvd3-svg"),
 				container = d3.select($svg[0]),
@@ -61,10 +56,10 @@
 
 			series
 				.on('click', function(d,i) {
-					if (App.ChartModel.get("group-by-variables") || addCountryMode !== "add-country") {
+					if (addCountryMode !== "add-country") {
 						return;
 					} 
-					App.ChartModel.removeSelectedCountry(d.entityName);
+					App.ChartModel.removeSelectedCountry(d.entityId);
 				});
 
 			series.exit().remove();
@@ -107,8 +102,7 @@
 
 			// Create and position add entity button
 			var addEntityBtn = wrap.select('g.nv-add-btn'),
-				isNewAddBtn = addEntityBtn.empty(),
-				isAddBtnShown = (addCountryMode === "add-country" || addCountryMode === "change-country");
+				isNewAddBtn = addEntityBtn.empty();
 
 			if (isNewAddBtn) {
 				addEntityBtn = wrap.append('g').attr('class', 'nv-add-btn');

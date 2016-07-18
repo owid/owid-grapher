@@ -186,13 +186,11 @@
 			}
 		},
 
-		removeSelectedCountry: function(entityName) {
+		removeSelectedCountry: function(entityId) {
 			var selectedCountries = this.get("selected-countries");
-			var entity = _.findWhere(selectedCountries, { name: entityName });
-			if (!entity) return;
 
 			selectedCountries = _.filter(selectedCountries, function(entity) {
-				return entity.name != entityName;
+				return entity.id != entityId;
 			});
 
 			this.set("selected-countries", selectedCountries);
@@ -204,12 +202,10 @@
 			}
 		},
 
-		findCountryById: function(countryId) {
-			var selectedCountries = this.get( "selected-countries" ),
-				country = _.find(selectedCountries, function(entity) {
-					return entity.id == countryId;
-				});
-			return country;
+		findCountryById: function(entityId) {
+			return _.find(this.get("selected-countries"), function(entity) {
+				return entity.id == entityId;
+			});
 		},
 
 		setAxisConfig: function( axisName, prop, value ) {

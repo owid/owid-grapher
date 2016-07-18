@@ -333,13 +333,15 @@
 				targetYear,
 				chartData = [], legendData = [];
 
-			var latestYearInData = _.max(_.map(variables, function(v) { return _.max(v.years); }));
 
 			_.each(dimensions, function(dimension) {
 				var variable = variables[dimension.variableId],
 				    valuesByEntity = {};
 
-			    targetYear = _.sortBy(variable.years, function(year) { return Math.abs(year-timeTo); })[0];
+				if (_.isFinite(timeTo))
+				    targetYear = _.sortBy(variable.years, function(year) { return Math.abs(year-timeTo); })[0];
+				else
+					targetYear = _.max(variable.years);
 
 				var series = {
 					values: [],
@@ -352,7 +354,7 @@
 						entityId = variable.entities[i],
 						entity = selectedCountriesById[entityId];
 
-					if (!_.isEmpty(selectedCountriesById) && !entity) continue;
+					if (!entity) continue;
 
 					var value = valuesByEntity[entityId];
 
@@ -362,7 +364,7 @@
 						time: year,
 						x: entityKey[entityId].name,
 						y: +variable.values[i],
-						key: entityId,
+						key: entityKey[entityId].name,
 						entityId: entityId
 					};
 
@@ -377,9 +379,11 @@
 				chartData.push(series);
 			}.bind(this));
 
-			legendData = _.map(chartData[0].values, function(v) {
-				return { label: v.x, key: v.entityId, entityId: v.entityId };
-			});
+			if (chartData.length) {
+				legendData = _.map(chartData[0].values, function(v) {
+					return { label: v.x, key: v.key, entityId: v.entityId };
+				});				
+			}
 
 			return { chartData: chartData, legendData: legendData, minYear: targetYear, maxYear: targetYear };
 		},

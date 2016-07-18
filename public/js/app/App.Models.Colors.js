@@ -40,7 +40,7 @@
 
 			_.each(legendData, function(group) {
 				var entity = selectedEntitiesById[group.entityId];
-
+				
 				if (group.color) {
 					group.color = this.assignColorForKey(group.key, group.color);
 				} else if (entity && entity.color && group.key == entity.name) {

@@ -95,8 +95,8 @@
 
 		update: function() {
 			App.DataModel.ready(function() {
-				if (this.needsFullRender) {
-					this.deactivate();
+				if (this.needsFullRender) {	
+				this.deactivate();
 					this.activate();
 				} else {
 					this.render(this.onResize.bind(this));					

@@ -21,15 +21,16 @@
 			this.$currentEntities = this.$el.find(".selected-countries-box");
 			this.$entitiesSelect = this.$el.find(".countries-select");
 			this.$addCountryControlInput = this.$el.find("[name='add-country-control']");
-			this.listenTo(App.DataModel, "change:availableEntities", this.render.bind(this));
+			this.listenTo(App.VariableData, "change:availableEntities", this.render.bind(this));
 			this.listenTo(App.ChartModel, "change:selected-countries", this.render.bind(this));
 			this.render();
 		},
 
 		render: function() {
-			var availableEntities = App.DataModel.get("availableEntities"),
+			var availableEntities = App.VariableData.get("availableEntities"),
 				selectedEntities = App.ChartModel.get("selected-countries"),
 				selectedEntitiesById = App.ChartModel.getSelectedEntitiesById();
+			console.log(selectedEntities);
 
 			// Show all the entities that are already selected
 			this.$currentEntities.empty();
@@ -59,7 +60,7 @@
 
 		onRemoveEntity: function(evt) {
 			var $li = $(evt.target).closest(".country-label");
-			App.ChartModel.removeSelectedCountry($li.attr("data-name"));
+			App.ChartModel.removeSelectedCountry($li.attr("data-id"));
 		},
 
 		onEntityColorpicker: function(evt) {
@@ -75,7 +76,7 @@
 
 		onCountriesSelect: function(evt) {
 			var selectedId = this.$entitiesSelect.val(),
-				entity = App.DataModel.get("variableData").entityKey[selectedId];
+				entity = App.VariableData.get("entityKey")[selectedId];
 
 			App.ChartModel.addSelectedCountry({ id: +selectedId, name: entity.name });
 		},
