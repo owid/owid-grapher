@@ -122,5 +122,9 @@
 
 			return _.filter(availableEntities, function(entity) { return !selectedEntitiesById[entity.id]; });
 		},
+
+		getEntityById: function(id) {
+			return this.get("entityKey")[id];
+		}
 	});
 })();

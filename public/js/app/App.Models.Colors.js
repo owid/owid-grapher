@@ -17,14 +17,26 @@
 			// Clear the color cache in the editor so chart creator can see the
 			// true final colors on the chart
 			if (App.isEditor) {
-				App.ChartModel.on("change:selected-countries", function() {
+				App.ChartModel.on("change", function() {
 					this.colorCache = {};
 					this.colorIndex = 0;
-				}.bind(this));				
+				}.bind(this));
 			}
 		},
 
-		assignColorForKey: function(key, color) {
+		assignColorForKey: function(key, color, options) {
+			options = _.extend({ canVary: true }, options);
+			color = color || this.colorScale(this.colorIndex);
+			this.colorIndex += 1;
+
+			// Unless the color is manually fixed, we lighten on collision
+			var colorIsTaken = _.contains(_.values(this.colorCache), color);
+			if (colorIsTaken && options.canVary) {
+				var newColor = d3.rgb(color).brighter(0.5).toString();
+				if (newColor != color && newColor != "#ffffff")
+					return this.assignColorForKey(key, newColor, options);
+			}
+
 			if (!this.colorCache[key]) {
 				this.colorCache[key] = color || this.colorScale(this.colorIndex);
 				this.colorIndex += 1;
@@ -39,12 +51,15 @@
 			var selectedEntitiesById = App.ChartModel.getSelectedEntitiesById();
 
 			_.each(legendData, function(group) {
-				var entity = selectedEntitiesById[group.entityId];
-				
+				var entity = selectedEntitiesById[group.entityId],
+					dimension = App.ChartModel.getDimensionById(group.variableId);
+
 				if (group.color) {
 					group.color = this.assignColorForKey(group.key, group.color);
-				} else if (entity && entity.color && group.key == entity.name) {
-					group.color = this.assignColorForKey(group.key, entity.color);
+				} else if (entity && entity.color) {
+					group.color = this.assignColorForKey(group.key, entity.color, { canVary: group.key != entity.name });
+				} else if (dimension && dimension.color) {
+					group.color = this.assignColorForKey(group.key, dimension.color, { canVary: group.key != dimension.name });
 				} else {
 					group.color = this.assignColorForKey(group.key);
 				}

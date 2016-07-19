@@ -74,6 +74,7 @@
 							key: key,
 							entityName: entityKey[entityId].name,
 							entityId: entityId,
+							variableId: variable.id,
 							id: id
 						};
 						seriesByEntity[entityId] = series;
@@ -92,7 +93,7 @@
 			});
 
 			legendData = _.map(chartData, function(series) {
-				return { label: series.key, key: series.key, entityId: series.entityId };
+				return { label: series.key, key: series.key, entityId: series.entityId, variableId: series.variableId };
 			});
 
 			return { chartData: chartData, legendData: legendData, minYear: minYear, maxYear: maxYear };
@@ -180,6 +181,7 @@
 					key: dimension.displayName || variable.name,
 					entityName: selectedCountry.name,
 					entityId: selectedCountry.id,
+					variableId: dimension.variableId,
 					values: []
 				};
 
@@ -202,7 +204,7 @@
 			chartData = this.zeroPadData(chartData);
 
 			legendData = _.map(chartData, function(series) {
-				return { label: series.label, key: series.key, entityId: series.entityId };
+				return { label: series.label, key: series.key, entityId: series.entityId, variableId: series.variableId };
 			});
 
 			return { chartData: chartData, legendData: legendData, minYear: minYear, maxYear: maxYear };
@@ -266,6 +268,7 @@
 							key: entityKey[entityId].name,
 							entityName: entityKey[entityId].name,
 							entityId: entityId,
+							variableId: dimension.variableId,
 							id: entityId
 						};
 						seriesByEntity[entityId] = series;
@@ -316,7 +319,7 @@
 			}));
 
 			legendData = _.map(chartData, function(series) {
-				return { label: series.key, key: series.key, entityId: series.entityId, color: series.color };
+				return { label: series.key, key: series.key, entityId: series.entityId, variableId: series.variableId, color: series.color };
 			});
 
 			return { chartData: chartData, minYear: minYear, maxYear: maxYear };
@@ -365,7 +368,8 @@
 						x: entityKey[entityId].name,
 						y: +variable.values[i],
 						key: entityKey[entityId].name,
-						entityId: entityId
+						entityId: entityId,
+						variableId: variableId
 					};
 
 					valuesByEntity[entityId] = value;
@@ -381,7 +385,7 @@
 
 			if (chartData.length) {
 				legendData = _.map(chartData[0].values, function(v) {
-					return { label: v.x, key: v.key, entityId: v.entityId };
+					return { label: v.x, key: v.key, entityId: v.entityId, variableId: v.variableId };
 				});				
 			}
 

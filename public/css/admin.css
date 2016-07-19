@@ -265,7 +265,7 @@ button[type="submit"]:not(".delete-btn") {
   margin: 20px 0px;
   padding: 0; }
 
-.country-label, .variable-item {
+.country-label {
   position: relative;
   display: inline-block;
   margin-right: 10px;
@@ -279,13 +279,8 @@ button[type="submit"]:not(".delete-btn") {
   cursor: pointer;
 }
 
-.variable-item {
-  cursor: move;
-  cursor: -webkit-grab;   
-}
-
 .country-label:hover,
-.variable-item:hover {
+.variable-label:hover {
   border: 1px solid #666;
   color: #000; }
 
@@ -296,29 +291,13 @@ button[type="submit"]:not(".delete-btn") {
   margin-left: -10px;
 }
 
-.variable-item .fa {
-  margin-right: -10px;
-  margin-left: 10px;
-  color: #bbbbbb;
-  cursor: pointer; }
-
-.country-label:hover .fa,
-.variable-item:hover .fa {
-  color: #666666; }
+.country-label:hover .fa {
+  color: #666666; 
+}
 
 .country-label:hover .fa:hover {
-  color: #000000; }
-
-.variable-item .fa {
-  position: absolute;
-  top: 14px;
-  right: 10px;
-  color: #666666;
-  margin-right: 0;
-  margin-left: 0; }
-
-.variable-item .fa-close:hover {
-  color: red; }
+  color: #000000; 
+}
 
 /**
 *
@@ -334,7 +313,7 @@ button[type="submit"]:not(".delete-btn") {
 .popup-picker-wrapper {
   position: absolute;
   top: 0px;
-  left: 101px;
+  left: 100%;
   width: 105px;
   padding: 10px;
   background-color: #666;
@@ -768,36 +747,61 @@ a.clear-settings-btn {
 /**
 *	add variable section
 **/
-.variable-item {
+.variable-label {
   user-select: none;
   -webkit-user-select: none;
-  /* Chrome/Safari/Opera */
   -moz-user-select: none;
-  /* Firefox */
   -ms-user-select: none;
-  /* IE/Edge */
   -webkit-touch-callout: none;
-  /* iOS Safari */ }
-  .variable-item .dd-handle {
-    background: transparent; }
-  .variable-item .variable-item:hover {
-    background-color: #ddd; }
-  .variable-item .dd-handle:hover {
-    color: inherit; }
-  .variable-item .variable-item-input {
-    /* hidden by default */
-    display: none; }
-  .variable-item .variable-item-input input {
-    position: relative;
-    top: -6px; }
-  .variable-item .variable-item-input .fa {
-    position: absolute;
-    top: 14px;
-    font-size: 16px;
-    cursor: pointer; }
 
-.add-data-section .variable-item .fa-cog {
-  display: none;
+  display: inline-block;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  background-color: #fff;
+  border: 1px solid #bbb;
+}
+.variable-label .dd-handle {
+  background: transparent; 
+  display: inline-block;
+  cursor: move;
+  cursor: -webkit-grab;   
+  padding: 10px 20px;    
+  margin: 0;  
+}
+
+.variable-label .variable-label:hover {
+    background-color: #ddd; 
+}
+.variable-label .dd-handle:hover {
+    color: inherit; 
+}
+.variable-label .variable-label-input input {
+    position: relative;
+    top: -6px; 
+}
+.variable-label .buttons {
+  margin-right: 20px;
+  margin-left: -15px;
+  font-size: 15px;
+}
+.variable-label .fa {
+  color: #666;
+}
+.variable-label .fa:hover {
+  color: #000; 
+}
+.variable-label .fa-close:hover {
+  color: red; 
+}
+.dd-dragel .fa-close {
+  display: none !important;
+}
+.dd-dragel .dd-handle {
+  box-shadow: none !important;
+}
+
+li[data-color^=".*"] {
+  color: white !important;
 }
 
 /**
@@ -883,43 +887,6 @@ a.clear-settings-btn {
   border: 2px dashed #fff; }
 
 .dimension-box .fa-close {
-  display: none; }
-
-.variable-item .variable-setting-btn {
-  position: absolute;
-  top: 12px;
-  right: 10px;
-  color: #aaaaaa;
-  font-size: 12px; }
-
-.variable-item .variable-setting-btn.hidden {
-  display: none; }
-
-.variable-item .variable-setting-btn span {
-  margin-left: 5px;
-  display: none; }
-
-.variable-item .variable-setting-btn:hover {
-  color: #000000; }
-
-.variable-item .variable-setting-btn:hover span {
-  display: inline-block; }
-
-.variable-item .variable-setting-btn span.fa-cog {
-  display: inline-block;
-  position: relative;
-  top: 2px;
-  right: 0px;
-  font-size: 16px; }
-
-.variable-item .variable-setting-btn .fa {
-  position: static;
-  display: none; }
-
-.variable-item .variable-setting-btn:hover .fa {
-  color: #000000; }
-
-.add-data-section .variable-setting-btn {
   display: none; }
 
 /**

@@ -130,7 +130,7 @@
 
 				var entityCodes = [];
 				_.each(sortedCountries, function(entity) {
-					var foundEntity = variableData.entityKey[entity.id];
+					var foundEntity = App.VariableData.getEntityById(entity.id);
 					if (!foundEntity) return;
 					entityCodes.push(encodeURIComponent(foundEntity.code || foundEntity.name));
 				});

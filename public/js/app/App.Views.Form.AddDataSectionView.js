@@ -3,7 +3,8 @@
 	owid.namespace("App.Views.Form.AddDataSectionView");
 	
 	var	SelectVarPopup = App.Views.UI.SelectVarPopup,
-		SettingsVarPopup = App.Views.UI.SettingsVarPopup;
+		SettingsVarPopup = App.Views.UI.SettingsVarPopup,
+		ColorPicker = App.Views.UI.ColorPicker;
 
 	// Handles the somewhat fiddly work of adding variables to a chart and then
 	// assigning them to be displayed in a particular "dimension" slot
@@ -13,6 +14,7 @@
 			"click .add-data-btn": "onAddDataBtn",
 			"click .fa-close": "onVariableRemoveBtn",
 			"click .fa-cog": "onVariableSettingsBtn",
+			"click .fa-paint-brush": "onVariableColorpicker",
 			"change [name='group-by-variable']": "onGroupByVariableChange",
 			"change .dd": "saveDimensions"
 		},
@@ -51,15 +53,15 @@
 		},
 
 		onVariableRemoveBtn: function(evt) {
-			$(evt.currentTarget).closest('.variable-item').remove();
+			$(evt.currentTarget).closest('.variable-label').remove();
 		},
 
 		onVariableSettingsBtn: function(evt) {
-			this.settingsVarPopup.show($(evt.target).closest('.variable-item'));		
+			this.settingsVarPopup.show($(evt.target).closest('.variable-label'));		
 		},
 
 		onVariableSettingsUpdate: function(settings) {
-			var $li = $(".variable-item[data-variable-id='" + settings.variableId + "']");
+			var $li = $(".variable-label[data-variable-id='" + settings.variableId + "']");
 			this.applySettingsToItem($li, settings);
 
 			// settings already come back in the form e.g. 'target-year'
@@ -75,6 +77,20 @@
 			this.saveDimensions();
 		},
 
+		onVariableColorpicker: function(evt) {
+			var $li = $(evt.target).closest(".variable-label");
+			if (this.colorPicker) this.colorPicker.onClose();
+			this.colorPicker = new ColorPicker({ target: $li, currentColor: $li.attr("data-color") });
+			this.colorPicker.onSelected = function(value) {
+				$li.css("background-color", value);
+				if (!value)
+					$li.removeAttr("data-color")
+				else
+					$li.attr("data-color", value);
+				this.saveDimensions();
+			}.bind(this);
+		},
+
 		onGroupByVariableChange: function() {
 			var groupByVariable = this.$groupByVariableInput.is(":checked");
 			App.ChartModel.set("group-by-variables", groupByVariable);
@@ -84,7 +100,7 @@
 			var dimensions = [];
 			_.each(this.$dimensionsContent.find("li.dimension-box"), function(el) {
 				var $box = $(el);
-				_.each($box.find(".variable-item"), function(el) {
+				_.each($box.find(".variable-label"), function(el) {
 					var $item = $(el);
 					dimensions.push({
 						property: $box.attr("data-property"),
@@ -95,7 +111,8 @@
 						mode: $item.attr("data-mode"),
 						targetYear: $item.attr("data-target-year"),
 						tolerance: $item.attr("data-tolerance"),
-						maximumAge: $item.attr("data-maximum-age")
+						maximumAge: $item.attr("data-maximum-age"),
+						color: $item.attr("data-color")
 					});
 				});
 			});
@@ -158,15 +175,18 @@
 
 			var settings = _.extend({}, defaults, dimensionSettings);
 
-			var $li = $('<li class="variable-item dd-item">' +
+			var $li = $('<li class="variable-label dd-item">' +
 						'	<div class="dd-handle">' +
 						'		<div class="dd-inner-handle">' +
-						'			<span class="variable-item-name">' + settings.variableName + '</span>' +
+						'			<span class="variable-label-name">' + settings.variableName + '</span>' +
 						'		</div>' +
 						'	</div>' +
-						'	<span class="fa fa-cog" title="Variable settings"></span>' +
-						'	<span class="fa fa-close"></span>' +
-						'</li>');
+						'	<span class="buttons">' +
+						'		<span class="fa fa-paint-brush clickable" title="Set color"></span>' +
+						'		<span class="fa fa-cog clickable" title="Variable settings"></span>' +
+						'		<span class="fa fa-close clickable"></span>' +
+						'	</span>' +
+						'</li>');			
 
 			this.applySettingsToItem($li, settings);
 			return $li;
@@ -179,7 +199,9 @@
 			$li.attr("data-mode", settings.mode);
 			$li.attr("data-target-year", settings.targetYear);
 			$li.attr("data-tolerance", settings.tolerance);
-			$li.attr("data-maximum-age", settings.maxAge);			
+			$li.attr("data-maximum-age", settings.maxAge);
+			$li.attr("data-color", settings.color);
+			if (settings.color) $li.css("background-color", settings.color);
 		},
 
 		assignToSlot: function($slot, $li) {

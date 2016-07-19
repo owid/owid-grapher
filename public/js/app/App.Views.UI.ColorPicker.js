@@ -2,8 +2,6 @@
 	"use strict";
 	owid.namespace("App.Views.UI.ColorPicker");
 
-	var that;
-
 	App.Views.UI.ColorPicker = owid.View.extend({
 		events: {
 			"click .close-btn": "onClose",
@@ -16,9 +14,9 @@
 			var $target = $(options.target),
 				currentColor = options.currentColor || "",
 				colors = options.colors || App.Colors.basicScheme;
-			this.$target = $target
+			this.$target = $target;
 
-			var html = "<div class='popup-picker-wrapper'><a href='#' class='close-btn pull-right'><i class='fa fa-times'></i></a><ul class='no-bullets'>"
+			var html = "<div class='popup-picker-wrapper'><a href='#' class='close-btn pull-right'><i class='fa fa-times'></i></a><ul class='no-bullets'>";
 
 			_.each(colors, function(color) {
 				html += "<li data-value='" + color + "' style='background-color: " + color + "'></li>";
@@ -53,7 +51,7 @@
 
 		onChange: function(evt) {
 			var value = $(evt.target).val() || $(evt.target).attr("data-value");
-			if (value && this.onSelected) {
+			if (this.onSelected) {
 				this.onSelected.apply(this, [value]);
 				this.onClose();
 			}

@@ -30,7 +30,6 @@
 			var availableEntities = App.VariableData.get("availableEntities"),
 				selectedEntities = App.ChartModel.get("selected-countries"),
 				selectedEntitiesById = App.ChartModel.getSelectedEntitiesById();
-			console.log(selectedEntities);
 
 			// Show all the entities that are already selected
 			this.$currentEntities.empty();

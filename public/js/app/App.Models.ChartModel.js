@@ -285,6 +285,12 @@
 			return validDimensions;
 		},
 
+		getDimensionById: function(id) {
+			return _.find(this.getDimensions(), function(dim) {
+				return dim.variableId == id;
+			});
+		},
+
 		getTimeFrom: function() {
 			var chartTime = this.get("chart-time");
 			if (_.isEmpty(chartTime))

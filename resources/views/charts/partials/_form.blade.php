@@ -103,7 +103,7 @@
 							<h2><span class="form-section-digit">f</span>Pick your countries</h2>
 						</div>
 						<div class="form-section-content">
-							<p class="form-section-desc">Select countries from drop down below. You can set countries colors by clicking on the country label itself.</p>
+							<p class="form-section-desc">Select countries from drop down below. You can set country colors by clicking on the country label itself.</p>
 							<ul class="selected-countries-box no-bullets">
 
 							</ul>
