@@ -10,12 +10,13 @@
 	var $chartShowWrapper = $( ".chart-show-wrapper, .chart-edit-wrapper" ),
 		chartId = $chartShowWrapper.attr( "data-chart-id" );
 
+	if (!$chartShowWrapper.length) return;
+
 	//setup views
 	App.isEditor = true;
 	App.View = new Form();
 	
-	if( $chartShowWrapper.length && chartId ) {
-		
+	if (chartId) {
 		//showing existing chart
 		App.ChartModel = new ChartModel( { id: chartId } );
 		App.ChartModel.fetch( {
@@ -32,13 +33,10 @@
 			//disable caching for viewing within admin
 			App.ChartModel.set( "cache", false );
 		}
-		
 	} else {
-
 		//is new chart
 		App.ChartModel = new ChartModel();
 		App.View.start();
-
 	}
 	
 	//chosen select
