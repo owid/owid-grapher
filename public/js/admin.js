@@ -69,4 +69,7 @@
 			});
 		});
 	});
+
+	// Set site-wide cookie for charts so they know to show the edit link
+	Cookies.set("isAdmin", "true", { expires: 31 });
 })();
