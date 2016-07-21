@@ -38,8 +38,4 @@
 		App.ChartModel = new ChartModel();
 		App.View.start();
 	}
-	
-	//chosen select
-	$( ".chosen-select" ).chosen();
-	$(".timeago").timeago();	
 });

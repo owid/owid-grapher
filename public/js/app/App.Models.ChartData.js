@@ -319,7 +319,7 @@
 			}));
 
 			legendData = _.map(chartData, function(series) {
-				return { label: series.key, key: series.key, entityId: series.entityId, variableId: series.variableId, color: series.color };
+				return { label: series.key, key: series.key, entityId: series.entityId, variableId: series.variableId };
 			});
 
 			return { chartData: chartData, minYear: minYear, maxYear: maxYear };

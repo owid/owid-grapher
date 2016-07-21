@@ -55,7 +55,7 @@
 					dimension = App.ChartModel.getDimensionById(group.variableId);
 
 				if (group.color) {
-					group.color = this.assignColorForKey(group.key, group.color);
+					group.color = this.assignColorForKey(group.key, group.color, { canVary: false });
 				} else if (entity && entity.color) {
 					group.color = this.assignColorForKey(group.key, entity.color, { canVary: group.key != entity.name });
 				} else if (dimension && dimension.color) {
@@ -70,7 +70,7 @@
 			var chartType = App.ChartModel.get("chart-type");
 
 			_.each(chartData, function(series) {
-				if (chartType == App.ChartType.DiscreteBar) {
+				if (chartType == App.ChartType.DiscreteBar || chartType == App.ChartType.ScatterPlot) {
 					_.each(series.values, function(d) {
 						d.color = this.assignColorForKey(d.key, d.color);
 					}.bind(this));					
