@@ -163,7 +163,7 @@
 				entityKey = App.VariableData.get("entityKey"),
 				// Group-by-variable chart only has one selected country
 				selectedCountry = _.values(App.ChartModel.getSelectedEntitiesById())[0],
-				chartData = [],
+				chartData = [], legendData = [],
 				timeFrom = App.ChartModel.getTimeFrom(),
 				timeTo = App.ChartModel.getTimeTo(),				
 				minYear = Infinity,
@@ -432,6 +432,12 @@
 			else
 				result = this.transformDataForLineChart();
 
+			_.each(result.legendData, function(d) {
+				d.disabled = !App.ChartModel.isLegendKeyActive(d.key);
+			});
+			_.each(result.chartData, function(d) {
+				d.disabled = !App.ChartModel.isLegendKeyActive(d.key);
+			});
 			App.Colors.assignColorsForLegend(result.legendData);
 			App.Colors.assignColorsForChart(result.chartData);
 			this.chartData = result.chartData;

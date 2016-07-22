@@ -484,12 +484,6 @@ select.disabled {
 #chart-view .nv-custom-legend .nv-series .nv-custom-legend-symbol {
     stroke-width: 1px !important;
 }
-#chart-view .nv-custom-legend .nv-series.nv-disabled .nv-custom-legend-symbol {
-    stroke: #666 !important;
-}
-#chart-view .nv-custom-legend .nv-series.nv-disabled .nv-remove-btn .nv-box {
-    stroke: #999 !important;
-}
 #chart-view .nv-custom-legend .nv-remove-btn {
     display: none;
 }
@@ -523,6 +517,14 @@ select.disabled {
     stroke-width: 4px;
     stroke: #000;
 }
+#chart-view .nv-custom-legend .nv-disabled {
+    fill-opacity: 0;
+}
+#chart-view .nv-custom-legend .nv-disabled .nv-legend-text {
+    fill: #333;
+    fill-opacity: 1;
+}
+
 #chart-view .available-countries-select-wrapper {
     position: relative;
     z-index: 12;

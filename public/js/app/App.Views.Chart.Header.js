@@ -19,7 +19,7 @@
 			this.partnerLogo = d3.select(".partner-logo-svg");
 			this.$tabs = $(".header-tab");
 
-			this.listenTo(App.ChartModel, "change", this.render.bind(this));
+			this.listenTo(App.ChartModel, "change:chart-name change:chart-subname change:add-country-mode change:selected-countries change:logo change:second-logo change:tabs", this.render.bind(this));
 			this.listenTo(App.ChartData, "change", this.render.bind(this));
 		},
 

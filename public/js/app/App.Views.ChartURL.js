@@ -41,7 +41,8 @@
 
 			this.listenTo($(window), "query-change", this.onQueryChange.bind(this));
 			this.listenTo(options.dispatcher, "tab-change", this.onTabChange.bind(this));
-			this.listenTo(App.ChartModel, "change:selected-countries", this.updateCountryParam.bind(this));			
+			this.listenTo(App.ChartModel, "change:selected-countries", this.updateCountryParam.bind(this));	
+			this.listenTo(App.ChartModel, "change:activeLegendKeys", this.updateLegendKeys.bind(this));		
 			this.listenTo(App.ChartModel, "change-map-year", this.updateYearParam.bind(this));
 			this.listenTo(App.ChartModel, "change-map", this.updateMapParams.bind(this));
 			this.listenTo(App.ChartModel, "change:currentStackMode", this.updateStackMode.bind(this));
@@ -64,7 +65,7 @@
 			}
 
 			var stackMode = params.stackMode;
-			if (stackMode == "relative")
+			if (stackMode !== undefined)
 				App.ChartModel.set("currentStackMode", stackMode);
 
 			// Map stuff below
@@ -91,6 +92,16 @@
 
 			// TODO: 'country' is currently done server-side, might be more consistent
 			// to do them here too - mispy
+
+			// Set shown legend keys for charts with toggleable series
+			var shown = params.shown;
+			if (_.isString(shown)) {
+				var keys = _.map(shown.split("+"), function(key) {
+					return decodeURIComponent(key);
+				});
+
+				App.ChartModel.set("activeLegendKeys", keys);
+			}
 		},
 
 		/**
@@ -122,7 +133,7 @@
 			var selectedCountries = App.ChartModel.get("selected-countries"),
 				entityCodes = [];
 
-			App.DataModel.ready(function(variableData) {
+			App.DataModel.ready(function() {
 				// Sort them by name so the order in the url matches the legend
 				var sortedCountries = _.sortBy(selectedCountries, function(entity) {
 					return entity.name;
@@ -138,6 +149,22 @@
 				owid.setQueryVariable("country", entityCodes.join("+"));
 			});			
 		},
+
+		/**
+		 * Set e.g. &shown=Africa when the user selects Africa on a stacked area chart or other
+		 * toggle-based legend chart.
+		 */
+		 updateLegendKeys: function() {
+		 	var activeLegendKeys = App.ChartModel.get("activeLegendKeys");
+		 	if (activeLegendKeys === null)
+		 		owid.setQueryVariable("shown", null);
+		 	else {
+		 		var keys = _.map(activeLegendKeys, function(key) {
+		 			return encodeURIComponent(key);
+		 		});
+		 		owid.setQueryVariable("shown", keys.join("+"));
+		 	}
+		 },
 
 		/**
 		 * Set e.g. &year=1990 when the user uses the map slider to go to 1990
@@ -174,8 +201,8 @@
 		 */
 		updateStackMode: function() {
 			var stackMode = App.ChartModel.get("currentStackMode");
-			if (stackMode == "relative")
-				owid.setQueryVariable("stackMode", "relative");
+			if (stackMode == "relative" || stackMode == "stacked")
+				owid.setQueryVariable("stackMode", stackMode);
 			else
 				owid.setQueryVariable("stackMode", null);
 		},

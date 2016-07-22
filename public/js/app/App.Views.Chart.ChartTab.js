@@ -98,7 +98,7 @@
 		update: function() {
 			App.DataModel.ready(function() {
 				if (this.needsFullRender) {	
-				this.deactivate();
+					this.deactivate();
 					this.activate();
 				} else {
 					this.render(this.onResize.bind(this));					
@@ -108,15 +108,14 @@
 
 		updateAvailableCountries: function() {
 			var availableEntities = App.VariableData.get("availableEntities"),
-				selectedCountries = App.ChartModel.get("selected-countries"),
-				selectedCountriesIds = _.map(selectedCountries, function(v) { return (v)? +v.id: ""; }),
+				selectedEntitiesById = App.ChartModel.getSelectedEntitiesById(),
 				entityType = App.ChartModel.get("entity-type");
 
 			// Fill entity selector with all entities not currently selected
 			this.$entitiesSelect.empty();
 			this.$entitiesSelect.append("<option disabled selected>Select " + entityType + "</option>");
 			_.each(availableEntities, function(entity) {
-				if (!_.contains(selectedCountriesIds, +entity.id)) {
+				if (!selectedEntitiesById[entity.id]) {
 					this.$entitiesSelect.append("<option value='" + entity.id + "'>" + entity.name + "</option>");
 				}
 			}.bind(this));
@@ -133,45 +132,26 @@
 
 			var that = this;
 
-			var chartType = App.ChartModel.get( "chart-type" );
-
-			//filter data for selected countries
-			var selectedCountries = App.ChartModel.get("selected-countries");
-
-			var selectedCountriesById = [],
-				selectedCountriesIds = _.map( selectedCountries, function(v) {
-					//store
-					selectedCountriesById[ v.id ] = v;
-					return +v.id;
-				} );
-
-			// For stacked area chart, the order of the series matters. For other chart
-			// types we sort them alphabetically.
-			if (chartType == App.ChartType.StackedArea) {
-			} else {
-				localData = _.sortBy(localData, function(obj) { return obj.key; });
-			}
-			
 			// Add classes to the series so we can style e.g. the World line differently
 			_.each(localData, function(d) {
 				d.classed = owid.makeSafeForCSS(d.key);
 			});
 
 			//get axis configs
-			var xAxis = App.ChartModel.get( "x-axis" ),
-				yAxis = App.ChartModel.get( "y-axis" ),
-				xAxisPrefix = ( xAxis[ "axis-prefix" ] || "" ),
-				xAxisSuffix = ( xAxis[ "axis-suffix" ] || "" ),
-				yAxisPrefix = ( yAxis[ "axis-prefix" ] || "" ),
-				yAxisSuffix = ( yAxis[ "axis-suffix" ] || "" ),
-				xAxisLabelDistance = ( +xAxis[ "axis-label-distance" ] || 0 ),
-				yAxisLabelDistance = ( +yAxis[ "axis-label-distance" ] || 0 ),
-				xAxisMin = ( xAxis[ "axis-min" ] || null ),
-				xAxisMax = ( xAxis[ "axis-max" ] || null ),
-				yAxisMin = ( yAxis[ "axis-min" ] || 0 ),
-				yAxisMax = ( yAxis[ "axis-max" ] || null ),
-				xAxisScale = ( xAxis[ "axis-scale" ] || "linear" ),
-				yAxisScale = ( yAxis[ "axis-scale" ] || "linear" ),
+			var xAxis = App.ChartModel.get("x-axis"),
+				yAxis = App.ChartModel.get("y-axis"),
+				xAxisPrefix = xAxis["axis-prefix"] || "",
+				xAxisSuffix = xAxis["axis-suffix"] || "",
+				yAxisPrefix = yAxis["axis-prefix"] || "",
+				yAxisSuffix = yAxis["axis-suffix"] || "",
+				xAxisLabelDistance = +xAxis["axis-label-distance"] || 0,
+				yAxisLabelDistance = +yAxis["axis-label-distance"] || 0,
+				xAxisMin = xAxis["axis-min"] || null,
+				xAxisMax = xAxis["axis-max"] || null,
+				yAxisMin = yAxis["axis-min"] || 0,
+				yAxisMax = yAxis["axis-max"] || null,
+				xAxisScale = xAxis["axis-scale"] || "linear",
+				yAxisScale = yAxis["axis-scale"] || "linear",
 				xAxisFormat = xAxis["axis-format"],
 				yAxisFormat = yAxis["axis-format"] || 5;
 
@@ -288,6 +268,12 @@
 					} else if (chartType == App.ChartType.HorizontalMultiBar) {
 						that.chart = nv.models.multiBarHorizontalChart().options(chartOptions);					
 					}
+
+
+					if (App.ChartModel.get("currentStackMode") == "stacked")
+						that.chart.stacked(true);			
+					else
+						that.chart.stacked(false);
 				} else if (chartType == App.ChartType.DiscreteBar) {
 					chartOptions.showValues = true;
 
@@ -300,23 +286,24 @@
 				that.chart.dispatch.on("renderEnd", function(state) {
 					$(window).trigger('chart-loaded');
 
+					d3.selectAll(".nv-controlsWrap .nv-series").on("click", function(opt) {
+						App.ChartModel.set("currentStackMode", opt.key.toLowerCase());
+					});
+
 					/* HACK (Mispy): Hijack nvd3 mode switch for stacked area charts. */
 					if (chartType == App.ChartType.StackedArea) {
-						d3.selectAll(".nv-controlsWrap .nv-series").on("click", function(opt) {
-							if (opt.key == "Relative") {
-								App.ChartModel.set("currentStackMode", "relative");
-							} else {
-								App.ChartModel.set("currentStackMode", "absolute");
-							}
-						});
-	
 						// Stop the tooltip from overlapping the chart controls
 						d3.selectAll("svg").on("mousemove.stackedarea", function() {
 							var $target = $(d3.event.target);
 							if (!$target.is("rect, path") || $target.closest(".nv-custom-legend").length)
 								that.chart.interactiveLayer.tooltip.hidden(true);							
 						});
-					}
+
+						// Override default stacked area click behavior
+						d3.selectAll(".nv-area").on("click", function(d) {
+							App.ChartModel.focusToggleLegendKey(d.key);
+						});
+					}					
 				});			
 
 				if (chartType != App.ChartType.DiscreteBar) {
@@ -464,7 +451,6 @@
 						//trigger open the chosen drop down
 						that.$entitiesSelect.trigger("chosen:open");
 					});
-					that.legend.render();
 				} else {
 					//no legend, remove what might have previously been there
 					that.$svg.find("> .nvd3.nv-custom-legend").hide();
@@ -608,8 +594,8 @@
 			var entitiesCollection = {},
 				formConfig = App.ChartModel.get( "form-config" );
 			if( formConfig && formConfig[ "entities-collection" ] ) {
-				var selectedCountriesIds = _.keys( App.ChartModel.get( "selected-countries" ) );
-				if( selectedCountriesIds.length == formConfig[ "entities-collection" ].length ) {
+				var selectedEntitiesById = _.keys( App.ChartModel.get( "selected-countries" ) );
+				if( selectedEntitiesById.length == formConfig[ "entities-collection" ].length ) {
 					App.ChartModel.set( "selected-countries", [], {silent:true} );
 				}
 			}

@@ -3,7 +3,8 @@
 	owid.namespace("App.Views.Chart.Legend");
 
 	App.Views.Chart.Legend = owid.View.extend({
-		initialize: function() {
+		initialize: function(chartLegend) {
+			this.chartLegend = chartLegend;
 			this.dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout', 'stateChange', 'addEntity');
 		},
 
@@ -14,7 +15,6 @@
 				addCountryMode = App.ChartModel.get("add-country-mode"),
 				remainingEntities = App.VariableData.getRemainingEntities(),
 				isAddBtnShown = (remainingEntities.length && (addCountryMode === "add-country" || addCountryMode === "change-country"));
-
 
 			var $svg = $("svg.nvd3-svg"),
 				container = d3.select($svg[0]),
@@ -30,7 +30,7 @@
 			var series = g.selectAll('.nv-series')
 				.data(legendData);
 
-			var seriesEnter = series.enter().append('g').attr('class', function(d) { return 'nv-series nv-series-' + d.id; } );
+			var seriesEnter = series.enter().append('g').attr('class', function(d) { return 'nv-series'; } );
 
 			seriesEnter.append('rect')
 				.style('stroke-width', 2)
@@ -57,11 +57,13 @@
 			series
 				.on('click', function(d,i) {
 					if (addCountryMode !== "add-country") {
-						return;
-					} 
-					App.ChartModel.removeSelectedCountry(d.entityId);
+						App.ChartModel.toggleLegendKey(d.key);
+					} else {
+						App.ChartModel.removeSelectedCountry(d.entityId);						
+					}
 				});
 
+			series.classed('nv-disabled', function(d) { return d.disabled; });
 			series.exit().remove();
 
 			seriesText.text(function(d) { return d.label||d.key; });
@@ -97,6 +99,8 @@
 				.attr('x', -13);
 
 			seriesShape.style('fill', function(d, i) {
+				return d.color || nv.utils.getColor(d, i);
+			}).style('stroke', function(d, i) {
 				return d.color || nv.utils.getColor(d, i);
 			});
 

@@ -55,6 +55,7 @@
 			"add-country-mode": "add-country",
 			"x-axis-scale-selector": false,
 			"y-axis-scale-selector": false,
+			"activeLegendKeys": null,
 			"map-config": {
 				"variableId": -1,
 				"targetYear": 1980,
@@ -306,6 +307,43 @@
 			else
 				return chartTime[1];
 		},
-	} );
 
+		toggleLegendKey: function(key, offon) {
+			var activeLegendKeys = _.clone(this.get("activeLegendKeys")),
+				legendData = App.ChartData.get("legendData");
+
+			// In a null default state, they're all on
+			if (activeLegendKeys === null) {
+				if (offon === true) return;
+				else {
+					activeLegendKeys = _.pluck(legendData, "key");
+				}
+			}
+
+			if (offon === true) {
+				activeLegendKeys.push(key);
+				if (activeLegendKeys.length == legendData.length)
+					activeLegendKeys = null;
+			} else if (offon === false) {
+				activeLegendKeys = _.filter(activeLegendKeys, function(k) { return k != key; });
+			} else {
+				return this.toggleLegendKey(key, !_.contains(activeLegendKeys, key));
+			}
+
+			this.set("activeLegendKeys", activeLegendKeys);
+		},
+
+		focusToggleLegendKey: function(key) {
+			var activeLegendKeys = this.get("activeLegendKeys");
+			if (activeLegendKeys && activeLegendKeys[0] == key)
+				this.set("activeLegendKeys", null);
+			else
+				this.set("activeLegendKeys", [key]);
+		},
+
+		isLegendKeyActive: function(key) {
+			var activeLegendKeys = this.get("activeLegendKeys");
+			return activeLegendKeys === null || _.contains(activeLegendKeys, key);
+		},
+	});
 })();
