@@ -5,35 +5,8 @@
 	// Override nvd3 handling of zero data charts to prevent it removing
 	// all of our svg stuff
 	nv.utils.noData = function(chart, container) {
-	    var opt = chart.options(),
-	        margin = opt.margin(),
-	        height = nv.utils.availableHeight(opt.height(), container, margin),
-	        width = nv.utils.availableWidth(opt.width(), container, margin),
-	        x = margin.left + width/2,
-	        y = margin.top + height/2;
-
-	    //Remove any previously created chart components
 	    container.selectAll('g.nv-wrap').remove();
-
-	    var chartType = App.ChartModel.get("chart-type");
-
-	    var msg = "No data available.";
-	    if (!App.ChartModel.hasVariables())
-	    	msg = "No variables have been added.";
-	    else if (!App.ChartModel.hasEntities() && chartType != App.ChartType.ScatterPlot) 
-	    	msg = "No " + App.ChartModel.get("entity-type") + " selected.";
-
-	    var noDataText = container.selectAll('.nv-noData').data([msg]);
-
-	    noDataText.enter().append('text')
-	        .attr('class', 'nvd3 nv-noData')
-	        .attr('dy', '-.7em')
-	        .style('text-anchor', 'middle');
-
-	    noDataText
-	        .attr('x', x)
-	        .attr('y', y)
-	        .text(function(t){ return t; });
+	    App.ChartView.handleMissingData("No data available.");
 	};
 
 	App.Views.Chart.ChartTab = owid.View.extend({
@@ -62,20 +35,6 @@
 			this.$reloadBtn = this.$el.find( ".reload-btn" );
 			var chartTime = App.ChartModel.get("chart-time");
 
-			//show/hide scale selectors
-			var showXScaleSelectors = App.ChartModel.get( "x-axis-scale-selector" );
-			if( showXScaleSelectors ) {
-				this.$xAxisScaleSelector.show();
-			} else {
-				this.$xAxisScaleSelector.hide();
-			}
-			var showYScaleSelectors = App.ChartModel.get( "y-axis-scale-selector" );
-			if( showYScaleSelectors ) {
-				this.$yAxisScaleSelector.show();
-			} else {
-				this.$yAxisScaleSelector.hide();
-			}
-
 			//refresh btn
 			this.$reloadBtn.on("click", function(evt) {
 				evt.preventDefault();
@@ -91,12 +50,12 @@
 			App.ChartModel.off(null, null, this);
 			d3.selectAll(".nvd3").remove();
 			if (this.$yAxisScaleSelector)
-				this.$yAxisScaleSelector.show();
+				this.$yAxisScaleSelector.hide();
 			d3.selectAll("svg").on("mousemove.stackedarea", null);
 		},
 
 		update: function() {
-			App.DataModel.ready(function() {
+			App.ChartData.ready(function() {
 				if (this.needsFullRender) {	
 					this.deactivate();
 					this.activate();
@@ -124,9 +83,33 @@
 		},
 
 		render: function(callback) {
-			var localData = App.DataModel.transformData(),
+			var localData = App.ChartData.transformData(),
 				chartType = App.ChartModel.get("chart-type"),
-				svg = d3.select("svg");
+				missingMsg = App.ChartModel.checkMissingData();
+
+			$(".chart-error").remove();
+			if (missingMsg || _.isEmpty(localData)) {
+				this.$el.find(".nv-wrap").remove();
+				App.ChartView.showMessage(missingMsg || "No available data.");
+				callback();
+				return;
+			}
+
+
+			var showXScaleSelectors = App.ChartModel.get( "x-axis-scale-selector" );
+			if( showXScaleSelectors ) {
+				this.$xAxisScaleSelector.show();
+			} else {
+				this.$xAxisScaleSelector.hide();
+			}
+			var showYScaleSelectors = App.ChartModel.get( "y-axis-scale-selector" );
+			if( showYScaleSelectors ) {
+				this.$yAxisScaleSelector.show();
+			} else {
+				this.$yAxisScaleSelector.hide();
+			}
+
+			var svg = d3.select("svg");
 
 			this.updateAvailableCountries();
 
@@ -155,26 +138,21 @@
 				xAxisFormat = xAxis["axis-format"],
 				yAxisFormat = yAxis["axis-format"] || 5;
 
-			//setting up nvd3 chart
+			// Initialize or update the nvd3 graph
 			nv.addGraph(function() {
 				var chartOptions = {
-					margin: { top:0, left:50, right:30, bottom:0 },// App.ChartModel.get( "margins" ),
+					margin: { top:0, left:50, right:30, bottom:0 },
 					showLegend: false
 				};
 
-				//line type
-				var lineType = App.ChartModel.get( "line-type" );
-				if( lineType == App.LineType.UnjoinedIfMissing ) {
-					//chartOptions.defined = function( d ) { return d.y == 0; };
-				}
-				if( lineType == App.LineType.WithDots || lineType == App.LineType.DashedIfMissing ) {
-					that.$el.addClass( "line-dots" );
-				} else {
-					that.$el.removeClass( "line-dots" );
-				}
+				if (chartType == App.ChartType.LineChart) {
+					var lineType = App.ChartModel.get("line-type");
+					if (lineType == App.LineType.WithDots || lineType == App.LineType.DashedIfMissing) {
+						that.$el.addClass("line-dots");
+					} else {
+						that.$el.removeClass("line-dots");
+					}
 
-				//depending on chart type create chart
-				if( chartType == App.ChartType.LineChart ) {
 					that.chart = nv.models.lineChart().options( chartOptions );
 
 				} else if( chartType == App.ChartType.ScatterPlot ) {
@@ -182,6 +160,7 @@
 					that.chart = nv.models.scatterChart().options( chartOptions ).pointRange( points ).showDistX( true ).showDistY( true );
 
 				} else if( chartType == App.ChartType.StackedArea ) {
+					// TODO put this in ChartData - mispy
 					//stacked area chart
 					//we need to make sure we have as much data as necessary
 					if( localData.length ) {
@@ -221,54 +200,11 @@
 						that.chart.style("expand");			
 
 				} else if (chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar) {
-					//multibar chart
-					//we need to make sure we have as much data as necessary
-					var allTimes = [],
-						//store values by [entity][time]
-						valuesCheck = [];
-
-					//extract all times
-					_.each( localData, function( v, i ) {
-						var entityData = [],
-							times = v.values.map( function( v2, i ) {
-								entityData[ v2.x ] = true;
-								return v2.x;
-							} );
-						valuesCheck[v.id] = entityData;
-						allTimes = allTimes.concat( times );
-					} );
-
-					allTimes = _.uniq( allTimes );
-					allTimes = _.sortBy( allTimes );
-					
-					if( localData.length ) {
-						_.each( localData, function( serie, serieIndex ) {
-							
-							//make sure we have values for given series
-							_.each( allTimes, function( time, timeIndex ) {
-								if( valuesCheck[ serie.id ] && !valuesCheck[ serie.id ][ time ] ) {
-									//time doesn't existig for given entity, insert zero value
-									var zeroObj = {
-										"key": serie.key,
-										"serie": serieIndex,
-										"time": time,
-										"x": time,
-										"y": 0,
-										"fake": true
-									};
-									serie.values.splice( timeIndex, 0, zeroObj );
-								}
-							} );
-							
-						} );
-					}
-
 					if (chartType == App.ChartType.MultiBar) {
 						that.chart = nv.models.multiBarChart().options(chartOptions);					
 					} else if (chartType == App.ChartType.HorizontalMultiBar) {
 						that.chart = nv.models.multiBarHorizontalChart().options(chartOptions);					
 					}
-
 
 					if (App.ChartModel.get("currentStackMode") == "stacked")
 						that.chart.stacked(true);			
@@ -286,11 +222,11 @@
 				that.chart.dispatch.on("renderEnd", function(state) {
 					$(window).trigger('chart-loaded');
 
+					/* HACK (Mispy): Hijack nvd3 mode switch controls. */
 					d3.selectAll(".nv-controlsWrap .nv-series").on("click", function(opt) {
 						App.ChartModel.set("currentStackMode", opt.key.toLowerCase());
 					});
 
-					/* HACK (Mispy): Hijack nvd3 mode switch for stacked area charts. */
 					if (chartType == App.ChartType.StackedArea) {
 						// Stop the tooltip from overlapping the chart controls
 						d3.selectAll("svg").on("mousemove.stackedarea", function() {
@@ -405,12 +341,6 @@
 					that.chart.yAxis.tickValues(tickValues);
 				}
 
-				if (chartType == App.ChartType.MultiBar || chartType === App.ChartType.HorizontalMultiBar) {
-					//for multibar chart, x axis has ordinal scale, so need to setup domain properly
-					//that.chart.xDomain( d3.range(xDomain[0], xDomain[1] + 1) );
-					that.chart.xDomain(allTimes);
-				}
-
 				that.chart.yAxis
 					.axisLabel(yAxis["axis-label"])
 					.axisLabelDistance(yAxisLabelDistance)
@@ -428,7 +358,7 @@
 				window.localData = localData;
 
 				var displayData = localData;
-				if (chartType == App.ChartType.LineChart && (lineType == App.LineType.DashedIfMissing))// || lineType == App.LineType.UnjoinedIfMissing))
+				if (chartType == App.ChartType.LineChart && (lineType == App.LineType.DashedIfMissing))
 					displayData = that.splitSeriesByMissing(localData);
 				window.displayData = displayData;
 				that.svgSelection = d3.select(that.$svg.selector)
@@ -579,25 +509,15 @@
 		},
 
 		onAvailableCountries: function(evt) {
-			var $select = $( evt.currentTarget ),
+			var $select = $(evt.currentTarget),
 				val = $select.val(),
-				$option = $select.find( "[value=" + val + "]" ),
+				$option = $select.find("[value=" + val + "]"),
 				text = $option.text();
 
-			if( !App.ChartModel.get( "group-by-variables" ) && App.ChartModel.get( "add-country-mode" ) === "add-country" ) {
-				App.ChartModel.addSelectedCountry( { id: $select.val(), name: text } );
+			if (App.ChartModel.get("add-country-mode") === "add-country") {
+				App.ChartModel.addSelectedCountry({ id: $select.val(), name: text });
 			} else {
-				App.ChartModel.replaceSelectedCountry( { id: $select.val(), name: text } );
-			}
-
-			//double check if we don't have full selection of countries
-			var entitiesCollection = {},
-				formConfig = App.ChartModel.get( "form-config" );
-			if( formConfig && formConfig[ "entities-collection" ] ) {
-				var selectedEntitiesById = _.keys( App.ChartModel.get( "selected-countries" ) );
-				if( selectedEntitiesById.length == formConfig[ "entities-collection" ].length ) {
-					App.ChartModel.set( "selected-countries", [], {silent:true} );
-				}
+				App.ChartModel.replaceSelectedCountry({ id: $select.val(), name: text });
 			}
 		},
 
@@ -647,9 +567,11 @@
 			}
 
 			// Inform nvd3 of the situation
-			this.chart.width(chartWidth);
-			this.chart.height(chartHeight);
-			this.chart.update();
+			if (this.chart && !$(".chart-error").is(":visible")) {
+				this.chart.width(chartWidth);
+				this.chart.height(chartHeight);
+				this.chart.update();				
+			}
 
 			var wrap = svg.select(".nvd3.nv-wrap");
 			this.translateString = "translate(" + chartOffsetX + "," + chartOffsetY + ")";

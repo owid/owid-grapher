@@ -76,8 +76,8 @@
 			var mapConfig = App.ChartModel.get("map-config"),
 				defaultYear = mapConfig.defaultYear,
 				targetYearMode = mapConfig.targetYearMode,
-				minYear = App.DataModel.get("minYear") || new Date().getFullYear(),
-				maxYear = App.DataModel.get("maxYear") || new Date().getFullYear(),
+				minYear = App.VariableData.get("minYear") || new Date().getFullYear(),
+				maxYear = App.VariableData.get("maxYear") || new Date().getFullYear(),
 				years = owid.timeRangesToYears(mapConfig.timeRanges, minYear, maxYear),
 				options = [ { "title": "Earliest year", "value": "earliest" }, { "title": "Latest year", "value": "latest" } ];
 
@@ -169,8 +169,8 @@
 		updateTargetYear: function() {
 			var mapConfig = App.ChartModel.get( "map-config" ),
 				chartTime = App.ChartModel.get( "chart-time" ),
-				minYear = App.DataModel.get("minYear"),
-				maxYear = App.DataModel.get("maxYear"),
+				minYear = App.VariableData.get("minYear"),
+				maxYear = App.VariableData.get("maxYear"),
 				savedTargetYear = mapConfig.targetYear,
 				targetYear = ( chartTime )? chartTime[0]: minYear;
 
@@ -284,7 +284,7 @@
 		},
 
 		onChartModelChange: function(evt) {
-			App.DataModel.ready(function() {
+			App.ChartData.ready(function() {
 				this.updateColorSchemeSelect();
 				this.updateTimelineMode();
 				this.updateTargetYear(true);

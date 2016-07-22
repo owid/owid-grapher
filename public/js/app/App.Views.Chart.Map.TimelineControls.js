@@ -17,8 +17,6 @@
 			this.buttonsControl = this.addChild(ButtonsControl, options);
 
 			this.listenTo(App.ChartModel, "change-map", this.onChartModelChange.bind(this));
-
-			return this.render();
 		},
 
 		render: function() {

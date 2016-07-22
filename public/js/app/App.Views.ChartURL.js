@@ -130,17 +130,17 @@
 		 * using the legend add country buttons
 		 */
 		updateCountryParam: function() {
-			var selectedCountries = App.ChartModel.get("selected-countries"),
+			var selectedEntities = App.ChartModel.get("selected-countries"),
 				entityCodes = [];
 
-			App.DataModel.ready(function() {
+			App.ChartData.ready(function() {
 				// Sort them by name so the order in the url matches the legend
-				var sortedCountries = _.sortBy(selectedCountries, function(entity) {
+				var sortedEntities = _.sortBy(selectedEntities, function(entity) {
 					return entity.name;
 				});
 
 				var entityCodes = [];
-				_.each(sortedCountries, function(entity) {
+				_.each(sortedEntities, function(entity) {
 					var foundEntity = App.VariableData.getEntityById(entity.id);
 					if (!foundEntity) return;
 					entityCodes.push(encodeURIComponent(foundEntity.code || foundEntity.name));

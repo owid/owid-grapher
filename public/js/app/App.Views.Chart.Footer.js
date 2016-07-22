@@ -25,7 +25,7 @@
 		},
 
 		render: function(callback) {
-			App.DataModel.ready(function() {
+			App.ChartData.ready(function() {
 				this.renderSVG();
 				this.updateSharingButtons();
 				if (_.isFunction(callback)) callback();
@@ -33,7 +33,7 @@
 		},
 
 		renderSVG: function(callback) {
-			var sources = App.DataModel.transformDataForSources(),
+			var sources = App.ChartData.transformDataForSources(),
 				sourceNames = _.uniq(_.pluck(sources, "name")),
  				chartDesc = App.ChartModel.get("chart-description"),
 				footerSvgContent = "Data obtained from: ";

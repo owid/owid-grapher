@@ -102,7 +102,8 @@
 
 			if (chartType == App.ChartType.ScatterPlot) {
 				_.extend(defaults, {
-					"hide-legend": true
+					"hide-legend": true,
+					"chart-dimensions": '[{"variableId":"123","property":"color","unit":"","name":"Color","period":"single","mode":"specific","targetYear":"2000","tolerance":"5","maximumAge":"5"}]'
 				});
 			}
 
@@ -118,7 +119,6 @@
 		},
 
 		initialize: function() {
-			this.on("sync", this.onSync, this);
 			this.on("change:chart-type", this.onChangeType, this);
 			$(document).trigger("chart-model");
 		},
@@ -139,21 +139,6 @@
 			console.log(changes);
 
 			if (!_.isEmpty(changes)) this.set(changes);
-		},
-
-
-		onSync: function() {
-			if( this.get( "chart-type" ) == App.ChartType.ScatterPlot ) {
-				//make sure for scatter plot, we have color set as continents
-				var chartDimensions = this.getDimensions();
-				if( !_.findWhere( chartDimensions, { "property": "color" } ) ) {
-					//this is where we add color property
-					var colorPropObj = { "variableId":"123","property":"color","unit":"","name":"Color","period":"single","mode":"specific","targetYear":"2000","tolerance":"5","maximumAge":"5"};
-					chartDimensions.push( colorPropObj );
-					var charDimensionsString = JSON.stringify( chartDimensions );
-					this.set( "chart-dimensions", charDimensionsString );
-				}
-			}			
 		},
 
 		getSelectedEntitiesById: function() {
@@ -252,7 +237,8 @@
 		},
 
 		hasVariables: function() {
-			return !_.isEmpty(this.getDimensions());
+			var dims = this.getDimensions();
+			return _.any(dims, function(dim) { return dim.property == 'x' || dim.property == 'y'; });
 		},
 
 		hasEntities: function() {
@@ -345,5 +331,20 @@
 			var activeLegendKeys = this.get("activeLegendKeys");
 			return activeLegendKeys === null || _.contains(activeLegendKeys, key);
 		},
+
+		checkMissingData: function() {
+			var dims = _.indexBy(this.getDimensions(), "property"),
+				chartType = this.get("chart-type"),
+				entityType = this.get("entity-type");
+
+			if (!dims.y)
+				return "Missing data for Y axis.";
+			else if (!dims.x && chartType == App.ChartType.ScatterPlot)
+				return "Missing data for X axis.";
+			else if (!this.hasEntities() && chartType != App.ChartType.ScatterPlot)
+				return "No " + entityType + " selected.";
+			else
+				return false;
+		}
 	});
 })();

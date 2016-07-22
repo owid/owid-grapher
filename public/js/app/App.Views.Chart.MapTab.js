@@ -34,14 +34,14 @@
 
 			d3.select(ev.target).each(function(d) {
 				var entityName = d.id,
-					availableEntities = App.DataModel.get("availableEntities"),
+					availableEntities = App.VariableData.get("availableEntities"),
 					entity = _.find(availableEntities, function(e) {
 						return owid.entityNameForMap(e.name) == d.id;
 					});
 
 				if (!entity) return;
 				App.ChartModel.set({ "selected-countries": [entity] }, { silent: true });
-				App.DataModel.chartData = null;
+				App.ChartData.chartData = null;
 				App.ChartView.activateTab("chart");
 				App.ChartView.urlBinder.updateCountryParam();
 			});
@@ -78,7 +78,7 @@
 			// to come in before the map can be fully rendered
 			var onMapReady = function() {
 				$(".chart-wrapper-inner").attr("style", "");
-				App.DataModel.ready(function() {
+				App.ChartData.ready(function() {
 					this.render(callback);
 				}.bind(this));				
 			}.bind(this);
@@ -91,7 +91,7 @@
 
 		// Optimized method for updating the target year with the slider
 		updateYearOnly: _.throttle(function() {
-			App.DataModel.ready(function() {
+			App.ChartData.ready(function() {
 				this.mapData = this.transformData();
 				this.applyColors(this.mapData, this.colorScale);
 				this.dataMap.updateChoropleth(this.mapData, { reset: true });
@@ -148,7 +148,7 @@
 			}
 
 			// Set configurable targets from defaults
-			this.mapConfig.targetYear = this.mapConfig.defaultYear || this.mapConfig.targetYear;
+			this.targetYear = this.mapConfig.defaultYear || this.mapConfig.targetYear;
 			this.mapConfig.projection = this.mapConfig.defaultProjection || this.mapConfig.projection;
 		},
 
@@ -183,10 +183,16 @@
 		transformData: function() {
 			var variables = App.VariableData.get("variables"),
 				entityKey = App.VariableData.get("entityKey"),
-				firstVariable = variables[this.mapConfig.variableId],
-				years = firstVariable.years,
-				values = firstVariable.values,
-				entities = firstVariable.entities,
+				targetVariable = variables[this.mapConfig.variableId];
+
+			if (!targetVariable) {
+				App.ChartView.handleError("No variable selected for map.", false);
+				return false;
+			}
+
+			var years = targetVariable.years,
+				values = targetVariable.values,
+				entities = targetVariable.entities,
 				targetYear = parseInt(this.mapConfig.targetYear),
 				tolerance = parseInt(this.mapConfig.timeTolerance) || 1,
 				mapData = {};
@@ -216,8 +222,7 @@
 			this.maxValue = _.max(mapData, function(d, i) { return d.value; }).value;
 			this.minToleranceYear = _.min(mapData, function(d, i) { return d.year; }).year;
 			this.maxToleranceYear = _.max(mapData, function(d, i) { return d.year; }).year;
-			this.variableName = firstVariable.name;
-
+			this.variableName = targetVariable.name;
 
 			// HACK (Mispy): Ideally these calculated values shouldn't go in mapConfig,
 			// but for backwards compatibility it's easier to have them there.
@@ -239,6 +244,7 @@
 		render: function(callback) {
 			try {
 				this.mapData = this.transformData();
+				if (!this.mapData) return;				
 				this.colorScale = this.makeColorScale();
 				this.applyColors(this.mapData, this.colorScale);
 

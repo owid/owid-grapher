@@ -7,6 +7,11 @@
 			App.ChartModel.on("change", function() { this.chartData = null; }.bind(this));
 		},
 
+		defaults: {
+			chartData: [],
+			legendData: []
+		},
+
 		ready: function(callback) {
 			var variables = App.VariableData.get("variables");
 			if (!variables) {
@@ -365,7 +370,7 @@
 						y: +variable.values[i],
 						key: entityKey[entityId].name,
 						entityId: entityId,
-						variableId: variableId
+						variableId: dimension.variableId
 					};
 
 					valuesByEntity[entityId] = value;
@@ -419,7 +424,7 @@
 				chartType = App.ChartModel.get("chart-type"),
 				result = null;
 
-			if (!variables) return [];
+			if (!variables || !App.ChartModel.hasVariables()) return [];
 
 			if (chartType == App.ChartType.LineChart)
 				result = this.transformDataForLineChart();

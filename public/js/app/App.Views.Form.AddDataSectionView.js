@@ -34,7 +34,7 @@
 			this.$groupByVariable = this.$el.find("[name='group-by-variable']");
 
 			var update = function() {
-				App.DataModel.ready(this.render.bind(this));
+				App.ChartData.ready(this.render.bind(this));
 			}.bind(this);
 
 			this.listenTo(App.ChartModel, "change:chart-type", update);

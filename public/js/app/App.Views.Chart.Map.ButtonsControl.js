@@ -17,10 +17,10 @@
 		},
 
 		render: function() {
-			var mapConfig = App.ChartModel.get( "map-config" ),
+			var mapConfig = App.ChartModel.get("map-config"),
 				targetYear = mapConfig.targetYear,
-				minYear = App.DataModel.get("minYear"),
-				maxYear = App.DataModel.get("maxYear"),
+				minYear = App.VariableData.get("minYear"),
+				maxYear = App.VariableData.get("maxYear"),
 				years = owid.timeRangesToYears(mapConfig.timeRanges, minYear, maxYear);
 
 			//create all necessary buttons

@@ -55,8 +55,7 @@
 			// Data model used for fetching variables
 			App.VariableData = new VariableData();	
 			App.ChartData = new ChartData();
-			App.DataModel = App.ChartData; // tmp	
-			App.Colors = new Colors();	
+			App.Colors = new Colors();
 			var childViewOptions = { dispatcher: this.dispatcher, parentView: this };
 			this.urlBinder = new ChartURL(childViewOptions);
 			this.header = new Header(childViewOptions);
@@ -69,8 +68,6 @@
 			this.sourcesTab = new SourcesTab(childViewOptions);
 			this.mapTab = new MapTab(childViewOptions);
 			this.tabs = [this.chartTab, this.dataTab, this.sourcesTab, this.mapTab];
-			
-			this.$error = this.$el.find( ".chart-error" );
 
 			nv.utils.windowResize(_.debounce(function() {
 				this.onResize();
@@ -82,7 +79,7 @@
 			this.listenTo(App.ChartModel, "change", function() {
 				// When the model changes and there's been an error, rebuild the whole current tab
 				// Allows the editor to recover from failure states
-				if ($(".chart-error").length != 0) {
+				if ($(".chart-error").length) {
 					this.activateTab(this.activeTabName);
 				}
 			}.bind(this));
@@ -112,7 +109,7 @@
 			this.dispatcher.trigger("tab-change", tabName);		
 			if (!_.isEmpty(App.ChartModel.get("chart-dimensions")))
 				$(".chart-preloader").show();			
-			App.DataModel.ready(function() {
+			App.ChartData.ready(function() {
 				try {
 					tab.activate(function() {
 						$(".chart-preloader").hide();							
@@ -126,10 +123,12 @@
 			}.bind(this));
 		},
 
-		handleError: function(err) {
+		handleError: function(err, isCritical) {
+			if (isCritical !== false) isCritical = true;
+
 			if (err.responseText) {
 				err = err.status + " " + err.statusText + "\n" + "    " + err.responseText;
-			} else {
+			} else if (err.stack) {
 				err = err.stack;
 			}
 			console.error(err);
@@ -139,7 +138,15 @@
 			this.activeTab = null;
 			this.loadingTab = null;
 			this.$(".chart-preloader").hide();
-			this.$(".tab-pane.active").prepend('<div class="chart-error"><pre>' + err + '</pre></div>');
+			if (isCritical) {
+				this.$(".tab-pane.active").prepend('<div class="chart-error critical"><pre>' + err + '</pre></div>');
+			} else {
+				this.showMessage(err);
+			}
+		},
+
+		showMessage: function(msg) {
+			this.$(".tab-pane.active").prepend('<div class="chart-error"><div>' + msg + '</div></div>');			
 		},
 
 		onSVGExport: function() {	

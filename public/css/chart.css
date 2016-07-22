@@ -353,14 +353,14 @@ select.disabled {
     display: none;
 }
 #chart-view .chart-error {
-    font-size: 0.9em;
     position: absolute;
     left: 0;
     top: 0;
-    z-index: 100;
+    z-index: 50;
     text-align: center;
     height: 100%;
     width: 100%;
+    pointer-events: none;
 }
 #chart-view .chart-error:before {
     content: '';
@@ -368,14 +368,21 @@ select.disabled {
     height: 100%;
     vertical-align: middle;
 }
+#chart-view .chart-error > div,
 #chart-view .chart-error > pre {
     display: inline-block;
-    color: red;
     text-align: left;
     vertical-align: middle;
     white-space: pre-wrap;
     max-width: 95%;
+    font-weight: bold;
 }
+#chart-view .chart-error.critical > pre {
+    color: red;
+    font-size: 0.9em;
+    font-weight: normal;
+}
+
 /* Header
 --------------------------------------------- */
 
@@ -468,10 +475,6 @@ select.disabled {
 /* Legend
 --------------------------------------------- */
 
-#chart-view .nv-custom-legend {
-    /* special case for opaque legend */
-    /* disabled */
-}
 #chart-view .nv-custom-legend.transparent .nv-series {
     opacity: .8;
 }
@@ -527,7 +530,7 @@ select.disabled {
 
 #chart-view .available-countries-select-wrapper {
     position: relative;
-    z-index: 12;
+    z-index: 51;
     line-height: 0;
 }
 #chart-view .available-countries-select-wrapper select {

@@ -17,7 +17,7 @@
 
 
 			this.listenTo(App.ChartModel, "change", function() {
-				App.DataModel.ready(this.render.bind(this));
+				App.ChartData.ready(this.render.bind(this));
 			}.bind(this));
 
 			if (callback) callback();
@@ -29,7 +29,7 @@
 		},
 
 		render: function() {
-			var sources = App.DataModel.transformDataForSources(),
+			var sources = App.ChartData.transformDataForSources(),
 				tabHtml = "";
 
 			_.each(sources, function(source) {
