@@ -200,6 +200,48 @@
 						that.chart.style("expand");			
 
 				} else if (chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar) {
+	
+					// MISPY TODO - move this into ChartData
+					// relevant test chart: http://ourworldindata.org/grapher/public-health-insurance-coverage2?stackMode=stacked
+                    var allTimes = [],
+                        //store values by [entity][time]
+                        valuesCheck = [];
+
+                    //extract all times
+                    _.each( localData, function( v, i ) {
+                        var entityData = [],
+                            times = v.values.map( function( v2, i ) {
+                                entityData[ v2.x ] = true;
+                                return v2.x;
+                            } );
+                        valuesCheck[v.id] = entityData;
+                        allTimes = allTimes.concat( times );
+                    } );
+
+                    allTimes = _.uniq( allTimes );
+                    allTimes = _.sortBy( allTimes );
+                    
+                    if( localData.length ) {
+                        _.each( localData, function( serie, serieIndex ) {
+                            
+                            //make sure we have values for given series
+                            _.each( allTimes, function( time, timeIndex ) {
+                                if( valuesCheck[ serie.id ] && !valuesCheck[serie.id][time]) {
+                                    //time doesn't existig for given entity, i
+                                    var zeroObj = {
+                                        "key": serie.key,
+                                        "serie": serieIndex,
+                                        "time": time,
+                                        "x": time,
+                                        "y": 0,
+                                        "fake": true
+                                    };
+                                    serie.values.splice( timeIndex, 0, zeroObj);
+                                }
+                            });    
+                        });
+                    }
+
 					if (chartType == App.ChartType.MultiBar) {
 						that.chart = nv.models.multiBarChart().options(chartOptions);					
 					} else if (chartType == App.ChartType.HorizontalMultiBar) {
