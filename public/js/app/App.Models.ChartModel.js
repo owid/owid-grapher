@@ -136,8 +136,6 @@
 					changes[key] = newDefaults[key];
 			}.bind(this));
 
-			console.log(changes);
-
 			if (!_.isEmpty(changes)) this.set(changes);
 		},
 

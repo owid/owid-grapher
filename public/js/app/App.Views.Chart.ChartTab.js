@@ -42,7 +42,10 @@
 			});
 
 			this.listenTo(App.ChartModel, "change:chart-type", function() { this.needsFullRender = true; }.bind(this));
-			this.listenTo(App.ChartModel, "change", this.update.bind(this));
+			this.listenTo(App.ChartModel, "change", function(ev, opts) {
+				if (!opts.noRender)
+					this.update();
+			}.bind(this));
 			this.render(callback);
 		},
 
@@ -94,7 +97,6 @@
 				if (_.isFunction(callback)) callback();
 				return;
 			}
-
 
 			var showXScaleSelectors = App.ChartModel.get( "x-axis-scale-selector" );
 			if( showXScaleSelectors ) {
@@ -264,9 +266,10 @@
 				that.chart.dispatch.on("renderEnd", function(state) {
 					$(window).trigger('chart-loaded');
 
-					/* HACK (Mispy): Hijack nvd3 mode switch controls. */
-					d3.selectAll(".nv-controlsWrap .nv-series").on("click", function(opt) {
-						App.ChartModel.set("currentStackMode", opt.key.toLowerCase());
+					// Hijack the nvd3 mode switch to store it
+					$(".nv-controlsWrap .nv-series").off("click");
+					$(".nv-controlsWrap .nv-series").on("click", function(ev) {
+						App.ChartModel.set("currentStackMode", $(ev.target).text().toLowerCase(), { noRender: true });
 					});
 
 					if (chartType == App.ChartType.StackedArea) {
