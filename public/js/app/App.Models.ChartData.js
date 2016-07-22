@@ -422,6 +422,7 @@
 
 			var variables = App.VariableData.get("variables"),
 				chartType = App.ChartModel.get("chart-type"),
+				addCountryMode = App.ChartModel.get("add-country-mode"),
 				result = null;
 
 			if (!variables || !App.ChartModel.hasVariables()) return [];
@@ -437,12 +438,14 @@
 			else
 				result = this.transformDataForLineChart();
 
-			_.each(result.legendData, function(d) {
-				d.disabled = !App.ChartModel.isLegendKeyActive(d.key);
-			});
-			_.each(result.chartData, function(d) {
-				d.disabled = !App.ChartModel.isLegendKeyActive(d.key);
-			});
+			if (addCountryMode != "add-country") {			
+				_.each(result.legendData, function(d) {
+					d.disabled = !App.ChartModel.isLegendKeyActive(d.key);
+				});
+				_.each(result.chartData, function(d) {
+					d.disabled = !App.ChartModel.isLegendKeyActive(d.key);
+				});
+			}
 			App.Colors.assignColorsForLegend(result.legendData);
 			App.Colors.assignColorsForChart(result.chartData);
 			this.chartData = result.chartData;

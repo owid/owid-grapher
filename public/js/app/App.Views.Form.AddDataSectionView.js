@@ -41,7 +41,7 @@
 			update();
 		},
 
-		onAddDataBtn: function() {
+		onAddDataBtn: function(evt) {
 			this.selectVarPopup.show();
 		},
 
@@ -53,7 +53,13 @@
 		},
 
 		onVariableRemoveBtn: function(evt) {
+			var $label = $(evt.target).closest(".variable-label"),
+				$dd = $(evt.target).closest(".dd");
+
 			$(evt.currentTarget).closest('.variable-label').remove();
+			if ($dd.find(".dd-list").is(":empty")) {
+				$dd.find(".dd-list").replaceWith('<div class="dd-empty"></div>');
+			}
 		},
 
 		onVariableSettingsBtn: function(evt) {
@@ -194,6 +200,7 @@
 
 		applySettingsToItem: function($li, settings) {
 			$li.attr("data-variable-id", settings.variableId);
+			$li.attr("data-display-name", settings.displayName);
 			$li.attr("data-unit", settings.unit);
 			$li.attr("data-period", settings.period);
 			$li.attr("data-mode", settings.mode);
