@@ -173,7 +173,7 @@
 			var defaults = {
 				unit: '',
 				period: App.ChartModel.get("chart-type") == App.ChartType.ScatterPlot ? "single" : "all",
-				mode: App.ChartModel.get("chart-type") == App.ChartType.ScatterPlot ? "specific" : "closest",
+				mode: "latest",
 				targetYear: 2000,
 				tolerance: 5,				
 				maxAge: 5
