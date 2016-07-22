@@ -67,7 +67,7 @@
 				} else if (entity && entity.color) {
 					group.color = this.assignColorForKey(group.key, entity.color, { canVary: group.key != entity.name });
 				} else if (dimension && dimension.color) {
-					group.color = this.assignColorForKey(group.key, dimension.color, { canVary: group.key != dimension.name });
+					group.color = this.assignColorForKey(group.key, dimension.color, { canVary: group.key != dimension.displayName });
 				} else if (addCountryMode == "add-country" || _.size(selectedEntitiesById) > 1) {
 					// If in multi-variable, multi-entity mode, two entity labels are colored along the same gradient
 					if (this.colorCache[group.entityId])

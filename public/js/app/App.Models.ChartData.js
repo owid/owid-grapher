@@ -32,6 +32,7 @@
 				timeTo = App.ChartModel.getTimeTo(),
 				selectedEntitiesById = App.ChartModel.getSelectedEntitiesById(),
 				yAxis = App.ChartModel.get("y-axis"),
+				addCountryMode = App.ChartModel.get("add-country-mode"),
 				chartData = [], legendData = [],
 				hasManyVariables = _.size(variables) > 1,
 				hasManyEntities = _.size(selectedEntitiesById) > 1,
@@ -91,7 +92,8 @@
 				chartData = chartData.concat(_.values(seriesByEntity));
 			});
 
-			chartData = _.sortBy(chartData, function(series) { return series.entityName + series.key; });
+			if (addCountryMode === "add-country")
+				chartData = _.sortBy(chartData, function(series) { return series.entityName + series.key; });
 
 			legendData = _.map(chartData, function(series) {
 				return { label: series.key, key: series.key, entityId: series.entityId, variableId: series.variableId };

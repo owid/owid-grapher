@@ -148,7 +148,7 @@
 			}
 
 			// Set configurable targets from defaults
-			this.targetYear = this.mapConfig.defaultYear || this.mapConfig.targetYear;
+			this.mapConfig.targetYear = this.mapConfig.defaultYear || this.mapConfig.targetYear;
 			this.mapConfig.projection = this.mapConfig.defaultProjection || this.mapConfig.projection;
 		},
 
