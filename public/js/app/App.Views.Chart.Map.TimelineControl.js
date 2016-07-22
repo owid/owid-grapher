@@ -68,8 +68,8 @@
 
 		render: function() {
 			var mapConfig = App.ChartModel.get("map-config"),
-				minYear = App.DataModel.get("minYear"),
-				maxYear = App.DataModel.get("maxYear");
+				minYear = App.VariableData.get("minYear"),
+				maxYear = App.VariableData.get("maxYear");
 			
 			this.years = owid.timeRangesToYears(mapConfig.timeRanges, minYear, maxYear);
 			this.minYear = this.years[0];

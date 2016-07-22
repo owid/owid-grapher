@@ -27,13 +27,20 @@
 		assignColorForKey: function(key, color, options) {
 			options = _.extend({ canVary: true }, options);
 			color = color || this.colorScale(this.colorIndex);
-			this.colorIndex += 1;
 
 			// Unless the color is manually fixed, we lighten on collision
 			var colorIsTaken = _.contains(_.values(this.colorCache), color);
 			if (colorIsTaken && options.canVary) {
-				var newColor = d3.rgb(color).brighter(0.5).toString();
-				if (newColor != color && newColor != "#ffffff")
+				var c = d3.rgb(color),
+					magnitude = (c.r+c.g+c.b)/(255*3),
+					newColor;
+
+				//if (magnitude > 0.5)
+				//	newColor = d3.rgb(color).darker().toString();
+				//else
+					newColor = d3.rgb(color).brighter().toString();
+
+				if (newColor != color && newColor != "#ffffff" && newColor != "#000000")
 					return this.assignColorForKey(key, newColor, options);
 			}
 
@@ -48,7 +55,8 @@
 		// We set colors for the legend data separately to give more precise control
 		// over the priority and ordering, since legend data doesn't move around as much.
 		assignColorsForLegend: function(legendData) {
-			var selectedEntitiesById = App.ChartModel.getSelectedEntitiesById();
+			var selectedEntitiesById = App.ChartModel.getSelectedEntitiesById(),
+				addCountryMode = App.ChartModel.get("add-country-mode");
 
 			_.each(legendData, function(group) {
 				var entity = selectedEntitiesById[group.entityId],
@@ -60,9 +68,17 @@
 					group.color = this.assignColorForKey(group.key, entity.color, { canVary: group.key != entity.name });
 				} else if (dimension && dimension.color) {
 					group.color = this.assignColorForKey(group.key, dimension.color, { canVary: group.key != dimension.name });
+				} else if (addCountryMode == "add-country" || _.size(selectedEntitiesById) > 1) {
+					// If in multi-variable, multi-entity mode, two entity labels are colored along the same gradient
+					if (this.colorCache[group.entityId])
+						group.color = this.assignColorForKey(group.key, this.colorCache[group.entityId]);
+					else {						
+						group.color = this.assignColorForKey(group.key);
+						this.colorCache[group.entityId] = group.color;
+					}
 				} else {
-					group.color = this.assignColorForKey(group.key);
-				}
+					group.color = this.assignColorForKey(group.key);					
+				}			
 			}.bind(this));
 		},
 

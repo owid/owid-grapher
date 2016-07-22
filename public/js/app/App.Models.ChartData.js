@@ -58,15 +58,10 @@
 					if (!series) {
 						var key = entityKey[entityId].name,
 							id = entityId;
-						// If there are multiple variables per entity, we disambiguate the legend
+						// If there are multiple variables per entity, we disambiguate the keys
 						if (hasManyVariables) {
 							id += "-" + variable.id;
-
-							if (!hasManyEntities) {
-								key = variableName;
-							} else {
-								key += " - " + variableName;
-							}
+							key += " - " + variableName;
 						}
 
 						series = {
@@ -88,9 +83,10 @@
 					maxYear = Math.max(maxYear, year);
 				}
 
-				var sorted = _.sortBy(seriesByEntity, function(v) { return v.entityName; });
-				chartData = chartData.concat(sorted);
+				chartData = chartData.concat(_.values(seriesByEntity));
 			});
+
+			chartData = _.sortBy(chartData, function(series) { return series.entityName + series.key; });
 
 			legendData = _.map(chartData, function(series) {
 				return { label: series.key, key: series.key, entityId: series.entityId, variableId: series.variableId };
