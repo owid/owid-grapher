@@ -101,7 +101,7 @@
 				maximumAge = $variableLabel.attr("data-maximum-age");
 
 			var chartType = App.ChartModel.get("chart-type");
-			if (chartType == App.ChartType.ScatterPlot || chartType == App.ChartType.DiscreteBar) {
+			if (chartType == App.ChartType.ScatterPlot) {
 				this.$advancedSettings.show();
 			} else {
 				this.$advancedSettings.hide();

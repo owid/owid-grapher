@@ -43,7 +43,7 @@
 
 			this.listenTo(App.ChartModel, "change:chart-type", function() { this.needsFullRender = true; }.bind(this));
 			this.listenTo(App.ChartModel, "change", function(ev, opts) {
-				if (!opts.noRender)
+				if (!opts || !opts.noRender)
 					this.update();
 			}.bind(this));
 			this.render(callback);
