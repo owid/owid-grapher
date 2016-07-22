@@ -91,7 +91,7 @@
 			if (missingMsg || _.isEmpty(localData)) {
 				this.$el.find(".nv-wrap").remove();
 				App.ChartView.showMessage(missingMsg || "No available data.");
-				callback();
+				if (_.isFunction(callback)) callback();
 				return;
 			}
 
