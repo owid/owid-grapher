@@ -9,6 +9,7 @@ use App\DatasetCategory;
 use App\DatasetSubcategory;
 use App\ChartType;
 use App\Logo;
+use App\ChartDimension;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
@@ -81,10 +82,7 @@ class ChartsController extends Controller {
 	private function saveChart(Chart $chart, $data) {
 		DB::transaction(function() use ($chart, $data) {
 			$user = \Auth::user();
-			$jsonConfig = json_encode($data);
 
-			$chart->name = $data["chart-name"];
-			$chart->notes = $data["chart-notes"];
 			if ($data["published"]) {
 				if (DB::table("chart_slug_redirects")->where("chart_id", "!=", ($chart->id ? $chart->id : ''))->where("slug", "=", $data["chart-slug"])->exists()) {
 					App::abort(422, "This chart slug was previously used by another chart: " . $data["chart-slug"]);
@@ -95,16 +93,28 @@ class ChartsController extends Controller {
 		            DB::statement("INSERT INTO chart_slug_redirects (slug, chart_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE chart_id=VALUES(chart_id);", [$chart->slug, $chart->id]);                
 				}
 			}
-			$chart->slug = $data["chart-slug"];
-			$chart->published = $data["published"];
+
+			// Filter out the properties that are stored directly in SQL
+			$chart->name = $data["chart-name"];
+			unset($data["chart-name"]);
+			
+			$chart->notes = $data["chart-notes"];
 			unset($data["chart-notes"]);
+			
+			$chart->slug = $data["chart-slug"];
 			unset($data["chart-slug"]);
+			
+			$chart->published = $data["published"];
 			unset($data["published"]);
+
+			$dims = [];
+			foreach ($data["chart-dimensions"] as $dim) {
+				$dims[]= new ChartDimension($dim);
+			}
+
+			$chart->config = json_encode($data);
 			$chart->last_edited_at = Carbon::now();
 			$chart->last_edited_by = $user->name;
-			$chart->config = $jsonConfig;		
-
-			Cache::flush();
 
 			if ($chart->exists) {
 				// Purge exported png files so we can regenerate them
@@ -115,6 +125,9 @@ class ChartsController extends Controller {
 			}
 
 			$chart->save();
+			$chart->dimensions()->saveMany($dims);
+
+			Cache::flush();
 		});
 	}
 

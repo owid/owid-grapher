@@ -176,7 +176,7 @@
 				mode: "latest",
 				targetYear: 2000,
 				tolerance: 5,				
-				maxAge: 5
+				maximumAge: 5
 			};
 
 			var settings = _.extend({}, defaults, dimensionSettings);
@@ -206,7 +206,7 @@
 			$li.attr("data-mode", settings.mode);
 			$li.attr("data-target-year", settings.targetYear);
 			$li.attr("data-tolerance", settings.tolerance);
-			$li.attr("data-maximum-age", settings.maxAge);
+			$li.attr("data-maximum-age", settings.maximumAge);
 			$li.attr("data-color", settings.color);
 			if (settings.color) $li.css("background-color", settings.color);
 		},

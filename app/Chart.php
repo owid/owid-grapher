@@ -12,6 +12,10 @@ class Chart extends Model {
 		'published' => 'boolean'
 	];
 
+	public function dimensions() {
+		return $this->hasMany('App\ChartDimension', 'chartId');
+	}
+
 	// HACK (Mispy): Tests don't set $_SERVER['QUERY_STRING']
 	public static function getQueryString() {
 		if (isset($_SERVER['QUERY_STRING']))
@@ -27,6 +31,7 @@ class Chart extends Model {
 		$config->{"chart-slug"} = $chart->slug;
 		$config->{"data-entry-url"} = $chart->origin_url;
 		$config->{"published"} = $chart->published;
+		$config->{"chart-dimensions"} = $chart->dimensions->toArray();
 
 		// Allow url parameters to override the chart's default
 		// selected countries configuration. We need to use the raw
@@ -43,14 +48,6 @@ class Chart extends Model {
 				});
 
 			$config->{"selected-countries"} = $query->get();			
-		}
-
-		// Remove any invalid variables from the chart config
-		$dims = $config->{"chart-dimensions"};
-		$varIds = array_map(function($d) { return $d->variableId; }, $dims);
-		$existingIds = DB::table("variables")->select('id')->whereIn('id', $varIds)->lists('name', 'id');
-		if (sizeof($existingIds) != sizeof($varIds)) {		
-			$config->{"chart-dimensions"} = [];
 		}
 
 		//possibly there could logo query parameter
