@@ -39,8 +39,7 @@
 			"line-type": 0,
 			"line-tolerance": 1,
 			"chart-description": "",
-			"chart-dimensions": "[]",
-			"variables": [],
+			"chart-dimensions": [],
 			"y-axis": {"axis-label-distance":"-10"},
 			"x-axis": {},
 			"margins": { top: 10, left: 60, bottom: 10, right: 10 },
@@ -103,7 +102,7 @@
 			if (chartType == App.ChartType.ScatterPlot) {
 				_.extend(defaults, {
 					"hide-legend": true,
-					"chart-dimensions": '[{"variableId":"123","property":"color","unit":"","name":"Color","period":"single","mode":"specific","targetYear":"2000","tolerance":"5","maximumAge":"5"}]'
+					"chart-dimensions": [{"variableId":"123","property":"color","unit":"","name":"Color","period":"single","mode":"specific","targetYear":"2000","tolerance":"5","maximumAge":"5"}]
 				});
 			}
 
@@ -261,9 +260,7 @@
 
 		// Get chart dimensions, ensuring we return only those appropriate for the type
 		getDimensions: function() {
-			var dimensionsString = this.get("chart-dimensions");
-			if (!dimensionsString) return [];
-			var dimensions = JSON.parse(dimensionsString),
+			var dimensions = this.get("chart-dimensions"),
 				validProperties = _.pluck(this.getEmptyDimensions(), 'property'),
 				validDimensions = _.filter(dimensions, function(dim) { return _.include(validProperties, dim.property); });
 

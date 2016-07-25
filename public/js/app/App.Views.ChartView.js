@@ -107,7 +107,7 @@
 			this.loadingTab = tab;
 			this.activeTabName = tabName;
 			this.dispatcher.trigger("tab-change", tabName);		
-			if (!_.isEmpty(App.ChartModel.get("chart-dimensions")))
+			if (!_.isEmpty(App.ChartModel.getDimensions()))
 				$(".chart-preloader").show();			
 			App.ChartData.ready(function() {
 				try {

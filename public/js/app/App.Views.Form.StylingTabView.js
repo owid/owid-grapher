@@ -132,8 +132,7 @@
 		},
 
 		updateUnitsUI: function( evt ) {
-			var dimensionsString = App.ChartModel.get( "chart-dimensions" ),
-				dimensions = ( !$.isEmptyObject( dimensionsString ) )? $.parseJSON( dimensionsString ): {},
+			var dimensions = App.ChartModel.getDimensions(),
 				unitsString = App.ChartModel.get( "units" ),
 				units = ( !$.isEmptyObject( unitsString ) )? $.parseJSON( unitsString ): {};
 

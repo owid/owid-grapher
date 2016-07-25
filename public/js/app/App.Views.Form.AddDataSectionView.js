@@ -123,7 +123,7 @@
 				});
 			});
 
-			App.ChartModel.set("chart-dimensions", JSON.stringify(dimensions));
+			App.ChartModel.set("chart-dimensions", dimensions);
 		},
 
 		render: function() {

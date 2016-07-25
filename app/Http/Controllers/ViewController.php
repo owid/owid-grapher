@@ -119,7 +119,7 @@ class ViewController extends Controller {
 			$config->{"selected-countries"} = $query->get();
 		}
 
-		$dims = json_decode($config->{"chart-dimensions"});
+		$dims = $config->{"chart-dimensions"};
 		$varIds = array_map(function($dim) { return $dim->variableId; }, $dims);
 
 		// Grab the variable names for the header row
@@ -247,7 +247,7 @@ class ViewController extends Controller {
 			// all of its data. Allows us to reduce chart loading times by caching most of the data in
 			// CloudFlare or the browser.
 			$variableCacheTag = strval($chart->updated_at) . ' + ' . Config::get('owid.commit');
-			$dims = json_decode($config->{"chart-dimensions"});
+			$dims = $config->{"chart-dimensions"};
 			$varIds = array_pluck($dims, "variableId");
 
 			$varTimestamps = DB::table("variables")

@@ -46,12 +46,11 @@ class Chart extends Model {
 		}
 
 		// Remove any invalid variables from the chart config
-		$dims = json_decode($config->{"chart-dimensions"});
+		$dims = $config->{"chart-dimensions"};
 		$varIds = array_map(function($d) { return $d->variableId; }, $dims);
 		$existingIds = DB::table("variables")->select('id')->whereIn('id', $varIds)->lists('name', 'id');
 		if (sizeof($existingIds) != sizeof($varIds)) {		
-			$config->{"chart-dimensions"} = "[]";
-			$config->{"form-config"}->{"variables-collection"} = [];
+			$config->{"chart-dimensions"} = [];
 		}
 
 		//possibly there could logo query parameter
