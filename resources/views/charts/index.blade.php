@@ -15,6 +15,7 @@
 							<tr>
 								<th><i class="fa fa-star"></i></th>
 								<th>Name</th>
+								<th>Type</th>
 								<th>Notes</th>
 								<th>Last Seen On</th>
 								<th>Last Updated</th>
@@ -42,6 +43,7 @@
 									@else
 										<a href="{{ URL::to($chart->slug) }}">{{ $chart->name }}</a></td>
 									@endif
+								<td>{{ $chart->showType() }}</td>
 								<td>{{ $chart->notes }}</td>
 								<td>
 									@if ( $chart->origin_url )

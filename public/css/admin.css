@@ -1016,3 +1016,7 @@ li[data-color^=".*"] {
 #chart-view {
   font-size: 18px !important;
 }
+
+#charts-index td:nth-child(3) {
+  min-width: 120px;
+}

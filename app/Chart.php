@@ -16,6 +16,21 @@ class Chart extends Model {
 		return $this->hasMany('App\ChartDimension', 'chartId');
 	}
 
+	public function showType() {
+		if ($this->type == "LineChart")
+			return "Line Chart";
+		else if ($this->type == "ScatterPlot")
+			return "Scatter Plot";
+		else if ($this->type == "StackedArea")
+			return "Stacked Area";
+		else if ($this->type == "MultiBar")
+			return "Multi Bar";
+		else if ($this->type == "HorizontalMultiBar")
+			return "Horizontal Multi Bar";
+		else if ($this->type == "DiscreteBar")
+			return "Discrete Bar";
+	}
+
 	// HACK (Mispy): Tests don't set $_SERVER['QUERY_STRING']
 	public static function getQueryString() {
 		if (isset($_SERVER['QUERY_STRING']))
@@ -27,6 +42,8 @@ class Chart extends Model {
 	public static function getConfigWithUrl($chart) {
 		$config = json_decode($chart->config);
 		$config->id = $chart->id;
+		$config->{"chart-name"} = $chart->name;
+		$config->{"chart-type"} = $chart->type;
 		$config->{"chart-notes"} = $chart->notes;
 		$config->{"chart-slug"} = $chart->slug;
 		$config->{"data-entry-url"} = $chart->origin_url;

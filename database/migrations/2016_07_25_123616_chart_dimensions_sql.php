@@ -9,6 +9,8 @@ class ChartDimensionsSql extends Migration
 {
     public function up() {
         DB::transaction(function() {
+            DB::statement("DROP TABLE IF EXISTS chart_dimensions");
+            
             $charts = Chart::all();
             $dimensions = [];
             foreach ($charts as $chart) {

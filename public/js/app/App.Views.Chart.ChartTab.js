@@ -361,7 +361,7 @@
 
 				//manually clamp values
 				if( isClamped ) {
-					if( chartType !== "4" && chartType !== "5" && chartType !== "6" ) {
+					if( chartType !== App.ChartType.MultiBar && chartType !== App.ChartType.HorizontalMultiBar && chartType !== App.ChartType.DiscreteBar ) {
 						//version which makes sure min/max values are present, but will display values outside of the range
 						that.chart.forceX( xDomain );
 						that.chart.forceY( yDomain );

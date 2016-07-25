@@ -4,12 +4,12 @@
 	window.App = window.App || {};
 
 	App.ChartType = {
-		LineChart: 1,
-		ScatterPlot: 2,
-		StackedArea: 3,
-		MultiBar: 4,
-		HorizontalMultiBar: 5,
-		DiscreteBar: 6
+		LineChart: "LineChart",
+		ScatterPlot: "ScatterPlot",
+		StackedArea: "StackedArea",
+		MultiBar: "MultiBar",
+		HorizontalMultiBar: "HorizontalMultiBar",
+		DiscreteBar: "DiscreteBar"
 	};
 
 	App.LineType = {
