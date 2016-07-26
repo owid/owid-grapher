@@ -10,7 +10,7 @@ class ChartDimensionsSql extends Migration
     public function up() {
         DB::transaction(function() {
             DB::statement("DROP TABLE IF EXISTS chart_dimensions");
-            
+
             $charts = Chart::all();
             $dimensions = [];
             foreach ($charts as $chart) {
@@ -29,7 +29,8 @@ class ChartDimensionsSql extends Migration
                         'tolerance' => isset($dim->tolerance) ? $dim->tolerance : 5,
                         'period' => isset($dim->period) ? $dim->period : "single",
                         'mode' => isset($dim->mode) ? $dim->mode : "latest",
-                        'maximumAge' => isset($dim->maximumAge) ? $dim->maximumAge : 5
+                        'maximumAge' => isset($dim->maximumAge) ? $dim->maximumAge : 5,
+                        'color' => isset($dim->color) ? $dim->color : ""
                     ];
                     $dimensions[]= $row;
                 }
@@ -48,6 +49,7 @@ class ChartDimensionsSql extends Migration
                 $table->string('period')->default("single");
                 $table->string('mode')->default("latest");
                 $table->string('maximumAge')->default(5);
+                $table->string('color')->default("");
             });
 
             DB::statement("ALTER TABLE `chart_dimensions` ADD UNIQUE `unique_index` (`chartId`, `variableId`, `property`)");
