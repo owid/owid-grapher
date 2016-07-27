@@ -5,26 +5,30 @@
 	<table class="table table-bordered table-hover dataTable">
 		<thead>
 			<tr>
-				<th>Variable</th>
 				<th>Dataset</th>
-				<th>Source</th>
-				<th>Uploaded</th>
+				<th>Variables</th>
+				<th>Last Import</th>
 			</tr>
 		</thead>
 		<tbody>
-			@foreach ($variables as $variable)
-			<tr>
-				<!--<td><a href="{{ route('variables.show', $variable->id) }}">{{ $variable->name }}</a></td>-->
-				<td>{{ $variable->name }}</td>				
-				<td><a href="{{ route('datasets.show', $variable->dataset_id) }}">{{ $variable->dataset_name }}</a></td>
-				<td><a href="{{ route('datasources.show', $variable->source_id) }}">{{ $variable->source_name }}</a></td>
-				<td>
-					<time class="timeago" datetime="{{ $variable->uploaded_at }}">{{ $variable->uploaded_at }}</time>
-					@if ( $variable->uploaded_by )
-						by {{ $variable->uploaded_by }}
-					@endif
-				</td>
-			</tr>
+			@foreach ($datasets as $dataset)
+				<tr>
+					<td><a href="{{ route('datasets.show', $dataset->id) }}">{{ $dataset->name }}</a></td>
+					<td>
+						@foreach ($dataset->variables()->get() as $variable)
+							<a href="{{ route('variables.show', $variable->id) }}">{{ $variable->name }}</a><br>
+						@endforeach
+					</td>
+					<td>
+						<?php $variable = $dataset->variables()->first(); ?>
+						@if ($variable)
+							<time class="timeago" datetime="{{ $variable->uploaded_at }}">{{ $variable->uploaded_at }}</time>
+							@if ( $variable->uploaded_by )
+								by {{ $variable->uploaded_by }}
+							@endif
+						@endif
+					</td>
+				</tr>
 			@endforeach
 		</tbody>
 	</table>

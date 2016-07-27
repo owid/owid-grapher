@@ -15,6 +15,14 @@
 		</div>
 		<h2>{{ $variable->name }}</h2>
 		<div class="property-wrapper">
+			<h3 class="property-title">Charts</h3>
+			<div class="property-value">
+				@foreach ($variable->charts()->get() as $chart)
+					<a href="{{ route('charts.edit', $chart->id) }}">{{ $chart->name }}</a><br>
+				@endforeach
+			</div>
+		</div>
+		<div class="property-wrapper">
 			<h3 class="property-title">Unit</h3>
 			<div class="property-value">
 				{{ $variable->unit }}

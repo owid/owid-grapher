@@ -23,5 +23,12 @@
 				<li><a href="{{ route('variables.show', $variable->id) }}">{{ (!empty($variable->name))?$variable->name: $variable->id }}</a></li>
 			@endforeach
 		</ul>
+		<h3>charts</h3>
+		<ul>
+			@foreach ($variable->charts()->get() as $chart)
+				<li><a href="{{ route('charts.edit', $chart->id) }}">{{ $chart->name }}</a></li>
+			@endforeach
+		</ul>
+
 	</div>
 @endsection

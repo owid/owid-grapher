@@ -9,13 +9,17 @@ class Variable extends Model {
 	public function data() {
 		return $this->hasMany('App\DataValue', 'fk_var_id');
 	}
-
 	public function dataset() {
 		return $this->belongsTo('App\Dataset', 'fk_dst_id');
 	}
-
 	public function datasource() {
 		return $this->hasOne('App\Datasource', 'id', 'fk_dsr_id');
+	}
+	public function dimensions() {
+		return $this->hasMany('App\ChartDimension', 'variableId');
+	}
+	public function charts() {
+		return $this->belongsToMany('App\Chart', 'chart_dimensions', 'variableId', 'chartId');
 	}
 
 	public function scopeUpdateSource( $query, $variableId, $newDatasourceId ) {

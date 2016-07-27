@@ -22,17 +22,10 @@ class DatasetsController extends Controller {
 	 */
 	public function index()
 	{
-		$variables = DB::table('variables')
-			->select('variables.id', 'variables.name', 'variables.uploaded_at', 'variables.uploaded_by',
-					 'datasets.id as dataset_id', 'datasets.name as dataset_name',
-					 'datasources.id as source_id', 'datasources.name as source_name')
-			->join('datasets', 'variables.fk_dst_id', '=', 'datasets.id')
-			->join('datasources', 'variables.fk_dsr_id', '=', 'datasources.id')
-			->where('datasets.namespace', '=', 'owid')
-			->orderBy('datasets.created_at', 'desc')
-			->get();
-
-		return view('datasets.index', compact('variables'));
+		$datasets = Dataset::with('variables')
+			->where('namespace', '=', 'owid')
+			->orderBy('created_at', 'desc')->get();
+		return view('datasets.index', [ 'datasets' => $datasets ]);
 	}
 
 	/**
