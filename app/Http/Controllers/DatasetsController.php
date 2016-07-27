@@ -117,7 +117,15 @@ class DatasetsController extends Controller {
 	 */
 	public function destroy(Dataset $dataset, Request $request)
 	{	
-		$dataset->delete();
+		try {
+			$dataset->delete();			
+		} catch (\Exception $e) {
+			$msg = $e->errorInfo[2];
+			if (str_contains($msg, "chart_dimensions_variableid_foreign"))
+				$msg = "Dataset cannot be deleted while a chart still needs it. Delete charts or change their variables first.";
+			return redirect()->route('datasets.show', $dataset->id)->with('message', $msg)->with('message-class', 'error');
+		}
+
 		Cache::flush();		
 		return redirect()->route('datasets.index')->with('message', 'Dataset deleted.');
 	}

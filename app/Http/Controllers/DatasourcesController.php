@@ -89,8 +89,7 @@ class DatasourcesController extends Controller {
 	 * @param  int  $id
 	 * @return Response
 	 */
-	public function destroy(Datasource $datasource, Request $request)
-	{	
+	public function destroy(Datasource $datasource, Request $request) {	
 		//check depedencies first
 		if( $datasource->datasets()->count() > 0 ) {
 			return redirect()->route('datasources.index')->with('message', 'Some datasets are linked to this source, so you cannot delete it.')->with( 'message-class', 'error' );;

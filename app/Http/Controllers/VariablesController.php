@@ -162,6 +162,15 @@ class VariablesController extends Controller {
 	 */
 	public function destroy(Variable $variable, Request $request)
 	{	
+		try {
+			$variable->delete();			
+		} catch (\Exception $e) {
+			$msg = $e->errorInfo[2];
+			if (str_contains($msg, "chart_dimensions_variableid_foreign"))
+				$msg = "Variable cannot be deleted while a chart still needs it. Delete charts or change their variables first.";
+			return redirect()->route('variables.show', $variable->id)->with('message', $msg)->with('message-class', 'error');
+		}
+
 		$variable->delete();
 		Cache::flush();
 		return redirect()->route('datasets.show', $variable->fk_dst_id)->with('message', 'Variable deleted.');
