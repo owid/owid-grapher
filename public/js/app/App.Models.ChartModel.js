@@ -102,7 +102,6 @@
 			if (chartType == App.ChartType.ScatterPlot) {
 				_.extend(defaults, {
 					"hide-legend": true,
-					"chart-dimensions": [{"variableId":"123","property":"color","unit":"","name":"Color","period":"single","mode":"specific","targetYear":"2000","tolerance":"5","maximumAge":"5"}]
 				});
 			}
 
@@ -263,6 +262,11 @@
 			var dimensions = this.get("chart-dimensions"),
 				validProperties = _.pluck(this.getEmptyDimensions(), 'property'),
 				validDimensions = _.filter(dimensions, function(dim) { return _.include(validProperties, dim.property); });
+
+			// Give scatterplots a default color dimension if they don't have one
+			if (this.get("chart-type") == App.ChartType.ScatterPlot && !_.findWhere(dimensions, { property: 'color' })) {
+				validDimensions = validDimensions.concat([{"variableId":"123","property":"color","unit":"","name":"Color","period":"single","mode":"specific","targetYear":"2000","tolerance":"5","maximumAge":"5"}]);
+			}
 
 			return validDimensions;
 		},

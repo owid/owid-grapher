@@ -16,6 +16,10 @@ class Chart extends Model {
 		return $this->hasMany('App\ChartDimension', 'chartId');
 	}
 
+	public function variables() {
+		return $this->belongsToMany('App\Variable', 'chart_dimensions', 'chartId', 'variableId');
+	}
+
 	public function showType() {
 		if ($this->type == "LineChart")
 			return "Line Chart";

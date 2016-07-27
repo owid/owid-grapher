@@ -145,6 +145,10 @@
 			// Now assign any current variables to the appropriate slots
 			var dimensions = App.ChartModel.getDimensions();
 			_.each(dimensions, function(dimension) {
+				// Except the default scatterplot dimension
+				if (dimension.property == 'color' && dimension.variableId == 123)
+					return;
+
 				var variable = App.VariableData.get("variables")[dimension.variableId],
 					$slot = this.$el.find('[data-property='+dimension.property+']'),
 					$li = this.makeVariableItem(_.extend({}, dimension, { variableName: variable.name }));

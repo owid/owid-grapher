@@ -30,8 +30,10 @@ class ChartsController extends Controller {
 	 */
 	public function index()
 	{
-		$charts = Chart::orderBy("last_edited_at", "desc")->get();
-		return view( 'charts.index', compact('charts') );
+		$charts = Chart::orderBy('last_edited_at', 'desc')
+			->with('variables')
+			->get();
+		return view('charts.index', [ 'charts' => $charts ]);
 	}
 
 	/**
@@ -128,6 +130,7 @@ class ChartsController extends Controller {
 			}
 
 			$chart->save();
+			$chart->dimensions()->delete();
 			$chart->dimensions()->saveMany($dims);
 
 			Cache::flush();

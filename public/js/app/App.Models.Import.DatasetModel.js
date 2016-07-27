@@ -19,6 +19,7 @@
 
 		fetchExisting: function() {
 			var id = this.get("id");
+			if (!id) return;
 
 			$.get(Global.rootUrl + "/datasets/" + id + ".json")
 				.done(function(data) { 

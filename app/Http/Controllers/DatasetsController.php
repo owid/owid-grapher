@@ -2,6 +2,7 @@
 
 use App\Dataset;
 use App\Datasource;
+use App\Chart;
 use App\DatasetCategory;
 use App\DatasetSubcategory;
 use App\Http\Requests;
@@ -56,7 +57,17 @@ class DatasetsController extends Controller {
 	 */
 	public function show(Dataset $dataset)
 	{	
-		return view('datasets.show', compact('dataset'));
+		// Find all the charts associated with this dataset
+		$charts = [];
+		foreach ($dataset->variables as $variable) {
+			foreach ($variable->charts as $chart) {				
+				if (!array_where($charts, function($key, $value) use ($chart) { return $value->id == $chart->id; })) {
+					$charts[]= $chart;
+				}
+			}
+		}
+		
+		return view('datasets.show', compact('dataset', 'charts'));
 	}
 
 	public function showJson(Dataset $dataset) {

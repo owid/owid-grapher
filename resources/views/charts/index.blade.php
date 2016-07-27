@@ -16,6 +16,7 @@
 								<th><i class="fa fa-star"></i></th>
 								<th>Name</th>
 								<th>Type</th>
+								<th>Variables</th>
 								<th>Notes</th>
 								<th>Last Seen On</th>
 								<th>Last Updated</th>
@@ -44,6 +45,11 @@
 										<a href="{{ URL::to($chart->slug) }}">{{ $chart->name }}</a></td>
 									@endif
 								<td>{{ $chart->showType() }}</td>
+								<td>
+									@foreach ($chart->variables as $variable)
+										<a href="{{ route('variables.show', $variable->id) }}">{{ $variable->name }}</a><br>
+									@endforeach
+								</td>
 								<td>{{ $chart->notes }}</td>
 								<td>
 									@if ( $chart->origin_url )
