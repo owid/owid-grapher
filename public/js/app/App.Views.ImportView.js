@@ -202,9 +202,12 @@
 
 			var $list = this.$variableSectionList;
 			$list.empty();
-			
-			_.each(newVariables, function(v, k) {					
+
+			_.each(newVariables, function(v, i) {					
 				var $li = this.createVariableEl(v);
+				if (i == 0) {
+
+				}
 				$list.append($li);				
 			}.bind(this));
 		},
@@ -226,7 +229,7 @@
 					'<label>Name<input name="name" class="form-control" value="' + data.name + '" placeholder="Enter variable name"/></label>' +
 					'<label>Unit<input name="unit" class="form-control" value="' + data.unit + '" placeholder="Enter variable unit"/></label>' +
 					'<label>Description<input name="description" class="form-control" value="' + data.description + '" placeholder="Enter variable description"/></label>' +
-					'<label style="display: none;">Overwrite existing<input type="checkbox" name="overwrite"/></label>' +
+					'<button class="edit-source">Add source</button>' +
 				'</li>'
 			);
 

@@ -4,7 +4,7 @@ use DB;
 use Input;
 use App\Chart;
 use App\Variable;
-use App\Datasource;
+use App\Source;
 use App\License;
 use App\EntityIsoName;
 
@@ -106,10 +106,10 @@ class ApiController extends Controller {
 				'variables.unit as unit', 
 				'variables.description as description', 
 				'datasets.name as dataset', 
-				'datasources.name as datasource',
+				'sources.name as source',
 				'variable_types.name as type' )
 			->leftJoin( 'datasets', 'variables.fk_dst_id', '=', 'datasets.id' )
-			->leftJoin( 'datasources', 'variables.fk_dsr_id', '=', 'datasources.id' )
+			->leftJoin( 'sources', 'variables.fk_dsr_id', '=', 'sources.id' )
 			->leftJoin( 'variable_types', 'variables.fk_var_type_id', '=', 'variable_types.id' )
 			->orderBy( 'id' )
 			->get();

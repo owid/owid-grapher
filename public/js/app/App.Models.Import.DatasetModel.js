@@ -17,6 +17,14 @@
 			this.on("change:id", this.fetchExisting.bind(this));
 		},
 
+		getSources: function() {
+			var sources = _.map(this.get("oldVariables").concat(this.get("newVariables")), function(variable) {
+
+			});
+
+			return _.uniq(sources, function(source) { return source.name; });
+		}
+
 		fetchExisting: function() {
 			var id = this.get("id");
 			if (!id) return;

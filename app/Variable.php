@@ -12,8 +12,8 @@ class Variable extends Model {
 	public function dataset() {
 		return $this->belongsTo('App\Dataset', 'fk_dst_id');
 	}
-	public function datasource() {
-		return $this->hasOne('App\Datasource', 'id', 'fk_dsr_id');
+	public function source() {
+		return $this->hasOne('App\Source', 'id', 'fk_dsr_id');
 	}
 	public function dimensions() {
 		return $this->hasMany('App\ChartDimension', 'variableId');
@@ -22,36 +22,36 @@ class Variable extends Model {
 		return $this->belongsToMany('App\Chart', 'chart_dimensions', 'variableId', 'chartId');
 	}
 
-	public function scopeUpdateSource( $query, $variableId, $newDatasourceId ) {
-		if( !empty( $newDatasourceId ) ) {
+	public function scopeUpdateSource( $query, $variableId, $newSourceId ) {
+		if( !empty( $newSourceId ) ) {
 			$variable = Variable::find( $variableId );
 			//is it event necessary to update source?
-			if( $variable->fk_dsr_id != $newDatasourceId ) {
+			if( $variable->fk_dsr_id != $newSourceId ) {
 				//it is update both variable source all sources of all variable values
-				$variable->fk_dsr_id = $newDatasourceId;
+				$variable->fk_dsr_id = $newSourceId;
 				$variable->save();
 				//update all variable values
-				DataValue::where( 'fk_var_id', $variable->id )->update( array( 'fk_dsr_id' => $newDatasourceId ) );
+				DataValue::where( 'fk_var_id', $variable->id )->update( array( 'fk_dsr_id' => $newSourceId ) );
 			}
 		}
 	}
 
-	public function scopeGetSources( $query, $datasourcesIds ) {
+	public function scopeGetSources( $query, $sourcesIds ) {
 		return $query
 			->leftJoin( 'datasets', 'variables.fk_dst_id', '=', 'datasets.id' )
-			->leftJoin( 'datasources', 'variables.fk_dsr_id', '=', 'datasources.id' )
-			->whereIn( 'variables.fk_dsr_id', $datasourcesIds )
-			->select( \DB::raw( 'datasources.*, datasets.name as dataset_name, variables.id as var_id, variables.name as var_name, variables.description as var_desc, variables.unit as var_unit, variables.created_at as var_created' ) )
-			->groupBy( 'datasources.id' ); 
+			->leftJoin( 'sources', 'variables.fk_dsr_id', '=', 'sources.id' )
+			->whereIn( 'variables.fk_dsr_id', $sourcesIds )
+			->select( \DB::raw( 'sources.*, datasets.name as dataset_name, variables.id as var_id, variables.name as var_name, variables.description as var_desc, variables.unit as var_unit, variables.created_at as var_created' ) )
+			->groupBy( 'sources.id' ); 
 	}
 
 	public function scopeGetSource( $query, $variableId ) {
 		return $query
 			->leftJoin( 'datasets', 'variables.fk_dst_id', '=', 'datasets.id' )
-			->leftJoin( 'datasources', 'variables.fk_dsr_id', '=', 'datasources.id' )
+			->leftJoin( 'sources', 'variables.fk_dsr_id', '=', 'sources.id' )
 			->where( 'variables.id', '=', $variableId )
-			->select( \DB::raw( 'datasources.*, datasets.name as dataset_name, variables.id as var_id, variables.name as var_name, variables.description as var_desc, variables.unit as var_unit, variables.created_at as var_created' ) )
-			->groupBy( 'datasources.id' ); 
+			->select( \DB::raw( 'sources.*, datasets.name as dataset_name, variables.id as var_id, variables.name as var_name, variables.description as var_desc, variables.unit as var_unit, variables.created_at as var_created' ) )
+			->groupBy( 'sources.id' ); 
 	}
 
 }

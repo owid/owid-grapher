@@ -78,7 +78,7 @@ class ImportTest extends TestCase
             'fk_dst_subcat_id' => $subcategoryId
         ]);
 
-        $this->seeInDatabase('datasources', [
+        $this->seeInDatabase('sources', [
             'name' => 'New Source',
             'description' => 'New source description.'
         ]);

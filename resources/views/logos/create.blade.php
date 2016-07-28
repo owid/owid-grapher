@@ -2,7 +2,7 @@
  
 @section('content')
 	<div class="module-wrapper create-logo-module">
-		<a class="back-btn" href="{{ route( 'datasources.index' ) }}"><i class="fa fa-arrow-left"></i>Back to logos</a>
+		<a class="back-btn" href="{{ route( 'sources.index' ) }}"><i class="fa fa-arrow-left"></i>Back to logos</a>
 		<h2>Create new logo</h2>
 		{!! Form::open(['method' => 'POST', 'route' => ['logos.store'], 'files'=>true]) !!}
 			<div class="form-group">

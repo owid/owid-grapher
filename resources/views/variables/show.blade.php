@@ -37,8 +37,8 @@
 		<div class="property-wrapper">
 			<h3 class="property-title">Source</h3>
 			<div class="property-value">
-				@if ( $variable->datasource )
-					{!! Html::link('/datasources/' .$variable->datasource->id, $variable->datasource->name ) !!}
+				@if ( $variable->source )
+					{!! Html::link('/sources/' .$variable->source->id, $variable->source->name ) !!}
 				@endif
 			</div>
 		</div>

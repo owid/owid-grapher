@@ -51,7 +51,7 @@
 						<li class="header">DATA MANAGEMENT</li>
 						<li><a href="{!! route( 'entities.index' ) !!}"><i class="fa fa-flag"></i> Entities</a></li>
 						<li><a href="{!! route( 'datasets.index' ) !!}"><i class="fa fa-table"></i> Datasets</a></li>
-						<li><a href="{!! route( 'datasources.index' ) !!}"><i class="fa fa-link"></i> Sources</a></li>
+						<li><a href="{!! route( 'sources.index' ) !!}"><i class="fa fa-link"></i> Sources</a></li>
 						<li class="header">SETTINGS</li>
 						<li><a href="{!! route( 'licenses.index' ) !!}"><i class="fa fa-gavel"></i> Licenses</a></li>
 						<li><a href="{!! route( 'categories.index' ) !!}"><i class="fa fa-folder"></i> Categories</a></li>

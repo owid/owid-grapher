@@ -2,7 +2,7 @@
 
 use Illuminate\Database\Eloquent\Model;
 
-class Datasource extends Model {
+class Source extends Model {
 	protected $guarded = ['id'];
     protected $touches = ['variables'];
 	

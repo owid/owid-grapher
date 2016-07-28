@@ -2,7 +2,7 @@
 
 use DB;
 use Input;
-use App\Datasource;
+use App\Source;
 use App\Variable;
 use App\Entity;
 use App\DataValue;
@@ -130,8 +130,8 @@ class VariablesController extends Controller {
 	 */
 	public function edit(Variable $variable)
 	{	
-		$datasources = Datasource::lists( 'name', 'id' );
-		return view( 'variables.edit', compact( 'variable', 'datasources' ) );
+		$sources = Source::lists( 'name', 'id' );
+		return view( 'variables.edit', compact( 'variable', 'sources' ) );
 	}
 
 	/**
@@ -191,16 +191,16 @@ class VariablesController extends Controller {
 	
 	}
 
-	public function updateSource(Variable $variable, $newDatasourceId) {
+	public function updateSource(Variable $variable, $newSourceId) {
 
-		if( !empty( $newDatasourceId ) ) {
+		if( !empty( $newSourceId ) ) {
 			//is it event necessary to update source?
-			if( $variable->fk_dsr_id != $newDatasourceId ) {
+			if( $variable->fk_dsr_id != $newSourceId ) {
 				//it is update both variable source all sources of all variable values
-				$variable->fk_dsr_id = $newDatasourceId;
+				$variable->fk_dsr_id = $newSourceId;
 				$variable->save();
 				//update all variable values
-				DataValue::where( 'fk_var_id', $variable->id )->update( array( 'fk_dsr_id' => $newDatasourceId ) );
+				DataValue::where( 'fk_var_id', $variable->id )->update( array( 'fk_dsr_id' => $newSourceId ) );
 
 				Cache::flush();
 		

@@ -146,7 +146,7 @@
 
 			Cache::flush();
 			
-			return redirect()->route( 'datasources.show', $datasource->id)->with( 'message', 'Source updated.')->with( 'message-class', 'success' );
+			return redirect()->route('sources.show', $source->id)->with( 'message', 'Source updated.')->with( 'message-class', 'success' );
 		}
 
 		/**

@@ -198,9 +198,9 @@ class QoGSyncCommand extends Command
             $prefixToSourceName[$prefix] = $sourceName  . " via the Quality of Government Institute";
         }
 
-        $this->idempotentInsert("datasources", $columns, $values);
+        $this->idempotentInsert("sources", $columns, $values);
 
-        $sourceNameToId = DB::table('datasources')
+        $sourceNameToId = DB::table('sources')
             ->select('id', 'name')
             ->lists('id', 'name');
 

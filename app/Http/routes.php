@@ -12,7 +12,7 @@
 */
 
 Route::model( 'entities', 'Entity' );
-Route::model( 'datasources', 'Datasource' );
+Route::model( 'sources', 'Source' );
 Route::model( 'datasets', 'Dataset' );
 Route::model( 'variables', 'Variable' );
 Route::model( 'values', 'DataValue' );
@@ -27,7 +27,7 @@ Route::model( 'logos', 'Logo' );
 Route::group(['middleware' => ['basic', 'session', 'auth']], function()
 {
 	Route::resource( 'entities', 'EntitiesController' );
-	Route::resource( 'datasources', 'DatasourcesController' );
+	Route::resource( 'sources', 'SourcesController' );
 	Route::get('datasets/{dataset}.json', 'DatasetsController@showJson');
 	Route::resource( 'datasets', 'DatasetsController' );
 	Route::post('variables/{variable}/batchDestroy', [ 'as' => 'valuesBatchDestroy', 'uses' => 'VariablesController@batchDestroy' ]);
@@ -48,8 +48,8 @@ Route::group(['middleware' => ['basic', 'session', 'auth']], function()
 	Route::bind( 'entities', function($value, $route) {
 		return App\Entity::whereId($value)->first();
 	});
-	Route::bind( 'datasources', function($value, $route) {
-		return App\Datasource::whereId($value)->first();
+	Route::bind( 'sources', function($value, $route) {
+		return App\Source::whereId($value)->first();
 	});
 	Route::bind( 'datasets', function($value, $route) {
 		return App\Dataset::whereId($value)->first();
@@ -95,7 +95,7 @@ Route::group(['middleware' => ['basic', 'session', 'auth']], function()
 	//Route::post('logo/upload', 'LogoController@upload');
 
 	Route::post( 'inputfile/import', 'ImportController@inputfile' );
-	Route::post( 'datasource/import', 'ImportController@datasource' );
+	Route::post( 'source/import', 'ImportController@source' );
 	Route::post( 'dataset/import', 'ImportController@dataset' );
 	Route::post( 'variable/import', 'ImportController@variable' );
 	Route::post( 'entity/import', 'ImportController@entity' );

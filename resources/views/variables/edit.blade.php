@@ -19,7 +19,7 @@
 			</div>
 			<div class="form-group">
 				{!! Form::label('fk_dsr_id', 'Source:') !!}
-				{!! Form::select('fk_dsr_id', $datasources, ($variable->datasource)?$variable->datasource->id:null, array('class' => 'form-control')) !!}
+				{!! Form::select('fk_dsr_id', $sources, ($variable->source)?$variable->source->id:null, array('class' => 'form-control')) !!}
 			</div>
 			<div class="form-group">
 				{!! Form::submit('Update variable', ['class'=>'btn btn-success']) !!}

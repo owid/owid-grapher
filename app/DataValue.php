@@ -15,8 +15,8 @@ class DataValue extends Model {
 		return $this->hasOne( 'App\Entity', 'id', 'fk_ent_id' );
 	}
 
-	public function datasource() {
-		return $this->hasOne( 'App\Datasource', 'id', 'fk_dsr_id' );
+	public function source() {
+		return $this->hasOne( 'App\Source', 'id', 'fk_dsr_id' );
 	}
 
 	public function scopeGrid($query)

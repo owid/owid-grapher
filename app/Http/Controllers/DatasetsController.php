@@ -1,7 +1,7 @@
 <?php namespace App\Http\Controllers;
 
 use App\Dataset;
-use App\Datasource;
+use App\Source;
 use App\Chart;
 use App\DatasetCategory;
 use App\DatasetSubcategory;
@@ -81,7 +81,7 @@ class DatasetsController extends Controller {
 			$vardata = [
 				'name' => $var->name,
 				'unit' => $var->unit,
-				'description' => $var->description
+				'description' => $var->description			
 			];
 
 			$data['variables'][] = $vardata;
@@ -98,10 +98,10 @@ class DatasetsController extends Controller {
 	 */
 	public function edit(Dataset $dataset)
 	{
-		$datasources = Datasource::lists( 'name', 'id' );
+		$sources = Source::lists( 'name', 'id' );
 		$categories = DatasetCategory::all()->lists( 'name', 'id' );
 		$subcategories = DatasetSubcategory::all()->lists( 'name', 'id' );
-		return view('datasets.edit', compact('dataset', 'categories', 'subcategories', 'datasources'));
+		return view('datasets.edit', compact('dataset', 'categories', 'subcategories', 'sources'));
 	}
 
 	/**

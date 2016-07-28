@@ -32,7 +32,7 @@ $factory->define(App\DatasetSubcategory::class, function (Faker\Generator $faker
     ];
 });
 
-$factory->define(App\Datasource::class, function (Faker\Generator $faker) {
+$factory->define(App\Source::class, function (Faker\Generator $faker) {
     return [
         'name' => "Source",
         'description' => "Description of source.",

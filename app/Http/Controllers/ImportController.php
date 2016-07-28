@@ -1,6 +1,6 @@
 <?php namespace App\Http\Controllers;
 
-use App\Datasource;
+use App\Source;
 use App\Dataset;
 use App\DatasetCategory;
 use App\DatasetSubcategory;
@@ -34,7 +34,7 @@ class ImportController extends Controller {
 	{	
 
 		$datasets = Dataset::all();
-		$datasources = Datasource::all();
+		$sources = Source::all();
 		$variables = Variable::all();
 		$categories = DatasetCategory::all();
 		$subcategories = DatasetSubcategory::all();
@@ -43,7 +43,7 @@ class ImportController extends Controller {
 
 		$data = [
 			'datasets' => $datasets,
-			'datasources' => $datasources,
+			'sources' => $sources,
 			'variables' => $variables,
 			'categories' => $categories,
 			'subcategories' => $subcategories,
@@ -81,7 +81,7 @@ class ImportController extends Controller {
 					'description' => $source['description']
 				];
 
-				$sourceId = Datasource::create($sourceProps)->id;
+				$sourceId = Source::create($sourceProps)->id;
 			}
 
 			if (isset($dataset['id']))

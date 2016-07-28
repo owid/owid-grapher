@@ -4,7 +4,7 @@ use DB;
 use Input;
 use App\Chart;
 use App\Variable;
-use App\Datasource;
+use App\Source;
 use App\License;
 use App\EntityIsoName;
 
@@ -45,12 +45,12 @@ class DataController extends Controller {
 		$variableQuery = DB::table('variables')
 			->whereIn('variables.id', $var_ids)
 			->join('datasets', 'variables.fk_dst_id', '=', 'datasets.id')
-			->leftJoin('datasources', 'variables.fk_dsr_id', '=', 'datasources.id')
+			->leftJoin('sources', 'variables.fk_dsr_id', '=', 'sources.id')
 			->select('variables.id as var_id', 'variables.name as var_name',
 					 'variables.description as var_desc', 'variables.unit as var_unit',
 					 'variables.created_at',
-					 'datasources.name as source_name', 'datasources.description as source_desc',
-					 'datasources.link as source_link', 'datasets.name as dataset_name');
+					 'sources.name as source_name', 'sources.description as source_desc',
+					 'sources.link as source_link', 'datasets.name as dataset_name');
 
 		foreach ($variableQuery->get() as $result) {
 			$source = [];
