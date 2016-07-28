@@ -13,6 +13,7 @@ class RedoSources extends Migration
     public function up()
     {
         DB::transaction(function() {
+            DB::statement("DROP TABLE IF EXISTS sources");
             DB::statement("RENAME TABLE datasources TO sources");
             DB::statement("ALTER TABLE sources ADD COLUMN datasetId INT");
         });      

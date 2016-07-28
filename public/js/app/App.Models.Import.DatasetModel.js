@@ -23,7 +23,7 @@
 			});
 
 			return _.uniq(sources, function(source) { return source.name; });
-		}
+		},
 
 		fetchExisting: function() {
 			var id = this.get("id");
