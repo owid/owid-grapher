@@ -19,7 +19,7 @@
 
 		getSources: function() {
 			var sources = _.map(this.get("oldVariables").concat(this.get("newVariables")), function(variable) {
-
+				return variable.source;
 			});
 
 			return _.uniq(sources, function(source) { return source.name; });

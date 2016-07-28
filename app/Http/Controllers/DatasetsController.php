@@ -78,10 +78,18 @@ class DatasetsController extends Controller {
 
 		$variables = [];
 		foreach ($dataset->variables as $var) {
-			$vardata = [
+			$source = $var->source;
+
+			$source = [
+				'name' => $source->name,
+				'description' => $source->description
+			];
+
+			$vardata = [				
 				'name' => $var->name,
 				'unit' => $var->unit,
-				'description' => $var->description			
+				'description' => $var->description,
+				'source' => $source
 			];
 
 			$data['variables'][] = $vardata;

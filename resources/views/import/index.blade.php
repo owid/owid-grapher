@@ -82,27 +82,7 @@
 						<ol></ol>
 					</div>
 			</section>
-			<section class="form-section datasources-section">
-					<div class="form-section-header">
-						<h3><span class="form-section-digit">5</span>Set source</h3>
-					</div>
-					<div class="form-section-content">
-						<p class="form-section-desc">Please enter all the sources that were used in creating the data set – like: "World Bank, UN IGME, Atkinson and Morelli (2013), ...</p>
-						<div class="new-datasource-wrapper">
-							<label>
-								<span>Source name:</span>
-								<p class="form-section-desc">This name will be shown in the visualization footer.</p>
-								<input class="form-control required" type="text" name="source_name" />
-							</label>
-							<label>
-								<span>Source description:</span>
-								<textarea cols="75" rows="18" class="form-control datasource-editor required" type="text" name="source_description">{{ $data['sourceTemplate']->meta_value }}</textarea>
-								<span class="sources-default" style="display:none;"></span>
-							</label>
 
-						</div>
-					</div>
-			</section>
 			<section class="form-section category-section">
 					<div class="form-section-header">
 						<h3><span class="form-section-digit">6</span>Select category</h3>
@@ -146,6 +126,32 @@
 				{!! Form::submit('Save dataset', array('class' => 'btn btn-success')) !!}
 			</section>
 		{!! Form::close() !!}
+	</div>
+
+	<div class="modal fade source-selector" role="dialog">
+		<div class="modal-dialog modal-lg">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					<h4 class="modal-title">Select source</h4>
+				</div>
+				<div class="modal-body">
+					<label>
+						<span>Source name:</span>
+						<p class="form-section-desc">This name will be shown in the visualization footer.</p>
+						<input class="form-control required" type="text" name="source_name" />
+					</label>
+					<label>
+						<span>Source description:</span>
+						<textarea cols="75" rows="18" class="form-control source-editor required" type="text" name="source_description">{{ $data['sourceTemplate']->meta_value }}</textarea>
+						<span class="sources-default" style="display:none;"></span>
+					</label>				
+				</div>
+				<div class="modal-footer"></div>
+			</div>
+		</div>
 	</div>
 @endsection
 

@@ -1,6 +1,6 @@
 <table>
 	<tr>
-		<td><span class="datasource-property"><span class="datasource-property">Data provider</span></td>
+		<td><span class="datasource-property">Data provider</span></td>
 		<td>e.g. World Bank</td>
 	</tr>
 	<tr>

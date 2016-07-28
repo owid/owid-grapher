@@ -261,6 +261,7 @@ return [
 		        'app/App.Models.Import.DatasetModel.js',
 		        'app/App.Models.Importer.js',
 		        'app/App.Views.UI.ImportProgressPopup.js',
+		        'app/App.Views.Import.SourceSelector.js',
 		        'app/App.Views.ImportView.js',
 		        'app/App.Views.Import.js',
 		        'app/ImportApp.js'

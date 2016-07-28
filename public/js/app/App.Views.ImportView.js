@@ -5,7 +5,7 @@
 	var papaparse = require("Papa"),
 		moment = require("moment"),
 		Importer = require("App.Models.Importer"),
-
+		SourceSelector = require("App.Views.Import.SourceSelector"),
 		ImportProgressPopup = require("App.Views.UI.ImportProgressPopup"),
 		Utils = require("App.Utils");
 
@@ -219,41 +219,25 @@
 			data.unit = data.unit || '';
 			data.description = data.description || '';
 
-			var stringified = JSON.stringify(data);
-			//weird behaviour when single quote inserted into hidden input
-			stringified = stringified.replace( "'", "&#x00027;" );
-			stringified = stringified.replace( "'", "&#x00027;" );
-			
 			var $li = $(
 				'<li class="variable-item clearfix">' +
 					'<label>Name<input name="name" class="form-control" value="' + data.name + '" placeholder="Enter variable name"/></label>' +
 					'<label>Unit<input name="unit" class="form-control" value="' + data.unit + '" placeholder="Enter variable unit"/></label>' +
 					'<label>Description<input name="description" class="form-control" value="' + data.description + '" placeholder="Enter variable description"/></label>' +
-					'<button class="edit-source">Add source</button>' +
+					'<input name="source" type="button" value="Add source" />' +
 				'</li>'
 			);
 
 			var $inputName = $li.find("[name=name]"),
 				$inputUnit = $li.find("[name=unit]"),
 				$inputDescription = $li.find("[name=description]"),
-				$inputOverwriteExisting = $li.find("[name=overwrite]"),
+				$inputSource = $li.find("[name=source]"),
 				$inputs = $li.find("input");
 
 			function checkExisting() {
 				var existing = _.findWhere(oldVariables, { name: data.name });
 				if (existing) {
-					console.log(data.overwrite);
-					if (!data.overwrite) {
-						$inputs.prop("disabled", true);
-						$inputName.prop("disabled", null);
-						$inputOverwriteExisting.prop("disabled", null);						
-					} else {
-						$inputs.prop("disabled", null);
-					}
-					$inputOverwriteExisting.closest("label").show();
 				} else {
-					$inputs.prop("disabled", null);
-					$inputOverwriteExisting.closest("label").hide();
 				}
 			}
 
@@ -261,9 +245,12 @@
 			$inputs.on("input, change", function() {
 				data.name = $inputName.val();
 				data.unit = $inputUnit.val();
-				data.description = $inputDescription.val();
-				data.overwrite = $inputOverwriteExisting.is(":checked");
+				data.description = $inputDescription.val();				
 				checkExisting();
+			});
+
+			$inputSource.on("click", function() {
+				new SourceSelector($li);
 			});
 
 			$inputs.on("focus", function() {
