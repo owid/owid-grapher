@@ -18,8 +18,10 @@
 		},
 
 		getSources: function() {
-			var sources = _.map(this.get("oldVariables").concat(this.get("newVariables")), function(variable) {
+			var sources = _.filter(_.map(this.get("oldVariables").concat(this.get("newVariables")), function(variable) {
 				return variable.source;
+			}), function(source) {
+				return !!source;
 			});
 
 			return _.uniq(sources, function(source) { return source.name; });

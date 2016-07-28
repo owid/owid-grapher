@@ -138,6 +138,7 @@
 					<h4 class="modal-title">Select source</h4>
 				</div>
 				<div class="modal-body">
+					<select class="source"></select>
 					<label>
 						<span>Source name:</span>
 						<p class="form-section-desc">This name will be shown in the visualization footer.</p>

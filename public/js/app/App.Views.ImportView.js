@@ -5,7 +5,7 @@
 	var papaparse = require("Papa"),
 		moment = require("moment"),
 		Importer = require("App.Models.Importer"),
-		SourceSelector = require("App.Views.Import.SourceSelector"),
+		VariablesSection = require("App.Views.Import.VariablesSection"),
 		ImportProgressPopup = require("App.Views.UI.ImportProgressPopup"),
 		Utils = require("App.Utils");
 
@@ -30,7 +30,6 @@
 			"click .remove-uploaded-file-btn": "onRemoveUploadedFile",
 			"change [name=category_id]": "onCategoryChange",
 			"change [name=existing_dataset_id]": "onExistingDatasetChange",
-			"change [name=datasource_id]": "onDatasourceChange",
 			"change [name=subcategory_id]": "onSubCategoryChange",
 			"change [name=multivariant_dataset]": "onMultivariantDatasetChange",
 			"click .new-dataset-description-btn": "onDatasetDescription",
@@ -40,6 +39,7 @@
 		initialize: function( options ) {	
 			this.dispatcher = options.dispatcher;
 			App.DatasetModel = new App.Models.Import.DatasetModel({ dispatcher: this.dispatcher });
+			this.variablesSection = this.addChild(VariablesSection);
 			this.render();
 
 			// Clear any back button cache we might have and save the
@@ -57,8 +57,6 @@
 					this.saveForm(window.localStorage);
 				}.bind(this));
 			}.bind(this), 1);
-
-			App.DatasetModel.on("change:newVariables change:oldVariables", this.updateVariableList.bind(this));
 		},
 
 		/* Save the contents of the form (barring file upload) to a (local)storage object
@@ -118,7 +116,6 @@
 			this.$datasetSection = this.$el.find( ".dataset-section" );
 			this.$datasetTypeSection = this.$el.find( ".dataset-type-section" );
 			this.$uploadSection = this.$el.find( ".upload-section" );
-			this.$variableSection = this.$el.find( ".variables-section" );
 			this.$categorySection = this.$el.find( ".category-section" );
 			this.$variableTypeSection = this.$el.find( ".variable-type-section" );
 				
@@ -127,7 +124,6 @@
 			this.$newDatasetDescriptionBtn = this.$el.find(".new-dataset-description-btn");
 			this.$newDatasetDescription = this.$el.find( "[name=new_dataset_description]" );
 			this.$existingDatasetSelect = this.$el.find( "[name=existing_dataset_id]" );
-			this.$variableSectionList = this.$variableSection.find( "ol" );
 
 			//import section
 			this.$filePicker = this.$el.find( ".file-picker-wrapper [type=file]" );
@@ -151,8 +147,6 @@
 
 			//hide optional elements
 			this.$newDatasetDescription.hide();
-			//this.$variableSection.hide();
-
 		},
 
 		onCsvSelected: function(err, data) {
@@ -197,74 +191,10 @@
 			this.$csvImportTableWrapper.append( $table );
 		},
 
-		updateVariableList: function() {
-			var newVariables = App.DatasetModel.get("newVariables");
-
-			var $list = this.$variableSectionList;
-			$list.empty();
-
-			_.each(newVariables, function(v, i) {					
-				var $li = this.createVariableEl(v);
-				if (i == 0) {
-
-				}
-				$list.append($li);				
-			}.bind(this));
-		},
-
-		createVariableEl: function(data) {
-			var oldVariables = App.DatasetModel.get("oldVariables");
-
-			data.name = data.name || '';
-			data.unit = data.unit || '';
-			data.description = data.description || '';
-
-			var $li = $(
-				'<li class="variable-item clearfix">' +
-					'<label>Name<input name="name" class="form-control" value="' + data.name + '" placeholder="Enter variable name"/></label>' +
-					'<label>Unit<input name="unit" class="form-control" value="' + data.unit + '" placeholder="Enter variable unit"/></label>' +
-					'<label>Description<input name="description" class="form-control" value="' + data.description + '" placeholder="Enter variable description"/></label>' +
-					'<input name="source" type="button" value="Add source" />' +
-				'</li>'
-			);
-
-			var $inputName = $li.find("[name=name]"),
-				$inputUnit = $li.find("[name=unit]"),
-				$inputDescription = $li.find("[name=description]"),
-				$inputSource = $li.find("[name=source]"),
-				$inputs = $li.find("input");
-
-			function checkExisting() {
-				var existing = _.findWhere(oldVariables, { name: data.name });
-				if (existing) {
-				} else {
-				}
-			}
-
-			checkExisting();
-			$inputs.on("input, change", function() {
-				data.name = $inputName.val();
-				data.unit = $inputUnit.val();
-				data.description = $inputDescription.val();				
-				checkExisting();
-			});
-
-			$inputSource.on("click", function() {
-				new SourceSelector($li);
-			});
-
-			$inputs.on("focus", function() {
-				//set flag so that values in input won't get overwritten by changes to dataset name
-				this.variableNameManual = true;
-			}.bind(this));
-
-			return $li;
-		},
-
 		mapData: function() {
 			//massive import version
 			//var mappedData = App.Utils.mapPanelData( this.uploadedData.rows ),
-			var mappedData = ( !this.isDataMultiVariant )?  Utils.mapSingleVariantData( this.uploadedData.rows, this.datasetName ): Utils.mapMultiVariantData( this.uploadedData.rows ),
+			var mappedData = ( !this.isDataMultiVariant )?  Utils.mapSingleVariantData( this.uploadedData.rows, App.DatasetModel.get("name") ): Utils.mapMultiVariantData( this.uploadedData.rows ),
 				json = { "variables": mappedData },
 				jsonString = JSON.stringify( json );
 
@@ -450,40 +380,22 @@
 			}
 		},
 
-		onNewDatasetChange: function( evt ) {
-			var $input = $( evt.currentTarget );
+		onNewDatasetChange: function(evt) {
+			var $input = $(evt.currentTarget);
 			if (!$input.prop("checked")) return;
 
 			if ($input.val() === "0") {
 				this.$newDatasetSection.hide();
 				this.$existingDatasetSection.show();
-				this.existingVariables = [];
-				this.updateVariableList();
 			} else {
 				this.$newDatasetSection.show();
 				this.$existingDatasetSection.hide();
 			}
 		},
 
-		onNewDatasetNameChange: function( evt ) {
-			var $input = $( evt.currentTarget );
-			this.datasetName = $input.val();
-
-			//check if we have value for variable, enter if not
-			var $variableItems = this.$variableSectionList.find( ".variable-item" );
-			if( $variableItems.length == 1 && !this.variableNameManual ) {
-				//we have just one, check 
-				var $variableItem = $variableItems.eq( 0 ),
-					$firstInput = $variableItem.find( "input" ).first();
-				$firstInput.val( this.datasetName );
-				$firstInput.trigger( "input" );
-			}
-
-			//check if we have value for datasource name, enter it if not
-			if( !this.sourceNameManual ) {
-				this.$sourceName.val( this.datasetName );
-			}
-
+		onNewDatasetNameChange: function(evt) {
+			var $input = $(evt.currentTarget);
+			App.DatasetModel.set("name", $input.val());
 		},
 
 		onExistingDatasetChange: function() {

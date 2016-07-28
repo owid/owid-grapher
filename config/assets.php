@@ -204,7 +204,7 @@ return [
 		        'libs/_all-skins.min.css',
 		        'libs/ion.rangeSlider.css',
 		        'libs/ion.rangeSlider.skinFlat.css',
-		        'libs/bootstrap3-wysihtml5.min.css',
+		        'libs/bootstrap3-wysihtml5.css',
 
 		        'admin.css',
 		    ],
@@ -262,6 +262,7 @@ return [
 		        'app/App.Models.Importer.js',
 		        'app/App.Views.UI.ImportProgressPopup.js',
 		        'app/App.Views.Import.SourceSelector.js',
+		        'app/App.Views.Import.VariablesSection.js',
 		        'app/App.Views.ImportView.js',
 		        'app/App.Views.Import.js',
 		        'app/ImportApp.js'
