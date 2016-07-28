@@ -34,7 +34,7 @@
 					'<label>Name<input name="name" class="form-control" value="' + data.name + '" placeholder="Enter variable name"/></label>' +
 					'<label>Unit<input name="unit" class="form-control" value="' + data.unit + '" placeholder="Enter variable unit"/></label>' +
 					'<label>Description<input name="description" class="form-control" value="' + data.description + '" placeholder="Enter variable description"/></label>' +
-					'<input name="source" type="button" value="Add source" />' +
+					'<input name="source" type="button" value="' + (data.source ? data.source.name : 'Add source') + '" />' +
 				'</li>'
 			);
 
@@ -45,7 +45,7 @@
 				$inputs = $li.find("input");
 
 			$inputSource.on("click", function() {
-				var selector = new SourceSelector($li);
+				var selector = new SourceSelector(data);
 			});
 
 			function checkExisting() {

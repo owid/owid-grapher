@@ -146,11 +146,13 @@
 					</label>
 					<label>
 						<span>Source description:</span>
-						<textarea cols="75" rows="18" class="form-control source-editor required" type="text" name="source_description">{{ $data['sourceTemplate']->meta_value }}</textarea>
-						<span class="sources-default" style="display:none;"></span>
+						<textarea class="form-control source-editor required" type="text" name="source_description"></textarea>
+						<span class="sources-default" style="display:none;">{!! $data['sourceTemplate']->meta_value !!}</span>
 					</label>				
 				</div>
-				<div class="modal-footer"></div>
+				<div class="modal-footer">
+					<button class="btn btn-success">Save</button>
+				</div>
 			</div>
 		</div>
 	</div>
