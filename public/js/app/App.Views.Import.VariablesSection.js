@@ -16,8 +16,8 @@
 
 			this.$variableList.empty();
 
-			_.each(newVariables, function(v, i) {					
-				var $li = this.createVariableEl(v);
+			_.each(newVariables, function(variable) {					
+				var $li = this.createVariableEl(variable);
 				this.$variableList.append($li);				
 			}.bind(this));
 		},
@@ -34,7 +34,7 @@
 					'<label>Name<input name="name" class="form-control" value="' + data.name + '" placeholder="Enter variable name"/></label>' +
 					'<label>Unit<input name="unit" class="form-control" value="' + data.unit + '" placeholder="Enter variable unit"/></label>' +
 					'<label>Description<input name="description" class="form-control" value="' + data.description + '" placeholder="Enter variable description"/></label>' +
-					'<input name="source" type="button" value="' + (data.source ? data.source.name : 'Add source') + '" />' +
+					'<label>Source<input name="source" type="button" value="' + (data.source ? data.source.name : 'Add source') + '" /></label>' +
 				'</li>'
 			);
 
@@ -51,6 +51,7 @@
 			function checkExisting() {
 				var existing = _.findWhere(oldVariables, { name: data.name });
 				if (existing) {
+
 				} else {
 				}
 			}

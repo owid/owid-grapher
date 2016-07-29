@@ -84,30 +84,16 @@
             var serializedArr = $form.serializeArray();
             var formData = {};
             _.each(serializedArr, function(v, i) {
-            	if (v.name !== "variables[]") {
-            		// Don't set existing dataset id if it's not actually the selected option
-            		if (v.name == "existing_dataset_id" && !$("[name=existing_dataset_id]").is(":visible"))
-	            		return;
+        		// Don't set existing dataset id if it's not actually the selected option
+        		if (v.name == "existing_dataset_id" && !$("[name=existing_dataset_id]").is(":visible"))
+            		return;
 
-            		formData[v.name] = v.value;
-            	} else {
-            		if (!formData.variables)
-            			formData.variables = [];
-            		formData.variables.push(v.value);
-            	}
+        		formData[v.name] = v.value;
             });
 
-			var variables = [];
-			_.each(formData.variables, function(variable, i) {
-				variable = JSON.parse(variable);
-
-				variables.push({
-					name: variable.name,
-					description: variable.description,
-					unit: variable.unit,
-					typeId: formData.variable_type,
-					values: importData.values[i]
-				});
+			var variables = App.DatasetModel.get("newVariables");
+			_.each(variables, function(variable, i) {
+				variable.values = importData.values[i];
 			});
 
 			var requestData = {
@@ -117,10 +103,6 @@
 					description: formData.new_dataset_description,
 					categoryId: formData.category_id,
 					subcategoryId: formData.subcategory_id
-				},
-				source: {
-					name: formData.source_name,
-					description: formData.source_description
 				},
 				entityKey: importData.entityKey,
 				years: importData.years,

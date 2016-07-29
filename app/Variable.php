@@ -13,7 +13,7 @@ class Variable extends Model {
 		return $this->belongsTo('App\Dataset', 'fk_dst_id');
 	}
 	public function source() {
-		return $this->hasOne('App\Source', 'id', 'fk_dsr_id');
+		return $this->hasOne('App\Source', 'id', 'sourceId');
 	}
 	public function dimensions() {
 		return $this->hasMany('App\ChartDimension', 'variableId');
@@ -26,12 +26,12 @@ class Variable extends Model {
 		if( !empty( $newSourceId ) ) {
 			$variable = Variable::find( $variableId );
 			//is it event necessary to update source?
-			if( $variable->fk_dsr_id != $newSourceId ) {
+			if( $variable->sourceId != $newSourceId ) {
 				//it is update both variable source all sources of all variable values
-				$variable->fk_dsr_id = $newSourceId;
+				$variable->sourceId = $newSourceId;
 				$variable->save();
 				//update all variable values
-				DataValue::where( 'fk_var_id', $variable->id )->update( array( 'fk_dsr_id' => $newSourceId ) );
+				DataValue::where( 'fk_var_id', $variable->id )->update( array( 'sourceId' => $newSourceId ) );
 			}
 		}
 	}
@@ -39,8 +39,8 @@ class Variable extends Model {
 	public function scopeGetSources( $query, $sourcesIds ) {
 		return $query
 			->leftJoin( 'datasets', 'variables.fk_dst_id', '=', 'datasets.id' )
-			->leftJoin( 'sources', 'variables.fk_dsr_id', '=', 'sources.id' )
-			->whereIn( 'variables.fk_dsr_id', $sourcesIds )
+			->leftJoin( 'sources', 'variables.sourceId', '=', 'sources.id' )
+			->whereIn( 'variables.sourceId', $sourcesIds )
 			->select( \DB::raw( 'sources.*, datasets.name as dataset_name, variables.id as var_id, variables.name as var_name, variables.description as var_desc, variables.unit as var_unit, variables.created_at as var_created' ) )
 			->groupBy( 'sources.id' ); 
 	}
@@ -48,7 +48,7 @@ class Variable extends Model {
 	public function scopeGetSource( $query, $variableId ) {
 		return $query
 			->leftJoin( 'datasets', 'variables.fk_dst_id', '=', 'datasets.id' )
-			->leftJoin( 'sources', 'variables.fk_dsr_id', '=', 'sources.id' )
+			->leftJoin( 'sources', 'variables.sourceId', '=', 'sources.id' )
 			->where( 'variables.id', '=', $variableId )
 			->select( \DB::raw( 'sources.*, datasets.name as dataset_name, variables.id as var_id, variables.name as var_name, variables.description as var_desc, variables.unit as var_unit, variables.created_at as var_created' ) )
 			->groupBy( 'sources.id' ); 

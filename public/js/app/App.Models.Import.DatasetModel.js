@@ -15,6 +15,7 @@
 		initialize: function(options) {
 			this.dispatcher = options.dispatcher;
 			this.on("change:id", this.fetchExisting.bind(this));
+			this.on("change:newVariables", this.setDefaultSources.bind(this));
 		},
 
 		getSources: function() {
@@ -25,6 +26,18 @@
 			});
 
 			return _.uniq(sources, function(source) { return source.name; });
+		},
+
+		// When at least one source becomes available, all variables without a source
+		// set inherit that as their default. This is either the first source in the dataset
+		// if it already exists, or the first source the user enters in the importer.
+		setDefaultSources: function() {
+			var sources = this.getSources();
+			if (!sources.length) return;
+
+			_.each(this.get("newVariables"), function(variable) {
+				if (!variable.source) variable.source = sources[0];
+			});
 		},
 
 		fetchExisting: function() {

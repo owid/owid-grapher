@@ -4,13 +4,16 @@
 
 	App.Views.Import.SourceSelector = owid.View.extend({
 		events: {
+			'input [name=source_name]': "onNameChange",
 			'change select.source': "onSelectSource",
 			'click .btn-success': "onSaveSource"
 		},
 
 		initialize: function(variable) {
 			this.variable = variable;
+			
 			this.sources = App.DatasetModel.getSources();
+			// There must always be a new source with the default template
 			if (!_.findWhere(this.sources, { name: "New source" })) {
 				 this.sources.push({
 					name: "New source",
@@ -59,12 +62,13 @@
 			});			
 		},
 
-		getDefaultSource: function() {
-		},
-
 		onSelectSource: function() {
 			this.source = this.sourcesByName[this.$select.val()];
 			this.render();
+		},
+
+		onNameChange: function() {
+			this.source.name = this.$sourceNameInput.val();
 		},
 
 		onSaveSource: function() {

@@ -144,8 +144,8 @@ class VariablesController extends Controller {
 	{
 		$input = array_except( $request->all(), [ '_method', '_token' ] );
 		//need to update data value sources?
-		if( $request->has( "fk_dsr_id" ) ) {
-			Variable::updateSource( $variable->id, $request->get( "fk_dsr_id" ) );
+		if( $request->has( "sourceId" ) ) {
+			Variable::updateSource( $variable->id, $request->get( "sourceId" ) );
 		}
 		$variable->update( $input );
 
@@ -195,12 +195,12 @@ class VariablesController extends Controller {
 
 		if( !empty( $newSourceId ) ) {
 			//is it event necessary to update source?
-			if( $variable->fk_dsr_id != $newSourceId ) {
+			if( $variable->sourceId != $newSourceId ) {
 				//it is update both variable source all sources of all variable values
-				$variable->fk_dsr_id = $newSourceId;
+				$variable->sourceId = $newSourceId;
 				$variable->save();
 				//update all variable values
-				DataValue::where( 'fk_var_id', $variable->id )->update( array( 'fk_dsr_id' => $newSourceId ) );
+				DataValue::where( 'fk_var_id', $variable->id )->update( array( 'sourceId' => $newSourceId ) );
 
 				Cache::flush();
 		

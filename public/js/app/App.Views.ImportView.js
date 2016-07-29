@@ -16,9 +16,6 @@
 		uploadedData: false,
 		variableNameManual: false,
 		sourceNameManual: false,
-		existingVariables: [],
-		// New variables extracted from the CSV
-		newVariables: [],
 
 		el: "#import-view",
 		events: {
@@ -200,6 +197,15 @@
 
 			this.$dataInput.val( jsonString );
 			this.$removeUploadedFileBtn.show();
+
+			// Set defaults for variables from their existing settings
+			var oldVariablesByName = _.indexBy(App.DatasetModel.get("oldVariables"), 'name');
+			_.each(json.variables, function(variable) {
+				var oldvar = oldVariablesByName[variable.name];
+				if (oldvar) {
+					_.extend(variable, oldvar);
+				}
+			});
 
 			App.DatasetModel.set("newVariables", json.variables);
 		},
@@ -515,25 +521,7 @@
 			//display validation results
 			//validate entered datasources
 			var $sourceDescription = $( "[name='source_description']" ),
-				sourceDescriptionValue = $sourceDescription.val(),
-				hasValidSource = true;
-			if( sourceDescriptionValue.search( "<td>e.g." ) > -1 || sourceDescriptionValue.search( "<p>e.g." ) > -1 ) {
-				hasValidSource = false;
-			}
-			var $sourceValidationNotice = $( ".source-validation-result" );
-			if( !hasValidSource ) {
-				//invalid
-				if( !$sourceValidationNotice.length ) {
-					//doens't have notice yet
-					$sourceValidationNotice = $( "<p class='source-validation-result validation-result text-danger'><i class='fa fa-exclamation-circle'> Please replace the sample data with real datasource info.</p>" );
-					$sourceDescription.before( $sourceValidationNotice );
-				} else {
-					$sourceValidationNotice.show();
-				}
-			} else {
-				//valid, make sure there's not 
-				$sourceValidationNotice.remove();
-			}
+				sourceDescriptionValue = $sourceDescription.val();
 
 			//category validation
 			var $categoryValidationNotice = $( ".category-validation-result" );
@@ -550,10 +538,10 @@
 			}
 
 			//different scenarios of validation
-			if( validateEntities ) {
+			if (validateEntities) {
 				//validate both time and entitiye
 				$validationResults = $( ".validation-result.text-danger" );
-			} else if( !validateEntities ) {
+			} else if (!validateEntities) {
 				//validate only time
 				$validationResults = $( ".time-domain-validation-result.text-danger, .times-validation-result.text-danger, .source-validation-result, .category-validation-result" );
 			} else {
@@ -577,10 +565,10 @@
 			$btn.after( "<p class='send-notification'><i class='fa fa-spinner fa-spin'></i>Sending form</p>" );
 
 			//serialize array
-			var $form = $( "#import-view > form" );
+			var $form = $("#import-view > form");
 			
 			var importer = new Importer( { dispatcher: this.dispatcher } );
-			importer.uploadFormData( $form, this.origUploadedData, this.isDataMultiVariant );
+			importer.uploadFormData($form, this.origUploadedData, this.isDataMultiVariant);
 
 			var importProgress = new ImportProgressPopup();
 			importProgress.init( { dispatcher: this.dispatcher } );

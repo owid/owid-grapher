@@ -8,12 +8,6 @@ class Source extends Model {
 	
     public function variables()
     {
-    	return $this->hasMany( 'App\Variable', 'fk_dsr_id', 'id' );
+    	return $this->hasMany( 'App\Variable', 'sourceId', 'id' );
     }
-
-    public function values()
-    {
-    	return $this->hasMany( 'App\DataValue', 'fk_dsr_id', 'id' );
-    }
-
 }

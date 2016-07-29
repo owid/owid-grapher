@@ -107,20 +107,6 @@
 						</label>
 					</div>
 			</section>
-			<section class="form-section variable-type-section">
-					<div class="form-section-header">
-						<h3><span class="form-section-digit">7</span>Select variable type</h3>
-					</div>
-					<div class="form-section-content">
-						<p class="form-section-desc">Choosing the right type of variable will help us determine which properties in chart it can be used for. This will probably be semi-automated in future.</p>
-						<select name='variable_type' class="form-control">
-							<option value="" disabled>Select variable type</option>
-							@foreach( $data['varTypes'] as $varType )
-								<option value="{{ $varType->id }}" @if($varType->id == 3) {{'selected'}}@endif>{{ $varType->name }}</option>
-							@endforeach
-						</select>
-					</div>
-			</section>
 			{!! Form::hidden('data', ''); !!}
 			<section class="form-section submit-section">
 				{!! Form::submit('Save dataset', array('class' => 'btn btn-success')) !!}

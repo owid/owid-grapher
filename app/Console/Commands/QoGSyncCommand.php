@@ -209,7 +209,7 @@ class QoGSyncCommand extends Command
         fseek($handle, 0);
         $header = fgetcsv($handle);
 
-        $columns = ["name", "code", "description", "fk_dst_id", "fk_dsr_id", "fk_var_type_id", "uploaded_by", "uploaded_at", "updated_at"];
+        $columns = ["name", "code", "description", "fk_dst_id", "sourceId", "fk_var_type_id", "uploaded_by", "uploaded_at", "updated_at"];
         $values = [];
         while ($row = fgetcsv($handle)) {
             $data = [];

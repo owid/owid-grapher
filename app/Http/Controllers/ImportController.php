@@ -71,19 +71,6 @@ class ImportController extends Controller {
 			$years = $input['years'];
 			$variables = $input['variables'];
 
-			if (isset($dataset['sourceId']))
-				$sourceId = $dataset['sourceId'];
-			else {
-				$source = $input['source'];
-	
-				$sourceProps = [
-					'name' => $source['name'],
-					'description' => $source['description']
-				];
-
-				$sourceId = Source::create($sourceProps)->id;
-			}
-
 			if (isset($dataset['id']))
 				$datasetId = $dataset['id'];			
 			else {
@@ -118,15 +105,32 @@ class ImportController extends Controller {
 				->whereIn('name', $entityKey)
 				->lists('id', 'name');
 
+			$sourceIdsByName = [];
+
 			// Now we feed in our set of variables and associated data
 			foreach ($variables as $variable) {
 				$values = $variable['values'];
+
+				// Find or create the associated source data
+				$sourceName = $variable['source']['name'];
+				$sourceDesc = $variable['source']['description'];
+
+				if (isset($sourceIdsByName[$sourceName])) {
+					$sourceId = $sourceIdsByName[$sourceName];
+				} else {
+					$sourceId = Source::updateOrCreate(
+						['datasetId' => $datasetId, 'name' => $sourceName],
+						['datasetId' => $datasetId, 'name' => $sourceName, 'description' => $sourceDesc]
+					)->id;
+
+					$sourceIdsByName[$sourceName] = $sourceId;
+				}
 
 				$newVariable = [
 					'name' => $variable['name'],
 					'description' => $variable['description'],
 					'unit' => $variable['unit'],
-					'fk_var_type_id' => $variable['typeId'],
+					'fk_var_type_id' => 3,
 					'fk_dst_id' => $datasetId,
 					'fk_dsr_id' => $sourceId,
 					'uploaded_by' => \Auth::user()->name, 
