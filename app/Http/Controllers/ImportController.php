@@ -34,17 +34,13 @@ class ImportController extends Controller {
 	{	
 
 		$datasets = Dataset::all();
-		$sources = Source::all();
-		$variables = Variable::all();
 		$categories = DatasetCategory::all();
 		$subcategories = DatasetSubcategory::all();
 		$varTypes = VariableType::all();
-		$sourceTemplate = Setting::where( 'meta_name', 'sourceTemplate' )->first();
+		$sourceTemplate = Setting::where('meta_name', 'sourceTemplate')->first();
 
 		$data = [
 			'datasets' => $datasets,
-			'sources' => $sources,
-			'variables' => $variables,
 			'categories' => $categories,
 			'subcategories' => $subcategories,
 			'varTypes' => $varTypes,
@@ -132,13 +128,18 @@ class ImportController extends Controller {
 					'unit' => $variable['unit'],
 					'fk_var_type_id' => 3,
 					'fk_dst_id' => $datasetId,
-					'fk_dsr_id' => $sourceId,
+					'sourceId' => $sourceId,
 					'uploaded_by' => \Auth::user()->name, 
 					'uploaded_at' => Carbon::now(),
 					'updated_at' => Carbon::now()
 				];
 
-				$varId = DB::table('variables')->insertGetId($newVariable);
+				$varId = Variable::updateOrCreate(
+					['name' => $variable['name'], 'fk_dst_id' => $datasetId],
+					$newVariable)->id;
+
+				// Delete any existing data values
+				DB::table('data_values')->where('fk_var_id', '=', $varId)->delete();
 
 				$newDataValues = [];
 				for ($i = 0; $i < sizeof($years); $i++) {

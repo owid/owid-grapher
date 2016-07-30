@@ -617,13 +617,23 @@ a.clear-settings-btn {
   float: left;
   margin-top: -40px;
   margin-right: 10px;
-  font-size: 12px; }
+}
 
 .import-view .variable-item:first-child label {
-  margin-top: -10px; }
+  margin-top: -10px; 
+}
 
-.import-view .variable-item label input {
-  display: block; }
+.import-view .variable-item label > * {
+  display: block; 
+}
+
+.import-view .variable-item .status.existing {
+  color: #0b00ff;
+}
+
+.import-view .variable-item .status.new {
+  color: green;
+}
 
 /* category section */
 .import-view .category-section label,

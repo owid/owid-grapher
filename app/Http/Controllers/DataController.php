@@ -45,7 +45,7 @@ class DataController extends Controller {
 		$variableQuery = DB::table('variables')
 			->whereIn('variables.id', $var_ids)
 			->join('datasets', 'variables.fk_dst_id', '=', 'datasets.id')
-			->leftJoin('sources', 'variables.fk_dsr_id', '=', 'sources.id')
+			->leftJoin('sources', 'variables.sourceId', '=', 'sources.id')
 			->select('variables.id as var_id', 'variables.name as var_name',
 					 'variables.description as var_desc', 'variables.unit as var_unit',
 					 'variables.created_at',

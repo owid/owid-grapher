@@ -3,6 +3,8 @@
 	owid.namespace("App.Views.Import.SourceSelector");
 
 	App.Views.Import.SourceSelector = owid.View.extend({
+		el: ".source-selector",
+
 		events: {
 			'input [name=source_name]': "onNameChange",
 			'change select.source': "onSelectSource",
@@ -27,12 +29,7 @@
 			else
 				this.source = _.first(this.sources);
 
-			this.setElement($(".source-selector").clone());
 			this.$el.modal('show');
-			this.$el.on('hidden.bs.modal', function() {
-				this.$el.remove();
-			}.bind(this));
-
 			this.$select = this.$("select.source");
 			this.$sourceNameInput = this.$("input[name=source_name]");
 			this.$sourceDescription = this.$("textarea");
@@ -43,35 +40,40 @@
 
 		render: function() {
 			this.$select.empty();
-
 			_.each(this.sources, function(source) {
 				this.$select.append('<option value="' + source.name + '">' + source.name + '</option>');
 			}.bind(this));			
 			this.$select.val(this.source.name);
 
-			this.$(".wysihtml5-sandbox, .wysihtml5-toolbar").remove();
-
 			this.$sourceNameInput.val(this.source.name);
-			this.$sourceDescription.html(this.source.description);
+			this.$sourceNameInput.prop('disabled', !!this.source.id);
 
-			this.$sourceDescription.wysihtml5({
-				html: true,
-				toolbar: {
-					fa: true
-				}
-			});			
+			if (!tinymce.activeEditor) {
+				tinymce.init({
+				    selector: this.$sourceDescription.selector,
+				    theme: 'modern',
+				    width: 800,
+				    height: 400					
+				});				
+			}
+
+			tinymce.activeEditor.setContent(this.source.description);
 		},
 
 		onSelectSource: function() {
 			this.source = this.sourcesByName[this.$select.val()];
 			this.render();
+			this.onNameChange();
 		},
 
 		onNameChange: function() {
 			this.source.name = this.$sourceNameInput.val();
+			var hasName = (this.source.name != "New source");
+			this.$saveBtn.prop('disabled', !hasName);
 		},
 
 		onSaveSource: function() {
+			this.source.description = tinymce.activeEditor.getContent();
 			this.variable.source = this.source;
 			App.DatasetModel.trigger("change:newVariables");
 			this.$el.modal('hide');

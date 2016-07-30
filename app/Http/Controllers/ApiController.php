@@ -109,7 +109,7 @@ class ApiController extends Controller {
 				'sources.name as source',
 				'variable_types.name as type' )
 			->leftJoin( 'datasets', 'variables.fk_dst_id', '=', 'datasets.id' )
-			->leftJoin( 'sources', 'variables.fk_dsr_id', '=', 'sources.id' )
+			->leftJoin( 'sources', 'variables.sourceId', '=', 'sources.id' )
 			->leftJoin( 'variable_types', 'variables.fk_var_type_id', '=', 'variable_types.id' )
 			->orderBy( 'id' )
 			->get();

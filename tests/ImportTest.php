@@ -35,10 +35,6 @@ class ImportTest extends TestCase
                 'categoryId' => $categoryId,
                 'subcategoryId' => $subcategoryId
             ],
-            'source' => [
-                'name' => 'New Source',
-                'description' => 'New source description.'
-            ],
             'entityKey' => [
                 'United States', 'Australia', 'New Entity', 'New Entity 2'
             ],
@@ -50,18 +46,26 @@ class ImportTest extends TestCase
             ],
             'variables' => [
                 [ 
-                  'name' => 'New Variable', 
-                  'description' => 'New variable description.',
-                  'unit' => '%',
-                  'typeId' => 3,
-                  'values' => [10, 20, 30, 40, '']
+                    'name' => 'New Variable', 
+                    'description' => 'New variable description.',
+                    'unit' => '%',
+                    'typeId' => 3,
+                    'values' => [10, 20, 30, 40, ''],
+                    'source' => [
+                        'name' => 'New Source',
+                        'description' => 'New source description.'
+                    ]                  
                 ],
                 [
-                  'name' => 'Second Variable', 
-                  'description' => 'Second variable description.',
-                  'unit' => '%',
-                  'typeId' => 3,
-                  'values' => [9, 18, 27, 31, 49]
+                    'name' => 'Second Variable', 
+                    'description' => 'Second variable description.',
+                    'unit' => '%',
+                    'typeId' => 3,
+                    'values' => [9, 18, 27, 31, 49],
+                    'source' => [
+                        'name' => 'New Source',
+                        'description' => 'New source description.'
+                    ]
                 ]
 
             ]

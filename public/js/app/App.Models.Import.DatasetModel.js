@@ -42,10 +42,14 @@
 
 		fetchExisting: function() {
 			var id = this.get("id");
-			if (!id) return;
+			if (!id) {
+				this.set("oldVariables", []);
+				return;				
+			}
 
 			$.get(Global.rootUrl + "/datasets/" + id + ".json")
 				.done(function(data) { 
+					this.set("name", data.name);
 					this.set("oldVariables", data.variables);
 				}.bind(this))
 				.fail(function(err) {

@@ -34,24 +34,15 @@
 									<option value="{{ $dataset->id }}">{{ $dataset->name }}</option>
 								@endforeach
 							</select>
-							{{-- <label class="existing-variable-wrapper">
-								Insert data into new variable or select existing one.
-								<select name='existing_variable_id' class="form-control">
-									<option value="" selected>Create new variable</option>
-									@foreach( $data['variables'] as $variable )
-										<option data-id="{{ $variable->id }}" data-dataset-id="{{ $variable->fk_dst_id }}" data-name="{{ $variable->name }}" data-unit="{{ $variable->unit }}" data-description="{{ $variable->description }}" value="{{ $variable->id }}">{{ $variable->name }}</option>
-									@endforeach
-								</select>
-							</label> --}}
 						</div>
 					</div>
 			</section>
 			<section class="form-section dataset-type-section">
 					<div class="form-section-header">
-						<h3><span class="form-section-digit">2</span>Dataset type</h3>
+						<h3><span class="form-section-digit">2</span>Import mode</h3>
 					</div>
 					<div class="form-section-content">
-						<p class="form-section-desc">Do you have multiple variables in your dataset? Please note that all variables have to come from the same source, and first column has to be country name.</p>
+						<p class="form-section-desc">Are you uploading multiple variables? Examples of valid layouts: <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_single-var.png">single variable</a>, <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_multi-var.png">multiple variables</a>.</p>
 						<fieldset class="dataset-type-radiogroup">
 							<label><input type="radio" class="" name="multivariant_dataset" value="0" checked/> Single variable in dataset</label>
 							<label><input type="radio" class="" name="multivariant_dataset" value="1" /> Multiple variables in dataset</label>
@@ -63,7 +54,7 @@
 						<h3><span class="form-section-digit">3</span>Upload file with data</h3>
 					</div>
 					<div class="form-section-content">
-						<p class="form-section-desc">CSV file is preferred. Examples of valid row layouts: <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_single-var.png">single variable</a>, <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_multi-var.png">multiple variables</a>.
+						<p class="form-section-desc">CSV file is preferred.
 						<div class="file-picker-wrapper">
 							<input type="file" autocomplete="off"/>
 							<a href="#" title="Remove uploaded file" class="remove-uploaded-file-btn"><span class="visuallyhidden">Remove uploaded file</span><i class="fa fa-remove"></i></a>
@@ -78,7 +69,7 @@
 						<h3><span class="form-section-digit">4</span>Check Variables</h3>
 					</div>
 					<div class="form-section-content">
-						<p class="form-section-desc">Here you can check which variables will be stored for your dataset. Names for variables are either taken from dataset name, if you have just one variable, or from names of the columns in uploaded data, if you have more variables. For each variable you can optionally add a unit and its description. If you think that's useful.</p>
+						<p class="form-section-desc">Here you can check which variables will be stored for your dataset. Names for variables are either taken from dataset name, if you have just one variable, or from names of the columns in uploaded data, if you have more variables.</p>
 						<ol></ol>
 					</div>
 			</section>
@@ -124,10 +115,12 @@
 					<h4 class="modal-title">Select source</h4>
 				</div>
 				<div class="modal-body">
-					<select class="source"></select>
+					<label>
+						<span>Source:</span>
+						<select class="form-control source"></select>
+					</label>
 					<label>
 						<span>Source name:</span>
-						<p class="form-section-desc">This name will be shown in the visualization footer.</p>
 						<input class="form-control required" type="text" name="source_name" />
 					</label>
 					<label>
@@ -149,4 +142,5 @@
 @endsection
 
 @section('scripts')
+  <script type="text/javascript" src='//cdn.tinymce.com/4/tinymce.min.js'></script>
 @endsection

@@ -35,6 +35,7 @@
 					'<label>Unit<input name="unit" class="form-control" value="' + data.unit + '" placeholder="Enter variable unit"/></label>' +
 					'<label>Description<input name="description" class="form-control" value="' + data.description + '" placeholder="Enter variable description"/></label>' +
 					'<label>Source<input name="source" type="button" value="' + (data.source ? data.source.name : 'Add source') + '" /></label>' +
+					'<label>Action<span class="status"></span></label>' +
 				'</li>'
 			);
 
@@ -42,7 +43,8 @@
 				$inputUnit = $li.find("[name=unit]"),
 				$inputDescription = $li.find("[name=description]"),
 				$inputSource = $li.find("[name=source]"),
-				$inputs = $li.find("input");
+				$inputs = $li.find("input"),
+				$status = $li.find(".status");
 
 			$inputSource.on("click", function() {
 				var selector = new SourceSelector(data);
@@ -51,8 +53,13 @@
 			function checkExisting() {
 				var existing = _.findWhere(oldVariables, { name: data.name });
 				if (existing) {
-
+					$status.removeClass("new");
+					$status.addClass("existing");
+					$status.text("Overwrite existing variable");
 				} else {
+					$status.removeClass("existing");
+					$status.addClass("new");
+					$status.text("Create new variable");
 				}
 			}
 

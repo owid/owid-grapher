@@ -80,7 +80,8 @@ class DatasetsController extends Controller {
 		foreach ($dataset->variables as $var) {
 			$source = $var->source;
 
-			$source = [
+			$sourcedata = [
+				'id' => $source->id,
 				'name' => $source->name,
 				'description' => $source->description
 			];
@@ -89,7 +90,7 @@ class DatasetsController extends Controller {
 				'name' => $var->name,
 				'unit' => $var->unit,
 				'description' => $var->description,
-				'source' => $source
+				'source' => $sourcedata
 			];
 
 			$data['variables'][] = $vardata;

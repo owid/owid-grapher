@@ -36,7 +36,7 @@
 		initialize: function( options ) {	
 			this.dispatcher = options.dispatcher;
 			App.DatasetModel = new App.Models.Import.DatasetModel({ dispatcher: this.dispatcher });
-			this.variablesSection = this.addChild(VariablesSection);
+			this.variableSection = this.addChild(VariablesSection);
 			this.render();
 
 			// Clear any back button cache we might have and save the
@@ -191,23 +191,19 @@
 		mapData: function() {
 			//massive import version
 			//var mappedData = App.Utils.mapPanelData( this.uploadedData.rows ),
-			var mappedData = ( !this.isDataMultiVariant )?  Utils.mapSingleVariantData( this.uploadedData.rows, App.DatasetModel.get("name") ): Utils.mapMultiVariantData( this.uploadedData.rows ),
-				json = { "variables": mappedData },
-				jsonString = JSON.stringify( json );
-
-			this.$dataInput.val( jsonString );
-			this.$removeUploadedFileBtn.show();
+			var variables = !this.isDataMultiVariant ? Utils.mapSingleVariantData(this.uploadedData.rows, App.DatasetModel.get("name")) : Utils.mapMultiVariantData(this.uploadedData.rows);
 
 			// Set defaults for variables from their existing settings
 			var oldVariablesByName = _.indexBy(App.DatasetModel.get("oldVariables"), 'name');
-			_.each(json.variables, function(variable) {
+			_.each(variables, function(variable) {
 				var oldvar = oldVariablesByName[variable.name];
 				if (oldvar) {
 					_.extend(variable, oldvar);
 				}
 			});
 
-			App.DatasetModel.set("newVariables", json.variables);
+			App.DatasetModel.set("newVariables", variables);
+			this.$removeUploadedFileBtn.show();
 		},
 
 		validateEntityData: function( data ) {
@@ -386,16 +382,21 @@
 			}
 		},
 
+		// Change whether we're creating a new dataset or altering an existing one
 		onNewDatasetChange: function(evt) {
 			var $input = $(evt.currentTarget);
 			if (!$input.prop("checked")) return;
 
 			if ($input.val() === "0") {
 				this.$newDatasetSection.hide();
+				this.$categorySection.hide();
 				this.$existingDatasetSection.show();
+				this.onExistingDatasetChange();
 			} else {
 				this.$newDatasetSection.show();
+				this.$categorySection.show();
 				this.$existingDatasetSection.hide();
+				App.DatasetModel.set("id", null);
 			}
 		},
 
@@ -413,8 +414,8 @@
 		onFileChange: function() {
 			// Clear anything that was already there
 			this.$csvImportTableWrapper.empty();
-			this.$dataInput.val("");
 			this.$csvImportResult.find(".validation-result").remove();
+			App.DatasetModel.set("newVariables", []);
 
 			var file = this.$filePicker.get(0).files[0];
 			if (!file) return;				
@@ -460,8 +461,9 @@
 
 			//reset related components
 			this.$csvImportTableWrapper.empty();
-			this.$dataInput.val("");
 			this.$csvImportResult.find(".validation-result").remove();
+
+			App.DatasetModel.set("newVariables", []);
 		},
 
 		onCategoryChange: function( evt ) {
