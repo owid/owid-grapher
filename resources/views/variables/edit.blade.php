@@ -14,6 +14,14 @@
 				{!! Form::text('unit', null, array('class' => 'form-control')) !!}
 			</div>
 			<div class="form-group">
+				{!! Form::label('coverage', 'Geographic Coverage:') !!}
+				{!! Form::text('coverage', null, array('class' => 'form-control')) !!}
+			</div>
+			<div class="form-group">
+				{!! Form::label('timespan', 'Time Span:') !!}
+				{!! Form::text('timespan', null, array('class' => 'form-control')) !!}
+			</div>
+			<div class="form-group">
 				{!! Form::label('description', 'Description:') !!}
 				{!! Form::textarea('description', null, array('class' => 'form-control')) !!}
 			</div>

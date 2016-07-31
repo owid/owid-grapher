@@ -163,6 +163,9 @@ class ImportController extends Controller {
 
 				if (sizeof($newDataValues) > 0)
 					DB::table('data_values')->insert($newDataValues);
+
+				// Delete any sources which are no longer in use by variables
+				DB::statement("DELETE FROM sources WHERE sources.id NOT IN (SELECT variables.sourceId FROM variables)");
 			}
 
 			return [ 'datasetId' => $datasetId ];

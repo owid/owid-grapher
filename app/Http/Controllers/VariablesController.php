@@ -106,7 +106,6 @@ class VariablesController extends Controller {
 			$grid->add( 'value', 'Value', true);
 			$grid->add( 'name', 'Entity', true);
 			$grid->add( 'year', 'Time', true);
-			$grid->add( 'description', 'Description' );
 			$grid->add( '<a href="' .route( 'values.index' ). '/{{$id}}/edit">Edit</a>', 'Edit' );
 			$grid->paginate( 50 );
 			

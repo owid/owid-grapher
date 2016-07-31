@@ -214,16 +214,6 @@ button > i {
 .select-var-popup .search-results li:hover {
   background-color: #eeeeee; }
 
-.remove-uploaded-file-btn {
-  position: absolute;
-  top: 8px;
-  right: 16px;
-  font-size: 32px;
-  color: #dd4b39; }
-
-.remove-uploaded-file-btn:hover {
-  color: #d33724; }
-
 /* override ugly chosen */
 .chosen-container-single .chosen-single {
   background-color: #ffffff !important; }
@@ -556,17 +546,29 @@ a.clear-settings-btn {
 .import-view .new-dataset-section .new-dataset-description {
   display: none; }
 
-.import-view .existing-variable-wrapper {
-  margin-top: 10px; }
+.import-view .file-picker-wrapper {
+  height: 50px;
+  padding: 10px;
+}
 
-.import-view .existing-variable-wrapper select {
-  display: block;
-  margin-top: 5px; }
+.import-view .file-picker-wrapper input {
+  vertical-align: middl;e
+}
 
-/*.variable-name-section {}
-	.variable-name-section input {
-		width: 50% !important;
-	}*/
+.import-view .remove-uploaded-file-btn {
+  position: absolute;
+  top: 0px;
+  right: 16px;
+  font-size: 32px;
+  color: #dd4b39; 
+  display: none;
+}
+
+.import-view .remove-uploaded-file-btn:hover {
+  color: #d33724; 
+}
+
+
 .import-view .csv-import-result {
   margin: 15px 0px; }
 
@@ -617,6 +619,10 @@ a.clear-settings-btn {
   float: left;
   margin-top: -40px;
   margin-right: 10px;
+}
+
+.import-view .variable-item input[name=source] {
+  width: 200px;
 }
 
 .import-view .variable-item:first-child label {

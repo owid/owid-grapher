@@ -464,6 +464,7 @@
 			this.$csvImportResult.find(".validation-result").remove();
 
 			App.DatasetModel.set("newVariables", []);
+			this.$removeUploadedFileBtn.hide();
 		},
 
 		onCategoryChange: function( evt ) {

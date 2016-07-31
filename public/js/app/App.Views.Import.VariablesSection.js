@@ -9,6 +9,7 @@
 		initialize: function() {
 			this.listenTo(App.DatasetModel, "change:newVariables change:oldVariables", this.render.bind(this));
 			this.$variableList = this.$("ol");
+			this.sourceSelector = this.addChild(SourceSelector);
 		},
 
 		render: function() {
@@ -28,12 +29,15 @@
 			data.name = data.name || '';
 			data.unit = data.unit || '';
 			data.description = data.description || '';
+			data.coverage = data.coverage || '';
+			data.timespan = data.timespan || '';
 
 			var $li = $(
 				'<li class="variable-item clearfix">' +
 					'<label>Name<input name="name" class="form-control" value="' + data.name + '" placeholder="Enter variable name"/></label>' +
-					'<label>Unit<input name="unit" class="form-control" value="' + data.unit + '" placeholder="Enter variable unit"/></label>' +
-					'<label>Description<input name="description" class="form-control" value="' + data.description + '" placeholder="Enter variable description"/></label>' +
+					'<label>Unit<input name="unit" class="form-control" value="' + data.unit + '" placeholder="e.g. % or $"/></label>' +
+					'<label>Geographic Coverage<input name="coverage" class="form-control" value="' + data.coverage + '" placeholder="e.g. Global by country"/></label>' +
+					'<label>Time Span<input name="description" class="form-control" value="' + data.timespan + '" placeholder="e.g. 1920-1990"/></label>' +
 					'<label>Source<input name="source" type="button" value="' + (data.source ? data.source.name : 'Add source') + '" /></label>' +
 					'<label>Action<span class="status"></span></label>' +
 				'</li>'
@@ -47,10 +51,14 @@
 				$status = $li.find(".status");
 
 			$inputSource.on("click", function() {
-				var selector = new SourceSelector(data);
-			});
+				this.sourceSelector.show(data);
+			}.bind(this));
 
-			function checkExisting() {
+			function update() {
+				data.name = $inputName.val();
+				data.unit = $inputUnit.val();
+				data.description = $inputDescription.val();				
+
 				var existing = _.findWhere(oldVariables, { name: data.name });
 				if (existing) {
 					$status.removeClass("new");
@@ -63,12 +71,10 @@
 				}
 			}
 
-			checkExisting();
-			$inputs.on("input, change", function() {
-				data.name = $inputName.val();
-				data.unit = $inputUnit.val();
-				data.description = $inputDescription.val();				
-				checkExisting();
+			update();
+			$inputs.on("input, change", update);
+			$inputName.on("keydown", function() {
+				setTimeout(update, 100);
 			});
 
 			$inputs.on("focus", function() {
