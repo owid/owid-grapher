@@ -51,7 +51,6 @@
 			this.source = _.findWhere(this.sources, { name: this.$select.val()});
 	
 			this.$sourceNameInput.val(this.source.name);
-			this.$sourceNameInput.prop('disabled', !!this.source.id);
 
 			if (!tinymce.activeEditor) {
 				tinymce.init({
@@ -63,6 +62,14 @@
 			}
 
 			tinymce.activeEditor.setContent(this.source.description);
+
+			if (this.source.id) {
+				this.$sourceNameInput.prop('disabled', true);
+				tinymce.activeEditor.setMode('readonly');
+			} else {
+				this.$sourceNameInput.prop('disabled', false);				
+				tinymce.activeEditor.setMode('design');
+			}
 	
 			this.onNameChange();
 		},

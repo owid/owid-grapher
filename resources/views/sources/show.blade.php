@@ -16,11 +16,5 @@
 				{!! $source->description !!}
 			</div>
 		</div>
-		<div class="property-wrapper">
-			<h3>Link</h3>
-			<div class="property-value">
-				{{ $source->link }}
-			</div>
-		</div>
 	</div>
 @endsection
