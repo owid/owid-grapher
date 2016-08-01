@@ -33,7 +33,7 @@ class ImportController extends Controller {
 	public function index()
 	{	
 
-		$datasets = Dataset::all();
+		$datasets = Dataset::where('namespace', '=', 'owid')->orderBy('name')->get();
 		$categories = DatasetCategory::all();
 		$subcategories = DatasetSubcategory::all();
 		$varTypes = VariableType::all();
