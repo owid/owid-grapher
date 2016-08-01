@@ -101,6 +101,11 @@
 			if (!_.isEmpty(this.$newDatasetDescription.val())) {
 				this.$newDatasetDescriptionBtn.click();
 			}
+
+			// Make sure the dataset is cleared if it's a new one
+			if ($("[name=new_dataset]").prop("checked")) {
+				App.DatasetModel.set("id", null);
+			}
 		},
 
 		onClearSettings: function() {

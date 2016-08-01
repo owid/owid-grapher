@@ -43,16 +43,18 @@
 		fetchExisting: function() {
 			var id = this.get("id");
 			if (!id) {
+				if (this.req) this.req.abort();
 				this.set("oldVariables", []);
 				return;				
 			}
 
-			$.get(Global.rootUrl + "/datasets/" + id + ".json")
+			this.req = $.get(Global.rootUrl + "/datasets/" + id + ".json")
 				.done(function(data) { 
 					this.set("name", data.name);
 					this.set("oldVariables", data.variables);
 				}.bind(this))
 				.fail(function(err) {
+					if (err.statusText == "abort") return;
 					owid.reportError(err, "Unable to load dataset " + this.datasetId + " \"" + this.datasetName + "\"");
 				}.bind(this));
 		}
