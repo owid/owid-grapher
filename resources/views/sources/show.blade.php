@@ -11,6 +11,16 @@
 		</div>
 		<h2>{{ $source->name }}</h2>
 		<div class="property-wrapper">
+			<h3>Variables</h3>
+			<div class="property-value">
+				<ul>
+				@foreach ($source->variables as $variable)
+					<li><a href="{{ route('variables.show', $variable->id) }}">{{ $variable->name }}</a></li>
+				@endforeach
+				</ul>
+			</div>
+		</div>
+		<div class="property-wrapper">
 			<h3>Description</h3>
 			<div class="property-value">
 				{!! $source->description !!}

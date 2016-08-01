@@ -89,16 +89,9 @@ class SourcesController extends Controller {
 	 * @param  int  $id
 	 * @return Response
 	 */
-	public function destroy(Source $source, Request $request) {	
-		//check depedencies first
-		if( $source->datasets()->count() > 0 ) {
-			return redirect()->route('sources.index')->with('message', 'Some datasets are linked to this source, so you cannot delete it.')->with( 'message-class', 'error' );;
-		}
-		if( $source->variables()->count() > 0 ) {
-			return redirect()->route('sources.index')->with('message', 'Some variables are linked to this source, so you cannot delete it.')->with( 'message-class', 'error' );;
-		}
-		if( $source->values()->count() > 0 ) {
-			return redirect()->route('sources.index')->with('message', 'Some values are linked to this source, so you cannot delete it.')->with( 'message-class', 'error' );;
+	public function destroy(Source $source, Request $request) {			
+		if ($source->variables()->count() > 0) {
+			return redirect()->route('sources.index')->with('message', 'Some variables are linked to this source, so you cannot delete it.')->with( 'message-class', 'error' );
 		}
 		
 		//no dependencies, delete
