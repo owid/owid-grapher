@@ -69,7 +69,7 @@
 						<h3><span class="form-section-digit">4</span>Check Variables</h3>
 					</div>
 					<div class="form-section-content">
-						<p class="form-section-desc">Here you can check which variables will be stored for your dataset. Names for variables are either taken from dataset name, if you have just one variable, or from names of the columns in uploaded data, if you have more variables.</p>
+						<p class="form-section-desc">Here you can configure the variables that will be stored for your dataset. If possible the variable name should be of the format measure + source (e.g. Population density – Clio Infra)</p>
 						<ol></ol>
 						<p class="affected-charts"></p>
 					</div>
