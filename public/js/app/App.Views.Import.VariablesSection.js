@@ -17,8 +17,6 @@
 			var newVariables = App.DatasetModel.get("newVariables");
 
 			this.$variableList.empty();
-			this.$affectedCharts.empty();
-
 			_.each(newVariables, function(variable) {
 				var $li = this.createVariableEl(variable);
 				this.$variableList.append($li);	
@@ -93,14 +91,19 @@
 
 		updateAffectedCharts: function() {
 			var newVariables = App.DatasetModel.get("newVariables"),
+				oldVariables = App.DatasetModel.get("oldVariables"),
 				charts = [];
 
 			_.each(newVariables, function(variable) {
-				if (variable.charts)
-					charts = charts.concat(variable.charts);
+				var old = _.findWhere(oldVariables, { name: variable.name });
+				if (old && old.charts)
+					charts = charts.concat(old.charts);
 			});
 			charts = _.uniq(charts, function(chart) { return chart.id; });
-			if (_.isEmpty(charts)) return;
+			if (_.isEmpty(charts)) {
+				this.$affectedCharts.empty();
+				return;
+			}
 
 			var html = '<h4>These charts will be updated</h4><ul>';
 			_.each(charts, function(chart, i) {
