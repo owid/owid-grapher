@@ -113,8 +113,11 @@ class ChartsController extends Controller {
 			unset($data["published"]);
 
 			$dims = [];
+			$i = 0;
 			foreach ($data["chart-dimensions"] as $dim) {
+				$dim["order"] = $i;
 				$dims[]= new ChartDimension($dim);
+				$i += 1;
 			}
 
 			$chart->config = json_encode($data);

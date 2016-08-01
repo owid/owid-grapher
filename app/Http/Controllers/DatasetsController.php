@@ -77,7 +77,7 @@ class DatasetsController extends Controller {
 		];
 
 		$variables = [];
-		foreach ($dataset->variables as $var) {
+		foreach ($dataset->variables()->with('source')->with('charts')->get() as $var) {
 			$source = $var->source;
 
 			$sourcedata = [
@@ -86,11 +86,20 @@ class DatasetsController extends Controller {
 				'description' => $source->description
 			];
 
+			$chartdata = [];
+			foreach ($var->charts as $chart) {
+				$chartdata[]= [
+					'id' => $chart->id,
+					'name' => $chart->name					
+				];
+			}
+
 			$vardata = [				
 				'name' => $var->name,
 				'unit' => $var->unit,
 				'description' => $var->description,
-				'source' => $sourcedata
+				'source' => $sourcedata,
+				'charts' => $chartdata
 			];
 
 			$data['variables'][] = $vardata;

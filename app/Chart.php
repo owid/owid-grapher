@@ -13,7 +13,7 @@ class Chart extends Model {
 	];
 
 	public function dimensions() {
-		return $this->hasMany('App\ChartDimension', 'chartId');
+		return $this->hasMany('App\ChartDimension', 'chartId')->orderBy('order');
 	}
 
 	public function variables() {

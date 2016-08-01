@@ -33,7 +33,7 @@ class SetSourceDatasetid extends Migration
                 $i = 0;
                 foreach (Source::where('name', '=', $row->name)->get() as $source) {
                     $i += 1;
-                    $source->name = $source->name . " " . $i;
+                    $source->name = $source->name . " (" . $i . ")";
                     $source->save();
                 }
             }

@@ -9,6 +9,7 @@
 		initialize: function() {
 			this.listenTo(App.DatasetModel, "change:newVariables change:oldVariables", this.render.bind(this));
 			this.$variableList = this.$("ol");
+			this.$affectedCharts = this.$(".affected-charts");
 			this.sourceSelector = this.addChild(SourceSelector);
 		},
 
@@ -16,11 +17,14 @@
 			var newVariables = App.DatasetModel.get("newVariables");
 
 			this.$variableList.empty();
+			this.$affectedCharts.empty();
 
-			_.each(newVariables, function(variable) {					
+			_.each(newVariables, function(variable) {
 				var $li = this.createVariableEl(variable);
-				this.$variableList.append($li);				
+				this.$variableList.append($li);	
 			}.bind(this));
+
+			this.updateAffectedCharts();
 		},
 
 		createVariableEl: function(data) {
@@ -54,7 +58,7 @@
 				this.sourceSelector.show(data);
 			}.bind(this));
 
-			function update() {
+			var update = function() {
 				data.name = $inputName.val();
 				data.unit = $inputUnit.val();
 				data.description = $inputDescription.val();				
@@ -69,7 +73,9 @@
 					$status.addClass("new");
 					$status.text("Create new variable");
 				}
-			}
+
+				this.updateAffectedCharts();
+			}.bind(this);
 
 			update();
 			$inputs.on("input, change", update);
@@ -84,5 +90,25 @@
 
 			return $li;
 		},
+
+		updateAffectedCharts: function() {
+			var newVariables = App.DatasetModel.get("newVariables"),
+				charts = [];
+
+			_.each(newVariables, function(variable) {
+				if (variable.charts)
+					charts = charts.concat(variable.charts);
+			});
+			charts = _.uniq(charts, function(chart) { return chart.id; });
+			if (_.isEmpty(charts)) return;
+
+			var html = '<h4>These charts will be updated</h4><ul>';
+			_.each(charts, function(chart, i) {
+				html += '<li><a href="' + Global.rootUrl + '/charts/' + chart.id + '/edit">' + chart.name + '</a></li>';
+			});
+			html += "</ul>";
+
+			this.$affectedCharts.html(html);
+		}
 	});
 })();

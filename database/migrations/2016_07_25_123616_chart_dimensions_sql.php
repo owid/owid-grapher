@@ -15,6 +15,7 @@ class ChartDimensionsSql extends Migration
             $dimensions = [];
             foreach ($charts as $chart) {
                 $config = json_decode($chart->config);
+                $i = 0;
                 foreach ($config->{"chart-dimensions"} as $dim) {
                     if (!$dim->variableId || !DB::table('variables')->where('id', '=', $dim->variableId)->exists())
                         continue;
@@ -30,15 +31,18 @@ class ChartDimensionsSql extends Migration
                         'period' => isset($dim->period) ? $dim->period : "single",
                         'mode' => isset($dim->mode) ? $dim->mode : "latest",
                         'maximumAge' => isset($dim->maximumAge) ? $dim->maximumAge : 5,
-                        'color' => isset($dim->color) ? $dim->color : ""
+                        'color' => isset($dim->color) ? $dim->color : "",
+                        'order' => $i
                     ];
                     $dimensions[]= $row;
+                    $i += 1;
                 }
             }
 
             Schema::create('chart_dimensions', function(Blueprint $table) {
                 $table->integer('chartId')->unsigned();
                 $table->foreign('chartId')->references('id')->on('charts');    
+                $table->integer('order')->unsigned();
                 $table->integer('variableId')->unsigned();
                 $table->foreign('variableId')->references('id')->on('variables');
                 $table->string('property');
