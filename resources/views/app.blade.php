@@ -9,6 +9,7 @@
 		<meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no'>
 		
 		<link rel="apple-touch-icon" href="apple-touch-icon.png">
+		<link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic" rel="stylesheet" type="text/css">
 		<!-- Place favicon.ico in the root directory -->
 
 		<?php Assets::add('admin'); ?>
