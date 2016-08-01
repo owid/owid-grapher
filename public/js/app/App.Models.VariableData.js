@@ -8,7 +8,7 @@
 	 */
 	App.Models.VariableData = Backbone.Model.extend({
 		initialize: function() {
-			App.ChartModel.on("change:chart-dimensions", this.update.bind(this));
+			App.ChartModel.on("change:chart-dimensions change:chart-type", this.update.bind(this));
 			this.update();
 		},
 

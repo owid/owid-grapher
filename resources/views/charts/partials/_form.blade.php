@@ -56,9 +56,12 @@
 						<div class="form-section-content">
 							<select name="chart-type" class="form-control chart-type-select">
 								<option value="" disabled selected>Select type</option>
-								@foreach( $data->chartTypes as $chartTypeId=>$chartTypeName )
-									<option value="{{ $chartTypeId }}">{{ $chartTypeName }}</option>
-								@endforeach
+								<option value="LineChart">Line Chart</option>
+								<option value="ScatterPlot">Scatter Plot</option>
+								<option value="StackedArea">Stacked Area</option>
+								<option value="MultiBar">Multi Bar</option>
+								<option value="HorizontalMultiBar">Horizontal Multi Bar</option>
+								<option value="DiscreteBar">Discrete Bar</option>
 							</select>
 						</div>
 					</section>
