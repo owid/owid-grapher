@@ -1,6 +1,7 @@
 <?php namespace App\Http\Controllers;
 
 use App\Source;
+use App\Dataset;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
@@ -17,7 +18,8 @@ class SourcesController extends Controller {
 	 */
 	public function index()
 	{
-		$sources = Source::all();
+		$dataset_ids = Dataset::where('namespace', '=', 'owid')->lists('id');
+		$sources = Source::whereIn('datasetId', $dataset_ids)->get();
 		return view( 'sources.index', compact('sources') );
 	}
 
@@ -91,7 +93,7 @@ class SourcesController extends Controller {
 	 */
 	public function destroy(Source $source, Request $request) {			
 		if ($source->variables()->count() > 0) {
-			return redirect()->route('sources.index')->with('message', 'Some variables are linked to this source, so you cannot delete it.')->with( 'message-class', 'error' );
+			return redirect()->route('sources.index')->with('message', 'Some variables are linked to this source, so you cannot delete it.')->with('message-class', 'error');
 		}
 		
 		//no dependencies, delete
