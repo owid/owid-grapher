@@ -41,6 +41,7 @@ DROP TABLE IF EXISTS `chart_dimensions`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `chart_dimensions` (
   `chartId` int(10) unsigned NOT NULL,
+  `order` int(10) unsigned NOT NULL,
   `variableId` int(10) unsigned NOT NULL,
   `property` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `unit` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
@@ -117,7 +118,7 @@ CREATE TABLE `charts` (
   UNIQUE KEY `charts_slug_unique` (`slug`,`published`),
   KEY `charts_last_edited_by_foreign` (`last_edited_by`),
   CONSTRAINT `charts_last_edited_by_foreign` FOREIGN KEY (`last_edited_by`) REFERENCES `users` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=298 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=299 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -139,7 +140,7 @@ CREATE TABLE `data_values` (
   KEY `data_values_fk_var_id_foreign` (`fk_var_id`),
   CONSTRAINT `data_values_fk_ent_id_foreign` FOREIGN KEY (`fk_ent_id`) REFERENCES `entities` (`id`),
   CONSTRAINT `data_values_fk_var_id_foreign` FOREIGN KEY (`fk_var_id`) REFERENCES `variables` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3224393 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3264469 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -237,7 +238,7 @@ CREATE TABLE `entities` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `entities_name_unique` (`name`),
   UNIQUE KEY `entities_code_unique` (`code`)
-) ENGINE=InnoDB AUTO_INCREMENT=4478 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4673 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -460,6 +461,8 @@ CREATE TABLE `variables` (
   `uploaded_by` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `uploaded_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `code` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `coverage` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `timespan` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   UNIQUE KEY `variables_name_unique` (`name`,`fk_dst_id`),
   UNIQUE KEY `variables_code_unique` (`code`,`fk_dst_id`),
@@ -467,11 +470,11 @@ CREATE TABLE `variables` (
   KEY `variables_fk_dsr_id_foreign` (`sourceId`),
   KEY `variables_fk_var_type_id_foreign` (`fk_var_type_id`),
   KEY `variables_uploaded_by_foreign` (`uploaded_by`),
-  CONSTRAINT `variables_sourceId_foreign` FOREIGN KEY (`sourceId`) REFERENCES `sources` (`id`),
   CONSTRAINT `variables_fk_dst_id_foreign` FOREIGN KEY (`fk_dst_id`) REFERENCES `datasets` (`id`) ON DELETE CASCADE,
   CONSTRAINT `variables_fk_var_type_id_foreign` FOREIGN KEY (`fk_var_type_id`) REFERENCES `variable_types` (`id`),
+  CONSTRAINT `variables_sourceId_foreign` FOREIGN KEY (`sourceId`) REFERENCES `sources` (`id`),
   CONSTRAINT `variables_uploaded_by_foreign` FOREIGN KEY (`uploaded_by`) REFERENCES `users` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=1318 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1319 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -483,7 +486,7 @@ CREATE TABLE `variables` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2016-07-30  5:30:07
+-- Dump completed on 2016-08-01 16:56:47
 -- MySQL dump 10.13  Distrib 5.5.47, for debian-linux-gnu (x86_64)
 --
 -- Host: localhost    Database: forge
@@ -520,7 +523,7 @@ CREATE TABLE `migrations` (
 
 LOCK TABLES `migrations` WRITE;
 /*!40000 ALTER TABLE `migrations` DISABLE KEYS */;
-INSERT INTO `migrations` VALUES ('2014_10_12_000000_create_users_table',1),('2014_10_12_100000_create_password_resets_table',1),('2015_05_12_110710_create_datasources_table',1),('2015_05_12_111151_create_datasets_table',1),('2015_05_12_112101_create_variables_table',1),('2015_05_12_112553_create_entity_types_table',1),('2015_05_12_112708_create_entities_table',1),('2015_05_12_113004_create_times_table',1),('2015_05_12_113236_create_data_values_table',1),('2015_05_12_120607_create_dataset_categories_table',1),('2015_05_12_122255_create_entity_geometries_table',1),('2015_05_12_122529_create_entity_metas_table',1),('2015_05_12_153119_create_input_files_table',1),('2015_05_12_154846_create_variable_types_table',1),('2015_05_12_155811_create_entity_iso_names_table',1),('2015_05_14_111718_create_charts_table',1),('2015_05_18_110218_create_dataset_subcategories_table',1),('2015_05_18_110238_create_dataset_tags_table',1),('2015_05_18_110259_create_link_datasets_tags_table',1),('2015_05_26_172956_create_chart_types_table',1),('2015_05_26_173446_create_chart_type_dimensions_table',1),('2015_06_10_124347_create_time_types_table',1),('2016_02_22_140512_fix_graph_entity_refs',2),('2016_02_27_231151_map_time_ranges',3),('2016_03_03_052548_add_updated_by',4),('2016_03_03_234941_last_updated_at',5),('2016_03_04_013732_add_last_referer_url',5),('2016_03_04_045646_add_chart_notes',6),('2016_03_10_155541_add_chart_slug',7),('2016_03_15_205236_add_variable_uploaded_by',8),('2016_03_20_185023_add_variable_deletion_cascade',9),('2016_03_20_201729_add_dataset_deletion_cascade',9),('2016_03_22_025345_create_sessions_table',10),('2016_03_23_091915_move_times_to_data_values',11),('2016_03_23_105113_remove_input_files',11),('2016_03_29_105205_entity_uniqueness',12),('2016_03_29_130633_add_esteban_entities',13),('2016_03_29_132241_more_entity_uniqueness',14),('2016_03_29_161239_validate_esteban_entities',14),('2016_04_25_015146_referer_url_to_origin_url',15),('2016_05_01_094434_purge_empty_cells_from_database',16),('2016_06_05_223737_chart_slug_uniqueness',17),('2016_06_06_012112_chart_slug_redirects',17),('2016_06_06_013821_chart_slug_redirect_uniqueness',17),('2016_06_14_055451_data_value_uniqueness',18),('2016_06_27_094504_add_is_draft_to_chart',19),('2016_06_27_223542_unique_slug_only_if_published',19),('2016_06_28_235408_add_starred_to_charts',20),('2016_06_29_132727_unique_variable_name_in_dataset',21),('2016_07_05_132853_move_sources_from_datasets_to_variables',22),('2016_07_05_182612_dataset_created_at_auto',22),('2016_07_05_205450_remove_extraneous_fields_from_data_values',22),('2016_07_05_210355_remove_entity_type',22),('2016_07_11_002440_unique_category_names',23),('2016_07_11_020055_add_database_to_dataset',24),('2016_07_11_042116_add_code_to_variables',24),('2016_07_11_043456_unique_dataset_names',24),('2016_07_25_105321_chart_dimensions_destringify',25),('2016_07_25_123616_chart_dimensions_sql',25),('2016_07_25_202820_chart_type_enum',25),('2016_07_25_203455_chart_type_propagate_to_enum',25),('2016_07_27_195039_remove_countries_continents_dimensions',25),('2016_07_27_200416_change_chart_dimensions_unique_index',25),('2016_07_28_142948_redo_sources',25),('2016_07_28_144908_set_source_dataset_ids',25),('2016_07_28_153356_source_uniqueness_constriants',25),('2016_07_29_040257_variable_source_id',25);
+INSERT INTO `migrations` VALUES ('2014_10_12_000000_create_users_table',1),('2014_10_12_100000_create_password_resets_table',1),('2015_05_12_110710_create_datasources_table',1),('2015_05_12_111151_create_datasets_table',1),('2015_05_12_112101_create_variables_table',1),('2015_05_12_112553_create_entity_types_table',1),('2015_05_12_112708_create_entities_table',1),('2015_05_12_113004_create_times_table',1),('2015_05_12_113236_create_data_values_table',1),('2015_05_12_120607_create_dataset_categories_table',1),('2015_05_12_122255_create_entity_geometries_table',1),('2015_05_12_122529_create_entity_metas_table',1),('2015_05_12_153119_create_input_files_table',1),('2015_05_12_154846_create_variable_types_table',1),('2015_05_12_155811_create_entity_iso_names_table',1),('2015_05_14_111718_create_charts_table',1),('2015_05_18_110218_create_dataset_subcategories_table',1),('2015_05_18_110238_create_dataset_tags_table',1),('2015_05_18_110259_create_link_datasets_tags_table',1),('2015_05_26_172956_create_chart_types_table',1),('2015_05_26_173446_create_chart_type_dimensions_table',1),('2015_06_10_124347_create_time_types_table',1),('2016_02_22_140512_fix_graph_entity_refs',2),('2016_02_27_231151_map_time_ranges',3),('2016_03_03_052548_add_updated_by',4),('2016_03_03_234941_last_updated_at',5),('2016_03_04_013732_add_last_referer_url',5),('2016_03_04_045646_add_chart_notes',6),('2016_03_10_155541_add_chart_slug',7),('2016_03_15_205236_add_variable_uploaded_by',8),('2016_03_20_185023_add_variable_deletion_cascade',9),('2016_03_20_201729_add_dataset_deletion_cascade',9),('2016_03_22_025345_create_sessions_table',10),('2016_03_23_091915_move_times_to_data_values',11),('2016_03_23_105113_remove_input_files',11),('2016_03_29_105205_entity_uniqueness',12),('2016_03_29_130633_add_esteban_entities',13),('2016_03_29_132241_more_entity_uniqueness',14),('2016_03_29_161239_validate_esteban_entities',14),('2016_04_25_015146_referer_url_to_origin_url',15),('2016_05_01_094434_purge_empty_cells_from_database',16),('2016_06_05_223737_chart_slug_uniqueness',17),('2016_06_06_012112_chart_slug_redirects',17),('2016_06_06_013821_chart_slug_redirect_uniqueness',17),('2016_06_14_055451_data_value_uniqueness',18),('2016_06_27_094504_add_is_draft_to_chart',19),('2016_06_27_223542_unique_slug_only_if_published',19),('2016_06_28_235408_add_starred_to_charts',20),('2016_06_29_132727_unique_variable_name_in_dataset',21),('2016_07_05_132853_move_sources_from_datasets_to_variables',22),('2016_07_05_182612_dataset_created_at_auto',22),('2016_07_05_205450_remove_extraneous_fields_from_data_values',22),('2016_07_05_210355_remove_entity_type',22),('2016_07_11_002440_unique_category_names',23),('2016_07_11_020055_add_database_to_dataset',24),('2016_07_11_042116_add_code_to_variables',24),('2016_07_11_043456_unique_dataset_names',24),('2016_07_25_105321_chart_dimensions_destringify',25),('2016_07_25_123616_chart_dimensions_sql',25),('2016_07_25_202820_chart_type_enum',25),('2016_07_25_203455_chart_type_propagate_to_enum',25),('2016_07_27_195039_remove_countries_continents_dimensions',25),('2016_07_27_200416_change_chart_dimensions_unique_index',25),('2016_07_28_142948_redo_sources',25),('2016_07_28_144908_set_source_dataset_ids',25),('2016_07_28_153356_source_uniqueness_constriants',25),('2016_07_29_040257_variable_source_id',25),('2016_07_31_052313_add_coverage_and_timespan_to_variables',25),('2016_07_31_052418_pull_coverage_from_sources',25),('2016_07_31_095203_set_source_datasetid',25);
 /*!40000 ALTER TABLE `migrations` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -533,7 +536,7 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2016-07-30  5:30:07
+-- Dump completed on 2016-08-01 16:56:47
 -- MySQL dump 10.13  Distrib 5.5.47, for debian-linux-gnu (x86_64)
 --
 -- Host: localhost    Database: forge
@@ -584,7 +587,7 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2016-07-30  5:30:07
+-- Dump completed on 2016-08-01 16:56:47
 -- MySQL dump 10.13  Distrib 5.5.47, for debian-linux-gnu (x86_64)
 --
 -- Host: localhost    Database: forge
@@ -636,5 +639,5 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2016-07-30  5:30:07
+-- Dump completed on 2016-08-01 16:56:47
 INSERT INTO users (name, email, password) VALUES ('admin', 'admin@example.com', '$2y$10$T4Ye2Yce8GkRPpfCw8J0X.NwjHeu4FOLRMKVjAyT78cpU53YKyZSy');
