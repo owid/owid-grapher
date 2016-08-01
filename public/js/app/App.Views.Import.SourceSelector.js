@@ -56,6 +56,9 @@
 				tinymce.init({
 				    selector: this.$sourceDescription.selector,
 				    theme: 'modern',
+				    menubar: false,
+				    plugins: 'link image code',
+				    toolbar: 'undo redo | styleselect | bold italic | link image | code',
 				    width: 800,
 				    height: 400					
 				});				
