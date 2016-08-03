@@ -238,8 +238,9 @@
 
 	// Transform entity name to match counterpart in world.ids.json
 	// Covers e.g. Cote d'Ivoire -> Cote_d_Ivoire
+	// Also removes non-ascii characters which may break datamaps
 	owid.entityNameForMap = function(name) {
-		return name.replace(/[ '&:\(\)\/]/g, "_");
+		return owid.makeSafeForCSS(name.replace(/[ '&:\(\)\/]/g, "_"));
 	}
 
 	owid.contentGenerator = function(data, isMapPopup) {
@@ -590,7 +591,8 @@
 	    return name.replace(/[^a-z0-9]/g, function(s) {
 	        var c = s.charCodeAt(0);
 	        if (c == 32) return '-';
-	        if (c >= 65 && c <= 90) return s.toLowerCase();
+	        if (c == 95) return '_';
+	        if (c >= 65 && c <= 90) return s;
 	        return '__' + ('000' + c.toString(16)).slice(-4);
 	    });
 	};
