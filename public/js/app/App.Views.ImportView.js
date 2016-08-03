@@ -6,6 +6,7 @@
 		moment = require("moment"),
 		Importer = require("App.Models.Importer"),
 		VariablesSection = require("App.Views.Import.VariablesSection"),
+		CategorySection = require("App.Views.Import.CategorySection"),
 		ImportProgressPopup = require("App.Views.UI.ImportProgressPopup"),
 		Utils = require("App.Utils");
 
@@ -14,29 +15,25 @@
 		isDataMultiVariant: false,
 		origUploadedData: false,
 		uploadedData: false,
-		variableNameManual: false,
-		sourceNameManual: false,
 
 		el: "#import-view",
 		events: {
 			"submit form": "onFormSubmit",
 			"click .clear-settings-btn": "onClearSettings",
+			"change [name=existing_dataset_id]": "onExistingDatasetChange",
 			"input [name=new_dataset_name]": "onNewDatasetNameChange",
 			"change [name=new_dataset]": "onNewDatasetChange",
 			"change [type=file]": "onFileChange",
 			"click .remove-uploaded-file-btn": "onRemoveUploadedFile",
-			"change [name=category_id]": "onCategoryChange",
-			"change [name=existing_dataset_id]": "onExistingDatasetChange",
-			"change [name=subcategory_id]": "onSubCategoryChange",
 			"change [name=multivariant_dataset]": "onMultivariantDatasetChange",
 			"click .new-dataset-description-btn": "onDatasetDescription",
-			"focus [name=source_name]": "onSourceNameFocus"
 		},
 
 		initialize: function( options ) {	
 			this.dispatcher = options.dispatcher;
 			App.DatasetModel = new App.Models.Import.DatasetModel({ dispatcher: this.dispatcher });
 			this.variableSection = this.addChild(VariablesSection);
+			this.categorySection = this.addChild(CategorySection);
 			this.render();
 
 			// Clear any back button cache we might have and save the
@@ -118,7 +115,6 @@
 			this.$datasetSection = this.$el.find( ".dataset-section" );
 			this.$datasetTypeSection = this.$el.find( ".dataset-type-section" );
 			this.$uploadSection = this.$el.find( ".upload-section" );
-			this.$categorySection = this.$el.find( ".category-section" );
 			this.$variableTypeSection = this.$el.find( ".variable-type-section" );
 				
 			//random els
@@ -137,15 +133,6 @@
 			this.$newDatasetSection = this.$el.find( ".new-dataset-section" );
 			this.$existingDatasetSection = this.$el.find( ".existing-dataset-section" );
 			this.$removeUploadedFileBtn = this.$el.find( ".remove-uploaded-file-btn" );
-
-			//datasource section
-			this.$newDatasourceWrapper = this.$el.find( ".new-datasource-wrapper" );
-			this.$sourceName = this.$el.find( "[name=source_name]" );
-			this.$sourceDescription = this.$el.find( "[name=source_description]" );
-
-			//category section
-			this.$categorySelect = this.$el.find( "[name=category_id]" );
-			this.$subcategorySelect = this.$el.find( "[name=subcategory_id]" );
 
 			//hide optional elements
 			this.$newDatasetDescription.hide();
@@ -233,25 +220,24 @@
 				success: function( response ) {
 					if (response.unmatched) {							
 						var unmatched = response.unmatched;
-						$entitiesCells.removeClass( "alert-error" );
+						$entitiesCells.removeClass( "alert-warning" );
 						$.each( $entitiesCells, function( i, v ) {
 							var $entityCell = $( this ),
 								value = $entityCell.text();
-								$entityCell.removeClass( "alert-error" );
+								$entityCell.removeClass( "alert-warning" );
 								$entityCell.addClass( "alert-success" );
 							if( _.indexOf( unmatched, value ) > -1 ) {
-								$entityCell.addClass( "alert-error" );
+								$entityCell.addClass( "alert-warning" );
 								$entityCell.removeClass( "alert-success" );
 							}
 						} );
 
 						//remove preloader
-						$( ".entities-loading-notice" ).remove();
+						$(".entities-loading-notice").remove();
 						//result notice
-						$( ".entities-validation-wrapper" ).remove();
-						var $resultNotice = (unmatched.length)? $( "<div class='entities-validation-wrapper'><p class='entities-validation-result validation-result text-danger'><i class='fa fa-exclamation-circle'></i>Some countries do not have <a href='http://en.wikipedia.org/wiki/ISO_3166' target='_blank'>standardized name</a>! Rename the highlighted countries and reupload CSV.</p><label><input type='checkbox' name='validate_entities'/>Import countries anyway</label></div>" ): $( "<p class='entities-validation-result validation-result text-success'><i class='fa fa-check-circle'></i>All countries have standardized name, well done!</p>" );
-						$dataTableWrapper.before( $resultNotice );
-
+						$(".entities-validation-wrapper").remove();
+						var $resultNotice = (unmatched.length) ? $("<div class='entities-validation-wrapper'><p class='entities-validation-result validation-result text-warning'><i class='fa fa-warning'></i> Some countries are not using <a href='http://en.wikipedia.org/wiki/ISO_3166' target='_blank'>standardized names</a>. You may want to double check that these are the names you want to upload.</p><label>" ) : $("<p class='entities-validation-result validation-result text-success'><i class='fa fa-check-circle'></i>All countries have standardized name, well done!</p>");
+						$dataTableWrapper.before($resultNotice);
 					}
 				}
 			} );
@@ -394,12 +380,10 @@
 
 			if ($input.val() === "0") {
 				this.$newDatasetSection.hide();
-				this.$categorySection.hide();
 				this.$existingDatasetSection.show();
 				this.onExistingDatasetChange();
 			} else {
 				this.$newDatasetSection.show();
-				this.$categorySection.show();
 				this.$existingDatasetSection.hide();
 				App.DatasetModel.set("id", null);
 			}
@@ -472,39 +456,6 @@
 			this.$removeUploadedFileBtn.hide();
 		},
 
-		onCategoryChange: function( evt ) {
-			var $input = $( evt.currentTarget );
-			if( $input.val() != "" ) {
-				this.$subcategorySelect.show();
-				this.$subcategorySelect.css( "display", "block" );
-			} else {
-				this.$subcategorySelect.hide();
-			}
-
-			//filter subcategories select
-			this.$subcategorySelect.find( "option" ).hide();
-			this.$subcategorySelect.find( "option[data-category-id=" + $input.val() + "]" ).show();
-			this.$subcategorySelect.val("");
-		},
-
-		onDatasourceChange: function( evt ) {
-			var $target = $( evt.currentTarget );
-			if( $target.val() < 1 ) {
-				this.$newDatasourceWrapper.slideDown();
-			} else {
-				this.$newDatasourceWrapper.slideUp();
-			}
-		},
-
-		onSubCategoryChange: function(evt) {
-			
-		},
-
-		onSourceNameFocus: function( evt ) {
-			console.log( "onSourceNameFocus" );
-			this.sourceNameManual = true;
-		},
-
 		onMultivariantDatasetChange: function( evt ) {
 			var $input = $(evt.currentTarget);
 			if (!$input.prop("checked")) return;
@@ -522,40 +473,8 @@
 		onFormSubmit: function( evt ) {
 			evt.preventDefault();
 
-			var $validateEntitiesCheckbox = $( "[name='validate_entities']" ),
-				validateEntities = ( $validateEntitiesCheckbox.is( ":checked" ) )? false: true,
-				$validationResults = [];
+			var $validationResults = $(".time-domain-validation-result.text-danger, .times-validation-result.text-danger, .category-validation-result");
 
-			//display validation results
-			//validate entered datasources
-			var $sourceDescription = $( "[name='source_description']" ),
-				sourceDescriptionValue = $sourceDescription.val();
-
-			//category validation
-			var $categoryValidationNotice = $( ".category-validation-result" );
-			if( !this.$categorySelect.val() || !this.$subcategorySelect.val() ) {
-				if( !$categoryValidationNotice.length ) {
-					$categoryValidationNotice = $( "<p class='category-validation-result validation-result text-danger'><i class='fa fa-exclamation-circle'> Please choose category for uploaded data.</p>" );
-					this.$categorySelect.before( $categoryValidationNotice );
-				} {
-					$categoryValidationNotice.show();
-				}
-			} else {
-				//valid, make sure to remove
-				$categoryValidationNotice.remove();
-			}
-
-			//different scenarios of validation
-			if (validateEntities) {
-				//validate both time and entitiye
-				$validationResults = $( ".validation-result.text-danger" );
-			} else if (!validateEntities) {
-				//validate only time
-				$validationResults = $( ".time-domain-validation-result.text-danger, .times-validation-result.text-danger, .source-validation-result, .category-validation-result" );
-			} else {
-				//do not validate
-			}
-			
 			if( $validationResults.length ) {
 				//do not send form and scroll to error message
 				evt.preventDefault();

@@ -654,9 +654,6 @@ a.clear-settings-btn {
 .import-view .category-section label {
   margin-bottom: 10px; }
 
-.import-view .category-section [name="subcategory_id"] {
-  display: none; }
-
 .import-view .category-section [name="new_dataset_tags"] {
   width: 40%; }
 

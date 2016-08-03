@@ -263,6 +263,7 @@ return [
 		        'app/App.Views.UI.ImportProgressPopup.js',
 		        'app/App.Views.Import.SourceSelector.js',
 		        'app/App.Views.Import.VariablesSection.js',
+		        'app/App.Views.Import.CategorySection.js',
 		        'app/App.Views.ImportView.js',
 		        'app/App.Views.Import.js',
 		        'app/ImportApp.js'

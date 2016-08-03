@@ -20,7 +20,7 @@ class SourcesController extends Controller {
 	{
 		$dataset_ids = Dataset::where('namespace', '=', 'owid')->lists('id');
 		$sources = Source::whereIn('datasetId', $dataset_ids)->get();
-		return view( 'sources.index', compact('sources') );
+		return view('sources.index', compact('sources'));
 	}
 
 	/**

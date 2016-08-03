@@ -6,6 +6,8 @@
 		defaults: {
 			id: null,
 			name: "",
+			categoryId: null,
+			subcategoryId: null,
 			// Info for existing variables is retrieved if the user selects an existing dataset			
 			oldVariables: [],
 			// New variable metadata to be stored
