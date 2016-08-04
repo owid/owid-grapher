@@ -609,16 +609,12 @@ a.clear-settings-btn {
 
 .import-view .variable-item label {
   float: left;
-  margin-top: -40px;
+  margin-top: -10px;
   margin-right: 10px;
 }
 
 .import-view .variable-item input[name=source] {
   width: 200px;
-}
-
-.import-view .variable-item:first-child label {
-  margin-top: -10px; 
 }
 
 .import-view .variable-item label > * {
