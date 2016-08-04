@@ -48,6 +48,7 @@
 					this.saveForm(window.localStorage);
 				}.bind(this));
 			}.bind(this), 1);
+
 		},
 
 		/* Save the contents of the form (barring file upload) to a (local)storage object

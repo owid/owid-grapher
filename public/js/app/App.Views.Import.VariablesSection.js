@@ -57,6 +57,7 @@
 			_.each(oldVariables, function(old) {
 				$selectAction.append('<option value="' + old.id + '">Overwrite ' + old.name + '</option>');
 			});
+			$selectAction.find('option[value=' + variable.overwriteId + ']').prop('selected', true);
 
 			// Editing of variable source
 			$inputSource.on("click", function() {
