@@ -6,6 +6,7 @@
 		defaults: {
 			id: null,
 			name: "",
+			description: "",
 			categoryId: null,
 			subcategoryId: null,
 			// Info for existing variables is retrieved if the user selects an existing dataset			
@@ -46,13 +47,15 @@
 			var id = this.get("id");
 			if (!id) {
 				if (this.req) this.req.abort();
+				this.set("name", "");
+				this.set("description", "");
 				this.set("oldVariables", []);
-				return;				
+				return;
 			}
 
 			this.req = $.get(Global.rootUrl + "/datasets/" + id + ".json")
 				.done(function(data) { 
-					this.set("name", data.name);
+					this.set(_.omit(data, 'variables'));
 					this.set("oldVariables", data.variables);
 				}.bind(this))
 				.fail(function(err) {

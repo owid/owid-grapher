@@ -7,12 +7,12 @@
 
 		events: {
 			"change [name=category_id]": "onCategoryChange",
-			"change [name=subcategory_id]": "onSubCategoryChange",
+			"change [name=subcategory_id]": "onSubcategoryChange",
 		},
 
 		initialize: function() {
-			this.$categorySelect = this.$el.find("[name=category_id]");
-			this.$subcategorySelect = this.$el.find("[name=subcategory_id]");
+			this.$categorySelect = this.$("[name=category_id]");
+			this.$subcategorySelect = this.$("[name=subcategory_id]");
 
 			this.listenTo(App.DatasetModel, "change:categoryId change:subcategoryId", this.render.bind(this));
 			this.render();
@@ -45,16 +45,10 @@
 			var categoryId = App.DatasetModel.get("categoryId"),
 				subcategoryId = App.DatasetModel.get("subcategoryId");
 			this.$categorySelect.val(categoryId);
-			this.$subcategorySelect.val(subcategoryId);
-
-			if (this.$categorySelect.val()) {
-				this.$subcategorySelect.closest("label").show();
-			} else {
-				this.$subcategorySelect.closest("label").hide();
-			}
 
 			this.$subcategorySelect.find("option").hide();
 			this.$subcategorySelect.find("option[data-category-id=" + categoryId + "]").show();
+			this.$subcategorySelect.val(subcategoryId);
 			if (this.$subcategorySelect.find("option:selected").attr("data-category-id") != categoryId)
 				this.$subcategorySelect.val("");
 		},

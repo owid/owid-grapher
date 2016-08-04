@@ -97,13 +97,7 @@
 			});
 
 			var requestData = {
-				dataset: {
-					id: formData.existing_dataset_id,
-					name: formData.new_dataset_name,	
-					description: formData.new_dataset_description,
-					categoryId: formData.category_id,
-					subcategoryId: formData.subcategory_id
-				},
+				dataset: App.DatasetModel.attributes,
 				entityKey: importData.entityKey,
 				years: importData.years,
 				entities: importData.entities,

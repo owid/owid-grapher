@@ -5,13 +5,13 @@
 	var papaparse = require("Papa"),
 		moment = require("moment"),
 		Importer = require("App.Models.Importer"),
+		ChooseDatasetSection = require("App.Views.Import.ChooseDatasetSection"),
 		VariablesSection = require("App.Views.Import.VariablesSection"),
 		CategorySection = require("App.Views.Import.CategorySection"),
 		ImportProgressPopup = require("App.Views.UI.ImportProgressPopup"),
 		Utils = require("App.Utils");
 
 	App.Views.ImportView = owid.View.extend({
-		datasetName: "",
 		isDataMultiVariant: false,
 		origUploadedData: false,
 		uploadedData: false,
@@ -20,18 +20,15 @@
 		events: {
 			"submit form": "onFormSubmit",
 			"click .clear-settings-btn": "onClearSettings",
-			"change [name=existing_dataset_id]": "onExistingDatasetChange",
-			"input [name=new_dataset_name]": "onNewDatasetNameChange",
-			"change [name=new_dataset]": "onNewDatasetChange",
 			"change [type=file]": "onFileChange",
 			"click .remove-uploaded-file-btn": "onRemoveUploadedFile",
 			"change [name=multivariant_dataset]": "onMultivariantDatasetChange",
-			"click .new-dataset-description-btn": "onDatasetDescription",
 		},
 
 		initialize: function( options ) {	
 			this.dispatcher = options.dispatcher;
 			App.DatasetModel = new App.Models.Import.DatasetModel({ dispatcher: this.dispatcher });
+			this.datasetSection = this.addChild(ChooseDatasetSection);
 			this.variableSection = this.addChild(VariablesSection);
 			this.categorySection = this.addChild(CategorySection);
 			this.render();
@@ -92,6 +89,7 @@
 					$(el).val(val);
 				}
 				$(el).change();
+				$(el).trigger("input");
 			}.bind(this));
 
 			// Make sure the dataset description is expanded if needed
@@ -354,50 +352,6 @@
 			}
 			$dataTableWrapper.before( $resultNotice );
 			
-		},
-
-		onDatasetDescription: function(ev) {
-			ev.preventDefault();
-			var $btn = $(ev.currentTarget);
-			
-			if( this.$newDatasetDescription.is( ":visible" ) ) {
-				this.$newDatasetDescription.hide();
-				$btn.find( "span" ).text( "Add dataset description." );
-				$btn.find( "i" ).removeClass( "fa-minus" );
-				$btn.find( "i" ).addClass( "fa-plus" );
-			} else {
-				this.$newDatasetDescription.show();
-				$btn.find( "span" ).text( "Nevermind, no description." );
-				$btn.find( "i" ).addClass( "fa-minus" );
-				$btn.find( "i" ).removeClass( "fa-plus" );
-			}
-		},
-
-		// Change whether we're creating a new dataset or altering an existing one
-		onNewDatasetChange: function(evt) {
-			var $input = $(evt.currentTarget);
-			if (!$input.prop("checked")) return;
-
-			if ($input.val() === "0") {
-				this.$newDatasetSection.hide();
-				this.$existingDatasetSection.show();
-				this.onExistingDatasetChange();
-			} else {
-				this.$newDatasetSection.show();
-				this.$existingDatasetSection.hide();
-				App.DatasetModel.set("id", null);
-			}
-		},
-
-		onNewDatasetNameChange: function(evt) {
-			var $input = $(evt.currentTarget);
-			App.DatasetModel.set("name", $input.val());
-		},
-
-		onExistingDatasetChange: function() {
-			var $option = this.$existingDatasetSelect.find('option:selected');
-			var id = $option.val();
-			App.DatasetModel.set("id", id);
 		},
 
 		onFileChange: function() {

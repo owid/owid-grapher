@@ -64,16 +64,7 @@
 				});				
 			}
 
-			tinymce.activeEditor.setContent(this.source.description);
-
-			if (this.source.id) {
-				this.$sourceNameInput.prop('disabled', true);
-				tinymce.activeEditor.setMode('readonly');
-			} else {
-				this.$sourceNameInput.prop('disabled', false);				
-				tinymce.activeEditor.setMode('design');
-			}
-	
+			tinymce.activeEditor.setContent(this.source.description);	
 			this.onNameChange();
 		},
 

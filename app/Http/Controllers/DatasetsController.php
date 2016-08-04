@@ -73,6 +73,9 @@ class DatasetsController extends Controller {
 	public function showJson(Dataset $dataset) {
 		$data = [
 			'name' => $dataset->name,
+			'description' => $dataset->description,
+			'categoryId' => $dataset->fk_dst_cat_id,
+			'subcategoryId' => $dataset->fk_dst_subcat_id,
 			'variables' => []
 		];
 

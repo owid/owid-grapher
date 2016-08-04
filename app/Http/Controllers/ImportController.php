@@ -58,8 +58,7 @@ class ImportController extends Controller {
 		$input = $request->all();
 
 		return DB::transaction(function() use ($input) {
-			// First, we create the dataset object itself
-			$dataset = $input['dataset'];
+			$datasetMeta = $input['dataset'];
 			// entityKey is a unique list of entity names/codes e.g. ['Germany', 'Afghanistan', 'USA']
 			$entityKey = $input['entityKey'];
 			// entities is a list of indices for entityKey 
@@ -67,18 +66,20 @@ class ImportController extends Controller {
 			$years = $input['years'];
 			$variables = $input['variables'];
 
-			if (isset($dataset['id']))
-				$datasetId = $dataset['id'];			
-			else {
-				$datasetProps = [
-					'name' => $dataset['name'],
-					'description' => isset($dataset['description']) ? $dataset['description'] : "",
-					'fk_dst_cat_id' => $dataset['categoryId'],
-					'fk_dst_subcat_id' => $dataset['subcategoryId']
-				];
+			$datasetProps = [
+				'name' => $datasetMeta['name'],
+				'description' => $datasetMeta['description'],
+				'fk_dst_cat_id' => $datasetMeta['categoryId'],
+				'fk_dst_subcat_id' => $datasetMeta['subcategoryId']
+			];
 
-				$datasetId = Dataset::create($datasetProps)->id;
+			if (isset($datasetMeta['id'])) {
+				$dataset = Dataset::find($datasetMeta['id']);
+				$dataset->update($datasetProps);
+			} else {
+				$dataset = Dataset::create($datasetProps);
 			}
+			$datasetId = $dataset->id;
 
 			// First, we insert all of the entities with "on duplicate key update", ensuring
 			// they all exist in the database.
@@ -105,23 +106,26 @@ class ImportController extends Controller {
 
 			// Now we feed in our set of variables and associated data
 			foreach ($variables as $variable) {
-				$values = $variable['values'];
-
-				// Find or create the associated source data
 				$sourceName = $variable['source']['name'];
-				$sourceDesc = $variable['source']['description'];
-
 				if (isset($sourceIdsByName[$sourceName])) {
 					$sourceId = $sourceIdsByName[$sourceName];
 				} else {
-					$sourceId = Source::updateOrCreate(
-						['datasetId' => $datasetId, 'name' => $sourceName],
-						['datasetId' => $datasetId, 'name' => $sourceName, 'description' => $sourceDesc]
-					)->id;
+					// Create or update the associated source data
+					$sourceId = isset($variable['source']['id']) ? $variable['source']['id'] : null;
+					$sourceDesc = $variable['source']['description'];
 
-					$sourceIdsByName[$sourceName] = $sourceId;
+					if ($sourceId) {
+						Source::find($sourceId)->update($variable['source']);
+					} else {
+						$sourceId = Source::create(
+							['datasetId' => $datasetId, 'name' => $sourceName, 'description' => $sourceDesc]
+						)->id;
+					}
+
+					$sourceIdsByName[$sourceName] = $sourceId;					
 				}
 
+				$values = $variable['values'];
 				$newVariable = [
 					'name' => $variable['name'],
 					'description' => $variable['description'],

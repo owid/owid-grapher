@@ -520,31 +520,23 @@ a.clear-settings-btn {
   font-size: 0.8rem; }
 
 /* dataset section */
-.import-view .existing-dataset-section {
-  display: none; }
-
 .import-view .dataset-radiogroup label {
   margin-right: 20px; }
 
-.import-view .new-dataset-section,
-.import-view .existing-dataset-section {
-  margin: 10px 0px; }
+.import-view .dataset-section {
+  margin: 10px 0px;
+}
 
-.import-view .new-dataset-section [name=new_dataset_name],
-.import-view .existing-dataset-section [name=existing_dataset_id] {
+.import-view .dataset-section label {
   display: block;
-  width: 40%; }
+}
 
-.import-view .new-dataset-section .new-dataset-description-btn {
+.import-view .dataset-section [name=existing_dataset_id],
+.import-view .dataset-section [name=dataset_name],
+.import-view .dataset-section textarea {
   display: block;
-  margin: 15px 0px 2px; }
-
-.import-view .new-dataset-section .new-dataset-description-btn i {
-  margin-right: 10px;
-  font-size: 12px; }
-
-.import-view .new-dataset-section .new-dataset-description {
-  display: none; }
+  width: 40%; 
+}
 
 .import-view .file-picker-wrapper {
   height: 50px;
@@ -653,9 +645,6 @@ a.clear-settings-btn {
 
 .import-view .category-section label {
   margin-bottom: 10px; }
-
-.import-view .category-section [name="new_dataset_tags"] {
-  width: 40%; }
 
 /* variable type section */
 .import-view .variable-type-section [name="variable_type"] {

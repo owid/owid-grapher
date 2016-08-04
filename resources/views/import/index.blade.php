@@ -14,28 +14,25 @@
 		{!! Form::open(array('class' => 'form-inline validate-form', 'method' => 'post', 'url' => 'import/store')) !!}
 			<input name="user_id" class="" type="hidden" value="{!! \Auth::user()->id !!}" />
 			<section class="form-section dataset-section">
-					<div class="form-section-header">
-						<h3><span class="form-section-digit">1</span>Choose your dataset</h3>
-					</div>
-					<div class="form-section-content">
-						<fieldset class="dataset-radiogroup">
-							<label><input type="radio" class="" name="new_dataset" value="1" checked/> Create new dataset</label>
-							<label><input type="radio" class="" name="new_dataset" value="0" /> Choose an existing dataset</label>
-						</fieldset>
-						<div class="new-dataset-section">
-							{!! Form::text('new_dataset_name', '', array('class' => 'form-control required', 'placeholder' => 'Short name for your dataset' )); !!}
-							<a href="#" class="new-dataset-description-btn"><i class="fa fa-plus"></i><span>Add dataset description<span></a>
-							{!! Form::textarea ('new_dataset_description', '', array('class' => 'form-control new-dataset-description', 'placeholder' => 'Optional description for dataset' )); !!}
-						</div>
-						<div class="existing-dataset-section">
-							<select name='existing_dataset_id' class="form-control">
-								<option value="" disabled selected>Select your dataset</option>
-								@foreach( $data['datasets'] as $dataset )
-									<option value="{{ $dataset->id }}">{{ $dataset->name }}</option>
-								@endforeach
-							</select>
-						</div>
-					</div>
+				<div class="form-section-header">
+					<h3><span class="form-section-digit">1</span>Choose your dataset</h3>
+				</div>
+				<div class="form-section-content">
+					<select name='existing_dataset_id' class="form-control">
+						<option value="" selected>Create new dataset</option>
+						@foreach ($data['datasets'] as $dataset)
+							<option value="{{ $dataset->id }}">{{ $dataset->name }}</option>
+						@endforeach
+					</select>
+					<label>
+						Name
+						{!! Form::text('dataset_name', '', array('class' => 'form-control required', 'placeholder' => 'Short name for your dataset' )); !!}
+					</label>
+					<label>
+						Description
+						{!! Form::textarea('dataset_description', '', array('class' => 'form-control dataset-description', 'placeholder' => 'Optional description for dataset' )); !!}
+					</label>
+				</div>
 			</section>
 			<section class="form-section dataset-type-section">
 					<div class="form-section-header">
