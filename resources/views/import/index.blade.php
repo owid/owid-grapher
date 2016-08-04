@@ -67,7 +67,8 @@
 					</div>
 					<div class="form-section-content">
 						<p class="form-section-desc">Here you can configure the variables that will be stored for your dataset. If possible the variable name should be of the format measure + source (e.g. Population density – Clio Infra)</p>
-						<ol></ol>
+						<ol></ol>						
+						<div class="variable-validation"></div>
 						<p class="affected-charts"></p>
 					</div>
 			</section>

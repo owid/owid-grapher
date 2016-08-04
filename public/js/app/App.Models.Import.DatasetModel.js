@@ -2,6 +2,8 @@
 	"use strict";
 	owid.namespace("App.Models.Import.DatasetModel");
 
+	// Core model for the importer. Represents the dataset we are either
+	// creating or modifying.
 	App.Models.Import.DatasetModel = Backbone.Model.extend({	
 		defaults: {
 			id: null,

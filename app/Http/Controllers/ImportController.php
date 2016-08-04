@@ -126,7 +126,7 @@ class ImportController extends Controller {
 				}
 
 				$values = $variable['values'];
-				$newVariable = [
+				$variableProps = [
 					'name' => $variable['name'],
 					'description' => $variable['description'],
 					'unit' => $variable['unit'],
@@ -138,9 +138,12 @@ class ImportController extends Controller {
 					'updated_at' => Carbon::now()
 				];
 
-				$varId = Variable::updateOrCreate(
-					['name' => $variable['name'], 'fk_dst_id' => $datasetId],
-					$newVariable)->id;
+				if (isset($variable['overwriteId'])) {
+					Variable::find($variable['overwriteId'])->update($variableProps);
+					$varId = $variable['overwriteId'];
+				} else {
+					$varId = Variable::create($variableProps)->id;
+				}
 
 				// Delete any existing data values
 				DB::table('data_values')->where('fk_var_id', '=', $varId)->delete();

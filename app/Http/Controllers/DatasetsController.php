@@ -97,7 +97,8 @@ class DatasetsController extends Controller {
 				];
 			}
 
-			$vardata = [				
+			$vardata = [			
+				'id' => $var->id,	
 				'name' => $var->name,
 				'unit' => $var->unit,
 				'description' => $var->description,

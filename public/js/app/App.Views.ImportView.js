@@ -427,7 +427,7 @@
 		onFormSubmit: function( evt ) {
 			evt.preventDefault();
 
-			var $validationResults = $(".time-domain-validation-result.text-danger, .times-validation-result.text-danger, .category-validation-result");
+			var $validationResults = $(".time-domain-validation-result.text-danger, .times-validation-result.text-danger, .category-validation-result, .variable-validation-result");
 
 			if( $validationResults.length ) {
 				//do not send form and scroll to error message
