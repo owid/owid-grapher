@@ -55,6 +55,7 @@
 				return;
 			}
 
+			var $modal = owid.modal({ title: "Loading dataset..."});
 			this.req = $.get(Global.rootUrl + "/datasets/" + id + ".json")
 				.done(function(data) { 
 					this.set(_.omit(data, 'variables'));
@@ -63,7 +64,10 @@
 				.fail(function(err) {
 					if (err.statusText == "abort") return;
 					owid.reportError(err, "Unable to load dataset " + this.datasetId + " \"" + this.datasetName + "\"");
-				}.bind(this));
+				}.bind(this))
+				.always(function() {
+					$modal.modal('hide');
+				});
 		}
 	});
 })();
