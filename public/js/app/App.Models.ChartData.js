@@ -93,7 +93,7 @@
 			});
 
 			if (addCountryMode === "add-country")
-				chartData = _.sortBy(chartData, function(series) { return series.entityName + series.key; });
+				chartData = _.sortBy(chartData, function(series) { return series.entityName; });
 
 			legendData = _.map(chartData, function(series) {
 				return { label: series.key, key: series.key, entityId: series.entityId, variableId: series.variableId };

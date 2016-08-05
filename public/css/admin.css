@@ -272,7 +272,7 @@ button[type="submit"]:not(".delete-btn") {
 .country-label:hover,
 .variable-label:hover {
   border: 1px solid #666;
-  color: #000; }
+}
 
 .country-label .fa {
   color: #bbb;
@@ -757,6 +757,7 @@ a.clear-settings-btn {
   margin-bottom: 10px;
   background-color: #fff;
   border: 1px solid #bbb;
+  width: 100%;
 }
 .variable-label .dd-handle {
   background: transparent; 
@@ -764,29 +765,44 @@ a.clear-settings-btn {
   cursor: move;
   cursor: -webkit-grab;   
   padding: 10px 20px;    
+  padding-right: 50px;
   margin: 0;  
+  width: 100%;
 }
-
 .variable-label .variable-label:hover {
     background-color: #ddd; 
 }
 .variable-label .dd-handle:hover {
-    color: inherit; 
+  color: #000; 
 }
+.variable-label[data-color] .dd-handle {
+  color: #eee;
+}
+.variable-label[data-color] .dd-handle:hover {
+  color: white;
+}
+
 .variable-label .variable-label-input input {
     position: relative;
     top: -6px; 
 }
 .variable-label .buttons {
-  margin-right: 20px;
-  margin-left: -15px;
   font-size: 15px;
+  position: absolute;
+  right: 10px;
+  top: 10px;
 }
 .variable-label .fa {
   color: #666;
 }
 .variable-label .fa:hover {
   color: #000; 
+}
+.variable-label[data-color] .fa {
+  color: #eee;
+}
+.variable-label[data-color] .fa:hover {
+  color: white;
 }
 .variable-label .fa-close:hover {
   color: red; 

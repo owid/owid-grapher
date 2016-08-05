@@ -23,6 +23,7 @@
 			this.$addCountryControlInput = this.$el.find("[name='add-country-control']");
 			this.listenTo(App.VariableData, "change:availableEntities", this.render.bind(this));
 			this.listenTo(App.ChartModel, "change:selected-countries", this.render.bind(this));
+			this.listenTo(App.ChartModel, "change:add-country-mode", this.renderAddCountryMode.bind(this));
 			this.render();
 		},
 
@@ -51,7 +52,9 @@
 				if (!selectedEntitiesById[entity.id])
 					this.$entitiesSelect.append($("<option value='" + entity.id + "'>" + entity.name + "</option>"));
 			}.bind(this));
+		},
 
+		renderAddCountryMode: function() {
 			// Allow choosing whether or not the viewer can add their own countries
 			var addCountryMode = App.ChartModel.get("add-country-mode");
 			this.$el.find("[name='add-country-mode']").filter("[value='" + addCountryMode + "']").prop("checked", true);

@@ -103,6 +103,10 @@
 				_.extend(defaults, {
 					"hide-legend": true,
 				});
+			} else if (chartType == App.ChartType.StackedArea) {
+				_.extend(defaults, {
+					"add-country-mode": "change-country"
+				});
 			}
 
 			return defaults;
