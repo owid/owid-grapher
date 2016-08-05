@@ -14,9 +14,7 @@ One of the neat things owid-grapher can do is automatically export an interactiv
 
 You will need: [MySQL](https://www.mysql.com/), [PHP 5.5.9+](http://php.net/downloads.php), [Composer](https://getcomposer.org/), and [NPM](https://nodejs.org/en/download/). The [Laravel Homestead](https://laravel.com/docs/4.2/homestead) vagrant box comes with these installed.
 
-Running `composer install` and `npm install` in the repo root will grab the remaining dependencies. You may wish to install [gulp](https://github.com/gulpjs/gulp/blob/master/docs/getting-started.md) globally using `npm install -g` so that it ends up on your PATH.
-
-Once you have `gulp`, run it in the repo to generate public asset files.
+Running `composer install` and `npm install` in the repo root will grab the remaining dependencies.
 
 ## Database setup
 
