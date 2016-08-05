@@ -194,8 +194,11 @@
 				values = targetVariable.values,
 				entities = targetVariable.entities,
 				targetYear = parseInt(this.mapConfig.targetYear),
-				tolerance = parseInt(this.mapConfig.timeTolerance) || 1,
+				tolerance = parseInt(this.mapConfig.timeTolerance),
 				mapData = {};
+
+			if (isNaN(tolerance))
+				tolerance = 0;
 
 			if (this.mapConfig.mode === "no-interpolation")
 				tolerance = 0;
