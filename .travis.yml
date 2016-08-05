@@ -5,7 +5,6 @@ before_script:
   - cp .env.travis .env
   - composer install --no-interaction
   - mysql -e 'create database forge_test;'
-  - mysql -D forge_test < database/schema.sql
 script:
   - phpunit
 notifications:
