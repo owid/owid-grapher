@@ -7,7 +7,6 @@ use App\Setting;
 use App\Variable;
 use App\DatasetCategory;
 use App\DatasetSubcategory;
-use App\ChartType;
 use App\Logo;
 use App\ChartDimension;
 
@@ -50,7 +49,6 @@ class ChartsController extends Controller {
 
 	public function editorData() {
 		$data = new \StdClass;
-		$data->chartTypes = ChartType::lists( 'name', 'id' );
 		$data->logos = Logo::lists( 'name', 'url' );
 
 		$query = DB::table("variables")

@@ -17,7 +17,6 @@ Route::model( 'datasets', 'Dataset' );
 Route::model( 'variables', 'Variable' );
 Route::model( 'values', 'DataValue' );
 Route::model( 'charts', 'Chart' );
-Route::model( 'chartTypes', 'ChartTypes' );
 Route::model( 'categories', 'DatasetCategory' );
 Route::model( 'subcategories', 'DatasetSubcategory' );
 Route::model( 'tags', 'DatasetTag' );
@@ -36,7 +35,6 @@ Route::group(['middleware' => ['basic', 'session', 'auth']], function()
 	Route::post('charts/{id}/star', 'ChartsController@star');
 	Route::post('charts/{id}/unstar', 'ChartsController@unstar');
 	Route::resource( 'charts', 'ChartsController' );
-	Route::resource( 'chartTypes', 'ChartTypesController' );
 	Route::resource( 'categories', 'CategoriesController' );
 	Route::resource( 'subcategories', 'SubcategoriesController' );
 	Route::resource( 'tags', 'TagsController' );
@@ -62,9 +60,6 @@ Route::group(['middleware' => ['basic', 'session', 'auth']], function()
 	});
 	Route::bind( 'charts', function($value, $route) {
 		return App\Chart::whereId($value)->first();
-	});
-	Route::bind( 'chartTypes', function($value, $route) {
-		return App\ChartType::whereId($value)->first();
 	});
 	Route::bind( 'categories', function($value, $route) {
 		return App\DatasetCategory::whereId($value)->first();
