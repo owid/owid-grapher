@@ -60,15 +60,17 @@
 
 			_.each(legendData, function(group) {
 				var entity = selectedEntitiesById[group.entityId],
-					dimension = App.ChartModel.getDimensionById(group.variableId);
+					dimension = App.ChartModel.getDimensionById(group.variableId),
+					isMultiVariable = App.ChartModel.isMultiVariable(),
+					isMultiEntity = App.ChartModel.isMultiEntity();
 
 				if (group.color) {
 					group.color = this.assignColorForKey(group.key, group.color, { canVary: false });
 				} else if (entity && entity.color) {
-					group.color = this.assignColorForKey(group.key, entity.color, { canVary: group.key != entity.name });
+					group.color = this.assignColorForKey(group.key, entity.color, { canVary: isMultiVariable });
 				} else if (dimension && dimension.color) {
-					group.color = this.assignColorForKey(group.key, dimension.color, { canVary: group.key != dimension.displayName });
-				} else if (addCountryMode == "add-country" || _.size(selectedEntitiesById) > 1) {
+					group.color = this.assignColorForKey(group.key, dimension.color, { canVary: isMultiEntity });
+				} else if (isMultiEntity) {
 					// If in multi-variable, multi-entity mode, two entity labels are colored along the same gradient
 					if (this.colorCache[group.entityId])
 						group.color = this.assignColorForKey(group.key, this.colorCache[group.entityId]);

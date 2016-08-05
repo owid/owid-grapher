@@ -141,6 +141,10 @@
 			if (!_.isEmpty(changes)) this.set(changes);
 		},
 
+		getSelectedEntities: function() {
+			return App.ChartModel.get("selected-countries");
+		},
+
 		getSelectedEntitiesById: function() {
 			var entities = {};
 
@@ -333,6 +337,19 @@
 		isLegendKeyActive: function(key) {
 			var activeLegendKeys = this.get("activeLegendKeys");
 			return activeLegendKeys === null || _.contains(activeLegendKeys, key);
+		},
+
+		isMultiEntity: function() {
+			if (this.getSelectedEntities().length > 1)
+				return true;
+			else if (this.get("add-country-mode") == "add-country" && App.VariableData.countEntities() > 1)
+				return true;
+			else
+				return false;
+		},
+
+		isMultiVariable: function() {
+			return this.getDimensions().length > 1;
 		},
 
 		checkMissingData: function() {

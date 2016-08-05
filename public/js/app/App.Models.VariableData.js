@@ -96,6 +96,10 @@
 			return this.get("entityKey");
 		},
 
+		countEntities: function() {
+			return _.size(this.get("entityKey"));
+		},
+
 		// When chart dimensions change, double check that our selected entities are valid
 		// And set some new defaults if they're not or missing
 		validateEntities: function() {
