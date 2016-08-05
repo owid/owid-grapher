@@ -36,17 +36,19 @@ if (system.args.length < 3 || system.args.length > 5) {
         page.zoomFactor = system.args[4];
     }
     page.onCallback = function(data) { 
-        try {
-            if (data && data.svg) {
-                var target = output.replace(".png", ".svg");
-                fs.write(target, data.svg, 'w');
-                phantom.exit();
-            } else {
-                page.render(output, { format: 'png' });
+        window.setTimeout(function() {
+            try {
+                if (data && data.svg) {
+                    var target = output.replace(".png", ".svg");
+                    fs.write(target, data.svg, 'w');
+                    phantom.exit();
+                } else {
+                    page.render(output, { format: 'png' });
+                }
+            } catch (e) {
+                console.log(e);
             }
-        } catch (e) {
-            console.log(e);
-        }
+        }, 100);
     }
     page.open(address, function (status) {
         if (status !== 'success') {
