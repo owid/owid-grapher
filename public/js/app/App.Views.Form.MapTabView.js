@@ -45,7 +45,9 @@
 			//make sure we have current data
 			this.updateTargetYear( true );
 
-			this.render();
+			App.ChartData.ready(function() {
+				this.render();
+			}.bind(this));
 
 			this.listenTo(App.ChartModel, "change", this.onChartModelChange.bind(this));
 			this.onChartModelChange();
@@ -79,7 +81,7 @@
 				minYear = App.VariableData.get("minYear") || new Date().getFullYear(),
 				maxYear = App.VariableData.get("maxYear") || new Date().getFullYear(),
 				years = owid.timeRangesToYears(mapConfig.timeRanges, minYear, maxYear),
-				options = [ { "title": "Earliest year", "value": "earliest" }, { "title": "Latest year", "value": "latest" } ];
+				options = [{ "title": "Earliest year", "value": "earliest" }, { "title": "Latest year", "value": "latest" }];
 
 			_.each(years, function(year) {
 				options.push({ "title": year, "value": year });
@@ -88,9 +90,9 @@
 			this.$defaultYearInput.empty();
 
 			var innerHtml = "";
-			$.each( options, function( i, option ) {
+			$.each(options, function( i, option ) {
 				innerHtml += "<option value='" + option.value + "'>" + option.title + "</option>";
-			} );
+			});
 			this.$defaultYearInput.html( innerHtml );
 
 			//update current value on select
