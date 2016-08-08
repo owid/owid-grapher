@@ -45,7 +45,7 @@
 
 			var isNew = App.ChartModel.isNew();
 
-			var prevAttrs = _.clone(App.ChartModel.attributes);
+			var prevAttrs = App.ChartModel.toJSON();
 			var attrs = _.extend({}, prevAttrs, newAttrs);
 			attrs["form-config"] = formConfig;
 			App.ChartModel.set(attrs, { silent: true });

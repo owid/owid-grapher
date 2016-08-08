@@ -97,7 +97,7 @@
 			});
 
 			var requestData = {
-				dataset: App.DatasetModel.attributes,
+				dataset: App.DatasetModel.toJSON(),
 				entityKey: importData.entityKey,
 				years: importData.years,
 				entities: importData.entities,

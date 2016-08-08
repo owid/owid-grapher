@@ -131,7 +131,7 @@
 			// If this is the first time we switch to custom, populate custom
 			// values with the current color scheme
 			if (colorSchemeName == "custom" && _.isEmpty(customColorScheme))
-				App.MapModel.set("customColorScheme", owdColorbrewer.getColors(App.MapModel.attributes), { silent: true });
+				App.MapModel.set("customColorScheme", owdColorbrewer.getColors(App.MapModel.toJSON()), { silent: true });
 
 			App.MapModel.set("colorSchemeName", colorSchemeName);
 		},

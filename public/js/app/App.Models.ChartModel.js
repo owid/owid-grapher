@@ -85,7 +85,8 @@
 
 		initialize: function() {
 			this.on("change:chart-type", this.onChangeType, this);
-			App.MapModel = new App.Models.MapModel(this);
+			App.MapModel = new App.Models.MapModel();
+			App.MapModel.bind(this);
 			$(document).trigger("chart-model");
 		},
 

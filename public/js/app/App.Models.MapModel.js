@@ -53,17 +53,15 @@
 			"legendOrientation": "portrait",
 		},
 
-		initialize: function(chartModel) {
+		bind: function(chartModel) {
 			this.chartModel = chartModel;
-
-			this.set(this.chartModel.get("map-config"));
 
 			this.listenTo(this.chartModel, "change:map-config", function() {
 				this.set(this.chartModel.get("map-config"));
 			}.bind(this));
 
 			this.on("change", function() {
-				this.chartModel.set("map-config", _.clone(this.attributes));
+				this.chartModel.set("map-config", this.toJSON());
 			}.bind(this));
 		},
 
@@ -72,7 +70,7 @@
 		},
 
 		getColors: function() {
-			return owdColorbrewer.getColors(this.attributes);
+			return owdColorbrewer.getColors(this.toJSON());
 		}
 	});
 })();
