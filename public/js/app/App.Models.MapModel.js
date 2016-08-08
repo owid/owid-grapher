@@ -61,7 +61,6 @@
 			this.listenTo(this.chartModel, "change:map-config", function() {
 				this.set(this.chartModel.get("map-config"));
 			}.bind(this));
-
 			this.on("change", function() {
 				this.chartModel.set("map-config", this.toJSON());
 			}.bind(this));
@@ -95,7 +94,7 @@
 
 		showOnlyRelevantLegend: function() {
 			var variable = this.getVariable();
-			return !variable.isNumeric && variable.uniqueValues.length > 6;
+			return !variable.isNumeric && variable.uniqueValues.length > 8;
 		}
 	});
 })();
