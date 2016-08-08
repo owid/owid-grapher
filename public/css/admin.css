@@ -775,10 +775,10 @@ a.clear-settings-btn {
 .variable-label .dd-handle:hover {
   color: #000; 
 }
-.variable-label[data-color] .dd-handle {
+.variable-label[data-color^="#"] .dd-handle {
   color: #eee;
 }
-.variable-label[data-color] .dd-handle:hover {
+.variable-label[data-color^="#"] .dd-handle:hover {
   color: white;
 }
 
@@ -798,10 +798,10 @@ a.clear-settings-btn {
 .variable-label .fa:hover {
   color: #000; 
 }
-.variable-label[data-color] .fa {
+.variable-label[data-color^="#"] .fa {
   color: #eee;
 }
-.variable-label[data-color] .fa:hover {
+.variable-label[data-color^="#"] .fa:hover {
   color: white;
 }
 .variable-label .fa-close:hover {
