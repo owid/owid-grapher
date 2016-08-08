@@ -5,6 +5,7 @@
 	var Header = require("App.Views.Chart.Header"),
 		Footer = require("App.Views.Chart.Footer"),
 		ChartURL = require("App.Views.ChartURL"),
+		DebugHelper = require("App.Views.DebugHelper"),
 		ScaleSelectors = require("App.Views.Chart.ScaleSelectors"),
 		ChartTab = require("App.Views.Chart.ChartTab"),
 		DataTab = require("App.Views.Chart.DataTab"),
@@ -61,6 +62,7 @@
 			this.header = new Header(childViewOptions);
 			this.footer = new Footer(childViewOptions);
 			this.scaleSelectors = new ScaleSelectors(childViewOptions);
+			this.debugHelper = new DebugHelper(childViewOptions);
 			//tabs
 			var chartType = App.ChartModel.get("chart-type");
 			this.chartTab = new ChartTab(childViewOptions);

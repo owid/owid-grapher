@@ -22,7 +22,6 @@
 		App.ChartModel.fetch( {
 			success: function( data ) {
 				App.View.start();
-			
 			},
 			error: function( xhr ) {
 				console.error( "Error loading chart model", xhr );

@@ -216,7 +216,7 @@
 				var entityName = owid.entityNameForMap(entityKey[entities[i]].name);
 
 				mapData[entityName] = {
-					value: parseFloat(values[i]),
+					value: values[i],
 					year: years[i]
 				};
 			}
@@ -282,17 +282,18 @@
 		},
 
 		makeColorScale: function() {
-			var mapConfig = this.mapConfig;
-			var colorScheme = owdColorbrewer.getColors(mapConfig);
+			var mapConfig = this.mapConfig,
+				colorScheme = owdColorbrewer.getColors(mapConfig),
+				variable = App.MapModel.getVariable();
 
 			var colorScale,
 				customValues = mapConfig.colorSchemeValues,
 				automaticValues = mapConfig.colorSchemeValuesAutomatic;
 
-			var categoricalScale = false;
+			var categoricalScale = variable && !variable.isNumeric;
 
 			//use quantize, if we have numerica scale and not using automatic values, or if we're trying not to use automatic scale, but there no manually entered custom values
-			if( !categoricalScale && ( automaticValues || (!automaticValues && !customValues) ) ) {
+			if (!categoricalScale && (automaticValues || (!automaticValues && !customValues)) ) {
 				//we have quantitave scale
 				colorScale = d3.scale.quantize()
 					.domain( [ this.minValue, this.maxValue ] );
@@ -301,10 +302,8 @@
 				colorScale = d3.scale.equal_threshold()
 					.domain( customValues );
 			} else {
-/*				var keys = _.keys( keysArr );
-				keys = keys.sort();
-				colorScale = d3.scale.ordinal()
-					.domain( _.keys( keysArr ) );*/
+				var values = _.uniq(variable.values);
+				colorScale = d3.scale.ordinal().domain(values);
 			}
 			colorScale.range(colorScheme);
 

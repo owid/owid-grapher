@@ -47,7 +47,6 @@ for( var schemeName in colorbrewer ) {
 
 	owdColorbrewer[ schemeName ] = { name: longSchemeName, "colors": [] };
 	for( var i in colorSchemes ) {
-
 		var scheme = colorSchemes[ i ];
 		if( i === "3" ) {
 			//add extra binary scheme 
@@ -55,18 +54,27 @@ for( var schemeName in colorbrewer ) {
 		}
 		//and copy the others from color brewer
 		owdColorbrewer[ schemeName ][ "colors" ][ i ] = scheme;
-	
 	}
 }
 
-owdColorbrewer[ "custom" ] = { "name": "custom", "colors": []};
+var distinctScheme = { name: "OWID Distinct", colors: [] };
+var colors = ["#3360a9", "#ca2628", "#34983f", "#ed6c2d", "#df3c64", "#a85a4a", "#e6332e", "#6bb537", "#ffd53e", "#f07f59", "#b077b1", "#932834", "#674c98", "#5eb77e", "#f6a324", "#2a939b", "#818282", "#7ec7ce", "#fceb8c", "#cfcd1e", "#58888f", "#ce8ebd", "#9ecc8a", "#db2445", "#f9bc8f", "#d26e66", "#c8c8c8"];
+_.each(colors, function(v, i) {
+	distinctScheme.colors.push(colors.slice(0, i));
+});
+console.log(distinctScheme);
+owdColorbrewer["owid-distinct"] = distinctScheme;
+owdColorbrewer["custom"] = { name: "custom", colors: []};
 
 owdColorbrewer.getColors = function(mapConfig) {
-	var isColorblind = mapConfig.isColorblind,
+	var variable = App.MapModel.getVariable(),
+		isNumeric = variable.isNumeric,
+		isColorblind = mapConfig.isColorblind,
 		colorSchemeName = (isColorblind ? "RdYlBu" : mapConfig.colorSchemeName) || "",
 		colorSchemeInterval = mapConfig.colorSchemeInterval || 2,
 		colorSchemeInvert = mapConfig.colorSchemeInvert || false,
-		customColorScheme = mapConfig.customColorScheme || [];
+		customColorScheme = mapConfig.customColorScheme || [],
+		numColors = isNumeric ? colorSchemeInterval : variable.uniqueValues.length;
 
 	if (colorSchemeInvert) {
 		var colors = this.getColors(_.extend({}, mapConfig, { colorSchemeInvert: false }));
@@ -83,16 +91,16 @@ owdColorbrewer.getColors = function(mapConfig) {
 		return this.getColors(_.extend({}, mapConfig, { colorSchemeName: _.keys(owdColorbrewer)[0] }));
 	}
 
-	if (!_.isEmpty(scheme.colors[colorSchemeInterval]))
-		return _.clone(scheme.colors[colorSchemeInterval]);
+	if (!_.isEmpty(scheme.colors[numColors]))
+		return _.clone(scheme.colors[numColors]);
 
 	// Handle the case of a single color (just for completeness' sake)
-	if (colorSchemeInterval == 1 && !_.isEmpty(scheme.colors[2]))
+	if (numColors == 1 && !_.isEmpty(scheme.colors[2]))
 		return [scheme.colors[2][0]];
 
 	// If there's no preset color scheme for this many colors, improvise a new one
 	var colors = _.clone(scheme.colors[scheme.colors.length-1]);
-	while (colors.length < colorSchemeInterval) {
+	while (colors.length < numColors) {
 		for (var i = 1; i < colors.length; i++) {
 			var startColor = d3.rgb(colors[i-1]);
 			var endColor = d3.rgb(colors[i]);
@@ -100,7 +108,7 @@ owdColorbrewer.getColors = function(mapConfig) {
 			colors.splice(i, 0, newColor);
 			i += 1;
 
-			if (colors.length >= colorSchemeInterval) break;
+			if (colors.length >= numColors) break;
 		}		
 	}
 	return colors;

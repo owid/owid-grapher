@@ -3,10 +3,9 @@
 	owid.namespace("App.Views.Form.MapTabView");
 
 	var	owdProjections = App.Views.Chart.Map.Projections,
-		ColorSchemeView = App.Views.Form.MapColorSchemeView;
+		MapColorSection = App.Views.Form.MapColorSection;
 
 	App.Views.Form.MapTabView = owid.View.extend({
-
 		el: "#form-view #map-tab",
 		events: {
 			"change [name='map-variable-id']": "onVariableIdChange",
@@ -22,7 +21,7 @@
 			"change [name='map-legend-orientation']": "onLegendOrientationChange"
 		},
 
-		initialize: function( options ) {
+		initialize: function(options) {
 			this.dispatcher = options.dispatcher;
 
 			this.$variableIdSelect = this.$el.find( "[name='map-variable-id']" );
@@ -35,15 +34,15 @@
 			this.$colorSchemeSelect = this.$el.find( "[name='map-color-scheme']" );
 			this.$colorIntervalSelect = this.$el.find( "[name='map-color-interval']" );
 			
-			this.$defaultProjectionSelect = this.$el.find( "[name='map-default-projection']" );
-			this.$legendDescription = this.$el.find( "[name='map-legend-description']" );
-			this.$legendStepSize = this.$el.find( "[name='map-legend-step-size']" );
-			this.$legendOrientation = this.$el.find( "[name='map-legend-orientation']" );
+			this.$defaultProjectionSelect = this.$el.find("[name='map-default-projection']" );
+			this.$legendDescription = this.$el.find("[name='map-legend-description']" );
+			this.$legendStepSize = this.$el.find("[name='map-legend-step-size']" );
+			this.$legendOrientation = this.$el.find("[name='map-legend-orientation']" );
 
-			this.colorSchemeView = new ColorSchemeView( options );
+			this.colorsSection = this.addChild(MapColorSection);
 
 			//make sure we have current data
-			this.updateTargetYear( true );
+			this.updateTargetYear(true);
 
 			App.ChartData.ready(function() {
 				this.render();
@@ -68,8 +67,6 @@
 			this.$legendOrientation.val( legendOrientation );
 
 			this.updateDefaultYearSelect();
-			this.updateColorSchemeSelect();
-			this.updateColorIntervalSelect();
 			this.updateDefaultProjectionSelect();
 			this.updateTimelineMode();
 		},
@@ -138,23 +135,6 @@
 			}
 		},
 		
-		updateColorSchemeSelect: function() {			
-			var html = "",
-				mapConfig = App.ChartModel.get( "map-config" );
-
-			this.$colorSchemeSelect.empty();
-			_.each( owdColorbrewer, function( v, i ) {
-				var selected = ( i == mapConfig.colorSchemeName )? " selected": "";
-				html += "<option value='" + i + "' " + selected + ">" + v.name + "</option>";
-			} );
-			this.$colorSchemeSelect.append( $( html ) );
-		},
-
-		updateColorIntervalSelect: function() {
-			var mapConfig = App.ChartModel.get("map-config");
-			this.$colorIntervalSelect.val(mapConfig.colorSchemeInterval);
-		},
-
 		updateDefaultProjectionSelect: function() {			
 			var html = "",
 				mapConfig = App.ChartModel.get( "map-config" );
@@ -183,28 +163,7 @@
 		},
 
 		updateTimelineMode: function() {
-			
-			var mapConfig = App.ChartModel.get( "map-config" );
-			if( mapConfig.timelineMode ) {
-
-				this.$timeModeSelect.val( mapConfig.timelineMode );
-			
-			} else {
-			
-				//no timeline mode set
-				var min = mapConfig.minYear,
-					max = mapConfig.maxYear,
-					step = mapConfig.timeInterval,
-					numBtns = Math.floor( ( max - min ) / step );
-
-				if( numBtns < 8 ) {
-					//has limited number of buttons
-					this.$timeModeSelect.val( "buttons" );
-					this.$timeModeSelect.trigger( "change" );
-				}
-
-			}
-
+			this.$timeModeSelect.val(App.MapModel.get("timelineMode"));
 		},
 
 		onVariableIdChange: function() {
@@ -260,25 +219,6 @@
 			App.ChartModel.updateMapConfig("targetYearMode", targetYearMode);
 		},
 
-		onColorSchemeChange: function( evt ) {
-			var mapConfig = App.ChartModel.get("map-config");
-			var colorSchemeName = $(evt.target).val();
-
-			// If this is the first time we switch to custom, populate custom
-			// values with the current color scheme
-			if (colorSchemeName == "custom" && _.isEmpty(mapConfig.customColorScheme))
-				App.ChartModel.updateMapConfig("customColorScheme", owdColorbrewer.getColors(mapConfig));
-
-			App.ChartModel.updateMapConfig("colorSchemeName", colorSchemeName);
-			//need to update number of classes
-			this.updateColorIntervalSelect();
-		},
-
-		onColorIntervalChange: function( evt ) {
-			var $this = $( evt.target );
-			App.ChartModel.updateMapConfig( "colorSchemeInterval", parseInt( $this.val(), 10 ) );
-		},
-
 		onDefaultProjectionChange: function(evt) {
 			var $this = $(evt.target);
 			App.ChartModel.updateMapConfig("defaultProjection", $this.val(), true);
@@ -287,7 +227,6 @@
 
 		onChartModelChange: function(evt) {
 			App.ChartData.ready(function() {
-				this.updateColorSchemeSelect();
 				this.updateTimelineMode();
 				this.updateTargetYear(true);
 				this.updateVariableSelect();

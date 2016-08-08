@@ -165,6 +165,7 @@ return [
 		        'app/constants.js',
 		        'app/App.Utils.js',
 		        'app/App.Models.ChartModel.js',
+		        'app/App.Models.MapModel.js',
 		        'app/App.Models.VariableData.js',
 		        'app/App.Models.ChartData.js',
 		        'app/App.Models.Colors.js',
@@ -186,6 +187,7 @@ return [
 		        'app/App.Views.Chart.MapTab.js',
 
 		        'app/App.Views.ChartURL.js',
+		        'app/App.Views.DebugHelper.js',
 		        'app/App.Views.ChartView.js',		        
 		        'app/ChartApp.js'		    
 			],
@@ -241,7 +243,7 @@ return [
 	            'app/App.Views.Form.AxisTabView.js',
 	            'app/App.Views.Form.StylingTabView.js',
 	            'app/App.Views.Form.ExportTabView.js',
-	            'app/App.Views.Form.MapColorSchemeView.js',
+	            'app/App.Views.Form.MapColorSection.js',
 	            'app/App.Views.Form.MapTabView.js',
 	            'app/App.Views.Form.SaveButtons.js',
 	            'app/App.Views.FormView.js',

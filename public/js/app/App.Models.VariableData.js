@@ -82,6 +82,30 @@
 			var minYear = _.min(startYears);
 			var maxYear = _.max(endYears);
 
+			// For each variable, heuristically determine if it is categorical or numeric data
+			_.each(variableData.variables, function(variable) {
+				// Grab the first few unique values
+				var seen = {};
+				for (var i = 0; i < variable.values.length; i++) {
+					seen[variable.values[i]] = true;
+					if (_.size(seen) >= 2) break;
+				}
+
+				variable.isNumeric = _.every(seen, function(v, k) {
+					return parseFloat(k) == k;
+				});
+
+				// If numeric data, standardize
+				if (variable.isNumeric) {
+					for (i = 0; i < variable.values.length; i++) {
+						variable.values[i] = parseFloat(variable.values[i]);
+					}
+				} else {
+					// Otherwise cache the unique categorical values
+					variable.uniqueValues = _.uniq(variable.values);
+				}
+			});
+
 			// Slap the ids onto the entities
 			_.each(variableData.entityKey, function(entity, id) {
 				entity.id = +id;
@@ -129,6 +153,10 @@
 
 		getEntityById: function(id) {
 			return this.get("entityKey")[id];
+		},
+
+		getVariableById: function(id) {
+			return this.get("variables")[id];
 		}
 	});
 })();

@@ -142,18 +142,21 @@
 		var titlePrefix = (unit.title ? unit.title + ": " : ""),
 			unitSuffix = (unit.unit ? s.trim(unit.unit) : "");
 
-		if (!isNaN(unit.format) && unit.format >= 0) {
-			var fixed = Math.min(20, parseInt(unit.format, 10));
-			value = d3.format(",." + fixed + "f")(value);
-		} else {
-			value = d3.format(",")(value);
-		}
+		// Do precision fiddling, if the value is numeric
+		if (_.isNumber(value)) {
+			if (!isNaN(unit.format) && unit.format >= 0) {
+				var fixed = Math.min(20, parseInt(unit.format, 10));
+				value = d3.format(",." + fixed + "f")(value);
+			} else {
+				value = d3.format(",")(value);
+			}
 
-		if (options.noTrailingZeroes) {
-			var m = value.match(/([0-9,-]+.[0-9,]*?)0*$/);
-			if (m) value = m[1];
-			if (value[value.length-1] == ".")
-				value = value.slice(0, value.length-1);
+			if (options.noTrailingZeroes) {
+				var m = value.match(/([0-9,-]+.[0-9,]*?)0*$/);
+				if (m) value = m[1];
+				if (value[value.length-1] == ".")
+					value = value.slice(0, value.length-1);
+			}
 		}
 
 		if (unitSuffix == "$" || unitSuffix == "£")
@@ -197,7 +200,7 @@
 			return [];
 		else
 			return $.parseJSON(unitsString);
-	},
+	};
 
 	// MISPY: The default nvd3 stacked area tooltip is nice, but we also want to add a total.
 	owid.stackedAreaTooltipGenerator = function(data) {
@@ -241,7 +244,7 @@
 	// Also removes non-ascii characters which may break datamaps
 	owid.entityNameForMap = function(name) {
 		return owid.makeSafeForCSS(name.replace(/[ '&:\(\)\/]/g, "_"));
-	}
+	};
 
 	owid.contentGenerator = function(data, isMapPopup) {
 		var unitsString = App.ChartModel.get("units"),
@@ -250,9 +253,9 @@
 			series = data.series[0], value = data.data,
 			string = "", valuesString = "";
 
-		if (chartType == App.ChartType.ScatterPlot)
+		if (!isMapPopup && chartType == App.ChartType.ScatterPlot)
 			return owid.scatterPlotTooltipGenerator(data);
-		else if (chartType == App.ChartType.StackedArea)
+		else if (!isMapPopup && chartType == App.ChartType.StackedArea)
 			return owid.stackedAreaTooltipGenerator(data);
 
 		if (!series) return "";
@@ -272,11 +275,11 @@
 			point = { "y": series.value, "time": data.data.time };
 		}
 
-		$.each( point, function( i, v ) {
+		_.each(point, function(v, i) {
 			//for each data point, find appropriate unit, and if we have it, display it
-			var unit = _.findWhere( units, { property: i } ),
+			var unit = _.findWhere(units, { property: i }),
 				value = v,
-				isHidden = ( unit && unit.hasOwnProperty( "visible" ) && !unit.visible )? true: false;
+				isHidden = !!(unit && unit.hasOwnProperty( "visible" ) && !unit.visible);
 
 			if (unit) {
 				if (!isHidden)
@@ -294,9 +297,9 @@
 					valuesString += owid.unitFormat(_.extend({}, unit, { unit: null, title: null }), value);
 				}
 			}
-		} );
+		});
 
-		if(isMapPopup || timeString) {
+		if (isMapPopup || timeString) {
 			valuesString += " <br /> in <br /> " + timeString;
 		}
 
