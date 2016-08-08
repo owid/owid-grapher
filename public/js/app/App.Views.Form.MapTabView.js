@@ -209,9 +209,11 @@
 				defaultYear = $this.val();
 			}
 
-			App.ChartModel.updateMapConfig("defaultYear", defaultYear, true);
-			App.ChartModel.updateMapConfig("targetYear", defaultYear, true);
-			App.ChartModel.updateMapConfig("targetYearMode", targetYearMode);
+			App.MapModel.set({
+				defaultYear: defaultYear,
+				targetYear: defaultYear,
+				targetYearMode: targetYearMode
+			});
 		},
 
 		onDefaultProjectionChange: function(evt) {

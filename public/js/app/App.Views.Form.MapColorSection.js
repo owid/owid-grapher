@@ -28,7 +28,6 @@
 		},
 
 		update: function() {
-			console.log("update");
 			App.ChartData.ready(function() {
 				this.render();
 			}.bind(this));

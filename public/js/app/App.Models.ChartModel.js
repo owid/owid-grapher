@@ -187,10 +187,6 @@
 
 		// DEPRECATED: use App.MapModel instead
 		updateMapConfig: function(propName, propValue, silent, eventName) {
-			//if changing colorschem interval and custom colorscheme is used, update it
-//			if (propName === "colorSchemeInterval" && mapConfig.colorSchemeName === "custom")
-//				mapConfig.customColorScheme = mapConfig.customColorScheme.slice( 0, propValue );
-
 			App.MapModel.set(propName, propValue, { silent: silent });
 
 			if (!silent && eventName)
