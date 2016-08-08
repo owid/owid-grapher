@@ -315,7 +315,7 @@
 			colorScale.range(colorScheme);
 
 			if (showOnlyRelevant) {
-				var values = _.uniq(_.map(this.mapData, function(d) { return d.value; }));
+				var values = _.sortBy(_.uniq(_.map(this.mapData, function(d) { return d.value; })));
 				colorScheme = _.map(values, function(v) { return colorScale(v); });
 				colorScale.domain(values);
 				colorScale.range(colorScheme);

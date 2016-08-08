@@ -102,7 +102,7 @@
 					}
 				} else {
 					// Otherwise cache the unique categorical values
-					variable.uniqueValues = _.uniq(variable.values);
+					variable.uniqueValues = _.sortBy(_.uniq(variable.values));
 				}
 			});
 
