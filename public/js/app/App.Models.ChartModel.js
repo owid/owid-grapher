@@ -185,20 +185,16 @@
 			if (axis) return axis[prop];
 		},
 
+		// DEPRECATED: use App.MapModel instead
 		updateMapConfig: function(propName, propValue, silent, eventName) {
-			var mapConfig = this.get("map-config");
-
-			if (!_.has(App.MapModel.defaults, propName))
-				console.warn("No defined default for map config property '" + propName + "'");
-
 			//if changing colorschem interval and custom colorscheme is used, update it
-			if (propName === "colorSchemeInterval" && mapConfig.colorSchemeName === "custom")
-				mapConfig.customColorScheme = mapConfig.customColorScheme.slice( 0, propValue );
+//			if (propName === "colorSchemeInterval" && mapConfig.colorSchemeName === "custom")
+//				mapConfig.customColorScheme = mapConfig.customColorScheme.slice( 0, propValue );
 
-			mapConfig[propName] = propValue;
+			App.MapModel.set(propName, propValue, { silent: silent });
 
-			if (!silent)
-				this.trigger(eventName || "change");
+			if (!silent && eventName)
+				this.trigger(eventName);
 		},
 
 		isNew: function() {

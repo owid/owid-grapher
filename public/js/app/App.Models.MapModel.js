@@ -65,6 +65,24 @@
 			this.on("change", function() {
 				this.chartModel.set("map-config", this.toJSON());
 			}.bind(this));
+
+			// Ensure number of colors matches custom color scheme array length
+			this.on("change:colorSchemeInterval", function() {
+				var colorSchemeName = this.get("colorSchemeName"),
+					customColorScheme = _.clone(this.get("customColorScheme")),
+					colorSchemeInterval = this.get("colorSchemeInterval");
+
+				if (colorSchemeName == "custom") {
+					if (colorSchemeInterval < customColorScheme.length)
+						this.set("customColorScheme", customColorScheme.slice(0, colorSchemeInterval));
+					else if (colorSchemeInterval > customColorScheme.length) {
+						for (var i = customColorScheme.length; i < colorSchemeInterval; i++) {
+							customColorScheme.push("#ffffff");
+						}
+						this.set("customColorScheme", customColorScheme);
+					}
+				}
+			}.bind(this));
 		},
 
 		getVariable: function() {

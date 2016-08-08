@@ -28,6 +28,7 @@
 		},
 
 		update: function() {
+			console.log("update");
 			App.ChartData.ready(function() {
 				this.render();
 			}.bind(this));
@@ -49,9 +50,12 @@
 			// List the available color schemes to choose from
 			this.$colorSchemeSelect.empty();
 			_.each(owdColorbrewer, function(v, k) {
-				this.$colorSchemeSelect.append('<option value="' + k + '">' + v.name + '</option>');
+				if (v.name)
+					this.$colorSchemeSelect.append('<option value="' + k + '">' + v.name + '</option>');
 			}.bind(this));
 			this.$colorSchemeSelect.val(colorSchemeName);
+
+			this.$numberOfIntervals.val(colorSchemeInterval);
 
 			// Numeric data is colored by value ranges and so has more options than categorical
 			if (isNumeric) {
@@ -136,9 +140,8 @@
 			App.MapModel.set("colorSchemeName", colorSchemeName);
 		},
 
-		onNumIntervalChange: function( evt ) {
-			var $this = $( evt.target );
-			App.ChartModel.updateMapConfig( "colorSchemeInterval", parseInt( $this.val(), 10 ) );
+		onNumIntervalChange: function() {
+			App.MapModel.set("colorSchemeInterval", parseInt(this.$numberOfIntervals.val()));
 		},
 
 		updateColorScheme: function() {
@@ -149,8 +152,10 @@
 			if (App.MapModel.get("colorSchemeInvert"))
 				colors.reverse();
 
-			App.ChartModel.updateMapConfig("customColorScheme", colors, true);
-			App.ChartModel.updateMapConfig("colorSchemeName", "custom");
+			App.MapModel.set({
+				customColorScheme: colors,
+				colorSchemeName: "custom"
+			});
 		},
 
 		updateSchemeValues: function( evt ) {			

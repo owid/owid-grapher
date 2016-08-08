@@ -13,8 +13,6 @@
 			"change [name='map-time-ranges']": "onTimeRangesChange",
 			"change [name='map-time-mode']": "onTimeModeChange",
 			"change [name='map-default-year']": "onDefaultYearChange",
-			"change [name='map-color-scheme']": "onColorSchemeChange",
-			"change [name='map-color-interval']": "onColorIntervalChange",
 			"change [name='map-default-projection']": "onDefaultProjectionChange",
 			"change [name='map-legend-description']": "onLegendDescriptionChange",
 			"change [name='map-legend-step-size']": "onLegendStepSizeChange",
@@ -30,10 +28,7 @@
 			this.$timeRangesInput = this.$el.find( "[name='map-time-ranges']" );
 			this.$defaultYearInput = this.$el.find( "[name='map-default-year']" );
 			this.$timeModeSelect = this.$el.find( "[name='map-time-mode']" );
-			
-			this.$colorSchemeSelect = this.$el.find( "[name='map-color-scheme']" );
-			this.$colorIntervalSelect = this.$el.find( "[name='map-color-interval']" );
-			
+
 			this.$defaultProjectionSelect = this.$el.find("[name='map-default-projection']" );
 			this.$legendDescription = this.$el.find("[name='map-legend-description']" );
 			this.$legendStepSize = this.$el.find("[name='map-legend-step-size']" );
