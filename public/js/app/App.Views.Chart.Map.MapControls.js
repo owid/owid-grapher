@@ -15,8 +15,6 @@
 
 		initialize: function( options ) {
 			this.dispatcher = options.dispatcher;
-
-			var mapConfig = App.ChartModel.get( "map-config" );
 			
 			//year slider
 			this.$targetYearControl = this.$el.find( ".target-year-control" );
@@ -34,7 +32,7 @@
 			//color blind control selector
 			this.$colorBlindControl = this.$el.find( ".color-blind-control" );
 			//cache original
-			this.originalColorSchemeName = mapConfig.colorSchemeName;
+			this.originalColorSchemeName = App.MapModel.get("colorSchemeName");
 
 			this.listenTo(App.ChartModel, "change", this.onChartModelChange.bind(this));
 			this.listenTo(App.ChartModel, "change-map", this.onChartModelChange.bind(this));

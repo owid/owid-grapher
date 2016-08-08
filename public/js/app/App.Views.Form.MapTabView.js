@@ -144,11 +144,10 @@
 		},
 
 		updateTargetYear: function() {
-			var mapConfig = App.ChartModel.get( "map-config" ),
-				chartTime = App.ChartModel.get( "chart-time" ),
+			var chartTime = App.ChartModel.get( "chart-time" ),
 				minYear = App.VariableData.get("minYear"),
 				maxYear = App.VariableData.get("maxYear"),
-				savedTargetYear = mapConfig.targetYear,
+				savedTargetYear = App.MapModel.get("targetYear"),
 				targetYear = ( chartTime )? chartTime[0]: minYear;
 
 			//override target year only if we don't have manually chosen custom year

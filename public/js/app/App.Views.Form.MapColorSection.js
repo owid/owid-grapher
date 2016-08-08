@@ -34,8 +34,10 @@
 		},
 
 		render: function() {
-			var variable = App.MapModel.getVariable(),
-				isNumeric = variable.isNumeric,
+			var variable = App.MapModel.getVariable();
+			if (!variable) return;
+
+			var isNumeric = variable.isNumeric,
 				colorScheme = App.MapModel.getColors(),
 				colorSchemeName = App.MapModel.get("colorSchemeName"),
 				colorSchemeInterval = App.MapModel.get("colorSchemeInterval"),
@@ -45,6 +47,7 @@
 				colorSchemeInvert = App.MapModel.get("colorSchemeInvert"),
 				minimalColorSchemeValue = App.MapModel.get("colorSchemeMinValue") || "",
 				html = "";
+
 
 			// List the available color schemes to choose from
 			this.$colorSchemeSelect.empty();

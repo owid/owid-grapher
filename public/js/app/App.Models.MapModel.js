@@ -56,11 +56,16 @@
 		bind: function(chartModel) {
 			this.chartModel = chartModel;
 
-			this.set(this.chartModel.get("map-config"));
+			var mapConfig = this.chartModel.get("map-config")
+			if (mapConfig)
+				this.set(mapConfig);
+			else
+				this.chartModel.set("map-config", this.defaults);
 
 			this.listenTo(this.chartModel, "change:map-config", function() {
 				this.set(this.chartModel.get("map-config"));
 			}.bind(this));
+
 			this.on("change", function() {
 				this.chartModel.set("map-config", this.toJSON());
 			}.bind(this));
