@@ -62,7 +62,6 @@ var colors = ["#3360a9", "#ca2628", "#34983f", "#ed6c2d", "#df3c64", "#a85a4a", 
 _.each(colors, function(v, i) {
 	distinctScheme.colors.push(colors.slice(0, i));
 });
-console.log(distinctScheme);
 owdColorbrewer["owid-distinct"] = distinctScheme;
 owdColorbrewer["custom"] = { name: "custom", colors: []};
 

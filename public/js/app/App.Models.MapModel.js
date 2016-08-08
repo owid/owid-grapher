@@ -56,6 +56,8 @@
 		bind: function(chartModel) {
 			this.chartModel = chartModel;
 
+			this.set(this.chartModel.get("map-config"));
+
 			this.listenTo(this.chartModel, "change:map-config", function() {
 				this.set(this.chartModel.get("map-config"));
 			}.bind(this));
@@ -71,6 +73,11 @@
 
 		getColors: function() {
 			return owdColorbrewer.getColors(this.toJSON());
+		},
+
+		showOnlyRelevantLegend: function() {
+			var variable = this.getVariable();
+			return !variable.isNumeric && variable.uniqueValues.length > 6;
 		}
 	});
 })();

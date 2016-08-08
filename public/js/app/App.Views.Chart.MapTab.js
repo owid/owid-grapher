@@ -99,10 +99,18 @@
 				// to get the right highlightFillColor.
 				this.dataMap.options.data = this.mapData;
 				this.parentView.header.render();
+				if (App.MapModel.showOnlyRelevantLegend()) {
+					// HACK (Mispy): We really need to refactor the map legend into a proper view
+					this.colorScale = this.makeColorScale();
+					this.legend.scale(this.colorScale);
+					var legendData = { scheme: this.colorScale.range(), description: App.MapModel.get("legendDescription") || this.variableName };
+					d3.select(".legend-wrapper").datum(legendData).call(this.legend);
+				}
 			}.bind(this));
 		}, 100),
 
 		initializeMap: function(onMapReady) {
+			window.maptab = this;
 			var self = this;
 			var defaultProjection = this.getProjection(this.mapConfig.projection);
 
@@ -284,7 +292,9 @@
 		makeColorScale: function() {
 			var mapConfig = this.mapConfig,
 				colorScheme = owdColorbrewer.getColors(mapConfig),
-				variable = App.MapModel.getVariable();
+				variable = App.MapModel.getVariable(),
+				showOnlyRelevant = App.MapModel.showOnlyRelevantLegend();
+
 
 			var colorScale,
 				customValues = mapConfig.colorSchemeValues,
@@ -295,17 +305,21 @@
 			//use quantize, if we have numerica scale and not using automatic values, or if we're trying not to use automatic scale, but there no manually entered custom values
 			if (!categoricalScale && (automaticValues || (!automaticValues && !customValues)) ) {
 				//we have quantitave scale
-				colorScale = d3.scale.quantize()
-					.domain( [ this.minValue, this.maxValue ] );
+				colorScale = d3.scale.quantize().domain([this.minValue, this.maxValue]);
 			} else if( !categoricalScale && customValues && !automaticValues ) {
 				//create threshold scale which divides data into buckets based on values provided
-				colorScale = d3.scale.equal_threshold()
-					.domain( customValues );
+				colorScale = d3.scale.equal_threshold().domain(customValues);
 			} else {
-				var values = _.uniq(variable.values);
-				colorScale = d3.scale.ordinal().domain(values);
+				colorScale = d3.scale.ordinal().domain(variable.uniqueValues);					
 			}
 			colorScale.range(colorScheme);
+
+			if (showOnlyRelevant) {
+				var values = _.uniq(_.map(this.mapData, function(d) { return d.value; }));
+				colorScheme = _.map(values, function(v) { return colorScale(v); });
+				colorScale.domain(values);
+				colorScale.range(colorScheme);
+			}				
 
 			return colorScale;
 		},
