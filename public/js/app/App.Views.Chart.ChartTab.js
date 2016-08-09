@@ -26,14 +26,15 @@
 			this.delegateEvents();
 
 			this.$svg = $("svg");
-			this.$svg.attr("class", "nvd3-svg");
+			this.chartType = App.ChartModel.get("chart-type");
+			this.$svg.attr("class", "nvd3-svg " + this.chartType);
 			this.$entitiesSelect = this.$el.find( "[name=available_entities]" );
 			this.$xAxisScaleSelector = this.$el.find( ".x-axis-scale-selector" );
 			this.$xAxisScale = this.$el.find( "[name=x_axis_scale]" );
 			this.$yAxisScaleSelector = this.$el.find( ".y-axis-scale-selector" );
 			this.$yAxisScale = this.$el.find( "[name=y_axis_scale]" );
 			this.$reloadBtn = this.$el.find( ".reload-btn" );
-			var chartTime = App.ChartModel.get("chart-time");
+			this.$svg.addClass(this.chartType);
 
 			//refresh btn
 			this.$reloadBtn.on("click", function(evt) {
@@ -50,6 +51,8 @@
 		},
 
 		deactivate: function() {
+			this.$svg.attr("class", "");
+
 			App.ChartModel.off(null, null, this);
 			d3.selectAll(".nvd3").remove();
 			if (this.$yAxisScaleSelector)

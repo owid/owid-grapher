@@ -1028,7 +1028,7 @@ li[data-color^=".*"] {
   width: 100%; }
 
 #chart-view {
-  font-size: 18px !important;
+  font-size: 20px !important;
 }
 
 #charts-index td:nth-child(3) {

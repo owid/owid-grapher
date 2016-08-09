@@ -182,7 +182,7 @@
 				// MISPY: Ideally we want to fit all of our contents into the space that we are given.
 				// However, if there is much header and footer text and the screen is small then we may
 				// need to demand extra scrollable height so that the user can actually see the chart.
-				var minHeight = 300;
+				var minHeight = 350;
 				if (tabHeight < minHeight && !App.isExport) {
 					//svg.style("height", svgBounds.height + (minHeight-tabHeight) + "px");
 					$wrapper.css("height", $wrapper.height() + (minHeight-tabHeight) + 10 + "px");

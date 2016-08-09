@@ -25,10 +25,10 @@
 			// For PNG and SVG export, we set the SVG to a fixed canonical rendering width
 			// and then uniformly scale the rendered chart to the target dimensions.
 			var params = owid.getQueryParams(),
-				targetWidth = params.size && params.size.split("x") ? parseInt(params.size.split("x")[0]) : 1000,
-				targetHeight = params.size && params.size.split("x") ? parseInt(params.size.split("x")[1]) : 700,
-				canonicalWidth = 1000,
-				canonicalHeight = 700;
+				targetWidth = params.size && params.size.split("x") ? parseInt(params.size.split("x")[0]) : 1200,
+				targetHeight = params.size && params.size.split("x") ? parseInt(params.size.split("x")[1]) : 850,
+				canonicalWidth = 1130,
+				canonicalHeight = 660;
 
 			var renderWidth, renderHeight;
 			if (targetWidth > targetHeight) {
@@ -49,8 +49,8 @@
 			$(window).one("chart-loaded", function() {
 				App.ChartView.onResize(function() {
 					var svg = $("svg").get(0);
-					var width = svg.getBBox().width;
-					var height = svg.getBBox().height;
+					var width = $(".tab-content").width();
+					var height = $(".tab-content").height();
 					svg.setAttribute("viewBox", "0 0 " + width + " " + height);
 					svg.setAttribute("preserveAspectRatio", "xMinYMin meet");
 					$(svg).css("width", (targetWidth-40) + "px");
@@ -87,6 +87,7 @@
 			});
 
 			// MISPY: Need to propagate a few additional styles from the external document into the SVG
+			$("svg").css("font-family", $("#chart-view").css("font-family"));
 			$("svg").css("font-size", $("#chart-view").css("font-size"));
 
 			svgAsDataUri(svg.node(), {}, function(uri) {

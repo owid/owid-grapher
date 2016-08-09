@@ -172,7 +172,7 @@ select.disabled {
     fill-opacity: 1;
 }
 
-#chart-view .nv-group {
+#chart-view svg.LineChart .nv-group {
     stroke-width: 2.5 !important;
 }
 
@@ -330,6 +330,8 @@ select.disabled {
     left: 0;
     width: 100%;
     height: 100%;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
 }
 
 /* The chart in the editor only takes up half the space */
@@ -385,7 +387,7 @@ select.disabled {
 --------------------------------------------- */
 
 #chart-view .chart-header-svg .chart-name-svg {
-    font-size: 1.3em;
+    font-size: 1.4em;
 }
 #chart-view .chart-header-svg .chart-name-svg a {
     fill: #35322F;
@@ -396,7 +398,7 @@ select.disabled {
 #chart-view .chart-header-svg .chart-subname-svg {
     margin-top: 0;
     margin-bottom: 0.5em;
-    font-size: 0.7em;
+    font-size: 0.8em;
     fill: #4F4B49;
 }
 #chart-view .chart-header-svg .chart-logo-svg path {
@@ -456,7 +458,17 @@ select.disabled {
 --------------------------------------------- */
 
 .chart-footer-svg {
-    font-size: 12px;
+    font-size: 0.8em;
+}
+.footer-license-svg {
+    font-size: 80%;
+}
+.chart-footer-svg text {
+    fill: rgb(51, 51, 51);
+}
+.chart-footer-svg a.bold {
+    font-weight: bold;
+    fill: rgb(51, 51, 51) !important;
 }
 .footer-btns {
     font-size: 0.8em;
@@ -497,6 +509,7 @@ select.disabled {
 }
 #chart-view .nv-custom-legend .nv-legend-text {
     fill: #fff;
+    font-size: 16px !important;
 }
 #chart-view .nv-custom-legend .nv-add-btn {
     cursor: pointer;
@@ -629,7 +642,7 @@ select.disabled {
 }
 #chart-view .nvd3-svg .nvd3 text {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    font-size: 15px;
+    font-size: 14px;
 }
 #chart-view .nvd3-svg .nvd3 .nv-axis .nv-axisMaxMin text {
     font-weight: normal;
@@ -1065,28 +1078,31 @@ body#chart-export .nv-controlsWrap {
 body#chart-export .tab-pane {
     border-top: none;
 }
+body#chart-export .nv-custom-legend .nv-legend-text {
+    font-size: 17px !important;
+}
 /* Responsiveness
 --------------------------------------------- */
 
 #chart-view {
-    font-size: 18px;
+    font-size: 20px;
 }
+
 @media screen and (min-width: 900px) {
     #chart-view {
         font-size: 20px;
     }
 }
-@media screen and (min-width: 1200px){
-    #chart-view {
-        font-size: 22px;
-    }
-}
-@media screen and (min-width: 1500px){
+
+@media screen and (min-width: 1300px) {
     #chart-view {
         font-size: 24px;
     }
 }
 
+#chart-export #chart-view {
+    font-size: 22px !important;
+}
 
 @media (max-width: 720px) {
     #chart-view.embedded {

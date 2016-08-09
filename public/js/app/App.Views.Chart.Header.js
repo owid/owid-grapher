@@ -50,8 +50,14 @@
 				svgHeight = svgBounds.height,
 				g = svg.select(".chart-header-svg");
 
+			var scaleFactor;
+			if ($("#chart-view").width() > 1300 || App.isExport) {
+				scaleFactor = 0.4;
+			} else {
+				scaleFactor = 0.35;
+			}
+
 			var logoWidth = this.logo.node().getBBox().width,
-				scaleFactor =  0.3,
 				logoX = svgWidth - logoWidth*scaleFactor;
 			this.logo.attr("transform", "translate(" + logoX + ", 5) scale(" + scaleFactor + ", " + scaleFactor + ")");
 			this.logo.style("visibility", "inherit");
@@ -68,9 +74,10 @@
 				document.title = chartName + " - Our World In Data";
 
 				var chartSubnameText = g.select(".chart-subname-svg")
+					.attr("x", 1)
 					.attr("y", chartNameText.node().getBoundingClientRect().bottom - svgBounds.top);
 
-				owid.svgSetWrappedText(chartSubnameText, chartSubname, availableWidth - 10, { lineHeight: 1.3 });
+				owid.svgSetWrappedText(chartSubnameText, chartSubname, availableWidth - 10, { lineHeight: 1.2 });
 
 				g.select(".header-bg-svg").remove();
 				var bgHeight = g.node().getBoundingClientRect().height + 20;

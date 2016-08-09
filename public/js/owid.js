@@ -395,13 +395,13 @@
 		var links = [],
 			$p = $("<p></p>");
 		$p.html(content);
-		$p.find("a").each(function(i, el) {
+		$p.find("*").each(function(i, el) {
 			links.push($(el));
 		});
 
 		// Now indicate them with our own tags
-		content = content.replace(/<a[^>]+>/g, " <LINKSTART> ");
-		content = content.replace(/<\/a>/g, " <LINKSTOP> ");
+		content = content.replace(/<[^\/][^>]*>/g, " <LINKSTART> ");
+		content = content.replace(/<\/[^>]+>/g, " <LINKSTOP> ");
 
 		// Clean the content
 		content = s.trim(content.replace("</br>", "\n").replace("<br>", "\n"));
@@ -426,7 +426,7 @@
 
 			var container = text;
 			if ($currentLink) {
-				container = text.append("a")
+				container = text.append($currentLink.get(0).tagName.toLowerCase())
 					.attr("xlink:href", $currentLink.attr("href"))
 				_.each($currentLink.get(0).attributes, function(attrib) {
 					container.attr(attrib.name, attrib.value);
@@ -449,13 +449,14 @@
 			if (word == "<LINKSTART>") {
 				linkIndex += 1;
 				$currentLink = links[linkIndex];
-				breakSpan();
-				words.unshift(" "); // HACK (Mispy): this isn't proper whitespace handling but I'm tired of fiddly text stuff
+				// HACK (Mispy): I'm really tired
+				breakSpan(s.contains(words[0], "Note:"));
+				words.unshift(" ");
 				continue;
 			} else if (word == "<LINKSTOP>") {
 				$currentLink = null;
 				breakSpan();
-				if (words[0] && words[0] != ".")
+				if (words[0] && words[0] != "." && words[0] != ",")
 					words.unshift(" ");
 				continue;
 			}
