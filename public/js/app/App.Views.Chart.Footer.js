@@ -71,7 +71,6 @@
 					"<a class='origin-link' target='_blank' href='http://ourworldindata.org'>OurWorldInData.org</a>");					
 			}
 
-
 			var svg = d3.select("svg"),
 				svgBounds = svg.node().getBoundingClientRect(),
 				svgWidth = svgBounds.width,

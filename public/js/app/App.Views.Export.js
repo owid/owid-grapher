@@ -48,21 +48,23 @@
 
 			$(window).one("chart-loaded", function() {
 				App.ChartView.onResize(function() {
-					var svg = $("svg").get(0);
-					var width = $(".tab-content").width();
-					var height = $(".tab-content").height();
-					svg.setAttribute("viewBox", "0 0 " + width + " " + height);
-					svg.setAttribute("preserveAspectRatio", "xMinYMin meet");
-					$(svg).css("width", (targetWidth-40) + "px");
-	   			    $(svg).css("height", (targetHeight-40) + "px");
-					$("svg").css("margin", "20px");
-					$("#chart-view").css('width', targetWidth);
-					$("#chart-view").css('height', targetHeight);
+					setTimeout(function() {
+						var svg = $("svg").get(0);
+						var width = $(".chart-wrapper-inner").width();
+						var height = $(".chart-wrapper-inner").height();
+						svg.setAttribute("viewBox", "0 0 " + width + " " + height);
+						svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+						$(svg).css("width", (targetWidth-40) + "px");
+		   			    $(svg).css("height", (targetHeight-40) + "px");
+						$("svg").css("margin", "20px");
+						$("#chart-view").css('width', targetWidth);
+						$("#chart-view").css('height', targetHeight);
 
-					if (window.callPhantom) {
-						window.callPhantom({ targetWidth: targetWidth, targetHeight: targetHeight }); // Notify phantom that we're ready for PNG screenshot
-						this.onSVGExport();
-					}
+						if (window.callPhantom) {
+							window.callPhantom({ targetWidth: targetWidth, targetHeight: targetHeight }); // Notify phantom that we're ready for PNG screenshot
+							this.onSVGExport();
+						}						
+					}.bind(this), 100);
 				}.bind(this));
 			}.bind(this));
 		},
