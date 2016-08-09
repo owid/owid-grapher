@@ -39,10 +39,6 @@
 				renderHeight = ((targetHeight-40)/(targetWidth-40)) * renderWidth;
 			}
 
-			console.log(renderWidth, renderHeight);
-
-
-
 			$("#chart-view").css("width", renderWidth);
 			$("#chart-view").css("height", renderHeight);
 
@@ -53,7 +49,7 @@
 						var width = $(".chart-wrapper-inner").width();
 						var height = $(".chart-wrapper-inner").height();
 						svg.setAttribute("viewBox", "0 0 " + width + " " + height);
-						svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+						svg.setAttribute("preserveAspectRatio", "none");
 						$(svg).css("width", (targetWidth-40) + "px");
 		   			    $(svg).css("height", (targetHeight-40) + "px");
 						$("svg").css("margin", "20px");
