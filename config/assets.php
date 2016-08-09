@@ -187,6 +187,7 @@ return [
 		        'app/App.Views.Chart.MapTab.js',
 
 		        'app/App.Views.ChartURL.js',
+		        'app/App.Views.Export.js',
 		        'app/App.Views.DebugHelper.js',
 		        'app/App.Views.ChartView.js',		        
 		        'app/ChartApp.js'		    

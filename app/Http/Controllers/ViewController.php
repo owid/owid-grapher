@@ -95,7 +95,7 @@ class ViewController extends Controller {
 			return App::abort(404, "No such chart");
 
 		$size = $request->input("size");
-		if (!$size) $size = "1000x700";
+		if (!$size) $size = "1200x850";
 		$split = explode("x", $size);
 		$width = min(intval($split[0]), 3000);
 		$height = min(intval($split[1]), 3000);
@@ -288,7 +288,7 @@ class ViewController extends Controller {
 			// Give the image exporter a head start on the request for imageUrl
 			if (!str_contains(\Request::path(), ".export")) {
 				$query = Chart::getQueryString();
-				Chart::exportPNGAsync($chart->slug, $query . ($query ? "&" : "") . "size=1000x700&v=" . $variableCacheTag, 1000, 700);
+				Chart::exportPNGAsync($chart->slug, $query . ($query ? "&" : "") . "size=1200x850&v=" . $variableCacheTag, 1200, 850);
 			}
 
 			return response()

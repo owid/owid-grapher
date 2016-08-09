@@ -603,8 +603,8 @@
 			}
 
 			// Make sure we actually have enough room for the chart to be visible!
-			var minHeight = 150;
-			if (chartHeight < minHeight) {
+			var minHeight = 250;
+			if (chartHeight < minHeight && !App.isExport) {
 				var $wrapper = App.ChartView.$(".chart-wrapper-inner");
 				$wrapper.css("height", $wrapper.height() + (minHeight-chartHeight) + 10 + "px");
 				App.ChartView.onResize(callback, true);

@@ -5,6 +5,7 @@
 	var Header = require("App.Views.Chart.Header"),
 		Footer = require("App.Views.Chart.Footer"),
 		ChartURL = require("App.Views.ChartURL"),
+		Export = require("App.Views.Export"),
 		DebugHelper = require("App.Views.DebugHelper"),
 		ScaleSelectors = require("App.Views.Chart.ScaleSelectors"),
 		ChartTab = require("App.Views.Chart.ChartTab"),
@@ -30,6 +31,13 @@
 			options = options || {};
 			this.dispatcher = options.dispatcher || _.clone(Backbone.Events);
 		
+			$(window).one("chart-loaded", function() {
+				App.ChartView.onResize(function() {
+					window.top.postMessage("chartLoaded", "*");
+					console.log("Loaded chart: " + App.ChartModel.get("chart-name"));					
+				});
+			});
+
 			$(document).ajaxStart(function() {
 				$(".chart-preloader").show();
 			});
@@ -44,6 +52,7 @@
 			if (window.self != window.top) {
 				$("#chart-view").addClass("embedded");
 			}
+
 			
 			// Determine if we're logged in and show the edit button
 			// Done here instead of PHP to allow for caching etc optimization on public-facing content
@@ -59,6 +68,8 @@
 			App.Colors = new Colors();
 			var childViewOptions = { dispatcher: this.dispatcher, parentView: this };
 			this.urlBinder = new ChartURL(childViewOptions);
+			this.export = new Export(childViewOptions);
+
 			this.header = new Header(childViewOptions);
 			this.footer = new Footer(childViewOptions);
 			this.scaleSelectors = new ScaleSelectors(childViewOptions);
@@ -151,36 +162,6 @@
 			this.$(".tab-pane.active").prepend('<div class="chart-error"><div>' + msg + '</div></div>');			
 		},
 
-		onSVGExport: function() {	
-			var svg = d3.select("svg");
-
-			// Remove SVG UI elements that aren't needed for export
-			svg.selectAll(".nv-add-btn, .nv-controlsWrap").remove();
-
-			// Inline the CSS styles, since the exported SVG won't have a stylesheet
-			var styleSheets = document.styleSheets;
-			_.each(document.styleSheets, function(styleSheet) {
-				_.each(styleSheet.cssRules, function(rule) {
-					try {
-						$(rule.selectorText).each(function(i, elem) {
-							if ($(elem).parent().closest("svg").length)
-								elem.style.cssText += rule.style.cssText;
-						});	
-					} catch (e) {}						
-				});
-			});		
-
-			// MISPY: Need to propagate a few additional styles from the external document into the SVG
-			$("svg").css("font-size", $("#chart-view").css("font-size"));
-			$("svg").css("margin", "10px");
-
-			svgAsDataUri(svg.node(), {}, function(uri) {
-				var svg = uri.substring('data:image/svg+xml;base64,'.length);
-				if (_.isFunction(window.callPhantom))
-					window.callPhantom({ "svg": window.atob(svg) });
-			});
-		},
-
 		onResize: function(callback, isRepeat) {
 			var $wrapper = this.$el.find(".chart-wrapper-inner"),
 				svg = d3.select("svg");
@@ -202,7 +183,7 @@
 				// However, if there is much header and footer text and the screen is small then we may
 				// need to demand extra scrollable height so that the user can actually see the chart.
 				var minHeight = 300;
-				if (tabHeight < minHeight) {
+				if (tabHeight < minHeight && !App.isExport) {
 					//svg.style("height", svgBounds.height + (minHeight-tabHeight) + "px");
 					$wrapper.css("height", $wrapper.height() + (minHeight-tabHeight) + 10 + "px");
 					this.onResize(callback, true);

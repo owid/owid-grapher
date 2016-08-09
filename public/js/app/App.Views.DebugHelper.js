@@ -17,6 +17,10 @@
 			this.listenTo(App.VariableData, "change", function() {
 				window.variables = _.values(App.VariableData.get("variables"));
 			});
+
+			$(window).on("chart-loaded", function() {			
+				window.svg = $("svg").get(0);
+			});
 		},
 	});
 })();

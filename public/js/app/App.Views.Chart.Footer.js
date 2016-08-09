@@ -122,9 +122,9 @@
 			} else {			
 				var pngHref = baseUrl + ".png" + queryStr,
 					svgHref = baseUrl + ".svg" + queryStr,
-					defaultSize = "1000x700";
-				this.$downloadPNGButton.attr('href', pngHref + (_.include(pngHref, "?") ? "&" : "?") + "size=" + defaultSize + "&v=" + version);
-				this.$downloadSVGButton.attr('href', svgHref + (_.include(svgHref, "?") ? "&" : "?") + "size=" + defaultSize + "&v=" + version);
+					defaultTargetSize = "1200x850";
+				this.$downloadPNGButton.attr('href', pngHref + (_.include(pngHref, "?") ? "&" : "?") + "size=" + defaultTargetSize + "&v=" + version);
+				this.$downloadSVGButton.attr('href', svgHref + (_.include(svgHref, "?") ? "&" : "?") + "size=" + defaultTargetSize + "&v=" + version);
 				this.$downloadPNGButton.show();
 				this.$downloadSVGButton.show();
 			}
