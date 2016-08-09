@@ -266,7 +266,8 @@
 						.options(chartOptions);					
 				}
 
-				that.chart.dispatch.on("renderEnd", function(state) {
+
+				var afterRender = function() {
 					$(window).trigger('chart-loaded');
 
 					// Hijack the nvd3 mode switch to store it
@@ -287,8 +288,16 @@
 						d3.selectAll(".nv-area").on("click", function(d) {
 							App.ChartModel.focusToggleLegendKey(d.key);
 						});
-					}					
-				});			
+					}										
+				}
+
+				// HACK (Mispy): gah, nvd3
+				if (chartType == App.ChartType.DiscreteBar) {
+					nv.dispatch.on("render_end", function() {
+						setTimeout(afterRender, 500);
+					});
+				}
+				that.chart.dispatch.on("renderEnd", afterRender);
 
 				if (chartType != App.ChartType.DiscreteBar) {
 					that.chart.dispatch.on("stateChange", function() {
