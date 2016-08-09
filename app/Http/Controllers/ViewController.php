@@ -25,19 +25,25 @@ class ViewController extends Controller {
 		return 'No chart selected to view';
 	}
 
-	public function testall()
+	public function testall(Request $request)
 	{
-		$ids = DB::table('charts')->select('id')->where('origin_url', '!=', "")->lists('id');
-		$charts = [];
 
-		foreach ($ids as $id) {
-			$charts[] = [
-				'localUrl' => \Request::root() . "/view/" . $id,
-				'liveUrl' => "https://ourworldindata.org/grapher/view/" . $id
+		$filter = $request->input('s');
+
+		$query = Chart::where('published', '=', true);
+		if ($filter == 'line') {
+			$query = $query->where('type', '=', 'LineChart');
+		}
+
+		$urls = [];
+		foreach ($query->get() as $chart) {
+			$urls[] = [
+				'localUrl' => \Request::root() . "/" . $chart->slug,
+				'liveUrl' => "https://ourworldindata.org/grapher/" . $chart->slug
 			];
 		}
 
-		return view('testall')->with([ 'charts' => $charts ]);
+		return view('testall')->with(['charts' => $urls]);
 	}
 
 	public function show($slug)

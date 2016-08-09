@@ -26,17 +26,6 @@ input[type=range]::-webkit-slider-thumb {
     position: relative;
     z-index: 1;
 }
-/*input[type=range].thumb-label::-webkit-slider-thumb {
-  position: relative;
-  top: 0px;
-  left: -24px;
-  width: 58px;
-  height: 32px;
-}*/
-/*input[type=range]:focus::-webkit-slider-thumb {
-  background: #8c8a8a;
-  border: 1px solid #585757;
-}*/
 
 input[type=range]::-moz-range-track {
     position: relative;
@@ -182,6 +171,17 @@ select.disabled {
     stroke-opacity: 1;
     fill-opacity: 1;
 }
+
+#chart-view .nv-group {
+    stroke-width: 2.5 !important;
+}
+
+/* Make World line slightly thicker */
+#chart-view .nv-group.World {
+    stroke-width: 5 !important;
+}
+
+
 /* ==========================================================================
    EXAMPLE Media Queries for Responsive Design.
    These examples override the primary ('mobile first') styles.
@@ -1194,12 +1194,6 @@ body#chart-export .tab-pane {
 
 .modal-backdrop {
     z-index: -1;
-}
-
-/* Make World line slightly thicker */
-
-.nv-group.world {
-    stroke-width: 5 !important;
 }
 
 /*# sourceMappingURL=front-sass.css.map */
