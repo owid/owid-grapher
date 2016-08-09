@@ -28,18 +28,38 @@ class ViewController extends Controller {
 	public function testall(Request $request)
 	{
 
-		$filter = $request->input('s');
+		$type = strtolower($request->input('type'));
 
-		$query = Chart::where('published', '=', true);
-		if ($filter == 'line') {
-			$query = $query->where('type', '=', 'LineChart');
+		$query = Chart::where('published', '=', true)->where('origin_url', '!=', "");
+		if ($type && $type != 'map') {
+			$query = $query->where('type', '=', $type);
 		}
 
 		$urls = [];
 		foreach ($query->get() as $chart) {
+			$config = json_decode($chart->config);
+			$tabs = $config->tabs;
+
+			if ($type == 'map' && !in_array('map', $tabs)) {
+				continue;
+			} else if ($type && !in_array('chart', $tabs)) {
+				continue;
+			}
+
+			$localUrl = \Request::root() . "/" . $chart->slug;
+			$liveUrl = "https://ourworldindata.org/grapher/" . $chart->slug;
+
+			if ($type == 'map') {
+				$localUrl .= "?tab=map";
+				$liveUrl .= "?tab=map";
+			} else if ($type) {
+				$localUrl .= "?tab=chart";
+				$liveUrl .= "?tab=chart";
+			}
+
 			$urls[] = [
-				'localUrl' => \Request::root() . "/" . $chart->slug,
-				'liveUrl' => "https://ourworldindata.org/grapher/" . $chart->slug
+				'localUrl' => $localUrl,
+				'liveUrl' => $liveUrl
 			];
 		}
 
