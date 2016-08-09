@@ -88,12 +88,13 @@
 				var seen = {};
 				for (var i = 0; i < variable.values.length; i++) {
 					seen[variable.values[i]] = true;
-					if (_.size(seen) >= 2) break;
+					if (_.size(seen) >= 4) break;
 				}
 
-				variable.isNumeric = _.every(seen, function(v, k) {
-					return parseFloat(k) == k;
-				});
+				// See if those vals mostly seem numeric
+				variable.isNumeric = _.reduce(_.keys(seen), function(memo, val) {
+					return parseFloat(val) == val ? 1 : -1;
+				}) > 0;
 
 				// If numeric data, standardize
 				if (variable.isNumeric) {
