@@ -332,8 +332,10 @@ select.disabled {
     height: 100%;
 }
 #chart-view svg text {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: "Helvetica", sans-serif;
 }
+
+
 /* The chart in the editor only takes up half the space */
 
 .chart-edit-module #chart-view {
@@ -1105,16 +1107,16 @@ body#chart-export .tab-pane {
         font-size: 20px;
     }
 }
-/*@media screen and (min-width: 920px){
-  html{
-    font-size: 21px;
-  }
+@media screen and (min-width: 920px){
+    #chart-view {
+        font-size: 21px;
+    }
 }
 @media screen and (min-width: 1000px){
-  html{
-    font-size: 22px;
-  }
-}*/
+    #chart-view {
+        font-size: 22px;
+        }
+}
 
 @media (max-width: 720px) {
     #chart-view.embedded {

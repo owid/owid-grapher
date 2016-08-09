@@ -171,7 +171,7 @@
 			});		
 
 			// MISPY: Need to propagate a few additional styles from the external document into the SVG
-			$("svg").css("font-size", $("html").css("font-size"));	
+			$("svg").css("font-size", $("#chart-view").css("font-size"));
 			$("svg").css("margin", "10px");
 
 			svgAsDataUri(svg.node(), {}, function(uri) {
