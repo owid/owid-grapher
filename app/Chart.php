@@ -21,18 +21,33 @@ class Chart extends Model {
 	}
 
 	public function showType() {
+		$config = json_decode($this->config);
+
+		$type = "Unknown";
 		if ($this->type == "LineChart")
-			return "Line Chart";
+			$type = "Line Chart";
 		else if ($this->type == "ScatterPlot")
-			return "Scatter Plot";
+			$type = "Scatter Plot";
 		else if ($this->type == "StackedArea")
-			return "Stacked Area";
+			$type = "Stacked Area";
 		else if ($this->type == "MultiBar")
-			return "Multi Bar";
+			$type = "Multi Bar";
 		else if ($this->type == "HorizontalMultiBar")
-			return "Horizontal Multi Bar";
+			$type = "Horizontal Multi Bar";
 		else if ($this->type == "DiscreteBar")
-			return "Discrete Bar";
+			$type = "Discrete Bar";
+
+		if (isset($config->{"default-tab"}) && $config->{"default-tab"} == "map") {
+			if (in_array("chart", $config->{"tabs"}))
+				return "Map + " . $type;
+			else
+				return "Map";
+		} else {
+			if (in_array("map", $config->{"tabs"}))
+				return $type . " + Map";
+			else
+				return $type;
+		}
 	}
 
 	// HACK (Mispy): Tests don't set $_SERVER['QUERY_STRING']
