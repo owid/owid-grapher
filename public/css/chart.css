@@ -177,7 +177,7 @@ select.disabled {
 }
 
 /* Make World line slightly thicker */
-#chart-view .nv-group.World {
+#chart-view svg .nv-group.World {
     stroke-width: 5 !important;
 }
 
