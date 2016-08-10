@@ -1076,7 +1076,7 @@ body#chart-export .nv-controlsWrap {
     display: none !important;
 }
 body#chart-export .tab-pane {
-    border-top: none;
+    border: none !important;
 }
 body#chart-export .nv-custom-legend .nv-legend-text {
     font-size: 17px !important;
