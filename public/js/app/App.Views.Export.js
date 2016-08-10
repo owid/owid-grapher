@@ -27,8 +27,8 @@
 			var params = owid.getQueryParams(),
 				targetWidth = params.size && params.size.split("x") ? parseInt(params.size.split("x")[0]) : 1200,
 				targetHeight = params.size && params.size.split("x") ? parseInt(params.size.split("x")[1]) : 850,
-				canonicalWidth = 1130,
-				canonicalHeight = 660;
+				canonicalWidth = 746,
+				canonicalHeight = 600;
 
 			var renderWidth, renderHeight;
 			if (targetWidth > targetHeight) {

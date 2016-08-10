@@ -1101,7 +1101,7 @@ body#chart-export .nv-custom-legend .nv-legend-text {
 }
 
 #chart-export #chart-view {
-    font-size: 22px !important;
+    font-size: 20px !important;
 }
 
 @media (max-width: 720px) {
