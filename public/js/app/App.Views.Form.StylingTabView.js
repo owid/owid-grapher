@@ -131,41 +131,40 @@
 			App.ChartModel.set("entity-type", this.$entityType.val());
 		},
 
+		// TODO: make this work for multiple dimensions with same property
 		updateUnitsUI: function( evt ) {
-			var dimensions = App.ChartModel.getDimensions(),
+			var dimensions = _.uniq(App.ChartModel.getDimensions(), function(dim) { return dim.property; }),
 				unitsString = App.ChartModel.get( "units" ),
 				units = ( !$.isEmptyObject( unitsString ) )? $.parseJSON( unitsString ): {};
 
 			//refresh whole unit section
 			this.$unitsContent.html( "<ul></ul>" );
-			var $ul = this.$unitsContent.find( "ul" );
+			var $ul = this.$unitsContent.find("ul");
 
-			if( dimensions ) {
-				$.each( dimensions, function( i, v ) {
-					var dimension = v,
-						unitObj = _.findWhere( units, { "property": dimension.property } ),
-						//by default visible
-						visible = ( unitObj && unitObj.hasOwnProperty( "visible" )  )? unitObj.visible: true,
-						visibleProp = ( visible )? " checked": "",
-						title = ( unitObj && unitObj.title ) ? unitObj.title : "",
-						unit = ( unitObj && unitObj.unit )? unitObj.unit: "",
-						format = ( unitObj && unitObj.format )? unitObj.format: "";
+			_.each(dimensions, function(dimension) {
+				if (dimension.property == "color") return;
 
-					if( !unitObj && dimension && dimension.unit ) {
-						//if nothing stored, try to get default units for given variable
-						unit = dimension.unit;
-					}
+				var unitObj = _.findWhere(units, { "property": dimension.property }),
+					visible = unitObj && unitObj.hasOwnProperty("visible") ? unitObj.visible : true,
+					visibleProp = ( visible )? " checked": "",
+					title = ( unitObj && unitObj.title ) ? unitObj.title : "",
+					unit = ( unitObj && unitObj.unit )? unitObj.unit: "",
+					format = ( unitObj && unitObj.format )? unitObj.format: "";
 
-					var $li = $("<li data-property='" + dimension.property + "'>" +
-						           "<label>" + dimension.name + ":</label>" +
-						           "Visible:<input type='checkbox' class='visible-input' " + visibleProp + "/>" +
-   						           "<input type='input' class='form-control title-input' value='" + title + "' placeholder='Short title' />" +
-						           "<input type='input' class='form-control unit-input' value='" + unit + "' placeholder='Unit' />" +
-						           "<input type='input' class='form-control format-input' value='" + format + "' placeholder='No of dec. places' />" +
-						         "</li>" );
-					$ul.append( $li );
-				} );
-			}
+				if (!unitObj && dimension && dimension.unit) {
+					//if nothing stored, try to get default units for given variable
+					unit = dimension.unit;
+				}
+
+				var $li = $("<li data-property='" + dimension.property + "'>" +
+					           "<label>" + dimension.property + ":</label>" +
+					           "Visible:<input type='checkbox' class='visible-input' " + visibleProp + "/>" +
+						           "<input type='input' class='form-control title-input' value='" + title + "' placeholder='Short title' />" +
+					           "<input type='input' class='form-control unit-input' value='" + unit + "' placeholder='Unit' />" +
+					           "<input type='input' class='form-control format-input' value='" + format + "' placeholder='No of dec. places' />" +
+					         "</li>" );
+				$ul.append( $li );
+			} );
 		},
 
 		updateUnits: function() {
@@ -181,18 +180,18 @@
 
 				//for each li with unit information, construct object with property, unit and format properties
 				var unitSettings = {
-					"property": $li.attr( "data-property" ),
-					"visible": $visible.is( ":checked" ),
+					"property": $li.attr("data-property"),
+					"visible": $visible.is(":checked"),
 					"title": $title.val(),
 					"unit": $unit.val(),
 					"format": $format.val()
 				};
 
-				units.push( unitSettings );
+				units.push(unitSettings);
 			} );
 
-			var json = JSON.stringify( units );
-			App.ChartModel.set( "units", json );
+			var json = JSON.stringify(units);
+			App.ChartModel.set("units", json);
 		}
 
 	});

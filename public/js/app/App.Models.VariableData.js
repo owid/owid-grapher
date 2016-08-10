@@ -153,11 +153,11 @@
 		},
 
 		getEntityById: function(id) {
-			return this.get("entityKey")[id];
+			return this.get("entityKey") && this.get("entityKey")[id];
 		},
 
 		getVariableById: function(id) {
-			return this.get("variables")[id];
+			return this.get("variables") && this.get("variables")[id];
 		}
 	});
 })();

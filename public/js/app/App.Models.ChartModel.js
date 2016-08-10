@@ -233,6 +233,15 @@
 				validDimensions = validDimensions.concat([{"variableId":"123","property":"color","unit":"","name":"Color","period":"single","mode":"specific","targetYear":"2000","tolerance":"5","maximumAge":"5"}]);
 			}
 
+			_.each(validDimensions, function(dim) {
+				if (App.VariableData) {
+					var variable = App.VariableData.getVariableById(dim.variableId);
+					if (variable)
+						dim.displayName = dim.displayName || variable.name;
+				}
+
+			});
+
 			return validDimensions;
 		},
 

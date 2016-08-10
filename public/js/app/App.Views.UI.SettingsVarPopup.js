@@ -222,11 +222,9 @@
 			this.trigger("variable-settings", data);
 		},
 
-		onCancelBtn: function( evt ) {
-
+		onCancelBtn: function(evt) {
 			evt.preventDefault();
 			this.hide();
-
 		}
 	});
 })();

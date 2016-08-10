@@ -973,9 +973,6 @@ li[data-color^=".*"] {
   display: inline-block;
   width: 35%; }
 
-.units-section label {
-  width: 15%;
-  max-width: 80px; }
 
 /**
 *	export section

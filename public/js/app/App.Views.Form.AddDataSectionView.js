@@ -75,6 +75,7 @@
                 if (settings.hasOwnProperty(i) && i !== "variableId") {
                     var attrName = "data-" + i,
                         attrValue = settings[i];
+
                     $li.attr(attrName, attrValue);
                 }
             } 
