@@ -160,7 +160,7 @@
 				activeTab = _.find(tabs, function(tab) { return this.$tabs.filter("." + tab + "-header-tab.active").length > 0}.bind(this));
 
 			if (activeTab == "map") {
-				if (this.parentView.mapTab.mapConfig)
+				if (this.parentView.mapTab.dataMap)
 					this.updateTimeFromMap(this.parentView.mapTab);
 			} else {
 				if (this.parentView.chartTab && this.parentView.chartTab.localData)
@@ -176,9 +176,10 @@
 		},
 
 		updateTimeFromMap: function(map) {			
-			var timeFrom = map.minToleranceYear || map.mapConfig.targetYear,
-				timeTo = map.maxToleranceYear || map.mapConfig.targetYear,
-				targetYear = map.mapConfig.targetYear,
+			var mapConfig = App.MapModel.attributes,
+				timeFrom = map.minToleranceYear || mapConfig.targetYear,
+				timeTo = map.maxToleranceYear || mapConfig.targetYear,
+				targetYear = mapConfig.targetYear,
 				hasTargetYear = _.find(map.mapData, function(d) { return d.year == targetYear; }),
 				d = owid.displayYear;
 

@@ -21,8 +21,7 @@
 			this.$endYear = this.$el.find( ".timeline-end-year" );
 
 			this.listenTo(this.dispatcher, "increment-time", this.onIncrementTime.bind(this));
-			this.listenTo(App.ChartModel, "change-map", this.onChangeYear.bind(this));
-			this.listenTo(App.ChartModel, "change-map-year", this.onChangeYear.bind(this));
+			this.listenTo(App.MapModel, "change:targetYear", this.onChangeYear.bind(this));
 		},
 
 		onMousedown: function(evt) {
@@ -63,18 +62,17 @@
 				return Math.abs(year-targetYear);
 			});
 
-			App.ChartModel.updateMapConfig("targetYear", closestYear, false, "change-map-year");			
+			App.MapModel.set("targetYear", closestYear);			
 		},
 
 		render: function() {
-			var mapConfig = App.ChartModel.get("map-config"),
-				minYear = App.VariableData.get("minYear"),
-				maxYear = App.VariableData.get("maxYear");
-			
-			this.years = owid.timeRangesToYears(mapConfig.timeRanges, minYear, maxYear);
+			var years = App.MapModel.getYears(),
+				targetYear = App.MapModel.get("targetYear");
+
+			this.years = years;
 			this.minYear = this.years[0];
 			this.maxYear = this.years[this.years.length-1];
-			this.targetYear = mapConfig.targetYear;
+			this.targetYear = targetYear;
 
 			this.$startYear.text(owid.displayYear(this.minYear));
 			this.$endYear.text(owid.displayYear(this.maxYear));
@@ -131,7 +129,7 @@
 		},
 
 		onChangeYear: function() {
-			var targetYear = App.ChartModel.get("map-config").targetYear;
+			var targetYear = App.MapModel.get("targetYear");
 			this.updateSliderInput(targetYear);
 
 			if (targetYear != parseInt(this.$sliderInput.val()))

@@ -19,7 +19,7 @@
 			this.$embedModal = $(".embed-modal");
 			this.$embedModal.appendTo("body");			
 
-			this.listenTo(App.ChartModel, "change", this.render.bind(this));
+			this.listenTo(App.ChartModel, "change:dimensions change:chart-description", this.render.bind(this));
 			this.listenTo(this.dispatcher, "header-rendered", this.updateSharingButtons.bind(this));
 			this.listenTo($(window), "query-change", this.updateSharingButtons.bind(this));
 		},
@@ -36,10 +36,10 @@
 			var sources = App.ChartData.transformDataForSources(),
 				sourceNames = _.uniq(_.pluck(sources, "name")),
  				chartDesc = App.ChartModel.get("chart-description"),
-				footerSvgMain = "", footerSvgLicense = "";
+				footerSvgMain = "", footerSvgNote = "", footerSvgLicense = "";
 
 			// Add the Source line
-			footerSvgMain += '<a class="bold">Source: </a>';
+			footerSvgMain += '<a class="bold">Data source: </a>';
 				
 			_.each(sourceNames, function(sourceName, i) {
 				if (i > 0) footerSvgMain += ", ";
@@ -48,7 +48,7 @@
 
 			// Add Note, if any
 			if (chartDesc) {
-				footerSvgMain += '\n<a class="bold">Note: </a>' + chartDesc;
+				footerSvgNote += '<a class="bold">Note: </a>' + chartDesc;
 			}
 
 			// Static image export has slightly different license text
@@ -84,15 +84,25 @@
 				.attr("y", 0)
 				.attr("dy", 0);
 
-			owid.svgSetWrappedText(footerMainText, footerSvgMain, svgWidth, { lineHeight: 1.2 });
+			owid.svgSetWrappedText(footerMainText, footerSvgMain, svgWidth, { lineHeight: 1.1 });
+
+			if (footerSvgNote) {
+				var footerNoteText = g.append("text")
+						.attr("class", "footer-note-svg")
+						.attr("x", 0)
+						.attr("y", footerMainText.node().getBoundingClientRect().bottom - svgBounds.top)
+						.attr("dy", "1.5em");
+
+				owid.svgSetWrappedText(footerNoteText, footerSvgNote, svgWidth, { lineHeight: 1.1 });				
+			}
 
 			var footerLicenseText = g.append("text")
 					.attr("class", "footer-license-svg")
 					.attr("x", 0)
-					.attr("y", footerMainText.node().getBoundingClientRect().bottom - svgBounds.top)
-					.attr("dy", "2em");
+					.attr("y", (footerSvgNote ? footerNoteText : footerMainText).node().getBoundingClientRect().bottom - svgBounds.top)
+					.attr("dy", "1.5em");
 
-			owid.svgSetWrappedText(footerLicenseText, footerSvgLicense, svgWidth, { lineHeight: 1.2 });
+			owid.svgSetWrappedText(footerLicenseText, footerSvgLicense, svgWidth, { lineHeight: 1.1 });
 	
 			$(".chart-footer-svg .source-link").click(function(ev) {
 				ev.preventDefault();
@@ -105,7 +115,7 @@
 				.attr("width", svgWidth)
 				.attr("height", footerHeight + 25)
 				.style("fill", "#fff");
-			g.attr("transform", "translate(0, " + (svgHeight - footerHeight) + ")");
+			g.attr("transform", "translate(0, " + (svgHeight - footerHeight + 10) + ")");
 
 			if (callback) callback();
 		},

@@ -649,7 +649,7 @@
 					offsetY = (this.legend ? this.legend.height() + 5 : 0);
 
 				this.$xAxisScaleSelector.css({ left: offsetX + chartBounds.width, top: offsetY + chartBounds.height });
-				this.$yAxisScaleSelector.css({ left: offsetX, top: offsetY });
+				this.$yAxisScaleSelector.css({ left: offsetX, top: offsetY-3 });
 			}.bind(this), 250);
 
 			if (_.isFunction(callback)) callback();

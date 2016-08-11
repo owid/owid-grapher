@@ -36,15 +36,19 @@
 
 			this.colorsSection = this.addChild(MapColorSection);
 
-			//make sure we have current data
-			this.updateTargetYear(true);
-
 			App.ChartData.ready(function() {
 				this.render();
 			}.bind(this));
 
-			this.listenTo(App.ChartModel, "change", this.onChartModelChange.bind(this));
-			this.onChartModelChange();
+			this.listenTo(App.MapModel, "change", this.update.bind(this));
+			this.update();
+		},
+
+		update: function(evt) {
+			App.ChartData.ready(function() {
+				this.updateTimelineMode();
+				this.updateVariableSelect();
+			}.bind(this));
 		},
 
 		render: function() {
@@ -100,7 +104,7 @@
 		},
 
 		updateVariableSelect: function() {
-			var mapConfig = App.ChartModel.get("map-config"),
+			var mapConfig = App.MapModel.attributes,
 				variables = App.VariableData.get("variables"),
 				html = "";
 
@@ -126,34 +130,20 @@
 			if (!_.isEmpty(variables) && mapConfig.variableId <= 0) {
 				var firstOption = this.$variableIdSelect.find("option").eq(1).val();
 				this.$variableIdSelect.val(firstOption);
-				App.ChartModel.updateMapConfig("variableId", firstOption);
+				App.MapModel.set("variableId", firstOption);
 			}
 		},
 		
 		updateDefaultProjectionSelect: function() {			
-			var html = "",
-				mapConfig = App.ChartModel.get( "map-config" );
+			var defaultProjection = App.MapModel.get("defaultProjection"),
+				html = "";
 
 			this.$defaultProjectionSelect.empty();
-			_.each( owdProjections, function( v, i ) {
-				var selected = ( i == mapConfig.defaultProjection )? " selected": "";
+			_.each(owdProjections, function(v, i) {
+				var selected = i == defaultProjection ? " selected" : "";
 				html += "<option value='" + i + "' " + selected + ">" + i + "</option>";
-			} );
-			this.$defaultProjectionSelect.append( $( html ) );
-
-		},
-
-		updateTargetYear: function() {
-			var chartTime = App.ChartModel.get( "chart-time" ),
-				minYear = App.VariableData.get("minYear"),
-				maxYear = App.VariableData.get("maxYear"),
-				savedTargetYear = App.MapModel.get("targetYear"),
-				targetYear = ( chartTime )? chartTime[0]: minYear;
-
-			//override target year only if we don't have manually chosen custom year
-			if( !savedTargetYear ) {
-				App.ChartModel.updateMapConfig( "targetYear", targetYear, silent );
-			}			
+			});
+			this.$defaultProjectionSelect.append(html);
 		},
 
 		updateTimelineMode: function() {
@@ -161,18 +151,17 @@
 		},
 
 		onVariableIdChange: function() {
-			App.ChartModel.updateMapConfig("variableId", this.$variableIdSelect.val());
+			App.MapModel.set("variableId", this.$variableIdSelect.val());
 		},
 
 		onTimeToleranceChange: function( evt ) {
-			var $this = $( evt.target );
-			App.ChartModel.updateMapConfig( "timeTolerance", parseInt( $this.val(), 10 ) );
+			App.MapModel.set("timeTolerance", +$(evt.target).val());
 		},
 
 		onTimeRangesChange: function(evt) {
-			var $this = $(evt.target);
+			var $this = $(evt.target), timeRanges;
 			try {
-				var timeRanges = owid.timeRangesFromString($this.val());
+				timeRanges = owid.timeRangesFromString($this.val());
 			} catch (e) {
 				if (e instanceof RangeError) {
 					$this.closest('.form-group').addClass('has-error');
@@ -187,16 +176,15 @@
 			$this.tooltip('hide');
 			$this.attr('data-original-title', '');
 			$this.closest('.form-group').removeClass('has-error');
-			App.ChartModel.updateMapConfig("timeRanges", timeRanges);
+			App.MapModel.set("timeRanges", timeRanges);
 			this.updateDefaultYearSelect();
 		},
 
-		onDefaultYearChange: function( evt ) {
+		onDefaultYearChange: function(evt) {
 			var $this = $( evt.target ),
-				mapConfig = App.ChartModel.get( "map-config" ),
 				val = $this.val(),
 				defaultYear, targetYearMode = "normal",
-				years = owid.timeRangesToYears(mapConfig.timeRanges, mapConfig.minYear, mapConfig.maxYear);
+				years = App.MapModel.getYears();
 
 			if( val === "earliest" ) {
 				targetYearMode = val;
@@ -216,38 +204,28 @@
 		},
 
 		onDefaultProjectionChange: function(evt) {
-			var $this = $(evt.target);
-			App.ChartModel.updateMapConfig("defaultProjection", $this.val(), true);
-			App.ChartModel.updateMapConfig("projection", $this.val());
+			var projection = $(evt.target).val();
+
+			App.MapModel.set({
+				defaultProjection: projection,
+				projection: projection
+			});
 		},
 
-		onChartModelChange: function(evt) {
-			App.ChartData.ready(function() {
-				this.updateTimelineMode();
-				this.updateTargetYear(true);
-				this.updateVariableSelect();
-			}.bind(this));
+		onLegendOrientationChange: function(evt) {
+			App.MapModel.set("legendOrientation", $(evt.target).val());
 		},
 
-		onLegendOrientationChange: function( evt ) {
-			var $this = $( evt.target );
-			App.ChartModel.updateMapConfig( "legendOrientation", $this.val() );
+		onLegendDescriptionChange: function(evt) {
+			App.MapModel.set("legendDescription", $(evt.target).val());
 		},
 
-		onLegendDescriptionChange: function( evt ) {
-			var $this = $( evt.target );
-			App.ChartModel.updateMapConfig( "legendDescription", $this.val() );
+		onLegendStepSizeChange: function(evt) {
+			App.MapModel.set("legendStepSize", $(evt.target).val());
 		},
 
-		onLegendStepSizeChange: function( evt ) {
-			var $this = $( evt.target );
-			App.ChartModel.updateMapConfig( "legendStepSize", $this.val() );
-		},
-
-		onTimeModeChange: function( evt ) {
-			var $this = $( evt.target );
-			App.ChartModel.updateMapConfig( "timelineMode", $this.val(), false, "change-map" );
+		onTimeModeChange: function(evt) {
+			App.MapModel.set("timelineMode", $(evt.target).val());
 		}
-
 	});
 })();

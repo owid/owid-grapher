@@ -21,6 +21,8 @@
 			$(window).on("chart-loaded", function() {			
 				window.svg = $("svg").get(0);
 			});
+
+			window.maptab = App.ChartView.mapTab;
 		},
 	});
 })();

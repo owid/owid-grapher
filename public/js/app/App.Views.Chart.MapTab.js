@@ -24,7 +24,6 @@
 		initialize: function( options ) {
 			this.dispatcher = options.dispatcher;
 			this.parentView = options.parentView;
-			this.vardataModel = options.vardataModel;
 			this.$tab = this.$el.find("#map-chart-tab");
 		},
 
@@ -51,12 +50,14 @@
 			this.mapControls = this.addChild(MapControls, { dispatcher: this.dispatcher });
 			this.timelineControls = this.addChild(TimelineControls, { dispatcher: this.dispatcher });
 
-			this.listenTo(App.ChartModel, "change", this.update.bind(this));
-			this.listenTo(App.ChartModel, "change-map", function() {
-				this.update();
-				App.ChartView.onResize();
-			});
-			this.listenTo(App.ChartModel, "change-map-year", this.updateYearOnly.bind(this));
+			this.listenTo(App.MapModel, "change", function(model) {
+				if (_.size(model.changed) == 1 && model.hasChanged("targetYear")) {
+					this.updateYearOnly();
+				} else {
+					this.update();
+					App.ChartView.onResize();					
+				}
+			}.bind(this));
 
 			this.delegateEvents();
 			this.update(callback);
@@ -72,12 +73,11 @@
 		},
 
 		update: function(callback) {
-			this.mapConfig = App.ChartModel.get("map-config");
-
 			// We need to wait for both datamaps to finish its setup and the variable data
 			// to come in before the map can be fully rendered
 			var onMapReady = function() {
 				$(".chart-wrapper-inner").attr("style", "");
+
 				App.ChartData.ready(function() {
 					this.render(callback);
 				}.bind(this));				
@@ -110,11 +110,8 @@
 		}, 100),
 
 		initializeMap: function(onMapReady) {
-			window.maptab = this;
-			var self = this;
-			var defaultProjection = this.getProjection(this.mapConfig.projection);
-
 			var $oldSvg = $("svg");
+			
 			this.dataMap = new Datamap({
 				element: $(".chart-wrapper-inner").get(0),
 				responsive: false,
@@ -125,13 +122,13 @@
 					highlightFillColor: '#8b8b8b',
 					highlightBorderWidth: 3,
 					highlightBorderColor: '#FFEC38',
-					popupTemplate: self.popupTemplateGenerator,
+					popupTemplate: this.popupTemplateGenerator,
 					hideAntarctica: true
 				},
 				fills: {
 					defaultFill: '#8b8b8b'
 				},
-				setProjection: defaultProjection,
+				setProjection: owdProjections.World,
 				done: function() {
 					// HACK (Mispy): Workaround for the fact that datamaps insists on creating
 					// its own SVG element instead of injecting into an existing one.
@@ -141,13 +138,21 @@
 					d3.select("svg.datamap").insert("rect", "*")
 						.attr("class", "map-bg")
 						.attr("x", 0).attr("y", 0);
+
 					onMapReady();
+
+					// Set the post-initial-render defaults
+					var mapConfig = App.MapModel.attributes;
+					App.MapModel.set({
+						targetYear: mapConfig.defaultYear || mapConfig.targetYear,
+						projection: mapConfig.defaultProjection || mapConfig.projection
+					});
 				}
 			});
 
 			// For maps earlier than 2011, display a disclaimer noting that data is mapped
 			// on current rather than historical borders
-			if (parseInt(self.mapConfig.minYear) <= 2011) {
+			if (App.MapModel.getMinYear() <= 2011) {
 				this.bordersDisclaimer = d3.select( ".border-disclaimer" );
 				if (this.bordersDisclaimer.empty()) {
 					this.bordersDisclaimer = d3.select(".datamap").append("text");
@@ -155,17 +160,14 @@
 				}
 			}
 
-			// Set configurable targets from defaults
-			this.mapConfig.targetYear = this.mapConfig.defaultYear || this.mapConfig.targetYear;
-			this.mapConfig.projection = this.mapConfig.defaultProjection || this.mapConfig.projection;
 		},
 
 		popupTemplateGenerator: function(geo, data) {
 			if (_.isEmpty(data)) return;
 
 			//transform datamaps data into format close to nvd3 so that we can reuse the same popup generator
-			var mapConfig = App.ChartModel.get( "map-config" ),
-				propertyName = App.Utils.getPropertyByVariableId(App.ChartModel, mapConfig.variableId) || "y";
+			var variableId = App.MapModel.get("variableId"),
+				propertyName = App.Utils.getPropertyByVariableId(App.ChartModel, variableId) || "y";
 
 			var obj = {
 				point: {
@@ -179,11 +181,6 @@
 			return ["<div class='hoverinfo nvtooltip'>" + owid.contentGenerator( obj, true ) + "</div>"];
 		},
 
-		onChartModelChange: function( evt ) {
-			this.update();
-		},
-
-
 		/**
 		 * Transforms raw variable data into datamaps format
 		 * @return {Object} mapData - of the form { 'Country': { value: 120.11, year: 2006 }, ...}
@@ -191,7 +188,8 @@
 		transformData: function() {
 			var variables = App.VariableData.get("variables"),
 				entityKey = App.VariableData.get("entityKey"),
-				targetVariable = variables[this.mapConfig.variableId];
+				mapConfig = App.MapModel.attributes,
+				targetVariable = variables[mapConfig.variableId];
 
 			if (!targetVariable) {
 				App.ChartView.handleError("No variable selected for map.", false);
@@ -201,14 +199,14 @@
 			var years = targetVariable.years,
 				values = targetVariable.values,
 				entities = targetVariable.entities,
-				targetYear = parseInt(this.mapConfig.targetYear),
-				tolerance = parseInt(this.mapConfig.timeTolerance),
+				targetYear = +mapConfig.targetYear,
+				tolerance = +mapConfig.timeTolerance,
 				mapData = {};
 
 			if (isNaN(tolerance))
 				tolerance = 0;
 
-			if (this.mapConfig.mode === "no-interpolation")
+			if (mapConfig.mode === "no-interpolation")
 				tolerance = 0;
 
 			for (var i = 0; i < values.length; i++) {
@@ -235,13 +233,6 @@
 			this.maxToleranceYear = _.max(mapData, function(d, i) { return d.year; }).year;
 			this.variableName = targetVariable.name;
 
-			// HACK (Mispy): Ideally these calculated values shouldn't go in mapConfig,
-			// but for backwards compatibility it's easier to have them there.
-			var rangeYears = owid.timeRangesToYears(this.mapConfig.timeRanges, years[0], years[years.length-1]);
-			App.ChartModel.updateMapConfig("minYear", rangeYears[0], true);
-			App.ChartModel.updateMapConfig("maxYear", rangeYears[rangeYears.length-1], true);
-
-
 			return mapData;
 		},
 
@@ -262,7 +253,7 @@
 				// If we've changed the projection (i.e. zooming on Africa or similar) we need
 				// to redraw the datamap before injecting new data
 				var oldProjection = this.dataMap.options.setProjection,
-					newProjection = this.getProjection(this.mapConfig.projection);
+					newProjection = owdProjections[App.MapModel.get("projection")];
 
 				var self = this;
 				var updateMap = function() {
@@ -290,23 +281,21 @@
 		},
 
 		makeColorScale: function() {
-			var mapConfig = this.mapConfig,
-				colorScheme = owdColorbrewer.getColors(mapConfig),
+			var colorScheme = owdColorbrewer.getColors(App.MapModel.attributes),
 				variable = App.MapModel.getVariable(),
-				showOnlyRelevant = App.MapModel.showOnlyRelevantLegend();
-
-
-			var colorScale,
-				customValues = mapConfig.colorSchemeValues,
-				automaticValues = mapConfig.colorSchemeValuesAutomatic;
-
-			var categoricalScale = variable && !variable.isNumeric;
+				showOnlyRelevant = App.MapModel.showOnlyRelevantLegend(),
+				customValues = App.MapModel.get("colorSchemeValues"),
+				automaticValues = App.MapModel.get("colorSchemeValuesAutomatic"),
+				categoricalScale = variable && !variable.isNumeric,
+				minValue = App.MapModel.getMinValue(),
+				maxValue = App.MapModel.getMaxValue(),
+				colorScale;
 
 			//use quantize, if we have numerica scale and not using automatic values, or if we're trying not to use automatic scale, but there no manually entered custom values
-			if (!categoricalScale && (automaticValues || (!automaticValues && !customValues)) ) {
+			if (!categoricalScale && (automaticValues || (!automaticValues && !customValues))) {
 				//we have quantitave scale
-				colorScale = d3.scale.quantize().domain([this.minValue, this.maxValue]);
-			} else if( !categoricalScale && customValues && !automaticValues ) {
+				colorScale = d3.scale.quantize().domain([minValue, maxValue]);
+			} else if (!categoricalScale && customValues && !automaticValues) {
 				//create threshold scale which divides data into buckets based on values provided
 				colorScale = d3.scale.equal_threshold().domain(customValues);
 			} else {
@@ -326,9 +315,9 @@
 
 		makeLegend: function(availableHeight) {
 			var legend = this.legend || new Legend(),
-				minValue = this.minValue,
-				maxValue = this.maxValue,
-				mapConfig = this.mapConfig,
+				minValue = App.MapModel.getMinValue(),
+				maxValue = App.MapModel.getMaxValue(),
+				mapConfig = App.MapModel.attributes,
 				colorScale = this.colorScale;
 
 			if (mapConfig.colorSchemeMinValue || mapConfig.colorSchemeValuesAutomatic) {
@@ -361,12 +350,6 @@
 			var legendData = { scheme: colorScale.range(), description: mapConfig.legendDescription || this.variableName };
 			d3.select(".legend-wrapper").datum(legendData).call(legend);
 			return legend;
-		},
-
-		getProjection: function( projectionName ) {
-			var projections = owdProjections,
-				newProjection = ( projections[ projectionName ] )? projections[ projectionName ]: projections.World;
-			return newProjection;
 		},
 
 		onResize: function(callback) {

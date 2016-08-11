@@ -75,6 +75,9 @@ body {
     width: 100%;
     height: 100%;
 }
+body {
+    min-width: 300px;
+}
 .browserupgrade {
     margin: 0.2em 0;
     background: #ccc;
@@ -172,14 +175,23 @@ select.disabled {
     fill-opacity: 1;
 }
 
-#chart-view svg.LineChart .nv-group {
+#chart-view svg.LineChart .nv-group .nv-line {
     stroke-width: 2.5 !important;
 }
 
 /* Make World line slightly thicker */
-#chart-view svg .nv-group.World {
+#chart-view svg .nv-group.World .nv-line {
     stroke-width: 5 !important;
 }
+
+.nv-group.World .nv-point {
+    stroke-width: 3;
+}
+
+#chart-view .dashed .nv-line {
+    stroke-dasharray: 2, 2;
+}
+
 
 
 /* ==========================================================================
@@ -334,11 +346,6 @@ select.disabled {
     -webkit-font-smoothing: antialiased;
 }
 
-/* The chart in the editor only takes up half the space */
-
-.chart-edit-module #chart-view {
-    width: 50%;
-}
 /* The little loading icon */
 
 #chart-view .chart-preloader {
@@ -387,7 +394,7 @@ select.disabled {
 --------------------------------------------- */
 
 #chart-view .chart-header-svg .chart-name-svg {
-    font-size: 1.4em;
+    font-size: 1.35em;
 }
 #chart-view .chart-header-svg .chart-name-svg a {
     fill: #35322F;
@@ -509,7 +516,6 @@ select.disabled {
 }
 #chart-view .nv-custom-legend .nv-legend-text {
     fill: #fff;
-    font-size: 16px !important;
 }
 #chart-view .nv-custom-legend .nv-add-btn {
     cursor: pointer;
@@ -870,7 +876,7 @@ select.disabled {
     bottom: -1px;
     z-index: 2;
     width: 100%;
-    height: 3.1em;
+    height: 2.5em;
     color: #404040;
     background-color: #FAFAFA;
     border-top: 1px solid #ddd;
@@ -899,7 +905,8 @@ select.disabled {
 }
 #map-chart-tab .play-btn,
 #map-chart-tab .pause-btn {
-    font-size: 2em;    
+    font-size: 1.8em;    
+    line-height: 1.3em;
 }
 #map-chart-tab .pause-btn {
     display: none;
@@ -956,7 +963,7 @@ select.disabled {
 }
 #chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper {
     position: absolute;
-    top: 0.4em;
+    top: 0.1em;
     left: 4.4em;
     right: 4.4em;
 }
@@ -1072,39 +1079,61 @@ body#chart-export .settings-control,
 body#chart-export .color-blind-control,
 body#chart-export .map-controls-header,
 body#chart-export .nv-add-btn,
-body#chart-export .nv-controlsWrap {
+body#chart-export .nv-controlsWrap,
+body#chart-export .axis-scale-selectors-wrapper {
     display: none !important;
 }
 body#chart-export .tab-pane {
     border: none !important;
 }
 body#chart-export .nv-custom-legend .nv-legend-text {
-    font-size: 17px !important;
+    font-size: 16px !important;
 }
 /* Responsiveness
 --------------------------------------------- */
 
-#chart-view {
-    font-size: 20px;
-}
 
-@media screen and (min-width: 900px) {
+/* Mobile screens and smaller embeds */
+@media screen and (max-width: 768px) {
     #chart-view {
-        font-size: 20px;
+        font-size: 18px;
     }
 }
 
-@media screen and (min-width: 1300px) {
+/* Smaller laptop screens and normal embeds */
+@media screen and (min-width: 769px) and (max-width: 1439px) {
+    #chart-view {
+        font-size: 20px;
+    }    
+}
+
+/* Big fullscreen view */
+@media screen and (min-width: 1440px) {
     #chart-view {
         font-size: 22px;
     }
 }
 
-#chart-export #chart-view {
-    font-size: 20px !important;
+/* For really huge screens */
+@media screen and (min-width: 1921px) {
+    #chart-view {
+        font-size: 26px;
+    }
 }
 
-@media (max-width: 720px) {
+/* The chart in the editor doesn't take up the entire screen */
+.chart-edit-module #chart-view {
+    width: 50%;    
+    max-height: 660px;
+    font-size: 20px;
+}
+
+/* Special export mode */
+#chart-export #chart-view {
+    font-size: 19px !important;
+}
+
+@media (max-width: 768px) {
     #chart-view.embedded {
         padding: 0.6em;
         border: 1px solid #ccc;
@@ -1112,8 +1141,12 @@ body#chart-export .nv-custom-legend .nv-legend-text {
     #chart-view:not(.embedded) {
         padding: 1em;
     }
-    /* Tabs should fill the entire width */
-    
+
+    .nv-custom-legend .nv-legend-text {
+        font-size: 14px !important;
+    }
+
+    /* Tabs should fill the entire width */    
     #chart-view ul.chart-tabs {
         display: table;
         width: 100%;
@@ -1122,10 +1155,16 @@ body#chart-export .nv-custom-legend .nv-legend-text {
         display: table-cell;
     }
     #chart-view ul.chart-tabs li > a {
-        padding: 0.5em 1em;
+        padding: 3px 8px;
     }
     #chart-view ul.chart-tabs li.edit-btn-wrapper {
         display: none;
+    }
+
+    /* Compact the footer buttons a bit */
+    #chart-view .footer-btns {
+        padding-top: 5px;
+        height: 19px;
     }
     #chart-view .footer-btns a.chart-link-btn span,
     #chart-view .footer-btns a.tweet-btn span,
@@ -1140,7 +1179,7 @@ body#chart-export .nv-custom-legend .nv-legend-text {
         display: none;
     }
 }
-@media (min-width: 720px) {
+@media (min-width: 769px) {
     #chart-view.embedded {
         padding: 1em 1.5em;
         border: 1px solid #ccc;
@@ -1148,12 +1187,20 @@ body#chart-export .nv-custom-legend .nv-legend-text {
     #chart-view:not(.embedded) {
         padding: 1.5em 3em;
     }
+
+    .nv-custom-legend .nv-legend-text {    
+        font-size: 16px !important;
+    }
+
+    /* Desktop-style tabs */
     #chart-view ul.chart-tabs {
         float: right;
     }
     #chart-view ul.chart-tabs li {
         float: left;
     }
+
+    /* Desktop-only: can click on world map to get chart */
     .datamaps-subunits {
         cursor: pointer;
     }
@@ -1171,9 +1218,6 @@ body#chart-export .nv-custom-legend .nv-legend-text {
     overflow: auto;
     font-size: 16px;
     max-height: 800px;
-}
-.dashed {
-    stroke-dasharray: 2, 2;
 }
 .unstroked {
     display: none;

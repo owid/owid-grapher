@@ -164,25 +164,19 @@
 			//updating minimal value?
 			var $minValueInput = this.$inputs.eq( 0 );
 			if( $minValueInput.get( 0 ) == evt.currentTarget ) {
-
-				App.ChartModel.updateMapConfig( "colorSchemeMinValue", $minValueInput.val() );
-				
+				App.MapModel.set("colorSchemeMinValue", $minValueInput.val());
 			} else {
-
 				//update values
 				var values = [];
-				$.each( this.$inputs, function( i, d ) {
+				$.each(this.$inputs, function( i, d ) {
 					//first input is minimal value
 					if( i > 0 ) {
-						var inputValue = $( d ).val();
-						//if( inputValue ) {
-							values.push( inputValue );
-						//}
+						var inputValue = $(d).val();
+						values.push(inputValue);
 					}
-				} );
+				});
 			
-				App.ChartModel.updateMapConfig( "colorSchemeValues", values );
-
+				App.MapModel.set("colorSchemeValues", values);
 			}			
 		},
 
@@ -195,18 +189,18 @@
 			});
 
 
-			App.ChartModel.updateMapConfig("colorSchemeLabels", values);			
+			App.MapModel.set("colorSchemeLabels", values);			
 		},
 
 		onAutomaticClassification: function(evt) {
 			var checked = this.$colorAutomaticClassification.prop("checked");
 			this.$el.toggleClass("automatic-values", checked);
-			App.ChartModel.updateMapConfig("colorSchemeValuesAutomatic", checked);
+			App.MapModel.set("colorSchemeValuesAutomatic", checked);
 		},
 
 		onColorInvert: function(evt) {
 			var checked = this.$colorInvert.prop("checked");
-			App.ChartModel.updateMapConfig("colorSchemeInvert", checked);
+			App.MapModel.set("colorSchemeInvert", checked);
 		}
 	});
 })();

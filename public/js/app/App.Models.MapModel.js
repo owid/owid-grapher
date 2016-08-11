@@ -22,8 +22,6 @@
 			"defaultYear": 1980,
 			"mode": "specific",
 			"timeTolerance": 1,
-			"minYear": 1980,
-			"maxYear": 2000,
 			// timeRanges is a collection of objects specifying year ranges e.g.
 			//
 			// [
@@ -56,18 +54,11 @@
 		bind: function(chartModel) {
 			this.chartModel = chartModel;
 
-			var mapConfig = this.chartModel.get("map-config")
-			if (mapConfig)
-				this.set(mapConfig);
-			else
-				this.chartModel.set("map-config", this.defaults);
-
-			this.listenTo(this.chartModel, "change:map-config", function() {
-				this.set(this.chartModel.get("map-config"));
-			}.bind(this));
+			this.listenTo(this.chartModel, "change:map-config", this.loadConfig.bind(this));
+			this.loadConfig();
 
 			this.on("change", function() {
-				this.chartModel.set("map-config", this.toJSON());
+				this.chartModel.set("map-config", this.toJSON(), { silent: true });
 			}.bind(this));
 
 			// Ensure number of colors matches custom color scheme array length
@@ -87,6 +78,82 @@
 					}
 				}
 			}.bind(this));
+
+			this.on("change:timeRanges", this.updateYears.bind(this));
+			this.listenTo(App.VariableData, "change:minYear change:maxYear", this.updateYears.bind(this));
+		},
+
+		loadConfig: function() {
+			var mapConfig = this.chartModel.get("map-config");
+			if (!mapConfig) {
+				this.chartModel.set("map-config", this.defaults);
+				return;
+			}
+
+			// Ensure everything that is a number should be
+			_.each(this.defaults, function(defaultVal, k) {
+				var val = mapConfig[k];
+				if (_.isNumber(defaultVal) && _.isString(val))
+					mapConfig[k] = +val;
+			});
+
+			this.set(mapConfig);
+		},
+
+		updateYears: function() {
+			var timeRanges = this.get("timeRanges"),
+				minVariableYear = App.VariableData.get("minYear"),
+				maxVariableYear = App.VariableData.get("maxYear"),
+				defaultYear = this.get("defaultYear"),
+				targetYear = this.get("targetYear");
+			
+			this.years = owid.timeRangesToYears(timeRanges, minVariableYear, maxVariableYear);
+
+			var minYear = this.getMinYear(),
+				maxYear = this.getMaxYear();
+
+			// Sanity check our target years
+			if (defaultYear < minYear)
+				this.set("defaultYear", minYear);
+			else if (defaultYear > maxYear)
+				this.set("defaultYear", maxYear);
+
+			if (targetYear < minYear)
+				this.set("targetYear", minYear);
+			else if (targetYear > maxYear)
+				this.set("targetYear", maxYear);
+
+			// Update min and max values
+			var variable = this.getVariable();
+			this.minValue = Infinity;
+			this.maxValue = -Infinity;
+			_.each(variable.values, function(value, i) {
+				var year = variable.years[i];
+				if (_.contains(this.years, year)) {
+					if (value < this.minValue) this.minValue = value;
+					if (value > this.maxValue) this.maxValue = value;
+				}
+			}.bind(this));
+		},
+
+		getYears: function() {
+			return this.years;
+		},	
+
+		getMinYear: function() {
+			return this.years[0];
+		},
+
+		getMaxYear: function() {
+			return this.years[this.years.length-1];
+		},
+
+		getMinValue: function() {
+			return this.minValue;
+		},
+
+		getMaxValue: function() {
+			return this.maxValue;
 		},
 
 		getVariable: function() {

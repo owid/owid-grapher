@@ -68,7 +68,7 @@
 							variable = variableData.variables[d];
 						} else {
 							var spl = d.split(",");
-							variable.years.push(spl[0]);
+							variable.years.push(+spl[0]);
 							variable.entities.push(spl[1]);
 							variable.values.push(spl[2]);
 						}

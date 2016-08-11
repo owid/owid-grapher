@@ -449,8 +449,7 @@
 			if (word == "<LINKSTART>") {
 				linkIndex += 1;
 				$currentLink = links[linkIndex];
-				// HACK (Mispy): I'm really tired
-				breakSpan(s.contains(words[0], "Note:"));
+				breakSpan();
 				words.unshift(" ");
 				continue;
 			} else if (word == "<LINKSTOP>") {

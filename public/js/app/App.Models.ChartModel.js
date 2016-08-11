@@ -86,8 +86,10 @@
 		initialize: function() {
 			this.on("change:chart-type", this.onChangeType, this);
 			App.MapModel = new App.Models.MapModel();
+		},
+
+		bind: function() {
 			App.MapModel.bind(this);
-			$(document).trigger("chart-model");
 		},
 
 		// When the chart type is changed, we update values to the new defaults

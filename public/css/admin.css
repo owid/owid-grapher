@@ -1024,10 +1024,6 @@ li[data-color^=".*"] {
 .chart-show-module .col-md-6 {
   width: 100%; }
 
-#chart-view {
-  font-size: 20px !important;
-}
-
 #charts-index td:nth-child(3) {
   min-width: 120px;
 }

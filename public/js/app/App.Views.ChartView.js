@@ -66,6 +66,8 @@
 			App.VariableData = new VariableData();	
 			App.ChartData = new ChartData();
 			App.Colors = new Colors();
+			App.ChartModel.bind();
+			
 			var childViewOptions = { dispatcher: this.dispatcher, parentView: this };
 			this.urlBinder = new ChartURL(childViewOptions);
 			this.export = new Export(childViewOptions);
@@ -73,7 +75,6 @@
 			this.header = new Header(childViewOptions);
 			this.footer = new Footer(childViewOptions);
 			this.scaleSelectors = new ScaleSelectors(childViewOptions);
-			this.debugHelper = new DebugHelper(childViewOptions);
 			//tabs
 			var chartType = App.ChartModel.get("chart-type");
 			this.chartTab = new ChartTab(childViewOptions);
@@ -96,6 +97,8 @@
 					this.activateTab(this.activeTabName);
 				}
 			}.bind(this));
+
+			this.debugHelper = new DebugHelper(childViewOptions);
 		},
 
 		onTabClick: function(ev) {
@@ -182,6 +185,7 @@
 				// MISPY: Ideally we want to fit all of our contents into the space that we are given.
 				// However, if there is much header and footer text and the screen is small then we may
 				// need to demand extra scrollable height so that the user can actually see the chart.
+				// Has to be at least 350 for wide, short maps to work right.
 				var minHeight = 350;
 				if (tabHeight < minHeight && !App.isExport) {
 					//svg.style("height", svgBounds.height + (minHeight-tabHeight) + "px");

@@ -6,8 +6,6 @@
 	App.Views.Chart.Map.MapControls = owid.View.extend({
 		el: "#map-chart-tab .map-controls-header",
 		events: {
-			"input .target-year-control input": "onTargetYearInput",
-			"change .target-year-control input": "onTargetYearChange",
 			"click .region-control li": "onRegionClick",
 			"click .settings-control input": "onSettingsInput",
 			"click .color-blind-control": "onColorBlindClick",
@@ -34,74 +32,42 @@
 			//cache original
 			this.originalColorSchemeName = App.MapModel.get("colorSchemeName");
 
-			this.listenTo(App.ChartModel, "change", this.onChartModelChange.bind(this));
-			this.listenTo(App.ChartModel, "change-map", this.onChartModelChange.bind(this));
+			this.listenTo(App.MapModel, "change:projection change:mode change:isColorblind", this.render.bind(this));
 
 			return this.render();
 		},
 
 		render: function() {
-			var mapConfig = App.ChartModel.get( "map-config" ),
-				minYear = App.VariableData.get("minYear"),
-				maxYear = App.VariableData.get("maxYear");
-			
-			this.$targetYearLabel.text( mapConfig.targetYear );
-			this.$regionControlLabel.text( mapConfig.projection );
+			var mode = App.MapModel.get("mode"),
+				projection = App.MapModel.get("projection"),
+				isColorblind = App.MapModel.get("isColorblind");
 
-			this.$targetYearInput.attr( "min", minYear );
-			this.$targetYearInput.attr( "max", maxYear );
-			this.$targetYearInput.attr( "step", mapConfig.timeInterval );
-			this.$targetYearInput.val( parseInt( mapConfig.targetYear, 10 ) );
+			this.$regionControlLabel.text( projection );
 
 			this.$regionControlLis.removeClass( "highlight" );
-			this.$regionControlLis.filter( "." + mapConfig.projection + "-projection" ).addClass( "highlight" );
+			this.$regionControlLis.filter( "." + projection + "-projection" ).addClass( "highlight" );
 
-			this.$settingsControl.find("input").prop("checked", mapConfig.mode !== "no-interpolation");
-			this.$colorBlindControl.toggleClass("active", !!mapConfig.isColorblind);
-
-			//is interval mode display
-			if( isNaN( minYear ) || isNaN( maxYear ) ) {
-				this.$targetYearInput.attr( "disabled", true );
-			}
+			this.$settingsControl.find("input").prop("checked", mode !== "no-interpolation");
+			this.$colorBlindControl.toggleClass("active", !!isColorblind);
 		},
 
-		onChartModelChange: function( evt ) {
-			this.render();
-		},
-		
-		onTargetYearInput: function( evt ) {
-			var $this = $( evt.target ),
-				targetYear = parseInt( $this.val(), 10 );
-			this.$targetYearLabel.text( targetYear, false, "change-map" );
-		},
-
-		onTargetYearChange: function( evt ) {
-			var $this = $( evt.target ),
-				targetYear = parseInt( $this.val(), 10 );
-			App.ChartModel.updateMapConfig( "targetYear", targetYear, false, "change-map" );
-			this.render();
-		},
-
-		onRegionClick: function( evt ) {
-			var $this = $( evt.target );
-			App.ChartModel.updateMapConfig( "projection", $this.text(), false, "change-map" );
-			this.render();
+		onRegionClick: function(evt) {
+			App.MapModel.set("projection", $(evt.target).text());
 		},
 
 		onSettingsInput: function(evt) {
 			var $this = $(evt.target),
-				currentMode = App.ChartModel.get("map-config").mode,
+				currentMode = App.MapModel.get("mode"),
 				mode = currentMode === "no-interpolation" ? "specific" : "no-interpolation";
-			App.ChartModel.updateMapConfig("mode", mode, false, "change-map");
-			this.render();
+			App.MapModel.set("mode", mode);
 		},
 
 		onColorBlindClick: function(evt) {
 			var $this = $(evt.currentTarget);
 			if (!$this.hasClass("active")) {
-				App.ChartModel.updateMapConfig("isColorblind", true, false, "change-map");
+				App.MapModel.set("isColorblind", true);
 			} else {
-				App.ChartModel.updateMapConfig("isColorblind", false, false, "change-map");
+				App.MapModel.set("isColorblind", false);
 			}
 		},
 

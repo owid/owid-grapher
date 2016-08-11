@@ -24,12 +24,11 @@
 			this.chartQueryStr = "?";
 			this.originalDefaultTab = App.ChartModel.get("default-tab");
 
-			this.listenTo($(window), "query-change", this.onQueryChange.bind(this));
 			this.listenTo(options.dispatcher, "tab-change", this.onTabChange.bind(this));
 			this.listenTo(App.ChartModel, "change:selected-countries", this.updateCountryParam.bind(this));	
 			this.listenTo(App.ChartModel, "change:activeLegendKeys", this.updateLegendKeys.bind(this));		
-			this.listenTo(App.ChartModel, "change-map-year", this.updateYearParam.bind(this));
-			this.listenTo(App.ChartModel, "change-map", this.updateMapParams.bind(this));
+			this.listenTo(App.MapModel, "change:targetYear", this.updateYearParam.bind(this));
+			this.listenTo(App.MapModel, "change:mode change:projection change:isColorblind", this.updateMapParams.bind(this));
 			this.listenTo(App.ChartModel, "change:currentStackMode", this.updateStackMode.bind(this));
 			this.populateFromURL();
 		},
@@ -57,22 +56,22 @@
 
 			var year = params.year;
 			if (year !== undefined) {
-				App.ChartModel.updateMapConfig("defaultYear", year);
+				App.MapModel.set("defaultYear", year);
 			}
 
 			var region = params.region;
 			if (region !== undefined) {
-				App.ChartModel.updateMapConfig("defaultProjection", region);
+				App.MapModel.set("defaultProjection", region);
 			}
 
 			var colorblind = params.colorblind;
 			if (colorblind == 1) {
-				App.ChartModel.updateMapConfig("isColorblind", true);
+				App.MapModel.set("isColorblind", true);
 			}
 
 			var interpolate = params.interpolate;
 			if (interpolate == 0) {
-				App.ChartModel.updateMapConfig("mode", "no-interpolation");
+				App.MapModel.set("mode", "no-interpolation");
 			}			
 
 			// TODO: 'country' is currently done server-side, might be more consistent
@@ -105,9 +104,6 @@
 			else
 				owid.setQueryVariable("tab", tabName);
 			this.lastTabName = tabName;
-		},
-
-		onQueryChange: function() {
 		},
 
 		/**
@@ -155,15 +151,14 @@
 		 * Set e.g. &year=1990 when the user uses the map slider to go to 1990
 		 */
 		updateYearParam: function() {
-			var targetYear = App.ChartModel.get("map-config").targetYear;
-			owid.setQueryVariable("year", targetYear);
+			owid.setQueryVariable("year", App.MapModel.get("targetYear"));
 		},
 
 		/**
 		 * Store current projection in URL
 		 */
 		updateMapParams: function() {
-			var mapConfig = App.ChartModel.get("map-config");
+			var mapConfig = App.MapModel.attributes;
 
 			var projection = mapConfig.projection;
 			owid.setQueryVariable("region", projection);

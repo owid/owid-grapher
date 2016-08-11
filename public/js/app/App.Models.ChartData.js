@@ -16,7 +16,8 @@
 			var variables = App.VariableData.get("variables");
 			if (!variables) {
 				App.VariableData.once("change:variables", function() {
-					callback();
+					// Run this after the other handlers
+					setTimeout(callback, 1);
 				}.bind(this));
 			} else {
 				callback();

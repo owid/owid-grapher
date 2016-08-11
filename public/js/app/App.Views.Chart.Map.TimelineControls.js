@@ -16,18 +16,20 @@
 			this.timelineControl = this.addChild(TimelineControl, options);
 			this.buttonsControl = this.addChild(ButtonsControl, options);
 
-			this.listenTo(App.ChartModel, "change-map", this.onChartModelChange.bind(this));
+			this.listenTo(App.MapModel, "change", this.render.bind(this));			
 		},
 
 		render: function() {
-			var mapConfig = App.ChartModel.get("map-config");
-			
+			var timelineMode = App.MapModel.get("timelineMode"),
+				minYear = App.MapModel.getMinYear(),
+				maxYear = App.MapModel.getMaxYear();
+
 			this.playPauseControl.render();
 			this.timelineControl.render();
 			this.buttonsControl.render();
 
 			//depending on the mode used display timeline mode or buttons mode
-			if (mapConfig.timelineMode === "buttons") {	
+			if (timelineMode === "buttons") {	
 				this.playPauseControl.hide();
 				this.timelineControl.hide();
 				this.buttonsControl.show();
@@ -37,20 +39,11 @@
 				this.buttonsControl.hide();
 			}
 
-			//should be timline disabled
-			var isRange = ( isNaN( mapConfig.minYear ) || isNaN( mapConfig.maxYear ) )? true: false,
-				isSingleYear = ( !isRange && ( mapConfig.minYear == mapConfig.maxYear ) )? true: false;
-
-			if( isRange || isSingleYear ) {
-				this.$el.addClass( "single-year" );
+			if (minYear == maxYear) {
+				this.$el.addClass("single-year");
 			} else {
-				this.$el.removeClass( "single-year" );
+				this.$el.removeClass("single-year");
 			}
 		},
-
-		onChartModelChange: function() {
-			this.render();
-		}
-
 	});
 })();
