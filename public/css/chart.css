@@ -697,14 +697,13 @@ select.disabled {
 /* Sources Tab
 --------------------------------------------- */
 
-#chart-view #sources-chart-tab {
-    padding: 2.5em;
-}
-#chart-view #sources-chart-tab .datasource-wrapper {
+.datasource-wrapper {
+    padding: 1.5em;
     margin-bottom: 1.9em;
     font-size: 0.8em;
+    max-width: 1024px;
 }
-#chart-view #sources-chart-tab .datasource-wrapper h2 {
+.datasource-wrapper h2 {
     width: 70%;
     padding-bottom: 0.3em;
     text-transform: uppercase;
@@ -712,33 +711,36 @@ select.disabled {
     font-family: inherit;
     border-bottom: 1px solid #35322F;
 }
-#chart-view #sources-chart-tab .datasource-wrapper h2,
-#chart-view #sources-chart-tab .datasource-wrapper h3,
-#chart-view #sources-chart-tab .datasource-wrapper h4 {
+.datasource-wrapper h2,
+.datasource-wrapper h3,
+.datasource-wrapper h4 {
     margin-left: 0px;
     font-family: inherit;
 }
-#chart-view #sources-chart-tab .datasource-wrapper h3,
-#chart-view #sources-chart-tab .datasource-wrapper h4 {
+.datasource-wrapper h3,
+.datasource-wrapper h4 {
     margin-top: 2px;
     margin-bottom: 1px;
     font-size: 0.9em;
     font-weight: bold;
 }
 
-#chart-view #sources-chart-tab .datasource-wrapper td {
-    padding-right: 5px;
+.datasource-wrapper td {
+    padding: 8px;
+    line-height: 1.42857143;
+    vertical-align: top;
+    border-top: 1px solid #ddd;
 }
 
-#chart-view #sources-chart-tab .datasource-property {
+.datasource-property {
     display: inline-block;
     width: 150px;
 }
-#chart-view #sources-chart-tab table {
+.datasource-wrapper table {
     margin-top: 0.6em;
     margin-bottom: 0.6em;
 }
-#chart-view #sources-chart-tab .datasource-additional p {
+.datasource-additional p {
     margin-top: 0.3em;
 }
 /* Map Tab
@@ -1204,6 +1206,12 @@ body#chart-export .nv-custom-legend .nv-legend-text {
     .datamaps-subunits {
         cursor: pointer;
     }
+
+
+    .datasource-wrapper td:first-child {
+        min-width: 100px;
+        white-space: nowrap;
+    }    
 }
 /* Miscellaneous
 --------------------------------------------- */

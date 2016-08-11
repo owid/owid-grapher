@@ -11,6 +11,14 @@
 		</div>
 		<h2>{{ $source->name }}</h2>
 		<div class="property-wrapper">
+			<h3>Dataset</h3>
+			<div class="property-value">
+				<ul>
+					<li><h5><a href="{{ route('datasets.show', $source->dataset->id) }}">{{ $source->dataset->name }}</a></h5></li>
+				</ul>	
+			</div>
+		</div>
+		<div class="property-wrapper">
 			<h3>Variables</h3>
 			<div class="property-value">
 				<ul>
@@ -22,7 +30,7 @@
 		</div>
 		<div class="property-wrapper">
 			<h3>Description</h3>
-			<div class="property-value">
+			<div class="property-value datasource-wrapper">
 				{!! $source->description !!}
 			</div>
 		</div>
