@@ -416,6 +416,9 @@
 				return source;
 			}.bind(this));
 
+			// HACK (Mispy): Ignore the default color source on scatterplots.
+			sources = _.filter(sources, function(source) { return source.name != "CIA's fact book"});
+
 			return _.uniq(sources, function(source) { return source.name; });
 		},
 
