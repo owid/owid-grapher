@@ -1,7 +1,5 @@
 
 <div id="form-view" class="col-sm-12 col-md-6 form-wrapper">
-
-	<a href="#" class="form-collapse-btn"><i class="fa fa-caret-right"></i><span class="visuallyhidden">Collapse btn</span></a>
 	<div class="form-wrapper-inner">
 		{!! Form::open( array( 'method' => $method ) ) !!}
 			<div class="nav-tabs-custom">

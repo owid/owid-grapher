@@ -102,7 +102,10 @@ button > i {
   height: 100%; }
 
 .chart-edit-module, .chart-show-module {
-  background-color: #ffffff; }
+  background-color: #ffffff; 
+  display: flex;
+  align-items: center;
+}
 
 /* ==========================================================================
   Form

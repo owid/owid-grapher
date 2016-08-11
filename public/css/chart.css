@@ -1120,11 +1120,12 @@ body#chart-export .nv-custom-legend .nv-legend-text {
     }
 }
 
-/* The chart in the editor doesn't take up the entire screen */
+/* Emulate an embedded chart for the one in the editor */
 .chart-edit-module #chart-view {
-    width: 50%;    
+    width: calc(50% - 20px);
     max-height: 660px;
     font-size: 20px;
+    margin: 10px;
 }
 
 /* Special export mode */

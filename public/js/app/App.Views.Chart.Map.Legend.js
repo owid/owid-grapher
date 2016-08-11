@@ -60,7 +60,7 @@
 					targetWidth = Math.min(tabBounds.width, mapBounds.width) * 0.2,
 					targetSize = orientation == "landscape" ? targetWidth : targetHeight;
 
-				var effectiveStepSize = Math.max(targetSize / data.scheme.length, 10),
+				var effectiveStepSize = Math.min(50, Math.max(targetSize / data.scheme.length, 10)),
 					stepSizeWidth = effectiveStepSize,
 					stepSizeHeight = effectiveStepSize,
 					stepGap = Math.min(effectiveStepSize/8, 2);

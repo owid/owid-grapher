@@ -49,7 +49,7 @@
 			if (App.ChartModel.get("chart-name"))
 				$(".chart-preloader").show();
 
-			if (window.self != window.top) {
+			if (window.self != window.top || App.isEditor) {
 				$("#chart-view").addClass("embedded");
 			}
 
