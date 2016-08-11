@@ -72,7 +72,12 @@
 			this.dataMap = null;
 		},
 
-		update: function(callback) {
+		update: function(callback) {			
+			if (!App.MapModel.getVariable()) {
+				App.ChartView.handleError("No variable selected for map.", false);
+				return;
+			}
+
 			// We need to wait for both datamaps to finish its setup and the variable data
 			// to come in before the map can be fully rendered
 			var onMapReady = function() {
@@ -190,11 +195,6 @@
 				entityKey = App.VariableData.get("entityKey"),
 				mapConfig = App.MapModel.attributes,
 				targetVariable = variables[mapConfig.variableId];
-
-			if (!targetVariable) {
-				App.ChartView.handleError("No variable selected for map.", false);
-				return false;
-			}
 
 			var years = targetVariable.years,
 				values = targetVariable.values,

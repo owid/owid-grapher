@@ -18,7 +18,7 @@
 		defaults: {
 			"variableId": -1,
 			"targetYear": 1980,
-			"targetYearMode": "normal",
+			"targetYearMode": "latest",
 			"defaultYear": 1980,
 			"mode": "specific",
 			"timeTolerance": 1,
@@ -79,7 +79,7 @@
 				}
 			}.bind(this));
 
-			this.on("change:timeRanges", this.updateYears.bind(this));
+			this.on("change:variableId change:timeRanges", this.updateYears.bind(this));
 			this.listenTo(App.VariableData, "change:minYear change:maxYear", this.updateYears.bind(this));
 		},
 
@@ -127,13 +127,20 @@
 			var variable = this.getVariable();
 			this.minValue = Infinity;
 			this.maxValue = -Infinity;
-			_.each(variable.values, function(value, i) {
-				var year = variable.years[i];
-				if (_.contains(this.years, year)) {
-					if (value < this.minValue) this.minValue = value;
-					if (value > this.maxValue) this.maxValue = value;
-				}
-			}.bind(this));
+			if (variable && variable.isNumeric) {
+				_.each(variable.values, function(value, i) {
+					var year = variable.years[i];
+					if (_.contains(this.years, year)) {
+						var entity = App.VariableData.getEntityById(variable.entities[i]);
+
+						// If there's a World or other meta entity, it can throw off the map calcs
+						if (entity.code && !s.startsWith(entity.code, "OWID")) {						
+							if (value < this.minValue) this.minValue = value;
+							if (value > this.maxValue) this.maxValue = value;
+						}
+					}
+				}.bind(this));				
+			}
 		},
 
 		getYears: function() {

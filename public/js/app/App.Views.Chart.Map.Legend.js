@@ -54,11 +54,13 @@
 		function legend(selection) {
 			selection.each(function(data) {
 				var svgBounds = $("svg").get(0).getBoundingClientRect(),
+					mapBounds = $(".datamaps-subunits").get(0).getBBox(),
 					tabBounds = $(".tab-pane.active").get(0).getBoundingClientRect(),
-					availableWidth = tabBounds.width,
-					availableSpace = (orientation == "landscape" ? availableWidth : availableHeight) * 0.6;
+					targetHeight = Math.min(tabBounds.height, mapBounds.height) * 0.6,
+					targetWidth = Math.min(tabBounds.width, mapBounds.width) * 0.2,
+					targetSize = orientation == "landscape" ? targetWidth : targetHeight;
 
-				var effectiveStepSize = Math.min(30, Math.max((availableSpace / data.scheme.length) - 10, 10)),
+				var effectiveStepSize = Math.max(targetSize / data.scheme.length, 10),
 					stepSizeWidth = effectiveStepSize,
 					stepSizeHeight = effectiveStepSize,
 					stepGap = Math.min(effectiveStepSize/8, 2);

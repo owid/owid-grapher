@@ -34,7 +34,7 @@
 			$(window).one("chart-loaded", function() {
 				App.ChartView.onResize(function() {
 					window.top.postMessage("chartLoaded", "*");
-					console.log("Loaded chart: " + App.ChartModel.get("chart-name"));					
+					console.log("Loaded chart: " + App.ChartModel.get("chart-name"));
 				});
 			});
 

@@ -40,6 +40,7 @@
 				this.render();
 			}.bind(this));
 
+			this.listenTo(App.ChartModel, "change", this.update.bind(this));
 			this.listenTo(App.MapModel, "change", this.update.bind(this));
 			this.update();
 		},
