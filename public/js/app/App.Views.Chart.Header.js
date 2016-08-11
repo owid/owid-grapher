@@ -51,7 +51,7 @@
 				g = svg.select(".chart-header-svg");
 
 			var scaleFactor;
-			if ($("#chart-view").width() > 1300 || App.isExport) {
+			if ($("#chart-view").width() > 1300) {
 				scaleFactor = 0.4;
 			} else {
 				scaleFactor = 0.35;
