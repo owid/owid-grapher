@@ -120,7 +120,7 @@
 				}.bind(this);
 				img.src = partnerLogoUrl;
 			} else {
-				renderText(logoX);
+				renderText(logoX-10);
 			}
 		},
 

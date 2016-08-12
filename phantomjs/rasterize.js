@@ -23,7 +23,7 @@ if (system.args.length < 3 || system.args.length > 5) {
         size = system.args[3].split('*');
         var targetWidth = parseInt(size[0], 10);
         var targetHeight = parseInt(size[1], 10);
-        page.viewportSize = { width: targetWidth, height: targetHeight };
+        page.viewportSize = { width: targetWidth+200, height: targetHeight+200 };
         page.clipRect = { top: 0, left: 0, width: targetWidth, height: targetHeight };
     }
 
