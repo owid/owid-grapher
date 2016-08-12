@@ -187,7 +187,9 @@
       clone.insertBefore(defs, clone.firstChild);
 
       var svg = doctype + outer.innerHTML;
-      var uri = 'data:image/svg+xml;base64,' + window.btoa(reEncode(svg));
+      // HACK (Mispy): we don't use the base64 encoding, and this transformation
+      // was causing issues with utf8 char rendering e.g. in https://ourworldindata.org/grapher/trust-in-others-vs-trust-in-police.svg
+      var uri = 'data:image/svg+xml;base64,' + svg;
       if (cb) {
         cb(uri);
       }

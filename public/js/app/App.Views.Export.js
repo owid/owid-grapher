@@ -91,7 +91,7 @@
 			svgAsDataUri(svg.node(), {}, function(uri) {
 				var svgData = uri.substring('data:image/svg+xml;base64,'.length);
 				if (_.isFunction(window.callPhantom))
-					window.callPhantom({ "svg": window.atob(svgData) });
+					window.callPhantom({ "svg": svgData });
 			});
 		},
 	});
