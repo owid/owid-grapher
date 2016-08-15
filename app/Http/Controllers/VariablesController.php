@@ -129,7 +129,7 @@ class VariablesController extends Controller {
 	 */
 	public function edit(Variable $variable)
 	{	
-		$sources = Source::lists( 'name', 'id' );
+		$sources = Source::where('datasetId', '=', $variable->fk_dst_id)->lists('name', 'id');
 		return view( 'variables.edit', compact( 'variable', 'sources' ) );
 	}
 
