@@ -1124,10 +1124,11 @@ body#chart-export .nv-custom-legend .nv-legend-text {
 
 /* Emulate an embedded chart for the one in the editor */
 .chart-edit-module #chart-view {
-    width: calc(50% - 20px);
+    max-width: calc(100% - 20px);
+    width: 800px;
     max-height: 660px;
     font-size: 20px;
-    margin: 10px;
+    margin: auto;
 }
 
 /* Special export mode */
