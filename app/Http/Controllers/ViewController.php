@@ -28,9 +28,8 @@ class ViewController extends Controller {
 	public function testall(Request $request)
 	{
 		$type = strtolower($request->input('type'));
-		$limit = $request->input('limit');
-		if (!$limit) $limit = 10;
 		$tab = $request->input('tab');
+		$page = $request->input('page');
 
 		if (!$tab && $type == 'map') {
 			$tab = 'map';
@@ -38,14 +37,17 @@ class ViewController extends Controller {
 			$tab = 'chart';
 		}
 
+		if (!$page)
+			$page = 1;
+
+		$chartsPerPage = 5;
+
 		$query = Chart::where('published', '=', true)->where('origin_url', '!=', "");
 		if ($type && $type != 'map')	
 			$query = $query->where('type', '=', $type);
-		if ($limit)
-			$query = $query->limit($limit);
-
 
 		$urls = [];
+		$count = 0;
 		foreach ($query->get() as $chart) {
 			$config = json_decode($chart->config);
 			$tabs = $config->tabs;
@@ -56,6 +58,7 @@ class ViewController extends Controller {
 				continue;
 			}
 
+			$count += 1;
 			$localUrl = \Request::root() . "/" . $chart->slug;
 			$liveUrl = "https://ourworldindata.org/grapher/" . $chart->slug;
 
@@ -70,7 +73,19 @@ class ViewController extends Controller {
 			];
 		}
 
-		return view('testall')->with(['charts' => $urls]);
+		$numPages = ceil($count/$chartsPerPage);
+
+		$nextPageUrl = null;
+		if ($page < $numPages)
+			$nextPageUrl = $request->fullUrlWithQuery(['page' => $page+1]);		
+
+		$prevPageUrl = null;
+		if ($page > 1)
+			$prevPageUrl = $request->fullUrlWithQuery(['page' => $page-1]);			
+
+		$urls = array_slice($urls, ($page-1)*$chartsPerPage, $chartsPerPage);
+
+		return view('testall')->with(compact('urls', 'nextPageUrl', 'prevPageUrl'));
 	}
 
 	public function show($slug)

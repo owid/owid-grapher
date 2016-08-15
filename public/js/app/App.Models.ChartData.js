@@ -429,12 +429,15 @@
 				var variable = variables[dimension.variableId],
 					source = _.extend({}, variable.source);
 
+   				// HACK (Mispy): Ignore the default color source on scatterplots.
+				if (variable.name == "Countries Continents")
+					source.ignore = true;
+
 				source.description = this.getSourceDescHtml(variable, variable.source);
 				return source;
 			}.bind(this));
 
-			// HACK (Mispy): Ignore the default color source on scatterplots.
-			sources = _.filter(sources, function(source) { return source.name != "CIA's fact book"});
+			sources = _.filter(sources, function(source) { return !source.ignore; });
 
 			return sources;
 			//return _.uniq(sources, function(source) { return source.name; });
