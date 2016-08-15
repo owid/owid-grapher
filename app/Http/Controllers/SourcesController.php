@@ -77,12 +77,21 @@ class SourcesController extends Controller {
 	 */
 	public function update(Source $source, Request $request)
 	{
-		$input = array_except( $request->all(), [ '_method', '_token' ] );
-		$source->update( $input );
+		$input = array_except($request->all(), [ '_method', '_token' ]);
+
+		try {
+			$source->update($input);
+		} catch (\Exception $e) {
+			$msg = $e->errorInfo[2];
+			if (str_contains($msg, "Duplicate entry")) {
+				$msg = "That name is already taken by another source in this dataset.";
+			}
+			return redirect()->route('sources.show', $source->id)->with('message', $msg)->with('message-class', 'error');
+		}
 
 		Cache::flush();
 		
-		return redirect()->route( 'sources.show', $source->id)->with( 'message', 'Source updated.')->with( 'message-class', 'success' );
+		return redirect()->route('sources.show', $source->id)->with( 'message', 'Source updated.')->with( 'message-class', 'success' );
 	}
 
 	/**
