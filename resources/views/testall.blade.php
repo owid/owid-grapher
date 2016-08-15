@@ -12,9 +12,10 @@
 
 		.row {
 			padding: 10px;
+			margin: 0;
 		}
 
-		.col-md-6 {
+		.col-md-6, .col-md-12 {
 			display: flex;
 		}
 
