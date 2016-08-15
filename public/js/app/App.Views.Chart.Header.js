@@ -100,7 +100,7 @@
 				this.$tabs.filter( ":visible:first" ).addClass( "first" );
 
 				this.dispatcher.trigger("header-rendered");			
-				if (_.isFunction(callback)) callback();					
+				if (_.isFunction(callback)) callback();
 			}.bind(this);
 
 			if (partnerLogoUrl) {

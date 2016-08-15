@@ -98,6 +98,10 @@
 				}
 			}.bind(this));
 
+			this.listenTo(App.ChartModel, "change:chart-name change:chart-subname change:chart-description", function() {
+				this.onResize();
+			}.bind(this));
+
 			this.debugHelper = new DebugHelper(childViewOptions);
 		},
 

@@ -19,7 +19,7 @@
 			this.$embedModal = $(".embed-modal");
 			this.$embedModal.appendTo("body");			
 
-			this.listenTo(App.ChartModel, "change:dimensions change:chart-description", this.render.bind(this));
+			this.listenTo(App.ChartModel, "change:chart-dimensions change:chart-description", this.render.bind(this));
 			this.listenTo(this.dispatcher, "header-rendered", this.updateSharingButtons.bind(this));
 			this.listenTo($(window), "query-change", this.updateSharingButtons.bind(this));
 		},
