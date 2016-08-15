@@ -105,6 +105,9 @@
 					changes[key] = newDefaults[key];
 			}.bind(this));
 
+			if (this.get("chart-type") == App.ChartType.ScatterPlot)
+				changes["selected-countries"] = [];
+
 			if (!_.isEmpty(changes)) this.set(changes);
 		},
 
