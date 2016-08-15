@@ -27,12 +27,15 @@
 
 			this.isReady = false;
 			this.set("variables", null, { silent: true });
-			// There's no cache tag in the editor
+
 			var cacheTag = App.ChartModel.get("variableCacheTag");
 			if (cacheTag)
 				this.dataRequest = $.get(Global.rootUrl + "/data/variables/" + variableIds.join("+") + "?v=" + App.ChartModel.get("variableCacheTag"));
-			else
-				this.dataRequest = $.get(Global.rootUrl + "/data/variables/" + variableIds.join("+"));
+			else {
+				// Editor cachebusting
+				this.dataRequest = $.get(Global.rootUrl + "/data/variables/" + variableIds.join("+") + "?v=" + Date.now());
+			}
+
 			this.dataRequest.done(function(rawData) {
 				this.dataRequest = null;
 				this.receiveData(rawData);
