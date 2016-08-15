@@ -15,7 +15,6 @@
 		activate: function(callback) {
 			this.render();
 
-
 			this.listenTo(App.ChartModel, "change", function() {
 				App.ChartData.ready(this.render.bind(this));
 			}.bind(this));

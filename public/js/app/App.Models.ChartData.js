@@ -396,11 +396,28 @@
 			return { chartData: chartData, legendData: legendData, minYear: targetYear, maxYear: targetYear };
 		},
 
-		getSourceDescHtml: function(source) {
-			var html = "<div class='datasource-wrapper'>";
-			html += "<h2>" + source.name + "</h2>";			
-			html += source.description;
-			html += "</div>";
+		getSourceDescHtml: function(variable, source) {
+			var html = '';
+			
+			html += '<div class="datasource-wrapper">' + 
+				   		'<h2>' + variable.name + '</h2>';
+
+
+			html += 	'<table class="variable-desc">';
+
+			if (variable.description)
+				html +=		'<tr><td>Variable description</td><td>' + variable.description + '</td>';
+			if (variable.coverage)
+				html += 	'<tr><td>Variable geographic coverage</td>' + variable.coverage + '</td>';
+			if (variable.timespan)
+				html += 	'<tr><td>Variable time span</td>' + variable.timespan + '</td>';
+
+			html += 	'</table>';
+
+			html +=	   	source.description +
+					'</div>';
+
+
 			return html;
 		},
 
@@ -412,14 +429,15 @@
 				var variable = variables[dimension.variableId],
 					source = _.extend({}, variable.source);
 
-				source.description = this.getSourceDescHtml(variable.source);
+				source.description = this.getSourceDescHtml(variable, variable.source);
 				return source;
 			}.bind(this));
 
 			// HACK (Mispy): Ignore the default color source on scatterplots.
 			sources = _.filter(sources, function(source) { return source.name != "CIA's fact book"});
 
-			return _.uniq(sources, function(source) { return source.name; });
+			return sources;
+			//return _.uniq(sources, function(source) { return source.name; });
 		},
 
 		transformData: function() {
