@@ -1126,7 +1126,7 @@ body#chart-export .nv-custom-legend .nv-legend-text {
 .chart-edit-module #chart-view {
     max-width: calc(100% - 20px);
     width: 800px;
-    max-height: 660px;
+    height: 660px !important;
     font-size: 20px;
     margin: auto;
 }
