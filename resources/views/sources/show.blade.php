@@ -30,7 +30,7 @@
 		</div>
 		<div class="property-wrapper">
 			<h3>Description</h3>
-			<div class="property-value datasource-wrapper">
+			<div class="property-value datasource-wrapper" style="font-size: 1.0em;">
 				{!! $source->description !!}
 			</div>
 		</div>

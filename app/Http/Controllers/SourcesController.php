@@ -19,7 +19,7 @@ class SourcesController extends Controller {
 	public function index()
 	{
 		$dataset_ids = Dataset::where('namespace', '=', 'owid')->lists('id');
-		$sources = Source::whereIn('datasetId', $dataset_ids)->get();
+		$sources = Source::whereIn('datasetId', $dataset_ids)->orderBy('name')->get();
 		return view('sources.index', compact('sources'));
 	}
 

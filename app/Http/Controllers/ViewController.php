@@ -27,13 +27,23 @@ class ViewController extends Controller {
 
 	public function testall(Request $request)
 	{
-
 		$type = strtolower($request->input('type'));
+		$limit = $request->input('limit');
+		if (!$limit) $limit = 10;
+		$tab = $request->input('tab');
+
+		if (!$tab && $type == 'map') {
+			$tab = 'map';
+		} else if (!$tab && $type) {
+			$tab = 'chart';
+		}
 
 		$query = Chart::where('published', '=', true)->where('origin_url', '!=', "");
-		if ($type && $type != 'map') {
+		if ($type && $type != 'map')	
 			$query = $query->where('type', '=', $type);
-		}
+		if ($limit)
+			$query = $query->limit($limit);
+
 
 		$urls = [];
 		foreach ($query->get() as $chart) {
@@ -49,12 +59,9 @@ class ViewController extends Controller {
 			$localUrl = \Request::root() . "/" . $chart->slug;
 			$liveUrl = "https://ourworldindata.org/grapher/" . $chart->slug;
 
-			if ($type == 'map') {
-				$localUrl .= "?tab=map";
-				$liveUrl .= "?tab=map";
-			} else if ($type) {
-				$localUrl .= "?tab=chart";
-				$liveUrl .= "?tab=chart";
+			if ($tab) {
+				$localUrl .= "?tab=" . $tab;
+				$liveUrl .= "?tab=" . $tab;
 			}
 
 			$urls[] = [
