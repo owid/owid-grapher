@@ -30,8 +30,6 @@ class Variable extends Model {
 				//it is update both variable source all sources of all variable values
 				$variable->sourceId = $newSourceId;
 				$variable->save();
-				//update all variable values
-				DataValue::where( 'fk_var_id', $variable->id )->update( array( 'sourceId' => $newSourceId ) );
 			}
 		}
 	}
