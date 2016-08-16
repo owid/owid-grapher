@@ -281,13 +281,9 @@ class ViewController extends Controller {
 
 			$baseUrl = \Request::root() . "/" . $chart->slug;
 			$canonicalUrl = $baseUrl;
-			$imageUrl = $baseUrl . ".png";
 			if ($query != '') {
 				$canonicalUrl .= "?" . $query;
-				$imageUrl .= "?" . $query;
 			}
-
-			$chartMeta->imageUrl = $imageUrl;
 			$chartMeta->canonicalUrl = $canonicalUrl;
 
 			// Create a cache tag we can send along to the client. This uniquely identifies a particular
@@ -308,11 +304,12 @@ class ViewController extends Controller {
 			$config->variableCacheTag = $variableCacheTag;
 
 			// Give the image exporter a head start on the request for imageUrl
+			$imageQuery = $query . ($query ? "&" : "") . "size=1200x800&v=" . $variableCacheTag;
 			if (!str_contains(\Request::path(), ".export")) {
-				$query = Chart::getQueryString();
-				Chart::exportPNGAsync($chart->slug, $query . ($query ? "&" : "") . "size=1200x800&v=" . $variableCacheTag, 1200, 800);
+				Chart::exportPNGAsync($chart->slug, $imageQuery, 1200, 800);
 			}
 
+			$chartMeta->imageUrl = $baseUrl . ".png?" . $imageQuery;
 			return response()
 					->view('view.show', compact('chart', 'config', 'data', 'canonicalUrl', 'chartMeta'));
 		} else {
