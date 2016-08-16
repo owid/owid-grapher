@@ -26,7 +26,7 @@
 			// and then uniformly scale the rendered chart to the target dimensions.
 			var params = owid.getQueryParams(),
 				targetWidth = params.size && params.size.split("x") ? parseInt(params.size.split("x")[0]) : 1200,
-				targetHeight = params.size && params.size.split("x") ? parseInt(params.size.split("x")[1]) : 850,
+				targetHeight = params.size && params.size.split("x") ? parseInt(params.size.split("x")[1]) : 800,
 				canonicalWidth = 600,
 				canonicalHeight = 600;
 

@@ -1132,7 +1132,7 @@ body#chart-export .nv-custom-legend .nv-legend-text {
 
 /* Special export mode */
 #chart-export #chart-view {
-    font-size: 19px !important;
+    font-size: 20px !important;
 }
 
 @media (max-width: 768px) {

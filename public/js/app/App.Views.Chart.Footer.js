@@ -143,7 +143,7 @@
 			} else {			
 				var pngHref = baseUrl + ".png" + queryStr,
 					svgHref = baseUrl + ".svg" + queryStr,
-					defaultTargetSize = "1200x850";
+					defaultTargetSize = "1200x800";
 				this.$downloadPNGButton.attr('href', pngHref + (_.include(pngHref, "?") ? "&" : "?") + "size=" + defaultTargetSize + "&v=" + version);
 				this.$downloadSVGButton.attr('href', svgHref + (_.include(svgHref, "?") ? "&" : "?") + "size=" + defaultTargetSize + "&v=" + version);
 				this.$downloadPNGButton.show();
