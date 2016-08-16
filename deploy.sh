@@ -1,8 +1,8 @@
 #!/bin/bash
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 RSYNC="rsync -havz --no-perms --progress --delete --delete-excluded --exclude-from=$DIR/.rsync-ignore"
-HOST="explain3@whm.ourworldindata.org"
-ROOT="/home/explain3"
+HOST="owid@terra"
+ROOT="/home/owid"
 
 if [ "$1" == "test" ]; then
   NAME="test-grapher"
@@ -19,11 +19,11 @@ TMP_NEW="$ROOT/tmp/$NAME-new"
 LIVE_TARGET="$ROOT/$NAME-code"
 LIVE_DATA="$ROOT/$NAME-data"
 
-ssh -t $HOST "rm -r $OLD_REPO"
+ssh -t $HOST "mkdir -p $ROOT/tmp; rm -rf $OLD_REPO"
 $RSYNC $DIR/ $HOST:$SYNC_TARGET
 ssh -t $HOST 'bash -e -s' <<EOF
   cp -r $SYNC_TARGET $TMP_NEW
-  mv $LIVE_TARGET $OLD_REPO
+  [ -f $LIVE_TARGET ] && mv $LIVE_TARGET $OLD_REPO
   mv $TMP_NEW $LIVE_TARGET
   ln -sf $LIVE_DATA/.htaccess $LIVE_TARGET/public/.htaccess
   ln -sf $LIVE_DATA/env $LIVE_TARGET/.env
@@ -31,6 +31,6 @@ ssh -t $HOST 'bash -e -s' <<EOF
   ln -sf $LIVE_DATA/exports $LIVE_TARGET/public/exports
   ln -sf $LIVE_DATA/node_modules $LIVE_TARGET/node_modules
   ln -sf $LIVE_TARGET/public $ROOT/public_html/$NAME
-  cd $LIVE_TARGET && /usr/php/56/bin/php artisan migrate --force
+  cd $LIVE_TARGET && php artisan migrate --force
 EOF
 
