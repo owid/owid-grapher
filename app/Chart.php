@@ -110,7 +110,7 @@ class Chart extends Model {
 	 * @return string Path to exported file.
 	 */
 	public static function export($slug, $query, $width, $height, $format) {
-		$phantomjs = base_path() . "/node_modules/.bin/phantomjs";
+		$phantomjs = base_path() . "/phantomjs/phantomjs";
 		$rasterize = base_path() . "/phantomjs/rasterize.js";
 		$target = \Request::root() . "/" . $slug . ".export" . "?" . $query;
 		$queryHash = hash('md5', $query);
