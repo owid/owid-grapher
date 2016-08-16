@@ -1,6 +1,7 @@
 .git
 node_modules
 .env
+tmp
 storage/logs/*
 storage/debugbar/*
 storage/framework/sessions/*
