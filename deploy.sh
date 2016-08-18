@@ -23,13 +23,11 @@ ssh -t $HOST "mkdir -p $ROOT/tmp; rm -rf $OLD_REPO"
 $RSYNC $DIR/ $HOST:$SYNC_TARGET
 ssh -t $HOST 'bash -e -s' <<EOF
   cp -r $SYNC_TARGET $TMP_NEW
-  [ -f $LIVE_TARGET ] && mv $LIVE_TARGET $OLD_REPO
+  mv $LIVE_TARGET $OLD_REPO
   mv $TMP_NEW $LIVE_TARGET
-  ln -sf $LIVE_DATA/.htaccess $LIVE_TARGET/public/.htaccess
   ln -sf $LIVE_DATA/env $LIVE_TARGET/.env
   ln -sf $LIVE_DATA/uploads $LIVE_TARGET/public/uploads
   ln -sf $LIVE_DATA/exports $LIVE_TARGET/public/exports
-  ln -sf $LIVE_DATA/node_modules $LIVE_TARGET/node_modules
   ln -sf $LIVE_TARGET/public $ROOT/public_html/$NAME
   cd $LIVE_TARGET && php artisan migrate --force
 EOF

@@ -131,7 +131,7 @@ class Chart extends Model {
 	}
 
 	public static function exportPNGAsync($slug, $query, $width, $height) {
-		$phantomjs = base_path() . "/node_modules/.bin/phantomjs";
+		$phantomjs = base_path() . "/phantomjs/phantomjs";
 		$rasterize = base_path() . "/phantomjs/rasterize.js";
 		$target = \Request::root() . "/" . $slug . ".export" . "?" . $query;
 		$queryHash = hash('md5', $query);
