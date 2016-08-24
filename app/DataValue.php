@@ -6,6 +6,7 @@ class DataValue extends Model {
 	protected $guarded = ['id'];
 	protected $touches = ['variable'];
 	protected $table = 'data_values';
+	public $timestamps = false;
 
 	public function variable() {
 		return $this->hasOne('App\Variable', 'id', 'fk_var_id');
