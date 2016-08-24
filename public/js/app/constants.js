@@ -17,7 +17,9 @@
 		WithoutDots: 1,
 		UnjoinedIfMissing: 2,
 		DashedIfMissing: 3
-	}
+	};
+
+	App.OWID_LOGO = "uploads/26538.png";
 
 	//export for iframe
 	window.$ = jQuery;

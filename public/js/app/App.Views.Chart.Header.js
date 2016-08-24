@@ -57,10 +57,19 @@
 				scaleFactor = 0.35;
 			}
 
+
 			var logoWidth = this.logo.node().getBBox().width,
 				logoX = svgWidth - logoWidth*scaleFactor;
 			this.logo.attr("transform", "translate(" + logoX + ", 5) scale(" + scaleFactor + ", " + scaleFactor + ")");
 			this.logo.style("visibility", "inherit");
+
+			// HACK (Mispy): I should do alternate logos roperly at some point
+			if (logoPath != App.OWID_LOGO) {
+				logoX = svgWidth;
+				logoWidth = 0;
+				this.logo.style('visibility', 'hidden');
+				partnerLogoUrl = Global.rootUrl + "/" + logoPath;
+			}
 
 			var renderText = function(availableWidth) {
 				var chartNameText = g.select(".chart-name-svg");
@@ -120,6 +129,7 @@
 				}.bind(this);
 				img.src = partnerLogoUrl;
 			} else {
+				this.partnerLogo.style('visibility', 'hidden')
 				renderText(logoX-10);
 			}
 		},

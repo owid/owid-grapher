@@ -251,6 +251,19 @@
 					</section>
 				</div>
 				<div id="styling-tab" class="tab-pane">
+                    <section class="form-section logo-section">
+                        <div class="form-section-header">
+                            <h2><span class="form-section-digit">i</span>Logos</h2>
+                        </div>
+                        <div class="form-section-content">
+                            <select name="logo" class="form-control logo-select">
+                                <option value="" disabled selected>Select type</option>
+                                @foreach( $data->logos as $logoId=>$logoName )
+                                    <option value="{{ $logoId }}">{{ $logoName }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </section>
 					<section class="form-section type-of-line-section">
 						<div class="form-section-header">
 							<h2><span class="form-section-digit">i</span>Choose Type of Line</h2>
