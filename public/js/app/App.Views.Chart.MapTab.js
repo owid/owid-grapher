@@ -392,11 +392,6 @@
 
 			//console.log("wrapperWidth " + wrapperWidth + " wrapperHeight " + wrapperHeight + " mapWidth " + mapWidth + " mapHeight " + mapHeight);
 
-			// Resize background
-			svg.select(".map-bg")
-				.attr("width", svgBounds.width)
-				.attr("height", svgBounds.height);
-
 			// Adjust availableHeight to compensate for timeline controls
 			var timelineControls = d3.select(".map-timeline-controls");
 			if (!timelineControls.empty()) {
@@ -404,6 +399,12 @@
 					controlsHeight = controlsBoundingRect.bottom - controlsBoundingRect.top;
 				availableHeight -= controlsHeight;
 			}
+
+			// Resize background
+			svg.select(".map-bg")
+				.attr("y", tabBounds.top - svgBounds.top)
+				.attr("width", tabBounds.width)
+				.attr("height", availableHeight);
 
 			// Calculate what scaling should be applied to the untransformed map to match the current viewport to the container
 			var scaleFactor = Math.min(availableWidth/viewportWidth, availableHeight/viewportHeight),

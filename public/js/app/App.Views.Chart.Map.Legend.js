@@ -54,13 +54,13 @@
 		function legend(selection) {
 			selection.each(function(data) {
 				var svgBounds = $("svg").get(0).getBoundingClientRect(),
-					mapBounds = $(".datamaps-subunits").get(0).getBBox(),
-					tabBounds = $(".tab-pane.active").get(0).getBoundingClientRect(),
-					targetHeight = Math.min(tabBounds.height, mapBounds.height) * 0.6,
-					targetWidth = Math.min(tabBounds.width, mapBounds.width) * 0.2,
+					mapBounds = $(".datamaps-subunits").get(0).getBoundingClientRect(),
+					viewportBox = $(".map-bg").get(0).getBBox(),
+					targetHeight = Math.min(viewportBox.height, mapBounds.height) * 0.65,
+					targetWidth = Math.min(viewportBox.width, mapBounds.width) * 0.25,
 					targetSize = orientation == "landscape" ? targetWidth : targetHeight;
 
-				var effectiveStepSize = Math.min(50, Math.max(targetSize / data.scheme.length, 10)),
+				var effectiveStepSize = Math.min(50, Math.max(10, targetSize / data.scheme.length)),
 					stepSizeWidth = effectiveStepSize,
 					stepSizeHeight = effectiveStepSize,
 					stepGap = Math.min(effectiveStepSize/8, 2);
@@ -97,7 +97,11 @@
 				
 				//update
 				legendSteps
-					.attr( "transform", function( d, i ) { var translateX = ( orientation === "landscape" )? legendStepsOffsetX + (i*(stepSizeWidth+stepGap)): legendStepsOffsetX, translateY = ( orientation === "landscape" )? 0: ( -( maxDataIndex - i ) * ( stepSizeHeight + stepGap ) ); return "translate(" + translateX + "," + translateY + ")"; } );
+					.attr("transform", function(d, i) { 
+						var translateX = orientation == "landscape" ? (i*(stepSizeWidth+stepGap)) : 0,
+							translateY = orientation === "landscape" ? 0 : -(maxDataIndex - i) * (stepSizeHeight + stepGap); 
+						return "translate(" + translateX + "," + translateY + ")"; 
+				});
 				legendSteps.selectAll( "rect" )
 					.attr( "width", stepSizeWidth + "px" )
 					.attr( "height", stepSizeHeight + "px" );
@@ -156,23 +160,36 @@
 				//exit
 				legendSteps.exit().remove();
 
-				//legend description
+				// Legend description label on the side
 				gDesc = container.selectAll(".legend-description").data([data.description]);
 				gDesc.enter()
 					.append("text")
 					.attr("class", "legend-description");
 				gDesc
-					.text(data.description);
-				gDesc.attr( "transform", function( d, i ) { var translateX = legendOffsetX, translateY = ( orientation === "landscape" )? stepSizeHeight+descriptionHeight: stepSizeHeight; return ( orientation === "landscape" )? "translate(" + translateX + "," + translateY + ")": "translate(" + translateX + "," + translateY + ") rotate(270)"; } );
+					.text(data.description);				
+
+				var translateX = legendOffsetX, 
+					translateY = orientation === "landscape" ? stepSizeHeight+descriptionHeight : stepSizeHeight; 
+
+				gDesc.attr("transform", function(d, i) { 
+					return orientation === "landscape" ? "translate(" + translateX + "," + translateY + ")" : "translate(" + translateX + "," + translateY + ") rotate(270)";
+				});
+
+				if (orientation === "landscape")
+					owid.scaleToFit(gDesc.node(), viewportBox.width - translateX, viewportBox.height - translateY);					
+				else
+					owid.scaleToFit(gDesc.node(), viewportBox.width - translateY, viewportBox.height - translateX);
+
+				g.attr("transform", "translate(" + legendStepsOffsetX + ",0)");
+				owid.scaleToFit(g.node(), targetWidth - legendStepsOffsetX, targetHeight);
 
 				//position legend vertically
-				var legendY = (tabBounds.top - svgBounds.top) + availableHeight - legendOffsetY - stepSizeHeight;
+				var legendY = viewportBox.y + viewportBox.height - legendOffsetY - stepSizeHeight;
 				if (orientation === "landscape") {
 					legendY -= descriptionHeight;
 				}
 
 				container.attr("transform", "translate(0," + legendY + ")");
-
 			});
 
 			return legend;
