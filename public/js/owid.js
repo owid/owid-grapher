@@ -615,6 +615,13 @@
 		el.attr('transform', transform.toString());
 	};
 
+	owid.transformElement = function(element, transform) {
+		element.style.WebkitTransform = transform;
+		element.style.MozTransform = transform;
+		element.style.msTransform = transform;
+		element.style.transform = transform;
+	};
+
 	window.require = function(namespace) {
 		var obj = window;
 		_.each(namespace.split("."), function(level) {

@@ -128,7 +128,7 @@
 			this.activeTabName = tabName;
 			this.dispatcher.trigger("tab-change", tabName);		
 			if (!_.isEmpty(App.ChartModel.getDimensions()))
-				$(".chart-preloader").show();			
+				$(".chart-preloader").show();
 			App.ChartData.ready(function() {
 				try {
 					tab.activate(function() {
@@ -169,11 +169,56 @@
 			this.$(".tab-pane.active").prepend('<div class="chart-error"><div>' + msg + '</div></div>');			
 		},
 
-		onResize: function(callback, isRepeat) {
+		onResize: function(callback) {
 			var $wrapper = this.$el.find(".chart-wrapper-inner"),
 				svg = d3.select("svg");
-			if (!isRepeat) {
-				$wrapper.css("height", "calc(100% - 24px)");
+
+			var view = $("#chart-view").get(0),
+				screenWidth = $(window).width(),
+				screenHeight = $(window).height(),
+				authorWidth = App.AUTHOR_WIDTH,
+				authorHeight = App.AUTHOR_HEIGHT,
+				renderWidth, renderHeight, scale;
+
+			if (screenWidth >= screenHeight) {
+				renderWidth = (screenWidth/screenHeight) * authorHeight;
+				renderHeight = authorHeight;
+			} else {
+				renderWidth = authorWidth;
+				renderHeight = (screenHeight/screenWidth) * authorWidth;
+			}
+
+			scale = screenWidth/renderWidth;
+
+			if (App.isEditor) {
+				renderWidth = authorWidth;
+				renderHeight = authorHeight;
+				scale = 1;
+			}
+
+			view.style.width = renderWidth + 'px';
+			view.style.height = renderHeight + 'px';
+			view.style.zoom = '';
+			view.style.left = '';
+			view.style.top = '';
+			view.style.bottom = '';
+			view.style.right = '';
+			owid.transformElement(view, '');
+
+			function postResize() {
+				if (!App.isEditor) {
+					if (scale > 1) {
+						view.style.zoom = scale;
+					} else {
+						view.style.left = '50%';
+						view.style.top = '50%';
+						view.style.bottom = 'auto';
+						view.style.right = 'auto';
+						owid.transformElement(view, "translate(-50%, -50%) scale(" + scale + ")");					
+					}					
+				}
+
+				if (callback) callback();
 			}
 
 			async.series([this.header.onResize.bind(this.header), 
@@ -185,18 +230,6 @@
 					footerBounds = svg.select(".chart-footer-svg").node().getBoundingClientRect(),
 					tabOffsetY = headerBounds.bottom - svgBounds.top,
 					tabHeight = footerBounds.top - headerBounds.bottom;
-
-				// MISPY: Ideally we want to fit all of our contents into the space that we are given.
-				// However, if there is much header and footer text and the screen is small then we may
-				// need to demand extra scrollable height so that the user can actually see the chart.
-				// Has to be at least 350 for wide, short maps to work right.
-				var minHeight = 350;
-				if (tabHeight < minHeight && !App.isExport) {
-					//svg.style("height", svgBounds.height + (minHeight-tabHeight) + "px");
-					$wrapper.css("height", $wrapper.height() + (minHeight-tabHeight) + 10 + "px");
-					this.onResize(callback, true);
-					return;
-				}
 
 				this.$el.find(".tab-content").css("margin-top", tabOffsetY);
 				this.$el.find(".tab-content").css("height", tabHeight);
@@ -210,12 +243,12 @@
 
 				if (this.activeTab && this.activeTab.onResize) {
 					try {
-						this.activeTab.onResize(callback);
+						this.activeTab.onResize(postResize);
 					} catch (err) {
 						App.ChartView.handleError(err);
 					}
 				} else
-					if (callback) callback();
+					postResize();
 			}.bind(this));
 		},
 	});

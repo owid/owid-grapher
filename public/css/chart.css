@@ -291,7 +291,7 @@ select.disabled {
     /* Hidden overflow x so that tooltips in iframes don't cause scrollbars */
     
     overflow-x: hidden;
-    position: relative;
+    position: absolute;
 }
 #chart-view a {
     cursor: pointer;
@@ -1095,45 +1095,8 @@ body#chart-export .nv-custom-legend .nv-legend-text {
 --------------------------------------------- */
 
 
-/* Mobile screens and smaller embeds */
-@media screen and (max-width: 768px) {
-    #chart-view {
-        font-size: 18px;
-    }
-}
-
-/* Smaller laptop screens and normal embeds */
-@media screen and (min-width: 769px) and (max-width: 1439px) {
-    #chart-view {
-        font-size: 20px;
-    }    
-}
-
-/* Big fullscreen view */
-@media screen and (min-width: 1440px) {
-    #chart-view {
-        font-size: 22px;
-    }
-}
-
-/* For really huge screens */
-@media screen and (min-width: 1921px) {
-    #chart-view {
-        font-size: 26px;
-    }
-}
-
-/* Emulate an embedded chart for the one in the editor */
-.chart-edit-module #chart-view {
-    max-width: calc(100% - 20px);
-    width: 800px;
-    font-size: 20px;
-    margin: auto;
-}
-
-/* Special export mode */
-#chart-export #chart-view {
-    font-size: 20px !important;
+#chart-view {
+    font-size: 22px;
 }
 
 @media (max-width: 768px) {

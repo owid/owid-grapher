@@ -614,15 +614,6 @@
 					chartHeight -= 20;
 			}
 
-			// Make sure we actually have enough room for the chart to be visible!
-			var minHeight = 250;
-			if (chartHeight < minHeight && !App.isExport) {
-				var $wrapper = App.ChartView.$(".chart-wrapper-inner");
-				$wrapper.css("height", $wrapper.height() + (minHeight-chartHeight) + 10 + "px");
-				App.ChartView.onResize(callback, true);
-				return;
-			}
-
 			// Inform nvd3 of the situation
 			if (this.chart && !$(".chart-error").is(":visible")) {
 				this.chart.width(chartWidth);
