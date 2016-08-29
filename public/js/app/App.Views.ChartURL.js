@@ -24,7 +24,7 @@
 			this.chartQueryStr = "?";
 			this.originalDefaultTab = App.ChartModel.get("default-tab");
 
-			this.listenTo(options.dispatcher, "tab-change", this.onTabChange.bind(this));
+			//this.listenTo(options.dispatcher, "tab-change", this.onTabChange.bind(this));
 			this.listenTo(App.ChartModel, "change:selected-countries", this.updateCountryParam.bind(this));	
 			this.listenTo(App.ChartModel, "change:activeLegendKeys", this.updateLegendKeys.bind(this));		
 			this.listenTo(App.MapModel, "change:targetYear", this.updateYearParam.bind(this));

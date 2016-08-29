@@ -8,14 +8,14 @@
 			ChartModel = App.Models.ChartModel,
 			ChartDataModel = App.Models.ChartDataModel;
 
-		var $chartShowWrapper = $(".chart-show-wrapper, .chart-edit-wrapper"),
-			chartId = $chartShowWrapper.attr("data-chart-id");
+		var $chart = $("#chart-view"),
+			chartId = $chart.attr("data-chart-id");
 
-		if (!$chartShowWrapper.length || !chartId)
+		if (!$chart.length || !chartId)
 			return; // No chart to show here
 
 		App.ChartModel = new ChartModel(chartConfig);
-		App.ChartView = new App.Views.ChartView();
+		App.ChartView = owid.chart();
 
 		//find out if it's in cache
 		if( !$( ".standalone-chart-viewer" ).length ) {

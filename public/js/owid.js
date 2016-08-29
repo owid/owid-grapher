@@ -587,7 +587,8 @@
 				child.cleanup();
 			});
 			this.children = [];
-		}
+		},
+
 	});
 
 	owid.makeSafeForCSS = function(name) {

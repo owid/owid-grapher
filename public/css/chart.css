@@ -1151,7 +1151,7 @@ body#chart-export .nv-custom-legend .nv-legend-text {
         border: 1px solid #ccc;
     }
     #chart-view:not(.embedded) {
-        padding: 1.5em 3em;
+/*        padding: 1.5em 3em;*/
     }
 
     .nv-custom-legend .nv-legend-text {    

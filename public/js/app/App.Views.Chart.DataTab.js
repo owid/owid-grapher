@@ -1,6 +1,18 @@
 ;(function() {	
 	"use strict";
-	owid.namespace("App.Views.Chart.DataTab");
+	owid.namespace("owid.tab.data");
+
+	owid.tab.data = function() {
+		var model;
+
+		function dataTab() { };
+
+		dataTab.model = function(_) {
+			return arguments.length ? model = _ && dataTab : model;
+		};
+
+		return dataTab;
+	};
 
 	App.Views.Chart.DataTab = owid.View.extend({
 		el: "#chart-view #data-chart-tab",
@@ -18,7 +30,7 @@
 
 		activate: function(callback) {
 			this.render(callback);
-			this.listenTo(App.ChartModel, "change", this.render.bind(this));
+			this.listenTo(App.ChartModel, "change:", function() { this.needsRender = true; }.bind(this));
 		},
 
 		deactivate: function() {
@@ -27,6 +39,8 @@
 		},
 
 		render: function(callback) {
+			if (!this.needsRender) return;
+
 			var params = owid.getQueryParams();
 			delete(params.tab);
 			var queryStr = owid.queryParamsToStr(params),

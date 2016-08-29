@@ -11,9 +11,8 @@
 		el: "#chart-view .chart-header",
 		events: {},
 
-		initialize: function( options ) {
-			this.dispatcher = options.dispatcher;
-			this.parentView = options.parentView;
+		initialize: function(chart) {
+			this.parentView = chart;
 
 			this.logo = d3.select(".logo-svg");
 			this.partnerLogo = d3.select(".partner-logo-svg");
@@ -108,7 +107,7 @@
 				this.$tabs.removeClass( "first" );
 				this.$tabs.filter( ":visible:first" ).addClass( "first" );
 
-				this.dispatcher.trigger("header-rendered");			
+//				this.dispatcher.trigger("header-rendered");			
 				if (_.isFunction(callback)) callback();
 			}.bind(this);
 
@@ -129,13 +128,9 @@
 				}.bind(this);
 				img.src = partnerLogoUrl;
 			} else {
-				this.partnerLogo.style('visibility', 'hidden')
+				this.partnerLogo.style('visibility', 'hidden');
 				renderText(logoX-10);
 			}
-		},
-
-		onResize: function(callback) {
-			this.render(callback);
 		},
 
 		// Replaces things like *time* and *country* with the actual time and

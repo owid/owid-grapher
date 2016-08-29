@@ -1,4 +1,4 @@
-<div id="chart-view" class="col-sm-12 col-md-6 chart-wrapper chart-edit-wrapper" @if (isset($chart)) data-chart-id="{{ $chart->id }}" @endif>	
+<div id="chart-view" @if (isset($chart)) data-chart-id="{{ $chart->id }}" @endif>	
 	<div class="chart-wrapper-inner">
 		<svg xmlns="http://www.w3.org/2000/svg" class="nvd3-svg"  version="1.1">
 			<g class="chart-header-svg">
