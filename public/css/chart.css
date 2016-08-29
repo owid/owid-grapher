@@ -170,17 +170,17 @@ select.disabled {
 * CHARTS
 **/
 
-#chart-view.line-dots .nvd3.nv-line .nvd3.nv-scatter .nv-groups .nv-point {
+#chart.line-dots .nvd3.nv-line .nvd3.nv-scatter .nv-groups .nv-point {
     stroke-opacity: 1;
     fill-opacity: 1;
 }
 
-#chart-view svg.LineChart .nv-group .nv-line {
+#chart svg.LineChart .nv-group .nv-line {
     stroke-width: 2.5 !important;
 }
 
 /* Make World line slightly thicker */
-#chart-view svg .nv-group.World .nv-line {
+#chart svg .nv-group.World .nv-line {
     stroke-width: 5 !important;
 }
 
@@ -188,7 +188,7 @@ select.disabled {
     stroke-width: 3;
 }
 
-#chart-view .dashed .nv-line {
+#chart .dashed .nv-line {
     stroke-dasharray: 2, 2;
 }
 
@@ -280,31 +280,37 @@ select.disabled {
 /* Chart General
 --------------------------------------------- */
 
-#chart-view {
+#chart {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     color: #000000;
     width: 100%;
     height: 100%;
     background: white;
+    position: relative;
     /* Hidden overflow x so that tooltips in iframes don't cause scrollbars */
     
     /*overflow-x: hidden;*/
+}
+
+#chart .chart-inner {
+    width: 100%;
+    height: 100%;
     position: relative;
 }
 
-#chart-view a {
+#chart a {
     cursor: pointer;
     color: #0645ad;
     fill: #0645ad;
 }
-#chart-view a:hover {
+#chart a:hover {
     text-decoration: underline;
 }
-#chart-view .logos {
+#chart .logos {
     float: right;
     padding-left: 0.6em;
 }
-#chart-view .chart-wrapper-inner {
+#chart .chart-wrapper-inner {
     position: relative;
     table-layout: fixed;
     border-collapse: collapse;
@@ -312,17 +318,17 @@ select.disabled {
     height: 100%;
     width: 100%;
 }
-#chart-view .tab-content {
+#chart .tab-content {
     position: absolute;
     width: 100%;
     height: 100%;
 }
-#chart-view .tab-content > .clearfix {
+#chart .tab-content > .clearfix {
     position: relative;
     z-index: 2;
     background-color: #fff;
 }
-#chart-view .tab-pane {
+#chart .tab-pane {
     border-top: 1px solid #ccc;
     position: relative;
     overflow: auto;
@@ -330,12 +336,12 @@ select.disabled {
     height: 100%;
     min-height: 300px;
 }
-#chart-view #data-chart-tab,
-#chart-view #sources-chart-tab {
+#chart #data-chart-tab,
+#chart #sources-chart-tab {
     position: relative;
     z-index: 2;
 }
-#chart-view svg {
+#chart svg {
     position: absolute;
     z-index: 1;
     top: 0;
@@ -348,7 +354,7 @@ select.disabled {
 
 /* The little loading icon */
 
-#chart-view .chart-preloader {
+#chart .chart-preloader {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -359,7 +365,7 @@ select.disabled {
     
     display: none;
 }
-#chart-view .chart-error {
+#chart .chart-error {
     position: absolute;
     left: 0;
     top: 0;
@@ -369,14 +375,14 @@ select.disabled {
     width: 100%;
     pointer-events: none;
 }
-#chart-view .chart-error:before {
+#chart .chart-error:before {
     content: '';
     display: inline-block;
     height: 100%;
     vertical-align: middle;
 }
-#chart-view .chart-error > div,
-#chart-view .chart-error > pre {
+#chart .chart-error > div,
+#chart .chart-error > pre {
     display: inline-block;
     text-align: left;
     vertical-align: middle;
@@ -384,7 +390,7 @@ select.disabled {
     max-width: 95%;
     font-weight: bold;
 }
-#chart-view .chart-error.critical > pre {
+#chart .chart-error.critical > pre {
     color: red;
     font-size: 0.9em;
     font-weight: normal;
@@ -393,29 +399,32 @@ select.disabled {
 /* Header
 --------------------------------------------- */
 
-#chart-view .chart-header-svg .chart-name-svg {
+#chart .chart-header-svg .chart-name-svg {
     font-size: 1.35em;
 }
-#chart-view .chart-header-svg .chart-name-svg a {
+#chart .chart-header-svg .chart-name-svg a {
     fill: #35322F;
 }
-#chart-view .chart-header-svg .chart-name-svg a {
+#chart .chart-header-svg .chart-name-svg a {
     text-decoration: none !important;
 }
-#chart-view .chart-header-svg .chart-subname-svg {
+#chart .chart-header-svg .chart-subname-svg {
     margin-top: 0;
     margin-bottom: 0.5em;
     font-size: 0.8em;
     fill: #4F4B49;
 }
-#chart-view .chart-header-svg .chart-logo-svg path {
+#chart .chart-header-svg .chart-logo-svg path {
     stroke: #FFFFFF;
     stroke-width: 1px;
 }
 /* Tab Menu (Chart, Data, Map, Sources)
 --------------------------------------------- */
 
-#chart-view .chart-tabs {
+#chart nav.tabs {
+    width: 100%;
+}
+#chart nav.tabs ul {
     position: relative;
     margin-bottom: 0;
     list-style-type: none;
@@ -423,7 +432,7 @@ select.disabled {
     padding-left: 0;
     z-index: 2;
 }
-#chart-view .chart-tabs li {
+#chart nav.tabs li {
     position: relative;
     top: 0.06em;
     z-index: 1;
@@ -431,34 +440,34 @@ select.disabled {
     border-left: 0px;
     background-color: #FAFAFA;
 }
-#chart-view .chart-tabs li.first {
+#chart nav.tabs li.first {
     border-left: 1px solid #ddd;
 }
-#chart-view .chart-tabs li.active,
-#chart-view .chart-tabs li:hover {
+#chart nav.tabs li.active,
+#chart nav.tabs li:hover {
     background-color: #FFFFFF;
     border-top: 2px solid rgba(0, 33, 71, 0.9);
     border-bottom: 0;
 }
-#chart-view .chart-tabs li a {
+#chart nav.tabs li a {
     color: #000;
     display: block;
     font-size: 0.6em;
     padding: 0.5em 1em;
     text-decoration: none;
 }
-#chart-view .chart-tabs li a i {
+#chart nav.tabs li a i {
     margin-right: 0.3em;
 }
-#chart-view .chart-tabs li.edit-btn-wrapper:hover {
+#chart nav.tabs li.edit-btn-wrapper:hover {
     background-color: #444;
     border: 1px solid #444;
     border-left: 0;
 }
-#chart-view .chart-tabs li.edit-btn-wrapper:hover a {
+#chart nav.tabs li.edit-btn-wrapper:hover a {
     color: #FAFAFA;
 }
-#chart-view .chart-tabs li.edit-btn-wrapper i {
+#chart nav.tabs li.edit-btn-wrapper i {
     margin-right: 0;
 }
 /* Footer
@@ -494,119 +503,119 @@ select.disabled {
 /* Legend
 --------------------------------------------- */
 
-#chart-view .nv-custom-legend.transparent .nv-series {
+#chart .nv-custom-legend.transparent .nv-series {
     opacity: .8;
 }
-#chart-view .nv-custom-legend.transparent .nv-series.highlight {
+#chart .nv-custom-legend.transparent .nv-series.highlight {
     opacity: 1;
 }
-#chart-view .nv-custom-legend .nv-series {
+#chart .nv-custom-legend .nv-series {
     cursor: pointer;
 }
-#chart-view .nv-custom-legend .nv-series .nv-custom-legend-symbol {
+#chart .nv-custom-legend .nv-series .nv-custom-legend-symbol {
     stroke-width: 1px !important;
 }
-#chart-view .nv-custom-legend .nv-remove-btn {
+#chart .nv-custom-legend .nv-remove-btn {
     display: none;
 }
-#chart-view .nv-custom-legend .nv-series:hover .nv-remove-btn {
+#chart .nv-custom-legend .nv-series:hover .nv-remove-btn {
     display: block;
 }
-#chart-view .nv-custom-legend .nv-remove-btn .nv-box {
+#chart .nv-custom-legend .nv-remove-btn .nv-box {
     stroke-width: 3px;
     stroke: #fff;
 }
-#chart-view .nv-custom-legend .nv-legend-text {
+#chart .nv-custom-legend .nv-legend-text {
     fill: #fff;
 }
-#chart-view .nv-custom-legend .nv-add-btn {
+#chart .nv-custom-legend .nv-add-btn {
     cursor: pointer;
 }
-#chart-view .nv-custom-legend .nv-add-btn .add-btn-bg {
+#chart .nv-custom-legend .nv-add-btn .add-btn-bg {
     fill: #fff;
 }
-#chart-view .nv-custom-legend .nv-add-btn:hover .add-btn-bg {
+#chart .nv-custom-legend .nv-add-btn:hover .add-btn-bg {
     fill: #444444;
 }
-#chart-view .nv-custom-legend .nv-add-btn:hover text {
+#chart .nv-custom-legend .nv-add-btn:hover text {
     fill: #fff;
 }
-#chart-view .nv-custom-legend .nv-add-btn:hover .nv-box {
+#chart .nv-custom-legend .nv-add-btn:hover .nv-box {
     stroke: #fff;
     fill: #fff;
 }
-#chart-view .nv-custom-legend .nv-add-btn .nv-box {
+#chart .nv-custom-legend .nv-add-btn .nv-box {
     stroke-width: 4px;
     stroke: #000;
 }
-#chart-view .nv-custom-legend .nv-disabled {
+#chart .nv-custom-legend .nv-disabled {
     fill-opacity: 0;
 }
-#chart-view .nv-custom-legend .nv-disabled .nv-legend-text {
+#chart .nv-custom-legend .nv-disabled .nv-legend-text {
     fill: #333;
     fill-opacity: 1;
 }
 
-#chart-view .available-countries-select-wrapper {
+#chart .available-countries-select-wrapper {
     position: relative;
     z-index: 51;
     line-height: 0;
 }
-#chart-view .available-countries-select-wrapper select {
+#chart .available-countries-select-wrapper select {
     display: none;
 }
-#chart-view .available-countries-select-wrapper .chosen-container {
+#chart .available-countries-select-wrapper .chosen-container {
     width: 100% !important;
 }
-#chart-view .available-countries-select-wrapper .chosen-single {
+#chart .available-countries-select-wrapper .chosen-single {
     display: none;
 }
-#chart-view .available-countries-select-wrapper .chosen-container .chosen-fp {
+#chart .available-countries-select-wrapper .chosen-container .chosen-fp {
     box-shadow: none;
     border-top: 1px solid #aaa;
     border-radius: 0;
 }
-#chart-view .available-countries-select-wrapper .chosen-container .chosen-results li.highlighted {
+#chart .available-countries-select-wrapper .chosen-container .chosen-results li.highlighted {
     background: #002147;
 }
 /* Axis Scale Selectors
 --------------------------------------------- */
 
-#chart-view .axis-scale-selectors-wrapper .x-axis-scale-selector,
-#chart-view .axis-scale-selectors-wrapper .y-axis-scale-selector {
+#chart .axis-scale-selectors-wrapper .x-axis-scale-selector,
+#chart .axis-scale-selectors-wrapper .y-axis-scale-selector {
     position: absolute;
     z-index: 11;
     display: none;
 }
-#chart-view .axis-scale-selectors-wrapper .axis-scale-btn {
+#chart .axis-scale-selectors-wrapper .axis-scale-btn {
     position: relative;
     font-size: 0.8em;
     color: black;
 }
-#chart-view .axis-scale-btn:hover {
+#chart .axis-scale-btn:hover {
     text-decoration: none;
 }
-#chart-view .axis-scale-selectors-wrapper .axis-scale {
+#chart .axis-scale-selectors-wrapper .axis-scale {
     text-transform: uppercase;
     font-size: 0.6em;
     border: 1px solid #eeeeee;
     background-color: white;
     display: none;
 }
-#chart-view .axis-scale-selectors-wrapper ul {
+#chart .axis-scale-selectors-wrapper ul {
     list-style-type: none;
     margin-bottom: 0;
     padding-left: 0;
 }
-#chart-view .axis-scale-selectors-wrapper li {
+#chart .axis-scale-selectors-wrapper li {
     cursor: pointer;
     padding: 0.3em;
     white-space: nowrap;
 }
-#chart-view .axis-scale-selectors-wrapper li.selected {
+#chart .axis-scale-selectors-wrapper li.selected {
     font-weight: bold;
 }
-#chart-view .axis-scale-selectors-wrapper li:hover {
+#chart .axis-scale-selectors-wrapper li:hover {
     background-color: #eeeeee;
 }
 /* Tooltips
@@ -638,28 +647,28 @@ select.disabled {
 /* Chart Tab
 --------------------------------------------- */
 
-#chart-view .nvd3-svg {
+#chart .nvd3-svg {
     /* Tweak some nvd3 styling */
     /* Allow user to select text */
 }
-#chart-view .nvd3-svg .nvd3 .nv-axis line {
+#chart .nvd3-svg .nvd3 .nv-axis line {
     fill: none;
     stroke: #a5a5a5;
     stroke-dasharray: 2, 2;
     shape-rendering: crispEdges;
 }
-#chart-view .nvd3-svg .nvd3 text {
+#chart .nvd3-svg .nvd3 text {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     font-size: 14px;
 }
-#chart-view .nvd3-svg .nvd3 .nv-axis .nv-axisMaxMin text {
+#chart .nvd3-svg .nvd3 .nv-axis .nv-axisMaxMin text {
     font-weight: normal;
 }
-#chart-view .nvd3-svg .nvd3 .nv-axis line {
+#chart .nvd3-svg .nvd3 .nv-axis line {
     opacity: .6;
 }
-#chart-view .nvd3-svg .chart-header-svg,
-#chart-view .nvd3-svg .chart-footer-svg {
+#chart .nvd3-svg .chart-header-svg,
+#chart .nvd3-svg .chart-footer-svg {
     -webkit-touch-callout: initial !important;
     -webkit-user-select: initial !important;
     -ms-user-select: initial !important;
@@ -670,30 +679,30 @@ select.disabled {
 /* Data Tab
 --------------------------------------------- */
 
-#chart-view #data-chart-tab {
+#chart #data-chart-tab {
     padding-top: 1.5em;
     padding-left: 1em;
     font-size: 16px;
 }
-#chart-view #data-chart-tab .download-data-btn,
-#chart-view #data-chart-tab .download-full-btn {
+#chart #data-chart-tab .download-data-btn,
+#chart #data-chart-tab .download-full-btn {
     color: #fff;
 }
-#chart-view #data-chart-tab .download-data-btn i,
-#chart-view #data-chart-tab .download-full-btn i {
+#chart #data-chart-tab .download-data-btn i,
+#chart #data-chart-tab .download-full-btn i {
     margin-right: 0.3em;
 }
-#chart-view #data-chart-tab .data-table {
+#chart #data-chart-tab .data-table {
     margin-top: 1.25em;
 }
-#chart-view #data-chart-tab .data-table th,
-#chart-view #data-chart-tab .data-table td {
+#chart #data-chart-tab .data-table th,
+#chart #data-chart-tab .data-table td {
     padding: 4px 4px;
 }
-#chart-view #data-chart-tab .data-table th {
+#chart #data-chart-tab .data-table th {
     border-bottom: 1px solid #aaa;
 }
-#chart-view #data-chart-tab .data-table td {
+#chart #data-chart-tab .data-table td {
     border-bottom: 1px solid #afafaf;
 }
 /* Sources Tab
@@ -748,31 +757,31 @@ select.disabled {
 /* Map Tab
 --------------------------------------------- */
 
-#chart-view svg.datamap .legend-step rect {
+#chart svg.datamap .legend-step rect {
     stroke: #4F4F4F;
     stroke-width: .1px;
 }
-#chart-view svg.datamap .legend-step text {
+#chart svg.datamap .legend-step text {
     font-size: 0.6em;
 }
-#chart-view svg.datamap .legend-step line {
+#chart svg.datamap .legend-step line {
     stroke: #4F4F4F;
     stroke-width: 1px;
 }
-#chart-view svg.datamap .legend-description {
+#chart svg.datamap .legend-description {
     font-size: 0.7em;
 }
-#chart-view svg.datamap .border-disclaimer {
+#chart svg.datamap .border-disclaimer {
     font-size: 0.6em;
 }
-#chart-view svg.datamap .map-bg {
+#chart svg.datamap .map-bg {
     fill: #ECF6FC;
 }
-#chart-view svg.datamap path {
+#chart svg.datamap path {
     stroke: #4b4b4b !important;
     stroke-width: 0.3px !important;
 }
-#chart-view svg.datamap path:hover {
+#chart svg.datamap path:hover {
     stroke: #FFEC38 !important;
     stroke-width: 3px !important;
 }
@@ -788,19 +797,19 @@ select.disabled {
     padding: 0;
     box-shadow: none;
 }
-#chart-view #map-chart-tab {
+#chart #map-chart-tab {
     overflow: inherit;
     padding: 0 !important;
     border: 1px solid #eee;
     /* MAP TIMELINE CONTROL */
 }
-#chart-view #map-chart-tab .map-controls-header {
+#chart #map-chart-tab .map-controls-header {
     position: absolute;
     top: 10px;
     left: 20px;
     z-index: 2;
 }
-#chart-view #map-chart-tab .map-controls-header .control {
+#chart #map-chart-tab .map-controls-header .control {
     float: left;
     margin-right: 0.2em;
     cursor: pointer;
@@ -809,73 +818,73 @@ select.disabled {
     white-space: nowrap;
     overflow: hidden;
 }
-#chart-view #map-chart-tab .map-controls-header .control:hover .control-head,
-#chart-view #map-chart-tab .map-controls-header .control:hover .control-body,
-#chart-view #map-chart-tab .map-controls-header .control.active .control-head,
-#chart-view #map-chart-tab .map-controls-header .control.active .control-body {
+#chart #map-chart-tab .map-controls-header .control:hover .control-head,
+#chart #map-chart-tab .map-controls-header .control:hover .control-body,
+#chart #map-chart-tab .map-controls-header .control.active .control-head,
+#chart #map-chart-tab .map-controls-header .control.active .control-body {
     color: #fff;
     background-color: #444;
     border: 1px solid #444;
 }
-#chart-view #map-chart-tab .map-controls-header .control:hover .control-body,
-#chart-view #map-chart-tab .map-controls-header .control.active .control-body {
+#chart #map-chart-tab .map-controls-header .control:hover .control-body,
+#chart #map-chart-tab .map-controls-header .control.active .control-body {
     display: block;
 }
-#chart-view #map-chart-tab .map-controls-header .control .control-head,
-#chart-view #map-chart-tab .map-controls-header .control .control-body {
+#chart #map-chart-tab .map-controls-header .control .control-head,
+#chart #map-chart-tab .map-controls-header .control .control-body {
     padding: 0.3em 0.6em;
     border: 1px solid #EEEEEE;
     background-color: #FAFAFA;
 }
-#chart-view #map-chart-tab .map-controls-header .control .control-head {
+#chart #map-chart-tab .map-controls-header .control .control-head {
     display: inline-block;
     width: auto;
 }
-#chart-view #map-chart-tab .map-controls-header .control .control-head label {
+#chart #map-chart-tab .map-controls-header .control .control-head label {
     margin-bottom: 0;
 }
-#chart-view #map-chart-tab .map-controls-header .control .control-body {
+#chart #map-chart-tab .map-controls-header .control .control-body {
     display: none;
     position: absolute;
 }
-#chart-view #map-chart-tab .map-controls-header .control .control-body label {
+#chart #map-chart-tab .map-controls-header .control .control-body label {
     margin-bottom: 0;
     cursor: pointer;
 }
-#chart-view #map-chart-tab .map-controls-header .target-year-control .control-body {
+#chart #map-chart-tab .map-controls-header .target-year-control .control-body {
     width: 200.5em;
 }
-#chart-view #map-chart-tab .map-controls-header .target-year-control input {
+#chart #map-chart-tab .map-controls-header .target-year-control input {
     display: inline-block;
     margin: 0.6em 0;
     /*writing-mode: bt-lr;
         -webkit-appearance: slider-vertical;*/
 }
-#chart-view #map-chart-tab .map-controls-header .region-control .region-label {
+#chart #map-chart-tab .map-controls-header .region-control .region-label {
     width: calc(100% - 0.9em);
     text-align: center;
 }
-#chart-view #map-chart-tab .map-controls-header .region-control ul {
+#chart #map-chart-tab .map-controls-header .region-control ul {
     margin: 0.3em 0;
     padding: 0;
     list-style-type: none;
 }
-#chart-view #map-chart-tab .map-controls-header .region-control li {
+#chart #map-chart-tab .map-controls-header .region-control li {
     padding: 4px 0;
 }
-#chart-view #map-chart-tab .map-controls-header .region-control li:hover,
-#chart-view #map-chart-tab .map-controls-header .region-control li.highlight {
+#chart #map-chart-tab .map-controls-header .region-control li:hover,
+#chart #map-chart-tab .map-controls-header .region-control li.highlight {
     cursor: pointer;
     color: #FFEC38;
 }
-#chart-view #map-chart-tab .map-controls-header .settings-control .control-body {
+#chart #map-chart-tab .map-controls-header .settings-control .control-body {
     width: 17.5em;
     padding: 0.3em 0.9em 0.3em 0.6em;
 }
-#chart-view #map-chart-tab .map-controls-header .settings-control .control-body input[type=checkbox] {
+#chart #map-chart-tab .map-controls-header .settings-control .control-body input[type=checkbox] {
     margin-right: 6px;
 }
-#chart-view #map-chart-tab .map-timeline-controls {
+#chart #map-chart-tab .map-timeline-controls {
     position: absolute;
     bottom: -1px;
     z-index: 2;
@@ -884,21 +893,21 @@ select.disabled {
     background-color: #FAFAFA;
     border-top: 1px solid #ddd;
 }
-#chart-view #map-chart-tab .map-timeline-controls .control {
+#chart #map-chart-tab .map-timeline-controls .control {
     float: left;
 }
-#chart-view #map-chart-tab .map-timeline-controls .play-pause-control {
+#chart #map-chart-tab .map-timeline-controls .play-pause-control {
     width: 3.5em;
     margin-right: 0.5em;
     text-align: right;
     height: 100%;
 }
-#chart-view #map-chart-tab .map-timeline-controls .play-pause-control .play-btn:hover,
-#chart-view #map-chart-tab .map-timeline-controls .play-pause-control .pause-btn:hover {
+#chart #map-chart-tab .map-timeline-controls .play-pause-control .play-btn:hover,
+#chart #map-chart-tab .map-timeline-controls .play-pause-control .pause-btn:hover {
     color: #666;
 }
-#chart-view #map-chart-tab .map-timeline-controls .play-pause-control .play-btn:active,
-#chart-view #map-chart-tab .map-timeline-controls .play-pause-control .pause-btn:active {
+#chart #map-chart-tab .map-timeline-controls .play-pause-control .play-btn:active,
+#chart #map-chart-tab .map-timeline-controls .play-pause-control .pause-btn:active {
     box-shadow: none;
 }
 #map-chart-tab .play-pause-control .btn {
@@ -916,7 +925,7 @@ select.disabled {
     position: relative;
     top: 1px;
 }
-#chart-view #map-chart-tab .map-timeline-controls .timeline-control {
+#chart #map-chart-tab .map-timeline-controls .timeline-control {
     /*display: none;*/
     
     height: 100%;
@@ -924,30 +933,30 @@ select.disabled {
     position: relative;
     cursor: pointer;
 }
-#chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-start-year,
-#chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-end-year {
+#chart #map-chart-tab .map-timeline-controls .timeline-control .timeline-start-year,
+#chart #map-chart-tab .map-timeline-controls .timeline-control .timeline-end-year {
     min-height: 1.8em;
     line-height: 1.2em;
     white-space: nowrap;
 }
-#chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-start-year {
+#chart #map-chart-tab .map-timeline-controls .timeline-control .timeline-start-year {
     position: absolute;
     top: 0.25em;
     right: calc(100% + 0.3em);
     padding: 0.3em 0.5em;
 }
-#chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-end-year {
+#chart #map-chart-tab .map-timeline-controls .timeline-control .timeline-end-year {
     position: absolute;
     top: 0.25em;
     left: calc(100% + 0.3em);
     padding: 0.3em 0.5em;
 }
-#chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-slider-label {
+#chart #map-chart-tab .map-timeline-controls .timeline-control .timeline-slider-label {
     padding: 0.3em 0.8em;
 }
-#chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-slider-label,
-#chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-end-year.highlight,
-#chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-start-year.highlight {
+#chart #map-chart-tab .map-timeline-controls .timeline-control .timeline-slider-label,
+#chart #map-chart-tab .map-timeline-controls .timeline-control .timeline-end-year.highlight,
+#chart #map-chart-tab .map-timeline-controls .timeline-control .timeline-start-year.highlight {
     background-color: #404040;
     color: #fff;
     cursor: pointer;
@@ -964,23 +973,23 @@ select.disabled {
     -webkit-touch-callout: none;
     /* iOS Safari */
 }
-#chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper {
+#chart #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper {
     position: absolute;
     top: 0.1em;
     left: 4.4em;
     right: 4.4em;
 }
-#chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper .timeline {
+#chart #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper .timeline {
     width: 100%;
     height: 0.6em;
     margin: 0;
     padding: 0;
     background-color: #ddd;
 }
-#chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper input[type="range"] {
+#chart #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper input[type="range"] {
     height: 0.1em;
 }
-#chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper .timeline-slider {
+#chart #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper .timeline-slider {
     position: absolute;
     left: 6.25em;
     top: -1.25em;
@@ -989,16 +998,16 @@ select.disabled {
     -webkit-transform: translate(-50%, 0);
     transform: translate(-50%, 0);
 }
-#chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper .timeline-slider > span {
+#chart #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper .timeline-slider > span {
     display: block;
 }
-#chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper .timeline-slider .timeline-slider-graphic {
+#chart #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper .timeline-slider .timeline-slider-graphic {
     width: 0.3em;
     height: 1.25em;
     background-color: #000000;
     margin: 0 auto;
 }
-#chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper .timeline-ticks {
+#chart #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper .timeline-ticks {
     pointer-events: none;
     position: absolute;
     top: 0.9em;
@@ -1007,7 +1016,7 @@ select.disabled {
     padding-left: 0;
     list-style-type: none;
 }
-#chart-view #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper .timeline-ticks li {
+#chart #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper .timeline-ticks li {
     position: absolute;
     display: inline-block;
     width: 0.25em;
@@ -1021,43 +1030,43 @@ select.disabled {
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
 }
-#chart-view #map-chart-tab .map-timeline-controls .buttons-control {
+#chart #map-chart-tab .map-timeline-controls .buttons-control {
     display: none;
     /*display: table;*/
     
     width: 100%;
     height: 100%;
 }
-#chart-view #map-chart-tab .map-timeline-controls .buttons-control ul {
+#chart #map-chart-tab .map-timeline-controls .buttons-control ul {
     list-style-type: none;
     display: table-cell;
     text-align: center;
     vertical-align: middle;
     padding-left: 0;
 }
-#chart-view #map-chart-tab .map-timeline-controls .buttons-control .year-btn {
+#chart #map-chart-tab .map-timeline-controls .buttons-control .year-btn {
     display: inline-block;
     margin-right: 0.3em;
 }
-#chart-view #map-chart-tab .map-timeline-controls .buttons-control .year-btn:last-child {
+#chart #map-chart-tab .map-timeline-controls .buttons-control .year-btn:last-child {
     margin-right: 0;
 }
-#chart-view #map-chart-tab .map-timeline-controls .buttons-control .year-btn.selected .btn,
-#chart-view #map-chart-tab .map-timeline-controls .buttons-control .year-btn:hover .btn {
+#chart #map-chart-tab .map-timeline-controls .buttons-control .year-btn.selected .btn,
+#chart #map-chart-tab .map-timeline-controls .buttons-control .year-btn:hover .btn {
     color: white;
     background-color: #404040;
     border: 1px solid #ddd;
 }
-#chart-view #map-chart-tab .map-timeline-controls .buttons-control .year-btn .btn {
+#chart #map-chart-tab .map-timeline-controls .buttons-control .year-btn .btn {
     background-color: white;
     border-radius: 0;
 }
-#chart-view #map-chart-tab .map-timeline-controls .buttons-control .year-btn .btn.btn:active {
+#chart #map-chart-tab .map-timeline-controls .buttons-control .year-btn .btn.btn:active {
     box-shadow: none;
 }
-#chart-view #map-chart-tab .map-timeline-controls.single-year .play-pause-control,
-#chart-view #map-chart-tab .map-timeline-controls.single-year .timeline-end-year,
-#chart-view #map-chart-tab .map-timeline-controls.single-year .timeline-wrapper {
+#chart #map-chart-tab .map-timeline-controls.single-year .play-pause-control,
+#chart #map-chart-tab .map-timeline-controls.single-year .timeline-end-year,
+#chart #map-chart-tab .map-timeline-controls.single-year .timeline-wrapper {
     display: none !important;
 }
 /* Export
@@ -1071,10 +1080,10 @@ body#chart-export {
     /* Remove interactive UI elements since obviously they can't be used in a static image
    * NOTE (Mispy): Unneeded SVG elements should be removed entirely by the JS as well as hidden here. */
 }
-body#chart-export #chart-view {
+body#chart-export #chart {
     padding: 0 !important;
 }
-body#chart-export .chart-tabs,
+body#chart-export nav.tabs,
 body#chart-export .footer-btns,
 body#chart-export .fullscreen-link,
 body#chart-export .map-timeline-controls,
@@ -1096,16 +1105,16 @@ body#chart-export .nv-custom-legend .nv-legend-text {
 --------------------------------------------- */
 
 
-#chart-view {
+#chart {
     font-size: 22px;
 }
 
 @media (max-width: 768px) {
-    #chart-view.embedded {
+    #chart.embedded {
         padding: 0.6em;
         border: 1px solid #ccc;
     }
-    #chart-view:not(.embedded) {
+    #chart:not(.embedded) {
         padding: 1em;
     }
 
@@ -1114,45 +1123,45 @@ body#chart-export .nv-custom-legend .nv-legend-text {
     }
 
     /* Tabs should fill the entire width */    
-    #chart-view ul.chart-tabs {
+    #chart nav.tabs ul {
         display: table;
         width: 100%;
     }
-    #chart-view ul.chart-tabs li {
+    #chart nav.tabs li {
         display: table-cell;
     }
-    #chart-view ul.chart-tabs li > a {
+    #chart nav.tabs li > a {
         padding: 3px 8px;
     }
-    #chart-view ul.chart-tabs li.edit-btn-wrapper {
+    #chart nav.tabs li.edit-btn-wrapper {
         display: none;
     }
 
     /* Compact the footer buttons a bit */
-    #chart-view .footer-btns {
+    #chart .footer-btns {
         padding-top: 5px;
         height: 19px;
     }
-    #chart-view .footer-btns a.chart-link-btn span,
-    #chart-view .footer-btns a.tweet-btn span,
-    #chart-view .footer-btns a.facebook-btn span,
-    #chart-view .footer-btns a.embed-btn span {
+    #chart .footer-btns a.chart-link-btn span,
+    #chart .footer-btns a.tweet-btn span,
+    #chart .footer-btns a.facebook-btn span,
+    #chart .footer-btns a.embed-btn span {
         display: none;
     }
-    #chart-view .footer-btns i {
+    #chart .footer-btns i {
         font-size: 1.2em;
     }
-    #chart-view .nv-add-btn {
+    #chart .nv-add-btn {
         display: none;
     }
 }
 @media (min-width: 769px) {
-    #chart-view.embedded {
+    #chart.embedded {
         padding: 1em 1.5em;
         border: 1px solid #ccc;
     }
-    #chart-view:not(.embedded) {
-/*        padding: 1.5em 3em;*/
+    #chart:not(.embedded) {
+        padding: 1.5em 3em;
     }
 
     .nv-custom-legend .nv-legend-text {    
@@ -1160,10 +1169,10 @@ body#chart-export .nv-custom-legend .nv-legend-text {
     }
 
     /* Desktop-style tabs */
-    #chart-view ul.chart-tabs {
+    #chart nav.tabs ul {
         float: right;
     }
-    #chart-view ul.chart-tabs li {
+    #chart nav.tabs li {
         float: left;
     }
 

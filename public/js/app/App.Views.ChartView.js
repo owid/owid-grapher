@@ -14,7 +14,7 @@
 		chart.data = App.ChartData;
 		chart.colors = App.Colors;
 
-		var $chart = window.$("#chart-view"),
+		var $chart = window.$("#chart"),
 			$ = $chart.find.bind($chart);
 		chart.$ = $;
 
@@ -50,9 +50,7 @@
 		}.bind(this));*/
 
 		chart.setupDOM = function() {
-			nv.utils.windowResize(_.debounce(function() {
-				this.render();
-			}.bind(this), 150));			
+			jQuery(window).resize(_.throttle(chart.render, 150));
 
 			jQuery(window).one("chart-loaded", function() {
 				App.ChartView.onResize(function() {
@@ -124,8 +122,8 @@
 			chart.activeTab.render();
 
 			if (!App.isEditor) {
-				if (scale > 1) {
-					//view.style.zoom = scale;
+				if (scale > 100) {
+					view.style.zoom = scale;
 				} else {
 					view.style.left = '50%';
 					view.style.top = '50%';
@@ -134,7 +132,7 @@
 					owid.transformElement(view, "translate(-50%, -50%) scale(" + scale + ")");					
 				}					
 			}
-			view.style.opacity = 1;
+			view.style.visibility = 'visible';
 		};
 
 		chart.setupDOM();
@@ -145,7 +143,7 @@
 
 	App.Views.ChartView = owid.View.extend({
 		activeTab: false,
-		el: "#chart-view",
+		el: "#chart",
 
 		events: {
 			"click li.header-tab a": "onTabClick"

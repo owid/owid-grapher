@@ -8,7 +8,7 @@
 	App.Views.Chart.Header = owid.View.extend({
 		DEFAULT_LOGO_URL: "uploads/26538.png",
 
-		el: "#chart-view .chart-header",
+		el: "#chart .chart-header",
 		events: {},
 
 		initialize: function(chart) {
@@ -50,7 +50,7 @@
 				g = svg.select(".chart-header-svg");
 
 			var scaleFactor;
-			if ($("#chart-view").width() > 1300) {
+			if ($("#chart").width() > 1300) {
 				scaleFactor = 0.4;
 			} else {
 				scaleFactor = 0.35;

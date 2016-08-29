@@ -3,7 +3,7 @@
 	owid.namespace("App.Views.Chart.Footer");
 
 	App.Views.Chart.Footer = owid.View.extend({
-		el: "#chart-view .footer-btns",
+		el: "#chart .footer-btns",
 		events: {
 			"click .embed-btn": "onEmbed"
 		},

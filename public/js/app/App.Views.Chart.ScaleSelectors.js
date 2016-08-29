@@ -3,7 +3,7 @@
 	owid.namespace("App.Views.Chart.ScaleSelectors");
 
 	App.Views.Chart.ScaleSelectors = owid.View.extend({
-		el: "#chart-view .axis-scale-selectors-wrapper",
+		el: "#chart .axis-scale-selectors-wrapper",
 		events: {
 			"click .axis-scale-btn": "onAxisScaleBtn",
 			"change .axis-scale li": "onAxisScaleChange"

@@ -255,7 +255,7 @@ button[type="submit"]:not(".delete-btn") {
   margin-top: 12px; }
 
 /* collapsed panel */
-.form-panel-collapsed #chart-view {
+.form-panel-collapsed #chart {
   width: 99%; }
 
 .form-panel-collapsed #form-view {

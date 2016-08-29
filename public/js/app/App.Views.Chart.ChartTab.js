@@ -10,7 +10,7 @@
 	};
 
 	App.Views.Chart.ChartTab = owid.View.extend({
-		el: "#chart-view",
+		el: "#chart",
 		events: {
 			"change [name=available_entities]": "onAvailableCountries"
 		},

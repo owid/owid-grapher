@@ -39,8 +39,8 @@
 				renderHeight = ((targetHeight-40)/(targetWidth-40)) * renderWidth;
 			}
 
-			$("#chart-view").css("width", renderWidth);
-			$("#chart-view").css("height", renderHeight);
+			$("#chart").css("width", renderWidth);
+			$("#chart").css("height", renderHeight);
 
 			$(window).one("chart-loaded", function() {
 				App.ChartView.onResize(function() {
@@ -53,8 +53,8 @@
 						$(svg).css("width", (targetWidth-40) + "px");
 		   			    $(svg).css("height", (targetHeight-40) + "px");
 						$("svg").css("margin", "20px");
-						$("#chart-view").css('width', targetWidth);
-						$("#chart-view").css('height', targetHeight);
+						$("#chart").css('width', targetWidth);
+						$("#chart").css('height', targetHeight);
 
 						if (window.callPhantom) {
 							window.callPhantom({ targetWidth: targetWidth, targetHeight: targetHeight }); // Notify phantom that we're ready for PNG screenshot
@@ -85,8 +85,8 @@
 			});
 
 			// MISPY: Need to propagate a few additional styles from the external document into the SVG
-			$("svg").css("font-family", $("#chart-view").css("font-family"));
-			$("svg").css("font-size", $("#chart-view").css("font-size"));
+			$("svg").css("font-family", $("#chart").css("font-family"));
+			$("svg").css("font-size", $("#chart").css("font-size"));
 
 			svgAsDataUri(svg.node(), {}, function(uri) {
 				var svgData = uri.substring('data:image/svg+xml;base64,'.length);

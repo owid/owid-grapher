@@ -12,7 +12,7 @@
 
 		BORDERS_DISCLAIMER_TEXT: "Mapped on current borders",
 
-		el: "#chart-view",
+		el: "#chart",
 		dataMap: null,
 		mapControls: null,
 		legend: null,

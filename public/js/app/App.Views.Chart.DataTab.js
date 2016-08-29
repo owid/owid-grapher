@@ -15,7 +15,7 @@
 	};
 
 	App.Views.Chart.DataTab = owid.View.extend({
-		el: "#chart-view #data-chart-tab",
+		el: "#chart #data-chart-tab",
 		events: {},
 
 		initialize: function( options ) {

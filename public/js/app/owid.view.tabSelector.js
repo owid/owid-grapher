@@ -13,11 +13,19 @@
 				tabOffsetY = headerBounds.bottom - svgBounds.top,
 				tabHeight = footerBounds.top - headerBounds.bottom;
 
-			chart.$(".tab-content").css({
+			chart.$("nav.tabs").css({
 				position: 'absolute',
 				top: tabOffsetY,
-				height: tabHeight,
-			});			
+				left: 0
+			});
+
+			chart.$(".tab-content").css({
+				position: 'absolute',
+				top: tabOffsetY + chart.$("nav.tabs").height(),
+				left: 0,
+				height: tabHeight - chart.$("nav.tabs").height() 
+			});
+
 		};
 
 		return tabSelector;
