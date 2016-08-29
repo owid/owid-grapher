@@ -14,8 +14,9 @@
 				tabHeight = footerBounds.top - headerBounds.bottom;
 
 			chart.$(".tab-content").css({
-				'margin-top': tabOffsetY,
-				'height': tabHeight
+				position: 'absolute',
+				top: tabOffsetY,
+				height: tabHeight,
 			});			
 		};
 

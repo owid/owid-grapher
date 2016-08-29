@@ -25,5 +25,5 @@
 
 		//chosen select
 		$( ".chosen-select" ).chosen();		
-	}
+	};
 })();

@@ -72,11 +72,11 @@
 			// Determine if we're logged in and show the edit button
 			// Done here instead of PHP to allow for caching etc optimization on public-facing content
 			if (Cookies.get("isAdmin")) {
-				$(".edit-btn-wrapper").removeClass("hidden");
+				chart.$(".edit-btn-wrapper").removeClass("hidden");
 			}
 
 			if (App.ChartModel.get("chart-name"))
-				$(".chart-preloader").show();
+				chart.$(".chart-preloader").show();
 
 			if (window.self != window.top || App.isEditor) {
 				$chart.addClass("embedded");
@@ -99,7 +99,7 @@
 				renderHeight = (screenHeight/screenWidth) * authorWidth;
 			}
 
-			scale = screenWidth/renderWidth;
+			scale = Math.min(screenWidth/renderWidth, screenHeight/renderHeight);
 
 			if (App.isEditor) {
 				renderWidth = authorWidth;
@@ -107,6 +107,7 @@
 				scale = 1;
 			}
 
+			console.log(renderWidth, renderHeight, screenWidth, screenHeight);
 			view.style.width = renderWidth + 'px';
 			view.style.height = renderHeight + 'px';
 			view.style.zoom = '';
@@ -124,7 +125,7 @@
 
 			if (!App.isEditor) {
 				if (scale > 1) {
-					view.style.zoom = scale;
+					//view.style.zoom = scale;
 				} else {
 					view.style.left = '50%';
 					view.style.top = '50%';
@@ -133,6 +134,7 @@
 					owid.transformElement(view, "translate(-50%, -50%) scale(" + scale + ")");					
 				}					
 			}
+			view.style.opacity = 1;
 		};
 
 		chart.setupDOM();

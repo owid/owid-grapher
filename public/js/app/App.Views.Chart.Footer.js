@@ -112,7 +112,7 @@
 				.attr("width", svgWidth)
 				.attr("height", footerHeight + 25)
 				.style("fill", "#fff");
-			g.attr("transform", "translate(0, " + (svgHeight - footerHeight + 10) + ")");
+			g.attr("transform", "translate(0, " + (svgHeight - footerHeight - $(".footer-btns").height()) + ")");
 
 			if (callback) callback();
 		},
