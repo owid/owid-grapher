@@ -170,7 +170,7 @@ select.disabled {
 * CHARTS
 **/
 
-#chart.line-dots .nvd3.nv-line .nvd3.nv-scatter .nv-groups .nv-point {
+svg.line-dots .nvd3.nv-line .nvd3.nv-scatter .nv-groups .nv-point {
     stroke-opacity: 1;
     fill-opacity: 1;
 }
@@ -705,12 +705,12 @@ select.disabled {
 #chart #data-chart-tab .data-table td {
     border-bottom: 1px solid #afafaf;
 }
+
 /* Sources Tab
 --------------------------------------------- */
 
 .datasource-wrapper {
     padding: 1.5em;
-    margin-bottom: 1.9em;
     font-size: 0.8em;
     max-width: 1024px;
 }

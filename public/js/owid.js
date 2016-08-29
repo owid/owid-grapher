@@ -623,6 +623,66 @@
 		element.style.transform = transform;
 	};
 
+	owid.changes = function() {		
+		var tracker = {};
+
+		function changes(prop) { 
+			return tracker[prop];
+		}
+
+		changes.add = function(prop) {
+			tracker[prop] = true;
+		};
+
+		changes.done = function(prop) {
+			if (prop) {
+				delete tracker[prop];
+			} else {
+				tracker = {};
+			}
+		};
+
+		changes.any = function(propStr) {
+			var props = propStr ? propStr.split(' ') : _.keys(tracker);
+
+			return _.any(props, function(prop) {
+				return _.has(tracker, prop);
+			});
+		};
+
+		changes.track = function(model, propStr) {
+			var props = propStr && propStr.split(' ');		
+		
+			model.on("change", function(ev) { 
+				if (props) {
+					_.each(props, function(prop) {
+						if (_.has(ev.changed), prop)
+							tracker[prop] = ev.changed[prop];
+					});
+				} else {
+					_.extend(tracker, ev.changed);
+				}
+			});
+
+			// Set initial changes
+			if (props) {
+				_.each(props, function(prop) {
+					tracker[prop] = model.get(prop);
+				});
+			} else {
+				_.extend(tracker, model.attributes);
+			}
+		};
+
+		changes.take = function() {
+			var any = changes.any();
+			tracker = {};
+			return any;
+		};
+
+		return changes;
+	};
+
 	window.require = function(namespace) {
 		var obj = window;
 		_.each(namespace.split("."), function(level) {

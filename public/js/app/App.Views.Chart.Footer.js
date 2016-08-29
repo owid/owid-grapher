@@ -8,8 +8,8 @@
 			"click .embed-btn": "onEmbed"
 		},
 
-		initialize: function(options) {
-			this.dispatcher = options.dispatcher;
+		initialize: function(chart) {
+			this.chart = chart;
 			this.$chartLinkBtn = this.$el.find(".chart-link-btn");
 			this.$tweetBtn = this.$el.find(".tweet-btn");
 			this.$facebookBtn = this.$el.find(".facebook-btn");
@@ -19,11 +19,15 @@
 			this.$embedModal = $(".embed-modal");
 			this.$embedModal.appendTo("body");			
 
-			this.listenTo(App.ChartModel, "change:chart-dimensions change:chart-description", this.render.bind(this));
+			this.changes = owid.changes();
+			this.changes.track(chart.model, 'chart-dimensions chart-description renderWidth renderHeight');
+
 			this.listenTo($(window), "query-change", this.updateSharingButtons.bind(this));
 		},
 
 		render: function(callback) {
+			if (!this.changes.take()) return;
+
 			this.renderSVG();
 			this.updateSharingButtons();
 			if (_.isFunction(callback)) callback();

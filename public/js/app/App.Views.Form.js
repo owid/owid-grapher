@@ -21,7 +21,7 @@
 			var dispatcher = _.clone( Backbone.Events );
 			this.dispatcher = dispatcher;
 
-			this.chartView = new ChartView( { dispatcher: dispatcher } );
+			this.chartView = owid.chart();
 			
 			//is edit/create module
 			if( $( ".chart-edit-module" ).length ) {

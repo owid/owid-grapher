@@ -2,13 +2,44 @@
 	"use strict";
 	owid.namespace("owid.tab.data");
 
-	owid.tab.data = function() {
-		var model;
+	owid.tab.data = function(chart) {
+		function dataTab() { }
 
-		function dataTab() { };
+		var	$tab = chart.$("#data-chart-tab"),
+			$downloadBtn = $tab.find(".download-data-btn"),
+			$downloadFullBtn = $tab.find(".download-full-btn"),
+			$dataTable = $tab.find(".data-table");
 
-		dataTab.model = function(_) {
-			return arguments.length ? model = _ && dataTab : model;
+		dataTab.render = function() {
+			var params = owid.getQueryParams();
+			delete(params.tab);
+			var queryStr = owid.queryParamsToStr(params),
+				baseUrl = Global.rootUrl + "/" + App.ChartModel.get("chart-slug"),
+				csvUrl = baseUrl + ".csv" + queryStr;
+
+			$downloadBtn.attr("href", csvUrl);
+			$downloadFullBtn.attr("href", baseUrl + ".csv" + "?country=ALL");
+
+			$.get(csvUrl)
+				.done(function(csv) {
+					Papa.parse(csv, {
+						complete: function(results) {
+							var rowHtml = "";
+							_.each(results.data, function(row) {
+								rowHtml += "<tr>";
+								_.each(row, function(value) {
+									rowHtml += "<td>" + value + "</td>";
+								});
+								rowHtml += "</tr>";
+							});
+
+							$dataTable.html(rowHtml);
+						}
+					});
+				})
+				.fail(function(err) {
+					App.ChartView.handleError(err);
+				});			
 		};
 
 		return dataTab;
@@ -22,10 +53,6 @@
 			this.parentView = options.parentView;
 			this.dispatcher = options.dispatcher;
 
-			this.$tab = this.$el;
-			this.$downloadBtn = this.$el.find(".download-data-btn");
-			this.$downloadFullBtn = this.$el.find(".download-full-btn");
-			this.$dataTable = this.$el.find(".data-table");
 		},
 
 		activate: function(callback) {
@@ -41,36 +68,6 @@
 		render: function(callback) {
 			if (!this.needsRender) return;
 
-			var params = owid.getQueryParams();
-			delete(params.tab);
-			var queryStr = owid.queryParamsToStr(params),
-				baseUrl = Global.rootUrl + "/" + App.ChartModel.get("chart-slug"),
-				csvUrl = baseUrl + ".csv" + queryStr;
-
-			this.$downloadBtn.attr("href", csvUrl);
-			this.$downloadFullBtn.attr("href", baseUrl + ".csv" + "?country=ALL");
-
-			$.get(csvUrl)
-				.done(function(csv) {
-					Papa.parse(csv, {
-						complete: function(results) {
-							var rowHtml = "";
-							_.each(results.data, function(row) {
-								rowHtml += "<tr>";
-								_.each(row, function(value) {
-									rowHtml += "<td>" + value + "</td>";
-								});
-								rowHtml += "</tr>";
-							});
-
-							this.$dataTable.html(rowHtml);
-							if (_.isFunction(callback)) callback();
-						}.bind(this)
-					});
-				}.bind(this))
-				.fail(function(err) {
-					App.ChartView.handleError(err);
-				});
 		},
 	});
 })();

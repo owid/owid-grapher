@@ -7,10 +7,10 @@
 
 	//setup models
 	//is new chart or display old chart
-	var $chartShowWrapper = $( ".chart-show-wrapper, .chart-edit-wrapper" ),
-		chartId = $chartShowWrapper.attr( "data-chart-id" );
+	var $chart = $("#chart"),
+		chartId = $chart.attr( "data-chart-id" );
 
-	if (!$chartShowWrapper.length) return;
+	if (!$chart.length) return;
 
 	//setup views
 	App.isEditor = true;

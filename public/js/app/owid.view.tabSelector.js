@@ -5,7 +5,12 @@
 	owid.view.tabSelector = function(chart) {
 		function tabSelector() {}
 
+		var changes = owid.changes();
+		changes.track(chart.model, 'renderWidth renderHeight');
+
 		tabSelector.render = function() {
+			if (!changes.take()) return;
+			
 			var svg = d3.select("svg"),
 				svgBounds = svg.node().getBoundingClientRect(),
 				headerBounds = svg.select(".chart-header-svg").node().getBoundingClientRect(),
@@ -25,7 +30,6 @@
 				left: 0,
 				height: tabHeight - chart.$("nav.tabs").height() 
 			});
-
 		};
 
 		return tabSelector;

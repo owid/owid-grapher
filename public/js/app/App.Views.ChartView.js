@@ -4,6 +4,7 @@
 
 	owid.chart = function() {
 		function chart() {}
+		App.ChartView = this;
 
 		App.VariableData = new App.Models.VariableData();	
 		App.ChartData = new App.Models.ChartData();
@@ -16,6 +17,7 @@
 
 		var $chart = window.$("#chart"),
 			$ = $chart.find.bind($chart);
+		chart.dom = $chart.get(0);
 		chart.$ = $;
 
 		// Initialize components
@@ -26,15 +28,22 @@
 		chart.scaleSelectors = new App.Views.Chart.ScaleSelectors(chart);
 		chart.tabSelector = owid.view.tabSelector(chart);
 		chart.debugHelper = new App.Views.DebugHelper(chart);
-		chart.tabs = {
-			chart: new App.Views.Chart.ChartTab(chart),
-			data: owid.tab.data(chart),
-			sources: owid.tab.sources(chart),
-			map: new App.Views.Chart.MapTab(chart)
-		};
 
+		// Initialize tabs
+		chart.tabs = {};
+		var tabs = _.indexBy(chart.model.get("tabs")),
+			defaultTabName = chart.model.get("default-tab");
+		if (tabs.chart) chart.tabs.chart = owid.tab.chart(chart);
+		if (tabs.data) chart.tabs.data = owid.tab.data(chart);
+		if (tabs.sources) chart.tabs.sources = owid.tab.sources(chart);
+		if (tabs.map) chart.tabs.map = new App.Views.Chart.MapTab(chart);
+		chart.activeTabName = defaultTabName;
+		chart.activeTab = chart.tabs[defaultTabName];
 
-		chart.activeTab = chart.tabs.sources;
+		// Change tracker
+		var changes = owid.changes();
+
+		// 
 
 	//	var defaultTabName = chart.model.get("default-tab"),
 	//		activeTab = sourcesTab;
@@ -50,14 +59,14 @@
 		}.bind(this));*/
 
 		chart.setupDOM = function() {
-			jQuery(window).resize(_.throttle(chart.render, 150));
+			jQuery(window).resize(_.throttle(chart.resize, 150));
 
-			jQuery(window).one("chart-loaded", function() {
+/*			jQuery(window).one("chart-loaded", function() {
 				App.ChartView.onResize(function() {
 					window.top.postMessage("chartLoaded", "*");
 					console.log("Loaded chart: " + chart.model.get("chart-name"));
 				});
-			});
+			});*/
 
 			jQuery(document).ajaxStart(function() {
 				$(".chart-preloader").show();
@@ -73,7 +82,7 @@
 				chart.$(".edit-btn-wrapper").removeClass("hidden");
 			}
 
-			if (App.ChartModel.get("chart-name"))
+			if (chart.model.get("chart-name"))
 				chart.$(".chart-preloader").show();
 
 			if (window.self != window.top || App.isEditor) {
@@ -81,13 +90,12 @@
 			}
 		};
 
-		chart.render = function() {
-			var view = $chart.get(0),
-				screenWidth = $chart.parent().width(),
+		chart.initialScale = function() {
+			var screenWidth = $chart.parent().width(),
 				screenHeight = $chart.parent().height(),
 				authorWidth = App.AUTHOR_WIDTH,
 				authorHeight = App.AUTHOR_HEIGHT,
-				renderWidth, renderHeight, scale;
+				renderWidth, renderHeight;
 
 			if (screenWidth >= screenHeight) {
 				renderWidth = (screenWidth/screenHeight) * authorHeight;
@@ -97,42 +105,53 @@
 				renderHeight = (screenHeight/screenWidth) * authorWidth;
 			}
 
-			scale = Math.min(screenWidth/renderWidth, screenHeight/renderHeight);
+			chart.dom.style.width = renderWidth + 'px';
+			chart.dom.style.height = renderHeight + 'px';
+			chart.dom.style.zoom = '';
+			chart.dom.style.left = '';
+			chart.dom.style.top = '';
+			owid.transformElement(chart.dom, '');
 
-			if (App.isEditor) {
-				renderWidth = authorWidth;
-				renderHeight = authorHeight;
-				scale = 1;
-			}
+			chart.screenWidth = screenWidth;
+			chart.screenHeight = screenHeight;
+			chart.authorWidth = authorWidth;
+			chart.authorHeight = authorHeight;
+			chart.renderWidth = renderWidth;
+			chart.renderHeight = renderHeight;
+		};
 
-			console.log(renderWidth, renderHeight, screenWidth, screenHeight);
-			view.style.width = renderWidth + 'px';
-			view.style.height = renderHeight + 'px';
-			view.style.zoom = '';
-			view.style.left = '';
-			view.style.top = '';
-			view.style.bottom = '';
-			view.style.right = '';
-			owid.transformElement(view, '');
+		chart.displayScale = function() {
+			var scale = Math.min(chart.screenWidth/chart.renderWidth, chart.screenHeight/chart.renderHeight);
 
+			if (scale > 1) {
+				chart.dom.style.zoom = scale;
+			} else {
+				chart.dom.style.left = '50%';
+				chart.dom.style.top = '50%';
+				chart.dom.style.bottom = 'auto';
+				chart.dom.style.right = 'auto';
+				owid.transformElement(chart.dom, "translate(-50%, -50%) scale(" + scale + ")");					
+			}								
+
+			chart.scale = scale;
+		};
+
+		chart.resize = function() {
+			chart.changes.add('size');
+			chart.render();
+		};
+
+		chart.render = function() {
+			chart.initialScale();
 			chart.header.render();
 			chart.footer.render();
 			chart.tabSelector.render();
-			$(".sources-header-tab a").tab('show');
+			$("." + chart.activeTabName + "-header-tab a").tab('show');
 			chart.activeTab.render();
+			chart.displayScale();
 
-			if (!App.isEditor) {
-				if (scale > 100) {
-					view.style.zoom = scale;
-				} else {
-					view.style.left = '50%';
-					view.style.top = '50%';
-					view.style.bottom = 'auto';
-					view.style.right = 'auto';
-					owid.transformElement(view, "translate(-50%, -50%) scale(" + scale + ")");					
-				}					
-			}
-			view.style.visibility = 'visible';
+			$chart.css('visibility', 'visible');			
+			changes.take();
 		};
 
 		chart.setupDOM();
@@ -151,10 +170,6 @@
 
 		initialize: function(options) {
 			App.ChartView = this;
-
-		},
-
-		renderTabSelector: function() {
 		},
 
 		onTabClick: function(ev) {

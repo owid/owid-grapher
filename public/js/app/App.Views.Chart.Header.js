@@ -13,16 +13,20 @@
 
 		initialize: function(chart) {
 			this.parentView = chart;
+			this.chart = chart;
 
 			this.logo = d3.select(".logo-svg");
 			this.partnerLogo = d3.select(".partner-logo-svg");
 			this.$tabs = $(".header-tab");
 
-			this.listenTo(App.ChartModel, "change:chart-name change:chart-subname change:add-country-mode change:selected-countries change:logo change:second-logo change:tabs", this.render.bind(this));
-			this.listenTo(App.ChartData, "change", this.render.bind(this));
+			this.changes = owid.changes();
+			this.changes.track(chart.model, 'chart-name chart-subname add-country-mode selected-countries logo second-logo tabs renderHeight renderWidth');
 		},
 
 		render: function(callback) {
+			if (!this.changes.take())
+				return;
+
 			var chartName = App.ChartModel.get("chart-name"),
 				chartSubname = App.ChartModel.get("chart-subname"),
 				addCountryMode = App.ChartModel.get("add-country-mode"),
@@ -106,6 +110,7 @@
 				//for first visible tab, add class for border-left, cannot be done in pure css http://stackoverflow.com/questions/18765814/targeting-first-visible-element-with-pure-css
 				this.$tabs.removeClass( "first" );
 				this.$tabs.filter( ":visible:first" ).addClass( "first" );
+				this.bounds = $('.chart-header-svg').get(0).getBoundingClientRect();
 
 //				this.dispatcher.trigger("header-rendered");			
 				if (_.isFunction(callback)) callback();

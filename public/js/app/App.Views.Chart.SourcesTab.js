@@ -3,9 +3,16 @@
 	owid.namespace("owid.tab.sources");
 
 	owid.tab.sources = function(chart) {
-		var $el = chart.$("#sources-chart-tab");
+		function sourcesTab() { }
 
-		function sourcesTab() { 			
+		var $tab = chart.$("#sources-chart-tab"),
+			changes = owid.changes();
+
+		changes.track(chart.vardata, 'variables');
+
+		sourcesTab.render = function() {
+			if (!changes.take()) return;
+			
 			var sources = chart.data.transformDataForSources(),
 				tabHtml = "";
 
@@ -13,31 +20,9 @@
 				tabHtml += source.description;
 			});
 
-			$el.html(tabHtml);
-		}
-
-		sourcesTab.model = function(_) {
-			return arguments.length ? (model = _) && sourcesTab : model;			
-		};
-
-		sourcesTab.el = function(_) {
-			return arguments.length ? ($el = $(_)) && sourcesTab : $el && $el.get(0);
-		};
-
-		sourcesTab.render = function() {
-			this.call();
-		};
-
-		sourcesTab.activate = function(callback) {
-			this.render();
-			if (callback) callback();
-		};
-
-		sourcesTab.deactivate = function() {
-			$el.empty();
+			$tab.html(tabHtml);
 		};
 
 		return sourcesTab;
 	};
-
 })();
