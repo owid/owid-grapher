@@ -11,7 +11,7 @@
 		changes.track(chart.vardata, 'variables');
 
 		sourcesTab.render = function() {
-			if (!changes.take()) return;
+			if (!changes.start()) return;
 
 			var sources = chart.data.transformDataForSources(),
 				tabHtml = "";
@@ -21,6 +21,7 @@
 			});
 
 			$tab.html(tabHtml);
+			changes.done();			
 		};
 
 		return sourcesTab;

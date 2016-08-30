@@ -18,13 +18,13 @@
 				newTab = chart.tabs[newTabName],
 				currentTab = chart.activeTab;
 
-			if (currentTab && currentTab.cleanup) currentTab.cleanup();
+			if (currentTab && currentTab != newTab && currentTab.cleanup) currentTab.cleanup();
 			$('li[data-tab=' + newTabName + '] a').tab('show');
 			chart.activeTab = newTab;
 		};
 
 		tabSelector.render = function() {
-			if (!changes.take()) return;
+			if (!changes.start()) return;
 			console.trace('tabSelector.render');
 
 			var svg = d3.select("svg"),
@@ -61,6 +61,8 @@
 				chart.display.set('activeTab', $(this).attr('data-tab'));
 				ev.preventDefault();
 			});
+			
+			changes.done();
 		};
 
 		return tabSelector;

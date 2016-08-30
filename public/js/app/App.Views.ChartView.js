@@ -16,13 +16,22 @@
 		chart.colors = App.Colors;
 
 		// For tracking transient display properties we don't want to save
-		chart.display = new Backbone.Model();
+		var DisplayModel = Backbone.Model.extend({
+			defaults: {
+				screenWidth: null,
+				screenHeight: null,
+				renderWidth: null,
+				renderHeight: null,	
+				activeTab: chart.model.get('default-tab')			
+			}
+		});
+		chart.display = new DisplayModel();
 
 		// Change tracker
 		var changes = owid.changes();
 		changes.track(chart.model);
 		changes.track(chart.data);
-		changes.track(chart.display);
+		changes.track(chart.display, 'activeTab screenWidth screenHeight');
 
 		var $chart = window.$("#chart"),
 			$ = $chart.find.bind($chart);
@@ -40,15 +49,11 @@
 
 		// Initialize tabs
 		chart.tabs = {};
-		var tabs = _.indexBy(chart.model.get("tabs")),
-			defaultTabName = chart.model.get("default-tab");
+		var tabs = _.indexBy(chart.model.get("tabs"));
 		if (tabs.chart) chart.tabs.chart = owid.tab.chart(chart);
 		if (tabs.data) chart.tabs.data = owid.tab.data(chart);
 		if (tabs.sources) chart.tabs.sources = owid.tab.sources(chart);
 		if (tabs.map) chart.tabs.map = new App.Views.Chart.MapTab(chart);
-		chart.display.set('activeTab', defaultTabName);
-
-
 		// 
 
 	//	var defaultTabName = chart.model.get("default-tab"),
@@ -65,7 +70,7 @@
 		}.bind(this));*/
 
 		chart.setupDOM = function() {
-			jQuery(window).resize(_.throttle(chart.resize, 150));
+			jQuery(window).resize(chart.resize);
 
 /*			jQuery(window).one("chart-loaded", function() {
 				App.ChartView.onResize(function() {
@@ -136,7 +141,7 @@
 
 			var scale = Math.min(chart.screenWidth/chart.renderWidth, chart.screenHeight/chart.renderHeight);
 
-			if (scale > 1) {
+			if (scale > 1 && owid.features.zoom) {
 				chart.dom.style.zoom = scale;
 			} else {
 				chart.dom.style.left = '50%';
@@ -150,12 +155,12 @@
 		};
 
 		chart.render = function() {
-			console.trace('chart.render?');
-			if (!changes.any())
+			if (!changes.start())
 				return;
-
+			console.trace('chart.render');
 			chart.data.transformData();
-			chart.tabSelector.switchTab();
+			console.log(changes.get());
+			if (changes.any('activeTab')) chart.tabSelector.switchTab();
 			chart.initialScale();
 			chart.header.render();
 			chart.footer.render();
@@ -164,7 +169,7 @@
 			chart.displayScale();
 
 			$chart.css('visibility', 'visible');			
-			changes.take();
+			changes.done();
 		};
 
 		chart.resize = function() {
@@ -172,12 +177,11 @@
 				screenWidth: $chart.parent().width(),
 				screenHeight: $chart.parent().height()
 			});
-
-			chart.render();
 		};
 
 		chart.setupDOM();
-		chart.data.ready(chart.resize);
+		chart.resize();
+
 		chart.model.on('change', function() {
 			chart.data.ready(chart.render);
 		});

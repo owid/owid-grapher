@@ -623,90 +623,175 @@
 		element.style.transform = transform;
 	};
 
-	owid.changes = function() {		
-		var tracker = {}, fullChange = false;
+	owid.changeTracker = function(obj, trackedKeys) {
+		if (!trackedKeys) trackedKeys = _.keys(obj);
 
-		function changes(prop) { 
-			return fullChange || tracker[prop];
+		function changeTracker() { }
+
+		function isEqual(i, j) {
+			return _.isEqual(i, j);
+		}
+
+		var cache = {};
+
+		changeTracker.changed = function(k) {
+			return !isEqual(cache[k], obj[k]);
+		};
+
+		changeTracker.any = function(keys) {
+			if (!keys) return changeTracker.any(trackedKeys);
+
+			return _.any(keys, function(k) {
+				return changeTracker.changed(k);
+			});
+		};
+
+		changeTracker.get = function() {
+			var changes = {};
+			_.each(trackedKeys, function(key) {
+				if (!isEqual(cache[key], obj[key]))
+					changes[key] = obj[key];
+			});
+			return changes;
+		};
+
+		changeTracker.done = function() {
+			_.each(trackedKeys, function(key) {
+				cache[key] = obj[key];
+			});
+		};
+
+		changeTracker._cache = cache;
+		return changeTracker;
+	};
+
+	owid.changes = function() {
+		var trackers = [], frozen = null;
+
+		function changes(prop) {
+			if (frozen) {
+				return _.has(frozen, prop);
+			} else {
+				return _.any(trackers, function(tracker) {
+					return tracker.changed(prop);
+				});
+			}
 		}
 
 		changes.get = function() {
-			return tracker;
-		}
-
-		changes.add = function(prop) {
-			tracker[prop] = true;
-		};
-
-		changes.done = function(prop) {
-			if (prop) {
-				delete tracker[prop];
+			if (frozen) {
+				return frozen;
 			} else {
-				tracker = {};
+				var changes = {};
+				_.each(trackers, function(tracker) {
+					_.extend(changes, tracker.get());
+				});
+				return changes;				
 			}
-
-			fullChange = false;
 		};
 
 		changes.any = function(propStr) {
-			if (fullChange) return true;
-
-			var props = propStr ? propStr.split(' ') : _.keys(tracker);
-
-			return _.any(props, function(prop) {
-				return _.has(tracker, prop);
-			});
-		};
-
-		changes.only = function(propStr) {
-			if (fullChange) return false;
-
-			var props = propStr.split(' ');
-
-			return _.all(_.keys(tracker), function(key) {
-				return _.contains(props, key);
-			});
-		};
-
-		changes.track = function(model, propStr) {
 			var props = propStr && propStr.split(' ');
 
-			model.on("change", function(ev) { 
-				if (!ev) return;
-
-				if (props) {
-					_.each(props, function(prop) {
-						if (_.has(ev.changed), prop)
-							tracker[prop] = ev.changed[prop];
-					});
-				} else {
-					_.extend(tracker, ev.changed);
-				}
-			});
-
-			// Set initial changes
-			if (props) {
-				_.each(props, function(prop) {
-					tracker[prop] = model.get(prop);
+			if (frozen) {
+				return _.any(props, function(prop) {
+					return _.has(frozen, prop);
 				});
 			} else {
-				_.extend(tracker, model.attributes);
+				return _.any(trackers, function(tracker) {
+					return tracker.any(props);
+				});
 			}
 		};
 
-		changes.take = function() {
-			var any = changes.any();
-			changes.done();
-			return any;
+		changes.only = function(propStr) {
+			var props = propStr.split(' ');
+
+			if (frozen) {
+				return _.all(_.keys(frozen), function(key) {
+					return _.contains(props, key);
+				});
+			} else {
+				return _.all(_.keys(changes.get()), function(key) {
+					return _.contains(props, key);
+				});				
+			}
 		};
 
-		changes.fullUpdate = function() {
-			fullChange = true;
+		changes.track = function(obj, propStr) {
+			if (obj.attributes) obj = obj.attributes;
+			var props = propStr && propStr.split(' ');
+			trackers.push(owid.changeTracker(obj, props));
 		};
 
-		changes.fullUpdate();
+		changes.start = function() {
+			if (frozen)
+				return false;
+
+			var frozenChanges = changes.get();
+			if (_.isEmpty(frozenChanges))
+				return false;
+
+			_.each(trackers, function(tracker) {
+				tracker.done();
+			});
+
+			frozen = frozenChanges;
+			return true;
+		};
+
+		changes.done = function() {
+			if (frozen) {
+				frozen = null;
+			} else {
+				_.each(trackers, function(tracker) {
+					tracker.done();
+				});				
+			}
+		};
+
+		changes._trackers = trackers;
 		return changes;
 	};
+
+	var features = {};
+	function checkCapabilities() {
+		var UA = navigator.userAgent;
+		var isMobileDevice = /(iphone|ipod|ipad|android)/gi.test( UA );
+		var isChrome = /chrome/i.test( UA ) && !/edge/i.test( UA );
+
+		var testElement = document.createElement( 'div' );
+
+		features.transforms3d = 'WebkitPerspective' in testElement.style ||
+								'MozPerspective' in testElement.style ||
+								'msPerspective' in testElement.style ||
+								'OPerspective' in testElement.style ||
+								'perspective' in testElement.style;
+
+		features.transforms2d = 'WebkitTransform' in testElement.style ||
+								'MozTransform' in testElement.style ||
+								'msTransform' in testElement.style ||
+								'OTransform' in testElement.style ||
+								'transform' in testElement.style;
+
+		features.requestAnimationFrameMethod = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame;
+		features.requestAnimationFrame = typeof features.requestAnimationFrameMethod === 'function';
+
+		features.canvas = !!document.createElement( 'canvas' ).getContext;
+
+		// Transitions in the overview are disabled in desktop and
+		// Safari due to lag
+		features.overviewTransitions = !/Version\/[\d\.]+.*Safari/.test( UA );
+
+		// Flags if we should use zoom instead of transform to scale
+		// up slides. Zoom produces crisper results but has a lot of
+		// xbrowser quirks so we only use it in whitelsited browsers.
+		features.zoom = 'zoom' in testElement.style && !isMobileDevice &&
+						( isChrome || /Version\/[\d\.]+.*Safari/.test( UA ) );
+
+	}
+	checkCapabilities();
+	owid.features = features;
 
 	window.require = function(namespace) {
 		var obj = window;

@@ -58,7 +58,7 @@
 		}
 
 		header.render = function() {
-			if (!changes.any())
+			if (!changes.start())
 				return;
 
 			console.trace('header.render');
@@ -156,7 +156,7 @@
 				renderText(logoX-10);
 			}	
 
-			changes.take();
+			changes.done();
 		};
 
 		return header;

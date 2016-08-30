@@ -26,12 +26,12 @@
 			this.listenTo($(window), "query-change", this.updateSharingButtons.bind(this));
 		},
 
-		render: function(callback) {
-			if (!this.changes.take()) return;
+		render: function() {
+			if (!this.changes.start()) return;
 
 			this.renderSVG();
 			this.updateSharingButtons();
-			if (_.isFunction(callback)) callback();
+			this.changes.done();
 		},
 
 		renderSVG: function(callback) {

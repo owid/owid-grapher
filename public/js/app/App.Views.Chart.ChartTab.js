@@ -50,6 +50,7 @@
 		};
 
 		chartTab.cleanup = function() {
+			if (!$svg) return;			
 			$svg.attr("class", "");
 
 			chart.model.off(null, null, this);
@@ -57,10 +58,11 @@
 			if ($yAxisScaleSelector)
 				$yAxisScaleSelector.hide();
 			d3.selectAll("svg").on("mousemove.stackedarea", null);
+			changes.done();
 		},
 
 		chartTab.render = function() {
-			if (!changes.any()) return;
+			if (!changes.start()) return;
 			console.trace('chartTab.render');
 
 			configureTab();
@@ -72,7 +74,7 @@
 			if (missingMsg || _.isEmpty(localData)) {
 				$tab.find(".nv-wrap").remove();
 				chart.showMessage(missingMsg || "No available data.");
-				return;
+				return changes.done();
 			}
 
 			updateAvailableCountries();
@@ -112,11 +114,9 @@
 				}
 				window.nvd3 = nvd3;
 
-				changes.take();
-
-
 				var nvWrap = d3.select('.nvd3.nv-wrap > g');
-				nvWrap.attr('transform', 'translate(' + chartOffsetX + ',' + chartOffsetY + ')');			
+				nvWrap.attr('transform', 'translate(' + chartOffsetX + ',' + chartOffsetY + ')');		
+				changes.done();	
 			});
 		};
 
