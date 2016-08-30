@@ -377,9 +377,9 @@
 			// Calculate our reference dimensions. All of these values are independent of the current
 			// map translation and scaling-- getBBox() gives us the original, untransformed values.
 			var svg = d3.select("svg"),
-				svgBounds = svg.node().getBoundingClientRect(),
+				svgBounds = chart.getBounds(svg.node()),
 				$tab = $(".tab-pane.active"),
-				tabBounds = $tab.get(0).getBoundingClientRect(),
+				tabBounds = chart.getBounds($tab.get(0)),
 				availableWidth = tabBounds.right - tabBounds.left,
 				availableHeight = tabBounds.bottom - tabBounds.top,
 				mapBBox = map.node().getBBox(),
@@ -395,7 +395,7 @@
 			// Adjust availableHeight to compensate for timeline controls
 			var timelineControls = d3.select(".map-timeline-controls");
 			if (!timelineControls.empty()) {
-				var controlsBoundingRect = timelineControls.node().getBoundingClientRect(),
+				var controlsBoundingRect = chart.getBounds(timelineControls.node()),
 					controlsHeight = controlsBoundingRect.bottom - controlsBoundingRect.top;
 				availableHeight -= controlsHeight;
 			}

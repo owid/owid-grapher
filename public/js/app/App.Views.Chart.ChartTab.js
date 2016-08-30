@@ -175,8 +175,8 @@
 
 		function configureBounds() {
   		    margins = chart.model.get("margins");
-			svgBounds = svg.node().getBoundingClientRect();
-			tabBounds = $(".tab-content").get(0).getBoundingClientRect();
+			svgBounds = chart.getBounds(svg.node());
+			tabBounds = chart.getBounds($(".tab-content").get(0));
 			chartOffsetX = 0;//parseFloat(margins.left);
 			chartOffsetY = tabBounds.top - svgBounds.top;// + parseFloat(margins.top) + 10;
 			// MISPY: The constant modifiers here are to account for nvd3 not entirely matching our specified dimensions

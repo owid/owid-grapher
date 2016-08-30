@@ -133,6 +133,7 @@
 			chart.renderWidth = renderWidth;
 			chart.renderHeight = renderHeight;
 			chart.display.set({ renderWidth: renderWidth, renderHeight: renderHeight });
+			chart.scale = 1;
 		};
 
 		chart.displayScale = function() {
@@ -141,7 +142,7 @@
 
 			var scale = Math.min(chart.screenWidth/chart.renderWidth, chart.screenHeight/chart.renderHeight);
 
-			if (scale > 1 && owid.features.zoom) {
+			if (false && scale > 1 && owid.features.zoom) {
 				chart.dom.style.zoom = scale;
 			} else {
 				chart.dom.style.left = '50%';
@@ -170,6 +171,25 @@
 
 			$chart.css('visibility', 'visible');			
 			changes.done();
+		};
+
+		chart.getBounds = function(node) {
+			var bounds = node.getBoundingClientRect(),
+				untransformedBounds;
+
+			if (false && chart.scale > 1 && owid.features.zoom) {
+				untransformedBounds = bounds;
+			} else {
+				untransformedBounds = {
+					top: bounds.top / chart.scale,
+					right: bounds.right / chart.scale,
+					bottom: bounds.bottom / chart.scale,
+					left: bounds.left / chart.scale,
+					height: bounds.height / chart.scale,
+					width: bounds.width / chart.scale
+				};
+			}
+			return untransformedBounds;
 		};
 
 		chart.resize = function() {

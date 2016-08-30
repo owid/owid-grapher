@@ -81,7 +81,7 @@
 			   TODO: Convert partner logos to SVG too, so that they can be scaled. */
 
 			var svg = d3.select("svg"),
-				svgBounds = svg.node().getBoundingClientRect(),
+				svgBounds = chart.getBounds(svg.node()),
 				svgWidth = svgBounds.width,
 				svgHeight = svgBounds.height,
 				g = svg.select(".chart-header-svg");
@@ -119,12 +119,12 @@
 
 				var chartSubnameText = g.select(".chart-subname-svg")
 					.attr("x", 1)
-					.attr("y", chartNameText.node().getBoundingClientRect().bottom - svgBounds.top);
+					.attr("y", chart.getBounds(chartNameText.node()).bottom - svgBounds.top);
 
 				owid.svgSetWrappedText(chartSubnameText, chartSubname, availableWidth - 10, { lineHeight: 1.2 });
 
 				g.select(".header-bg-svg").remove();
-				var bgHeight = g.node().getBoundingClientRect().height + 20;
+				var bgHeight = chart.getBounds(g.node()).height + 20;
 				g.insert("rect", "*")
 					.attr("class", "header-bg-svg")
 					.attr("x", 0)
@@ -132,7 +132,7 @@
 					.style("fill", "#fff")
 					.attr("width", svgWidth)
 					.attr("height", bgHeight);
-				header.bounds = $('.chart-header-svg').get(0).getBoundingClientRect();
+				header.bounds = chart.getBounds($('.chart-header-svg').get(0));
 			}.bind(this);
 
 			if (partnerLogoUrl) {
@@ -164,118 +164,6 @@
 
 	owid.namespace("App.Views.Chart.Header");
 	App.Views.Chart.Header = owid.View.extend({
-		DEFAULT_LOGO_URL: "uploads/26538.png",
-
-		el: "#chart .chart-header",
-		events: {},
-
-		initialize: function(chart) {
-			parentView = chart;
-			chart = chart;
-
-
-			changes = owid.changes();
-		},
-
-		render: function(callback) {
-			if (!changes.take())
-				return;
-
-
-			// Figure out the header text we're going to display
-
-			updateTime();
-			chartName = replaceContextPlaceholders(chartName);
-			chartSubname = replaceContextPlaceholders(chartSubname);
-			if (disclaimer) chartSubname += disclaimer;
-
-			/* Position the logos first, because we shall need to wrap the text around them.
-			   Currently our logo is SVG but we must use image uris for the partner logos.
-			   TODO: Convert partner logos to SVG too, so that they can be scaled. */
-
-			var svg = d3.select("svg"),
-				svgBounds = svg.node().getBoundingClientRect(),
-				svgWidth = svgBounds.width,
-				svgHeight = svgBounds.height,
-				g = svg.select(".chart-header-svg");
-
-			var scaleFactor;
-			if ($("#chart").width() > 1300) {
-				scaleFactor = 0.4;
-			} else {
-				scaleFactor = 0.35;
-			}
-
-
-			var logoWidth = logo.node().getBBox().width,
-				logoX = svgWidth - logoWidth*scaleFactor;
-			logo.attr("transform", "translate(" + logoX + ", 5) scale(" + scaleFactor + ", " + scaleFactor + ")");
-			logo.style("visibility", "inherit");
-
-			// HACK (Mispy): I should do alternate logos roperly at some point
-			if (logoPath != App.OWID_LOGO) {
-				logoX = svgWidth;
-				logoWidth = 0;
-				logo.style('visibility', 'hidden');
-				partnerLogoUrl = Global.rootUrl + "/" + logoPath;
-			}
-
-			var renderText = function(availableWidth) {
-				var chartNameText = g.select(".chart-name-svg");
-				var baseUrl = Global.rootUrl + "/" + chart.model.get("chart-slug"),
-					queryParams = owid.getQueryParams(),
-					queryStr = owid.queryParamsToStr(queryParams),				
-					canonicalUrl = baseUrl + queryStr;
-
-				var linkedName = "<a href='" + canonicalUrl + "' target='_blank'>" + chartName + "</a>";
-				owid.svgSetWrappedText(chartNameText, linkedName, availableWidth - 10, { lineHeight: 1.1 });
-				document.title = chartName + " - Our World In Data";
-
-				var chartSubnameText = g.select(".chart-subname-svg")
-					.attr("x", 1)
-					.attr("y", chartNameText.node().getBoundingClientRect().bottom - svgBounds.top);
-
-				owid.svgSetWrappedText(chartSubnameText, chartSubname, availableWidth - 10, { lineHeight: 1.2 });
-
-				g.select(".header-bg-svg").remove();
-				var bgHeight = g.node().getBoundingClientRect().height + 20;
-				g.insert("rect", "*")
-					.attr("class", "header-bg-svg")
-					.attr("x", 0)
-					.attr("y", 0)
-					.style("fill", "#fff")
-					.attr("width", svgWidth)
-					.attr("height", bgHeight);
-				bounds = $('.chart-header-svg').get(0).getBoundingClientRect();
-
-//				dispatcher.trigger("header-rendered");			
-				if (_.isFunction(callback)) callback();
-			}.bind(this);
-
-			if (partnerLogoUrl) {
-				// HACK (Mispy): Since SVG image elements aren't autosized, any partner logo needs to 
-				// be loaded separately in HTML and then the width and height extracted
-				var img = new Image();
-				img.onload = function() {
-					partnerLogo.attr('width', img.width);
-					partnerLogo.attr('height', img.height);
-		
-					var partnerLogoX = logoX - img.width - 5;
-					partnerLogo.node().setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", partnerLogoUrl);
-					partnerLogo.attr("transform", "translate(" + partnerLogoX + ", 5)");				
-					partnerLogo.style("visibility", "inherit");
-
-					renderText(partnerLogoX);
-				}.bind(this);
-				img.src = partnerLogoUrl;
-			} else {
-				partnerLogo.style('visibility', 'hidden');
-				renderText(logoX-10);
-			}
-		},
-
-
-
 		updateTimeFromMap: function(map) {			
 			var mapConfig = App.MapModel.attributes,
 				timeFrom = map.minToleranceYear || mapConfig.targetYear,

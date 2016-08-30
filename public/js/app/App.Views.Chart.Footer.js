@@ -74,7 +74,7 @@
 			}
 
 			var svg = d3.select("svg"),
-				svgBounds = svg.node().getBoundingClientRect(),
+				svgBounds = chart.getBounds(svg.node()),
 				svgWidth = svgBounds.width,
 				svgHeight = svgBounds.height;
 
@@ -92,7 +92,7 @@
 				var footerNoteText = g.append("text")
 						.attr("class", "footer-note-svg")
 						.attr("x", 0)
-						.attr("y", footerMainText.node().getBoundingClientRect().bottom - svgBounds.top)
+						.attr("y", chart.getBounds(footerMainText.node()).bottom - svgBounds.top)
 						.attr("dy", "1.5em");
 
 				owid.svgSetWrappedText(footerNoteText, footerSvgNote, svgWidth, { lineHeight: 1.1 });				
@@ -101,7 +101,7 @@
 			var footerLicenseText = g.append("text")
 					.attr("class", "footer-license-svg")
 					.attr("x", 0)
-					.attr("y", (footerSvgNote ? footerNoteText : footerMainText).node().getBoundingClientRect().bottom - svgBounds.top)
+					.attr("y", chart.getBounds((footerSvgNote ? footerNoteText : footerMainText).node()).bottom - svgBounds.top)
 					.attr("dy", "1.5em");
 
 			owid.svgSetWrappedText(footerLicenseText, footerSvgLicense, svgWidth, { lineHeight: 1.1 });

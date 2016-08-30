@@ -603,7 +603,7 @@
 
 	owid.scaleToFit = function(node, width, height) {
 		var el = d3.select(node),
-			currentBounds = node.getBoundingClientRect(),
+			currentBounds = App.ChartView.getBounds(node),
 			transform = d3.transform(el.attr("transform")),
 			widthFactor = currentBounds.width/width,
 			heightFactor = currentBounds.height/height;
@@ -760,7 +760,7 @@
 		var isMobileDevice = /(iphone|ipod|ipad|android)/gi.test( UA );
 		var isChrome = /chrome/i.test( UA ) && !/edge/i.test( UA );
 
-		var testElement = document.createElement( 'div' );
+		var testElement = document.createElement('div');
 
 		features.transforms3d = 'WebkitPerspective' in testElement.style ||
 								'MozPerspective' in testElement.style ||
@@ -788,8 +788,8 @@
 		// xbrowser quirks so we only use it in whitelsited browsers.
 		features.zoom = 'zoom' in testElement.style && !isMobileDevice &&
 						( isChrome || /Version\/[\d\.]+.*Safari/.test( UA ) );
-
 	}
+
 	checkCapabilities();
 	owid.features = features;
 

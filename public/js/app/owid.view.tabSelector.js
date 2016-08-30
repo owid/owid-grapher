@@ -28,9 +28,9 @@
 			console.trace('tabSelector.render');
 
 			var svg = d3.select("svg"),
-				svgBounds = svg.node().getBoundingClientRect(),
-				headerBounds = svg.select(".chart-header-svg").node().getBoundingClientRect(),
-				footerBounds = svg.select(".chart-footer-svg").node().getBoundingClientRect(),
+				svgBounds = chart.getBounds(svg.node()),
+				headerBounds = chart.getBounds(svg.select(".chart-header-svg").node()),
+				footerBounds = chart.getBounds(svg.select(".chart-footer-svg").node()),
 				tabOffsetY = headerBounds.bottom - svgBounds.top,
 				tabHeight = footerBounds.top - headerBounds.bottom;
 
@@ -61,7 +61,7 @@
 				chart.display.set('activeTab', $(this).attr('data-tab'));
 				ev.preventDefault();
 			});
-			
+
 			changes.done();
 		};
 
