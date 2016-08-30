@@ -44,7 +44,7 @@
 				
 			_.each(sourceNames, function(sourceName, i) {
 				if (i > 0) footerSvgMain += ", ";
-				footerSvgMain += "<a class='source-link' href='#'>" + sourceName + "</a>";
+				footerSvgMain += "<a class='source-link'>" + sourceName + "</a>";
 			});
 
 			// Add Note, if any

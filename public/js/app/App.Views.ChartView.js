@@ -15,6 +15,9 @@
 		chart.data = App.ChartData;
 		chart.colors = App.Colors;
 
+		// For tracking transient display properties we don't want to save
+		chart.display = new Backbone.Model();
+
 		var $chart = window.$("#chart"),
 			$ = $chart.find.bind($chart);
 		chart.dom = $chart.get(0);
@@ -23,7 +26,7 @@
 		// Initialize components
 		chart.urlBinder = new App.Views.ChartURL(chart);
 		chart.exporter = new App.Views.Export(chart);
-		chart.header = new App.Views.Chart.Header(chart);
+		chart.header = owid.view.header(chart);
 		chart.footer = new App.Views.Chart.Footer(chart);
 		chart.scaleSelectors = new App.Views.Chart.ScaleSelectors(chart);
 		chart.tabSelector = owid.view.tabSelector(chart);
@@ -37,11 +40,14 @@
 		if (tabs.data) chart.tabs.data = owid.tab.data(chart);
 		if (tabs.sources) chart.tabs.sources = owid.tab.sources(chart);
 		if (tabs.map) chart.tabs.map = new App.Views.Chart.MapTab(chart);
-		chart.activeTabName = defaultTabName;
+		chart.display.set('activeTab', defaultTabName);
 		chart.activeTab = chart.tabs[defaultTabName];
 
 		// Change tracker
 		var changes = owid.changes();
+		changes.track(chart.model);
+		changes.track(chart.data);
+		changes.track(chart.display);
 
 		// 
 
@@ -91,8 +97,11 @@
 		};
 
 		chart.initialScale = function() {
-			var screenWidth = $chart.parent().width(),
-				screenHeight = $chart.parent().height(),
+			if (!changes.any('screenWidth screenHeight'))
+				return;
+
+			var screenWidth = chart.display.get('screenWidth'),
+				screenHeight = chart.display.get('screenHeight'),
 				authorWidth = App.AUTHOR_WIDTH,
 				authorHeight = App.AUTHOR_HEIGHT,
 				renderWidth, renderHeight;
@@ -118,9 +127,13 @@
 			chart.authorHeight = authorHeight;
 			chart.renderWidth = renderWidth;
 			chart.renderHeight = renderHeight;
+			chart.display.set({ renderWidth: renderWidth, renderHeight: renderHeight });
 		};
 
 		chart.displayScale = function() {
+			if (!changes.any('screenWidth screenHeight'))
+				return;
+			
 			var scale = Math.min(chart.screenWidth/chart.renderWidth, chart.screenHeight/chart.renderHeight);
 
 			if (scale > 1) {
@@ -136,12 +149,11 @@
 			chart.scale = scale;
 		};
 
-		chart.resize = function() {
-			chart.changes.add('size');
-			chart.render();
-		};
-
 		chart.render = function() {
+			if (!changes.any())
+				return;
+
+			chart.data.transformData();
 			chart.initialScale();
 			chart.header.render();
 			chart.footer.render();
@@ -154,8 +166,21 @@
 			changes.take();
 		};
 
+		chart.resize = function() {
+			chart.display.set({
+				screenWidth: $chart.parent().width(),
+				screenHeight: $chart.parent().height()
+			});
+
+			chart.render();
+		};
+
 		chart.setupDOM();
-		chart.data.ready(chart.render);
+		chart.data.ready(chart.resize);
+		chart.model.on('change', function() {
+			chart.data.ready(chart.render);
+		});
+
 		window.chart = chart;
 		return chart;
 	};	

@@ -12,7 +12,7 @@
 
 		sourcesTab.render = function() {
 			if (!changes.take()) return;
-			
+
 			var sources = chart.data.transformDataForSources(),
 				tabHtml = "";
 

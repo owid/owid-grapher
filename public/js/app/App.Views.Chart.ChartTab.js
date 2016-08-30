@@ -14,6 +14,7 @@
 		function chartTab() { }
 		var changes = owid.changes();
 		changes.track(chart.model);
+		changes.track(chart.data);
 
 		var $svg, $tab, $entitiesSelect,
 			$xAxisScale, $xAxisScaleSelector,
@@ -21,6 +22,8 @@
 			svg, nvd3, legend;
 
 		var chartType, localData, missingMsg, lineType;
+
+		var legend = new App.Views.Chart.Legend();
 
 		var xAxis = chart.model.get("x-axis"),
 			yAxis = chart.model.get("y-axis"),
@@ -46,7 +49,7 @@
 		};
 
 		function configureTab() {
-			if (!changes('activeTab') && !changes('chart-type'))
+			if (!changes.any('activeTab chart-type'))
 				return;
 
 			chartType = chart.model.get('chart-type');
@@ -99,17 +102,45 @@
 			chartWidth, chartHeight;
 
 		function configureBounds() {
-			if (!changes.any('renderWidth renderHeight margins'))
-				return;
-
   		    margins = chart.model.get("margins");
 			svgBounds = svg.node().getBoundingClientRect();
 			tabBounds = $(".tab-content").get(0).getBoundingClientRect();
 			chartOffsetX = 0;//parseFloat(margins.left);
 			chartOffsetY = tabBounds.top - svgBounds.top;// + parseFloat(margins.top) + 10;
 			// MISPY: The constant modifiers here are to account for nvd3 not entirely matching our specified dimensions
-			chartHeight = tabBounds.height + chartOffsetY; //- parseFloat(margins.bottom) - parseFloat(margins.top);
+			chartHeight = tabBounds.height; //- parseFloat(margins.bottom) - parseFloat(margins.top);
 			chartWidth = tabBounds.width; //- parseFloat(margins.left) - parseFloat(margins.right);
+		}
+
+		function updateAvailableCountries() {
+			var availableEntities = App.VariableData.get("availableEntities"),
+				selectedEntitiesById = chart.model.getSelectedEntitiesById(),
+				entityType = chart.model.get("entity-type");
+
+			// Fill entity selector with all entities not currently selected
+			$entitiesSelect.empty();
+			$entitiesSelect.append("<option disabled selected>Select " + entityType + "</option>");
+			_.each(availableEntities, function(entity) {
+				if (!selectedEntitiesById[entity.id]) {
+					$entitiesSelect.append("<option value='" + entity.id + "'>" + entity.name + "</option>");
+				}
+			});
+
+			$entitiesSelect.trigger("chosen:updated");
+			$entitiesSelect.off('change').on('change', onAvailableCountries);
+		}
+
+		function onAvailableCountries(evt) {
+			var $select = $(evt.currentTarget),
+				val = $select.val(),
+				$option = $select.find("[value=" + val + "]"),
+				text = $option.text();
+
+			if (chart.model.get("add-country-mode") === "add-country") {
+				chart.model.addSelectedCountry({ id: $select.val(), name: text });
+			} else {
+				chart.model.replaceSelectedCountry({ id: $select.val(), name: text });
+			}
 		}
 
 		function renderLineChart() {
@@ -124,7 +155,13 @@
 		}
 
 		function renderScatterPlot() {
-			var points = scatterBubbleSize();
+			//set size of the bubbles depending on browser width
+			var browserWidth = $(window).width(),
+				browserCoef = Math.max( 1, browserWidth / 1100 ),
+				pointMin = 100 * Math.pow( browserCoef, 2 ),
+				pointMax = 1000 * Math.pow( browserCoef, 2 );
+			var points = [pointMin, pointMax];
+
 			nvd3 = nv.models.scatterChart().options(nvOptions).pointRange(points).showDistX(true).showDistY(true);			
 		}
 
@@ -170,51 +207,54 @@
 		}
 
 		function renderMultiBar() {
-			// MISPY TODO - move this into ChartData
-			// relevant test chart: http://ourworldindata.org/grapher/public-health-insurance-coverage2?stackMode=stacked
-	        var allTimes = [],
-	            //store values by [entity][time]
-	            valuesCheck = [];
+			if (changes.any('chartData')) {
+				console.trace('change chartData');
+				// MISPY TODO - move this into ChartData
+				// relevant test chart: http://ourworldindata.org/grapher/public-health-insurance-coverage2?stackMode=stacked
+		        var allTimes = [],
+		            //store values by [entity][time]
+		            valuesCheck = [];
 
-	        //extract all times
-	        _.each( localData, function( v, i ) {
-	            var entityData = [],
-	                times = v.values.map( function( v2, i ) {
-	                    entityData[ v2.x ] = true;
-	                    return v2.x;
-	                } );
-	            valuesCheck[v.id] = entityData;
-	            allTimes = allTimes.concat( times );
-	        } );
+		        //extract all times
+		        _.each( localData, function( v, i ) {
+		            var entityData = [],
+		                times = v.values.map( function( v2, i ) {
+		                    entityData[ v2.x ] = true;
+		                    return v2.x;
+		                } );
+		            valuesCheck[v.id] = entityData;
+		            allTimes = allTimes.concat( times );
+		        } );
 
-	        allTimes = _.uniq( allTimes );
-	        allTimes = _.sortBy( allTimes );
-	        
-	        if( localData.length ) {
-	            _.each( localData, function( serie, serieIndex ) {
-	                
-	                //make sure we have values for given series
-	                _.each( allTimes, function( time, timeIndex ) {
-	                    if( valuesCheck[ serie.id ] && !valuesCheck[serie.id][time]) {
-	                        //time doesn't existig for given entity, i
-	                        var zeroObj = {
-	                            "key": serie.key,
-	                            "serie": serieIndex,
-	                            "time": time,
-	                            "x": time,
-	                            "y": 0,
-	                            "fake": true
-	                        };
-	                        serie.values.splice( timeIndex, 0, zeroObj);
-	                    }
-	                });    
-	            });
-	        }
+		        allTimes = _.uniq( allTimes );
+		        allTimes = _.sortBy( allTimes );
+		        
+		        if( localData.length ) {
+		            _.each( localData, function( serie, serieIndex ) {
+		                
+		                //make sure we have values for given series
+		                _.each( allTimes, function( time, timeIndex ) {
+		                    if( valuesCheck[ serie.id ] && !valuesCheck[serie.id][time]) {
+		                        //time doesn't existig for given entity, i
+		                        var zeroObj = {
+		                            "key": serie.key,
+		                            "serie": serieIndex,
+		                            "time": time,
+		                            "x": time,
+		                            "y": 0,
+		                            "fake": true
+		                        };
+		                        serie.values.splice( timeIndex, 0, zeroObj);
+		                    }
+		                });    
+		            });
+		        }
 
-			if (chartType == App.ChartType.MultiBar) {
-				nvd3 = nv.models.multiBarChart().options(nvOptions);					
-			} else if (chartType == App.ChartType.HorizontalMultiBar) {
-				nvd3 = nv.models.multiBarHorizontalChart().options(nvOptions);					
+				if (chartType == App.ChartType.MultiBar) {
+					nvd3 = nv.models.multiBarChart().options(nvOptions);					
+				} else if (chartType == App.ChartType.HorizontalMultiBar) {
+					nvd3 = nv.models.multiBarHorizontalChart().options(nvOptions);					
+				}				
 			}
 
 			if (chart.model.get("currentStackMode") == "stacked")
@@ -230,6 +270,11 @@
 				.x(function(d) { return d.x; })
 				.y(function(d) { return d.y; })
 				.options(nvOptions);
+
+			// MISPY: nvd3 workaround hack
+			nv.dispatch.on("render_end", function() {
+				setTimeout(postRender, 500);
+			});
 		}
 
 		function renderTooltips() {
@@ -344,219 +389,26 @@
 		}
 
 		function renderLegend() {
-			//set legend
 			if (!chart.model.get("hide-legend")) {
-				$svg.find("> .nvd3.nv-custom-legend").show();
-				legend = new App.Views.Chart.Legend();
 				legend.dispatch.on("addEntity", function() {
 					if ($entitiesSelect.data("chosen")) {
 						$entitiesSelect.data("chosen").active_field = false;
 					}
-					//trigger open the chosen drop down
 					$entitiesSelect.trigger("chosen:open");
 				});
 
 				legend.render();
 
-				translateString = "translate(" + 0 + " ," + chartOffsetY + ")";
+				var translateString = "translate(" + 0 + " ," + (chartOffsetY+20) + ")";
 				svg.select(".nvd3.nv-custom-legend").attr("transform", translateString);
-
 				chartOffsetY += legend.height() + 10;
 				chartHeight -= legend.height() + 10;
-
 			} else {
-				//no legend, remove what might have previously been there
 				$svg.find("> .nvd3.nv-custom-legend").hide();
-				legend = null;
 			}			
 		}
 
-		chartTab.render = function() {
-			if (!changes.any()) return;
-
-			configureTab();
-			configureData();
-			configureAxis();
-			configureBounds();
-
-			$(".chart-error").remove();
-			if (missingMsg || _.isEmpty(localData)) {
-				$tab.find(".nv-wrap").remove();
-				App.ChartView.showMessage(missingMsg || "No available data.");
-//				if (_.isFunction(callback)) callback();
-				return;
-			}
-
-//			updateAvailableCountries();
-
-			// Initialize or update the nvd3 graph
-			nv.addGraph(function() {
-				renderLegend();
-
-				if (chartType == App.ChartType.LineChart) {
-					renderLineChart();
-				} else if (chartType == App.ChartType.ScatterPlot) {
-					renderScatterPlot();
-				} else if (chartType == App.ChartType.StackedArea) {
-					renderStackedArea();
-				} else if (chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar) {	
-					renderMultiBar();
-				} else if (chartType == App.ChartType.DiscreteBar) {
-					renderDiscreteBar();
-				}
-
-				nvd3.width(chartWidth);
-				nvd3.height(chartHeight);
-				nvd3.margin({ top: chartOffsetY, left: chartOffsetX, right: 0, bottom: 0 });
-
-				var afterRender = function() {
-					$(window).trigger('chart-loaded');
-
-					// Hijack the nvd3 mode switch to store it
-					$(".nv-controlsWrap .nv-series").off("click");
-					$(".nv-controlsWrap .nv-series").on("click", function(ev) {
-						chart.model.set("currentStackMode", $(ev.target).text().toLowerCase(), { noRender: true });
-					});
-
-					if (chartType == App.ChartType.StackedArea) {
-						// Stop the tooltip from overlapping the chart controls
-						d3.selectAll("svg").on("mousemove.stackedarea", function() {
-							var $target = $(d3.event.target);
-							if (!$target.is("rect, path") || $target.closest(".nv-custom-legend").length)
-								nvd3.interactiveLayer.tooltip.hidden(true);							
-						});
-
-						// Override default stacked area click behavior
-						d3.selectAll(".nv-area").on("click", function(d) {
-							chart.model.focusToggleLegendKey(d.key);
-						});
-					}										
-				};
-
-				// HACK (Mispy): gah, nvd3
-				if (chartType == App.ChartType.DiscreteBar) {
-					nv.dispatch.on("render_end", function() {
-						setTimeout(afterRender, 500);
-					});
-				}				
-				nvd3.dispatch.on("renderEnd", afterRender);
-
-				if (chartType != App.ChartType.DiscreteBar) {
-					nvd3.dispatch.on("stateChange", function() {
-						/* HACK (Mispy): Ensure stacked area charts maintain the correct dimensions on 
-						 * transition between stacked and expanded modes. It cannot be done on renderEnd
-						 * or stateChange because the delay causes the chart to jump; overriding update
-						 * seems to be the only way to get it to synchronously flow into resizing. It must
-						 * be re-overridden in stateChange because the nvd3 chart render function resets it. Note
-						 * that stacked area charts also pay no attention to the margin setting. */
-						var origUpdate = nvd3.update;
-						nvd3.update = function() {
-							origUpdate.call(nvd3);
-						};
-					});					
-				}
-
-				renderAxis();
-
-				var displayData = localData;
-				if (chartType == App.ChartType.LineChart && (lineType == App.LineType.DashedIfMissing))
-					displayData = splitSeriesByMissing(localData);
-				
-				svg.datum(displayData).call(nvd3);
-
-				renderTooltips();
-
-				if (chartType == App.ChartType.ScatterPlot) {
-					//need to have own showDist implementation, cause there's a bug in nvd3
-					scatterDist();
-				}
-				window.nvd3 = nvd3;
-			});
-		};
-
-		return chartTab;
-	};
-
-
-	App.Views.Chart.ChartTab = owid.View.extend({
-		el: "#chart",
-		events: {
-			"change [name=available_entities]": "onAvailableCountries"
-		},
-
-		deactivate: function() {
-			$svg.attr("class", "");
-
-			chart.model.off(null, null, this);
-			d3.selectAll(".nvd3").remove();
-			if ($yAxisScaleSelector)
-				$yAxisScaleSelector.hide();
-			d3.selectAll("svg").on("mousemove.stackedarea", null);
-		},
-
-		update: function() {
-			chart.data.ready(function() {
-				if (needsFullRender) {	
-					deactivate();
-					activate();
-				} else {
-					render(onResize.bind(this));					
-				}
-			}.bind(this));
-		},
-
-		updateAvailableCountries: function() {
-			var availableEntities = App.VariableData.get("availableEntities"),
-				selectedEntitiesById = chart.model.getSelectedEntitiesById(),
-				entityType = chart.model.get("entity-type");
-
-			// Fill entity selector with all entities not currently selected
-			$entitiesSelect.empty();
-			$entitiesSelect.append("<option disabled selected>Select " + entityType + "</option>");
-			_.each(availableEntities, function(entity) {
-				if (!selectedEntitiesById[entity.id]) {
-					$entitiesSelect.append("<option value='" + entity.id + "'>" + entity.name + "</option>");
-				}
-			}.bind(this));
-
-			$entitiesSelect.trigger("chosen:updated");
-		},
-
-		render: function(callback) {
-
-
-			localData = localData;
-		},
-
-		show: function() {
-			$tab.show();
-		},
-
-		hide: function() {
-			$tab.hide();
-		},
-
-		scatterDist: function() {
-			if (!$(".nv-distributionX").length) return;
-
-			var that = this,
-				margins = chart.model.get( "margins" ),
-				nvDistrX = $( ".nv-distributionX" ).offset().top,
-				svgSelection = d3.select( "svg" );
-
-			nvd3.scatter.dispatch.on('elementMouseover.tooltip', function(evt) {
-				var svgOffset = $svg.offset(),
-					svgHeight = $svg.height();
-				svgSelection.select('.nv-series-' + evt.seriesIndex + ' .nv-distx-' + evt.pointIndex)
-					.attr('y1', evt.pos.top - nvDistrX );
-				svgSelection.select('.nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
-					.attr('x2', evt.pos.left - svgOffset.left - margins.left );
-				var position = {left: d3.event.clientX, top: d3.event.clientY };
-				nvd3.tooltip.position(position).data(evt).hidden(false);
-			});
-		},
-
-		splitSeriesByMissing: function(localData) {
+		function splitSeriesByMissing(localData) {
 			var lineType = chart.model.get("line-type"),
 				lineTolerance = parseInt(chart.model.get("line-tolerance")) || 1,
 				newData = [];
@@ -599,15 +451,159 @@
 			});
 
 			return newData;
+		}
+
+		function postRender() {
+			// Hijack the nvd3 mode switch to store it
+			$(".nv-controlsWrap .nv-series").off("click");
+			$(".nv-controlsWrap .nv-series").on("click", function(ev) {
+				chart.model.set("currentStackMode", $(ev.target).text().toLowerCase(), { noRender: true });
+			});
+
+			if (chartType == App.ChartType.StackedArea) {
+				// Stop the tooltip from overlapping the chart controls
+				d3.selectAll("svg").on("mousemove.stackedarea", function() {
+					var $target = $(d3.event.target);
+					if (!$target.is("rect, path") || $target.closest(".nv-custom-legend").length)
+						nvd3.interactiveLayer.tooltip.hidden(true);							
+				});
+
+				// Override default stacked area click behavior
+				d3.selectAll(".nv-area").on("click", function(d) {
+					chart.model.focusToggleLegendKey(d.key);
+				});
+			}										
+
+			$(window).trigger('chart-loaded');
+		}
+
+		chartTab.render = function() {
+			if (!changes.any()) return;
+			console.trace('render');
+
+			configureTab();
+			configureData();
+			configureAxis();
+			configureBounds();
+
+			$(".chart-error").remove();
+			if (missingMsg || _.isEmpty(localData)) {
+				$tab.find(".nv-wrap").remove();
+				chart.showMessage(missingMsg || "No available data.");
+				return;
+			}
+
+			updateAvailableCountries();
+
+			// Initialize or update the nvd3 graph
+			nv.addGraph(function() {
+				renderLegend();
+
+				if (chartType == App.ChartType.LineChart) {
+					renderLineChart();
+				} else if (chartType == App.ChartType.ScatterPlot) {
+					renderScatterPlot();
+				} else if (chartType == App.ChartType.StackedArea) {
+					renderStackedArea();
+				} else if (chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar) {	
+					renderMultiBar();
+				} else if (chartType == App.ChartType.DiscreteBar) {
+					renderDiscreteBar();
+				}
+
+				nvd3.width(chartWidth);
+				nvd3.height(chartHeight);
+				nvd3.margin({ left: +margins.left, top: +margins.top, right: +margins.right + 20, bottom: +margins.bottom + 20 });
+				nvd3.dispatch.on("renderEnd", postRender);
+
+				renderAxis();
+				renderTooltips();
+
+				if (chartType == App.ChartType.LineChart && (lineType == App.LineType.DashedIfMissing))
+					localData = splitSeriesByMissing(localData);
+				
+				svg.datum(localData).call(nvd3);
+
+				if (chartType == App.ChartType.ScatterPlot) {
+					//need to have own showDist implementation, cause there's a bug in nvd3
+//					scatterDist();
+				}
+				window.nvd3 = nvd3;
+
+				changes.take();
+
+
+				var nvWrap = d3.select('.nvd3.nv-wrap > g');
+				nvWrap.attr('transform', 'translate(' + chartOffsetX + ',' + chartOffsetY + ')');			
+			});
+		};
+
+		return chartTab;
+	};
+
+
+	App.Views.Chart.ChartTabu = owid.View.extend({
+		el: "#chart",
+		events: {
 		},
 
+		deactivate: function() {
+			$svg.attr("class", "");
+
+			chart.model.off(null, null, this);
+			d3.selectAll(".nvd3").remove();
+			if ($yAxisScaleSelector)
+				$yAxisScaleSelector.hide();
+			d3.selectAll("svg").on("mousemove.stackedarea", null);
+		},
+
+		update: function() {
+			chart.data.ready(function() {
+				if (needsFullRender) {	
+					deactivate();
+					activate();
+				} else {
+					render(onResize.bind(this));					
+				}
+			}.bind(this));
+		},
+
+		render: function(callback) {
+
+
+			localData = localData;
+		},
+
+		show: function() {
+			$tab.show();
+		},
+
+		hide: function() {
+			$tab.hide();
+		},
+
+		scatterDist: function() {
+			if (!$(".nv-distributionX").length) return;
+
+			var that = this,
+				margins = chart.model.get( "margins" ),
+				nvDistrX = $( ".nv-distributionX" ).offset().top,
+				svgSelection = d3.select( "svg" );
+
+			nvd3.scatter.dispatch.on('elementMouseover.tooltip', function(evt) {
+				var svgOffset = $svg.offset(),
+					svgHeight = $svg.height();
+				svgSelection.select('.nv-series-' + evt.seriesIndex + ' .nv-distx-' + evt.pointIndex)
+					.attr('y1', evt.pos.top - nvDistrX );
+				svgSelection.select('.nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
+					.attr('x2', evt.pos.left - svgOffset.left - margins.left );
+				var position = {left: d3.event.clientX, top: d3.event.clientY };
+				nvd3.tooltip.position(position).data(evt).hidden(false);
+			});
+		},
+
+
 		scatterBubbleSize: function() {
-			//set size of the bubbles depending on browser width
-			var browserWidth = $( window ).width(),
-				browserCoef = Math.max( 1, browserWidth / 1100 ),
-				pointMin = 100 * Math.pow( browserCoef, 2 ),
-				pointMax = 1000 * Math.pow( browserCoef, 2 );
-			return [ pointMin, pointMax ];
 		},
 
 		checkStackedAxis: function() {
@@ -626,19 +622,6 @@
 			}
 		},
 
-		onAvailableCountries: function(evt) {
-			var $select = $(evt.currentTarget),
-				val = $select.val(),
-				$option = $select.find("[value=" + val + "]"),
-				text = $option.text();
-
-			if (chart.model.get("add-country-mode") === "add-country") {
-				chart.model.addSelectedCountry({ id: $select.val(), name: text });
-			} else {
-				chart.model.replaceSelectedCountry({ id: $select.val(), name: text });
-			}
-		},
-
 		onResize: function(callback) {			
 			if (legend) legend.render();
 
@@ -647,11 +630,11 @@
 				svg = d3.select($svg[0]),
 				svgBounds = svg.node().getBoundingClientRect(),
 				tabBounds = $(".tab-pane.active").get(0).getBoundingClientRect(),
-				chartOffsetY = tabBounds.top - svgBounds.top + parseFloat(margins.top) + 10,
+				chartOffsetY = tabBounds.top - svgBounds.top + parseFloat(margins.top),
 				chartOffsetX = parseFloat(margins.left),
 				// MISPY: The constant modifiers here are to account for nvd3 not entirely matching our specified dimensions
-				chartHeight = tabBounds.height - parseFloat(margins.bottom) - parseFloat(margins.top) - 20 - 10,
-				chartWidth = tabBounds.width - parseFloat(margins.left) - parseFloat(margins.right) + 60,
+				chartHeight = tabBounds.height - parseFloat(margins.bottom) - parseFloat(margins.top),
+				chartWidth = tabBounds.width - parseFloat(margins.left) - parseFloat(margins.right),
 				chartType = chart.model.get("chart-type");
 
 			// Account for and position legend

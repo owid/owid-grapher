@@ -624,10 +624,14 @@
 	};
 
 	owid.changes = function() {		
-		var tracker = {};
+		var tracker = {}, fullChange = false;
 
 		function changes(prop) { 
-			return tracker[prop];
+			return fullChange || tracker[prop];
+		}
+
+		changes.get = function() {
+			return tracker;
 		}
 
 		changes.add = function(prop) {
@@ -640,9 +644,13 @@
 			} else {
 				tracker = {};
 			}
+
+			fullChange = false;
 		};
 
 		changes.any = function(propStr) {
+			if (fullChange) return true;
+
 			var props = propStr ? propStr.split(' ') : _.keys(tracker);
 
 			return _.any(props, function(prop) {
@@ -650,10 +658,22 @@
 			});
 		};
 
+		changes.only = function(propStr) {
+			if (fullChange) return false;
+
+			var props = propStr.split(' ');
+
+			return _.all(_.keys(tracker), function(key) {
+				return _.contains(props, key);
+			});
+		};
+
 		changes.track = function(model, propStr) {
-			var props = propStr && propStr.split(' ');		
-		
+			var props = propStr && propStr.split(' ');
+
 			model.on("change", function(ev) { 
+				if (!ev) return;
+
 				if (props) {
 					_.each(props, function(prop) {
 						if (_.has(ev.changed), prop)
@@ -676,10 +696,15 @@
 
 		changes.take = function() {
 			var any = changes.any();
-			tracker = {};
+			changes.done();
 			return any;
 		};
 
+		changes.fullUpdate = function() {
+			fullChange = true;
+		};
+
+		changes.fullUpdate();
 		return changes;
 	};
 

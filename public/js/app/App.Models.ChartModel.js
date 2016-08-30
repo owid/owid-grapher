@@ -125,15 +125,13 @@
 			return entities;
 		},
 
-		addSelectedCountry: function( country ) {
-			var selectedCountries = this.get( "selected-countries" );
+		addSelectedCountry: function(country) {
+			var selectedCountries = _.clone(this.get("selected-countries"));
 
 			//make sure the selected contry is not there 
-			if( !_.findWhere( selectedCountries, { id: country.id } ) ) {
-				selectedCountries.push( country );
-				//selectedCountries[ country.id ] = country;
-				this.trigger( "change:selected-countries" );
-				this.trigger( "change" );
+			if (!_.findWhere(selectedCountries, { id: country.id })) {
+				selectedCountries.push(country);
+				this.set('selected-countries', selectedCountries);
 			}
 		},
 
