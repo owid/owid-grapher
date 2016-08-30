@@ -24,7 +24,7 @@
 			this.chartQueryStr = "?";
 			this.originalDefaultTab = App.ChartModel.get("default-tab");
 
-			//this.listenTo(options.dispatcher, "tab-change", this.onTabChange.bind(this));
+			this.listenTo(App.ChartView.display, "change:activeTab", this.onTabChange.bind(this));
 			this.listenTo(App.ChartModel, "change:selected-countries", this.updateCountryParam.bind(this));	
 			this.listenTo(App.ChartModel, "change:activeLegendKeys", this.updateLegendKeys.bind(this));		
 			this.listenTo(App.MapModel, "change:targetYear", this.updateYearParam.bind(this));
@@ -91,7 +91,9 @@
 		/**
 		 * Save the current tab the user is on, and keep url params correctly isolated
 		 */
-		onTabChange: function(tabName) {
+		onTabChange: function() {
+			var tabName = App.ChartView.display.get('activeTab');
+
 			if (this.lastTabName == "map" && tabName != "map") {
 				this.mapQueryStr = window.location.search;
 				owid.setQueryStr(this.chartQueryStr);

@@ -4,12 +4,28 @@
 
 	owid.view.tabSelector = function(chart) {
 		function tabSelector() {}
+		var $nav = chart.$('nav.tabs');
 
 		var changes = owid.changes();
-		changes.track(chart.model, 'renderWidth renderHeight');
+		changes.track(chart.model, 'tabs');
+		changes.track(chart.display, 'renderWidth renderHeight activeTab');
+
+		tabSelector.switchTab = function() {
+			if (!changes.any('activeTab'))
+				return;
+
+			var newTabName = chart.display.get('activeTab'),
+				newTab = chart.tabs[newTabName],
+				currentTab = chart.activeTab;
+
+			if (currentTab && currentTab.cleanup) currentTab.cleanup();
+			$('li[data-tab=' + newTabName + '] a').tab('show');
+			chart.activeTab = newTab;
+		};
 
 		tabSelector.render = function() {
 			if (!changes.take()) return;
+			console.trace('tabSelector.render');
 
 			var svg = d3.select("svg"),
 				svgBounds = svg.node().getBoundingClientRect(),
@@ -18,7 +34,7 @@
 				tabOffsetY = headerBounds.bottom - svgBounds.top,
 				tabHeight = footerBounds.top - headerBounds.bottom;
 
-			chart.$("nav.tabs").css({
+			$nav.css({
 				position: 'absolute',
 				top: tabOffsetY,
 				left: 0
@@ -31,17 +47,20 @@
 				height: tabHeight - chart.$("nav.tabs").height() 
 			});
 
-/*							this.$tabs.attr("style", "display: none !important;");
+			// Show only the tabs which are active for this chart
+			$nav.find('li').attr("style", "display: none !important;");
+			_.each(chart.model.get('tabs'), function(tabName) {
+				$nav.find('li[data-tab=' + tabName + ']').show();
+			});
 
-				_.each(tabs, function( v, i ) {
-					var tab = this.$tabs.filter("." + v + "-header-tab");
-					tab.show();
-				}.bind(this));
+			//for first visible tab, add class for border-left, cannot be done in pure css http://stackoverflow.com/questions/18765814/targeting-first-visible-element-with-pure-css
+			$nav.find('li').removeClass('first');
+			$nav.find('li:visible:first').addClass('first');
 
-				//for first visible tab, add class for border-left, cannot be done in pure css http://stackoverflow.com/questions/18765814/targeting-first-visible-element-with-pure-css
-				this.$tabs.removeClass( "first" );
-				this.$tabs.filter( ":visible:first" ).addClass( "first" );*/
-
+			$nav.find('li').off('click').on('click', function(ev) {
+				chart.display.set('activeTab', $(this).attr('data-tab'));
+				ev.preventDefault();
+			});
 		};
 
 		return tabSelector;

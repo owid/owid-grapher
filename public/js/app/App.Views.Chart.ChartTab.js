@@ -15,11 +15,12 @@
 		var changes = owid.changes();
 		changes.track(chart.model);
 		changes.track(chart.data);
+		changes.track(chart.display);
 
 		var $svg, $tab, $entitiesSelect,
 			$xAxisScale, $xAxisScaleSelector,
 			$yAxisScale, $yAxisScaleSelector,
-			svg, nvd3, legend;
+			svg, nvd3;
 
 		var chartType, localData, missingMsg, lineType;
 
@@ -46,6 +47,77 @@
 
 		var nvOptions = {
 			showLegend: false
+		};
+
+		chartTab.cleanup = function() {
+			$svg.attr("class", "");
+
+			chart.model.off(null, null, this);
+			d3.selectAll(".nvd3").remove();
+			if ($yAxisScaleSelector)
+				$yAxisScaleSelector.hide();
+			d3.selectAll("svg").on("mousemove.stackedarea", null);
+		},
+
+		chartTab.render = function() {
+			if (!changes.any()) return;
+			console.trace('chartTab.render');
+
+			configureTab();
+			configureData();
+			configureAxis();
+			configureBounds();
+
+			$(".chart-error").remove();
+			if (missingMsg || _.isEmpty(localData)) {
+				$tab.find(".nv-wrap").remove();
+				chart.showMessage(missingMsg || "No available data.");
+				return;
+			}
+
+			updateAvailableCountries();
+
+			// Initialize or update the nvd3 graph
+			nv.addGraph(function() {
+				renderLegend();
+
+				if (chartType == App.ChartType.LineChart) {
+					renderLineChart();
+				} else if (chartType == App.ChartType.ScatterPlot) {
+					renderScatterPlot();
+				} else if (chartType == App.ChartType.StackedArea) {
+					renderStackedArea();
+				} else if (chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar) {	
+					renderMultiBar();
+				} else if (chartType == App.ChartType.DiscreteBar) {
+					renderDiscreteBar();
+				}
+
+				nvd3.width(chartWidth);
+				nvd3.height(chartHeight);
+				nvd3.margin({ left: +margins.left, top: +margins.top, right: +margins.right + 20, bottom: +margins.bottom + 20 });
+				nvd3.dispatch.on("renderEnd", postRender);
+
+				renderAxis();
+				renderTooltips();
+
+				if (chartType == App.ChartType.LineChart && (lineType == App.LineType.DashedIfMissing))
+					localData = splitSeriesByMissing(localData);
+				
+				svg.datum(localData).call(nvd3);
+
+				if (chartType == App.ChartType.ScatterPlot) {
+					//need to have own showDist implementation, cause there's a bug in nvd3
+//					scatterDist();
+				}
+				window.nvd3 = nvd3;
+
+				changes.take();
+
+
+				var nvWrap = d3.select('.nvd3.nv-wrap > g');
+				nvWrap.attr('transform', 'translate(' + chartOffsetX + ',' + chartOffsetY + ')');			
+			});
 		};
 
 		function configureTab() {
@@ -477,67 +549,6 @@
 			$(window).trigger('chart-loaded');
 		}
 
-		chartTab.render = function() {
-			if (!changes.any()) return;
-			console.trace('render');
-
-			configureTab();
-			configureData();
-			configureAxis();
-			configureBounds();
-
-			$(".chart-error").remove();
-			if (missingMsg || _.isEmpty(localData)) {
-				$tab.find(".nv-wrap").remove();
-				chart.showMessage(missingMsg || "No available data.");
-				return;
-			}
-
-			updateAvailableCountries();
-
-			// Initialize or update the nvd3 graph
-			nv.addGraph(function() {
-				renderLegend();
-
-				if (chartType == App.ChartType.LineChart) {
-					renderLineChart();
-				} else if (chartType == App.ChartType.ScatterPlot) {
-					renderScatterPlot();
-				} else if (chartType == App.ChartType.StackedArea) {
-					renderStackedArea();
-				} else if (chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar) {	
-					renderMultiBar();
-				} else if (chartType == App.ChartType.DiscreteBar) {
-					renderDiscreteBar();
-				}
-
-				nvd3.width(chartWidth);
-				nvd3.height(chartHeight);
-				nvd3.margin({ left: +margins.left, top: +margins.top, right: +margins.right + 20, bottom: +margins.bottom + 20 });
-				nvd3.dispatch.on("renderEnd", postRender);
-
-				renderAxis();
-				renderTooltips();
-
-				if (chartType == App.ChartType.LineChart && (lineType == App.LineType.DashedIfMissing))
-					localData = splitSeriesByMissing(localData);
-				
-				svg.datum(localData).call(nvd3);
-
-				if (chartType == App.ChartType.ScatterPlot) {
-					//need to have own showDist implementation, cause there's a bug in nvd3
-//					scatterDist();
-				}
-				window.nvd3 = nvd3;
-
-				changes.take();
-
-
-				var nvWrap = d3.select('.nvd3.nv-wrap > g');
-				nvWrap.attr('transform', 'translate(' + chartOffsetX + ',' + chartOffsetY + ')');			
-			});
-		};
-
 		return chartTab;
 	};
 
@@ -547,15 +558,6 @@
 		events: {
 		},
 
-		deactivate: function() {
-			$svg.attr("class", "");
-
-			chart.model.off(null, null, this);
-			d3.selectAll(".nvd3").remove();
-			if ($yAxisScaleSelector)
-				$yAxisScaleSelector.hide();
-			d3.selectAll("svg").on("mousemove.stackedarea", null);
-		},
 
 		update: function() {
 			chart.data.ready(function() {

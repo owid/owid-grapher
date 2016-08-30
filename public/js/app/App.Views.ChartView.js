@@ -4,7 +4,7 @@
 
 	owid.chart = function() {
 		function chart() {}
-		App.ChartView = this;
+		App.ChartView = chart;
 
 		App.VariableData = new App.Models.VariableData();	
 		App.ChartData = new App.Models.ChartData();
@@ -17,6 +17,12 @@
 
 		// For tracking transient display properties we don't want to save
 		chart.display = new Backbone.Model();
+
+		// Change tracker
+		var changes = owid.changes();
+		changes.track(chart.model);
+		changes.track(chart.data);
+		changes.track(chart.display);
 
 		var $chart = window.$("#chart"),
 			$ = $chart.find.bind($chart);
@@ -41,13 +47,7 @@
 		if (tabs.sources) chart.tabs.sources = owid.tab.sources(chart);
 		if (tabs.map) chart.tabs.map = new App.Views.Chart.MapTab(chart);
 		chart.display.set('activeTab', defaultTabName);
-		chart.activeTab = chart.tabs[defaultTabName];
 
-		// Change tracker
-		var changes = owid.changes();
-		changes.track(chart.model);
-		changes.track(chart.data);
-		changes.track(chart.display);
 
 		// 
 
@@ -133,7 +133,7 @@
 		chart.displayScale = function() {
 			if (!changes.any('screenWidth screenHeight'))
 				return;
-			
+
 			var scale = Math.min(chart.screenWidth/chart.renderWidth, chart.screenHeight/chart.renderHeight);
 
 			if (scale > 1) {
@@ -150,15 +150,16 @@
 		};
 
 		chart.render = function() {
+			console.trace('chart.render?');
 			if (!changes.any())
 				return;
 
 			chart.data.transformData();
+			chart.tabSelector.switchTab();
 			chart.initialScale();
 			chart.header.render();
 			chart.footer.render();
 			chart.tabSelector.render();
-			$("." + chart.activeTabName + "-header-tab a").tab('show');
 			chart.activeTab.render();
 			chart.displayScale();
 
@@ -180,8 +181,12 @@
 		chart.model.on('change', function() {
 			chart.data.ready(chart.render);
 		});
+		chart.display.on('change', function() {
+			chart.data.ready(chart.render);
+		});
 
 		window.chart = chart;
+		chart.changes = changes;
 		return chart;
 	};	
 

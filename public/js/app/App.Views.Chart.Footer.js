@@ -20,7 +20,8 @@
 			this.$embedModal.appendTo("body");			
 
 			this.changes = owid.changes();
-			this.changes.track(chart.model, 'chart-dimensions chart-description renderWidth renderHeight');
+			this.changes.track(chart.model, 'chart-dimensions chart-description');
+			this.changes.track(chart.display, 'renderWidth renderHeight');
 
 			this.listenTo($(window), "query-change", this.updateSharingButtons.bind(this));
 		},

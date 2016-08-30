@@ -57,16 +57,16 @@
 
 		<nav class="tabs">
 			<ul>
-				<li class="chart-header-tab header-tab">
+				<li class="header-tab" data-tab='chart'>
 					<a href="#chart-chart-tab" data-toggle="tab" aria-expanded="false"><i class="fa fa-line-chart"></i>Chart</a>
 				</li>
-				<li class="data-header-tab header-tab">
+				<li class="header-tab" data-tab='data'>
 					<a href="#data-chart-tab" data-toggle="tab" aria-expanded="false"><i class="fa fa-table"></i>Data</a>
 				</li>
-				<li class="map-header-tab header-tab">
+				<li class="header-tab" data-tab='map'>
 					<a href="#map-chart-tab" data-toggle="tab" aria-expanded="false"><i class="fa fa-map"></i>Map</a>
 				</li>
-				<li class="sources-header-tab header-tab">
+				<li class="header-tab" data-tab='sources'>
 					<a href="#sources-chart-tab" data-toggle="tab" aria-expanded="false"><i class="fa fa-link"></i>Sources</a>
 				</li>
 				@if (isset($chart))
