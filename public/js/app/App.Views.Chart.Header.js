@@ -18,17 +18,47 @@
 			$tabs = $(".header-tab");
 
 		function updateTime() {
-			if (!changes.any('activeTab minYear maxYear'))
+			if (!changes.any('activeTab minYear maxYear targetYear'))
 				return;		
 
-			if (chart.model.get('activeTab') == "map") {
-				if (parentView.mapTab.dataMap)
-					updateTimeFromMap(parentView.mapTab);
+			if (chart.display.get('activeTab') == "map") {
+				if (chart.tabs.map.dataMap)
+					updateTimeFromMap(chart.tabs.map);
 			} else {
 				minYear = chart.data.get('minYear');
 				maxYear = chart.data.get('maxYear');
 				targetYear = null;
 			}
+		}
+
+
+		function updateTimeFromMap(map) {
+			var mapConfig = chart.map.attributes,
+				timeFrom = map.minToleranceYear || mapConfig.targetYear,
+				timeTo = map.maxToleranceYear || mapConfig.targetYear,
+				year = mapConfig.targetYear,
+				hasTargetYear = _.find(map.mapData, function(d) { return d.year == year; }),
+				d = owid.displayYear;
+
+			if (hasTargetYear && timeFrom != timeTo) {
+				// The target year is in the data but we're displaying a range, meaning not available for all countries
+				disclaimer = " Since some observations for " + d(year) + " are not available the map displays the closest available data (" + d(timeFrom) + " to " + d(timeTo) + ").";
+			} else if (!hasTargetYear && timeFrom != timeTo) {
+				// The target year isn't in the data at all and we're displaying a range of other nearby values
+				disclaimer = " Since observations for " + d(year) + " are not available the map displays the closest available data (" + d(timeFrom) + " to " + d(timeTo) + ").";
+			} else if (!hasTargetYear && timeFrom == timeTo && timeFrom != year) {
+				// The target year isn't in the data and we're displaying some other single year
+				disclaimer = " Since observations for " + d(year) + " are not available the map displays the closest available data (from " + d(timeFrom) + ").";
+			} else if (!hasTargetYear) {
+				disclaimer = " No observations are available for this year.";
+			} else {
+//				disclaimer = "<span style='visibility: hidden;'>A rather long placeholder to ensure that the text flow remains the same when changing between various years.</span>";
+				disclaimer = null;
+			}
+
+			minYear = timeFrom;
+			maxYear = timeTo;
+			targetYear = year;
 		}
 
 		// Replaces things like *time* and *country* with the actual time and
@@ -162,39 +192,5 @@
 
 		return header;
 	};
-
-	owid.namespace("App.Views.Chart.Header");
-	App.Views.Chart.Header = owid.View.extend({
-		updateTimeFromMap: function(map) {			
-			var mapConfig = chart.map.attributes,
-				timeFrom = map.minToleranceYear || mapConfig.targetYear,
-				timeTo = map.maxToleranceYear || mapConfig.targetYear,
-				targetYear = mapConfig.targetYear,
-				hasTargetYear = _.find(map.mapData, function(d) { return d.year == targetYear; }),
-				d = owid.displayYear;
-
-			if (hasTargetYear && timeFrom != timeTo) {
-				// The target year is in the data but we're displaying a range, meaning not available for all countries
-				disclaimer = " Since some observations for " + d(targetYear) + " are not available the map displays the closest available data (" + d(timeFrom) + " to " + d(timeTo) + ").";
-			} else if (!hasTargetYear && timeFrom != timeTo) {
-				// The target year isn't in the data at all and we're displaying a range of other nearby values
-				disclaimer = " Since observations for " + d(targetYear) + " are not available the map displays the closest available data (" + d(timeFrom) + " to " + d(timeTo) + ").";
-			} else if (!hasTargetYear && timeFrom == timeTo && timeFrom != targetYear) {
-				// The target year isn't in the data and we're displaying some other single year
-				disclaimer = " Since observations for " + d(targetYear) + " are not available the map displays the closest available data (from " + d(timeFrom) + ").";
-			} else if (!hasTargetYear) {
-				disclaimer = " No observations are available for this year.";
-			} else {
-//				disclaimer = "<span style='visibility: hidden;'>A rather long placeholder to ensure that the text flow remains the same when changing between various years.</span>";
-				disclaimer = null;
-			}
-
-			selectedTimeFrom = timeFrom;
-			selectedTimeTo = timeTo;
-			timeGoesToLatest = false;
-			targetYear = targetYear;
-		},
-
-	});
 
 })();
