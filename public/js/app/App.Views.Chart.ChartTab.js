@@ -49,7 +49,7 @@
 			showLegend: false
 		};
 
-		chartTab.cleanup = function() {
+		chartTab.deactivate = function() {
 			if (!$svg) return;			
 			$svg.attr("class", "");
 
@@ -117,6 +117,7 @@
 				var nvWrap = d3.select('.nvd3.nv-wrap > g');
 				nvWrap.attr('transform', 'translate(' + chartOffsetX + ',' + chartOffsetY + ')');		
 				changes.done();	
+				$('.nvtooltip').remove();
 			});
 		};
 
@@ -534,11 +535,11 @@
 
 			if (chartType == App.ChartType.StackedArea) {
 				// Stop the tooltip from overlapping the chart controls
-				d3.selectAll("svg").on("mousemove.stackedarea", function() {
+				/*d3.selectAll("svg").on("mousemove.stackedarea", function() {
 					var $target = $(d3.event.target);
 					if (!$target.is("rect, path") || $target.closest(".nv-custom-legend").length)
 						nvd3.interactiveLayer.tooltip.hidden(true);							
-				});
+				});*/
 
 				// Override default stacked area click behavior
 				d3.selectAll(".nv-area").on("click", function(d) {

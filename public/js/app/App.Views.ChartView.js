@@ -13,6 +13,7 @@
 		chart.model = App.ChartModel;
 		chart.vardata = App.VariableData;
 		chart.data = App.ChartData;
+		chart.map = App.MapModel;
 		chart.colors = App.Colors;
 
 		// For tracking transient display properties we don't want to save
@@ -22,7 +23,7 @@
 				screenHeight: null,
 				renderWidth: null,
 				renderHeight: null,	
-				activeTab: chart.model.get('default-tab')			
+				activeTab: null		
 			}
 		});
 		chart.display = new DisplayModel();
@@ -46,6 +47,7 @@
 		chart.scaleSelectors = new App.Views.Chart.ScaleSelectors(chart);
 		chart.tabSelector = owid.view.tabSelector(chart);
 		chart.debugHelper = new App.Views.DebugHelper(chart);
+		chart.tooltip = new owid.view.tooltip(chart);
 
 		// Initialize tabs
 		chart.tabs = {};
@@ -54,7 +56,7 @@
 		if (tabs.data) chart.tabs.data = owid.tab.data(chart);
 		if (tabs.sources) chart.tabs.sources = owid.tab.sources(chart);
 		if (tabs.map) chart.tabs.map = new App.Views.Chart.MapTab(chart);
-		// 
+		chart.display.set('activeTab', chart.model.get('default-tab'));		// 
 
 	//	var defaultTabName = chart.model.get("default-tab"),
 	//		activeTab = sourcesTab;
@@ -160,7 +162,6 @@
 				return;
 			console.trace('chart.render');
 			chart.data.transformData();
-			console.log(changes.get());
 			if (changes.any('activeTab')) chart.tabSelector.switchTab();
 			chart.initialScale();
 			chart.header.render();
@@ -198,6 +199,32 @@
 				screenHeight: $chart.parent().height()
 			});
 		};
+
+		chart.handleError = function(err, isCritical) {
+			if (isCritical !== false) isCritical = true;
+
+			if (err.responseText) {
+				err = err.status + " " + err.statusText + "\n" + "    " + err.responseText;
+			} else if (err.stack) {
+				err = err.stack;
+			}
+			console.error(err);
+			var tab = this.activeTab || this.loadingTab;
+			if (tab)
+				tab.deactivate();
+			this.activeTab = null;
+			this.loadingTab = null;
+			this.$(".chart-preloader").hide();
+			if (isCritical) {
+				this.$(".tab-pane.active").prepend('<div class="chart-error critical"><pre>' + err + '</pre></div>');
+			} else {
+				this.showMessage(err);
+			}
+		},
+
+		chart.showMessage = function(msg) {
+			this.$(".tab-pane.active").prepend('<div class="chart-error"><div>' + msg + '</div></div>');			
+		},
 
 		chart.setupDOM();
 		chart.resize();
@@ -264,30 +291,5 @@
 			}.bind(this));
 		},
 
-		handleError: function(err, isCritical) {
-			if (isCritical !== false) isCritical = true;
-
-			if (err.responseText) {
-				err = err.status + " " + err.statusText + "\n" + "    " + err.responseText;
-			} else if (err.stack) {
-				err = err.stack;
-			}
-			console.error(err);
-			var tab = this.activeTab || this.loadingTab;
-			if (tab)
-				tab.deactivate();
-			this.activeTab = null;
-			this.loadingTab = null;
-			this.$(".chart-preloader").hide();
-			if (isCritical) {
-				this.$(".tab-pane.active").prepend('<div class="chart-error critical"><pre>' + err + '</pre></div>');
-			} else {
-				this.showMessage(err);
-			}
-		},
-
-		showMessage: function(msg) {
-			this.$(".tab-pane.active").prepend('<div class="chart-error"><div>' + msg + '</div></div>');			
-		},
 	});
 })();

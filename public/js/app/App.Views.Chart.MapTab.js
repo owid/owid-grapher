@@ -9,7 +9,6 @@
 		ChartDataModel = App.Models.ChartDataModel;
 
 	App.Views.Chart.MapTab = owid.View.extend({
-
 		BORDERS_DISCLAIMER_TEXT: "Mapped on current borders",
 
 		el: "#chart",
@@ -18,12 +17,13 @@
 		legend: null,
 		bordersDisclaimer: null,
 		events: {
-			"click .datamaps-subunit": "onMapClick"
+			"click .datamaps-subunit": "onMapClick",
+			"mouseenter .datamaps-subunit": "onMapHover",
+			"mouseleave .datamaps-subunit": "onMapHoverStop"
 		},
 
-		initialize: function( options ) {
-			this.dispatcher = options.dispatcher;
-			this.parentView = options.parentView;
+		initialize: function(chart) {
+			this.dispatcher = _.clone(Backbone.Events);
 			this.$tab = this.$el.find("#map-chart-tab");
 		},
 
@@ -41,12 +41,20 @@
 				if (!entity) return;
 				App.ChartModel.set({ "selected-countries": [entity] }, { silent: true });
 				App.ChartData.chartData = null;
-				App.ChartView.activateTab("chart");
+				chart.display.set({ activeTab: 'chart' });
 				App.ChartView.urlBinder.updateCountryParam();
 			});
 		},
 
-		activate: function(callback) {
+		onMapHover: function(ev) {
+			chart.tooltip.fromMap(ev, ev.target);
+		},
+
+		onMapHoverStop: function(ev) {
+			chart.tooltip.hide();
+		},
+
+		activate: function() {
 			this.mapControls = this.addChild(MapControls, { dispatcher: this.dispatcher });
 			this.timelineControls = this.addChild(TimelineControls, { dispatcher: this.dispatcher });
 
@@ -55,18 +63,17 @@
 					this.updateYearOnly();
 				} else {
 					this.update();
-					App.ChartView.onResize();					
 				}
 			}.bind(this));
 
 			this.delegateEvents();
-			this.update(callback);
+			this.update();
 		},
 
 		deactivate: function() {
 			this.cleanup();
 
-			$(".datamaps-hoverover").remove();
+			$('.nvtooltip').remove();
 			d3.selectAll(".datamaps-subunits, .border-disclaimer, .legend-wrapper, .map-bg").remove();			
 			$("svg").removeClass("datamap");
 			this.dataMap = null;
@@ -81,7 +88,7 @@
 			// We need to wait for both datamaps to finish its setup and the variable data
 			// to come in before the map can be fully rendered
 			var onMapReady = function() {
-				$(".chart-wrapper-inner").attr("style", "");
+				$(".chart-inner").attr("style", "");
 
 				App.ChartData.ready(function() {
 					this.render(callback);
@@ -103,7 +110,7 @@
 				// HACK (Mispy): When changing to a year without data for a country, need to do this
 				// to get the right highlightFillColor.
 				this.dataMap.options.data = this.mapData;
-				this.parentView.header.render();
+				App.ChartView.header.render();
 				if (App.MapModel.showOnlyRelevantLegend()) {
 					// HACK (Mispy): We really need to refactor the map legend into a proper view
 					this.colorScale = this.makeColorScale();
@@ -118,7 +125,7 @@
 			var $oldSvg = $("svg");
 			
 			this.dataMap = new Datamap({
-				element: $(".chart-wrapper-inner").get(0),
+				element: $(".chart-inner").get(0),
 				responsive: false,
 				geographyConfig: {
 					dataUrl: Global.rootUrl + "/js/data/world.ids.json",
@@ -127,7 +134,7 @@
 					highlightFillColor: '#8b8b8b',
 					highlightBorderWidth: 3,
 					highlightBorderColor: '#FFEC38',
-					popupTemplate: this.popupTemplateGenerator,
+					popupOnHover: false,
 					hideAntarctica: true
 				},
 				fills: {
@@ -165,25 +172,6 @@
 				}
 			}
 
-		},
-
-		popupTemplateGenerator: function(geo, data) {
-			if (_.isEmpty(data)) return;
-
-			//transform datamaps data into format close to nvd3 so that we can reuse the same popup generator
-			var variableId = App.MapModel.get("variableId"),
-				propertyName = App.Utils.getPropertyByVariableId(App.ChartModel, variableId) || "y";
-
-			var obj = {
-				point: {
-					time: data.year
-				},
-				series: [{
-					key: geo.properties.name
-				}]
-			};
-			obj.point[propertyName] = data.value;
-			return ["<div class='hoverinfo nvtooltip'>" + owid.contentGenerator( obj, true ) + "</div>"];
 		},
 
 		/**
@@ -243,7 +231,7 @@
 			});
 		},
 
-		render: function(callback) {
+		render: function() {
 			try {
 				this.mapData = this.transformData();
 				if (!this.mapData) return;				
@@ -263,8 +251,7 @@
 					});
 					self.mapControls.render();
 					self.timelineControls.render();
-					if (_.isFunction(callback)) callback();
-					else self.onResize();
+					self.onResize();
 				};
 
 				if (oldProjection === newProjection) {

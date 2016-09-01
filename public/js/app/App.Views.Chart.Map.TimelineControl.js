@@ -50,7 +50,7 @@
 
 			var pageX = evt.pageX || evt.originalEvent.touches[0].pageX,
 				xPos = pageX - this.$sliderInput.offset().left,
-				fracWidth = xPos / this.$sliderInput.width(),
+				fracWidth = xPos / this.$sliderInput.get(0).getBoundingClientRect().width,
 				targetYear = this.minYear + fracWidth*(this.maxYear-this.minYear);
 
 			this.setTargetYear(targetYear);

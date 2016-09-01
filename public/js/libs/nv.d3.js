@@ -221,8 +221,8 @@ nv.interactiveGuideline = function() {
 
             function mouseHandler() {
                 var d3mouse = d3.mouse(this);
-                var mouseX = d3mouse[0];
-                var mouseY = d3mouse[1];
+                var mouseX = d3mouse[0]/window.chart.scale;
+                var mouseY = d3.mouse(d3.select('.nv-wrap rect').node())[1]/window.chart.scale;
                 var subtractMargin = true;
                 var mouseOutAnyReason = false;
                 if (isMSIE) {
@@ -257,15 +257,16 @@ nv.interactiveGuideline = function() {
 
                 if(subtractMargin) {
                     mouseX -= margin.left;
-                    mouseY -= margin.top;
+//                    mouseY -= margin.top;
                 }
+
+                console.log(mouseX, mouseY);
 
                 /* If mouseX/Y is outside of the chart's bounds,
                  trigger a mouseOut event.
                  */
                 if (mouseX < 0 || mouseY < 0
                     || mouseX > availableWidth || mouseY > availableHeight
-                    || (d3.event.relatedTarget && d3.event.relatedTarget.ownerSVGElement === undefined)
                     || mouseOutAnyReason
                     ) {
 

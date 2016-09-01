@@ -7,6 +7,7 @@
 
 		var changes = owid.changes();
 		changes.track(chart.model, 'chart-name chart-subname add-country-mode selected-countries logo second-logo');
+		changes.track(chart.map, 'targetYear');
 		changes.track(chart.data, 'minYear maxYear');
 		changes.track(chart.display, 'renderHeight renderWidth activeTab');
 
@@ -165,7 +166,7 @@
 	owid.namespace("App.Views.Chart.Header");
 	App.Views.Chart.Header = owid.View.extend({
 		updateTimeFromMap: function(map) {			
-			var mapConfig = App.MapModel.attributes,
+			var mapConfig = chart.map.attributes,
 				timeFrom = map.minToleranceYear || mapConfig.targetYear,
 				timeTo = map.maxToleranceYear || mapConfig.targetYear,
 				targetYear = mapConfig.targetYear,

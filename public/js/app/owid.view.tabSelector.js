@@ -18,7 +18,9 @@
 				newTab = chart.tabs[newTabName],
 				currentTab = chart.activeTab;
 
-			if (currentTab && currentTab != newTab && currentTab.cleanup) currentTab.cleanup();
+			if (currentTab && currentTab != newTab && currentTab.deactivate) currentTab.deactivate();
+			if (currentTab != newTab && newTab.activate) newTab.activate();
+
 			$('li[data-tab=' + newTabName + '] a').tab('show');
 			chart.activeTab = newTab;
 		};

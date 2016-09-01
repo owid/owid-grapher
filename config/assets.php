@@ -173,6 +173,7 @@ return [
 		        'app/App.Views.Chart.Footer.js',
 		        'app/App.Views.Chart.ScaleSelectors.js',
 		        'app/owid.view.tabSelector.js',
+		        'app/owid.view.tooltip.js',
 		        'app/App.Views.Chart.Legend.js',
 		        'app/App.Views.Chart.ChartTab.js',
 		        'app/App.Views.Chart.DataTab.js',

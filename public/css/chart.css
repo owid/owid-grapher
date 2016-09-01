@@ -420,6 +420,8 @@ svg.line-dots .nvd3.nv-line .nvd3.nv-scatter .nv-groups .nv-point {
 
 #chart nav.tabs {
     width: 100%;
+    background-color: white;
+    z-index: 2;
 }
 #chart nav.tabs ul {
     position: relative;
@@ -427,7 +429,6 @@ svg.line-dots .nvd3.nv-line .nvd3.nv-scatter .nv-groups .nv-point {
     list-style-type: none;
     text-transform: uppercase;
     padding-left: 0;
-    z-index: 2;
 }
 #chart nav.tabs li {
     position: relative;
