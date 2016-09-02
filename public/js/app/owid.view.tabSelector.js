@@ -50,9 +50,9 @@
 			});
 
 			// Show only the tabs which are active for this chart
-			$nav.find('li').attr("style", "display: none !important;");
+			$nav.find('li.header-tab').attr("style", "display: none !important;");
 			_.each(chart.model.get('tabs'), function(tabName) {
-				$nav.find('li[data-tab=' + tabName + ']').show();
+				$nav.find('li.header-tab[data-tab=' + tabName + ']').show();
 			});
 
 			//for first visible tab, add class for border-left, cannot be done in pure css http://stackoverflow.com/questions/18765814/targeting-first-visible-element-with-pure-css

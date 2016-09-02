@@ -97,7 +97,7 @@
 
 				nvd3.width(chartWidth);
 				nvd3.height(chartHeight);
-				nvd3.margin({ left: +margins.left, top: +margins.top, right: +margins.right + 20, bottom: +margins.bottom + 20 });
+				nvd3.margin({ left: +margins.left + 10, top: +margins.top, right: +margins.right + 20, bottom: +margins.bottom + 20 });
 				nvd3.dispatch.on("renderEnd", postRender);
 
 				renderAxis();
@@ -116,8 +116,17 @@
 
 				var nvWrap = d3.select('.nvd3.nv-wrap > g');
 				nvWrap.attr('transform', 'translate(' + chartOffsetX + ',' + chartOffsetY + ')');		
+				$('.nvtooltip:not(.owid-tooltip)').remove();
+
+				//if y axis has zero, display solid line
+				var $pathDomain = $(".nvd3 .nv-axis.nv-x path.domain");
+				if (yDomain[0] === 0) {
+					$pathDomain.css("stroke-opacity", "1");
+				} else {
+					$pathDomain.css("stroke-opacity", "0");
+				}
+
 				changes.done();	
-				$('.nvtooltip').remove();
 			});
 		};
 
@@ -219,10 +228,11 @@
 		function renderLineChart() {
 			var lineType = chart.model.get("line-type");
 			if (lineType == App.LineType.WithDots || lineType == App.LineType.DashedIfMissing) {
-				$svg.addClass("line-dots");
+				chart.$chart.addClass("line-dots");
 			} else {
-				$svg.removeClass("line-dots");
+				chart.$chart.removeClass("line-dots");
 			}
+
 
 			nvd3 = nv.models.lineChart().options(nvOptions);			
 		}
@@ -452,13 +462,6 @@
 				nvd3.yAxis.ticks(7);
 			}
 
-			//if y axis has zero, display solid line
-			var $pathDomain = $(".nvd3 .nv-axis.nv-x path.domain");
-			if (yDomain[0] === 0) {
-				$pathDomain.css("stroke-opacity", "1");
-			} else {
-				$pathDomain.css("stroke-opacity", "0");
-			}
 		}
 
 		function renderLegend() {
@@ -547,7 +550,7 @@
 				});
 			}										
 
-			$(window).trigger('chart-loaded');
+			chart.dispatch.renderEnd();
 		}
 
 		return chartTab;

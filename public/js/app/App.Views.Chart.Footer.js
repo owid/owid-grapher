@@ -113,9 +113,9 @@
 
 			var footerHeight = g.node().getBBox().height;
 			g.insert("rect", "*")
-				.attr("x", 0).attr("y", -25)			
+				.attr("x", 0).attr("y", -26)			
 				.attr("width", svgWidth)
-				.attr("height", footerHeight + 25)
+				.attr("height", footerHeight + 27)
 				.style("fill", "#fff");
 			g.attr("transform", "translate(0, " + (svgHeight - footerHeight - $(".footer-btns").height()) + ")");
 

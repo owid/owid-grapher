@@ -128,6 +128,7 @@
 				logoX = svgWidth - logoWidth*scaleFactor;
 			logo.attr("transform", "translate(" + logoX + ", 5) scale(" + scaleFactor + ", " + scaleFactor + ")");
 			logo.style("visibility", "inherit");
+			var logoBounds = chart.getBounds(logo.node());
 
 			// HACK (Mispy): I should do alternate logos roperly at some point
 			if (logoPath != App.OWID_LOGO) {
@@ -148,21 +149,26 @@
 				owid.svgSetWrappedText(chartNameText, linkedName, availableWidth - 10, { lineHeight: 1.1 });
 				document.title = chartName + " - Our World In Data";
 
+				var chartNameBounds = chart.getBounds(chartNameText.node());
+
 				var chartSubnameText = g.select(".chart-subname-svg")
 					.attr("x", 1)
-					.attr("y", chart.getBounds(chartNameText.node()).bottom - svgBounds.top);
+					.attr("y", chartNameBounds.bottom - svgBounds.top);
 
-				owid.svgSetWrappedText(chartSubnameText, chartSubname, availableWidth - 10, { lineHeight: 1.2 });
+				// If we're far enough down, go past the logo
+				if (chartNameBounds.bottom > logoBounds.bottom)
+					availableWidth = svgBounds.width;
+				owid.svgSetWrappedText(chartSubnameText, chartSubname, availableWidth , { lineHeight: 1.2 });
 
 				g.select(".header-bg-svg").remove();
 				var bgHeight = chart.getBounds(g.node()).height + 20;
 				g.insert("rect", "*")
 					.attr("class", "header-bg-svg")
 					.attr("x", 0)
-					.attr("y", 0)
+					.attr("y", -1)
 					.style("fill", "#fff")
 					.attr("width", svgWidth)
-					.attr("height", bgHeight);
+					.attr("height", bgHeight+1);
 				header.bounds = chart.getBounds($('.chart-header-svg').get(0));
 			}.bind(this);
 

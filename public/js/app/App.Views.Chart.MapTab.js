@@ -65,6 +65,10 @@
 					this.update();
 				}
 			}.bind(this));
+			this.listenTo($(window), 'resize', function() {
+				this.deactivate();
+				this.activate();
+			}.bind(this))
 
 			this.delegateEvents();
 			this.update();
@@ -73,7 +77,8 @@
 		deactivate: function() {
 			this.cleanup();
 
-			$('.nvtooltip').remove();
+			chart.tooltip.hide();
+			$('.datamaps-hoverover').remove();
 			d3.selectAll(".datamaps-subunits, .border-disclaimer, .legend-wrapper, .map-bg").remove();			
 			$("svg").removeClass("datamap");
 			this.dataMap = null;
@@ -91,7 +96,7 @@
 				$(".chart-inner").attr("style", "");
 
 				App.ChartData.ready(function() {
-					this.render(callback);
+					this.render();
 				}.bind(this));				
 			}.bind(this);
 
@@ -247,7 +252,7 @@
 				var updateMap = function() {
 					self.dataMap.updateChoropleth(self.mapData, { reset: true });
 					d3.selectAll("svg.datamap").transition().each("end", function() {
-						$(window).trigger("chart-loaded");
+						chart.dispatch.renderEnd();
 					});
 					self.mapControls.render();
 					self.timelineControls.render();

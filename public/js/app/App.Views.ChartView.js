@@ -5,7 +5,12 @@
 	owid.chart = function() {
 		function chart() {}
 		App.ChartView = chart;
+		window.chart = chart;
 
+		// For events that MUST be asynchronous and global, use sparingly
+		chart.dispatch = d3.dispatch('renderEnd');
+
+		// Set up models and data processors
 		App.VariableData = new App.Models.VariableData();	
 		App.ChartData = new App.Models.ChartData();
 		App.Colors = new App.Models.Colors();
@@ -19,8 +24,8 @@
 		// For tracking transient display properties we don't want to save
 		var DisplayModel = Backbone.Model.extend({
 			defaults: {
-				screenWidth: null,
-				screenHeight: null,
+				targetWidth: null,
+				targetHeight: null,
 				renderWidth: null,
 				renderHeight: null,	
 				activeTab: null		
@@ -32,10 +37,12 @@
 		var changes = owid.changes();
 		changes.track(chart.model);
 		changes.track(chart.data);
-		changes.track(chart.display, 'activeTab screenWidth screenHeight');
+		changes.track(chart.display, 'activeTab targetWidth targetHeight');
 
+		// DOM setup
 		var $chart = window.$("#chart"),
 			$ = $chart.find.bind($chart);
+		chart.$chart = $chart;
 		chart.dom = $chart.get(0);
 		chart.$ = $;
 
@@ -71,6 +78,24 @@
 			}
 		}.bind(this));*/
 
+		chart.render = function() {			
+			if (!changes.start())
+				return;
+			console.trace('chart.render');
+			chart.data.transformData();
+			if (changes.any('activeTab')) chart.tabSelector.switchTab();
+			chart.initialScale();
+			chart.header.render();
+			chart.footer.render();
+			chart.tabSelector.render();
+			if (chart.activeTab != chart.tabs.map)
+				chart.activeTab.render();
+			chart.displayScale();
+
+			$chart.css('visibility', 'visible');			
+			changes.done();
+		};
+
 		chart.setupDOM = function() {
 			jQuery(window).resize(chart.resize);
 
@@ -104,21 +129,31 @@
 		};
 
 		chart.initialScale = function() {
-			if (!changes.any('screenWidth screenHeight'))
+			if (!changes.any('targetWidth targetHeight'))
 				return;
 
-			var screenWidth = chart.display.get('screenWidth'),
-				screenHeight = chart.display.get('screenHeight'),
+			chart.scale = 1;
+
+			var targetWidth = chart.display.get('targetWidth'),
+				targetHeight = chart.display.get('targetHeight'),
 				authorWidth = App.AUTHOR_WIDTH,
 				authorHeight = App.AUTHOR_HEIGHT,
 				renderWidth, renderHeight;
 
-			if (screenWidth >= screenHeight) {
-				renderWidth = (screenWidth/screenHeight) * authorHeight;
+			if (App.isExport) {
+				renderWidth = targetWidth;
+				renderHeight = targetHeight;
+			} else if (App.isEditor) {
+				renderWidth = authorWidth;
 				renderHeight = authorHeight;
 			} else {
-				renderWidth = authorWidth;
-				renderHeight = (screenHeight/screenWidth) * authorWidth;
+				if (targetWidth/targetHeight >= authorWidth/authorHeight) {
+					renderWidth = (targetWidth/targetHeight) * authorHeight;
+					renderHeight = authorHeight;
+				} else {
+					renderWidth = authorWidth;
+					renderHeight = (targetHeight/targetWidth) * authorWidth;
+				}				
 			}
 
 			chart.dom.style.width = renderWidth + 'px';
@@ -128,23 +163,35 @@
 			chart.dom.style.top = '';
 			owid.transformElement(chart.dom, '');
 
-			chart.screenWidth = screenWidth;
-			chart.screenHeight = screenHeight;
+			$chart.removeClass('portrait landscape small medium big');
+
+			if (renderWidth >= renderHeight)
+				$chart.addClass('landscape');
+			else
+				$chart.addClass('portrait');			
+
+			if (renderWidth < 768)
+				$chart.addClass('small');
+
+			chart.targetWidth = targetWidth;
+			chart.targetHeight = targetHeight;
 			chart.authorWidth = authorWidth;
 			chart.authorHeight = authorHeight;
 			chart.renderWidth = renderWidth;
 			chart.renderHeight = renderHeight;
 			chart.display.set({ renderWidth: renderWidth, renderHeight: renderHeight });
-			chart.scale = 1;
 		};
 
 		chart.displayScale = function() {
-			if (!changes.any('screenWidth screenHeight'))
+			if (!changes.any('targetWidth targetHeight'))
 				return;
 
-			var scale = Math.min(chart.screenWidth/chart.renderWidth, chart.screenHeight/chart.renderHeight);
+			if (App.isExport || App.isEditor)
+				return;
 
-			if (false && scale > 1 && owid.features.zoom) {
+			var scale = Math.min(chart.targetWidth/chart.renderWidth, chart.targetHeight/chart.renderHeight);
+
+			if (scale > 1 && owid.features.zoom) {
 				chart.dom.style.zoom = scale;
 			} else {
 				chart.dom.style.left = '50%';
@@ -157,28 +204,11 @@
 			chart.scale = scale;
 		};
 
-		chart.render = function() {
-			if (!changes.start())
-				return;
-			console.trace('chart.render');
-			chart.data.transformData();
-			if (changes.any('activeTab')) chart.tabSelector.switchTab();
-			chart.initialScale();
-			chart.header.render();
-			chart.footer.render();
-			chart.tabSelector.render();
-			chart.activeTab.render();
-			chart.displayScale();
-
-			$chart.css('visibility', 'visible');			
-			changes.done();
-		};
-
 		chart.getBounds = function(node) {
 			var bounds = node.getBoundingClientRect(),
 				untransformedBounds;
 
-			if (false && chart.scale > 1 && owid.features.zoom) {
+			if (chart.scale > 1 && owid.features.zoom) {
 				untransformedBounds = bounds;
 			} else {
 				untransformedBounds = {
@@ -195,8 +225,8 @@
 
 		chart.resize = function() {
 			chart.display.set({
-				screenWidth: $chart.parent().width(),
-				screenHeight: $chart.parent().height()
+				targetWidth: $chart.parent().width(),
+				targetHeight: $chart.parent().height()
 			});
 		};
 
@@ -220,11 +250,11 @@
 			} else {
 				this.showMessage(err);
 			}
-		},
+		};
 
 		chart.showMessage = function(msg) {
 			this.$(".tab-pane.active").prepend('<div class="chart-error"><div>' + msg + '</div></div>');			
-		},
+		};
 
 		chart.setupDOM();
 		chart.resize();
@@ -235,8 +265,8 @@
 		chart.display.on('change', function() {
 			chart.data.ready(chart.render);
 		});
+		chart.data.ready(chart.render);
 
-		window.chart = chart;
 		chart.changes = changes;
 		return chart;
 	};	

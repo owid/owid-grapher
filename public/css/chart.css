@@ -167,7 +167,7 @@ select.disabled {
 * CHARTS
 **/
 
-svg.line-dots .nvd3.nv-line .nvd3.nv-scatter .nv-groups .nv-point {
+#chart.line-dots .nvd3.nv-line .nvd3.nv-scatter .nv-groups .nv-point {
     stroke-opacity: 1;
     fill-opacity: 1;
 }
@@ -489,6 +489,8 @@ svg.line-dots .nvd3.nv-line .nvd3.nv-scatter .nv-groups .nv-point {
     position: absolute;
     bottom: 0;
     z-index: 2;
+    width: 100%;
+    background-color: white;
 }
 .footer-btns a {
     text-decoration: none;
@@ -1104,87 +1106,80 @@ body#chart-export .nv-custom-legend .nv-legend-text {
 
 
 #chart {
-    font-size: 22px;
+    font-size: 20px;
 }
 
-@media (max-width: 768px) {
-    #chart.embedded {
+#chart:not(.small) {
+    font-size: 18px;
+}
+
+/* Small chart */
+    #chart.small.embedded {
         padding: 0.6em;
         border: 1px solid #ccc;
     }
-    #chart:not(.embedded) {
+    #chart.small:not(.embedded) {
         padding: 1em;
     }
 
-    .nv-custom-legend .nv-legend-text {
+    #chart.small .nv-custom-legend .nv-legend-text {
         font-size: 14px !important;
     }
-
     /* Tabs should fill the entire width */    
-    #chart nav.tabs ul {
+    #chart.small nav.tabs ul {
         display: table;
         width: 100%;
     }
-    #chart nav.tabs li {
+    #chart.small nav.tabs li {
         display: table-cell;
     }
-    #chart nav.tabs li > a {
+    #chart.small nav.tabs li > a {
         padding: 3px 8px;
     }
-    #chart nav.tabs li.edit-btn-wrapper {
+    #chart.small nav.tabs li.edit-btn-wrapper {
+        display: none;
+    }
+    /* Compact the footer buttons a bit */
+    #chart.small .footer-btns a.chart-link-btn span,
+    #chart.small .footer-btns a.tweet-btn span,
+    #chart.small .footer-btns a.facebook-btn span,
+    #chart.small .footer-btns a.embed-btn span {
+        display: none;
+    }
+    #chart.small .footer-btns i {
+        font-size: 1.2em;
+    }
+    #chart.small .nv-add-btn {
         display: none;
     }
 
-    /* Compact the footer buttons a bit */
-    #chart .footer-btns {
-        padding-top: 5px;
-        height: 19px;
-    }
-    #chart .footer-btns a.chart-link-btn span,
-    #chart .footer-btns a.tweet-btn span,
-    #chart .footer-btns a.facebook-btn span,
-    #chart .footer-btns a.embed-btn span {
-        display: none;
-    }
-    #chart .footer-btns i {
-        font-size: 1.2em;
-    }
-    #chart .nv-add-btn {
-        display: none;
-    }
-}
-@media (min-width: 769px) {
-    #chart.embedded {
+/* Bigger chart */
+    #chart:not(.small).embedded {
         padding: 1em 1.5em;
         border: 1px solid #ccc;
     }
-    #chart:not(.embedded) {
+    #chart:not(.small):not(.embedded) {
         padding: 1.5em 3em;
     }
-
-    .nv-custom-legend .nv-legend-text {    
+    #chart:not(.small) .nv-custom-legend .nv-legend-text {    
         font-size: 16px !important;
     }
-
     /* Desktop-style tabs */
-    #chart nav.tabs ul {
+    #chart:not(.small) nav.tabs ul {
         float: right;
     }
-    #chart nav.tabs li {
+    #chart:not(.small) nav.tabs li {
         float: left;
     }
-
     /* Desktop-only: can click on world map to get chart */
-    .datamaps-subunits {
+    #chart:not(.small) .datamaps-subunits {
         cursor: pointer;
     }
-
-
-    .datasource-wrapper td:first-child {
+    #chart:not(.small) .datasource-wrapper td:first-child {
         min-width: 100px;
         white-space: nowrap;
     }    
-}
+
 /* Miscellaneous
 --------------------------------------------- */
 

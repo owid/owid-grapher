@@ -39,29 +39,27 @@
 				renderHeight = ((targetHeight-40)/(targetWidth-40)) * renderWidth;
 			}
 
-			$("#chart").css("width", renderWidth);
-			$("#chart").css("height", renderHeight);
+			$("body").css("width", renderWidth);
+			$("body").css("height", renderHeight);
 
-			$(window).one("chart-loaded", function() {
-				App.ChartView.onResize(function() {
-					setTimeout(function() {
-						var svg = $("svg").get(0);
-						var width = $(".chart-wrapper-inner").width();
-						var height = $(".chart-wrapper-inner").height();
-						svg.setAttribute("viewBox", "0 0 " + width + " " + height);
-						svg.setAttribute("preserveAspectRatio", "none");
-						$(svg).css("width", (targetWidth-40) + "px");
-		   			    $(svg).css("height", (targetHeight-40) + "px");
-						$("svg").css("margin", "20px");
-						$("#chart").css('width', targetWidth);
-						$("#chart").css('height', targetHeight);
+			chart.dispatch.on('renderEnd', function() {
+				setTimeout(function() {
+					var svg = $("svg").get(0);
+					var width = $(".chart-inner").width();
+					var height = $(".chart-inner").height();
+					svg.setAttribute("viewBox", "0 0 " + width + " " + height);
+					svg.setAttribute("preserveAspectRatio", "none");
+					$(svg).css("width", (targetWidth-40) + "px");
+	   			    $(svg).css("height", (targetHeight-40) + "px");
+					$("svg").css("margin", "20px");
+					$("#chart").css('width', targetWidth);
+					$("#chart").css('height', targetHeight);
 
-						if (window.callPhantom) {
-							window.callPhantom({ targetWidth: targetWidth, targetHeight: targetHeight }); // Notify phantom that we're ready for PNG screenshot
-							this.onSVGExport();
-						}						
-					}.bind(this), 100);
-				}.bind(this));
+					if (window.callPhantom) {
+						window.callPhantom({ targetWidth: targetWidth, targetHeight: targetHeight }); // Notify phantom that we're ready for PNG screenshot
+						this.onSVGExport();
+					}						
+				}.bind(this), 100);
 			}.bind(this));
 		},
 
