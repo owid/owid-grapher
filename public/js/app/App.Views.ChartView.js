@@ -51,7 +51,6 @@
 		chart.exporter = new App.Views.Export(chart);
 		chart.header = owid.view.header(chart);
 		chart.footer = new App.Views.Chart.Footer(chart);
-		chart.scaleSelectors = new App.Views.Chart.ScaleSelectors(chart);
 		chart.tabSelector = owid.view.tabSelector(chart);
 		chart.debugHelper = new App.Views.DebugHelper(chart);
 		chart.tooltip = new owid.view.tooltip(chart);
@@ -170,7 +169,7 @@
 			else
 				$chart.addClass('portrait');			
 
-			if (renderWidth < 768)
+			if (targetWidth < 768)
 				$chart.addClass('small');
 
 			chart.targetWidth = targetWidth;

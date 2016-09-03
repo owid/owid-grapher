@@ -53,11 +53,7 @@
 				footerSvgNote += '<a class="bold">Note: </a>' + chartDesc;
 			}
 
-			// Static image export has slightly different license text
-			if ($("#chart-export").length > 0)
-				footerSvgLicense = 'The author Max Roser licensed this visualization under a <a class="licence-link" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA license</a>. At the site - *data-entry* - you find the data for download and the empirical research on this topic that puts this visualization in context.';
-			else
-				footerSvgLicense = 'The author Max Roser licensed this visualization under a <a class="licence-link" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA license</a>. At the site - *data-entry* - you find the empirical research on this topic that puts this visualization in context.';
+			footerSvgLicense = '*data-entry* • <a class="licence-link" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA</a>';
 
 			var originUrl = App.ChartModel.get("data-entry-url");
 
@@ -108,7 +104,7 @@
 	
 			$(".chart-footer-svg .source-link").click(function(ev) {
 				ev.preventDefault();
-				App.ChartView.activateTab("sources");
+				chart.display.set({ activeTab: 'sources' });
 			});
 
 			var footerHeight = g.node().getBBox().height;

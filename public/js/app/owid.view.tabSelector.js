@@ -7,7 +7,7 @@
 		var $nav = chart.$('nav.tabs');
 
 		var changes = owid.changes();
-		changes.track(chart.model, 'tabs');
+		changes.track(chart.model, 'tabs chart-name chart-subname chart-dimensions chart-description');
 		changes.track(chart.display, 'renderWidth renderHeight activeTab');
 
 		tabSelector.switchTab = function() {
@@ -19,7 +19,7 @@
 				currentTab = chart.activeTab;
 
 			if (currentTab && currentTab != newTab && currentTab.deactivate) currentTab.deactivate();
-			if (currentTab != newTab && newTab.activate) newTab.activate();
+			if (currentTab != newTab && newTab && newTab.activate) newTab.activate();
 
 			$('li[data-tab=' + newTabName + '] a').tab('show');
 			chart.activeTab = newTab;
@@ -59,7 +59,7 @@
 			$nav.find('li').removeClass('first');
 			$nav.find('li:visible:first').addClass('first');
 
-			$nav.find('li').off('click').on('click', function(ev) {
+			$nav.find('li.header-tab').off('click').on('click', function(ev) {
 				chart.display.set('activeTab', $(this).attr('data-tab'));
 				ev.preventDefault();
 			});

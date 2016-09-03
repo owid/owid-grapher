@@ -28,9 +28,9 @@
 				minYear = chart.data.get('minYear');
 				maxYear = chart.data.get('maxYear');
 				targetYear = null;
+				disclaimer = null;
 			}
 		}
-
 
 		function updateTimeFromMap(map) {
 			var mapConfig = chart.map.attributes,
@@ -39,6 +39,8 @@
 				year = mapConfig.targetYear,
 				hasTargetYear = _.find(map.mapData, function(d) { return d.year == year; }),
 				d = owid.displayYear;
+
+			if (!map.mapData) return;
 
 			if (hasTargetYear && timeFrom != timeTo) {
 				// The target year is in the data but we're displaying a range, meaning not available for all countries
@@ -158,7 +160,7 @@
 				// If we're far enough down, go past the logo
 				if (chartNameBounds.bottom > logoBounds.bottom)
 					availableWidth = svgBounds.width;
-				owid.svgSetWrappedText(chartSubnameText, chartSubname, availableWidth , { lineHeight: 1.2 });
+				owid.svgSetWrappedText(chartSubnameText, chartSubname, availableWidth - 10 , { lineHeight: 1.2 });
 
 				g.select(".header-bg-svg").remove();
 				var bgHeight = chart.getBounds(g.node()).height + 20;

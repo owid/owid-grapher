@@ -19,8 +19,8 @@
 				container = d3.select($svg[0]),
 				offsetX = 35, offsetY = 0,
 				availableWidth = $svg.width() - offsetX,
-				spaceBetweenLabels = 38,
-				spaceBetweenLines = 32;
+				spaceBetweenLabels = 22,
+				spaceBetweenLines = 28;
 
 			var wrap = container.selectAll('g.nv-custom-legend').data([1]),
 				gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-custom-legend').append('g').attr('class', 'nv-legend-series-wrapper'),
@@ -89,13 +89,13 @@
 			seriesShape
 				.attr('width', function(d,i) {
 					//position remove btn
-					var width = seriesText[0][i].getComputedTextLength() + 5;
-					d3.select(seriesRemove[0][i]).attr('transform', 'translate(' + width + ',-3)');
-					return width+29;
+					var width = seriesText[0][i].getComputedTextLength();
+					d3.select(seriesRemove[0][i]).attr('transform', 'translate(' + (width+2) + ',-3) scale(0.8)');
+					return width+18;
 				})
-				.attr('height', 26)
-				.attr('y', -13)
-				.attr('x', -13);
+				.attr('height', 24)
+				.attr('y', -12)
+				.attr('x', -8);
 
 			seriesShape.style('fill', function(d, i) {
 				return d.color || nv.utils.getColor(d, i);
@@ -153,13 +153,17 @@
 				}
 			}
 
-			transformY -= 7;
-			transformX += 22;
+			transformY -= 8;
+			transformX += 28;
 			addEntityBtn.attr("transform", "translate(" + transformX + "," + transformY + ")");
 		},
 
 		height: function() {
-			return d3.select(".nv-custom-legend").node().getBBox().height;
+			var legend = d3.select('.nv-custom-legend');
+			if (legend.node())
+				return d3.select(".nv-custom-legend").node().getBBox().height;
+			else
+				return 0;
 		}
 	});
 })();

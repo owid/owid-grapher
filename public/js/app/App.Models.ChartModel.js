@@ -166,21 +166,10 @@
 			});
 		},
 
-		setAxisConfig: function( axisName, prop, value ) {
-			if( $.isArray( this.get( "y-axis" ) ) ) {
-				//we got empty array from db, convert to object
-				this.set( "y-axis", {} );
-			}
-			if( $.isArray( this.get( "x-axis" ) ) ) {
-				//we got empty array from db, convert to object
-				this.set( "x-axis", {} );
-			}
-
-			var axis = this.get( axisName );
-			if( axis ) {
-				axis[ prop ] = value;
-			}
-			this.trigger( "change" );
+		setAxisConfig: function(axisName, prop, value) {
+			var axis = _.extend({}, this.get(axisName));
+			axis[prop] = value;
+			this.set(axisName, axis);
 		},
 
 		getAxisConfig: function(axisName, prop) {

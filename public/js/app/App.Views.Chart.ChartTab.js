@@ -18,13 +18,13 @@
 		changes.track(chart.display);
 
 		var $svg, $tab, $entitiesSelect,
-			$xAxisScale, $xAxisScaleSelector,
-			$yAxisScale, $yAxisScaleSelector,
+			$xAxisScale, $yAxisScale,
 			svg, nvd3;
 
 		var chartType, localData, missingMsg, lineType;
 
 		var legend = new App.Views.Chart.Legend();
+		chartTab.legend = legend;
 
 		var xAxis = chart.model.get("x-axis"),
 			yAxis = chart.model.get("y-axis"),
@@ -45,6 +45,8 @@
 
 		var xDomain, yDomain, isClamped;
 
+		chartTab.scaleSelectors = owid.view.scaleSelectors(chart);
+
 		var nvOptions = {
 			showLegend: false
 		};
@@ -55,8 +57,7 @@
 
 			chart.model.off(null, null, this);
 			d3.selectAll(".nvd3").remove();
-			if ($yAxisScaleSelector)
-				$yAxisScaleSelector.hide();
+			chartTab.scaleSelectors.hide();
 			d3.selectAll("svg").on("mousemove.stackedarea", null);
 			changes.done();
 		},
@@ -69,10 +70,11 @@
 			configureData();
 			configureAxis();
 			configureBounds();
+			renderLegend();
 
 			$(".chart-error").remove();
 			if (missingMsg || _.isEmpty(localData)) {
-				$tab.find(".nv-wrap").remove();
+				chart.$(".nv-wrap").remove();
 				chart.showMessage(missingMsg || "No available data.");
 				return changes.done();
 			}
@@ -81,7 +83,6 @@
 
 			// Initialize or update the nvd3 graph
 			nv.addGraph(function() {
-				renderLegend();
 
 				if (chartType == App.ChartType.LineChart) {
 					renderLineChart();
@@ -126,6 +127,11 @@
 					$pathDomain.css("stroke-opacity", "0");
 				}
 
+				// Move controls up for multibar chart
+				if (chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar) {
+					d3.select( ".nv-controlsWrap" ).attr( "transform", "translate(0,-30)" );
+				}
+
 				changes.done();	
 			});
 		};
@@ -140,10 +146,6 @@
 			$svg.attr("class", "nvd3-svg " + chartType);
 			$tab = chart.$("#chart-chart-tab");
 			$entitiesSelect = $tab.find('[name=available_entities]');
-			$xAxisScaleSelector = $tab.find('.x-axis-scale-selector');
-			$xAxisScale = $tab.find('[name=x_axis_scale]');
-			$yAxisScaleSelector = $tab.find('.y-axis-scale-selector');
-			$yAxisScale = $tab.find('[name=y_axis_scale]');
 		}
 
 		function configureData() {
@@ -368,8 +370,7 @@
 		}
 
 		function renderAxis() {
-			$xAxisScaleSelector.toggle(chart.model.get('x-axis-scale-selector'));
-			$yAxisScaleSelector.toggle(chart.model.get('y-axis-scale-selector'));
+			chartTab.scaleSelectors.render();
 
 			nvd3.xAxis
 				.axisLabel(xAxis["axis-label"])
@@ -538,11 +539,11 @@
 
 			if (chartType == App.ChartType.StackedArea) {
 				// Stop the tooltip from overlapping the chart controls
-				/*d3.selectAll("svg").on("mousemove.stackedarea", function() {
+				d3.selectAll("svg").on("mousemove.stackedarea", function() {
 					var $target = $(d3.event.target);
 					if (!$target.is("rect, path") || $target.closest(".nv-custom-legend").length)
 						nvd3.interactiveLayer.tooltip.hidden(true);							
-				});*/
+				});
 
 				// Override default stacked area click behavior
 				d3.selectAll(".nv-area").on("click", function(d) {
@@ -664,32 +665,6 @@
 					chartHeight -= 20;
 			}
 
-			// Inform nvd3 of the situation
-			if (chart && !$(".chart-error").is(":visible")) {
-				chart.update();				
-			}
-
-			var wrap = svg.select(".nvd3.nv-wrap");
-			translateString = "translate(" + chartOffsetX + "," + chartOffsetY + ")";
-			wrap.attr("transform", translateString);
-
-			// Move controls up for multibar chart
-			if (chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar) {
-				d3.select( ".nv-controlsWrap" ).attr( "transform", "translate(0,-30)" );
-			}
-
-			//position scale dropdowns - TODO - isn't there a better way then with timeout?
-			setTimeout(function() {
-				var chartRect = svg.select(".nv-wrap g > rect");
-				if (chartRect.empty()) return;
-
-				var chartBounds = chartRect.node().getBoundingClientRect(),
-					offsetX = chartBounds.left - svgBounds.left + 5,
-					offsetY = (legend ? legend.height() + 5 : 0);
-
-				$xAxisScaleSelector.css({ left: offsetX + chartBounds.width, top: offsetY + chartBounds.height });
-				$yAxisScaleSelector.css({ left: offsetX, top: offsetY-3 });
-			}.bind(this), 250);
 
 			if (_.isFunction(callback)) callback();
 		}					

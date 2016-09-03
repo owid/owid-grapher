@@ -8,12 +8,7 @@
 		TimeSectionView = require("App.Views.Form.TimeSectionView");
 
 	App.Views.Form.DataTabView = owid.View.extend({
-
 		el: "#form-view #data-tab",
-		events: {
-			"change textarea[name=description]": "onDescriptionChange",
-		},
-
 		initialize: function( options ) {			
 			this.dispatcher = options.dispatcher;
 
@@ -24,15 +19,5 @@
 
 			this.render();
 		},
-
-		render: function() {
-			this.$el.find( "[name=description]" ).val( App.ChartModel.get( "chart-description" ) );
-		},
-
-		onDescriptionChange: function( evt ) {
-			var $input = $( evt.target );
-			App.ChartModel.set( "chart-description", $input.val() );
-		}
-
 	});
 })();

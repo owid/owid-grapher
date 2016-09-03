@@ -44,7 +44,7 @@
 							<h2><span class="form-section-digit">b</span>Subtitle of the visualization</h2>
 						</div>
 						<div class="form-section-content">
-							<textarea class="form-control input-lg .col-xs-12" placeholder="Chart subname" type="text" name="chart-subname" value=""></textarea>
+							<textarea class="form-control input-lg .col-xs-12" placeholder="Short description of the data (ideally one line)" type="text" name="chart-subname" value=""></textarea>
 						</div>
 					</section>
 					<section class="form-section chart-type-section">
@@ -65,7 +65,15 @@
 					</section>
 					<section class="form-section">
 						<div class="form-section-header">
-							<h2><span class="form-section-digit">d</span>Internal author notes</h2>
+							<h2><span class="form-section-digit">d</span>Footer note</h2>
+						</div>
+						<div class="form-section-content">
+							<textarea class="form-control input-lg .col-xs-12" placeholder="Any further relevant information e.g. adjustments or limitations" type="text" name="chart-footer-note" value=""></textarea>
+						</div>
+					</section>
+					<section class="form-section">
+						<div class="form-section-header">
+							<h2><span class="form-section-digit">e</span>Internal author notes</h2>
 						</div>
 						<div class="form-section-content">
 							<textarea class="form-control input-lg .col-xs-12" placeholder="WIP, needs review, etc" type="text" name="chart-notes" value=""></textarea>
@@ -90,14 +98,6 @@
 							
 						</div>
 	 					<input type="hidden" name="chart-dimensions" value="" />
-					</section>
-					<section class="form-section">
-						<div class="form-section-header">
-							<h2><span class="form-section-digit">e</span>Additional data source explanation to be shown in the footer</h2>
-						</div>
-						<div class="form-section-content">
-							<textarea name="description" placeholder="Enter all the sources information"></textarea>
-						</div>
 					</section>
 					<section class="form-section entities-section">
 						<div class="form-section-header">

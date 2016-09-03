@@ -74,6 +74,7 @@ html,
 body {
     width: 100%;
     height: 100%;
+    overflow-x: hidden;
 }
 .browserupgrade {
     margin: 0.2em 0;
@@ -284,9 +285,9 @@ select.disabled {
     height: 100%;
     background: white;
     position: relative;
-    /* Hidden overflow x so that tooltips in iframes don't cause scrollbars */
-    
-    /*overflow-x: hidden;*/
+
+    /* Hidden overflow x so that tooltips don't cause scrollbars */
+    overflow: hidden;
 }
 
 #chart .chart-inner {
@@ -331,7 +332,6 @@ select.disabled {
     overflow: auto;
     width: 100%;
     height: 100%;
-    min-height: 300px;
 }
 #chart #data-chart-tab,
 #chart #sources-chart-tab {
@@ -450,7 +450,7 @@ select.disabled {
 #chart nav.tabs li a {
     color: #000;
     display: block;
-    font-size: 0.6em;
+    font-size: 0.65em;
     padding: 0.5em 1em;
     text-decoration: none;
 }
@@ -472,10 +472,10 @@ select.disabled {
 --------------------------------------------- */
 
 .chart-footer-svg {
-    font-size: 0.8em;
+    font-size: 0.75em;
 }
 .footer-license-svg {
-    font-size: 80%;
+/*    font-size: 90%;*/
 }
 .chart-footer-svg text {
     fill: rgb(51, 51, 51);
@@ -710,7 +710,7 @@ select.disabled {
 --------------------------------------------- */
 
 .datasource-wrapper {
-    padding: 1.5em;
+    padding: 1em;
     font-size: 0.8em;
     max-width: 1024px;
 }
@@ -746,10 +746,6 @@ select.disabled {
 .datasource-property {
     display: inline-block;
     width: 150px;
-}
-.datasource-wrapper table {
-    margin-top: 0.6em;
-    margin-bottom: 0.6em;
 }
 .datasource-additional p {
     margin-top: 0.3em;
@@ -1105,12 +1101,17 @@ body#chart-export .nv-custom-legend .nv-legend-text {
 --------------------------------------------- */
 
 
-#chart {
-    font-size: 20px;
+#chart.small {
+    font-size: 16px;
 }
 
 #chart:not(.small) {
     font-size: 18px;
+}
+
+
+#chart .nv-custom-legend .nv-legend-text {
+    font-size: 14px !important;
 }
 
 /* Small chart */
@@ -1122,9 +1123,6 @@ body#chart-export .nv-custom-legend .nv-legend-text {
         padding: 1em;
     }
 
-    #chart.small .nv-custom-legend .nv-legend-text {
-        font-size: 14px !important;
-    }
     /* Tabs should fill the entire width */    
     #chart.small nav.tabs ul {
         display: table;
@@ -1160,9 +1158,6 @@ body#chart-export .nv-custom-legend .nv-legend-text {
     }
     #chart:not(.small):not(.embedded) {
         padding: 1.5em 3em;
-    }
-    #chart:not(.small) .nv-custom-legend .nv-legend-text {    
-        font-size: 16px !important;
     }
     /* Desktop-style tabs */
     #chart:not(.small) nav.tabs ul {

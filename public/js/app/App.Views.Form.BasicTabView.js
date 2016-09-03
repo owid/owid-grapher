@@ -9,11 +9,12 @@
 			"input input[name=chart-name]": "onNameInput",
 			"change input[name=chart-name]": "onNameChange",
 			"change input[name=chart-slug]": "onSlugChange",
-			"change textarea[name=chart-subname]": "onSubnameChange",			
-			"change textarea[name=chart-notes]": "onNotesChange"
+			"change textarea[name=chart-subname]": "onSubnameChange",
+			"change textarea[name=chart-footer-note]": "onFooterNoteChange",	
+			"change textarea[name=chart-notes]": "onNotesChange"			
 		},
 
-		initialize: function( options ) {
+		initialize: function(options) {
 			if (window.location.hash === "")
 				window.location.hash = "#basic-tab";
 
@@ -25,12 +26,14 @@
 			this.$chartName = this.$el.find("[name=chart-name]");
 			this.$chartSlug = this.$el.find("[name=chart-slug]");
 			this.$chartSubname = this.$el.find("[name=chart-subname]");
-			this.$chartNotes = this.$el.find("[name=chart-notes]");
+			this.$chartFooterNote = this.$('[name=chart-footer-note]');
+			this.$chartInternalNotes = this.$el.find("[name=chart-notes]");
 
 			this.$chartName.val(App.ChartModel.get("chart-name"));
 			this.$chartSlug.val(App.ChartModel.get("chart-slug"));
 			this.$chartSubname.val(App.ChartModel.get("chart-subname"));
-			this.$chartNotes.val(App.ChartModel.get("chart-notes"));
+			this.$chartFooterNote.val(App.ChartModel.get('chart-description'));
+			this.$chartInternalNotes.val(App.ChartModel.get("chart-notes"));
 		},
 
 		convertToSlug: function(s) {
@@ -67,8 +70,11 @@
 		},
 
 		onNotesChange: function() {
-			App.ChartModel.set("chart-notes", this.$chartNotes.val());
-		}
+			App.ChartModel.set("chart-notes", this.$chartInternalNotes.val());
+		},
 
+		onFooterNoteChange: function() {
+			App.ChartModel.set("chart-description", this.$chartFooterNote.val());
+		}
 	});
 })();
