@@ -175,6 +175,14 @@ select.disabled {
     fill-opacity: 1;
 }
 
+#chart .nv-point {
+    stroke-width: 0;
+}
+
+#chart .nv-point.hover {
+    stroke-width: 4;
+}
+
 #chart svg.LineChart .nv-group .nv-line {
     stroke-width: 2.5 !important;
 }
@@ -190,6 +198,10 @@ select.disabled {
 
 .nv-group.World .nv-point {
     stroke-width: 3;
+}
+
+.nv-group.World .nv-point.hover {
+    stroke-width: 6;
 }
 
 #chart .dashed .nv-line {
