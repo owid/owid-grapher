@@ -55,9 +55,9 @@
 		},
 
 		activate: function() {
+			$('.chart-preloader').show();
 			this.mapControls = this.addChild(MapControls, { dispatcher: this.dispatcher });
 			this.timelineControls = this.addChild(TimelineControls, { dispatcher: this.dispatcher });
-
 			this.listenTo(App.MapModel, "change", function(model) {
 				if (_.size(model.changed) == 1 && model.hasChanged("targetYear")) {
 					this.updateYearOnly();
@@ -257,6 +257,9 @@
 					self.mapControls.render();
 					self.timelineControls.render();
 					self.onResize();
+					chart.header.changes.track(self, 'mapData');
+					chart.header.render();
+					$('.chart-preloader').hide();
 				};
 
 				if (oldProjection === newProjection) {

@@ -108,7 +108,7 @@
 
 			// Move the license stuff over to the right if there is space to do so
 
-			if (svgBounds.width - sourceBounds.width > licenseBounds.width) {
+			if (svgBounds.width - sourceBounds.width > licenseBounds.width+10) {
 				footerLicenseEl
 					.attr('x', svgBounds.width)
 					.attr('y', 0)

@@ -10,6 +10,7 @@
 		changes.track(chart.map, 'targetYear');
 		changes.track(chart.data, 'minYear maxYear');
 		changes.track(chart.display, 'renderHeight renderWidth activeTab');
+		header.changes = changes;
 
 		var minYear, maxYear, targetYear, disclaimer;
 
@@ -18,7 +19,7 @@
 			$tabs = $(".header-tab");
 
 		function updateTime() {
-			if (!changes.any('activeTab minYear maxYear targetYear'))
+			if (!changes.any('activeTab minYear maxYear targetYear mapData'))
 				return;		
 
 			if (chart.display.get('activeTab') == "map") {

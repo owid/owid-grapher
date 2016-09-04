@@ -1048,6 +1048,10 @@ select.disabled {
     font-size: 24px;
 }
 
+#chart.export.upscaled.space150 {
+    font-size: 24px;
+}
+
 /* Small chart */
     #chart.portrait.embedded {
         padding: 0.6em;
