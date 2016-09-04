@@ -176,11 +176,10 @@
 				$chart.addClass('upscaled');
 			}
 
-			var spaceDelta = (renderWidth+renderHeight) / (authorWidth+authorHeight);
-			if (spaceDelta >= 1.2)
-				$chart.addClass('space120');
-			if (spaceDelta >= 1.4)
-				$chart.addClass('space140');
+			var spaceFactor = (renderWidth+renderHeight) / (authorWidth+authorHeight);
+			console.log(spaceFactor);
+			if (spaceFactor >= 1.5)
+				$chart.addClass('space150');
 
 			if (Modernizr.touchevents)
 				$chart.addClass('touchscreen');

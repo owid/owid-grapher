@@ -1040,16 +1040,12 @@ select.disabled {
     font-size: 18px;
 }
 
-#chart.downscaled.space120 {
-    font-size: 22px;
+#chart.space150 {
+    font-size: 20px;
 }
 
-#chart.downscaled.space140 {
+#chart.downscaled.space150 {
     font-size: 24px;
-}
-
-#chart.export.upscaled.space140 {
-    font-size: 22px;
 }
 
 /* Small chart */
