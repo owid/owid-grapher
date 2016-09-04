@@ -1064,17 +1064,14 @@ select.disabled {
         display: none;
     }
     /* Compact the footer buttons a bit */
-    #chart.portrait .footer-btns a.chart-link-btn span,
-    #chart.portrait .footer-btns a.tweet-btn span,
-    #chart.portrait .footer-btns a.facebook-btn span,
-    #chart.portrait .footer-btns a.embed-btn span {
+    #chart.narrow .footer-btns a.chart-link-btn span,
+    #chart.narrow .footer-btns a.tweet-btn span,
+    #chart.narrow .footer-btns a.facebook-btn span,
+    #chart.narrow .footer-btns a.embed-btn span {
         display: none;
     }
-    #chart.portrait .footer-btns i {
+    #chart.narrow .footer-btns i {
         font-size: 1.2em;
-    }
-    #chart.portrait .nv-add-btn {
-        display: none;
     }
 
 /* Bigger chart */
@@ -1100,6 +1097,11 @@ select.disabled {
         min-width: 100px;
         white-space: nowrap;
     }    
+
+/* Adding countries is currently not compatible with touch devices */
+#chart.touchscreen .nv-add-btn {
+    display: none;
+}
 
 /* Miscellaneous
 --------------------------------------------- */

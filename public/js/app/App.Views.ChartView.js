@@ -162,7 +162,8 @@
 			chart.dom.style.top = '';
 			owid.transformElement(chart.dom, '');
 
-			$chart.removeClass('portrait landscape downscaled upscaled space120 space140');
+			// Propagate some useful information to the CSS
+			$chart.removeClass('portrait landscape downscaled upscaled space120 space140 touchscreen narrow');
 
 			if (renderWidth >= renderHeight)
 				$chart.addClass('landscape');
@@ -180,6 +181,11 @@
 				$chart.addClass('space120');
 			if (spaceDelta >= 1.4)
 				$chart.addClass('space140');
+
+			if (Modernizr.touchevents)
+				$chart.addClass('touchscreen');
+			if (renderWidth < 600)
+				$chart.addClass('narrow');
 
 
 			chart.targetWidth = targetWidth;
