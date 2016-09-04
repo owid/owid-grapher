@@ -165,12 +165,18 @@
 			chart.dom.style.top = '';
 			owid.transformElement(chart.dom, '');
 
-			$chart.removeClass('portrait landscape space120 space140');
+			$chart.removeClass('portrait landscape downscaled upscaled space120 space140');
 
 			if (renderWidth >= renderHeight)
 				$chart.addClass('landscape');
 			else
 				$chart.addClass('portrait');			
+
+			if (targetWidth < authorWidth || targetHeight < authorHeight) {
+				$chart.addClass('downscaled');
+			} else if (targetWidth > authorWidth && targetHeight > authorHeight) {
+				$chart.addClass('upscaled');
+			}
 
 			var spaceDelta = (renderWidth+renderHeight) / (authorWidth+authorHeight);
 			if (spaceDelta >= 1.2)
@@ -230,6 +236,7 @@
 		};
 
 		chart.resize = function() {
+			$chart.parent().addClass('chart-container');
 			chart.display.set({
 				targetWidth: $chart.parent().width(),
 				targetHeight: $chart.parent().height()

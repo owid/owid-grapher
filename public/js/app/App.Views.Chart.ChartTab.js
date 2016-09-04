@@ -519,35 +519,40 @@
 		}
 
 		function ensureLabelsFit() {
-			var xAxisLabel = d3.select('.nv-x .nv-axislabel'),
-				yAxisLabel = d3.select('.nv-y .nv-axislabel');
+			if (xAxis['axis-label']) {
+				var xAxisLabel = d3.select('.nv-x .nv-axislabel');
 
-			xAxisLabel.attr('transform', '');
-			var bounds = chart.getBounds(xAxisLabel.node()),
-				box = xAxisLabel.node().getBBox(),
-				diff = Math.max(tabBounds.left-bounds.left, bounds.right-tabBounds.right)*2;
+				xAxisLabel.attr('transform', '');
+				var bounds = chart.getBounds(xAxisLabel.node()),
+					box = xAxisLabel.node().getBBox(),
+					diff = Math.max(tabBounds.left-bounds.left, bounds.right-tabBounds.right)*2;
 
-			if (diff > 0) {
-				var scale = (box.width-diff)/box.width,
-					centerX = box.x + box.width/2, centerY = box.y + box.height/2,
-					offsetX = -centerX*(scale-1), offsetY = -centerY*(scale-1);
-				var transform = 'translate(' + offsetX + ',' + offsetY + ') scale(' + scale + ')';
-				owid.transformElement(xAxisLabel.node(), transform);
-				xAxisLabel.attr('transform', transform);	
+				if (diff > 0) {
+					var scale = (box.width-diff)/box.width,
+						centerX = box.x + box.width/2, centerY = box.y + box.height/2,
+						offsetX = -centerX*(scale-1), offsetY = -centerY*(scale-1);
+					var transform = 'translate(' + offsetX + ',' + offsetY + ') scale(' + scale + ')';
+					owid.transformElement(xAxisLabel.node(), transform);
+					xAxisLabel.attr('transform', transform);	
+				}				
 			}
 
-			yAxisLabel.attr('transform', 'rotate(-90)');
-			var bounds = chart.getBounds(yAxisLabel.node()),
-				box = yAxisLabel.node().getBBox(),
-				diff = Math.max(tabBounds.top-bounds.top, bounds.bottom-tabBounds.bottom)*2;
+			if (yAxis['axis-label']) {
+				var yAxisLabel = d3.select('.nv-y .nv-axislabel');
 
-			if (diff > 0) {
-				var scale = (box.width-diff)/box.width,
-					centerX = box.x + box.width/2, centerY = box.y + box.height/2,
-					offsetX = -centerX*(scale-1), offsetY = -centerY*(scale-1);
-				var transform = 'rotate(-90) translate(' + offsetX + ',' + offsetY + ') scale(' + scale + ')';
-				owid.transformElement(yAxisLabel.node(), transform);
-				yAxisLabel.attr('transform', transform);	
+				yAxisLabel.attr('transform', 'rotate(-90)');
+				var bounds = chart.getBounds(yAxisLabel.node()),
+					box = yAxisLabel.node().getBBox(),
+					diff = Math.max((tabBounds.top+legend.height()+20)-bounds.top, bounds.bottom-tabBounds.bottom)*2;
+
+				if (diff > 0) {
+					var scale = (box.width-diff)/box.width,
+						centerX = box.x + box.width/2, centerY = box.y + box.height/2,
+						offsetX = -centerX*(scale-1), offsetY = -centerY*(scale-1);
+					var transform = 'rotate(-90) translate(' + offsetX + ',' + offsetY + ') scale(' + scale + ')';
+					owid.transformElement(yAxisLabel.node(), transform);
+					yAxisLabel.attr('transform', transform);	
+				}
 			}
 		}
 

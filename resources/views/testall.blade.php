@@ -49,8 +49,8 @@
 @section('scripts')
 	<script>
 		$('iframe').css({
-			width: App.AUTHOR_WIDTH,
-			height: App.AUTHOR_HEIGHT
+			width: 640,
+			height: 660
 		})
 	</script>
 @endsection

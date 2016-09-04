@@ -110,7 +110,6 @@ button > i {
 .chart-edit-half {
   width: 65%;
   display: flex;
-  height: 660px;
   justify-content: center;
   min-width: 800px;
 }

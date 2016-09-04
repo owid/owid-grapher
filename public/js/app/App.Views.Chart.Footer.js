@@ -38,22 +38,22 @@
 			var sources = App.ChartData.transformDataForSources(),
 				sourceNames = _.uniq(_.pluck(sources, "name")),
  				chartDesc = App.ChartModel.get("chart-description"),
-				footerSvgMain = "", footerSvgNote = "", footerSvgLicense = "";
+				footerSource = "", footerNote = "", footerLicense = "";
 
 			// Add the Source line
-			footerSvgMain += '<a class="bold">Data source: </a>';
+			footerSource += '<a class="bold">Data source: </a>';
 				
 			_.each(sourceNames, function(sourceName, i) {
-				if (i > 0) footerSvgMain += ", ";
-				footerSvgMain += "<a class='source-link'>" + sourceName + "</a>";
+				if (i > 0) footerSource += ", ";
+				footerSource += "<a class='source-link'>" + sourceName + "</a>";
 			});
 
 			// Add Note, if any
 			if (chartDesc) {
-				footerSvgNote += '<a class="bold">Note: </a>' + chartDesc;
+				footerNote += '<a class="bold">Note: </a>' + chartDesc;
 			}
 
-			footerSvgLicense = '*data-entry* • <a class="licence-link" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA</a>';
+			footerLicense = '*data-entry* • <a class="licence-link" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA</a>';
 
 			var originUrl = App.ChartModel.get("data-entry-url");
 
@@ -63,9 +63,9 @@
 				a.href = originUrl;
 				var path = a.pathname[0] == "/" ? a.pathname : "/" + a.pathname; // MISPY: cross-browser compat (Internet Explorer doesn't have a slash)
 				var finalUrl = "https://ourworldindata.org" + path + a.search;
-				footerSvgLicense = footerSvgLicense.replace(/\*data-entry\*/, "<a class='origin-link' target='_blank' href='" + finalUrl + "'>" + "OurWorldInData.org" + path + a.search + "</a>");					
+				footerLicense = footerLicense.replace(/\*data-entry\*/, "<a class='origin-link' target='_blank' href='" + finalUrl + "'>" + "OurWorldInData.org" + path + a.search + "</a>");					
 			} else {
-				footerSvgLicense = footerSvgLicense.replace(/\*data-entry\*/, 
+				footerLicense = footerLicense.replace(/\*data-entry\*/, 
 					"<a class='origin-link' target='_blank' href='http://ourworldindata.org'>OurWorldInData.org</a>");					
 			}
 
@@ -77,31 +77,45 @@
 			svg.selectAll(".chart-footer-svg").remove();
 			var g = svg.append("g").attr("class", "chart-footer-svg");
 
-			var footerMainText = g.append("text")
+			var footerSourceEl = g.append("text")
 				.attr("x", 0)
 				.attr("y", 0)
 				.attr("dy", 0);
 
-			owid.svgSetWrappedText(footerMainText, footerSvgMain, svgWidth, { lineHeight: 1.1 });
+			owid.svgSetWrappedText(footerSourceEl, footerSource, svgWidth, { lineHeight: 1.1 });
 
-			if (footerSvgNote) {
-				var footerNoteText = g.append("text")
+			if (footerNote) {
+				var footerNoteEl = g.append("text")
 						.attr("class", "footer-note-svg")
 						.attr("x", 0)
-						.attr("y", chart.getBounds(footerMainText.node()).bottom - svgBounds.top)
+						.attr("y", chart.getBounds(footerSourceEl.node()).bottom - svgBounds.top)
 						.attr("dy", "1.5em");
 
-				owid.svgSetWrappedText(footerNoteText, footerSvgNote, svgWidth, { lineHeight: 1.1 });				
+				owid.svgSetWrappedText(footerNoteEl, footerNote, svgWidth, { lineHeight: 1.1 });				
 			}
 
-			var footerLicenseText = g.append("text")
+			var footerLicenseEl = g.append("text")
 					.attr("class", "footer-license-svg")
 					.attr("x", 0)
-					.attr("y", chart.getBounds((footerSvgNote ? footerNoteText : footerMainText).node()).bottom - svgBounds.top)
+					.attr("y", chart.getBounds((footerNote ? footerNoteEl : footerSourceEl).node()).bottom - svgBounds.top)
 					.attr("dy", "1.5em");
 
-			owid.svgSetWrappedText(footerLicenseText, footerSvgLicense, svgWidth, { lineHeight: 1.1 });
-	
+
+			owid.svgSetWrappedText(footerLicenseEl, footerLicense, svgWidth, { lineHeight: 1.1 });
+
+			var sourceBounds = chart.getBounds(footerSourceEl.node()),
+				licenseBounds = chart.getBounds(footerLicenseEl.node());
+
+			// Move the license stuff over to the right if there is space to do so
+
+			if (svgBounds.width - sourceBounds.width > licenseBounds.width) {
+				footerLicenseEl
+					.attr('x', svgBounds.width)
+					.attr('y', 0)
+					.attr('dy', 0)
+					.attr('text-anchor', 'end');
+			}
+
 			$(".chart-footer-svg .source-link").click(function(ev) {
 				ev.preventDefault();
 				chart.display.set({ activeTab: 'sources' });
