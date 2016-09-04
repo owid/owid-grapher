@@ -19,35 +19,23 @@
 				App.isExport = true;
 
 			if (!App.isExport) return;
-
-			$("body").attr("id", "chart-export");
+			chart.$chart.addClass('export');
 
 			// For PNG and SVG export, we set the SVG to a fixed canonical rendering width
 			// and then uniformly scale the rendered chart to the target dimensions.
 			var params = owid.getQueryParams(),
 				targetWidth = params.size && params.size.split("x") ? parseInt(params.size.split("x")[0]) : 1200,
-				targetHeight = params.size && params.size.split("x") ? parseInt(params.size.split("x")[1]) : 800,
-				canonicalWidth = 600,
-				canonicalHeight = 600;
+				targetHeight = params.size && params.size.split("x") ? parseInt(params.size.split("x")[1]) : 800;
 
-			var renderWidth, renderHeight;
-			if (targetWidth > targetHeight) {
-				renderHeight = canonicalHeight;
-				renderWidth = ((targetWidth-40)/(targetHeight-40)) * renderHeight;
-			} else {
-				renderWidth = canonicalWidth;
-				renderHeight = ((targetHeight-40)/(targetWidth-40)) * renderWidth;
-			}
-
-			$("body").css("width", renderWidth);
-			$("body").css("height", renderHeight);
+			chart.display.set({
+				targetWidth: targetWidth,
+				targetHeight: targetHeight
+			});
 
 			chart.dispatch.on('renderEnd', function() {
 				setTimeout(function() {
 					var svg = $("svg").get(0);
-					var width = $(".chart-inner").width();
-					var height = $(".chart-inner").height();
-					svg.setAttribute("viewBox", "0 0 " + width + " " + height);
+					svg.setAttribute("viewBox", "0 0 " + chart.renderWidth + " " + chart.renderHeight);
 					svg.setAttribute("preserveAspectRatio", "none");
 					$(svg).css("width", (targetWidth-40) + "px");
 	   			    $(svg).css("height", (targetHeight-40) + "px");
@@ -55,10 +43,12 @@
 					$("#chart").css('width', targetWidth);
 					$("#chart").css('height', targetHeight);
 
-					if (window.callPhantom) {
+					// Remove SVG UI elements that aren't needed for export
+					d3.select(svg).selectAll(".nv-add-btn, .nv-controlsWrap").remove();
+
+					if (window.callPhantom)
 						window.callPhantom({ targetWidth: targetWidth, targetHeight: targetHeight }); // Notify phantom that we're ready for PNG screenshot
-						this.onSVGExport();
-					}						
+					this.onSVGExport();					
 				}.bind(this), 100);
 			}.bind(this));
 		},
@@ -66,8 +56,6 @@
 		onSVGExport: function() {	
 			var svg = d3.select("svg");
 
-			// Remove SVG UI elements that aren't needed for export
-			svg.selectAll(".nv-add-btn, .nv-controlsWrap").remove();
 
 			// Inline the CSS styles, since the exported SVG won't have a stylesheet
 			var styleSheets = document.styleSheets;

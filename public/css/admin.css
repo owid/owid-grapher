@@ -108,10 +108,9 @@ button > i {
 }
 
 .chart-edit-half {
-  width: 65%;
+  width: 50%;
   display: flex;
   justify-content: center;
-  min-width: 800px;
 }
 
 /* ==========================================================================

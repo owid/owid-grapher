@@ -260,8 +260,6 @@ nv.interactiveGuideline = function() {
 //                    mouseY -= margin.top;
                 }
 
-                console.log(mouseX, mouseY);
-
                 /* If mouseX/Y is outside of the chart's bounds,
                  trigger a mouseOut event.
                  */

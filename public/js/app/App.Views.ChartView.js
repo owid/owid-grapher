@@ -139,10 +139,7 @@
 				authorHeight = App.AUTHOR_HEIGHT,
 				renderWidth, renderHeight;
 
-			if (App.isExport) {
-				renderWidth = targetWidth;
-				renderHeight = targetHeight;
-			} else if (App.isEditor) {
+			if (App.isEditor) {
 				targetWidth = authorWidth;
 				targetHeight = authorHeight;
 				renderWidth = authorWidth;
@@ -237,6 +234,8 @@
 
 		chart.resize = function() {
 			$chart.parent().addClass('chart-container');
+			if (App.isExport) return;
+
 			chart.display.set({
 				targetWidth: $chart.parent().width(),
 				targetHeight: $chart.parent().height()

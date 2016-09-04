@@ -196,91 +196,6 @@ select.disabled {
     stroke-dasharray: 2, 2;
 }
 
-
-
-/* ==========================================================================
-   EXAMPLE Media Queries for Responsive Design.
-   These examples override the primary ('mobile first') styles.
-   Modify as content requires.
-   ========================================================================== */
-
-@media only screen and (min-width: 35em) {
-    /* Style adjustments for viewports that meet the condition */
-}
-@media print,
-(-webkit-min-device-pixel-ratio: 1.25),
-(min-resolution: 1.25dppx),
-(min-resolution: 120dpi) {
-    /* Style adjustments for high resolution devices */
-}
-/* ==========================================================================
-   Print styles.
-   Inlined to avoid the additional HTTP request:
-   http://www.phpied.com/delay-loading-your-print-css/
-   ========================================================================== */
-
-@media print {
-    *,
-    *:before,
-    *:after {
-        background: transparent !important;
-        color: #000 !important;
-        /* Black prints faster:
-                   http://www.sanbeiji.com/archives/953 */
-        
-        box-shadow: none !important;
-        text-shadow: none !important;
-    }
-    a,
-    a:visited {
-        text-decoration: underline;
-    }
-    a[href]:after {
-        content: " (" attr(href) ")";
-    }
-    abbr[title]:after {
-        content: " (" attr(title) ")";
-    }
-    /*
-   * Don't show links that are fragment identifiers,
-   * or use the `javascript:` pseudo protocol
-   */
-    
-    a[href^="#"]:after,
-    a[href^="javascript:"]:after {
-        content: "";
-    }
-    pre,
-    blockquote {
-        border: 1px solid #999;
-        page-break-inside: avoid;
-    }
-    /*
-   * Printing Tables:
-   * http://css-discuss.incutio.com/wiki/Printing_Tables
-   */
-    
-    thead {
-        display: table-header-group;
-    }
-    tr,
-    img {
-        page-break-inside: avoid;
-    }
-    img {
-        max-width: 100% !important;
-    }
-    p,
-    h2,
-    h3 {
-        orphans: 3;
-        widows: 3;
-    }
-    h2,
-    h3 {
-        page-break-after: avoid;
-    }
-}
 /* Chart General
 --------------------------------------------- */
 
@@ -1079,30 +994,30 @@ select.disabled {
  * a special .export url to screenshot the chart. #chart-export styles therefore apply specifically
  * to these screenshots. */
 
-body#chart-export {
+#chart.export {
     background: white;
     /* Remove interactive UI elements since obviously they can't be used in a static image
    * NOTE (Mispy): Unneeded SVG elements should be removed entirely by the JS as well as hidden here. */
 }
-body#chart-export #chart {
+#chart.export {
     padding: 0 !important;
 }
-body#chart-export nav.tabs,
-body#chart-export .footer-btns,
-body#chart-export .fullscreen-link,
-body#chart-export .map-timeline-controls,
-body#chart-export .settings-control,
-body#chart-export .color-blind-control,
-body#chart-export .map-controls-header,
-body#chart-export .nv-add-btn,
-body#chart-export .nv-controlsWrap,
-body#chart-export .axis-scale-selectors-wrapper {
+#chart.export nav.tabs,
+#chart.export .footer-btns,
+#chart.export .fullscreen-link,
+#chart.export .map-timeline-controls,
+#chart.export .settings-control,
+#chart.export .color-blind-control,
+#chart.export .map-controls-header,
+#chart.export .nv-add-btn,
+#chart.export .nv-controlsWrap,
+#chart.export .axis-scale-selectors-wrapper {
     display: none !important;
 }
-body#chart-export .tab-pane {
+#chart.export .tab-pane {
     border: none !important;
 }
-body#chart-export .nv-custom-legend .nv-legend-text {
+#chart.export .nv-custom-legend .nv-legend-text {
     font-size: 16px !important;
 }
 /* Responsiveness
@@ -1121,9 +1036,8 @@ body#chart-export .nv-custom-legend .nv-legend-text {
     font-size: 24px;
 }
 
-
-#chart .nv-custom-legend .nv-legend-text {
-    font-size: 14px !important;
+#chart.export.upscaled.space140 {
+    font-size: 22px;
 }
 
 /* Small chart */
