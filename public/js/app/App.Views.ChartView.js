@@ -91,7 +91,7 @@
 				chart.activeTab.render();
 			chart.displayScale();
 
-			$chart.css('visibility', 'visible');			
+			$chart.find('.chart-inner').css('visibility', 'visible');			
 			changes.done();
 		};
 
@@ -106,11 +106,11 @@
 			});*/
 
 			jQuery(document).ajaxStart(function() {
-				$(".chart-preloader").show();
+				chart.$(".chart-preloader").show();
 			});
 
 			jQuery(document).ajaxStop(function() {
-				$(".chart-preloader").hide();
+				chart.$(".chart-preloader").hide();
 			});
 
 			// Determine if we're logged in and show the edit button

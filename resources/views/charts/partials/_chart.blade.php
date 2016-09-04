@@ -1,5 +1,5 @@
-<div id="chart" @if (isset($chart)) data-chart-id="{{ $chart->id }}" @endif style="visibility: hidden;">	
-	<div class="chart-inner">
+<div id="chart" @if (isset($chart)) data-chart-id="{{ $chart->id }}" @endif>	
+	<div class="chart-inner" style="visibility: hidden;">
 		<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
 			<g class="chart-header-svg">
 				<rect class="header-bg-svg" x="0" y="0" style="fill: #fff;"></rect>
