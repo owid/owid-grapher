@@ -1,6 +1,5 @@
 ;(function() {
 	"use strict";
-	owid.namespace("App.Views.Chart.ChartTab");
 	owid.namespace("owid.tab.chart");
 
 	// Override nvd3 handling of zero data charts to prevent it removing
@@ -83,7 +82,6 @@
 
 			// Initialize or update the nvd3 graph
 			nv.addGraph(function() {
-
 				if (chartType == App.ChartType.LineChart) {
 					renderLineChart();
 				} else if (chartType == App.ChartType.ScatterPlot) {
@@ -109,10 +107,6 @@
 				
 				svg.datum(localData).call(nvd3);
 
-				if (chartType == App.ChartType.ScatterPlot) {
-					//need to have own showDist implementation, cause there's a bug in nvd3
-//					scatterDist();
-				}
 				window.nvd3 = nvd3;
 
 				var nvWrap = d3.select('.nvd3.nv-wrap > g');
@@ -127,11 +121,8 @@
 					$pathDomain.css("stroke-opacity", "0");
 				}
 
-				// Move controls up for multibar chart
-				if (chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar) {
-					d3.select( ".nv-controlsWrap" ).attr( "transform", "translate(0,-30)" );
-				}
 
+				ensureLabelsFit();
 				changes.done();	
 			});
 		};
@@ -346,6 +337,8 @@
 				nvd3.stacked(true);			
 			else
 				nvd3.stacked(false);			
+
+			chartOffsetY += 20;
 		}
 
 		function renderDiscreteBar() {
@@ -360,6 +353,10 @@
 			nv.dispatch.on("render_end", function() {
 				setTimeout(postRender, 500);
 			});
+
+			chartOffsetX += 60;
+			chartOffsetY += 20;
+
 		}
 
 		function renderTooltips() {
@@ -370,20 +367,8 @@
 		}
 
 		function renderAxis() {
-			chartTab.scaleSelectors.render();
 
-			nvd3.xAxis
-				.axisLabel(xAxis["axis-label"])
-				.axisLabelDistance(xAxisLabelDistance)
-				.tickFormat(function(d) {
-					if (chartType == App.ChartType.ScatterPlot) {
-						return xAxisPrefix + owid.unitFormat({ format: xAxisFormat }, d) + xAxisSuffix;
-					} else if (chartType == App.ChartType.DiscreteBar) {
-						return d;
-					} else {
-						return App.Utils.formatTimeLabel("Year", d, xAxisPrefix, xAxisSuffix, xAxisFormat );
-					}
-				});
+			chartTab.scaleSelectors.render();
 
 			//get extend
 			var allValues = [];
@@ -397,45 +382,36 @@
 			} );
 
 			//domain setup
-			xDomain = d3.extent( allValues.map( function( d ) { return d.x; } ) ),
-			yDomain = d3.extent( allValues.map( function( d ) { return d.y; } ) ),
-			isClamped = false;
+			xDomain = d3.extent(allValues.map(function(d) { return d.x; }));
+			yDomain = d3.extent(allValues.map(function(d) { return d.y; }));
+			isClamped = _.isFinite(xAxisMin) || _.isFinite(xAxisMax) || _.isFinite(yAxisMin) || _.isFinite(yAxisMax);
 
-			if( xAxisMin && !isNaN( xAxisMin ) ) {
-				xDomain[ 0 ] = xAxisMin;
-				isClamped = true;
-			}
-			if( xAxisMax && !isNaN( xAxisMax ) ) {
-				xDomain[ 1 ] = xAxisMax;
-				isClamped = true;
-			}
-			if( yAxisMin && !isNaN( yAxisMin ) && (yAxisMin > 0 || yAxisScale != "log")) {
-				yDomain[ 0 ] = yAxisMin;
-				isClamped = true;
+			if (_.isFinite(xAxisMin))
+				xDomain[0] = xAxisMin;
+			if (_.isFinite(xAxisMax))
+				xDomain[1] = xAxisMax;
+
+			if (_.isFinite(yAxisMin) && (yAxisMin > 0 || yAxisScale != "log")) {
+				yDomain[0] = yAxisMin;
 			} else {
 				//default is zero (don't do it for stack bar chart or log scale, messes up things)
-				if( chartType != App.ChartType.StackedArea && yAxisScale != "log" ) {
-					yDomain[ 0 ] = 0;
-					isClamped = true;
-				}
+				if (chartType != App.ChartType.StackedArea && yAxisScale != "log")
+					yDomain[0] = 0;
 			}
-			if( yAxisMax && !isNaN( yAxisMax ) ) {
-				yDomain[ 1 ] = yAxisMax;
-				isClamped = true;
-			}
+			if (_.isFinite(yAxisMax))
+				yDomain[1] = yAxisMax;
 
-			//manually clamp values
-			if( isClamped ) {
-				if( chartType !== App.ChartType.MultiBar && chartType !== App.ChartType.HorizontalMultiBar && chartType !== App.ChartType.DiscreteBar ) {
+			if (isClamped) {
+				if (chartType !== App.ChartType.MultiBar && chartType !== App.ChartType.HorizontalMultiBar && chartType !== App.ChartType.DiscreteBar) {
 					//version which makes sure min/max values are present, but will display values outside of the range
-					nvd3.forceX( xDomain );
-					nvd3.forceY( yDomain );
+					nvd3.forceX(xDomain);
+					nvd3.forceY(yDomain);
 				}
 			}
 
 			if (yAxisScale === "linear") {
 				nvd3.yScale(d3.scale.linear());
-			} else if( yAxisScale === "log" ) {
+			} else if (yAxisScale === "log") {
 				nvd3.yScale(d3.scale.log());
 
 				// MISPY: Custom calculation of axis ticks, since nvd3 doesn't
@@ -451,6 +427,19 @@
 				nvd3.yAxis.tickValues(tickValues);
 			}
 
+			nvd3.xAxis
+				.axisLabel(xAxis["axis-label"])
+				.axisLabelDistance(xAxisLabelDistance)
+				.tickFormat(function(d) {
+					if (chartType == App.ChartType.ScatterPlot) {
+						return xAxisPrefix + owid.unitFormat({ format: xAxisFormat }, d) + xAxisSuffix;
+					} else if (chartType == App.ChartType.DiscreteBar) {
+						return d;
+					} else {
+						return App.Utils.formatTimeLabel("Year", d, xAxisPrefix, xAxisSuffix, xAxisFormat );
+					}
+				});
+
 			nvd3.yAxis
 				.axisLabel(yAxis["axis-label"])
 				.axisLabelDistance(yAxisLabelDistance)
@@ -462,7 +451,6 @@
 				nvd3.xAxis.ticks(7);
 				nvd3.yAxis.ticks(7);
 			}
-
 		}
 
 		function renderLegend() {
@@ -530,11 +518,43 @@
 			return newData;
 		}
 
+		function ensureLabelsFit() {
+			var xAxisLabel = d3.select('.nv-x .nv-axislabel'),
+				yAxisLabel = d3.select('.nv-y .nv-axislabel');
+
+			xAxisLabel.attr('transform', '');
+			var bounds = chart.getBounds(xAxisLabel.node()),
+				box = xAxisLabel.node().getBBox(),
+				diff = Math.max(tabBounds.left-bounds.left, bounds.right-tabBounds.right)*2;
+
+			if (diff > 0) {
+				var scale = (box.width-diff)/box.width,
+					centerX = box.x + box.width/2, centerY = box.y + box.height/2,
+					offsetX = -centerX*(scale-1), offsetY = -centerY*(scale-1);
+				var transform = 'translate(' + offsetX + ',' + offsetY + ') scale(' + scale + ')';
+				owid.transformElement(xAxisLabel.node(), transform);
+				xAxisLabel.attr('transform', transform);	
+			}
+
+			yAxisLabel.attr('transform', 'rotate(-90)');
+			var bounds = chart.getBounds(yAxisLabel.node()),
+				box = yAxisLabel.node().getBBox(),
+				diff = Math.max(tabBounds.top-bounds.top, bounds.bottom-tabBounds.bottom)*2;
+
+			if (diff > 0) {
+				var scale = (box.width-diff)/box.width,
+					centerX = box.x + box.width/2, centerY = box.y + box.height/2,
+					offsetX = -centerX*(scale-1), offsetY = -centerY*(scale-1);
+				var transform = 'rotate(-90) translate(' + offsetX + ',' + offsetY + ') scale(' + scale + ')';
+				owid.transformElement(yAxisLabel.node(), transform);
+				yAxisLabel.attr('transform', transform);	
+			}
+		}
+
 		function postRender() {
 			// Hijack the nvd3 mode switch to store it
-			$(".nv-controlsWrap .nv-series").off("click");
-			$(".nv-controlsWrap .nv-series").on("click", function(ev) {
-				chart.model.set("currentStackMode", $(ev.target).text().toLowerCase(), { noRender: true });
+			$(".nv-controlsWrap .nv-series").off('click').on('click', function(ev) {
+				chart.model.set("currentStackMode", $(ev.target).text().toLowerCase());
 			});
 
 			if (chartType == App.ChartType.StackedArea) {
@@ -556,63 +576,9 @@
 
 		return chartTab;
 	};
+})();
 
-
-	App.Views.Chart.ChartTabu = owid.View.extend({
-		el: "#chart",
-		events: {
-		},
-
-
-		update: function() {
-			chart.data.ready(function() {
-				if (needsFullRender) {	
-					deactivate();
-					activate();
-				} else {
-					render(onResize.bind(this));					
-				}
-			}.bind(this));
-		},
-
-		render: function(callback) {
-
-
-			localData = localData;
-		},
-
-		show: function() {
-			$tab.show();
-		},
-
-		hide: function() {
-			$tab.hide();
-		},
-
-		scatterDist: function() {
-			if (!$(".nv-distributionX").length) return;
-
-			var that = this,
-				margins = chart.model.get( "margins" ),
-				nvDistrX = $( ".nv-distributionX" ).offset().top,
-				svgSelection = d3.select( "svg" );
-
-			nvd3.scatter.dispatch.on('elementMouseover.tooltip', function(evt) {
-				var svgOffset = $svg.offset(),
-					svgHeight = $svg.height();
-				svgSelection.select('.nv-series-' + evt.seriesIndex + ' .nv-distx-' + evt.pointIndex)
-					.attr('y1', evt.pos.top - nvDistrX );
-				svgSelection.select('.nv-series-' + evt.seriesIndex + ' .nv-disty-' + evt.pointIndex)
-					.attr('x2', evt.pos.left - svgOffset.left - margins.left );
-				var position = {left: d3.event.clientX, top: d3.event.clientY };
-				nvd3.tooltip.position(position).data(evt).hidden(false);
-			});
-		},
-
-
-		scatterBubbleSize: function() {
-		},
-
+/*	App.Views.Chart.ChartTabu = owid.View.extend({
 		checkStackedAxis: function() {
 			//setting yAxisMax breaks expanded stacked chart, need to check manually
 			var stackedStyle = chart.stacked.style(),
@@ -628,46 +594,4 @@
 				chart.yDomain( yDomain );
 			}
 		},
-
-		onResize: function(callback) {			
-			if (legend) legend.render();
-
-			//compute how much space for chart
-			var margins = chart.model.get("margins"),
-				svg = d3.select($svg[0]),
-				svgBounds = svg.node().getBoundingClientRect(),
-				tabBounds = $(".tab-pane.active").get(0).getBoundingClientRect(),
-				chartOffsetY = tabBounds.top - svgBounds.top + parseFloat(margins.top),
-				chartOffsetX = parseFloat(margins.left),
-				// MISPY: The constant modifiers here are to account for nvd3 not entirely matching our specified dimensions
-				chartHeight = tabBounds.height - parseFloat(margins.bottom) - parseFloat(margins.top),
-				chartWidth = tabBounds.width - parseFloat(margins.left) - parseFloat(margins.right),
-				chartType = chart.model.get("chart-type");
-
-			// Account for and position legend
-			if (legend) {
-				translateString = "translate(" + 0 + " ," + chartOffsetY + ")";
-				svg.select(".nvd3.nv-custom-legend").attr("transform", translateString);
-
-				chartOffsetY += legend.height() + 10;
-				chartHeight -= legend.height() + 10;
-			}
-
-			if (chart.model.get("x-axis")["axis-label"]) {
-				chartHeight -= 30;
-			}
-
-			// MISPY: These charts need a special offset because nvd3 doesn't seem
-			// to count the controls as part of the width and height.
-			if (chartType == App.ChartType.StackedArea || chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar) {
-				chartOffsetY += 20;
-				if (chartType != App.ChartType.StackedArea)
-					chartHeight -= 20;
-			}
-
-
-			if (_.isFunction(callback)) callback();
-		}					
-	} );
-
-})();
+	} ); */

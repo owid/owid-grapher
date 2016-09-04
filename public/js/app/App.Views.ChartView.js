@@ -143,6 +143,8 @@
 				renderWidth = targetWidth;
 				renderHeight = targetHeight;
 			} else if (App.isEditor) {
+				targetWidth = authorWidth;
+				targetHeight = authorHeight;
 				renderWidth = authorWidth;
 				renderHeight = authorHeight;
 			} else {
@@ -155,6 +157,7 @@
 				}				
 			}
 
+
 			chart.dom.style.width = renderWidth + 'px';
 			chart.dom.style.height = renderHeight + 'px';
 			chart.dom.style.zoom = '';
@@ -162,15 +165,19 @@
 			chart.dom.style.top = '';
 			owid.transformElement(chart.dom, '');
 
-			$chart.removeClass('portrait landscape small medium big');
+			$chart.removeClass('portrait landscape space120 space140');
 
 			if (renderWidth >= renderHeight)
 				$chart.addClass('landscape');
 			else
 				$chart.addClass('portrait');			
 
-			if (targetWidth < 768)
-				$chart.addClass('small');
+			var spaceDelta = (renderWidth+renderHeight) / (authorWidth+authorHeight);
+			if (spaceDelta >= 1.2)
+				$chart.addClass('space120');
+			if (spaceDelta >= 1.4)
+				$chart.addClass('space140');
+
 
 			chart.targetWidth = targetWidth;
 			chart.targetHeight = targetHeight;

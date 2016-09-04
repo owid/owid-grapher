@@ -36,15 +36,16 @@
 					};
 					obj.point[propertyName] = datum.value;
 					$tooltip.html(owid.contentGenerator(obj, true));
+
+					var bounds = chart.getBounds(node);
+					$tooltip.css({
+						position: 'absolute',
+						left: ev.pageX,
+						top: ev.pageY
+					});
+					$tooltip.show();
 				}
 
-				var bounds = chart.getBounds(node);
-				$tooltip.css({
-					position: 'absolute',
-					left: ev.pageX,
-					top: ev.pageY
-				});
-				$tooltip.show();
 			});
 		};
 

@@ -55,6 +55,7 @@
 			"x-axis-scale-selector": false,
 			"y-axis-scale-selector": false,
 			"activeLegendKeys": null,
+			"currentStackMode": null
 		},
 
 		// Get defaults appropriate for this kind of chart

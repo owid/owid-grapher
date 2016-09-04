@@ -49,9 +49,11 @@
 			evt.preventDefault();
 
 			var pageX = evt.pageX || evt.originalEvent.touches[0].pageX,
-				xPos = pageX - this.$sliderInput.offset().left,
+				xPos = pageX - this.$sliderInput.offset().left*(owid.features.zoom && chart.scale > 1 ? chart.scale : 1),
 				fracWidth = xPos / (this.$sliderInput.width()*chart.scale),
 				targetYear = this.minYear + fracWidth*(this.maxYear-this.minYear);
+
+			console.log(pageX, this.$sliderInput.offset().left, this.$sliderInput.width())
 
 			this.setTargetYear(targetYear);
 		},

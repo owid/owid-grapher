@@ -7,16 +7,15 @@
 			max-width: 800px;
 			width: 100%;
 			height: 660px;
-			margin: auto;
 		}
 
 		.row {
 			padding: 10px;
 			margin: 0;
-		}
-
-		.col-md-6, .col-md-12 {
-			display: flex;
+			display: flex;		
+			align-items: center;	
+			justify-content: center;
+			width: 100%;
 		}
 
 		nav.pagination {
@@ -28,16 +27,10 @@
 	@foreach ($urls as $chart)
 		<div class="row">
 			@if ($chart['localUrl'] != $chart['liveUrl'])
-				<div class="col-md-6">
-					<iframe data-src="{{ $chart['localUrl'] }}"></iframe>
-				</div>
-				<div class="col-md-6">
-					<iframe data-src="{{ $chart['liveUrl'] }}"></iframe>
-				</div>
+				<iframe src="{{ $chart['localUrl'] }}"></iframe>
+				<iframe src="{{ $chart['liveUrl'] }}"></iframe>
 			@else
-				<div class="col-md-12">
-					<iframe data-src="{{ $chart['liveUrl'] }}"></iframe>
-				</div>
+				<iframe src="{{ $chart['liveUrl'] }}"></iframe>
 			@endif			
 		</div>
 	@endforeach
@@ -51,16 +44,14 @@
 			<a href="{{ $nextPageUrl }}">Next >></a>
 		@endif
 	</nav>
-
 @endsection
 
 @section('scripts')
-<script>
-	$(document).on('keypress', function(evt) {
-		if (evt.keyCode == 13) {
-			$(".row:eq(0)").remove();
-			$(document).scroll();
-		}
-	});
-</script>
+	<script>
+		$('iframe').css({
+			width: App.AUTHOR_WIDTH,
+			height: App.AUTHOR_HEIGHT
+		})
+	</script>
 @endsection
+
