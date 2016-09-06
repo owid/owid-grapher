@@ -105,6 +105,34 @@
 				});
 			});*/
 
+			// Pass through touch events to containing document
+			// Important for presentations on mobile
+			jQuery('body').on('touchstart', function(ev) {
+				var touches = [];
+				_.each(ev.originalEvent.touches, function(touch) {
+					touches.push({
+						clientX: touch.clientX,
+						clientY: touch.clientY
+					});
+				});
+				window.parent.postMessage({ event: 'touchstart', touches: touches }, "*");
+			});
+
+			jQuery('body').on('touchmove', function(ev) {
+				var touches = [];
+				_.each(ev.originalEvent.touches, function(touch) {
+					touches.push({
+						clientX: touch.clientX,
+						clientY: touch.clientY
+					});
+				});
+				window.parent.postMessage({ event: 'touchmove', touches: touches }, "*");
+			});
+
+			jQuery('body').on('touchend', function(ev) {
+				window.parent.postMessage({ event: 'touchend' }, "*");
+			});
+
 			jQuery(document).ajaxStart(function() {
 				chart.$(".chart-preloader").show();
 			});
