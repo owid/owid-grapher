@@ -62,7 +62,6 @@
 		if (tabs.data) chart.tabs.data = owid.tab.data(chart);
 		if (tabs.sources) chart.tabs.sources = owid.tab.sources(chart);
 		if (tabs.map) chart.tabs.map = new App.Views.Chart.MapTab(chart);
-		chart.display.set('activeTab', chart.model.get('default-tab'));		// 
 
 	//	var defaultTabName = chart.model.get("default-tab"),
 	//		activeTab = sourcesTab;

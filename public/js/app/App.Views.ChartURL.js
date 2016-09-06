@@ -61,10 +61,10 @@
 				if (!_.contains(chart.model.get("tabs"), tab))
 					console.error("Unexpected tab: " + tab);
 				else {
-					chart.model.set("default-tab", tab, { silent: true });
-					if (chart.display)
-						chart.display.set('activeTab', tab);
+					chart.display.set('activeTab', tab);
 				}
+			} else {
+				chart.display.set('activeTab', chart.model.get('default-tab'));
 			}
 
 			var stackMode = params.stackMode;
@@ -93,8 +93,18 @@
 				chart.map.set("mode", "no-interpolation");
 			}			
 
-			// TODO: 'country' is currently done server-side, might be more consistent
-			// to do them here too - mispy
+			// Selected countries -- we can't actually look these up until we have the data
+			chart.data.ready(function() {
+				var country = params.country;
+				if (country) {
+					var codesOrNames = country.split('+'),
+						entities = _.filter(chart.vardata.get('availableEntities'), function(entity) {
+						return _.include(codesOrNames, entity.code) || _.include(codesOrNames, entity.name);
+					});
+
+					chart.model.set('selected-countries', entities);
+				}				
+			});
 
 			// Set shown legend keys for charts with toggleable series
 			var shown = params.shown;
