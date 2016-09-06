@@ -12,66 +12,85 @@
 
 ;(function() {
 	"use strict";
-	owid.namespace("App.Views.ChartURL");
+	owid.namespace("owid.view.urlBinder");
 
-	App.Views.ChartURL = owid.View.extend({
-		initialize: function(options) {
-			if (App.isEditor) return false; // No URL stuff while editing charts
+	owid.view.urlBinder = function() {
+		function urlBinder() { }
 
-			// Keep the query params separate between map and the other tabs
-			this.lastTabName = null;
-			this.mapQueryStr = "?";
-			this.chartQueryStr = "?";
-			this.originalDefaultTab = App.ChartModel.get("default-tab");
+		// Keep the query params separate between map and the other tabs
+		var lastTabName = null,
+			mapQueryStr = '?',
+			chartQueryStr = '?',
+			originalDefaultTab = chart.model.get('default-tab');
 
-			this.listenTo(App.ChartView.display, "change:activeTab", this.onTabChange.bind(this));
-			this.listenTo(App.ChartModel, "change:selected-countries", this.updateCountryParam.bind(this));	
-			this.listenTo(App.ChartModel, "change:activeLegendKeys", this.updateLegendKeys.bind(this));		
-			this.listenTo(App.MapModel, "change:targetYear", this.updateYearParam.bind(this));
-			this.listenTo(App.MapModel, "change:mode change:projection change:isColorblind", this.updateMapParams.bind(this));
-			this.listenTo(App.ChartModel, "change:currentStackMode", this.updateStackMode.bind(this));
-			this.populateFromURL();
-		},
+		function initialize() {
+			chart.display.on("change:activeTab", onTabChange);
+			chart.model.on("change:selected-countries", updateCountryParam);	
+			chart.model.on("change:activeLegendKeys", updateLegendKeys);		
+			chart.map.on("change:targetYear", updateYearParam);
+			chart.map.on("change:mode change:projection change:isColorblind", updateMapParams);
+			chart.model.on("change:currentStackMode", updateStackMode);
+			populateFromURL();
+
+			$(window).on('message', function(event) {
+				var msg = event.originalEvent.data;
+				if (msg.event != 'urlUpdate') return;
+				urlBinder.update(msg.url);
+			});
+		}
+
+		/**
+		 * Update to a new url. Fast way of communicating desired state change
+		 */
+		urlBinder.update = function(url) {
+			var parser = document.createElement('a');
+			parser.href = url;
+			owid.setQueryStr(parser.search);
+			populateFromURL();
+		};
 
 		/**
 		 * Apply any url query parameters on chart startup
 		 */
-		populateFromURL: function() {
+		function populateFromURL() {
 			var params = owid.getQueryParams();
 
 			// Set tab if specified
 			var tab = params.tab;
 			if (tab) {
-				if (!_.contains(App.ChartModel.get("tabs"), tab))
+				if (!_.contains(chart.model.get("tabs"), tab))
 					console.error("Unexpected tab: " + tab);
-				else
-					App.ChartModel.set("default-tab", tab, { silent: true });
+				else {
+					chart.model.set("default-tab", tab, { silent: true });
+					if (chart.display)
+						chart.display.set('activeTab', tab);
+				}
 			}
 
 			var stackMode = params.stackMode;
 			if (stackMode !== undefined)
-				App.ChartModel.set("currentStackMode", stackMode);
+				chart.model.set("currentStackMode", stackMode);
 
 			// Map stuff below
 
 			var year = params.year;
 			if (year !== undefined) {
-				App.MapModel.set("defaultYear", year);
+				chart.map.set("defaultYear", year);
 			}
 
 			var region = params.region;
 			if (region !== undefined) {
-				App.MapModel.set("defaultProjection", region);
+				chart.map.set("defaultProjection", region);
 			}
 
 			var colorblind = params.colorblind;
 			if (colorblind == 1) {
-				App.MapModel.set("isColorblind", true);
+				chart.map.set("isColorblind", true);
 			}
 
 			var interpolate = params.interpolate;
 			if (interpolate == 0) {
-				App.MapModel.set("mode", "no-interpolation");
+				chart.map.set("mode", "no-interpolation");
 			}			
 
 			// TODO: 'country' is currently done server-side, might be more consistent
@@ -84,36 +103,36 @@
 					return decodeURIComponent(key);
 				});
 
-				App.ChartModel.set("activeLegendKeys", keys);
+				chart.model.set("activeLegendKeys", keys);
 			}
-		},
+		}
 
 		/**
 		 * Save the current tab the user is on, and keep url params correctly isolated
 		 */
-		onTabChange: function() {
-			var tabName = App.ChartView.display.get('activeTab');
+		function onTabChange() {
+			var tabName = chart.display.get('activeTab');
 
-			if (this.lastTabName == "map" && tabName != "map") {
-				this.mapQueryStr = window.location.search;
-				owid.setQueryStr(this.chartQueryStr);
-			} else if (this.lastTabName != "map" && this.lastTabName != null && tabName == "map") {				
-				this.chartQueryStr = window.location.search;
-				owid.setQueryStr(this.mapQueryStr);
+			if (lastTabName == "map" && tabName != "map") {
+				mapQueryStr = window.location.search;
+				owid.setQueryStr(chartQueryStr);
+			} else if (lastTabName != "map" && lastTabName != null && tabName == "map") {				
+				chartQueryStr = window.location.search;
+				owid.setQueryStr(mapQueryStr);
 			}
-			if (tabName == this.originalDefaultTab)
+			if (tabName == originalDefaultTab)
 				owid.setQueryVariable("tab", null);
 			else
 				owid.setQueryVariable("tab", tabName);
-			this.lastTabName = tabName;
-		},
+			lastTabName = tabName;
+		}
 
 		/**
 		 * Set e.g. &country=AFG+USA when user adds Afghanistan and the United States
 		 * using the legend add country buttons
 		 */
-		updateCountryParam: function() {
-			var selectedEntities = App.ChartModel.get("selected-countries"),
+		function updateCountryParam() {
+			var selectedEntities = chart.model.get("selected-countries"),
 				entityCodes = [];
 
 			App.ChartData.ready(function() {
@@ -131,14 +150,14 @@
 
 				owid.setQueryVariable("country", entityCodes.join("+"));
 			});			
-		},
+		}
 
 		/**
 		 * Set e.g. &shown=Africa when the user selects Africa on a stacked area chart or other
 		 * toggle-based legend chart.
 		 */
-		 updateLegendKeys: function() {
-		 	var activeLegendKeys = App.ChartModel.get("activeLegendKeys");
+		function updateLegendKeys() {
+		 	var activeLegendKeys = chart.model.get("activeLegendKeys");
 		 	if (activeLegendKeys === null)
 		 		owid.setQueryVariable("shown", null);
 		 	else {
@@ -147,20 +166,20 @@
 		 		});
 		 		owid.setQueryVariable("shown", keys.join("+"));
 		 	}
-		 },
+		 }
 
 		/**
 		 * Set e.g. &year=1990 when the user uses the map slider to go to 1990
 		 */
-		updateYearParam: function() {
-			owid.setQueryVariable("year", App.MapModel.get("targetYear"));
-		},
+		function updateYearParam() {
+			owid.setQueryVariable("year", chart.map.get("targetYear"));
+		}
 
 		/**
 		 * Store current projection in URL
 		 */
-		updateMapParams: function() {
-			var mapConfig = App.MapModel.attributes;
+		function updateMapParams() {
+			var mapConfig = chart.map.attributes;
 
 			var projection = mapConfig.projection;
 			owid.setQueryVariable("region", projection);
@@ -176,17 +195,21 @@
 				owid.setQueryVariable("interpolate", null);
 			else
 				owid.setQueryVariable("interpolate", 0);
-		},
+		}
 
 		/**
 		 * Special config for stacked area charts
 		 */
-		updateStackMode: function() {
-			var stackMode = App.ChartModel.get("currentStackMode");
+		function updateStackMode() {
+			var stackMode = chart.model.get("currentStackMode");
 			if (stackMode == "relative" || stackMode == "stacked")
 				owid.setQueryVariable("stackMode", stackMode);
 			else
 				owid.setQueryVariable("stackMode", null);
-		},
-	});
+		}
+
+		if (!App.isEditor)
+			initialize();
+		return urlBinder;
+	};
 })();

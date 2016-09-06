@@ -47,7 +47,7 @@
 		chart.$ = $;
 
 		// Initialize components
-		chart.urlBinder = new App.Views.ChartURL(chart);
+		chart.url = owid.view.urlBinder(chart);
 		chart.exporter = new App.Views.Export(chart);
 		chart.header = owid.view.header(chart);
 		chart.footer = new App.Views.Chart.Footer(chart);
@@ -215,7 +215,6 @@
 				$chart.addClass('touchscreen');
 			if (renderWidth < 600)
 				$chart.addClass('narrow');
-
 
 			chart.targetWidth = targetWidth;
 			chart.targetHeight = targetHeight;

@@ -53,8 +53,6 @@
 				fracWidth = xPos / (this.$sliderInput.width()*chart.scale),
 				targetYear = this.minYear + fracWidth*(this.maxYear-this.minYear);
 
-			console.log(pageX, this.$sliderInput.offset().left, this.$sliderInput.width())
-
 			this.setTargetYear(targetYear);
 		},
 

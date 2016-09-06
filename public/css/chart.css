@@ -1056,63 +1056,65 @@ select.disabled {
     font-size: 24px;
 }
 
-/* Small chart */
-    #chart.portrait.embedded {
-        padding: 0.6em;
-        border: 1px solid #ccc;
-    }
-    #chart.portrait:not(.embedded) {
-        padding: 1em;
-    }
+/* Portrait mode chart
+--------------------------------------------- */
+#chart.portrait.embedded {
+    padding: 0.6em;
+    border: 1px solid #ccc;
+}
+#chart.portrait:not(.embedded) {
+    padding: 1em;
+}
 
-    /* Tabs should fill the entire width */    
-    #chart.portrait nav.tabs ul {
-        display: table;
-        width: 100%;
-    }
-    #chart.portrait nav.tabs li {
-        display: table-cell;
-    }
-    #chart.portrait nav.tabs li > a {
-        padding: 3px 8px;
-    }
-    #chart.portrait nav.tabs li.edit-btn-wrapper {
-        display: none;
-    }
-    /* Compact the footer buttons a bit */
-    #chart.narrow .footer-btns a.chart-link-btn span,
-    #chart.narrow .footer-btns a.tweet-btn span,
-    #chart.narrow .footer-btns a.facebook-btn span,
-    #chart.narrow .footer-btns a.embed-btn span {
-        display: none;
-    }
-    #chart.narrow .footer-btns i {
-        font-size: 1.2em;
-    }
+/* Tabs should fill the entire width */    
+#chart.portrait nav.tabs ul {
+    display: table;
+    width: 100%;
+}
+#chart.portrait nav.tabs li {
+    display: table-cell;
+}
+#chart.portrait nav.tabs li > a {
+    padding: 3px 8px;
+}
+#chart.portrait nav.tabs li.edit-btn-wrapper {
+    display: none;
+}
+/* Compact the footer buttons a bit */
+#chart.narrow .footer-btns a.chart-link-btn span,
+#chart.narrow .footer-btns a.tweet-btn span,
+#chart.narrow .footer-btns a.facebook-btn span,
+#chart.narrow .footer-btns a.embed-btn span {
+    display: none;
+}
+#chart.narrow .footer-btns i {
+    font-size: 1.2em;
+}
 
-/* Bigger chart */
-    #chart:not(.portrait).embedded {
-        padding: 1em 1.5em;
-        border: 1px solid #ccc;
-    }
-    #chart:not(.portrait):not(.embedded) {
-        padding: 1.5em 3em;
-    }
-    /* Desktop-style tabs */
-    #chart:not(.portrait) nav.tabs ul {
-        float: right;
-    }
-    #chart:not(.portrait) nav.tabs li {
-        float: left;
-    }
-    /* Desktop-only: can click on world map to get chart */
-    #chart:not(.portrait) .datamaps-subunits {
-        cursor: pointer;
-    }
-    #chart:not(.portrait) .datasource-wrapper td:first-child {
-        min-width: 100px;
-        white-space: nowrap;
-    }    
+/* Landscape mode chart
+--------------------------------------------- */
+#chart:not(.portrait).embedded {
+    padding: 1em 1.5em;
+    border: 1px solid #ccc;
+}
+#chart:not(.portrait):not(.embedded) {
+    padding: 1.5em 3em;
+}
+/* Desktop-style tabs */
+#chart:not(.portrait) nav.tabs ul {
+    float: right;
+}
+#chart:not(.portrait) nav.tabs li {
+    float: left;
+}
+/* Desktop-only: can click on world map to get chart */
+#chart:not(.portrait) .datamaps-subunits {
+    cursor: pointer;
+}
+#chart:not(.portrait) .datasource-wrapper td:first-child {
+    min-width: 100px;
+    white-space: nowrap;
+}    
 
 /* Adding countries is currently not compatible with touch devices */
 #chart.touchscreen .nv-add-btn {
@@ -1136,8 +1138,8 @@ select.disabled {
 .unstroked {
     display: none;
 }
-/* HACK (Mispy): Once we properly update to Bootstrap 4 javascript this shouldn't be needed. */
 
+/* HACK (Mispy): Once we properly update to Bootstrap 4 javascript this shouldn't be needed. */
 .modal-backdrop {
     z-index: -1;
 }
