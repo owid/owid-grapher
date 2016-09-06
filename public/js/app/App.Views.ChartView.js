@@ -119,6 +119,8 @@
 			});
 
 			jQuery('body').on('touchmove', function(ev) {
+				if ($(ev.target).closest('.map-timeline-controls').length) return;
+				
 				var touches = [];
 				_.each(ev.originalEvent.touches, function(touch) {
 					touches.push({
