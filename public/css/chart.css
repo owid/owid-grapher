@@ -76,6 +76,9 @@ body {
     height: 100%;
 }
 body.chart-container {
+    /* Ridiculous hack for iOS compatibility: http://stackoverflow.com/questions/23083462/how-to-get-an-iframe-to-be-responsive-in-ios-safari */
+    width: 1px;
+    min-width: 100%;
     overflow: hidden;
 }
 .browserupgrade {
@@ -188,6 +191,7 @@ select.disabled {
 }
 
 #chart svg.MultiBar .nv-controlsWrap {
+    -webkit-transform: translate(0, -30px);
     transform: translate(0, -30px);
 }
 
@@ -288,8 +292,8 @@ select.disabled {
     top: 50%;
     left: 50%;
     font-size: 1.25em;
-    transform: translate(-50%, -50%);
     -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
     /*hidden by default*/
     
     display: none;
