@@ -196,6 +196,7 @@
 				renderText(logoX-10);
 			}	
 
+			chart.footer.updateSharingButtons();
 			changes.done();
 		};
 
