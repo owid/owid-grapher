@@ -24,6 +24,8 @@
 			originalDefaultTab = chart.model.get('default-tab');
 
 		function initialize() {
+			if (App.isEditor) return;
+
 			chart.display.on("change:activeTab", onTabChange);
 			chart.model.on("change:selected-countries", updateCountryParam);	
 			chart.model.on("change:activeLegendKeys", updateLegendKeys);		
@@ -94,7 +96,7 @@
 			}			
 
 			// Selected countries -- we can't actually look these up until we have the data
-			chart.data.ready(function() {
+			/*chart.data.ready(function() {
 				var country = params.country;
 				if (country) {
 					var codesOrNames = country.split('+'),
@@ -104,7 +106,7 @@
 
 					chart.model.set('selected-countries', entities);
 				}				
-			});
+			});*/
 
 			// Set shown legend keys for charts with toggleable series
 			var shown = params.shown;
@@ -218,8 +220,7 @@
 				owid.setQueryVariable("stackMode", null);
 		}
 
-		if (!App.isEditor)
-			initialize();
+		initialize();
 		return urlBinder;
 	};
 })();

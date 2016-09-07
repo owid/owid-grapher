@@ -28,7 +28,7 @@
 				targetHeight: null,
 				renderWidth: null,
 				renderHeight: null,	
-				activeTab: null		
+				activeTab: chart.model.get('default-tab')
 			}
 		});
 		chart.display = new DisplayModel();
@@ -86,7 +86,7 @@
 			chart.header.render();
 			chart.footer.render();
 			chart.tabSelector.render();
-			if (chart.activeTab != chart.tabs.map)
+			if (chart.activeTab && chart.activeTab != chart.tabs.map)
 				chart.activeTab.render();
 			chart.displayScale();
 

@@ -83,7 +83,15 @@ class Chart extends Model {
 					$query->whereIn('name', $countryCodes);
 				});
 
-			$config->{"selected-countries"} = $query->get();			
+			$oldSelectedCountries = $config->{"selected-countries"};
+			$config->{"selected-countries"} = $query->get();
+			foreach ($config->{"selected-countries"} as $entity) {
+				// Preserve custom colors
+				foreach ($oldSelectedCountries as $oldEntity) {
+					if (isset($oldEntity->color) && $oldEntity->name == $entity->name)
+						$entity->color = $oldEntity->color;
+				}
+			}
 		}
 
 		//possibly there could logo query parameter

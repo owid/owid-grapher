@@ -39,9 +39,9 @@
 					svg.setAttribute("preserveAspectRatio", "none");
 					$(svg).css("width", (targetWidth-40) + "px");
 	   			    $(svg).css("height", (targetHeight-40) + "px");
-					$("svg").css("margin", "20px");
 					$("#chart").css('width', targetWidth);
 					$("#chart").css('height', targetHeight);
+					$("svg").css("margin", "20px");					
 
 					// Remove SVG UI elements that aren't needed for export
 					d3.select(svg).selectAll(".nv-add-btn, .nv-controlsWrap").remove();
@@ -55,7 +55,6 @@
 
 		onSVGExport: function() {	
 			var svg = d3.select("svg");
-
 
 			// Inline the CSS styles, since the exported SVG won't have a stylesheet
 			var styleSheets = document.styleSheets;
