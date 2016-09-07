@@ -21,8 +21,6 @@
 			if (!App.isExport) return;
 			chart.$chart.addClass('export');
 
-			// For PNG and SVG export, we set the SVG to a fixed canonical rendering width
-			// and then uniformly scale the rendered chart to the target dimensions.
 			var params = owid.getQueryParams(),
 				targetWidth = params.size && params.size.split("x") ? parseInt(params.size.split("x")[0]) : 1200,
 				targetHeight = params.size && params.size.split("x") ? parseInt(params.size.split("x")[1]) : 800;
@@ -34,15 +32,16 @@
 
 			chart.dispatch.on('renderEnd', function() {
 				setTimeout(function() {
-					var svg = $("svg").get(0);
+					var svg = $("svg").get(0),
+						margin = Math.min(20*(targetWidth/App.AUTHOR_WIDTH), 20*(targetHeight/App.AUTHOR_HEIGHT));
 					svg.setAttribute("viewBox", "0 0 " + chart.renderWidth + " " + chart.renderHeight);
 					svg.setAttribute("preserveAspectRatio", "none");
-					$(svg).css("width", (targetWidth-40) + "px");
-	   			    $(svg).css("height", (targetHeight-40) + "px");
+					$(svg).css("width", (targetWidth-margin) + "px");
+	   			    $(svg).css("height", (targetHeight-margin) + "px");
 					$("#chart").css('width', targetWidth);
 					$("#chart").css('height', targetHeight);
-					$("svg").css("margin", "20px");					
-
+					$(svg).css('margin', margin + 'px');
+					
 					// Remove SVG UI elements that aren't needed for export
 					d3.select(svg).selectAll(".nv-add-btn, .nv-controlsWrap").remove();
 
