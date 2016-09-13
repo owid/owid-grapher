@@ -23,25 +23,25 @@
 
 			var params = owid.getQueryParams(),
 				targetWidth = params.size && params.size.split("x") ? parseInt(params.size.split("x")[0]) : 1200,
-				targetHeight = params.size && params.size.split("x") ? parseInt(params.size.split("x")[1]) : 800;
+				targetHeight = params.size && params.size.split("x") ? parseInt(params.size.split("x")[1]) : 800,
+				margin = Math.min(20*(targetWidth/App.AUTHOR_WIDTH), 20*(targetHeight/App.AUTHOR_HEIGHT));
 
 			chart.display.set({
-				targetWidth: targetWidth,
-				targetHeight: targetHeight
+				targetWidth: targetWidth-(margin*2),
+				targetHeight: targetHeight-(margin*2)
 			});
 
 			chart.dispatch.on('renderEnd', function() {
 				setTimeout(function() {
-					var svg = $("svg").get(0),
-						margin = Math.min(20*(targetWidth/App.AUTHOR_WIDTH), 20*(targetHeight/App.AUTHOR_HEIGHT));
+					var svg = $("svg").get(0);
 					svg.setAttribute("viewBox", "0 0 " + chart.renderWidth + " " + chart.renderHeight);
 					svg.setAttribute("preserveAspectRatio", "none");
-					$(svg).css("width", (targetWidth-margin) + "px");
-	   			    $(svg).css("height", (targetHeight-margin) + "px");
+					$(svg).css("width", (targetWidth-(margin*2)) + "px");
+	   			    $(svg).css("height", (targetHeight-(margin*2)) + "px");
 					$("#chart").css('width', targetWidth);
 					$("#chart").css('height', targetHeight);
 					$(svg).css('margin', margin + 'px');
-					
+
 					// Remove SVG UI elements that aren't needed for export
 					d3.select(svg).selectAll(".nv-add-btn, .nv-controlsWrap").remove();
 

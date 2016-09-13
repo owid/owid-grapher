@@ -249,7 +249,7 @@ class ViewController extends Controller {
 		if ($referer_s) {
 			$root = parse_url(\Request::root());
 			$referer = parse_url($referer_s);
-			if ($root['host'] == $referer['host'] && strlen($referer['path']) > 1 && !str_contains($referer_s, ".html") && !str_contains($referer_s, "wp-admin") && !str_contains($referer_s, "preview=true") && !str_contains($referer_s, "how-to") && !str_contains($referer_s, "grapher") && !str_contains($referer_s, "about") && !str_contains($referer_s, "roser/")) {
+			if ($root['host'] == $referer['host'] && strlen($referer['path']) > 1 && !str_contains($referer_s, ".html") && !str_contains($referer_s, "wp-admin") && !str_contains($referer_s, "preview=true") && !str_contains($referer_s, "how-to") && !str_contains($referer_s, "grapher") && !str_contains($referer_s, "about") && !str_contains($referer_s, "roser/") && !str_contains($referer_s, "slides")) {
 				$chart->origin_url = "https://" . $root['host'] . $referer['path'];
 				$chart->save();
 			}

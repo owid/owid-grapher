@@ -27,8 +27,8 @@
 						formattedNumber = owid.unitFormat(unit, minData || 0);
 				}
 				// HACK (Mispy): Don't use the unit suffix if it's too long
-				if (formattedNumber && formattedNumber.length >= 24)
-					formattedNumber = formattedNumber.match(/[0-9,.]+/)[0] || formattedNumber;
+				//if (formattedNumber && formattedNumber.length >= 24)
+				//	formattedNumber = formattedNumber.match(/[0-9,.]+/)[0] || formattedNumber;
 				return formattedNumber;
 			} );
 
