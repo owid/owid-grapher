@@ -110,7 +110,7 @@ class DataController extends Controller {
 			fwrite($out, json_encode($entityKey));
 		}, 200, [
 			"Content-Type" => "text/plain",
-			"Cache-Control" => Chart::getQueryString() ? "max-age=14400 public" : "no-cache"
+			"Cache-Control" => Chart::getQueryString() ? "max-age=31536000 public" : "no-cache"
 		]);
 
 		return $response;
