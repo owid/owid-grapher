@@ -35,7 +35,7 @@
 
 			// Clear any back button cache we might have and save the
 			// true form defaults
-			this.$el.find("form")[0].reset();
+/*			this.$el.find("form")[0].reset();
 			this.defaultSettings = {};
 			this.saveForm(this.defaultSettings);
 
@@ -47,7 +47,7 @@
 				this.$el.find("form").on("change", function() {
 					this.saveForm(window.localStorage);
 				}.bind(this));
-			}.bind(this), 1);
+			}.bind(this), 1);*/
 
 		},
 

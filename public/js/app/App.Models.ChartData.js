@@ -65,8 +65,11 @@
 					if (!series) {
 						var key = entityKey[entityId].name,
 							id = entityId;
-						// If there are multiple variables per entity, we disambiguate the keys
-						if (hasManyVariables) {
+						
+						if (!hasManyEntities && addCountryMode == "disabled") {
+							id = variable.id;
+							key = variableName;
+						} else if (hasManyVariables) {
 							id += "-" + variable.id;
 							key += " - " + variableName;
 						}

@@ -23,7 +23,7 @@
 				return;		
 
 			if (chart.display.get('activeTab') == "map") {
-				if (chart.tabs.map.dataMap)
+				if (chart.tabs.map && chart.tabs.map.dataMap)
 					updateTimeFromMap(chart.tabs.map);
 			} else {
 				minYear = chart.data.get('minYear');
