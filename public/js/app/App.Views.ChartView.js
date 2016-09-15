@@ -210,8 +210,8 @@
 			if (spaceFactor >= 1.5)
 				$chart.addClass('space150');
 
-			if (Modernizr.touchevents)
-				$chart.addClass('touchscreen');
+			if (navigator.userAgent.match(/Mobi/))
+				$chart.addClass('mobile');
 			if (renderWidth < 600)
 				$chart.addClass('narrow');
 

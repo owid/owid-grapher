@@ -1117,7 +1117,7 @@ select.disabled {
 }    
 
 /* Adding countries is currently not compatible with touch devices */
-#chart.touchscreen .nv-add-btn {
+#chart.mobile .nv-add-btn {
     display: none;
 }
 
