@@ -81,6 +81,14 @@ class ImportController extends Controller {
 			}
 			$datasetId = $dataset->id;
 
+			// Map any imported codes to their true entity names
+			$codes = Entity::where('validated', '=', 1)->lists('name', 'code');
+			for ($i = 0; $i < sizeof($entityKey); $i++) {
+				$name = $entityKey[$i];
+				if (isset($codes[$name]))
+					$entityKey[$i] = $codes[$name];
+			}
+
 			// First, we insert all of the entities with "on duplicate key update", ensuring
 			// they all exist in the database.
 			$insertQuery = "INSERT INTO entities (name) VALUES";
