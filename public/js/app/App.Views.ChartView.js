@@ -59,10 +59,10 @@
 		// Initialize tabs
 		chart.tabs = {};
 		var tabs = _.indexBy(chart.model.get("tabs"));
-		if (tabs.chart) chart.tabs.chart = owid.tab.chart(chart);
-		if (tabs.data) chart.tabs.data = owid.tab.data(chart);
-		if (tabs.sources) chart.tabs.sources = owid.tab.sources(chart);
-		if (tabs.map) chart.tabs.map = new owid.tab.map(chart);
+		chart.tabs.chart = owid.tab.chart(chart);
+		chart.tabs.data = owid.tab.data(chart);
+		chart.tabs.sources = owid.tab.sources(chart);
+		chart.tabs.map = owid.tab.map(chart);
 
 	//	var defaultTabName = chart.model.get("default-tab"),
 	//		activeTab = sourcesTab;
@@ -80,14 +80,13 @@
 		chart.render = function() {			
 			if (!changes.start())
 				return;
-			console.trace('chart.render');
 			chart.data.transformData();
 			if (changes.any('activeTab')) chart.tabSelector.switchTab();
 			chart.initialScale();
 			chart.header.render();
 			chart.footer.render();
 			chart.tabSelector.render();
-			chart.activeTab.render();
+			if (chart.activeTab) chart.activeTab.render();
 			chart.displayScale();
 
 			$chart.find('.chart-inner').css('visibility', 'visible');			

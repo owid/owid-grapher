@@ -95,8 +95,6 @@
 			if (!changes.start())
 				return;
 
-			console.trace('header.render');
-
 			var chartName = chart.model.get('chart-name'),
 				chartSubname = chart.model.get('chart-subname'),
 				addCountryMode = chart.model.get('add-country-mode'),

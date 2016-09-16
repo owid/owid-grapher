@@ -17,12 +17,12 @@
 			var newTabName = chart.display.get('activeTab'),
 				newTab = chart.tabs[newTabName],
 				currentTab = chart.activeTab;
+			chart.activeTab = newTab;
 
 			if (currentTab && currentTab != newTab && currentTab.deactivate) currentTab.deactivate();
 			$('li[data-tab=' + newTabName + '] a').tab('show');
 			if (currentTab != newTab && newTab && newTab.activate) newTab.activate();
 
-			chart.activeTab = newTab;
 		};
 
 		tabSelector.render = function() {
@@ -63,6 +63,9 @@
 				chart.display.set('activeTab', $(this).attr('data-tab'));
 				ev.preventDefault();
 			});
+
+			chart.tabBounds = chart.getBounds($('.tab-pane.active').get(0));
+			chart.svgBounds = chart.getBounds($('svg').get(0));
 
 			changes.done();
 		};

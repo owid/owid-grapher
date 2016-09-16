@@ -11,12 +11,14 @@
 		// Transforms raw variable data into datamaps format with meta information 
 		// specific to the current target year + tolerance
 		mapdata.update = function() {
+			var targetVariable = chart.map.getVariable();
+			if (!targetVariable) return;
+
 			if (!changes.start()) return;
 
 			var variables = chart.vardata.get("variables"),
 				entityKey = chart.vardata.get("entityKey"),
-				mapConfig = App.MapModel.attributes,
-				targetVariable = variables[mapConfig.variableId];
+				mapConfig = chart.map.attributes;
 
 			var years = targetVariable.years,
 				values = targetVariable.values,

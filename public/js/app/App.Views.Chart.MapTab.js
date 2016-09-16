@@ -13,10 +13,10 @@
 		var changes = owid.changes();
 		changes.track(chart.map);
 		changes.track(chart.mapdata);
-		changes.track(chart.display, 'renderWidth renderHeight activeTab');
+		changes.track(chart, 'tabBounds activeTab');
 
 		var dataMap, bordersDisclaimer, colorScale;
-		var svg, tabNode, svgNode, tabBounds, svgBounds, offsetY, availableWidth, availableHeight;
+		var svg, svgNode, svgBounds, offsetY, availableWidth, availableHeight;
 
 		var dispatcher = _.clone(Backbone.Events),
 			mapControls = new MapControls({ dispatcher: dispatcher }),
@@ -51,16 +51,16 @@
 		}
 
 		function calculateBounds() {
-			if (!changes.any('renderWidth renderHeight activeTab'))
+			if (!changes.any('tabBounds activeTab'))
 				return;
+
+			console.log(chart.tabBounds);
 
 			svgNode = chart.$('svg').get(0);
 			svgBounds = chart.getBounds(svgNode);
-			tabNode = chart.$(".tab-pane.active").get(0);
-			tabBounds = chart.getBounds(tabNode);
-			offsetY = tabBounds.top - svgBounds.top;
-			availableWidth = tabBounds.right - tabBounds.left;
-			availableHeight = tabBounds.bottom - tabBounds.top;
+			offsetY = chart.tabBounds.top - svgBounds.top;
+			availableWidth = chart.tabBounds.right - chart.tabBounds.left;
+			availableHeight = chart.tabBounds.bottom - chart.tabBounds.top;
 
 			// Adjust availableHeight to compensate for timeline controls
 			var timelineControls = chart.$(".map-timeline-controls").get(0);
@@ -103,9 +103,9 @@
 			$oldSvg.remove();
 			svg = d3.select('svg.datamap');
 
-			chart.$('g.datamaps-subunits').on('click path', onMapClick);
-			chart.$('g.datamaps-subunits').on('mouseenter path', onMapHover);
-			chart.$('g.datamaps-subunits').on('mouseleave path', onMapHoverStop);
+			chart.$('g.datamaps-subunits').on('click', 'path', onMapClick);
+			chart.$('g.datamaps-subunits').on('mouseenter', 'path', onMapHover);
+			chart.$('g.datamaps-subunits').on('mouseleave', 'path', onMapHoverStop);
 		}
 
 		function updateColorScale() {
@@ -126,7 +126,7 @@
 				//create threshold scale which divides data into buckets based on values provided
 				colorScale = d3.scale.equal_threshold().domain(customValues);
 			} else {
-				colorScale = d3.scale.ordinal().domain(variable.uniqueValues);					
+				colorScale = d3.scale.ordinal().domain(variable.uniqueValues);
 			}
 			colorScale.range(colorScheme);
 
@@ -186,7 +186,7 @@
 
 		// Transforms the datamaps SVG to fit the container and focus a particular region if needed
 		function updateViewport() {
-			if (!changes.any('renderWidth renderHeight projection activeTab')) return;
+			if (!changes.any('tabBounds projection activeTab')) return;
 
 			var map = d3.select(".datamaps-subunits");			
 
@@ -219,8 +219,8 @@
 			// Work out how to center the map, accounting for the new scaling we've worked out
 			var newWidth = mapWidth*scaleFactor,
 				newHeight = mapHeight*scaleFactor,
-				tabCenterX = tabBounds.left + availableWidth / 2,
-				tabCenterY = tabBounds.top + availableHeight / 2,
+				tabCenterX = chart.tabBounds.left + availableWidth / 2,
+				tabCenterY = chart.tabBounds.top + availableHeight / 2,
 				newCenterX = mapX + (scaleFactor-1)*mapBBox.x + viewport.x*newWidth,
 				newCenterY = mapY + (scaleFactor-1)*mapBBox.y + viewport.y*newHeight,
 				newOffsetX = tabCenterX - newCenterX,
@@ -232,7 +232,6 @@
 		}
 
 		mapTab.activate = function() {
-			chart.$('.chart-preloader').show();
 		};
 
 		function updateMapBackground() {
@@ -242,10 +241,10 @@
 					.attr("x", 0).attr("y", 0);
 			}
 
-			if (changes.any('renderWidth renderHeight activeTab')) {
+			if (changes.any('tabBounds activeTab')) {
 				svg.select(".map-bg")
-					.attr("y", tabBounds.top - svgBounds.top)
-					.attr("width", tabBounds.width)
+					.attr("y", chart.tabBounds.top - svgBounds.top)
+					.attr("width", chart.tabBounds.width)
 					.attr("height", availableHeight);
 			}
 		}
@@ -266,7 +265,7 @@
 					.text("Mapped on current borders");
 			}
 
-			if (changes.any('renderWidth renderHeight')) {
+			if (changes.any('tabBounds')) {
 				var node = borderDisclaimer.node(),
 					x = availableWidth - 10,
 					y = offsetY + availableHeight - 10;
@@ -297,14 +296,15 @@
 		};
 
 		mapTab.render = function() {
-			chart.mapdata.update();
-			if (!changes.start()) return;
-			console.log('mapTab.render');
-
+			$(".chart-error").remove();
 			if (!chart.map.getVariable()) {
-				chart.handleError("No variable selected for map.", false);
+				chart.showMessage("No variable selected for map.");
 				return;
 			}
+
+			chart.mapdata.update();
+
+			if (!changes.start()) return;
 
 			initializeMap();
 			if (!changes.only('targetYear')) {
@@ -325,110 +325,22 @@
 				chart.dispatch.renderEnd();
 			});
 
+
 			changes.done();
-			chart.$('.chart-preloader').hide();
+
+			if (!this.postInit) {
+				// Set the post-initial-render defaults
+				var mapConfig = chart.map.attributes;
+				chart.map.set({
+					targetYear: mapConfig.defaultYear || mapConfig.targetYear,
+					projection: mapConfig.defaultProjection || mapConfig.projection
+				});				
+				this.postInit = true;
+			}
 		};
 
 		return mapTab;
 	};
-
-	App.Views.Chart.MapTab = owid.View.extend({
-		el: "#chart",
-		dataMap: null,
-		mapControls: null,
-		legend: null,
-		bordersDisclaimer: null,
-		events: {
-		},
-
-		initialize: function(chart) {
-			$tab = $el.find("#map-chart-tab");
-		},
-
-
-		update: function(callback) {			
-
-			// We need to wait for both datamaps to finish its setup and the variable data
-			// to come in before the map can be fully rendered
-			var onMapReady = function() {
-				$(".chart-inner").attr("style", "");
-
-				chart.data.ready(function() {
-					render();
-				}.bind(this));				
-			}.bind(this);
-		},
-
-		// Optimized method for updating the target year with the slider
-		updateYearOnly: _.throttle(function() {
-			chart.data.ready(function() {
-				mapData = transformData();
-				applyColors(mapData, colorScale);
-				dataMap.updateChoropleth(mapData, { reset: true });
-				// HACK (Mispy): When changing to a year without data for a country, need to do this
-				// to get the right highlightFillColor.
-				dataMap.options.data = mapData;
-				chart.header.render();
-				if (chart.map.showOnlyRelevantLegend()) {
-					// HACK (Mispy): We really need to refactor the map legend into a proper view
-					colorScale = makeColorScale();
-					legend.scale(colorScale);
-					var legendData = { scheme: colorScale.range(), description: chart.map.get("legendDescription") || variableName };
-					d3.select(".legend-wrapper").datum(legendData).call(legend);
-				}
-			}.bind(this));
-		}, 100),
-
-		initializeMap: function(onMapReady) {
-			onMapReady();
-
-			// Set the post-initial-render defaults
-			var mapConfig = chart.map.attributes;
-			chart.map.set({
-				targetYear: mapConfig.defaultYear || mapConfig.targetYear,
-				projection: mapConfig.defaultProjection || mapConfig.projection
-			});
-		},
-
-		render: function() {
-			try {
-				mapData = transformData();
-				if (!mapData) return;				
-				colorScale = makeColorScale();
-				applyColors(mapData, colorScale);
-
-				// If we've changed the projection (i.e. zooming on Africa or similar) we need
-				// to redraw the datamap before injecting new data
-				var oldProjection = dataMap.options.setProjection,
-					newProjection = owdProjections[chart.map.get("projection")];
-
-				var self = this;
-				var updateMap = function() {
-					self.dataMap.updateChoropleth(self.mapData, { reset: true });
-					d3.selectAll("svg.datamap").transition().each("end", function() {
-						chart.dispatch.renderEnd();
-					});
-					self.mapControls.render();
-					self.timelineControls.render();
-					self.onResize();
-					chart.header.changes.track(self, 'mapData');
-					chart.header.render();
-					$('.chart-preloader').hide();
-				};
-
-				if (oldProjection === newProjection) {
-					updateMap();
-				} else {
-					d3.selectAll("path.datamaps-subunit").remove();
-					dataMap.options.setProjection = newProjection;
-					dataMap.options.done = updateMap;
-					dataMap.draw();
-				}				
-			} catch (err) {
-				chart.handleError(err);
-			}
-		},
-	});
 })();
 
 (function() {
