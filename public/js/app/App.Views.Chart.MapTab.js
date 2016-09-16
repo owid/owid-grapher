@@ -315,9 +315,9 @@
 			updateColorScale();
 			updateMapBackground();
 			updateBorderDisclaimer();
-			updateLegend();
 			updateProjection();
 			updateViewport();
+			updateLegend();
 
 			dataMap.updateChoropleth(chart.mapdata.currentValues, { reset: true });
 			dataMap.options.data = chart.mapdata.currentValues;

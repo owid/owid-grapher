@@ -103,8 +103,8 @@
 				<table class="data-table"></table>
 			</div>
 			<div id="map-chart-tab" class="tab-pane">
-				<div class="map-controls-header clearfix">
-					<!--<div class="target-year-control control clearfix">
+				<div class="map-controls-header">
+					<!--<div class="target-year-control control">
 						<div class="control-head">
 							<i class="fa fa-clock-o"></i>
 							<label class="target-year-label"></label>
@@ -113,13 +113,13 @@
 							<input type="range" min="1950" max="2010" step="10"  />
 						</div>
 					</div>-->
-					<div class="region-control control clearfix">
+					<div class="region-control control">
 						<div class="control-head">
 							<i class="fa fa-map"></i>
 							<label class="region-label">World</label>
 						</div>
 						<div class="control-body">
-							<ul class="clearfix">
+							<ul>
 								<li class="World-projection">World</li>
 								<li class="Africa-projection">Africa</li>
 								<li class="N.America-projection">N.America</li>
@@ -130,7 +130,7 @@
 							</ul>
 						</div>
 					</div>
-					<div class="settings-control control clearfix">
+					<div class="settings-control control">
 						<div class="control-head">
 							<i class="fa fa-cog"></i>
 						</div>
@@ -141,13 +141,13 @@
 							</label>
 						</div>
 					</div>
-					<div class="color-blind-control control clearfix" title="Colorblind safe color scheme">
+					<div class="color-blind-control control" title="Colorblind safe color scheme">
 						<div class="control-head">
 							<i class="fa fa-eye"></i>
 						</div>
 					</div>
 				</div>
-				<div class="map-timeline-controls clearfix">
+				<div class="map-timeline-controls">
 					<div class="play-pause-control control">
 						<a class="play-btn btn"><i class="fa fa-play-circle-o"></i></a>
 						<a class="pause-btn btn"><i class="fa fa-pause-circle-o"></i></a>

@@ -12,6 +12,7 @@
 			displayMinLabel = true,
 			labels = [], 
 			orientation = "landscape",
+			availableHeight = 0,
 			unit = {},
 			scale, minData, maxData, datamap, container, containerHeight, isCategoricalScale, descriptionHeight, g, gDesc;
 
@@ -150,9 +151,8 @@
 					if (i === 0) {
 						firstTspanLength = this.getComputedTextLength();
 					} else if (i === 1) {
-						var dx = -firstTspanLength; //need to reset possible previous offset
 						var dy = stepSizeHeight;
-						d3.select(this).attr({ "dx": dx, "dy": dy });
+						d3.select(this).attr({ x: 0, dy: dy });
 					}
 				} );
 				
