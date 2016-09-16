@@ -367,7 +367,6 @@
 		}
 
 		function renderAxis() {
-
 			chartTab.scaleSelectors.render();
 
 			//get extend
@@ -386,7 +385,7 @@
 			yDomain = d3.extent(allValues.map(function(d) { return d.y; }));
 			isClamped = _.isFinite(xAxisMin) || _.isFinite(xAxisMax) || _.isFinite(yAxisMin) || _.isFinite(yAxisMax);
 
-			if (_.isFinite(xAxisMin))
+			if (_.isFinite(xAxisMin) && (xAxisMin > 0 || xAxisScale != "log"))
 				xDomain[0] = xAxisMin;
 			if (_.isFinite(xAxisMax))
 				xDomain[1] = xAxisMax;
@@ -407,6 +406,24 @@
 					nvd3.forceX(xDomain);
 					nvd3.forceY(yDomain);
 				}
+			}
+
+			if (xAxisScale === "linear") {
+				nvd3.xScale(d3.scale.linear());
+			} else if (xAxisScale === "log") {
+				nvd3.xScale(d3.scale.log());
+
+				// MISPY: Custom calculation of axis ticks, since nvd3 doesn't
+				// account for log scale when doing its own calc and that can result in
+				// overlapping axis labels.
+				var minPower10 = Math.ceil(Math.log(yDomain[0]) / Math.log(10));
+				var maxPower10 = Math.floor(Math.log(yDomain[1]) / Math.log(10));
+
+				var tickValues = [];
+				for (var i = minPower10; i <= maxPower10; i++) {
+					tickValues.push(Math.pow(10, i));
+				}
+				nvd3.xAxis.tickValues(tickValues);
 			}
 
 			if (yAxisScale === "linear") {

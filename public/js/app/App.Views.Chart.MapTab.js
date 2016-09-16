@@ -336,6 +336,7 @@
 					projection: mapConfig.defaultProjection || mapConfig.projection
 				});				
 				this.postInit = true;
+				mapTab.render();
 			}
 		};
 

@@ -13,9 +13,9 @@
 		$xAxisScaleSelector.off('click').on('click', function() {
 			var currentScale = chart.model.getAxisConfig('x-axis', 'axis-scale');
 			if (currentScale != "log") 
-				chart.model.setAxisConfig('y-axis', "axis-scale", "log");			
+				chart.model.setAxisConfig('x-axis', "axis-scale", "log");			
 			else
-				chart.model.setAxisConfig('y-axis', "axis-scale", "linear");
+				chart.model.setAxisConfig('x-axis', "axis-scale", "linear");
 		});
 
 		$yAxisScaleSelector.off('click').on('click', function() {
@@ -43,17 +43,18 @@
 
 				//position scale dropdowns - TODO - isn't there a better way then with timeout?
 				setTimeout(function() {
-					var chartRect = d3.select('svg').select(".nv-wrap g > rect");
-					if (chartRect.empty()) return;
+					var chartRect = d3.select('svg').select('.nv-distWrap');
+					if (chartRect.empty())
+						chartRect = d3.select('svg').select('.nv-wrap > g > rect');
 
 					var svgBounds = chart.getBounds(d3.select('svg').node()),
 						chartBounds = chart.getBounds(chartRect.node()),
 						offsetX = chartBounds.left - svgBounds.left + 5,
 						offsetY = legend.height() + 5;
 
-					$xAxisScaleSelector.css({ left: offsetX + chartBounds.width, top: offsetY + chartBounds.height });
-					$yAxisScaleSelector.css({ left: offsetX, top: offsetY-3 });
-				}.bind(this), 250);							
+					$xAxisScaleSelector.css({ left: svgBounds.width - 100, top: chartBounds.height - 30 });
+					$yAxisScaleSelector.css({ left: chartBounds.left - svgBounds.left + 10, top: offsetY-3 });
+				}.bind(this), 250);		
 			}
 		};
 
