@@ -161,7 +161,7 @@
 				// If we're far enough down, go past the logo
 				if (chartNameBounds.bottom > logoBounds.bottom)
 					availableWidth = svgBounds.width;
-				owid.svgSetWrappedText(chartSubnameText, chartSubname, availableWidth - 10 , { lineHeight: 1.2 });
+				owid.svgSetWrappedText(chartSubnameText, chartSubname, availableWidth - 15 , { lineHeight: 1.2 });
 
 				g.select(".header-bg-svg").remove();
 				var bgHeight = chart.getBounds(g.node()).height + 20;
