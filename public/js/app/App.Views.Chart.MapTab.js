@@ -1,137 +1,83 @@
 ;(function() {
 	"use strict";
-	owid.namespace("App.Views.Chart.MapTab");
+	owid.namespace("owid.tab.map");
 
 	var MapControls = App.Views.Chart.Map.MapControls,
 		TimelineControls = App.Views.Chart.Map.TimelineControls,
 		owdProjections = App.Views.Chart.Map.Projections,
-		Legend = App.Views.Chart.Map.Legend,
-		ChartDataModel = App.Models.ChartDataModel;
+		Legend = App.Views.Chart.Map.Legend;
 
-	App.Views.Chart.MapTab = owid.View.extend({
-		BORDERS_DISCLAIMER_TEXT: "Mapped on current borders",
+	owid.tab.map = function(chart) {
+		function mapTab() { }
 
-		el: "#chart",
-		dataMap: null,
-		mapControls: null,
-		legend: null,
-		bordersDisclaimer: null,
-		events: {
-			"click .datamaps-subunit": "onMapClick",
-			"mouseenter .datamaps-subunit": "onMapHover",
-			"mouseleave .datamaps-subunit": "onMapHoverStop"
-		},
+		var changes = owid.changes();
+		changes.track(chart.map);
+		changes.track(chart.mapdata);
+		changes.track(chart.display, 'renderWidth renderHeight activeTab');
 
-		initialize: function(chart) {
-			this.dispatcher = _.clone(Backbone.Events);
-			this.$tab = this.$el.find("#map-chart-tab");
-		},
+		var dataMap, bordersDisclaimer, colorScale;
+		var svg, tabNode, svgNode, tabBounds, svgBounds, offsetY, availableWidth, availableHeight;
+
+		var dispatcher = _.clone(Backbone.Events),
+			mapControls = new MapControls({ dispatcher: dispatcher }),
+			timelineControls = new TimelineControls({ dispatcher: dispatcher }),
+			legend = new Legend();
 
 		// Open the chart tab for a country when it is clicked (but not on mobile)
-		onMapClick: function(ev) {
-			if (Modernizr.touchevents || !_.includes(App.ChartModel.get("tabs"), "chart")) return;
+		function onMapClick(ev) {
+			if ($('#chart').hasClass('mobile') || !_.includes(chart.model.get("tabs"), "chart")) return;
 
 			d3.select(ev.target).each(function(d) {
 				var entityName = d.id,
-					availableEntities = App.VariableData.get("availableEntities"),
+					availableEntities = chart.vardata.get("availableEntities"),
 					entity = _.find(availableEntities, function(e) {
 						return owid.entityNameForMap(e.name) == d.id;
 					});
 
 				if (!entity) return;
-				App.ChartModel.set({ "selected-countries": [entity] }, { silent: true });
-				App.ChartData.chartData = null;
+				chart.model.set({ "selected-countries": [entity] }, { silent: true });
+				chart.data.chartData = null;
 				chart.display.set({ activeTab: 'chart' });
-				App.ChartView.urlBinder.updateCountryParam();
+				chart.urlBinder.updateCountryParam();
 			});
-		},
+		}
 
-		onMapHover: function(ev) {
+		function onMapHover(ev) {
 			chart.tooltip.fromMap(ev, ev.target);
-		},
+		}
 
-		onMapHoverStop: function(ev) {
+		function onMapHoverStop(ev) {
 			chart.tooltip.hide();
-		},
+		}
 
-		activate: function() {
-			$('.chart-preloader').show();
-			this.mapControls = this.addChild(MapControls, { dispatcher: this.dispatcher });
-			this.timelineControls = this.addChild(TimelineControls, { dispatcher: this.dispatcher });
-			this.listenTo(App.MapModel, "change", function(model) {
-				if (_.size(model.changed) == 1 && model.hasChanged("targetYear")) {
-					this.updateYearOnly();
-				} else {
-					this.update();
-				}
-			}.bind(this));
-			this.listenTo($(window), 'resize', function() {
-				this.deactivate();
-				this.activate();
-			}.bind(this))
-
-			this.delegateEvents();
-			this.update();
-		},
-
-		deactivate: function() {
-			this.cleanup();
-
-			chart.tooltip.hide();
-			$('.datamaps-hoverover').remove();
-			d3.selectAll(".datamaps-subunits, .border-disclaimer, .legend-wrapper, .map-bg").remove();			
-			$("svg").removeClass("datamap");
-			this.dataMap = null;
-		},
-
-		update: function(callback) {			
-			if (!App.MapModel.getVariable()) {
-				App.ChartView.handleError("No variable selected for map.", false);
+		function calculateBounds() {
+			if (!changes.any('renderWidth renderHeight activeTab'))
 				return;
+
+			svgNode = chart.$('svg').get(0);
+			svgBounds = chart.getBounds(svgNode);
+			tabNode = chart.$(".tab-pane.active").get(0);
+			tabBounds = chart.getBounds(tabNode);
+			offsetY = tabBounds.top - svgBounds.top;
+			availableWidth = tabBounds.right - tabBounds.left;
+			availableHeight = tabBounds.bottom - tabBounds.top;
+
+			// Adjust availableHeight to compensate for timeline controls
+			var timelineControls = chart.$(".map-timeline-controls").get(0);
+			if (timelineControls) {
+				var controlsBoundingRect = chart.getBounds(timelineControls),
+					controlsHeight = controlsBoundingRect.bottom - controlsBoundingRect.top;
+				availableHeight -= controlsHeight;
 			}
+		}
 
-			// We need to wait for both datamaps to finish its setup and the variable data
-			// to come in before the map can be fully rendered
-			var onMapReady = function() {
-				$(".chart-inner").attr("style", "");
+		function initializeMap() {
+			if (dataMap) return;
 
-				App.ChartData.ready(function() {
-					this.render();
-				}.bind(this));				
-			}.bind(this);
+			var $oldSvg = $("svg");			
 
-			if (!this.dataMap)
-				this.initializeMap(onMapReady);
-			else
-				onMapReady();
-		},
-
-		// Optimized method for updating the target year with the slider
-		updateYearOnly: _.throttle(function() {
-			App.ChartData.ready(function() {
-				this.mapData = this.transformData();
-				this.applyColors(this.mapData, this.colorScale);
-				this.dataMap.updateChoropleth(this.mapData, { reset: true });
-				// HACK (Mispy): When changing to a year without data for a country, need to do this
-				// to get the right highlightFillColor.
-				this.dataMap.options.data = this.mapData;
-				App.ChartView.header.render();
-				if (App.MapModel.showOnlyRelevantLegend()) {
-					// HACK (Mispy): We really need to refactor the map legend into a proper view
-					this.colorScale = this.makeColorScale();
-					this.legend.scale(this.colorScale);
-					var legendData = { scheme: this.colorScale.range(), description: App.MapModel.get("legendDescription") || this.variableName };
-					d3.select(".legend-wrapper").datum(legendData).call(this.legend);
-				}
-			}.bind(this));
-		}, 100),
-
-		initializeMap: function(onMapReady) {
-			var $oldSvg = $("svg");
-
-			Datamap.prototype.worldTopo = null;
-			
-			this.dataMap = new Datamap({
+			Datamap.prototype.worldTopo = null; // seems to be necessary for dataJson to be recognized
+			dataMap = new Datamap({
 				element: $(".chart-inner").get(0),
 				responsive: false,
 				geographyConfig: {
@@ -149,105 +95,312 @@
 				},
 				setProjection: owdProjections.World
 			});
+			mapTab.dataMap = dataMap;
 
 			// HACK (Mispy): Workaround for the fact that datamaps insists on creating
 			// its own SVG element instead of injecting into an existing one.
 			$oldSvg.children().appendTo($("svg.datamap"));
 			$oldSvg.remove();
+			svg = d3.select('svg.datamap');
 
-			d3.select("svg.datamap").insert("rect", "*")
-				.attr("class", "map-bg")
-				.attr("x", 0).attr("y", 0);
+			chart.$('g.datamaps-subunits').on('click path', onMapClick);
+			chart.$('g.datamaps-subunits').on('mouseenter path', onMapHover);
+			chart.$('g.datamaps-subunits').on('mouseleave path', onMapHoverStop);
+		}
 
-			onMapReady();
+		function updateColorScale() {
+			var colorScheme = owdColorbrewer.getColors(chart.map.attributes),
+				variable = chart.map.getVariable(),
+				showOnlyRelevant = chart.map.showOnlyRelevantLegend(),
+				customValues = chart.map.get("colorSchemeValues"),
+				automaticValues = chart.map.get("colorSchemeValuesAutomatic"),
+				categoricalScale = variable && !variable.isNumeric,
+				minValue = chart.map.getMinValue(),
+				maxValue = chart.map.getMaxValue();
 
-			// Set the post-initial-render defaults
-			var mapConfig = App.MapModel.attributes;
-			App.MapModel.set({
-				targetYear: mapConfig.defaultYear || mapConfig.targetYear,
-				projection: mapConfig.defaultProjection || mapConfig.projection
-			});
-
-			// For maps earlier than 2011, display a disclaimer noting that data is mapped
-			// on current rather than historical borders
-			if (App.MapModel.getMinYear() <= 2011) {
-				this.bordersDisclaimer = d3.select( ".border-disclaimer" );
-				if (this.bordersDisclaimer.empty()) {
-					this.bordersDisclaimer = d3.select(".datamap").append("text");
-					this.bordersDisclaimer.attr("class", "border-disclaimer").text(this.BORDERS_DISCLAIMER_TEXT);
-				}
+			//use quantize, if we have numerica scale and not using automatic values, or if we're trying not to use automatic scale, but there no manually entered custom values
+			if (!categoricalScale && (automaticValues || (!automaticValues && !customValues))) {
+				//we have quantitave scale
+				colorScale = d3.scale.quantize().domain([minValue, maxValue]);
+			} else if (!categoricalScale && customValues && !automaticValues) {
+				//create threshold scale which divides data into buckets based on values provided
+				colorScale = d3.scale.equal_threshold().domain(customValues);
+			} else {
+				colorScale = d3.scale.ordinal().domain(variable.uniqueValues);					
 			}
+			colorScale.range(colorScheme);
 
-		},
+			if (showOnlyRelevant) {
+				// Only show the colors that are actually on the map right now
+				var values = _.sortBy(_.uniq(_.map(chart.mapdata.currentValues, function(d) { return d.value; })));
+				colorScheme = _.map(values, function(v) { return colorScale(v); });
+				colorScale.domain(values);
+				colorScale.range(colorScheme);
+			}				
 
-		/**
-		 * Transforms raw variable data into datamaps format
-		 * @return {Object} mapData - of the form { 'Country': { value: 120.11, year: 2006 }, ...}
-		 */
-		transformData: function() {
-			var variables = App.VariableData.get("variables"),
-				entityKey = App.VariableData.get("entityKey"),
-				mapConfig = App.MapModel.attributes,
-				targetVariable = variables[mapConfig.variableId];
+			applyColors(chart.mapdata.currentValues, colorScale);
+		}
 
-			var years = targetVariable.years,
-				values = targetVariable.values,
-				entities = targetVariable.entities,
-				targetYear = +mapConfig.targetYear,
-				tolerance = +mapConfig.timeTolerance,
-				mapData = {};
-
-			if (isNaN(tolerance))
-				tolerance = 0;
-
-			if (mapConfig.mode === "no-interpolation")
-				tolerance = 0;
-
-			for (var i = 0; i < values.length; i++) {
-				var year = years[i];
-				if (year < targetYear-tolerance || year > targetYear+tolerance) 
-					continue;
-
-				// Make sure we use the closest year within tolerance (favoring later years)
-				var current = mapData[entityName];
-				if (current && Math.abs(current.year - targetYear) < Math.abs(year - targetYear))
-					continue;
-
-				var entityName = owid.entityNameForMap(entityKey[entities[i]].name);
-
-				mapData[entityName] = {
-					value: values[i],
-					year: years[i]
-				};
-			}
-
-			this.minValue = _.min(mapData, function(d, i) { return d.value; }).value;
-			this.maxValue = _.max(mapData, function(d, i) { return d.value; }).value;
-			this.minToleranceYear = _.min(mapData, function(d, i) { return d.year; }).year;
-			this.maxToleranceYear = _.max(mapData, function(d, i) { return d.year; }).year;
-			this.variableName = targetVariable.name;
-
-			return mapData;
-		},
-
-		applyColors: function(mapData, colorScale) {
+		function applyColors(mapData, colorScale) {
 			_.each(mapData, function(d, i) {
 				d.color = colorScale(d.value);
 				d.highlightFillColor = d.color;
+			});
+		}
+
+		function updateLegend() {
+			var minValue = chart.map.getMinValue(),
+				maxValue = chart.map.getMaxValue(),
+				mapConfig = chart.map.attributes,
+				variable = chart.map.getVariable();
+
+			if (mapConfig.colorSchemeMinValue || mapConfig.colorSchemeValuesAutomatic) {
+				legend.displayMinLabel(true);
+			} else {
+				legend.displayMinLabel(false);
+			}
+
+			var unitsString = chart.model.get("units"),
+				units = !_.isEmpty(unitsString) ? $.parseJSON(unitsString) : {},
+				yUnit = _.findWhere(units, { property: 'y' });
+			legend.unit(yUnit);
+			legend.labels(mapConfig.colorSchemeLabels);
+
+			var legendOrientation = mapConfig.legendOrientation || "portrait";
+			legend.orientation(legendOrientation);
+			legend.scale(colorScale);
+
+			// Allow min value to overridden by config
+			if (!isNaN(mapConfig.colorSchemeMinValue)) {
+				minValue = mapConfig.colorSchemeMinValue;
+			}
+			legend.minData(minValue);
+			legend.maxData(maxValue);
+			if (d3.select(".legend-wrapper").empty()) {
+				d3.select(".datamap").append("g").attr("class", "legend-wrapper map-legend-wrapper");
+			}
+
+			var legendData = { scheme: colorScale.range(), description: mapConfig.legendDescription || variable.name };
+			d3.select(".legend-wrapper").datum(legendData).call(legend);
+		}
+
+		// Transforms the datamaps SVG to fit the container and focus a particular region if needed
+		function updateViewport() {
+			if (!changes.any('renderWidth renderHeight projection activeTab')) return;
+
+			var map = d3.select(".datamaps-subunits");			
+
+			var viewports = {
+				"World": { x: 0.525, y: 0.5, width: 1, height: 1 },
+				"Africa": { x: 0.48, y: 0.70, width: 0.21, height: 0.38 },
+				"N.America": { x: 0.49, y: 0.40, width: 0.19, height: 0.32 },
+				"S.America": { x: 0.52, y: 0.815, width: 0.10, height: 0.26 },
+				"Asia": { x: 0.49, y: 0.52, width: 0.22, height: 0.38 },
+				"Australia": { x: 0.51, y: 0.77, width: 0.1, height: 0.12 },
+				"Europe": { x: 0.54, y: 0.54, width: 0.05, height: 0.15 },
+			};
+
+			var viewport = viewports[chart.map.get('projection')];
+
+			// Calculate our reference dimensions. All of these values are independent of the current
+			// map translation and scaling-- getBBox() gives us the original, untransformed values.
+			var mapBBox = map.node().getBBox(),
+				mapWidth = mapBBox.width,
+				mapHeight = mapBBox.height,
+				mapX = svgBounds.left + mapBBox.x + 1,
+				mapY = svgBounds.top + mapBBox.y + 1,
+				viewportWidth = viewport.width*mapWidth,
+				viewportHeight = viewport.height*mapHeight;
+
+			// Calculate what scaling should be applied to the untransformed map to match the current viewport to the container
+			var scaleFactor = Math.min(availableWidth/viewportWidth, availableHeight/viewportHeight),
+				scaleStr = "scale(" + scaleFactor + ")";
+
+			// Work out how to center the map, accounting for the new scaling we've worked out
+			var newWidth = mapWidth*scaleFactor,
+				newHeight = mapHeight*scaleFactor,
+				tabCenterX = tabBounds.left + availableWidth / 2,
+				tabCenterY = tabBounds.top + availableHeight / 2,
+				newCenterX = mapX + (scaleFactor-1)*mapBBox.x + viewport.x*newWidth,
+				newCenterY = mapY + (scaleFactor-1)*mapBBox.y + viewport.y*newHeight,
+				newOffsetX = tabCenterX - newCenterX,
+				newOffsetY = tabCenterY - newCenterY,
+				translateStr = "translate(" + newOffsetX + "px," + newOffsetY + "px)";
+
+			var matrixStr = "matrix(" + scaleFactor + ",0,0," + scaleFactor + "," + newOffsetX + "," + newOffsetY + ")";
+			map.attr('transform', matrixStr);
+		}
+
+		mapTab.activate = function() {
+			chart.$('.chart-preloader').show();
+		};
+
+		function updateMapBackground() {
+			if (changes.any('activeTab')) {
+				svg.insert("rect", "*")
+					.attr("class", "map-bg")
+					.attr("x", 0).attr("y", 0);
+			}
+
+			if (changes.any('renderWidth renderHeight activeTab')) {
+				svg.select(".map-bg")
+					.attr("y", tabBounds.top - svgBounds.top)
+					.attr("width", tabBounds.width)
+					.attr("height", availableHeight);
+			}
+		}
+
+		// For maps earlier than 2011, display a disclaimer noting that data is mapped
+		// on current rather than historical borders
+		function updateBorderDisclaimer() {
+			var borderDisclaimer = svg.select(".border-disclaimer");
+			if (chart.map.getMinYear() >= 2012) {
+				borderDisclaimer.remove();
+				return;
+			}
+
+			if (borderDisclaimer.empty()) {
+				borderDisclaimer = svg.append("text");
+				borderDisclaimer.attr("class", "border-disclaimer")
+					.attr('text-anchor', 'end')
+					.text("Mapped on current borders");
+			}
+
+			if (changes.any('renderWidth renderHeight')) {
+				var node = borderDisclaimer.node(),
+					x = availableWidth - 10,
+					y = offsetY + availableHeight - 10;
+				borderDisclaimer.attr("transform", "translate(" + x + "," + y + ")");
+			}
+		}
+
+		function updateProjection() {
+			// If we've changed the projection (i.e. zooming on Africa or similar) we need
+			// to redraw the datamap before injecting new data
+			var oldProjection = dataMap.options.setProjection,
+				newProjection = owdProjections[chart.map.get("projection")];
+
+			if (oldProjection !== newProjection) {
+				d3.selectAll("path.datamaps-subunit").remove();
+				dataMap.options.setProjection = newProjection;
+				dataMap.draw();
+			}
+		}
+
+		mapTab.deactivate = function() {
+			chart.tooltip.hide();
+			$('.datamaps-hoverover').remove();
+			d3.selectAll(".datamaps-subunits, .border-disclaimer, .legend-wrapper, .map-bg").remove();			
+			$("svg").removeClass("datamap");
+			dataMap = null;
+			changes.done();
+		};
+
+		mapTab.render = function() {
+			chart.mapdata.update();
+			if (!changes.start()) return;
+			console.log('mapTab.render');
+
+			if (!chart.map.getVariable()) {
+				chart.handleError("No variable selected for map.", false);
+				return;
+			}
+
+			initializeMap();
+			if (!changes.only('targetYear')) {
+				mapControls.render();
+				timelineControls.render();				
+			}
+			calculateBounds();
+			updateColorScale();
+			updateMapBackground();
+			updateBorderDisclaimer();
+			updateLegend();
+			updateProjection();
+			updateViewport();
+
+			dataMap.updateChoropleth(chart.mapdata.currentValues, { reset: true });
+			dataMap.options.data = chart.mapdata.currentValues;
+			d3.selectAll("svg.datamap").transition().each("end", function() {
+				chart.dispatch.renderEnd();
+			});
+
+			changes.done();
+			chart.$('.chart-preloader').hide();
+		};
+
+		return mapTab;
+	};
+
+	App.Views.Chart.MapTab = owid.View.extend({
+		el: "#chart",
+		dataMap: null,
+		mapControls: null,
+		legend: null,
+		bordersDisclaimer: null,
+		events: {
+		},
+
+		initialize: function(chart) {
+			$tab = $el.find("#map-chart-tab");
+		},
+
+
+		update: function(callback) {			
+
+			// We need to wait for both datamaps to finish its setup and the variable data
+			// to come in before the map can be fully rendered
+			var onMapReady = function() {
+				$(".chart-inner").attr("style", "");
+
+				chart.data.ready(function() {
+					render();
+				}.bind(this));				
+			}.bind(this);
+		},
+
+		// Optimized method for updating the target year with the slider
+		updateYearOnly: _.throttle(function() {
+			chart.data.ready(function() {
+				mapData = transformData();
+				applyColors(mapData, colorScale);
+				dataMap.updateChoropleth(mapData, { reset: true });
+				// HACK (Mispy): When changing to a year without data for a country, need to do this
+				// to get the right highlightFillColor.
+				dataMap.options.data = mapData;
+				chart.header.render();
+				if (chart.map.showOnlyRelevantLegend()) {
+					// HACK (Mispy): We really need to refactor the map legend into a proper view
+					colorScale = makeColorScale();
+					legend.scale(colorScale);
+					var legendData = { scheme: colorScale.range(), description: chart.map.get("legendDescription") || variableName };
+					d3.select(".legend-wrapper").datum(legendData).call(legend);
+				}
+			}.bind(this));
+		}, 100),
+
+		initializeMap: function(onMapReady) {
+			onMapReady();
+
+			// Set the post-initial-render defaults
+			var mapConfig = chart.map.attributes;
+			chart.map.set({
+				targetYear: mapConfig.defaultYear || mapConfig.targetYear,
+				projection: mapConfig.defaultProjection || mapConfig.projection
 			});
 		},
 
 		render: function() {
 			try {
-				this.mapData = this.transformData();
-				if (!this.mapData) return;				
-				this.colorScale = this.makeColorScale();
-				this.applyColors(this.mapData, this.colorScale);
+				mapData = transformData();
+				if (!mapData) return;				
+				colorScale = makeColorScale();
+				applyColors(mapData, colorScale);
 
 				// If we've changed the projection (i.e. zooming on Africa or similar) we need
 				// to redraw the datamap before injecting new data
-				var oldProjection = this.dataMap.options.setProjection,
-					newProjection = owdProjections[App.MapModel.get("projection")];
+				var oldProjection = dataMap.options.setProjection,
+					newProjection = owdProjections[chart.map.get("projection")];
 
 				var self = this;
 				var updateMap = function() {
@@ -267,179 +420,14 @@
 					updateMap();
 				} else {
 					d3.selectAll("path.datamaps-subunit").remove();
-					this.dataMap.options.setProjection = newProjection;
-					this.dataMap.options.done = updateMap;
-					this.dataMap.draw();
+					dataMap.options.setProjection = newProjection;
+					dataMap.options.done = updateMap;
+					dataMap.draw();
 				}				
 			} catch (err) {
-				App.ChartView.handleError(err);
+				chart.handleError(err);
 			}
 		},
-
-		makeColorScale: function() {
-			var colorScheme = owdColorbrewer.getColors(App.MapModel.attributes),
-				variable = App.MapModel.getVariable(),
-				showOnlyRelevant = App.MapModel.showOnlyRelevantLegend(),
-				customValues = App.MapModel.get("colorSchemeValues"),
-				automaticValues = App.MapModel.get("colorSchemeValuesAutomatic"),
-				categoricalScale = variable && !variable.isNumeric,
-				minValue = App.MapModel.getMinValue(),
-				maxValue = App.MapModel.getMaxValue(),
-				colorScale;
-
-			//use quantize, if we have numerica scale and not using automatic values, or if we're trying not to use automatic scale, but there no manually entered custom values
-			if (!categoricalScale && (automaticValues || (!automaticValues && !customValues))) {
-				//we have quantitave scale
-				colorScale = d3.scale.quantize().domain([minValue, maxValue]);
-			} else if (!categoricalScale && customValues && !automaticValues) {
-				//create threshold scale which divides data into buckets based on values provided
-				colorScale = d3.scale.equal_threshold().domain(customValues);
-			} else {
-				colorScale = d3.scale.ordinal().domain(variable.uniqueValues);					
-			}
-			colorScale.range(colorScheme);
-
-			if (showOnlyRelevant) {
-				var values = _.sortBy(_.uniq(_.map(this.mapData, function(d) { return d.value; })));
-				colorScheme = _.map(values, function(v) { return colorScale(v); });
-				colorScale.domain(values);
-				colorScale.range(colorScheme);
-			}				
-
-			return colorScale;
-		},
-
-		makeLegend: function(availableHeight) {
-			var legend = this.legend || new Legend(),
-				minValue = App.MapModel.getMinValue(),
-				maxValue = App.MapModel.getMaxValue(),
-				mapConfig = App.MapModel.attributes,
-				colorScale = this.colorScale;
-
-			if (mapConfig.colorSchemeMinValue || mapConfig.colorSchemeValuesAutomatic) {
-				legend.displayMinLabel(true);
-			} else {
-				legend.displayMinLabel(false);
-			}
-
-			var unitsString = App.ChartModel.get("units"),
-				units = !_.isEmpty(unitsString) ? $.parseJSON(unitsString) : {},
-				yUnit = _.findWhere(units, { property: 'y' });
-			legend.unit(yUnit);
-			legend.labels(mapConfig.colorSchemeLabels);
-
-			var legendOrientation = mapConfig.legendOrientation || "portrait";
-			legend.orientation(legendOrientation);
-			legend.scale(colorScale);
-
-			// Allow min value to overridden by config
-			if (!isNaN(mapConfig.colorSchemeMinValue)) {
-				minValue = mapConfig.colorSchemeMinValue;
-			}
-			legend.minData(minValue);
-			legend.maxData(maxValue);
-			legend.availableHeight(availableHeight);
-			if (d3.select(".legend-wrapper").empty()) {
-				d3.select(".datamap").append("g").attr("class", "legend-wrapper map-legend-wrapper");
-			}
-
-			var legendData = { scheme: colorScale.range(), description: mapConfig.legendDescription || this.variableName };
-			d3.select(".legend-wrapper").datum(legendData).call(legend);
-			return legend;
-		},
-
-		onResize: function(callback) {
-			var map = d3.select(".datamaps-subunits");			
-			if (!this.dataMap || map.empty()) {
-				if (callback) callback();
-				return;
-			}
-
-			var viewports = {
-				"World": { x: 0.525, y: 0.5, width: 1, height: 1 },
-				"Africa": { x: 0.48, y: 0.70, width: 0.21, height: 0.38 },
-				"N.America": { x: 0.49, y: 0.40, width: 0.19, height: 0.32 },
-				"S.America": { x: 0.52, y: 0.815, width: 0.10, height: 0.26 },
-				"Asia": { x: 0.49, y: 0.52, width: 0.22, height: 0.38 },
-				"Australia": { x: 0.51, y: 0.77, width: 0.1, height: 0.12 },
-				"Europe": { x: 0.54, y: 0.54, width: 0.05, height: 0.15 },
-			};
-
-			var viewport = viewports[App.ChartModel.get("map-config").projection];
-
-			var options = this.dataMap.options,
-				prefix = "-webkit-transform" in document.body.style ? "-webkit-" : "-moz-transform" in document.body.style ? "-moz-" : "-ms-transform" in document.body.style ? "-ms-" : "";
-
-			// Calculate our reference dimensions. All of these values are independent of the current
-			// map translation and scaling-- getBBox() gives us the original, untransformed values.
-			var svg = d3.select("svg"),
-				svgBounds = chart.getBounds(svg.node()),
-				$tab = $(".tab-pane.active"),
-				tabBounds = chart.getBounds($tab.get(0)),
-				availableWidth = tabBounds.right - tabBounds.left,
-				availableHeight = tabBounds.bottom - tabBounds.top,
-				mapBBox = map.node().getBBox(),
-				mapWidth = mapBBox.width,
-				mapHeight = mapBBox.height,
-				mapX = svgBounds.left + mapBBox.x + 1,
-				mapY = svgBounds.top + mapBBox.y + 1,
-				viewportWidth = viewport.width*mapWidth,
-				viewportHeight = viewport.height*mapHeight;
-
-			//console.log("wrapperWidth " + wrapperWidth + " wrapperHeight " + wrapperHeight + " mapWidth " + mapWidth + " mapHeight " + mapHeight);
-
-			// Adjust availableHeight to compensate for timeline controls
-			var timelineControls = d3.select(".map-timeline-controls");
-			if (!timelineControls.empty()) {
-				var controlsBoundingRect = chart.getBounds(timelineControls.node()),
-					controlsHeight = controlsBoundingRect.bottom - controlsBoundingRect.top;
-				availableHeight -= controlsHeight;
-			}
-
-			// Resize background
-			svg.select(".map-bg")
-				.attr("y", tabBounds.top - svgBounds.top)
-				.attr("width", tabBounds.width)
-				.attr("height", availableHeight);
-
-			// Calculate what scaling should be applied to the untransformed map to match the current viewport to the container
-			var scaleFactor = Math.min(availableWidth/viewportWidth, availableHeight/viewportHeight),
-				scaleStr = "scale(" + scaleFactor + ")";
-
-			// Work out how to center the map, accounting for the new scaling we've worked out
-			var newWidth = mapWidth*scaleFactor,
-				newHeight = mapHeight*scaleFactor,
-				tabCenterX = tabBounds.left + availableWidth / 2,
-				tabCenterY = tabBounds.top + availableHeight / 2,
-				newCenterX = mapX + (scaleFactor-1)*mapBBox.x + viewport.x*newWidth,
-				newCenterY = mapY + (scaleFactor-1)*mapBBox.y + viewport.y*newHeight,
-				newOffsetX = tabCenterX - newCenterX,
-				newOffsetY = tabCenterY - newCenterY,
-				translateStr = "translate(" + newOffsetX + "px," + newOffsetY + "px)";
-
-			var matrixStr = "matrix(" + scaleFactor + ",0,0," + scaleFactor + "," + newOffsetX + "," + newOffsetY + ")";
-			map.style(prefix + "transform", matrixStr);
-
-			if (this.bordersDisclaimer && !this.bordersDisclaimer.empty()) {
-				var bordersDisclaimerEl = this.bordersDisclaimer.node(),
-					bordersDisclaimerX = availableWidth - bordersDisclaimerEl.getComputedTextLength() - 10,
-					bordersDisclaimerY = (tabBounds.top - svgBounds.top) + availableHeight - 10;
-				this.bordersDisclaimer.attr("transform", "translate(" + bordersDisclaimerX + "," + bordersDisclaimerY + ")");
-			}
-
-			this.legend = this.makeLegend(availableHeight);
-
-			if (callback) callback();
-			/*wrapper.on("mousemove", function() {
-				var point = d3.mouse(this);
-				var rect = map.node().getBoundingClientRect();
-				var wrapRect = wrapper.node().getBoundingClientRect();
-				var x = point[0] - (rect.left - wrapRect.left);
-				var y = point[1] - (rect.top - wrapRect.top);
-				console.log([x/newWidth, y/newHeight]);
-			});*/
-		},
-
 	});
 })();
 

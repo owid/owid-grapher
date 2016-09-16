@@ -8,6 +8,7 @@
 		var changes = owid.changes();
 		changes.track(chart.model, 'chart-name chart-subname add-country-mode selected-countries logo second-logo');
 		changes.track(chart.map, 'targetYear');
+		changes.track(chart.mapdata, 'minToleranceYear maxToleranceYear');
 		changes.track(chart.data, 'minYear maxYear');
 		changes.track(chart.display, 'renderHeight renderWidth activeTab');
 		header.changes = changes;
@@ -23,8 +24,7 @@
 				return;		
 
 			if (chart.display.get('activeTab') == "map") {
-				if (chart.tabs.map && chart.tabs.map.dataMap)
-					updateTimeFromMap(chart.tabs.map);
+				updateTimeFromMap();
 			} else {
 				minYear = chart.data.get('minYear');
 				maxYear = chart.data.get('maxYear');
@@ -33,15 +33,15 @@
 			}
 		}
 
-		function updateTimeFromMap(map) {
+		function updateTimeFromMap() {
+			chart.mapdata.update();
+			
 			var mapConfig = chart.map.attributes,
-				timeFrom = map.minToleranceYear || mapConfig.targetYear,
-				timeTo = map.maxToleranceYear || mapConfig.targetYear,
+				timeFrom = chart.mapdata.minToleranceYear || mapConfig.targetYear,
+				timeTo = chart.mapdata.maxToleranceYear || mapConfig.targetYear,
 				year = mapConfig.targetYear,
-				hasTargetYear = _.find(map.mapData, function(d) { return d.year == year; }),
+				hasTargetYear = _.find(chart.mapdata.currentValues, function(d) { return d.year == year; }),
 				d = owid.displayYear;
-
-			if (!map.mapData) return;
 
 			if (hasTargetYear && timeFrom != timeTo) {
 				// The target year is in the data but we're displaying a range, meaning not available for all countries

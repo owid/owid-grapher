@@ -582,21 +582,3 @@
 		return chartTab;
 	};
 })();
-
-/*	App.Views.Chart.ChartTabu = owid.View.extend({
-		checkStackedAxis: function() {
-			//setting yAxisMax breaks expanded stacked chart, need to check manually
-			var stackedStyle = chart.stacked.style(),
-				yAxis = chart.model.get( "y-axis" ),
-				yAxisMin = ( yAxis[ "axis-min" ] || 0 ),
-				yAxisMax = ( yAxis[ "axis-max" ] || null ),
-				yDomain = [ yAxisMin, yAxisMax ];
-			if( yAxisMax ) {
-				//chart has set yAxis to max, depending on stacked style set max
-				if( stackedStyle === "expand" ) {
-					yDomain = [ 0, 1 ];
-				}
-				chart.yDomain( yDomain );
-			}
-		},
-	} ); */

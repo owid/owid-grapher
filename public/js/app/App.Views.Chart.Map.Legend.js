@@ -12,7 +12,6 @@
 			displayMinLabel = true,
 			labels = [], 
 			orientation = "landscape",
-			availableHeight = 0,
 			unit = {},
 			scale, minData, maxData, datamap, container, containerHeight, isCategoricalScale, descriptionHeight, g, gDesc;
 
@@ -249,12 +248,6 @@
 			} else {
 				orientation = value;
 			}
-		};
-		legend.availableHeight = function(value) {
-			if (!arguments.length)
-				return availableHeight;
-			else
-				availableHeight = value;
 		};
 		legend.unit = function(value) {
 			if (!arguments.length)

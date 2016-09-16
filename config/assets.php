@@ -166,6 +166,7 @@ return [
 		        'app/App.Utils.js',
 		        'app/App.Models.ChartModel.js',
 		        'app/App.Models.MapModel.js',
+		        'app/owid.models.mapdata.js',
 		        'app/App.Models.VariableData.js',
 		        'app/App.Models.ChartData.js',
 		        'app/App.Models.Colors.js',

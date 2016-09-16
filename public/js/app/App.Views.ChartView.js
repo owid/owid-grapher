@@ -19,6 +19,7 @@
 		chart.vardata = App.VariableData;
 		chart.data = App.ChartData;
 		chart.map = App.MapModel;
+		chart.mapdata = owid.models.mapdata(chart);
 		chart.colors = App.Colors;
 
 		// For tracking transient display properties we don't want to save
@@ -61,7 +62,7 @@
 		if (tabs.chart) chart.tabs.chart = owid.tab.chart(chart);
 		if (tabs.data) chart.tabs.data = owid.tab.data(chart);
 		if (tabs.sources) chart.tabs.sources = owid.tab.sources(chart);
-		if (tabs.map) chart.tabs.map = new App.Views.Chart.MapTab(chart);
+		if (tabs.map) chart.tabs.map = new owid.tab.map(chart);
 
 	//	var defaultTabName = chart.model.get("default-tab"),
 	//		activeTab = sourcesTab;
@@ -86,8 +87,7 @@
 			chart.header.render();
 			chart.footer.render();
 			chart.tabSelector.render();
-			if (chart.activeTab && chart.activeTab != chart.tabs.map)
-				chart.activeTab.render();
+			chart.activeTab.render();
 			chart.displayScale();
 
 			$chart.find('.chart-inner').css('visibility', 'visible');			
@@ -182,7 +182,6 @@
 					renderHeight = (targetHeight/targetWidth) * authorWidth;
 				}				
 			}
-
 
 			chart.dom.style.width = renderWidth + 'px';
 			chart.dom.style.height = renderHeight + 'px';
@@ -308,6 +307,9 @@
 			chart.data.ready(chart.render);
 		});
 		chart.display.on('change', function() {
+			chart.data.ready(chart.render);
+		});
+		chart.map.on('change', function() {
 			chart.data.ready(chart.render);
 		});
 		chart.data.ready(chart.render);
