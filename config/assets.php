@@ -179,6 +179,7 @@ return [
 		        'app/App.Views.Chart.DataTab.js',
 		        'app/App.Views.Chart.SourcesTab.js',
 
+		        'app/owid.data.world.js',
 		        'app/App.Views.Chart.Map.MapControls.js',
 		        'app/App.Views.Chart.Map.PlayPauseControl.js',
 		        'app/App.Views.Chart.Map.TimelineControl.js',

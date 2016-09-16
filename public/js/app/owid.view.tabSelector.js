@@ -19,9 +19,9 @@
 				currentTab = chart.activeTab;
 
 			if (currentTab && currentTab != newTab && currentTab.deactivate) currentTab.deactivate();
+			$('li[data-tab=' + newTabName + '] a').tab('show');
 			if (currentTab != newTab && newTab && newTab.activate) newTab.activate();
 
-			$('li[data-tab=' + newTabName + '] a').tab('show');
 			chart.activeTab = newTab;
 		};
 

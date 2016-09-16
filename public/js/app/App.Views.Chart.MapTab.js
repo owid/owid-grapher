@@ -128,12 +128,14 @@
 
 		initializeMap: function(onMapReady) {
 			var $oldSvg = $("svg");
+
+			Datamap.prototype.worldTopo = null;
 			
 			this.dataMap = new Datamap({
 				element: $(".chart-inner").get(0),
 				responsive: false,
 				geographyConfig: {
-					dataUrl: Global.rootUrl + "/js/data/world.ids.json",
+					dataJson: owid.data.world,
 					borderWidth: 0.3,
 					borderColor: '#4b4b4b',
 					highlightFillColor: '#8b8b8b',
@@ -145,26 +147,25 @@
 				fills: {
 					defaultFill: '#8b8b8b'
 				},
-				setProjection: owdProjections.World,
-				done: function() {
-					// HACK (Mispy): Workaround for the fact that datamaps insists on creating
-					// its own SVG element instead of injecting into an existing one.
-					$oldSvg.children().appendTo($("svg.datamap"));
-					$oldSvg.remove();
+				setProjection: owdProjections.World
+			});
 
-					d3.select("svg.datamap").insert("rect", "*")
-						.attr("class", "map-bg")
-						.attr("x", 0).attr("y", 0);
+			// HACK (Mispy): Workaround for the fact that datamaps insists on creating
+			// its own SVG element instead of injecting into an existing one.
+			$oldSvg.children().appendTo($("svg.datamap"));
+			$oldSvg.remove();
 
-					onMapReady();
+			d3.select("svg.datamap").insert("rect", "*")
+				.attr("class", "map-bg")
+				.attr("x", 0).attr("y", 0);
 
-					// Set the post-initial-render defaults
-					var mapConfig = App.MapModel.attributes;
-					App.MapModel.set({
-						targetYear: mapConfig.defaultYear || mapConfig.targetYear,
-						projection: mapConfig.defaultProjection || mapConfig.projection
-					});
-				}
+			onMapReady();
+
+			// Set the post-initial-render defaults
+			var mapConfig = App.MapModel.attributes;
+			App.MapModel.set({
+				targetYear: mapConfig.defaultYear || mapConfig.targetYear,
+				projection: mapConfig.defaultProjection || mapConfig.projection
 			});
 
 			// For maps earlier than 2011, display a disclaimer noting that data is mapped
