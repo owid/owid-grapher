@@ -4,8 +4,7 @@
 	<style>
 		iframe {
 			border: 0;
-			max-width: 800px;
-			width: 100%;
+			width: 914px;
 			height: 600px;
 		}
 
@@ -48,10 +47,6 @@
 
 @section('scripts')
 	<script>
-		$('iframe').css({
-			width: 640,
-			height: 660
-		})
 	</script>
 @endsection
 

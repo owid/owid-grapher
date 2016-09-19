@@ -1043,14 +1043,9 @@ select.disabled {
     font-size: 18px;
 }
 
-#chart.space150 {
-    font-size: 20px;
+#chart.downscaled:not(.narrow) {
+    font-size: 22px;
 }
-
-#chart.downscaled.space150:not(.narrow) {
-    font-size: 24px;
-}
-
 #chart.export.upscaled.space150 {
     font-size: 24px;
 }
