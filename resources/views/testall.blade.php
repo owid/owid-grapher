@@ -6,7 +6,7 @@
 			border: 0;
 			max-width: 800px;
 			width: 100%;
-			height: 660px;
+			height: 600px;
 		}
 
 		.row {

@@ -46,8 +46,6 @@
 			"units": "",
 			"logo": App.OWID_LOGO,
 			"second-logo": null,
-			"iframe-width": "100%",
-			"iframe-height": "660px",
 			"hide-legend": false,
 			"entity-type": "country",
 			"group-by-variables": false,
