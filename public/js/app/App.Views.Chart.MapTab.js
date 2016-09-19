@@ -128,7 +128,7 @@
 			} else {
 				colorScale = d3.scale.ordinal().domain(variable.uniqueValues);
 			}
-			colorScale.range(colorScheme);
+			colorScale.range(colorScheme);			
 
 			if (showOnlyRelevant) {
 				// Only show the colors that are actually on the map right now
