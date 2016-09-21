@@ -167,13 +167,62 @@
 			return App.VariableData.getVariableById(this.get("variableId"));
 		},
 
-		getColors: function() {
-			return owdColorbrewer.getColors(this.toJSON());
+		// Generate colors for map
+		// If color scheme is customized, we simply return the stored custom data
+		getColors: function(mapConfig) {
+			mapConfig = mapConfig || _.clone(this.attributes);
+			var	variable = App.MapModel.getVariable(),
+				hasNumeric = variable.hasNumericValues,
+				hasCategorical = variable.hasCategoricalValues,
+				isOnlyNumeric = hasNumeric && !hasCategorical,
+				isColorblind = mapConfig.isColorblind,
+				colorSchemeName = (isColorblind ? "RdYlBu" : mapConfig.colorSchemeName) || "",
+				colorSchemeInterval = mapConfig.colorSchemeInterval || 2,
+				colorSchemeInvert = mapConfig.colorSchemeInvert || false,
+				customColorScheme = mapConfig.customColorScheme || [],
+				numColors = isOnlyNumeric ? colorSchemeInterval : variable.categoricalValues.length;
+
+			if (colorSchemeInvert) {
+				var colors = this.getColors(_.extend({}, mapConfig, { colorSchemeInvert: false }));
+				return colors.reverse();
+			}
+
+			if (colorSchemeName === "custom")
+				return _.clone(customColorScheme);
+
+			var scheme = owid.colorbrewer[colorSchemeName];
+			if (!scheme) {
+				console.error("No such color scheme: " + scheme);
+				// Return a default color scheme
+				return this.getColors(_.extend({}, mapConfig, { colorSchemeName: _.keys(owid.colorbrewer)[0] }));
+			}
+
+			if (!_.isEmpty(scheme.colors[numColors]))
+				return _.clone(scheme.colors[numColors]);
+
+			// Handle the case of a single color (just for completeness' sake)
+			if (numColors == 1 && !_.isEmpty(scheme.colors[2]))
+				return [scheme.colors[2][0]];
+
+			// If there's no preset color scheme for this many colors, improvise a new one
+			var colors = _.clone(scheme.colors[scheme.colors.length-1]);
+			while (colors.length < numColors) {
+				for (var i = 1; i < colors.length; i++) {
+					var startColor = d3.rgb(colors[i-1]);
+					var endColor = d3.rgb(colors[i]);
+					var newColor = d3.interpolate(startColor, endColor)(0.5);
+					colors.splice(i, 0, newColor);
+					i += 1;
+
+					if (colors.length >= numColors) break;
+				}		
+			}
+			return colors;
 		},
 
 		showOnlyRelevantLegend: function() {
 			var variable = this.getVariable();
-			return !variable.isNumeric && variable.uniqueValues.length > 8;
+			return !variable.isNumeric && variable.categoricalValues.length > 8;
 		}
 	});
 })();

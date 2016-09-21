@@ -43,11 +43,10 @@
 				colorSchemeInterval = App.MapModel.get("colorSchemeInterval"),
 				colorSchemeValues = App.MapModel.get("colorSchemeValues"),
 				colorSchemeLabels = App.MapModel.get("colorSchemeLabels"),
-				colorSchemeValuesAutomatic = App.MapModel.get("colorSchemeValuesAutomatic") || !isNumeric,
+				colorSchemeValuesAutomatic = App.MapModel.get("colorSchemeValuesAutomatic"),
 				colorSchemeInvert = App.MapModel.get("colorSchemeInvert"),
 				minimalColorSchemeValue = App.MapModel.get("colorSchemeMinValue") || "",
 				html = "";
-
 
 			// List the available color schemes to choose from
 			this.$colorSchemeSelect.empty();
@@ -58,17 +57,9 @@
 			this.$colorSchemeSelect.val(colorSchemeName);
 
 			this.$numberOfIntervals.val(colorSchemeInterval);
-
-			// Numeric data is colored by value ranges and so has more options than categorical
-			if (isNumeric) {
-				this.$numberOfIntervals.closest('label').show();
-				this.$colorAutomaticClassification.closest('label').show();
-				this.$colorInvert.closest('label').show();
-			} else {
-				this.$numberOfIntervals.closest('label').hide();
-				this.$colorAutomaticClassification.closest('label').hide();
-				this.$colorInvert.closest('label').hide();
-			}
+			this.$numberOfIntervals.closest('label').show();
+			this.$colorAutomaticClassification.closest('label').show();
+			this.$colorInvert.closest('label').show();
 	
 			this.$preview.empty();				
 
@@ -78,13 +69,8 @@
 			for (var i = 0; i < colorScheme.length; i++ ) {				
 				var color = colorScheme[i], value, label;
 
-				if (isNumeric) {
-					value = (colorSchemeValues && colorSchemeValues[i]) ? colorSchemeValues[i] : "";
-					label = (colorSchemeLabels && colorSchemeLabels[i]) ? colorSchemeLabels[i] : "";
-				} else {
-					value = "";
-					label = variable.uniqueValues[i];
-				}
+				value = (colorSchemeValues && colorSchemeValues[i]) ? colorSchemeValues[i] : "";
+				label = (colorSchemeLabels && colorSchemeLabels[i]) ? colorSchemeLabels[i] : "";
 
 				var $li = $('<li class="clearfix">' +
 							'<span class="map-color-scheme-icon" style="background-color:' + color + ';" data-color="' + color + '"></span>' +

@@ -85,29 +85,28 @@
 			var minYear = _.min(startYears);
 			var maxYear = _.max(endYears);
 
-			// For each variable, heuristically determine if it is categorical or numeric data
+			// For each variable, standardize the data and separate out any non-numeric
 			_.each(variableData.variables, function(variable) {
-				// Grab the first few unique values
-				var seen = {};
+				variable.numericValues = [];
+				variable.categoricalValues = [];
+
 				for (var i = 0; i < variable.values.length; i++) {
-					seen[variable.values[i]] = true;
-					if (_.size(seen) >= 4) break;
+					var val = variable.values[i],
+						asNumber = parseFloat(val);
+
+					if (asNumber == val) {
+						variable.values[i] = asNumber;
+						variable.numericValues.push(asNumber);
+					} else
+						variable.categoricalValues.push(val);
 				}
 
-				// See if those vals mostly seem numeric
-				variable.isNumeric = _.reduce(_.keys(seen), function(memo, val) {
-					return parseFloat(val) == val ? 1 : -1;
-				}) > 0;
+				variable.categoricalValues = _.sortBy(_.uniq(variable.categoricalValues));
+				variable.hasCategoricalValues = !_.isEmpty(variable.categoricalValues);
+				variable.hasNumericValues = !_.isEmpty(variable.numericValues);
 
-				// If numeric data, standardize
-				if (variable.isNumeric) {
-					for (i = 0; i < variable.values.length; i++) {
-						variable.values[i] = parseFloat(variable.values[i]);
-					}
-				} else {
-					// Otherwise cache the unique categorical values
-					variable.uniqueValues = _.sortBy(_.uniq(variable.values));
-				}
+				// legacy
+				variable.isNumeric = variable.hasNumericValues && !variable.hasCategoricalValues;
 			});
 
 			// Slap the ids onto the entities

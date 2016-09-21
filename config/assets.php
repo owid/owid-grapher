@@ -159,8 +159,8 @@ return [
 		        'libs/async.js',
 		        'libs/js.cookie.js',
 
-		        'owd-colorbrewer.js',
 		        'owid.js',
+		        'app/owid.colorbrewer.js',
 
 		        'app/constants.js',
 		        'app/App.Utils.js',

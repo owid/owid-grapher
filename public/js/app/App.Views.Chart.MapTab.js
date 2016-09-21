@@ -21,7 +21,7 @@
 		var dispatcher = _.clone(Backbone.Events),
 			mapControls = new MapControls({ dispatcher: dispatcher }),
 			timelineControls = new TimelineControls({ dispatcher: dispatcher }),
-			legend = new Legend();
+			legend = owid.map.legend(chart);
 
 		// Open the chart tab for a country when it is clicked (but not on mobile)
 		function onMapClick(ev) {
@@ -109,7 +109,7 @@
 		}
 
 		function updateColorScale() {
-			var colorScheme = owdColorbrewer.getColors(chart.map.attributes),
+			var colorScheme = chart.map.getColors(),
 				variable = chart.map.getVariable(),
 				showOnlyRelevant = chart.map.showOnlyRelevantLegend(),
 				customValues = chart.map.get("colorSchemeValues"),
@@ -126,7 +126,7 @@
 				//create threshold scale which divides data into buckets based on values provided
 				colorScale = d3.scale.equal_threshold().domain(customValues);
 			} else {
-				colorScale = d3.scale.ordinal().domain(variable.uniqueValues);
+				colorScale = d3.scale.ordinal().domain(variable.categoricalValues);
 			}
 			colorScale.range(colorScheme);			
 
@@ -149,7 +149,7 @@
 		}
 
 		function updateLegend() {
-			var minValue = chart.map.getMinValue(),
+/*			var minValue = chart.map.getMinValue(),
 				maxValue = chart.map.getMaxValue(),
 				mapConfig = chart.map.attributes,
 				variable = chart.map.getVariable();
@@ -181,7 +181,9 @@
 			}
 
 			var legendData = { scheme: colorScale.range(), description: mapConfig.legendDescription || variable.name };
-			d3.select(".legend-wrapper").datum(legendData).call(legend);
+			d3.select(".legend-wrapper").datum(legendData).call(legend);*/
+
+			legend.update();
 		}
 
 		// Transforms the datamaps SVG to fit the container and focus a particular region if needed
@@ -289,7 +291,7 @@
 		mapTab.deactivate = function() {
 			chart.tooltip.hide();
 			$('.datamaps-hoverover').remove();
-			d3.selectAll(".datamaps-subunits, .border-disclaimer, .legend-wrapper, .map-bg").remove();			
+			d3.selectAll(".datamaps-subunits, .border-disclaimer, .legend, .map-bg").remove();			
 			$("svg").removeClass("datamap");
 			dataMap = null;
 			changes.done();

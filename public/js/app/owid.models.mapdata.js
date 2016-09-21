@@ -7,7 +7,22 @@
 		var changes = owid.changes();
 		changes.track(chart.vardata, 'variables entityKey');
 		changes.track(chart.map, 'variableId targetYear timeTolerance mode');
-		
+
+		function updateLegendData() {
+			// Will eventually produce something like this:
+			// [{ type: 'numeric', min: 10, max: 20, color: '#faeaef' },
+			//  { type: 'numeric', min: 20, max: 30, color: '#fefabc' },
+			//  { type: 'categorical', value: 'Foobar', color: '#bbbbbb'}]
+			var legendData = [];
+
+			legendData = [{ type: 'numeric', min: 10, max: 20, minLabel: '10%', maxLabel: '20%', color: '#faeaef' },
+			  { type: 'numeric', min: 20, max: 30, minLabel: '20%', maxLabel: '30%', color: '#fefabc' },
+			  { type: 'categorical', value: '<5.0', label: 'less than 5.0', color: '#bbbbbb' }];
+
+			mapdata.legendTitle = chart.map.get('legendDescription') || chart.map.getVariable().name;
+			mapdata.legendData = legendData;
+		}
+
 		// Transforms raw variable data into datamaps format with meta information 
 		// specific to the current target year + tolerance
 		mapdata.update = function() {
@@ -51,14 +66,17 @@
 				};
 			}
 
-			this.minCurrentValue = _.min(currentValues, function(d, i) { return d.value; }).value;
-			this.maxCurrentValue = _.max(currentValues, function(d, i) { return d.value; }).value;
-			this.minToleranceYear = _.min(currentValues, function(d, i) { return d.year; }).year;
-			this.maxToleranceYear = _.max(currentValues, function(d, i) { return d.year; }).year;
-			this.currentValues = currentValues;
+			mapdata.minCurrentValue = _.min(currentValues, function(d, i) { return d.value; }).value;
+			mapdata.maxCurrentValue = _.max(currentValues, function(d, i) { return d.value; }).value;
+			mapdata.minToleranceYear = _.min(currentValues, function(d, i) { return d.year; }).year;
+			mapdata.maxToleranceYear = _.max(currentValues, function(d, i) { return d.year; }).year;
+			mapdata.currentValues = currentValues;
 
+			updateLegendData();
 			changes.done();
 		};
+
+
 
 		return mapdata;
 	};
