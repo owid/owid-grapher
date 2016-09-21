@@ -15,7 +15,7 @@
 		changes.track(chart.mapdata);
 		changes.track(chart, 'tabBounds activeTab');
 
-		var dataMap, bordersDisclaimer, colorScale;
+		var dataMap, bordersDisclaimer;
 		var svg, svgNode, svgBounds, offsetY, availableWidth, availableHeight;
 
 		var dispatcher = _.clone(Backbone.Events),
@@ -106,46 +106,6 @@
 			chart.$('g.datamaps-subunits').on('click', 'path', onMapClick);
 			chart.$('g.datamaps-subunits').on('mouseenter', 'path', onMapHover);
 			chart.$('g.datamaps-subunits').on('mouseleave', 'path', onMapHoverStop);
-		}
-
-		function updateColorScale() {
-			var colorScheme = chart.map.getColors(),
-				variable = chart.map.getVariable(),
-				showOnlyRelevant = chart.map.showOnlyRelevantLegend(),
-				customValues = chart.map.get("colorSchemeValues"),
-				automaticValues = chart.map.get("colorSchemeValuesAutomatic"),
-				categoricalScale = variable && !variable.isNumeric,
-				minValue = chart.map.getMinValue(),
-				maxValue = chart.map.getMaxValue();
-
-			//use quantize, if we have numerica scale and not using automatic values, or if we're trying not to use automatic scale, but there no manually entered custom values
-			if (!categoricalScale && (automaticValues || (!automaticValues && !customValues))) {
-				//we have quantitave scale
-				colorScale = d3.scale.quantize().domain([minValue, maxValue]);
-			} else if (!categoricalScale && customValues && !automaticValues) {
-				//create threshold scale which divides data into buckets based on values provided
-				colorScale = d3.scale.equal_threshold().domain(customValues);
-			} else {
-				colorScale = d3.scale.ordinal().domain(variable.categoricalValues);
-			}
-			colorScale.range(colorScheme);			
-
-			if (showOnlyRelevant) {
-				// Only show the colors that are actually on the map right now
-				var values = _.sortBy(_.uniq(_.map(chart.mapdata.currentValues, function(d) { return d.value; })));
-				colorScheme = _.map(values, function(v) { return colorScale(v); });
-				colorScale.domain(values);
-				colorScale.range(colorScheme);
-			}				
-
-			applyColors(chart.mapdata.currentValues, colorScale);
-		}
-
-		function applyColors(mapData, colorScale) {
-			_.each(mapData, function(d, i) {
-				d.color = colorScale(d.value);
-				d.highlightFillColor = d.color;
-			});
 		}
 
 		function updateLegend() {
@@ -314,7 +274,6 @@
 				timelineControls.render();				
 			}
 			calculateBounds();
-			updateColorScale();
 			updateMapBackground();
 			updateBorderDisclaimer();
 			updateProjection();
