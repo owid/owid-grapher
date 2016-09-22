@@ -50,6 +50,8 @@
 				numIntervals = chart.map.get('colorSchemeInterval'),
 				minValue = chart.map.get('colorSchemeMinValue');
 
+			if (!minValue && minValue != 0) minValue = "";
+
 			// List the available color schemes to choose from
 			this.$colorSchemeSelect.empty();
 			_.each(owid.colorbrewer, function(v, k) {
