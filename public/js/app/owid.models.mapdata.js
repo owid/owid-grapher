@@ -112,6 +112,15 @@
 				}
 			}
 
+			if (showOnlyRelevant) {
+				var relevantValues = {};
+				_.each(mapdata.currentValues, function(d) {
+					relevantValues[d.value] = true;
+				});
+				customHiddenCategories = _.extend({}, customHiddenCategories);
+				_.each(categoricalValues, function(v) { if (!relevantValues[v]) customHiddenCategories[v] = true; });
+			}
+
 			// Add default 'No data' category
 			if (!_.contains(categoricalValues, 'No data')) categoricalValues.push('No data');			
 			customCategoryColors = _.extend({}, customCategoryColors, { 'No data': mapdata.getNoDataColor() });
@@ -119,13 +128,6 @@
 
 			// Categorical values, each assigned a color
 			if (!_.isEmpty(categoricalValues)) {
-				if (showOnlyRelevant) {
-					var relevantValues = {};
-					_.each(mapdata.currentValues, function(d) {
-						relevantValues[d.value] = true;
-					});
-					categoricalValues = _.filter(categoricalValues, function(v) { return relevantValues[v] });
-				}
 				for (var i = 0; i < categoricalValues.length; i++) {					
 					var value = categoricalValues[i], boundingOffset = _.isEmpty(intervalMaximums) ? 0 : intervalMaximums.length-1,
 						baseColor = baseColors[i+boundingOffset],

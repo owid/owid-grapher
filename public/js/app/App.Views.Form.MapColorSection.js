@@ -50,7 +50,8 @@
 				colorSchemeValuesAutomatic = chart.map.get('colorSchemeValuesAutomatic'),
 				colorSchemeInvert = chart.map.get('colorSchemeInvert'),
 				numIntervals = chart.map.get('colorSchemeInterval'),
-				minValue = chart.map.get('colorSchemeMinValue');
+				minValue = chart.map.get('colorSchemeMinValue'),
+				customHiddenCategories = chart.map.get('customHiddenCategories');
 
 			if (!minValue && minValue != 0) minValue = "";
 
@@ -89,7 +90,7 @@
 								'<label><input class="hide-category" name="map-category-hide[]" type="checkbox">Hide</label>' +
 	 						'</li>');
 
-					$li.find('.hide-category').prop('checked', l.hidden);
+					$li.find('.hide-category').prop('checked', customHiddenCategories[l.value]);
 				}
 
 				this.$preview.append($li);
