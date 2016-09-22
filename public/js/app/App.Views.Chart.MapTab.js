@@ -38,7 +38,7 @@
 				chart.model.set({ "selected-countries": [entity] }, { silent: true });
 				chart.data.chartData = null;
 				chart.display.set({ activeTab: 'chart' });
-				chart.urlBinder.updateCountryParam();
+				chart.url.updateCountryParam();
 			});
 		}
 
@@ -84,14 +84,14 @@
 					dataJson: owid.data.world,
 					borderWidth: 0.3,
 					borderColor: '#4b4b4b',
-					highlightFillColor: '#8b8b8b',
+					highlightFillColor: chart.mapdata.getNoDataColor(),
 					highlightBorderWidth: 3,
 					highlightBorderColor: '#FFEC38',
 					popupOnHover: false,
 					hideAntarctica: true
 				},
 				fills: {
-					defaultFill: '#8b8b8b'
+					defaultFill: chart.mapdata.getNoDataColor()
 				},
 				setProjection: owdProjections.World
 			});
@@ -109,40 +109,6 @@
 		}
 
 		function updateLegend() {
-/*			var minValue = chart.map.getMinValue(),
-				maxValue = chart.map.getMaxValue(),
-				mapConfig = chart.map.attributes,
-				variable = chart.map.getVariable();
-
-			if (mapConfig.colorSchemeMinValue || mapConfig.colorSchemeValuesAutomatic) {
-				legend.displayMinLabel(true);
-			} else {
-				legend.displayMinLabel(false);
-			}
-
-			var unitsString = chart.model.get("units"),
-				units = !_.isEmpty(unitsString) ? $.parseJSON(unitsString) : {},
-				yUnit = _.findWhere(units, { property: 'y' });
-			legend.unit(yUnit);
-			legend.labels(mapConfig.colorSchemeLabels);
-
-			var legendOrientation = mapConfig.legendOrientation || "portrait";
-			legend.orientation(legendOrientation);
-			legend.scale(colorScale);
-
-			// Allow min value to overridden by config
-			if (!isNaN(mapConfig.colorSchemeMinValue)) {
-				minValue = mapConfig.colorSchemeMinValue;
-			}
-			legend.minData(minValue);
-			legend.maxData(maxValue);
-			if (d3.select(".legend-wrapper").empty()) {
-				d3.select(".datamap").append("g").attr("class", "legend-wrapper map-legend-wrapper");
-			}
-
-			var legendData = { scheme: colorScale.range(), description: mapConfig.legendDescription || variable.name };
-			d3.select(".legend-wrapper").datum(legendData).call(legend);*/
-
 			legend.update();
 		}
 
@@ -280,6 +246,7 @@
 			updateViewport();
 			updateLegend();
 
+			dataMap.options.fills.defaultFill = chart.mapdata.getNoDataColor();
 			dataMap.updateChoropleth(chart.mapdata.currentValues, { reset: true });
 			dataMap.options.data = chart.mapdata.currentValues;
 			d3.selectAll("svg.datamap").transition().each("end", function() {

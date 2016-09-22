@@ -33,16 +33,19 @@
 			// Produces the years: 1980, 1990, 1995, 2000, 2005, 2007, 2008
 			"timeRanges": [],
 			"timelineMode": "slider",
-			"colorSchemeName": "BuGn",
-			"colorSchemeValues": false,
+			// Name of an owid.colorbrewer scheme, may then be further customized
+			"baseColorScheme": "BuGn",
+			"colorSchemeValues": [],
 			"colorSchemeLabels": [],
 			"colorSchemeValuesAutomatic": true,
-			"colorSchemeInterval": 5,
 			// Whether to reverse the color scheme on output
 			"colorSchemeInvert": false,
-			"colorSchemeMinValue": null,
+			"customColorsActive": false,
 			// e.g. ["#000", "#c00", "#0c0", "#00c", "#c0c"]
-			"customColorScheme": [],
+			"customNumericColors": [],
+			// e.g. { 'foo' => '#c00' }
+			"customCategoryColors": {},
+			"customCategoryLabels": {},
 			"isColorblind": false,
 			"projection": "World",
 			"defaultProjection": "World",
@@ -165,6 +168,12 @@
 
 		getVariable: function() {
 			return App.VariableData.getVariableById(this.get("variableId"));
+		},
+
+		// Since intervals are represented by a sequence of paired boundary values...
+		getNumIntervals: function() {
+			var values = this.get('colorSchemeValues');
+			return values.length <= 1 ? 0 : values.length-1;
 		},
 
 		// Generate colors for map

@@ -1019,10 +1019,6 @@ li[data-color^=".*"] {
       margin-left: 10px; }
   .map-color-scheme-preview.automatic-values > li {
     float: left; }
-  .map-color-scheme-preview.automatic-values .map-color-scheme-value {
-    display: none; }
-  .map-color-scheme-preview.automatic-values .min-color-wrapper {
-    display: none; }
 
 /**
 *	embed section

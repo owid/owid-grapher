@@ -439,7 +439,7 @@
 							</label>
 							<label>
 								Number of intervals:
-								<input name="map-color-interval" type="number" class="form-control" min="1" max="99" />
+								<input name="map-color-interval" type="number" class="form-control" min="0" max="99" />
 							</label>
 							<label>
 								<input name="map-color-invert" type="checkbox"/>
@@ -470,13 +470,13 @@
 							<h2><span class="form-section-digit">t</span>Legend</h2>
 						</div>
 						<div class="form-section-content">
-							<label>
+<!--							<label>
 								Legend orientation:
 								<select name="map-legend-orientation" class="form-control">
 									<option value="landscape">Landscape</option>
 									<option value="portrait">Portrait</option>
 								</select>
-							</label>
+							</label>-->
 							<label>
 								Legend description:
 								<input type="text" name="map-legend-description" class="form-control" />

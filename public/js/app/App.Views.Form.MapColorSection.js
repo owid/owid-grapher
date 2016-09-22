@@ -9,6 +9,8 @@
 		events: {
 			"change [name='map-color-scheme']": "onColorSchemeChange",
 			"change [name='map-color-interval']": "onNumIntervalChange",
+			"change .map-color-scheme-value": "saveValuesLabels",
+			"change .map-color-scheme-label": "saveValuesLabels"
 		},
 
 		initialize: function(options) {
@@ -23,7 +25,7 @@
 			this.listenTo(this.$colorAutomaticClassification, "change", this.onAutomaticClassification.bind(this));
 			this.listenTo(this.$colorInvert, "change", this.onColorInvert.bind(this));
 
-			this.listenTo(App.MapModel, "change", this.update.bind(this));
+			this.listenTo(chart.map, "change", this.update.bind(this));
 			this.update();
 		},
 
@@ -34,57 +36,68 @@
 		},
 
 		render: function() {
-			var variable = App.MapModel.getVariable();
+			var variable = chart.map.getVariable();
 			if (!variable) return;
 
-			var isNumeric = variable.isNumeric,
-				colorScheme = App.MapModel.getColors(),
-				colorSchemeName = App.MapModel.get("colorSchemeName"),
-				colorSchemeInterval = App.MapModel.get("colorSchemeInterval"),
-				colorSchemeValues = App.MapModel.get("colorSchemeValues"),
-				colorSchemeLabels = App.MapModel.get("colorSchemeLabels"),
-				colorSchemeValuesAutomatic = App.MapModel.get("colorSchemeValuesAutomatic"),
-				colorSchemeInvert = App.MapModel.get("colorSchemeInvert"),
-				minimalColorSchemeValue = App.MapModel.get("colorSchemeMinValue") || "",
-				html = "";
+			var legendData = chart.mapdata.legendData,
+				baseColorScheme = chart.map.get('baseColorScheme'),
+				customColorsActive = chart.map.get('customColorsActive'),
+				colorSchemeName = customColorsActive ? 'custom' : baseColorScheme,
+				colorSchemeValuesAutomatic = chart.map.get('colorSchemeValuesAutomatic'),
+				colorSchemeValues = chart.map.get('colorSchemeValues'),
+				colorSchemeInvert = chart.map.get('colorSchemeInvert'),
+				numIntervals = chart.map.getNumIntervals();
 
 			// List the available color schemes to choose from
 			this.$colorSchemeSelect.empty();
-			_.each(owdColorbrewer, function(v, k) {
+			_.each(owid.colorbrewer, function(v, k) {
 				if (v.name)
 					this.$colorSchemeSelect.append('<option value="' + k + '">' + v.name + '</option>');
 			}.bind(this));
 			this.$colorSchemeSelect.val(colorSchemeName);
 
-			this.$numberOfIntervals.val(colorSchemeInterval);
+			this.$numberOfIntervals.val(numIntervals);
 			this.$numberOfIntervals.closest('label').show();
-			this.$colorAutomaticClassification.closest('label').show();
-			this.$colorInvert.closest('label').show();
 	
 			this.$preview.empty();				
 
-			//minimal value option
-			this.$preview.append("<li class='clearfix min-color-wrapper'><span>Minimal value:</span><input class='map-color-scheme-value form-control' name='min-color-scheme-value' type='text' placeholder='Minimal value' value='" + minimalColorSchemeValue + "' /></li>");
+			if (variable.hasNumericValues) {
+				this.$colorAutomaticClassification.closest('label').show();
+			}
 
-			for (var i = 0; i < colorScheme.length; i++ ) {				
-				var color = colorScheme[i], value, label;
-
-				value = (colorSchemeValues && colorSchemeValues[i]) ? colorSchemeValues[i] : "";
-				label = (colorSchemeLabels && colorSchemeLabels[i]) ? colorSchemeLabels[i] : "";
-
-				var $li = $('<li class="clearfix">' +
-							'<span class="map-color-scheme-icon" style="background-color:' + color + ';" data-color="' + color + '"></span>' +
-							'<input class="map-color-scheme-value form-control" name="map-scheme[]" type="text" placeholder="Maximum value" value="' + value + '"/>' +
-							'<input class="map-color-scheme-label form-control" name="map-label[]" type="text" placeholder="Category label" value="' + label + '"/>' +
-						'</li>');
-
-				$li.find(".map-color-scheme-label").prop("disabled", !isNumeric);
+			_.each(legendData, function(l, i) {
+				var $li;
+				if (l.type == 'numeric') {
+					if (i === 0) {
+						// Minimal value
+						$li = $('<li class="numeric clearfix">' +
+									'<input class="map-color-scheme-value form-control" name="map-scheme[]" type="text" placeholder="Minimum value" value="' + l.min + '"/>' +
+									'<input class="map-color-scheme-label form-control" name="map-label[]" type="text" placeholder="Custom label" value="' + l.minLabel + '"/>' +
+		 						'</li>');						
+						this.$preview.append($li);
+					}
+					$li = $('<li class="numeric clearfix">' +
+								'<span class="map-color-scheme-icon" style="background-color:' + l.color + ';" data-color="' + l.color + '"></span>' +
+								'<input class="map-color-scheme-value form-control" name="map-scheme[]" type="text" placeholder="Maximum value" value="' + l.max + '"/>' +
+								'<input class="map-color-scheme-label form-control" name="map-label[]" type="text" placeholder="Custom label" value="' + l.maxLabel + '"/>' +
+	 						'</li>');
+				} else {
+					$li = $('<li class="categorical clearfix">' +
+								'<span class="map-color-scheme-icon" style="background-color:' + l.color + ';" data-color="' + l.color + '"></span>' +
+								'<input class="map-color-scheme-value form-control" disabled name="map-scheme[]" type="text" placeholder="Category" value="' + l.value + '"/>' +
+								'<input class="map-color-scheme-label form-control" name="map-label[]" type="text" placeholder="Custom label" value="' + l.label + '"/>' +
+	 						'</li>');
+				}
 
 				this.$preview.append($li);
-			}
-			
-			this.$lis = this.$(".map-color-scheme-icon");
-			this.$lis.on("click", function(evt) {
+			}.bind(this));
+
+			this.$lis = this.$("li.numeric, li.categorical");
+
+			if (colorSchemeValuesAutomatic)
+				this.$lis.find('.map-color-scheme-value').prop('disabled', true);
+
+			this.$lis.find('.map-color-scheme-icon').on("click", function(evt) {
 				evt.preventDefault();
 
 				var $country = $(evt.currentTarget);
@@ -95,98 +108,117 @@
 				this.colorPicker.onSelected = function(value) {
 					$country.css("background-color", value);
 					$country.attr("data-color", value);
-					this.updateColorScheme();
+					this.saveCustomColors();
 				}.bind(this);
 			}.bind(this));
 
 			this.$preview.toggleClass("automatic-values", colorSchemeValuesAutomatic);
 			this.$colorAutomaticClassification.prop("checked", colorSchemeValuesAutomatic);
+			// Inverting colors when they're already customized has confusing results, so disable
+			this.$colorInvert.closest('label').toggle(!customColorsActive);
 			this.$colorInvert.prop("checked", colorSchemeInvert);
-
-			//react to user entering custom values
-			this.$inputs = this.$(".map-color-scheme-value");
-			this.$inputs.on("change", function(evt) {
-				this.updateSchemeValues(evt);
-			}.bind(this));
-
-			this.$labelInputs = this.$(".map-color-scheme-label");
-			this.$labelInputs.on("change", function(evt) {
-				this.updateSchemeLabels(evt);
-			}.bind(this));
-
 		},
 
 		onColorSchemeChange: function() {
-			var colorSchemeName = this.$colorSchemeSelect.val(),
-				customColorScheme = App.MapModel.get("customColorScheme");
+			var colorSchemeName = this.$colorSchemeSelect.val();
 
-			// If this is the first time we switch to custom, populate custom
-			// values with the current color scheme
-			if (colorSchemeName == "custom" && _.isEmpty(customColorScheme))
-				App.MapModel.set("customColorScheme", owdColorbrewer.getColors(App.MapModel.toJSON()), { silent: true });
-
-			App.MapModel.set("colorSchemeName", colorSchemeName);
-		},
-
-		onNumIntervalChange: function() {
-			App.MapModel.set("colorSchemeInterval", parseInt(this.$numberOfIntervals.val()));
-		},
-
-		updateColorScheme: function() {
-			var colors = _.map(this.$lis, function(el) {
-				return $(el).attr("data-color");
-			});
-
-			if (App.MapModel.get("colorSchemeInvert"))
-				colors.reverse();
-
-			App.MapModel.set({
-				customColorScheme: colors,
-				colorSchemeName: "custom"
-			});
-		},
-
-		updateSchemeValues: function( evt ) {			
-			//updating minimal value?
-			var $minValueInput = this.$inputs.eq( 0 );
-			if( $minValueInput.get( 0 ) == evt.currentTarget ) {
-				App.MapModel.set("colorSchemeMinValue", $minValueInput.val());
+			if (colorSchemeName == 'custom') {
+				chart.map.set('customColorsActive', true);
 			} else {
-				//update values
-				var values = [];
-				$.each(this.$inputs, function( i, d ) {
-					//first input is minimal value
-					if( i > 0 ) {
-						var inputValue = $(d).val();
-						values.push(inputValue);
-					}
+				chart.map.set({
+					customColorsActive: false,
+					baseColorScheme: colorSchemeName
 				});
-			
-				App.MapModel.set("colorSchemeValues", values);
-			}			
+			}
 		},
 
-		updateSchemeLabels: function() {
-			//update values
-			var values = [];
-			$.each(this.$labelInputs, function( i, d ) {
-				var inputValue = $( d ).val();
-					values.push( inputValue );
+		// Expand or retract the number of numeric intervals with associated colors
+		onNumIntervalChange: function() {
+			var numIntervals = +this.$numberOfIntervals.val(),			
+				numExpectedValues = numIntervals === 0 ? 0 : numIntervals+1,
+				values = _.clone(chart.map.get('colorSchemeValues'));
+
+			if (numExpectedValues < values.length)
+				values = values.slice(0, numExpectedValues);
+			else {
+				while (numExpectedValues > values.length) {
+					values.push(0);
+				}
+			}
+
+			chart.map.set('colorSchemeValues', values);
+		},
+
+		// Compares the selected colors to the base colors, and then saves
+		// any customizations
+		saveCustomColors: function() {
+			var customNumericColors = [],
+				customCategoryColors = {},
+				seenCustom = false,
+				$colorSpans = this.$lis.find('span[data-color]');
+
+			for (var i = 0; i < chart.mapdata.legendData.length; i++) {
+				var $span = $colorSpans.eq(i),
+					$li = $span.closest('li'),
+					bucket = chart.mapdata.legendData[i],
+					color = $span.attr('data-color');
+
+				if (color != bucket.baseColor)
+					seenCustom = true;
+
+				if ($li.hasClass('numeric'))
+					customNumericColors.push(color);
+				else {
+					var value = $li.find('.map-color-scheme-value').val();
+					customCategoryColors[value] = color;
+				}
+			}
+
+			var customColorsActive = chart.map.get('customColorsActive') || seenCustom;
+			if (!customColorsActive) return;
+
+			chart.map.set({
+				customNumericColors: customNumericColors,
+				customCategoryColors: customCategoryColors,
+				customColorsActive: customColorsActive
+			});
+		},
+
+		saveValuesLabels: function() {
+			var colorSchemeValues = [],
+				colorSchemeLabels = [],				
+				customCategoryLabels = {};
+
+			_.each(this.$lis, function(el) {
+				var $li = $(el);
+
+				var value = $li.find('.map-color-scheme-value').val(),
+					label = $li.find('.map-color-scheme-label').val();
+
+				if ($li.hasClass('numeric')) {
+					colorSchemeValues.push(value);
+					colorSchemeLabels.push(label);
+				} else {
+					if (label) customCategoryLabels[value] = label;
+				}
 			});
 
-
-			App.MapModel.set("colorSchemeLabels", values);			
+			chart.map.set({
+				colorSchemeValues: colorSchemeValues,
+				colorSchemeLabels: colorSchemeLabels,
+				customCategoryLabels: customCategoryLabels
+			});
 		},
 
 		onAutomaticClassification: function(evt) {
 			var checked = this.$colorAutomaticClassification.prop("checked");
 			this.$el.toggleClass("automatic-values", checked);
-			App.MapModel.set("colorSchemeValuesAutomatic", checked);
+			chart.map.set("colorSchemeValuesAutomatic", checked);
 		},
 
 		onColorInvert: function(evt) {
 			var checked = this.$colorInvert.prop("checked");
-			App.MapModel.set("colorSchemeInvert", checked);
+			chart.map.set("colorSchemeInvert", checked);
 		}
 	});
 })();
