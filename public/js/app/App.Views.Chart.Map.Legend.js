@@ -18,6 +18,9 @@
 			var legendData = chart.mapdata.legendData,
 				legendTitle = chart.mapdata.legendTitle;
 
+			// Allow hiding some things from the legend
+			legendData = _.filter(legendData, function(d) { return !d.hidden; });
+
 			var svgBounds = chart.svgBounds,
 				mapBounds = chart.getBounds(svg.select('.datamaps-subunits').node()),
 				viewportBox = chart.getBounds(svg.select('.map-bg').node()),
@@ -64,7 +67,7 @@
 				// Position the step as a whole
 				if (prevData && prevData.type != d.type) {
 					// Spacing between numeric/categorical sections
-					currentStepOffset += stepGap*2;
+					currentStepOffset += stepGap*3;
 				}
 				step.attr("transform", "translate(" + legendStepsOffsetX + ", " + currentStepOffset + ")");
 				currentStepOffset += stepSizeHeight + stepGap;

@@ -10,7 +10,8 @@
 			"change [name='map-color-scheme']": "onColorSchemeChange",
 			"change [name='map-color-interval']": "onNumIntervalChange",
 			"change .map-color-scheme-value": "saveValuesLabels",
-			"change .map-color-scheme-label": "saveValuesLabels"
+			"change .map-color-scheme-label": "saveValuesLabels",
+			"change .hide-category": "saveHiddenCategories"
 		},
 
 		initialize: function(options) {
@@ -69,7 +70,7 @@
 			this.$colorAutomaticClassification.closest('label').toggle(variable.hasNumericValues && numIntervals >= 1);
 
 			if (variable.hasNumericValues && numIntervals >= 1) {
-  	        	this.$preview.append("<li class='clearfix min-color-wrapper'><span>Minimal value:</span><input class='map-color-scheme-value form-control' name='min-color-scheme-value' type='text' placeholder='Minimal value' value='" + minValue + "' /></li>");
+  	        	this.$preview.append("<li class='clearfix min-color-wrapper'><span>Minimal value:</span><input class='map-color-scheme-value form-control' name='min-color-scheme-value' type='text' placeholder='Legend minimum' value='" + minValue + "' /></li>");
 			}
 
 			_.each(legendData, function(l, i) {
@@ -85,7 +86,10 @@
 								'<span class="map-color-scheme-icon" style="background-color:' + l.color + ';" data-color="' + l.color + '"></span>' +
 								'<input class="map-color-scheme-value form-control" disabled name="map-scheme[]" type="text" placeholder="Category" value="' + l.value + '"/>' +
 								'<input class="map-color-scheme-label form-control" name="map-label[]" type="text" placeholder="Custom label" value="' + l.label + '"/>' +
+								'<label><input class="hide-category" name="map-category-hide[]" type="checkbox">Hide</label>' +
 	 						'</li>');
+
+					$li.find('.hide-category').prop('checked', l.hidden);
 				}
 
 				this.$preview.append($li);
@@ -209,6 +213,22 @@
 		onColorInvert: function(evt) {
 			var checked = this.$colorInvert.prop("checked");
 			chart.map.set("colorSchemeInvert", checked);
+		},
+
+		saveHiddenCategories: function() {
+			var hiddenCategories = {};
+
+			_.each(this.$lis, function(el) {
+				var $li = $(el);
+				if (!$li.hasClass('categorical')) return;
+
+				var value = $li.find('.map-color-scheme-value').val(),
+					hidden = $li.find('.hide-category').prop('checked');
+
+				hiddenCategories[value] = hidden;
+			});
+
+			chart.map.set('customHiddenCategories', hiddenCategories);
 		}
 	});
 })();

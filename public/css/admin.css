@@ -1017,9 +1017,12 @@ li[data-color^=".*"] {
     .map-color-scheme-preview > li .map-color-scheme-label {
       width: 50%;
       margin-left: 10px; }
-  .map-color-scheme-preview.automatic-values > li {
-    float: left; }
 
+.map-color-scheme-preview li label {
+  margin-left: 5px;
+  position: relative;
+  top: 5px;
+}
 /**
 *	embed section
 **/

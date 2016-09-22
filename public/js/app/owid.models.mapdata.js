@@ -77,7 +77,8 @@
 				customNumericColors = (customColorsActive && chart.map.get('customNumericColors')) || [],
 				customCategoryColors = (customColorsActive && chart.map.get('customCategoryColors')) || {},
 				customCategoryLabels = chart.map.get('customCategoryLabels'),
-				showOnlyRelevant = variable.categoricalValues.length > 8;
+				showOnlyRelevant = variable.categoricalValues.length > 8,
+				customHiddenCategories = chart.map.get('customHiddenCategories');
 
             var unitsString = chart.model.get("units"),
                 units = !_.isEmpty(unitsString) ? JSON.parse(unitsString) : {},
@@ -85,13 +86,15 @@
 
 			// Numeric 'buckets' of color
 			if (!_.isEmpty(intervalMaximums)) {
-				var minValue = chart.map.getLegendMin();
+				var minValue = chart.map.get('colorSchemeMinValue');
+				if (minValue == null) minValue = "";
+
 				for (var i = 0; i < intervalMaximums.length; i++) {
 					var baseColor = baseColors[i],
 						color = customNumericColors[i] || baseColor,
 						maxValue = +intervalMaximums[i],
 						label = intervalLabels[i] || "",
-						minText = _.isFinite(minValue) ? owid.unitFormat(yUnit, minValue) : "",
+						minText = owid.unitFormat(yUnit, minValue),
 						maxText = owid.unitFormat(yUnit, maxValue);
 
 					// HACK - Todo replace this with an option to actually choose whether to use units
@@ -102,7 +105,7 @@
 						minText = minValue.toString();
 
 					legendData.push({ type: 'numeric', 
-									  min: minValue, max: maxValue,
+									  min: _.isFinite(+minValue) ? +minValue : -Infinity, max: maxValue,
 									  minText: minText, maxText: maxText, 
 									  label: label, text: label, baseColor: baseColor, color: color });
 					minValue = maxValue;
@@ -123,13 +126,14 @@
 					});
 					categoricalValues = _.filter(categoricalValues, function(v) { return relevantValues[v] });
 				}
-				for (var i = 0; i < categoricalValues.length; i++) {
+				for (var i = 0; i < categoricalValues.length; i++) {					
 					var value = categoricalValues[i], boundingOffset = _.isEmpty(intervalMaximums) ? 0 : intervalMaximums.length-1,
 						baseColor = baseColors[i+boundingOffset],
 						color = customCategoryColors[value] || baseColor,
 						label = customCategoryLabels[value] || "",
 						text = label || value;
-					legendData.push({ type: 'categorical', value: value, baseColor: baseColor, color: color, label: label, text: text });
+
+					legendData.push({ type: 'categorical', value: value, baseColor: baseColor, color: color, label: label, text: text, hidden: customHiddenCategories[value] });
 				}
 			}
 

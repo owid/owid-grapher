@@ -46,10 +46,12 @@
 			"colorSchemeInvert": false,
 			"customColorsActive": false,
 			// e.g. ["#000", "#c00", "#0c0", "#00c", "#c0c"]
-			"customNumericColors": [],
+			"customNumericColors": [],			
 			// e.g. { 'foo' => '#c00' }
 			"customCategoryColors": {},
 			"customCategoryLabels": {},
+			// Allow hiding categories from the legend
+			"customHiddenCategories": {},
 			"isColorblind": false,
 			"projection": "World",
 			"defaultProjection": "World",

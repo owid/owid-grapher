@@ -27,6 +27,10 @@
 	    return roundedTempNumber / factor;		
 	};
 
+	owid.isNumeric = function(val) { 
+		return parseFloat(val) == val;
+	};
+
 	owid.displayYear = function(year) {
 		year = parseInt(year);
 		if (isNaN(year)) {
@@ -157,6 +161,8 @@
 	};
 
 	owid.unitFormat = function(unit, value, options) {
+		if (value === "") return "";
+
 		unit = unit || {};
 		options = options || {};
 		options.noTrailingZeroes = options.noTrailingZeroes || true;
