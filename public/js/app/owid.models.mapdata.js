@@ -70,7 +70,7 @@
 				automaticBuckets = chart.map.get('colorSchemeValuesAutomatic'),
 				intervalMaximums = mapdata.getIntervalMaximums(),
 				intervalLabels = chart.map.get('colorSchemeLabels'),
-				categoricalValues = variable.categoricalValues,
+				categoricalValues = _.clone(variable.categoricalValues),
 				numColorsNeeded = intervalMaximums.length + variable.categoricalValues.length,
 				baseColors = getColors(numColorsNeeded),
 				customColorsActive = chart.map.get('customColorsActive'),
@@ -124,7 +124,6 @@
 			// Add default 'No data' category
 			if (!_.contains(categoricalValues, 'No data')) categoricalValues.push('No data');			
 			customCategoryColors = _.extend({}, customCategoryColors, { 'No data': mapdata.getNoDataColor() });
-
 
 			// Categorical values, each assigned a color
 			if (!_.isEmpty(categoricalValues)) {
