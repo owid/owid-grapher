@@ -39,8 +39,10 @@
 			chart.mapdata.update();
 			if (!chart.mapdata.legendData) return;
 
-			var variable = chart.map.getVariable(),
-				legendData = chart.mapdata.legendData,
+			var variable = chart.map.getVariable();
+			if (!variable) return;
+
+			var legendData = chart.mapdata.legendData,
 				baseColorScheme = chart.map.get('baseColorScheme'),
 				customColorsActive = chart.map.get('customColorsActive'),
 				colorSchemeName = customColorsActive ? 'custom' : baseColorScheme,

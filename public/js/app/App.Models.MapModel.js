@@ -35,6 +35,10 @@
 			"timelineMode": "slider",
 			// Name of an owid.colorbrewer scheme, may then be further customized
 			"baseColorScheme": "BuGn",
+			// Number of numeric intervals used to color data
+			"colorSchemeInterval": 10,
+			// Minimum value shown on map legend
+			"colorSchemeMinValue": "",
 			"colorSchemeValues": [],
 			"colorSchemeLabels": [],
 			"colorSchemeValuesAutomatic": true,

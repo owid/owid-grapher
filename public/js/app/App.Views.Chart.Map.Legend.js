@@ -27,7 +27,7 @@
 				legendOffsetX = 15,
 				legendOffsetY = 10;
 
-			var effectiveStepSize = Math.min(50, Math.max(10, targetSize / legendData.length)),
+			var effectiveStepSize = Math.min(30, Math.max(15, targetSize / legendData.length)),
 				stepSizeWidth = effectiveStepSize,
 				stepSizeHeight = effectiveStepSize,
 				stepGap = Math.min(effectiveStepSize/8, 2);
