@@ -37,7 +37,7 @@
 			var variable = chart.map.getVariable(),
 				minValue = chart.map.get('colorSchemeMinValue'),
 				numIntervals = +chart.map.get('colorSchemeInterval'),
-				values = chart.map.get('colorSchemeValues');
+				values = chart.map.get('colorSchemeValues')||[];
 
 			if (!variable.hasNumericValues || numIntervals <= 0)
 				return [];

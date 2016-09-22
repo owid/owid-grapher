@@ -47,7 +47,6 @@
 				customColorsActive = chart.map.get('customColorsActive'),
 				colorSchemeName = customColorsActive ? 'custom' : baseColorScheme,
 				colorSchemeValuesAutomatic = chart.map.get('colorSchemeValuesAutomatic'),
-				colorSchemeValues = chart.map.get('colorSchemeValues'),
 				colorSchemeInvert = chart.map.get('colorSchemeInvert'),
 				numIntervals = chart.map.get('colorSchemeInterval'),
 				minValue = chart.map.get('colorSchemeMinValue');
