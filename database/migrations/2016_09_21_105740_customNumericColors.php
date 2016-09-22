@@ -4,7 +4,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 use App\Chart;
 
-class RemoveMinMapValue extends Migration
+class CustomNumericColors extends Migration
 {
     /**
      * Run the migrations.
@@ -22,12 +22,6 @@ class RemoveMinMapValue extends Migration
                 else {
                     continue;
                 }
-
-                unset($mapConfig->colorSchemeInterval);
-                if (isset($mapConfig->colorSchemeValues) && $mapConfig->colorSchemeValues && isset($mapConfig->colorSchemeMinValue)) {
-                    array_unshift($mapConfig->colorSchemeValues, $mapConfig->colorSchemeMinValue);                    
-                }
-                unset($mapConfig->colorSchemeMinValue);
 
                 if (isset($mapConfig->customColorScheme)) {
                     $mapConfig->customNumericColors = $mapConfig->customColorScheme;

@@ -36,17 +36,19 @@
 		},
 
 		render: function() {
-			var variable = chart.map.getVariable();
-			if (!variable) return;
+			chart.mapdata.update();
+			if (!chart.mapdata.legendData) return;
 
-			var legendData = chart.mapdata.legendData,
+			var variable = chart.map.getVariable(),
+				legendData = chart.mapdata.legendData,
 				baseColorScheme = chart.map.get('baseColorScheme'),
 				customColorsActive = chart.map.get('customColorsActive'),
 				colorSchemeName = customColorsActive ? 'custom' : baseColorScheme,
 				colorSchemeValuesAutomatic = chart.map.get('colorSchemeValuesAutomatic'),
 				colorSchemeValues = chart.map.get('colorSchemeValues'),
 				colorSchemeInvert = chart.map.get('colorSchemeInvert'),
-				numIntervals = chart.map.getNumIntervals();
+				numIntervals = chart.map.get('colorSchemeInterval'),
+				minValue = chart.map.get('colorSchemeMinValue');
 
 			// List the available color schemes to choose from
 			this.$colorSchemeSelect.empty();
@@ -57,29 +59,23 @@
 			this.$colorSchemeSelect.val(colorSchemeName);
 
 			this.$numberOfIntervals.val(numIntervals);
-			this.$numberOfIntervals.closest('label').show();
 	
 			this.$preview.empty();				
 
-			if (variable.hasNumericValues) {
-				this.$colorAutomaticClassification.closest('label').show();
+			this.$numberOfIntervals.closest('label').toggle(variable.hasNumericValues);
+			this.$colorAutomaticClassification.closest('label').toggle(variable.hasNumericValues && numIntervals >= 1);
+
+			if (variable.hasNumericValues && numIntervals >= 1) {
+  	        	this.$preview.append("<li class='clearfix min-color-wrapper'><span>Minimal value:</span><input class='map-color-scheme-value form-control' name='min-color-scheme-value' type='text' placeholder='Minimal value' value='" + minValue + "' /></li>");
 			}
 
 			_.each(legendData, function(l, i) {
 				var $li;
 				if (l.type == 'numeric') {
-					if (i === 0) {
-						// Minimal value
-						$li = $('<li class="numeric clearfix">' +
-									'<input class="map-color-scheme-value form-control" name="map-scheme[]" type="text" placeholder="Minimum value" value="' + l.min + '"/>' +
-									'<input class="map-color-scheme-label form-control" name="map-label[]" type="text" placeholder="Custom label" value="' + l.minLabel + '"/>' +
-		 						'</li>');						
-						this.$preview.append($li);
-					}
 					$li = $('<li class="numeric clearfix">' +
 								'<span class="map-color-scheme-icon" style="background-color:' + l.color + ';" data-color="' + l.color + '"></span>' +
 								'<input class="map-color-scheme-value form-control" name="map-scheme[]" type="text" placeholder="Maximum value" value="' + l.max + '"/>' +
-								'<input class="map-color-scheme-label form-control" name="map-label[]" type="text" placeholder="Custom label" value="' + l.maxLabel + '"/>' +
+								'<input class="map-color-scheme-label form-control" name="map-label[]" type="text" placeholder="Custom label" value="' + l.label + '"/>' +
 	 						'</li>');
 				} else {
 					$li = $('<li class="categorical clearfix">' +
@@ -134,19 +130,7 @@
 
 		// Expand or retract the number of numeric intervals with associated colors
 		onNumIntervalChange: function() {
-			var numIntervals = +this.$numberOfIntervals.val(),			
-				numExpectedValues = numIntervals === 0 ? 0 : numIntervals+1,
-				values = _.clone(chart.map.get('colorSchemeValues'));
-
-			if (numExpectedValues < values.length)
-				values = values.slice(0, numExpectedValues);
-			else {
-				while (numExpectedValues > values.length) {
-					values.push(0);
-				}
-			}
-
-			chart.map.set('colorSchemeValues', values);
+			chart.map.set('colorSchemeInterval', this.$numberOfIntervals.val());
 		},
 
 		// Compares the selected colors to the base colors, and then saves
@@ -168,7 +152,7 @@
 
 				if ($li.hasClass('numeric'))
 					customNumericColors.push(color);
-				else {
+				else if ($li.hasClass('categorical')) {
 					var value = $li.find('.map-color-scheme-value').val();
 					customCategoryColors[value] = color;
 				}
@@ -189,6 +173,8 @@
 				colorSchemeLabels = [],				
 				customCategoryLabels = {};
 
+			var minValue = this.$('[name=min-color-scheme-value]').val();
+
 			_.each(this.$lis, function(el) {
 				var $li = $(el);
 
@@ -198,12 +184,13 @@
 				if ($li.hasClass('numeric')) {
 					colorSchemeValues.push(value);
 					colorSchemeLabels.push(label);
-				} else {
+				} else if ($li.hasClass('categorical')) {
 					if (label) customCategoryLabels[value] = label;
 				}
 			});
 
 			chart.map.set({
+				colorSchemeMinValue: minValue,
 				colorSchemeValues: colorSchemeValues,
 				colorSchemeLabels: colorSchemeLabels,
 				customCategoryLabels: customCategoryLabels

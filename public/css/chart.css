@@ -695,7 +695,7 @@ select.disabled {
     stroke-width: .1px;
 }
 #chart svg.datamap .legend-step text {
-    font-size: 14px;
+    font-size: 16px;
 }
 #chart svg.datamap .legend-step line {
     stroke: #4F4F4F;

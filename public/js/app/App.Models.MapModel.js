@@ -170,10 +170,10 @@
 			return App.VariableData.getVariableById(this.get("variableId"));
 		},
 
-		// Since intervals are represented by a sequence of paired boundary values...
-		getNumIntervals: function() {
-			var values = this.get('colorSchemeValues');
-			return values.length <= 1 ? 0 : values.length-1;
+		getLegendMin: function() {
+			var minValue = this.get('colorSchemeMinValue');
+			if (parseFloat(minValue) != minValue) return -Infinity;
+			else return +minValue;
 		},
 
 		// Generate colors for map
@@ -228,10 +228,5 @@
 			}
 			return colors;
 		},
-
-		showOnlyRelevantLegend: function() {
-			var variable = this.getVariable();
-			return !variable.isNumeric && variable.categoricalValues.length > 8;
-		}
 	});
 })();

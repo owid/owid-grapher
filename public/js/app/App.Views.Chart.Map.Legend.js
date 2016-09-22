@@ -7,6 +7,7 @@
 
 		var changes = owid.changes();
 		changes.track(chart.mapdata, 'legendData legendTitle');
+		changes.track(chart, 'tabBounds');
 
 		legend.update = function() {
 			var svg = d3.select(chart.$('.datamap').get(0)),
@@ -15,15 +16,14 @@
 			if (!g.empty() && !changes.start()) return;
 
 			var legendData = chart.mapdata.legendData,
-				legendTitle = chart.mapdata.legendTitle,
-				orientation = chart.map.get('legendOrientation') || 'portrait';
+				legendTitle = chart.mapdata.legendTitle;
 
 			var svgBounds = chart.svgBounds,
-				mapBounds = svg.select('.datamaps-subunits').node().getBoundingClientRect(),
-				viewportBox = svg.select('.map-bg').node().getBBox(),
-				targetHeight = Math.min(viewportBox.height, mapBounds.height) * 0.65,
-				targetWidth = Math.min(viewportBox.width, mapBounds.width) * 0.25,
-				targetSize = orientation == "landscape" ? targetWidth : targetHeight,
+				mapBounds = chart.getBounds(svg.select('.datamaps-subunits').node()),
+				viewportBox = chart.getBounds(svg.select('.map-bg').node()),
+                targetHeight = Math.min(viewportBox.height, mapBounds.height) * 0.7,
+                targetWidth = Math.min(viewportBox.width, mapBounds.width) * 0.25,
+				targetSize = targetHeight,
 				legendOffsetX = 15,
 				legendOffsetY = 10;
 
@@ -37,7 +37,8 @@
 					.attr('id', 'legend')
 					.attr('class', 'legend');
 
-			var legendSteps = g.selectAll('.legend-step').data(legendData);
+			var stepsContainer = g.append('g');
+			var legendSteps = stepsContainer.selectAll('.legend-step').data(legendData);
 			
 			var legendStepsEnter = legendSteps.enter()
 				.append('g')
@@ -46,7 +47,7 @@
 			legendStepsEnter.append("line");
 			legendStepsEnter.append("text");
 
-			var legendStepsOffsetX = legendOffsetX;
+			var legendStepsOffsetX = 0;
 			if (legendTitle)
 				legendStepsOffsetX += 5;
 
@@ -63,22 +64,23 @@
 				// Position the step as a whole
 				if (prevData && prevData.type != d.type) {
 					// Spacing between numeric/categorical sections
-					currentStepOffset += stepGap*5;
+					currentStepOffset += stepGap*2;
 				}
 				step.attr("transform", "translate(" + legendStepsOffsetX + ", " + currentStepOffset + ")");
 				currentStepOffset += stepSizeHeight + stepGap;
 
 				// Position the text
-				if (d.type == 'numeric') {
+				if (d.type == 'categorical' || d.text) {
+					step.append('text').text(d.text)
+						.attr('x', stepSizeWidth+5)
+						.attr('y', stepSizeHeight/2)
+						.attr('dy', '.4em');
+				} else if (d.type == 'numeric') {
 					if (!prevData || !_.has(prevData, 'max'))
 						step.append('text').text(d.minText).attr('x', stepSizeWidth+5);
 					step.append('text').text(d.maxText)
 						.attr('x', stepSizeWidth+5)
 						.attr('y', stepSizeHeight);
-				} else if (d.type == 'categorical') {
-					step.append('text').text(d.text)
-						.attr('x', stepSizeWidth+5)
-						.attr('y', stepSizeHeight/2+3);
 				}
 				prevData = d;
 			});
@@ -93,18 +95,19 @@
 				.attr("class", "legend-description")
 				.text(function(d) { return d; });				
 
-			var descOffsetX = legendOffsetX,
+			var descOffsetX = 0,
 				descOffsetY = currentStepOffset; 
 
 			gDesc.attr("transform", "translate(" + descOffsetX + "," + descOffsetY + ") rotate(270)");
-			owid.scaleToFit(gDesc.node(), viewportBox.width - legendOffsetX, viewportBox.height - legendOffsetY);
+			owid.scaleToFit(gDesc.node(), viewportBox.width - legendOffsetX, viewportBox.height - legendOffsetY - 20);
 
-//			g.attr("transform", "translate(" + legendStepsOffsetX + ",0)");
-//			owid.scaleToFit(g.node(), targetWidth - legendStepsOffsetX, targetHeight);
+			// Position and scale legend to fit
+			g.attr("transform", "translate(" + legendOffsetX + "," + ((viewportBox.top - svgBounds.top) + viewportBox.height - legendOffsetY - currentStepOffset) + ")");
 
-			//position legend vertically
-			var legendY = viewportBox.y + viewportBox.height - legendOffsetY - currentStepOffset;
-			g.attr("transform", "translate(0," + legendY + ")");
+			owid.scaleToFit(stepsContainer.node(), targetWidth - legendStepsOffsetX, targetHeight);
+			var transform = d3.transform(stepsContainer.attr('transform'));
+			transform.translate = [0, currentStepOffset - currentStepOffset*transform.scale[1]];
+			stepsContainer.attr('transform', transform);
 
 			changes.done();
 		};

@@ -5,6 +5,28 @@
 
 	var owid = {};
 
+	// Round with precision option https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Math/round
+	owid.round = function(number, precision) {
+	    var factor = Math.pow(10, precision);
+	    var tempNumber = number * factor;
+	    var roundedTempNumber = Math.round(tempNumber);
+	    return roundedTempNumber / factor;		
+	};
+
+	owid.ceil = function(number, precision) {
+	    var factor = Math.pow(10, precision);
+	    var tempNumber = number * factor;
+	    var roundedTempNumber = Math.ceil(tempNumber);
+	    return roundedTempNumber / factor;		
+	};
+
+	owid.floor = function(number, precision) {
+	    var factor = Math.pow(10, precision);
+	    var tempNumber = number * factor;
+	    var roundedTempNumber = Math.floor(tempNumber);
+	    return roundedTempNumber / factor;		
+	};
+
 	owid.displayYear = function(year) {
 		year = parseInt(year);
 		if (isNaN(year)) {
@@ -603,7 +625,7 @@
 
 	owid.scaleToFit = function(node, width, height) {
 		var el = d3.select(node),
-			currentBounds = App.ChartView.getBounds(node),
+			currentBounds = chart.getBounds(node),
 			transform = d3.transform(el.attr("transform")),
 			widthFactor = currentBounds.width/width,
 			heightFactor = currentBounds.height/height;

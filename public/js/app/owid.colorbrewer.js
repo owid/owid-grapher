@@ -60,7 +60,7 @@
 
 			var distinctScheme = { name: "OWID Distinct", colors: [] };
 			var distinctColors = ["#3360a9", "#ca2628", "#34983f", "#ed6c2d", "#df3c64", "#a85a4a", "#e6332e", "#6bb537", "#ffd53e", "#f07f59", "#b077b1", "#932834", "#674c98", "#5eb77e", "#f6a324", "#2a939b", "#818282", "#7ec7ce", "#fceb8c", "#cfcd1e", "#58888f", "#ce8ebd", "#9ecc8a", "#db2445", "#f9bc8f", "#d26e66", "#c8c8c8"];
-			_.each(colors, function(v, i) {
+			_.each(distinctColors, function(v, i) {
 				distinctScheme.colors.push(distinctColors.slice(0, i));
 			});
 			colors["owid-distinct"] = distinctScheme;

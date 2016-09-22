@@ -54,8 +54,6 @@
 			if (!changes.any('tabBounds activeTab'))
 				return;
 
-			console.log(chart.tabBounds);
-
 			svgNode = chart.$('svg').get(0);
 			svgBounds = chart.getBounds(svgNode);
 			offsetY = chart.tabBounds.top - svgBounds.top;

@@ -8,6 +8,47 @@
 		changes.track(chart.vardata);
 		changes.track(chart.map);
 
+		// When automatic classification is turned on, this takes the numeric map data
+		// and works out some discrete ranges to assign colors to
+		function calculateIntervalMaximums() {
+			var variable = chart.map.getVariable(),
+				numIntervals = +chart.map.get('colorSchemeInterval');
+			if (!variable.hasNumericValues || numIntervals <= 0) return [];
+
+			var rangeValue = variable.maxValue - variable.minValue,
+				rangeMagnitude = Math.floor(Math.log(rangeValue) / Math.log(10));
+
+			var minValue = owid.floor(variable.minValue, -(rangeMagnitude-1)),
+				maxValue = owid.ceil(variable.maxValue, -(rangeMagnitude-1));
+
+			var intervalMaximums = [];
+			for (var i = 1; i <= numIntervals; i++) {
+				var value = minValue + (i/numIntervals)*(maxValue-minValue);
+				intervalMaximums.push(owid.round(value, -(rangeMagnitude-1)));
+			}
+
+			return intervalMaximums;
+		}
+
+		mapdata.getIntervalMaximums = function() {
+			var automaticValues = chart.map.get('colorSchemeValuesAutomatic');
+			if (automaticValues) return calculateIntervalMaximums();
+
+			var variable = chart.map.getVariable(),
+				minValue = chart.map.get('colorSchemeMinValue'),
+				numIntervals = +chart.map.get('colorSchemeInterval'),
+				values = chart.map.get('colorSchemeValues');
+
+			if (!variable.hasNumericValues || numIntervals <= 0)
+				return [];
+
+			while (values.length < numIntervals)
+				values.push(0);
+			while (values.length > numIntervals)
+				values = values.slice(0, numIntervals);
+			return values;
+		};
+
 		function updateLegendData() {
 /*			if (showOnlyRelevant) {
 				// Only show the colors that are actually on the map right now
@@ -18,6 +59,7 @@
 			}				*/
 
 
+
 			// Will eventually produce something like this:
 			// [{ type: 'numeric', min: 10, max: 20, minText: "10%", maxText: "20%", color: '#faeaef' },
 			//  { type: 'numeric', min: 20, max: 30, minText: "20%", maxText: "30%", color: '#fefabc' },
@@ -25,32 +67,45 @@
 			var legendData = [];
 
 			var variable = chart.map.getVariable(),
-				boundingValues = chart.map.get('colorSchemeValues') || [],
-				boundingLabels = chart.map.get('colorSchemeLabels') || [],
+				automaticBuckets = chart.map.get('colorSchemeValuesAutomatic'),
+				intervalMaximums = mapdata.getIntervalMaximums(),
+				intervalLabels = chart.map.get('colorSchemeLabels'),
 				categoricalValues = variable.categoricalValues,
-				numColorsNeeded = chart.map.getNumIntervals() + variable.categoricalValues.length,
+				numColorsNeeded = intervalMaximums.length + variable.categoricalValues.length,
 				baseColors = getColors(numColorsNeeded),
 				customColorsActive = chart.map.get('customColorsActive'),
 				customNumericColors = (customColorsActive && chart.map.get('customNumericColors')) || [],
 				customCategoryColors = (customColorsActive && chart.map.get('customCategoryColors')) || {},
-				customCategoryLabels = chart.map.get('customCategoryLabels') || {};
+				customCategoryLabels = chart.map.get('customCategoryLabels'),
+				showOnlyRelevant = variable.categoricalValues.length > 8;
+
+            var unitsString = chart.model.get("units"),
+                units = !_.isEmpty(unitsString) ? JSON.parse(unitsString) : {},
+                yUnit = _.findWhere(units, { property: 'y' });
 
 			// Numeric 'buckets' of color
-			if (!_.isEmpty(boundingValues)) {
-				for (var i = 0; i < boundingValues.length-1; i++) {
+			if (!_.isEmpty(intervalMaximums)) {
+				var minValue = chart.map.getLegendMin();
+				for (var i = 0; i < intervalMaximums.length; i++) {
 					var baseColor = baseColors[i],
 						color = customNumericColors[i] || baseColor,
-						minValue = boundingValues[i],
-						maxValue = boundingValues[i+1],
-						minLabel = boundingLabels[i] || "",
-						maxLabel = boundingLabels[i+1] || "",
-						minText = minLabel || minValue,
-						maxText = maxLabel || maxValue;
+						maxValue = +intervalMaximums[i],
+						label = intervalLabels[i] || "",
+						minText = _.isFinite(minValue) ? owid.unitFormat(yUnit, minValue) : "",
+						maxText = owid.unitFormat(yUnit, maxValue);
+
+					// HACK - Todo replace this with an option to actually choose whether to use units
+					if (maxText.length-maxValue.toString().length > 8)
+						maxText = maxValue.toString();
+
+					if (minText.length-minValue.toString().length > 8)
+						minText = minValue.toString();
+
 					legendData.push({ type: 'numeric', 
 									  min: minValue, max: maxValue,
-									  minLabel: minLabel, maxLabel: maxLabel, 
 									  minText: minText, maxText: maxText, 
-									  baseColor: baseColor, color: color });
+									  label: label, text: label, baseColor: baseColor, color: color });
+					minValue = maxValue;
 				}
 			}
 
@@ -58,10 +113,18 @@
 			if (!_.contains(categoricalValues, 'No data')) categoricalValues.push('No data');			
 			customCategoryColors = _.extend({}, customCategoryColors, { 'No data': mapdata.getNoDataColor() });
 
+
 			// Categorical values, each assigned a color
 			if (!_.isEmpty(categoricalValues)) {
+				if (showOnlyRelevant) {
+					var relevantValues = {};
+					_.each(mapdata.currentValues, function(d) {
+						relevantValues[d.value] = true;
+					});
+					categoricalValues = _.filter(categoricalValues, function(v) { return relevantValues[v] });
+				}
 				for (var i = 0; i < categoricalValues.length; i++) {
-					var value = categoricalValues[i], boundingOffset = _.isEmpty(boundingValues) ? 0 : boundingValues.length-1,
+					var value = categoricalValues[i], boundingOffset = _.isEmpty(intervalMaximums) ? 0 : intervalMaximums.length-1,
 						baseColor = baseColors[i+boundingOffset],
 						color = customCategoryColors[value] || baseColor,
 						label = customCategoryLabels[value] || "",
@@ -126,6 +189,8 @@
 				delete d.highlightFillColor;
 
 				_.each(legendData, function(l) {
+					if (d.color) return;
+
 					if (d.value == l.value || (l.type === 'numeric' && _.isNumber(d.value) && d.value >= l.min && d.value <= l.max)) {
 						d.color = l.color;
 						d.highlightFillColor = l.color;

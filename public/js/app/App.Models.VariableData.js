@@ -104,6 +104,8 @@
 				variable.categoricalValues = _.sortBy(_.uniq(variable.categoricalValues));
 				variable.hasCategoricalValues = !_.isEmpty(variable.categoricalValues);
 				variable.hasNumericValues = !_.isEmpty(variable.numericValues);
+				variable.minValue = _.min(variable.numericValues);
+				variable.maxValue = _.max(variable.numericValues);
 
 				// legacy
 				variable.isNumeric = variable.hasNumericValues && !variable.hasCategoricalValues;
