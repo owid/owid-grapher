@@ -108,6 +108,8 @@ class VariablesController extends Controller {
 			$grid->add( 'year', 'Time', true);
 			$grid->add( '<a href="' .route( 'values.index' ). '/{{$id}}/edit">Edit</a>', 'Edit' );
 			$grid->paginate( 50 );
+			
+			return view( 'variables.show', compact( 'variable', 'values', 'grid', 'filter', 'exportUrl' ) );
 		}
 	}
 
