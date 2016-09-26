@@ -50,13 +50,15 @@ class DataController extends Controller {
 					 'variables.description as var_desc', 'variables.unit as var_unit',
 					 'variables.created_at',
 					 'sources.name as source_name', 'sources.description as source_desc',
-					 'sources.link as source_link', 'datasets.name as dataset_name');
+					 'sources.link as source_link', 'sources.retrieved as source_retrieved',
+					 'datasets.name as dataset_name');
 
 		foreach ($variableQuery->get() as $result) {
 			$source = [];
 			$source['name'] = $result->source_name;
 			$source['description'] = $result->source_desc;
 			$source['link'] = $result->source_link;
+			$source['retrieved'] = $result->source_retrieved;
 
 			$var = [];
 			$var['id'] = $result->var_id;

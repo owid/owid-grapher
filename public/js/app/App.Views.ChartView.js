@@ -141,12 +141,6 @@
 				chart.$(".chart-preloader").hide();
 			});
 
-			// Determine if we're logged in and show the edit button
-			// Done here instead of PHP to allow for caching etc optimization on public-facing content
-			if (Cookies.get("isAdmin")) {
-				chart.$(".edit-btn-wrapper").removeClass("hidden");
-			}
-
 			if (chart.model.get("chart-name"))
 				chart.$(".chart-preloader").show();
 

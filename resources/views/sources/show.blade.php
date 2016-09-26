@@ -29,6 +29,18 @@
 			</div>
 		</div>
 		<div class="property-wrapper">
+			<h3>Link</h3>
+			<div class="property-value">
+				<a href="{!! $source->link !!}">{!! $source->link !!}</a>
+			</div>
+		</div>
+		<div class="property-wrapper">
+			<h3>Retrieved</h3>
+			<div class="property-value">
+				{!! $source->retrieved !!}
+			</div>
+		</div>
+		<div class="property-wrapper">
 			<h3>Description</h3>
 			<div class="property-value datasource-wrapper" style="font-size: 1.0em;">
 				{!! $source->description !!}

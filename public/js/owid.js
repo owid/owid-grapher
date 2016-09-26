@@ -1,4 +1,4 @@
-/* OWID standalone utility functions */
+/* OWID root namespace and standalone utility functions */
 
 ;(function() {
 	"use strict";

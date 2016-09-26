@@ -621,6 +621,9 @@ select.disabled {
     padding-left: 1em;
     font-size: 16px;
 }
+#chart.narrow #data-chart-tab {
+    padding: 0;
+}
 #chart #data-chart-tab .download-data-btn,
 #chart #data-chart-tab .download-full-btn {
     color: #fff;
@@ -650,6 +653,9 @@ select.disabled {
     padding: 1em;
     font-size: 0.8em;
     max-width: 1024px;
+}
+#chart.narrow .datasource-wrapper {
+    padding: 0;
 }
 .datasource-wrapper h2 {
     width: 70%;

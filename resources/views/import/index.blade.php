@@ -25,25 +25,30 @@
 						@endforeach
 					</select>
 					<label>
-						Name
 						{!! Form::text('dataset_name', '', array('class' => 'form-control required', 'placeholder' => 'Short name for your dataset' )); !!}
 					</label>
+					<p class="form-section-desc">
+						Strongly recommended is a name that combines the measure and the source. For example: "Life expectancy of women at birth – via the World Development Indicators published by the World Bank"
+					</p>
 					<label>
 						Description
 						{!! Form::textarea('dataset_description', '', array('class' => 'form-control dataset-description', 'placeholder' => 'Optional description for dataset' )); !!}
-					</label>
+					</label>					
+					<p class="form-section-desc">
+						The dataset name and description are for our own internal use and do not appear on the charts.
+					</p>
 				</div>
 			</section>
 			<section class="form-section dataset-type-section">
-					<div class="form-section-header">
-						<h3><span class="form-section-digit">2</span>Import mode</h3>
-					</div>
-					<div class="form-section-content">
-						<p class="form-section-desc">Are you uploading multiple variables? Examples of valid layouts: <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_single-var.png">single variable</a>, <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_multi-var.png">multiple variables</a>.</p>
-						<fieldset class="dataset-type-radiogroup">
-							<label><input type="radio" class="" name="multivariant_dataset" value="0" checked/> Single variable in dataset</label>
-							<label><input type="radio" class="" name="multivariant_dataset" value="1" /> Multiple variables in dataset</label>
-						</fieldset>
+				<div class="form-section-header">
+					<h3><span class="form-section-digit">2</span>Import mode</h3>
+				</div>
+				<div class="form-section-content">
+					<p class="form-section-desc">Are you uploading multiple variables? Examples of valid layouts: <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_single-var.png">single variable</a>, <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_multi-var.png">multiple variables</a>.</p>
+					<fieldset class="dataset-type-radiogroup">
+						<label><input type="radio" class="" name="multivariant_dataset" value="0" checked/> Single variable in dataset</label>
+						<label><input type="radio" class="" name="multivariant_dataset" value="1" /> Multiple variables in dataset</label>
+					</fieldset>
 					</div>
 			</section>
 			<section class="form-section upload-section">
@@ -118,17 +123,32 @@
 						<span>Source:</span>
 						<select class="form-control source"></select>
 					</label>
-					<label>
-						<span>Source name:</span>
-						<input class="form-control required" type="text" name="source_name" />
+					<label class="source-name">
+						<span>Name:</span>
+						<input class="form-control required" type="text">
+					</label>
+					<label class="source-link">
+						<span>Link:</span>
+						<input class="form-control" type="text" placeholder="http://www.example.com">
+					</label>
+					<label class="source-retrieved">
+						<span>Retrieved:</span>
+						<input class="form-control" type="text" placeholder="2016-09-10">
 					</label>
 					<label>
-						<span>Source description:</span>
+						<span>Description:</span>
 						<textarea class="form-control source-editor required" type="text" name="source_description"></textarea>
 						<span class="sources-default" style="display:none;">{!! $data['sourceTemplate']->meta_value !!}</span>
 					</label>				
+					<p class="form-section-desc">
+						All provided source information will be shown on associated visualizations.
+					</p>
 				</div>
 				<div class="modal-footer">
+					<span class="existing-source-warning text-warning">
+						<i class="fa fa-warning"></i>
+						You are editing an existing source. Changes may also affect other variables.
+					</span>
 					<button class="btn btn-success">Save</button>
 				</div>
 			</div>

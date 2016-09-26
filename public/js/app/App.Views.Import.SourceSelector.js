@@ -6,7 +6,9 @@
 		el: ".source-selector",
 
 		events: {
-			'input [name=source_name]': "onNameChange",
+			'input .source-name > input': "onNameChange",
+			'input .source-link > input': "onLinkChange",
+			'input .source-retrieved > input': "onRetrievedChange",
 			'change select.source': "onSelectSource",
 			'click .btn-success': "onSaveSource"
 		},
@@ -21,8 +23,9 @@
 			// There must always be a new source with the default template
 			if (!_.findWhere(this.sources, { name: "New source" })) {
 				 this.sources.push({
-					name: "New source",
-					description: $(".sources-default").html()
+					name: "New source",					
+					description: $(".sources-default").html(),
+					retrieved: moment().utc().format('YYYY-MM-DD')
 				});
 			}
 
@@ -31,10 +34,13 @@
 			else
 				this.source = _.first(this.sources);
 
+
 			this.$el.modal('show');
 
 			this.$select = this.$("select.source");
-			this.$sourceNameInput = this.$("input[name=source_name]");
+			this.$sourceNameInput = this.$(".source-name input");
+			this.$sourceLinkInput = this.$(".source-link input");
+			this.$sourceRetrievedInput = this.$(".source-retrieved input");
 			this.$sourceDescription = this.$("textarea");
 			this.$saveBtn = this.$(".btn-success");
 
@@ -49,8 +55,15 @@
 
 		onSelectSource: function() {
 			this.source = _.findWhere(this.sources, { name: this.$select.val()});
+			this.$(".existing-source-warning").toggle(!!this.source.id);
+
+			// Default to the name of the dataset
+			if (this.source.name == "New source")
+				this.source.name = App.DatasetModel.get("name");
 	
 			this.$sourceNameInput.val(this.source.name);
+			this.$sourceLinkInput.val(this.source.link);
+			this.$sourceRetrievedInput.val(this.source.retrieved);
 
 			if (!tinymce.activeEditor) {
 				tinymce.init({
@@ -79,6 +92,14 @@
 				this.$saveBtn.prop('disabled', false);
 				this.$saveBtn.prop('title', "Confirm source content and apply to variable");
 			}
+		},
+
+		onLinkChange: function() {
+			this.source.link = this.$sourceLinkInput.val();
+		},
+
+		onRetrievedChange: function() {
+			this.source.retrieved = this.$sourceRetrievedInput.val();
 		},
 
 		onSaveSource: function() {

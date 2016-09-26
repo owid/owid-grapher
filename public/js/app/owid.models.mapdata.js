@@ -50,16 +50,6 @@
 		};
 
 		function updateLegendData() {
-/*			if (showOnlyRelevant) {
-				// Only show the colors that are actually on the map right now
-				var values = _.sortBy(_.uniq(_.map(chart.mapdata.currentValues, function(d) { return d.value; })));
-				colorScheme = _.map(values, function(v) { return colorScale(v); });
-				colorScale.domain(values);
-				colorScale.range(colorScheme);
-			}				*/
-
-
-
 			// Will eventually produce something like this:
 			// [{ type: 'numeric', min: 10, max: 20, minText: "10%", maxText: "20%", color: '#faeaef' },
 			//  { type: 'numeric', min: 20, max: 30, minText: "20%", maxText: "30%", color: '#fefabc' },
@@ -267,9 +257,7 @@
 			applyLegendColors();
 			changes.done();
 		};
-
-
-
+		
 		return mapdata;
 	};
 })();

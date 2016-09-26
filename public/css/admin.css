@@ -542,9 +542,11 @@ a.clear-settings-btn {
 
 .import-view .dataset-section [name=existing_dataset_id],
 .import-view .dataset-section [name=dataset_name],
-.import-view .dataset-section textarea {
+.import-view .dataset-section textarea,
+.import-view .dataset-section p {
   display: block;
-  width: 40%; 
+  width: 100%; 
+  max-width: 700px;
 }
 
 .import-view .file-picker-wrapper {
@@ -622,10 +624,6 @@ a.clear-settings-btn {
   margin-right: 10px;
 }
 
-.import-view .variable-item input[name=source] {
-  width: 200px;
-}
-
 .import-view .variable-item label > * {
   display: block; 
 }
@@ -669,6 +667,22 @@ a.clear-settings-btn {
 
 .import-view .send-notification i {
   margin-right: 5px; }
+
+.source-selector .source-name input {
+  min-width: 700px;
+}
+
+.source-selector .source-link,
+.source-selector .source-retrieved {
+  width: 45%;
+  min-width: 300px;
+}
+
+.source-selector .modal-footer span {
+    display: inline-block;
+    vertical-align: middle;
+    padding-right: 10px;  
+}
 
 /** 
 * progress import popup

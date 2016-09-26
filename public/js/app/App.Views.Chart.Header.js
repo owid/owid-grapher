@@ -91,9 +91,18 @@
 			return text;
 		}
 
+		function renderEditBtn() {
+			// Determine if we're logged in and show the edit button
+			// Done here instead of PHP to allow for caching etc optimization on public-facing content
+			if (!Cookies.get("isAdmin")) return;
+			chart.$(".edit-btn-wrapper").removeClass("hidden");
+		};
+
 		header.render = function() {
 			if (!changes.start())
 				return;
+
+			renderEditBtn();
 
 			var chartName = chart.model.get('chart-name'),
 				chartSubname = chart.model.get('chart-subname'),

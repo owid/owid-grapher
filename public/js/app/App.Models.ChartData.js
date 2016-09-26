@@ -400,28 +400,31 @@
 		},
 
 		getSourceDescHtml: function(variable, source) {
-			var html = '';
-			
-			html += '<div class="datasource-wrapper">' + 
-				   		'<h2>' + variable.name + '</h2>';
+			var $el = $("<div></div>");
+			var html = '<div class="datasource-wrapper">' + 
+				   	        '<h2>' + variable.name + '</h2>' +
+				   	        source.description +
+				   	    '</div>';
 
-
-			html += 	'<table class="variable-desc">';
+			$el.append(html);
+			var $table = $el.find('table').eq(0);
+			if (!$table.length) {
+				$el.find("h2").after("<table></table>");
+				$table = $el.find('table').eq(0);
+			}
 
 			if (variable.description)
-				html +=		'<tr><td>Variable description</td><td>' + variable.description + '</td>';
+				$table.prepend('<tr><td>Variable description</td><td>' + variable.description + '</td></tr>');
 			if (variable.coverage)
-				html += 	'<tr><td>Variable geographic coverage</td>' + variable.coverage + '</td>';
+				$table.prepend('<tr><td>Variable geographic coverage</td>' + variable.coverage + '</td></tr>');
 			if (variable.timespan)
-				html += 	'<tr><td>Variable time span</td>' + variable.timespan + '</td>';
+				$table.prepend('<tr><td>Variable time span</td>' + variable.timespan + '</td></tr>');
+			if (source.link)
+				$table.append('<tr><td>Link</td><td><a href="' + source.link + '">' + source.link + '</a></td></tr>');
+			if (source.retrieved)
+				$table.append('<tr><td>Retrieved</td><td>' + source.retrieved + '</td></tr>');
 
-			html += 	'</table>';
-
-			html +=	   	source.description +
-					'</div>';
-
-
-			return html;
+			return $el.html();
 		},
 
 		transformDataForSources: function() {
