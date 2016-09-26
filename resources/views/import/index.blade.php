@@ -127,14 +127,6 @@
 						<span>Name:</span>
 						<input class="form-control required" type="text">
 					</label>
-					<label class="source-link">
-						<span>Link:</span>
-						<input class="form-control" type="text" placeholder="http://www.example.com">
-					</label>
-					<label class="source-retrieved">
-						<span>Retrieved:</span>
-						<input class="form-control" type="text" placeholder="2016-09-10">
-					</label>
 					<label>
 						<span>Description:</span>
 						<textarea class="form-control source-editor required" type="text" name="source_description"></textarea>

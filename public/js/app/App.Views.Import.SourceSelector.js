@@ -7,8 +7,6 @@
 
 		events: {
 			'input .source-name > input': "onNameChange",
-			'input .source-link > input': "onLinkChange",
-			'input .source-retrieved > input': "onRetrievedChange",
 			'change select.source': "onSelectSource",
 			'click .btn-success': "onSaveSource"
 		},
@@ -25,7 +23,6 @@
 				 this.sources.push({
 					name: "New source",					
 					description: $(".sources-default").html(),
-					retrieved: moment().utc().format('YYYY-MM-DD')
 				});
 			}
 
@@ -57,13 +54,14 @@
 			this.source = _.findWhere(this.sources, { name: this.$select.val()});
 			this.$(".existing-source-warning").toggle(!!this.source.id);
 
-			// Default to the name of the dataset
-			if (this.source.name == "New source")
+			// Defaults for new source
+			if (this.source.name == "New source") {
 				this.source.name = App.DatasetModel.get("name");
+				var currentDate = moment().utc().format('YYYY-MM-DD');
+				this.source.description = this.source.description.replace(/<td>Retrieved<\/td>[^<]*<td>[^<]+<\/td>/, "<td>Retrieved</td><td>" + currentDate + "</td>");
+			}
 	
 			this.$sourceNameInput.val(this.source.name);
-			this.$sourceLinkInput.val(this.source.link);
-			this.$sourceRetrievedInput.val(this.source.retrieved);
 
 			if (!tinymce.activeEditor) {
 				tinymce.init({
@@ -92,14 +90,6 @@
 				this.$saveBtn.prop('disabled', false);
 				this.$saveBtn.prop('title', "Confirm source content and apply to variable");
 			}
-		},
-
-		onLinkChange: function() {
-			this.source.link = this.$sourceLinkInput.val();
-		},
-
-		onRetrievedChange: function() {
-			this.source.retrieved = this.$sourceRetrievedInput.val();
 		},
 
 		onSaveSource: function() {

@@ -10,14 +10,6 @@
 				{!! Form::text('name', null, array('class' => 'form-control')) !!}
 			</div>
 			<div class="form-group">
-				{!! Form::label('link', 'Link:') !!}
-				{!! Form::text('link', null, array('class' => 'form-control')) !!}
-			</div>
-			<div class="form-group">
-				{!! Form::label('retrieved', 'Retrieved:') !!}
-				{!! Form::text('retrieved', null, array('class' => 'form-control')) !!}
-			</div>
-			<div class="form-group">
 				{!! Form::label('description', 'Description:') !!}
 				{!! Form::textarea('description', null, array('class' => 'form-control source-editor', 'rows' => 20)) !!}
 			</div>

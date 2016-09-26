@@ -121,14 +121,12 @@ class ImportController extends Controller {
 					// Create or update the associated source data
 					$sourceId = isset($variable['source']['id']) ? $variable['source']['id'] : null;
 					$sourceDesc = $variable['source']['description'];
-					$sourceLink  = $variable['source']['link'];
-					$sourceRetrieved = $variable['source']['retrieved'];
 
 					if ($sourceId) {
 						Source::find($sourceId)->update($variable['source']);
 					} else {
 						$sourceId = Source::create(
-							['datasetId' => $datasetId, 'name' => $sourceName, 'link' => $sourceLink, 'retrieved' => $sourceRetrieved, 'description' => $sourceDesc]
+							['datasetId' => $datasetId, 'name' => $sourceName, 'description' => $sourceDesc]
 						)->id;
 					}
 
