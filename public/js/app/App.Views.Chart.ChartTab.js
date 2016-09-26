@@ -96,7 +96,10 @@
 
 				nvd3.width(chartWidth);
 				nvd3.height(chartHeight);
-				nvd3.margin({ left: +margins.left + 10, top: +margins.top, right: +margins.right + 20, bottom: +margins.bottom + 20 });
+				var marginBottom = +margins.bottom + 20;
+				if (chartType == App.ChartType.ScatterPlot || chartType == App.ChartType.MultiBar || chartType == App.ChartType.DiscreteBar)
+					marginBottom += 10;
+				nvd3.margin({ left: +margins.left + 10, top: +margins.top, right: +margins.right + 20, bottom: marginBottom });
 				nvd3.dispatch.on("renderEnd", postRender);
 
 				renderAxis();
@@ -177,7 +180,7 @@
 			chartWidth, chartHeight;
 
 		function configureBounds() {
-  		    margins = chart.model.get("margins");
+  		    margins = _.clone(chart.model.get("margins"));
 			svgBounds = chart.getBounds(svg.node());
 			tabBounds = chart.getBounds($(".tab-content").get(0));
 			chartOffsetX = 0;//parseFloat(margins.left);

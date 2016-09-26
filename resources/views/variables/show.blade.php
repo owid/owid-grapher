@@ -50,7 +50,6 @@
 					{!! Form::open(array('class' => 'form-inline', 'route' => array('valuesBatchDestroy', $variable->id))) !!}
 						<input type="hidden" name="value_ids" value=""/>
 						<button type="submit" class="delete-btn"><i class="fa fa-remove"></i>Delete displayed values</button>
-						<a href="{!! $exportUrl !!}">Export to CSV</a>
 					{!! Form::close() !!}
 				</div>
 

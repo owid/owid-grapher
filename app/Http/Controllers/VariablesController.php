@@ -108,16 +108,6 @@ class VariablesController extends Controller {
 			$grid->add( 'year', 'Time', true);
 			$grid->add( '<a href="' .route( 'values.index' ). '/{{$id}}/edit">Edit</a>', 'Edit' );
 			$grid->paginate( 50 );
-			
-			//is csv export?
-			if( Input::has( 'export' ) && Input::get( 'export' ) == 'csv' ) {
-				return $grid->buildCSV('export_variable', 'Y-m-d.His'); 
-			}
-
-			//construct csv export url
-			$exportUrl = $request->fullUrl() . (str_contains($request->fullUrl(), '?') ? '&' : '?') . 'export=csv';
-			return view( 'variables.show', compact( 'variable', 'values', 'grid', 'filter', 'exportUrl' ) );
-
 		}
 	}
 
