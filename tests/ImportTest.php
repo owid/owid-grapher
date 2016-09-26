@@ -43,6 +43,8 @@ class ImportTest extends TestCase
                     'values' => [10, 20, 30, 40, ''],
                     'source' => [
                         'name' => 'New Source',
+                        'link' => 'http://newsource.org',
+                        'retrieved' => '06/02/2016',
                         'description' => 'New source description.'
                     ]                  
                 ],
@@ -54,6 +56,8 @@ class ImportTest extends TestCase
                     'values' => [9, 18, 27, 31, 49],
                     'source' => [
                         'name' => 'New Source',
+                        'link' => 'http://newsource.org',
+                        'retrieved' => '06/02/2016',
                         'description' => 'New source description.'
                     ]
                 ]
@@ -74,7 +78,9 @@ class ImportTest extends TestCase
 
         $this->seeInDatabase('sources', [
             'name' => 'New Source',
-            'description' => 'New source description.'
+            'description' => 'New source description.',
+            'link' => 'http://newsource.org',
+            'retrieved' => '06/02/2016'
         ]);
 
         $this->seeInDatabase('entities', [
