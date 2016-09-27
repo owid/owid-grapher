@@ -7,6 +7,7 @@ use App\DatasetCategory;
 use App\DatasetSubcategory;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 use Illuminate\Http\Request;
 
@@ -112,6 +113,7 @@ class DatasetsController extends Controller {
 		return $data;
 	}
 
+
 	/**
 	 * Show the form for editing the specified resource.
 	 *
@@ -143,10 +145,7 @@ class DatasetsController extends Controller {
 	}
 
 	/**
-	 * Remove the specified resource from storage.
-	 *
-	 * @param  int  $id
-	 * @return Response
+	 * Delete a dataset and its associated variables.
 	 */
 	public function destroy(Dataset $dataset, Request $request)
 	{	
@@ -163,4 +162,72 @@ class DatasetsController extends Controller {
 		return redirect()->route('datasets.index')->with('message', 'Dataset deleted.');
 	}
 
+	/**
+	 * Export the entire dataset to CSV, in a format compatible with multivar import.
+	 */
+	public function exportCSV(Dataset $dataset, Request $request) {
+		set_time_limit(10);
+		ini_set('memory_limit', '256M');
+		
+		$varIds = $dataset->variables->lists('id')->all();
+
+		// Grab the variable names for the header row
+		$variableNameById = DB::table('variables')
+			->whereIn('id', $varIds)
+			->select('id', 'name')
+			->lists('name', 'id');
+
+		// Now we pull out all the actual data
+		$dataQuery = DB::table('data_values')
+			->whereIn('data_values.fk_var_id', $varIds);
+
+		$dataQuery = $dataQuery
+			->select('value', 'year',
+					 'data_values.fk_var_id as var_id', 
+					 'entities.id as entity_id', 'entities.name as entity_name',
+					 'entities.code as entity_code');
+
+		$dataQuery = $dataQuery->join('entities', 'data_values.fk_ent_id', '=', 'entities.id')
+			->orderBy('entities.name', 'ASC')
+			->orderBy('year', 'ASC')
+			->orderBy('fk_var_id', 'ASC');
+
+		// MISPY: Streaming response to handle memory limitations when
+		// exporting very large amounts of data
+		$response = new StreamedResponse(function() use ($varIds, $variableNameById, $dataQuery) {
+			$out = fopen('php://output', 'w');
+
+			$headerRow = ['Country', 'Year'];
+			foreach ($varIds as $id) {
+				$headerRow[]= $variableNameById[$id];
+			}
+			fputcsv($out, $headerRow);
+
+			$currentRow = null;
+
+			foreach ($dataQuery->get() as $result) {
+				if (!$currentRow || $currentRow[0] != $result->entity_name || $currentRow[1] != $result->year) {
+					if ($currentRow)
+						fputcsv($out, $currentRow);
+
+					// New row
+					$currentRow = [$result->entity_name, $result->year];
+					for ($i = 0; $i < sizeof($varIds); $i++) {
+						$currentRow[]= "";
+					}
+				}
+
+				$index = 2+array_search($result->var_id, $varIds);
+				$currentRow[$index] = $result->value;
+			}
+
+			// Final row
+			fputcsv($out, $currentRow);
+		}, 200, [
+			"Content-Type" => "text/csv",
+			"Content-Disposition" => 'attachment; filename="' . $dataset->name . '.csv' . '"'	
+		]);
+
+		return $response;
+	}
 }

@@ -115,27 +115,6 @@ class DataController extends Controller {
 		return $response;
 	}
 
-
-/*	public function downloadCsv( $data ) {
-		$fileName = 'data-' .date('Y-m-d H:i:s'). '.csv';
-		$headers = [
-			'Cache-Control'	=>	'must-revalidate, post-check=0, pre-check=0',
-			'Content-type' => 'text/csv',
-			'Content-Disposition' => 'attachment; filename=' .$fileName,
-			'Expires' => '0',
-			'Pragma' => 'public'
-		];
-
-		$csv = \League\Csv\Writer::createFromFileObject(new \SplTempFileObject());
-		foreach($data as $datum) {
-            $csv->insertOne($datum);
-        }
-        $csv->output( $fileName );
-        //have to die out, for laravel not to append non-sense
-		die();
-	
-	}*/
-
 	public function entities( Request $request ) {
 
 		$data = array();
@@ -200,100 +179,5 @@ class DataController extends Controller {
 			return $data;
 		}
 
-	}
-
-	public function getValue( $dimension, $time, $values ) {
-
-		$value;
-		//do we have value for exact time
-		if( array_key_exists( $time, $values ) ) {
-			
-			if( $dimension->mode === "latest" && isset( $dimension->maximumAge ) ) {
-				//for latest, we ahave to check the latest avaiable data is not too old
-				$nowTime = date( "Y" );
-				$oldestAllowedTime = $nowTime - $dimension->maximumAge;
-				if( $time < $oldestAllowedTime ) {
-					//latest available time is too old, bail
-					return;
-				}
-			} 
-
-			$value = $values[ $time ];
-			
-		} else {
-			//no we don't, try to around in recent years
-			if( $dimension->mode !== "latest" ) {
-				$value = $this->lookAround( $dimension, $time, $values );
-			}
-		}
-
-		return $value;
-	}
-
-	public function lookAround( $dimension, $time, $values ) {
-		$defaultTolerance = 5;
-		$lookAroundLen = $defaultTolerance;
-
-		//find out if we'll be looking in past and future (case for specific year with tolerance ), or only past (case for latest date with maximum age)
-		$direction = ( isset( $dimension->mode ) && $dimension->mode == "latest" )? "past": "both";
-		//set look around len depending on mode
-		if( isset( $dimension->mode ) ) {
-			if( $dimension->mode === "latest" && isset( $dimension->maximumAge ) ) {
-				//for latest, set check latest time if it's within allowed age and set tolerance to zero
-				//$lookAroundLen = $dimension->maximumAge;
-				$lookAroundLen = 0;//$dimension->maximumAge;
-				$nowTime = date( "Y" );
-				$oldestAllowedTime = $nowTime - $dimension->maximumAge;
-				return false;
-				if( $time < $oldestAllowedTime ) {
-					//latest available time is too old, bail
-					return false;
-				}
-			}
-			if( ( $dimension->mode === "specific" || $dimension->mode === "closest" ) && isset( $dimension->tolerance ) ) {
-				$lookAroundLen = $dimension->tolerance;
-			}
-		} 
-		$currLen = 0;
-		$currLook = $lookAroundLen;
-		
-		$origTime = $time;
-		$currTime = $time;
-
-		while( $currLen < $lookAroundLen ) {
-
-			//increase gap
-			$currLen++;
-			
-			//try going forward first
-			$currTime = $origTime + $currLen;
-			//break if found value
-			if( array_key_exists( $currTime, $values ) ) {
-				$value = $values[ $currTime ]; 
-				return $value;
-			}
-
-			//nothing forward, trying going backward
-			$currTime = $origTime - $currLen;
-			//break if found value
-			if( array_key_exists( $currTime, $values ) ) {
-				$value = $values[ $currTime ]; 
-				return $value;
-			}
-
-		}
-	}
-
-	public function findDimensionForVarId( $dimensions, $varId ) {
-
-		foreach( $dimensions as $dimension ) {
-			if( !empty( $dimension ) && isset( $dimension ) ) {
-				if( $dimension->variableId == $varId ) {
-					return $dimension;
-				}
-			}
-		}
-
-		return false;
 	}
 }

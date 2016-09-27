@@ -4,7 +4,8 @@
 	<div class="module-wrapper show-dataset-module">
 		<a class="back-btn" href="{!! route( 'datasets.index' ) !!}"><i class="fa fa-arrow-left"></i>Back to the list of datasets</a>
 		<div class="pull-right right-btns-wrapper clearfix">
-			<a href="{{ route( 'datasets.edit', $dataset->id) }}"><i class="fa fa-pencil"></i> Edit dataset</a>
+			<a href="{{ route('datasets.exportCSV', $dataset->id) }}"><i class="fa fa-download"></i> Export CSV</a>
+			<a href="{{ route('datasets.edit', $dataset->id) }}"><i class="fa fa-pencil"></i> Edit dataset</a>
 			{!! Form::open(array('class' => 'form-inline', 'method' => 'DELETE', 'route' => array('datasets.destroy', $dataset->id))) !!}
 				<button class="delete-btn" type="submit"><i class="fa fa-remove"></i> Delete dataset</button>
 			{!! Form::close() !!}

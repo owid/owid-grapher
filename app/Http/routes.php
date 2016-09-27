@@ -28,6 +28,7 @@ Route::group(['middleware' => ['basic', 'session', 'auth']], function()
 	Route::resource( 'entities', 'EntitiesController' );
 	Route::resource( 'sources', 'SourcesController' );
 	Route::get('datasets/{dataset}.json', 'DatasetsController@showJson');
+	Route::get('datasets/{dataset}.csv', [ 'as' => 'datasets.exportCSV', 'uses' => 'DatasetsController@exportCSV' ]);
 	Route::resource( 'datasets', 'DatasetsController' );
 	Route::post('variables/{variable}/batchDestroy', [ 'as' => 'valuesBatchDestroy', 'uses' => 'VariablesController@batchDestroy' ]);
 	Route::resource( 'variables', 'VariablesController' );
@@ -127,7 +128,6 @@ Route::group(['middleware' => ['basic']], function () {
 
 	Route::get('data', 'DataController@index');
 	Route::get('data/variables/{ids}', 'DataController@variables');
-	Route::get('data/exportCSV', 'DataController@exportCSV');
 	Route::get('data/config/{id}', 'ChartsController@config');
 	Route::get('data/dimensions', [ 'as' => 'dimensions', 'uses' => 'DataController@dimensions' ]);	
 	Route::post('data/exportToSvg', [ 'as' => 'exportToSvg', 'uses' => 'DataController@exportToSvg' ]);
