@@ -184,7 +184,8 @@
 		 * Set e.g. &year=1990 when the user uses the map slider to go to 1990
 		 */
 		function updateYearParam() {
-			owid.setQueryVariable("year", chart.map.get("targetYear"));
+			if (chart.display.get('activeTab') == 'map')
+				owid.setQueryVariable("year", chart.map.get("targetYear"));
 		}
 
 		/**
