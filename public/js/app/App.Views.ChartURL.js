@@ -39,6 +39,8 @@
 				if (msg.event != 'urlUpdate') return;
 				urlBinder.update(msg.url);
 			});
+
+			lastTabName = chart.display.get('activeTab');
 		}
 
 		/**
