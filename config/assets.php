@@ -105,7 +105,7 @@ return [
 		 *
 		 * @var bool|integer
 		 */
-		//'pipeline_gzip' => false,
+		'pipeline_gzip' => env('APP_ENV', 'production') == 'production',
 
 		/**
 		 * Closure used by the pipeline to fetch assets.
