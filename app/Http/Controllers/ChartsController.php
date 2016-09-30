@@ -14,8 +14,6 @@ use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
-
-use Cache;
 use Carbon\Carbon;
 use Debugbar;
 use DB;
@@ -42,7 +40,6 @@ class ChartsController extends Controller {
 	 */
 	public function create()
 	{
-		Cache::flush();
 		$data = $this->editorData();
 		return view('charts.create')->with('data', $data);
 	}
@@ -134,7 +131,10 @@ class ChartsController extends Controller {
 			$chart->dimensions()->delete();
 			$chart->dimensions()->saveMany($dims);
 
-			Cache::flush();
+			if (env('CLOUDFLARE_KEY')) {
+			    $cache = new \Cloudflare\Zone\Cache(env('CLOUDFLARE_EMAIL'), env('CLOUDFLARE_KEY'));
+			    $cache->purge_files(env('CLOUDFLARE_ZONE_ID'), [$chart->getUrl()]);
+			}
 		});
 	}
 
@@ -211,8 +211,7 @@ class ChartsController extends Controller {
 	{
 		$chart->delete();
 
-		Cache::flush();
-		
+				
 		return redirect()->route( 'charts.index' )->with( 'message', 'Chart deleted.' );
 	}
 

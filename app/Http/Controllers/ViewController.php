@@ -250,8 +250,11 @@ class ViewController extends Controller {
 			$root = parse_url(\Request::root());
 			$referer = parse_url($referer_s);
 			if ($root['host'] == $referer['host'] && strlen($referer['path']) > 1 && !str_contains($referer_s, ".html") && !str_contains($referer_s, "wp-admin") && !str_contains($referer_s, "preview=true") && !str_contains($referer_s, "how-to") && !str_contains($referer_s, "grapher") && !str_contains($referer_s, "about") && !str_contains($referer_s, "roser/") && !str_contains($referer_s, "slides")) {
-				$chart->origin_url = "https://" . $root['host'] . $referer['path'];
-				$chart->save();
+				$origin_url = "https://" . $root['host'] . $referer['path'];
+				if ($chart->origin_url != $origin_url) {
+					$chart->origin_url = $origin_url;
+					$chart->save();
+				}
 			}
 		}
 
@@ -311,7 +314,8 @@ class ViewController extends Controller {
 
 			$chartMeta->imageUrl = $baseUrl . ".png?" . $imageQuery;
 			return response()
-					->view('view.show', compact('chart', 'config', 'data', 'canonicalUrl', 'chartMeta'));
+					->view('view.show', compact('chart', 'config', 'data', 'canonicalUrl', 'chartMeta'))
+					->header('Cache-Control', $query ? 'no-cache' : 'public, max-age=7200, s-maxage=604800');
 		} else {
 			return 'No chart found to view';
 		}

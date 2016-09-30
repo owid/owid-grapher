@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "6d36737c85e4ca06576eca440ddb7dd5",
-    "content-hash": "76a094695742bbda3327a09c0943cac7",
+    "hash": "c2fc6dcb57b90fbf52a42125aa23c870",
+    "content-hash": "16c2b67a005450c1437c3a9765340084",
     "packages": [
         {
             "name": "barryvdh/laravel-debugbar",
@@ -874,6 +874,47 @@
                 }
             ],
             "time": "2015-04-20 18:58:01"
+        },
+        {
+            "name": "jamesryanbell/cloudflare",
+            "version": "1.7.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/jamesryanbell/cloudflare.git",
+                "reference": "697c5ae4f9f41b86279450048dcbfedd47c20268"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/jamesryanbell/cloudflare/zipball/697c5ae4f9f41b86279450048dcbfedd47c20268",
+                "reference": "697c5ae4f9f41b86279450048dcbfedd47c20268",
+                "shasum": ""
+            },
+            "require-dev": {
+                "phpunit/phpunit": "*",
+                "satooshi/php-coveralls": "dev-master"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Cloudflare\\": "src/CloudFlare"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "James Bell",
+                    "email": "james@james-bell.co.uk"
+                }
+            ],
+            "description": "CloudFlare API - PHP",
+            "keywords": [
+                "api",
+                "cloudflare"
+            ],
+            "time": "2016-08-06 17:36:29"
         },
         {
             "name": "jeremeamia/SuperClosure",

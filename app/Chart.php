@@ -168,4 +168,8 @@ class Chart extends Model {
 	public function getPublishedAttribute($value) {
 		return !!$value;
 	}
+
+	public function getUrl() {
+		return env('APP_URL') . '/' . $this->slug;
+	}
 }
