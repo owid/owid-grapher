@@ -623,8 +623,8 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
             if (!tooltipElem) return;
 
             nv.dom.read(function() {
-                var height = parseInt(tooltipElem.offsetHeight, 10),
-                    width = parseInt(tooltipElem.offsetWidth, 10),
+                var height = parseInt(tooltipElem.offsetHeight, 10)*chart.scale,
+                    width = parseInt(tooltipElem.offsetWidth, 10)*chart.scale,
                     windowWidth = nv.utils.windowSize().width,
                     windowHeight = nv.utils.windowSize().height,
                     scrollTop = window.pageYOffset,
@@ -673,8 +673,9 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
                     case 'w':
                         left = pos[0] + distance;
                         top = pos[1] - (height / 2);
-                        tLeft = tooltipLeft(tooltipElem);
+                        tLeft = tooltipLeft(tooltipElem)*chart.scale;
                         tTop = tooltipTop(tooltipElem);
+
                         if (tLeft + width > windowWidth) left = pos[0] - width - distance;
                         if (tTop < scrollTop) top = scrollTop + 5;
                         if (tTop + height > scrollTop + windowHeight) top = scrollTop + windowHeight - tTop + top - height;
@@ -810,8 +811,8 @@ nv.nearestValueIndex = function (values, searchVal, threshold) {
                         var svgComp = chartContainer.getElementsByTagName("svg")[0];
                         var svgOffset = {left:0,top:0};
                         if (svgComp) {
-                            var svgBound = svgComp.getBoundingClientRect();
-                            var chartBound = chartContainer.getBoundingClientRect();
+                            var svgBound = chart.getBounds(svgComp);
+                            var chartBound = chart.getBounds(chartContainer);
                             var svgBoundTop = svgBound.top;
 
                             //Defensive code. Sometimes, svgBoundTop can be a really negative
@@ -12262,7 +12263,7 @@ nv.models.stackedArea = function() {
                     });
                 });
 
-            path.exit().remove();
+            path.exit().remove();   
             path.style('fill', function(d,i){
                     return d.color || color(d, d.seriesIndex)
                 })
