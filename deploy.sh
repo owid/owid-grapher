@@ -28,7 +28,11 @@ ssh -t $HOST 'bash -e -s' <<EOF
   ln -sf $LIVE_DATA/env $LIVE_TARGET/.env
   ln -sf $LIVE_DATA/uploads $LIVE_TARGET/public/uploads
   ln -sf $LIVE_DATA/exports $LIVE_TARGET/public/exports
+  ln -sf $LIVE_DATA/min $LIVE_TARGET/public/js/min
+  ln -sf $LIVE_DATA/min $LIVE_TARGET/public/css/min
   ln -sf $LIVE_TARGET/public $ROOT/ourworldindata.org/$NAME
   cd $LIVE_TARGET && php artisan migrate --force
+  sudo chown owid:www-data -R /home/owid/*
+  sudo chmod g+rw -R /home/owid/*
 EOF
 
