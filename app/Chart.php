@@ -94,17 +94,6 @@ class Chart extends Model {
 			}
 		}
 
-		//possibly there could logo query parameter
-		if (!empty($config) && !empty(Input::get('logo'))) {
-			//there's logo query parameter, we want to display chart with different logo
-			//find logo by name
-			$logo = Logo::where('name', '=', Input::get('logo'))->first();
-			if( !empty( $logo ) ) {
-				//set logo in config with logo from query parameter
-				$config->{"second-logo"} = $logo->url;
-			}
-		}
-
 		return $config;		
 	}
 
@@ -120,7 +109,7 @@ class Chart extends Model {
 	public static function export($slug, $query, $width, $height, $format) {
 		$phantomjs = base_path() . "/phantomjs/phantomjs";
 		$rasterize = base_path() . "/phantomjs/rasterize.js";
-		$target = \Request::root() . "/" . $slug . ".export" . "?" . $query;
+		$target = \Request::root() . "/" . $slug . ".export" . "#" . $query;
 		$queryHash = hash('md5', $query);
 		$pngFile = public_path() . "/exports/" . $slug . "-" . $queryHash . ".png";		
 		$returnFile = public_path() . "/exports/" . $slug . "-" . $queryHash . "." . $format;	
@@ -139,9 +128,11 @@ class Chart extends Model {
 	}
 
 	public static function exportPNGAsync($slug, $query, $width, $height) {
+		if (env('APP_ENV', 'production') == 'local') return;
+		
 		$phantomjs = base_path() . "/phantomjs/phantomjs";
 		$rasterize = base_path() . "/phantomjs/rasterize.js";
-		$target = \Request::root() . "/" . $slug . ".export" . "?" . $query;
+		$target = \Request::root() . "/" . $slug . ".export" . "#" . $query;
 		$queryHash = hash('md5', $query);
 		$file = public_path() . "/exports/" . $slug . "-" . $queryHash . ".png";
 		$tmpfile = $file . "#tmp";

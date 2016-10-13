@@ -54,7 +54,7 @@
 		};
 
 		/**
-		 * Apply any url query parameters on chart startup
+		 * Apply any url parameters on chart startup
 		 */
 		function populateFromURL() {
 			var params = owid.getQueryParams();
@@ -71,6 +71,13 @@
 				chart.display.set('activeTab', chart.model.get('default-tab'));
 			}
 
+			// Affiliate logo if any
+			var logo = params.logo;
+			if (logo) {
+				chart.model.set('second-logo', '/logo/' + params.logo + '.png');
+			}
+
+			// Stack mode for bar and stacked are charts
 			var stackMode = params.stackMode;
 			if (stackMode !== undefined)
 				chart.model.set("currentStackMode", stackMode);
@@ -98,7 +105,7 @@
 			}			
 
 			// Selected countries -- we can't actually look these up until we have the data
-			/*chart.data.ready(function() {
+			chart.data.ready(function() {
 				var country = params.country;
 				if (country) {
 					var codesOrNames = country.split('+'),
@@ -108,7 +115,7 @@
 
 					chart.model.set('selected-countries', entities);
 				}				
-			});*/
+			});
 
 			// Set shown legend keys for charts with toggleable series
 			var shown = params.shown;
@@ -128,10 +135,10 @@
 			var tabName = chart.display.get('activeTab');
 
 			if (lastTabName == "map" && tabName != "map") {
-				mapQueryStr = window.location.search;
+				mapQueryStr = window.location.hash;
 				owid.setQueryStr(chartQueryStr);
 			} else if (lastTabName != "map" && lastTabName != null && tabName == "map") {				
-				chartQueryStr = window.location.search;
+				chartQueryStr = window.location.hash;
 				owid.setQueryStr(mapQueryStr);
 			}
 			if (tabName == originalDefaultTab)

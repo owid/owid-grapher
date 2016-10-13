@@ -49,7 +49,6 @@
 		<?php echo App\Util::js(); ?>
 		
 		@yield('scripts')
-
 	</body>
 </html>
 

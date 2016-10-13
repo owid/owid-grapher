@@ -5,6 +5,7 @@ use App\Chart;
 use App\Setting;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
+use App\Logo;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 use Illuminate\Http\Request;
@@ -335,5 +336,11 @@ class ViewController extends Controller {
 		$query = Chart::getQueryString();
 
 		return redirect()->to("/" . $slug . ($query ? "?" : "") . $query);
+	}
+
+	// Get a logo by name
+	public function logo($logoName) {
+		$logo = Logo::where('name', '=', $logoName)->first();
+		return redirect()->to($logo->url);
 	}
 }
