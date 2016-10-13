@@ -135,6 +135,7 @@ Route::group(['middleware' => ['basic']], function () {
 	Route::get('data/search', 'DataController@search');
 	Route::get('data/times', 'DataController@times');
 
+	Route::get('config/{chartId}', 'ViewController@config');
 	Route::get('logo/{logo}.png', 'ViewController@logo');
 
 	Route::get('latest', 'ViewController@latest');	

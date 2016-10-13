@@ -4,6 +4,7 @@ use Illuminate\Database\Eloquent\Model;
 use Input;
 use DB;
 use Log;
+use Config;
 
 class Chart extends Model {
 	protected $guarded = ['id'];
@@ -162,5 +163,25 @@ class Chart extends Model {
 
 	public function getUrl() {
 		return env('APP_URL') . '/' . $this->slug;
+	}
+
+	public function makeCacheTag() {
+		// Create a cache tag we can send along to the client. This uniquely identifies a particular
+		// combination of dataset variables, and is sent along to DataController when the chart requests
+		// all of its data. Allows us to reduce chart loading times by caching most of the data in
+		// Cloudflare or the browser.
+		$variableCacheTag = strval($this->updated_at) . ' + ' . Config::get('owid.commit');
+		$config = json_decode($this->config);
+		$dims = $config->{"chart-dimensions"};
+		$varIds = array_pluck($dims, "variableId");
+
+		$varTimestamps = DB::table("variables")
+			->whereIn("id", $varIds)
+			->select("updated_at")
+			->lists("updated_at");
+
+		$variableCacheTag .= implode(" + ", $varTimestamps);
+		$variableCacheTag = hash("md5", $variableCacheTag);		
+		return $variableCacheTag;
 	}
 }

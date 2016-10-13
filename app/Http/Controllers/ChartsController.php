@@ -131,9 +131,14 @@ class ChartsController extends Controller {
 			$chart->dimensions()->delete();
 			$chart->dimensions()->saveMany($dims);
 
+			// Invalidate the Cloudflare cache of the chart config
+			// Also invalidate the html for some common query string urls to update the meta tags (we can't do every possible url, sadly)
 			if (env('CLOUDFLARE_KEY')) {
+				$configUrl = env('APP_URL') . '/config/' . $chart->id . '.js';
+				$chartUrl = $chart->getUrl();
+
 			    $cache = new \Cloudflare\Zone\Cache(env('CLOUDFLARE_EMAIL'), env('CLOUDFLARE_KEY'));
-			    $cache->purge_files(env('CLOUDFLARE_ZONE_ID'), [$chart->getUrl()]);
+			    $cache->purge_files(env('CLOUDFLARE_ZONE_ID'), [$configUrl, $chartUrl, $chartUrl + "?tab=chart", $chartUrl + "?tab=map"]);
 			}
 		});
 	}

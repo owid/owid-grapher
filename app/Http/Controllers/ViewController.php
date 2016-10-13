@@ -264,14 +264,13 @@ class ViewController extends Controller {
 		if ($chart) {
 			$config = Chart::getConfigWithUrl($chart);
 			$data = new \StdClass;
-			$logoUrl = Setting::where( 'meta_name', 'logoUrl' )->first();
-			$data->logoUrl = ( !empty( $logoUrl ) )? url('/') .'/'. $logoUrl->meta_value: '';
-			$canonicalUrl = URL::to($chart->slug);			
+			$canonicalUrl = URL::to($chart->slug);
 
-			// Make metadata for twitter embed cards!
+			// Make metadata for Twitter and Facebook embed cards!
 			$chartMeta = new \StdClass;
 
 			// Replace the chart title placeholders with generic equivalents for now
+			// This is because the real titles are calculated cilent-side
 			$title = $config->{"chart-name"};
 			$title = preg_replace("/, \*time\*/", " over time", $title);
 			$title = preg_replace("/\*time\*/", "over time", $title);	
@@ -292,36 +291,34 @@ class ViewController extends Controller {
 			}
 			$chartMeta->canonicalUrl = $canonicalUrl;
 
-			// Create a cache tag we can send along to the client. This uniquely identifies a particular
-			// combination of dataset variables, and is sent along to DataController when the chart requests
-			// all of its data. Allows us to reduce chart loading times by caching most of the data in
-			// CloudFlare or the browser.
-			$variableCacheTag = strval($chart->updated_at) . ' + ' . Config::get('owid.commit');
-			$dims = $config->{"chart-dimensions"};
-			$varIds = array_pluck($dims, "variableId");
-
-			$varTimestamps = DB::table("variables")
-				->whereIn("id", $varIds)
-				->select("updated_at")
-				->lists("updated_at");
-
-			$variableCacheTag .= implode(" + ", $varTimestamps);
-			$variableCacheTag = hash("md5", $variableCacheTag);
-			$config->variableCacheTag = $variableCacheTag;
 
 			// Give the image exporter a head start on the request for imageUrl
-			$imageQuery = $query . ($query ? "&" : "") . "size=1200x800&v=" . $variableCacheTag;
+			// This isn't a strong cachebuster (Cloudflare caches these meta tags) but it should help it get through eventually
+			$imageQuery = $query . ($query ? "&" : "") . "size=1200x800&v=" . $chart->makeCacheTag();
 			if (!str_contains(\Request::path(), ".export")) {
 				Chart::exportPNGAsync($chart->slug, $imageQuery, 1200, 800);
 			}
 
 			$chartMeta->imageUrl = $baseUrl . ".png?" . $imageQuery;
 			return response()
-					->view('view.show', compact('chart', 'config', 'data', 'canonicalUrl', 'chartMeta'))
-					->header('Cache-Control', $query ? 'no-cache' : 'public, max-age=7200, s-maxage=604800');
+					->view('view.show', compact('chart', 'canonicalUrl', 'chartMeta'))
+					->header('Cache-Control', 'public, max-age=7200, s-maxage=604800');
 		} else {
 			return 'No chart found to view';
 		}
+	}
+
+	// Get the main config information for a chart
+	// This is the only request whose urls are invalidated on Cloudflare when the chart is 
+	// edited, so it is responsible for version stamping everything else.
+	public function config($chartId) {
+		$chart = Chart::find($chartId);
+		$config = Chart::getConfigWithUrl($chart);
+		$config->variableCacheTag = $chart->makeCacheTag();;
+
+		return response('App.loadChart(' . json_encode($config) . ')')
+			->header('Content-Type', 'application/javascript')
+			->header('Cache-Control', 'public, max-age=7200, s-maxage=604800');
 	}
 
 	// Redirect to the most recent visualization, for use on the home page

@@ -8,10 +8,9 @@
 			ChartModel = App.Models.ChartModel,
 			ChartDataModel = App.Models.ChartDataModel;
 
-		var $chart = $("#chart"),
-			chartId = $chart.attr("data-chart-id");
+		var $chart = $("#chart");
 
-		if (!$chart.length || !chartId)
+		if (!$chart.length)
 			return; // No chart to show here
 
 		App.ChartModel = new ChartModel(chartConfig);

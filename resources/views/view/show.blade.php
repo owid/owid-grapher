@@ -9,7 +9,5 @@
 @endsection
 
 @section('scripts')
-	<script>
-		App.loadChart({!! json_encode($config) !!});
-	</script>
+	<script src="/grapher/config/{!! $chart->id !!}.js"></script>
 @endsection
