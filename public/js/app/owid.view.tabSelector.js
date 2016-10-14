@@ -8,6 +8,7 @@
 
 		var changes = owid.changes();
 		changes.track(chart.model, 'tabs chart-name chart-subname chart-dimensions chart-description');
+		changes.track(chart.map, 'targetYear');
 		changes.track(chart.display, 'renderWidth renderHeight activeTab');
 
 		tabSelector.switchTab = function() {

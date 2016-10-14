@@ -110,7 +110,7 @@ class Chart extends Model {
 	public static function export($slug, $query, $width, $height, $format) {
 		$phantomjs = base_path() . "/phantomjs/phantomjs";
 		$rasterize = base_path() . "/phantomjs/rasterize.js";
-		$target = \Request::root() . "/" . $slug . ".export" . "#" . $query;
+		$target = \Request::root() . "/" . $slug . ".export" . "?" . $query;
 		$queryHash = hash('md5', $query);
 		$pngFile = public_path() . "/exports/" . $slug . "-" . $queryHash . ".png";		
 		$returnFile = public_path() . "/exports/" . $slug . "-" . $queryHash . "." . $format;	
@@ -133,7 +133,7 @@ class Chart extends Model {
 		
 		$phantomjs = base_path() . "/phantomjs/phantomjs";
 		$rasterize = base_path() . "/phantomjs/rasterize.js";
-		$target = \Request::root() . "/" . $slug . ".export" . "#" . $query;
+		$target = \Request::root() . "/" . $slug . ".export" . "?" . $query;
 		$queryHash = hash('md5', $query);
 		$file = public_path() . "/exports/" . $slug . "-" . $queryHash . ".png";
 		$tmpfile = $file . "#tmp";

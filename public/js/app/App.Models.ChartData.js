@@ -2,9 +2,10 @@
 	"use strict";
 	owid.namespace("App.Models.ChartData");
 
+	var changes = owid.changes();
 	App.Models.ChartData = Backbone.Model.extend({
 		initialize: function() {
-			App.ChartModel.on("change", function() { this.chartData = null; }.bind(this));
+			changes.track(App.ChartModel);
 		},
 
 		defaults: {
@@ -447,6 +448,8 @@
 		},
 
 		transformData: function() {
+			if (changes.any()) this.chartData = null;
+
 			if (this.chartData)
 				return this.get("chartData");
 
