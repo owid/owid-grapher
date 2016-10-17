@@ -301,7 +301,7 @@ class ViewController extends Controller {
 
 			$chartMeta->imageUrl = $baseUrl . ".png?" . $imageQuery;
 			return response()
-					->view('view.show', compact('chart', 'canonicalUrl', 'chartMeta'))
+					->view('view.show', compact('chart', 'canonicalUrl', 'chartMeta', 'query'))
 					->header('Cache-Control', 'public, max-age=7200, s-maxage=604800');
 		} else {
 			return 'No chart found to view';

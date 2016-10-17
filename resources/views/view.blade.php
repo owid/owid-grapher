@@ -8,9 +8,12 @@
 			<meta name="description" content="{{ $chartMeta->description }}">
 		@endif
 		<link rel="apple-touch-icon" href="apple-touch-icon.png">
-		<!-- Place favicon.ico in the root directory -->
-
 		@if (isset($chartMeta))
+			@if (isset($query))
+			    <meta name="robots" content="noindex">
+			@else
+				<link rel="canonical" href="{{ $chartMeta->canonicalUrl }}">
+			@endif
 			<meta property="fb:app_id" content="1149943818390250">
 			<meta property="og:url" content="{!! $chartMeta->canonicalUrl !!}">
 			<meta property="og:title" content="{{ $chartMeta->title }}">
@@ -26,10 +29,6 @@
 			<meta name="twitter:title" content="{{ $chartMeta->title }}">
 			<meta name="twitter:description" content="{{ $chartMeta->description }}">
 			<meta name="twitter:image" content="{!! $chartMeta->imageUrl !!}">
-		@endif
-
-		@if (!empty($canonicalUrl))
-			<link rel="canonical" href="{{ $canonicalUrl }}" />
 		@endif
 
 		<?php Assets::add("chart"); ?>
