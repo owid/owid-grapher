@@ -108,7 +108,7 @@
 			chart.data.ready(function() {
 				var country = params.country;
 				if (country) {
-					var codesOrNames = country.split('+'),
+					var codesOrNames = _.map(country.split('+'), function(v) { return decodeURIComponent(v) }),
 						entities = _.filter(chart.vardata.get('availableEntities'), function(entity) {
 						return _.include(codesOrNames, entity.code) || _.include(codesOrNames, entity.name);
 					});
