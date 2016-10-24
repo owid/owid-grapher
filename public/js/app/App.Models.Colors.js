@@ -22,6 +22,16 @@
 					this.colorIndex = 0;
 				}.bind(this));
 			}
+
+			// Make sure colors stay consistent on multi-variable "change country" charts
+			// e.g. https://ourworldindata.org/grapher/composition-of-tax-revenues-regional
+			App.ChartModel.on("change:selected-countries", function() {
+				var addCountryMode = chart.model.get("add-country-mode");
+				if (addCountryMode != "add-country") {
+					this.colorCache = {};
+					this.colorIndex = 0;
+				}
+			}.bind(this));
 		},
 
 		assignColorForKey: function(key, color, options) {
