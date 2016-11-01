@@ -82,12 +82,11 @@
 				return;
 			chart.data.transformData();
 			if (changes.any('activeTab')) chart.tabSelector.switchTab();
-			chart.initialScale();
+			chart.applyScale();
 			chart.header.render();
 			chart.footer.render();
 			chart.tabSelector.render();
 			if (chart.activeTab) chart.activeTab.render();
-			chart.displayScale();
 
 			$chart.find('.chart-inner').css('visibility', 'visible');			
 			changes.done();
@@ -149,11 +148,9 @@
 			}
 		};
 
-		chart.initialScale = function() {
+		chart.applyScale = function() {
 			if (!changes.any('targetWidth targetHeight'))
 				return;
-
-			chart.scale = 1;
 
 			var targetWidth = chart.display.get('targetWidth'),
 				targetHeight = chart.display.get('targetHeight'),
@@ -176,12 +173,37 @@
 				}				
 			}
 
+			chart.targetWidth = targetWidth;
+			chart.targetHeight = targetHeight;
+			chart.authorWidth = authorWidth;
+			chart.authorHeight = authorHeight;
+			chart.renderWidth = renderWidth;
+			chart.renderHeight = renderHeight;
+			chart.display.set({ renderWidth: renderWidth, renderHeight: renderHeight });
+
+			if (App.isExport || App.isEditor)
+				return;
+
+			var scale = Math.min(chart.targetWidth/chart.renderWidth, chart.targetHeight/chart.renderHeight);
+
 			chart.dom.style.width = renderWidth + 'px';
 			chart.dom.style.height = renderHeight + 'px';
 			chart.dom.style.zoom = '';
 			chart.dom.style.left = '';
 			chart.dom.style.top = '';
 			owid.transformElement(chart.dom, '');
+
+			if (scale > 1 && owid.features.zoom) {
+				chart.dom.style.zoom = scale;
+			} else {
+				chart.dom.style.left = '50%';
+				chart.dom.style.top = '50%';
+				chart.dom.style.bottom = 'auto';
+				chart.dom.style.right = 'auto';
+				owid.transformElement(chart.dom, "translate(-50%, -50%) scale(" + scale + ")");					
+			}								
+
+			chart.scale = scale;
 
 			// Propagate some useful information to the CSS
 			$chart.removeClass('portrait landscape downscaled upscaled space120 space140 touchscreen narrow');
@@ -198,7 +220,7 @@
 			}
 
 			var spaceFactor = (renderWidth+renderHeight) / (authorWidth+authorHeight);
-			console.log(spaceFactor);
+
 			if (spaceFactor >= 1.5)
 				$chart.addClass('space150');
 
@@ -206,36 +228,6 @@
 				$chart.addClass('mobile');
 			if (renderWidth < 600)
 				$chart.addClass('narrow');
-
-			chart.targetWidth = targetWidth;
-			chart.targetHeight = targetHeight;
-			chart.authorWidth = authorWidth;
-			chart.authorHeight = authorHeight;
-			chart.renderWidth = renderWidth;
-			chart.renderHeight = renderHeight;
-			chart.display.set({ renderWidth: renderWidth, renderHeight: renderHeight });
-		};
-
-		chart.displayScale = function() {
-			if (!changes.any('targetWidth targetHeight'))
-				return;
-
-			if (App.isExport || App.isEditor)
-				return;
-
-			var scale = Math.min(chart.targetWidth/chart.renderWidth, chart.targetHeight/chart.renderHeight);
-
-			if (scale > 1 && owid.features.zoom) {
-				chart.dom.style.zoom = scale;
-			} else {
-				chart.dom.style.left = '50%';
-				chart.dom.style.top = '50%';
-				chart.dom.style.bottom = 'auto';
-				chart.dom.style.right = 'auto';
-				owid.transformElement(chart.dom, "translate(-50%, -50%) scale(" + scale + ")");					
-			}								
-
-			chart.scale = scale;
 		};
 
 		chart.getBounds = function(node) {
