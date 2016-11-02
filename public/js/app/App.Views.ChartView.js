@@ -2,6 +2,8 @@
 	"use strict";
 	owid.namespace("owid.chart");
 
+	owid.features.zoom = false;
+
 	owid.chart = function() {
 		function chart() {}
 		App.ChartView = chart;
@@ -45,6 +47,8 @@
 			$ = $chart.find.bind($chart);
 		chart.$chart = $chart;
 		chart.dom = $chart.get(0);
+		chart.svg = $chart.find('svg').get(0);
+		chart.html = $chart.find('.html-overlay').get(0);
 		chart.$ = $;
 
 		// Initialize components
@@ -186,8 +190,9 @@
 
 			var scale = Math.min(chart.targetWidth/chart.renderWidth, chart.targetHeight/chart.renderHeight);
 
-			chart.dom.style.width = renderWidth + 'px';
-			chart.dom.style.height = renderHeight + 'px';
+			chart.dom.style.width = '100%';
+			chart.dom.style.height = '100%';
+			chart.dom.style.padding = 0;
 			chart.dom.style.zoom = '';
 			chart.dom.style.left = '';
 			chart.dom.style.top = '';
@@ -196,12 +201,16 @@
 			if (scale > 1 && owid.features.zoom) {
 				chart.dom.style.zoom = scale;
 			} else {
-				chart.dom.style.left = '50%';
-				chart.dom.style.top = '50%';
-				chart.dom.style.bottom = 'auto';
-				chart.dom.style.right = 'auto';
-				owid.transformElement(chart.dom, "translate(-50%, -50%) scale(" + scale + ")");					
-			}								
+				//owid.transformElement(chart.dom, "translate(-50%, -50%) scale(" + scale + ")");*/
+				chart.html.style.width = renderWidth + 'px';
+				chart.html.style.height = renderHeight + 'px';
+				chart.html.style.left = '50%';
+				chart.html.style.top = '50%';
+				chart.html.style.bottom = 'auto';
+				chart.html.style.right = 'auto';
+				owid.transformElement(chart.html, "translate(-50%, -50%) scale(" + scale + ")");
+				chart.svg.setAttribute('viewBox', '0 0 ' + renderWidth + ' ' + renderHeight);
+			}
 
 			chart.scale = scale;
 

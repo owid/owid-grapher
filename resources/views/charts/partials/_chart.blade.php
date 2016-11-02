@@ -55,147 +55,149 @@
 			</g>
 		</svg>
 
-		<nav class="tabs">
-			<ul>
-				<li class="header-tab" data-tab='chart'>
-					<a href="#chart-chart-tab" data-toggle="tab" aria-expanded="false"><i class="fa fa-line-chart"></i>Chart</a>
-				</li>
-				<li class="header-tab" data-tab='data'>
-					<a href="#data-chart-tab" data-toggle="tab" aria-expanded="false"><i class="fa fa-table"></i>Data</a>
-				</li>
-				<li class="header-tab" data-tab='map'>
-					<a href="#map-chart-tab" data-toggle="tab" aria-expanded="false"><i class="fa fa-map"></i>Map</a>
-				</li>
-				<li class="header-tab" data-tab='sources'>
-					<a href="#sources-chart-tab" data-toggle="tab" aria-expanded="false"><i class="fa fa-link"></i>Sources</a>
-				</li>
-				@if (isset($chart))
-					<li class="edit-btn-wrapper hidden">
-						<a href="{{ Request::root() }}/charts/{{ $chart->id }}/edit" class="edit-btn" target="_blank" title="Edit chart"><i class="fa fa-pencil"></i></a>
+		<div class="html-overlay">
+			<nav class="tabs">
+				<ul>
+					<li class="header-tab" data-tab='chart'>
+						<a href="#chart-chart-tab" data-toggle="tab" aria-expanded="false"><i class="fa fa-line-chart"></i>Chart</a>
 					</li>
-				@endif
-			</ul>
-		</nav>
+					<li class="header-tab" data-tab='data'>
+						<a href="#data-chart-tab" data-toggle="tab" aria-expanded="false"><i class="fa fa-table"></i>Data</a>
+					</li>
+					<li class="header-tab" data-tab='map'>
+						<a href="#map-chart-tab" data-toggle="tab" aria-expanded="false"><i class="fa fa-map"></i>Map</a>
+					</li>
+					<li class="header-tab" data-tab='sources'>
+						<a href="#sources-chart-tab" data-toggle="tab" aria-expanded="false"><i class="fa fa-link"></i>Sources</a>
+					</li>
+					@if (isset($chart))
+						<li class="edit-btn-wrapper hidden">
+							<a href="{{ Request::root() }}/charts/{{ $chart->id }}/edit" class="edit-btn" target="_blank" title="Edit chart"><i class="fa fa-pencil"></i></a>
+						</li>
+					@endif
+				</ul>
+			</nav>
 
-		<div class="tab-content">
-			<div id="chart-chart-tab" class="tab-pane">
-				<div class="available-countries-select-wrapper">
-					<select class="available-countries-select chosen-select" name="available_entities" style="position: relative;z-index: 10;"></select>
-				</div>
-				<div class="axis-scale-selectors-wrapper">
-					<div class="x-axis-scale-selector">
-						<a class="axis-scale-btn" style="cursor: pointer;">
-							<i class="fa fa-cog"></i>
-							<span>Linear</span>
-						</a>
+			<div class="tab-content">
+				<div id="chart-chart-tab" class="tab-pane">
+					<div class="available-countries-select-wrapper">
+						<select class="available-countries-select chosen-select" name="available_entities" style="position: relative;z-index: 10;"></select>
 					</div>
-					<div class="y-axis-scale-selector">
-						<a class="axis-scale-btn" style="cursor: pointer;">
-							<i class="fa fa-cog"></i>
-							<span>Linear</span>
-						</a>
+					<div class="axis-scale-selectors-wrapper">
+						<div class="x-axis-scale-selector">
+							<a class="axis-scale-btn" style="cursor: pointer;">
+								<i class="fa fa-cog"></i>
+								<span>Linear</span>
+							</a>
+						</div>
+						<div class="y-axis-scale-selector">
+							<a class="axis-scale-btn" style="cursor: pointer;">
+								<i class="fa fa-cog"></i>
+								<span>Linear</span>
+							</a>
+						</div>
 					</div>
 				</div>
-			</div>
-			<div id="data-chart-tab" class="tab-pane">
-				<a href="#" class="btn btn-success download-data-btn" target="_blank" title="Export CSV for this data"><i class="fa fa-download"></i>CSV</a>
-				<a href="#" class="btn btn-primary download-full-btn" target="_blank" title="Export CSV for all available countries"><i class="fa fa-download"></i>CSV (all available countries)</a>
-				<table class="data-table"></table>
-			</div>
-			<div id="map-chart-tab" class="tab-pane">
-				<div class="map-controls-header">
-					<!--<div class="target-year-control control">
-						<div class="control-head">
-							<i class="fa fa-clock-o"></i>
-							<label class="target-year-label"></label>
+				<div id="data-chart-tab" class="tab-pane">
+					<a href="#" class="btn btn-success download-data-btn" target="_blank" title="Export CSV for this data"><i class="fa fa-download"></i>CSV</a>
+					<a href="#" class="btn btn-primary download-full-btn" target="_blank" title="Export CSV for all available countries"><i class="fa fa-download"></i>CSV (all available countries)</a>
+					<table class="data-table"></table>
+				</div>
+				<div id="map-chart-tab" class="tab-pane">
+					<div class="map-controls-header">
+						<!--<div class="target-year-control control">
+							<div class="control-head">
+								<i class="fa fa-clock-o"></i>
+								<label class="target-year-label"></label>
+							</div>
+							<div class="control-body">
+								<input type="range" min="1950" max="2010" step="10"  />
+							</div>
+						</div>-->
+						<div class="region-control control">
+							<div class="control-head">
+								<i class="fa fa-map"></i>
+								<label class="region-label">World</label>
+							</div>
+							<div class="control-body">
+								<ul>
+									<li class="World-projection">World</li>
+									<li class="Africa-projection">Africa</li>
+									<li class="N.America-projection">N.America</li>
+									<li class="S.America-projection">S.America</li>
+									<li class="Asia-projection">Asia</li>
+									<li class="Australia-projection">Australia</li>
+									<li class="Europe-projection">Europe</li>
+								</ul>
+							</div>
 						</div>
-						<div class="control-body">
-							<input type="range" min="1950" max="2010" step="10"  />
+						<div class="settings-control control">
+							<div class="control-head">
+								<i class="fa fa-cog"></i>
+							</div>
+							<div class="control-body">
+								<label>
+									<input type="checkbox" name="interpolate-data" checked/>
+									Interpolate data between years
+								</label>
+							</div>
 						</div>
-					</div>-->
-					<div class="region-control control">
-						<div class="control-head">
-							<i class="fa fa-map"></i>
-							<label class="region-label">World</label>
+						<div class="color-blind-control control" title="Colorblind safe color scheme">
+							<div class="control-head">
+								<i class="fa fa-eye"></i>
+							</div>
 						</div>
-						<div class="control-body">
-							<ul>
-								<li class="World-projection">World</li>
-								<li class="Africa-projection">Africa</li>
-								<li class="N.America-projection">N.America</li>
-								<li class="S.America-projection">S.America</li>
-								<li class="Asia-projection">Asia</li>
-								<li class="Australia-projection">Australia</li>
-								<li class="Europe-projection">Europe</li>
+					</div>
+					<div class="map-timeline-controls">
+						<div class="play-pause-control control">
+							<a class="play-btn btn"><i class="fa fa-play-circle-o"></i></a>
+							<a class="pause-btn btn"><i class="fa fa-pause-circle-o"></i></a>
+						</div>
+						<div class="timeline-control control">
+							<div class="timeline-wrapper">
+								<div class="timeline-start-year">1950</div>
+								<div class="timeline-end-year">2000</div>
+								<div class="timeline-slider">
+									<span class="timeline-slider-label">1980</span>
+								</div>
+								<input list="timeline-range" type="range" min="1950" max="2010" step="1" />
+							</div>
+						</div>
+						<div class="buttons-control control">
+							<ul class="buttons-wrapper">
 							</ul>
 						</div>
 					</div>
-					<div class="settings-control control">
-						<div class="control-head">
-							<i class="fa fa-cog"></i>
-						</div>
-						<div class="control-body">
-							<label>
-								<input type="checkbox" name="interpolate-data" checked/>
-								Interpolate data between years
-							</label>
-						</div>
-					</div>
-					<div class="color-blind-control control" title="Colorblind safe color scheme">
-						<div class="control-head">
-							<i class="fa fa-eye"></i>
-						</div>
-					</div>
-				</div>
-				<div class="map-timeline-controls">
-					<div class="play-pause-control control">
-						<a class="play-btn btn"><i class="fa fa-play-circle-o"></i></a>
-						<a class="pause-btn btn"><i class="fa fa-pause-circle-o"></i></a>
-					</div>
-					<div class="timeline-control control">
-						<div class="timeline-wrapper">
-							<div class="timeline-start-year">1950</div>
-							<div class="timeline-end-year">2000</div>
-							<div class="timeline-slider">
-								<span class="timeline-slider-label">1980</span>
-							</div>
-							<input list="timeline-range" type="range" min="1950" max="2010" step="1" />
-						</div>
-					</div>
-					<div class="buttons-control control">
-						<ul class="buttons-wrapper">
-						</ul>
-					</div>
-				</div>
-			</div>		
-			<div id="sources-chart-tab" class="tab-pane"></div>
-		</div>
-		
-		<div class="footer-btns">
-			<a class="chart-link-btn" target="_blank">
-				<i class="fa fa-link"></i>
-				<span>Link</span>
-			</a>
-			<a class="tweet-btn" target="_blank">
-				<i class="fa fa-twitter"></i>
-				<span>Tweet</span>
-			</a>
-			<a class="facebook-btn" target="_blank">
-				<i class="fa fa-facebook"></i>
-				<span>Share</span>
-			</a>
-			<a class="embed-btn">
-				<i class="fa fa-code"></i>
-				<span>Embed</span>
-			</a>
-			<a class="download-image-btn" target="_blank">
-				<i class="fa fa-download"></i>
-				<span>PNG</span>
-			</a>
-			<a class="download-svg-btn" target="_blank">
-				<i class="fa fa-download"></i>
-				<span>SVG</span>
-			</a>
+				</div>		
+				<div id="sources-chart-tab" class="tab-pane"></div>
+			</div>
+			
+			<div class="footer-btns">
+				<a class="chart-link-btn" target="_blank">
+					<i class="fa fa-link"></i>
+					<span>Link</span>
+				</a>
+				<a class="tweet-btn" target="_blank">
+					<i class="fa fa-twitter"></i>
+					<span>Tweet</span>
+				</a>
+				<a class="facebook-btn" target="_blank">
+					<i class="fa fa-facebook"></i>
+					<span>Share</span>
+				</a>
+				<a class="embed-btn">
+					<i class="fa fa-code"></i>
+					<span>Embed</span>
+				</a>
+				<a class="download-image-btn" target="_blank">
+					<i class="fa fa-download"></i>
+					<span>PNG</span>
+				</a>
+				<a class="download-svg-btn" target="_blank">
+					<i class="fa fa-download"></i>
+					<span>SVG</span>
+				</a>
+			</div>
 		</div>
 	</div>
 
