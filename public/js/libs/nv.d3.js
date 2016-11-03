@@ -223,7 +223,7 @@ nv.interactiveGuideline = function() {
             function mouseHandler() {
                 var d3mouse = d3.mouse(this);
                 var mouseX = d3mouse[0];
-                var mouseY = d3mouse[1];
+                var mouseY = d3.mouse(d3.select('.nv-wrap rect').node())[1];
                 var subtractMargin = true;
                 var mouseOutAnyReason = false;
                 if (isMSIE) {

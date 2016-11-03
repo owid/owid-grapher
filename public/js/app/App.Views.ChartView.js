@@ -154,6 +154,8 @@
 			if (!changes.any('targetWidth targetHeight'))
 				return;
 
+			chart.scale = 1;
+
 			var targetWidth = chart.display.get('targetWidth'),
 				targetHeight = chart.display.get('targetHeight'),
 				authorWidth = App.AUTHOR_WIDTH,
@@ -183,44 +185,7 @@
 			chart.renderHeight = renderHeight;
 			chart.display.set({ renderWidth: renderWidth, renderHeight: renderHeight });
 
-			if (App.isExport || App.isEditor)
-				return;
-
 			var scale = Math.min(chart.targetWidth/chart.renderWidth, chart.targetHeight/chart.renderHeight);
-
-			var paddingLeft = parseInt($chart.css('padding-left')),
-				paddingTop = parseInt($chart.css('padding-top'));
-
-			chart.dom.style.width = renderWidth + 'px';
-			chart.dom.style.height = renderHeight + 'px';
-			chart.dom.style.zoom = '';
-			chart.dom.style.left = '';
-			chart.dom.style.top = '';
-			owid.transformElement(chart.dom, '');
-
-			if (scale > 1 && owid.features.zoom) {
-				chart.dom.style.zoom = scale;
-			} else {
-				//owid.transformElement(chart.dom, "translate(-50%, -50%) scale(" + scale + ")");*/
-				chart.dom.style.width = renderWidth + 'px';
-				chart.dom.style.height = renderHeight + 'px';
-				chart.dom.style.left = '50%';
-				chart.dom.style.top = '50%';
-				chart.dom.style.bottom = 'auto';
-				chart.dom.style.right = 'auto';
-				owid.transformElement(chart.dom, "translate(-50%, -50%) scale(" + scale + ")");
-			}
-
-			chart.svg.style.width = (renderWidth-paddingLeft*2)*scale + 'px';
-			chart.svg.style.height = (renderHeight-paddingTop*2)*scale + 'px';
-			chart.svg.style.left = '50%';
-			chart.svg.style.top = '50%';
-			chart.svg.style.bottom = 'auto';
-			chart.svg.style.right = 'auto';
-			owid.transformElement(chart.svg, "translate(-50%, -50%) scale(" + 1/scale + ")");
-			chart.svg.setAttribute('viewBox', '0 0 ' + (renderWidth-paddingLeft*2) + ' ' + (renderHeight-paddingTop*2));
-
-			chart.scale = scale;
 
 			// Propagate some useful information to the CSS
 			$chart.removeClass('portrait landscape downscaled upscaled space120 space140 touchscreen narrow');
@@ -245,6 +210,42 @@
 				$chart.addClass('mobile');
 			if (renderWidth < 600)
 				$chart.addClass('narrow');
+
+			chart.dom.style.width = renderWidth + 'px';
+			chart.dom.style.height = renderHeight + 'px';
+			chart.dom.style.zoom = '';
+			chart.dom.style.left = '';
+			chart.dom.style.top = '';
+			owid.transformElement(chart.dom, '');
+
+			if (App.isExport || App.isEditor)
+				return;
+
+			if (scale > 1 && owid.features.zoom) {
+				chart.dom.style.zoom = scale;
+			} else {
+				//owid.transformElement(chart.dom, "translate(-50%, -50%) scale(" + scale + ")");*/
+				chart.dom.style.left = '50%';
+				chart.dom.style.top = '50%';
+				chart.dom.style.bottom = 'auto';
+				chart.dom.style.right = 'auto';
+				owid.transformElement(chart.dom, "translate(-50%, -50%) scale(" + scale + ")");
+			}
+
+			// Now do the actual scaling
+			var paddingLeft = parseInt($chart.css('padding-left')),
+				paddingTop = parseInt($chart.css('padding-top'));
+
+			chart.svg.style.width = (renderWidth-paddingLeft*2)*scale + 'px';
+			chart.svg.style.height = (renderHeight-paddingTop*2)*scale + 'px';
+			chart.svg.style.left = '50%';
+			chart.svg.style.top = '50%';
+			chart.svg.style.bottom = 'auto';
+			chart.svg.style.right = 'auto';
+			owid.transformElement(chart.svg, "translate(-50%, -50%) scale(" + 1/scale + ")");
+			chart.svg.setAttribute('viewBox', '0 0 ' + (renderWidth-paddingLeft*2) + ' ' + (renderHeight-paddingTop*2));
+
+			chart.scale = scale;			
 		};
 
 		chart.getBounds = function(node) {
