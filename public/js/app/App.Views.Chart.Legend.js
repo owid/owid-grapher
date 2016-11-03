@@ -18,7 +18,7 @@
 			var $svg = $("svg.nvd3-svg"),
 				container = d3.select($svg[0]),
 				offsetX = 35, offsetY = 0,
-				availableWidth = $svg.width() - offsetX,
+				availableWidth = chart.getBounds(container.node()).width - offsetX,
 				spaceBetweenLabels = 22,
 				spaceBetweenLines = 28;
 
