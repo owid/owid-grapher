@@ -102,7 +102,7 @@ class ViewController extends Controller {
 
 	private function export($slug, Request $request, $format) {
 		$chart = Chart::findWithRedirects($slug);
-		
+
 		if (!$chart)
 			return App::abort(404, "No such chart");
 
@@ -115,9 +115,8 @@ class ViewController extends Controller {
 		if (isset($_SERVER['QUERY_STRING']))
 			$file = Chart::export($slug, $_SERVER['QUERY_STRING'], $width, $height, $format);
 
-
 		return response()->file($file,
-					['Cache-Control' => $request->input('v') ? 'public, max-age=31536000' : 'no-cache']);
+					['Cache-Control' => $request->input('v') ? 'public, max-age=31536000' : 'public, max-age=7200, s-maxage=604800']);
 	}
 
 	public function exportPNG($slug, Request $request) {
