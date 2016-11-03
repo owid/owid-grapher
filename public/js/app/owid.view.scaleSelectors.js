@@ -46,6 +46,8 @@
 					var chartRect = d3.select('svg').select('.nv-distWrap');
 					if (chartRect.empty())
 						chartRect = d3.select('svg').select('.nv-wrap > g > rect');
+					if (chartRect.empty())
+						chartRect = d3.select('svg').select('.nv-background > rect');
 
 					var svgBounds = chart.getBounds(d3.select('svg').node()),
 						chartBounds = chart.getBounds(chartRect.node()),
