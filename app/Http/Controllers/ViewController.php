@@ -91,29 +91,18 @@ class ViewController extends Controller {
 
 	public function show($slug)
 	{
-		$chart = Chart::whereNotNull('published')->where(function($query) use ($slug) {
-			$query->where('slug', $slug)
-				  ->orWhere('id', $slug);
-		})->first();
+		$chart = Chart::findWithRedirects($slug);
 
-		if (!$chart) {
-			// Check and see if this was an old chart slug
-			$redirect = DB::table('chart_slug_redirects')->select('chart_id')->where('slug', '=', $slug)->first();
-			if ($redirect)
-				$chart = Chart::whereNotNull('published')->whereId($redirect->chart_id)->first();
-
-			if (!$chart)
-				return App::abort(404, "No such chart");
-		}
+		if (!$chart)
+			return App::abort(404, "No such chart");
 
 		return $this->showChart($chart);
+
 	}
 
 	private function export($slug, Request $request, $format) {
-		$chart = Chart::where('slug', $slug)
-					  ->orWhere('id', $slug)
-					  ->first();
-
+		$chart = Chart::findWithRedirects($slug);
+		
 		if (!$chart)
 			return App::abort(404, "No such chart");
 

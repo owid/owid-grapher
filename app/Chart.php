@@ -98,6 +98,22 @@ class Chart extends Model {
 		return $config;		
 	}
 
+	public static function findWithRedirects($slug) {
+		$chart = Chart::whereNotNull('published')->where(function($query) use ($slug) {
+			$query->where('slug', $slug)
+				  ->orWhere('id', $slug);
+		})->first();
+
+		if (!$chart) {
+			// Check and see if this was an old chart slug
+			$redirect = DB::table('chart_slug_redirects')->select('chart_id')->where('slug', '=', $slug)->first();
+			if ($redirect)
+				$chart = Chart::whereNotNull('published')->whereId($redirect->chart_id)->first();
+		}
+
+		return $chart;		
+	}
+
 	/**
 	 * Shell out to phantomjs to take a screenshot of our chart + download the svg
 	 *
