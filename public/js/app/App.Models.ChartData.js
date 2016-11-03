@@ -344,7 +344,6 @@
 				targetYear,
 				chartData = [], legendData = [];
 
-
 			_.each(dimensions, function(dimension) {
 				var variable = variables[dimension.variableId],
 				    valuesByEntity = {};
@@ -471,7 +470,7 @@
 			else
 				result = this.transformDataForLineChart();
 
-			if (addCountryMode != "add-country") {			
+			if (addCountryMode != "add-country" && chartType != App.ChartType.DiscreteBar) {
 				_.each(result.legendData, function(d) {
 					d.disabled = !App.ChartModel.isLegendKeyActive(d.key);
 				});
