@@ -236,8 +236,12 @@
 			stackMode = App.ChartModel.get("currentStackMode"),
 			html = "<table>";
 
+		var series = _.filter(data.series, function(series) {
+			return series.key != "TOTAL";
+		});
+
 		var total = 0;
-		_.each(data.series, function(series) {
+		_.each(series, function(series) {
 			total += series.value;
 		});		
 		total = owid.unitFormat(unit, total);
@@ -249,7 +253,7 @@
 
 		html += '<tbody>';
 
-		_.each(data.series, function(series, i) {
+		_.each(series, function(series, i) {
 			var value = series.value;		
 			if (stackMode == "relative") 
 				value = d3.format(".2p")(series.value);
