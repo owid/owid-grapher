@@ -100,7 +100,9 @@
 				if (chartType == App.ChartType.ScatterPlot || chartType == App.ChartType.MultiBar || chartType == App.ChartType.DiscreteBar)
 					marginBottom += 10;
 				nvd3.margin({ left: +margins.left + 10, top: +margins.top, right: +margins.right + 20, bottom: marginBottom });
-				nvd3.dispatch.on("renderEnd", postRender);
+				nv.dispatch.on("render_end", function() {
+					setTimeout(postRender, 500);
+				});
 
 				renderAxis();
 				renderTooltips();
@@ -352,11 +354,6 @@
 				.y(function(d) { return d.y; })
 				.options(nvOptions);
 
-			// MISPY: nvd3 workaround hack
-			nv.dispatch.on("render_end", function() {
-				setTimeout(postRender, 500);
-			});
-
 			chartOffsetX += 60;
 			chartOffsetY += 20;
 
@@ -404,7 +401,7 @@
 				yDomain[1] = yAxisMax;
 
 			if (isClamped) {
-				if (chartType !== App.ChartType.MultiBar && chartType !== App.ChartType.HorizontalMultiBar && chartType !== App.ChartType.DiscreteBar) {
+				if (chartType !== App.ChartType.MultiBar && chartType !== App.ChartType.HorizontalMultiBar && chartType !== App.ChartType.DiscreteBar && chart.model.get("currentStackMode") != "relative") {
 					//version which makes sure min/max values are present, but will display values outside of the range
 					nvd3.forceX(xDomain);
 					nvd3.forceY(yDomain);
