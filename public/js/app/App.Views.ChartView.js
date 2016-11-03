@@ -2,8 +2,6 @@
 	"use strict";
 	owid.namespace("owid.chart");
 
-	owid.features.zoom = false;
-
 	owid.chart = function() {
 		function chart() {}
 		App.ChartView = chart;
@@ -190,9 +188,11 @@
 
 			var scale = Math.min(chart.targetWidth/chart.renderWidth, chart.targetHeight/chart.renderHeight);
 
-			chart.dom.style.width = '100%';
-			chart.dom.style.height = '100%';
-			chart.dom.style.padding = 0;
+			var paddingLeft = parseInt($chart.css('padding-left')),
+				paddingTop = parseInt($chart.css('padding-top'));
+
+			chart.dom.style.width = renderWidth + 'px';
+			chart.dom.style.height = renderHeight + 'px';
 			chart.dom.style.zoom = '';
 			chart.dom.style.left = '';
 			chart.dom.style.top = '';
@@ -202,15 +202,23 @@
 				chart.dom.style.zoom = scale;
 			} else {
 				//owid.transformElement(chart.dom, "translate(-50%, -50%) scale(" + scale + ")");*/
-				chart.html.style.width = renderWidth + 'px';
-				chart.html.style.height = renderHeight + 'px';
-				chart.html.style.left = '50%';
-				chart.html.style.top = '50%';
-				chart.html.style.bottom = 'auto';
-				chart.html.style.right = 'auto';
-				owid.transformElement(chart.html, "translate(-50%, -50%) scale(" + scale + ")");
-				chart.svg.setAttribute('viewBox', '0 0 ' + renderWidth + ' ' + renderHeight);
+				chart.dom.style.width = renderWidth + 'px';
+				chart.dom.style.height = renderHeight + 'px';
+				chart.dom.style.left = '50%';
+				chart.dom.style.top = '50%';
+				chart.dom.style.bottom = 'auto';
+				chart.dom.style.right = 'auto';
+				owid.transformElement(chart.dom, "translate(-50%, -50%) scale(" + scale + ")");
 			}
+
+			chart.svg.style.width = (renderWidth-paddingLeft*2)*scale + 'px';
+			chart.svg.style.height = (renderHeight-paddingTop*2)*scale + 'px';
+			chart.svg.style.left = '50%';
+			chart.svg.style.top = '50%';
+			chart.svg.style.bottom = 'auto';
+			chart.svg.style.right = 'auto';
+			owid.transformElement(chart.svg, "translate(-50%, -50%) scale(" + 1/scale + ")");
+			chart.svg.setAttribute('viewBox', '0 0 ' + (renderWidth-paddingLeft*2) + ' ' + (renderHeight-paddingTop*2));
 
 			chart.scale = scale;
 
