@@ -21,7 +21,9 @@
 		var lastTabName = null,
 			mapQueryStr = '?',
 			chartQueryStr = '?',
-			originalDefaultTab = chart.model.get('default-tab');
+			originalDefaultTab = chart.model.get('default-tab'),
+			originalXAxisScale = chart.model.getAxisConfig('x-axis', 'axis-scale'),
+			originalYAxisScale = chart.model.getAxisConfig('y-axis', 'axis-scale');
 
 		function initialize() {
 			if (App.isEditor) return;
@@ -30,28 +32,14 @@
 			chart.model.on("change:selected-countries", updateCountryParam);	
 			chart.model.on("change:activeLegendKeys", updateLegendKeys);		
 			chart.map.on("change:targetYear", updateYearParam);
-			chart.map.on("change:mode change:projection change:isColorblind", updateMapParams);
+			chart.map.on("change:mode change:projection change:isColorblind", updateMapParams);			
 			chart.model.on("change:currentStackMode", updateStackMode);
+			chart.model.on("change:x-axis", updateAxisScales);
+			chart.model.on("change:y-axis", updateAxisScales);
 			populateFromURL();
-
-			$(window).on('message', function(event) {
-				var msg = event.originalEvent.data;
-				if (msg.event != 'urlUpdate') return;
-				urlBinder.update(msg.url);
-			});
 
 			lastTabName = chart.display.get('activeTab');
 		}
-
-		/**
-		 * Update to a new url. Fast way of communicating desired state change
-		 */
-		urlBinder.update = function(url) {
-			var parser = document.createElement('a');
-			parser.href = url;
-			owid.setQueryStr(parser.search);
-			populateFromURL();
-		};
 
 		/**
 		 * Apply any url parameters on chart startup
@@ -81,6 +69,15 @@
 			var stackMode = params.stackMode;
 			if (stackMode !== undefined)
 				chart.model.set("currentStackMode", stackMode);
+
+			// Axis scale mode
+			var xAxisScale = params.xScale;
+			if (xAxisScale !== undefined)
+				chart.model.setAxisConfig('x-axis', 'axis-scale', xAxisScale);
+
+			var yAxisScale = params.yScale;
+			if (yAxisScale !== undefined)
+				chart.model.setAxisConfig('y-axis', 'axis-scale', yAxisScale);
 
 			// Map stuff below
 
@@ -228,6 +225,20 @@
 				owid.setQueryVariable("stackMode", stackMode);
 			else
 				owid.setQueryVariable("stackMode", null);
+		}
+
+		function updateAxisScales() {
+			var xAxisScale = chart.model.getAxisConfig('x-axis', 'axis-scale');
+			if (xAxisScale != originalXAxisScale)
+				owid.setQueryVariable("xScale", xAxisScale);
+			else
+				owid.setQueryVariable("xScale", null);
+
+			var yAxisScale = chart.model.getAxisConfig('y-axis', 'axis-scale');
+			if (yAxisScale != originalYAxisScale)
+				owid.setQueryVariable("yScale", yAxisScale);
+			else
+				owid.setQueryVariable("yScale", null);
 		}
 
 		initialize();

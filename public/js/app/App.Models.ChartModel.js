@@ -3,7 +3,6 @@
 	owid.namespace("App.Models.ChartModel");
 
 	App.Models.ChartModel = Backbone.Model.extend( {
-
 		//urlRoot: Global.rootUrl + '/charts/',
 		//urlRoot: Global.rootUrl + '/data/config/',
 		url: function(id) {
@@ -173,7 +172,11 @@
 
 		getAxisConfig: function(axisName, prop) {
 			var axis = this.get(axisName);
-			if (axis) return axis[prop];
+			if (!axis) return undefined;
+			if (axis[prop] !== undefined) return axis[prop];
+
+			// Defaults
+			if (prop == 'axis-scale') return 'linear';
 		},
 
 		// DEPRECATED: use App.MapModel instead
