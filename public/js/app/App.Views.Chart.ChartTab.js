@@ -6,7 +6,7 @@
 	// all of our svg stuff
 	nv.utils.noData = function(nvd3, container) {
 	    container.selectAll('g.nv-wrap').remove();
-	    App.ChartView.handleMissingData("No data available.");
+	    chart.showMessage("No data available.");
 	};
 
 	owid.tab.chart = function(chart) {
@@ -18,7 +18,7 @@
 
 		var $svg, $tab, $entitiesSelect,
 			$xAxisScale, $yAxisScale,
-			svg, nvd3;
+			svg, nvd3, viz;
 
 		var chartType, localData, missingMsg, lineType;
 
@@ -81,7 +81,11 @@
 			updateAvailableCountries();
 
 			// Initialize or update the nvd3 graph
-			nv.addGraph(function() {
+
+			function updateGraph() {
+				if (chartType == App.ChartType.LineChart && (lineType == App.LineType.DashedIfMissing))
+					localData = splitSeriesByMissing(localData);
+
 				if (chartType == App.ChartType.LineChart) {
 					renderLineChart();
 				} else if (chartType == App.ChartType.ScatterPlot) {
@@ -94,42 +98,46 @@
 					renderDiscreteBar();
 				}
 
-				nvd3.width(chartWidth);
-				nvd3.height(chartHeight);
-				var marginBottom = +margins.bottom + 20;
-				if (chartType == App.ChartType.ScatterPlot || chartType == App.ChartType.MultiBar || chartType == App.ChartType.DiscreteBar)
-					marginBottom += 10;
-				nvd3.margin({ left: +margins.left + 10, top: +margins.top, right: +margins.right + 20, bottom: marginBottom });
-				nv.dispatch.on("render_end", function() {
-					setTimeout(postRender, 500);
-				});
+				if (nvd3) {
+					nvd3.width(chartWidth);
+					nvd3.height(chartHeight);
+					var marginBottom = +margins.bottom + 20;
+					if (chartType == App.ChartType.ScatterPlot || chartType == App.ChartType.MultiBar || chartType == App.ChartType.DiscreteBar)
+						marginBottom += 10;
+					nvd3.margin({ left: +margins.left + 10, top: +margins.top, right: +margins.right + 20, bottom: marginBottom });
+					nv.dispatch.on("render_end", function() {
+						setTimeout(postRender, 500);
+					});
+					window.nvd3 = nvd3;
+				}
 
 				renderAxis();
 				renderTooltips();
-
-				if (chartType == App.ChartType.LineChart && (lineType == App.LineType.DashedIfMissing))
-					localData = splitSeriesByMissing(localData);
 				
-				svg.datum(localData).call(nvd3);
+				if (nvd3) {
+					svg.datum(localData).call(nvd3);
+		
+					var nvWrap = d3.select('.nvd3.nv-wrap > g');
+					nvWrap.attr('transform', 'translate(' + chartOffsetX + ',' + chartOffsetY + ')');		
+					$('.nvtooltip:not(.owid-tooltip)').remove();
 
-				window.nvd3 = nvd3;
-
-				var nvWrap = d3.select('.nvd3.nv-wrap > g');
-				nvWrap.attr('transform', 'translate(' + chartOffsetX + ',' + chartOffsetY + ')');		
-				$('.nvtooltip:not(.owid-tooltip)').remove();
-
-				//if y axis has zero, display solid line
-				var $pathDomain = $(".nvd3 .nv-axis.nv-x path.domain");
-				if (yDomain[0] === 0) {
-					$pathDomain.css("stroke-opacity", "1");
-				} else {
-					$pathDomain.css("stroke-opacity", "0");
+					//if y axis has zero, display solid line
+					var $pathDomain = $(".nvd3 .nv-axis.nv-x path.domain");
+					if (yDomain[0] === 0) {
+						$pathDomain.css("stroke-opacity", "1");
+					} else {
+						$pathDomain.css("stroke-opacity", "0");
+					}					
 				}
 
-
-				ensureLabelsFit();
+				ensureLabelsFit();				
 				changes.done();	
-			});
+			}
+
+			if (!nvd3 && chartType != App.ChartType.ScatterPlot)
+				nv.addGraph(updateGraph);
+			else
+				updateGraph();
 		};
 
 		function configureTab() {
@@ -193,6 +201,8 @@
 		}
 
 		function updateAvailableCountries() {
+			if (chartType == App.ChartType.ScatterPlot) return;
+
 			var availableEntities = App.VariableData.get("availableEntities"),
 				selectedEntitiesById = chart.model.getSelectedEntitiesById(),
 				entityType = chart.model.get("entity-type");
@@ -237,13 +247,19 @@
 
 		function renderScatterPlot() {
 			//set size of the bubbles depending on browser width
-			var browserWidth = $(window).width(),
+/*			var browserWidth = $(window).width(),
 				browserCoef = Math.max( 1, browserWidth / 1100 ),
 				pointMin = 100 * Math.pow( browserCoef, 2 ),
 				pointMax = 1000 * Math.pow( browserCoef, 2 );
 			var points = [pointMin, pointMax];
 
-			nvd3 = nv.models.scatterChart().options(nvOptions).pointRange(points).showDistX(true).showDistY(true);			
+			if (!nvd3) nvd3 = nv.models.scatterChart();
+			nvd3.options(nvOptions).pointRange(points).showDistX(true).showDistY(true);	*/
+
+			if (!viz) viz = owid.view.scatter();
+			viz.state.data = localData;
+			viz.state.bounds = { left: chartOffsetX, top: chartOffsetY, width: chartWidth, height: chartHeight };
+			viz.render();
 		}
 
 		function renderStackedArea() {
@@ -356,10 +372,11 @@
 
 			chartOffsetX += 60;
 			chartOffsetY += 20;
-
 		}
 
 		function renderTooltips() {
+			if (!nvd3) return;
+
 			if (chartType == App.ChartType.StackedArea)
 				nvd3.interactiveLayer.tooltip.contentGenerator(owid.contentGenerator);
 			else
@@ -368,6 +385,8 @@
 
 		function renderAxis() {
 			//chartTab.scaleSelectors.render();
+			if (!nvd3) return;
+
 
 			//get extend
 			var allValues = [];
@@ -456,7 +475,7 @@
 					} else if (chartType == App.ChartType.DiscreteBar) {
 						return d;
 					} else {
-						return App.Utils.formatTimeLabel("Year", d, xAxisPrefix, xAxisSuffix, xAxisFormat );
+						return App.Utils.formatTimeLabel("Year", d, xAxisPrefix, xAxisSuffix, xAxisFormat);
 					}
 				});
 
@@ -465,6 +484,7 @@
 				.axisLabelDistance(yAxisLabelDistance)
 				.tickFormat(function(d) { return yAxisPrefix + owid.unitFormat({ format: yAxisFormat }, d) + yAxisSuffix; })
 				.showMaxMin(false);
+
 
 			//scatter plots need more ticks
 			if (chartType === App.ChartType.ScatterPlot) {
@@ -491,6 +511,35 @@
 			} else {
 				$svg.find("> .nvd3.nv-custom-legend").hide();
 			}			
+		}
+
+		function renderTimeline() {	
+			if (!changes.any('chart-dimensions chart-time')) return;
+
+			var years;
+//			if (chartType == App.ChartType.ScatterPlot)
+				years = chart.vardata.get('yearsWithAnyData');
+//			else
+//				years = chart.vardata.get('yearsWithAnyData');
+			
+			var chartTime = chart.model.get('chart-time');
+
+			timeline.state.years = years;
+			if (!_.isEmpty(chartTime)) {
+				timeline.state.startYear = chartTime[0];
+				timeline.state.endYear = chartTime[1];			
+			} else {
+				timeline.state.startYear = years[0];
+				timeline.state.endYear = years[years.length-1];
+			}
+
+			timeline.render();
+
+			timeline.dispatch.on('change', function() {
+				chart.model.set('chart-time', [timeline.state.startYear, timeline.state.endYear]);
+			});
+
+			chartHeight -= chart.getBounds(timeline.node()).height + 10;
 		}
 
 		function splitSeriesByMissing(localData) {
@@ -539,6 +588,8 @@
 		}
 
 		function ensureLabelsFit() {
+			if (!nvd3) return;
+
 			if (xAxis['axis-label']) {
 				var xAxisLabel = d3.select('.nv-x .nv-axislabel');
 
