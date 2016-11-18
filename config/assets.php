@@ -147,7 +147,6 @@ return [
 		        'libs/d3.js',
 		        'libs/nv.d3.js',
 		        'libs/d3.v4.js',
-		        'libs/d3.labeler.js',
 		        'libs/saveSvgAsPng.js',
 		        'libs/topojson.js',
 		        'libs/datamaps.js',
@@ -160,6 +159,7 @@ return [
 		        'libs/jquery.lazyloadxt.extra.js',
 		        'libs/async.js',
 		        'libs/js.cookie.js',
+		        'libs/reactive-model-v0.12.0.min.js',
 
 		        'owid.js',
 		        'app/owid.colorbrewer.js',
@@ -177,6 +177,7 @@ return [
 		        'app/owid.view.tabSelector.js',
 		        'app/owid.view.tooltip.js',
 		        'app/owid.view.scaleSelectors.js',
+		        'app/owid.view.axis.js',
 		        'app/owid.view.scatter.js',
 		        'app/App.Views.Chart.Legend.js',
 		        'app/App.Views.Chart.ChartTab.js',

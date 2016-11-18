@@ -235,7 +235,7 @@
 			initializeMap();
 			if (!changes.only('targetYear')) {
 				mapControls.render();
-				timelineControls.render();				
+				timelineControls.render();
 			}
 			calculateBounds();
 			updateMapBackground();
@@ -243,6 +243,8 @@
 			updateProjection();
 			updateViewport();
 			updateLegend();
+
+			console.log(chart.mapdata.currentValues);
 
 			dataMap.options.fills.defaultFill = chart.mapdata.getNoDataColor();
 			dataMap.updateChoropleth(chart.mapdata.currentValues, { reset: true });

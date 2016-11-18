@@ -1,8 +1,153 @@
+owid.dataflow = function() {
+	var model = ReactiveModel.apply(this, arguments);
+
+	model.inputs = function(inputs) {
+		_.each(inputs, function(v,k) {
+			model(k);
+			if (v !== undefined)
+				model[k](v);
+		});
+	};
+
+	model.flow = function(flowspec, callback) {
+		var args = flowspec.split(/\s*=>\s*/);
+		if (args.length > 1) {
+			if (_.isEmpty(args[0]))
+				model(args[1], callback);
+			else
+				model(args[1], callback, args[0]);
+		} else {
+			model(callback, args[0]);
+		}
+	};
+
+	model.update = function(changes) {
+		_.each(changes, function(v,k) {
+			//console.log(k, v, model[k](), !_.isEqual(model[k](), v) ? 'change' : null);
+			if (model[k] === undefined)
+				throw("No such input: " + k);
+			if (!_.isEqual(model[k](), v))
+				model[k](v);
+		});
+		model.digest();
+	};
+
+	return model;
+}
+
 ;(function(d3) {
 	"use strict";
 	owid.namespace("owid.view.scatter");
 
 	owid.view.scatter = function() {
+		var scatter = owid.dataflow();
+
+		scatter.inputs({
+			svg: undefined,
+			data: [],
+			bounds: { left: 0, top: 0, width: 100, height: 100 },
+			axisConfig: undefined
+		});
+
+		var axisBoxInit = owid.view.axisBox();
+		scatter.flow("svg, data, bounds, axisConfig => axisBox", function(svg, data, bounds, axisConfig) {
+			var xScale = d3.scaleLinear();
+
+  		    xScale.domain([
+		        d3.min(data, function(series) { return d3.min(series.values, function(d) { return d.x; }); }),
+		        d3.max(data, function(series) { return d3.max(series.values, function(d) { return d.x; }); })
+		    ]);			
+
+			var yScale = d3.scaleLinear();
+
+  		    yScale.domain([
+		        d3.min(data, function(series) { return d3.min(series.values, function(d) { return d.y; }); }),
+		        d3.max(data, function(series) { return d3.max(series.values, function(d) { return d.y; }); })
+		    ]);			
+
+			axisBoxInit.update({
+				svg: d3.select(svg.node()),
+				bounds: bounds,
+				xScale: xScale,
+				yScale: yScale,
+				axisConfig: axisConfig
+			});
+
+			return axisBoxInit;
+		});
+
+		scatter.flow("axisBox => innerBounds", function(axisBox) { return axisBox.innerBounds(); });
+		scatter.flow("axisBox, innerBounds => xScale", function(axisBox, innerBounds) {
+			return axisBox.xScale();
+		});
+		scatter.flow("axisBox, innerBounds => yScale", function(axisBox, innerBounds) {
+			return axisBox.yScale();
+		});
+		scatter.flow("axisBox => g", function(axisBox) {
+			return axisBox.g();
+		});
+
+		var _sizeScale = d3.scaleLinear();
+		scatter.flow("data => sizeScale", function(data) {
+			_sizeScale.range([3, 6])
+				.domain([
+		        	d3.min(data, function(series) { return d3.min(series.values, function(d) { return d.size||1; }); }),
+		       	    d3.max(data, function(series) { return d3.max(series.values, function(d) { return d.size||1; }); })
+		        ]);
+
+		    return _sizeScale;
+		});
+
+		scatter.flow("xScale, yScale => line", function(xScale, yScale) {
+		    return d3.line()
+			    .curve(d3.curveLinear)
+			    .x(function(d) { return xScale(d.x); })
+			    .y(function(d) { return yScale(d.y); });
+		});
+
+		scatter.flow("g, data, xScale, yScale, sizeScale", function(g, data, xScale, yScale, sizeScale) {			
+			var update = g.selectAll(".entity").data(data, function(d) { return d.key; }),
+				exit = update.exit().remove(),
+				enter = update.enter().append("g").attr("class", "entity"),
+				entities = enter.merge(update);
+
+		    var dotUpdate = entities.selectAll(".dot").data(function(d) { return [d]; });
+
+		    dotUpdate.enter().append("circle")
+				.attr("class", "dot")
+			  .merge(dotUpdate)
+			  	.transition()
+			      .attr("r", function(d) { return sizeScale(d.values[0].size||1); })
+			      .attr("cx", function(d) { return xScale(d.values[0].x); })
+			      .attr("cy", function(d) { return yScale(d.values[0].y); })
+			      .style("fill", function(d) { return d.color; });
+
+			update.exit().remove();
+
+		});
+
+		scatter.flow("svg, xScale, yScale, data", function mousebind(svg, xScale, yScale, data) {
+			svg = d3.select(svg.node());
+			svg.on("mousemove.scatter", function() {
+				var mouse = d3.mouse(svg.node()),
+					mouseX = mouse[0], mouseY = mouse[1];
+					
+				var d = _.sortBy(data, function(d) {
+					var value = d.values[0],
+						dx = xScale(value.x) - mouseX,
+						dy = yScale(value.y) - mouseY,
+						dist = dx*dx + dy*dy;
+					return dist;
+				})[0];
+			});
+		});
+
+		window.scatter = scatter;
+
+		return scatter;
+	};
+
+	owid.view.scatterold = function() {
 		var scatter = {};
 
 		var state = {
@@ -229,7 +374,6 @@
 						dx = x(value.x) - mouseX,
 						dy = y(value.y) - mouseY,
 						dist = dx*dx + dy*dy;
-					console.log(mouseX, mouseY);
 					return dist;
 				})[0];
 
@@ -258,6 +402,14 @@
 			renderData();
 			renderLabels();
 			renderFocus();
+
+			var axis = owid.view.xAxis();
+			axis.offsetTop(state.bounds.height - 100)
+				.offsetLeft(state.bounds.left)
+				.width(state.bounds.width - state.bounds.left - 100)
+				.height(50)
+				.scale(x)
+				.svg(svg);
 
 			changes.done();
 

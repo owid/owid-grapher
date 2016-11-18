@@ -109,9 +109,9 @@
 						setTimeout(postRender, 500);
 					});
 					window.nvd3 = nvd3;
+					renderAxis();
 				}
 
-				renderAxis();
 				renderTooltips();
 				
 				if (nvd3) {
@@ -241,8 +241,7 @@
 				chart.$chart.removeClass("line-dots");
 			}
 
-
-			nvd3 = nv.models.lineChart().options(nvOptions);			
+			nvd3 = nv.models.lineChart().options(nvOptions);
 		}
 
 		function renderScatterPlot() {
@@ -256,10 +255,34 @@
 			if (!nvd3) nvd3 = nv.models.scatterChart();
 			nvd3.options(nvOptions).pointRange(points).showDistX(true).showDistY(true);	*/
 
+			var xTickFormat = function(d) {
+			};			
+
 			if (!viz) viz = owid.view.scatter();
-			viz.state.data = localData;
-			viz.state.bounds = { left: chartOffsetX, top: chartOffsetY, width: chartWidth, height: chartHeight };
-			viz.render();
+			viz.update({
+				svg: svg,
+				data: localData,
+				bounds: { left: chartOffsetX, top: chartOffsetY, width: chartWidth, height: chartHeight },
+				axisConfig: {
+					x: {
+						minValue: xAxisMin,
+						maxValue: xAxisMax,
+						label: xAxis['axis-label'],
+						tickFormat: function(d) {
+							return xAxisPrefix + owid.unitFormat({ format: xAxisFormat }, d) + xAxisSuffix;							
+						}
+					},
+
+					y: {
+						minValue: yAxisMin,
+						maxValue: yAxisMax,
+						label: yAxis['axis-label'],
+						tickFormat: function(d) {
+							return yAxisPrefix + owid.unitFormat({ format: yAxisFormat }, d) + yAxisSuffix;														
+						}
+					}
+				}
+			});
 		}
 
 		function renderStackedArea() {
@@ -384,9 +407,7 @@
 		}
 
 		function renderAxis() {
-			//chartTab.scaleSelectors.render();
-			if (!nvd3) return;
-
+//			chartTab.scaleSelectors.render();
 
 			//get extend
 			var allValues = [];
@@ -420,7 +441,7 @@
 				yDomain[1] = yAxisMax;
 
 			if (isClamped) {
-				if (chartType !== App.ChartType.MultiBar && chartType !== App.ChartType.HorizontalMultiBar && chartType !== App.ChartType.DiscreteBar && chart.model.get("currentStackMode") != "relative") {
+				if (nvd3 && chartType !== App.ChartType.MultiBar && chartType !== App.ChartType.HorizontalMultiBar && chartType !== App.ChartType.DiscreteBar && chart.model.get("currentStackMode") != "relative") {
 					//version which makes sure min/max values are present, but will display values outside of the range
 					nvd3.forceX(xDomain);
 					nvd3.forceY(yDomain);
@@ -484,13 +505,6 @@
 				.axisLabelDistance(yAxisLabelDistance)
 				.tickFormat(function(d) { return yAxisPrefix + owid.unitFormat({ format: yAxisFormat }, d) + yAxisSuffix; })
 				.showMaxMin(false);
-
-
-			//scatter plots need more ticks
-			if (chartType === App.ChartType.ScatterPlot) {
-				nvd3.xAxis.ticks(7);
-				nvd3.yAxis.ticks(7);
-			}
 		}
 
 		function renderLegend() {
