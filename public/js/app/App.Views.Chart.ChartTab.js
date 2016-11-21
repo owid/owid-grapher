@@ -367,7 +367,7 @@
 		}
 
 		function renderAxis() {
-			chartTab.scaleSelectors.render();
+			//chartTab.scaleSelectors.render();
 
 			//get extend
 			var allValues = [];
