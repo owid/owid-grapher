@@ -62,17 +62,16 @@
 					.style("fill", "black")
 					.attr("transform", "rotate(-90)")
 				  .merge(labelUpdate)
-					.attr("x", -bounds.height/2)
+					.attr("x", -bounds.top-bounds.height/2)
 					.attr("y", -25)
 					.text(label);
 			} else {
 				labelUpdate.enter()
 					.append("text")
 					.attr("class", "axis-label")
-					.attr("text-anchor", "middle")
 					.style("fill", "black")
 				  .merge(labelUpdate)
-					.attr("x", bounds.width/2)
+					.attr("x", bounds.left+bounds.width/2)
 					.attr("y", 25)
 					.text(label);				
 			}

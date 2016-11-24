@@ -80,7 +80,8 @@ owid.dataflow = function() {
 			svg: undefined,
 			data: [],
 			bounds: { left: 0, top: 0, width: 100, height: 100 },
-			axisConfig: undefined
+			axisConfig: undefined,
+			focusKey: null
 		});
 
 		var _axisBox = owid.view.axisBox();
@@ -139,25 +140,64 @@ owid.dataflow = function() {
 			    .y(function(d) { return yScale(d.y); });
 		});
 
-		scatter.flow("g, data, xScale, yScale, sizeScale", function(g, data, xScale, yScale, sizeScale) {			
+		scatter.flow("entities : g, data", function(g, data) {
 			var update = g.selectAll(".entity").data(data, function(d) { return d.key; }),
 				exit = update.exit().remove(),
-				enter = update.enter().append("g").attr("class", "entity"),
+				enter = update.enter().append("g").attr("class", function(d) { return d.key + " entity"; }),
 				entities = enter.merge(update);
 
+			return entities;
+		});
+
+		scatter.flow("dots : entities", function(entities) {
 		    var dotUpdate = entities.selectAll(".dot").data(function(d) { return [d]; });
+		    return dotUpdate.enter().append("circle").attr("class", "dot").merge(dotUpdate);
+		});
 
-		    dotUpdate.enter().append("circle")
-				.attr("class", "dot")
-			  .merge(dotUpdate)
-			  	.transition()
-			      .attr("r", function(d) { return sizeScale(d.values[0].size||1); })
-			      .attr("cx", function(d) { return xScale(d.values[0].x); })
-			      .attr("cy", function(d) { return yScale(d.values[0].y); })
-			      .style("fill", function(d) { return d.color; });
+		scatter.flow("dots, xScale, yScale", function(dots, xScale, yScale) {
+			dots
+		      .attr("cx", function(d) { return xScale(d.values[0].x); })
+		      .attr("cy", function(d) { return yScale(d.values[0].y); })
+		      .style("fill", function(d) { return d.color; });
+		});
 
-			update.exit().remove();
+		scatter.flow("dots, sizeScale, focusKey", function(dots, sizeScale, focusKey) {
+			dots.attr("r", function(d) { 
+				return sizeScale(d.values[0].size||1) * (focusKey == d.key ? 1.5 : 1);
+			});
+		});
 
+		scatter.flow("dots, focusKey", function(dots, focusKey) {
+			dots.style("fill-opacity", function(d) { return d.key == focusKey ? 1 : 0.5; });
+		});
+
+		scatter.flow("g, data, xScale, yScale, focusKey", function(g, data, xScale, yScale, focusKey) {
+			var focused = _.find(data, function(d) { return d.key == focusKey; });
+
+			g.selectAll('.focusLine').remove();
+			if (!focused) return;
+
+			g.selectAll('.x.focusLine')
+				.data([focused])
+				.enter()
+				.insert('line', ":first-child")
+				.attr('class', 'x focusLine')
+				.attr('x1', function(d) { return xScale(0); })
+				.attr('x2', function(d) { return xScale(d.values[0].x); })
+				.attr('y1', function(d) { return yScale(d.values[0].y); })
+				.attr('y2', function(d) { return yScale(d.values[0].y); })
+				.style('stroke', function(d) { return d.color; });
+
+			g.selectAll('.y.focusLine')
+				.data([focused])
+				.enter()
+				.insert('line', ":first-child")
+				.attr('class', 'y focusLine')
+				.attr('x1', function(d) { return xScale(d.values[0].x); })
+				.attr('x2', function(d) { return xScale(d.values[0].x); })
+				.attr('y1', function(d) { return yScale(0); })
+				.attr('y2', function(d) { return yScale(d.values[0].y); })
+				.style('stroke', function(d) { return d.color; });
 		});
 
 		scatter.flow("svg, xScale, yScale, data", function mousebind(svg, xScale, yScale, data) {
@@ -173,6 +213,8 @@ owid.dataflow = function() {
 						dist = dx*dx + dy*dy;
 					return dist;
 				})[0];
+
+				scatter.update({ focusKey: d.key });
 			});
 		});
 
