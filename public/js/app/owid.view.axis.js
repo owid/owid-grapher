@@ -81,6 +81,30 @@
 			return g.node().getBBox();
 		});
 
+		axis.flow("gridlines : bbox, g, bounds, orient", function(bbox, g, bounds, orient) {
+			var gridlines = g.selectAll('.tick').selectAll('.gridline')
+				.data(function(d) { return [d]; })
+				.enter()
+				  .append('line')
+				  .attr('class', 'gridline');
+
+			if (orient == 'bottom') {
+				gridlines
+				  	.attr('x1', 0.5)
+				  	.attr('x2', 0.5)
+				  	.attr('y1', 0)
+				  	.attr('y2', bbox.height-bounds.height);
+			} else {
+				gridlines
+				  	.attr('x1', 0)
+				  	.attr('x2', bounds.width-bbox.width)
+				  	.attr('y1', 0.5)
+				  	.attr('y2', 0.5);
+			}
+
+			return gridlines;
+		});
+
 		axis.flow("width : bbox", function(bbox) { return bbox.width; });
 		axis.flow("height : bbox", function(bbox) { return bbox.height; });
 

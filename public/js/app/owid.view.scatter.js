@@ -57,7 +57,15 @@ owid.dataflow = function() {
 			var args = _.map(flow.inputs, function(k) { return state[k]; });
 			if (!_.all(args, function(v) { return v !== undefined; }))
 				return;
+
+			if (flow.outputs.length > 0) {
+				//console.log(flow.outputs[0] + " : " + flow.inputs.join(", "));
+			} else {
+				//console.log(flow.inputs.join(", "));
+			}
+
 			var result = flow.callback.apply(model, args);
+
 
 			if (flow.outputs.length > 0 && !_.isEqual(state[flow.outputs[0]], result)) {
 				state[flow.outputs[0]] = result;

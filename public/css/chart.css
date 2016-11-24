@@ -523,6 +523,15 @@ select.disabled {
 #chart .available-countries-select-wrapper .chosen-container .chosen-results li.highlighted {
     background: #002147;
 }
+
+/* Axis and Gridlines
+--------------------------------------------- */
+
+#chart .axis .gridline {
+    stroke: #ededed;
+    stroke-dasharray: 3,2;    
+}
+
 /* Axis Scale Selectors
 --------------------------------------------- */
 
