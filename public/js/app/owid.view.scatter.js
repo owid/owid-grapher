@@ -1,35 +1,69 @@
 owid.dataflow = function() {
-	var model = ReactiveModel.apply(this, arguments);
+	var model = {}, state = {}, defaults = {}, flows = [];
+	model.state = state;
+
+	function defineProperty(key, val) {
+		state[key] = undefined;
+		defaults[key] = val;
+
+		Object.defineProperty(model, key, {
+			get: function() { return state[key]; }
+		});
+	}
 
 	model.inputs = function(inputs) {
-		_.each(inputs, function(v,k) {
-			model(k);
-			if (v !== undefined)
-				model[k](v);
+		_.each(inputs, function(v, k) {
+			defineProperty(k, v);
 		});
 	};
 
 	model.flow = function(flowspec, callback) {
-		var args = flowspec.split(/\s*=>\s*/);
-		if (args.length > 1) {
-			if (_.isEmpty(args[0]))
-				model(args[1], callback);
-			else
-				model(args[1], callback, args[0]);
-		} else {
-			model(callback, args[0]);
-		}
+		var flow = {},
+			spl = flowspec.split(/\s*:\s*/);
+
+		flow.outputs = spl[1] ? spl[0].split(/\s*,\s*/) : [];
+		flow.inputs = spl[1] ? spl[1].split(/\s*,\s*/) : spl[0].split(/\s*,\s*/);
+		flow.callback = callback;
+
+		_.each(flow.outputs, function(key) {
+			defineProperty(key);
+		});
+
+		flows.push(flow);
 	};
 
-	model.update = function(changes) {
-		_.each(changes, function(v,k) {
-			//console.log(k, v, model[k](), !_.isEqual(model[k](), v) ? 'change' : null);
-			if (model[k] === undefined)
+	var hasDefaults = false;
+	model.update = function(inputs) {
+		var changes = {};
+
+		if (!hasDefaults) {
+			inputs = _.extend({}, defaults, inputs);
+			hasDefaults = true;
+		}
+
+		_.each(inputs, function(v, k) {
+			if (!_.has(state, k))
 				throw("No such input: " + k);
-			if (!_.isEqual(model[k](), v))
-				model[k](v);
+			if (!_.isEqual(state[k], v)) {
+				state[k] = v;
+				changes[k] = true;
+			}
 		});
-		model.digest();
+
+		_.each(flows, function(flow) {
+			var inputChanged =_.any(flow.inputs, function(k) { return _.has(changes, k); });
+			if (!inputChanged) return;
+
+			var args = _.map(flow.inputs, function(k) { return state[k]; });
+			if (!_.all(args, function(v) { return v !== undefined; }))
+				return;
+			var result = flow.callback.apply(model, args);
+
+			if (flow.outputs.length > 0 && !_.isEqual(state[flow.outputs[0]], result)) {
+				state[flow.outputs[0]] = result;
+				changes[flow.outputs[0]] = true;
+			}
+		});
 	};
 
 	return model;
@@ -49,8 +83,8 @@ owid.dataflow = function() {
 			axisConfig: undefined
 		});
 
-		var axisBoxInit = owid.view.axisBox();
-		scatter.flow("svg, data, bounds, axisConfig => axisBox", function(svg, data, bounds, axisConfig) {
+		var _axisBox = owid.view.axisBox();
+		scatter.flow("axisBox : svg, data, bounds, axisConfig", function(svg, data, bounds, axisConfig) {
 			var xScale = d3.scaleLinear();
 
   		    xScale.domain([
@@ -65,7 +99,7 @@ owid.dataflow = function() {
 		        d3.max(data, function(series) { return d3.max(series.values, function(d) { return d.y; }); })
 		    ]);			
 
-			axisBoxInit.update({
+			_axisBox.update({
 				svg: d3.select(svg.node()),
 				bounds: bounds,
 				xScale: xScale,
@@ -73,22 +107,22 @@ owid.dataflow = function() {
 				axisConfig: axisConfig
 			});
 
-			return axisBoxInit;
+			return _axisBox;
 		});
 
-		scatter.flow("axisBox => innerBounds", function(axisBox) { return axisBox.innerBounds(); });
-		scatter.flow("axisBox, innerBounds => xScale", function(axisBox, innerBounds) {
-			return axisBox.xScale();
+		scatter.flow("innerBounds : axisBox", function(axisBox) { return axisBox.innerBounds; });
+		scatter.flow("xScale : axisBox, innerBounds", function(axisBox, innerBounds) {
+			return axisBox.xScale;
 		});
-		scatter.flow("axisBox, innerBounds => yScale", function(axisBox, innerBounds) {
-			return axisBox.yScale();
+		scatter.flow("yScale : axisBox, innerBounds", function(axisBox, innerBounds) {
+			return axisBox.yScale;
 		});
-		scatter.flow("axisBox => g", function(axisBox) {
-			return axisBox.g();
+		scatter.flow("g : axisBox", function(axisBox) {
+			return axisBox.g;
 		});
 
 		var _sizeScale = d3.scaleLinear();
-		scatter.flow("data => sizeScale", function(data) {
+		scatter.flow("sizeScale : data", function(data) {
 			_sizeScale.range([3, 6])
 				.domain([
 		        	d3.min(data, function(series) { return d3.min(series.values, function(d) { return d.size||1; }); }),
@@ -98,7 +132,7 @@ owid.dataflow = function() {
 		    return _sizeScale;
 		});
 
-		scatter.flow("xScale, yScale => line", function(xScale, yScale) {
+		scatter.flow("line : xScale, yScale", function(xScale, yScale) {
 		    return d3.line()
 			    .curve(d3.curveLinear)
 			    .x(function(d) { return xScale(d.x); })
@@ -141,8 +175,6 @@ owid.dataflow = function() {
 				})[0];
 			});
 		});
-
-		window.scatter = scatter;
 
 		return scatter;
 	};

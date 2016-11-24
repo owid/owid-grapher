@@ -1,10 +1,9 @@
-;(function(d3) {
+	;(function(d3) {
 	"use strict";
 	owid.namespace("owid.view");
 
 	owid.view.axis = function() {
 		var axis = owid.dataflow();
-		window.axis = axis;
 
 		axis.inputs({
 			svg: undefined, // d3 selection
@@ -20,7 +19,7 @@
 			tickFormat: function(d) { return d; }
 		});
 
-		axis.flow("svg => g", function(svg) {
+		axis.flow("g : svg", function(svg) {
 			return svg.append("g");
 		});
 
@@ -28,14 +27,14 @@
 			g.attr("class", orient + " axis");
 		});
 
-		axis.flow('orient => d3axis', function(orient) {
+		axis.flow('d3axis : orient', function(orient) {
 			if (orient == 'left')
 				return d3.axisLeft();
 			else
 				return d3.axisBottom();
 		});
 
-		axis.flow("g, bounds, scale, label, orient, d3axis => bbox", function(g, bounds, scale, label, orient, d3axis) {
+		axis.flow("bbox : g, bounds, scale, label, orient, d3axis", function(g, bounds, scale, label, orient, d3axis) {
 			if (orient == 'left')
 				scale.range([bounds.top+bounds.height, bounds.top]);
 			else
@@ -83,8 +82,8 @@
 			return g.node().getBBox();
 		});
 
-		axis.flow("bbox => width", function(bbox) { return bbox.width; });
-		axis.flow("bbox => height", function(bbox) { return bbox.height; });
+		axis.flow("width : bbox", function(bbox) { return bbox.width; });
+		axis.flow("height : bbox", function(bbox) { return bbox.height; });
 
 		axis.flow("g, bounds, width, height, orient", function(g, bounds, width, height, orient) {
 			if (orient == 'left')
@@ -107,51 +106,51 @@
 			axisConfig: {}
 		});
 
-		box.flow('svg => g', function(svg) {
+		box.flow('g : svg', function(svg) {
 			return svg.append('g').attr('class', 'axisBox');
 		});
 
-		var xAxisInit = owid.view.axis();
-		box.flow('g, bounds, xScale, axisConfig => xAxis', function(g, bounds, xScale, axisConfig) {
-			xAxisInit.update(_.extend({
+		var _xAxis = owid.view.axis();
+		box.flow('xAxis : g, bounds, xScale, axisConfig', function(g, bounds, xScale, axisConfig) {
+			_xAxis.update(_.extend({
 				svg: g,
-				bounds: bounds,
 				scale: xScale,
+				bounds: bounds,
 				orient: 'bottom'
 			}, axisConfig.x||{}));
 
-			return xAxisInit;
+			return _xAxis;
 		});
 
-		box.flow("xAxis, bounds => innerHeight", function(xAxis, bounds) {
-			return bounds.height - xAxis.height();
+		box.flow("innerHeight : xAxis, bounds", function(xAxis, bounds) {
+			return bounds.height - xAxis.height;
 		});
 
-		var yAxisInit = owid.view.axis();
-		box.flow("g, bounds, yScale, innerHeight, axisConfig => yAxis", function(g, bounds, yScale, innerHeight, axisConfig) {
-			yAxisInit.update(_.extend({
+		var _yAxis = owid.view.axis();
+		box.flow("yAxis : g, bounds, yScale, innerHeight, axisConfig", function(g, bounds, yScale, innerHeight, axisConfig) {
+			_yAxis.update(_.extend({
 				svg: g,
-				bounds: _.extend({}, bounds, { height: innerHeight }),
 				scale: yScale,
+				bounds: _.extend({}, bounds, { height: innerHeight }),
 				orient: 'left'
 			}, axisConfig.y||{}));
 
-			return yAxisInit;
+			return _yAxis;
 		});
 
-		box.flow("yAxis, bounds => innerWidth", function(yAxis, bounds) {
-			return bounds.width - yAxis.width();
+		box.flow("innerWidth : yAxis, bounds", function(yAxis, bounds) {
+			return bounds.width - yAxis.width;
 		});
 
-		// Now go back and rerender the x axis to match
+		box.flow("innerBounds : bounds, innerWidth, innerHeight", function(bounds, innerWidth, innerHeight) {
+			return { left: bounds.left + (bounds.width-innerWidth), top: bounds.top, width: innerWidth, height: innerHeight };
+		});
+
+		// Go back and rerender the x axis to match
 		box.flow("xAxis, bounds, innerWidth", function(xAxis, bounds, innerWidth) {
 			xAxis.update({
 				bounds: _.extend({}, bounds, { left: bounds.left+(bounds.width-innerWidth), width: innerWidth })
 			});
-		});
-
-		box.flow("bounds, innerWidth, innerHeight => innerBounds", function(bounds, innerWidth, innerHeight) {
-			return { left: bounds.left + (bounds.width-innerWidth), top: bounds.top, width: innerWidth, height: innerHeight };
 		});
 
 		return box;
