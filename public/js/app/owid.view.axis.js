@@ -8,6 +8,7 @@
 		axis.inputs({
 			svg: undefined, // d3 selection
 			domain: undefined, // e.g. [0, 10], will be used to create scale
+			scaleType: 'linear', // or 'log'
 			// Bounds of the chart we are putting an axis on, not the axis itself.
 			// The axis is of variable size depending on config so it cannot be totally specified in advance.
 			bounds: { left: 0, top: 0, width: 100, height: 100 },
@@ -17,8 +18,8 @@
 			tickFormat: function(d) { return d; }
 		});
 
-		axis.flow("scale : domain, bounds, orient", function(domain, bounds, orient) {
-			var scale = d3.scaleLinear();
+		axis.flow("scale : domain, bounds, orient, scaleType", function(domain, bounds, orient, scaleType) {
+			var scale = scaleType == 'linear' ? d3.scaleLinear() : d3.scaleLog();
 			scale.domain(domain);
 
 			if (orient == 'left')
@@ -48,15 +49,23 @@
 			return g.append("g").attr('class', 'scale');
 		});
 
-		axis.flow("bboxNoLabel : scaleG, bounds, scale, orient, d3axis, tickFormat", function(scaleG, bounds, scale, orient, d3axis, tickFormat) {
-			if (orient == 'left') {
-				d3axis.scale(scale)
-					.ticks(bounds.height / 70)
-					.tickSizeOuter(0);
+		axis.flow("bboxNoLabel : scaleG, bounds, scale, orient, d3axis, tickFormat, scaleType", function(scaleG, bounds, scale, orient, d3axis, tickFormat, scaleType) {			
+			d3axis.scale(scale)
+				.ticks((orient == 'left' ? bounds.height : bounds.width) / 70)
+				.tickSizeOuter(0);
+
+			// Custom calculation of ticks for log scales as d3axis doesn't handle it
+			if (scaleType == 'log') {
+				var minPower10 = Math.ceil(Math.log(scale.domain()[0]) / Math.log(10));
+				var maxPower10 = Math.floor(Math.log(scale.domain()[1]) / Math.log(10));
+
+				var tickValues = [];
+				for (var i = minPower10; i <= maxPower10; i++) {
+					tickValues.push(Math.pow(10, i));
+				}
+				d3axis.tickValues(tickValues);
 			} else {
-				d3axis.scale(scale)
-					.ticks(bounds.width / 70)
-					.tickSizeOuter(0);
+				d3axis.tickValues(null);
 			}
 
 			d3axis.tickFormat(tickFormat);
@@ -127,7 +136,6 @@
 		axis.flow("height : bbox", function(bbox) { return bbox.height; });
 
 		axis.flow("g, bounds, width, height, orient", function(g, bounds, width, height, orient) {
-			console.log(orient, bounds);
 			if (orient == 'left')
 				g.attr('transform', 'translate(' + (bounds.left+width) + ',' + 0 + ')');
 			else

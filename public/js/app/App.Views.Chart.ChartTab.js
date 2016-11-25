@@ -109,9 +109,9 @@
 						setTimeout(postRender, 500);
 					});
 					window.nvd3 = nvd3;
-					renderAxis();
 				}
 
+				renderAxis();
 				renderTooltips();
 				
 				if (nvd3) {
@@ -292,6 +292,7 @@
 				axisConfig: {
 					x: {
 						domain: xDomain,
+						scaleType: xAxisScale,
 						label: xAxis['axis-label'],
 						tickFormat: function(d) {
 							return xAxisPrefix + owid.unitFormat({ format: xAxisFormat }, d) + xAxisSuffix;							
@@ -300,6 +301,7 @@
 
 					y: {
 						domain: yDomain,
+						scaleType: yAxisScale,
 						label: yAxis['axis-label'],
 						tickFormat: function(d) {
 							return yAxisPrefix + owid.unitFormat({ format: yAxisFormat }, d) + yAxisSuffix;
@@ -431,7 +433,7 @@
 		}
 
 		function renderAxis() {
-//			chartTab.scaleSelectors.render();
+			chartTab.scaleSelectors.render();
 			if (!nvd3) return;
 
 			//get extend
