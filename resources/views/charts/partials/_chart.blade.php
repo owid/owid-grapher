@@ -85,13 +85,13 @@
 					</div>
 					<div class="axis-scale-selectors-wrapper">
 						<div class="x-axis-scale-selector">
-							<a class="axis-scale-btn" style="cursor: pointer;">
+							<a class="axis-scale-btn clickable">
 								<i class="fa fa-cog"></i>
 								<span>Linear</span>
 							</a>
 						</div>
 						<div class="y-axis-scale-selector">
-							<a class="axis-scale-btn" style="cursor: pointer;">
+							<a class="axis-scale-btn clickable">
 								<i class="fa fa-cog"></i>
 								<span>Linear</span>
 							</a>

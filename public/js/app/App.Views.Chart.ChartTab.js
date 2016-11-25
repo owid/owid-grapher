@@ -309,6 +309,7 @@
 					}
 				}
 			});
+			chartTab.viz = viz;			
 		}
 
 		function renderStackedArea() {

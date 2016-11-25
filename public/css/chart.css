@@ -563,7 +563,7 @@ select.disabled {
 }
 #chart .axis-scale-selectors-wrapper .axis-scale-btn {
     position: relative;
-    font-size: 0.8em;
+    font-size: 0.7em;
     color: black;
 }
 #chart .axis-scale-btn:hover {
@@ -575,22 +575,6 @@ select.disabled {
     border: 1px solid #eeeeee;
     background-color: white;
     display: none;
-}
-#chart .axis-scale-selectors-wrapper ul {
-    list-style-type: none;
-    margin-bottom: 0;
-    padding-left: 0;
-}
-#chart .axis-scale-selectors-wrapper li {
-    cursor: pointer;
-    padding: 0.3em;
-    white-space: nowrap;
-}
-#chart .axis-scale-selectors-wrapper li.selected {
-    font-weight: bold;
-}
-#chart .axis-scale-selectors-wrapper li:hover {
-    background-color: #eeeeee;
 }
 /* Tooltips
 --------------------------------------------- */

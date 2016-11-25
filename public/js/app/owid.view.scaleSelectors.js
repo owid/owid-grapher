@@ -41,22 +41,30 @@
 				var yScale = chart.model.getAxisConfig("y-axis", "axis-scale");
 				$yAxisBtn.find('span').text(s.capitalize(yScale) || "Linear");
 
-				//position scale dropdowns - TODO - isn't there a better way then with timeout?
-				setTimeout(function() {
-					var chartRect = d3.select('svg').select('.nv-distWrap');
-					if (chartRect.empty())
-						chartRect = d3.select('svg').select('.nv-wrap > g > rect');
-					if (chartRect.empty())
-						chartRect = d3.select('svg').select('.nv-background > rect');
+				if (chart.model.get('chart-type') == App.ChartType.ScatterPlot) {
+					var innerBounds = chart.tabs.chart.viz.axisBox.innerBounds;
 
-					var svgBounds = chart.getBounds(d3.select('svg').node()),
-						chartBounds = chart.getBounds(chartRect.node()),
-						offsetX = chartBounds.left - svgBounds.left + 5,
-						offsetY = legend.height() + 5;
+					$xAxisScaleSelector.css({ left: innerBounds.width + 20, top: innerBounds.height - 15 });
+					$yAxisScaleSelector.css({ left: innerBounds.left + 10, top: -3 });
+				} else {				
+					//position scale dropdowns - TODO - isn't there a better way then with timeout?
+					setTimeout(function() {
+						var chartRect = d3.select('svg').select('.nv-distWrap');
+						if (chartRect.empty())
+							chartRect = d3.select('svg').select('.nv-wrap > g > rect');
+						if (chartRect.empty())
+							chartRect = d3.select('svg').select('.nv-background > rect');
 
-					$xAxisScaleSelector.css({ left: svgBounds.width - 100, top: chartBounds.height - 30 });
-					$yAxisScaleSelector.css({ left: chartBounds.left - svgBounds.left + 10, top: offsetY-3 });
-				}.bind(this), 250);		
+						var svgBounds = chart.getBounds(d3.select('svg').node()),
+							chartBounds = chart.getBounds(chartRect.node()),
+							offsetX = chartBounds.left - svgBounds.left + 5,
+							offsetY = legend.height() + 5;
+
+						$xAxisScaleSelector.css({ left: svgBounds.width - 100, top: chartBounds.height - 30 });
+						$yAxisScaleSelector.css({ left: chartBounds.left - svgBounds.left + 10, top: offsetY-3 });
+					}.bind(this), 250);		
+				}
+
 			}
 		};
 
