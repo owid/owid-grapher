@@ -255,6 +255,35 @@
 			if (!nvd3) nvd3 = nv.models.scatterChart();
 			nvd3.options(nvOptions).pointRange(points).showDistX(true).showDistY(true);	*/
 
+			var allValues = [];
+			_.each( localData, function( v, i ) {
+				if( v.values ) {
+					allValues = allValues.concat( v.values );
+				} else if(_.isArray(v)) {
+					//special case for discrete bar chart
+					allValues = v;
+				}
+			} );
+
+			xDomain = d3.extent(allValues.map(function(d) { return d.x; }));
+			yDomain = d3.extent(allValues.map(function(d) { return d.y; }));
+			isClamped = _.isFinite(xAxisMin) || _.isFinite(xAxisMax) || _.isFinite(yAxisMin) || _.isFinite(yAxisMax);
+
+			if (_.isFinite(xAxisMin) && (xAxisMin > 0 || xAxisScale != "log"))
+				xDomain[0] = xAxisMin;
+			if (_.isFinite(xAxisMax))
+				xDomain[1] = xAxisMax;
+
+			if (_.isFinite(yAxisMin) && (yAxisMin > 0 || yAxisScale != "log")) {
+				yDomain[0] = yAxisMin;
+			} else {
+				//default is zero (don't do it for stack bar chart or log scale, messes up things)
+				if (chartType != App.ChartType.StackedArea && yAxisScale != "log")
+					yDomain[0] = 0;
+			}
+			if (_.isFinite(yAxisMax))
+				yDomain[1] = yAxisMax;			
+
 			if (!viz) viz = owid.view.scatter();
 			viz.update({
 				svg: svg,
@@ -262,8 +291,7 @@
 				bounds: { left: chartOffsetX, top: chartOffsetY+10, width: chartWidth-10, height: chartHeight-10 },
 				axisConfig: {
 					x: {
-						minValue: xAxisMin,
-						maxValue: xAxisMax,
+						domain: xDomain,
 						label: xAxis['axis-label'],
 						tickFormat: function(d) {
 							return xAxisPrefix + owid.unitFormat({ format: xAxisFormat }, d) + xAxisSuffix;							
@@ -271,11 +299,10 @@
 					},
 
 					y: {
-						minValue: yAxisMin,
-						maxValue: yAxisMax,
+						domain: yDomain,
 						label: yAxis['axis-label'],
 						tickFormat: function(d) {
-							return yAxisPrefix + owid.unitFormat({ format: yAxisFormat }, d) + yAxisSuffix;														
+							return yAxisPrefix + owid.unitFormat({ format: yAxisFormat }, d) + yAxisSuffix;
 						}
 					}
 				}
@@ -405,6 +432,7 @@
 
 		function renderAxis() {
 //			chartTab.scaleSelectors.render();
+			if (!nvd3) return;
 
 			//get extend
 			var allValues = [];
@@ -599,8 +627,6 @@
 		}
 
 		function ensureLabelsFit() {
-			if (!nvd3) return;
-
 			if (xAxis['axis-label']) {
 				var xAxisLabel = d3.select('.nv-x .nv-axislabel, .bottom.axis .axis-label');
 

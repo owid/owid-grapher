@@ -7,16 +7,26 @@
 
 		axis.inputs({
 			svg: undefined, // d3 selection
-			scale: undefined, // d3 scale
+			domain: undefined, // e.g. [0, 10], will be used to create scale
 			// Bounds of the chart we are putting an axis on, not the axis itself.
 			// The axis is of variable size depending on config so it cannot be totally specified in advance.
 			bounds: { left: 0, top: 0, width: 100, height: 100 },
 			// Currently 'left' or 'bottom'
 			orient: 'left',
 			label: "",
-			minValue: null,
-			maxValue: null,
 			tickFormat: function(d) { return d; }
+		});
+
+		axis.flow("scale : domain, bounds, orient", function(domain, bounds, orient) {
+			var scale = d3.scaleLinear();
+			scale.domain(domain);
+
+			if (orient == 'left')
+				scale.range([bounds.top+bounds.height, bounds.top]);
+			else
+				scale.range([bounds.left, bounds.left+bounds.width]);
+
+			return scale;
 		});
 
 		axis.flow("g : svg", function(svg) {
@@ -38,12 +48,7 @@
 			return g.append("g").attr('class', 'scale');
 		});
 
-		axis.flow("bboxNoLabel : scaleG, bounds, scale, orient, d3axis", function(scaleG, bounds, scale, orient, d3axis) {
-			if (orient == 'left')
-				scale.range([bounds.top+bounds.height, bounds.top]);
-			else
-				scale.range([bounds.left, bounds.left+bounds.width]);				
-
+		axis.flow("bboxNoLabel : scaleG, bounds, scale, orient, d3axis, tickFormat", function(scaleG, bounds, scale, orient, d3axis, tickFormat) {
 			if (orient == 'left') {
 				d3axis.scale(scale)
 					.ticks(bounds.height / 70)
@@ -53,6 +58,8 @@
 					.ticks(bounds.width / 70)
 					.tickSizeOuter(0);
 			}
+
+			d3axis.tickFormat(tickFormat);
 
 			d3axis(scaleG);
 
@@ -73,7 +80,7 @@
 					.attr("transform", "rotate(-90)")
 				  .merge(labelUpdate)
 					.attr("x", -bounds.top-bounds.height/2)
-					.attr("y", -bboxNoLabel.width-5)
+					.attr("y", -bboxNoLabel.width-10)
 					.text(label);
 			} else {
 				labelUpdate.enter()
@@ -136,8 +143,6 @@
 		box.inputs({
 			svg: undefined,
 			bounds: { left: 0, top: 0, width: 100, height: 100 },
-			xScale: undefined,
-			yScale: undefined,
 			axisConfig: {}
 		});
 
@@ -146,10 +151,9 @@
 		});
 
 		var _xAxis = owid.view.axis();
-		box.flow('xAxis : g, bounds, xScale, axisConfig', function(g, bounds, xScale, axisConfig) {
+		box.flow('xAxis : g, bounds, axisConfig', function(g, bounds, axisConfig) {
 			_xAxis.update(_.extend({
 				svg: g,
-				scale: xScale,
 				bounds: bounds,
 				orient: 'bottom'
 			}, axisConfig.x||{}));
@@ -162,10 +166,9 @@
 		});
 
 		var _yAxis = owid.view.axis();
-		box.flow("yAxis : g, bounds, yScale, innerHeight, axisConfig", function(g, bounds, yScale, innerHeight, axisConfig) {
+		box.flow("yAxis : g, bounds, innerHeight, axisConfig", function(g, bounds, innerHeight, axisConfig) {
 			_yAxis.update(_.extend({
 				svg: g,
-				scale: yScale,
 				bounds: _.extend({}, bounds, { height: innerHeight }),
 				orient: 'left'
 			}, axisConfig.y||{}));

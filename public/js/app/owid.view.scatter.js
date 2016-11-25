@@ -15,26 +15,9 @@
 
 		var _axisBox = owid.view.axisBox();
 		scatter.flow("axisBox : svg, data, bounds, axisConfig", function(svg, data, bounds, axisConfig) {
-			console.log("making scales");
-			var xScale = d3.scaleLinear();
-
-  		    xScale.domain([
-		        d3.min(data, function(series) { return d3.min(series.values, function(d) { return d.x; }); }),
-		        d3.max(data, function(series) { return d3.max(series.values, function(d) { return d.x; }); })
-		    ]);			
-
-			var yScale = d3.scaleLinear();
-
-  		    yScale.domain([
-		        d3.min(data, function(series) { return d3.min(series.values, function(d) { return d.y; }); }),
-		        d3.max(data, function(series) { return d3.max(series.values, function(d) { return d.y; }); })
-		    ]);			
-
 			_axisBox.update({
 				svg: d3.select(svg.node()),
 				bounds: bounds,
-				xScale: xScale,
-				yScale: yScale,
 				axisConfig: axisConfig
 			});
 
@@ -42,13 +25,13 @@
 		});
 
 		scatter.flow("innerBounds : axisBox", function(axisBox) { return axisBox.innerBounds; });
-		scatter.flow("xScale : axisBox", function(axisBox) { return axisBox.xScale; });
-		scatter.flow("yScale : axisBox", function(axisBox) { return axisBox.yScale; });
+		scatter.flow("xScale : axisBox", function(axisBox) { return axisBox.xAxis.scale; });
+		scatter.flow("yScale : axisBox", function(axisBox) { return axisBox.yAxis.scale; });
 		scatter.flow("g : axisBox", function(axisBox) { return axisBox.g; });
 
 		var _sizeScale = d3.scaleLinear();
 		scatter.flow("sizeScale : data", function(data) {
-			_sizeScale.range([6, 9])
+			_sizeScale.range([6, 18])
 				.domain([
 		        	d3.min(data, function(series) { return d3.min(series.values, function(d) { return d.size||1; }); }),
 		       	    d3.max(data, function(series) { return d3.max(series.values, function(d) { return d.size||1; }); })
@@ -126,22 +109,27 @@
 		});
 
 		// Set up hover interactivity
-		scatter.flow("svg, xScale, yScale, data", function mousebind(svg, xScale, yScale, data) {
+		scatter.flow("svg, xScale, yScale, sizeScale, data", function mousebind(svg, xScale, yScale, sizeScale, data) {
 			svg = d3.select(svg.node());
 			svg.on("mousemove.scatter", function() {
 				var mouse = d3.mouse(svg.node()),
 					mouseX = mouse[0], mouseY = mouse[1];
 
 				// Find the closest data point to the mouse
+				var distances = {};
 				var d = _.sortBy(data, function(d) {
 					var value = d.values[0],
 						dx = xScale(value.x) - mouseX,
 						dy = yScale(value.y) - mouseY,
 						dist = dx*dx + dy*dy;
+					distances[d.key] = dist;
 					return dist;
 				})[0];
 
-				scatter.update({ focusKey: d.key });
+				if (Math.sqrt(distances[d.key]) < sizeScale(d.values[0].size)*5)
+					scatter.update({ focusKey: d.key });
+				else
+					scatter.update({ focusKey: null });
 			});
 		});
 

@@ -41,7 +41,13 @@
 			var changes = {};
 
 			if (!hasDefaults) {
-				inputs = _.extend({}, defaults, inputs);
+				// Make sure we're not passing undefined values in
+				var newInputs = _.clone(defaults);
+				_.each(inputs, function(v,k) {
+					if (v !== undefined) newInputs[k] = v;
+				});
+				inputs = newInputs;
+
 				hasDefaults = true;
 			}
 
