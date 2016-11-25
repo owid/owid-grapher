@@ -34,7 +34,11 @@
 				return d3.axisBottom();
 		});
 
-		axis.flow("bbox : g, bounds, scale, label, orient, d3axis", function(g, bounds, scale, label, orient, d3axis) {
+		axis.flow("scaleG : g", function(g) {
+			return g.append("g").attr('class', 'scale');
+		});
+
+		axis.flow("bboxNoLabel : scaleG, bounds, scale, orient, d3axis", function(scaleG, bounds, scale, orient, d3axis) {
 			if (orient == 'left')
 				scale.range([bounds.top+bounds.height, bounds.top]);
 			else
@@ -50,7 +54,13 @@
 					.tickSizeOuter(0);
 			}
 
-			d3axis(g);
+			d3axis(scaleG);
+
+			return scaleG.node().getBBox();
+		});
+
+		axis.flow("bbox : g, bounds, orient, bboxNoLabel, label", function(g, bounds, orient, bboxNoLabel, label) {
+			if (!label) return bboxNoLabel;
 
 			var labelUpdate = g.selectAll(".axis-label").data([label]);
 
@@ -63,25 +73,26 @@
 					.attr("transform", "rotate(-90)")
 				  .merge(labelUpdate)
 					.attr("x", -bounds.top-bounds.height/2)
-					.attr("y", -25)
+					.attr("y", -bboxNoLabel.width-5)
 					.text(label);
 			} else {
 				labelUpdate.enter()
 					.append("text")
 					.attr("class", "axis-label")
+					.attr("text-anchor", "middle")
 					.style("fill", "black")
 				  .merge(labelUpdate)
 					.attr("x", bounds.left+bounds.width/2)
-					.attr("y", 25)
+					.attr("y", bboxNoLabel.height+10)
 					.text(label);				
 			}
 
 			labelUpdate.exit().remove();
 
-			return g.node().getBBox();
+			return g.node().getBBox();			
 		});
 
-		axis.flow("gridlines : bbox, g, bounds, orient", function(bbox, g, bounds, orient) {
+		/*axis.flow("gridlines : bbox, g, bounds, orient", function(bbox, g, bounds, orient) {
 			var gridlines = g.selectAll('.tick').selectAll('.gridline')
 				.data(function(d) { return [d]; })
 				.enter()
@@ -92,23 +103,24 @@
 				gridlines
 				  	.attr('x1', 0.5)
 				  	.attr('x2', 0.5)
-				  	.attr('y1', 0)
+				  	.attr('y1', -1)
 				  	.attr('y2', bbox.height-bounds.height);
 			} else {
 				gridlines
-				  	.attr('x1', 0)
+				  	.attr('x1', 1)
 				  	.attr('x2', bounds.width-bbox.width)
 				  	.attr('y1', 0.5)
 				  	.attr('y2', 0.5);
 			}
 
 			return gridlines;
-		});
+		});*/
 
 		axis.flow("width : bbox", function(bbox) { return bbox.width; });
 		axis.flow("height : bbox", function(bbox) { return bbox.height; });
 
 		axis.flow("g, bounds, width, height, orient", function(g, bounds, width, height, orient) {
+			console.log(orient, bounds);
 			if (orient == 'left')
 				g.attr('transform', 'translate(' + (bounds.left+width) + ',' + 0 + ')');
 			else

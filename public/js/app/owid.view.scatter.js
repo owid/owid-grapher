@@ -1,82 +1,3 @@
-owid.dataflow = function() {
-	var model = {}, state = {}, defaults = {}, flows = [];
-	model.state = state;
-
-	function defineProperty(key, val) {
-		state[key] = undefined;
-		defaults[key] = val;
-
-		Object.defineProperty(model, key, {
-			get: function() { return state[key]; }
-		});
-	}
-
-	model.inputs = function(inputs) {
-		_.each(inputs, function(v, k) {
-			defineProperty(k, v);
-		});
-	};
-
-	model.flow = function(flowspec, callback) {
-		var flow = {},
-			spl = flowspec.split(/\s*:\s*/);
-
-		flow.outputs = spl[1] ? spl[0].split(/\s*,\s*/) : [];
-		flow.inputs = spl[1] ? spl[1].split(/\s*,\s*/) : spl[0].split(/\s*,\s*/);
-		flow.callback = callback;
-
-		_.each(flow.outputs, function(key) {
-			defineProperty(key);
-		});
-
-		flows.push(flow);
-	};
-
-	var hasDefaults = false;
-	model.update = function(inputs) {
-		var changes = {};
-
-		if (!hasDefaults) {
-			inputs = _.extend({}, defaults, inputs);
-			hasDefaults = true;
-		}
-
-		_.each(inputs, function(v, k) {
-			if (!_.has(state, k))
-				throw("No such input: " + k);
-			if (!_.isEqual(state[k], v)) {
-				state[k] = v;
-				changes[k] = true;
-			}
-		});
-
-		_.each(flows, function(flow) {
-			var inputChanged =_.any(flow.inputs, function(k) { return _.has(changes, k); });
-			if (!inputChanged) return;
-
-			var args = _.map(flow.inputs, function(k) { return state[k]; });
-			if (!_.all(args, function(v) { return v !== undefined; }))
-				return;
-
-			if (flow.outputs.length > 0) {
-				//console.log(flow.outputs[0] + " : " + flow.inputs.join(", "));
-			} else {
-				//console.log(flow.inputs.join(", "));
-			}
-
-			var result = flow.callback.apply(model, args);
-
-
-			if (flow.outputs.length > 0 && !_.isEqual(state[flow.outputs[0]], result)) {
-				state[flow.outputs[0]] = result;
-				changes[flow.outputs[0]] = true;
-			}
-		});
-	};
-
-	return model;
-}
-
 ;(function(d3) {
 	"use strict";
 	owid.namespace("owid.view.scatter");
@@ -94,6 +15,7 @@ owid.dataflow = function() {
 
 		var _axisBox = owid.view.axisBox();
 		scatter.flow("axisBox : svg, data, bounds, axisConfig", function(svg, data, bounds, axisConfig) {
+			console.log("making scales");
 			var xScale = d3.scaleLinear();
 
   		    xScale.domain([
@@ -120,19 +42,13 @@ owid.dataflow = function() {
 		});
 
 		scatter.flow("innerBounds : axisBox", function(axisBox) { return axisBox.innerBounds; });
-		scatter.flow("xScale : axisBox, innerBounds", function(axisBox, innerBounds) {
-			return axisBox.xScale;
-		});
-		scatter.flow("yScale : axisBox, innerBounds", function(axisBox, innerBounds) {
-			return axisBox.yScale;
-		});
-		scatter.flow("g : axisBox", function(axisBox) {
-			return axisBox.g;
-		});
+		scatter.flow("xScale : axisBox", function(axisBox) { return axisBox.xScale; });
+		scatter.flow("yScale : axisBox", function(axisBox) { return axisBox.yScale; });
+		scatter.flow("g : axisBox", function(axisBox) { return axisBox.g; });
 
 		var _sizeScale = d3.scaleLinear();
 		scatter.flow("sizeScale : data", function(data) {
-			_sizeScale.range([3, 6])
+			_sizeScale.range([6, 9])
 				.domain([
 		        	d3.min(data, function(series) { return d3.min(series.values, function(d) { return d.size||1; }); }),
 		       	    d3.max(data, function(series) { return d3.max(series.values, function(d) { return d.size||1; }); })
@@ -179,6 +95,7 @@ owid.dataflow = function() {
 			dots.style("fill-opacity", function(d) { return d.key == focusKey ? 1 : 0.5; });
 		});
 
+		// Little lines that point ot the axis when you hover a data point
 		scatter.flow("g, data, xScale, yScale, focusKey", function(g, data, xScale, yScale, focusKey) {
 			var focused = _.find(data, function(d) { return d.key == focusKey; });
 
@@ -188,9 +105,9 @@ owid.dataflow = function() {
 			g.selectAll('.x.focusLine')
 				.data([focused])
 				.enter()
-				.insert('line', ":first-child")
+				.append('line')
 				.attr('class', 'x focusLine')
-				.attr('x1', function(d) { return xScale(0); })
+				.attr('x1', function(d) { return xScale.range()[0]; })
 				.attr('x2', function(d) { return xScale(d.values[0].x); })
 				.attr('y1', function(d) { return yScale(d.values[0].y); })
 				.attr('y2', function(d) { return yScale(d.values[0].y); })
@@ -199,21 +116,23 @@ owid.dataflow = function() {
 			g.selectAll('.y.focusLine')
 				.data([focused])
 				.enter()
-				.insert('line', ":first-child")
+				.append('line')
 				.attr('class', 'y focusLine')
 				.attr('x1', function(d) { return xScale(d.values[0].x); })
 				.attr('x2', function(d) { return xScale(d.values[0].x); })
-				.attr('y1', function(d) { return yScale(0); })
+				.attr('y1', function(d) { return yScale.range()[0]; })
 				.attr('y2', function(d) { return yScale(d.values[0].y); })
 				.style('stroke', function(d) { return d.color; });
 		});
 
+		// Set up hover interactivity
 		scatter.flow("svg, xScale, yScale, data", function mousebind(svg, xScale, yScale, data) {
 			svg = d3.select(svg.node());
 			svg.on("mousemove.scatter", function() {
 				var mouse = d3.mouse(svg.node()),
 					mouseX = mouse[0], mouseY = mouse[1];
-					
+
+				// Find the closest data point to the mouse
 				var d = _.sortBy(data, function(d) {
 					var value = d.values[0],
 						dx = xScale(value.x) - mouseX,

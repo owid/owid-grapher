@@ -162,6 +162,7 @@ return [
 		        'libs/reactive-model-v0.12.0.min.js',
 
 		        'owid.js',
+		        'app/owid.dataflow.js',
 		        'app/owid.colorbrewer.js',
 
 		        'app/constants.js',

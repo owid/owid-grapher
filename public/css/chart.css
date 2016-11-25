@@ -527,10 +527,30 @@ select.disabled {
 /* Axis and Gridlines
 --------------------------------------------- */
 
+#chart .axis path.domain {
+    stroke: #333;
+    stroke-width: 1px;        
+    stroke-opacity: 0.75;
+}
+
+#chart .axis line:first-child {
+    display: none;
+}
+
 #chart .axis .gridline {
     stroke: #ededed;
     stroke-dasharray: 3,2;    
 }
+
+#chart .axis {
+    font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif;
+    font-size: 14px;
+}
+
+#chart .axis > .scale {
+    font-size: 14px;
+}
+
 
 /* Axis Scale Selectors
 --------------------------------------------- */

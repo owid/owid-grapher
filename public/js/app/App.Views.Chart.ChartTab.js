@@ -255,14 +255,11 @@
 			if (!nvd3) nvd3 = nv.models.scatterChart();
 			nvd3.options(nvOptions).pointRange(points).showDistX(true).showDistY(true);	*/
 
-			var xTickFormat = function(d) {
-			};			
-
 			if (!viz) viz = owid.view.scatter();
 			viz.update({
 				svg: svg,
 				data: localData,
-				bounds: { left: chartOffsetX, top: chartOffsetY, width: chartWidth, height: chartHeight },
+				bounds: { left: chartOffsetX, top: chartOffsetY+10, width: chartWidth-10, height: chartHeight-10 },
 				axisConfig: {
 					x: {
 						minValue: xAxisMin,
@@ -605,7 +602,7 @@
 			if (!nvd3) return;
 
 			if (xAxis['axis-label']) {
-				var xAxisLabel = d3.select('.nv-x .nv-axislabel');
+				var xAxisLabel = d3.select('.nv-x .nv-axislabel, .bottom.axis .axis-label');
 
 				xAxisLabel.attr('transform', '');
 				var bounds = chart.getBounds(xAxisLabel.node()),
@@ -623,7 +620,7 @@
 			}
 
 			if (yAxis['axis-label']) {
-				var yAxisLabel = d3.select('.nv-y .nv-axislabel');
+				var yAxisLabel = d3.select('.nv-y .nv-axislabel, .left.axis .axis-label');
 
 				yAxisLabel.attr('transform', 'rotate(-90)');
 				var bounds = chart.getBounds(yAxisLabel.node()),
