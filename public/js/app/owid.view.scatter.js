@@ -40,12 +40,12 @@
 		    return _sizeScale;
 		});
 
-		scatter.flow("line : xScale, yScale", function(xScale, yScale) {
+		/*scatter.flow("line : xScale, yScale", function(xScale, yScale) {
 		    return d3.line()
 			    .curve(d3.curveLinear)
 			    .x(function(d) { return xScale(d.x); })
 			    .y(function(d) { return yScale(d.y); });
-		});
+		});*/
 
 		scatter.flow("entities : g, data", function(g, data) {
 			var update = g.selectAll(".entity").data(data, function(d) { return d.key; }),

@@ -44,7 +44,7 @@
 				if (chart.model.get('chart-type') == App.ChartType.ScatterPlot) {
 					var innerBounds = chart.tabs.chart.viz.axisBox.innerBounds;
 
-					$xAxisScaleSelector.css({ left: innerBounds.width + 20, top: innerBounds.height - 15 });
+					$xAxisScaleSelector.css({ left: innerBounds.width - 10, top: innerBounds.height - 15 });
 					$yAxisScaleSelector.css({ left: innerBounds.left + 10, top: -3 });
 				} else {				
 					//position scale dropdowns - TODO - isn't there a better way then with timeout?

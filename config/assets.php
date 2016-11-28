@@ -179,6 +179,7 @@ return [
 		        'app/owid.view.tooltip.js',
 		        'app/owid.view.scaleSelectors.js',
 		        'app/owid.view.axis.js',
+		        'app/owid.view.axisBox.js',
 		        'app/owid.view.scatter.js',
 		        'app/App.Views.Chart.Legend.js',
 		        'app/App.Views.Chart.ChartTab.js',

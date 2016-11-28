@@ -274,15 +274,16 @@
 			if (_.isFinite(xAxisMax))
 				xDomain[1] = xAxisMax;
 
-			if (_.isFinite(yAxisMin) && (yAxisMin > 0 || yAxisScale != "log")) {
+			if (_.isFinite(yAxisMin) && (yAxisMin > 0 || yAxisScale != "log"))
 				yDomain[0] = yAxisMin;
-			} else {
-				//default is zero (don't do it for stack bar chart or log scale, messes up things)
-				if (chartType != App.ChartType.StackedArea && yAxisScale != "log")
-					yDomain[0] = 0;
-			}
 			if (_.isFinite(yAxisMax))
-				yDomain[1] = yAxisMax;			
+				yDomain[1] = yAxisMax;
+
+		    // Hide dots that are off the scale
+		    localData = _.filter(localData, function(d) {
+		    	return !(d.values[0].x < xDomain[0] || d.values[0].x > xDomain[1] ||
+		    		d.values[0].y < yDomain[0] || d.values[0].y > yDomain[1]);
+		    });
 
 			if (!viz) viz = owid.view.scatter();
 			viz.update({
