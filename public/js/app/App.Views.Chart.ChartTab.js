@@ -39,7 +39,7 @@
 			yAxisMax = yAxis["axis-max"] || null,
 			xAxisScale = xAxis["axis-scale"] || "linear",
 			yAxisScale = yAxis["axis-scale"] || "linear",
-			xAxisFormat = xAxis["axis-format"],
+			xAxisFormat = xAxis["axis-format"] || 5,
 			yAxisFormat = yAxis["axis-format"] || 5;
 
 		var xDomain, yDomain, isClamped;
@@ -182,7 +182,7 @@
 			yAxisMax = yAxis["axis-max"] || null;
 			xAxisScale = xAxis["axis-scale"] || "linear";
 			yAxisScale = yAxis["axis-scale"] || "linear";
-			xAxisFormat = xAxis["axis-format"];
+			xAxisFormat = xAxis["axis-format"] || 5;
 			yAxisFormat = yAxis["axis-format"] || 5;				
 		}
 
@@ -286,6 +286,7 @@
 		    });
 
 			if (!viz) viz = owid.view.scatter();
+
 			viz.update({
 				svg: svg,
 				data: localData,
