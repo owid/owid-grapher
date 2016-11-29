@@ -51,11 +51,12 @@
 		};
 
 		chartTab.deactivate = function() {
-			if (!$svg) return;			
+			if (!$svg) return;
+			viz = null;			
 			$svg.attr("class", "");
 
 			chart.model.off(null, null, this);
-			d3.selectAll(".nvd3").remove();
+			d3.selectAll(".nvd3, .axisBox, .nvtooltip").remove();
 			chartTab.scaleSelectors.hide();
 			d3.selectAll("svg").on("mousemove.stackedarea", null);
 			changes.done();
