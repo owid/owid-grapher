@@ -2,6 +2,37 @@
 	"use strict";
 	owid.namespace("owid.view.tooltip");
 
+	owid.tooltip = function(svgNode, left, top, data) {
+		var $container = $(svgNode).next('.html-overlay'),
+			$tooltip = $container.find('.owid-tooltip');
+		
+		if (!$tooltip.length) {
+			$tooltip = $('<div class="nvtooltip tooltip-xy owid-tooltip"></div>');
+			$container.append($tooltip);
+		}
+
+		$tooltip.html(owid.scatterPlotTooltipGenerator(data));
+
+		var width = $tooltip.width();
+		if (left + width > $container.width())
+			left = left - width;
+
+		$tooltip.css({
+			position: 'absolute',
+			left: left + 'px',
+			top: top + 'px'
+		});
+
+		$tooltip.show();
+	};
+
+	owid.tooltipHide = function(svgNode) {
+		var $container = $(svgNode).next('.html-overlay'),
+			$tooltip = $container.find('.nvtooltip');
+
+		$tooltip.hide();
+	};
+
 	owid.view.tooltip = function(chart) {
 		function tooltip() {}
 

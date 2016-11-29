@@ -201,10 +201,10 @@
 			units = !_.isEmpty(unitsString) ? $.parseJSON(unitsString) : {},
 			outputHtml = "";
 
-		var times = data.point.time; // e.g. { x: 1990 }
-		var heading = data.series[0].key; // e.g. "United Arab Emirates"
+		var times = data.values[0].time; // e.g. { x: 1990 }
+		var heading = data.key; // e.g. "United Arab Emirates"
 		outputHtml += "<h3>" + heading + "</h3><p>";
-		_.each(data.point, function(value, key) {
+		_.each(data.values[0], function(value, key) {
 			if (key == "time" || key == "series" || key == "color") return;
 
 			var unit = _.findWhere(units, { property: key }),

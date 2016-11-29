@@ -64,8 +64,13 @@
 				var inputChanged =_.any(flow.inputs, function(k) { return _.has(changes, k); });
 				if (!inputChanged) return;
 
-				var args = _.map(flow.inputs, function(k) { return state[k]; });
-				if (!_.all(args, function(v) { return v !== undefined; }))
+				var hasArgs = true;
+				var args = _.map(flow.inputs, function(k) { 
+					if (!state.hasOwnProperty(k)) { hasArgs = false; }
+					return state[k];
+				});
+
+				if (!hasArgs)
 					return;
 
 				if (flow.outputs.length > 0) {

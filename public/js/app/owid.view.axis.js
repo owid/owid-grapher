@@ -51,7 +51,7 @@
 
 		axis.flow("bboxNoLabel : scaleG, bounds, scale, orient, d3axis, tickFormat, scaleType", function(scaleG, bounds, scale, orient, d3axis, tickFormat, scaleType) {			
 			d3axis.scale(scale)
-				.ticks((orient == 'left' ? bounds.height : bounds.width) / 70)
+				.ticks((orient == 'left' ? bounds.height : bounds.width) / 100)
 				.tickSizeOuter(0);
 
 			// Custom calculation of ticks for log scales as d3axis doesn't handle it

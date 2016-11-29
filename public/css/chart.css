@@ -591,6 +591,9 @@ select.disabled {
 .nvtooltip table td {
     border: 0;
 }
+.html-overlay .nvtooltip {
+    font-size: 0.6em;
+}
 .nvtooltip h3 {
     padding: 0.3em 0.9em;
     font-size: 1.5em;

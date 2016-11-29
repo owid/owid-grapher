@@ -61,11 +61,13 @@
 		    return dotUpdate.enter().append("circle").attr("class", "dot").merge(dotUpdate);
 		});
 
+
+		var _colorScale = d3.scaleOrdinal().range(d3.schemeCategory20);
 		scatter.flow("dots, xScale, yScale", function(dots, xScale, yScale) {
 			dots
 		      .attr("cx", function(d) { return xScale(d.values[0].x); })
 		      .attr("cy", function(d) { return yScale(d.values[0].y); })
-		      .style("fill", function(d) { return d.color; });
+		      .style("fill", function(d) { return d.color || _colorScale(d.key); });
 		});
 
 		scatter.flow("dots, sizeScale, focusKey", function(dots, sizeScale, focusKey) {
@@ -78,10 +80,12 @@
 			dots.style("fill-opacity", function(d) { return d.key == focusKey ? 1 : 0.5; });
 		});
 
-		// Little lines that point ot the axis when you hover a data point
-		scatter.flow("g, data, xScale, yScale, focusKey", function(g, data, xScale, yScale, focusKey) {
-			var focused = _.find(data, function(d) { return d.key == focusKey; });
+		scatter.flow("focused : data, focusKey", function(data, focusKey) {
+			return _.find(data, function(d) { return d.key == focusKey; });
+		});
 
+		// Little lines that point to the axis when you hover a data point
+		scatter.flow("g, data, xScale, yScale, focused", function(g, data, xScale, yScale, focused) {
 			g.selectAll('.focusLine').remove();
 			if (!focused) return;
 
@@ -94,7 +98,7 @@
 				.attr('x2', function(d) { return xScale(d.values[0].x); })
 				.attr('y1', function(d) { return yScale(d.values[0].y); })
 				.attr('y2', function(d) { return yScale(d.values[0].y); })
-				.style('stroke', function(d) { return d.color; });
+				.style('stroke', function(d) { return d.color || _colorScale(d.key); });
 
 			g.selectAll('.y.focusLine')
 				.data([focused])
@@ -105,7 +109,15 @@
 				.attr('x2', function(d) { return xScale(d.values[0].x); })
 				.attr('y1', function(d) { return yScale.range()[0]; })
 				.attr('y2', function(d) { return yScale(d.values[0].y); })
-				.style('stroke', function(d) { return d.color; });
+				.style('stroke', function(d) { return d.color || _colorScale(d.key); });
+		});
+
+		// Tooltip
+		scatter.flow("svg, focused, xScale, yScale", function tooltip(svg, focused, xScale, yScale) {
+			if (!focused)
+				owid.tooltipHide(svg.node());
+			else
+				owid.tooltip(svg.node(), xScale(focused.values[0].x), yScale(focused.values[0].y), focused);
 		});
 
 		// Set up hover interactivity
@@ -247,7 +259,7 @@
 
 		   	markers.merge(update)
 		   	  	.attr("id", function(d) { return d.id; })
-		        .attr("fill", function(d) { return d.color; });
+		        .attr("fill", function(d) { return d.color || _colorScale(d.key); });
 
 		    var lineUpdate = entities.selectAll(".line").data(function(d) { return [d]; });
 
@@ -258,7 +270,7 @@
 			  	.transition()
 				.attr("d", function(d) { return line([d.values[0], _.last(d.values)]); })				
 			    .attr("marker-end", function(d) { return "url(#" + d.id + ")"; })			    
-				.style("stroke", function(d) { return d.color; })
+				.style("stroke", function(d) { return d.color || _colorScale(d.key); })
 				.style("stroke-width", function(d) { return sizeScale(_.last(d.values).size); });
 
 			update.exit().remove();
