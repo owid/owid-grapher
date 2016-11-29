@@ -57,29 +57,34 @@
 		});
 
 		// Gridlines. Here rather than in the axes themselves to make the bounding boxes more sensible.
-		box.flow("gridlines : g, innerBounds", function(g, innerBounds) {
-		return;			
-			var gridlines = g.selectAll('.tick').selectAll('.gridline')
-				.data(function(d) { return [d]; })
+		box.flow("xGridlines : g, innerBounds, xAxis", function(g, innerBounds, xAxis) {			
+			var tickValues = g.selectAll('.bottom.axis .tick').data();
+
+			var xGridlines = g.selectAll('.x.gridline').data(tickValues)
 				.enter()
 				  .append('line')
-				  .attr('class', 'gridline');
+				  .attr('class', 'x gridline')
+				  .attr('x1', function(d) { return xAxis.scale(d); })
+				  .attr('x2', function(d) { return xAxis.scale(d); })
+				  .attr('y1', innerBounds.top+innerBounds.height)
+				  .attr('y2', innerBounds.top);
 
-			if (orient == 'bottom') {
-				gridlines
-				  	.attr('x1', 0.5)
-				  	.attr('x2', 0.5)
-				  	.attr('y1', -1)
-				  	.attr('y2', bbox.height-bounds.height);
-			} else {
-				gridlines
-				  	.attr('x1', 1)
-				  	.attr('x2', bounds.width-bbox.width)
-				  	.attr('y1', 0.5)
-				  	.attr('y2', 0.5);
-			}
+			return xGridlines;
+		});
 
-			return gridlines;			
+		box.flow("yGridlines : g, innerBounds, yAxis", function(g, innerBounds, yAxis) {			
+			var tickValues = g.selectAll('.left.axis .tick').data();
+
+			var yGridlines = g.selectAll('.y.gridline').data(tickValues)
+				.enter()
+				  .append('line')
+				  .attr('class', 'y gridline')
+				  .attr('x1', innerBounds.left)
+				  .attr('x2', innerBounds.left+innerBounds.width)
+				  .attr('y1', function(d) { return yAxis.scale(d); })
+				  .attr('y2', function(d) { return yAxis.scale(d); });
+
+			return yGridlines;
 		});
 
 

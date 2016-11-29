@@ -537,7 +537,7 @@ select.disabled {
     display: none;
 }
 
-#chart .axis .gridline {
+#chart .gridline {
     stroke: #ededed;
     stroke-dasharray: 3,2;    
 }
