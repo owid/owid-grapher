@@ -60,31 +60,39 @@
 		box.flow("xGridlines : g, innerBounds, xAxis", function(g, innerBounds, xAxis) {			
 			var tickValues = g.selectAll('.bottom.axis .tick').data();
 
-			var xGridlines = g.selectAll('.x.gridline').data(tickValues)
-				.enter()
-				  .append('line')
-				  .attr('class', 'x gridline')
-				  .attr('x1', function(d) { return xAxis.scale(d); })
-				  .attr('x2', function(d) { return xAxis.scale(d); })
-				  .attr('y1', innerBounds.top+innerBounds.height)
-				  .attr('y2', innerBounds.top);
+			var gridlinesUpdate = g.selectAll('.x.gridline').data(tickValues),
+				gridlines = gridlinesUpdate
+					.enter()
+					  .append('line')
+					  .attr('class', 'x gridline')
+					.merge(gridlinesUpdate)
+					  .attr('x1', function(d) { return xAxis.scale(d); })
+					  .attr('x2', function(d) { return xAxis.scale(d); })
+					  .attr('y1', innerBounds.top+innerBounds.height)
+					  .attr('y2', innerBounds.top);
 
-			return xGridlines;
+			gridlinesUpdate.exit().remove();
+
+			return gridlines;
 		});
 
 		box.flow("yGridlines : g, innerBounds, yAxis", function(g, innerBounds, yAxis) {			
 			var tickValues = g.selectAll('.left.axis .tick').data();
 
-			var yGridlines = g.selectAll('.y.gridline').data(tickValues)
-				.enter()
-				  .append('line')
-				  .attr('class', 'y gridline')
-				  .attr('x1', innerBounds.left)
-				  .attr('x2', innerBounds.left+innerBounds.width)
-				  .attr('y1', function(d) { return yAxis.scale(d); })
-				  .attr('y2', function(d) { return yAxis.scale(d); });
+			var gridlinesUpdate = g.selectAll('.y.gridline').data(tickValues),
+				gridlines = gridlinesUpdate
+					.enter()
+					  .append('line')
+					  .attr('class', 'y gridline')
+					.merge(gridlinesUpdate)
+					  .attr('x1', innerBounds.left)
+					  .attr('x2', innerBounds.left+innerBounds.width)
+					  .attr('y1', function(d) { return yAxis.scale(d); })
+					  .attr('y2', function(d) { return yAxis.scale(d); });
 
-			return yGridlines;
+			gridlinesUpdate.exit().remove();
+
+			return gridlines;
 		});
 
 
