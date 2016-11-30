@@ -312,6 +312,9 @@
 					}
 				}
 			});
+
+			chart.dispatch.renderEnd();
+			
 			chartTab.viz = viz;			
 		}
 

@@ -57,15 +57,29 @@
 
 			// Inline the CSS styles, since the exported SVG won't have a stylesheet
 			var styleSheets = document.styleSheets;
+			var elems = [];
 			_.each(document.styleSheets, function(styleSheet) {
 				_.each(styleSheet.cssRules, function(rule) {
 					try {
-						$(rule.selectorText).each(function(i, elem) {
-							if ($(elem).parent().closest("svg").length)
+						$(rule.selectorText).each(function(i, elem) {			
+							if (!elem.origStyle && !elem.hasChangedStyle) {
+								elem.origStyle = elem.style.cssText;
+								elem.style.cssText = "";
+								elems.push(elem);
+							}
+
+							if ($(elem).parent().closest("svg").length) {
 								elem.style.cssText += rule.style.cssText;
+								elem.hasChangedStyle = true;
+							}
 						});
 					} catch (e) {}
 				});
+			});
+
+			_.each(elems, function(elem) {
+				if (elem.origStyle)
+					elem.style.cssText += elem.origStyle;
 			});
 
 			// MISPY: Need to propagate a few additional styles from the external document into the SVG
