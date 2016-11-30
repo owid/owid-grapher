@@ -99,7 +99,7 @@
 					.style("fill", "black")
 				  .merge(labelUpdate)
 					.attr("x", bounds.left+bounds.width/2)
-					.attr("y", bboxNoLabel.height+10)
+					.attr("y", bboxNoLabel.height+15)
 					.text(label);				
 			}
 

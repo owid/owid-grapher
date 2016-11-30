@@ -39,7 +39,7 @@
 			yAxisMax = yAxis["axis-max"] || null,
 			xAxisScale = xAxis["axis-scale"] || "linear",
 			yAxisScale = yAxis["axis-scale"] || "linear",
-			xAxisFormat = xAxis["axis-format"] || 5,
+			xAxisFormat = xAxis["axis-format"],
 			yAxisFormat = yAxis["axis-format"] || 5;
 
 		var xDomain, yDomain, isClamped;
@@ -183,7 +183,7 @@
 			yAxisMax = yAxis["axis-max"] || null;
 			xAxisScale = xAxis["axis-scale"] || "linear";
 			yAxisScale = yAxis["axis-scale"] || "linear";
-			xAxisFormat = xAxis["axis-format"] || 5;
+			xAxisFormat = xAxis["axis-format"];
 			yAxisFormat = yAxis["axis-format"] || 5;				
 		}
 
@@ -298,7 +298,7 @@
 						scaleType: xAxisScale,
 						label: xAxis['axis-label'],
 						tickFormat: function(d) {
-							return xAxisPrefix + owid.unitFormat({ format: xAxisFormat }, d) + xAxisSuffix;							
+							return xAxisPrefix + owid.unitFormat({ format: xAxisFormat||5 }, d) + xAxisSuffix;							
 						}
 					},
 
