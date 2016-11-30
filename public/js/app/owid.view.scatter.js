@@ -31,7 +31,7 @@
 
 		var _sizeScale = d3.scaleLinear();
 		scatter.flow("sizeScale : data", function(data) {
-			_sizeScale.range([6, 18])
+			_sizeScale.range([4, 10])
 				.domain([
 		        	d3.min(data, function(series) { return d3.min(series.values, function(d) { return d.size||1; }); }),
 		       	    d3.max(data, function(series) { return d3.max(series.values, function(d) { return d.size||1; }); })
@@ -138,11 +138,99 @@
 					return dist;
 				})[0];
 
-				if (Math.sqrt(distances[d.key]) < sizeScale(d.values[0].size)*5)
+				if (Math.sqrt(distances[d.key]) < sizeScale(d.values[0].size)*6)
 					scatter.update({ focusKey: d.key });
 				else
 					scatter.update({ focusKey: null });
 			});
+		});
+
+		var _fontScale = d3.scaleLinear();
+		scatter.flow("fontScale : sizeScale", function(sizeScale) {
+			_fontScale.range([9, 13]).domain(sizeScale.domain());
+		    return _fontScale;
+		});
+
+		scatter.flow("labelData : data, xScale, yScale, sizeScale, fontScale", function(data, xScale, yScale, sizeScale, fontScale) {
+			return _.map(data, function(d) {
+				var firstValue = _.first(d.values),
+					lastValue = _.last(d.values),
+					xPos = xScale((lastValue.x+firstValue.x)/2),
+					yPos = yScale((lastValue.y+firstValue.y)/2),
+					offset = Math.sqrt(Math.pow(sizeScale(firstValue.size||1), 2)/2)+1;
+
+				return {
+					x: xPos + offset,
+					y: yPos - offset,
+					color: "#333",
+					text: d.entityName,
+					key: d.key,
+					fontSize: fontScale(lastValue.size)
+				};
+			});
+		});
+
+		scatter.flow("labels : data, labelData, entities, xScale, yScale", function(data, labelData, entities, xScale, yScale) {
+			var labelUpdate = entities.selectAll(".label").data(function(d,i) { return [labelData[i]]; });
+
+			var labels = labelUpdate.enter()
+	            .append("text")
+	            .attr("class", "label")
+	            .attr('text-anchor', 'start')
+	          .merge(labelUpdate)
+	            .text(function(d) { return d.text; })
+	            .style("font-size", function(d) { return d.fontSize; })   
+	            .style("fill", function(d) { return d.color; })
+	            .attr("x", function(d) { return (d.x); })
+	            .attr("y", function(d) { return (d.y); });
+		        
+	        // Size of each label
+	        var label_array = [];
+	        labels.each(function(d) {
+	            d.width = this.getBBox().width;
+	            d.height = this.getBBox().height;
+	        	label_array.push(d);
+	        });
+
+	        function collide(l1, l2) {
+	        	var r1 = { left: l1.x, top: l1.y, right: l1.x+l1.width, bottom: l1.y+l1.height };
+	        	var r2 = { left: l2.x, top: l2.y, right: l2.x+l2.width, bottom: l2.y+l2.height };
+  			    
+  			    return !(r2.left > r1.right || 
+			             r2.right < r1.left || 
+			             r2.top > r1.bottom ||
+			             r2.bottom < r1.top);
+	        }
+
+	        while (true) {
+	        	var overlaps = false;
+		        for (var i = 0; i < label_array.length; i++) {
+		        	var l1 = label_array[i];
+		        	if (l1.hidden) continue;
+
+		        	for (var j = 0; j < label_array.length; j++) {
+		        		var l2 = label_array[j];
+		        		if (l1 == l2 || l2.hidden) continue;
+
+		        		if (l1.x < xScale.range()[0] || l1.x+l1.width > xScale.range()[1] || l1.y < yScale.range()[1]) {
+		        			l1.hidden = true;
+		        			continue;
+		        		}
+
+		        		if (collide(l1, l2)) {
+		        			if (l1.fontSize > l2.fontSize)
+		        				l2.hidden = true;
+		        			else
+		        				l1.hidden = true;
+		        			overlaps = true;
+		        		}
+		        	}
+		        }	        	
+
+		        if (!overlaps) break;
+	        }
+			
+	        labels.style("opacity", function(d) { return d.hidden ? 0 : 1; });
 		});
 
 		return scatter;
@@ -278,13 +366,12 @@
 
 		function renderLabels() {
 			if (!changes.any('data')) return;
-
 			var labelUpdate = entities.selectAll(".label").data(function(d) { 
 				var firstValue = _.first(d.values),
 					lastValue = _.last(d.values),
-					xPos = x((lastValue.x+firstValue.x)/2),
-					yPos = y((lastValue.y+firstValue.y)/2),
-					angle = Math.atan2(y(lastValue.y) - y(firstValue.y), x(lastValue.x) - x(firstValue.x)) * 180 / Math.PI;
+					xPos = xScale((lastValue.x+firstValue.x)/2),
+					yPos = yScale((lastValue.y+firstValue.y)/2),
+					angle = Math.atan2(yScale(lastValue.y) - yScale(firstValue.y), xScale(lastValue.x) - xScale(firstValue.x)) * 180 / Math.PI;
 
 				// Ensure label stays the right way up when going negative
 				if (lastValue.x < firstValue.x)
@@ -296,7 +383,7 @@
 					angle: angle,
 					name: d.entityName,
 					key: d.key,
-					fontSize: fontScale(lastValue.size)
+					fontSize: 12//fontScale(lastValue.size)
 				}];
 			});
 
@@ -311,12 +398,12 @@
 	            .attr("x", function(d) { return (d.x); })
 	            .attr("y", function(d) { return (d.y); })	            
 	            .attr("transform", function(d) { return "rotate(" + d.angle + "," + d.x + "," + d.y + ") translate(0, -2)"; });
-
+		        
 	        // Size of each label
 	        var label_array = [];
 	        labels.each(function(d) {
-	            d.width = chart.getBounds(this).width;
-	            d.height = chart.getBounds(this).height;
+	            d.width = this.getBBox().width;
+	            d.height = this.getBBox().height;
 	        	label_array.push(d);
 	        });
 
@@ -353,13 +440,7 @@
 		        if (!overlaps) break;
 	        }
 			
-	        labels
-		        .transition()
-		        .duration(0)
-		        .attr("x", function(d) { return (d.x); })
-		        .attr("y", function(d) { return (d.y); })
-		        .style("opacity", function(d) { return d.hidden ? 0 : 1; })
-		        .style('cursor', 'pointer');
+	        labels.style("opacity", function(d) { return d.hidden ? 0 : 1; });
 		}
 
 
