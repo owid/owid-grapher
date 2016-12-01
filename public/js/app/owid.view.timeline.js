@@ -6,10 +6,58 @@
 		var timeline = owid.dataflow();
 
 		timeline.inputs({
-			svg: undefined,
+			containerNode: undefined,
+			bounds: { left: 0, top: 0, width: 100, height: 100 },
 			years: [1900, 1920, 1940, 2000], // Range of years the timeline covers
 			targetYear: 1980,
 			dispatch: d3.dispatch('change')
+		});
+
+		timeline.flow("minYear : years", function(years) { return _.first(years); });
+		timeline.flow("maxYear : years", function(years) { return _.last(years); });
+
+		timeline.flow("el : containerNode", function(containerNode) {
+			var html = `
+				<div class="play-pause-control control">
+					<a class="play-btn btn"><i class="fa fa-play-circle-o"></i></a>
+					<a class="pause-btn btn"><i class="fa fa-pause-circle-o"></i></a>
+				</div>
+				<div class="timeline-min-year">1950</div>
+				<div class="timeline-slider">
+					<div class="timeline-marker start">
+						<div class="timeline-label">1950</div>
+					</div>
+					<div class="timeline-range"></div>
+					<div class="timeline-marker end">
+						<div class="timeline-label">2000</div>
+					</div>
+				</div>
+				<div class="timeline-max-year">2000</div>`;
+
+			var elUpdate = d3.select(containerNode).selectAll('.timeline');
+
+			return elUpdate.data([this.state])
+				.enter()
+					.append('div')
+					.attr('class', 'timeline')
+					.html(html)
+				.merge(elUpdate);
+		});
+
+		timeline.flow("el, bounds", function(el, bounds) {
+			el.style('position', 'absolute')
+				.style('left', bounds.left+'px')
+				.style('top', bounds.top+'px')
+				.style('width', bounds.width+'px')
+				.style('height', bounds.height+'px');
+		});
+
+		timeline.flow("el, minYear", function(el, minYear) {
+			el.select('.timeline-min-year').text(minYear);
+		});
+
+		timeline.flow("el, maxYear", function(el, maxYear) {
+			el.select('.timeline-max-year').text(maxYear);
 		});
 
 		return timeline;

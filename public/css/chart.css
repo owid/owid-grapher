@@ -889,150 +889,102 @@ select.disabled {
     display: none;
     position: relative;
 }
-#chart #map-chart-tab .map-timeline-controls .timeline-control {
-    /*display: none;*/
-    
-    height: 2.5em;
-    width: calc(100% - 4em);
-    position: relative;
-    cursor: pointer;
-}
-#chart #map-chart-tab .map-timeline-controls .timeline-control .timeline-start-year,
-#chart #map-chart-tab .map-timeline-controls .timeline-control .timeline-end-year {
-    min-height: 1.8em;
-    line-height: 1.2em;
-    white-space: nowrap;
-}
-#chart #map-chart-tab .map-timeline-controls .timeline-control .timeline-start-year {
-    position: absolute;
-    top: 0.25em;
-    right: calc(100% + 0.3em);
-    padding: 0.3em 0.5em;
-}
-#chart #map-chart-tab .map-timeline-controls .timeline-control .timeline-end-year {
-    position: absolute;
-    top: 0.25em;
-    left: calc(100% + 0.3em);
-    padding: 0.3em 0.5em;
-}
-#chart #map-chart-tab .map-timeline-controls .timeline-control .timeline-slider-label {
-    padding: 0.3em 0.8em;
-}
-#chart #map-chart-tab .map-timeline-controls .timeline-control .timeline-slider-label,
-#chart #map-chart-tab .map-timeline-controls .timeline-control .timeline-end-year.highlight,
-#chart #map-chart-tab .map-timeline-controls .timeline-control .timeline-start-year.highlight {
-    background-color: #404040;
-    color: #fff;
-    cursor: pointer;
-    user-select: none;
-    -webkit-user-select: none;
-    /* Chrome/Safari/Opera */
-    
-    -moz-user-select: none;
-    /* Firefox */
-    
-    -ms-user-select: none;
-    /* IE/Edge */
-    
-    -webkit-touch-callout: none;
-    /* iOS Safari */
-}
-#chart #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper {
-    position: absolute;
-    top: 0.1em;
-    left: 4.4em;
-    right: 4.4em;
-}
-#chart #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper .timeline {
-    width: 100%;
-    height: 0.6em;
-    margin: 0;
-    padding: 0;
-    background-color: #ddd;
-}
-#chart #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper input[type="range"] {
-    height: 0.1em;
-}
-#chart #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper .timeline-slider {
-    position: absolute;
-    left: 6.25em;
-    top: -1.25em;
+
+/* Timeline
+--------------------------------------------- */
+
+#chart .timeline {
     z-index: 2;
-    cursor: pointer;
-    -webkit-transform: translate(-50%, 0);
-    transform: translate(-50%, 0);
-}
-#chart #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper .timeline-slider > span {
-    display: block;
-}
-#chart #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper .timeline-slider .timeline-slider-graphic {
-    width: 0.3em;
-    height: 1.25em;
-    background-color: #000000;
-    margin: 0 auto;
-}
-#chart #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper .timeline-ticks {
-    pointer-events: none;
-    position: absolute;
-    top: 0.9em;
-    left: 0;
     width: 100%;
-    padding-left: 0;
-    list-style-type: none;
+    color: #404040;
+    background-color: #FAFAFA;
+    border-top: 1px solid #ddd;
 }
-#chart #map-chart-tab .map-timeline-controls .timeline-control .timeline-wrapper .timeline-ticks li {
-    position: absolute;
-    display: inline-block;
-    width: 0.25em;
-    height: 0.5em;
-    border: 1px solid #FAFAFA;
-    font-size: 0;
-    list-style-type: none;
-    background-color: #404040;
-    -webkit-transform-style: preserve-3d;
-    transform-style: preserve-3d;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
+#chart .timeline .play-pause-control {
+    width: 3.5em;
+    margin-right: 0.5em;
+    text-align: right;
 }
-#chart #map-chart-tab .map-timeline-controls .buttons-control {
-    display: none;
-    /*display: table;*/
-    
-    width: 100%;
-    height: 100%;
+#chart .timeline .play-pause-control .play-btn:hover,
+#chart .timeline .play-pause-control .pause-btn:hover {
+    color: #666;
 }
-#chart #map-chart-tab .map-timeline-controls .buttons-control ul {
-    list-style-type: none;
-    display: table-cell;
-    text-align: center;
-    vertical-align: middle;
-    padding-left: 0;
-}
-#chart #map-chart-tab .map-timeline-controls .buttons-control .year-btn {
-    display: inline-block;
-    margin-right: 0.3em;
-}
-#chart #map-chart-tab .map-timeline-controls .buttons-control .year-btn:last-child {
-    margin-right: 0;
-}
-#chart #map-chart-tab .map-timeline-controls .buttons-control .year-btn.selected .btn,
-#chart #map-chart-tab .map-timeline-controls .buttons-control .year-btn:hover .btn {
-    color: white;
-    background-color: #404040;
-    border: 1px solid #ddd;
-}
-#chart #map-chart-tab .map-timeline-controls .buttons-control .year-btn .btn {
-    background-color: white;
-    border-radius: 0;
-}
-#chart #map-chart-tab .map-timeline-controls .buttons-control .year-btn .btn.btn:active {
+#chart .timeline .play-pause-control .play-btn:active,
+#chart .timeline .play-pause-control .pause-btn:active {
     box-shadow: none;
 }
-#chart #map-chart-tab .map-timeline-controls.single-year .play-pause-control,
-#chart #map-chart-tab .map-timeline-controls.single-year .timeline-end-year,
-#chart #map-chart-tab .map-timeline-controls.single-year .timeline-wrapper {
-    display: none !important;
+#chart .timeline .play-pause-control .btn {
+  color: #404040;  
+  height: 100%;
+  padding: 0;
 }
+#chart .timeline .play-btn,
+#chart .timeline .pause-btn {
+    font-size: 1.8em;    
+    line-height: 1.3em;
+}
+#chart .timeline .pause-btn {
+    display: none;
+    position: relative;
+
+}
+
+#chart .timeline {
+    display: flex;
+    align-items: center;
+}
+
+#chart .timeline .timeline-min-year,
+#chart .timeline .timeline-max-year {
+    padding: .3em .5em;
+    margin: .5em;
+}
+
+#chart .timeline.min-active .timeline-min-year,
+#chart .timeline.max-active .timeline-max-year {
+    background-color: #404040;
+    color: #fff;
+}
+
+#chart .timeline .timeline-slider {
+    background: #d5d5d5;
+    flex-grow: 1;
+    height: 1em;
+    position: relative;
+    margin: 0 0.5em;
+}
+
+#chart .timeline .timeline-marker {
+    width: .5em;
+    height: 100%;
+    background: black;
+    position: absolute;
+    left: 0%;
+    cursor: ew-resize;
+}
+
+#chart .timeline .timeline-label {
+    position: absolute;
+    text-align: center;
+    top: -1.5em;
+    background-color: #404040;
+    color: #fff;
+    cursor: pointer;    
+    padding: .3em .8em;
+    z-index: 1;    
+}
+
+#chart .timeline.min-active .timeline-label,
+#chart .timeline.max-active .timeline-label {
+    display: none;
+}
+
+#chart .timeline .timeline-range {
+    position: absolute;
+    background: green;
+    height: 100%;
+}
+
 /* Export
 --------------------------------------------- */
 /* MISPY: When the "download image" button is clicked, the backend fires up phantomjs and hits

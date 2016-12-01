@@ -50,14 +50,6 @@
 			chart.tooltip.hide();
 		}
 
-		function updateTimeline() {
-			timeline.update({
-				svg: chart.svg,
-				years: chart.map.getYears(), // Range of years the timeline covers
-				targetYear: chart.map.get('targetYear')
-			});
-		}
-
 		function calculateBounds() {
 			if (!changes.any('tabBounds activeTab'))
 				return;
@@ -68,13 +60,16 @@
 			availableWidth = chart.tabBounds.right - chart.tabBounds.left;
 			availableHeight = chart.tabBounds.bottom - chart.tabBounds.top;
 
+			var timelineHeight = 50;
+			timeline.update({
+				containerNode: chart.html,
+				bounds: { top: offsetY+availableHeight-timelineHeight, left: 0, width: availableWidth, height: timelineHeight },
+				years: chart.map.getYears(), // Range of years the timeline covers
+				targetYear: chart.map.get('targetYear')
+			});
+
 			// Adjust availableHeight to compensate for timeline controls
-			var timelineControls = chart.$(".map-timeline-controls").get(0);
-			if (timelineControls) {
-				var controlsBoundingRect = chart.getBounds(timelineControls),
-					controlsHeight = controlsBoundingRect.bottom - controlsBoundingRect.top;
-				availableHeight -= controlsHeight;
-			}
+			availableHeight -= timelineHeight;
 		}
 
 		function initializeMap() {
@@ -241,7 +236,6 @@
 			if (!changes.start()) return;
 
 			initializeMap();
-			updateTimeline();
 			if (!changes.only('targetYear')) {
 				mapControls.render();
 			}
