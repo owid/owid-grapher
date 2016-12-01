@@ -16,7 +16,7 @@
 			this.timelineControl = this.addChild(TimelineControl, options);
 			this.buttonsControl = this.addChild(ButtonsControl, options);
 
-			this.listenTo(App.MapModel, "change", this.render.bind(this));			
+			this.listenTo(App.MapModel, "change", this.render.bind(this));
 		},
 
 		render: function() {

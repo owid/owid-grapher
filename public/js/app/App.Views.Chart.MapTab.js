@@ -20,8 +20,8 @@
 
 		var dispatcher = _.clone(Backbone.Events),
 			mapControls = new MapControls({ dispatcher: dispatcher }),
-			timelineControls = new TimelineControls({ dispatcher: dispatcher }),
-			legend = owid.map.legend(chart);
+			legend = owid.map.legend(chart),
+			timeline = owid.view.timeline();
 
 		// Open the chart tab for a country when it is clicked (but not on mobile)
 		function onMapClick(ev) {
@@ -48,6 +48,14 @@
 
 		function onMapHoverStop(ev) {
 			chart.tooltip.hide();
+		}
+
+		function updateTimeline() {
+			timeline.update({
+				svg: chart.svg,
+				years: chart.map.getYears(), // Range of years the timeline covers
+				targetYear: chart.map.get('targetYear')
+			});
 		}
 
 		function calculateBounds() {
@@ -233,9 +241,9 @@
 			if (!changes.start()) return;
 
 			initializeMap();
+			updateTimeline();
 			if (!changes.only('targetYear')) {
 				mapControls.render();
-				timelineControls.render();
 			}
 			calculateBounds();
 			updateMapBackground();
