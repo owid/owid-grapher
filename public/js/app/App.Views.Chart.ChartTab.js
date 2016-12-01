@@ -56,7 +56,7 @@
 			$svg.attr("class", "");
 
 			chart.model.off(null, null, this);
-			d3.selectAll(".nvd3, .axisBox, .nvtooltip").remove();
+			d3.selectAll(".nvd3, .axisBox, .nvtooltip:not(.owid-tooltip)").remove();
 			chartTab.scaleSelectors.hide();
 			d3.selectAll("svg").on("mousemove.stackedarea", null);
 			changes.done();
