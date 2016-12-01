@@ -98,6 +98,13 @@ body.chart-container {
     -webkit-user-select: none;
     user-select: none;
 }
+.noselect {
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;    
+}
 input[type=checkbox] {
     cursor: pointer;
 }

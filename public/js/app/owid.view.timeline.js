@@ -39,7 +39,7 @@
 			return elUpdate.data([this.state])
 				.enter()
 					.append('div')
-					.attr('class', 'timeline')
+					.attr('class', 'timeline noselect')
 					.html(html)
 				.merge(elUpdate);
 		});
@@ -58,6 +58,20 @@
 
 		timeline.flow("el, maxYear", function(el, maxYear) {
 			el.select('.timeline-max-year').text(maxYear);
+		});
+
+		timeline.flow('el, targetYear, minYear, maxYear', function updateSlider(el, targetYear, minYear, maxYear) {
+			var fracWidth = (targetYear - minYear) / (maxYear - minYear);
+
+			el.selectAll('.timeline-marker')
+				.style('left', (fracWidth*100)+'%');
+
+			el.selectAll('.timeline-label')
+				.text(targetYear);
+		});
+
+		timeline.flow('el', function bindEvents() {
+
 		});
 
 		return timeline;
