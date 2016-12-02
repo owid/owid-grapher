@@ -825,6 +825,25 @@
 	checkCapabilities();
 	owid.features = features;
 
+	owid.mouse = function(node) {
+		if (node.ownerSVGElement) {
+			return d3v4.mouse(node);
+		} else {
+			var mouse = d3v4.mouse(node),
+				bounds = chart.getBounds(node),
+				transformedBounds = chart.getTransformedBounds(node);
+
+			mouse[0] -= (transformedBounds.left-bounds.left);
+			mouse[1] -= (transformedBounds.top-bounds.top);
+			return mouse;
+		}
+	};
+
+	// From d3_window
+	owid.window = function(node) {
+    	return node && (node.ownerDocument && node.ownerDocument.defaultView || node.document && node || node.defaultView);
+ 	};
+
 	window.require = function(namespace) {
 		var obj = window;
 		_.each(namespace.split("."), function(level) {

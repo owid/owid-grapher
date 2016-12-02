@@ -25,6 +25,7 @@
 			var flow = {},
 				spl = flowspec.split(/\s*:\s*/);
 
+			flow.spec = flowspec;
 			flow.outputs = spl[1] ? spl[0].split(/\s*,\s*/) : [];
 			flow.inputs = spl[1] ? spl[1].split(/\s*,\s*/) : spl[0].split(/\s*,\s*/);
 			flow.callback = callback;
@@ -72,14 +73,9 @@
 
 				if (!hasArgs)
 					return;
-
-				if (flow.outputs.length > 0) {
-					//console.log(flow.outputs[0] + " : " + flow.inputs.join(", "));
-				} else {
-					//console.log(flow.inputs.join(", "));
-				}			
-
+				
 	//			var oldResult = flow.outputs.length > 0 && _.clone(state[flow.outputs[0]]);			
+				console.log(flow.spec);
 				var result = flow.callback.apply(model, args);
 
 				if (flow.outputs.length > 0) {// && !_.isEqual(oldResult, result)) {

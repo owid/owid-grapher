@@ -248,6 +248,8 @@
 			chart.scale = scale;			
 		};
 
+		// HACK (Mispy): Workaround for the differences in getBoundingClientRect
+		// depending on whether you're using zoom or transform
 		chart.getBounds = function(node) {
 			var bounds = node.getBoundingClientRect(),
 				untransformedBounds;
@@ -265,6 +267,26 @@
 				};
 			}
 			return untransformedBounds;
+		};
+
+		chart.getTransformedBounds = function(node) {
+			var bounds = node.getBoundingClientRect(),
+				transformedBounds;
+
+			if (chart.scale > 1 && owid.features.zoom) {
+				transformedBounds = {
+					top: bounds.top * chart.scale,
+					right: bounds.right * chart.scale,
+					bottom: bounds.bottom * chart.scale,
+					left: bounds.left * chart.scale,
+					height: bounds.height * chart.scale,
+					width: bounds.width * chart.scale
+				};
+			} else {
+				transformedBounds = bounds;
+			}
+
+			return transformedBounds;			
 		};
 
 		chart.resize = function() {

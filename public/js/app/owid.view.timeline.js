@@ -56,8 +56,16 @@
 			el.select('.timeline-min-year').text(minYear);
 		});
 
+		timeline.flow("el, minYear, targetYear", function(el, minYear, targetYear) {
+			el.classed('min-active', minYear == targetYear);
+		});
+
 		timeline.flow("el, maxYear", function(el, maxYear) {
 			el.select('.timeline-max-year').text(maxYear);
+		});
+
+		timeline.flow("el, maxYear, targetYear", function(el, maxYear, targetYear) {
+			el.classed('max-active', maxYear == targetYear);
 		});
 
 		timeline.flow('el, targetYear, minYear, maxYear', function updateSlider(el, targetYear, minYear, maxYear) {
@@ -70,8 +78,32 @@
 				.text(targetYear);
 		});
 
-		timeline.flow('el', function bindEvents() {
+		timeline.flow('el, minYear, maxYear', function bindEvents(el, minYear, maxYear) {
+			var slider = el.select('.timeline-slider'),
+				container = d3.select(document.body),
+				isDragging = false;
 
+			function onMouseMove() {
+				var sliderBounds = chart.getTransformedBounds(slider.node()),
+					mouseX = _.isNumber(d3.event.pageX) ? d3.event.pageX : d3.event.touches[0].pageX,
+					fracWidth = (mouseX-sliderBounds.left) / sliderBounds.width,
+					inputYear = minYear + fracWidth*(maxYear-minYear),
+					targetYear = Math.max(Math.min(Math.round(inputYear), maxYear), minYear);
+
+				timeline.update({ targetYear: targetYear });
+				d3.event.preventDefault();
+			}
+
+			function onMouseUp() {
+				container.on('mousemove.timeline', null);
+				container.on('mouseup.timeline', null);
+			}
+
+			el.on('mousedown.timeline', function() {
+				container.on('mousemove.timeline', onMouseMove);
+				container.on('mouseup.timeline', onMouseUp);
+				onMouseMove();
+			});
 		});
 
 		return timeline;
