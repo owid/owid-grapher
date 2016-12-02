@@ -676,7 +676,7 @@
 		function postRender() {
 			// Hijack the nvd3 mode switch to store it
 			$(".nv-controlsWrap .nv-series").off('click').on('click', function(ev) {
-				chart.model.set("currentStackMode", $(ev.target).text().toLowerCase());
+				chart.model.set("currentStackMode", $(ev.target).closest('.nv-series').text().toLowerCase());
 			});
 
 			if (chartType == App.ChartType.StackedArea) {
