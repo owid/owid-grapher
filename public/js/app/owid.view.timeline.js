@@ -10,7 +10,8 @@
 			bounds: { left: 0, top: 0, width: 100, height: 100 },
 			years: [1900, 1920, 1940, 2000], // Range of years the timeline covers
 			targetYear: 1980,
-			dispatch: d3.dispatch('change')
+			dispatch: d3.dispatch('change'),
+			isPlaying: false
 		});
 
 		timeline.flow("minYear : years", function(years) { return _.first(years); });
@@ -20,7 +21,7 @@
 			var html = `
 				<div class="play-pause-control control">
 					<a class="play-btn btn"><i class="fa fa-play-circle-o"></i></a>
-					<a class="pause-btn btn"><i class="fa fa-pause-circle-o"></i></a>
+					<a class="pause-btn btn hidden"><i class="fa fa-pause-circle-o"></i></a>
 				</div>
 				<div class="timeline-min-year">1950</div>
 				<div class="timeline-slider">
@@ -78,31 +79,81 @@
 				.text(targetYear);
 		});
 
-		timeline.flow('el, minYear, maxYear', function bindEvents(el, minYear, maxYear) {
+		timeline.flow('el', function bindSlider(el) {
 			var slider = el.select('.timeline-slider'),
 				container = d3.select(document.body),
 				isDragging = false;
 
 			function onMouseMove() {
-				var sliderBounds = chart.getTransformedBounds(slider.node()),
-					mouseX = _.isNumber(d3.event.pageX) ? d3.event.pageX : d3.event.touches[0].pageX,
-					fracWidth = (mouseX-sliderBounds.left) / sliderBounds.width,
-					inputYear = minYear + fracWidth*(maxYear-minYear),
-					targetYear = Math.max(Math.min(Math.round(inputYear), maxYear), minYear);
+				var evt = d3.event;
+				timeline.expect('years, minYear, maxYear', function(years, minYear, maxYear) {
+					var sliderBounds = chart.getTransformedBounds(slider.node()),
+						mouseX = _.isNumber(evt.pageX) ? evt.pageX : evt.touches[0].pageX,
+						fracWidth = (mouseX-sliderBounds.left) / sliderBounds.width,
+						inputYear = minYear + fracWidth*(maxYear-minYear),
+						targetYear = _.min(years, function(year) {
+					        return Math.abs(year-inputYear);
+					    });
 
-				timeline.update({ targetYear: targetYear });
-				d3.event.preventDefault();
+					timeline.update({ targetYear: targetYear });
+					evt.preventDefault();
+				});
 			}
 
 			function onMouseUp() {
 				container.on('mousemove.timeline', null);
 				container.on('mouseup.timeline', null);
+				container.on('mouseleave.timeline', null);
 			}
 
 			el.on('mousedown.timeline', function() {
+				var evt = d3.event;
+				// Don't do mousemove if we clicked the play or pause button
+				if (d3.select(evt.target).classed('fa')) return;
+
 				container.on('mousemove.timeline', onMouseMove);
 				container.on('mouseup.timeline', onMouseUp);
+				container.on('mouseleave.timeline', onMouseUp);
 				onMouseMove();
+			});
+		});
+
+		timeline.flow('el, isPlaying', function togglePlaying(el, isPlaying) {
+			el.select('.play-btn').classed('hidden', isPlaying);
+			el.select('.pause-btn').classed('hidden', !isPlaying);
+
+			function incrementLoop() {
+				timeline.expect('isPlaying, years, targetYear, maxYear', function(isPlaying, years, targetYear, maxYear) {
+					if (!isPlaying) return;
+					
+					if (targetYear >= maxYear) {
+						timeline.update({ isPlaying: false });
+					} else {
+						var index = years.indexOf(targetYear);
+						timeline.update({ targetYear: years[index+1] });
+						requestAnimationFrame(incrementLoop);
+					}
+				});
+			}
+
+			if (isPlaying) {
+				// If we start playing from the end, reset from beginning
+				timeline.expect('targetYear, minYear, maxYear', function(targetYear, minYear, maxYear) {
+					if (targetYear >= maxYear)
+						timeline.update({ targetYear: minYear });
+				});
+
+				incrementLoop();
+			}
+		});
+
+		timeline.flow('el', function setupPlayBtn(el) {
+			el.select('.play-btn').on('click', function() {
+				timeline.update({ isPlaying: true });
+			});
+
+			el.select('.pause-btn').on('click', function() {
+				timeline.update({ isPlaying: false });
 			});
 		});
 

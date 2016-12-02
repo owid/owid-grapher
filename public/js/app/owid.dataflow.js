@@ -21,13 +21,19 @@
 			});
 		};
 
-		model.flow = function(flowspec, callback) {
+		function parseFlowspec(flowspec) {
 			var flow = {},
 				spl = flowspec.split(/\s*:\s*/);
 
 			flow.spec = flowspec;
 			flow.outputs = spl[1] ? spl[0].split(/\s*,\s*/) : [];
 			flow.inputs = spl[1] ? spl[1].split(/\s*,\s*/) : spl[0].split(/\s*,\s*/);
+
+			return flow;
+		}
+
+		model.flow = function(flowspec, callback) {
+			var flow = parseFlowspec(flowspec);
 			flow.callback = callback;
 
 			_.each(flow.outputs, function(key) {
@@ -35,6 +41,20 @@
 			});
 
 			flows.push(flow);
+		};
+
+		// Immediate flow, requiring inputs
+		model.expect = function(flowspec, callback) {
+			var flow = parseFlowspec(flowspec);
+
+			var args = _.map(flow.inputs, function(key) {
+				if (!_.has(state, key))
+					throw("Missing input value: " + k);
+
+				return state[key];
+			});
+
+			callback.apply(model, args);
 		};
 
 		var hasDefaults = false;
@@ -73,9 +93,8 @@
 
 				if (!hasArgs)
 					return;
-				
-	//			var oldResult = flow.outputs.length > 0 && _.clone(state[flow.outputs[0]]);			
-				console.log(flow.spec);
+
+//				console.log(flow.spec);
 				var result = flow.callback.apply(model, args);
 
 				if (flow.outputs.length > 0) {// && !_.isEqual(oldResult, result)) {

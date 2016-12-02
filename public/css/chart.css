@@ -856,46 +856,6 @@ select.disabled {
 #chart .map-controls-header .settings-control .control-body input[type=checkbox] {
     margin-right: 6px;
 }
-#chart .map-timeline-controls {
-    position: absolute;
-    bottom: 0px;
-    z-index: 2;
-    width: 100%;
-    color: #404040;
-    background-color: #FAFAFA;
-    border-top: 1px solid #ddd;
-}
-#chart .map-timeline-controls .control {
-    float: left;
-}
-#chart .map-timeline-controls .play-pause-control {
-    width: 3.5em;
-    margin-right: 0.5em;
-    text-align: right;
-    height: 100%;
-}
-#chart .map-timeline-controls .play-pause-control .play-btn:hover,
-#chart .map-timeline-controls .play-pause-control .pause-btn:hover {
-    color: #666;
-}
-#chart .map-timeline-controls .play-pause-control .play-btn:active,
-#chart .map-timeline-controls .play-pause-control .pause-btn:active {
-    box-shadow: none;
-}
-#map-chart-tab .play-pause-control .btn {
-  color: #404040;  
-  height: 100%;
-  padding: 0;
-}
-#map-chart-tab .play-btn,
-#map-chart-tab .pause-btn {
-    font-size: 1.8em;    
-    line-height: 1.3em;
-}
-#map-chart-tab .pause-btn {
-    display: none;
-    position: relative;
-}
 
 /* Timeline
 --------------------------------------------- */
@@ -931,9 +891,7 @@ select.disabled {
     line-height: 1.3em;
 }
 #chart .timeline .pause-btn {
-    display: none;
     position: relative;
-
 }
 
 #chart .timeline {

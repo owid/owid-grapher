@@ -61,6 +61,7 @@
 			availableHeight = chart.tabBounds.bottom - chart.tabBounds.top;
 
 			var timelineHeight = 50;
+			console.log('updateTimeline');
 			timeline.update({
 				containerNode: chart.html,
 				bounds: { top: offsetY+availableHeight-timelineHeight, left: 0, width: availableWidth, height: timelineHeight },
