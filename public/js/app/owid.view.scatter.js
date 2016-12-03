@@ -31,7 +31,7 @@
 
 		var _sizeScale = d3.scaleLinear();
 		scatter.flow("sizeScale : data", function(data) {
-			_sizeScale.range([4, 10])
+			_sizeScale.range([5, 10])
 				.domain([
 		        	d3.min(data, function(series) { return d3.min(series.values, function(d) { return d.size||1; }); }),
 		       	    d3.max(data, function(series) { return d3.max(series.values, function(d) { return d.size||1; }); })
@@ -300,7 +300,7 @@
 
 			x = d3.scaleLinear().range([0, width]);
 			y = d3.scaleLinear().range([height, 0]);
-			sizeScale = d3.scaleLinear().range([1, 3]);
+			sizeScale = d3.scaleLinear().range([2, 4]);
 			fontScale = d3.scaleLinear().range([8, 14]);
 
   		    x.domain([

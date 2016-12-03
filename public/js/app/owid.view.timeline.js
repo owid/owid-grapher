@@ -168,6 +168,12 @@
 			});
 		});
 
+		timeline.remove = function() {
+			timeline.now('el', function(el) {
+				el.remove();
+			});
+		};
+
 		return timeline;
 	};
 

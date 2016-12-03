@@ -60,16 +60,32 @@
 			availableWidth = chart.tabBounds.right - chart.tabBounds.left;
 			availableHeight = chart.tabBounds.bottom - chart.tabBounds.top;
 
-			var timelineHeight = 50;
-			timeline.update({
-				containerNode: chart.html,
-				bounds: { top: offsetY+availableHeight-timelineHeight, left: 0, width: availableWidth, height: timelineHeight },
-				years: chart.map.getYears(), // Range of years the timeline covers
-				targetYear: chart.map.get('targetYear')
-			});
+			var years = chart.map.getYears();
+			if (years.length > 1) {
+				if (!timeline) {
+					timeline = owid.view.timeline();
 
-			// Adjust availableHeight to compensate for timeline controls
-			availableHeight -= timelineHeight;
+					timeline.flow('targetYear', function(targetYear) {
+						chart.map.set('targetYear', targetYear);
+					});
+				}
+
+				var timelineHeight = 50;
+				timeline.update({
+					containerNode: chart.html,
+					bounds: { top: offsetY+availableHeight-timelineHeight, left: 0, width: availableWidth, height: timelineHeight },
+					years: years, // Range of years the timeline covers
+					targetYear: chart.map.get('targetYear')
+				});
+
+				// Adjust availableHeight to compensate for timeline controls
+				availableHeight -= timelineHeight;
+			} else {
+				if (timeline) {
+					timeline.remove();
+					timeline = null;
+				}
+			}
 		}
 
 		function initializeMap() {
@@ -115,7 +131,7 @@
 
 		// Transforms the datamaps SVG to fit the container and focus a particular region if needed
 		function updateViewport() {
-			if (!changes.any('tabBounds projection activeTab')) return;
+			if (!changes.any('tabBounds projection timeRanges activeTab')) return;
 
 			var map = d3.select(".datamaps-subunits");			
 
@@ -160,14 +176,6 @@
 			map.attr('transform', matrixStr);
 		}
 
-		mapTab.activate = function() {
-			timeline = owid.view.timeline();
-
-			timeline.flow('targetYear', function(targetYear) {
-				chart.map.set('targetYear', targetYear);
-			});
-		};
-
 		function updateMapBackground() {
 			if (changes.any('activeTab')) {
 				svg.insert("rect", "*")
@@ -175,7 +183,7 @@
 					.attr("x", 0).attr("y", 0);
 			}
 
-			if (changes.any('tabBounds activeTab')) {
+			if (changes.any('tabBounds activeTab timeRanges')) {
 				svg.select(".map-bg")
 					.attr("y", chart.tabBounds.top - svgBounds.top)
 					.attr("width", chart.tabBounds.width)
