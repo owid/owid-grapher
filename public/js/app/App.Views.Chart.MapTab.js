@@ -231,11 +231,13 @@
 		mapTab.deactivate = function() {
 			chart.tooltip.hide();
 			$('.datamaps-hoverover').remove();
-			$('.timeline').remove();
 			d3.selectAll(".datamaps-subunits, .border-disclaimer, .legend, .map-bg").remove();			
 			$("svg").removeClass("datamap");
 			dataMap = null;
 			changes.done();
+
+			timeline.remove();
+			timeline = null;
 		};
 
 		mapTab.render = function() {
