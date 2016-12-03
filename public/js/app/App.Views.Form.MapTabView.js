@@ -27,7 +27,6 @@
 			this.$timeToleranceInput = this.$el.find( "[name='map-time-tolerance']" );
 			this.$timeRangesInput = this.$el.find( "[name='map-time-ranges']" );
 			this.$defaultYearInput = this.$el.find( "[name='map-default-year']" );
-			this.$timeModeSelect = this.$el.find( "[name='map-time-mode']" );
 
 			this.$defaultProjectionSelect = this.$el.find("[name='map-default-projection']" );
 			this.$legendDescription = this.$el.find("[name='map-legend-description']" );
@@ -47,7 +46,6 @@
 
 		update: function(evt) {
 			App.ChartData.ready(function() {
-				this.updateTimelineMode();
 				this.updateVariableSelect();
 			}.bind(this));
 		},
@@ -68,7 +66,6 @@
 
 			this.updateDefaultYearSelect();
 			this.updateDefaultProjectionSelect();
-			this.updateTimelineMode();
 		},
 
 		updateDefaultYearSelect: function() {
@@ -145,10 +142,6 @@
 				html += "<option value='" + i + "' " + selected + ">" + i + "</option>";
 			});
 			this.$defaultProjectionSelect.append(html);
-		},
-
-		updateTimelineMode: function() {
-			this.$timeModeSelect.val(App.MapModel.get("timelineMode"));
 		},
 
 		onVariableIdChange: function() {

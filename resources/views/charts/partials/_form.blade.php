@@ -411,13 +411,6 @@
 								Tolerance of data:
 								<input name="map-time-tolerance" class="form-control" placeholder="Tolerance of data" />
 							</label>
-							<label>
-								Switch between years, using:
-								<select name="map-time-mode" class="form-control">
-									<option value="slider">Slider</option>
-									<option value="buttons">Buttons</option>
-								</select>
-							</label>
 							<div class="form-group">
 								<i class="fa fa-info-circle" data-toggle="tooltip" title="Various ranges can be specified. For example: <br>&quot;1990 to 2000 every 5; 2003; 2009&quot;<br>Will show the years 1990, 1995, 2000, 2003 and 2009."></i>&nbsp;<label>Years to show:</label>
 								<input name="map-time-ranges" class="form-control" data-toggle="tooltip" placeholder="first to last every 1" />

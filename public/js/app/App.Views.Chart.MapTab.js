@@ -51,7 +51,7 @@
 		}
 
 		function calculateBounds() {
-			if (!changes.any('tabBounds activeTab'))
+			if (!changes.any('tabBounds activeTab targetYear timeRanges'))
 				return;
 
 			svgNode = chart.$('svg').get(0);
