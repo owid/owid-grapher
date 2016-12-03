@@ -147,7 +147,7 @@
 
 		var _fontScale = d3.scaleLinear();
 		scatter.flow("fontScale : sizeScale", function(sizeScale) {
-			_fontScale.range([10, 14]).domain(sizeScale.domain());
+			_fontScale.range([12, 16]).domain(sizeScale.domain());
 		    return _fontScale;
 		});
 
