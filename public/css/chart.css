@@ -899,6 +899,12 @@ select.disabled {
     align-items: center;
 }
 
+#chart .timeline-slider, 
+#chart .timeline-min-year, 
+#chart .timeline-max-year {
+    cursor: pointer;
+}
+
 #chart .timeline .timeline-min-year,
 #chart .timeline .timeline-max-year {
     padding: .3em .5em;
@@ -925,18 +931,18 @@ select.disabled {
     background: black;
     position: absolute;
     left: 0%;
-    cursor: ew-resize;
 }
 
 #chart .timeline .timeline-label {
     position: absolute;
     text-align: center;
-    top: -1.5em;
+    top: -1.8em;
     background-color: #404040;
     color: #fff;
-    cursor: pointer;    
     padding: .3em .8em;
-    z-index: 1;    
+    z-index: 1; 
+    left: 50%;
+    transform: translate(-50%);   
 }
 
 #chart .timeline.min-active .timeline-label,

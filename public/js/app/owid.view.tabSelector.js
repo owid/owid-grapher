@@ -28,7 +28,6 @@
 
 		tabSelector.render = function() {
 			if (!changes.start()) return;
-			console.trace('tabSelector.render');
 
 			var svg = d3.select("svg"),
 				svgBounds = chart.getBounds(svg.node()),

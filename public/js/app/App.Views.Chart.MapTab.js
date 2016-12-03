@@ -21,7 +21,7 @@
 		var dispatcher = _.clone(Backbone.Events),
 			mapControls = new MapControls({ dispatcher: dispatcher }),
 			legend = owid.map.legend(chart),
-			timeline = owid.view.timeline();
+			timeline;
 
 		// Open the chart tab for a country when it is clicked (but not on mobile)
 		function onMapClick(ev) {
@@ -61,7 +61,6 @@
 			availableHeight = chart.tabBounds.bottom - chart.tabBounds.top;
 
 			var timelineHeight = 50;
-			console.log('updateTimeline');
 			timeline.update({
 				containerNode: chart.html,
 				bounds: { top: offsetY+availableHeight-timelineHeight, left: 0, width: availableWidth, height: timelineHeight },
@@ -162,6 +161,11 @@
 		}
 
 		mapTab.activate = function() {
+			timeline = owid.view.timeline();
+
+			timeline.flow('targetYear', function(targetYear) {
+				chart.map.set('targetYear', targetYear);
+			});
 		};
 
 		function updateMapBackground() {
@@ -219,6 +223,7 @@
 		mapTab.deactivate = function() {
 			chart.tooltip.hide();
 			$('.datamaps-hoverover').remove();
+			$('.timeline').remove();
 			d3.selectAll(".datamaps-subunits, .border-disclaimer, .legend, .map-bg").remove();			
 			$("svg").removeClass("datamap");
 			dataMap = null;
@@ -246,8 +251,6 @@
 			updateProjection();
 			updateViewport();
 			updateLegend();
-
-			console.log(chart.mapdata.currentValues);
 
 			dataMap.options.fills.defaultFill = chart.mapdata.getNoDataColor();
 			dataMap.updateChoropleth(chart.mapdata.currentValues, { reset: true });

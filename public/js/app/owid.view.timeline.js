@@ -10,7 +10,6 @@
 			bounds: { left: 0, top: 0, width: 100, height: 100 },
 			years: [1900, 1920, 1940, 2000], // Range of years the timeline covers
 			targetYear: 1980,
-			dispatch: d3.dispatch('change'),
 			isPlaying: false
 		});
 
@@ -18,22 +17,21 @@
 		timeline.flow("maxYear : years", function(years) { return _.last(years); });
 
 		timeline.flow("el : containerNode", function(containerNode) {
-			var html = `
-				<div class="play-pause-control control">
-					<a class="play-btn btn"><i class="fa fa-play-circle-o"></i></a>
-					<a class="pause-btn btn hidden"><i class="fa fa-pause-circle-o"></i></a>
-				</div>
-				<div class="timeline-min-year">1950</div>
-				<div class="timeline-slider">
-					<div class="timeline-marker start">
-						<div class="timeline-label">1950</div>
-					</div>
-					<div class="timeline-range"></div>
-					<div class="timeline-marker end">
-						<div class="timeline-label">2000</div>
-					</div>
-				</div>
-				<div class="timeline-max-year">2000</div>`;
+			var html = '<div class="play-pause-control control">' +
+				'	<a class="play-btn btn"><i class="fa fa-play-circle-o"></i></a>' +
+				'	<a class="pause-btn btn hidden"><i class="fa fa-pause-circle-o"></i></a>' +
+				'</div>' +
+				'<div class="timeline-min-year">1950</div>' +
+				'<div class="timeline-slider">' +
+				'	<div class="timeline-marker start">' +
+				'		<div class="timeline-label">1950</div>' +
+				'	</div>' +
+				'	<div class="timeline-range"></div>' +
+				'	<div class="timeline-marker end">' +
+				'		<div class="timeline-label">2000</div>' +
+				'	</div>' +
+				'</div>' +
+				'<div class="timeline-max-year">2000</div>';
 
 			var elUpdate = d3.select(containerNode).selectAll('.timeline');
 
@@ -86,7 +84,7 @@
 
 			function onMouseMove() {
 				var evt = d3.event;
-				timeline.expect('years, minYear, maxYear', function(years, minYear, maxYear) {
+				timeline.now('years, minYear, maxYear', function(years, minYear, maxYear) {
 					var sliderBounds = chart.getTransformedBounds(slider.node()),
 						mouseX = _.isNumber(evt.pageX) ? evt.pageX : evt.touches[0].pageX,
 						fracWidth = (mouseX-sliderBounds.left) / sliderBounds.width,
@@ -103,7 +101,7 @@
 			function onMouseUp() {
 				container.on('mousemove.timeline', null);
 				container.on('mouseup.timeline', null);
-				container.on('mouseleave.timeline', null);
+				//container.on('mouseleave.timeline', null);
 			}
 
 			el.on('mousedown.timeline', function() {
@@ -113,17 +111,40 @@
 
 				container.on('mousemove.timeline', onMouseMove);
 				container.on('mouseup.timeline', onMouseUp);
-				container.on('mouseleave.timeline', onMouseUp);
+				//container.on('mouseleave.timeline', onMouseUp);
 				onMouseMove();
 			});
 		});
 
+		var _anim;
 		timeline.flow('el, isPlaying', function togglePlaying(el, isPlaying) {
 			el.select('.play-btn').classed('hidden', isPlaying);
 			el.select('.pause-btn').classed('hidden', !isPlaying);
 
-			function incrementLoop() {
-				timeline.expect('isPlaying, years, targetYear, maxYear', function(isPlaying, years, targetYear, maxYear) {
+			cancelAnimationFrame(_anim);
+			if (isPlaying) {
+				// If we start playing from the end, reset from beginning
+				timeline.now('targetYear, minYear, maxYear', function(targetYear, minYear, maxYear) {
+					if (targetYear >= maxYear)
+						timeline.update({ targetYear: minYear });
+				});
+
+				_anim = requestAnimationFrame(incrementLoop);
+			}
+
+			var interval = 500, lastTime = null, countdown = interval;
+			function incrementLoop(time) {
+				if (lastTime !== null)
+					countdown -= (time-lastTime);
+				lastTime = time;
+
+				if (countdown > 0) {
+					_anim = requestAnimationFrame(incrementLoop);
+					return;
+				}
+
+				countdown = interval;
+				timeline.now('isPlaying, years, targetYear, maxYear', function(isPlaying, years, targetYear, maxYear) {
 					if (!isPlaying) return;
 					
 					if (targetYear >= maxYear) {
@@ -131,19 +152,9 @@
 					} else {
 						var index = years.indexOf(targetYear);
 						timeline.update({ targetYear: years[index+1] });
-						requestAnimationFrame(incrementLoop);
+						_anim = requestAnimationFrame(incrementLoop);
 					}
 				});
-			}
-
-			if (isPlaying) {
-				// If we start playing from the end, reset from beginning
-				timeline.expect('targetYear, minYear, maxYear', function(targetYear, minYear, maxYear) {
-					if (targetYear >= maxYear)
-						timeline.update({ targetYear: minYear });
-				});
-
-				incrementLoop();
 			}
 		});
 

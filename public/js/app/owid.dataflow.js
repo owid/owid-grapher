@@ -44,7 +44,7 @@
 		};
 
 		// Immediate flow, requiring inputs
-		model.expect = function(flowspec, callback) {
+		model.now = function(flowspec, callback) {
 			var flow = parseFlowspec(flowspec);
 
 			var args = _.map(flow.inputs, function(key) {
