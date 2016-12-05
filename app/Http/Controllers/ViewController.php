@@ -62,15 +62,21 @@ class ViewController extends Controller {
 			$count += 1;
 			$localUrl = \Request::root() . "/" . $chart->slug;
 			$liveUrl = "https://ourworldindata.org/grapher/" . $chart->slug;
+			$localUrlPng = $localUrl . '.png';
+			$liveUrlPng = $liveUrl . '.png';
 
 			if ($tab) {
 				$localUrl .= "?tab=" . $tab;
 				$liveUrl .= "?tab=" . $tab;
+				$localUrlPng .= "?tab=" . $tab;
+				$liveUrlPng .= "?tab=" . $tab;
 			}
 
 			$urls[] = [
 				'localUrl' => $localUrl,
-				'liveUrl' => $liveUrl
+				'liveUrl' => $liveUrl,
+				'localUrlPng' => $localUrlPng,
+				'liveUrlPng' => $liveUrlPng
 			];
 		}
 
@@ -279,7 +285,6 @@ class ViewController extends Controller {
 			}
 			$chartMeta->canonicalUrl = $canonicalUrl;
 
-
 			// Give the image exporter a head start on the request for imageUrl
 			// This isn't a strong cachebuster (Cloudflare caches these meta tags) but it should help it get through eventually
 			$imageQuery = $query . ($query ? "&" : "") . "size=1200x800&v=" . $chart->makeCacheTag();
@@ -288,9 +293,17 @@ class ViewController extends Controller {
 			}
 
 			$chartMeta->imageUrl = $baseUrl . ".png?" . $imageQuery;
-			return response()
-					->view('view.show', compact('chart', 'canonicalUrl', 'chartMeta', 'query'))
-					->header('Cache-Control', 'public, max-age=7200, s-maxage=604800');
+			$resp = response()
+					->view('view.show', compact('chart', 'canonicalUrl', 'chartMeta', 'query'));
+					
+			if (str_contains(\Request::path(), ".export")) {
+				// We don't cache the export urls, just the resulting pngs
+				$resp->header('Cache-Control', 'no-cache');				
+			} else {
+				$resp->header('Cache-Control', 'public, max-age=7200, s-maxage=604800');
+			}
+
+			return $resp;
 		} else {
 			return 'No chart found to view';
 		}

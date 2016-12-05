@@ -24,6 +24,7 @@ class CloudflareInvalidate extends Command
             $urls[]= "https://ourworldindata.org/grapher/" . $slug;
             $urls[]= "https://ourworldindata.org/grapher/" . $slug . "?tab=chart";
             $urls[]= "https://ourworldindata.org/grapher/" . $slug . "?tab=map";
+            $urls[]= "https://ourworldindata.org/grapher/" . $slug . ".export";
         }
 
         $cache = new \Cloudflare\Zone\Cache(env('CLOUDFLARE_EMAIL'), env('CLOUDFLARE_KEY'));
