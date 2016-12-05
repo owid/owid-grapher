@@ -61,7 +61,7 @@
 			availableHeight = chart.tabBounds.bottom - chart.tabBounds.top;
 
 			var years = chart.map.getYears();
-			if (years.length > 1) {
+			if (years.length > 1 && !App.isExport) {
 				if (!timeline) {
 					timeline = owid.view.timeline();
 
