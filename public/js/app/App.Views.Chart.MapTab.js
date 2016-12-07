@@ -75,7 +75,7 @@
 					containerNode: chart.html,
 					bounds: { top: offsetY+availableHeight-timelineHeight, left: 0, width: availableWidth, height: timelineHeight },
 					years: years, // Range of years the timeline covers
-					targetYear: chart.map.get('targetYear')
+					inputYear: chart.map.get('targetYear')
 				});
 
 				// Adjust availableHeight to compensate for timeline controls

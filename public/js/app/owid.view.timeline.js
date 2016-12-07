@@ -9,12 +9,25 @@
 			containerNode: undefined,
 			bounds: { left: 0, top: 0, width: 100, height: 100 },
 			years: [1900, 1920, 1940, 2000], // Range of years the timeline covers
-			targetYear: 1980,
+			inputYear: 1980,
 			isPlaying: false
 		});
 
 		timeline.flow("minYear : years", function(years) { return _.first(years); });
 		timeline.flow("maxYear : years", function(years) { return _.last(years); });
+
+		// How far along the timeline marker is as fraction of slider width
+		timeline.flow("fracWidth : inputYear, minYear, maxYear", function(inputYear, minYear, maxYear) {
+			var fracWidth = (inputYear - minYear) / (maxYear - minYear);
+			return Math.max(Math.min(fracWidth, 1), 0);
+		});
+
+		// Find the closest available year to the input year
+		timeline.flow("targetYear : inputYear, years", function(inputYear, years) {
+			return _.min(years, function(year) {
+		        return Math.abs(year-inputYear);
+		    });
+		});
 
 		timeline.flow("el : containerNode", function(containerNode) {
 			var html = '<div class="play-pause-control control">' +
@@ -51,6 +64,10 @@
 				.style('height', bounds.height+'px');
 		});
 
+		timeline.flow("el, targetYear", function(el, targetYear) {
+			el.selectAll('.timeline-label').text(targetYear);
+		});
+
 		timeline.flow("el, minYear", function(el, minYear) {
 			el.select('.timeline-min-year').text(minYear);
 		});
@@ -67,15 +84,10 @@
 			el.classed('max-active', maxYear == targetYear);
 		});
 
-		timeline.flow('el, targetYear, minYear, maxYear', function updateSlider(el, targetYear, minYear, maxYear) {
-			var fracWidth = (targetYear - minYear) / (maxYear - minYear);
-
+		timeline.flow('el, fracWidth', function(el, fracWidth) {
 			el.selectAll('.timeline-marker')
 				.style('left', (fracWidth*100)+'%');
-
-			el.selectAll('.timeline-label')
-				.text(targetYear);
-		});
+		});		
 
 		timeline.flow('el', function bindSlider(el) {
 			var slider = el.select('.timeline-slider'),
@@ -88,12 +100,9 @@
 					var sliderBounds = chart.getTransformedBounds(slider.node()),
 						mouseX = _.isNumber(evt.pageX) ? evt.pageX : evt.touches[0].pageX,
 						fracWidth = (mouseX-sliderBounds.left) / sliderBounds.width,
-						inputYear = minYear + fracWidth*(maxYear-minYear),
-						targetYear = _.min(years, function(year) {
-					        return Math.abs(year-inputYear);
-					    });
+						inputYear = minYear + fracWidth*(maxYear-minYear);
 
-					timeline.update({ targetYear: targetYear });
+					timeline.update({ inputYear: inputYear });
 					evt.preventDefault();
 				});
 			}
@@ -126,7 +135,7 @@
 				// If we start playing from the end, reset from beginning
 				timeline.now('targetYear, minYear, maxYear', function(targetYear, minYear, maxYear) {
 					if (targetYear >= maxYear)
-						timeline.update({ targetYear: minYear });
+						timeline.update({ inputYear: minYear });
 				});
 
 				_anim = requestAnimationFrame(incrementLoop);
@@ -151,7 +160,7 @@
 						timeline.update({ isPlaying: false });
 					} else {
 						var index = years.indexOf(targetYear);
-						timeline.update({ targetYear: years[index+1] });
+						timeline.update({ inputYear: years[index+1] });
 						_anim = requestAnimationFrame(incrementLoop);
 					}
 				});

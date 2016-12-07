@@ -608,7 +608,7 @@
 				containerNode: chart.html,
 				bounds: { top: chartOffsetY+chartHeight-timelineHeight, left: 0, width: chartWidth, height: timelineHeight },
 				years: years, // Range of years the timeline covers
-				targetYear: chartTime[0]
+				inputYear: chartTime[0]
 			});
 
 			chartHeight -= timelineHeight+10;
