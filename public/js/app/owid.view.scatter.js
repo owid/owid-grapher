@@ -151,6 +151,7 @@
 		    return _fontScale;
 		});
 
+		// Calculate the positions of the point labels we'd like to use
 		scatter.flow("labelData : data, xScale, yScale, sizeScale, fontScale", function(data, xScale, yScale, sizeScale, fontScale) {
 			return _.map(data, function(d) {
 				var firstValue = _.first(d.values),
@@ -162,6 +163,7 @@
 				return {
 					x: xPos + offset,
 					y: yPos - offset,
+					offset: offset,
 					color: "#333",
 					text: d.entityName,
 					key: d.key,
@@ -170,6 +172,7 @@
 			});
 		});
 
+		// Render the labels and filter for overlaps
 		scatter.flow("labels : data, labelData, entities, xScale, yScale", function(data, labelData, entities, xScale, yScale) {
 			var labelUpdate = entities.selectAll(".label").data(function(d,i) { return [labelData[i]]; });
 
@@ -180,18 +183,33 @@
 	          .merge(labelUpdate)
 	            .text(function(d) { return d.text; })
 	            .style("font-size", function(d) { return d.fontSize; })   
-	            .style("fill", function(d) { return d.color; })
-	            .attr("x", function(d) { return (d.x); })
-	            .attr("y", function(d) { return (d.y); });
+	            .style("fill", function(d) { return d.color; });
 		        
-	        // Size of each label
+	        // Calculate the size of each label and ensure it's inside the bounds of the chart
 	        var label_array = [];
 	        labels.each(function(d) {
 	            d.width = this.getBBox().width;
 	            d.height = this.getBBox().height;
+
+	        	if (d.x+d.width > xScale.range()[1])
+	        		d.x -= (d.width + d.offset*2);
+	        	if (d.y < yScale.range()[1])
+	        		d.y += (d.height/2 + d.offset*2);
+
 	        	label_array.push(d);
 	        });
 
+	        labels.attr("x", function(d) { return d.x; })
+	              .attr("y", function(d) { return d.y; });
+
+	        // Make sure all the labels are inside the bounds of the chart
+/*	    		if (label.x < xScale.range()[0] || label.x+label.width > xScale.range()[1] || label.y < yScale.range()[1]) {
+	    			label.hidden = true;
+	    			continue;
+	    		}*/
+
+
+	        // Now do collision detection and hide overlaps
 	        function collide(l1, l2) {
 	        	var r1 = { left: l1.x, top: l1.y, right: l1.x+l1.width, bottom: l1.y+l1.height };
 	        	var r2 = { left: l2.x, top: l2.y, right: l2.x+l2.width, bottom: l2.y+l2.height };
@@ -211,11 +229,6 @@
 		        	for (var j = 0; j < label_array.length; j++) {
 		        		var l2 = label_array[j];
 		        		if (l1 == l2 || l2.hidden) continue;
-
-		        		if (l1.x < xScale.range()[0] || l1.x+l1.width > xScale.range()[1] || l1.y < yScale.range()[1]) {
-		        			l1.hidden = true;
-		        			continue;
-		        		}
 
 		        		if (collide(l1, l2)) {
 		        			if (l1.fontSize > l2.fontSize)
