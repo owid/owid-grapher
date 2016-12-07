@@ -599,6 +599,18 @@
 				timeline.flow('targetYear', function(targetYear) {
 					chart.model.set('chart-time', [targetYear, targetYear]);
 				});
+
+				timeline.flow('inputYear, years', function(inputYear, years) {
+					var prevYear, nextYear, progress;
+					for (var i = 1; i < years.length; i++) {
+						if (inputYear < years[i]) {
+							prevYear = years[i-1];
+							nextYear = years[i];
+							progress = (inputYear-prevYear)/(nextYear-prevYear);
+							break;
+						}
+					}
+				});
 			}
 
 			var chartTime = chart.model.get('chart-time') || [years[0]];
@@ -612,7 +624,7 @@
 
 			if (!timeline.isPlaying)
 				changes.inputYear = chartTime[0];
-			
+
 			timeline.update(changes);
 
 			chartHeight -= timelineHeight+10;

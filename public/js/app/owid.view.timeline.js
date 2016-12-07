@@ -16,17 +16,21 @@
 		timeline.flow("minYear : years", function(years) { return _.first(years); });
 		timeline.flow("maxYear : years", function(years) { return _.last(years); });
 
+		timeline.flow("inputYear : inputYear, minYear, maxYear", function(inputYear, minYear, maxYear) {
+			return Math.max(Math.min(inputYear, maxYear), minYear);
+		});
+
 		// How far along the timeline marker is as fraction of slider width
 		timeline.flow("fracWidth : inputYear, minYear, maxYear", function(inputYear, minYear, maxYear) {
-			var fracWidth = (inputYear - minYear) / (maxYear - minYear);
-			return Math.max(Math.min(fracWidth, 1), 0);
+			return (inputYear - minYear) / (maxYear - minYear);
 		});
 
 		// Find the closest available year to the input year
 		timeline.flow("targetYear : inputYear, years", function(inputYear, years) {
-			return _.min(years, function(year) {
-		        return Math.abs(year-inputYear);
-		    });
+			return _.find(
+				_.sortBy(years, function(year) { return Math.abs(year-inputYear); }),
+				function(year) { return year <= inputYear; }
+			);
 		});
 
 		timeline.flow("el : containerNode", function(containerNode) {
@@ -141,18 +145,21 @@
 				_anim = requestAnimationFrame(incrementLoop);
 			}
 
-			var lastTime = null, yearsPerSec = 2;
+			var lastTime = null, ticksPerSec = 3;
 			function incrementLoop(time) {
 				var elapsed = lastTime ? time-lastTime : 0;
 				lastTime = time;
 
-				timeline.now('isPlaying, inputYear, maxYear', function(isPlaying, inputYear, maxYear) {
+				timeline.now('isPlaying, inputYear, targetYear, years, maxYear', function(isPlaying, inputYear, targetYear, years, maxYear) {
 					if (!isPlaying) return;
 					
 					if (inputYear >= maxYear) {
 						timeline.update({ isPlaying: false });
 					} else {
-						timeline.update({ inputYear: inputYear+(elapsed*yearsPerSec/1000) });
+						var nextYear = years[years.indexOf(targetYear)+1],
+							yearsToNext = nextYear-targetYear;
+
+						timeline.update({ inputYear: inputYear+(Math.max(yearsToNext/2, 1)*elapsed*ticksPerSec/1000) });
 					}
 
 					_anim = requestAnimationFrame(incrementLoop);

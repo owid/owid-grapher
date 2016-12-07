@@ -72,16 +72,16 @@
 
 				var timelineHeight = 50;
 
-				var changes = {
+				var updates = {
 					containerNode: chart.html,
 					bounds: { top: offsetY+availableHeight-timelineHeight, left: 0, width: availableWidth, height: timelineHeight },
-					years: years, // Range of years the timeline covers	
-				}
+					years: years, // Range of years the timeline covers
+				};
 
 				if (!timeline.isPlaying)
-					changes.inputYear = chart.map.get('targetYear');
+					updates.inputYear = chart.map.get('targetYear');
 
-				timeline.update(changes);
+				timeline.update(updates);
 
 				// Adjust availableHeight to compensate for timeline controls
 				availableHeight -= timelineHeight;

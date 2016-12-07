@@ -10,9 +10,11 @@
 			state[key] = undefined;
 			defaults[key] = val;
 
-			Object.defineProperty(model, key, {
-				get: function() { return state[key]; }
-			});
+			if (!model.hasOwnProperty(key)) {
+				Object.defineProperty(model, key, {
+					get: function() { return state[key]; }
+				});
+			}
 		}
 
 		model.inputs = function(inputs) {
