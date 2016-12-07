@@ -275,7 +275,9 @@ select.disabled {
     overflow: auto;
     width: 100%;
     height: 100%;
-    overflow: hidden;
+}
+#chart #chart-chart-tab {
+    overflow: hidden;    
 }
 #chart #data-chart-tab,
 #chart #sources-chart-tab {
