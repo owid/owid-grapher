@@ -236,8 +236,10 @@
 			dataMap = null;
 			changes.done();
 
-			timeline.remove();
-			timeline = null;
+			if (timeline) {
+				timeline.remove();
+				timeline = null;				
+			}
 		};
 
 		mapTab.render = function() {
