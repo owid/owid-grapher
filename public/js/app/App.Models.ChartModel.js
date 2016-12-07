@@ -246,6 +246,12 @@
 			});
 		},
 
+		getDimensionByProp: function(prop) {
+			return _.find(this.getDimensions(), function(dim) {
+				return dim.property == prop;
+			});
+		},
+
 		getTimeFrom: function() {
 			var chartTime = this.get("chart-time");
 			if (_.isEmpty(chartTime))

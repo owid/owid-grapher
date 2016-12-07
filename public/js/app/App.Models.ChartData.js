@@ -242,7 +242,7 @@
 				selectedEntitiesById = App.ChartModel.getSelectedEntitiesById(),
 				seriesByEntity = {},
 				// e.g. for colors { var_id: { 'Oceania': '#ff00aa' } }
-				categoryTransforms = {},				
+				categoryTransforms = {},
 				chartData = [], legendData = [];
 
 			var chartTime = chart.model.get('chart-time');
@@ -250,7 +250,7 @@
 
 			_.each(dimensions, function(dimension) {
 				var variable = variables[dimension.variableId],
-				    targetYear = parseInt(dimension.targetYear) || latestYearInData,
+				    targetYear = chartTime ? chartTime[0] : parseInt(dimension.targetYear) || latestYearInData,
 				    targetMode = dimension.mode,
 				    tolerance = parseInt(dimension.tolerance),
 				    isCategorical = _.include(['color', 'shape'], dimension.property),

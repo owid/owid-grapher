@@ -25,6 +25,8 @@
 		var legend = new App.Views.Chart.Legend();
 		chartTab.legend = legend;
 
+		var timeline;
+
 		var xAxis = chart.model.get("x-axis"),
 			yAxis = chart.model.get("y-axis"),
 			xAxisPrefix = xAxis["axis-prefix"] || "",
@@ -71,6 +73,7 @@
 			configureAxis();
 			configureBounds();
 			renderLegend();
+			renderTimeline();
 
 			$(".chart-error").remove();
 			if (missingMsg || _.isEmpty(localData)) {
@@ -564,32 +567,51 @@
 		}
 
 		function renderTimeline() {	
-			if (!changes.any('chart-dimensions chart-time')) return;
+			var hasTimeline = (chartType == App.ChartType.ScatterPlot);
 
-			var years;
-//			if (chartType == App.ChartType.ScatterPlot)
-				years = chart.vardata.get('yearsWithAnyData');
-//			else
-//				years = chart.vardata.get('yearsWithAnyData');
-			
-			var chartTime = chart.model.get('chart-time');
+			function getAvailableYears() {
+				var yearSets = [];
 
-			timeline.state.years = years;
-			if (!_.isEmpty(chartTime)) {
-				timeline.state.startYear = chartTime[0];
-				timeline.state.endYear = chartTime[1];			
-			} else {
-				timeline.state.startYear = years[0];
-				timeline.state.endYear = years[years.length-1];
+				var dimensions = chart.model.getDimensions();
+				_.each(dimensions, function(dimension) {
+					if (dimension.property != 'x' && dimension.property != 'y') return;
+
+					var variable = chart.vardata.getVariableById(dimension.variableId);
+					yearSets.push(variable.years);
+				});
+
+				return _.intersection.apply(_, yearSets);
 			}
 
-			timeline.render();
+			var years = getAvailableYears();
 
-			timeline.dispatch.on('change', function() {
-				chart.model.set('chart-time', [timeline.state.startYear, timeline.state.endYear]);
+			if (!hasTimeline || !years || years.length <= 1) {
+				if (timeline) {
+					timeline.remove();
+					timeline = null;									
+				}
+				return;
+			}
+
+			if (!timeline) {
+				timeline = owid.view.timeline();
+
+				timeline.flow('targetYear', function(targetYear) {
+					chart.model.set('chart-time', [targetYear, targetYear]);
+				});
+			}
+
+			var chartTime = chart.model.get('chart-time') || [years[0]];
+
+			var timelineHeight = 50;
+			timeline.update({
+				containerNode: chart.html,
+				bounds: { top: chartOffsetY+chartHeight-timelineHeight, left: 0, width: chartWidth, height: timelineHeight },
+				years: years, // Range of years the timeline covers
+				targetYear: chartTime[0]
 			});
 
-			chartHeight -= chart.getBounds(timeline.node()).height + 10;
+			chartHeight -= timelineHeight+10;
 		}
 
 		function splitSeriesByMissing(localData) {
