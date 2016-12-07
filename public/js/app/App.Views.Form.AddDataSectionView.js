@@ -114,10 +114,8 @@
 						variableId: $item.attr("data-variable-id"),
 						displayName: $item.attr("data-display-name"),
 						unit: $item.attr("data-unit"),
-						mode: $item.attr("data-mode"),
 						targetYear: $item.attr("data-target-year"),
 						tolerance: $item.attr("data-tolerance"),
-						maximumAge: $item.attr("data-maximum-age"),
 						color: $item.attr("data-color")
 					});
 				});
@@ -176,10 +174,8 @@
 
 			var defaults = {
 				unit: '',
-				mode: "latest",
 				targetYear: 2000,
 				tolerance: 5,				
-				maximumAge: 5
 			};
 
 			var settings = _.extend({}, defaults, dimensionSettings);
@@ -205,10 +201,8 @@
 			$li.attr("data-variable-id", settings.variableId);
 			$li.attr("data-display-name", settings.displayName);
 			$li.attr("data-unit", settings.unit);
-			$li.attr("data-mode", settings.mode);
 			$li.attr("data-target-year", settings.targetYear);
 			$li.attr("data-tolerance", settings.tolerance);
-			$li.attr("data-maximum-age", settings.maximumAge);
 			$li.attr("data-color", settings.color);
 			if (settings.color) $li.css("background-color", settings.color);
 		},

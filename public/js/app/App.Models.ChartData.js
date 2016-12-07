@@ -245,14 +245,14 @@
 				categoryTransforms = {},				
 				chartData = [], legendData = [];
 
+			var chartTime = chart.model.get('chart-time');
 			var latestYearInData = _.max(_.map(variables, function(v) { return _.max(v.years); }));
 
 			_.each(dimensions, function(dimension) {
 				var variable = variables[dimension.variableId],
-				    targetYear = parseInt(dimension.targetYear),
+				    targetYear = parseInt(dimension.targetYear) || latestYearInData,
 				    targetMode = dimension.mode,
 				    tolerance = parseInt(dimension.tolerance),
-				    maximumAge = parseInt(dimension.maximumAge),
 				    isCategorical = _.include(['color', 'shape'], dimension.property),
 				    categoryTransform = categoryTransforms[variable.id];
 
@@ -288,19 +288,14 @@
 						continue;
 					}
 
-					if (targetMode === "specific") {
-						// Not within target year range, ignore
-						if (year < targetYear-tolerance || year > targetYear+tolerance)
-							continue;
+					// Not within target year range, ignore
+					if (year < targetYear-tolerance || year > targetYear+tolerance)
+						continue;
 
-						// Make sure we use the closest year within tolerance (favoring later years)
-						var current = series.values[0].time[dimension.property];
-						if (current && Math.abs(current - targetYear) < Math.abs(year - targetYear))
-							continue;
-					} else if (targetMode == "latest" && !isNaN(maximumAge)) {
-						if (year < latestYearInData-maximumAge)
-							continue;
-					}
+					// Make sure we use the closest year within tolerance (favoring later years)
+					var current = series.values[0].time[dimension.property];
+					if (current && Math.abs(current - targetYear) < Math.abs(year - targetYear))
+						continue;
 
 					// All good, put the data in. Note that a scatter plot only has one value per entity.
 					var datum = series.values[0];

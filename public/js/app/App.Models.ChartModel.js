@@ -224,7 +224,7 @@
 
 			// Give scatterplots a default color dimension if they don't have one
 			if (this.get("chart-type") == App.ChartType.ScatterPlot && !_.findWhere(dimensions, { property: 'color' })) {
-				validDimensions = validDimensions.concat([{"variableId":"123","property":"color","unit":"","name":"Color","mode":"specific","targetYear":"2000","tolerance":"5","maximumAge":"5"}]);
+				validDimensions = validDimensions.concat([{"variableId":"123","property":"color","unit":"","name":"Color","tolerance":"5"}]);
 			}
 
 			_.each(validDimensions, function(dim) {
