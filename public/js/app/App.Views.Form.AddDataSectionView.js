@@ -114,7 +114,6 @@
 						variableId: $item.attr("data-variable-id"),
 						displayName: $item.attr("data-display-name"),
 						unit: $item.attr("data-unit"),
-						period: $item.attr("data-period"),
 						mode: $item.attr("data-mode"),
 						targetYear: $item.attr("data-target-year"),
 						tolerance: $item.attr("data-tolerance"),
@@ -177,7 +176,6 @@
 
 			var defaults = {
 				unit: '',
-				period: App.ChartModel.get("chart-type") == App.ChartType.ScatterPlot ? "single" : "all",
 				mode: "latest",
 				targetYear: 2000,
 				tolerance: 5,				
@@ -207,7 +205,6 @@
 			$li.attr("data-variable-id", settings.variableId);
 			$li.attr("data-display-name", settings.displayName);
 			$li.attr("data-unit", settings.unit);
-			$li.attr("data-period", settings.period);
 			$li.attr("data-mode", settings.mode);
 			$li.attr("data-target-year", settings.targetYear);
 			$li.attr("data-tolerance", settings.tolerance);

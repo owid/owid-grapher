@@ -16,16 +16,6 @@
 						</div>
 						<br>
 						<div class="advanced-settings">
-							<div class="settings-var-header">
-								<label class="">
-									<input type="radio" name="period" value="single" checked/>
-									Display values for single year
-								</label>
-								<label class="">
-									<input type="radio" name="period" value="all" />
-									Display values for entire period
-								</label>
-							</div>
 							<div class="settings-var-content">
 								<div class="settings-var-content-single">
 									<div class="settings-var-content-single-header">

@@ -2,13 +2,13 @@
 	"folders":
 	[
 		{
-			"path": "./"
-            "folder_exclude_patterns": [".git"]
+			"path": ".",
+            "folder_exclude_patterns": [".git", "tmp", "storage", "phantomjs"],
 		}
 	],
 	"settings":
 	{
 	    "tab_size": 4,
-	    "translate_tabs_to_spaces": false
+	    "translate_tabs_to_spaces": true
 	}
 }
