@@ -141,28 +141,21 @@
 				_anim = requestAnimationFrame(incrementLoop);
 			}
 
-			var interval = 500, lastTime = null, countdown = interval;
+			var lastTime = null, yearsPerSec = 2;
 			function incrementLoop(time) {
-				if (lastTime !== null)
-					countdown -= (time-lastTime);
+				var elapsed = lastTime ? time-lastTime : 0;
 				lastTime = time;
 
-				if (countdown > 0) {
-					_anim = requestAnimationFrame(incrementLoop);
-					return;
-				}
-
-				countdown = interval;
-				timeline.now('isPlaying, years, targetYear, maxYear', function(isPlaying, years, targetYear, maxYear) {
+				timeline.now('isPlaying, inputYear, maxYear', function(isPlaying, inputYear, maxYear) {
 					if (!isPlaying) return;
 					
-					if (targetYear >= maxYear) {
+					if (inputYear >= maxYear) {
 						timeline.update({ isPlaying: false });
 					} else {
-						var index = years.indexOf(targetYear);
-						timeline.update({ inputYear: years[index+1] });
-						_anim = requestAnimationFrame(incrementLoop);
+						timeline.update({ inputYear: inputYear+(elapsed*yearsPerSec/1000) });
 					}
+
+					_anim = requestAnimationFrame(incrementLoop);
 				});
 			}
 		});

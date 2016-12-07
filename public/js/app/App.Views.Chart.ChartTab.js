@@ -604,12 +604,16 @@
 			var chartTime = chart.model.get('chart-time') || [years[0]];
 
 			var timelineHeight = 50;
-			timeline.update({
+			var changes = {
 				containerNode: chart.html,
 				bounds: { top: chartOffsetY+chartHeight-timelineHeight, left: 0, width: chartWidth, height: timelineHeight },
 				years: years, // Range of years the timeline covers
-				inputYear: chartTime[0]
-			});
+			};
+
+			if (!timeline.isPlaying)
+				changes.inputYear = chartTime[0];
+			
+			timeline.update(changes);
 
 			chartHeight -= timelineHeight+10;
 		}

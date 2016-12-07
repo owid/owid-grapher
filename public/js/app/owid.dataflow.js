@@ -95,9 +95,10 @@
 					return;
 
 //				console.log(flow.spec);
+				var oldResult = state[flow.outputs[0]];
 				var result = flow.callback.apply(model, args);
 
-				if (flow.outputs.length > 0) {// && !_.isEqual(oldResult, result)) {
+				if (flow.outputs.length > 0 && (_.isObject(result) || !_.isEqual(oldResult, result))) {
 					state[flow.outputs[0]] = result;
 					changes[flow.outputs[0]] = true;
 				}

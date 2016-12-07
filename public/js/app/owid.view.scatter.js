@@ -173,7 +173,7 @@
 		});
 
 		// Render the labels and filter for overlaps
-		scatter.flow("labels : data, labelData, entities, xScale, yScale", function(data, labelData, entities, xScale, yScale) {
+		scatter.flow("labels : data, labelData, entities, xScale, yScale", function(data, labelData, entities, xScale, yScale) {			
 			var labelUpdate = entities.selectAll(".label").data(function(d,i) { return [labelData[i]]; });
 
 			var labels = labelUpdate.enter()
