@@ -165,7 +165,7 @@
 					y: yPos - offset,
 					offset: offset,
 					color: "#333",
-					text: d.entityName,
+					text: d.label,
 					key: d.key,
 					fontSize: fontScale(lastValue.size)
 				};
@@ -394,7 +394,7 @@
 					x: xPos,
 					y: yPos,
 					angle: angle,
-					name: d.entityName,
+					name: d.label,
 					key: d.key,
 					fontSize: 12//fontScale(lastValue.size)
 				}];

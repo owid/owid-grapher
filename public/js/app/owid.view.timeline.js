@@ -33,6 +33,21 @@
 			);
 		});
 
+		// Calculate some useful outputs for animation
+		timeline.flow('prevYear, nextYear, progress : inputYear, years', function(inputYear, years) {
+			var prevYear, nextYear, progress;
+			for (var i = 1; i < years.length; i++) {
+				if (inputYear < years[i]) {
+					prevYear = years[i-1];
+					nextYear = years[i];
+					progress = (inputYear-prevYear)/(nextYear-prevYear);
+					break;
+				}
+			}
+			return [prevYear, nextYear, progress];
+		});
+
+
 		timeline.flow("el : containerNode", function(containerNode) {
 			var html = '<div class="play-pause-control control">' +
 				'	<a class="play-btn btn"><i class="fa fa-play-circle-o"></i></a>' +
@@ -74,7 +89,7 @@
 
 		timeline.flow("el, minYear", function(el, minYear) {
 			el.select('.timeline-min-year').text(minYear);
-		});
+		});		
 
 		timeline.flow("el, minYear, targetYear", function(el, minYear, targetYear) {
 			el.classed('min-active', minYear == targetYear);

@@ -97,12 +97,21 @@
 					return;
 
 //				console.log(flow.spec);
-				var oldResult = state[flow.outputs[0]];
-				var result = flow.callback.apply(model, args);
 
-				if (flow.outputs.length > 0 && (_.isObject(result) || !_.isEqual(oldResult, result))) {
-					state[flow.outputs[0]] = result;
-					changes[flow.outputs[0]] = true;
+				var outputs = flow.callback.apply(model, args);
+
+				if (flow.outputs.length == 1) outputs = [outputs];
+
+				for (var i = 0; i < flow.outputs.length; i++) {
+					var key = flow.outputs[i],
+						result = outputs[i],
+						oldResult = state[key];
+
+
+					if (_.isObject(result) || !_.isEqual(oldResult, result)) {
+						state[key] = result;
+						changes[key] = true;
+					}
 				}
 			});
 		};

@@ -73,7 +73,7 @@
 			configureAxis();
 			configureBounds();
 			renderLegend();
-			renderTimeline();
+//			renderTimeline();
 
 			$(".chart-error").remove();
 			if (missingMsg || _.isEmpty(localData)) {
@@ -259,6 +259,37 @@
 			if (!nvd3) nvd3 = nv.models.scatterChart();
 			nvd3.options(nvOptions).pointRange(points).showDistX(true).showDistY(true);	*/
 
+			/*
+
+			if (!viz) {
+				viz = owid.view.scatter();
+			}*/
+
+			/*viz.update({
+				svg: svg,
+				data: localData,
+				bounds: { left: chartOffsetX, top: chartOffsetY+10, width: chartWidth-10, height: chartHeight-10 },
+				axisConfig: {
+					x: {
+						domain: xDomain,
+						scaleType: xAxisScale,
+						label: xAxis['axis-label'],
+						tickFormat: function(d) {
+							return xAxisPrefix + owid.unitFormat({ format: xAxisFormat||5 }, d) + xAxisSuffix;							
+						}
+					},
+
+					y: {
+						domain: yDomain,
+						scaleType: yAxisScale,
+						label: yAxis['axis-label'],
+						tickFormat: function(d) {
+							return yAxisPrefix + owid.unitFormat({ format: yAxisFormat }, d) + yAxisSuffix;
+						}
+					}
+				}
+			});*/
+
 			var allValues = [];
 			_.each( localData, function( v, i ) {
 				if( v.values ) {
@@ -289,11 +320,13 @@
 		    		d.values[0].y < yDomain[0] || d.values[0].y > yDomain[1]);
 		    });
 
-			if (!viz) viz = owid.view.scatter();
+			if (!viz) {
+				viz = owid.viz.scatter();
+			}
 
 			viz.update({
+				chart: chart,
 				svg: svg,
-				data: localData,
 				bounds: { left: chartOffsetX, top: chartOffsetY+10, width: chartWidth-10, height: chartHeight-10 },
 				axisConfig: {
 					x: {
@@ -313,7 +346,10 @@
 							return yAxisPrefix + owid.unitFormat({ format: yAxisFormat }, d) + yAxisSuffix;
 						}
 					}
-				}
+				},
+				dimensions: chart.model.getDimensions(),
+				variables: chart.vardata.get('variables'),
+				inputYear: chart.model.get('chart-time')[0]
 			});
 
 			chart.dispatch.renderEnd();
@@ -564,70 +600,6 @@
 			} else {
 				$svg.find("> .nvd3.nv-custom-legend").hide();
 			}			
-		}
-
-		function renderTimeline() {	
-			var hasTimeline = (chartType == App.ChartType.ScatterPlot);
-
-			function getAvailableYears() {
-				var yearSets = [];
-
-				var dimensions = chart.model.getDimensions();
-				_.each(dimensions, function(dimension) {
-					if (dimension.property != 'x' && dimension.property != 'y') return;
-
-					var variable = chart.vardata.getVariableById(dimension.variableId);
-					yearSets.push(variable.years);
-				});
-
-				return _.intersection.apply(_, yearSets);
-			}
-
-			var years = getAvailableYears();
-
-			if (!hasTimeline || !years || years.length <= 1) {
-				if (timeline) {
-					timeline.remove();
-					timeline = null;									
-				}
-				return;
-			}
-
-			if (!timeline) {
-				timeline = owid.view.timeline();
-
-				timeline.flow('targetYear', function(targetYear) {
-					chart.model.set('chart-time', [targetYear, targetYear]);
-				});
-
-				timeline.flow('inputYear, years', function(inputYear, years) {
-					var prevYear, nextYear, progress;
-					for (var i = 1; i < years.length; i++) {
-						if (inputYear < years[i]) {
-							prevYear = years[i-1];
-							nextYear = years[i];
-							progress = (inputYear-prevYear)/(nextYear-prevYear);
-							break;
-						}
-					}
-				});
-			}
-
-			var chartTime = chart.model.get('chart-time') || [years[0]];
-
-			var timelineHeight = 50;
-			var changes = {
-				containerNode: chart.html,
-				bounds: { top: chartOffsetY+chartHeight-timelineHeight, left: 0, width: chartWidth, height: timelineHeight },
-				years: years, // Range of years the timeline covers
-			};
-
-			if (!timeline.isPlaying)
-				changes.inputYear = chartTime[0];
-
-			timeline.update(changes);
-
-			chartHeight -= timelineHeight+10;
 		}
 
 		function splitSeriesByMissing(localData) {
