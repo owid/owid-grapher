@@ -13,7 +13,8 @@
             axisConfig: undefined,
             dimensions: undefined,
             variables: undefined,
-            inputYear: undefined
+            inputYear: undefined,
+            interpolation: null
         });
 
         viz.flow('dimensions : chart', function(chart) {
@@ -66,6 +67,7 @@
                             index = data.length;
                             data.entityIdToIndex[entity.id] = index;
                             datum = { 
+                                id: entity.id,
                                 label: entity.name,
                                 key: entity.name,
                                 values: [{ time: {} }]
@@ -81,41 +83,72 @@
             });
 
             _.each(dataByYear, function(v, k) {
+                var index = dataByYear[k].entityIdToIndex;
                 dataByYear[k] = _.filter(v, function(d) {
                     return _.has(d.values[0], 'x') && _.has(d.values[0], 'y');
                 });
+                dataByYear[k].entityIdToIndex = index;
             });
 
             return dataByYear;
         });
 
-        viz.flow('currentData : dataForAllYears, inputYear', function(dataForAllYears, inputYear) {
-            return dataForAllYears[inputYear];
-        });
-
         var _timeline = owid.view.timeline();
 
         // hack
-        _timeline.flow('targetYear', function(targetYear) {
-            chart.model.set('chart-time', [targetYear, targetYear]);
-        });
+//        _timeline.flow('targetYear', function(targetYear) {
+//            chart.model.set('chart-time', [targetYear, targetYear]);
+//        });
 
         viz.flow('timeline : chart', function(chart) {
             return _timeline;
         });
 
-        viz.flow('timeline, chart, bounds, availableYears', function(timeline, chart, bounds, availableYears) {
-            var chartTime = chart.model.get('chart-time') || [availableYears[0]];
-
+        viz.flow('timeline, chart, bounds, availableYears, inputYear', function(timeline, chart, bounds, availableYears, inputYear) {
             var timelineHeight = 50;
             timeline.update({
                 containerNode: chart.html,
                 bounds: { top: bounds.top+bounds.height-timelineHeight, left: bounds.left, width: bounds.width, height: timelineHeight },
                 years: availableYears,
-                inputYear: chartTime[0]
+                inputYear: inputYear
             });
+
+            if (!timeline.bound) {
+                timeline.flow('prevYear, nextYear, progress', function(prevYear, nextYear, progress) {
+                    viz.update({ interpolation: { prevYear: prevYear, nextYear: nextYear, progress: progress }});
+                });             
+                timeline.bound = true;   
+            }
         });
 
+        viz.flow('currentData : dataForAllYears, inputYear, interpolation', function(dataForAllYears, inputYear, interpolation) {
+            if (!interpolation)
+                return dataForAllYears[inputYear];
+            else {
+                var prevData = dataForAllYears[interpolation.prevYear],
+                    nextData = dataForAllYears[interpolation.nextYear],
+                    progress = interpolation.progress;
+
+                var newData = [];
+                _.each(prevData, function(series) {
+                    var nextSeries = nextData[nextData.entityIdToIndex[series.id]];
+                    if (!nextSeries) return;
+
+                    var prev = series.values[0],
+                        next = nextSeries.values[0];
+
+                    newData.push(_.extend({}, series, {
+                        values: [{
+                            x: prev.x + (next.x-prev.x)*progress,
+                            y: prev.y + (next.y-prev.y)*progress,
+                            time: next.time
+                        }]
+                    }));
+                });
+
+                return newData;
+            }
+        });
 
         var _scatter = owid.view.scatter();
         viz.flow('scatter : chart', function(chart) {

@@ -138,7 +138,7 @@
 					return dist;
 				})[0];
 
-				if (Math.sqrt(distances[d.key]) < sizeScale(d.values[0].size)*6)
+				if (Math.sqrt(distances[d.key]) < sizeScale(d.values[0].size||1)*6)
 					scatter.update({ focusKey: d.key });
 				else
 					scatter.update({ focusKey: null });
