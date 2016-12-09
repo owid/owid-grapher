@@ -36,14 +36,8 @@
             return _.intersection.apply(_, yearSets);
         });
 
-        viz.flow('dataForAllYears : availableYears, dimensions, variables', function(availableYears, dimensions, variables) {
-            var dataByYear = {};
-
-            _.each(availableYears, function(year) {
-                var data = [];
-                data.entityIdToIndex = {};
-                dataByYear[year] = data;
-            });
+        viz.flow('dataByEntityAndYear : availableYears, dimensions, variables', function(availableYears, dimensions, variables) {
+            var dataByEntityAndYear = {};
 
             _.each(dimensions, function(dimension) {
                 var variable = variables[dimension.variableId],
@@ -59,38 +53,31 @@
                         if (year < targetYear-tolerance || year > targetYear+tolerance)
                             return;
 
-                        var data = dataByYear[targetYear],
-                            index = data.entityIdToIndex[entity.id],
-                            datum = data[index];
-
-                        if (!datum) {
-                            index = data.length;
-                            data.entityIdToIndex[entity.id] = index;
-                            datum = { 
+                        var dataByYear = owid.default(dataByEntityAndYear, entity.id, {}),
+                            series = owid.default(dataByYear, targetYear, {
                                 id: entity.id,
                                 label: entity.name,
                                 key: entity.name,
                                 values: [{ time: {} }]
-                            };
-                            data.push(datum);
-                        }
+                            });
 
-                        var d = datum.values[0];
+                        var d = series.values[0];
                         d.time[dimension.property] = year;
                         d[dimension.property] = value;
-                    });
+                    }); 
                 }                
             });
 
-            _.each(dataByYear, function(v, k) {
-                var index = dataByYear[k].entityIdToIndex;
-                dataByYear[k] = _.filter(v, function(d) {
-                    return _.has(d.values[0], 'x') && _.has(d.values[0], 'y');
+            _.each(dataByEntityAndYear, function(v, k) {
+                var dataByYear = {};
+                _.each(v, function(series, year) {
+                    if (_.has(series.values[0], 'x') && _.has(series.values[0], 'y'))
+                        dataByYear[year] = series;
                 });
-                dataByYear[k].entityIdToIndex = index;
+                dataByEntityAndYear[k] = dataByYear;
             });
 
-            return dataByYear;
+            return dataByEntityAndYear;
         });
 
         var _timeline = owid.view.timeline();
@@ -114,19 +101,58 @@
             });
 
             if (!timeline.bound) {
-                timeline.flow('prevYear, nextYear, progress', function(prevYear, nextYear, progress) {
-                    viz.update({ interpolation: { prevYear: prevYear, nextYear: nextYear, progress: progress }});
-                });             
+                timeline.flow('inputYear', function(inputYear) {
+                    viz.update({ inputYear: inputYear });
+                });
                 timeline.bound = true;   
             }
         });
 
-        viz.flow('currentData : dataForAllYears, inputYear, interpolation', function(dataForAllYears, inputYear, interpolation) {
-            if (!interpolation)
-                return dataForAllYears[inputYear];
-            else {
-                var prevData = dataForAllYears[interpolation.prevYear],
-                    nextData = dataForAllYears[interpolation.nextYear],
+        viz.flow('currentData : dataByEntityAndYear, inputYear, timeline', function(dataByEntityAndYear, inputYear, timeline) {
+            var currentData = [];
+            var isInterpolation = Math.round(inputYear) != inputYear;
+
+            console.log(inputYear);
+
+            _.each(dataByEntityAndYear, function(dataByYear, id) {
+                var years = _.map(_.keys(dataByYear), function(d) { return parseInt(d); });
+
+                if (years.length == 0) return;
+
+                if (!isInterpolation) {
+                    if (dataByYear[inputYear])
+                        currentData.push(dataByYear[inputYear]);
+                    return;
+                }
+
+                var prevYear, nextYear;
+                for (var i = 0; i < years.length; i++) {
+                    prevYear = years[i];                    
+                    nextYear = years[i+1];
+
+                    if (nextYear > inputYear)
+                        break;
+                }
+
+                if (!_.isNumber(prevYear) || !_.isNumber(nextYear) || prevYear > inputYear || nextYear < inputYear)
+                    return;
+
+                var prev = dataByYear[prevYear].values[0],
+                    next = dataByYear[nextYear].values[0],
+                    progress = (inputYear-prevYear) / (nextYear-prevYear);
+
+                currentData.push(_.extend({}, dataByYear[prevYear], {
+                    values: [{
+                        x: prev.x + (next.x-prev.x)*progress,
+                        y: prev.y + (next.y-prev.y)*progress,
+                        time: next.time                        
+                    }]
+                }))
+            });
+
+            return currentData;
+/*                var prevData = dataByEntityAndYear[interpolation.prevYear],
+                    nextData = dataByEntityAndYear[interpolation.nextYear],
                     progress = interpolation.progress;
 
                 var newData = [];
@@ -144,10 +170,7 @@
                             time: next.time
                         }]
                     }));
-                });
-
-                return newData;
-            }
+                });*/
         });
 
         var _scatter = owid.view.scatter();

@@ -53,6 +53,11 @@
 				enter = update.enter().append("g").attr("class", function(d) { return d.key + " entity"; }),
 				entities = enter.merge(update);
 
+			enter.style('opacity', 0).transition(1000).style('opacity', 1);
+
+/*			entities.style('opacity', function(d) {				
+            	return d.key == "Austria" ? 1 : 0;
+			});*/
 			return entities;
 		});
 

@@ -37,6 +37,14 @@
 
 	var owid = {};
 
+	owid.default = function(obj, key, defaultVal) {
+		var current = obj[key];
+		if (current !== undefined) return current;
+
+		obj[key] = defaultVal;
+		return defaultVal;
+	};
+
 	// Round with precision option https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Math/round
 	owid.round = function(number, precision) {
 	    var factor = Math.pow(10, precision);
