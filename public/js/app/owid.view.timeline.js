@@ -10,7 +10,8 @@
 			bounds: { left: 0, top: 0, width: 100, height: 100 },
 			years: [1900, 1920, 1940, 2000], // Range of years the timeline covers
 			inputYear: 1980,
-			isPlaying: false
+			isPlaying: false,
+			isDragging: false
 		});
 
 		timeline.flow("minYear : years", function(years) { return _.first(years); });
@@ -18,11 +19,6 @@
 
 		timeline.flow("inputYear : inputYear, minYear, maxYear", function(inputYear, minYear, maxYear) {
 			return Math.max(Math.min(inputYear, maxYear), minYear);
-		});
-
-		// How far along the timeline marker is as fraction of slider width
-		timeline.flow("fracWidth : inputYear, minYear, maxYear", function(inputYear, minYear, maxYear) {
-			return (inputYear - minYear) / (maxYear - minYear);
 		});
 
 		// Find the closest available year to the input year
@@ -33,20 +29,18 @@
 			);
 		});
 
-		// Calculate some useful outputs for animation
-		timeline.flow('prevYear, nextYear, progress : inputYear, years', function(inputYear, years) {
-			var prevYear, nextYear, progress;
-			for (var i = 1; i < years.length; i++) {
-				if (inputYear < years[i]) {
-					prevYear = years[i-1];
-					nextYear = years[i];
-					progress = (inputYear-prevYear)/(nextYear-prevYear);
-					break;
-				}
-			}
-			return [prevYear, nextYear, progress];
+		// When we stop playing or dragging, lock the input to an actual year
+		timeline.flow('inputYear : inputYear, targetYear, isPlaying, isDragging', function(inputYear, targetYear, isPlaying, isDragging) {			
+			if (!isPlaying && !isDragging)
+				return targetYear;
+			else
+				return inputYear;
 		});
 
+		// How far along the timeline marker is as fraction of slider width
+		timeline.flow("fracWidth : inputYear, minYear, maxYear", function(inputYear, minYear, maxYear) {
+			return (inputYear - minYear) / (maxYear - minYear);
+		});
 
 		timeline.flow("el : containerNode", function(containerNode) {
 			var html = '<div class="play-pause-control control">' +
@@ -121,7 +115,7 @@
 						fracWidth = (mouseX-sliderBounds.left) / sliderBounds.width,
 						inputYear = minYear + fracWidth*(maxYear-minYear);
 
-					timeline.update({ inputYear: inputYear });
+					timeline.update({ isDragging: true, inputYear: inputYear });
 					evt.preventDefault();
 				});
 			}
@@ -130,6 +124,7 @@
 				container.on('mousemove.timeline', null);
 				container.on('mouseup.timeline', null);
 				//container.on('mouseleave.timeline', null);
+				timeline.update({ isDragging: false });
 			}
 
 			el.on('mousedown.timeline', function() {

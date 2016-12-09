@@ -13,8 +13,7 @@
             axisConfig: undefined,
             dimensions: undefined,
             variables: undefined,
-            inputYear: undefined,
-            interpolation: null
+            inputYear: undefined
         });
 
         viz.flow('dimensions : chart', function(chart) {
@@ -69,15 +68,32 @@
             });
 
             _.each(dataByEntityAndYear, function(v, k) {
-                var dataByYear = {};
+                var newDataByYear = {};
                 _.each(v, function(series, year) {
-                    if (_.has(series.values[0], 'x') && _.has(series.values[0], 'y'))
-                        dataByYear[year] = series;
+                    var datum = series.values[0];
+                    if (_.has(datum, 'x') && _.has(datum, 'y'))
+                        newDataByYear[year] = series;
                 });
-                dataByEntityAndYear[k] = dataByYear;
+                dataByEntityAndYear[k] = newDataByYear;
             });
 
             return dataByEntityAndYear;
+        });
+
+        viz.flow('xDomain, yDomain : dataByEntityAndYear', function(dataByEntityAndYear) {
+            var xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity;
+
+            _.each(dataByEntityAndYear, function(dataByYear) {
+                _.each(dataByYear, function(series) {
+                    var datum = series.values[0];
+                    xMin = Math.min(datum.x, xMin);
+                    xMax = Math.max(datum.x, xMax);
+                    yMin = Math.min(datum.y, yMin);
+                    yMax = Math.max(datum.y, yMax);
+                });
+            });
+
+            return [[xMin, xMax], [yMin, yMax]];
         });
 
         var _timeline = owid.view.timeline();
@@ -112,18 +128,14 @@
             var currentData = [];
             var isInterpolation = Math.round(inputYear) != inputYear;
 
-            console.log(inputYear);
-
             _.each(dataByEntityAndYear, function(dataByYear, id) {
-                var years = _.map(_.keys(dataByYear), function(d) { return parseInt(d); });
-
-                if (years.length == 0) return;
-
                 if (!isInterpolation) {
-                    if (dataByYear[inputYear])
-                        currentData.push(dataByYear[inputYear]);
+                    if (dataByYear[timeline.targetYear])
+                        currentData.push(dataByYear[timeline.targetYear]);
                     return;
                 }
+
+                var years = _.map(_.keys(dataByYear), function(d) { return parseInt(d); });
 
                 var prevYear, nextYear;
                 for (var i = 0; i < years.length; i++) {
@@ -145,7 +157,7 @@
                     values: [{
                         x: prev.x + (next.x-prev.x)*progress,
                         y: prev.y + (next.y-prev.y)*progress,
-                        time: next.time                        
+                        size: prev.size + (next.size-prev.size)*progress
                     }]
                 }))
             });
@@ -178,12 +190,19 @@
             return _scatter;
         });
 
-        viz.flow('scatter, svg, currentData, bounds, axisConfig, timeline', function(scatter, svg, currentData, bounds, axisConfig, timeline) {
+        viz.flow('scatterAxis : axisConfig, xDomain, yDomain', function(axisConfig, xDomain, yDomain) {
+            var scatterAxis = _.clone(axisConfig);
+            scatterAxis.x.domain = xDomain;
+            scatterAxis.y.domain = yDomain;
+            return scatterAxis;
+        });
+
+        viz.flow('scatter, svg, currentData, bounds, scatterAxis, timeline, xDomain, yDomain', function(scatter, svg, currentData, bounds, scatterAxis, timeline, xDomain, yDomain) {
             scatter.update({
                 svg: svg,
                 data: currentData,
                 bounds: _.extend({}, bounds, { height: bounds.height-timeline.bounds.height-10 }),
-                axisConfig: axisConfig
+                axisConfig: scatterAxis
             });
         });
 
