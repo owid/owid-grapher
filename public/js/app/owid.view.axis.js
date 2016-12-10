@@ -49,7 +49,7 @@
 			return g.append("g").attr('class', 'scale');
 		});
 
-		axis.flow("bboxNoLabel : scaleG, bounds, scale, orient, d3axis, tickFormat, scaleType", function(scaleG, bounds, scale, orient, d3axis, tickFormat, scaleType) {			
+		axis.flow("bboxNoLabel : scaleG, bounds, scale, orient, d3axis, tickFormat, scaleType", function(scaleG, bounds, scale, orient, d3axis, tickFormat, scaleType) {
 			d3axis.scale(scale)
 				.ticks((orient == 'left' ? bounds.height : bounds.width) / 100)
 				.tickSizeOuter(0);

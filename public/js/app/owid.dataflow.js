@@ -59,6 +59,10 @@
 			callback.apply(model, args);
 		};
 
+		function isEqual(a, b) {
+			return _.isEqual(a, b);
+		}
+
 		var hasDefaults = false;
 		model.update = function(inputs) {
 			var changes = {};
@@ -77,7 +81,7 @@
 			_.each(inputs, function(v, k) {
 				if (!_.has(state, k))
 					throw("No such input: " + k);
-				if (!_.isEqual(state[k], v)) {
+				if (!isEqual(state[k], v)) {
 					state[k] = v;
 					changes[k] = true;
 				}
@@ -107,8 +111,7 @@
 						result = outputs[i],
 						oldResult = state[key];
 
-
-					if (_.isObject(result) || !_.isEqual(oldResult, result)) {
+					if ((result && result.hasOwnProperty('state')) || !isEqual(oldResult, result)) {
 						state[key] = result;
 						changes[key] = true;
 					}

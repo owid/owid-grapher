@@ -13,17 +13,11 @@
             axisConfig: undefined,
             dimensions: undefined,
             variables: undefined,
-            inputYear: undefined
+            inputYear: undefined,
+            colorScheme: ["#aec7e8", "#ff7f0e", "#1f77b4", "#ffbb78", "#2ca02c", "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b", "c49c94", "e377c2", "f7b6d2", "7f7f7f", "c7c7c7", "bcbd22", "dbdb8d", "17becf", "9edae5", "1f77b4"]
         });
 
-        viz.flow('dimensions : chart', function(chart) {
-            return chart.model.getDimensions();
-        });
-
-        viz.flow('variables : chart', function(chart) {
-            return chart.vardata.get('variables');
-        });
-
+        // Calculate the years which have data, for the timeline
         viz.flow('availableYears : dimensions, variables', function(dimensions, variables) {
             var yearSets = [];
 
@@ -35,10 +29,24 @@
             return _.intersection.apply(_, yearSets);
         });
 
-        viz.flow('dataByEntityAndYear : availableYears, dimensions, variables', function(availableYears, dimensions, variables) {
+        // Calculate a default input year if none is given
+        viz.flow('inputYear : inputYear, availableYears', function(inputYear, availableYears) {
+            return _.isNumber(inputYear) ? inputYear : _.last(availableYears);
+        });
+
+        // Color scale for color dimension
+        viz.flow('colorScale : colorScheme', function(colorScheme) {
+            return d3.scaleOrdinal().range(colorScheme);
+        });
+
+        // Precompute the data transformation for every year (so later animation is fast)
+        viz.flow('dataByEntityAndYear : availableYears, dimensions, variables, colorScale', function(availableYears, dimensions, variables, colorScale) {
             var dataByEntityAndYear = {};
 
+            // The data values
             _.each(dimensions, function(dimension) {
+                if (dimension.property != 'x' && dimension.property != 'y') return;
+
                 var variable = variables[dimension.variableId],
                     tolerance = parseInt(dimension.tolerance);
 
@@ -67,6 +75,25 @@
                 }                
             });
 
+            // Colors
+            _.each(dimensions, function(dimension) {
+                if (dimension.property != 'color') return;
+
+                var variable = variables[dimension.variableId];
+
+                console.log(variable.entities)
+
+                for (var i = 0; i < variable.entities.length; i++) {
+                    var value = variable.values[i],
+                        entityId = variable.entities[i];
+
+                    _.each(dataByEntityAndYear[entityId], function(series) {
+                        series.color = colorScale(value);
+                    });
+                }
+            });
+
+            // Exclude any with data for only one axis
             _.each(dataByEntityAndYear, function(v, k) {
                 var newDataByYear = {};
                 _.each(v, function(series, year) {
@@ -124,12 +151,15 @@
             }
         });
 
-        viz.flow('currentData : dataByEntityAndYear, inputYear, timeline', function(dataByEntityAndYear, inputYear, timeline) {
+        viz.flow('isInterpolating : inputYear', function(inputYear) {
+            return Math.round(inputYear) != inputYear;
+        });
+
+        viz.flow('currentData : dataByEntityAndYear, inputYear, timeline, isInterpolating', function(dataByEntityAndYear, inputYear, timeline, isInterpolating) {
             var currentData = [];
-            var isInterpolation = Math.round(inputYear) != inputYear;
 
             _.each(dataByEntityAndYear, function(dataByYear, id) {
-                if (!isInterpolation) {
+                if (!isInterpolating) {
                     if (dataByYear[timeline.targetYear])
                         currentData.push(dataByYear[timeline.targetYear]);
                     return;
@@ -198,16 +228,20 @@
         });
 
         viz.flow('scatter, svg, currentData, bounds, scatterAxis, timeline, xDomain, yDomain', function(scatter, svg, currentData, bounds, scatterAxis, timeline, xDomain, yDomain) {
+            var timelineHeight = timeline.years.length > 1 ? timeline.bounds.height : 0;
+
             scatter.update({
                 svg: svg,
                 data: currentData,
-                bounds: _.extend({}, bounds, { height: bounds.height-timeline.bounds.height-10 }),
+                bounds: _.extend({}, bounds, { height: bounds.height-timelineHeight-10 }),
                 axisConfig: scatterAxis
             });
         });
 
-//            if (!timeline.isPlaying)
-  //              changes.inputYear = chartTime[0];            
+        viz.flow('scatter, isInterpolating', function(scatter, isInterpolating) {
+            scatter.update({ canHover: !isInterpolating });
+        });
+
         return viz;
     };
 })(d3v4);

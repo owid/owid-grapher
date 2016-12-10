@@ -76,7 +76,7 @@
 //			renderTimeline();
 
 			$(".chart-error").remove();
-			if (missingMsg || _.isEmpty(localData)) {
+			if (missingMsg || (_.isEmpty(localData) && chartType != App.ChartType.ScatterPlot)) {
 				chart.$(".nv-wrap").remove();
 				chart.showMessage(missingMsg || "No available data.");
 				return changes.done();
@@ -290,17 +290,7 @@
 				}
 			});*/
 
-			var allValues = [];
-			_.each( localData, function( v, i ) {
-				if( v.values ) {
-					allValues = allValues.concat( v.values );
-				} else if(_.isArray(v)) {
-					//special case for discrete bar chart
-					allValues = v;
-				}
-			} );
-
-			xDomain = d3.extent(allValues.map(function(d) { return d.x; }));
+/*			xDomain = d3.extent(allValues.map(function(d) { return d.x; }));
 			yDomain = d3.extent(allValues.map(function(d) { return d.y; }));
 			isClamped = _.isFinite(xAxisMin) || _.isFinite(xAxisMax) || _.isFinite(yAxisMin) || _.isFinite(yAxisMax);
 
@@ -318,7 +308,7 @@
 		    localData = _.filter(localData, function(d) {
 		    	return !(d.values[0].x < xDomain[0] || d.values[0].x > xDomain[1] ||
 		    		d.values[0].y < yDomain[0] || d.values[0].y > yDomain[1]);
-		    });
+		    });*/
 
 			if (!viz) {
 				viz = owid.viz.scatter();
@@ -349,7 +339,7 @@
 				},
 				dimensions: chart.model.getDimensions(),
 				variables: chart.vardata.get('variables'),
-				inputYear: chart.model.get('chart-time')[0]
+				inputYear: (chart.model.get('chart-time')||[])[0]
 			});
 
 			chart.dispatch.renderEnd();

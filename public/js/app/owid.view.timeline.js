@@ -29,7 +29,7 @@
 			);
 		});
 
-		// When we stop playing or dragging, lock the input to an actual year
+		// If we're not playing or dragging, lock the input to an actual year (no interpolation)
 		timeline.flow('inputYear : inputYear, targetYear, isPlaying, isDragging', function(inputYear, targetYear, isPlaying, isDragging) {			
 			if (!isPlaying && !isDragging)
 				return targetYear;
@@ -42,7 +42,7 @@
 			return (inputYear - minYear) / (maxYear - minYear);
 		});
 
-		timeline.flow("el : containerNode", function(containerNode) {
+		timeline.flow("el : containerNode, years", function(containerNode, years) {
 			var html = '<div class="play-pause-control control">' +
 				'	<a class="play-btn btn"><i class="fa fa-play-circle-o"></i></a>' +
 				'	<a class="pause-btn btn hidden"><i class="fa fa-pause-circle-o"></i></a>' +
@@ -61,12 +61,17 @@
 
 			var elUpdate = d3.select(containerNode).selectAll('.timeline');
 
-			return elUpdate.data([this.state])
-				.enter()
-					.append('div')
-					.attr('class', 'timeline noselect')
-					.html(html)
-				.merge(elUpdate);
+			if (years.length <= 1) {
+				// Don't need a timeline with no years...
+				return elUpdate.remove();
+			} else {
+				return elUpdate.data([this.state])
+					.enter()
+						.append('div')
+						.attr('class', 'timeline noselect')
+						.html(html)
+					.merge(elUpdate);				
+			}
 		});
 
 		timeline.flow("el, bounds", function(el, bounds) {

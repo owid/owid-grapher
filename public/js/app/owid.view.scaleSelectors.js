@@ -42,7 +42,7 @@
 				$yAxisBtn.find('span').text(s.capitalize(yScale) || "Linear");
 
 				if (chart.model.get('chart-type') == App.ChartType.ScatterPlot) {
-					var innerBounds = chart.tabs.chart.viz.axisBox.innerBounds;
+					var innerBounds = chart.tabs.chart.viz.scatter.axisBox.innerBounds;
 
 					$xAxisScaleSelector.css({ left: innerBounds.width - 10, top: innerBounds.height - 15 });
 					$yAxisScaleSelector.css({ left: innerBounds.left + 10, top: -3 });

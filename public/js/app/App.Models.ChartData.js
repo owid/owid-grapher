@@ -442,6 +442,9 @@
 		},
 
 		transformData: function() {
+			if (chartType == App.ChartType.ScatterPlot)
+				return [];
+
 			if (changes.any()) this.chartData = null;
 
 			if (this.chartData)
@@ -456,8 +459,6 @@
 
 			if (chartType == App.ChartType.LineChart)
 				result = this.transformDataForLineChart();
-			else if (chartType == App.ChartType.ScatterPlot)
-				result = this.transformDataForScatterPlot();
 			else if (chartType == App.ChartType.StackedArea)
 				result = this.transformDataForStackedArea();	
 			else if (chartType == App.ChartType.DiscreteBar)

@@ -10,13 +10,19 @@
 			data: [],
 			bounds: { left: 0, top: 0, width: 100, height: 100 },
 			axisConfig: undefined,
-			focusKey: null
+			hoverKey: null,
+			canHover: true
 		});
 
 		var _axisBox = owid.view.axisBox();
-		scatter.flow("axisBox : svg, data, bounds, axisConfig", function(svg, data, bounds, axisConfig) {
+
+		scatter.flow("svgSelect : svg", function(svg) {
+			return d3.select(svg.node());
+		});
+
+		scatter.flow("axisBox : svgSelect, data, bounds, axisConfig", function(svg, data, bounds, axisConfig) {
 			_axisBox.update({
-				svg: d3.select(svg.node()),
+				svg: svg,
 				bounds: bounds,
 				axisConfig: axisConfig
 			});
@@ -61,41 +67,43 @@
 			return entities;
 		});
 
-		scatter.flow("dots : entities", function(entities) {
+		scatter.flow("dots : entities, data", function(entities) {
 		    var dotUpdate = entities.selectAll(".dot").data(function(d) { return [d]; });
 		    return dotUpdate.enter().append("circle").attr("class", "dot").merge(dotUpdate);
 		});
 
 
 		var _colorScale = d3.scaleOrdinal().range(d3.schemeCategory20);
-		scatter.flow("dots, xScale, yScale", function(dots, xScale, yScale) {
+		scatter.flow("dots, xScale, yScale, data", function(dots, xScale, yScale) {
 			dots
 		      .attr("cx", function(d) { return xScale(d.values[0].x); })
 		      .attr("cy", function(d) { return yScale(d.values[0].y); })
 		      .style("fill", function(d) { return d.color || _colorScale(d.key); });
 		});
 
-		scatter.flow("dots, sizeScale, focusKey", function(dots, sizeScale, focusKey) {
+		scatter.flow("hovered : data, hoverKey, canHover", function(data, hoverKey, canHover) {
+			if (!canHover) return false;
+			else
+				return _.find(data, function(d) { return d.key == hoverKey; });
+		});
+
+		scatter.flow("dots, hovered", function(dots, hovered) {
+			dots.style("fill-opacity", function(d) { return d == hovered ? 1 : 0.5; });
+		});
+
+		scatter.flow("dots, sizeScale, hovered", function(dots, sizeScale, hovered) {
 			dots.attr("r", function(d) { 
-				return sizeScale(d.values[0].size||1) * (focusKey == d.key ? 1.5 : 1);
+				return sizeScale(d.values[0].size||1) * (hovered == d ? 1.5 : 1);
 			});
 		});
 
-		scatter.flow("dots, focusKey", function(dots, focusKey) {
-			dots.style("fill-opacity", function(d) { return d.key == focusKey ? 1 : 0.5; });
-		});
-
-		scatter.flow("focused : data, focusKey", function(data, focusKey) {
-			return _.find(data, function(d) { return d.key == focusKey; });
-		});
-
 		// Little lines that point to the axis when you hover a data point
-		scatter.flow("g, data, xScale, yScale, focused", function(g, data, xScale, yScale, focused) {
+		scatter.flow("g, data, xScale, yScale, hovered", function(g, data, xScale, yScale, hovered) {
 			g.selectAll('.focusLine').remove();
-			if (!focused) return;
+			if (!hovered) return;
 
 			g.selectAll('.x.focusLine')
-				.data([focused])
+				.data([hovered])
 				.enter()
 				.append('line')
 				.attr('class', 'x focusLine')
@@ -106,7 +114,7 @@
 				.style('stroke', function(d) { return d.color || _colorScale(d.key); });
 
 			g.selectAll('.y.focusLine')
-				.data([focused])
+				.data([hovered])
 				.enter()
 				.append('line')
 				.attr('class', 'y focusLine')
@@ -118,11 +126,11 @@
 		});
 
 		// Tooltip
-		scatter.flow("svg, focused, xScale, yScale", function tooltip(svg, focused, xScale, yScale) {
-			if (!focused)
+		scatter.flow("svg, hovered, xScale, yScale", function tooltip(svg, hovered, xScale, yScale) {
+			if (!hovered)
 				owid.tooltipHide(svg.node());
 			else
-				owid.tooltip(svg.node(), xScale(focused.values[0].x), yScale(focused.values[0].y), focused);
+				owid.tooltip(svg.node(), xScale(hovered.values[0].x), yScale(hovered.values[0].y), hovered);
 		});
 
 		// Set up hover interactivity
@@ -145,9 +153,9 @@
 
 				if (d) {
 					if (Math.sqrt(distances[d.key]) < sizeScale(d.values[0].size||1)*6)
-						scatter.update({ focusKey: d.key });
+						scatter.update({ hoverKey: d.key });
 					else
-						scatter.update({ focusKey: null });					
+						scatter.update({ hoverKey: null });					
 				}
 			});
 		});
