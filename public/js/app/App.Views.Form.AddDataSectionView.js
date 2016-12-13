@@ -114,7 +114,7 @@
 						variableId: $item.attr("data-variable-id"),
 						displayName: $item.attr("data-display-name"),
 						unit: $item.attr("data-unit"),
-						targetYear: $item.attr("data-targetYear"),
+						targetYear: _.isNumber(parseInt($item.attr("data-targetYear"))) ? parseInt($item.attr("data-targetYear")) : null,
 						tolerance: $item.attr("data-tolerance"),
 						color: $item.attr("data-color")
 					});
