@@ -17,6 +17,10 @@
 						<br>
 						<div class="advanced-settings">
 							<label>
+								<span>Target year</span>
+								<input type="text" class="form-control digit-input" name="targetYear" />
+							</label>
+							<label>
 								<span>Tolerance</span>
 								<input type="text" class="form-control digit-input" name="tolerance" />
 							</label>

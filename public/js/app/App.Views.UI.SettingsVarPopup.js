@@ -29,7 +29,7 @@
 			
 			//repopulate from element
 			var name = $variableLabel.attr("data-display-name"),
-				targetYear = $variableLabel.attr("data-target-year"),
+				targetYear = $variableLabel.attr("data-targetYear"),
 				tolerance = $variableLabel.attr("data-tolerance");
 
 			var chartType = App.ChartModel.get("chart-type");
@@ -40,7 +40,7 @@
 			}
 
 			this.$nameInput.val(name);
-//			this.$el.find("[name=single-year]").val(targetYear);
+			this.$el.find("[name=targetYear]").val(targetYear);
 			this.$el.find("[name=tolerance]").val(tolerance);
 
 			this.$el.show();
@@ -60,7 +60,7 @@
 			var data = { variableId: this.variableId };
 			data["display-name"] = this.$nameInput.val();
 
-			//data[ "target-year" ] = this.$el.find("[name=single-year]").val();
+			data["targetYear"] = this.$el.find("[name=targetYear]").val();
 			data.tolerance = parseFloat(this.$el.find("[name=tolerance]").val());
 			this.trigger("variable-settings", data);
 		},

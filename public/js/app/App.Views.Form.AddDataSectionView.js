@@ -70,7 +70,7 @@
 			var $li = $(".variable-label[data-variable-id='" + settings.variableId + "']");
 			this.applySettingsToItem($li, settings);
 
-			// settings already come back in the form e.g. 'target-year'
+			// settings already come back in the form e.g. 'targetYear'
             for (var i in settings) {
                 if (settings.hasOwnProperty(i) && i !== "variableId") {
                     var attrName = "data-" + i,
@@ -114,7 +114,7 @@
 						variableId: $item.attr("data-variable-id"),
 						displayName: $item.attr("data-display-name"),
 						unit: $item.attr("data-unit"),
-						targetYear: $item.attr("data-target-year"),
+						targetYear: $item.attr("data-targetYear"),
 						tolerance: $item.attr("data-tolerance"),
 						color: $item.attr("data-color")
 					});
@@ -174,7 +174,7 @@
 
 			var defaults = {
 				unit: '',
-				targetYear: 2000,
+				targetYear: '',
 				tolerance: 5,				
 			};
 
@@ -201,7 +201,7 @@
 			$li.attr("data-variable-id", settings.variableId);
 			$li.attr("data-display-name", settings.displayName);
 			$li.attr("data-unit", settings.unit);
-			$li.attr("data-target-year", settings.targetYear);
+			$li.attr("data-targetYear", settings.targetYear);
 			$li.attr("data-tolerance", settings.tolerance);
 			$li.attr("data-color", settings.color);
 			if (settings.color) $li.css("background-color", settings.color);
