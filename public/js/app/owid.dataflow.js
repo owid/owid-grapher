@@ -102,11 +102,18 @@
 			var flowIndex = 0;
 
 			function flowCycle() {
+				if (flowIndex >= flows.length) {
+					// End the cycle
+					if (_.isFunction(callback))
+						callback();
+					return;
+				}
+
 				var flow = flows[flowIndex];
-				flowIndex += 1;				
+				flowIndex += 1;
 
 				var inputChanged =_.any(flow.inputs, function(k) { return _.has(changes, k); });
-				if (!inputChanged) return;
+				if (!inputChanged) return flowCycle();
 
 				var hasArgs = true;
 				var args = _.map(flow.inputs, function(k) { 
@@ -115,9 +122,16 @@
 				});
 
 				if (!hasArgs)
-					return;
+					return flowCycle();
 
-//				console.log(flow.spec);
+				if (flow.await) {
+					flow.callback.apply(model, args.concat(finishFlow));
+				} else {
+					var outputs = flow.callback.apply(model, args);
+					if (flow.outputs.length == 1)
+						outputs = [outputs];
+					finishFlow.apply(model, outputs);
+				}
 
 				function finishFlow() {
 					var outputs = arguments;
@@ -131,21 +145,9 @@
 							state[key] = result;
 							changes[key] = true;
 						}
-					}					
+					}
 
-					if (flowIndex < flows.length)
-						flowCycle();
-					else if (_.isFunction(callback))
-						callback();					
-				}
-
-				if (flow.await) {
-					flow.callback.apply(model, args.concat(finishFlow));
-				} else {
-					var outputs = flow.callback.apply(model, args);
-					if (flow.outputs.length == 1)
-						outputs = [outputs];
-					finishFlow.apply(model, outputs);
+					flowCycle();
 				}
 			}
 

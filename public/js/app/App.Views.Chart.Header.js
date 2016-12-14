@@ -164,10 +164,10 @@
 		});
 
 		headerControl.render = function(done) {
-			var logoUrls = [];
+			var logoUrls = ['/grapher/uploads/owid.svg'];
 				//partnerLogoUrl ? [Global.rootUrl + "/" + logoPath, partnerLogoUrl] : [Global.rootUrl + "/" + logoPath],
 
-			var minYear, maxYear, disclaimer;
+			var minYear, maxYear, disclaimer="";
 			if (chart.display.get('activeTab') == "map") {
 				chart.mapdata.update();
 				
@@ -196,16 +196,25 @@
 
 				minYear = timeFrom;
 				maxYear = timeTo;
+			} else if (chart.model.get('chart-type') == App.ChartType.ScatterPlot) {
+				minYear = chart.model.get('chart-time')[0];
+				maxYear = chart.model.get('chart-time')[1];
 			} else {
 				minYear = chart.data.get('minYear');
 				maxYear = chart.data.get('maxYear');
-				disclaimer = "";
 			}
+
+			var baseUrl = Global.rootUrl + "/" + chart.model.get("chart-slug"),
+				queryParams = owid.getQueryParams(),
+				queryStr = owid.queryParamsToStr(queryParams),				
+				canonicalUrl = baseUrl + queryStr;
+
+			var linkedTitle = "<a href='" + canonicalUrl + "' target='_blank'>" + chart.model.get('chart-name') + "</a>";
 
 			headerControl.update({
 				svgNode: chart.svg,
 				bounds: { left: 0, top: 0, width: chart.renderWidth, height: chart.renderHeight },
-				titleTemplate: chart.model.get('chart-name'),
+				titleTemplate: linkedTitle,
 				subtitleTemplate: chart.model.get('chart-subname') + disclaimer,
 				logoUrls: logoUrls,
 				entities: chart.model.getSelectedEntities(),

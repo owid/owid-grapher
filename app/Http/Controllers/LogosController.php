@@ -17,7 +17,7 @@
 		public function index()
 		{
 			$logos = Logo::all();
-			return view( 'logos.index', compact('logos') );
+			return view('logos.index', ['logos' => Logo::all()]);
 		}
 
 		/**
@@ -172,7 +172,9 @@
 			if( $imageFile->isValid() ) {
 				$destinationPath = 'uploads'; // upload path
 				$extension = $imageFile->getClientOriginalExtension(); // getting image extension
+
 				$fileName = rand( 11111, 99999 ).'.'.$extension; // renameing image
+
 				$imageFile->move( $destinationPath, $fileName ); // uploading file to given path// sending back with message
 				//construct fileUrl
 				$fileUrl = $destinationPath .'/'. $fileName;

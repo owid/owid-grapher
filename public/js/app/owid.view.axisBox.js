@@ -57,7 +57,7 @@
 		});
 
 		// Gridlines. Here rather than in the axes themselves to make the bounding boxes more sensible.
-		box.flow("xGridlines : g, innerBounds, xAxis", function(g, innerBounds, xAxis) {			
+		box.flow("xGridlines : g, innerBounds, xAxis", function(g, innerBounds, xAxis) {	
 			var tickValues = g.selectAll('.bottom.axis .tick').data();
 
 			var gridlinesUpdate = g.selectAll('.x.gridline').data(tickValues),
