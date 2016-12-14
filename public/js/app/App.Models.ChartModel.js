@@ -46,6 +46,7 @@
 			"logo": App.OWID_LOGO,
 			"second-logo": null,
 			"hide-legend": false,
+			"hide-toggle": false,
 			"entity-type": "country",
 			"group-by-variables": false,
 			"add-country-mode": "add-country",
