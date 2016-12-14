@@ -271,7 +271,7 @@ class ViewController extends Controller {
 			$chartMeta->title = $title;
 
 			// Description is required by twitter
-			if (isset($config->{"chart-subname"}))
+			if (!empty($config->{"chart-subname"}))
 				$chartMeta->description = $config->{"chart-subname"};
 			else 
 				$chartMeta->description = "An interactive visualization from Our World In Data.";
