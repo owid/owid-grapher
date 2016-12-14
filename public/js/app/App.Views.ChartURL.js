@@ -36,6 +36,7 @@
 			chart.model.on("change:currentStackMode", updateStackMode);
 			chart.model.on("change:x-axis", updateAxisScales);
 			chart.model.on("change:y-axis", updateAxisScales);
+			chart.model.on("change:chart-time", updateTime);
 			populateFromURL();
 
 			lastTabName = chart.display.get('activeTab');
@@ -192,6 +193,14 @@
 		function updateYearParam() {
 			if (chart.display.get('activeTab') == 'map')
 				owid.setQueryVariable("year", chart.map.get("targetYear"));
+		}
+
+		/**
+		 * Set e.g. &time=1990 when the user uses the slider to go to 1990
+		 */
+		function updateTime() {
+			if (chart.display.get('activeTab') == 'chart')
+				owid.setQueryVariable("time", chart.model.get('chart-time')[0]);
 		}
 
 		/**

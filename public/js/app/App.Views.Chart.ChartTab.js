@@ -249,71 +249,12 @@
 		}
 
 		function renderScatterPlot() {
-			//set size of the bubbles depending on browser width
-/*			var browserWidth = $(window).width(),
-				browserCoef = Math.max( 1, browserWidth / 1100 ),
-				pointMin = 100 * Math.pow( browserCoef, 2 ),
-				pointMax = 1000 * Math.pow( browserCoef, 2 );
-			var points = [pointMin, pointMax];
-
-			if (!nvd3) nvd3 = nv.models.scatterChart();
-			nvd3.options(nvOptions).pointRange(points).showDistX(true).showDistY(true);	*/
-
-			/*
-
-			if (!viz) {
-				viz = owid.view.scatter();
-			}*/
-
-			/*viz.update({
-				svg: svg,
-				data: localData,
-				bounds: { left: chartOffsetX, top: chartOffsetY+10, width: chartWidth-10, height: chartHeight-10 },
-				axisConfig: {
-					x: {
-						domain: xDomain,
-						scaleType: xAxisScale,
-						label: xAxis['axis-label'],
-						tickFormat: function(d) {
-							return xAxisPrefix + owid.unitFormat({ format: xAxisFormat||5 }, d) + xAxisSuffix;							
-						}
-					},
-
-					y: {
-						domain: yDomain,
-						scaleType: yAxisScale,
-						label: yAxis['axis-label'],
-						tickFormat: function(d) {
-							return yAxisPrefix + owid.unitFormat({ format: yAxisFormat }, d) + yAxisSuffix;
-						}
-					}
-				}
-			});*/
-
-/*			xDomain = d3.extent(allValues.map(function(d) { return d.x; }));
-			yDomain = d3.extent(allValues.map(function(d) { return d.y; }));
-			isClamped = _.isFinite(xAxisMin) || _.isFinite(xAxisMax) || _.isFinite(yAxisMin) || _.isFinite(yAxisMax);
-
-			if (_.isFinite(xAxisMin) && (xAxisMin > 0 || xAxisScale != "log"))
-				xDomain[0] = xAxisMin;
-			if (_.isFinite(xAxisMax))
-				xDomain[1] = xAxisMax;
-
-			if (_.isFinite(yAxisMin) && (yAxisMin > 0 || yAxisScale != "log"))
-				yDomain[0] = yAxisMin;
-			if (_.isFinite(yAxisMax))
-				yDomain[1] = yAxisMax;
-
-		    // Hide dots that are off the scale
-		    localData = _.filter(localData, function(d) {
-		    	return !(d.values[0].x < xDomain[0] || d.values[0].x > xDomain[1] ||
-		    		d.values[0].y < yDomain[0] || d.values[0].y > yDomain[1]);
-		    });*/
-
 			if (!viz) {
 				viz = owid.viz.scatter();
+			} else if (viz.timeline.isPlaying || viz.timeline.isDragging) {
+				return;
 			}
-
+			
 			viz.update({
 				chart: chart,
 				svg: svg,

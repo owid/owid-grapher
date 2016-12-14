@@ -126,9 +126,9 @@
         var _timeline = owid.view.timeline();
 
         // hack
-//        _timeline.flow('targetYear', function(targetYear) {
-//            chart.model.set('chart-time', [targetYear, targetYear]);
-//        });
+        _timeline.flow('targetYear', function(targetYear) {
+            chart.model.set('chart-time', [targetYear, targetYear]);
+        });
 
         viz.flow('timeline : chart', function(chart) {
             return _timeline;
