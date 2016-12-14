@@ -45,6 +45,18 @@
 			flows.push(flow);
 		};
 
+		model.flowAwait = function(flowspec, callback) {
+			var flow = parseFlowspec(flowspec);
+			flow.await = true;
+			flow.callback = callback;
+
+			_.each(flow.outputs, function(key) {
+				defineProperty(key);
+			});
+
+			flows.push(flow);
+		};
+
 		// Immediate flow, requiring inputs
 		model.now = function(flowspec, callback) {
 			var flow = parseFlowspec(flowspec);
@@ -64,7 +76,7 @@
 		}
 
 		var hasDefaults = false;
-		model.update = function(inputs) {
+		model.update = function(inputs, callback) {
 			var changes = {};
 
 			if (!hasDefaults) {
@@ -87,7 +99,12 @@
 				}
 			});
 
-			_.each(flows, function(flow) {
+			var flowIndex = 0;
+
+			function flowCycle() {
+				var flow = flows[flowIndex];
+				flowIndex += 1;				
+
 				var inputChanged =_.any(flow.inputs, function(k) { return _.has(changes, k); });
 				if (!inputChanged) return;
 
@@ -102,21 +119,37 @@
 
 //				console.log(flow.spec);
 
-				var outputs = flow.callback.apply(model, args);
+				function finishFlow() {
+					var outputs = arguments;
 
-				if (flow.outputs.length == 1) outputs = [outputs];
+					for (var i = 0; i < flow.outputs.length; i++) {
+						var key = flow.outputs[i],
+							result = outputs[i],
+							oldResult = state[key];
 
-				for (var i = 0; i < flow.outputs.length; i++) {
-					var key = flow.outputs[i],
-						result = outputs[i],
-						oldResult = state[key];
+						if ((result && result.hasOwnProperty('state')) || !isEqual(oldResult, result)) {
+							state[key] = result;
+							changes[key] = true;
+						}
+					}					
 
-					if ((result && result.hasOwnProperty('state')) || !isEqual(oldResult, result)) {
-						state[key] = result;
-						changes[key] = true;
-					}
+					if (flowIndex < flows.length)
+						flowCycle();
+					else if (_.isFunction(callback))
+						callback();					
 				}
-			});
+
+				if (flow.await) {
+					flow.callback.apply(model, args.concat(finishFlow));
+				} else {
+					var outputs = flow.callback.apply(model, args);
+					if (flow.outputs.length == 1)
+						outputs = [outputs];
+					finishFlow.apply(model, outputs);
+				}
+			}
+
+			flowCycle();
 		};
 
 		return model;

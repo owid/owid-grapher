@@ -81,8 +81,6 @@
 
                 var variable = variables[dimension.variableId];
 
-                console.log(variable.entities)
-
                 for (var i = 0; i < variable.entities.length; i++) {
                     var value = variable.values[i],
                         entityId = variable.entities[i];

@@ -350,22 +350,20 @@ select.disabled {
 /* Header
 --------------------------------------------- */
 
-#chart .chart-header-svg .chart-name-svg {
+#chart .title {
     font-size: 1.3em;
 }
-#chart .chart-header-svg .chart-name-svg a {
+#chart .title a {
     fill: #35322F;
 }
-#chart .chart-header-svg .chart-name-svg a {
+#chart .title a {
     text-decoration: none !important;
 }
-#chart .chart-header-svg .chart-subname-svg {
-    margin-top: 0;
-    margin-bottom: 0.5em;
+#chart .subtitle {
     font-size: 0.8em;
     fill: #4F4B49;
 }
-#chart .chart-header-svg .chart-logo-svg path {
+#chart .header path {
     stroke: #FFFFFF;
     stroke-width: 1px;
 }
@@ -926,6 +924,7 @@ select.disabled {
     height: 1em;
     position: relative;
     margin: 0 0.5em;
+
 }
 
 #chart .timeline .timeline-marker {

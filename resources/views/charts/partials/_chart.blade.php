@@ -2,6 +2,7 @@
 	<div class="chart-inner" style="visibility: hidden;">
 		<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
 			<g class="chart-header-svg">
+				<!--
 				<rect class="header-bg-svg" x="0" y="0" style="fill: #fff;"></rect>
 				<text class="chart-name-svg" x="0" y="0" dy="1em" />		
 				<text class="chart-subname-svg" x="0" y="0" dy="1em" />
@@ -51,7 +52,7 @@
 							</g>
 						</g>
 					</g>	
-				</a>
+				</a>-->
 			</g>
 		</svg>
 

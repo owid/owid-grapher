@@ -52,7 +52,7 @@
 		// Initialize components
 		chart.url = owid.view.urlBinder(chart);
 		chart.exporter = new App.Views.Export(chart);
-		chart.header = owid.view.header(chart);
+		chart.header = owid.control.header(chart);
 		chart.footer = new App.Views.Chart.Footer(chart);
 		chart.tabSelector = owid.view.tabSelector(chart);
 		chart.debugHelper = new App.Views.DebugHelper(chart);
@@ -86,9 +86,10 @@
 			if (changes.any('activeTab')) chart.tabSelector.switchTab();
 			chart.applyScale();
 			chart.header.render();
-			chart.footer.render();
-			chart.tabSelector.render();
-			if (chart.activeTab) chart.activeTab.render();
+			$('nav').remove();
+//			chart.footer.render();
+//			chart.tabSelector.render();
+//			if (chart.activeTab) chart.activeTab.render();
 
 			$chart.find('.chart-inner').css('visibility', 'visible');			
 			changes.done();

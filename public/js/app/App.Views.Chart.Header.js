@@ -1,8 +1,100 @@
-;( function() {	
+;(function(d3) {	
 	"use strict";
 	owid.namespace("owid.view.header");
 
-	owid.view.header = function(chart) {
+	owid.view.header2 = function() {
+		var header = owid.dataflow();
+
+		header.inputs({
+			svgNode: undefined,
+			bounds: { left: 0, top: 0, width: 100, height: 100 },
+			titleText: "",
+			subtitleText: "",
+			logoUrls: []
+		});
+
+		header.flow('svg : svgNode', function(svgNode) {
+			return d3.select(svgNode);
+		});
+
+		header.flow('g : svg', function(svg) {
+			return svg.append('g').attr('class', 'header');
+		});
+
+		header.flow('g, bounds', function(g, bounds) {
+			g.attr('transform', 'translate(' + bounds.left + ',' + bounds.top + ')');
+		});
+
+		// Render the logos first as they affect the positioning of the text
+
+		header.flowAwait('logoData : logoUrls', function(logoUrls, done) {
+			// HACK (Mispy): Since SVG image elements aren't autosized, logoData need to 
+			// be loaded separately in HTML and then the width and height extracted
+			var logoData = [];
+			_.each(logoUrls, function(logoUrl) {
+				var img = new Image();
+				img.onload = function() {
+					logoData.push({ url: logoUrl, width: img.width, height: img.height });
+					if (logoData.length == logoUrls.length)
+						done(logoData);
+				};
+				img.src = logoUrl;
+			});
+		});
+
+		header.flow('boundsForText : g, logoData, bounds', function(g, logoData, bounds) {
+			var logoUpdate = g.selectAll('.logo').data(logoData);
+			var logos = logoUpdate.enter().append('image').merge(logoUpdate);
+			logos.attr('width', function(d) { return d.width; });
+			logos.attr('height', function(d) { return d.height; });
+
+			logos.each(function(d) {
+				this.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", d.url);
+			});
+
+			var offsetX = 0;
+			logos.each(function(d) {
+				d3.select(this).attr('transform', 'translate(' + offsetX + ',' + 0 + ')');
+				offsetX += d.width;
+			});
+
+			return _.extend({}, bounds, { left: bounds.left + offsetX, width: bounds.width - offsetX });
+		});
+
+		header.flow('title : g', function(g) {
+			return g.append('text')
+				.attr('class', 'title')
+				.attr('dy', '1em');
+		});
+
+		header.flow('title, boundsForText', function(title, boundsForText) {
+			title.attr('x', boundsForText.left)
+				.attr('y', boundsForText.top);
+		});
+
+		header.flow('titleBBox : title, titleText, boundsForText', function(title, titleText, boundsForText) {
+			owid.svgSetWrappedText(title, titleText, boundsForText.width, { lineHeight: 1.1 });
+			return title.node().getBBox();
+		});
+
+		header.flow('subtitle : g', function(g) {
+			return g.append('text')
+				.attr('class', 'subtitle')
+				.attr('dy', '1em');
+		});
+
+		header.flow('subtitle, titleBBox, subtitleText, boundsForText', function(subtitle, titleBBox, subtitleText, boundsForText) {
+			subtitle.attr('x', boundsForText.left)
+				.attr('y', boundsForText.top + titleBBox.height);
+			owid.svgSetWrappedText(subtitle, subtitleText, boundsForText.width, { lineHeight: 1.2 });
+		});		
+
+		return header;
+	};
+
+	owid.namespace("owid.control.header");
+
+	owid.control.header = function(chart) {
 		function header() { }
 
 		var changes = owid.changes();
@@ -98,12 +190,8 @@
 			chart.$(".edit-btn-wrapper").removeClass("hidden");
 		};
 
+		var header2 = owid.view.header2();
 		header.render = function() {
-			if (!changes.start())
-				return;
-
-			renderEditBtn();
-
 			var chartName = chart.model.get('chart-name'),
 				chartSubname = chart.model.get('chart-subname'),
 				addCountryMode = chart.model.get('add-country-mode'),
@@ -111,6 +199,20 @@
 				logoPath = chart.model.get('logo'),
 				partnerLogoPath = chart.model.get('second-logo'),
 				partnerLogoUrl = partnerLogoPath && Global.rootUrl + '/' + partnerLogoPath;
+
+			header2.update({
+				svgNode: chart.svg,
+				logoUrls: partnerLogoUrl ? [Global.rootUrl + "/" + logoPath, partnerLogoUrl] : [Global.rootUrl + "/" + logoPath],
+				bounds: { left: 0, top: 0, width: chart.renderWidth, height: chart.renderHeight },
+				titleText: chart.model.get('chart-name'),
+				subtitleText: chart.model.get('chart-subname')
+			});
+			return;
+			if (!changes.start())
+				return;
+
+			renderEditBtn();
+
 
 			updateTime();
 			chartName = replaceContextPlaceholders(chartName);
@@ -210,4 +312,4 @@
 		return header;
 	};
 
-})();
+})(d3v4);

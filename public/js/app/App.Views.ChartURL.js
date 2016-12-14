@@ -80,6 +80,10 @@
 			if (yAxisScale !== undefined)
 				chart.model.setAxisConfig('y-axis', 'axis-scale', yAxisScale);
 
+			var time = params.time;
+			if (time !== undefined)
+				chart.model.set("chart-time", [time, time]);
+
 			// Map stuff below
 
 			var year = params.year;
