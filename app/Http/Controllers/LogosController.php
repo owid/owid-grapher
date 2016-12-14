@@ -37,31 +37,27 @@
 		 */
 		public function store(Request $request)
 		{
-			// getting all of the post data
-			$file = array('image' => Input::file('image'));
-			// setting up rules
-			$rules = array('image' => 'required',); //mimes:jpeg,bmp,png and for max size max:10000
-			// doing the validation, passing post data, rules and the messages
-			$validator = Validator::make($file, $rules);
+			$validator = Validator::make($request->all(),
+				['name' => 'required', 'image' => 'required']
+			);
 
-			Cache::flush();
-			
-			if ($validator->fails()) {
-			
-				// send back to the page with the input data and errors
-				return Redirect::to('logos/create')->withInput()->withErrors($validator);
-			
-			} else {
-				
-				// checking file is valid.
-				$url = $this->uploadFile( Input::file( 'image' ) );
+			if ($validator->fails())
+				return Redirect::to('logos/create')->withInput()->withErrors($validator);			
+
+
+			$file = Input::file('image');
+			$svg = file_get_contents($file->getRealPath());
+
+			Logo::create(['name' => $request->get('name'), 'svg' => $svg]);
+			return redirect()->route('logos.index')->with('message', 'Logo created.')->with('message-class', 'success');
+
+			/*$url = $this->uploadFile(Input::file('image'));
 				if( $url ) {
 
 					$input = array_except( $request->all(), [ '_method', '_token', 'image' ] );
 					$input['url'] = $url;
 
 					Logo::create($input);
-					return redirect()->route( 'logos.index' )->with( 'message', 'Logo created.')->with( 'message-class', 'success' );
 		
 				} else {
 
@@ -70,8 +66,7 @@
 				
 				}
  				
-			}
-
+			}*/
 		}
 
 		/**

@@ -72,7 +72,6 @@
 		    return dotUpdate.enter().append("circle").attr("class", "dot").merge(dotUpdate);
 		});
 
-
 		var _colorScale = d3.scaleOrdinal().range(d3.schemeCategory20);
 		scatter.flow("dots, xScale, yScale, data", function(dots, xScale, yScale) {
 			dots

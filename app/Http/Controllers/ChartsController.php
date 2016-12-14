@@ -46,7 +46,6 @@ class ChartsController extends Controller {
 
 	public function editorData() {
 		$data = new \StdClass;
-		$data->logos = Logo::lists( 'name', 'url' );
 
 		$query = DB::table("variables")
 			->join('datasets', 'variables.fk_dst_id', '=', 'datasets.id')
@@ -106,6 +105,8 @@ class ChartsController extends Controller {
 			
 			$chart->published = $data["published"];
 			unset($data["published"]);
+
+			unset($data['logosSVG']);
 
 			$dims = [];
 			$i = 0;

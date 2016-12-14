@@ -10,7 +10,7 @@
 			bounds: { left: 0, top: 0, width: 100, height: 100 },
 			titleStr: "",
 			subtitleStr: "",
-			logoUrls: []
+			logosSVG: []
 		});
 
 		header.flow('svg : svgNode', function(svgNode) {
@@ -27,37 +27,23 @@
 
 		// Render the logos first as they affect the positioning of the text
 
-		header.flowAwait('logoData : logoUrls', function(logoUrls, done) {
-			// HACK (Mispy): Since SVG image elements aren't autosized, logoData need to 
-			// be loaded separately in HTML and then the width and height extracted
-			var logoData = [];
-			_.each(logoUrls, function(logoUrl) {
-				var img = new Image();
-				img.onload = function() {
-					logoData.push({ url: logoUrl, width: img.width, height: img.height });
-					if (logoData.length == logoUrls.length)
-						done(logoData);
-				};
-				img.src = logoUrl;
-			});
+		header.flow('boundsForText : g, logosSVG, bounds', function(g, logosSVG, bounds) {
+			var logoUpdate = g.selectAll('.logo').data(logosSVG);
+			var logos = logoUpdate.enter().append('g').merge(logoUpdate);
 
-			if (_.isEmpty(logoUrls)) done([]);
-		});
-
-		header.flow('boundsForText : g, logoData, bounds', function(g, logoData, bounds) {
-			var logoUpdate = g.selectAll('.logo').data(logoData);
-			var logos = logoUpdate.enter().append('image').merge(logoUpdate);
-			logos.attr('width', function(d) { return d.width; });
-			logos.attr('height', function(d) { return d.height; });
-
-			logos.each(function(d) {
-				this.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", d.url);
-			});
+			var targetHeight = 50;
 
 			var offsetX = 0;
 			logos.each(function(d) {
-				d3.select(this).attr('transform', 'translate(' + offsetX + ',' + 0 + ')');
-				offsetX += d.width;
+				this.innerSVG = d;
+
+				var bbox = this.getBBox();
+
+				var scale = targetHeight/bbox.height;
+
+				d3.select(this).attr('transform', 'translate(' + offsetX + ',' + 0 + ') scale(' + scale + ')');
+
+				offsetX += bbox.width*scale;
 			});
 
 			offsetX += 5;
@@ -105,7 +91,7 @@
 			bounds: { left: 0, top: 0, width: 100, height: 100 },
 			titleTemplate: "",
 			subtitleTemplate: "",
-			logoUrls: [],
+			logosSVG: [],
 			entities: [],
 			entityType: "",
 			minYear: null,
@@ -153,20 +139,17 @@
 			document.title = titleStr + " - Our World In Data";
 		});
 
-		headerControl.flow('svgNode, bounds, logoUrls, titleStr, subtitleStr', function(svgNode, bounds, logoUrls, titleStr, subtitleStr) {
+		headerControl.flow('svgNode, bounds, logosSVG, titleStr, subtitleStr', function(svgNode, bounds, logosSVG, titleStr, subtitleStr) {
 			header.update({
 				svgNode: svgNode,
 				bounds: bounds,
-				logoUrls: logoUrls,
+				logosSVG: logosSVG,
 				titleStr: titleStr,
 				subtitleStr: subtitleStr,
 			});
 		});
 
 		headerControl.render = function(done) {
-			var logoUrls = ['/grapher/uploads/owid.svg'];
-				//partnerLogoUrl ? [Global.rootUrl + "/" + logoPath, partnerLogoUrl] : [Global.rootUrl + "/" + logoPath],
-
 			var minYear, maxYear, disclaimer="";
 			if (chart.display.get('activeTab') == "map") {
 				chart.mapdata.update();
@@ -216,7 +199,7 @@
 				bounds: { left: 0, top: 0, width: chart.renderWidth, height: chart.renderHeight },
 				titleTemplate: linkedTitle,
 				subtitleTemplate: chart.model.get('chart-subname') + disclaimer,
-				logoUrls: logoUrls,
+				logosSVG: chart.model.get('logosSVG'),
 				entities: chart.model.getSelectedEntities(),
 				entityType: chart.model.get('entity-type'),
 				minYear: minYear,
@@ -281,7 +264,7 @@
 
 			header2.update({
 				svgNode: chart.svg,
-				logoUrls: partnerLogoUrl ? [Global.rootUrl + "/" + logoPath, partnerLogoUrl] : [Global.rootUrl + "/" + logoPath],
+				logosSVG: partnerLogoUrl ? [Global.rootUrl + "/" + logoPath, partnerLogoUrl] : [Global.rootUrl + "/" + logoPath],
 				bounds: { left: 0, top: 0, width: chart.renderWidth, height: chart.renderHeight },
 				titleStr: chart.model.get('chart-name'),
 				subtitleStr: chart.model.get('chart-subname')
