@@ -342,11 +342,13 @@
 				} );
 			}
 
+			var hideToggle = chart.model.get("hide-toggle");
+
 			nvOptions.showTotalInTooltip = true;
 
 			nvd3 = nv.models.stackedAreaChart()
 				.options(nvOptions)
-				.controlOptions(["Stacked", "Expanded"])
+				.controlOptions(hideToggle ? [] : ["Stacked", "Expanded"])
 				.controlLabels({
 					"stacked": "Absolute",
 					"expanded": "Relative"

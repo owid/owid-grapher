@@ -11,6 +11,7 @@
 			"change [name='line-tolerance']": "onLineToleranceChange",
 			"change [name^='margin-']": "onMarginChange",
 			"change [name='hide-legend']": "onHideLegendChange",
+			"change [name='hide-toggle']": "onHideToggleChange",
 			"change [name='entity-type']": "onEntityTypeChange",
 			"change .units-section .form-control[type=input]": "updateUnits",
 			"change .units-section [type=checkbox]": "updateUnits"
@@ -34,6 +35,7 @@
 			
 			//legend
 			this.$hideLegend = this.$el.find( "[name='hide-legend']" );
+			this.$hideToggle = this.$el.find("[name='hide-toggle']");
 			this.$entityType = this.$el.find("[name='entity-type']");
 
 			//units
@@ -64,6 +66,9 @@
 			var hideLegend = ( App.ChartModel.get( "hide-legend" ) )? true: false;
 			this.$hideLegend.prop( "checked", hideLegend );
 			this.$entityType.val(App.ChartModel.get("entity-type"));
+
+			this.$hideToggle.closest('label').toggle(App.ChartModel.get("chart-type") == App.ChartType.StackedArea);
+			this.$hideToggle.prop("checked", !!App.ChartModel.get("hide-toggle"));
 			
 			this.updateUnitsUI();
 			this.updateUnits();
@@ -125,6 +130,10 @@
 			var $check = $( evt.currentTarget ),
 				hideLegend = ( $check.is( ":checked" ) )? true: false;
 			App.ChartModel.set( "hide-legend", hideLegend );
+		},
+
+		onHideToggleChange: function() {
+			App.ChartModel.set("hide-toggle", this.$hideToggle.prop("checked"));
 		},
 
 		onEntityTypeChange: function() {
