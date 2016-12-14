@@ -47,6 +47,8 @@ class ChartsController extends Controller {
 	public function editorData() {
 		$data = new \StdClass;
 
+		$data->logos = Logo::lists('name');
+
 		$query = DB::table("variables")
 			->join('datasets', 'variables.fk_dst_id', '=', 'datasets.id')
 			->join('dataset_categories', 'datasets.fk_dst_cat_id', '=', 'dataset_categories.id')

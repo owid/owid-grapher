@@ -42,31 +42,13 @@
 			);
 
 			if ($validator->fails())
-				return Redirect::to('logos/create')->withInput()->withErrors($validator);			
-
+				return Redirect::to('logos/create')->withInput()->withErrors($validator);
 
 			$file = Input::file('image');
 			$svg = file_get_contents($file->getRealPath());
 
 			Logo::create(['name' => $request->get('name'), 'svg' => $svg]);
 			return redirect()->route('logos.index')->with('message', 'Logo created.')->with('message-class', 'success');
-
-			/*$url = $this->uploadFile(Input::file('image'));
-				if( $url ) {
-
-					$input = array_except( $request->all(), [ '_method', '_token', 'image' ] );
-					$input['url'] = $url;
-
-					Logo::create($input);
-		
-				} else {
-
-					Session::flash('error', 'Uploaded file is not valid');
-					return redirect()->route( 'logo' )->with( 'message', 'Uploaded file is not valid.')->with( 'message-class', 'error' );
-				
-				}
- 				
-			}*/
 		}
 
 		/**

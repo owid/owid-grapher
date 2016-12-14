@@ -21,8 +21,7 @@
 			this.dispatcher = options.dispatcher;
 			
 			//logos
-			this.$logo = this.$el.find( "[name='logo']" );
-			this.$secondLogo = this.$el.find("[name='second-logo']");
+			this.$logo = this.$el.find("[name='logo']");
 
 			this.$lineTypeRadios = this.$el.find( "[name='line-type']" );
 			this.$lineTolerance = this.$el.find("[name='line-tolerance']");
@@ -50,10 +49,8 @@
 		},
 
 		render: function() {
-			var logoId = App.ChartModel.get("logo");
-			this.$logo.val(logoId);
-			var secondLogoId = App.ChartModel.get("second-logo");
-			this.$secondLogo.val(secondLogoId);
+			var logos = App.ChartModel.get('logos');
+			this.$logo.val(logos[0]);
 
 			this.renderLineType();
 
@@ -96,8 +93,7 @@
 		},
 
 		onLogoChange: function(evt) {
-			App.ChartModel.set("logo", this.$logo.val());
-			App.ChartModel.set("second-logo", this.$secondLogo.val());
+			App.ChartModel.set("logos", [this.$logo.val()]);
 		},
 
 		onLineTypeChange: function(evt) {
