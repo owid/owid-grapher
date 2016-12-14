@@ -31,7 +31,7 @@
 
 			var svg = d3.select("svg"),
 				svgBounds = chart.getBounds(svg.node()),
-				headerBounds = chart.getBounds(svg.select(".chart-header-svg").node()),
+				headerBounds = chart.getBounds(svg.select(".header").node()),
 				footerBounds = chart.getBounds(svg.select(".chart-footer-svg").node()),
 				tabOffsetY = headerBounds.bottom - svgBounds.top,
 				tabHeight = footerBounds.top - headerBounds.bottom;

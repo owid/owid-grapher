@@ -636,15 +636,6 @@ select.disabled {
 #chart .nvd3-svg .nvd3 .nv-axis line {
     opacity: .6;
 }
-#chart .nvd3-svg .chart-header-svg,
-#chart .nvd3-svg .chart-footer-svg {
-    -webkit-touch-callout: initial !important;
-    -webkit-user-select: initial !important;
-    -ms-user-select: initial !important;
-    -moz-user-select: initial !important;
-    -webkit-user-select: initial !important;
-    user-select: initial !important;
-}
 /* Data Tab
 --------------------------------------------- */
 

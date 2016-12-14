@@ -2,14 +2,14 @@
 	"use strict";
 	owid.namespace("owid.view.header");
 
-	owid.view.header2 = function() {
+	owid.view.header = function() {
 		var header = owid.dataflow();
 
 		header.inputs({
 			svgNode: undefined,
 			bounds: { left: 0, top: 0, width: 100, height: 100 },
-			titleText: "",
-			subtitleText: "",
+			titleStr: "",
+			subtitleStr: "",
 			logoUrls: []
 		});
 
@@ -40,6 +40,8 @@
 				};
 				img.src = logoUrl;
 			});
+
+			if (_.isEmpty(logoUrls)) done([]);
 		});
 
 		header.flow('boundsForText : g, logoData, bounds', function(g, logoData, bounds) {
@@ -58,6 +60,7 @@
 				offsetX += d.width;
 			});
 
+			offsetX += 5;
 			return _.extend({}, bounds, { left: bounds.left + offsetX, width: bounds.width - offsetX });
 		});
 
@@ -72,8 +75,8 @@
 				.attr('y', boundsForText.top);
 		});
 
-		header.flow('titleBBox : title, titleText, boundsForText', function(title, titleText, boundsForText) {
-			owid.svgSetWrappedText(title, titleText, boundsForText.width, { lineHeight: 1.1 });
+		header.flow('titleBBox : title, titleStr, boundsForText', function(title, titleStr, boundsForText) {
+			owid.svgSetWrappedText(title, titleStr, boundsForText.width, { lineHeight: 1.1 });
 			return title.node().getBBox();
 		});
 
@@ -83,10 +86,10 @@
 				.attr('dy', '1em');
 		});
 
-		header.flow('subtitle, titleBBox, subtitleText, boundsForText', function(subtitle, titleBBox, subtitleText, boundsForText) {
+		header.flow('subtitle, titleBBox, subtitleStr, boundsForText', function(subtitle, titleBBox, subtitleStr, boundsForText) {
 			subtitle.attr('x', boundsForText.left)
 				.attr('y', boundsForText.top + titleBBox.height);
-			owid.svgSetWrappedText(subtitle, subtitleText, boundsForText.width, { lineHeight: 1.2 });
+			owid.svgSetWrappedText(subtitle, subtitleStr, boundsForText.width, { lineHeight: 1.2 });
 		});		
 
 		return header;
@@ -95,6 +98,127 @@
 	owid.namespace("owid.control.header");
 
 	owid.control.header = function(chart) {
+		var headerControl = owid.dataflow();
+
+		headerControl.inputs({
+			svgNode: undefined,
+			bounds: { left: 0, top: 0, width: 100, height: 100 },
+			titleTemplate: "",
+			subtitleTemplate: "",
+			logoUrls: [],
+			entities: [],
+			entityType: "",
+			minYear: null,
+			maxYear: null,
+		});
+
+		var header = owid.view.header();
+
+		// Replaces things like *time* and *country* with the actual time and
+		// country displayed by the current chart context
+		headerControl.flow("fillTemplate : minYear, maxYear, entities, entityType", function(minYear, maxYear, entities, entityType) {
+			return function(text) {
+				if (s.contains(text, "*country*")) {
+					var entityStr = _.pluck(entities, "name").join(', ');
+					text = text.replace("*country*", entityStr || ("in selected " + entityType));
+				}
+
+				if (s.contains(text, "*time")) {
+					if (!_.isFinite(minYear)) {
+						text = text.replace("*time*", "over time");
+					} else {
+						var timeFrom = owid.displayYear(minYear),
+							timeTo = owid.displayYear(maxYear),
+							time = timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo;	
+
+						text = text.replace("*time*", time);
+						text = text.replace("*timeFrom*", timeFrom);
+						text = text.replace("*timeTo*", timeTo);					
+					}
+				}
+
+				return text;
+			};
+		});
+
+		headerControl.flow("titleStr : titleTemplate, fillTemplate", function(titleTemplate, fillTemplate) {
+			return fillTemplate(titleTemplate);
+		});
+
+		headerControl.flow("subtitleStr : subtitleTemplate, fillTemplate", function(subtitleTemplate, fillTemplate) {
+			return fillTemplate(subtitleTemplate);
+		});
+
+		headerControl.flow('titleStr', function(titleStr) {
+			document.title = titleStr + " - Our World In Data";
+		});
+
+		headerControl.flow('svgNode, bounds, logoUrls, titleStr, subtitleStr', function(svgNode, bounds, logoUrls, titleStr, subtitleStr) {
+			header.update({
+				svgNode: svgNode,
+				bounds: bounds,
+				logoUrls: logoUrls,
+				titleStr: titleStr,
+				subtitleStr: subtitleStr,
+			});
+		});
+
+		headerControl.render = function(done) {
+			var logoUrls = [];
+				//partnerLogoUrl ? [Global.rootUrl + "/" + logoPath, partnerLogoUrl] : [Global.rootUrl + "/" + logoPath],
+
+			var minYear, maxYear, disclaimer;
+			if (chart.display.get('activeTab') == "map") {
+				chart.mapdata.update();
+				
+				var mapConfig = chart.map.attributes,
+					timeFrom = chart.mapdata.minToleranceYear || mapConfig.targetYear,
+					timeTo = chart.mapdata.maxToleranceYear || mapConfig.targetYear,
+					year = mapConfig.targetYear,
+					hasTargetYear = _.find(chart.mapdata.currentValues, function(d) { return d.year == year; }),
+					d = owid.displayYear;
+
+				if (hasTargetYear && timeFrom != timeTo) {
+					// The target year is in the data but we're displaying a range, meaning not available for all countries
+					disclaimer = " Since some observations for " + d(year) + " are not available the map displays the closest available data (" + d(timeFrom) + " to " + d(timeTo) + ").";
+				} else if (!hasTargetYear && timeFrom != timeTo) {
+					// The target year isn't in the data at all and we're displaying a range of other nearby values
+					disclaimer = " Since observations for " + d(year) + " are not available the map displays the closest available data (" + d(timeFrom) + " to " + d(timeTo) + ").";
+				} else if (!hasTargetYear && timeFrom == timeTo && timeFrom != year) {
+					// The target year isn't in the data and we're displaying some other single year
+					disclaimer = " Since observations for " + d(year) + " are not available the map displays the closest available data (from " + d(timeFrom) + ").";
+				} else if (!hasTargetYear) {
+					disclaimer = " No observations are available for this year.";
+				} else {
+	//				disclaimer = "<span style='visibility: hidden;'>A rather long placeholder to ensure that the text flow remains the same when changing between various years.</span>";
+					disclaimer = "";
+				}
+
+				minYear = timeFrom;
+				maxYear = timeTo;
+			} else {
+				minYear = chart.data.get('minYear');
+				maxYear = chart.data.get('maxYear');
+				disclaimer = "";
+			}
+
+			headerControl.update({
+				svgNode: chart.svg,
+				bounds: { left: 0, top: 0, width: chart.renderWidth, height: chart.renderHeight },
+				titleTemplate: chart.model.get('chart-name'),
+				subtitleTemplate: chart.model.get('chart-subname') + disclaimer,
+				logoUrls: logoUrls,
+				entities: chart.model.getSelectedEntities(),
+				entityType: chart.model.get('entity-type'),
+				minYear: minYear,
+				maxYear: maxYear
+			}, done);
+		};
+
+		return headerControl;
+	};
+
+	owid.control.header2 = function(chart) {
 		function header() { }
 
 		var changes = owid.changes();
@@ -126,62 +250,8 @@
 		}
 
 		function updateTimeFromMap() {
-			chart.mapdata.update();
-			
-			var mapConfig = chart.map.attributes,
-				timeFrom = chart.mapdata.minToleranceYear || mapConfig.targetYear,
-				timeTo = chart.mapdata.maxToleranceYear || mapConfig.targetYear,
-				year = mapConfig.targetYear,
-				hasTargetYear = _.find(chart.mapdata.currentValues, function(d) { return d.year == year; }),
-				d = owid.displayYear;
-
-			if (hasTargetYear && timeFrom != timeTo) {
-				// The target year is in the data but we're displaying a range, meaning not available for all countries
-				disclaimer = " Since some observations for " + d(year) + " are not available the map displays the closest available data (" + d(timeFrom) + " to " + d(timeTo) + ").";
-			} else if (!hasTargetYear && timeFrom != timeTo) {
-				// The target year isn't in the data at all and we're displaying a range of other nearby values
-				disclaimer = " Since observations for " + d(year) + " are not available the map displays the closest available data (" + d(timeFrom) + " to " + d(timeTo) + ").";
-			} else if (!hasTargetYear && timeFrom == timeTo && timeFrom != year) {
-				// The target year isn't in the data and we're displaying some other single year
-				disclaimer = " Since observations for " + d(year) + " are not available the map displays the closest available data (from " + d(timeFrom) + ").";
-			} else if (!hasTargetYear) {
-				disclaimer = " No observations are available for this year.";
-			} else {
-//				disclaimer = "<span style='visibility: hidden;'>A rather long placeholder to ensure that the text flow remains the same when changing between various years.</span>";
-				disclaimer = null;
-			}
-
-			minYear = timeFrom;
-			maxYear = timeTo;
-			targetYear = year;
 		}
 
-		// Replaces things like *time* and *country* with the actual time and
-		// country displayed by the current chart context
-		function replaceContextPlaceholders(text) {
-			if (s.contains(text, "*country*")) {
-				var selectedEntities = chart.model.get("selected-countries"),
-					entityText = _.pluck(selectedEntities, "name");
-
-				text = text.replace("*country*", entityText || ("in selected " + chart.model.get("entity-type")));
-			}
-
-			if (s.contains(text, "*time")) {
-				if (!_.isFinite(minYear)) {
-					text = text.replace("*time*", "over time");
-				} else {
-					var timeFrom = owid.displayYear(minYear),
-						timeTo = owid.displayYear(maxYear),
-						time = targetYear || (timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo);				
-
-					text = text.replace("*time*", time);
-					text = text.replace("*timeFrom*", timeFrom);
-					text = text.replace("*timeTo*", timeTo);					
-				}
-			}
-
-			return text;
-		}
 
 		function renderEditBtn() {
 			// Determine if we're logged in and show the edit button
@@ -204,8 +274,8 @@
 				svgNode: chart.svg,
 				logoUrls: partnerLogoUrl ? [Global.rootUrl + "/" + logoPath, partnerLogoUrl] : [Global.rootUrl + "/" + logoPath],
 				bounds: { left: 0, top: 0, width: chart.renderWidth, height: chart.renderHeight },
-				titleText: chart.model.get('chart-name'),
-				subtitleText: chart.model.get('chart-subname')
+				titleStr: chart.model.get('chart-name'),
+				subtitleStr: chart.model.get('chart-subname')
 			});
 			return;
 			if (!changes.start())
@@ -259,7 +329,6 @@
 
 				var linkedName = "<a href='" + canonicalUrl + "' target='_blank'>" + chartName + "</a>";
 				owid.svgSetWrappedText(chartNameText, linkedName, availableWidth - 10, { lineHeight: 1.1 });
-				document.title = chartName + " - Our World In Data";
 
 				var chartNameBounds = chart.getBounds(chartNameText.node());
 

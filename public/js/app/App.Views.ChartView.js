@@ -85,14 +85,15 @@
 			chart.data.transformData();
 			if (changes.any('activeTab')) chart.tabSelector.switchTab();
 			chart.applyScale();
+
 			chart.header.render();
-			$('nav').remove();
-//			chart.footer.render();
-//			chart.tabSelector.render();
-//			if (chart.activeTab) chart.activeTab.render();
+			chart.footer.render();
+			chart.tabSelector.render();
+			if (chart.activeTab) chart.activeTab.render();
 
 			$chart.find('.chart-inner').css('visibility', 'visible');			
-			changes.done();
+
+			changes.done();				
 		};
 
 		chart.setupDOM = function() {

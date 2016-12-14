@@ -3,7 +3,7 @@
 	[
 		{
 			"path": ".",
-            "folder_exclude_patterns": [".git", "tmp", "storage", "phantomjs"],
+            "folder_exclude_patterns": [".git", "tmp", "storage", "phantomjs", "public/exports"],
 		}
 	],
 	"settings":
