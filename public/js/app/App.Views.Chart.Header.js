@@ -29,18 +29,16 @@
 
 		header.flow('boundsForText : g, logosSVG, bounds', function(g, logosSVG, bounds) {
 			var logoUpdate = g.selectAll('.logo').data(logosSVG);
-			var logos = logoUpdate.enter().append('g').merge(logoUpdate);
+			var logos = logoUpdate.enter().append('g').attr('class', 'logo').merge(logoUpdate);
 
+			// Go through and position/scale the logos as needed
 			var targetHeight = 50;
-
 			var offsetX = 0;
 			logos.each(function(d) {
 				this.innerSVG = d;
 
 				var bbox = this.getBBox();
-
-				var scale = targetHeight/bbox.height;
-
+				var scale = targetHeight/bbox.height;				
 				d3.select(this).attr('transform', 'translate(' + offsetX + ',' + 0 + ') scale(' + scale + ')');
 
 				offsetX += bbox.width*scale;

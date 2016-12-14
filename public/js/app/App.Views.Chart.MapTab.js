@@ -96,7 +96,7 @@
 		function initializeMap() {
 			if (dataMap) return;
 
-			var $oldSvg = $("svg");			
+			var $oldSvg = $(chart.svg);			
 
 			Datamap.prototype.worldTopo = null; // seems to be necessary for dataJson to be recognized
 			dataMap = new Datamap({
