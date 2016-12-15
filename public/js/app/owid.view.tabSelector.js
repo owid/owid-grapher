@@ -33,7 +33,7 @@
 				svgBounds = chart.getBounds(svg.node()),
 				headerBounds = chart.getBounds(svg.select(".header").node()),
 				footerBounds = chart.getBounds(svg.select(".chart-footer-svg").node()),
-				tabOffsetY = headerBounds.bottom - svgBounds.top,
+				tabOffsetY = headerBounds.bottom - svgBounds.top + 10,
 				tabHeight = footerBounds.top - headerBounds.bottom;
 
 			$nav.css({

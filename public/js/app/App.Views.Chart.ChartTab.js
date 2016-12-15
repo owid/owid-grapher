@@ -58,7 +58,7 @@
 			$svg.attr("class", "");
 
 			chart.model.off(null, null, this);
-			d3.selectAll(".nvd3, .axisBox, .nvtooltip:not(.owid-tooltip)").remove();
+			d3.selectAll(".nvd3, .axisBox, .nvtooltip:not(.owid-tooltip), .timeline").remove();
 			chartTab.scaleSelectors.hide();
 			d3.selectAll("svg").on("mousemove.stackedarea", null);
 			changes.done();
@@ -254,7 +254,7 @@
 			} else if (viz.timeline.isPlaying || viz.timeline.isDragging) {
 				return;
 			}
-			
+
 			viz.update({
 				chart: chart,
 				svg: svg,

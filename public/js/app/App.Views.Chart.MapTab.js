@@ -70,10 +70,10 @@
 					});
 				}
 
-				var timelineHeight = 50;
+				var timelineHeight = 25;
 
 				var updates = {
-					containerNode: chart.html,
+					svgNode: svgNode,
 					bounds: { top: offsetY+availableHeight-timelineHeight, left: 0, width: availableWidth, height: timelineHeight },
 					years: years, // Range of years the timeline covers
 				};
@@ -185,7 +185,8 @@
 			if (changes.any('activeTab')) {
 				svg.insert("rect", "*")
 					.attr("class", "map-bg")
-					.attr("x", 0).attr("y", 0);
+					.attr("x", 0).attr("y", 0)
+					.style('stroke', '#eee');
 			}
 
 			if (changes.any('tabBounds activeTab timeRanges')) {

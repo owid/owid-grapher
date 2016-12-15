@@ -34,6 +34,7 @@
 			// Go through and position/scale the logos as needed
 			var targetHeight = 50;
 			var offsetX = bounds.width;
+            var logoHeight;
 			logos.each(function(d) {
 				this.innerSVG = d;
 
@@ -41,12 +42,11 @@
 				var scale = targetHeight/bbox.height;
                 offsetX -= bbox.width*scale;
 
-                console.log(bbox.width, bounds.width);
-
 				d3.select(this).attr('transform', 'translate(' + offsetX + ',' + 0 + ') scale(' + scale + ')');
+                logoHeight = bbox.height*scale;
 			});
 
-			return _.extend({}, bounds, { left: bounds.left, width: offsetX - bounds.left });
+			return _.extend({}, bounds, { left: bounds.left, width: offsetX - bounds.left - 10, logoHeight: logoHeight });
 		});
 
 		header.flow('title : g', function(g) {
@@ -71,10 +71,14 @@
 				.attr('dy', '1em');
 		});
 
-		header.flow('subtitle, titleBBox, subtitleStr, boundsForText', function(subtitle, titleBBox, subtitleStr, boundsForText) {
+		header.flow('subtitle, titleBBox, subtitleStr, boundsForText, bounds, g', function(subtitle, titleBBox, subtitleStr, boundsForText, bounds, g) {
+            var width = boundsForText.width;
+            if (titleBBox.height > boundsForText.logoHeight)
+                width = bounds.width;
+
 			subtitle.attr('x', boundsForText.left)
 				.attr('y', boundsForText.top + titleBBox.height);
-			owid.svgSetWrappedText(subtitle, subtitleStr, boundsForText.width, { lineHeight: 1.2 });
+			owid.svgSetWrappedText(subtitle, subtitleStr, width, { lineHeight: 1.2 });
 		});		
 
 		return header;

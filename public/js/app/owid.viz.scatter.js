@@ -151,7 +151,7 @@
         });
 
         viz.flow('timeline, chart, bounds, availableYears, inputYear', function(timeline, chart, bounds, availableYears, inputYear) {
-            var timelineHeight = 30;
+            var timelineHeight = 25;
             timeline.update({
                 svgNode: chart.svg,
                 containerNode: chart.html,

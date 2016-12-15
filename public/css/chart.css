@@ -762,7 +762,6 @@ select.disabled {
 #chart #map-chart-tab {
     overflow: inherit;
     padding: 0 !important;
-    border: 1px solid #eee;
 }
 #chart .map-controls-header {
     position: absolute;

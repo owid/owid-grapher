@@ -141,8 +141,8 @@
 							result = outputs[i],
 							oldResult = state[key];
 
+                        state[key] = result;
 						if ((result && result.hasOwnProperty('state')) || !isEqual(oldResult, result)) {
-							state[key] = result;
 							changes[key] = true;
 						}
 					}
