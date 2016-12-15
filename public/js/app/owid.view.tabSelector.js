@@ -67,6 +67,11 @@
 			chart.tabBounds = chart.getBounds($('.tab-pane.active').get(0));
 			chart.svgBounds = chart.getBounds($('svg').get(0));
 
+            // Determine if we're logged in and show the edit button
+            // Done here instead of PHP to allow for caching etc optimization on public-facing content
+            if (!Cookies.get("isAdmin")) return;
+            chart.$(".edit-btn-wrapper").removeClass("hidden");
+
 			changes.done();
 		};
 

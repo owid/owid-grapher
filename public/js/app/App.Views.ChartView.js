@@ -220,6 +220,12 @@
 			chart.dom.style.top = '';
 			owid.transformElement(chart.dom, '');
 
+            var paddingLeft = parseFloat($chart.css('padding-left')),
+                paddingTop = parseFloat($chart.css('padding-top'));
+
+            chart.innerRenderWidth = renderWidth-paddingLeft*2-2;
+            chart.innerRenderHeight = renderHeight-paddingTop*2-2;
+
 			if (App.isExport || App.isEditor)
 				return;
 
@@ -235,8 +241,6 @@
 			}
 
 			// Now do the actual scaling
-			var paddingLeft = parseInt($chart.css('padding-left')),
-				paddingTop = parseInt($chart.css('padding-top'));
 
 			chart.svg.style.width = (renderWidth-paddingLeft*2)*scale + 'px';
 			chart.svg.style.height = (renderHeight-paddingTop*2)*scale + 'px';
