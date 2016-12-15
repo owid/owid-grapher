@@ -82,6 +82,24 @@
 				.style('height', bounds.height+'px');
 		});
 
+		// Make ticks on the slider representing years with available data
+		timeline.flow("ticks : el, years, minYear, maxYear", function(el, years, minYear, maxYear) {
+			var ticksUpdate = el.select('.timeline-slider')
+				.selectAll('.tick')
+				.data(years.slice(1, -1));
+
+			ticksUpdate.enter()
+				.append('div')
+				.style('position', 'absolute')
+				.style('width', '1px')
+				.style('height', '100%')
+				.style('background-color', 'white')
+				.style('border-radius', '5px')
+			  .merge(ticksUpdate)
+			  	.style('left', function(d) { return ((d-minYear)/(maxYear-minYear))*100 + '%' });
+		});
+
+		// Fill out the year labels
 		timeline.flow("el, targetYear", function(el, targetYear) {
 			el.selectAll('.timeline-label').text(targetYear);
 		});
@@ -102,11 +120,16 @@
 			el.classed('max-active', maxYear == targetYear);
 		});
 
-		timeline.flow('el, fracWidth', function(el, fracWidth) {
-			el.selectAll('.timeline-marker')
-				.style('left', (fracWidth*100)+'%');
+		timeline.flow('handle : el', function(el) {
+			return el.selectAll('.timeline-marker');
+		})
+
+		// Position the slider handle
+		timeline.flow('handle, fracWidth', function(handle, fracWidth) {
+			handle.style('left', (fracWidth*100)+'%');
 		});		
 
+		// Allow dragging the handle around
 		timeline.flow('el', function bindSlider(el) {
 			var slider = el.select('.timeline-slider'),
 				container = d3.select(document.body),
@@ -141,6 +164,17 @@
 				container.on('mouseup.timeline', onMouseUp);
 				//container.on('mouseleave.timeline', onMouseUp);
 				onMouseMove();
+			});
+		});
+
+		// Interpolated playing animation
+		timeline.flow('el', function setupPlayBtn(el) {
+			el.select('.play-btn').on('click', function() {
+				timeline.update({ isPlaying: true });
+			});
+
+			el.select('.pause-btn').on('click', function() {
+				timeline.update({ isPlaying: false });
 			});
 		});
 
@@ -182,15 +216,6 @@
 			}
 		});
 
-		timeline.flow('el', function setupPlayBtn(el) {
-			el.select('.play-btn').on('click', function() {
-				timeline.update({ isPlaying: true });
-			});
-
-			el.select('.pause-btn').on('click', function() {
-				timeline.update({ isPlaying: false });
-			});
-		});
 
 		timeline.remove = function() {
 			timeline.now('el', function(el) {
