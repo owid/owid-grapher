@@ -909,9 +909,9 @@ select.disabled {
 }
 
 #chart .timeline .timeline-slider {
-    background: #d5d5d5;
+    background: #eee;
     flex-grow: 1;
-    height: 1em;
+    height: 0.8em;
     position: relative;
     margin: 0 0.5em;
     border-radius: 8px;
