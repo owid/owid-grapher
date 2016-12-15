@@ -15,13 +15,13 @@
             variables: undefined,
             inputYear: undefined,
             colorScheme: [ // TODO less ad hoc color scheme (probably would have to annotate the datasets)
-                "#00d5eb", // Africa
+                "#5675c1", // Africa
                 "#aec7e8", // Antarctica
-                "#ff5670", // Asia
-                "#ffe900", // Europe
-                "#00a71e", // North America
-                "#9467bd", // Oceania
-                "#7bed00", // South America
+                "#d14e5b", // Asia
+                "#ffd336", // Europe
+                "#4d824b", // North America
+                "#a652ba", // Oceania
+                "#69c487", // South America
                 "#ff7f0e", "#1f77b4", "#ffbb78", "#2ca02c", "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b", "c49c94", "e377c2", "f7b6d2", "7f7f7f", "c7c7c7", "bcbd22", "dbdb8d", "17becf", "9edae5", "1f77b4"]
         });
 
@@ -151,7 +151,7 @@
         });
 
         viz.flow('timeline, chart, bounds, availableYears, inputYear', function(timeline, chart, bounds, availableYears, inputYear) {
-            var timelineHeight = 50;
+            var timelineHeight = 30;
             timeline.update({
                 containerNode: chart.html,
                 bounds: { top: bounds.top+bounds.height-timelineHeight, left: bounds.left, width: bounds.width, height: timelineHeight },

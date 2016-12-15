@@ -177,8 +177,8 @@
 				minYear = timeFrom;
 				maxYear = timeTo;
 			} else if (chart.model.get('chart-type') == App.ChartType.ScatterPlot) {
-				minYear = chart.model.get('chart-time')[0];
-				maxYear = chart.model.get('chart-time')[1];
+				minYear = (chart.model.get('chart-time')||[])[0];
+				maxYear = (chart.model.get('chart-time')||[])[1];
 			} else {
 				minYear = chart.data.get('minYear');
 				maxYear = chart.data.get('maxYear');

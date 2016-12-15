@@ -856,8 +856,7 @@ select.disabled {
     z-index: 2;
     width: 100%;
     color: #404040;
-    background-color: #FAFAFA;
-    border-top: 1px solid #ddd;
+    font-size: 0.9em;
 }
 #chart .timeline .play-pause-control {
     width: 3.5em;
@@ -915,7 +914,7 @@ select.disabled {
     height: 1em;
     position: relative;
     margin: 0 0.5em;
-
+    border-radius: 8px;
 }
 
 #chart .timeline .timeline-marker {

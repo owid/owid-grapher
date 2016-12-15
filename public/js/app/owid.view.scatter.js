@@ -77,7 +77,9 @@
 			dots
 		      .attr("cx", function(d) { return xScale(d.values[0].x); })
 		      .attr("cy", function(d) { return yScale(d.values[0].y); })
-		      .style("fill", function(d) { return d.color || _colorScale(d.key); });
+		      .style("fill", function(d) { return d.color || _colorScale(d.key); })
+		      .style("stroke", "#000")
+		      .style("stroke-width", "0.3px");
 		});
 
 		scatter.flow("hovered : data, hoverKey, canHover", function(data, hoverKey, canHover) {
@@ -87,7 +89,7 @@
 		});
 
 		scatter.flow("dots, hovered", function(dots, hovered) {
-			dots.style("fill-opacity", function(d) { return d == hovered ? 1 : 0.9; });
+			dots.style("fill-opacity", function(d) { return d == hovered ? 1 : 0.8; });
 		});
 
 		scatter.flow("dots, sizeScale, hovered", function(dots, sizeScale, hovered) {
