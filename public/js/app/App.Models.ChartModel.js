@@ -208,11 +208,10 @@
 			var xAxis = { property: 'x', name: 'X axis', },
 				yAxis = { property: 'y', name: 'Y axis', },
 				color = { property: 'color', name: 'Color' },
-				shape = { property: 'shape', name: 'Shape' },
-				size = { property: 'size', name: 'size' };
+				size = { property: 'size', name: 'Size' };
 
 			if (chartType == App.ChartType.ScatterPlot)
-				return [xAxis, yAxis, size, shape, color];
+				return [xAxis, yAxis, size, color];
 			else
 				return [yAxis];
 		},

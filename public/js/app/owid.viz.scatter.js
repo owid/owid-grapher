@@ -14,7 +14,15 @@
             dimensions: undefined,
             variables: undefined,
             inputYear: undefined,
-            colorScheme: ["#aec7e8", "#ff7f0e", "#1f77b4", "#ffbb78", "#2ca02c", "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b", "c49c94", "e377c2", "f7b6d2", "7f7f7f", "c7c7c7", "bcbd22", "dbdb8d", "17becf", "9edae5", "1f77b4"]
+            colorScheme: [ // TODO less ad hoc color scheme (probably would have to annotate the datasets)
+                "#00d5eb", // Africa
+                "#aec7e8", // Antarctica
+                "#ff5670", // Asia
+                "#ffe900", // Europe
+                "#00a71e", // North America
+                "#9467bd", // Oceania
+                "#7bed00", // South America
+                "#ff7f0e", "#1f77b4", "#ffbb78", "#2ca02c", "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b", "c49c94", "e377c2", "f7b6d2", "7f7f7f", "c7c7c7", "bcbd22", "dbdb8d", "17becf", "9edae5", "1f77b4"]
         });
 
         // Calculate the years which have data, for the timeline
@@ -37,6 +45,16 @@
         // Color scale for color dimension
         viz.flow('colorScale : colorScheme', function(colorScheme) {
             return d3.scaleOrdinal().range(colorScheme);
+        });
+
+        // Set domain for color scale now to get the right ordering
+        viz.flow('colorScale, dimensions, variables', function(colorScale, dimensions, variables) {
+            var colorDim = _.findWhere(dimensions, { property: 'color' });
+            if (!colorDim) return;
+
+            var variable = variables[colorDim.variableId];
+            colorScale.domain(variable.categoricalValues);
+            console.log(colorScale.domain());
         });
 
         // Precompute the data transformation for every year (so later animation is fast)
