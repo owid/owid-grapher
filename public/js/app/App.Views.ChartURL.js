@@ -82,7 +82,7 @@
 
 			var time = params.time;
 			if (time !== undefined)
-				chart.model.set("chart-time", [time, time]);
+				chart.model.set("chart-time", [parseFloat(time), parseFloat(time)]);
 
 			// Map stuff below
 
