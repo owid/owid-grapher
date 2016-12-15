@@ -133,10 +133,6 @@
 			return fillTemplate(subtitleTemplate);
 		});
 
-		headerControl.flow('titleStr', function(titleStr) {
-			document.title = titleStr + " - Our World In Data";
-		});
-
 		headerControl.flow('svgNode, bounds, logosSVG, titleStr, subtitleStr', function(svgNode, bounds, logosSVG, titleStr, subtitleStr) {
 			header.update({
 				svgNode: svgNode,
@@ -144,7 +140,9 @@
 				logosSVG: logosSVG,
 				titleStr: titleStr,
 				subtitleStr: subtitleStr,
-			});
+			}, function() {
+                document.title = header.title.text();
+            });
 		});
 
 		headerControl.render = function(done) {
@@ -178,8 +176,8 @@
 				minYear = timeFrom;
 				maxYear = timeTo;
 			} else if (chart.model.get('chart-type') == App.ChartType.ScatterPlot) {
-				minYear = (chart.model.get('chart-time')||[])[0];
-				maxYear = (chart.model.get('chart-time')||[])[1];
+				minYear = chart.model.get('chart-time')[0];
+				maxYear = chart.model.get('chart-time')[1];
 			} else {
 				minYear = chart.data.get('minYear');
 				maxYear = chart.data.get('maxYear');

@@ -87,7 +87,7 @@
 		});
 
 		scatter.flow("dots, hovered", function(dots, hovered) {
-			dots.style("fill-opacity", function(d) { return d == hovered ? 1 : 0.6; });
+			dots.style("fill-opacity", function(d) { return d == hovered ? 1 : 0.9; });
 		});
 
 		scatter.flow("dots, sizeScale, hovered", function(dots, sizeScale, hovered) {
