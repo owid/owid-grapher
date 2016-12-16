@@ -5,31 +5,31 @@
 			<div class="nav-tabs-custom">
 				<ul class="nav nav-tabs no-bullets">
 					<li class="nav-item active">
-						<a class="nav-link" href="#basic-tab" data-toggle="tab" aria-expanded="false">1. Basic</a>
+						<a class="nav-link" href="#basic-tab" data-toggle="tab" aria-expanded="false">Basic</a>
 					</li>
 					<li class="nav-item">
-						<a class="nav-link" href="#data-tab" data-toggle="tab" aria-expanded="false">2. Data</a>
+						<a class="nav-link" href="#data-tab" data-toggle="tab" aria-expanded="false">Data</a>
 					</li>
 					<li class="nav-item">
-						<a class="nav-link" href="#axis-tab" data-toggle="tab" aria-expanded="false">3. Axis</a>
+						<a class="nav-link" href="#axis-tab" data-toggle="tab" aria-expanded="false">Axis</a>
 					</li>
 					<li class="nav-item">
-						<a class="nav-link" href="#styling-tab" data-toggle="tab" aria-expanded="false">4. Styling</a>
+						<a class="nav-link" href="#styling-tab" data-toggle="tab" aria-expanded="false">Styling</a>
 					</li>
 					<li class="nav-item">
-						<a class="nav-link" href="#export-tab" data-toggle="tab" aria-expanded="false">5. Export</a>
+						<a class="nav-link" href="#export-tab" data-toggle="tab" aria-expanded="false">Export</a>
 					</li>
 					<li class="nav-item">
-						<a class="nav-link" href="#map-tab" data-toggle="tab" aria-expanded="false">6. Map</a>
+						<a class="nav-link" href="#map-tab" data-toggle="tab" aria-expanded="false">Map</a>
 					</li>
 				</ul>
 			</div>
 			<div class="tab-content">
 				<div id="basic-tab" class="tab-pane active">
-					<section class="form-section">
-						<div class="form-section-header">
+					<section>
+						<header>
 							<h2><span class="form-section-digit">a</span>Title of the visualization</h2>
-						</div>
+						</header>
 						<div class="form-section-content">						
 							<p class="form-section-desc">Never use specific countries or years since these can be changed by the viewer. Instead use <b>*time*</b> or <b>*country*</b> as placeholders. These will be interpreted by the grapher to match what is being looked at.</p>
 							<input class="form-control input-lg .col-xs-12" placeholder="Chart name" type="text" name="chart-name" value=""/>
@@ -39,18 +39,18 @@
 							</div>
 						</div>
 					</section>
-					<section class="form-section">
-						<div class="form-section-header">
+					<section>
+						<header>
 							<h2><span class="form-section-digit">b</span>Subtitle of the visualization</h2>
-						</div>
+						</header>
 						<div class="form-section-content">
 							<textarea class="form-control input-lg .col-xs-12" placeholder="Short description of the data (ideally one line)" type="text" name="chart-subname" value=""></textarea>
 						</div>
 					</section>
-					<section class="form-section chart-type-section">
-						<div class="form-section-header">
+					<section class="chart-type-section">
+						<header>
 							<h2><span class="form-section-digit">c</span>What type of chart</h2>
-						</div>
+						</header>
 						<div class="form-section-content">
 							<select name="chart-type" class="form-control chart-type-select">
 								<option value="" disabled selected>Select type</option>
@@ -63,28 +63,28 @@
 							</select>
 						</div>
 					</section>
-					<section class="form-section">
-						<div class="form-section-header">
+					<section>
+						<header>
 							<h2><span class="form-section-digit">d</span>Footer note</h2>
-						</div>
+						</header>
 						<div class="form-section-content">
 							<textarea class="form-control input-lg .col-xs-12" placeholder="Any further relevant information e.g. adjustments or limitations" type="text" name="chart-footer-note" value=""></textarea>
 						</div>
 					</section>
-					<section class="form-section">
-						<div class="form-section-header">
+					<section>
+						<header>
 							<h2><span class="form-section-digit">e</span>Internal author notes</h2>
-						</div>
+						</header>
 						<div class="form-section-content">
 							<textarea class="form-control input-lg .col-xs-12" placeholder="WIP, needs review, etc" type="text" name="chart-notes" value=""></textarea>
 						</div>
 					</section>
 				</div>
 				<div id="data-tab" class="tab-pane">
-					<section class="form-section add-data-section">
-						<div class="form-section-header">
+					<section class="add-data-section">
+						<header>
 							<h2><span class="form-section-digit">d</span>Add your data</h2>
-						</div>
+						</header>
 						<div class="form-section-content">
 							<a class="add-data-btn"><i class="fa fa-plus"></i>Add variable</a>
 							<div class="dd">
@@ -93,16 +93,16 @@
 						<p class="form-section-desc hidden">Assign variables to the graph dimensions below by dragging them.</p>
 						</div>
 					</section>
-					<section class="form-section dimensions-section">
+					<section class="dimensions-section">
 						<div class="form-section-content">
 							
 						</div>
 	 					<input type="hidden" name="chart-dimensions" value="" />
 					</section>
-					<section class="form-section entities-section">
-						<div class="form-section-header">
+					<section class="entities-section">
+						<header>
 							<h2><span class="form-section-digit">f</span>Pick your countries</h2>
-						</div>
+						</header>
 						<div class="form-section-content">
 							<p class="form-section-desc">Select countries from drop down below. You can set country colors by clicking on the country label itself.</p>
 							<ul class="selected-countries-box no-bullets">
@@ -130,10 +130,10 @@
 							</div>
 						</div>
 					</section>
-					<section class="form-section time-section">
-						<div class="form-section-header">
+					<section class="time-section">
+						<header>
 							<h2><span class="form-section-digit">g</span>Define your time</h2>
-						</div>
+						</header>
 						<div class="form-section-content">
 							<label>
 								<input type="checkbox" name="dynamic-time" checked/>
@@ -154,10 +154,10 @@
 					</section>
 				</div>
 				<div id="axis-tab" class="tab-pane">
-					<section class="form-section">
-						<div class="form-section-header">
+					<section>
+						<header>
 							<h2><span class="form-section-digit">h</span>Refine your axis</h2>
-						</div>
+						</header>
 						<div class="form-section-content">
 							<div class="y-section">
 								<h3>Y Axis</h3>
@@ -251,10 +251,10 @@
 					</section>
 				</div>
 				<div id="styling-tab" class="tab-pane">
-                    <section class="form-section logo-section">
-                        <div class="form-section-header">
+                    <section class="logo-section">
+                        <header>
                             <h2><span class="form-section-digit">i</span>Logos</h2>
-                        </div>
+                        </header>
                         <div class="form-section-content">
                             <select name="logo" class="form-control logo-select">
                                 <option value="" disabled selected>Select type</option>
@@ -264,10 +264,10 @@
                             </select>
                         </div>
                     </section>
-					<section class="form-section type-of-line-section">
-						<div class="form-section-header">
+					<section class="type-of-line-section">
+						<header>
 							<h2><span class="form-section-digit">i</span>Choose Type of Line</h2>
-						</div>
+						</header>
 						<div class="form-section-content">
 							<label>
 								<input type="radio" name="line-type" value="0"/>
@@ -292,10 +292,10 @@
 							</label>
 						</div>
 					</section>
-					<section class="form-section margins-section">
-						<div class="form-section-header">
+					<section class="margins-section">
+						<header>
 							<h2><span class="form-section-digit">j</span>Set margins</h2>
-						</div>
+						</header>
 						<div class="form-section-content">
 							<label>
 								<span>Margin top</span>
@@ -315,10 +315,10 @@
 							</label>
 						</div>
 					</section>
-					<section class="form-section legend-section">
-						<div class="form-section-header">
+					<section class="legend-section">
+						<header>
 							<h2><span class="form-section-digit">k</span>Legend</h2>
-						</div>
+						</header>
 						<div class="form-section-content">
 							<label class="clickable">
 								<input type="checkbox" name="hide-legend" />
@@ -334,19 +334,19 @@
 							</label>
 						</div>
 					</section>
-					<section class="form-section units-section">
-						<div class="form-section-header">
+					<section class="units-section">
+						<header>
 							<h2><span class="form-section-digit">l</span>Popup Units</h2>
-						</div>
+						</header>
 						<div class="form-section-content">
 						</div>
 					</section>
 				</div>
 				<div id="export-tab" class="tab-pane">
-					<section class="form-section tabs-section">
-						<div class="form-section-header">
+					<section class="tabs-section">
+						<header>
 							<h2><span class="form-section-digit">m</span>Which tabs</h2>
-						</div>
+						</header>
 						<div class="form-section-content">
 							<ol>
 								<li>
@@ -385,10 +385,10 @@
 							</label>
 						</div>
 					</section>
-					<section class="form-section">
-						<div class="form-section-header embed-section">
+					<section>
+						<header class="embed-section">
 							<h2><span class="form-section-digit">n</span>Embed your chart</h2>
-						</div>
+						</header>
 						<div class="form-section-content">
 							<p class="form-section-desc">Copy and paste code below to use the chart on your page.</p>
 							<textarea rows="4" cols="50" name="iframe" @if (isset($chart)) data-view-url="{!! route( 'view', $chart->id ) !!}" @endif placeholder="No chart created, yet. Click 'Create chart' button at the bottom to get code for embedding." readonly></textarea>
@@ -396,19 +396,19 @@
 					</section>
 				</div>
 				<div id="map-tab" class="tab-pane">
-					<section class="form-section map-variable-section">
-						<div class="form-section-header">
+					<section class="map-variable-section">
+						<header>
 							<h2><span class="form-section-digit">p</span>Which variable on map</h2>
-						</div>
+						</header>
 						<div class="form-section-content">
 							<select name="map-variable-id" class="form-control">
 							<select>
 						</div>
 					</section>
-					<section class="form-section map-timeline-section">
-						<div class="form-section-header">
+					<section class="map-timeline-section">
+						<header>
 							<h2><span class="form-section-digit">q</span>Timeline</h2>
-						</div>
+						</header>
 						<div class="form-section-content">
 							<label>
 								<i class="fa fa-info-circle" data-toggle="tooltip" title="Specify a range of years from which to pull data. For example, if the map shows 1990 and tolerance is set to 1, then data from 1989 or 1991 will be shown if no data is available for 1990."></i>
@@ -425,10 +425,10 @@
 							</label>
 						</div>
 					</section>
-					<section class="form-section map-colors-section">
-						<div class="form-section-header">
+					<section class="map-colors-section">
+						<header>
 							<h2><span class="form-section-digit">r</span>Colors</h2>
-						</div>
+						</header>
 						<div class="form-section-content">
 							<label>
 								<a href="http://www.datavis.ca/sasmac/brewerpal.html" title="Color brewer schemes" target="_blank"><i class="fa fa-info-circle"></i></a> Color scheme:
@@ -451,10 +451,10 @@
 							</ul>
 						</div>
 					</section>
-					<section class="form-section map-regions-section">
-						<div class="form-section-header">
+					<section class="map-regions-section">
+						<header>
 							<h2><span class="form-section-digit">s</span>Displayed map section</h2>
-						</div>
+						</header>
 						<div class="form-section-content">
 							<label>
 								Which region map should be focused on:
@@ -462,10 +462,10 @@
 							</label>
 						</div>
 					</section>
-					<section class="form-section map-legend-section">
-						<div class="form-section-header">
+					<section class="map-legend-section">
+						<header>
 							<h2><span class="form-section-digit">t</span>Legend</h2>
-						</div>
+						</header>
 						<div class="form-section-content">
 <!--							<label>
 								Legend orientation:
@@ -482,7 +482,7 @@
 					</section>
 				</div>
 			</div>
-			<section class="form-section form-section-submit">
+			<section class="form-section-submit">
 				<button id="save-chart" type="submit" class="btn btn-lg btn-success btn-primary">{{ $submitLabel }}</button>
 				@if ($submitLabel == "Update chart")
 					<button id="save-as-new" class="btn btn-lg btn-primary">Save as new</button>

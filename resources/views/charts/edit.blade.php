@@ -1,7 +1,7 @@
 @extends('app')
  
 @section('content')
-	<div class="chart-edit-module" style="position:absolute;top:0;left:0;right:0;bottom:0;">
+	<div id="editor" class="chart-edit-module" style="position:absolute;top:0;left:0;right:0;bottom:0;">
 		<div class="chart-edit-half">
 			@include('charts/partials/_chart')
 		</div>

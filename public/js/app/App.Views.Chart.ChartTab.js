@@ -66,7 +66,6 @@
 
 		chartTab.render = function() {
 			if (!changes.start()) return;
-			console.trace('chartTab.render');
 
 			configureTab();
 			configureData();

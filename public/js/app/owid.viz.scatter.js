@@ -1,5 +1,6 @@
 ;(function(d3) {
     "use strict";
+
     owid.namespace("owid.viz.scatter");
 
     owid.viz.scatter = function() {
@@ -25,8 +26,8 @@
                 "#ff7f0e", "#1f77b4", "#ffbb78", "#2ca02c", "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b", "c49c94", "e377c2", "f7b6d2", "7f7f7f", "c7c7c7", "bcbd22", "dbdb8d", "17becf", "9edae5", "1f77b4"]
         });
 
-        // Calculate the years which have data, for the timeline
-        viz.flow('availableYears : dimensions, variables', function(dimensions, variables) {
+        // Calculate the years which have data on both axes, for the timeline
+        viz.flow('timelineYears : dimensions, variables', function(dimensions, variables) {
             var yearSets = [];
 
             _.each(dimensions, function(dimension) {
@@ -34,12 +35,19 @@
                 yearSets.push(variables[dimension.variableId].years);
             });
 
-            return _.intersection.apply(_, yearSets);
+            var timelineYears = _.intersection.apply(_, yearSets);
+
+            _.each(dimensions, function(dimension) {
+                if (_.isFinite(dimension.targetYear))
+                    timelineYears.push(dimension.targetYear);
+            });
+
+            return _.sortBy(timelineYears);
         });
 
         // Calculate a default input year if none is given
-        viz.flow('inputYear : inputYear, availableYears', function(inputYear, availableYears) {
-            return _.isNumber(inputYear) ? inputYear : _.last(availableYears);
+        viz.flow('inputYear : timelineYears', function(inputYear, timelineYears) {
+            return _.isNumber(viz.inputYear) ? viz.inputYear : _.last(timelineYears);
         });
 
         // Color scale for color dimension
@@ -54,11 +62,10 @@
 
             var variable = variables[colorDim.variableId];
             colorScale.domain(variable.categoricalValues);
-            console.log(colorScale.domain());
         });
 
-        // Precompute the data transformation for every year (so later animation is fast)
-        viz.flow('dataByEntityAndYear : availableYears, dimensions, variables, colorScale', function(availableYears, dimensions, variables, colorScale) {
+        // Precompute the data transformation for every timeline year (so later animation is fast)
+        viz.flow('dataByEntityAndYear : timelineYears, dimensions, variables, colorScale', function(timelineYears, dimensions, variables, colorScale) {
             var dataByEntityAndYear = {};
 
             // The data values
@@ -68,18 +75,23 @@
                 var variable = variables[dimension.variableId],
                     tolerance = parseInt(dimension.tolerance);
 
+                var targetYears = timelineYears;
+
                 for (var i = 0; i < variable.years.length; i++) {
                     var year = variable.years[i],
                         value = variable.values[i],
                         entity = variable.entityKey[variable.entities[i]];
 
-                    _.each(availableYears, function(targetYear) {
+                    _.each(timelineYears, function(timelineYear) {
+                        // Allow dimensions to override target year from the timeline
+                        var targetYear = _.isFinite(dimension.targetYear) ? dimension.targetYear : timelineYear;
+
                         // Skip years that aren't within tolerance of the target
                         if (year < targetYear-tolerance || year > targetYear+tolerance)
                             return;
 
                         var dataByYear = owid.default(dataByEntityAndYear, entity.id, {}),
-                            series = owid.default(dataByYear, targetYear, {
+                            series = owid.default(dataByYear, timelineYear, {
                                 id: entity.id,
                                 label: entity.name,
                                 key: entity.name,
@@ -150,13 +162,18 @@
             return _timeline;
         });
 
-        viz.flow('timeline, chart, bounds, availableYears, inputYear', function(timeline, chart, bounds, availableYears, inputYear) {
+        viz.flow('timeline, chart, bounds, timelineYears, inputYear', function(timeline, chart, bounds, timelineYears, inputYear) {
+            if (timelineYears.length <= 1) {
+                timeline.remove();
+                return;
+            }
+
             var timelineHeight = 25;
             timeline.update({
                 svgNode: chart.svg,
                 containerNode: chart.html,
                 bounds: { top: bounds.top+bounds.height-timelineHeight, left: bounds.left, width: bounds.width, height: timelineHeight },
-                years: availableYears,
+                years: timelineYears,
                 inputYear: inputYear
             });
 
@@ -244,8 +261,8 @@
             return scatterAxis;
         });
 
-        viz.flow('scatter, svg, currentData, bounds, scatterAxis, timeline, xDomain, yDomain', function(scatter, svg, currentData, bounds, scatterAxis, timeline, xDomain, yDomain) {
-            var timelineHeight = timeline.years.length > 1 ? timeline.bounds.height : 0;
+        viz.flow('scatter, svg, currentData, bounds, scatterAxis, timeline, timelineYears', function(scatter, svg, currentData, bounds, scatterAxis, timeline, timelineYears) {
+            var timelineHeight = timelineYears.length > 1 ? timeline.bounds.height : 0;
 
             scatter.update({
                 svg: svg,

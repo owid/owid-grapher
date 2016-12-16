@@ -123,20 +123,20 @@ button > i {
   border-left: 1px solid #ddd;
   background-color: #ecf0f5; }
 
-.form-section {
+#editor .tab-pane > section {
   padding: 5px 30px 15px; }
 
-.form-section h2 {
+#editor .tab-pane section h2 {
   font-size: 24px; }
 
-.form-section:nth-child(2n) {
+#editor .tab-pane section:nth-child(2n) {
   background-color: #d2d6de; }
 
-.form-section-header {
+#editor .tab-pane section header {
   position: relative; }
 
-.form-section h2,
-.form-section h3 {
+#editor .tab-pane > section h2,
+#editor .tab-pane > section h3 {
   margin-left: 65px; }
 
 .form-section-digit {

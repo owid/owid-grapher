@@ -36,7 +36,6 @@
 			var offsetX = bounds.width;
             var logoHeight;
 			logos.each(function(d) {
-                console.log(d);
 				this.innerSVG = d.match(/<svg>(.*)<\/svg>/)[1]||d;
 
 				var bbox = this.getBBox();

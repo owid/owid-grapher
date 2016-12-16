@@ -247,6 +247,7 @@ return [
 	            'app/App.Views.UI.SettingsVarPopup.js',
 	            'app/App.Views.UI.ColorPicker.js',
 
+                'app/owid.config.scatter.js',
 	            'app/App.Views.Form.BasicTabView.js',
 	            'app/App.Views.Form.ChartTypeSectionView.js',
 	            'app/App.Views.Form.AddDataSectionView.js',

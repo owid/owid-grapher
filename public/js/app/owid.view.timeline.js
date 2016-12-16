@@ -263,7 +263,7 @@
 
 		timeline.remove = function() {
 			timeline.now('g', function(g) {
-				g.remove();
+				if (g) g.remove();
 			});
 		};
 
