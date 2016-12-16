@@ -36,7 +36,8 @@
 			var offsetX = bounds.width;
             var logoHeight;
 			logos.each(function(d) {
-				this.innerSVG = d;
+                console.log(d);
+				this.innerSVG = d.match(/<svg>(.*)<\/svg>/)[1]||d;
 
 				var bbox = this.getBBox();
 				var scale = targetHeight/bbox.height;
@@ -80,6 +81,13 @@
 				.attr('y', boundsForText.top + titleBBox.height);
 			owid.svgSetWrappedText(subtitle, subtitleStr, width, { lineHeight: 1.2 });
 		});		
+
+        header.flow('bgRect : g, boundsForText', function(g) {
+            g.selectAll('.bgRect').remove();
+            var bbox = g.node().getBBox();
+            return g.insert('rect', '*').attr('class', 'bgRect').attr('x', 0).attr('y', 0).style('fill', 'white')
+                    .attr('width', bbox.width+1).attr('height', bbox.height+10);
+        });
 
 		return header;
 	};

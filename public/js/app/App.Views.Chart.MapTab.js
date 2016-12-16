@@ -84,7 +84,7 @@
 				timeline.update(updates);
 
 				// Adjust availableHeight to compensate for timeline controls
-				availableHeight -= timelineHeight;
+				availableHeight -= timelineHeight+10;
 			} else {
 				if (timeline) {
 					timeline.remove();
