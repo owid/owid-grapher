@@ -124,20 +124,14 @@ button > i {
   background-color: #ecf0f5; }
 
 #editor .tab-pane > section {
-  padding: 5px 30px 15px; }
+  padding: 10px 50px 30px; 
+}
 
 #editor .tab-pane section h2 {
   font-size: 24px; }
 
 #editor .tab-pane section:nth-child(2n) {
   background-color: #d2d6de; }
-
-#editor .tab-pane section header {
-  position: relative; }
-
-#editor .tab-pane > section h2,
-#editor .tab-pane > section h3 {
-  margin-left: 65px; }
 
 .form-section-digit {
   display: inline-block;
@@ -153,11 +147,6 @@ button > i {
 
 .form-section:nth-child(2n) .form-section-digit {
   background-color: #357ca5; }
-
-.form-section-content {
-  margin-left: 65px;
-  margin-right: 40px;
-  padding: 10px 0px; }
 
 .group-by-variable-wrapper {
   margin-left: 65px;

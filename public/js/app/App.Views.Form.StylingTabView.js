@@ -39,7 +39,7 @@
 
 			//units
 			this.$unitsSection = this.$el.find( ".units-section" );
-			this.$unitsContent = this.$unitsSection.find( ".form-section-content" );
+			this.$unitsContent = this.$unitsSection.find(".form-section-content");
 			
 			this.listenTo(App.ChartModel, "change:chart-type", this.render.bind(this));
 			this.listenTo(App.ChartModel, "change:chart-dimensions", this.render.bind(this));
@@ -143,6 +143,7 @@
 				units = ( !$.isEmptyObject( unitsString ) )? $.parseJSON( unitsString ): {};
 
 			//refresh whole unit section
+            if (!this.$unitsContent.length) this.$unitsContent = $('<div></div>').appendTo(this.$unitsSection);
 			this.$unitsContent.html( "<ul></ul>" );
 			var $ul = this.$unitsContent.find("ul");
 
