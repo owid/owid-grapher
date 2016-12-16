@@ -170,6 +170,14 @@ Object.defineProperty(SVGElement.prototype, 'innerSVG', {
 		return parseFloat(val) == val;
 	};
 
+	owid.numeric = function(val, defaultVal) {
+		var num = parseFloat(val);
+		if (_.isNumber(num)) 
+			return num;
+		else 
+			return defaultVal;
+	};
+
 	owid.displayYear = function(year) {
 		year = parseInt(year);
 		if (isNaN(year)) {

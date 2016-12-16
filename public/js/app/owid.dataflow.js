@@ -7,7 +7,6 @@
 		model.state = state;
 
 		function defineProperty(key, val) {
-			state[key] = undefined;
 			defaults[key] = val;
 
 			if (!model.hasOwnProperty(key)) {
@@ -63,7 +62,7 @@
 
 			var args = _.map(flow.inputs, function(key) {
 				if (!_.has(state, key))
-					throw("Missing input value: " + k);
+					throw("Missing input value: " + key);
 
 				return state[key];
 			});
@@ -91,7 +90,7 @@
 			}
 
 			_.each(inputs, function(v, k) {
-				if (!_.has(state, k))
+				if (!_.has(defaults, k))
 					throw("No such input: " + k);
 				if (!isEqual(state[k], v)) {
 					state[k] = v;

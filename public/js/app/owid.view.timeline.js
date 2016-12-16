@@ -262,9 +262,7 @@
 		});
 
 		timeline.remove = function() {
-			timeline.now('g', function(g) {
-				if (g) g.remove();
-			});
+			if (timeline.g) timeline.g.remove();
 		};
 
 		return timeline;

@@ -536,7 +536,7 @@ select.disabled {
 --------------------------------------------- */
 
 #chart .axis path.domain {
-    stroke: #333;
+    stroke: #7f7f7f;
     stroke-width: 1px;        
     stroke-opacity: 0.75;
 }
@@ -964,7 +964,7 @@ select.disabled {
 #chart.export nav.tabs,
 #chart.export .footer-btns,
 #chart.export .fullscreen-link,
-#chart.export .map-timeline-controls,
+#chart.export .timeline,
 #chart.export .settings-control,
 #chart.export .color-blind-control,
 #chart.export .map-controls-header,

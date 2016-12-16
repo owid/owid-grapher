@@ -154,7 +154,7 @@
 									<input class="form-control" type="text" name="chart-y-axis-max" />
 								</div>
 								<div class="input-wrapper">
-									<label for="chart-y-axis-min">Y-Axis Min (0 is default)</label>
+									<label for="chart-y-axis-min">Y-Axis Min</label>
 									<input class="form-control" type="text" name="chart-y-axis-min" />
 								</div>
 								<div class="input-wrapper">

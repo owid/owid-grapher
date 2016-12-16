@@ -35,10 +35,10 @@
 			yAxisSuffix = yAxis["axis-suffix"] || "",
 			xAxisLabelDistance = +xAxis["axis-label-distance"] || 0,
 			yAxisLabelDistance = +yAxis["axis-label-distance"] || 0,
-			xAxisMin = xAxis["axis-min"] || null,
-			xAxisMax = xAxis["axis-max"] || null,
-			yAxisMin = yAxis["axis-min"] || 0,
-			yAxisMax = yAxis["axis-max"] || null,
+			xAxisMin = owid.numeric(xAxis["axis-min"], null),
+			xAxisMax = owid.numeric(xAxis["axis-max"], null),
+			yAxisMin = owid.numeric(yAxis["axis-min"], null),
+			yAxisMax = owid.numeric(yAxis["axis-max"], null),
 			xAxisScale = xAxis["axis-scale"] || "linear",
 			yAxisScale = yAxis["axis-scale"] || "linear",
 			xAxisFormat = xAxis["axis-format"],
@@ -139,8 +139,13 @@
 
 			if (!nvd3 && chartType != App.ChartType.ScatterPlot)
 				nv.addGraph(updateGraph);
-			else
+			else {
+				if (nvd3) {
+					nvd3 = null;
+					$('.nvd3').remove();
+				}
 				updateGraph();
+			}
 		};
 
 		function configureTab() {
@@ -179,10 +184,10 @@
 			yAxisSuffix = yAxis["axis-suffix"] || "";
 			xAxisLabelDistance = +xAxis["axis-label-distance"] || 0;
 			yAxisLabelDistance = +yAxis["axis-label-distance"] || 0;
-			xAxisMin = xAxis["axis-min"] || null;
-			xAxisMax = xAxis["axis-max"] || null;
-			yAxisMin = yAxis["axis-min"] || 0;
-			yAxisMax = yAxis["axis-max"] || null;
+			xAxisMin = owid.numeric(xAxis["axis-min"], null),
+			xAxisMax = owid.numeric(xAxis["axis-max"], null),
+			yAxisMin = owid.numeric(yAxis["axis-min"], null),
+			yAxisMax = owid.numeric(yAxis["axis-max"], null),
 			xAxisScale = xAxis["axis-scale"] || "linear";
 			yAxisScale = yAxis["axis-scale"] || "linear";
 			xAxisFormat = xAxis["axis-format"];
@@ -249,14 +254,25 @@
 
 		function renderScatterPlot() {
 			if (!viz) {
-				viz = owid.viz.scatter();
-			} else if (viz.timeline.isPlaying || viz.timeline.isDragging) {
+				viz = owid.control.scatter();
+			} else if (viz.scatter.timeline && (viz.scatter.timeline.isPlaying || viz.scatter.timeline.isDragging)) {
 				return;
 			}
+			
+            var xDomain = [], yDomain = [];
+
+            if (_.isFinite(xAxisMin) && (xAxisMin > 0 || xAxisScale != "log"))
+                xDomain[0] = xAxisMin;
+            if (_.isFinite(xAxisMax))
+                xDomain[1] = xAxisMax;
+
+            if (_.isFinite(yAxisMin) && (yAxisMin > 0 || yAxisScale != "log"))
+                yDomain[0] = yAxisMin;            
+            if (_.isFinite(yAxisMax))
+                yDomain[1] = yAxisMax;
 
 			viz.update({
-				chart: chart,
-				svg: svg,
+				svgNode: chart.svg,
 				bounds: { left: chartOffsetX, top: chartOffsetY+10, width: chartWidth-10, height: chartHeight-10 },
 				axisConfig: {
 					x: {
@@ -279,7 +295,8 @@
 				},
 				dimensions: chart.model.getDimensions(),
 				variables: chart.vardata.get('variables'),
-				inputYear: (chart.model.get('chart-time')||[])[0]
+				inputYear: (chart.model.get('chart-time')||[])[0],
+                timelineConfig: chart.model.get('timeline')
 			});
 
 			chart.dispatch.renderEnd();

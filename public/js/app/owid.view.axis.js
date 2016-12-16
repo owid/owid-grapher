@@ -72,6 +72,8 @@
 
 			d3axis(scaleG);
 
+			scaleG.selectAll('.tick text').attr('fill', '#666');
+
 			return scaleG.node().getBBox();
 		});
 
@@ -85,7 +87,7 @@
 					.append("text")
 					.attr("class", "axis-label")
 					.attr("text-anchor", "middle")
-					.style("fill", "black")
+					.style("fill", "#333")
 					.attr("transform", "rotate(-90)")
 				  .merge(labelUpdate)
 					.attr("x", -bounds.top-bounds.height/2)
@@ -96,7 +98,7 @@
 					.append("text")
 					.attr("class", "axis-label")
 					.attr("text-anchor", "middle")
-					.style("fill", "black")
+					.style("fill", "#333")
 				  .merge(labelUpdate)
 					.attr("x", bounds.left+bounds.width/2)
 					.attr("y", bboxNoLabel.height+15)

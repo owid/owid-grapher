@@ -82,6 +82,7 @@
 		chart.render = function() {			
 			if (!changes.start())
 				return;
+            
 			chart.data.transformData();
 			if (changes.any('activeTab')) chart.tabSelector.switchTab();
 			chart.applyScale();
