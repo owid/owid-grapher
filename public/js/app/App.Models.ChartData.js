@@ -442,6 +442,11 @@
 		},
 
 		transformData: function() {
+			var variables = App.VariableData.get("variables"),
+				chartType = App.ChartModel.get("chart-type"),
+				addCountryMode = App.ChartModel.get("add-country-mode"),
+				result = null;
+
 			if (chartType == App.ChartType.ScatterPlot)
 				return [];
 
@@ -450,10 +455,6 @@
 			if (this.chartData)
 				return this.get("chartData");
 
-			var variables = App.VariableData.get("variables"),
-				chartType = App.ChartModel.get("chart-type"),
-				addCountryMode = App.ChartModel.get("add-country-mode"),
-				result = null;
 
 			if (!variables || !App.ChartModel.hasVariables()) return [];
 

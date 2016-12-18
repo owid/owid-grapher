@@ -538,7 +538,7 @@ select.disabled {
 #chart .axis path.domain {
     stroke: #7f7f7f;
     stroke-width: 1px;        
-    stroke-opacity: 0.75;
+    stroke-opacity: 0;
 }
 
 #chart .axis line:first-child {
@@ -552,11 +552,14 @@ select.disabled {
 
 #chart .axis {
     font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif;
-    font-size: 14px;
 }
 
-#chart .axis > .scale {
-    font-size: 14px;
+#chart .axis, #chart .axis > .scale {
+    font-size: 18px;    
+}
+
+#chart.upscaled:not(.export) .axis, #chart.upscaled:not(.export) .axis > .scale {
+    font-size: 15px;
 }
 
 
@@ -976,13 +979,8 @@ select.disabled {
 #chart.export .tab-pane {
     border: none !important;
 }
-#chart.export .nv-custom-legend .nv-legend-text {
-    font-size: 16px !important;
-}
 /* Responsiveness
 --------------------------------------------- */
-
-
 #chart {
     font-size: 18px;
 }

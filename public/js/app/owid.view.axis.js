@@ -87,21 +87,21 @@
 					.append("text")
 					.attr("class", "axis-label")
 					.attr("text-anchor", "middle")
-					.style("fill", "#333")
+					.style("fill", "#35322f")
 					.attr("transform", "rotate(-90)")
 				  .merge(labelUpdate)
 					.attr("x", -bounds.top-bounds.height/2)
-					.attr("y", -bboxNoLabel.width-10)
+					.attr("y", -bboxNoLabel.width-15)
 					.text(label);
 			} else {
 				labelUpdate.enter()
 					.append("text")
 					.attr("class", "axis-label")
 					.attr("text-anchor", "middle")
-					.style("fill", "#333")
+					.style("fill", "#35322f")
 				  .merge(labelUpdate)
 					.attr("x", bounds.left+bounds.width/2)
-					.attr("y", bboxNoLabel.height+15)
+					.attr("y", bboxNoLabel.height+20)
 					.text(label);				
 			}
 

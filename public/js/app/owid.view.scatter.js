@@ -52,7 +52,7 @@
 
 		var _sizeScale = d3.scaleLinear();
 		scatter.flow("sizeScale : data", function(data) {
-			_sizeScale.range([5, 10])
+			_sizeScale.range([6, 12])
 				.domain([
 		        	d3.min(data, function(series) { return d3.min(series.values, function(d) { return d.size||1; }); }),
 		       	    d3.max(data, function(series) { return d3.max(series.values, function(d) { return d.size||1; }); })
@@ -71,7 +71,7 @@
 		scatter.flow("entities : g, data", function(g, data) {
 			var update = g.selectAll(".entity").data(data, function(d) { return d.key; }),
 				exit = update.exit().remove(),
-				enter = update.enter().append("g").attr("class", function(d) { return d.key + " entity"; }),
+				enter = update.enter().append("g").attr("class", function(d) { return "key-" + owid.makeSafeForCSS(d.key) + " entity"; }),
 				entities = enter.merge(update);
 
 			enter.style('opacity', 0).transition(1000).style('opacity', null);
@@ -178,7 +178,7 @@
 
 		var _fontScale = d3.scaleLinear();
 		scatter.flow("fontScale : sizeScale", function(sizeScale) {
-			_fontScale.range([12, 16]).domain(sizeScale.domain());
+			_fontScale.range([13, 16]).domain(sizeScale.domain());
 		    return _fontScale;
 		});
 
@@ -203,17 +203,37 @@
 			});
 		});
 
+
+    	// Calculating bboxes for many labels each frame is expensive
+    	// So we cache width and height unless the label size changes
+    	var labelSizeCache = {};
+		function updateLabelSize(d, label) {
+			var cache = labelSizeCache[d.text];
+
+			if (!cache || cache.fontSize != d.fontSize) {
+				cache = {
+					fontSize: d.fontSize,
+					bbox: label.getBBox()
+				};
+
+				labelSizeCache[d.text] = cache;
+			}
+
+			d.width = cache.bbox.width;
+			d.height = cache.bbox.height;
+		}
+
 		// Render the labels and filter for overlaps
-		scatter.flow("labels : g, data, labelData,  xScale, yScale", function(g,  data, labelData, xScale, yScale) {			
-			var labelUpdate = g.selectAll(".label").data(labelData);
+		scatter.flow("labels : g, data, labelData, xScale, yScale", function(g,  data, labelData, xScale, yScale) {			
+			var labelUpdate = g.selectAll(".scatter-label").data(labelData);
 
 			var labels = labelUpdate.enter()
 	            .append("text")
-	            .attr("class", "label")
+	            .attr("class", "scatter-label")
 	            .attr('text-anchor', 'start')
 	          .merge(labelUpdate)
 	            .text(function(d) { return d.text; })
-	            .style("font-size", function(d) { return d.fontSize; })   
+	            .style("font-size", function(d) { return d.fontSize+'px'; })   
 	            .style("fill", function(d) { return d.color; });
 
 	        labelUpdate.exit().remove();
@@ -221,8 +241,7 @@
 	        // Calculate the size of each label and ensure it's inside the bounds of the chart
 	        var label_array = [];
 	        labels.each(function(d) {
-	            d.width = this.getBBox().width;
-	            d.height = this.getBBox().height;
+	        	updateLabelSize(d, this);
 
 	        	if (d.x+d.width > xScale.range()[1])
 	        		d.x -= (d.width + d.offset*2);
