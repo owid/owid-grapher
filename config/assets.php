@@ -181,6 +181,7 @@ return [
 		        'app/owid.view.axis.js',
 		        'app/owid.view.axisBox.js',
 		        'app/owid.view.scatter.js',
+		        'app/owid.view.map.js',
 		        'app/owid.view.timeline.js',
 		        'app/owid.viz.scatter.js',
 		        'app/App.Views.Chart.Legend.js',

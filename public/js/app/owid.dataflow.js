@@ -22,6 +22,14 @@
 			});
 		};
 
+		model.requires = function() {
+			_.each(arguments, function(k) {
+				defineProperty(k, undefined);
+			});
+		};
+
+		model.defaults = model.inputs;
+
 		function parseFlowspec(flowspec) {
 			var flow = {},
 				spl = flowspec.split(/\s*:\s*/);
@@ -32,6 +40,11 @@
 
 			return flow;
 		}
+
+		model.initial = function(flowspec, callback) {
+			var flow = parseFlowspec(flowspec);
+			defaults[flow.inputs[0]] = callback();
+		};
 
 		model.flow = function(flowspec, callback) {
 			var flow = parseFlowspec(flowspec);

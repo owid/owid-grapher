@@ -746,7 +746,7 @@ select.disabled {
     stroke: #4b4b4b !important;
     stroke-width: 0.3px !important;
 }
-#chart svg.datamap path:hover {
+#chart g.map path:hover {
     stroke: #FFEC38 !important;
     stroke-width: 3px !important;
 }
