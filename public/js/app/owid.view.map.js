@@ -8,8 +8,8 @@
         map.requires('containerNode', 'bounds', 'colorData');
 
         map.defaults({ 
-            projection: 'Africa',
-            defaultFill: '#8b8b8b',
+            projection: 'World',
+            defaultFill: '#8b8b8b'
         });
 
         map.initial('geoData', function() {
@@ -68,13 +68,23 @@
               .merge(geoUpdate);
         });
 
+        // Apply the choropleth!
         map.flow('geo, colorData, defaultFill', function(geo, colorData, defaultFill) {
-            console.log(colorData);
-
             geo.style('fill', function(d) { 
                 var datum = colorData[d.id];
                 return datum ? datum.color : defaultFill;
             });
+        });
+
+        // Little disclaimer
+        map.flow('disclaimer : g', function(g) { 
+            return g.append('text')
+                .attr('class', 'disclaimer')
+                .attr('text-anchor', 'end')
+                .text("Mapped on current borders");
+        });
+        map.flow('disclaimer, bounds', function(disclaimer, bounds) {
+            disclaimer.attr('x', bounds.left+bounds.width-5).attr('y', bounds.top+bounds.height-10);
         });
 
         // Scaling

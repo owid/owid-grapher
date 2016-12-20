@@ -247,8 +247,22 @@
 			}
 		};
 
+		var control = owid.control.mapWithTimeline(chart);
+
 		mapTab.render = function(inputBounds) {
 			bounds = inputBounds;
+
+			chart.mapdata.update();
+
+			control.update({
+				containerNode: chart.svg,
+				bounds: bounds,
+				colorData: chart.mapdata.currentValues,
+				years: chart.map.getYears(),
+				inputYear: chart.map.get('targetYear')
+			});
+
+			return;
 
 			$(".chart-error").remove();
 			if (!chart.map.getVariable()) {
@@ -256,7 +270,6 @@
 				return;
 			}
 
-			chart.mapdata.update();
 
 			if (!changes.start()) return;
 

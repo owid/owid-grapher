@@ -6,14 +6,18 @@
 		var timeline = owid.dataflow();
 
 		timeline.inputs({
-			svgNode: undefined,
 			containerNode: undefined,
-			bounds: { left: 0, top: 0, width: 100, height: 100 },
+			outerBounds: { left: 0, top: 0, width: 100, height: 100 },
 			years: [1900, 1920, 1940, 2000], // Range of years the timeline covers
 			inputYear: 1980,
 			isPlaying: false,
 			isDragging: false
 		});
+
+        timeline.flow('bounds : outerBounds', function(outerBounds) {
+            var height = 25;
+            return { left: outerBounds.left, top: outerBounds.top+(outerBounds.height-height), width: outerBounds.width, height: height};
+        });
 
 		// Data processing
 		timeline.flow("minYear : years", function(years) { return _.first(years); });
@@ -40,8 +44,8 @@
 		});
 
   		// Start building DOM
-		timeline.flow('g : svgNode', function(svgNode) {
-			return d3.select(svgNode).append('g').attr('class', 'timeline').style('cursor', 'pointer');
+		timeline.flow('g : containerNode', function(containerNode) {
+			return d3.select(containerNode).append('g').attr('class', 'timeline').style('cursor', 'pointer');
 		});
 
 		timeline.flow('g, bounds', function(g, bounds) {

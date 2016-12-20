@@ -184,6 +184,7 @@ return [
 		        'app/owid.view.map.js',
 		        'app/owid.view.timeline.js',
 		        'app/owid.viz.scatter.js',
+		        'app/owid.control.mapWithTimeline.js',
 		        'app/App.Views.Chart.Legend.js',
 		        'app/App.Views.Chart.ChartTab.js',
 		        'app/App.Views.Chart.DataTab.js',

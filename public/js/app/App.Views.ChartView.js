@@ -79,7 +79,7 @@
 			}
 		}.bind(this));*/
 
-			var map = owid.view.map();
+			var map = owid.control.mapWithTimeline();
 
 		chart.render = function() {
 			if (!changes.start())
@@ -94,15 +94,7 @@
 
 			var bounds = { left: paddingLeft, top: paddingTop, width: chart.innerRenderWidth-(paddingLeft*2), height: chart.innerRenderHeight-(paddingTop*2) };
 
-			chart.mapdata.update();
-			var data = chart.mapdata.currentValues;
-			map.update({
-				containerNode: chart.svg,
-				bounds: bounds,
-				colorData: data
-			});
-
-/*			chart.header.render(bounds);
+			chart.header.render(bounds);
 
 			bounds = _.extend({}, bounds, { top: bounds.top+chart.header.view.bbox.height, height: bounds.height-chart.header.view.bbox.height });
 //			owid.boundsDebug(bounds);
@@ -114,7 +106,9 @@
 			bounds = _.extend({}, bounds, { left: bounds.left, top: bounds.top+10, width: bounds.width-20, height: bounds.height-20 });
 
 	//		chart.tabSelector.render();
-			if (chart.activeTab) chart.activeTab.render(bounds);*/
+			if (chart.activeTab) chart.activeTab.render(bounds);
+
+
 
 			$chart.find('.chart-inner').css('visibility', 'visible');			
 
