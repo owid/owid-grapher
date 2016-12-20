@@ -103,7 +103,7 @@
 			bounds = _.extend({}, bounds, { height: bounds.height-chart.footer.height });
 
 			// Pad the tab a little
-			bounds = _.extend({}, bounds, { left: bounds.left, top: bounds.top+10, width: bounds.width-20, height: bounds.height-20 });
+			bounds = _.extend({}, bounds, { left: bounds.left, top: bounds.top, width: bounds.width, height: bounds.height });
 
 	//		chart.tabSelector.render();
 			if (chart.activeTab) chart.activeTab.render(bounds);

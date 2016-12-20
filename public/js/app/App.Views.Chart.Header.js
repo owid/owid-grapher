@@ -6,19 +6,15 @@
 		var header = owid.dataflow();
 
 		header.inputs({
-			svgNode: undefined,
+			containerNode: undefined,
 			bounds: { left: 0, top: 0, width: 100, height: 100 },
 			titleStr: "",
 			subtitleStr: "",
 			logosSVG: []
 		});
 
-		header.flow('svg : svgNode', function(svgNode) {
-			return d3.select(svgNode);
-		});
-
-		header.flow('g : svg', function(svg) {
-			return svg.append('g').attr('class', 'header');
+		header.flow('g : containerNode', function(containerNode) {
+			return d3.select(containerNode).append('g').attr('class', 'header');
 		});
 
 		// Render the logos first as they affect the positioning of the text
@@ -82,7 +78,7 @@
             var bbox = g.node().getBBox();
             g.insert('rect', '*').attr('class', 'bgRect').attr('x', 0).attr('y', 0).style('fill', 'white')
                     .attr('width', bbox.width+1).attr('height', bbox.height+10);
-            return bbox;
+            return g.node().getBBox();
         });
 
 		header.flow('g, bounds', function(g, bounds) {
@@ -98,7 +94,7 @@
 		var headerControl = owid.dataflow();
 
 		headerControl.inputs({
-			svgNode: undefined,
+			containerNode: undefined,
 			bounds: { left: 0, top: 0, width: 100, height: 100 },
 			titleTemplate: "",
 			subtitleTemplate: "",
@@ -146,9 +142,9 @@
 			return fillTemplate(subtitleTemplate);
 		});
 
-		headerControl.flow('svgNode, bounds, logosSVG, titleStr, subtitleStr', function(svgNode, bounds, logosSVG, titleStr, subtitleStr) {
+		headerControl.flow('containerNode, bounds, logosSVG, titleStr, subtitleStr', function(containerNode, bounds, logosSVG, titleStr, subtitleStr) {
 			header.update({
-				svgNode: svgNode,
+				containerNode: containerNode,
 				bounds: bounds,
 				logosSVG: logosSVG,
 				titleStr: titleStr,
@@ -204,7 +200,7 @@
 			var linkedTitle = "<a href='" + canonicalUrl + "' target='_blank'>" + chart.model.get('chart-name') + "</a>";
 
 			headerControl.update({
-				svgNode: chart.svg,
+				containerNode: chart.svg,
 				bounds: bounds,
 				titleTemplate: linkedTitle,
 				subtitleTemplate: chart.model.get('chart-subname') + disclaimer,

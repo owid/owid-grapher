@@ -5,19 +5,18 @@
 	owid.view.scatter = function() {
 		var scatter = owid.dataflow();
 
+		scatter.requires('containerNode', 'bounds', 'axisConfig');
+
 		scatter.inputs({
-			svgNode: undefined,
 			data: [],
-			bounds: { left: 0, top: 0, width: 100, height: 100 },
-			axisConfig: undefined,
 			hoverKey: null,
 			canHover: true
 		});
 
 		var _axisBox = owid.view.axisBox();
 
-		scatter.flow("svg : svgNode", function(svgNode) {
-			return d3.select(svgNode);
+		scatter.flow("svg : containerNode", function(containerNode) {
+			return d3.select(containerNode);
 		});
 
 		// Calculate defaults for domain as needed
@@ -67,6 +66,15 @@
 			    .x(function(d) { return xScale(d.x); })
 			    .y(function(d) { return yScale(d.y); });
 		});*/
+
+		// Filter data to remove anything that is outside the domain
+		scatter.flow('data : data, xScale, yScale', function(data, xScale, yScale) {
+			var xDomain = xScale.domain(), yDomain = yScale.domain();
+			return _.filter(data, function(d) {
+				var x = d.values[0].x, y = d.values[0].y;
+				return x >= xDomain[0] && x <= xDomain[1] && y >= yDomain[0] && y <= yDomain[1];
+			});
+		});
 
 		scatter.flow("entities : g, data", function(g, data) {
 			var update = g.selectAll(".entity").data(data, function(d) { return d.key; }),

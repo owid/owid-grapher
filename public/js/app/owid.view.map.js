@@ -133,8 +133,10 @@
         });
 
         // Event binding
-        map.flow('geo, onHover', function(geo, onHover) {
+        map.flow('geo, onHover, onHoverStop, onClick', function(geo, onHover, onHoverStop, onClick) {
             geo.on('mouseenter', onHover);
+            geo.on('mouseleave', onHoverStop);
+            geo.on('click', onClick);
         });
 
         return map;

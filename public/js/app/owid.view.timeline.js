@@ -5,9 +5,9 @@
 	owid.view.timeline = function() {
 		var timeline = owid.dataflow();
 
-		timeline.inputs({
-			containerNode: undefined,
-			outerBounds: { left: 0, top: 0, width: 100, height: 100 },
+        timeline.requires('containerNode', 'outerBounds');
+
+		timeline.defaults({
 			years: [1900, 1920, 1940, 2000], // Range of years the timeline covers
 			inputYear: 1980,
 			isPlaying: false,

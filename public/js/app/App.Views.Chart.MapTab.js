@@ -16,7 +16,7 @@
 		changes.track(chart, 'tabBounds activeTab');
 
 		var dataMap, bordersDisclaimer;
-		var svg, svgNode, offsetY, availableWidth, availableHeight, bounds;
+		var svg, offsetY, availableWidth, availableHeight, bounds;
 
 		var dispatcher = _.clone(Backbone.Events),
 			mapControls = new MapControls({ dispatcher: dispatcher }),

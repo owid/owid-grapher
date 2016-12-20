@@ -68,7 +68,7 @@
 		chartTab.render = function(inputBounds) {
 			if (!changes.start()) return;
 
-			bounds = inputBounds;
+			bounds = { left: inputBounds.left, top: inputBounds.top, width: inputBounds.width, height: inputBounds.height-10 };
   		    margins = _.clone(chart.model.get("margins"));
 			chartOffsetX = bounds.left;
 			chartOffsetY = bounds.top;
@@ -268,7 +268,7 @@
                 yDomain[1] = yAxisMax;
 
 			viz.update({
-				svgNode: chart.svg,
+				containerNode: chart.svg,
 				bounds: { left: chartOffsetX, top: chartOffsetY+10, width: chartWidth-10, height: chartHeight-10 },
 				axisConfig: {
 					x: {

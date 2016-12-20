@@ -41,14 +41,7 @@
     owid.control.scatterWithoutTimeline = function() {
         var viz = owid.dataflow();
 
-        viz.inputs({
-            svgNode: undefined,
-            bounds: undefined,
-            axisConfig: undefined,
-            dimensions: undefined,
-            variables: undefined,
-            colorScheme: undefined
-        });        
+        viz.requires('containerNode', 'bounds', 'axisConfig', 'dimensions', 'variables', 'colorScheme');
 
         // Color scale for color dimension
         viz.flow('colorScale : colorScheme', function(colorScheme) {
@@ -119,13 +112,13 @@
             return data;
         });
 
-        viz.flow('scatter : svgNode', function(svgNode) {
+        viz.flow('scatter : containerNode', function(containerNode) {
             return owid.view.scatter();
         });
 
-        viz.flow('scatter, svgNode, data, bounds, axisConfig', function(scatter, svgNode, data, bounds, axisConfig) {
+        viz.flow('scatter, containerNode, data, bounds, axisConfig', function(scatter, containerNode, data, bounds, axisConfig) {
             scatter.update({
-                svgNode: svgNode,
+                containerNode: containerNode,
                 data: data,
                 bounds: bounds,
                 axisConfig: axisConfig
@@ -142,16 +135,7 @@
     owid.control.scatterWithTimeline = function() {
         var viz = owid.dataflow();
 
-        viz.inputs({
-            svgNode: undefined,
-            bounds: undefined,
-            axisConfig: undefined,
-            dimensions: undefined,
-            variables: undefined,
-            inputYear: undefined,
-            timelineConfig: undefined,
-            colorScheme: undefined
-        });
+        viz.requires('containerNode', 'bounds', 'axisConfig', 'dimensions', 'variables', 'inputYear', 'timelineConfig', 'colorScheme');
 
         viz.flow('axisDimensions : dimensions', function(dimensions) {            
             return _.filter(dimensions, function(d) { return d.property == 'x' || d.property == 'y'; });
@@ -276,7 +260,7 @@
         });
 
         // hack
-        viz.flow('timeline : svgNode', function(svgNode) {
+        viz.flow('timeline : containerNode', function(containerNode) {
             var timeline = owid.view.timeline();
 
             timeline.flow('targetYear', function(targetYear) {
@@ -286,11 +270,11 @@
             return timeline;
         });
 
-        viz.flow('timeline, svgNode, bounds, timelineYears, inputYear', function(timeline, svgNode, bounds, timelineYears, inputYear) {
+        viz.flow('timeline, containerNode, bounds, timelineYears, inputYear', function(timeline, containerNode, bounds, timelineYears, inputYear) {
             var timelineHeight = 25;
             timeline.update({
-                svgNode: chart.svg,
-                bounds: { top: bounds.top+bounds.height-timelineHeight, left: bounds.left, width: bounds.width, height: timelineHeight },
+                containerNode: chart.svg,
+                outerBounds: { top: bounds.top+bounds.height-timelineHeight, left: bounds.left, width: bounds.width, height: timelineHeight },
                 years: timelineYears,
                 inputYear: inputYear
             });
@@ -347,7 +331,7 @@
             return currentData;
         });
 
-        viz.flow('scatter : svgNode', function(svgNode) {
+        viz.flow('scatter : containerNode', function(containerNode) {
             return owid.view.scatter();
         });
 
@@ -375,11 +359,11 @@
             return scatterAxis;
         });
 
-        viz.flow('scatter, svgNode, currentData, bounds, scatterAxis, timeline, timelineYears', function(scatter, svgNode, currentData, bounds, scatterAxis, timeline, timelineYears) {
+        viz.flow('scatter, containerNode, currentData, bounds, scatterAxis, timeline, timelineYears', function(scatter, containerNode, currentData, bounds, scatterAxis, timeline, timelineYears) {
             var timelineHeight = App.isExport ? 0 : timeline.bounds.height+10;
 
             scatter.update({
-                svgNode: svgNode,
+                containerNode: containerNode,
                 data: currentData,
                 bounds: _.extend({}, bounds, { height: bounds.height-timelineHeight }),
                 axisConfig: scatterAxis

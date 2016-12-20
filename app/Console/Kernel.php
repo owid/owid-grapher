@@ -13,6 +13,7 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
+        Commands\AddUser::class,
         Commands\QoGSyncCommand::class,
         Commands\CloudflareInvalidate::class
     ];
