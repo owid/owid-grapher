@@ -990,6 +990,16 @@ Object.defineProperty(SVGElement.prototype, 'innerSVG', {
     	return node && (node.ownerDocument && node.ownerDocument.defaultView || node.document && node || node.defaultView);
  	};
 
+ 	owid.boundsDebug = function(bounds, containerNode) {
+ 		var container = containerNode ? d3.select(containerNode) : d3.select('svg');
+ 		container.append('rect')
+ 			.attr('x', bounds.left)
+ 			.attr('y', bounds.top)
+ 			.attr('width', bounds.width)
+ 			.attr('height', bounds.height)
+ 			.style('fill', 'red');
+ 	};
+
 	window.require = function(namespace) {
 		var obj = window;
 		_.each(namespace.split("."), function(level) {

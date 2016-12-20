@@ -26,15 +26,15 @@
 			this.listenTo($(window), "query-change", this.updateSharingButtons.bind(this));
 		},
 
-		render: function() {
+		render: function(bounds) {
 			if (!this.changes.start()) return;
 
-			this.renderSVG();
+			this.renderSVG(bounds);
 			this.updateSharingButtons();
 			this.changes.done();
 		},
 
-		renderSVG: function(callback) {
+		renderSVG: function(bounds, callback) {
 			var sources = App.ChartData.transformDataForSources(),
 				sourceNames = _.uniq(_.pluck(sources, "name")),
  				chartDesc = App.ChartModel.get("chart-description"),
@@ -69,48 +69,50 @@
 					"<a class='origin-link' target='_blank' href='http://ourworldindata.org'>OurWorldInData.org</a>");					
 			}
 
-			var svg = d3.select("svg"),
-				svgBounds = chart.getBounds(svg.node()),
-				svgWidth = svgBounds.width,
-				svgHeight = svgBounds.height;
+			var svg = d3.select("svg");
 
 			svg.selectAll(".chart-footer-svg").remove();
 			var g = svg.append("g").attr("class", "chart-footer-svg");
 
 			var footerSourceEl = g.append("text")
+				.attr('dominant-baseline', 'hanging')
 				.attr("x", 0)
 				.attr("y", 0)
 				.attr("dy", 0);
 
-			owid.svgSetWrappedText(footerSourceEl, footerSource, svgWidth, { lineHeight: 1.1 });
+			owid.svgSetWrappedText(footerSourceEl, footerSource, bounds.width, { lineHeight: 1.1 });
 
 			if (footerNote) {
+				var sourceBBox = footerSourceEl.node().getBBox();
+
 				var footerNoteEl = g.append("text")
+						.attr('dominant-baseline', 'hanging')
 						.attr("class", "footer-note-svg")
 						.attr("x", 0)
-						.attr("y", chart.getBounds(footerSourceEl.node()).bottom - svgBounds.top)
+						.attr("y", sourceBBox.y+sourceBBox.height)
 						.attr("dy", "1.5em");
 
-				owid.svgSetWrappedText(footerNoteEl, footerNote, svgWidth, { lineHeight: 1.1 });				
+				owid.svgSetWrappedText(footerNoteEl, footerNote, bounds.width, { lineHeight: 1.1 });				
 			}
 
+			var bbox = (footerNote ? footerNoteEl : footerSourceEl).node().getBBox();
 			var footerLicenseEl = g.append("text")
+					.attr('dominant-baseline', 'hanging')
 					.attr("class", "footer-license-svg")
 					.attr("x", 0)
-					.attr("y", chart.getBounds((footerNote ? footerNoteEl : footerSourceEl).node()).bottom - svgBounds.top)
+					.attr("y", bbox.y+bbox.height)
 					.attr("dy", "1.5em");
 
+			owid.svgSetWrappedText(footerLicenseEl, footerLicense, bounds.width, { lineHeight: 1.1 });
 
-			owid.svgSetWrappedText(footerLicenseEl, footerLicense, svgWidth, { lineHeight: 1.1 });
-
-			var sourceBounds = chart.getBounds(footerSourceEl.node()),
-				licenseBounds = chart.getBounds(footerLicenseEl.node());
+			var sourceBBox = footerSourceEl.node().getBBox(),
+				licenseBBox = footerLicenseEl.node().getBBox();
 
 			// Move the license stuff over to the right if there is space to do so
 
-			if (svgBounds.width - sourceBounds.width > licenseBounds.width+10) {
+			if (bounds.width - sourceBBox.width > licenseBBox.width+10) {
 				footerLicenseEl
-					.attr('x', svgBounds.width)
+					.attr('x', bounds.width)
 					.attr('y', 0)
 					.attr('dy', 0)
 					.attr('text-anchor', 'end');
@@ -123,12 +125,15 @@
 
 			var footerHeight = g.node().getBBox().height;
 			g.insert("rect", "*")
-				.attr("x", 0).attr("y", -26)			
-				.attr("width", svgWidth)
-				.attr("height", footerHeight + 27)
+				.attr("x", 0).attr("y", 0)			
+				.attr("width", bounds.width)
+				.attr("height", footerHeight)
 				.style("fill", "#fff");
-			g.attr("transform", "translate(0, " + (svgHeight - footerHeight - $(".footer-btns").height()) + ")");
 
+			var footerOffsetY = bounds.top + bounds.height - footerHeight;
+			g.attr("transform", "translate(" + bounds.left + ", " + footerOffsetY + ")");
+
+			this.height = footerHeight;
 			if (callback) callback();
 		},
 

@@ -19,8 +19,8 @@
 
 		$tooltip.css({
 			position: 'absolute',
-			left: left + 'px',
-			top: top + 'px'
+			left: left*chart.scale + 'px',
+			top: top*chart.scale + 'px'
 		});
 
 		$tooltip.show();

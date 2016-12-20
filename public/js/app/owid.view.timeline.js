@@ -182,15 +182,15 @@
 		// Allow dragging the handle around
 		timeline.flow('g, sliderBackground', function(g, sliderBackground) {
 			var container = d3.select(document.body),
+                sliderBBox = sliderBackground.node().getBBox(),
 				isDragging = false;
 
 			function onMouseMove() {
 				var evt = d3.event;
 				timeline.now('years, minYear, maxYear', function(years, minYear, maxYear) {
-					var sliderBounds = chart.getTransformedBounds(sliderBackground.node()),
-						mouseX = _.isNumber(evt.pageX) ? evt.pageX : evt.touches[0].pageX,
-						fracWidth = (mouseX-sliderBounds.left) / sliderBounds.width,
-						inputYear = minYear + fracWidth*(maxYear-minYear);
+                    var mouseX = d3.mouse(g.node())[0],
+                        fracWidth = (mouseX-sliderBBox.x) / sliderBackground.node().getBBox().width,
+                        inputYear = minYear + fracWidth*(maxYear-minYear);
 
 					timeline.update({ isDragging: true, inputYear: inputYear });
 					evt.preventDefault();

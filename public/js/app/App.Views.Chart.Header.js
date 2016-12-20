@@ -21,10 +21,6 @@
 			return svg.append('g').attr('class', 'header');
 		});
 
-		header.flow('g, bounds', function(g, bounds) {
-			g.attr('transform', 'translate(' + bounds.left + ',' + bounds.top + ')');
-		});
-
 		// Render the logos first as they affect the positioning of the text
 
 		header.flow('boundsForText : g, logosSVG, bounds', function(g, logosSVG, bounds) {
@@ -46,7 +42,7 @@
                 logoHeight = bbox.height*scale;
 			});
 
-			return _.extend({}, bounds, { left: bounds.left, width: offsetX - bounds.left - 10, logoHeight: logoHeight });
+			return _.extend({}, bounds, { left: 0, top: 0, width: offsetX - 10, height: bounds.height, logoHeight: logoHeight });
 		});
 
 		header.flow('title : g', function(g) {
@@ -81,12 +77,17 @@
 			owid.svgSetWrappedText(subtitle, subtitleStr, width, { lineHeight: 1.2 });
 		});		
 
-        header.flow('bgRect : g, boundsForText', function(g) {
+        header.flow('bbox : g, boundsForText', function(g) {
             g.selectAll('.bgRect').remove();
             var bbox = g.node().getBBox();
-            return g.insert('rect', '*').attr('class', 'bgRect').attr('x', 0).attr('y', 0).style('fill', 'white')
+            g.insert('rect', '*').attr('class', 'bgRect').attr('x', 0).attr('y', 0).style('fill', 'white')
                     .attr('width', bbox.width+1).attr('height', bbox.height+10);
+            return bbox;
         });
+
+		header.flow('g, bounds', function(g, bounds) {
+			g.attr('transform', 'translate(' + bounds.left + ',' + bounds.top + ')');
+		});
 
 		return header;
 	};
@@ -157,7 +158,7 @@
             });
 		});
 
-		headerControl.render = function(done) {
+		headerControl.render = function(bounds, done) {
 			var minYear, maxYear, disclaimer="";
 			if (chart.display.get('activeTab') == "map") {
 				chart.mapdata.update();
@@ -204,7 +205,7 @@
 
 			headerControl.update({
 				svgNode: chart.svg,
-				bounds: { left: 0, top: 0, width: chart.innerRenderWidth, height: chart.innerRenderHeight },
+				bounds: bounds,
 				titleTemplate: linkedTitle,
 				subtitleTemplate: chart.model.get('chart-subname') + disclaimer,
 				logosSVG: chart.model.get('logosSVG'),
@@ -214,6 +215,8 @@
 				maxYear: maxYear
 			}, done);
 		};
+
+		headerControl.view = header;
 
 		return headerControl;
 	};

@@ -21,6 +21,7 @@
 			svg, nvd3, viz;
 
 		var chartType, localData, missingMsg, lineType;
+		var bounds;
 
 		var legend = new App.Views.Chart.Legend();
 		chartTab.legend = legend;
@@ -64,13 +65,19 @@
 			changes.done();
 		},
 
-		chartTab.render = function() {
+		chartTab.render = function(inputBounds) {
 			if (!changes.start()) return;
+
+			bounds = inputBounds;
+  		    margins = _.clone(chart.model.get("margins"));
+			chartOffsetX = bounds.left;
+			chartOffsetY = bounds.top;
+			chartHeight = bounds.height;
+			chartWidth = bounds.width;		
 
 			configureTab();
 			configureData();
 			configureAxis();
-			configureBounds();
 			renderLegend();
 //			renderTimeline();
 
@@ -140,7 +147,7 @@
 			if (!nvd3 && chartType != App.ChartType.ScatterPlot)
 				nv.addGraph(updateGraph);
 			else {
-				if (nvd3) {
+				if (nvd3 && chartType == App.ChartType.ScatterPlot) {
 					nvd3 = null;
 					$('.nvd3').remove();
 				}
@@ -194,19 +201,8 @@
 			yAxisFormat = yAxis["axis-format"] || 5;				
 		}
 
-		var margins, svgBounds, tabBounds, chartOffsetX, chartOffsetY,
+		var margins, tabBounds, chartOffsetX, chartOffsetY,
 			chartWidth, chartHeight;
-
-		function configureBounds() {
-  		    margins = _.clone(chart.model.get("margins"));
-			svgBounds = chart.getBounds(svg.node());
-			tabBounds = chart.getBounds($(".tab-content").get(0));
-			chartOffsetX = 0;//parseFloat(margins.left);
-			chartOffsetY = tabBounds.top - svgBounds.top;// + parseFloat(margins.top) + 10;
-			// MISPY: The constant modifiers here are to account for nvd3 not entirely matching our specified dimensions
-			chartHeight = tabBounds.height; //- parseFloat(margins.bottom) - parseFloat(margins.top);
-			chartWidth = tabBounds.width; //- parseFloat(margins.left) - parseFloat(margins.right);
-		}
 
 		function updateAvailableCountries() {
 			if (chartType == App.ChartType.ScatterPlot) return;
@@ -538,10 +534,11 @@
 					$entitiesSelect.trigger("chosen:open");
 				});
 
-				legend.render();
+				legend.render({
+					containerNode: svg.node(),
+					bounds: bounds
+				});
 
-				var translateString = "translate(" + 0 + " ," + (chartOffsetY+20) + ")";
-				svg.select(".nvd3.nv-custom-legend").attr("transform", translateString);
 				chartOffsetY += legend.height() + 10;
 				chartHeight -= legend.height() + 10;
 			} else {
@@ -601,7 +598,7 @@
 				xAxisLabel.attr('transform', '');
 				var bounds = chart.getBounds(xAxisLabel.node()),
 					box = xAxisLabel.node().getBBox(),
-					diff = Math.max(tabBounds.left-bounds.left, bounds.right-tabBounds.right)*2;
+					diff = Math.max(chartOffsetX-bounds.left, bounds.right-(chartOffsetX+chartWidth)*2);
 
 				if (diff > 0) {
 					var scale = (box.width-diff)/box.width,
@@ -619,7 +616,7 @@
 				yAxisLabel.attr('transform', 'rotate(-90)');
 				var bounds = chart.getBounds(yAxisLabel.node()),
 					box = yAxisLabel.node().getBBox(),
-					diff = Math.max((tabBounds.top+legend.height()+20)-bounds.top, bounds.bottom-tabBounds.bottom)*2;
+					diff = Math.max((chartOffsetX+legend.height()+20)-bounds.top, bounds.bottom-(chartOffsetY+chartHeight))*2;
 
 				if (diff > 0) {
 					var scale = (box.width-diff)/box.width,

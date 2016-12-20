@@ -995,11 +995,7 @@ select.disabled {
 /* Portrait mode chart
 --------------------------------------------- */
 #chart.portrait.embedded {
-    padding: 0.6em;
     border: 1px solid #ccc;
-}
-#chart.portrait:not(.embedded) {
-    padding: 1em;
 }
 
 /* Tabs should fill the entire width */    
@@ -1030,11 +1026,7 @@ select.disabled {
 /* Landscape mode chart
 --------------------------------------------- */
 #chart:not(.portrait).embedded {
-    padding: 1em 1.5em;
     border: 1px solid #ccc;
-}
-#chart:not(.portrait):not(.embedded) {
-    padding: 1.5em 3em;
 }
 /* Desktop-style tabs */
 #chart:not(.portrait) nav.tabs ul {

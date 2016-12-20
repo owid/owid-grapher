@@ -3,7 +3,7 @@
 		<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1"></svg>
 
 		<div class="html-overlay">
-			<nav class="tabs">
+			<!--<nav class="tabs">
 				<ul>
 					<li class="header-tab" data-tab='chart'>
 						<a href="#chart-chart-tab" data-toggle="tab" aria-expanded="false"><i class="fa fa-line-chart"></i>Chart</a>
@@ -23,7 +23,7 @@
 						</li>
 					@endif
 				</ul>
-			</nav>
+			</nav>-->
 
 			<div class="tab-content">
 				<div id="chart-chart-tab" class="tab-pane">
@@ -99,7 +99,7 @@
 				<div id="sources-chart-tab" class="tab-pane"></div>
 			</div>
 			
-			<div class="footer-btns">
+			<!--<div class="footer-btns">
 				<a class="chart-link-btn" target="_blank">
 					<i class="fa fa-link"></i>
 					<span>Link</span>
@@ -124,7 +124,7 @@
 					<i class="fa fa-download"></i>
 					<span>SVG</span>
 				</a>
-			</div>
+			</div>-->
 		</div>
 	</div>
 

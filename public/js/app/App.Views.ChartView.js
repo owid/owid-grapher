@@ -79,7 +79,7 @@
 			}
 		}.bind(this));*/
 
-		chart.render = function() {			
+		chart.render = function() {
 			if (!changes.start())
 				return;
             
@@ -87,10 +87,20 @@
 			if (changes.any('activeTab')) chart.tabSelector.switchTab();
 			chart.applyScale();
 
-			chart.header.render();
-			chart.footer.render();
-			chart.tabSelector.render();
-			if (chart.activeTab) chart.activeTab.render();
+			var paddingLeft = 50,
+				paddingTop = 50;
+
+			var bounds = { left: paddingLeft, top: paddingTop, width: chart.innerRenderWidth-(paddingLeft*2), height: chart.innerRenderHeight-(paddingTop*2) };
+			chart.header.render(bounds);
+
+			bounds = _.extend({}, bounds, { top: bounds.top+chart.header.view.bbox.height, height: bounds.height-chart.header.view.bbox.height });
+//			owid.boundsDebug(bounds);
+			chart.footer.render(bounds);
+
+			bounds = _.extend({}, bounds, { height: bounds.height-chart.footer.height });
+
+	//		chart.tabSelector.render();
+			if (chart.activeTab) chart.activeTab.render(bounds);
 
 			$chart.find('.chart-inner').css('visibility', 'visible');			
 
@@ -214,13 +224,6 @@
 			if (renderWidth < 600)
 				$chart.addClass('narrow');
 
-			chart.dom.style.width = renderWidth + 'px';
-			chart.dom.style.height = renderHeight + 'px';
-			chart.dom.style.zoom = '';
-			chart.dom.style.left = '';
-			chart.dom.style.top = '';
-			owid.transformElement(chart.dom, '');
-
             var paddingLeft = parseFloat($chart.css('padding-left')),
                 paddingTop = parseFloat($chart.css('padding-top'));
 
@@ -229,27 +232,11 @@
 
 			if (App.isExport || App.isEditor)
 				return;
-
-			if (scale > 1 && owid.features.zoom) {
-				chart.dom.style.zoom = scale;
-			} else {
-				//owid.transformElement(chart.dom, "translate(-50%, -50%) scale(" + scale + ")");*/
-				chart.dom.style.left = '50%';
-				chart.dom.style.top = '50%';
-				chart.dom.style.bottom = 'auto';
-				chart.dom.style.right = 'auto';
-				owid.transformElement(chart.dom, "translate(-50%, -50%) scale(" + scale + ")");
-			}
-
+			
 			// Now do the actual scaling
 
-			chart.svg.style.width = (renderWidth-paddingLeft*2)*scale + 'px';
-			chart.svg.style.height = (renderHeight-paddingTop*2)*scale + 'px';
-			chart.svg.style.left = '50%';
-			chart.svg.style.top = '50%';
-			chart.svg.style.bottom = 'auto';
-			chart.svg.style.right = 'auto';
-			owid.transformElement(chart.svg, "translate(-50%, -50%) scale(" + 1/scale + ")");
+			chart.svg.style.width = targetWidth-paddingLeft*2 + 'px';
+			chart.svg.style.height = targetHeight-paddingTop*2+ 'px';
 			chart.svg.setAttribute('viewBox', '0 0 ' + (renderWidth-paddingLeft*2) + ' ' + (renderHeight-paddingTop*2));
 
 			chart.scale = scale;			
@@ -399,6 +386,5 @@
 				}
 			}.bind(this));
 		},
-
 	});
 })();
