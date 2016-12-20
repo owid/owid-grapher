@@ -5,7 +5,7 @@
     owid.view.map = function() {
         var map = owid.dataflow();
 
-        map.requires('containerNode', 'bounds');
+        map.requires('containerNode', 'bounds', 'colorData');
 
         map.defaults({ 
             projection: 'Africa',
@@ -67,8 +67,14 @@
               .style('stroke', '#4b4b4b')
               .merge(geoUpdate);
         });
-        map.flow('geo, defaultFill', function(geo, defaultFill) {
-            geo.style('fill', defaultFill);
+
+        map.flow('geo, colorData, defaultFill', function(geo, colorData, defaultFill) {
+            console.log(colorData);
+
+            geo.style('fill', function(d) { 
+                var datum = colorData[d.id];
+                return datum ? datum.color : defaultFill;
+            });
         });
 
         // Scaling

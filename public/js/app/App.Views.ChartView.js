@@ -93,9 +93,13 @@
 				paddingTop = 50;
 
 			var bounds = { left: paddingLeft, top: paddingTop, width: chart.innerRenderWidth-(paddingLeft*2), height: chart.innerRenderHeight-(paddingTop*2) };
+
+			chart.mapdata.update();
+			var data = chart.mapdata.currentValues;
 			map.update({
 				containerNode: chart.svg,
-				bounds: bounds
+				bounds: bounds,
+				colorData: data
 			});
 
 /*			chart.header.render(bounds);
