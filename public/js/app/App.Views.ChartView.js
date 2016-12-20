@@ -99,6 +99,9 @@
 
 			bounds = _.extend({}, bounds, { height: bounds.height-chart.footer.height });
 
+			// Pad the tab a little
+			bounds = _.extend({}, bounds, { left: bounds.left, top: bounds.top+10, width: bounds.width-20, height: bounds.height-20 });
+
 	//		chart.tabSelector.render();
 			if (chart.activeTab) chart.activeTab.render(bounds);
 
@@ -229,6 +232,9 @@
 
             chart.innerRenderWidth = renderWidth-paddingLeft*2-2;
             chart.innerRenderHeight = renderHeight-paddingTop*2-2;
+
+            chart.dom.style.width = targetWidth+'px';
+            chart.dom.style.height = targetHeight+'px';
 
 			if (App.isExport || App.isEditor)
 				return;

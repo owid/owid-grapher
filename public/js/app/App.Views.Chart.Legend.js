@@ -153,9 +153,8 @@
 				}
 			}
 
-			transformY -= 8;
 			transformX += 28;
-			addEntityBtn.attr("transform", "translate(" + transformX + "," + transformY + ")");
+			addEntityBtn.attr("transform", "translate(" + (bounds.left+transformX) + "," + (bounds.top+transformY+5) + ")");
 		},
 
 		height: function() {

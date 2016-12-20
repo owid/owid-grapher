@@ -16,7 +16,7 @@
 		changes.track(chart, 'tabBounds activeTab');
 
 		var dataMap, bordersDisclaimer;
-		var svg, svgNode, svgBounds, offsetY, availableWidth, availableHeight;
+		var svg, svgNode, offsetY, availableWidth, availableHeight, bounds;
 
 		var dispatcher = _.clone(Backbone.Events),
 			mapControls = new MapControls({ dispatcher: dispatcher }),
@@ -55,10 +55,9 @@
 				return;
 
 			svgNode = chart.$('svg').get(0);
-			svgBounds = chart.getBounds(svgNode);
-			offsetY = chart.tabBounds.top - svgBounds.top;
-			availableWidth = chart.tabBounds.right - chart.tabBounds.left;
-			availableHeight = chart.tabBounds.bottom - chart.tabBounds.top;
+			offsetY = bounds.top;
+			availableWidth = bounds.width;
+			availableHeight = bounds.height;
 
 			var years = chart.map.getYears();
 			if (years.length > 1 && !App.isExport) {
@@ -131,7 +130,7 @@
 		}
 
 		function updateLegend() {
-			legend.update();
+			legend.update(bounds);
 		}
 
 		// Transforms the datamaps SVG to fit the container and focus a particular region if needed
@@ -157,8 +156,8 @@
 			var mapBBox = map.node().getBBox(),
 				mapWidth = mapBBox.width,
 				mapHeight = mapBBox.height,
-				mapX = svgBounds.left + mapBBox.x + 1,
-				mapY = svgBounds.top + mapBBox.y + 1,
+				mapX = mapBBox.x + 1,
+				mapY = mapBBox.y + 1,
 				viewportWidth = viewport.width*mapWidth,
 				viewportHeight = viewport.height*mapHeight;
 
@@ -169,8 +168,8 @@
 			// Work out how to center the map, accounting for the new scaling we've worked out
 			var newWidth = mapWidth*scaleFactor,
 				newHeight = mapHeight*scaleFactor,
-				tabCenterX = chart.tabBounds.left + availableWidth / 2,
-				tabCenterY = chart.tabBounds.top + availableHeight / 2,
+				tabCenterX = bounds.left + availableWidth / 2,
+				tabCenterY = bounds.top + availableHeight / 2,
 				newCenterX = mapX + (scaleFactor-1)*mapBBox.x + viewport.x*newWidth,
 				newCenterY = mapY + (scaleFactor-1)*mapBBox.y + viewport.y*newHeight,
 				newOffsetX = tabCenterX - newCenterX,
@@ -191,8 +190,8 @@
 
 			if (changes.any('tabBounds activeTab timeRanges')) {
 				svg.select(".map-bg")
-					.attr("y", chart.tabBounds.top - svgBounds.top)
-					.attr("width", chart.tabBounds.width)
+					.attr("y", bounds.top)
+					.attr("width", bounds.width)
 					.attr("height", availableHeight);
 			}
 		}
@@ -248,7 +247,9 @@
 			}
 		};
 
-		mapTab.render = function() {
+		mapTab.render = function(inputBounds) {
+			bounds = inputBounds;
+
 			$(".chart-error").remove();
 			if (!chart.map.getVariable()) {
 				chart.showMessage("No variable selected for map.");

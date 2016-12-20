@@ -9,7 +9,7 @@
 		changes.track(chart.mapdata, 'legendData legendTitle');
 		changes.track(chart, 'tabBounds');
 
-		legend.update = function() {
+		legend.update = function(bounds) {
 			var svg = d3.select(chart.$('.datamap').get(0)),
 				g = svg.select('.legend');
 
@@ -23,7 +23,7 @@
 
 			var svgBounds = chart.svgBounds,
 				mapBounds = chart.getBounds(svg.select('.datamaps-subunits').node()),
-				viewportBox = chart.getBounds(svg.select('.map-bg').node()),
+				viewportBox = svg.select('.map-bg').node().getBBox(),
                 targetHeight = Math.min(viewportBox.height, mapBounds.height) * 0.7,
                 targetWidth = Math.min(viewportBox.width, mapBounds.width) * 0.25,
 				targetSize = targetHeight,
@@ -105,7 +105,7 @@
 			owid.scaleToFit(gDesc.node(), viewportBox.width - legendOffsetX, viewportBox.height - legendOffsetY - 20);
 
 			// Position and scale legend to fit
-			g.attr("transform", "translate(" + legendOffsetX + "," + ((viewportBox.top - svgBounds.top) + viewportBox.height - legendOffsetY - currentStepOffset) + ")");
+			g.attr("transform", "translate(" + legendOffsetX + "," + (viewportBox.y + viewportBox.height - legendOffsetY - currentStepOffset) + ")");
 
 			owid.scaleToFit(stepsContainer.node(), targetWidth - legendStepsOffsetX, targetHeight);
 			var transform = d3.transform(stepsContainer.attr('transform'));

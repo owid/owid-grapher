@@ -596,9 +596,8 @@
 				var xAxisLabel = d3.select('.nv-x .nv-axislabel, .bottom.axis .axis-label');
 
 				xAxisLabel.attr('transform', '');
-				var bounds = chart.getBounds(xAxisLabel.node()),
-					box = xAxisLabel.node().getBBox(),
-					diff = Math.max(chartOffsetX-bounds.left, bounds.right-(chartOffsetX+chartWidth)*2);
+				var box = xAxisLabel.node().getBBox(),
+					diff = box.width-(chartWidth-10);
 
 				if (diff > 0) {
 					var scale = (box.width-diff)/box.width,
@@ -614,9 +613,9 @@
 				var yAxisLabel = d3.select('.nv-y .nv-axislabel, .left.axis .axis-label');
 
 				yAxisLabel.attr('transform', 'rotate(-90)');
-				var bounds = chart.getBounds(yAxisLabel.node()),
-					box = yAxisLabel.node().getBBox(),
-					diff = Math.max((chartOffsetX+legend.height()+20)-bounds.top, bounds.bottom-(chartOffsetY+chartHeight))*2;
+
+				var box = yAxisLabel.node().getBBox(),
+					diff = box.width-(chartHeight-10);
 
 				if (diff > 0) {
 					var scale = (box.width-diff)/box.width,
