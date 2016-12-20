@@ -74,6 +74,7 @@
 		var control = owid.control.mapWithTimeline(chart);
 
 		mapTab.render = function(inputBounds) {
+			mapTab.control = control;
 			bounds = inputBounds;
 
 			$(".chart-error").remove();

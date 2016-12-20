@@ -9,7 +9,10 @@
 
         map.defaults({ 
             projection: 'World',
-            defaultFill: '#8b8b8b'
+            defaultFill: '#8b8b8b',
+            onHover: _.noop,
+            onHoverStop: _.noop,
+            onClick: _.noop
         });
 
         map.initial('geoData', function() {
@@ -65,6 +68,7 @@
               .attr('d', path)
               .style('stroke-width', 0.3)
               .style('stroke', '#4b4b4b')
+              .style('cursor', 'pointer')
               .merge(geoUpdate);
         });
 
@@ -126,6 +130,11 @@
 
             var matrixStr = "matrix(" + scale + ",0,0," + scale + "," + newOffsetX + "," + newOffsetY + ")";
             subunits.attr('transform', matrixStr);
+        });
+
+        // Event binding
+        map.flow('geo, onHover', function(geo, onHover) {
+            geo.on('mouseenter', onHover);
         });
 
         return map;
