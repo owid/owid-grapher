@@ -28,7 +28,8 @@
 		function initialize() {
 			if (App.isEditor) return;
 
-			chart.display.on("change:activeTab", onTabChange);
+			chart.flow('activeTabName', onTabChange);
+
 			chart.model.on("change:selected-countries", updateCountryParam);	
 			chart.model.on("change:activeLegendKeys", updateLegendKeys);		
 			chart.map.on("change:targetYear", updateYearParam);
@@ -39,7 +40,7 @@
 			chart.model.on("change:chart-time", updateTime);
 			populateFromURL();
 
-			lastTabName = chart.display.get('activeTab');
+			lastTabName = chart.activeTabName;
 		}
 
 		/**
@@ -54,10 +55,10 @@
 				if (!_.contains(chart.model.get("tabs"), tab))
 					console.error("Unexpected tab: " + tab);
 				else {
-					chart.display.set('activeTab', tab);
+					chart.update({ activeTabName: tab });
 				}
 			} else {
-				chart.display.set('activeTab', chart.model.get('default-tab'));
+				chart.update({ activeTabName: chart.model.get('default-tab') });
 			}
 
 			// Affiliate logo if any
@@ -134,7 +135,7 @@
 		 * Save the current tab the user is on, and keep url params correctly isolated
 		 */
 		function onTabChange() {
-			var tabName = chart.display.get('activeTab');
+			var tabName = chart.activeTabName;
 
 			if (lastTabName == "map" && tabName != "map") {
 				mapQueryStr = window.location.hash;
@@ -195,7 +196,7 @@
 		 * Set e.g. &year=1990 when the user uses the map slider to go to 1990
 		 */
 		function updateYearParam() {
-			if (chart.display.get('activeTab') == 'map')
+			if (chart.activeTabName == 'map')
 				owid.setQueryVariable("year", chart.map.get("targetYear"));
 		}
 
@@ -203,7 +204,7 @@
 		 * Set e.g. &time=1990 when the user uses the slider to go to 1990
 		 */
 		function updateTime() {
-			if (chart.display.get('activeTab') == 'chart')
+			if (chart.activeTabName == 'chart')
 				owid.setQueryVariable("time", chart.model.get('chart-time')[0]);
 		}
 

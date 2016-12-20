@@ -5,12 +5,12 @@
 	owid.view.scaleSelectors = function(chart) {
 		function scaleSelectors() {}
 
-		var $xAxisScaleSelector = chart.$('.x-axis-scale-selector'),
-			$yAxisScaleSelector = chart.$('.y-axis-scale-selector'),
-			$xAxisBtn = chart.$(".x-axis-scale-selector .axis-scale-btn"),
-			$yAxisBtn = chart.$(".y-axis-scale-selector .axis-scale-btn");
+		var xAxisScaleSelector = chart.el.select('.x-axis-scale-selector'),
+			yAxisScaleSelector = chart.el.select('.y-axis-scale-selector'),
+			xAxisBtn = chart.el.select(".x-axis-scale-selector .axis-scale-btn"),
+			yAxisBtn = chart.el.select(".y-axis-scale-selector .axis-scale-btn");
 
-		$xAxisScaleSelector.off('click').on('click', function() {
+		xAxisScaleSelector.on('click', function() {
 			var currentScale = chart.model.getAxisConfig('x-axis', 'axis-scale');
 			if (currentScale != "log") 
 				chart.model.setAxisConfig('x-axis', "axis-scale", "log");			
@@ -18,7 +18,7 @@
 				chart.model.setAxisConfig('x-axis', "axis-scale", "linear");
 		});
 
-		$yAxisScaleSelector.off('click').on('click', function() {
+		yAxisScaleSelector.on('click', function() {
 			var currentScale = chart.model.getAxisConfig('y-axis', 'axis-scale');
 			if (currentScale != "log") 
 				chart.model.setAxisConfig('y-axis', "axis-scale", "log");			
@@ -31,21 +31,21 @@
 				hasYSelector = chart.model.get('y-axis-scale-selector'),
 				legend = chart.tabs.chart.legend;
 
-			$xAxisScaleSelector.toggle(hasXSelector);
-			$yAxisScaleSelector.toggle(hasYSelector);
+			xAxisScaleSelector.classed('hidden', !hasXSelector);
+			yAxisScaleSelector.classed('hidden', !hasYSelector);
 
 			if (hasXSelector || hasYSelector) {
 				var xScale = chart.model.getAxisConfig("x-axis", "axis-scale");
-				$xAxisBtn.find('span').text(s.capitalize(xScale) || "Linear");
+				xAxisBtn.selectAll('span').text(s.capitalize(xScale) || "Linear");
 
 				var yScale = chart.model.getAxisConfig("y-axis", "axis-scale");
-				$yAxisBtn.find('span').text(s.capitalize(yScale) || "Linear");
+				yAxisBtn.selectAll('span').text(s.capitalize(yScale) || "Linear");
 
 				if (chart.model.get('chart-type') == App.ChartType.ScatterPlot) {
 					var innerBounds = chart.tabs.chart.viz.scatter.scatter.axisBox.innerBounds;
 
-					$xAxisScaleSelector.css({ left: innerBounds.width - 10, top: innerBounds.height - 15 });
-					$yAxisScaleSelector.css({ left: innerBounds.left + 10, top: -3 });
+					xAxisScaleSelector.style('left', innerBounds.width-10).style('top', innerBounds.height-15);
+					yAxisScaleSelector.style('left', innerBounds.left+10).style('top', -3);
 				} else {				
 					//position scale dropdowns - TODO - isn't there a better way then with timeout?
 					setTimeout(function() {
@@ -60,8 +60,8 @@
 							offsetX = chartBounds.left - svgBounds.left + 5,
 							offsetY = legend.height() + 5;
 
-						$xAxisScaleSelector.css({ left: svgBounds.width - 100, top: chartBounds.height - 30 });
-						$yAxisScaleSelector.css({ left: chartBounds.left - svgBounds.left + 10, top: offsetY-3 });
+						xAxisScaleSelector.css({ left: svgBounds.width - 100, top: chartBounds.height - 30 });
+						yAxisScaleSelector.css({ left: chartBounds.left - svgBounds.left + 10, top: offsetY-3 });
 					}.bind(this), 250);		
 				}
 
@@ -69,8 +69,8 @@
 		};
 
 		scaleSelectors.hide = function() {
-			$xAxisScaleSelector.hide();
-			$yAxisScaleSelector.hide();
+			xAxisScaleSelector.classed('hidden', true);
+			yAxisScaleSelector.classed('hidden', true);
 		};
 
 		return scaleSelectors;

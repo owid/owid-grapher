@@ -80,6 +80,14 @@ body.chart-container {
     width: 1px;
     min-width: 100%;
     overflow: hidden;
+    text-align: center;    
+}
+/* Fake (pseudo) element, that enables vertical-align */
+body.chart-container:before {
+  content: "";
+  display: inline-block;
+  vertical-align: middle;
+  height: 100%;
 }
 .browserupgrade {
     margin: 0.2em 0;
@@ -223,12 +231,13 @@ select.disabled {
 --------------------------------------------- */
 
 #chart {
+    border: 1px solid #f0f0f0;
+    border-radius: 2px;
+    box-shadow: 0 3px 5px 0 rgba(0,0,0,0.2);
+
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     color: #000000;
-    width: 100%;
-    height: 100%;
     background: white;
-    position: relative;
 
     /* Hidden overflow x so that tooltips don't cause scrollbars */
     overflow: hidden;
@@ -285,7 +294,6 @@ select.disabled {
     z-index: 2;
 }
 #chart svg {
-    position: absolute;
     z-index: 1;
     top: 0;
     left: 0;
@@ -425,7 +433,7 @@ select.disabled {
 --------------------------------------------- */
 
 .chart-footer-svg {
-    font-size: 0.75em;
+    font-size: 0.6em;
 }
 .footer-license-svg {
 /*    font-size: 90%;*/
@@ -982,7 +990,7 @@ select.disabled {
 /* Responsiveness
 --------------------------------------------- */
 #chart {
-    font-size: 18px;
+    font-size: 22px;
 }
 
 #chart.downscaled:not(.narrow) {

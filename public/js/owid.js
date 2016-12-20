@@ -779,6 +779,10 @@ Object.defineProperty(SVGElement.prototype, 'innerSVG', {
 	    });
 	};
 
+	owid.bounds = function(left, top, width, height) {
+		return { left: left, top: top, width: width, height: height };
+	};
+
 	owid.getScaleForFit = function(bbox, width, height) {
 		var scaleByWidth = width/bbox.width,
 			scaleByHeight = width/bbox.height;

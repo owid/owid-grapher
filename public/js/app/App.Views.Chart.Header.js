@@ -156,7 +156,7 @@
 
 		headerControl.render = function(bounds, done) {
 			var minYear, maxYear, disclaimer="";
-			if (chart.display.get('activeTab') == "map") {
+			if (chart.activeTabName == "map") {
 				chart.mapdata.update();
 				
 				var mapConfig = chart.map.attributes,
@@ -200,7 +200,7 @@
 			var linkedTitle = "<a href='" + canonicalUrl + "' target='_blank'>" + chart.model.get('chart-name') + "</a>";
 
 			headerControl.update({
-				containerNode: chart.svg,
+				containerNode: chart.svg.node(),
 				bounds: bounds,
 				titleTemplate: linkedTitle,
 				subtitleTemplate: chart.model.get('chart-subname') + disclaimer,

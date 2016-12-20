@@ -3,12 +3,9 @@
 	owid.namespace("owid.chart");
 
 	owid.chart = function() {
-		function chart() {}
+		var chart = owid.dataflow();
 		App.ChartView = chart;
 		window.chart = chart;
-
-		// For events that MUST be asynchronous and global, use sparingly
-		chart.dispatch = d3.dispatch('renderEnd');
 
 		// Set up models and data processors
 		App.VariableData = new App.Models.VariableData();	
@@ -19,100 +16,77 @@
 		chart.vardata = App.VariableData;
 		chart.data = App.ChartData;
 		chart.map = App.MapModel;
-		chart.mapdata = owid.models.mapdata(chart);
 		chart.colors = App.Colors;
 
-		// For tracking transient display properties we don't want to save
-		var DisplayModel = Backbone.Model.extend({
-			defaults: {
-				targetWidth: null,
-				targetHeight: null,
-				renderWidth: null,
-				renderHeight: null,	
-				activeTab: chart.model.get('default-tab')
-			}
+		chart.requires('containerNode', 'outerBounds', 'activeTabName');
+
+		chart.defaults({
+			authorWidth: App.AUTHOR_WIDTH,
+			authorHeight: App.AUTHOR_HEIGHT
 		});
-		chart.display = new DisplayModel();
 
-		// Change tracker
-		var changes = owid.changes();
-		changes.track(chart.model);
-		changes.track(chart.data);
-		changes.track(chart.display, 'activeTab targetWidth targetHeight');
+		// Container setup
+		chart.flow('containerNode', function(containerNode) {
+			d3.select(containerNode).classed('chart-container', true);
+		});
+		chart.flow('el : containerNode', function(containerNode) {
+			return d3.select(containerNode).append('div').attr('id', 'chart');
+		});
+		chart.flow('el, outerBounds', function(el, outerBounds) {
+		});
+		chart.flow('dom : el', function(el) {
+			return el.node();
+		});
+		chart.flow('svg : el', function(el) {
+			return el.append('svg').attr('xmlns', 'http://www.w3.org/2000/svg').attr('xmls:xlink', 'http://www.w3.org/1999/xlink').attr('version', '1.1');
+		});
 
-		// DOM setup
-		var $chart = window.$("#chart"),
-			$ = $chart.find.bind($chart);
-		chart.$chart = $chart;
-		chart.dom = $chart.get(0);
-		chart.svg = $chart.find('svg').get(0);
-		chart.html = $chart.find('.html-overlay').get(0);
-		chart.$ = $;
+		// Scaling setup
+		chart.flow('innerBounds : authorWidth, authorHeight', function(authorWidth, authorHeight) {
+			var paddingLeft = 15, paddingTop = 15;
+			return { left: paddingLeft, top: paddingTop, width: authorWidth-paddingLeft*2, height: authorHeight-paddingTop*2 };
+		});
+		chart.flow('scale : outerBounds, authorWidth, authorHeight', function(outerBounds, authorWidth, authorHeight) {
+			return Math.min(outerBounds.width/authorWidth, outerBounds.height/authorHeight);
+		});
+		chart.flow('el, authorWidth, authorHeight, scale', function(el, authorWidth, authorHeight, scale) {
+			el.style('width', authorWidth*scale + 'px').style('height', authorHeight*scale + 'px')
+			  .style('display', 'inline-block').style('vertical-align', 'middle');
+		});
+		chart.flow('svg, authorWidth, authorHeight, scale', function(svg, authorWidth, authorHeight, scale) {
+			svg.style('width', '100%')
+			   .style('height', '100%')
+			   .attr('viewBox', '0 0 ' + authorWidth + ' ' + authorHeight);
+		});
 
-		// Initialize components
-		chart.url = owid.view.urlBinder(chart);
-		chart.exporter = new App.Views.Export(chart);
-		chart.header = owid.control.header(chart);
-		chart.footer = new App.Views.Chart.Footer(chart);
-		chart.tabSelector = owid.view.tabSelector(chart);
-		chart.debugHelper = new App.Views.DebugHelper(chart);
-		chart.tooltip = new owid.view.tooltip(chart);
-
-		// Initialize tabs
-		chart.tabs = {};
-		var tabs = _.indexBy(chart.model.get("tabs"));
-		chart.tabs.chart = owid.tab.chart(chart);
-		chart.tabs.data = owid.tab.data(chart);
-		chart.tabs.sources = owid.tab.sources(chart);
-		chart.tabs.map = owid.tab.map(chart);
-
-	//	var defaultTabName = chart.model.get("default-tab"),
-	//		activeTab = sourcesTab;
-
-
-
-		/*this.listenTo(App.ChartModel, "change", function() {
-			// When the model changes and there's been an error, rebuild the whole current tab
-			// Allows the editor to recover from failure states
-			if ($(".chart-error").length) {
-				this.activateTab(this.activeTabName);
-			}
-		}.bind(this));*/
-
-			var map = owid.control.mapWithTimeline();
 
 		chart.render = function() {
-			if (!changes.start())
-				return;
-            
-			chart.data.transformData();
-			if (changes.any('activeTab')) chart.tabSelector.switchTab();
-			chart.applyScale();
+			chart.now('innerBounds', function(bounds) {
+				console.log(bounds);
+				chart.data.transformData();
+				chart.tabSelector.switchTab();
 
-			var paddingLeft = 50,
-				paddingTop = 50;
+/*				var paddingLeft = 50,
+					paddingTop = 50;
 
-			var bounds = { left: paddingLeft, top: paddingTop, width: chart.innerRenderWidth-(paddingLeft*2), height: chart.innerRenderHeight-(paddingTop*2) };
+				var bounds = { left: paddingLeft, top: paddingTop, width: chart.innerRenderWidth-(paddingLeft*2), height: chart.innerRenderHeight-(paddingTop*2) };*/
 
-			chart.header.render(bounds);
+				chart.header.render(bounds);
 
-			bounds = _.extend({}, bounds, { top: bounds.top+chart.header.view.bbox.height, height: bounds.height-chart.header.view.bbox.height });
-//			owid.boundsDebug(bounds);
-			chart.footer.render(bounds);
+				bounds = _.extend({}, bounds, { top: bounds.top+chart.header.view.bbox.height, height: bounds.height-chart.header.view.bbox.height });
+	//			owid.boundsDebug(bounds);
+				chart.footer.render(bounds);
 
-			bounds = _.extend({}, bounds, { height: bounds.height-chart.footer.height });
+				bounds = _.extend({}, bounds, { height: bounds.height-chart.footer.height });
 
-			// Pad the tab a little
-			bounds = _.extend({}, bounds, { left: bounds.left, top: bounds.top, width: bounds.width, height: bounds.height });
+				// Pad the tab a little
+				bounds = _.extend({}, bounds, { left: bounds.left, top: bounds.top, width: bounds.width, height: bounds.height });
 
-	//		chart.tabSelector.render();
-			if (chart.activeTab) chart.activeTab.render(bounds);
+		//		chart.tabSelector.render();
+				if (chart.activeTab) chart.activeTab.render(bounds);
 
-
-
-			$chart.find('.chart-inner').css('visibility', 'visible');			
-
-			changes.done();				
+				chart.el.select('.chart-inner').style('visibility', 'visible');
+			});
 		};
 
 		chart.setupDOM = function() {
@@ -156,29 +130,26 @@
 			});
 
 			jQuery(document).ajaxStart(function() {
-				chart.$(".chart-preloader").show();
+				d3.select('.chart-preloader').classed('hidden', false);
 			});
 
 			jQuery(document).ajaxStop(function() {
-				chart.$(".chart-preloader").hide();
+				d3.select('.chart-preloader').classed('hidden', true);
 			});
 
 			if (chart.model.get("chart-name"))
-				chart.$(".chart-preloader").show();
+				d3.select('.chart-preloader').classed('hidden', false);
 
 			if (window.self != window.top || App.isEditor) {
 				$chart.addClass("embedded");
 			}
 		};
 
-		chart.applyScale = function() {
-			if (!changes.any('targetWidth targetHeight'))
-				return;
-
+/*		chart.applyScale = function() {
 			chart.scale = 1;
 
-			var targetWidth = chart.display.get('targetWidth'),
-				targetHeight = chart.display.get('targetHeight'),
+			var targetWidth = chart.targetWidth,
+				targetHeight = chart.targetHeight,
 				authorWidth = App.AUTHOR_WIDTH,
 				authorHeight = App.AUTHOR_HEIGHT,
 				renderWidth, renderHeight;
@@ -198,42 +169,36 @@
 				}				
 			}
 
-			chart.targetWidth = targetWidth;
-			chart.targetHeight = targetHeight;
 			chart.authorWidth = authorWidth;
 			chart.authorHeight = authorHeight;
 			chart.renderWidth = renderWidth;
 			chart.renderHeight = renderHeight;
-			chart.display.set({ renderWidth: renderWidth, renderHeight: renderHeight });
 
 			var scale = Math.min(chart.targetWidth/chart.renderWidth, chart.targetHeight/chart.renderHeight);
 
 			// Propagate some useful information to the CSS
-			$chart.removeClass('portrait landscape downscaled upscaled space120 space140 touchscreen narrow');
 
-			if (renderWidth >= renderHeight)
-				$chart.addClass('landscape');
-			else
-				$chart.addClass('portrait');			
+//			$chart.removeClass('portrait landscape downscaled upscaled space120 space140 touchscreen narrow');
+
+			chart.el.attr('class', '');
+
+			chart.el.classed('landscape', renderWidth >= renderHeight);
+			chart.el.classed('portrait', renderWidth < renderHeight);
 
 			if (targetWidth < authorWidth || targetHeight < authorHeight) {
-				$chart.addClass('downscaled');
+				chart.el.classed('downscaled', true);
 			} else if (targetWidth > authorWidth && targetHeight > authorHeight) {
-				$chart.addClass('upscaled');
+				chart.el.classed('upscaled', true);
 			}
 
 			var spaceFactor = (renderWidth+renderHeight) / (authorWidth+authorHeight);
 
-			if (spaceFactor >= 1.5)
-				$chart.addClass('space150');
+			chart.el.classed('space150', spaceFactor >= 1.5);
+			chart.el.classed('mobile', navigator.userAgent.match(/Mobi/));
+			chart.el.classed('narrow', renderWidth < 600);
 
-			if (navigator.userAgent.match(/Mobi/))
-				$chart.addClass('mobile');
-			if (renderWidth < 600)
-				$chart.addClass('narrow');
-
-            var paddingLeft = parseFloat($chart.css('padding-left')),
-                paddingTop = parseFloat($chart.css('padding-top'));
+            var paddingLeft = parseFloat(chart.el.style('padding-left')),
+                paddingTop = parseFloat(chart.el.style('padding-top'));
 
             chart.innerRenderWidth = renderWidth-paddingLeft*2-2;
             chart.innerRenderHeight = renderHeight-paddingTop*2-2;
@@ -251,7 +216,7 @@
 			chart.svg.setAttribute('viewBox', '0 0 ' + (renderWidth-paddingLeft*2) + ' ' + (renderHeight-paddingTop*2));
 
 			chart.scale = scale;			
-		};
+		};*/
 
 		// HACK (Mispy): Workaround for the differences in getBoundingClientRect
 		// depending on whether you're using zoom or transform
@@ -295,12 +260,13 @@
 		};
 
 		chart.resize = function() {
-			$chart.parent().addClass('chart-container');
-			if (App.isExport) return;
+			chart.now('containerNode', function(containerNode) {
+				var bounds = containerNode.getBoundingClientRect();				
+				var marginLeft = bounds.width*0.2, marginTop = bounds.height*0.2;
 
-			chart.display.set({
-				targetWidth: $chart.parent().width(),
-				targetHeight: $chart.parent().height()
+				chart.update({
+					outerBounds: { left: marginLeft, top: marginTop, width: bounds.width-marginLeft, height: bounds.height-marginTop }
+				});
 			});
 		};
 
@@ -330,13 +296,34 @@
 			this.$(".tab-pane.active").prepend('<div class="chart-error"><div>' + msg + '</div></div>');			
 		};
 
+		chart.update({ containerNode: d3.select('body').node() });
 		chart.setupDOM();
 		chart.resize();
 
+		// For events that MUST be asynchronous and global, use sparingly
+		chart.dispatch = d3.dispatch('renderEnd');
+
+		chart.mapdata = owid.models.mapdata(chart);
+		// DOM setup
+
+		// Initialize components
+		chart.url = owid.view.urlBinder(chart);
+		chart.exporter = new App.Views.Export(chart);
+		chart.header = owid.control.header(chart);
+		chart.footer = new App.Views.Chart.Footer(chart);
+		chart.tabSelector = owid.view.tabSelector(chart);
+		chart.debugHelper = new App.Views.DebugHelper(chart);
+		chart.tooltip = new owid.view.tooltip(chart);
+
+		// Initialize tabs
+		chart.tabs = {};
+		var tabs = _.indexBy(chart.model.get("tabs"));
+		chart.tabs.chart = owid.tab.chart(chart);
+//		chart.tabs.data = owid.tab.data(chart);
+//		chart.tabs.sources = owid.tab.sources(chart);
+		chart.tabs.map = owid.tab.map(chart);
+
 		chart.model.on('change', function() {
-			chart.data.ready(chart.render);
-		});
-		chart.display.on('change', function() {
 			chart.data.ready(chart.render);
 		});
 		chart.map.on('change', function() {
@@ -344,7 +331,6 @@
 		});
 		chart.data.ready(chart.render);
 
-		chart.changes = changes;
 		return chart;
 	};	
 

@@ -21,7 +21,7 @@
 
 			this.changes = owid.changes();
 			this.changes.track(chart.model, 'chart-dimensions chart-description');
-			this.changes.track(chart.display, 'renderWidth renderHeight');
+			this.changes.track(chart, 'renderWidth renderHeight');
 
 			this.listenTo($(window), "query-change", this.updateSharingButtons.bind(this));
 		},

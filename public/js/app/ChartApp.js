@@ -8,11 +8,6 @@
 			ChartModel = App.Models.ChartModel,
 			ChartDataModel = App.Models.ChartDataModel;
 
-		var $chart = $("#chart");
-
-		if (!$chart.length)
-			return; // No chart to show here
-
 		App.ChartModel = new ChartModel(chartConfig);
 		App.ChartView = owid.chart();
 

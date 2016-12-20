@@ -10,52 +10,12 @@
 	owid.tab.map = function(chart) {
 		function mapTab() { }
 
-		var changes = owid.changes();
-		changes.track(chart.map);
-		changes.track(chart.mapdata);
-		changes.track(chart, 'tabBounds activeTab');
-
 		var dataMap, bordersDisclaimer;
 		var svg, offsetY, availableWidth, availableHeight, bounds;
 
 		var dispatcher = _.clone(Backbone.Events),
 			mapControls = new MapControls({ dispatcher: dispatcher }),
 			timeline;
-
-		// Open the chart tab for a country when it is clicked (but not on mobile)
-		function onMapClick(ev) {
-			if ($('#chart').hasClass('mobile') || !_.includes(chart.model.get("tabs"), "chart")) return;
-
-			d3.select(ev.target).each(function(d) {
-				var entityName = d.id,
-					availableEntities = chart.vardata.get("availableEntities"),
-					entity = _.find(availableEntities, function(e) {
-						return owid.entityNameForMap(e.name) == d.id;
-					});
-
-				if (!entity) return;
-				chart.model.set({ "selected-countries": [entity] }, { silent: true });
-				chart.data.chartData = null;
-				chart.display.set({ activeTab: 'chart' });
-				chart.url.updateCountryParam();
-			});
-		}
-
-		function onMapHover(ev) {
-			chart.tooltip.fromMap(ev, ev.target);
-		}
-
-		function onMapHoverStop(ev) {
-			chart.tooltip.hide();
-		}
-
-		function initializeMap() {
-			svg = d3.select('svg.datamap');
-
-			chart.$('g.datamaps-subunits').on('click', 'path', onMapClick);
-			chart.$('g.datamaps-subunits').on('mouseenter', 'path', onMapHover);
-			chart.$('g.datamaps-subunits').on('mouseleave', 'path', onMapHoverStop);
-		}
 
 		mapTab.deactivate = function() {
 			chart.tooltip.hide();
@@ -86,7 +46,7 @@
 			chart.mapdata.update();
 
 			control.update({
-				containerNode: chart.svg,
+				containerNode: chart.svg.node(),
 				bounds: bounds,
 				colorData: chart.mapdata.currentValues,
 				years: chart.map.getYears(),

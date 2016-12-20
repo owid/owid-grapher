@@ -4,18 +4,15 @@
 
 	owid.view.tabSelector = function(chart) {
 		function tabSelector() {}
-		var $nav = chart.$('nav.tabs');
+		var nav = chart.el.select('nav.tabs');
 
 		var changes = owid.changes();
 		changes.track(chart.model, 'tabs chart-name chart-subname chart-dimensions chart-description');
 		changes.track(chart.map, 'targetYear');
-		changes.track(chart.display, 'renderWidth renderHeight activeTab');
+		changes.track(chart, 'renderWidth renderHeight activeTab');
 
 		tabSelector.switchTab = function() {
-			if (!changes.any('activeTab'))
-				return;
-
-			var newTabName = chart.display.get('activeTab'),
+			var newTabName = chart.activeTabName,
 				newTab = chart.tabs[newTabName],
 				currentTab = chart.activeTab;
 			chart.activeTab = newTab;

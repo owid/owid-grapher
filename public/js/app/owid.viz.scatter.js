@@ -273,7 +273,7 @@
         viz.flow('timeline, containerNode, bounds, timelineYears, inputYear', function(timeline, containerNode, bounds, timelineYears, inputYear) {
             var timelineHeight = 25;
             timeline.update({
-                containerNode: chart.svg,
+                containerNode: chart.svg.node(),
                 outerBounds: { top: bounds.top+bounds.height-timelineHeight, left: bounds.left, width: bounds.width, height: timelineHeight },
                 years: timelineYears,
                 inputYear: inputYear

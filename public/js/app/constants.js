@@ -21,8 +21,8 @@
 
 	App.OWID_LOGO = "uploads/26538.png";
 
-	App.AUTHOR_WIDTH = 400;
-	App.AUTHOR_HEIGHT = 640;
+	App.AUTHOR_WIDTH = 900;
+	App.AUTHOR_HEIGHT = 600;
 
 	//export for iframe
 	window.$ = jQuery;

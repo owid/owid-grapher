@@ -14,7 +14,7 @@
 		var changes = owid.changes();
 		changes.track(chart.model);
 		changes.track(chart.data);
-		changes.track(chart.display);
+		changes.track(chart);
 
 		var $svg, $tab, $entitiesSelect,
 			$xAxisScale, $yAxisScale,
@@ -68,7 +68,8 @@
 		chartTab.render = function(inputBounds) {
 			if (!changes.start()) return;
 
-			bounds = { left: inputBounds.left, top: inputBounds.top, width: inputBounds.width, height: inputBounds.height-10 };
+			bounds = owid.bounds(inputBounds.left, inputBounds.top+10, inputBounds.width, inputBounds.height-20);
+
   		    margins = _.clone(chart.model.get("margins"));
 			chartOffsetX = bounds.left;
 			chartOffsetY = bounds.top;
@@ -160,11 +161,9 @@
 				return;
 
 			chartType = chart.model.get('chart-type');
-			$svg = chart.$("svg");
-			svg = d3.select($svg.get(0));
-			$svg.attr("class", "nvd3-svg " + chartType);
-			$tab = chart.$("#chart-chart-tab");
-			$entitiesSelect = $tab.find('[name=available_entities]');
+			svg = chart.svg;
+			svg.attr("class", "nvd3-svg " + chartType);
+			$entitiesSelect = $(svg.node()).find('[name=available_entities]');
 		}
 
 		function configureData() {
@@ -239,11 +238,8 @@
 
 		function renderLineChart() {
 			var lineType = chart.model.get("line-type");
-			if (lineType == App.LineType.WithDots || lineType == App.LineType.DashedIfMissing) {
-				chart.$chart.addClass("line-dots");
-			} else {
-				chart.$chart.removeClass("line-dots");
-			}
+
+			chart.el.classed('line-dots', lineType == App.LineType.WithDots || lineType == App.LineType.DashedIfMissing);
 
 			nvd3 = nv.models.lineChart().options(nvOptions);
 		}
@@ -268,7 +264,7 @@
                 yDomain[1] = yAxisMax;
 
 			viz.update({
-				containerNode: chart.svg,
+				containerNode: chart.svg.node(),
 				bounds: { left: chartOffsetX, top: chartOffsetY+10, width: chartWidth-10, height: chartHeight-10 },
 				axisConfig: {
 					x: {
@@ -542,7 +538,7 @@
 				chartOffsetY += legend.height() + 10;
 				chartHeight -= legend.height() + 10;
 			} else {
-				$svg.find("> .nvd3.nv-custom-legend").hide();
+				chart.svg.selectAll(".nvd3.nv-custom-legend").remove();
 			}			
 		}
 
