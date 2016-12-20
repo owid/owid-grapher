@@ -779,19 +779,11 @@ Object.defineProperty(SVGElement.prototype, 'innerSVG', {
 	    });
 	};
 
-	owid.scaleToFit = function(node, width, height) {
-		var el = d3.select(node),
-			currentBounds = chart.getBounds(node),
-			transform = d3.transform(el.attr("transform")),
-			widthFactor = currentBounds.width/width,
-			heightFactor = currentBounds.height/height;
+	owid.getScaleForFit = function(bbox, width, height) {
+		var scaleByWidth = width/bbox.width,
+			scaleByHeight = width/bbox.height;
 
-		if (widthFactor > 1 && widthFactor >= heightFactor)
-			transform.scale = [transform.scale[0] * (1/widthFactor), transform.scale[1] * (1/widthFactor)];
-		else if (heightFactor > 1 && heightFactor >= widthFactor)
-			transform.scale = [transform.scale[0] * (1/heightFactor), transform.scale[1] * (1/heightFactor)];
-
-		el.attr('transform', transform.toString());
+		return Math.min(scaleByWidth, scaleByHeight);
 	};
 
 	owid.transformElement = function(element, transform) {

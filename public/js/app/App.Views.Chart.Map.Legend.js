@@ -1,8 +1,123 @@
-;(function() {	
+;(function(d3) {	
 	"use strict";
 	owid.namespace("owid.map.legend");
 
-	owid.map.legend = function(chart) {
+	owid.view.mapLegend = function() {
+		var legend = owid.dataflow();
+
+		legend.requires('title', 'legendData', 'outerBounds', 'containerNode');
+
+		legend.flow('g : containerNode', function(containerNode) {
+			return d3.select(containerNode).append('g').attr('class', 'map-legend');
+		});
+
+		// Allow hiding items from legend
+		legend.flow('legendData : legendData', function(legendData) {
+			return _.filter(legendData, function(d) { return !d.hidden; });
+		});
+
+		// Work out how much of the space we want to use
+		legend.flow('targetWidth, targetHeight : outerBounds', function(outerBounds) {
+			return [outerBounds.width*0.2, outerBounds.height*0.7];
+		});
+
+		// Main work: the actual colored boxes part of the legend
+		legend.flow('gSteps : g', function(g) {
+			return g.append('g').attr('class', 'steps');
+		});
+		legend.flow('steps : gSteps, legendData', function(gSteps, legendData) {
+			var stepsUpdate = gSteps.selectAll('.legend-step').data(legendData);
+			stepsUpdate.exit().remove();
+
+			var enter = stepsUpdate.enter().append('g').attr('class', 'legend-step');
+			enter.append('rect');
+
+			return enter.merge(stepsUpdate);
+		});
+		legend.flow('stepsHeight : steps, targetHeight', function(steps, targetHeight) {
+			var stepSize = Math.min(30, Math.max(15, targetHeight / steps.size())),
+				stepWidth = stepSize,
+				stepHeight = stepSize,
+				stepGap = Math.min(stepSize/8, 2);
+
+			steps.selectAll('rect')
+				.attr("width", stepWidth)
+				.attr("height", stepHeight)
+				.style("fill", function(d, i) { return d.color; });
+
+			var prevData = null, currentStepOffset = 0;
+			steps.selectAll('text').remove();
+			steps.each(function(d) {
+				var step = d3.select(this);
+
+				// Position the step as a whole
+				if (prevData && prevData.type != d.type) {
+					// Spacing between numeric/categorical sections
+					currentStepOffset += stepGap*3;
+				}
+				step.attr("transform", "translate(" + 0 + ", " + currentStepOffset + ")");
+				currentStepOffset += stepHeight + stepGap;
+
+				// Fill and position the text
+				var text = d3.select(this).selectAll('text');
+				if (d.type == 'categorical' || d.text) {
+					step.append('text').text(d.text)
+						.attr('x', stepWidth+5)
+						.attr('y', stepHeight/2)
+						.attr('dy', '.4em');
+				} else if (d.type == 'numeric') {
+					if (!prevData || !_.has(prevData, 'max'))
+						step.append('text').text(d.minText).attr('x', stepWidth+5);
+					step.append('text').text(d.maxText)
+						.attr('x', stepWidth+5)
+						.attr('y', stepHeight);
+				}
+				prevData = d;
+			});
+
+			return currentStepOffset;
+		});
+
+
+		// Create and position label, if any
+		legend.flow('label : g', function(g) {
+			return g.append('text').attr('class', 'label');
+		});
+		legend.flow('labelBBox : label, title', function(label, title) {
+			label.text(title);
+			return label.node().getBBox();
+		});	
+		legend.flow('label, labelBBox, stepsHeight, outerBounds', function(label, labelBBox, stepsHeight, outerBounds) {
+			var scale = Math.min(1, outerBounds.height/labelBBox.width);
+			label.attr("transform", "translate(" + (outerBounds.left + labelBBox.height/2 + 5) + "," + (outerBounds.top + outerBounds.height-11) + ") rotate(270) scale(" + scale + ")");
+		});
+
+		// Position and scale steps to fit
+		legend.flow('gSteps, labelBBox, outerBounds, targetWidth, targetHeight, stepsHeight', function(gSteps, labelBBox, outerBounds, targetWidth, targetHeight, stepsHeight) {
+			var bbox = gSteps.node().getBBox();
+			var scale = Math.min(1, Math.min((targetWidth-labelBBox.height)/bbox.width, targetHeight/bbox.height));
+
+			gSteps.attr('transform', 'translate(' + (outerBounds.left+labelBBox.height) + ',' + (outerBounds.top+outerBounds.height-(stepsHeight*scale)-10) + ')' + ' scale(' + scale + ')');
+		});
+
+		// Position and scale entire legend
+/*		legend.flow('bbox : g, outerBounds', function(g, outerBounds) {
+			return g.node().getBBox();
+		});
+		legend.flow('g, bbox, stepsHeight, outerBounds, targetBounds', function(g, bbox, stepsHeight, outerBounds, targetBounds) {
+			g.attr("transform", "translate(" + outerBounds.left + "," + (outerBounds.top + outerBounds.height - bbox.height) + ")");
+
+			owid.scaleToFit(g.node(), targetBounds.width, targetBounds.height);
+//			var transform = d3.transform(stepsContainer.attr('transform'));
+//			transform.translate = [0, currentStepOffset - currentStepOffset*transform.scale[1]];
+//			stepsContainer.attr('transform', transform);
+		});*/
+
+
+		return legend;
+	};
+
+	owid.map.legend2 = function(chart) {
 		var legend = {};
 
 		var changes = owid.changes();
@@ -117,4 +232,4 @@
 
 		return legend;
 	};
-})();
+})(d3v4);

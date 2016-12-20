@@ -5,9 +5,10 @@
     owid.control.mapWithTimeline = function(chart) {
         var control = owid.dataflow();
 
-        control.requires('containerNode', 'bounds', 'colorData', 'years', 'inputYear');
+        control.requires('containerNode', 'bounds', 'colorData', 'years', 'inputYear', 'legendData', 'legendTitle');
 
         control.initial('map', function() { return owid.view.map(); });
+        control.initial('legend', function() { return owid.view.mapLegend(); });
         control.initial('timeline', function() { 
             var timeline = owid.view.timeline(); 
 
@@ -18,12 +19,12 @@
             return timeline;
         });
 
-        control.flow('timeline, containerNode, bounds, years', function(timeline, containerNode, bounds, years, inputYear) {
+        control.flow('timeline, years, inputYear, containerNode, bounds', function(timeline, years, inputYear, containerNode, bounds) {
             timeline.update({
-                containerNode: containerNode,
-                outerBounds: bounds,
                 years: years,
-                inputYear: inputYear
+                inputYear: inputYear,
+                containerNode: containerNode,
+                outerBounds: bounds
             });
         });
 
@@ -31,13 +32,23 @@
             return { left: bounds.left, top: bounds.top, width: bounds.width, height: bounds.height-timeline.bounds.height };
         });
 
-        control.flow('map, containerNode, boundsForMap, colorData', function(map, containerNode, boundsForMap, colorData) {
+        control.flow('map, colorData, containerNode, boundsForMap', function(map, colorData, containerNode, boundsForMap) {
             map.update({ 
+                colorData: colorData,
                 containerNode: containerNode,
-                bounds: boundsForMap,
-                colorData: colorData
+                bounds: boundsForMap
             });
         });
+
+        control.flow('legend, legendData, legendTitle, containerNode, boundsForMap', function(legend, legendData, legendTitle, containerNode, boundsForMap) {
+            legend.update({
+                legendData: legendData,
+                title: legendTitle,
+                containerNode: containerNode,
+                outerBounds: boundsForMap
+            });
+        });
+
 
         return control;
     };
