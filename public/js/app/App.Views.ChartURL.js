@@ -52,7 +52,7 @@
 			// Set tab if specified
 			var tab = params.tab;
 			if (tab) {
-				if (!_.contains(chart.model.get("tabs"), tab))
+				if (!_.contains(chart.model.get("tabs").concat('share'), tab))
 					console.error("Unexpected tab: " + tab);
 				else {
 					chart.update({ activeTabName: tab });

@@ -113,6 +113,15 @@
             });
         }
 
+        control.beforeClean(function() {
+            onHoverStop();
+            control.now('map, timeline, legend', function(map, timeline, legend) {
+                map.clean();
+                timeline.clean();
+                legend.clean();
+            });
+        });
+
         return control;
     };
 })(d3v4);

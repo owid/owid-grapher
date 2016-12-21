@@ -11,10 +11,6 @@
 
 	owid.tab.chart = function(chart) {
 		function chartTab() { }
-		var changes = owid.changes();
-		changes.track(chart.model);
-		changes.track(chart.data);
-		changes.track(chart);
 
 		var $svg, $tab, $entitiesSelect,
 			$xAxisScale, $yAxisScale,
@@ -53,21 +49,14 @@
 			showLegend: false
 		};
 
-		chartTab.deactivate = function() {
-			if (!$svg) return;
-			viz = null;			
-			$svg.attr("class", "");
-
-			chart.model.off(null, null, this);
+		chartTab.clean = function() {
+			if (viz) viz = viz.destroy();
 			d3.selectAll(".nvd3, .axisBox, .nvtooltip:not(.owid-tooltip), .timeline").remove();
-			chartTab.scaleSelectors.hide();
+//			chartTab.scaleSelectors.hide();
 			d3.selectAll("svg").on("mousemove.stackedarea", null);
-			changes.done();
 		},
 
 		chartTab.render = function(inputBounds) {
-			if (!changes.start()) return;
-
 			bounds = owid.bounds(inputBounds.left, inputBounds.top+10, inputBounds.width, inputBounds.height-20);
 
   		    margins = _.clone(chart.model.get("margins"));
@@ -84,9 +73,8 @@
 
 			$(".chart-error").remove();
 			if (missingMsg || (_.isEmpty(localData) && chartType != App.ChartType.ScatterPlot)) {
-				chart.$(".nv-wrap").remove();
+				chart.el.selectAll(".nv-wrap").remove();
 				chart.showMessage(missingMsg || "No available data.");
-				return changes.done();
 			}
 
 			updateAvailableCountries();
@@ -140,10 +128,6 @@
 						$pathDomain.css("stroke-opacity", "0");
 					}					
 				}
-
-
-				ensureLabelsFit();				
-				changes.done();	
 			}
 
 			if (!nvd3 && chartType != App.ChartType.ScatterPlot)
@@ -158,9 +142,6 @@
 		};
 
 		function configureTab() {
-			if (!changes.any('activeTab chart-type'))
-				return;
-
 			chartType = chart.model.get('chart-type');
 			svg = chart.svg;
 			svg.attr("class", "nvd3-svg " + chartType);
@@ -180,9 +161,6 @@
 		}
 
 		function configureAxis() {
-			if (!changes.any('x-axis y-axis'))
-				return;
-
 			xAxis = chart.model.get("x-axis");
 			yAxis = chart.model.get("y-axis");
 			xAxisPrefix = xAxis["axis-prefix"] || "";
@@ -341,55 +319,53 @@
 		}
 
 		function renderMultiBar() {
-			if (changes.any('chartData')) {
-				console.trace('change chartData');
-				// MISPY TODO - move this into ChartData
-				// relevant test chart: http://ourworldindata.org/grapher/public-health-insurance-coverage2?stackMode=stacked
-		        var allTimes = [],
-		            //store values by [entity][time]
-		            valuesCheck = [];
+			console.trace('change chartData');
+			// MISPY TODO - move this into ChartData
+			// relevant test chart: http://ourworldindata.org/grapher/public-health-insurance-coverage2?stackMode=stacked
+	        var allTimes = [],
+	            //store values by [entity][time]
+	            valuesCheck = [];
 
-		        //extract all times
-		        _.each( localData, function( v, i ) {
-		            var entityData = [],
-		                times = v.values.map( function( v2, i ) {
-		                    entityData[ v2.x ] = true;
-		                    return v2.x;
-		                } );
-		            valuesCheck[v.id] = entityData;
-		            allTimes = allTimes.concat( times );
-		        } );
+	        //extract all times
+	        _.each( localData, function( v, i ) {
+	            var entityData = [],
+	                times = v.values.map( function( v2, i ) {
+	                    entityData[ v2.x ] = true;
+	                    return v2.x;
+	                } );
+	            valuesCheck[v.id] = entityData;
+	            allTimes = allTimes.concat( times );
+	        } );
 
-		        allTimes = _.uniq( allTimes );
-		        allTimes = _.sortBy( allTimes );
-		        
-		        if( localData.length ) {
-		            _.each( localData, function( serie, serieIndex ) {
-		                
-		                //make sure we have values for given series
-		                _.each( allTimes, function( time, timeIndex ) {
-		                    if( valuesCheck[ serie.id ] && !valuesCheck[serie.id][time]) {
-		                        //time doesn't existig for given entity, i
-		                        var zeroObj = {
-		                            "key": serie.key,
-		                            "serie": serieIndex,
-		                            "time": time,
-		                            "x": time,
-		                            "y": 0,
-		                            "fake": true
-		                        };
-		                        serie.values.splice( timeIndex, 0, zeroObj);
-		                    }
-		                });    
-		            });
-		        }
+	        allTimes = _.uniq( allTimes );
+	        allTimes = _.sortBy( allTimes );
+	        
+	        if( localData.length ) {
+	            _.each( localData, function( serie, serieIndex ) {
+	                
+	                //make sure we have values for given series
+	                _.each( allTimes, function( time, timeIndex ) {
+	                    if( valuesCheck[ serie.id ] && !valuesCheck[serie.id][time]) {
+	                        //time doesn't existig for given entity, i
+	                        var zeroObj = {
+	                            "key": serie.key,
+	                            "serie": serieIndex,
+	                            "time": time,
+	                            "x": time,
+	                            "y": 0,
+	                            "fake": true
+	                        };
+	                        serie.values.splice( timeIndex, 0, zeroObj);
+	                    }
+	                });    
+	            });
+	        }
 
-				if (chartType == App.ChartType.MultiBar) {
-					nvd3 = nv.models.multiBarChart().options(nvOptions);					
-				} else if (chartType == App.ChartType.HorizontalMultiBar) {
-					nvd3 = nv.models.multiBarHorizontalChart().options(nvOptions);					
-				}				
-			}
+			if (chartType == App.ChartType.MultiBar) {
+				nvd3 = nv.models.multiBarChart().options(nvOptions);					
+			} else if (chartType == App.ChartType.HorizontalMultiBar) {
+				nvd3 = nv.models.multiBarHorizontalChart().options(nvOptions);					
+			}				
 
 			if (chart.model.get("currentStackMode") == "stacked")
 				nvd3.stacked(true);			
@@ -629,6 +605,8 @@
 		}
 
 		function postRender() {
+			ensureLabelsFit();				
+
 			// Hijack the nvd3 mode switch to store it
 			$(".nv-controlsWrap .nv-series").off('click').on('click', function(ev) {
 				chart.model.set("currentStackMode", $(ev.target).closest('.nv-series').text().toLowerCase());

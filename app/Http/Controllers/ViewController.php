@@ -9,7 +9,6 @@ use App\Logo;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 use Illuminate\Http\Request;
-use Debugbar;
 use DB;
 use URL;
 use Config;
@@ -293,8 +292,7 @@ class ViewController extends Controller {
 			}
 
 			$chartMeta->imageUrl = $baseUrl . ".png?" . $imageQuery;
-			$resp = response()
-					->view('view.show', compact('chart', 'canonicalUrl', 'chartMeta', 'query'));
+			$resp = response()->view('view.show', compact('chart', 'canonicalUrl', 'chartMeta', 'query'));
 					
 			if (str_contains(\Request::path(), ".export")) {
 				// We don't cache the export urls, just the resulting pngs

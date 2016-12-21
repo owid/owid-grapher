@@ -40,7 +40,6 @@
 		<![endif]-->
 
 		@yield('content')
-		@yield('outter-content')
 		
 		<script>
 			var Global = {};

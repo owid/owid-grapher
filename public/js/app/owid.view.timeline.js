@@ -265,9 +265,9 @@
 			}
 		});
 
-		timeline.remove = function() {
+		timeline.beforeClean(function() {
 			if (timeline.g) timeline.g.remove();
-		};
+		});
 
 		return timeline;
 	};

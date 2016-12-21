@@ -160,7 +160,6 @@ return [
         Zofe\Rapyd\RapydServiceProvider::class,
 
 		// Debugging tool
-		Barryvdh\Debugbar\ServiceProvider::class,
 		Fideloper\Proxy\TrustedProxyServiceProvider::class,
 		Stolz\Assets\Laravel\ServiceProvider::class
 	],
@@ -214,8 +213,6 @@ return [
         'Input' => Illuminate\Support\Facades\Input::class,
 		'Form' => Collective\Html\FormFacade::class,
 		'Html' => Collective\Html\HtmlFacade::class,
-
-		'Debugbar' => Barryvdh\Debugbar\Facade::class,
 	],
 
 ];

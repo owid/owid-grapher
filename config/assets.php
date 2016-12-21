@@ -132,9 +132,7 @@ return [
 			/* Chart collection: assets needed for rendering charts, whether in the admin editor
 			 * or when displayed in the public viewer for users. */
 			'chart-css' => [		
-		        'libs/bootstrap.css',
 		        'libs/font-awesome.css',
-		        'libs/bootstrap-chosen.css',
 		        'libs/nv.d3.css',
 
 		        'chart.css'
@@ -162,6 +160,7 @@ return [
 		        'libs/reactive-model-v0.12.0.min.js',
 
 		        'owid.js',
+		        'app/owid.bounds.js',
 		        'app/owid.dataflow.js',
 		        'app/owid.colorbrewer.js',
 
@@ -188,8 +187,9 @@ return [
 		        'app/owid.view.controlsFooter.js',
 		        'app/App.Views.Chart.Legend.js',
 		        'app/App.Views.Chart.ChartTab.js',
-		        'app/App.Views.Chart.DataTab.js',
-		        'app/App.Views.Chart.SourcesTab.js',
+		        'app/owid.component.dataTab.js',
+		        'app/owid.component.sourcesTab.js',
+		        'app/owid.component.shareTab.js',
 
 		        'app/owid.data.world.js',
 		        'app/App.Views.Chart.Map.MapControls.js',
@@ -205,7 +205,7 @@ return [
 		        'app/App.Views.Export.js',
 		        'app/App.Views.DebugHelper.js',
 		        'app/owid.chart.js',
-		        'app/ChartApp.js'		    
+		        'app/ChartApp.js'
 			],
 
 			'chart' => [

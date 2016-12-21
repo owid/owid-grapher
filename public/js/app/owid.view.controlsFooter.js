@@ -6,25 +6,24 @@
         var footer = owid.dataflow();
 
         footer.requires('containerNode', 'outerBounds', 'tabNames', 'activeTabName');
+        footer.defaults({ editUrl: null });
 
         footer.flow('el : containerNode', function(containerNode) {
             return d3.select(containerNode).append('div').attr('class', 'controls-footer');
         });
 
         footer.flow('nav : el', function(el) {
-            return el.append('nav').attr('class', 'tabs');
+            return el.append('nav').attr('class', 'tabs').append('ul');
         });
 
-        footer.flow('tabs : nav, tabNames', function(nav, tabNames) {
-            var tabsUpdate = nav.selectAll('li').data(tabNames);
+        footer.flow('tabs : nav, tabNames', function(nav, tabNames) {            
+            nav.selectAll('li').remove();
 
-            var tabs = tabsUpdate
+            var tabs = nav.selectAll('li').data(tabNames)
                 .enter()
                   .append('li')
                   .attr('class', 'tab clickable')
-                  .merge(tabsUpdate);
-
-            tabs.text(function(d) { return d; });
+                  .html(function(d) { return '<a>'+d+'</a>'; });
 
             return tabs;
         });
@@ -33,26 +32,39 @@
             tabs.classed('active', function(d) { return d == activeTabName; });
         });
 
-        footer.flow('tabs', function(tabs) {
-            tabs.on('click', function(tabName) {
-                footer.update({ activeTabName: tabName });
-            });
-        });
-
         footer.flow('height : el, nav, tabs', function(el) {
             return el.node().getBoundingClientRect().height;
         });
 
-        footer.flow('activeTabName', function(activeTabName) {
-            chart.update({ activeTabName: activeTabName });
+        footer.flow('tabs', function(tabs) {
+            tabs.on('click', function(d) { 
+                chart.update({ activeTabName: d });
+            });
+        });
+
+        footer.flow('editBtn : nav, tabs, editUrl', function(nav, tabs, editUrl) {
+            nav.selectAll('li.edit').remove();
+            if (editUrl)
+                return nav.append('li').attr('class', 'edit clickable').html(
+                    '<a href="'+editUrl+'">' +
+                        '<i class="fa fa-pencil"></i>' +
+                    '</a>'
+                );
+        });
+
+        footer.flow('editBtn', function(editBtn) {
+            editBtn.on('click', function() {
+
+            });
         });
 
         footer.render = function(bounds) {
             footer.update({
                 containerNode: chart.el.node(),
                 outerBounds: bounds,
-                tabNames: chart.model.get('tabs'),
-                activeTabName: chart.activeTabName
+                tabNames: chart.model.get('tabs').concat(['share']),
+                activeTabName: chart.activeTabName,
+                editUrl: Cookies.get('isAdmin') ? (Global.rootUrl + '/charts/' + chart.model.get('id') + '/edit') : null
             });
         };
 

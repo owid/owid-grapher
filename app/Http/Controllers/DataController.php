@@ -15,7 +15,6 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 use Cache;
-use Debugbar;
 
 class DataController extends Controller {
 

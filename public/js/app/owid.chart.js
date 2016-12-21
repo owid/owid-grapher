@@ -24,6 +24,10 @@
 			authorHeight: App.AUTHOR_HEIGHT
 		});
 
+		chart.initial('header', function() { return owid.control.header(chart); });
+		chart.initial('creditsFooter', function() { return new App.Views.Chart.Footer(chart); });
+		chart.initial('controlsFooter', function() { return owid.view.controlsFooter(); });
+
 		// Container setup
 		chart.flow('containerNode', function(containerNode) {
 			d3.select(containerNode).classed('chart-container', true);
@@ -36,6 +40,9 @@
 		chart.flow('dom : el', function(el) {
 			return el.node();
 		});
+		chart.flow('htmlNode : el', function(el) {
+			return el.node();
+		});
 		chart.flow('svg : el', function(el) {
 			return el.append('svg').attr('xmlns', 'http://www.w3.org/2000/svg').attr('xmls:xlink', 'http://www.w3.org/1999/xlink').attr('version', '1.1');
 		});
@@ -43,26 +50,28 @@
 		// Tabs setup
 		chart.initial('tabs', function() {
 			return {
-				chart: owid.tab.chart(chart)
+				chart: owid.tab.chart(chart),
+				data: owid.component.dataTab(chart),
+				map: owid.tab.map(chart),
+				sources: owid.component.sourcesTab(chart),
+				share: owid.component.shareTab(chart)
 			};
 		});
 		chart.flow('activeTab : tabs, activeTabName', function(tabs, activeTabName) {
-			return tabs[activeTabName];
+			var tab = tabs[activeTabName];
+
+			if (chart.activeTab && (!tab.isOverlay || chart.activeTab.isOverlay))
+				chart.activeTab.clean();
+
+			return tab;
 		});
 
-
-/*		var tabs = _.indexBy(chart.model.get("tabs"));
-		chart.tabs.chart = owid.tab.chart(chart);
-		chart.tabs.data = owid.view.dataTab(chart);
-//		chart.tabs.sources = owid.tab.sources(chart);
-		chart.tabs.map = owid.tab.map(chart);*/
-
+		chart.flow('activeTab, outerBounds', function() { chart.data.ready(chart.render); });
 
 
 		// Scaling setup
 		chart.flow('innerBounds : authorWidth, authorHeight', function(authorWidth, authorHeight) {
-			var paddingLeft = 15, paddingTop = 15;
-			return { left: paddingLeft, top: paddingTop, width: authorWidth-paddingLeft*2, height: authorHeight-paddingTop*2 };
+			return owid.bounds(0, 0, authorWidth, authorHeight).pad(15);
 		});
 		chart.flow('scale : outerBounds, authorWidth, authorHeight', function(outerBounds, authorWidth, authorHeight) {
 			return Math.min(outerBounds.width/authorWidth, outerBounds.height/authorHeight);
@@ -78,33 +87,36 @@
 		});
 
 		chart.render = function() {
-			chart.now('activeTab, innerBounds', function(activeTab, bounds) {
+			chart.now('el, header, controlsFooter, creditsFooter, activeTab, innerBounds, scale', function(el, header, controlsFooter, creditsFooter, activeTab, innerBounds, scale) {
 				chart.data.transformData();
+				var bounds = innerBounds;
 
 /*				var paddingLeft = 50,
 					paddingTop = 50;
 
 				var bounds = { left: paddingLeft, top: paddingTop, width: chart.innerRenderWidth-(paddingLeft*2), height: chart.innerRenderHeight-(paddingTop*2) };*/
 
-				chart.header.render(bounds);
+				header.render(bounds);
 
-				bounds = _.extend({}, bounds, { top: bounds.top+chart.header.view.bbox.height, height: bounds.height-chart.header.view.bbox.height });
+				bounds = bounds.padTop(header.view.bbox.height);
 
-				chart.controlsFooter.render(bounds);
+				controlsFooter.render(bounds);
 
-				bounds = _.extend({}, bounds, { height: bounds.height-(chart.controlsFooter.height/chart.scale) });
+				bounds = bounds.padBottom(controlsFooter.height/scale);
 
 	//			owid.boundsDebug(bounds);
-				chart.creditsFooter.render(bounds);
+				creditsFooter.render(bounds);
 
-				bounds = _.extend({}, bounds, { height: bounds.height-chart.creditsFooter.height });
+				bounds = bounds.padBottom(creditsFooter.height);
 
-				// Pad the tab a little
-				bounds = _.extend({}, bounds, { left: bounds.left, top: bounds.top, width: bounds.width, height: bounds.height });
+				if (activeTab.isOverlay)
+					activeTab.render(innerBounds.padBottom(controlsFooter.height/scale));
+				else
+					activeTab.render(bounds);
 
-				chart.activeTab.render(bounds);
+				el.select('.chart-inner').style('visibility', 'visible');
 
-				chart.el.select('.chart-inner').style('visibility', 'visible');
+				d3.selectAll(el.node().childNodes).filter(function() { return this.nodeName != 'svg'; }).style('font-size', scale*16 + 'px');
 			});
 		};
 
@@ -208,10 +220,10 @@
 		chart.resize = function() {
 			chart.now('containerNode', function(containerNode) {
 				var bounds = containerNode.getBoundingClientRect();				
-				var marginLeft = bounds.width*0.2, marginTop = bounds.height*0.2;
+				var marginLeft = bounds.width*0.2, marginTop = bounds.height*0.1;
 
 				chart.update({
-					outerBounds: { left: marginLeft, top: marginTop, width: bounds.width-marginLeft, height: bounds.height-marginTop }
+					outerBounds: owid.bounds(bounds).pad(marginLeft, marginTop)
 				});
 			});
 		};
@@ -239,7 +251,7 @@
 		};
 
 		chart.showMessage = function(msg) {
-			this.$(".tab-pane.active").prepend('<div class="chart-error"><div>' + msg + '</div></div>');			
+			this.el.select(".tab-pane.active").append('<div class="chart-error"><div>' + msg + '</div></div>');			
 		};
 
 		chart.update({ containerNode: d3.select('body').node() });
@@ -255,15 +267,10 @@
 		// Initialize components
 		chart.url = owid.view.urlBinder(chart);
 		chart.exporter = new App.Views.Export(chart);
-		chart.header = owid.control.header(chart);
-		chart.creditsFooter = new App.Views.Chart.Footer(chart);
-		chart.controlsFooter = owid.view.controlsFooter();
 		chart.tabSelector = owid.view.tabSelector(chart);
 		chart.debugHelper = new App.Views.DebugHelper(chart);
 		chart.tooltip = new owid.view.tooltip(chart);
 
-		// Initialize tabs
-		chart.tabs = {};
 		chart.model.on('change', function() {
 			chart.data.ready(chart.render);
 		});

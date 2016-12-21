@@ -13,25 +13,12 @@
 		var dataMap, bordersDisclaimer;
 		var svg, offsetY, availableWidth, availableHeight, bounds;
 
-		var dispatcher = _.clone(Backbone.Events),
-			mapControls = new MapControls({ dispatcher: dispatcher }),
-			timeline;
+		var control = owid.control.mapWithTimeline(chart);
 
-		mapTab.deactivate = function() {
-			chart.tooltip.hide();
-			$('.datamaps-hoverover').remove();
-			d3.selectAll(".datamaps-subunits, .border-disclaimer, .legend, .map-bg").remove();			
-			$("svg").removeClass("datamap");
-			dataMap = null;
-			changes.done();
-
-			if (timeline) {
-				timeline.remove();
-				timeline = null;				
-			}
+		mapTab.clean = function() {
+			control.clean();
 		};
 
-		var control = owid.control.mapWithTimeline(chart);
 
 		mapTab.render = function(inputBounds) {
 			mapTab.control = control;

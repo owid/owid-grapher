@@ -2,9 +2,6 @@
  
 @section('content')
 	<div class="chart-edit-module" style="position:absolute;top:0;left:0;right:0;bottom:0;">
-		<div class="chart-edit-half">
-			@include('charts/partials/_chart')
-		</div>
 		@include('charts/partials/_form', ['method' => 'post', 'submitLabel' => 'Save draft' ])
 	</div>
 @endsection

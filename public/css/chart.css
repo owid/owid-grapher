@@ -75,6 +75,12 @@ body {
     width: 100%;
     height: 100%;
 }
+html {
+    box-sizing: border-box;
+}
+* {
+    box-sizing: inherit;
+}
 body.chart-container {
     /* Ridiculous hack for iOS compatibility: http://stackoverflow.com/questions/23083462/how-to-get-an-iframe-to-be-responsive-in-ios-safari */
     width: 1px;
@@ -257,6 +263,9 @@ select.disabled {
     color: #0645ad;
     fill: #0645ad;
 }
+#chart a.btn-primary {
+    color: white;
+}
 #chart a:hover {
     text-decoration: underline;
 }
@@ -287,14 +296,6 @@ select.disabled {
     overflow: auto;
     width: 100%;
     height: 100%;
-}
-#chart #chart-chart-tab {
-    overflow: hidden;    
-}
-#chart #data-chart-tab,
-#chart #sources-chart-tab {
-    position: relative;
-    z-index: 2;
 }
 #chart svg {
     z-index: 1;
@@ -334,20 +335,30 @@ select.disabled {
 }
 
 #chart nav.tabs {
-    display: table;
     float: right;
 }
 
+#chart nav.tabs ul {
+    margin: 0;
+}
+
 #chart nav.tabs li {
-    display: table-cell;
-    vertical-align: middle;
+    float: left;
     list-style-type: none;
-    padding: 0.5em 1.0em;
     border-left: 1px solid #e1e1e1;
+    border-bottom: 2px solid rgba(0,0,0,0);
+}
+
+#chart nav.tabs li > a {
+    display: block;
+    padding: 0.5em 1.0em;    
     text-transform: uppercase;
     color: #666;
     font-size: 0.9em;
-    border-bottom: 2px solid rgba(0,0,0,0);
+}
+
+#chart nav.tabs li > a:hover {
+    text-decoration: none;
 }
 
 #chart nav.tabs li.active {
@@ -640,41 +651,33 @@ select.disabled {
 /* Data Tab
 --------------------------------------------- */
 
-#chart #data-chart-tab {
-    padding-top: 1.5em;
-    padding-left: 1em;
-    font-size: 16px;
+#chart .dataTab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    background: rgba(255,255,255,0.95);
 }
-#chart.narrow #data-chart-tab {
-    padding: 0;
-}
-#chart #data-chart-tab .download-data-btn,
-#chart #data-chart-tab .download-full-btn {
-    color: #fff;
-}
-#chart #data-chart-tab .download-data-btn i,
-#chart #data-chart-tab .download-full-btn i {
-    margin-right: 0.3em;
-}
-#chart #data-chart-tab .data-table {
-    margin-top: 1.25em;
-}
-#chart #data-chart-tab .data-table th,
-#chart #data-chart-tab .data-table td {
-    padding: 4px 4px;
-}
-#chart #data-chart-tab .data-table th {
-    border-bottom: 1px solid #aaa;
-}
-#chart #data-chart-tab .data-table td {
-    border-bottom: 1px solid #afafaf;
+
+#chart h2 {
+    margin-bottom: 0.8em;
 }
 
 /* Sources Tab
 --------------------------------------------- */
 
-.datasource-wrapper {
+#chart .sourcesTab {
     padding: 1em;
+    text-align: left;
+    background: rgba(255,255,255,0.95);    
+}
+
+#chart .sourcesTab > div {
+    height: 100%;
+    overflow-y: auto;
+}
+
+.datasource-wrapper {
     font-size: 0.8em;
     max-width: 1024px;
 }
@@ -688,6 +691,7 @@ select.disabled {
     font-size: 0.9em;
     font-family: inherit;
     border-bottom: 1px solid #35322F;
+    margin-bottom: 0;
 }
 .datasource-wrapper h2,
 .datasource-wrapper h3,

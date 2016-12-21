@@ -99,6 +99,10 @@
 			gSteps.attr('transform', 'translate(' + (outerBounds.left+labelBBox.height) + ',' + (outerBounds.top+outerBounds.height-(stepsHeight*scale)-10) + ')' + ' scale(' + scale + ')');
 		});
 
+		legend.beforeClean(function() {
+			if (legend.g) legend.g.remove();
+		});
+
 		return legend;
 	};
 })(d3v4);

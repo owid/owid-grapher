@@ -6,6 +6,8 @@
 		var model = {}, state = {}, defaults = {}, flows = [];
 		model.state = state;
 
+		model._initials = {};
+
 		function defineProperty(key, val) {
 			defaults[key] = val;
 
@@ -20,12 +22,33 @@
 			_.each(inputs, function(v, k) {
 				defineProperty(k, v);
 			});
+			return model;
 		};
 
 		model.requires = function() {
 			_.each(arguments, function(k) {
 				defineProperty(k, undefined);
 			});
+			return model;
+		};
+
+		model.needs = model.requires;
+
+		model.clean = function() {
+			if (model._beforeClean) model._beforeClean();
+			state = {};
+			model.state = state;
+			hasDefaults = false;
+			return model;
+		};
+
+		model.beforeClean = function(callback) {
+			model._beforeClean = callback;
+		};
+
+		model.destroy = function() {
+			model.clean();
+			return null;
 		};
 
 		model.defaults = model.inputs;
@@ -43,7 +66,7 @@
 
 		model.initial = function(flowspec, callback) {
 			var flow = parseFlowspec(flowspec);
-			defaults[flow.inputs[0]] = callback();
+			model._initials[flow.inputs[0]] = callback;
 		};
 
 		model.flow = function(flowspec, callback) {
@@ -92,6 +115,10 @@
 			var changes = {};
 
 			if (!hasDefaults) {
+				_.each(model._initials, function(callback, key) {
+					defaults[key] = callback();
+				});
+
 				// Make sure we're not passing undefined values in
 				var newInputs = _.clone(defaults);
 				_.each(inputs, function(v,k) {

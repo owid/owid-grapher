@@ -139,6 +139,10 @@
             geo.on('click', onClick);
         });
 
+        map.beforeClean(function() {
+            if (map.g) map.g.remove();
+        });
+
         return map;
     };
 })(d3v4);
