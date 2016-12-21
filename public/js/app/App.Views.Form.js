@@ -2,8 +2,7 @@
 	"use strict";
 	owid.namespace("App.Views.Form");
 
-	var FormView = require("App.Views.FormView"),
-		ChartView = require("App.Views.ChartView");
+	var FormView = require("App.Views.FormView");
 
 	App.Views.Form = owid.View.extend({
 		events: {},
@@ -21,7 +20,7 @@
 			var dispatcher = _.clone( Backbone.Events );
 			this.dispatcher = dispatcher;
 
-			this.chartView = owid.chart();
+			this.chart = owid.chart();
 			
 			//is edit/create module
 			if( $( ".chart-edit-module" ).length ) {

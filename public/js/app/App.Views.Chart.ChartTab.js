@@ -141,6 +141,7 @@
 					}					
 				}
 
+
 				ensureLabelsFit();				
 				changes.done();	
 			}
@@ -420,7 +421,7 @@
 		}
 
 		function renderAxis() {
-			chartTab.scaleSelectors.render();
+//			chartTab.scaleSelectors.render();
 			if (!nvd3) return;
 
 			//get extend
@@ -453,6 +454,9 @@
 			}
 			if (_.isFinite(yAxisMax))
 				yDomain[1] = yAxisMax;
+
+			yDomain[1] += (yDomain[1]-yDomain[0])/100;
+			xDomain[1] += 1;
 
 			if (isClamped) {
 				if (nvd3 && chartType !== App.ChartType.MultiBar && chartType !== App.ChartType.HorizontalMultiBar && chartType !== App.ChartType.DiscreteBar && chart.model.get("currentStackMode") != "relative") {
@@ -644,7 +648,7 @@
 				});
 			}										
 
-			chart.dispatch.renderEnd();
+//			chart.dispatch.renderEnd();
 		}
 
 		return chartTab;

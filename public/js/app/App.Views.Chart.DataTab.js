@@ -2,6 +2,12 @@
 	"use strict";
 	owid.namespace("owid.tab.data");
 
+	owid.view.dataTab = function() {
+		var tab = owid.dataflow();
+
+		return tab;
+	};
+
 	owid.tab.data = function(chart) {
 		function dataTab() { }
 
@@ -38,7 +44,7 @@
 					});
 				})
 				.fail(function(err) {
-					App.ChartView.handleError(err);
+					chart.handleError(err);
 				});			
 		};
 

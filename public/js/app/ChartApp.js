@@ -1,15 +1,14 @@
 ;(function() {	
 	"use strict";
-	owid.namespace("App.ChartView");
+	owid.namespace("chart");
 	App.isEditor = false;
 
 	App.loadChart = function(chartConfig) {
-		var	ChartView = App.Views.ChartView,
-			ChartModel = App.Models.ChartModel,
+		var	ChartModel = App.Models.ChartModel,
 			ChartDataModel = App.Models.ChartDataModel;
 
 		App.ChartModel = new ChartModel(chartConfig);
-		App.ChartView = owid.chart();
+		var chart = owid.chart();
 
 		//find out if it's in cache
 		if( !$( ".standalone-charter" ).length ) {

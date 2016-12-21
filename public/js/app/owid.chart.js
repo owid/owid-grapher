@@ -1,10 +1,9 @@
-;(function() {	
+;(function(d3) {	
 	"use strict";
 	owid.namespace("owid.chart");
 
 	owid.chart = function() {
 		var chart = owid.dataflow();
-		App.ChartView = chart;
 		window.chart = chart;
 
 		// Set up models and data processors
@@ -41,6 +40,25 @@
 			return el.append('svg').attr('xmlns', 'http://www.w3.org/2000/svg').attr('xmls:xlink', 'http://www.w3.org/1999/xlink').attr('version', '1.1');
 		});
 
+		// Tabs setup
+		chart.initial('tabs', function() {
+			return {
+				chart: owid.tab.chart(chart)
+			};
+		});
+		chart.flow('activeTab : tabs, activeTabName', function(tabs, activeTabName) {
+			return tabs[activeTabName];
+		});
+
+
+/*		var tabs = _.indexBy(chart.model.get("tabs"));
+		chart.tabs.chart = owid.tab.chart(chart);
+		chart.tabs.data = owid.view.dataTab(chart);
+//		chart.tabs.sources = owid.tab.sources(chart);
+		chart.tabs.map = owid.tab.map(chart);*/
+
+
+
 		// Scaling setup
 		chart.flow('innerBounds : authorWidth, authorHeight', function(authorWidth, authorHeight) {
 			var paddingLeft = 15, paddingTop = 15;
@@ -59,12 +77,9 @@
 			   .attr('viewBox', '0 0 ' + authorWidth + ' ' + authorHeight);
 		});
 
-
 		chart.render = function() {
-			chart.now('innerBounds', function(bounds) {
-				console.log(bounds);
+			chart.now('activeTab, innerBounds', function(activeTab, bounds) {
 				chart.data.transformData();
-				chart.tabSelector.switchTab();
 
 /*				var paddingLeft = 50,
 					paddingTop = 50;
@@ -74,16 +89,20 @@
 				chart.header.render(bounds);
 
 				bounds = _.extend({}, bounds, { top: bounds.top+chart.header.view.bbox.height, height: bounds.height-chart.header.view.bbox.height });
-	//			owid.boundsDebug(bounds);
-				chart.footer.render(bounds);
 
-				bounds = _.extend({}, bounds, { height: bounds.height-chart.footer.height });
+				chart.controlsFooter.render(bounds);
+
+				bounds = _.extend({}, bounds, { height: bounds.height-(chart.controlsFooter.height/chart.scale) });
+
+	//			owid.boundsDebug(bounds);
+				chart.creditsFooter.render(bounds);
+
+				bounds = _.extend({}, bounds, { height: bounds.height-chart.creditsFooter.height });
 
 				// Pad the tab a little
 				bounds = _.extend({}, bounds, { left: bounds.left, top: bounds.top, width: bounds.width, height: bounds.height });
 
-		//		chart.tabSelector.render();
-				if (chart.activeTab) chart.activeTab.render(bounds);
+				chart.activeTab.render(bounds);
 
 				chart.el.select('.chart-inner').style('visibility', 'visible');
 			});
@@ -93,7 +112,7 @@
 			jQuery(window).resize(chart.resize);
 
 /*			jQuery(window).one("chart-loaded", function() {
-				App.ChartView.onResize(function() {
+				chart.onResize(function() {
 					window.top.postMessage("chartLoaded", "*");
 					console.log("Loaded chart: " + chart.model.get("chart-name"));
 				});
@@ -144,79 +163,6 @@
 				$chart.addClass("embedded");
 			}
 		};
-
-/*		chart.applyScale = function() {
-			chart.scale = 1;
-
-			var targetWidth = chart.targetWidth,
-				targetHeight = chart.targetHeight,
-				authorWidth = App.AUTHOR_WIDTH,
-				authorHeight = App.AUTHOR_HEIGHT,
-				renderWidth, renderHeight;
-
-			if (App.isEditor) {
-				targetWidth = authorWidth;
-				targetHeight = authorHeight;
-				renderWidth = authorWidth;
-				renderHeight = authorHeight;
-			} else {
-				if (targetWidth/targetHeight >= authorWidth/authorHeight) {
-					renderWidth = (targetWidth/targetHeight) * authorHeight;
-					renderHeight = authorHeight;
-				} else {
-					renderWidth = authorWidth;
-					renderHeight = (targetHeight/targetWidth) * authorWidth;
-				}				
-			}
-
-			chart.authorWidth = authorWidth;
-			chart.authorHeight = authorHeight;
-			chart.renderWidth = renderWidth;
-			chart.renderHeight = renderHeight;
-
-			var scale = Math.min(chart.targetWidth/chart.renderWidth, chart.targetHeight/chart.renderHeight);
-
-			// Propagate some useful information to the CSS
-
-//			$chart.removeClass('portrait landscape downscaled upscaled space120 space140 touchscreen narrow');
-
-			chart.el.attr('class', '');
-
-			chart.el.classed('landscape', renderWidth >= renderHeight);
-			chart.el.classed('portrait', renderWidth < renderHeight);
-
-			if (targetWidth < authorWidth || targetHeight < authorHeight) {
-				chart.el.classed('downscaled', true);
-			} else if (targetWidth > authorWidth && targetHeight > authorHeight) {
-				chart.el.classed('upscaled', true);
-			}
-
-			var spaceFactor = (renderWidth+renderHeight) / (authorWidth+authorHeight);
-
-			chart.el.classed('space150', spaceFactor >= 1.5);
-			chart.el.classed('mobile', navigator.userAgent.match(/Mobi/));
-			chart.el.classed('narrow', renderWidth < 600);
-
-            var paddingLeft = parseFloat(chart.el.style('padding-left')),
-                paddingTop = parseFloat(chart.el.style('padding-top'));
-
-            chart.innerRenderWidth = renderWidth-paddingLeft*2-2;
-            chart.innerRenderHeight = renderHeight-paddingTop*2-2;
-
-            chart.dom.style.width = targetWidth+'px';
-            chart.dom.style.height = targetHeight+'px';
-
-			if (App.isExport || App.isEditor)
-				return;
-			
-			// Now do the actual scaling
-
-			chart.svg.style.width = targetWidth-paddingLeft*2 + 'px';
-			chart.svg.style.height = targetHeight-paddingTop*2+ 'px';
-			chart.svg.setAttribute('viewBox', '0 0 ' + (renderWidth-paddingLeft*2) + ' ' + (renderHeight-paddingTop*2));
-
-			chart.scale = scale;			
-		};*/
 
 		// HACK (Mispy): Workaround for the differences in getBoundingClientRect
 		// depending on whether you're using zoom or transform
@@ -310,19 +256,14 @@
 		chart.url = owid.view.urlBinder(chart);
 		chart.exporter = new App.Views.Export(chart);
 		chart.header = owid.control.header(chart);
-		chart.footer = new App.Views.Chart.Footer(chart);
+		chart.creditsFooter = new App.Views.Chart.Footer(chart);
+		chart.controlsFooter = owid.view.controlsFooter();
 		chart.tabSelector = owid.view.tabSelector(chart);
 		chart.debugHelper = new App.Views.DebugHelper(chart);
 		chart.tooltip = new owid.view.tooltip(chart);
 
 		// Initialize tabs
 		chart.tabs = {};
-		var tabs = _.indexBy(chart.model.get("tabs"));
-		chart.tabs.chart = owid.tab.chart(chart);
-//		chart.tabs.data = owid.tab.data(chart);
-//		chart.tabs.sources = owid.tab.sources(chart);
-		chart.tabs.map = owid.tab.map(chart);
-
 		chart.model.on('change', function() {
 			chart.data.ready(chart.render);
 		});
@@ -333,55 +274,4 @@
 
 		return chart;
 	};	
-
-	App.Views.ChartView = owid.View.extend({
-		activeTab: false,
-		el: "#chart",
-
-		events: {
-			"click li.header-tab a": "onTabClick"
-		},
-
-		initialize: function(options) {
-			App.ChartView = this;
-		},
-
-		onTabClick: function(ev) {
-			ev.preventDefault();
-			ev.stopPropagation();
-			var tabName = $(ev.target).closest("li").attr("class").match(/(\w+)-header-tab/)[1];
-			this.activateTab(tabName);
-		},
-
-		activateTab: function(tabName) {
-			$(".chart-error").remove();
-
-			$("." + tabName + "-header-tab a").tab('show');
-			var tab = this[tabName + "Tab"];
-			if (this.activeTab) {
-				this.activeTab.deactivate();
-				this.activeTab = null;
-			} else if (this.loadingTab) {
-				this.loadingTab.deactivate();				
-			}
-
-			this.loadingTab = tab;
-			this.activeTabName = tabName;
-			this.dispatcher.trigger("tab-change", tabName);		
-			if (!_.isEmpty(App.ChartModel.getDimensions()))
-				$(".chart-preloader").show();
-			App.ChartData.ready(function() {
-				try {
-					tab.activate(function() {
-						$(".chart-preloader").hide();							
-							this.loadingTab = null;
-							this.activeTab = tab;
-						this.onResize();
-					}.bind(this));					
-				} catch (err) {
-					App.ChartView.handleError(err);
-				}
-			}.bind(this));
-		},
-	});
-})();
+})(d3v4);

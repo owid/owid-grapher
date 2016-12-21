@@ -3,7 +3,8 @@
 	owid.namespace("owid.view.scaleSelectors");
 
 	owid.view.scaleSelectors = function(chart) {
-		function scaleSelectors() {}
+		var scaleSelectors = owid.dataflow();
+		return scaleSelectors;
 
 		var xAxisScaleSelector = chart.el.select('.x-axis-scale-selector'),
 			yAxisScaleSelector = chart.el.select('.y-axis-scale-selector'),

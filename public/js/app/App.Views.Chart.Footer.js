@@ -142,7 +142,7 @@
 				baseUrl = Global.rootUrl + "/" + App.ChartModel.get("chart-slug"),
 				queryParams = owid.getQueryParams(),
 				queryStr = owid.queryParamsToStr(queryParams),				
-				tab = App.ChartView.activeTabName,
+				tab = chart.activeTabName,
 				canonicalUrl = baseUrl + queryStr,
 				version = App.ChartModel.get("variableCacheTag");
 

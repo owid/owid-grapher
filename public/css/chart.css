@@ -232,12 +232,15 @@ select.disabled {
 
 #chart {
     border: 1px solid #f0f0f0;
+    border-bottom: none;
     border-radius: 2px;
     box-shadow: 0 3px 5px 0 rgba(0,0,0,0.2);
 
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     color: #000000;
     background: white;
+
+    position: relative;
 
     /* Hidden overflow x so that tooltips don't cause scrollbars */
     overflow: hidden;
@@ -303,13 +306,54 @@ select.disabled {
     -webkit-font-smoothing: antialiased;
 }
 
+#chart {
+    z-index: 1;
+}
+
 #chart .html-overlay {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
+    z-index: -1;
 }
+
+#chart .html-overlay > * {
+    z-index: 2;
+}
+
+/* Controls Footer
+--------------------------------------------- */
+
+#chart .controls-footer {
+    width: 100%;
+    position: absolute;
+    bottom: 0;
+    border-top: 1px solid #e1e1e1;
+}
+
+#chart nav.tabs {
+    display: table;
+    float: right;
+}
+
+#chart nav.tabs li {
+    display: table-cell;
+    vertical-align: middle;
+    list-style-type: none;
+    padding: 0.5em 1.0em;
+    border-left: 1px solid #e1e1e1;
+    text-transform: uppercase;
+    color: #666;
+    font-size: 0.9em;
+    border-bottom: 2px solid rgba(0,0,0,0);
+}
+
+#chart nav.tabs li.active {
+    border-bottom-color: rgba(0,33,71,.9);
+}
+
 
 /* The little loading icon */
 
@@ -374,60 +418,6 @@ select.disabled {
 #chart .header path {
     stroke: #FFFFFF;
     stroke-width: 1px;
-}
-/* Tab Menu (Chart, Data, Map, Sources)
---------------------------------------------- */
-
-#chart nav.tabs {
-    width: 100%;
-    background-color: white;
-    z-index: 2;
-    border-bottom: 1px solid #ccc;
-}
-#chart nav.tabs ul {
-    position: relative;
-    margin-bottom: 0;
-    list-style-type: none;
-    text-transform: uppercase;
-    padding-left: 0;
-}
-#chart nav.tabs li {
-    position: relative;
-    top: 0.06em;
-    z-index: 1;
-    border: 1px solid #ddd;
-    border-left: 0px;
-    background-color: #FAFAFA;
-}
-#chart nav.tabs li.first {
-    border-left: 1px solid #ddd;
-}
-#chart nav.tabs li.active,
-#chart nav.tabs li:hover {
-    background-color: #FFFFFF;
-    border-top: 2px solid rgba(0, 33, 71, 0.9);
-    border-bottom: 0;
-}
-#chart nav.tabs li a {
-    color: #000;
-    display: block;
-    font-size: 0.65em;
-    padding: 0.5em 1em;
-    text-decoration: none;
-}
-#chart nav.tabs li a i {
-    margin-right: 0.3em;
-}
-#chart nav.tabs li.edit-btn-wrapper:hover {
-    background-color: #444;
-    border: 1px solid #444;
-    border-left: 0;
-}
-#chart nav.tabs li.edit-btn-wrapper:hover a {
-    color: #FAFAFA;
-}
-#chart nav.tabs li.edit-btn-wrapper i {
-    margin-right: 0;
 }
 /* Footer
 --------------------------------------------- */
@@ -1006,20 +996,6 @@ select.disabled {
     border: 1px solid #ccc;
 }
 
-/* Tabs should fill the entire width */    
-#chart.portrait nav.tabs ul {
-    display: table;
-    width: 100%;
-}
-#chart.portrait nav.tabs li {
-    display: table-cell;
-}
-#chart.portrait nav.tabs li > a {
-    padding: 3px 8px;
-}
-#chart.portrait nav.tabs li.edit-btn-wrapper {
-    display: none;
-}
 /* Compact the footer buttons a bit */
 #chart.narrow .footer-btns a.chart-link-btn span,
 #chart.narrow .footer-btns a.tweet-btn span,
@@ -1035,13 +1011,6 @@ select.disabled {
 --------------------------------------------- */
 #chart:not(.portrait).embedded {
     border: 1px solid #ccc;
-}
-/* Desktop-style tabs */
-#chart:not(.portrait) nav.tabs ul {
-    float: right;
-}
-#chart:not(.portrait) nav.tabs li {
-    float: left;
 }
 /* Desktop-only: can click on world map to get chart */
 #chart:not(.portrait) .datamaps-subunits {
