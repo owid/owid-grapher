@@ -5,11 +5,11 @@
     owid.view.shareMenu = function() {
         var shareMenu = owid.dataflow();
 
-        shareMenu.requires('containerNode, bounds');
+        shareMenu.requires('containerNode', 'bounds', 'title', 'sharingUrl');
 
         shareMenu.flow('el : containerNode', function(containerNode) {
             return d3.select(containerNode).append('div').attr('class', 'shareMenu');
-        });
+        });        
 
         shareMenu.flow('el, bounds', function(el, bounds) {
             el.style('position', 'absolute')
@@ -19,40 +19,70 @@
               .style('height', bounds.height+'px');
         });
 
-        shareMenu.flow('twitterBtn, facebookBtn : el', function(el) {
+        shareMenu.flow('shareSection : el', function(el) {
+            var shareSection = el.append('section').attr('class', 'share');
+            shareSection.append('h2').html('Share');
+            return shareSection;
+        });
+
+        shareMenu.flow('twitterBtn, facebookBtn, linkBtn : shareSection', function(shareSection) {
             return [
-                el.append('a').attr('class', 'btn btn-twitter'),
-                el.append('a').attr('class', 'btn btn-facebook')
-            ]
+                shareSection.append('a').attr('class', 'btn btn-twitter').attr('target', '_blank')
+                  .attr('title', "Tweet a link").html('<i class="fa fa-twitter"></i> Twitter'),
+
+                shareSection.append('a').attr('class', 'btn btn-facebook').attr('target', '_blank')
+                  .attr('title', "Share on Facebook").html('<i class="fa fa-facebook"></i> Facebook'),
+
+                shareSection.append('a').attr('class', 'btn btn-facebook').attr('target', '_blank')
+                  .attr('title', "Link to visualization").html('<i class="fa fa-link"></i> Link')
+            ];
+        });
+
+        shareMenu.flow('twitterBtn, title, sharingUrl', function(twitterBtn, title, sharingUrl) {
+            twitterBtn.attr('href', "https://twitter.com/intent/tweet/?text=" + encodeURIComponent(title) + "&url=" + encodeURIComponent(sharingUrl));
+        });
+
+        shareMenu.flow('facebookBtn, title, sharingUrl', function(facebookBtn, title, sharingUrl) {
+            facebookBtn.attr('href', "https://www.facebook.com/dialog/share?app_id=1149943818390250&display=page&href=" + encodeURIComponent(sharingUrl));            
+        });
+
+        shareMenu.flow('linkBtn, sharingUrl', function(linkBtn, sharingUrl) {
+            linkBtn.attr('href', sharingUrl);
+        });
+
+        shareMenu.flow('embedSection : el', function(el) {
+            var embedSection = el.append('section');
+            embedSection.append('h2').html('Embed');
+            return embedSection;
+        });
+
+        shareMenu.flow('embedSection', function(embedSection) {
+
+        });
+
+        shareMenu.beforeClean(function() {
+            if (shareMenu.el) shareMenu.el.remove();
         });
 
         return shareMenu;
     };
 
     owid.component.shareTab = function(chart) {
-        var shareTab = owid.dataflow();
+        var shareTab = owid.view.shareMenu();
 
         shareTab.isOverlay = true;
 
-        shareTab.initial('shareMenu', function() { return owid.view.shareMenu(); });
-
-            var headerText = d3.select("title").text().replace(" - Our World In Data", ""),
-                baseUrl = Global.rootUrl + "/" + App.ChartModel.get("chart-slug"),
-                queryParams = owid.getQueryParams(),
-                queryStr = owid.queryParamsToStr(queryParams),              
-                tab = chart.activeTabName,
-                canonicalUrl = baseUrl + queryStr,
-                version = App.ChartModel.get("variableCacheTag");
-
-        var baseUrl = Global.rootUrl + '/' + chart.model.get('chart-slug');
-
 
         shareTab.render = function(bounds) {
-            shareTab.shareMenu.update({
+            var baseUrl = Global.rootUrl + '/' + chart.model.get('chart-slug'),
+                sharingUrl = baseUrl + (chart.url.lastQueryStr||"");
+
+            shareTab.update({
                 containerNode: chart.htmlNode,
                 bounds: owid.bounds(bounds.left*chart.scale, bounds.top*chart.scale, bounds.width*chart.scale, bounds.height*chart.scale),
-                title: document.title.replace(" - Our World In Data", "")
-            });
+                title: document.title.replace(" - Our World In Data", ""),
+                sharingUrl: sharingUrl
+            });            
         };
 
         return shareTab;

@@ -35,8 +35,6 @@
 		chart.flow('el : containerNode', function(containerNode) {
 			return d3.select(containerNode).append('div').attr('id', 'chart');
 		});
-		chart.flow('el, outerBounds', function(el, outerBounds) {
-		});
 		chart.flow('dom : el', function(el) {
 			return el.node();
 		});
@@ -66,9 +64,6 @@
 			return tab;
 		});
 
-		chart.flow('activeTab, outerBounds', function() { chart.data.ready(chart.render); });
-
-
 		// Scaling setup
 		chart.flow('innerBounds : authorWidth, authorHeight', function(authorWidth, authorHeight) {
 			return owid.bounds(0, 0, authorWidth, authorHeight).pad(15);
@@ -84,6 +79,17 @@
 			svg.style('width', '100%')
 			   .style('height', '100%')
 			   .attr('viewBox', '0 0 ' + authorWidth + ' ' + authorHeight);
+		});
+		chart.flow('style : el', function(el) {
+			return el.append('style');
+		});
+		chart.flow('style, scale', function(style, scale) {
+			var css = "#chart > *:not(svg) { font-size: " + (16*scale) + "px; }";
+			style.text(css);
+		});
+
+		chart.flow('activeTab, outerBounds, scale', function() { 
+			chart.data.ready(chart.render);
 		});
 
 		chart.render = function() {
@@ -115,13 +121,11 @@
 					activeTab.render(bounds);
 
 				el.select('.chart-inner').style('visibility', 'visible');
-
-				d3.selectAll(el.node().childNodes).filter(function() { return this.nodeName != 'svg'; }).style('font-size', scale*16 + 'px');
 			});
 		};
 
 		chart.setupDOM = function() {
-			jQuery(window).resize(chart.resize);
+			d3.select(window).on('resize', chart.resize);
 
 /*			jQuery(window).one("chart-loaded", function() {
 				chart.onResize(function() {

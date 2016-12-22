@@ -57,7 +57,7 @@
 		},
 
 		chartTab.render = function(inputBounds) {
-			bounds = owid.bounds(inputBounds.left, inputBounds.top+10, inputBounds.width, inputBounds.height-20);
+			bounds = inputBounds.pad(10);
 
   		    margins = _.clone(chart.model.get("margins"));
 			chartOffsetX = bounds.left;
@@ -114,6 +114,7 @@
 				renderTooltips();
 				
 				if (nvd3) {
+					nvd3.duration(0);
 					svg.datum(localData).call(nvd3);
 		
 					var nvWrap = d3.select('.nvd3.nv-wrap > g');

@@ -5,14 +5,38 @@ html, body {
     height: 100%;
     width: 100%;
 }
-
 html {
     box-sizing: border-box;    
 }
-
 * {
     box-sizing: inherit;
 }
+
+#chart .btn {
+    padding: 1em 1.5em;
+    text-align: center;
+    color: #333;
+    text-decoration: none;
+}
+
+#chart .btn > i {
+    background-color: #333;
+    color: white;
+    text-align: center;
+    font-size: 1em;
+    width: 1.8em;
+    height: 1.8em;
+    line-height: 1.8em;
+    margin-right: 2px;
+    border-radius: 2px;
+    position: relative;
+}
+
+#chart .btn:hover {
+    text-decoration: none;
+    background-color: #eee;
+}
+
 body.chart-container {
     /* Ridiculous hack for iOS compatibility: http://stackoverflow.com/questions/23083462/how-to-get-an-iframe-to-be-responsive-in-ios-safari */
     width: 1px;
@@ -194,9 +218,6 @@ select.disabled {
     cursor: pointer;
     color: #0645ad;
     fill: #0645ad;
-}
-#chart a.btn-primary {
-    color: white;
 }
 #chart a:hover {
     text-decoration: underline;
@@ -653,6 +674,22 @@ select.disabled {
 .datasource-additional p {
     margin-top: 0.3em;
 }
+
+/* Share Tab
+--------------------------------------------- */
+
+#chart .shareMenu {
+    padding: 1em;
+    text-align: left;
+    background: rgba(255,255,255,0.95);    
+    display: flex;
+}
+
+#chart .shareMenu section.share a {
+    display: block;
+    text-align: left;
+}
+
 /* Map Tab
 --------------------------------------------- */
 

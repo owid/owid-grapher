@@ -19,11 +19,12 @@
 
 		// Keep the query params separate between map and the other tabs
 		var lastTabName = null,
-			mapQueryStr = '?',
-			chartQueryStr = '?',
 			originalDefaultTab = chart.model.get('default-tab'),
 			originalXAxisScale = chart.model.getAxisConfig('x-axis', 'axis-scale'),
 			originalYAxisScale = chart.model.getAxisConfig('y-axis', 'axis-scale');
+
+		urlBinder.mapQueryStr = '?';
+		urlBinder.chartQueryStr = '?';
 
 		function initialize() {
 			if (App.isEditor) return;
@@ -41,7 +42,7 @@
 			populateFromURL();
 
 			lastTabName = chart.activeTabName;
-		}
+		};
 
 		/**
 		 * Apply any url parameters on chart startup
@@ -138,16 +139,19 @@
 			var tabName = chart.activeTabName;
 
 			if (lastTabName == "map" && tabName != "map") {
-				mapQueryStr = window.location.hash;
-				owid.setQueryStr(chartQueryStr);
+				urlBinder.mapQueryStr = window.location.search;
+				owid.setQueryStr(urlBinder.chartQueryStr);
+				urlBinder.lastQueryStr = urlBinder.chartQueryStr;
 			} else if (lastTabName != "map" && lastTabName != null && tabName == "map") {				
-				chartQueryStr = window.location.hash;
-				owid.setQueryStr(mapQueryStr);
+				urlBinder.chartQueryStr = window.location.search;
+				owid.setQueryStr(urlBinder.mapQueryStr);
+				urlBinder.lastQueryStr = urlBinder.mapQueryStr;
 			}
 			if (tabName == originalDefaultTab)
 				owid.setQueryVariable("tab", null);
 			else
 				owid.setQueryVariable("tab", tabName);
+
 			lastTabName = tabName;
 		}
 

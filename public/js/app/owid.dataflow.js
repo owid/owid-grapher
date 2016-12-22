@@ -66,6 +66,8 @@
 
 		model.initial = function(flowspec, callback) {
 			var flow = parseFlowspec(flowspec);
+
+			defineProperty(flow.inputs[0], undefined);
 			model._initials[flow.inputs[0]] = callback;
 		};
 
