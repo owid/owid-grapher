@@ -16,7 +16,7 @@
 
         timeline.flow('bounds : outerBounds', function(outerBounds) {
             var height = 25;
-            return { left: outerBounds.left, top: outerBounds.top+(outerBounds.height-height), width: outerBounds.width, height: height};
+            return owid.bounds(outerBounds.left, outerBounds.top+(outerBounds.height-height), outerBounds.width, height);
         });
 
 		// Data processing

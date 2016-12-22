@@ -21,7 +21,8 @@
 
 		chart.defaults({
 			authorWidth: App.AUTHOR_WIDTH,
-			authorHeight: App.AUTHOR_HEIGHT
+			authorHeight: App.AUTHOR_HEIGHT,
+			dispatch: d3.dispatch('renderEnd')
 		});
 
 		chart.initial('header', function() { return owid.control.header(chart); });
@@ -31,6 +32,9 @@
 		// Container setup
 		chart.flow('containerNode', function(containerNode) {
 			d3.select(containerNode).classed('chart-container', true);
+			new ResizeSensor(containerNode, function() {
+				chart.resize();
+			});
 		});
 		chart.flow('el : containerNode', function(containerNode) {
 			return d3.select(containerNode).append('div').attr('id', 'chart');
@@ -106,9 +110,9 @@
 
 				bounds = bounds.padTop(header.view.bbox.height);
 
-				controlsFooter.render(bounds);
 
-				bounds = bounds.padBottom(controlsFooter.height/scale);
+				controlsFooter.render(bounds);
+				bounds = bounds.padBottom(controlsFooter.height);
 
 	//			owid.boundsDebug(bounds);
 				creditsFooter.render(bounds);
@@ -116,7 +120,7 @@
 				bounds = bounds.padBottom(creditsFooter.height);
 
 				if (activeTab.isOverlay)
-					activeTab.render(innerBounds.padBottom(controlsFooter.height/scale));
+					activeTab.render(innerBounds.padBottom(controlsFooter.height));
 				else
 					activeTab.render(bounds);
 
@@ -125,8 +129,6 @@
 		};
 
 		chart.setupDOM = function() {
-			d3.select(window).on('resize', chart.resize);
-
 /*			jQuery(window).one("chart-loaded", function() {
 				chart.onResize(function() {
 					window.top.postMessage("chartLoaded", "*");
@@ -261,8 +263,6 @@
 		chart.setupDOM();
 		chart.resize();
 
-		// For events that MUST be asynchronous and global, use sparingly
-		chart.dispatch = d3.dispatch('renderEnd');
 
 		chart.mapdata = owid.models.mapdata(chart);
 		// DOM setup

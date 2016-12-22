@@ -299,7 +299,7 @@ select.disabled {
     float: left;
     list-style-type: none;
     border-left: 1px solid #e1e1e1;
-    border-bottom: 2px solid rgba(0,0,0,0);
+    border-bottom: 0.2em solid rgba(0,0,0,0);
 }
 
 #chart nav.tabs li > a {

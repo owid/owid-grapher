@@ -85,6 +85,7 @@
             return g.append('text')
                 .attr('class', 'disclaimer')
                 .attr('text-anchor', 'end')
+                .attr('font-size', '0.8em')
                 .text("Mapped on current borders");
         });
         map.flow('disclaimer, bounds', function(disclaimer, bounds) {

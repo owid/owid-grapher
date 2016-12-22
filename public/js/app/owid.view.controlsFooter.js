@@ -33,7 +33,7 @@
         });
 
         footer.flow('height : el, nav, tabs', function(el) {
-            return el.node().getBoundingClientRect().height;
+            return el.node().getBoundingClientRect().height/chart.scale;
         });
 
         footer.flow('tabs', function(tabs) {
@@ -46,7 +46,7 @@
             nav.selectAll('li.edit').remove();
             if (editUrl)
                 return nav.append('li').attr('class', 'edit clickable').html(
-                    '<a href="'+editUrl+'">' +
+                    '<a target="_blank" href="'+editUrl+'">' +
                         '<i class="fa fa-pencil"></i>' +
                     '</a>'
                 );

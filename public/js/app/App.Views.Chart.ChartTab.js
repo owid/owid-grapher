@@ -10,7 +10,7 @@
 	};
 
 	owid.tab.chart = function(chart) {
-		function chartTab() { }
+		var chartTab = owid.dataflow();
 
 		var $svg, $tab, $entitiesSelect,
 			$xAxisScale, $yAxisScale,
@@ -224,6 +224,36 @@
 			nvd3 = nv.models.lineChart().options(nvOptions);
 		}
 
+		// TEMPORARY
+		chartTab.requires('xDomain', 'xAxisScale', 'xAxis', 'xAxisPrefix', 'xAxisFormat', 'xAxisSuffix',
+						  'yDomain', 'yAxisScale', 'yAxis', 'yAxisPrefix', 'yAxisFormat', 'yAxisSuffix');
+
+		chartTab.flow('xAxisConfig : xDomain, xAxisScale, xAxis, xAxisPrefix, xAxisFormat, xAxisSuffix', function(xDomain, xAxisScale, xAxis, xAxisPrefix, xAxisFormat, xAxisSuffix) {
+			return {
+				domain: xDomain,
+				scaleType: xAxisScale,
+				label: xAxis['axis-label'],
+				tickFormat: function(d) {
+					return xAxisPrefix + owid.unitFormat({ format: xAxisFormat||5 }, d) + xAxisSuffix;							
+				}
+			};
+		});
+
+		chartTab.flow('yAxisConfig : yDomain, yAxisScale, yAxis, yAxisPrefix, yAxisFormat, yAxisSuffix', function(yDomain, yAxisScale, yAxis, yAxisPrefix, yAxisFormat, yAxisSuffix) {
+			return {
+				domain: yDomain,
+				scaleType: yAxisScale,
+				label: yAxis['axis-label'],
+				tickFormat: function(d) {
+					return yAxisPrefix + owid.unitFormat({ format: yAxisFormat||5 }, d) + yAxisSuffix;							
+				}
+			};
+		});
+
+		chartTab.flow('axisConfig : xAxisConfig, yAxisConfig', function(xAxisConfig, yAxisConfig) {
+			return { x: xAxisConfig, y: yAxisConfig };
+		});
+
 		function renderScatterPlot() {
 			if (!viz) {
 				viz = owid.control.scatter();
@@ -243,35 +273,33 @@
             if (_.isFinite(yAxisMax))
                 yDomain[1] = yAxisMax;
 
+            chartTab.update({
+            	xDomain: xDomain||"",
+            	xAxisScale: xAxisScale||"",
+            	xAxis: xAxis||"",
+            	xAxisPrefix: xAxisPrefix||"",
+            	xAxisFormat: xAxisFormat||"",
+            	xAxisSuffix: xAxisSuffix||"",
+
+            	yDomain: yDomain||"",
+            	yAxisScale: yAxisScale||"",
+            	yAxis: yAxis||"",
+            	yAxisPrefix: yAxisPrefix||"",
+            	yAxisFormat: yAxisFormat||"",
+            	yAxisSuffix: yAxisSuffix||"",
+            });
+
 			viz.update({
 				containerNode: chart.svg.node(),
 				bounds: { left: chartOffsetX, top: chartOffsetY+10, width: chartWidth-10, height: chartHeight-10 },
-				axisConfig: {
-					x: {
-						domain: xDomain,
-						scaleType: xAxisScale,
-						label: xAxis['axis-label'],
-						tickFormat: function(d) {
-							return xAxisPrefix + owid.unitFormat({ format: xAxisFormat||5 }, d) + xAxisSuffix;							
-						}
-					},
-
-					y: {
-						domain: yDomain,
-						scaleType: yAxisScale,
-						label: yAxis['axis-label'],
-						tickFormat: function(d) {
-							return yAxisPrefix + owid.unitFormat({ format: yAxisFormat }, d) + yAxisSuffix;
-						}
-					}
-				},
+				axisConfig: chartTab.axisConfig,
 				dimensions: chart.model.getDimensions(),
 				variables: chart.vardata.get('variables'),
 				inputYear: (chart.model.get('chart-time')||[])[0],
                 timelineConfig: chart.model.get('timeline')
 			});
 
-			chart.dispatch.renderEnd();
+			chart.dispatch.call('renderEnd');
 			
 			chartTab.viz = viz;			
 		}
@@ -627,7 +655,7 @@
 				});
 			}										
 
-//			chart.dispatch.renderEnd();
+			chart.dispatch.call('renderEnd');
 		}
 
 		return chartTab;

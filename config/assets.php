@@ -157,7 +157,8 @@ return [
 		        'libs/jquery.lazyloadxt.extra.js',
 		        'libs/async.js',
 		        'libs/js.cookie.js',
-		        'libs/reactive-model-v0.12.0.min.js',
+		        'libs/ResizeSensor.js',
+		        'libs/ElementQueries.js',
 
 		        'owid.js',
 		        'app/owid.bounds.js',

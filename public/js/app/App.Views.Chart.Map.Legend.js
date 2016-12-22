@@ -18,7 +18,12 @@
 
 		// Work out how much of the space we want to use
 		legend.flow('targetWidth, targetHeight : outerBounds', function(outerBounds) {
-			return [outerBounds.width*0.2, outerBounds.height*0.7];
+            var mapBBox = d3.select('.map > .subunits').node().getBBox();
+
+			return [
+				Math.min(mapBBox.width, outerBounds.width)*0.2,
+				Math.min(mapBBox.height, outerBounds.height)*0.7
+			];
 		});
 
 		// Main work: the actual colored boxes part of the legend
