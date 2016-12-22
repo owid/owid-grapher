@@ -46,8 +46,12 @@ body.chart-container {
     width: 1px;
     min-width: 100%;
     overflow: hidden;
-    text-align: center;    
 }
+
+body.chart-container:not(.export) {
+    text-align: center;
+}
+
 /* Fake (pseudo) element, that enables vertical-align */
 body.chart-container:before {
   content: "";
@@ -197,10 +201,9 @@ select.disabled {
 --------------------------------------------- */
 
 #chart {
-    border: 1px solid #f0f0f0;
+    display: inline-block;
     border-bottom: none;
     border-radius: 2px;
-    box-shadow: 0 3px 5px 0 rgba(0,0,0,0.2);
 
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     color: #000000;
@@ -212,10 +215,10 @@ select.disabled {
     overflow: hidden;
 }
 
-#chart .chart-inner {
-    width: 100%;
-    height: 100%;
-    position: relative;
+body:not(.export) #chart {
+    vertical-align: middle;
+    border: 1px solid #f0f0f0;    
+    box-shadow: 0 3px 5px 0 rgba(0,0,0,0.2);
 }
 
 #chart a {
@@ -229,14 +232,6 @@ select.disabled {
 #chart .logos {
     float: right;
     padding-left: 0.6em;
-}
-#chart .chart-wrapper-inner {
-    position: relative;
-    table-layout: fixed;
-    border-collapse: collapse;
-    border-spacing: 0;
-    height: 100%;
-    width: 100%;
 }
 #chart .tab-content {
     position: absolute;
@@ -518,10 +513,6 @@ select.disabled {
     font-size: 18px;    
 }
 
-#chart.upscaled:not(.export) .axis, #chart.upscaled:not(.export) .axis > .scale {
-    font-size: 15px;
-}
-
 
 /* Axis Scale Selectors
 --------------------------------------------- */
@@ -682,6 +673,11 @@ select.disabled {
     text-align: left;
     background: rgba(255,255,255,0.95);    
     display: flex;
+    justify-content: center;
+}
+
+#chart .shareMenu section.share {
+    margin-right: 3em;
 }
 
 #chart .shareMenu section.share a {
@@ -690,8 +686,8 @@ select.disabled {
 }
 
 #chart .shareMenu textarea {
-    width: 20em;
-    height: 10em;
+    width: 30em;
+    height: 20em;
     font-size: 0.8em;
 }
 
@@ -932,27 +928,26 @@ select.disabled {
  * a special .export url to screenshot the chart. #chart-export styles therefore apply specifically
  * to these screenshots. */
 
-#chart.export {
+body.export #chart {
     background: white;
     /* Remove interactive UI elements since obviously they can't be used in a static image
    * NOTE (Mispy): Unneeded SVG elements should be removed entirely by the JS as well as hidden here. */
 }
-#chart.export {
+body.export #chart {
     padding: 0 !important;
 }
-#chart.export nav.tabs,
-#chart.export .footer-btns,
-#chart.export .fullscreen-link,
-#chart.export .timeline,
-#chart.export .settings-control,
-#chart.export .color-blind-control,
-#chart.export .map-controls-header,
-#chart.export .nv-add-btn,
-#chart.export .nv-controlsWrap,
-#chart.export .axis-scale-selectors-wrapper {
+body.export #chart .controls-footer,
+body.export #chart .fullscreen-link,
+body.export #chart .timeline,
+body.export #chart .settings-control,
+body.export #chart .color-blind-control,
+body.export #chart .map-controls-header,
+body.export #chart .nv-add-btn,
+body.export #chart .nv-controlsWrap,
+body.export #chart .axis-scale-selectors-wrapper {
     display: none !important;
 }
-#chart.export .tab-pane {
+body.export #chart .tab-pane {
     border: none !important;
 }
 

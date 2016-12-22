@@ -1,4 +1,4 @@
-/* App.Views.Export.js  
+/* owid.component.staticExport.js  
  * ================                                                             
  *
  * This component is responsible for getting the chart into a nice state for phantomjs
@@ -11,50 +11,44 @@
 
 ;(function() {
 	"use strict";
-	owid.namespace("App.Views.Export");
+	owid.namespace("owid.component.exportMode");
 
-	App.Views.Export = owid.View.extend({
-		initialize: function(options) {
-			if (window.location.pathname.match(/.export$/))
-				App.isExport = true;
+	owid.component.exportMode = function(chart) {
+		d3.select('body').classed('export', true);
 
-			if (!App.isExport) return;
-			chart.$chart.addClass('export');
+		var params = owid.getQueryParams(),
+			targetWidth = params.size && params.size.split("x") ? parseInt(params.size.split("x")[0]) : 1200,
+			targetHeight = params.size && params.size.split("x") ? parseInt(params.size.split("x")[1]) : 800,
+			margin = Math.min(20*(targetWidth/App.AUTHOR_WIDTH), 20*(targetHeight/App.AUTHOR_HEIGHT));
 
-			var params = owid.getQueryParams(),
-				targetWidth = params.size && params.size.split("x") ? parseInt(params.size.split("x")[0]) : 1200,
-				targetHeight = params.size && params.size.split("x") ? parseInt(params.size.split("x")[1]) : 800,
-				margin = Math.min(20*(targetWidth/App.AUTHOR_WIDTH), 20*(targetHeight/App.AUTHOR_HEIGHT));
+		chart.update({
+			outerBounds: owid.bounds(0, 0, targetWidth, targetHeight)
+		});
 
-			chart.display.set({
-				targetWidth: targetWidth-(margin*2),
-				targetHeight: targetHeight-(margin*2)
-			});
+		chart.dispatch.on('renderEnd', function() {
+			setTimeout(function() {
+/*				var svg = $("svg").get(0);
+				svg.setAttribute("viewBox", "0 0 " + chart.renderWidth + " " + chart.renderHeight);
+				svg.setAttribute("preserveAspectRatio", "none");
+				$(svg).css("width", (targetWidth-(margin*2)) + "px");
+   			    $(svg).css("height", (targetHeight-(margin*2)) + "px");
+				$("#chart").css('width', targetWidth);
+				$("#chart").css('height', targetHeight);
+				$(svg).css('margin', margin + 'px');*/
 
-			chart.dispatch.on('renderEnd', function() {
-				setTimeout(function() {
-					var svg = $("svg").get(0);
-					svg.setAttribute("viewBox", "0 0 " + chart.renderWidth + " " + chart.renderHeight);
-					svg.setAttribute("preserveAspectRatio", "none");
-					$(svg).css("width", (targetWidth-(margin*2)) + "px");
-	   			    $(svg).css("height", (targetHeight-(margin*2)) + "px");
-					$("#chart").css('width', targetWidth);
-					$("#chart").css('height', targetHeight);
-					$(svg).css('margin', margin + 'px');
-
-					// Remove SVG UI elements that aren't needed for export
-					d3.select(svg).selectAll(".nv-add-btn, .nv-controlsWrap").remove();
+				// Remove SVG UI elements that aren't needed for export
+				chart.now('svg', function(svg) {
+					svg.selectAll(".nv-add-btn, .nv-controlsWrap").remove();
 
 					if (window.callPhantom)
 						window.callPhantom({ targetWidth: targetWidth, targetHeight: targetHeight }); // Notify phantom that we're ready for PNG screenshot
-					this.onSVGExport();					
-				}.bind(this), 100);
-			}.bind(this));
-		},
+					prepareSVGForExport(svg);					
+				});
 
-		onSVGExport: function() {	
-			var svg = d3.select("svg");
+			}.bind(this), 100);
+		}.bind(this));
 
+		function prepareSVGForExport(svg) {
 			// Inline the CSS styles, since the exported SVG won't have a stylesheet
 			var styleSheets = document.styleSheets;
 			var elems = [];
@@ -83,14 +77,26 @@
 			});
 
 			// MISPY: Need to propagate a few additional styles from the external document into the SVG
-			$("svg").css("font-family", $("#chart").css("font-family"));
-			$("svg").css("font-size", $("#chart").css("font-size"));
+			svg.style("font-family", chart.el.style("font-family"));
+			//svg.style("font-size", chart.el.style("font-size"));
 
 			svgAsDataUri(svg.node(), {}, function(uri) {
 				var svgData = uri.substring('data:image/svg+xml;base64,'.length);
 				if (_.isFunction(window.callPhantom))
 					window.callPhantom({ "svg": svgData });
-			});
+			});			
+		}
+	};
+
+	App.Views.Export = owid.View.extend({
+		initialize: function(options) {
+			if (window.location.pathname.match(/.export$/))
+				App.isExport = true;
+
+			if (!App.isExport) return;
+		},
+
+		onSVGExport: function() {	
 		},
 	});
 })();

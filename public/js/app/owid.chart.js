@@ -22,7 +22,10 @@
 		chart.defaults({
 			authorWidth: App.AUTHOR_WIDTH,
 			authorHeight: App.AUTHOR_HEIGHT,
-			dispatch: d3.dispatch('renderEnd')
+			dispatch: d3.dispatch('renderEnd'),
+			isExport: !!window.location.pathname.match(/.export$/),
+			isEmbed: window.self != window.top || App.isEditor,
+			isEditor: App.isEditor
 		});
 
 		chart.initial('header', function() { return owid.control.header(chart); });
@@ -79,8 +82,7 @@
 			return Math.min(outerBounds.width/authorWidth, outerBounds.height/authorHeight);
 		});
 		chart.flow('el, authorWidth, authorHeight, scale', function(el, authorWidth, authorHeight, scale) {
-			el.style('width', authorWidth*scale + 'px').style('height', authorHeight*scale + 'px')
-			  .style('display', 'inline-block').style('vertical-align', 'middle');
+			el.style('width', authorWidth*scale + 'px').style('height', authorHeight*scale + 'px');
 		});
 		chart.flow('svg, authorWidth, authorHeight, scale', function(svg, authorWidth, authorHeight, scale) {
 			svg.style('width', '100%')
@@ -94,9 +96,14 @@
 			el.style('font-size', 16*scale + 'px');
 		});
 
-		chart.flow('activeTab, outerBounds, scale', function() { 
+		chart.flow('activeTab, scale', function() { 
 			chart.data.ready(chart.render);
 		});
+
+		chart.flow('exportMode : isExport', function(isExport) {
+			return isExport ? owid.component.exportMode(chart) : null;
+		});
+
 
 		chart.render = function() {
 			chart.now('el, header, controlsFooter, creditsFooter, activeTab, innerBounds, scale, loadingIcon', function(el, header, controlsFooter, creditsFooter, activeTab, innerBounds, scale, loadingIcon) {
@@ -131,13 +138,6 @@
 		};
 
 		chart.setupDOM = function() {
-/*			jQuery(window).one("chart-loaded", function() {
-				chart.onResize(function() {
-					window.top.postMessage("chartLoaded", "*");
-					console.log("Loaded chart: " + chart.model.get("chart-name"));
-				});
-			});*/
-
 			// Pass through touch events to containing document
 			// Important for presentations on mobile
 			jQuery('body').on('touchstart', function(ev) {
@@ -178,8 +178,6 @@
 
 			if (chart.model.get("chart-name"))
 				d3.select('.chart-preloader').classed('hidden', false);
-
-			chart.el.classed('embedded', window.self != window.top || App.isEditor);
 		};
 
 		// HACK (Mispy): Workaround for the differences in getBoundingClientRect
@@ -224,6 +222,8 @@
 		};
 
 		chart.resize = function() {
+			if (chart.isExport) return;
+
 			chart.now('containerNode', function(containerNode) {
 				var bounds = owid.bounds(containerNode.getBoundingClientRect());
 				if (!chart.el.classed('embedded'))
@@ -261,7 +261,9 @@
 			this.el.select(".tab-pane.active").append('<div class="chart-error"><div>' + msg + '</div></div>');			
 		};
 
-		chart.update({ containerNode: d3.select('body').node() });
+		chart.update({ 
+			containerNode: d3.select('body').node(),
+		});
 		chart.setupDOM();
 		chart.resize();
 

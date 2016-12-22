@@ -16,7 +16,7 @@
 
 			// Clear the color cache in the editor so chart creator can see the
 			// true final colors on the chart
-			if (App.isEditor) {
+			if (chart.isEditor) {
 				App.ChartModel.on("change", function() {
 					this.colorCache = {};
 					this.colorIndex = 0;

@@ -360,7 +360,7 @@
         });
 
         viz.flow('scatter, containerNode, currentData, bounds, scatterAxis, timeline, timelineYears', function(scatter, containerNode, currentData, bounds, scatterAxis, timeline, timelineYears) {
-            var timelineHeight = App.isExport ? 0 : timeline.bounds.height+10;
+            var timelineHeight = chart.isExport ? 0 : timeline.bounds.height+10;
 
             scatter.update({
                 containerNode: containerNode,

@@ -117,8 +117,7 @@ class ViewController extends Controller {
 		$width = min(intval($split[0]), 3000);
 		$height = min(intval($split[1]), 3000);
 
-		if (isset($_SERVER['QUERY_STRING']))
-			$file = Chart::export($slug, $_SERVER['QUERY_STRING'], $width, $height, $format);
+		$file = Chart::export($slug, $_SERVER['QUERY_STRING'], $width, $height, $format);
 
 		return response()->file($file,
 					['Cache-Control' => $request->input('v') ? 'public, max-age=31536000' : 'public, max-age=7200, s-maxage=604800']);

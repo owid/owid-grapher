@@ -27,7 +27,7 @@
 		urlBinder.chartQueryStr = '?';
 
 		function initialize() {
-			if (App.isEditor) return;
+			if (chart.isEditor) return;
 
 			chart.flow('activeTabName', onTabChange);
 
