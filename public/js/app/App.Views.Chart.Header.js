@@ -73,7 +73,7 @@
 			title.style('font-size', fontSize + 'em');
 			owid.svgSetWrappedText(title, titleStr, boundsForText.width, { lineHeight: 1.1 });
 
-			while (fontSize > 0.8 && title.selectAll('tspan').size() > 1) {
+			while (fontSize > 1.0 && title.selectAll('tspan').size() > 1) {
 				fontSize -= 0.05;
 				title.style('font-size', fontSize + 'em');
 				owid.svgSetWrappedText(title, titleStr, boundsForText.width, { lineHeight: 1.1 });
@@ -98,13 +98,13 @@
 			// Subtitle text must always be smaller than title text. 
 			var fontSize = Math.min(0.8, titleFontSize-0.3);
 			subtitle.style('font-size', fontSize+'em');
-			owid.svgSetWrappedText(subtitle, subtitleStr, width, { lineHeight: 1.1 });
+			owid.svgSetWrappedText(subtitle, subtitleStr, width, { lineHeight: 1.2 });
 
 			// Make it a little bit smaller if it still goes across many lines
 			if (subtitle.selectAll('tspan').size() > 2) {
 				fontSize = Math.min(0.65, fontSize);
 				subtitle.style('font-size', fontSize+'em');
-				owid.svgSetWrappedText(subtitle, subtitleStr, width, { lineHeight: 1.1 });				
+				owid.svgSetWrappedText(subtitle, subtitleStr, width, { lineHeight: 1.2 });				
 			}
 		});		
 

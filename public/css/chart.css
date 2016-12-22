@@ -689,6 +689,12 @@ select.disabled {
     text-align: left;
 }
 
+#chart .shareMenu textarea {
+    width: 20em;
+    height: 10em;
+    font-size: 0.8em;
+}
+
 /* Map Tab
 --------------------------------------------- */
 

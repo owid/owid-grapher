@@ -19,6 +19,8 @@
               .style('height', bounds.height+'px');
         });
 
+        // Share section
+
         shareMenu.flow('shareSection : el', function(el) {
             var shareSection = el.append('section').attr('class', 'share');
             shareSection.append('h2').html('Share');
@@ -50,14 +52,32 @@
             linkBtn.attr('href', sharingUrl);
         });
 
+        // Embed section
+
         shareMenu.flow('embedSection : el', function(el) {
             var embedSection = el.append('section');
             embedSection.append('h2').html('Embed');
             return embedSection;
         });
 
-        shareMenu.flow('embedSection', function(embedSection) {
+        shareMenu.flow('embedTextarea : embedSection', function(embedSection) {
+            embedSection.append('p').html('Paste this into any HTML page:');
+            return embedSection.append('textarea');
+        });
 
+        shareMenu.flow('embedCode : sharingUrl', function(sharingUrl) {
+            return '<iframe src="' + sharingUrl + '" style="width: 100%; height: 600px; border: 0px none;"></iframe>';
+        });
+
+        shareMenu.flow('embedTextarea, embedCode', function(embedTextarea, embedCode) {
+            embedTextarea.text(embedCode);
+        });
+
+        // Make it highlight text on focus
+        shareMenu.flow('embedTextarea', function(embedTextarea) {
+            embedTextarea.on('focus', function() {
+                embedTextarea.node().select();
+            });
         });
 
         shareMenu.beforeClean(function() {
