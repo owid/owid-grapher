@@ -19,12 +19,11 @@
               .style('height', bounds.height+'px');
         });
 
-        shareMenu.flow('el', function(el) {
-            el.html(
-                '<button class="btn-facebook">' +
-                '<button class="btn-twitter">' +
-                '<button class="'
-            )
+        shareMenu.flow('twitterBtn, facebookBtn : el', function(el) {
+            return [
+                el.append('a').attr('class', 'btn btn-twitter'),
+                el.append('a').attr('class', 'btn btn-facebook')
+            ]
         });
 
         return shareMenu;
@@ -32,6 +31,8 @@
 
     owid.component.shareTab = function(chart) {
         var shareTab = owid.dataflow();
+
+        shareTab.isOverlay = true;
 
         shareTab.initial('shareMenu', function() { return owid.view.shareMenu(); });
 
@@ -42,6 +43,9 @@
                 tab = chart.activeTabName,
                 canonicalUrl = baseUrl + queryStr,
                 version = App.ChartModel.get("variableCacheTag");
+
+        var baseUrl = Global.rootUrl + '/' + chart.model.get('chart-slug');
+
 
         shareTab.render = function(bounds) {
             shareTab.shareMenu.update({

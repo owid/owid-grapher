@@ -171,9 +171,7 @@
 			if (chart.model.get("chart-name"))
 				d3.select('.chart-preloader').classed('hidden', false);
 
-			if (window.self != window.top || App.isEditor) {
-				$chart.addClass("embedded");
-			}
+			chart.el.classed('embedded', window.self != window.top || App.isEditor);
 		};
 
 		// HACK (Mispy): Workaround for the differences in getBoundingClientRect
@@ -219,11 +217,12 @@
 
 		chart.resize = function() {
 			chart.now('containerNode', function(containerNode) {
-				var bounds = containerNode.getBoundingClientRect();				
-				var marginLeft = bounds.width*0.2, marginTop = bounds.height*0.1;
+				var bounds = owid.bounds(containerNode.getBoundingClientRect());
+				if (!chart.el.classed('embedded'))
+					bounds = bounds.pad(bounds.width*0.2, bounds.height*0.1);
 
 				chart.update({
-					outerBounds: owid.bounds(bounds).pad(marginLeft, marginTop)
+					outerBounds: bounds
 				});
 			});
 		};
