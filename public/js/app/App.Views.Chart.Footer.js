@@ -120,7 +120,7 @@
 
 			$(".chart-footer-svg .source-link").click(function(ev) {
 				ev.preventDefault();
-				chart.display.set({ activeTab: 'sources' });
+				chart.update({ activeTabName: 'sources' });
 			});
 
 			var footerHeight = g.node().getBBox().height;

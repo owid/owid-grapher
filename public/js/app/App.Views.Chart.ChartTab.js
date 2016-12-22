@@ -461,7 +461,6 @@
 				yDomain[1] = yAxisMax;
 
 			yDomain[1] += (yDomain[1]-yDomain[0])/100;
-			xDomain[1] += 1;
 
 			if (isClamped) {
 				if (nvd3 && chartType !== App.ChartType.MultiBar && chartType !== App.ChartType.HorizontalMultiBar && chartType !== App.ChartType.DiscreteBar && chart.model.get("currentStackMode") != "relative") {

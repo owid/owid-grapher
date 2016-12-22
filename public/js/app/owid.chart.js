@@ -48,6 +48,9 @@
 		chart.flow('svg : el', function(el) {
 			return el.append('svg').attr('xmlns', 'http://www.w3.org/2000/svg').attr('xmls:xlink', 'http://www.w3.org/1999/xlink').attr('version', '1.1');
 		});
+		chart.flow('loadingIcon : el', function(el) {
+			return el.append('div').attr('class', 'loadingIcon').html('<i class="fa fa-spinner fa-spin"></i>');
+		});
 
 		// Tabs setup
 		chart.initial('tabs', function() {
@@ -87,9 +90,8 @@
 		chart.flow('style : el', function(el) {
 			return el.append('style');
 		});
-		chart.flow('style, scale', function(style, scale) {
-			var css = "#chart > *:not(svg) { font-size: " + (16*scale) + "px; }";
-			style.text(css);
+		chart.flow('el, scale', function(el, scale) {
+			el.style('font-size', 16*scale + 'px');
 		});
 
 		chart.flow('activeTab, outerBounds, scale', function() { 
@@ -97,7 +99,7 @@
 		});
 
 		chart.render = function() {
-			chart.now('el, header, controlsFooter, creditsFooter, activeTab, innerBounds, scale', function(el, header, controlsFooter, creditsFooter, activeTab, innerBounds, scale) {
+			chart.now('el, header, controlsFooter, creditsFooter, activeTab, innerBounds, scale, loadingIcon', function(el, header, controlsFooter, creditsFooter, activeTab, innerBounds, scale, loadingIcon) {
 				chart.data.transformData();
 				var bounds = innerBounds;
 
@@ -124,7 +126,7 @@
 				else
 					activeTab.render(bounds);
 
-				el.select('.chart-inner').style('visibility', 'visible');
+				loadingIcon.classed('hidden', true);
 			});
 		};
 
@@ -225,7 +227,7 @@
 			chart.now('containerNode', function(containerNode) {
 				var bounds = owid.bounds(containerNode.getBoundingClientRect());
 				if (!chart.el.classed('embedded'))
-					bounds = bounds.pad(bounds.width*0.2, bounds.height*0.1);
+					bounds = bounds.pad(bounds.width*0.02, bounds.height*0.075);
 
 				chart.update({
 					outerBounds: bounds

@@ -5,12 +5,16 @@
 	owid.view.header = function() {
 		var header = owid.dataflow();
 
-		header.inputs({
-			containerNode: undefined,
-			bounds: { left: 0, top: 0, width: 100, height: 100 },
-			titleStr: "",
+		header.needs('containerNode', 'bounds', 'titleStr');
+
+		header.defaults({ 
+			titleLink: "",
 			subtitleStr: "",
 			logosSVG: []
+		});
+
+		header.initial('titleSizeScale', function() {
+			return d3.scaleLinear().domain([30, 150]).range([1.5, 0.75]).clamp(true);
 		});
 
 		header.flow('g : containerNode', function(containerNode) {
@@ -41,9 +45,16 @@
 			return _.extend({}, bounds, { left: 0, top: 0, width: offsetX - 10, height: bounds.height, logoHeight: logoHeight });
 		});
 
-		header.flow('title : g', function(g) {
-			return g.append('text')
-				.attr('class', 'title')
+		header.flow('titleLinkEl : g', function(g) {
+			return g.append('a').attr('class', 'title').attr('target', '_blank');
+		});
+
+		header.flow('titleLinkEl, titleLink', function(titleLinkEl, titleLink) {
+			titleLinkEl.attr('xlink:href', titleLink);
+		});
+
+		header.flow('title : titleLinkEl', function(titleLinkEl) {
+			return titleLinkEl.append('text')
 				.attr('dy', '1em');
 		});
 
@@ -52,9 +63,23 @@
 				.attr('y', boundsForText.top);
 		});
 
-		header.flow('titleBBox : title, titleStr, boundsForText', function(title, titleStr, boundsForText) {
+		header.flow('title, titleStr, titleSizeScale', function(title, titleStr, titleSizeScale) {
+			title.style('font-size', titleSizeScale(s.stripTags(titleStr).length) + 'em');
+		});
+
+		header.flow('titleBBox, titleFontSize : title, titleStr, boundsForText', function(title, titleStr, boundsForText) {
+			// Try to fit the title into a single line if possible-- but not if it would make the text super small
+			var fontSize = 1.5;
+			title.style('font-size', fontSize + 'em');
 			owid.svgSetWrappedText(title, titleStr, boundsForText.width, { lineHeight: 1.1 });
-			return title.node().getBBox();
+
+			while (fontSize > 0.8 && title.selectAll('tspan').size() > 1) {
+				fontSize -= 0.05;
+				title.style('font-size', fontSize + 'em');
+				owid.svgSetWrappedText(title, titleStr, boundsForText.width, { lineHeight: 1.1 });
+			}
+
+			return [title.node().getBBox(), fontSize];
 		});
 
 		header.flow('subtitle : g', function(g) {
@@ -63,14 +88,24 @@
 				.attr('dy', '1em');
 		});
 
-		header.flow('subtitle, titleBBox, subtitleStr, boundsForText, bounds, g', function(subtitle, titleBBox, subtitleStr, boundsForText, bounds, g) {
+		header.flow('subtitle, titleBBox, titleFontSize, subtitleStr, boundsForText, bounds, g', function(subtitle, titleBBox, titleFontSize, subtitleStr, boundsForText, bounds, g) {
             var width = boundsForText.width;
             if (titleBBox.height > boundsForText.logoHeight)
                 width = bounds.width;
 
-			subtitle.attr('x', boundsForText.left)
-				.attr('y', boundsForText.top + titleBBox.height);
-			owid.svgSetWrappedText(subtitle, subtitleStr, width, { lineHeight: 1.2 });
+			subtitle.attr('x', boundsForText.left).attr('y', boundsForText.top + titleBBox.height + 2);
+
+			// Subtitle text must always be smaller than title text. 
+			var fontSize = Math.min(0.8, titleFontSize-0.3);
+			subtitle.style('font-size', fontSize+'em');
+			owid.svgSetWrappedText(subtitle, subtitleStr, width, { lineHeight: 1.1 });
+
+			// Make it a little bit smaller if it still goes across many lines
+			if (subtitle.selectAll('tspan').size() > 2) {
+				fontSize = Math.min(0.65, fontSize);
+				subtitle.style('font-size', fontSize+'em');
+				owid.svgSetWrappedText(subtitle, subtitleStr, width, { lineHeight: 1.1 });				
+			}
 		});		
 
         header.flow('bbox : g, boundsForText', function(g) {
@@ -97,6 +132,7 @@
 			containerNode: undefined,
 			bounds: { left: 0, top: 0, width: 100, height: 100 },
 			titleTemplate: "",
+			titleLink: "",
 			subtitleTemplate: "",
 			logosSVG: [],
 			entities: [],
@@ -142,12 +178,13 @@
 			return fillTemplate(subtitleTemplate);
 		});
 
-		headerControl.flow('containerNode, bounds, logosSVG, titleStr, subtitleStr', function(containerNode, bounds, logosSVG, titleStr, subtitleStr) {
+		headerControl.flow('containerNode, bounds, logosSVG, titleStr, titleLink, subtitleStr', function(containerNode, bounds, logosSVG, titleStr, titleLink, subtitleStr) {
 			header.update({
 				containerNode: containerNode,
 				bounds: bounds,
 				logosSVG: logosSVG,
 				titleStr: titleStr,
+				titleLink: titleLink,
 				subtitleStr: subtitleStr,
 			}, function() {
                 document.title = header.title.text();
@@ -197,12 +234,11 @@
 				queryStr = owid.queryParamsToStr(queryParams),				
 				canonicalUrl = baseUrl + queryStr;
 
-			var linkedTitle = "<a href='" + canonicalUrl + "' target='_blank'>" + chart.model.get('chart-name') + "</a>";
-
 			headerControl.update({
 				containerNode: chart.svg.node(),
 				bounds: bounds,
-				titleTemplate: linkedTitle,
+				titleTemplate: chart.model.get('chart-name'),
+				titleLink: canonicalUrl,
 				subtitleTemplate: chart.model.get('chart-subname') + disclaimer,
 				logosSVG: chart.model.get('logosSVG'),
 				entities: chart.model.getSelectedEntities(),

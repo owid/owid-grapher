@@ -555,6 +555,18 @@ Object.defineProperty(SVGElement.prototype, 'innerSVG', {
 		});
 	};
 
+	owid.svgFitTextToLine = function(text, content, width, startFontSize) {
+		text.style('font-size', startFontSize+'em').text(content);
+
+		var fontSize = startFontSize;		
+		while (text.node().getComputedTextLength() > width) {
+			fontSize -= 0.05;
+			text.style('font-size', fontSize+'em');
+		}
+
+		return fontSize;
+	};
+
 	var ctx;
 	owid.svgSetWrappedText = function(text, content, width, options) {
 		options = options || {};
@@ -598,9 +610,13 @@ Object.defineProperty(SVGElement.prototype, 'innerSVG', {
 			word = null;
 
 		// Terminate the current tspan and begin a new one
-		var breakSpan = function(isNewLine) {
+		var breakSpan = function(isNewLine, isEnd) {
 			var textContent = currentLine.join(" ");
-			tspan.node().textContent = textContent;
+			if (_.isEmpty(s.strip(textContent)))
+				tspan.remove();
+			else {
+				tspan.node().textContent = textContent;
+			}
 
 			var container = text;
 			if ($currentLink) {
@@ -610,6 +626,9 @@ Object.defineProperty(SVGElement.prototype, 'innerSVG', {
 					container.attr(attrib.name, attrib.value);
 				});
 			}
+
+			if (isEnd) return;
+
 			tspan = container.append("tspan");
 
 			if (isNewLine) {
@@ -667,7 +686,7 @@ Object.defineProperty(SVGElement.prototype, 'innerSVG', {
 			}
 		}
 
-		breakSpan();
+		breakSpan(false, true);
 	};
 
 	owid.modal = function(options) {

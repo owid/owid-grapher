@@ -2,32 +2,29 @@
 	"use strict";
 	owid.namespace("owid.view.tooltip");
 
-	owid.tooltip = function(svgNode, left, top, data) {
-		var $container = $(svgNode).next('.html-overlay'),
-			$tooltip = $container.find('.owid-tooltip');
-		
-		if (!$tooltip.length) {
-			$tooltip = $('<div class="nvtooltip tooltip-xy owid-tooltip"></div>');
-			$container.append($tooltip);
-		}
+	owid.tooltip = function(svgNode, left, top, data) {		
+		var container = d3.select(svgNode.parentNode),
+			tooltip = container.selectAll('.owid-tooltip');
 
-		$tooltip.html(owid.scatterPlotTooltipGenerator(data));
+		if (tooltip.empty())
+			tooltip = container.append('div').attr('class', 'nvtooltip owid-tooltip');
 
-		var width = $tooltip.width();
-		if (left + width > $container.width())
+		tooltip.html(owid.scatterPlotTooltipGenerator(data));
+
+		var width = tooltip.node().getBoundingClientRect().width,
+			containerWidth = container.node().getBoundingClientRect().width;
+
+		if (left + width > containerWidth)
 			left = left - width;
 
-		$tooltip.css({
-			position: 'absolute',
-			left: left*chart.scale + 'px',
-			top: top*chart.scale + 'px'
-		});
-
-		$tooltip.show();
+		tooltip.style('position', 'absolute')
+			.style('left', left*chart.scale + 'px')
+			.style('top', top*chart.scale + 'px')
+			.style('display', 'block');
 	};
 
 	owid.tooltipHide = function(svgNode) {
-		var $container = $(svgNode).next('.html-overlay'),
+		var $container = $(svgNode).parent(),
 			$tooltip = $container.find('.nvtooltip');
 
 		$tooltip.hide();

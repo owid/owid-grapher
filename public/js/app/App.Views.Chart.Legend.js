@@ -9,7 +9,7 @@
 
 		render: function(config) {
 			var container = d3.select(config.containerNode),
-				bounds = config.bounds;
+				bounds = config.bounds.padLeft(35);
 
 			var legendData = App.ChartData.get("legendData"),
 				entityType = App.ChartModel.get("entity-type"),
@@ -18,7 +18,7 @@
 				remainingEntities = App.VariableData.getRemainingEntities(),
 				isAddBtnShown = (remainingEntities.length && (addCountryMode === "add-country" || addCountryMode === "change-country"));
 
-			var offsetX = bounds.left+35, offsetY = bounds.top,
+			var offsetX = bounds.left, offsetY = bounds.top,
 				spaceBetweenLabels = 22,
 				spaceBetweenLines = 28;
 
@@ -154,7 +154,7 @@
 			}
 
 			transformX += 28;
-			addEntityBtn.attr("transform", "translate(" + (bounds.left+transformX) + "," + (bounds.top+transformY+5) + ")");
+			addEntityBtn.attr("transform", "translate(" + (bounds.left+transformX-35) + "," + (bounds.top+transformY+5) + ")");
 		},
 
 		height: function() {

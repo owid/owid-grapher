@@ -12,6 +12,10 @@ html {
     box-sizing: inherit;
 }
 
+#chart > svg {
+    font-size: 22px;
+}
+
 #chart .btn {
     padding: 1em 1.5em;
     text-align: center;
@@ -321,16 +325,13 @@ select.disabled {
 
 /* The little loading icon */
 
-#chart .chart-preloader {
+#chart .loadingIcon {
     position: absolute;
     top: 50%;
     left: 50%;
-    font-size: 1.25em;
     -webkit-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
-    /*hidden by default*/
-    
-    display: none;
+    font-size: 1.3em;
 }
 #chart .chart-error {
     position: absolute;
@@ -367,12 +368,9 @@ select.disabled {
 --------------------------------------------- */
 
 #chart .title {
-    font-size: 1.3em;
-}
-#chart .title a {
     fill: #35322F;
 }
-#chart .title a {
+#chart .title {
     text-decoration: none !important;
 }
 #chart .subtitle {
@@ -564,16 +562,17 @@ select.disabled {
 .nvtooltip table td {
     border: 0;
 }
-.html-overlay .nvtooltip {
-    font-size: 0.6em;
+.nvtooltip {
+    font-size: 1em;
 }
 .nvtooltip h3 {
     padding: 0.3em 0.9em;
-    font-size: 1.5em;
+    font-size: 1em;
     margin-top: 0 !important;
 }
 .nvtooltip p {
-    font-size: 1.2em;
+    font-size: 0.8em;
+    padding: 0.3em 0.9em;
 }
 .nvtooltip .var-popup-value {
     display: block;
@@ -949,18 +948,6 @@ select.disabled {
 }
 #chart.export .tab-pane {
     border: none !important;
-}
-/* Responsiveness
---------------------------------------------- */
-#chart {
-    font-size: 22px;
-}
-
-#chart.downscaled:not(.narrow) {
-    font-size: 22px;
-}
-#chart.export.upscaled.space150 {
-    font-size: 24px;
 }
 
 /* Portrait mode chart
