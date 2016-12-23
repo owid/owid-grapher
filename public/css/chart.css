@@ -683,6 +683,7 @@ body:not(.export) #chart {
     text-align: left;
 }
 
+
 #chart .shareMenu textarea {
     width: 30em;
     height: 20em;
@@ -693,19 +694,49 @@ body:not(.export) #chart {
 --------------------------------------------- */
 
 #chart .entitySelect {
-    padding: 1em;
+    padding: 0.8em;
     text-align: left;
-    background: rgba(255,255,255,0.95);    
+    background: rgba(255,255,255,0.9);    
     position: absolute;
-    left: 75%;
-    top: 0;
-    width: 25%;
-    height: 100%;
+    top: 50%;
+    height: 50%;
+    width: 100%;
     overflow-y: auto;
+    border-top: 1px solid #e1e1e1;
+}
+
+#chart .entitySelect h2 {
+    font-size: 1em;
+}
+
+#chart .entitySelect input[type=search] {
+    width: 100%;
+    font-size: 0.9em;
+    padding: 0.3em;
+    margin-bottom: 0.4em;
+}
+
+#chart .entitySelect ul {
+    padding: 0;
 }
 
 #chart .entitySelect li {
     list-style-type: none;
+    padding: 0.5em;
+    color: rgba(0,0,0,0.87);
+}
+
+#chart .entitySelect li:hover {
+    background-color: #eee;
+}
+
+#chart .entitySelect .btnClose {
+    float: right;
+}
+
+#chart .btnClose {
+    background: none;
+    border: none;
 }
 
 /* Map Tab

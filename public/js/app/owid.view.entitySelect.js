@@ -18,11 +18,19 @@
                 if (d3.event.code == 'Escape')
                     entitySelect.clean();
             });
-            el.append('h2').text("Select entity");
+            
+            /*var h2 = el.append('h2').text("Select entity");
+            var closeBtn = h2.append('button').attr('class', 'btnClose clickable').html('<i class="fa fa-close"></i>');
+
+            closeBtn.on('click', function() {
+                entitySelect.clean();
+            });*/
+
+            return el;
         });
 
         entitySelect.flow('searchInput : el', function(el) {
-            var searchInput = el.append('input').attr('type', 'search').attr('placeholder', 'Search entities');
+            var searchInput = el.append('input').attr('type', 'search').attr('placeholder', 'Search...');
 
             searchInput.on('input', function() {
                 entitySelect.update({ searchString: searchInput.property('value') });
@@ -75,13 +83,16 @@
             lis.html(function(d) { return d.name; });
 
             lis.on('click', function(entity) {
-                chart.model.addSelectedEntity(entity);
+                entitySelect.select(entity);
             });
         });
 
-        entitySelect.select = function(entity) {            
+        entitySelect.select = function(entity) {
             chart.model.addSelectedEntity(entity);
-            entitySelect.update({ searchString: "" });
+            entitySelect.clean();
+/*            entitySelect.update({ searchString: "" }, function() {
+                entitySelect.searchInput.node().focus();
+            });*/
         };
 
         entitySelect.beforeClean(function() {

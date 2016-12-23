@@ -145,6 +145,11 @@
 		},
 
 		addSelectedEntity: function(country) {
+			if (this.get("add-country-mode") == "change-country") {
+				this.set("selected-countries", [country]);
+				return;
+			}
+
 			var selectedCountries = _.clone(this.get("selected-countries"));
 
 			//make sure the selected contry is not there 
