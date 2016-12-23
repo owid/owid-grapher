@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
 		<meta http-equiv="x-ua-compatible" content="ie=edge">
 		<meta name="_token" value="{{ csrf_token() }}">
-		<title>Our World In Data - Chart Builder</title>
+		<title>owid-grapher</title>
 		<meta name="description" content="">
 		<meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no'>
 		
@@ -80,14 +80,14 @@
 				@yield('content')
 			</div>
 		</div>
-		@yield('outter-content')
+
 		<script>
 			var Global = {};
 			Global.rootUrl = "{!! Request::root() !!}";
 		</script>
 		
-		@yield('scripts')
 		<?php echo App\Util::js(); ?>
+		@yield('scripts')
 	</body>
 </html>
 

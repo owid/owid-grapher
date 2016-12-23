@@ -108,7 +108,7 @@
 			}
 		});		
 
-        header.flow('bbox : g, boundsForText', function(g) {
+        header.flow('bbox : g, titleStr, subtitleStr, boundsForText', function(g) {
             g.selectAll('.bgRect').remove();
             var bbox = g.node().getBBox();
             g.insert('rect', '*').attr('class', 'bgRect').attr('x', 0).attr('y', 0).style('fill', 'white')
@@ -201,9 +201,13 @@
 					timeTo = chart.mapdata.maxToleranceYear || mapConfig.targetYear,
 					year = mapConfig.targetYear,
 					hasTargetYear = _.find(chart.mapdata.currentValues, function(d) { return d.year == year; }),
-					d = owid.displayYear;
+					d = owid.displayYear,
+					timeline = chart.tabs.map.control.timeline;
 
-				if (hasTargetYear && timeFrom != timeTo) {
+
+				if (timeline && (timeline.isPlaying || timeline.isDragging))
+					disclaimer = "";
+				else if (hasTargetYear && timeFrom != timeTo) {
 					// The target year is in the data but we're displaying a range, meaning not available for all countries
 					disclaimer = " Since some observations for " + d(year) + " are not available the map displays the closest available data (" + d(timeFrom) + " to " + d(timeTo) + ").";
 				} else if (!hasTargetYear && timeFrom != timeTo) {

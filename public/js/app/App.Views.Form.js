@@ -19,11 +19,9 @@
 		render: function() {
 			var dispatcher = _.clone( Backbone.Events );
 			this.dispatcher = dispatcher;
-
-			this.chart = owid.chart();
 			
 			//is edit/create module
-			if( $( ".chart-edit-module" ).length ) {
+			if( $( "#editor" ).length ) {
 				this.formView = new FormView( { dispatcher: dispatcher } );
 				//variable select
 			}			

@@ -36,8 +36,7 @@
 
 		model.clean = function() {
 			if (model._beforeClean) model._beforeClean();
-			state = {};
-			model.state = state;
+			for (var key in state) delete state[key];
 			hasDefaults = false;
 			return model;
 		};
@@ -117,8 +116,8 @@
 			var changes = {};
 
 			if (!hasDefaults) {
-				_.each(model._initials, function(callback, key) {
-					defaults[key] = callback();
+				_.each(model._initials, function(initialCallback, key) {
+					defaults[key] = initialCallback();
 				});
 
 				// Make sure we're not passing undefined values in
@@ -146,7 +145,7 @@
 				if (flowIndex >= flows.length) {
 					// End the cycle
 					if (_.isFunction(callback))
-						callback();
+						callback.apply(this);
 					return;
 				}
 
@@ -193,6 +192,7 @@
 			}
 
 			flowCycle();
+			return model;
 		};
 
 		return model;

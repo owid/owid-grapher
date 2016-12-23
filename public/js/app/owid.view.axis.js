@@ -72,6 +72,7 @@
 
 			d3axis(scaleG);
 
+			scaleG.attr('font-size', null);
 			scaleG.selectAll('.tick text').attr('fill', '#666');
 
 			return scaleG.node().getBBox();

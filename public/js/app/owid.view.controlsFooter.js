@@ -9,7 +9,7 @@
         footer.defaults({ editUrl: null });
 
         footer.flow('el : containerNode', function(containerNode) {
-            return d3.select(containerNode).append('div').attr('class', 'controls-footer');
+            return d3.select(containerNode).append('div').attr('class', 'controlsFooter');
         });
 
         footer.flow('nav : el', function(el) {

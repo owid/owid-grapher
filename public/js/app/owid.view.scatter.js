@@ -47,7 +47,7 @@
 		scatter.flow("innerBounds : axisBox", function(axisBox) { return axisBox.innerBounds; });
 		scatter.flow("xScale : axisBox", function(axisBox) { return axisBox.xAxis.scale; });
 		scatter.flow("yScale : axisBox", function(axisBox) { return axisBox.yAxis.scale; });
-		scatter.flow("g : axisBox", function(axisBox) { return axisBox.g; });
+		scatter.flow("g : axisBox", function(axisBox) { axisBox.g.classed('scatter', true); return axisBox.g; });
 
 		var _sizeScale = d3.scaleLinear();
 		scatter.flow("sizeScale : data", function(data) {

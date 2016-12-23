@@ -10,27 +10,15 @@
 
 		initialize: function(chart) {
 			this.chart = chart;
-			this.$chartLinkBtn = this.$el.find(".chart-link-btn");
-			this.$tweetBtn = this.$el.find(".tweet-btn");
-			this.$facebookBtn = this.$el.find(".facebook-btn");
-			this.$embedBtn = this.$el.find(".embed-btn");
-			this.$downloadPNGButton = this.$el.find(".download-image-btn");
-			this.$downloadSVGButton = this.$el.find(".download-svg-btn");
-			this.$embedModal = $(".embed-modal");
-			this.$embedModal.appendTo("body");			
-
 			this.changes = owid.changes();
 			this.changes.track(chart.model, 'chart-dimensions chart-description');
 			this.changes.track(chart, 'renderWidth renderHeight');
-
-			this.listenTo($(window), "query-change", this.updateSharingButtons.bind(this));
 		},
 
 		render: function(bounds) {
 			if (!this.changes.start()) return;
 
 			this.renderSVG(bounds);
-			this.updateSharingButtons();
 			this.changes.done();
 		},
 
@@ -71,8 +59,8 @@
 
 			var svg = d3.select("svg");
 
-			svg.selectAll(".chart-footer-svg").remove();
-			var g = svg.append("g").attr("class", "chart-footer-svg");
+			svg.selectAll(".footer").remove();
+			var g = svg.append("g").attr("class", "footer");
 
 			var footerSourceEl = g.append("text")
 				.attr('dominant-baseline', 'hanging')
@@ -86,7 +74,6 @@
 				var sourceBBox = footerSourceEl.node().getBBox();
 
 				var footerNoteEl = g.append("text")
-						.attr('dominant-baseline', 'hanging')
 						.attr("class", "footer-note-svg")
 						.attr("x", 0)
 						.attr("y", sourceBBox.y+sourceBBox.height)
@@ -97,7 +84,6 @@
 
 			var bbox = (footerNote ? footerNoteEl : footerSourceEl).node().getBBox();
 			var footerLicenseEl = g.append("text")
-					.attr('dominant-baseline', 'hanging')
 					.attr("class", "footer-license-svg")
 					.attr("x", 0)
 					.attr("y", bbox.y+bbox.height)
@@ -115,10 +101,11 @@
 					.attr('x', bounds.width)
 					.attr('y', 0)
 					.attr('dy', 0)
-					.attr('text-anchor', 'end');
+					.attr('text-anchor', 'end')
+					.attr('dominant-baseline', 'hanging');
 			}
 
-			$(".chart-footer-svg .source-link").click(function(ev) {
+			$(".footer .source-link").click(function(ev) {
 				ev.preventDefault();
 				chart.update({ activeTabName: 'sources' });
 			});
@@ -135,40 +122,6 @@
 
 			this.height = footerHeight;
 			if (callback) callback();
-		},
-
-		updateSharingButtons: function() {
-			var headerText = d3.select("title").text().replace(" - Our World In Data", ""),
-				baseUrl = Global.rootUrl + "/" + App.ChartModel.get("chart-slug"),
-				queryParams = owid.getQueryParams(),
-				queryStr = owid.queryParamsToStr(queryParams),				
-				tab = chart.activeTabName,
-				canonicalUrl = baseUrl + queryStr,
-				version = App.ChartModel.get("variableCacheTag");
-
-			this.$chartLinkBtn.attr('href', canonicalUrl);
-
-			var tweetHref = "https://twitter.com/intent/tweet/?text=" + encodeURIComponent(headerText) + "&url=" + encodeURIComponent(canonicalUrl);
-			this.$tweetBtn.attr('href', tweetHref);
-
-			var facebookHref = "https://www.facebook.com/dialog/share?app_id=1149943818390250&display=page&href=" + encodeURIComponent(canonicalUrl);
-			this.$facebookBtn.attr('href', facebookHref);
-
-			if (tab == "data" || tab == "sources") {
-				this.$downloadPNGButton.hide();
-				this.$downloadSVGButton.hide();
-			} else {			
-				var pngHref = baseUrl + ".png" + queryStr,
-					svgHref = baseUrl + ".svg" + queryStr,
-					defaultTargetSize = "1200x800";
-				this.$downloadPNGButton.attr('href', pngHref + (_.include(pngHref, "?") ? "&" : "?") + "size=" + defaultTargetSize + "&v=" + version);
-				this.$downloadSVGButton.attr('href', svgHref + (_.include(svgHref, "?") ? "&" : "?") + "size=" + defaultTargetSize + "&v=" + version);
-				this.$downloadPNGButton.show();
-				this.$downloadSVGButton.show();
-			}
-
-			var embedCode = '<iframe src="' + canonicalUrl + '" style="width: 100%; height: 600px; border: 0px none;"></iframe>';
-			this.$embedModal.find("textarea").text(embedCode);
 		},
 
 		onResize: function(callback) {

@@ -7,38 +7,98 @@
 		window.chart = chart;
 
 		// Set up models and data processors
-		App.VariableData = new App.Models.VariableData();	
-		App.ChartData = new App.Models.ChartData();
-		App.Colors = new App.Models.Colors();
-		App.ChartModel.bind();
-		chart.model = App.ChartModel;
-		chart.vardata = App.VariableData;
-		chart.data = App.ChartData;
-		chart.map = App.MapModel;
-		chart.colors = App.Colors;
 
-		chart.requires('containerNode', 'outerBounds', 'activeTabName');
+		chart.requires('containerNode', 'chartConfig', 'outerBounds');
 
 		chart.defaults({
-			authorWidth: App.AUTHOR_WIDTH,
-			authorHeight: App.AUTHOR_HEIGHT,
-			dispatch: d3.dispatch('renderEnd'),
+			landscapeAuthorDimensions: [900, 600],
+			portraitAuthorDimensions: [400, 640],
 			isExport: !!window.location.pathname.match(/.export$/),
 			isEmbed: window.self != window.top || App.isEditor,
-			isEditor: App.isEditor
+			isEditor: App.isEditor,
+			activeTabName: null,
+			dispatch: d3.dispatch('renderEnd')
 		});
 
-		chart.initial('header', function() { return owid.control.header(chart); });
-		chart.initial('creditsFooter', function() { return new App.Views.Chart.Footer(chart); });
-		chart.initial('controlsFooter', function() { return owid.view.controlsFooter(); });
+		// TODO (Mispy): A lot of this model code is old hacky stuff that's been
+		// wired together to keep it working. Compatibility with the editor especially
+		// since the editor code is generally much older.
+		chart.flow('model : chartConfig', function(chartConfig) {
+			return new App.Models.ChartModel(chartConfig);
+		});
+
+		chart.flow('model', function(model) {
+			model.on('change', function() { chart.data.ready(chart.render); });
+		});
+
+		chart.flow('vardata, data, colors : model', function(model) {
+			App.ChartModel = model;
+			App.VariableData = new App.Models.VariableData();	
+			App.ChartData = new App.Models.ChartData();
+			App.Colors = new App.Models.Colors();		
+
+			return [App.VariableData, App.ChartData, App.Colors];
+		});
+
+		chart.flow('map : model', function(model) {			
+			App.ChartModel.bind();
+			return App.MapModel;
+		});
+		chart.flow('mapdata : map', function(map) {
+			return owid.models.mapdata(chart);
+		});
+		chart.flow('map', function(map) {
+			map.on('change', function() { chart.data.ready(chart.render); });
+		});
+
+		chart.flow('url : model', function(model) {
+			return owid.view.urlBinder(chart);
+		});
+
+		chart.flow('exporter : model', function(model) {
+			return new App.Views.Export(chart);
+		});
+
+		chart.flow('debugHelper : model', function(model) {
+			return new App.Views.DebugHelper(chart);
+		});
+
+		chart.flow('tooltip : model', function(model) {
+			return new owid.view.tooltip(chart);
+		});
+
+		chart.flow('activeTabName : model', function(model) {
+			return chart.activeTabName || model.get('default-tab');			
+		});
+
+		chart.flow('header : model', function() { return owid.control.header(chart); });
+		chart.flow('creditsFooter : model', function() { return new App.Views.Chart.Footer(chart); });
+		chart.flow('controlsFooter : model', function() { return owid.view.controlsFooter(); });
 
 		// Container setup
 		chart.flow('containerNode', function(containerNode) {
+			chart.setupDOM();
+
 			d3.select(containerNode).classed('chart-container', true);
-			new ResizeSensor(containerNode, function() {
-				chart.resize();
-			});
+
+			function resize() {
+				chart.now('isExport, isEmbed', function(isExport, isEmbed) {
+					if (isExport) return; // Export specifies its own dimensions
+
+					var bounds = owid.bounds(containerNode.getBoundingClientRect());
+					if (!isEmbed)
+						bounds = bounds.pad(bounds.width*0.02, bounds.height*0.075);
+
+					chart.update({
+						outerBounds: bounds
+					});				
+				});
+			}
+
+			new ResizeSensor(containerNode, resize);
+			resize();
 		});
+
 		chart.flow('el : containerNode', function(containerNode) {
 			return d3.select(containerNode).append('div').attr('id', 'chart');
 		});
@@ -56,7 +116,7 @@
 		});
 
 		// Tabs setup
-		chart.initial('tabs', function() {
+		chart.flow('tabs : model', function() {
 			return {
 				chart: owid.tab.chart(chart),
 				data: owid.component.dataTab(chart),
@@ -74,21 +134,40 @@
 			return tab;
 		});
 
+		chart.flow('isPortrait : outerBounds', function(outerBounds) {
+			return outerBounds.width < outerBounds.height;
+		});
+
+		chart.flow('el, isPortrait', function(el, isPortrait) {
+			el.classed('portrait', isPortrait).classed('landscape', !isPortrait);
+		});
+
+		chart.flow('authorWidth, authorHeight : isPortrait, landscapeAuthorDimensions, portraitAuthorDimensions', function(isPortrait, landscapeAuthorDimensions, portraitAuthorDimensions) {
+			if (isPortrait) {
+            	return portraitAuthorDimensions;
+			} else {
+				return landscapeAuthorDimensions;
+			}
+		});
+
 		// Scaling setup
-		chart.flow('innerBounds : authorWidth, authorHeight', function(authorWidth, authorHeight) {
-			return owid.bounds(0, 0, authorWidth, authorHeight).pad(15);
+		chart.flow('renderWidth, renderHeight : outerBounds, authorWidth, authorHeight', function(outerBounds, authorWidth, authorHeight) {
+			return [authorWidth, authorHeight];
 		});
-		chart.flow('scale : outerBounds, authorWidth, authorHeight', function(outerBounds, authorWidth, authorHeight) {
-			return Math.min(outerBounds.width/authorWidth, outerBounds.height/authorHeight);
+		chart.flow('scale : outerBounds, renderWidth, renderHeight', function(outerBounds, renderWidth, renderHeight) {
+			return Math.min(outerBounds.width/renderWidth, outerBounds.height/renderHeight);
 		});
-		chart.flow('el, authorWidth, authorHeight, scale', function(el, authorWidth, authorHeight, scale) {
-			el.style('width', authorWidth*scale + 'px').style('height', authorHeight*scale + 'px');
+		chart.flow('el, renderWidth, renderHeight, scale', function(el, renderWidth, renderHeight, scale) {
+			el.style('width', renderWidth*scale + 'px').style('height', renderHeight*scale + 'px');
 		});
-		chart.flow('svg, authorWidth, authorHeight, scale', function(svg, authorWidth, authorHeight, scale) {
+		chart.flow('svg, renderWidth, renderHeight, scale', function(svg, renderWidth, renderHeight, scale) {
 			svg.style('width', '100%')
 			   .style('height', '100%')
-			   .attr('viewBox', '0 0 ' + authorWidth + ' ' + authorHeight);
+			   .attr('viewBox', '0 0 ' + renderWidth + ' ' + renderHeight);
 		});
+		chart.flow('innerBounds : renderWidth, renderHeight', function(renderWidth, renderHeight) {
+			return owid.bounds(0, 0, renderWidth, renderHeight).pad(15);
+		});		
 		chart.flow('style : el', function(el) {
 			return el.append('style');
 		});
@@ -104,21 +183,13 @@
 			return isExport ? owid.component.exportMode(chart) : null;
 		});
 
-
 		chart.render = function() {
 			chart.now('el, header, controlsFooter, creditsFooter, activeTab, innerBounds, scale, loadingIcon', function(el, header, controlsFooter, creditsFooter, activeTab, innerBounds, scale, loadingIcon) {
 				chart.data.transformData();
 				var bounds = innerBounds;
 
-/*				var paddingLeft = 50,
-					paddingTop = 50;
-
-				var bounds = { left: paddingLeft, top: paddingTop, width: chart.innerRenderWidth-(paddingLeft*2), height: chart.innerRenderHeight-(paddingTop*2) };*/
-
 				header.render(bounds);
-
 				bounds = bounds.padTop(header.view.bbox.height);
-
 
 				controlsFooter.render(bounds);
 				bounds = bounds.padBottom(controlsFooter.height);
@@ -221,20 +292,6 @@
 			return transformedBounds;			
 		};
 
-		chart.resize = function() {
-			if (chart.isExport) return;
-
-			chart.now('containerNode', function(containerNode) {
-				var bounds = owid.bounds(containerNode.getBoundingClientRect());
-				if (!chart.el.classed('embedded'))
-					bounds = bounds.pad(bounds.width*0.02, bounds.height*0.075);
-
-				chart.update({
-					outerBounds: bounds
-				});
-			});
-		};
-
 		chart.handleError = function(err, isCritical) {
 			if (isCritical !== false) isCritical = true;
 
@@ -260,31 +317,6 @@
 		chart.showMessage = function(msg) {
 			this.el.select(".tab-pane.active").append('<div class="chart-error"><div>' + msg + '</div></div>');			
 		};
-
-		chart.update({ 
-			containerNode: d3.select('body').node(),
-		});
-		chart.setupDOM();
-		chart.resize();
-
-
-		chart.mapdata = owid.models.mapdata(chart);
-		// DOM setup
-
-		// Initialize components
-		chart.url = owid.view.urlBinder(chart);
-		chart.exporter = new App.Views.Export(chart);
-		chart.tabSelector = owid.view.tabSelector(chart);
-		chart.debugHelper = new App.Views.DebugHelper(chart);
-		chart.tooltip = new owid.view.tooltip(chart);
-
-		chart.model.on('change', function() {
-			chart.data.ready(chart.render);
-		});
-		chart.map.on('change', function() {
-			chart.data.ready(chart.render);
-		});
-		chart.data.ready(chart.render);
 
 		return chart;
 	};	

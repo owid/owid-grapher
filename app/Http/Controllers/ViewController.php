@@ -312,7 +312,7 @@ class ViewController extends Controller {
 	public function config($chartId) {
 		$chart = Chart::find($chartId);
 		$config = Chart::getConfigWithUrl($chart);
-		$config->variableCacheTag = $chart->makeCacheTag();;
+		$config->variableCacheTag = $chart->makeCacheTag();
 
 		return response('App.loadChart(' . json_encode($config) . ')')
 			->header('Content-Type', 'application/javascript')

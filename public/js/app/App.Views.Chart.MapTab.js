@@ -14,11 +14,11 @@
 		var svg, offsetY, availableWidth, availableHeight, bounds;
 
 		var control = owid.control.mapWithTimeline(chart);
+		mapTab.control = control;
 
 		mapTab.clean = function() {
 			control.clean();
 		};
-
 
 		mapTab.render = function(inputBounds) {
 			mapTab.control = control;

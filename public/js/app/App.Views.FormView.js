@@ -46,7 +46,10 @@
 			this.mapTabView = this.addChild(MapTabView, { dispatcher: this.dispatcher });
 			this.saveButtons = this.addChild(SaveButtonsView, { dispatcher: this.dispatcher });
 
-            this.scatterConfig = owid.config.scatter(chart).update({ formNode: d3.select('#form-view').node() });
+			if (chart.model.get('chart-type') == App.ChartType.ScatterPlot)
+	            this.scatterConfig = owid.config.scatter(chart).update({ formNode: d3.select('#form-view').node() });
+	       	else if (this.scatterConfig)
+	       		this.scatterConfig.clean();
 
 			$('.nav-tabs').stickyTabs();
 		},

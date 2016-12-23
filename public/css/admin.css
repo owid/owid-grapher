@@ -101,16 +101,18 @@ button > i {
   overflow: auto;
   height: 100%; }
 
-.chart-edit-module, .chart-show-module {
+#editor {
   background-color: #ffffff; 
   display: flex;
   align-items: center;
 }
 
-.chart-edit-half {
+#editor .chart-container {
+  height: 100%;
   width: 50%;
   display: flex;
   justify-content: center;
+  align-items: center;
 }
 
 /* ==========================================================================

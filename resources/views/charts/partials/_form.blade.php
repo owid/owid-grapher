@@ -26,22 +26,20 @@
 			</div>
 			<div class="tab-content">
 				<div id="basic-tab" class="tab-pane active">
-					<section>
-						
+					<section>						
 							<h2>Title of the visualization</h2>
 						
 							<p class="form-section-desc">Never use specific countries or years since these can be changed by the viewer. Instead use <b>*time*</b> or <b>*country*</b> as placeholders. These will be interpreted by the grapher to match what is being looked at.</p>
-							<input class="form-control input-lg .col-xs-12" placeholder="Chart name" type="text" name="chart-name" value=""/>
+							<input class="form-control input-lg .col-xs-12" placeholder="Title (shorter is better)" type="text" name="chart-name" value=""/>
 							<div class="input-group">
 								<span class="input-group-addon">/grapher/</span>
 								<input class="form-control .col-xs-12" title="Human-friendly URL slug for this chart" type="text" name="chart-slug" value=""/>
 							</div>
 					</section>
-					<section>
-						
+					<section>						
 							<h2>Subtitle of the visualization</h2>
 						
-							<textarea class="form-control input-lg .col-xs-12" placeholder="Short description of the data (ideally one line)" type="text" name="chart-subname" value=""></textarea>
+							<textarea class="form-control input-lg .col-xs-12" placeholder="Briefly describe the context of the data" type="text" name="chart-subname" value=""></textarea>
 					</section>
 					<section class="chart-type-section">
 						

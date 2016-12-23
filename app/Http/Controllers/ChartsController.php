@@ -205,7 +205,8 @@ class ChartsController extends Controller {
 	public function edit( Chart $chart, Request $request )
 	{
 		$data = $this->editorData();
-		return view('charts.edit', compact('chart'))->with('data', $data);
+		$chartConfig = json_encode(Chart::getConfigWithUrl($chart));
+		return view('charts.edit', compact('chart', 'chartConfig'))->with('data', $data);
 	}
 
 	/**

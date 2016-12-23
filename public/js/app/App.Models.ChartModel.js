@@ -43,8 +43,6 @@
 			"x-axis": {},
 			"margins": { top: 10, left: 60, bottom: 10, right: 10 },
 			"units": "",
-			"logo": App.OWID_LOGO,
-			"second-logo": null,
 			"hide-legend": false,
 			"hide-toggle": false,
 			"entity-type": "country",

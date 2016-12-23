@@ -279,7 +279,7 @@ body:not(.export) #chart {
 /* Controls Footer
 --------------------------------------------- */
 
-#chart .controls-footer {
+#chart .controlsFooter {
     width: 100%;
     position: absolute;
     bottom: 0;
@@ -379,35 +379,17 @@ body:not(.export) #chart {
 /* Footer
 --------------------------------------------- */
 
-.chart-footer-svg {
+#chart .footer {
     font-size: 0.6em;
 }
-.footer-license-svg {
-/*    font-size: 90%;*/
-}
-.chart-footer-svg text {
+#chart .footer text {
     fill: rgb(51, 51, 51);
 }
-.chart-footer-svg a.bold {
+#chart .footer a.bold {
     font-weight: bold;
     fill: rgb(51, 51, 51) !important;
 }
-.footer-btns {
-    font-size: 0.8em;
-    position: absolute;
-    bottom: 0;
-    z-index: 2;
-    width: 100%;
-    background-color: white;
-}
-.footer-btns a {
-    text-decoration: none;
-    margin-right: 0.5em;
-    display: inline-block;
-}
-.footer-btns a:hover {
-    text-decoration: none;
-}
+
 /* Legend
 --------------------------------------------- */
 
@@ -509,8 +491,12 @@ body:not(.export) #chart {
     font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif;
 }
 
-#chart .axis, #chart .axis > .scale {
-    font-size: 18px;    
+#chart .axis .tick {
+    font-size: 0.7em;
+}
+
+#chart .axis .axis-label {
+    font-size: 0.8em;
 }
 
 
@@ -936,7 +922,7 @@ body.export #chart {
 body.export #chart {
     padding: 0 !important;
 }
-body.export #chart .controls-footer,
+body.export #chart .controlsFooter,
 body.export #chart .fullscreen-link,
 body.export #chart .timeline,
 body.export #chart .settings-control,

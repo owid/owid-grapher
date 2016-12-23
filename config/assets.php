@@ -132,7 +132,9 @@ return [
 			/* Chart collection: assets needed for rendering charts, whether in the admin editor
 			 * or when displayed in the public viewer for users. */
 			'chart-css' => [		
+		        'libs/bootstrap.css',
 		        'libs/font-awesome.css',
+		        'libs/bootstrap-chosen.css',
 		        'libs/nv.d3.css',
 
 		        'chart.css'
@@ -175,7 +177,6 @@ return [
 		        'app/App.Models.Colors.js',
 		        'app/App.Views.Chart.Header.js',
 		        'app/App.Views.Chart.Footer.js',
-		        'app/owid.view.tabSelector.js',
 		        'app/owid.view.tooltip.js',
 		        'app/owid.view.scaleSelectors.js',
 		        'app/owid.view.axis.js',
