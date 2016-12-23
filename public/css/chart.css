@@ -286,16 +286,12 @@ body:not(.export) #chart {
     border-top: 1px solid #e1e1e1;
 }
 
-#chart nav.tabs {
-    float: right;
-}
-
 #chart nav.tabs ul {
     margin: 0;
+    padding: 0;
 }
 
 #chart nav.tabs li {
-    float: left;
     list-style-type: none;
     border-left: 1px solid #e1e1e1;
     border-bottom: 0.2em solid rgba(0,0,0,0);
@@ -317,6 +313,22 @@ body:not(.export) #chart {
     border-bottom-color: rgba(0,33,71,.9);
 }
 
+#chart.landscape nav.tabs {
+    float: right;
+}
+
+#chart.landscape nav.tabs li {
+    float: left;
+}
+
+#chart.portrait nav.tabs ul {
+    display: table;
+    width: 100%;
+}
+
+#chart.portrait nav.tabs li {
+    display: table-cell;
+}
 
 /* The little loading icon */
 

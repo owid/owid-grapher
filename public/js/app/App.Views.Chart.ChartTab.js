@@ -299,7 +299,6 @@
                 timelineConfig: chart.model.get('timeline')
 			}, function() {
 				postRender();
-				chart.dispatch.call('renderEnd');
 			});
 
 			
@@ -635,7 +634,6 @@
 		}
 
 		function postRender() {
-			console.log('postRender');
 			ensureLabelsFit();				
 
 			// Hijack the nvd3 mode switch to store it
