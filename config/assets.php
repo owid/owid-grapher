@@ -161,6 +161,7 @@ return [
 		        'libs/js.cookie.js',
 		        'libs/ResizeSensor.js',
 		        'libs/ElementQueries.js',
+		        'libs/fuse.js',
 
 		        'owid.js',
 		        'app/owid.bounds.js',
@@ -185,6 +186,7 @@ return [
 		        'app/owid.view.map.js',
 		        'app/owid.view.timeline.js',
 		        'app/owid.viz.scatter.js',
+		        'app/owid.view.entitySelect.js',
 		        'app/owid.control.mapWithTimeline.js',
 		        'app/owid.view.controlsFooter.js',
 		        'app/App.Views.Chart.Legend.js',

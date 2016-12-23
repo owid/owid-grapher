@@ -38,12 +38,17 @@
 			if (model._beforeClean) model._beforeClean();
 			for (var key in state) delete state[key];
 			hasDefaults = false;
+			if (model._afterClean) model._afterClean();
 			return model;
 		};
 
 		model.beforeClean = function(callback) {
 			model._beforeClean = callback;
 		};
+
+		model.afterClean = function(callback) {
+			model._afterClean = callback;
+		}
 
 		model.destroy = function() {
 			model.clean();

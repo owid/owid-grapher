@@ -689,6 +689,25 @@ body:not(.export) #chart {
     font-size: 0.8em;
 }
 
+/* Entity Selection Menu
+--------------------------------------------- */
+
+#chart .entitySelect {
+    padding: 1em;
+    text-align: left;
+    background: rgba(255,255,255,0.95);    
+    position: absolute;
+    left: 75%;
+    top: 0;
+    width: 25%;
+    height: 100%;
+    overflow-y: auto;
+}
+
+#chart .entitySelect li {
+    list-style-type: none;
+}
+
 /* Map Tab
 --------------------------------------------- */
 

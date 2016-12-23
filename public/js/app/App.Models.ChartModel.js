@@ -113,6 +113,17 @@
 			return App.ChartModel.get("selected-countries");
 		},
 
+		getUnselectedEntities: function() {
+			var availableEntities = chart.vardata.get('availableEntities'),
+				selectedEntitiesById = this.getSelectedEntitiesById();
+
+			return _.sortBy(_.filter(availableEntities, function(entity) {
+				return !selectedEntitiesById[entity.id];
+			}), function(entity) {
+				return entity.name;
+			});
+		},
+
 		getSelectedEntitiesById: function() {
 			var entities = {};
 
@@ -124,6 +135,16 @@
 		},
 
 		addSelectedCountry: function(country) {
+			var selectedCountries = _.clone(this.get("selected-countries"));
+
+			//make sure the selected contry is not there 
+			if (!_.findWhere(selectedCountries, { id: country.id })) {
+				selectedCountries.push(country);
+				this.set('selected-countries', selectedCountries);
+			}
+		},
+
+		addSelectedEntity: function(country) {
 			var selectedCountries = _.clone(this.get("selected-countries"));
 
 			//make sure the selected contry is not there 

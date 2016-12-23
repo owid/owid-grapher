@@ -146,7 +146,7 @@
 			chartType = chart.model.get('chart-type');
 			svg = chart.svg;
 			svg.attr("class", "nvd3-svg " + chartType);
-			
+
 
 			$entitiesSelect = $(svg.node()).find('[name=available_entities]');
 		}
@@ -532,14 +532,29 @@
 				.showMaxMin(false);
 		}
 
+		var entitySelect;
+		function updateEntitySelect() {
+			if (!entitySelect) return;
+
+			entitySelect.update({
+				containerNode: chart.htmlNode,
+				entities: chart.model.getUnselectedEntities()
+			});
+		}
+
 		function renderLegend() {
 			if (!chart.model.get("hide-legend")) {
 				legend.dispatch.on("addEntity", function() {
-					if ($entitiesSelect.data("chosen")) {
-						$entitiesSelect.data("chosen").active_field = false;
+					if (entitySelect)
+						entitySelect = entitySelect.destroy();
+					else {
+						entitySelect = owid.view.entitySelect();
+
+						entitySelect.afterClean(function() { entitySelect = null; });
 					}
-					$entitiesSelect.trigger("chosen:open");
+					updateEntitySelect();
 				});
+				updateEntitySelect();
 
 				legend.render({
 					containerNode: svg.node(),
