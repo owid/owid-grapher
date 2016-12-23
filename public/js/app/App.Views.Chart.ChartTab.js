@@ -297,9 +297,11 @@
 				variables: chart.vardata.get('variables'),
 				inputYear: (chart.model.get('chart-time')||[])[0],
                 timelineConfig: chart.model.get('timeline')
+			}, function() {
+				postRender();
+				chart.dispatch.call('renderEnd');
 			});
 
-			chart.dispatch.call('renderEnd');
 			
 			chartTab.viz = viz;			
 		}
@@ -633,6 +635,7 @@
 		}
 
 		function postRender() {
+			console.log('postRender');
 			ensureLabelsFit();				
 
 			// Hijack the nvd3 mode switch to store it

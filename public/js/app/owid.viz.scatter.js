@@ -31,8 +31,8 @@
         });
 
         var update = control.update;
-        control.update = function(props) {
-            update({ props: props, hasTimeline: !!props.timelineConfig });
+        control.update = function(props, callback) {
+            update({ props: props, hasTimeline: !!props.timelineConfig }, callback);
         };
 
         return control;

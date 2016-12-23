@@ -16,6 +16,11 @@
                 chart.map.set('targetYear', targetYear);
             });
 
+            // hack to make header update disclaimer
+            timeline.flow('isPlaying, isDragging', function(isPlaying, isDragging) {
+                chart.render();
+            });
+
             return timeline;
         });
                 // Open the chart tab for a country when it is clicked (but not on mobile)
