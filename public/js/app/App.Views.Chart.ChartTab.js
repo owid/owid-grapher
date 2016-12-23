@@ -146,6 +146,8 @@
 			chartType = chart.model.get('chart-type');
 			svg = chart.svg;
 			svg.attr("class", "nvd3-svg " + chartType);
+			
+
 			$entitiesSelect = $(svg.node()).find('[name=available_entities]');
 		}
 

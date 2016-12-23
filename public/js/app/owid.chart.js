@@ -166,7 +166,7 @@
 			   .attr('viewBox', '0 0 ' + renderWidth + ' ' + renderHeight);
 		});
 		chart.flow('innerBounds : renderWidth, renderHeight', function(renderWidth, renderHeight) {
-			return owid.bounds(0, 0, renderWidth, renderHeight).pad(15);
+			return owid.bounds(0, 0, renderWidth, renderHeight);
 		});		
 		chart.flow('style : el', function(el) {
 			return el.append('style');
@@ -186,7 +186,7 @@
 		chart.render = function() {
 			chart.now('el, header, controlsFooter, creditsFooter, activeTab, innerBounds, scale, loadingIcon', function(el, header, controlsFooter, creditsFooter, activeTab, innerBounds, scale, loadingIcon) {
 				chart.data.transformData();
-				var bounds = innerBounds;
+				var bounds = innerBounds.pad(15);
 
 				header.render(bounds);
 				bounds = bounds.padTop(header.view.bbox.height);
