@@ -154,8 +154,9 @@
 		chart.flow('renderWidth, renderHeight : outerBounds, authorWidth, authorHeight', function(outerBounds, authorWidth, authorHeight) {
 			return [authorWidth, authorHeight];
 		});
-		chart.flow('scale : outerBounds, renderWidth, renderHeight', function(outerBounds, renderWidth, renderHeight) {
-			return Math.min(outerBounds.width/renderWidth, outerBounds.height/renderHeight);
+		chart.flow('scale : outerBounds, renderWidth, renderHeight, isEditor', function(outerBounds, renderWidth, renderHeight, isEditor) {			
+			if (isEditor) return 1;
+			else return Math.min(outerBounds.width/renderWidth, outerBounds.height/renderHeight);
 		});
 		chart.flow('el, renderWidth, renderHeight, scale', function(el, renderWidth, renderHeight, scale) {
 			el.style('width', renderWidth*scale + 'px').style('height', renderHeight*scale + 'px');

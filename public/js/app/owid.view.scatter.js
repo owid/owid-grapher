@@ -102,7 +102,8 @@
 		      .attr("cy", function(d) { return yScale(d.values[0].y); })
 		      .style("fill", function(d) { return d.color || _colorScale(d.key); })
 		      .style("stroke", "#000")
-		      .style("stroke-width", "0.3px");
+		      .style("stroke-width", "0.3px")
+//		      .style('cursor', 'pointer');
 		});
 
 		scatter.flow("hovered : data, hoverKey, canHover", function(data, hoverKey, canHover) {
@@ -154,7 +155,7 @@
 			if (!hovered)
 				owid.tooltipHide(svg.node());
 			else
-				owid.tooltip(svg.node(), xScale(hovered.values[0].x), yScale(hovered.values[0].y), hovered);
+				owid.tooltip(svg.node(), xScale(hovered.values[0].x)+20, yScale(hovered.values[0].y), hovered);
 		});
 
 		// Set up hover interactivity
@@ -191,7 +192,7 @@
 		});
 
 		// Calculate the positions of the point labels we'd like to use
-		scatter.flow("labelData : data, xScale, yScale, sizeScale, fontScale", function(data, xScale, yScale, sizeScale, fontScale) {
+		scatter.flow("labelData : data, xScale, yScale, sizeScale, fontScale, hovered", function(data, xScale, yScale, sizeScale, fontScale, hovered) {
 			return _.map(data, function(d) {
 				var firstValue = _.first(d.values),
 					lastValue = _.last(d.values),
@@ -206,11 +207,10 @@
 					color: "#333",
 					text: d.label,
 					key: d.key,
-					fontSize: fontScale(lastValue.size)
+					fontSize: fontScale(lastValue.size)*(d==hovered ? 1.3 : 1)
 				};
 			});
 		});
-
 
     	// Calculating bboxes for many labels each frame is expensive
     	// So we cache width and height unless the label size changes
@@ -242,7 +242,8 @@
 	          .merge(labelUpdate)
 	            .text(function(d) { return d.text; })
 	            .style("font-size", function(d) { return d.fontSize+'px'; })   
-	            .style("fill", function(d) { return d.color; });
+	            .style("fill", function(d) { return d.color; })
+	            .style('cursor', 'default');	            
 
 	        labelUpdate.exit().remove();
 		        
@@ -261,13 +262,6 @@
 
 	        labels.attr("x", function(d) { return d.x; })
 	              .attr("y", function(d) { return d.y; });
-
-	        // Make sure all the labels are inside the bounds of the chart
-/*	    		if (label.x < xScale.range()[0] || label.x+label.width > xScale.range()[1] || label.y < yScale.range()[1]) {
-	    			label.hidden = true;
-	    			continue;
-	    		}*/
-
 
 	        // Now do collision detection and hide overlaps
 	        function collide(l1, l2) {

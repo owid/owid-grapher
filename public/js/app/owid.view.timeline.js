@@ -257,7 +257,7 @@
 						var nextYear = years[years.indexOf(targetYear)+1],
 							yearsToNext = nextYear-targetYear;
 
-						timeline.update({ inputYear: inputYear+(/*Math.max(yearsToNext/2, 1)**/elapsed*ticksPerSec/1000) });
+						timeline.update({ inputYear: inputYear+(Math.max(yearsToNext/2, 1)*elapsed*ticksPerSec/1000) });
 					}
 
 					_anim = requestAnimationFrame(incrementLoop);

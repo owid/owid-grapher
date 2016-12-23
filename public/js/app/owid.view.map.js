@@ -60,7 +60,8 @@
         map.flow('path : projection', function(projection) {
             return App.Views.Chart.Map.Projections[projection]().path;
         });
-        map.flow('geo : subunits, geoData, path', function(subunits, geoData, path) {
+        map.flow('geo : subunits, geoData, path', function(subunits, geoData, path) {            
+            subunits.selectAll('path').remove();
             var geoUpdate = subunits.selectAll('path').data(geoData);
 
             return geoUpdate.enter()

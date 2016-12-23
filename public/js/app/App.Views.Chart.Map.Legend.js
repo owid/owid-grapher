@@ -39,13 +39,14 @@
 
 			return enter.merge(stepsUpdate);
 		});
-		legend.flow('stepsHeight : steps, targetHeight', function(steps, targetHeight) {
+		legend.flow('stepsHeight : steps, targetHeight, legendData', function(steps, targetHeight) {
 			var stepSize = Math.min(30, Math.max(15, targetHeight / steps.size())),
 				stepWidth = stepSize,
 				stepHeight = stepSize,
 				stepGap = Math.min(stepSize/8, 2);
 
 			steps.selectAll('rect')
+				.data(function(d) { return [d]; })
 				.attr("width", stepWidth)
 				.attr("height", stepHeight)
 				.style("fill", function(d, i) { return d.color; });

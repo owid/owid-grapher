@@ -39,7 +39,8 @@
 				years: chart.map.getYears(),
 				inputYear: chart.map.get('targetYear'),
 				legendData: chart.mapdata.legendData,
-				legendTitle: chart.mapdata.legendTitle||null
+				legendTitle: chart.mapdata.legendTitle||null,
+				projection: chart.map.get('projection')
 			}, chart.dispatch.renderEnd);
 		};
 
