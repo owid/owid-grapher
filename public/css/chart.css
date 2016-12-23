@@ -698,8 +698,8 @@ body:not(.export) #chart {
     text-align: left;
     background: rgba(255,255,255,0.9);    
     position: absolute;
-    top: 50%;
-    height: 50%;
+    top: 0%;
+    height: 100%;
     width: 100%;
     overflow-y: auto;
     border-top: 1px solid #e1e1e1;

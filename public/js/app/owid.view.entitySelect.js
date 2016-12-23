@@ -47,6 +47,14 @@
 
             searchInput.node().focus();
 
+            d3.select(window).on('click.entitySelect', function() {
+                entitySelect.clean();
+            });
+
+            el.on('click', function() {
+                d3.event.stopPropagation();
+            });
+
             return searchInput;
         });
 
@@ -97,6 +105,7 @@
 
         entitySelect.beforeClean(function() {
             if (entitySelect.el) entitySelect.el.remove();
+            d3.select(window).on('entitySelect.clean', null);
         });
 
         return entitySelect;
