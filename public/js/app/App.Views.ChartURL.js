@@ -179,6 +179,7 @@
 				owid.setQueryVariable("country", entityCodes.join("+"));
 			});			
 		}
+		urlBinder.updateCountryParam = updateCountryParam;
 
 		/**
 		 * Set e.g. &shown=Africa when the user selects Africa on a stacked area chart or other

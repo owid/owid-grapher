@@ -66,22 +66,20 @@
             chart.tooltip.hide();
         }
 
-        function onClick() {
+        function onClick(d) {
             if (d3.select(chart.dom).classed('mobile') || !_.includes(chart.model.get("tabs"), "chart")) return;
 
-            d3.select(ev.target).each(function(d) {
-                var entityName = d.id,
-                    availableEntities = chart.vardata.get("availableEntities"),
-                    entity = _.find(availableEntities, function(e) {
-                        return owid.entityNameForMap(e.name) == d.id;
-                    });
+            var entityName = d.id,
+                availableEntities = chart.vardata.get("availableEntities"),
+                entity = _.find(availableEntities, function(e) {
+                    return owid.entityNameForMap(e.name) == d.id;
+                });
 
-                if (!entity) return;
-                chart.model.set({ "selected-countries": [entity] }, { silent: true });
-                chart.data.chartData = null;
-                chart.display.set({ activeTab: 'chart' });
-                chart.url.updateCountryParam();
-            });
+            if (!entity) return;
+            chart.model.set({ "selected-countries": [entity] }, { silent: true });
+            chart.data.chartData = null;
+            chart.update({ activeTabName: 'chart' });
+            chart.url.updateCountryParam();
         }
 
         mapTab.beforeClean(function() {
