@@ -589,6 +589,7 @@ a {
 }
 
 #chart h2 {
+    font-size: 2em;
     margin-bottom: 0.8em;
 }
 
@@ -606,14 +607,14 @@ a {
     overflow-y: auto;
 }
 
-.datasource-wrapper {
+#chart .datasource-wrapper {
     font-size: 0.8em;
     max-width: 1024px;
 }
 #chart.narrow .datasource-wrapper {
     padding: 0;
 }
-.datasource-wrapper h2 {
+#chart .datasource-wrapper h2 {
     width: 70%;
     padding-bottom: 0.3em;
     text-transform: uppercase;
@@ -622,14 +623,14 @@ a {
     border-bottom: 1px solid #35322F;
     margin-bottom: 0;
 }
-.datasource-wrapper h2,
-.datasource-wrapper h3,
-.datasource-wrapper h4 {
+#chart .datasource-wrapper h2,
+#chart .datasource-wrapper h3,
+#chart .datasource-wrapper h4 {
     margin-left: 0px;
     font-family: inherit;
 }
-.datasource-wrapper h3,
-.datasource-wrapper h4 {
+#chart .datasource-wrapper h3,
+#chart .datasource-wrapper h4 {
     margin-top: 2px;
     margin-bottom: 1px;
     font-size: 0.9em;

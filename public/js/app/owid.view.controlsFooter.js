@@ -52,12 +52,6 @@
                 );
         });
 
-        footer.flow('editBtn', function(editBtn) {
-            editBtn.on('click', function() {
-
-            });
-        });
-
         footer.render = function(bounds) {
             footer.update({
                 containerNode: chart.el.node(),

@@ -184,7 +184,7 @@
         });        
 
         viz.flow('timelineYears : timeRanges, yearsWithData', function(timeRanges, yearsWithData) {
-            return owid.timeRangesToYears(timeRanges, _.first(yearsWithData), _.last(yearsWithData));
+            return _.intersection(owid.timeRangesToYears(timeRanges, _.first(yearsWithData), _.last(yearsWithData)), yearsWithData);
         });
 
         // Calculate a default input year if none is given
