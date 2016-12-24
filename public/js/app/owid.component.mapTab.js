@@ -25,12 +25,16 @@
         });
 
         mapTab.flow('timeline, years, inputYear, containerNode, bounds', function(timeline, years, inputYear, containerNode, bounds) {
-            timeline.update({
+            var changes = {
                 years: years,
-                inputYear: inputYear,
                 containerNode: containerNode,
-                outerBounds: bounds
-            });
+                outerBounds: bounds                
+            }
+
+            if (!timeline.isPlaying && !timeline.isDragging)
+                changes.inputYear = inputYear;
+
+            timeline.update(changes);
         });
 
         mapTab.flow('boundsForMap : timeline, bounds', function(timeline, bounds) {

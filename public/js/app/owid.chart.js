@@ -16,6 +16,7 @@
 			isExport: !!window.location.pathname.match(/.export$/),
 			isEmbed: window.self != window.top || App.isEditor,
 			isEditor: App.isEditor,
+			isMobile: d3.select('html').classed('touchevents'),
 			activeTabName: null,
 			dispatch: d3.dispatch('renderEnd')
 		});
@@ -86,8 +87,12 @@
 					if (isExport) return; // Export specifies its own dimensions
 
 					var bounds = owid.bounds(containerNode.getBoundingClientRect());
-					if (!isEmbed)
-						bounds = bounds.pad(bounds.width*0.02, bounds.height*0.075);
+					if (!isEmbed) {
+						if (bounds.width < 800)
+							bounds = bounds.pad(bounds.width*0.01, bounds.height*0.02);
+						else
+							bounds = bounds.pad(bounds.width*0.02, bounds.height*0.075);
+					}
 
 					chart.update({
 						outerBounds: bounds
@@ -198,7 +203,7 @@
 				bounds = bounds.padBottom(creditsFooter.height);
 
 				if (activeTab.isOverlay)
-					activeTab.render(innerBounds.padBottom(controlsFooter.height));
+					activeTab.render(innerBounds.padBottom(controlsFooter.height+2));
 				else
 					activeTab.render(bounds);
 

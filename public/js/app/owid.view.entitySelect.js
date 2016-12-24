@@ -45,7 +45,8 @@
                 }
             });
 
-            searchInput.node().focus();
+            if (!chart.isMobile)
+                searchInput.node().focus();
 
             d3.select(window).on('click.entitySelect', function() {
                 entitySelect.clean();

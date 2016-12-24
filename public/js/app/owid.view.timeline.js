@@ -47,10 +47,17 @@
 		timeline.flow('g : containerNode', function(containerNode) {
 			return d3.select(containerNode).append('g').attr('class', 'timeline').style('cursor', 'pointer');
 		});
-
 		timeline.flow('g, bounds', function(g, bounds) {
 			g.attr('transform', 'translate(' + bounds.left + ',' + bounds.top + ')');
 		});
+        // We put a rectangle in to catch mouse events
+        timeline.flow('bgRect : g, bounds', function(g, bounds) {
+            g.selectAll('.bgRect').remove();
+            return g.insert('rect', '*').attr('class', 'bgRect')
+                .attr('x', 0).attr('y', 0)
+                .attr('width', bounds.width).attr('height', bounds.height)
+                .style('fill', 'white');
+        });
 
 		timeline.flow('playToggle : g', function(g) {
 			return g.append("text")
@@ -67,8 +74,8 @@
 
   		timeline.flow('minYearLabel, maxYearLabel : g', function(g) {
   			return [
-  				g.append('text').attr('class', 'minYearLabel').style('font-size', '18px').style('fill', '#666'),
-  				g.append('text').attr('class', 'maxYearLabel').style('font-size', '18px').style('fill', '#666').attr('dy', '.3em').style('text-anchor', 'end')
+  				g.append('text').attr('class', 'minYearLabel').style('font-size', '0.8em').style('fill', '#666'),
+  				g.append('text').attr('class', 'maxYearLabel').style('font-size', '0.8em').style('fill', '#666').attr('dy', '.3em').style('text-anchor', 'end')
   			];
   		});
 
@@ -92,8 +99,8 @@
 
   		timeline.flow('sliderBounds : minYearBox, maxYearBox, bounds', function(minYearBox, maxYearBox, bounds) {
             var sliderHeight = 12;
-  			var left = minYearBox.left + minYearBox.width + 10;
-  			return owid.bounds(left, (bounds.height-sliderHeight)/2, bounds.width-maxYearBox.width-left-10, sliderHeight);
+  			var left = minYearBox.left + minYearBox.width + 15;
+  			return owid.bounds(left, (bounds.height-sliderHeight)/2, bounds.width-maxYearBox.width-left-15, sliderHeight);
   		});
 
   		timeline.flow('xScale : years, sliderBounds', function(years, sliderBounds) {
@@ -102,14 +109,15 @@
 
   		timeline.flow('sliderBackground : g', function(g) {
   			return g.append('rect')
-  				.style('stroke-width', 0.1);
+  				.style('stroke-width', 0.1)
+                .attr('class', 'sliderBackground');
   		});
 
   		timeline.flow('sliderBackground, sliderBounds', function(sliderBackground, sliderBounds) {
   			sliderBackground
-  				.attr('x', sliderBounds.left)
+  				.attr('x', sliderBounds.left-5)
   				.attr('y', sliderBounds.top)
-  				.attr('width', sliderBounds.width)
+  				.attr('width', sliderBounds.width+10)
   				.attr('height', sliderBounds.height)
   				.attr('rx', 5)
   				.attr('ry', 5)
@@ -150,12 +158,12 @@
 			var ticksUpdate = g.selectAll('.tick').data(years.slice(1, -1));
 
 			var ticks = ticksUpdate.enter()
-				.insert('rect', '*')
+				.insert('rect', '.sliderBackground')
 				.attr('class', 'tick')
 				.attr('width', '1px')
 				.style('fill', 'rgba(0,0,0,0.2)')
 			  .merge(ticksUpdate)
-			  	.attr('height', 5)
+			  	.attr('height', '0.2em')
 				.attr('x', function(d) { return xScale(d); })
 				.attr('y', sliderBounds.top+sliderBounds.height-1);
 
@@ -188,35 +196,50 @@
                 sliderBBox = sliderBackground.node().getBBox(),
 				isDragging = false;
 
+            var frameQueued = false;
 			function onMouseMove() {
-				var evt = d3.event;
-				timeline.now('years, minYear, maxYear', function(years, minYear, maxYear) {
-                    var mouseX = d3.mouse(g.node())[0],
-                        fracWidth = (mouseX-sliderBBox.x) / sliderBackground.node().getBBox().width,
-                        inputYear = minYear + fracWidth*(maxYear-minYear);
+                if (frameQueued) return;
+                frameQueued = true;
 
-					timeline.update({ isDragging: true, inputYear: inputYear });
-					evt.preventDefault();
-				});
+				var evt = d3.event;
+                var mouseX = d3.mouse(g.node())[0];
+                // Use animation frame so we don't overload the browser, esp. Firefox/IE
+                requestAnimationFrame(function() {
+                    timeline.now('years, minYear, maxYear', function(years, minYear, maxYear) {
+                        var fracWidth = (mouseX-sliderBBox.x) / sliderBackground.node().getBBox().width,
+                            inputYear = minYear + fracWidth*(maxYear-minYear);
+
+                        timeline.update({ isDragging: true, inputYear: inputYear });
+                        frameQueued = false;
+                    });       
+                });
+                evt.preventDefault();
 			}
 
 			function onMouseUp() {
 				container.on('mousemove.timeline', null);
 				container.on('mouseup.timeline', null);
+                container.on('touchmove.timeline', null);
+                container.on('touchend.timeline', null);
 				//container.on('mouseleave.timeline', null);
 				timeline.update({ isDragging: false });
 			}
 
-			g.on('mousedown.timeline', function() {
-				var evt = d3.event;
-				// Don't do mousemove if we clicked the play or pause button
-				if (d3.select(evt.target).classed('toggle')) return;
+            function onMouseDown() {
+                var evt = d3.event;
+                // Don't do mousemove if we clicked the play or pause button
+                if (d3.select(evt.target).classed('toggle')) return;
 
-				container.on('mousemove.timeline', onMouseMove);
-				container.on('mouseup.timeline', onMouseUp);
-				//container.on('mouseleave.timeline', onMouseUp);
-				onMouseMove();
-			});
+                container.on('mousemove.timeline', onMouseMove);
+                container.on('mouseup.timeline', onMouseUp);
+                container.on('touchmove.timeline', onMouseMove);
+                container.on('touchend.timeline', onMouseUp);
+                //container.on('mouseleave.timeline', onMouseUp);
+                onMouseMove();                
+            }
+
+			g.on('mousedown.timeline', onMouseDown);
+            g.on('touchstart.timeline', onMouseDown);
 		});
 
 		// Interpolated playing animation

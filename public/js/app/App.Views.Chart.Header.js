@@ -223,8 +223,8 @@
 					disclaimer = "";
 				}
 
-				minYear = timeFrom;
-				maxYear = timeTo;
+				minYear = year;
+				maxYear = year;
 			} else if (chart.model.get('timeline')) {
 				minYear = (chart.model.get('chart-time')||[])[0];
 				maxYear = (chart.model.get('chart-time')||[])[1];
