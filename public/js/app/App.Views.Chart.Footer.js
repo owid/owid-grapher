@@ -29,7 +29,7 @@
 				footerSource = "", footerNote = "", footerLicense = "";
 
 			// Add the Source line
-			footerSource += '<a class="bold">Data source: </a>';
+			footerSource += 'Data source: ';
 				
 			_.each(sourceNames, function(sourceName, i) {
 				if (i > 0) footerSource += ", ";

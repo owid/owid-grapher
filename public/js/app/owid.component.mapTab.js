@@ -29,7 +29,7 @@
                 years: years,
                 containerNode: containerNode,
                 outerBounds: bounds                
-            }
+            };
 
             if (!timeline.isPlaying && !timeline.isDragging)
                 changes.inputYear = inputYear;

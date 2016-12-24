@@ -15,7 +15,7 @@
 		});
 
         timeline.flow('bounds : outerBounds', function(outerBounds) {
-            var height = 40;
+            var height = 45;
             return owid.bounds(outerBounds.left, outerBounds.top+(outerBounds.height-height), outerBounds.width, height).padWidth(outerBounds.width*0.02);
         });
 
@@ -69,7 +69,7 @@
   		});
 
   		timeline.flow('playToggle, bounds', function(playToggle, bounds) {
-  			playToggle.attr('x', 10).attr('y', bounds.height/2).attr('dy', playToggle.node().getBBox().height/4);
+  			playToggle.attr('x', 10).attr('y', bounds.height/2).attr('dy', 1+playToggle.node().getBBox().height/4);
   		});
 
   		timeline.flow('minYearLabel, maxYearLabel : g', function(g) {
@@ -136,7 +136,7 @@
 
   			handle.append('text')  				
   				.attr('y', -9)
-  				.style('font-size', '0.8em')
+  				.style('font-size', '0.7em')
   				.style('text-anchor', 'middle');
 
   			return handle;
@@ -154,8 +154,11 @@
   		});
 
 		// Make ticks on the slider representing years with available data
-		timeline.flow("ticks : g, years, xScale, sliderBounds", function(g, years, xScale, sliderBounds) {
-			var ticksUpdate = g.selectAll('.tick').data(years.slice(1, -1));
+        timeline.flow('ticksG : g', function(g) {
+            return g.append('g').attr('class', 'ticks');
+        });
+		timeline.flow("ticks : ticksG, years, xScale, sliderBounds", function(ticksG, years, xScale, sliderBounds) {
+			var ticksUpdate = ticksG.selectAll('.tick').data(years.slice(1, -1));
 
 			var ticks = ticksUpdate.enter()
 				.insert('rect', '.sliderBackground')

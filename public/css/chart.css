@@ -396,10 +396,10 @@ body:not(.export) #chart {
 --------------------------------------------- */
 
 #chart .footer {
-    font-size: 0.6em;
+    font-size: 0.65em;
 }
 #chart .footer text {
-    fill: rgb(51, 51, 51);
+    fill: #666;
 }
 #chart .footer a.bold {
     font-weight: bold;
@@ -512,7 +512,7 @@ body:not(.export) #chart {
 }
 
 #chart .axis .axis-label {
-    font-size: 0.8em;
+    font-size: 0.75em;
 }
 
 

@@ -67,7 +67,7 @@
 			title.style('font-size', titleSizeScale(s.stripTags(titleStr).length) + 'em');
 		});
 
-		header.flow('titleBounds, titleFontSize : title, titleStr, boundsForText', function(title, titleStr, boundsForText) {
+		header.flow('titleBox, titleFontSize : title, titleStr, boundsForText', function(title, titleStr, boundsForText) {
 			// Try to fit the title into a single line if possible-- but not if it would make the text super small
 			var fontSize = 1.5;
 			title.style('font-size', fontSize + 'em');
@@ -79,6 +79,9 @@
 				owid.svgSetWrappedText(title, titleStr, boundsForText.width, { lineHeight: 1.1 });
 			}
 
+			title.attr('y', boundsForText.top);
+			title.attr('y', boundsForText.top-title.node().getBBox().y);
+
 			return [owid.bounds(title.node().getBBox()), fontSize];
 		});
 
@@ -88,12 +91,12 @@
 				.attr('dy', '1em');
 		});
 
-		header.flow('subtitle, titleBounds, titleFontSize, subtitleStr, boundsForText, logoHeight, bounds, g', function(subtitle, titleBounds, titleFontSize, subtitleStr, boundsForText, logoHeight, bounds, g) {
+		header.flow('subtitle, titleBox, titleFontSize, subtitleStr, boundsForText, logoHeight, bounds, g', function(subtitle, titleBox, titleFontSize, subtitleStr, boundsForText, logoHeight, bounds, g) {
             var width = boundsForText.width;
-            if (titleBounds.height > logoHeight)
+            if (titleBox.height > logoHeight)
                 width = bounds.width;
 
-			subtitle.attr('x', boundsForText.left).attr('y', boundsForText.top + titleBounds.height + 2);
+			subtitle.attr('x', boundsForText.left+1).attr('y', boundsForText.top + titleBox.height);
 
 			// Subtitle text must always be smaller than title text. 
 			var fontSize = Math.min(0.8, titleFontSize-0.3);
