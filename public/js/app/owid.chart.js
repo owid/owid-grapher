@@ -169,9 +169,6 @@
 		chart.flow('innerBounds : renderWidth, renderHeight', function(renderWidth, renderHeight) {
 			return owid.bounds(0, 0, renderWidth, renderHeight);
 		});		
-		chart.flow('style : el', function(el) {
-			return el.append('style');
-		});
 		chart.flow('el, scale', function(el, scale) {
 			el.style('font-size', 16*scale + 'px');
 		});
@@ -252,11 +249,8 @@
 				d3.select('.chart-preloader').classed('hidden', false);
 		};
 
-		// HACK (Mispy): Workaround for the differences in getBoundingClientRect
-		// depending on whether you're using zoom or transform
 		chart.getBounds = function(node) {
-			var bounds = node.getBoundingClientRect(),
-				untransformedBounds;
+			var bounds = node.getBoundingClientRect();
 
 			if (chart.scale > 1 && owid.features.zoom) {
 				untransformedBounds = bounds;
@@ -274,23 +268,15 @@
 		};
 
 		chart.getTransformedBounds = function(node) {
-			var bounds = node.getBoundingClientRect(),
-				transformedBounds;
+			var chartRect = chart.el.node().getBoundingClientRect(),
+				nodeRect = node.getBoundingClientRect();
 
-			if (chart.scale > 1 && owid.features.zoom) {
-				transformedBounds = {
-					top: bounds.top * chart.scale,
-					right: bounds.right * chart.scale,
-					bottom: bounds.bottom * chart.scale,
-					left: bounds.left * chart.scale,
-					height: bounds.height * chart.scale,
-					width: bounds.width * chart.scale
-				};
-			} else {
-				transformedBounds = bounds;
-			}
-
-			return transformedBounds;			
+			return owid.bounds(
+				nodeRect.left-chartRect.left,
+				nodeRect.top-chartRect.top,
+				nodeRect.width,
+				nodeRect.height
+			);
 		};
 
 		chart.handleError = function(err, isCritical) {

@@ -11,6 +11,10 @@ html {
 * {
     box-sizing: inherit;
 }
+button {
+    background: none;
+    border: none;
+}
 
 #chart > svg {
     font-size: 22px;
@@ -515,29 +519,39 @@ body:not(.export) #chart {
 /* Axis Scale Selectors
 --------------------------------------------- */
 
-#chart .axis-scale-selectors-wrapper .x-axis-scale-selector,
-#chart .axis-scale-selectors-wrapper .y-axis-scale-selector {
+#chart .scaleSelector {
     position: absolute;
     z-index: 11;
-    display: none;
-}
-#chart .axis-scale-selectors-wrapper .axis-scale-btn {
-    position: relative;
     font-size: 0.7em;
     color: black;
-}
-#chart .axis-scale-btn:hover {
-    text-decoration: none;
-}
-#chart .axis-scale-selectors-wrapper .axis-scale {
     text-transform: uppercase;
-    font-size: 0.6em;
-    border: 1px solid #eeeeee;
-    background-color: white;
-    display: none;
 }
 /* Tooltips
 --------------------------------------------- */
+
+.owid-tooltip {
+    font-size: 1em;
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.2);    
+    pointer-events: none;
+}
+.owid-tooltip h3 {
+    padding: 0.3em 0.9em;
+    font-size: 1em;
+    margin-top: 0 !important;
+    line-height: 18px;
+    font-weight: normal;
+    background-color: rgba(247,247,247,0.75);
+    text-align: center;
+    border-bottom: 1px solid #ebebeb;
+}
+.owid-tooltip p {
+    font-size: 0.8em;
+    padding: 0.3em 0.9em;
+}
+.owid-tooltip .var-popup-value {
+    display: block;
+}
 
 .nvtooltip {
     background-color: white;
@@ -545,22 +559,18 @@ body:not(.export) #chart {
     border: 1px solid rgba(0, 0, 0, 0.2);
     border-radius: 0;
     box-shadow: none;
-    /* scatter plot has values underneath each other */
 }
 .nvtooltip table tbody,
 .nvtooltip table td {
     border: 0;
 }
-.nvtooltip {
-    font-size: 1em;
-}
 .nvtooltip h3 {
     padding: 0.3em 0.9em;
-    font-size: 1em;
+    font-size: 20px;
     margin-top: 0 !important;
 }
 .nvtooltip p {
-    font-size: 0.8em;
+    font-size: 16px;
     padding: 0.3em 0.9em;
 }
 .nvtooltip .var-popup-value {
@@ -992,7 +1002,7 @@ body.export #chart .color-blind-control,
 body.export #chart .map-controls-header,
 body.export #chart .nv-add-btn,
 body.export #chart .nv-controlsWrap,
-body.export #chart .axis-scale-selectors-wrapper {
+body.export #chart .scaleSelector {
     display: none !important;
 }
 body.export #chart .tab-pane {

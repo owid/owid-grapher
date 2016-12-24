@@ -1,33 +1,35 @@
-;(function() {	
+;(function(d3) {	
 	"use strict";
 	owid.namespace("owid.view.tooltip");
 
 	owid.tooltip = function(svgNode, left, top, data) {		
-		var container = d3.select(svgNode.parentNode),
-			tooltip = container.selectAll('.owid-tooltip');
+		var container = d3.select(svgNode.parentNode);
 
-		if (tooltip.empty())
-			tooltip = container.append('div').attr('class', 'nvtooltip owid-tooltip');
+		var tooltipUpdate = container.selectAll('.owid-tooltip');
 
-		tooltip.html(owid.scatterPlotTooltipGenerator(data));
+		var tooltip = tooltipUpdate.data([data]).enter()
+			.append('div').attr('class', 'owid-tooltip')
+			.style('position', 'absolute')
+			.merge(tooltipUpdate)
+				.html(function(d) { return owid.scatterPlotTooltipGenerator(d); })
+				.classed('hidden', false);
 
 		var width = tooltip.node().getBoundingClientRect().width,
 			containerWidth = container.node().getBoundingClientRect().width;
 
-		if (left + width > containerWidth)
-			left = left - width;
+		if (left*chart.scale + width > containerWidth)
+			left = left - width/chart.scale;
 
-		tooltip.style('position', 'absolute')
+		tooltip
 			.style('left', left*chart.scale + 'px')
-			.style('top', top*chart.scale + 'px')
-			.style('display', 'block');
+			.style('top', top*chart.scale + 'px');
 	};
 
 	owid.tooltipHide = function(svgNode) {
-		var $container = $(svgNode).parent(),
-			$tooltip = $container.find('.nvtooltip');
+		var container = d3.select(svgNode.parentNode),
+			tooltip = container.selectAll('.owid-tooltip');
 
-		$tooltip.hide();
+		tooltip.classed('hidden', true);
 	};
 
 	owid.view.tooltip = function(chart) {
@@ -79,4 +81,4 @@
 		return tooltip;
 	};
 
-})();
+})(d3v4);

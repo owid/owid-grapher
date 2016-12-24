@@ -43,7 +43,7 @@
 
 		var xDomain, yDomain, isClamped;
 
-		chartTab.scaleSelectors = owid.view.scaleSelectors(chart);
+		chartTab.scaleSelectors = owid.component.scaleSelectors(chart);
 
 		var nvOptions = {
 			showLegend: false
@@ -429,7 +429,7 @@
 		}
 
 		function renderAxis() {
-//			chartTab.scaleSelectors.render();
+			chartTab.scaleSelectors.render(bounds);
 			if (!nvd3) return;
 
 			//get extend

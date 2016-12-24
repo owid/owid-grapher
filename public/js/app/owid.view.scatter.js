@@ -51,7 +51,7 @@
 
 		var _sizeScale = d3.scaleLinear();
 		scatter.flow("sizeScale : data", function(data) {
-			_sizeScale.range([6, 12])
+			_sizeScale.range([5, 18])
 				.domain([
 		        	d3.min(data, function(series) { return d3.min(series.values, function(d) { return d.size||1; }); }),
 		       	    d3.max(data, function(series) { return d3.max(series.values, function(d) { return d.size||1; }); })
@@ -187,7 +187,7 @@
 
 		var _fontScale = d3.scaleLinear();
 		scatter.flow("fontScale : sizeScale", function(sizeScale) {
-			_fontScale.range([13, 16]).domain(sizeScale.domain());
+			_fontScale.range([13, 19]).domain(sizeScale.domain());
 		    return _fontScale;
 		});
 
@@ -207,7 +207,7 @@
 					color: "#333",
 					text: d.label,
 					key: d.key,
-					fontSize: fontScale(lastValue.size)*(d==hovered ? 1.3 : 1)
+					fontSize: fontScale(lastValue.size||1)*(d==hovered ? 1.3 : 1)
 				};
 			});
 		});
