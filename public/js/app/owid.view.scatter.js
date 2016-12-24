@@ -51,7 +51,7 @@
 
 		var _sizeScale = d3.scaleLinear();
 		scatter.flow("sizeScale : data", function(data) {
-			_sizeScale.range([5, 18])
+			_sizeScale.range([6, 18])
 				.domain([
 		        	d3.min(data, function(series) { return d3.min(series.values, function(d) { return d.size||1; }); }),
 		       	    d3.max(data, function(series) { return d3.max(series.values, function(d) { return d.size||1; }); })
@@ -102,7 +102,7 @@
 		      .attr("cy", function(d) { return yScale(d.values[0].y); })
 		      .style("fill", function(d) { return d.color || _colorScale(d.key); })
 		      .style("stroke", "#000")
-		      .style("stroke-width", "0.3px")
+		      .style("stroke-width", "0.3px");
 //		      .style('cursor', 'pointer');
 		});
 

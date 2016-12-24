@@ -38,6 +38,14 @@
         return owid.bounds(this.left, this.top, this.width-padding, this.height);
     };
 
+    bounds.prototype.padWidth = function(padding) {
+        return this.padLeft(padding).padRight(padding);
+    }
+
+    bounds.prototype.padHeight = function(padding) {
+        return this.padTop(padding).padBottom(padding);
+    }
+
     bounds.prototype.scale = function(scale) {
         return owid.bounds(this.left*scale, this.top*scale, this.width*scale, this.height*scale);
     };

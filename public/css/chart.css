@@ -752,27 +752,24 @@ body:not(.export) #chart {
 /* Map Tab
 --------------------------------------------- */
 
-#chart svg.datamap .legend-step rect {
+#chart .map-legend .legend-step rect {
     stroke: #4F4F4F;
     stroke-width: .1px;
 }
-#chart svg.datamap .legend-step text {
-    font-size: 16px;
+#chart .map-legend .legend-step text {
+    font-size: 0.8em;
 }
-#chart svg.datamap .legend-step line {
+#chart .map-legend .legend-step line {
     stroke: #4F4F4F;
     stroke-width: 1px;
 }
-#chart svg.datamap .legend-description {
-    font-size: 0.7em;
-}
-#chart svg.datamap .border-disclaimer {
+#chart .map-legend .map-label {
     font-size: 0.6em;
 }
-#chart svg.datamap .map-bg {
-    fill: #ECF6FC;
+#chart g.map .border-disclaimer {
+    font-size: 0.6em;
 }
-#chart svg.datamap path {
+#chart g.map path {
     stroke: #4b4b4b !important;
     stroke-width: 0.3px !important;
 }

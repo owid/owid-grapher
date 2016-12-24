@@ -15,8 +15,8 @@
 		});
 
         timeline.flow('bounds : outerBounds', function(outerBounds) {
-            var height = 25;
-            return owid.bounds(outerBounds.left, outerBounds.top+(outerBounds.height-height), outerBounds.width, height);
+            var height = 40;
+            return owid.bounds(outerBounds.left, outerBounds.top+(outerBounds.height-height), outerBounds.width, height).padWidth(outerBounds.width*0.02);
         });
 
 		// Data processing
@@ -67,38 +67,33 @@
 
   		timeline.flow('minYearLabel, maxYearLabel : g', function(g) {
   			return [
-  				g.append('text').attr('class', 'minYearLabel'),
-  				g.append('text').attr('class', 'maxYearLabel').attr('dy', '.3em').style('text-anchor', 'end')
+  				g.append('text').attr('class', 'minYearLabel').style('font-size', '18px').style('fill', '#666'),
+  				g.append('text').attr('class', 'maxYearLabel').style('font-size', '18px').style('fill', '#666').attr('dy', '.3em').style('text-anchor', 'end')
   			];
   		});
 
-  		timeline.flow('minBBox : minYearLabel, minYear, bounds', function(minYearLabel, minYear, bounds) {
-  			return minYearLabel
+  		timeline.flow('minYearBox : minYearLabel, minYear, bounds', function(minYearLabel, minYear, bounds) {
+  			return owid.bounds(minYearLabel
   				.text(minYear)
   				.attr('x', 45)
   				.attr('y', bounds.height/2)
   				.attr('dy', minYearLabel.node().getBBox().height/4)
-  				.node().getBBox();
+  				.node().getBBox());
   		});
 
-  		timeline.flow('maxBBox : maxYearLabel, maxYear, bounds', function(maxYearLabel, maxYear, bounds) {
-  			return maxYearLabel
+  		timeline.flow('maxYearBox : maxYearLabel, maxYear, bounds', function(maxYearLabel, maxYear, bounds) {
+  			return owid.bounds(maxYearLabel
   				.text(maxYear)
   				.attr('x', bounds.width)
   				.attr('y', bounds.height/2)
   				.attr('dy', maxYearLabel.node().getBBox().height/4)
-  				.node().getBBox();
+  				.node().getBBox());
   		});
 
-  		timeline.flow('sliderBounds : minBBox, maxBBox, bounds', function(minBBox, maxBBox, bounds) {
-  			var left = minBBox.x + minBBox.width + 10;
-
-  			return {
-  				left: left,
-  				top: 5,
-  				width: bounds.width - maxBBox.width - left - 10,
-  				height: bounds.height - 10
-  			}
+  		timeline.flow('sliderBounds : minYearBox, maxYearBox, bounds', function(minYearBox, maxYearBox, bounds) {
+            var sliderHeight = 12;
+  			var left = minYearBox.left + minYearBox.width + 10;
+  			return owid.bounds(left, (bounds.height-sliderHeight)/2, bounds.width-maxYearBox.width-left-10, sliderHeight);
   		});
 
   		timeline.flow('xScale : years, sliderBounds', function(years, sliderBounds) {
@@ -107,7 +102,6 @@
 
   		timeline.flow('sliderBackground : g', function(g) {
   			return g.append('rect')
-  				.style('stroke', '#000')
   				.style('stroke-width', 0.1);
   		});
 
@@ -117,29 +111,34 @@
   				.attr('y', sliderBounds.top)
   				.attr('width', sliderBounds.width)
   				.attr('height', sliderBounds.height)
-  				.attr('rx', 10)
-  				.attr('ry', 10)
+  				.attr('rx', 5)
+  				.attr('ry', 5)
   				.attr('fill', '#eee');
-  		})
+  		});
 
   		// Make and position the little marker that you drag around  		
   		timeline.flow('sliderHandle : g', function(g) {
-  			var handle = g.append('g').attr('class', 'handle');
+  			var handle = g.append('g').attr('class', 'handle')
+                .style('fill', '#3F9EFF');
 
   			handle.append('circle')
-  				.attr('r', 5)
-  				.style('fill', 'red');
+  				.attr('r', 8)
+                .style('stroke', '#000')
+                .style('stroke-width', 0.1);
 
   			handle.append('text')  				
-  				.attr('y', -7)
+  				.attr('y', -9)
   				.style('font-size', '0.8em')
   				.style('text-anchor', 'middle');
 
   			return handle;
   		});
 
-  		timeline.flow('sliderHandle, targetYear', function(sliderHandle, targetYear) {
-  			sliderHandle.selectAll('text').text(targetYear);
+  		timeline.flow('sliderHandle, targetYear, minYear, maxYear', function(sliderHandle, targetYear, minYear, maxYear) {
+            if (targetYear == minYear || targetYear == maxYear)
+                sliderHandle.selectAll('text').text('');
+            else
+      			sliderHandle.selectAll('text').text(targetYear);
   		});
 
   		timeline.flow('sliderHandle, xScale, inputYear, sliderBounds', function(sliderHandle, xScale, inputYear, sliderBounds) {
@@ -151,14 +150,14 @@
 			var ticksUpdate = g.selectAll('.tick').data(years.slice(1, -1));
 
 			var ticks = ticksUpdate.enter()
-				.append('rect')
+				.insert('rect', '*')
 				.attr('class', 'tick')
-				.attr('width', '0.2em')
-				.style('fill', '#8ba8ff')
+				.attr('width', '1px')
+				.style('fill', 'rgba(0,0,0,0.2)')
 			  .merge(ticksUpdate)
-			  	.attr('height', sliderBounds.height)
+			  	.attr('height', 5)
 				.attr('x', function(d) { return xScale(d); })
-				.attr('y', sliderBounds.top);
+				.attr('y', sliderBounds.top+sliderBounds.height-1);
 
 			ticksUpdate.exit().remove();
 
