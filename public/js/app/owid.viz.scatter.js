@@ -6,9 +6,9 @@
     owid.control.scatter = function() {
         var control = owid.dataflow();
 
-        control.inputs({
-            props: undefined,
-            hasTimeline: undefined,
+        control.needs('props', 'hasTimeline');
+
+        control.defaults({
             colorScheme: [ // TODO less ad hoc color scheme (probably would have to annotate the datasets)
                 "#5675c1", // Africa
                 "#aec7e8", // Antarctica
@@ -41,7 +41,7 @@
     owid.control.scatterWithoutTimeline = function() {
         var viz = owid.dataflow();
 
-        viz.requires('containerNode', 'bounds', 'axisConfig', 'dimensions', 'variables', 'colorScheme');
+        viz.needs('containerNode', 'bounds', 'axisConfig', 'dimensions', 'variables', 'colorScheme');
 
         // Color scale for color dimension
         viz.flow('colorScale : colorScheme', function(colorScheme) {
@@ -112,6 +112,13 @@
             return data;
         });
 
+        viz.flow('minYear, maxYear : data', function(data) {
+            return [
+                _.min(_.map(data, function(d) { return _.min([d.values[0].time.x, d.values[0].time.y]); })),
+                _.max(_.map(data, function(d) { return _.max([d.values[0].time.x, d.values[0].time.y]); }))
+            ];
+        });
+
         viz.flow('scatter : containerNode', function(containerNode) {
             return owid.view.scatter();
         });
@@ -135,7 +142,7 @@
     owid.control.scatterWithTimeline = function() {
         var viz = owid.dataflow();
 
-        viz.requires('containerNode', 'bounds', 'axisConfig', 'dimensions', 'variables', 'inputYear', 'timelineConfig', 'colorScheme');
+        viz.needs('containerNode', 'bounds', 'axisConfig', 'dimensions', 'variables', 'inputYear', 'timelineConfig', 'colorScheme');
 
         viz.flow('axisDimensions : dimensions', function(dimensions) {            
             return _.filter(dimensions, function(d) { return d.property == 'x' || d.property == 'y'; });
@@ -181,7 +188,7 @@
         });
 
         // Calculate a default input year if none is given
-        viz.flow('inputYear : timelineYears', function(timelineYears) {
+        viz.flow('inputYear : timelineYears', function(timelineYears) {            
             return _.isNumber(viz.inputYear) ? viz.inputYear : _.last(timelineYears);
         });
 
@@ -375,8 +382,8 @@
         });
 
         viz.remove = function() {
-            if (viz.scatter) viz.scatter.remove();
-            if (viz.timeline) viz.timeline.remove();
+            if (viz.scatter) viz.scatter.clean();
+            if (viz.timeline) viz.timeline.clean();
         };
 
         return viz;

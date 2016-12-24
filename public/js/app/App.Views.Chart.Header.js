@@ -128,9 +128,9 @@
 	owid.control.header = function(chart) {
 		var headerControl = owid.dataflow();
 
+		headerControl.needs('containerNode', 'bounds');
+
 		headerControl.inputs({
-			containerNode: undefined,
-			bounds: { left: 0, top: 0, width: 100, height: 100 },
 			titleTemplate: "",
 			titleLink: "",
 			subtitleTemplate: "",
@@ -225,9 +225,14 @@
 
 				minYear = timeFrom;
 				maxYear = timeTo;
-			} else if (chart.model.get('chart-type') == App.ChartType.ScatterPlot) {
+			} else if (chart.model.get('timeline')) {
 				minYear = (chart.model.get('chart-time')||[])[0];
 				maxYear = (chart.model.get('chart-time')||[])[1];
+			} else if (chart.model.get('chart-type') == App.ChartType.ScatterPlot) {
+				if (chart.tabs.chart.viz) {
+					minYear = chart.tabs.chart.viz.scatter.minYear;
+					maxYear = chart.tabs.chart.viz.scatter.maxYear;					
+				}
 			} else {
 				minYear = chart.data.get('minYear');
 				maxYear = chart.data.get('maxYear');

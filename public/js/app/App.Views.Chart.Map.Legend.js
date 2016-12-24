@@ -84,16 +84,16 @@
 			return currentStepOffset;
 		});
 
-		// Create and position label, if any
+		// Create and position/scale label, if any
 		legend.flow('label : g', function(g) {
-			return g.append('text').attr('class', 'label');
+			return g.append('text').attr('class', 'map-label');
 		});
 		legend.flow('labelBBox : label, title', function(label, title) {
 			label.text(title);
 			return label.node().getBBox();
 		});	
 		legend.flow('label, labelBBox, stepsHeight, outerBounds', function(label, labelBBox, stepsHeight, outerBounds) {
-			var scale = Math.min(1, outerBounds.height/labelBBox.width);
+			var scale = Math.min(1, outerBounds.height/(labelBBox.width+50));
 			label.attr("transform", "translate(" + (outerBounds.left + labelBBox.height/2 + 5) + "," + (outerBounds.top + outerBounds.height-11) + ") rotate(270) scale(" + scale + ")");
 		});
 

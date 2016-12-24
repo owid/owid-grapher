@@ -192,8 +192,10 @@
 
 		setAxisConfig: function(axisName, prop, value) {
 			var axis = _.extend({}, this.get(axisName));
-			axis[prop] = value;
-			this.set(axisName, axis);
+			if (axis[prop] !== value) {
+				axis[prop] = value;
+				this.set(axisName, axis);				
+			}
 		},
 
 		getAxisConfig: function(axisName, prop) {

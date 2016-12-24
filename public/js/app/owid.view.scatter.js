@@ -5,9 +5,9 @@
 	owid.view.scatter = function() {
 		var scatter = owid.dataflow();
 
-		scatter.requires('containerNode', 'bounds', 'axisConfig');
+		scatter.needs('containerNode', 'bounds', 'axisConfig');
 
-		scatter.inputs({
+		scatter.defaults({
 			data: [],
 			hoverKey: null,
 			canHover: true
@@ -300,9 +300,9 @@
 	        labels.style("opacity", function(d) { return d.hidden ? 0 : 1; });
 		});
 
-		scatter.remove = function() {
+		scatter.beforeClean(function() {
 			if (scatter.g) scatter.g.remove();
-		};
+		});
 
 		return scatter;
 	};

@@ -291,6 +291,8 @@
             	yAxisSuffix: yAxisSuffix||"",
             });
 
+			chartTab.viz = viz;			
+
 			viz.update({
 				containerNode: chart.svg.node(),
 				bounds: { left: chartOffsetX, top: chartOffsetY+10, width: chartWidth-10, height: chartHeight-10 },
@@ -301,10 +303,7 @@
                 timelineConfig: chart.model.get('timeline')
 			}, function() {
 				postRender();
-			});
-
-			
-			chartTab.viz = viz;			
+			});			
 		}
 
 		function renderStackedArea() {
@@ -429,7 +428,6 @@
 		}
 
 		function renderAxis() {
-			chartTab.scaleSelectors.render(bounds);
 			if (!nvd3) return;
 
 			//get extend
@@ -652,6 +650,7 @@
 
 		function postRender() {
 			ensureLabelsFit();				
+			chartTab.scaleSelectors.render(bounds);
 
 			// Hijack the nvd3 mode switch to store it
 			$(".nv-controlsWrap .nv-series").off('click').on('click', function(ev) {

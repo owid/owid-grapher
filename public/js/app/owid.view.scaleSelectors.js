@@ -75,24 +75,21 @@
 			var legend = chart.tabs.chart.legend;
 
 			if (chart.model.get('chart-type') == App.ChartType.ScatterPlot) {
-				var innerBounds = chart.tabs.chart.viz.scatter.scatter.axisBox.innerBounds;
+				var innerBounds = chart.tabs.chart.viz.scatter.scatter.axisBox.innerBounds.scale(chart.scale);
 
-				xScaleSelector.update({ left: innerBounds.width-10, top: innerBounds.height-15 });
-				yScaleSelector.update({ left: innerBounds.left+10, top: innerBounds.top-3 });
+				xScaleSelector.update({ left: innerBounds.left+innerBounds.width-50, top: innerBounds.top+innerBounds.height-15 });
+				yScaleSelector.update({ left: innerBounds.left-30, top: innerBounds.top-20 });
 			} else {				
-				//position scale dropdowns - TODO - isn't there a better way then with timeout?
-				setTimeout(function() {
-					var rect = d3.select('svg').select('.nv-distWrap');
-					if (rect.empty())
-						rect = d3.select('svg').select('.nv-wrap > g > rect');
-					if (rect.empty())
-						rect = d3.select('svg').select('.nv-background > rect');
+				var rect = d3.select('svg').select('.nv-distWrap');
+				if (rect.empty())
+					rect = d3.select('svg').select('.nv-wrap > g > rect');
+				if (rect.empty())
+					rect = d3.select('svg').select('.nv-background > rect');
 
-					var rectBounds = chart.getTransformedBounds(rect.node());
+				var rectBounds = chart.getTransformedBounds(rect.node());
 
-					xScaleSelector.update({ left: rectBounds.left+rectBounds.width-100, top: rectBounds.height-30 });
-					yScaleSelector.update({ left: rectBounds.left, top: rectBounds.top });
-				}.bind(this), 250);		
+				xScaleSelector.update({ left: rectBounds.left+rectBounds.width-100, top: rectBounds.height-30 });
+				yScaleSelector.update({ left: rectBounds.left, top: rectBounds.top-10 });
 			}
 		};
 

@@ -521,7 +521,6 @@ body:not(.export) #chart {
 
 #chart .scaleSelector {
     position: absolute;
-    z-index: 11;
     font-size: 0.7em;
     color: black;
     text-transform: uppercase;
@@ -538,7 +537,7 @@ body:not(.export) #chart {
 .owid-tooltip h3 {
     padding: 0.3em 0.9em;
     font-size: 1em;
-    margin-top: 0 !important;
+    margin: 0;
     line-height: 18px;
     font-weight: normal;
     background-color: rgba(247,247,247,0.75);
@@ -548,6 +547,7 @@ body:not(.export) #chart {
 .owid-tooltip p {
     font-size: 0.8em;
     padding: 0.3em 0.9em;
+    margin: 0;
 }
 .owid-tooltip .var-popup-value {
     display: block;

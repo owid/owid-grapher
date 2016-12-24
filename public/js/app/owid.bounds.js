@@ -2,57 +2,59 @@
     "use strict";
     owid.namespace("owid.bounds");
 
-    owid.bounds = function() {
-        var bounds = {};
+    var bounds = function() { };
 
-        if (arguments.length == 4) {
-            bounds.left = arguments[0];
-            bounds.top = arguments[1];
-            bounds.width = arguments[2];
-            bounds.height = arguments[3];
-        } else if (_.isObject(arguments[0])) {
-            _.extend(bounds, arguments[0]);
+    bounds.prototype.pad = function() {
+        var padLeft = 0, padRight = 0, padTop = 0, padBottom = 0;
+
+        if (arguments.length == 1) {
+            padLeft = arguments[0];
+            padRight = arguments[0];
+            padTop = arguments[0];
+            padBottom = arguments[0];
+        } else if (arguments.length == 2) {
+            padLeft = arguments[0];
+            padRight = arguments[0];
+            padTop = arguments[1];
+            padBottom = arguments[1];
         }
 
-        bounds.pad = function() {
-            var padLeft = 0, padRight = 0, padTop = 0, padBottom = 0;
+        return owid.bounds(this.left+padLeft, this.top+padTop, this.width-(padLeft+padRight), this.height-(padTop+padBottom));
+    };
 
-            if (arguments.length == 1) {
-                padLeft = arguments[0];
-                padRight = arguments[0];
-                padTop = arguments[0];
-                padBottom = arguments[0];
-            } else if (arguments.length == 2) {
-                padLeft = arguments[0];
-                padRight = arguments[0];
-                padTop = arguments[1];
-                padBottom = arguments[1];
-            }
+    bounds.prototype.padTop = function(padding) {
+        return owid.bounds(this.left, this.top+padding, this.width, this.height-padding);
+    };
 
-            return owid.bounds(bounds.left+padLeft, bounds.top+padTop, bounds.width-(padLeft+padRight), bounds.height-(padTop+padBottom));
-        };
+    bounds.prototype.padLeft = function(padding) {
+        return owid.bounds(this.left+padding, this.top, this.width-padding, this.height);
+    };
 
-        bounds.padTop = function(padding) {
-            return owid.bounds(bounds.left, bounds.top+padding, bounds.width, bounds.height-padding);
-        };
+    bounds.prototype.padBottom = function(padding) {
+        return owid.bounds(this.left, this.top, this.width, this.height-padding);
+    };
 
-        bounds.padLeft = function(padding) {
-            return owid.bounds(bounds.left+padding, bounds.top, bounds.width-padding, bounds.height);
-        };
+    bounds.prototype.padRight = function(padding) {
+        return owid.bounds(this.left, this.top, this.width-padding, this.height);
+    };
 
-        bounds.padBottom = function(padding) {
-            return owid.bounds(bounds.left, bounds.top, bounds.width, bounds.height-padding);
-        };
+    bounds.prototype.scale = function(scale) {
+        return owid.bounds(this.left*scale, this.top*scale, this.width*scale, this.height*scale);
+    };
 
-        bounds.padRight = function(padding) {
-            return owid.bounds(bounds.left, bounds.top, bounds.width-padding, bounds.height);
-        };
+    owid.bounds = function() {
+        var b = new bounds();
 
-        bounds.scale = function(scale) {
-            return owid.bounds(bounds.left*scale, bounds.top*scale, bounds.width*scale, bounds.height*scale);
-        };
+        if (arguments.length == 4) {
+            b.left = arguments[0];
+            b.top = arguments[1];
+            b.width = arguments[2];
+            b.height = arguments[3];
+        } else if (_.isObject(arguments[0])) {
+            _.extend(b, arguments[0]);
+        }
 
-        return bounds;
+        return b;
     };
 })();
 

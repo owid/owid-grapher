@@ -75,7 +75,7 @@
 			model._initials[flow.inputs[0]] = callback;
 		};
 
-		model.flow = function(flowspec, callback) {
+		function addFlow(flowspec, callback) {
 			var flow = parseFlowspec(flowspec);
 			flow.callback = callback;
 
@@ -84,18 +84,24 @@
 			});
 
 			flows.push(flow);
+			return flow;			
+		}
+
+		model.flow = function(flowspec, callback) {
+			addFlow(flowspec, callback);
+			return model;
 		};
 
+		model.flowDebug = function(flowspec, callback) {
+			var flow = addFlow(flowspec, callback);
+			flow.debug = true;
+			return model;
+		}
+
 		model.flowAwait = function(flowspec, callback) {
-			var flow = parseFlowspec(flowspec);
+			var flow = addFlow(flowspec, callback);
 			flow.await = true;
-			flow.callback = callback;
-
-			_.each(flow.outputs, function(key) {
-				defineProperty(key);
-			});
-
-			flows.push(flow);
+			return model;
 		};
 
 		// Immediate flow, requiring inputs
@@ -117,7 +123,16 @@
 		}
 
 		var hasDefaults = false;
-		model.update = function(inputs, callback) {
+		model.isUpdating = false;
+		model.updateQueue = [];
+		function update(inputs, callback) {
+			if (model.isUpdating) {
+				// Queue update
+				model.updateQueue.push([inputs, callback]);
+				return;
+			}
+
+
 			var changes = {};
 
 			if (!hasDefaults) {
@@ -144,18 +159,35 @@
 				}
 			});
 
+/*			_.each(state, function(v, k) {
+				if (v === undefined)
+					throw("Missing input: " + k);
+			});*/
+
 			var flowIndex = 0;
 
+			model.isUpdating = true;
 			function flowCycle() {
 				if (flowIndex >= flows.length) {
 					// End the cycle
+					model.isUpdating = false;
 					if (_.isFunction(callback))
 						callback.apply(this);
+					if (model.updateQueue.length > 0) {
+						var args = model.updateQueue.shift();
+						update.apply(model, args);
+					}
 					return;
 				}
 
 				var flow = flows[flowIndex];
 				flowIndex += 1;
+
+				if (flow.debug) {
+					_.each(flow.inputs, function(key) {
+						console.log(key, state[key], !!changes[key]);
+					});
+				}
 
 				var inputChanged =_.any(flow.inputs, function(k) { return _.has(changes, k); });
 				if (!inputChanged) return flowCycle();
@@ -186,7 +218,10 @@
 							result = outputs[i],
 							oldResult = state[key];
 
-                        state[key] = result;
+						if (flow.debug) {
+							console.log("=> " + key + " =", result);
+						}
+                        state[key] = result;                        
 						if ((result && result.hasOwnProperty('state')) || !isEqual(oldResult, result)) {
 							changes[key] = true;
 						}
@@ -200,6 +235,7 @@
 			return model;
 		};
 
+		model.update = update;
 		return model;
 	};
 })();

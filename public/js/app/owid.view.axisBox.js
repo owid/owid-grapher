@@ -5,11 +5,7 @@
 	owid.view.axisBox = function() {
 		var box = owid.dataflow();
 
-		box.inputs({
-			svg: undefined,
-			bounds: { left: 0, top: 0, width: 100, height: 100 },
-			axisConfig: {}
-		});
+		box.needs('svg', 'bounds', 'axisConfig');
 
 		box.flow('g : svg', function(svg) {
 			return svg.append('g').attr('class', 'axisBox');
@@ -46,7 +42,7 @@
 		});
 
 		box.flow("innerBounds : bounds, innerWidth, innerHeight", function(bounds, innerWidth, innerHeight) {
-			return { left: bounds.left + (bounds.width-innerWidth), top: bounds.top, width: innerWidth, height: innerHeight };
+			return owid.bounds(bounds.left + (bounds.width-innerWidth), bounds.top, innerWidth, innerHeight);
 		});
 
 		// Go back and rerender the x axis to match
