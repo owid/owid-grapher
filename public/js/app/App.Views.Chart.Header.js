@@ -69,15 +69,21 @@
 
 		header.flow('titleBox, titleFontSize : title, titleStr, boundsForText', function(title, titleStr, boundsForText) {
 			// Try to fit the title into a single line if possible-- but not if it would make the text super small
-			var fontSize = 1.5;
-			title.style('font-size', fontSize + 'em');
-			owid.svgSetWrappedText(title, titleStr, boundsForText.width, { lineHeight: 1.1 });
 
-			while (fontSize > 1.0 && title.selectAll('tspan').size() > 1) {
-				fontSize -= 0.05;
+			function resizeTitle(fontSize) {
 				title.style('font-size', fontSize + 'em');
-				owid.svgSetWrappedText(title, titleStr, boundsForText.width, { lineHeight: 1.1 });
+				owid.svgSetWrappedText(title, titleStr, boundsForText.width, { lineHeight: 1.1 });				
 			}
+
+			var fontSize = 1.5;
+			resizeTitle(fontSize);
+			while (fontSize > 1.0 && title.selectAll('tspan').size() > 1) {
+				resizeTitle(fontSize);
+				fontSize -= 0.05;
+			}			
+
+			if (fontSize <= 1.0)
+				resizeTitle(1.1);
 
 			title.attr('y', boundsForText.top);
 			title.attr('y', boundsForText.top-title.node().getBBox().y);

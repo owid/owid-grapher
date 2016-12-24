@@ -130,13 +130,23 @@
 				share: owid.component.shareTab(chart)
 			};
 		});
-		chart.flow('activeTab : tabs, activeTabName', function(tabs, activeTabName) {
+
+		// We only ever have one "active tab", but some tabs render on top of others
+		chart.flow('primaryTab : tabs, activeTabName', function(tabs, activeTabName) {
 			var tab = tabs[activeTabName];
 
-			if (chart.activeTab && (!tab.isOverlay || chart.activeTab.isOverlay))
-				chart.activeTab.clean();
+			if (tab.isOverlay)
+				return chart.primaryTab;
 
-			return tab;
+			if (chart.primaryTab && !tab.isOverlay)
+				chart.primaryTab.clean();
+
+			return tab.isOverlay ? chart.primaryTab : tab;
+		});
+		chart.flow('overlayTab : tabs, activeTabName', function(tabs, activeTabName) {
+			var tab = tabs[activeTabName];
+			if (chart.overlayTab) chart.overlayTab.clean();
+			return tab.isOverlay ? tab : null;
 		});
 
 		chart.flow('isPortrait : outerBounds', function(outerBounds) {
@@ -178,7 +188,7 @@
 			el.style('font-size', 16*scale + 'px');
 		});
 
-		chart.flow('activeTab, scale', function() { 
+		chart.flow('activeTabName, scale', function() { 
 			chart.data.ready(chart.render);
 		});
 
@@ -187,7 +197,7 @@
 		});
 
 		chart.render = function() {
-			chart.now('el, header, controlsFooter, creditsFooter, activeTab, innerBounds, scale, loadingIcon', function(el, header, controlsFooter, creditsFooter, activeTab, innerBounds, scale, loadingIcon) {
+			chart.now('el, header, controlsFooter, creditsFooter, primaryTab, overlayTab, innerBounds, scale, loadingIcon', function(el, header, controlsFooter, creditsFooter, primaryTab, overlayTab, innerBounds, scale, loadingIcon) {
 				chart.data.transformData();
 				var bounds = innerBounds.pad(15);
 
@@ -202,10 +212,11 @@
 
 				bounds = bounds.padBottom(creditsFooter.height);
 
-				if (activeTab.isOverlay)
-					activeTab.render(innerBounds.padBottom(controlsFooter.height+2));
-				else
-					activeTab.render(bounds);
+				if (primaryTab)
+					primaryTab.render(bounds);
+
+				if (overlayTab)
+					overlayTab.render(innerBounds.padBottom(controlsFooter.height+2));
 
 				loadingIcon.classed('hidden', true);
 			});

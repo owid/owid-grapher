@@ -155,13 +155,13 @@
 
 		// Make ticks on the slider representing years with available data
         timeline.flow('ticksG : g', function(g) {
-            return g.append('g').attr('class', 'ticks');
+            return g.insert('g', '.sliderBackground').attr('class', 'ticks');
         });
 		timeline.flow("ticks : ticksG, years, xScale, sliderBounds", function(ticksG, years, xScale, sliderBounds) {
 			var ticksUpdate = ticksG.selectAll('.tick').data(years.slice(1, -1));
 
 			var ticks = ticksUpdate.enter()
-				.insert('rect', '.sliderBackground')
+				.append('rect')
 				.attr('class', 'tick')
 				.attr('width', '1px')
 				.style('fill', 'rgba(0,0,0,0.2)')

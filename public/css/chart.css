@@ -21,28 +21,8 @@ button {
 }
 
 #chart .btn {
-    padding: 1em 1.5em;
-    text-align: center;
-    color: #333;
-    text-decoration: none;
-}
-
-#chart .btn > i {
-    background-color: #333;
-    color: white;
-    text-align: center;
-    font-size: 1em;
-    width: 1.8em;
-    height: 1.8em;
-    line-height: 1.8em;
-    margin-right: 2px;
-    border-radius: 2px;
-    position: relative;
-}
-
-#chart .btn:hover {
-    text-decoration: none;
-    background-color: #eee;
+    font-size: 0.8em;
+    white-space: normal;
 }
 
 body.chart-container {
@@ -210,7 +190,7 @@ select.disabled {
     border-radius: 2px;
 
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    color: #000000;
+    color: #333;
     background: white;
 
     position: relative;
@@ -225,13 +205,10 @@ body:not(.export) #chart {
     box-shadow: 0 3px 5px 0 rgba(0,0,0,0.2);
 }
 
-#chart a {
+a {
     cursor: pointer;
     color: #0645ad;
     fill: #0645ad;
-}
-#chart a:hover {
-    text-decoration: underline;
 }
 #chart .logos {
     float: right;
@@ -379,7 +356,7 @@ body:not(.export) #chart {
 --------------------------------------------- */
 
 #chart .title {
-    fill: #35322F;
+    fill: #444;
 }
 #chart .title {
     text-decoration: none !important;
@@ -403,7 +380,7 @@ body:not(.export) #chart {
 }
 #chart .footer a.bold {
     font-weight: bold;
-    fill: rgb(51, 51, 51) !important;
+    fill: #666;
 }
 
 /* Legend
@@ -608,6 +585,7 @@ body:not(.export) #chart {
     justify-content: center;
     border-radius: 5px;
     background: rgba(255,255,255,0.95);
+    padding: 1em;
 }
 
 #chart h2 {
@@ -683,6 +661,32 @@ body:not(.export) #chart {
     display: flex;
     justify-content: center;
 }
+
+#chart .shareMenu .btn {
+    padding: 1em 1.5em;
+    text-align: center;
+    color: #333;
+    text-decoration: none;
+}
+
+#chart .shareMenu .btn > i {
+    background-color: #333;
+    color: white;
+    text-align: center;
+    font-size: 1em;
+    width: 1.8em;
+    height: 1.8em;
+    line-height: 1.8em;
+    margin-right: 2px;
+    border-radius: 2px;
+    position: relative;
+}
+
+#chart .btn-share:hover {
+    text-decoration: none;
+    background-color: #eee;
+}
+
 
 #chart .shareMenu section.share {
     margin-right: 3em;
