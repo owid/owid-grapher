@@ -1,15 +1,15 @@
 ;(function(d3) {
     "use strict";
-    owid.namespace("owid.control.mapWithTimeline");
+    owid.namespace("owid.mapTab.mapTab");
 
-    owid.control.mapWithTimeline = function(chart) {
-        var control = owid.dataflow();
+    owid.component.mapTab = function(chart) {
+        var mapTab = owid.dataflow();
 
-        control.requires('containerNode', 'bounds', 'colorData', 'years', 'inputYear', 'legendData', 'legendTitle', 'projection');
+        mapTab.requires('containerNode', 'bounds', 'colorData', 'years', 'inputYear', 'legendData', 'legendTitle', 'projection');
 
-        control.initial('map', function() { return owid.view.map(); });
-        control.initial('legend', function() { return owid.view.mapLegend(); });
-        control.initial('timeline', function() { 
+        mapTab.initial('map', function() { return owid.view.map(); });
+        mapTab.initial('legend', function() { return owid.view.mapLegend(); });
+        mapTab.initial('timeline', function() { 
             var timeline = owid.view.timeline(); 
 
             timeline.flow('targetYear', function(targetYear) {
@@ -24,7 +24,7 @@
             return timeline;
         });
 
-        control.flow('timeline, years, inputYear, containerNode, bounds', function(timeline, years, inputYear, containerNode, bounds) {
+        mapTab.flow('timeline, years, inputYear, containerNode, bounds', function(timeline, years, inputYear, containerNode, bounds) {
             timeline.update({
                 years: years,
                 inputYear: inputYear,
@@ -33,11 +33,11 @@
             });
         });
 
-        control.flow('boundsForMap : timeline, bounds', function(timeline, bounds) {
+        mapTab.flow('boundsForMap : timeline, bounds', function(timeline, bounds) {
             return { left: bounds.left, top: bounds.top, width: bounds.width, height: bounds.height-timeline.bounds.height };
         });
 
-        control.flow('map, colorData, containerNode, boundsForMap, projection', function(map, colorData, containerNode, boundsForMap, projection) {
+        mapTab.flow('map, colorData, containerNode, boundsForMap, projection', function(map, colorData, containerNode, boundsForMap, projection) {
             map.update({ 
                 colorData: colorData,
                 containerNode: containerNode,
@@ -49,7 +49,7 @@
             });
         });
 
-        control.flow('legend, legendData, legendTitle, containerNode, boundsForMap', function(legend, legendData, legendTitle, containerNode, boundsForMap) {
+        mapTab.flow('legend, legendData, legendTitle, containerNode, boundsForMap', function(legend, legendData, legendTitle, containerNode, boundsForMap) {
             legend.update({
                 legendData: legendData,
                 title: legendTitle,
@@ -84,15 +84,35 @@
             });
         }
 
-        control.beforeClean(function() {
+        mapTab.beforeClean(function() {
             onHoverStop();
-            control.now('map, timeline, legend', function(map, timeline, legend) {
+            mapTab.now('map, timeline, legend', function(map, timeline, legend) {
                 map.clean();
                 timeline.clean();
                 legend.clean();
             });
         });
 
-        return control;
+        mapTab.render = function(bounds) {
+            if (!chart.map.getVariable()) {
+                chart.showMessage("No variable selected for map.");
+                return;
+            }
+
+            chart.mapdata.update();
+
+            mapTab.update({
+                containerNode: chart.svg.node(),
+                bounds: bounds,
+                colorData: chart.mapdata.currentValues,
+                years: chart.map.getYears(),
+                inputYear: chart.map.get('targetYear'),
+                legendData: chart.mapdata.legendData,
+                legendTitle: chart.mapdata.legendTitle||null,
+                projection: chart.map.get('projection')
+            }, chart.dispatch.renderEnd);
+        };
+
+        return mapTab;
     };
 })(d3v4);

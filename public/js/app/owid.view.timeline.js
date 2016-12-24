@@ -56,7 +56,7 @@
 			return g.append("text")
 			  .attr('class', 'toggle')
 			  .style("font-family","FontAwesome")
-			  .style('font-size', '1.7em')
+			  .style('font-size', '1.4em')
 			  .style('cursor', 'pointer')
 			  .text('\uf28c'); 
   		});

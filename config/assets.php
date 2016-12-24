@@ -187,7 +187,6 @@ return [
 		        'app/owid.view.timeline.js',
 		        'app/owid.viz.scatter.js',
 		        'app/owid.view.entitySelect.js',
-		        'app/owid.control.mapWithTimeline.js',
 		        'app/owid.view.controlsFooter.js',
 		        'app/App.Views.Chart.Legend.js',
 		        'app/App.Views.Chart.ChartTab.js',
@@ -197,13 +196,9 @@ return [
 
 		        'app/owid.data.world.js',
 		        'app/App.Views.Chart.Map.MapControls.js',
-		        'app/App.Views.Chart.Map.PlayPauseControl.js',
-		        'app/App.Views.Chart.Map.TimelineControl.js',
-		        'app/App.Views.Chart.Map.ButtonsControl.js',
-		        'app/App.Views.Chart.Map.TimelineControls.js',
 		        'app/App.Views.Chart.Map.Projections.js',
 		        'app/App.Views.Chart.Map.Legend.js',
-		        'app/App.Views.Chart.MapTab.js',
+		        'app/owid.component.mapTab.js',
 
 		        'app/App.Views.ChartURL.js',
 		        'app/App.Views.Export.js',

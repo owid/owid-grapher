@@ -202,7 +202,7 @@
 					year = mapConfig.targetYear,
 					hasTargetYear = _.find(chart.mapdata.currentValues, function(d) { return d.year == year; }),
 					d = owid.displayYear,
-					timeline = chart.tabs.map.control.timeline;
+					timeline = chart.tabs.map.timeline;
 
 
 				if (timeline && (timeline.isPlaying || timeline.isDragging))
