@@ -51,7 +51,11 @@
             b.width = arguments[2];
             b.height = arguments[3];
         } else if (_.isObject(arguments[0])) {
-            _.extend(b, arguments[0]);
+            var obj = arguments[0];
+            b.left = obj.left || obj.x;
+            b.top = obj.top || obj.y;
+            b.width = obj.width;
+            b.height = obj.height;
         }
 
         return b;

@@ -23,7 +23,7 @@
 
 		// Render the logos first as they affect the positioning of the text
 
-		header.flow('boundsForText : g, logosSVG, bounds', function(g, logosSVG, bounds) {
+		header.flow('boundsForText, logoHeight : g, logosSVG, bounds', function(g, logosSVG, bounds) {
 			var logoUpdate = g.selectAll('.logo').data(logosSVG);
 			var logos = logoUpdate.enter().append('g').attr('class', 'logo').merge(logoUpdate);
 
@@ -42,7 +42,7 @@
                 logoHeight = bbox.height*scale;
 			});
 
-			return _.extend({}, bounds, { left: 0, top: 0, width: offsetX - 10, height: bounds.height, logoHeight: logoHeight });
+			return [owid.bounds(0, 0, offsetX-10, bounds.height), logoHeight];
 		});
 
 		header.flow('titleLinkEl : g', function(g) {
@@ -67,7 +67,7 @@
 			title.style('font-size', titleSizeScale(s.stripTags(titleStr).length) + 'em');
 		});
 
-		header.flow('titleBBox, titleFontSize : title, titleStr, boundsForText', function(title, titleStr, boundsForText) {
+		header.flow('titleBounds, titleFontSize : title, titleStr, boundsForText', function(title, titleStr, boundsForText) {
 			// Try to fit the title into a single line if possible-- but not if it would make the text super small
 			var fontSize = 1.5;
 			title.style('font-size', fontSize + 'em');
@@ -79,7 +79,7 @@
 				owid.svgSetWrappedText(title, titleStr, boundsForText.width, { lineHeight: 1.1 });
 			}
 
-			return [title.node().getBBox(), fontSize];
+			return [owid.bounds(title.node().getBBox()), fontSize];
 		});
 
 		header.flow('subtitle : g', function(g) {
@@ -88,12 +88,12 @@
 				.attr('dy', '1em');
 		});
 
-		header.flow('subtitle, titleBBox, titleFontSize, subtitleStr, boundsForText, bounds, g', function(subtitle, titleBBox, titleFontSize, subtitleStr, boundsForText, bounds, g) {
+		header.flow('subtitle, titleBounds, titleFontSize, subtitleStr, boundsForText, logoHeight, bounds, g', function(subtitle, titleBounds, titleFontSize, subtitleStr, boundsForText, logoHeight, bounds, g) {
             var width = boundsForText.width;
-            if (titleBBox.height > boundsForText.logoHeight)
+            if (titleBounds.height > logoHeight)
                 width = bounds.width;
 
-			subtitle.attr('x', boundsForText.left).attr('y', boundsForText.top + titleBBox.height + 2);
+			subtitle.attr('x', boundsForText.left).attr('y', boundsForText.top + titleBounds.height + 2);
 
 			// Subtitle text must always be smaller than title text. 
 			var fontSize = Math.min(0.8, titleFontSize-0.3);
