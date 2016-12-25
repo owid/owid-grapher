@@ -615,12 +615,16 @@
 		}
 
 		function ensureLabelsFit() {
+			var targetHeight = viz ? d3.select('.axisBox').node().getBBox().height : chartHeight,
+				targetWidth = chartWidth;
+
+
 			if (xAxis['axis-label']) {
 				var xAxisLabel = d3.select('.nv-x .nv-axislabel, .bottom.axis .axis-label');
 
 				xAxisLabel.attr('transform', '');
 				var box = xAxisLabel.node().getBBox(),
-					diff = box.width-(chartWidth-10);
+					diff = box.width-(targetWidth-10);
 
 				if (diff > 0) {
 					var scale = (box.width-diff)/box.width,
@@ -638,7 +642,7 @@
 				yAxisLabel.attr('transform', 'rotate(-90)');
 
 				var box = yAxisLabel.node().getBBox(),
-					diff = box.width-(chartHeight-10);
+					diff = box.width-(targetHeight-30);
 
 				if (diff > 0) {
 					var scale = (box.width-diff)/box.width,

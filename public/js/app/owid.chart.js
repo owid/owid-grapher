@@ -196,30 +196,32 @@
 		});
 
 		chart.render = function() {
-			chart.now('el, header, controlsFooter, creditsFooter, primaryTab, overlayTab, innerBounds, scale, loadingIcon', function(el, header, controlsFooter, creditsFooter, primaryTab, overlayTab, innerBounds, scale, loadingIcon) {
-				loadingIcon.classed('hidden', false);
+			requestAnimationFrame(function() {
+				chart.now('el, header, controlsFooter, creditsFooter, primaryTab, overlayTab, innerBounds, scale, loadingIcon', function(el, header, controlsFooter, creditsFooter, primaryTab, overlayTab, innerBounds, scale, loadingIcon) {
+					loadingIcon.classed('hidden', false);
 
-				chart.data.transformData();
-				var bounds = innerBounds.pad(15);
+					chart.data.transformData();
+					var bounds = innerBounds.pad(15);
 
-				header.render(bounds);
-				bounds = bounds.padTop(header.view.bbox.height);
+					header.render(bounds);
+					bounds = bounds.padTop(header.view.bbox.height);
 
-				controlsFooter.render(bounds);
-				bounds = bounds.padBottom(controlsFooter.height);
+					controlsFooter.render(bounds);
+					bounds = bounds.padBottom(controlsFooter.height);
 
-	//			owid.boundsDebug(bounds);
-				creditsFooter.render(bounds);
+		//			owid.boundsDebug(bounds);
+					creditsFooter.render(bounds);
 
-				bounds = bounds.padBottom(creditsFooter.height);
+					bounds = bounds.padBottom(creditsFooter.height);
 
-				if (primaryTab)
-					primaryTab.render(bounds);
+					if (primaryTab)
+						primaryTab.render(bounds);
 
-				if (overlayTab)
-					overlayTab.render(innerBounds.padBottom(controlsFooter.height+2));
+					if (overlayTab)
+						overlayTab.render(innerBounds.padBottom(controlsFooter.height+2));
 
-				loadingIcon.classed('hidden', true);
+					loadingIcon.classed('hidden', true);
+				});
 			});
 		};
 
