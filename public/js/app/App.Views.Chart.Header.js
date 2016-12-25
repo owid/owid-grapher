@@ -24,13 +24,13 @@
 		// Render the logos first as they affect the positioning of the text
 
 		header.flow('boundsForText, logoHeight : g, logosSVG, bounds', function(g, logosSVG, bounds) {
-			var logoUpdate = g.selectAll('.logo').data(logosSVG);
+			var logoUpdate = g.selectAll('.logo').data(logosSVG||[]);
 			var logos = logoUpdate.enter().append('g').attr('class', 'logo').merge(logoUpdate);
 
 			// Go through and position/scale the logos as needed
 			var targetHeight = 50;
 			var offsetX = bounds.width;
-            var logoHeight;
+            var logoHeight = 0;
 			logos.each(function(d) {
 				this.innerSVG = d.match(/<svg>(.*)<\/svg>/)[1]||d;
 
@@ -234,14 +234,9 @@
 
 				minYear = year;
 				maxYear = year;
-			} else if (chart.model.get('timeline')) {
+			} else if (chart.model.get('chart-type') == App.ChartType.ScatterPlot) {
 				minYear = (chart.model.get('chart-time')||[])[0];
 				maxYear = (chart.model.get('chart-time')||[])[1];
-			} else if (chart.model.get('chart-type') == App.ChartType.ScatterPlot) {
-				if (chart.tabs.chart.viz) {
-					minYear = chart.tabs.chart.viz.scatter.minYear;
-					maxYear = chart.tabs.chart.viz.scatter.maxYear;					
-				}
 			} else {
 				minYear = chart.data.get('minYear');
 				maxYear = chart.data.get('maxYear');

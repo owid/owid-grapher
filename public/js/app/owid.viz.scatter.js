@@ -4,7 +4,8 @@
     owid.namespace("owid.control.scatter");
 
     owid.control.scatter = function() {
-        var control = {};
+        var control = owid.dataflow();
+
         var colorScheme = [ // TODO less ad hoc color scheme (probably would have to annotate the datasets)
                 "#5675c1", // Africa
                 "#aec7e8", // Antarctica
@@ -31,6 +32,10 @@
             if (!hasTimeline) props = _.omit(props, 'timelineConfig', 'inputYear');
             control.scatter.update(_.extend({}, props, { colorScheme: colorScheme }), callback);
         };
+
+        control.beforeClean(function() {
+            if (control.scatter) control.scatter.clean();
+        });
 
         return control;
     };
@@ -114,6 +119,11 @@
                 _.min(_.map(data, function(d) { return _.min([d.values[0].time.x, d.values[0].time.y]); })),
                 _.max(_.map(data, function(d) { return _.max([d.values[0].time.x, d.values[0].time.y]); }))
             ];
+        });
+
+        // hack to get data to header
+        viz.flow('minYear, maxYear', function(minYear, maxYear) {
+            chart.model.set('chart-time', [minYear, maxYear]);
         });
 
         viz.flow('scatter : containerNode', function(containerNode) {
