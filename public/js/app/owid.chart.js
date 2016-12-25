@@ -8,7 +8,7 @@
 
 		// Set up models and data processors
 
-		chart.requires('containerNode', 'chartConfig', 'outerBounds');
+		chart.requires('containerNode', 'chartConfig', 'outerBounds', 'activeTabName');
 
 		chart.defaults({
 			landscapeAuthorDimensions: [900, 600],
@@ -17,7 +17,6 @@
 			isEmbed: window.self != window.top || App.isEditor,
 			isEditor: App.isEditor,
 			isMobile: d3.select('html').classed('touchevents'),
-			activeTabName: null,
 			dispatch: d3.dispatch('renderEnd')
 		});
 
@@ -53,7 +52,7 @@
 		});
 
 		chart.flow('url : model', function(model) {
-			return owid.view.urlBinder(chart);
+			return owid.component.urlBinder(chart);
 		});
 
 		chart.flow('exporter : model', function(model) {
@@ -66,10 +65,6 @@
 
 		chart.flow('tooltip : model', function(model) {
 			return new owid.view.tooltip(chart);
-		});
-
-		chart.flow('activeTabName : model', function(model) {
-			return chart.activeTabName || model.get('default-tab');			
 		});
 
 		chart.flow('header : model', function() { return owid.control.header(chart); });

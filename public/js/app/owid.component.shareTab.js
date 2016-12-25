@@ -55,7 +55,7 @@
     owid.view.shareMenu = function() {
         var shareMenu = owid.dataflow();
 
-        shareMenu.needs('containerNode', 'title', 'baseUrl', 'queryStr', 'cacheTag');
+        shareMenu.needs('containerNode', 'title', 'baseUrl', 'queryStr', 'cacheTag', 'editUrl');
 
         shareMenu.flow('el : containerNode', function(containerNode) {
             var el = d3.select(containerNode).append('div').attr('class', 'shareMenu');
@@ -71,37 +71,41 @@
                 });
             }, 50);
 
+            el.append('h2').html('Share');
+
             return el;
         });        
 
         // Share section
 
-        shareMenu.flow('shareSection : el', function(el) {
-            var shareSection = el.append('section').attr('class', 'share');
-            shareSection.append('h2').html('Share');
-            return shareSection;
-        });
-
-        shareMenu.flow('linkBtn, twitterBtn, facebookBtn, embedBtn, pngBtn, svgBtn : shareSection', function(shareSection) {
+        shareMenu.flow('linkBtn, twitterBtn, facebookBtn, embedBtn, pngBtn, svgBtn : el', function(el) {
             return [
-                shareSection.append('a').attr('class', 'btn btn-facebook').attr('target', '_blank')
+                el.append('a').attr('class', 'btn btn-facebook').attr('target', '_blank')
                   .attr('title', "Link to visualization").html('<i class="fa fa-link"></i> Link'),
 
-                shareSection.append('a').attr('class', 'btn btn-twitter').attr('target', '_blank')
+                el.append('a').attr('class', 'btn btn-twitter').attr('target', '_blank')
                   .attr('title', "Tweet a link").html('<i class="fa fa-twitter"></i> Twitter'),
 
-                shareSection.append('a').attr('class', 'btn btn-facebook').attr('target', '_blank')
+                el.append('a').attr('class', 'btn btn-facebook').attr('target', '_blank')
                   .attr('title', "Share on Facebook").html('<i class="fa fa-facebook"></i> Facebook'),
 
-                shareSection.append('a').attr('class', 'btn btn-embed')
+                el.append('a').attr('class', 'btn btn-embed')
                   .attr('title', "Embed this visualization in another HTML document").html('<i class="fa fa-code"></i> Embed'),
 
-                shareSection.append('a').attr('class', 'btn btn-png').attr('target', '_blank')
+                el.append('a').attr('class', 'btn btn-png').attr('target', '_blank')
                   .attr('title', "Save visualization in raster format").html('<i class="fa fa-download"></i> Save as PNG'),
 
-                shareSection.append('a').attr('class', 'btn btn-svg').attr('target', '_blank')
+                el.append('a').attr('class', 'btn btn-svg').attr('target', '_blank')
                   .attr('title', "Save visualization in vector graphics format").html('<i class="fa fa-download"></i> Save as SVG'),
             ];
+        });
+
+        shareMenu.flow('editBtn : el, editUrl', function(el, editUrl) {
+            if (editUrl)
+                el.append('a').attr('class', 'btn btn-edit').attr('target', '_blank')
+                    .attr('href', editUrl).attr('title', 'Edit chart').html('<i class="fa fa-edit"></i> Edit');
+            else
+                el.selectAll('.btn-edit').remove();
         });
 
         shareMenu.flow('twitterBtn, title, baseUrl, queryStr', function(twitterBtn, title, baseUrl, queryStr) {

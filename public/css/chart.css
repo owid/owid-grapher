@@ -664,6 +664,7 @@ a {
     border: 1px solid #e0e0e0;
     box-shadow: 0 0 2px 0 rgba(0,0,0,0.12), 0 2px 2px 0 rgba(0,0,0,0.24);
     padding-bottom: 0.5em;
+    width: 15em;
 }
 
 #chart .shareMenu h2 {
@@ -676,7 +677,7 @@ a {
     width: 100%;
     padding: 1em 1.5em;
     padding-right: 3em;
-    text-align: center;
+    text-align: left;
     color: #333;
     text-decoration: none;
 }

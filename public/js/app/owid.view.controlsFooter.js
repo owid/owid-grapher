@@ -69,7 +69,6 @@
                 containerNode: chart.el.node(),
                 tabNames: chart.model.get('tabs'),
                 activeTabName: chart.activeTabName,
-                editUrl: Cookies.get('isAdmin') ? (Global.rootUrl + '/charts/' + chart.model.get('id') + '/edit') : null,
             });
 
             footer.dispatch.on('moreActions', function() {
@@ -79,7 +78,8 @@
                         title: document.title.replace(" - Our World In Data", ""),
                         baseUrl: Global.rootUrl + '/' + chart.model.get('chart-slug'),
                         queryStr: chart.url.lastQueryStr||"",
-                        cacheTag: chart.model.get("variableCacheTag")                    
+                        cacheTag: chart.model.get("variableCacheTag"),
+                        editUrl: Cookies.get('isAdmin') ? (Global.rootUrl + '/charts/' + chart.model.get('id') + '/edit') : null,                        
                     });                    
                 });
             });

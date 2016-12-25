@@ -37,7 +37,7 @@
             });
 
             searchInput.on('keydown', function() {
-                if (d3.event.code == 'Enter') {
+                if (d3.event.keyCode == 13) {
                     entitySelect.now('searchResults', function(searchResults) {
                         if (!_.isEmpty(searchResults))
                             entitySelect.select(searchResults[0]);

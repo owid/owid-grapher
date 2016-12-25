@@ -1,7 +1,7 @@
-/* App.Views.ChartURL.js                                                             
+/* owid.component.urlBinder.js
  * ================                                                             
  *
- * This view is responsible for handling data binding between the
+ * This component is responsible for handling data binding between the
  * the chart and url parameters, to enable nice linking support
  * for specific countries and years.
  *
@@ -12,9 +12,9 @@
 
 ;(function() {
 	"use strict";
-	owid.namespace("owid.view.urlBinder");
+	owid.namespace("owid.component.urlBinder");
 
-	owid.view.urlBinder = function() {
+	owid.component.urlBinder = function(chart) {
 		function urlBinder() { }
 
 		// Keep the query params separate between map and the other tabs
@@ -27,21 +27,17 @@
 		urlBinder.chartQueryStr = '?';
 
 		function initialize() {
-			if (chart.isEditor) return;
-
 			chart.flow('activeTabName', onTabChange);
 
-			chart.model.on("change:selected-countries", updateCountryParam);	
-			chart.model.on("change:activeLegendKeys", updateLegendKeys);		
+			chart.model.on("change:selected-countries", updateCountryParam);
+			chart.model.on("change:activeLegendKeys", updateLegendKeys);	
 			chart.map.on("change:targetYear", updateYearParam);
-			chart.map.on("change:mode change:projection change:isColorblind", updateMapParams);			
+			chart.map.on("change:mode change:projection change:isColorblind", updateMapParams);
 			chart.model.on("change:currentStackMode", updateStackMode);
 			chart.model.on("change:x-axis", updateAxisScales);
 			chart.model.on("change:y-axis", updateAxisScales);
 			chart.model.on("change:chart-time", updateTime);
 			populateFromURL();
-
-			lastTabName = chart.activeTabName;
 		};
 
 		/**
@@ -141,18 +137,20 @@
 			if (lastTabName == "map" && tabName != "map") {
 				urlBinder.mapQueryStr = window.location.search;
 				owid.setQueryStr(urlBinder.chartQueryStr);
-				urlBinder.lastQueryStr = urlBinder.chartQueryStr;
-			} else if (lastTabName != "map" && lastTabName != null && tabName == "map") {				
+			} else if (lastTabName == "map" && tabName != "map") {				
 				urlBinder.chartQueryStr = window.location.search;
 				owid.setQueryStr(urlBinder.mapQueryStr);
-				urlBinder.lastQueryStr = urlBinder.mapQueryStr;
 			}
+
 			if (tabName == originalDefaultTab)
 				owid.setQueryVariable("tab", null);
 			else
 				owid.setQueryVariable("tab", tabName);
 
 			lastTabName = tabName;
+
+			if (tabName == 'chart' || tabName == 'map')
+				urlBinder.lastQueryStr = window.location.search;
 		}
 
 		/**

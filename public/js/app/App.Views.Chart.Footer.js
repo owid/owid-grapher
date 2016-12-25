@@ -63,20 +63,18 @@
 			var g = svg.append("g").attr("class", "footer");
 
 			var footerSourceEl = g.append("text")
-				.attr('dominant-baseline', 'hanging')
 				.attr("x", 0)
-				.attr("y", 0)
+				.attr("y", 12)
 				.attr("dy", 0);
 
 			owid.svgSetWrappedText(footerSourceEl, footerSource, bounds.width, { lineHeight: 1.1 });
+			var sourceBox = footerSourceEl.node().getBBox();
 
 			if (footerNote) {
-				var sourceBBox = footerSourceEl.node().getBBox();
-
 				var footerNoteEl = g.append("text")
 						.attr("class", "footer-note-svg")
 						.attr("x", 0)
-						.attr("y", sourceBBox.y+sourceBBox.height)
+						.attr("y", sourceBox.y+sourceBox.height)
 						.attr("dy", "1.5em");
 
 				owid.svgSetWrappedText(footerNoteEl, footerNote, bounds.width, { lineHeight: 1.1 });				
@@ -91,18 +89,16 @@
 
 			owid.svgSetWrappedText(footerLicenseEl, footerLicense, bounds.width, { lineHeight: 1.1 });
 
-			var sourceBBox = footerSourceEl.node().getBBox(),
-				licenseBBox = footerLicenseEl.node().getBBox();
+			var licenseBBox = footerLicenseEl.node().getBBox();
 
 			// Move the license stuff over to the right if there is space to do so
 
-			if (bounds.width - sourceBBox.width > licenseBBox.width+10) {
+			if (bounds.width - sourceBox.width > licenseBBox.width+10) {
 				footerLicenseEl
 					.attr('x', bounds.width)
-					.attr('y', 0)
+					.attr('y', 12)
 					.attr('dy', 0)
-					.attr('text-anchor', 'end')
-					.attr('dominant-baseline', 'hanging');
+					.attr('text-anchor', 'end');
 			}
 
 			$(".footer .source-link").click(function(ev) {
