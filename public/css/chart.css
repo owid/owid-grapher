@@ -652,19 +652,30 @@ a {
     margin-top: 0.3em;
 }
 
-/* Share Tab
+/* Share Menu
 --------------------------------------------- */
 
 #chart .shareMenu {
-    padding: 1em;
+    position: absolute;
+    right: 1em;
+    bottom: 1em;
     text-align: left;
     background: rgba(255,255,255,0.95);    
-    display: flex;
-    justify-content: center;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 0 2px 0 rgba(0,0,0,0.12), 0 2px 2px 0 rgba(0,0,0,0.24);
+    padding-bottom: 0.5em;
+}
+
+#chart .shareMenu h2 {
+    padding: 0.8em 1em;
+    margin: 0;
+    font-size: 1em;
 }
 
 #chart .shareMenu .btn {
+    width: 100%;
     padding: 1em 1.5em;
+    padding-right: 3em;
     text-align: center;
     color: #333;
     text-decoration: none;
@@ -683,14 +694,9 @@ a {
     position: relative;
 }
 
-#chart .btn-share:hover {
+#chart .shareMenu .btn:hover {
     text-decoration: none;
     background-color: #eee;
-}
-
-
-#chart .shareMenu section.share {
-    margin-right: 3em;
 }
 
 #chart .shareMenu section.share a {
@@ -703,6 +709,33 @@ a {
     width: 30em;
     height: 20em;
     font-size: 0.8em;
+}
+
+#chart.mobile .shareMenu .btn-embed {
+    display: none;
+}
+
+#chart .embedMenu {
+    position: absolute;
+    left: 5%;
+    top: 5%;
+    width: 90%;
+    height: 90%;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 0 2px 0 rgba(0,0,0,0.12), 0 2px 2px 0 rgba(0,0,0,0.24);
+    background: rgba(255,255,255,0.95);        
+    padding: 1em;
+    text-align: left;
+}
+
+#chart .embedMenu p {
+    margin-bottom: 0;
+    margin-bottom: 0.5em;
+}
+
+#chart .embedMenu textarea {
+    width: 100%;
+    height: 80%;
 }
 
 /* Entity Selection Menu

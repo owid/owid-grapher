@@ -3,59 +3,90 @@
 	owid.namespace("owid.dataflow");
 
 	owid.dataflow = function() {
-		var model = {}, state = {}, defaults = {}, flows = [];
-		model.state = state;
+		var dataflow = {}, state = {}, defaults = {}, flows = [];
+		dataflow.state = state;
 
-		model._initials = {};
+		dataflow._initials = {};
+		dataflow._children = {};
+		dataflow._listens = [];
 
 		function defineProperty(key, val) {
 			defaults[key] = val;
 
-			if (!model.hasOwnProperty(key)) {
-				Object.defineProperty(model, key, {
+			if (!dataflow.hasOwnProperty(key)) {
+				Object.defineProperty(dataflow, key, {
 					get: function() { return state[key]; }
 				});
 			}
 		}
 
-		model.inputs = function(inputs) {
+		dataflow.inputs = function(inputs) {
 			_.each(inputs, function(v, k) {
 				defineProperty(k, v);
 			});
-			return model;
+			return dataflow;
 		};
 
-		model.requires = function() {
+		dataflow.requires = function() {
 			_.each(arguments, function(k) {
 				defineProperty(k, undefined);
 			});
-			return model;
+			return dataflow;
 		};
 
-		model.needs = model.requires;
+		dataflow.needs = dataflow.requires;
 
-		model.clean = function() {
-			if (model._beforeClean) model._beforeClean();
+		dataflow.clean = function() {
+			if (dataflow._beforeClean) dataflow._beforeClean();
+
 			for (var key in state) delete state[key];
 			hasDefaults = false;
-			if (model._afterClean) model._afterClean();
-			return model;
+
+			// Clear event bindings
+			_.each(dataflow._listens, function(listen) {
+				listen.el.on(listen.event, null);
+			});
+
+			dataflow.isClean = true;
+			if (dataflow._afterClean) dataflow._afterClean();
+			return dataflow;
 		};
 
-		model.beforeClean = function(callback) {
-			model._beforeClean = callback;
+		dataflow.beforeClean = function(callback) {
+			dataflow._beforeClean = callback;
 		};
 
-		model.afterClean = function(callback) {
-			model._afterClean = callback;
-		}
+		dataflow.afterClean = function(callback) {
+			dataflow._afterClean = callback;
+		};
 
-		model.destroy = function() {
-			model.clean();
+		dataflow.destroy = function() {
+			dataflow.clean();
 			return null;
 		};
 
-		model.defaults = model.inputs;
+		// Given another flow constructor, toggle an instance of it
+		// as a child of this dataflow
+		dataflow.toggleChild = function(key, flowConstructor, callback) {
+			var child = dataflow._children[key];
+			if (!child) {
+				child = flowConstructor();
+				dataflow._children[key] = child;
+			}
+
+			if (child.isClean) {
+				callback(child);
+			} else {
+				child.clean();
+			}
+		};
+
+		dataflow.listenTo = function(el, event, callback) {
+			el.on(event, callback);
+			dataflow._listens.push({ el: el, event: event });
+		};
+
+		dataflow.defaults = dataflow.inputs;
 
 		function parseFlowspec(flowspec) {
 			var flow = {},
@@ -68,11 +99,11 @@
 			return flow;
 		}
 
-		model.initial = function(flowspec, callback) {
+		dataflow.initial = function(flowspec, callback) {
 			var flow = parseFlowspec(flowspec);
 
 			defineProperty(flow.inputs[0], undefined);
-			model._initials[flow.inputs[0]] = callback;
+			dataflow._initials[flow.inputs[0]] = callback;
 		};
 
 		function addFlow(flowspec, callback) {
@@ -87,25 +118,25 @@
 			return flow;			
 		}
 
-		model.flow = function(flowspec, callback) {
+		dataflow.flow = function(flowspec, callback) {
 			addFlow(flowspec, callback);
-			return model;
+			return dataflow;
 		};
 
-		model.flowDebug = function(flowspec, callback) {
+		dataflow.flowDebug = function(flowspec, callback) {
 			var flow = addFlow(flowspec, callback);
 			flow.debug = true;
-			return model;
+			return dataflow;
 		}
 
-		model.flowAwait = function(flowspec, callback) {
+		dataflow.flowAwait = function(flowspec, callback) {
 			var flow = addFlow(flowspec, callback);
 			flow.await = true;
-			return model;
+			return dataflow;
 		};
 
 		// Immediate flow, requiring inputs
-		model.now = function(flowspec, callback) {
+		dataflow.now = function(flowspec, callback) {
 			var flow = parseFlowspec(flowspec);
 
 			var args = _.map(flow.inputs, function(key) {
@@ -115,7 +146,7 @@
 				return state[key];
 			});
 
-			callback.apply(model, args);
+			callback.apply(dataflow, args);
 		};
 
 		function isEqual(a, b) {
@@ -123,12 +154,15 @@
 		}
 
 		var hasDefaults = false;
-		model.isUpdating = false;
-		model.updateQueue = [];
+		dataflow.isUpdating = false;
+		dataflow.isClean = true;
+		dataflow.updateQueue = [];
 		function update(inputs, callback) {
-			if (model.isUpdating) {
+			dataflow.isClean = false;
+
+			if (dataflow.isUpdating) {
 				// Queue update
-				model.updateQueue.push([inputs, callback]);
+				dataflow.updateQueue.push([inputs, callback]);
 				return;
 			}
 
@@ -136,7 +170,7 @@
 			var changes = {};
 
 			if (!hasDefaults) {
-				_.each(model._initials, function(initialCallback, key) {
+				_.each(dataflow._initials, function(initialCallback, key) {
 					defaults[key] = initialCallback();
 				});
 
@@ -166,16 +200,16 @@
 
 			var flowIndex = 0;
 
-			model.isUpdating = true;
+			dataflow.isUpdating = true;
 			function flowCycle() {
 				if (flowIndex >= flows.length) {
 					// End the cycle
-					model.isUpdating = false;
+					dataflow.isUpdating = false;
 					if (_.isFunction(callback))
 						callback.apply(this);
-					if (model.updateQueue.length > 0) {
-						var args = model.updateQueue.shift();
-						update.apply(model, args);
+					if (dataflow.updateQueue.length > 0) {
+						var args = dataflow.updateQueue.shift();
+						update.apply(dataflow, args);
 					}
 					return;
 				}
@@ -202,12 +236,12 @@
 					return flowCycle();
 
 				if (flow.await) {
-					flow.callback.apply(model, args.concat(finishFlow));
+					flow.callback.apply(dataflow, args.concat(finishFlow));
 				} else {
-					var outputs = flow.callback.apply(model, args);
+					var outputs = flow.callback.apply(dataflow, args);
 					if (flow.outputs.length == 1)
 						outputs = [outputs];
-					finishFlow.apply(model, outputs);
+					finishFlow.apply(dataflow, outputs);
 				}
 
 				function finishFlow() {
@@ -232,10 +266,10 @@
 			}
 
 			flowCycle();
-			return model;
+			return dataflow;
 		};
 
-		model.update = update;
-		return model;
+		dataflow.update = update;
+		return dataflow;
 	};
 })();

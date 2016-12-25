@@ -25,7 +25,7 @@
 			var filename = downloadUrl.match(/\/([^\/]*)$/)[1];
 			el.html(
 				'<div>' +
-					'<p>A CSV file is available containing all data used in this visualization.</p>' +
+					'<p>Download a CSV file containing all data used in this visualization:</p>' +
 					'<a href="'+downloadUrl+'" class="btn btn-primary" target="_blank"><i class="fa fa-download"></i> '+filename+'</a>' +
 				'</div>'
 			);

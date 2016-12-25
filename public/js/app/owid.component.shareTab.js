@@ -1,23 +1,78 @@
 ;(function(d3) {    
     "use strict";
-    owid.namespace("owid.component.shareTab");
+    owid.namespace("owid.view.shareMenu");
+
+    owid.view.embedMenu = function() {
+        var embedMenu = owid.dataflow();
+
+        embedMenu.needs('containerNode', 'baseUrl', 'queryStr');
+
+        embedMenu.flow('el : containerNode', function(containerNode) {
+            var el = d3.select(containerNode).append('div').attr('class', 'embedMenu');
+
+            el.on('click', function() {
+                d3.event.stopPropagation();
+            });
+
+            // Dismiss when user clicks away from menu
+            setTimeout(function() {
+                embedMenu.listenTo(d3.select(window), 'click.embedMenu', function() {
+                    embedMenu.clean();
+                });
+            }, 50);
+
+            el.html('<h2>Embed</h2>');
+
+            return el;
+        });        
+
+        embedMenu.beforeClean(function() {
+            if (embedMenu.el) embedMenu.el.remove();
+        });
+
+        embedMenu.flow('textarea : el', function(el) {
+            el.append('p').html('Paste this into any HTML page:');
+            var textarea = el.append('textarea');
+
+            textarea.on('focus', function() {
+                textarea.node().select();
+            });
+
+            return textarea;
+        });
+
+        embedMenu.flow('embedCode : baseUrl, queryStr', function(baseUrl, queryStr) {
+            return '<iframe src="' + (baseUrl+queryStr) + '" style="width: 100%; height: 600px; border: 0px none;"></iframe>';
+        });
+
+        embedMenu.flow('textarea, embedCode', function(textarea, embedCode) {
+            textarea.text(embedCode);
+        });
+
+        return embedMenu;
+    };
 
     owid.view.shareMenu = function() {
         var shareMenu = owid.dataflow();
 
-        shareMenu.requires('containerNode', 'bounds', 'title', 'baseUrl', 'queryStr', 'cacheTag');
+        shareMenu.needs('containerNode', 'title', 'baseUrl', 'queryStr', 'cacheTag');
 
         shareMenu.flow('el : containerNode', function(containerNode) {
-            return d3.select(containerNode).append('div').attr('class', 'shareMenu');
-        });        
+            var el = d3.select(containerNode).append('div').attr('class', 'shareMenu');
 
-        shareMenu.flow('el, bounds', function(el, bounds) {
-            el.style('position', 'absolute')
-              .style('left', bounds.left+'px')
-              .style('top', bounds.top+'px')
-              .style('width', bounds.width+'px')
-              .style('height', bounds.height+'px');
-        });
+            el.on('click', function() {
+                d3.event.stopPropagation();
+            });
+
+            // Dismiss when user clicks away from menu
+            setTimeout(function() {
+                shareMenu.listenTo(d3.select(window), 'click.shareMenu', function() {
+                    shareMenu.clean();
+                });
+            }, 50);
+
+            return el;
+        });        
 
         // Share section
 
@@ -27,22 +82,25 @@
             return shareSection;
         });
 
-        shareMenu.flow('twitterBtn, facebookBtn, linkBtn, pngBtn, svgBtn : shareSection', function(shareSection) {
+        shareMenu.flow('linkBtn, twitterBtn, facebookBtn, embedBtn, pngBtn, svgBtn : shareSection', function(shareSection) {
             return [
+                shareSection.append('a').attr('class', 'btn btn-facebook').attr('target', '_blank')
+                  .attr('title', "Link to visualization").html('<i class="fa fa-link"></i> Link'),
+
                 shareSection.append('a').attr('class', 'btn btn-twitter').attr('target', '_blank')
                   .attr('title', "Tweet a link").html('<i class="fa fa-twitter"></i> Twitter'),
 
                 shareSection.append('a').attr('class', 'btn btn-facebook').attr('target', '_blank')
                   .attr('title', "Share on Facebook").html('<i class="fa fa-facebook"></i> Facebook'),
 
-                shareSection.append('a').attr('class', 'btn btn-facebook').attr('target', '_blank')
-                  .attr('title', "Link to visualization").html('<i class="fa fa-link"></i> Link'),
+                shareSection.append('a').attr('class', 'btn btn-embed')
+                  .attr('title', "Embed this visualization in another HTML document").html('<i class="fa fa-code"></i> Embed'),
 
                 shareSection.append('a').attr('class', 'btn btn-png').attr('target', '_blank')
                   .attr('title', "Save visualization in raster format").html('<i class="fa fa-download"></i> Save as PNG'),
 
                 shareSection.append('a').attr('class', 'btn btn-svg').attr('target', '_blank')
-                  .attr('title', "Save visualization in vector graphics format").html('<i class="fa fa-download"></i> Save as SVG')
+                  .attr('title', "Save visualization in vector graphics format").html('<i class="fa fa-download"></i> Save as SVG'),
             ];
         });
 
@@ -66,33 +124,17 @@
         shareMenu.flow('svgBtn, baseUrl, queryStr, cacheTag', function(svgBtn, baseUrl, queryStr, cacheTag) {
             var svgHref = baseUrl + '.svg' + queryStr, defaultTargetSize = "1200x800";
             svgBtn.attr('href', svgHref + (_.include(svgHref, "?") ? "&" : "?") + "size=" + defaultTargetSize + "&v=" + cacheTag);
-        });
+        });        
 
-        // Embed section
-
-        shareMenu.flow('embedSection : el', function(el) {
-            var embedSection = el.append('section');
-            embedSection.append('h2').html('Embed');
-            return embedSection;
-        });
-
-        shareMenu.flow('embedTextarea : embedSection', function(embedSection) {
-            embedSection.append('p').html('Paste this into any HTML page:');
-            return embedSection.append('textarea');
-        });
-
-        shareMenu.flow('embedCode : baseUrl, queryStr', function(baseUrl, queryStr) {
-            return '<iframe src="' + (baseUrl+queryStr) + '" style="width: 100%; height: 600px; border: 0px none;"></iframe>';
-        });
-
-        shareMenu.flow('embedTextarea, embedCode', function(embedTextarea, embedCode) {
-            embedTextarea.text(embedCode);
-        });
-
-        // Make it highlight text on focus
-        shareMenu.flow('embedTextarea', function(embedTextarea) {
-            embedTextarea.on('focus', function() {
-                embedTextarea.node().select();
+        shareMenu.flow('embedBtn, containerNode, baseUrl, queryStr', function(embedBtn, containerNode, baseUrl, queryStr) {
+            embedBtn.on('click', function() {                
+                shareMenu.toggleChild('embedMenu', owid.view.embedMenu, function(embedMenu) {
+                    embedMenu.update({
+                        containerNode: containerNode,
+                        baseUrl: baseUrl,
+                        queryStr: queryStr
+                    });
+                });
             });
         });
 
@@ -101,25 +143,5 @@
         });
 
         return shareMenu;
-    };
-
-    owid.component.shareTab = function(chart) {
-        var shareTab = owid.view.shareMenu();
-
-        shareTab.isOverlay = true;
-
-
-        shareTab.render = function(bounds) {
-            shareTab.update({
-                containerNode: chart.htmlNode,
-                bounds: owid.bounds(bounds.left*chart.scale, bounds.top*chart.scale, bounds.width*chart.scale, bounds.height*chart.scale),
-                title: document.title.replace(" - Our World In Data", ""),
-                baseUrl: Global.rootUrl + '/' + chart.model.get('chart-slug'),                
-                queryStr: chart.url.lastQueryStr||"",
-                cacheTag: chart.model.get("variableCacheTag")                
-            });            
-        };
-
-        return shareTab;
     };
 })(d3v4);

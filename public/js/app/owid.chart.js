@@ -126,8 +126,7 @@
 				chart: owid.tab.chart(chart),
 				data: owid.component.dataTab(chart),
 				map: owid.component.mapTab(chart),
-				sources: owid.component.sourcesTab(chart),
-				share: owid.component.shareTab(chart)
+				sources: owid.component.sourcesTab(chart)
 			};
 		});
 
