@@ -10,7 +10,6 @@
 
 		"zofe/rapyd": "2.1.*",
 		"league/csv": "7.1.1",
-		"barryvdh/laravel-debugbar": "^2.2",
 		"fideloper/proxy": "^3.1",
 		"doctrine/dbal": "^2.5",
 		"stolz/assets": "^0.1.9",

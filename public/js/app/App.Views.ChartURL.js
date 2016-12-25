@@ -1,7 +1,7 @@
-/* App.Views.ChartURL.js                                                             
+/* owid.component.urlBinder.js
  * ================                                                             
  *
- * This view is responsible for handling data binding between the
+ * This component is responsible for handling data binding between the
  * the chart and url parameters, to enable nice linking support
  * for specific countries and years.
  *
@@ -12,34 +12,38 @@
 
 ;(function() {
 	"use strict";
-	owid.namespace("owid.view.urlBinder");
+	owid.namespace("owid.component.urlBinder");
 
-	owid.view.urlBinder = function() {
+	owid.component.urlBinder = function(chart) {
 		function urlBinder() { }
 
 		// Keep the query params separate between map and the other tabs
 		var lastTabName = null,
-			mapQueryStr = '?',
-			chartQueryStr = '?',
 			originalDefaultTab = chart.model.get('default-tab'),
 			originalXAxisScale = chart.model.getAxisConfig('x-axis', 'axis-scale'),
 			originalYAxisScale = chart.model.getAxisConfig('y-axis', 'axis-scale');
 
-		function initialize() {
-			if (App.isEditor) return;
+		urlBinder.mapQueryStr = '?';
+		urlBinder.chartQueryStr = '?';
 
-			chart.display.on("change:activeTab", onTabChange);
-			chart.model.on("change:selected-countries", updateCountryParam);	
-			chart.model.on("change:activeLegendKeys", updateLegendKeys);		
+		function initialize() {
+			if (chart.isEditor) {
+				chart.update({ activeTabName: chart.model.get('default-tab') });
+				return;
+			}
+
+			chart.flow('activeTabName', onTabChange);
+
+			chart.model.on("change:selected-countries", updateCountryParam);
+			chart.model.on("change:activeLegendKeys", updateLegendKeys);	
 			chart.map.on("change:targetYear", updateYearParam);
-			chart.map.on("change:mode change:projection change:isColorblind", updateMapParams);			
+			chart.map.on("change:mode change:projection change:isColorblind", updateMapParams);
 			chart.model.on("change:currentStackMode", updateStackMode);
 			chart.model.on("change:x-axis", updateAxisScales);
 			chart.model.on("change:y-axis", updateAxisScales);
+			chart.model.on("change:chart-time", updateTime);
 			populateFromURL();
-
-			lastTabName = chart.display.get('activeTab');
-		}
+		};
 
 		/**
 		 * Apply any url parameters on chart startup
@@ -50,13 +54,13 @@
 			// Set tab if specified
 			var tab = params.tab;
 			if (tab) {
-				if (!_.contains(chart.model.get("tabs"), tab))
+				if (!_.contains(chart.model.get("tabs").concat('share'), tab))
 					console.error("Unexpected tab: " + tab);
 				else {
-					chart.display.set('activeTab', tab);
+					chart.update({ activeTabName: tab });
 				}
 			} else {
-				chart.display.set('activeTab', chart.model.get('default-tab'));
+				chart.update({ activeTabName: chart.model.get('default-tab') });
 			}
 
 			// Affiliate logo if any
@@ -78,6 +82,10 @@
 			var yAxisScale = params.yScale;
 			if (yAxisScale !== undefined)
 				chart.model.setAxisConfig('y-axis', 'axis-scale', yAxisScale);
+
+			var time = params.time;
+			if (time !== undefined)
+				chart.model.set("timeline", _.extend({}, chart.model.get('timeline'), { defaultYear: parseFloat(time) }));
 
 			// Map stuff below
 
@@ -129,20 +137,25 @@
 		 * Save the current tab the user is on, and keep url params correctly isolated
 		 */
 		function onTabChange() {
-			var tabName = chart.display.get('activeTab');
+			var tabName = chart.activeTabName;
 
 			if (lastTabName == "map" && tabName != "map") {
-				mapQueryStr = window.location.hash;
-				owid.setQueryStr(chartQueryStr);
-			} else if (lastTabName != "map" && lastTabName != null && tabName == "map") {				
-				chartQueryStr = window.location.hash;
-				owid.setQueryStr(mapQueryStr);
+				urlBinder.mapQueryStr = window.location.search;
+				owid.setQueryStr(urlBinder.chartQueryStr);
+			} else if (lastTabName == "map" && tabName != "map") {				
+				urlBinder.chartQueryStr = window.location.search;
+				owid.setQueryStr(urlBinder.mapQueryStr);
 			}
+
 			if (tabName == originalDefaultTab)
 				owid.setQueryVariable("tab", null);
 			else
 				owid.setQueryVariable("tab", tabName);
+
 			lastTabName = tabName;
+
+			if (tabName == 'chart' || tabName == 'map')
+				urlBinder.lastQueryStr = window.location.search;
 		}
 
 		/**
@@ -169,6 +182,7 @@
 				owid.setQueryVariable("country", entityCodes.join("+"));
 			});			
 		}
+		urlBinder.updateCountryParam = updateCountryParam;
 
 		/**
 		 * Set e.g. &shown=Africa when the user selects Africa on a stacked area chart or other
@@ -190,8 +204,16 @@
 		 * Set e.g. &year=1990 when the user uses the map slider to go to 1990
 		 */
 		function updateYearParam() {
-			if (chart.display.get('activeTab') == 'map')
+			if (chart.activeTabName == 'map')
 				owid.setQueryVariable("year", chart.map.get("targetYear"));
+		}
+
+		/**
+		 * Set e.g. &time=1990 when the user uses the slider to go to 1990
+		 */
+		function updateTime() {
+			if (chart.activeTabName == 'chart')
+				owid.setQueryVariable("time", chart.model.get('chart-time')[0]);
 		}
 
 		/**

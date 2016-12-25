@@ -139,11 +139,11 @@ Route::group(['middleware' => ['basic']], function () {
 	Route::get('logo/{logo}.png', 'ViewController@logo');
 
 	Route::get('latest', 'ViewController@latest');	
-	Route::any('{all}.csv', ['uses' => 'ViewController@exportCSV'])->where('all', '(?!_debugbar).*');
-	Route::any('{all}.svg', ['uses' => 'ViewController@exportSVG'])->where('all', '(?!_debugbar).*');	
-	Route::any('{all}.png', ['uses' => 'ViewController@exportPNG'])->where('all', '(?!_debugbar).*');
-	Route::any('{all}.export', ['uses' => 'ViewController@show'])->where('all', '(?!_debugbar).*');
-	Route::any('{all}', ['uses' => 'ViewController@show'])->where('all', '(?!_debugbar).*');
+	Route::any('{all}.csv', ['uses' => 'ViewController@exportCSV']);
+	Route::any('{all}.svg', ['uses' => 'ViewController@exportSVG']);	
+	Route::any('{all}.png', ['uses' => 'ViewController@exportPNG']);
+	Route::any('{all}.export', ['uses' => 'ViewController@show']);
+	Route::any('{all}', ['uses' => 'ViewController@show']);
 });
 
 

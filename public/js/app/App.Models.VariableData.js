@@ -106,6 +106,7 @@
 				variable.hasNumericValues = !_.isEmpty(variable.numericValues);
 				variable.minValue = _.min(variable.numericValues);
 				variable.maxValue = _.max(variable.numericValues);
+				variable.entityKey = variableData.entityKey;
 
 				// legacy
 				variable.isNumeric = variable.hasNumericValues && !variable.hasCategoricalValues;

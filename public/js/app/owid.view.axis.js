@@ -49,7 +49,7 @@
 			return g.append("g").attr('class', 'scale');
 		});
 
-		axis.flow("bboxNoLabel : scaleG, bounds, scale, orient, d3axis, tickFormat, scaleType", function(scaleG, bounds, scale, orient, d3axis, tickFormat, scaleType) {			
+		axis.flow("bboxNoLabel : scaleG, bounds, scale, orient, d3axis, tickFormat, scaleType", function(scaleG, bounds, scale, orient, d3axis, tickFormat, scaleType) {
 			d3axis.scale(scale)
 				.ticks((orient == 'left' ? bounds.height : bounds.width) / 100)
 				.tickSizeOuter(0);
@@ -72,6 +72,9 @@
 
 			d3axis(scaleG);
 
+			scaleG.attr('font-size', null);
+			scaleG.selectAll('.tick text').attr('fill', '#666');
+
 			return scaleG.node().getBBox();
 		});
 
@@ -85,21 +88,21 @@
 					.append("text")
 					.attr("class", "axis-label")
 					.attr("text-anchor", "middle")
-					.style("fill", "black")
+					.style("fill", "#35322f")
 					.attr("transform", "rotate(-90)")
 				  .merge(labelUpdate)
 					.attr("x", -bounds.top-bounds.height/2)
-					.attr("y", -bboxNoLabel.width-10)
+					.attr("y", -bboxNoLabel.width-15)
 					.text(label);
 			} else {
 				labelUpdate.enter()
 					.append("text")
 					.attr("class", "axis-label")
 					.attr("text-anchor", "middle")
-					.style("fill", "black")
+					.style("fill", "#35322f")
 				  .merge(labelUpdate)
 					.attr("x", bounds.left+bounds.width/2)
-					.attr("y", bboxNoLabel.height+15)
+					.attr("y", bboxNoLabel.height+20)
 					.text(label);				
 			}
 

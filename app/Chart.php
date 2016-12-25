@@ -60,6 +60,9 @@ class Chart extends Model {
 	}
 
 	public static function getConfigWithUrl($chart) {
+		if (!$chart)
+			return [ 'logosSVG' => Logo::where('name', 'OWD')->lists('svg') ];
+		
 		$config = json_decode($chart->config);
 		$config->id = $chart->id;
 		$config->{"chart-name"} = $chart->name;
@@ -70,10 +73,13 @@ class Chart extends Model {
 		$config->{"published"} = $chart->published;
 		$config->{"chart-dimensions"} = $chart->dimensions->toArray();
 
+		$config->logosSVG = Logo::whereIn('name', $config->logos)->lists('svg');
+
 		// Allow url parameters to override the chart's default
 		// selected countries configuration. We need to use the raw
 		// query string for this because we want to distinguish between
 		// %20 and +.
+		// TODO maybe unnecessary now
 		preg_match("/country=([^&]+)/", Chart::getQueryString(), $matches);
 		if ($matches) {
 			$countryCodes = array_map(function($code) { return urldecode($code); }, explode("+", $matches[1]));

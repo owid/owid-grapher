@@ -1,5 +1,104 @@
 /* OWID root namespace and standalone utility functions */
 
+
+/**
+ * innerHTML property for SVGElement
+ * Copyright(c) 2010, Jeff Schiller
+ *
+ * Licensed under the Apache License, Version 2
+ *
+ * Works in a SVG document in Chrome 6+, Safari 5+, Firefox 4+ and IE9+.
+ * Works in a HTML5 document in Chrome 7+, Firefox 4+ and IE9+.
+ * Does not work in Opera since it doesn't support the SVGElement interface yet.
+ *
+ * I haven't decided on the best name for this property - thus the duplication.
+ */
+
+(function() {
+var serializeXML = function(node, output) {
+  var nodeType = node.nodeType;
+  if (nodeType == 3) { // TEXT nodes.
+    // Replace special XML characters with their entities.
+    output.push(node.textContent.replace(/&/, '&amp;').replace(/</, '&lt;').replace('>', '&gt;'));
+  } else if (nodeType == 1) { // ELEMENT nodes.
+    // Serialize Element nodes.
+    output.push('<', node.tagName);
+    if (node.hasAttributes()) {
+      var attrMap = node.attributes;
+      for (var i = 0, len = attrMap.length; i < len; ++i) {
+        var attrNode = attrMap.item(i);
+        output.push(' ', attrNode.name, '=\'', attrNode.value, '\'');
+      }
+    }
+    if (node.hasChildNodes()) {
+      output.push('>');
+      var childNodes = node.childNodes;
+      for (var i = 0, len = childNodes.length; i < len; ++i) {
+        serializeXML(childNodes.item(i), output);
+      }
+      output.push('</', node.tagName, '>');
+    } else {
+      output.push('/>');
+    }
+  } else if (nodeType == 8) {
+    // TODO(codedread): Replace special characters with XML entities?
+    output.push('<!--', node.nodeValue, '-->');
+  } else {
+    // TODO: Handle CDATA nodes.
+    // TODO: Handle ENTITY nodes.
+    // TODO: Handle DOCUMENT nodes.
+    throw 'Error serializing XML. Unhandled node of type: ' + nodeType;
+  }
+}
+// The innerHTML DOM property for SVGElement.
+Object.defineProperty(SVGElement.prototype, 'innerHTML', {
+  get: function() {
+    var output = [];
+    var childNode = this.firstChild;
+    while (childNode) {
+      serializeXML(childNode, output);
+      childNode = childNode.nextSibling;
+    }
+    return output.join('');
+  },
+  set: function(markupText) {
+    // Wipe out the current contents of the element.
+    while (this.firstChild) {
+      this.removeChild(this.firstChild);
+    }
+
+    try {
+      // Parse the markup into valid nodes.
+      var dXML = new DOMParser();
+      dXML.async = false;
+      // Wrap the markup into a SVG node to ensure parsing works.
+      sXML = '<svg xmlns=\'http://www.w3.org/2000/svg\'>' + markupText + '</svg>';
+      var svgDocElement = dXML.parseFromString(sXML, 'text/xml').documentElement;
+
+      // Now take each node, import it and append to this element.
+      var childNode = svgDocElement.firstChild;
+      while(childNode) {
+        this.appendChild(this.ownerDocument.importNode(childNode, true));
+        childNode = childNode.nextSibling;
+      }
+    } catch(e) {
+      throw new Error('Error parsing XML string');
+    };
+  }
+});
+
+// The innerSVG DOM property for SVGElement.
+Object.defineProperty(SVGElement.prototype, 'innerSVG', {
+  get: function() {
+    return this.innerHTML;
+  },
+  set: function(markupText) {
+    this.innerHTML = markupText;
+  }
+});
+
+})();
+
 ;(function() {
 	"use strict";
 
@@ -37,6 +136,14 @@
 
 	var owid = {};
 
+	owid.default = function(obj, key, defaultVal) {
+		var current = obj[key];
+		if (current !== undefined) return current;
+
+		obj[key] = defaultVal;
+		return defaultVal;
+	};
+
 	// Round with precision option https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Math/round
 	owid.round = function(number, precision) {
 	    var factor = Math.pow(10, precision);
@@ -61,6 +168,14 @@
 
 	owid.isNumeric = function(val) { 
 		return parseFloat(val) == val;
+	};
+
+	owid.numeric = function(val, defaultVal) {
+		var num = parseFloat(val);
+		if (_.isNumber(num)) 
+			return num;
+		else 
+			return defaultVal;
 	};
 
 	owid.displayYear = function(year) {
@@ -104,7 +219,6 @@
 		if (_.isEmpty(timeRanges)) {
 			timeRanges = [{ startYear: 'first', endYear: 'last' }];
 		}
-
 
 		var outputYears = [];
 		if (!isFinite(first) || !isFinite(last))
@@ -421,11 +535,7 @@
 	};
 
 	owid.setQueryStr = function(str) {
-		var uri = window.location.toString();
-		if (!str && s.contains(uri, "?")) {
-			str = uri.substring(0, uri.indexOf("?"));
-		}
-		history.replaceState(null, null, str + window.location.hash);
+		history.replaceState(null, null, window.location.pathname + str + window.location.hash);
 		$(window).trigger("query-change");
 	};
 
@@ -439,6 +549,18 @@
 			obj[level] = obj[level] || {};
 			obj = obj[level];
 		});
+	};
+
+	owid.svgFitTextToLine = function(text, content, width, startFontSize) {
+		text.style('font-size', startFontSize+'em').text(content);
+
+		var fontSize = startFontSize;		
+		while (text.node().getComputedTextLength() > width) {
+			fontSize -= 0.05;
+			text.style('font-size', fontSize+'em');
+		}
+
+		return fontSize;
 	};
 
 	var ctx;
@@ -484,9 +606,13 @@
 			word = null;
 
 		// Terminate the current tspan and begin a new one
-		var breakSpan = function(isNewLine) {
+		var breakSpan = function(isNewLine, isEnd) {
 			var textContent = currentLine.join(" ");
-			tspan.node().textContent = textContent;
+			if (_.isEmpty(s.strip(textContent)))
+				tspan.remove();
+			else {
+				tspan.node().textContent = textContent;
+			}
 
 			var container = text;
 			if ($currentLink) {
@@ -496,6 +622,9 @@
 					container.attr(attrib.name, attrib.value);
 				});
 			}
+
+			if (isEnd) return;
+
 			tspan = container.append("tspan");
 
 			if (isNewLine) {
@@ -553,7 +682,7 @@
 			}
 		}
 
-		breakSpan();
+		breakSpan(false, true);
 	};
 
 	owid.modal = function(options) {
@@ -665,19 +794,11 @@
 	    });
 	};
 
-	owid.scaleToFit = function(node, width, height) {
-		var el = d3.select(node),
-			currentBounds = chart.getBounds(node),
-			transform = d3.transform(el.attr("transform")),
-			widthFactor = currentBounds.width/width,
-			heightFactor = currentBounds.height/height;
+	owid.getScaleForFit = function(bbox, width, height) {
+		var scaleByWidth = width/bbox.width,
+			scaleByHeight = width/bbox.height;
 
-		if (widthFactor > 1 && widthFactor >= heightFactor)
-			transform.scale = [transform.scale[0] * (1/widthFactor), transform.scale[1] * (1/widthFactor)];
-		else if (heightFactor > 1 && heightFactor >= widthFactor)
-			transform.scale = [transform.scale[0] * (1/heightFactor), transform.scale[1] * (1/heightFactor)];
-
-		el.attr('transform', transform.toString());
+		return Math.min(scaleByWidth, scaleByHeight);
 	};
 
 	owid.transformElement = function(element, transform) {
@@ -874,6 +995,16 @@
 	// From d3_window
 	owid.window = function(node) {
     	return node && (node.ownerDocument && node.ownerDocument.defaultView || node.document && node || node.defaultView);
+ 	};
+
+ 	owid.boundsDebug = function(bounds, containerNode) {
+ 		var container = containerNode ? d3.select(containerNode) : d3.select('svg');
+ 		container.append('rect')
+ 			.attr('x', bounds.left)
+ 			.attr('y', bounds.top)
+ 			.attr('width', bounds.width)
+ 			.attr('height', bounds.height)
+ 			.style('fill', 'red');
  	};
 
 	window.require = function(namespace) {

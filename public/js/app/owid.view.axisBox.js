@@ -5,11 +5,7 @@
 	owid.view.axisBox = function() {
 		var box = owid.dataflow();
 
-		box.inputs({
-			svg: undefined,
-			bounds: { left: 0, top: 0, width: 100, height: 100 },
-			axisConfig: {}
-		});
+		box.needs('svg', 'bounds', 'axisConfig');
 
 		box.flow('g : svg', function(svg) {
 			return svg.append('g').attr('class', 'axisBox');
@@ -46,7 +42,7 @@
 		});
 
 		box.flow("innerBounds : bounds, innerWidth, innerHeight", function(bounds, innerWidth, innerHeight) {
-			return { left: bounds.left + (bounds.width-innerWidth), top: bounds.top, width: innerWidth, height: innerHeight };
+			return owid.bounds(bounds.left + (bounds.width-innerWidth), bounds.top, innerWidth, innerHeight);
 		});
 
 		// Go back and rerender the x axis to match
@@ -56,12 +52,16 @@
 			});
 		});
 
+		box.flow('gridlines : g', function(g) {
+			return g.insert('g', '*').attr('class', 'gridlines');
+		});
+
 		// Gridlines. Here rather than in the axes themselves to make the bounding boxes more sensible.
-		box.flow("xGridlines : g, innerBounds, xAxis", function(g, innerBounds, xAxis) {			
+		box.flow("xGridlines : g, gridlines, innerBounds, xAxis", function(g, gridlines, innerBounds, xAxis) {	
 			var tickValues = g.selectAll('.bottom.axis .tick').data();
 
-			var gridlinesUpdate = g.selectAll('.x.gridline').data(tickValues),
-				gridlines = gridlinesUpdate
+			var gridlinesUpdate = gridlines.selectAll('.x.gridline').data(tickValues),
+				xGridlines = gridlinesUpdate
 					.enter()
 					  .append('line')
 					  .attr('class', 'x gridline')
@@ -73,14 +73,14 @@
 
 			gridlinesUpdate.exit().remove();
 
-			return gridlines;
+			return xGridlines;
 		});
 
-		box.flow("yGridlines : g, innerBounds, yAxis", function(g, innerBounds, yAxis) {			
+		box.flow("yGridlines : g, gridlines, innerBounds, yAxis", function(g, gridlines, innerBounds, yAxis) {			
 			var tickValues = g.selectAll('.left.axis .tick').data();
 
-			var gridlinesUpdate = g.selectAll('.y.gridline').data(tickValues),
-				gridlines = gridlinesUpdate
+			var gridlinesUpdate = gridlines.selectAll('.y.gridline').data(tickValues),
+				yGridlines = gridlinesUpdate
 					.enter()
 					  .append('line')
 					  .attr('class', 'y gridline')
@@ -92,7 +92,7 @@
 
 			gridlinesUpdate.exit().remove();
 
-			return gridlines;
+			return yGridlines;
 		});
 
 

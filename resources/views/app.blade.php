@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
 		<meta http-equiv="x-ua-compatible" content="ie=edge">
 		<meta name="_token" value="{{ csrf_token() }}">
-		<title>Our World In Data - Chart Builder</title>
+		<title>owid-grapher</title>
 		<meta name="description" content="">
 		<meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no'>
 		
@@ -22,7 +22,7 @@
 
 		<div class="wrapper">
 			<header class="main-header">
-				<a href="#" class="logo"><b style="font-size:16px;">OurWorldInData-Grapher</b></a>
+				<a href="https://github.com/ourworldindata/owid-grapher" class="logo">owid-grapher</a>
 				<nav class="navbar navbar-static-top">
 					<a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
 						<span class="sr-only">Toggle navigation</span>
@@ -81,13 +81,14 @@
 			</div>
 		</div>
 		@yield('outter-content')
+
 		<script>
 			var Global = {};
 			Global.rootUrl = "{!! Request::root() !!}";
 		</script>
 		
-		@yield('scripts')
 		<?php echo App\Util::js(); ?>
+		@yield('scripts')
 	</body>
 </html>
 

@@ -1,77 +1,108 @@
 ;(function() {	
 	"use strict";
-	owid.namespace("owid.view.scaleSelectors");
+	owid.namespace("owid.view.scaleSelector");
 
-	owid.view.scaleSelectors = function(chart) {
-		function scaleSelectors() {}
+	owid.view.scaleSelector = function() {
+		var scaleSelector = owid.dataflow();
 
-		var $xAxisScaleSelector = chart.$('.x-axis-scale-selector'),
-			$yAxisScaleSelector = chart.$('.y-axis-scale-selector'),
-			$xAxisBtn = chart.$(".x-axis-scale-selector .axis-scale-btn"),
-			$yAxisBtn = chart.$(".y-axis-scale-selector .axis-scale-btn");
+		scaleSelector.needs('containerNode', 'left', 'top');
+		scaleSelector.defaults({ currentScale: 'linear' });
 
-		$xAxisScaleSelector.off('click').on('click', function() {
-			var currentScale = chart.model.getAxisConfig('x-axis', 'axis-scale');
-			if (currentScale != "log") 
-				chart.model.setAxisConfig('x-axis', "axis-scale", "log");			
-			else
-				chart.model.setAxisConfig('x-axis', "axis-scale", "linear");
+		scaleSelector.flow('el : containerNode', function(containerNode) {
+			var el = d3.select(containerNode).append('button').attr('class', 'scaleSelector')
+				.html('<i class="fa fa-cog"></i> <span></span>');
+
+			el.on('click', function() {
+				scaleSelector.now('currentScale', function(currentScale) {
+					if (currentScale == "log") 
+						scaleSelector.update({ currentScale : 'linear' });
+					else
+						scaleSelector.update({ currentScale : 'log' });
+				});
+			});
+
+			return el;
 		});
 
-		$yAxisScaleSelector.off('click').on('click', function() {
-			var currentScale = chart.model.getAxisConfig('y-axis', 'axis-scale');
-			if (currentScale != "log") 
-				chart.model.setAxisConfig('y-axis', "axis-scale", "log");			
-			else
-				chart.model.setAxisConfig('y-axis', "axis-scale", "linear");
+		scaleSelector.flow('el, currentScale', function(el, currentScale) {
+			el.selectAll('span').text(s.capitalize(currentScale));
 		});
 
-		scaleSelectors.render = function() {
-			var hasXSelector = chart.model.get('x-axis-scale-selector'),
-				hasYSelector = chart.model.get('y-axis-scale-selector'),
-				legend = chart.tabs.chart.legend;
+		scaleSelector.flow('el, left, top', function(el, left, top) {
+			el.style('left', left+'px').style('top', top+'px');
+		});
 
-			$xAxisScaleSelector.toggle(hasXSelector);
-			$yAxisScaleSelector.toggle(hasYSelector);
+		scaleSelector.beforeClean(function() {
+			if (scaleSelector.el) scaleSelector.el.remove();
+		});
 
-			if (hasXSelector || hasYSelector) {
-				var xScale = chart.model.getAxisConfig("x-axis", "axis-scale");
-				$xAxisBtn.find('span').text(s.capitalize(xScale) || "Linear");
+		return scaleSelector;
+	};
 
-				var yScale = chart.model.getAxisConfig("y-axis", "axis-scale");
-				$yAxisBtn.find('span').text(s.capitalize(yScale) || "Linear");
+	owid.namespace("owid.component.scaleSelectors");
+	owid.component.scaleSelectors = function(chart) {
+		var scaleSelectors = owid.dataflow();
 
-				if (chart.model.get('chart-type') == App.ChartType.ScatterPlot) {
-					var innerBounds = chart.tabs.chart.viz.axisBox.innerBounds;
+		var xScaleSelector = owid.view.scaleSelector(),
+			yScaleSelector = owid.view.scaleSelector();
 
-					$xAxisScaleSelector.css({ left: innerBounds.width - 10, top: innerBounds.height - 15 });
-					$yAxisScaleSelector.css({ left: innerBounds.left + 10, top: -3 });
-				} else {				
-					//position scale dropdowns - TODO - isn't there a better way then with timeout?
-					setTimeout(function() {
-						var chartRect = d3.select('svg').select('.nv-distWrap');
-						if (chartRect.empty())
-							chartRect = d3.select('svg').select('.nv-wrap > g > rect');
-						if (chartRect.empty())
-							chartRect = d3.select('svg').select('.nv-background > rect');
+		xScaleSelector.flow('currentScale', function(currentScale) {
+			chart.model.setAxisConfig('x-axis', "axis-scale", currentScale);
+		});
 
-						var svgBounds = chart.getBounds(d3.select('svg').node()),
-							chartBounds = chart.getBounds(chartRect.node()),
-							offsetX = chartBounds.left - svgBounds.left + 5,
-							offsetY = legend.height() + 5;
+		yScaleSelector.flow('currentScale', function(currentScale) {
+			chart.model.setAxisConfig('y-axis', "axis-scale", currentScale);
+		});
 
-						$xAxisScaleSelector.css({ left: svgBounds.width - 100, top: chartBounds.height - 30 });
-						$yAxisScaleSelector.css({ left: chartBounds.left - svgBounds.left + 10, top: offsetY-3 });
-					}.bind(this), 250);		
+		scaleSelectors.render = function(bounds) {
+            var hasXSelector = chart.model.get('x-axis-scale-selector'),
+                hasYSelector = chart.model.get('y-axis-scale-selector');
+
+            if (hasXSelector) {
+				xScaleSelector.update({
+					containerNode: chart.htmlNode,
+					currentScale: chart.model.getAxisConfig('x-axis', 'axis-scale')
+				});
+            } else {
+            	xScaleSelector.clean();
+            }
+
+            if (hasYSelector) {
+				yScaleSelector.update({
+					containerNode: chart.htmlNode,
+					currentScale: chart.model.getAxisConfig('y-axis', 'axis-scale')
+				});
+            } else {
+            	yScaleSelector.clean();
+            }
+
+			var legend = chart.tabs.chart.legend;
+
+			if (chart.model.get('chart-type') == App.ChartType.ScatterPlot) {
+				var innerBounds = chart.tabs.chart.viz.scatter.scatter.axisBox.innerBounds.scale(chart.scale);
+
+				xScaleSelector.update({ left: innerBounds.left+innerBounds.width-50, top: innerBounds.top+innerBounds.height-15 });
+				yScaleSelector.update({ left: innerBounds.left-30, top: innerBounds.top-20 });
+			} else {				
+				var rect = d3.select('svg').select('.nv-distWrap');
+				if (rect.empty())
+					rect = d3.select('svg').select('.nv-wrap > g > rect');
+				if (rect.empty())
+					rect = d3.select('svg').select('.nv-background > rect');
+
+				if (!rect.empty()) {
+					var rectBounds = chart.getTransformedBounds(rect.node());
+
+					xScaleSelector.update({ left: rectBounds.left+rectBounds.width-100, top: rectBounds.height-30 });
+					yScaleSelector.update({ left: rectBounds.left, top: rectBounds.top-10 });					
 				}
-
 			}
 		};
 
-		scaleSelectors.hide = function() {
-			$xAxisScaleSelector.hide();
-			$yAxisScaleSelector.hide();
-		};
+		scaleSelectors.beforeClean(function() {
+			xScaleSelector.clean();
+			yScaleSelector.clean();
+		});
 
 		return scaleSelectors;
 	};

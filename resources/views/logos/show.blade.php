@@ -10,8 +10,6 @@
 			{!! Form::close() !!}
 		</div>
 		<h2>{{ $logo->name }}</h2>
-		@if( !empty($logo->url))
-			<img src="{!! URL::to('/') .'/'. $logo->url !!}" alt="logo" />
-		@endif
+		{!! $logo->svg !!}
 	</div>
 @endsection

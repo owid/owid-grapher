@@ -107,6 +107,8 @@
 			});
 
 			this.set(mapConfig);
+
+			this.set('targetYear', this.get('defaultYear'));
 		},
 
 		updateYears: function() {

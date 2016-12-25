@@ -39,12 +39,11 @@
 			"line-tolerance": 1,
 			"chart-description": "",
 			"chart-dimensions": [],
+			"logos": ['OWD'],
 			"y-axis": {"axis-label-distance":"-10"},
 			"x-axis": {},
 			"margins": { top: 10, left: 60, bottom: 10, right: 10 },
 			"units": "",
-			"logo": App.OWID_LOGO,
-			"second-logo": null,
 			"hide-legend": false,
 			"hide-toggle": false,
 			"entity-type": "country",
@@ -53,7 +52,8 @@
 			"x-axis-scale-selector": false,
 			"y-axis-scale-selector": false,
 			"activeLegendKeys": null,
-			"currentStackMode": null
+			"currentStackMode": null,
+            "timeline": null
 		},
 
 		// Get defaults appropriate for this kind of chart
@@ -114,6 +114,17 @@
 			return App.ChartModel.get("selected-countries");
 		},
 
+		getUnselectedEntities: function() {
+			var availableEntities = chart.vardata.get('availableEntities'),
+				selectedEntitiesById = this.getSelectedEntitiesById();
+
+			return _.sortBy(_.filter(availableEntities, function(entity) {
+				return !selectedEntitiesById[entity.id];
+			}), function(entity) {
+				return entity.name;
+			});
+		},
+
 		getSelectedEntitiesById: function() {
 			var entities = {};
 
@@ -125,6 +136,21 @@
 		},
 
 		addSelectedCountry: function(country) {
+			var selectedCountries = _.clone(this.get("selected-countries"));
+
+			//make sure the selected contry is not there 
+			if (!_.findWhere(selectedCountries, { id: country.id })) {
+				selectedCountries.push(country);
+				this.set('selected-countries', selectedCountries);
+			}
+		},
+
+		addSelectedEntity: function(country) {
+			if (this.get("add-country-mode") == "change-country") {
+				this.set("selected-countries", [country]);
+				return;
+			}
+
 			var selectedCountries = _.clone(this.get("selected-countries"));
 
 			//make sure the selected contry is not there 
@@ -167,8 +193,10 @@
 
 		setAxisConfig: function(axisName, prop, value) {
 			var axis = _.extend({}, this.get(axisName));
-			axis[prop] = value;
-			this.set(axisName, axis);
+			if (axis[prop] !== value) {
+				axis[prop] = value;
+				this.set(axisName, axis);				
+			}
 		},
 
 		getAxisConfig: function(axisName, prop) {
@@ -208,11 +236,10 @@
 			var xAxis = { property: 'x', name: 'X axis', },
 				yAxis = { property: 'y', name: 'Y axis', },
 				color = { property: 'color', name: 'Color' },
-				shape = { property: 'shape', name: 'Shape' },
-				size = { property: 'size', name: 'size' };
+				size = { property: 'size', name: 'Size' };
 
 			if (chartType == App.ChartType.ScatterPlot)
-				return [xAxis, yAxis, size, shape, color];
+				return [xAxis, yAxis, size, color];
 			else
 				return [yAxis];
 		},
@@ -243,6 +270,12 @@
 		getDimensionById: function(id) {
 			return _.find(this.getDimensions(), function(dim) {
 				return dim.variableId == id;
+			});
+		},
+
+		getDimensionByProp: function(prop) {
+			return _.find(this.getDimensions(), function(dim) {
+				return dim.property == prop;
 			});
 		},
 

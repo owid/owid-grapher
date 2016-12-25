@@ -15,7 +15,6 @@ use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-use Debugbar;
 use DB;
 
 class ChartsController extends Controller {
@@ -41,12 +40,13 @@ class ChartsController extends Controller {
 	public function create()
 	{
 		$data = $this->editorData();
-		return view('charts.create')->with('data', $data);
+		return view('charts.edit', [ 'data' => $data, 'chartConfig' => json_encode(Chart::getConfigWithUrl(null)) ]);
 	}
 
 	public function editorData() {
 		$data = new \StdClass;
-		$data->logos = Logo::lists( 'name', 'url' );
+
+		$data->logos = Logo::lists('name');
 
 		$query = DB::table("variables")
 			->join('datasets', 'variables.fk_dst_id', '=', 'datasets.id')
@@ -106,6 +106,8 @@ class ChartsController extends Controller {
 			
 			$chart->published = $data["published"];
 			unset($data["published"]);
+
+			unset($data['logosSVG']);
 
 			$dims = [];
 			$i = 0;
@@ -203,7 +205,8 @@ class ChartsController extends Controller {
 	public function edit( Chart $chart, Request $request )
 	{
 		$data = $this->editorData();
-		return view('charts.edit', compact('chart'))->with('data', $data);
+		$chartConfig = json_encode(Chart::getConfigWithUrl($chart));
+		return view('charts.edit', compact('chart', 'chartConfig'))->with('data', $data);
 	}
 
 	/**

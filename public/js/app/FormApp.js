@@ -1,7 +1,13 @@
-;$(document).ready(function() {
+(function() {
 	"use strict";
+	owid.namespace("App");
+	
+	App.isEditor = true;
+	App.loadChart = function(chartConfig) {
+//		var chart = owid.chart().update({ chartConfig: chartConfig, containerNode: d3.select('').node() });
+	};
 
-	var Form = App.Views.Form,
+/*	var Form = App.Views.Form,
 		ChartModel = App.Models.ChartModel,
 		ChartDataModel = App.Models.ChartDataModel;
 
@@ -10,12 +16,9 @@
 	var $chart = $("#chart"),
 		chartId = $chart.attr( "data-chart-id" );
 
-	if (!$chart.length) return;
-
 	//setup views
 	App.isEditor = true;
 	App.View = new Form();
-	
 	if (chartId) {
 		//showing existing chart
 		App.ChartModel = new ChartModel( { id: chartId } );
@@ -36,5 +39,5 @@
 		//is new chart
 		App.ChartModel = new ChartModel();
 		App.View.start();
-	}
-});
+	}*/
+})();

@@ -29,7 +29,7 @@
 
 
 			this.$reserveSection = this.$el.find(".add-data-section");
-			this.$dimensionsContent = this.$el.find(".dimensions-section .form-section-content");
+			this.$dimensionsContent = $("<div></div>").appendTo(this.$el.find(".dimensions-section"));
 			this.$groupByVariableWrapper = this.$el.find(".group-by-variable-wrapper");			
 			this.$groupByVariable = this.$el.find("[name='group-by-variable']");
 

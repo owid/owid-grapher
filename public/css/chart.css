@@ -1,85 +1,51 @@
-input[type=range] {
-    -webkit-appearance: none;
-    margin: 18px 0;
+/*! normalize.css v5.0.0 | MIT License | github.com/necolas/normalize.css */button,hr,input{overflow:visible}audio,canvas,progress,video{display:inline-block}progress,sub,sup{vertical-align:baseline}[type=checkbox],[type=radio],legend{box-sizing:border-box;padding:0}html{font-family:sans-serif;line-height:1.15;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}body{margin:0}article,aside,details,figcaption,figure,footer,header,main,menu,nav,section{display:block}h1{font-size:2em;margin:.67em 0}figure{margin:1em 40px}hr{box-sizing:content-box;height:0}code,kbd,pre,samp{font-family:monospace,monospace;font-size:1em}a{background-color:transparent;-webkit-text-decoration-skip:objects}a:active,a:hover{outline-width:0}abbr[title]{border-bottom:none;text-decoration:underline;text-decoration:underline dotted}b,strong{font-weight:bolder}dfn{font-style:italic}mark{background-color:#ff0;color:#000}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative}sub{bottom:-.25em}sup{top:-.5em}audio:not([controls]){display:none;height:0}img{border-style:none}svg:not(:root){overflow:hidden}button,input,optgroup,select,textarea{font-family:sans-serif;font-size:100%;line-height:1.15;margin:0}button,select{text-transform:none}[type=reset],[type=submit],button,html [type=button]{-webkit-appearance:button}[type=button]::-moz-focus-inner,[type=reset]::-moz-focus-inner,[type=submit]::-moz-focus-inner,button::-moz-focus-inner{border-style:none;padding:0}[type=button]:-moz-focusring,[type=reset]:-moz-focusring,[type=submit]:-moz-focusring,button:-moz-focusring{outline:ButtonText dotted 1px}fieldset{border:1px solid silver;margin:0 2px;padding:.35em .625em .75em}legend{color:inherit;display:table;max-width:100%;white-space:normal}textarea{overflow:auto}[type=number]::-webkit-inner-spin-button,[type=number]::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}[type=search]::-webkit-search-cancel-button,[type=search]::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}[hidden],template{display:none}
+
+
+html, body {
+    height: 100%;
     width: 100%;
 }
-input[type=range]:focus {
-    outline: none;
+html {
+    box-sizing: border-box;    
 }
-input[type=range]::-webkit-slider-runnable-track {
-    width: 100%;
-    height: 2px;
-    cursor: pointer;
-    background: #404040;
-    border-radius: 0;
-    border: 0.2px solid #404040;
+* {
+    box-sizing: inherit;
 }
-input[type=range]::-webkit-slider-thumb {
-    width: 8px;
-    height: 16px;
-    animate: .2s;
-    border: 1px solid #FAFAFA;
-    background: #404040;
-    cursor: pointer;
-    -webkit-appearance: none;
-    margin-top: -7px;
-    position: relative;
-    z-index: 1;
+button {
+    background: none;
+    border: none;
 }
 
-input[type=range]::-moz-range-track {
-    position: relative;
-    z-index: 3;
-    width: 100%;
-    height: 2px;
-    cursor: pointer;
-    background: #404040;
-    border-radius: 0;
-    border: 0.2px solid #404040;
+#chart > svg {
+    font-size: 22px;
 }
-input[type=range]::-moz-range-thumb {
-    height: 16px;
-    width: 8px;
-    animate: .2s;
-    border-radius: 0;
-    border: 1px solid #FAFAFA;
-    background: #404040;
-    cursor: pointer;
-    -webkit-appearance: none;
-    margin-top: -7px;
-    position: relative;
-    z-index: 1;
+
+#chart.export > svg {
+    font-size: 24px;
 }
-input[type=range]::-ms-track {
-    width: 100%;
-    height: 2px;
-    cursor: pointer;
-    background: #404040;
-    border-radius: 0;
-    border: 0.2px solid #404040;
+
+#chart .btn {
+    font-size: 0.8em;
+    white-space: normal;
 }
-input[type=range]::-ms-thumb {
-    height: 16px;
-    width: 8px;
-    animate: .2s;
-    border: 1px solid #FAFAFA;
-    background: #404040;
-    cursor: pointer;
-    -webkit-appearance: none;
-    margin-top: -7px;
-    position: relative;
-    z-index: 1;
-}
-html,
-body {
-    width: 100%;
-    height: 100%;
-}
+
 body.chart-container {
     /* Ridiculous hack for iOS compatibility: http://stackoverflow.com/questions/23083462/how-to-get-an-iframe-to-be-responsive-in-ios-safari */
     width: 1px;
     min-width: 100%;
     overflow: hidden;
+}
+
+body.chart-container:not(.export) {
+    text-align: center;
+}
+
+/* Fake (pseudo) element, that enables vertical-align */
+body.chart-container:before {
+  content: "";
+  display: inline-block;
+  vertical-align: middle;
+  height: 100%;
 }
 .browserupgrade {
     margin: 0.2em 0;
@@ -223,42 +189,35 @@ select.disabled {
 --------------------------------------------- */
 
 #chart {
+    display: inline-block;
+    border-bottom: none;
+    border-radius: 2px;
+
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    color: #000000;
-    width: 100%;
-    height: 100%;
+    color: #333;
     background: white;
+
     position: relative;
 
     /* Hidden overflow x so that tooltips don't cause scrollbars */
     overflow: hidden;
 }
 
-#chart .chart-inner {
-    width: 100%;
-    height: 100%;
-    position: relative;
+body:not(.export) #chart {
+    vertical-align: middle;
+    border: 1px solid #f0f0f0;    
+    border-radius: 2px;
+    box-shadow: rgba(0, 0, 0, 0.117647) 0px 0px 2px 0px, rgba(0, 0, 0, 0.239216) 0px 2px 2px 0px
 }
 
-#chart a {
+a {
     cursor: pointer;
     color: #0645ad;
     fill: #0645ad;
 }
-#chart a:hover {
-    text-decoration: underline;
-}
 #chart .logos {
     float: right;
     padding-left: 0.6em;
-}
-#chart .chart-wrapper-inner {
-    position: relative;
-    table-layout: fixed;
-    border-collapse: collapse;
-    border-spacing: 0;
-    height: 100%;
-    width: 100%;
 }
 #chart .tab-content {
     position: absolute;
@@ -276,16 +235,7 @@ select.disabled {
     width: 100%;
     height: 100%;
 }
-#chart #chart-chart-tab {
-    overflow: hidden;    
-}
-#chart #data-chart-tab,
-#chart #sources-chart-tab {
-    position: relative;
-    z-index: 2;
-}
 #chart svg {
-    position: absolute;
     z-index: 1;
     top: 0;
     left: 0;
@@ -295,26 +245,87 @@ select.disabled {
     -webkit-font-smoothing: antialiased;
 }
 
+#chart {
+    z-index: 1;
+}
+
 #chart .html-overlay {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
+    z-index: -1;
+}
+
+#chart .html-overlay > * {
+    z-index: 2;
+}
+
+/* Controls Footer
+--------------------------------------------- */
+
+#chart .controlsFooter {
+    width: 100%;
+    position: absolute;
+    bottom: 0;
+    border-top: 1px solid #e1e1e1;
+}
+
+#chart nav.tabs ul {
+    margin: 0;
+    padding: 0;
+}
+
+#chart nav.tabs li {
+    list-style-type: none;
+    border-left: 1px solid #e1e1e1;
+    border-bottom: 0.2em solid rgba(0,0,0,0);
+}
+
+#chart nav.tabs li > a {
+    display: block;
+    padding: 0.5em 1.0em;    
+    text-transform: uppercase;
+    color: #666;
+    font-size: 0.9em;
+}
+
+#chart nav.tabs li > a:hover {
+    text-decoration: none;
+}
+
+#chart nav.tabs li.active {
+    border-bottom-color: rgba(0,33,71,.9);
+}
+
+#chart.landscape nav.tabs {
+    float: right;
+}
+
+#chart.landscape nav.tabs li {
+    float: left;
+}
+
+#chart.portrait nav.tabs ul {
+    display: table;
+    width: 100%;
+    text-align: center;
+}
+
+#chart.portrait nav.tabs li {
+    display: table-cell;
 }
 
 /* The little loading icon */
 
-#chart .chart-preloader {
+#chart .loadingIcon {
     position: absolute;
     top: 50%;
     left: 50%;
-    font-size: 1.25em;
     -webkit-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
-    /*hidden by default*/
-    
-    display: none;
+    font-size: 1.3em;
 }
 #chart .chart-error {
     position: absolute;
@@ -325,6 +336,7 @@ select.disabled {
     height: 100%;
     width: 100%;
     pointer-events: none;
+    font-weight: bold;
 }
 #chart .chart-error:before {
     content: '';
@@ -350,111 +362,34 @@ select.disabled {
 /* Header
 --------------------------------------------- */
 
-#chart .chart-header-svg .chart-name-svg {
-    font-size: 1.3em;
+#chart .title {
+    fill: #444;
 }
-#chart .chart-header-svg .chart-name-svg a {
-    fill: #35322F;
-}
-#chart .chart-header-svg .chart-name-svg a {
+#chart .title {
     text-decoration: none !important;
 }
-#chart .chart-header-svg .chart-subname-svg {
-    margin-top: 0;
-    margin-bottom: 0.5em;
+#chart .subtitle {
     font-size: 0.8em;
     fill: #4F4B49;
 }
-#chart .chart-header-svg .chart-logo-svg path {
+#chart .header path {
     stroke: #FFFFFF;
     stroke-width: 1px;
-}
-/* Tab Menu (Chart, Data, Map, Sources)
---------------------------------------------- */
-
-#chart nav.tabs {
-    width: 100%;
-    background-color: white;
-    z-index: 2;
-    border-bottom: 1px solid #ccc;
-}
-#chart nav.tabs ul {
-    position: relative;
-    margin-bottom: 0;
-    list-style-type: none;
-    text-transform: uppercase;
-    padding-left: 0;
-}
-#chart nav.tabs li {
-    position: relative;
-    top: 0.06em;
-    z-index: 1;
-    border: 1px solid #ddd;
-    border-left: 0px;
-    background-color: #FAFAFA;
-}
-#chart nav.tabs li.first {
-    border-left: 1px solid #ddd;
-}
-#chart nav.tabs li.active,
-#chart nav.tabs li:hover {
-    background-color: #FFFFFF;
-    border-top: 2px solid rgba(0, 33, 71, 0.9);
-    border-bottom: 0;
-}
-#chart nav.tabs li a {
-    color: #000;
-    display: block;
-    font-size: 0.65em;
-    padding: 0.5em 1em;
-    text-decoration: none;
-}
-#chart nav.tabs li a i {
-    margin-right: 0.3em;
-}
-#chart nav.tabs li.edit-btn-wrapper:hover {
-    background-color: #444;
-    border: 1px solid #444;
-    border-left: 0;
-}
-#chart nav.tabs li.edit-btn-wrapper:hover a {
-    color: #FAFAFA;
-}
-#chart nav.tabs li.edit-btn-wrapper i {
-    margin-right: 0;
 }
 /* Footer
 --------------------------------------------- */
 
-.chart-footer-svg {
-    font-size: 0.75em;
+#chart .footer {
+    font-size: 0.65em;
 }
-.footer-license-svg {
-/*    font-size: 90%;*/
+#chart .footer text {
+    fill: #666;
 }
-.chart-footer-svg text {
-    fill: rgb(51, 51, 51);
-}
-.chart-footer-svg a.bold {
+#chart .footer a.bold {
     font-weight: bold;
-    fill: rgb(51, 51, 51) !important;
+    fill: #666;
 }
-.footer-btns {
-    font-size: 0.8em;
-    position: absolute;
-    bottom: 0;
-    z-index: 2;
-    width: 100%;
-    background-color: white;
-}
-.footer-btns a {
-    text-decoration: none;
-    margin-right: 0.5em;
-    display: inline-block;
-}
-.footer-btns a:hover {
-    text-decoration: none;
-}
+
 /* Legend
 --------------------------------------------- */
 
@@ -538,9 +473,9 @@ select.disabled {
 --------------------------------------------- */
 
 #chart .axis path.domain {
-    stroke: #333;
+    stroke: #7f7f7f;
     stroke-width: 1px;        
-    stroke-opacity: 0.75;
+    stroke-opacity: 0;
 }
 
 #chart .axis line:first-child {
@@ -554,40 +489,53 @@ select.disabled {
 
 #chart .axis {
     font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif;
-    font-size: 14px;
 }
 
-#chart .axis > .scale {
-    font-size: 14px;
+#chart .axis .tick {
+    font-size: 0.7em;
+}
+
+#chart .axis .axis-label {
+    font-size: 0.75em;
 }
 
 
 /* Axis Scale Selectors
 --------------------------------------------- */
 
-#chart .axis-scale-selectors-wrapper .x-axis-scale-selector,
-#chart .axis-scale-selectors-wrapper .y-axis-scale-selector {
+#chart .scaleSelector {
     position: absolute;
-    z-index: 11;
-    display: none;
-}
-#chart .axis-scale-selectors-wrapper .axis-scale-btn {
-    position: relative;
     font-size: 0.7em;
     color: black;
-}
-#chart .axis-scale-btn:hover {
-    text-decoration: none;
-}
-#chart .axis-scale-selectors-wrapper .axis-scale {
     text-transform: uppercase;
-    font-size: 0.6em;
-    border: 1px solid #eeeeee;
-    background-color: white;
-    display: none;
 }
 /* Tooltips
 --------------------------------------------- */
+
+#chart .owid-tooltip {
+    font-size: 1em;
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.2);    
+    pointer-events: none;
+}
+#chart .owid-tooltip h3 {
+    padding: 0.3em 0.9em;
+    font-size: 1em;
+    margin: 0;
+    line-height: 18px;
+    font-weight: normal;
+    background-color: rgba(247,247,247,0.75);
+    text-align: center;
+    border-bottom: 1px solid #ebebeb;
+}
+#chart .owid-tooltip p {
+    font-size: 0.8em;
+    padding: 0.3em 0.9em;
+    margin: 0;
+}
+#chart .owid-tooltip .var-popup-value {
+    display: block;
+}
 
 .nvtooltip {
     background-color: white;
@@ -595,22 +543,19 @@ select.disabled {
     border: 1px solid rgba(0, 0, 0, 0.2);
     border-radius: 0;
     box-shadow: none;
-    /* scatter plot has values underneath each other */
 }
 .nvtooltip table tbody,
 .nvtooltip table td {
     border: 0;
 }
-.html-overlay .nvtooltip {
-    font-size: 0.6em;
-}
 .nvtooltip h3 {
     padding: 0.3em 0.9em;
-    font-size: 1.5em;
+    font-size: 20px;
     margin-top: 0 !important;
 }
 .nvtooltip p {
-    font-size: 1.2em;
+    font-size: 16px;
+    padding: 0.3em 0.9em;
 }
 .nvtooltip .var-popup-value {
     display: block;
@@ -638,75 +583,62 @@ select.disabled {
 #chart .nvd3-svg .nvd3 .nv-axis line {
     opacity: .6;
 }
-#chart .nvd3-svg .chart-header-svg,
-#chart .nvd3-svg .chart-footer-svg {
-    -webkit-touch-callout: initial !important;
-    -webkit-user-select: initial !important;
-    -ms-user-select: initial !important;
-    -moz-user-select: initial !important;
-    -webkit-user-select: initial !important;
-    user-select: initial !important;
-}
 /* Data Tab
 --------------------------------------------- */
 
-#chart #data-chart-tab {
-    padding-top: 1.5em;
-    padding-left: 1em;
-    font-size: 16px;
+#chart .dataTab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    background: rgba(255,255,255,0.95);
+    padding: 1em;
+    text-align: center;
 }
-#chart.narrow #data-chart-tab {
-    padding: 0;
-}
-#chart #data-chart-tab .download-data-btn,
-#chart #data-chart-tab .download-full-btn {
-    color: #fff;
-}
-#chart #data-chart-tab .download-data-btn i,
-#chart #data-chart-tab .download-full-btn i {
-    margin-right: 0.3em;
-}
-#chart #data-chart-tab .data-table {
-    margin-top: 1.25em;
-}
-#chart #data-chart-tab .data-table th,
-#chart #data-chart-tab .data-table td {
-    padding: 4px 4px;
-}
-#chart #data-chart-tab .data-table th {
-    border-bottom: 1px solid #aaa;
-}
-#chart #data-chart-tab .data-table td {
-    border-bottom: 1px solid #afafaf;
+
+#chart h2 {
+    font-size: 2em;
+    margin-bottom: 0.8em;
 }
 
 /* Sources Tab
 --------------------------------------------- */
 
-.datasource-wrapper {
+#chart .sourcesTab {
     padding: 1em;
+    text-align: left;
+    background: rgba(255,255,255,0.95);    
+}
+
+#chart .sourcesTab > div {
+    height: 100%;
+    overflow-y: auto;
+}
+
+#chart .datasource-wrapper {
     font-size: 0.8em;
     max-width: 1024px;
 }
 #chart.narrow .datasource-wrapper {
     padding: 0;
 }
-.datasource-wrapper h2 {
+#chart .datasource-wrapper h2 {
     width: 70%;
     padding-bottom: 0.3em;
     text-transform: uppercase;
     font-size: 0.9em;
     font-family: inherit;
     border-bottom: 1px solid #35322F;
+    margin-bottom: 0;
 }
-.datasource-wrapper h2,
-.datasource-wrapper h3,
-.datasource-wrapper h4 {
+#chart .datasource-wrapper h2,
+#chart .datasource-wrapper h3,
+#chart .datasource-wrapper h4 {
     margin-left: 0px;
     font-family: inherit;
 }
-.datasource-wrapper h3,
-.datasource-wrapper h4 {
+#chart .datasource-wrapper h3,
+#chart .datasource-wrapper h4 {
     margin-top: 2px;
     margin-bottom: 1px;
     font-size: 0.9em;
@@ -727,34 +659,168 @@ select.disabled {
 .datasource-additional p {
     margin-top: 0.3em;
 }
+
+/* Share Menu
+--------------------------------------------- */
+
+#chart .shareMenu {
+    position: absolute;
+    right: 1em;
+    bottom: 1em;
+    text-align: left;
+    background: rgba(255,255,255,0.95);    
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 0 2px 0 rgba(0,0,0,0.12), 0 2px 2px 0 rgba(0,0,0,0.24);
+    padding-bottom: 0.5em;
+    width: 15em;
+}
+
+#chart .shareMenu h2 {
+    padding: 0.8em 1em;
+    margin: 0;
+    font-size: 1em;
+}
+
+#chart .shareMenu .btn {
+    width: 100%;
+    padding: 1em 1.5em;
+    padding-right: 3em;
+    text-align: left;
+    color: #333;
+    text-decoration: none;
+}
+
+#chart .shareMenu .btn > i {
+    background-color: #333;
+    color: white;
+    text-align: center;
+    font-size: 1em;
+    width: 1.8em;
+    height: 1.8em;
+    line-height: 1.8em;
+    margin-right: 2px;
+    border-radius: 2px;
+    position: relative;
+}
+
+#chart .shareMenu .btn:hover {
+    text-decoration: none;
+    background-color: #eee;
+}
+
+#chart .shareMenu section.share a {
+    display: block;
+    text-align: left;
+}
+
+
+#chart .shareMenu textarea {
+    width: 30em;
+    height: 20em;
+    font-size: 0.8em;
+}
+
+#chart.mobile .shareMenu .btn-embed {
+    display: none;
+}
+
+#chart .embedMenu {
+    position: absolute;
+    left: 5%;
+    top: 5%;
+    width: 90%;
+    height: 90%;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 0 2px 0 rgba(0,0,0,0.12), 0 2px 2px 0 rgba(0,0,0,0.24);
+    background: rgba(255,255,255,0.95);        
+    padding: 1em;
+    text-align: left;
+}
+
+#chart .embedMenu p {
+    margin-bottom: 0;
+    margin-bottom: 0.5em;
+}
+
+#chart .embedMenu textarea {
+    width: 100%;
+    height: 80%;
+}
+
+/* Entity Selection Menu
+--------------------------------------------- */
+
+#chart .entitySelect {
+    padding: 0.8em;
+    text-align: left;
+    background: rgba(255,255,255,0.9);    
+    position: absolute;
+    top: 0%;
+    height: 100%;
+    width: 100%;
+    overflow-y: auto;
+    border-top: 1px solid #e1e1e1;
+}
+
+#chart .entitySelect h2 {
+    font-size: 1em;
+}
+
+#chart .entitySelect input[type=search] {
+    width: 100%;
+    font-size: 0.9em;
+    padding: 0.3em;
+    margin-bottom: 0.4em;
+}
+
+#chart .entitySelect ul {
+    padding: 0;
+}
+
+#chart .entitySelect li {
+    list-style-type: none;
+    padding: 0.5em;
+    color: rgba(0,0,0,0.87);
+}
+
+#chart .entitySelect li:hover {
+    background-color: #eee;
+}
+
+#chart .entitySelect .btnClose {
+    float: right;
+}
+
+#chart .btnClose {
+    background: none;
+    border: none;
+}
+
 /* Map Tab
 --------------------------------------------- */
 
-#chart svg.datamap .legend-step rect {
+#chart .map-legend .legend-step rect {
     stroke: #4F4F4F;
     stroke-width: .1px;
 }
-#chart svg.datamap .legend-step text {
-    font-size: 16px;
+#chart .map-legend .legend-step text {
+    font-size: 0.8em;
 }
-#chart svg.datamap .legend-step line {
+#chart .map-legend .legend-step line {
     stroke: #4F4F4F;
     stroke-width: 1px;
 }
-#chart svg.datamap .legend-description {
-    font-size: 0.7em;
-}
-#chart svg.datamap .border-disclaimer {
+#chart .map-legend .map-label {
     font-size: 0.6em;
 }
-#chart svg.datamap .map-bg {
-    fill: #ECF6FC;
+#chart g.map .border-disclaimer {
+    font-size: 0.6em;
 }
-#chart svg.datamap path {
+#chart g.map path {
     stroke: #4b4b4b !important;
     stroke-width: 0.3px !important;
 }
-#chart svg.datamap path:hover {
+#chart g.map path:hover {
     stroke: #FFEC38 !important;
     stroke-width: 3px !important;
 }
@@ -773,7 +839,6 @@ select.disabled {
 #chart #map-chart-tab {
     overflow: inherit;
     padding: 0 !important;
-    border: 1px solid #eee;
 }
 #chart .map-controls-header {
     position: absolute;
@@ -867,8 +932,7 @@ select.disabled {
     z-index: 2;
     width: 100%;
     color: #404040;
-    background-color: #FAFAFA;
-    border-top: 1px solid #ddd;
+    font-size: 0.9em;
 }
 #chart .timeline .play-pause-control {
     width: 3.5em;
@@ -921,11 +985,12 @@ select.disabled {
 }
 
 #chart .timeline .timeline-slider {
-    background: #d5d5d5;
+    background: #eee;
     flex-grow: 1;
-    height: 1em;
+    height: 0.8em;
     position: relative;
     margin: 0 0.5em;
+    border-radius: 8px;
 }
 
 #chart .timeline .timeline-marker {
@@ -965,110 +1030,27 @@ select.disabled {
  * a special .export url to screenshot the chart. #chart-export styles therefore apply specifically
  * to these screenshots. */
 
-#chart.export {
+body.export #chart {
     background: white;
     /* Remove interactive UI elements since obviously they can't be used in a static image
    * NOTE (Mispy): Unneeded SVG elements should be removed entirely by the JS as well as hidden here. */
 }
-#chart.export {
+body.export #chart {
     padding: 0 !important;
 }
-#chart.export nav.tabs,
-#chart.export .footer-btns,
-#chart.export .fullscreen-link,
-#chart.export .map-timeline-controls,
-#chart.export .settings-control,
-#chart.export .color-blind-control,
-#chart.export .map-controls-header,
-#chart.export .nv-add-btn,
-#chart.export .nv-controlsWrap,
-#chart.export .axis-scale-selectors-wrapper {
+body.export #chart .controlsFooter,
+body.export #chart .fullscreen-link,
+body.export #chart .timeline,
+body.export #chart .settings-control,
+body.export #chart .color-blind-control,
+body.export #chart .map-controls-header,
+body.export #chart .nv-add-btn,
+body.export #chart .nv-controlsWrap,
+body.export #chart .scaleSelector {
     display: none !important;
 }
-#chart.export .tab-pane {
+body.export #chart .tab-pane {
     border: none !important;
-}
-#chart.export .nv-custom-legend .nv-legend-text {
-    font-size: 16px !important;
-}
-/* Responsiveness
---------------------------------------------- */
-
-
-#chart {
-    font-size: 18px;
-}
-
-#chart.downscaled:not(.narrow) {
-    font-size: 22px;
-}
-#chart.export.upscaled.space150 {
-    font-size: 24px;
-}
-
-/* Portrait mode chart
---------------------------------------------- */
-#chart.portrait.embedded {
-    padding: 0.6em;
-    border: 1px solid #ccc;
-}
-#chart.portrait:not(.embedded) {
-    padding: 1em;
-}
-
-/* Tabs should fill the entire width */    
-#chart.portrait nav.tabs ul {
-    display: table;
-    width: 100%;
-}
-#chart.portrait nav.tabs li {
-    display: table-cell;
-}
-#chart.portrait nav.tabs li > a {
-    padding: 3px 8px;
-}
-#chart.portrait nav.tabs li.edit-btn-wrapper {
-    display: none;
-}
-/* Compact the footer buttons a bit */
-#chart.narrow .footer-btns a.chart-link-btn span,
-#chart.narrow .footer-btns a.tweet-btn span,
-#chart.narrow .footer-btns a.facebook-btn span,
-#chart.narrow .footer-btns a.embed-btn span {
-    display: none;
-}
-#chart.narrow .footer-btns i {
-    font-size: 1.2em;
-}
-
-/* Landscape mode chart
---------------------------------------------- */
-#chart:not(.portrait).embedded {
-    padding: 1em 1.5em;
-    border: 1px solid #ccc;
-}
-#chart:not(.portrait):not(.embedded) {
-    padding: 1.5em 3em;
-}
-/* Desktop-style tabs */
-#chart:not(.portrait) nav.tabs ul {
-    float: right;
-}
-#chart:not(.portrait) nav.tabs li {
-    float: left;
-}
-/* Desktop-only: can click on world map to get chart */
-#chart:not(.portrait) .datamaps-subunits {
-    cursor: pointer;
-}
-#chart:not(.portrait) .datasource-wrapper td:first-child {
-    min-width: 100px;
-    white-space: nowrap;
-}    
-
-/* Adding countries is currently not compatible with touch devices */
-#chart.mobile .nv-add-btn {
-    display: none;
 }
 
 /* Miscellaneous

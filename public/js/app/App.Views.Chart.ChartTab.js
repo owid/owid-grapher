@@ -10,20 +10,19 @@
 	};
 
 	owid.tab.chart = function(chart) {
-		function chartTab() { }
-		var changes = owid.changes();
-		changes.track(chart.model);
-		changes.track(chart.data);
-		changes.track(chart.display);
+		var chartTab = owid.dataflow();
 
 		var $svg, $tab, $entitiesSelect,
 			$xAxisScale, $yAxisScale,
 			svg, nvd3, viz;
 
 		var chartType, localData, missingMsg, lineType;
+		var bounds;
 
 		var legend = new App.Views.Chart.Legend();
 		chartTab.legend = legend;
+
+		var timeline;
 
 		var xAxis = chart.model.get("x-axis"),
 			yAxis = chart.model.get("y-axis"),
@@ -33,10 +32,10 @@
 			yAxisSuffix = yAxis["axis-suffix"] || "",
 			xAxisLabelDistance = +xAxis["axis-label-distance"] || 0,
 			yAxisLabelDistance = +yAxis["axis-label-distance"] || 0,
-			xAxisMin = xAxis["axis-min"] || null,
-			xAxisMax = xAxis["axis-max"] || null,
-			yAxisMin = yAxis["axis-min"] || 0,
-			yAxisMax = yAxis["axis-max"] || null,
+			xAxisMin = owid.numeric(xAxis["axis-min"], null),
+			xAxisMax = owid.numeric(xAxis["axis-max"], null),
+			yAxisMin = owid.numeric(yAxis["axis-min"], null),
+			yAxisMax = owid.numeric(yAxis["axis-max"], null),
 			xAxisScale = xAxis["axis-scale"] || "linear",
 			yAxisScale = yAxis["axis-scale"] || "linear",
 			xAxisFormat = xAxis["axis-format"],
@@ -44,39 +43,41 @@
 
 		var xDomain, yDomain, isClamped;
 
-		chartTab.scaleSelectors = owid.view.scaleSelectors(chart);
+		chartTab.scaleSelectors = owid.component.scaleSelectors(chart);
 
 		var nvOptions = {
 			showLegend: false
 		};
 
-		chartTab.deactivate = function() {
-			if (!$svg) return;
-			viz = null;			
-			$svg.attr("class", "");
+		chartTab.clean = function() {
+			if (viz) viz = viz.destroy();
+			chartTab.scaleSelectors.clean();
 
-			chart.model.off(null, null, this);
-			d3.selectAll(".nvd3, .axisBox, .nvtooltip:not(.owid-tooltip)").remove();
-			chartTab.scaleSelectors.hide();
+			d3.selectAll(".nvd3, .axisBox, .nvtooltip:not(.owid-tooltip), .timeline").remove();
+//			chartTab.scaleSelectors.hide();
 			d3.selectAll("svg").on("mousemove.stackedarea", null);
-			changes.done();
 		},
 
-		chartTab.render = function() {
-			if (!changes.start()) return;
-			console.trace('chartTab.render');
+		chartTab.render = function(inputBounds) {
+			bounds = inputBounds.pad(10);
+
+  		    margins = _.clone(chart.model.get("margins"));
+			chartOffsetX = bounds.left;
+			chartOffsetY = bounds.top;
+			chartHeight = bounds.height;
+			chartWidth = bounds.width;		
 
 			configureTab();
 			configureData();
 			configureAxis();
-			configureBounds();
 			renderLegend();
+//			renderTimeline();
 
 			$(".chart-error").remove();
-			if (missingMsg || _.isEmpty(localData)) {
-				chart.$(".nv-wrap").remove();
+			if (missingMsg || (_.isEmpty(localData) && chartType != App.ChartType.ScatterPlot)) {
+				chart.el.selectAll(".nv-wrap").remove();
 				chart.showMessage(missingMsg || "No available data.");
-				return changes.done();
+				return;
 			}
 
 			updateAvailableCountries();
@@ -109,6 +110,7 @@
 					nv.dispatch.on("render_end", function() {
 						setTimeout(postRender, 500);
 					});
+					setTimeout(postRender, 500);
 					window.nvd3 = nvd3;
 				}
 
@@ -116,6 +118,7 @@
 				renderTooltips();
 				
 				if (nvd3) {
+					nvd3.duration(0);
 					svg.datum(localData).call(nvd3);
 		
 					var nvWrap = d3.select('.nvd3.nv-wrap > g');
@@ -130,27 +133,26 @@
 						$pathDomain.css("stroke-opacity", "0");
 					}					
 				}
-
-				ensureLabelsFit();				
-				changes.done();	
 			}
 
 			if (!nvd3 && chartType != App.ChartType.ScatterPlot)
 				nv.addGraph(updateGraph);
-			else
+			else {
+				if (nvd3 && chartType == App.ChartType.ScatterPlot) {
+					nvd3 = null;
+					$('.nvd3').remove();
+				}
 				updateGraph();
+			}
 		};
 
 		function configureTab() {
-			if (!changes.any('activeTab chart-type'))
-				return;
-
 			chartType = chart.model.get('chart-type');
-			$svg = chart.$("svg");
-			svg = d3.select($svg.get(0));
-			$svg.attr("class", "nvd3-svg " + chartType);
-			$tab = chart.$("#chart-chart-tab");
-			$entitiesSelect = $tab.find('[name=available_entities]');
+			svg = chart.svg;
+			svg.attr("class", "nvd3-svg " + chartType);
+
+
+			$entitiesSelect = $(svg.node()).find('[name=available_entities]');
 		}
 
 		function configureData() {
@@ -166,9 +168,6 @@
 		}
 
 		function configureAxis() {
-			if (!changes.any('x-axis y-axis'))
-				return;
-
 			xAxis = chart.model.get("x-axis");
 			yAxis = chart.model.get("y-axis");
 			xAxisPrefix = xAxis["axis-prefix"] || "";
@@ -177,29 +176,18 @@
 			yAxisSuffix = yAxis["axis-suffix"] || "";
 			xAxisLabelDistance = +xAxis["axis-label-distance"] || 0;
 			yAxisLabelDistance = +yAxis["axis-label-distance"] || 0;
-			xAxisMin = xAxis["axis-min"] || null;
-			xAxisMax = xAxis["axis-max"] || null;
-			yAxisMin = yAxis["axis-min"] || 0;
-			yAxisMax = yAxis["axis-max"] || null;
+			xAxisMin = owid.numeric(xAxis["axis-min"], null),
+			xAxisMax = owid.numeric(xAxis["axis-max"], null),
+			yAxisMin = owid.numeric(yAxis["axis-min"], null),
+			yAxisMax = owid.numeric(yAxis["axis-max"], null),
 			xAxisScale = xAxis["axis-scale"] || "linear";
 			yAxisScale = yAxis["axis-scale"] || "linear";
 			xAxisFormat = xAxis["axis-format"];
 			yAxisFormat = yAxis["axis-format"] || 5;				
 		}
 
-		var margins, svgBounds, tabBounds, chartOffsetX, chartOffsetY,
+		var margins, tabBounds, chartOffsetX, chartOffsetY,
 			chartWidth, chartHeight;
-
-		function configureBounds() {
-  		    margins = _.clone(chart.model.get("margins"));
-			svgBounds = chart.getBounds(svg.node());
-			tabBounds = chart.getBounds($(".tab-content").get(0));
-			chartOffsetX = 0;//parseFloat(margins.left);
-			chartOffsetY = tabBounds.top - svgBounds.top;// + parseFloat(margins.top) + 10;
-			// MISPY: The constant modifiers here are to account for nvd3 not entirely matching our specified dimensions
-			chartHeight = tabBounds.height; //- parseFloat(margins.bottom) - parseFloat(margins.top);
-			chartWidth = tabBounds.width; //- parseFloat(margins.left) - parseFloat(margins.right);
-		}
 
 		function updateAvailableCountries() {
 			if (chartType == App.ChartType.ScatterPlot) return;
@@ -236,86 +224,89 @@
 
 		function renderLineChart() {
 			var lineType = chart.model.get("line-type");
-			if (lineType == App.LineType.WithDots || lineType == App.LineType.DashedIfMissing) {
-				chart.$chart.addClass("line-dots");
-			} else {
-				chart.$chart.removeClass("line-dots");
-			}
+
+			chart.el.classed('line-dots', lineType == App.LineType.WithDots || lineType == App.LineType.DashedIfMissing);
 
 			nvd3 = nv.models.lineChart().options(nvOptions);
 		}
 
-		function renderScatterPlot() {
-			//set size of the bubbles depending on browser width
-/*			var browserWidth = $(window).width(),
-				browserCoef = Math.max( 1, browserWidth / 1100 ),
-				pointMin = 100 * Math.pow( browserCoef, 2 ),
-				pointMax = 1000 * Math.pow( browserCoef, 2 );
-			var points = [pointMin, pointMax];
+		// TEMPORARY
+		chartTab.requires('xDomain', 'xAxisScale', 'xAxis', 'xAxisPrefix', 'xAxisFormat', 'xAxisSuffix',
+						  'yDomain', 'yAxisScale', 'yAxis', 'yAxisPrefix', 'yAxisFormat', 'yAxisSuffix');
 
-			if (!nvd3) nvd3 = nv.models.scatterChart();
-			nvd3.options(nvOptions).pointRange(points).showDistX(true).showDistY(true);	*/
-
-			var allValues = [];
-			_.each( localData, function( v, i ) {
-				if( v.values ) {
-					allValues = allValues.concat( v.values );
-				} else if(_.isArray(v)) {
-					//special case for discrete bar chart
-					allValues = v;
+		chartTab.flow('xAxisConfig : xDomain, xAxisScale, xAxis, xAxisPrefix, xAxisFormat, xAxisSuffix', function(xDomain, xAxisScale, xAxis, xAxisPrefix, xAxisFormat, xAxisSuffix) {
+			return {
+				domain: xDomain,
+				scaleType: xAxisScale,
+				label: xAxis['axis-label'],
+				tickFormat: function(d) {
+					return xAxisPrefix + owid.unitFormat({ format: xAxisFormat||5 }, d) + xAxisSuffix;							
 				}
-			} );
+			};
+		});
 
-			xDomain = d3.extent(allValues.map(function(d) { return d.x; }));
-			yDomain = d3.extent(allValues.map(function(d) { return d.y; }));
-			isClamped = _.isFinite(xAxisMin) || _.isFinite(xAxisMax) || _.isFinite(yAxisMin) || _.isFinite(yAxisMax);
+		chartTab.flow('yAxisConfig : yDomain, yAxisScale, yAxis, yAxisPrefix, yAxisFormat, yAxisSuffix', function(yDomain, yAxisScale, yAxis, yAxisPrefix, yAxisFormat, yAxisSuffix) {
+			return {
+				domain: yDomain,
+				scaleType: yAxisScale,
+				label: yAxis['axis-label'],
+				tickFormat: function(d) {
+					return yAxisPrefix + owid.unitFormat({ format: yAxisFormat||5 }, d) + yAxisSuffix;							
+				}
+			};
+		});
 
-			if (_.isFinite(xAxisMin) && (xAxisMin > 0 || xAxisScale != "log"))
-				xDomain[0] = xAxisMin;
-			if (_.isFinite(xAxisMax))
-				xDomain[1] = xAxisMax;
+		chartTab.flow('axisConfig : xAxisConfig, yAxisConfig', function(xAxisConfig, yAxisConfig) {
+			return { x: xAxisConfig, y: yAxisConfig };
+		});
 
-			if (_.isFinite(yAxisMin) && (yAxisMin > 0 || yAxisScale != "log"))
-				yDomain[0] = yAxisMin;
-			if (_.isFinite(yAxisMax))
-				yDomain[1] = yAxisMax;
+		function renderScatterPlot() {
+			if (!viz) {
+				viz = owid.control.scatter();
+			} else if (viz.scatter.timeline && (viz.scatter.timeline.isPlaying || viz.scatter.timeline.isDragging)) {
+				return;
+			}
+			
+            var xDomain = [], yDomain = [];
 
-		    // Hide dots that are off the scale
-		    localData = _.filter(localData, function(d) {
-		    	return !(d.values[0].x < xDomain[0] || d.values[0].x > xDomain[1] ||
-		    		d.values[0].y < yDomain[0] || d.values[0].y > yDomain[1]);
-		    });
+            if (_.isFinite(xAxisMin) && (xAxisMin > 0 || xAxisScale != "log"))
+                xDomain[0] = xAxisMin;
+            if (_.isFinite(xAxisMax))
+                xDomain[1] = xAxisMax;
 
-			if (!viz) viz = owid.view.scatter();
+            if (_.isFinite(yAxisMin) && (yAxisMin > 0 || yAxisScale != "log"))
+                yDomain[0] = yAxisMin;            
+            if (_.isFinite(yAxisMax))
+                yDomain[1] = yAxisMax;
+
+            chartTab.update({
+            	xDomain: xDomain||"",
+            	xAxisScale: xAxisScale||"",
+            	xAxis: xAxis||"",
+            	xAxisPrefix: xAxisPrefix||"",
+            	xAxisFormat: xAxisFormat||"",
+            	xAxisSuffix: xAxisSuffix||"",
+
+            	yDomain: yDomain||"",
+            	yAxisScale: yAxisScale||"",
+            	yAxis: yAxis||"",
+            	yAxisPrefix: yAxisPrefix||"",
+            	yAxisFormat: yAxisFormat||"",
+            	yAxisSuffix: yAxisSuffix||"",
+            });
+
+			chartTab.viz = viz;			
 
 			viz.update({
-				svg: svg,
-				data: localData,
+				containerNode: chart.svg.node(),
 				bounds: { left: chartOffsetX, top: chartOffsetY+10, width: chartWidth-10, height: chartHeight-10 },
-				axisConfig: {
-					x: {
-						domain: xDomain,
-						scaleType: xAxisScale,
-						label: xAxis['axis-label'],
-						tickFormat: function(d) {
-							return xAxisPrefix + owid.unitFormat({ format: xAxisFormat||5 }, d) + xAxisSuffix;							
-						}
-					},
-
-					y: {
-						domain: yDomain,
-						scaleType: yAxisScale,
-						label: yAxis['axis-label'],
-						tickFormat: function(d) {
-							return yAxisPrefix + owid.unitFormat({ format: yAxisFormat }, d) + yAxisSuffix;
-						}
-					}
-				}
-			});
-
-			chart.dispatch.renderEnd();
-			
-			chartTab.viz = viz;			
+				axisConfig: chartTab.axisConfig,
+				dimensions: chart.model.getDimensions(),
+				variables: chart.vardata.get('variables'),
+                timelineConfig: chart.model.get('timeline')
+			}, function() {
+				postRender();
+			});			
 		}
 
 		function renderStackedArea() {
@@ -362,55 +353,53 @@
 		}
 
 		function renderMultiBar() {
-			if (changes.any('chartData')) {
-				console.trace('change chartData');
-				// MISPY TODO - move this into ChartData
-				// relevant test chart: http://ourworldindata.org/grapher/public-health-insurance-coverage2?stackMode=stacked
-		        var allTimes = [],
-		            //store values by [entity][time]
-		            valuesCheck = [];
+			console.trace('change chartData');
+			// MISPY TODO - move this into ChartData
+			// relevant test chart: http://ourworldindata.org/grapher/public-health-insurance-coverage2?stackMode=stacked
+	        var allTimes = [],
+	            //store values by [entity][time]
+	            valuesCheck = [];
 
-		        //extract all times
-		        _.each( localData, function( v, i ) {
-		            var entityData = [],
-		                times = v.values.map( function( v2, i ) {
-		                    entityData[ v2.x ] = true;
-		                    return v2.x;
-		                } );
-		            valuesCheck[v.id] = entityData;
-		            allTimes = allTimes.concat( times );
-		        } );
+	        //extract all times
+	        _.each( localData, function( v, i ) {
+	            var entityData = [],
+	                times = v.values.map( function( v2, i ) {
+	                    entityData[ v2.x ] = true;
+	                    return v2.x;
+	                } );
+	            valuesCheck[v.id] = entityData;
+	            allTimes = allTimes.concat( times );
+	        } );
 
-		        allTimes = _.uniq( allTimes );
-		        allTimes = _.sortBy( allTimes );
-		        
-		        if( localData.length ) {
-		            _.each( localData, function( serie, serieIndex ) {
-		                
-		                //make sure we have values for given series
-		                _.each( allTimes, function( time, timeIndex ) {
-		                    if( valuesCheck[ serie.id ] && !valuesCheck[serie.id][time]) {
-		                        //time doesn't existig for given entity, i
-		                        var zeroObj = {
-		                            "key": serie.key,
-		                            "serie": serieIndex,
-		                            "time": time,
-		                            "x": time,
-		                            "y": 0,
-		                            "fake": true
-		                        };
-		                        serie.values.splice( timeIndex, 0, zeroObj);
-		                    }
-		                });    
-		            });
-		        }
+	        allTimes = _.uniq( allTimes );
+	        allTimes = _.sortBy( allTimes );
+	        
+	        if( localData.length ) {
+	            _.each( localData, function( serie, serieIndex ) {
+	                
+	                //make sure we have values for given series
+	                _.each( allTimes, function( time, timeIndex ) {
+	                    if( valuesCheck[ serie.id ] && !valuesCheck[serie.id][time]) {
+	                        //time doesn't existig for given entity, i
+	                        var zeroObj = {
+	                            "key": serie.key,
+	                            "serie": serieIndex,
+	                            "time": time,
+	                            "x": time,
+	                            "y": 0,
+	                            "fake": true
+	                        };
+	                        serie.values.splice( timeIndex, 0, zeroObj);
+	                    }
+	                });    
+	            });
+	        }
 
-				if (chartType == App.ChartType.MultiBar) {
-					nvd3 = nv.models.multiBarChart().options(nvOptions);					
-				} else if (chartType == App.ChartType.HorizontalMultiBar) {
-					nvd3 = nv.models.multiBarHorizontalChart().options(nvOptions);					
-				}				
-			}
+			if (chartType == App.ChartType.MultiBar) {
+				nvd3 = nv.models.multiBarChart().options(nvOptions);					
+			} else if (chartType == App.ChartType.HorizontalMultiBar) {
+				nvd3 = nv.models.multiBarHorizontalChart().options(nvOptions);					
+			}				
 
 			if (chart.model.get("currentStackMode") == "stacked")
 				nvd3.stacked(true);			
@@ -442,7 +431,6 @@
 		}
 
 		function renderAxis() {
-			chartTab.scaleSelectors.render();
 			if (!nvd3) return;
 
 			//get extend
@@ -475,6 +463,8 @@
 			}
 			if (_.isFinite(yAxisMax))
 				yDomain[1] = yAxisMax;
+
+			yDomain[1] += (yDomain[1]-yDomain[0])/100;
 
 			if (isClamped) {
 				if (nvd3 && chartType !== App.ChartType.MultiBar && chartType !== App.ChartType.HorizontalMultiBar && chartType !== App.ChartType.DiscreteBar && chart.model.get("currentStackMode") != "relative") {
@@ -543,53 +533,40 @@
 				.showMaxMin(false);
 		}
 
+		var entitySelect;
+		function updateEntitySelect() {
+			if (!entitySelect) return;
+
+			entitySelect.update({
+				containerNode: chart.htmlNode,
+				entities: chart.model.getUnselectedEntities()
+			});
+		}
+
 		function renderLegend() {
 			if (!chart.model.get("hide-legend")) {
 				legend.dispatch.on("addEntity", function() {
-					if ($entitiesSelect.data("chosen")) {
-						$entitiesSelect.data("chosen").active_field = false;
+					if (entitySelect)
+						entitySelect = entitySelect.destroy();
+					else {
+						entitySelect = owid.view.entitySelect();
+
+						entitySelect.afterClean(function() { entitySelect = null; });
 					}
-					$entitiesSelect.trigger("chosen:open");
+					updateEntitySelect();
+				});
+				updateEntitySelect();
+
+				legend.render({
+					containerNode: svg.node(),
+					bounds: bounds
 				});
 
-				legend.render();
-
-				var translateString = "translate(" + 0 + " ," + (chartOffsetY+20) + ")";
-				svg.select(".nvd3.nv-custom-legend").attr("transform", translateString);
 				chartOffsetY += legend.height() + 10;
 				chartHeight -= legend.height() + 10;
 			} else {
-				$svg.find("> .nvd3.nv-custom-legend").hide();
+				chart.svg.selectAll(".nvd3.nv-custom-legend").remove();
 			}			
-		}
-
-		function renderTimeline() {	
-			if (!changes.any('chart-dimensions chart-time')) return;
-
-			var years;
-//			if (chartType == App.ChartType.ScatterPlot)
-				years = chart.vardata.get('yearsWithAnyData');
-//			else
-//				years = chart.vardata.get('yearsWithAnyData');
-			
-			var chartTime = chart.model.get('chart-time');
-
-			timeline.state.years = years;
-			if (!_.isEmpty(chartTime)) {
-				timeline.state.startYear = chartTime[0];
-				timeline.state.endYear = chartTime[1];			
-			} else {
-				timeline.state.startYear = years[0];
-				timeline.state.endYear = years[years.length-1];
-			}
-
-			timeline.render();
-
-			timeline.dispatch.on('change', function() {
-				chart.model.set('chart-time', [timeline.state.startYear, timeline.state.endYear]);
-			});
-
-			chartHeight -= chart.getBounds(timeline.node()).height + 10;
 		}
 
 		function splitSeriesByMissing(localData) {
@@ -642,9 +619,8 @@
 				var xAxisLabel = d3.select('.nv-x .nv-axislabel, .bottom.axis .axis-label');
 
 				xAxisLabel.attr('transform', '');
-				var bounds = chart.getBounds(xAxisLabel.node()),
-					box = xAxisLabel.node().getBBox(),
-					diff = Math.max(tabBounds.left-bounds.left, bounds.right-tabBounds.right)*2;
+				var box = xAxisLabel.node().getBBox(),
+					diff = box.width-(chartWidth-10);
 
 				if (diff > 0) {
 					var scale = (box.width-diff)/box.width,
@@ -660,9 +636,9 @@
 				var yAxisLabel = d3.select('.nv-y .nv-axislabel, .left.axis .axis-label');
 
 				yAxisLabel.attr('transform', 'rotate(-90)');
-				var bounds = chart.getBounds(yAxisLabel.node()),
-					box = yAxisLabel.node().getBBox(),
-					diff = Math.max((tabBounds.top+legend.height()+20)-bounds.top, bounds.bottom-tabBounds.bottom)*2;
+
+				var box = yAxisLabel.node().getBBox(),
+					diff = box.width-(chartHeight-10);
 
 				if (diff > 0) {
 					var scale = (box.width-diff)/box.width,
@@ -676,6 +652,9 @@
 		}
 
 		function postRender() {
+			ensureLabelsFit();				
+			chartTab.scaleSelectors.render(bounds);
+
 			// Hijack the nvd3 mode switch to store it
 			$(".nv-controlsWrap .nv-series").off('click').on('click', function(ev) {
 				chart.model.set("currentStackMode", $(ev.target).closest('.nv-series').text().toLowerCase());
@@ -695,7 +674,7 @@
 				});
 			}										
 
-			chart.dispatch.renderEnd();
+			chart.dispatch.call('renderEnd');
 		}
 
 		return chartTab;

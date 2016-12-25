@@ -5,174 +5,296 @@
 	owid.view.timeline = function() {
 		var timeline = owid.dataflow();
 
-		timeline.inputs({
-			containerNode: undefined,
-			bounds: { left: 0, top: 0, width: 100, height: 100 },
+        timeline.requires('containerNode', 'outerBounds');
+
+		timeline.defaults({
 			years: [1900, 1920, 1940, 2000], // Range of years the timeline covers
-			targetYear: 1980,
-			isPlaying: false
+			inputYear: 1980,
+			isPlaying: false,
+			isDragging: false
 		});
 
+        timeline.flow('bounds : outerBounds', function(outerBounds) {
+            var height = 45;
+            return owid.bounds(outerBounds.left, outerBounds.top+(outerBounds.height-height), outerBounds.width, height).padWidth(outerBounds.width*0.02);
+        });
+
+		// Data processing
 		timeline.flow("minYear : years", function(years) { return _.first(years); });
 		timeline.flow("maxYear : years", function(years) { return _.last(years); });
 
-		timeline.flow("el : containerNode", function(containerNode) {
-			var html = '<div class="play-pause-control control">' +
-				'	<a class="play-btn btn"><i class="fa fa-play-circle-o"></i></a>' +
-				'	<a class="pause-btn btn hidden"><i class="fa fa-pause-circle-o"></i></a>' +
-				'</div>' +
-				'<div class="timeline-min-year">1950</div>' +
-				'<div class="timeline-slider">' +
-				'	<div class="timeline-marker start">' +
-				'		<div class="timeline-label">1950</div>' +
-				'	</div>' +
-				'	<div class="timeline-range"></div>' +
-				'	<div class="timeline-marker end">' +
-				'		<div class="timeline-label">2000</div>' +
-				'	</div>' +
-				'</div>' +
-				'<div class="timeline-max-year">2000</div>';
-
-			var elUpdate = d3.select(containerNode).selectAll('.timeline');
-
-			return elUpdate.data([this.state])
-				.enter()
-					.append('div')
-					.attr('class', 'timeline noselect')
-					.html(html)
-				.merge(elUpdate);
+		timeline.flow("inputYear : inputYear, minYear, maxYear", function(inputYear, minYear, maxYear) {
+			return Math.max(Math.min(inputYear, maxYear), minYear);
 		});
 
-		timeline.flow("el, bounds", function(el, bounds) {
-			el.style('position', 'absolute')
-				.style('left', bounds.left+'px')
-				.style('top', bounds.top+'px')
-				.style('width', bounds.width+'px')
-				.style('height', bounds.height+'px');
+		// If we're not playing or dragging, lock the input to the closest year (no interpolation)
+		timeline.flow('inputYear : inputYear, years, isPlaying, isDragging', function(inputYear, years, isPlaying, isDragging) {			
+			if (!isPlaying && !isDragging)
+				return _.sortBy(years, function(year) { return Math.abs(year-inputYear); })[0];
+			else
+				return inputYear;
 		});
 
-		timeline.flow("el, minYear", function(el, minYear) {
-			el.select('.timeline-min-year').text(minYear);
+		// Find the nearest target year, favoring prior years
+		timeline.flow("targetYear : inputYear, years", function(inputYear, years) {
+			return _.find(
+				_.sortBy(years, function(year) { return Math.abs(year-inputYear); }),
+				function(year) { return year <= inputYear; }
+			);
 		});
 
-		timeline.flow("el, minYear, targetYear", function(el, minYear, targetYear) {
-			el.classed('min-active', minYear == targetYear);
+  		// Start building DOM
+		timeline.flow('g : containerNode', function(containerNode) {
+			return d3.select(containerNode).append('g').attr('class', 'timeline').style('cursor', 'pointer');
+		});
+		timeline.flow('g, bounds', function(g, bounds) {
+			g.attr('transform', 'translate(' + bounds.left + ',' + bounds.top + ')');
+		});
+        // We put a rectangle in to catch mouse events
+        timeline.flow('bgRect : g, bounds', function(g, bounds) {
+            g.selectAll('.bgRect').remove();
+            return g.insert('rect', '*').attr('class', 'bgRect')
+                .attr('x', 0).attr('y', 0)
+                .attr('width', bounds.width).attr('height', bounds.height)
+                .style('fill', 'white');
+        });
+
+		timeline.flow('playToggle : g', function(g) {
+			return g.append("text")
+			  .attr('class', 'toggle')
+			  .style("font-family","FontAwesome")
+			  .style('font-size', '1.4em')
+			  .style('cursor', 'pointer')
+			  .text('\uf28c'); 
+  		});
+
+  		timeline.flow('playToggle, bounds', function(playToggle, bounds) {
+  			playToggle.attr('x', 10).attr('y', bounds.height/2).attr('dy', 1+playToggle.node().getBBox().height/4);
+  		});
+
+  		timeline.flow('minYearLabel, maxYearLabel : g', function(g) {
+  			return [
+  				g.append('text').attr('class', 'minYearLabel').style('font-size', '0.8em').style('fill', '#666'),
+  				g.append('text').attr('class', 'maxYearLabel').style('font-size', '0.8em').style('fill', '#666').attr('dy', '.3em').style('text-anchor', 'end')
+  			];
+  		});
+
+  		timeline.flow('minYearBox : minYearLabel, minYear, bounds', function(minYearLabel, minYear, bounds) {
+  			return owid.bounds(minYearLabel
+  				.text(minYear)
+  				.attr('x', 45)
+  				.attr('y', bounds.height/2)
+  				.attr('dy', minYearLabel.node().getBBox().height/4)
+  				.node().getBBox());
+  		});
+
+  		timeline.flow('maxYearBox : maxYearLabel, maxYear, bounds', function(maxYearLabel, maxYear, bounds) {
+  			return owid.bounds(maxYearLabel
+  				.text(maxYear)
+  				.attr('x', bounds.width)
+  				.attr('y', bounds.height/2)
+  				.attr('dy', maxYearLabel.node().getBBox().height/4)
+  				.node().getBBox());
+  		});
+
+  		timeline.flow('sliderBounds : minYearBox, maxYearBox, bounds', function(minYearBox, maxYearBox, bounds) {
+            var sliderHeight = 12;
+  			var left = minYearBox.left + minYearBox.width + 15;
+  			return owid.bounds(left, (bounds.height-sliderHeight)/2, bounds.width-maxYearBox.width-left-15, sliderHeight);
+  		});
+
+  		timeline.flow('xScale : years, sliderBounds', function(years, sliderBounds) {
+  			return d3.scaleLinear().domain(d3.extent(years)).range([sliderBounds.left, sliderBounds.left+sliderBounds.width]);
+  		});
+
+  		timeline.flow('sliderBackground : g', function(g) {
+  			return g.append('rect')
+  				.style('stroke-width', 0.1)
+                .attr('class', 'sliderBackground');
+  		});
+
+  		timeline.flow('sliderBackground, sliderBounds', function(sliderBackground, sliderBounds) {
+  			sliderBackground
+  				.attr('x', sliderBounds.left-5)
+  				.attr('y', sliderBounds.top)
+  				.attr('width', sliderBounds.width+10)
+  				.attr('height', sliderBounds.height)
+  				.attr('rx', 5)
+  				.attr('ry', 5)
+  				.attr('fill', '#eee');
+  		});
+
+  		// Make and position the little marker that you drag around  		
+  		timeline.flow('sliderHandle : g', function(g) {
+  			var handle = g.append('g').attr('class', 'handle')
+                .style('fill', '#3F9EFF');
+
+  			handle.append('circle')
+  				.attr('r', 8)
+                .style('stroke', '#000')
+                .style('stroke-width', 0.1);
+
+  			handle.append('text')  				
+  				.attr('y', -9)
+  				.style('font-size', '0.7em')
+  				.style('text-anchor', 'middle');
+
+  			return handle;
+  		});
+
+  		timeline.flow('sliderHandle, targetYear, minYear, maxYear', function(sliderHandle, targetYear, minYear, maxYear) {
+            if (targetYear == minYear || targetYear == maxYear)
+                sliderHandle.selectAll('text').text('');
+            else
+      			sliderHandle.selectAll('text').text(targetYear);
+  		});
+
+  		timeline.flow('sliderHandle, xScale, inputYear, sliderBounds', function(sliderHandle, xScale, inputYear, sliderBounds) {
+  			sliderHandle.attr('transform', 'translate(' + xScale(inputYear) + ',' + (sliderBounds.top + sliderBounds.height/2) + ')');
+  		});
+
+		// Make ticks on the slider representing years with available data
+        timeline.flow('ticksG : g', function(g) {
+            return g.insert('g', '.sliderBackground').attr('class', 'ticks');
+        });
+		timeline.flow("ticks : ticksG, years, xScale, sliderBounds", function(ticksG, years, xScale, sliderBounds) {
+			var ticksUpdate = ticksG.selectAll('.tick').data(years.slice(1, -1));
+
+			var ticks = ticksUpdate.enter()
+				.append('rect')
+				.attr('class', 'tick')
+				.attr('width', '1px')
+				.style('fill', 'rgba(0,0,0,0.2)')
+			  .merge(ticksUpdate)
+			  	.attr('height', '0.2em')
+				.attr('x', function(d) { return xScale(d); })
+				.attr('y', sliderBounds.top+sliderBounds.height-1);
+
+			ticksUpdate.exit().remove();
+
+			return ticks;
 		});
 
-		timeline.flow("el, maxYear", function(el, maxYear) {
-			el.select('.timeline-max-year').text(maxYear);
-		});
+		/*timeline.flow('tickLabels : g, years, xScale, bounds', function(g, years, xScale, bounds) {
+			var labelsUpdate = g.selectAll('.tickLabel').data(years.slice(1, -1));
 
-		timeline.flow("el, maxYear, targetYear", function(el, maxYear, targetYear) {
-			el.classed('max-active', maxYear == targetYear);
-		});
+			var labels = labelsUpdate.enter()
+				.append('text')
+				.attr('class', 'tickLabel')
+				.style('text-anchor', 'middle')
+				.style('font-size', '0.7em')
+			  .merge(labelsUpdate)
+				.attr('x', function(d) { return xScale(d); })
+				.attr('y', bounds.height)
+				.text(function(d) { return d; });				
 
-		timeline.flow('el, targetYear, minYear, maxYear', function updateSlider(el, targetYear, minYear, maxYear) {
-			var fracWidth = (targetYear - minYear) / (maxYear - minYear);
+			labelsUpdate.exit().remove();
 
-			el.selectAll('.timeline-marker')
-				.style('left', (fracWidth*100)+'%');
+			return labels;
+		});*/
 
-			el.selectAll('.timeline-label')
-				.text(targetYear);
-		});
-
-		timeline.flow('el', function bindSlider(el) {
-			var slider = el.select('.timeline-slider'),
-				container = d3.select(document.body),
+		// Allow dragging the handle around
+		timeline.flow('g, sliderBackground', function(g, sliderBackground) {
+			var container = d3.select(document.body),
+                sliderBBox = sliderBackground.node().getBBox(),
 				isDragging = false;
 
+            var frameQueued = false;
 			function onMouseMove() {
-				var evt = d3.event;
-				timeline.now('years, minYear, maxYear', function(years, minYear, maxYear) {
-					var sliderBounds = chart.getTransformedBounds(slider.node()),
-						mouseX = _.isNumber(evt.pageX) ? evt.pageX : evt.touches[0].pageX,
-						fracWidth = (mouseX-sliderBounds.left) / sliderBounds.width,
-						inputYear = minYear + fracWidth*(maxYear-minYear),
-						targetYear = _.min(years, function(year) {
-					        return Math.abs(year-inputYear);
-					    });
+                if (frameQueued) return;
+                frameQueued = true;
 
-					timeline.update({ targetYear: targetYear });
-					evt.preventDefault();
-				});
+				var evt = d3.event;
+                var mouseX = d3.mouse(g.node())[0];
+                // Use animation frame so we don't overload the browser, esp. Firefox/IE
+                requestAnimationFrame(function() {
+                    timeline.now('years, minYear, maxYear', function(years, minYear, maxYear) {
+                        var fracWidth = (mouseX-sliderBBox.x) / sliderBackground.node().getBBox().width,
+                            inputYear = minYear + fracWidth*(maxYear-minYear);
+
+                        timeline.update({ isDragging: true, inputYear: inputYear });
+                        frameQueued = false;
+                    });       
+                });
+                evt.preventDefault();
 			}
 
 			function onMouseUp() {
 				container.on('mousemove.timeline', null);
 				container.on('mouseup.timeline', null);
+                container.on('touchmove.timeline', null);
+                container.on('touchend.timeline', null);
 				//container.on('mouseleave.timeline', null);
+                requestAnimationFrame(function() {
+                    timeline.update({ isDragging: false });
+                });
 			}
 
-			el.on('mousedown.timeline', function() {
-				var evt = d3.event;
-				// Don't do mousemove if we clicked the play or pause button
-				if (d3.select(evt.target).classed('fa')) return;
+            function onMouseDown() {
+                var evt = d3.event;
+                // Don't do mousemove if we clicked the play or pause button
+                if (d3.select(evt.target).classed('toggle')) return;
 
-				container.on('mousemove.timeline', onMouseMove);
-				container.on('mouseup.timeline', onMouseUp);
-				//container.on('mouseleave.timeline', onMouseUp);
-				onMouseMove();
+                container.on('mousemove.timeline', onMouseMove);
+                container.on('mouseup.timeline', onMouseUp);
+                container.on('touchmove.timeline', onMouseMove);
+                container.on('touchend.timeline', onMouseUp);
+                //container.on('mouseleave.timeline', onMouseUp);
+                onMouseMove();                
+            }
+
+			g.on('mousedown.timeline', onMouseDown);
+            g.on('touchstart.timeline', onMouseDown);
+		});
+
+		// Interpolated playing animation
+		timeline.flow('playToggle', function(playToggle) {
+			playToggle.on('click', function() {
+				timeline.update({ isPlaying: !timeline.isPlaying });
 			});
 		});
 
 		var _anim;
-		timeline.flow('el, isPlaying', function togglePlaying(el, isPlaying) {
-			el.select('.play-btn').classed('hidden', isPlaying);
-			el.select('.pause-btn').classed('hidden', !isPlaying);
+		timeline.flow('playToggle, isPlaying', function(playToggle, isPlaying) {
+			// Pause or play icon
+			playToggle.text(isPlaying ? '\uf28c' : '\uf01d');
 
 			cancelAnimationFrame(_anim);
 			if (isPlaying) {
 				// If we start playing from the end, reset from beginning
 				timeline.now('targetYear, minYear, maxYear', function(targetYear, minYear, maxYear) {
 					if (targetYear >= maxYear)
-						timeline.update({ targetYear: minYear });
+						timeline.update({ inputYear: minYear });
 				});
 
 				_anim = requestAnimationFrame(incrementLoop);
 			}
 
-			var interval = 500, lastTime = null, countdown = interval;
+			var lastTime = null, ticksPerSec = 5;
 			function incrementLoop(time) {
-				if (lastTime !== null)
-					countdown -= (time-lastTime);
+				var elapsed = lastTime ? time-lastTime : 0;
 				lastTime = time;
 
-				if (countdown > 0) {
-					_anim = requestAnimationFrame(incrementLoop);
-					return;
-				}
-
-				countdown = interval;
-				timeline.now('isPlaying, years, targetYear, maxYear', function(isPlaying, years, targetYear, maxYear) {
+				timeline.now('isPlaying, inputYear, targetYear, years, maxYear', function(isPlaying, inputYear, targetYear, years, maxYear) {
 					if (!isPlaying) return;
 					
-					if (targetYear >= maxYear) {
+					if (inputYear >= maxYear) {
 						timeline.update({ isPlaying: false });
 					} else {
-						var index = years.indexOf(targetYear);
-						timeline.update({ targetYear: years[index+1] });
-						_anim = requestAnimationFrame(incrementLoop);
+						var nextYear = years[years.indexOf(targetYear)+1],
+							yearsToNext = nextYear-targetYear;
+
+						timeline.update({ inputYear: inputYear+(Math.max(yearsToNext/2, 1)*elapsed*ticksPerSec/1000) });
 					}
+
+					_anim = requestAnimationFrame(incrementLoop);
 				});
 			}
 		});
 
-		timeline.flow('el', function setupPlayBtn(el) {
-			el.select('.play-btn').on('click', function() {
-				timeline.update({ isPlaying: true });
-			});
-
-			el.select('.pause-btn').on('click', function() {
-				timeline.update({ isPlaying: false });
-			});
+		timeline.beforeClean(function() {
+			if (timeline.g) timeline.g.remove();
 		});
-
-		timeline.remove = function() {
-			timeline.now('el', function(el) {
-				el.remove();
-			});
-		};
 
 		return timeline;
 	};

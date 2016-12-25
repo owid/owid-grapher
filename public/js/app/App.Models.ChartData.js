@@ -242,7 +242,7 @@
 				selectedEntitiesById = App.ChartModel.getSelectedEntitiesById(),
 				seriesByEntity = {},
 				// e.g. for colors { var_id: { 'Oceania': '#ff00aa' } }
-				categoryTransforms = {},				
+				categoryTransforms = {},
 				chartData = [], legendData = [];
 
 			var chartTime = chart.model.get('chart-time');
@@ -250,7 +250,7 @@
 
 			_.each(dimensions, function(dimension) {
 				var variable = variables[dimension.variableId],
-				    targetYear = parseInt(dimension.targetYear) || latestYearInData,
+				    targetYear = chartTime ? chartTime[0] : parseInt(dimension.targetYear) || latestYearInData,
 				    targetMode = dimension.mode,
 				    tolerance = parseInt(dimension.tolerance),
 				    isCategorical = _.include(['color', 'shape'], dimension.property),
@@ -442,22 +442,24 @@
 		},
 
 		transformData: function() {
-			if (changes.any()) this.chartData = null;
-
-			if (this.chartData)
-				return this.get("chartData");
-
 			var variables = App.VariableData.get("variables"),
 				chartType = App.ChartModel.get("chart-type"),
 				addCountryMode = App.ChartModel.get("add-country-mode"),
 				result = null;
 
+			if (chartType == App.ChartType.ScatterPlot)
+				return [];
+
+			if (changes.any()) this.chartData = null;
+
+			if (this.chartData)
+				return this.get("chartData");
+
+
 			if (!variables || !App.ChartModel.hasVariables()) return [];
 
 			if (chartType == App.ChartType.LineChart)
 				result = this.transformDataForLineChart();
-			else if (chartType == App.ChartType.ScatterPlot)
-				result = this.transformDataForScatterPlot();
 			else if (chartType == App.ChartType.StackedArea)
 				result = this.transformDataForStackedArea();	
 			else if (chartType == App.ChartType.DiscreteBar)

@@ -1,213 +1,273 @@
-;( function() {	
+;(function(d3) {	
 	"use strict";
 	owid.namespace("owid.view.header");
 
-	owid.view.header = function(chart) {
-		function header() { }
+	owid.view.header = function() {
+		var header = owid.dataflow();
 
-		var changes = owid.changes();
-		changes.track(chart.model, 'chart-name chart-subname add-country-mode selected-countries logo second-logo');
-		changes.track(chart.map, 'targetYear');
-		changes.track(chart.mapdata, 'minToleranceYear maxToleranceYear');
-		changes.track(chart.data, 'minYear maxYear');
-		changes.track(chart.display, 'renderHeight renderWidth activeTab');
-		header.changes = changes;
+		header.needs('containerNode', 'bounds', 'titleStr');
 
-		var minYear, maxYear, targetYear, disclaimer;
+		header.defaults({ 
+			titleLink: "",
+			subtitleStr: "",
+			logosSVG: []
+		});
 
-		var logo = d3.select(".logo-svg"),
-			partnerLogo = d3.select(".partner-logo-svg"),
-			$tabs = $(".header-tab");
+		header.initial('titleSizeScale', function() {
+			return d3.scaleLinear().domain([30, 150]).range([1.5, 0.75]).clamp(true);
+		});
 
-		function updateTime() {
-			if (!changes.any('activeTab minYear maxYear targetYear mapData'))
-				return;		
+		header.flow('g : containerNode', function(containerNode) {
+			return d3.select(containerNode).append('g').attr('class', 'header');
+		});
 
-			if (chart.display.get('activeTab') == "map") {
-				updateTimeFromMap();
-			} else {
-				minYear = chart.data.get('minYear');
-				maxYear = chart.data.get('maxYear');
-				targetYear = null;
-				disclaimer = null;
-			}
-		}
+		// Render the logos first as they affect the positioning of the text
 
-		function updateTimeFromMap() {
-			chart.mapdata.update();
-			
-			var mapConfig = chart.map.attributes,
-				timeFrom = chart.mapdata.minToleranceYear || mapConfig.targetYear,
-				timeTo = chart.mapdata.maxToleranceYear || mapConfig.targetYear,
-				year = mapConfig.targetYear,
-				hasTargetYear = _.find(chart.mapdata.currentValues, function(d) { return d.year == year; }),
-				d = owid.displayYear;
+		header.flow('boundsForText, logoHeight : g, logosSVG, bounds', function(g, logosSVG, bounds) {
+			var logoUpdate = g.selectAll('.logo').data(logosSVG);
+			var logos = logoUpdate.enter().append('g').attr('class', 'logo').merge(logoUpdate);
 
-			if (hasTargetYear && timeFrom != timeTo) {
-				// The target year is in the data but we're displaying a range, meaning not available for all countries
-				disclaimer = " Since some observations for " + d(year) + " are not available the map displays the closest available data (" + d(timeFrom) + " to " + d(timeTo) + ").";
-			} else if (!hasTargetYear && timeFrom != timeTo) {
-				// The target year isn't in the data at all and we're displaying a range of other nearby values
-				disclaimer = " Since observations for " + d(year) + " are not available the map displays the closest available data (" + d(timeFrom) + " to " + d(timeTo) + ").";
-			} else if (!hasTargetYear && timeFrom == timeTo && timeFrom != year) {
-				// The target year isn't in the data and we're displaying some other single year
-				disclaimer = " Since observations for " + d(year) + " are not available the map displays the closest available data (from " + d(timeFrom) + ").";
-			} else if (!hasTargetYear) {
-				disclaimer = " No observations are available for this year.";
-			} else {
-//				disclaimer = "<span style='visibility: hidden;'>A rather long placeholder to ensure that the text flow remains the same when changing between various years.</span>";
-				disclaimer = null;
-			}
+			// Go through and position/scale the logos as needed
+			var targetHeight = 50;
+			var offsetX = bounds.width;
+            var logoHeight;
+			logos.each(function(d) {
+				this.innerSVG = d.match(/<svg>(.*)<\/svg>/)[1]||d;
 
-			minYear = timeFrom;
-			maxYear = timeTo;
-			targetYear = year;
-		}
+				var bbox = this.getBBox();
+				var scale = targetHeight/bbox.height;
+                offsetX -= bbox.width*scale;
 
-		// Replaces things like *time* and *country* with the actual time and
-		// country displayed by the current chart context
-		function replaceContextPlaceholders(text) {
-			if (s.contains(text, "*country*")) {
-				var selectedEntities = chart.model.get("selected-countries"),
-					entityText = _.pluck(selectedEntities, "name");
+				d3.select(this).attr('transform', 'translate(' + offsetX + ',' + 0 + ') scale(' + scale + ')');
+                logoHeight = bbox.height*scale;
+			});
 
-				text = text.replace("*country*", entityText || ("in selected " + chart.model.get("entity-type")));
-			}
+			return [owid.bounds(0, 0, offsetX-10, bounds.height), logoHeight];
+		});
 
-			if (s.contains(text, "*time")) {
-				if (!_.isFinite(minYear)) {
-					text = text.replace("*time*", "over time");
-				} else {
-					var timeFrom = owid.displayYear(minYear),
-						timeTo = owid.displayYear(maxYear),
-						time = targetYear || (timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo);				
+		header.flow('titleLinkEl : g', function(g) {
+			return g.append('a').attr('class', 'title').attr('target', '_blank');
+		});
 
-					text = text.replace("*time*", time);
-					text = text.replace("*timeFrom*", timeFrom);
-					text = text.replace("*timeTo*", timeTo);					
-				}
+		header.flow('titleLinkEl, titleLink', function(titleLinkEl, titleLink) {
+			titleLinkEl.attr('xlink:href', titleLink);
+		});
+
+		header.flow('title : titleLinkEl', function(titleLinkEl) {
+			return titleLinkEl.append('text')
+				.attr('dy', '1em');
+		});
+
+		header.flow('title, boundsForText', function(title, boundsForText) {
+			title.attr('x', boundsForText.left)
+				.attr('y', boundsForText.top);
+		});
+
+		header.flow('title, titleStr, titleSizeScale', function(title, titleStr, titleSizeScale) {
+			title.style('font-size', titleSizeScale(s.stripTags(titleStr).length) + 'em');
+		});
+
+		header.flow('titleBox, titleFontSize : title, titleStr, boundsForText', function(title, titleStr, boundsForText) {
+			// Try to fit the title into a single line if possible-- but not if it would make the text super small
+
+			function resizeTitle(fontSize) {
+				title.style('font-size', fontSize + 'em');
+				owid.svgSetWrappedText(title, titleStr, boundsForText.width, { lineHeight: 1.1 });				
 			}
 
-			return text;
-		}
+			var fontSize = 1.5;
+			resizeTitle(fontSize);
+			while (fontSize > 1.0 && title.selectAll('tspan').size() > 1) {
+				resizeTitle(fontSize);
+				fontSize -= 0.05;
+			}			
 
-		function renderEditBtn() {
-			// Determine if we're logged in and show the edit button
-			// Done here instead of PHP to allow for caching etc optimization on public-facing content
-			if (!Cookies.get("isAdmin")) return;
-			chart.$(".edit-btn-wrapper").removeClass("hidden");
-		};
+			if (fontSize <= 1.0)
+				resizeTitle(1.1);
 
-		header.render = function() {
-			if (!changes.start())
-				return;
+			title.attr('y', boundsForText.top);
+			title.attr('y', boundsForText.top-title.node().getBBox().y);
 
-			renderEditBtn();
+			return [owid.bounds(title.node().getBBox()), fontSize];
+		});
 
-			var chartName = chart.model.get('chart-name'),
-				chartSubname = chart.model.get('chart-subname'),
-				addCountryMode = chart.model.get('add-country-mode'),
-				selectedCountries = chart.model.get('selected-countries'),
-				logoPath = chart.model.get('logo'),
-				partnerLogoPath = chart.model.get('second-logo'),
-				partnerLogoUrl = partnerLogoPath && Global.rootUrl + '/' + partnerLogoPath;
+		header.flow('subtitle : g', function(g) {
+			return g.append('text')
+				.attr('class', 'subtitle')
+				.attr('dy', '1em');
+		});
 
-			updateTime();
-			chartName = replaceContextPlaceholders(chartName);
-			chartSubname = replaceContextPlaceholders(chartSubname);
-			if (disclaimer) chartSubname += disclaimer;
+		header.flow('subtitle, titleBox, titleFontSize, subtitleStr, boundsForText, logoHeight, bounds, g', function(subtitle, titleBox, titleFontSize, subtitleStr, boundsForText, logoHeight, bounds, g) {
+            var width = boundsForText.width;
+            if (titleBox.height > logoHeight)
+                width = bounds.width;
 
-			/* Position the logos first, because we shall need to wrap the text around them.
-			   Currently our logo is SVG but we must use image uris for the partner logos.
-			   TODO: Convert partner logos to SVG too, so that they can be scaled. */
+			subtitle.attr('x', boundsForText.left+1).attr('y', boundsForText.top + titleBox.height);
 
-			var svg = d3.select("svg"),
-				svgBounds = chart.getBounds(svg.node()),
-				svgWidth = svgBounds.width,
-				svgHeight = svgBounds.height,
-				g = svg.select(".chart-header-svg");
+			// Subtitle text must always be smaller than title text. 
+			var fontSize = Math.min(0.8, titleFontSize-0.3);
+			subtitle.style('font-size', fontSize+'em');
+			owid.svgSetWrappedText(subtitle, subtitleStr, width, { lineHeight: 1.2 });
 
-			var scaleFactor;
-			if ($("#chart").width() > 1300) {
-				scaleFactor = 0.4;
-			} else {
-				scaleFactor = 0.35;
+			// Make it a little bit smaller if it still goes across many lines
+			if (subtitle.selectAll('tspan').size() > 2) {
+				fontSize = Math.min(0.65, fontSize);
+				subtitle.style('font-size', fontSize+'em');
+				owid.svgSetWrappedText(subtitle, subtitleStr, width, { lineHeight: 1.2 });				
 			}
+		});		
 
-			var logoWidth = logo.node().getBBox().width,
-				logoX = svgWidth - logoWidth*scaleFactor;
-			logo.attr("transform", "translate(" + logoX + ", 5) scale(" + scaleFactor + ", " + scaleFactor + ")");
-			logo.style("visibility", "inherit");
-			var logoBounds = chart.getBounds(logo.node());
+        header.flow('bbox : g, titleStr, subtitleStr, boundsForText', function(g) {
+            g.selectAll('.bgRect').remove();
+            var bbox = g.node().getBBox();
+            g.insert('rect', '*').attr('class', 'bgRect').attr('x', 0).attr('y', 0).style('fill', 'white')
+                    .attr('width', bbox.width+1).attr('height', bbox.height+10);
+            return g.node().getBBox();
+        });
 
-			// HACK (Mispy): I should do alternate logos roperly at some point
-			if (logoPath != App.OWID_LOGO) {
-				logoX = svgWidth;
-				logoWidth = 0;
-				logo.style('visibility', 'hidden');
-				partnerLogoUrl = Global.rootUrl + "/" + logoPath;
-			}
-
-			var renderText = function(availableWidth) {
-				var chartNameText = g.select(".chart-name-svg");
-				var baseUrl = Global.rootUrl + "/" + chart.model.get("chart-slug"),
-					queryParams = owid.getQueryParams(),
-					queryStr = owid.queryParamsToStr(queryParams),				
-					canonicalUrl = baseUrl + queryStr;
-
-				var linkedName = "<a href='" + canonicalUrl + "' target='_blank'>" + chartName + "</a>";
-				owid.svgSetWrappedText(chartNameText, linkedName, availableWidth - 10, { lineHeight: 1.1 });
-				document.title = chartName + " - Our World In Data";
-
-				var chartNameBounds = chart.getBounds(chartNameText.node());
-
-				var chartSubnameText = g.select(".chart-subname-svg")
-					.attr("x", 1)
-					.attr("y", chartNameBounds.bottom - svgBounds.top);
-
-				// If we're far enough down, go past the logo
-				if (chartNameBounds.bottom > logoBounds.bottom)
-					availableWidth = svgBounds.width;
-				owid.svgSetWrappedText(chartSubnameText, chartSubname, availableWidth - 25 , { lineHeight: 1.2 });
-
-				g.select(".header-bg-svg").remove();
-				var bgHeight = chart.getBounds(g.node()).height + 20;
-				g.insert("rect", "*")
-					.attr("class", "header-bg-svg")
-					.attr("x", 0)
-					.attr("y", -1)
-					.style("fill", "#fff")
-					.attr("width", svgWidth)
-					.attr("height", bgHeight+1);
-				header.bounds = chart.getBounds($('.chart-header-svg').get(0));
-			}.bind(this);
-
-			if (partnerLogoUrl) {
-				// HACK (Mispy): Since SVG image elements aren't autosized, any partner logo needs to 
-				// be loaded separately in HTML and then the width and height extracted
-				var img = new Image();
-				img.onload = function() {
-					partnerLogo.attr('width', img.width);
-					partnerLogo.attr('height', img.height);
-		
-					var partnerLogoX = logoX - img.width - 5;
-					partnerLogo.node().setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", partnerLogoUrl);
-					partnerLogo.attr("transform", "translate(" + partnerLogoX + ", 5)");				
-					partnerLogo.style("visibility", "inherit");
-
-					renderText(partnerLogoX);
-				}.bind(this);
-				img.src = partnerLogoUrl;
-			} else {
-				partnerLogo.style('visibility', 'hidden');
-				renderText(logoX-10);
-			}	
-
-			chart.footer.updateSharingButtons();
-			changes.done();
-		};
+		header.flow('g, bounds', function(g, bounds) {
+			g.attr('transform', 'translate(' + bounds.left + ',' + bounds.top + ')');
+		});
 
 		return header;
 	};
 
-})();
+	owid.namespace("owid.control.header");
+
+	owid.control.header = function(chart) {
+		var headerControl = owid.dataflow();
+
+		headerControl.needs('containerNode', 'bounds');
+
+		headerControl.inputs({
+			titleTemplate: "",
+			titleLink: "",
+			subtitleTemplate: "",
+			logosSVG: [],
+			entities: [],
+			entityType: "",
+			minYear: null,
+			maxYear: null,
+		});
+
+		var header = owid.view.header();
+
+		// Replaces things like *time* and *country* with the actual time and
+		// country displayed by the current chart context
+		headerControl.flow("fillTemplate : minYear, maxYear, entities, entityType", function(minYear, maxYear, entities, entityType) {
+			return function(text) {
+				if (s.contains(text, "*country*")) {
+					var entityStr = _.pluck(entities, "name").join(', ');
+					text = text.replace("*country*", entityStr || ("in selected " + entityType));
+				}
+
+				if (s.contains(text, "*time")) {
+					if (!_.isFinite(minYear)) {
+						text = text.replace("*time*", "over time");
+					} else {
+						var timeFrom = owid.displayYear(minYear),
+							timeTo = owid.displayYear(maxYear),
+							time = timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo;	
+
+						text = text.replace("*time*", time);
+						text = text.replace("*timeFrom*", timeFrom);
+						text = text.replace("*timeTo*", timeTo);					
+					}
+				}
+
+				return text;
+			};
+		});
+
+		headerControl.flow("titleStr : titleTemplate, fillTemplate", function(titleTemplate, fillTemplate) {
+			return fillTemplate(titleTemplate);
+		});
+
+		headerControl.flow("subtitleStr : subtitleTemplate, fillTemplate", function(subtitleTemplate, fillTemplate) {
+			return fillTemplate(subtitleTemplate);
+		});
+
+		headerControl.flow('containerNode, bounds, logosSVG, titleStr, titleLink, subtitleStr', function(containerNode, bounds, logosSVG, titleStr, titleLink, subtitleStr) {
+			header.update({
+				containerNode: containerNode,
+				bounds: bounds,
+				logosSVG: logosSVG,
+				titleStr: titleStr,
+				titleLink: titleLink,
+				subtitleStr: subtitleStr,
+			}, function() {
+                document.title = header.title.text();
+            });
+		});
+
+		headerControl.render = function(bounds, done) {
+			var minYear, maxYear, disclaimer="";
+			if (chart.activeTabName == "map") {
+				chart.mapdata.update();
+				
+				var mapConfig = chart.map.attributes,
+					timeFrom = chart.mapdata.minToleranceYear || mapConfig.targetYear,
+					timeTo = chart.mapdata.maxToleranceYear || mapConfig.targetYear,
+					year = mapConfig.targetYear,
+					hasTargetYear = _.find(chart.mapdata.currentValues, function(d) { return d.year == year; }),
+					d = owid.displayYear,
+					timeline = chart.tabs.map.timeline;
+
+
+				if (timeline && (timeline.isPlaying || timeline.isDragging))
+					disclaimer = "";
+				else if (hasTargetYear && timeFrom != timeTo) {
+					// The target year is in the data but we're displaying a range, meaning not available for all countries
+					disclaimer = " Since some observations for " + d(year) + " are not available the map displays the closest available data (" + d(timeFrom) + " to " + d(timeTo) + ").";
+				} else if (!hasTargetYear && timeFrom != timeTo) {
+					// The target year isn't in the data at all and we're displaying a range of other nearby values
+					disclaimer = " Since observations for " + d(year) + " are not available the map displays the closest available data (" + d(timeFrom) + " to " + d(timeTo) + ").";
+				} else if (!hasTargetYear && timeFrom == timeTo && timeFrom != year) {
+					// The target year isn't in the data and we're displaying some other single year
+					disclaimer = " Since observations for " + d(year) + " are not available the map displays the closest available data (from " + d(timeFrom) + ").";
+				} else if (!hasTargetYear) {
+					disclaimer = " No observations are available for this year.";
+				} else {
+	//				disclaimer = "<span style='visibility: hidden;'>A rather long placeholder to ensure that the text flow remains the same when changing between various years.</span>";
+					disclaimer = "";
+				}
+
+				minYear = year;
+				maxYear = year;
+			} else if (chart.model.get('timeline')) {
+				minYear = (chart.model.get('chart-time')||[])[0];
+				maxYear = (chart.model.get('chart-time')||[])[1];
+			} else if (chart.model.get('chart-type') == App.ChartType.ScatterPlot) {
+				if (chart.tabs.chart.viz) {
+					minYear = chart.tabs.chart.viz.scatter.minYear;
+					maxYear = chart.tabs.chart.viz.scatter.maxYear;					
+				}
+			} else {
+				minYear = chart.data.get('minYear');
+				maxYear = chart.data.get('maxYear');
+			}
+
+			var baseUrl = Global.rootUrl + "/" + chart.model.get("chart-slug"),
+				queryParams = owid.getQueryParams(),
+				queryStr = owid.queryParamsToStr(queryParams),				
+				canonicalUrl = baseUrl + queryStr;
+
+			headerControl.update({
+				containerNode: chart.svg.node(),
+				bounds: bounds,
+				titleTemplate: chart.model.get('chart-name'),
+				titleLink: canonicalUrl,
+				subtitleTemplate: chart.model.get('chart-subname') + disclaimer,
+				logosSVG: chart.model.get('logosSVG'),
+				entities: chart.model.getSelectedEntities(),
+				entityType: chart.model.get('entity-type'),
+				minYear: minYear,
+				maxYear: maxYear
+			}, done);
+		};
+
+		headerControl.view = header;
+
+		return headerControl;
+	};
+})(d3v4);

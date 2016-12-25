@@ -22,7 +22,7 @@
 				window.svg = $("svg").get(0);
 			});
 
-			window.maptab = App.ChartView.mapTab;
+			window.maptab = chart.mapTab;
 		},
 	});
 })();

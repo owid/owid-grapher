@@ -9,7 +9,6 @@ use App\Logo;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 use Illuminate\Http\Request;
-use Debugbar;
 use DB;
 use URL;
 use Config;
@@ -118,8 +117,7 @@ class ViewController extends Controller {
 		$width = min(intval($split[0]), 3000);
 		$height = min(intval($split[1]), 3000);
 
-		if (isset($_SERVER['QUERY_STRING']))
-			$file = Chart::export($slug, $_SERVER['QUERY_STRING'], $width, $height, $format);
+		$file = Chart::export($slug, $_SERVER['QUERY_STRING'], $width, $height, $format);
 
 		return response()->file($file,
 					['Cache-Control' => $request->input('v') ? 'public, max-age=31536000' : 'public, max-age=7200, s-maxage=604800']);
@@ -293,8 +291,7 @@ class ViewController extends Controller {
 			}
 
 			$chartMeta->imageUrl = $baseUrl . ".png?" . $imageQuery;
-			$resp = response()
-					->view('view.show', compact('chart', 'canonicalUrl', 'chartMeta', 'query'));
+			$resp = response()->view('view.show', compact('chart', 'canonicalUrl', 'chartMeta', 'query'));
 					
 			if (str_contains(\Request::path(), ".export")) {
 				// We don't cache the export urls, just the resulting pngs
@@ -315,7 +312,7 @@ class ViewController extends Controller {
 	public function config($chartId) {
 		$chart = Chart::find($chartId);
 		$config = Chart::getConfigWithUrl($chart);
-		$config->variableCacheTag = $chart->makeCacheTag();;
+		$config->variableCacheTag = $chart->makeCacheTag();
 
 		return response('App.loadChart(' . json_encode($config) . ')')
 			->header('Content-Type', 'application/javascript')

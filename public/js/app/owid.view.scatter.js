@@ -5,20 +5,43 @@
 	owid.view.scatter = function() {
 		var scatter = owid.dataflow();
 
-		scatter.inputs({
-			svg: undefined,
+		scatter.needs('containerNode', 'bounds', 'axisConfig');
+
+		scatter.defaults({
 			data: [],
-			bounds: { left: 0, top: 0, width: 100, height: 100 },
-			axisConfig: undefined,
-			focusKey: null
+			hoverKey: null,
+			canHover: true
 		});
 
 		var _axisBox = owid.view.axisBox();
-		scatter.flow("axisBox : svg, data, bounds, axisConfig", function(svg, data, bounds, axisConfig) {
+
+		scatter.flow("svg : containerNode", function(containerNode) {
+			return d3.select(containerNode);
+		});
+
+		// Calculate defaults for domain as needed
+		scatter.flow('xDomainDefault, yDomainDefault : data', function(data) {
+			return [
+				d3.extent(data, function(series) { return series.values[0].x; }),
+				d3.extent(data, function(series) { return series.values[0].y; })
+			];
+		});
+
+		scatter.flow('scatterAxis : axisConfig, xDomainDefault, yDomainDefault', function(axisConfig, xDomainDefault, yDomainDefault) {
+			var xDomain = _.extend([], xDomainDefault, axisConfig.x.domain);
+			var yDomain = _.extend([], yDomainDefault, axisConfig.y.domain);
+
+			return {
+				x: _.extend({}, axisConfig.x, { domain: xDomain }),
+				y: _.extend({}, axisConfig.y, { domain: yDomain })
+			};
+		});
+
+		scatter.flow("axisBox : svg, data, bounds, scatterAxis", function(svg, data, bounds, scatterAxis) {
 			_axisBox.update({
-				svg: d3.select(svg.node()),
+				svg: svg,
 				bounds: bounds,
-				axisConfig: axisConfig
+				axisConfig: scatterAxis
 			});
 
 			return _axisBox;
@@ -27,11 +50,11 @@
 		scatter.flow("innerBounds : axisBox", function(axisBox) { return axisBox.innerBounds; });
 		scatter.flow("xScale : axisBox", function(axisBox) { return axisBox.xAxis.scale; });
 		scatter.flow("yScale : axisBox", function(axisBox) { return axisBox.yAxis.scale; });
-		scatter.flow("g : axisBox", function(axisBox) { return axisBox.g; });
+		scatter.flow("g : axisBox", function(axisBox) { axisBox.g.classed('scatter', true); return axisBox.g; });
 
 		var _sizeScale = d3.scaleLinear();
 		scatter.flow("sizeScale : data", function(data) {
-			_sizeScale.range([5, 10])
+			_sizeScale.range([6, 18])
 				.domain([
 		        	d3.min(data, function(series) { return d3.min(series.values, function(d) { return d.size||1; }); }),
 		       	    d3.max(data, function(series) { return d3.max(series.values, function(d) { return d.size||1; }); })
@@ -47,50 +70,68 @@
 			    .y(function(d) { return yScale(d.y); });
 		});*/
 
+		// Filter data to remove anything that is outside the domain
+		scatter.flow('data : data, xScale, yScale', function(data, xScale, yScale) {
+			var xDomain = xScale.domain(), yDomain = yScale.domain();
+			return _.filter(data, function(d) {
+				var x = d.values[0].x, y = d.values[0].y;
+				return x >= xDomain[0] && x <= xDomain[1] && y >= yDomain[0] && y <= yDomain[1];
+			});
+		});
+
 		scatter.flow("entities : g, data", function(g, data) {
 			var update = g.selectAll(".entity").data(data, function(d) { return d.key; }),
 				exit = update.exit().remove(),
-				enter = update.enter().append("g").attr("class", function(d) { return d.key + " entity"; }),
+				enter = update.enter().append("g").attr("class", function(d) { return "key-" + owid.makeSafeForCSS(d.key) + " entity"; }),
 				entities = enter.merge(update);
 
+			enter.style('opacity', 0).transition(1000).style('opacity', null);
+
+/*			entities.style('opacity', function(d) {				
+            	return d.key == "Austria" ? 1 : 0;
+			});*/
 			return entities;
 		});
 
-		scatter.flow("dots : entities", function(entities) {
+		scatter.flow("dots : entities, data", function(entities) {
 		    var dotUpdate = entities.selectAll(".dot").data(function(d) { return [d]; });
 		    return dotUpdate.enter().append("circle").attr("class", "dot").merge(dotUpdate);
 		});
 
-
 		var _colorScale = d3.scaleOrdinal().range(d3.schemeCategory20);
-		scatter.flow("dots, xScale, yScale", function(dots, xScale, yScale) {
+		scatter.flow("dots, xScale, yScale, data", function(dots, xScale, yScale) {
 			dots
 		      .attr("cx", function(d) { return xScale(d.values[0].x); })
 		      .attr("cy", function(d) { return yScale(d.values[0].y); })
-		      .style("fill", function(d) { return d.color || _colorScale(d.key); });
+		      .style("fill", function(d) { return d.color || _colorScale(d.key); })
+		      .style("stroke", "#000")
+		      .style("stroke-width", "0.3px");
+//		      .style('cursor', 'pointer');
 		});
 
-		scatter.flow("dots, sizeScale, focusKey", function(dots, sizeScale, focusKey) {
+		scatter.flow("hovered : data, hoverKey, canHover", function(data, hoverKey, canHover) {
+			if (!canHover) return false;
+			else
+				return _.find(data, function(d) { return d.key == hoverKey; });
+		});
+
+		scatter.flow("dots, hovered", function(dots, hovered) {
+			dots.style("fill-opacity", function(d) { return d == hovered ? 1 : 0.7; });
+		});
+
+		scatter.flow("dots, sizeScale, hovered", function(dots, sizeScale, hovered) {
 			dots.attr("r", function(d) { 
-				return sizeScale(d.values[0].size||1) * (focusKey == d.key ? 1.5 : 1);
+				return sizeScale(d.values[0].size||1) * (hovered == d ? 1.5 : 1);
 			});
 		});
 
-		scatter.flow("dots, focusKey", function(dots, focusKey) {
-			dots.style("fill-opacity", function(d) { return d.key == focusKey ? 1 : 0.5; });
-		});
-
-		scatter.flow("focused : data, focusKey", function(data, focusKey) {
-			return _.find(data, function(d) { return d.key == focusKey; });
-		});
-
 		// Little lines that point to the axis when you hover a data point
-		scatter.flow("g, data, xScale, yScale, focused", function(g, data, xScale, yScale, focused) {
+		scatter.flow("g, data, xScale, yScale, hovered", function(g, data, xScale, yScale, hovered) {
 			g.selectAll('.focusLine').remove();
-			if (!focused) return;
+			if (!hovered) return;
 
 			g.selectAll('.x.focusLine')
-				.data([focused])
+				.data([hovered])
 				.enter()
 				.append('line')
 				.attr('class', 'x focusLine')
@@ -101,7 +142,7 @@
 				.style('stroke', function(d) { return d.color || _colorScale(d.key); });
 
 			g.selectAll('.y.focusLine')
-				.data([focused])
+				.data([hovered])
 				.enter()
 				.append('line')
 				.attr('class', 'y focusLine')
@@ -113,11 +154,11 @@
 		});
 
 		// Tooltip
-		scatter.flow("svg, focused, xScale, yScale", function tooltip(svg, focused, xScale, yScale) {
-			if (!focused)
+		scatter.flow("svg, hovered, xScale, yScale", function tooltip(svg, hovered, xScale, yScale) {
+			if (!hovered)
 				owid.tooltipHide(svg.node());
 			else
-				owid.tooltip(svg.node(), xScale(focused.values[0].x), yScale(focused.values[0].y), focused);
+				owid.tooltip(svg.node(), xScale(hovered.values[0].x)+20, yScale(hovered.values[0].y), hovered);
 		});
 
 		// Set up hover interactivity
@@ -138,21 +179,23 @@
 					return dist;
 				})[0];
 
-				if (Math.sqrt(distances[d.key]) < sizeScale(d.values[0].size)*6)
-					scatter.update({ focusKey: d.key });
-				else
-					scatter.update({ focusKey: null });
+				if (d) {
+					if (Math.sqrt(distances[d.key]) < sizeScale(d.values[0].size||1)*6)
+						scatter.update({ hoverKey: d.key });
+					else
+						scatter.update({ hoverKey: null });					
+				}
 			});
 		});
 
 		var _fontScale = d3.scaleLinear();
 		scatter.flow("fontScale : sizeScale", function(sizeScale) {
-			_fontScale.range([12, 16]).domain(sizeScale.domain());
+			_fontScale.range([13, 19]).domain(sizeScale.domain());
 		    return _fontScale;
 		});
 
 		// Calculate the positions of the point labels we'd like to use
-		scatter.flow("labelData : data, xScale, yScale, sizeScale, fontScale", function(data, xScale, yScale, sizeScale, fontScale) {
+		scatter.flow("labelData : data, xScale, yScale, sizeScale, fontScale, hovered", function(data, xScale, yScale, sizeScale, fontScale, hovered) {
 			return _.map(data, function(d) {
 				var firstValue = _.first(d.values),
 					lastValue = _.last(d.values),
@@ -165,31 +208,52 @@
 					y: yPos - offset,
 					offset: offset,
 					color: "#333",
-					text: d.entityName,
+					text: d.label,
 					key: d.key,
-					fontSize: fontScale(lastValue.size)
+					fontSize: fontScale(lastValue.size||1)*(d==hovered ? 1.3 : 1)
 				};
 			});
 		});
 
+    	// Calculating bboxes for many labels each frame is expensive
+    	// So we cache width and height unless the label size changes
+    	var labelSizeCache = {};
+		function updateLabelSize(d, label) {
+			var cache = labelSizeCache[d.text];
+
+			if (!cache || cache.fontSize != d.fontSize) {
+				cache = {
+					fontSize: d.fontSize,
+					bbox: label.getBBox()
+				};
+
+				labelSizeCache[d.text] = cache;
+			}
+
+			d.width = cache.bbox.width;
+			d.height = cache.bbox.height;
+		}
+
 		// Render the labels and filter for overlaps
-		scatter.flow("labels : data, labelData, entities, xScale, yScale", function(data, labelData, entities, xScale, yScale) {
-			var labelUpdate = entities.selectAll(".label").data(function(d,i) { return [labelData[i]]; });
+		scatter.flow("labels : g, data, labelData, xScale, yScale", function(g,  data, labelData, xScale, yScale) {			
+			var labelUpdate = g.selectAll(".scatter-label").data(labelData);
 
 			var labels = labelUpdate.enter()
 	            .append("text")
-	            .attr("class", "label")
+	            .attr("class", "scatter-label")
 	            .attr('text-anchor', 'start')
 	          .merge(labelUpdate)
 	            .text(function(d) { return d.text; })
-	            .style("font-size", function(d) { return d.fontSize; })   
-	            .style("fill", function(d) { return d.color; });
+	            .style("font-size", function(d) { return d.fontSize+'px'; })   
+	            .style("fill", function(d) { return d.color; })
+	            .style('cursor', 'default');	            
+
+	        labelUpdate.exit().remove();
 		        
 	        // Calculate the size of each label and ensure it's inside the bounds of the chart
 	        var label_array = [];
 	        labels.each(function(d) {
-	            d.width = this.getBBox().width;
-	            d.height = this.getBBox().height;
+	        	updateLabelSize(d, this);
 
 	        	if (d.x+d.width > xScale.range()[1])
 	        		d.x -= (d.width + d.offset*2);
@@ -201,13 +265,6 @@
 
 	        labels.attr("x", function(d) { return d.x; })
 	              .attr("y", function(d) { return d.y; });
-
-	        // Make sure all the labels are inside the bounds of the chart
-/*	    		if (label.x < xScale.range()[0] || label.x+label.width > xScale.range()[1] || label.y < yScale.range()[1]) {
-	    			label.hidden = true;
-	    			continue;
-	    		}*/
-
 
 	        // Now do collision detection and hide overlaps
 	        function collide(l1, l2) {
@@ -246,272 +303,10 @@
 	        labels.style("opacity", function(d) { return d.hidden ? 0 : 1; });
 		});
 
-		return scatter;
-	};
-
-	owid.view.scatterold = function() {
-		var scatter = {};
-
-		var state = {
-			data: [],
-			bounds: { left: 0, top: 0, right: 100, bottom: 100 },
-			focus: null
-		};
-
-		scatter.state = state;
-		var changes = owid.changes();
-		changes.track(state);
-
-		var margin, width, height, svg, x, y, sizeScale, fontScale, xAxis, yAxis, entities;
-
-		function initialize() {
-			if (svg) svg.remove();
-
-			margin = {top: state.bounds.top + 50, right: 50, bottom: 100, left: state.bounds.left + 50};
-		    width = state.bounds.width - margin.right - 50;
-		    height = state.bounds.height - margin.bottom - 50;
-
-
-/*			xAxis = d3.svg.axis()
-			    .scale(x)
-			    .orient("bottom");
-
-			yAxis = d3.svg.axis()
-			    .scale(y)
-			    .orient("left");*/
-
-			svg = d3.select("svg")
-			  .append("g")
-			    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-			/*svg.append("g")
-			  .attr("class", "x axis")
-			  .attr("transform", "translate(0," + height + ")")
-			  .call(xAxis)
-			.append("text")
-			  .attr("class", "label")
-			  .attr("x", width)
-			  .attr("y", -6)
-			  .style("text-anchor", "end");
-			  //.text("Sepal Width (cm)");
-
-			svg.append("g")
-			  .attr("class", "y axis")
-			  .call(yAxis)
-			.append("text")
-			  .attr("class", "label")
-			  .attr("transform", "rotate(-90)")
-			  .attr("y", 6)
-			  .attr("dy", ".71em")
-			  .style("text-anchor", "end");*/
-			  //.text("Sepal Length (cm)");
-
-		}
-
-		function renderData() {
-			if (!changes.any('data')) return;
-
-			x = d3.scaleLinear().range([0, width]);
-			y = d3.scaleLinear().range([height, 0]);
-			sizeScale = d3.scaleLinear().range([2, 4]);
-			fontScale = d3.scaleLinear().range([8, 14]);
-
-  		    x.domain([
-		        d3.min(state.data, function(series) { return d3.min(series.values, function(d) { return d.x; }); }),
-		        d3.max(state.data, function(series) { return d3.max(series.values, function(d) { return d.x; }); })
-		    ]);
-
-  		    y.domain([
-		        d3.min(state.data, function(series) { return d3.min(series.values, function(d) { return d.y; }); }),
-		        d3.max(state.data, function(series) { return d3.max(series.values, function(d) { return d.y; }); })
-		    ]);
-
-		    sizeScale.domain([
-		        d3.min(state.data, function(series) { return d3.min(series.values, function(d) { return d.size; }); }),
-		        d3.max(state.data, function(series) { return d3.max(series.values, function(d) { return d.size; }); })
-		    ]);
-
-		    fontScale.domain([
-		        d3.min(state.data, function(series) { return d3.min(series.values, function(d) { return d.size; }); }),
-		        d3.max(state.data, function(series) { return d3.max(series.values, function(d) { return d.size; }); })
-		    ]);			
-
-		    var line = d3.line()
-			    .curve(d3.curveLinear)
-			    .x(function(d) { return x(d.x); })
-			    .y(function(d) { return y(d.y); });
-
-			var update = svg.selectAll(".entity").data(state.data, function(d) { return d.key; }),
-				exit = update.exit().remove(),
-				enter = update.enter().append("g").attr("class", "entity");
-			entities = enter.merge(update);
-
-			var markers = enter.append("svg:marker")
-		        .attr("stroke", "rgba(0,0,0,0)")
-		        .attr("viewBox", "0 -5 10 10")
-		        .attr("refX", 5)
-		        .attr("refY", 0)
-		        .attr("markerWidth", 4)
-		        .attr("markerHeight", 4)
-		        .attr("orient", "auto");
-
-		    markers.append("svg:path")
-		        .attr("d", "M0,-5L10,0L0,5");
-
-		   	markers.merge(update)
-		   	  	.attr("id", function(d) { return d.id; })
-		        .attr("fill", function(d) { return d.color || _colorScale(d.key); });
-
-		    var lineUpdate = entities.selectAll(".line").data(function(d) { return [d]; });
-
-		    lineUpdate.enter().append("path")
-				.attr("class", "line")
-				.style("fill-opacity", 0)
-			  .merge(lineUpdate)
-			  	.transition()
-				.attr("d", function(d) { return line([d.values[0], _.last(d.values)]); })				
-			    .attr("marker-end", function(d) { return "url(#" + d.id + ")"; })			    
-				.style("stroke", function(d) { return d.color || _colorScale(d.key); })
-				.style("stroke-width", function(d) { return sizeScale(_.last(d.values).size); });
-
-			update.exit().remove();
-		}
-
-		function renderLabels() {
-			if (!changes.any('data')) return;
-			var labelUpdate = entities.selectAll(".label").data(function(d) { 
-				var firstValue = _.first(d.values),
-					lastValue = _.last(d.values),
-					xPos = xScale((lastValue.x+firstValue.x)/2),
-					yPos = yScale((lastValue.y+firstValue.y)/2),
-					angle = Math.atan2(yScale(lastValue.y) - yScale(firstValue.y), xScale(lastValue.x) - xScale(firstValue.x)) * 180 / Math.PI;
-
-				// Ensure label stays the right way up when going negative
-				if (lastValue.x < firstValue.x)
-					angle += 180;
-
-				return [{
-					x: xPos,
-					y: yPos,
-					angle: angle,
-					name: d.entityName,
-					key: d.key,
-					fontSize: 12//fontScale(lastValue.size)
-				}];
-			});
-
-			var labels = labelUpdate.enter()
-	            .append("text")
-	            .attr("class", "label")
-	            .attr('text-anchor', 'middle')
-	          .merge(labelUpdate)
-	            .text(function(d) { return d.name; })
-	            .style("font-size", function(d) { return d.fontSize; })   
-	            .style("fill", function(d) { return d.color; })
-	            .attr("x", function(d) { return (d.x); })
-	            .attr("y", function(d) { return (d.y); })	            
-	            .attr("transform", function(d) { return "rotate(" + d.angle + "," + d.x + "," + d.y + ") translate(0, -2)"; });
-		        
-	        // Size of each label
-	        var label_array = [];
-	        labels.each(function(d) {
-	            d.width = this.getBBox().width;
-	            d.height = this.getBBox().height;
-	        	label_array.push(d);
-	        });
-
-	        function collide(l1, l2) {
-	        	var r1 = { left: l1.x, top: l1.y, right: l1.x+l1.width, bottom: l1.y+l1.height };
-	        	var r2 = { left: l2.x, top: l2.y, right: l2.x+l2.width, bottom: l2.y+l2.height };
-  			    
-  			    return !(r2.left > r1.right || 
-			             r2.right < r1.left || 
-			             r2.top > r1.bottom ||
-			             r2.bottom < r1.top);
-	        }
-
-	        while (true) {
-	        	var overlaps = false;
-		        for (var i = 0; i < label_array.length; i++) {
-		        	var l1 = label_array[i];
-		        	if (l1.hidden) continue;
-
-		        	for (var j = 0; j < label_array.length; j++) {
-		        		var l2 = label_array[j];
-		        		if (l1 == l2 || l2.hidden) continue;
-
-		        		if (collide(l1, l2)) {
-		        			if (l1.fontSize > l2.fontSize)
-		        				l2.hidden = true;
-		        			else
-		        				l1.hidden = true;
-		        			overlaps = true;
-		        		}
-		        	}
-		        }	        	
-
-		        if (!overlaps) break;
-	        }
-			
-	        labels.style("opacity", function(d) { return d.hidden ? 0 : 1; });
-		}
-
-
-		function renderFocus() {
-			if (!changes.any('focus')) return;
-
-			d3.select('svg').on("mousemove.scatter", function() {
-				var mouse = d3.mouse(svg.node()),
-					mouseX = mouse[0], mouseY = mouse[1];
-					
-				var d = _.sortBy(state.data, function(d) {
-					var value = d.values[0],
-						dx = x(value.x) - mouseX,
-						dy = y(value.y) - mouseY,
-						dist = dx*dx + dy*dy;
-					return dist;
-				})[0];
-
-				state.focus = d.key;
-				scatter.render();
-			});
-
-			entities.style('opacity', function(d) {
-				return (state.focus === null || d.key == state.focus) ? 1 : 0.2;
-			});
-
-			entities.selectAll('.label').style('opacity', function(d) {
-				if (state.focus !== null && d.key == state.focus)
-					return 1;
-				else
-					return (d.hidden ? 0 : 1);
-			});
-		}
-
-
-		scatter.render = function() {
-			if (!changes.start()) return;
-
-			if (changes.any('bounds')) initialize();
-
-			renderData();
-			renderLabels();
-			renderFocus();
-
-			var axis = owid.view.xAxis();
-			axis.offsetTop(state.bounds.height - 100)
-				.offsetLeft(state.bounds.left)
-				.width(state.bounds.width - state.bounds.left - 100)
-				.height(50)
-				.scale(x)
-				.svg(svg);
-
-			changes.done();
-
-			chart.dispatch.renderEnd();
-		};
+		scatter.beforeClean(function() {
+			if (scatter.g) scatter.g.remove();
+		});
 
 		return scatter;
 	};
-
 })(d3v4);

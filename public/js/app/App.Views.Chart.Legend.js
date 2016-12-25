@@ -7,7 +7,10 @@
 			this.dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout', 'stateChange', 'addEntity');
 		},
 
-		render: function() {
+		render: function(config) {
+			var container = d3.select(config.containerNode),
+				bounds = config.bounds.padLeft(35);
+
 			var legendData = App.ChartData.get("legendData"),
 				entityType = App.ChartModel.get("entity-type"),
 				groupByVariables = App.ChartModel.get("group-by-variables"),
@@ -15,10 +18,7 @@
 				remainingEntities = App.VariableData.getRemainingEntities(),
 				isAddBtnShown = (remainingEntities.length && (addCountryMode === "add-country" || addCountryMode === "change-country"));
 
-			var $svg = $("svg.nvd3-svg"),
-				container = d3.select($svg[0]),
-				offsetX = 35, offsetY = 0,
-				availableWidth = chart.getBounds(container.node()).width - offsetX,
+			var offsetX = bounds.left, offsetY = bounds.top,
 				spaceBetweenLabels = 22,
 				spaceBetweenLines = 28;
 
@@ -73,7 +73,7 @@
 				var legendText = d3.select(this).select('text');
 				var nodeTextLength = legendText.node().getComputedTextLength();
 
-				if (transformX+nodeTextLength+spaceBetweenLabels > availableWidth)  {
+				if (transformX+nodeTextLength+spaceBetweenLabels > bounds.width)  {
 					transformY += spaceBetweenLines;
 					transformX = 0;
 				}
@@ -83,7 +83,7 @@
 				transformX += nodeTextLength + spaceBetweenLabels;
 			});
 
-			g.attr('transform', 'translate(' + offsetX + ',' + offsetY + ')');			
+			g.attr('transform', 'translate(' + offsetX + ',' + (offsetY+12) + ')');			
 			
 			// Size the rectangles around the positioned text	
 			seriesShape
@@ -144,7 +144,7 @@
 			}
 
 			var buttonWidth = 120;
-			if (transformX + buttonWidth > availableWidth) {
+			if (transformX + buttonWidth > bounds.width) {
 				//make sure we have button
 				var addEntityDisplay = addEntityBtn.attr("display");
 				if (addEntityDisplay !== "none") {
@@ -153,15 +153,14 @@
 				}
 			}
 
-			transformY -= 8;
 			transformX += 28;
-			addEntityBtn.attr("transform", "translate(" + transformX + "," + transformY + ")");
+			addEntityBtn.attr("transform", "translate(" + (bounds.left+transformX-35) + "," + (bounds.top+transformY+5) + ")");
 		},
 
 		height: function() {
 			var legend = d3.select('.nv-custom-legend');
 			if (legend.node())
-				return d3.select(".nv-custom-legend").node().getBBox().height;
+				return legend.node().getBBox().height;
 			else
 				return 0;
 		}
