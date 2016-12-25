@@ -212,7 +212,7 @@
 		 * Set e.g. &time=1990 when the user uses the slider to go to 1990
 		 */
 		function updateTime() {
-			if (chart.activeTabName == 'chart')
+			if (chart.activeTabName == 'chart' && chart.model.get('timeline'))
 				owid.setQueryVariable("time", chart.model.get('chart-time')[0]);
 		}
 
