@@ -20,6 +20,10 @@ button {
     font-size: 22px;
 }
 
+#chart.export > svg {
+    font-size: 24px;
+}
+
 #chart .btn {
     font-size: 0.8em;
     white-space: normal;
@@ -1047,42 +1051,6 @@ body.export #chart .scaleSelector {
 }
 body.export #chart .tab-pane {
     border: none !important;
-}
-
-/* Portrait mode chart
---------------------------------------------- */
-#chart.portrait.embedded {
-    border: 1px solid #ccc;
-}
-
-/* Compact the footer buttons a bit */
-#chart.narrow .footer-btns a.chart-link-btn span,
-#chart.narrow .footer-btns a.tweet-btn span,
-#chart.narrow .footer-btns a.facebook-btn span,
-#chart.narrow .footer-btns a.embed-btn span {
-    display: none;
-}
-#chart.narrow .footer-btns i {
-    font-size: 1.2em;
-}
-
-/* Landscape mode chart
---------------------------------------------- */
-#chart:not(.portrait).embedded {
-    border: 1px solid #ccc;
-}
-/* Desktop-only: can click on world map to get chart */
-#chart:not(.portrait) .datamaps-subunits {
-    cursor: pointer;
-}
-#chart:not(.portrait) .datasource-wrapper td:first-child {
-    min-width: 100px;
-    white-space: nowrap;
-}    
-
-/* Adding countries is currently not compatible with touch devices */
-#chart.mobile .nv-add-btn {
-    display: none;
 }
 
 /* Miscellaneous

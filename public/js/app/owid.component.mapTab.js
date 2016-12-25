@@ -25,6 +25,11 @@
         });
 
         mapTab.flow('timeline, years, inputYear, containerNode, bounds', function(timeline, years, inputYear, containerNode, bounds) {
+            if (years.length <= 1) {
+                timeline.clean();
+                return;
+            }
+
             var changes = {
                 years: years,
                 containerNode: containerNode,
@@ -38,7 +43,7 @@
         });
 
         mapTab.flow('boundsForMap : timeline, bounds', function(timeline, bounds) {
-            return { left: bounds.left, top: bounds.top, width: bounds.width, height: bounds.height-timeline.bounds.height };
+            return { left: bounds.left, top: bounds.top, width: bounds.width, height: bounds.height-(timeline.isClean ? 10 : timeline.bounds.height) };
         });
 
         mapTab.flow('map, colorData, containerNode, boundsForMap, projection', function(map, colorData, containerNode, boundsForMap, projection) {

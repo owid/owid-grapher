@@ -32,6 +32,10 @@
 			el.style('left', left+'px').style('top', top+'px');
 		});
 
+		scaleSelector.beforeClean(function() {
+			if (scaleSelector.el) scaleSelector.el.remove();
+		});
+
 		return scaleSelector;
 	};
 
@@ -94,6 +98,11 @@
 				}
 			}
 		};
+
+		scaleSelectors.beforeClean(function() {
+			xScaleSelector.clean();
+			yScaleSelector.clean();
+		});
 
 		return scaleSelectors;
 	};

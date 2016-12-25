@@ -51,6 +51,8 @@
 
 		chartTab.clean = function() {
 			if (viz) viz = viz.destroy();
+			chartTab.scaleSelectors.clean();
+
 			d3.selectAll(".nvd3, .axisBox, .nvtooltip:not(.owid-tooltip), .timeline").remove();
 //			chartTab.scaleSelectors.hide();
 			d3.selectAll("svg").on("mousemove.stackedarea", null);
@@ -108,6 +110,7 @@
 					nv.dispatch.on("render_end", function() {
 						setTimeout(postRender, 500);
 					});
+					setTimeout(postRender, 500);
 					window.nvd3 = nvd3;
 				}
 

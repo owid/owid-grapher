@@ -75,7 +75,9 @@
 					if (isExport) return; // Export specifies its own dimensions
 
 					var bounds = owid.bounds(containerNode.getBoundingClientRect());
-					if (!isEmbed) {
+					if (isEmbed) {
+						bounds = bounds.pad(1);
+					} else {
 						if (bounds.width < 800)
 							bounds = bounds.pad(bounds.width*0.01, bounds.height*0.02);
 						else
@@ -142,6 +144,10 @@
 
 		chart.flow('el, isPortrait', function(el, isPortrait) {
 			el.classed('portrait', isPortrait).classed('landscape', !isPortrait);
+		});
+
+		chart.flow('el, isExport', function(el, isExport) {
+			el.classed('export', isExport);
 		});
 
 		chart.flow('authorWidth, authorHeight : isPortrait, landscapeAuthorDimensions, portraitAuthorDimensions', function(isPortrait, landscapeAuthorDimensions, portraitAuthorDimensions) {
