@@ -90,6 +90,10 @@
 
 			this.on("change:variableId change:timeRanges", this.updateYears.bind(this));
 			this.listenTo(App.VariableData, "change:minYear change:maxYear", this.updateYears.bind(this));
+
+			this.on("change:defaultYear", function() {
+				this.set('targetYear', this.get('defaultYear'));
+			});
 		},
 
 		loadConfig: function() {
@@ -107,8 +111,6 @@
 			});
 
 			this.set(mapConfig);
-
-			this.set('targetYear', this.get('defaultYear'));
 		},
 
 		updateYears: function() {
