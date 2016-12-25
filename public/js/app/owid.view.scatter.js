@@ -28,10 +28,13 @@
 		});
 
 		scatter.flow('scatterAxis : axisConfig, xDomainDefault, yDomainDefault', function(axisConfig, xDomainDefault, yDomainDefault) {
-			var config = _.clone(axisConfig);
-			config.x.domain = _.extend([], xDomainDefault, config.x.domain);
-			config.y.domain = _.extend([], yDomainDefault, config.y.domain);
-			return config;
+			var xDomain = _.extend([], xDomainDefault, axisConfig.x.domain);
+			var yDomain = _.extend([], yDomainDefault, axisConfig.y.domain);
+
+			return {
+				x: _.extend({}, axisConfig.x, { domain: xDomain }),
+				y: _.extend({}, axisConfig.y, { domain: yDomain })
+			};
 		});
 
 		scatter.flow("axisBox : svg, data, bounds, scatterAxis", function(svg, data, bounds, scatterAxis) {

@@ -265,27 +265,6 @@
 								<input type="input" class="form-control" name="line-tolerance" value=""/>
 							</label>
 					</section>
-					<section class="margins-section">
-						
-							<h2>Set margins</h2>
-						
-							<label>
-								<span>Margin top</span>
-								<input type="input" class="form-control" name="margin-top" value=""/>
-							</label>
-							<label>
-								<span>Margin right</span>
-								<input type="input" class="form-control" name="margin-right" value=""/>
-							</label>
-							<label>
-								<span>Margin bottom</span>
-								<input type="input" class="form-control" name="margin-bottom" value=""/>
-							</label>
-							<label>
-								<span>Margin left</span>
-								<input type="input" class="form-control" name="margin-left" value=""/>
-							</label>
-					</section>
 					<section class="legend-section">
 						
 							<h2>Legend</h2>

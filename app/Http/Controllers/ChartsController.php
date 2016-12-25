@@ -40,7 +40,7 @@ class ChartsController extends Controller {
 	public function create()
 	{
 		$data = $this->editorData();
-		return view('charts.create')->with('data', $data);
+		return view('charts.edit', [ 'data' => $data, 'chartConfig' => json_encode(Chart::getConfigWithUrl(null)) ]);
 	}
 
 	public function editorData() {

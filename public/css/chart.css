@@ -202,7 +202,8 @@ select.disabled {
 body:not(.export) #chart {
     vertical-align: middle;
     border: 1px solid #f0f0f0;    
-    box-shadow: 0 3px 5px 0 rgba(0,0,0,0.2);
+    border-radius: 2px;
+    box-shadow: rgba(0, 0, 0, 0.117647) 0px 0px 2px 0px, rgba(0, 0, 0, 0.239216) 0px 2px 2px 0px
 }
 
 a {
@@ -305,6 +306,7 @@ a {
 #chart.portrait nav.tabs ul {
     display: table;
     width: 100%;
+    text-align: center;
 }
 
 #chart.portrait nav.tabs li {
@@ -330,6 +332,7 @@ a {
     height: 100%;
     width: 100%;
     pointer-events: none;
+    font-weight: bold;
 }
 #chart .chart-error:before {
     content: '';
@@ -505,13 +508,13 @@ a {
 /* Tooltips
 --------------------------------------------- */
 
-.owid-tooltip {
+#chart .owid-tooltip {
     font-size: 1em;
     background: white;
     border: 1px solid rgba(0, 0, 0, 0.2);    
     pointer-events: none;
 }
-.owid-tooltip h3 {
+#chart .owid-tooltip h3 {
     padding: 0.3em 0.9em;
     font-size: 1em;
     margin: 0;
@@ -521,12 +524,12 @@ a {
     text-align: center;
     border-bottom: 1px solid #ebebeb;
 }
-.owid-tooltip p {
+#chart .owid-tooltip p {
     font-size: 0.8em;
     padding: 0.3em 0.9em;
     margin: 0;
 }
-.owid-tooltip .var-popup-value {
+#chart .owid-tooltip .var-popup-value {
     display: block;
 }
 
@@ -586,6 +589,7 @@ a {
     border-radius: 5px;
     background: rgba(255,255,255,0.95);
     padding: 1em;
+    text-align: center;
 }
 
 #chart h2 {

@@ -27,6 +27,11 @@
 		urlBinder.chartQueryStr = '?';
 
 		function initialize() {
+			if (chart.isEditor) {
+				chart.update({ activeTabName: chart.model.get('default-tab') });
+				return;
+			}
+
 			chart.flow('activeTabName', onTabChange);
 
 			chart.model.on("change:selected-countries", updateCountryParam);
@@ -80,7 +85,7 @@
 
 			var time = params.time;
 			if (time !== undefined)
-				chart.model.set("chart-time", [parseFloat(time), parseFloat(time)]);
+				chart.model.set("timeline", _.extend({}, chart.model.get('timeline'), { defaultYear: parseFloat(time) }));
 
 			// Map stuff below
 

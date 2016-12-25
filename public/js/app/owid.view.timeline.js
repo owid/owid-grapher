@@ -225,7 +225,9 @@
                 container.on('touchmove.timeline', null);
                 container.on('touchend.timeline', null);
 				//container.on('mouseleave.timeline', null);
-				timeline.update({ isDragging: false });
+                requestAnimationFrame(function() {
+                    timeline.update({ isDragging: false });
+                });
 			}
 
             function onMouseDown() {

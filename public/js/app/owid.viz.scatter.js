@@ -4,12 +4,8 @@
     owid.namespace("owid.control.scatter");
 
     owid.control.scatter = function() {
-        var control = owid.dataflow();
-
-        control.needs('props', 'hasTimeline');
-
-        control.defaults({
-            colorScheme: [ // TODO less ad hoc color scheme (probably would have to annotate the datasets)
+        var control = {};
+        var colorScheme = [ // TODO less ad hoc color scheme (probably would have to annotate the datasets)
                 "#5675c1", // Africa
                 "#aec7e8", // Antarctica
                 "#d14e5b", // Asia
@@ -18,21 +14,22 @@
                 "#a652ba", // Oceania
                 "#69c487", // South America
                 "#ff7f0e", "#1f77b4", "#ffbb78", "#2ca02c", "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b", "c49c94", "e377c2", "f7b6d2", "7f7f7f", "c7c7c7", "bcbd22", "dbdb8d", "17becf", "9edae5", "1f77b4"]
-        });
 
-        control.flow('scatter : hasTimeline', function(hasTimeline) {
-            if (control.scatter) control.scatter.remove();
-            return hasTimeline ? owid.control.scatterWithTimeline() : owid.control.scatterWithoutTimeline();
-        });
 
-        control.flow('scatter, props, colorScheme, hasTimeline', function(scatter, props, colorScheme, hasTimeline) {
-            if (!hasTimeline) props = _.omit(props, 'timelineConfig', 'inputYear');
-            scatter.update(_.extend({}, props, { colorScheme: colorScheme }));
-        });
-
-        var update = control.update;
+        var hasTimeline = null;
         control.update = function(props, callback) {
-            update({ props: props, hasTimeline: !!props.timelineConfig }, callback);
+            var shouldHaveTimeline = !!props.timelineConfig;
+
+            if (hasTimeline != shouldHaveTimeline) {
+                if (control.scatter) control.scatter.clean();
+
+                control.scatter = shouldHaveTimeline ? owid.control.scatterWithTimeline() : owid.control.scatterWithoutTimeline();
+
+                hasTimeline = shouldHaveTimeline;
+            }
+
+            if (!hasTimeline) props = _.omit(props, 'timelineConfig', 'inputYear');
+            control.scatter.update(_.extend({}, props, { colorScheme: colorScheme }), callback);
         };
 
         return control;
@@ -132,9 +129,9 @@
             });
         });
 
-        viz.remove = function() {
-            if (viz.scatter) viz.scatter.remove();
-        };
+        viz.beforeClean(function() {
+            if (viz.scatter) viz.scatter.clean();
+        });
 
         return viz;
     };
@@ -187,9 +184,11 @@
             return _.intersection(owid.timeRangesToYears(timeRanges, _.first(yearsWithData), _.last(yearsWithData)), yearsWithData);
         });
 
-        // Calculate a default input year if none is given
-        viz.flow('inputYear : timelineYears', function(timelineYears) {            
-            return _.isNumber(viz.inputYear) ? viz.inputYear : _.last(timelineYears);
+        // Set default input year if none is given
+        viz.flow('inputYear : defaultYear, timelineYears', function(defaultYear, timelineYears) {     
+            if (defaultYear == 'latest') return _.last(timelineYears);
+            if (defaultYear == 'earliest') return _.first(timelineYears);
+            return defaultYear;
         });
 
         // Color scale for color dimension
@@ -358,12 +357,14 @@
 
             return [[xMin, xMax], [yMin, yMax]];
         });
-
         viz.flow('scatterAxis : axisConfig, xDomain, yDomain', function(axisConfig, xDomain, yDomain) {
-            var scatterAxis = _.clone(axisConfig);
-            scatterAxis.x.domain = _.extend([], xDomain, scatterAxis.x.domain);
-            scatterAxis.y.domain = _.extend([], yDomain, scatterAxis.y.domain);
-            return scatterAxis;
+            xDomain = _.extend([], xDomain, axisConfig.x.domain);
+            yDomain = _.extend([], yDomain, axisConfig.y.domain);
+
+            return {
+                x: _.extend({}, axisConfig.x, { domain: xDomain }),
+                y: _.extend({}, axisConfig.y, { domain: yDomain })
+            };
         });
 
         viz.flow('scatter, containerNode, currentData, bounds, scatterAxis, timeline, timelineYears', function(scatter, containerNode, currentData, bounds, scatterAxis, timeline, timelineYears) {
@@ -381,10 +382,10 @@
             scatter.update({ canHover: !isInterpolating });
         });
 
-        viz.remove = function() {
+        viz.beforeClean(function() {
             if (viz.scatter) viz.scatter.clean();
             if (viz.timeline) viz.timeline.clean();
-        };
+        });
 
         return viz;
     };

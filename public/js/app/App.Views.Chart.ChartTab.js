@@ -75,6 +75,7 @@
 			if (missingMsg || (_.isEmpty(localData) && chartType != App.ChartType.ScatterPlot)) {
 				chart.el.selectAll(".nv-wrap").remove();
 				chart.showMessage(missingMsg || "No available data.");
+				return;
 			}
 
 			updateAvailableCountries();
@@ -299,7 +300,6 @@
 				axisConfig: chartTab.axisConfig,
 				dimensions: chart.model.getDimensions(),
 				variables: chart.vardata.get('variables'),
-				inputYear: (chart.model.get('chart-time')||[])[0],
                 timelineConfig: chart.model.get('timeline')
 			}, function() {
 				postRender();

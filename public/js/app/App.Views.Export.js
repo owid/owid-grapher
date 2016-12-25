@@ -14,6 +14,9 @@
 	owid.namespace("owid.component.exportMode");
 
 	owid.component.exportMode = function(chart) {
+		if (!_.isFunction(window.callPhantom))
+			window.callPhantom = console.log;
+
 		d3.select('body').classed('export', true);
 
 		var params = owid.getQueryParams(),
@@ -27,15 +30,6 @@
 
 		chart.dispatch.on('renderEnd', function() {
 			setTimeout(function() {
-/*				var svg = $("svg").get(0);
-				svg.setAttribute("viewBox", "0 0 " + chart.renderWidth + " " + chart.renderHeight);
-				svg.setAttribute("preserveAspectRatio", "none");
-				$(svg).css("width", (targetWidth-(margin*2)) + "px");
-   			    $(svg).css("height", (targetHeight-(margin*2)) + "px");
-				$("#chart").css('width', targetWidth);
-				$("#chart").css('height', targetHeight);
-				$(svg).css('margin', margin + 'px');*/
-
 				// Remove SVG UI elements that aren't needed for export
 				chart.now('svg', function(svg) {
 					svg.selectAll(".nv-add-btn, .nv-controlsWrap").remove();
@@ -78,12 +72,13 @@
 
 			// MISPY: Need to propagate a few additional styles from the external document into the SVG
 			svg.style("font-family", chart.el.style("font-family"));
-			//svg.style("font-size", chart.el.style("font-size"));
+			svg.style("width", chart.el.style("width"));
+			svg.style("height", chart.el.style("height"));
+			svg.style("font-size", svg.style("font-size"));
 
 			svgAsDataUri(svg.node(), {}, function(uri) {
 				var svgData = uri.substring('data:image/svg+xml;base64,'.length);
-				if (_.isFunction(window.callPhantom))
-					window.callPhantom({ "svg": svgData });
+				window.callPhantom({ "svg": svgData });
 			});			
 		}
 	};

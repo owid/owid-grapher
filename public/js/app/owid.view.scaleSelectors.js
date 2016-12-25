@@ -86,10 +86,12 @@
 				if (rect.empty())
 					rect = d3.select('svg').select('.nv-background > rect');
 
-				var rectBounds = chart.getTransformedBounds(rect.node());
+				if (!rect.empty()) {
+					var rectBounds = chart.getTransformedBounds(rect.node());
 
-				xScaleSelector.update({ left: rectBounds.left+rectBounds.width-100, top: rectBounds.height-30 });
-				yScaleSelector.update({ left: rectBounds.left, top: rectBounds.top-10 });
+					xScaleSelector.update({ left: rectBounds.left+rectBounds.width-100, top: rectBounds.height-30 });
+					yScaleSelector.update({ left: rectBounds.left, top: rectBounds.top-10 });					
+				}
 			}
 		};
 

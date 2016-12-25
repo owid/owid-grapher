@@ -27,9 +27,6 @@
 			return new App.Models.ChartModel(chartConfig);
 		});
 
-		chart.flow('model', function(model) {
-			model.on('change', function() { chart.data.ready(chart.render); });
-		});
 
 		chart.flow('vardata, data, colors : model', function(model) {
 			App.ChartModel = model;
@@ -47,10 +44,6 @@
 		chart.flow('mapdata : map', function(map) {
 			return owid.models.mapdata(chart);
 		});
-		chart.flow('map', function(map) {
-			map.on('change', function() { chart.data.ready(chart.render); });
-		});
-
 		chart.flow('url : model', function(model) {
 			return owid.component.urlBinder(chart);
 		});
@@ -182,8 +175,14 @@
 			el.style('font-size', 16*scale + 'px');
 		});
 
-		chart.flow('activeTabName, scale', function() { 
+		chart.flow('primaryTab, scale', function() { 
 			chart.data.ready(chart.render);
+		});
+		chart.flow('model, primaryTab', function(model) {
+			model.on('change', function() { chart.data.ready(chart.render); });
+		});
+		chart.flow('map, primaryTab', function(map) {
+			map.on('change', function() { chart.data.ready(chart.render); });
 		});
 
 		chart.flow('exportMode : isExport', function(isExport) {
@@ -192,6 +191,8 @@
 
 		chart.render = function() {
 			chart.now('el, header, controlsFooter, creditsFooter, primaryTab, overlayTab, innerBounds, scale, loadingIcon', function(el, header, controlsFooter, creditsFooter, primaryTab, overlayTab, innerBounds, scale, loadingIcon) {
+				loadingIcon.classed('hidden', false);
+
 				chart.data.transformData();
 				var bounds = innerBounds.pad(15);
 
@@ -312,7 +313,9 @@
 		};
 
 		chart.showMessage = function(msg) {
-			this.el.select(".tab-pane.active").append('<div class="chart-error"><div>' + msg + '</div></div>');			
+			var errorUpdate = chart.el.selectAll('.chart-error').data([msg]);
+			errorUpdate.enter().append('div').attr('class', 'chart-error')
+				.merge(errorUpdate).html(function(d) { return d; });
 		};
 
 		return chart;

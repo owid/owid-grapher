@@ -9,7 +9,6 @@
 			"change [name='second-logo']": "onLogoChange",
 			"change [name='line-type']": "onLineTypeChange",
 			"change [name='line-tolerance']": "onLineToleranceChange",
-			"change [name^='margin-']": "onMarginChange",
 			"change [name='hide-legend']": "onHideLegendChange",
 			"change [name='hide-toggle']": "onHideToggleChange",
 			"change [name='entity-type']": "onEntityTypeChange",
@@ -25,12 +24,6 @@
 
 			this.$lineTypeRadios = this.$el.find( "[name='line-type']" );
 			this.$lineTolerance = this.$el.find("[name='line-tolerance']");
-			
-			//margins
-			this.$marginTop = this.$el.find( "[name='margin-top']" );
-			this.$marginLeft = this.$el.find( "[name='margin-left']" );
-			this.$marginRight = this.$el.find( "[name='margin-right']" );
-			this.$marginBottom = this.$el.find( "[name='margin-bottom']" );
 			
 			//legend
 			this.$hideLegend = this.$el.find( "[name='hide-legend']" );
@@ -53,12 +46,6 @@
 			this.$logo.val(logos[0]);
 
 			this.renderLineType();
-
-			var margins = App.ChartModel.get( "margins" );
-			this.$marginTop.val( margins.top );
-			this.$marginLeft.val( margins.left );
-			this.$marginRight.val( margins.right );
-			this.$marginBottom.val( margins.bottom );
 
 			var hideLegend = ( App.ChartModel.get( "hide-legend" ) )? true: false;
 			this.$hideLegend.prop( "checked", hideLegend );
@@ -103,18 +90,6 @@
 
 		onLineToleranceChange: function(evt) {
 			App.ChartModel.set("line-tolerance", this.$lineTolerance.val());
-		},
-
-		onMarginChange: function( evt ) {
-			var $control = $( evt.currentTarget ),
-				controlName = $control.attr( "name" ),
-				marginsObj = { top: this.$marginTop.val(),
-							left: this.$marginLeft.val(),
-							right: this.$marginRight.val(),
-							bottom: this.$marginBottom.val() };
-
-			App.ChartModel.set( "margins", marginsObj );
-			App.ChartModel.trigger( "update" );
 		},
 
 		onUnitChange: function( evt ) {

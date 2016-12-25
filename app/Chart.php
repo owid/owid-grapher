@@ -60,6 +60,9 @@ class Chart extends Model {
 	}
 
 	public static function getConfigWithUrl($chart) {
+		if (!$chart)
+			return [ 'logosSVG' => Logo::where('name', 'OWD')->lists('svg') ];
+		
 		$config = json_decode($chart->config);
 		$config->id = $chart->id;
 		$config->{"chart-name"} = $chart->name;

@@ -39,6 +39,7 @@
 			"line-tolerance": 1,
 			"chart-description": "",
 			"chart-dimensions": [],
+			"logos": ['OWD'],
 			"y-axis": {"axis-label-distance":"-10"},
 			"x-axis": {},
 			"margins": { top: 10, left: 60, bottom: 10, right: 10 },

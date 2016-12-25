@@ -10,9 +10,7 @@
 @section('outter-content')
 	@include('charts/partials/_select-var-popup')
 	@include('charts/partials/_settings-var-popup')
-	@include('charts/partials/_export-popup')
 @endsection
-
 
 @section('scripts')
     <script type="text/javascript">

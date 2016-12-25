@@ -80,6 +80,7 @@
 				@yield('content')
 			</div>
 		</div>
+		@yield('outter-content')
 
 		<script>
 			var Global = {};
