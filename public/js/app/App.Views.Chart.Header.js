@@ -83,7 +83,7 @@
 			}			
 
 			if (fontSize <= 1.0)
-				resizeTitle(1.1);
+				resizeTitle(1.2);
 
 			title.attr('y', boundsForText.top);
 			title.attr('y', boundsForText.top-title.node().getBBox().y);
