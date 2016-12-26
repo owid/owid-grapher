@@ -474,27 +474,6 @@
 				}
 			}
 
-			// Only scatter plots have non-ordinal x axis
-			if (chartType == App.ChartType.ScatterPlot) {
-				if (xAxisScale === "linear") {
-					nvd3.xScale(d3.scale.linear());
-				} else if (xAxisScale === "log") {
-					nvd3.xScale(d3.scale.log());
-
-					// MISPY: Custom calculation of axis ticks, since nvd3 doesn't
-					// account for log scale when doing its own calc and that can result in
-					// overlapping axis labels.
-					var minPower10 = Math.ceil(Math.log(xDomain[0]) / Math.log(10));
-					var maxPower10 = Math.floor(Math.log(xDomain[1]) / Math.log(10));
-
-					var tickValues = [];
-					for (var i = minPower10; i <= maxPower10; i++) {
-						tickValues.push(Math.pow(10, i));
-					}
-					nvd3.xAxis.tickValues(tickValues);
-				}
-			}
-
 			if (yAxisScale === "linear") {
 				nvd3.yScale(d3.scale.linear());
 			} else if (yAxisScale === "log") {
