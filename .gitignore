@@ -2,6 +2,7 @@
 /public/build
 /public/uploads/*
 /public/js/min
+/public/js/bundle.js
 /public/css/min
 .env
 .env.localhost
