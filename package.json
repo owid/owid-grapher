@@ -1,9 +1,12 @@
 {
   "private": true,
   "devDependencies": {
+    "awesome-typescript-loader": "^3.0.0-beta.17",
     "babel-loader": "^6.2.10",
     "gulp": "^3.9.1",
     "laravel-elixir": "6.0.0-2",
-    "phantomjs": "2.1.7"
+    "phantomjs": "2.1.7",
+    "source-map-loader": "^0.1.5",
+    "typescript": "^2.1.4"
   }
 }

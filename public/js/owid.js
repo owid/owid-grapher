@@ -1019,4 +1019,6 @@ Object.defineProperty(SVGElement.prototype, 'innerSVG', {
 	};
 
 	window.owid = owid;
+
+	module.exports = { default: owid };
 })();

@@ -1,6 +1,5 @@
 require('./libs/modernizr-custom');
 window.jQuery = require('./libs/jquery');
-require('./libs/papaparse');
 window.d3 = require('./libs/d3');
 require('./libs/nv.d3');
 window.d3v4 = require('./libs/d3.v4');
@@ -20,9 +19,9 @@ window.ResizeSensor = require('./libs/ResizeSensor');
 window.ElementQueries = require('./libs/ElementQueries');
 window.Fuse = require('./libs/fuse');
 
-require('./owid');
+window.owid = require('./owid').default;
 require('./app/owid.bounds');
-require('./app/owid.dataflow');
+owid.dataflow = require('./app/owid.dataflow').default;
 require('./app/owid.colorbrewer');
 
 require('./app/constants');
@@ -34,7 +33,8 @@ require('./app/App.Models.VariableData');
 require('./app/App.Models.ChartData');
 require('./app/App.Models.Colors');
 require('./app/App.Views.Chart.Header');
-require('./app/App.Views.Chart.Footer');
+owid.component = {};
+owid.component.footer = require('./app/owid.component.footer').default;
 require('./app/owid.view.tooltip');
 require('./app/owid.view.scaleSelectors');
 require('./app/owid.view.axis');

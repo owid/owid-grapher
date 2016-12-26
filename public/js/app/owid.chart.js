@@ -61,7 +61,7 @@
 		});
 
 		chart.flow('header : model', function() { return owid.control.header(chart); });
-		chart.flow('creditsFooter : model', function() { return new App.Views.Chart.Footer(chart); });
+		chart.flow('creditsFooter : model', function() { return new owid.component.footer(chart); });
 		chart.flow('controlsFooter : model', function() { return owid.view.controlsFooter(); });
 
 		// Container setup
@@ -105,6 +105,9 @@
 		});
 		chart.flow('svg : el', function(el) {
 			return el.append('svg').attr('xmlns', 'http://www.w3.org/2000/svg').attr('xmls:xlink', 'http://www.w3.org/1999/xlink').attr('version', '1.1');
+		});
+		chart.flow('svgNode : svg', function(svg) {
+			return svg.node();
 		});
 		chart.flow('loadingIcon : el', function(el) {
 			return el.append('div').attr('class', 'loadingIcon').html('<i class="fa fa-spinner fa-spin"></i>');
