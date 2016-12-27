@@ -1,7 +1,8 @@
 declare function require(path: string): any;
-var dataflow = require('./owid.dataflow').default
-var d3 = require('../libs/d3.v4')
-var owid = require('../owid').default
+const dataflow = require('./owid.dataflow').default
+const d3 = require('../libs/d3.v4')
+const owid = require('../owid').default
+const _ = require('../libs/underscore');
 
 export default function(chart) {
 	const footer = dataflow()
@@ -17,9 +18,10 @@ export default function(chart) {
 
        sourcesStr += '<a class="bold">Data source: </a>';
          
-       sources.forEach((source, i) => {
+       var sourceNames = _.uniq(_.pluck(sources, 'name'));
+       sourceNames.forEach((sourceName, i) => {
             if (i > 0) sourcesStr += ", "
-            sourcesStr += "<a class='source-link'>" + source.name + "</a>"
+            sourcesStr += "<a class='source-link'>" + sourceName + "</a>"
        })
 
        return sourcesStr
@@ -30,14 +32,14 @@ export default function(chart) {
     })
 
     footer.flow('licenseStr : originUrl', function(originUrl) {
-        var licenseStr = `*data-entry* • <a class="licence-link" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA</a>`;
+        let licenseStr = `*data-entry* • <a class="licence-link" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA</a>`;
 
         // Make sure the link back to OWID is consistent
         if (originUrl && originUrl.includes("ourworldindata.org")) {
-            var a = document.createElement('a')
+            const a = document.createElement('a')
             a.href = originUrl
-            var path = a.pathname[0] == "/" ? a.pathname : "/" + a.pathname // MISPY: cross-browser compat (Internet Explorer doesn't have a slash)
-            var finalUrl = `https://ourworldindata.org${path}${a.search}`
+            const path = a.pathname[0] == "/" ? a.pathname : "/" + a.pathname // MISPY: cross-browser compat (Internet Explorer doesn't have a slash)
+            const finalUrl = `https://ourworldindata.org${path}${a.search}`
           licenseStr = licenseStr.replace(/\*data-entry\*/, "<a class='origin-link' target='_blank' href='" + finalUrl + "'>" + "OurWorldInData.org" + path + a.search + "</a>")
         } else {
           licenseStr = licenseStr.replace(/\*data-entry\*/, 
@@ -56,6 +58,11 @@ export default function(chart) {
     })
     footer.flow('sourcesBox : sourcesLine, sourcesStr, maxBounds', function(sourcesLine, sourcesStr : string, maxBounds) {
         owid.svgSetWrappedText(sourcesLine, sourcesStr, maxBounds.width, { lineHeight: 1.1 });
+
+        sourcesLine.selectAll('.source-link').on('click', function() {
+            chart.update({ activeTabName: 'sources' })
+        })
+
         return owid.bounds(sourcesLine.node().getBBox());
     })
 
