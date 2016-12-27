@@ -68,10 +68,10 @@ export default function(chart) {
 
     // Fill license + site link but don't position it yet
     footer.flow('licenseLine : g', function(g) {
-        return g.append("text");
+        return g.append("text").attr('x', 0).attr('y', 0).attr('dy', 0);
     })
     footer.flow('licenseBox : licenseLine, licenseStr', function(licenseLine, licenseStr : string) {
-        licenseLine.text(licenseStr);
+        owid.svgSetWrappedText(licenseLine, licenseStr, 10000, { lineHeight: 1.1 });
         return owid.bounds(licenseLine.node().getBBox());
     });
 
@@ -96,6 +96,7 @@ export default function(chart) {
 
     // Position license
     footer.flow('licenseBox : licenseLine, licenseBox, sourcesBox, noteBox, maxBounds, licenseStr', function(licenseLine, licenseBox, sourcesBox, noteBox, maxBounds, licenseStr : string) {
+        console.log(maxBounds.width, sourcesBox.width, licenseBox.width);
         if (maxBounds.width - sourcesBox.width > licenseBox.width+10) {
             licenseLine
                 .attr('x', maxBounds.width)

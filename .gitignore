@@ -3,6 +3,7 @@
 /public/uploads/*
 /public/js/min
 /public/js/bundle.js
+/public/js/bundle.js.map
 /public/css/min
 .env
 .env.localhost
