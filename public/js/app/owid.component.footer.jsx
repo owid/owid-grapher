@@ -1,20 +1,22 @@
-declare function require(path: string): any;
-const dataflow = require('./owid.dataflow').default
-const d3 = require('../libs/d3.v4')
-const owid = require('../owid').default
-const _ = require('../libs/underscore');
+// @flow
 
-export default function(chart) {
+import * as _ from '../libs/underscore'
+import * as d3 from '../libs/d3.v4'
+import owid from '../owid'
+import dataflow from './owid.dataflow'
+
+export default function(chart : any) {
 	const footer = dataflow()
 
     footer.needs('containerNode', 'maxBounds', 'sources', 'note', 'originUrl')
 
-    footer.flow('g : containerNode', function(containerNode : SVGElement) {
+    footer.flow('g : containerNode', function(containerNode : HTMLElement) {
         return d3.select(containerNode).append('g').attr('class', 'footer')
     })
 
     footer.flow('sourcesStr : sources', function(sources) {
-       let sourcesStr : string = "";
+       var sourcesStr : string = "";
+       sourcesStr += 1;
 
        sourcesStr += '<a class="bold">Data source: </a>';
          

@@ -2,7 +2,10 @@
   "private": true,
   "devDependencies": {
     "awesome-typescript-loader": "^3.0.0-beta.17",
+    "babel-core": "^6.21.0",
     "babel-loader": "^6.2.10",
+    "flow-bin": "^0.37.4",
+    "flow-bin-loader": "^1.0.2",
     "gulp": "^3.9.1",
     "laravel-elixir": "6.0.0-2",
     "phantomjs": "2.1.7",

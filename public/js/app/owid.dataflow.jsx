@@ -1,4 +1,4 @@
-module.exports = { default: function() {
+export default function dataflow() {
 	var dataflow = {}, state = {}, defaults = {}, flows = [];
 	dataflow.state = state;
 
@@ -267,4 +267,4 @@ module.exports = { default: function() {
 
 	dataflow.update = update;
 	return dataflow;
-} };
+}

@@ -10,15 +10,21 @@ module.exports = {
     // Enable sourcemaps for debugging webpack's output.
     devtool: "source-map",    
   	resolve: {
-        extensions: ["", ".ts", ".tsx", ".js"],
+        extensions: ["", ".js", ".jsx"],
         root: [
   	       path.join(__dirname, "public/js/libs")
         ],
     }, 
     module: {
         loaders: [
-            // All files with a '.ts' or '.tsx' extension will be handled by 'awesome-typescript-loader'.
-            { test: /\.tsx?$/, loader: "awesome-typescript-loader" },
+            { 
+                test: /\.jsx$/, 
+                loader: "babel-loader",
+                query: {
+                    presets: ['es2015'],
+                    cacheDirectory: true
+                }
+            },
         ],
 
         preLoaders: [
