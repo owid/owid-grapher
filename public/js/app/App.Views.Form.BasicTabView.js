@@ -10,6 +10,7 @@
 			"change input[name=chart-name]": "onNameChange",
 			"change input[name=chart-slug]": "onSlugChange",
 			"change textarea[name=chart-subname]": "onSubnameChange",
+			"change textarea[name=sourceDesc]": "onSourceDescChange",
 			"change textarea[name=chart-footer-note]": "onFooterNoteChange",	
 			"change textarea[name=chart-notes]": "onNotesChange"			
 		},
@@ -26,6 +27,7 @@
 			this.$chartName = this.$el.find("[name=chart-name]");
 			this.$chartSlug = this.$el.find("[name=chart-slug]");
 			this.$chartSubname = this.$el.find("[name=chart-subname]");
+			this.$sourceDesc = this.$el.find("[name=sourceDesc]");
 			this.$chartFooterNote = this.$('[name=chart-footer-note]');
 			this.$chartInternalNotes = this.$el.find("[name=chart-notes]");
 
@@ -71,6 +73,10 @@
 
 		onNotesChange: function() {
 			App.ChartModel.set("chart-notes", this.$chartInternalNotes.val());
+		},
+
+		onSourceDescChange: function() {
+			App.ChartModel.set("sourceDesc", this.$sourceDesc.val());
 		},
 
 		onFooterNoteChange: function() {

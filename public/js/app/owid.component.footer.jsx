@@ -8,25 +8,10 @@ import dataflow from './owid.dataflow'
 export default function(chart : any) {
 	const footer = dataflow()
 
-    footer.needs('containerNode', 'maxBounds', 'sources', 'note', 'originUrl')
+    footer.needs('containerNode', 'maxBounds', 'sourcesStr', 'note', 'originUrl')
 
     footer.flow('g : containerNode', function(containerNode : HTMLElement) {
         return d3.select(containerNode).append('g').attr('class', 'footer')
-    })
-
-    footer.flow('sourcesStr : sources', function(sources) {
-       var sourcesStr : string = "";
-       sourcesStr += 1;
-
-       sourcesStr += '<a class="bold">Data source: </a>';
-         
-       var sourceNames = _.uniq(_.pluck(sources, 'name'));
-       sourceNames.forEach((sourceName, i) => {
-            if (i > 0) sourcesStr += ", "
-            sourcesStr += "<a class='source-link'>" + sourceName + "</a>"
-       })
-
-       return sourcesStr
     })
 
     footer.flow('noteStr : note', function(note : string) {
@@ -127,10 +112,21 @@ export default function(chart : any) {
     })
 
     footer.render = function(bounds) {
+        let sourcesStr : string = chart.model.get('sourceDesc')
+        console.log(sourcesStr);
+        if (!sourcesStr) {
+            const sources = chart.data.transformDataForSources()
+            const sourceNames : Array<string> = _.uniq(_.pluck(sources, 'name'))
+            sourceNames.forEach((sourceName, i) => {
+                 if (i > 0) sourcesStr += ", "
+                 sourcesStr += sourceName
+            })
+        }
+
         footer.update({
             containerNode: chart.svgNode,
             maxBounds: bounds,
-            sources: chart.data.transformDataForSources(),
+            sourcesStr: `<a class="bold">Data source: </a><a class="source-link">${sourcesStr}</a>`,
             note: chart.model.get("chart-description"),
             originUrl: chart.model.get('data-entry-url')
         })

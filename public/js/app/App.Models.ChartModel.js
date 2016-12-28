@@ -38,6 +38,7 @@
 			"line-type": 0,
 			"line-tolerance": 1,
 			"chart-description": "",
+			"sourceDesc": "",
 			"chart-dimensions": [],
 			"logos": ['OWD'],
 			"y-axis": {"axis-label-distance":"-10"},

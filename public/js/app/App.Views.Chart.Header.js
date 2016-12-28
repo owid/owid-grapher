@@ -196,7 +196,7 @@
 				titleLink: titleLink,
 				subtitleStr: subtitleStr,
 			}, function() {
-                document.title = header.title.text();
+                document.title = titleStr;
             });
 		});
 
