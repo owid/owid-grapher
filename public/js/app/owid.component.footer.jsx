@@ -113,7 +113,6 @@ export default function(chart : any) {
 
     footer.render = function(bounds) {
         let sourcesStr : string = chart.model.get('sourceDesc')
-        console.log(sourcesStr);
         if (!sourcesStr) {
             const sources = chart.data.transformDataForSources()
             const sourceNames : Array<string> = _.uniq(_.pluck(sources, 'name'))
