@@ -5,7 +5,7 @@
     owid.component.mapTab = function(chart) {
         var mapTab = owid.dataflow();
 
-        mapTab.requires('containerNode', 'bounds', 'colorData', 'years', 'inputYear', 'legendData', 'legendTitle', 'projection');
+        mapTab.requires('containerNode', 'bounds', 'colorData', 'years', 'inputYear', 'legendData', 'legendTitle', 'projection', 'defaultFill');
 
         mapTab.initial('map', function() { return owid.view.map(); });
         mapTab.initial('legend', function() { return owid.view.mapLegend(); });
@@ -46,12 +46,13 @@
             return { left: bounds.left, top: bounds.top, width: bounds.width, height: bounds.height-(timeline.isClean ? 10 : timeline.bounds.height) };
         });
 
-        mapTab.flow('map, colorData, containerNode, boundsForMap, projection', function(map, colorData, containerNode, boundsForMap, projection) {
+        mapTab.flow('map, colorData, containerNode, boundsForMap, projection, defaultFill', function(map, colorData, containerNode, boundsForMap, projection, defaultFill) {
             map.update({ 
                 colorData: colorData,
                 containerNode: containerNode,
                 bounds: boundsForMap,
                 projection: projection,
+                defaultFill: defaultFill,
                 onHover: onHover,
                 onHoverStop: onHoverStop,
                 onClick: onClick
@@ -116,7 +117,8 @@
                 inputYear: chart.map.get('targetYear'),
                 legendData: chart.mapdata.legendData,
                 legendTitle: chart.mapdata.legendTitle||null,
-                projection: chart.map.get('projection')
+                projection: chart.map.get('projection'),
+                defaultFill: chart.mapdata.getNoDataColor()
             }, chart.dispatch.renderEnd);
         };
 

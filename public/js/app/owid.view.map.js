@@ -5,11 +5,10 @@
     owid.view.map = function() {
         var map = owid.dataflow();
 
-        map.requires('containerNode', 'bounds', 'colorData');
+        map.requires('containerNode', 'bounds', 'colorData', 'defaultFill');
 
         map.defaults({ 
             projection: 'World',
-            defaultFill: '#8b8b8b',
             onHover: _.noop,
             onHoverStop: _.noop,
             onClick: _.noop

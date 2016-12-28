@@ -197,9 +197,6 @@
 		// Transforms raw variable data into datamaps format with meta information 
 		// specific to the current target year + tolerance
 		function updateCurrentValues() {
-			if (!changes.any('variables entityKey variableId targetYear timeTolerance mode'))
-				return;
-
 			var variable = chart.map.getVariable(),
 				entityKey = chart.vardata.get("entityKey"),
 				mapConfig = chart.map.attributes;
@@ -245,7 +242,7 @@
 		// Get the color for "No data", which may be customized
 		mapdata.getNoDataColor = function() {
 			var customCategoryColors = chart.map.get('customCategoryColors');
-			return customCategoryColors['No data'] || "#8b8b8b";
+			return customCategoryColors['No data'] || "#adacac";
 		};
 
 		mapdata.update = function() {

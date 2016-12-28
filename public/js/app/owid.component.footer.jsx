@@ -83,7 +83,6 @@ export default function(chart : any) {
 
     // Position license
     footer.flow('licenseBox : licenseLine, licenseBox, sourcesBox, noteBox, maxBounds, licenseStr', function(licenseLine, licenseBox, sourcesBox, noteBox, maxBounds, licenseStr : string) {
-        console.log(maxBounds.width, sourcesBox.width, licenseBox.width);
         if (maxBounds.width - sourcesBox.width > licenseBox.width+10) {
             licenseLine
                 .attr('x', maxBounds.width)
