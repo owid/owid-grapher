@@ -4,7 +4,10 @@
 html, body {
     height: 100%;
     width: 100%;
+    /* for embeds */
+    background: none !important;
 }
+
 html {
     box-sizing: border-box;    
 }
@@ -193,6 +196,7 @@ select.disabled {
     border-bottom: none;
     border-radius: 2px;
 
+    background: white;
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     color: #333;
 
@@ -1030,13 +1034,10 @@ a {
  * to these screenshots. */
 
 body.export #chart {
-    background: white;
-    /* Remove interactive UI elements since obviously they can't be used in a static image
-   * NOTE (Mispy): Unneeded SVG elements should be removed entirely by the JS as well as hidden here. */
-}
-body.export #chart {
     padding: 0 !important;
 }
+/* Remove interactive UI elements since obviously they can't be used in a static image
+* NOTE (Mispy): Unneeded SVG elements should be removed entirely by the JS as well as hidden here. */
 body.export #chart .controlsFooter,
 body.export #chart .fullscreen-link,
 body.export #chart .timeline,
