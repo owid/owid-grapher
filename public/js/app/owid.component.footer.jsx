@@ -22,7 +22,7 @@ export default function(chart : any) {
         let licenseStr = `*data-entry* • <a class="licence-link" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA</a>`;
 
         // Make sure the link back to OWID is consistent
-        if (originUrl && originUrl.includes("ourworldindata.org")) {
+        if (originUrl && originUrl.indexOf("ourworldindata.org") !== -1) {
             const a = document.createElement('a')
             a.href = originUrl
             const path = a.pathname[0] == "/" ? a.pathname : "/" + a.pathname // MISPY: cross-browser compat (Internet Explorer doesn't have a slash)
