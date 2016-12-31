@@ -12,7 +12,8 @@ module.exports = {
   	resolve: {
         extensions: ["", ".js", ".jsx"],
         root: [
-  	       path.join(__dirname, "public/js/libs")
+  	        path.join(__dirname, "public/js/libs"),
+            path.join(__dirname, "node_modules"),
         ],
     }, 
     module: {

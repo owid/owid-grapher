@@ -222,7 +222,55 @@
 			}
 		}
 
+		function renderSlopeChart() {
+			if (!viz)
+				viz = owid.component.slopeChart();
+			
+            var xDomain = [], yDomain = [];
+
+            if (_.isFinite(xAxisMin) && (xAxisMin > 0 || xAxisScale != "log"))
+                xDomain[0] = xAxisMin;
+            if (_.isFinite(xAxisMax))
+                xDomain[1] = xAxisMax;
+
+            if (_.isFinite(yAxisMin) && (yAxisMin > 0 || yAxisScale != "log"))
+                yDomain[0] = yAxisMin;            
+            if (_.isFinite(yAxisMax))
+                yDomain[1] = yAxisMax;
+
+            chartTab.update({
+            	xDomain: xDomain||"",
+            	xAxisScale: xAxisScale||"",
+            	xAxis: xAxis||"",
+            	xAxisPrefix: xAxisPrefix||"",
+            	xAxisFormat: xAxisFormat||"",
+            	xAxisSuffix: xAxisSuffix||"",
+
+            	yDomain: yDomain||"",
+            	yAxisScale: yAxisScale||"",
+            	yAxis: yAxis||"",
+            	yAxisPrefix: yAxisPrefix||"",
+            	yAxisFormat: yAxisFormat||"",
+            	yAxisSuffix: yAxisSuffix||"",
+            });
+
+			chartTab.viz = viz;
+
+			viz.update({
+				containerNode: chart.svg.node(),
+				bounds: { left: chartOffsetX, top: chartOffsetY+10, width: chartWidth-10, height: chartHeight-10 },
+				axisConfig: chartTab.axisConfig,
+				data: localData
+				//dimensions: chart.model.getDimensions(),
+				//variables: chart.vardata.get('variables'),
+                //timelineConfig: chart.model.get('timeline')
+			}, function() {
+				postRender();
+			});						
+		}
+
 		function renderLineChart() {
+			return renderSlopeChart();
 			var lineType = chart.model.get("line-type");
 
 			chart.el.classed('line-dots', lineType == App.LineType.WithDots || lineType == App.LineType.DashedIfMissing);

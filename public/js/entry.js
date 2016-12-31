@@ -47,6 +47,7 @@ require('./app/owid.viz.scatter');
 require('./app/owid.view.entitySelect');
 require('./app/owid.view.controlsFooter');
 require('./app/App.Views.Chart.Legend');
+owid.component.slopeChart = require('./app/owid.component.slopeChart').default;
 require('./app/App.Views.Chart.ChartTab');
 require('./app/owid.component.dataTab');
 require('./app/owid.component.sourcesTab');
