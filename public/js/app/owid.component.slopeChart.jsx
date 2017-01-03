@@ -7,16 +7,16 @@ import dataflow from './owid.dataflow'
 import { h, render, Component } from 'preact'
 
 class Axis extends Component {
-	render(props : any, state) {
+	render(props : any, state) {dataflow
 		let bounds = props.bounds
-		return <line x1={bounds.left} y1={bounds.top} x2={bounds.right} y2={bounds.bottom} />
+		return <line x1={bounds.left} y1={bounds.top} x2={bounds.left+bounds.width} y2={bounds.top+bounds.height} stroke="black" />
 	}
 }
 
 class SlopeChart extends Component {
-    render(props, state) {
+    render(props : any, state) {
 	    return (
-	    	<Axis />
+	    	<Axis bounds={props.bounds}/>
 	    );
 	}
 }

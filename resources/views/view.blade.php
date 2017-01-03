@@ -47,7 +47,7 @@
 			Global.rootUrl = "{!! Request::root() !!}";
 		</script>
 		
-		<?php echo App\Util::js(); ?>
+		<script src="{{ URL::to('/build/bundle.js') }}"></script>
 		
 		@yield('scripts')
 	</body>
