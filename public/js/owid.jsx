@@ -1,7 +1,7 @@
 /* OWID root namespace and standalone utility functions */
 
 
-;(function() {
+;(function(d3) {
 	"use strict";
 
 	// http://paulirish.com/2011/requestanimationframe-for-smart-animating/
@@ -920,7 +920,19 @@
 		return obj;
 	};
 
+	owid.calcTextBounds = function(str) {
+		let update = d3.select('svg').selectAll('.tmpTextCalc').data([str]);
+
+		let text = update.enter().append('text')
+			.attr('class', 'tmpTextCalc')
+			.attr('opacity', 0)
+			.merge(update)
+			  .text(function(d) { return d; });
+
+		return owid.bounds(text.node().getBBox())
+	}
+
 	window.owid = owid;
-})();
+})(d3v4);
 
 export default window.owid;

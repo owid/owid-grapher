@@ -78,6 +78,7 @@
 						series = {
 							values: [],
 							key: key,
+							label: entityKey[entityId].name,
 							entityName: entityKey[entityId].name,
 							entityId: entityId,
 							variableId: variable.id,

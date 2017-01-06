@@ -256,11 +256,18 @@
 
 			chartTab.viz = viz;
 
+			let bounds = owid.bounds(chartOffsetX, chartOffsetY+10, chartWidth-10, chartHeight-10)
+
+			var axes = [
+				_.extend({}, chartTab.axisConfig.y, { orient: 'left' }),
+				_.extend({}, chartTab.axisConfig.y, { orient: 'right' })
+			];
+
 			viz.update({
 				containerNode: chart.svg.node(),
-				bounds: { left: chartOffsetX, top: chartOffsetY+10, width: chartWidth-10, height: chartHeight-10 },
-				axisConfig: chartTab.axisConfig,
-				data: localData
+				bounds: bounds,
+				data: localData,
+				axes: axes
 				//dimensions: chart.model.getDimensions(),
 				//variables: chart.vardata.get('variables'),
                 //timelineConfig: chart.model.get('timeline')
@@ -348,10 +355,10 @@
 			viz.update({
 				containerNode: chart.svg.node(),
 				bounds: { left: chartOffsetX, top: chartOffsetY+10, width: chartWidth-10, height: chartHeight-10 },
-				axisConfig: chartTab.axisConfig,
 				dimensions: chart.model.getDimensions(),
 				variables: chart.vardata.get('variables'),
-                timelineConfig: chart.model.get('timeline')
+                timelineConfig: chart.model.get('timeline'),
+                axisConfig: chartTab.axisConfig
 			}, function() {
 				postRender();
 			});			
