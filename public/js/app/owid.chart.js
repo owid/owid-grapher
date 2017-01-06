@@ -76,7 +76,7 @@
 
 					var bounds = owid.bounds(containerNode.getBoundingClientRect());
 					if (isEmbed) {
-						bounds = bounds.pad(1);
+						bounds = bounds.pad(3);
 					} else {
 						if (bounds.width < 800)
 							bounds = bounds.pad(bounds.width*0.01, bounds.height*0.02);
