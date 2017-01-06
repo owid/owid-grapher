@@ -119,7 +119,7 @@
                 legendTitle: chart.mapdata.legendTitle||null,
                 projection: chart.map.get('projection'),
                 defaultFill: chart.mapdata.getNoDataColor()
-            }, chart.dispatch.renderEnd);
+            }, function() { chart.dispatch.call('renderEnd'); });
         };
 
         return mapTab;
