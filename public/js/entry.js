@@ -24,7 +24,7 @@ window.owid = require('./owid').default;
 require('./app/owid.bounds');
 owid.dataflow = require('./app/owid.dataflow').default;
 require('./app/owid.colorbrewer');
-
+require('preact/devtools');
 require('./app/constants');
 require('./app/App.Utils');
 require('./app/App.Models.ChartModel');

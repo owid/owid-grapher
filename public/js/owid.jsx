@@ -920,13 +920,20 @@
 		return obj;
 	};
 
-	owid.calcTextBounds = function(str) {
+	owid.calcTextBounds = function(str, options) {
+		options = _.extend({}, {
+			x: 0,
+			y: 0,
+			fontSize: '1em'
+		}, options);
+
 		let update = d3.select('svg').selectAll('.tmpTextCalc').data([str]);
 
 		let text = update.enter().append('text')
 			.attr('class', 'tmpTextCalc')
 			.attr('opacity', 0)
 			.merge(update)
+  			  .attr('font-size', options.fontSize)
 			  .text(function(d) { return d; });
 
 		return owid.bounds(text.node().getBBox())

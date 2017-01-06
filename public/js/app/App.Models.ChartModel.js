@@ -261,6 +261,7 @@
 					var variable = App.VariableData.getVariableById(dim.variableId);
 					if (variable)
 						dim.displayName = dim.displayName || variable.name;
+					dim.variable = variable;
 				}
 
 			});

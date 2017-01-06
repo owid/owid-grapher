@@ -266,10 +266,8 @@
 			viz.update({
 				containerNode: chart.svg.node(),
 				bounds: bounds,
-				data: localData,
-				axes: axes
-				//dimensions: chart.model.getDimensions(),
-				//variables: chart.vardata.get('variables'),
+				axes: axes,
+				dimensions: chart.model.getDimensions()
                 //timelineConfig: chart.model.get('timeline')
 			}, function() {
 				postRender();
@@ -578,6 +576,7 @@
 		}
 
 		function renderLegend() {
+			return;
 			if (!chart.model.get("hide-legend")) {
 				legend.dispatch.on("addEntity", function() {
 					if (entitySelect)
