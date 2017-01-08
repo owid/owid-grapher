@@ -5,6 +5,7 @@ import * as d3 from '../libs/d3.v4'
 import owid from '../owid'
 import dataflow from './owid.dataflow'
 import { h, render, Component } from 'preact'
+import { observable, computed, asFlat } from 'mobx'
 
 class Bounds {
 	x: number
@@ -22,19 +23,26 @@ class Bounds {
 	static fromProps(props: { x: number, y: number, width: number, height: number }): Bounds {
 		const { x, y, width, height } = props
 		return new Bounds(x, y, width, height)
-	}	
+	}
 
+	static textBoundsCache = new Map()
 	static forText(str : string, { fontSize = '1em' }): Bounds {
-		let update = d3.select('svg').selectAll('.tmpTextCalc').data([str]);
+		const key = str+'-'+fontSize
+		let bounds = this.textBoundsCache.get(key)
+		if (bounds) return bounds
 
-		let text = update.enter().append('text')
+		const update = d3.select('svg').selectAll('.tmpTextCalc').data([str]);
+
+		const text = update.enter().append('text')
 			.attr('class', 'tmpTextCalc')
 			.attr('opacity', 0)
 			.merge(update)
   			  .attr('font-size', fontSize)
 			  .text(function(d) { return d; });
 
-		return Bounds.fromProps(text.node().getBBox())
+		bounds = Bounds.fromProps(text.node().getBBox())
+		this.textBoundsCache.set(key, bounds)
+		return bounds
 	}
 
 
@@ -49,6 +57,10 @@ class Bounds {
 
 	padRight(amount: number): Bounds {
 		return new Bounds(this.x, this.y, this.width-amount, this.height)
+	}
+
+	pad(amount: number): Bounds {
+		return new Bounds(this.x+amount, this.y+amount, this.width-amount*2, this.height-amount*2)
 	}
 
 	extend(props: { x?: number, y?: number, width?: number, height?: number }): Bounds {
@@ -84,13 +96,14 @@ class Axis extends Component {
 		const { bounds, scales, orient } = this.props
 		const scale = scales.yScale
 		const ticks = scale.ticks(6)
+		const textColor = '#666'
 
 		return <g className="axis" font-size="0.8em">
 					{_.map(ticks, (tick) => {
 						if (orient == 'left') {
-							return <text x={bounds.left} y={scale(tick)}>{tick}</text>
+							return <text x={bounds.left} y={scale(tick)} fill={textColor} >{tick}</text>
 						} else if (orient == 'right') {
-							return <text x={bounds.right} y={scale(tick)} text-anchor="end">{tick}</text>
+							return <text x={bounds.right} y={scale(tick)} fill={textColor} text-anchor="end">{tick}</text>
 						}
 					})}
   			    </g>		
@@ -115,46 +128,6 @@ class AligningText extends Component {
 	}
 }
 
-type SlopeProps = {
-	x1: number,
-	y1: number,
-	x2: number,
-	y2: number,
-	label: string,
-	labelFontSize: string,
-	leftLabelBounds: Bounds,
-	rightLabelBounds: Bounds,
-};
-
-class Slope extends Component {
-	props: SlopeProps
-
-	render() {
-		const { x1, y1, x2, y2, label, labelFontSize, leftLabelBounds, rightLabelBounds } = this.props
-		const lineColor = '#89C9CF'
-		const labelColor = '#333'
-
-		return <g class="entity">
-			{ label ? <text x={leftLabelBounds.x} y={leftLabelBounds.y} font-size={labelFontSize} fill={labelColor}>{label}</text> : '' }
-			<circle cx={x1} cy={y1} r='3' fill={lineColor}/>
-			<line x1={x1} y1={y1} x2={x2} y2={y2} stroke={lineColor}/>
-			<circle cx={x2} cy={y2} r='3' fill={lineColor}/>
-			{ label ? <text x={rightLabelBounds.x} y={rightLabelBounds.y} font-size={labelFontSize} fill={labelColor}>{label}</text> : '' }
-		</g>
-	}
-}
-
-	/*	chartTab.flow('yAxisConfig : yDomain, yAxisScale, yAxis, yAxisPrefix, yAxisFormat, yAxisSuffix', function(yDomain, yAxisScale, yAxis, yAxisPrefix, yAxisFormat, yAxisSuffix) {
-			return {
-				domain: yDomain,
-				scaleType: yAxisScale,
-				label: yAxis['axis-label'],
-				tickFormat: function(d) {
-					return yAxisPrefix + owid.unitFormat({ format: yAxisFormat||5 }, d) + yAxisSuffix;							
-				}
-			};
-		});*/
-
 type AxisConfig = {	
 	orient: 'left' | 'right' | 'top' | 'bottom',
 	domain: [number, number],
@@ -167,6 +140,7 @@ class AxisLayout {
 	xAxes: AxisConfig[]
 	yAxes: AxisConfig[]
 	innerScales: Scales
+	bounds: Bounds
 	innerBounds: Bounds
 
 	constructor(axes: AxisConfig[], bounds: Bounds, options: { yDomainDefault?: [number, number], xDomainDefault?: [number, number] }) {
@@ -194,7 +168,7 @@ class AxisLayout {
 		})
 
 		xScale = xScale.range([innerBounds.left, innerBounds.right])
-		yScale = yScale.range([innerBounds.top, innerBounds.bottom])
+		yScale = yScale.range([innerBounds.bottom, innerBounds.top])
 
 		this.xAxes = xAxes
 		this.yAxes = yAxes
@@ -207,6 +181,26 @@ class AxisLayout {
 	}
 }
 
+class Gridlines extends Component {
+	props: {
+		axisLayout: AxisLayout
+	}
+
+	render() {
+		const { axisLayout } = this.props
+		const { innerBounds, innerScales } = axisLayout	
+		const { yScale } = innerScales
+		const [ x1, x2 ] = [ innerBounds.left, innerBounds.right ]
+		const ticks = yScale.ticks()
+
+		return <g class="gridlines">
+			{_.map(ticks, (tick) => {
+				return <line x1={x1} y1={yScale(tick)} x2={x2} y2={yScale(tick)} stroke="#eee" stroke-dasharray="3,2"/>
+			})}
+		</g>
+	}
+}
+
 class SlopeChart extends Component {
 	props: {
 		axes: AxisConfig[],
@@ -215,27 +209,31 @@ class SlopeChart extends Component {
 	}
 
 	state: {
-		axisLayout: AxisLayout,
-		maxLabelWidth: number,
-		slopeData: SlopeProps[]
+		focusKey: ?string
 	}
 
 	g: SVGElement
 
-	constructor(props) {
-		super()
-		this.componentWillReceiveProps(props)
+	@observable props = asFlat({})
+	@observable state = asFlat({})
+
+	@computed get xDomainDefault() : [number, number] {
+		return d3.extent(_.pluck(_.flatten(_.pluck(this.props.data, 'values')), 'x'))
 	}
 
-	shouldComponentUpdate(nextProps, nextState) {
-		return !_.isEqual(this.props, nextProps) || !_.isEqual(this.state, nextState)
+	@computed get yDomainDefault() : [number, number] {
+		return d3.extent(_.pluck(_.flatten(_.pluck(this.props.data, 'values')), 'y'))
 	}
 
-	componentWillReceiveProps(nextProps) {
-		const { axes, data, bounds } = nextProps
-		const xDomainDefault = d3.extent(_.pluck(_.flatten(_.pluck(data, 'values')), 'x'))
-		const yDomainDefault = d3.extent(_.pluck(_.flatten(_.pluck(data, 'values')), 'y'))
-		const axisLayout = new AxisLayout(axes, bounds, { xDomainDefault: xDomainDefault, yDomainDefault: yDomainDefault })
+	@computed get axisLayout() : AxisLayout {
+		const { axes, data, bounds } = this.props
+		const { xDomainDefault, yDomainDefault } = this
+		return new AxisLayout(axes, bounds, { xDomainDefault: xDomainDefault, yDomainDefault: yDomainDefault })
+	}
+
+	@computed get initialSlopeData() : SlopeProps[] {
+		const { axes, data, bounds } = this.props
+		const { axisLayout } = this
 
 		const slopeData : SlopeProps[] = []
 		const { xScale, yScale } = axisLayout.innerScales
@@ -249,19 +247,36 @@ class SlopeChart extends Component {
 			const [ x1, x2 ] = [ xScale(v1.x), xScale(v2.x) ]
 			const [ y1, y2 ] = [ yScale(v1.y), yScale(v2.y) ]
 			const fontSize = '0.6em'
-			const labelBounds = Bounds.forText(series.label, { fontSize: fontSize })
+			const leftLabel = series.label + ' ' + v1.y
+			const rightLabel = v2.y + ' ' + series.label
+			const leftLabelBounds = Bounds.forText(leftLabel, { fontSize: fontSize })
+			const rightLabelBounds = Bounds.forText(rightLabel, { fontSize: fontSize })
 
-			slopeData.push({ x1: x1, y1: y1, x2: x2, y2: y2, label: series.label,
-							 leftLabelBounds: labelBounds, rightLabelBounds: labelBounds,
-							 labelFontSize: fontSize })
+			slopeData.push({ x1: x1, y1: y1, x2: x2, y2: y2,
+							 leftLabel: leftLabel, rightLabel: rightLabel,
+							 leftLabelBounds: leftLabelBounds, rightLabelBounds: rightLabelBounds,
+							 labelFontSize: fontSize, key: series.key, isFocused: false,
+							 hasLabel: true })
 		})
 
-		// We calc max before doing overlaps because visible labels may change later but
-		// layout should remain constant
-		const maxLabelWidth = _.max(_.map(slopeData, (slope) => slope.leftLabelBounds.width))
+		return slopeData
+	}
 
-		// Update postioning to account for labels
-		_.each(slopeData, (slope) => {			
+	// We calc max before doing overlaps because visible labels may change later but
+	// layout should remain constant
+	@computed get maxLabelWidth() : number {
+		return _.max(_.map(this.initialSlopeData, (slope) => slope.leftLabelBounds.width))		
+	}
+
+	// Get the final slope data with hover focusing and collision detection
+	@computed get slopeData() : SlopeProps[] {
+		const { maxLabelWidth } = this
+		const { focusKey } = this.state		
+		const slopeData = this.initialSlopeData
+
+		// Position lines and labels to account for each other
+		_.each(slopeData, (slope) => {
+			slope.isFocused = slope.key == focusKey
 			slope.x1 += maxLabelWidth
 			slope.x2 -= maxLabelWidth
 			slope.leftLabelBounds = slope.leftLabelBounds.extend({ x: slope.x1-8-slope.leftLabelBounds.width, y: slope.y1+slope.leftLabelBounds.height/4 })
@@ -271,38 +286,77 @@ class SlopeChart extends Component {
 		// Eliminate overlapping labels
 		_.each(slopeData, (s1) => {
 			_.each(slopeData, (s2) => {
-				if (s1 !== s2 && s1.label && s2.label) {
+				if (s1 !== s2 && s1.hasLabel && s2.hasLabel && !s2.isFocused) {
 					const isConflict = (s1.leftLabelBounds.intersects(s2.leftLabelBounds) ||
 										s1.rightLabelBounds.intersects(s2.rightLabelBounds))
 					if (isConflict)
-						delete s2.label					
+						s2.hasLabel = false
 				}
 			})
 		})
 
-		// Confine the data to within the specified domain
+		return slopeData		
+	}
 
-		this.setState({
-			axisLayout: axisLayout,
-			slopeData: slopeData,
-			maxLabelWidth: maxLabelWidth
-		})
+	// The bounds for the slope lines themselves, inside the axes and labels
+	@computed get slopeBounds() : Bounds {
+		const { maxLabelWidth, axisLayout } = this
+		const { innerBounds } = axisLayout
+
+		return innerBounds.padLeft(maxLabelWidth).padRight(maxLabelWidth)
 	}
 
     render() {
     	const { bounds } = this.props
-    	const { slopeData, maxLabelWidth } = this.state
-    	const { innerScales, innerBounds } = this.state.axisLayout
+    	const { axisLayout, slopeData, slopeBounds } = this
+    	const { innerScales } = axisLayout
 
 	    return (
 	    	<g class="slopeChart" ref={(g) => this.g = g}>
+	    		<Gridlines axisLayout={axisLayout}/>
 	    		<Axis orient='left' scales={innerScales} bounds={bounds}/>
 	    		<Axis orient='right' scales={innerScales} bounds={bounds}/>
-	    		{_.map(slopeData, function(slope) {
-		    		return <Slope {...slope} />
+	    		{/*<line x1={slopeBounds.left} y1={slopeBounds.top} x2={slopeBounds.left} y2={slopeBounds.bottom} stroke="black"/>
+	    		<line x1={slopeBounds.right} y1={slopeBounds.top} x2={slopeBounds.right} y2={slopeBounds.bottom} stroke="black"/>*/}
+	    		{_.map(slopeData, (slope) => {
+			    	return <g onMouseEnter={() => this.setState({ focusKey: slope.key })}>
+			    		<Slope {...slope} />
+			    	</g>
 		    	})}
 		    </g>
 	    );
+	}
+}
+
+type SlopeProps = {
+	x1: number,
+	y1: number,
+	x2: number,
+	y2: number,
+	hasLabel: boolean,
+	leftLabel: string,
+	rightLabel: string,
+	labelFontSize: string,
+	leftLabelBounds: Bounds,
+	rightLabelBounds: Bounds,
+	isFocused: boolean
+};
+
+class Slope extends Component {
+	props: SlopeProps
+
+	render() {
+		const { x1, y1, x2, y2, hasLabel, leftLabel, rightLabel, labelFontSize, leftLabelBounds, rightLabelBounds, isFocused } = this.props
+		const lineColor = '#89C9CF'
+		const labelColor = '#333'
+
+		return <g>
+			{ hasLabel ? <text x={leftLabelBounds.x} y={leftLabelBounds.y} font-size={labelFontSize} fill={labelColor}>{leftLabel}</text> : '' }
+			<circle cx={x1} cy={y1} r={isFocused ? 6 : 3} fill={lineColor}/>
+			<line x1={x1} y1={y1} x2={x2} y2={y2} stroke={lineColor} stroke-width={isFocused ? 2 : 1}/>
+			<circle cx={x2} cy={y2} r={isFocused ? 6 : 3} fill={lineColor}/>
+			{ hasLabel ? <text x={rightLabelBounds.x} y={rightLabelBounds.y} font-size={labelFontSize} fill={labelColor}>{rightLabel}</text> : '' }
+		</g>
 	}
 }
 
@@ -331,6 +385,7 @@ export default function() {
 
 			const series = seriesByEntity.get(entityId) || {
 				label: entity.name,
+				key: owid.makeSafeForCSS(entity.name),
 				values: []
 			}
 			seriesByEntity.set(entityId, series)
@@ -348,7 +403,7 @@ export default function() {
 	})
 
 	slopeChart.flow('containerNode, bounds, axes, data, minYear, maxYear', function(containerNode, bounds, axes, data, minYear, maxYear) {
-		let bbounds = new Bounds(bounds.left, bounds.top, bounds.width, bounds.height)
+		let bbounds = new Bounds(bounds.left, bounds.top, bounds.width, bounds.height).pad(10)
 		rootNode = render(<SlopeChart bounds={bbounds} axes={axes} data={data} minYear={minYear} maxYear={maxYear}/>, containerNode, rootNode)
 	})
 
