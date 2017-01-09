@@ -21,8 +21,12 @@ export default class Bounds {
 		return new Bounds(x, y, width, height)
 	}
 
+	static fromBBox(bbox : { x: number, y: number, width: number, height: number }) : Bounds {
+		return this.fromProps(bbox)		
+	}
+
 	static textBoundsCache = new Map()
-	static forText(str: string, { fontSize = '1em' }): Bounds {
+	static forText(str: string, { fontSize = '' }={}): Bounds {
 		const key = str+'-'+fontSize
 		let bounds = this.textBoundsCache.get(key)
 		if (bounds) return bounds
@@ -53,6 +57,10 @@ export default class Bounds {
 
 	padRight(amount: number): Bounds {
 		return new Bounds(this.x, this.y, this.width-amount, this.height)
+	}
+
+	padWidth(amount: number): Bounds {
+		return new Bounds(this.x+amount, this.y, this.width-amount, this.height)
 	}
 
 	pad(amount: number): Bounds {

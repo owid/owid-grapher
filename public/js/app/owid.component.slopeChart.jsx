@@ -6,7 +6,7 @@ import owid from '../owid'
 import dataflow from './owid.dataflow'
 import { h, render, Component } from 'preact'
 import { observable, computed, asFlat } from 'mobx'
-import Bounds from './bounds'
+import Bounds from './Bounds'
 
 class Scales {
 	xScale: any

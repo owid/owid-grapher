@@ -12,7 +12,11 @@
     "mobx": "^2.7.0",
     "phantomjs": "2.1.7",
     "preact": "^7.1.0",
+    "react": "^15.4.2",
     "source-map-loader": "^0.1.5",
     "webpack-dev-server": "^1.16.2"
+  },
+  "dependencies": {
+    "decko": "^1.1.3"
   }
 }

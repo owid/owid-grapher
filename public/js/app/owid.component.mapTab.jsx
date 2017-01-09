@@ -4,12 +4,14 @@ import * as _ from '../libs/underscore'
 import * as d3 from '../libs/d3.v4'
 import owid from '../owid'
 import dataflow from './owid.dataflow'
-import Bounds from './bounds'
+import Bounds from './Bounds'
 import { h, render, Component } from 'preact'
 import { observable, computed, asFlat } from 'mobx'
+import { bind } from 'decko'
 import type ChoroplethData from './ChoroplethMap'
 import type MapProjection from './ChoroplethMap'
 import ChoroplethMap from './ChoroplethMap'
+import Timeline from './Timeline'
 
 type MapLegendData = any;
 
@@ -25,7 +27,6 @@ class MapTab extends Component {
         defaultFill: string
     }
 
-    timeline: any
     legend: any
     g: any
     chart: any
@@ -34,24 +35,23 @@ class MapTab extends Component {
         super()
         let chart = window.chart
         this.chart = chart
-        this.timeline = owid.view.timeline()
         this.legend = owid.view.mapLegend()
 
 
-        this.timeline.flow('targetYear', function(targetYear) {
+/*        this.timeline.flow('targetYear', function(targetYear) {
             chart.map.set('targetYear', targetYear);
         });
 
         // hack to make header update disclaimer
         this.timeline.flow('isPlaying, isDragging', function(isPlaying, isDragging) {
             chart.render();
-        });
+        });*/
     }
 
     @computed get boundsForMap() : Bounds {
         const { bounds } = this.props
-        const { timeline } = this
-        return new Bounds(bounds.left, bounds.top, bounds.width, bounds.height-(timeline.isClean ? 10 : timeline.bounds.height));        
+        return new Bounds(bounds.left, bounds.top, bounds.width, bounds.height-40)
+//        return new Bounds(bounds.left, bounds.top, bounds.width, bounds.height-(timeline.isClean ? 10 : timeline.bounds.height));        
     }
 
     componentDidMount() {
@@ -86,25 +86,6 @@ class MapTab extends Component {
             chart.url.updateCountryParam();
         }
         
-
-        const { years, bounds } = this.props
-        const { timeline, g } = this
-        if (years.length <= 1) {
-            timeline.clean();
-            return;
-        }
-
-        var changes = {
-            years: years,
-            containerNode: g,
-            outerBounds: bounds
-        };
-
-        if (!timeline.isPlaying && !timeline.isDragging)
-            changes.inputYear = inputYear;
-
-        timeline.update(changes);     
-
         this.updateLegend()
     }
 
@@ -118,12 +99,17 @@ class MapTab extends Component {
             containerNode: g,
             outerBounds: boundsForMap
         });
-    }    
+    }
 
     componentDidUnmount() {        
-        const { timeline, legend } = this
-        timeline.clean();
+        const { legend } = this
         legend.clean();
+    }
+
+    @bind
+    onTargetChange(targetYear) {
+        const { chart } = this
+        chart.map.set('targetYear', targetYear)
     }
 
     render() {
@@ -138,11 +124,12 @@ class MapTab extends Component {
             onClick: onClick
         });*/
 
-        const { choroplethData, projection, defaultFill } = this.props
+        const { bounds, choroplethData, projection, defaultFill, years, inputYear } = this.props
         const { boundsForMap } = this
 
         return <g class="mapTab" ref={g => this.g = g}>
-            <ChoroplethMap choroplethData={choroplethData} bounds={boundsForMap} projection={projection} defaultFill={defaultFill}></ChoroplethMap>
+            <ChoroplethMap choroplethData={choroplethData} bounds={boundsForMap} projection={projection} defaultFill={defaultFill} />
+            <Timeline onTargetChange={this.onTargetChange} outerBounds={bounds} years={years} inputYear={inputYear} />
         </g>
     }
 }
@@ -160,7 +147,7 @@ export default function(chart : any) {
 
         chart.mapdata.update();
 
-        rootNode = render(<MapTab bounds={bounds} choroplethData={chart.mapdata.currentValues} years={chart.map.getYears()} inputYear={chart.map.get('targetYear')} legendData={chart.mapdata.legendData} legendTitle={chart.mapdata.legendTitle} projection={chart.map.get('projection')} defaultFill={chart.mapdata.getNoDataColor()} />, chart.svg.node(), rootNode)
+        rootNode = render(<MapTab bounds={bounds} choroplethData={chart.mapdata.currentValues} years={chart.map.getYears()} inputYear={+chart.map.get('targetYear')} legendData={chart.mapdata.legendData} legendTitle={chart.mapdata.legendTitle} projection={chart.map.get('projection')} defaultFill={chart.mapdata.getNoDataColor()} />, chart.svg.node(), rootNode)
     };
 
     return mapTab;

@@ -4,9 +4,10 @@ import * as _ from '../libs/underscore'
 import * as d3 from '../libs/d3.v4'
 import owid from '../owid'
 import dataflow from './owid.dataflow'
-import Bounds from './bounds'
+import Bounds from './Bounds'
 import { h, render, Component } from 'preact'
 import { observable, computed, asFlat } from 'mobx'
+
 
 export type ChoroplethData = {
     [key:string]: {

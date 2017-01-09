@@ -40,7 +40,6 @@ require('./app/owid.view.scaleSelectors');
 require('./app/owid.view.axis');
 require('./app/owid.view.axisBox');
 require('./app/owid.view.scatter');
-require('./app/owid.view.timeline');
 require('./app/owid.viz.scatter');
 require('./app/owid.view.entitySelect');
 require('./app/owid.view.controlsFooter');
