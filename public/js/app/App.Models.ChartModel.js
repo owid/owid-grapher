@@ -3,25 +3,6 @@
 	owid.namespace("App.Models.ChartModel");
 
 	App.Models.ChartModel = Backbone.Model.extend( {
-		//urlRoot: Global.rootUrl + '/charts/',
-		//urlRoot: Global.rootUrl + '/data/config/',
-		url: function(id) {
-			id = id || this.id;
-			if( $("#form-view").length ) {
-				if( id ) {
-					//editing existing
-					return Global.rootUrl + "/charts/" + id;
-				} else {
-					//saving new
-					return Global.rootUrl + "/charts";
-				}
-
-			} else {
-				// Pass any query parameters on to config
-				return Global.rootUrl + "/data/config/" + id + window.location.search;
-			}
-		},
-
 		defaults: {
 			"chart-name": "",
 			"chart-subname": "",

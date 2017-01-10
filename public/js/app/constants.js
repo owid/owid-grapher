@@ -9,7 +9,8 @@
 		StackedArea: "StackedArea",
 		MultiBar: "MultiBar",
 		HorizontalMultiBar: "HorizontalMultiBar",
-		DiscreteBar: "DiscreteBar"
+		DiscreteBar: "DiscreteBar",
+		SlopeChart: "SlopeChart"
 	};
 
 	App.LineType = {
