@@ -82,6 +82,8 @@
 		</div>
 		@yield('outter-content')
 
+		<script src="{{ URL::to('/build/bundle.js') }}"></script>
+
 		<script>
 			var Global = {};
 			Global.rootUrl = "{!! Request::root() !!}";

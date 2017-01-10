@@ -140,13 +140,8 @@ return [
 		        'chart.css'
 		    ],
 
-		    'chart-js' => [
-		    	'bundle.js'
-			],
-
 			'chart' => [
 				'chart-css',
-				'chart-js'
 			],
 
 			/* Admin collection: assets used everywhere in the authed part of the site. */
