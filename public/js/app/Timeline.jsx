@@ -14,8 +14,8 @@ import { bind } from 'decko'
 type TimelineProps = {
 	years: number[],
 	inputYear: number,
-	outerBounds: Bounds,
-	onTimeChange: (number, number) => void
+	onTimeChange: (number, number) => void,
+	bounds: Bounds
 };
 
 export default class Timeline extends Component {
@@ -28,6 +28,11 @@ export default class Timeline extends Component {
 	}
 
 	g: SVGElement
+
+	static calculateBounds(containerBounds : Bounds, props : any) : Bounds {
+		const height = 45
+		return new Bounds(containerBounds.left, containerBounds.top+(containerBounds.height-height), containerBounds.width, height).padWidth(containerBounds.width*0.02)
+	}
 
 	@observable props = asFlat({})
   	@observable state = asFlat({})
@@ -55,9 +60,7 @@ export default class Timeline extends Component {
 	}
 
 	@computed get bounds() : Bounds {
-		const { outerBounds } = this.props
-		const height = 45
-		return new Bounds(outerBounds.left, outerBounds.top+(outerBounds.height-height), outerBounds.width, height).padWidth(outerBounds.width*0.02)
+		return this.props.bounds
 	}
 
 	@computed get minYear() : number {

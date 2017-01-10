@@ -1,3 +1,5 @@
+var Bounds = require('./Bounds').default
+
 ;(function(d3) {	
 	"use strict";
 	owid.namespace("owid.chart");
@@ -178,7 +180,7 @@
 			   .attr('viewBox', '0 0 ' + renderWidth + ' ' + renderHeight);
 		});
 		chart.flow('innerBounds : renderWidth, renderHeight', function(renderWidth, renderHeight) {
-			return owid.bounds(0, 0, renderWidth, renderHeight);
+			return new Bounds(0, 0, renderWidth, renderHeight);
 		});		
 		chart.flow('el, scale', function(el, scale) {
 			el.style('font-size', 16*scale + 'px');

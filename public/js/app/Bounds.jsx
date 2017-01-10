@@ -25,6 +25,10 @@ export default class Bounds {
 		return this.fromProps(bbox)		
 	}
 
+	static empty() : Bounds {
+		return new Bounds(0,0,0,0)
+	}
+
 	static textBoundsCache = new Map()
 	static forText(str: string, { fontSize = '' }={}): Bounds {
 		const key = str+'-'+fontSize
@@ -57,6 +61,14 @@ export default class Bounds {
 
 	padRight(amount: number): Bounds {
 		return new Bounds(this.x, this.y, this.width-amount, this.height)
+	}
+
+	padBottom(amount: number): Bounds {
+		return new Bounds(this.x, this.y, this.width, this.height-amount)		
+	}
+
+	padTop(amount: number): Bounds {
+		return new Bounds(this.x, this.y+amount, this.width, this.height-amount)
 	}
 
 	padWidth(amount: number): Bounds {

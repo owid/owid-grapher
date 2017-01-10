@@ -5,7 +5,7 @@ import * as d3 from '../libs/d3.v4'
 import owid from '../owid'
 import dataflow from './owid.dataflow'
 import Bounds from './Bounds'
-import { h, render, Component } from 'preact'
+import { h, render, Component, cloneElement } from 'preact'
 import { observable, computed, asFlat } from 'mobx'
 import { bind } from 'decko'
 import type ChoroplethData from './ChoroplethMap'
@@ -14,6 +14,30 @@ import ChoroplethMap from './ChoroplethMap'
 import Timeline from './Timeline'
 
 type MapLegendData = any;
+
+function layout(containerBounds : Bounds, ...children) {
+    children = _.map(children, (vnode) => {
+        if (vnode.nodeName.calculateBounds) {
+            const bounds = vnode.nodeName.calculateBounds(containerBounds, vnode.attributes)
+            if (vnode.attributes.layout == 'bottom') {
+                containerBounds = containerBounds.padBottom(bounds.height)
+            }
+            return cloneElement(vnode, { bounds: bounds })
+        } else {
+            return vnode
+        }
+    })
+
+    children = _.map(children, (vnode) => {
+        if (!vnode.attributes.bounds) {
+            return cloneElement(vnode, { bounds: containerBounds })
+        } else {
+            return vnode
+        }
+    })
+
+    return children
+}
 
 class MapTab extends Component {
     props: {
@@ -36,23 +60,13 @@ class MapTab extends Component {
         let chart = window.chart
         this.chart = chart
         this.legend = owid.view.mapLegend()
-
-
-/*        this.timeline.flow('targetYear', function(targetYear) {
-            chart.map.set('targetYear', targetYear);
-        });
-
-        // hack to make header update disclaimer
-        this.timeline.flow('isPlaying, isDragging', function(isPlaying, isDragging) {
-            chart.render();
-        });*/
     }
 
-    @computed get boundsForMap() : Bounds {
+/*    @computed get boundsForMap() : Bounds {
         const { bounds } = this.props
         return new Bounds(bounds.left, bounds.top, bounds.width, bounds.height-40)
 //        return new Bounds(bounds.left, bounds.top, bounds.width, bounds.height-(timeline.isClean ? 10 : timeline.bounds.height));        
-    }
+    }*/
 
     componentDidMount() {
         this.componentDidUpdate()
@@ -60,7 +74,7 @@ class MapTab extends Component {
 
     componentDidUpdate() {
         const { choroplethData, projection, defaultFill, inputYear } = this.props
-        const { chart, boundsForMap } = this
+        const { chart } = this
 
         function onHover(d) {
             chart.tooltip.fromMap(d, d3.event);
@@ -91,14 +105,14 @@ class MapTab extends Component {
 
     updateLegend() {
         const { legendData, legendTitle } = this.props
-        const { legend, g, boundsForMap } = this
+        const { legend, g } = this
 
-        legend.update({
+/*        legend.update({
             legendData: legendData,
             title: legendTitle,
             containerNode: g,
             outerBounds: boundsForMap
-        });
+        });*/
     }
 
     componentDidUnmount() {        
@@ -125,11 +139,11 @@ class MapTab extends Component {
         });*/
 
         const { bounds, choroplethData, projection, defaultFill, years, inputYear } = this.props
-        const { boundsForMap } = this
-
         return <g class="mapTab" ref={g => this.g = g}>
-            <ChoroplethMap choroplethData={choroplethData} bounds={boundsForMap} projection={projection} defaultFill={defaultFill} />
-            <Timeline onTargetChange={this.onTargetChange} outerBounds={bounds} years={years} inputYear={inputYear} />
+            {layout(bounds, 
+                <ChoroplethMap layout="expand" choroplethData={choroplethData} projection={projection} defaultFill={defaultFill} />,
+                <Timeline layout="bottom" onTargetChange={this.onTargetChange} years={years} inputYear={inputYear} />
+            )}
         </g>
     }
 }

@@ -7,6 +7,7 @@ import dataflow from './owid.dataflow'
 import { h, render, Component } from 'preact'
 import { observable, computed, asFlat } from 'mobx'
 import Bounds from './Bounds'
+import type {SVGElement} from './Util'
 
 class Scales {
 	xScale: any
@@ -32,19 +33,12 @@ class Axis extends Component {
 		const textColor = '#666'
 
 		return <g className="axis" font-size="0.8em">
-					{_.map(ticks, (tick) => {
-						if (orient == 'left') {
-							return <text x={bounds.left} y={scale(tick)} fill={textColor} >{tick}</text>
-						} else if (orient == 'right') {
-							return <text x={bounds.right} y={scale(tick)} fill={textColor} text-anchor="end">{tick}</text>
-						}
+					{_.map(ticks, (tick) => {textColor
+						return <text x={orient == 'left' ? bounds.left : bounds.right} y={scale(tick)} fill={textColor} dominant-baseline="middle" text-anchor={orient == 'left' ? 'start' : 'end'}>{tick}</text>
 					})}
   			    </g>		
 	}
 }
-
-type SVGElement = any;
-
 class AligningText extends Component {
 	textNode: SVGElement
 
@@ -274,7 +268,7 @@ type SlopeProps = {
 	rightLabelBounds: Bounds,
 	isFocused: boolean
 };
-
+	
 class Slope extends Component {
 	props: SlopeProps
 

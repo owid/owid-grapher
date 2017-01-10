@@ -648,12 +648,13 @@
 		}
 
 		function ensureLabelsFit() {
+			if (viz && !d3.select('.axisBox').node()) return
 			var targetHeight = viz ? d3.select('.axisBox').node().getBBox().height : chartHeight,
 				targetWidth = chartWidth;
 
-
 			if (xAxis['axis-label']) {
 				var xAxisLabel = d3.select('.nv-x .nv-axislabel, .bottom.axis .axis-label');
+				if (!xAxisLabel.node()) return
 
 				xAxisLabel.attr('transform', '');
 				var box = xAxisLabel.node().getBBox(),

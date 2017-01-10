@@ -22,8 +22,8 @@ export type MapProjection = 'World' | 'Africa' | 'N.America' | 'S.America' | 'As
 
 export default class ChoroplethMap extends Component {
     props: {
-        bounds: Bounds,
-        choroplethData: ChoroplethData
+        choroplethData: ChoroplethData,
+        bounds: Bounds
     }
 
     subunits: any
@@ -68,10 +68,10 @@ export default class ChoroplethMap extends Component {
     }
 
     componentDidUpdate() {
-        this.resize()       
+        this.postRenderResize()       
     }
 
-    resize() {
+    postRenderResize() {
         const { bounds, projection } = this.props
         const bbox = this.subunits.getBBox()
 
@@ -113,7 +113,7 @@ export default class ChoroplethMap extends Component {
 }
 
 
-;(function(d3) {
+/*;(function(d3) {
     "use strict";
     owid.namespace("owid.view.map");
 
@@ -170,4 +170,4 @@ export default class ChoroplethMap extends Component {
 
         return map;
     };
-})(d3v4);
+})(d3v4);*/
