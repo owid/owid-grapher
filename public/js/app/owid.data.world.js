@@ -1730,7 +1730,7 @@
                 "properties": {
                     "name": "Syria"
                 },
-                "id": "Syrian_Arab_Republic",
+                "id": "Syria",
                 "arcs": [
                     [-381, -375, -415, 568, 569, -367]
                 ]
