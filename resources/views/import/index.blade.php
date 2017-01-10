@@ -15,7 +15,7 @@
 			<input name="user_id" class="" type="hidden" value="{!! \Auth::user()->id !!}" />
 			<section class="form-section dataset-section">
 				<div class="form-section-header">
-					<h3><span class="form-section-digit">1</span>Choose your dataset</h3>
+					<h3>Choose your dataset</h3>
 				</div>
 				<div class="form-section-content">
 					<select name='existing_dataset_id' class="form-control">
@@ -41,7 +41,7 @@
 			</section>
 			<section class="form-section dataset-type-section">
 				<div class="form-section-header">
-					<h3><span class="form-section-digit">2</span>Import mode</h3>
+					<h3>Import mode</h3>
 				</div>
 				<div class="form-section-content">
 					<p class="form-section-desc">Are you uploading multiple variables? Examples of valid layouts: <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_single-var.png">single variable</a>, <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_multi-var.png">multiple variables</a>.</p>
@@ -53,7 +53,7 @@
 			</section>
 			<section class="form-section upload-section">
 					<div class="form-section-header">
-						<h3><span class="form-section-digit">3</span>Upload file with data</h3>
+						<h3>Upload file with data</h3>
 					</div>
 					<div class="form-section-content">
 						<p class="form-section-desc">CSV file is preferred.
@@ -68,7 +68,7 @@
 			</section>
 			<section class="form-section variables-section">
 					<div class="form-section-header">
-						<h3><span class="form-section-digit">4</span>Check Variables</h3>
+						<h3>Check Variables</h3>
 					</div>
 					<div class="form-section-content">
 						<p class="form-section-desc">Here you can configure the variables that will be stored for your dataset. If possible the variable name should be of the format measure + source (e.g. Population density – Clio Infra)</p>
@@ -80,7 +80,7 @@
 
 			<section class="form-section category-section">
 					<div class="form-section-header">
-						<h3><span class="form-section-digit">6</span>Select category</h3>
+						<h3>Select category</h3>
 					</div>
 					<div class="form-section-content">
 						<p class="form-section-desc">Select an appropriate category for the dataset. </p>
