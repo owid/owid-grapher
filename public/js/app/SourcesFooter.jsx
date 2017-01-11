@@ -1,9 +1,97 @@
 // @flow
 
-import * as _ from '../libs/underscore'
+import {each, uniq, pluck} from '../libs/underscore'
 import * as d3 from '../libs/d3.v4'
 import owid from '../owid'
 import dataflow from './owid.dataflow'
+
+import {h, render, Component} from 'preact'
+import {computed} from 'mobx'
+import Bounds from './Bounds'
+import {layout} from './Util'
+
+class WrappingText extends Component {
+    @computed get innerSVG() : string {
+        return this.props.children.join()
+    }
+
+    @computed get links() : HTMLCollection<HTMLElement> {
+        // Use a dummy p element to extract the link info
+        const links = []
+        const p = document.createElement('p')
+        p.innerHTML = this.innerSVG
+        return p.children
+    }
+
+    @computed get tokens() : string[] {
+        let content = this.innerSVG
+
+        // Now indicate them with our own tags
+        content = content.replace(/<[^\/][^>]*>/g, " <LINKSTART> ");
+        content = content.replace(/<\/[^>]+>/g, " <LINKSTOP> ");
+
+        // Clean the content
+        content = s.trim(content.replace("</br>", "\n").replace("<br>", "\n"));        
+
+        return s.trim(content).split(/ +/)
+    }
+
+    render() {
+        for (let token of this.tokens) {
+            console.log(token)
+        }
+    }
+}
+
+class SourcesFooter extends Component {
+    static calculateBounds(containerBounds : Bounds) {
+    }
+
+    props: {
+        bounds: Bounds,
+        note: string,
+        originUrl: string,
+        sourcesStr: string
+    }
+
+    @computed get sourcesStr() : string {
+        return this.props.sourcesStr ? `<a class="bold">Data source: </a><a class="source-link">${this.props.sourcesStr}</a>` : ''
+    }
+
+    @computed get noteStr() : string {
+        return this.props.note ? `<a class="bold">Note: </a>${this.props.note}` : '';
+    }
+
+    @computed get licenseStr() : string {
+        const {originUrl} = this.props
+        let licenseStr = `*data-entry* • <a class="licence-link" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA</a>`;
+
+        // Make sure the link back to OWID is consistent
+        if (originUrl && originUrl.indexOf("ourworldindata.org") !== -1) {
+            const a = document.createElement('a')
+            a.href = originUrl
+            const path = a.pathname[0] == "/" ? a.pathname : "/" + a.pathname // MISPY: cross-browser compat (Internet Explorer doesn't have a slash)
+            const finalUrl = `https://ourworldindata.org${path}${a.search}`
+          licenseStr = licenseStr.replace(/\*data-entry\*/, "<a class='origin-link' target='_blank' href='" + finalUrl + "'>" + "OurWorldInData.org" + path + a.search + "</a>")
+        } else {
+          licenseStr = licenseStr.replace(/\*data-entry\*/, 
+                "<a class='origin-link' target='_blank' href='http://ourworldindata.org'>OurWorldInData.org</a>")
+        }
+
+        return licenseStr;
+    }
+
+    render() {
+        const {sourcesStr, noteStr, licenseStr} = this
+        return <g class="footer">
+            {layout(this.props.bounds, 
+                <WrappingText>{sourcesStr}</WrappingText>,
+                <WrappingText>{noteStr}</WrappingText>,
+                <WrappingText>{licenseStr}</WrappingText>
+            )}
+        </g>
+    }
+}
 
 export default function(chart : any) {
 	const footer = dataflow()
@@ -11,7 +99,7 @@ export default function(chart : any) {
     footer.needs('containerNode', 'maxBounds', 'sourcesStr', 'note', 'originUrl')
 
     footer.flow('g : containerNode', function(containerNode : HTMLElement) {
-        return d3.select(containerNode).append('g').attr('class', 'footer')
+        return d3.select(containerNode).append('g').attr('class', 'footer') 
     })
 
     footer.flow('noteStr : note', function(note : string) {
@@ -110,11 +198,12 @@ export default function(chart : any) {
         g.attr('transform', `translate(${maxBounds.left}, ${maxBounds.top+maxBounds.height-height})`)
     })
 
+    let rootNode = null
     footer.render = function(bounds) {
         let sourcesStr : string = chart.model.get('sourceDesc')
         if (!sourcesStr) {
             const sources = chart.data.transformDataForSources()
-            const sourceNames : Array<string> = _.uniq(_.pluck(sources, 'name'))
+            const sourceNames : Array<string> = uniq(pluck(sources, 'name'))
             sourceNames.forEach((sourceName, i) => {
                  if (i > 0) sourcesStr += ", "
                  sourcesStr += sourceName
@@ -128,6 +217,8 @@ export default function(chart : any) {
             note: chart.model.get("chart-description"),
             originUrl: chart.model.get('data-entry-url')
         })
+
+        //rootNode = render(<SourcesFooter bounds={bounds} sourcesStr={sourcesStr} note={chart.model.get('chart-description')} originUrl={chart.model.get('data-entry-url')} />, chart.svgNode, rootNode)
     }
 
 	return footer	

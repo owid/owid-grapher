@@ -34,7 +34,7 @@ require('./app/App.Models.ChartData');
 require('./app/App.Models.Colors');
 require('./app/App.Views.Chart.Header');
 owid.component = {};
-owid.component.footer = require('./app/owid.component.footer').default;
+owid.component.footer = require('./app/SourcesFooter').default;
 require('./app/owid.view.tooltip');
 require('./app/owid.view.scaleSelectors');
 require('./app/owid.view.axis');

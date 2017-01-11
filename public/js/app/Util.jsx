@@ -1,5 +1,9 @@
 // @flow
 
+import Bounds from './Bounds'
+import {cloneElement} from 'preact'
+import {map} from '../libs/underscore'
+
 export type SVGElement = any;
 export const NullElement : any = () => null;
 
@@ -17,3 +21,27 @@ export function getRelativeMouse(node : SVGElement, event : MouseEvent) {
   var rect = node.getBoundingClientRect();
   return [event.clientX - rect.left - node.clientLeft, event.clientY - rect.top - node.clientTop];
 };
+
+export function layout(containerBounds : Bounds, ...children : any[]) {
+    children = map(children, (vnode) => {
+        if (vnode.nodeName.calculateBounds) {
+            const bounds = vnode.nodeName.calculateBounds(containerBounds, vnode.attributes)
+            if (vnode.attributes && vnode.attributes.layout == 'bottom') {
+                containerBounds = containerBounds.padBottom(bounds.height)
+            }
+            return cloneElement(vnode, { bounds: bounds })
+        } else {
+            return vnode
+        }
+    })
+
+    children = map(children, (vnode) => {
+        if (!vnode.attributes || !vnode.attributes.bounds) {
+            return cloneElement(vnode, { bounds: containerBounds })
+        } else {
+            return vnode
+        }
+    })
+
+    return children
+}
