@@ -153,10 +153,11 @@ export default function(chart : any) {
     // Place note, if any
     footer.flow('noteLine : g, noteStr', function(g, noteStr) {
         var noteLine = g.selectAll('.note')
-        if (g.selectAll('.note').empty() && noteStr)
-            return g.append('text').attr('class', 'note')
-        else if (!g.selectAll('.note').empty() && !noteStr)
+        if (noteLine.empty() && noteStr)
+            noteLine = g.append('text').attr('class', 'note')
+        else if (!noteLine.empty() && !noteStr)
             noteLine.remove();
+        return noteLine
     });
     footer.flow('noteBox : noteLine, noteStr, sourcesBox, maxBounds', function(noteLine, noteStr : string, sourcesBox, maxBounds) {
         if (!noteStr) return null;
