@@ -45,6 +45,12 @@
 		<script>
 			var Global = {};
 			Global.rootUrl = "{!! Request::root() !!}";
+
+			window.App = {}
+			App.isEditor = false;
+			App.loadChart = function(chartConfig) {
+				var chart = owid.chart().update({ chartConfig: chartConfig, containerNode: d3.select('body').node() });
+			};		
 		</script>
 		
 		<script src="{{ URL::to('/build/bundle.js') }}"></script>

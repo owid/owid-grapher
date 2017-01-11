@@ -2,7 +2,7 @@
 	"use strict";
 	owid.namespace("App.Collections.AvailableEntitiesCollection");
 
-	var EntityModel = require("App.Models.EntityModel");
+	var EntityModel = require("./App.Models.EntityModel");
 
 	App.Collections.AvailableEntitiesCollection = Backbone.Collection.extend( {
 		model: EntityModel,

@@ -1,4 +1,4 @@
-@extends('app')
+@extends('admin')
 
 @section('styles')
 	{!! Rapyd::styles() !!} 

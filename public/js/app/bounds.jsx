@@ -21,16 +21,8 @@ export default class Bounds {
 		return new Bounds(x, y, width, height)
 	}
 
-	static fromBBox(bbox : { x: number, y: number, width: number, height: number }) : Bounds {
-		return this.fromProps(bbox)		
-	}
-
-	static empty() : Bounds {
-		return new Bounds(0,0,0,0)
-	}
-
 	static textBoundsCache = new Map()
-	static forText(str: string, { fontSize = '' }={}): Bounds {
+	static forText(str: string, { fontSize = '1em' }): Bounds {
 		const key = str+'-'+fontSize
 		let bounds = this.textBoundsCache.get(key)
 		if (bounds) return bounds
@@ -63,14 +55,6 @@ export default class Bounds {
 		return new Bounds(this.x, this.y, this.width-amount, this.height)
 	}
 
-	padBottom(amount: number): Bounds {
-		return new Bounds(this.x, this.y, this.width, this.height-amount)		
-	}
-
-	padTop(amount: number): Bounds {
-		return new Bounds(this.x, this.y+amount, this.width, this.height-amount)
-	}
-
 	padWidth(amount: number): Bounds {
 		return new Bounds(this.x+amount, this.y, this.width-amount, this.height)
 	}
@@ -83,19 +67,11 @@ export default class Bounds {
 		return Bounds.fromProps(_.extend({}, this, props))
 	}
 
-	scale(scale: number): Bounds {
-		return new Bounds(this.x*scale, this.y*scale, this.width*scale, this.height*scale)
-	}
-
 	intersects(otherBounds: Bounds): boolean {
 		const r1 = this, r2 = otherBounds
 
 	    return !(r2.left > r1.right || r2.right < r1.left || 
              r2.top > r1.bottom || r2.bottom < r1.top)
-	}
-
-	toCSS() : { left: string, top: string, width: string, height: string } {
-		return { left: this.left+'px', top: this.top+'px', width: this.width+'px', height: this.height+'px'}
 	}
 }
 

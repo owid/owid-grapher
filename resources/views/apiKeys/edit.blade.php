@@ -1,4 +1,4 @@
-@extends('app')
+@extends('admin')
  
 @section('content')
 	<a class="back-btn" href="{{ route( 'apiKeys.show', $apiKey->id ) }}"><i class="fa fa-arrow-left"></i>Back to API key profile</a>

@@ -1,6 +1,8 @@
 // @flow
 
 export type SVGElement = any;
+export const NullElement : any = () => null;
+
 
 export function getRelativeMouse(node : SVGElement, event : MouseEvent) {
   var svg = node.ownerSVGElement || node;

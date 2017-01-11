@@ -2,10 +2,10 @@
 	"use strict";
 	owid.namespace("App.Views.Form.DataTabView");
 
-	var ChartTypeSectionView = require("App.Views.Form.ChartTypeSectionView"),
-		AddDataSectionView = require("App.Views.Form.AddDataSectionView"),
-		EntitiesSectionView = require("App.Views.Form.EntitiesSectionView"),
-		TimeSectionView = require("App.Views.Form.TimeSectionView");
+	var ChartTypeSectionView = require("./App.Views.Form.ChartTypeSectionView"),
+		AddDataSectionView = require("./App.Views.Form.AddDataSectionView"),
+		EntitiesSectionView = require("./App.Views.Form.EntitiesSectionView"),
+		TimeSectionView = require("./App.Views.Form.TimeSectionView");
 
 	App.Views.Form.DataTabView = owid.View.extend({
 		el: "#form-view #data-tab",

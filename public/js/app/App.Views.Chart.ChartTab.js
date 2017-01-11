@@ -98,6 +98,8 @@
 					renderMultiBar();
 				} else if (chartType == App.ChartType.DiscreteBar) {
 					renderDiscreteBar();
+				} else if (chartType == App.ChartType.SlopeChart) {
+					renderSlopeChart()
 				}
 
 				if (nvd3) {
@@ -275,7 +277,6 @@
 		}
 
 		function renderLineChart() {
-			return renderSlopeChart();
 			var lineType = chart.model.get("line-type");
 
 			chart.el.classed('line-dots', lineType == App.LineType.WithDots || lineType == App.LineType.DashedIfMissing);

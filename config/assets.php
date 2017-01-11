@@ -159,49 +159,12 @@ return [
 		    ],
 
 		    'admin-js' => [
-		    	'chart-js',
-
-		        'libs/bootstrap-datepicker.js',
-		        'libs/admin-lte-app.min.js',
-		        'libs/ion.rangeSlider.min.js',
-		        'libs/jquery.nestable.js',
-		        'libs/bootstrap3-wysihtml5.all.min.js',
-		        'libs/jquery.stickytabs.js',
-		        'libs/jquery.timeago.js',
-		      
-		        'admin.js',
-
-	            'app/App.Models.ChartVariableModel.js',
-	            'app/App.Models.EntityModel.js',
-
-	            'app/App.Collections.SearchDataCollection.js',
-	            'app/App.Collections.AvailableEntitiesCollection.js',
-
-	            'app/App.Views.UI.SelectVarPopup.js',
-	            'app/App.Views.UI.SettingsVarPopup.js',
-	            'app/App.Views.UI.ColorPicker.js',
-
-                'app/owid.config.scatter.js',
-	            'app/App.Views.Form.BasicTabView.js',
-	            'app/App.Views.Form.ChartTypeSectionView.js',
-	            'app/App.Views.Form.AddDataSectionView.js',
-	            'app/App.Views.Form.EntitiesSectionView.js',
-	            'app/App.Views.Form.TimeSectionView.js',            
-	            'app/App.Views.Form.DataTabView.js',
-	            'app/App.Views.Form.AxisTabView.js',
-	            'app/App.Views.Form.StylingTabView.js',
-	            'app/App.Views.Form.ExportTabView.js',
-	            'app/App.Views.Form.MapColorSection.js',
-	            'app/App.Views.Form.MapTabView.js',
-	            'app/App.Views.Form.SaveButtons.js',
-	            'app/App.Views.FormView.js',
-	            'app/App.Views.Form.js',
-
-	            'app/FormApp.js'		        
+		    	'chart-js',	        
 			],
 
 			/* Importer collection: assets specific to the importer part of the admin. */
 			'importer' => [
+				'libs/bootstrap3-wysihtml5.all',
 				'libs/jszip.js',
 				'libs/xlsx.js',
 		        'libs/papaparse.js',

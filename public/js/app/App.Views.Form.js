@@ -2,7 +2,7 @@
 	"use strict";
 	owid.namespace("App.Views.Form");
 
-	var FormView = require("App.Views.FormView");
+	var FormView = require("./App.Views.FormView");
 
 	App.Views.Form = owid.View.extend({
 		events: {},

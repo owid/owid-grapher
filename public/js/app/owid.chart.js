@@ -9,7 +9,6 @@ var Bounds = require('./Bounds').default
 		window.chart = chart;
 
 		// Set up models and data processors
-
 		chart.requires('containerNode', 'chartConfig', 'outerBounds', 'activeTabName');
 
 		chart.defaults({
@@ -28,7 +27,6 @@ var Bounds = require('./Bounds').default
 		chart.flow('model : chartConfig', function(chartConfig) {
 			return new App.Models.ChartModel(chartConfig);
 		});
-
 
 		chart.flow('vardata, data, colors : model', function(model) {
 			App.ChartModel = model;

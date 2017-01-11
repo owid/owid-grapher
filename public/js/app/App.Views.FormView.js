@@ -2,15 +2,15 @@
 	"use strict";
 	owid.namespace("App.Views.FormView");
 	
-	var	AvailableEntitiesCollection = require("App.Collections.AvailableEntitiesCollection"),
-		SearchDataCollection = require("App.Collections.SearchDataCollection"),
-		BasicTabView = require("App.Views.Form.BasicTabView"),
-		DataTabView = require("App.Views.Form.DataTabView"),
-		AxisTabView = require("App.Views.Form.AxisTabView"),
-		StylingTabView = require("App.Views.Form.StylingTabView"),
-		ExportTabView = require("App.Views.Form.ExportTabView"),
-		MapTabView = require("App.Views.Form.MapTabView"),
-		SaveButtonsView = require("App.Views.Form.SaveButtons");
+	var	AvailableEntitiesCollection = require("./App.Collections.AvailableEntitiesCollection"),
+		SearchDataCollection = require("./App.Collections.SearchDataCollection"),
+		BasicTabView = require("./App.Views.Form.BasicTabView"),
+		DataTabView = require("./App.Views.Form.DataTabView"),
+		AxisTabView = require("./App.Views.Form.AxisTabView"),
+		StylingTabView = require("./App.Views.Form.StylingTabView"),
+		ExportTabView = require("./App.Views.Form.ExportTabView"),
+		MapTabView = require("./App.Views.Form.MapTabView"),
+		SaveButtonsView = require("./App.Views.Form.SaveButtons");
 
 	App.Views.FormView = owid.View.extend({
 		el: "#form-view",

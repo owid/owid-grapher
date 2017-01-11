@@ -46,7 +46,7 @@ owid.view.controlsFooter = require('./app/ControlsFooter').default;
 require('./app/App.Views.Chart.Legend');
 owid.component.slopeChart = require('./app/owid.component.slopeChart').default;
 require('./app/App.Views.Chart.ChartTab');
-require('./app/owid.component.dataTab');
+require('./app/DataTab');
 require('./app/owid.component.sourcesTab');
 require('./app/owid.component.shareTab');
 
@@ -60,4 +60,39 @@ require('./app/App.Views.ChartURL');
 require('./app/App.Views.Export');
 require('./app/App.Views.DebugHelper');
 require('./app/owid.chart');
-require('./app/ChartApp');
+
+// Admin
+
+require('./libs/bootstrap-datepicker')
+require('./libs/admin-lte-app.min')
+require('./libs/ion.rangeSlider.min')
+require('./libs/jquery.nestable')
+require('./libs/jquery.stickytabs')
+require('./libs/jquery.timeago')
+require('./admin')
+
+require('./app/App.Models.ChartVariableModel')
+require('./app/App.Models.EntityModel')
+
+require('./app/App.Collections.SearchDataCollection')
+require('./app/App.Collections.AvailableEntitiesCollection')
+
+require('./app/App.Views.UI.SelectVarPopup')
+require('./app/App.Views.UI.SettingsVarPopup')
+require('./app/App.Views.UI.ColorPicker')
+
+require('./app/owid.config.scatter')
+require('./app/App.Views.Form.BasicTabView')
+require('./app/App.Views.Form.ChartTypeSectionView')
+require('./app/App.Views.Form.AddDataSectionView')
+require('./app/App.Views.Form.EntitiesSectionView')
+require('./app/App.Views.Form.TimeSectionView')
+require('./app/App.Views.Form.DataTabView')
+require('./app/App.Views.Form.AxisTabView')
+require('./app/App.Views.Form.StylingTabView')
+require('./app/App.Views.Form.ExportTabView')
+require('./app/App.Views.Form.MapColorSection')
+require('./app/App.Views.Form.MapTabView')
+require('./app/App.Views.Form.SaveButtons')
+require('./app/App.Views.FormView')
+require('./app/App.Views.Form')

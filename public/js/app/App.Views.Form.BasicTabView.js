@@ -3,7 +3,6 @@
 	owid.namespace("App.Views.Form.BasicTabView");
 
 	App.Views.Form.BasicTabView = owid.View.extend({
-
 		el: "#form-view #basic-tab",
 		events: {
 			"input input[name=chart-name]": "onNameInput",

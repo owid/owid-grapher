@@ -1,4 +1,4 @@
-@extends('app')
+@extends('admin')
 
 @section('content')
 	<div id="import-view" class="col-sm-12 import-view">
