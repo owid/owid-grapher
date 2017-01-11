@@ -250,9 +250,9 @@
 			headerControl.update({
 				containerNode: chart.svg.node(),
 				bounds: bounds,
-				titleTemplate: chart.model.get('chart-name'),
+				titleTemplate: chart.model.get('title'),
 				titleLink: canonicalUrl,
-				subtitleTemplate: chart.model.get('chart-subname') + disclaimer,
+				subtitleTemplate: chart.model.get('subtitle') + disclaimer,
 				logosSVG: chart.model.get('logosSVG'),
 				entities: chart.model.getSelectedEntities(),
 				entityType: chart.model.get('entity-type'),

@@ -1,3 +1,7 @@
+import {render, h} from 'preact'
+import BasicTab from './BasicTab'
+import ChartConfig from '../app/ChartConfig'
+
 ;(function() {	
 	"use strict";
 	owid.namespace("App.Views.FormView");
@@ -37,8 +41,10 @@
 		},
 
 		render: function() {
+			const chart = new ChartConfig(window.chart.model)
+			render(<BasicTab chart={chart} />, d3.select('.tab-content').node())
+
 			//create subviews
-			this.basicTabView = this.addChild(BasicTabView, { dispatcher: this.dispatcher });
 			this.dataTabView = this.addChild(DataTabView, { dispatcher: this.dispatcher });
 			this.axisTabView = this.addChild(AxisTabView, { dispatcher: this.dispatcher });
 			this.stylingTabView = this.addChild(StylingTabView, { dispatcher: this.dispatcher });
@@ -46,7 +52,7 @@
 			this.mapTabView = this.addChild(MapTabView, { dispatcher: this.dispatcher });
 			this.saveButtons = this.addChild(SaveButtonsView, { dispatcher: this.dispatcher });
 
-			if (chart.model.get('chart-type') == App.ChartType.ScatterPlot)
+			if (chart.type == App.ChartType.ScatterPlot)
 	            this.scatterConfig = owid.config.scatter(chart).update({ formNode: d3.select('#form-view').node() });
 	       	else if (this.scatterConfig)
 	       		this.scatterConfig.clean();

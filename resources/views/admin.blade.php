@@ -91,7 +91,6 @@
 		</script>
 		
 		<script src="{{ URL::to('/build/bundle.js') }}"></script>
-		<?php echo App\Util::js(); ?>
 		@yield('scripts')
 	</body>
 </html>

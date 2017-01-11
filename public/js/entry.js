@@ -82,7 +82,6 @@ require('./app/App.Views.UI.SettingsVarPopup')
 require('./app/App.Views.UI.ColorPicker')
 
 require('./app/owid.config.scatter')
-require('./app/App.Views.Form.BasicTabView')
 require('./app/App.Views.Form.ChartTypeSectionView')
 require('./app/App.Views.Form.AddDataSectionView')
 require('./app/App.Views.Form.EntitiesSectionView')
@@ -94,4 +93,4 @@ require('./app/App.Views.Form.ExportTabView')
 require('./app/App.Views.Form.MapColorSection')
 require('./app/App.Views.Form.MapTabView')
 require('./app/App.Views.Form.SaveButtons')
-require('./app/App.Views.FormView')
+window.Editor = require('./editor/Editor.jsx').default

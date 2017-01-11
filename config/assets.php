@@ -158,10 +158,6 @@ return [
 		        'admin.css',
 		    ],
 
-		    'admin-js' => [
-		    	'chart-js',	        
-			],
-
 			/* Importer collection: assets specific to the importer part of the admin. */
 			'importer' => [
 				'libs/bootstrap3-wysihtml5.all',
@@ -185,7 +181,6 @@ return [
 
 			'admin' => [
 				'admin-css',
-				'admin-js',
 				'importer'
 			],
 

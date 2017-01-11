@@ -4,10 +4,11 @@
 
 	App.Models.ChartModel = Backbone.Model.extend( {
 		defaults: {
-			"chart-name": "",
-			"chart-subname": "",
-			"chart-slug": "",
-			"chart-notes": "",
+			"title": "",
+			"subtitle": "",
+			"slug": "",
+			"note": "",
+			"internalNotes": "",
 			"chart-type": App.ChartType.LineChart,
 			"published": false,
 			// A range of form e.g. [0, 2015] with null meaning "all of it"

@@ -267,7 +267,7 @@ var Bounds = require('./Bounds').default
 				d3.select('.chart-preloader').classed('hidden', true);
 			});
 
-			if (chart.model.get("chart-name"))
+			if (chart.model.get("title"))
 				d3.select('.chart-preloader').classed('hidden', false);
 		};
 

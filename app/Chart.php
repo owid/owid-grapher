@@ -65,10 +65,10 @@ class Chart extends Model {
 		
 		$config = json_decode($chart->config);
 		$config->id = $chart->id;
-		$config->{"chart-name"} = $chart->name;
+		$config->{"title"} = $chart->name;
 		$config->{"chart-type"} = $chart->type;
-		$config->{"chart-notes"} = $chart->notes;
-		$config->{"chart-slug"} = $chart->slug;
+		$config->{"internalNotes"} = $chart->internalNotes;
+		$config->{"slug"} = $chart->slug;
 		$config->{"data-entry-url"} = $chart->origin_url;
 		$config->{"published"} = $chart->published;
 		$config->{"chart-dimensions"} = $chart->dimensions->toArray();

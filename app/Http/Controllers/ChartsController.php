@@ -92,17 +92,17 @@ class ChartsController extends Controller {
 			}
 
 			// Filter out the properties that are stored directly in SQL
-			$chart->name = $data["chart-name"];
-			unset($data["chart-name"]);			
+			$chart->name = $data["name"];
+			unset($data["name"]);			
 
-			$chart->type = $data["chart-type"];
-			unset($data["chart-type"]);
+			$chart->type = $data["type"];
+			unset($data["type"]);
 			
-			$chart->notes = $data["chart-notes"];
-			unset($data["chart-notes"]);
+			$chart->notes = $data["internalNotes"];
+			unset($data["internalNotes"]);
 			
-			$chart->slug = $data["chart-slug"];
-			unset($data["chart-slug"]);
+			$chart->slug = $data["slug"];
+			unset($data["slug"]);
 			
 			$chart->published = $data["published"];
 			unset($data["published"]);
