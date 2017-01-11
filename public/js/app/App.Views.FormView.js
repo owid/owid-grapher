@@ -2,15 +2,15 @@
 	"use strict";
 	owid.namespace("App.Views.FormView");
 	
-	var	AvailableEntitiesCollection = require("./App.Collections.AvailableEntitiesCollection"),
-		SearchDataCollection = require("./App.Collections.SearchDataCollection"),
-		BasicTabView = require("./App.Views.Form.BasicTabView"),
-		DataTabView = require("./App.Views.Form.DataTabView"),
-		AxisTabView = require("./App.Views.Form.AxisTabView"),
-		StylingTabView = require("./App.Views.Form.StylingTabView"),
-		ExportTabView = require("./App.Views.Form.ExportTabView"),
-		MapTabView = require("./App.Views.Form.MapTabView"),
-		SaveButtonsView = require("./App.Views.Form.SaveButtons");
+	var	AvailableEntitiesCollection = App.Collections.AvailableEntitiesCollection,
+		SearchDataCollection = App.Collections.SearchDataCollection,
+		BasicTabView = App.Views.Form.BasicTabView,
+		DataTabView = App.Views.Form.DataTabView,
+		AxisTabView = App.Views.Form.AxisTabView,
+		StylingTabView = App.Views.Form.StylingTabView,
+		ExportTabView = App.Views.Form.ExportTabView,
+		MapTabView = App.Views.Form.MapTabView,
+		SaveButtonsView = App.Views.Form.SaveButtons;
 
 	App.Views.FormView = owid.View.extend({
 		el: "#form-view",
@@ -18,8 +18,8 @@
 			"click .form-collapse-btn": "onFormCollapse",
 		},
 
-		initialize: function( options ) {
-			this.dispatcher = options.dispatcher;
+		initialize: function() {
+			this.dispatcher = _.clone(Backbone.Events);
 			
 			var formConfig = App.ChartModel.get("form-config");
 

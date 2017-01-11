@@ -61,7 +61,7 @@ require('./app/App.Views.Export');
 require('./app/App.Views.DebugHelper');
 require('./app/owid.chart');
 
-// Admin
+// Admin only code
 
 require('./libs/bootstrap-datepicker')
 require('./libs/admin-lte-app.min')
@@ -95,4 +95,3 @@ require('./app/App.Views.Form.MapColorSection')
 require('./app/App.Views.Form.MapTabView')
 require('./app/App.Views.Form.SaveButtons')
 require('./app/App.Views.FormView')
-require('./app/App.Views.Form')

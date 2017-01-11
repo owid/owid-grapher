@@ -18,8 +18,7 @@
         owid.chart().update(
             { chartConfig: chartConfig, containerNode: d3.select('.chart-container').node(), isEditor: true },
             function() {
-                App.View = new App.Views.Form();
-                App.View.start();
+                new App.Views.FormView();
             }
         );
     </script>
