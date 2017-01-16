@@ -67,7 +67,7 @@ class Chart extends Model {
 		$config->id = $chart->id;
 		$config->{"title"} = $chart->name;
 		$config->{"chart-type"} = $chart->type;
-		$config->{"internalNotes"} = $chart->internalNotes;
+		$config->{"internalNotes"} = $chart->notes;
 		$config->{"slug"} = $chart->slug;
 		$config->{"data-entry-url"} = $chart->origin_url;
 		$config->{"published"} = $chart->published;
