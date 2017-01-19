@@ -43,6 +43,12 @@
 			chart.model.on("change:y-axis", updateAxisScales);
 			chart.model.on("change:chart-time", updateTime);
 			populateFromURL();
+
+			$(window).on('query-change', function() {
+				var tabName = chart.activeTabName;
+				if (tabName == 'chart' || tabName == 'map')
+					urlBinder.lastQueryStr = window.location.search;				
+			});
 		};
 
 		/**
@@ -153,9 +159,6 @@
 				owid.setQueryVariable("tab", tabName);
 
 			lastTabName = tabName;
-
-			if (tabName == 'chart' || tabName == 'map')
-				urlBinder.lastQueryStr = window.location.search;
 		}
 
 		/**
