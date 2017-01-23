@@ -49,6 +49,10 @@
 			showLegend: false
 		};
 
+		chart.model.on('change:chart-type', function() {
+			chartTab.clean();
+		});
+
 		chartTab.clean = function() {
 			if (viz) viz = viz.destroy();
 			chartTab.scaleSelectors.clean();
@@ -56,6 +60,7 @@
 			d3.selectAll(".nvd3, .axisBox, .nvtooltip:not(.owid-tooltip), .timeline").remove();
 //			chartTab.scaleSelectors.hide();
 			d3.selectAll("svg").on("mousemove.stackedarea", null);
+			nvd3 = null;
 		},
 
 		chartTab.render = function(inputBounds) {

@@ -37,6 +37,8 @@ class Chart extends Model {
 			$type = "Horizontal Multi Bar";
 		else if ($this->type == "DiscreteBar")
 			$type = "Discrete Bar";
+		else if ($this->type == "SlopeChart")
+			$type = "Slope Chart";
 
 		if (isset($config->{"default-tab"}) && $config->{"default-tab"} == "map") {
 			if (in_array("chart", $config->{"tabs"}))

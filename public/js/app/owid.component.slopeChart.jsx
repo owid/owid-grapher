@@ -334,5 +334,9 @@ export default function() {
 		rootNode = render(<SlopeChart bounds={bbounds} axes={axes} data={data} minYear={minYear} maxYear={maxYear}/>, containerNode, rootNode)
 	})
 
+	slopeChart.beforeClean(function() {
+		rootNode = render(() => null, slopeChart.containerNode, rootNode);
+	});
+
 	return slopeChart
 }
