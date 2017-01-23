@@ -23,18 +23,19 @@ class Axis extends Component {
 	props: {
 		bounds: Bounds,
 		scales: Scales,
-		orient: 'left' | 'right'
+		orient: 'left' | 'right',
+		tickFormat: (number) => string
 	}
 
 	render() {
-		const { bounds, scales, orient } = this.props
+		const { bounds, scales, orient, tickFormat } = this.props
 		const scale = scales.yScale
 		const ticks = scale.ticks(6)
 		const textColor = '#666'
 
 		return <g className="axis" font-size="0.8em">
 					{_.map(ticks, (tick) => {textColor
-						return <text x={orient == 'left' ? bounds.left : bounds.right} y={scale(tick)} fill={textColor} dominant-baseline="middle" text-anchor={orient == 'left' ? 'start' : 'end'}>{tick}</text>
+						return <text x={orient == 'left' ? bounds.left : bounds.right} y={scale(tick)} fill={textColor} dominant-baseline="middle" text-anchor={orient == 'left' ? 'start' : 'end'}>{tickFormat(tick)}</text>
 					})}
   			    </g>		
 	}
@@ -87,7 +88,7 @@ class AxisLayout {
 
 		let innerBounds = bounds	
 		_.each(yAxes, (axis) => {
-			const width = this.getAxisWidth(axis)
+			const width = this.getAxisWidth(yScale, axis)
 			if (axis.orient == 'left')
 				innerBounds = innerBounds.padLeft(width)
 			else if (axis.orient == 'right')
@@ -103,8 +104,12 @@ class AxisLayout {
 		this.innerBounds = innerBounds
 	}
 
-	getAxisWidth(yAxis : AxisConfig) {
-		return 0
+	getAxisWidth(yScale, yAxis : AxisConfig) {
+		const ticks = _.map(yScale.ticks(), yAxis.tickFormat)
+		const longestLabel = _.sortBy(ticks, (tick) => {
+			return -yAxis.tickFormat(tick).length
+		})[0]
+		return Bounds.forText(longestLabel).width
 	}
 }
 
@@ -234,15 +239,15 @@ class SlopeChart extends Component {
 	}
 
     render() {
-    	const { bounds } = this.props
+    	const { axes, bounds } = this.props
     	const { axisLayout, slopeData, slopeBounds } = this
     	const { innerScales } = axisLayout
 
 	    return (
 	    	<g class="slopeChart" ref={(g) => this.g = g}>
 	    		<Gridlines axisLayout={axisLayout}/>
-	    		<Axis orient='left' scales={innerScales} bounds={bounds}/>
-	    		<Axis orient='right' scales={innerScales} bounds={bounds}/>
+	    		<Axis orient='left' tickFormat={axes[0].tickFormat} scales={innerScales} bounds={bounds}/>
+	    		<Axis orient='right' tickFormat={axes[1].tickFormat} scales={innerScales} bounds={bounds}/>
 	    		{/*<line x1={slopeBounds.left} y1={slopeBounds.top} x2={slopeBounds.left} y2={slopeBounds.bottom} stroke="black"/>
 	    		<line x1={slopeBounds.right} y1={slopeBounds.top} x2={slopeBounds.right} y2={slopeBounds.bottom} stroke="black"/>*/}
 	    		{_.map(slopeData, (slope) => {
