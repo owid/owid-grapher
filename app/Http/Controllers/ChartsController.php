@@ -81,11 +81,11 @@ class ChartsController extends Controller {
 			$user = \Auth::user();
 
 			if ($data["published"]) {
-				if (DB::table("chart_slug_redirects")->where("chart_id", "!=", ($chart->id ? $chart->id : ''))->where("slug", "=", $data["chart-slug"])->exists()) {
-					App::abort(422, "This chart slug was previously used by another chart: " . $data["chart-slug"]);
-				} else if (DB::table("charts")->where("id", "!=", ($chart->id ? $chart->id : ''))->where("slug", "=", $data["chart-slug"])->whereNotNull('published')->exists()) {
-					App::abort(422, "This chart slug is currently in use by another chart: " . $data["chart-slug"]);
-				} else if ($chart->published && $chart->slug && $chart->slug != $data["chart-slug"]) {
+				if (DB::table("chart_slug_redirects")->where("chart_id", "!=", ($chart->id ? $chart->id : ''))->where("slug", "=", $data["slug"])->exists()) {
+					App::abort(422, "This chart slug was previously used by another chart: " . $data["slug"]);
+				} else if (DB::table("charts")->where("id", "!=", ($chart->id ? $chart->id : ''))->where("slug", "=", $data["slug"])->whereNotNull('published')->exists()) {
+					App::abort(422, "This chart slug is currently in use by another chart: " . $data["slug"]);
+				} else if ($chart->published && $chart->slug && $chart->slug != $data["slug"]) {
 					// Changing slug of an already published chart, create redirect
 		            DB::statement("INSERT INTO chart_slug_redirects (slug, chart_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE chart_id=VALUES(chart_id);", [$chart->slug, $chart->id]);                
 				}
@@ -95,8 +95,8 @@ class ChartsController extends Controller {
 			$chart->name = $data["title"];
 			unset($data["title"]);
 
-			$chart->type = $data["type"];
-			unset($data["type"]);
+			$chart->type = $data["chart-type"];
+			unset($data["chart-type"]);
 			
 			$chart->notes = $data["internalNotes"];
 			unset($data["internalNotes"]);

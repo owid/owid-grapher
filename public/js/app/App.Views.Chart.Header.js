@@ -242,7 +242,7 @@
 				maxYear = chart.data.get('maxYear');
 			}
 
-			var baseUrl = Global.rootUrl + "/" + chart.model.get("chart-slug"),
+			var baseUrl = Global.rootUrl + "/" + chart.model.get("slug"),
 				queryParams = owid.getQueryParams(),
 				queryStr = owid.queryParamsToStr(queryParams),				
 				canonicalUrl = baseUrl + queryStr;

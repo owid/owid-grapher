@@ -57,7 +57,7 @@ class DataTab extends Component {
 		let rootNode = null
 
 		dataTab.render = function(bounds) {
-	        rootNode = render(<DataTab bounds={bounds.scale(chart.scale)} csvUrl={Global.rootUrl+'/'+chart.model.get('chart-slug')+'.csv'}/>, chart.htmlNode, rootNode)
+	        rootNode = render(<DataTab bounds={bounds.scale(chart.scale)} csvUrl={Global.rootUrl+'/'+chart.model.get('slug')+'.csv'}/>, chart.htmlNode, rootNode)
 		};
 
 		dataTab.beforeClean(function() {

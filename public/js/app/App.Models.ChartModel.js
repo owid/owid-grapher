@@ -3,6 +3,23 @@
 	owid.namespace("App.Models.ChartModel");
 
 	App.Models.ChartModel = Backbone.Model.extend( {
+        url: function(id) {
+            id = id || this.id;
+            if( $("#form-view").length ) {
+                if( id ) {
+                    //editing existing
+                    return Global.rootUrl + "/charts/" + id;
+                } else {
+                    //saving new
+                    return Global.rootUrl + "/charts";
+                }
+
+            } else {
+                // Pass any query parameters on to config
+                return Global.rootUrl + "/data/config/" + id + window.location.search;
+            }
+        },
+
 		defaults: {
 			"title": "",
 			"subtitle": "",
@@ -229,7 +246,7 @@
 
 		// Get chart dimensions, ensuring we return only those appropriate for the type
 		getDimensions: function() {
-			var dimensions = this.get("chart-dimensions"),
+			var dimensions = _.map(this.get("chart-dimensions"), function(dim) { return _.clone(dim); }),
 				validProperties = _.pluck(this.getEmptyDimensions(), 'property'),
 				validDimensions = _.filter(dimensions, function(dim) { return _.include(validProperties, dim.property); });
 

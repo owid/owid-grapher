@@ -98,7 +98,7 @@
 		},
 
 		generateIframeCode: function(id, viewUrl) {
-			var viewUrl = Global.rootUrl + '/' + App.ChartModel.get("chart-slug");
+			var viewUrl = Global.rootUrl + '/' + App.ChartModel.get("slug");
 			this.$iframeTextArea.text('<iframe src="' + viewUrl + '" style="width: 100%; height: 600px; border: 0px none;"></iframe>');
 		}
 	});
