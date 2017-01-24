@@ -8,6 +8,7 @@ import { h, render, Component } from 'preact'
 import { observable, computed, asFlat } from 'mobx'
 import Bounds from './Bounds'
 import type {SVGElement} from './Util'
+import Layout from './Layout'
 
 class Scales {
 	xScale: any
@@ -19,23 +20,39 @@ class Scales {
 	}
 }
 
+type AxisProps = {
+	bounds: Bounds,
+	orient: 'left' | 'right' | 'bottom',
+	tickFormat: (number) => string,
+	scale: any
+};
+
 class Axis extends Component {
-	props: {
-		bounds: Bounds,
-		scales: Scales,
-		orient: 'left' | 'right',
-		tickFormat: (number) => string
-	}
+	/*static calculateBounds(containerBounds : Bounds, props : AxisProps) {
+		return containerBounds
+		const {orient, scale} = props
+
+		if (orient == 'left' || orient == 'right') {
+			const longestTick = _.sortBy(scales.yScale.ticks(6), (tick) => -tick.length)[0]
+			return new Bounds(containerBounds.x, containerBounds.y, Bounds.forText(longestTick).width, containerBounds.height)
+		} else {
+//			return new Bounds(containerBounds.x, containerBounds.y, 0, containerBounds.height)
+		}
+	}*/
+
+	props: AxisProps
 
 	render() {
-		const { bounds, scales, orient, tickFormat } = this.props
-		const scale = scales.yScale
+		const { bounds, scale, orient, tickFormat } = this.props
 		const ticks = scale.ticks(6)
 		const textColor = '#666'
 
 		return <g className="axis" font-size="0.8em">
-					{_.map(ticks, (tick) => {textColor
-						return <text x={orient == 'left' ? bounds.left : bounds.right} y={scale(tick)} fill={textColor} dominant-baseline="middle" text-anchor={orient == 'left' ? 'start' : 'end'}>{tickFormat(tick)}</text>
+					{_.map(ticks, (tick) => {
+						if (orient == 'left' || orient == 'right')
+							return <text x={orient == 'left' ? bounds.left : bounds.right} y={scale(tick)} fill={textColor} dominant-baseline="middle" text-anchor={orient == 'left' ? 'start' : 'end'}>{tickFormat(tick)}</text>
+						else if (orient == 'top' || orient == 'bottom')
+							return <text x={scale(tick)} y={orient == 'top' ? bounds.top : bounds.bottom} fill={textColor} dominant-baseline={orient == 'top' ? 'auto' : 'hanging'} text-anchor="middle">{tickFormat(tick)}</text>
 					})}
   			    </g>		
 	}
@@ -95,6 +112,14 @@ class AxisLayout {
 				innerBounds = innerBounds.padRight(width)
 		})
 
+		_.each(xAxes, (axis) => {
+			const height = this.getAxisHeight(xScale, axis)
+			if (axis.orient == 'top')
+				innerBounds = innerBounds.padLeft(height)
+			else if (axis.orient == 'bottom')
+				innerBounds = innerBounds.padRight(height)
+		})
+
 		xScale = xScale.range([innerBounds.left, innerBounds.right])
 		yScale = yScale.range([innerBounds.bottom, innerBounds.top])
 
@@ -109,7 +134,15 @@ class AxisLayout {
 		const longestLabel = _.sortBy(ticks, (tick) => {
 			return -yAxis.tickFormat(tick).length
 		})[0]
-		return Bounds.forText(longestLabel).width
+		return Bounds.forText(longestLabel, { fontSize: '0.8em' }).width
+	}
+
+	getAxisHeight(xScale, xAxis : AxisConfig) {
+		const ticks = _.map(xScale.ticks(), xAxis.tickFormat)
+		const longestLabel = _.sortBy(ticks, (tick) => {
+			return -xAxis.tickFormat(tick).length
+		})[0]
+		return Bounds.forText(longestLabel).height
 	}
 }
 
@@ -160,7 +193,15 @@ class SlopeChart extends Component {
 	@computed get axisLayout() : AxisLayout {
 		const { axes, data, bounds } = this.props
 		const { xDomainDefault, yDomainDefault } = this
-		return new AxisLayout(axes, bounds, { xDomainDefault: xDomainDefault, yDomainDefault: yDomainDefault })
+		return new AxisLayout(axes, bounds.padBottom(20), { xDomainDefault: xDomainDefault, yDomainDefault: yDomainDefault })
+	}
+
+	@computed get xDomain() : [number, number] {
+		return this.axisLayout.innerScales.xScale.domain()
+	}
+
+	@computed get yDomain() : [number, number] {
+		return this.axisLayout.innerScales.yScale.domain()
 	}
 
 	@computed get initialSlopeData() : SlopeProps[] {
@@ -172,6 +213,7 @@ class SlopeChart extends Component {
 		const yDomain = yScale.domain()
 
 		_.each(data, (series) => {
+			// Ensure values fit inside the chart
 			if (!_.every(series.values, (d) => d.y >= yDomain[0] && d.y <= yDomain[1]))
 				return;
 
@@ -240,21 +282,23 @@ class SlopeChart extends Component {
 
     render() {
     	const { axes, bounds } = this.props
-    	const { axisLayout, slopeData, slopeBounds } = this
+    	const { axisLayout, slopeData, slopeBounds, xDomain } = this
     	const { innerScales } = axisLayout
 
 	    return (
 	    	<g class="slopeChart" ref={(g) => this.g = g}>
 	    		<Gridlines axisLayout={axisLayout}/>
-	    		<Axis orient='left' tickFormat={axes[0].tickFormat} scales={innerScales} bounds={bounds}/>
-	    		<Axis orient='right' tickFormat={axes[1].tickFormat} scales={innerScales} bounds={bounds}/>
+	    		<Axis orient='left' tickFormat={axes[0].tickFormat} scale={innerScales.yScale} bounds={bounds}/>
+	    		<Axis orient='right' tickFormat={axes[1].tickFormat} scale={innerScales.yScale} bounds={bounds}/>
+				<g class="slopes">
+					{_.map(slopeData, (slope) => {
+				    	return <Slope onMouseEnter={() => this.setState({ focusKey: slope.key })} {...slope} />
+			    	})}	
+				</g>
+	    		<text x={slopeBounds.left} y={slopeBounds.bottom+10} text-anchor="middle" dominant-baseline="hanging" fill="#666">{xDomain[0]}</text>
+	    		<text x={slopeBounds.right} y={slopeBounds.bottom+10} text-anchor="middle" dominant-baseline="hanging" fill="#666">{xDomain[1]}</text>
 	    		{/*<line x1={slopeBounds.left} y1={slopeBounds.top} x2={slopeBounds.left} y2={slopeBounds.bottom} stroke="black"/>
 	    		<line x1={slopeBounds.right} y1={slopeBounds.top} x2={slopeBounds.right} y2={slopeBounds.bottom} stroke="black"/>*/}
-	    		{_.map(slopeData, (slope) => {
-			    	return <g onMouseEnter={() => this.setState({ focusKey: slope.key })}>
-			    		<Slope {...slope} />
-			    	</g>
-		    	})}
 		    </g>
 	    );
 	}
@@ -292,19 +336,17 @@ class Slope extends Component {
 	}
 }
 
-export default function() {
-	const slopeChart = dataflow()
-	let rootNode = null;
+class SlopeDataTransform {
+	@observable minYear = null
+	@observable maxYear = null
+	@observable dimensions = []
 
-	slopeChart.needs('containerNode', 'bounds', 'axes', 'dimensions')
-
-	slopeChart.flow('data, minYear, maxYear : dimensions', function(dimensions) {
-		const dimension = _.findWhere(dimensions, { property: 'y' })
+	@computed get output() {		
+		const dimension = _.findWhere(this.dimensions, { property: 'y' })
 		const { years, entities, values, entityKey } = dimension.variable
+		const minYear = _.isFinite(this.minYear) ? this.minYear : _.first(years)
+		const maxYear = _.isFinite(this.maxYear) ? this.maxYear :  _.last(years)
 		const seriesByEntity = new Map()
-
-		const minYear = _.first(years)
-		const maxYear = _.last(years)
 
 		for (let i = 0; i < years.length; i++) {
 			const year = years[i]
@@ -331,10 +373,23 @@ export default function() {
 		// Filter to remove single points
 		const data = _.filter(Array.from(seriesByEntity.values()), (series) => series.values.length >= 2)
 
-		return [data, minYear, maxYear]
-	})
+		return { data: data, minYear: minYear, maxYear: maxYear }
+	}
+}
 
-	slopeChart.flow('containerNode, bounds, axes, data, minYear, maxYear', function(containerNode, bounds, axes, data, minYear, maxYear) {
+export default function() {
+	const slopeChart = dataflow()
+	const transform = new SlopeDataTransform()
+	let rootNode = null;
+
+	slopeChart.needs('containerNode', 'bounds', 'axes', 'dimensions', 'minYear', 'maxYear')
+
+	slopeChart.flow('containerNode, bounds, axes, dimensions, minYear, maxYear', function(containerNode, bounds, axes, dimensions, minYearOverride, maxYearOverride) {
+		transform.dimensions = dimensions
+		transform.minYear = minYearOverride
+		transform.maxYear = maxYearOverride
+		const {data, minYear, maxYear} = transform.output
+
 		let bbounds = new Bounds(bounds.left, bounds.top, bounds.width, bounds.height).pad(10)
 		rootNode = render(<SlopeChart bounds={bbounds} axes={axes} data={data} minYear={minYear} maxYear={maxYear}/>, containerNode, rootNode)
 	})

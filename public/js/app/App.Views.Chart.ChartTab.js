@@ -267,14 +267,19 @@
 
 			var axes = [
 				_.extend({}, chartTab.axisConfig.y, { orient: 'left' }),
-				_.extend({}, chartTab.axisConfig.y, { orient: 'right' })
+				_.extend({}, chartTab.axisConfig.y, { orient: 'right' }),
+				_.extend({}, chartTab.axisConfig.x, { orient: 'bottom' })	
 			];
 
+			var chartTime = chart.model.get('chart-time')||[]
+			console.log(chartTime)
 			viz.update({
 				containerNode: chart.svg.node(),
 				bounds: bounds,
 				axes: axes,
-				dimensions: chart.model.getDimensions()
+				dimensions: chart.model.getDimensions(),
+				minYear: +chartTime[0],
+				maxYear: +chartTime[1]
                 //timelineConfig: chart.model.get('timeline')
 			}, function() {
 				postRender();

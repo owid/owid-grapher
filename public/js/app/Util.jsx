@@ -26,8 +26,16 @@ export function layout(containerBounds : Bounds, ...children : any[]) {
     children = map(children, (vnode) => {
         if (vnode.nodeName.calculateBounds) {
             const bounds = vnode.nodeName.calculateBounds(containerBounds, vnode.attributes)
-            if (vnode.attributes && vnode.attributes.layout == 'bottom') {
-                containerBounds = containerBounds.padBottom(bounds.height)
+            if (vnode.attributes) {
+            	const layout = vnode.attributes.layout
+            	if (layout == 'top')
+    	            containerBounds = containerBounds.padTop(bounds.height)
+            	if (layout == 'bottom')
+    	            containerBounds = containerBounds.padBottom(bounds.height)
+            	if (layout == 'left')
+    	            containerBounds = containerBounds.padLeft(bounds.width)
+            	if (layout == 'right')
+    	            containerBounds = containerBounds.padRight(bounds.width)
             }
             return cloneElement(vnode, { bounds: bounds })
         } else {
