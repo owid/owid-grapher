@@ -9,6 +9,7 @@ import { observable, computed, asFlat } from 'mobx'
 import Bounds from './Bounds'
 import type {SVGElement} from './Util'
 import Layout from './Layout'
+import NoData from './NoData'
 import Observations from './Observations'
 window.Observations = Observations
 
@@ -180,6 +181,7 @@ class SlopeChart extends Component {
 	}
 
 	g: SVGElement
+	svg: SVGElement
 
 	@observable props = asFlat({})
 	@observable state = asFlat({})
@@ -234,7 +236,7 @@ class SlopeChart extends Component {
 			const rightLabelBounds = Bounds.forText(rightLabel, { fontSize: fontSize })
 
 			slopeData.push({ x1: x1, y1: y1, x2: x2, y2: y2, color: series.color,
-							 size: sizeScale(series.size||1),
+							 size: sizeScale(series.size)||1,
 							 leftLabel: leftLabel, rightLabel: rightLabel,
 							 leftLabelBounds: leftLabelBounds, rightLabelBounds: rightLabelBounds,
 							 labelFontSize: fontSize, key: series.key, isFocused: false,
@@ -292,10 +294,35 @@ class SlopeChart extends Component {
 		return innerBounds.padLeft(maxLabelWidth).padRight(maxLabelWidth)
 	}
 
+	componentDidMount() {
+		this.svg = this.g.parentNode
+
+		d3.select(this.svg).on('mousemove.slopechart', () => {
+			const mouse = d3.mouse(this.g)
+			if (this.props.bounds.containsPoint(...mouse)) {
+				const slope = _.sortBy(this.slopeData, (slope) => {
+					const distToLine = Math.abs((slope.y2-slope.y1)*mouse[0] - (slope.x2-slope.x1)*mouse[1] + slope.x2*slope.y1 - slope.y2*slope.x1) / Math.sqrt((slope.y2-slope.y1)**2 + (slope.x2-slope.x1)**2)
+					return distToLine
+				})[0]
+				this.setState({ focusKey: slope.key })
+			} else {
+				this.setState({ focusKey: null })				
+			}
+
+		})
+	}
+
+	componentDidUnmount() {
+		d3.select(this.svg).on('mousemove.slopechart', null)
+	}
+
     render() {
     	const { axes, bounds } = this.props
     	const { axisLayout, slopeData, slopeBounds, xDomain } = this
     	const { innerScales } = axisLayout
+
+    	if (_.isEmpty(slopeData))
+    		return <NoData bounds={bounds}/>
 
 	    return (
 	    	<g class="slopeChart" ref={(g) => this.g = g}>
@@ -304,7 +331,7 @@ class SlopeChart extends Component {
 	    		<Axis orient='right' tickFormat={axes[1].tickFormat} scale={innerScales.yScale} bounds={bounds}/>
 				<g class="slopes">
 					{_.map(slopeData, (slope) => {
-				    	return <Slope onMouseEnter={() => this.setState({ focusKey: slope.key })} {...slope} />
+				    	return <Slope {...slope} />
 			    	})}	
 				</g>
 	    		<text x={slopeBounds.left} y={slopeBounds.bottom+10} text-anchor="middle" dominant-baseline="hanging" fill="#666">{xDomain[0]}</text>
@@ -341,7 +368,7 @@ class Slope extends Component {
 		const labelColor = '#333'
 		const opacity = isFocused ? 1 : 0.7
 
-		return <g onMouseEnter={this.props.onMouseEnter}>
+		return <g>
 			{ hasLabel ? <text x={leftLabelBounds.x} y={leftLabelBounds.y} font-size={labelFontSize} fill={labelColor}>{leftLabel}</text> : '' }
 			<circle cx={x1} cy={y1} r={isFocused ? 6 : 3} fill={lineColor} opacity={opacity}/>
 			<line x1={x1} y1={y1} x2={x2} y2={y2} stroke={lineColor} stroke-width={isFocused ? 2*size : size} opacity={opacity}/>

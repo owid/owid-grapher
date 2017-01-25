@@ -94,6 +94,10 @@ export default class Bounds {
              r2.top > r1.bottom || r2.bottom < r1.top)
 	}
 
+	containsPoint(x : number, y : number) : boolean {
+		return x >= this.left && x <= this.right && y >= this.top && y <= this.bottom
+	}
+
 	toCSS() : { left: string, top: string, width: string, height: string } {
 		return { left: this.left+'px', top: this.top+'px', width: this.width+'px', height: this.height+'px'}
 	}
