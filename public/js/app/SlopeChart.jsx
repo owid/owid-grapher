@@ -280,9 +280,11 @@ export class SlopeChart extends Component {
 				else if (s1.size < s2.size)
 					hasPriority = false
 
-				if (s1 !== s2 && s1.hasLeftLabel && s2.hasLeftLabel && hasPriority) {
-					if (s1.leftLabelBounds.intersects(s2.leftLabelBounds))
+				if (s1 !== s2 && s1.hasLeftLabel && s2.hasLeftLabel && s1.leftLabelBounds.intersects(s2.leftLabelBounds)) {
+					if (hasPriority)
 						s2.hasLeftLabel = false
+					else
+						s1.hasLeftLabel = false
 				}
 			})
 		})
@@ -297,9 +299,11 @@ export class SlopeChart extends Component {
 				else if (!s1.hasLeftLabel && s2.hasLeftLabel)
 					hasPriority = false
 
-				if (s1 !== s2 && s1.hasRightLabel && s2.hasRightLabel && hasPriority) {
-					if (s1.rightLabelBounds.intersects(s2.rightLabelBounds))
+				if (s1 !== s2 && s1.hasRightLabel && s2.hasRightLabel && s1.rightLabelBounds.intersects(s2.rightLabelBounds)) {
+					if (hasPriority)
 						s2.hasRightLabel = false
+					else
+						s1.hasRightLabel = false
 				}
 			})
 		})
@@ -327,6 +331,8 @@ export class SlopeChart extends Component {
 			}
 
 		})
+
+		d3.select(this.g).attr('opacity', 0).transition().attr('opacity', 1)
 	}
 
 	componentDidUnmount() {
@@ -334,8 +340,8 @@ export class SlopeChart extends Component {
 	}
 
     render() {
-    	const { yTickFormat, bounds } = this.props
-    	const { slopeData, isPortrait, xDomain, xScale, yScale } = this
+    	const { yTickFormat } = this.props
+    	const { bounds, slopeData, isPortrait, xDomain, xScale, yScale } = this
 
     	if (_.isEmpty(slopeData))
     		return <NoData bounds={bounds}/>
@@ -378,6 +384,14 @@ type SlopeProps = {
 	
 class Slope extends Component {
 	props: SlopeProps
+	path: SVGElement
+
+	// Nice little intro animation
+	componentDidMount() {
+		const path = d3.select(this.path)
+		const length = path.node().getTotalLength()
+		d3.select(this.path).attr('stroke-dasharray', length).attr('stroke-dashoffset', length).transition().attr('stroke-dashoffset', 0)
+	}
 
 	render() {
 		const { x1, y1, x2, y2, color, size, hasLeftLabel, hasRightLabel, leftLabel, rightLabel, labelFontSize, leftLabelBounds, rightLabelBounds, isFocused } = this.props
@@ -388,7 +402,7 @@ class Slope extends Component {
 		return <g>
 			{ hasLeftLabel ? <text x={leftLabelBounds.x+leftLabelBounds.width} y={leftLabelBounds.y} text-anchor="end" font-size={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{leftLabel}</text> : '' }
 			<circle cx={x1} cy={y1} r={isFocused ? 6 : 3} fill={lineColor} opacity={opacity}/>
-			<line x1={x1} y1={y1} x2={x2} y2={y2} stroke={lineColor} stroke-width={isFocused ? 2*size : size} opacity={opacity}/>
+			<path ref={(el) => this.path = el} d={`M${x1} ${y1} L ${x2} ${y2}`} stroke={lineColor} stroke-width={isFocused ? 2*size : size} opacity={opacity}/>
 			<circle cx={x2} cy={y2} r={isFocused ? 6 : 3} fill={lineColor} opacity={opacity}/>
 			{ hasRightLabel ? <text x={rightLabelBounds.x} y={rightLabelBounds.y} font-size={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{rightLabel}</text> : '' }
 		</g>

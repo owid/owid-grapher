@@ -272,7 +272,6 @@ import Bounds from './Bounds'
 
 			const {tickFormat} = chartTab.axisConfig.y
 			const props = slopeChartTransform.getProps({ dimensions: chart.model.getDimensions(), xDomain: chartTime })			
-			
 			rootNode = render(<SlopeChart bounds={bounds} yDomain={yDomain} yTickFormat={tickFormat} yScaleType="linear" {...props}/>, chart.svg.node(), rootNode)
 			postRender();
 		}
@@ -650,7 +649,8 @@ import Bounds from './Bounds'
 		}
 
 		function ensureLabelsFit() {
-			if (viz && !d3.select('.axisBox').node()) return
+			if (chart.model.get('chart-type') == App.ChartType.SlopeChart || (viz && !d3.select('.axisBox').node())) return
+
 			var targetHeight = viz ? d3.select('.axisBox').node().getBBox().height : chartHeight,
 				targetWidth = chartWidth;
 

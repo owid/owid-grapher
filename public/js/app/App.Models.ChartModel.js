@@ -252,9 +252,13 @@
 				validProperties = _.pluck(this.getEmptyDimensions(), 'property'),
 				validDimensions = _.filter(dimensions, function(dim) { return _.include(validProperties, dim.property); });
 
-			// Give scatterplots a default color dimension if they don't have one
+			// Give scatterplots a default color and size dimension if they don't have one
 			if ((this.get("chart-type") == App.ChartType.ScatterPlot || this.get("chart-type") == App.ChartType.SlopeChart) && !_.findWhere(dimensions, { property: 'color' })) {
 				validDimensions = validDimensions.concat([{"variableId":"123","property":"color","unit":"","name":"Color","tolerance":"5"}]);
+			}
+
+			if ((this.get("chart-type") == App.ChartType.ScatterPlot || this.get("chart-type") == App.ChartType.SlopeChart) && !_.findWhere(dimensions, { property: 'size' })) {
+				validDimensions = validDimensions.concat([{"variableId":"72","property":"size","unit":"","name":"Size","tolerance":"5"}]);
 			}
 
 			_.each(validDimensions, function(dim) {
