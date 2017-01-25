@@ -339,12 +339,13 @@ class Slope extends Component {
 		const { x1, y1, x2, y2, color, size, hasLabel, leftLabel, rightLabel, labelFontSize, leftLabelBounds, rightLabelBounds, isFocused } = this.props
 		const lineColor = color //'#89C9CF'
 		const labelColor = '#333'
+		const opacity = isFocused ? 1 : 0.7
 
 		return <g onMouseEnter={this.props.onMouseEnter}>
 			{ hasLabel ? <text x={leftLabelBounds.x} y={leftLabelBounds.y} font-size={labelFontSize} fill={labelColor}>{leftLabel}</text> : '' }
-			<circle cx={x1} cy={y1} r={isFocused ? 4*size : 2*size} fill={lineColor}/>
-			<line x1={x1} y1={y1} x2={x2} y2={y2} stroke={lineColor} stroke-width={isFocused ? 2*size : size}/>
-			<circle cx={x2} cy={y2} r={isFocused ? 4*size : 2*size} fill={lineColor}/>
+			<circle cx={x1} cy={y1} r={isFocused ? 6 : 3} fill={lineColor} opacity={opacity}/>
+			<line x1={x1} y1={y1} x2={x2} y2={y2} stroke={lineColor} stroke-width={isFocused ? 2*size : size} opacity={opacity}/>
+			<circle cx={x2} cy={y2} r={isFocused ? 6 : 3} fill={lineColor} opacity={opacity}/>
 			{ hasLabel ? <text x={rightLabelBounds.x} y={rightLabelBounds.y} font-size={labelFontSize} fill={labelColor}>{rightLabel}</text> : '' }
 		</g>
 	}
