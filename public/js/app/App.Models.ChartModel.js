@@ -240,6 +240,8 @@
 
 			if (chartType == App.ChartType.ScatterPlot)
 				return [xAxis, yAxis, size, color];
+			else if (chartType == App.ChartType.SlopeChart)
+				return [yAxis, size, color]
 			else
 				return [yAxis];
 		},
@@ -251,7 +253,7 @@
 				validDimensions = _.filter(dimensions, function(dim) { return _.include(validProperties, dim.property); });
 
 			// Give scatterplots a default color dimension if they don't have one
-			if (this.get("chart-type") == App.ChartType.ScatterPlot && !_.findWhere(dimensions, { property: 'color' })) {
+			if ((this.get("chart-type") == App.ChartType.ScatterPlot || this.get("chart-type") == App.ChartType.SlopeChart) && !_.findWhere(dimensions, { property: 'color' })) {
 				validDimensions = validDimensions.concat([{"variableId":"123","property":"color","unit":"","name":"Color","tolerance":"5"}]);
 			}
 

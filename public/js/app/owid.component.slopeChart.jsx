@@ -9,6 +9,8 @@ import { observable, computed, asFlat } from 'mobx'
 import Bounds from './Bounds'
 import type {SVGElement} from './Util'
 import Layout from './Layout'
+import Observations from './Observations'
+window.Observations = Observations
 
 class Scales {
 	xScale: any
@@ -204,13 +206,18 @@ class SlopeChart extends Component {
 		return this.axisLayout.innerScales.yScale.domain()
 	}
 
+	@computed get sizeScale() {
+		return d3.scaleLinear().domain(d3.extent(_.pluck(this.props.data, 'size'))).range([1, 3])
+	}
+
 	@computed get initialSlopeData() : SlopeProps[] {
 		const { axes, data, bounds } = this.props
-		const { axisLayout } = this
+		const { sizeScale, axisLayout } = this
 
 		const slopeData : SlopeProps[] = []
 		const { xScale, yScale } = axisLayout.innerScales
 		const yDomain = yScale.domain()
+		const tickFormat = axes[0].tickFormat
 
 		_.each(data, (series) => {
 			// Ensure values fit inside the chart
@@ -221,12 +228,13 @@ class SlopeChart extends Component {
 			const [ x1, x2 ] = [ xScale(v1.x), xScale(v2.x) ]
 			const [ y1, y2 ] = [ yScale(v1.y), yScale(v2.y) ]
 			const fontSize = '0.6em'
-			const leftLabel = series.label + ' ' + v1.y
-			const rightLabel = v2.y + ' ' + series.label
+			const leftLabel = series.label + ' ' + tickFormat(v1.y)
+			const rightLabel = tickFormat(v2.y) + ' ' + series.label
 			const leftLabelBounds = Bounds.forText(leftLabel, { fontSize: fontSize })
 			const rightLabelBounds = Bounds.forText(rightLabel, { fontSize: fontSize })
 
-			slopeData.push({ x1: x1, y1: y1, x2: x2, y2: y2,
+			slopeData.push({ x1: x1, y1: y1, x2: x2, y2: y2, color: series.color,
+							 size: sizeScale(series.size||1),
 							 leftLabel: leftLabel, rightLabel: rightLabel,
 							 leftLabelBounds: leftLabelBounds, rightLabelBounds: rightLabelBounds,
 							 labelFontSize: fontSize, key: series.key, isFocused: false,
@@ -246,7 +254,7 @@ class SlopeChart extends Component {
 	@computed get slopeData() : SlopeProps[] {
 		const { maxLabelWidth } = this
 		const { focusKey } = this.state		
-		const slopeData = this.initialSlopeData
+		let slopeData = this.initialSlopeData
 
 		// Position lines and labels to account for each other
 		_.each(slopeData, (slope) => {
@@ -260,7 +268,7 @@ class SlopeChart extends Component {
 		// Eliminate overlapping labels
 		_.each(slopeData, (s1) => {
 			_.each(slopeData, (s2) => {
-				if (s1 !== s2 && s1.hasLabel && s2.hasLabel && !s2.isFocused) {
+				if (s1 !== s2 && s1.hasLabel && s2.hasLabel && !s2.isFocused && (s1.size >= s2.size || s1.isFocused)) {
 					const isConflict = (s1.leftLabelBounds.intersects(s2.leftLabelBounds) ||
 										s1.rightLabelBounds.intersects(s2.rightLabelBounds))
 					if (isConflict)
@@ -268,6 +276,10 @@ class SlopeChart extends Component {
 				}
 			})
 		})
+
+		// Order by focus and size for draw order
+		slopeData = _.sortBy(slopeData, (slope) => slope.size)
+		slopeData = _.sortBy(slopeData, (slope) => slope.isFocused ? 1 : 0)
 
 		return slopeData		
 	}
@@ -309,6 +321,8 @@ type SlopeProps = {
 	y1: number,
 	x2: number,
 	y2: number,
+	color: string,
+	size: number,
 	hasLabel: boolean,
 	leftLabel: string,
 	rightLabel: string,
@@ -322,73 +336,76 @@ class Slope extends Component {
 	props: SlopeProps
 
 	render() {
-		const { x1, y1, x2, y2, hasLabel, leftLabel, rightLabel, labelFontSize, leftLabelBounds, rightLabelBounds, isFocused } = this.props
-		const lineColor = '#89C9CF'
+		const { x1, y1, x2, y2, color, size, hasLabel, leftLabel, rightLabel, labelFontSize, leftLabelBounds, rightLabelBounds, isFocused } = this.props
+		const lineColor = color //'#89C9CF'
 		const labelColor = '#333'
 
-		return <g>
+		return <g onMouseEnter={this.props.onMouseEnter}>
 			{ hasLabel ? <text x={leftLabelBounds.x} y={leftLabelBounds.y} font-size={labelFontSize} fill={labelColor}>{leftLabel}</text> : '' }
-			<circle cx={x1} cy={y1} r={isFocused ? 6 : 3} fill={lineColor}/>
-			<line x1={x1} y1={y1} x2={x2} y2={y2} stroke={lineColor} stroke-width={isFocused ? 2 : 1}/>
-			<circle cx={x2} cy={y2} r={isFocused ? 6 : 3} fill={lineColor}/>
+			<circle cx={x1} cy={y1} r={isFocused ? 4*size : 2*size} fill={lineColor}/>
+			<line x1={x1} y1={y1} x2={x2} y2={y2} stroke={lineColor} stroke-width={isFocused ? 2*size : size}/>
+			<circle cx={x2} cy={y2} r={isFocused ? 4*size : 2*size} fill={lineColor}/>
 			{ hasLabel ? <text x={rightLabelBounds.x} y={rightLabelBounds.y} font-size={labelFontSize} fill={labelColor}>{rightLabel}</text> : '' }
 		</g>
 	}
 }
 
-class SlopeDataTransform {
-	@observable minYear = null
-	@observable maxYear = null
-	@observable dimensions = []
-
-	@computed get output() {		
-		const dimension = _.findWhere(this.dimensions, { property: 'y' })
-		const { years, entities, values, entityKey } = dimension.variable
-		const minYear = _.isFinite(this.minYear) ? this.minYear : _.first(years)
-		const maxYear = _.isFinite(this.maxYear) ? this.maxYear :  _.last(years)
-		const seriesByEntity = new Map()
-
-		for (let i = 0; i < years.length; i++) {
-			const year = years[i]
-			const entityId = entities[i]
-			const value = values[i]
-			const entity = entityKey[entityId]
-
-			if (year != minYear && year != maxYear)
-				continue
-
-			const series = seriesByEntity.get(entityId) || {
-				label: entity.name,
-				key: owid.makeSafeForCSS(entity.name),
-				values: []
-			}
-			seriesByEntity.set(entityId, series)
-
-			series.values.push({
-				x: year,
-				y: value
-			})
-		}
-
-		// Filter to remove single points
-		const data = _.filter(Array.from(seriesByEntity.values()), (series) => series.values.length >= 2)
-
-		return { data: data, minYear: minYear, maxYear: maxYear }
-	}
-}
-
 export default function() {
 	const slopeChart = dataflow()
-	const transform = new SlopeDataTransform()
 	let rootNode = null;
 
 	slopeChart.needs('containerNode', 'bounds', 'axes', 'dimensions', 'minYear', 'maxYear')
 
-	slopeChart.flow('containerNode, bounds, axes, dimensions, minYear, maxYear', function(containerNode, bounds, axes, dimensions, minYearOverride, maxYearOverride) {
-		transform.dimensions = dimensions
-		transform.minYear = minYearOverride
-		transform.maxYear = maxYearOverride
-		const {data, minYear, maxYear} = transform.output
+	slopeChart.flow('containerNode, bounds, axes, dimensions, minYear, maxYear', function(containerNode, bounds, axes, dimensions, minYear, maxYear) {
+		const variables = _.pluck(dimensions, 'variable')
+		let obvs = []
+		_.each(variables, (v) => {
+			for (var i = 0; i < v.years.length; i++) {
+				let d = { year: v.years[i], entity: v.entities[i] }
+				d[v.id] = v.values[i]
+				obvs.push(d)
+			}
+		})
+		const entityKey = variables[0].entityKey
+
+		const sizeDim = _.findWhere(dimensions, { property: 'size' })||{}
+		const colorDim = _.findWhere(dimensions, { property: 'color' })||{}
+		const yDim = _.findWhere(dimensions, { property: 'y' })||{}
+
+        const colorScheme = [ // TODO less ad hoc color scheme (probably would have to annotate the datasets)
+                "#5675c1", // Africa
+                "#aec7e8", // Antarctica
+                "#d14e5b", // Asia
+                "#ffd336", // Europe
+                "#4d824b", // North America
+                "#a652ba", // Oceania
+                "#69c487", // South America
+                "#ff7f0e", "#1f77b4", "#ffbb78", "#2ca02c", "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b", "c49c94", "e377c2", "f7b6d2", "7f7f7f", "c7c7c7", "bcbd22", "dbdb8d", "17becf", "9edae5", "1f77b4"]
+
+        const colorScale = d3.scaleOrdinal().range(colorScheme)
+        if (colorDim.variable)
+	        colorScale.domain(colorDim.variable.categoricalValues)
+
+		let data = new Observations(obvs)
+
+		minYear = _.isFinite(minYear) ? minYear : data.minValue('year')
+		maxYear = _.isFinite(maxYear) ? maxYear : data.maxValue('year')
+
+		data = data.mergeBy('entity', (rows : Observations, entity : string) => {
+			return {
+				label: entityKey[entity].name,
+				key: owid.makeSafeForCSS(entityKey[entity].name),
+				color: colorScale(rows.first(colorDim.variableId)),
+				size: rows.first(sizeDim.variableId),
+				values: rows.filter((d) => d.year == minYear || d.year == maxYear).mergeBy('year').map((d) => {
+					return {
+						x: d.year,
+						y: d[yDim.variableId]
+					}
+				}).toArray()
+			}
+		}).filter((d) => d.values.length >= 2).toArray()
+		console.log(data)
 
 		let bbounds = new Bounds(bounds.left, bounds.top, bounds.width, bounds.height).pad(10)
 		rootNode = render(<SlopeChart bounds={bbounds} axes={axes} data={data} minYear={minYear} maxYear={maxYear}/>, containerNode, rootNode)
