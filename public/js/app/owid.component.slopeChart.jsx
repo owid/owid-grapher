@@ -240,7 +240,7 @@ class SlopeChart extends Component {
 							 leftLabel: leftLabel, rightLabel: rightLabel,
 							 leftLabelBounds: leftLabelBounds, rightLabelBounds: rightLabelBounds,
 							 labelFontSize: fontSize, key: series.key, isFocused: false,
-							 hasLabel: true })
+							 hasLeftLabel: true, hasRightLabel: true })
 		})
 
 		return slopeData
@@ -267,14 +267,35 @@ class SlopeChart extends Component {
 			slope.rightLabelBounds = slope.rightLabelBounds.extend({ x: slope.x2+8, y: slope.y2+slope.rightLabelBounds.height/4 })		
 		})
 
-		// Eliminate overlapping labels
+		// Eliminate overlapping labels, one pass for each side
 		_.each(slopeData, (s1) => {
 			_.each(slopeData, (s2) => {
-				if (s1 !== s2 && s1.hasLabel && s2.hasLabel && !s2.isFocused && (s1.size >= s2.size || s1.isFocused)) {
-					const isConflict = (s1.leftLabelBounds.intersects(s2.leftLabelBounds) ||
-										s1.rightLabelBounds.intersects(s2.rightLabelBounds))
-					if (isConflict)
-						s2.hasLabel = false
+				let hasPriority = true
+				if (!s1.isFocused && s2.isFocused)
+					hasPriority = false
+				else if (s1.size < s2.size)
+					hasPriority = false
+
+				if (s1 !== s2 && s1.hasLeftLabel && s2.hasLeftLabel && hasPriority) {
+					if (s1.leftLabelBounds.intersects(s2.leftLabelBounds))
+						s2.hasLeftLabel = false
+				}
+			})
+		})
+
+		_.each(slopeData, (s1) => {
+			_.each(slopeData, (s2) => {
+				let hasPriority = true
+				if (!s1.isFocused && s2.isFocused)
+					hasPriority = false
+				else if (s1.size < s2.size)
+					hasPriority = false
+				else if (!s1.hasLeftLabel && s2.hasLeftLabel)
+					hasPriority = false
+
+				if (s1 !== s2 && s1.hasRightLabel && s2.hasRightLabel && hasPriority) {
+					if (s1.rightLabelBounds.intersects(s2.rightLabelBounds))
+						s2.hasRightLabel = false
 				}
 			})
 		})
@@ -350,7 +371,8 @@ type SlopeProps = {
 	y2: number,
 	color: string,
 	size: number,
-	hasLabel: boolean,
+	hasLeftLabel: boolean,
+	hasRightLabel: boolean,
 	leftLabel: string,
 	rightLabel: string,
 	labelFontSize: string,
@@ -363,17 +385,17 @@ class Slope extends Component {
 	props: SlopeProps
 
 	render() {
-		const { x1, y1, x2, y2, color, size, hasLabel, leftLabel, rightLabel, labelFontSize, leftLabelBounds, rightLabelBounds, isFocused } = this.props
+		const { x1, y1, x2, y2, color, size, hasLeftLabel, hasRightLabel, leftLabel, rightLabel, labelFontSize, leftLabelBounds, rightLabelBounds, isFocused } = this.props
 		const lineColor = color //'#89C9CF'
 		const labelColor = '#333'
 		const opacity = isFocused ? 1 : 0.7
 
 		return <g>
-			{ hasLabel ? <text x={leftLabelBounds.x} y={leftLabelBounds.y} font-size={labelFontSize} fill={labelColor}>{leftLabel}</text> : '' }
+			{ hasLeftLabel ? <text x={leftLabelBounds.x+leftLabelBounds.width} y={leftLabelBounds.y} text-anchor="end" font-size={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{leftLabel}</text> : '' }
 			<circle cx={x1} cy={y1} r={isFocused ? 6 : 3} fill={lineColor} opacity={opacity}/>
 			<line x1={x1} y1={y1} x2={x2} y2={y2} stroke={lineColor} stroke-width={isFocused ? 2*size : size} opacity={opacity}/>
 			<circle cx={x2} cy={y2} r={isFocused ? 6 : 3} fill={lineColor} opacity={opacity}/>
-			{ hasLabel ? <text x={rightLabelBounds.x} y={rightLabelBounds.y} font-size={labelFontSize} fill={labelColor}>{rightLabel}</text> : '' }
+			{ hasRightLabel ? <text x={rightLabelBounds.x} y={rightLabelBounds.y} font-size={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{rightLabel}</text> : '' }
 		</g>
 	}
 }
@@ -419,6 +441,15 @@ export default function() {
 		minYear = _.isFinite(minYear) ? minYear : data.minValue('year')
 		maxYear = _.isFinite(maxYear) ? maxYear : data.maxValue('year')
 
+		// Make sure we're using time bounds that actually contain data
+		const longestRange = data.filter((d) => _.isFinite(d[yDim.variableId]))
+			.mergeBy('entity', (rows) => rows.pluck('year'))
+			.sortBy((d) => _.last(d)-_.first(d))
+			.last()
+
+		minYear = Math.max(minYear, _.first(longestRange))
+		maxYear = Math.min(maxYear, _.last(longestRange))
+
 		data = data.mergeBy('entity', (rows : Observations, entity : string) => {
 			return {
 				label: entityKey[entity].name,
@@ -432,11 +463,9 @@ export default function() {
 					}
 				}).toArray()
 			}
-		}).filter((d) => d.values.length >= 2).toArray()
-		console.log(data)
-
+		}).filter((d) => d.values.length >= 2)
 		let bbounds = new Bounds(bounds.left, bounds.top, bounds.width, bounds.height).pad(10)
-		rootNode = render(<SlopeChart bounds={bbounds} axes={axes} data={data} minYear={minYear} maxYear={maxYear}/>, containerNode, rootNode)
+		rootNode = render(<SlopeChart bounds={bbounds} axes={axes} data={data.toArray()} minYear={minYear} maxYear={maxYear}/>, containerNode, rootNode)
 	})
 
 	slopeChart.beforeClean(function() {

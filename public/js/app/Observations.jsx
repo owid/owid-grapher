@@ -21,6 +21,10 @@ export default class Observations {
 		return new Observations(_.map(_.groupBy(this.data, (d) => d[key]), (arr, key) => mergeF(new Observations(arr), key)))
 	}
 
+	sortBy(sortF : (any) => number) {
+		return new Observations(_.sortBy(this.data, sortF))
+	}
+
 	filter(filterF : (Object) => boolean) {
 		return new Observations(_.filter(this.data, filterF))
 	}
@@ -41,11 +45,25 @@ export default class Observations {
 		return _.max(_.pluck(this.data, key))
 	}
 
-	first(key : string) {
-		return (_.find(this.data, (d) => d[key] !== undefined)||{})[key]
+	first(key? : string) {
+		if (key == null)
+			return _.first(this.data)
+		else
+			return (_.find(this.data, (d) => d[key] !== undefined)||{})[key]
+	}
+
+	last(key? : string) {
+		if (key == null)
+			return _.last(this.data)
+//		else
+//			return (_.find(this.data, (d) => d[key] !== undefined)||{})[key]
 	}
 
 	toArray() {
 		return this.data
+	}
+
+	pluck(key : string) {
+		return _.pluck(this.data, key)
 	}
 }

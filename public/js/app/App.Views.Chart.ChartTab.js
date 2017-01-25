@@ -272,7 +272,6 @@
 			];
 
 			var chartTime = chart.model.get('chart-time')||[]
-			console.log(chartTime)
 			viz.update({
 				containerNode: chart.svg.node(),
 				bounds: bounds,
