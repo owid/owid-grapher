@@ -1,3 +1,8 @@
+import {h, render, Component} from 'preact'
+import {SlopeChart} from './SlopeChart'
+import {SlopeChartTransform} from './SlopeChartTransform'
+import Bounds from './Bounds'
+
 ;(function() {
 	"use strict";
 	owid.namespace("owid.tab.chart");
@@ -229,10 +234,8 @@
 			}
 		}
 
+		var rootNode = null, slopeChartTransform = new SlopeChartTransform();
 		function renderSlopeChart() {
-			if (!viz)
-				viz = owid.component.slopeChart();
-			
             var xDomain = [], yDomain = [];
 
             if (_.isFinite(xAxisMin) && (xAxisMin > 0 || xAxisScale != "log"))
@@ -263,26 +266,15 @@
 
 			chartTab.viz = viz;
 
-			let bounds = owid.bounds(chartOffsetX, chartOffsetY+10, chartWidth-10, chartHeight-10)
-
-			var axes = [
-				_.extend({}, chartTab.axisConfig.y, { orient: 'left' }),
-				_.extend({}, chartTab.axisConfig.y, { orient: 'right' }),
-				_.extend({}, chartTab.axisConfig.x, { orient: 'bottom' })	
-			];
+			let bounds = new Bounds(chartOffsetX, chartOffsetY+10, chartWidth-10, chartHeight-10)
 
 			var chartTime = chart.model.get('chart-time')||[]
-			viz.update({
-				containerNode: chart.svg.node(),
-				bounds: bounds,
-				axes: axes,
-				dimensions: chart.model.getDimensions(),
-				minYear: +chartTime[0],
-				maxYear: +chartTime[1]
-                //timelineConfig: chart.model.get('timeline')
-			}, function() {
-				postRender();
-			});						
+
+			const {tickFormat} = chartTab.axisConfig.y
+			const props = slopeChartTransform.getProps({ dimensions: chart.model.getDimensions(), xDomain: chartTime })			
+			
+			rootNode = render(<SlopeChart bounds={bounds} yDomain={yDomain} yTickFormat={tickFormat} yScaleType="linear" {...props}/>, chart.svg.node(), rootNode)
+			postRender();
 		}
 
 		function renderLineChart() {

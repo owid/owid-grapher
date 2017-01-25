@@ -3,9 +3,8 @@
 import * as _ from '../libs/underscore'
 import * as d3 from '../libs/d3.v4'
 import owid from '../owid'
-import dataflow from './owid.dataflow'
-import {h, render, Component} from 'preact'
-import { observable, computed, asFlat } from 'mobx'
+import { h, render, Component } from 'preact'
+import {observable, computed, asFlat} from 'mobx'
 import Bounds from './Bounds'
 import type {SVGElement} from './Util'
 import Layout from './Layout'
@@ -13,15 +12,13 @@ import NoData from './NoData'
 import Observations from './Observations'
 window.Observations = Observations
 
-class Scales {
-	xScale: any
-	yScale: any
-
-	constructor(xScale, yScale) {
-		this.xScale = xScale
-		this.yScale = yScale
-	}
-}
+export type SlopeChartSeries = {
+	label: string,
+	key: string,
+	color: string,
+	size: number,
+	values: { x: number, y: number }[]
+};
 
 type AxisProps = {
 	bounds: Bounds,
@@ -31,17 +28,16 @@ type AxisProps = {
 };
 
 class Axis extends Component {
-	/*static calculateBounds(containerBounds : Bounds, props : AxisProps) {
-		return containerBounds
+	static calculateBounds(containerBounds : Bounds, props : any) {
 		const {orient, scale} = props
 
-		if (orient == 'left' || orient == 'right') {
-			const longestTick = _.sortBy(scales.yScale.ticks(6), (tick) => -tick.length)[0]
+//		if (orient == 'left' || orient == 'right') {
+			const longestTick = _.sortBy(scale.ticks(6), (tick) => -tick.length)[0]
 			return new Bounds(containerBounds.x, containerBounds.y, Bounds.forText(longestTick).width, containerBounds.height)
-		} else {
+//		} else {
 //			return new Bounds(containerBounds.x, containerBounds.y, 0, containerBounds.height)
-		}
-	}*/
+//		}
+	}
 
 	props: AxisProps
 
@@ -76,15 +72,7 @@ class AligningText extends Component {
 	}
 }
 
-type AxisConfig = {	
-	orient: 'left' | 'right' | 'top' | 'bottom',
-	domain: [number, number],
-	scaleType: 'log' | 'linear',
-	label: string,
-	tickFormat: (number) => string
-};
-
-class AxisLayout {
+/*class AxisLayout {
 	xAxes: AxisConfig[]
 	yAxes: AxisConfig[]
 	innerScales: Scales
@@ -147,7 +135,7 @@ class AxisLayout {
 		})[0]
 		return Bounds.forText(longestLabel).height
 	}
-}
+}*/
 
 class Gridlines extends Component {
 	props: {
@@ -169,11 +157,13 @@ class Gridlines extends Component {
 	}
 }
 
-class SlopeChart extends Component {
+export class SlopeChart extends Component {
 	props: {
-		axes: AxisConfig[],
 		bounds: Bounds,
-		data: { label: string, values: { x: number, y: number }[] }[]
+		data: SlopeChartSeries[],
+		yDomain: [number, number],
+		yTickFormat: (number) => string,
+		yScaleType: 'log' | 'linear'
 	}
 
 	state: {
@@ -186,8 +176,12 @@ class SlopeChart extends Component {
 	@observable props = asFlat({})
 	@observable state = asFlat({})
 
-	@computed get isPortrait() {
-		return this.props.bounds.height > this.props.bounds.width
+	@computed get bounds() : Bounds {
+		return this.props.bounds
+	}
+
+	@computed get isPortrait() : boolean {
+		return this.bounds.height > this.bounds.width
 	}
 
 	@computed get xDomainDefault() : [number, number] {
@@ -198,32 +192,38 @@ class SlopeChart extends Component {
 		return d3.extent(_.pluck(_.flatten(_.pluck(this.props.data, 'values')), 'y'))
 	}
 
-	@computed get axisLayout() : AxisLayout {
-		const { axes, data, bounds } = this.props
-		const { xDomainDefault, yDomainDefault } = this
-		return new AxisLayout(axes, bounds.padBottom(20), { xDomainDefault: xDomainDefault, yDomainDefault: yDomainDefault })
-	}
-
 	@computed get xDomain() : [number, number] {
-		return this.axisLayout.innerScales.xScale.domain()
+		return this.xDomainDefault
 	}
 
 	@computed get yDomain() : [number, number] {
-		return this.axisLayout.innerScales.yScale.domain()
+		return _.extend([], this.yDomainDefault, this.props.yDomain)
 	}
 
-	@computed get sizeScale() {
+	@computed get sizeScale() : any {
 		return d3.scaleLinear().domain(d3.extent(_.pluck(this.props.data, 'size'))).range([1, 3])
 	}
 
+	@computed get yScaleConstructor() : any {
+		return this.props.yScaleType == 'log' ? d3.scaleLog : d3.scaleLinear
+	}
+
+	@computed get yScale() : any {
+		return this.yScaleConstructor().domain(this.yDomain).range(this.props.bounds.padBottom(50).yRange())
+	}
+
+	@computed get xScale() : any {
+		const {bounds, isPortrait, xDomain, yScale} = this
+		const padding = isPortrait ? 0 : Axis.calculateBounds(bounds, { orient: 'left', scale: yScale }).width*2
+		return d3.scaleLinear().domain(xDomain).range(bounds.padWidth(padding).xRange())
+	}
+
 	@computed get initialSlopeData() : SlopeProps[] {
-		const { axes, data, bounds } = this.props
-		const { sizeScale, axisLayout } = this
+		const { data, yTickFormat } = this.props
+		const { bounds, isPortrait, xScale, yScale, sizeScale } = this
 
 		const slopeData : SlopeProps[] = []
-		const { xScale, yScale } = axisLayout.innerScales
 		const yDomain = yScale.domain()
-		const tickFormat = axes[0].tickFormat
 
 		_.each(data, (series) => {
 			// Ensure values fit inside the chart
@@ -233,9 +233,9 @@ class SlopeChart extends Component {
 			const [ v1, v2 ] = series.values
 			const [ x1, x2 ] = [ xScale(v1.x), xScale(v2.x) ]
 			const [ y1, y2 ] = [ yScale(v1.y), yScale(v2.y) ]
-			const fontSize = '0.6em'
-			const leftLabel = series.label + ' ' + tickFormat(v1.y)
-			const rightLabel = tickFormat(v2.y) + ' ' + series.label
+			const leftLabel = series.label + ' ' + yTickFormat(v1.y)
+			const rightLabel = yTickFormat(v2.y) + ' ' + series.label
+			const fontSize = (isPortrait ? 0.4 : 0.6)*(leftLabel.length > 25 ? 0.7 : 1) + 'em'
 			const leftLabelBounds = Bounds.forText(leftLabel, { fontSize: fontSize })
 			const rightLabelBounds = Bounds.forText(rightLabel, { fontSize: fontSize })
 
@@ -311,14 +311,6 @@ class SlopeChart extends Component {
 		return slopeData		
 	}
 
-	// The bounds for the slope lines themselves, inside the axes and labels
-	@computed get slopeBounds() : Bounds {
-		const { maxLabelWidth, axisLayout } = this
-		const { innerBounds } = axisLayout
-
-		return innerBounds.padLeft(maxLabelWidth).padRight(maxLabelWidth)
-	}
-
 	componentDidMount() {
 		this.svg = this.g.parentNode
 
@@ -342,25 +334,24 @@ class SlopeChart extends Component {
 	}
 
     render() {
-    	const { axes, bounds } = this.props
-    	const { axisLayout, slopeData, slopeBounds, xDomain } = this
-    	const { innerScales } = axisLayout
+    	const { yTickFormat, bounds } = this.props
+    	const { slopeData, isPortrait, xDomain, xScale, yScale } = this
 
     	if (_.isEmpty(slopeData))
     		return <NoData bounds={bounds}/>
 
 	    return (
 	    	<g class="slopeChart" ref={(g) => this.g = g}>
-	    		<Gridlines axisLayout={axisLayout}/>
-	    		{ !isPortrait ? <Axis orient='left' tickFormat={axes[0].tickFormat} scale={innerScales.yScale} bounds={bounds}/> : '' }
-	    		{ !isPortrait ? <Axis orient='right' tickFormat={axes[1].tickFormat} scale={innerScales.yScale} bounds={bounds}/> : '' }
+	    		{/*<Gridlines axisLayout={axisLayout}/>*/}	    		
+	    		{ !isPortrait ? <Axis orient='left' tickFormat={yTickFormat} scale={yScale} bounds={bounds}/> : '' }
+	    		{ !isPortrait ? <Axis orient='right' tickFormat={yTickFormat} scale={yScale} bounds={bounds}/> : '' }
 				<g class="slopes">
 					{_.map(slopeData, (slope) => {
 				    	return <Slope {...slope} />
 			    	})}	
 				</g>
-	    		<text x={slopeBounds.left} y={slopeBounds.bottom+10} text-anchor="middle" dominant-baseline="hanging" fill="#666">{xDomain[0]}</text>
-	    		<text x={slopeBounds.right} y={slopeBounds.bottom+10} text-anchor="middle" dominant-baseline="hanging" fill="#666">{xDomain[1]}</text>
+	    		<text x={slopeData[0].x1} y={yScale.range()[0]+10} text-anchor="middle" dominant-baseline="hanging" fill="#666">{xDomain[0]}</text>
+	    		<text x={slopeData[0].x2} y={yScale.range()[0]+10} text-anchor="middle" dominant-baseline="hanging" fill="#666">{xDomain[1]}</text>
 	    		{/*<line x1={slopeBounds.left} y1={slopeBounds.top} x2={slopeBounds.left} y2={slopeBounds.bottom} stroke="black"/>
 	    		<line x1={slopeBounds.right} y1={slopeBounds.top} x2={slopeBounds.right} y2={slopeBounds.bottom} stroke="black"/>*/}
 		    </g>

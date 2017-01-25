@@ -72,7 +72,7 @@ export default class Bounds {
 	}
 
 	padWidth(amount: number): Bounds {
-		return new Bounds(this.x+amount, this.y, this.width-amount, this.height)
+		return new Bounds(this.x+amount, this.y, this.width-amount*2, this.height)
 	}
 
 	pad(amount: number): Bounds {
@@ -100,6 +100,14 @@ export default class Bounds {
 
 	toCSS() : { left: string, top: string, width: string, height: string } {
 		return { left: this.left+'px', top: this.top+'px', width: this.width+'px', height: this.height+'px'}
+	}
+	
+	xRange() : [number, number] {
+		return [this.left, this.right]
+	}
+
+	yRange() : [number, number] {
+		return [this.bottom, this.top]
 	}
 }
 
