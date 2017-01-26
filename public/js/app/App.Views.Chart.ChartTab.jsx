@@ -1,3 +1,4 @@
+import React from 'react'
 import {h, render, Component} from 'preact'
 import {SlopeChart} from './SlopeChart'
 import {SlopeChartTransform} from './SlopeChartTransform'
@@ -78,13 +79,14 @@ import Bounds from './Bounds'
 			chartWidth = bounds.width;		
 
 			configureTab();
-			configureData();
+			if (chart.model.get('chart-type') != App.ChartType.SlopeChart && chart.model.get('chart-type') != App.ChartType.ScatterPlot)
+				configureData();
 			configureAxis();
 			renderLegend();
 //			renderTimeline();
 
 			$(".chart-error").remove();
-			if (missingMsg || (_.isEmpty(localData) && chartType != App.ChartType.ScatterPlot)) {
+			if (missingMsg || (_.isEmpty(localData) && chartType != App.ChartType.ScatterPlot && chartType != App.ChartType.SlopeChart)) {
 				chart.el.selectAll(".nv-wrap").remove();
 				chart.showMessage(missingMsg || "No available data.");
 				return;

@@ -203,7 +203,9 @@ var Bounds = require('./Bounds').default
 				chart.now('el, header, controlsFooter, creditsFooter, primaryTab, overlayTab, innerBounds, scale, loadingIcon', function(el, header, controlsFooter, creditsFooter, primaryTab, overlayTab, innerBounds, scale, loadingIcon) {
 					loadingIcon.classed('hidden', false);
 
-					chart.data.transformData();
+					if (chart.model.get('chart-type') != App.ChartType.SlopeChart && chart.model.get('chart-type') != App.ChartType.ScatterPlot)
+						chart.data.transformData();
+					
 					var bounds = innerBounds.pad(15);
 
 					header.render(bounds);

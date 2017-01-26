@@ -29,22 +29,39 @@ export default class Bounds {
 		return new Bounds(0,0,0,0)
 	}
 
-	static textBoundsCache = new Map()
-	static forText(str: string, { fontSize = '' }={}): Bounds {
+	static textBoundsCache : Map<string, Bounds>
+	static ctx : any
+	static baseFontSize : number
+
+	static forText(str: string, { fontSize = '1em' }={}): Bounds {
+		this.textBoundsCache = this.textBoundsCache || new Map()
+		this.ctx = this.ctx || document.createElement('canvas').getContext('2d')
+		this.baseFontSize = this.baseFontSize || parseFloat(d3.select('svg').style('font-size'))
+
+		if (s.contains(fontSize, 'em'))
+			fontSize = this.baseFontSize*parseFloat(fontSize)+'px'
+
 		const key = str+'-'+fontSize
+		const fontFace = "Arial"
+
 		let bounds = this.textBoundsCache.get(key)
 		if (bounds) return bounds
 
-		const update = d3.select('svg').selectAll('.tmpTextCalc').data([str]);
+	    this.ctx.font = fontSize + ' ' + fontFace;
+		const m = this.ctx.measureText(str)
+
+		/*const update = d3.select('svg').selectAll('.tmpTextCalc').data([str]);
 
 		const text = update.enter().append('text')
 			.attr('class', 'tmpTextCalc')
 			.attr('opacity', 0)
 			.merge(update)
   			  .attr('font-size', fontSize)
-			  .text(function(d) { return d; });
+			  .text(function(d) { return d; });*/
 
-		bounds = Bounds.fromProps(text.node().getBBox())
+
+
+		bounds = new Bounds(0, 0, m.width, str == "M" ? m.width : Bounds.forText("M", { fontSize: fontSize }).height).padWidth(-1).padHeight(-1)
 		this.textBoundsCache.set(key, bounds)
 		return bounds
 	}
@@ -73,6 +90,10 @@ export default class Bounds {
 
 	padWidth(amount: number): Bounds {
 		return new Bounds(this.x+amount, this.y, this.width-amount*2, this.height)
+	}
+
+	padHeight(amount: number): Bounds {
+		return new Bounds(this.x, this.y+amount, this.width, this.height-amount*2)
 	}
 
 	pad(amount: number): Bounds {

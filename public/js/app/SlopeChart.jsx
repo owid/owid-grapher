@@ -3,8 +3,9 @@
 import * as _ from '../libs/underscore'
 import * as d3 from '../libs/d3.v4'
 import owid from '../owid'
-import { h, render, Component } from 'preact'
-import {observable, computed, asFlat} from 'mobx'
+import React, { createElement, Component } from 'react'
+import {observable, computed, asFlat, action, spy} from 'mobx'
+import {observer} from 'mobx-react'
 import Bounds from './Bounds'
 import type {SVGElement} from './Util'
 import Layout from './Layout'
@@ -141,7 +142,7 @@ class AligningText extends Component {
 	}
 }*/
 
-export class SlopeChart extends Component {
+@observer export class SlopeChart extends Component {
 	props: {
 		bounds: Bounds,
 		data: SlopeChartSeries[],
@@ -150,15 +151,20 @@ export class SlopeChart extends Component {
 		yScaleType: 'log' | 'linear'
 	}
 
-	state: {
-		focusKey: ?string
-	}
-
 	base: SVGElement
 	svg: SVGElement
 
 	@observable props = asFlat({})
-	@observable state = asFlat({})
+
+	@observable focusKey = null
+
+	@computed get data() : Object[] {
+		return this.props.data
+	}
+
+	@computed get yTickFormat() : (number) => string {
+		return this.props.yTickFormat
+	}
 
 	@computed get bounds() : Bounds {
 		return this.props.bounds
@@ -203,8 +209,7 @@ export class SlopeChart extends Component {
 	}
 
 	@computed get initialSlopeData() : SlopeProps[] {
-		const { data, yTickFormat } = this.props
-		const { bounds, isPortrait, xScale, yScale, sizeScale } = this
+		const { data, bounds, isPortrait, xScale, yScale, sizeScale, yTickFormat } = this
 
 		const slopeData : SlopeProps[] = []
 		const yDomain = yScale.domain()
@@ -240,19 +245,31 @@ export class SlopeChart extends Component {
 		return _.max(_.map(this.initialSlopeData, (slope) => slope.leftLabelBounds.width))		
 	}
 
+	@computed get labelAccountedSlopeData() {
+		const {maxLabelWidth} = this
+
+		return _.map(this.initialSlopeData, (slope) => {
+			const x1 = slope.x1+maxLabelWidth+8
+			const x2 = slope.x2-maxLabelWidth-8
+
+			return _.extend({}, slope, {
+				x1: x1,
+				x2: x2,
+				leftLabelBounds: slope.leftLabelBounds.extend({ x: x1-8-slope.leftLabelBounds.width, y: slope.y1+slope.leftLabelBounds.height/4 }),
+				rightLabelBounds: slope.rightLabelBounds.extend({ x: x2+8, y: slope.y2+slope.rightLabelBounds.height/4 })							
+			})			
+		})
+	}
+
 	// Get the final slope data with hover focusing and collision detection
 	@computed get slopeData() : SlopeProps[] {
-		const { maxLabelWidth } = this
-		const { focusKey } = this.state		
-		let slopeData = this.initialSlopeData
+		const { focusKey } = this
+		let slopeData = this.labelAccountedSlopeData
 
-		// Position lines and labels to account for each other
-		_.each(slopeData, (slope) => {
-			slope.isFocused = slope.key == focusKey
-			slope.x1 = slope.x1+maxLabelWidth+8
-			slope.x2 = slope.x2-maxLabelWidth-8
-			slope.leftLabelBounds = slope.leftLabelBounds.extend({ x: slope.x1-8-slope.leftLabelBounds.width, y: slope.y1+slope.leftLabelBounds.height/4 })
-			slope.rightLabelBounds = slope.rightLabelBounds.extend({ x: slope.x2+8, y: slope.y2+slope.rightLabelBounds.height/4 })		
+		slopeData = _.map(slopeData, (slope) => {
+			return _.extend({}, slope, {
+				isFocused: slope.key == focusKey,
+			})
 		})
 
 		// How to work out which of two slopes to prioritize for labelling conflicts
@@ -300,7 +317,7 @@ export class SlopeChart extends Component {
 		slopeData = _.sortBy(slopeData, (slope) => slope.size)
 		slopeData = _.sortBy(slopeData, (slope) => slope.isFocused ? 1 : 0)
 
-		return slopeData		
+		return slopeData
 	}
 
 	componentDidMount() {
@@ -313,12 +330,15 @@ export class SlopeChart extends Component {
 					const distToLine = Math.abs((slope.y2-slope.y1)*mouse[0] - (slope.x2-slope.x1)*mouse[1] + slope.x2*slope.y1 - slope.y2*slope.x1) / Math.sqrt((slope.y2-slope.y1)**2 + (slope.x2-slope.x1)**2)
 					return distToLine
 				})[0]
-				this.setState({ focusKey: slope.key })
+				this.focusKey = slope.key
 			} else {
-				this.setState({ focusKey: null })				
+				this.focusKey = null
 			}
 
 		})
+
+		// Nice little intro animation
+		d3.select(this.base).select(".slopes").attr('stroke-dasharray', "100%").attr('stroke-dashoffset', "100%").transition().attr('stroke-dashoffset', "0%")
 	}
 
 	componentDidUnmount() {
@@ -336,37 +356,25 @@ export class SlopeChart extends Component {
     	const [y1, y2] = yScale.range()
 
 	    return (
-	    	<Layout bounds={bounds} class="slopeChart">
+	    	<g class="slopeChart">
 				<g class="gridlines">
 					{_.map(yScale.ticks(6), (tick) => {
 						return <line x1={x1} y1={yScale(tick)} x2={x2} y2={yScale(tick)} stroke="#eee" stroke-dasharray="3,2"/>
 					})}
-				</g>		
+				</g>	
 				{ !isPortrait ? <Axis layout="left" orient="left" tickFormat={yTickFormat} scale={yScale} bounds={bounds}/> : '' }
 	    		{ !isPortrait ? <Axis layout="right" orient="right" tickFormat={yTickFormat} scale={yScale} bounds={bounds}/> : '' }
 				<g class="slopes">
 					{_.map(slopeData, (slope) => {
-				    	return <Slope {...slope} />
+				    	return <Slope key={slope.key} {...slope} />
 			    	})}
 				</g>
 	    		<text x={x1} y={y1+10} text-anchor="middle" dominant-baseline="hanging" fill="#666">{xDomain[0]}</text>
 	    		<text x={x2} y={y1+10} text-anchor="middle" dominant-baseline="hanging" fill="#666">{xDomain[1]}</text>
 	    		<line x1={x1} y1={y1} x2={x1} y2={y2} stroke="#333"/>
 	    		<line x1={x2} y1={y1} x2={x2} y2={y2} stroke="#333"/>
-		    </Layout>
+		    </g>
 	    );
-	}
-}
-
-class Gridlines extends Component {
-	render() {
-		const {yScale, bounds} = this.props
-
-		return <g class="gridlines">
-			{_.map(yScale.ticks(6), (tick) => {
-				return <line x1={bounds.left} y1={yScale(tick)} x2={bounds.right} y2={yScale(tick)} stroke="#eee" stroke-dasharray="3,2"/>
-			})}
-		</g>		
 	}
 }
 
@@ -386,17 +394,11 @@ type SlopeProps = {
 	rightLabelBounds: Bounds,
 	isFocused: boolean
 };
-	
+
+@observer
 class Slope extends Component {
 	props: SlopeProps
-	path: SVGElement
-
-	// Nice little intro animation
-	componentDidMount() {
-		const path = d3.select(this.path)
-		const length = path.node().getTotalLength()
-		d3.select(this.path).attr('stroke-dasharray', length).attr('stroke-dashoffset', length).transition().attr('stroke-dashoffset', 0)
-	}
+	line: SVGElement
 
 	render() {
 		const { x1, y1, x2, y2, color, size, hasLeftLabel, hasRightLabel, leftLabel, rightLabel, labelFontSize, leftLabelBounds, rightLabelBounds, isFocused } = this.props
@@ -404,10 +406,13 @@ class Slope extends Component {
 		const labelColor = '#333'
 		const opacity = isFocused ? 1 : 0.7
 
-		return <g>
+//		if (hasLeftLabel) owid.boundsDebug(leftLabelBounds);
+//		if (hasRightLabel) owid.boundsDebug(rightLabelBounds)
+
+		return <g class="slope">
 			{ hasLeftLabel ? <text x={leftLabelBounds.x+leftLabelBounds.width} y={leftLabelBounds.y} text-anchor="end" font-size={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{leftLabel}</text> : '' }
 			<circle cx={x1} cy={y1} r={isFocused ? 6 : 3} fill={lineColor} opacity={opacity}/>
-			<path ref={(el) => this.path = el} d={`M${x1} ${y1} L ${x2} ${y2}`} stroke={lineColor} stroke-width={isFocused ? 2*size : size} opacity={opacity}/>
+			<line ref={(el) => this.line = el} x1={x1} y1={y1} x2={x2} y2={y2} stroke={lineColor} stroke-width={isFocused ? 2*size : size} opacity={opacity}/>
 			<circle cx={x2} cy={y2} r={isFocused ? 6 : 3} fill={lineColor} opacity={opacity}/>
 			{ hasRightLabel ? <text x={rightLabelBounds.x} y={rightLabelBounds.y} font-size={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{rightLabel}</text> : '' }
 		</g>

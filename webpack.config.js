@@ -11,6 +11,10 @@ module.exports = {
     devtool: "source-map",    
   	resolve: {
         extensions: ["", ".js", ".jsx"],
+        alias: {
+            'react': 'preact-compat',
+            'react-dom': 'preact-compat'
+        },
         root: [
   	        path.join(__dirname, "public/js/libs"),
             path.join(__dirname, "node_modules"),
@@ -22,7 +26,7 @@ module.exports = {
                 test: /\.jsx$/, 
                 loader: "babel-loader",
                 query: {
-                    presets: ['es2015', 'stage-0'],
+                    presets: ['es2015', 'stage-0', 'react'],
                     plugins: ["transform-decorators-legacy"],
                     cacheDirectory: true
                 }
