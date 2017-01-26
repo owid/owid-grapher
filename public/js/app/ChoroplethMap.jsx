@@ -5,8 +5,10 @@ import * as d3 from '../libs/d3.v4'
 import owid from '../owid'
 import dataflow from './owid.dataflow'
 import Bounds from './Bounds'
-import { h, render, Component } from 'preact'
-import { observable, computed, asFlat } from 'mobx'
+import React, { Component } from 'react'
+import {observable, computed, asFlat, asStructure, autorun, action} from 'mobx'
+import {observer} from 'mobx-react'
+import {bind} from 'decko'
 
 
 export type ChoroplethData = {
@@ -20,15 +22,16 @@ export type ChoroplethData = {
 
 export type MapProjection = 'World' | 'Africa' | 'N.America' | 'S.America' | 'Asia' | 'Europe' | 'Australia';
 
+@observer
 export default class ChoroplethMap extends Component {
     props: {
         choroplethData: ChoroplethData,
-        bounds: Bounds
+        bounds: Bounds,
+        projection: string,
+        defaultFill: string
     }
 
     subunits: any
-
-    @observable props = asFlat({})
 
     @computed get geoData() {
         return topojson.feature(owid.data.world, owid.data.world.objects.world).features.filter(function(feature) {
@@ -37,12 +40,27 @@ export default class ChoroplethMap extends Component {
     }
 
     @computed get path() {
-        return App.Views.Chart.Map.Projections[this.props.projection]().path;        
+        return App.Views.Chart.Map.Projections[this.props.projection]().path;
+    }
+
+    @computed get projection() : string {
+        return this.props.projection
+    }
+
+    @computed.struct get bounds() : Bounds {
+        return this.props.bounds
+    }
+
+    @computed get choroplethData() : ChoroplethData {
+        return this.props.choroplethData
+    }
+
+    @computed get defaultFill() : string {
+        return this.props.defaultFill
     }
 
     render() {
-        const { bounds, choroplethData, defaultFill } = this.props
-        const { geoData, path } = this
+        const { bounds, choroplethData, defaultFill, geoData, path } = this
 
         return <g class="map" clip-path="url(#boundsClip)">
             <defs>
@@ -64,15 +82,12 @@ export default class ChoroplethMap extends Component {
     }
 
     componentDidMount() {
-        this.componentDidUpdate()
+        autorun(this.postRenderResize)
     }
 
-    componentDidUpdate() {
-        this.postRenderResize()       
-    }
-
+    @bind
     postRenderResize() {
-        const { bounds, projection } = this.props
+        const { bounds, projection } = this
         const bbox = this.subunits.getBBox()
 
         var viewports = {

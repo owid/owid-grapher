@@ -10,7 +10,7 @@ import type {SlopeChartSeries} from './SlopeChart'
 //spy(function(ev) { console.log(ev); })
 
 export class SlopeChartTransform {
-	@observable input = asStructure({})
+	@observable.struct input = {}
 	callback: Function
 
 	constructor() {
@@ -63,6 +63,7 @@ export class SlopeChartTransform {
 
 	@computed get calcOutput() : { data: SlopeChartSeries[] } {
 		if (_.isEmpty(this.yDim)) return { data: [] }
+		console.log("transform")
 
 		let {data, sizeDim, colorDim, yDim, xDomain} = this
 		let [minYear, maxYear] = xDomain

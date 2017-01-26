@@ -2,7 +2,7 @@
 
 import * as _ from '../libs/underscore'
 import * as d3 from '../libs/d3.v4'
-import {h, render, Component, cloneElement} from 'preact'
+import React, {Component, cloneElement} from 'react'
 import Bounds from './Bounds'
 
 export default class Layout extends Component {

@@ -4,7 +4,7 @@ import * as _ from '../libs/underscore'
 import * as d3 from '../libs/d3.v4'
 import owid from '../owid'
 import Bounds from './Bounds'
-import {h, render, Component} from 'preact'
+import React, {Component} from 'react'
 import {observable, computed, asFlat} from 'mobx'
 import type {SVGElement} from './Util'
 
