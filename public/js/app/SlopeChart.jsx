@@ -142,7 +142,8 @@ class AligningText extends Component {
 	}
 }*/
 
-@observer export class SlopeChart extends Component {
+@observer 
+export class SlopeChart extends Component {
 	props: {
 		bounds: Bounds,
 		data: SlopeChartSeries[],
@@ -153,8 +154,6 @@ class AligningText extends Component {
 
 	base: SVGElement
 	svg: SVGElement
-
-	@observable props = asFlat({})
 
 	@observable focusKey = null
 

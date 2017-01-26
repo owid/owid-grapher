@@ -273,9 +273,14 @@ import Bounds from './Bounds'
 			var chartTime = chart.model.get('chart-time')||[]
 
 			const {tickFormat} = chartTab.axisConfig.y
-			const props = slopeChartTransform.getProps({ dimensions: chart.model.getDimensions(), xDomain: chartTime })			
+
+			const props = slopeChartTransform.getProps({ dimensions: chart.model.getDimensions(), xDomain: chartTime })
+			chartTab.minYear = props.xDomain[0]
+			chartTab.maxYear = props.xDomain[1]
+
 			rootNode = render(<SlopeChart bounds={bounds} yDomain={yDomain} yTickFormat={tickFormat} yScaleType="linear" {...props}/>, chart.svg.node(), rootNode)
 			postRender();
+			chart.header.render();			
 		}
 
 		function renderLineChart() {

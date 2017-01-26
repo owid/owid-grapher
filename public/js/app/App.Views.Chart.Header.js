@@ -201,6 +201,9 @@
 		});
 
 		headerControl.render = function(bounds, done) {
+			bounds = bounds || this.cachedBounds
+			this.cachedBounds = bounds
+
 			var minYear, maxYear, disclaimer="";
 			if (chart.activeTabName == "map") {
 				chart.mapdata.update();
@@ -237,6 +240,9 @@
 			} else if (chart.model.get('chart-type') == App.ChartType.ScatterPlot) {
 				minYear = (chart.model.get('chart-time')||[])[0];
 				maxYear = (chart.model.get('chart-time')||[])[1];
+			} else if (chart.model.get('chart-type') == App.ChartType.SlopeChart) {
+				minYear = chart.tabs.chart.minYear
+				maxYear = chart.tabs.chart.maxYear
 			} else {
 				minYear = chart.data.get('minYear');
 				maxYear = chart.data.get('maxYear');

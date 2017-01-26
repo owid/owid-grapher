@@ -1,28 +1,55 @@
 // @flow
 
 import Observations from './Observations'
-import {observable, computed, asFlat} from 'mobx'
+import {observable, computed, autorun, asFlat, spy, asStructure} from 'mobx'
 import * as d3 from '../libs/d3.v4'
 import * as _ from '../libs/underscore'
 import owid from '../owid'
 import type {SlopeChartSeries} from './SlopeChart'
 
-export class SlopeChartTransform {
-	dimensions: Object[]
-	xDomain: [number, number]
+//spy(function(ev) { console.log(ev); })
 
-	getProps(opts: { dimensions: Object[], xDomain: [number, number] }) {
-		const {dimensions, xDomain} = opts
-		this.dimensions = dimensions
-		this.xDomain = xDomain
+export class SlopeChartTransform {
+	@observable input = asStructure({})
+	callback: Function
+
+	constructor() {
+		autorun(() => {
+			this.output = this.calcOutput
+			const {output} = this
+			if (this.callback)
+				this.callback(output)
+		})		
+	}
+
+	getProps(opts : { dimensions: Object[], xDomain: [number, number] }, callback : Function) {
+		this.callback = callback
+		this.input = opts
 		return this.output
 	}
 
-	@computed get output() : { data: SlopeChartSeries[] } {
-		let {dimensions, xDomain} = this
-		let [minYear, maxYear] = xDomain
+	@computed get dimensions() : Object[] {
+		return this.input.dimensions
+	}
 
-		const variables = _.pluck(dimensions, 'variable')
+	@computed get xDomain() : [number, number] {
+		return this.input.xDomain
+	}
+
+	@computed get sizeDim() : Object {
+		return _.findWhere(this.dimensions, { property: 'size' })||{}
+	}
+
+	@computed get colorDim() : Object {
+		return _.findWhere(this.dimensions, { property: 'color' })||{}
+	}
+
+	@computed get yDim() : Object {
+		return _.findWhere(this.dimensions, { property: 'y' })||{}
+	}
+
+	@computed get data() : Observations {
+		const variables = _.pluck(this.dimensions, 'variable')
 		let obvs = []
 		_.each(variables, (v) => {
 			for (var i = 0; i < v.years.length; i++) {
@@ -31,11 +58,16 @@ export class SlopeChartTransform {
 				obvs.push(d)
 			}
 		})
-		const entityKey = variables[0].entityKey
+		return new Observations(obvs)
+	}
 
-		const sizeDim = _.findWhere(dimensions, { property: 'size' })||{}
-		const colorDim = _.findWhere(dimensions, { property: 'color' })||{}
-		const yDim = _.findWhere(dimensions, { property: 'y' })||{}
+	@computed get calcOutput() : { data: SlopeChartSeries[] } {
+		if (_.isEmpty(this.yDim)) return { data: [] }
+
+		let {data, sizeDim, colorDim, yDim, xDomain} = this
+		let [minYear, maxYear] = xDomain
+		const entityKey = yDim.variable.entityKey
+
 
         const colorScheme = [ // TODO less ad hoc color scheme (probably would have to annotate the datasets)
                 "#5675c1", // Africa
@@ -51,7 +83,6 @@ export class SlopeChartTransform {
         if (colorDim.variable)
 	        colorScale.domain(colorDim.variable.categoricalValues)
 
-		let data = new Observations(obvs)
 
 		minYear = _.isFinite(minYear) ? minYear : data.minValue('year')
 		maxYear = _.isFinite(maxYear) ? maxYear : data.maxValue('year')
@@ -80,6 +111,6 @@ export class SlopeChartTransform {
 			}
 		}).filter((d) => d.values.length >= 2)
 
-		return { data: data.toArray() }
+		return { data: data.toArray(), xDomain: [minYear, maxYear] }
 	}
 }
