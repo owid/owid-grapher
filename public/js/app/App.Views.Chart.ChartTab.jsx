@@ -577,8 +577,7 @@ import Bounds from './Bounds'
 		}
 
 		function renderLegend() {
-			return;
-			if (!chart.model.get("hide-legend")) {
+			if (chart.model.get('chart-type') != App.ChartType.SlopeChart && !chart.model.get("hide-legend")) {
 				legend.dispatch.on("addEntity", function() {
 					if (entitySelect)
 						entitySelect = entitySelect.destroy();

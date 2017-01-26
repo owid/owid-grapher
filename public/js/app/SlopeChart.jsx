@@ -33,7 +33,11 @@ class Axis extends Component {
 
 //		if (orient == 'left' || orient == 'right') {
 			const longestTick = _.sortBy(scale.ticks(6), (tick) => -tick.length)[0]
-			return new Bounds(containerBounds.x, containerBounds.y, Bounds.forText(longestTick).width, containerBounds.height)
+			const axisWidth = Bounds.forText(longestTick).width
+			if (orient == "left")
+				return new Bounds(containerBounds.x, containerBounds.y, axisWidth, containerBounds.height)
+			else
+				return new Bounds(containerBounds.x+(containerBounds.width-axisWidth), containerBounds.y, axisWidth, containerBounds.height)
 //		} else {
 //			return new Bounds(containerBounds.x, containerBounds.y, 0, containerBounds.height)
 //		}
@@ -137,26 +141,6 @@ class AligningText extends Component {
 	}
 }*/
 
-class Gridlines extends Component {
-	props: {
-		axisLayout: AxisLayout
-	}
-
-	render() {
-		const { axisLayout } = this.props
-		const { innerBounds, innerScales } = axisLayout	
-		const { yScale } = innerScales
-		const [ x1, x2 ] = [ innerBounds.left, innerBounds.right ]
-		const ticks = yScale.ticks()
-
-		return <g class="gridlines">
-			{_.map(ticks, (tick) => {
-				return <line x1={x1} y1={yScale(tick)} x2={x2} y2={yScale(tick)} stroke="#eee" stroke-dasharray="3,2"/>
-			})}
-		</g>
-	}
-}
-
 export class SlopeChart extends Component {
 	props: {
 		bounds: Bounds,
@@ -170,7 +154,7 @@ export class SlopeChart extends Component {
 		focusKey: ?string
 	}
 
-	g: SVGElement
+	base: SVGElement
 	svg: SVGElement
 
 	@observable props = asFlat({})
@@ -181,7 +165,7 @@ export class SlopeChart extends Component {
 	}
 
 	@computed get isPortrait() : boolean {
-		return this.bounds.height > this.bounds.width
+		return this.bounds.width < 400
 	}
 
 	@computed get xDomainDefault() : [number, number] {
@@ -265,8 +249,8 @@ export class SlopeChart extends Component {
 		// Position lines and labels to account for each other
 		_.each(slopeData, (slope) => {
 			slope.isFocused = slope.key == focusKey
-			slope.x1 += maxLabelWidth
-			slope.x2 -= maxLabelWidth
+			slope.x1 += maxLabelWidth+8
+			slope.x2 -= maxLabelWidth-8
 			slope.leftLabelBounds = slope.leftLabelBounds.extend({ x: slope.x1-8-slope.leftLabelBounds.width, y: slope.y1+slope.leftLabelBounds.height/4 })
 			slope.rightLabelBounds = slope.rightLabelBounds.extend({ x: slope.x2+8, y: slope.y2+slope.rightLabelBounds.height/4 })		
 		})
@@ -320,10 +304,10 @@ export class SlopeChart extends Component {
 	}
 
 	componentDidMount() {
-		this.svg = this.g.parentNode
+		this.svg = this.base.parentNode
 
 		d3.select(this.svg).on('mousemove.slopechart', () => {
-			const mouse = d3.mouse(this.g)
+			const mouse = d3.mouse(this.base)
 			if (this.props.bounds.containsPoint(...mouse)) {
 				const slope = _.sortBy(this.slopeData, (slope) => {
 					const distToLine = Math.abs((slope.y2-slope.y1)*mouse[0] - (slope.x2-slope.x1)*mouse[1] + slope.x2*slope.y1 - slope.y2*slope.x1) / Math.sqrt((slope.y2-slope.y1)**2 + (slope.x2-slope.x1)**2)
@@ -345,25 +329,45 @@ export class SlopeChart extends Component {
     	const { yTickFormat } = this.props
     	const { bounds, slopeData, isPortrait, xDomain, xScale, yScale } = this
 
+    	console.log(bounds, isPortrait)
     	if (_.isEmpty(slopeData))
     		return <NoData bounds={bounds}/>
 
+    	const {x1, x2} = slopeData[0]
+    	const [y1, y2] = yScale.range()
+
 	    return (
-	    	<g class="slopeChart" ref={(g) => this.g = g}>
-	    		{/*<Gridlines axisLayout={axisLayout}/>*/}	    		
-	    		{ !isPortrait ? <Axis orient='left' tickFormat={yTickFormat} scale={yScale} bounds={bounds}/> : '' }
-	    		{ !isPortrait ? <Axis orient='right' tickFormat={yTickFormat} scale={yScale} bounds={bounds}/> : '' }
+	    	<Layout bounds={bounds} class="slopeChart">
+				<g class="gridlines">
+					{_.map(yScale.ticks(6), (tick) => {
+						return <line x1={x1} y1={yScale(tick)} x2={x2} y2={yScale(tick)} stroke="#eee" stroke-dasharray="3,2"/>
+					})}
+				</g>		
+				{ !isPortrait ? <Axis layout="left" orient="left" tickFormat={yTickFormat} scale={yScale} bounds={bounds}/> : '' }
+	    		{ !isPortrait ? <Axis layout="right" orient="right" tickFormat={yTickFormat} scale={yScale} bounds={bounds}/> : '' }
 				<g class="slopes">
 					{_.map(slopeData, (slope) => {
 				    	return <Slope {...slope} />
 			    	})}	
 				</g>
-	    		<text x={slopeData[0].x1} y={yScale.range()[0]+10} text-anchor="middle" dominant-baseline="hanging" fill="#666">{xDomain[0]}</text>
-	    		<text x={slopeData[0].x2} y={yScale.range()[0]+10} text-anchor="middle" dominant-baseline="hanging" fill="#666">{xDomain[1]}</text>
-	    		{/*<line x1={slopeBounds.left} y1={slopeBounds.top} x2={slopeBounds.left} y2={slopeBounds.bottom} stroke="black"/>
-	    		<line x1={slopeBounds.right} y1={slopeBounds.top} x2={slopeBounds.right} y2={slopeBounds.bottom} stroke="black"/>*/}
-		    </g>
+	    		<text x={x1} y={y1+10} text-anchor="middle" dominant-baseline="hanging" fill="#666">{xDomain[0]}</text>
+	    		<text x={x2} y={y1+10} text-anchor="middle" dominant-baseline="hanging" fill="#666">{xDomain[1]}</text>
+	    		<line x1={x1} y1={y1} x2={x1} y2={y2} stroke="black"/>
+	    		<line x1={x2} y1={y1} x2={x2} y2={y2} stroke="black"/>
+		    </Layout>
 	    );
+	}
+}
+
+class Gridlines extends Component {
+	render() {
+		const {yScale, bounds} = this.props
+
+		return <g class="gridlines">
+			{_.map(yScale.ticks(6), (tick) => {
+				return <line x1={bounds.left} y1={yScale(tick)} x2={bounds.right} y2={yScale(tick)} stroke="#eee" stroke-dasharray="3,2"/>
+			})}
+		</g>		
 	}
 }
 

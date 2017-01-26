@@ -46,7 +46,7 @@ export default class Layout extends Component {
 	        }
 	    })
 
-		return <g class="layout">
+		return <g {...this.props}>
 			{children}
 		</g>
 	}
