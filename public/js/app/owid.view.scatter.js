@@ -39,7 +39,7 @@
 
 		scatter.flow("axisBox : svg, data, bounds, scatterAxis", function(svg, data, bounds, scatterAxis) {
 			_axisBox.update({
-				svg: svg,
+				containerNode: svg.node(),
 				bounds: bounds,
 				axisConfig: scatterAxis
 			});

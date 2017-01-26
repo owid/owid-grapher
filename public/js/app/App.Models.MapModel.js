@@ -115,8 +115,9 @@
 
 		updateYears: function() {
 			var timeRanges = this.get("timeRanges"),
-				minVariableYear = App.VariableData.get("minYear"),
-				maxVariableYear = App.VariableData.get("maxYear"),
+				variable = this.getVariable(),
+				minVariableYear = _.first(variable.years),
+				maxVariableYear = _.last(variable.years),
 				defaultYear = this.get("defaultYear"),
 				targetYear = this.get("targetYear");
 			
@@ -137,7 +138,6 @@
 				this.set("targetYear", maxYear);
 
 			// Update min and max values
-			var variable = this.getVariable();
 			this.minValue = Infinity;
 			this.maxValue = -Infinity;
 			if (variable && variable.isNumeric) {

@@ -12,6 +12,8 @@ import type ChoroplethData from './ChoroplethMap'
 import type MapProjection from './ChoroplethMap'
 import ChoroplethMap from './ChoroplethMap'
 import Timeline from './Timeline'
+import Layout from './Layout'
+import {MapLegend} from './MapLegend'
 
 type MapLegendData = any;
 
@@ -138,13 +140,12 @@ class MapTab extends Component {
             onClick: onClick
         });*/
 
-        const { bounds, choroplethData, projection, defaultFill, years, inputYear } = this.props
-        return <g class="mapTab" ref={g => this.g = g}>
-            {layout(bounds, 
-                <ChoroplethMap layout="expand" choroplethData={choroplethData} projection={projection} defaultFill={defaultFill} />,
-                <Timeline layout="bottom" onTargetChange={this.onTargetChange} years={years} inputYear={inputYear} />
-            )}
-        </g>
+        const { bounds, choroplethData, projection, defaultFill, years, inputYear, legendTitle, legendData } = this.props
+        return <Layout bounds={bounds} class="mapTab" ref={g => this.g = g}>
+            <ChoroplethMap choroplethData={choroplethData} projection={projection} defaultFill={defaultFill}/>,
+            <MapLegend legendData={legendData} title={legendTitle}/>
+            <Timeline layout="bottom" onTargetChange={this.onTargetChange} years={years} inputYear={inputYear}/>
+        </Layout>
     }
 }
 

@@ -220,7 +220,7 @@
 
 		// Do precision fiddling, if the value is numeric
 		if (_.isNumber(value)) {
-			if (!isNaN(unit.format) && unit.format >= 0) {
+			if (_.isFinite(unit.format) && unit.format >= 0) {
 				var fixed = Math.min(20, parseInt(unit.format, 10));
 				value = d3.format(",." + fixed + "f")(value);
 			} else {

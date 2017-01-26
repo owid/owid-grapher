@@ -17,6 +17,8 @@ export default class Layout extends Component {
 			containerBounds = this.props.bounds
 
 	    children = _.map(children, (vnode) => {
+	    	if (!vnode.nodeName) return vnode
+
 	        if (vnode.nodeName.calculateBounds) {
 	            const bounds = vnode.nodeName.calculateBounds(containerBounds, vnode.attributes)
 	            if (vnode.attributes) {
@@ -37,7 +39,7 @@ export default class Layout extends Component {
 	    })
 
 	    children = _.map(children, (vnode) => {
-	        if (!vnode.attributes || !vnode.attributes.bounds || vnode.attributes.bounds == Layout.bounds) {
+	        if (vnode.nodeName && (!vnode.attributes || !vnode.attributes.bounds || vnode.attributes.bounds == Layout.bounds)) {
 	            return cloneElement(vnode, { bounds: containerBounds })
 	        } else {
 	            return vnode

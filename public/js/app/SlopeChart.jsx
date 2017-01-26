@@ -271,40 +271,44 @@ export class SlopeChart extends Component {
 			slope.rightLabelBounds = slope.rightLabelBounds.extend({ x: slope.x2+8, y: slope.y2+slope.rightLabelBounds.height/4 })		
 		})
 
+		// How to work out which of two slopes to prioritize for labelling conflicts
+		function chooseLabel(s1, s2) {
+			if (s1.isFocused && !s2.isFocused) // Focused slopes always have priority
+				return s1
+			else if (!s1.isFocused && s2.isFocused)
+				return s2
+			else if (s1.hasLeftLabel && !s2.hasLeftLabel) // Slopes which already have one label are prioritized for the other side
+				return s1
+			else if (!s1.hasLeftLabel && s2.hasLeftLabel)
+				return s2
+			else if (s1.size > s2.size) // Larger sizes get the next priority
+				return s1
+			else if (s2.size > s1.size)
+				return s2
+			else
+				return s1 // Equal priority, just do the first one
+		}
+
 		// Eliminate overlapping labels, one pass for each side
 		_.each(slopeData, (s1) => {
 			_.each(slopeData, (s2) => {
-				let hasPriority = true
-				if (!s1.isFocused && s2.isFocused)
-					hasPriority = false
-				else if (s1.size < s2.size)
-					hasPriority = false
-
 				if (s1 !== s2 && s1.hasLeftLabel && s2.hasLeftLabel && s1.leftLabelBounds.intersects(s2.leftLabelBounds)) {
-					if (hasPriority)
+					if (chooseLabel(s1, s2) == s1)
 						s2.hasLeftLabel = false
 					else
 						s1.hasLeftLabel = false
-				}
+				}				
 			})
 		})
 
 		_.each(slopeData, (s1) => {
 			_.each(slopeData, (s2) => {
-				let hasPriority = true
-				if (!s1.isFocused && s2.isFocused)
-					hasPriority = false
-				else if (s1.size < s2.size)
-					hasPriority = false
-				else if (!s1.hasLeftLabel && s2.hasLeftLabel)
-					hasPriority = false
-
 				if (s1 !== s2 && s1.hasRightLabel && s2.hasRightLabel && s1.rightLabelBounds.intersects(s2.rightLabelBounds)) {
-					if (hasPriority)
+					if (chooseLabel(s1, s2) == s1)
 						s2.hasRightLabel = false
 					else
 						s1.hasRightLabel = false
-				}
+				}				
 			})
 		})
 
@@ -331,8 +335,6 @@ export class SlopeChart extends Component {
 			}
 
 		})
-
-		d3.select(this.g).attr('opacity', 0).transition().attr('opacity', 1)
 	}
 
 	componentDidUnmount() {
