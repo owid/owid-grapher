@@ -18,6 +18,7 @@ window.ResizeSensor = require('./libs/ResizeSensor');
 window.ElementQueries = require('./libs/ElementQueries');
 window.Fuse = require('./libs/fuse');
 require('./libs/innersvg');
+require('babel-polyfill');
 
 window.owid = require('./owid').default;
 require('./app/owid.bounds');
