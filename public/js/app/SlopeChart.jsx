@@ -32,7 +32,7 @@ class Axis extends Component {
 		const {orient, scale} = props
 
 //		if (orient == 'left' || orient == 'right') {
-			const longestTick = _.sortBy(scale.ticks(6), (tick) => -tick.length)[0]
+			const longestTick = _.sortBy(_.map(scale.ticks(6), props.tickFormat), (tick) => -tick.length)[0]
 			const axisWidth = Bounds.forText(longestTick).width
 			if (orient == "left")
 				return new Bounds(containerBounds.x, containerBounds.y, axisWidth, containerBounds.height)
@@ -185,7 +185,7 @@ export class SlopeChart extends Component {
 	}
 
 	@computed get sizeScale() : any {
-		return d3.scaleLinear().domain(d3.extent(_.pluck(this.props.data, 'size'))).range([1, 3])
+		return d3.scaleLinear().domain(d3.extent(_.pluck(this.props.data, 'size'))).range([1, 4])
 	}
 
 	@computed get yScaleConstructor() : any {
@@ -198,7 +198,7 @@ export class SlopeChart extends Component {
 
 	@computed get xScale() : any {
 		const {bounds, isPortrait, xDomain, yScale} = this
-		const padding = isPortrait ? 0 : Axis.calculateBounds(bounds, { orient: 'left', scale: yScale }).width*2
+		const padding = isPortrait ? 0 : Axis.calculateBounds(bounds, { orient: 'left', scale: yScale, tickFormat: this.props.yTickFormat }).width
 		return d3.scaleLinear().domain(xDomain).range(bounds.padWidth(padding).xRange())
 	}
 
@@ -249,8 +249,8 @@ export class SlopeChart extends Component {
 		// Position lines and labels to account for each other
 		_.each(slopeData, (slope) => {
 			slope.isFocused = slope.key == focusKey
-			slope.x1 += maxLabelWidth+8
-			slope.x2 -= maxLabelWidth-8
+			slope.x1 = slope.x1+maxLabelWidth+8
+			slope.x2 = slope.x2-maxLabelWidth-8
 			slope.leftLabelBounds = slope.leftLabelBounds.extend({ x: slope.x1-8-slope.leftLabelBounds.width, y: slope.y1+slope.leftLabelBounds.height/4 })
 			slope.rightLabelBounds = slope.rightLabelBounds.extend({ x: slope.x2+8, y: slope.y2+slope.rightLabelBounds.height/4 })		
 		})
@@ -329,7 +329,6 @@ export class SlopeChart extends Component {
     	const { yTickFormat } = this.props
     	const { bounds, slopeData, isPortrait, xDomain, xScale, yScale } = this
 
-    	console.log(bounds, isPortrait)
     	if (_.isEmpty(slopeData))
     		return <NoData bounds={bounds}/>
 
@@ -348,12 +347,12 @@ export class SlopeChart extends Component {
 				<g class="slopes">
 					{_.map(slopeData, (slope) => {
 				    	return <Slope {...slope} />
-			    	})}	
+			    	})}
 				</g>
 	    		<text x={x1} y={y1+10} text-anchor="middle" dominant-baseline="hanging" fill="#666">{xDomain[0]}</text>
 	    		<text x={x2} y={y1+10} text-anchor="middle" dominant-baseline="hanging" fill="#666">{xDomain[1]}</text>
-	    		<line x1={x1} y1={y1} x2={x1} y2={y2} stroke="black"/>
-	    		<line x1={x2} y1={y1} x2={x2} y2={y2} stroke="black"/>
+	    		<line x1={x1} y1={y1} x2={x1} y2={y2} stroke="#333"/>
+	    		<line x1={x2} y1={y1} x2={x2} y2={y2} stroke="#333"/>
 		    </Layout>
 	    );
 	}

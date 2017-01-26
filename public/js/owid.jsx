@@ -1031,7 +1031,8 @@
  			.attr('y', bounds.top)
  			.attr('width', bounds.width)
  			.attr('height', bounds.height)
- 			.style('fill', 'red');
+ 			.style('fill', 'rgba(0,0,0,0)')
+ 			.style('stroke', 'red');
  	};
 
 	window.require = function(namespace) {
