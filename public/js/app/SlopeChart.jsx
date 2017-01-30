@@ -242,7 +242,7 @@ export class LabelledSlopes extends Component {
 			const [ y1, y2 ] = [ yScale(v1.y), yScale(v2.y) ]
 			const leftLabel = series.label + ' ' + yTickFormat(v1.y)
 			const rightLabel = yTickFormat(v2.y) + ' ' + series.label
-			const fontSize = (isPortrait ? 0.4 : 0.6)*(leftLabel.length > 25 ? 0.7 : 1) + 'em'
+			const fontSize = (isPortrait ? 0.5 : 0.6)*(leftLabel.length > 25 ? 0.7 : 1) + 'em'
 			const leftLabelBounds = Bounds.forText(leftLabel, { fontSize: fontSize })
 			const rightLabelBounds = Bounds.forText(rightLabel, { fontSize: fontSize })
 
