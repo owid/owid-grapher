@@ -65,12 +65,6 @@ class MapTab extends Component {
         this.legend = owid.view.mapLegend()
     }
 
-/*    @computed get boundsForMap() : Bounds {
-        const { bounds } = this.props
-        return new Bounds(bounds.left, bounds.top, bounds.width, bounds.height-40)
-//        return new Bounds(bounds.left, bounds.top, bounds.width, bounds.height-(timeline.isClean ? 10 : timeline.bounds.height));        
-    }*/
-
     componentDidMount() {
         this.componentDidUpdate()
     }
@@ -127,22 +121,26 @@ class MapTab extends Component {
         legend.clean();
     }
 
-    @bind
-    onTargetChange(targetYear) {
+    @bind onTargetChange(targetYear) {
         this.chart.map.set('targetYear', targetYear)
+    }
+
+    @computed get hasTimeline() {
+        return this.props.years.length > 1 && !window.chart.isExport
     }
 
     render() {
         const { choroplethData, projection, defaultFill, years, inputYear, legendTitle, legendData } = this.props
         let { bounds } = this.props
+        const {hasTimeline} = this
 
-        if (years.length <= 1)
+        if (!hasTimeline)
             bounds = bounds.padBottom(10)
 
         return <Layout bounds={bounds} class="mapTab" ref={g => this.g = g}>
             <ChoroplethMap choroplethData={choroplethData} projection={projection} defaultFill={defaultFill} onHover={this.onHover} onHoverStop={this.onHoverStop} onClick={this.onClick}/>,
             <MapLegend legendData={legendData} title={legendTitle}/>
-            {years.length > 1 && <Timeline bounds={Layout.bounds} layout="bottom" onTargetChange={this.onTargetChange} years={years} inputYear={inputYear} ref={(e) => this.chart.tabs.map.timeline = e}/>}           
+            {hasTimeline && <Timeline bounds={Layout.bounds} layout="bottom" onTargetChange={this.onTargetChange} years={years} inputYear={inputYear} ref={(e) => this.chart.tabs.map.timeline = e}/>}           
         </Layout>
     }
 }

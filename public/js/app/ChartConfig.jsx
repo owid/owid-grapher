@@ -11,14 +11,17 @@ export default class ChartConfig {
 		this.model = model
 	}
 
+	@computed get type() : string { return this.model.get('chart-type') }
+	set type(value : string) { this.model.set('chart-type', value) }
+
+	@computed get slug() : string { return this.model.get('slug') }
+	set slug(value : string) { this.model.set('slug', value) }
+
 	@computed get title() : string { return this.model.get('title') }
 	set title(value : string) { this.model.set('title', value) }
 
 	@computed get subtitle() : string { return this.model.get('subtitle') }
 	set subtitle(value : string) { this.model.set('subtitle', value) }
-
-	@computed get type() : string { return this.model.get('chart-type') }
-	set type(value : string) { this.model.set('chart-type', value) }
 
 	@computed get sourceDesc() : string { return this.model.get('sourceDesc') }
 	set sourceDesc(value : string) { this.model.set('sourceDesc', value) }

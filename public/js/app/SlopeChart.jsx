@@ -5,8 +5,10 @@ import * as d3 from '../libs/d3.v4'
 import owid from '../owid'
 import React, { createElement, Component, cloneElement } from 'react'
 import {observable, computed, asFlat, action, spy} from 'mobx'
+import {bind} from 'decko'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
+import {getRelativeMouse} from './Util'
 import type {SVGElement} from './Util'
 import Layout from './Layout'
 import NoData from './NoData'
@@ -335,21 +337,26 @@ export class LabelledSlopes extends Component {
 		return slopeData
 	}
 
+	@bind
+	onMouseMove(ev : MouseEvent) {
+		const mouse = getRelativeMouse(this.base, ev)
+
+		if (this.props.bounds.containsPoint(...mouse)) {
+			const slope = _.sortBy(this.slopeData, (slope) => {
+				const distToLine = Math.abs((slope.y2-slope.y1)*mouse[0] - (slope.x2-slope.x1)*mouse[1] + slope.x2*slope.y1 - slope.y2*slope.x1) / Math.sqrt((slope.y2-slope.y1)**2 + (slope.x2-slope.x1)**2)
+				return distToLine
+			})[0]
+			this.focusKey = slope.key
+		} else {
+			this.focusKey = null
+		}		
+	}
+
 	componentDidMount() {
-		this.svg = this.base.parentNode
-
-		d3.select(this.svg).on('mousemove.slopechart', () => {
+		d3.select('html').on('mousemove.slopechart', () => {
 			const mouse = d3.mouse(this.base)
-			if (this.props.bounds.containsPoint(...mouse)) {
-				const slope = _.sortBy(this.slopeData, (slope) => {
-					const distToLine = Math.abs((slope.y2-slope.y1)*mouse[0] - (slope.x2-slope.x1)*mouse[1] + slope.x2*slope.y1 - slope.y2*slope.x1) / Math.sqrt((slope.y2-slope.y1)**2 + (slope.x2-slope.x1)**2)
-					return distToLine
-				})[0]
-				this.focusKey = slope.key
-			} else {
+			if (!this.props.bounds.containsPoint(...mouse))
 				this.focusKey = null
-			}
-
 		})
 
 		// Nice little intro animation
@@ -357,7 +364,7 @@ export class LabelledSlopes extends Component {
 	}
 
 	componentDidUnmount() {
-		d3.select(this.svg).on('mousemove.slopechart', null)
+		d3.select('html').on('mousemove.slopechart', null)
 	}
 
     render() {
@@ -370,8 +377,13 @@ export class LabelledSlopes extends Component {
     	const {x1, x2} = slopeData[0]
     	const [y1, y2] = yScale.range()
 
+
+		// hack
+		window.chart.tabs.chart.minYear = xDomain[0]
+		window.chart.tabs.chart.maxYear = xDomain[1]
+
 	    return (
-	    	<g class="slopeChart">
+	    	<g class="slopeChart" onMouseMove={this.onMouseMove}>
 				<g class="gridlines">
 					{_.map(yScale.ticks(6), (tick) => {
 						return <line x1={x1} y1={yScale(tick)} x2={x2} y2={yScale(tick)} stroke="#eee" stroke-dasharray="3,2"/>
@@ -572,7 +584,7 @@ export default class SlopeChart extends Component {
 				key: owid.makeSafeForCSS(entityKey[entity].name),
 				color: colorScale(rows.first(colorDim.variableId)),
 				size: rows.first(sizeDim.variableId),
-				values: rows.filter((d) => d.year == minYear || d.year == maxYear).mergeBy('year').map((d) => {
+				values: rows.filter((d) => _.isFinite(d[yDim.variableId]) && (d.year == minYear || d.year == maxYear)).mergeBy('year').map((d) => {
 					return {
 						x: d.year,
 						y: d[yDim.variableId]

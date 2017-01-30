@@ -1,3 +1,4 @@
+import React from 'react'
 import {render, h} from 'preact'
 import BasicTab from './BasicTab'
 import ChartConfig from '../app/ChartConfig'

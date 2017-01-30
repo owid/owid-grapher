@@ -61,7 +61,7 @@ var Bounds = require('./Bounds').default
 		});
 
 		chart.flow('header : model', function() { return owid.control.header(chart); });
-		chart.flow('creditsFooter : model', function() { return new owid.component.footer(chart); });
+		chart.flow('sourcesFooter : model', function() { return new owid.component.footer(chart); });
 		chart.flow('controlsFooter : model', function() { return owid.view.controlsFooter(); });
 
 		// Container setup
@@ -200,7 +200,7 @@ var Bounds = require('./Bounds').default
 
 		chart.render = function() {
 			requestAnimationFrame(function() {
-				chart.now('el, header, controlsFooter, creditsFooter, primaryTab, overlayTab, innerBounds, scale, loadingIcon', function(el, header, controlsFooter, creditsFooter, primaryTab, overlayTab, innerBounds, scale, loadingIcon) {
+				chart.now('el, header, controlsFooter, sourcesFooter, primaryTab, overlayTab, innerBounds, scale, loadingIcon', function(el, header, controlsFooter, sourcesFooter, primaryTab, overlayTab, innerBounds, scale, loadingIcon) {
 					loadingIcon.classed('hidden', false);
 
 					if (chart.model.get('chart-type') != App.ChartType.SlopeChart && chart.model.get('chart-type') != App.ChartType.ScatterPlot)
@@ -209,15 +209,13 @@ var Bounds = require('./Bounds').default
 					var bounds = innerBounds.pad(15);
 
 					header.render(bounds);
-					bounds = bounds.padTop(header.view.bbox.height);
+					bounds = bounds.padTop(header.view.bbox.height)
 
 					controlsFooter.render(bounds);
 					bounds = bounds.padBottom(controlsFooter.height);
 
-		//			owid.boundsDebug(bounds);
-					creditsFooter.render(bounds);
-
-					bounds = bounds.padBottom(creditsFooter.height);
+					sourcesFooter.render(bounds);
+					bounds = bounds.padBottom(sourcesFooter.height);
 
 					if (primaryTab)
 						primaryTab.render(bounds);

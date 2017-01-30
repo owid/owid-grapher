@@ -96,7 +96,13 @@ class SourcesFooter extends Component {
 export default function(chart : any) {
 	const footer = dataflow()
 
-    footer.needs('containerNode', 'maxBounds', 'sourcesStr', 'note', 'originUrl')
+    footer.needs('containerNode', 'maxBounds')
+    
+    footer.inputs({
+        sourcesStr: '',
+        note: '',
+        originUrl: ''
+    })
 
     footer.flow('g : containerNode', function(containerNode : HTMLElement) {
         return d3.select(containerNode).append('g').attr('class', 'footer') 

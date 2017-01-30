@@ -1,6 +1,6 @@
 // @flow
 
-import {Component, h} from 'preact'
+import React, {Component} from 'react'
 import {computed} from 'mobx'
 import type ChartConfig from '../app/ChartConfig'
 import {bind} from 'decko'

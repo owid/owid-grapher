@@ -61,6 +61,8 @@ import ChartConfig from './ChartConfig'
 
 		chartTab.clean = function() {
 			if (viz) viz = viz.destroy();
+			if (rootNode) rootNode = render(() => null, chart.svg.node(), rootNode)
+
 			chartTab.scaleSelectors.clean();
 
 			d3.selectAll(".nvd3, .axisBox, .nvtooltip:not(.owid-tooltip), .timeline").remove();
@@ -81,6 +83,8 @@ import ChartConfig from './ChartConfig'
 			configureTab();
 			if (chart.model.get('chart-type') != App.ChartType.SlopeChart && chart.model.get('chart-type') != App.ChartType.ScatterPlot)
 				configureData();
+			else
+				missingMsg = null
 			configureAxis();
 			renderLegend();
 //			renderTimeline();
