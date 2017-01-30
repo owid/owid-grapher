@@ -1,7 +1,7 @@
 /* OWID root namespace and standalone utility functions */
 
 
-;(function() {
+;(function(d3) {
 	"use strict";
 
 	// http://paulirish.com/2011/requestanimationframe-for-smart-animating/
@@ -72,9 +72,9 @@
 		return parseFloat(val) == val;
 	};
 
-	owid.numeric = function(val, defaultVal) {
+	owid.numeric = function(val, defaultVal = null) {
 		var num = parseFloat(val);
-		if (_.isNumber(num)) 
+		if (_.isFinite(num)) 
 			return num;
 		else 
 			return defaultVal;
@@ -220,7 +220,7 @@
 
 		// Do precision fiddling, if the value is numeric
 		if (_.isNumber(value)) {
-			if (!isNaN(unit.format) && unit.format >= 0) {
+			if (_.isFinite(unit.format) && unit.format >= 0) {
 				var fixed = Math.min(20, parseInt(unit.format, 10));
 				value = d3.format(",." + fixed + "f")(value);
 			} else {
@@ -463,6 +463,131 @@
 		}
 
 		return fontSize;
+	};
+
+	var ctx;
+	owid.renderWrappedText = function(content, bounds, options) {
+		options = options || {};
+		options.lineHeight = options.lineHeight || 1.3;
+
+		var text = d3.select(owid.getTmpTextNode())
+
+		if (!ctx) {
+			var canvas = $("<canvas></canvas>").get(0);
+			ctx = canvas.getContext("2d");
+		}
+		ctx.font = $(text.node()).css("font-size") + " " + $(text.node()).css("font-family");
+
+		// Empty it out first
+		text.text("");
+
+		// Use a dummy p element to extract the link info
+		var links = [],
+			$p = $("<p></p>");
+		$p.html(content);
+		$p.find("*").each(function(i, el) {
+			links.push($(el));
+		});
+
+		// Now indicate them with our own tags
+		content = content.replace(/<[^\/][^>]*>/g, " <LINKSTART> ");
+		content = content.replace(/<\/[^>]+>/g, " <LINKSTOP> ");
+
+		// Clean the content
+		content = s.trim(content.replace("</br>", "\n").replace("<br>", "\n"));
+
+		var words = s.trim(content).split(/ +/),
+			x = parseFloat(text.attr("x")),
+			y = parseFloat(text.attr("y")),
+			currentX = x,
+			currentDY = parseFloat(text.attr("dy")),
+			currentLine = [],
+			linkIndex = -1,
+			$currentLink = null,
+			lineNumber = 0,
+			lineHeight = options.lineHeight,
+			tspan = text.append("tspan").attr("dy", currentDY + "em"),
+			word = null;
+
+		// Terminate the current tspan and begin a new one
+		var breakSpan = function(isNewLine, isEnd) {
+			var textContent = currentLine.join(" ");
+			if (_.isEmpty(s.strip(textContent)))
+				tspan.remove();
+			else {
+				tspan.node().textContent = textContent;
+			}
+
+			var container = text;
+			if ($currentLink) {
+				container = text.append($currentLink.get(0).tagName.toLowerCase())
+					.attr("xlink:href", $currentLink.attr("href"))
+				_.each($currentLink.get(0).attributes, function(attrib) {
+					container.attr(attrib.name, attrib.value);
+				});
+			}
+
+			if (isEnd) return;
+
+			tspan = container.append("tspan");
+
+			if (isNewLine) {
+				currentDY += lineHeight;
+				currentX = x;
+				tspan.attr("x", x).attr("y", y).attr("dy", currentDY + "em");
+			} else {
+				currentX += ctx.measureText(textContent).width;
+			}
+
+			currentLine = [];
+		};
+
+		while (word = words.shift()) {
+			if (word == "<LINKSTART>") {
+				linkIndex += 1;
+				$currentLink = links[linkIndex];
+				breakSpan();
+				words.unshift(" ");
+				continue;
+			} else if (word == "<LINKSTOP>") {
+				$currentLink = null;
+				breakSpan();
+				if (words[0] && words[0] != "." && words[0] != ",")
+					words.unshift(" ");
+				continue;
+			}
+
+			var forceNewline = false;
+			if (s.contains(word, "\n")) {
+				var spl = word.split("\n");
+				var beforeLine = spl.shift();
+				var afterLine = spl.join("\n");
+
+				word = beforeLine;
+				if (afterLine) words.unshift(afterLine);
+				forceNewline = true;
+			}
+
+			currentLine.push(word);
+			var newWidth = ctx.measureText(currentLine.join(" ")).width;
+
+			if (currentX + newWidth > bounds.width) {				
+				if (forceNewline) word += "\n"; // Forced newline goes to next line if we're wrapping for other reasons
+
+				// Since this word goes over the limit, we wrap and send it to the next line
+				// If it's a single word over the limit however no wrapping can be done so we just leave it
+				if (currentLine.length > 1) {
+					words.unshift(currentLine.pop());
+				}
+
+				breakSpan(true);
+			} else if (forceNewline) {
+				breakSpan(true);
+			}
+		}
+
+		breakSpan(false, true);
+		return text.node().innerSVG
 	};
 
 	var ctx;
@@ -906,7 +1031,8 @@
  			.attr('y', bounds.top)
  			.attr('width', bounds.width)
  			.attr('height', bounds.height)
- 			.style('fill', 'red');
+ 			.style('fill', 'rgba(0,0,0,0)')
+ 			.style('stroke', 'red');
  	};
 
 	window.require = function(namespace) {
@@ -920,7 +1046,28 @@
 		return obj;
 	};
 
+	owid.getTmpTextNode = function() {
+		var node = d3.select('svg').select('.tmpTextCalc').node();
+		if (node) return node;
+
+		d3.select('svg').append('text').attr('class', 'tmpTextCalc').attr('opacity', 0);
+		return d3.select('svg').select('.tmpTextCalc').node();
+	}
+
+	owid.calcTextBounds = function(str, options) {
+		options = _.extend({}, {
+			x: 0,
+			y: 0,
+			fontSize: '1em'
+		}, options);
+
+		let text = d3.select(owid.getTmpTextNode());
+		text.attr('font-size', options.fontSize).text(str)
+
+		return owid.bounds(text.node().getBBox())
+	}
+
 	window.owid = owid;
-})();
+})(d3v4);
 
 export default window.owid;

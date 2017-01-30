@@ -112,7 +112,7 @@
 		},
 
 		publish: function() {
-			var url = Global.rootUrl + "/" + App.ChartModel.get("chart-slug");
+			var url = Global.rootUrl + "/" + App.ChartModel.get("slug");
 			
 			var $modal = owid.modal();
 			$modal.find(".modal-title").html("Publish chart");

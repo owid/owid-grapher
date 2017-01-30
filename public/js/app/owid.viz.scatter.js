@@ -321,7 +321,7 @@
 
                 var prevYear, nextYear;
                 for (var i = 0; i < years.length; i++) {
-                    prevYear = years[i];                    
+                    prevYear = years[i];
                     nextYear = years[i+1];
 
                     if (nextYear > inputYear)

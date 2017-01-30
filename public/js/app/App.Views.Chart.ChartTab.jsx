@@ -1,3 +1,9 @@
+import React from 'react'
+import {h, render, Component} from 'preact'
+import SlopeChart from './SlopeChart'
+import Bounds from './Bounds'
+import ChartConfig from './ChartConfig'
+
 ;(function() {
 	"use strict";
 	owid.namespace("owid.tab.chart");
@@ -49,6 +55,10 @@
 			showLegend: false
 		};
 
+		chart.model.on('change:chart-type', function() {
+			chartTab.clean();
+		});
+
 		chartTab.clean = function() {
 			if (viz) viz = viz.destroy();
 			chartTab.scaleSelectors.clean();
@@ -56,6 +66,7 @@
 			d3.selectAll(".nvd3, .axisBox, .nvtooltip:not(.owid-tooltip), .timeline").remove();
 //			chartTab.scaleSelectors.hide();
 			d3.selectAll("svg").on("mousemove.stackedarea", null);
+			nvd3 = null;
 		},
 
 		chartTab.render = function(inputBounds) {
@@ -68,13 +79,14 @@
 			chartWidth = bounds.width;		
 
 			configureTab();
-			configureData();
+			if (chart.model.get('chart-type') != App.ChartType.SlopeChart && chart.model.get('chart-type') != App.ChartType.ScatterPlot)
+				configureData();
 			configureAxis();
 			renderLegend();
 //			renderTimeline();
 
 			$(".chart-error").remove();
-			if (missingMsg || (_.isEmpty(localData) && chartType != App.ChartType.ScatterPlot)) {
+			if (missingMsg || (_.isEmpty(localData) && chartType != App.ChartType.ScatterPlot && chartType != App.ChartType.SlopeChart)) {
 				chart.el.selectAll(".nv-wrap").remove();
 				chart.showMessage(missingMsg || "No available data.");
 				return;
@@ -98,6 +110,8 @@
 					renderMultiBar();
 				} else if (chartType == App.ChartType.DiscreteBar) {
 					renderDiscreteBar();
+				} else if (chartType == App.ChartType.SlopeChart) {
+					renderSlopeChart()
 				}
 
 				if (nvd3) {
@@ -222,6 +236,19 @@
 			}
 		}
 
+		var rootNode = null;
+		function renderSlopeChart() {
+			let bounds = new Bounds(chartOffsetX, chartOffsetY+10, chartWidth-10, chartHeight-10)
+
+//			const props = slopeChartTransform.getProps({ dimensions: chart.model.getDimensions(), xDomain: chartTime })
+//			chartTab.minYear = props.xDomain[0]
+//			chartTab.maxYear = props.xDomain[1]
+
+			rootNode = render(<SlopeChart bounds={bounds} config={new ChartConfig(chart.model)}/>, chart.svg.node(), rootNode)
+			postRender();
+			chart.header.render();			
+		}
+
 		function renderLineChart() {
 			var lineType = chart.model.get("line-type");
 
@@ -300,10 +327,10 @@
 			viz.update({
 				containerNode: chart.svg.node(),
 				bounds: { left: chartOffsetX, top: chartOffsetY+10, width: chartWidth-10, height: chartHeight-10 },
-				axisConfig: chartTab.axisConfig,
 				dimensions: chart.model.getDimensions(),
 				variables: chart.vardata.get('variables'),
-                timelineConfig: chart.model.get('timeline')
+                timelineConfig: chart.model.get('timeline'),
+                axisConfig: chartTab.axisConfig
 			}, function() {
 				postRender();
 			});			
@@ -523,7 +550,7 @@
 		}
 
 		function renderLegend() {
-			if (!chart.model.get("hide-legend")) {
+			if (chart.model.get('chart-type') != App.ChartType.SlopeChart && !chart.model.get("hide-legend")) {
 				legend.dispatch.on("addEntity", function() {
 					if (entitySelect)
 						entitySelect = entitySelect.destroy();
@@ -594,12 +621,14 @@
 		}
 
 		function ensureLabelsFit() {
+			if (chart.model.get('chart-type') == App.ChartType.SlopeChart || (viz && !d3.select('.axisBox').node())) return
+
 			var targetHeight = viz ? d3.select('.axisBox').node().getBBox().height : chartHeight,
 				targetWidth = chartWidth;
 
-
 			if (xAxis['axis-label']) {
 				var xAxisLabel = d3.select('.nv-x .nv-axislabel, .bottom.axis .axis-label');
+				if (!xAxisLabel.node()) return
 
 				xAxisLabel.attr('transform', '');
 				var box = xAxisLabel.node().getBBox(),

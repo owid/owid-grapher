@@ -1,4 +1,4 @@
-@extends('app')
+@extends('admin')
  
 @section('content')
 	<div id="editor" style="position:absolute;top:0;left:0;right:0;bottom:0;">
@@ -18,8 +18,7 @@
         owid.chart().update(
             { chartConfig: chartConfig, containerNode: d3.select('.chart-container').node(), isEditor: true },
             function() {
-                App.View = new App.Views.Form();
-                App.View.start();
+                new App.Views.FormView();
             }
         );
     </script>

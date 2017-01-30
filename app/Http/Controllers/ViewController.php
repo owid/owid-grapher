@@ -263,14 +263,14 @@ class ViewController extends Controller {
 
 			// Replace the chart title placeholders with generic equivalents for now
 			// This is because the real titles are calculated cilent-side
-			$title = $config->{"chart-name"};
+			$title = $config->{"title"};
 			$title = preg_replace("/, \*time\*/", " over time", $title);
 			$title = preg_replace("/\*time\*/", "over time", $title);	
 			$chartMeta->title = $title;
 
 			// Description is required by twitter
-			if (!empty($config->{"chart-subname"}))
-				$chartMeta->description = $config->{"chart-subname"};
+			if (!empty($config->{"subtitle"}))
+				$chartMeta->description = $config->{"subtitle"};
 			else 
 				$chartMeta->description = "An interactive visualization from Our World In Data.";
 

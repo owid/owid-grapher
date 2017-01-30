@@ -1,4 +1,4 @@
-@extends('app')
+@extends('admin')
 
 @section('content')
 	<a class="back-btn" href="{{ route( 'categories.index' ) }}"><i class="fa fa-arrow-left"></i>Back to the list of categories</a>

@@ -78,6 +78,7 @@
 						series = {
 							values: [],
 							key: key,
+							label: entityKey[entityId].name,
 							entityName: entityKey[entityId].name,
 							entityId: entityId,
 							variableId: variable.id,
@@ -428,7 +429,7 @@
 					source = _.extend({}, variable.source);
 
    				// HACK (Mispy): Ignore the default color source on scatterplots.
-				if (variable.name == "Countries Continents")
+				if (variable.name == "Countries Continents" || variable.name == "Total population (Gapminder)")
 					source.ignore = true;
 
 				source.description = this.getSourceDescHtml(variable, variable.source);

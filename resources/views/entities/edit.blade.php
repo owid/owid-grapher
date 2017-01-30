@@ -1,4 +1,4 @@
-@extends('app')
+@extends('admin')
  
 @section('content')
 	<a class="back-btn" href="{{ route( 'entities.index' ) }}"><i class="fa fa-arrow-left"></i>Back to the list of entities</a>

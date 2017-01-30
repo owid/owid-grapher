@@ -39,7 +39,7 @@
 			this.dataRequest.done(function(rawData) {
 				this.dataRequest = null;
 				this.receiveData(rawData);
-			}.bind(this));			
+			}.bind(this));
 		},
 
 		// Replicates the state we would expect if there were simply no available data

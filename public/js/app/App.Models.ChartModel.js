@@ -3,30 +3,29 @@
 	owid.namespace("App.Models.ChartModel");
 
 	App.Models.ChartModel = Backbone.Model.extend( {
-		//urlRoot: Global.rootUrl + '/charts/',
-		//urlRoot: Global.rootUrl + '/data/config/',
-		url: function(id) {
-			id = id || this.id;
-			if( $("#form-view").length ) {
-				if( id ) {
-					//editing existing
-					return Global.rootUrl + "/charts/" + id;
-				} else {
-					//saving new
-					return Global.rootUrl + "/charts";
-				}
+        url: function(id) {
+            id = id || this.id;
+            if( $("#form-view").length ) {
+                if( id ) {
+                    //editing existing
+                    return Global.rootUrl + "/charts/" + id;
+                } else {
+                    //saving new
+                    return Global.rootUrl + "/charts";
+                }
 
-			} else {
-				// Pass any query parameters on to config
-				return Global.rootUrl + "/data/config/" + id + window.location.search;
-			}
-		},
+            } else {
+                // Pass any query parameters on to config
+                return Global.rootUrl + "/data/config/" + id + window.location.search;
+            }
+        },
 
 		defaults: {
-			"chart-name": "",
-			"chart-subname": "",
-			"chart-slug": "",
-			"chart-notes": "",
+			"title": "",
+			"subtitle": "",
+			"slug": "",
+			"note": "",
+			"internalNotes": "",
 			"chart-type": App.ChartType.LineChart,
 			"published": false,
 			// A range of form e.g. [0, 2015] with null meaning "all of it"
@@ -241,19 +240,25 @@
 
 			if (chartType == App.ChartType.ScatterPlot)
 				return [xAxis, yAxis, size, color];
+			else if (chartType == App.ChartType.SlopeChart)
+				return [yAxis, size, color]
 			else
 				return [yAxis];
 		},
 
 		// Get chart dimensions, ensuring we return only those appropriate for the type
 		getDimensions: function() {
-			var dimensions = this.get("chart-dimensions"),
+			var dimensions = _.map(this.get("chart-dimensions"), function(dim) { return _.clone(dim); }),
 				validProperties = _.pluck(this.getEmptyDimensions(), 'property'),
 				validDimensions = _.filter(dimensions, function(dim) { return _.include(validProperties, dim.property); });
 
-			// Give scatterplots a default color dimension if they don't have one
-			if (this.get("chart-type") == App.ChartType.ScatterPlot && !_.findWhere(dimensions, { property: 'color' })) {
+			// Give scatterplots a default color and size dimension if they don't have one
+			if ((this.get("chart-type") == App.ChartType.ScatterPlot || this.get("chart-type") == App.ChartType.SlopeChart) && !_.findWhere(dimensions, { property: 'color' })) {
 				validDimensions = validDimensions.concat([{"variableId":"123","property":"color","unit":"","name":"Color","tolerance":"5"}]);
+			}
+
+			if ((this.get("chart-type") == App.ChartType.ScatterPlot || this.get("chart-type") == App.ChartType.SlopeChart) && !_.findWhere(dimensions, { property: 'size' })) {
+				validDimensions = validDimensions.concat([{"variableId":"72","property":"size","unit":"","name":"Size","tolerance":"5"}]);
 			}
 
 			_.each(validDimensions, function(dim) {
@@ -261,6 +266,7 @@
 					var variable = App.VariableData.getVariableById(dim.variableId);
 					if (variable)
 						dim.displayName = dim.displayName || variable.name;
+					dim.variable = variable;
 				}
 
 			});

@@ -1,4 +1,4 @@
-@extends('app')
+@extends('admin')
  
 @section('content')
 	{!! link_to_route( 'apiKeys.index', 'Back to the list of API keys' ) !!}

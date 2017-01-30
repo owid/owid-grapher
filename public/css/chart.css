@@ -802,18 +802,18 @@ a {
 /* Map Tab
 --------------------------------------------- */
 
-#chart .map-legend .legend-step rect {
+#chart .mapLegend .legend-step rect {
     stroke: #4F4F4F;
     stroke-width: .1px;
 }
-#chart .map-legend .legend-step text {
+#chart .mapLegend .legend-step text {
     font-size: 0.8em;
 }
-#chart .map-legend .legend-step line {
+#chart .mapLegend .legend-step line {
     stroke: #4F4F4F;
     stroke-width: 1px;
 }
-#chart .map-legend .map-label {
+#chart .mapLegend .map-label {
     font-size: 0.6em;
 }
 #chart g.map .border-disclaimer {

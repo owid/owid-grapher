@@ -1,3 +1,5 @@
+var Bounds = require('./Bounds').default
+
 ;(function(d3) {	
 	"use strict";
 	owid.namespace("owid.chart");
@@ -7,7 +9,6 @@
 		window.chart = chart;
 
 		// Set up models and data processors
-
 		chart.requires('containerNode', 'chartConfig', 'outerBounds', 'activeTabName');
 
 		chart.defaults({
@@ -26,7 +27,6 @@
 		chart.flow('model : chartConfig', function(chartConfig) {
 			return new App.Models.ChartModel(chartConfig);
 		});
-
 
 		chart.flow('vardata, data, colors : model', function(model) {
 			App.ChartModel = model;
@@ -178,7 +178,7 @@
 			   .attr('viewBox', '0 0 ' + renderWidth + ' ' + renderHeight);
 		});
 		chart.flow('innerBounds : renderWidth, renderHeight', function(renderWidth, renderHeight) {
-			return owid.bounds(0, 0, renderWidth, renderHeight);
+			return new Bounds(0, 0, renderWidth, renderHeight);
 		});		
 		chart.flow('el, scale', function(el, scale) {
 			el.style('font-size', 16*scale + 'px');
@@ -203,7 +203,9 @@
 				chart.now('el, header, controlsFooter, creditsFooter, primaryTab, overlayTab, innerBounds, scale, loadingIcon', function(el, header, controlsFooter, creditsFooter, primaryTab, overlayTab, innerBounds, scale, loadingIcon) {
 					loadingIcon.classed('hidden', false);
 
-					chart.data.transformData();
+					if (chart.model.get('chart-type') != App.ChartType.SlopeChart && chart.model.get('chart-type') != App.ChartType.ScatterPlot)
+						chart.data.transformData();
+					
 					var bounds = innerBounds.pad(15);
 
 					header.render(bounds);
@@ -267,7 +269,7 @@
 				d3.select('.chart-preloader').classed('hidden', true);
 			});
 
-			if (chart.model.get("chart-name"))
+			if (chart.model.get("title"))
 				d3.select('.chart-preloader').classed('hidden', false);
 		};
 

@@ -19,6 +19,7 @@ TMP_NEW="$ROOT/tmp/$NAME-new"
 LIVE_TARGET="$ROOT/$NAME-code"
 LIVE_DATA="$ROOT/$NAME-data"
 
+webpack
 ssh -t $HOST "mkdir -p $ROOT/tmp; rm -rf $OLD_REPO"
 $RSYNC $DIR/ $HOST:$SYNC_TARGET
 ssh -t $HOST 'bash -e -s' <<EOF

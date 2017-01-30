@@ -1,4 +1,4 @@
-@extends('app')
+@extends('admin')
 
 @section('content')
 	<a class="back-btn" href="{{ route( 'categories.show', $subcategory->fk_dst_cat_id ) }}"><i class="fa fa-arrow-left"></i>Back to the category</a>

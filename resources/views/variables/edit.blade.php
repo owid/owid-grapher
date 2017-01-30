@@ -1,4 +1,4 @@
-@extends('app')
+@extends('admin')
  
 @section('content')
 	<div class="module-wrapper edit-variable-module">

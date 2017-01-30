@@ -201,6 +201,9 @@
 		});
 
 		headerControl.render = function(bounds, done) {
+			bounds = bounds || this.cachedBounds
+			this.cachedBounds = bounds
+
 			var minYear, maxYear, disclaimer="";
 			if (chart.activeTabName == "map") {
 				chart.mapdata.update();
@@ -212,7 +215,6 @@
 					hasTargetYear = _.find(chart.mapdata.currentValues, function(d) { return d.year == year; }),
 					d = owid.displayYear,
 					timeline = chart.tabs.map.timeline;
-
 
 				if (timeline && (timeline.isPlaying || timeline.isDragging))
 					disclaimer = "";
@@ -237,12 +239,15 @@
 			} else if (chart.model.get('chart-type') == App.ChartType.ScatterPlot) {
 				minYear = (chart.model.get('chart-time')||[])[0];
 				maxYear = (chart.model.get('chart-time')||[])[1];
+			} else if (chart.model.get('chart-type') == App.ChartType.SlopeChart) {
+				minYear = chart.tabs.chart.minYear
+				maxYear = chart.tabs.chart.maxYear
 			} else {
 				minYear = chart.data.get('minYear');
 				maxYear = chart.data.get('maxYear');
 			}
 
-			var baseUrl = Global.rootUrl + "/" + chart.model.get("chart-slug"),
+			var baseUrl = Global.rootUrl + "/" + chart.model.get("slug"),
 				queryParams = owid.getQueryParams(),
 				queryStr = owid.queryParamsToStr(queryParams),				
 				canonicalUrl = baseUrl + queryStr;
@@ -250,9 +255,9 @@
 			headerControl.update({
 				containerNode: chart.svg.node(),
 				bounds: bounds,
-				titleTemplate: chart.model.get('chart-name'),
+				titleTemplate: chart.model.get('title'),
 				titleLink: canonicalUrl,
-				subtitleTemplate: chart.model.get('chart-subname') + disclaimer,
+				subtitleTemplate: chart.model.get('subtitle') + disclaimer,
 				logosSVG: chart.model.get('logosSVG'),
 				entities: chart.model.getSelectedEntities(),
 				entityType: chart.model.get('entity-type'),

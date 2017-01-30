@@ -76,7 +76,7 @@
                     shareMenu.update({
                         containerNode: chart.htmlNode,
                         title: document.title.replace(" - Our World In Data", ""),
-                        baseUrl: Global.rootUrl + '/' + chart.model.get('chart-slug'),
+                        baseUrl: Global.rootUrl + '/' + chart.model.get('slug'),
                         queryStr: chart.url.lastQueryStr||"",
                         cacheTag: chart.model.get("variableCacheTag"),
                         editUrl: Cookies.get('isAdmin') ? (Global.rootUrl + '/charts/' + chart.model.get('id') + '/edit') : null,                        

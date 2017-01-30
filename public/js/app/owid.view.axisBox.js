@@ -5,10 +5,10 @@
 	owid.view.axisBox = function() {
 		var box = owid.dataflow();
 
-		box.needs('svg', 'bounds', 'axisConfig');
+		box.needs('containerNode', 'bounds', 'axisConfig');
 
-		box.flow('g : svg', function(svg) {
-			return svg.append('g').attr('class', 'axisBox');
+		box.flow('g : containerNode', function(containerNode) {
+			return d3.select(containerNode).append('g').attr('class', 'axisBox')
 		});
 
 		var _xAxis = owid.view.axis();
