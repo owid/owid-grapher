@@ -338,27 +338,23 @@ export class LabelledSlopes extends Component {
 		return slopeData
 	}
 
-	@bind
-	onMouseMove(ev : MouseEvent) {
-		const mouse = getRelativeMouse(this.base, ev)
-
-		if (this.props.bounds.containsPoint(...mouse)) {
+	@bind onMouseMove() {
+		const mouse = d3.mouse(this.base)
+		if (!this.props.bounds.containsPoint(...mouse))
+			this.focusKey = null
+		else {
 			const slope = _.sortBy(this.slopeData, (slope) => {
 				const distToLine = Math.abs((slope.y2-slope.y1)*mouse[0] - (slope.x2-slope.x1)*mouse[1] + slope.x2*slope.y1 - slope.y2*slope.x1) / Math.sqrt((slope.y2-slope.y1)**2 + (slope.x2-slope.x1)**2)
 				return distToLine
 			})[0]
 			this.focusKey = slope.key
-		} else {
-			this.focusKey = null
 		}		
 	}
 
 	componentDidMount() {
-		d3.select('html').on('mousemove.slopechart', () => {
-			const mouse = d3.mouse(this.base)
-			if (!this.props.bounds.containsPoint(...mouse))
-				this.focusKey = null
-		})
+		d3.select('html').on('mousemove.slopechart', this.onMouseMove)
+		d3.select('html').on('touchmove.slopechart', this.onMouseMove)
+		d3.select('html').on('touchstart.slopechart', this.onMouseMove)
 
 		// Nice little intro animation
 		d3.select(this.base).select(".slopes").attr('stroke-dasharray', "100%").attr('stroke-dashoffset', "100%").transition().attr('stroke-dashoffset', "0%")
@@ -366,6 +362,8 @@ export class LabelledSlopes extends Component {
 
 	componentDidUnmount() {
 		d3.select('html').on('mousemove.slopechart', null)
+		d3.select('html').on('touchmove.slopechart', null)
+		d3.select('html').on('touchstart.slopechart', null)
 	}
 
     render() {
@@ -384,7 +382,7 @@ export class LabelledSlopes extends Component {
 		window.chart.tabs.chart.maxYear = xDomain[1]
 
 	    return (
-	    	<g class="slopeChart" onMouseMove={this.onMouseMove}>
+	    	<g class="slopeChart">
 				<g class="gridlines">
 					{_.map(yScale.ticks(6), (tick) => {
 						return <line x1={x1} y1={yScale(tick)} x2={x2} y2={yScale(tick)} stroke="#eee" stroke-dasharray="3,2"/>
@@ -640,16 +638,16 @@ class Slope extends Component {
 		const { x1, y1, x2, y2, color, size, hasLeftLabel, hasRightLabel, leftLabel, rightLabel, labelFontSize, leftLabelBounds, rightLabelBounds, isFocused } = this.props
 		const lineColor = color //'#89C9CF'
 		const labelColor = '#333'
-		const opacity = isFocused ? 1 : 0.7
+		const opacity = isFocused ? 1 : 0.5
 
 //		if (hasLeftLabel) owid.boundsDebug(leftLabelBounds);
 //		if (hasRightLabel) owid.boundsDebug(rightLabelBounds)
 
 		return <g class="slope">
 			{ hasLeftLabel ? <text x={leftLabelBounds.x+leftLabelBounds.width} y={leftLabelBounds.y} text-anchor="end" font-size={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{leftLabel}</text> : '' }
-			<circle cx={x1} cy={y1} r={isFocused ? 6 : 3} fill={lineColor} opacity={opacity}/>
+			<circle cx={x1} cy={y1} r={isFocused ? 4 : 2} fill={lineColor} opacity={opacity}/>
 			<line ref={(el) => this.line = el} x1={x1} y1={y1} x2={x2} y2={y2} stroke={lineColor} stroke-width={isFocused ? 2*size : size} opacity={opacity}/>
-			<circle cx={x2} cy={y2} r={isFocused ? 6 : 3} fill={lineColor} opacity={opacity}/>
+			<circle cx={x2} cy={y2} r={isFocused ? 4 : 2} fill={lineColor} opacity={opacity}/>
 			{ hasRightLabel ? <text x={rightLabelBounds.x} y={rightLabelBounds.y} font-size={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{rightLabel}</text> : '' }
 		</g>
 	}

@@ -202,11 +202,15 @@ export default class Timeline extends Component {
     componentDidMount() {
     	d3.select('html').on('mouseup.timeline', this.onMouseUp)
     	d3.select('html').on('mousemove.timeline', this.onMouseMove)
+    	d3.select('html').on('touchend.timeline', this.onMouseUp)
+    	d3.select('html').on('touchmove.timeline', this.onMouseMove)
     }
 
     componentWillUnmount() {
     	d3.select('html').on('mouseup.timeline', null)
     	d3.select('html').on('mousemove.timeline', null)
+    	d3.select('html').on('touchend.timeline', null)
+    	d3.select('html').on('touchmove.timeline', null)
     }
 
   	render() {

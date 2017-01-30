@@ -89,7 +89,7 @@ class MapTab extends Component {
     @bind
     onClick(d) {
         const {chart} = this
-        if (d3.select(chart.dom).classed('mobile') || !_.includes(chart.model.get("tabs"), "chart")) return;
+        if (chart.isMobile || !_.includes(chart.model.get("tabs"), "chart")) return;
 
         var entityName = d.id,
             availableEntities = chart.vardata.get("availableEntities"),
