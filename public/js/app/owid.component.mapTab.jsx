@@ -163,5 +163,9 @@ export default function(chart : any) {
         rootNode = render(<MapTab bounds={bounds} choroplethData={chart.mapdata.currentValues} years={chart.map.getYears()} inputYear={+chart.map.get('targetYear')} legendData={chart.mapdata.legendData} legendTitle={chart.mapdata.legendTitle} projection={chart.map.get('projection')} defaultFill={chart.mapdata.getNoDataColor()} />, chart.svg.node(), rootNode)
     };
 
+    mapTab.beforeClean(function() {
+        rootNode = render(() => null, chart.svg.node(), rootNode)
+    })
+
     return mapTab;
 };

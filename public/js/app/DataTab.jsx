@@ -5,7 +5,8 @@ import * as d3 from '../libs/d3.v4'
 import owid from '../owid'
 import dataflow from './owid.dataflow'
 import Bounds from './Bounds'
-import { h, render, Component, cloneElement } from 'preact'
+import React, {Component} from 'react'
+import {render} from 'preact'
 import { observable, computed, asFlat } from 'mobx'
 import { bind } from 'decko'
 import type ChoroplethData from './ChoroplethMap'
@@ -61,7 +62,7 @@ class DataTab extends Component {
 		};
 
 		dataTab.beforeClean(function() {
-			if (dataTab.el) render(NullElement, chart.htmlNode, rootNode);
+			rootNode = render(NullElement, chart.htmlNode, rootNode);
 		});
 
 		return dataTab;
