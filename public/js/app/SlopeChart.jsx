@@ -14,6 +14,7 @@ import Layout from './Layout'
 import NoData from './NoData'
 import Observations from './Observations'
 import ChartConfig from './ChartConfig'
+import Text from './Text'
 window.Observations = Observations
 
 export type SlopeChartSeries = {
@@ -396,8 +397,8 @@ export class LabelledSlopes extends Component {
 				    	return <Slope key={slope.key} {...slope} />
 			    	})}
 				</g>
-	    		<text x={x1} y={y1+10} text-anchor="middle" dominant-baseline="hanging" fill="#666">{xDomain[0]}</text>
-	    		<text x={x2} y={y1+10} text-anchor="middle" dominant-baseline="hanging" fill="#666">{xDomain[1]}</text>
+	    		<Text x={x1} y={y1+10} text-anchor="middle" dominant-baseline="hanging" fill="#666">{xDomain[0]}</Text>
+	    		<Text x={x2} y={y1+10} text-anchor="middle" dominant-baseline="hanging" fill="#666">{xDomain[1]}</Text>
 	    		<line x1={x1} y1={y1} x2={x1} y2={y2} stroke="#333"/>
 	    		<line x1={x2} y1={y1} x2={x2} y2={y2} stroke="#333"/>
 		    </g>

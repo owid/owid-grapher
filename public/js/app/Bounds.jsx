@@ -61,7 +61,7 @@ export default class Bounds {
 
 
 
-		bounds = new Bounds(0, 0, m.width, str == "M" ? m.width : Bounds.forText("M", { fontSize: fontSize }).height).padWidth(-1).padHeight(-1)
+		bounds = new Bounds(0, 0, m.width, str == "m" ? m.width : Bounds.forText("m", { fontSize: fontSize }).height).padWidth(-1).padHeight(-1)
 		this.textBoundsCache.set(key, bounds)
 		return bounds
 	}

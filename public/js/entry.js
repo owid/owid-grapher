@@ -1,3 +1,4 @@
+require('babel-polyfill');
 require('./libs/modernizr-custom');
 window.jQuery = require('./libs/jquery');
 window.d3 = require('./libs/d3');
@@ -18,7 +19,6 @@ window.ResizeSensor = require('./libs/ResizeSensor');
 window.ElementQueries = require('./libs/ElementQueries');
 window.Fuse = require('./libs/fuse');
 require('./libs/innersvg');
-require('babel-polyfill');
 
 window.owid = require('./owid').default;
 require('./app/owid.bounds');

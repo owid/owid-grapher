@@ -4,6 +4,7 @@ import * as _ from '../libs/underscore'
 import * as d3 from '../libs/d3.v4'
 import owid from '../owid'
 import Bounds from './Bounds'
+import Text from './Text'
 import type { SVGElement } from './Util'
 import { getRelativeMouse } from './Util'
 import React, {Component} from 'react'
@@ -90,19 +91,19 @@ export default class Timeline extends Component {
 
 	@computed get minYearBox() : Bounds {
 		const { minYear, bounds } = this
-		return Bounds.forText(minYear.toString(), { fontSize: "0.8em" }).extend({ x: 45, y: bounds.height/2 })
+		return Bounds.forText(minYear.toString(), { fontSize: "0.8em" }).extend({ x: bounds.left+45, y: bounds.top+bounds.height/2 })
 	}
 
 	@computed get maxYearBox() : Bounds {
 		const { minYear, bounds } = this
-		return Bounds.forText(minYear.toString(), { fontSize: "0.8em" }).extend({ x: bounds.width, y: bounds.height/2 })
+		return Bounds.forText(minYear.toString(), { fontSize: "0.8em" }).extend({ x: bounds.right, y: bounds.top+bounds.height/2 })
 	}
 
 	@computed get sliderBounds() : Bounds {
 		const { bounds, minYearBox, maxYearBox } = this
 		const sliderHeight = 12
 		const left = minYearBox.left + minYearBox.width + 15
-		return new Bounds(left, (bounds.height-sliderHeight)/2, bounds.width-maxYearBox.width-left-15, sliderHeight)
+		return new Bounds(left, bounds.top + (bounds.height-sliderHeight)/2, bounds.width-maxYearBox.width-(left-bounds.left)-15, sliderHeight)
 	}
 
 	@computed get xScale() : any {
@@ -211,14 +212,13 @@ export default class Timeline extends Component {
   	render() {
 		const { bounds, sliderBounds, targetYear, minYear, maxYear, minYearBox, maxYearBox, xScale, activeYear, years, isPlaying } = this
 
-		const gTransform = `translate(${bounds.left}, ${bounds.top})`
-		return <g class="timeline clickable" transform={gTransform} onMouseDown={this.onMouseDown} ref={g => this.g = g}>
-			<rect x={0} y={0} width={bounds.width} height={bounds.height} fill="white"></rect>
-			<text class="toggle" onClick={() => this.isPlaying = !this.isPlaying} x={10} y={bounds.height/2} font-family="FontAwesome" font-size="1.4em" dominant-baseline="middle">
+		return <g class="timeline clickable" onMouseDown={this.onMouseDown} ref={g => this.g = g}>
+			<rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height} fill="white"></rect>
+			<Text class="toggle" onClick={() => this.isPlaying = !this.isPlaying} x={bounds.left+10} y={bounds.top+bounds.height/2} font-family="FontAwesome" font-size="1.4em" dominant-baseline="middle">
 				{isPlaying ? "\uf28c" : "\uf01d"}
-			</text>
-			<text class="minYearLabel" x={minYearBox.x} y={minYearBox.y} dominant-baseline="middle" font-size="0.8em" fill="#666">{minYear}</text>
-			<text class="maxYearLabel" x={maxYearBox.x} y={maxYearBox.y} dominant-baseline="middle" font-size="0.8em" fill="#666" text-anchor="end">{maxYear}</text>
+			</Text>
+			<Text class="minYearLabel" x={minYearBox.x} y={minYearBox.y} dominant-baseline="middle" font-size="0.8em" fill="#666">{minYear}</Text>
+			<Text class="maxYearLabel" x={maxYearBox.x} y={maxYearBox.y} dominant-baseline="middle" font-size="0.8em" fill="#666" text-anchor="end">{maxYear}</Text>
 			<g class="ticks">
 				{_.map(years.slice(1, -1), (year) => {
 					return <rect class="tick" x={xScale(year)} y={sliderBounds.top+sliderBounds.height-1} width="1px" height="0.2em" fill="rgba(0,0,0,0.2)" />

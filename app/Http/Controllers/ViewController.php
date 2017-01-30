@@ -30,6 +30,7 @@ class ViewController extends Controller {
 		$type = strtolower($request->input('type'));
 		$tab = $request->input('tab');
 		$page = $request->input('page');
+		$compare = $request->input('compare') == '1';
 
 		if (!$tab && $type == 'map') {
 			$tab = 'map';
@@ -91,7 +92,7 @@ class ViewController extends Controller {
 
 		$urls = array_slice($urls, ($page-1)*$chartsPerPage, $chartsPerPage);
 
-		return view('testall')->with(compact('urls', 'nextPageUrl', 'prevPageUrl'));
+		return view('testall')->with(compact('urls', 'nextPageUrl', 'prevPageUrl', 'compare'));
 	}
 
 	public function show($slug)

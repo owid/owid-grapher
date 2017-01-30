@@ -25,11 +25,11 @@
 
 	@foreach ($urls as $chart)
 		<div class="row">
-			@if ($chart['localUrl'] != $chart['liveUrl'])
+			@if ($compare)
 				<iframe src="{{ $chart['localUrl'] }}"></iframe>
 				<iframe src="{{ $chart['liveUrl'] }}"></iframe>
 			@else
-				<iframe src="{{ $chart['liveUrl'] }}"></iframe>
+				<iframe src="{{ $chart['localUrl'] }}"></iframe>
 			@endif			
 		</div>
 	@endforeach
