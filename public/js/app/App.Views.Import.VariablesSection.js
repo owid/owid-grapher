@@ -2,7 +2,7 @@
 	"use strict";
 	owid.namespace("App.Views.Import.VariablesSection");
 
-	var SourceSelector = require("App.Views.Import.SourceSelector");
+	var SourceSelector = App.Views.Import.SourceSelector;
 
 	App.Views.Import.VariablesSection = owid.View.extend({
 		el: ".variables-section",

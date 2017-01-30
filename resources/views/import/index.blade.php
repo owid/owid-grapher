@@ -154,4 +154,7 @@
 
 @section('scripts')
   <script type="text/javascript" src='//cdn.tinymce.com/4/tinymce.min.js'></script>
+  <script>
+	new App.Views.ImportView()  
+  </script>
 @endsection

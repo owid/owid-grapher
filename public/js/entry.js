@@ -96,3 +96,20 @@ require('./app/App.Views.Form.MapColorSection')
 require('./app/App.Views.Form.MapTabView')
 require('./app/App.Views.Form.SaveButtons')
 window.Editor = require('./editor/Editor.jsx').default
+
+// Importer code
+
+require('./libs/bootstrap3-wysihtml5.all')
+require('./libs/jszip.js')
+window.Papa = require('./libs/papaparse.js')
+window.moment = require('./libs/moments.min.js')
+require('./app/App.Utils.js')
+require('./app/App.Models.ChartModel.js')        
+require('./app/App.Models.Import.DatasetModel.js')
+require('./app/App.Models.Importer.js')
+require('./app/App.Views.UI.ImportProgressPopup.js')
+require('./app/App.Views.Import.SourceSelector.js')
+require('./app/App.Views.Import.ChooseDatasetSection.js')
+require('./app/App.Views.Import.VariablesSection.js')
+require('./app/App.Views.Import.CategorySection.js')
+App.Views.ImportView = require('./app/App.Views.ImportView.js').default

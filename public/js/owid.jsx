@@ -1035,17 +1035,6 @@
  			.style('stroke', 'red');
  	};
 
-	window.require = function(namespace) {
-		var obj = window;
-		_.each(namespace.split("."), function(level) {
-			if (!_.isObject(obj[level]))
-				throw "Failed to load " + namespace;
-			obj = obj[level];
-		});
-
-		return obj;
-	};
-
 	owid.getTmpTextNode = function() {
 		var node = d3.select('svg').select('.tmpTextCalc').node();
 		if (node) return node;

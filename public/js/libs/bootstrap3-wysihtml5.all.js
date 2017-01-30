@@ -83,7 +83,7 @@ var wysihtml5 = {
 */
 //    } else {
         // No AMD or CommonJS support so we place Rangy in a global variable
-        global.rangy = factory();
+        window.rangy = factory();
 //    }
 })(function() {
 
@@ -3818,7 +3818,7 @@ var wysihtml5 = {
          */
 //    } else {
         // No AMD or CommonJS support so we use the rangy global variable
-        factory(global.rangy);
+        factory(window.rangy);
 //    }
 })(function(rangy) {
     rangy.createModule("SaveRestore", ["WrappedRange"], function(api, module) {
