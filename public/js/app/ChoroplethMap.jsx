@@ -28,7 +28,7 @@ export default class ChoroplethMap extends Component {
         choroplethData: ChoroplethData,
         bounds: Bounds,
         projection: string,
-        defaultFill: string
+        defaultFill: string,
     }
 
     subunits: any
@@ -37,10 +37,6 @@ export default class ChoroplethMap extends Component {
         return topojson.feature(owid.data.world, owid.data.world.objects.world).features.filter(function(feature) {
             return feature.id !== "ATA";
         });
-    }
-
-    @computed get path() {
-        return App.Views.Chart.Map.Projections[this.props.projection]().path;
     }
 
     @computed get projection() : string {
@@ -59,8 +55,21 @@ export default class ChoroplethMap extends Component {
         return this.props.defaultFill
     }
 
+    @computed get pathData() : { [key: string]: string } {        
+        const {geoData, projection} = this
+
+        const pathData = {}
+        const pathF = App.Views.Chart.Map.Projections[projection]().path;
+
+        _.each(geoData, (d) => {
+            pathData[d.id] = pathF(d)
+        })
+
+        return pathData
+    }
+
     render() {
-        const { bounds, choroplethData, defaultFill, geoData, path } = this
+        const { bounds, choroplethData, defaultFill, geoData, pathData } = this
 
         return <g class="map" clip-path="url(#boundsClip)">
             <defs>
@@ -69,11 +78,11 @@ export default class ChoroplethMap extends Component {
                 </clipPath>
             </defs>
             <rect {...bounds} fill="#ecf6fc"></rect>
-            <g class="subunits" ref={g => this.subunits = g}>    
+            <g class="subunits" ref={g => this.subunits = g}>
                 {_.map(geoData, (d) => {
                     const fill = choroplethData[d.id] ? choroplethData[d.id].color : defaultFill
-                    return <path d={path(d)} stroke-width={0.3} stroke="#4b4b4b" cursor="pointer" fill={fill}/>
-                })}            
+                    return <path d={pathData[d.id]} stroke-width={0.3} stroke="#4b4b4b" cursor="pointer" fill={fill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={(ev) => this.props.onClick(d)}/>
+                })}
             </g>
             <text class="disclaimer" x={bounds.left+bounds.width-5} y={bounds.top+bounds.height-10} font-size="0.5em" text-anchor="end">
                 Mapped on current borders

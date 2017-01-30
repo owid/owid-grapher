@@ -40,7 +40,7 @@
 		$tooltip.hide();
 
 		tooltip.fromMap = function(d, ev) {
-			var datum = chart.tabs.map.colorData[d.id],
+			var datum = chart.mapdata.currentValues[d.id],
 				availableEntities = chart.vardata.get("availableEntities"),
 				entity = _.find(availableEntities, function(e) {
 					return owid.entityNameForMap(e.name) == d.id;

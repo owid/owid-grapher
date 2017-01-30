@@ -1,6 +1,6 @@
 // @flow
 
-import { h, render, Component } from 'preact'
+import React, {Component} from 'react'
 import Bounds from './Bounds'
 
 export default class NoData extends Component {

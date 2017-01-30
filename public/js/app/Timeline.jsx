@@ -171,6 +171,7 @@ export default class Timeline extends Component {
 
         this.isDragging = true
         this.inputYear = this.getInputYearFromMouse(evt)
+        evt.preventDefault()
 
 /*        container.on('mousemove.timeline', onMouseMove);
         container.on('mouseup.timeline', onMouseUp);
@@ -181,8 +182,10 @@ export default class Timeline extends Component {
 
 	mouseFrameQueued: boolean
 
-	@bind @action onMouseMove(evt : MouseEvent) {
+	@bind @action onMouseMove() {
 		if (!this.isDragging || this.mouseFrameQueued) return
+		const evt = d3.event
+
 		this.mouseFrameQueued = true
 		requestAnimationFrame(() => {
 			this.inputYear = this.getInputYearFromMouse(evt)
@@ -194,11 +197,22 @@ export default class Timeline extends Component {
     	this.isDragging = false
     }
 
+    // Allow proper dragging behavior even if mouse leaves timeline area
+    componentDidMount() {
+    	d3.select('html').on('mouseup.timeline', this.onMouseUp)
+    	d3.select('html').on('mousemove.timeline', this.onMouseMove)
+    }
+
+    componentWillUnmount() {
+    	d3.select('html').on('mouseup.timeline', null)
+    	d3.select('html').on('mousemove.timeline', null)
+    }
+
   	render() {
 		const { bounds, sliderBounds, targetYear, minYear, maxYear, minYearBox, maxYearBox, xScale, activeYear, years, isPlaying } = this
 
 		const gTransform = `translate(${bounds.left}, ${bounds.top})`
-		return <g class="timeline clickable" transform={gTransform} onMouseDown={this.onMouseDown} onMouseMove={this.onMouseMove} onMouseUp={this.onMouseUp} ref={g => this.g = g}>
+		return <g class="timeline clickable" transform={gTransform} onMouseDown={this.onMouseDown} ref={g => this.g = g}>
 			<rect x={0} y={0} width={bounds.width} height={bounds.height} fill="white"></rect>
 			<text class="toggle" onClick={() => this.isPlaying = !this.isPlaying} x={10} y={bounds.height/2} font-family="FontAwesome" font-size="1.4em" dominant-baseline="middle">
 				{isPlaying ? "\uf28c" : "\uf01d"}

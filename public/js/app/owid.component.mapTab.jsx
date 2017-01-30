@@ -78,32 +78,36 @@ class MapTab extends Component {
     componentDidUpdate() {
         const { choroplethData, projection, defaultFill, inputYear } = this.props
         const { chart } = this
-
-        function onHover(d) {
-            chart.tooltip.fromMap(d, d3.event);
-        }
-
-        function onHoverStop(d) {
-            chart.tooltip.hide();
-        }
-
-        function onClick(d) {
-            if (d3.select(chart.dom).classed('mobile') || !_.includes(chart.model.get("tabs"), "chart")) return;
-
-            var entityName = d.id,
-                availableEntities = chart.vardata.get("availableEntities"),
-                entity = _.find(availableEntities, function(e) {
-                    return owid.entityNameForMap(e.name) == d.id;
-                });
-
-            if (!entity) return;
-            chart.model.set({ "selected-countries": [entity] }, { silent: true });
-            chart.data.chartData = null;
-            chart.update({ activeTabName: 'chart' });
-            chart.url.updateCountryParam();
-        }
         
         this.updateLegend()
+    }
+
+    @bind
+    onHover(d, ev) {
+        this.chart.tooltip.fromMap(d, ev);
+    }
+
+    @bind
+    onHoverStop(d) {
+        this.chart.tooltip.hide();
+    }
+
+    @bind
+    onClick(d) {
+        const {chart} = this
+        if (d3.select(chart.dom).classed('mobile') || !_.includes(chart.model.get("tabs"), "chart")) return;
+
+        var entityName = d.id,
+            availableEntities = chart.vardata.get("availableEntities"),
+            entity = _.find(availableEntities, function(e) {
+                return owid.entityNameForMap(e.name) == d.id;
+            });
+
+        if (!entity) return;
+        chart.model.set({ "selected-countries": [entity] }, { silent: true });
+        chart.data.chartData = null;
+        chart.update({ activeTabName: 'chart' });
+        chart.url.updateCountryParam();
     }
 
     updateLegend() {
@@ -125,27 +129,20 @@ class MapTab extends Component {
 
     @bind
     onTargetChange(targetYear) {
-        const { chart } = this
-        chart.map.set('targetYear', targetYear)
+        this.chart.map.set('targetYear', targetYear)
     }
 
     render() {
-/*        map.update({ 
-            containerNode: this.g,
-            colorData: choroplethData,
-            bounds: boundsForMap,
-            projection: projection,
-            defaultFill: defaultFill,
-            onHover: onHover,
-            onHoverStop: onHoverStop,
-            onClick: onClick
-        });*/
+        const { choroplethData, projection, defaultFill, years, inputYear, legendTitle, legendData } = this.props
+        let { bounds } = this.props
 
-        const { bounds, choroplethData, projection, defaultFill, years, inputYear, legendTitle, legendData } = this.props
+        if (years.length <= 1)
+            bounds = bounds.padBottom(10)
+
         return <Layout bounds={bounds} class="mapTab" ref={g => this.g = g}>
-            <ChoroplethMap choroplethData={choroplethData} projection={projection} defaultFill={defaultFill}/>,
+            <ChoroplethMap choroplethData={choroplethData} projection={projection} defaultFill={defaultFill} onHover={this.onHover} onHoverStop={this.onHoverStop} onClick={this.onClick}/>,
             <MapLegend legendData={legendData} title={legendTitle}/>
-            <Timeline layout="bottom" onTargetChange={this.onTargetChange} years={years} inputYear={inputYear}/>
+            {years.length > 1 && <Timeline bounds={Layout.bounds} layout="bottom" onTargetChange={this.onTargetChange} years={years} inputYear={inputYear} ref={(e) => this.chart.tabs.map.timeline = e}/>}           
         </Layout>
     }
 }

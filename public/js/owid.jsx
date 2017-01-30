@@ -72,9 +72,9 @@
 		return parseFloat(val) == val;
 	};
 
-	owid.numeric = function(val, defaultVal) {
+	owid.numeric = function(val, defaultVal = null) {
 		var num = parseFloat(val);
-		if (_.isNumber(num)) 
+		if (_.isFinite(num)) 
 			return num;
 		else 
 			return defaultVal;

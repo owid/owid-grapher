@@ -216,7 +216,6 @@
 					d = owid.displayYear,
 					timeline = chart.tabs.map.timeline;
 
-
 				if (timeline && (timeline.isPlaying || timeline.isDragging))
 					disclaimer = "";
 				else if (hasTargetYear && timeFrom != timeTo) {

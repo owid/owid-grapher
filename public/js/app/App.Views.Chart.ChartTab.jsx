@@ -1,8 +1,8 @@
 import React from 'react'
 import {h, render, Component} from 'preact'
-import {SlopeChart} from './SlopeChart'
-import {SlopeChartTransform} from './SlopeChartTransform'
+import SlopeChart from './SlopeChart'
 import Bounds from './Bounds'
+import ChartConfig from './ChartConfig'
 
 ;(function() {
 	"use strict";
@@ -236,49 +236,15 @@ import Bounds from './Bounds'
 			}
 		}
 
-		var rootNode = null, slopeChartTransform = new SlopeChartTransform();
+		var rootNode = null;
 		function renderSlopeChart() {
-            var xDomain = [], yDomain = [];
-
-            if (_.isFinite(xAxisMin) && (xAxisMin > 0 || xAxisScale != "log"))
-                xDomain[0] = xAxisMin;
-            if (_.isFinite(xAxisMax))
-                xDomain[1] = xAxisMax;
-
-            if (_.isFinite(yAxisMin) && (yAxisMin > 0 || yAxisScale != "log"))
-                yDomain[0] = yAxisMin;            
-            if (_.isFinite(yAxisMax))
-                yDomain[1] = yAxisMax;
-
-            chartTab.update({
-            	xDomain: xDomain||"",
-            	xAxisScale: xAxisScale||"",
-            	xAxis: xAxis||"",
-            	xAxisPrefix: xAxisPrefix||"",
-            	xAxisFormat: xAxisFormat||"",
-            	xAxisSuffix: xAxisSuffix||"",
-
-            	yDomain: yDomain||"",
-            	yAxisScale: yAxisScale||"",
-            	yAxis: yAxis||"",
-            	yAxisPrefix: yAxisPrefix||"",
-            	yAxisFormat: yAxisFormat||"",
-            	yAxisSuffix: yAxisSuffix||"",
-            });
-
-			chartTab.viz = viz;
-
 			let bounds = new Bounds(chartOffsetX, chartOffsetY+10, chartWidth-10, chartHeight-10)
 
-			var chartTime = chart.model.get('chart-time')||[]
+//			const props = slopeChartTransform.getProps({ dimensions: chart.model.getDimensions(), xDomain: chartTime })
+//			chartTab.minYear = props.xDomain[0]
+//			chartTab.maxYear = props.xDomain[1]
 
-			const {tickFormat} = chartTab.axisConfig.y
-
-			const props = slopeChartTransform.getProps({ dimensions: chart.model.getDimensions(), xDomain: chartTime })
-			chartTab.minYear = props.xDomain[0]
-			chartTab.maxYear = props.xDomain[1]
-
-			rootNode = render(<SlopeChart bounds={bounds} yDomain={yDomain} yTickFormat={tickFormat} yScaleType="linear" {...props}/>, chart.svg.node(), rootNode)
+			rootNode = render(<SlopeChart bounds={bounds} config={new ChartConfig(chart.model)}/>, chart.svg.node(), rootNode)
 			postRender();
 			chart.header.render();			
 		}

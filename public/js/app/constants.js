@@ -4,13 +4,13 @@
 	window.App = window.App || {};
 
 	App.ChartType = {
-		//LineChart: "LineChart",
+		LineChart: "LineChart",
 		ScatterPlot: "ScatterPlot",
 		StackedArea: "StackedArea",
 		MultiBar: "MultiBar",
 		HorizontalMultiBar: "HorizontalMultiBar",
 		DiscreteBar: "DiscreteBar",
-		SlopeChart: "LineChart"
+		SlopeChart: "SlopeChart"
 	};
 
 	App.LineType = {
