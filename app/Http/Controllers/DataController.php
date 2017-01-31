@@ -76,6 +76,7 @@ class DataController extends Controller {
 			->select('value', 'year',
 					 'data_values.fk_var_id as var_id', 
 					 'entities.id as entity_id', 'entities.name as entity_name',
+					 'entities.displayName as entity_displayName',
 					 'entities.code as entity_code')
 			->join('entities', 'data_values.fk_ent_id', '=', 'entities.id')
 			->orderBy('var_id', 'ASC')
@@ -101,7 +102,7 @@ class DataController extends Controller {
 				fwrite($out, $result->value);
 
 				if (!isset($entityKey[floatval($result->entity_id)]))
-					$entityKey[floatval($result->entity_id)] = [ 'name' => $result->entity_name, 'code' => $result->entity_code ];
+					$entityKey[floatval($result->entity_id)] = [ 'name' => ($result->entity_displayName ? $result->entity_displayName : $result->entity_name), 'code' => $result->entity_code ];
 			}
 
 			fwrite($out, "\r\n");

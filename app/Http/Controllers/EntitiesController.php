@@ -24,12 +24,12 @@ class EntitiesController extends Controller {
 		$grid = \DataGrid::source('entities');
 		$grid->add( 'id', 'ID', true)->style( 'width:100px' );
         $grid->add( 'name', 'Name', true);
+        $grid->add( 'displayName', 'Display Name', true);
 		$grid->add( '<a href="' .route( 'entities.index' ). '/{{$id}}">View</a>', 'View' );
 		$grid->add( '<a href="' .route( 'entities.index' ). '/{{$id}}/edit">Edit</a>', 'Edit');
         $grid->paginate(10);
 
 		return view( 'entities.index', compact('grid')) ;
-
 	}
 
 	/**
