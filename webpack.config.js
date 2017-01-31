@@ -4,7 +4,7 @@ module.exports = {
     context: path.join(__dirname, "public/js"),
     entry: {        
         charts: "./charts.entry.js",
-        admin: "./admin.entry.js"
+        //admin: "./admin.entry.js"
     },
     output: {
         path: path.join(__dirname, "public/build"),

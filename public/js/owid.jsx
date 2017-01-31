@@ -1031,6 +1031,7 @@
  			.attr('y', bounds.top)
  			.attr('width', bounds.width)
  			.attr('height', bounds.height)
+ 			.attr('class', 'boundsDebug')
  			.style('fill', 'rgba(0,0,0,0)')
  			.style('stroke', 'red');
  	};

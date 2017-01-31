@@ -146,6 +146,57 @@ class AligningText extends Component {
 	}
 }*/
 
+function wrapText(str, targetWidth, opts={}) {
+	const words = str.split(' ')
+	const lines = []
+	const lineHeight = 1.1
+
+	let line = []
+	let lineBounds = Bounds.empty()
+	_.each(words, (word, i) => {
+		let nextLine = line.concat([word])
+		let nextBounds = Bounds.forText(nextLine.join(' '), opts)
+
+		if (nextBounds.width > targetWidth && line.length >= 1) {
+			lines.push({ str: line.join(' '), width: lineBounds.width, height: lineBounds.height })
+			line = [word]
+			lineBounds = Bounds.forText(word, opts)
+		} else {
+			line = nextLine
+			lineBounds = nextBounds
+		}
+	})
+	if (line.length > 0)
+		lines.push({ str: line.join(' '), width: lineBounds.width, height: lineBounds.height })
+
+	let height = 0
+	let width = 0
+	_.each(lines, (line) => {
+		height += line.height
+		width = Math.max(width, line.width)
+	})
+
+	return {
+		lines: lines,
+		lineHeight: lineHeight,
+		width: width,
+		height: height
+	}
+}
+
+@observer
+class WrappedText extends Component {
+	render() {
+		const wrappedText = this.props.children
+
+		return <text {...this.props}>
+			{_.map(wrappedText.lines, (line, i) => {
+				return <tspan x={this.props.x} dy={i == 0 ? 0 : wrappedText.lineHeight + 'em'}>{line.str}</tspan>
+			})}
+		</text>
+	}
+}
+
 @observer 
 export class LabelledSlopes extends Component {
 	props: {
@@ -226,8 +277,12 @@ export class LabelledSlopes extends Component {
         return d3.scaleOrdinal().domain(_.uniq(_.pluck(this.props.data, 'color'))).range(colorScheme)
 	}
 
+	@computed get maxLabelWidth() : number {
+		return this.bounds.width/4
+	}
+
 	@computed get initialSlopeData() : SlopeProps[] {
-		const { data, bounds, isPortrait, xScale, yScale, sizeScale, yTickFormat } = this
+		const { data, bounds, isPortrait, xScale, yScale, sizeScale, yTickFormat, maxLabelWidth } = this
 
 		const slopeData : SlopeProps[] = []
 		const yDomain = yScale.domain()
@@ -240,16 +295,19 @@ export class LabelledSlopes extends Component {
 			const [ v1, v2 ] = series.values
 			const [ x1, x2 ] = [ xScale(v1.x), xScale(v2.x) ]
 			const [ y1, y2 ] = [ yScale(v1.y), yScale(v2.y) ]
-			const leftLabel = series.label + ' ' + yTickFormat(v1.y)
-			const rightLabel = yTickFormat(v2.y) + ' ' + series.label
-			const fontSize = (isPortrait ? 0.5 : 0.6)*(leftLabel.length > 25 ? 0.7 : 1) + 'em'
-			const leftLabelBounds = Bounds.forText(leftLabel, { fontSize: fontSize })
-			const rightLabelBounds = Bounds.forText(rightLabel, { fontSize: fontSize })
+			const fontSize = 0.5 + 'em'
+			const leftValueStr = yTickFormat(y1)
+			const rightValueStr = yTickFormat(y2)
+			const leftValueWidth = Bounds.forText(leftValueStr, { fontSize: fontSize }).width
+			const rightValueWidth = Bounds.forText(rightValueStr, { fontSize: fontSize }).width
+			const leftLabel = wrapText(series.label, maxLabelWidth, { fontSize: fontSize })
+			const rightLabel = wrapText(series.label, maxLabelWidth, { fontSize: fontSize })
 
 			slopeData.push({ x1: x1, y1: y1, x2: x2, y2: y2, color: series.color,
 							 size: sizeScale(series.size)||1,
+							 leftValueStr: leftValueStr, rightValueStr: rightValueStr,
+							 leftValueWidth: leftValueWidth, rightValueWidth: rightValueWidth,
 							 leftLabel: leftLabel, rightLabel: rightLabel,
-							 leftLabelBounds: leftLabelBounds, rightLabelBounds: rightLabelBounds,
 							 labelFontSize: fontSize, key: series.key, isFocused: false,
 							 hasLeftLabel: true, hasRightLabel: true })
 		})
@@ -257,25 +315,34 @@ export class LabelledSlopes extends Component {
 		return slopeData
 	}
 
-	// We calc max before doing overlaps because visible labels may change later but
-	// layout should remain constant
-	@computed get maxLabelWidth() : number {
-		return _.max(_.map(this.initialSlopeData, (slope) => slope.leftLabelBounds.width))		
+	@computed get maxValueWidth() : number {
+		return _.max(_.map(this.initialSlopeData, (slope) => slope.leftValueWidth))		
 	}
 
+	// We calc max before doing overlaps because visible labels may change later but
+	// layout should remain constant
+/*	@computed get maxLabelWidth() : number {
+		return _.max(_.map(this.initialSlopeData, (slope) => slope.leftLabelBounds.width))		
+	}*/
+
 	@computed get labelAccountedSlopeData() {
-		const {maxLabelWidth} = this
+		const {maxLabelWidth, maxValueWidth} = this
 
 		return _.map(this.initialSlopeData, (slope) => {
-			const x1 = slope.x1+maxLabelWidth+8
-			const x2 = slope.x2-maxLabelWidth-8
+			// Squish slopes to make room for labels
+			const x1 = slope.x1+maxLabelWidth+maxValueWidth+8
+			const x2 = slope.x2-maxLabelWidth-maxValueWidth-8
+
+			// Position the labels
+			const leftLabelBounds = new Bounds(x1-slope.leftValueWidth-16-slope.leftLabel.width, slope.y1-slope.leftLabel.height/2, slope.leftLabel.width, slope.leftLabel.height)
+			const rightLabelBounds = new Bounds(x2+slope.rightValueWidth+16, slope.y2-slope.rightLabel.height/2, slope.rightLabel.width, slope.rightLabel.height)
 
 			return _.extend({}, slope, {
 				x1: x1,
 				x2: x2,
-				leftLabelBounds: slope.leftLabelBounds.extend({ x: x1-8-slope.leftLabelBounds.width, y: slope.y1+slope.leftLabelBounds.height/4 }),
-				rightLabelBounds: slope.rightLabelBounds.extend({ x: x2+8, y: slope.y2+slope.rightLabelBounds.height/4 })							
-			})			
+				leftLabelBounds: leftLabelBounds,
+				rightLabelBounds: rightLabelBounds
+			})
 		})
 	}
 
@@ -290,7 +357,7 @@ export class LabelledSlopes extends Component {
 			})
 		})
 
-		// How to work out which of two slopes to prioritize for labelling conflicts
+		// How to work out which of two slopes to prioritize for labelling conflicts	
 		function chooseLabel(s1, s2) {
 			if (s1.isFocused && !s2.isFocused) // Focused slopes always have priority
 				return s1
@@ -329,6 +396,12 @@ export class LabelledSlopes extends Component {
 						s1.hasRightLabel = false
 				}				
 			})
+		})
+
+		d3.selectAll(".boundsDebug").remove()
+		_.each(slopeData, (slope) => {
+			if (slope.hasRightLabel)
+				owid.boundsDebug(slope.rightLabelBounds)
 		})
 
 		// Order by focus and size for draw order
@@ -470,7 +543,6 @@ class ColorLegendItem extends Component {
 	render() {
 		const {label, color} = this.props
 		const {bounds, textBounds, rectSize, rectSpacing} = this
-		owid.boundsDebug(bounds)
 
 		return <g>
 			<rect x={bounds.x} y={bounds.y+(bounds.height/2 - rectSize/2)} width={rectSize} height={rectSize} fill={color}/>		
@@ -621,8 +693,6 @@ type SlopeProps = {
 	size: number,
 	hasLeftLabel: boolean,
 	hasRightLabel: boolean,
-	leftLabel: string,
-	rightLabel: string,
 	labelFontSize: string,
 	leftLabelBounds: Bounds,
 	rightLabelBounds: Bounds,
@@ -635,7 +705,7 @@ class Slope extends Component {
 	line: SVGElement
 
 	render() {
-		const { x1, y1, x2, y2, color, size, hasLeftLabel, hasRightLabel, leftLabel, rightLabel, labelFontSize, leftLabelBounds, rightLabelBounds, isFocused } = this.props
+		const { x1, y1, x2, y2, color, size, hasLeftLabel, hasRightLabel, leftValueStr, rightValueStr, leftLabel, rightLabel, labelFontSize, leftLabelBounds, rightLabelBounds, isFocused } = this.props
 		const lineColor = color //'#89C9CF'
 		const labelColor = '#333'
 		const opacity = isFocused ? 1 : 0.5
@@ -643,12 +713,15 @@ class Slope extends Component {
 //		if (hasLeftLabel) owid.boundsDebug(leftLabelBounds);
 //		if (hasRightLabel) owid.boundsDebug(rightLabelBounds)
 
+		// The weird text positioning here is to line the text up with the bounds while keeping text-anchor middle and the default dominant-baseline
 		return <g class="slope">
-			{ hasLeftLabel ? <text x={leftLabelBounds.x+leftLabelBounds.width} y={leftLabelBounds.y} text-anchor="end" font-size={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{leftLabel}</text> : '' }
+			{hasLeftLabel && <WrappedText x={leftLabelBounds.x+leftLabelBounds.width} y={leftLabelBounds.y+leftLabel.lines[0].height/2+leftLabel.lines[0].height/4} text-anchor="end" font-size={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{leftLabel}</WrappedText>}
+			{hasLeftLabel && <Text x={x1-8} y={y1} text-anchor="end" dominant-baseline="middle" font-size={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{leftValueStr}</Text>}
 			<circle cx={x1} cy={y1} r={isFocused ? 4 : 2} fill={lineColor} opacity={opacity}/>
 			<line ref={(el) => this.line = el} x1={x1} y1={y1} x2={x2} y2={y2} stroke={lineColor} stroke-width={isFocused ? 2*size : size} opacity={opacity}/>
 			<circle cx={x2} cy={y2} r={isFocused ? 4 : 2} fill={lineColor} opacity={opacity}/>
-			{ hasRightLabel ? <text x={rightLabelBounds.x} y={rightLabelBounds.y} font-size={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{rightLabel}</text> : '' }
+			{hasRightLabel && <Text x={x2+8} y={y2} text-anchor="start" dominant-baseline="middle" font-size={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{rightValueStr}</Text>}
+			{hasRightLabel && <WrappedText x={rightLabelBounds.x} y={rightLabelBounds.y+rightLabel.lines[0].height/2+rightLabel.lines[0].height/4} text-anchor="start" font-size={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{rightLabel}</WrappedText>}
 		</g>
 	}
 }

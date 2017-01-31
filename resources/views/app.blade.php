@@ -82,7 +82,6 @@
 		</div>
 		@yield('outter-content')
 
-		<script src="{{ URL::to('/build/charts.bundle.js') }}"></script>
 		<script src="{{ URL::to('/build/admin.bundle.js') }}"></script>
 
 		<script>

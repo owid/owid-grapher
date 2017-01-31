@@ -90,7 +90,6 @@
 			App.isEditor = true
 		</script>
 		
-		<script src="{{ URL::to('/build/charts.bundle.js') }}"></script>
 		<script src="{{ URL::to('/build/admin.bundle.js') }}"></script>
 		@yield('scripts')
 	</body>

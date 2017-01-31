@@ -1,3 +1,68 @@
+require('babel-polyfill');
+require('./libs/modernizr-custom');
+window.jQuery = require('./libs/jquery');
+window.d3 = require('./libs/d3');
+require('./libs/nv.d3');
+window.d3v4 = require('./libs/d3.v4');
+window._ = require('./libs/underscore');
+_.extend(window, require('./libs/saveSvgAsPng'));
+require('./libs/topojson');
+window.s = require('./libs/underscore.string');
+window.Backbone = require('./libs/backbone');
+require('./libs/bootstrap.min');
+require('./libs/chosen.jquery');
+window.colorbrewer = require('./libs/colorbrewer');
+require('./libs/jquery.lazyloadxt.extra');
+window.async = require('./libs/async');
+window.Cookies = require('./libs/js.cookie');
+window.ResizeSensor = require('./libs/ResizeSensor');
+window.ElementQueries = require('./libs/ElementQueries');
+window.Fuse = require('./libs/fuse');
+require('./libs/innersvg');
+
+window.owid = require('./owid').default;
+require('./app/owid.bounds');
+owid.dataflow = require('./app/owid.dataflow').default;
+require('./app/owid.colorbrewer');
+require('preact/devtools');
+require('./app/constants');
+require('./app/App.Utils');
+require('./app/App.Models.ChartModel');
+require('./app/App.Models.MapModel');
+require('./app/owid.models.mapdata');
+require('./app/App.Models.VariableData');
+require('./app/App.Models.ChartData');
+require('./app/App.Models.Colors');
+require('./app/App.Views.Chart.Header');
+owid.component = {};
+owid.component.footer = require('./app/SourcesFooter').default;
+require('./app/owid.view.tooltip');
+require('./app/owid.view.scaleSelectors');
+require('./app/owid.view.axis');
+require('./app/owid.view.axisBox');
+require('./app/owid.view.timeline');
+require('./app/owid.view.scatter');
+require('./app/owid.viz.scatter');
+require('./app/owid.view.entitySelect');
+owid.view.controlsFooter = require('./app/ControlsFooter').default;
+require('./app/App.Views.Chart.Legend');
+owid.component.slopeChart = require('./app/owid.component.slopeChart').default;
+require('./app/App.Views.Chart.ChartTab');
+require('./app/DataTab');
+require('./app/owid.component.sourcesTab');
+require('./app/owid.component.shareTab');
+
+require('./app/owid.data.world');
+require('./app/App.Views.Chart.Map.MapControls');
+require('./app/App.Views.Chart.Map.Projections');
+require('./app/App.Views.Chart.Map.Legend');
+owid.component.mapTab = require('./app/owid.component.mapTab').default;
+
+require('./app/App.Views.ChartURL');
+require('./app/App.Views.Export');
+require('./app/App.Views.DebugHelper');
+require('./app/owid.chart');
+
 // Admin only code
 
 require('./libs/bootstrap-datepicker')
