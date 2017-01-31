@@ -2,10 +2,13 @@ var path = require('path');
 
 module.exports = {
     context: path.join(__dirname, "public/js"),
-    entry: "./entry",
+    entry: {        
+        charts: "./charts.entry.js",
+        admin: "./admin.entry.js"
+    },
     output: {
         path: path.join(__dirname, "public/build"),
-        filename: "bundle.js"
+        filename: "[name].bundle.js"
     },
     // Enable sourcemaps for debugging webpack's output.
     devtool: "source-map",    

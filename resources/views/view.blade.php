@@ -53,7 +53,7 @@
 			};		
 		</script>
 		
-		<script src="{{ URL::to('/build/bundle.js') }}"></script>
+		<script src="{{ URL::to('/build/charts.bundle.js') }}"></script>
 		
 		@yield('scripts')
 	</body>

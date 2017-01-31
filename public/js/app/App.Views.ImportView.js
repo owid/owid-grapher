@@ -22,7 +22,7 @@ window.App.Views.ImportView = owid.View.extend({
 	},
 
 	initialize: function( options ) {	
-		this.dispatcher = _.clone( Backbone.Events );
+		this.dispatcher = _.clone(Backbone.Events);
 		App.DatasetModel = new App.Models.Import.DatasetModel({ dispatcher: this.dispatcher });
 		this.datasetSection = this.addChild(ChooseDatasetSection);
 		this.variableSection = this.addChild(VariablesSection);
