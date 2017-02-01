@@ -278,7 +278,7 @@ export class LabelledSlopes extends Component {
 	}
 
 	@computed get maxLabelWidth() : number {
-		return this.bounds.width/4
+		return this.bounds.width/5
 	}
 
 	@computed get initialSlopeData() : SlopeProps[] {
@@ -295,7 +295,7 @@ export class LabelledSlopes extends Component {
 			const [ v1, v2 ] = series.values
 			const [ x1, x2 ] = [ xScale(v1.x), xScale(v2.x) ]
 			const [ y1, y2 ] = [ yScale(v1.y), yScale(v2.y) ]
-			const fontSize = 0.5 + 'em'
+			const fontSize = (isPortrait ? 0.5 : 0.55) + 'em'
 			const leftValueStr = yTickFormat(y1)
 			const rightValueStr = yTickFormat(y2)
 			const leftValueWidth = Bounds.forText(leftValueStr, { fontSize: fontSize }).width
@@ -326,7 +326,7 @@ export class LabelledSlopes extends Component {
 	}*/
 
 	@computed get labelAccountedSlopeData() {
-		const {maxLabelWidth, maxValueWidth} = this
+		const {maxLabelWidth, maxValueWidth, isPortrait} = this
 
 		return _.map(this.initialSlopeData, (slope) => {
 			// Squish slopes to make room for labels
@@ -334,8 +334,8 @@ export class LabelledSlopes extends Component {
 			const x2 = slope.x2-maxLabelWidth-maxValueWidth-8
 
 			// Position the labels
-			const leftLabelBounds = new Bounds(x1-slope.leftValueWidth-16-slope.leftLabel.width, slope.y1-slope.leftLabel.height/2, slope.leftLabel.width, slope.leftLabel.height)
-			const rightLabelBounds = new Bounds(x2+slope.rightValueWidth+16, slope.y2-slope.rightLabel.height/2, slope.rightLabel.width, slope.rightLabel.height)
+			const leftLabelBounds = new Bounds(x1-slope.leftValueWidth-8-slope.leftLabel.width, slope.y1-slope.leftLabel.height/2, slope.leftLabel.width, slope.leftLabel.height)
+			const rightLabelBounds = new Bounds(x2+slope.rightValueWidth+8, slope.y2-slope.rightLabel.height/2, slope.rightLabel.width, slope.rightLabel.height)
 
 			return _.extend({}, slope, {
 				x1: x1,
@@ -398,11 +398,11 @@ export class LabelledSlopes extends Component {
 			})
 		})
 
-		d3.selectAll(".boundsDebug").remove()
+		/*d3.selectAll(".boundsDebug").remove()
 		_.each(slopeData, (slope) => {
 			if (slope.hasRightLabel)
 				owid.boundsDebug(slope.rightLabelBounds)
-		})
+		})*/
 
 		// Order by focus and size for draw order
 		slopeData = _.sortBy(slopeData, (slope) => slope.size)
