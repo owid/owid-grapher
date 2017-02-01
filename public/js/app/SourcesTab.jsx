@@ -1,7 +1,7 @@
 // @flow
 
-import * as _ from '../libs/underscore'
-import * as d3 from '../libs/d3.v4'
+import * as _ from 'underscore'
+import * as d3 from 'd3'
 import React, {Component} from 'react'
 import {render} from 'preact'
 import owid from '../owid'

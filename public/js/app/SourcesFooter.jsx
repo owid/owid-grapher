@@ -1,7 +1,7 @@
 // @flow
 
-import {each, uniq, pluck} from '../libs/underscore'
-import * as d3 from '../libs/d3.v4'
+import {each, uniq, pluck} from 'underscore'
+import * as d3 from 'd3'
 import owid from '../owid'
 import dataflow from './owid.dataflow'
 

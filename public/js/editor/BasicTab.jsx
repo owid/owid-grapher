@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import {computed} from 'mobx'
 import type ChartConfig from '../app/ChartConfig'
 import {bind} from 'decko'
-import * as _ from '../libs/underscore'
+import * as _ from 'underscore'
 
 function slugify(s) {
 	s = s.toLowerCase().replace(/\s*\*.+\*/, '').replace(/[^\w- ]+/g,'');
