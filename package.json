@@ -15,10 +15,11 @@
     "flow-bin-loader": "^1.0.2",
     "mobx": "^3.0.2",
     "mobx-react": "^4.1.0",
-    "phantomjs": "2.1.7",
+    "phantomjs-prebuilt": "2.1.7",
     "preact": "^7.2.0",
     "preact-compat": "^3.11.0",
     "source-map-loader": "^0.1.5",
+    "webpack": "^2.2.1",
     "webpack-dev-server": "^1.16.2"
   }
 }

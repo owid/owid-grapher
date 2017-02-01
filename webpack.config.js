@@ -13,33 +13,28 @@ module.exports = {
     // Enable sourcemaps for debugging webpack's output.
     devtool: "source-map",    
   	resolve: {
-        extensions: ["", ".js", ".jsx"],
+        extensions: [".js", ".jsx"],
         alias: {
             'react': 'preact-compat',
             'react-dom': 'preact-compat'
         },
-        root: [
+        modules: [
   	        path.join(__dirname, "public/js/libs"),
             path.join(__dirname, "node_modules"),
         ],
     }, 
     module: {
-        loaders: [
+        rules: [
             { 
                 test: /\.jsx$/, 
                 loader: "babel-loader",
-                query: {
-                    presets: ['es2015', 'stage-0', 'react'],
+                options: {
+                    presets: [['es2015', {modules: false}], 'stage-0', 'react'],
                     plugins: ["transform-decorators-legacy"],
                     cacheDirectory: true
                 }
             },
         ],
-
-        preLoaders: [
-            // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
-            { test: /\.js$/, loader: "source-map-loader" }
-        ]
     },
     devServer: {
         host: '0.0.0.0',

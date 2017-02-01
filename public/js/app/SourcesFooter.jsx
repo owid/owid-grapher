@@ -8,7 +8,6 @@ import dataflow from './owid.dataflow'
 import {h, render, Component} from 'preact'
 import {computed} from 'mobx'
 import Bounds from './Bounds'
-import {layout} from './Util'
 
 class WrappingText extends Component {
     @computed get innerSVG() : string {
