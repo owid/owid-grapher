@@ -17,7 +17,7 @@ window.async = require('./libs/async');
 window.Cookies = require('./libs/js.cookie');
 window.ResizeSensor = require('./libs/ResizeSensor');
 window.ElementQueries = require('./libs/ElementQueries');
-window.Fuse = require('./libs/fuse');
+window.Fuse = require('fuse.js');
 require('./libs/innersvg');
 
 window.owid = require('./owid').default;
