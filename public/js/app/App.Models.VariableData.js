@@ -142,7 +142,7 @@
 				return availableEntitiesById[entity.id];
 			});
 
-			if (_.isEmpty(validEntities) && chartType != App.ChartType.ScatterPlot && chartType != App.ChartType.DiscreteBar) {
+			if (_.isEmpty(validEntities) && chartType != App.ChartType.ScatterPlot && chartType != App.ChartType.DiscreteBar && chartType != App.ChartType.SlopeChart) {
 				// Select a few random ones
 				validEntities = _.sample(availableEntities, 3);
 			}
