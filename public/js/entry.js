@@ -49,7 +49,7 @@ require('./app/App.Views.Chart.Legend');
 owid.component.slopeChart = require('./app/owid.component.slopeChart').default;
 require('./app/App.Views.Chart.ChartTab');
 require('./app/DataTab');
-require('./app/SourcesTab');
+require('./app/owid.component.sourcesTab');
 require('./app/owid.component.shareTab');
 
 require('./app/owid.data.world');
@@ -102,7 +102,7 @@ window.Editor = require('./editor/Editor.jsx').default
 require('./libs/bootstrap3-wysihtml5.all')
 require('./libs/jszip.js')
 window.Papa = require('./libs/papaparse.js')
-window.moment = require('moment')
+window.moment = require('./libs/moments.min.js')
 require('./app/App.Utils.js')
 require('./app/App.Models.ChartModel.js')        
 require('./app/App.Models.Import.DatasetModel.js')

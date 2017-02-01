@@ -49,7 +49,7 @@ require('./app/App.Views.Chart.Legend');
 owid.component.slopeChart = require('./app/owid.component.slopeChart').default;
 require('./app/App.Views.Chart.ChartTab');
 require('./app/DataTab');
-require('./app/owid.component.sourcesTab');
+require('./app/SourcesTab');
 require('./app/owid.component.shareTab');
 
 require('./app/owid.data.world');
@@ -61,4 +61,4 @@ owid.component.mapTab = require('./app/owid.component.mapTab').default;
 require('./app/App.Views.ChartURL');
 require('./app/App.Views.Export');
 require('./app/App.Views.DebugHelper');
-require('./app/owid.chart');
+require('./app/Chart');
