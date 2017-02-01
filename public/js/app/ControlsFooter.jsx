@@ -149,7 +149,6 @@ class ControlsFooter extends Component {
 
     render() {
         const {tabNames, activeTabName, isShareMenuActive} = this
-        console.log(isShareMenuActive)
         return <div class="controlsFooter">
             <nav class="tabs">
                 <ul>

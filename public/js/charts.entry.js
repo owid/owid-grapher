@@ -48,7 +48,6 @@ owid.component.slopeChart = require('./app/owid.component.slopeChart').default;
 require('./app/App.Views.Chart.ChartTab');
 require('./app/DataTab');
 require('./app/SourcesTab');
-require('./app/owid.component.shareTab');
 
 require('./app/owid.data.world');
 require('./app/App.Views.Chart.Map.Legend');

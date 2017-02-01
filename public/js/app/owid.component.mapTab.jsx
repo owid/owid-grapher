@@ -18,30 +18,6 @@ import {MapLegend} from './MapLegend'
 
 type MapLegendData = any;
 
-function layout(containerBounds : Bounds, ...children) {
-    children = _.map(children, (vnode) => {
-        if (vnode.nodeName.calculateBounds) {
-            const bounds = vnode.nodeName.calculateBounds(containerBounds, vnode.attributes)
-            if (vnode.attributes.layout == 'bottom') {
-                containerBounds = containerBounds.padBottom(bounds.height)
-            }
-            return cloneElement(vnode, { bounds: bounds })
-        } else {
-            return vnode
-        }
-    })
-
-    children = _.map(children, (vnode) => {
-        if (!vnode.attributes.bounds) {
-            return cloneElement(vnode, { bounds: containerBounds })
-        } else {
-            return vnode
-        }
-    })
-
-    return children
-}
-
 class MapTab extends Component {
     props: {
         bounds: Bounds,

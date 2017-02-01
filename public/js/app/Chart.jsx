@@ -198,7 +198,7 @@ var Bounds = require('./Bounds').default
 			return isExport ? owid.component.exportMode(chart) : null;
 		});
 
-		chart.render = function() {
+		chart.render = function() {			
 			requestAnimationFrame(function() {
 				chart.now('el, header, controlsFooter, sourcesFooter, primaryTab, overlayTab, innerBounds, scale, loadingIcon', function(el, header, controlsFooter, sourcesFooter, primaryTab, overlayTab, innerBounds, scale, loadingIcon) {
 					loadingIcon.classed('hidden', false);
