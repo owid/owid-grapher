@@ -6,7 +6,6 @@ require('./libs/nv.d3');
 window.d3v4 = require('d3');
 window._ = require('underscore');
 _.extend(window, require('./libs/saveSvgAsPng'));
-require('topojson');
 window.s = require('underscore.string');
 window.Backbone = require('./libs/backbone');
 require('./libs/bootstrap.min');
@@ -53,8 +52,6 @@ require('./app/SourcesTab');
 require('./app/owid.component.shareTab');
 
 require('./app/owid.data.world');
-require('./app/App.Views.Chart.Map.MapControls');
-require('./app/App.Views.Chart.Map.Projections');
 require('./app/App.Views.Chart.Map.Legend');
 owid.component.mapTab = require('./app/owid.component.mapTab').default;
 

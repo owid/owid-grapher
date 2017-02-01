@@ -119,6 +119,7 @@ class MapTab extends Component {
     componentDidUnmount() {        
         const { legend } = this
         legend.clean();
+        this.onHoverStop()
     }
 
     @bind onTargetChange(targetYear) {

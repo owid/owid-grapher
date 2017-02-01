@@ -9,7 +9,8 @@ import React, { Component } from 'react'
 import {observable, computed, asFlat, asStructure, autorun, action} from 'mobx'
 import {observer} from 'mobx-react'
 import {bind} from 'decko'
-
+import * as topojson from 'topojson'
+import MapProjections from './MapProjections'
 
 export type ChoroplethData = {
     [key:string]: {
@@ -27,7 +28,7 @@ export default class ChoroplethMap extends Component {
     props: {
         choroplethData: ChoroplethData,
         bounds: Bounds,
-        projection: string,
+        projection: MapProjection,
         defaultFill: string,
     }
 
@@ -39,7 +40,7 @@ export default class ChoroplethMap extends Component {
         });
     }
 
-    @computed get projection() : string {
+    @computed get projection() : MapProjection {
         return this.props.projection
     }
 
@@ -59,7 +60,7 @@ export default class ChoroplethMap extends Component {
         const {geoData, projection} = this
 
         const pathData = {}
-        const pathF = App.Views.Chart.Map.Projections[projection]().path;
+        const pathF = MapProjections[projection]().path;
 
         _.each(geoData, (d) => {
             pathData[d.id] = pathF(d)
