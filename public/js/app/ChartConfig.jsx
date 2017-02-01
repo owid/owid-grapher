@@ -1,6 +1,7 @@
 // @flow
 
 import owid from '../owid'
+import * as _ from 'underscore'
 import {observable, computed, action} from 'mobx'
 
 // In-progress model layer that will eventually replace ChartModel
@@ -59,5 +60,15 @@ export default class ChartConfig {
 
 	@computed get timeDomain() : [number|null, number|null] {
 		return this.model.get("chart-time")||[null, null]
+	}
+
+	@computed get availableTabs() : string[] {
+        return _.sortBy(this.model.get('tabs'), function(name) {
+            return {
+                chart: 1,
+                map: 2                    
+            }[name] || 3;
+        });
+
 	}
 }

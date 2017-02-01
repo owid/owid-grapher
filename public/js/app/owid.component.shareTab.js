@@ -21,8 +21,6 @@
                 });
             }, 50);
 
-            el.html('<h2>Embed</h2>');
-
             return el;
         });        
 
@@ -100,35 +98,6 @@
             ];
         });
 
-        shareMenu.flow('editBtn : el, editUrl', function(el, editUrl) {
-            if (editUrl)
-                el.append('a').attr('class', 'btn btnEdit').attr('target', '_blank')
-                    .attr('href', editUrl).attr('title', 'Edit chart').html('<i class="fa fa-edit"></i> Edit');
-            else
-                el.selectAll('.btnEdit').remove();
-        });
-
-        shareMenu.flow('twitterBtn, title, baseUrl, queryStr', function(twitterBtn, title, baseUrl, queryStr) {
-            twitterBtn.attr('href', "https://twitter.com/intent/tweet/?text=" + encodeURIComponent(title) + "&url=" + encodeURIComponent(baseUrl+queryStr));
-        });
-
-        shareMenu.flow('facebookBtn, title, baseUrl, queryStr', function(facebookBtn, title, baseUrl, queryStr) {
-            facebookBtn.attr('href', "https://www.facebook.com/dialog/share?app_id=1149943818390250&display=page&href=" + encodeURIComponent(baseUrl+queryStr));            
-        });
-
-        shareMenu.flow('linkBtn, baseUrl, queryStr', function(linkBtn, baseUrl, queryStr) {
-            linkBtn.attr('href', baseUrl+queryStr);
-        });
-
-        shareMenu.flow('pngBtn, baseUrl, queryStr, cacheTag', function(pngBtn, baseUrl, queryStr, cacheTag) {
-            var pngHref = baseUrl + '.png' + queryStr, defaultTargetSize = "1200x800";
-            pngBtn.attr('href', pngHref + (_.include(pngHref, "?") ? "&" : "?") + "size=" + defaultTargetSize + "&v=" + cacheTag);
-        });
-
-        shareMenu.flow('svgBtn, baseUrl, queryStr, cacheTag', function(svgBtn, baseUrl, queryStr, cacheTag) {
-            var svgHref = baseUrl + '.svg' + queryStr, defaultTargetSize = "1200x800";
-            svgBtn.attr('href', svgHref + (_.include(svgHref, "?") ? "&" : "?") + "size=" + defaultTargetSize + "&v=" + cacheTag);
-        });        
 
         shareMenu.flow('embedBtn, containerNode, baseUrl, queryStr', function(embedBtn, containerNode, baseUrl, queryStr) {
             embedBtn.on('click', function() {                

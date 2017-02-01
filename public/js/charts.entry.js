@@ -13,7 +13,6 @@ require('./libs/chosen.jquery');
 window.colorbrewer = require('./libs/colorbrewer');
 require('./libs/jquery.lazyloadxt.extra');
 window.async = require('./libs/async');
-window.Cookies = require('./libs/js.cookie');
 window.ResizeSensor = require('./libs/ResizeSensor');
 window.ElementQueries = require('./libs/ElementQueries');
 window.Fuse = require('fuse.js');

@@ -62,7 +62,7 @@ var Bounds = require('./Bounds').default
 
 		chart.flow('header : model', function() { return owid.control.header(chart); });
 		chart.flow('sourcesFooter : model', function() { return new owid.component.footer(chart); });
-		chart.flow('controlsFooter : model', function() { return owid.view.controlsFooter(); });
+		chart.flow('controlsFooter : model', function() { return owid.view.controlsFooter(chart); });
 
 		// Container setup
 		chart.flow('containerNode', function(containerNode) {

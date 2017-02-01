@@ -1,5 +1,7 @@
 /* General admin interface improvements */
 
+window.Cookies = require('js-cookie');
+
 ;(function() {
 	"use strict";
 
@@ -72,7 +74,6 @@
 
 	// Set site-wide cookie for charts so they know to show the edit link
 	Cookies.set("isAdmin", "true", { expires: 31 });
-
 	
 	$(".chosen-select").chosen();
 	$(".timeago").timeago();	
