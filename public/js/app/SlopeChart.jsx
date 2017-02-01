@@ -296,8 +296,8 @@ export class LabelledSlopes extends Component {
 			const [ x1, x2 ] = [ xScale(v1.x), xScale(v2.x) ]
 			const [ y1, y2 ] = [ yScale(v1.y), yScale(v2.y) ]
 			const fontSize = (isPortrait ? 0.5 : 0.55) + 'em'
-			const leftValueStr = yTickFormat(y1)
-			const rightValueStr = yTickFormat(y2)
+			const leftValueStr = yTickFormat(v1.y)
+			const rightValueStr = yTickFormat(v2.y)
 			const leftValueWidth = Bounds.forText(leftValueStr, { fontSize: fontSize }).width
 			const rightValueWidth = Bounds.forText(rightValueStr, { fontSize: fontSize }).width
 			const leftLabel = wrapText(series.label, maxLabelWidth, { fontSize: fontSize })
@@ -334,8 +334,8 @@ export class LabelledSlopes extends Component {
 			const x2 = slope.x2-maxLabelWidth-maxValueWidth-8
 
 			// Position the labels
-			const leftLabelBounds = new Bounds(x1-slope.leftValueWidth-8-slope.leftLabel.width, slope.y1-slope.leftLabel.height/2, slope.leftLabel.width, slope.leftLabel.height)
-			const rightLabelBounds = new Bounds(x2+slope.rightValueWidth+8, slope.y2-slope.rightLabel.height/2, slope.rightLabel.width, slope.rightLabel.height)
+			const leftLabelBounds = new Bounds(x1-slope.leftValueWidth-12-slope.leftLabel.width, slope.y1-slope.leftLabel.height/2, slope.leftLabel.width, slope.leftLabel.height)
+			const rightLabelBounds = new Bounds(x2+slope.rightValueWidth+12, slope.y2-slope.rightLabel.height/2, slope.rightLabel.width, slope.rightLabel.height)
 
 			return _.extend({}, slope, {
 				x1: x1,
