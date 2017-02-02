@@ -20,10 +20,10 @@ class EmbedMenu extends Component {
     render() {
         const {embedUrl} = this.props
 
-        return <div class="embedMenu" onClick={(evt) => evt.stopPropagation}>
+        return <div class="embedMenu" onClick={(evt) => evt.stopPropagation()}>
             <h2>Embed</h2>
             <p>Paste this into any HTML page:</p>
-            <textarea onFocus={function() { this.select(); }}>
+            <textarea onFocus={function(evt) { evt.target.select(); }}>
                 {`<iframe src="${embedUrl}" style="width: 100%; height: 600px; border: 0px none;"></iframe>';`}
             </textarea>
         </div>
