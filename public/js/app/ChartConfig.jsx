@@ -4,7 +4,7 @@ import owid from '../owid'
 import * as _ from 'underscore'
 import {observable, computed, action} from 'mobx'
 
-// In-progress model layer that will eventually replace ChartModel
+// In-progress mobx model layer that will eventually replace ChartModel
 export default class ChartConfig {
 	model: any
 

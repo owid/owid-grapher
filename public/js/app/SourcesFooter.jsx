@@ -4,8 +4,8 @@ import {each, uniq, pluck} from 'underscore'
 import * as d3 from 'd3'
 import owid from '../owid'
 import dataflow from './owid.dataflow'
-
-import {h, render, Component} from 'preact'
+import React, {Component} from 'react'
+import {render} from 'preact'
 import {computed} from 'mobx'
 import Bounds from './Bounds'
 

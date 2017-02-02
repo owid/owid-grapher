@@ -54,4 +54,4 @@ owid.component.mapTab = require('./app/owid.component.mapTab').default;
 require('./app/App.Views.ChartURL');
 require('./app/App.Views.Export');
 require('./app/App.Views.DebugHelper');
-owid.chart = require('./app/Chart').default;
+owid.chart = require('./app/owid.chart').default;

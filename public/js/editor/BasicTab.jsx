@@ -11,7 +11,6 @@ function slugify(s) {
 	return $.trim(s).replace(/ +/g,'-');
 }
 
-
 export default class BasicTab extends Component {
 	props: {
 		chart: ChartConfig

@@ -95,8 +95,7 @@ export default class ChoroplethMap extends Component {
         autorun(this.postRenderResize)
     }
 
-    @bind
-    postRenderResize() {
+    @bind postRenderResize() {
         const { bounds, projection } = this
         const bbox = this.subunits.getBBox()
 
@@ -136,63 +135,3 @@ export default class ChoroplethMap extends Component {
         d3.select(this.subunits).attr('transform', matrixStr);        
     }
 }
-
-
-/*;(function(d3) {
-    "use strict";
-    owid.namespace("owid.view.map");
-
-    owid.view.map = function() {
-        var map = owid.dataflow();
-
-        map.requires('containerNode', 'bounds', 'colorData', 'defaultFill');
-
-        map.defaults({ 
-            projection: 'World',
-            onHover: _.noop,
-            onHoverStop: _.noop,
-            onClick: _.noop
-        });
-
-        map.flow('geo : subunits, geoData, path', function(subunits, geoData, path) {            
-            subunits.selectAll('path').remove();
-            var geoUpdate = subunits.selectAll('path').data(geoData);
-
-            return geoUpdate.enter()
-              .append('path')
-              .attr('d', path)
-              .style('stroke-width', 0.3)
-              .style('stroke', '#4b4b4b')
-              .style('cursor', 'pointer')
-              .merge(geoUpdate);
-        });
-
-        // Apply the choropleth!
-        map.flow('geo, colorData, defaultFill', function(geo, colorData, defaultFill) {
-            geo.style('fill', function(d) { 
-                var datum = colorData[d.id];
-                return datum ? datum.color : defaultFill;
-            });
-        });
-
-        // Scaling
-        map.flow('subunitsBBox : subunits, geo', function(subunits, geo) {
-        });
-        map.flow('subunits, subunitsBBox, bounds, projection', function(subunits, bbox, bounds, projection) {
-
-        });
-
-        // Event binding
-        map.flow('geo, onHover, onHoverStop, onClick', function(geo, onHover, onHoverStop, onClick) {
-            geo.on('mouseenter', onHover);
-            geo.on('mouseleave', onHoverStop);
-            geo.on('click', onClick);
-        });
-
-        map.beforeClean(function() {
-            if (map.g) map.g.remove();
-        });
-
-        return map;
-    };
-})(d3v4);*/

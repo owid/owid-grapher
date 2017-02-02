@@ -15,6 +15,7 @@ import NoData from './NoData'
 import Observations from './Observations'
 import ChartConfig from './ChartConfig'
 import Text from './Text'
+import Paragraph from './Paragraph'
 window.Observations = Observations
 
 export type SlopeChartSeries = {
@@ -146,57 +147,6 @@ class AligningText extends Component {
 	}
 }*/
 
-function wrapText(str, targetWidth, opts={}) {
-	const words = str.split(' ')
-	const lines = []
-	const lineHeight = 1.1
-
-	let line = []
-	let lineBounds = Bounds.empty()
-	_.each(words, (word, i) => {
-		let nextLine = line.concat([word])
-		let nextBounds = Bounds.forText(nextLine.join(' '), opts)
-
-		if (nextBounds.width > targetWidth && line.length >= 1) {
-			lines.push({ str: line.join(' '), width: lineBounds.width, height: lineBounds.height })
-			line = [word]
-			lineBounds = Bounds.forText(word, opts)
-		} else {
-			line = nextLine
-			lineBounds = nextBounds
-		}
-	})
-	if (line.length > 0)
-		lines.push({ str: line.join(' '), width: lineBounds.width, height: lineBounds.height })
-
-	let height = 0
-	let width = 0
-	_.each(lines, (line) => {
-		height += line.height
-		width = Math.max(width, line.width)
-	})
-
-	return {
-		lines: lines,
-		lineHeight: lineHeight,
-		width: width,
-		height: height
-	}
-}
-
-@observer
-class WrappedText extends Component {
-	render() {
-		const wrappedText = this.props.children
-
-		return <text {...this.props}>
-			{_.map(wrappedText.lines, (line, i) => {
-				return <tspan x={this.props.x} dy={i == 0 ? 0 : wrappedText.lineHeight + 'em'}>{line.str}</tspan>
-			})}
-		</text>
-	}
-}
-
 @observer 
 export class LabelledSlopes extends Component {
 	props: {
@@ -300,8 +250,8 @@ export class LabelledSlopes extends Component {
 			const rightValueStr = yTickFormat(v2.y)
 			const leftValueWidth = Bounds.forText(leftValueStr, { fontSize: fontSize }).width
 			const rightValueWidth = Bounds.forText(rightValueStr, { fontSize: fontSize }).width
-			const leftLabel = wrapText(series.label, maxLabelWidth, { fontSize: fontSize })
-			const rightLabel = wrapText(series.label, maxLabelWidth, { fontSize: fontSize })
+			const leftLabel = Paragraph.wrap(series.label, maxLabelWidth, { fontSize: fontSize })
+			const rightLabel = Paragraph.wrap(series.label, maxLabelWidth, { fontSize: fontSize })
 
 			slopeData.push({ x1: x1, y1: y1, x2: x2, y2: y2, color: series.color,
 							 size: sizeScale(series.size)||1,
@@ -715,13 +665,13 @@ class Slope extends Component {
 
 		// The weird text positioning here is to line the text up with the bounds while keeping text-anchor middle and the default dominant-baseline
 		return <g class="slope">
-			{hasLeftLabel && <WrappedText x={leftLabelBounds.x+leftLabelBounds.width} y={leftLabelBounds.y+leftLabel.lines[0].height/2+leftLabel.lines[0].height/4} text-anchor="end" font-size={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{leftLabel}</WrappedText>}
+			{hasLeftLabel && <Paragraph x={leftLabelBounds.x+leftLabelBounds.width} y={leftLabelBounds.y+leftLabel.lines[0].height/2+leftLabel.lines[0].height/4} text-anchor="end" font-size={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{leftLabel}</Paragraph>}
 			{hasLeftLabel && <Text x={x1-8} y={y1} text-anchor="end" dominant-baseline="middle" font-size={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{leftValueStr}</Text>}
 			<circle cx={x1} cy={y1} r={isFocused ? 4 : 2} fill={lineColor} opacity={opacity}/>
 			<line ref={(el) => this.line = el} x1={x1} y1={y1} x2={x2} y2={y2} stroke={lineColor} stroke-width={isFocused ? 2*size : size} opacity={opacity}/>
 			<circle cx={x2} cy={y2} r={isFocused ? 4 : 2} fill={lineColor} opacity={opacity}/>
 			{hasRightLabel && <Text x={x2+8} y={y2} text-anchor="start" dominant-baseline="middle" font-size={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{rightValueStr}</Text>}
-			{hasRightLabel && <WrappedText x={rightLabelBounds.x} y={rightLabelBounds.y+rightLabel.lines[0].height/2+rightLabel.lines[0].height/4} text-anchor="start" font-size={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{rightLabel}</WrappedText>}
+			{hasRightLabel && <Paragraph x={rightLabelBounds.x} y={rightLabelBounds.y+rightLabel.lines[0].height/2+rightLabel.lines[0].height/4} text-anchor="start" font-size={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{rightLabel}</Paragraph>}
 		</g>
 	}
 }
