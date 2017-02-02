@@ -273,6 +273,7 @@ a {
     position: absolute;
     bottom: 0;
     border-top: 1px solid #e1e1e1;
+    z-index: 1;
 }
 
 #chart nav.tabs ul {
