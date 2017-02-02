@@ -13,8 +13,6 @@ require('./libs/chosen.jquery');
 window.colorbrewer = require('./libs/colorbrewer');
 require('./libs/jquery.lazyloadxt.extra');
 window.async = require('./libs/async');
-window.ResizeSensor = require('./libs/ResizeSensor');
-window.ElementQueries = require('./libs/ElementQueries');
 window.Fuse = require('fuse.js');
 require('./libs/innersvg');
 
@@ -56,4 +54,4 @@ owid.component.mapTab = require('./app/owid.component.mapTab').default;
 require('./app/App.Views.ChartURL');
 require('./app/App.Views.Export');
 require('./app/App.Views.DebugHelper');
-require('./app/Chart');
+owid.chart = require('./app/Chart').default;

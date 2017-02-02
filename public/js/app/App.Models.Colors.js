@@ -9,7 +9,7 @@
 	App.Models.Colors = Backbone.Model.extend({
 		basicScheme: ["#3360a9", "#ca2628", "#34983f", "#ed6c2d", "#df3c64", "#a85a4a", "#e6332e", "#6bb537", "#ffd53e", "#f07f59", "#b077b1", "#932834", "#674c98", "#5eb77e", "#f6a324", "#2a939b", "#818282", "#7ec7ce", "#fceb8c", "#cfcd1e", "#58888f", "#ce8ebd", "#9ecc8a", "#db2445", "#f9bc8f", "#d26e66", "#c8c8c8"],
  
-		initialize: function() {
+		initialize: function(chart) {
 			this.colorScale = d3.scale.ordinal().range(this.basicScheme);
 			this.colorCache = {};
 			this.colorIndex = 0;

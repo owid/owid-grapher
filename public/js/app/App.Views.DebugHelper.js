@@ -13,7 +13,7 @@
 	owid.namespace("App.Views.DebugHelper");
 
 	App.Views.DebugHelper = owid.View.extend({
-		initialize: function(options) {
+		initialize: function(chart) {
 			this.listenTo(App.VariableData, "change", function() {
 				window.variables = _.values(App.VariableData.get("variables"));
 			});

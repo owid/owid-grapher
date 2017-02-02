@@ -11,7 +11,7 @@ module.exports = {
         filename: "[name].bundle.js"
     },
     // Enable sourcemaps for debugging webpack's output.
-    devtool: "source-map",    
+    devtool: "source-map", 
   	resolve: {
         extensions: [".js", ".jsx"],
         alias: {
@@ -26,7 +26,7 @@ module.exports = {
     module: {
         rules: [
             { 
-                test: /\.jsx$/, 
+                test: /(preact-compat|\.jsx)/, 
                 loader: "babel-loader",
                 options: {
                     presets: [['es2015', {modules: false}], 'stage-0', 'react'],
