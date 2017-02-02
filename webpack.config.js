@@ -26,7 +26,7 @@ module.exports = {
     module: {
         rules: [
             { 
-                test: /(preact-compat|\.jsx)/, 
+                test: /(preact-compat|\.jsx)/, // Preact-compat uses getters that don't work in IE11 for some reason
                 loader: "babel-loader",
                 options: {
                     presets: [['es2015', {modules: false}], 'stage-0', 'react'],

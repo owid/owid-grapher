@@ -121,7 +121,8 @@ class ViewController extends Controller {
 		$file = Chart::export($slug, $_SERVER['QUERY_STRING'], $width, $height, $format);
 
 		return response()->file($file,
-					['Cache-Control' => $request->input('v') ? 'public, max-age=31536000' : 'public, max-age=7200, s-maxage=604800']);
+					['Cache-Control' => $request->input('v') ? 'public, max-age=31536000' : 'public, max-age=7200, s-maxage=604800',
+					 'Content-Disposition' => 'attachment']);
 	}
 
 	public function exportPNG($slug, Request $request) {
