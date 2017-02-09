@@ -39,9 +39,12 @@ Route::group(['middleware' => ['basic', 'session', 'auth']], function()
 	Route::resource( 'categories', 'CategoriesController' );
 	Route::resource( 'subcategories', 'SubcategoriesController' );
 	Route::resource( 'tags', 'TagsController' );
+	Route::post('users/invite', 'UsersController@invite');
+	Route::resource( 'users', 'UsersController' );
 	Route::resource( 'licenses', 'LicensesController' );
 	Route::resource( 'apiKeys', 'ApiKeysController' );
 	Route::resource( 'logos', 'LogosController' );
+
 
 	//Route::resource( 'dataValues', 'DataValuesController' );
 	Route::bind( 'entities', function($value, $route) {
@@ -95,13 +98,16 @@ Route::group(['middleware' => ['basic', 'session', 'auth']], function()
 	Route::post( 'dataset/import', 'ImportController@dataset' );
 	Route::post( 'variable/import', 'ImportController@variable' );
 	Route::post( 'entity/import', 'ImportController@entity' );
-	
+
 	Route::get( 'sourceTemplate', [ 'as' => 'sourceTemplate', 'uses' => 'SourceTemplateController@edit' ] );
 	Route::patch( 'sourceTemplate', [ 'as' => 'sourceTemplate.update', 'uses' => 'SourceTemplateController@update' ] );
 });
 
 Route::group(['middleware' => ['basic', 'session']], function() {
 	Route::get('/', 'HomeController@index');
+
+	Route::get('signup', 'UsersController@signup')->name('signup');
+	Route::post('signup', 'UsersController@signupSubmit')->name('signupSubmit');
 
 	Route::get('login', 'Auth\AuthController@getLogin');
 	Route::post('login', 'Auth\AuthController@postLogin')->name('login');

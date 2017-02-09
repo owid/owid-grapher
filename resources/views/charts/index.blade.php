@@ -42,8 +42,9 @@
 									@if (!$chart->published)
 										<span style="color: red;">Draft: </span> {{ $chart->name }}
 									@else
-										<a href="{{ URL::to($chart->slug) }}">{{ $chart->name }}</a></td>
+										<a href="{{ URL::to($chart->slug) }}">{{ $chart->name }}</a>
 									@endif
+								</td>
 								<td>{{ $chart->showType() }}</td>
 								<td>
 									@foreach ($chart->variables as $variable)

@@ -54,6 +54,7 @@
 						<li><a href="{!! route( 'datasets.index' ) !!}"><i class="fa fa-table"></i> Datasets</a></li>
 						<li><a href="{!! route( 'sources.index' ) !!}"><i class="fa fa-link"></i> Sources</a></li>
 						<li class="header">SETTINGS</li>
+						<li><a href="{!! route( 'users.index' ) !!}"><i class="fa fa-users"></i> Users</a></li>
 						<li><a href="{!! route( 'licenses.index' ) !!}"><i class="fa fa-gavel"></i> Licenses</a></li>
 						<li><a href="{!! route( 'categories.index' ) !!}"><i class="fa fa-folder"></i> Categories</a></li>
 						<li><a href="{!! route( 'tags.index' ) !!}"><i class="fa fa-tags"></i> Tags</a></li>

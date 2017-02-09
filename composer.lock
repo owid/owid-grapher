@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "1cf98a097ef9b78b3ab0cac0db8c4440",
-    "content-hash": "6989561fd44b3ed8db53752e3d9b35e4",
+    "hash": "6fa5c6314efac221e4c4a8b308c6d90a",
+    "content-hash": "2e4a4c11bb7d9bcd36ab859aafc1122c",
     "packages": [
         {
             "name": "classpreloader/classpreloader",
@@ -919,6 +919,54 @@
                 "tokenizer"
             ],
             "time": "2016-12-07 09:37:55"
+        },
+        {
+            "name": "junaidnasir/larainvite",
+            "version": "v0.1.7",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/junaidnasir/larainvite.git",
+                "reference": "956942a4661b6b6078896d04650a1cf841814640"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/junaidnasir/larainvite/zipball/956942a4661b6b6078896d04650a1cf841814640",
+                "reference": "956942a4661b6b6078896d04650a1cf841814640",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/database": "^5.1",
+                "illuminate/events": "^5.1",
+                "illuminate/support": "^5.1",
+                "php": ">=5.5.9"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^5.2"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Junaidnasir\\Larainvite\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Junaid Nasir",
+                    "email": "contact@junaidnasir.com"
+                }
+            ],
+            "description": "Laravel Invitation package, existing users can invite others by email",
+            "homepage": "https://github.com/junaidnasir/larainvite",
+            "keywords": [
+                "Invite",
+                "invitations",
+                "laravel"
+            ],
+            "time": "2016-04-11 11:33:46"
         },
         {
             "name": "laravel/framework",

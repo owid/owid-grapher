@@ -14,6 +14,9 @@ class EventServiceProvider extends ServiceProvider {
 		'event.name' => [
 			'EventListener',
 		],
+	    'junaidnasir.larainvite.invited' => [
+	        'App\Listeners\UserInviteListener',
+	    ],
 	];
 
 	/**
