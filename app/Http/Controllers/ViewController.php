@@ -299,7 +299,7 @@ class ViewController extends Controller {
 				// We don't cache the export urls, just the resulting pngs
 				$resp->header('Cache-Control', 'no-cache');				
 			} else {
-				$resp->header('Cache-Control', 'public, max-age=7200, s-maxage=604800');
+				$resp->header('Cache-Control', 'public, max-age=0, s-maxage=604800');
 			}
 
 			return $resp;
@@ -318,7 +318,7 @@ class ViewController extends Controller {
 
 		return response('App.loadChart(' . json_encode($config) . ')')
 			->header('Content-Type', 'application/javascript')
-			->header('Cache-Control', 'public, max-age=7200, s-maxage=604800');
+			->header('Cache-Control', 'public, max-age=0, s-maxage=604800');
 	}
 
 	// Redirect to the most recent visualization, for use on the home page
