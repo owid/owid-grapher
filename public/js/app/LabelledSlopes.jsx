@@ -60,8 +60,10 @@ class Axis extends Component {
 
 	static getTicks(scale, scaleType : ScaleType) {
 		if (scaleType == 'log') {
-			const minPower10 = Math.ceil(Math.log(scale.domain()[0]) / Math.log(10));
-			const maxPower10 = Math.floor(Math.log(scale.domain()[1]) / Math.log(10));
+			let minPower10 = Math.ceil(Math.log(scale.domain()[0]) / Math.log(10));
+			if (!_.isFinite(minPower10)) minPower10 = 0
+			let maxPower10 = Math.floor(Math.log(scale.domain()[1]) / Math.log(10));
+			if (maxPower10 <= minPower10) maxPower10 += 1
 
 			var tickValues = [];
 			for (var i = minPower10; i <= maxPower10; i++) {
@@ -179,7 +181,7 @@ export default class LabelledSlopes extends Component {
 	}
 
 	@computed get yDomainDefault() : [number, number] {
-		return d3.extent(_.pluck(_.flatten(_.pluck(this.props.data, 'values')), 'y'))
+		return d3.extent(_.filter(_.pluck(_.flatten(_.pluck(this.props.data, 'values')), 'y'), (d) => d > 0 || this.props.yScaleType != 'log'))		
 	}
 
 	@computed get xDomain() : [number, number] {
@@ -187,8 +189,10 @@ export default class LabelledSlopes extends Component {
 	}
 
 	@computed get yDomain() : [number, number] {
-		return [this.props.yDomain[0] == null ? this.yDomainDefault[0] : this.props.yDomain[0],
-		 this.props.yDomain[1] == null ? this.yDomainDefault[1] : this.props.yDomain[1]]
+		return [
+			this.props.yDomain[0] == null ? this.yDomainDefault[0] : this.props.yDomain[0],
+		 	this.props.yDomain[1] == null ? this.yDomainDefault[1] : this.props.yDomain[1]
+		]
 	}
 
 	@computed get sizeScale() : any {

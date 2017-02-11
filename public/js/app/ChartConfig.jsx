@@ -38,8 +38,16 @@ export default class ChartConfig {
 	@computed get yAxisConfig() : Object { return this.model.get('y-axis') }
 
 	@computed get yDomain() : [number|null, number|null] {
-		return [owid.numeric(this.yAxisConfig["axis-min"]), 
-				owid.numeric(this.yAxisConfig["axis-max"])]
+		let min = owid.numeric(this.yAxisConfig["axis-min"])
+		let max = owid.numeric(this.yAxisConfig["axis-max"])
+
+		// 0 domain doesn't work with log scale
+		if (!_.isFinite(min) || (this.yScaleType == 'log' && min <= 0))
+			min = null
+		if (!_.isFinite(max) || (this.yScaleType == 'log' && max <= 0))
+			max = null
+
+		return [min, max]
 	}
 
 	@computed get yScaleType() : ScaleType {
