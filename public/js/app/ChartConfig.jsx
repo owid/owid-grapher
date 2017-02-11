@@ -3,6 +3,7 @@
 import owid from '../owid'
 import * as _ from 'underscore'
 import {observable, computed, action} from 'mobx'
+import type {ScaleType} from './ScaleSelector'
 
 // In-progress mobx model layer that will eventually replace ChartModel
 export default class ChartConfig {
@@ -41,8 +42,11 @@ export default class ChartConfig {
 				owid.numeric(this.yAxisConfig["axis-max"])]
 	}
 
-	@computed get yScaleType() : 'log' | 'linear' {
+	@computed get yScaleType() : ScaleType {
 		return this.yAxisConfig['axis-scale'] || 'linear'
+	}
+	set yScaleType(scaleType : ScaleType) {
+		this.model.set('y-axis', _.extend({}, this.model.get('y-axis'), { 'axis-scale': scaleType }))
 	}
 
 	@computed get yAxisLabel() : string {
@@ -62,13 +66,20 @@ export default class ChartConfig {
 		return this.model.get("chart-time")||[null, null]
 	}
 
+	// Tabs that can be navigated to by the user
 	@computed get availableTabs() : string[] {
         return _.sortBy(this.model.get('tabs'), function(name) {
             return {
                 chart: 1,
-                map: 2                    
+                map: 2
             }[name] || 3;
         });
-
 	}
+
+	@computed get yScaleTypeOptions() : ('linear'|'log')[] {
+		if (this.model.get('y-axis-scale-selector'))
+			return ['linear', 'log']
+		else
+			return [this.yScaleType]
+	}	
 }

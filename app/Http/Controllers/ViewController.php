@@ -103,7 +103,6 @@ class ViewController extends Controller {
 			return App::abort(404, "No such chart");
 
 		return $this->showChart($chart);
-
 	}
 
 	private function export($slug, Request $request, $format) {
