@@ -163,7 +163,7 @@ class ViewController extends Controller {
 			$config->{"selected-countries"} = $query->get();
 		}
 
-		$dims = $config->{"chart-dimensions"};
+		$dims = array_filter($config->{"chart-dimensions"}, function($dim) { return $dim->property == 'x' || $dim->property == 'y'; });
 		$varIds = array_map(function($dim) { return $dim->variableId; }, $dims);
 
 		// Grab the variable names for the header row
@@ -204,7 +204,7 @@ class ViewController extends Controller {
 		$response = new StreamedResponse(function() use ($varIds, $variableNameById, $dataQuery) {
 			$out = fopen('php://output', 'w');
 
-			$headerRow = ['Country', 'Year'];
+			$headerRow = ['Entity', 'Year'];
 			foreach ($varIds as $id) {
 				$headerRow[]= $variableNameById[$id];
 			}
