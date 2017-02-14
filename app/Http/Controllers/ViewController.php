@@ -146,7 +146,7 @@ class ViewController extends Controller {
 		// selected countries configuration. We need to use the raw
 		// query string for this because we want to distinguish between
 		// %20 and +.
-		preg_match("/country=([^&]+)/", Chart::getQueryString(), $matches);
+		/*preg_match("/country=([^&]+)/", Chart::getQueryString(), $matches);
 		if ($matches) {
 			$countryCodes = array_map(function($code) { return urldecode($code); }, explode("+", $matches[1]));
 
@@ -161,7 +161,7 @@ class ViewController extends Controller {
 			}
 
 			$config->{"selected-countries"} = $query->get();
-		}
+		}*/
 
 		$dims = array_filter($config->{"chart-dimensions"}, function($dim) { return $dim->property == 'x' || $dim->property == 'y'; });
 		$varIds = array_map(function($dim) { return $dim->variableId; }, $dims);
@@ -172,17 +172,17 @@ class ViewController extends Controller {
 			->select('id', 'name')
 			->lists('name', 'id');
 
-		$entityNames = array_map(function($entity) { return $entity->name; }, $config->{"selected-countries"});
+/*		$entityNames = array_map(function($entity) { return $entity->name; }, $config->{"selected-countries"});
 		$entityIds = DB::table('entities')
 			->whereIn('name', $entityNames)
-			->lists('id');
+			->lists('id');*/
 
 		// Now we pull out all the actual data
 		$dataQuery = DB::table('data_values')
 			->whereIn('data_values.fk_var_id', $varIds);
 		
-		if ($entityIds)
-			$dataQuery = $dataQuery->whereIn('data_values.fk_ent_id', $entityIds);
+//		if ($entityIds)
+//			$dataQuery = $dataQuery->whereIn('data_values.fk_ent_id', $entityIds);
 
 		$dataQuery = $dataQuery
 			->select('value', 'year',
