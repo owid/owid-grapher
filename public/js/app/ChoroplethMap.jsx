@@ -6,7 +6,7 @@ import owid from '../owid'
 import dataflow from './owid.dataflow'
 import Bounds from './Bounds'
 import React, { Component } from 'react'
-import {observable, computed, asFlat, asStructure, autorun, action} from 'mobx'
+import {observable, computed, asFlat, asStructure, autorunAsync, action} from 'mobx'
 import {observer} from 'mobx-react'
 import {bind} from 'decko'
 import * as topojson from 'topojson'
@@ -40,7 +40,7 @@ export default class ChoroplethMap extends Component {
         });
     }
 
-    @computed get projection() : MapProjection {
+    @computed.struct get projection() : MapProjection {
         return this.props.projection
     }
 
@@ -48,11 +48,11 @@ export default class ChoroplethMap extends Component {
         return this.props.bounds
     }
 
-    @computed get choroplethData() : ChoroplethData {
+    @computed.struct get choroplethData() : ChoroplethData {
         return this.props.choroplethData
     }
 
-    @computed get defaultFill() : string {
+    @computed.struct get defaultFill() : string {
         return this.props.defaultFill
     }
 
@@ -92,12 +92,13 @@ export default class ChoroplethMap extends Component {
     }
 
     componentDidMount() {
-        autorun(this.postRenderResize)
+        this.postRenderResize()
+        autorunAsync(this.postRenderResize)
     }
 
     @bind postRenderResize() {
-        const { bounds, projection } = this
-        const bbox = this.subunits.getBBox()
+        const { bounds, projection, subunits } = this
+        const bbox = subunits.getBBox()
 
         var viewports = {
             "World": { x: 0.525, y: 0.5, width: 1, height: 1 },
@@ -132,6 +133,6 @@ export default class ChoroplethMap extends Component {
             newOffsetY = boundsCenterY - newCenterY;
 
         var matrixStr = "matrix(" + scale + ",0,0," + scale + "," + newOffsetX + "," + newOffsetY + ")";
-        d3.select(this.subunits).attr('transform', matrixStr);        
+        d3.select(subunits).attr('transform', matrixStr);        
     }
 }

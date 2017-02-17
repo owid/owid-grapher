@@ -2,7 +2,7 @@
 	"use strict";
 	owid.namespace("App.Views.Form.MapTabView");
 
-	var	owdProjections = require('./MapProjections'),
+	var	owdProjections = require('./MapProjections').default,
 		MapColorSection = App.Views.Form.MapColorSection;
 
 	App.Views.Form.MapTabView = owid.View.extend({
