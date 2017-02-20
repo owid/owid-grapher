@@ -16,19 +16,19 @@ export default owid.View.extend({
 	uploadedData: false,
 
 	el: "#import-view",
-	events: {
+	/*events: {
 		"submit form": "onFormSubmit",
 		"click .clear-settings-btn": "onClearSettings",
 		"change [type=file]": "onFileChange",
 		"click .remove-uploaded-file-btn": "onRemoveUploadedFile",
 		"change [name=multivariant_dataset]": "onMultivariantDatasetChange",
-	},
+	},*/
 
 	initialize: function(props) {	
 		$("#import-view").empty()
-        let rootNode = render(<Importer datasets={props.datasets}/>, $("#import-view")[0], rootNode)
+		console.log(props)
+        let rootNode = render(<Importer datasets={props.datasets} categories={props.categories}/>, $("#import-view")[0], rootNode)
         return
-
 
 		this.dispatcher = _.clone(Backbone.Events);
 		App.DatasetModel = new App.Models.Import.DatasetModel({ dispatcher: this.dispatcher });

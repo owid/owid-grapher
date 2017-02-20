@@ -13,26 +13,6 @@
 		<h2>Import <a class="clear-settings-btn" style="display: none;">Clear Settings</a></h2>
 		{!! Form::open(array('class' => 'form-inline validate-form', 'method' => 'post', 'url' => 'import/store')) !!}
 			<input name="user_id" class="" type="hidden" value="{!! \Auth::user()->id !!}" />
-			<section class="form-section dataset-section">
-				<div class="form-section-header">
-					<h3>Choose your dataset</h3>
-				</div>
-				<div class="form-section-content">
-					<label>
-						{!! Form::text('dataset_name', '', array('class' => 'form-control required', 'placeholder' => 'Short name for your dataset' )); !!}
-					</label>
-					<p class="form-section-desc">
-						Strongly recommended is a name that combines the measure and the source. For example: "Life expectancy of women at birth – via the World Development Indicators published by the World Bank"
-					</p>
-					<label>
-						Description
-						{!! Form::textarea('dataset_description', '', array('class' => 'form-control dataset-description', 'placeholder' => 'Optional description for dataset' )); !!}
-					</label>					
-					<p class="form-section-desc">
-						The dataset name and description are for our own internal use and do not appear on the charts.
-					</p>
-				</div>
-			</section>
 			<section class="form-section dataset-type-section">
 				<div class="form-section-header">
 					<h3>Import mode</h3>
@@ -72,30 +52,6 @@
 					</div>
 			</section>
 
-			<section class="form-section category-section">
-					<div class="form-section-header">
-						<h3>Select category</h3>
-					</div>
-					<div class="form-section-content">
-						<p class="form-section-desc">Select an appropriate category for the dataset. </p>
-						<label>Category
-							<select name='category_id' class="form-control">
-								<option value="" disabled selected>Select your category</option>
-								@foreach( $data['categories'] as $category )
-									<option value="{{ $category->id }}">{{ $category->name }}</option>
-								@endforeach
-							</select>
-						</label>
-						<label>Subcategory
-							<select name='subcategory_id' class="form-control">
-								<option value="" disabled selected>Select your subcategory</option>
-								@foreach( $data['subcategories'] as $subcategory )
-									<option data-category-id="{{ $subcategory->fk_dst_cat_id }}" value="{{ $subcategory->id }}">{{ $subcategory->name }}</option>
-								@endforeach
-							</select>
-						</label>
-					</div>
-			</section>
 			{!! Form::hidden('data', ''); !!}
 			<section class="form-section submit-section">
 				{!! Form::submit('Save dataset', array('class' => 'btn btn-success')) !!}

@@ -34,18 +34,22 @@ class ImportController extends Controller {
 	{	
 
 		$datasets = Dataset::where('namespace', '=', 'owid')->orderBy('name')->get();
-		$categories = DatasetCategory::all();
-		$subcategories = DatasetSubcategory::all();
 		$varTypes = VariableType::all();
 		$sourceTemplate = Setting::where('meta_name', 'sourceTemplate')->first();
+
+		$categories = DB::table("dataset_subcategories")
+			->join('dataset_categories', 'dataset_subcategories.fk_dst_cat_id', '=', 'dataset_categories.id')
+			->orderBy('dataset_categories.id', 'ASC')
+			->orderBy('dataset_subcategories.id', 'ASC')
+			->select('dataset_subcategories.name', 'dataset_subcategories.id', 'dataset_categories.name as parent')->get();
 
 		$data = [
 			'datasets' => $datasets,
 			'categories' => $categories,
-			'subcategories' => $subcategories,
 			'varTypes' => $varTypes,
 			'sourceTemplate' => $sourceTemplate
 		];	
+
 
 		$response = view('import.index')->with(['data' => $data, 'importerData' => json_encode($data)]);
 		return $response;
