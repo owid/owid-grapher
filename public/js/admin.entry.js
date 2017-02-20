@@ -63,4 +63,4 @@ require('./app/App.Views.Import.SourceSelector.js')
 require('./app/App.Views.Import.ChooseDatasetSection.js')
 require('./app/App.Views.Import.VariablesSection.js')
 require('./app/App.Views.Import.CategorySection.js')
-App.Views.ImportView = require('./app/App.Views.ImportView.js').default
+App.Views.ImportView = require('./app/App.Views.ImportView').default

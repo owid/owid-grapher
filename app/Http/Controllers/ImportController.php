@@ -47,7 +47,7 @@ class ImportController extends Controller {
 			'sourceTemplate' => $sourceTemplate
 		];	
 
-		$response = view('import.index')->with('data', $data);
+		$response = view('import.index')->with(['data' => $data, 'importerData' => json_encode($data)]);
 		return $response;
 	}
 

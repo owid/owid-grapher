@@ -18,12 +18,6 @@
 					<h3>Choose your dataset</h3>
 				</div>
 				<div class="form-section-content">
-					<select name='existing_dataset_id' class="form-control">
-						<option value="" selected>Create new dataset</option>
-						@foreach ($data['datasets'] as $dataset)
-							<option value="{{ $dataset->id }}">{{ $dataset->name }}</option>
-						@endforeach
-					</select>
 					<label>
 						{!! Form::text('dataset_name', '', array('class' => 'form-control required', 'placeholder' => 'Short name for your dataset' )); !!}
 					</label>
@@ -155,6 +149,7 @@
 @section('scripts')
   <script type="text/javascript" src='//cdn.tinymce.com/4/tinymce.min.js'></script>
   <script>
-	new App.Views.ImportView()  
+    var importerData = {!! $importerData !!};
+	new App.Views.ImportView(importerData); 
   </script>
 @endsection
