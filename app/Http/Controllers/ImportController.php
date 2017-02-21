@@ -63,9 +63,6 @@ class ImportController extends Controller {
 
 		return DB::transaction(function() use ($input) {
 			$datasetMeta = $input['dataset'];
-			// entityKey is a unique list of entity names/codes e.g. ['Germany', 'Afghanistan', 'USA']
-			$entityKey = $input['entityKey'];
-			// entities is a list of indices for entityKey 
 			$entities = $input['entities'];
 			$years = $input['years'];
 			$variables = $input['variables'];
@@ -111,7 +108,7 @@ class ImportController extends Controller {
 			// Now we need to pull them back out again so we know what ids to go with what names
 			$entityNameToId = DB::table('entities')
 				->select('id', 'name')
-				->whereIn('name', $entityKey)
+				->whereIn('name', array_unique($entities))
 				->lists('id', 'name');
 
 			$sourceIdsByName = [];
@@ -167,7 +164,7 @@ class ImportController extends Controller {
 
 					$newDataValues[] = [
 						'fk_var_id' => $varId,
-						'fk_ent_id' => $entityNameToId[$entityKey[$entities[$i]]],
+						'fk_ent_id' => $entityNameToId[$entities[$i]],
 						'year' => $years[$i],
 						'value' => $values[$i],
 					];
