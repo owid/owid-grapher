@@ -9,7 +9,7 @@ module.exports = {
     },
     output: {
         path: path.join(__dirname, "public/build"),
-        filename: "[name].bundle.js"
+        filename: "[name].bundle.[chunkhash].js"
     },
   	resolve: {
         extensions: [".js", ".jsx", ".css"],
@@ -45,7 +45,19 @@ module.exports = {
         ],
     },
     plugins: [
-       new ExtractTextPlugin('[name].bundle.css')
+        // This plugin extracts css files required in the entry points
+        // into a separate CSS bundle for download
+        new ExtractTextPlugin('[name].bundle.[chunkhash].css'),
+
+        // Write the compiler stats out so that the server
+        // can figure out the bundle filenames
+        function() {
+            this.plugin("done", function(stats) {
+                require("fs").writeFileSync(
+                    path.join(__dirname, "...", "stats.json"),
+                JSON.stringify(stats.toJson()));
+            });
+        }
     ],
     devServer: {
         host: '0.0.0.0',
