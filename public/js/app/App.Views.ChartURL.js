@@ -26,11 +26,15 @@
 		urlBinder.mapQueryStr = '?';
 		urlBinder.chartQueryStr = '?';
 
+		var origConfig = null;
+
 		function initialize() {
 			if (chart.isEditor) {
 				chart.update({ activeTabName: chart.model.get('default-tab') });
 				return;
 			}
+
+			origConfig = _.clone(chart.model.attributes);
 
 			chart.flow('activeTabName', onTabChange);
 
@@ -246,7 +250,7 @@
 		 */
 		function updateStackMode() {
 			var stackMode = chart.model.get("currentStackMode");
-			if (stackMode == "relative" || stackMode == "stacked")
+			if (stackMode != origConfig.currentStackMode)
 				owid.setQueryVariable("stackMode", stackMode);
 			else
 				owid.setQueryVariable("stackMode", null);

@@ -24,7 +24,7 @@ class EmbedMenu extends Component {
             <h2>Embed</h2>
             <p>Paste this into any HTML page:</p>
             <textarea onFocus={function(evt) { evt.target.select(); }}>
-                {`<iframe src="${embedUrl}" style="width: 100%; height: 600px; border: 0px none;"></iframe>'`}
+                {`<iframe src="${embedUrl}" style="width: 100%; height: 600px; border: 0px none;"></iframe>`}
             </textarea>
         </div>
     }
