@@ -1,4 +1,5 @@
 var path = require('path');
+var webpack = require('webpack');
 var ExtractTextPlugin = require("extract-text-webpack-plugin");
 var ManifestPlugin = require('webpack-manifest-plugin');
 
@@ -49,7 +50,6 @@ module.exports = {
         // This plugin extracts css files required in the entry points
         // into a separate CSS bundle for download
         new ExtractTextPlugin('[name].bundle.[chunkhash].css'),
-
         // Output manifest so server can figure out the hashed
         // filenames
         new ManifestPlugin()
