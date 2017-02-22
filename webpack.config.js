@@ -1,5 +1,6 @@
 var path = require('path');
 var ExtractTextPlugin = require("extract-text-webpack-plugin");
+var ManifestPlugin = require('webpack-manifest-plugin');
 
 module.exports = {
     context: path.join(__dirname, "public/js"),
@@ -49,15 +50,9 @@ module.exports = {
         // into a separate CSS bundle for download
         new ExtractTextPlugin('[name].bundle.[chunkhash].css'),
 
-        // Write the compiler stats out so that the server
-        // can figure out the bundle filenames
-        function() {
-            this.plugin("done", function(stats) {
-                require("fs").writeFileSync(
-                    path.join(__dirname, "...", "stats.json"),
-                JSON.stringify(stats.toJson()));
-            });
-        }
+        // Output manifest so server can figure out the hashed
+        // filenames
+        new ManifestPlugin()
     ],
     devServer: {
         host: '0.0.0.0',
