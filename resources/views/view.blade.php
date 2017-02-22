@@ -32,8 +32,7 @@
 			<meta name="twitter:image" content="{!! $chartMeta->imageUrl !!}">
 		@endif
 
-		<?php Assets::add("chart"); ?>
-		<?php echo App\Util::css(); ?>
+		<link rel="stylesheet" href="{{ URL::to('/build/charts.bundle.css') }}" type="text/css">
 	</head>
 	<body>
 		<!--[if lt IE 9]>

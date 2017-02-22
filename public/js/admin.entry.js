@@ -1,5 +1,16 @@
 require('./charts.entry.js')
 
+// Admin only CSS
+
+require('AdminLTE.min.css')
+require('datepicker3.css')
+require('_all-skins.min.css')
+require('ion.rangeSlider.css')
+require('ion.rangeSlider.skinFlat.css')
+require('bootstrap3-wysihtml5.css')
+require('../css/admin.css')
+
+
 // Admin only code
 
 require('./libs/bootstrap-datepicker')

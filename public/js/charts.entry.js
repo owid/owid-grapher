@@ -1,3 +1,13 @@
+// CSS
+
+require('bootstrap.css')
+require('font-awesome.css')
+require('bootstrap-chosen.css')
+require('nv.d3.css')
+require('../css/chart.css')
+
+// JS
+
 require('babel-polyfill');
 require('./libs/modernizr-custom');
 window.jQuery = require('jquery');
