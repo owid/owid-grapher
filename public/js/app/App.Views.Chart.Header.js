@@ -1,5 +1,5 @@
 require('innersvg');
-var Bounds = require('./Bounds').default
+var Bounds = require('./Bounds').default;
 
 ;(function(d3) {	
 	"use strict";

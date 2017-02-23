@@ -49,6 +49,10 @@ module.exports = {
             }
         ],
     },
+
+    // Enable sourcemaps for debugging webpack's output.
+    devtool: "eval-source-map",
+
     plugins: (isProduction ? [
         // This plugin extracts css files required in the entry points
         // into a separate CSS bundle for download
@@ -88,12 +92,6 @@ module.exports = {
     devServer: {
         host: '0.0.0.0',
         port: 8080,
-        contentBase: 'public',
-        /*publicPath: '/grapher/',
-        proxy: {
-            "*": "http://127.0.0.1:8000/"
-        }*/
+        contentBase: 'public'
     },
-    // Enable sourcemaps for debugging webpack's output.
-    devtool: "source-map"
 };
