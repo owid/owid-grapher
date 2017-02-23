@@ -22,7 +22,6 @@ require('./libs/bootstrap.min');
 window.colorbrewer = require('./libs/colorbrewer');
 require('./libs/jquery.lazyloadxt.extra');
 window.async = require('./libs/async');
-window.Fuse = require('fuse.js');
 require('./libs/innersvg');
 
 window.owid = require('./owid').default;

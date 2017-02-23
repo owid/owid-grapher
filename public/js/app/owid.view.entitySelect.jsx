@@ -1,3 +1,5 @@
+import Fuse from 'fuse.js'
+
 ;(function(d3) {
     "use strict";
     owid.namespace("owid.view.scatter");
