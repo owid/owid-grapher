@@ -2,6 +2,7 @@ var path = require('path');
 var webpack = require('webpack');
 var ExtractTextPlugin = require("extract-text-webpack-plugin");
 var ManifestPlugin = require('webpack-manifest-plugin');
+var OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
 module.exports = {
     context: path.join(__dirname, "public/js"),
@@ -50,9 +51,35 @@ module.exports = {
         // This plugin extracts css files required in the entry points
         // into a separate CSS bundle for download
         new ExtractTextPlugin('[name].bundle.[chunkhash].css'),
+
+        // CSS optimization
+        new OptimizeCssAssetsPlugin({
+            assetNameRegExp: /\.bundle.*\.css$/,
+            cssProcessorOptions: { discardComments: { removeAll: true } }
+        }),
+
+        // JS optimization
+        new webpack.optimize.UglifyJsPlugin({
+            compress: {
+              warnings: false,
+              screw_ie8: true,
+              conditionals: true,
+              unused: true,
+              comparisons: true,
+              sequences: true,
+              dead_code: true,
+              evaluate: true,
+              if_return: true,
+              join_vars: true,
+            },
+            output: {
+              comments: false,
+            },
+        }),
+
         // Output manifest so server can figure out the hashed
         // filenames
-        new ManifestPlugin()
+        new ManifestPlugin(),        
     ],
     devServer: {
         host: '0.0.0.0',
