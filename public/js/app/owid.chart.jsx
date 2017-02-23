@@ -12,6 +12,7 @@ import SourcesFooter from './SourcesFooter'
 import ControlsFooter from './ControlsFooter'
 import DataTab from './DataTab'
 import MapTab from './MapTab'
+import SourcesTab from './SourcesTab'
 
 export default function() {
 	var chart = owid.dataflow();
@@ -84,7 +85,8 @@ export default function() {
 			chart.now('isExport, isEmbed', function(isExport, isEmbed) {
 				if (isExport) return; // Export specifies its own dimensions
 
-				var bounds = owid.bounds(containerNode.getBoundingClientRect());
+				var rect = containerNode.getBoundingClientRect();
+				var bounds = new Bounds(rect.left, rect.top, rect.width, rect.height);
 				if (isEmbed) {
 					bounds = bounds.pad(3);
 				} else {
@@ -129,7 +131,7 @@ export default function() {
 			chart: owid.tab.chart(chart),
 			data: DataTab(chart),
 			map: MapTab(chart),
-			sources: owid.component.sourcesTab(chart)
+			sources: SourcesTab(chart)
 		};
 	});
 
@@ -304,7 +306,7 @@ export default function() {
 		var chartRect = chart.el.node().getBoundingClientRect(),
 			nodeRect = node.getBoundingClientRect();
 
-		return owid.bounds(
+		return new Bounds(
 			nodeRect.left-chartRect.left,
 			nodeRect.top-chartRect.top,
 			nodeRect.width,

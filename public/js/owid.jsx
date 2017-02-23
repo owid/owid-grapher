@@ -1,5 +1,6 @@
 /* OWID root namespace and standalone utility functions */
 
+require('innersvg');
 
 ;(function(d3) {
 	"use strict";
@@ -1042,19 +1043,6 @@
 
 		d3.select('svg').append('text').attr('class', 'tmpTextCalc').attr('opacity', 0);
 		return d3.select('svg').select('.tmpTextCalc').node();
-	}
-
-	owid.calcTextBounds = function(str, options) {
-		options = _.extend({}, {
-			x: 0,
-			y: 0,
-			fontSize: '1em'
-		}, options);
-
-		let text = d3.select(owid.getTmpTextNode());
-		text.attr('font-size', options.fontSize).text(str)
-
-		return owid.bounds(text.node().getBBox())
 	}
 
 	window.owid = owid;

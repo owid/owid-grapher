@@ -11,7 +11,7 @@ import Bounds from './Bounds'
 import {NullElement} from './Util'
 
 @observer
-export default class SourcesTab extends Component {
+class SourcesTab extends Component {
 	props: {
 		bounds: Bounds,
 		sources: Object[]
@@ -37,25 +37,20 @@ export default class SourcesTab extends Component {
 	}
 }
 
-;(function() {	
-	"use strict";
-	owid.namespace("owid.component.sourcesTab");
+export default function(chart) {
+	var sourcesTab = owid.dataflow();
 
-	owid.component.sourcesTab = function(chart) {
-		var sourcesTab = owid.dataflow();
+	sourcesTab.isOverlay = true;
 
-		sourcesTab.isOverlay = true;
+	let rootNode = null
 
-		let rootNode = null
-
-		sourcesTab.render = function(bounds) {
-	        rootNode = render(<SourcesTab bounds={bounds.scale(chart.scale)} sources={chart.data.transformDataForSources()}/>, chart.htmlNode, rootNode)
-		};
-
-		sourcesTab.beforeClean(function() {
-			rootNode = render(NullElement, chart.htmlNode, rootNode);
-		});
-
-		return sourcesTab;
+	sourcesTab.render = function(bounds) {
+        rootNode = render(<SourcesTab bounds={bounds.scale(chart.scale)} sources={chart.data.transformDataForSources()}/>, chart.htmlNode, rootNode)
 	};
-})();
+
+	sourcesTab.beforeClean(function() {
+		rootNode = render(NullElement, chart.htmlNode, rootNode);
+	});
+
+	return sourcesTab;
+}

@@ -143,7 +143,7 @@ export default function(chart : any) {
             chart.update({ activeTabName: 'sources' })
         })
 
-        return owid.bounds(sourcesLine.node().getBBox());
+        return Bounds.fromBBox(sourcesLine.node().getBBox());
     })
 
     // Fill license + site link but don't position it yet
@@ -152,7 +152,7 @@ export default function(chart : any) {
     })
     footer.flow('licenseBox : licenseLine, licenseStr', function(licenseLine, licenseStr : string) {
         owid.svgSetWrappedText(licenseLine, licenseStr, 10000, { lineHeight: 1.1 });
-        return owid.bounds(licenseLine.node().getBBox());
+        return Bounds.fromBBox(licenseLine.node().getBBox());
     });
 
     // Place note, if any
@@ -172,7 +172,7 @@ export default function(chart : any) {
 
         owid.svgSetWrappedText(noteLine, noteStr, maxBounds.width, { lineHeight: 1.1 });
 
-        return owid.bounds(noteLine.node().getBBox());
+        return Bounds.fromBBox(noteLine.node().getBBox());
     });
 
     // Position license
@@ -193,12 +193,12 @@ export default function(chart : any) {
             owid.svgSetWrappedText(licenseLine, licenseStr, maxBounds.width, { lineHeight: 1.1 });
         }
 
-        return owid.bounds(licenseLine.node().getBBox())
+        return Bounds.fromBBox(licenseLine.node().getBBox())
     })
 
     // Position footer at bottom of bounds
     footer.flow('height : g, licenseBox', function(g) {
-        return owid.bounds(g.node().getBBox()).height
+        return Bounds.fromBBox(g.node().getBBox()).height
     })
     footer.flow('g, maxBounds, height', function(g, maxBounds, height) {
         g.attr('transform', `translate(${maxBounds.left}, ${maxBounds.top+maxBounds.height-height})`)

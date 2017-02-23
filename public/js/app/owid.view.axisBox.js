@@ -1,3 +1,5 @@
+var Bounds = require('./Bounds').default
+
 ;(function(d3) {
 	"use strict";
 	owid.namespace("owid.view.axisBox");
@@ -42,7 +44,7 @@
 		});
 
 		box.flow("innerBounds : bounds, innerWidth, innerHeight", function(bounds, innerWidth, innerHeight) {
-			return owid.bounds(bounds.left + (bounds.width-innerWidth), bounds.top, innerWidth, innerHeight);
+			return new Bounds(bounds.left + (bounds.width-innerWidth), bounds.top, innerWidth, innerHeight);
 		});
 
 		// Go back and rerender the x axis to match

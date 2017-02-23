@@ -1,3 +1,6 @@
+require('innersvg');
+var Bounds = require('./Bounds').default
+
 ;(function(d3) {	
 	"use strict";
 	owid.namespace("owid.view.header");
@@ -42,7 +45,7 @@
                 logoHeight = bbox.height*scale;
 			});
 
-			return [owid.bounds(0, 0, offsetX-10, bounds.height), logoHeight];
+			return [new Bounds(0, 0, offsetX-10, bounds.height), logoHeight];
 		});
 
 		header.flow('titleLinkEl : g', function(g) {
@@ -88,7 +91,7 @@
 			title.attr('y', boundsForText.top);
 			title.attr('y', boundsForText.top-title.node().getBBox().y);
 
-			return [owid.bounds(title.node().getBBox()), fontSize];
+			return [Bounds.fromBBox(title.node().getBBox()), fontSize];
 		});
 
 		header.flow('subtitle : g', function(g) {

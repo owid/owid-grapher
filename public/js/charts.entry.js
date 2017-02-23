@@ -18,10 +18,8 @@ _.extend(window, require('./libs/saveSvgAsPng'));
 window.s = require('underscore.string');
 window.Backbone = require('./libs/backbone');
 window.colorbrewer = require('./libs/colorbrewer');
-require('./libs/innersvg');
 
 window.owid = require('./owid').default;
-require('./app/owid.bounds');
 owid.dataflow = require('./app/owid.dataflow').default;
 require('./app/owid.colorbrewer');
 require('preact/devtools');
@@ -44,8 +42,6 @@ require('./app/owid.viz.scatter');
 require('./app/owid.view.entitySelect');
 require('./app/App.Views.Chart.Legend');
 require('./app/App.Views.Chart.ChartTab');
-require('./app/DataTab');
-require('./app/SourcesTab');
 
 require('./app/App.Views.Chart.Map.Legend');
 

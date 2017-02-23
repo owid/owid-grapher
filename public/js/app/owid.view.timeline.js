@@ -1,3 +1,5 @@
+var Bounds = require('./Bounds').default
+
 ;(function(d3) {
 	"use strict";
 	owid.namespace("owid.view.timeline");
@@ -16,7 +18,7 @@
 
         timeline.flow('bounds : outerBounds', function(outerBounds) {
             var height = 45;
-            return owid.bounds(outerBounds.left, outerBounds.top+(outerBounds.height-height), outerBounds.width, height).padWidth(outerBounds.width*0.02);
+            return new Bounds(outerBounds.left, outerBounds.top+(outerBounds.height-height), outerBounds.width, height).padWidth(outerBounds.width*0.02);
         });
 
 		// Data processing
@@ -80,7 +82,7 @@
   		});
 
   		timeline.flow('minYearBox : minYearLabel, minYear, bounds', function(minYearLabel, minYear, bounds) {
-  			return owid.bounds(minYearLabel
+  			return Bounds.fromBBox(minYearLabel
   				.text(minYear)
   				.attr('x', 45)
   				.attr('y', bounds.height/2)
@@ -89,7 +91,7 @@
   		});
 
   		timeline.flow('maxYearBox : maxYearLabel, maxYear, bounds', function(maxYearLabel, maxYear, bounds) {
-  			return owid.bounds(maxYearLabel
+  			return Bounds.fromBBox(maxYearLabel
   				.text(maxYear)
   				.attr('x', bounds.width)
   				.attr('y', bounds.height/2)
@@ -100,7 +102,7 @@
   		timeline.flow('sliderBounds : minYearBox, maxYearBox, bounds', function(minYearBox, maxYearBox, bounds) {
             var sliderHeight = 12;
   			var left = minYearBox.left + minYearBox.width + 15;
-  			return owid.bounds(left, (bounds.height-sliderHeight)/2, bounds.width-maxYearBox.width-left-15, sliderHeight);
+  			return new Bounds(left, (bounds.height-sliderHeight)/2, bounds.width-maxYearBox.width-left-15, sliderHeight);
   		});
 
   		timeline.flow('xScale : years, sliderBounds', function(years, sliderBounds) {

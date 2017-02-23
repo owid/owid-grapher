@@ -9,6 +9,8 @@
  * @created 2016-08-09
  */ 
 
+var Bounds = require('./Bounds').default
+
 ;(function() {
 	"use strict";
 	owid.namespace("owid.component.exportMode");
@@ -25,7 +27,7 @@
 			margin = Math.min(20*(targetWidth/App.AUTHOR_WIDTH), 20*(targetHeight/App.AUTHOR_HEIGHT));
 
 		chart.update({
-			outerBounds: owid.bounds(0, 0, targetWidth, targetHeight)
+			outerBounds: new Bounds(0, 0, targetWidth, targetHeight)
 		});
 
 		chart.dispatch.on('renderEnd', function() {
