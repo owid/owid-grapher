@@ -10,9 +10,9 @@ require('ion.rangeSlider.skinFlat.css')
 require('bootstrap3-wysihtml5.css')
 require('../css/admin.css')
 
-
 // Admin only code
 
+require('./libs/bootstrap.min');
 require('./libs/bootstrap-datepicker')
 require('./libs/admin-lte-app.min')
 require('./libs/ion.rangeSlider.min')

@@ -1,8 +1,4 @@
-;(function() {  
-    "use strict";
-    owid.namespace("owid.data.world");
-
-    owid.data.world = {
+export default {
     "type": "Topology",
     "objects": {
         "world": {
@@ -11463,5 +11459,3 @@
         "translate": [-180, -85.609038]
     }
 }
-
-})();

@@ -10,6 +10,8 @@ import * as jQuery from 'jquery'
 import ChartConfig from './ChartConfig'
 import SourcesFooter from './SourcesFooter'
 import ControlsFooter from './ControlsFooter'
+import DataTab from './DataTab'
+import MapTab from './MapTab'
 
 export default function() {
 	var chart = owid.dataflow();
@@ -125,8 +127,8 @@ export default function() {
 	chart.flow('tabs : model', function() {
 		return {
 			chart: owid.tab.chart(chart),
-			data: owid.component.dataTab(chart),
-			map: owid.component.mapTab(chart),
+			data: DataTab(chart),
+			map: MapTab(chart),
 			sources: owid.component.sourcesTab(chart)
 		};
 	});

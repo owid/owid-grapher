@@ -11,6 +11,7 @@ import {observer} from 'mobx-react'
 import {bind} from 'decko'
 import * as topojson from 'topojson'
 import MapProjections from './MapProjections'
+import MapTopology from './MapTopology'
 
 export type ChoroplethData = {
     [key:string]: {
@@ -35,7 +36,7 @@ export default class ChoroplethMap extends Component {
     subunits: any
 
     @computed get geoData() {
-        return topojson.feature(owid.data.world, owid.data.world.objects.world).features.filter(function(feature) {
+        return topojson.feature(MapTopology, MapTopology.objects.world).features.filter(function(feature) {
             return feature.id !== "ATA";
         });
     }

@@ -46,25 +46,20 @@ class DataTab extends Component {
 	}
 }
 
-;(function() {	
-	"use strict";
-	owid.namespace("owid.component.dataTab");
+export default function(chart) {
+	var dataTab = owid.dataflow();
 
-	owid.component.dataTab = function(chart) {
-		var dataTab = owid.dataflow();
+	dataTab.isOverlay = true;
 
-		dataTab.isOverlay = true;
+	let rootNode = null
 
-		let rootNode = null
-
-		dataTab.render = function(bounds) {
-	        rootNode = render(<DataTab bounds={bounds.scale(chart.scale)} csvUrl={Global.rootUrl+'/'+chart.model.get('slug')+'.csv'}/>, chart.htmlNode, rootNode)
-		};
-
-		dataTab.beforeClean(function() {
-			rootNode = render(NullElement, chart.htmlNode, rootNode);
-		});
-
-		return dataTab;
+	dataTab.render = function(bounds) {
+        rootNode = render(<DataTab bounds={bounds.scale(chart.scale)} csvUrl={Global.rootUrl+'/'+chart.model.get('slug')+'.csv'}/>, chart.htmlNode, rootNode)
 	};
-})();
+
+	dataTab.beforeClean(function() {
+		rootNode = render(NullElement, chart.htmlNode, rootNode);
+	});
+
+	return dataTab;
+};
