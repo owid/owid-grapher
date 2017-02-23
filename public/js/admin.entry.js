@@ -19,7 +19,9 @@ require('./libs/ion.rangeSlider.min')
 require('./libs/jquery.nestable')
 require('./libs/jquery.stickytabs')
 require('./libs/jquery.timeago')
+require('./libs/chosen.jquery');
 require('./admin')
+
 
 require('./app/App.Models.ChartVariableModel')
 require('./app/App.Models.EntityModel')

@@ -4,6 +4,8 @@ var ExtractTextPlugin = require("extract-text-webpack-plugin");
 var ManifestPlugin = require('webpack-manifest-plugin');
 var OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
+const isProduction = process.argv.indexOf('-p') !== -1;
+
 module.exports = {
     context: path.join(__dirname, "public/js"),
     entry: {        
@@ -12,7 +14,7 @@ module.exports = {
     },
     output: {
         path: path.join(__dirname, "public/build"),
-        filename: "[name].bundle.[chunkhash].js"
+        filename: (isProduction ? "[name].bundle.[chunkhash].js" : "[name].bundle.js")
     },
   	resolve: {
         extensions: [".js", ".jsx", ".css"],
@@ -47,7 +49,7 @@ module.exports = {
             }
         ],
     },
-    plugins: [
+    plugins: (isProduction ? [
         // This plugin extracts css files required in the entry points
         // into a separate CSS bundle for download
         new ExtractTextPlugin('[name].bundle.[chunkhash].css'),
@@ -80,7 +82,9 @@ module.exports = {
         // Output manifest so server can figure out the hashed
         // filenames
         new ManifestPlugin(),        
-    ],
+    ] : [
+        new ExtractTextPlugin('[name].bundle.css'),
+    ]),
     devServer: {
         host: '0.0.0.0',
         port: 8080,

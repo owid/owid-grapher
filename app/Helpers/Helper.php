@@ -10,14 +10,14 @@ class Helper
     public static function js($entry)
     {
         $manifest = json_decode(File::get('build/manifest.json'));
-
-        return '<script src="' . URL::to('/build/'.$manifest->{$entry.'.js'}) . '"></script>';
+        $path = env('APP_ENV', 'production') == 'production' ? '/build/'.$manifest->{$entry.'.js'} : '/build/'.$entry.'.bundle.js';
+        return '<script src="' . URL::to($path) . '"></script>';
     }
 
     public static function css($entry)
     {
         $manifest = json_decode(File::get('build/manifest.json'));
-
-        return '<link href="' . URL::to('/build/'.$manifest->{$entry.'.css'}) . '" rel="stylesheet" type="text/css">';
+        $path = env('APP_ENV', 'production') == 'production' ? '/build/'.$manifest->{$entry.'.css'} : '/build/'.$entry.'.bundle.css';
+        return '<link href="' . URL::to($path) . '" rel="stylesheet" type="text/css">';
     }
 }
