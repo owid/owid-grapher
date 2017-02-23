@@ -51,7 +51,7 @@ module.exports = {
     },
 
     // Enable sourcemaps for debugging webpack's output.
-    devtool: "eval-source-map",
+    devtool: (isProduction ? false : "eval-source-map"),
 
     plugins: (isProduction ? [
         // This plugin extracts css files required in the entry points
@@ -77,9 +77,6 @@ module.exports = {
               evaluate: true,
               if_return: true,
               join_vars: true,
-            },
-            output: {
-              comments: false,
             },
         }),
 

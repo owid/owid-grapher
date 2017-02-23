@@ -155,7 +155,7 @@ class ControlsFooter extends Component {
                     {_.map(tabNames, (tabName) => {
                         return <li class={"tab clickable" + (tabName == activeTabName ? ' active' : '')} onClick={() => this.onTabChange(tabName)}><a>{tabName}</a></li>
                     })}
-                    <li class="clickable"><a onClick={this.onShareMenu}><i class="fa fa-ellipsis-v"/></a></li>                    
+                    <li class="clickable"><a title="Share" onClick={this.onShareMenu}><i class="fa fa-share-alt"/></a></li>                    
                 </ul>                
             </nav>
             {isShareMenuActive && <ShareMenu config={this.props.config} onDismiss={() => this.isShareMenuActive=false}/>}
