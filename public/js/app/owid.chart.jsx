@@ -8,6 +8,8 @@ import * as ElementQueries from '../libs/ElementQueries'
 import * as _ from 'underscore'
 import * as jQuery from 'jquery'
 import ChartConfig from './ChartConfig'
+import SourcesFooter from './SourcesFooter'
+import ControlsFooter from './ControlsFooter'
 
 export default function() {
 	var chart = owid.dataflow();
@@ -67,8 +69,8 @@ export default function() {
 	});
 
 	chart.flow('header : model', function() { return owid.control.header(chart); });
-	chart.flow('sourcesFooter : model', function() { return new owid.component.footer(chart); });
-	chart.flow('controlsFooter : model', function() { return owid.view.controlsFooter(chart); });
+	chart.flow('sourcesFooter : model', function() { return SourcesFooter(chart); });
+	chart.flow('controlsFooter : model', function() { return ControlsFooter(chart); });
 
 	// Container setup
 	chart.flow('containerNode', function(containerNode) {

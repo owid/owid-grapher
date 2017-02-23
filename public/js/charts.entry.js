@@ -1,3 +1,13 @@
+// CSS
+
+require('bootstrap.css')
+require('font-awesome.css')
+require('bootstrap-chosen.css')
+require('nv.d3.css')
+require('../css/chart.css')
+
+// JS
+
 require('babel-polyfill');
 require('./libs/modernizr-custom');
 window.jQuery = require('jquery');
@@ -9,7 +19,6 @@ _.extend(window, require('./libs/saveSvgAsPng'));
 window.s = require('underscore.string');
 window.Backbone = require('./libs/backbone');
 require('./libs/bootstrap.min');
-require('./libs/chosen.jquery');
 window.colorbrewer = require('./libs/colorbrewer');
 require('./libs/jquery.lazyloadxt.extra');
 window.async = require('./libs/async');
@@ -31,7 +40,6 @@ require('./app/App.Models.ChartData');
 require('./app/App.Models.Colors');
 require('./app/App.Views.Chart.Header');
 owid.component = {};
-owid.component.footer = require('./app/SourcesFooter').default;
 require('./app/owid.view.tooltip');
 require('./app/owid.view.scaleSelectors');
 require('./app/owid.view.axis');
@@ -40,7 +48,6 @@ require('./app/owid.view.timeline');
 require('./app/owid.view.scatter');
 require('./app/owid.viz.scatter');
 require('./app/owid.view.entitySelect');
-owid.view.controlsFooter = require('./app/ControlsFooter').default;
 require('./app/App.Views.Chart.Legend');
 owid.component.slopeChart = require('./app/owid.component.slopeChart').default;
 require('./app/App.Views.Chart.ChartTab');

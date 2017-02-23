@@ -1,5 +1,16 @@
 require('./charts.entry.js')
 
+// Admin only CSS
+
+require('AdminLTE.min.css')
+require('datepicker3.css')
+require('_all-skins.min.css')
+require('ion.rangeSlider.css')
+require('ion.rangeSlider.skinFlat.css')
+require('bootstrap3-wysihtml5.css')
+require('../css/admin.css')
+
+
 // Admin only code
 
 require('./libs/bootstrap-datepicker')
@@ -8,7 +19,9 @@ require('./libs/ion.rangeSlider.min')
 require('./libs/jquery.nestable')
 require('./libs/jquery.stickytabs')
 require('./libs/jquery.timeago')
+require('./libs/chosen.jquery');
 require('./admin')
+
 
 require('./app/App.Models.ChartVariableModel')
 require('./app/App.Models.EntityModel')

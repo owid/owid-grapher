@@ -12,8 +12,7 @@
 		<link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic" rel="stylesheet" type="text/css">
 		<!-- Place favicon.ico in the root directory -->
 
-		<?php Assets::add('admin'); ?>
-		<?php echo App\Util::css(); ?>
+		{!! Helper::css('admin') !!}
 	</head>
 	<body class="skin-blue">
 		<!--[if lt IE 9]>
@@ -90,8 +89,9 @@
 			window.App = {}
 			App.isEditor = true
 		</script>
-		
-		<script src="{{ URL::to('/build/admin.bundle.js') }}"></script>
+
+		{!! Helper::js('admin') !!}
+
 		@yield('scripts')
 	</body>
 </html>

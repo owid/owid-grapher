@@ -32,8 +32,7 @@
 			<meta name="twitter:image" content="{!! $chartMeta->imageUrl !!}">
 		@endif
 
-		<?php Assets::add("chart"); ?>
-		<?php echo App\Util::css(); ?>
+		{!! Helper::css('charts') !!}
 	</head>
 	<body>
 		<!--[if lt IE 9]>
@@ -52,8 +51,8 @@
 				var chart = owid.chart().update({ chartConfig: chartConfig, containerNode: d3.select('body').node() });
 			};		
 		</script>
-		
-		<script src="{{ URL::to('/build/charts.bundle.js') }}"></script>
+
+		{!! Helper::js('charts') !!}
 		
 		@yield('scripts')
 	</body>

@@ -1,4 +1,10 @@
 var path = require('path');
+var webpack = require('webpack');
+var ExtractTextPlugin = require("extract-text-webpack-plugin");
+var ManifestPlugin = require('webpack-manifest-plugin');
+var OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+
+const isProduction = process.argv.indexOf('-p') !== -1;
 
 module.exports = {
     context: path.join(__dirname, "public/js"),
@@ -8,18 +14,17 @@ module.exports = {
     },
     output: {
         path: path.join(__dirname, "public/build"),
-        filename: "[name].bundle.js"
+        filename: (isProduction ? "[name].bundle.[chunkhash].js" : "[name].bundle.js")
     },
-    // Enable sourcemaps for debugging webpack's output.
-    devtool: "source-map", 
   	resolve: {
-        extensions: [".js", ".jsx"],
+        extensions: [".js", ".jsx", ".css"],
         alias: {
             'react': 'preact-compat',
             'react-dom': 'preact-compat'
         },
         modules: [
   	        path.join(__dirname, "public/js/libs"),
+            path.join(__dirname, "public/css/libs"),
             path.join(__dirname, "node_modules"),
         ],
     }, 
@@ -34,8 +39,52 @@ module.exports = {
                     cacheDirectory: true
                 }
             },
+            {
+                test: /\.css$/,
+                loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: 'css-loader' })                
+            },
+            {
+                test: /\.(jpe?g|gif|png|eot|woff|ttf|svg|woff2)$/,
+                loader: 'file-loader'
+            }
         ],
     },
+    plugins: (isProduction ? [
+        // This plugin extracts css files required in the entry points
+        // into a separate CSS bundle for download
+        new ExtractTextPlugin('[name].bundle.[chunkhash].css'),
+
+        // CSS optimization
+        new OptimizeCssAssetsPlugin({
+            assetNameRegExp: /\.bundle.*\.css$/,
+            cssProcessorOptions: { discardComments: { removeAll: true } }
+        }),
+
+        // JS optimization
+        new webpack.optimize.UglifyJsPlugin({
+            compress: {
+              warnings: false,
+              screw_ie8: true,
+              conditionals: true,
+              unused: true,
+              comparisons: true,
+              sequences: true,
+              dead_code: true,
+              evaluate: true,
+              if_return: true,
+              join_vars: true,
+            },
+            output: {
+              comments: false,
+            },
+        }),
+
+        // Output manifest so server can figure out the hashed
+        // filenames
+        new ManifestPlugin(),        
+    ] : [
+        new ExtractTextPlugin('[name].bundle.css'),
+    ]),
     devServer: {
         host: '0.0.0.0',
         port: 8080,
@@ -44,5 +93,7 @@ module.exports = {
         proxy: {
             "*": "http://127.0.0.1:8000/"
         }*/
-    }    
+    },
+    // Enable sourcemaps for debugging webpack's output.
+    devtool: "source-map"
 };
