@@ -8,6 +8,7 @@ require('_all-skins.min.css')
 require('ion.rangeSlider.css')
 require('ion.rangeSlider.skinFlat.css')
 require('bootstrap3-wysihtml5.css')
+require('bootstrap-chosen.css')
 require('../css/admin.css')
 
 // Admin only code
