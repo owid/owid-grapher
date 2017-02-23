@@ -88,6 +88,25 @@
 
 			window.App = {}
 			App.isEditor = true
+			App.isDebug = !!{!! env('APP_ENV', 'production') != 'production' !!};
+
+			App.url = function(path) {
+				return Global.rootUrl + path;
+			}
+
+			App.fetchJSON = function(path) {
+				return window.fetch(App.url(path), { credentials: 'same-origin' }).then(function(data) { return data.json(); });
+			}
+
+			App.postJSON = function(path, data) {
+				return window.fetch(App.url(path), {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify(data)
+				})
+			}
 		</script>
 
 		{!! Helper::js('admin') !!}

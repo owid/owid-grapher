@@ -8,6 +8,7 @@ require('../css/chart.css')
 // JS
 
 require('babel-polyfill');
+require('whatwg-fetch');
 require('./libs/modernizr-custom');
 window.jQuery = require('jquery');
 window.d3 = require('./libs/d3old');

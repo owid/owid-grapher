@@ -49,7 +49,8 @@
 			App.isEditor = false;
 			App.loadChart = function(chartConfig) {
 				var chart = owid.chart().update({ chartConfig: chartConfig, containerNode: d3.select('body').node() });
-			};		
+			};
+			App.isDebug = !!{!! env('APP_ENV', 'production') != 'production' !!};
 		</script>
 
 		{!! Helper::js('charts') !!}
