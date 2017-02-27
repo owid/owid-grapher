@@ -12,3 +12,4 @@
 vendor
 sftp-config.json
 storage/debugbar
+.sublime*

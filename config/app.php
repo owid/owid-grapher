@@ -161,7 +161,6 @@ return [
 
 		// Debugging tool
 		Fideloper\Proxy\TrustedProxyServiceProvider::class,
-		Stolz\Assets\Laravel\ServiceProvider::class,
 		Junaidnasir\Larainvite\LaraInviteServiceProvider::class
 	],
 
