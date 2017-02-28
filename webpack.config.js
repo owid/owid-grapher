@@ -11,7 +11,7 @@ module.exports = {
     entry: {        
         charts: "./charts.entry.js",
         admin: "./admin.entry.js"
-    },
+    },      
     output: {
         path: path.join(__dirname, "public/build"),
         filename: (isProduction ? "[name].bundle.[chunkhash].js" : "[name].bundle.js")
@@ -27,7 +27,7 @@ module.exports = {
             path.join(__dirname, "public/css/libs"),
             path.join(__dirname, "node_modules"),
         ],
-    }, 
+    },
     module: {
         rules: [
             { 
@@ -41,7 +41,7 @@ module.exports = {
             },
             {
                 test: /\.css$/,
-                loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: 'css-loader' })                
+                loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: ['css-loader?importLoaders=1', 'postcss-loader'] })
             },
             {
                 test: /\.(jpe?g|gif|png|eot|woff|ttf|svg|woff2)$/,

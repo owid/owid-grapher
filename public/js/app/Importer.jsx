@@ -8,7 +8,6 @@
  * @created 2017-02-17
  */ 
 
-
 // @flow
 
 import * as _ from 'underscore'
@@ -21,6 +20,8 @@ import {bind} from 'decko'
 
 import parse from 'csv-parse'
 import {NullElement} from './Util'
+
+import styles from './Importer.css'
 
 class Dataset {
 	@observable id : number
@@ -194,6 +195,35 @@ const EditCategory = ({categories, dataset}) => {
 }
 
 @observer
+class EditVariable extends Component {
+	@observable editSource = false
+
+	render() {
+		const {variable} = this.props
+		const {editSource} = this 
+
+		return <li class={styles.editVariable}>
+			<label>Name<input class="form-control" value={variable.name} placeholder="Enter variable name"/></label>
+			<label>Unit<input class="form-control" value={variable.unit} placeholder="e.g. % or $"/></label>
+			<label>Geographic Coverage<input class="form-control" value={variable.coverage} placeholder="e.g. Global by country"/></label>
+			<label>Time Span<input class="form-control" value={variable.timespan} placeholder="e.g. 1920-1990"/></label>
+			<label>Source
+				<input onClick={e => this.editSource = true} type="button" value={variable.source ? variable.source.name : 'Add source'}/>
+			</label>
+			<label>Action
+				<select class="action" value={variable.overwriteId}>
+					<option value="create-new">Create new variable</option>
+					{/*_.map(oldVariables, old => 
+						<option value={old.id}>Overwrite {old.name}</option>
+					)*/}							
+				</select>
+			</label>
+			<EditSource variable={variable}/>
+		</li>
+	}	
+}
+
+@observer
 class EditVariables extends Component {
 	@observable editSourceForVariable = null
 
@@ -207,77 +237,48 @@ class EditVariables extends Component {
 
 			<ol>
 				{_.map(newVariables, variable => 
-					<li class="variable-item clearfix">
-						<label>Name<input class="form-control" value={variable.name} placeholder="Enter variable name"/></label>
-						<label>Unit<input class="form-control" value={variable.unit} placeholder="e.g. % or $"/></label>
-						<label>Geographic Coverage<input class="form-control" value={variable.coverage} placeholder="e.g. Global by country"/></label>
-						<label>Time Span<input class="form-control" value={variable.timespan} placeholder="e.g. 1920-1990"/></label>
-						<label>Source
-							<input onClick={e => this.editSourceForVariable = variable} type="button" value={variable.source ? variable.source.name : 'Add source'}/>
-						</label>
-						<label>Action
-							<select class="action" value={variable.overwriteId}>
-								<option value="create-new">Create new variable</option>
-								{/*_.map(oldVariables, old => 
-									<option value={old.id}>Overwrite {old.name}</option>
-								)*/}							
-							</select>
-						</label>
-					</li>
+					<EditVariable variable={variable}/>	
 				)}
 			</ol>
-			{editSourceForVariable && <EditSourceModal variable={editSourceForVariable}/>}
 		</section>
 	}
 }
 
 @observer
-class EditSourceModal extends Component {
+class EditSource extends Component {
 	componentDidMount() {
-		$(this.base).modal()
+		//$(this.base).modal()
 	}
 
-	componentWillUnmount() {
+	componentWillUnmount() {	
 
 	}
 
 	render() {
-		return <div class="modal fade source-selector" role="dialog">
-			<div class="modal-dialog modal-lg">
-				<div class="modal-content">
-					<div class="modal-header">
-						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-							<span aria-hidden="true">&times;</span>
-						</button>
-						<h4 class="modal-title">Select source</h4>
-					</div>
-					<div class="modal-body">
-						<label>
-							<span>Source:</span>
-							<select class="form-control source"></select>
-						</label>
-						<label class="source-name">
-							<span>Name:</span>
-							<input class="form-control required" type="text"/>
-						</label>
-						<label>
-							<span>Description:</span>
-							<textarea class="form-control source-editor required" type="text" name="source_description"></textarea>
-							<span class="sources-default" style="display:none;"></span>
-						</label>				
-						<p class="form-section-desc">
-							All provided source information will be shown on associated visualizations.
-						</p>
-					</div>
-					<div class="modal-footer">
-						<span class="existing-source-warning text-warning">
-							<i class="fa fa-warning"></i>
-							You are editing an existing source. Changes may also affect other variables.
-						</span>
-						<button class="btn btn-success">Save</button>
-					</div>
-				</div>
-			</div>
+		return <div class={styles.editSource}>
+			<hr/>
+			<h4>Select source</h4>
+			<label>
+				<span>Source:</span>
+				<select class="form-control source"></select>
+			</label>
+			<label class="source-name">
+				<span>Name:</span>
+				<input class="form-control required" type="text"/>
+			</label>
+			<label>
+				<span>Description:</span>
+				<textarea class="form-control source-editor required" type="text" name="source_description"></textarea>
+				<span class="sources-default" style="display:none;"></span>
+			</label>				
+			<p class="form-section-desc">
+				All provided source information will be shown on associated visualizations.
+			</p>
+			<span class="existing-source-warning text-warning">
+				<i class="fa fa-warning"></i>
+				You are editing an existing source. Changes may also affect other variables.
+			</span>
+			<button class="btn btn-success">Save</button>
 		</div>		
 	}	
 }
