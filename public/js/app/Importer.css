@@ -1,5 +1,7 @@
 .editVariable {
-
+    & label {
+        background-color: green;
+    }
 }
 
 .editSource {

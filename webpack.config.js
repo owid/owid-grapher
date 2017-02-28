@@ -37,11 +37,11 @@ module.exports = {
                     presets: [['es2015', {modules: false}], 'stage-0', 'react'],
                     plugins: ["transform-decorators-legacy"],
                     cacheDirectory: true
-                }
+                }   
             },
             {
                 test: /\.css$/,
-                loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: ['css-loader?importLoaders=1', 'postcss-loader'] })
+                loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: ['css-loader?modules&importLoaders=1&localIdentName=[local]', 'postcss-loader'] })
             },
             {
                 test: /\.(jpe?g|gif|png|eot|woff|ttf|svg|woff2)$/,
