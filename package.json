@@ -1,5 +1,8 @@
 {
   "private": true,
+  "scripts": {
+    "dev": "webpack-dev-server"
+  },
   "dependencies": {
     "babel-core": "^6.21.0",
     "babel-loader": "^6.2.10",
