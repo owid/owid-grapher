@@ -1,19 +1,23 @@
 // CSS
 
-require('bootstrap.css')
-require('font-awesome.css')
-require('nv.d3.css')
-require('../css/chart.css')
+import 'bootstrap.css'
+import 'font-awesome.css'
+import 'nv.d3.css'
+import '../css/chart.css'
 
 // JS
 
-require('babel-polyfill');
-require('whatwg-fetch');
-require('./libs/modernizr-custom');
-window.jQuery = require('jquery');
+// Babel-polyfill emulates a proper ES6 environment in older browsers
+import 'babel-polyfill'
+// Polyfill for the new AJAX function "fetch"
+import 'whatwg-fetch'
+import './libs/modernizr-custom'
+import jQuery from 'jquery'
+window.jQuery = jQuery
+import * as d3 from 'd3'
+window.d3v4 = d3
 window.d3 = require('./libs/d3old');
-require('./libs/nv.d3');
-window.d3v4 = require('d3');
+require('./libs/nv.d3')
 window._ = require('underscore');
 _.extend(window, require('./libs/saveSvgAsPng'));
 window.s = require('underscore.string');
@@ -23,7 +27,7 @@ window.colorbrewer = require('./libs/colorbrewer');
 window.owid = require('./owid').default;
 owid.dataflow = require('./app/owid.dataflow').default;
 require('./app/owid.colorbrewer');
-require('preact/devtools');
+import 'preact/devtools'
 require('./app/constants');
 require('./app/App.Utils');
 require('./app/App.Models.ChartModel');
