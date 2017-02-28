@@ -30,8 +30,9 @@ class Dataset {
 	@observable subcategoryId : number
 	@observable.shallow csvData : [][] = null
 	@observable existingVariables : Object[] = null
+	@observable newVariables : Object[] = null
 
-	@computed get importData() : Object {
+	updateFromCSV() {
 		const {csvData} = this
 
 		const variables = []
@@ -41,7 +42,7 @@ class Dataset {
 		const headingRow = csvData[0]
 
 		for (let name of headingRow.slice(2))
-			variables.push({name, values: [], overwriteId: 'create-new'})
+			variables.push({source: null, name, values: [], overwriteId: 'create-new'})
 
 		for (let i = 1; i < csvData.length; i++) {
 			const row = csvData[i]
@@ -52,13 +53,9 @@ class Dataset {
 			})
 		}
 
-		console.log(variables)
-
-		return {variables, entities, years}
-	}
-
-	@computed get newVariables() {
-		return this.importData.variables
+		this.newVariables = variables
+		this.entities = entities
+		this.years = years
 	}
 
 	/*@computed get isLoading() {
@@ -108,6 +105,11 @@ class Dataset {
 		this.name = name
 		this.description = description
 		this.subcategoryId = subcategoryId
+
+		autorun(() => {
+			if (!this.csvData) return
+			this.updateFromCSV()
+		})
 
 		/*autorun(() => {
 			if (this.csvData == null || this.id == null) return; 
@@ -164,7 +166,7 @@ const EditName = ({dataset}) =>
 		<p class="form-section-desc">
 			Strongly recommended is a name that combines the measure and the source. For example: "Life expectancy of women at birth – via the World Development Indicators published by the World Bank"
 		</p>
-		<input type="text" class="form-control" placeholder="Short name for your dataset" value={dataset.name} required/>
+		<input type="text" placeholder="Short name for your dataset" value={dataset.name} required/>
 	</label>
 
 const EditDescription = ({dataset}) =>
@@ -182,7 +184,7 @@ const EditCategory = ({categories, dataset}) => {
 	return <label>
 		Category
 		<p class="form-section-desc">Select an appropriate category for the dataset. Currently used only for internal organization.</p>
-		<select class="form-control" onChange={e => dataset.subcategoryId = e.target.value} value={dataset.subcategoryId}>	
+		<select onChange={e => dataset.subcategoryId = e.target.value} value={dataset.subcategoryId}>	
 			{_.map(categoriesByParent, (subcats, parent) => 
 				<optgroup label={parent}>
 					{_.map(subcats, category => 
@@ -199,45 +201,44 @@ class EditVariable extends Component {
 	@observable editSource = false
 
 	render() {
-		const {variable} = this.props
+		const {variable, dataset} = this.props
 		const {editSource} = this 
 
+		const sourceName = variable.source && (variable.source.id ? variable.source.name : `New: ${variable.source.name}`)
+
 		return <li class={styles.editVariable}>
-			<label>Name<input class="form-control" value={variable.name} placeholder="Enter variable name"/></label>
-			<label>Unit<input class="form-control" value={variable.unit} placeholder="e.g. % or $"/></label>
-			<label>Geographic Coverage<input class="form-control" value={variable.coverage} placeholder="e.g. Global by country"/></label>
-			<label>Time Span<input class="form-control" value={variable.timespan} placeholder="e.g. 1920-1990"/></label>
+			<label>Name<input value={variable.name} placeholder="Enter variable name"/></label>
+			<label>Unit<input value={variable.unit} placeholder="e.g. % or $"/></label>
+			<label>Geographic Coverage<input value={variable.coverage} placeholder="e.g. Global by country"/></label>
+			<label>Time Span<input value={variable.timespan} placeholder="e.g. 1920-1990"/></label>
 			<label>Source
-				<input onClick={e => this.editSource = true} type="button" value={variable.source ? variable.source.name : 'Add source'}/>
+				<input onClick={e => this.editSource = true} type="button" value={sourceName || 'Add source'}/>
 			</label>
 			<label>Action
-				<select class="action" value={variable.overwriteId}>
+				<select value={variable.overwriteId}>
 					<option value="create-new">Create new variable</option>
 					{/*_.map(oldVariables, old => 
 						<option value={old.id}>Overwrite {old.name}</option>
 					)*/}							
 				</select>
 			</label>
-			<EditSource variable={variable}/>
+			<EditSource variable={variable} dataset={dataset}/>
 		</li>
 	}	
 }
 
 @observer
 class EditVariables extends Component {
-	@observable editSourceForVariable = null
-
 	render() {
-		const {oldVariables, newVariables} = this.props.dataset
-		const {editSourceForVariable} = this
+		const {dataset} = this.props
 
 		return <section class="form-section variables-section">
 			<h3>Check Variables</h3>
 			<p class="form-section-desc">Here you can configure the variables that will be stored for your dataset. If possible the variable name should be of the format measure + source (e.g. Population density – Clio Infra)</p>
 
 			<ol>
-				{_.map(newVariables, variable => 
-					<EditVariable variable={variable}/>	
+				{_.map(dataset.newVariables, variable => 
+					<EditVariable variable={variable} dataset={dataset}/>	
 				)}
 			</ol>
 		</section>
@@ -245,40 +246,53 @@ class EditVariables extends Component {
 }
 
 @observer
-class EditSource extends Component {
-	componentDidMount() {
-		//$(this.base).modal()
+class EditSource extends Component {	
+	@observable source = null
+
+	constructor(props) {
+		super()
+		this.source = props.variable.source || {
+			name: "",
+			description: ""
+		}
 	}
 
-	componentWillUnmount() {	
-
+	@action.bound onSave() {
+		this.props.variable.source = this.source
 	}
 
 	render() {
+		const {variable, dataset} = this.props
+		const {source} = this
+
 		return <div class={styles.editSource}>
 			<hr/>
 			<h4>Select source</h4>
 			<label>
 				<span>Source:</span>
-				<select class="form-control source"></select>
+				<select>
+					<option selected={!source.id}>Create new</option>
+					{_.map(dataset.sources, otherSource => 
+						<option value={otherSource.id} selected={source.id == otherSource.id}>{otherSource.name}</option>
+					)}
+				</select>
 			</label>
-			<label class="source-name">
+			<label>
 				<span>Name:</span>
-				<input class="form-control required" type="text"/>
+				<input type="text" required value={source.name} onInput={e => source.name = e.target.value}/>
 			</label>
 			<label>
 				<span>Description:</span>
-				<textarea class="form-control source-editor required" type="text" name="source_description"></textarea>
-				<span class="sources-default" style="display:none;"></span>
+				<textarea type="text" required value={source.description} onInput={e => source.description = e.target.value}></textarea>
 			</label>				
 			<p class="form-section-desc">
 				All provided source information will be shown on associated visualizations.
 			</p>
-			<span class="existing-source-warning text-warning">
+			{source.id && <span class="existing-source-warning text-warning">
 				<i class="fa fa-warning"></i>
 				You are editing an existing source. Changes may also affect other variables.
-			</span>
-			<button class="btn btn-success">Save</button>
+			</span>}
+			<button class="btn btn-success" onClick={this.onSave}>Save</button>
 		</div>		
 	}	
 }
@@ -339,7 +353,7 @@ export default class Importer extends Component {
 			<h2>Import</h2>
 			<section class="form-section dataset-section">
 				<h3>Choose your dataset</h3>
-				<select class="form-control" onChange={this.onChooseDataset}>
+				<select onChange={this.onChooseDataset}>
 					<option value="" selected>Create new dataset</option>
 					{_.map(datasets, (dataset) =>
 						<option>{dataset.name}</option>

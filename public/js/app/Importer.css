@@ -1,6 +1,12 @@
 .editVariable {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+
     & label {
-        background-color: green;
+        display: flex;
+        flex-direction: column;
+        margin-right: 10px;
     }
 }
 
