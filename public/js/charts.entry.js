@@ -27,7 +27,7 @@ window.colorbrewer = require('./libs/colorbrewer');
 window.owid = require('./owid').default;
 owid.dataflow = require('./app/owid.dataflow').default;
 require('./app/owid.colorbrewer');
-import 'preact/devtools'
+//import 'preact/devtools'
 require('./app/constants');
 require('./app/App.Utils');
 require('./app/App.Models.ChartModel');

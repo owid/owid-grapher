@@ -37,5 +37,29 @@
 }
 
 .editSourceDescription {
-	
+
+}
+
+.ReactModal__Body--open {
+    overflow: hidden;
+}
+
+.ReactModal__Overlay {
+	z-index: 2000;
+}
+
+.importProgress {
+	& .success {
+		color: #00a65a;
+	}
+
+	& .error {
+		color: #dd4b39;
+	}
+
+	& .progressInner {
+		overflow: auto;
+		margin: 10px;
+	}
+
 }

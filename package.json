@@ -36,6 +36,7 @@
     "preact": "^7.2.0",
     "preact-compat": "^3.13.1",
     "precss": "^1.4.0",
+    "react-modal": "^1.7.1",
     "react-virtual-list": "^2.0.0",
     "source-map-loader": "^0.1.5",
     "style-loader": "^0.13.1",

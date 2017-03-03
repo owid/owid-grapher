@@ -23,6 +23,8 @@ import {NullElement} from './Util'
 
 import styles from './Importer.css'
 
+import Modal from 'react-modal'
+
 class Dataset {
 	@observable id : number
 	@observable name : string
@@ -31,11 +33,20 @@ class Dataset {
 	@observable.shallow csvData : [][] = null
 	@observable existingVariables : Object[] = []
 	@observable newVariables : Object[] = []
+	@observable years : number[] = []
+	@observable entities : number[] = []
+	@observable entityNames : string[] = []
+	@observable importError = null
+	@observable importRequest = true
+	@observable importDone = false
 
 	updateFromCSV() {
 		const {csvData} = this
 
 		const variables = []
+		const entityNameIndex = 0
+		const entityNameCheck = {}
+		const entityNames = []
 		const entities = []
 		const years = []
 
@@ -46,14 +57,24 @@ class Dataset {
 
 		for (let i = 1; i < csvData.length; i++) {
 			const row = csvData[i]
-			const entity = row[0], year = row[1]
+			const entityName = row[0], year = row[1]
 
 			row.slice(2).forEach((value, i) => {
 				variables[i].values.push(value)
+
+				var entity = entityNameCheck[entityName]
+				if (entity === undefined) {
+					entity = entityNames.length
+					entityNames.push(entityName)
+					entityNameCheck[entityName] = entity
+				}
+				entities.push(entity)
+				years.push(+year)
 			})
 		}
 
 		this.newVariables = variables
+		this.entityNames = entityNames
 		this.entities = entities
 		this.years = years
 	}
@@ -83,20 +104,33 @@ class Dataset {
 		}
 	}*/
 
-	save() {
-		var requestData = {
-			dataset: App.DatasetModel.toJSON(),
-			entityKey: importData.entityKey,
-			years: importData.years,
-			entities: importData.entities,
-			variables: variables
-		};		
+	@computed get sources() {
+		const {newVariables, existingVariables} = this
+		const sources = _.pluck(existingVariables.concat(newVariables), 'source')		
+		return _.filter(sources)
+	}
 
-		App.postJSON('/import/variables', {
-			id: this.id,
-			name: this.name,
-			description: this.description,
-			subcategoryId: this.subcategoryId			
+	save() {
+		const {id, name, description, subcategoryId, newVariables, entityNames, entities, years} = this
+
+		const requestData = {
+			dataset: {
+				id: this.id,
+				name: this.name,
+				description: this.description,
+				subcategoryId: this.subcategoryId
+			},
+			years, entityNames, entities,
+			variables: newVariables
+		}
+
+		this.importError = null
+		this.importDone = false
+		this.importRequest = App.postJSON('/import/variables', requestData).then(response => {
+			if (response.status != 200)
+				this.importError = response.body
+			else
+				this.importDone = true
 		})
 	}
 
@@ -115,15 +149,12 @@ class Dataset {
 		// When a single source becomes available (either from the database or added by user) we
 		// should use it as the default for all variables without a soruce
 		autorun(() => {
-			const {newVariables, existingVariables} = this
-			const sources = _.pluck(existingVariables.concat(newVariables), 'source')
-			const defaultSource = _.filter(sources)[0]
+			const defaultSource = this.sources[0]
+			if (!defaultSource) return
 
-			if (defaultSource) {
-				for (let variable of newVariables) {
-					if (!variable.source)
-						variable.source = defaultSource
-				}
+			for (let variable of this.newVariables) {
+				if (!variable.source)
+					variable.source = defaultSource
 			}
 		})
 
@@ -275,6 +306,12 @@ class EditSource extends Component {
 		}
 	}
 
+	componentDidMount() {
+		autorun(() => {
+			this.source = this.props.variable.source || this.source
+		})
+	}
+
 	@action.bound onSave() {
 		this.props.variable.source = this.source
 	}
@@ -333,10 +370,33 @@ class EditData extends Component {
 			<EditVariables dataset={dataset}/>
 
 			<section class="submit-section">
-				<input type="submit" class="btn btn-success" value="Save dataset" onClick={dataset.save}/>
+				<input type="submit" class="btn btn-success" value="Save dataset" onClick={e => dataset.save()}/>
 			</section>
 		</div>
 	}	
+}
+
+@observer
+class ImportProgressModal extends Component {	
+	@action.bound onDismiss() {
+		const {dataset} = this.props
+		dataset.importRequest = null
+	}
+
+	render() {
+		const {dataset} = this.props
+		return <div class={styles.importProgress}>
+			<h4>Import progress</h4>
+			<div class="progressInner">
+				<p class="success"><i class="fa fa-check"/> Preparing import for {dataset.years.length} values...</p>
+				{dataset.importError && <p class="error"><i class="fa fa-cross"/> {dataset.importError}</p>}
+				{dataset.importDone && <p class="success"><i class="fa fa-check"/> Import successful!</p>}
+				{!dataset.importDone && <div style="text-align: center;"><i class="fa fa-spin fa-spinner"/></div>}
+			</div>
+			<a class="btn btn-success" href={App.url(`/datasets/${dataset.id}`)}>Done</a>
+			<a class="btn btn-warning" onClick={this.onDismiss}>Dismiss</a>
+		</div>
+	}
 }
 
 @observer
@@ -365,10 +425,13 @@ export default class Importer extends Component {
 	}
 
 	render() {
-		if (App.isDebug) window.Importer = this
-
 		const {dataset} = this
 		const {datasets, categories} = this.props
+
+		if (App.isDebug) {
+			window.Importer = this
+			window.dataset = dataset
+		}
 
 		return <div class={styles.importer}>
 			<h2>Import</h2>
@@ -400,6 +463,9 @@ export default class Importer extends Component {
 			</section>
 
 			<EditData dataset={dataset}/>
+			<Modal isOpen={!!dataset.importRequest} contentLabel="Modal" parentSelector={e => document.querySelector('.wrapper')}>
+				<ImportProgressModal dataset={dataset}/>
+			</Modal>
 		</div>
 	}
 }

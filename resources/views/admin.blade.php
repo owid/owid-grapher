@@ -102,7 +102,8 @@
 				return window.fetch(App.url(path), {
 					method: 'POST',
 					headers: {
-						'Content-Type': 'application/json'
+						'Content-Type': 'application/json',
+						'X-CSRF-Token': '{{ csrf_token() }}'
 					},
 					body: JSON.stringify(data)
 				})

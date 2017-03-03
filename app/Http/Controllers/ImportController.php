@@ -64,13 +64,14 @@ class ImportController extends Controller {
 		return DB::transaction(function() use ($input) {
 			$datasetMeta = $input['dataset'];
 			$entities = $input['entities'];
+			$entityNames = $input['entityNames'];
 			$years = $input['years'];
 			$variables = $input['variables'];
 
 			$datasetProps = [
 				'name' => $datasetMeta['name'],
 				'description' => $datasetMeta['description'],
-				'fk_dst_cat_id' => $datasetMeta['categoryId'],
+				'fk_dst_cat_id' => DatasetSubcategory::find($datasetMeta['subcategoryId'])->fk_dst_cat_id,
 				'fk_dst_subcat_id' => $datasetMeta['subcategoryId']
 			];
 
@@ -84,10 +85,10 @@ class ImportController extends Controller {
 
 			// Map any imported codes to their true entity names
 			$codes = Entity::where('validated', '=', 1)->lists('name', 'code');
-			for ($i = 0; $i < sizeof($entityKey); $i++) {
-				$name = $entityKey[$i];
+			for ($i = 0; $i < sizeof($entityNames); $i++) {
+				$name = $entityNames[$i];
 				if (isset($codes[$name]))
-					$entityKey[$i] = $codes[$name];
+					$entityNames[$i] = $codes[$name];
 			}
 
 			// First, we insert all of the entities with "on duplicate key update", ensuring
@@ -95,8 +96,8 @@ class ImportController extends Controller {
 			$insertQuery = "INSERT INTO entities (name) VALUES";
 
 			$pdo = DB::connection()->getPdo();
-			foreach ($entityKey as $name) {
-				if ($name != $entityKey[0])
+			foreach ($entityNames as $name) {
+				if ($name != $entityNames[0])
 					$insertQuery .= ",";
 				$insertQuery .= " (" . $pdo->quote($name) . ")";
 			}
@@ -108,7 +109,6 @@ class ImportController extends Controller {
 			// Now we need to pull them back out again so we know what ids to go with what names
 			$entityNameToId = DB::table('entities')
 				->select('id', 'name')
-				->whereIn('name', array_unique($entities))
 				->lists('id', 'name');
 
 			$sourceIdsByName = [];
