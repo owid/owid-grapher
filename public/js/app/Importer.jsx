@@ -29,8 +29,8 @@ class Dataset {
 	@observable description : string
 	@observable subcategoryId : number
 	@observable.shallow csvData : [][] = null
-	@observable existingVariables : Object[] = null
-	@observable newVariables : Object[] = null
+	@observable existingVariables : Object[] = []
+	@observable newVariables : Object[] = []
 
 	updateFromCSV() {
 		const {csvData} = this
@@ -106,9 +106,25 @@ class Dataset {
 		this.description = description
 		this.subcategoryId = subcategoryId
 
+		// Extract variable info from CSV once available
 		autorun(() => {
 			if (!this.csvData) return
 			this.updateFromCSV()
+		})
+
+		// When a single source becomes available (either from the database or added by user) we
+		// should use it as the default for all variables without a soruce
+		autorun(() => {
+			const {newVariables, existingVariables} = this
+			const sources = _.pluck(existingVariables.concat(newVariables), 'source')
+			const defaultSource = _.filter(sources)[0]
+
+			if (defaultSource) {
+				for (let variable of newVariables) {
+					if (!variable.source)
+						variable.source = defaultSource
+				}
+			}
 		})
 
 		/*autorun(() => {
@@ -150,7 +166,7 @@ class DataPreview extends Component {
 				<table class="table" style={{background: 'white'}}>
 				    {_.map(csvData.slice(rowOffset, rowOffset+visibleRows), (row, i) =>
 				    	<tr>
-				    		<td>{rowOffset+i}</td>
+				    		<td>{rowOffset+i+1}</td>
 				    		{_.map(row, cell => <td style={{height: height}}>{cell}</td>)}
 				    	</tr>
 				    )}
@@ -207,21 +223,23 @@ class EditVariable extends Component {
 		const sourceName = variable.source && (variable.source.id ? variable.source.name : `New: ${variable.source.name}`)
 
 		return <li class={styles.editVariable}>
-			<label>Name<input value={variable.name} placeholder="Enter variable name"/></label>
-			<label>Unit<input value={variable.unit} placeholder="e.g. % or $"/></label>
-			<label>Geographic Coverage<input value={variable.coverage} placeholder="e.g. Global by country"/></label>
-			<label>Time Span<input value={variable.timespan} placeholder="e.g. 1920-1990"/></label>
-			<label>Source
-				<input onClick={e => this.editSource = true} type="button" value={sourceName || 'Add source'}/>
-			</label>
-			<label>Action
-				<select value={variable.overwriteId}>
-					<option value="create-new">Create new variable</option>
-					{/*_.map(oldVariables, old => 
-						<option value={old.id}>Overwrite {old.name}</option>
-					)*/}							
-				</select>
-			</label>
+			<div class="variableProps">
+				<label>Name<input value={variable.name} placeholder="Enter variable name"/></label>
+				<label>Unit<input value={variable.unit} placeholder="e.g. % or $"/></label>
+				<label>Geographic Coverage<input value={variable.coverage} placeholder="e.g. Global by country"/></label>
+				<label>Time Span<input value={variable.timespan} placeholder="e.g. 1920-1990"/></label>
+				<label>Source
+					<input onClick={e => this.editSource = true} type="button" value={sourceName || 'Add source'}/>
+				</label>
+				<label>Action
+					<select value={variable.overwriteId}>
+						<option value="create-new">Create new variable</option>
+						{/*_.map(oldVariables, old => 
+							<option value={old.id}>Overwrite {old.name}</option>
+						)*/}							
+					</select>
+				</label>
+			</div>
 			<EditSource variable={variable} dataset={dataset}/>
 		</li>
 	}	
@@ -283,8 +301,11 @@ class EditSource extends Component {
 			</label>
 			<label>
 				<span>Description:</span>
-				<textarea type="text" required value={source.description} onInput={e => source.description = e.target.value}></textarea>
-			</label>				
+				<div class="editSourceDescription">
+					<textarea type="text" required value={source.description} onInput={e => source.description = e.target.value}></textarea>
+					<div class="preview" __dangerouslySetInnerHTML={{__html: source.description}}></div>
+				</div>
+			</label>
 			<p class="form-section-desc">
 				All provided source information will be shown on associated visualizations.
 			</p>
@@ -349,9 +370,9 @@ export default class Importer extends Component {
 		const {dataset} = this
 		const {datasets, categories} = this.props
 
-		return <div>
+		return <div class={styles.importer}>
 			<h2>Import</h2>
-			<section class="form-section dataset-section">
+			<section class={styles.chooseDataset}>
 				<h3>Choose your dataset</h3>
 				<select onChange={this.onChooseDataset}>
 					<option value="" selected>Create new dataset</option>

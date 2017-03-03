@@ -1,9 +1,29 @@
-.editVariable {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
+@import "../../css/libs/bootstrap.css";
 
-    & label {
+.importer {
+	& input, select, textarea {
+		@extend .form-control;
+	}
+}
+
+.chooseDataset {
+	& label {
+		margin-top: 10px;
+	}
+
+	& p {
+		margin-bottom: 0;
+	}
+}
+
+.editVariable {
+	& .variableProps {
+	    display: flex;
+	    flex-direction: row;
+	    flex-wrap: wrap;
+	}
+
+    & .variableProps > label {
         display: flex;
         flex-direction: column;
         margin-right: 10px;
@@ -11,5 +31,11 @@
 }
 
 .editSource {
+	& label {
+		display: block;
+	}
+}
+
+.editSourceDescription {
 	
 }
