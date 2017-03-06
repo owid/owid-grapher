@@ -30,7 +30,6 @@ class Dataset {
 	@observable name : string
 	@observable description : string
 	@observable subcategoryId : number = null
-	@observable.shallow csvData : [][] = null
 	@observable existingVariables : Object[] = []
 	@observable newVariables : Object[] = []
 	@observable years : number[] = []
@@ -40,47 +39,9 @@ class Dataset {
 	@observable importRequest = null
 	@observable importSuccess = false
 
-	updateFromCSV() {
-		const {csvData} = this
-
-		const variables = []
-
-		const entityNameIndex = 0
-		const entityNameCheck = {}
-		const entityNames = []
-		const entities = []
-		const years = []
-
-		const headingRow = csvData[0]
-		for (let name of headingRow.slice(2))
-			variables.push({source: null, name, values: [], overwriteId: 'create-new'})
-
-		for (let i = 1; i < csvData.length; i++) {
-			const row = csvData[i]
-			const entityName = row[0], year = row[1]
-
-			row.slice(2).forEach((value, i) => {
-				variables[i].values.push(value)
-
-				var entity = entityNameCheck[entityName]
-				if (entity === undefined) {
-					entity = entityNames.length
-					entityNames.push(entityName)
-					entityNameCheck[entityName] = entity
-				}
-				entities.push(entity)
-				years.push(+year)
-			})
-		}
-
-		this.newVariables = variables
-		this.entityNames = entityNames
-		this.entities = entities
-		this.years = years
-	}
 
 	/*@computed get isLoading() {
-		return this.id && this.csvData != null && this.existingVariables == null
+		return this.id && this.CSV != null && this.existingVariables == null
 	}
 
 	@computed get sources() {
@@ -140,12 +101,6 @@ class Dataset {
 		this.description = description
 		this.subcategoryId = subcategoryId
 
-		// Extract variable info from CSV once available
-		autorun(() => {
-			if (!this.csvData) return
-			this.updateFromCSV()
-		})
-
 		// When a single source becomes available (either from the database or added by user) we
 		// should use it as the default for all variables without a soruce
 		autorun(() => {
@@ -159,7 +114,7 @@ class Dataset {
 		})
 
 		/*autorun(() => {
-			if (this.csvData == null || this.id == null) return; 
+			if (this.CSV == null || this.id == null) return; 
 
 			App.fetchJSON(`/datasets/${this.id}.json`).then(data => {
 				// todo error handling
@@ -174,7 +129,7 @@ class DataPreview extends Component {
 	@observable rowOffset : number = 0
 	@observable visibleRows : number = 5
 	@computed get numRows() : number {
-		return this.props.csvData.rows.length
+		return this.props.csv.rows.length
 	}
 
 	@action.bound onScroll({target} : {target: HTMLElement}) {
@@ -188,7 +143,7 @@ class DataPreview extends Component {
 	}
 
 	render() {
-		const {rows} = this.props.csvData
+		const {rows} = this.props.csv
 		const {rowOffset, visibleRows, numRows} = this
 		const height = 50
 
@@ -291,7 +246,7 @@ class EditVariable extends Component {
 					</select>
 				</label>
 			</div>
-			<EditSource variable={variable} dataset={dataset}/>
+			{editSource && <EditSource variable={variable} dataset={dataset}/>}
 		</li>
 	}	
 }
@@ -380,7 +335,7 @@ class EditData extends Component {
 	render() {
 		const {dataset} = this.props
 
-		if (!dataset.csvData)
+		if (!dataset.CSV)
 			return null
 		else if (dataset.isLoading)
 			return <i class="fa fa-spinner fa-spin"></i>
@@ -413,9 +368,55 @@ class ImportProgressModal extends Component {
 	}
 }
 
-class CSVData {
+class CSV {
 	filename: string
 	rows: [][]
+
+	@computed get basename() {
+		return (this.filename.match(/(.*?)(.csv)?$/)||[])[1]		
+	}
+
+	@computed get data() {
+		const {rows} = this
+
+		const variables = []
+
+		const entityNameIndex = 0
+		const entityNameCheck = {}
+		const entityNames = []
+		const entities = []
+		const years = []
+
+		const headingRow = rows[0]
+		for (let name of headingRow.slice(2))
+			variables.push({source: null, name, values: [], overwriteId: 'create-new'})
+
+		for (let i = 1; i < rows.length; i++) {
+			const row = rows[i]
+			const entityName = row[0], year = row[1]
+
+			row.slice(2).forEach((value, i) => {
+				variables[i].values.push(value)
+
+				var entity = entityNameCheck[entityName]
+				if (entity === undefined) {
+					entity = entityNames.length
+					entityNames.push(entityName)
+					entityNameCheck[entityName] = entity
+				}
+				entities.push(entity)
+				years.push(+year)
+			})
+		}
+
+
+		return {
+			variables: variables,
+			entityNames: entityNames,
+			entities: entities,
+			years: years
+		}
+	}
 
 	constructor(filename: string, rows: [][]) {
 		this.filename = filename
@@ -426,10 +427,10 @@ class CSVData {
 @observer
 class CSVSelector extends Component {
 	props: {
-		onCSV: CSVData => void
+		onCSV: CSV => void
 	}
 	
-	@observable csvData : ?CSVData = null
+	@observable csv : ?csv = null
 
 	@action.bound onChooseCSV({target}: {target: HTMLInputElement}) {
 		const file = target.files[0]
@@ -441,27 +442,27 @@ class CSVSelector extends Component {
 			parse(csv, (err, rows) => {
 				// TODO error handling
 				console.log(err)
-				this.csvData = new CSVData(file.name, rows)
-				this.props.onCSV(this.csvData)
+				this.csv = new CSV(file.name, rows)
+				this.props.onCSV(this.csv)
 			})			
 		}
 		reader.readAsText(file)
 	}
 
 	render() {
-		const {csvData} = this
+		const {csv} = this
 
 		return <section>
 			<h3>Choose CSV file to import</h3>
 			<input type="file" onChange={this.onChooseCSV}/>
-			{csvData && <DataPreview csvData={csvData}/>}
+			{csv && <DataPreview csv={csv}/>}
 		</section>		
 	}
 }
 
 @observer
 export default class Importer extends Component {
-	@observable csvData = null
+	@observable csv = null
 	@observable dataset = new Dataset()
 
 	@action.bound onChooseDataset({target}: {target: HTMLSelectElement}) {
@@ -469,14 +470,33 @@ export default class Importer extends Component {
 		this.dataset = new Dataset({id: d.id, name: d.name, description: d.description, subcategoryId: d.fk_dst_subcat_id})
 	}
 
-	@action.bound onCSV(csvData : CSVData) {
-		this.csvData = csvData
-		if (!this.dataset.name)
-			this.dataset.name = (csvData.filename.match(/(.*?)(.csv)?$/)||[])[1]
+	@action.bound onCSV(csv : CSV) {
+		this.csv = csv
+		this.dataset = _.filter(this.props.datasets, d => d.name == csv.basename)[0] || this.dataset
+	}
+
+	componentDidMount() {
+		autorun(() => {
+			const {dataset, csv} = this
+			if (!dataset || !csv) return
+
+			if (!dataset.name)
+				dataset.name = csv.basename
+
+			dataset.newVariables = csv.data.variables
+			dataset.entityNames = csv.data.entityNames
+			dataset.entities = csv.data.entities
+			dataset.years = csv.data.years
+		})
+	}
+
+	@action.bound onSubmit(e) {
+		e.preventDefault()
+		this.dataset.save()
 	}
 
 	render() {
-		const {csvData, dataset} = this
+		const {csv, dataset} = this
 		const {datasets, categories} = this.props
 
 		if (App.isDebug) {
@@ -488,12 +508,11 @@ export default class Importer extends Component {
 			dataset.subcategoryId = (_.findWhere(categories, { name: "Uncategorized" })||{}).id
 		}
 
-		console.log(csvData)
-		return <div class={styles.importer}>
+		return <form class={styles.importer} onSubmit={this.onSubmit}>
 			<h2>Import</h2>
 			<CSVSelector onCSV={this.onCSV}/>
 
-			{csvData && <section>
+			{csv && <section>
 				<h3>Choose your dataset</h3>
 				<select onChange={this.onChooseDataset}>
 					<option value="" selected>Create new dataset</option>
@@ -507,12 +526,12 @@ export default class Importer extends Component {
 
 				<EditVariables dataset={dataset}/>
 
-				<input type="submit" class="btn btn-success" value="Save dataset" onClick={e => dataset.save()}/>
+				<input type="submit" class="btn btn-success" value="Save dataset"/>
 
 				<Modal isOpen={!!dataset.importRequest} contentLabel="Modal" parentSelector={e => document.querySelector('.wrapper')}>
 					<ImportProgressModal dataset={dataset}/>
 				</Modal>			
 			</section>}
-		</div>
+		</form>
 	}
 }

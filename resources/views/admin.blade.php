@@ -101,9 +101,11 @@
 			App.postJSON = function(path, data) {
 				return window.fetch(App.url(path), {
 					method: 'POST',
+					credentials: 'same-origin',
 					headers: {
 						'Content-Type': 'application/json',
-						'X-CSRF-Token': '{{ csrf_token() }}'
+						'Accept': 'application/json',
+						'X-CSRF-TOKEN': '{{ csrf_token() }}'
 					},
 					body: JSON.stringify(data)
 				})

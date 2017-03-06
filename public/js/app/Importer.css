@@ -4,6 +4,10 @@
 	& input, select, textarea {
 		@extend .form-control;
 	}
+
+	& label {
+		display: block;
+	}
 }
 
 .chooseDataset {
