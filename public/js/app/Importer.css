@@ -3,7 +3,7 @@
 .importer {
 	max-width: 800px;
 
-	& input, select, textarea {
+	& input:not([type=submit]), select, textarea {
 		@extend .form-control;
 	}
 

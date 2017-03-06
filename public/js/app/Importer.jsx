@@ -62,6 +62,10 @@ class Dataset {
 	@observable importSuccess = false
 
 
+	static fromServer(d) {
+		return new Dataset({id: d.id, name: d.name, description: d.description, subcategoryId: d.fk_dst_subcat_id})
+	}
+
 	@computed get isLoading() {
 		return this.id && _.isEmpty(this.existingVariables)
 	}
@@ -72,7 +76,7 @@ class Dataset {
 		return _.filter(sources)
 	}
 
-	save() {
+	@action.bound save() {
 		const {id, name, description, subcategoryId, newVariables, entityNames, entities, years} = this
 
 		const requestData = {
@@ -90,10 +94,15 @@ class Dataset {
 		this.importSuccess = false
 		this.importRequest = App.postJSON('/import/variables', requestData).then(response => {
 			if (response.status != 200)
-				return response.text()
-			else
-				this.importSuccess = true
-		}).then(err => this.importError = err)
+				return response.text().then(err => this.importError = err)
+			else {
+				return response.json().then(json => {
+					console.log(json)
+					this.importSuccess = true
+					this.id = json.datasetId
+				})
+			}
+		})
 	}
 
 	constructor({id = null, name = "", description = "", subcategoryId = null} : {name: string, description: string, subcategoryId: number} = {}) {
@@ -115,12 +124,29 @@ class Dataset {
 		})
 
 		autorun(() => {
-			console.log(this.id)
 			if (this.id == null) return; 
 
 			App.fetchJSON(`/datasets/${this.id}.json`).then(data => {
 				// todo error handling
 				this.existingVariables = data.variables
+			})
+		})
+
+		// Match existing to new variables
+		autorun(() => {
+			if (!this.newVariables || !this.existingVariables)
+				return
+
+			this.newVariables.forEach(variable => {
+				const match = this.existingVariables.filter(v => v.name == variable.name)[0]
+				if (match) {
+					_.keys(match).forEach(key => {
+						if (key == 'id')
+							variable.overwriteId = match[key]
+						else
+							variable[key] = match[key]
+					})
+				}
 			})
 		})
 	}
@@ -250,7 +276,7 @@ class EditVariable extends Component {
 					<select onChange={e => variable.overwriteId = e.target.value}>
 						<option selected={variable.overwriteId == null}>Create new variable</option>
 						{_.map(dataset.existingVariables, v => 
-							<option value={old.id} selected={variable.overwriteId == old.id}>Overwrite {old.name}</option>
+							<option value={v.id} selected={variable.overwriteId == v.id}>Overwrite {v.name}</option>
 						)}							
 					</select>
 				</label>
@@ -473,12 +499,13 @@ export default class Importer extends Component {
 
 	@action.bound onChooseDataset({target}: {target: HTMLSelectElement}) {
 		const d = this.props.datasets[target.selectedIndex-1]
-		this.dataset = new Dataset({id: d.id, name: d.name, description: d.description, subcategoryId: d.fk_dst_subcat_id})
+		this.dataset = Dataset.fromServer(d)
 	}
 
 	@action.bound onCSV(csv : CSV) {
 		this.csv = csv
-		this.dataset = _.filter(this.props.datasets, d => d.name == csv.basename)[0] || this.dataset
+		const match = _.filter(this.props.datasets, d => d.name == csv.basename)[0]
+		this.dataset = match ? Dataset.fromServer(match) : this.dataset
 	}
 
 	componentDidMount() {
