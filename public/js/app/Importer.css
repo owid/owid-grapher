@@ -1,9 +1,9 @@
 @import "../../css/libs/bootstrap.css";
 
 .importer {
-	max-width: 800px;
+	max-width: 1000px;
 
-	& input:not([type=submit]), select, textarea {
+	& input:not([type=submit]), select, textarea, button {
 		@extend .form-control;
 	}
 
@@ -14,16 +14,26 @@
 	& textarea {
 		resize: none;
 	}
+
+    & .updateWarning {
+        margin-top: 20px;
+        margin-bottom: 0;
+        text-align: center;
+        font-size: 1.2em;        
+        font-weight: bold;
+    }
+
+    & select.chooseDataset {
+        margin-bottom: 20px;
+        font-size: 1.2em;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+    }
 }
 
-.chooseDataset {
-	& label {
-		margin-top: 10px;
-	}
-
-	& p {
-		margin-bottom: 0;
-	}
+.validation {
+	margin-top: 20px;
 }
 
 .editVariable {
@@ -51,7 +61,27 @@
 }
 
 .editSourceDescription {
+	display: flex;
+	flex-direction: row;
 
+	& .description {
+		width: 50%;
+		margin: 10px;
+	}
+
+	& .description textarea {
+		height: calc(100% - 20px);
+	}
+
+	& .preview {
+		margin: 10px;
+		width: 50%;
+	}
+
+	& .preview > div {
+		padding: 10px;
+		background: white;
+	}
 }
 
 .ReactModal__Body--open {

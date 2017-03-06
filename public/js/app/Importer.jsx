@@ -25,6 +25,20 @@ import styles from './Importer.css'
 
 import Modal from 'react-modal'
 
+class Source {
+	static template = ""
+
+	@observable id : ?number
+	@observable name : string
+	@observable description : string
+
+	constructor({id = null, name = "", description = ""} = {}) {
+		this.id = id
+		this.name = name
+		this.description = description || Source.template
+	}
+}
+
 class Variable {
 	@observable overwriteId : ?number
 	@observable name : string
@@ -35,7 +49,7 @@ class Variable {
 	@observable source : Object
 	@observable values : string[]
 
-	constructor({overwriteId = null, name = "", description = "", coverage = "", timespan = "", unit = "", source = null, values = []}) {
+	constructor({overwriteId = null, name = "", description = "", coverage = "", timespan = "", unit = "", source = null, values = []} = {}) {
 		this.overwriteId = overwriteId
 		this.name = name
 		this.unit = unit
@@ -73,7 +87,7 @@ class Dataset {
 	@computed get sources() {
 		const {newVariables, existingVariables} = this
 		const sources = _.pluck(existingVariables.concat(newVariables), 'source')		
-		return _.filter(sources)
+		return _.uniq(_.filter(sources), source => source.id)
 	}
 
 	@action.bound save() {
@@ -155,7 +169,7 @@ class Dataset {
 @observer
 class DataPreview extends Component {
 	@observable rowOffset : number = 0
-	@observable visibleRows : number = 5
+	@observable visibleRows : number = 10
 	@computed get numRows() : number {
 		return this.props.csv.rows.length
 	}
@@ -200,10 +214,10 @@ class EditName extends Component {
 		const {dataset} = this.props
 		return <label>
 			Name
+			<input type="text" value={dataset.name} onInput={this.onInput} placeholder="Short name for your dataset" required/>
 			<p class="form-section-desc">
 				Strongly recommended is a name that combines the measure and the source. For example: "Life expectancy of women at birth – via the World Development Indicators published by the World Bank"
 			</p>
-			<input type="text" value={dataset.name} onInput={this.onInput} placeholder="Short name for your dataset" required/>
 		</label>
 	}
 }
@@ -220,10 +234,10 @@ class EditDescription extends Component {
 
 		return <label>
 			Description
+			<textarea value={dataset.description} onInput={this.onInput} placeholder="Optional description for dataset"/>
 			<p class="form-section-desc">
 				The dataset name and description are for our own internal use and do not appear on the charts.
 			</p>
-			<textarea value={dataset.description} onInput={this.onInput} placeholder="Optional description for dataset"/>
 		</label>
 	}
 }
@@ -233,7 +247,6 @@ const EditCategory = ({categories, dataset}) => {
 
 	return <label>
 		Category
-		<p class="form-section-desc">Select an appropriate category for the dataset. Currently used only for internal organization.</p>
 		<select onChange={e => dataset.subcategoryId = e.target.value} value={dataset.subcategoryId}>	
 			{_.map(categoriesByParent, (subcats, parent) => 
 				<optgroup label={parent}>
@@ -243,12 +256,18 @@ const EditCategory = ({categories, dataset}) => {
 				</optgroup>
 			)}
 		</select>
+		<p class="form-section-desc">Currently used only for internal organization.</p>
 	</label>
 }
 
 @observer
 class EditVariable extends Component {
 	@observable editSource = false
+
+	@action.bound onEditSource(e) {
+		e.preventDefault()
+		this.editSource = !this.editSource
+	}
 
 	render() {
 		const {variable, dataset} = this.props
@@ -270,7 +289,7 @@ class EditVariable extends Component {
 				<label>Geographic Coverage<input value={variable.coverage} onInput={e => variable.coverage = e.target.value} placeholder="e.g. Global by country"/></label>
 				<label>Time Span<input value={variable.timespan} onInput={e => variable.timespan = e.target.value} placeholder="e.g. 1920-1990"/></label>
 				<label>Source
-					<input onClick={e => this.editSource = true} type="button" value={sourceName || 'Add source'}/>
+					<button onClick={this.onEditSource}><i class="fa fa-pencil"/> {sourceName || 'Add source'}</button>
 				</label>
 				<label>Action
 					<select onChange={e => variable.overwriteId = e.target.value}>
@@ -281,7 +300,7 @@ class EditVariable extends Component {
 					</select>
 				</label>
 			</div>
-			{editSource && <EditSource variable={variable} dataset={dataset}/>}
+			{editSource && <EditSource variable={variable} dataset={dataset} onSave={e => this.editSource = false}/>}
 		</li>
 	}	
 }
@@ -310,10 +329,7 @@ class EditSource extends Component {
 
 	constructor(props) {
 		super()
-		this.source = props.variable.source || {
-			name: "",
-			description: ""
-		}
+		this.source = props.variable.source || new Source()
 	}
 
 	componentDidMount() {
@@ -322,9 +338,15 @@ class EditSource extends Component {
 		})
 	}
 
+	@action.bound onChangeSource(e) {
+		const name = e.target.value
+		this.source = this.props.dataset.sources.filter(source => source.name == name)[0] || new Source()
+	}
+
 	@action.bound onSave(e) {
 		e.preventDefault()
 		this.props.variable.source = this.source
+		this.props.onSave()	
 	}
 
 	render() {
@@ -333,13 +355,13 @@ class EditSource extends Component {
 
 		return <form class={styles.editSource} onSubmit={this.onSave}>
 			<hr/>
-			<h4>Select source</h4>
+			<h4>Edit source</h4>
 			<label>
 				<span>Source:</span>
-				<select>
+				<select onChange={this.onChangeSource}>
 					<option selected={!source.id}>Create new</option>
 					{_.map(dataset.sources, otherSource => 
-						<option value={otherSource.id} selected={source.id == otherSource.id}>{otherSource.name}</option>
+						<option value={otherSource.name} selected={source.name == otherSource.name}>{otherSource.name}</option>
 					)}
 				</select>
 			</label>
@@ -347,20 +369,22 @@ class EditSource extends Component {
 				<span>Name:</span>
 				<input type="text" required value={source.name} onInput={e => source.name = e.target.value}/>
 			</label>
-			<label>
-				<span>Description:</span>
 				<div class="editSourceDescription">
-					<textarea required value={source.description} onInput={e => source.description = e.target.value}></textarea>
-					<div class="preview" __dangerouslySetInnerHTML={{__html: source.description}}></div>
+					<label class="description">
+						<span>Description:</span>
+						<textarea rows={10} required value={source.description} onInput={e => source.description = e.target.value}></textarea>
+					</label>
+					<label class="preview datasource-wrapper">
+						<span>Preview:</span>
+						<div dangerouslySetInnerHTML={{__html: source.description}}></div>
+					</label>
 				</div>
-			</label>
 			<p class="form-section-desc">
 				All provided source information will be shown on associated visualizations.
 			</p>
-			{source.id && <span class="existing-source-warning text-warning">
-				<i class="fa fa-warning"></i>
-				You are editing an existing source. Changes may also affect other variables.
-			</span>}
+			{source.id && <p class="existing-source-warning text-warning">
+				<i class="fa fa-warning"></i> You are editing an existing source. Changes may also affect other variables.
+			</p>}
 			<input type="submit" class="btn btn-success" value="Save"/>
 		</form>		
 	}	
@@ -451,9 +475,79 @@ class CSV {
 		}
 	}
 
+	@computed get validation() {
+		const validation = { results: [] }
+		const {rows} = this
+
+		// Check we actually have enough data
+		if (rows[0].length < 3) {
+			validation.results.push({
+				class: 'error',
+				message: `No variables detected. CSV should have at least 3 columns.`
+			})
+		}
+
+		// Make sure entities and years are valid
+		const invalidLines = []
+		for (let i = 1; i < rows.length; i++) {
+			const year = rows[i][1]
+			if ((+year).toString() != year || _.isEmpty(rows[i][0])) {
+				invalidLines.push(i+1)
+			}
+		}
+
+		if (invalidLines.length) {
+			validation.results.push({
+				class: 'error',
+				message: `Invalid or missing entity/year on lines: ${invalidLines.join(', ')}`
+			})
+		}
+
+		// Check for duplicates
+		const uniqCheck = {}
+		for (let i = 1; i < rows.length; i++) {
+			const row = rows[i]
+			const entityName = row[0], year = row[1]			
+			const key = entityName+'-'+year
+			uniqCheck[key] = uniqCheck[key] || 0
+			uniqCheck[key] += 1
+		}
+
+		_.keys(uniqCheck).forEach(key => {
+			const count = uniqCheck[key]
+			if (count > 1) {
+				validation.results.push({
+					class: 'error',
+					message: `Duplicates detected: ${count} instances of ${key}.`
+				})
+			}
+		})
+
+		validation.passed = !_.findWhere(validation.results, { class: 'error' })
+
+		return validation
+	}
+
+	@computed get isValid() {
+		return this.validation.passed
+	}
+
 	constructor(filename: string, rows: [][]) {
 		this.filename = filename
 		this.rows = rows
+	}
+}
+
+@observer
+class ValidationResults extends Component {
+	render() {
+		const {validation} = this.props
+
+		return <section class={styles.validation}>
+			{_.map(validation.results, v => 
+				<div class={`alert alert-${v.class}`}>{v.message}</div>
+			)}
+		</section>
 	}
 }
 
@@ -488,6 +582,7 @@ class CSVSelector extends Component {
 		return <section>
 			<input type="file" onChange={this.onChooseCSV}/>
 			{csv && <DataPreview csv={csv}/>}
+			{csv && <ValidationResults validation={csv.validation}/>}
 		</section>		
 	}
 }
@@ -499,7 +594,7 @@ export default class Importer extends Component {
 
 	@action.bound onChooseDataset({target}: {target: HTMLSelectElement}) {
 		const d = this.props.datasets[target.selectedIndex-1]
-		this.dataset = Dataset.fromServer(d)
+		this.dataset = d ? Dataset.fromServer(d) : new Dataset()
 	}
 
 	@action.bound onCSV(csv : CSV) {
@@ -511,7 +606,7 @@ export default class Importer extends Component {
 	componentDidMount() {
 		autorun(() => {
 			const {dataset, csv} = this
-			if (!dataset || !csv) return
+			if (!dataset || !csv || !csv.isValid) return
 
 			if (!dataset.name)
 				dataset.name = csv.basename
@@ -537,29 +632,35 @@ export default class Importer extends Component {
 			window.dataset = dataset
 		}
 
+		Source.template = this.props.sourceTemplate
+
 		if (dataset.subcategoryId == null) {
 			dataset.subcategoryId = (_.findWhere(categories, { name: "Uncategorized" })||{}).id
 		}
 
 		return <form class={styles.importer} onSubmit={this.onSubmit}>
-			<h2>Choose CSV file to import</h2>
-			<CSVSelector onCSV={this.onCSV}/>			
+			<h2>Import CSV file</h2>
+			<p>Examples of valid layouts: <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_single-var.png">single variable</a>, <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_multi-var.png">multiple variables</a>.</p>
+			<CSVSelector onCSV={this.onCSV}/>
 
-			{csv && <section>
-				<h3>Choose your dataset</h3>
-				<select onChange={this.onChooseDataset}>
+			{csv && csv.isValid && <section>
+				<p style={{opacity: dataset.id ? 1 : 0}} class="updateWarning">Updating existing dataset</p>
+				<select class="chooseDataset" onChange={this.onChooseDataset}>
 					<option selected={dataset.id == null}>Create new dataset</option>
 					{_.map(datasets, (d) =>
 						<option value={d.id} selected={d.id == dataset.id}>{d.name}</option>
 					)}
 				</select>
 				<EditName dataset={dataset}/>
+				<hr/>
 				<EditDescription dataset={dataset}/>
+				<hr/>
 				<EditCategory dataset={dataset} categories={categories}/>
+				<hr/>
 
 				<EditVariables dataset={dataset}/>
 
-				<input type="submit" class="btn btn-success" value="Save dataset"/>
+				<input type="submit" class="btn btn-success" value={dataset.id ? "Update dataset" : "Create dataset"}/>
 
 				<Modal isOpen={!!dataset.importRequest} contentLabel="Modal" parentSelector={e => document.querySelector('.wrapper')}>
 					<ImportProgressModal dataset={dataset}/>
