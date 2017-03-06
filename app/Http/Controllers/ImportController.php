@@ -1,5 +1,6 @@
 <?php namespace App\Http\Controllers;
 
+use Log;
 use App\Source;
 use App\Dataset;
 use App\DatasetCategory;
@@ -111,6 +112,8 @@ class ImportController extends Controller {
 				->select('id', 'name')
 				->lists('id', 'name');
 
+			Log::info($entityNameToId);
+
 			$sourceIdsByName = [];
 
 			// Now we feed in our set of variables and associated data
@@ -164,7 +167,7 @@ class ImportController extends Controller {
 
 					$newDataValues[] = [
 						'fk_var_id' => $varId,
-						'fk_ent_id' => $entityNameToId[$entities[$i]],
+						'fk_ent_id' => $entityNameToId[$entityNames[$entities[$i]]],
 						'year' => $years[$i],
 						'value' => $values[$i],
 					];

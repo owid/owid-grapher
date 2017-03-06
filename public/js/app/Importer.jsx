@@ -25,6 +25,28 @@ import styles from './Importer.css'
 
 import Modal from 'react-modal'
 
+class Variable {
+	@observable overwriteId : ?number
+	@observable name : string
+	@observable unit : string
+	@observable description : string
+	@observable coverage : string
+	@observable timespan : string
+	@observable source : Object
+	@observable values : string[]
+
+	constructor({overwriteId = null, name = "", description = "", coverage = "", timespan = "", unit = "", source = null, values = []}) {
+		this.overwriteId = overwriteId
+		this.name = name
+		this.unit = unit
+		this.coverage = coverage
+		this.timespan = timespan
+		this.description = description
+		this.source = source
+		this.values = []
+	}
+}
+
 class Dataset {
 	@observable id : number
 	@observable name : string
@@ -40,30 +62,9 @@ class Dataset {
 	@observable importSuccess = false
 
 
-	/*@computed get isLoading() {
-		return this.id && this.CSV != null && this.existingVariables == null
+	@computed get isLoading() {
+		return this.id && _.isEmpty(this.existingVariables)
 	}
-
-	@computed get sources() {
-		if (this.existingVariables == null) return null
-		_(this.existingVariables.concat(this.newVariables)).pluck('source').filter().uniq()
-	}
-
-	@computed get variables() {
-
-	}
-
-	// Populates all unsourced variables with the first available source
-	@bind setDefaultSources() {
-		const {sources, variables} = this
-
-		if (!sources) return
-
-		for (variable of variables) {
-			if (!variable.source)
-				variable.source = sources[0]
-		}
-	}*/
 
 	@computed get sources() {
 		const {newVariables, existingVariables} = this
@@ -113,14 +114,15 @@ class Dataset {
 			}
 		})
 
-		/*autorun(() => {
-			if (this.CSV == null || this.id == null) return; 
+		autorun(() => {
+			console.log(this.id)
+			if (this.id == null) return; 
 
 			App.fetchJSON(`/datasets/${this.id}.json`).then(data => {
 				// todo error handling
 				this.existingVariables = data.variables
 			})
-		})*/
+		})
 	}
 }
 
@@ -196,7 +198,7 @@ class EditDescription extends Component {
 				The dataset name and description are for our own internal use and do not appear on the charts.
 			</p>
 			<textarea value={dataset.description} onInput={this.onInput} placeholder="Optional description for dataset"/>
-		</label>		
+		</label>
 	}
 }
 
@@ -230,19 +232,26 @@ class EditVariable extends Component {
 
 		return <li class={styles.editVariable}>
 			<div class="variableProps">
-				<label>Name<input value={variable.name} placeholder="Enter variable name"/></label>
-				<label>Unit<input value={variable.unit} placeholder="e.g. % or $"/></label>
-				<label>Geographic Coverage<input value={variable.coverage} placeholder="e.g. Global by country"/></label>
-				<label>Time Span<input value={variable.timespan} placeholder="e.g. 1920-1990"/></label>
+				<label class="name">
+					Name
+					<input value={variable.name} onInput={e => variable.name = e.target.value} placeholder="Enter variable name"/>
+				</label>
+				<label class="description">
+					Description
+					<textarea rows={4} placeholder="Short description of variable" value={variable.description} onInput={e => variable.description = e.target.value}/>
+				</label>
+				<label>Unit<input value={variable.unit} onInput={e => variable.unit = e.target.value} placeholder="e.g. % or $"/></label>
+				<label>Geographic Coverage<input value={variable.coverage} onInput={e => variable.coverage = e.target.value} placeholder="e.g. Global by country"/></label>
+				<label>Time Span<input value={variable.timespan} onInput={e => variable.timespan = e.target.value} placeholder="e.g. 1920-1990"/></label>
 				<label>Source
 					<input onClick={e => this.editSource = true} type="button" value={sourceName || 'Add source'}/>
 				</label>
 				<label>Action
-					<select value={variable.overwriteId}>
-						<option value="create-new">Create new variable</option>
-						{/*_.map(oldVariables, old => 
-							<option value={old.id}>Overwrite {old.name}</option>
-						)*/}							
+					<select onChange={e => variable.overwriteId = e.target.value}>
+						<option selected={variable.overwriteId == null}>Create new variable</option>
+						{_.map(dataset.existingVariables, v => 
+							<option value={old.id} selected={variable.overwriteId == old.id}>Overwrite {old.name}</option>
+						)}							
 					</select>
 				</label>
 			</div>
@@ -287,7 +296,8 @@ class EditSource extends Component {
 		})
 	}
 
-	@action.bound onSave() {
+	@action.bound onSave(e) {
+		e.preventDefault()
 		this.props.variable.source = this.source
 	}
 
@@ -295,7 +305,7 @@ class EditSource extends Component {
 		const {variable, dataset} = this.props
 		const {source} = this
 
-		return <div class={styles.editSource}>
+		return <form class={styles.editSource} onSubmit={this.onSave}>
 			<hr/>
 			<h4>Select source</h4>
 			<label>
@@ -314,7 +324,7 @@ class EditSource extends Component {
 			<label>
 				<span>Description:</span>
 				<div class="editSourceDescription">
-					<textarea type="text" required value={source.description} onInput={e => source.description = e.target.value}></textarea>
+					<textarea required value={source.description} onInput={e => source.description = e.target.value}></textarea>
 					<div class="preview" __dangerouslySetInnerHTML={{__html: source.description}}></div>
 				</div>
 			</label>
@@ -325,8 +335,8 @@ class EditSource extends Component {
 				<i class="fa fa-warning"></i>
 				You are editing an existing source. Changes may also affect other variables.
 			</span>}
-			<button class="btn btn-success" onClick={this.onSave}>Save</button>
-		</div>		
+			<input type="submit" class="btn btn-success" value="Save"/>
+		</form>		
 	}	
 }
 
@@ -380,7 +390,6 @@ class CSV {
 		const {rows} = this
 
 		const variables = []
-
 		const entityNameIndex = 0
 		const entityNameCheck = {}
 		const entityNames = []
@@ -389,26 +398,24 @@ class CSV {
 
 		const headingRow = rows[0]
 		for (let name of headingRow.slice(2))
-			variables.push({source: null, name, values: [], overwriteId: 'create-new'})
+			variables.push(new Variable({name}))
 
 		for (let i = 1; i < rows.length; i++) {
 			const row = rows[i]
 			const entityName = row[0], year = row[1]
 
+			var entity = entityNameCheck[entityName]
+			if (entity === undefined) {
+				entity = entityNames.length
+				entityNames.push(entityName)
+				entityNameCheck[entityName] = entity
+			}
+			entities.push(entity)
+			years.push(+year)
 			row.slice(2).forEach((value, i) => {
 				variables[i].values.push(value)
-
-				var entity = entityNameCheck[entityName]
-				if (entity === undefined) {
-					entity = entityNames.length
-					entityNames.push(entityName)
-					entityNameCheck[entityName] = entity
-				}
-				entities.push(entity)
-				years.push(+year)
 			})
 		}
-
 
 		return {
 			variables: variables,
@@ -441,7 +448,7 @@ class CSVSelector extends Component {
 			const csv = e.target.result
 			parse(csv, (err, rows) => {
 				// TODO error handling
-				console.log(err)
+				console.log("Error?", err)
 				this.csv = new CSV(file.name, rows)
 				this.props.onCSV(this.csv)
 			})			
@@ -453,7 +460,6 @@ class CSVSelector extends Component {
 		const {csv} = this
 
 		return <section>
-			<h3>Choose CSV file to import</h3>
 			<input type="file" onChange={this.onChooseCSV}/>
 			{csv && <DataPreview csv={csv}/>}
 		</section>		
@@ -494,7 +500,7 @@ export default class Importer extends Component {
 		e.preventDefault()
 		this.dataset.save()
 	}
-
+	
 	render() {
 		const {csv, dataset} = this
 		const {datasets, categories} = this.props
@@ -509,15 +515,15 @@ export default class Importer extends Component {
 		}
 
 		return <form class={styles.importer} onSubmit={this.onSubmit}>
-			<h2>Import</h2>
-			<CSVSelector onCSV={this.onCSV}/>
+			<h2>Choose CSV file to import</h2>
+			<CSVSelector onCSV={this.onCSV}/>			
 
 			{csv && <section>
 				<h3>Choose your dataset</h3>
 				<select onChange={this.onChooseDataset}>
-					<option value="" selected>Create new dataset</option>
-					{_.map(datasets, (dataset) =>
-						<option>{dataset.name}</option>
+					<option selected={dataset.id == null}>Create new dataset</option>
+					{_.map(datasets, (d) =>
+						<option value={d.id} selected={d.id == dataset.id}>{d.name}</option>
 					)}
 				</select>
 				<EditName dataset={dataset}/>

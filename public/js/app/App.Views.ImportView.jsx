@@ -26,8 +26,7 @@ export default owid.View.extend({
 
 	initialize: function(props) {	
 		$("#import-view").empty()
-		console.log(props)
-        let rootNode = render(<Importer datasets={props.datasets} categories={props.categories}/>, $("#import-view")[0], rootNode)
+	    let rootNode = render(<Importer datasets={props.datasets} categories={props.categories} sourceTemplate={props.sourceTemplate}/>, $("#import-view")[0], rootNode)
         return
 
 		this.dispatcher = _.clone(Backbone.Events);

@@ -1,12 +1,18 @@
 @import "../../css/libs/bootstrap.css";
 
 .importer {
+	max-width: 800px;
+
 	& input, select, textarea {
 		@extend .form-control;
 	}
 
 	& label {
 		display: block;
+	}
+
+	& textarea {
+		resize: none;
 	}
 }
 
@@ -31,6 +37,10 @@
         display: flex;
         flex-direction: column;
         margin-right: 10px;
+    }
+
+    & .name, & .description {
+    	width: 100%;
     }
 }
 
