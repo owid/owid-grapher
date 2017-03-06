@@ -29,7 +29,7 @@ class Dataset {
 	@observable id : number
 	@observable name : string
 	@observable description : string
-	@observable subcategoryId : number
+	@observable subcategoryId : number = null
 	@observable.shallow csvData : [][] = null
 	@observable existingVariables : Object[] = []
 	@observable newVariables : Object[] = []
@@ -37,13 +37,14 @@ class Dataset {
 	@observable entities : number[] = []
 	@observable entityNames : string[] = []
 	@observable importError = null
-	@observable importRequest = true
-	@observable importDone = false
+	@observable importRequest = null
+	@observable importSuccess = false
 
 	updateFromCSV() {
 		const {csvData} = this
 
 		const variables = []
+
 		const entityNameIndex = 0
 		const entityNameCheck = {}
 		const entityNames = []
@@ -51,7 +52,6 @@ class Dataset {
 		const years = []
 
 		const headingRow = csvData[0]
-
 		for (let name of headingRow.slice(2))
 			variables.push({source: null, name, values: [], overwriteId: 'create-new'})
 
@@ -125,16 +125,16 @@ class Dataset {
 		}
 
 		this.importError = null
-		this.importDone = false
+		this.importSuccess = false
 		this.importRequest = App.postJSON('/import/variables', requestData).then(response => {
 			if (response.status != 200)
-				this.importError = response.body
+				return response.text()
 			else
-				this.importDone = true
-		})
+				this.importSuccess = true
+		}).then(err => this.importError = err)
 	}
 
-	constructor({id = null, name = "", description = "", subcategoryId = 0} : {name: string, description: string, subcategoryId: number} = {}) {
+	constructor({id = null, name = "", description = "", subcategoryId = null} : {name: string, description: string, subcategoryId: number} = {}) {
 		this.id = id
 		this.name = name
 		this.description = description
@@ -174,28 +174,28 @@ class DataPreview extends Component {
 	@observable rowOffset : number = 0
 	@observable visibleRows : number = 5
 	@computed get numRows() : number {
-		return this.props.dataset.csvData.length
+		return this.props.csvData.rows.length
 	}
 
 	@action.bound onScroll({target} : {target: HTMLElement}) {
 		const {scrollTop, scrollHeight} = target
 		const {numRows} = this
 
-		const rowOffset = Math.round(scrollTop/scrollHeight * this.props.dataset.csvData.length)
+		const rowOffset = Math.round(scrollTop/scrollHeight * numRows)
 		target.scrollTop = Math.round(rowOffset/numRows * scrollHeight)
 
 		this.rowOffset = rowOffset
 	}
 
 	render() {
-		const {csvData} = this.props.dataset
+		const {rows} = this.props.csvData
 		const {rowOffset, visibleRows, numRows} = this
 		const height = 50
 
 		return <div style={{height: height*visibleRows, 'overflow-y': 'scroll'}} onScroll={this.onScroll}>
 			<div style={{height: height*numRows, 'padding-top': height*rowOffset}}>
 				<table class="table" style={{background: 'white'}}>
-				    {_.map(csvData.slice(rowOffset, rowOffset+visibleRows), (row, i) =>
+				    {_.map(rows.slice(rowOffset, rowOffset+visibleRows), (row, i) =>
 				    	<tr>
 				    		<td>{rowOffset+i+1}</td>
 				    		{_.map(row, cell => <td style={{height: height}}>{cell}</td>)}
@@ -207,23 +207,43 @@ class DataPreview extends Component {
 	}
 }
 
-const EditName = ({dataset}) => 
-	<label>
-		Name
-		<p class="form-section-desc">
-			Strongly recommended is a name that combines the measure and the source. For example: "Life expectancy of women at birth – via the World Development Indicators published by the World Bank"
-		</p>
-		<input type="text" placeholder="Short name for your dataset" value={dataset.name} required/>
-	</label>
+@observer
+class EditName extends Component {
+	@action.bound onInput(e) {
+		this.props.dataset.name = e.target.value
+	}
 
-const EditDescription = ({dataset}) =>
-	<label>
-		Description
-		<p class="form-section-desc">
-			The dataset name and description are for our own internal use and do not appear on the charts.
-		</p>
-		<textarea onInput={e => dataset.description = e.target.value} class="form-control dataset-description" placeholder="Optional description for dataset" value={dataset.description}/>
-	</label>
+	render() {
+		const {dataset} = this.props
+		return <label>
+			Name
+			<p class="form-section-desc">
+				Strongly recommended is a name that combines the measure and the source. For example: "Life expectancy of women at birth – via the World Development Indicators published by the World Bank"
+			</p>
+			<input type="text" value={dataset.name} onInput={this.onInput} placeholder="Short name for your dataset" required/>
+		</label>
+	}
+}
+
+
+@observer
+class EditDescription extends Component {
+	@action.bound onInput(e) {
+		this.props.dataset.description = e.target.value
+	}
+
+	render() {
+		const {dataset} = this.props
+
+		return <label>
+			Description
+			<p class="form-section-desc">
+				The dataset name and description are for our own internal use and do not appear on the charts.
+			</p>
+			<textarea value={dataset.description} onInput={this.onInput} placeholder="Optional description for dataset"/>
+		</label>		
+	}
+}
 
 const EditCategory = ({categories, dataset}) => {
 	const categoriesByParent = _.groupBy(categories, category => category.parent)
@@ -366,12 +386,6 @@ class EditData extends Component {
 			return <i class="fa fa-spinner fa-spin"></i>
 
 		return <div>
-			<DataPreview dataset={dataset}/>
-			<EditVariables dataset={dataset}/>
-
-			<section class="submit-section">
-				<input type="submit" class="btn btn-success" value="Save dataset" onClick={e => dataset.save()}/>
-			</section>
 		</div>
 	}	
 }
@@ -389,18 +403,65 @@ class ImportProgressModal extends Component {
 			<h4>Import progress</h4>
 			<div class="progressInner">
 				<p class="success"><i class="fa fa-check"/> Preparing import for {dataset.years.length} values...</p>
-				{dataset.importError && <p class="error"><i class="fa fa-cross"/> {dataset.importError}</p>}
-				{dataset.importDone && <p class="success"><i class="fa fa-check"/> Import successful!</p>}
-				{!dataset.importDone && <div style="text-align: center;"><i class="fa fa-spin fa-spinner"/></div>}
+				{dataset.importError && <p class="error"><i class="fa fa-times"/> Error: {dataset.importError}</p>}
+				{dataset.importSuccess && <p class="success"><i class="fa fa-check"/> Import successful!</p>}
+				{!dataset.importSuccess && !dataset.importError && <div style="text-align: center;"><i class="fa fa-spin fa-spinner"/></div>}
 			</div>
-			<a class="btn btn-success" href={App.url(`/datasets/${dataset.id}`)}>Done</a>
-			<a class="btn btn-warning" onClick={this.onDismiss}>Dismiss</a>
+			{dataset.importSuccess && <a class="btn btn-success" href={App.url(`/datasets/${dataset.id}`)}>Done</a>}
+			{dataset.importError && <a class="btn btn-warning" onClick={this.onDismiss}>Dismiss</a>}
 		</div>
+	}
+}
+
+class CSVData {
+	filename: string
+	rows: [][]
+
+	constructor(filename: string, rows: [][]) {
+		this.filename = filename
+		this.rows = rows
+	}
+}
+
+@observer
+class CSVSelector extends Component {
+	props: {
+		onCSV: CSVData => void
+	}
+	
+	@observable csvData : ?CSVData = null
+
+	@action.bound onChooseCSV({target}: {target: HTMLInputElement}) {
+		const file = target.files[0]
+		if (!file) return
+
+		var reader = new FileReader()
+		reader.onload = (e) => {
+			const csv = e.target.result
+			parse(csv, (err, rows) => {
+				// TODO error handling
+				console.log(err)
+				this.csvData = new CSVData(file.name, rows)
+				this.props.onCSV(this.csvData)
+			})			
+		}
+		reader.readAsText(file)
+	}
+
+	render() {
+		const {csvData} = this
+
+		return <section>
+			<h3>Choose CSV file to import</h3>
+			<input type="file" onChange={this.onChooseCSV}/>
+			{csvData && <DataPreview csvData={csvData}/>}
+		</section>		
 	}
 }
 
 @observer
 export default class Importer extends Component {
+	@observable csvData = null
 	@observable dataset = new Dataset()
 
 	@action.bound onChooseDataset({target}: {target: HTMLSelectElement}) {
@@ -408,24 +469,14 @@ export default class Importer extends Component {
 		this.dataset = new Dataset({id: d.id, name: d.name, description: d.description, subcategoryId: d.fk_dst_subcat_id})
 	}
 
-	@action.bound onUploadCSV({target}: {target: HTMLInputElement}) {
-		const file = target.files[0]
-		if (!file) return
-
-		var reader = new FileReader()
-		reader.onload = (e) => {
-			const csv = e.target.result
-			parse(csv, (err, data) => {
-				// TODO error handling
-				console.log(err)
-				this.dataset.csvData = data
-			})			
-		}
-		reader.readAsText(file)	
+	@action.bound onCSV(csvData : CSVData) {
+		this.csvData = csvData
+		if (!this.dataset.name)
+			this.dataset.name = (csvData.filename.match(/(.*?)(.csv)?$/)||[])[1]
 	}
 
 	render() {
-		const {dataset} = this
+		const {csvData, dataset} = this
 		const {datasets, categories} = this.props
 
 		if (App.isDebug) {
@@ -433,9 +484,16 @@ export default class Importer extends Component {
 			window.dataset = dataset
 		}
 
+		if (dataset.subcategoryId == null) {
+			dataset.subcategoryId = (_.findWhere(categories, { name: "Uncategorized" })||{}).id
+		}
+
+		console.log(csvData)
 		return <div class={styles.importer}>
 			<h2>Import</h2>
-			<section class={styles.chooseDataset}>
+			<CSVSelector onCSV={this.onCSV}/>
+
+			{csvData && <section>
 				<h3>Choose your dataset</h3>
 				<select onChange={this.onChooseDataset}>
 					<option value="" selected>Create new dataset</option>
@@ -446,26 +504,15 @@ export default class Importer extends Component {
 				<EditName dataset={dataset}/>
 				<EditDescription dataset={dataset}/>
 				<EditCategory dataset={dataset} categories={categories}/>
-			</section>
-			<section class="form-section upload-section">
-				<div class="form-section-header">
-					<h3>Upload CSV file with data</h3>
-				</div>
-				<div class="form-section-content">
-					<div class="file-picker-wrapper">
-						<input type="file" onChange={this.onUploadCSV}/>
-						<a href="#" title="Remove uploaded file" class="remove-uploaded-file-btn"><span class="visuallyhidden">Remove uploaded file</span><i class="fa fa-remove"></i></a>
-					</div>
-					<div class="csv-import-result">
-						<div id="csv-import-table-wrapper" class="csv-import-table-wrapper"></div>
-					</div>
-				</div>
-			</section>
 
-			<EditData dataset={dataset}/>
-			<Modal isOpen={!!dataset.importRequest} contentLabel="Modal" parentSelector={e => document.querySelector('.wrapper')}>
-				<ImportProgressModal dataset={dataset}/>
-			</Modal>
+				<EditVariables dataset={dataset}/>
+
+				<input type="submit" class="btn btn-success" value="Save dataset" onClick={e => dataset.save()}/>
+
+				<Modal isOpen={!!dataset.importRequest} contentLabel="Modal" parentSelector={e => document.querySelector('.wrapper')}>
+					<ImportProgressModal dataset={dataset}/>
+				</Modal>			
+			</section>}
 		</div>
 	}
 }

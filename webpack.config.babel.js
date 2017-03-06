@@ -1,12 +1,12 @@
-var path = require('path');
-var webpack = require('webpack');
-var ExtractTextPlugin = require("extract-text-webpack-plugin");
-var ManifestPlugin = require('webpack-manifest-plugin');
-var OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+import path from 'path'
+import webpack from 'webpack'
+import ExtractTextPlugin from 'extract-text-webpack-plugin'
+import ManifestPlugin from 'webpack-manifest-plugin'
+import OptimizeCssAssetsPlugin from 'optimize-css-assets-webpack-plugin'
 
-const isProduction = process.argv.indexOf('-p') !== -1;
+const isProduction = process.argv.indexOf('-p') !== -1
 
-module.exports = {
+export default {
     context: path.join(__dirname, "public/js"),
     entry: {        
         charts: "./charts.entry.js",
@@ -33,11 +33,6 @@ module.exports = {
             { 
                 test: /(preact-compat|\.jsx)/, // Preact-compat uses getters that don't work in IE11 for some reason
                 loader: "babel-loader",
-                options: {
-                    presets: [['es2015', {modules: false}], 'stage-0', 'react'],
-                    plugins: ["transform-decorators-legacy"],
-                    cacheDirectory: true
-                }   
             },
             {
                 test: /\.css$/,
@@ -51,7 +46,7 @@ module.exports = {
     },
 
     // Enable sourcemaps for debugging webpack's output.
-    devtool: (isProduction ? false : "eval-source-map"),
+    devtool: (isProduction ? false : "cheap-module-eval-source-map"),
 
     plugins: (isProduction ? [
         // This plugin extracts css files required in the entry points
@@ -91,4 +86,4 @@ module.exports = {
         port: 8090,
         contentBase: 'public'
     },
-};
+}
