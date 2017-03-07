@@ -56,7 +56,6 @@ window.Editor = require('./editor/Editor').default
 // Importer code
 
 require('./libs/bootstrap3-wysihtml5.all')
-require('./libs/jszip')
 window.Papa = require('./libs/papaparse')
 window.moment = require('moment')
 require('./app/App.Models.ChartModel')        
