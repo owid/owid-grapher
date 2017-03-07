@@ -83,12 +83,12 @@
 		@yield('outter-content')
 
 		<script>
-			var Global = {};
-			Global.rootUrl = "{!! Request::root() !!}";
+			window.Global = {}
+			Global.rootUrl = "{!! Request::root() !!}"
 
 			window.App = {}
 			App.isEditor = true
-			App.isDebug = !!{!! env('APP_ENV', 'production') != 'production' !!};
+			App.isDebug = {!! env('APP_ENV', 'production') != 'production' ? "true" : "false" !!}
 
 			App.url = function(path) {
 				return Global.rootUrl + path;
