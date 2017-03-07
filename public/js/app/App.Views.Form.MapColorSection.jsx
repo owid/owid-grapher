@@ -1,3 +1,5 @@
+import colorbrewer from './owid.colorbrewer'
+
 ;(function() {	
 	"use strict";
 	owid.namespace("App.Views.Form.MapColorSection");
@@ -57,7 +59,7 @@
 
 			// List the available color schemes to choose from
 			this.$colorSchemeSelect.empty();
-			_.each(owid.colorbrewer, function(v, k) {
+			_.each(colorbrewer, function(v, k) {
 				if (v.name)
 					this.$colorSchemeSelect.append('<option value="' + k + '">' + v.name + '</option>');
 			}.bind(this));

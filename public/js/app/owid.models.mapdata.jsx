@@ -1,5 +1,6 @@
 import _ from 'underscore'
 import owid from '../owid'
+import colorbrewer from './owid.colorbrewer'
 
 ;(function() {	
 	"use strict";
@@ -148,7 +149,7 @@ import owid from '../owid'
 				return colors.reverse();
 			}
 
-			var scheme = owid.colorbrewer[colorSchemeName];
+			var scheme = colorbrewer[colorSchemeName];
 			if (!scheme) {
 				console.error("No such color scheme: " + scheme);
 				// Return a default color scheme

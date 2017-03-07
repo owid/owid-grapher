@@ -13,6 +13,7 @@ import _ from 'underscore'
 import s from 'underscore.string'
 import Backbone from 'backbone'
 import owid from '../owid'
+import colorbrewer from './owid.colorbrewer'
 
 ;(function() {
 	"use strict";
@@ -213,11 +214,11 @@ import owid from '../owid'
 			if (colorSchemeName === "custom")
 				return _.clone(customColorScheme);
 
-			var scheme = owid.colorbrewer[colorSchemeName];
+			var scheme = colorbrewer[colorSchemeName];
 			if (!scheme) {
 				console.error("No such color scheme: " + scheme);
 				// Return a default color scheme
-				return this.getColors(_.extend({}, mapConfig, { colorSchemeName: _.keys(owid.colorbrewer)[0] }));
+				return this.getColors(_.extend({}, mapConfig, { colorSchemeName: _.keys(colorbrewer)[0] }));
 			}
 
 			if (!_.isEmpty(scheme.colors[numColors]))

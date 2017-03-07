@@ -22,7 +22,7 @@ _.extend(window, require('./libs/saveSvgAsPng'));
 
 //window.owid = require('./owid').default;
 //owid.dataflow = require('./app/owid.dataflow').default;
-require('./app/owid.colorbrewer');
+//require('./app/owid.colorbrewer');
 //import 'preact/devtools'
 require('./app/constants');
 require('./app/App.Utils');
