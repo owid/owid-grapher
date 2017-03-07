@@ -44,11 +44,14 @@ class ImportController extends Controller {
 			->orderBy('dataset_subcategories.id', 'ASC')
 			->select('dataset_subcategories.name', 'dataset_subcategories.id', 'dataset_categories.name as parent')->get();
 
+		$entityNames = DB::table("entities")->lists("name");
+
 		$data = [
 			'datasets' => $datasets,
 			'categories' => $categories,
 			'varTypes' => $varTypes,
-			'sourceTemplate' => $sourceTemplate
+			'sourceTemplate' => $sourceTemplate,
+			'entityNames' => $entityNames
 		];	
 
 

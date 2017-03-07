@@ -26,10 +26,10 @@ export default owid.View.extend({
 
 	initialize: function(props) {	
 		$("#import-view").empty()
-	    let rootNode = render(<Importer datasets={props.datasets} categories={props.categories} sourceTemplate={props.sourceTemplate.meta_value}/>, $("#import-view")[0], rootNode)
+	    let rootNode = render(<Importer datasets={props.datasets} categories={props.categories} sourceTemplate={props.sourceTemplate.meta_value} existingEntities={props.entityNames}/>, $("#import-view")[0], rootNode)
         return
 
-		this.dispatcher = _.clone(Backbone.Events);
+		this.dispatcher = _.clone(Backbone.Events);	
 		App.DatasetModel = new App.Models.Import.DatasetModel({ dispatcher: this.dispatcher });
 		this.datasetSection = this.addChild(ChooseDatasetSection);
 		this.variableSection = this.addChild(VariablesSection);

@@ -431,6 +431,7 @@ class ImportProgressModal extends Component {
 class CSV {
 	filename: string
 	rows: [][]
+	existingEntities: []
 
 	@computed get basename() {
 		return (this.filename.match(/(.*?)(.csv)?$/)||[])[1]		
@@ -523,6 +524,15 @@ class CSV {
 			}
 		})
 
+		// Warn if we're creating novel entities
+		const newEntities = _.difference(this.data.entityNames, this.existingEntities)
+		if (newEntities.length > 1) {
+			validation.results.push({
+				class: 'warning',
+				message: `These entities were not found in the database and will be created: ${newEntities.join(', ')}`
+			})
+		}
+
 		validation.passed = !_.findWhere(validation.results, { class: 'error' })
 
 		return validation
@@ -532,9 +542,18 @@ class CSV {
 		return this.validation.passed
 	}
 
-	constructor(filename: string, rows: [][]) {
+	static transformSingleLayout(rows) {
+		const newRows = [['Entity', 'Year', this.basename]]
+
+		for (let i = 1; i < rows.length; i++) {
+
+		}
+	}
+
+	constructor({ filename = "", rows = [], existingEntities = [] }) {
 		this.filename = filename
 		this.rows = rows
+		this.existingEntities = existingEntities
 	}
 }
 
@@ -560,18 +579,23 @@ class CSVSelector extends Component {
 	@observable csv : ?csv = null
 
 	@action.bound onChooseCSV({target}: {target: HTMLInputElement}) {
+		const {existingEntities} = this.props
 		const file = target.files[0]
 		if (!file) return
 
 		var reader = new FileReader()
 		reader.onload = (e) => {
 			const csv = e.target.result
-			parse(csv, (err, rows) => {
-				// TODO error handling
-				console.log("Error?", err)
-				this.csv = new CSV(file.name, rows)
-				this.props.onCSV(this.csv)
-			})			
+			parse(csv, { relax_column_count: true, skip_empty_lines: true, rtrim: true },
+				(err, rows) => {
+					// TODO error handling
+					console.log("Error?", err)
+					if (rows[0][0].toLowerCase() == 'year')
+						rows = CSV.transformSingleLayout(rows)
+					this.csv = new CSV({ filename: file.name, rows, existingEntities })
+					this.props.onCSV(this.csv)
+				}
+			)			
 		}
 		reader.readAsText(file)
 	}
@@ -600,7 +624,7 @@ export default class Importer extends Component {
 	@action.bound onCSV(csv : CSV) {
 		this.csv = csv
 		const match = _.filter(this.props.datasets, d => d.name == csv.basename)[0]
-		this.dataset = match ? Dataset.fromServer(match) : this.dataset
+		this.dataset = match ? Dataset.fromServer(match) : new Dataset()
 	}
 
 	componentDidMount() {
@@ -611,7 +635,7 @@ export default class Importer extends Component {
 			if (!dataset.name)
 				dataset.name = csv.basename
 
-			dataset.newVariables = csv.data.variables
+			dataset.newVariables = _.map(csv.data.variables, _.clone)
 			dataset.entityNames = csv.data.entityNames
 			dataset.entities = csv.data.entities
 			dataset.years = csv.data.years
@@ -625,7 +649,7 @@ export default class Importer extends Component {
 	
 	render() {
 		const {csv, dataset} = this
-		const {datasets, categories} = this.props
+		const {datasets, categories, existingEntities} = this.props
 
 		if (App.isDebug) {
 			window.Importer = this
@@ -641,7 +665,7 @@ export default class Importer extends Component {
 		return <form class={styles.importer} onSubmit={this.onSubmit}>
 			<h2>Import CSV file</h2>
 			<p>Examples of valid layouts: <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_single-var.png">single variable</a>, <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_multi-var.png">multiple variables</a>.</p>
-			<CSVSelector onCSV={this.onCSV}/>
+			<CSVSelector onCSV={this.onCSV} existingEntities={existingEntities}/>
 
 			{csv && csv.isValid && <section>
 				<p style={{opacity: dataset.id ? 1 : 0}} class="updateWarning">Updating existing dataset</p>
