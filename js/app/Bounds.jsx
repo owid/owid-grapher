@@ -1,7 +1,6 @@
 // @flow
 
 import _ from 'lodash'
-import s from 'underscore.string'
 import * as d3 from 'd3'
 
 export default class Bounds {
@@ -39,7 +38,7 @@ export default class Bounds {
 		this.ctx = this.ctx || document.createElement('canvas').getContext('2d')
 		this.baseFontSize = this.baseFontSize || parseFloat(d3.select('svg').style('font-size'))
 
-		if (s.contains(fontSize, 'em'))
+		if (_.includes(fontSize, 'em'))
 			fontSize = this.baseFontSize*parseFloat(fontSize)+'px'
 
 		const key = str+'-'+fontSize

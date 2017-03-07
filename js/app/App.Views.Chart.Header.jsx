@@ -1,11 +1,12 @@
+// @flow
 
 import _ from 'lodash'
 import 'innersvg'
 import Bounds from './Bounds'
 import * as d3 from 'd3'
-import s from 'underscore.string'
 import owid from '../owid'
 import dataflow from './owid.dataflow'
+import {stripTags} from 'underscore.string'
 
 function owid_header() {
 	var header = dataflow();
@@ -69,7 +70,7 @@ function owid_header() {
 	});
 
 	header.flow('title, titleStr, titleSizeScale', function(title, titleStr, titleSizeScale) {
-		title.style('font-size', titleSizeScale(s.stripTags(titleStr).length) + 'em');
+		title.style('font-size', titleSizeScale(stripTags(titleStr).length) + 'em');
 	});
 
 	header.flow('titleBox, titleFontSize : title, titleStr, boundsForText', function(title, titleStr, boundsForText) {
@@ -159,12 +160,12 @@ export default function(chart) {
 	// country displayed by the current chart context
 	headerControl.flow("fillTemplate : minYear, maxYear, entities, entityType", function(minYear, maxYear, entities, entityType) {
 		return function(text) {
-			if (s.contains(text, "*country*")) {
+			if (_.includes(text, "*country*")) {
 				var entityStr = _.pluck(entities, "name").join(', ');
 				text = text.replace("*country*", entityStr || ("in selected " + entityType));
 			}
 
-			if (s.contains(text, "*time")) {
+			if (_.includes(text, "*time")) {
 				if (!_.isFinite(minYear)) {
 					text = text.replace("*time*", "over time");
 				} else {

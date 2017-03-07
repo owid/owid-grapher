@@ -1,6 +1,6 @@
 import dataflow from './owid.dataflow'
-import s from 'underscore.string'
 import owid from '../owid'
+import _ from 'lodash'
 
 var scaleSelector = function() {
 	var scaleSelector = dataflow();
@@ -25,7 +25,7 @@ var scaleSelector = function() {
 	});
 
 	scaleSelector.flow('el, currentScale', function(el, currentScale) {
-		el.selectAll('span').text(s.capitalize(currentScale));
+		el.selectAll('span').text(_.capitalize(currentScale));
 	});
 
 	scaleSelector.flow('el, left, top', function(el, left, top) {

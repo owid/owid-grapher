@@ -1,10 +1,11 @@
+// @flow
+
 /* OWID root namespace and standalone utility functions */
 
 import * as d3 from 'd3'
 import _ from 'lodash'
 import $ from 'jquery'
 import 'innersvg'
-import s from 'underscore.string'
 import Backbone from 'backbone'
 
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
@@ -219,7 +220,7 @@ owid.unitFormat = function(unit, value, options) {
 	options.noTrailingZeroes = options.noTrailingZeroes || true;
 
 	var titlePrefix = (unit.title ? unit.title + ": " : ""),
-		unitSuffix = (unit.unit ? s.trim(unit.unit) : "");
+		unitSuffix = (unit.unit ? _.trim(unit.unit) : "");
 
 	// Do precision fiddling, if the value is numeric
 	if (_.isNumber(value)) {
@@ -497,9 +498,9 @@ owid.renderWrappedText = function(content, bounds, options) {
 	content = content.replace(/<\/[^>]+>/g, " <LINKSTOP> ");
 
 	// Clean the content
-	content = s.trim(content.replace("</br>", "\n").replace("<br>", "\n"));
+	content = _.trim(content.replace("</br>", "\n").replace("<br>", "\n"));
 
-	var words = s.trim(content).split(/ +/),
+	var words = _.trim(content).split(/ +/),
 		x = parseFloat(text.attr("x")),
 		y = parseFloat(text.attr("y")),
 		currentX = x,
@@ -515,7 +516,7 @@ owid.renderWrappedText = function(content, bounds, options) {
 	// Terminate the current tspan and begin a new one
 	var breakSpan = function(isNewLine, isEnd) {
 		var textContent = currentLine.join(" ");
-		if (_.isEmpty(s.strip(textContent)))
+		if (_.isEmpty(_.trim(textContent)))
 			tspan.remove();
 		else {
 			tspan.node().textContent = textContent;
@@ -561,7 +562,7 @@ owid.renderWrappedText = function(content, bounds, options) {
 		}
 
 		var forceNewline = false;
-		if (s.contains(word, "\n")) {
+		if (_.includes(word, "\n")) {
 			var spl = word.split("\n");
 			var beforeLine = spl.shift();
 			var afterLine = spl.join("\n");
@@ -620,9 +621,9 @@ owid.svgSetWrappedText = function(text, content, width, options) {
 	content = content.replace(/<\/[^>]+>/g, " <LINKSTOP> ");
 
 	// Clean the content
-	content = s.trim(content.replace("</br>", "\n").replace("<br>", "\n"));
+	content = _.trim(content.replace("</br>", "\n").replace("<br>", "\n"));
 
-	var words = s.trim(content).split(/ +/),
+	var words = _.trim(content).split(/ +/),
 		x = parseFloat(text.attr("x")),
 		y = parseFloat(text.attr("y")),
 		currentX = x,
@@ -638,7 +639,7 @@ owid.svgSetWrappedText = function(text, content, width, options) {
 	// Terminate the current tspan and begin a new one
 	var breakSpan = function(isNewLine, isEnd) {
 		var textContent = currentLine.join(" ");
-		if (_.isEmpty(s.strip(textContent)))
+		if (_.isEmpty(_.trim(textContent)))
 			tspan.remove();
 		else {
 			tspan.node().textContent = textContent;
@@ -684,7 +685,7 @@ owid.svgSetWrappedText = function(text, content, width, options) {
 		}
 
 		var forceNewline = false;
-		if (s.contains(word, "\n")) {
+		if (_.includes(word, "\n")) {
 			var spl = word.split("\n");
 			var beforeLine = spl.shift();
 			var afterLine = spl.join("\n");

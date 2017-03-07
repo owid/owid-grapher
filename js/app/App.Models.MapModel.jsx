@@ -10,7 +10,6 @@
  */ 
 
 import _ from 'lodash'
-import s from 'underscore.string'
 import Backbone from 'backbone'
 import owid from '../owid'
 import colorbrewer from './owid.colorbrewer'
