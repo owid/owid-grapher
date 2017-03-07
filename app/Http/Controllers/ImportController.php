@@ -145,6 +145,8 @@ class ImportController extends Controller {
 					'name' => $variable['name'],
 					'description' => $variable['description'],
 					'unit' => $variable['unit'],
+					'coverage' => $variable['coverage'],
+					'timespan' => $variable['timespan'],
 					'fk_var_type_id' => 3,
 					'fk_dst_id' => $datasetId,
 					'sourceId' => $sourceId,

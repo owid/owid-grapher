@@ -103,6 +103,8 @@ class DatasetsController extends Controller {
 				'name' => $var->name,
 				'unit' => $var->unit,
 				'description' => $var->description,
+				'coverage' => $var->coverage,
+				'timespan' => $var->timespan,
 				'source' => $sourcedata,
 				'charts' => $chartdata
 			];
