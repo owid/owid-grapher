@@ -11,14 +11,17 @@ import '../css/chart.css'
 import 'babel-polyfill'
 // Polyfill for the new AJAX function "fetch"
 import 'whatwg-fetch'
+
 import './libs/modernizr-custom'
 import jQuery from 'jquery'
-window.jQuery = jQuery
 import * as d3 from 'd3'
+import _ from 'underscore'
+
+
+window.jQuery = jQuery
 window.d3v4 = d3
 window.d3 = require('./libs/d3old');
 require('./libs/nv.d3')
-window._ = require('underscore');
 _.extend(window, require('./libs/saveSvgAsPng'));
 window.s = require('underscore.string');
 window.Backbone = require('./libs/backbone');

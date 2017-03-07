@@ -8,7 +8,7 @@ const isProduction = process.argv.indexOf('-p') !== -1
 
 export default {
     context: path.join(__dirname, "public/js"),
-    entry: {
+    entry: {        
         charts: "./charts.entry.js",
         admin: "./admin.entry.js"
     },      
@@ -40,10 +40,13 @@ export default {
             },
             {
                 test: /\.(jpe?g|gif|png|eot|woff|ttf|svg|woff2)$/,
-                loader: 'url-loader?limit=10000'    
+                loader: 'url-loader?limit=10000'
             }
         ],
     },
+
+    // Enable sourcemaps for debugging webpack's output.
+    devtool: (isProduction ? false : "cheap-module-eval-source-map"),
 
     plugins: (isProduction ? [
         // This plugin extracts css files required in the entry points

@@ -1,6 +1,7 @@
 /* OWID root namespace and standalone utility functions */
 
 import * as d3 from 'd3'
+import _ from 'underscore'
 import 'innersvg'
 
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/

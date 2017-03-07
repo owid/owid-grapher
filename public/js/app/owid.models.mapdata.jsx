@@ -1,3 +1,5 @@
+import _ from 'underscore'
+
 ;(function() {	
 	"use strict";
 	owid.namespace("owid.models.mapdata");

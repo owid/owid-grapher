@@ -9,7 +9,8 @@
  * @created 2016-08-09
  */ 
 
-var Bounds = require('./Bounds').default
+import _ from 'underscore'
+import Bounds from './Bounds'
 
 ;(function() {
 	"use strict";

@@ -1,3 +1,5 @@
+import _ from 'underscore'
+
 ;(function() {
 	"use strict";
 	window.App = window.App || {};

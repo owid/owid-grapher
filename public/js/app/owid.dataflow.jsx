@@ -1,3 +1,5 @@
+import * as _ from 'underscore'
+
 export default function dataflow() {
 	var dataflow = {}, state = {}, defaults = {}, flows = [];
 	dataflow.state = state;

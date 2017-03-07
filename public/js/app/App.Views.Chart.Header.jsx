@@ -1,5 +1,7 @@
-require('innersvg');
-var Bounds = require('./Bounds').default;
+
+import _ from 'underscore'
+import 'innersvg'
+import Bounds from './Bounds'
 
 ;(function(d3) {	
 	"use strict";

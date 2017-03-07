@@ -10,6 +10,8 @@
  * @created 2016-03-31
  */ 
 
+import _ from 'underscore'
+
 ;(function() {
 	"use strict";
 	owid.namespace("owid.component.urlBinder");

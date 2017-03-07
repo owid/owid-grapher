@@ -1,4 +1,5 @@
 import Fuse from 'fuse.js'
+import _ from 'underscore'
 
 ;(function(d3) {
     "use strict";

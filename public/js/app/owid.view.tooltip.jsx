@@ -1,3 +1,5 @@
+import _ from 'underscore'
+
 ;(function(d3) {	
 	"use strict";
 	owid.namespace("owid.view.tooltip");

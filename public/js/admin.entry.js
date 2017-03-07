@@ -1,4 +1,4 @@
-import './charts.entry.js'
+import './charts.entry'
 
 // Admin only CSS
 
@@ -23,6 +23,8 @@ import './libs/jquery.timeago'
 import './libs/chosen.jquery'
 import './admin'
 
+import _ from 'underscore'
+window._ = _
 
 require('./app/App.Models.ChartVariableModel')
 require('./app/App.Models.EntityModel')
@@ -46,21 +48,21 @@ require('./app/App.Views.Form.ExportTabView')
 require('./app/App.Views.Form.MapColorSection')
 require('./app/App.Views.Form.MapTabView')
 require('./app/App.Views.Form.SaveButtons')
-window.Editor = require('./editor/Editor.jsx').default
+window.Editor = require('./editor/Editor').default
 
 // Importer code
 
 require('./libs/bootstrap3-wysihtml5.all')
-require('./libs/jszip.js')
-window.Papa = require('./libs/papaparse.js')
+require('./libs/jszip')
+window.Papa = require('./libs/papaparse')
 window.moment = require('moment')
-require('./app/App.Utils.js')
-require('./app/App.Models.ChartModel.js')        
-require('./app/App.Models.Import.DatasetModel.js')
-require('./app/App.Models.Importer.js')
-require('./app/App.Views.UI.ImportProgressPopup.js')
-require('./app/App.Views.Import.SourceSelector.js')
-require('./app/App.Views.Import.ChooseDatasetSection.js')
-require('./app/App.Views.Import.VariablesSection.js')
-require('./app/App.Views.Import.CategorySection.js')
+require('./app/App.Utils')
+require('./app/App.Models.ChartModel')        
+require('./app/App.Models.Import.DatasetModel')
+require('./app/App.Models.Importer')
+require('./app/App.Views.UI.ImportProgressPopup')
+require('./app/App.Views.Import.SourceSelector')
+require('./app/App.Views.Import.ChooseDatasetSection')
+require('./app/App.Views.Import.VariablesSection')
+require('./app/App.Views.Import.CategorySection')
 App.Views.ImportView = require('./app/App.Views.ImportView').default

@@ -9,6 +9,7 @@
  * @created 2016-08-08
  */ 
 
+import _ from 'underscore'
 
 ;(function() {
 	"use strict";
