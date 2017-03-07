@@ -22,10 +22,9 @@ class ImportTest extends TestCase
             'dataset' => [
                 'name' => 'New Dataset',
                 'description' => 'New dataset description.',
-                'categoryId' => $categoryId,
                 'subcategoryId' => $subcategoryId
             ],
-            'entityKey' => [
+            'entityNames' => [
                 'United States', 'Australia', 'New Entity', 'New Entity 2'
             ],
             'entities' => [
@@ -39,6 +38,8 @@ class ImportTest extends TestCase
                     'name' => 'New Variable', 
                     'description' => 'New variable description.',
                     'unit' => '%',
+                    'coverage' => 'Global by country',
+                    'timespan' => '1990-2030',
                     'typeId' => 3,
                     'values' => [10, 20, 30, 40, ''],
                     'source' => [
@@ -50,6 +51,8 @@ class ImportTest extends TestCase
                     'name' => 'Second Variable', 
                     'description' => 'Second variable description.',
                     'unit' => '%',
+                    'coverage' => 'Global by country',
+                    'timespan' => '1990-2030',                    
                     'typeId' => 3,
                     'values' => [9, 18, 27, 31, 49],
                     'source' => [
@@ -68,7 +71,6 @@ class ImportTest extends TestCase
         $this->seeInDatabase('datasets', [
             'name' => 'New Dataset',
             'description' => 'New dataset description.',
-            'fk_dst_cat_id' => $categoryId,
             'fk_dst_subcat_id' => $subcategoryId
         ]);
 

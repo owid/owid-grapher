@@ -1,33 +1,42 @@
 var papaparse = window.Papa,
 	moment = window.moment,
-	Importer = App.Models.Importer,
 	ChooseDatasetSection = App.Views.Import.ChooseDatasetSection,
 	VariablesSection = App.Views.Import.VariablesSection,
 	CategorySection = App.Views.Import.CategorySection,
 	ImportProgressPopup = App.Views.UI.ImportProgressPopup,
 	Utils = App.Utils;
 
-window.App.Views.ImportView = owid.View.extend({
+import Importer from './Importer'
+import React, {Component} from 'react'
+import {render} from 'preact'
+
+export default owid.View.extend({
 	isDataMultiVariant: false,
 	origUploadedData: false,
 	uploadedData: false,
 
 	el: "#import-view",
-	events: {
+	/*events: {
 		"submit form": "onFormSubmit",
 		"click .clear-settings-btn": "onClearSettings",
 		"change [type=file]": "onFileChange",
 		"click .remove-uploaded-file-btn": "onRemoveUploadedFile",
 		"change [name=multivariant_dataset]": "onMultivariantDatasetChange",
-	},
+	},*/
 
-	initialize: function( options ) {	
-		this.dispatcher = _.clone(Backbone.Events);
+	initialize: function(props) {	
+		$("#import-view").empty()
+	    let rootNode = render(<Importer datasets={props.datasets} categories={props.categories} sourceTemplate={props.sourceTemplate.meta_value} existingEntities={props.entityNames}/>, $("#import-view")[0], rootNode)
+        return
+
+		this.dispatcher = _.clone(Backbone.Events);	
 		App.DatasetModel = new App.Models.Import.DatasetModel({ dispatcher: this.dispatcher });
 		this.datasetSection = this.addChild(ChooseDatasetSection);
 		this.variableSection = this.addChild(VariablesSection);
 		this.categorySection = this.addChild(CategorySection);
+
 		this.render();
+
 
 		//setup models
 		//is new chart or display old chart
@@ -516,5 +525,3 @@ window.App.Views.ImportView = owid.View.extend({
 		return false;
 	}
 });
-
-module.exports = { default: App.Views.ImportView }

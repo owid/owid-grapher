@@ -1,17 +1,17 @@
-var path = require('path');
-var webpack = require('webpack');
-var ExtractTextPlugin = require("extract-text-webpack-plugin");
-var ManifestPlugin = require('webpack-manifest-plugin');
-var OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+import path from 'path'
+import webpack from 'webpack'
+import ExtractTextPlugin from 'extract-text-webpack-plugin'
+import ManifestPlugin from 'webpack-manifest-plugin'
+import OptimizeCssAssetsPlugin from 'optimize-css-assets-webpack-plugin'
 
-const isProduction = process.argv.indexOf('-p') !== -1;
+const isProduction = process.argv.indexOf('-p') !== -1
 
-module.exports = {
+export default {
     context: path.join(__dirname, "public/js"),
     entry: {        
         charts: "./charts.entry.js",
         admin: "./admin.entry.js"
-    },
+    },      
     output: {
         path: path.join(__dirname, "public/build"),
         filename: (isProduction ? "[name].bundle.[chunkhash].js" : "[name].bundle.js")
@@ -27,31 +27,26 @@ module.exports = {
             path.join(__dirname, "public/css/libs"),
             path.join(__dirname, "node_modules"),
         ],
-    }, 
+    },
     module: {
         rules: [
             { 
                 test: /(preact-compat|\.jsx)/, // Preact-compat uses getters that don't work in IE11 for some reason
                 loader: "babel-loader",
-                options: {
-                    presets: [['es2015', {modules: false}], 'stage-0', 'react'],
-                    plugins: ["transform-decorators-legacy"],
-                    cacheDirectory: true
-                }
             },
             {
                 test: /\.css$/,
-                loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: 'css-loader' })                
+                loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: ['css-loader?modules&importLoaders=1&localIdentName=[local]', 'postcss-loader'] })
             },
             {
                 test: /\.(jpe?g|gif|png|eot|woff|ttf|svg|woff2)$/,
-                loader: 'file-loader'
+                loader: 'url-loader?limit=10000'
             }
         ],
     },
 
     // Enable sourcemaps for debugging webpack's output.
-    devtool: (isProduction ? false : "eval-source-map"),
+    devtool: (isProduction ? false : "cheap-module-eval-source-map"),
 
     plugins: (isProduction ? [
         // This plugin extracts css files required in the entry points
@@ -76,7 +71,7 @@ module.exports = {
               dead_code: true,
               evaluate: true,
               if_return: true,
-              join_vars: true,
+              join_vars: true
             },
         }),
 
@@ -91,4 +86,4 @@ module.exports = {
         port: 8090,
         contentBase: 'public'
     },
-};
+}

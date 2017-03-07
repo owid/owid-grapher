@@ -7,6 +7,7 @@ import {map} from 'underscore'
 export type SVGElement = any;
 export const NullElement : any = () => null;
 
+import React, {Component} from 'react'
 
 export function getRelativeMouse(node : SVGElement, event : MouseEvent) {
   var svg = node.ownerSVGElement || node;

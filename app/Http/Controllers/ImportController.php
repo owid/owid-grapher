@@ -1,5 +1,6 @@
 <?php namespace App\Http\Controllers;
 
+use Log;
 use App\Source;
 use App\Dataset;
 use App\DatasetCategory;
@@ -34,20 +35,27 @@ class ImportController extends Controller {
 	{	
 
 		$datasets = Dataset::where('namespace', '=', 'owid')->orderBy('name')->get();
-		$categories = DatasetCategory::all();
-		$subcategories = DatasetSubcategory::all();
 		$varTypes = VariableType::all();
 		$sourceTemplate = Setting::where('meta_name', 'sourceTemplate')->first();
+
+		$categories = DB::table("dataset_subcategories")
+			->join('dataset_categories', 'dataset_subcategories.fk_dst_cat_id', '=', 'dataset_categories.id')
+			->orderBy('dataset_categories.id', 'ASC')
+			->orderBy('dataset_subcategories.id', 'ASC')
+			->select('dataset_subcategories.name', 'dataset_subcategories.id', 'dataset_categories.name as parent')->get();
+
+		$entityNames = array_merge(DB::table("entities")->lists("name"), DB::table("entities")->lists("code"));
 
 		$data = [
 			'datasets' => $datasets,
 			'categories' => $categories,
-			'subcategories' => $subcategories,
 			'varTypes' => $varTypes,
-			'sourceTemplate' => $sourceTemplate
+			'sourceTemplate' => $sourceTemplate,
+			'entityNames' => $entityNames
 		];	
 
-		$response = view('import.index')->with('data', $data);
+
+		$response = view('import.index')->with(['data' => $data, 'importerData' => json_encode($data)]);
 		return $response;
 	}
 
@@ -59,17 +67,15 @@ class ImportController extends Controller {
 
 		return DB::transaction(function() use ($input) {
 			$datasetMeta = $input['dataset'];
-			// entityKey is a unique list of entity names/codes e.g. ['Germany', 'Afghanistan', 'USA']
-			$entityKey = $input['entityKey'];
-			// entities is a list of indices for entityKey 
 			$entities = $input['entities'];
+			$entityNames = $input['entityNames'];
 			$years = $input['years'];
 			$variables = $input['variables'];
 
 			$datasetProps = [
 				'name' => $datasetMeta['name'],
 				'description' => $datasetMeta['description'],
-				'fk_dst_cat_id' => $datasetMeta['categoryId'],
+				'fk_dst_cat_id' => DatasetSubcategory::find($datasetMeta['subcategoryId'])->fk_dst_cat_id,
 				'fk_dst_subcat_id' => $datasetMeta['subcategoryId']
 			];
 
@@ -83,10 +89,10 @@ class ImportController extends Controller {
 
 			// Map any imported codes to their true entity names
 			$codes = Entity::where('validated', '=', 1)->lists('name', 'code');
-			for ($i = 0; $i < sizeof($entityKey); $i++) {
-				$name = $entityKey[$i];
+			for ($i = 0; $i < sizeof($entityNames); $i++) {
+				$name = $entityNames[$i];
 				if (isset($codes[$name]))
-					$entityKey[$i] = $codes[$name];
+					$entityNames[$i] = $codes[$name];
 			}
 
 			// First, we insert all of the entities with "on duplicate key update", ensuring
@@ -94,8 +100,8 @@ class ImportController extends Controller {
 			$insertQuery = "INSERT INTO entities (name) VALUES";
 
 			$pdo = DB::connection()->getPdo();
-			foreach ($entityKey as $name) {
-				if ($name != $entityKey[0])
+			foreach ($entityNames as $name) {
+				if ($name != $entityNames[0])
 					$insertQuery .= ",";
 				$insertQuery .= " (" . $pdo->quote($name) . ")";
 			}
@@ -107,8 +113,9 @@ class ImportController extends Controller {
 			// Now we need to pull them back out again so we know what ids to go with what names
 			$entityNameToId = DB::table('entities')
 				->select('id', 'name')
-				->whereIn('name', $entityKey)
 				->lists('id', 'name');
+
+			Log::info($entityNameToId);
 
 			$sourceIdsByName = [];
 
@@ -138,6 +145,8 @@ class ImportController extends Controller {
 					'name' => $variable['name'],
 					'description' => $variable['description'],
 					'unit' => $variable['unit'],
+					'coverage' => $variable['coverage'],
+					'timespan' => $variable['timespan'],
 					'fk_var_type_id' => 3,
 					'fk_dst_id' => $datasetId,
 					'sourceId' => $sourceId,
@@ -163,7 +172,7 @@ class ImportController extends Controller {
 
 					$newDataValues[] = [
 						'fk_var_id' => $varId,
-						'fk_ent_id' => $entityNameToId[$entityKey[$entities[$i]]],
+						'fk_ent_id' => $entityNameToId[$entityNames[$entities[$i]]],
 						'year' => $years[$i],
 						'value' => $values[$i],
 					];

@@ -21,7 +21,7 @@
 
 		<div class="wrapper">
 			<header class="main-header">
-				<a href="https://github.com/ourworldindata/owid-grapher" class="logo">owid-grapher</a>
+				<a href="{!! route('charts.index') !!}" class="logo">owid-grapher</a>
 				<nav class="navbar navbar-static-top">
 					<a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
 						<span class="sr-only">Toggle navigation</span>
@@ -88,6 +88,28 @@
 
 			window.App = {}
 			App.isEditor = true
+			App.isDebug = !!{!! env('APP_ENV', 'production') != 'production' !!};
+
+			App.url = function(path) {
+				return Global.rootUrl + path;
+			}
+
+			App.fetchJSON = function(path) {
+				return window.fetch(App.url(path), { credentials: 'same-origin' }).then(function(data) { return data.json(); });
+			}
+
+			App.postJSON = function(path, data) {
+				return window.fetch(App.url(path), {
+					method: 'POST',
+					credentials: 'same-origin',
+					headers: {
+						'Content-Type': 'application/json',
+						'Accept': 'application/json',
+						'X-CSRF-TOKEN': '{{ csrf_token() }}'
+					},
+					body: JSON.stringify(data)
+				})
+			}
 		</script>
 
 		{!! Helper::js('admin') !!}

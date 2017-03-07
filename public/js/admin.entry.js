@@ -1,27 +1,27 @@
-require('./charts.entry.js')
+import './charts.entry.js'
 
 // Admin only CSS
 
-require('AdminLTE.min.css')
-require('datepicker3.css')
-require('_all-skins.min.css')
-require('ion.rangeSlider.css')
-require('ion.rangeSlider.skinFlat.css')
-require('bootstrap3-wysihtml5.css')
-require('bootstrap-chosen.css')
-require('../css/admin.css')
+import 'AdminLTE.min.css'
+import 'datepicker3.css'
+import '_all-skins.min.css'
+import 'ion.rangeSlider.css'
+import 'ion.rangeSlider.skinFlat.css'
+import 'bootstrap3-wysihtml5.css'
+import 'bootstrap-chosen.css'
+import '../css/admin.css'
 
 // Admin only code
 
-require('./libs/bootstrap.min');
-require('./libs/bootstrap-datepicker')
-require('./libs/admin-lte-app.min')
-require('./libs/ion.rangeSlider.min')
-require('./libs/jquery.nestable')
-require('./libs/jquery.stickytabs')
-require('./libs/jquery.timeago')
-require('./libs/chosen.jquery');
-require('./admin')
+import './libs/bootstrap.min'
+import './libs/bootstrap-datepicker'
+import './libs/admin-lte-app.min'
+import './libs/ion.rangeSlider.min'
+import './libs/jquery.nestable'
+import './libs/jquery.stickytabs'
+import './libs/jquery.timeago'
+import './libs/chosen.jquery'
+import './admin'
 
 
 require('./app/App.Models.ChartVariableModel')
@@ -63,4 +63,4 @@ require('./app/App.Views.Import.SourceSelector.js')
 require('./app/App.Views.Import.ChooseDatasetSection.js')
 require('./app/App.Views.Import.VariablesSection.js')
 require('./app/App.Views.Import.CategorySection.js')
-App.Views.ImportView = require('./app/App.Views.ImportView.js').default
+App.Views.ImportView = require('./app/App.Views.ImportView').default
