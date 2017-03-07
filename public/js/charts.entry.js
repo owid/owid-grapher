@@ -3,6 +3,7 @@
 import 'bootstrap.css'
 import 'font-awesome.css'
 import 'nv.d3.css'
+import 'normalize.css'
 import '../css/chart.css'
 
 // JS
@@ -16,7 +17,6 @@ import _ from 'underscore'
 
 window.d3 = require('./libs/d3old');
 require('./libs/nv.d3')
-_.extend(window, require('./libs/saveSvgAsPng'));
 
 //import 'preact/devtools'
 require('./app/constants');

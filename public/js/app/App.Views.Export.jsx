@@ -12,6 +12,7 @@
 import _ from 'underscore'
 import Bounds from './Bounds'
 import owid from '../owid'
+import {svgAsDataUri} from 'save-svg-as-png'
 
 export default function(chart) {
 	if (!_.isFunction(window.callPhantom))

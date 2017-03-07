@@ -1,7 +1,7 @@
 // @flow
 
 import * as d3 from 'd3'
-import _ from 'underscore'
+import _ from 'lodash'
 import owid from '../owid'
 import dataflow from './owid.dataflow'
 import Bounds from './Bounds'

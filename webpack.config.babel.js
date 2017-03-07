@@ -3,6 +3,7 @@ import webpack from 'webpack'
 import ExtractTextPlugin from 'extract-text-webpack-plugin'
 import ManifestPlugin from 'webpack-manifest-plugin'
 import OptimizeCssAssetsPlugin from 'optimize-css-assets-webpack-plugin'
+import LodashModuleReplacementPlugin from 'lodash-webpack-plugin'
 
 const isProduction = process.argv.indexOf('-p') !== -1
 
@@ -52,6 +53,8 @@ export default {
         // This plugin extracts css files required in the entry points
         // into a separate CSS bundle for download
         new ExtractTextPlugin('[name].bundle.[chunkhash].css'),
+
+        new LodashModuleReplacementPlugin(),
 
         // CSS optimization
         new OptimizeCssAssetsPlugin({
