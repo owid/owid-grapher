@@ -1,6 +1,7 @@
 // @flow
 
-import * as _ from 'underscore'
+import _ from 'underscore'
+import s from 'underscore.string'
 import * as d3 from 'd3'
 
 export default class Bounds {

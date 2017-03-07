@@ -19,7 +19,6 @@ import _ from 'underscore'
 window.d3 = require('./libs/d3old');
 require('./libs/nv.d3')
 _.extend(window, require('./libs/saveSvgAsPng'));
-window.s = require('underscore.string');
 window.Backbone = require('./libs/backbone');
 window.colorbrewer = require('./libs/colorbrewer');
 

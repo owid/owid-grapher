@@ -10,6 +10,7 @@
  */ 
 
 import _ from 'underscore'
+import s from 'underscore.string'
 
 ;(function() {
 	"use strict";
