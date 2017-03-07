@@ -1,6 +1,6 @@
 // @flow
 
-import _ from 'underscore'
+import _ from 'lodash'
 import * as d3 from 'd3'
 import owid from '../owid'
 import React, { createElement, Component, cloneElement } from 'react'
@@ -148,19 +148,19 @@ export default class SlopeChart extends Component {
 	}
 
 	@computed.struct get sizeDim() : Object {
-		return _.findWhere(this.dimensions, { property: 'size' })||{}
+		return _.find(this.dimensions, { property: 'size' })||{}
 	}
 
 	@computed.struct get colorDim() : Object {
-		return _.findWhere(this.dimensions, { property: 'color' })||{}
+		return _.find(this.dimensions, { property: 'color' })||{}
 	}
 
 	@computed.struct get yDim() : Object {
-		return _.findWhere(this.dimensions, { property: 'y' })||{}
+		return _.find(this.dimensions, { property: 'y' })||{}
 	}
 
 	@computed get variableData() : Observations {
-		const variables = _.pluck(this.dimensions, 'variable')
+		const variables = _.map(this.dimensions, 'variable')
 		let obvs = []
 		_.each(variables, (v) => {
 			for (var i = 0; i < v.years.length; i++) {

@@ -1,5 +1,5 @@
 
-import _ from 'underscore'
+import _ from 'lodash'
 import * as d3 from 'd3'
 import Bounds from './Bounds'
 import dataflow from './owid.dataflow'
@@ -419,7 +419,7 @@ owid.view.timelineold = function(chart, containerNode) {
 
 	// Find closest year in configured points to any given year
 	function getClosestYear(targetYear) {
-        return _.min(state.years, function(year) {
+        return _.minBy(state.years, function(year) {
             return Math.abs(year-targetYear);
         });
 	}

@@ -1,4 +1,4 @@
-import _ from 'underscore'
+import _ from 'lodash'
 import Backbone from 'backbone'
 import owid from '../owid'
 
@@ -254,7 +254,7 @@ export default Backbone.Model.extend({
 			    targetYear = chartTime ? chartTime[0] : parseInt(dimension.targetYear) || latestYearInData,
 			    targetMode = dimension.mode,
 			    tolerance = parseInt(dimension.tolerance),
-			    isCategorical = _.include(['color', 'shape'], dimension.property),
+			    isCategorical = _.includes(['color', 'shape'], dimension.property),
 			    categoryTransform = categoryTransforms[variable.id];
 
 			if (isCategorical && !categoryTransform) {

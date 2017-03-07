@@ -8,8 +8,6 @@ import '../css/chart.css'
 
 // JS
 
-window._ = require('lodash')
-
 // Babel-polyfill emulates a proper ES6 environment in older browsers
 import 'babel-polyfill'
 // Polyfill for the new AJAX function "fetch"

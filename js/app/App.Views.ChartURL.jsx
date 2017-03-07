@@ -10,7 +10,7 @@
  * @created 2016-03-31
  */ 
 
-import _ from 'underscore'
+import _ from 'lodash'
 import $ from 'jquery'
 import owid from '../owid'
 
@@ -64,7 +64,7 @@ export default function(chart) {
 		// Set tab if specified
 		var tab = params.tab;
 		if (tab) {
-			if (!_.contains(chart.model.get("tabs").concat('share'), tab))
+			if (!_.includes(chart.model.get("tabs").concat('share'), tab))
 				console.error("Unexpected tab: " + tab);
 			else {
 				chart.update({ activeTabName: tab });
@@ -125,7 +125,7 @@ export default function(chart) {
 			if (country) {
 				var codesOrNames = _.map(country.split('+'), function(v) { return decodeURIComponent(v) }),
 					entities = _.filter(chart.vardata.get('availableEntities'), function(entity) {
-					return _.include(codesOrNames, entity.code) || _.include(codesOrNames, entity.name);
+					return _.includes(codesOrNames, entity.code) || _.includes(codesOrNames, entity.name);
 				});
 
 				chart.model.set('selected-countries', entities);

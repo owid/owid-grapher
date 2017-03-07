@@ -1,4 +1,4 @@
-import _ from 'underscore'
+import _ from 'lodash'
 import $ from 'jQuery'
 import Backbone from 'backbone'
 import owid from '../owid'

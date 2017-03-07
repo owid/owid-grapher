@@ -2,7 +2,7 @@ import React from 'react'
 import {render, h} from 'preact'
 import BasicTab from './BasicTab'
 import ChartConfig from '../app/ChartConfig'
-import _ from 'underscore'
+import _ from 'lodash'
 import $ from 'jquery'
 
 owid.namespace("App.Views.FormView");

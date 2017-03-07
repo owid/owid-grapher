@@ -9,7 +9,7 @@
  * @created 2016-08-08
  */ 
 
-import _ from 'underscore'
+import _ from 'lodash'
 import s from 'underscore.string'
 import Backbone from 'backbone'
 import owid from '../owid'
@@ -144,7 +144,7 @@ export default Backbone.Model.extend({
 		if (variable && variable.isNumeric) {
 			_.each(variable.values, function(value, i) {
 				var year = variable.years[i];
-				if (_.contains(this.years, year)) {
+				if (_.includes(this.years, year)) {
 					var entity = App.VariableData.getEntityById(variable.entities[i]);
 
 					// If there's a World or other meta entity, it can throw off the map calcs

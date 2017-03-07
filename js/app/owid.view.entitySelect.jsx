@@ -1,5 +1,5 @@
 import Fuse from 'fuse.js'
-import _ from 'underscore'
+import _ from 'lodash'
 import * as d3 from 'd3'
 import dataflow from './owid.dataflow'
 

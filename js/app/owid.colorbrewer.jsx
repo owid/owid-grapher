@@ -1,4 +1,4 @@
-import _ from 'underscore'
+import _ from 'lodash'
 import * as colorbrewer from 'colorbrewer'
 import owid from '../owid'
 

@@ -1,4 +1,4 @@
-import _ from 'underscore'
+import _ from 'lodash'
 import owid from '../owid'
 import colorbrewer from './owid.colorbrewer'
 
@@ -72,7 +72,7 @@ export default function(chart) {
 
         var unitsString = chart.model.get("units"),
             units = !_.isEmpty(unitsString) ? JSON.parse(unitsString) : {},
-            yUnit = _.findWhere(units, { property: 'y' });
+            yUnit = _.find(units, { property: 'y' });
 
 		// Numeric 'buckets' of color
 		if (!_.isEmpty(intervalMaximums)) {
@@ -112,7 +112,7 @@ export default function(chart) {
 		}
 
 		// Add default 'No data' category
-		if (!_.contains(categoricalValues, 'No data')) categoricalValues.push('No data');			
+		if (!_.includes(categoricalValues, 'No data')) categoricalValues.push('No data');			
 		customCategoryColors = _.extend({}, customCategoryColors, { 'No data': mapdata.getNoDataColor() });
 
 		// Categorical values, each assigned a color
@@ -232,10 +232,10 @@ export default function(chart) {
 			};
 		}
 
-		mapdata.minCurrentValue = _.min(currentValues, function(d, i) { return d.value; }).value;
-		mapdata.maxCurrentValue = _.max(currentValues, function(d, i) { return d.value; }).value;
-		mapdata.minToleranceYear = _.min(currentValues, function(d, i) { return d.year; }).year;
-		mapdata.maxToleranceYear = _.max(currentValues, function(d, i) { return d.year; }).year;
+		mapdata.minCurrentValue = _.minBy(_.values(currentValues), function(d, i) { return d.value; }).value;
+		mapdata.maxCurrentValue = _.maxBy(_.values(currentValues), function(d, i) { return d.value; }).value;
+		mapdata.minToleranceYear = _.minBy(_.values(currentValues), function(d, i) { return d.year; }).year;
+		mapdata.maxToleranceYear = _.maxBy(_.values(currentValues), function(d, i) { return d.year; }).year;
 		mapdata.currentValues = currentValues;
 	}
 

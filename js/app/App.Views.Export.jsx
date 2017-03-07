@@ -9,7 +9,7 @@
  * @created 2016-08-09
  */ 
 
-import _ from 'underscore'
+import _ from 'lodash'
 import Bounds from './Bounds'
 import owid from '../owid'
 import {svgAsDataUri} from 'save-svg-as-png'

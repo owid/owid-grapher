@@ -1,4 +1,4 @@
-import _ from 'underscore'
+import _ from 'lodash'
 import Backbone from 'backbone'
 
 /**
@@ -38,7 +38,7 @@ export default Backbone.Model.extend({
 		color = color || this.colorScale(this.colorIndex);
 
 		// Unless the color is manually fixed, we lighten on collision
-		var colorIsTaken = _.contains(_.values(this.colorCache), color);
+		var colorIsTaken = _.includes(_.values(this.colorCache), color);
 		if (colorIsTaken && options.canVary) {
 			var c = d3.rgb(color),
 				magnitude = (c.r+c.g+c.b)/(255*3),

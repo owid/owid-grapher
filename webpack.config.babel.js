@@ -82,6 +82,7 @@ export default {
         // filenames
         new ManifestPlugin(),        
     ] : [
+        new LodashModuleReplacementPlugin(),
         new ExtractTextPlugin('[name].bundle.css'),
     ]),
     devServer: {

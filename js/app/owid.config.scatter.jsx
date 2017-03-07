@@ -1,5 +1,5 @@
 import * as d3 from 'd3'
-import _ from 'underscore'
+import _ from 'lodash'
 import dataflow from './owid.dataflow'
 
 owid.namespace("owid.config.scatter");

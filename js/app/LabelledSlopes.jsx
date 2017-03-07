@@ -10,7 +10,7 @@
 
 // @flow
 
-import _ from 'underscore'
+import _ from 'lodash'
 import * as d3 from 'd3'
 import React, { Component } from 'react'
 import {observable, computed, action} from 'mobx'
@@ -177,11 +177,11 @@ export default class LabelledSlopes extends Component {
 	}
 
 	@computed get xDomainDefault() : [number, number] {
-		return d3.extent(_.pluck(_.flatten(_.pluck(this.props.data, 'values')), 'x'))
+		return d3.extent(_.map(_.flatten(_.map(this.props.data, 'values')), 'x'))
 	}
 
 	@computed get yDomainDefault() : [number, number] {
-		return d3.extent(_.filter(_.pluck(_.flatten(_.pluck(this.props.data, 'values')), 'y'), (d) => d > 0 || this.props.yScaleType != 'log'))		
+		return d3.extent(_.filter(_.map(_.flatten(_.map(this.props.data, 'values')), 'y'), (d) => d > 0 || this.props.yScaleType != 'log'))		
 	}
 
 	@computed get xDomain() : [number, number] {
@@ -196,7 +196,7 @@ export default class LabelledSlopes extends Component {
 	}
 
 	@computed get sizeScale() : any {
-		return d3.scaleLinear().domain(d3.extent(_.pluck(this.props.data, 'size'))).range([1, 4])
+		return d3.scaleLinear().domain(d3.extent(_.map(this.props.data, 'size'))).range([1, 4])
 	}
 
 	@computed get yScaleConstructor() : any {
@@ -224,7 +224,7 @@ export default class LabelledSlopes extends Component {
                 "#69c487", // South America
                 "#ff7f0e", "#1f77b4", "#ffbb78", "#2ca02c", "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b", "c49c94", "e377c2", "f7b6d2", "7f7f7f", "c7c7c7", "bcbd22", "dbdb8d", "17becf", "9edae5", "1f77b4"]
 
-        return d3.scaleOrdinal().domain(_.uniq(_.pluck(this.props.data, 'color'))).range(colorScheme)
+        return d3.scaleOrdinal().domain(_.uniq(_.map(this.props.data, 'color'))).range(colorScheme)
 	}
 
 	@computed get maxLabelWidth() : number {

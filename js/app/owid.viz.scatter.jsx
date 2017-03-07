@@ -1,5 +1,5 @@
 import * as d3 from 'd3'
-import _ from 'underscore'
+import _ from 'lodash'
 import dataflow from './owid.dataflow'
 import owid from '../owid'
 import Scatter from './owid.view.scatter'
@@ -54,7 +54,7 @@ const scatterWithoutTimeline = function() {
 
     // Set domain for color scale now to get the right ordering
     viz.flow('colorScale, dimensions, variables', function(colorScale, dimensions, variables) {
-        var colorDim = _.findWhere(dimensions, { property: 'color' });
+        var colorDim = _.find(dimensions, { property: 'color' });
         if (!colorDim) return;
 
         var variable = variables[colorDim.variableId];
@@ -210,7 +210,7 @@ const scatterWithTimeline = function() {
 
     // Set domain for color scale now to get the right ordering
     viz.flow('colorScale, dimensions, variables', function(colorScale, dimensions, variables) {
-        var colorDim = _.findWhere(dimensions, { property: 'color' });
+        var colorDim = _.find(dimensions, { property: 'color' });
         if (!colorDim) return;
 
         var variable = variables[colorDim.variableId];
