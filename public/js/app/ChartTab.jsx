@@ -11,6 +11,7 @@ import scaleSelectors from './owid.view.scaleSelectors'
 import Scatter from './owid.viz.scatter'
 import EntitySelect from './owid.view.entitySelect'
 import Legend from './App.Views.Chart.Legend'
+import nv from 'nvd3'
 
 // Override nvd3 handling of zero data charts to prevent it removing
 // all of our svg stuff

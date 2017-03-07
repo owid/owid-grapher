@@ -13,11 +13,6 @@ import 'babel-polyfill'
 // Polyfill for the new AJAX function "fetch"
 import 'whatwg-fetch'
 
-import _ from 'underscore'
-
-window.d3 = require('./libs/d3old');
-require('./libs/nv.d3')
-
 //import 'preact/devtools'
 require('./app/constants');
 

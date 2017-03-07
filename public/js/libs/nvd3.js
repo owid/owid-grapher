@@ -15,7 +15,7 @@ nv.dom = {}; //DOM manipulation functions
 
 // Node/CommonJS - require D3
 if (typeof(module) !== 'undefined' && typeof(exports) !== 'undefined' && typeof(d3) == 'undefined') {
-    d3 = require('d3');
+    d3 = require('./d3old');
 }
 
 nv.dispatch = d3.dispatch('render_start', 'render_end');
