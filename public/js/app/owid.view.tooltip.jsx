@@ -1,6 +1,7 @@
 import _ from 'underscore'
 import * as d3 from 'd3'
 import $ from 'jquery'
+import owid from '../owid'
 
 owid.namespace("owid.view.tooltip");
 

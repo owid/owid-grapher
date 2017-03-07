@@ -1,9 +1,13 @@
+import dataflow from './owid.dataflow'
+import s from 'underscore.string'
+import owid from '../owid'
+
 ;(function() {	
 	"use strict";
 	owid.namespace("owid.view.scaleSelector");
 
 	owid.view.scaleSelector = function() {
-		var scaleSelector = owid.dataflow();
+		var scaleSelector = dataflow();
 
 		scaleSelector.needs('containerNode', 'left', 'top');
 		scaleSelector.defaults({ currentScale: 'linear' });
@@ -41,7 +45,7 @@
 
 	owid.namespace("owid.component.scaleSelectors");
 	owid.component.scaleSelectors = function(chart) {
-		var scaleSelectors = owid.dataflow();
+		var scaleSelectors = dataflow();
 
 		var xScaleSelector = owid.view.scaleSelector(),
 			yScaleSelector = owid.view.scaleSelector();

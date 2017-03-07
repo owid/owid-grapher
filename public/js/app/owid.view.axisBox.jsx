@@ -1,11 +1,13 @@
 import * as d3 from 'd3'
 import _ from 'underscore'
 import Bounds from './Bounds'
+import dataflow from './owid.dataflow'
+import owid from '../owid'
 
 owid.namespace("owid.view.axisBox");
 
 owid.view.axisBox = function() {
-	var box = owid.dataflow();
+	var box = dataflow();
 
 	box.needs('containerNode', 'bounds', 'axisConfig');
 

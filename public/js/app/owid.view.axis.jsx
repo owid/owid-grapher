@@ -1,9 +1,11 @@
 import * as d3 from 'd3'
+import dataflow from './owid.dataflow'
+import owid from '../owid'
 
 owid.namespace("owid.view.axis");
 
 owid.view.axis = function() {
-	var axis = owid.dataflow();
+	var axis = dataflow();
 
 	axis.inputs({
 		svg: undefined, // d3 selection

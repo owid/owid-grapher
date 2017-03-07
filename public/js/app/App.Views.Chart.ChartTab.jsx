@@ -5,6 +5,8 @@ import Bounds from './Bounds'
 import ChartConfig from './ChartConfig'
 import _ from 'underscore'
 import $ from 'jquery'
+import owid from '../owid'
+import dataflow from './owid.dataflow'
 
 ;(function() {
 	"use strict";
@@ -18,7 +20,7 @@ import $ from 'jquery'
 	};
 
 	owid.tab.chart = function(chart) {
-		var chartTab = owid.dataflow();
+		var chartTab = dataflow();
 
 		var $svg, $tab, $entitiesSelect,
 			$xAxisScale, $yAxisScale,

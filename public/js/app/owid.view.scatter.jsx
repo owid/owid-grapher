@@ -1,10 +1,12 @@
 import * as d3 from 'd3'
 import _ from 'underscore'
+import dataflow from './owid.dataflow'
+import owid from '../owid'
 
 owid.namespace("owid.view.scatter");
 
 owid.view.scatter = function() {
-	var scatter = owid.dataflow();
+	var scatter = dataflow();
 
 	scatter.needs('containerNode', 'bounds', 'axisConfig');
 

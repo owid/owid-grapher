@@ -1,10 +1,11 @@
 import * as d3 from 'd3'
 import _ from 'underscore'
+import dataflow from './owid.dataflow'
 
 owid.namespace("owid.config.scatter");
 
 owid.config.scatter = function(chart) {
-    var config = owid.dataflow();
+    var config = dataflow();
 
     config.inputs({
         formNode: undefined,

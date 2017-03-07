@@ -13,9 +13,10 @@ import ControlsFooter from './ControlsFooter'
 import DataTab from './DataTab'
 import MapTab from './MapTab'
 import SourcesTab from './SourcesTab'
+import dataflow from './owid.dataflow'
 
 export default function() {
-	var chart = owid.dataflow();
+	var chart = dataflow();
 	window.chart = chart
 
 	// Set up models and data processors

@@ -1,4 +1,5 @@
 import _ from 'underscore'
+import owid from '../owid'
 
 ;(function() {	
 	"use strict";

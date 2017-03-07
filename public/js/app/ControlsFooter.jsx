@@ -14,6 +14,7 @@ import { bind } from 'decko'
 import * as Cookies from 'js-cookie'
 import ChartConfig from './ChartConfig'
 import {NullElement} from './Util'
+import dataflow from './owid.dataflow'
 
 @observer
 class EmbedMenu extends Component {
@@ -164,7 +165,7 @@ class ControlsFooter extends Component {
 }
 
 export default function(chart) {
-    var controlsFooter = owid.dataflow();
+    var controlsFooter = dataflow();
 
     let rootNode = null
 

@@ -47,7 +47,7 @@ class DataTab extends Component {
 }
 
 export default function(chart) {
-	var dataTab = owid.dataflow();
+	var dataTab = dataflow();
 
 	dataTab.isOverlay = true;
 

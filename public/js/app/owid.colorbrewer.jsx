@@ -1,5 +1,6 @@
 import _ from 'underscore'
 import * as colorbrewer from 'colorbrewer'
+import owid from '../owid'
 
 (function() {
 	"use strict";

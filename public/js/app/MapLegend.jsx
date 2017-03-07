@@ -7,6 +7,7 @@ import Bounds from './Bounds'
 import React, {Component} from 'react'
 import {observable, computed, asFlat} from 'mobx'
 import type {SVGElement} from './Util'
+import dataflow from './owid.dataflow'
 
 export class MapLegend extends Component {
 	g: SVGElement
@@ -33,7 +34,7 @@ export class MapLegend extends Component {
 }
 
 owid.view.mapLegend = function() {
-	var legend = owid.dataflow();
+	var legend = dataflow();
 
 	legend.requires('title', 'legendData', 'outerBounds', 'g');
 

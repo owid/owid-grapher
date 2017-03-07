@@ -1,6 +1,7 @@
 // @flow
 
 import * as d3 from 'd3'
+import _ from 'underscore'
 import owid from '../owid'
 import dataflow from './owid.dataflow'
 import Bounds from './Bounds'
@@ -122,7 +123,7 @@ class MapTab extends Component {
 }
 
 export default function(chart : any) {
-    var mapTab = owid.dataflow();
+    var mapTab = dataflow();
 
     let rootNode = null
 

@@ -12,6 +12,7 @@
 import _ from 'underscore'
 import s from 'underscore.string'
 import Backbone from 'backbone'
+import owid from '../owid'
 
 ;(function() {
 	"use strict";

@@ -16,6 +16,9 @@ import '../css/admin.css'
 window.$ = window.jQuery = require('jquery')
 import _ from 'underscore'
 window._ = _
+window.Backbone = require('backbone')
+window.owid = require('./owid').default;
+
 
 require('./libs/bootstrap.min.js')
 require('./libs/admin-lte-app.min')

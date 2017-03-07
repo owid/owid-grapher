@@ -4,11 +4,13 @@ import 'innersvg'
 import Bounds from './Bounds'
 import * as d3 from 'd3'
 import s from 'underscore.string'
+import owid from '../owid'
+import dataflow from './owid.dataflow'
 
 owid.namespace("owid.view.header");
 
 owid.view.header = function() {
-	var header = owid.dataflow();
+	var header = dataflow();
 
 	header.needs('containerNode', 'bounds', 'titleStr');
 
@@ -140,7 +142,7 @@ owid.view.header = function() {
 owid.namespace("owid.control.header");
 
 owid.control.header = function(chart) {
-	var headerControl = owid.dataflow();
+	var headerControl = dataflow();
 
 	headerControl.needs('containerNode', 'bounds');
 

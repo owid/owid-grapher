@@ -12,6 +12,7 @@
 
 import _ from 'underscore'
 import $ from 'jquery'
+import owid from '../owid'
 
 ;(function() {
 	"use strict";

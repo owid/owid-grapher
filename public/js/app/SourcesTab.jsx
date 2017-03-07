@@ -9,6 +9,7 @@ import {computed} from 'mobx'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
 import {NullElement} from './Util'
+import dataflow from './owid.dataflow'
 
 @observer
 class SourcesTab extends Component {
@@ -38,7 +39,7 @@ class SourcesTab extends Component {
 }
 
 export default function(chart) {
-	var sourcesTab = owid.dataflow();
+	var sourcesTab = dataflow();
 
 	sourcesTab.isOverlay = true;
 

@@ -20,8 +20,8 @@ window.d3 = require('./libs/d3old');
 require('./libs/nv.d3')
 _.extend(window, require('./libs/saveSvgAsPng'));
 
-window.owid = require('./owid').default;
-owid.dataflow = require('./app/owid.dataflow').default;
+//window.owid = require('./owid').default;
+//owid.dataflow = require('./app/owid.dataflow').default;
 require('./app/owid.colorbrewer');
 //import 'preact/devtools'
 require('./app/constants');
@@ -47,4 +47,5 @@ require('./app/App.Views.Chart.ChartTab');
 require('./app/App.Views.ChartURL');
 require('./app/App.Views.Export');
 require('./app/App.Views.DebugHelper');
+window.owid = {}
 owid.chart = require('./app/owid.chart').default;

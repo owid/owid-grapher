@@ -2,11 +2,13 @@
 import _ from 'underscore'
 import * as d3 from 'd3'
 import Bounds from './Bounds'
+import dataflow from './owid.dataflow'
+import owid from '../owid'
 
 owid.namespace("owid.view.timeline");
 
 owid.view.timeline = function() {
-	var timeline = owid.dataflow();
+	var timeline = dataflow();
 
     timeline.requires('containerNode', 'outerBounds');
 
