@@ -19,7 +19,6 @@ import _ from 'underscore'
 
 
 window.jQuery = jQuery
-window.d3v4 = d3
 window.d3 = require('./libs/d3old');
 require('./libs/nv.d3')
 _.extend(window, require('./libs/saveSvgAsPng'));

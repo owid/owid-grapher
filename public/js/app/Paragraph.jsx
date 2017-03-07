@@ -13,6 +13,7 @@
 import React, {Component} from 'react'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
+import _ from 'underscore'
 
 @observer
 export default class Paragraph extends Component {

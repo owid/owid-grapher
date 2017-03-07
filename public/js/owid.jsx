@@ -1007,9 +1007,9 @@ owid.features = features;
 
 owid.mouse = function(node) {
 	if (node.ownerSVGElement) {
-		return d3v4.mouse(node);
+		return d3.mouse(node);
 	} else {
-		var mouse = d3v4.mouse(node),
+		var mouse = d3.mouse(node),
 			bounds = chart.getBounds(node),
 			transformedBounds = chart.getTransformedBounds(node);
 
