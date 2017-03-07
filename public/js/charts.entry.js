@@ -21,7 +21,6 @@ _.extend(window, require('./libs/saveSvgAsPng'));
 
 //import 'preact/devtools'
 require('./app/constants');
-require('./app/App.Utils');
 
-window.owid = {}
+import owid from './owid'
 owid.chart = require('./app/owid.chart').default;

@@ -1098,7 +1098,7 @@ owid.view.tooltip = function(chart) {
 		} else {
 			//transform datamaps data into format close to nvd3 so that we can reuse the same popup generator
 			var variableId = App.MapModel.get("variableId"),
-				propertyName = App.Utils.getPropertyByVariableId(App.ChartModel, variableId) || "y";
+				propertyName = owid.getPropertyByVariableId(App.ChartModel, variableId) || "y";
 
 			var obj = {
 				point: {
@@ -1125,6 +1125,101 @@ owid.view.tooltip = function(chart) {
 	};
 
 	return tooltip;
+};
+
+owid.getPropertyByVariableId = function( model, variableId ) {
+	if (!model) return false;
+	var chartDimensions = model.getDimensions();
+
+	if (chartDimensions) {
+		var dimension = _.where( chartDimensions, { "variableId": variableId } );
+		if( dimension && dimension.length ) {
+			return dimension[0].property;
+		}
+
+	}
+
+	return false;
+};
+
+owid.formatTimeLabel = function( type, d, xAxisPrefix, xAxisSuffix, format ) {
+	//depending on type format label
+	var label;
+	switch( type ) {
+		
+		case "Decade":
+			
+			var decadeString = d.toString();
+			decadeString = decadeString.substring( 0, decadeString.length - 1);
+			decadeString = decadeString + "0s";
+			label = decadeString;
+
+			break;
+
+		case "Quarter Century":
+			
+			var quarterString = "",
+				quarter = d % 100;
+			
+			if( quarter < 25 ) {
+				quarterString = "1st quarter of the";
+			} else if( quarter < 50 ) {
+				quarterString = "half of the";
+			} else if( quarter < 75 ) {
+				quarterString = "3rd quarter of the";
+			} else {
+				quarterString = "4th quarter of the";
+			}
+				
+			var centuryString = owid.centuryString( d );
+
+			label = quarterString + " " + centuryString;
+
+			break;
+
+		case "Half Century":
+			
+			var halfString = "",
+				half = d % 100;
+			
+			if( half < 50 ) {
+				halfString = "1st half of the";
+			} else {
+				halfString = "2nd half of the";
+			}
+				
+			var centuryString = owid.centuryString( d );
+
+			label = halfString + " " + centuryString;
+
+			break;
+
+		case "Century":
+			
+			label = owid.centuryString( d );
+
+			break;
+
+		default:
+
+			label = owid.formatValue( d, format );
+			
+			break;
+	}
+	return xAxisPrefix + label + xAxisSuffix;
+};
+owid.formatValue = function( value, format ) {
+	//make sure we do this on number
+	if( value && !isNaN( value ) ) {
+		if( format && !isNaN( format ) ) {
+			var fixed = Math.min( 20, parseInt( format, 10 ) );
+			value = value.toFixed( fixed );
+		} else {
+			//no format 
+			value = value.toString();
+		}
+	}
+	return value;
 };
 
 window.owid = owid;
