@@ -10,6 +10,7 @@ import jQuery from 'jquery'
 import ChartConfig from './ChartConfig'
 import SourcesFooter from './SourcesFooter'
 import ControlsFooter from './ControlsFooter'
+import ChartTab from './ChartTab'
 import DataTab from './DataTab'
 import MapTab from './MapTab'
 import SourcesTab from './SourcesTab'
@@ -20,6 +21,8 @@ import VariableData from './App.Models.VariableData'
 import ChartData from './App.Models.ChartData'
 import Colors from './App.Models.Colors'
 import Header from './App.Views.Chart.Header'
+import Export from './App.Views.Export'
+import UrlBinder from './App.Views.ChartURL'
 
 export default function() {
 	var chart = dataflow();
@@ -63,15 +66,7 @@ export default function() {
 		return mapdata(chart);
 	});
 	chart.flow('url : model', function(model) {
-		return owid.component.urlBinder(chart);
-	});
-
-	chart.flow('exporter : model', function(model) {
-		return new App.Views.Export(chart);
-	});
-
-	chart.flow('debugHelper : model', function(model) {
-		return new App.Views.DebugHelper(chart);
+		return UrlBinder(chart);
 	});
 
 	chart.flow('tooltip : model', function(model) {
@@ -135,7 +130,7 @@ export default function() {
 	// Tabs setup
 	chart.flow('tabs : model', function() {
 		return {
-			chart: owid.tab.chart(chart),
+			chart: ChartTab(chart),
 			data: DataTab(chart),
 			map: MapTab(chart),
 			sources: SourcesTab(chart)
@@ -214,7 +209,7 @@ export default function() {
 	});
 
 	chart.flow('exportMode : isExport', function(isExport) {
-		return isExport ? owid.component.exportMode(chart) : null;
+		return isExport ? Export(chart) : null;
 	});
 
 	chart.render = function() {			

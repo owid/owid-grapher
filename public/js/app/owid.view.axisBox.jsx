@@ -3,10 +3,9 @@ import _ from 'underscore'
 import Bounds from './Bounds'
 import dataflow from './owid.dataflow'
 import owid from '../owid'
+import Axis from './owid.view.axis'
 
-owid.namespace("owid.view.axisBox");
-
-owid.view.axisBox = function() {
+export default function() {
 	var box = dataflow();
 
 	box.needs('containerNode', 'bounds', 'axisConfig');
@@ -15,7 +14,7 @@ owid.view.axisBox = function() {
 		return d3.select(containerNode).append('g').attr('class', 'axisBox')
 	});
 
-	var _xAxis = owid.view.axis();
+	var _xAxis = Axis();
 	box.flow('xAxis : g, bounds, axisConfig', function(g, bounds, axisConfig) {
 		_xAxis.update(_.extend({
 			svg: g,
@@ -30,7 +29,7 @@ owid.view.axisBox = function() {
 		return bounds.height - xAxis.height;
 	});
 
-	var _yAxis = owid.view.axis();
+	var _yAxis = Axis();
 	box.flow("yAxis : g, bounds, innerHeight, axisConfig", function(g, bounds, innerHeight, axisConfig) {
 		_yAxis.update(_.extend({
 			svg: g,

@@ -2,10 +2,9 @@ import * as d3 from 'd3'
 import _ from 'underscore'
 import dataflow from './owid.dataflow'
 import owid from '../owid'
+import AxisBox from './owid.view.axisBox'
 
-owid.namespace("owid.view.scatter");
-
-owid.view.scatter = function() {
+export default function() {
 	var scatter = dataflow();
 
 	scatter.needs('containerNode', 'bounds', 'axisConfig');
@@ -16,7 +15,7 @@ owid.view.scatter = function() {
 		canHover: true
 	});
 
-	var _axisBox = owid.view.axisBox();
+	var _axisBox = AxisBox();
 
 	scatter.flow("svg : containerNode", function(containerNode) {
 		return d3.select(containerNode);

@@ -2,10 +2,10 @@ import * as d3 from 'd3'
 import _ from 'underscore'
 import dataflow from './owid.dataflow'
 import owid from '../owid'
+import Scatter from './owid.view.scatter'
+import Timeline from './owid.view.timeline'
 
-owid.namespace("owid.control.scatter");
-
-owid.control.scatter = function() {
+export default function() {
     var control = dataflow();
 
     var colorScheme = [ // TODO less ad hoc color scheme (probably would have to annotate the datasets)
@@ -26,7 +26,7 @@ owid.control.scatter = function() {
         if (hasTimeline != shouldHaveTimeline) {
             if (control.scatter) control.scatter.clean();
 
-            control.scatter = shouldHaveTimeline ? owid.control.scatterWithTimeline() : owid.control.scatterWithoutTimeline();
+            control.scatter = shouldHaveTimeline ? scatterWithTimeline() : scatterWithoutTimeline();
 
             hasTimeline = shouldHaveTimeline;
         }
@@ -42,7 +42,7 @@ owid.control.scatter = function() {
     return control;
 };
 
-owid.control.scatterWithoutTimeline = function() {
+const scatterWithoutTimeline = function() {
     var viz = dataflow();
 
     viz.needs('containerNode', 'bounds', 'axisConfig', 'dimensions', 'variables', 'colorScheme');
@@ -129,7 +129,7 @@ owid.control.scatterWithoutTimeline = function() {
     });
 
     viz.flow('scatter : containerNode', function(containerNode) {
-        return owid.view.scatter();
+        return Scatter();
     });
 
     viz.flow('scatter, containerNode, data, bounds, axisConfig', function(scatter, containerNode, data, bounds, axisConfig) {
@@ -148,7 +148,7 @@ owid.control.scatterWithoutTimeline = function() {
     return viz;
 };
 
-owid.control.scatterWithTimeline = function() {
+const scatterWithTimeline = function() {
     var viz = dataflow();
 
     viz.needs('containerNode', 'bounds', 'axisConfig', 'dimensions', 'variables', 'inputYear', 'timelineConfig', 'colorScheme');
@@ -279,7 +279,7 @@ owid.control.scatterWithTimeline = function() {
 
     // hack
     viz.flow('timeline : containerNode', function(containerNode) {
-        var timeline = owid.view.timeline();
+        var timeline = Timeline();
 
         timeline.flow('targetYear', function(targetYear) {
             chart.model.set('chart-time', [targetYear, targetYear]);
@@ -350,7 +350,7 @@ owid.control.scatterWithTimeline = function() {
     });
 
     viz.flow('scatter : containerNode', function(containerNode) {
-        return owid.view.scatter();
+        return Scatter();
     });
 
     // Calculate default domain (can be overriden by axis config)

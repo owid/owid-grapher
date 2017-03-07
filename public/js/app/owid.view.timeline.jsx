@@ -5,9 +5,7 @@ import Bounds from './Bounds'
 import dataflow from './owid.dataflow'
 import owid from '../owid'
 
-owid.namespace("owid.view.timeline");
-
-owid.view.timeline = function() {
+export default function() {
 	var timeline = dataflow();
 
     timeline.requires('containerNode', 'outerBounds');

@@ -3,9 +3,7 @@ import _ from 'underscore'
 import * as d3 from 'd3'
 import dataflow from './owid.dataflow'
 
-owid.namespace("owid.view.scatter");
-
-owid.view.entitySelect = function() {
+export default function() {
     var entitySelect = dataflow();
 
     entitySelect.needs('containerNode', 'entities');

@@ -2,9 +2,7 @@ import * as d3 from 'd3'
 import dataflow from './owid.dataflow'
 import owid from '../owid'
 
-owid.namespace("owid.view.axis");
-
-owid.view.axis = function() {
+export default function() {
 	var axis = dataflow();
 
 	axis.inputs({
