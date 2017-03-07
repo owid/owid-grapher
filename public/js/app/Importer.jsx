@@ -81,7 +81,7 @@ class Dataset {
 	}
 
 	@computed get isLoading() {
-		return this.id && _.isEmpty(this.existingVariables)
+		return this.id && !this.existingVariables.length
 	}
 
 	@computed get sources() {
@@ -289,7 +289,10 @@ class EditVariable extends Component {
 				<label>Geographic Coverage<input value={variable.coverage} onInput={e => variable.coverage = e.target.value} placeholder="e.g. Global by country"/></label>
 				<label>Time Span<input value={variable.timespan} onInput={e => variable.timespan = e.target.value} placeholder="e.g. 1920-1990"/></label>
 				<label>Source
-					<button onClick={this.onEditSource}><i class="fa fa-pencil"/> {sourceName || 'Add source'}</button>
+					<button onClick={this.onEditSource} style={{position: 'relative'}}>
+						<i class="fa fa-pencil"/> {sourceName || 'Add source'}
+						<input type="text" value={variable.source && variable.source.name} required style={{position: 'absolute', left: 0, top: 0, width: '100%', height: '100%', opacity: 0}}/>
+					</button>
 				</label>
 				<label>Action
 					<select onChange={e => variable.overwriteId = e.target.value}>
@@ -387,21 +390,6 @@ class EditSource extends Component {
 			</p>}
 			<input type="submit" class="btn btn-success" value="Save"/>
 		</form>		
-	}	
-}
-
-@observer
-class EditData extends Component {
-	render() {
-		const {dataset} = this.props
-
-		if (!dataset.CSV)
-			return null
-		else if (dataset.isLoading)
-			return <i class="fa fa-spinner fa-spin"></i>
-
-		return <div>
-		</div>
 	}	
 }
 
@@ -526,7 +514,7 @@ class CSV {
 
 		// Warn if we're creating novel entities
 		const newEntities = _.difference(this.data.entityNames, this.existingEntities)
-		if (newEntities.length > 1) {
+		if (newEntities.length >= 1) {
 			validation.results.push({
 				class: 'warning',
 				message: `These entities were not found in the database and will be created: ${newEntities.join(', ')}`
@@ -546,8 +534,16 @@ class CSV {
 		const newRows = [['Entity', 'Year', this.basename]]
 
 		for (let i = 1; i < rows.length; i++) {
+			const entity = rows[i][0]
+			for (let j = 1; j < rows[0].length; j++) {
+				const year = rows[0][j]
+				const value = rows[i][j]
 
+				newRows.push([entity, year, value])
+			}
 		}
+
+		return newRows
 	}
 
 	constructor({ filename = "", rows = [], existingEntities = [] }) {
@@ -607,7 +603,7 @@ class CSVSelector extends Component {
 			<input type="file" onChange={this.onChooseCSV}/>
 			{csv && <DataPreview csv={csv}/>}
 			{csv && <ValidationResults validation={csv.validation}/>}
-		</section>		
+		</section>
 	}
 }
 
@@ -664,7 +660,7 @@ export default class Importer extends Component {
 
 		return <form class={styles.importer} onSubmit={this.onSubmit}>
 			<h2>Import CSV file</h2>
-			<p>Examples of valid layouts: <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_single-var.png">single variable</a>, <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_multi-var.png">multiple variables</a>.</p>
+			<p>Examples of valid layouts: <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_single-var.png">single variable</a>, <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_multi-var.png">multiple variables</a>. The multivar layout is preferred.</p>
 			<CSVSelector onCSV={this.onCSV} existingEntities={existingEntities}/>
 
 			{csv && csv.isValid && <section>
@@ -675,6 +671,7 @@ export default class Importer extends Component {
 						<option value={d.id} selected={d.id == dataset.id}>{d.name}</option>
 					)}
 				</select>
+
 				<EditName dataset={dataset}/>
 				<hr/>
 				<EditDescription dataset={dataset}/>
@@ -682,13 +679,14 @@ export default class Importer extends Component {
 				<EditCategory dataset={dataset} categories={categories}/>
 				<hr/>
 
-				<EditVariables dataset={dataset}/>
-
-				<input type="submit" class="btn btn-success" value={dataset.id ? "Update dataset" : "Create dataset"}/>
-
-				<Modal isOpen={!!dataset.importRequest} contentLabel="Modal" parentSelector={e => document.querySelector('.wrapper')}>
-					<ImportProgressModal dataset={dataset}/>
-				</Modal>			
+				{dataset.isLoading && <i class="fa fa-spinner fa-spin"></i>}
+				{!dataset.isLoading && [
+					<EditVariables dataset={dataset}/>,
+					<input type="submit" class="btn btn-success" value={dataset.id ? "Update dataset" : "Create dataset"}/>,
+					<Modal isOpen={!!dataset.importRequest} contentLabel="Modal" parentSelector={e => document.querySelector('.wrapper')}>
+						<ImportProgressModal dataset={dataset}/>
+					</Modal>			
+				]}
 			</section>}
 		</form>
 	}

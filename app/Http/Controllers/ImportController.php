@@ -44,7 +44,7 @@ class ImportController extends Controller {
 			->orderBy('dataset_subcategories.id', 'ASC')
 			->select('dataset_subcategories.name', 'dataset_subcategories.id', 'dataset_categories.name as parent')->get();
 
-		$entityNames = DB::table("entities")->lists("name");
+		$entityNames = array_merge(DB::table("entities")->lists("name"), DB::table("entities")->lists("code"));
 
 		$data = [
 			'datasets' => $datasets,
