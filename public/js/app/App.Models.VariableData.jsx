@@ -1,5 +1,6 @@
 import _ from 'underscore'
 import $ from 'jQuery'
+import Backbone from 'backbone'
 
 ;(function() {		
 	"use strict";

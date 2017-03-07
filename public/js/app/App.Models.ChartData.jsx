@@ -1,4 +1,5 @@
 import _ from 'underscore'
+import Backbone from 'backbone'
 
 ;(function() {		
 	"use strict";

@@ -11,6 +11,7 @@
 
 import _ from 'underscore'
 import s from 'underscore.string'
+import Backbone from 'backbone'
 
 ;(function() {
 	"use strict";

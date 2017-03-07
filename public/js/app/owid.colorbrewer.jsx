@@ -1,4 +1,5 @@
 import _ from 'underscore'
+import * as colorbrewer from 'colorbrewer'
 
 (function() {
 	"use strict";
