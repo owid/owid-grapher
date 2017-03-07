@@ -12,7 +12,6 @@ import 'babel-polyfill'
 // Polyfill for the new AJAX function "fetch"
 import 'whatwg-fetch'
 
-import './libs/modernizr-custom'
 import _ from 'underscore'
 
 window.d3 = require('./libs/d3old');
