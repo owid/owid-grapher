@@ -26,7 +26,6 @@ _.extend(window, require('./libs/saveSvgAsPng'));
 require('./app/constants');
 require('./app/App.Utils');
 require('./app/owid.view.tooltip');
-require('./app/owid.view.scaleSelectors');
 require('./app/owid.view.axis');
 require('./app/owid.view.axisBox');
 require('./app/owid.view.timeline');

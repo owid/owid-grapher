@@ -7,6 +7,7 @@ import _ from 'underscore'
 import $ from 'jquery'
 import owid from '../owid'
 import dataflow from './owid.dataflow'
+import scaleSelectors from './owid.view.scaleSelectors'
 
 ;(function() {
 	"use strict";
@@ -53,7 +54,7 @@ import dataflow from './owid.dataflow'
 
 		var xDomain, yDomain, isClamped;
 
-		chartTab.scaleSelectors = owid.component.scaleSelectors(chart);
+		chartTab.scaleSelectors = scaleSelectors(chart);
 
 		var nvOptions = {
 			showLegend: false
