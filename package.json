@@ -2,7 +2,7 @@
   "private": true,
   "scripts": {
     "dev": "webpack-dev-server -d",
-    "build": "rm -rf public/build/* && webpack -p"
+    "build": "webpack -p --progress"
   },
   "dependencies": {
     "autoprefixer": "^6.7.6",

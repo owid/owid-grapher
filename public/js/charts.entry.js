@@ -48,8 +48,6 @@ require('./app/owid.view.entitySelect');
 require('./app/App.Views.Chart.Legend');
 require('./app/App.Views.Chart.ChartTab');
 
-require('./app/App.Views.Chart.Map.Legend');
-
 require('./app/App.Views.ChartURL');
 require('./app/App.Views.Export');
 require('./app/App.Views.DebugHelper');
