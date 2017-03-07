@@ -1,3 +1,5 @@
+import ChartModel from './App.Models.ChartModel'
+
 ;$(document).ready(function() {	
 	"use strict";
 	owid.namespace("App.View");
@@ -5,7 +7,6 @@
 	if (!$("#import-view").length) return;
 
 	var Import = require("App.Views.Import"),
-		ChartModel = require("App.Models.ChartModel"),
 		Utils = require("App.Utils");
 
 	//setup models

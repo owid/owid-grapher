@@ -14,6 +14,12 @@ import DataTab from './DataTab'
 import MapTab from './MapTab'
 import SourcesTab from './SourcesTab'
 import dataflow from './owid.dataflow'
+import ChartModel from './App.Models.ChartModel'
+import mapdata from './owid.models.mapdata'
+import VariableData from './App.Models.VariableData'
+import ChartData from './App.Models.ChartData'
+import Colors from './App.Models.Colors'
+import Header from './App.Views.Chart.Header'
 
 export default function() {
 	var chart = dataflow();
@@ -36,15 +42,15 @@ export default function() {
 	// wired together to keep it working. Compatibility with the editor especially
 	// since the editor code is generally much older.
 	chart.flow('model : chartConfig', function(chartConfig) {
-		return new App.Models.ChartModel(chartConfig);
+		return new ChartModel(chartConfig);
 	});
 
 	chart.flow('vardata, data, colors : model', function(model) {
 		App.ChartModel = model;
 		chart.config = new ChartConfig(model)
-		App.VariableData = new App.Models.VariableData();	
-		App.ChartData = new App.Models.ChartData();
-		App.Colors = new App.Models.Colors(chart);		
+		App.VariableData = new VariableData();	
+		App.ChartData = new ChartData();
+		App.Colors = new Colors(chart);		
 
 		return [App.VariableData, App.ChartData, App.Colors];
 	});
@@ -54,7 +60,7 @@ export default function() {
 		return App.MapModel;
 	});
 	chart.flow('mapdata : map', function(map) {
-		return owid.models.mapdata(chart);
+		return mapdata(chart);
 	});
 	chart.flow('url : model', function(model) {
 		return owid.component.urlBinder(chart);
@@ -72,7 +78,7 @@ export default function() {
 		return new owid.view.tooltip(chart);
 	});
 
-	chart.flow('header : model', function() { return owid.control.header(chart); });
+	chart.flow('header : model', function() { return Header(chart); });
 	chart.flow('sourcesFooter : model', function() { return SourcesFooter(chart); });
 	chart.flow('controlsFooter : model', function() { return ControlsFooter(chart); });
 

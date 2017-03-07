@@ -7,9 +7,7 @@ import s from 'underscore.string'
 import owid from '../owid'
 import dataflow from './owid.dataflow'
 
-owid.namespace("owid.view.header");
-
-owid.view.header = function() {
+function owid_header() {
 	var header = dataflow();
 
 	header.needs('containerNode', 'bounds', 'titleStr');
@@ -139,9 +137,7 @@ owid.view.header = function() {
 	return header;
 };
 
-owid.namespace("owid.control.header");
-
-owid.control.header = function(chart) {
+export default function(chart) {
 	var headerControl = dataflow();
 
 	headerControl.needs('containerNode', 'bounds');
@@ -157,7 +153,7 @@ owid.control.header = function(chart) {
 		maxYear: null,
 	});
 
-	var header = owid.view.header();
+	var header = owid_header();
 
 	// Replaces things like *time* and *country* with the actual time and
 	// country displayed by the current chart context
@@ -276,4 +272,4 @@ owid.control.header = function(chart) {
 	headerControl.view = header;
 
 	return headerControl;
-};
+}

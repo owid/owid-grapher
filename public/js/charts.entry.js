@@ -15,7 +15,6 @@ import 'whatwg-fetch'
 import './libs/modernizr-custom'
 import _ from 'underscore'
 
-
 window.d3 = require('./libs/d3old');
 require('./libs/nv.d3')
 _.extend(window, require('./libs/saveSvgAsPng'));
@@ -26,13 +25,6 @@ _.extend(window, require('./libs/saveSvgAsPng'));
 //import 'preact/devtools'
 require('./app/constants');
 require('./app/App.Utils');
-require('./app/App.Models.ChartModel');
-require('./app/App.Models.MapModel');
-require('./app/owid.models.mapdata');
-require('./app/App.Models.VariableData');
-require('./app/App.Models.ChartData');
-require('./app/App.Models.Colors');
-require('./app/App.Views.Chart.Header');
 require('./app/owid.view.tooltip');
 require('./app/owid.view.scaleSelectors');
 require('./app/owid.view.axis');
