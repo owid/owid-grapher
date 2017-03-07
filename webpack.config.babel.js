@@ -8,7 +8,7 @@ import LodashModuleReplacementPlugin from 'lodash-webpack-plugin'
 const isProduction = process.argv.indexOf('-p') !== -1
 
 export default {
-    context: path.join(__dirname, "public/js"),
+    context: path.join(__dirname, "js"),
     entry: {        
         charts: "./charts.entry.js",
         admin: "./admin.entry.js"
@@ -24,8 +24,8 @@ export default {
             'react-dom': 'preact-compat'
         },
         modules: [
-  	        path.join(__dirname, "public/js/libs"),
-            path.join(__dirname, "public/css/libs"),
+  	        path.join(__dirname, "js/libs"),
+            path.join(__dirname, "css/libs"),
             path.join(__dirname, "node_modules"),
         ],
     },

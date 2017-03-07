@@ -1,5 +1,5 @@
 
-import _ from 'underscore'
+import _ from 'lodash'
 import 'innersvg'
 import Bounds from './Bounds'
 import * as d3 from 'd3'

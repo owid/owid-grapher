@@ -1,6 +1,6 @@
 // @flow
 
-import {each, uniq, pluck} from 'underscore'
+import _ from 'lodash'
 import * as d3 from 'd3'
 import owid from '../owid'
 import dataflow from './owid.dataflow'
@@ -209,7 +209,7 @@ export default function(chart : any) {
         let sourcesStr : string = chart.model.get('sourceDesc')
         if (!sourcesStr) {
             const sources = chart.data.transformDataForSources()
-            const sourceNames : Array<string> = uniq(pluck(sources, 'name'))
+            const sourceNames : Array<string> = _.uniq(_.map(sources, 'name'))
             sourceNames.forEach((sourceName, i) => {
                  if (i > 0) sourcesStr += ", "
                  sourcesStr += sourceName

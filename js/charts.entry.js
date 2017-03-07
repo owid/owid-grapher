@@ -8,6 +8,8 @@ import '../css/chart.css'
 
 // JS
 
+window._ = require('lodash')
+
 // Babel-polyfill emulates a proper ES6 environment in older browsers
 import 'babel-polyfill'
 // Polyfill for the new AJAX function "fetch"
@@ -16,5 +18,4 @@ import 'whatwg-fetch'
 //import 'preact/devtools'
 require('./app/constants');
 
-import owid from './owid'
-owid.chart = require('./app/owid.chart').default;
+window.Chart = require('./app/owid.chart').default;
