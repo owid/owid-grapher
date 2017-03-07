@@ -1,3 +1,5 @@
+import $ from 'jquery'
+
 ;(function() {
 	"use strict";
 	owid.namespace("App.Views.UI.SelectVarPopup");

@@ -13,18 +13,18 @@ import '../css/admin.css'
 
 // Admin only code
 
-import './libs/bootstrap.min'
-import './libs/bootstrap-datepicker'
-import './libs/admin-lte-app.min'
-import './libs/ion.rangeSlider.min'
-import './libs/jquery.nestable'
-import './libs/jquery.stickytabs'
-import './libs/jquery.timeago'
-import './libs/chosen.jquery'
-import './admin'
-
+window.$ = window.jQuery = require('jquery')
 import _ from 'underscore'
 window._ = _
+
+require('./libs/bootstrap.min.js')
+require('./libs/admin-lte-app.min')
+require('./libs/ion.rangeSlider.min')
+require('./libs/jquery.nestable')
+require('./libs/jquery.stickytabs')
+require('./libs/jquery.timeago')
+require('./libs/chosen.jquery')
+require('./admin')
 
 require('./app/App.Models.ChartVariableModel')
 require('./app/App.Models.EntityModel')

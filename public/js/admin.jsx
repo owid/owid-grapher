@@ -1,6 +1,8 @@
 /* General admin interface improvements */
 
-window.Cookies = require('js-cookie');
+import $ from 'jquery'
+import Cookies from 'js-cookie'
+window.Cookies = Cookies
 
 ;(function() {
 	"use strict";

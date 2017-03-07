@@ -13,12 +13,9 @@ import 'babel-polyfill'
 import 'whatwg-fetch'
 
 import './libs/modernizr-custom'
-import jQuery from 'jquery'
-import * as d3 from 'd3'
 import _ from 'underscore'
 
 
-window.jQuery = jQuery
 window.d3 = require('./libs/d3old');
 require('./libs/nv.d3')
 _.extend(window, require('./libs/saveSvgAsPng'));

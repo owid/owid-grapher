@@ -9,6 +9,7 @@
  */ 
 
 import _ from 'underscore'
+import $ from 'jquery'
 
 ;(function() {
 	"use strict";

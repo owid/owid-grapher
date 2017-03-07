@@ -4,6 +4,7 @@ import SlopeChart from './SlopeChart'
 import Bounds from './Bounds'
 import ChartConfig from './ChartConfig'
 import _ from 'underscore'
+import $ from 'jquery'
 
 ;(function() {
 	"use strict";

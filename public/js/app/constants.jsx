@@ -22,9 +22,6 @@
 
 	App.OWID_LOGO = "uploads/26538.png";
 
-	//export for iframe
-	window.$ = jQuery;
-
 	//export
 	window.App = App;
 })();
