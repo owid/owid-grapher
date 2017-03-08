@@ -789,6 +789,10 @@ li[data-color^=".*"] {
 .select-var-popup .modal {
   display: block; }
 
+.modal-dialog {
+  z-index: 2002;
+}
+
 /**
 *	settings var popup
 **/
