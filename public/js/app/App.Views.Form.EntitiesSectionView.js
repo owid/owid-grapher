@@ -25,6 +25,7 @@
 			this.listenTo(App.ChartModel, "change:selected-countries", this.render.bind(this));
 			this.listenTo(App.ChartModel, "change:add-country-mode", this.renderAddCountryMode.bind(this));
 			this.render();
+			this.renderAddCountryMode();
 		},
 
 		render: function() {
