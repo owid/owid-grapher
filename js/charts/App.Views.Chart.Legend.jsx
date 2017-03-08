@@ -1,11 +1,12 @@
 import owid from '../owid'
 
-export default owid.View.extend({
-	initialize: function() {
+// TODO: Reactify
+export default class Legend {
+	constructor() {
 		this.dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout', 'stateChange', 'addEntity');
-	},
+	}
 
-	render: function(config) {
+	render(config) {
 		var container = d3.select(config.containerNode),
 			bounds = config.bounds.padLeft(35);
 
@@ -153,13 +154,13 @@ export default owid.View.extend({
 
 		transformX += 28;
 		addEntityBtn.attr("transform", "translate(" + (bounds.left+transformX-35) + "," + (bounds.top+transformY+5) + ")");
-	},
+	}
 
-	height: function() {
+	height() {
 		var legend = d3.select('.nv-custom-legend');
 		if (legend.node())
 			return legend.node().getBBox().height;
 		else
 			return 0;
 	}
-});
+}
