@@ -1,4 +1,4 @@
-import * as _ from 'underscore'
+import _ from 'lodash'
 
 export default function dataflow() {
 	var dataflow = {}, state = {}, defaults = {}, flows = [];
@@ -221,7 +221,7 @@ export default function dataflow() {
 				});
 			}
 
-			var inputChanged =_.any(flow.inputs, function(k) { return _.has(changes, k); });
+			var inputChanged = _.some(flow.inputs, function(k) { return _.has(changes, k); });
 			if (!inputChanged) return flowCycle();
 
 			var hasArgs = true;

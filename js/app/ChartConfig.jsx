@@ -1,7 +1,7 @@
 // @flow
 
 import owid from '../owid'
-import * as _ from 'underscore'
+import _ from 'lodash'
 import {observable, computed, action} from 'mobx'
 import type {ScaleType} from './ScaleSelector'
 

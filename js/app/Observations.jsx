@@ -1,6 +1,6 @@
 // @flow
 
-import * as _ from 'underscore'
+import _ from 'lodash'
 
 export default class Observations {
 	data: Object[]
@@ -38,11 +38,11 @@ export default class Observations {
 	}
 
 	minValue(key : string) {
-		return _.min(_.pluck(this.data, key))
+		return _.min(_.map(this.data, key))
 	}
 
 	maxValue(key : string) {
-		return _.max(_.pluck(this.data, key))
+		return _.max(_.map(this.data, key))
 	}
 
 	first(key? : string) {
@@ -64,6 +64,6 @@ export default class Observations {
 	}
 
 	pluck(key : string) {
-		return _.pluck(this.data, key)
+		return _.map(this.data, key)
 	}
 }

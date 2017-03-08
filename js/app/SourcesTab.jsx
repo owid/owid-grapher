@@ -1,6 +1,6 @@
 // @flow
 
-import * as _ from 'underscore'
+import _ from 'lodash'
 import * as d3 from 'd3'
 import React, {Component} from 'react'
 import {render} from 'preact'
@@ -32,7 +32,7 @@ class SourcesTab extends Component {
 		return <div class="sourcesTab" style={_.extend(bounds.toCSS(), { position: 'absolute' })}>
 			<div>
 				<h2>Sources</h2>
-				<div dangerouslySetInnerHTML={{__html: _.pluck(sources, 'description').join(' ') }} />
+				<div dangerouslySetInnerHTML={{__html: _.map(sources, 'description').join(' ') }} />
 			</div>
 		</div>
 	}

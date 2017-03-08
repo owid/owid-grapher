@@ -1,6 +1,6 @@
 // @flow
 
-import * as _ from 'underscore'
+import _ from 'lodash'
 import * as d3 from 'd3'
 import owid from '../owid'
 import Bounds from './Bounds'
@@ -56,13 +56,13 @@ class ShareMenu extends Component {
     @computed get pngUrl() : string {
         const {baseUrl, queryStr, cacheTag} = this
         var pngHref = baseUrl + '.png' + queryStr, defaultTargetSize = "1200x800"
-        return pngHref + (_.include(pngHref, "?") ? "&" : "?") + "size=" + defaultTargetSize + "&v=" + cacheTag
+        return pngHref + (_.includes(pngHref, "?") ? "&" : "?") + "size=" + defaultTargetSize + "&v=" + cacheTag
     }
 
     @computed get svgUrl() : string {
         const {baseUrl, queryStr, cacheTag} = this
         var svgHref = baseUrl + '.svg' + queryStr, defaultTargetSize = "1200x800"
-        return svgHref + (_.include(svgHref, "?") ? "&" : "?") + "size=" + defaultTargetSize + "&v=" + cacheTag
+        return svgHref + (_.includes(svgHref, "?") ? "&" : "?") + "size=" + defaultTargetSize + "&v=" + cacheTag
     }
 
     @observable isEmbedMenuActive : boolean = false

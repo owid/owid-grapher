@@ -2,7 +2,6 @@
 
 import Bounds from './Bounds'
 import {cloneElement} from 'preact'
-import {map} from 'underscore'
 
 export type SVGElement = any;
 export const NullElement : any = () => null;

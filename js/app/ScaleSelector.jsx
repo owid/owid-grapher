@@ -10,7 +10,6 @@
 
 // @flow
 
-import * as _ from 'underscore'
 import * as d3 from 'd3'
 import React, { Component } from 'react'
 import {observable, computed, action} from 'mobx'

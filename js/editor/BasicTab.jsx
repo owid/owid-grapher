@@ -4,11 +4,11 @@ import React, {Component} from 'react'
 import {computed} from 'mobx'
 import type ChartConfig from '../app/ChartConfig'
 import {bind} from 'decko'
-import * as _ from 'underscore'
+import _ from 'lodash'
 
 function slugify(s) {
 	s = s.toLowerCase().replace(/\s*\*.+\*/, '').replace(/[^\w- ]+/g,'');
-	return $.trim(s).replace(/ +/g,'-');
+	return _.trim(s).replace(/ +/g,'-');
 }
 
 export default class BasicTab extends Component {

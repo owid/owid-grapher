@@ -1,6 +1,6 @@
 // @flow
 
-import * as _ from 'underscore'
+import _ from 'lodash'
 import * as d3 from 'd3'
 import owid from '../owid'
 import dataflow from './owid.dataflow'
@@ -191,11 +191,11 @@ class SlopeChart extends Component {
 	}
 
 	@computed get xDomainDefault() : [number, number] {
-		return d3.extent(_.pluck(_.flatten(_.pluck(this.props.data, 'values')), 'x'))
+		return d3.extent(_.map(_.flatten(_.map(this.props.data, 'values')), 'x'))
 	}
 
 	@computed get yDomainDefault() : [number, number] {
-		return d3.extent(_.pluck(_.flatten(_.pluck(this.props.data, 'values')), 'y'))
+		return d3.extent(_.map(_.flatten(_.map(this.props.data, 'values')), 'y'))
 	}
 
 	@computed get axisLayout() : AxisLayout {
@@ -213,7 +213,7 @@ class SlopeChart extends Component {
 	}
 
 	@computed get sizeScale() {
-		return d3.scaleLinear().domain(d3.extent(_.pluck(this.props.data, 'size'))).range([1, 3])
+		return d3.scaleLinear().domain(d3.extent(_.map(this.props.data, 'size'))).range([1, 3])
 	}
 
 	@computed get initialSlopeData() : SlopeProps[] {

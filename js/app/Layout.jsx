@@ -1,6 +1,6 @@
 // @flow
 
-import * as _ from 'underscore'
+import _ from 'lodash'
 import * as d3 from 'd3'
 import React, {Component, cloneElement} from 'react'
 import Bounds from './Bounds'
