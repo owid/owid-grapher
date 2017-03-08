@@ -147,7 +147,7 @@ export default Backbone.Model.extend({
 					var entity = App.VariableData.getEntityById(variable.entities[i]);
 
 					// If there's a World or other meta entity, it can throw off the map calcs
-					if (entity.code && !s.startsWith(entity.code, "OWID")) {						
+					if (entity.code && !_.startsWith(entity.code, "OWID")) {						
 						if (value < this.minValue) this.minValue = value;
 						if (value > this.maxValue) this.maxValue = value;
 					}

@@ -369,6 +369,7 @@ const scatterWithTimeline = function() {
 
         return [[xMin, xMax], [yMin, yMax]];
     });
+    
     viz.flow('scatterAxis : axisConfig, xDomain, yDomain', function(axisConfig, xDomain, yDomain) {
         xDomain = _.extend([], xDomain, axisConfig.x.domain);
         yDomain = _.extend([], yDomain, axisConfig.y.domain);

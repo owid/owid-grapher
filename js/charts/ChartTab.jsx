@@ -2,7 +2,6 @@ import React from 'react'
 import {h, render, Component} from 'preact'
 import SlopeChart from './SlopeChart'
 import Bounds from './Bounds'
-import ChartConfig from './ChartConfig'
 import _ from 'lodash'
 import $ from 'jquery'
 import owid from '../owid'
@@ -12,6 +11,7 @@ import Scatter from './owid.viz.scatter'
 import EntitySelect from './owid.view.entitySelect'
 import Legend from './App.Views.Chart.Legend'
 import nv from 'nvd3'
+import ScatterPlot from './ScatterPlot'
 
 // Override nvd3 handling of zero data charts to prevent it removing
 // all of our svg stuff
@@ -248,12 +248,7 @@ export default function(chart) {
 	var rootNode = null;
 	function renderSlopeChart() {
 		let bounds = new Bounds(chartOffsetX, chartOffsetY+10, chartWidth-10, chartHeight-10)
-
-//			const props = slopeChartTransform.getProps({ dimensions: chart.model.getDimensions(), xDomain: chartTime })
-//			chartTab.minYear = props.xDomain[0]
-//			chartTab.maxYear = props.xDomain[1]
-
-		rootNode = render(<SlopeChart bounds={bounds} config={new ChartConfig(chart.model)}/>, chart.svg.node(), rootNode)
+		rootNode = render(<SlopeChart bounds={bounds} config={chart.config}/>, chart.svg.node(), rootNode)
 		postRender();
 		chart.header.render();			
 	}
@@ -297,7 +292,11 @@ export default function(chart) {
 	});
 
 	function renderScatterPlot() {
-		if (!viz) {
+		let bounds = new Bounds(chartOffsetX, chartOffsetY+10, chartWidth-10, chartHeight-10)
+		rootNode = render(<ScatterPlot bounds={bounds} config={chart.config}/>, chart.svg.node(), rootNode)
+		postRender();
+		chart.header.render();
+		/*if (!viz) {
 			viz = Scatter();
 		} else if (viz.scatter.timeline && (viz.scatter.timeline.isPlaying || viz.scatter.timeline.isDragging)) {
 			return;
@@ -342,7 +341,7 @@ export default function(chart) {
             axisConfig: chartTab.axisConfig
 		}, function() {
 			postRender();
-		});			
+		});*/
 	}
 
 	function renderStackedArea() {

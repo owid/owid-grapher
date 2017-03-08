@@ -37,6 +37,10 @@ export default class ChartConfig {
 	@computed get xAxisConfig() : Object { return this.model.get('x-axis') }
 	@computed get yAxisConfig() : Object { return this.model.get('y-axis') }
 
+	@computed get dimensions() : Object[] {
+		return this.model.getDimensions()
+	}
+
 	@computed get yDomain() : [number|null, number|null] {
 		let min = owid.numeric(this.yAxisConfig["axis-min"])
 		let max = owid.numeric(this.yAxisConfig["axis-max"])
