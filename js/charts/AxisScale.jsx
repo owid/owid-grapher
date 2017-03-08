@@ -12,7 +12,7 @@
 // @flow
 
 import * as d3 from 'd3'
-import {observable, computed, action} from 'mobx'
+import {observable, computed, action, toJS} from 'mobx'
 import _ from 'lodash'
 
 export type ScaleType = 'linear' | 'log';
@@ -31,7 +31,7 @@ export default class AxisScale {
         return this.d3_scaleConstructor().domain(this.domain).range(this.range)
     }
 
-    getTicks() {
+    getTickValues() {
         const {scaleType, domain, d3_scale} = this
 
         if (scaleType == 'log') {
@@ -50,8 +50,16 @@ export default class AxisScale {
         }        
     }
 
+    getFormattedTicks() : string[] {
+        return _.map(this.getTickValues(), this.tickFormat)
+    }
+
     place(value: number) {
         return this.d3_scale(value)
+    }
+
+    extend(props : Object) {
+        return new AxisScale(_.extend(toJS(this), props))
     }
 
     constructor({ scaleType = 'linear', tickFormat = (d => d.toString()), domain = [0, 0], range = [0, 0] } :

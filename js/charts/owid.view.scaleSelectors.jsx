@@ -78,6 +78,7 @@ export default function(chart) {
 		var legend = chart.tabs.chart.legend;
 
 		if (chart.model.get('chart-type') == App.ChartType.ScatterPlot) {
+			return
 			var innerBounds = chart.tabs.chart.viz.scatter.scatter.axisBox.innerBounds.scale(chart.scale);
 
 			xScaleSelector.update({ left: innerBounds.left+innerBounds.width-50, top: innerBounds.top+innerBounds.height-15 });

@@ -11,6 +11,7 @@ import ChartConfig from './ChartConfig'
 import NoData from './NoData'
 import Axis from './Axis'
 import AxisScale from './AxisScale'
+import Layout from './Layout'
 
 type ScatterDatum = {
     color: string,
@@ -19,7 +20,69 @@ type ScatterDatum = {
     values: { x: number, y: number, size: number }
 };
 
+@observer
 class LabelledPoints extends Component {
+    props: {
+        data: ScatterDatum[],
+        bounds: Bounds,
+        xScale: AxisScale,
+        yScale: AxisScale
+    }
+
+    @computed get data() {
+        return this.props.data
+    }
+
+    @computed get bounds() {
+        return this.props.bounds
+    }
+
+    @computed get xScale() {
+        return this.props.xScale.extend({ range: this.bounds.xRange() })
+    }
+
+    @computed get yScale() {
+        return this.props.yScale.extend({ range: this.bounds.yRange() })
+    }
+
+    @computed get sizeScale() : Function {
+        const {data} = this
+        return d3.scaleLinear().range([6, 18])
+            .domain([
+                d3.min(data, function(series) { return d3.min(series.values, function(d) { return d.size||1; }); }),
+                d3.max(data, function(series) { return d3.max(series.values, function(d) { return d.size||1; }); })
+            ]);
+    }
+
+    @computed get hovered() {
+        return "none"
+    }
+
+    render() {
+        const {bounds, data, xScale, yScale, sizeScale, hovered} = this
+
+        if (_.isEmpty(data))
+            return <NoData bounds={bounds}/>
+
+        const defaultColorScale = d3.scaleOrdinal().range(d3.schemeCategory20)
+
+        return <g>
+            {_.map(data, d => 
+                <g class="entity">
+                    <circle 
+                        cx={xScale.place(d.values[0].x)} cy={yScale.place(d.values[0].y)}
+                        fill={d.color || defaultColorScale(d.key)} stroke="#000" stroke-width={0.3}
+                        r={sizeScale(d.values[0].size||1) * (hovered == d ? 1.5 : 1)}
+                        fill-opacity={0.7}
+                    />
+                </g>
+            )}
+        </g>
+    }
+}
+
+@observer
+class ScatterWithAxis extends Component {
     props: {
         bounds: Bounds,
         data: ScatterDatum[]
@@ -41,35 +104,34 @@ class LabelledPoints extends Component {
         return d3.extent(_.map(_.flatten(_.map(this.data, 'values')), 'y'))
     }
 
+    @computed get xScale() : AxisScale {
+        const {xDomain, bounds} = this
+        const xRange = this.props.bounds.xRange()
+        return new AxisScale({ scaleType: 'linear', domain: xDomain, range: xRange, tickFormat: d => d.toString() })
+    }    
+
     @computed get yScale() : AxisScale {
         const {yDomain, bounds} = this
-        const yRange = this.props.bounds.padBottom(50).yRange()
+        const yRange = this.props.bounds.yRange()
         return new AxisScale({ scaleType: 'linear', domain: yDomain, range: yRange, tickFormat: d => d.toString() })
     }
 
-
     render() {
-        const {bounds, data} = this
+        const {bounds, xScale, yScale, data} = this
 
-        const yTickFormat = d => d
-        const yScaleType = 'linear'
-        const yScale = this.yScale
-
-        if (_.isEmpty(data))
-            return <NoData bounds={bounds}/>
+        const xAxisBounds = Axis.calculateBounds(bounds, { orient: 'bottom', scale: xScale })
+        const yAxisBounds = Axis.calculateBounds(bounds, { orient: 'left', scale: yScale })
+        const innerBounds = bounds.padBottom(xAxisBounds.height).padLeft(yAxisBounds.width)
 
         return <g>
-            <Axis layout="left" orient="left" tickFormat={yTickFormat} scale={yScale} scaleType={yScaleType} bounds={bounds}/>
-
-            {_.map(data, d => 
-                <g class="entity">
-
-                </g>
-            )}
+            <Axis orient="left" scale={yScale} bounds={bounds.padBottom(xAxisBounds.height)}/>
+            <Axis orient="bottom" scale={xScale} bounds={bounds.padLeft(yAxisBounds.width)}/>
+            <LabelledPoints xScale={xScale} yScale={yScale} data={data} bounds={innerBounds}/>
         </g>
     }
 }
 
+@observer
 export default class ScatterPlot extends Component {
     props: {
         bounds: Bounds,
@@ -183,6 +245,6 @@ export default class ScatterPlot extends Component {
 
     render() {
         const {data, bounds} = this
-        return <LabelledPoints data={data} bounds={bounds}/>
+        return <ScatterWithAxis data={data} bounds={bounds}/>
     }
 }
