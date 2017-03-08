@@ -15,7 +15,7 @@ import { bind } from 'decko'
 type TimelineProps = {
 	years: number[],
 	inputYear: number,
-	onTimeChange: (number, number) => void,
+	onTargetChange: (number) => void,
 	bounds: Bounds
 };
 

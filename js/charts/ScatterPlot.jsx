@@ -12,6 +12,7 @@ import NoData from './NoData'
 import Axis from './Axis'
 import AxisScale from './AxisScale'
 import Layout from './Layout'
+import Timeline from './Timeline'
 
 type ScatterDatum = {
     color: string,
@@ -69,7 +70,7 @@ class LabelledPoints extends Component {
         return <g>
             {_.map(data, d => 
                 <g class="entity">
-                    <circle 
+                    <circle
                         cx={xScale.place(d.values[0].x)} cy={yScale.place(d.values[0].y)}
                         fill={d.color || defaultColorScale(d.key)} stroke="#000" stroke-width={0.3}
                         r={sizeScale(d.values[0].size||1) * (hovered == d ? 1.5 : 1)}
@@ -236,6 +237,40 @@ export default class ScatterPlot extends Component {
         return _.max(_.map(this.data, function(d) { return _.max([d.values[0].time.x, d.values[0].time.y]); }))
     }
 
+    @computed get axisDimensions() : Object[] { 
+        return _.filter(this.dimensions, function(d) { return d.property == 'x' || d.property == 'y'; });        
+    }
+
+    @computed get yearsWithData() : number[] {
+        const {axisDimensions} = this
+        const tolerance = 1 // FIXME
+
+        var yearSets = [];
+
+        var minYear = _.min(_.map(axisDimensions, function(d) { 
+            return _.first(d.variable.years);
+        }));
+
+        var maxYear = _.max(_.map(axisDimensions, function(d) {
+            return _.last(d.variable.years);
+        }));
+
+        _.each(axisDimensions, function(dimension) {
+            var variable = dimension.variable,
+                yearsForVariable = {};
+
+            _.each(_.uniq(variable.years), function(year) {
+                for (var i = Math.max(minYear, year-tolerance); i <= Math.min(maxYear, year+tolerance); i++) {
+                    yearsForVariable[i] = true;
+                }
+            });
+
+            yearSets.push(_.map(_.keys(yearsForVariable), function(year) { return parseInt(year); }));
+        });
+
+        return _.sortBy(_.intersection.apply(_, yearSets));
+    }
+
     componentWillMount() {
         // hack to get data to header
         autorun(() => {
@@ -243,8 +278,16 @@ export default class ScatterPlot extends Component {
         })        
     }
 
+    onTargetChange() {
+
+    }
+
     render() {
-        const {data, bounds} = this
-        return <ScatterWithAxis data={data} bounds={bounds}/>
+        const {data, bounds, yearsWithData} = this
+        const inputYear = yearsWithData[0]
+        return <Layout bounds={bounds}>
+            <ScatterWithAxis data={data} bounds={Layout.bounds}/>
+            <Timeline bounds={Layout.bounds} layout="bottom" onTargetChange={this.onTargetChange} years={yearsWithData} inputYear={inputYear}/>
+        </Layout>
     }
 }
