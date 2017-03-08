@@ -1,4 +1,4 @@
-import colorbrewer from './owid.colorbrewer'
+import colorbrewer from '../charts/owid.colorbrewer'
 
 ;(function() {	
 	"use strict";

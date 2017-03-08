@@ -1,7 +1,7 @@
 import React from 'react'
 import {render, h} from 'preact'
 import BasicTab from './BasicTab'
-import ChartConfig from '../app/ChartConfig'
+import ChartConfig from '../charts/ChartConfig'
 import _ from 'lodash'
 import $ from 'jquery'
 

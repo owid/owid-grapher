@@ -14,6 +14,6 @@ import 'babel-polyfill'
 import 'whatwg-fetch'
 
 //import 'preact/devtools'
-require('./app/constants');
+require('./charts/constants');
 
-window.Chart = require('./app/owid.chart').default;
+window.Chart = require('./charts/owid.chart').default;

@@ -1,10 +1,10 @@
 import _ from 'underscore'
 import $ from 'jquery'
+import MapProjections from '../charts/MapProjections'
 
 owid.namespace("App.Views.Form.MapTabView");
 
-var	owdProjections = require('./MapProjections').default,
-	MapColorSection = App.Views.Form.MapColorSection;
+var MapColorSection = App.Views.Form.MapColorSection;
 
 App.Views.Form.MapTabView = owid.View.extend({
 	el: "#form-view #map-tab",

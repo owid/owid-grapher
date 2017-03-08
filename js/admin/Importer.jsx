@@ -19,7 +19,7 @@ import {observer} from 'mobx-react'
 import {bind} from 'decko'
 
 import parse from 'csv-parse'
-import {NullElement} from './Util'
+import {NullElement} from '../charts/Util'
 
 import styles from './Importer.css'
 
