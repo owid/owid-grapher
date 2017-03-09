@@ -23,20 +23,26 @@ type TimelineProps = {
 export default class Timeline extends Component {
 	props: TimelineProps
 
-	@observable inputYear : number = 0
+    @observable startYearInput : number
+    @observable endYearInput : number
 	@observable isPlaying : boolean = false
-	@observable isDragging : boolean = false
+    @observable dragTarget : ?string
+
+    @computed get isDragging() : boolean {
+        return !!this.dragTarget
+    }
 
 	g: SVGElement
 
 	static calculateBounds(containerBounds : Bounds, props : any) : Bounds {
-		const height = 45
+		const height = 45        
 		return new Bounds(containerBounds.left, containerBounds.top+(containerBounds.height-height), containerBounds.width, height).padWidth(containerBounds.width*0.02)
 	}
 
 	constructor(props : TimelineProps) {
 		super(props)
-		this.inputYear = props.inputYear
+		this.startYearInput = props.inputYear
+        this.endYearInput = props.inputYear
 
 		autorun(() => {
 			const { isPlaying } = this
@@ -68,17 +74,26 @@ export default class Timeline extends Component {
 		return _.last(this.props.years)
 	}
 
-	@computed get activeYear() : number {
-		let { inputYear, isPlaying, isDragging } = this
-		const { years, minYear, maxYear } = this
-		inputYear = Math.max(Math.min(inputYear, maxYear), minYear);
+    // Sanity check the input
+    @computed get startYear() : number {
+        const {startYearInput, endYearInput, minYear, maxYear} = this
+        return Math.min(maxYear, Math.max(minYear, Math.min(startYearInput, endYearInput)))
+    }
 
-		// If we're not playing or dragging, lock the input to the closest year (no interpolation)
-		if (!isPlaying && !isDragging)
-			return _.sortBy(years, function(year) { return Math.abs(year-inputYear); })[0];
-		else
-			return inputYear;
-	}
+    @computed get roundedStartYear() : number {
+        const { years, startYear } = this
+        return _.sortBy(years, function(year) { return Math.abs(year-startYear); })[0]
+    }
+
+    @computed get endYear() : number {
+        const {startYearInput, endYearInput, minYear, maxYear} = this
+        return Math.min(maxYear, Math.max(minYear, Math.max(startYearInput, endYearInput)))
+    }
+
+    @computed get roundedEndYear() : number {
+        const { years, endYear } = this
+        return _.sortBy(years, function(year) { return Math.abs(year-endYear); })[0]
+    }
 
 	@computed get targetYear() : number {
 		const { years, activeYear } = this
@@ -113,8 +128,10 @@ export default class Timeline extends Component {
 
 	@action componentWillReceiveProps(nextProps : TimelineProps) {
 		const { isPlaying, isDragging } = this
-		if (!isPlaying && !isDragging)
-			this.inputYear = nextProps.inputYear
+		if (!isPlaying && !isDragging) {
+			this.startYearInput = nextProps.inputYear
+            this.endYearInput = nextProps.inputYear
+        }
 	}
 
 	animRequest: number;
@@ -165,14 +182,41 @@ export default class Timeline extends Component {
         return inputYear
 	}
 
+    dragOffsets = [0, 0]
 
-    @bind @action onMouseDown(evt : MouseEvent) {
+    @action.bound onDrag(inputYear : number) {
+        const {dragTarget} = this
+
+        if (dragTarget == 'start')
+            this.startYearInput = inputYear
+        else if (dragTarget == 'end')
+            this.endYearInput = inputYear
+        else if (dragTarget == 'both') {
+            this.startYearInput = this.dragOffsets[0]+inputYear
+            this.endYearInput = this.dragOffsets[1]+inputYear
+        }
+    }
+
+
+    @action.bound onMouseDown(e : MouseEvent) {
         // Don't do mousemove if we clicked the play or pause button
-        if (d3.select(evt.target).classed('toggle')) return;
+        if (d3.select(e.target).classed('toggle')) return;
 
-        this.isDragging = true
-        this.inputYear = this.getInputYearFromMouse(evt)
-        evt.preventDefault()
+        const {startYear, endYear} = this
+
+        const inputYear = this.getInputYearFromMouse(e)
+        if (inputYear <= startYear)
+            this.dragTarget = 'start'
+        else if (inputYear >= endYear)
+            this.dragTarget = 'end'
+        else {
+            this.dragTarget = 'both'
+            this.dragOffsets = [this.startYearInput-inputYear, this.endYearInput-inputYear]
+        }
+
+        this.onDrag(inputYear)
+
+        e.preventDefault()
 
 /*        container.on('mousemove.timeline', onMouseMove);
         container.on('mouseup.timeline', onMouseUp);
@@ -183,19 +227,20 @@ export default class Timeline extends Component {
 
 	mouseFrameQueued: boolean
 
-	@bind @action onMouseMove() {
-		if (!this.isDragging || this.mouseFrameQueued) return
-		const evt = d3.event
+	@action.bound onMouseMove() {
+        const {dragTarget, mouseFrameQueued} = this
+		if (!dragTarget || mouseFrameQueued) return
 
+		const e = d3.event
 		this.mouseFrameQueued = true
 		requestAnimationFrame(() => {
-			this.inputYear = this.getInputYearFromMouse(evt)
+			this.onDrag(this.getInputYearFromMouse(e))
 	        this.mouseFrameQueued = false
 	    })
 	}
 
-    @bind @action onMouseUp(evt : MouseEvent) {
-    	this.isDragging = false
+    @action.bound onMouseUp(evt : MouseEvent) {
+    	this.dragTarget = null
     }
 
     // Allow proper dragging behavior even if mouse leaves timeline area
@@ -204,6 +249,15 @@ export default class Timeline extends Component {
     	d3.select('html').on('mousemove.timeline', this.onMouseMove)
     	d3.select('html').on('touchend.timeline', this.onMouseUp)
     	d3.select('html').on('touchmove.timeline', this.onMouseMove)
+
+        autorun(() => {
+            // If we're not playing or dragging, lock the input to the closest year (no interpolation)
+            const {isPlaying, isDragging, roundedStartYear, roundedEndYear} = this
+            if (!isPlaying && !isDragging) {
+                this.startYearInput = roundedStartYear
+                this.endYearInput = roundedEndYear
+            }
+        })
     }
 
     componentWillUnmount() {
@@ -214,7 +268,7 @@ export default class Timeline extends Component {
     }
 
   	render() {
-		const { bounds, sliderBounds, targetYear, minYear, maxYear, minYearBox, maxYearBox, xScale, activeYear, years, isPlaying } = this
+		const { bounds, sliderBounds, minYear, maxYear, minYearBox, maxYearBox, xScale, years, isPlaying, startYear, endYear, roundedStartYear, roundedEndYear } = this
 
 		return <g class="timeline clickable" onMouseDown={this.onMouseDown} ref={g => this.g = g}>
 			<rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height} fill="white"></rect>
@@ -229,112 +283,23 @@ export default class Timeline extends Component {
 				})}
 			</g>
 			<rect class="sliderBackground" x={sliderBounds.left} y={sliderBounds.top} width={sliderBounds.width} height={sliderBounds.height} rx={5} ry={5} stroke-width={0.1} fill="#eee"/>			
-			<g class="handle" fill="#3F9EFF" transform={`translate(${xScale(activeYear)}, ${sliderBounds.top+sliderBounds.height/2})`}>
-				<circle r={8} stroke="#000" stroke-width={0.1}/>
-				<text y={-9} font-size="0.7em" text-anchor="middle">
-					{targetYear == minYear || targetYear == maxYear ? '' : targetYear}
-				</text>
-			</g>
+            <TimelineHandle year={startYear} xScale={xScale} bounds={sliderBounds} label={startYear == minYear || startYear == maxYear ? '' : roundedStartYear}/>
+            <rect x={xScale(startYear)} y={sliderBounds.top} width={xScale(endYear)-xScale(startYear)} height={sliderBounds.height} fill="#3F9EFF"/>
+            <TimelineHandle year={endYear} xScale={xScale} bounds={sliderBounds} label={endYear == minYear || endYear == maxYear ? '' : roundedEndYear}/>
 		</g>
 	}
 }
 
-/*;(function(d3) {
-	"use strict";
-	owid.namespace("owid.view.timeline");
+@observer
+class TimelineHandle extends Component {
+    render() {
+        const {year, xScale, bounds, label} = this.props
 
-	owid.view.timeline = function() {
-		var timeline = owid.dataflow();
-
-        timeline.requires('containerNode', 'outerBounds');
-
-		timeline.defaults({
-			years: [1900, 1920, 1940, 2000], // Range of years the timeline covers
-			inputYear: 1980,
-			isPlaying: false,
-			isDragging: false
-		});
-
-		// Allow dragging the handle around
-		timeline.flow('g, sliderBackground', function(g, sliderBackground) {
-			var container = d3.select(document.body),
-                sliderBBox = sliderBackground.node().getBBox(),
-				isDragging = false;
-
-            var frameQueued = false;
-			function onMouseMove() {
-                if (frameQueued) return;
-                frameQueued = true;
-
-				var evt = d3.event;
-                var mouseX = d3.mouse(g.node())[0];
-                // Use animation frame so we don't overload the browser, esp. Firefox/IE
-                requestAnimationFrame(function() {
-                    timeline.now('years, minYear, maxYear', function(years, minYear, maxYear) {
-                        var fracWidth = (mouseX-sliderBBox.x) / sliderBackground.node().getBBox().width,
-                            inputYear = minYear + fracWidth*(maxYear-minYear);
-
-                        timeline.update({ isDragging: true, inputYear: inputYear });
-                        frameQueued = false;
-                    });       
-                });
-                evt.preventDefault();
-			}
-
-			function onMouseUp() {
-				container.on('mousemove.timeline', null);
-				container.on('mouseup.timeline', null);
-                container.on('touchmove.timeline', null);
-                container.on('touchend.timeline', null);
-				//container.on('mouseleave.timeline', null);
-                requestAnimationFrame(function() {
-                    timeline.update({ isDragging: false });
-                });
-			}
-
-			g.on('mousedown.timeline', onMouseDown);
-            g.on('touchstart.timeline', onMouseDown);
-		});
-
-		var _anim;
-		timeline.flow('playToggle, isPlaying', function(playToggle, isPlaying) {
-			cancelAnimationFrame(_anim);
-			if (isPlaying) {
-				// If we start playing from the end, reset from beginning
-				timeline.now('targetYear, minYear, maxYear', function(targetYear, minYear, maxYear) {
-					if (targetYear >= maxYear)
-						timeline.update({ inputYear: minYear });
-				});
-
-				_anim = requestAnimationFrame(incrementLoop);
-			}
-
-			var lastTime = null, ticksPerSec = 5;
-			function incrementLoop(time) {
-				var elapsed = lastTime ? time-lastTime : 0;
-				lastTime = time;
-
-				timeline.now('isPlaying, inputYear, targetYear, years, maxYear', function(isPlaying, inputYear, targetYear, years, maxYear) {
-					if (!isPlaying) return;
-					
-					if (inputYear >= maxYear) {
-						timeline.update({ isPlaying: false });
-					} else {
-						var nextYear = years[years.indexOf(targetYear)+1],
-							yearsToNext = nextYear-targetYear;
-
-						timeline.update({ inputYear: inputYear+(Math.max(yearsToNext/3, 1)*elapsed*ticksPerSec/1000) });
-					}
-
-					_anim = requestAnimationFrame(incrementLoop);
-				});
-			}
-		});
-
-		timeline.beforeClean(function() {
-			if (timeline.g) timeline.g.remove();
-		});
-
-		return timeline;
-	};
-})*/
+        return <g class="handle" fill="#3F9EFF" transform={`translate(${xScale(year)}, ${bounds.top+bounds.height/2})`}>
+            <circle r={8} stroke="#000" stroke-width={0.1}/>
+            <text y={-9} font-size="0.7em" text-anchor="middle">
+                {label}
+            </text>
+        </g>        
+    }
+}

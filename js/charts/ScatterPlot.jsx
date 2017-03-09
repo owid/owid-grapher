@@ -1,3 +1,14 @@
+/* ScatterPlot.jsx
+ * ================                                                             
+ *
+ * Entry point for scatter charts
+ *
+ * @project Our World In Data
+ * @author  Jaiden Mispy
+ * @created 2017-03-09
+ */ 
+
+
 // @flow
 
 import _ from 'lodash'
@@ -139,7 +150,7 @@ export default class ScatterPlot extends Component {
         config : ChartConfig
     };
 
-    @computed get bounds() {
+    @computed get bounds() : Bounds {
         return this.props.bounds
     }
 
@@ -172,7 +183,7 @@ export default class ScatterPlot extends Component {
         return colorScale
     }
 
-    @computed get data() {
+    @computed get data() : ScatterDatum[] {
         const {dimensions, colorScale} = this
 
         var dataByEntity = {};

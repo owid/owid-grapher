@@ -66,7 +66,7 @@ export default class Axis extends Component {
                 if (orient == 'left' || orient == 'right')
                     return <text x={orient == 'left' ? bounds.left : bounds.right} y={scale.place(tick)} fill={textColor} dominant-baseline="middle" text-anchor={orient == 'left' ? 'start' : 'end'}>{scale.tickFormat(tick)}</text>
                 else if (orient == 'top' || orient == 'bottom')
-                    return <text x={scale.place(tick)} y={orient == 'top' ? bounds.top : bounds.bottom} fill={textColor} dominant-baseline={orient == 'top' ? 'auto' : 'hanging'} text-anchor="middle">{scale.tickFormat(tick)}</text>
+                    return <text x={scale.place(tick)} y={orient == 'top' ? bounds.top : bounds.bottom} fill={textColor} dominant-baseline={'auto'} text-anchor="middle">{scale.tickFormat(tick)}</text>
             })}
         </g>        
     }
