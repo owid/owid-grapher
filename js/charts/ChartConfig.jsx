@@ -4,6 +4,7 @@ import owid from '../owid'
 import _ from 'lodash'
 import {observable, computed, action} from 'mobx'
 import type {ScaleType} from './ScaleSelector'
+import ChartData from './ChartData'
 
 // In-progress mobx model layer that will eventually replace ChartModel
 export default class ChartConfig {
@@ -39,6 +40,10 @@ export default class ChartConfig {
 
 	@computed get dimensions() : Object[] {
 		return this.model.getDimensions()
+	}
+
+	@computed get data() : ChartData {
+		return new ChartData(this)		
 	}
 
 	@computed get yDomain() : [number|null, number|null] {

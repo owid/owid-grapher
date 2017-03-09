@@ -2,6 +2,7 @@ import _ from 'lodash'
 import $ from 'jQuery'
 import Backbone from 'backbone'
 import owid from '../owid'
+import ChartData from './ChartData'
 
 /**
  * This model handles the mass retrieval of data values associated with one

@@ -55,6 +55,8 @@ export default class AxisScale {
     }
 
     place(value: number) {
+        if (!this.range)
+            throw "Can't place value on scale without a defined output range"
         return this.d3_scale(value)
     }
 
@@ -63,7 +65,7 @@ export default class AxisScale {
     }
 
     constructor({ scaleType = 'linear', tickFormat = (d => d.toString()), domain = [0, 0], range = [0, 0] } :
-                { scaleType: ScaleType, tickFormat: number => string, domain: [number, number], range: [number, number] }) {
+                { scaleType: ScaleType, tickFormat: number => string, domain: [number, number], range?: [number, number] }) {
         this.scaleType = scaleType
         this.tickFormat = tickFormat
         this.domain = domain

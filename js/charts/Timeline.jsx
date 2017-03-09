@@ -14,8 +14,9 @@ import { bind } from 'decko'
 
 type TimelineProps = {
 	years: number[],
-	inputYear: number,
-	onTargetChange: (number) => void,
+	startYear: number,
+    endYear: number,
+	onChange: ({ startYear: number, endYear: number}) => void,
 	bounds: Bounds
 };
 
@@ -41,8 +42,8 @@ export default class Timeline extends Component {
 
 	constructor(props : TimelineProps) {
 		super(props)
-		this.startYearInput = props.inputYear
-        this.endYearInput = props.inputYear
+		this.startYearInput = props.startYear
+        this.endYearInput = props.endYear
 
 		autorun(() => {
 			const { isPlaying } = this
@@ -54,7 +55,7 @@ export default class Timeline extends Component {
 		})
 
 		autorunAsync(() => {
-			this.props.onTargetChange(this.targetYear)
+			this.props.onChange({ startYear: this.startYear, endYear: this.endYear })
 		})
 	}
 
@@ -129,34 +130,34 @@ export default class Timeline extends Component {
 	@action componentWillReceiveProps(nextProps : TimelineProps) {
 		const { isPlaying, isDragging } = this
 		if (!isPlaying && !isDragging) {
-			this.startYearInput = nextProps.inputYear
-            this.endYearInput = nextProps.inputYear
+			this.startYearInput = nextProps.startYear
+            this.endYearInput = nextProps.endYear
         }
 	}
 
 	animRequest: number;
 
-	@action onStartPlaying() {
+	@action.bound onStartPlaying() {
 		let lastTime = null, ticksPerSec = 5;
 
 		const playFrame = (time : number) => {
-			const { isPlaying, activeYear, targetYear, years, minYear, maxYear } = this
+			const { isPlaying, startYear, endYear, years, minYear, maxYear } = this
 			if (!isPlaying) return;
 
 			if (lastTime === null) {
 				// If we start playing from the end, loop around to beginning
-				if (targetYear >= maxYear)
-					this.inputYear = minYear
+				if (endYear >= maxYear)
+					this.endYearInput = minYear
 			} else {
 				const elapsed = time-lastTime;
 				
-				if (activeYear >= maxYear) {
+				if (endYear >= maxYear) {
 					this.isPlaying = false
 				} else {
-					const nextYear = years[years.indexOf(targetYear)+1]
-					const yearsToNext = nextYear-targetYear
+					const nextYear = years[years.indexOf(endYear)+1]
+					const yearsToNext = nextYear-endYear
 
-					this.inputYear = activeYear+(Math.max(yearsToNext/3, 1)*elapsed*ticksPerSec/1000)
+					this.endYearInput = endYear+(Math.max(yearsToNext/3, 1)*elapsed*ticksPerSec/1000)
 				}
 			}
 
@@ -185,7 +186,7 @@ export default class Timeline extends Component {
     dragOffsets = [0, 0]
 
     @action.bound onDrag(inputYear : number) {
-        const {dragTarget} = this
+        const {dragTarget, minYear, maxYear} = this
 
         if (dragTarget == 'start')
             this.startYearInput = inputYear
@@ -194,6 +195,14 @@ export default class Timeline extends Component {
         else if (dragTarget == 'both') {
             this.startYearInput = this.dragOffsets[0]+inputYear
             this.endYearInput = this.dragOffsets[1]+inputYear
+
+            if (this.startYearInput < minYear) {
+                this.startYearInput = minYear
+                this.endYearInput = minYear+(this.dragOffsets[1]-this.dragOffsets[0])
+            } else if (this.endYearInput > maxYear) {
+                this.startYearInput = maxYear+(this.dragOffsets[0]-this.dragOffsets[1])
+                this.endYearInput = maxYear
+            }
         }
     }
 

@@ -24,108 +24,32 @@ import Axis from './Axis'
 import AxisScale from './AxisScale'
 import Layout from './Layout'
 import Timeline from './Timeline'
-
-type ScatterDatum = {
-    color: string,
-    key: string,
-    label: string,
-    values: { x: number, y: number, size: number }
-};
-
-@observer
-class LabelledPoints extends Component {
-    props: {
-        data: ScatterDatum[],
-        bounds: Bounds,
-        xScale: AxisScale,
-        yScale: AxisScale
-    }
-
-    @computed get data() {
-        return this.props.data
-    }
-
-    @computed get bounds() {
-        return this.props.bounds
-    }
-
-    @computed get xScale() {
-        return this.props.xScale.extend({ range: this.bounds.xRange() })
-    }
-
-    @computed get yScale() {
-        return this.props.yScale.extend({ range: this.bounds.yRange() })
-    }
-
-    @computed get sizeScale() : Function {
-        const {data} = this
-        return d3.scaleLinear().range([6, 18])
-            .domain([
-                d3.min(data, function(series) { return d3.min(series.values, function(d) { return d.size||1; }); }),
-                d3.max(data, function(series) { return d3.max(series.values, function(d) { return d.size||1; }); })
-            ]);
-    }
-
-    @computed get hovered() {
-        return "none"
-    }
-
-    render() {
-        const {bounds, data, xScale, yScale, sizeScale, hovered} = this
-
-        if (_.isEmpty(data))
-            return <NoData bounds={bounds}/>
-
-        const defaultColorScale = d3.scaleOrdinal().range(d3.schemeCategory20)
-
-        return <g>
-            {_.map(data, d => 
-                <g class="entity">
-                    <circle
-                        cx={xScale.place(d.values[0].x)} cy={yScale.place(d.values[0].y)}
-                        fill={d.color || defaultColorScale(d.key)} stroke="#000" stroke-width={0.3}
-                        r={sizeScale(d.values[0].size||1) * (hovered == d ? 1.5 : 1)}
-                        fill-opacity={0.7}
-                    />
-                </g>
-            )}
-        </g>
-    }
-}
+import PointsWithLabels from './PointsWithLabels'
+import type {ScatterSeries} from './PointsWithLabels'
 
 @observer
 class ScatterWithAxis extends Component {
     props: {
         bounds: Bounds,
-        data: ScatterDatum[]
+        data: ScatterSeries[],
+        xAxisScale: AxisScale,
+        yAxisScale: AxisScale
     }
 
     @computed get bounds() : Bounds {
         return this.props.bounds
     }
 
-    @computed get data() : ScatterDatum[] {
+    @computed get data() : ScatterSeries[] {
         return this.props.data
     }
 
-    @computed get xDomain() : [number, number] {
-        return d3.extent(_.map(_.flatten(_.map(this.data, 'values')), 'x'))
-    }
-
-    @computed get yDomain() : [number, number] {
-        return d3.extent(_.map(_.flatten(_.map(this.data, 'values')), 'y'))
-    }
-
     @computed get xScale() : AxisScale {
-        const {xDomain, bounds} = this
-        const xRange = this.props.bounds.xRange()
-        return new AxisScale({ scaleType: 'linear', domain: xDomain, range: xRange, tickFormat: d => d.toString() })
-    }    
+        return this.props.xAxisScale
+    }
 
     @computed get yScale() : AxisScale {
-        const {yDomain, bounds} = this
-        const yRange = this.props.bounds.yRange()
-        return new AxisScale({ scaleType: 'linear', domain: yDomain, range: yRange, tickFormat: d => d.toString() })
+        return this.props.yAxisScale
     }
 
     render() {
@@ -138,7 +62,7 @@ class ScatterWithAxis extends Component {
         return <g>
             <Axis orient="left" scale={yScale} bounds={bounds.padBottom(xAxisBounds.height)}/>
             <Axis orient="bottom" scale={xScale} bounds={bounds.padLeft(yAxisBounds.width)}/>
-            <LabelledPoints xScale={xScale} yScale={yScale} data={data} bounds={innerBounds}/>
+            <PointsWithLabels xScale={xScale} yScale={yScale} data={data} bounds={innerBounds}/>
         </g>
     }
 }
@@ -183,70 +107,101 @@ export default class ScatterPlot extends Component {
         return colorScale
     }
 
-    @computed get data() : ScatterDatum[] {
-        const {dimensions, colorScale} = this
+    @computed get timelineYears() {
+        return this.yearsWithData
+    }
 
-        var dataByEntity = {};
+    @computed get configTolerance() {
+        return 1
+    }
 
+    // Precompute the data transformation for every timeline year (so later animation is fast)
+    @computed get dataByEntityAndYear() {
+        const {timelineYears, dimensions, configTolerance, colorScale} = this
+        var dataByEntityAndYear = {};
+
+        // The data values
         _.each(dimensions, function(dimension) {
             var variable = dimension.variable,
-                targetYear = _.isFinite(dimension.targetYear) ? dimension.targetYear : _.last(variable.years),
-                tolerance = _.isFinite(dimension.tolerance) ? dimension.tolerance : 0;
+                tolerance = (dimension.property == 'color' || dimension.property == 'size') ? Infinity : configTolerance;
 
-            if (dimension.property == 'color' || dimension.property == 'size')
-                tolerance = Infinity;
+            var targetYears = timelineYears;
 
-            for (var i = 0; i < variable.years.length; i++) {
-                var year = variable.years[i],
-                    value = variable.values[i],
-                    entityId = variable.entities[i],
-                    entity = variable.entityKey[entityId];
+            _.each(timelineYears, function(targetYear) {
+                for (var i = 0; i < variable.years.length; i++) {
+                    var year = variable.years[i],
+                        value = variable.values[i],
+                        entity = variable.entityKey[variable.entities[i]];
 
-                // Skip years that aren't within tolerance of the target
-                if (year < targetYear-tolerance || year > targetYear+tolerance)
-                    continue;
+                    // Skip years that aren't within tolerance of the target
+                    if (year < targetYear-tolerance || year > targetYear+tolerance)
+                        continue;
 
-                var series = owid.default(dataByEntity, entityId, {
-                    id: entityId,
-                    label: entity.name,
-                    key: entity.name,
-                    values: [{ time: {} }]
-                });
+                    var dataByYear = owid.default(dataByEntityAndYear, entity.id, {}),
+                        series = owid.default(dataByYear, targetYear, {
+                            id: entity.id,
+                            label: entity.name,
+                            key: entity.name,
+                            values: [{ time: {} }]
+                        });
 
-                // Ensure we use the closest year to the target
-                var currentYear = series.values[0].time[dimension.property];
-                if (_.isFinite(currentYear) && Math.abs(targetYear-currentYear) < Math.abs(year-currentYear))
-                    continue;
+                    var d = series.values[0];
 
-                var d = series.values[0];
-                d.time[dimension.property] = year;
+                    // Ensure we use the closest year to the target
+                    var currentYear = d.time[dimension.property];
+                    if (_.isFinite(currentYear) && Math.abs(currentYear-targetYear) < Math.abs(year-targetYear))
+                        continue;
 
-                if (dimension.property == 'color')
-                    series.color = colorScale(value);
-                else
-                    d[dimension.property] = value;
-            }
+                    if (dimension.property == 'color')
+                        series.color = colorScale(value);
+                    else {
+                        d.time[dimension.property] = year;
+                        d[dimension.property] = value;
+                    }
+                }
+            });
         });
-
-        var data = [];
 
         // Exclude any with data for only one axis
-        _.each(dataByEntity, function(series) {
-            var datum = series.values[0];
-            if (_.has(datum, 'x') && _.has(datum, 'y'))
-                data.push(series);
+        _.each(dataByEntityAndYear, function(v, k) {
+            var newDataByYear = {};
+            _.each(v, function(series, year) {
+                var datum = series.values[0];
+                if (_.has(datum, 'x') && _.has(datum, 'y'))
+                    newDataByYear[year] = series;
+            });
+            dataByEntityAndYear[k] = newDataByYear;
         });
 
-        return data;
+        return dataByEntityAndYear;
     }
 
-    @computed get minYear() : number {
-        return _.min(_.map(this.data, function(d) { return _.min([d.values[0].time.x, d.values[0].time.y]); }))        
+    @computed get currentData() : ScatterSeries[] {
+        const {dataByEntityAndYear, startYear, endYear, isInterpolating} = this
+        var currentData = [];
+
+        _.each(dataByEntityAndYear, (dataByYear) => {
+            /*if (!isInterpolating) {
+                if (dataByYear[timeline.targetYear])
+                    currentData.push(dataByYear[timeline.targetYear]);
+                return;
+            }*/
+
+            let series = null
+            _.each(dataByYear, (seriesForYear, year) => {
+                if (year < startYear || year > endYear)
+                    return
+
+                series = series || _.extend({}, seriesForYear, { values: [] })
+                series.values = series.values.concat(seriesForYear.values)                    
+            })
+            if (series && series.values.length)
+                currentData.push(series)
+        });
+
+        return currentData;
     }
 
-    @computed get maxYear() : number {
-        return _.max(_.map(this.data, function(d) { return _.max([d.values[0].time.x, d.values[0].time.y]); }))
-    }
 
     @computed get axisDimensions() : Object[] { 
         return _.filter(this.dimensions, function(d) { return d.property == 'x' || d.property == 'y'; });        
@@ -289,16 +244,51 @@ export default class ScatterPlot extends Component {
         })        
     }
 
-    onTargetChange() {
+    @observable startYear : number = 0
+    @observable endYear : number = 0
 
+    @action.bound onTimelineChange({startYear, endYear} : {startYear: number, endYear: number}) {
+        this.startYear = startYear
+        this.endYear = endYear
+    }
+
+    @computed get allValues() : Object[] {
+        const {dataByEntityAndYear} = this
+        return _.flatten(
+                  _.map(dataByEntityAndYear, dataByYear => 
+                      _.flatten(
+                          _.map(dataByYear, series => series.values)
+                      )
+                  )
+               )
+    }
+
+    // domains across the entire timeline
+    @computed get xDomain() : [number, number] {
+        return d3.extent(_.map(this.allValues, 'x'))
+    }
+
+    @computed get yDomain() : [number, number] {
+        return d3.extent(_.map(this.allValues, 'y'))
+    }
+
+    @computed get xAxisScale() : AxisScale {
+        const {xDomain} = this
+        return new AxisScale({ scaleType: 'linear', domain: xDomain, tickFormat: d => d.toString() })        
+    }
+
+    @computed get yAxisScale() : AxisScale {
+        const {yDomain} = this
+        return new AxisScale({ scaleType: 'linear', domain: yDomain, tickFormat: d => d.toString() })        
     }
 
     render() {
-        const {data, bounds, yearsWithData} = this
-        const inputYear = yearsWithData[0]
+        window.ScatterPlot = this
+
+        const {currentData, bounds, yearsWithData, startYear, endYear, xAxisScale, yAxisScale} = this
         return <Layout bounds={bounds}>
-            <ScatterWithAxis data={data} bounds={Layout.bounds}/>
-            <Timeline bounds={Layout.bounds} layout="bottom" onTargetChange={this.onTargetChange} years={yearsWithData} inputYear={inputYear}/>
+            <ScatterWithAxis data={currentData} bounds={Layout.bounds} xAxisScale={xAxisScale} yAxisScale={yAxisScale}/>
+            <Timeline bounds={Layout.bounds} layout="bottom" onChange={this.onTimelineChange} years={yearsWithData} startYear={startYear} endYear={endYear}/>
         </Layout>
     }
 }
