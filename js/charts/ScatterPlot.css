@@ -1,0 +1,5 @@
+.ScatterPlot {
+    & circle {
+        stroke-width: 0.3;
+    }
+}
