@@ -2,6 +2,7 @@
 
 import _ from 'lodash'
 import * as d3 from 'd3'
+import Vector2 from './Vector2'
 
 export default class Bounds {
 	x: number
@@ -137,6 +138,10 @@ export default class Bounds {
 
 	containsPoint(x : number, y : number) : boolean {
 		return x >= this.left && x <= this.right && y >= this.top && y <= this.bottom
+	}
+
+	contains(p: Vector2) {
+		return this.containsPoint(p.x, p.y)
 	}
 
 	toCSS() : { left: string, top: string, width: string, height: string } {

@@ -23,6 +23,7 @@ import styles from './ScatterPlot.css'
 import {getRelativeMouse} from './Util'
 import Labels from './Labels'
 import type {LabelDatum} from './Labels'
+import type {SVGElement} from './Util'
 import Vector2 from './Vector2'
 
 export type ScatterSeries = {
@@ -49,7 +50,7 @@ export default class PointsWithLabels extends Component {
         return _.keys(persistentFocusKeys).concat(hoverKey ? [hoverKey] : [])
     }
 
-    @computed get data() {
+    @computed get data(): ScatterSeries[] {
         return this.props.data
     }
 
@@ -81,14 +82,16 @@ export default class PointsWithLabels extends Component {
     }
 
     // Pre-transform data for rendering
-    @computed get initialRenderData() : Object[] {
+    @computed get initialRenderData() : { position: Vector2, size: number, time: Object }[] {
         const {data, xScale, yScale, defaultColorScale, sizeScale, fontScale} = this
 
         return _.sortBy(_.map(data, d => {
             const values = _.map(d.values, v => {
                 return {
-                    x: Math.floor(xScale.place(v.x)),
-                    y: Math.floor(yScale.place(v.y)),    
+                    position: new Vector2(
+                        Math.floor(xScale.place(v.x)),
+                        Math.floor(yScale.place(v.y))
+                    ),
                     size: sizeScale(v.size||1),
                     time: v.time
                 }
@@ -100,7 +103,7 @@ export default class PointsWithLabels extends Component {
                 { 
                     text: d.label,
                     fontSize: fontSize,
-                    bounds: Bounds.forText(d.label, { x: _.last(values).x, y: _.last(values).y, fontSize: fontSize })
+                    bounds: Bounds.forText(d.label, { x: _.last(values).position.x, y: _.last(values).position.y, fontSize: fontSize })
                 }
             ]/*.concat(_.map(values, (v, i) => {
                 return {
@@ -133,7 +136,7 @@ export default class PointsWithLabels extends Component {
             return d1
     }
 
-    @computed get renderData() {
+    @computed get renderData(): { position: Vector2, size: number, time: Object }[] {
         const {initialRenderData, hoverKey, focusKeys, labelPriority} = this
         const renderData = _.sortBy(initialRenderData, d => -d.size)
 
@@ -190,18 +193,20 @@ export default class PointsWithLabels extends Component {
 
     @observable focusKey = null
 
+    base: SVGElement
+
     @action.bound onMouseMove() {
         const mouse = Vector2.fromArray(d3.mouse(this.base))
 
-        if (!this.bounds.containsPoint(mouse.x, mouse.y))
+        if (!this.bounds.contains(mouse))
             this.hoverKey = null
         else {
             const closestSeries = _.sortBy(this.renderData, (series) => {
                 if (series.values.length == 1) {
-                    return Vector2.distanceSquared(series.values[0], mouse)
+                    return Vector2.distanceSq(series.values[0].position, mouse)
                 } else {
                     return _.min(_.map(series.values.slice(0, -1), (d, i) => {
-                        return Vector2.distanceFromPointToLineSquared(mouse, d, series.values[i+1])
+                        return Vector2.distanceFromPointToLineSq(mouse, d.position, series.values[i+1].position)
                     }))
                 }
             })[0]
@@ -247,7 +252,7 @@ export default class PointsWithLabels extends Component {
         return <g class={styles.ScatterPlot}>
             <g class="entities" strokeOpacity={defaultOpacity} fillOpacity={defaultOpacity}>
                 {_.map(renderData, d => {
-                    const color = isFocusMode && !d.isFocused ? "#e2e2e2" : d.color
+                    const color = ((isFocusMode && !d.isFocused) || !d.isActive) ? "#e2e2e2" : d.color
 
                     return [
                         <defs>
@@ -264,7 +269,7 @@ export default class PointsWithLabels extends Component {
                             strokeLinecap="round"
                             stroke={color}
                             strokeOpacity={d.isFocused && 1}
-                            points={_.map(d.values, v => `${v.x},${v.y}`).join(' ')}
+                            points={_.map(d.values, v => `${v.position.x},${v.position.y}`).join(' ')}
                             fill="none"
                             strokeWidth={d.isHovered ? 3 : (d.isFocused ? 2 : 0.5)}
                             markerStart={`url(#${d.key}-start)`}
