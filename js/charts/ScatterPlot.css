@@ -1,4 +1,6 @@
 .ScatterPlot {
+    cursor: pointer;
+    
     & circle {
         stroke-width: 0.3;
     }

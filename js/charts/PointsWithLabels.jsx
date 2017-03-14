@@ -1,26 +1,29 @@
-// @flow
-
-/* ScatterPlot.jsx
+/* PointsWithLabels.jsx
  * ================                                                             
  *
- * Entry point for scatter charts
+ * Core scatterplot renderer
  *
  * @project Our World In Data
  * @author  Jaiden Mispy
  * @created 2017-03-09
  */ 
 
+// @flow
+
+import React, {Component} from 'react'
+import {observable, computed, action, autorun} from 'mobx'
+import {observer} from 'mobx-react'
 import _ from 'lodash'
 import * as d3 from 'd3'
 import owid from '../owid'
-import React, { createElement, Component, cloneElement } from 'react'
-import {observable, computed, action, autorun} from 'mobx'
-import {observer} from 'mobx-react'
 import Bounds from './Bounds'
 import NoData from './NoData'
 import AxisScale from './AxisScale'
 import styles from './ScatterPlot.css'
 import {getRelativeMouse} from './Util'
+import Labels from './Labels'
+import type {LabelDatum} from './Labels'
+import Vector2 from './Vector2'
 
 export type ScatterSeries = {
     color: string,
@@ -38,107 +41,243 @@ export default class PointsWithLabels extends Component {
         yScale: AxisScale
     }
 
+    @observable persistentFocusKeys : Object = {}
+    @observable hoverKey : ?string = null
+
+    @computed get focusKeys() : string[] {
+        const {persistentFocusKeys, hoverKey} = this       
+        return _.keys(persistentFocusKeys).concat(hoverKey ? [hoverKey] : [])
+    }
+
     @computed get data() {
         return this.props.data
     }
 
-    @computed get bounds() {
+    @computed get bounds() : Bounds {
         return this.props.bounds
     }
 
-    @computed get xScale() {
+    @computed get xScale() : AxisScale {
         return this.props.xScale.extend({ range: this.bounds.xRange() })
     }
 
-    @computed get yScale() {
+    @computed get yScale() : AxisScale {
         return this.props.yScale.extend({ range: this.bounds.yRange() })
     }
 
     @computed get sizeScale() : Function {
         const {data} = this
-        return d3.scaleLinear().range([3, 8])
-            .domain([
-                d3.min(data, function(series) { return d3.min(series.values, function(d) { return d.size||1; }); }),
-                d3.max(data, function(series) { return d3.max(series.values, function(d) { return d.size||1; }); })
-            ]);
+        return d3.scaleLinear().range([1, 7])
+            .domain(d3.extent(_.flatten(_.map(data, series => _.map(series.values, 'size')))))
+    }
+
+    @computed get fontScale() : Function {
+        return d3.scaleLinear().range([9, 12]).domain(this.sizeScale.domain());
     }
 
     // Used if no color is specified for a series
     @computed get defaultColorScale() {
-        return d3.scaleOrdinal().range(d3.schemeCategory20)        
+        return d3.scaleOrdinal().range(d3.schemeCategory20)
     }
 
-    @computed get pointData() {
-        const {data, xScale, yScale, defaultColorScale, sizeScale, focusKey} = this
+    // Pre-transform data for rendering
+    @computed get initialRenderData() : Object[] {
+        const {data, xScale, yScale, defaultColorScale, sizeScale, fontScale} = this
 
-        return _.map(data, d => {
+        return _.sortBy(_.map(data, d => {
             const values = _.map(d.values, v => {
                 return {
                     x: Math.floor(xScale.place(v.x)),
-                    y: Math.floor(yScale.place(v.y)),                       
-                    size: sizeScale(v.size||1) * (focusKey == d ? 1.5 : 1),
+                    y: Math.floor(yScale.place(v.y)),    
+                    size: sizeScale(v.size||1),
+                    time: v.time
                 }
             })
 
+            const fontSize = fontScale(_.last(d.values).size||1)
+
+            const labels = [
+                { 
+                    text: d.label,
+                    fontSize: fontSize,
+                    bounds: Bounds.forText(d.label, { x: _.last(values).x, y: _.last(values).y, fontSize: fontSize })
+                }
+            ]/*.concat(_.map(values, (v, i) => {
+                return {
+                    text: v.time.x,
+                    fontSize: fontSize,
+                    bounds: Bounds.forText(v.time.x, { x: v.x, y: v.y, fontSize: fontSize })
+                }
+            }))*/
+
             return {
-                key: d.key,
+                key: "key-" + owid.makeSafeForCSS(d.key),
+                labels: labels,
                 color: d.color || defaultColorScale(d.key),
+                size: _.last(values).size,
                 values: values
             }
-        })
+        }), 'size')
     }
 
+    labelPriority(d1: Object, d2: Object): Object {
+        if (d1.isHovered)
+            return d1
+        else if (d2.isHovered)
+            return d2
+        else if (d1.isFocused)
+            return d1
+        else if (d2.isFocused)
+            return d2
+        else
+            return d1
+    }
+
+    @computed get renderData() {
+        const {initialRenderData, hoverKey, focusKeys, labelPriority} = this
+        const renderData = _.sortBy(initialRenderData, d => -d.size)
+
+        _.each(renderData, d => { 
+            d.isHovered = d.key == hoverKey
+            d.isFocused = _.includes(focusKeys, d.key)
+        })
+
+        // Eliminate overlapping labels,
+        _.each(renderData, d => { d.isActive = true })
+        _.each(renderData, (d1, i) => {
+            _.each(renderData.slice(i+1), d2 => {
+                const intersect = _.some(d1.labels, l1 => _.some(d2.labels, l2 => l1.bounds.intersects(l2.bounds)))
+                if (d1 !== d2 && d1.isActive && d2.isActive && intersect) {
+                    //if (d1.labels[0].text == "Tajikistan" || d2.labels[0].text == "Tajikistan")
+                    //    console.log(d1, d2)
+                    if (labelPriority(d1, d2) == d1)
+                        d2.isActive = false
+                    else
+                        d1.isActive = false                    
+                }     
+            })
+        })
+
+        /*_.each(renderData, d => {
+            if (!d.isActive) return
+
+            _.each(d.labels, (l1, i) => {
+                _.each(d.labels.slice(i+1), l2 => {
+                    if (l1.bounds.intersects(l2.bounds))
+                        l2.isHidden = true
+                })
+            })
+        })*/
+
+        return renderData
+    }
+
+
+
+    /*@computed get renderData() : Object[] {
+        const {initialPointData, focusKey} = this
+
+        return _.map(initialPointData, d => {
+            return _.extend({}, d, {
+                size: d.size * (focusKey == d ? 1.5 : 1)
+            })
+        })
+    }*/
+
     @computed get allColors() : string[] {
-        return _.uniq(_.map(this.pointData, 'color'))
+        return _.uniq(_.map(this.renderData, 'color'))
     }
 
     @observable focusKey = null
 
     @action.bound onMouseMove() {
-        const mouse = d3.mouse(this.base)
+        const mouse = Vector2.fromArray(d3.mouse(this.base))
 
-        if (!this.bounds.containsPoint(...mouse))
-            this.focusKey = null
+        if (!this.bounds.containsPoint(mouse.x, mouse.y))
+            this.hoverKey = null
         else {
-            const closestSeries = _.sortBy(this.pointData, (series) => {
+            const closestSeries = _.sortBy(this.renderData, (series) => {
                 if (series.values.length == 1) {
-                    return Math.pow(series.values[0].x-mouse[0], 2)+Math.pow(series.values[0].y-mouse[1], 2)
+                    return Vector2.distanceSquared(series.values[0], mouse)
                 } else {
-                    return _.min(_.map(series.values, (v, i) => {
-                        return Math.pow(v.x-mouse[0], 2)+Math.pow(v.y-mouse[1], 2)
+                    return _.min(_.map(series.values.slice(0, -1), (d, i) => {
+                        return Vector2.distanceFromPointToLineSquared(mouse, d, series.values[i+1])
                     }))
                 }
             })[0]
-            this.focusKey = closestSeries.key
+            this.hoverKey = closestSeries.key
         }       
     }
 
+    @action.bound onClick() {
+        const {hoverKey, persistentFocusKeys} = this
+        if (hoverKey) {
+            if (persistentFocusKeys[hoverKey])
+                delete persistentFocusKeys[hoverKey]
+            else
+                persistentFocusKeys[hoverKey] = true
+        }
+    }
+
     componentDidMount() {
-        d3.select("html").on("mousemove", this.onMouseMove)
+        d3.select("html").on("mousemove.scatter", this.onMouseMove)
+        d3.select("html").on("click.scatter", this.onClick)
     }    
 
-    render() {
-        const {bounds, pointData, xScale, yScale, sizeScale, focusKey, allColors} = this
+    componentDidUnmount() {
+        d3.select("html").on("mousemove.scatter", null)
+        d3.select("html").on("click.scatter", null)  
+    }
 
-        if (_.isEmpty(pointData))
+    @computed get isFocusMode() : boolean {
+        return !!(this.focusKeys.length || this.renderData.length == 1)
+    }
+
+    render() {
+        //Bounds.debug(_.flatten(_.map(this.renderData, d => _.map(d.labels, 'bounds'))))
+        const {bounds, renderData, xScale, yScale, sizeScale, focusKeys, allColors, isFocusMode} = this
+        window.p = this
+
+        if (_.isEmpty(renderData))
             return <NoData bounds={bounds}/>
 
+
+        const defaultOpacity = 1
+
         return <g class={styles.ScatterPlot}>
-            <g class="entities" fillOpacity={0.6}>
-                <defs>
-                    {_.map(allColors, color =>
-                        <marker key={color} id={"arrow"+color.slice(1)} fill={color} viewBox="0 -5 10 10" refx={5} refY={0} markerWidth={4} markerHeight={4} orient="auto">
-                            <path d="M0,-5L10,0L0,5"/>
-                        </marker>
-                    )}
-                </defs>
-                {_.map(pointData, d => 
-                    <polyline 
-                        stroke={d.color}
-                        points={_.map(d.values, v => `${v.x},${v.y}`).join(' ')} 
-                        fill="none" 
-                        strokeOpacity={focusKey == d.key ? 1 : 0.1}
-                        marker-mid={false && `url(#arrow${d.color.slice(1)})`}/> 
+            <g class="entities" strokeOpacity={defaultOpacity} fillOpacity={defaultOpacity}>
+                {_.map(renderData, d => {
+                    const color = isFocusMode && !d.isFocused ? "#e2e2e2" : d.color
+
+                    return [
+                        <defs>
+                            <marker key={d.key} id={d.key} fill={color} viewBox="0 -5 10 10" refx={5} refY={0} markerWidth={4} markerHeight={4} orient="auto">
+                                <path d="M0,-5L10,0L0,5"/>
+                            </marker>
+                           <marker id={d.key+'-start'} viewBox="0 0 12 12"
+                                   refX={5} refY={5} orient="auto" fill={color}>
+                             <circle cx={5} cy={5} r={5}/>
+                           </marker>        
+                        </defs>,
+                        <polyline
+                            class={d.key}
+                            strokeLinecap="round"
+                            stroke={color}
+                            strokeOpacity={d.isFocused && 1}
+                            points={_.map(d.values, v => `${v.x},${v.y}`).join(' ')}
+                            fill="none"
+                            strokeWidth={d.isHovered ? 3 : (d.isFocused ? 2 : 0.5)}
+                            markerStart={`url(#${d.key}-start)`}
+                            markerEnd={`url(#${d.key})`}
+                        />
+                    ]
+                })}
+            </g>
+            <g class="labels">
+                {_.map(renderData, d =>
+                    _.map(d.labels, (l, i) => 
+                        d.isActive && !l.isHidden && <text x={l.bounds.x} y={l.bounds.y+l.bounds.height} fontSize={l.fontSize*(d.isFocused ? 2 : 1)} fontWeight={d.isHovered && "bold"} opacity={d.isFocused ? 1 : 0.8}>{l.text}</text>
+                    )
                 )}
             </g>
         </g>

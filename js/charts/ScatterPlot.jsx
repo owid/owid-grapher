@@ -209,7 +209,7 @@ export default class ScatterPlot extends Component {
 
     @computed get yearsWithData() : number[] {
         const {axisDimensions} = this
-        const tolerance = 1 // FIXME
+        const tolerance = 0 // FIXME
 
         var yearSets = [];
 
@@ -242,10 +242,13 @@ export default class ScatterPlot extends Component {
         autorun(() => {
             window.chart.model.set('chart-time', [this.minYear, this.maxYear]);
         })        
+
+        this.startYear = this.yearsWithData[0]
+        this.endYear = _.last(this.yearsWithData)
     }
 
-    @observable startYear : number = 0
-    @observable endYear : number = 0
+    @observable startYear : number
+    @observable endYear : number
 
     @action.bound onTimelineChange({startYear, endYear} : {startYear: number, endYear: number}) {
         this.startYear = startYear

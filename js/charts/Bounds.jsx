@@ -33,12 +33,14 @@ export default class Bounds {
 	static ctx : any
 	static baseFontSize : number
 
-	static forText(str: string, { fontSize = '1em' }={}): Bounds {
+	static forText(str: string, { x = 0, y = 0, fontSize = '1em' }: { x?: number, y?: number, fontSize?: string|number } = {}): Bounds {
 		this.textBoundsCache = this.textBoundsCache || new Map()
 		this.ctx = this.ctx || document.createElement('canvas').getContext('2d')
 		this.baseFontSize = this.baseFontSize || parseFloat(d3.select('svg').style('font-size'))
 
-		if (_.includes(fontSize, 'em'))
+		if (_.isNumber(fontSize))
+			fontSize = fontSize + 'px'
+		else if (_.includes(fontSize, 'em'))
 			fontSize = this.baseFontSize*parseFloat(fontSize)+'px'
 
 		const key = str+'-'+fontSize
@@ -59,11 +61,29 @@ export default class Bounds {
   			  .attr('font-size', fontSize)
 			  .text(function(d) { return d; });*/
 
+		const height = str == "m" ? m.width : Bounds.forText("m", { fontSize: fontSize }).height
+		bounds = new Bounds(x, y-height, m.width, height).padWidth(-1).padHeight(-1)
 
-
-		bounds = new Bounds(0, 0, m.width, str == "m" ? m.width : Bounds.forText("m", { fontSize: fontSize }).height).padWidth(-1).padHeight(-1)
 		this.textBoundsCache.set(key, bounds)
 		return bounds
+	}
+
+	static debug(bounds : Bounds[], containerNode = null) {
+		var container = containerNode ? d3.select(containerNode) : d3.select('svg');
+
+		container.selectAll('rect.boundsDebug').remove()
+
+		container.selectAll('rect.boundsDebug')
+			.data(bounds).enter()
+			.append('rect')
+				.attr('x', b => b.left)
+				.attr('y', b => b.top)
+				.attr('width', b => b.width)
+				.attr('height', b => b.height)
+				.attr('class', 'boundsDebug')
+				.style('fill', 'rgba(0,0,0,0)')
+				.style('stroke', 'red');
+
 	}
 
 
