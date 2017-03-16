@@ -16,7 +16,9 @@ import _ from 'lodash'
 import Victor from 'victor'
 
 export default class Vector2 {
-	v: Victor
+	x: number
+	y: number
+	_v: Victor
 
 	static distanceSq(a: Vector2, b: Vector2): number {
 		return (b.x-a.x)**2 + (b.y-a.y)**2
@@ -49,30 +51,53 @@ export default class Vector2 {
 		return new Vector2(o.x, o.y)
 	}
 
-	static fromVictor(v: Victor): Vector2 {
-		return new Vector2(v.x, v.y)
-	}
+	static intersectLines(a0: Vector2, a1: Vector2, b0: Vector2, b1: Vector2) {
+	    var ua, ub, denom = (b1.y - b0.y)*(a1.x - a0.x) - (b1.x - b0.x)*(a1.y - a0.y);
+	    if (denom == 0) {
+	        return null;
+	    }
+	    ua = ((b1.x - b0.x)*(a0.y - b0.y) - (b1.y - b0.y)*(a0.x - b0.x))/denom;
+	    ub = ((a1.x - a0.x)*(a0.y - b0.y) - (a1.y - a0.y)*(a0.x - b0.x))/denom;
 
-	get x(): number { return this.v.x }
-	get y(): number { return this.v.y }
+
+	    return {
+	        x: a0.x + ua*(a1.x - a0.x),
+	        y: a0.y + ua*(a1.y - a0.y),
+	        seg1: ua >= 0 && ua <= 1,
+	        seg2: ub >= 0 && ub <= 1
+	    };
+    }
 
 	subtract(v: Vector2): Vector2 {
-		return Vector2.fromVictor(this.v.subtract(v))
+		return Vector2.fromObject(new Victor(this.x, this.y).subtract(new Victor(v.x, v.y)))
 	}
 
 	add(v: Vector2): Vector2 {
-		return Vector2.fromVictor(this.v.add(v))
+		return Vector2.fromObject(new Victor(this.x, this.y).add(new Victor(v.x, v.y)))
 	}
 
-	magnitude() {
-		return this.v.magnitude()
+	times(n: number): Vector2 {
+		return new Vector2(this.x*n, this.y*n)
 	}
 
-	toString() {
+	clone(): Vector2 {
+		return new Vector2(this.x, this.y)
+	}
+
+	get magnitude(): number {
+		return this._v.magnitude()
+	}
+
+	get normalized(): Vector2 {
+		return Vector2.fromObject(new Victor(this.x, this.y).normalize())
+	}
+
+	toString(): string {
 		return `Vector2<${this.x}, ${this.y}>`
 	}
 
 	constructor(x: number, y: number) {
-		this.v = new Victor(x, y)
+		this.x = x
+		this.y = y
 	}
 }

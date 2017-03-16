@@ -93,6 +93,11 @@ export default class Bounds {
 	get right(): number { return this.x+this.width }
 	get bottom(): number { return this.y+this.height }
 
+	get topLeft(): Vector2 { return new Vector2(this.left, this.top) }
+	get topRight(): Vector2 { return new Vector2(this.right, this.top)}
+	get bottomLeft(): Vector2 { return new Vector2(this.left, this.bottom) }
+	get bottomRight(): Vector2 { return new Vector2(this.right, this.bottom) }
+
 	padLeft(amount: number): Bounds {
 		return new Bounds(this.x+amount, this.y, this.width-amount, this.height)
 	}
@@ -134,6 +139,21 @@ export default class Bounds {
 
 	    return !(r2.left > r1.right || r2.right < r1.left || 
              r2.top > r1.bottom || r2.bottom < r1.top)
+	}
+
+	lines(): Vector2[][] {
+		return [
+			[this.topLeft, this.topRight],
+			[this.topRight, this.bottomRight],
+			[this.bottomRight, this.bottomLeft],
+			[this.bottomLeft, this.topLeft]
+		]
+	}
+
+	intersectLine(a: Vector2, m: Vector2): Vector2[] {
+		return _.filter(_.map(this.lines(), line => {
+			return Vector2.intersectLines(a, m, line[0], line[1])
+		}))
 	}
 
 	containsPoint(x : number, y : number) : boolean {

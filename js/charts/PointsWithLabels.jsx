@@ -33,6 +33,7 @@ export type ScatterSeries = {
     values: { x: number, y: number, size: number }
 };
 
+
 @observer
 export default class PointsWithLabels extends Component {
     props: {
@@ -86,6 +87,7 @@ export default class PointsWithLabels extends Component {
         const {data, xScale, yScale, defaultColorScale, sizeScale, fontScale} = this
 
         return _.sortBy(_.map(data, d => {
+            const fontSize = fontScale(_.last(d.values).size||1)
             const values = _.map(d.values, v => {
                 return {
                     position: new Vector2(
@@ -97,15 +99,9 @@ export default class PointsWithLabels extends Component {
                 }
             })
 
-            const fontSize = fontScale(_.last(d.values).size||1)
-
-            const labels = [
-                { 
-                    text: d.label,
-                    fontSize: fontSize,
-                    bounds: Bounds.forText(d.label, { x: _.last(values).position.x, y: _.last(values).position.y, fontSize: fontSize })
-                }
-            ]/*.concat(_.map(values, (v, i) => {
+            const firstValue = _.first(values)
+            const endVector = _.last(values).position.subtract(values[values.length-2].position)
+ /*.concat(_.map(values, (v, i) => {
                 return {
                     text: v.time.x,
                     fontSize: fontSize,
@@ -115,10 +111,12 @@ export default class PointsWithLabels extends Component {
 
             return {
                 key: "key-" + owid.makeSafeForCSS(d.key),
-                labels: labels,
                 color: d.color || defaultColorScale(d.key),
                 size: _.last(values).size,
-                values: values
+                fontSize: fontSize,
+                values: values,
+                endVector: endVector,
+                label: d.label
             }
         }), 'size')
     }
@@ -140,9 +138,39 @@ export default class PointsWithLabels extends Component {
         const {initialRenderData, hoverKey, focusKeys, labelPriority} = this
         const renderData = _.sortBy(initialRenderData, d => -d.size)
 
+
         _.each(renderData, d => { 
             d.isHovered = d.key == hoverKey
             d.isFocused = _.includes(focusKeys, d.key)
+        })
+
+        _.each(renderData, d => {
+            const lastValue = _.last(d.values)
+            let labelPos = lastValue.position.clone()//lastValue.position.add(d.endVector.normalized.times(2))
+            const fontSize = d.fontSize * (d.isFocused ? 2 : 1)
+            let labelBounds = Bounds.forText(d.label, { fontSize: fontSize })
+
+            labelPos.x -= labelBounds.width/2
+            labelPos.y -= labelBounds.height/2 + labelBounds.height/4
+
+            labelBounds = labelBounds.extend({...labelPos})
+
+            const secondLastValue = d.values[d.values.length-2]
+
+            const intersections = labelBounds.intersectLine(lastValue.position, secondLastValue.position)
+            const ipos = _.sortBy(intersections, pos => Vector2.distanceSq(secondLastValue.position, pos))[0]
+
+//            if (ipos)
+//                labelPos = labelPos.add(lastValue.position.subtract(ipos))
+
+            d.labels = [
+                { 
+                    text: d.label,
+                    fontSize: fontSize,
+                    bounds: labelBounds.extend({...labelPos}),
+                    ipos: ipos
+                }
+            ]
         })
 
         // Eliminate overlapping labels,
@@ -239,7 +267,7 @@ export default class PointsWithLabels extends Component {
     }
 
     render() {
-        //Bounds.debug(_.flatten(_.map(this.renderData, d => _.map(d.labels, 'bounds'))))
+        Bounds.debug(_.flatten(_.map(this.renderData, d => _.map(d.labels, 'bounds'))))
         const {bounds, renderData, xScale, yScale, sizeScale, focusKeys, allColors, isFocusMode} = this
         window.p = this
 
@@ -281,7 +309,12 @@ export default class PointsWithLabels extends Component {
             <g class="labels">
                 {_.map(renderData, d =>
                     _.map(d.labels, (l, i) => 
-                        d.isActive && !l.isHidden && <text x={l.bounds.x} y={l.bounds.y+l.bounds.height} fontSize={l.fontSize*(d.isFocused ? 2 : 1)} fontWeight={d.isHovered && "bold"} opacity={d.isFocused ? 1 : 0.8}>{l.text}</text>
+                        d.isActive && !l.isHidden && <text x={l.bounds.x} y={l.bounds.y+l.bounds.height} fontSize={l.fontSize} fontWeight={d.isHovered && "bold"} opacity={d.isFocused ? 1 : 0.8}>{l.text}</text>
+                    )
+                )}
+                {_.map(renderData, d =>
+                    _.map(d.labels, (l, i) => 
+                        l.ipos && <circle cx={l.ipos.x} cy={l.ipos.y} r={2} fill="red"/>
                     )
                 )}
             </g>
