@@ -26,6 +26,15 @@ export default class Bounds {
 		return this.fromProps(bbox)		
 	}
 
+	static fromCorners(p1: Vector2, p2: Vector2) {
+		const x1 = Math.min(p1.x, p2.x)
+		const x2 = Math.max(p1.x, p2.x)
+		const y1 = Math.min(p1.y, p2.y)
+		const y2 = Math.max(p1.y, p2.y)
+
+		return new Bounds(x1, y1, x2-x1, y2-y1)
+	}
+
 	static empty() : Bounds {
 		return new Bounds(0,0,0,0)
 	}
@@ -151,9 +160,16 @@ export default class Bounds {
 	}
 
 	intersectLine(a: Vector2, m: Vector2): Vector2[] {
-		return _.filter(_.map(this.lines(), line => {
+		return _.map(_.filter(_.map(this.lines(), line => {
 			return Vector2.intersectLines(a, m, line[0], line[1])
-		}))
+		})), this.boundedPoint.bind(this))
+	}
+
+	boundedPoint(p: Vector2): Vector2 {
+		return new Vector2(
+			Math.max(Math.min(p.x, this.right), this.left),
+			Math.max(Math.min(p.y, this.bottom), this.top)
+		)
 	}
 
 	containsPoint(x : number, y : number) : boolean {

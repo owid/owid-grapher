@@ -59,13 +59,10 @@ export default class Vector2 {
 	    ua = ((b1.x - b0.x)*(a0.y - b0.y) - (b1.y - b0.y)*(a0.x - b0.x))/denom;
 	    ub = ((a1.x - a0.x)*(a0.y - b0.y) - (a1.y - a0.y)*(a0.x - b0.x))/denom;
 
+	    const x = a0.x + ua*(a1.x - a0.x)
+	    const y = a0.y + ua*(a1.y - a0.y)
 
-	    return {
-	        x: a0.x + ua*(a1.x - a0.x),
-	        y: a0.y + ua*(a1.y - a0.y),
-	        seg1: ua >= 0 && ua <= 1,
-	        seg2: ub >= 0 && ub <= 1
-	    };
+	    return new Vector2(x, y)
     }
 
 	subtract(v: Vector2): Vector2 {

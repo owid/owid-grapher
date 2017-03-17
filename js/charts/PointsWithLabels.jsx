@@ -98,9 +98,6 @@ export default class PointsWithLabels extends Component {
                     time: v.time
                 }
             })
-
-            const firstValue = _.first(values)
-            const endVector = _.last(values).position.subtract(values[values.length-2].position)
  /*.concat(_.map(values, (v, i) => {
                 return {
                     text: v.time.x,
@@ -115,7 +112,6 @@ export default class PointsWithLabels extends Component {
                 size: _.last(values).size,
                 fontSize: fontSize,
                 values: values,
-                endVector: endVector,
                 label: d.label
             }
         }), 'size')
@@ -146,7 +142,7 @@ export default class PointsWithLabels extends Component {
 
         _.each(renderData, d => {
             const lastValue = _.last(d.values)
-            let labelPos = lastValue.position.clone()//lastValue.position.add(d.endVector.normalized.times(2))
+            let labelPos = lastValue.position.clone()
             const fontSize = d.fontSize * (d.isFocused ? 2 : 1)
             let labelBounds = Bounds.forText(d.label, { fontSize: fontSize })
 
@@ -155,29 +151,38 @@ export default class PointsWithLabels extends Component {
 
             labelBounds = labelBounds.extend({...labelPos})
 
-            const secondLastValue = d.values[d.values.length-2]
+            if (d.values.length > 1) {
+                const secondLastValue = d.values[d.values.length-2]
+                const intersections = labelBounds.intersectLine(lastValue.position, secondLastValue.position)
+                const ipos = _.sortBy(intersections, pos => Vector2.distanceSq(secondLastValue.position, pos))[0]
 
-            const intersections = labelBounds.intersectLine(lastValue.position, secondLastValue.position)
-            const ipos = _.sortBy(intersections, pos => Vector2.distanceSq(secondLastValue.position, pos))[0]
-
-//            if (ipos)
-//                labelPos = labelPos.add(lastValue.position.subtract(ipos))
+                if (ipos)
+                    labelPos = labelPos.add(lastValue.position.subtract(ipos).times(1.1))                
+            }
 
             d.labels = [
                 { 
                     text: d.label,
                     fontSize: fontSize,
-                    bounds: labelBounds.extend({...labelPos}),
-                    ipos: ipos
+                    bounds: labelBounds.extend({...labelPos})
                 }
             ]
+
+            if (d.isHovered)
+                d.labels = d.labels.concat(_.map(d.values, (v, i) => {
+                    return {
+                        text: v.time.x.toString(),
+                        fontSize: fontSize,
+                        bounds: Bounds.forText(v.time.x.toString(), { x: v.position.x, y: v.position.y, fontSize: fontSize })
+                    }
+                }))
         })
 
         // Eliminate overlapping labels,
         _.each(renderData, d => { d.isActive = true })
         _.each(renderData, (d1, i) => {
             _.each(renderData.slice(i+1), d2 => {
-                const intersect = _.some(d1.labels, l1 => _.some(d2.labels, l2 => l1.bounds.intersects(l2.bounds)))
+                const intersect = d1.labels[0].bounds.intersects(d2.labels[0].bounds)
                 if (d1 !== d2 && d1.isActive && d2.isActive && intersect) {
                     //if (d1.labels[0].text == "Tajikistan" || d2.labels[0].text == "Tajikistan")
                     //    console.log(d1, d2)
@@ -267,7 +272,7 @@ export default class PointsWithLabels extends Component {
     }
 
     render() {
-        Bounds.debug(_.flatten(_.map(this.renderData, d => _.map(d.labels, 'bounds'))))
+        //Bounds.debug(_.flatten(_.map(this.renderData, d => _.map(d.labels, 'bounds'))))
         const {bounds, renderData, xScale, yScale, sizeScale, focusKeys, allColors, isFocusMode} = this
         window.p = this
 
