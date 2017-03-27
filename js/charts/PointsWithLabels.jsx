@@ -169,10 +169,10 @@ export default class PointsWithLabels extends Component {
             ]
 
             if (d.isHovered)
-                d.labels = d.labels.concat(_.map(d.values, (v, i) => {
+                d.labels = d.labels.concat(_.map(d.values.slice(0, -1), (v, i) => {
                     return {
                         text: v.time.x.toString(),
-                        fontSize: fontSize,
+                        fontSize: fontSize*0.7,
                         bounds: Bounds.forText(v.time.x.toString(), { x: v.position.x, y: v.position.y, fontSize: fontSize })
                     }
                 }))
@@ -194,7 +194,7 @@ export default class PointsWithLabels extends Component {
             })
         })
 
-        /*_.each(renderData, d => {
+        _.each(renderData, d => {
             if (!d.isActive) return
 
             _.each(d.labels, (l1, i) => {
@@ -203,12 +203,10 @@ export default class PointsWithLabels extends Component {
                         l2.isHidden = true
                 })
             })
-        })*/
+        })
 
         return renderData
     }
-
-
 
     /*@computed get renderData() : Object[] {
         const {initialPointData, focusKey} = this
@@ -279,7 +277,6 @@ export default class PointsWithLabels extends Component {
         if (_.isEmpty(renderData))
             return <NoData bounds={bounds}/>
 
-
         const defaultOpacity = 1
 
         return <g class={styles.ScatterPlot}>
@@ -306,6 +303,7 @@ export default class PointsWithLabels extends Component {
                             fill="none"
                             strokeWidth={d.isHovered ? 3 : (d.isFocused ? 2 : 0.5)}
                             markerStart={`url(#${d.key}-start)`}
+                            markerMid={`url(#${d.key}-start)`}
                             markerEnd={`url(#${d.key})`}
                         />
                     ]
@@ -318,7 +316,7 @@ export default class PointsWithLabels extends Component {
                     )
                 )}
                 {_.map(renderData, d =>
-                    _.map(d.labels, (l, i) => 
+                    d.isHovered && _.map(d.labels, (l, i) => 
                         l.ipos && <circle cx={l.ipos.x} cy={l.ipos.y} r={2} fill="red"/>
                     )
                 )}

@@ -1,4 +1,4 @@
-// @flow
+ // @flow
 
 /* OWID root namespace and standalone utility functions */
 
@@ -1133,7 +1133,7 @@ owid.getPropertyByVariableId = function( model, variableId ) {
 	var chartDimensions = model.getDimensions();
 
 	if (chartDimensions) {
-		var dimension = _.where( chartDimensions, { "variableId": variableId } );
+		var dimension = _.find( chartDimensions, { "variableId": variableId } );
 		if( dimension && dimension.length ) {
 			return dimension[0].property;
 		}
