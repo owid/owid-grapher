@@ -138,7 +138,7 @@ App.Views.Form.MapTabView = owid.View.extend({
 			html = "";
 
 		this.$defaultProjectionSelect.empty();
-		_.each(owdProjections, function(v, i) {
+		_.each(MapProjections, function(v, i) {
 			var selected = i == defaultProjection ? " selected" : "";
 			html += "<option value='" + i + "' " + selected + ">" + i + "</option>";
 		});

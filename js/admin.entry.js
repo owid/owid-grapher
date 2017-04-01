@@ -40,7 +40,6 @@ require('./admin/App.Views.UI.SelectVarPopup')
 require('./admin/App.Views.UI.SettingsVarPopup')
 require('./admin/App.Views.UI.ColorPicker')
 
-require('./admin/owid.config.scatter')
 require('./admin/App.Views.Form.ChartTypeSectionView')
 require('./admin/App.Views.Form.AddDataSectionView')
 require('./admin/App.Views.Form.EntitiesSectionView')
@@ -52,7 +51,7 @@ require('./admin/App.Views.Form.ExportTabView')
 require('./admin/App.Views.Form.MapColorSection')
 require('./admin/App.Views.Form.MapTabView')
 require('./admin/App.Views.Form.SaveButtons')
-window.Editor = require('./admin/Editor').default
+window.Editor = require('./admin/ChartEditor').default
 
 // Importer code
 

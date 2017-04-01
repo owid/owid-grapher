@@ -2,7 +2,7 @@
 
 import owid from '../owid'
 import _ from 'lodash'
-import {observable, computed, action} from 'mobx'
+import {observable, computed, action, autorun} from 'mobx'
 import type {ScaleType} from './ScaleSelector'
 import ChartData from './ChartData'
 
@@ -12,6 +12,11 @@ export default class ChartConfig {
 
 	constructor(model : any) {
 		this.model = model
+
+		this.timeline = this.model.get('timeline')
+		autorun(() => {
+			this.model.set('timeline', this.timeline)
+		})
 	}
 
 	@computed get type() : string { return this.model.get('chart-type') }
@@ -98,5 +103,7 @@ export default class ChartConfig {
 			return ['linear', 'log']
 		else
 			return [this.yScaleType]
-	}	
+	}
+
+	@observable timeline = null
 }

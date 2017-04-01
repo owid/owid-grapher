@@ -1,10 +1,65 @@
 import * as d3 from 'd3'
 import _ from 'lodash'
 import dataflow from '../charts/owid.dataflow'
+import React, {Component} from 'react'
+import {observable, computed, action} from 'mobx'
+import {observer} from 'mobx-react'
 
-owid.namespace("owid.config.scatter");
+@observer
+export default class ScatterTab extends Component {
+    props: {
+        chart: ChartConfig
+    }
 
-owid.config.scatter = function(chart) {
+    @observable timeline = {
+        defaultYear: null
+    }
+
+    @computed get isEnabled() {
+        return !!this.props.chart.timeline
+    }
+
+    constructor(props) {
+        super(props)
+        this.timeline = props.chart.timeline || this.timeline
+    }
+
+    componentDidMount() {
+        $(".nav-tabs").append("<li class='nav-item'><a class='nav-link' href='#scatter-tab' data-toggle='tab'>Scatter</a></li>")
+    }
+
+    @action.bound onToggleTimeline(e) {
+        if (e.target.checked)
+            this.props.chart.timeline = this.timeline
+        else
+            this.props.chart.timeline = null
+    }
+
+    render() {
+        const {isEnabled, timeline} = this
+
+        return <div id="scatter-tab" class="tab-pane">
+            <section>
+                <h2>Timeline</h2>
+                <p class="form-section-desc">Note that the timeline settings will override any variable settings for target year and tolerance.</p>
+                <label class="clickable"><input type="checkbox" value={!!isEnabled} onChange={this.onToggleTimeline}/> Enable timeline</label>
+                {isEnabled && <div class="timeline-settings">
+                    <label><i class="fa fa-info-circle" data-toggle="tooltip" title="" data-original-title="Specify a range of years from which to pull data. For example, if the map shows 1990 and tolerance is set to 1, then data from 1989 or 1991 will be shown if no data is available for 1990."></i> Tolerance of data:
+                        <input name="tolerance" class="form-control" placeholder="Tolerance of data"/>
+                    </label> 
+                    <label>Default year to show: 
+                        <select name="defaultYear">
+                            <option value="latest">Latest year</option>
+                            <option value="earliest">Earliest year</option>
+                        </select>
+                    </label>
+                </div>}
+            </section>        
+        </div>
+    }
+}
+
+/*owid.config.scatter = function(chart) {
     var config = dataflow();
 
     config.inputs({
@@ -41,25 +96,7 @@ owid.config.scatter = function(chart) {
 
     config.flow('isEnabledInput, timeRangesInput, toleranceInput, defaultYearInput : tab', function(tab) {
         tab.html(
-            '<section>' +
-                '<h2>Timeline</h2>' +
-                '<p class="form-section-desc">Note that the timeline settings will override any variable settings for target year and tolerance.</p>' +
-                '<label class="clickable"><input type="checkbox" name="isEnabled"> Enable timeline</label>' +
-                '<div class="timeline-settings">' +
-                    '<label><i class="fa fa-info-circle" data-toggle="tooltip" title="" data-original-title="Various ranges can be specified. For example: <br>&quot;1990 to 2000 every 5; 2003; 2009&quot;<br>Will show the years 1990, 1995, 2000, 2003 and 2009."></i> Available years:' +
-                        '<input name="timeRanges" class="form-control" data-toggle="tooltip" placeholder="first to last every 1">' +                   
-                    '</label> ' + 
-                    '<label><i class="fa fa-info-circle" data-toggle="tooltip" title="" data-original-title="Specify a range of years from which to pull data. For example, if the map shows 1990 and tolerance is set to 1, then data from 1989 or 1991 will be shown if no data is available for 1990."></i> Tolerance of data:' +
-                        '<input name="tolerance" class="form-control" placeholder="Tolerance of data">' +
-                     '</label> ' +
-                    '<label>Default year to show: ' +
-                        '<select name="defaultYear">' +
-                            '<option value="latest">Latest year</option>' +
-                            '<option value="earliest">Earliest year</option>' +
-                        '</select>' +
-                    '</label>' + 
-                '</div>' +
-            '</section>'
+
         );
 
         // Bind events
@@ -141,4 +178,4 @@ owid.config.scatter = function(chart) {
     update();
     
     return config;
-};
+};*/

@@ -1,6 +1,7 @@
 import React from 'react'
 import {render, h} from 'preact'
 import BasicTab from './BasicTab'
+import ScatterTab from './ScatterTab'
 import ChartConfig from '../charts/ChartConfig'
 import _ from 'lodash'
 import $ from 'jquery'
@@ -54,9 +55,7 @@ App.Views.FormView = owid.View.extend({
 		this.saveButtons = this.addChild(SaveButtonsView, { dispatcher: this.dispatcher });
 
 		if (chart.type == App.ChartType.ScatterPlot)
-            this.scatterConfig = owid.config.scatter(chart).update({ formNode: d3.select('#form-view').node() });
-       	else if (this.scatterConfig)
-       		this.scatterConfig.clean();
+			render(<ScatterTab chart={chart}/>, d3.select('.tab-content').node())
 
 		$('.nav-tabs').stickyTabs();
 	},
