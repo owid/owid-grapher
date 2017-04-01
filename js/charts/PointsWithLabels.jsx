@@ -134,7 +134,6 @@ export default class PointsWithLabels extends Component {
         const {initialRenderData, hoverKey, focusKeys, labelPriority} = this
         const renderData = _.sortBy(initialRenderData, d => -d.size)
 
-
         _.each(renderData, d => { 
             d.isHovered = d.key == hoverKey
             d.isFocused = _.includes(focusKeys, d.key)
@@ -205,7 +204,7 @@ export default class PointsWithLabels extends Component {
             })
         })
 
-        return renderData
+        return _.sortBy(renderData, d => d.isActive ? 1 : 0)
     }
 
     /*@computed get renderData() : Object[] {
@@ -285,7 +284,7 @@ export default class PointsWithLabels extends Component {
                     const color = ((isFocusMode && !d.isFocused) || !d.isActive) ? "#e2e2e2" : d.color
 
                     return [
-                        <defs>
+                        <defs key={d.key+'-defs'}>
                             <marker key={d.key} id={d.key} fill={color} viewBox="0 -5 10 10" refx={5} refY={0} markerWidth={4} markerHeight={4} orient="auto">
                                 <path d="M0,-5L10,0L0,5"/>
                             </marker>
@@ -295,7 +294,8 @@ export default class PointsWithLabels extends Component {
                            </marker>        
                         </defs>,
                         <polyline
-                            class={d.key}
+                            key={d.key+'-line'}
+                            class={d.key}                            
                             strokeLinecap="round"
                             stroke={color}
                             strokeOpacity={d.isFocused && 1}

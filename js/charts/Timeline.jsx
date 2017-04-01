@@ -209,14 +209,15 @@ export default class Timeline extends Component {
 
     @action.bound onMouseDown(e : MouseEvent) {
         // Don't do mousemove if we clicked the play or pause button
-        if (d3.select(e.target).classed('toggle')) return;
+        const targetEl = d3.select(e.target)
+        if (targetEl.classed('toggle')) return;
 
         const {startYear, endYear} = this
 
         const inputYear = this.getInputYearFromMouse(e)
-        if (inputYear <= startYear)
+        if (targetEl.classed('startMarker') || inputYear <= startYear)
             this.dragTarget = 'start'
-        else if (inputYear >= endYear)
+        else if (targetEl.classed('endMarker') || inputYear >= endYear)
             this.dragTarget = 'end'
         else {
             this.dragTarget = 'both'
@@ -293,8 +294,8 @@ export default class Timeline extends Component {
 			</g>
 			<rect class="sliderBackground" x={sliderBounds.left} y={sliderBounds.top} width={sliderBounds.width} height={sliderBounds.height} rx={5} ry={5} stroke-width={0.1} fill="#eee"/>			
             <rect x={xScale(startYear)} y={sliderBounds.top} width={xScale(endYear)-xScale(startYear)} height={sliderBounds.height} fill="#3F9EFF"/>
-            <TimelineHandle year={startYear} xScale={xScale} bounds={sliderBounds} label={startYear == minYear || startYear == maxYear ? '' : roundedStartYear}/>
-            <TimelineHandle year={endYear} xScale={xScale} bounds={sliderBounds} label={endYear == minYear || endYear == maxYear ? '' : roundedEndYear}/>
+            <TimelineHandle year={startYear} xScale={xScale} bounds={sliderBounds} label={startYear == minYear || startYear == maxYear ? '' : roundedStartYear} handleClass="startMarker"/>
+            <TimelineHandle year={endYear} xScale={xScale} bounds={sliderBounds} label={endYear == minYear || endYear == maxYear ? '' : roundedEndYear} handleClass="endMarker"/>
 		</g>
 	}
 }
@@ -302,10 +303,10 @@ export default class Timeline extends Component {
 @observer
 class TimelineHandle extends Component {
     render() {
-        const {year, xScale, bounds, label} = this.props
+        const {year, xScale, bounds, label, handleClass} = this.props
 
         return <g class="handle" fill="#3F9EFF" transform={`translate(${xScale(year)}, ${bounds.top+bounds.height/2})`}>
-            <circle r={8} stroke="#000" stroke-width={0.1}/>
+            <circle class={handleClass} r={8} stroke="#000" stroke-width={0.1}/>
             <text y={-9} font-size="0.7em" text-anchor="middle">
                 {label}
             </text>
