@@ -8,10 +8,24 @@ import ChartData from './ChartData'
 
 // In-progress mobx model layer that will eventually replace ChartModel
 export default class ChartConfig {
+	@observable.struct selectedEntities = []
+
 	model: any
 
 	constructor(model : any) {
 		this.model = model
+
+		this.selectedEntities = this.model.getSelectedEntities().map(e => e.name)
+		this.model.on('change:selected-countries', () => {
+			this.selectedEntities = this.model.getSelectedEntities().map(e => e.name)
+		})
+		autorun(() => {
+			const entities = this.selectedEntities
+			if (window.chart.vardata) {
+				const entityKey = window.chart.vardata.get('entityKey')
+				this.model.set('selected-countries', _.filter(_.values(entityKey), e => _.includes(entities, e.name)))
+			}
+		})
 
 		this.timeline = this.model.get('timeline')
 		autorun(() => {

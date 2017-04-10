@@ -41,7 +41,7 @@ export default class ScatterTab extends Component {
         return <div id="scatter-tab" class="tab-pane">
             <section>
                 <h2>Timeline</h2>
-                <p class="form-section-desc">Note that the timeline settings will override any variable settings for target year and tolerance.</p>
+                <p class="form-section-desc">   Note that the timeline settings will override any variable settings for target year and tolerance.</p>
                 <label class="clickable"><input type="checkbox" value={!!isEnabled} onChange={this.onToggleTimeline}/> Enable timeline</label>
                 {isEnabled && <div class="timeline-settings">
                     <label><i class="fa fa-info-circle" data-toggle="tooltip" title="" data-original-title="Specify a range of years from which to pull data. For example, if the map shows 1990 and tolerance is set to 1, then data from 1989 or 1991 will be shown if no data is available for 1990."></i> Tolerance of data:

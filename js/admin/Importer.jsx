@@ -685,7 +685,7 @@ export default class Importer extends Component {
 					<input type="submit" class="btn btn-success" value={dataset.id ? "Update dataset" : "Create dataset"}/>,
 					<Modal isOpen={!!dataset.importRequest} contentLabel="Modal" parentSelector={e => document.querySelector('.wrapper')}>
 						<ImportProgressModal dataset={dataset}/>
-					</Modal>			
+					</Modal>
 				]}
 			</section>}
 		</form>

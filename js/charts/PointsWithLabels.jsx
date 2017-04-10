@@ -38,17 +38,21 @@ export type ScatterSeries = {
 export default class PointsWithLabels extends Component {
     props: {
         data: ScatterSeries[],
+        focusKeys: string[],
         bounds: Bounds,
         xScale: AxisScale,
         yScale: AxisScale
     }
 
-    @observable persistentFocusKeys : Object = {}
     @observable hoverKey : ?string = null
 
-    @computed get focusKeys() : string[] {
-        const {persistentFocusKeys, hoverKey} = this       
-        return _.keys(persistentFocusKeys).concat(hoverKey ? [hoverKey] : [])
+    @computed get focusKeys() {
+        return this.props.focusKeys || []
+    }
+
+    @computed get tmpFocusKeys() : string[] {
+        const {focusKeys, hoverKey} = this       
+        return focusKeys.concat(hoverKey ? [hoverKey] : [])
     }
 
     @computed get data(): ScatterSeries[] {
@@ -98,16 +102,10 @@ export default class PointsWithLabels extends Component {
                     time: v.time
                 }
             })
- /*.concat(_.map(values, (v, i) => {
-                return {
-                    text: v.time.x,
-                    fontSize: fontSize,
-                    bounds: Bounds.forText(v.time.x, { x: v.x, y: v.y, fontSize: fontSize })
-                }
-            }))*/
 
             return {
-                key: "key-" + owid.makeSafeForCSS(d.key),
+                key: d.key,
+                displayKey: "key-" + owid.makeSafeForCSS(d.key),
                 color: d.color || defaultColorScale(d.key),
                 size: _.last(values).size,
                 fontSize: fontSize,
@@ -131,12 +129,12 @@ export default class PointsWithLabels extends Component {
     }
 
     @computed get renderData(): { position: Vector2, size: number, time: Object }[] {
-        const {initialRenderData, hoverKey, focusKeys, labelPriority} = this
+        const {initialRenderData, hoverKey, tmpFocusKeys, labelPriority} = this
         const renderData = _.sortBy(initialRenderData, d => -d.size)
 
         _.each(renderData, d => { 
             d.isHovered = d.key == hoverKey
-            d.isFocused = _.includes(focusKeys, d.key)
+            d.isFocused = _.includes(tmpFocusKeys, d.key)
         })
 
         _.each(renderData, d => {
@@ -245,13 +243,13 @@ export default class PointsWithLabels extends Component {
     }
 
     @action.bound onClick() {
-        const {hoverKey, persistentFocusKeys} = this
-        if (hoverKey) {
-            if (persistentFocusKeys[hoverKey])
-                delete persistentFocusKeys[hoverKey]
-            else
-                persistentFocusKeys[hoverKey] = true
-        }
+        const {hoverKey, focusKeys} = this
+        if (!hoverKey) return
+
+        if (_.includes(this.focusKeys, hoverKey))
+            this.props.onSelectEntity(_.without(this.focusKeys, hoverKey))
+        else
+            this.props.onSelectEntity(this.focusKeys.concat([hoverKey]))
     }
 
     componentDidMount() {
@@ -265,12 +263,12 @@ export default class PointsWithLabels extends Component {
     }
 
     @computed get isFocusMode() : boolean {
-        return !!(this.focusKeys.length || this.renderData.length == 1)
+        return !!(this.tmpFocusKeys.length || this.renderData.length == 1)
     }
 
     render() {
         //Bounds.debug(_.flatten(_.map(this.renderData, d => _.map(d.labels, 'bounds'))))
-        const {bounds, renderData, xScale, yScale, sizeScale, focusKeys, allColors, isFocusMode} = this
+        const {bounds, renderData, xScale, yScale, sizeScale, tmpFocusKeys, allColors, isFocusMode} = this
         window.p = this
 
         if (_.isEmpty(renderData))
@@ -284,7 +282,7 @@ export default class PointsWithLabels extends Component {
                     const color = ((isFocusMode && !d.isFocused) || !d.isActive) ? "#e2e2e2" : d.color
 
                     return [
-                        <defs key={d.key+'-defs'}>
+                        <defs key={d.displayKey+'-defs'}>
                             <marker key={d.key} id={d.key} fill={color} viewBox="0 -5 10 10" refx={5} refY={0} markerWidth={4} markerHeight={4} orient="auto">
                                 <path d="M0,-5L10,0L0,5"/>
                             </marker>
@@ -294,17 +292,17 @@ export default class PointsWithLabels extends Component {
                            </marker>        
                         </defs>,
                         <polyline
-                            key={d.key+'-line'}
-                            class={d.key}                            
+                            key={d.displayKey+'-line'}
+                            class={d.displayKey}                            
                             strokeLinecap="round"
                             stroke={color}
                             strokeOpacity={d.isFocused && 1}
                             points={_.map(d.values, v => `${v.position.x},${v.position.y}`).join(' ')}
                             fill="none"
                             strokeWidth={d.isHovered ? 3 : (d.isFocused ? 2 : 0.5)}
-                            markerStart={`url(#${d.key}-start)`}
-                            markerMid={`url(#${d.key}-start)`}
-                            markerEnd={`url(#${d.key})`}
+                            markerStart={`url(#${d.displayKey}-start)`}
+                            markerMid={`url(#${d.displayKey}-start)`}
+                            markerEnd={`url(#${d.displayKey})`}
                         />
                     ]
                 })}

@@ -32,8 +32,8 @@ class ScatterWithAxis extends Component {
     props: {
         bounds: Bounds,
         data: ScatterSeries[],
-        xAxisScale: AxisScale,
-        yAxisScale: AxisScale
+        xScale: AxisScale,
+        yScale: AxisScale
     }
 
     @computed get bounds() : Bounds {
@@ -45,11 +45,11 @@ class ScatterWithAxis extends Component {
     }
 
     @computed get xScale() : AxisScale {
-        return this.props.xAxisScale
+        return this.props.xScale
     }
 
     @computed get yScale() : AxisScale {
-        return this.props.yAxisScale
+        return this.props.yScale
     }
 
     render() {
@@ -62,7 +62,7 @@ class ScatterWithAxis extends Component {
         return <g>
             <Axis orient="left" scale={yScale} bounds={bounds.padBottom(xAxisBounds.height)}/>
             <Axis orient="bottom" scale={xScale} bounds={bounds.padLeft(yAxisBounds.width)}/>
-            <PointsWithLabels xScale={xScale} yScale={yScale} data={data} bounds={innerBounds}/>
+            <PointsWithLabels xScale={xScale} yScale={yScale} data={data} bounds={innerBounds} {...this.props}/>
         </g>
     }
 }
@@ -71,7 +71,7 @@ class ScatterWithAxis extends Component {
 export default class ScatterPlot extends Component {
     props: {
         bounds: Bounds,
-        config : ChartConfig
+        config: ChartConfig
     };
 
     @computed get bounds() : Bounds {
@@ -275,22 +275,26 @@ export default class ScatterPlot extends Component {
         return d3.extent(_.map(this.allValues, 'y'))
     }
 
-    @computed get xAxisScale() : AxisScale {
+    @computed get xScale() : AxisScale {
         const {xDomain} = this
-        return new AxisScale({ scaleType: 'linear', domain: xDomain, tickFormat: d => d.toString() })        
+        return new AxisScale({ scaleType: 'linear', domain: xDomain, tickFormat: d => d.toString() })
     }
 
-    @computed get yAxisScale() : AxisScale {
+    @computed get yScale() : AxisScale {
         const {yDomain} = this
         return new AxisScale({ scaleType: 'linear', domain: yDomain, tickFormat: d => d.toString() })        
+    }
+
+    @action.bound onSelectEntity(focusKeys) {
+        this.props.config.selectedEntities = focusKeys
     }
 
     render() {
         window.ScatterPlot = this
 
-        const {currentData, bounds, yearsWithData, startYear, endYear, xAxisScale, yAxisScale} = this
+        const {currentData, bounds, yearsWithData, startYear, endYear, xScale, yScale} = this
         return <Layout bounds={bounds}>
-            <ScatterWithAxis data={currentData} bounds={Layout.bounds} xAxisScale={xAxisScale} yAxisScale={yAxisScale}/>
+            <ScatterWithAxis data={currentData} bounds={Layout.bounds} xScale={xScale} yScale={yScale} onSelectEntity={this.onSelectEntity} focusKeys={this.props.config.selectedEntities}/>
             <Timeline bounds={Layout.bounds} layout="bottom" onChange={this.onTimelineChange} years={yearsWithData} startYear={startYear} endYear={endYear}/>
         </Layout>
     }
