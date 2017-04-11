@@ -207,6 +207,7 @@ owid.timeRangesFromString = function(timeRangesStr) {
 	return timeRanges;
 };
 
+
 owid.unitFormat = function(unit, value, options) {
 	if (value === "") return "";
 
@@ -219,18 +220,24 @@ owid.unitFormat = function(unit, value, options) {
 
 	// Do precision fiddling, if the value is numeric
 	if (_.isNumber(value)) {
-		if (_.isFinite(unit.format) && unit.format >= 0) {
-			var fixed = Math.min(20, parseInt(unit.format, 10));
-			value = d3.format(",." + fixed + "f")(value);
+		if (value % 1 == 0 && Math.abs(value) >= 1e6) {
+			if (value >= 1e12) value = value/1e12 + " trillion"
+			else if (value >= 1e9) value = value/1e9 + " billion"
+			else if (value >= 1e6) value = value/1e6 + " million"
 		} else {
-			value = d3.format(",")(value);
-		}
+			if (_.isFinite(unit.format) && unit.format >= 0) {
+				var fixed = Math.min(20, parseInt(unit.format, 10));
+				value = d3.format(",." + fixed + "f")(value);
+			} else {
+				value = d3.format(",")(value);
+			}
 
-		if (options.noTrailingZeroes) {
-			var m = value.match(/([0-9,-]+.[0-9,]*?)0*$/);
-			if (m) value = m[1];
-			if (value[value.length-1] == ".")
-				value = value.slice(0, value.length-1);
+			if (options.noTrailingZeroes) {
+				var m = value.match(/([0-9,-]+.[0-9,]*?)0*$/);
+				if (m) value = m[1];
+				if (value[value.length-1] == ".")
+					value = value.slice(0, value.length-1);
+			}			
 		}
 	}
 

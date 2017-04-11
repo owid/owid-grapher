@@ -384,7 +384,6 @@ import ChartConfig from './ChartConfig'
 		}
 
 		function renderMultiBar() {
-			console.trace('change chartData');
 			// MISPY TODO - move this into ChartData
 			// relevant test chart: http://ourworldindata.org/grapher/public-health-insurance-coverage2?stackMode=stacked
 	        var allTimes = [],
@@ -429,8 +428,8 @@ import ChartConfig from './ChartConfig'
 			if (chartType == App.ChartType.MultiBar) {
 				nvd3 = nv.models.multiBarChart().options(nvOptions);					
 			} else if (chartType == App.ChartType.HorizontalMultiBar) {
-				nvd3 = nv.models.multiBarHorizontalChart().options(nvOptions);					
-			}				
+				nvd3 = nv.models.multiBarHorizontalChart().options(nvOptions);
+			}
 
 			if (chart.model.get("currentStackMode") == "stacked")
 				nvd3.stacked(true);			
