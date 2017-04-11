@@ -165,8 +165,11 @@ export default class PointsWithLabels extends Component {
                 }
             ]
 
-            if (d.isHovered)
+            // Individual year labels
+            if (d.isFocused)
                 d.labels = d.labels.concat(_.map(d.values.slice(0, -1), (v, i) => {
+                    debugger
+
                     return {
                         text: v.time.x.toString(),
                         fontSize: fontSize*0.7,
@@ -283,10 +286,10 @@ export default class PointsWithLabels extends Component {
 
                     return [
                         <defs key={d.displayKey+'-defs'}>
-                            <marker key={d.key} id={d.key} fill={color} viewBox="0 -5 10 10" refx={5} refY={0} markerWidth={4} markerHeight={4} orient="auto">
+                            <marker key={d.displayKey} id={d.displayKey} fill={color} viewBox="0 -5 10 10" refx={5} refY={0} markerWidth={4} markerHeight={4} orient="auto">
                                 <path d="M0,-5L10,0L0,5"/>
                             </marker>
-                           <marker id={d.key+'-start'} viewBox="0 0 12 12"
+                           <marker id={d.displayKey+'-start'} viewBox="0 0 12 12"
                                    refX={5} refY={5} orient="auto" fill={color}>
                              <circle cx={5} cy={5} r={5}/>
                            </marker>        
@@ -310,7 +313,7 @@ export default class PointsWithLabels extends Component {
             <g class="labels">
                 {_.map(renderData, d =>
                     _.map(d.labels, (l, i) => 
-                        d.isActive && !l.isHidden && <text x={l.bounds.x} y={l.bounds.y+l.bounds.height} fontSize={l.fontSize} fontWeight={d.isHovered && "bold"} opacity={d.isFocused ? 1 : 0.8}>{l.text}</text>
+                        d.isActive && !l.isHidden && <text x={l.bounds.x} y={l.bounds.y+l.bounds.height+l.bounds.height/4} fontSize={l.fontSize} fontWeight={d.isHovered && "bold"} opacity={d.isFocused ? 1 : 0.8}>{l.text}</text>
                     )
                 )}
                 {_.map(renderData, d =>
