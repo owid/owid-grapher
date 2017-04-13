@@ -169,28 +169,33 @@ export default class PointsWithLabels extends Component {
             // Individual year labels
             if (d.isFocused)
                 d.labels = d.labels.concat(_.map(d.values.slice(0, -1), (v, i) => {
-                    const prevSegment = i > 0 && v.position.subtract(d.values[i-1].position)
-                    const nextSegment = d.values[i+1].position.subtract(v.position)
+                    const prevPos = i > 0 && d.values[i-1].position
+                    const prevSegment = i > 0 && v.position.subtract(prevPos)
+                    const nextPos = d.values[i+1].position
+                    const nextSegment = nextPos.subtract(v.position)
 
-
-                    const potentialLabelSpots = []
                     let pos = v.position
-                    let normals = []
                     if (prevSegment) {
-                        normals = prevSegment.add(nextSegment).normalize().normals().map(x => x.times(30))
-                        normals = [_.sortBy(normals, n => {
-                            const distFromPrevPoint
-                        }
-
-                       // pos = pos.add(normal.normalize().times(10))
+                        const normals = prevSegment.add(nextSegment).normalize().normals().map(x => x.times(5))
+                        const potentialSpots = _.map(normals, n => v.position.add(n))
+                        pos = _.sortBy(potentialSpots, p => {
+                            return -(Vector2.distance(p, prevPos)+Vector2.distance(p, nextPos))
+                        })[0]
+                    } else {
+                        pos = v.position.subtract(nextSegment.normalize().times(5))
                     }
+
+                    let bounds = Bounds.forText(v.time.x.toString(), { x: pos.x, y: pos.y, fontSize: fontSize*0.7 })
+                    if (pos.x < v.position.x)
+                        bounds = new Bounds(bounds.x-bounds.width+2, bounds.y, bounds.width, bounds.height)
+                    if (pos.y > v.position.y)
+                        bounds = new Bounds(bounds.x, bounds.y+bounds.height/2, bounds.width, bounds.height)
 
                     return {
                         text: v.time.x.toString(),
-                        normals: normals,
                         fontSize: fontSize*0.7,
-                        pos: pos,
-                        bounds: Bounds.forText(v.time.x.toString(), { x: pos.x, y: pos.y, fontSize: fontSize })
+                        pos: v.position,
+                        bounds: bounds
                     }
                 }))
         })
@@ -216,8 +221,8 @@ export default class PointsWithLabels extends Component {
 
             _.each(d.labels, (l1, i) => {
                 _.each(d.labels.slice(i+1), l2 => {
-                    //if (l1.bounds.intersects(l2.bounds))
-                    //    l2.isHidden = true
+                    if (l1.bounds.intersects(l2.bounds))
+                        l2.isHidden = true
                 })
             })
         })
@@ -330,7 +335,7 @@ export default class PointsWithLabels extends Component {
             <g class="labels">
                 {_.map(renderData, d =>
                     _.map(d.labels, (l, i) =>
-                        d.isActive && !l.isHidden && <text x={l.bounds.x} y={l.bounds.y+l.bounds.height+l.bounds.height/4} fontSize={l.fontSize} fontWeight={d.isHovered && "bold"} opacity={d.isFocused ? 1 : 0.8}>{l.text}</text>
+                        d.isActive && !l.isHidden && <text x={l.bounds.x} y={l.bounds.y+l.bounds.height} fontSize={l.fontSize} fontWeight={d.isHovered && "bold"} opacity={d.isFocused ? 1 : 0.8}>{l.text}</text>
                     )
                 )}
                 {_.map(renderData, d =>

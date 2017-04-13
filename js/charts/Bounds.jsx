@@ -23,7 +23,7 @@ export default class Bounds {
 	}
 
 	static fromBBox(bbox : { x: number, y: number, width: number, height: number }) : Bounds {
-		return this.fromProps(bbox)		
+		return this.fromProps(bbox)
 	}
 
 	static fromCorners(p1: Vector2, p2: Vector2) {
@@ -116,7 +116,7 @@ export default class Bounds {
 	}
 
 	padBottom(amount: number): Bounds {
-		return new Bounds(this.x, this.y, this.width, this.height-amount)		
+		return new Bounds(this.x, this.y, this.width, this.height-amount)
 	}
 
 	padTop(amount: number): Bounds {
@@ -146,7 +146,7 @@ export default class Bounds {
 	intersects(otherBounds: Bounds): boolean {
 		const r1 = this, r2 = otherBounds
 
-	    return !(r2.left > r1.right || r2.right < r1.left || 
+	    return !(r2.left > r1.right || r2.right < r1.left ||
              r2.top > r1.bottom || r2.bottom < r1.top)
 	}
 
@@ -183,7 +183,7 @@ export default class Bounds {
 	toCSS() : { left: string, top: string, width: string, height: string } {
 		return { left: this.left+'px', top: this.top+'px', width: this.width+'px', height: this.height+'px'}
 	}
-	
+
 	xRange() : [number, number] {
 		return [this.left, this.right]
 	}
