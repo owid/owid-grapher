@@ -31,7 +31,7 @@ class AligningText extends Component {
 	}
 
 	componentDidUpdate() {
-		d3.select(this.textNode).attr('dy', this.textNode.getBBox().height/4)		
+		d3.select(this.textNode).attr('dy', this.textNode.getBBox().height/4)
 	}
 }
 
@@ -103,7 +103,7 @@ class ColorLegendItem extends Component {
 		const {bounds, textBounds, rectSize, rectSpacing} = this
 
 		return <g>
-			<rect x={bounds.x} y={bounds.y+(bounds.height/2 - rectSize/2)} width={rectSize} height={rectSize} fill={color}/>		
+			<rect x={bounds.x} y={bounds.y+(bounds.height/2 - rectSize/2)} width={rectSize} height={rectSize} fill={color}/>
 			<text x={bounds.x+rectSize+rectSpacing} y={bounds.y+2.5} dominant-baseline="hanging">{label}</text>
 		</g>
 	}
@@ -124,7 +124,7 @@ class ColorLegend extends Component {
 		return <WrapLayout class="legend" bounds={bounds}>
 			{_.map(legendData, (d) => {
 				return  <g>
-					<rect x={bounds.x} y={bounds.y+(bounds.height/2 - rectSize/2)} width={rectSize} height={rectSize} fill={d.color}/>		
+					<rect x={bounds.x} y={bounds.y+(bounds.height/2 - rectSize/2)} width={rectSize} height={rectSize} fill={d.color}/>
 			 		<text x={bounds.x+rectSize+rectSpacing} y={bounds.y+2.5} dominant-baseline="hanging">{d.label}</text>
 				</g>
 			})}

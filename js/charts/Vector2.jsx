@@ -1,5 +1,5 @@
 /* Vector2.jsx
- * ================                                                             
+ * ================
  *
  * Vector utility class
  * Partly based on the Unity vector: https://docs.unity3d.com/ScriptReference/Vector2.html
@@ -8,7 +8,7 @@
  * @project Our World In Data
  * @author  Jaiden Mispy
  * @created 2017-03-15
- */ 
+ */
 
 // @flow
 
@@ -16,9 +16,29 @@ import _ from 'lodash'
 import Victor from 'victor'
 
 export default class Vector2 {
+    static get epsilon() {
+        return 1E-05
+    }
+
 	x: number
 	y: number
 	_v: Victor
+
+    static get left() {
+        return new Vector2(-1, 0)
+    }
+
+    static get right() {
+        return new Vector2(1, 0)
+    }
+
+    static get up() {
+        return new Vector2(0, -1)
+    }
+
+    static get down() {
+        return new Vector2(0, 1)
+    }
 
 	static distanceSq(a: Vector2, b: Vector2): number {
 		return (b.x-a.x)**2 + (b.y-a.y)**2
@@ -28,10 +48,18 @@ export default class Vector2 {
 		return Math.sqrt(Vector2.distanceSq(a, b))
 	}
 
+    static angle(a: Vector2, b: Vector2): number {
+        return Math.acos(Math.max(Math.min(Vector2.dot(a.normalize(), b.normalize()), 1), -1)) * 57.29578
+    }
+
+    static dot(lhs, rhs) {
+        return lhs.x * rhs.x + lhs.y * rhs.y
+    }
+
 	// From: http://stackoverflow.com/a/1501725/1983739
 	static distanceFromPointToLineSq(p: Vector2, v: Vector2, w: Vector2): number {
 		const l2 = Vector2.distanceSq(v, w)
-		if (l2 == 0) 
+		if (l2 == 0)
 			return Vector2.distanceSq(p, v)
 
 		let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2
@@ -81,13 +109,25 @@ export default class Vector2 {
 		return new Vector2(this.x, this.y)
 	}
 
-	get magnitude(): number {
-		return this._v.magnitude()
+	magnitude(): number {
+		return new Victor(this.x, this.y).magnitude()
 	}
 
-	get normalized(): Vector2 {
-		return Vector2.fromObject(new Victor(this.x, this.y).normalize())
-	}
+    normalize(): Vector2 {
+        return Vector2.fromObject(new Victor(this.x, this.y).normalize())
+    }
+
+    normals(): Vector2[] {
+        return [new Vector2(-this.y, this.x), new Vector2(this.y, -this.x)]
+    }
+
+    invert(): Vector2 {
+        return this.times(-1)
+    }
+
+    equals(other: Vector2): boolean {
+        return other.subtract(this).magnitude() < Vector2.epsilon
+    }
 
 	toString(): string {
 		return `Vector2<${this.x}, ${this.y}>`

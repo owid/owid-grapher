@@ -1,12 +1,12 @@
 /* PointsWithLabels.jsx
- * ================                                                             
+ * ================
  *
  * Core scatterplot renderer
  *
  * @project Our World In Data
  * @author  Jaiden Mispy
  * @created 2017-03-09
- */ 
+ */
 
 // @flow
 
@@ -51,7 +51,7 @@ export default class PointsWithLabels extends Component {
     }
 
     @computed get tmpFocusKeys() : string[] {
-        const {focusKeys, hoverKey} = this       
+        const {focusKeys, hoverKey} = this
         return focusKeys.concat(hoverKey ? [hoverKey] : [])
     }
 
@@ -88,6 +88,7 @@ export default class PointsWithLabels extends Component {
 
     // Pre-transform data for rendering
     @computed get initialRenderData() : { position: Vector2, size: number, time: Object }[] {
+        window.Vector2 = Vector2
         const {data, xScale, yScale, defaultColorScale, sizeScale, fontScale} = this
 
         return _.sortBy(_.map(data, d => {
@@ -132,7 +133,7 @@ export default class PointsWithLabels extends Component {
         const {initialRenderData, hoverKey, tmpFocusKeys, labelPriority} = this
         const renderData = _.sortBy(initialRenderData, d => -d.size)
 
-        _.each(renderData, d => { 
+        _.each(renderData, d => {
             d.isHovered = d.key == hoverKey
             d.isFocused = _.includes(tmpFocusKeys, d.key)
         })
@@ -154,11 +155,11 @@ export default class PointsWithLabels extends Component {
                 const ipos = _.sortBy(intersections, pos => Vector2.distanceSq(secondLastValue.position, pos))[0]
 
                 if (ipos)
-                    labelPos = labelPos.add(lastValue.position.subtract(ipos).times(1.1))                
+                    labelPos = labelPos.add(lastValue.position.subtract(ipos).times(1.1))
             }
 
             d.labels = [
-                { 
+                {
                     text: d.label,
                     fontSize: fontSize,
                     bounds: labelBounds.extend({...labelPos})
@@ -168,12 +169,28 @@ export default class PointsWithLabels extends Component {
             // Individual year labels
             if (d.isFocused)
                 d.labels = d.labels.concat(_.map(d.values.slice(0, -1), (v, i) => {
-                    debugger
+                    const prevSegment = i > 0 && v.position.subtract(d.values[i-1].position)
+                    const nextSegment = d.values[i+1].position.subtract(v.position)
+
+
+                    const potentialLabelSpots = []
+                    let pos = v.position
+                    let normals = []
+                    if (prevSegment) {
+                        normals = prevSegment.add(nextSegment).normalize().normals().map(x => x.times(30))
+                        normals = [_.sortBy(normals, n => {
+                            const distFromPrevPoint
+                        }
+
+                       // pos = pos.add(normal.normalize().times(10))
+                    }
 
                     return {
                         text: v.time.x.toString(),
+                        normals: normals,
                         fontSize: fontSize*0.7,
-                        bounds: Bounds.forText(v.time.x.toString(), { x: v.position.x, y: v.position.y, fontSize: fontSize })
+                        pos: pos,
+                        bounds: Bounds.forText(v.time.x.toString(), { x: pos.x, y: pos.y, fontSize: fontSize })
                     }
                 }))
         })
@@ -189,8 +206,8 @@ export default class PointsWithLabels extends Component {
                     if (labelPriority(d1, d2) == d1)
                         d2.isActive = false
                     else
-                        d1.isActive = false                    
-                }     
+                        d1.isActive = false
+                }
             })
         })
 
@@ -199,8 +216,8 @@ export default class PointsWithLabels extends Component {
 
             _.each(d.labels, (l1, i) => {
                 _.each(d.labels.slice(i+1), l2 => {
-                    if (l1.bounds.intersects(l2.bounds))
-                        l2.isHidden = true
+                    //if (l1.bounds.intersects(l2.bounds))
+                    //    l2.isHidden = true
                 })
             })
         })
@@ -242,7 +259,7 @@ export default class PointsWithLabels extends Component {
                 }
             })[0]
             this.hoverKey = closestSeries.key
-        }       
+        }
     }
 
     @action.bound onClick() {
@@ -258,11 +275,11 @@ export default class PointsWithLabels extends Component {
     componentDidMount() {
         d3.select("html").on("mousemove.scatter", this.onMouseMove)
         d3.select("html").on("click.scatter", this.onClick)
-    }    
+    }
 
     componentDidUnmount() {
         d3.select("html").on("mousemove.scatter", null)
-        d3.select("html").on("click.scatter", null)  
+        d3.select("html").on("click.scatter", null)
     }
 
     @computed get isFocusMode() : boolean {
@@ -292,11 +309,11 @@ export default class PointsWithLabels extends Component {
                            <marker id={d.displayKey+'-start'} viewBox="0 0 12 12"
                                    refX={5} refY={5} orient="auto" fill={color}>
                              <circle cx={5} cy={5} r={5}/>
-                           </marker>        
+                           </marker>
                         </defs>,
                         <polyline
                             key={d.displayKey+'-line'}
-                            class={d.displayKey}                            
+                            class={d.displayKey}
                             strokeLinecap="round"
                             stroke={color}
                             strokeOpacity={d.isFocused && 1}
@@ -312,13 +329,15 @@ export default class PointsWithLabels extends Component {
             </g>
             <g class="labels">
                 {_.map(renderData, d =>
-                    _.map(d.labels, (l, i) => 
+                    _.map(d.labels, (l, i) =>
                         d.isActive && !l.isHidden && <text x={l.bounds.x} y={l.bounds.y+l.bounds.height+l.bounds.height/4} fontSize={l.fontSize} fontWeight={d.isHovered && "bold"} opacity={d.isFocused ? 1 : 0.8}>{l.text}</text>
                     )
                 )}
                 {_.map(renderData, d =>
-                    d.isHovered && _.map(d.labels, (l, i) => 
-                        l.ipos && <circle cx={l.ipos.x} cy={l.ipos.y} r={2} fill="red"/>
+                    d.isFocused && _.map(d.labels, (l, i) =>
+                        l.normals && _.map(l.normals, n =>
+                            <line x1={l.pos.x} y1={l.pos.y} x2={l.pos.x+n.x} y2={l.pos.y+n.y} stroke="blue"/>
+                        )
                     )
                 )}
             </g>

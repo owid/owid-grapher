@@ -12,6 +12,7 @@ import EntitySelect from './owid.view.entitySelect'
 import Legend from './App.Views.Chart.Legend'
 import nv from 'nvd3'
 import ScatterPlot from './ScatterPlot'
+import Vector2 from 'unityvector2'
 
 // Override nvd3 handling of zero data charts to prevent it removing
 // all of our svg stuff
@@ -22,6 +23,8 @@ nv.utils.noData = function(nvd3, container) {
 
 export default function(chart) {
 	var chartTab = dataflow();
+
+    window.Vector2 = Vector2
 
 	var $svg, $tab, $entitiesSelect,
 		$xAxisScale, $yAxisScale,
@@ -83,7 +86,7 @@ export default function(chart) {
 		chartOffsetX = bounds.left;
 		chartOffsetY = bounds.top;
 		chartHeight = bounds.height;
-		chartWidth = bounds.width;		
+		chartWidth = bounds.width;
 
 		configureTab();
 		if (chart.model.get('chart-type') != App.ChartType.SlopeChart && chart.model.get('chart-type') != App.ChartType.ScatterPlot)
@@ -115,7 +118,7 @@ export default function(chart) {
 				renderScatterPlot();
 			} else if (chartType == App.ChartType.StackedArea) {
 				renderStackedArea();
-			} else if (chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar) {	
+			} else if (chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar) {
 				renderMultiBar();
 			} else if (chartType == App.ChartType.DiscreteBar) {
 				renderDiscreteBar();
@@ -139,13 +142,13 @@ export default function(chart) {
 
 			renderAxis();
 			renderTooltips();
-			
+
 			if (nvd3) {
 				nvd3.duration(0);
 				svg.datum(localData).call(nvd3);
-	
+
 				var nvWrap = d3.select('.nvd3.nv-wrap > g');
-				nvWrap.attr('transform', 'translate(' + chartOffsetX + ',' + chartOffsetY + ')');		
+				nvWrap.attr('transform', 'translate(' + chartOffsetX + ',' + chartOffsetY + ')');
 				$('.nvtooltip:not(.owid-tooltip)').remove();
 
 				//if y axis has zero, display solid line
@@ -154,7 +157,7 @@ export default function(chart) {
 					$pathDomain.css("stroke-opacity", "1");
 				} else {
 					$pathDomain.css("stroke-opacity", "0");
-				}					
+				}
 			}
 		}
 
@@ -206,7 +209,7 @@ export default function(chart) {
 		xAxisScale = xAxis["axis-scale"] || "linear";
 		yAxisScale = yAxis["axis-scale"] || "linear";
 		xAxisFormat = xAxis["axis-format"];
-		yAxisFormat = yAxis["axis-format"] || 5;				
+		yAxisFormat = yAxis["axis-format"] || 5;
 	}
 
 	var margins, tabBounds, chartOffsetX, chartOffsetY,
@@ -250,7 +253,7 @@ export default function(chart) {
 		let bounds = new Bounds(chartOffsetX, chartOffsetY+10, chartWidth-10, chartHeight-10)
 		rootNode = render(<SlopeChart bounds={bounds} config={chart.config}/>, chart.svg.node(), rootNode)
 		postRender();
-		chart.header.render();			
+		chart.header.render();
 	}
 
 	function renderLineChart() {
@@ -271,7 +274,7 @@ export default function(chart) {
 			scaleType: xAxisScale,
 			label: xAxis['axis-label'],
 			tickFormat: function(d) {
-				return xAxisPrefix + owid.unitFormat({ format: xAxisFormat||5 }, d) + xAxisSuffix;							
+				return xAxisPrefix + owid.unitFormat({ format: xAxisFormat||5 }, d) + xAxisSuffix;
 			}
 		};
 	});
@@ -282,7 +285,7 @@ export default function(chart) {
 			scaleType: yAxisScale,
 			label: yAxis['axis-label'],
 			tickFormat: function(d) {
-				return yAxisPrefix + owid.unitFormat({ format: yAxisFormat||5 }, d) + yAxisSuffix;							
+				return yAxisPrefix + owid.unitFormat({ format: yAxisFormat||5 }, d) + yAxisSuffix;
 			}
 		};
 	});
@@ -301,7 +304,7 @@ export default function(chart) {
 		} else if (viz.scatter.timeline && (viz.scatter.timeline.isPlaying || viz.scatter.timeline.isDragging)) {
 			return;
 		}
-		
+
         var xDomain = [], yDomain = [];
 
         if (_.isFinite(xAxisMin) && (xAxisMin > 0 || xAxisScale != "log"))
@@ -310,7 +313,7 @@ export default function(chart) {
             xDomain[1] = xAxisMax;
 
         if (_.isFinite(yAxisMin) && (yAxisMin > 0 || yAxisScale != "log"))
-            yDomain[0] = yAxisMin;            
+            yDomain[0] = yAxisMin;
         if (_.isFinite(yAxisMax))
             yDomain[1] = yAxisMax;
 
@@ -330,7 +333,7 @@ export default function(chart) {
         	yAxisSuffix: yAxisSuffix||"",
         });
 
-		chartTab.viz = viz;			
+		chartTab.viz = viz;
 
 		viz.update({
 			containerNode: chart.svg.node(),
@@ -384,7 +387,7 @@ export default function(chart) {
 			.y(function(d) { return d.y; });
 
 		if (chart.model.get("currentStackMode") == "relative")
-			nvd3.style("expand");			
+			nvd3.style("expand");
 	}
 
 	function renderMultiBar() {
@@ -408,10 +411,10 @@ export default function(chart) {
 
         allTimes = _.uniq( allTimes );
         allTimes = _.sortBy( allTimes );
-        
+
         if( localData.length ) {
             _.each( localData, function( serie, serieIndex ) {
-                
+
                 //make sure we have values for given series
                 _.each( allTimes, function( time, timeIndex ) {
                     if( valuesCheck[ serie.id ] && !valuesCheck[serie.id][time]) {
@@ -426,20 +429,20 @@ export default function(chart) {
                         };
                         serie.values.splice( timeIndex, 0, zeroObj);
                     }
-                });    
+                });
             });
         }
 
 		if (chartType == App.ChartType.MultiBar) {
-			nvd3 = nv.models.multiBarChart().options(nvOptions);					
+			nvd3 = nv.models.multiBarChart().options(nvOptions);
 		} else if (chartType == App.ChartType.HorizontalMultiBar) {
-			nvd3 = nv.models.multiBarHorizontalChart().options(nvOptions);					
-		}				
+			nvd3 = nv.models.multiBarHorizontalChart().options(nvOptions);
+		}
 
 		if (chart.model.get("currentStackMode") == "stacked")
-			nvd3.stacked(true);			
+			nvd3.stacked(true);
 		else
-			nvd3.stacked(false);			
+			nvd3.stacked(false);
 
 		chartOffsetY += 20;
 	}
@@ -580,7 +583,7 @@ export default function(chart) {
 			chartHeight -= legend.height() + 10;
 		} else {
 			chart.svg.selectAll(".nvd3.nv-custom-legend").remove();
-		}			
+		}
 	}
 
 	function splitSeriesByMissing(localData) {
@@ -648,8 +651,8 @@ export default function(chart) {
 					offsetX = -centerX*(scale-1), offsetY = -centerY*(scale-1);
 				var transform = 'translate(' + offsetX + ',' + offsetY + ') scale(' + scale + ')';
 				owid.transformElement(xAxisLabel.node(), transform);
-				xAxisLabel.attr('transform', transform);	
-			}				
+				xAxisLabel.attr('transform', transform);
+			}
 		}
 
 		if (yAxis['axis-label']) {
@@ -666,13 +669,13 @@ export default function(chart) {
 					offsetX = -centerX*(scale-1), offsetY = -centerY*(scale-1);
 				var transform = 'rotate(-90) translate(' + offsetX + ',' + offsetY + ') scale(' + scale + ')';
 				owid.transformElement(yAxisLabel.node(), transform);
-				yAxisLabel.attr('transform', transform);	
+				yAxisLabel.attr('transform', transform);
 			}
 		}
 	}
 
 	function postRender() {
-		ensureLabelsFit();				
+		ensureLabelsFit();
 		chartTab.scaleSelectors.render(bounds);
 
 		// Hijack the nvd3 mode switch to store it
@@ -685,14 +688,14 @@ export default function(chart) {
 			d3.selectAll("svg").on("mousemove.stackedarea", function() {
 				var $target = $(d3.event.target);
 				if (!$target.is("rect, path") || $target.closest(".nv-custom-legend").length)
-					nvd3.interactiveLayer.tooltip.hidden(true);							
+					nvd3.interactiveLayer.tooltip.hidden(true);
 			});
 
 			// Override default stacked area click behavior
 			d3.selectAll(".nv-area").on("click", function(d) {
 				chart.model.focusToggleLegendKey(d.key);
 			});
-		}										
+		}
 
 		chart.dispatch.call('renderEnd');
 	}

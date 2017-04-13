@@ -4355,6 +4355,10 @@ uniqs@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/uniqs/-/uniqs-2.0.0.tgz#ffede4b36b25290696e6e165d4a59edb998e6b02"
 
+unityvector2@^0.0.3:
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/unityvector2/-/unityvector2-0.0.3.tgz#13ae38504a57a38cc5113d86f28a47a0b6a3f440"
+
 unpipe@~1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/unpipe/-/unpipe-1.0.0.tgz#b2bf4ee8514aae6165b4817829d21b2ef49904ec"
