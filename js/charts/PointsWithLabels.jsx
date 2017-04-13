@@ -140,29 +140,29 @@ export default class PointsWithLabels extends Component {
 
         _.each(renderData, d => {
             const lastValue = _.last(d.values)
-            let labelPos = lastValue.position.clone()
+            const lastPos = lastValue.position
             const fontSize = d.fontSize * (d.isFocused ? 2 : 1)
-            let labelBounds = Bounds.forText(d.label, { fontSize: fontSize })
 
-            labelPos.x -= labelBounds.width/2
-            labelPos.y -= labelBounds.height/2 + labelBounds.height/4
-
-            labelBounds = labelBounds.extend({...labelPos})
-
+            let offsetVector = Vector2.up
             if (d.values.length > 1) {
-                const secondLastValue = d.values[d.values.length-2]
-                const intersections = labelBounds.intersectLine(lastValue.position, secondLastValue.position)
-                const ipos = _.sortBy(intersections, pos => Vector2.distanceSq(secondLastValue.position, pos))[0]
-
-                if (ipos)
-                    labelPos = labelPos.add(lastValue.position.subtract(ipos).times(1.1))
+                const prevValue = d.values[d.values.length-2]
+                const prevPos = prevValue.position
+                offsetVector = lastPos.subtract(prevPos)
             }
+
+            const labelPos = lastPos.add(offsetVector.normalize().times(10))
+
+            let labelBounds = Bounds.forText(d.label, { x: labelPos.x, y: labelPos.y, fontSize: fontSize })
+            if (labelPos.x < lastPos.x)
+                labelBounds = labelBounds.extend({ x: labelBounds.x-labelBounds.width })
+            if (labelPos.y > lastPos.y)
+                labelBounds = labelBounds.extend({ y: labelBounds.y+labelBounds.height/2 })
 
             d.labels = [
                 {
                     text: d.label,
                     fontSize: fontSize,
-                    bounds: labelBounds.extend({...labelPos})
+                    bounds: labelBounds
                 }
             ]
 
@@ -306,30 +306,34 @@ export default class PointsWithLabels extends Component {
                 {_.map(renderData, d => {
                     const color = ((isFocusMode && !d.isFocused) || !d.isActive) ? "#e2e2e2" : d.color
 
-                    return [
-                        <defs key={d.displayKey+'-defs'}>
-                            <marker key={d.displayKey} id={d.displayKey} fill={color} viewBox="0 -5 10 10" refx={5} refY={0} markerWidth={4} markerHeight={4} orient="auto">
-                                <path d="M0,-5L10,0L0,5"/>
-                            </marker>
-                           <marker id={d.displayKey+'-start'} viewBox="0 0 12 12"
-                                   refX={5} refY={5} orient="auto" fill={color}>
-                             <circle cx={5} cy={5} r={5}/>
-                           </marker>
-                        </defs>,
-                        <polyline
-                            key={d.displayKey+'-line'}
-                            class={d.displayKey}
-                            strokeLinecap="round"
-                            stroke={color}
-                            strokeOpacity={d.isFocused && 1}
-                            points={_.map(d.values, v => `${v.position.x},${v.position.y}`).join(' ')}
-                            fill="none"
-                            strokeWidth={d.isHovered ? 3 : (d.isFocused ? 2 : 0.5)}
-                            markerStart={`url(#${d.displayKey}-start)`}
-                            markerMid={`url(#${d.displayKey}-start)`}
-                            markerEnd={`url(#${d.displayKey})`}
-                        />
-                    ]
+                    if (d.values.length == 1) {
+                        const v = d.values[0]
+                        return <circle key={d.displayKey} cx={v.position.x} cy={v.position.y} stroke={color} strokeWidth={d.isHovered ? 3 : (d.isFocused ? 2 : 0.5)}/>
+                    } else
+                        return [
+                            <defs key={d.displayKey+'-defs'}>
+                                <marker key={d.displayKey} id={d.displayKey} fill={color} viewBox="0 -5 10 10" refx={5} refY={0} markerWidth={4} markerHeight={4} orient="auto">
+                                    <path d="M0,-5L10,0L0,5"/>
+                                </marker>
+                               <marker id={d.displayKey+'-start'} viewBox="0 0 12 12"
+                                       refX={5} refY={5} orient="auto" fill={color}>
+                                 <circle cx={5} cy={5} r={5}/>
+                               </marker>
+                            </defs>,
+                            <polyline
+                                key={d.displayKey+'-line'}
+                                class={d.displayKey}
+                                strokeLinecap="round"
+                                stroke={color}
+                                strokeOpacity={d.isFocused && 1}
+                                points={_.map(d.values, v => `${v.position.x},${v.position.y}`).join(' ')}
+                                fill="none"
+                                strokeWidth={d.isHovered ? 3 : (d.isFocused ? 2 : 0.5)}
+                                markerStart={`url(#${d.displayKey}-start)`}
+                                markerMid={`url(#${d.displayKey}-start)`}
+                                markerEnd={`url(#${d.displayKey})`}
+                            />
+                        ]
                 })}
             </g>
             <g class="labels">
