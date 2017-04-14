@@ -1,12 +1,12 @@
-/* LabelledSlopes.jsx
- * ================                                                             
+/* AxisScale.jsx
+ * ================
  *
- * Decoupled view component that does the bulk rendering work for slope charts.
+ *
  *
  * @project Our World In Data
  * @author  Jaiden Mispy
  * @created 2017-02-11
- */ 
+ */
 
 
 // @flow
@@ -47,7 +47,7 @@ export default class AxisScale {
             return tickValues
         } else {
             return d3_scale.ticks(6)
-        }        
+        }
     }
 
     getFormattedTicks() : string[] {

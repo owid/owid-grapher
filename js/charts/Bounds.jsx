@@ -99,6 +99,8 @@ export default class Bounds {
 
 	get left(): number { return this.x }
 	get top(): number { return this.y }
+    get centerX(): number { return this.x+this.width/2 }
+    get centerY(): number { return this.y+this.height/2 }
 	get right(): number { return this.x+this.width }
 	get bottom(): number { return this.y+this.height }
 

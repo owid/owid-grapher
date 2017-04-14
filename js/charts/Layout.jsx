@@ -8,7 +8,7 @@ import Bounds from './Bounds'
 export default class Layout extends Component {
 	static bounds = new Bounds(0,0,0,0)
 
-	props: {		
+	props: {
 		bounds: Bounds
 	}
 

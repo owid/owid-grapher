@@ -33,35 +33,21 @@ class ScatterWithAxis extends Component {
         bounds: Bounds,
         data: ScatterSeries[],
         xScale: AxisScale,
-        yScale: AxisScale
-    }
-
-    @computed get bounds() : Bounds {
-        return this.props.bounds
-    }
-
-    @computed get data() : ScatterSeries[] {
-        return this.props.data
-    }
-
-    @computed get xScale() : AxisScale {
-        return this.props.xScale
-    }
-
-    @computed get yScale() : AxisScale {
-        return this.props.yScale
+        yScale: AxisScale,
+        xAxisLabel: string,
+        yAxisLabel: string
     }
 
     render() {
-        const {bounds, xScale, yScale, data} = this
+        const {bounds, xScale, yScale, xAxisLabel, yAxisLabel, data} = this.props
 
-        const xAxisBounds = Axis.calculateBounds(bounds, { orient: 'bottom', scale: xScale })
-        const yAxisBounds = Axis.calculateBounds(bounds, { orient: 'left', scale: yScale })
+        const xAxisBounds = Axis.calculateBounds(bounds, { orient: 'bottom', scale: xScale, label: xAxisLabel })
+        const yAxisBounds = Axis.calculateBounds(bounds, { orient: 'left', scale: yScale, label: yAxisLabel })
         const innerBounds = bounds.padBottom(xAxisBounds.height).padLeft(yAxisBounds.width)
 
         return <g>
-            <Axis orient="left" scale={yScale} bounds={bounds.padBottom(xAxisBounds.height)}/>
-            <Axis orient="bottom" scale={xScale} bounds={bounds.padLeft(yAxisBounds.width)}/>
+            <Axis orient="left" scale={yScale} label={yAxisLabel} bounds={bounds.padBottom(xAxisBounds.height)}/>
+            <Axis orient="bottom" scale={xScale} label={xAxisLabel} bounds={bounds.padLeft(yAxisBounds.width)}/>
             <PointsWithLabels {...this.props} xScale={xScale} yScale={yScale} data={data} bounds={innerBounds}/>
         </g>
     }
@@ -271,22 +257,36 @@ export default class ScatterPlot extends Component {
     }
 
     // domains across the entire timeline
-    @computed get xDomain() : [number, number] {
+    @computed get xDomainDefault() : [number, number] {
         return d3.extent(_.map(this.allValues, 'x'))
     }
 
-    @computed get yDomain() : [number, number] {
+    @computed get xDomain() : [number, number] {
+        return [
+            _.defaultTo(this.chart.xDomain[0], this.xDomainDefault[0]),
+            _.defaultTo(this.chart.xDomain[1], this.xDomainDefault[1])
+        ]
+    }
+
+    @computed get yDomainDefault() : [number, number] {
         return d3.extent(_.map(this.allValues, 'y'))
     }
 
+    @computed get yDomain() : [number, number] {
+        return [
+            _.defaultTo(this.chart.yDomain[0], this.yDomainDefault[0]),
+            _.defaultTo(this.chart.yDomain[1], this.yDomainDefault[1])
+        ]
+    }
+
     @computed get xScale() : AxisScale {
-        const {xDomain} = this
-        return new AxisScale({ scaleType: 'linear', domain: xDomain, tickFormat: d => d.toString() })
+        const {xDomain, chart} = this
+        return new AxisScale({ scaleType: 'linear', domain: xDomain, tickFormat: chart.xTickFormat })
     }
 
     @computed get yScale() : AxisScale {
-        const {yDomain} = this
-        return new AxisScale({ scaleType: 'linear', domain: yDomain, tickFormat: d => d.toString() })
+        const {yDomain, chart} = this
+        return new AxisScale({ scaleType: 'linear', domain: yDomain, tickFormat: chart.yTickFormat })
     }
 
     @action.bound onSelectEntity(focusKeys) {
@@ -294,9 +294,9 @@ export default class ScatterPlot extends Component {
     }
 
     render() {
-        const {currentData, bounds, yearsWithData, startYear, endYear, xScale, yScale} = this
+        const {currentData, bounds, yearsWithData, startYear, endYear, xScale, yScale, chart} = this
         return <Layout bounds={bounds}>
-            <ScatterWithAxis data={currentData} bounds={Layout.bounds} xScale={xScale} yScale={yScale} onSelectEntity={this.onSelectEntity} focusKeys={this.chart.selectedEntities}/>
+            <ScatterWithAxis data={currentData} bounds={Layout.bounds} xScale={xScale} yScale={yScale} xAxisLabel={chart.xAxisLabel} yAxisLabel={chart.yAxisLabel} onSelectEntity={this.onSelectEntity} focusKeys={this.chart.selectedEntities}/>
             <Timeline bounds={Layout.bounds} layout="bottom" onChange={this.onTimelineChange} years={yearsWithData} startYear={startYear} endYear={endYear}/>
         </Layout>
     }

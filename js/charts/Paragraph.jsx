@@ -1,14 +1,14 @@
 /* Paragraph.jsx
- * ================                                                             
+ * ================
  *
  * Welcome to the joy that is manually wrapping text... since SVG lacks
  * the kind of layout features we take for granted in HTML, much wrangling
  * is necessary.
  *
  * @project Our World In Data
- * @author  Jaiden Mispy                                                     
+ * @author  Jaiden Mispy
  * @created 2017-02-02
- */ 
+ */
 
 import React, {Component} from 'react'
 import {observer} from 'mobx-react'
