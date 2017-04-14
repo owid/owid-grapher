@@ -7,8 +7,7 @@ import dataflow from './owid.dataflow'
 import Bounds from './Bounds'
 import React, { Component } from 'react'
 import { render } from 'preact'
-import { observable, computed, asFlat } from 'mobx'
-import { bind } from 'decko'
+import { observable, computed, asFlat, action } from 'mobx'
 import type ChoroplethData from './ChoroplethMap'
 import type MapProjection from './ChoroplethMap'
 import ChoroplethMap from './ChoroplethMap'
@@ -48,21 +47,21 @@ class MapTab extends Component {
     componentDidUpdate() {
         const { choroplethData, projection, defaultFill, inputYear } = this.props
         const { chart } = this
-        
+
         this.updateLegend()
     }
 
-    @bind
+    @action.bound
     onHover(d, ev) {
         this.chart.tooltip.fromMap(d, ev);
     }
 
-    @bind
+    @action.bound
     onHoverStop(d) {
         this.chart.tooltip.hide();
     }
 
-    @bind
+    @action.bound
     onClick(d) {
         const {chart} = this
         if (chart.isMobile || !_.includes(chart.model.get("tabs"), "chart")) return;
@@ -92,14 +91,14 @@ class MapTab extends Component {
         });*/
     }
 
-    componentDidUnmount() {        
+    componentDidUnmount() {
         const { legend } = this
         legend.clean();
         this.onHoverStop()
     }
 
-    @bind onTargetChange(targetYear) {
-        this.chart.map.set('targetYear', targetYear)
+    @action.bound onTimelineChange({ targetStartYear }) {
+        this.chart.map.set('targetYear', targetStartYear)
     }
 
     @computed get hasTimeline() {
@@ -117,7 +116,7 @@ class MapTab extends Component {
         return <Layout bounds={bounds} class="mapTab" ref={g => this.g = g}>
             <ChoroplethMap choroplethData={choroplethData} projection={projection} defaultFill={defaultFill} onHover={this.onHover} onHoverStop={this.onHoverStop} onClick={this.onClick}/>,
             <MapLegend legendData={legendData} title={legendTitle}/>
-            {hasTimeline && <Timeline bounds={Layout.bounds} layout="bottom" onTargetChange={this.onTargetChange} years={years} inputYear={inputYear} ref={(e) => this.chart.tabs.map.timeline = e}/>}           
+            {hasTimeline && <Timeline bounds={Layout.bounds} layout="bottom" onTargetChange={this.onTimelineChange} years={years} startYear={inputYear} endYear={inputYear} singleYearMode={true} ref={(e) => this.chart.tabs.map.timeline = e}/>}
         </Layout>
     }
 }

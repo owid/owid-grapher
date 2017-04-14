@@ -305,10 +305,11 @@ export default class PointsWithLabels extends Component {
             <g class="entities" strokeOpacity={defaultOpacity} fillOpacity={defaultOpacity}>
                 {_.map(renderData, d => {
                     const color = ((isFocusMode && !d.isFocused) || !d.isActive) ? "#e2e2e2" : d.color
+                    const focusMul = d.isHovered ? 3 : (d.isFocused ? 2 : 0.5)
 
                     if (d.values.length == 1) {
                         const v = d.values[0]
-                        return <circle key={d.displayKey} cx={v.position.x} cy={v.position.y} stroke={color} strokeWidth={d.isHovered ? 3 : (d.isFocused ? 2 : 0.5)}/>
+                        return <circle key={d.displayKey} cx={v.position.x} cy={v.position.y} fill={color} r={1+focusMul*2}/>
                     } else
                         return [
                             <defs key={d.displayKey+'-defs'}>

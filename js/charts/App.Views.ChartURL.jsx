@@ -1,14 +1,14 @@
 /* owid.component.urlBinder.js
- * ================                                                             
+ * ================
  *
  * This component is responsible for handling data binding between the
  * the chart and url parameters, to enable nice linking support
  * for specific countries and years.
  *
  * @project Our World In Data
- * @author  Jaiden Mispy                                                     
+ * @author  Jaiden Mispy
  * @created 2016-03-31
- */ 
+ */
 
 import _ from 'lodash'
 import $ from 'jquery'
@@ -39,7 +39,7 @@ export default function(chart) {
 		chart.flow('activeTabName', onTabChange);
 
 		chart.model.on("change:selected-countries", updateCountryParam);
-		chart.model.on("change:activeLegendKeys", updateLegendKeys);	
+		chart.model.on("change:activeLegendKeys", updateLegendKeys);
 		chart.map.on("change:targetYear", updateYearParam);
 		chart.map.on("change:mode change:projection change:isColorblind", updateMapParams);
 		chart.model.on("change:currentStackMode", updateStackMode);
@@ -51,7 +51,7 @@ export default function(chart) {
 		$(window).on('query-change', function() {
 			var tabName = chart.activeTabName;
 			if (tabName == 'chart' || tabName == 'map')
-				urlBinder.lastQueryStr = window.location.search;				
+				urlBinder.lastQueryStr = window.location.search;
 		});
 	};
 
@@ -94,8 +94,15 @@ export default function(chart) {
 			chart.model.setAxisConfig('y-axis', 'axis-scale', yAxisScale);
 
 		var time = params.time;
-		if (time !== undefined)
-			chart.model.set("timeline", _.extend({}, chart.model.get('timeline'), { defaultYear: parseFloat(time) }));
+		if (time !== undefined) {
+            const m = time.match(/^(\d+)\.\.(\d+)$/)
+            if (m) {
+                chart.model.set('chart-time', [parseInt(m[1]), parseInt(m[2])])
+            } else {
+                chart.model.set('chart-time', [parseInt(time), null])
+            }
+        }
+//			chart.model.set("timeline", _.extend({}, chart.model.get('timeline'), { defaultYear: parseFloat(time) }));
 
 		// Map stuff below
 
@@ -117,7 +124,7 @@ export default function(chart) {
 		var interpolate = params.interpolate;
 		if (interpolate == 0) {
 			chart.map.set("mode", "no-interpolation");
-		}			
+		}
 
 		// Selected countries -- we can't actually look these up until we have the data
 		chart.data.ready(function() {
@@ -129,7 +136,7 @@ export default function(chart) {
 				});
 
 				chart.model.set('selected-countries', entities);
-			}				
+			}
 		});
 
 		// Set shown legend keys for charts with toggleable series
@@ -152,7 +159,7 @@ export default function(chart) {
 		if (lastTabName == "map" && tabName != "map") {
 			urlBinder.mapQueryStr = window.location.search;
 			owid.setQueryStr(urlBinder.chartQueryStr);
-		} else if (lastTabName == "map" && tabName != "map") {				
+		} else if (lastTabName == "map" && tabName != "map") {
 			urlBinder.chartQueryStr = window.location.search;
 			owid.setQueryStr(urlBinder.mapQueryStr);
 		}
@@ -187,7 +194,7 @@ export default function(chart) {
 			});
 
 			owid.setQueryVariable("country", entityCodes.join("+"));
-		});			
+		});
 	}
 	urlBinder.updateCountryParam = updateCountryParam;
 
@@ -219,8 +226,14 @@ export default function(chart) {
 	 * Set e.g. &time=1990 when the user uses the slider to go to 1990
 	 */
 	function updateTime() {
-		if (chart.activeTabName == 'chart' && chart.model.get('timeline'))
-			owid.setQueryVariable("time", chart.model.get('chart-time')[0]);
+		if (chart.activeTabName == 'chart' && chart.model.get('timeline')) {
+            const timeRange = chart.model.get('chart-time')
+            if (_.isNumber(timeRange[0]) && _.isNumber(timeRange[1]) && timeRange[0] != timeRange[1]) {
+                owid.setQueryVariable("time", timeRange[0] + ".." + timeRange[1])
+            } else if (_.isNumber(timeRange[0])) {
+                owid.setQueryVariable("time", timeRange[0])
+            }
+        }
 	}
 
 	/**

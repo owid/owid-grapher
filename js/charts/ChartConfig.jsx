@@ -2,35 +2,46 @@
 
 import owid from '../owid'
 import _ from 'lodash'
-import {observable, computed, action, autorun} from 'mobx'
+import {observable, computed, action, autorun, toJS} from 'mobx'
 import type {ScaleType} from './ScaleSelector'
 import ChartData from './ChartData'
 
 // In-progress mobx model layer that will eventually replace ChartModel
 export default class ChartConfig {
 	@observable.struct selectedEntities = []
+    @observable.struct timeRange: [number|null, number|null] = [null, null]
+    @observable timeline = null
 
 	model: any
+
+    @action.bound syncFromModel() {
+        this.selectedEntities = this.model.getSelectedEntities().map(e => e.name)
+        this.timeline = this.model.get('timeline')
+        this.timeRange = this.model.get('chart-time')
+    }
 
 	constructor(model : any) {
 		this.model = model
 
-		this.selectedEntities = this.model.getSelectedEntities().map(e => e.name)
-		this.model.on('change:selected-countries', () => {
-			this.selectedEntities = this.model.getSelectedEntities().map(e => e.name)
-		})
+        this.syncFromModel()
+        this.model.on('change', this.syncFromModel)
+
 		autorun(() => {
 			const entities = this.selectedEntities
 			if (window.chart.vardata) {
 				const entityKey = window.chart.vardata.get('entityKey')
-				this.model.set('selected-countries', _.filter(_.values(entityKey), e => _.includes(entities, e.name)))
+                const selectedEntities = _.filter(_.values(entityKey), e => _.includes(entities, e.name))
+				this.model.set('selected-countries', selectedEntities)
 			}
 		})
 
-		this.timeline = this.model.get('timeline')
 		autorun(() => {
-			this.model.set('timeline', this.timeline)
+			this.model.set('timeline', toJS(this.timeline))
 		})
+
+        autorun(() => {
+            this.model.set('chart-time', toJS(this.timeRange))
+        })
 	}
 
 	@computed get type() : string { return this.model.get('chart-type') }
@@ -54,6 +65,10 @@ export default class ChartConfig {
 	@computed get internalNotes() : string { return this.model.get('internalNotes') }
 	set internalNotes(value : string) { this.model.set('internalNotes', value) }
 
+    set timeRange(timeRange: [?number, ?number]) {
+        this.model.set('chart-time', timeRange)
+    }
+
 	@computed get xAxisConfig() : Object { return this.model.get('x-axis') }
 	@computed get yAxisConfig() : Object { return this.model.get('y-axis') }
 
@@ -62,7 +77,7 @@ export default class ChartConfig {
 	}
 
 	@computed get data() : ChartData {
-		return new ChartData(this)		
+		return new ChartData(this)
 	}
 
 	@computed get yDomain() : [number|null, number|null] {
@@ -118,6 +133,4 @@ export default class ChartConfig {
 		else
 			return [this.yScaleType]
 	}
-
-	@observable timeline = null
 }

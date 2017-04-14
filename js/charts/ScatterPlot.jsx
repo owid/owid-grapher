@@ -1,12 +1,12 @@
 /* ScatterPlot.jsx
- * ================                                                             
+ * ================
  *
  * Entry point for scatter charts
  *
  * @project Our World In Data
  * @author  Jaiden Mispy
  * @created 2017-03-09
- */ 
+ */
 
 
 // @flow
@@ -62,7 +62,7 @@ class ScatterWithAxis extends Component {
         return <g>
             <Axis orient="left" scale={yScale} bounds={bounds.padBottom(xAxisBounds.height)}/>
             <Axis orient="bottom" scale={xScale} bounds={bounds.padLeft(yAxisBounds.width)}/>
-            <PointsWithLabels xScale={xScale} yScale={yScale} data={data} bounds={innerBounds} {...this.props}/>
+            <PointsWithLabels {...this.props} xScale={xScale} yScale={yScale} data={data} bounds={innerBounds}/>
         </g>
     }
 }
@@ -73,6 +73,10 @@ export default class ScatterPlot extends Component {
         bounds: Bounds,
         config: ChartConfig
     };
+
+    @computed get chart() : ChartConfig {
+        return this.props.config
+    }
 
     @computed get bounds() : Bounds {
         return this.props.bounds
@@ -91,7 +95,7 @@ export default class ScatterPlot extends Component {
     }
 
     @computed get dimensions() : Object[] {
-        return this.props.config.dimensions
+        return this.chart.dimensions
     }
 
     @computed get colorScale() {
@@ -101,7 +105,7 @@ export default class ScatterPlot extends Component {
 
         var colorDim = _.find(dimensions, { property: 'color' });
         if (colorDim) {
-            colorScale.domain(colorDim.variable.categoricalValues);            
+            colorScale.domain(colorDim.variable.categoricalValues);
         }
 
         return colorScale
@@ -193,7 +197,7 @@ export default class ScatterPlot extends Component {
                     return
 
                 series = series || _.extend({}, seriesForYear, { values: [] })
-                series.values = series.values.concat(seriesForYear.values)                    
+                series.values = series.values.concat(seriesForYear.values)
             })
             if (series && series.values.length)
                 currentData.push(series)
@@ -203,8 +207,8 @@ export default class ScatterPlot extends Component {
     }
 
 
-    @computed get axisDimensions() : Object[] { 
-        return _.filter(this.dimensions, function(d) { return d.property == 'x' || d.property == 'y'; });        
+    @computed get axisDimensions() : Object[] {
+        return _.filter(this.dimensions, function(d) { return d.property == 'x' || d.property == 'y'; });
     }
 
     @computed get yearsWithData() : number[] {
@@ -213,7 +217,7 @@ export default class ScatterPlot extends Component {
 
         var yearSets = [];
 
-        var minYear = _.min(_.map(axisDimensions, function(d) { 
+        var minYear = _.min(_.map(axisDimensions, function(d) {
             return _.first(d.variable.years);
         }));
 
@@ -238,27 +242,27 @@ export default class ScatterPlot extends Component {
     }
 
     componentWillMount() {
-        // hack to get data to header
-        autorun(() => {
-            window.chart.model.set('chart-time', [this.minYear, this.maxYear]);
-        })        
-
-        this.startYear = this.yearsWithData[0]
-        this.endYear = _.last(this.yearsWithData)
+        console.log(this.chart.timeRange)
+        if (!_.isNumber(this.chart.timeRange[0]) || !_.isNumber(this.chart.timeRange[1]))
+            this.chart.timeRange = [this.yearsWithData[0], _.last(this.yearsWithData)]
     }
 
-    @observable startYear : number
-    @observable endYear : number
+    @action.bound onTimelineChange({startYear, endYear, targetStartYear, targetEndYear}) {
+        this.chart.timeRange = [targetStartYear, targetEndYear]
+    }
 
-    @action.bound onTimelineChange({startYear, endYear} : {startYear: number, endYear: number}) {
-        this.startYear = startYear
-        this.endYear = endYear
+    @computed get startYear() {
+        return this.chart.timeRange[0]
+    }
+
+    @computed get endYear() {
+        return this.chart.timeRange[1]
     }
 
     @computed get allValues() : Object[] {
         const {dataByEntityAndYear} = this
         return _.flatten(
-                  _.map(dataByEntityAndYear, dataByYear => 
+                  _.map(dataByEntityAndYear, dataByYear =>
                       _.flatten(
                           _.map(dataByYear, series => series.values)
                       )
@@ -282,19 +286,17 @@ export default class ScatterPlot extends Component {
 
     @computed get yScale() : AxisScale {
         const {yDomain} = this
-        return new AxisScale({ scaleType: 'linear', domain: yDomain, tickFormat: d => d.toString() })        
+        return new AxisScale({ scaleType: 'linear', domain: yDomain, tickFormat: d => d.toString() })
     }
 
     @action.bound onSelectEntity(focusKeys) {
-        this.props.config.selectedEntities = focusKeys
+        this.chart.selectedEntities = focusKeys
     }
 
     render() {
-        window.ScatterPlot = this
-
         const {currentData, bounds, yearsWithData, startYear, endYear, xScale, yScale} = this
         return <Layout bounds={bounds}>
-            <ScatterWithAxis data={currentData} bounds={Layout.bounds} xScale={xScale} yScale={yScale} onSelectEntity={this.onSelectEntity} focusKeys={this.props.config.selectedEntities}/>
+            <ScatterWithAxis data={currentData} bounds={Layout.bounds} xScale={xScale} yScale={yScale} onSelectEntity={this.onSelectEntity} focusKeys={this.chart.selectedEntities}/>
             <Timeline bounds={Layout.bounds} layout="bottom" onChange={this.onTimelineChange} years={yearsWithData} startYear={startYear} endYear={endYear}/>
         </Layout>
     }

@@ -139,7 +139,7 @@ export default Backbone.Model.extend( {
 	addSelectedCountry: function(country) {
 		var selectedCountries = _.clone(this.get("selected-countries"));
 
-		//make sure the selected contry is not there 
+		//make sure the selected contry is not there
 		if (!_.find(selectedCountries, { id: country.id })) {
 			selectedCountries.push(country);
 			this.set('selected-countries', selectedCountries);
@@ -154,7 +154,7 @@ export default Backbone.Model.extend( {
 
 		var selectedCountries = _.clone(this.get("selected-countries"));
 
-		//make sure the selected contry is not there 
+		//make sure the selected contry is not there
 		if (!_.find(selectedCountries, { id: country.id })) {
 			selectedCountries.push(country);
 			this.set('selected-countries', selectedCountries);
@@ -196,7 +196,7 @@ export default Backbone.Model.extend( {
 		var axis = _.extend({}, this.get(axisName));
 		if (axis[prop] !== value) {
 			axis[prop] = value;
-			this.set(axisName, axis);				
+			this.set(axisName, axis);
 		}
 	},
 

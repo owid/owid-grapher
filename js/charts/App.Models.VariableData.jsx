@@ -47,7 +47,7 @@ export default Backbone.Model.extend({
 	// Replicates the state we would expect if there were simply no available data
 	setEmptyData: function() {
 		this.set({
-			variables: {}, 
+			variables: {},
 			entityKey: {},
 			minYear: Infinity,
 			maxYear: -Infinity,
@@ -61,7 +61,7 @@ export default Backbone.Model.extend({
 		var lines = rawData.split("\r\n");
 
 		lines.forEach(function(line, i) {
-			if (i === 0) { // First line contains the basic variable metadata 
+			if (i === 0) { // First line contains the basic variable metadata
 				variableData = JSON.parse(line);
 			} else if (i == lines.length-1) { // Final line is entity id => name mapping
 				variableData.entityKey = JSON.parse(line);
@@ -146,7 +146,7 @@ export default Backbone.Model.extend({
 
 		if (_.isEmpty(validEntities) && chartType != App.ChartType.ScatterPlot && chartType != App.ChartType.DiscreteBar && chartType != App.ChartType.SlopeChart) {
 			// Select a few random ones
-			validEntities = _.sample(availableEntities, 3);
+			validEntities = _.sampleSize(availableEntities, 3);
 		}
 
 		App.ChartModel.set("selected-countries", validEntities);

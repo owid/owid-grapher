@@ -16,12 +16,14 @@ type TimelineProps = {
 	years: number[],
 	startYear: number,
     endYear: number,
+    onTargetChange: ({ targetStartYear: number, targetEndYear: number }) => void,
 	onChange: ({ startYear: number, endYear: number}) => void,
-	bounds: Bounds
+	bounds: Bounds,
+    singleYearMode: boolean
 };
 
 @observer
-export default class Timeline extends Component {
+export default class RangeTimeline extends Component {
 	props: TimelineProps
 
     @observable startYearInput : number
@@ -36,7 +38,7 @@ export default class Timeline extends Component {
 	g: SVGElement
 
 	static calculateBounds(containerBounds : Bounds, props : any) : Bounds {
-		const height = 45        
+		const height = 45
 		return new Bounds(containerBounds.left, containerBounds.top+(containerBounds.height-height), containerBounds.width, height).padWidth(containerBounds.width*0.02)
 	}
 
@@ -55,11 +57,17 @@ export default class Timeline extends Component {
 		})
 
 		autorunAsync(() => {
-			this.props.onChange({ startYear: this.startYear, endYear: this.endYear })
+			if (this.props.onChange)
+                this.props.onChange({ startYear: this.startYear, endYear: this.endYear, targetStartYear: this.roundedStartYear, targetEndYear: this.roundedEndYear })
 		})
+
+        autorunAsync(() => {
+            if (this.props.onTargetChange)
+                this.props.onTargetChange({ targetStartYear: this.roundedStartYear })
+        })
 	}
 
-	@computed get years() : number[] { 
+	@computed get years() : number[] {
 		return this.props.years
 	}
 
@@ -81,9 +89,21 @@ export default class Timeline extends Component {
         return Math.min(maxYear, Math.max(minYear, Math.min(startYearInput, endYearInput)))
     }
 
+    // Closest year to the input start year
+    // e.g. 1954 => 1955
     @computed get roundedStartYear() : number {
         const { years, startYear } = this
-        return _.sortBy(years, function(year) { return Math.abs(year-startYear); })[0]
+        return _.sortBy(years, year => Math.abs(year-startYear))[0]
+    }
+
+    // Previous year from the input start year
+    // e.g. 1954 => 1950
+    @computed get targetStartYear() : number {
+        const { years, startYear } = this
+        return _.find(
+            _.sortBy(years, year => Math.abs(year-startYear)),
+            year => year <= startYear
+        )
     }
 
     @computed get endYear() : number {
@@ -96,14 +116,13 @@ export default class Timeline extends Component {
         return _.sortBy(years, function(year) { return Math.abs(year-endYear); })[0]
     }
 
-	@computed get targetYear() : number {
-		const { years, activeYear } = this
-
-		return _.find(
-			_.sortBy(years, function(year) { return Math.abs(year-activeYear); }),
-			function(year) { return year <= activeYear; }
-		);
-	}
+    @computed get targetEndYear() : number {
+        const { years, endYear } = this
+        return _.find(
+            _.sortBy(years, year => Math.abs(year-endYear)),
+            year => year <= endYear
+        )
+    }
 
 	@computed get minYearBox() : Bounds {
 		const { minYear, bounds } = this
@@ -150,7 +169,7 @@ export default class Timeline extends Component {
 					this.endYearInput = minYear
 			} else {
 				const elapsed = time-lastTime;
-				
+
 				if (endYear >= maxYear) {
 					this.isPlaying = false
 				} else {
@@ -213,11 +232,12 @@ export default class Timeline extends Component {
         if (targetEl.classed('toggle')) return;
 
         const {startYear, endYear} = this
+        const {singleYearMode} = this.props
 
         const inputYear = this.getInputYearFromMouse(e)
-        if (targetEl.classed('startMarker') || inputYear <= startYear)
+        if (!singleYearMode && (targetEl.classed('startMarker') || inputYear <= startYear))
             this.dragTarget = 'start'
-        else if (targetEl.classed('endMarker') || inputYear >= endYear)
+        else if (!singleYearMode && (targetEl.classed('endMarker') || inputYear >= endYear))
             this.dragTarget = 'end'
         else {
             this.dragTarget = 'both'
@@ -292,7 +312,7 @@ export default class Timeline extends Component {
 					return <rect class="tick" x={xScale(year)} y={sliderBounds.top+sliderBounds.height-1} width="1px" height="0.2em" fill="rgba(0,0,0,0.2)" />
 				})}
 			</g>
-			<rect class="sliderBackground" x={sliderBounds.left} y={sliderBounds.top} width={sliderBounds.width} height={sliderBounds.height} rx={5} ry={5} stroke-width={0.1} fill="#eee"/>			
+			<rect class="sliderBackground" x={sliderBounds.left} y={sliderBounds.top} width={sliderBounds.width} height={sliderBounds.height} rx={5} ry={5} stroke-width={0.1} fill="#eee"/>
             <rect x={xScale(startYear)} y={sliderBounds.top} width={xScale(endYear)-xScale(startYear)} height={sliderBounds.height} fill="#3F9EFF"/>
             <TimelineHandle year={startYear} xScale={xScale} bounds={sliderBounds} label={startYear == minYear || startYear == maxYear ? '' : roundedStartYear} handleClass="startMarker"/>
             <TimelineHandle year={endYear} xScale={xScale} bounds={sliderBounds} label={endYear == minYear || endYear == maxYear ? '' : roundedEndYear} handleClass="endMarker"/>
@@ -310,6 +330,6 @@ class TimelineHandle extends Component {
             <text y={-9} font-size="0.7em" text-anchor="middle">
                 {label}
             </text>
-        </g>        
+        </g>
     }
 }
