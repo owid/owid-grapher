@@ -84,7 +84,7 @@ export default class ChartConfig {
                   xAxisPrefix = xAxis["axis-prefix"] || "",
                   xAxisSuffix = xAxis["axis-suffix"] || "",
                   xAxisFormat = xAxis["axis-format"] || 5
-            this.yTickFormat = (d) => xAxisPrefix + owid.unitFormat({ format: xAxisFormat||5 }, d) + xAxisSuffix
+            this.xTickFormat = (d) => xAxisPrefix + owid.unitFormat({ format: xAxisFormat||5 }, d) + xAxisSuffix
         })()
     }
 

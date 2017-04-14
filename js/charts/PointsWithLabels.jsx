@@ -204,7 +204,7 @@ export default class PointsWithLabels extends Component {
         _.each(renderData, d => { d.isActive = true })
         _.each(renderData, (d1, i) => {
             _.each(renderData.slice(i+1), d2 => {
-                const intersect = d1.labels[0].bounds.intersects(d2.labels[0].bounds)
+                const intersect = _.some(d1.labels, l => _.some(d2.labels, l2 => l.bounds.intersects(l2.bounds)))
                 if (d1 !== d2 && d1.isActive && d2.isActive && intersect) {
                     //if (d1.labels[0].text == "Tajikistan" || d2.labels[0].text == "Tajikistan")
                     //    console.log(d1, d2)

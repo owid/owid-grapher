@@ -53,14 +53,15 @@ export default class Paragraph extends Component {
 			lines: lines,
 			lineHeight: lineHeight,
 			width: width,
-			height: height
+			height: height,
+            fontSize: opts.fontSize
 		}
 	}
 
 	render() {
 		const wrappedText = this.props.children
 
-		return <text {...this.props}>
+		return <text fontSize={wrappedText.fontSize} {...this.props}>
 			{_.map(wrappedText.lines, (line, i) => {
 				return <tspan x={this.props.x} dy={i == 0 ? 0 : wrappedText.lineHeight + 'em'}>{line.str}</tspan>
 			})}
