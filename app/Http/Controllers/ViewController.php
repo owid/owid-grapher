@@ -204,7 +204,7 @@ class ViewController extends Controller {
 		$response = new StreamedResponse(function() use ($varIds, $variableNameById, $dataQuery) {
 			$out = fopen('php://output', 'w');
 
-			$headerRow = ['Entity', 'Year'];
+			$headerRow = ['Entity', 'Year', 'Country code'];
 			foreach ($varIds as $id) {
 				$headerRow[]= $variableNameById[$id];
 			}
@@ -218,13 +218,13 @@ class ViewController extends Controller {
 						fputcsv($out, $currentRow);
 
 					// New row
-					$currentRow = [$result->entity_name, $result->year];
+					$currentRow = [$result->entity_name, $result->year, $result->entity_code];
 					for ($i = 0; $i < sizeof($varIds); $i++) {
 						$currentRow[]= "";
 					}
 				}
 
-				$index = 2+array_search($result->var_id, $varIds);
+				$index = 3+array_search($result->var_id, $varIds);
 				$currentRow[$index] = $result->value;
 			}
 

@@ -215,9 +215,6 @@ class EditName extends Component {
 		return <label>
 			Name
 			<input type="text" value={dataset.name} onInput={this.onInput} placeholder="Short name for your dataset" required/>
-			<p class="form-section-desc">
-				Strongly recommended is a name that combines the measure and the source. For example: "Life expectancy of women at birth – via the World Development Indicators published by the World Bank"
-			</p>
 		</label>
 	}
 }
@@ -235,9 +232,6 @@ class EditDescription extends Component {
 		return <label>
 			Description
 			<textarea value={dataset.description} onInput={this.onInput} placeholder="Optional description for dataset"/>
-			<p class="form-section-desc">
-				The dataset name and description are for our own internal use and do not appear on the charts.
-			</p>
 		</label>
 	}
 }
@@ -246,7 +240,7 @@ const EditCategory = ({categories, dataset}) => {
 	const categoriesByParent = _.groupBy(categories, category => category.parent)
 
 	return <label>
-		Category
+		Category <span class="form-section-desc">(Currently used only for internal organization)</span>
 		<select onChange={e => dataset.subcategoryId = e.target.value} value={dataset.subcategoryId}>	
 			{_.map(categoriesByParent, (subcats, parent) => 
 				<optgroup label={parent}>
@@ -256,7 +250,6 @@ const EditCategory = ({categories, dataset}) => {
 				</optgroup>
 			)}
 		</select>
-		<p class="form-section-desc">Currently used only for internal organization.</p>
 	</label>
 }
 
@@ -278,14 +271,20 @@ class EditVariable extends Component {
 		return <li class={styles.editVariable}>
 			<div class="variableProps">
 				<label class="name">
-					Name
+					Name <br />
+					<span class="form-section-desc">The variable name will be displayed in charts ('Sources' tab). For charts with many variables, the name will be crucial for readers to understand which sources correspond to which variables. <br /> Variable name should be of the format "Minimal variable description (Source)". For example: "Top marignal income tax rate (Piketty 2014)". Or "Tax revenue as share of GDP (ICTD 2016)"</span>
 					<input value={variable.name} onInput={e => variable.name = e.target.value} placeholder="Enter variable name"/>
 				</label>
 				<label class="description">
-					Description
+					Description <br />
+					<span class="form-section-desc">
+					The variable  description will be displayed in charts (‘Sources’ tab). It will be the first row in the table explaining the variable sources.<br />
+					Variable descriptions should be concise but clear and self-contained. They will correspond, roughly, to the information that will go in the subtitle of charts. <br />
+					For example: “Percentage of the population covered by health insurance (includes affiliated members of health insurance or estimation of the population having free access to health care services provided by the State)”</span>
 					<textarea rows={4} placeholder="Short description of variable" value={variable.description} onInput={e => variable.description = e.target.value}/>
 				</label>
-				<label>Unit<input value={variable.unit} onInput={e => variable.unit = e.target.value} placeholder="e.g. % or $"/></label>
+				<label>Unit (is displayed in axis-labels as suffix and in the legend of the map)
+				<input value={variable.unit} onInput={e => variable.unit = e.target.value} placeholder="e.g. % or $"/></label>
 				<label>Geographic Coverage<input value={variable.coverage} onInput={e => variable.coverage = e.target.value} placeholder="e.g. Global by country"/></label>
 				<label>Time Span<input value={variable.timespan} onInput={e => variable.timespan = e.target.value} placeholder="e.g. 1920-1990"/></label>
 				<label>Source
@@ -315,7 +314,7 @@ class EditVariables extends Component {
 
 		return <section class="form-section variables-section">
 			<h3>Check Variables</h3>
-			<p class="form-section-desc">Here you can configure the variables that will be stored for your dataset. If possible the variable name should be of the format measure + source (e.g. Population density – Clio Infra)</p>
+			<p class="form-section-desc">Here you can configure the variables that will be stored for your dataset.</p>
 
 			<ol>
 				{_.map(dataset.newVariables, variable => 
@@ -372,6 +371,11 @@ class EditSource extends Component {
 				<span>Name:</span>
 				<input type="text" required value={source.name} onInput={e => source.name = e.target.value}/>
 			</label>
+			<p class="form-section-desc">
+			The source name will be displayed in charts (at the bottom of the ‘Chart’ and ‘Map’ tabs). For academic papers, the name of the source should be “Authors (year)”. For example Arroyo-Abad and Lindert (2016). <br/>
+			For institutional projects or reports, the name should be “Institution, Project (year or vintage)”. For example: U.S. Bureau of Labor Statistics, Consumer Expenditure Survey (2015 release). <br/>
+			For data that we have modified extensively, the name should be "Our World In Data based on Author (year)”. For example: Our World In Data based on Atkinson (2002) and Sen (2000).
+			</p>
 				<div class="editSourceDescription">
 					<label class="description">
 						<span>Description:</span>
@@ -383,7 +387,11 @@ class EditSource extends Component {
 					</label>
 				</div>
 			<p class="form-section-desc">
-				All provided source information will be shown on associated visualizations.
+				For academic papers, the first item in the description should be “Data published by: complete reference”.  This should be followed by the authors underlying sources, a link to the paper, and the date on which the paper was accessed. <br/>
+				For institutional projects, the format should be similar, but detailing the corresponding project or report. <br/>
+				For data that we have modified extensively in order to change the meaning of the data, we should list OWID as publisher, and provide the name of the person in charge of the calculation.<br/>
+				The field “Data publisher’s source” should give basic pointers (e.g. surveys data). Anything longer than a line should be relegated to the field “Additional information”. <br/>
+				Sometimes it is necessary to change the structure of this description. (e.g. the row dedicated to ‘Link’ or Data publisher’s source has to be deleted). 
 			</p>
 			{source.id && <p class="existing-source-warning text-warning">
 				<i class="fa fa-warning"></i> You are editing an existing source. Changes may also affect other variables.
@@ -660,7 +668,7 @@ export default class Importer extends Component {
 
 		return <form class={styles.importer} onSubmit={this.onSubmit}>
 			<h2>Import CSV file</h2>
-			<p>Examples of valid layouts: <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_single-var.png">single variable</a>, <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_multi-var.png">multiple variables</a>. The multivar layout is preferred.</p>
+			<p>Examples of valid layouts: <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_single-var.png">single variable</a>, <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_multi-var.png">multiple variables</a>. The multivar layout is preferred. <span class="form-section-desc">CSV files only: <a href="https://ourworldindata.org/how-to-our-world-in-data-guide/#1-2-single-variable-datasets">csv file format guide</a></span></p>
 			<CSVSelector onCSV={this.onCSV} existingEntities={existingEntities}/>
 
 			{csv && csv.isValid && <section>
@@ -671,7 +679,10 @@ export default class Importer extends Component {
 						<option value={d.id} selected={d.id == dataset.id}>{d.name}</option>
 					)}
 				</select>
-
+				<hr/>
+				<h3>Dataset name and description</h3>
+				<p>The dataset name and description are for our own internal use and do not appear on the charts.<br/>
+				<span class="form-section-desc">Dataset name should include a basic description of the variables, followed by the source and year. For example: "Government Revenue Data – ICTD (2016)"</span></p>
 				<EditName dataset={dataset}/>
 				<hr/>
 				<EditDescription dataset={dataset}/>
