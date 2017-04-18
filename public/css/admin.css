@@ -986,3 +986,7 @@ li[data-color^=".*"] {
 #charts-index td:nth-child(3) {
   min-width: 120px;
 }
+
+.explanatory-notes {
+  font-size: 11pt; 
+}

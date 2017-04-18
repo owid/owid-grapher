@@ -38,15 +38,14 @@
 
 .editVariable {
 	& .variableProps {
-	    display: flex;
+	    display: inline-flex;
 	    flex-direction: row;
 	    flex-wrap: wrap;
 	}
 
     & .variableProps > label {
-        display: flex;
-        flex-direction: column;
         margin-right: 10px;
+        line-height: normal;
     }
 
     & .name, & .description {

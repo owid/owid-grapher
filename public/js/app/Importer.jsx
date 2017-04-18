@@ -272,18 +272,18 @@ class EditVariable extends Component {
 			<div class="variableProps">
 				<label class="name">
 					Name <br />
-					<span class="form-section-desc">The variable name will be displayed in charts ('Sources' tab). For charts with many variables, the name will be crucial for readers to understand which sources correspond to which variables. <br /> Variable name should be of the format "Minimal variable description (Source)". For example: "Top marignal income tax rate (Piketty 2014)". Or "Tax revenue as share of GDP (ICTD 2016)"</span>
+					<span class="form-section-desc explanatory-notes">The variable name will be displayed in charts ('Sources' tab). For charts with many variables, the name will be crucial for readers to understand which sources correspond to which variables. <br /> Variable name should be of the format "Minimal variable description (Source)". For example: "Top marignal income tax rate (Piketty 2014)". Or "Tax revenue as share of GDP (ICTD 2016)"</span>
 					<input value={variable.name} onInput={e => variable.name = e.target.value} placeholder="Enter variable name"/>
 				</label>
 				<label class="description">
 					Description <br />
-					<span class="form-section-desc">
+					<span class="form-section-desc explanatory-notes">
 					The variable  description will be displayed in charts (‘Sources’ tab). It will be the first row in the table explaining the variable sources.<br />
 					Variable descriptions should be concise but clear and self-contained. They will correspond, roughly, to the information that will go in the subtitle of charts. <br />
 					For example: “Percentage of the population covered by health insurance (includes affiliated members of health insurance or estimation of the population having free access to health care services provided by the State)”</span>
 					<textarea rows={4} placeholder="Short description of variable" value={variable.description} onInput={e => variable.description = e.target.value}/>
 				</label>
-				<label>Unit (is displayed in axis-labels as suffix and in the legend of the map)
+				<label>Unit <span class="form-section-desc explanatory-notes">(is displayed in axis-labels as suffix and in the legend of the map)</span>
 				<input value={variable.unit} onInput={e => variable.unit = e.target.value} placeholder="e.g. % or $"/></label>
 				<label>Geographic Coverage<input value={variable.coverage} onInput={e => variable.coverage = e.target.value} placeholder="e.g. Global by country"/></label>
 				<label>Time Span<input value={variable.timespan} onInput={e => variable.timespan = e.target.value} placeholder="e.g. 1920-1990"/></label>
@@ -313,7 +313,7 @@ class EditVariables extends Component {
 		const {dataset} = this.props
 
 		return <section class="form-section variables-section">
-			<h3>Check Variables</h3>
+			<h3>Variable names and descriptions</h3>
 			<p class="form-section-desc">Here you can configure the variables that will be stored for your dataset.</p>
 
 			<ol>
@@ -682,7 +682,7 @@ export default class Importer extends Component {
 				<hr/>
 				<h3>Dataset name and description</h3>
 				<p>The dataset name and description are for our own internal use and do not appear on the charts.<br/>
-				<span class="form-section-desc">Dataset name should include a basic description of the variables, followed by the source and year. For example: "Government Revenue Data – ICTD (2016)"</span></p>
+				<span class="form-section-desc explanatory-notes">Dataset name should include a basic description of the variables, followed by the source and year. For example: "Government Revenue Data – ICTD (2016)"</span></p>
 				<EditName dataset={dataset}/>
 				<hr/>
 				<EditDescription dataset={dataset}/>
