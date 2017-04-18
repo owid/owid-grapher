@@ -4,3 +4,7 @@ settings.py
 migrations/
 __pycache__/
 *.py[cod]
+/node_modules
+/public/build
+/public/uploads/*
+.sublime*
