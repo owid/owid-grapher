@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "dev": "webpack-dev-server -d",
+    "dev": "./node_modules/.bin/concurrently --kill-others --raw \"./node_modules/.bin/webpack-dev-server -d\" \"python3 manage.py runserver\"",
     "build": "rm -rf public/build/* && webpack -p"
   },
   "dependencies": {
@@ -15,6 +15,7 @@
     "babel-preset-env": "^1.2.0",
     "babel-preset-react": "^6.22.0",
     "babel-preset-stage-0": "^6.22.0",
+    "concurrently": "^3.4.0",
     "css-loader": "^0.26.1",
     "csv-parse": "^1.2.0",
     "d3": "^4.5.0",
