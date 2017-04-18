@@ -1,5 +1,25 @@
 from django.db import models
-from django.contrib.auth.models import User
+
+
+class PasswordReset(models.Model):
+    class Meta:
+        db_table = "password_resets"
+
+    email = models.CharField(max_length=255)
+    token = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class User(models.Model):
+    class Meta:
+        db_table = "users"
+
+    name = models.CharField(max_length=255, unique=True)
+    email = models.CharField(max_length=255, unique=True)
+    password = models.CharField(max_length=60)
+    remember_token = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 
 class ApiKey(models.Model):
@@ -21,9 +41,9 @@ class Chart(models.Model):
     config = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    last_edited_at = models.DateTimeField(auto_now=True)  # clarify the use of this one
-    last_edited_by = models.ForeignKey(User, on_delete=models.DO_NOTHING, blank=True, null=True,
+    last_edited_by = models.ForeignKey(User, to_field='name', on_delete=models.DO_NOTHING, blank=True, null=True,
                                        db_column='last_edited_by')
+    last_edited_at = models.DateTimeField(auto_now=True)  # clarify the use of this one
     origin_url = models.CharField(max_length=255)
     notes = models.TextField()
     slug = models.CharField(max_length=255, blank=True, null=True)
@@ -62,12 +82,12 @@ class Dataset(models.Model):
         unique_together = (('name', 'namespace'),)
 
     name = models.CharField(max_length=255)
-    namespace = models.CharField(max_length=255, default='owid')
     description = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     fk_dst_cat_id = models.ForeignKey(DatasetCategory, blank=True, null=True, on_delete=models.DO_NOTHING)
     fk_dst_subcat_id = models.ForeignKey(DatasetSubcategory, blank=True, null=True, on_delete=models.DO_NOTHING)
+    namespace = models.CharField(max_length=255, default='owid')
 
 
 class Source(models.Model):
@@ -103,7 +123,7 @@ class Variable(models.Model):
     created_at = models.DateTimeField(blank=True, null=True)
     updated_at = models.DateTimeField(blank=True, null=True)
     fk_var_type_id = models.ForeignKey(VariableType, on_delete=models.DO_NOTHING)
-    uploaded_by = models.ForeignKey(User, on_delete=models.DO_NOTHING, db_column='uploaded_by', blank=True, null=True)
+    uploaded_by = models.ForeignKey(User, to_field='name', on_delete=models.DO_NOTHING, db_column='uploaded_by', blank=True, null=True)
     uploaded_at = models.DateTimeField()
     code = models.CharField(max_length=255, blank=True, null=True)
     coverage = models.CharField(max_length=255)
@@ -130,7 +150,7 @@ class ChartSlugRedirect(models.Model):
         db_table = 'chart_slug_redirects'
 
     slug = models.CharField(unique=True, max_length=255)
-    chart_id = models.ForeignKey(Chart, on_delete=models.CASCADE)
+    chart_id = models.IntegerField()
 
 
 class Entity(models.Model):

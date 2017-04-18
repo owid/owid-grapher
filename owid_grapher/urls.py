@@ -17,5 +17,6 @@ from django.conf.urls import url
 from owid_grapher import views
 
 urlpatterns = [
-    url(r'^([^/]+)$', views.chart),
+    url(r'^chart/(?P<id>[\w]+)/', views.chart, name="viewchart"),
+    url(r'^data/variables/(?P<ids>[\w\+]+)/', views.variables, name="givevariables"),
 ]
