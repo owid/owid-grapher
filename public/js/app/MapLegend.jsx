@@ -24,9 +24,9 @@ export class MapLegend extends Component {
 
     static calculateBounds(bounds : Bounds, props : any) : Bounds {
         const {title} = props
-        const wrapLabel = Paragraph.wrap(title, bounds.width, { fontSize: "0.7em" })
+        const wrapLabel = Paragraph.wrap(title, bounds.width, { fontSize: "0.6em" })
         const rectHeight = 10
-        const height = wrapLabel.height+rectHeight
+        const height = wrapLabel.height+rectHeight+23
 
         return {
             bounds: new Bounds(bounds.left, bounds.bottom-height, bounds.width, height),
@@ -36,22 +36,38 @@ export class MapLegend extends Component {
     }
 
     @computed get bounds() : Bounds {
-        return this.props.bounds.padWidth(this.props.bounds.width*0.2)
+        return this.props.bounds.padWidth(this.props.bounds.width*0.25)
     }
 
 	render() {
         const {legendData, title, wrapLabel, rectHeight} = this.props
         const {bounds} = this
-        const rangeSize = legendData[legendData.length-2].max - _.first(legendData).min
+        const minValue = _.first(legendData).min
+        const maxValue = legendData[legendData.length-2].max
+        const rangeSize = maxValue - minValue
+        console.log(legendData)
 
-		return <g class="mapLegend" ref={(g) => this.g = g} transform={`translate(${bounds.x}, ${bounds.y})`}>
-            {_.map(legendData.slice(0, -1), d => {
-                const xFrac = d.min/rangeSize
-                const widthFrac = d.max/rangeSize - xFrac
+        const borderSize = 0.5
+        const borderColor = "#ccc"
 
-                return <rect x={xFrac*bounds.width} y={bounds.height-rectHeight-wrapLabel.height-5} width={widthFrac*bounds.width} height={rectHeight} fill={d.color}/>
+		return <g class="mapLegend" ref={(g) => this.g = g}>
+            <rect x={bounds.left-borderSize} y={bounds.bottom-rectHeight-wrapLabel.height-5-borderSize} width={bounds.width+borderSize*2} height={rectHeight+borderSize*2} fill={borderColor}/>
+            {_.map(legendData.slice(0, -1), (d, i) => {
+                const xFrac = (d.min-minValue)/rangeSize
+                const widthFrac = (d.max-minValue)/rangeSize - xFrac
+
+                return [
+                    <rect x={bounds.left+xFrac*bounds.width} y={bounds.bottom-rectHeight-wrapLabel.height-5} width={widthFrac*bounds.width} height={rectHeight} fill={d.color}/>,
+                    i < legendData.length-2 && <rect x={bounds.left+((d.max-minValue)/rangeSize)*bounds.width-0.25} y={bounds.bottom-rectHeight-wrapLabel.height-5} width={0.5} height={rectHeight} fill={borderColor}/>
+                ]
             })}
-            <Paragraph x={bounds.width/2} y={bounds.height-wrapLabel.height} dominant-baseline="hanging" text-anchor="middle">{wrapLabel}</Paragraph>
+            {_.map(legendData.slice(0, -1), d =>
+                <text x={bounds.left+((d.min-minValue)/rangeSize)*bounds.width} y={bounds.bottom-rectHeight-wrapLabel.height-8} fontSize="0.55em" text-anchor="middle">{d.minText}</text>
+            )}
+            {_.map(legendData.slice(-2, -1), d =>
+                <text x={bounds.left+((d.max-minValue)/rangeSize)*bounds.width} y={bounds.bottom-rectHeight-wrapLabel.height-8} fontSize="0.55em" text-anchor="middle">{d.maxText}</text>
+            )}
+            <Paragraph x={bounds.centerX} y={bounds.bottom-wrapLabel.height} dominant-baseline="hanging" text-anchor="middle">{wrapLabel}</Paragraph>
 		</g>
 	}
 }

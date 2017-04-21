@@ -79,16 +79,16 @@ export default class ChoroplethMap extends Component {
                     <rect {...bounds}></rect>
                 </clipPath>
             </defs>
-            <rect {...bounds} fill="#ecf6fc"></rect>
+            {/*<rect {...bounds} fill="#ecf6fc"></rect>*/}
             <g class="subunits" ref={g => this.subunits = g}>
                 {_.map(geoData, (d) => {
                     const fill = choroplethData[d.id] ? choroplethData[d.id].color : defaultFill
-                    return <path d={pathData[d.id]} stroke-width={0.3} stroke="#4b4b4b" cursor="pointer" fill={fill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={(ev) => this.props.onClick(d)}/>
+                    return <path d={pathData[d.id]} stroke-width={0.5} stroke="#ccc" cursor="pointer" fill={fill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={(ev) => this.props.onClick(d)}/>
                 })}
             </g>
-            <text class="disclaimer" x={bounds.left+bounds.width-5} y={bounds.top+bounds.height-10} font-size="0.5em" text-anchor="end">
+            {/*<text class="disclaimer" x={bounds.left+bounds.width-5} y={bounds.top+bounds.height-10} font-size="0.5em" text-anchor="end">
                 Mapped on current borders
-            </text>
+            </text>*/}
         </g>
     }
 
@@ -99,11 +99,11 @@ export default class ChoroplethMap extends Component {
 
     @bind postRenderResize() {
         let { bounds, projection, subunits } = this
-        bounds = bounds.padHeight(30)
+        bounds = bounds.padHeight(10)
         const bbox = subunits.getBBox()
 
         var viewports = {
-            "World": { x: 0.525, y: 0.5, width: 1, height: 1 },
+            "World": { x: 0.565, y: 0.5, width: 1, height: 1 },
             "Africa": { x: 0.48, y: 0.70, width: 0.21, height: 0.38 },
             "N.America": { x: 0.49, y: 0.40, width: 0.19, height: 0.32 },
             "S.America": { x: 0.52, y: 0.815, width: 0.10, height: 0.26 },

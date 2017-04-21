@@ -23,6 +23,7 @@ export default class Layout extends Component {
 	            let precalc = vnode.nodeName.calculateBounds(containerBounds, vnode.attributes)
                 if (precalc instanceof Bounds) precalc = { bounds: precalc }
                 const bounds = precalc.bounds
+                precalc.bounds = containerBounds
 
 	            if (vnode.attributes) {
 	            	const layout = vnode.attributes.layout
@@ -35,6 +36,7 @@ export default class Layout extends Component {
 	            	if (layout == 'right')
 	    	            containerBounds = containerBounds.padRight(bounds.width)
 	            }
+
 	            return cloneElement(vnode, precalc)
 	        } else {
 	            return vnode
