@@ -27,9 +27,9 @@
 			<div class="tab-content">
 				<div id="data-tab" class="tab-pane">
 					<section class="add-data-section">
-						
+
 							<h2>Add your data</h2>
-						
+
 							<a class="add-data-btn"><i class="fa fa-plus"></i>Add variable</a>
 							<div class="dd">
 								<div class="dd-empty"></div>
@@ -40,9 +40,9 @@
 	 					<input type="hidden" name="chart-dimensions" value="" />
 					</section>
 					<section class="entities-section">
-						
+
 							<h2>Pick your countries</h2>
-						
+
 							<p class="form-section-desc">Select countries from drop down below. You can set country colors by clicking on the country label itself.</p>
 							<ul class="selected-countries-box no-bullets">
 
@@ -69,9 +69,9 @@
 							</div>
 					</section>
 					<section class="time-section">
-						
+
 							<h2>Define your time</h2>
-						
+
 							<label>
 								<input type="checkbox" name="dynamic-time" checked/>
 								Use entire time period of the selected data
@@ -91,9 +91,9 @@
 				</div>
 				<div id="axis-tab" class="tab-pane">
 					<section>
-						
+
 							<h2>Refine your axis</h2>
-						
+
 							<div class="y-section">
 								<h3>Y Axis</h3>
 								<div class="input-wrapper">
@@ -186,9 +186,9 @@
 				</div>
 				<div id="styling-tab" class="tab-pane">
                     <section class="logo-section">
-                        
+
                             <h2>Logos</h2>
-                        
+
                             <select name="logo" class="form-control logo-select">
                                 <option value="" disabled selected>Select type</option>
                                 @foreach($data->logos as $logoName)
@@ -197,9 +197,9 @@
                             </select>
                     </section>
 					<section class="type-of-line-section">
-						
+
 							<h2>Choose Type of Line</h2>
-						
+
 							<label>
 								<input type="radio" name="line-type" value="0"/>
 								Line with dots
@@ -223,9 +223,9 @@
 							</label>
 					</section>
 					<section class="legend-section">
-						
+
 							<h2>Legend</h2>
-						
+
 							<label class="clickable">
 								<input type="checkbox" name="hide-legend" />
 								Hide legend
@@ -240,23 +240,23 @@
 							</label>
 					</section>
 					<section class="units-section">
-						
+
 							<h2>Popup Units</h2>
-						
+
 					</section>
 				</div>
 				<div id="export-tab" class="tab-pane">
 					<section class="tabs-section">
-						
+
 							<h2>Which tabs</h2>
-						
+
 							<ol>
 								<li>
 									<label class="chart-tab-check">
 										<input type="checkbox" value="chart" />
 										Chart tab
 									</label>
-								</li>	
+								</li>
 								<li>
 									<label class="data-tab-check">
 										<input type="checkbox" value="data" />
@@ -291,20 +291,20 @@
 							<h2>Embed your chart</h2>
 						</header>
 							<p class="form-section-desc">Copy and paste code below to use the chart on your page.</p>
-							<textarea rows="4" cols="50" name="iframe" @if (isset($chart)) data-view-url="{!! route( 'view', $chart->id ) !!}" @endif placeholder="No chart created, yet. Click 'Create chart' button at the bottom to get code for embedding." readonly></textarea>
+							<textarea rows="4" cols="50" name="iframe" placeholder="No chart created, yet. Click 'Create chart' button at the bottom to get code for embedding." readonly></textarea>
 					</section>
 				</div>
 				<div id="map-tab" class="tab-pane">
 					<section class="map-variable-section">
-						
+
 							<h2>Which variable on map</h2>
-						
+
 							<select name="map-variable-id" class="form-control"><select>
 					</section>
 					<section class="map-timeline-section">
-						
+
 							<h2>Timeline</h2>
-						
+
 							<label>
 								<i class="fa fa-info-circle" data-toggle="tooltip" title="Specify a range of years from which to pull data. For example, if the map shows 1990 and tolerance is set to 1, then data from 1989 or 1991 will be shown if no data is available for 1990."></i>
 								Tolerance of data:
@@ -320,9 +320,9 @@
 							</label>
 					</section>
 					<section class="map-colors-section">
-						
+
 							<h2>Colors</h2>
-						
+
 							<label>
 								<a href="http://www.datavis.ca/sasmac/brewerpal.html" title="Color brewer schemes" target="_blank"><i class="fa fa-info-circle"></i></a> Color scheme:
 								<select name="map-color-scheme" class="form-control"></select>
@@ -344,18 +344,18 @@
 							</ul>
 					</section>
 					<section class="map-regions-section">
-						
+
 							<h2>Displayed map section</h2>
-						
+
 							<label>
 								Which region map should be focused on:
 								<select name="map-default-projection" class="form-control"></select>
 							</label>
 					</section>
 					<section class="map-legend-section">
-						
+
 							<h2>Legend</h2>
-						
+
 <!--							<label>
 								Legend orientation:
 								<select name="map-legend-orientation" class="form-control">
