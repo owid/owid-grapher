@@ -30,8 +30,15 @@ export default class Timeline extends Component {
 	g: SVGElement
 
 	static calculateBounds(containerBounds : Bounds, props : any) : Bounds {
-		const height = 45
-		return new Bounds(containerBounds.left, containerBounds.top+(containerBounds.height-height), containerBounds.width, height).padWidth(containerBounds.width*0.02)
+		const height = 45, bounds = containerBounds.fromBottom(height)
+
+		return {
+            bounds: bounds,
+            remainingBounds: containerBounds.padBottom(height),
+            props: {
+                bounds: bounds
+            }
+        }
 	}
 
 	constructor(props : TimelineProps) {
@@ -52,21 +59,10 @@ export default class Timeline extends Component {
 		})
 	}
 
-	@computed get years() : number[] { 
-		return this.props.years
-	}
-
-	@computed get bounds() : Bounds {
-		return this.props.bounds
-	}
-
-	@computed get minYear() : number {
-		return _.first(this.props.years)
-	}
-
-	@computed get maxYear() : number {
-		return _.last(this.props.years)
-	}
+	@computed get years(): number[] { return this.props.years }
+	@computed get bounds(): Bounds { return this.props.bounds }
+	@computed get minYear() : number { return _.first(this.props.years) }
+	@computed get maxYear() : number { return _.last(this.props.years) }
 
 	@computed get activeYear() : number {
 		let { inputYear, isPlaying, isDragging } = this
@@ -91,12 +87,12 @@ export default class Timeline extends Component {
 
 	@computed get minYearBox() : Bounds {
 		const { minYear, bounds } = this
-		return Bounds.forText(minYear.toString(), { fontSize: "0.8em" }).extend({ x: bounds.left+45, y: bounds.top+bounds.height/2 })
+		return Bounds.forText(minYear.toString(), { fontSize: "0.8em" }).extend({ x: bounds.left+45, y: bounds.centerY })
 	}
 
 	@computed get maxYearBox() : Bounds {
 		const { minYear, bounds } = this
-		return Bounds.forText(minYear.toString(), { fontSize: "0.8em" }).extend({ x: bounds.right, y: bounds.top+bounds.height/2 })
+		return Bounds.forText(minYear.toString(), { fontSize: "0.8em" }).extend({ x: bounds.right, y: bounds.centerY })
 	}
 
 	@computed get sliderBounds() : Bounds {
@@ -108,7 +104,7 @@ export default class Timeline extends Component {
 
 	@computed get xScale() : any {
 		const { years, sliderBounds } = this
-		return d3.scaleLinear().domain(d3.extent(years)).range([sliderBounds.left, sliderBounds.left+sliderBounds.width]);
+		return d3.scaleLinear().domain(d3.extent(years)).range([sliderBounds.left, sliderBounds.right]);
 	}
 
 	@action componentWillReceiveProps(nextProps : TimelineProps) {
@@ -132,7 +128,7 @@ export default class Timeline extends Component {
 					this.inputYear = minYear
 			} else {
 				const elapsed = time-lastTime;
-				
+
 				if (activeYear >= maxYear) {
 					this.isPlaying = false
 				} else {
@@ -214,7 +210,7 @@ export default class Timeline extends Component {
     }
 
   	render() {
-		const { bounds, sliderBounds, targetYear, minYear, maxYear, minYearBox, maxYearBox, xScale, activeYear, years, isPlaying } = this
+		const { bounds, sliderBounds, targetYear, minYear, maxYear, minYearBox, maxYearBox, xScale, activeYear, years, isPlaying, height } = this
 
 		return <g class="timeline clickable" onMouseDown={this.onMouseDown} ref={g => this.g = g}>
 			<rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height} fill="white"></rect>
@@ -228,8 +224,8 @@ export default class Timeline extends Component {
 					return <rect class="tick" x={xScale(year)} y={sliderBounds.top+sliderBounds.height-1} width="1px" height="0.2em" fill="rgba(0,0,0,0.2)" />
 				})}
 			</g>
-			<rect class="sliderBackground" x={sliderBounds.left} y={sliderBounds.top} width={sliderBounds.width} height={sliderBounds.height} rx={5} ry={5} stroke-width={0.1} fill="#eee"/>			
-			<g class="handle" fill="#3F9EFF" transform={`translate(${xScale(activeYear)}, ${sliderBounds.top+sliderBounds.height/2})`}>
+			<rect class="sliderBackground" x={sliderBounds.left} y={sliderBounds.top} width={sliderBounds.width} height={sliderBounds.height} rx={5} ry={5} stroke-width={0.1} fill="#eee"/>
+			<g class="handle" fill="#3F9EFF" transform={`translate(${xScale(activeYear)}, ${sliderBounds.centerY})`}>
 				<circle r={8} stroke="#000" stroke-width={0.1}/>
 				<text y={-9} font-size="0.7em" text-anchor="middle">
 					{targetYear == minYear || targetYear == maxYear ? '' : targetYear}
@@ -276,7 +272,7 @@ export default class Timeline extends Component {
 
                         timeline.update({ isDragging: true, inputYear: inputYear });
                         frameQueued = false;
-                    });       
+                    });
                 });
                 evt.preventDefault();
 			}
@@ -316,7 +312,7 @@ export default class Timeline extends Component {
 
 				timeline.now('isPlaying, inputYear, targetYear, years, maxYear', function(isPlaying, inputYear, targetYear, years, maxYear) {
 					if (!isPlaying) return;
-					
+
 					if (inputYear >= maxYear) {
 						timeline.update({ isPlaying: false });
 					} else {

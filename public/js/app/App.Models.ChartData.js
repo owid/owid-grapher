@@ -1,4 +1,4 @@
-;(function() {		
+;(function() {
 	"use strict";
 	owid.namespace("App.Models.ChartData");
 
@@ -66,7 +66,7 @@
 					if (!series) {
 						var key = entityKey[entityId].name,
 							id = entityId;
-						
+
 						if (!hasManyEntities && addCountryMode == "disabled") {
 							id = variable.id;
 							key = variableName;
@@ -112,7 +112,7 @@
 		// Even if that value is just 0
 		// Stacked area charts with incomplete data will fail to render otherwise
 		zeroPadData: function(chartData) {
-			var allYears = {};			
+			var allYears = {};
 			var yearsForSeries = {};
 
 			_.each(chartData, function(series) {
@@ -153,14 +153,14 @@
 			});
 
 			_.each(chartData, function(series) {
-				for (var year = minYear; year <= maxYear; year++) {					
+				for (var year = minYear; year <= maxYear; year++) {
 					if (!yearsForSeries[series.id][year])
 						series.values.push({ x: year, y: 0, time: year, fake: true });
 				}
 				series.values = _.sortBy(series.values, function(d) { return d.x; });
 			});
 
-			return chartData;			
+			return chartData;
 		},
 
 		transformDataForStackedArea: function() {
@@ -178,7 +178,7 @@
 				selectedCountry = _.values(App.ChartModel.getSelectedEntitiesById())[0],
 				chartData = [], legendData = [],
 				timeFrom = App.ChartModel.getTimeFrom(),
-				timeTo = App.ChartModel.getTimeTo(),				
+				timeTo = App.ChartModel.getTimeTo(),
 				minYear = Infinity,
 				maxYear = -Infinity;
 
@@ -227,7 +227,7 @@
 				index = 0,
 				categoryTransform = {};
 
-			_.each(_.sortBy(_.uniq(values)), function(value) { 
+			_.each(_.sortBy(_.uniq(values)), function(value) {
 				categoryTransform[value] = outputValues[index];
 				index += 1;
 				if (index >= outputValues.length) index = 0;
@@ -266,7 +266,7 @@
 						value = variable.values[i],
 						entityId = variable.entities[i],
 						entity = selectedEntitiesById[entityId],
-						series = seriesByEntity[entityId];						
+						series = seriesByEntity[entityId];
 
 					// Scatterplot defaults to showing all countries if none selected
 					if (!_.isEmpty(selectedEntitiesById) && !entity) continue;
@@ -389,7 +389,7 @@
 			if (chartData.length) {
 				legendData = _.map(chartData[0].values, function(v) {
 					return { label: v.x, key: v.key, entityId: v.entityId, variableId: v.variableId };
-				});				
+				});
 			}
 
 			return { chartData: chartData, legendData: legendData, minYear: targetYear, maxYear: targetYear };
@@ -397,8 +397,8 @@
 
 		getSourceDescHtml: function(variable, source) {
 			var html = '';
-			
-			html += '<div class="datasource-wrapper">' + 
+
+			html += '<div class="datasource-wrapper">' +
 				   		'<h2>' + variable.name + '</h2>';
 
 
@@ -448,7 +448,7 @@
 				addCountryMode = App.ChartModel.get("add-country-mode"),
 				result = null;
 
-			if (chartType == App.ChartType.ScatterPlot)
+			if (chartType == App.ChartType.ScatterPlot || chart.activeTabName == 'map')
 				return [];
 
 			if (changes.any()) this.chartData = null;
@@ -462,7 +462,7 @@
 			if (chartType == App.ChartType.LineChart)
 				result = this.transformDataForLineChart();
 			else if (chartType == App.ChartType.StackedArea)
-				result = this.transformDataForStackedArea();	
+				result = this.transformDataForStackedArea();
 			else if (chartType == App.ChartType.DiscreteBar)
 				result = this.transformDataForDiscreteBar();
 			else

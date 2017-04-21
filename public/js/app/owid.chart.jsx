@@ -22,7 +22,7 @@ export default function() {
 	chart.requires('containerNode', 'chartConfig', 'outerBounds', 'activeTabName');
 
 	chart.defaults({
-		landscapeAuthorDimensions: [900, 600],
+		landscapeAuthorDimensions: [850, 600],
 		portraitAuthorDimensions: [400, 640],
 		isExport: !!window.location.pathname.match(/.export$/),
 		isEmbed: window.self != window.top || App.isEditor,

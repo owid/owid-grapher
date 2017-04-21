@@ -29,9 +29,12 @@ export class MapLegend extends Component {
         const height = wrapLabel.height+rectHeight+23
 
         return {
-            bounds: new Bounds(bounds.left, bounds.bottom-height, bounds.width, height),
-            wrapLabel: wrapLabel,
-            rectHeight: rectHeight
+            bounds: bounds.fromBottom(height),
+            remainingBounds: bounds.padBottom(height),
+            props: {
+                wrapLabel: wrapLabel,
+                rectHeight: rectHeight
+            }
         }
     }
 
@@ -45,7 +48,6 @@ export class MapLegend extends Component {
         const minValue = _.first(legendData).min
         const maxValue = legendData[legendData.length-2].max
         const rangeSize = maxValue - minValue
-        console.log(legendData)
 
         const borderSize = 0.5
         const borderColor = "#ccc"

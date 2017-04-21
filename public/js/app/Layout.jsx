@@ -21,23 +21,10 @@ export default class Layout extends Component {
 
 	        if (vnode.nodeName.calculateBounds) {
 	            let precalc = vnode.nodeName.calculateBounds(containerBounds, vnode.attributes)
-                if (precalc instanceof Bounds) precalc = { bounds: precalc }
-                const bounds = precalc.bounds
-                precalc.bounds = containerBounds
+                const bounds = containerBounds
+                containerBounds = precalc.remainingBounds
 
-	            if (vnode.attributes) {
-	            	const layout = vnode.attributes.layout
-	            	if (layout == 'top')
-	    	            containerBounds = containerBounds.padTop(bounds.height)
-	            	if (layout == 'bottom')
-	    	            containerBounds = containerBounds.padBottom(bounds.height)
-	            	if (layout == 'left')
-	    	            containerBounds = containerBounds.padLeft(bounds.width)
-	            	if (layout == 'right')
-	    	            containerBounds = containerBounds.padRight(bounds.width)
-	            }
-
-	            return cloneElement(vnode, precalc)
+	            return cloneElement(vnode, _.extend({ bounds: bounds }, precalc.props||{}))
 	        } else {
 	            return vnode
 	        }

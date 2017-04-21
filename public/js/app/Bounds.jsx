@@ -98,6 +98,14 @@ export default class Bounds {
 		return new Bounds(this.x, this.y+amount, this.width, this.height-amount*2)
 	}
 
+    fromLeft(amount: number): Bounds {
+        return this.padRight(this.width-amount)
+    }
+
+    fromBottom(amount: number): Bounds {
+        return this.padTop(this.height-amount)
+    }
+
 	pad(amount: number): Bounds {
 		return new Bounds(this.x+amount, this.y+amount, this.width-amount*2, this.height-amount*2)
 	}
