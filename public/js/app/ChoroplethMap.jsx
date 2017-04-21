@@ -57,7 +57,7 @@ export default class ChoroplethMap extends Component {
         return this.props.defaultFill
     }
 
-    @computed get pathData() : { [key: string]: string } {        
+    @computed get pathData() : { [key: string]: string } {
         const {geoData, projection} = this
 
         const pathData = {}
@@ -98,7 +98,8 @@ export default class ChoroplethMap extends Component {
     }
 
     @bind postRenderResize() {
-        const { bounds, projection, subunits } = this
+        let { bounds, projection, subunits } = this
+        bounds = bounds.padHeight(30)
         const bbox = subunits.getBBox()
 
         var viewports = {
@@ -134,6 +135,6 @@ export default class ChoroplethMap extends Component {
             newOffsetY = boundsCenterY - newCenterY;
 
         var matrixStr = "matrix(" + scale + ",0,0," + scale + "," + newOffsetX + "," + newOffsetY + ")";
-        d3.select(subunits).attr('transform', matrixStr);        
+        d3.select(subunits).attr('transform', matrixStr);
     }
 }

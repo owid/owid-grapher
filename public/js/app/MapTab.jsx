@@ -48,7 +48,7 @@ class MapTab extends Component {
     componentDidUpdate() {
         const { choroplethData, projection, defaultFill, inputYear } = this.props
         const { chart } = this
-        
+
         this.updateLegend()
     }
 
@@ -92,7 +92,7 @@ class MapTab extends Component {
         });*/
     }
 
-    componentDidUnmount() {        
+    componentDidUnmount() {
         const { legend } = this
         legend.clean();
         this.onHoverStop()
@@ -115,9 +115,9 @@ class MapTab extends Component {
             bounds = bounds.padBottom(10)
 
         return <Layout bounds={bounds} class="mapTab" ref={g => this.g = g}>
-            <ChoroplethMap choroplethData={choroplethData} projection={projection} defaultFill={defaultFill} onHover={this.onHover} onHoverStop={this.onHoverStop} onClick={this.onClick}/>,
-            <MapLegend legendData={legendData} title={legendTitle}/>
-            {hasTimeline && <Timeline bounds={Layout.bounds} layout="bottom" onTargetChange={this.onTargetChange} years={years} inputYear={inputYear} ref={(e) => this.chart.tabs.map.timeline = e}/>}           
+            <ChoroplethMap bounds={Layout.bounds} choroplethData={choroplethData} projection={projection} defaultFill={defaultFill} onHover={this.onHover} onHoverStop={this.onHoverStop} onClick={this.onClick}/>,
+            {hasTimeline && <Timeline bounds={Layout.bounds} layout="bottom" onTargetChange={this.onTargetChange} years={years} inputYear={inputYear} ref={(e) => this.chart.tabs.map.timeline = e}/>}
+            <MapLegend bounds={Layout.bounds} layout="bottom" legendData={legendData} title={legendTitle}/>
         </Layout>
     }
 }

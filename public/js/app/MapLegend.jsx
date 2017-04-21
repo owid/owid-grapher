@@ -7,27 +7,51 @@ import Bounds from './Bounds'
 import React, {Component} from 'react'
 import {observable, computed, asFlat} from 'mobx'
 import type {SVGElement} from './Util'
+import Paragraph from './Paragraph'
 
 export class MapLegend extends Component {
 	g: SVGElement
 	dataflow: any
 
-	componentDidMount() {
-		this.dataflow = owid.view.mapLegend()
-		this.componentDidUpdate()
-	}
-
 	componentDidUpdate() {
-		this.dataflow.update({
+		/*this.dataflow.update({
 			g: d3.select(this.g),
 			legendData: this.props.legendData,
 			title: this.props.title,
 			outerBounds: this.props.bounds
-		})
+		})*/
 	}
 
+    static calculateBounds(bounds : Bounds, props : any) : Bounds {
+        const {title} = props
+        const wrapLabel = Paragraph.wrap(title, bounds.width, { fontSize: "0.7em" })
+        const rectHeight = 10
+        const height = wrapLabel.height+rectHeight
+
+        return {
+            bounds: new Bounds(bounds.left, bounds.bottom-height, bounds.width, height),
+            wrapLabel: wrapLabel,
+            rectHeight: rectHeight
+        }
+    }
+
+    @computed get bounds() : Bounds {
+        return this.props.bounds.padWidth(this.props.bounds.width*0.2)
+    }
+
 	render() {
-		return <g class="mapLegend" ref={(g) => this.g = g}>
+        const {legendData, title, wrapLabel, rectHeight} = this.props
+        const {bounds} = this
+        const rangeSize = legendData[legendData.length-2].max - _.first(legendData).min
+
+		return <g class="mapLegend" ref={(g) => this.g = g} transform={`translate(${bounds.x}, ${bounds.y})`}>
+            {_.map(legendData.slice(0, -1), d => {
+                const xFrac = d.min/rangeSize
+                const widthFrac = d.max/rangeSize - xFrac
+
+                return <rect x={xFrac*bounds.width} y={bounds.height-rectHeight-wrapLabel.height-5} width={widthFrac*bounds.width} height={rectHeight} fill={d.color}/>
+            })}
+            <Paragraph x={bounds.width/2} y={bounds.height-wrapLabel.height} dominant-baseline="hanging" text-anchor="middle">{wrapLabel}</Paragraph>
 		</g>
 	}
 }
@@ -117,7 +141,7 @@ owid.view.mapLegend = function() {
 	legend.flow('labelBBox : label, title', function(label, title) {
 		label.text(title);
 		return label.node().getBBox();
-	});	
+	});
 	legend.flow('label, labelBBox, stepsHeight, outerBounds', function(label, labelBBox, stepsHeight, outerBounds) {
 		var scale = Math.min(1, outerBounds.height/(labelBBox.width+50));
 		label.attr("transform", "translate(" + (outerBounds.left + labelBBox.height/2 + 5) + "," + (outerBounds.top + outerBounds.height-11) + ") rotate(270) scale(" + scale + ")");

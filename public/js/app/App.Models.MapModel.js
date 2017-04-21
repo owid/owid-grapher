@@ -1,13 +1,13 @@
-/* App.Models.MapModel.js         
- * ================                                                             
+/* App.Models.MapModel.js
+ * ================
  *
  * MapModel holds the data and underlying logic needed by MapTab.
  * It wraps the map-config property on ChartModel.
  *
  * @project Our World In Data
- * @author  Jaiden Mispy                                                     
+ * @author  Jaiden Mispy
  * @created 2016-08-08
- */ 
+ */
 
 
 ;(function() {
@@ -46,7 +46,7 @@
 			"colorSchemeInvert": false,
 			"customColorsActive": false,
 			// e.g. ["#000", "#c00", "#0c0", "#00c", "#c0c"]
-			"customNumericColors": [],			
+			"customNumericColors": [],
 			// e.g. { 'foo' => '#c00' }
 			"customCategoryColors": {},
 			"customCategoryLabels": {},
@@ -120,7 +120,7 @@
 				maxVariableYear = variable ? _.last(variable.years) : 2000,
 				defaultYear = this.get("defaultYear"),
 				targetYear = this.get("targetYear");
-			
+
 			this.years = owid.timeRangesToYears(timeRanges, minVariableYear, maxVariableYear);
 
 			var minYear = this.getMinYear(),
@@ -147,18 +147,18 @@
 						var entity = App.VariableData.getEntityById(variable.entities[i]);
 
 						// If there's a World or other meta entity, it can throw off the map calcs
-						if (entity.code && !s.startsWith(entity.code, "OWID")) {						
+						if (entity.code && !s.startsWith(entity.code, "OWID")) {
 							if (value < this.minValue) this.minValue = value;
 							if (value > this.maxValue) this.maxValue = value;
 						}
 					}
-				}.bind(this));				
+				}.bind(this));
 			}
 		},
 
 		getYears: function() {
 			return this.years;
-		},	
+		},
 
 		getMinYear: function() {
 			return this.years[0];
@@ -234,7 +234,7 @@
 					i += 1;
 
 					if (colors.length >= numColors) break;
-				}		
+				}
 			}
 			return colors;
 		},
