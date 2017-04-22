@@ -1,4 +1,5 @@
 Django==1.11
+gunicorn==19.7.1
 PyMySQL==0.7.11
 python-dateutil==2.6.0
 pytz==2017.2

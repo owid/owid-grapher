@@ -1,26 +1,52 @@
-from django.http import HttpResponse
-from django.shortcuts import render
-from django.conf import settings
 import os
 import json
+from django.shortcuts import render
+from django.conf import settings
 from grapher_admin.models import Chart, Variable, License, DataValue, Entity
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotFound
+from django.contrib.auth.decorators import login_required
 
 
-def chart(request, id):
-    """
+@login_required
+def chart(request, chartid):
+
     manifest = json.loads(open(os.path.join(settings.BASE_DIR, "public/build/manifest.json")).read())
-    jsPath = f"/build/{manifest['charts.js']}"
-    cssPath = f"/build/{manifest['charts.css']}"
-    """
+    jspath = "/build/%s" % (manifest['charts.js'])
+    csspath = "/build/%s" % (manifest['charts.css'])
 
     # for now, only looking up the chart by its id, not slug
-    config = Chart.objects.get(pk=id)
-    config = 'App.loadChart(' + config.config + ')'
+    chartmeta = {}
 
-    return render(request, 'grapher/base_chart_template.html', context={'slug': id, 'config': config})
+    configpath = "%s/config/%s.js" % (settings.BASE_URL, chartid)
+
+    return render(request, 'grapher/base_chart_template.html', context={'slug': chartid,
+                                                                        'meta': chartmeta, 'configpath': configpath,
+                                                                        'jspath': jspath, 'csspath': csspath})
 
 
+@login_required
+def configfile(request, configid):
+
+    if '.js' not in configid:
+        return HttpResponseNotFound
+    else:
+        chartid = int(configid[:configid.find('.js')])
+        chartobj = Chart.objects.get(pk=chartid)
+
+        configdict = json.loads(chartobj.config)
+        configdict['title'] = chartobj.name
+        configdict['chart-type'] = chartobj.type
+        configdict['internalNotes'] = chartobj.notes
+        configdict['slug'] = chartobj.slug
+        configdict['data-entry-url'] = chartobj.origin_url
+        configdict['published'] = chartobj.published
+
+        config = 'App.loadChart(' + json.dumps(configdict) + ')'
+
+        return HttpResponse(config, content_type="text/plain")
+
+
+@login_required
 def variables(request, ids):
     varids = []
     meta = {}
@@ -32,6 +58,8 @@ def variables(request, ids):
     large_string = ''
     for each in ids.split('+'):
         varids.append(int(each))
+
+    varids = sorted(varids)
 
     for each in varids:
         varobj = Variable.objects.select_related('sourceid__datasetid__fk_dst_cat_id').get(pk=each)
@@ -55,7 +83,7 @@ def variables(request, ids):
     varstring = "\r\n"
 
     for each in varids:
-        varobj = DataValue.objects.filter(fk_var_id_id=each).select_related('fk_ent_id').order_by('fk_var_id_id').order_by('year')
+        varobj = DataValue.objects.filter(fk_var_id_id=each).select_related('fk_ent_id').order_by('year')
 
         varstring += str(each)
         for row in varobj:

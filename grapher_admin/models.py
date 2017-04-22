@@ -22,16 +22,6 @@ class User(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
-class ApiKey(models.Model):
-    class Meta:
-        db_table = "api_keys"
-
-    name = models.CharField(max_length=100)
-    value = models.CharField(max_length=255)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-
 class Chart(models.Model):
     class Meta:
         db_table = "charts"
@@ -176,15 +166,6 @@ class DataValue(models.Model):
     year = models.IntegerField()
 
 
-class DatasetTag(models.Model):
-    class Meta:
-        db_table = "dataset_tags"
-
-    name = models.CharField(max_length=255)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-
 class InputFile(models.Model):
     class Meta:
         db_table = 'input_files'
@@ -201,16 +182,6 @@ class License(models.Model):
 
     name = models.CharField(max_length=255)
     description = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-
-class LinkDatasetTag(models.Model):
-    class Meta:
-        db_table = 'link_datasets_tags'
-
-    fk_dst_id = models.ForeignKey(Dataset, on_delete=models.CASCADE)
-    fk_dst_tags_id = models.ForeignKey(DatasetTag, on_delete=models.DO_NOTHING)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -233,13 +204,6 @@ class Setting(models.Model):
     meta_value = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-
-class TimeType(models.Model):
-    class Meta:
-        db_table = 'time_types'
-
-    name = models.CharField(max_length=255)
 
 
 class UserInvitation(models.Model):

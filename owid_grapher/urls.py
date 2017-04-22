@@ -13,10 +13,15 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url
+from django.conf.urls import url, include
+from django.contrib import admin
 from owid_grapher import views
+from django.contrib.auth.views import login
 
 urlpatterns = [
-    url(r'^chart/(?P<id>[\w]+)/', views.chart, name="viewchart"),
+    url(r'^admin/', include(admin.site.urls)),
+    url(r'^accounts/login/$', login, {'template_name': 'admin/login.html'}, name='login'),
+    url(r'^chart/(?P<chartid>[\w]+)/', views.chart, name="viewchart"),
+    url(r'^config/(?P<configid>.+\.js)$', views.configfile, name="serveconfig"),
     url(r'^data/variables/(?P<ids>[\w\+]+)/', views.variables, name="givevariables"),
 ]

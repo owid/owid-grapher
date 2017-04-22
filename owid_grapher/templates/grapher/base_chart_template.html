@@ -10,7 +10,7 @@
 			<meta name="description" content="{{ chartMeta.description }}">
 		{% endif %}
 		<link rel="apple-touch-icon" href="apple-touch-icon.png">
-		{% if chartMeta %} @if (isset($chartMeta))
+		{% if chartMeta %}
 			{% if query %}
 			    <meta name="robots" content="noindex">
 			{% else %}
@@ -36,7 +36,7 @@
         {% comment 'Disabling for now' %}
 		{!! Helper::css('charts') !!}
 		{% endcomment %}
-    <link href="{% static 'css/charts.bundle.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static csspath %}" rel="stylesheet" type="text/css">
 	</head>
 	<body>
 		<!--[if lt IE 9]>
@@ -59,19 +59,7 @@
 			App.isDebug = true;
 		</script>
 
-        {% comment 'Disabling for now' %}
-		{!! Helper::js('charts') !!}
-		{% endcomment %}
-
-        <script src="{% static 'js/charts.bundle.js' %}"></script>
-
-        {% comment %}
-		@yield('scripts')
-		{% endcomment %}
-        <script>
-            {% autoescape off %}
-            {{ config }}
-            {% endautoescape %}
-        </script>
+        <script src="{% static jspath %}"></script>
+        <script src="{{ configpath }}"></script>
 	</body>
 </html>
