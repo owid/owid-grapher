@@ -43,7 +43,7 @@ def configfile(request, configid):
 
         config = 'App.loadChart(' + json.dumps(configdict) + ')'
 
-        return HttpResponse(config, content_type="text/plain")
+        return HttpResponse(config, content_type="application/javascript")
 
 
 @login_required
