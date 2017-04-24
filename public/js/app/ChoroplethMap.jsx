@@ -70,8 +70,13 @@ export default class ChoroplethMap extends Component {
         return pathData
     }
 
+    componentWillMount() {
+        console.log("mount ChoroplethMap")
+    }
+
     render() {
         const { bounds, choroplethData, defaultFill, geoData, pathData } = this
+        console.log("render ChoroplethMap")
 
         return <g class="map" clip-path="url(#boundsClip)">
             <defs>

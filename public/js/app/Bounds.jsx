@@ -29,42 +29,64 @@ export default class Bounds {
 		return new Bounds(0,0,0,0)
 	}
 
-	static textBoundsCache : Map<string, Bounds>
-	static ctx : any
-	static baseFontSize : number
+    static textBoundsCache : Map<string, Bounds>
+    static ctx : any
+    static baseFontSize : number
 
-	static forText(str: string, { fontSize = '1em' }={}): Bounds {
-		this.textBoundsCache = this.textBoundsCache || new Map()
-		this.ctx = this.ctx || document.createElement('canvas').getContext('2d')
-		this.baseFontSize = this.baseFontSize || parseFloat(d3.select('svg').style('font-size'))
+    static forText(str: string, { x = 0, y = 0, fontSize = '1em' }: { x?: number, y?: number, fontSize?: string|number } = {}): Bounds {
+        if (str == "")
+            return Bounds.empty()
 
-		if (s.contains(fontSize, 'em'))
-			fontSize = this.baseFontSize*parseFloat(fontSize)+'px'
+        this.textBoundsCache = this.textBoundsCache || new Map()
+        this.ctx = this.ctx || document.createElement('canvas').getContext('2d')
+        this.baseFontSize = this.baseFontSize || parseFloat(d3.select('svg').style('font-size'))
 
-		const key = str+'-'+fontSize
-		const fontFace = "Arial"
+        if (_.isNumber(fontSize))
+            fontSize = fontSize + 'px'
+        else if (s.contains(fontSize, 'em'))
+            fontSize = this.baseFontSize*parseFloat(fontSize)+'px'
 
-		let bounds = this.textBoundsCache.get(key)
-		if (bounds) return bounds
+        const key = str+'-'+fontSize
+        const fontFace = "Arial"
 
-	    this.ctx.font = fontSize + ' ' + fontFace;
-		const m = this.ctx.measureText(str)
+        let bounds = this.textBoundsCache.get(key)
+        if (bounds) return bounds
 
-		/*const update = d3.select('svg').selectAll('.tmpTextCalc').data([str]);
+        this.ctx.font = fontSize + ' ' + fontFace;
+        const m = this.ctx.measureText(str)
 
-		const text = update.enter().append('text')
-			.attr('class', 'tmpTextCalc')
-			.attr('opacity', 0)
-			.merge(update)
-  			  .attr('font-size', fontSize)
-			  .text(function(d) { return d; });*/
+        /*const update = d3.select('svg').selectAll('.tmpTextCalc').data([str]);
 
+        const text = update.enter().append('text')
+            .attr('class', 'tmpTextCalc')
+            .attr('opacity', 0)
+            .merge(update)
+              .attr('font-size', fontSize)
+              .text(function(d) { return d; });*/
 
+        const height = parseFloat(fontSize)
+        bounds = new Bounds(x, y-height, m.width, height)
 
-		bounds = new Bounds(0, 0, m.width, str == "m" ? m.width : Bounds.forText("m", { fontSize: fontSize }).height).padWidth(-1).padHeight(-1)
-		this.textBoundsCache.set(key, bounds)
-		return bounds
-	}
+        this.textBoundsCache.set(key, bounds)
+        return bounds
+    }
+
+    static debug(boundsArray : Bounds[], containerNode = null) {
+        var container = containerNode ? d3.select(containerNode) : d3.select('svg');
+
+        container.selectAll('rect.boundsDebug').remove()
+
+        container.selectAll('rect.boundsDebug')
+            .data(boundsArray).enter()
+            .append('rect')
+                .attr('x', b => b.left)
+                .attr('y', b => b.top)
+                .attr('width', b => b.width)
+                .attr('height', b => b.height)
+                .attr('class', 'boundsDebug')
+                .style('fill', 'rgba(0,0,0,0)')
+                .style('stroke', 'red');
+    }
 
 
 	get left(): number { return this.x }
@@ -140,5 +162,6 @@ export default class Bounds {
 	yRange() : [number, number] {
 		return [this.bottom, this.top]
 	}
+
 }
 

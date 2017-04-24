@@ -33,7 +33,6 @@ export default class Timeline extends Component {
 		const height = 45, bounds = containerBounds.fromBottom(height)
 
 		return {
-            bounds: bounds,
             remainingBounds: containerBounds.padBottom(height),
             props: {
                 bounds: bounds

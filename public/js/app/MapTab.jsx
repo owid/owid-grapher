@@ -109,7 +109,7 @@ class MapTab extends Component {
     render() {
         const { choroplethData, projection, defaultFill, years, inputYear, legendTitle, legendData } = this.props
         let { bounds } = this.props
-        const {hasTimeline} = this
+        const {hasTimeline} = {timeline:false}//this
 
         if (!hasTimeline)
             bounds = bounds.padBottom(10)

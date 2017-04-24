@@ -8,6 +8,7 @@ import React, {Component} from 'react'
 import {observable, computed, asFlat} from 'mobx'
 import type {SVGElement} from './Util'
 import Paragraph from './Paragraph'
+import Text from './Text'
 
 class MapLegendLayout {
     @observable containerBounds: Bounds
@@ -23,9 +24,27 @@ class MapLegendLayout {
     @computed get bounds() {
         return this.containerBounds.padWidth(this.containerBounds.width*0.25)
     }
+}
+
+export class MapLegend extends Component {
+    static calculateBounds(containerBounds, props) {
+        const legend = new MapLegend()
+        legend.props = _.extend({}, props, { bounds: containerBounds })
+
+        return {
+            remainingBounds: containerBounds.padBottom(legend.height),
+            props: {
+                fromLayout: legend
+            }
+        }
+    }
+
+    @computed get bounds() {
+        return this.props.bounds.padWidth(this.props.bounds.width*0.25)
+    }
 
     @computed get wrapLabel() {
-        return Paragraph.wrap(this.title, this.bounds.width, { fontSize: "0.6em" })
+        return Paragraph.wrap(""/*this.props.title*/, this.width, { fontSize: "0.6em" })
     }
 
     @computed get rectHeight() {
@@ -35,40 +54,77 @@ class MapLegendLayout {
     @computed get height() {
         return this.wrapLabel.height+this.rectHeight+23
     }
-}
 
-export class MapLegend extends Component {
-	g: SVGElement
-	dataflow: any
-
-	componentDidUpdate() {
-		/*this.dataflow.update({
-			g: d3.select(this.g),
-			legendData: this.props.legendData,
-			title: this.props.title,
-			outerBounds: this.props.bounds
-		})*/
-	}
-
-    static calculateBounds(bounds : Bounds, props : any) : Bounds {
-        const layout = new MapLegendLayout(bounds, props)
-
-        return {
-            bounds: bounds.fromBottom(layout.height),
-            remainingBounds: bounds.padBottom(layout.height),
-            props: {
-                layout: layout
-            }
-        }
+    @computed get minValue() {
+        return _.first(this.props.legendData).min
     }
 
-    @computed get bounds() : Bounds {
-        return this.props.bounds.padWidth(this.props.bounds.width*0.25)
+    @computed get maxValue() {
+        return this.props.legendData[this.props.legendData.length-2].max
+    }
+
+    @computed get rangeSize() {
+        return this.maxValue - this.minValue
+    }
+
+    @computed get numericLabelsInitial() {
+        const {legendData} = this.props
+        const {bounds, minValue, rangeSize, rectHeight, wrapLabel} = this
+
+        const labels = _.map(legendData.slice(0, -1), d => {
+            const fontSize = "0.55em"
+            const labelBounds = Bounds.forText(d.minText, { fontSize: fontSize })
+            const x = bounds.left+((d.min-minValue)/rangeSize)*bounds.width - labelBounds.width/2
+            const y = bounds.bottom-labelBounds.height
+
+            return {
+                text: d.minText,
+                fontSize: fontSize,
+                bounds: labelBounds.extend({ x: x, y: y }),
+                underneath: true
+            }
+        })
+
+        return labels
+    }
+
+    @computed get underHeight() {
+        return _.max(_.map(this.numericLabelsInitial, l => l.bounds.height))+2
+    }
+
+    @computed get numericLabels() {
+        const {bounds, rectHeight, numericLabelsInitial, underHeight} = this
+
+        const labels = []
+        _.each(numericLabelsInitial, l => labels.push(_.clone(l)))
+
+        for (var i = 1; i < labels.length; i++) {
+            const l1 = labels[i-1], l2 = labels[i]
+            if (l2.bounds.intersects(l1.bounds)) {
+                l2.bounds = l2.bounds.extend({ y: bounds.bottom-underHeight-rectHeight-l2.bounds.height-2 })
+                l2.underneath = false
+            }
+        }
+
+        return labels
+    }
+
+
+    @computed get overHeight() {
+        return _.max(_.map(this.numericLabels, l => l.underneath ? 0 : l.bounds.height))
+    }
+
+    componentDidMount() {
+//        Bounds.debug(this.numericLabels.map(l => l.bounds))
     }
 
 	render() {
-        const {legendData, layout} = this.props
-        const {bounds, wrapLabel, rectHeight} = layout
+        if (this.props.fromLayout)
+            return this.props.fromLayout.render()
+
+        const {legendData} = this.props
+        const {bounds, wrapLabel, rectHeight, numericLabels, underHeight} = this
+
         const minValue = _.first(legendData).min
         const maxValue = legendData[legendData.length-2].max
         const rangeSize = maxValue - minValue
@@ -77,21 +133,18 @@ export class MapLegend extends Component {
         const borderColor = "#333"
 
 		return <g class="mapLegend" ref={(g) => this.g = g}>
-            <rect x={bounds.left-borderSize} y={bounds.bottom-rectHeight-wrapLabel.height-5-borderSize} width={bounds.width+borderSize*2} height={rectHeight+borderSize*2} fill={borderColor}/>
+            <rect x={bounds.left-borderSize} y={bounds.bottom-underHeight-rectHeight-borderSize} width={bounds.width+borderSize*2} height={rectHeight+borderSize*2} fill={borderColor}/>
             {_.map(legendData.slice(0, -1), (d, i) => {
                 const xFrac = (d.min-minValue)/rangeSize
                 const widthFrac = (d.max-minValue)/rangeSize - xFrac
 
                 return [
-                    <rect x={bounds.left+xFrac*bounds.width} y={bounds.bottom-rectHeight-wrapLabel.height-5} width={widthFrac*bounds.width} height={rectHeight} fill={d.color}/>,
-                    i < legendData.length-2 && <rect x={bounds.left+((d.max-minValue)/rangeSize)*bounds.width-0.25} y={bounds.bottom-rectHeight-wrapLabel.height-5} width={0.5} height={rectHeight} fill={borderColor}/>
+                    <rect x={bounds.left+xFrac*bounds.width} y={bounds.bottom-underHeight-rectHeight} width={widthFrac*bounds.width} height={rectHeight} fill={d.color}/>,
+                    i < legendData.length-2 && <rect x={bounds.left+((d.max-minValue)/rangeSize)*bounds.width-0.25} y={bounds.bottom-rectHeight-underHeight} width={0.5} height={rectHeight} fill={borderColor}/>
                 ]
             })}
-            {_.map(legendData.slice(0, -1), d =>
-                <text x={bounds.left+((d.min-minValue)/rangeSize)*bounds.width} y={bounds.bottom-rectHeight-wrapLabel.height-8} fontSize="0.55em" text-anchor="middle">{d.minText}</text>
-            )}
-            {_.map(legendData.slice(-2, -1), d =>
-                <text x={bounds.left+((d.max-minValue)/rangeSize)*bounds.width} y={bounds.bottom-rectHeight-wrapLabel.height-8} fontSize="0.55em" text-anchor="middle">{d.maxText}</text>
+            {_.map(numericLabels, label =>
+                <text x={label.bounds.x} y={label.bounds.y} fontSize={label.fontSize} dominant-baseline="hanging">{label.text}</text>
             )}
             <Paragraph x={bounds.centerX} y={bounds.bottom-wrapLabel.height} dominant-baseline="hanging" text-anchor="middle">{wrapLabel}</Paragraph>
 		</g>
