@@ -9,6 +9,10 @@ import {observable, computed, asFlat} from 'mobx'
 import type {SVGElement} from './Util'
 import Paragraph from './Paragraph'
 
+class MapLegendLayout() {
+
+}
+
 export class MapLegend extends Component {
 	g: SVGElement
 	dataflow: any
@@ -50,7 +54,7 @@ export class MapLegend extends Component {
         const rangeSize = maxValue - minValue
 
         const borderSize = 0.5
-        const borderColor = "#ccc"
+        const borderColor = "#333"
 
 		return <g class="mapLegend" ref={(g) => this.g = g}>
             <rect x={bounds.left-borderSize} y={bounds.bottom-rectHeight-wrapLabel.height-5-borderSize} width={bounds.width+borderSize*2} height={rectHeight+borderSize*2} fill={borderColor}/>

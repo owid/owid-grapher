@@ -83,7 +83,7 @@ export default class ChoroplethMap extends Component {
             <g class="subunits" ref={g => this.subunits = g}>
                 {_.map(geoData, (d) => {
                     const fill = choroplethData[d.id] ? choroplethData[d.id].color : defaultFill
-                    return <path d={pathData[d.id]} stroke-width={0.5} stroke="#ccc" cursor="pointer" fill={fill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={(ev) => this.props.onClick(d)}/>
+                    return <path d={pathData[d.id]} stroke-width={0.5} stroke="#333" cursor="pointer" fill={fill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={(ev) => this.props.onClick(d)}/>
                 })}
             </g>
             {/*<text class="disclaimer" x={bounds.left+bounds.width-5} y={bounds.top+bounds.height-10} font-size="0.5em" text-anchor="end">
