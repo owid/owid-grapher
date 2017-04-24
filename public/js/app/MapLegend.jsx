@@ -9,8 +9,32 @@ import {observable, computed, asFlat} from 'mobx'
 import type {SVGElement} from './Util'
 import Paragraph from './Paragraph'
 
-class MapLegendLayout() {
+class MapLegendLayout {
+    @observable containerBounds: Bounds
+    @observable title: string
 
+    @observable props
+
+    constructor(containerBounds, { title }) {
+        this.title = title
+        this.containerBounds = containerBounds
+    }
+
+    @computed get bounds() {
+        return this.containerBounds.padWidth(this.containerBounds.width*0.25)
+    }
+
+    @computed get wrapLabel() {
+        return Paragraph.wrap(this.title, this.bounds.width, { fontSize: "0.6em" })
+    }
+
+    @computed get rectHeight() {
+        return 10
+    }
+
+    @computed get height() {
+        return this.wrapLabel.height+this.rectHeight+23
+    }
 }
 
 export class MapLegend extends Component {
@@ -27,17 +51,13 @@ export class MapLegend extends Component {
 	}
 
     static calculateBounds(bounds : Bounds, props : any) : Bounds {
-        const {title} = props
-        const wrapLabel = Paragraph.wrap(title, bounds.width, { fontSize: "0.6em" })
-        const rectHeight = 10
-        const height = wrapLabel.height+rectHeight+23
+        const layout = new MapLegendLayout(bounds, props)
 
         return {
-            bounds: bounds.fromBottom(height),
-            remainingBounds: bounds.padBottom(height),
+            bounds: bounds.fromBottom(layout.height),
+            remainingBounds: bounds.padBottom(layout.height),
             props: {
-                wrapLabel: wrapLabel,
-                rectHeight: rectHeight
+                layout: layout
             }
         }
     }
@@ -47,8 +67,8 @@ export class MapLegend extends Component {
     }
 
 	render() {
-        const {legendData, title, wrapLabel, rectHeight} = this.props
-        const {bounds} = this
+        const {legendData, layout} = this.props
+        const {bounds, wrapLabel, rectHeight} = layout
         const minValue = _.first(legendData).min
         const maxValue = legendData[legendData.length-2].max
         const rangeSize = maxValue - minValue
