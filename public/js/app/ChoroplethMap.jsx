@@ -74,9 +74,12 @@ export default class ChoroplethMap extends Component {
         console.log("mount ChoroplethMap")
     }
 
+    @computed get focusBracket() {
+        return this.props.focusBracket
+    }
+
     render() {
-        const { bounds, choroplethData, defaultFill, geoData, pathData } = this
-        console.log("render ChoroplethMap")
+        const { bounds, choroplethData, defaultFill, geoData, pathData, focusBracket } = this
 
         return <g class="map" clip-path="url(#boundsClip)">
             <defs>
@@ -87,8 +90,11 @@ export default class ChoroplethMap extends Component {
             {/*<rect {...bounds} fill="#ecf6fc"></rect>*/}
             <g class="subunits" ref={g => this.subunits = g}>
                 {_.map(geoData, (d) => {
-                    const fill = choroplethData[d.id] ? choroplethData[d.id].color : defaultFill
-                    return <path d={pathData[d.id]} stroke-width={0.5} stroke="#333" cursor="pointer" fill={fill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={(ev) => this.props.onClick(d)}/>
+                    const datum = choroplethData[d.id]
+                    const isFocus = focusBracket && datum && datum.value > focusBracket.min && datum.value < focusBracket.max
+                    const stroke = isFocus ? "#FFEC38" : "#333"
+                    const fill = datum ? datum.color : defaultFill
+                    return <path d={pathData[d.id]} stroke-width={isFocus ? 3 : 0.5} stroke={stroke} cursor="pointer" fill={fill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={(ev) => this.props.onClick(d)}/>
                 })}
             </g>
             {/*<text class="disclaimer" x={bounds.left+bounds.width-5} y={bounds.top+bounds.height-10} font-size="0.5em" text-anchor="end">
@@ -104,7 +110,6 @@ export default class ChoroplethMap extends Component {
 
     @bind postRenderResize() {
         let { bounds, projection, subunits } = this
-        bounds = bounds.padHeight(10)
         const bbox = subunits.getBBox()
 
         var viewports = {

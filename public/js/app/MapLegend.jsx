@@ -5,7 +5,8 @@ import * as d3 from 'd3'
 import owid from '../owid'
 import Bounds from './Bounds'
 import React, {Component} from 'react'
-import {observable, computed, asFlat} from 'mobx'
+import {observable, computed, asFlat, action} from 'mobx'
+import { getRelativeMouse } from './Util'
 import type {SVGElement} from './Util'
 import Paragraph from './Paragraph'
 import Text from './Text'
@@ -32,7 +33,7 @@ export class MapLegend extends Component {
         legend.props = _.extend({}, props, { bounds: containerBounds })
 
         return {
-            remainingBounds: containerBounds.padBottom(legend.height),
+            remainingBounds: containerBounds.padBottom(legend.height+15),
             props: {
                 fromLayout: legend
             }
@@ -44,15 +45,11 @@ export class MapLegend extends Component {
     }
 
     @computed get wrapLabel() {
-        return Paragraph.wrap(""/*this.props.title*/, this.width, { fontSize: "0.6em" })
+        return Paragraph.wrap(this.props.title, this.width, { fontSize: "0.6em" })
     }
 
     @computed get rectHeight() {
         return 10
-    }
-
-    @computed get height() {
-        return this.wrapLabel.height+this.rectHeight+23
     }
 
     @computed get minValue() {
@@ -67,63 +64,138 @@ export class MapLegend extends Component {
         return this.maxValue - this.minValue
     }
 
-    @computed get numericLabelsInitial() {
+    @computed get numericLabels() {
         const {legendData} = this.props
         const {bounds, minValue, rangeSize, rectHeight, wrapLabel} = this
 
-        const labels = _.map(legendData.slice(0, -1), d => {
-            const fontSize = "0.55em"
+        let labels = _.map(legendData.slice(0, -1), d => {
+            const fontSize = "0.45em"
             const labelBounds = Bounds.forText(d.minText, { fontSize: fontSize })
             const x = bounds.left+((d.min-minValue)/rangeSize)*bounds.width - labelBounds.width/2
-            const y = bounds.bottom-labelBounds.height
+            const y = bounds.bottom-rectHeight-wrapLabel.height-labelBounds.height-10
 
             return {
                 text: d.minText,
                 fontSize: fontSize,
-                bounds: labelBounds.extend({ x: x, y: y }),
-                underneath: true
+                bounds: labelBounds.extend({ x: x, y: y })
             }
         })
 
-        return labels
-    }
+        labels.push(_.map([legendData[legendData.length-2]], d => {
+            const fontSize = "0.45em"
+            const labelBounds = Bounds.forText(d.maxText, { fontSize: fontSize })
+            const x = bounds.left+((d.max-minValue)/rangeSize)*bounds.width - labelBounds.width/2
+            const y = bounds.bottom-rectHeight-wrapLabel.height-labelBounds.height-10
 
-    @computed get underHeight() {
-        return _.max(_.map(this.numericLabelsInitial, l => l.bounds.height))+2
-    }
+            return {
+                text: d.maxText,
+                fontSize: fontSize,
+                bounds: labelBounds.extend({ x: x, y: y })
+            }
+        })[0])
 
-    @computed get numericLabels() {
-        const {bounds, rectHeight, numericLabelsInitial, underHeight} = this
+        for (var i = 0; i < labels.length; i++) {
+            const l1 = labels[i]
+            if (l1.hidden) continue
 
-        const labels = []
-        _.each(numericLabelsInitial, l => labels.push(_.clone(l)))
-
-        for (var i = 1; i < labels.length; i++) {
-            const l1 = labels[i-1], l2 = labels[i]
-            if (l2.bounds.intersects(l1.bounds)) {
-                l2.bounds = l2.bounds.extend({ y: bounds.bottom-underHeight-rectHeight-l2.bounds.height-2 })
-                l2.underneath = false
+            for (var j = i+1; j < labels.length; j++) {
+                const l2 = labels[j]
+                if (l1.bounds.right+5 >= l2.bounds.centerX)
+                    l2.hidden = true
             }
         }
 
+        labels = labels.filter(l => !l.hidden)
+
+        // If labels overlap, first we try alternating raised labels
+        let raisedMode = false
+        for (var i = 1; i < labels.length; i++) {
+            const l1 = labels[i-1], l2 = labels[i]
+            if (l1.bounds.intersects(l2.bounds)) {
+                raisedMode = true
+                break
+            }
+        }
+
+        if (raisedMode) {
+            for (let i = 1; i < labels.length; i++) {
+                let l = labels[i]
+                if (i % 2 != 0) {
+                    l.bounds = l.bounds.extend({ y: l.bounds.y-l.bounds.height-1 })
+                }
+            }
+        }
+
+        /*while (true) {
+            let conflict = false
+            for (var i = 0; i < labels.length; i++) {
+                for (var j = i+1; j < labels.length; j++) {
+                    const l1 = labels[i], l2 = labels[j]
+                    if (l1.bounds.intersects(l2.bounds)) {
+                        conflict = true
+                    }
+                }
+            }
+
+            if (!conflict)
+                break
+        }*/
+
+
         return labels
     }
 
-
-    @computed get overHeight() {
-        return _.max(_.map(this.numericLabels, l => l.underneath ? 0 : l.bounds.height))
+    @computed get height() {
+        return this.bounds.bottom-_.min(this.numericLabels.map(l => l.bounds.y))
     }
 
     componentDidMount() {
 //        Bounds.debug(this.numericLabels.map(l => l.bounds))
     }
 
+    @action.bound onMouseOver(d) {
+        if (this.props.onMouseOver)
+            this.props.onMouseOver(d)
+    }
+
+    @action.bound onMouseLeave() {
+        if (this.props.onMouseLeave)
+            this.props.onMouseLeave
+    }
+
+    @action.bound onMouseMove(evt) {
+        const {bounds, g, minValue, rangeSize} = this
+        const mouse = getRelativeMouse(g.ownerSVGElement, d3.event)
+        if (!bounds.fromBottom(this.height).containsPoint(mouse[0], mouse[1]))
+            return this.props.onMouseLeave()
+
+        let focusBracket = null
+        this.props.legendData.forEach(d => {
+            const xFrac = (d.min-minValue)/rangeSize
+            if (mouse[0] > bounds.left+(xFrac*bounds.width))
+                focusBracket = d
+        })
+
+        if (focusBracket)
+            this.props.onMouseOver(focusBracket)
+    }
+
+    componentDidMount() {
+        d3.select('html').on('mousemove.mapLegend', this.props.fromLayout ? this.props.fromLayout.onMouseMove : this.onMouseMove)
+        d3.select('html').on('touchmove.mapLegend', this.props.fromLayout ? this.props.fromLayout.onMouseMove : this.onMouseMove)
+    }
+
+    componentWillUnmount() {
+        d3.select('html').on('mousemove.mapLegend', null)
+        d3.select('html').on('touchmove.mapLegend', null)
+    }
+
 	render() {
         if (this.props.fromLayout)
             return this.props.fromLayout.render()
 
-        const {legendData} = this.props
-        const {bounds, wrapLabel, rectHeight, numericLabels, underHeight} = this
+        const {legendData, focusBracket} = this.props
+        const {bounds, wrapLabel, rectHeight, numericLabels} = this
 
         const minValue = _.first(legendData).min
         const maxValue = legendData[legendData.length-2].max
@@ -133,14 +205,18 @@ export class MapLegend extends Component {
         const borderColor = "#333"
 
 		return <g class="mapLegend" ref={(g) => this.g = g}>
-            <rect x={bounds.left-borderSize} y={bounds.bottom-underHeight-rectHeight-borderSize} width={bounds.width+borderSize*2} height={rectHeight+borderSize*2} fill={borderColor}/>
+            {_.map(numericLabels, label =>
+                <line x1={label.bounds.x+label.bounds.width/2-0.15} y1={bounds.bottom-rectHeight-wrapLabel.height} x2={label.bounds.x+label.bounds.width/2-0.15} y2={label.bounds.y+label.bounds.height} stroke="#666" strokeWidth={0.5}/>
+            )}
+            <rect x={bounds.left-borderSize} y={bounds.bottom-rectHeight-wrapLabel.height-5-borderSize} width={bounds.width+borderSize*2} height={rectHeight+borderSize*2} fill={borderColor}/>
             {_.map(legendData.slice(0, -1), (d, i) => {
                 const xFrac = (d.min-minValue)/rangeSize
                 const widthFrac = (d.max-minValue)/rangeSize - xFrac
+                const isFocus = focusBracket && d.min == focusBracket.min
 
                 return [
-                    <rect x={bounds.left+xFrac*bounds.width} y={bounds.bottom-underHeight-rectHeight} width={widthFrac*bounds.width} height={rectHeight} fill={d.color}/>,
-                    i < legendData.length-2 && <rect x={bounds.left+((d.max-minValue)/rangeSize)*bounds.width-0.25} y={bounds.bottom-rectHeight-underHeight} width={0.5} height={rectHeight} fill={borderColor}/>
+                    <rect x={bounds.left+xFrac*bounds.width} y={bounds.bottom-rectHeight-wrapLabel.height-5} width={widthFrac*bounds.width} height={rectHeight} fill={d.color} onMouseOver={e => this.onMouseOver(d)} onMouseLeave={this.onMouseLeave} stroke={isFocus && "#FFEC38"} strokeWidth={isFocus && 3}/>,
+                    i < legendData.length-2 && <rect x={bounds.left+((d.max-minValue)/rangeSize)*bounds.width-0.25} y={bounds.bottom-rectHeight-wrapLabel.height-5} width={0.5} height={rectHeight} fill={borderColor}/>
                 ]
             })}
             {_.map(numericLabels, label =>

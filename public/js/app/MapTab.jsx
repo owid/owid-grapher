@@ -7,8 +7,8 @@ import dataflow from './owid.dataflow'
 import Bounds from './Bounds'
 import React, { Component } from 'react'
 import { render } from 'preact'
-import { observable, computed, asFlat } from 'mobx'
-import { bind } from 'decko'
+import { observable, computed, asFlat, action } from 'mobx'
+import {observer} from 'mobx-react'
 import type ChoroplethData from './ChoroplethMap'
 import type MapProjection from './ChoroplethMap'
 import ChoroplethMap from './ChoroplethMap'
@@ -18,6 +18,7 @@ import {MapLegend} from './MapLegend'
 
 type MapLegendData = any;
 
+@observer
 class MapTab extends Component {
     props: {
         bounds: Bounds,
@@ -52,18 +53,15 @@ class MapTab extends Component {
         this.updateLegend()
     }
 
-    @bind
-    onHover(d, ev) {
+    @action.bound onHover(d, ev) {
         this.chart.tooltip.fromMap(d, ev);
     }
 
-    @bind
-    onHoverStop(d) {
+    @action.bound onHoverStop(d) {
         this.chart.tooltip.hide();
     }
 
-    @bind
-    onClick(d) {
+    @action.bound onClick(d) {
         const {chart} = this
         if (chart.isMobile || !_.includes(chart.model.get("tabs"), "chart")) return;
 
@@ -98,7 +96,7 @@ class MapTab extends Component {
         this.onHoverStop()
     }
 
-    @bind onTargetChange(targetYear) {
+    @action.bound onTargetChange(targetYear) {
         this.chart.map.set('targetYear', targetYear)
     }
 
@@ -106,18 +104,26 @@ class MapTab extends Component {
         return this.props.years.length > 1 && !window.chart.isExport
     }
 
+    @observable focusBracket
+    @action.bound onLegendMouseOver(d) {
+        this.focusBracket = d
+    }
+    @action.bound onLegendMouseLeave() {
+        this.focusBracket = null
+    }
+
     render() {
         const { choroplethData, projection, defaultFill, years, inputYear, legendTitle, legendData } = this.props
         let { bounds } = this.props
-        const {hasTimeline} = {timeline:false}//this
+        const {hasTimeline, focusBracket} = this
 
         if (!hasTimeline)
             bounds = bounds.padBottom(10)
 
         return <Layout bounds={bounds} class="mapTab" ref={g => this.g = g}>
-            <ChoroplethMap bounds={Layout.bounds} choroplethData={choroplethData} projection={projection} defaultFill={defaultFill} onHover={this.onHover} onHoverStop={this.onHoverStop} onClick={this.onClick}/>,
+            <ChoroplethMap bounds={Layout.bounds} choroplethData={choroplethData} projection={projection} defaultFill={defaultFill} onHover={this.onHover} onHoverStop={this.onHoverStop} onClick={this.onClick} focusBracket={focusBracket}/>,
             {hasTimeline && <Timeline bounds={Layout.bounds} onTargetChange={this.onTargetChange} years={years} inputYear={inputYear} ref={(e) => this.chart.tabs.map.timeline = e}/>}
-            <MapLegend bounds={Layout.bounds} legendData={legendData} title={legendTitle}/>
+            <MapLegend bounds={Layout.bounds} legendData={legendData} title={legendTitle} focusBracket={focusBracket} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave}/>
         </Layout>
     }
 }
