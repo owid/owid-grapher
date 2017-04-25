@@ -6,24 +6,15 @@ import owid from '../owid'
 import Bounds from './Bounds'
 import React, {Component} from 'react'
 import {observable, computed, asFlat, action} from 'mobx'
+import {observer} from 'mobx-react'
 import { getRelativeMouse } from './Util'
-import type {SVGElement} from './Util'
+import type {SVGElement, VNode} from './Util'
 import Paragraph from './Paragraph'
 import Text from './Text'
+import {cacheChild} from './Util'
 
-export class MapLegend extends Component {
-    static calculateBounds(containerBounds, props) {
-        const legend = new MapLegend()
-        legend.props = _.extend({}, props, { bounds: containerBounds })
-
-        return {
-            remainingBounds: containerBounds.padBottom(legend.height+15),
-            props: {
-                fromLayout: legend
-            }
-        }
-    }
-
+@observer
+class NumericMapLegend extends Component {
     @computed get bounds() {
         return this.props.bounds.padWidth(this.props.bounds.width*0.25)
     }
@@ -32,6 +23,7 @@ export class MapLegend extends Component {
         return Paragraph.wrap(this.props.title, this.width, { fontSize: "0.6em" })
     }
 
+    @computed get numericLegendData() { return this.props.legendData.filter(l => l.type == "numeric") }
     @computed get rectHeight() { return 10 }
     @computed get minValue() { return _.first(this.props.legendData).min }
     @computed get maxValue() { return this.props.legendData[this.props.legendData.length-2].max }
@@ -73,26 +65,11 @@ export class MapLegend extends Component {
             if (d.text)
                 labels.push(makeRangeLabel(d))
             else {
-                console.log(d.min)
                 if (_.isFinite(d.min)) labels.push(makeBoundaryLabel(d, d.min, d.minText))
                 if (_.isFinite(d.max) && d == legendData[legendData.length-2])
                     labels.push(makeBoundaryLabel(d, d.max, d.maxText))
             }
         })
-
-
-        /*labels.push(_.map([legendData[legendData.length-2]], d => {
-            const fontSize = "0.45em"
-            const labelBounds = Bounds.forText(d.maxText, { fontSize: fontSize })
-            const x = bounds.left+((d.max-minValue)/rangeSize)*bounds.width - labelBounds.width/2
-            const y = bounds.bottom-rectHeight-wrapLabel.height-labelBounds.height-10
-
-            return {
-                text: d.maxText,
-                fontSize: fontSize,
-                bounds: labelBounds.extend({ x: x, y: y })
-            }
-        })[0])*/
 
         for (var i = 0; i < labels.length; i++) {
             const l1 = labels[i]
@@ -126,22 +103,6 @@ export class MapLegend extends Component {
             }
         }
 
-        /*while (true) {
-            let conflict = false
-            for (var i = 0; i < labels.length; i++) {
-                for (var j = i+1; j < labels.length; j++) {
-                    const l1 = labels[i], l2 = labels[j]
-                    if (l1.bounds.intersects(l2.bounds)) {
-                        conflict = true
-                    }
-                }
-            }
-
-            if (!conflict)
-                break
-        }*/
-
-
         return labels
     }
 
@@ -174,9 +135,14 @@ export class MapLegend extends Component {
             this.props.onMouseOver(focusBracket)
     }
 
+    componentWillMount() {
+        if (this.props.instance)
+            return this.props.instance.componentWillMount()
+    }
+
     componentDidMount() {
-        if (this.props.fromLayout)
-            return this.props.fromLayout.componentDidMount()
+        if (this.props.instance)
+            return this.props.instance.componentDidMount()
 
         d3.select('html').on('mousemove.mapLegend', this.onMouseMove)
         d3.select('html').on('touchmove.mapLegend', this.onMouseMove)
@@ -184,8 +150,8 @@ export class MapLegend extends Component {
     }
 
     componentWillUnmount() {
-        if (this.props.fromLayout)
-            return this.props.fromLayout.componentWillUnmount()
+        if (this.props.instance)
+            return this.props.instance.componentWillUnmount()
 
         d3.select('html').on('mousemove.mapLegend', null)
         d3.select('html').on('touchmove.mapLegend', null)
@@ -198,8 +164,8 @@ export class MapLegend extends Component {
     }
 
 	render() {
-        if (this.props.fromLayout)
-            return this.props.fromLayout.render()
+        if (this.props.instance)
+            return this.props.instance.render()
 
         const {legendData} = this.props
         const {bounds, wrapLabel, rectHeight, numericLabels, focusBracket} = this
@@ -232,4 +198,28 @@ export class MapLegend extends Component {
             <Paragraph x={bounds.centerX} y={bounds.bottom-wrapLabel.height} dominant-baseline="hanging" text-anchor="middle">{wrapLabel}</Paragraph>
 		</g>
 	}
+}
+
+@observer
+export default class MapLegend extends Component {
+    @computed get hasNumeric(): boolean { return !!this.props.legendData.filter(l => l.type == "numeric").length }
+    @computed get hasCategorical(): boolean { return !!this.props.legendData.filter(l => l.type == "categorical").length }
+
+    get numericMapLegend(): VNode {
+        return cacheChild(this, 'numericMapLegend',
+            this.hasNumeric && <NumericMapLegend bounds={this.props.bounds} {...this.props}/>)
+    }
+
+    @computed get height(): number {
+        return this.numericMapLegend.height
+    }
+
+    render() {
+        if (this.props.instance)
+            return this.props.instance.render()
+
+        const {numericMapLegend} = this
+
+        return <NumericMapLegend instance={numericMapLegend} {...numericMapLegend.props}/>
+    }
 }

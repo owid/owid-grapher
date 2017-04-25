@@ -77,7 +77,7 @@
 			// Numeric 'buckets' of color
 			if (!_.isEmpty(intervalMaximums)) {
 				var minValue = chart.map.get('colorSchemeMinValue');
-				if (minValue == null) minValue = "";
+				if (!_.isFinite(parseFloat(minValue))) minValue = 0;
 
 				for (var i = 0; i < intervalMaximums.length; i++) {
 					var baseColor = baseColors[i],

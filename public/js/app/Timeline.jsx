@@ -29,19 +29,10 @@ export default class Timeline extends Component {
 
 	g: SVGElement
 
-	static calculateBounds(containerBounds : Bounds, props : any) : Bounds {
-		const height = 45, bounds = containerBounds.fromBottom(height)
-
-		return {
-            remainingBounds: containerBounds.padBottom(height),
-            props: {
-                bounds: bounds
-            }
-        }
-	}
-
 	constructor(props : TimelineProps) {
 		super(props)
+        if (props.instance) return
+
 		this.inputYear = props.inputYear
 
 		autorun(() => {
@@ -161,7 +152,7 @@ export default class Timeline extends Component {
 	}
 
 
-    @bind @action onMouseDown(evt : MouseEvent) {
+    @action.bound onMouseDown(evt : MouseEvent) {
         // Don't do mousemove if we clicked the play or pause button
         if (d3.select(evt.target).classed('toggle')) return;
 
@@ -178,7 +169,7 @@ export default class Timeline extends Component {
 
 	mouseFrameQueued: boolean
 
-	@bind @action onMouseMove() {
+	@action.bound onMouseMove() {
 		if (!this.isDragging || this.mouseFrameQueued) return
 		const evt = d3.event
 
@@ -189,12 +180,17 @@ export default class Timeline extends Component {
 	    })
 	}
 
-    @bind @action onMouseUp(evt : MouseEvent) {
+    @action.bound onMouseUp(evt : MouseEvent) {
     	this.isDragging = false
     }
 
+    @computed get height() { return 45 }
+
     // Allow proper dragging behavior even if mouse leaves timeline area
     componentDidMount() {
+        if (this.props.instance)
+            return this.props.instance.componentDidMount()
+
     	d3.select('html').on('mouseup.timeline', this.onMouseUp)
     	d3.select('html').on('mousemove.timeline', this.onMouseMove)
     	d3.select('html').on('touchend.timeline', this.onMouseUp)
@@ -202,6 +198,9 @@ export default class Timeline extends Component {
     }
 
     componentWillUnmount() {
+        if (this.props.instance)
+            return this.props.instance.componentWillUnmount()
+
     	d3.select('html').on('mouseup.timeline', null)
     	d3.select('html').on('mousemove.timeline', null)
     	d3.select('html').on('touchend.timeline', null)
@@ -209,6 +208,9 @@ export default class Timeline extends Component {
     }
 
   	render() {
+        if (this.props.instance)
+            return this.props.instance.render()
+
 		const { bounds, sliderBounds, targetYear, minYear, maxYear, minYearBox, maxYearBox, xScale, activeYear, years, isPlaying, height } = this
 
 		return <g class="timeline clickable" onMouseDown={this.onMouseDown} ref={g => this.g = g}>
