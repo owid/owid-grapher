@@ -120,7 +120,7 @@ class NumericMapLegend extends Component {
 
     @action.bound onMouseMove(evt) {
         const {bounds, g, minValue, rangeSize} = this
-        const mouse = getRelativeMouse(g.ownerSVGElement, d3.event)
+        const mouse = getRelativeMouse(g, d3.event)
         if (!bounds.fromBottom(this.height).containsPoint(mouse[0], mouse[1]))
             return this.props.onMouseLeave()
 
@@ -219,7 +219,6 @@ export default class MapLegend extends Component {
             return this.props.instance.render()
 
         const {numericMapLegend} = this
-
         return <NumericMapLegend instance={numericMapLegend} {...numericMapLegend.props}/>
     }
 }

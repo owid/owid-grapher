@@ -102,7 +102,7 @@ class MapTab extends Component {
         if (this.props.years.length <= 1 || window.chart.isExport) return null
         const {years, inputYear} = this.props
 
-        return cacheChild(this, <Timeline bounds={this.props.bounds.fromBottom(45)} onTargetChange={this.onTargetChange} years={years} inputYear={inputYear}/>)
+        return cacheChild(this, 'timeline', <Timeline bounds={this.props.bounds.fromBottom(45)} onTargetChange={this.onTargetChange} years={years} inputYear={inputYear}/>)
     }
 
 
@@ -113,7 +113,7 @@ class MapTab extends Component {
     @computed get mapLegend() {
         const {legendData, legendTitle} = this.props
         const {focusBracket, focusEntity, timelineHeight} = this
-        return cacheChild(this, <MapLegend bounds={this.props.bounds.padBottom(timelineHeight)} legendData={legendData} title={legendTitle} focusBracket={focusBracket} focusEntity={focusEntity} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave}/>)
+        return cacheChild(this, 'mapLegend', <MapLegend bounds={this.props.bounds.padBottom(timelineHeight)} legendData={legendData} title={legendTitle} focusBracket={focusBracket} focusEntity={focusEntity} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave}/>)
     }
 
     render() {
