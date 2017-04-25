@@ -11,16 +11,12 @@ import { getRelativeMouse } from './Util'
 import type {SVGElement, VNode} from './Util'
 import Paragraph from './Paragraph'
 import Text from './Text'
-import {cacheChild} from './Util'
+import {preInstantiate} from './Util'
 
 @observer
 class NumericMapLegend extends Component {
     @computed get bounds() {
         return this.props.bounds.padWidth(this.props.bounds.width*0.25)
-    }
-
-    @computed get wrapLabel() {
-        return Paragraph.wrap(this.props.title, this.width, { fontSize: "0.6em" })
     }
 
     @computed get numericLegendData() { return this.props.legendData.filter(l => l.type == "numeric") }
@@ -31,13 +27,13 @@ class NumericMapLegend extends Component {
 
     @computed get numericLabels() {
         const {legendData} = this.props
-        const {bounds, minValue, rangeSize, rectHeight, wrapLabel} = this
+        const {bounds, minValue, rangeSize, rectHeight} = this
         const fontSize = "0.45em"
 
         const makeBoundaryLabel = (d, value, text) => {
             const labelBounds = Bounds.forText(text, { fontSize: fontSize })
             const x = bounds.left+((value-minValue)/rangeSize)*bounds.width - labelBounds.width/2
-            const y = bounds.bottom-rectHeight-wrapLabel.height-labelBounds.height-10
+            const y = bounds.bottom-rectHeight-labelBounds.height-10
 
             return {
                 text: text,
@@ -50,7 +46,7 @@ class NumericMapLegend extends Component {
             const labelBounds = Bounds.forText(d.text, { fontSize: fontSize })
             const midX = d.min+(d.max-d.min)/2
             const x = bounds.left+((midX-minValue)/rangeSize)*bounds.width - labelBounds.width/2
-            const y = bounds.bottom-rectHeight-wrapLabel.height-labelBounds.height-10
+            const y = bounds.bottom-rectHeight-labelBounds.height-10
 
             return {
                 text: d.text,
@@ -168,7 +164,7 @@ class NumericMapLegend extends Component {
             return this.props.instance.render()
 
         const {legendData} = this.props
-        const {bounds, wrapLabel, rectHeight, numericLabels, focusBracket} = this
+        const {bounds, rectHeight, numericLabels, focusBracket} = this
 
         const minValue = _.first(legendData).min
         const maxValue = legendData[legendData.length-2].max
@@ -179,23 +175,22 @@ class NumericMapLegend extends Component {
 
 		return <g class="mapLegend" ref={(g) => this.g = g}>
             {_.map(numericLabels, label =>
-                <line x1={label.bounds.x+label.bounds.width/2-0.15} y1={bounds.bottom-rectHeight-wrapLabel.height} x2={label.bounds.x+label.bounds.width/2-0.15} y2={label.bounds.y+label.bounds.height} stroke="#666" strokeWidth={0.5}/>
+                <line x1={label.bounds.x+label.bounds.width/2-0.15} y1={bounds.bottom-rectHeight} x2={label.bounds.x+label.bounds.width/2-0.15} y2={label.bounds.y+label.bounds.height} stroke="#666" strokeWidth={0.5}/>
             )}
-            <rect x={bounds.left-borderSize} y={bounds.bottom-rectHeight-wrapLabel.height-5-borderSize} width={bounds.width+borderSize*2} height={rectHeight+borderSize*2} fill={borderColor}/>
+            <rect x={bounds.left-borderSize} y={bounds.bottom-rectHeight-5-borderSize} width={bounds.width+borderSize*2} height={rectHeight+borderSize*2} fill={borderColor}/>
             {_.map(legendData.slice(0, -1), (d, i) => {
                 const xFrac = (d.min-minValue)/rangeSize
                 const widthFrac = (d.max-minValue)/rangeSize - xFrac
                 const isFocus = focusBracket && d.min == focusBracket.min
 
                 return [
-                    <rect x={bounds.left+xFrac*bounds.width} y={bounds.bottom-rectHeight-wrapLabel.height-5} width={widthFrac*bounds.width} height={rectHeight} fill={d.color} onMouseOver={e => this.onMouseOver(d)} onMouseLeave={this.onMouseLeave} stroke={isFocus && "#FFEC38"} strokeWidth={isFocus && 3}/>,
-                    i < legendData.length-2 && <rect x={bounds.left+((d.max-minValue)/rangeSize)*bounds.width-0.25} y={bounds.bottom-rectHeight-wrapLabel.height-5} width={0.5} height={rectHeight} fill={borderColor}/>
+                    <rect x={bounds.left+xFrac*bounds.width} y={bounds.bottom-rectHeight-5} width={widthFrac*bounds.width} height={rectHeight} fill={d.color} onMouseOver={e => this.onMouseOver(d)} onMouseLeave={this.onMouseLeave} stroke={isFocus && "#FFEC38"} strokeWidth={isFocus && 3}/>,
+                    i < legendData.length-2 && <rect x={bounds.left+((d.max-minValue)/rangeSize)*bounds.width-0.25} y={bounds.bottom-rectHeight-5} width={0.5} height={rectHeight} fill={borderColor}/>
                 ]
             })}
             {_.map(numericLabels, label =>
                 <text x={label.bounds.x} y={label.bounds.y} fontSize={label.fontSize} dominant-baseline="hanging">{label.text}</text>
             )}
-            <Paragraph x={bounds.centerX} y={bounds.bottom-wrapLabel.height} dominant-baseline="hanging" text-anchor="middle">{wrapLabel}</Paragraph>
 		</g>
 	}
 }
@@ -205,20 +200,31 @@ export default class MapLegend extends Component {
     @computed get hasNumeric(): boolean { return !!this.props.legendData.filter(l => l.type == "numeric").length }
     @computed get hasCategorical(): boolean { return !!this.props.legendData.filter(l => l.type == "categorical").length }
 
-    get numericMapLegend(): VNode {
-        return cacheChild(this, 'numericMapLegend',
-            this.hasNumeric && <NumericMapLegend bounds={this.props.bounds} {...this.props}/>)
+
+    @computed get wrapLabel(): Object {
+       return Paragraph.wrap(this.props.title, this.props.bounds.width, { fontSize: "0.6em" })
+    }
+
+    @computed get numericMapLegend(): VNode {
+        return this.hasNumeric && <NumericMapLegend {...this.props} bounds={this.props.bounds.padBottom(this.wrapLabel.height)}/>
+    }
+
+    @computed get label(): VNode {
+        const {bounds} = this.props
+
     }
 
     @computed get height(): number {
-        return this.numericMapLegend.height
+        return this.wrapLabel.height+preInstantiate(this.numericMapLegend).height
     }
 
     render() {
-        if (this.props.instance)
-            return this.props.instance.render()
+        const {bounds, title} = this.props
+        const {wrapLabel, numericMapLegend} = this
 
-        const {numericMapLegend} = this
-        return <NumericMapLegend instance={numericMapLegend} {...numericMapLegend.props}/>
+        return <g>
+            {numericMapLegend}
+            <Paragraph x={bounds.centerX} y={bounds.bottom-wrapLabel.height} dominant-baseline="hanging" text-anchor="middle">{wrapLabel}</Paragraph>
+        </g>
     }
 }
