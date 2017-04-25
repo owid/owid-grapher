@@ -1,9 +1,9 @@
-;(function() {	
+;(function() {
 	"use strict";
 	owid.namespace("owid.models.mapdata");
 
 	owid.models.mapdata = function(chart) {
-		function mapdata() { }		
+		function mapdata() { }
 		var changes = owid.changes();
 		changes.track(chart.vardata);
 		changes.track(chart.map);
@@ -94,10 +94,11 @@
 					if (minText.length-minValue.toString().length > 8)
 						minText = minValue.toString();
 
-					legendData.push({ type: 'numeric', 
-									  min: _.isFinite(+minValue) ? +minValue : -Infinity, max: maxValue,
-									  minText: minText, maxText: maxText, 
-									  label: label, text: label, baseColor: baseColor, color: color });
+					legendData.push({ type: 'numeric',
+									  min: _.isFinite(parseFloat(minValue)) ? +minValue : -Infinity, max: maxValue,
+									  minText: minText, maxText: maxText,
+									  label: label, text: label, baseColor: baseColor, color: color,
+                                      index: i });
 					minValue = maxValue;
 				}
 			}
@@ -112,12 +113,12 @@
 			}
 
 			// Add default 'No data' category
-			if (!_.contains(categoricalValues, 'No data')) categoricalValues.push('No data');			
+			if (!_.contains(categoricalValues, 'No data')) categoricalValues.push('No data');
 			customCategoryColors = _.extend({}, customCategoryColors, { 'No data': mapdata.getNoDataColor() });
 
 			// Categorical values, each assigned a color
 			if (!_.isEmpty(categoricalValues)) {
-				for (var i = 0; i < categoricalValues.length; i++) {					
+				for (var i = 0; i < categoricalValues.length; i++) {
 					var value = categoricalValues[i], boundingOffset = _.isEmpty(intervalMaximums) ? 0 : intervalMaximums.length-1,
 						baseColor = baseColors[i+boundingOffset],
 						color = customCategoryColors[value] || baseColor,
@@ -170,7 +171,7 @@
 					i += 1;
 
 					if (colors.length >= numColors) break;
-				}		
+				}
 			}
 			return colors;
 		}
@@ -194,7 +195,7 @@
 			});
 		}
 
-		// Transforms raw variable data into datamaps format with meta information 
+		// Transforms raw variable data into datamaps format with meta information
 		// specific to the current target year + tolerance
 		function updateCurrentValues() {
 			var variable = chart.map.getVariable(),
@@ -216,7 +217,7 @@
 
 			for (var i = 0; i < values.length; i++) {
 				var year = years[i];
-				if (year < targetYear-tolerance || year > targetYear+tolerance) 
+				if (year < targetYear-tolerance || year > targetYear+tolerance)
 					continue;
 
 				// Make sure we use the closest year within tolerance (favoring later years)
@@ -254,7 +255,7 @@
 			applyLegendColors();
 			changes.done();
 		};
-		
+
 		return mapdata;
 	};
 })();

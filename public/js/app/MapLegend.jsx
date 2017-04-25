@@ -11,22 +11,6 @@ import type {SVGElement} from './Util'
 import Paragraph from './Paragraph'
 import Text from './Text'
 
-class MapLegendLayout {
-    @observable containerBounds: Bounds
-    @observable title: string
-
-    @observable props
-
-    constructor(containerBounds, { title }) {
-        this.title = title
-        this.containerBounds = containerBounds
-    }
-
-    @computed get bounds() {
-        return this.containerBounds.padWidth(this.containerBounds.width*0.25)
-    }
-}
-
 export class MapLegend extends Component {
     static calculateBounds(containerBounds, props) {
         const legend = new MapLegend()
@@ -48,40 +32,56 @@ export class MapLegend extends Component {
         return Paragraph.wrap(this.props.title, this.width, { fontSize: "0.6em" })
     }
 
-    @computed get rectHeight() {
-        return 10
-    }
-
-    @computed get minValue() {
-        return _.first(this.props.legendData).min
-    }
-
-    @computed get maxValue() {
-        return this.props.legendData[this.props.legendData.length-2].max
-    }
-
-    @computed get rangeSize() {
-        return this.maxValue - this.minValue
-    }
+    @computed get rectHeight() { return 10 }
+    @computed get minValue() { return _.first(this.props.legendData).min }
+    @computed get maxValue() { return this.props.legendData[this.props.legendData.length-2].max }
+    @computed get rangeSize() { return this.maxValue - this.minValue }
 
     @computed get numericLabels() {
         const {legendData} = this.props
         const {bounds, minValue, rangeSize, rectHeight, wrapLabel} = this
+        const fontSize = "0.45em"
 
-        let labels = _.map(legendData.slice(0, -1), d => {
-            const fontSize = "0.45em"
-            const labelBounds = Bounds.forText(d.minText, { fontSize: fontSize })
-            const x = bounds.left+((d.min-minValue)/rangeSize)*bounds.width - labelBounds.width/2
+        const makeBoundaryLabel = (d, value, text) => {
+            const labelBounds = Bounds.forText(text, { fontSize: fontSize })
+            const x = bounds.left+((value-minValue)/rangeSize)*bounds.width - labelBounds.width/2
             const y = bounds.bottom-rectHeight-wrapLabel.height-labelBounds.height-10
 
             return {
-                text: d.minText,
+                text: text,
                 fontSize: fontSize,
                 bounds: labelBounds.extend({ x: x, y: y })
             }
+        }
+
+        const makeRangeLabel = (d) => {
+            const labelBounds = Bounds.forText(d.text, { fontSize: fontSize })
+            const midX = d.min+(d.max-d.min)/2
+            const x = bounds.left+((midX-minValue)/rangeSize)*bounds.width - labelBounds.width/2
+            const y = bounds.bottom-rectHeight-wrapLabel.height-labelBounds.height-10
+
+            return {
+                text: d.text,
+                fontSize: fontSize,
+                bounds: labelBounds.extend({ x: x, y: y }),
+                priority: true
+            }
+        }
+
+        let labels = []
+        _.each(legendData.slice(0, -1), d => {
+            if (d.text)
+                labels.push(makeRangeLabel(d))
+            else {
+                console.log(d.min)
+                if (_.isFinite(d.min)) labels.push(makeBoundaryLabel(d, d.min, d.minText))
+                if (_.isFinite(d.max) && d == legendData[legendData.length-2])
+                    labels.push(makeBoundaryLabel(d, d.max, d.maxText))
+            }
         })
 
-        labels.push(_.map([legendData[legendData.length-2]], d => {
+
+        /*labels.push(_.map([legendData[legendData.length-2]], d => {
             const fontSize = "0.45em"
             const labelBounds = Bounds.forText(d.maxText, { fontSize: fontSize })
             const x = bounds.left+((d.max-minValue)/rangeSize)*bounds.width - labelBounds.width/2
@@ -92,7 +92,7 @@ export class MapLegend extends Component {
                 fontSize: fontSize,
                 bounds: labelBounds.extend({ x: x, y: y })
             }
-        })[0])
+        })[0])*/
 
         for (var i = 0; i < labels.length; i++) {
             const l1 = labels[i]
@@ -100,7 +100,7 @@ export class MapLegend extends Component {
 
             for (var j = i+1; j < labels.length; j++) {
                 const l2 = labels[j]
-                if (l1.bounds.right+5 >= l2.bounds.centerX)
+                if (l1.bounds.right+5 >= l2.bounds.centerX && !l2.priority)
                     l2.hidden = true
             }
         }
@@ -145,13 +145,7 @@ export class MapLegend extends Component {
         return labels
     }
 
-    @computed get height() {
-        return this.bounds.bottom-_.min(this.numericLabels.map(l => l.bounds.y))
-    }
-
-    componentDidMount() {
-//        Bounds.debug(this.numericLabels.map(l => l.bounds))
-    }
+    @computed get height() { return this.bounds.bottom-_.min(this.numericLabels.map(l => l.bounds.y)) }
 
     @action.bound onMouseOver(d) {
         if (this.props.onMouseOver)
@@ -181,21 +175,34 @@ export class MapLegend extends Component {
     }
 
     componentDidMount() {
-        d3.select('html').on('mousemove.mapLegend', this.props.fromLayout ? this.props.fromLayout.onMouseMove : this.onMouseMove)
-        d3.select('html').on('touchmove.mapLegend', this.props.fromLayout ? this.props.fromLayout.onMouseMove : this.onMouseMove)
+        if (this.props.fromLayout)
+            return this.props.fromLayout.componentDidMount()
+
+        d3.select('html').on('mousemove.mapLegend', this.onMouseMove)
+        d3.select('html').on('touchmove.mapLegend', this.onMouseMove)
+//        Bounds.debug(this.numericLabels.map(l => l.bounds))
     }
 
     componentWillUnmount() {
+        if (this.props.fromLayout)
+            return this.props.fromLayout.componentWillUnmount()
+
         d3.select('html').on('mousemove.mapLegend', null)
         d3.select('html').on('touchmove.mapLegend', null)
+    }
+
+    @computed get focusBracket() {
+        const {focusBracket, focusEntity, legendData} = this.props
+        if (focusBracket) return focusBracket
+        if (focusEntity) return _.find(legendData, l => focusEntity.value >= l.min && focusEntity.value <= l.max)
     }
 
 	render() {
         if (this.props.fromLayout)
             return this.props.fromLayout.render()
 
-        const {legendData, focusBracket} = this.props
-        const {bounds, wrapLabel, rectHeight, numericLabels} = this
+        const {legendData} = this.props
+        const {bounds, wrapLabel, rectHeight, numericLabels, focusBracket} = this
 
         const minValue = _.first(legendData).min
         const maxValue = legendData[legendData.length-2].max
@@ -226,109 +233,3 @@ export class MapLegend extends Component {
 		</g>
 	}
 }
-
-owid.view.mapLegend = function() {
-	var legend = owid.dataflow();
-
-	legend.requires('title', 'legendData', 'outerBounds', 'g');
-
-	// Allow hiding items from legend
-	legend.flow('legendData : legendData', function(legendData) {
-		return _.filter(legendData, function(d) { return !d.hidden; });
-	});
-
-	// Work out how much of the space we want to use
-	legend.flow('targetWidth, targetHeight : outerBounds', function(outerBounds) {
-        var mapBBox = d3.select('.map > .subunits').node().getBBox();
-
-		return [
-			Math.min(mapBBox.width, outerBounds.width)*0.2,
-			Math.min(mapBBox.height, outerBounds.height)*0.7
-		];
-	});
-
-	// Main work: the actual colored boxes part of the legend
-	legend.flow('gSteps : g', function(g) {
-		return g.append('g').attr('class', 'steps');
-	});
-	legend.flow('steps : gSteps, legendData', function(gSteps, legendData) {
-		var stepsUpdate = gSteps.selectAll('.legend-step').data(legendData);
-		stepsUpdate.exit().remove();
-
-		var enter = stepsUpdate.enter().append('g').attr('class', 'legend-step');
-		enter.append('rect');
-
-		return enter.merge(stepsUpdate);
-	});
-	legend.flow('stepsHeight : steps, targetHeight, legendData', function(steps, targetHeight) {
-		var stepSize = Math.min(30, Math.max(15, targetHeight / steps.size())),
-			stepWidth = stepSize,
-			stepHeight = stepSize,
-			stepGap = Math.min(stepSize/8, 2);
-
-		steps.selectAll('rect')
-			.data(function(d) { return [d]; })
-			.attr("width", stepWidth)
-			.attr("height", stepHeight)
-			.style("fill", function(d, i) { return d.color; });
-
-		var prevData = null, currentStepOffset = 0;
-		steps.selectAll('text').remove();
-		steps.each(function(d) {
-			var step = d3.select(this);
-
-			// Position the step as a whole
-			if (prevData && prevData.type != d.type) {
-				// Spacing between numeric/categorical sections
-				currentStepOffset += stepGap*3;
-			}
-			step.attr("transform", "translate(" + 0 + ", " + currentStepOffset + ")");
-			currentStepOffset += stepHeight + stepGap;
-
-			// Fill and position the text
-			var text = d3.select(this).selectAll('text');
-			if (d.type == 'categorical' || d.text) {
-				step.append('text').text(d.text)
-					.attr('x', stepWidth+5)
-					.attr('y', stepHeight/2)
-					.attr('dy', '.4em');
-			} else if (d.type == 'numeric') {
-				if (!prevData || !_.has(prevData, 'max'))
-					step.append('text').text(d.minText).attr('x', stepWidth+5);
-				step.append('text').text(d.maxText)
-					.attr('x', stepWidth+5)
-					.attr('y', stepHeight);
-			}
-			prevData = d;
-		});
-
-		return currentStepOffset;
-	});
-
-	// Create and position/scale label, if any
-	legend.flow('label : g', function(g) {
-		return g.append('text').attr('class', 'map-label');
-	});
-	legend.flow('labelBBox : label, title', function(label, title) {
-		label.text(title);
-		return label.node().getBBox();
-	});
-	legend.flow('label, labelBBox, stepsHeight, outerBounds', function(label, labelBBox, stepsHeight, outerBounds) {
-		var scale = Math.min(1, outerBounds.height/(labelBBox.width+50));
-		label.attr("transform", "translate(" + (outerBounds.left + labelBBox.height/2 + 5) + "," + (outerBounds.top + outerBounds.height-11) + ") rotate(270) scale(" + scale + ")");
-	});
-
-	// Position and scale steps to fit
-	legend.flow('gSteps, labelBBox, outerBounds, targetWidth, targetHeight, stepsHeight', function(gSteps, labelBBox, outerBounds, targetWidth, targetHeight, stepsHeight) {
-		var bbox = gSteps.node().getBBox();
-		var scale = Math.min(1, Math.min((targetWidth-labelBBox.height)/bbox.width, targetHeight/bbox.height));
-
-		gSteps.attr('transform', 'translate(' + (outerBounds.left+labelBBox.height) + ',' + (outerBounds.top+outerBounds.height-(stepsHeight*scale)-10) + ')' + ' scale(' + scale + ')');
-	});
-
-	legend.beforeClean(function() {
-		if (legend.g) legend.g.remove();
-	});
-
-	return legend;
-};
