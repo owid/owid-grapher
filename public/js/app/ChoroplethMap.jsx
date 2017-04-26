@@ -87,7 +87,7 @@ export default class ChoroplethMap extends Component {
             <g class="subunits" ref={g => this.subunits = g}>
                 {_.map(geoData, (d) => {
                     const datum = choroplethData[d.id]
-                    const isFocus = focusBracket && datum && (focusBracket.index == 0 ? datum.value >= focusBracket.min : datum.value > focusBracket.min) && datum.value <= focusBracket.max
+                    const isFocus = focusBracket && focusBracket.contains(datum)
                     const stroke = isFocus ? "#FFEC38" : "#333"
                     const fill = datum ? datum.color : defaultFill
                     return <path d={pathData[d.id]} stroke-width={isFocus ? 3 : 0.5} stroke={stroke} cursor="pointer" fill={fill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={(ev) => this.props.onClick(d)}/>

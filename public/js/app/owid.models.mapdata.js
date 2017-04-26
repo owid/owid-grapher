@@ -98,7 +98,10 @@
 									  min: _.isFinite(parseFloat(minValue)) ? +minValue : -Infinity, max: maxValue,
 									  minText: minText, maxText: maxText,
 									  label: label, text: label, baseColor: baseColor, color: color,
-                                      index: i });
+                                      index: i,
+                                      contains: function(d) {
+                                        return d && (this.index == 0 ? d.value >= this.min : d.value > this.min) && d.value <= this.max
+                                      }});
 					minValue = maxValue;
 				}
 			}
@@ -125,7 +128,9 @@
 						label = customCategoryLabels[value] || "",
 						text = label || value;
 
-					legendData.push({ type: 'categorical', value: value, baseColor: baseColor, color: color, label: label, text: text, hidden: customHiddenCategories[value] });
+					legendData.push({ type: 'categorical', value: value, baseColor: baseColor, color: color, label: label, text: text, hidden: customHiddenCategories[value], contains: function(d) {
+                        return (d == null && value == 'No data') || d.value == this.value
+                    }});
 				}
 			}
 
