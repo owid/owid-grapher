@@ -17,49 +17,84 @@ import {preInstantiate} from './Util'
 class NumericMapLegend extends Component {
     @computed get numericLegendData() { return this.props.legendData.filter(l => l.type == "numeric") }
     @computed get rectHeight() { return 10 }
-    @computed get minValue() { return _.first(this.props.legendData).min }
-    @computed get maxValue() { return _.last(this.props.legendData).max }
+
+    // NumericMapLegend wants to map a range to a width. However, sometimes we are given
+    // data without a clear min/max. So we must fit these scurrilous bins into the width somehow.
+    @computed get minValue() { return _.min(this.props.legendData.map(d => d.min).filter(v => _.isFinite(v))) }
+    @computed get maxValue() { return _.max(this.props.legendData.map(d => d.max).filter(v => _.isFinite(v))) }
     @computed get rangeSize() { return this.maxValue - this.minValue }
+    @computed get defaultBinWidth() { return 10 }
+    @computed get totalDefaultWidth() {
+        return _.reduce(
+            this.props.legendData.map(d => !_.isFinite(d.max-d.min) ? this.defaultBinWidth : 0),
+            (m, n) => m+n
+        )
+    }
+    @computed get availableWidth() {
+        return this.props.width-this.totalDefaultWidth
+    }
+
+    @computed get positionedBins() {
+        const {props, rangeSize, defaultBinWidth, availableWidth} = this
+        let xOffset = 0
+
+        return _.map(props.legendData, d => {
+            let width = defaultBinWidth
+            if (_.isFinite(d.max-d.min))
+                width = ((d.max-d.min)/rangeSize)*availableWidth
+
+
+            const x = xOffset
+            xOffset += width
+
+            return {
+                x: x,
+                width: width,
+                bin: d
+            }
+        })
+    }
 
     @computed get numericLabels() {
-        const {legendData, width} = this.props
-        const {minValue, rangeSize, rectHeight} = this
+        const {width} = this.props
+        const {minValue, rangeSize, rectHeight, positionedBins} = this
         const fontSize = "0.45em"
 
         const makeBoundaryLabel = (d, value, text) => {
             const labelBounds = Bounds.forText(text, { fontSize: fontSize })
-            const x = ((value-minValue)/rangeSize)*width - labelBounds.width/2
+            const x = d.x + d.width/2 - labelBounds.width/2
             const y = -rectHeight-labelBounds.height-10
 
             return {
                 text: text,
                 fontSize: fontSize,
-                bounds: labelBounds.extend({ x: x, y: y })
+                bounds: labelBounds.extend({ x: x, y: y }),
+                hidden: false
             }
         }
 
         const makeRangeLabel = (d) => {
-            const labelBounds = Bounds.forText(d.text, { fontSize: fontSize })
-            const midX = d.min+(d.max-d.min)/2
-            const x = ((midX-minValue)/rangeSize)*width - labelBounds.width/2
+            const labelBounds = Bounds.forText(d.bin.text, { fontSize: fontSize })
+            const x = d.x+d.width/2 - labelBounds.width/2
             const y = -rectHeight-labelBounds.height-10
 
             return {
-                text: d.text,
+                text: d.bin.text,
                 fontSize: fontSize,
                 bounds: labelBounds.extend({ x: x, y: y }),
-                priority: true
+                priority: true,
+                hidden: false
             }
         }
 
         let labels = []
-        _.each(legendData, d => {
-            if (d.text)
+        _.each(positionedBins, d => {
+            if (d.bin.text)
                 labels.push(makeRangeLabel(d))
             else {
-                if (_.isFinite(d.min)) labels.push(makeBoundaryLabel(d, d.min, d.minText))
-                if (_.isFinite(d.max) && d == _.last(legendData))
-                    labels.push(makeBoundaryLabel(d, d.max, d.maxText))
+                if (_.isFinite(d.bin.min)) labels.push(makeBoundaryLabel(d, d.bin.min, d.bin.minText))
+                if (_.isFinite(d.bin.max) && d == _.last(positionedBins))
+                    labels.push(makeBoundaryLabel(d, d.bin.max, d.bin.maxText))
             }
         })
 
@@ -149,11 +184,11 @@ class NumericMapLegend extends Component {
     }
 
     @computed get bounds() {
-        return new Bounds(this.props.x, this.props.y, this.props.width, this.height)
+        return new Bounds(this.props.x, this.props.y, this.width, this.height)
     }
 
 	render() {
-        const {props, rectHeight, numericLabels, focusBracket, height} = this
+        const {props, rectHeight, numericLabels, focusBracket, height, positionedBins} = this
 
         const minValue = _.first(props.legendData).min
         const maxValue = props.legendData[props.legendData.length-1].max
@@ -168,14 +203,12 @@ class NumericMapLegend extends Component {
                 <line x1={props.x+label.bounds.x+label.bounds.width/2-0.15} y1={bottomY-rectHeight} x2={props.x+label.bounds.x+label.bounds.width/2-0.15} y2={bottomY+label.bounds.y+label.bounds.height} stroke="#666" strokeWidth={0.5}/>
             )}
             <rect x={props.x-borderSize} y={bottomY-rectHeight-5-borderSize} width={props.width+borderSize*2} height={rectHeight+borderSize*2} fill={borderColor}/>
-            {_.map(props.legendData, (d, i) => {
-                const xFrac = (d.min-minValue)/rangeSize
-                const widthFrac = (d.max-minValue)/rangeSize - xFrac
-                const isFocus = focusBracket && d.min == focusBracket.min
+            {_.map(positionedBins, (d, i) => {
+                const isFocus = focusBracket && (d.bin.min == focusBracket.min || d.bin.text == focusBracket.text)
 
                 return [
-                    <rect x={props.x+xFrac*props.width} y={bottomY-rectHeight-5} width={widthFrac*props.width} height={rectHeight} fill={d.color} onMouseOver={e => this.onMouseOver(d)} onMouseLeave={this.onMouseLeave} stroke={isFocus && "#FFEC38"} strokeWidth={isFocus && 3}/>,
-                    i < props.legendData.length-1 && <rect x={props.x+((d.max-minValue)/rangeSize)*props.width-0.25} y={bottomY-rectHeight-5} width={0.5} height={rectHeight} fill={borderColor}/>
+                    <rect x={props.x+d.x} y={bottomY-rectHeight-5} width={d.width} height={rectHeight} fill={d.bin.color} onMouseOver={e => this.onMouseOver(d)} onMouseLeave={this.onMouseLeave} stroke={isFocus && "#FFEC38"} strokeWidth={isFocus && 3}/>,
+                    i < props.legendData.length-1 && <rect x={props.x+d.x-0.25} y={bottomY-rectHeight-5} width={0.5} height={rectHeight} fill={borderColor}/>
                 ]
             })}
             {_.map(numericLabels, label =>
@@ -187,9 +220,8 @@ class NumericMapLegend extends Component {
 
 @observer
 class CategoricalMapLegend extends Component {
-    @computed get marks() {
-        const {props} = this
-        const rectSize = 12, rectPadding = 3, markPadding = 5, fontSize = "0.5em", maxWidth = props.width
+    @computed get markLines() {
+        const props = this.props, rectSize = 12, rectPadding = 3, markPadding = 5, fontSize = "0.5em"
 
         const lines = []
         let line = [], xOffset = 0, yOffset = 0
@@ -197,7 +229,7 @@ class CategoricalMapLegend extends Component {
             const labelBounds = Bounds.forText(d.text, { fontSize: fontSize })
             const markWidth = rectSize+rectPadding+labelBounds.width+markPadding
 
-            if (xOffset + markWidth > maxWidth) {
+            if (xOffset + markWidth > props.maxWidth) {
                 line.totalWidth = xOffset-markPadding
                 lines.push(line)
                 line = []
@@ -229,9 +261,19 @@ class CategoricalMapLegend extends Component {
             lines.push(line)
         }
 
+        return lines
+    }
+
+    @computed get width() {
+        return _.max(this.markLines.map(l => l.totalWidth))
+    }
+
+    @computed get marks() {
+        const lines = this.markLines
+
         // Center each line
         _.each(lines, line => {
-            const xShift = maxWidth/2-line.totalWidth/2
+            const xShift = this.width/2-line.totalWidth/2
             _.each(line, m => {
                 m.x += xShift
                 m.label.bounds = m.label.bounds.extend({ x: m.label.bounds.x+xShift })
@@ -243,10 +285,6 @@ class CategoricalMapLegend extends Component {
 
     @computed get height() {
         return _.max(_.map(this.marks, m => m.y+m.rectSize+3))+8
-    }
-
-    @computed get width() {
-        return this.props.width
     }
 
     render() {
@@ -267,7 +305,7 @@ class CategoricalMapLegend extends Component {
 @observer
 export default class MapLegend extends Component {
     @computed get numericLegendData(): Object[] {
-        return this.props.legendData.filter(l => l.type == "numeric" && !l.hidden)
+        return this.props.legendData.filter(l => (l.type == "numeric" || l.text == "No data") && !l.hidden)
     }
     @computed get hasNumeric(): boolean { return !!this.numericLegendData.length }
     @computed get categoricalLegendData(): Object[] {
@@ -281,7 +319,7 @@ export default class MapLegend extends Component {
 
     @computed get categoryLegend(): CategoricalMapLegend {
         const {props, hasCategorical, wrapLabel, categoricalLegendData} = this
-        return hasCategorical && preInstantiate(<CategoricalMapLegend {...props} legendData={categoricalLegendData} width={props.bounds.width*0.8}/>)
+        return hasCategorical && preInstantiate(<CategoricalMapLegend {...props} legendData={categoricalLegendData} maxWidth={props.bounds.width*0.8}/>)
     }
 
     @computed get categoricalMapLegendHeight(): number {
@@ -308,7 +346,7 @@ export default class MapLegend extends Component {
         return <g>
             <NumericMapLegend {...numericLegend.props} x={bounds.centerX-numericLegend.width/2} y={bounds.bottom-wrapLabel.height-categoryLegend.height-numericLegend.height}/>
             <CategoricalMapLegend {...categoryLegend.props} x={bounds.centerX-categoryLegend.width/2} y={bounds.bottom-wrapLabel.height-categoryLegend.height}/>
-            <Paragraph x={bounds.centerX} y={bounds.bottom-wrapLabel.height} dominant-baseline="hanging" text-anchor="middle">{wrapLabel}</Paragraph>
+            <Paragraph x={bounds.centerX} y={bounds.bottom-wrapLabel.height} text-anchor="middle">{wrapLabel}</Paragraph>
         </g>
     }
 }

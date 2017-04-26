@@ -13,6 +13,7 @@
 import React, {Component} from 'react'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
+import Text from './Text'
 
 @observer
 export default class Paragraph extends Component {
@@ -60,7 +61,7 @@ export default class Paragraph extends Component {
 	render() {
 		const wrappedText = this.props.children
 
-		return <text {...wrappedText.opts} {...this.props}>
+		return <text {...wrappedText.opts} {...this.props} dominant-baseline="hanging">
 			{_.map(wrappedText.lines, (line, i) => {
 				return <tspan x={this.props.x} dy={i == 0 ? 0 : wrappedText.lineHeight + 'em'}>{line.str}</tspan>
 			})}
