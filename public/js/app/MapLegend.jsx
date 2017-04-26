@@ -15,10 +15,6 @@ import {preInstantiate} from './Util'
 
 @observer
 class NumericMapLegend extends Component {
-    @computed get bounds() {
-        return this.props.bounds.padWidth(this.props.bounds.width*0.25)
-    }
-
     @computed get numericLegendData() { return this.props.legendData.filter(l => l.type == "numeric") }
     @computed get rectHeight() { return 10 }
     @computed get minValue() { return _.first(this.props.legendData).min }
@@ -26,14 +22,14 @@ class NumericMapLegend extends Component {
     @computed get rangeSize() { return this.maxValue - this.minValue }
 
     @computed get numericLabels() {
-        const {legendData} = this.props
-        const {bounds, minValue, rangeSize, rectHeight} = this
+        const {legendData, width} = this.props
+        const {minValue, rangeSize, rectHeight} = this
         const fontSize = "0.45em"
 
         const makeBoundaryLabel = (d, value, text) => {
             const labelBounds = Bounds.forText(text, { fontSize: fontSize })
-            const x = bounds.left+((value-minValue)/rangeSize)*bounds.width - labelBounds.width/2
-            const y = bounds.bottom-rectHeight-labelBounds.height-10
+            const x = ((value-minValue)/rangeSize)*width - labelBounds.width/2
+            const y = -rectHeight-labelBounds.height-10
 
             return {
                 text: text,
@@ -45,8 +41,8 @@ class NumericMapLegend extends Component {
         const makeRangeLabel = (d) => {
             const labelBounds = Bounds.forText(d.text, { fontSize: fontSize })
             const midX = d.min+(d.max-d.min)/2
-            const x = bounds.left+((midX-minValue)/rangeSize)*bounds.width - labelBounds.width/2
-            const y = bounds.bottom-rectHeight-labelBounds.height-10
+            const x = ((midX-minValue)/rangeSize)*width - labelBounds.width/2
+            const y = -rectHeight-labelBounds.height-10
 
             return {
                 text: d.text,
@@ -102,7 +98,7 @@ class NumericMapLegend extends Component {
         return labels
     }
 
-    @computed get height() { return this.bounds.bottom-_.min(this.numericLabels.map(l => l.bounds.y)) }
+    @computed get height() { return Math.abs(_.min(this.numericLabels.map(l => l.bounds.y))) }
 
     @action.bound onMouseOver(d) {
         if (this.props.onMouseOver)
@@ -115,15 +111,15 @@ class NumericMapLegend extends Component {
     }
 
     @action.bound onMouseMove(evt) {
-        const {bounds, g, minValue, rangeSize} = this
+        const {props, bounds, g, minValue, rangeSize} = this
         const mouse = getRelativeMouse(g, d3.event)
-        if (!bounds.fromBottom(this.height).containsPoint(mouse[0], mouse[1]))
+        if (!this.bounds.containsPoint(mouse[0], mouse[1]))
             return this.props.onMouseLeave()
 
         let focusBracket = null
         this.props.legendData.forEach(d => {
             const xFrac = (d.min-minValue)/rangeSize
-            if (mouse[0] > bounds.left+(xFrac*bounds.width))
+            if (mouse[0] > props.x+(xFrac*bounds.width))
                 focusBracket = d
         })
 
@@ -148,34 +144,42 @@ class NumericMapLegend extends Component {
         if (focusEntity) return _.find(legendData, l => focusEntity.value >= l.min && focusEntity.value <= l.max)
     }
 
-	render() {
-        const {legendData} = this.props
-        const {bounds, rectHeight, numericLabels, focusBracket} = this
+    @computed get width() {
+        return this.props.width
+    }
 
-        const minValue = _.first(legendData).min
-        const maxValue = legendData[legendData.length-1].max
+    @computed get bounds() {
+        return new Bounds(this.props.x, this.props.y, this.props.width, this.height)
+    }
+
+	render() {
+        const {props, rectHeight, numericLabels, focusBracket, height} = this
+
+        const minValue = _.first(props.legendData).min
+        const maxValue = props.legendData[props.legendData.length-1].max
         const rangeSize = maxValue - minValue
 
         const borderSize = 0.5
         const borderColor = "#333"
+        const bottomY = props.y+height
 
 		return <g class="numericMapLegend" ref={(g) => this.g = g}>
             {_.map(numericLabels, label =>
-                <line x1={label.bounds.x+label.bounds.width/2-0.15} y1={bounds.bottom-rectHeight} x2={label.bounds.x+label.bounds.width/2-0.15} y2={label.bounds.y+label.bounds.height} stroke="#666" strokeWidth={0.5}/>
+                <line x1={props.x+label.bounds.x+label.bounds.width/2-0.15} y1={bottomY-rectHeight} x2={props.x+label.bounds.x+label.bounds.width/2-0.15} y2={bottomY+label.bounds.y+label.bounds.height} stroke="#666" strokeWidth={0.5}/>
             )}
-            <rect x={bounds.left-borderSize} y={bounds.bottom-rectHeight-5-borderSize} width={bounds.width+borderSize*2} height={rectHeight+borderSize*2} fill={borderColor}/>
-            {_.map(legendData, (d, i) => {
+            <rect x={props.x-borderSize} y={bottomY-rectHeight-5-borderSize} width={props.width+borderSize*2} height={rectHeight+borderSize*2} fill={borderColor}/>
+            {_.map(props.legendData, (d, i) => {
                 const xFrac = (d.min-minValue)/rangeSize
                 const widthFrac = (d.max-minValue)/rangeSize - xFrac
                 const isFocus = focusBracket && d.min == focusBracket.min
 
                 return [
-                    <rect x={bounds.left+xFrac*bounds.width} y={bounds.bottom-rectHeight-5} width={widthFrac*bounds.width} height={rectHeight} fill={d.color} onMouseOver={e => this.onMouseOver(d)} onMouseLeave={this.onMouseLeave} stroke={isFocus && "#FFEC38"} strokeWidth={isFocus && 3}/>,
-                    i < legendData.length-1 && <rect x={bounds.left+((d.max-minValue)/rangeSize)*bounds.width-0.25} y={bounds.bottom-rectHeight-5} width={0.5} height={rectHeight} fill={borderColor}/>
+                    <rect x={props.x+xFrac*props.width} y={bottomY-rectHeight-5} width={widthFrac*props.width} height={rectHeight} fill={d.color} onMouseOver={e => this.onMouseOver(d)} onMouseLeave={this.onMouseLeave} stroke={isFocus && "#FFEC38"} strokeWidth={isFocus && 3}/>,
+                    i < props.legendData.length-1 && <rect x={props.x+((d.max-minValue)/rangeSize)*props.width-0.25} y={bottomY-rectHeight-5} width={0.5} height={rectHeight} fill={borderColor}/>
                 ]
             })}
             {_.map(numericLabels, label =>
-                <text x={label.bounds.x} y={label.bounds.y} fontSize={label.fontSize} dominant-baseline="hanging">{label.text}</text>
+                <text x={props.x+label.bounds.x} y={bottomY+label.bounds.y} fontSize={label.fontSize} dominant-baseline="hanging">{label.text}</text>
             )}
 		</g>
 	}
@@ -286,7 +290,7 @@ export default class MapLegend extends Component {
 
     @computed get numericLegend(): NumericMapLegend {
         const {props, hasNumeric, numericLegendData, wrapLabel, categoricalMapLegendHeight} = this
-        return hasNumeric && preInstantiate(<NumericMapLegend {...props} legendData={numericLegendData} bounds={props.bounds.padBottom(wrapLabel.height+categoricalMapLegendHeight)}/>)
+        return hasNumeric && preInstantiate(<NumericMapLegend {...props} legendData={numericLegendData} width={props.bounds.width*0.5}/>)
     }
 
     @computed get numericMapLegendHeight(): number {
@@ -302,7 +306,7 @@ export default class MapLegend extends Component {
         const {wrapLabel, numericLegend, categoryLegend} = this
 
         return <g>
-            <NumericMapLegend {...numericLegend.props}/>
+            <NumericMapLegend {...numericLegend.props} x={bounds.centerX-numericLegend.width/2} y={bounds.bottom-wrapLabel.height-categoryLegend.height-numericLegend.height}/>
             <CategoricalMapLegend {...categoryLegend.props} x={bounds.centerX-categoryLegend.width/2} y={bounds.bottom-wrapLabel.height-categoryLegend.height}/>
             <Paragraph x={bounds.centerX} y={bounds.bottom-wrapLabel.height} dominant-baseline="hanging" text-anchor="middle">{wrapLabel}</Paragraph>
         </g>
