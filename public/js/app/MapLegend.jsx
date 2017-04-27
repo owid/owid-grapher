@@ -204,7 +204,6 @@ class NumericMapLegend extends Component {
 
                 return [
                     <rect x={props.x+d.x} y={bottomY-rectHeight} width={d.width} height={rectHeight} fill={d.bin.color} stroke={isFocus && "#FFEC38"} strokeWidth={isFocus && 3}/>,
-                    <rect x={props.x+d.x} y={bottomY-rectHeight} width={d.width} height={rectHeight} fill="url(#diagonalHatch)"/>,
                     i < props.legendData.length-1 && <rect x={props.x+d.x-0.25} y={bottomY-rectHeight} width={0.5} height={rectHeight} fill={borderColor}/>
                 ]
             })}
