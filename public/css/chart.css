@@ -9,7 +9,7 @@ html, body {
 }
 
 html {
-    box-sizing: border-box;    
+    box-sizing: border-box;
 }
 * {
     box-sizing: inherit;
@@ -72,7 +72,7 @@ body.chart-container:before {
     -ms-user-select: none;
     -moz-user-select: none;
     -webkit-user-select: none;
-    user-select: none;    
+    user-select: none;
 }
 input[type=checkbox] {
     cursor: pointer;
@@ -132,7 +132,7 @@ input[type=checkbox] {
 .clearfix:after {
     content: " ";
     /* 1 */
-    
+
     display: table;
     /* 2 */
 }
@@ -208,7 +208,7 @@ select.disabled {
 
 body:not(.export) #chart {
     vertical-align: middle;
-    border: 1px solid #f0f0f0;    
+    border: 1px solid #f0f0f0;
     border-radius: 2px;
     box-shadow: rgba(0, 0, 0, 0.117647) 0px 0px 2px 0px, rgba(0, 0, 0, 0.239216) 0px 2px 2px 0px
 }
@@ -289,7 +289,7 @@ a {
 
 #chart nav.tabs li > a {
     display: block;
-    padding: 0.5em 1.0em;    
+    padding: 0.5em 1.0em;
     text-transform: uppercase;
     color: #666;
     font-size: 0.9em;
@@ -367,7 +367,7 @@ a {
 --------------------------------------------- */
 
 #chart .title {
-    fill: #444;
+    fill: #4d4d4d;
 }
 #chart .title {
     text-decoration: none !important;
@@ -478,7 +478,7 @@ a {
 
 #chart .axis path.domain {
     stroke: #7f7f7f;
-    stroke-width: 1px;        
+    stroke-width: 1px;
     stroke-opacity: 0;
 }
 
@@ -488,7 +488,7 @@ a {
 
 #chart .gridline {
     stroke: #ededed;
-    stroke-dasharray: 3,2;    
+    stroke-dasharray: 3,2;
 }
 
 #chart .axis {
@@ -519,7 +519,7 @@ a {
 #chart .owid-tooltip {
     font-size: 1em;
     background: white;
-    border: 1px solid rgba(0, 0, 0, 0.2);    
+    border: 1px solid rgba(0, 0, 0, 0.2);
     pointer-events: none;
 }
 #chart .owid-tooltip h3 {
@@ -611,7 +611,7 @@ a {
 #chart .sourcesTab {
     padding: 1em;
     text-align: left;
-    background: rgba(255,255,255,0.95);    
+    background: rgba(255,255,255,0.95);
 }
 
 #chart .sourcesTab > div {
@@ -672,7 +672,7 @@ a {
     right: 1em;
     bottom: 1em;
     text-align: left;
-    background: rgba(255,255,255,0.95);    
+    background: rgba(255,255,255,0.95);
     border: 1px solid #e0e0e0;
     box-shadow: 0 0 2px 0 rgba(0,0,0,0.12), 0 2px 2px 0 rgba(0,0,0,0.24);
     padding-bottom: 0.5em;
@@ -736,7 +736,7 @@ a {
     height: 90%;
     border: 1px solid #e0e0e0;
     box-shadow: 0 0 2px 0 rgba(0,0,0,0.12), 0 2px 2px 0 rgba(0,0,0,0.24);
-    background: rgba(255,255,255,0.95);        
+    background: rgba(255,255,255,0.95);
     padding: 1em;
     text-align: left;
     z-index: 1;
@@ -758,7 +758,7 @@ a {
 #chart .entitySelect {
     padding: 0.8em;
     text-align: left;
-    background: rgba(255,255,255,0.9);    
+    background: rgba(255,255,255,0.9);
     position: absolute;
     top: 0%;
     height: 100%;
@@ -820,10 +820,6 @@ a {
 }
 #chart g.map .border-disclaimer {
     font-size: 0.6em;
-}
-#chart g.map path {
-    stroke: #4b4b4b !important;
-    stroke-width: 0.3px !important;
 }
 #chart g.map path:hover {
     stroke: #FFEC38 !important;
@@ -953,13 +949,13 @@ a {
     box-shadow: none;
 }
 #chart .timeline .play-pause-control .btn {
-  color: #404040;  
+  color: #404040;
   height: 100%;
   padding: 0;
 }
 #chart .timeline .play-btn,
 #chart .timeline .pause-btn {
-    font-size: 1.8em;    
+    font-size: 1.8em;
     line-height: 1.3em;
 }
 #chart .timeline .pause-btn {
@@ -971,8 +967,8 @@ a {
     align-items: center;
 }
 
-#chart .timeline-slider, 
-#chart .timeline-min-year, 
+#chart .timeline-slider,
+#chart .timeline-min-year,
 #chart .timeline-max-year {
     cursor: pointer;
 }
@@ -1013,9 +1009,9 @@ a {
     background-color: #404040;
     color: #fff;
     padding: .3em .8em;
-    z-index: 1; 
+    z-index: 1;
     left: 50%;
-    transform: translate(-50%);   
+    transform: translate(-50%);
 }
 
 #chart .timeline.min-active .timeline-label,

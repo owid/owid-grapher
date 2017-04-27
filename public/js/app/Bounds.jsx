@@ -22,55 +22,79 @@ export default class Bounds {
 	}
 
 	static fromBBox(bbox : { x: number, y: number, width: number, height: number }) : Bounds {
-		return this.fromProps(bbox)		
+		return this.fromProps(bbox)
 	}
 
 	static empty() : Bounds {
 		return new Bounds(0,0,0,0)
 	}
 
-	static textBoundsCache : Map<string, Bounds>
-	static ctx : any
-	static baseFontSize : number
+    static textBoundsCache : Map<string, Bounds>
+    static ctx : any
+    static baseFontSize : number
 
-	static forText(str: string, { fontSize = '1em' }={}): Bounds {
-		this.textBoundsCache = this.textBoundsCache || new Map()
-		this.ctx = this.ctx || document.createElement('canvas').getContext('2d')
-		this.baseFontSize = this.baseFontSize || parseFloat(d3.select('svg').style('font-size'))
+    static forText(str: string, { x = 0, y = 0, fontSize = '1em' }: { x?: number, y?: number, fontSize?: string|number } = {}): Bounds {
+        if (str == "")
+            return Bounds.empty()
 
-		if (s.contains(fontSize, 'em'))
-			fontSize = this.baseFontSize*parseFloat(fontSize)+'px'
+        this.textBoundsCache = this.textBoundsCache || new Map()
+        this.ctx = this.ctx || document.createElement('canvas').getContext('2d')
+        this.baseFontSize = this.baseFontSize || parseFloat(d3.select('svg').style('font-size'))
 
-		const key = str+'-'+fontSize
-		const fontFace = "Arial"
+        if (_.isNumber(fontSize))
+            fontSize = fontSize + 'px'
+        else if (s.contains(fontSize, 'em'))
+            fontSize = this.baseFontSize*parseFloat(fontSize)+'px'
 
-		let bounds = this.textBoundsCache.get(key)
-		if (bounds) return bounds
+        const key = str+'-'+fontSize
+        const fontFace = "Arial"
 
-	    this.ctx.font = fontSize + ' ' + fontFace;
-		const m = this.ctx.measureText(str)
+        let bounds = this.textBoundsCache.get(key)
+        if (bounds) return bounds
 
-		/*const update = d3.select('svg').selectAll('.tmpTextCalc').data([str]);
+        this.ctx.font = fontSize + ' ' + fontFace;
+        const m = this.ctx.measureText(str)
 
-		const text = update.enter().append('text')
-			.attr('class', 'tmpTextCalc')
-			.attr('opacity', 0)
-			.merge(update)
-  			  .attr('font-size', fontSize)
-			  .text(function(d) { return d; });*/
+        /*const update = d3.select('svg').selectAll('.tmpTextCalc').data([str]);
 
+        const text = update.enter().append('text')
+            .attr('class', 'tmpTextCalc')
+            .attr('opacity', 0)
+            .merge(update)
+              .attr('font-size', fontSize)
+              .text(function(d) { return d; });*/
 
+        const height = parseFloat(fontSize)
+        bounds = new Bounds(x, y-height, m.width, height)
 
-		bounds = new Bounds(0, 0, m.width, str == "m" ? m.width : Bounds.forText("m", { fontSize: fontSize }).height).padWidth(-1).padHeight(-1)
-		this.textBoundsCache.set(key, bounds)
-		return bounds
-	}
+        this.textBoundsCache.set(key, bounds)
+        return bounds
+    }
+
+    static debug(boundsArray : Bounds[], containerNode = null) {
+        var container = containerNode ? d3.select(containerNode) : d3.select('svg');
+
+        container.selectAll('rect.boundsDebug').remove()
+
+        container.selectAll('rect.boundsDebug')
+            .data(boundsArray).enter()
+            .append('rect')
+                .attr('x', b => b.left)
+                .attr('y', b => b.top)
+                .attr('width', b => b.width)
+                .attr('height', b => b.height)
+                .attr('class', 'boundsDebug')
+                .style('fill', 'rgba(0,0,0,0)')
+                .style('stroke', 'red');
+    }
 
 
 	get left(): number { return this.x }
 	get top(): number { return this.y }
 	get right(): number { return this.x+this.width }
 	get bottom(): number { return this.y+this.height }
+    get centerX(): number { return this.x+this.width/2 }
+    get centerY(): number { return this.y+this.height/2 }
 
 	padLeft(amount: number): Bounds {
 		return new Bounds(this.x+amount, this.y, this.width-amount, this.height)
@@ -81,7 +105,7 @@ export default class Bounds {
 	}
 
 	padBottom(amount: number): Bounds {
-		return new Bounds(this.x, this.y, this.width, this.height-amount)		
+		return new Bounds(this.x, this.y, this.width, this.height-amount)
 	}
 
 	padTop(amount: number): Bounds {
@@ -95,6 +119,14 @@ export default class Bounds {
 	padHeight(amount: number): Bounds {
 		return new Bounds(this.x, this.y+amount, this.width, this.height-amount*2)
 	}
+
+    fromLeft(amount: number): Bounds {
+        return this.padRight(this.width-amount)
+    }
+
+    fromBottom(amount: number): Bounds {
+        return this.padTop(this.height-amount)
+    }
 
 	pad(amount: number): Bounds {
 		return new Bounds(this.x+amount, this.y+amount, this.width-amount*2, this.height-amount*2)
@@ -111,7 +143,7 @@ export default class Bounds {
 	intersects(otherBounds: Bounds): boolean {
 		const r1 = this, r2 = otherBounds
 
-	    return !(r2.left > r1.right || r2.right < r1.left || 
+	    return !(r2.left > r1.right || r2.right < r1.left ||
              r2.top > r1.bottom || r2.bottom < r1.top)
 	}
 
@@ -122,7 +154,7 @@ export default class Bounds {
 	toCSS() : { left: string, top: string, width: string, height: string } {
 		return { left: this.left+'px', top: this.top+'px', width: this.width+'px', height: this.height+'px'}
 	}
-	
+
 	xRange() : [number, number] {
 		return [this.left, this.right]
 	}
@@ -130,5 +162,6 @@ export default class Bounds {
 	yRange() : [number, number] {
 		return [this.bottom, this.top]
 	}
+
 }
 

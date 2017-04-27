@@ -1,11 +1,10 @@
+import {geoRobinson} from 'd3-geo-projection'
+
 // @flow
 export default {
 	"World": function(element) {
-		//empiric
-		var k = 7.5;
-		var projection = d3.geo.eckert3()
-			.precision(0.1);
-		var path = d3.geo.path().projection(projection);
+		var projection = geoRobinson()
+		var path = d3v4.geoPath().projection(projection);
 		return {path: path, projection: projection };
 	},
 	"Africa": function(element) {

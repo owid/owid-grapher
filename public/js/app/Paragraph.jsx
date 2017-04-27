@@ -1,18 +1,19 @@
 /* Paragraph.jsx
- * ================                                                             
+ * ================
  *
  * Welcome to the joy that is manually wrapping text... since SVG lacks
  * the kind of layout features we take for granted in HTML, much wrangling
  * is necessary.
  *
  * @project Our World In Data
- * @author  Jaiden Mispy                                                     
+ * @author  Jaiden Mispy
  * @created 2017-02-02
- */ 
+ */
 
 import React, {Component} from 'react'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
+import Text from './Text'
 
 @observer
 export default class Paragraph extends Component {
@@ -52,14 +53,15 @@ export default class Paragraph extends Component {
 			lines: lines,
 			lineHeight: lineHeight,
 			width: width,
-			height: height
+			height: height,
+            opts: opts
 		}
 	}
 
 	render() {
 		const wrappedText = this.props.children
 
-		return <text {...this.props}>
+		return <text {...wrappedText.opts} {...this.props} y={this.props.y+wrappedText.lines[0].height-wrappedText.lines[0].height*0.2}>
 			{_.map(wrappedText.lines, (line, i) => {
 				return <tspan x={this.props.x} dy={i == 0 ? 0 : wrappedText.lineHeight + 'em'}>{line.str}</tspan>
 			})}

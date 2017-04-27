@@ -57,7 +57,7 @@ export default class ChoroplethMap extends Component {
         return this.props.defaultFill
     }
 
-    @computed get pathData() : { [key: string]: string } {        
+    @computed get pathData() : { [key: string]: string } {
         const {geoData, projection} = this
 
         const pathData = {}
@@ -70,25 +70,49 @@ export default class ChoroplethMap extends Component {
         return pathData
     }
 
+    @computed get focusBracket() {
+        return this.props.focusBracket
+    }
+
     render() {
-        const { bounds, choroplethData, defaultFill, geoData, pathData } = this
+        const { bounds, choroplethData, defaultFill, geoData, pathData, focusBracket } = this
 
         return <g class="map" clip-path="url(#boundsClip)">
             <defs>
                 <clipPath id="boundsClip">
                     <rect {...bounds}></rect>
                 </clipPath>
+                <pattern id="diagonalHatch" patternUnits="userSpaceOnUse" width="4" height="4">
+                  <path d="M-1,1 l2,-2
+                           M0,4 l4,-4
+                           M3,5 l2,-2"
+                        stroke="#ccc" stroke-width={0.5} />
+                </pattern>
             </defs>
-            <rect {...bounds} fill="#ecf6fc"></rect>
+            {/*<rect {...bounds} fill="#ecf6fc"></rect>*/}
+
+
             <g class="subunits" ref={g => this.subunits = g}>
-                {_.map(geoData, (d) => {
-                    const fill = choroplethData[d.id] ? choroplethData[d.id].color : defaultFill
-                    return <path d={pathData[d.id]} stroke-width={0.3} stroke="#4b4b4b" cursor="pointer" fill={fill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={(ev) => this.props.onClick(d)}/>
+                {_.map(geoData.filter(d => !choroplethData[d.id]), d => {
+                    const isFocus = focusBracket && focusBracket.contains(null)
+                    const stroke = isFocus ? "#FFEC38" : "#333"
+                    return <path d={pathData[d.id]} stroke-width={isFocus ? 3 : 0.3} stroke={stroke} cursor="pointer" fill={defaultFill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={(ev) => this.props.onClick(d)}/>
+                })}
+
+                {_.map(geoData.filter(d => choroplethData[d.id]), (d) => {
+                    const datum = choroplethData[d.id]
+                    const isFocus = focusBracket && focusBracket.contains(datum)
+                    const stroke = isFocus ? "#FFEC38" : "#333"
+                    const fill = datum ? datum.color : defaultFill
+
+                    return [
+                        <path d={pathData[d.id]} stroke-width={isFocus ? 3 : 0.5} stroke={stroke} cursor="pointer" fill={fill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={(ev) => this.props.onClick(d)}/>
+                    ]
                 })}
             </g>
-            <text class="disclaimer" x={bounds.left+bounds.width-5} y={bounds.top+bounds.height-10} font-size="0.5em" text-anchor="end">
+            {/*<text class="disclaimer" x={bounds.left+bounds.width-5} y={bounds.top+bounds.height-10} font-size="0.5em" text-anchor="end">
                 Mapped on current borders
-            </text>
+            </text>*/}
         </g>
     }
 
@@ -98,11 +122,11 @@ export default class ChoroplethMap extends Component {
     }
 
     @bind postRenderResize() {
-        const { bounds, projection, subunits } = this
+        let { bounds, projection, subunits } = this
         const bbox = subunits.getBBox()
 
         var viewports = {
-            "World": { x: 0.525, y: 0.5, width: 1, height: 1 },
+            "World": { x: 0.565, y: 0.5, width: 1, height: 1 },
             "Africa": { x: 0.48, y: 0.70, width: 0.21, height: 0.38 },
             "N.America": { x: 0.49, y: 0.40, width: 0.19, height: 0.32 },
             "S.America": { x: 0.52, y: 0.815, width: 0.10, height: 0.26 },
@@ -134,6 +158,6 @@ export default class ChoroplethMap extends Component {
             newOffsetY = boundsCenterY - newCenterY;
 
         var matrixStr = "matrix(" + scale + ",0,0," + scale + "," + newOffsetX + "," + newOffsetY + ")";
-        d3.select(subunits).attr('transform', matrixStr);        
+        d3.select(subunits).attr('transform', matrixStr);
     }
 }

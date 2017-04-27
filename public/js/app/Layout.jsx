@@ -8,7 +8,7 @@ import Bounds from './Bounds'
 export default class Layout extends Component {
 	static bounds = new Bounds(0,0,0,0)
 
-	props: {		
+	props: {
 		bounds: Bounds
 	}
 
@@ -20,19 +20,11 @@ export default class Layout extends Component {
 	    	if (!vnode.nodeName) return vnode
 
 	        if (vnode.nodeName.calculateBounds) {
-	            const bounds = vnode.nodeName.calculateBounds(containerBounds, vnode.attributes)
-	            if (vnode.attributes) {
-	            	const layout = vnode.attributes.layout
-	            	if (layout == 'top')
-	    	            containerBounds = containerBounds.padTop(bounds.height)
-	            	if (layout == 'bottom')
-	    	            containerBounds = containerBounds.padBottom(bounds.height)
-	            	if (layout == 'left')
-	    	            containerBounds = containerBounds.padLeft(bounds.width)
-	            	if (layout == 'right')
-	    	            containerBounds = containerBounds.padRight(bounds.width)
-	            }
-	            return cloneElement(vnode, { bounds: bounds })
+	            let precalc = vnode.nodeName.calculateBounds(containerBounds, vnode.attributes)
+                const bounds = containerBounds
+                containerBounds = precalc.remainingBounds
+
+	            return cloneElement(vnode, _.extend({ bounds: bounds }, precalc.props||{}))
 	        } else {
 	            return vnode
 	        }

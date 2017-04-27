@@ -22,7 +22,7 @@ export default function() {
 	chart.requires('containerNode', 'chartConfig', 'outerBounds', 'activeTabName');
 
 	chart.defaults({
-		landscapeAuthorDimensions: [900, 600],
+		landscapeAuthorDimensions: [850, 600],
 		portraitAuthorDimensions: [400, 640],
 		isExport: !!window.location.pathname.match(/.export$/),
 		isEmbed: window.self != window.top || App.isEditor,
@@ -41,14 +41,14 @@ export default function() {
 	chart.flow('vardata, data, colors : model', function(model) {
 		App.ChartModel = model;
 		chart.config = new ChartConfig(model)
-		App.VariableData = new App.Models.VariableData();	
+		App.VariableData = new App.Models.VariableData();
 		App.ChartData = new App.Models.ChartData();
-		App.Colors = new App.Models.Colors(chart);		
+		App.Colors = new App.Models.Colors(chart);
 
 		return [App.VariableData, App.ChartData, App.Colors];
 	});
 
-	chart.flow('map : model', function(model) {			
+	chart.flow('map : model', function(model) {
 		App.ChartModel.bind();
 		return App.MapModel;
 	});
@@ -98,7 +98,7 @@ export default function() {
 
 				chart.update({
 					outerBounds: bounds
-				});				
+				});
 			});
 		}
 
@@ -177,7 +177,7 @@ export default function() {
 	chart.flow('renderWidth, renderHeight : outerBounds, authorWidth, authorHeight', function(outerBounds, authorWidth, authorHeight) {
 		return [authorWidth, authorHeight];
 	});
-	chart.flow('scale : outerBounds, renderWidth, renderHeight, isEditor', function(outerBounds, renderWidth, renderHeight, isEditor) {			
+	chart.flow('scale : outerBounds, renderWidth, renderHeight, isEditor', function(outerBounds, renderWidth, renderHeight, isEditor) {
 		if (isEditor) return 1;
 		else return Math.min(outerBounds.width/renderWidth, outerBounds.height/renderHeight);
 	});
@@ -191,12 +191,12 @@ export default function() {
 	});
 	chart.flow('innerBounds : renderWidth, renderHeight', function(renderWidth, renderHeight) {
 		return new Bounds(0, 0, renderWidth, renderHeight);
-	});		
+	});
 	chart.flow('el, scale', function(el, scale) {
 		el.style('font-size', 16*scale + 'px');
 	});
 
-	chart.flow('primaryTab, scale', function() { 
+	chart.flow('primaryTab, scale', function() {
 		chart.data.ready(chart.render);
 	});
 	chart.flow('model, primaryTab', function(model) {
@@ -210,14 +210,14 @@ export default function() {
 		return isExport ? owid.component.exportMode(chart) : null;
 	});
 
-	chart.render = function() {			
+	chart.render = function() {
 		requestAnimationFrame(function() {
 			chart.now('el, header, controlsFooter, sourcesFooter, primaryTab, overlayTab, innerBounds, scale, loadingIcon', function(el, header, controlsFooter, sourcesFooter, primaryTab, overlayTab, innerBounds, scale, loadingIcon) {
 				loadingIcon.classed('hidden', false);
 
 				if (chart.model.get('chart-type') != App.ChartType.SlopeChart && chart.model.get('chart-type') != App.ChartType.ScatterPlot)
 					chart.data.transformData();
-				
+
 				var bounds = innerBounds.pad(15);
 
 				header.render(bounds);
@@ -256,7 +256,7 @@ export default function() {
 
 		jQuery('body').on('touchmove', function(ev) {
 			if (jQuery(ev.target).closest('.timeline').length) return;
-			
+
 			var touches = [];
 			_.each(ev.originalEvent.touches, function(touch) {
 				touches.push({
@@ -343,4 +343,4 @@ export default function() {
 	};
 
 	return chart;
-};	
+};
