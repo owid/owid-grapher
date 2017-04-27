@@ -116,7 +116,7 @@
 			}
 
 			// Add default 'No data' category
-			//if (!_.contains(categoricalValues, 'No data')) categoricalValues.push('No data');
+			if (!_.contains(categoricalValues, 'No data')) categoricalValues.push('No data');
 			customCategoryColors = _.extend({}, customCategoryColors, { 'No data': mapdata.getNoDataColor() });
 
 			// Categorical values, each assigned a color

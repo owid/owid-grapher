@@ -23,10 +23,15 @@ class NumericMapLegend extends Component {
     @computed get minValue() { return _.min(this.props.legendData.map(d => d.min).filter(v => _.isFinite(v))) }
     @computed get maxValue() { return _.max(this.props.legendData.map(d => d.max).filter(v => _.isFinite(v))) }
     @computed get rangeSize() { return this.maxValue - this.minValue }
-    @computed get defaultBinWidth() { return 0.05*this.props.width }
+    @computed get categoryBinWidth() {
+        //const meanRange = _.reduce(this.numericLegendData, (m, d) => m+(d.max-d.min), 0)/this.numericLegendData.length
+        //return (meanRange/this.rangeSize) * this.props.width
+        return Bounds.forText("No data", { fontSize: "0.45em" }).width
+    }
+    @computed get categoryBinMargin() { return this.rectHeight*1.5 }
     @computed get totalDefaultWidth() {
         return _.reduce(
-            this.props.legendData.map(d => !_.isFinite(d.max-d.min) ? this.defaultBinWidth : 0),
+            this.props.legendData.map(d => !_.isFinite(d.max-d.min) ? this.categoryBinWidth : 0),
             (m, n) => m+n
         )
     }
@@ -35,21 +40,23 @@ class NumericMapLegend extends Component {
     }
 
     @computed get positionedBins() {
-        const {props, rangeSize, defaultBinWidth, availableWidth} = this
+        const {props, rangeSize, categoryBinWidth, categoryBinMargin, availableWidth} = this
         let xOffset = 0
 
         return _.map(props.legendData, d => {
-            let width = defaultBinWidth
-            if (_.isFinite(d.max-d.min))
+            let width = categoryBinWidth, margin = categoryBinMargin
+            if (_.isFinite(d.max-d.min)) {
                 width = ((d.max-d.min)/rangeSize)*availableWidth
-
+                margin = 0
+            }
 
             const x = xOffset
-            xOffset += width
+            xOffset += width+margin
 
             return {
                 x: x,
                 width: width,
+                marginRight: margin,
                 bin: d
             }
         })
@@ -115,7 +122,7 @@ class NumericMapLegend extends Component {
         let raisedMode = false
         for (var i = 1; i < labels.length; i++) {
             const l1 = labels[i-1], l2 = labels[i]
-            if (l1.bounds.intersects(l2.bounds)) {
+            if (l1.bounds.right+5 >= l2.bounds.left) {
                 raisedMode = true
                 break
             }
@@ -145,10 +152,9 @@ class NumericMapLegend extends Component {
                 return
 
         let focusBracket = null
-        this.props.legendData.forEach(d => {
-            const xFrac = (d.min-minValue)/rangeSize
-            if (mouse[0] > props.x+(xFrac*bounds.width))
-                focusBracket = d
+        this.positionedBins.forEach(d => {
+            if (mouse[0] > props.x+d.x)
+                focusBracket = d.bin
         })
 
         if (focusBracket)
@@ -196,15 +202,13 @@ class NumericMapLegend extends Component {
                 </pattern>
             </defs>
             {_.map(numericLabels, label =>
-                <line x1={props.x+label.bounds.x+label.bounds.width/2-0.15} y1={bottomY-rectHeight} x2={props.x+label.bounds.x+label.bounds.width/2-0.15} y2={bottomY+label.bounds.y+label.bounds.height} stroke="#666" strokeWidth={0.5}/>
+                <line x1={props.x+label.bounds.x+label.bounds.width/2-0.15} y1={bottomY-rectHeight} x2={props.x+label.bounds.x+label.bounds.width/2-0.15} y2={bottomY+label.bounds.y+label.bounds.height} stroke={borderColor} strokeWidth={0.3}/>
             )}
-            <rect x={props.x-borderSize} y={bottomY-rectHeight-borderSize} width={props.width+borderSize*2} height={rectHeight+borderSize*2} fill={borderColor}/>
             {_.map(positionedBins, (d, i) => {
                 const isFocus = props.focusBracket && (d.bin.min == props.focusBracket.min)
 
                 return [
-                    <rect x={props.x+d.x} y={bottomY-rectHeight} width={d.width} height={rectHeight} fill={d.bin.color} stroke={isFocus && "#FFEC38"} strokeWidth={isFocus && 3}/>,
-                    i < props.legendData.length-1 && <rect x={props.x+d.x-0.25} y={bottomY-rectHeight} width={0.5} height={rectHeight} fill={borderColor}/>
+                    <rect x={props.x+d.x} y={bottomY-rectHeight} width={d.width} height={rectHeight} fill={d.bin.color} stroke={isFocus ? "#FFEC38" : borderColor} strokeWidth={isFocus ? 3 : 0.3}/>
                 ]
             })}
             {_.map(numericLabels, label =>
@@ -308,13 +312,14 @@ class CategoricalMapLegend extends Component {
 @observer
 export default class MapLegend extends Component {
     @computed get numericLegendData(): Object[] {
-        return this.props.legendData.filter(l => l.type == "numeric" && !l.hidden)
+        const l = this.props.legendData.filter(l => (l.type == "numeric" || l.value == "No data") && !l.hidden)
+        return _.flatten([l[l.length-1], l.slice(0, -2)])
     }
-    @computed get hasNumeric(): boolean { return !!this.numericLegendData.length }
+    @computed get hasNumeric(): boolean { return this.numericLegendData.length > 1 }
     @computed get categoricalLegendData(): Object[] {
         return this.props.legendData.filter(l => l.type == "categorical" && !l.hidden)
     }
-    @computed get hasCategorical(): boolean { return !!this.categoricalLegendData.length }
+    @computed get hasCategorical(): boolean { return this.categoricalLegendData.length > 1 }
 
     @computed get wrapLabel(): Object {
        return Paragraph.wrap(this.props.title, this.props.bounds.width, { fontSize: "0.6em" })
@@ -356,11 +361,12 @@ export default class MapLegend extends Component {
     render() {
         const {bounds, title} = this.props
         const {wrapLabel, numericLegend, categoryLegend, categoryLegendHeight, hasNumeric, hasCategorical} = this
+        //Bounds.debug([new Bounds(bounds.centerX-wrapLabel.width/2, bounds.bottom-wrapLabel.height, wrapLabel.width, wrapLabel.height)])
 
         return <g>
-            {hasNumeric && <NumericMapLegend {...numericLegend.props} x={bounds.centerX-numericLegend.width/2} y={bounds.bottom-wrapLabel.height-categoryLegendHeight-numericLegend.height-8}/>}
+            {hasNumeric && <NumericMapLegend {...numericLegend.props} x={bounds.centerX-numericLegend.width/2} y={bounds.bottom-wrapLabel.height-categoryLegendHeight-numericLegend.height-4}/>}
             {hasCategorical && <CategoricalMapLegend {...categoryLegend.props} x={bounds.centerX-categoryLegend.width/2} y={bounds.bottom-wrapLabel.height-categoryLegend.height-5}/>}
-            <Paragraph x={bounds.centerX} y={bounds.bottom-wrapLabel.height} text-anchor="middle">{wrapLabel}</Paragraph>
+            <Paragraph x={bounds.centerX-wrapLabel.width/2} y={bounds.bottom-wrapLabel.height}>{wrapLabel}</Paragraph>
         </g>
     }
 }

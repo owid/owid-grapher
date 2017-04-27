@@ -61,7 +61,7 @@ export default class Paragraph extends Component {
 	render() {
 		const wrappedText = this.props.children
 
-		return <text {...wrappedText.opts} {...this.props} dominant-baseline="hanging">
+		return <text {...wrappedText.opts} {...this.props} y={this.props.y+wrappedText.lines[0].height-wrappedText.lines[0].height*0.2}>
 			{_.map(wrappedText.lines, (line, i) => {
 				return <tspan x={this.props.x} dy={i == 0 ? 0 : wrappedText.lineHeight + 'em'}>{line.str}</tspan>
 			})}
