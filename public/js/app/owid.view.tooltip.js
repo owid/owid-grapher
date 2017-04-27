@@ -1,8 +1,8 @@
-;(function(d3) {	
+;(function(d3) {
 	"use strict";
 	owid.namespace("owid.view.tooltip");
 
-	owid.tooltip = function(svgNode, left, top, data) {		
+	owid.tooltip = function(svgNode, left, top, data) {
 		var container = d3.select(svgNode.parentNode);
 
 		var tooltipUpdate = container.selectAll('.owid-tooltip');

@@ -111,7 +111,7 @@ class NumericMapLegend extends Component {
 
             for (var j = i+1; j < labels.length; j++) {
                 const l2 = labels[j]
-                if (l1.bounds.right+5 >= l2.bounds.centerX && !l2.priority)
+                if (l1.bounds.right+5 >= l2.bounds.centerX || l2.bounds.left-5 <= l1.bounds.centerX && !l2.priority)
                     l2.hidden = true
             }
         }
@@ -146,7 +146,7 @@ class NumericMapLegend extends Component {
         const {props, bounds, g, minValue, rangeSize} = this
         const mouse = getRelativeMouse(g, d3.event)
         if (!this.bounds.containsPoint(mouse[0], mouse[1]))
-            if (props.focusBracket && props.focusBracket.type == 'numeric')
+            if (props.focusBracket && (props.focusBracket.value == "No data" || props.focusBracket.type == 'numeric'))
                 return this.props.onMouseLeave()
             else
                 return
@@ -205,7 +205,7 @@ class NumericMapLegend extends Component {
                 <line x1={props.x+label.bounds.x+label.bounds.width/2-0.15} y1={bottomY-rectHeight} x2={props.x+label.bounds.x+label.bounds.width/2-0.15} y2={bottomY+label.bounds.y+label.bounds.height} stroke={borderColor} strokeWidth={0.3}/>
             )}
             {_.map(positionedBins, (d, i) => {
-                const isFocus = props.focusBracket && (d.bin.min == props.focusBracket.min)
+                const isFocus = props.focusBracket && (d.bin.min == props.focusBracket.min || (d.bin.value != null && d.bin.value == props.focusBracket.value))
 
                 return [
                     <rect x={props.x+d.x} y={bottomY-rectHeight} width={d.width} height={rectHeight} fill={d.bin.color} stroke={isFocus ? "#FFEC38" : borderColor} strokeWidth={isFocus ? 3 : 0.3}/>
