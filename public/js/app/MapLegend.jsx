@@ -313,7 +313,7 @@ class CategoricalMapLegend extends Component {
 export default class MapLegend extends Component {
     @computed get numericLegendData(): Object[] {
         const l = this.props.legendData.filter(l => (l.type == "numeric" || l.value == "No data") && !l.hidden)
-        return _.flatten([l[l.length-1], l.slice(0, -2)])
+        return _.flatten([l[l.length-1], l.slice(0, -1)])
     }
     @computed get hasNumeric(): boolean { return this.numericLegendData.length > 1 }
     @computed get categoricalLegendData(): Object[] {
