@@ -11,7 +11,7 @@ export default class Text extends Component {
 		let {x, y} = this.props
 
 		if (baseline == 'middle')
-			y = y + bounds.height/4
+			y = y + bounds.height/2
 		else if (baseline == 'hanging')
 			y = y + bounds.height
 

@@ -1,12 +1,12 @@
 /* LabelledSlopes.jsx
- * ================                                                             
+ * ================
  *
  * Decoupled view component that does the bulk rendering work for slope charts.
  *
  * @project Our World In Data
  * @author  Jaiden Mispy
  * @created 2017-02-11
- */ 
+ */
 
 // @flow
 
@@ -93,7 +93,7 @@ class Axis extends Component {
 				else if (orient == 'top' || orient == 'bottom')
 					return <text x={scale(tick)} y={orient == 'top' ? bounds.top : bounds.bottom} fill={textColor} dominant-baseline={orient == 'top' ? 'auto' : 'hanging'} text-anchor="middle">{tickFormat(tick)}</text>
 			})}
-	    </g>		
+	    </g>
 	}
 }
 
@@ -130,20 +130,20 @@ class Slope extends Component {
 //		if (hasLeftLabel) owid.boundsDebug(leftLabelBounds);
 //		if (hasRightLabel) owid.boundsDebug(rightLabelBounds)
 
-		// The weird text positioning here is to line the text up with the bounds while keeping text-anchor middle and the default dominant-baseline
+
 		return <g class="slope">
-			{hasLeftLabel && <Paragraph x={leftLabelBounds.x+leftLabelBounds.width} y={leftLabelBounds.y+leftLabel.lines[0].height/2+leftLabel.lines[0].height/4} text-anchor="end" font-size={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{leftLabel}</Paragraph>}
-			{hasLeftLabel && <Text x={x1-8} y={y1} text-anchor="end" dominant-baseline="middle" font-size={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{leftValueStr}</Text>}
+			{hasLeftLabel && <Paragraph x={leftLabelBounds.x+leftLabelBounds.width} y={leftLabelBounds.y+2} text-anchor="end" font-size={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{leftLabel}</Paragraph>}
+			{hasLeftLabel && <Text x={x1-8} y={y1} text-anchor="end" font-size={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'} dominant-baseline="middle">{leftValueStr}</Text>}
 			<circle cx={x1} cy={y1} r={isFocused ? 4 : 2} fill={lineColor} opacity={opacity}/>
 			<line ref={(el) => this.line = el} x1={x1} y1={y1} x2={x2} y2={y2} stroke={lineColor} stroke-width={isFocused ? 2*size : size} opacity={opacity}/>
 			<circle cx={x2} cy={y2} r={isFocused ? 4 : 2} fill={lineColor} opacity={opacity}/>
 			{hasRightLabel && <Text x={x2+8} y={y2} text-anchor="start" dominant-baseline="middle" font-size={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{rightValueStr}</Text>}
-			{hasRightLabel && <Paragraph x={rightLabelBounds.x} y={rightLabelBounds.y+rightLabel.lines[0].height/2+rightLabel.lines[0].height/4} text-anchor="start" font-size={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{rightLabel}</Paragraph>}
+			{hasRightLabel && <Paragraph x={rightLabelBounds.x} y={rightLabelBounds.y+2} text-anchor="start" font-size={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{rightLabel}</Paragraph>}
 		</g>
 	}
 }
 
-@observer 
+@observer
 export default class LabelledSlopes extends Component {
 	props: {
 		bounds: Bounds,
@@ -181,7 +181,7 @@ export default class LabelledSlopes extends Component {
 	}
 
 	@computed get yDomainDefault() : [number, number] {
-		return d3.extent(_.filter(_.pluck(_.flatten(_.pluck(this.props.data, 'values')), 'y'), (d) => d > 0 || this.props.yScaleType != 'log'))		
+		return d3.extent(_.filter(_.pluck(_.flatten(_.pluck(this.props.data, 'values')), 'y'), (d) => d > 0 || this.props.yScaleType != 'log'))
 	}
 
 	@computed get xDomain() : [number, number] {
@@ -266,13 +266,13 @@ export default class LabelledSlopes extends Component {
 	}
 
 	@computed get maxValueWidth() : number {
-		return _.max(_.map(this.initialSlopeData, (slope) => slope.leftValueWidth))		
+		return _.max(_.map(this.initialSlopeData, (slope) => slope.leftValueWidth))
 	}
 
 	// We calc max before doing overlaps because visible labels may change later but
 	// layout should remain constant
 /*	@computed get maxLabelWidth() : number {
-		return _.max(_.map(this.initialSlopeData, (slope) => slope.leftLabelBounds.width))		
+		return _.max(_.map(this.initialSlopeData, (slope) => slope.leftLabelBounds.width))
 	}*/
 
 	@computed get labelAccountedSlopeData() {
@@ -307,7 +307,7 @@ export default class LabelledSlopes extends Component {
 			})
 		})
 
-		// How to work out which of two slopes to prioritize for labelling conflicts	
+		// How to work out which of two slopes to prioritize for labelling conflicts
 		function chooseLabel(s1, s2) {
 			if (s1.isFocused && !s2.isFocused) // Focused slopes always have priority
 				return s1
@@ -333,7 +333,7 @@ export default class LabelledSlopes extends Component {
 						s2.hasLeftLabel = false
 					else
 						s1.hasLeftLabel = false
-				}				
+				}
 			})
 		})
 
@@ -344,7 +344,7 @@ export default class LabelledSlopes extends Component {
 						s2.hasRightLabel = false
 					else
 						s1.hasRightLabel = false
-				}				
+				}
 			})
 		})
 
@@ -371,7 +371,7 @@ export default class LabelledSlopes extends Component {
 				return distToLine
 			})[0]
 			this.focusKey = slope.key
-		}		
+		}
 	}
 
 	componentDidMount() {

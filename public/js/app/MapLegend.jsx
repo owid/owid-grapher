@@ -312,8 +312,12 @@ class CategoricalMapLegend extends Component {
 @observer
 export default class MapLegend extends Component {
     @computed get numericLegendData(): Object[] {
-        const l = this.props.legendData.filter(l => (l.type == "numeric" || l.value == "No data") && !l.hidden)
-        return _.flatten([l[l.length-1], l.slice(0, -1)])
+        if (this.hasCategorical || !_.any(this.props.legendData, d => d.value == "No data" && !d.hidden)) {
+            return this.props.legendData.filter(l => l.type == "numeric" && !l.hidden)
+        } else {
+            const l = this.props.legendData.filter(l => (l.type == "numeric" || l.value == "No data") && !l.hidden)
+            return _.flatten([l[l.length-1], l.slice(0, -1)])
+        }
     }
     @computed get hasNumeric(): boolean { return this.numericLegendData.length > 1 }
     @computed get categoricalLegendData(): Object[] {
@@ -342,7 +346,7 @@ export default class MapLegend extends Component {
     }
 
     @computed get categoryLegendHeight(): number {
-        return this.hasCategorical ? this.categoryLegend.height : 0
+        return this.hasCategorical ? this.categoryLegend.height+5 : 0
     }
 
     @computed get numericLegend(): NumericMapLegend {
@@ -365,7 +369,7 @@ export default class MapLegend extends Component {
 
         return <g>
             {hasNumeric && <NumericMapLegend {...numericLegend.props} x={bounds.centerX-numericLegend.width/2} y={bounds.bottom-wrapLabel.height-categoryLegendHeight-numericLegend.height-4}/>}
-            {hasCategorical && <CategoricalMapLegend {...categoryLegend.props} x={bounds.centerX-categoryLegend.width/2} y={bounds.bottom-wrapLabel.height-categoryLegend.height-5}/>}
+            {hasCategorical && <CategoricalMapLegend {...categoryLegend.props} x={bounds.centerX-categoryLegend.width/2} y={bounds.bottom-wrapLabel.height-categoryLegendHeight}/>}
             <Paragraph x={bounds.centerX-wrapLabel.width/2} y={bounds.bottom-wrapLabel.height}>{wrapLabel}</Paragraph>
         </g>
     }
