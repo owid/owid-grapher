@@ -10,10 +10,7 @@ export default class Text extends Component {
 		const bounds = Bounds.forText(this.props.children, { fontSize: this.props['font-size'] })
 		let {x, y} = this.props
 
-		if (baseline == 'middle')
-			y = y + bounds.height/2
-		else if (baseline == 'hanging')
-			y = y + bounds.height
+        y = y+bounds.height-bounds.height*0.2
 
 		return <text {...this.props} y={y} dominant-baseline={null}>{this.props.children}</text>
 	}
