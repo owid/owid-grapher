@@ -94,7 +94,7 @@ export default class ChoroplethMap extends Component {
 
             <g class="subunits" ref={g => this.subunits = g}>
                 {_.map(geoData.filter(d => !choroplethData[d.id]), d => {
-                    return <path d={pathData[d.id]} stroke-width={0.1} stroke="#ccc" cursor="pointer" fill="url(#diagonalHatch)"/>
+                    return <path d={pathData[d.id]} class="nodata" stroke-width={0.1} stroke="#ccc" cursor="pointer" fill="url(#diagonalHatch)"/>
                 })}
 
                 {_.map(geoData.filter(d => choroplethData[d.id]), (d) => {
