@@ -56,7 +56,7 @@ class MapTab extends Component {
     @action.bound onMapMouseOver(d, ev) {
         const datum = this.props.choroplethData[d.id]
         if (datum) this.focusEntity = datum
-        else this.focusEntity = { value: "No data" }
+        else this.focusEntity = { type: "categorical", value: "No data" }
 
         this.chart.tooltip.fromMap(d, ev);
     }

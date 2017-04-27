@@ -331,7 +331,7 @@ export default class MapLegend extends Component {
         if (focusEntity) return _.find(legendData, bin => {
             if (bin.type == "categorical")
                 return focusEntity.value == bin.value
-            else
+            else if (bin.type == "numeric")
                 return focusEntity.value >= bin.min && focusEntity.value <= bin.max
         })
     }
