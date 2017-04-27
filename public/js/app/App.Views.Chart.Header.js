@@ -1,7 +1,7 @@
 require('innersvg');
 var Bounds = require('./Bounds').default;
 
-;(function(d3) {	
+;(function(d3) {
 	"use strict";
 	owid.namespace("owid.view.header");
 
@@ -10,7 +10,7 @@ var Bounds = require('./Bounds').default;
 
 		header.needs('containerNode', 'bounds', 'titleStr');
 
-		header.defaults({ 
+		header.defaults({
 			titleLink: "",
 			subtitleStr: "",
 			logosSVG: []
@@ -75,7 +75,7 @@ var Bounds = require('./Bounds').default;
 
 			function resizeTitle(fontSize) {
 				title.style('font-size', fontSize + 'em');
-				owid.svgSetWrappedText(title, titleStr, boundsForText.width, { lineHeight: 1.1 });				
+				owid.svgSetWrappedText(title, titleStr, boundsForText.width, { lineHeight: 1.1 });
 			}
 
 			var fontSize = 1.5;
@@ -83,7 +83,7 @@ var Bounds = require('./Bounds').default;
 			while (fontSize > 1.0 && title.selectAll('tspan').size() > 1) {
 				resizeTitle(fontSize);
 				fontSize -= 0.05;
-			}			
+			}
 
 			if (fontSize <= 1.0)
 				resizeTitle(1.2);
@@ -107,7 +107,7 @@ var Bounds = require('./Bounds').default;
 
 			subtitle.attr('x', boundsForText.left+1).attr('y', boundsForText.top + titleBox.height);
 
-			// Subtitle text must always be smaller than title text. 
+			// Subtitle text must always be smaller than title text.
 			var fontSize = Math.min(0.8, titleFontSize-0.3);
 			subtitle.style('font-size', fontSize+'em');
 			owid.svgSetWrappedText(subtitle, subtitleStr, width, { lineHeight: 1.2 });
@@ -116,9 +116,9 @@ var Bounds = require('./Bounds').default;
 			if (subtitle.selectAll('tspan').size() > 2) {
 				fontSize = Math.min(0.65, fontSize);
 				subtitle.style('font-size', fontSize+'em');
-				owid.svgSetWrappedText(subtitle, subtitleStr, width, { lineHeight: 1.2 });				
+				owid.svgSetWrappedText(subtitle, subtitleStr, width, { lineHeight: 1.2 });
 			}
-		});		
+		});
 
         header.flow('bbox : g, titleStr, subtitleStr, boundsForText', function(g) {
             g.selectAll('.bgRect').remove();
@@ -170,11 +170,11 @@ var Bounds = require('./Bounds').default;
 					} else {
 						var timeFrom = owid.displayYear(minYear),
 							timeTo = owid.displayYear(maxYear),
-							time = timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo;	
+							time = timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo;
 
 						text = text.replace("*time*", time);
 						text = text.replace("*timeFrom*", timeFrom);
-						text = text.replace("*timeTo*", timeTo);					
+						text = text.replace("*timeTo*", timeTo);
 					}
 				}
 
@@ -210,7 +210,7 @@ var Bounds = require('./Bounds').default;
 			var minYear, maxYear, disclaimer="";
 			if (chart.activeTabName == "map") {
 				chart.mapdata.update();
-				
+
 				var mapConfig = chart.map.attributes,
 					timeFrom = chart.mapdata.minToleranceYear || mapConfig.targetYear,
 					timeTo = chart.mapdata.maxToleranceYear || mapConfig.targetYear,
@@ -252,7 +252,7 @@ var Bounds = require('./Bounds').default;
 
 			var baseUrl = Global.rootUrl + "/" + chart.model.get("slug"),
 				queryParams = owid.getQueryParams(),
-				queryStr = owid.queryParamsToStr(queryParams),				
+				queryStr = owid.queryParamsToStr(queryParams),
 				canonicalUrl = baseUrl + queryStr;
 
 			headerControl.update({

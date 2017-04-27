@@ -187,6 +187,14 @@ class NumericMapLegend extends Component {
         const bottomY = props.y+height
 
 		return <g class="numericMapLegend" ref={(g) => this.g = g}>
+            <defs>
+                <pattern id={"diagonalHatch"} patternUnits="userSpaceOnUse" width="4" height="4">
+                    <path d="M-1,1 l2,-2
+                               M0,4 l4,-4
+                               M3,5 l2,-2"
+                            style="stroke: #fff; stroke-width:0.2" />
+                </pattern>
+            </defs>
             {_.map(numericLabels, label =>
                 <line x1={props.x+label.bounds.x+label.bounds.width/2-0.15} y1={bottomY-rectHeight} x2={props.x+label.bounds.x+label.bounds.width/2-0.15} y2={bottomY+label.bounds.y+label.bounds.height} stroke="#666" strokeWidth={0.5}/>
             )}
@@ -196,6 +204,7 @@ class NumericMapLegend extends Component {
 
                 return [
                     <rect x={props.x+d.x} y={bottomY-rectHeight} width={d.width} height={rectHeight} fill={d.bin.color} stroke={isFocus && "#FFEC38"} strokeWidth={isFocus && 3}/>,
+                    <rect x={props.x+d.x} y={bottomY-rectHeight} width={d.width} height={rectHeight} fill="url(#diagonalHatch)"/>,
                     i < props.legendData.length-1 && <rect x={props.x+d.x-0.25} y={bottomY-rectHeight} width={0.5} height={rectHeight} fill={borderColor}/>
                 ]
             })}

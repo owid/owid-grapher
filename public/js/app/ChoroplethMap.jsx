@@ -82,15 +82,35 @@ export default class ChoroplethMap extends Component {
                 <clipPath id="boundsClip">
                     <rect {...bounds}></rect>
                 </clipPath>
+                {_.map(geoData, d => {
+                    const datum = choroplethData[d.id]
+                    const fill = datum && datum.color
+                    return <pattern id={"diagonalHatch-"+d.id} patternUnits="userSpaceOnUse" width="4" height="4">
+                      <path d="M-1,1 l2,-2
+                               M0,4 l4,-4
+                               M3,5 l2,-2"
+                            style="stroke: #fff; stroke-width:0.5" />
+                    </pattern>
+                })}
             </defs>
             {/*<rect {...bounds} fill="#ecf6fc"></rect>*/}
+
+
             <g class="subunits" ref={g => this.subunits = g}>
-                {_.map(geoData, (d) => {
+                {_.map(geoData.filter(d => !choroplethData[d.id]), d => {
+                    return <path d={pathData[d.id]} stroke-width={0.5} stroke="#999" cursor="pointer" fill="#eee" onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={(ev) => this.props.onClick(d)}/>
+                })}
+
+                {_.map(geoData.filter(d => choroplethData[d.id]), (d) => {
                     const datum = choroplethData[d.id]
                     const isFocus = focusBracket && focusBracket.contains(datum)
                     const stroke = isFocus ? "#FFEC38" : "#333"
                     const fill = datum ? datum.color : defaultFill
-                    return <path d={pathData[d.id]} stroke-width={isFocus ? 3 : 0.5} stroke={stroke} cursor="pointer" fill={fill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={(ev) => this.props.onClick(d)}/>
+
+                    return [
+                        <path d={pathData[d.id]} fill={fill}/>,
+                        <path d={pathData[d.id]} stroke-width={isFocus ? 3 : 0.5} stroke={stroke} cursor="pointer" fill={"url(#diagonalHatch-" + d.id+")"} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={(ev) => this.props.onClick(d)}/>
+                    ]
                 })}
             </g>
             {/*<text class="disclaimer" x={bounds.left+bounds.width-5} y={bounds.top+bounds.height-10} font-size="0.5em" text-anchor="end">
