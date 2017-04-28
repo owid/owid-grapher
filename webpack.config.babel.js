@@ -3,12 +3,13 @@ import webpack from 'webpack'
 import ExtractTextPlugin from 'extract-text-webpack-plugin'
 import ManifestPlugin from 'webpack-manifest-plugin'
 import OptimizeCssAssetsPlugin from 'optimize-css-assets-webpack-plugin'
+import LodashModuleReplacementPlugin from 'lodash-webpack-plugin'
 
 const isProduction = process.argv.indexOf('-p') !== -1
 
 export default {
-    context: path.join(__dirname, "public/js"),
-    entry: {
+    context: path.join(__dirname, "js"),
+    entry: {        
         charts: "./charts.entry.js",
         admin: "./admin.entry.js"
     },      
@@ -23,8 +24,8 @@ export default {
             'react-dom': 'preact-compat'
         },
         modules: [
-  	        path.join(__dirname, "public/js/libs"),
-            path.join(__dirname, "public/css/libs"),
+  	        path.join(__dirname, "js/libs"),
+            path.join(__dirname, "css/libs"),
             path.join(__dirname, "node_modules"),
         ],
     },
@@ -53,6 +54,8 @@ export default {
         // into a separate CSS bundle for download
         new ExtractTextPlugin('[name].bundle.[chunkhash].css'),
 
+        new LodashModuleReplacementPlugin(),
+
         // CSS optimization
         new OptimizeCssAssetsPlugin({
             assetNameRegExp: /\.bundle.*\.css$/,
@@ -79,6 +82,7 @@ export default {
         // filenames
         new ManifestPlugin(),        
     ] : [
+        new LodashModuleReplacementPlugin(),
         new ExtractTextPlugin('[name].bundle.css'),
     ]),
     devServer: {

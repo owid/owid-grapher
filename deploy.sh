@@ -19,7 +19,7 @@ TMP_NEW="$ROOT/tmp/$NAME-new"
 LIVE_TARGET="$ROOT/$NAME-code"
 LIVE_DATA="$ROOT/$NAME-data"
 
-webpack -p
+yarn build
 ssh -t $HOST "mkdir -p $ROOT/tmp; rm -rf $OLD_REPO"
 $RSYNC $DIR/ $HOST:$SYNC_TARGET
 ssh -t $HOST 'bash -e -s' <<EOF
@@ -35,6 +35,7 @@ ssh -t $HOST 'bash -e -s' <<EOF
   cd $LIVE_TARGET && php artisan migrate --force
   cd $LIVE_TARGET && yarn install --production
   sudo chown owid:www-data -R /home/owid/*
+  sudo chown www-data:www-data -R /home/owid/ourworldindata.org
   sudo chmod g+rw -R /home/owid/*
 EOF
 
