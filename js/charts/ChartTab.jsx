@@ -298,7 +298,7 @@ export default function(chart) {
 
 	function renderScatterPlot() {
 		if (!viz) {
-			viz = owid.control.scatter();
+			viz = Scatter();
 		} else if (viz.scatter.timeline && (viz.scatter.timeline.isPlaying || viz.scatter.timeline.isDragging)) {
 			return;
 		}

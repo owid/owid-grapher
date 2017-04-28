@@ -1,17 +1,17 @@
 /* Importer.jsx
- * ================                                                             
+ * ================
  *
  * Frontend for editing datasets.
  *
  * @project Our World In Data
  * @author  Jaiden Mispy
  * @created 2017-02-17
- */ 
+ */
 
 // @flow
 
 import * as _ from 'underscore'
-import owid from '../owid'	
+import owid from '../owid'
 
 import React, {Component} from 'react'
 import {observable, computed, action, autorun} from 'mobx'
@@ -86,7 +86,7 @@ class Dataset {
 
 	@computed get sources() {
 		const {newVariables, existingVariables} = this
-		const sources = _.pluck(existingVariables.concat(newVariables), 'source')		
+		const sources = _.pluck(existingVariables.concat(newVariables), 'source')
 		return _.uniq(_.filter(sources), source => source.id)
 	}
 
@@ -138,7 +138,7 @@ class Dataset {
 		})
 
 		autorun(() => {
-			if (this.id == null) return; 
+			if (this.id == null) return;
 
 			App.fetchJSON(`/datasets/${this.id}.json`).then(data => {
 				// todo error handling
@@ -241,10 +241,10 @@ const EditCategory = ({categories, dataset}) => {
 
 	return <label>
 		Category <span class="form-section-desc">(Currently used only for internal organization)</span>
-		<select onChange={e => dataset.subcategoryId = e.target.value} value={dataset.subcategoryId}>	
-			{_.map(categoriesByParent, (subcats, parent) => 
+		<select onChange={e => dataset.subcategoryId = e.target.value} value={dataset.subcategoryId}>
+			{_.map(categoriesByParent, (subcats, parent) =>
 				<optgroup label={parent}>
-					{_.map(subcats, category => 
+					{_.map(subcats, category =>
 						<option value={category.id}>{category.name}</option>
 					)}
 				</optgroup>
@@ -264,7 +264,7 @@ class EditVariable extends Component {
 
 	render() {
 		const {variable, dataset} = this.props
-		const {editSource} = this 
+		const {editSource} = this
 
 		const sourceName = variable.source && (variable.source.id ? variable.source.name : `New: ${variable.source.name}`)
 
@@ -296,15 +296,15 @@ class EditVariable extends Component {
 				<label>Action
 					<select onChange={e => variable.overwriteId = e.target.value}>
 						<option selected={variable.overwriteId == null}>Create new variable</option>
-						{_.map(dataset.existingVariables, v => 
+						{_.map(dataset.existingVariables, v =>
 							<option value={v.id} selected={variable.overwriteId == v.id}>Overwrite {v.name}</option>
-						)}							
+						)}
 					</select>
 				</label>
 			</div>
 			{editSource && <EditSource variable={variable} dataset={dataset} onSave={e => this.editSource = false}/>}
 		</li>
-	}	
+	}
 }
 
 @observer
@@ -317,8 +317,8 @@ class EditVariables extends Component {
 			<p class="form-section-desc">Here you can configure the variables that will be stored for your dataset.</p>
 
 			<ol>
-				{_.map(dataset.newVariables, variable => 
-					<EditVariable variable={variable} dataset={dataset}/>	
+				{_.map(dataset.newVariables, variable =>
+					<EditVariable variable={variable} dataset={dataset}/>
 				)}
 			</ol>
 		</section>
@@ -326,7 +326,7 @@ class EditVariables extends Component {
 }
 
 @observer
-class EditSource extends Component {	
+class EditSource extends Component {
 	@observable source = null
 
 	constructor(props) {
@@ -348,7 +348,7 @@ class EditSource extends Component {
 	@action.bound onSave(e) {
 		e.preventDefault()
 		this.props.variable.source = this.source
-		this.props.onSave()	
+		this.props.onSave()
 	}
 
 	render() {
@@ -362,7 +362,7 @@ class EditSource extends Component {
 				<span>Source:</span>
 				<select onChange={this.onChangeSource}>
 					<option selected={!source.id}>Create new</option>
-					{_.map(dataset.sources, otherSource => 
+					{_.map(dataset.sources, otherSource =>
 						<option value={otherSource.name} selected={source.name == otherSource.name}>{otherSource.name}</option>
 					)}
 				</select>
@@ -391,18 +391,18 @@ class EditSource extends Component {
 				For institutional projects, the format should be similar, but detailing the corresponding project or report. <br/>
 				For data that we have modified extensively in order to change the meaning of the data, we should list OWID as publisher, and provide the name of the person in charge of the calculation.<br/>
 				The field “Data publisher’s source” should give basic pointers (e.g. surveys data). Anything longer than a line should be relegated to the field “Additional information”. <br/>
-				Sometimes it is necessary to change the structure of this description. (e.g. the row dedicated to ‘Link’ or Data publisher’s source has to be deleted). 
+				Sometimes it is necessary to change the structure of this description. (e.g. the row dedicated to ‘Link’ or Data publisher’s source has to be deleted).
 			</p>
 			{source.id && <p class="existing-source-warning text-warning">
 				<i class="fa fa-warning"></i> You are editing an existing source. Changes may also affect other variables.
 			</p>}
 			<input type="submit" class="btn btn-success" value="Save"/>
-		</form>		
-	}	
+		</form>
+	}
 }
 
 @observer
-class ImportProgressModal extends Component {	
+class ImportProgressModal extends Component {
 	@action.bound onDismiss() {
 		const {dataset} = this.props
 		dataset.importRequest = null
@@ -430,7 +430,7 @@ class CSV {
 	existingEntities: []
 
 	@computed get basename() {
-		return (this.filename.match(/(.*?)(.csv)?$/)||[])[1]		
+		return (this.filename.match(/(.*?)(.csv)?$/)||[])[1]
 	}
 
 	@computed get data() {
@@ -504,7 +504,7 @@ class CSV {
 		const uniqCheck = {}
 		for (let i = 1; i < rows.length; i++) {
 			const row = rows[i]
-			const entityName = row[0], year = row[1]			
+			const entityName = row[0], year = row[1]
 			const key = entityName+'-'+year
 			uniqCheck[key] = uniqCheck[key] || 0
 			uniqCheck[key] += 1
@@ -567,7 +567,7 @@ class ValidationResults extends Component {
 		const {validation} = this.props
 
 		return <section class={styles.validation}>
-			{_.map(validation.results, v => 
+			{_.map(validation.results, v =>
 				<div class={`alert alert-${v.class}`}>{v.message}</div>
 			)}
 		</section>
@@ -579,7 +579,7 @@ class CSVSelector extends Component {
 	props: {
 		onCSV: CSV => void
 	}
-	
+
 	@observable csv : ?csv = null
 
 	@action.bound onChooseCSV({target}: {target: HTMLInputElement}) {
@@ -599,7 +599,7 @@ class CSVSelector extends Component {
 					this.csv = new CSV({ filename: file.name, rows, existingEntities })
 					this.props.onCSV(this.csv)
 				}
-			)			
+			)
 		}
 		reader.readAsText(file)
 	}
@@ -650,7 +650,7 @@ export default class Importer extends Component {
 		e.preventDefault()
 		this.dataset.save()
 	}
-	
+
 	render() {
 		const {csv, dataset} = this
 		const {datasets, categories, existingEntities} = this.props

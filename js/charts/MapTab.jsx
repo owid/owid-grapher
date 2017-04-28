@@ -94,8 +94,8 @@ class MapTab extends Component {
         this.focusBracket = d
     }
 
-    @action.bound onTimelineChange({ targetStartYear }) {
-        this.chart.map.set('targetYear', targetStartYear)
+    @action.bound onTargetChange(targetYear) {
+        this.chart.map.set('targetYear', targetYear)
     }
 
     @action.bound onLegendMouseLeave() {
@@ -106,7 +106,7 @@ class MapTab extends Component {
         if (this.props.years.length <= 1 || window.chart.isExport) return null
         const {years, inputYear} = this.props
 
-        return preInstantiate(<Timeline bounds={this.props.bounds.fromBottom(45)} years={years} startYear={inputYear} endYear={inputYear} singleYearMode={true}/>)
+        return preInstantiate(<Timeline bounds={this.props.bounds.fromBottom(45)} years={years} inputYear={inputYear}/>)
     }
 
     @computed get timelineHeight() {

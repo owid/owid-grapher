@@ -9,10 +9,10 @@ const isProduction = process.argv.indexOf('-p') !== -1
 
 export default {
     context: path.join(__dirname, "js"),
-    entry: {        
+    entry: {
         charts: "./charts.entry.js",
         admin: "./admin.entry.js"
-    },      
+    },
     output: {
         path: path.join(__dirname, "public/build"),
         filename: (isProduction ? "[name].bundle.[chunkhash].js" : "[name].bundle.js")
@@ -21,7 +21,7 @@ export default {
         extensions: [".js", ".jsx", ".css"],
         alias: {
             'react': 'preact-compat',
-            'react-dom': 'preact-compat'
+            'react-dom': 'preact-compat',
         },
         modules: [
   	        path.join(__dirname, "js/libs"),
@@ -31,7 +31,7 @@ export default {
     },
     module: {
         rules: [
-            { 
+            {
                 test: /(preact-compat|\.jsx)/, // Preact-compat uses getters that don't work in IE11 for some reason
                 loader: "babel-loader",
             },
@@ -80,7 +80,7 @@ export default {
 
         // Output manifest so server can figure out the hashed
         // filenames
-        new ManifestPlugin(),        
+        new ManifestPlugin(),
     ] : [
         new LodashModuleReplacementPlugin(),
         new ExtractTextPlugin('[name].bundle.css'),
