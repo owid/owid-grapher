@@ -95,37 +95,30 @@ export default class ChoroplethMap extends Component {
 
     render() {
         const { bounds, choroplethData, defaultFill, geoData, pathData, hasFocus } = this
+        const focusColor = "#FFEC38"
+        const focusStrokeWidth = 2.5
 
         return <g class="map" clip-path="url(#boundsClip)">
             <defs>
                 <clipPath id="boundsClip">
                     <rect {...bounds}></rect>
                 </clipPath>
-                <pattern id="diagonalHatch" patternUnits="userSpaceOnUse" width="4" height="4">
-                  <path d="M-1,1 l2,-2
-                           M0,4 l4,-4
-                           M3,5 l2,-2"
-                        stroke="#ccc" stroke-width={0.5} />
-                </pattern>
             </defs>
-            {/*<rect {...bounds} fill="#ecf6fc"></rect>*/}
-
-
             <g class="subunits" ref={g => this.subunits = g}>
                 {_.map(geoData.filter(d => !choroplethData[d.id]), d => {
                     const isFocus = this.hasFocus(d)
-                    const stroke = isFocus ? "#FFEC38" : "#333"
-                    return <path key={d.id} d={pathData[d.id]} stroke-width={isFocus ? 3 : 0.3} stroke={stroke} cursor="pointer" fill={defaultFill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={(ev) => this.props.onClick(d)}/>
+                    const stroke = isFocus ? focusColor : "#333"
+                    return <path key={d.id} d={pathData[d.id]} stroke-width={isFocus ? focusStrokeWidth : 0.3} stroke={stroke} cursor="pointer" fill={defaultFill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={(ev) => this.props.onClick(d)}/>
                 })}
 
                 {_.sortBy(_.map(geoData.filter(d => choroplethData[d.id]), (d) => {
                     const isFocus = this.hasFocus(d)
                     const datum = choroplethData[d.id]
-                    const stroke = isFocus ? "#FFEC38" : "#333"
+                    const stroke = isFocus ? focusColor : "#333"
                     const fill = datum ? datum.color : defaultFill
 
                     return [
-                        <path key={d.id} d={pathData[d.id]} stroke-width={isFocus ? 3 : 0.5} stroke={stroke} cursor="pointer" fill={fill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={(ev) => this.props.onClick(d)}/>
+                        <path key={d.id} d={pathData[d.id]} stroke-width={isFocus ? focusStrokeWidth : 0.5} stroke={stroke} cursor="pointer" fill={fill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={(ev) => this.props.onClick(d)}/>
                     ]
                 }), p => p[0].props['stroke-width'])}
             </g>
