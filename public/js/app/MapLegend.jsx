@@ -31,7 +31,7 @@ class NumericMapLegend extends Component {
     @computed get categoryBinMargin() { return this.rectHeight*1.5 }
     @computed get totalDefaultWidth() {
         return _.reduce(
-            this.props.legendData.map(d => !_.isFinite(d.max-d.min) ? this.categoryBinWidth : 0),
+            this.props.legendData.map(d => !_.isFinite(d.max-d.min) ? this.categoryBinWidth+this.categoryBinMargin : 0),
             (m, n) => m+n
         )
     }
@@ -334,9 +334,9 @@ export default class MapLegend extends Component {
         if (focusBracket) return focusBracket
         if (focusEntity) return _.find(legendData, bin => {
             if (bin.type == "categorical")
-                return focusEntity.value == bin.value
+                return focusEntity.datum.value == bin.value
             else if (bin.type == "numeric")
-                return focusEntity.value >= bin.min && focusEntity.value <= bin.max
+                return focusEntity.datum.value >= bin.min && focusEntity.datum.value <= bin.max
         })
     }
 

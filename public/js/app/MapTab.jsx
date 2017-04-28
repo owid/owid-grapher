@@ -55,8 +55,7 @@ class MapTab extends Component {
 
     @action.bound onMapMouseOver(d, ev) {
         const datum = this.props.choroplethData[d.id]
-        if (datum) this.focusEntity = datum
-        else this.focusEntity = { type: "categorical", value: "No data" }
+        this.focusEntity = { id: d.id, datum: datum || { value: "No data" } }
 
         this.chart.tooltip.fromMap(d, ev);
     }
@@ -126,7 +125,7 @@ class MapTab extends Component {
 
         return <g class="mapTab" ref={g => this.g = g}>
             {/*<rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height-timelineHeight} fill="#ecf6fc"/>*/}
-            <ChoroplethMap bounds={bounds.padBottom(timelineHeight+mapLegend.height+15).padTop(10)} choroplethData={choroplethData} projection={projection} defaultFill={defaultFill} onHover={this.onMapMouseOver} onHoverStop={this.onMapMouseLeave} onClick={this.onClick} focusBracket={focusBracket}/>,
+            <ChoroplethMap bounds={bounds.padBottom(timelineHeight+mapLegend.height+15).padTop(10)} choroplethData={choroplethData} projection={projection} defaultFill={defaultFill} onHover={this.onMapMouseOver} onHoverStop={this.onMapMouseLeave} onClick={this.onClick} focusBracket={focusBracket} focusEntity={focusEntity}/>,
             <MapLegend {...mapLegend.props}/>
             {timeline && <Timeline {...timeline.props} onTargetChange={this.onTargetChange} ref={e => this.chart.tabs.map.timeline = e}/>}
         </g>

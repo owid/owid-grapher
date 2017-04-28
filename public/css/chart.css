@@ -821,10 +821,6 @@ a {
 #chart g.map .border-disclaimer {
     font-size: 0.6em;
 }
-#chart g.map path:hover {
-    stroke: #FFEC38 !important;
-    stroke-width: 3px !important;
-}
 .datamaps-hoverover {
     font-family: inherit !important;
     text-align: center;

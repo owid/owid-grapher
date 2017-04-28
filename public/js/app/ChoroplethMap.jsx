@@ -74,8 +74,27 @@ export default class ChoroplethMap extends Component {
         return this.props.focusBracket
     }
 
+    @computed get focusEntity() {
+        return this.props.focusEntity
+    }
+
+    // Check if a geo entity is currently focused, either directly or via the bracket
+    hasFocus(geo) {
+        const {choroplethData, focusBracket, focusEntity} = this
+        if (focusEntity && focusEntity.id == geo.id)
+            return true
+
+        const datum = choroplethData[geo.id]
+        if (datum == null && focusBracket && focusBracket.value == "No data")
+            return true
+        else if (focusBracket && focusBracket.contains(datum))
+            return true
+        else
+            return false
+    }
+
     render() {
-        const { bounds, choroplethData, defaultFill, geoData, pathData, focusBracket } = this
+        const { bounds, choroplethData, defaultFill, geoData, pathData, hasFocus } = this
 
         return <g class="map" clip-path="url(#boundsClip)">
             <defs>
@@ -94,19 +113,19 @@ export default class ChoroplethMap extends Component {
 
             <g class="subunits" ref={g => this.subunits = g}>
                 {_.map(geoData.filter(d => !choroplethData[d.id]), d => {
-                    const isFocus = focusBracket && focusBracket.value == "No data"
+                    const isFocus = this.hasFocus(d)
                     const stroke = isFocus ? "#FFEC38" : "#333"
-                    return <path d={pathData[d.id]} stroke-width={isFocus ? 3 : 0.3} stroke={stroke} cursor="pointer" fill={defaultFill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={(ev) => this.props.onClick(d)}/>
+                    return <path key={d.id} d={pathData[d.id]} stroke-width={isFocus ? 3 : 0.3} stroke={stroke} cursor="pointer" fill={defaultFill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={(ev) => this.props.onClick(d)}/>
                 })}
 
                 {_.map(geoData.filter(d => choroplethData[d.id]), (d) => {
+                    const isFocus = this.hasFocus(d)
                     const datum = choroplethData[d.id]
-                    const isFocus = focusBracket && focusBracket.contains(datum)
                     const stroke = isFocus ? "#FFEC38" : "#333"
                     const fill = datum ? datum.color : defaultFill
 
                     return [
-                        <path d={pathData[d.id]} stroke-width={isFocus ? 3 : 0.5} stroke={stroke} cursor="pointer" fill={fill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={(ev) => this.props.onClick(d)}/>
+                        <path key={d.id} d={pathData[d.id]} stroke-width={isFocus ? 3 : 0.5} stroke={stroke} cursor="pointer" fill={fill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={(ev) => this.props.onClick(d)}/>
                     ]
                 })}
             </g>
