@@ -77,32 +77,6 @@ class Chart extends Model {
 
 		$config->logosSVG = Logo::whereIn('name', $config->logos)->lists('svg');
 
-		// Allow url parameters to override the chart's default
-		// selected countries configuration. We need to use the raw
-		// query string for this because we want to distinguish between
-		// %20 and +.
-		// TODO maybe unnecessary now
-		preg_match("/country=([^&]+)/", Chart::getQueryString(), $matches);
-		if ($matches) {
-			$countryCodes = array_map(function($code) { return urldecode($code); }, explode("+", $matches[1]));
-			$query = DB::table('entities')
-				->select('id', 'name')
-				->whereIn('code', $countryCodes)
-				->orWhere(function($query) use ($countryCodes) {
-					$query->whereIn('name', $countryCodes);
-				});
-
-			$oldSelectedCountries = $config->{"selected-countries"};
-			$config->{"selected-countries"} = $query->get();
-			foreach ($config->{"selected-countries"} as $entity) {
-				// Preserve custom colors
-				foreach ($oldSelectedCountries as $oldEntity) {
-					if (isset($oldEntity->color) && $oldEntity->name == $entity->name)
-						$entity->color = $oldEntity->color;
-				}
-			}
-		}
-
 		return $config;
 	}
 
