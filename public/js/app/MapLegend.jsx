@@ -56,7 +56,7 @@ class NumericMapLegend extends Component {
             return {
                 x: x,
                 width: width,
-                marginRight: margin,
+                margin: margin,
                 bin: d
             }
         })
@@ -153,7 +153,7 @@ class NumericMapLegend extends Component {
 
         let focusBracket = null
         this.positionedBins.forEach(d => {
-            if (mouse[0] > props.x+d.x)
+            if (mouse[0] >= props.x+d.x && mouse[0] <= props.x+d.x+d.width)
                 focusBracket = d.bin
         })
 
@@ -204,13 +204,12 @@ class NumericMapLegend extends Component {
             {_.map(numericLabels, label =>
                 <line x1={props.x+label.bounds.x+label.bounds.width/2-0.15} y1={bottomY-rectHeight} x2={props.x+label.bounds.x+label.bounds.width/2-0.15} y2={bottomY+label.bounds.y+label.bounds.height} stroke={borderColor} strokeWidth={0.3}/>
             )}
-            {_.map(positionedBins, (d, i) => {
+            {_.sortBy(_.map(positionedBins, (d, i) => {
                 const isFocus = props.focusBracket && (d.bin.min == props.focusBracket.min || (d.bin.value != null && d.bin.value == props.focusBracket.value))
 
-                return [
-                    <rect x={props.x+d.x} y={bottomY-rectHeight} width={d.width} height={rectHeight} fill={d.bin.color} stroke={isFocus ? "#FFEC38" : borderColor} strokeWidth={isFocus ? 3 : 0.3}/>
-                ]
-            })}
+                return <rect x={props.x+d.x} y={bottomY-rectHeight} width={d.width} height={rectHeight} fill={d.bin.color} stroke={isFocus ? "#FFEC38" : borderColor} strokeWidth={isFocus ? 3 : 0.3}/>
+
+            }), r => r.props['stroke-width'])}
             {_.map(numericLabels, label =>
                 <text x={props.x+label.bounds.x} y={bottomY+label.bounds.y} fontSize={label.fontSize} dominant-baseline="hanging">{label.text}</text>
             )}

@@ -118,7 +118,7 @@ export default class ChoroplethMap extends Component {
                     return <path key={d.id} d={pathData[d.id]} stroke-width={isFocus ? 3 : 0.3} stroke={stroke} cursor="pointer" fill={defaultFill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={(ev) => this.props.onClick(d)}/>
                 })}
 
-                {_.map(geoData.filter(d => choroplethData[d.id]), (d) => {
+                {_.sortBy(_.map(geoData.filter(d => choroplethData[d.id]), (d) => {
                     const isFocus = this.hasFocus(d)
                     const datum = choroplethData[d.id]
                     const stroke = isFocus ? "#FFEC38" : "#333"
@@ -127,7 +127,7 @@ export default class ChoroplethMap extends Component {
                     return [
                         <path key={d.id} d={pathData[d.id]} stroke-width={isFocus ? 3 : 0.5} stroke={stroke} cursor="pointer" fill={fill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={(ev) => this.props.onClick(d)}/>
                     ]
-                })}
+                }), p => p[0].props['stroke-width'])}
             </g>
             {/*<text class="disclaimer" x={bounds.left+bounds.width-5} y={bounds.top+bounds.height-10} font-size="0.5em" text-anchor="end">
                 Mapped on current borders
