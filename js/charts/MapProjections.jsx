@@ -1,4 +1,5 @@
 import {geoRobinson} from 'd3-geo-projection'
+import * as d3v4 from 'd3'
 
 // @flow
 export default {

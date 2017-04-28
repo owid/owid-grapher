@@ -3,7 +3,7 @@ import owid from '../owid'
 import colorbrewer from './owid.colorbrewer'
 
 export default function(chart) {
-	function mapdata() { }		
+	function mapdata() { }
 	var changes = owid.changes();
 	changes.track(chart.vardata);
 	changes.track(chart.map);
@@ -77,7 +77,7 @@ export default function(chart) {
 		// Numeric 'buckets' of color
 		if (!_.isEmpty(intervalMaximums)) {
 			var minValue = chart.map.get('colorSchemeMinValue');
-			if (minValue == null) minValue = "";
+			if (!_.isFinite(parseFloat(minValue))) minValue = 0;
 
 			for (var i = 0; i < intervalMaximums.length; i++) {
 				var baseColor = baseColors[i],
@@ -94,10 +94,14 @@ export default function(chart) {
 				if (minText.length-minValue.toString().length > 8)
 					minText = minValue.toString();
 
-				legendData.push({ type: 'numeric', 
-								  min: _.isFinite(+minValue) ? +minValue : -Infinity, max: maxValue,
-								  minText: minText, maxText: maxText, 
-								  label: label, text: label, baseColor: baseColor, color: color });
+				legendData.push({ type: 'numeric',
+								  min: _.isFinite(parseFloat(minValue)) ? +minValue : -Infinity, max: maxValue,
+								  minText: minText, maxText: maxText,
+								  label: label, text: label, baseColor: baseColor, color: color,
+                                  index: i,
+                                  contains: function(d) {
+                                    return d && (this.index == 0 ? d.value >= this.min : d.value > this.min) && d.value <= this.max
+                                  }});
 				minValue = maxValue;
 			}
 		}
@@ -112,19 +116,21 @@ export default function(chart) {
 		}
 
 		// Add default 'No data' category
-		if (!_.includes(categoricalValues, 'No data')) categoricalValues.push('No data');			
+		if (!_.includes(categoricalValues, 'No data')) categoricalValues.push('No data');
 		customCategoryColors = _.extend({}, customCategoryColors, { 'No data': mapdata.getNoDataColor() });
 
 		// Categorical values, each assigned a color
 		if (!_.isEmpty(categoricalValues)) {
-			for (var i = 0; i < categoricalValues.length; i++) {					
+			for (var i = 0; i < categoricalValues.length; i++) {
 				var value = categoricalValues[i], boundingOffset = _.isEmpty(intervalMaximums) ? 0 : intervalMaximums.length-1,
 					baseColor = baseColors[i+boundingOffset],
 					color = customCategoryColors[value] || baseColor,
 					label = customCategoryLabels[value] || "",
 					text = label || value;
 
-				legendData.push({ type: 'categorical', value: value, baseColor: baseColor, color: color, label: label, text: text, hidden: customHiddenCategories[value] });
+				legendData.push({ type: 'categorical', value: value, baseColor: baseColor, color: color, label: label, text: text, hidden: customHiddenCategories[value], contains: function(d) {
+                    return (d == null && value == 'No data') || d.value == this.value
+                }});
 			}
 		}
 
@@ -149,7 +155,7 @@ export default function(chart) {
 		if (!scheme) {
 			console.error("No such color scheme: " + scheme);
 			// Return a default color scheme
-			return getColors(numColors, _.extend({}, mapConfig, { colorSchemeName: _.keys(owid.colorbrewer)[0] }));
+			return getColors(numColors, _.extend({}, mapConfig, { colorSchemeName: _.keys(colorbrewer)[0] }));
 		}
 
 		if (!_.isEmpty(scheme.colors[numColors]))
@@ -170,7 +176,7 @@ export default function(chart) {
 				i += 1;
 
 				if (colors.length >= numColors) break;
-			}		
+			}
 		}
 		return colors;
 	}
@@ -194,7 +200,7 @@ export default function(chart) {
 		});
 	}
 
-	// Transforms raw variable data into datamaps format with meta information 
+	// Transforms raw variable data into datamaps format with meta information
 	// specific to the current target year + tolerance
 	function updateCurrentValues() {
 		var variable = chart.map.getVariable(),
@@ -216,7 +222,7 @@ export default function(chart) {
 
 		for (var i = 0; i < values.length; i++) {
 			var year = years[i];
-			if (year < targetYear-tolerance || year > targetYear+tolerance) 
+			if (year < targetYear-tolerance || year > targetYear+tolerance)
 				continue;
 
 			// Make sure we use the closest year within tolerance (favoring later years)
@@ -232,7 +238,7 @@ export default function(chart) {
 			};
 		}
 
-		mapdata.minCurrentValue = _.minBy(_.values(currentValues), function(d, i) { return d.value; }).value;
+        mapdata.minCurrentValue = _.minBy(_.values(currentValues), function(d, i) { return d.value; }).value;
 		mapdata.maxCurrentValue = _.maxBy(_.values(currentValues), function(d, i) { return d.value; }).value;
 		mapdata.minToleranceYear = _.minBy(_.values(currentValues), function(d, i) { return d.year; }).year;
 		mapdata.maxToleranceYear = _.maxBy(_.values(currentValues), function(d, i) { return d.year; }).year;
@@ -254,6 +260,6 @@ export default function(chart) {
 		applyLegendColors();
 		changes.done();
 	};
-	
+
 	return mapdata;
 };

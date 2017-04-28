@@ -20,8 +20,8 @@ class NumericMapLegend extends Component {
 
     // NumericMapLegend wants to map a range to a width. However, sometimes we are given
     // data without a clear min/max. So we must fit these scurrilous bins into the width somehow.
-    @computed get minValue() { return _.min(this.props.legendData.map(d => d.min).filter(v => _.isFinite(v))) }
-    @computed get maxValue() { return _.max(this.props.legendData.map(d => d.max).filter(v => _.isFinite(v))) }
+    @computed get minValue() { return _.minBy(this.props.legendData.map(d => d.min).filter(v => _.isFinite(v))) }
+    @computed get maxValue() { return _.maxBy(this.props.legendData.map(d => d.max).filter(v => _.isFinite(v))) }
     @computed get rangeSize() { return this.maxValue - this.minValue }
     @computed get categoryBinWidth() {
         //const meanRange = _.reduce(this.numericLegendData, (m, d) => m+(d.max-d.min), 0)/this.numericLegendData.length
@@ -140,7 +140,7 @@ class NumericMapLegend extends Component {
         return labels
     }
 
-    @computed get height() { return Math.abs(_.min(this.numericLabels.map(l => l.bounds.y))) }
+    @computed get height() { return Math.abs(_.minBy(this.numericLabels.map(l => l.bounds.y))) }
 
     @action.bound onMouseMove(evt) {
         const {props, bounds, g, minValue, rangeSize} = this
@@ -265,7 +265,7 @@ class CategoricalMapLegend extends Component {
     }
 
     @computed get width() {
-        return _.max(this.markLines.map(l => l.totalWidth))
+        return _.maxBy(this.markLines.map(l => l.totalWidth))
     }
 
     @computed get marks() {
@@ -284,7 +284,7 @@ class CategoricalMapLegend extends Component {
     }
 
     @computed get height() {
-        return _.max(_.map(this.marks, m => m.y+m.rectSize))
+        return _.maxBy(_.map(this.marks, m => m.y+m.rectSize))
     }
 
     @computed get bounds() {
@@ -311,7 +311,7 @@ class CategoricalMapLegend extends Component {
 @observer
 export default class MapLegend extends Component {
     @computed get numericLegendData(): Object[] {
-        if (this.hasCategorical || !_.any(this.props.legendData, d => d.value == "No data" && !d.hidden)) {
+        if (this.hasCategorical || !_.some(this.props.legendData, d => d.value == "No data" && !d.hidden)) {
             return this.props.legendData.filter(l => l.type == "numeric" && !l.hidden)
         } else {
             const l = this.props.legendData.filter(l => (l.type == "numeric" || l.value == "No data") && !l.hidden)

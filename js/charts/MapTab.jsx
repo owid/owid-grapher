@@ -106,7 +106,7 @@ class MapTab extends Component {
         if (this.props.years.length <= 1 || window.chart.isExport) return null
         const {years, inputYear} = this.props
 
-        return preInstantiate(<Timeline bounds={this.props.bounds.fromBottom(45)} years={years} startYear={inputYear} endYear={endYear} singleYearMode={true}/>)
+        return preInstantiate(<Timeline bounds={this.props.bounds.fromBottom(45)} years={years} startYear={inputYear} endYear={inputYear} singleYearMode={true}/>)
     }
 
     @computed get timelineHeight() {
