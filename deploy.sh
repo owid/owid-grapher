@@ -33,6 +33,7 @@ ssh -t $HOST 'bash -e -s' <<EOF
   ln -sf $LIVE_DATA/min $LIVE_TARGET/public/css/min
   ln -sf $LIVE_TARGET/public $ROOT/ourworldindata.org/$NAME
   cd $LIVE_TARGET && php artisan migrate --force
+  cd $LIVE_TARGET && yarn install --production
   sudo chown owid:www-data -R /home/owid/*
   sudo chmod g+rw -R /home/owid/*
 EOF
