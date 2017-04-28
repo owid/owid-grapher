@@ -7,13 +7,93 @@ import * as d3 from 'd3'
 import owid from '../owid'
 import dataflow from './owid.dataflow'
 import {stripTags} from 'underscore.string'
+import React, {Component} from 'react'
+import {render} from 'preact'
+import Text from './Text'
+import Paragraph from './Paragraph'
+import {preInstantiate} from './Util'
+import {observable, computed} from 'mobx'
+import {observer} from 'mobx-react'
+
+@observer
+class Logo extends Component {
+    props: {
+        svg: string,
+    }
+
+    @computed get targetHeight() {
+        return 50
+    }
+
+    @computed get bbox() {
+        var div = document.createElement('div');
+        div.innerHTML = this.props.svg;
+        document.body.appendChild(div)
+        const bbox = div.childNodes[0].getBBox()
+        document.body.removeChild(div)
+        return bbox
+    }
+
+    @computed get scale() {
+        return this.targetHeight/this.bbox.height;
+    }
+
+    @computed get width() { return this.bbox.width*this.scale }
+    @computed get height() { return this.bbox.height*this.scale }
+
+    render() {
+        const {props, scale} = this
+        const svg = props.svg.match(/<svg>(.*)<\/svg>/)[1]||props.svg
+        return <g transform={`translate(${props.x}, ${props.y}) scale(${scale})`} dangerouslySetInnerHTML={{ __html: svg }}/>
+    }
+}
+
+class Header extends Component {
+    @computed get logo() {
+        return preInstantiate(<Logo svg={this.props.logosSVG[0]}/>)
+    }
+
+    @computed get title() {
+        const {props, logo} = this
+
+        // Try to fit the title into a single line if possible-- but not if it would make the text super small
+        let title = null
+        let fontSize = 1.5
+        while (fontSize > 1.0) {
+            title = preInstantiate(<Paragraph width={props.width-logo.width}>{props.title}</Paragraph>)
+            if (title.lines.length <= 1)
+                break
+            fontSize -= 0.05
+        }
+
+        return title
+    }
+
+    @computed get subtitle() {
+        const {props, logo, title} = this
+        // If the subtitle is entirely below the logo, we can go underneath it
+        const subtitleWidth = title.height > logo.height ? props.width : props.width-logo.width
+
+        return preInstantiate(<Paragraph width={subtitleWidth}/>)
+    }
+
+    render() {
+        const {props, logo, title, subtitle} = this
+
+        return <g>
+            <Logo {...logo.props} x={props.x+props.width-logo.width} y={props.y}/>
+            <Paragraph {...title.props} x={props.x} y={props.y}>{props.title}</Paragraph>
+            <Paragraph {...subtitle.props} x={props.x} y={props.y+title.height}>{props.subtitle}</Paragraph>
+        </g>
+    }
+}
 
 function owid_header() {
 	var header = dataflow();
 
 	header.needs('containerNode', 'bounds', 'titleStr');
 
-	header.defaults({ 
+	header.defaults({
 		titleLink: "",
 		subtitleStr: "",
 		logosSVG: []
@@ -78,7 +158,7 @@ function owid_header() {
 
 		function resizeTitle(fontSize) {
 			title.style('font-size', fontSize + 'em');
-			owid.svgSetWrappedText(title, titleStr, boundsForText.width, { lineHeight: 1.1 });				
+			owid.svgSetWrappedText(title, titleStr, boundsForText.width, { lineHeight: 1.1 });
 		}
 
 		var fontSize = 1.5;
@@ -86,7 +166,7 @@ function owid_header() {
 		while (fontSize > 1.0 && title.selectAll('tspan').size() > 1) {
 			resizeTitle(fontSize);
 			fontSize -= 0.05;
-		}			
+		}
 
 		if (fontSize <= 1.0)
 			resizeTitle(1.2);
@@ -110,7 +190,7 @@ function owid_header() {
 
 		subtitle.attr('x', boundsForText.left+1).attr('y', boundsForText.top + titleBox.height);
 
-		// Subtitle text must always be smaller than title text. 
+		// Subtitle text must always be smaller than title text.
 		var fontSize = Math.min(0.8, titleFontSize-0.3);
 		subtitle.style('font-size', fontSize+'em');
 		owid.svgSetWrappedText(subtitle, subtitleStr, width, { lineHeight: 1.2 });
@@ -119,9 +199,9 @@ function owid_header() {
 		if (subtitle.selectAll('tspan').size() > 2) {
 			fontSize = Math.min(0.65, fontSize);
 			subtitle.style('font-size', fontSize+'em');
-			owid.svgSetWrappedText(subtitle, subtitleStr, width, { lineHeight: 1.2 });				
+			owid.svgSetWrappedText(subtitle, subtitleStr, width, { lineHeight: 1.2 });
 		}
-	});		
+	});
 
     header.flow('bbox : g, titleStr, subtitleStr, boundsForText', function(g) {
         g.selectAll('.bgRect').remove();
@@ -171,11 +251,11 @@ export default function(chart) {
 				} else {
 					var timeFrom = owid.displayYear(minYear),
 						timeTo = owid.displayYear(maxYear),
-						time = timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo;	
+						time = timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo;
 
 					text = text.replace("*time*", time);
 					text = text.replace("*timeFrom*", timeFrom);
-					text = text.replace("*timeTo*", timeTo);					
+					text = text.replace("*timeTo*", timeTo);
 				}
 			}
 
@@ -204,6 +284,7 @@ export default function(chart) {
         });
 	});
 
+    let rootNode = null
 	headerControl.render = function(bounds, done) {
 		bounds = bounds || this.cachedBounds
 		this.cachedBounds = bounds
@@ -211,7 +292,7 @@ export default function(chart) {
 		var minYear, maxYear, disclaimer="";
 		if (chart.activeTabName == "map") {
 			chart.mapdata.update();
-			
+
 			var mapConfig = chart.map.attributes,
 				timeFrom = chart.mapdata.minToleranceYear || mapConfig.targetYear,
 				timeTo = chart.mapdata.maxToleranceYear || mapConfig.targetYear,
@@ -253,10 +334,13 @@ export default function(chart) {
 
 		var baseUrl = Global.rootUrl + "/" + chart.model.get("slug"),
 			queryParams = owid.getQueryParams(),
-			queryStr = owid.queryParamsToStr(queryParams),				
+			queryStr = owid.queryParamsToStr(queryParams),
 			canonicalUrl = baseUrl + queryStr;
 
-		headerControl.update({
+        rootNode = render(<Header title={chart.model.get('title')} subtitle={chart.model.get('subtitle')} logosSVG={chart.model.get('logosSVG')} x={bounds.left} y={bounds.top} width={bounds.width}/>, chart.svg.node(), rootNode)
+        headerControl.view = { bbox: { height: 100 }}
+
+		/*headerControl.update({
 			containerNode: chart.svg.node(),
 			bounds: bounds,
 			titleTemplate: chart.model.get('title'),
@@ -267,10 +351,8 @@ export default function(chart) {
 			entityType: chart.model.get('entity-type'),
 			minYear: minYear,
 			maxYear: maxYear
-		}, done);
+		}, done);*/
 	};
-
-	headerControl.view = header;
 
 	return headerControl;
 }

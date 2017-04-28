@@ -11,6 +11,7 @@
  */
 
 import React, {Component} from 'react'
+import {computed} from 'mobx'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
 import _ from 'lodash'
@@ -59,9 +60,24 @@ export default class Paragraph extends Component {
 		}
 	}
 
-	render() {
-		const wrappedText = this.props.children
+    @computed get wrap() {
+        let wrap = this.props.children
+        if (!wrap.lines)
+            wrap = Paragraph.wrap(this.props.children, this.props.width, this.props)
+        return wrap
 
+    }
+
+    @computed get lines() {
+        return this.wrap.lines
+    }
+
+    @computed get height() {
+        return this.wrap.height
+    }
+
+	render() {
+        let wrappedText = this.wrap
 		return <text {...wrappedText.opts} {...this.props} y={this.props.y+wrappedText.lines[0].height-wrappedText.lines[0].height*0.2}>
 			{_.map(wrappedText.lines, (line, i) => {
 				return <tspan x={this.props.x} dy={i == 0 ? 0 : wrappedText.lineHeight + 'em'}>{line.str}</tspan>
