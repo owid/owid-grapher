@@ -20,10 +20,6 @@ button {
     font-size: 22px;
 }
 
-#chart.export > svg {
-    font-size: 24px;
-}
-
 #chart .btn {
     font-size: 0.8em;
     white-space: normal;
@@ -381,10 +377,13 @@ a {
 --------------------------------------------- */
 
 #chart .footer {
-    font-size: 0.65em;
+    font-size: 0.6em;
 }
 #chart .footer text {
     fill: #666;
+}
+#chart .footer a:not(.bold) {
+    opacity: 0.8;
 }
 #chart .footer a.bold {
     font-weight: bold;

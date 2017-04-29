@@ -24,7 +24,7 @@ export default class Paragraph extends Component {
         str = str || ""
 		const words = str.split(' ')
 		const lines = []
-		const lineHeight = 1.1
+		const lineHeight = opts.lineHeight || 1.1
 
 		let line = []
 		let lineBounds = Bounds.empty()

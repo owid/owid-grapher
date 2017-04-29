@@ -140,11 +140,11 @@ class ControlsFooter extends Component {
 
     @observable isShareMenuActive : boolean = false
 
-    @bind @action onTabChange(tabName) {
+    @action.bound onTabChange(tabName) {
         chart.update({ activeTabName: tabName })
     }
 
-    @bind @action onShareMenu() {
+    @action.bound onShareMenu() {
         this.isShareMenuActive = !this.isShareMenuActive
     }
 
@@ -156,8 +156,8 @@ class ControlsFooter extends Component {
                     {_.map(tabNames, (tabName) => {
                         return <li class={"tab clickable" + (tabName == activeTabName ? ' active' : '')} onClick={() => this.onTabChange(tabName)}><a>{tabName}</a></li>
                     })}
-                    <li class="clickable"><a title="Share" onClick={this.onShareMenu}><i class="fa fa-share-alt"/></a></li>                    
-                </ul>                
+                    <li class="clickable"><a title="Share" onClick={this.onShareMenu}><i class="fa fa-share-alt"/></a></li>
+                </ul>
             </nav>
             {isShareMenuActive && <ShareMenu config={this.props.config} onDismiss={() => this.isShareMenuActive=false}/>}
         </div>

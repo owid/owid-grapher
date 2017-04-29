@@ -106,7 +106,7 @@ class MapTab extends Component {
         if (this.props.years.length <= 1 || window.chart.isExport) return null
         const {years, inputYear} = this.props
 
-        return preInstantiate(<Timeline bounds={this.props.bounds.fromBottom(45)} years={years} inputYear={inputYear}/>)
+        return preInstantiate(<Timeline bounds={this.props.bounds.fromBottom(35)} years={years} inputYear={inputYear}/>)
     }
 
     @computed get timelineHeight() {
@@ -116,7 +116,7 @@ class MapTab extends Component {
     @computed get mapLegend() {
         const {legendData, legendTitle} = this.props
         const {focusBracket, focusEntity, timelineHeight} = this
-        return preInstantiate(<MapLegend bounds={this.props.bounds.padBottom(timelineHeight+10)} legendData={legendData} title={legendTitle} focusBracket={focusBracket} focusEntity={focusEntity} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave}/>)
+        return preInstantiate(<MapLegend bounds={this.props.bounds.padBottom(timelineHeight+5)} legendData={legendData} title={legendTitle} focusBracket={focusBracket} focusEntity={focusEntity} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave}/>)
     }
 
     render() {

@@ -26,7 +26,7 @@ class NumericMapLegend extends Component {
     @computed get categoryBinWidth() {
         //const meanRange = _.reduce(this.numericLegendData, (m, d) => m+(d.max-d.min), 0)/this.numericLegendData.length
         //return (meanRange/this.rangeSize) * this.props.width
-        return Bounds.forText("No data", { fontSize: "0.45em" }).width
+        return Bounds.forText("No data", { fontSize: "0.5em" }).width
     }
     @computed get categoryBinMargin() { return this.rectHeight*1.5 }
     @computed get totalDefaultWidth() {
@@ -65,7 +65,7 @@ class NumericMapLegend extends Component {
     @computed get numericLabels() {
         const {width} = this.props
         const {minValue, rangeSize, rectHeight, positionedBins} = this
-        const fontSize = "0.45em"
+        const fontSize = "0.5em"
 
         const makeBoundaryLabel = (d, minOrMax, text) => {
             const labelBounds = Bounds.forText(text, { fontSize: fontSize })
