@@ -322,7 +322,7 @@ export default Backbone.Model.extend( {
 		} else if (offon === false) {
 			activeLegendKeys = _.filter(activeLegendKeys, function(k) { return k != key; });
 		} else {
-			return this.toggleLegendKey(key, !_.contains(activeLegendKeys, key));
+			return this.toggleLegendKey(key, !_.includes(activeLegendKeys, key));
 		}
 
 		this.set("activeLegendKeys", activeLegendKeys);
@@ -338,7 +338,7 @@ export default Backbone.Model.extend( {
 
 	isLegendKeyActive: function(key) {
 		var activeLegendKeys = this.get("activeLegendKeys");
-		return activeLegendKeys === null || _.contains(activeLegendKeys, key);
+		return activeLegendKeys === null || _.includes(activeLegendKeys, key);
 	},
 
 	isMultiEntity: function() {

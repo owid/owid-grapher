@@ -20,20 +20,20 @@ import Backbone from 'backbone'
     var vendors = ['ms', 'moz', 'webkit', 'o'];
     for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
         window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
-        window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame'] 	
+        window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame']
                                    || window[vendors[x]+'CancelRequestAnimationFrame'];
     }
- 
+
     if (!window.requestAnimationFrame)
         window.requestAnimationFrame = function(callback, element) {
             var currTime = new Date().getTime();
             var timeToCall = Math.max(0, 16 - (currTime - lastTime));
-            var id = window.setTimeout(function() { callback(currTime + timeToCall); }, 
+            var id = window.setTimeout(function() { callback(currTime + timeToCall); },
               timeToCall);
             lastTime = currTime + timeToCall;
             return id;
         };
- 
+
     if (!window.cancelAnimationFrame)
         window.cancelAnimationFrame = function(id) {
             clearTimeout(id);
@@ -55,32 +55,32 @@ owid.round = function(number, precision) {
     var factor = Math.pow(10, precision);
     var tempNumber = number * factor;
     var roundedTempNumber = Math.round(tempNumber);
-    return roundedTempNumber / factor;		
+    return roundedTempNumber / factor;
 };
 
 owid.ceil = function(number, precision) {
     var factor = Math.pow(10, precision);
     var tempNumber = number * factor;
     var roundedTempNumber = Math.ceil(tempNumber);
-    return roundedTempNumber / factor;		
+    return roundedTempNumber / factor;
 };
 
 owid.floor = function(number, precision) {
     var factor = Math.pow(10, precision);
     var tempNumber = number * factor;
     var roundedTempNumber = Math.floor(tempNumber);
-    return roundedTempNumber / factor;		
+    return roundedTempNumber / factor;
 };
 
-owid.isNumeric = function(val) { 
+owid.isNumeric = function(val) {
 	return parseFloat(val) == val;
 };
 
 owid.numeric = function(val, defaultVal = null) {
 	var num = parseFloat(val);
-	if (_.isFinite(num)) 
+	if (_.isFinite(num))
 		return num;
-	else 
+	else
 		return defaultVal;
 };
 
@@ -109,7 +109,7 @@ owid.timeRangesToString = function(timeRanges) {
 	var timeRangeStrs = [];
 
 	_.each(timeRanges, function(timeRange) {
-		if (timeRange.year) 
+		if (timeRange.year)
 			timeRangeStrs.push(timeRange.year.toString());
 		else {
 			var s = timeRange.startYear + " to " + timeRange.endYear;
@@ -169,12 +169,12 @@ owid.timeRangesToYears = function(timeRanges, first, last) {
 owid.timeRangesFromString = function(timeRangesStr) {
 	if (!timeRangesStr)
 		return [];
-	
+
 	var timeRanges = [];
 	var rangeStrs = timeRangesStr.split(';');
 
 	var validateYear = function(yearStr) {
-		if (yearStr == "first" || yearStr == "last") 
+		if (yearStr == "first" || yearStr == "last")
 			return yearStr;
 		else {
 			var year = parseInt(yearStr);
@@ -242,7 +242,7 @@ owid.unitFormat = function(unit, value, options) {
 				if (m) value = m[1];
 				if (value[value.length-1] == ".")
 					value = value.slice(0, value.length-1);
-			}			
+			}
 		}
 	}
 
@@ -270,7 +270,7 @@ owid.scatterPlotTooltipGenerator = function(data) {
 			isHidden = ( unit && unit.hasOwnProperty( "visible" ) && !unit.visible )? true: false;
 
 		if (isHidden) return;
-		
+
 		var valueString = owid.unitFormat(unit, value);
 		valueString += " (in " + owid.displayYear(times[key]) + ")";
 		outputHtml += "<span class='var-popup-value'>" + valueString + "</span>";
@@ -302,7 +302,7 @@ owid.stackedAreaTooltipGenerator = function(data) {
 	var total = 0;
 	_.each(series, function(series) {
 		total += series.value;
-	});		
+	});
 	total = owid.unitFormat(unit, total);
 
 	if (stackMode == "relative")
@@ -313,8 +313,8 @@ owid.stackedAreaTooltipGenerator = function(data) {
 	html += '<tbody>';
 
 	_.each(series, function(series, i) {
-		var value = series.value;		
-		if (stackMode == "relative") 
+		var value = series.value;
+		if (stackMode == "relative")
 			value = d3.format(".2p")(series.value);
 		else
 			value = owid.unitFormat(unit, series.value);
@@ -414,7 +414,7 @@ owid.getQueryParams = function() {
 	var queryStr = window.location.search.substring(1),
 		querySplit = _.filter(queryStr.split("&"), function(s) { return !_.isEmpty(s); }),
 		params = {};
-	
+
 	for (var i = 0; i < querySplit.length; i++) {
 		var pair = querySplit[i].split("=");
 		params[pair[0]] = pair[1];
@@ -430,7 +430,7 @@ owid.queryParamsToStr = function(params) {
 		if (_.isEmpty(newQueryStr)) newQueryStr += "?";
 		else newQueryStr += "&";
 		newQueryStr += k + '=' + v;
-	});		
+	});
 
 	return newQueryStr;
 };
@@ -467,7 +467,7 @@ owid.namespace = function(namespace) {
 owid.svgFitTextToLine = function(text, content, width, startFontSize) {
 	text.style('font-size', startFontSize+'em').text(content);
 
-	var fontSize = startFontSize;		
+	var fontSize = startFontSize;
 	while (text.node().getComputedTextLength() > width) {
 		fontSize -= 0.05;
 		text.style('font-size', fontSize+'em');
@@ -582,7 +582,7 @@ owid.renderWrappedText = function(content, bounds, options) {
 		currentLine.push(word);
 		var newWidth = ctx.measureText(currentLine.join(" ")).width;
 
-		if (currentX + newWidth > bounds.width) {				
+		if (currentX + newWidth > bounds.width) {
 			if (forceNewline) word += "\n"; // Forced newline goes to next line if we're wrapping for other reasons
 
 			// Since this word goes over the limit, we wrap and send it to the next line
@@ -705,7 +705,7 @@ owid.svgSetWrappedText = function(text, content, width, options) {
 		currentLine.push(word);
 		var newWidth = ctx.measureText(currentLine.join(" ")).width;
 
-		if (currentX + newWidth > width) {				
+		if (currentX + newWidth > width) {
 			if (forceNewline) word += "\n"; // Forced newline goes to next line if we're wrapping for other reasons
 
 			// Since this word goes over the limit, we wrap and send it to the next line
@@ -724,7 +724,7 @@ owid.svgSetWrappedText = function(text, content, width, options) {
 };
 
 owid.modal = function(options) {
-	options = _.extend({}, options);		
+	options = _.extend({}, options);
 	$(".owidModal").remove();
 
 	var html = '<div class="modal owidModal fade" role="dialog">' +
@@ -744,7 +744,7 @@ owid.modal = function(options) {
 					'</div>' +
 				'</div>';
 
-	$("body").prepend(html);			
+	$("body").prepend(html);
 	var $modal = $(".owidModal");
 	$modal.find(".modal-title").html(options.title);
 	$modal.find(".modal-body").html(options.content);
@@ -805,14 +805,14 @@ owid.View = Backbone.View.extend({
 
 	cleanup: function() {
 		this.children = this.children || [];
-		
+
 		this.stopListening();
 		this.undelegateEvents();
-		
+
 		_.each(this.jqueryListens, function(binding) {
 			binding.obj.off(binding.name, binding.handler);
 		});
-		this.jqueryListens = [];			
+		this.jqueryListens = [];
 
 		_.each(this.children, function(child) {
 			child.cleanup();
@@ -909,7 +909,7 @@ owid.changes = function() {
 			_.each(trackers, function(tracker) {
 				_.extend(changes, tracker.get());
 			});
-			return changes;				
+			return changes;
 		}
 	};
 
@@ -932,12 +932,12 @@ owid.changes = function() {
 
 		if (frozen) {
 			return _.all(_.keys(frozen), function(key) {
-				return _.contains(props, key);
+				return _.includes(props, key);
 			});
 		} else {
 			return _.all(_.keys(changes.get()), function(key) {
-				return _.contains(props, key);
-			});				
+				return _.includes(props, key);
+			});
 		}
 	};
 
@@ -969,7 +969,7 @@ owid.changes = function() {
 		} else {
 			_.each(trackers, function(tracker) {
 				tracker.done();
-			});				
+			});
 		}
 	};
 
@@ -1055,7 +1055,7 @@ owid.getTmpTextNode = function() {
 	return d3.select('svg').select('.tmpTextCalc').node();
 }
 
-owid.tooltip = function(svgNode, left, top, data) {		
+owid.tooltip = function(svgNode, left, top, data) {
 	var container = d3.select(svgNode.parentNode);
 
 	var tooltipUpdate = container.selectAll('.owid-tooltip');
@@ -1154,9 +1154,9 @@ owid.formatTimeLabel = function( type, d, xAxisPrefix, xAxisSuffix, format ) {
 	//depending on type format label
 	var label;
 	switch( type ) {
-		
+
 		case "Decade":
-			
+
 			var decadeString = d.toString();
 			decadeString = decadeString.substring( 0, decadeString.length - 1);
 			decadeString = decadeString + "0s";
@@ -1165,10 +1165,10 @@ owid.formatTimeLabel = function( type, d, xAxisPrefix, xAxisSuffix, format ) {
 			break;
 
 		case "Quarter Century":
-			
+
 			var quarterString = "",
 				quarter = d % 100;
-			
+
 			if( quarter < 25 ) {
 				quarterString = "1st quarter of the";
 			} else if( quarter < 50 ) {
@@ -1178,7 +1178,7 @@ owid.formatTimeLabel = function( type, d, xAxisPrefix, xAxisSuffix, format ) {
 			} else {
 				quarterString = "4th quarter of the";
 			}
-				
+
 			var centuryString = owid.centuryString( d );
 
 			label = quarterString + " " + centuryString;
@@ -1186,16 +1186,16 @@ owid.formatTimeLabel = function( type, d, xAxisPrefix, xAxisSuffix, format ) {
 			break;
 
 		case "Half Century":
-			
+
 			var halfString = "",
 				half = d % 100;
-			
+
 			if( half < 50 ) {
 				halfString = "1st half of the";
 			} else {
 				halfString = "2nd half of the";
 			}
-				
+
 			var centuryString = owid.centuryString( d );
 
 			label = halfString + " " + centuryString;
@@ -1203,7 +1203,7 @@ owid.formatTimeLabel = function( type, d, xAxisPrefix, xAxisSuffix, format ) {
 			break;
 
 		case "Century":
-			
+
 			label = owid.centuryString( d );
 
 			break;
@@ -1211,7 +1211,7 @@ owid.formatTimeLabel = function( type, d, xAxisPrefix, xAxisSuffix, format ) {
 		default:
 
 			label = owid.formatValue( d, format );
-			
+
 			break;
 	}
 	return xAxisPrefix + label + xAxisSuffix;
@@ -1223,7 +1223,7 @@ owid.formatValue = function( value, format ) {
 			var fixed = Math.min( 20, parseInt( format, 10 ) );
 			value = value.toFixed( fixed );
 		} else {
-			//no format 
+			//no format
 			value = value.toString();
 		}
 	}

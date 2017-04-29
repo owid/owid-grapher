@@ -139,7 +139,7 @@ export default Backbone.Model.extend( {
 	addSelectedCountry: function(country) {
 		var selectedCountries = _.clone(this.get("selected-countries"));
 
-		//make sure the selected contry is not there 
+		//make sure the selected contry is not there
 		if (!_.find(selectedCountries, { id: country.id })) {
 			selectedCountries.push(country);
 			this.set('selected-countries', selectedCountries);
@@ -154,7 +154,7 @@ export default Backbone.Model.extend( {
 
 		var selectedCountries = _.clone(this.get("selected-countries"));
 
-		//make sure the selected contry is not there 
+		//make sure the selected contry is not there
 		if (!_.find(selectedCountries, { id: country.id })) {
 			selectedCountries.push(country);
 			this.set('selected-countries', selectedCountries);
@@ -196,7 +196,7 @@ export default Backbone.Model.extend( {
 		var axis = _.extend({}, this.get(axisName));
 		if (axis[prop] !== value) {
 			axis[prop] = value;
-			this.set(axisName, axis);				
+			this.set(axisName, axis);
 		}
 	},
 
@@ -322,7 +322,7 @@ export default Backbone.Model.extend( {
 		} else if (offon === false) {
 			activeLegendKeys = _.filter(activeLegendKeys, function(k) { return k != key; });
 		} else {
-			return this.toggleLegendKey(key, !_.contains(activeLegendKeys, key));
+			return this.toggleLegendKey(key, !_.includes(activeLegendKeys, key));
 		}
 
 		this.set("activeLegendKeys", activeLegendKeys);
@@ -338,7 +338,7 @@ export default Backbone.Model.extend( {
 
 	isLegendKeyActive: function(key) {
 		var activeLegendKeys = this.get("activeLegendKeys");
-		return activeLegendKeys === null || _.contains(activeLegendKeys, key);
+		return activeLegendKeys === null || _.includes(activeLegendKeys, key);
 	},
 
 	isMultiEntity: function() {
