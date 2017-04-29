@@ -21,6 +21,7 @@ export default class Paragraph extends Component {
 	// Since it is often desirable to operate on bounding data before
 	// the final rendering, wrapping can be precalced here
 	static wrap(str, targetWidth, opts={}) {
+        str = str || ""
 		const words = str.split(' ')
 		const lines = []
 		const lineHeight = 1.1
@@ -62,7 +63,7 @@ export default class Paragraph extends Component {
 
     @computed get wrap() {
         let wrap = this.props.children
-        if (!wrap.lines)
+        if (!wrap || !wrap.lines)
             wrap = Paragraph.wrap(this.props.children, this.props.width, this.props)
         return wrap
 

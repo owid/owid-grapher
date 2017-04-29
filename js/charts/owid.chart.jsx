@@ -224,7 +224,7 @@ export default function() {
 				var bounds = innerBounds.pad(15);
 
 				header.render(bounds);
-				bounds = bounds.padTop(header.view.bbox.height)
+				bounds = bounds.padTop(header.view.bbox.height+10)
 
 				controlsFooter.render(bounds);
 				bounds = bounds.padBottom(controlsFooter.height);
