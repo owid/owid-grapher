@@ -1,4 +1,8 @@
+import json
+import subprocess
+import hashlib
 from django.db import models
+from django.db.models import Q
 
 
 class PasswordReset(models.Model):
@@ -44,6 +48,76 @@ class Chart(models.Model):
                                                      ('HorizontalMultiBar', 'Horizontal Multi bar'),
                                                      ('DiscreteBar', 'Discrete bar'),
                                                      ('SlopeChart', 'Slope chart')), blank=True, null=True)
+
+    @classmethod
+    def owid_commit(cls):
+        """
+        :return: Will return latest commit revision for the repo
+        """
+        git_commit = subprocess.run('git rev-parse HEAD', stdout=subprocess.PIPE, shell=True).stdout
+        return str(git_commit)
+
+    def make_cache_tag(self):
+        """
+        :return: A cache tag we can send along to the client. This uniquely identifies a particular
+        combination of dataset variables, and is sent along to servevariables view when the chart requests
+        all of its data. Allows us to reduce chart loading times by caching most of the data in
+        Cloudflare or the browser.
+        """
+        variable_cache_tag = str(self.updated_at) + ' + ' + Chart.owid_commit()
+        config = json.loads(self.config)
+        dims = config['chart-dimensions']
+        varids = [int(d['variableId']) for d in dims if 'variableId' in d]
+        vartimestamps = Variable.objects.filter(pk__in=varids)
+        updated_at_list = []
+        for each in vartimestamps:
+            updated_at_list.append(str(each.updated_at))
+        variable_cache_tag += ' + '.join(updated_at_list)
+        m = hashlib.md5()
+        m.update(variable_cache_tag.encode(encoding='utf-8'))
+        variable_cache_tag = m.hexdigest()
+        return variable_cache_tag
+
+
+    @classmethod
+    def get_config_with_url(cls, chart):
+        """
+        :param chart: Chart object
+        :return: A Chart's config dictionary
+        """
+        config = json.loads(chart.config)
+        config['id'] = chart.pk
+        config['title'] = chart.name
+        config['chart-type'] = chart.type
+        config['internalNotes'] = chart.notes
+        config['slug'] = chart.slug
+        config['data-entry-url'] = chart.origin_url
+        config['published'] = chart.published
+        logos = []
+        for each in list(Logo.objects.filter(name__in=config['logos'])):
+            logos.append(each.svg)
+        config['logosSVG'] = logos
+        return config
+
+    @classmethod
+    def find_with_redirects(cls, slug):
+        """
+        :param slug: Slug for the requested Chart
+        :return: Chart object
+        """
+        try:
+            intslug = int(slug)
+        except ValueError:
+            intslug = None
+        try:
+            chart = Chart.objects.get((Q(slug=slug) | Q(pk=intslug)), published__isnull=False)
+        except Chart.DoesNotExist:
+            try:
+                redirect = ChartSlugRedirect.objects.get(slug=slug)
+            except ChartSlugRedirect.DoesNotExist:
+                return False
+            chart = Chart.objects.get(pk=redirect.chart_id, published__isnull=False)
+        return chart
 
 
 class DatasetCategory(models.Model):
