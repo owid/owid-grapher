@@ -56,16 +56,6 @@ class MapTab extends Component {
         this.chart.tooltip.hide();
     }
 
-    @action.bound
-    onHover(d, ev) {
-        this.chart.tooltip.fromMap(d, ev);
-    }
-
-    @action.bound
-    onHoverStop(d) {
-        this.chart.tooltip.hide();
-    }
-
     @action.bound onClick(d) {
         const {chart} = this
         if (chart.isMobile || !_.includes(chart.model.get("tabs"), "chart")) return;
@@ -83,8 +73,8 @@ class MapTab extends Component {
         chart.url.updateCountryParam();
     }
 
-
-    componentDidUnmount() {
+    componentWillUnmount() {
+        console.log("unmount")
         this.onMapMouseLeave()
         this.onLegendMouseLeave()
     }
