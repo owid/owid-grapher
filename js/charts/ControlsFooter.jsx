@@ -120,7 +120,7 @@ class ShareMenu extends Component {
 }
 
 @observer
-class ControlsFooter extends Component {
+export default class ControlsFooter extends Component {
     props: {
         config: ChartConfig,
         activeTabName: activeTabName
@@ -163,21 +163,3 @@ class ControlsFooter extends Component {
         </div>
     }
 }
-
-export default function(chart) {
-    var controlsFooter = dataflow();
-
-    let rootNode = null
-
-    const config = new ChartConfig(chart.model)
-
-    controlsFooter.render = function(bounds) {
-        rootNode = render(<ControlsFooter config={config} activeTabName={chart.activeTabName} ref={(el) => controlsFooter.height = el.height}/>, chart.htmlNode, rootNode)
-    };
-
-    controlsFooter.beforeClean(function() {
-        rootNode = render(NullElement, chart.htmlNode, rootNode);
-    });
-
-    return controlsFooter;
-};

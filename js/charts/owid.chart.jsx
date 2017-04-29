@@ -23,6 +23,8 @@ import Colors from './App.Models.Colors'
 import Header from './App.Views.Chart.Header'
 import Export from './App.Views.Export'
 import UrlBinder from './App.Views.ChartURL'
+import React, {Component} from 'react'
+import {render} from 'preact'
 
 export default function() {
     window._ = _
@@ -76,7 +78,6 @@ export default function() {
 
 	chart.flow('header : model', function() { return Header(chart); });
 	chart.flow('sourcesFooter : model', function() { return SourcesFooter(chart); });
-	chart.flow('controlsFooter : model', function() { return ControlsFooter(chart); });
 
 	// Container setup
 	chart.flow('containerNode', function(containerNode) {
@@ -213,9 +214,12 @@ export default function() {
 		return isExport ? Export(chart) : null;
 	});
 
+
+    let controlsFooter = null
+
 	chart.render = function() {
 		requestAnimationFrame(function() {
-			chart.now('el, header, controlsFooter, sourcesFooter, primaryTab, overlayTab, innerBounds, scale, loadingIcon', function(el, header, controlsFooter, sourcesFooter, primaryTab, overlayTab, innerBounds, scale, loadingIcon) {
+			chart.now('el, header, sourcesFooter, primaryTab, overlayTab, innerBounds, scale, loadingIcon', function(el, header, sourcesFooter, primaryTab, overlayTab, innerBounds, scale, loadingIcon) {
 				loadingIcon.classed('hidden', false);
 
 				if (chart.model.get('chart-type') != App.ChartType.SlopeChart && chart.model.get('chart-type') != App.ChartType.ScatterPlot)
@@ -226,8 +230,10 @@ export default function() {
 				header.render(bounds);
 				bounds = bounds.padTop(header.view.bbox.height+10)
 
-				controlsFooter.render(bounds);
-				bounds = bounds.padBottom(controlsFooter.height);
+                var controlsFooterHeight = 0
+                controlsFooter = render(<ControlsFooter config={chart.config} activeTabName={chart.activeTabName} ref={e => controlsFooterHeight=e.height}/>, chart.htmlNode, controlsFooter)
+
+				bounds = bounds.padBottom(controlsFooterHeight);
 
 				sourcesFooter.render(bounds);
 				bounds = bounds.padBottom(sourcesFooter.height);
@@ -236,7 +242,7 @@ export default function() {
 					primaryTab.render(bounds);
 
 				if (overlayTab)
-					overlayTab.render(innerBounds.padBottom(controlsFooter.height+2));
+					overlayTab.render(innerBounds.padBottom(controlsFooterHeight+2));
 
 				loadingIcon.classed('hidden', true);
 			});
