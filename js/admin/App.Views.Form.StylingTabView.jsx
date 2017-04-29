@@ -19,13 +19,13 @@ App.Views.Form.StylingTabView = owid.View.extend({
 
 	initialize: function( options ) {
 		this.dispatcher = options.dispatcher;
-		
+
 		//logos
 		this.$logo = this.$el.find("[name='logo']");
 
 		this.$lineTypeRadios = this.$el.find( "[name='line-type']" );
 		this.$lineTolerance = this.$el.find("[name='line-tolerance']");
-		
+
 		//legend
 		this.$hideLegend = this.$el.find( "[name='hide-legend']" );
 		this.$hideToggle = this.$el.find("[name='hide-toggle']");
@@ -34,11 +34,11 @@ App.Views.Form.StylingTabView = owid.View.extend({
 		//units
 		this.$unitsSection = this.$el.find( ".units-section" );
 		this.$unitsContent = this.$unitsSection.find(".form-section-content");
-		
+
 		this.listenTo(App.ChartModel, "change:chart-type", this.render.bind(this));
 		this.listenTo(App.ChartModel, "change:chart-dimensions", this.render.bind(this));
 		this.listenTo(App.ChartModel, "change:line-type", this.renderLineType.bind(this));
-		
+
 		this.render();
 	},
 
@@ -54,7 +54,7 @@ App.Views.Form.StylingTabView = owid.View.extend({
 
 		this.$hideToggle.closest('label').toggle(App.ChartModel.get("chart-type") == App.ChartType.StackedArea);
 		this.$hideToggle.prop("checked", !!App.ChartModel.get("hide-toggle"));
-		
+
 		this.updateUnitsUI();
 		this.updateUnits();
 
@@ -62,7 +62,7 @@ App.Views.Form.StylingTabView = owid.View.extend({
 		if (chartType == App.ChartType.LineChart) {
 			if (this.$typeOfLine) {
 				this.$el.prepend(this.$typeOfLine);
-				this.$typeOfLine = null;					
+				this.$typeOfLine = null;
 			}
 		} else {
 			this.$typeOfLine = this.$el.find(".type-of-line-section").remove();

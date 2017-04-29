@@ -230,8 +230,9 @@ owid.unitFormat = function(unit, value, options) {
 			else if (value >= 1e9) value = value/1e9 + " billion"
 			else if (value >= 1e6) value = value/1e6 + " million"
 		} else {
-			if (_.isFinite(unit.format) && unit.format >= 0) {
-				var fixed = Math.min(20, parseInt(unit.format, 10));
+            const unitFormat = parseInt(unit.format)
+			if (_.isFinite(unitFormat) && unitFormat >= 0) {
+				var fixed = Math.min(20, unit.format);
 				value = d3.format(",." + fixed + "f")(value);
 			} else {
 				value = d3.format(",")(value);
