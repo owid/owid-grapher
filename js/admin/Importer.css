@@ -19,7 +19,7 @@
         margin-top: 20px;
         margin-bottom: 0;
         text-align: center;
-        font-size: 1.2em;        
+        font-size: 1.2em;
         font-weight: bold;
     }
 
@@ -81,14 +81,6 @@
 		padding: 10px;
 		background: white;
 	}
-}
-
-.ReactModal__Body--open {
-    overflow: hidden;
-}
-
-.ReactModal__Overlay {
-	z-index: 2000;
 }
 
 .importProgress {

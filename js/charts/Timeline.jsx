@@ -185,7 +185,7 @@ export default class Timeline extends Component {
     	this.isDragging = false
     }
 
-    @computed get height() { return 45 }
+    @computed get height() { return this.props.bounds.height }
 
     // Allow proper dragging behavior even if mouse leaves timeline area
     componentDidMount() {
@@ -206,14 +206,14 @@ export default class Timeline extends Component {
 		const { bounds, sliderBounds, targetYear, minYear, maxYear, minYearBox, maxYearBox, xScale, activeYear, years, isPlaying, height } = this
 
         const toggleText = isPlaying ? "\uf28c" : "\uf01d"
-        const toggleTextBounds = Bounds.forText(toggleText, { fontSize: "1.4em" })
+        const toggleTextBounds = Bounds.forText(toggleText, { fontSize: "1.3em" })
 
 		return <g class="timeline clickable" onMouseDown={this.onMouseDown} ref={g => this.g = g}>
 			<rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height} fill="white"></rect>
-			<Text class="toggle" onClick={() => this.isPlaying = !this.isPlaying} x={bounds.left+10} y={bounds.centerY-toggleTextBounds.height/2} font-family="FontAwesome" font-size="1.4em">{toggleText}
+			<Text class="toggle" onClick={() => this.isPlaying = !this.isPlaying} x={bounds.left+10} y={bounds.centerY-toggleTextBounds.height/2} font-family="FontAwesome" font-size="1.3em">{toggleText}
 			</Text>
-			<Text class="minYearLabel" x={minYearBox.x} y={minYearBox.y} font-size="0.8em" fill="#666">{minYear}</Text>
-			<Text class="maxYearLabel" x={maxYearBox.x} y={maxYearBox.y} font-size="0.8em" fill="#666">{maxYear}</Text>
+			<Text class="minYearLabel" x={minYearBox.x} y={minYearBox.y} font-size="0.7em" fill="#666">{minYear}</Text>
+			<Text class="maxYearLabel" x={maxYearBox.x} y={maxYearBox.y} font-size="0.7em" fill="#666">{maxYear}</Text>
 			<g class="ticks">
 				{_.map(years.slice(1, -1), (year) => {
 					return <rect class="tick" x={xScale(year)} y={sliderBounds.top+sliderBounds.height-1} width="1px" height="0.2em" fill="rgba(0,0,0,0.2)" />
@@ -222,7 +222,7 @@ export default class Timeline extends Component {
 			<rect class="sliderBackground" x={sliderBounds.left} y={sliderBounds.top} width={sliderBounds.width} height={sliderBounds.height} rx={5} ry={5} stroke-width={0.1} fill="#eee"/>
 			<g class="handle" fill="#3F9EFF" transform={`translate(${xScale(activeYear)}, ${sliderBounds.centerY})`}>
 				<circle r={8} stroke="#000" stroke-width={0.1}/>
-				<text y={-9} font-size="0.7em" text-anchor="middle">
+				<text y={-9} font-size="0.6em" text-anchor="middle">
 					{targetYear == minYear || targetYear == maxYear ? '' : targetYear}
 				</text>
 			</g>

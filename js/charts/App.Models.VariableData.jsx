@@ -142,7 +142,7 @@ export default Backbone.Model.extend({
 
 		if (_.isEmpty(validEntities) && chartType != App.ChartType.ScatterPlot && chartType != App.ChartType.DiscreteBar && chartType != App.ChartType.SlopeChart) {
 			// Select a few random ones
-			validEntities = _.sample(availableEntities, 3);
+			validEntities = _.sampleSize(availableEntities, 3);
 		}
 
 		App.ChartModel.set("selected-countries", validEntities);

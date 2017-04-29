@@ -20,10 +20,9 @@ import {bind} from 'decko'
 
 import parse from 'csv-parse'
 import {NullElement} from '../charts/Util'
+import Modal from './Modal'
 
 import styles from './Importer.css'
-
-import Modal from 'react-modal'
 
 class Source {
 	static template = ""

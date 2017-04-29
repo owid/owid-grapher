@@ -30,7 +30,7 @@ class WrappingText extends Component {
         content = content.replace(/<\/[^>]+>/g, " <LINKSTOP> ");
 
         // Clean the content
-        content = s.trim(content.replace("</br>", "\n").replace("<br>", "\n"));        
+        content = s.trim(content.replace("</br>", "\n").replace("<br>", "\n"));
 
         return s.trim(content).split(/ +/)
     }
@@ -73,7 +73,7 @@ class SourcesFooter extends Component {
             const finalUrl = `https://ourworldindata.org${path}${a.search}`
           licenseStr = licenseStr.replace(/\*data-entry\*/, "<a class='origin-link' target='_blank' href='" + finalUrl + "'>" + "OurWorldInData.org" + path + a.search + "</a>")
         } else {
-          licenseStr = licenseStr.replace(/\*data-entry\*/, 
+          licenseStr = licenseStr.replace(/\*data-entry\*/,
                 "<a class='origin-link' target='_blank' href='http://ourworldindata.org'>OurWorldInData.org</a>")
         }
 
@@ -83,7 +83,7 @@ class SourcesFooter extends Component {
     render() {
         const {sourcesStr, noteStr, licenseStr} = this
         return <g class="footer">
-            {layout(this.props.bounds, 
+            {layout(this.props.bounds,
                 <WrappingText>{sourcesStr}</WrappingText>,
                 <WrappingText>{noteStr}</WrappingText>,
                 <WrappingText>{licenseStr}</WrappingText>
@@ -96,7 +96,7 @@ export default function(chart : any) {
 	const footer = dataflow()
 
     footer.needs('containerNode', 'maxBounds')
-    
+
     footer.inputs({
         sourcesStr: '',
         note: '',
@@ -104,11 +104,11 @@ export default function(chart : any) {
     })
 
     footer.flow('g : containerNode', function(containerNode : HTMLElement) {
-        return d3.select(containerNode).append('g').attr('class', 'footer') 
+        return d3.select(containerNode).append('g').attr('class', 'footer')
     })
 
     footer.flow('noteStr : note', function(note : string) {
-        return note ? `<a class="bold">Note: </a>${note}` : null;        
+        return note ? `<a class="bold">Note: </a>${note}` : null;
     })
 
     footer.flow('licenseStr : originUrl', function(originUrl) {
@@ -122,7 +122,7 @@ export default function(chart : any) {
             const finalUrl = `https://ourworldindata.org${path}${a.search}`
           licenseStr = licenseStr.replace(/\*data-entry\*/, "<a class='origin-link' target='_blank' href='" + finalUrl + "'>" + "OurWorldInData.org" + path + a.search + "</a>")
         } else {
-          licenseStr = licenseStr.replace(/\*data-entry\*/, 
+          licenseStr = licenseStr.replace(/\*data-entry\*/,
                 "<a class='origin-link' target='_blank' href='http://ourworldindata.org'>OurWorldInData.org</a>")
         }
 
@@ -227,5 +227,5 @@ export default function(chart : any) {
         //rootNode = render(<SourcesFooter bounds={bounds} sourcesStr={sourcesStr} note={chart.model.get('chart-description')} originUrl={chart.model.get('data-entry-url')} />, chart.svgNode, rootNode)
     }
 
-	return footer	
+	return footer
 }
