@@ -3,6 +3,61 @@ import subprocess
 import hashlib
 from django.db import models
 from django.db.models import Q
+from django.core.mail import send_mail
+from django.contrib.auth.models import PermissionsMixin
+from django.contrib.auth.base_user import AbstractBaseUser
+from django.contrib.auth.base_user import BaseUserManager
+
+
+# contains helper methods for the User model
+class UserManager(BaseUserManager):
+    use_in_migrations = True
+
+    def _create_user(self, email, password, **extra_fields):
+        if not email:
+            raise ValueError('Please provide an email address')
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_user(self, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_superuser', False)
+        return self._create_user(email, password, **extra_fields)
+
+    def create_superuser(self, email, password, **extra_fields):
+        extra_fields.setdefault('is_superuser', True)
+
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('The field is_superuser should be set to True.')
+
+        return self._create_user(email, password, **extra_fields)
+
+
+class User(AbstractBaseUser, PermissionsMixin):
+    class Meta:
+        db_table = "users"
+
+    email = models.EmailField(max_length=255, unique=True)
+    name = models.CharField(max_length=255, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=True)
+
+    objects = UserManager()
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
+
+    def get_full_name(self):
+        return self.name
+
+    def get_short_name(self):
+        return self.name
+
+    def email_user(self, subject, message, from_email=None, **kwargs):
+        send_mail(subject, message, from_email, [self.email], **kwargs)
 
 
 class PasswordReset(models.Model):
@@ -12,18 +67,6 @@ class PasswordReset(models.Model):
     email = models.CharField(max_length=255)
     token = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
-
-
-class User(models.Model):
-    class Meta:
-        db_table = "users"
-
-    name = models.CharField(max_length=255, unique=True)
-    email = models.CharField(max_length=255, unique=True)
-    password = models.CharField(max_length=60)
-    remember_token = models.CharField(max_length=100)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
 
 class Chart(models.Model):

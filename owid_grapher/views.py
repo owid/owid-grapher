@@ -1,13 +1,17 @@
 import os
 import json
 import re
+import datetime
 from urllib.parse import urlparse
+from django import forms
 from django.shortcuts import render
 from django.conf import settings
-from grapher_admin.models import Chart, Variable, License, DataValue, Entity
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
+from django.utils.crypto import get_random_string
+from grapher_admin.models import Chart, Variable, License, DataValue, Entity, UserInvitation, User
+from owid_grapher.forms import InviteUserForm, InvitedUserRegisterForm
 
 # putting these into global scope for reuse
 manifest = json.loads(open(os.path.join(settings.BASE_DIR, "public/build/manifest.json")).read())
@@ -284,3 +288,64 @@ def latest(request):
     if query:
         slug += '?' + query
     return HttpResponseRedirect(reverse('showchart', args=[slug]))
+
+
+@login_required
+def invite_user(request):
+    if request.method == 'GET':
+        if not request.user.is_superuser:
+            return HttpResponse('Permission denied!')
+        else:
+            form = InviteUserForm()
+            return render(request, 'grapher/invite_user.html', context={'form': form})
+    if request.method == 'POST':
+        if not request.user.is_superuser:
+            return HttpResponse('Permission denied!')
+        else:
+            form = InviteUserForm(request.POST)
+            if form.is_valid():
+                newuser = User()
+                newuser.email = form.cleaned_data['email']
+                newuser.name = form.cleaned_data['name']
+                newuser.is_active = False
+                newuser.is_superuser = False
+                newuser.save()
+                invitation = UserInvitation()
+                invitation.code = get_random_string(length=40)
+                invitation.email = newuser.email
+                invitation.user_id = newuser
+                invitation.status = 'pending'
+                invitation.valid_till = datetime.datetime.now() + datetime.timedelta(days=2)
+                invitation.save()
+                newuser.email_user('Invitation to join OWID', 'Hey %s, please follow this link in order '
+                                                              'to register on owid-grapher: %s' % (newuser.name, settings.BASE_URL + '/invitation/' + invitation.code),
+                                   'no-reply@ourworldindata.org')
+                return HttpResponse('Invite was sent successfully!')
+
+
+def register_by_invite(request, code):
+    try:
+        invite = UserInvitation.objects.get(code=code)
+    except UserInvitation.DoesNotExist:
+        return HttpResponseNotFound('Your invitation code does not exist in the system.')
+    newuser = invite.user_id
+
+    if request.method == 'GET':
+        if invite.status == 'successful':
+            return HttpResponse('Your invitation code has already been used.')
+        if invite.status == 'expired':
+            return HttpResponse('Your invitation code has expired.')
+        if invite.status == 'cancelled':
+            return HttpResponse('Your invitation code has been cancelled.')
+        form = InvitedUserRegisterForm(data={'name': newuser.name})
+        return render(request, 'grapher/register_invited_user.html', context={'form': form})
+    if request.method == 'POST':
+        form = InvitedUserRegisterForm(request.POST)
+        if form.is_valid():
+            if form.cleaned_data['password1'] == form.cleaned_data['password2']:
+                newuser.set_password(form.cleaned_data['password1'])
+                newuser.is_active = True
+                newuser.save()
+                return HttpResponseRedirect(reverse("login"))
+            else:
+                return HttpResponse("Passwords don't match!")

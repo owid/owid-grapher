@@ -16,14 +16,17 @@ Including another URLconf
 from django.conf.urls import url, include
 from django.contrib import admin
 from owid_grapher import views
-from django.contrib.auth.views import login
+from django.contrib.auth.views import login, logout
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^accounts/login/$', login, {'template_name': 'admin/login.html'}, name='login'),
+    url(r'^login/$', login, {'template_name': 'grapher/login.html'}, name='login'),
+    url(r'^logout/$', logout, {'next_page': '/'}, name="logout"),
     url(r'^config/(?P<configid>.+\.js)$', views.config, name="serveconfig"),
     url(r'^data/variables/(?P<ids>[\w\+]+)', views.variables, name="servevariables"),
     url(r'^latest/$', views.latest, name="latestchart"),
     url(r'^testall', views.test_all, name="testall"),
+    url(r'^invite/$', views.invite_user, name="inviteuser"),
+    url(r'^invitation/(?P<code>[\w]+)$', views.register_by_invite, name="registerbyinvite"),
     url(r'^(?P<slug>.+)/$', views.show, name="showchart"),
 ]
