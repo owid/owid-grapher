@@ -1,12 +1,12 @@
 /* ScaleSelector.jsx
- * ================                                                             
+ * ================
  *
  * Small toggle component for switching between log/linear (or any other) scale types.
  *
  * @project Our World In Data
  * @author  Jaiden Mispy
  * @created 2017-02-11
- */ 
+ */
 
 // @flow
 

@@ -14,7 +14,7 @@ var scaleSelector = function() {
 
 		el.on('click', function() {
 			scaleSelector.now('currentScale', function(currentScale) {
-				if (currentScale == "log") 
+				if (currentScale == "log")
 					scaleSelector.update({ currentScale : 'linear' });
 				else
 					scaleSelector.update({ currentScale : 'log' });
@@ -78,12 +78,11 @@ export default function(chart) {
 		var legend = chart.tabs.chart.legend;
 
 		if (chart.model.get('chart-type') == App.ChartType.ScatterPlot) {
-			return
 			var innerBounds = chart.tabs.chart.viz.scatter.scatter.axisBox.innerBounds.scale(chart.scale);
 
 			xScaleSelector.update({ left: innerBounds.left+innerBounds.width-50, top: innerBounds.top+innerBounds.height-15 });
 			yScaleSelector.update({ left: innerBounds.left-30, top: innerBounds.top-20 });
-		} else {				
+		} else {
 			var rect = d3.select('svg').select('.nv-distWrap');
 			if (rect.empty())
 				rect = d3.select('svg').select('.nv-wrap > g > rect');
@@ -94,7 +93,7 @@ export default function(chart) {
 				var rectBounds = chart.getTransformedBounds(rect.node());
 
 				xScaleSelector.update({ left: rectBounds.left+rectBounds.width-100, top: rectBounds.height-30 });
-				yScaleSelector.update({ left: rectBounds.left, top: rectBounds.top-10 });					
+				yScaleSelector.update({ left: rectBounds.left, top: rectBounds.top-10 });
 			}
 		}
 	};
