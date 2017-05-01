@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 from django import forms
 from django.shortcuts import render
 from django.conf import settings
+from django.contrib import messages
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
@@ -17,6 +18,11 @@ from owid_grapher.forms import InviteUserForm, InvitedUserRegisterForm
 manifest = json.loads(open(os.path.join(settings.BASE_DIR, "public/build/manifest.json")).read())
 jspath = "/build/%s" % (manifest['charts.js'])
 csspath = "/build/%s" % (manifest['charts.css'])
+
+
+@login_required
+def index(request):
+    return HttpResponse('This is a main page placeholder')
 
 
 def test_all(request):
@@ -304,9 +310,23 @@ def invite_user(request):
         else:
             form = InviteUserForm(request.POST)
             if form.is_valid():
+                email = form.cleaned_data['email']
+                name = form.cleaned_data['name']
+                try:
+                    newuser = User.objects.get(email=email)
+                    messages.error(request, 'The user you are inviting is registered in the system.')
+                    return render(request, 'grapher/invite_user.html', context={'form': form})
+                except User.DoesNotExist:
+                    pass
+                try:
+                    newuser = User.objects.get(name=name)
+                    messages.error(request, 'The user with that name is registered in the system.')
+                    return render(request, 'grapher/invite_user.html', context={'form': form})
+                except User.DoesNotExist:
+                    pass
                 newuser = User()
-                newuser.email = form.cleaned_data['email']
-                newuser.name = form.cleaned_data['name']
+                newuser.email = email
+                newuser.name = name
                 newuser.is_active = False
                 newuser.is_superuser = False
                 newuser.save()
@@ -317,10 +337,12 @@ def invite_user(request):
                 invitation.status = 'pending'
                 invitation.valid_till = datetime.datetime.now() + datetime.timedelta(days=2)
                 invitation.save()
-                newuser.email_user('Invitation to join OWID', 'Hey %s, please follow this link in order '
+                newuser.email_user('Invitation to join OWID', 'Hi %s, please follow this link in order '
                                                               'to register on owid-grapher: %s' % (newuser.name, settings.BASE_URL + '/invitation/' + invitation.code),
                                    'no-reply@ourworldindata.org')
                 return HttpResponse('Invite was sent successfully!')
+            else:
+                return render(request, 'grapher/invite_user.html', context={'form': form})
 
 
 def register_by_invite(request, code):
@@ -342,10 +364,19 @@ def register_by_invite(request, code):
     if request.method == 'POST':
         form = InvitedUserRegisterForm(request.POST)
         if form.is_valid():
+            name = form.cleaned_data['name']
+            try:
+                newuser = User.objects.get(name=name)
+                messages.error(request, 'The username you chose is not available. Please choose another username.')
+                return render(request, 'grapher/register_invited_user.html', context={'form': form})
+            except User.DoesNotExist:
+                pass
             if form.cleaned_data['password1'] == form.cleaned_data['password2']:
+                newuser.name = name
                 newuser.set_password(form.cleaned_data['password1'])
                 newuser.is_active = True
                 newuser.save()
                 return HttpResponseRedirect(reverse("login"))
             else:
-                return HttpResponse("Passwords don't match!")
+                messages.error(request, "Passwords don't match!")
+                return render(request, 'grapher/register_invited_user.html', context={'form': form})
