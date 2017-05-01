@@ -14,8 +14,6 @@ import '../css/admin.css'
 // Admin only code
 
 window.$ = window.jQuery = require('jquery')
-import _ from 'underscore'
-window._ = _
 window.Backbone = require('backbone')
 window.owid = require('./owid').default;
 
@@ -58,7 +56,7 @@ window.Editor = require('./admin/ChartEditor').default
 require('./libs/bootstrap3-wysihtml5.all')
 window.Papa = require('./libs/papaparse')
 window.moment = require('moment')
-require('./admin/App.Models.ChartModel')        
+require('./admin/App.Models.ChartModel')
 require('./admin/App.Models.Import.DatasetModel')
 require('./admin/App.Models.Importer')
 require('./admin/App.Views.UI.ImportProgressPopup')
