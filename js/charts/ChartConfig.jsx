@@ -59,7 +59,7 @@ export default class ChartConfig {
             max = null
         this.yDomain = [min, max]
         this.yScaleType = this.yAxisConfig['axis-scale'] || 'linear'
-        this.yScaleTypeOptions = this.model.get('y-axis-scale-selector') ? ['linear', 'log'] : this.yScaleType
+        this.yScaleTypeOptions = this.model.get('y-axis-scale-selector') ? ['linear', 'log'] : [this.yScaleType]
         this.yAxisLabel = this.yAxisConfig['axis-label'] || ""
         const yAxis = this.yAxisConfig,
               yAxisPrefix = yAxis["axis-prefix"] || "",
@@ -78,7 +78,7 @@ export default class ChartConfig {
                 max = null
             this.xDomain = [min, max]
             this.xScaleType = this.xAxisConfig['axis-scale'] || 'linear'
-            this.xScaleTypeOptions = this.model.get('y-axis-scale-selector') ? ['linear', 'log'] : this.xScaleType
+            this.xScaleTypeOptions = this.model.get('y-axis-scale-selector') ? ['linear', 'log'] : [this.xScaleType]
             this.xAxisLabel = this.xAxisConfig['axis-label'] || ""
             const xAxis = this.xAxisConfig,
                   xAxisPrefix = xAxis["axis-prefix"] || "",

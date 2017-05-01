@@ -357,16 +357,24 @@ const scatterWithTimeline = function() {
     });
 
     // Calculate default domain (can be overriden by axis config)
-    viz.flow('xDomainDefault, yDomainDefault : dataByEntityAndYear', function(dataByEntityAndYear) {
+    viz.flow('xDomainDefault, yDomainDefault : axisConfig, dataByEntityAndYear', function(axisConfig, dataByEntityAndYear) {
         var xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity;
+
+        var xScaleLog = axisConfig.x.scaleType == 'log'
+        var yScaleLog = axisConfig.y.scaleType == 'log'
 
         _.each(dataByEntityAndYear, function(dataByYear) {
             _.each(dataByYear, function(series) {
                 var datum = series.values[0];
-                xMin = Math.min(datum.x, xMin);
-                xMax = Math.max(datum.x, xMax);
-                yMin = Math.min(datum.y, yMin);
-                yMax = Math.max(datum.y, yMax);
+                if (!xScaleLog || datum.x > 0) {
+                    xMin = Math.min(datum.x, xMin);
+                    xMax = Math.max(datum.x, xMax);
+                }
+
+                if (!yScaleLog || datum.y > 0) {
+                    yMin = Math.min(datum.y, yMin);
+                    yMax = Math.max(datum.y, yMax);
+                }
             });
         });
 

@@ -58,6 +58,7 @@
   "dependencies": {
     "phantomjs-prebuilt": "^2.1.14",
     "preact": "^8.1.0",
-    "preact-compat": "^3.15.0"
+    "preact-compat": "^3.15.0",
+    "webpack-parallel-uglify-plugin": "^0.4.1"
   }
 }

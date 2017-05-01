@@ -4,6 +4,7 @@ import ExtractTextPlugin from 'extract-text-webpack-plugin'
 import ManifestPlugin from 'webpack-manifest-plugin'
 import OptimizeCssAssetsPlugin from 'optimize-css-assets-webpack-plugin'
 import LodashModuleReplacementPlugin from 'lodash-webpack-plugin'
+import ParallelUglifyPlugin from 'webpack-parallel-uglify-plugin'
 
 const isProduction = process.argv.indexOf('-p') !== -1
 
@@ -63,19 +64,22 @@ export default {
         }),
 
         // JS optimization
-        new webpack.optimize.UglifyJsPlugin({
-            compress: {
-              warnings: false,
-              screw_ie8: true,
-              conditionals: true,
-              unused: true,
-              comparisons: true,
-              sequences: true,
-              dead_code: true,
-              evaluate: true,
-              if_return: true,
-              join_vars: true
-            },
+        new ParallelUglifyPlugin({
+            cachePath: path.join(__dirname, 'tmp'),
+            uglifyJS: {
+                compress: {
+                  warnings: false,
+                  screw_ie8: true,
+                  conditionals: true,
+                  unused: false,
+                  comparisons: true,
+                  sequences: true,
+                  dead_code: true,
+                  evaluate: true,
+                  if_return: true,
+                  join_vars: true
+                },
+            }
         }),
 
         // Output manifest so server can figure out the hashed
