@@ -59,7 +59,7 @@ const scatterWithoutTimeline = function() {
 
         var variable = variables[colorDim.variableId];
         colorScale.domain(variable.categoricalValues);
-    }); 
+    });
 
     viz.flow('data : dimensions, variables, colorScale', function(dimensions, variables, colorScale) {
         var dataByEntity = {};
@@ -153,7 +153,7 @@ const scatterWithTimeline = function() {
 
     viz.needs('containerNode', 'bounds', 'axisConfig', 'dimensions', 'variables', 'inputYear', 'timelineConfig', 'colorScheme');
 
-    viz.flow('axisDimensions : dimensions', function(dimensions) {            
+    viz.flow('axisDimensions : dimensions', function(dimensions) {
         return _.filter(dimensions, function(d) { return d.property == 'x' || d.property == 'y'; });
     });
 
@@ -168,11 +168,11 @@ const scatterWithTimeline = function() {
     viz.flow('yearsWithData : axisDimensions, variables, tolerance', function(axisDimensions, variables, tolerance) {
         var yearSets = [];
 
-        var minYear = _.min(_.map(axisDimensions, function(d) { 
+        var minYear = _.minBy(_.map(axisDimensions, function(d) {
             return _.first(variables[d.variableId].years);
         }));
 
-        var maxYear = _.max(_.map(axisDimensions, function(d) {
+        var maxYear = _.maxBy(_.map(axisDimensions, function(d) {
             return _.last(variables[d.variableId].years);
         }));
 
@@ -190,14 +190,17 @@ const scatterWithTimeline = function() {
         });
 
         return _.sortBy(_.intersection.apply(_, yearSets));
-    });        
+    });
 
     viz.flow('timelineYears : timeRanges, yearsWithData', function(timeRanges, yearsWithData) {
-        return _.intersection(owid.timeRangesToYears(timeRanges, _.first(yearsWithData), _.last(yearsWithData)), yearsWithData);
+        return _.intersection(
+            owid.timeRangesToYears(timeRanges, _.first(yearsWithData), _.last(yearsWithData)),
+            yearsWithData
+        );
     });
 
     // Set default input year if none is given
-    viz.flow('inputYear : defaultYear, timelineYears', function(defaultYear, timelineYears) {     
+    viz.flow('inputYear : defaultYear, timelineYears', function(defaultYear, timelineYears) {
         if (defaultYear == 'latest') return _.last(timelineYears);
         if (defaultYear == 'earliest') return _.first(timelineYears);
         return defaultYear;
@@ -301,7 +304,7 @@ const scatterWithTimeline = function() {
             timeline.flow('inputYear', function(inputYear) {
                 viz.update({ inputYear: inputYear });
             });
-            timeline.bound = true;   
+            timeline.bound = true;
         }
     });
 
@@ -354,7 +357,7 @@ const scatterWithTimeline = function() {
     });
 
     // Calculate default domain (can be overriden by axis config)
-    viz.flow('xDomain, yDomain : dataByEntityAndYear', function(dataByEntityAndYear) {
+    viz.flow('xDomainDefault, yDomainDefault : dataByEntityAndYear', function(dataByEntityAndYear) {
         var xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity;
 
         _.each(dataByEntityAndYear, function(dataByYear) {
@@ -369,10 +372,15 @@ const scatterWithTimeline = function() {
 
         return [[xMin, xMax], [yMin, yMax]];
     });
-    
-    viz.flow('scatterAxis : axisConfig, xDomain, yDomain', function(axisConfig, xDomain, yDomain) {
-        xDomain = _.extend([], xDomain, axisConfig.x.domain);
-        yDomain = _.extend([], yDomain, axisConfig.y.domain);
+
+    viz.flow('scatterAxis : axisConfig, xDomainDefault, yDomainDefault', function(axisConfig, xDomainDefault, yDomainDefault) {
+        let xDomain = _.clone(axisConfig.x.domain)
+        if (xDomain[0] == null) xDomain[0] = xDomainDefault[0]
+        if (xDomain[1] == null) xDomain[1] = xDomainDefault[1]
+
+        let yDomain = _.clone(axisConfig.y.domain)
+        if (yDomain[0] == null) yDomain[0] = yDomainDefault[0]
+        if (yDomain[1] == null) yDomain[1] = yDomainDefault[1]
 
         return {
             x: _.extend({}, axisConfig.x, { domain: xDomain }),
@@ -382,7 +390,6 @@ const scatterWithTimeline = function() {
 
     viz.flow('scatter, containerNode, currentData, bounds, scatterAxis, timeline, timelineYears', function(scatter, containerNode, currentData, bounds, scatterAxis, timeline, timelineYears) {
         var timelineHeight = chart.isExport ? 0 : timeline.bounds.height+10;
-
         scatter.update({
             containerNode: containerNode,
             data: currentData,

@@ -14,6 +14,8 @@ import '../css/admin.css'
 // Admin only code
 
 window.$ = window.jQuery = require('jquery')
+import _ from 'underscore'
+window._ = _
 window.Backbone = require('backbone')
 window.owid = require('./owid').default;
 

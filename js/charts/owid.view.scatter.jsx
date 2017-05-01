@@ -30,8 +30,13 @@ export default function() {
 	});
 
 	scatter.flow('scatterAxis : axisConfig, xDomainDefault, yDomainDefault', function(axisConfig, xDomainDefault, yDomainDefault) {
-		var xDomain = _.extend([], xDomainDefault, axisConfig.x.domain);
-		var yDomain = _.extend([], yDomainDefault, axisConfig.y.domain);
+        let xDomain = _.clone(axisConfig.x.domain)
+        if (xDomain[0] == null) xDomain[0] = xDomainDefault[0]
+        if (xDomain[1] == null) xDomain[1] = xDomainDefault[1]
+
+        let yDomain = _.clone(axisConfig.y.domain)
+        if (yDomain[0] == null) yDomain[0] = yDomainDefault[0]
+        if (yDomain[1] == null) yDomain[1] = yDomainDefault[1]
 
 		return {
 			x: _.extend({}, axisConfig.x, { domain: xDomain }),
@@ -87,9 +92,10 @@ export default function() {
 			enter = update.enter().append("g").attr("class", function(d) { return "key-" + owid.makeSafeForCSS(d.key) + " entity"; }),
 			entities = enter.merge(update);
 
+
 		enter.style('opacity', 0).transition(1000).style('opacity', null);
 
-/*			entities.style('opacity', function(d) {				
+/*			entities.style('opacity', function(d) {
         	return d.key == "Austria" ? 1 : 0;
 		});*/
 		return entities;
@@ -122,7 +128,7 @@ export default function() {
 	});
 
 	scatter.flow("dots, sizeScale, hovered", function(dots, sizeScale, hovered) {
-		dots.attr("r", function(d) { 
+		dots.attr("r", function(d) {
 			return sizeScale(d.values[0].size||1) * (hovered == d ? 1.5 : 1);
 		});
 	});
@@ -185,7 +191,7 @@ export default function() {
 				if (Math.sqrt(distances[d.key]) < sizeScale(d.values[0].size||1)*6)
 					scatter.update({ hoverKey: d.key });
 				else
-					scatter.update({ hoverKey: null });					
+					scatter.update({ hoverKey: null });
 			}
 		});
 	});
@@ -237,7 +243,7 @@ export default function() {
 	}
 
 	// Render the labels and filter for overlaps
-	scatter.flow("labels : g, data, labelData, xScale, yScale", function(g,  data, labelData, xScale, yScale) {			
+	scatter.flow("labels : g, data, labelData, xScale, yScale", function(g,  data, labelData, xScale, yScale) {
 		var labelUpdate = g.selectAll(".scatter-label").data(labelData);
 
 		var labels = labelUpdate.enter()
@@ -246,12 +252,12 @@ export default function() {
             .attr('text-anchor', 'start')
           .merge(labelUpdate)
             .text(function(d) { return d.text; })
-            .style("font-size", function(d) { return d.fontSize+'px'; })   
+            .style("font-size", function(d) { return d.fontSize+'px'; })
             .style("fill", function(d) { return d.color; })
-            .style('cursor', 'default');	            
+            .style('cursor', 'default');
 
         labelUpdate.exit().remove();
-	        
+
         // Calculate the size of each label and ensure it's inside the bounds of the chart
         var label_array = [];
         labels.each(function(d) {
@@ -272,9 +278,9 @@ export default function() {
         function collide(l1, l2) {
         	var r1 = { left: l1.x, top: l1.y, right: l1.x+l1.width, bottom: l1.y+l1.height };
         	var r2 = { left: l2.x, top: l2.y, right: l2.x+l2.width, bottom: l2.y+l2.height };
-			    
-			    return !(r2.left > r1.right || 
-		             r2.right < r1.left || 
+
+			    return !(r2.left > r1.right ||
+		             r2.right < r1.left ||
 		             r2.top > r1.bottom ||
 		             r2.bottom < r1.top);
         }
@@ -297,11 +303,11 @@ export default function() {
 	        			overlaps = true;
 	        		}
 	        	}
-	        }	        	
+	        }
 
 	        if (!overlaps) break;
         }
-		
+
         labels.style("opacity", function(d) { return d.hidden ? 0 : 1; });
 	});
 
