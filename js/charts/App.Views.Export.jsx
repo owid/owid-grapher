@@ -1,18 +1,18 @@
-/* owid.component.staticExport.js  
- * ================                                                             
+/* owid.component.staticExport.js
+ * ================
  *
  * This component is responsible for getting the chart into a nice state for phantomjs
  * to take a PNG screenshot, and serializing the SVG for export.
  *
  * @project Our World In Data
- * @author  Jaiden Mispy                                                     
+ * @author  Jaiden Mispy
  * @created 2016-08-09
- */ 
+ */
 
 import _ from 'lodash'
 import Bounds from './Bounds'
 import owid from '../owid'
-import {svgAsDataUri} from 'save-svg-as-png'
+import {svgAsDataUri} from './saveSvgAsPng'
 
 export default function(chart) {
 	if (!_.isFunction(window.callPhantom))
@@ -37,7 +37,7 @@ export default function(chart) {
 
 				if (window.callPhantom)
 					window.callPhantom({ targetWidth: targetWidth, targetHeight: targetHeight }); // Notify phantom that we're ready for PNG screenshot
-				prepareSVGForExport(svg);					
+				prepareSVGForExport(svg);
 			});
 
 		}.bind(this), 100);
@@ -50,7 +50,7 @@ export default function(chart) {
 		_.each(document.styleSheets, function(styleSheet) {
 			_.each(styleSheet.cssRules, function(rule) {
 				try {
-					$(rule.selectorText).each(function(i, elem) {			
+					$(rule.selectorText).each(function(i, elem) {
 						if (!elem.origStyle && !elem.hasChangedStyle) {
 							elem.origStyle = elem.style.cssText;
 							elem.style.cssText = "";
@@ -80,6 +80,6 @@ export default function(chart) {
 		svgAsDataUri(svg.node(), {}, function(uri) {
 			var svgData = uri.substring('data:image/svg+xml;base64,'.length);
 			window.callPhantom({ "svg": svgData });
-		});			
+		});
 	}
 };
