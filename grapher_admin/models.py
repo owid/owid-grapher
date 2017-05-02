@@ -333,5 +333,5 @@ class UserInvitation(models.Model):
     status = models.CharField(max_length=10, choices=(('pending', 'pending'), ('successful', 'successful'),
                                                       ('canceled', 'canceled'), ('expired', 'expired')))
     valid_till = models.DateTimeField()
-    created_at = models.DateTimeField(blank=True, null=True)
-    updated_at = models.DateTimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)

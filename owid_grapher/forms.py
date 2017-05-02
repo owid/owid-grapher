@@ -12,7 +12,7 @@ class InviteUserForm(forms.Form):
     helper.layout = Layout(
         Div(
             HTML(
-                "{% if messages %} {% for each in messages %} <div class='alert alert-danger'>{{ each }}</div> {% endfor %} {% endif %}"),
+                "{% if messages %} {% for each in messages %} <div class='alert alert-{{ each.tags }}'>{{ each }}</div> {% endfor %} {% endif %}"),
             'email',
             'name',
             Submit('submit', 'Send invite'),
@@ -29,7 +29,7 @@ class InvitedUserRegisterForm(forms.Form):
     helper.layout = Layout(
         Div(
             HTML(
-                "{% if messages %} {% for each in messages %} <div class='alert alert-danger'>{{ each }}</div> {% endfor %} {% endif %}"),
+                "{% if messages %} {% for each in messages %} <div class='alert alert-{{ each.tags }}'>{{ each }}</div> {% endfor %} {% endif %}"),
             'name',
             'password1',
             'password2',

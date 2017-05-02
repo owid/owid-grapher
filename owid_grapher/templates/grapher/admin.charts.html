@@ -59,7 +59,7 @@
 									{% endif %}
 								</td>
 								<td>
-									<time class="timeago" datetime="{{ chart.last_edited_at|date:"c" }}">{{ chart.last_edited_at }}</time>
+									<time class="timeago" datetime="{{ chart.last_edited_at|date:'c' }}">{{ chart.last_edited_at }}</time>
 									{% if chart.last_edited_by %}
 										by {{ chart.last_edited_by }}
 									{% endif %}

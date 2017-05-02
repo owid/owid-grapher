@@ -10,6 +10,7 @@ from django.contrib import messages
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.crypto import get_random_string
 from grapher_admin.models import Chart, Variable, License, DataValue, Entity, UserInvitation, User
 from owid_grapher.forms import InviteUserForm, InvitedUserRegisterForm
@@ -20,6 +21,7 @@ jspath = "/build/%s" % (manifest['charts.js'])
 csspath = "/build/%s" % (manifest['charts.css'])
 adminjspath = "/build/%s" % (manifest['admin.js'])
 admincsspath = "/build/%s" % (manifest['admin.css'])
+rootrequest = settings.BASE_URL
 
 
 @login_required
@@ -27,9 +29,33 @@ def index(request):
     return redirect('listcharts')
 
 
+def check_invitation_statuses():
+    invites = UserInvitation.objects.filter(status='pending')
+    for each in invites:
+        if each.valid_till <= timezone.now():
+            each.status = 'expired'
+            each.save()
+
+
+@login_required
+def listusers(request):
+    check_invitation_statuses()
+    users = User.objects.all().order_by('created_at')
+    userlist = []
+
+    for each in users:
+        userlist.append({'name': each.name, 'created_at': each.created_at})
+
+    return render(request, 'grapher/admin.users.html', context={'adminjspath': adminjspath,
+                                                                'admincsspath': admincsspath,
+                                                                'rootrequest': rootrequest,
+                                                                'current_user': request.user.name,
+                                                                'users': userlist,
+                                                                })
+
+
 @login_required
 def listcharts(request):
-    rootrequest = request.build_absolute_uri('/')[:-1]
     charts = Chart.objects.all().order_by('-last_edited_at')
     allvariables = Variable.objects.all()
     vardict = {}
@@ -146,8 +172,6 @@ def test_all(request):
     end_point = ((test_page - 1) * charts_per_page) + charts_per_page
     links = urls[starting_point:end_point]
 
-    rootrequest = request.build_absolute_uri('/')[:-1]  # removing that last slash from URL
-
     return render(request, 'grapher/testall.html', context={'urls': links, 'next_page_url': next_page_url,
                                                             'prev_page_url': prev_page_url, 'compare': test_compare,
                                                             'jspath': jspath, 'csspath': csspath,
@@ -188,7 +212,6 @@ def showchart(request, chart):
         config = Chart.get_config_with_url(chart)
         canonicalurl = request.build_absolute_uri('/') + chart.slug
         baseurl = request.build_absolute_uri('/') + chart.slug
-        rootrequest = request.build_absolute_uri('/')[:-1]  # removing that last slash from URL
 
         chartmeta = {}
 
@@ -340,7 +363,10 @@ def invite_user(request):
             return HttpResponse('Permission denied!')
         else:
             form = InviteUserForm()
-            return render(request, 'grapher/invite_user.html', context={'form': form})
+            return render(request, 'grapher/invite_user.html', context={'form': form, 'adminjspath': adminjspath,
+                                                                 'admincsspath': admincsspath,
+                                                                 'rootrequest': rootrequest,
+                                                                 'current_user': request.user.name,})
     if request.method == 'POST':
         if not request.user.is_superuser:
             return HttpResponse('Permission denied!')
@@ -352,13 +378,19 @@ def invite_user(request):
                 try:
                     newuser = User.objects.get(email=email)
                     messages.error(request, 'The user you are inviting is registered in the system.')
-                    return render(request, 'grapher/invite_user.html', context={'form': form})
+                    return render(request, 'grapher/invite_user.html', context={'form': form, 'adminjspath': adminjspath,
+                                                                 'admincsspath': admincsspath,
+                                                                 'rootrequest': rootrequest,
+                                                                 'current_user': request.user.name,})
                 except User.DoesNotExist:
                     pass
                 try:
                     newuser = User.objects.get(name=name)
                     messages.error(request, 'The user with that name is registered in the system.')
-                    return render(request, 'grapher/invite_user.html', context={'form': form})
+                    return render(request, 'grapher/invite_user.html', context={'form': form, 'adminjspath': adminjspath,
+                                                                 'admincsspath': admincsspath,
+                                                                 'rootrequest': rootrequest,
+                                                                 'current_user': request.user.name,})
                 except User.DoesNotExist:
                     pass
                 newuser = User()
@@ -372,14 +404,23 @@ def invite_user(request):
                 invitation.email = newuser.email
                 invitation.user_id = newuser
                 invitation.status = 'pending'
-                invitation.valid_till = datetime.datetime.now() + datetime.timedelta(days=2)
+                invitation.valid_till = timezone.now() + datetime.timedelta(days=2)
                 invitation.save()
-                newuser.email_user('Invitation to join OWID', 'Hi %s, please follow this link in order '
-                                                              'to register on owid-grapher: %s' % (newuser.name, settings.BASE_URL + '/invitation/' + invitation.code),
+                newuser.email_user('Invitation to join OWID',
+                                   'Hi %s, please follow this link in order '
+                                   'to register on owid-grapher: %s' %
+                                   (newuser.name, settings.BASE_URL + reverse('registerbyinvite', args=[invitation.code])),
                                    'no-reply@ourworldindata.org')
-                return HttpResponse('Invite was sent successfully!')
+                messages.success(request, 'The invite was sent successfully.')
+                return render(request, 'grapher/invite_user.html', context={'form': InviteUserForm(), 'adminjspath': adminjspath,
+                                                                            'admincsspath': admincsspath,
+                                                                            'rootrequest': rootrequest,
+                                                                            'current_user': request.user.name, })
             else:
-                return render(request, 'grapher/invite_user.html', context={'form': form})
+                return render(request, 'grapher/invite_user.html', context={'form': form, 'adminjspath': adminjspath,
+                                                                            'admincsspath': admincsspath,
+                                                                            'rootrequest': rootrequest,
+                                                                            'current_user': request.user.name, })
 
 
 def register_by_invite(request, code):
@@ -387,7 +428,7 @@ def register_by_invite(request, code):
         invite = UserInvitation.objects.get(code=code)
     except UserInvitation.DoesNotExist:
         return HttpResponseNotFound('Your invitation code does not exist in the system.')
-    newuser = invite.user_id
+    invited_user = invite.user_id
 
     if request.method == 'GET':
         if invite.status == 'successful':
@@ -396,7 +437,7 @@ def register_by_invite(request, code):
             return HttpResponse('Your invitation code has expired.')
         if invite.status == 'cancelled':
             return HttpResponse('Your invitation code has been cancelled.')
-        form = InvitedUserRegisterForm(data={'name': newuser.name})
+        form = InvitedUserRegisterForm(data={'name': invited_user.name})
         return render(request, 'grapher/register_invited_user.html', context={'form': form})
     if request.method == 'POST':
         form = InvitedUserRegisterForm(request.POST)
@@ -404,8 +445,9 @@ def register_by_invite(request, code):
             name = form.cleaned_data['name']
             try:
                 newuser = User.objects.get(name=name)
-                messages.error(request, 'The username you chose is not available. Please choose another username.')
-                return render(request, 'grapher/register_invited_user.html', context={'form': form})
+                if newuser != invited_user:
+                    messages.error(request, 'The username you chose is not available. Please choose another username.')
+                    return render(request, 'grapher/register_invited_user.html', context={'form': form})
             except User.DoesNotExist:
                 pass
             if form.cleaned_data['password1'] == form.cleaned_data['password2']:
@@ -413,7 +455,11 @@ def register_by_invite(request, code):
                 newuser.set_password(form.cleaned_data['password1'])
                 newuser.is_active = True
                 newuser.save()
+                invite.status = 'successful'
+                invite.save()
                 return HttpResponseRedirect(reverse("login"))
             else:
                 messages.error(request, "Passwords don't match!")
                 return render(request, 'grapher/register_invited_user.html', context={'form': form})
+        else:
+            return render(request, 'grapher/register_invited_user.html', context={'form': form})

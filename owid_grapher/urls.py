@@ -21,6 +21,7 @@ from django.contrib.auth.views import login, logout
 urlpatterns = [
     url(r'^$', views.index, name="index"),
     url(r'^charts/$', views.listcharts, name="listcharts"),
+    url(r'^users/$', views.listusers, name="listusers"),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^login/$', login, {'template_name': 'grapher/login.html'}, name='login'),
     url(r'^logout/$', logout, {'next_page': '/'}, name="logout"),

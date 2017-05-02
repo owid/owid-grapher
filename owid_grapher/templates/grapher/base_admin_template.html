@@ -5,7 +5,7 @@
 		<meta charset="utf-8">
 		<meta http-equiv="x-ua-compatible" content="ie=edge">
 		<meta name="_token" value="{{ csrf_token }}">
-		<title>owid-grapher</title>
+		<title>{% block title %}owid-grapher{% endblock %}</title>
 		<meta name="description" content="">
 		<meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no'>
 
@@ -44,7 +44,7 @@
 					<!-- sidebar menu: : style can be found in sidebar.less -->
 					<ul class="sidebar-menu">
 						<li class="header">CHARTS</li>
-						<li><a href="#"><i class="fa fa-bar-chart"></i> Charts</a></li>
+						<li><a href="{% url 'listcharts' %}"><i class="fa fa-bar-chart"></i> Charts</a></li>
 						<li class="header">IMPORT</li>
 						<li><a href="#"><i class="fa fa-upload"></i> Import new data</a></li>
 						<li class="header">DATA MANAGEMENT</li>
@@ -52,7 +52,7 @@
 						<li><a href="#"><i class="fa fa-table"></i> Datasets</a></li>
 						<li><a href="#"><i class="fa fa-link"></i> Sources</a></li>
 						<li class="header">SETTINGS</li>
-						<li><a href="#"><i class="fa fa-users"></i> Users</a></li>
+						<li><a href="{% url 'listusers' %}"><i class="fa fa-users"></i> Users</a></li>
 						<li><a href="#"><i class="fa fa-gavel"></i> Licenses</a></li>
 						<li><a href="#"><i class="fa fa-folder"></i> Categories</a></li>
 						<li><a href="#"><i class="fa fa-tags"></i> Tags</a></li>
