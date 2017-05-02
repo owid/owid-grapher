@@ -27,7 +27,7 @@ if (system.args.length < 3 || system.args.length > 5) {
         page.clipRect = { top: 0, left: 0, width: targetWidth, height: targetHeight };
     }
 
-    page.onCallback = function(data) { 
+    page.onCallback = function(data) {
         window.setTimeout(function() {
             try {
                 if (data && data.svg) {

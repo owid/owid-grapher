@@ -93,7 +93,7 @@ class Header extends Component {
     render() {
         const {props, logo, title, subtitle} = this
 
-//        Bounds.debug([new Bounds(props.x, props.y+title.height+2, subtitle.width, subtitle.height)])
+        //Bounds.debug([new Bounds(props.x, props.y+title.height+2, subtitle.width, subtitle.height)])
 
         return <g>
             <Logo {...logo.props} x={props.x+props.width-logo.width} y={props.y}/>

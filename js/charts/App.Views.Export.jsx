@@ -21,9 +21,9 @@ export default function(chart) {
 	d3.select('body').classed('export', true);
 
 	var params = owid.getQueryParams(),
-		targetWidth = params.size && params.size.split("x") ? parseInt(params.size.split("x")[0]) : 1200,
-		targetHeight = params.size && params.size.split("x") ? parseInt(params.size.split("x")[1]) : 800,
-		margin = Math.min(20*(targetWidth/App.AUTHOR_WIDTH), 20*(targetHeight/App.AUTHOR_HEIGHT));
+		targetWidth = params.size && params.size.split("x") ? parseInt(params.size.split("x")[0]) : App.IDEAL_WIDTH,
+		targetHeight = params.size && params.size.split("x") ? parseInt(params.size.split("x")[1]) : App.IDEAL_HEIGHT,
+		margin = Math.min(20*(targetWidth/chart.authorHeight, 20*(targetHeight/chart.authorWidth)));
 
 	chart.update({
 		outerBounds: new Bounds(0, 0, targetWidth, targetHeight)

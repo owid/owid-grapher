@@ -144,7 +144,7 @@ export default class SlopeChart extends Component {
 	}
 
 	@computed get variableData() : Observations {
-		const variables = _.map(this.dimensions, 'variable')
+	const variables = _.map(this.dimensions, 'variable')
 		let obvs = []
 		_.each(variables, (v) => {
 			for (var i = 0; i < v.years.length; i++) {

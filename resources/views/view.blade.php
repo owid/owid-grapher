@@ -40,7 +40,7 @@
 		<![endif]-->
 
 		@yield('content')
-		
+
 		<script>
 			var Global = {};
 			Global.rootUrl = "{!! Request::root() !!}";
@@ -51,10 +51,11 @@
 				var chart = Chart().update({ chartConfig: chartConfig, containerNode: d3.select('body').node() });
 			};
 			App.isDebug = {!! env('APP_ENV', 'production') != 'production' ? "true" : "false" !!};
+
 		</script>
 
 		{!! Helper::js('charts') !!}
-		
+
 		@yield('scripts')
 	</body>
 </html>

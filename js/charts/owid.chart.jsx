@@ -26,6 +26,9 @@ import UrlBinder from './App.Views.ChartURL'
 import React, {Component} from 'react'
 import {render} from 'preact'
 
+window.App.IDEAL_WIDTH = 1275
+window.App.IDEAL_HEIGHT = 900
+
 export default function() {
     window._ = _
 	var chart = dataflow();
@@ -230,8 +233,10 @@ export default function() {
 				header.render(bounds);
 				bounds = bounds.padTop(header.view.bbox.height+10)
 
+
                 var controlsFooterHeight = 0
-                controlsFooter = render(<ControlsFooter config={chart.config} activeTabName={chart.activeTabName} ref={e => controlsFooterHeight=e.height}/>, chart.htmlNode, controlsFooter)
+                if (!chart.isExport)
+                    controlsFooter = render(<ControlsFooter config={chart.config} activeTabName={chart.activeTabName} ref={e => controlsFooterHeight=e.height}/>, chart.htmlNode, controlsFooter)
 
 				bounds = bounds.padBottom(controlsFooterHeight);
 

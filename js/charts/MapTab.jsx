@@ -73,8 +73,12 @@ class MapTab extends Component {
         chart.url.updateCountryParam();
     }
 
+    componentDidMount() {
+        // Nice little intro animation
+        //d3.select(this.base).select(".slopes").attr('stroke-dasharray', "100%").attr('stroke-dashoffset', "100%").transition().attr('stroke-dashoffset', "0%")
+    }
+
     componentWillUnmount() {
-        console.log("unmount")
         this.onMapMouseLeave()
         this.onLegendMouseLeave()
     }
