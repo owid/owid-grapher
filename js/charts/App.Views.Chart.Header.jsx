@@ -65,7 +65,7 @@ class Header extends Component {
         let title = null
         let fontSize = 1.25
         while (fontSize > 1.0) {
-            title = preInstantiate(<Paragraph width={props.width-logo.width-20} fontSize={fontSize+'em'} fill="#555" lineHeight={1}>{props.title}</Paragraph>)
+            title = preInstantiate(<Paragraph width={props.width-logo.width-20} fontSize={fontSize+'em'} fill="#555" lineHeight={1}>{props.title.trim()}</Paragraph>)
             if (title.lines.length <= 1)
                 break
             fontSize -= 0.05
@@ -83,7 +83,7 @@ class Header extends Component {
         // Subtitle text must always be smaller than title text.
         var fontSize = 0.6;
 
-        return preInstantiate(<Paragraph width={subtitleWidth} fontSize={fontSize+'em'} fill="#666">{props.subtitle}</Paragraph>)
+        return preInstantiate(<Paragraph width={subtitleWidth} fontSize={fontSize+'em'} fill="#666">{props.subtitle.trim()}</Paragraph>)
     }
 
     @computed get height() {
@@ -93,12 +93,14 @@ class Header extends Component {
     render() {
         const {props, logo, title, subtitle} = this
 
+//        Bounds.debug([new Bounds(props.x, props.y+title.height+2, subtitle.width, subtitle.height)])
+
         return <g>
             <Logo {...logo.props} x={props.x+props.width-logo.width} y={props.y}/>
             <a href={props.titleLink} target="_blank">
-                <Paragraph {...title.props} x={props.x} y={props.y}>{props.title}</Paragraph>
+                <Paragraph {...title.props} x={props.x} y={props.y}>{title.wrap}</Paragraph>
             </a>
-            <Paragraph {...subtitle.props} x={props.x} y={props.y+title.height+2}>{props.subtitle}</Paragraph>
+            <Paragraph {...subtitle.props} x={props.x} y={props.y+title.height+2}>{subtitle.wrap}</Paragraph>
         </g>
     }
 }
@@ -157,6 +159,7 @@ export default function(chart) {
     let rootNode = null
 	headerControl.flow('containerNode, bounds, logosSVG, titleStr, titleLink, subtitleStr', function(containerNode, bounds, logosSVG, titleStr, titleLink, subtitleStr) {
         rootNode = render(<Header title={titleStr} subtitle={subtitleStr} logosSVG={logosSVG} x={bounds.left} y={bounds.top} width={bounds.width} titleLink={titleLink} ref={e => headerControl.view = { bbox: { height: e.height }}}/>, chart.svg.node(), rootNode)
+
         document.title = titleStr
 	});
 

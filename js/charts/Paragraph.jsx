@@ -47,7 +47,7 @@ export default class Paragraph extends Component {
 		let height = 0
 		let width = 0
 		_.each(lines, (line) => {
-			height += line.height
+			height += line.height+lineHeight
 			width = Math.max(width, line.width)
 		})
 
@@ -66,7 +66,6 @@ export default class Paragraph extends Component {
         if (!wrap || !wrap.lines)
             wrap = Paragraph.wrap(this.props.children, this.props.width, this.props)
         return wrap
-
     }
 
     @computed get lines() {
@@ -75,6 +74,10 @@ export default class Paragraph extends Component {
 
     @computed get height() {
         return this.wrap.height
+    }
+
+    @computed get width() {
+        return _.max(this.lines.map(l => l.width))
     }
 
 	render() {

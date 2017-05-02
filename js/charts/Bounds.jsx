@@ -50,6 +50,7 @@ export default class Bounds {
         this.textBoundsCache = this.textBoundsCache || new Map()
         this.ctx = this.ctx || document.createElement('canvas').getContext('2d')
         this.baseFontSize = this.baseFontSize || parseFloat(d3.select('svg').style('font-size'))
+        this.baseFontFamily = this.baseFontFamily || d3.select('svg').style('font-family')
 
         if (_.isNumber(fontSize))
             fontSize = fontSize + 'px'
@@ -57,7 +58,7 @@ export default class Bounds {
             fontSize = this.baseFontSize*parseFloat(fontSize)+'px'
 
         const key = str+'-'+fontSize
-        const fontFace = "Arial"
+        const fontFace = this.baseFontFamily
 
         let bounds = this.textBoundsCache.get(key)
         if (bounds) return bounds
