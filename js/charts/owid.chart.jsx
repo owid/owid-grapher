@@ -26,8 +26,8 @@ import UrlBinder from './App.Views.ChartURL'
 import React, {Component} from 'react'
 import {render} from 'preact'
 
-window.App.IDEAL_WIDTH = 1275
-window.App.IDEAL_HEIGHT = 900
+window.App.IDEAL_WIDTH = 1020
+window.App.IDEAL_HEIGHT = 720
 
 export default function() {
     window._ = _

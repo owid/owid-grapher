@@ -112,7 +112,7 @@ class ViewController extends Controller {
 			return App::abort(404, "No such chart");
 
 		$size = $request->input("size");
-		if (!$size) $size = "1275x900";
+		if (!$size) $size = "1020x720";
 		$split = explode("x", $size);
 		$width = min(intval($split[0]), 3000);
 		$height = min(intval($split[1]), 3000);
