@@ -100,7 +100,7 @@ export default function() {
 					if (bounds.width < 800)
 						bounds = bounds.pad(bounds.width*0.01, bounds.height*0.02);
 					else
-						bounds = bounds.pad(bounds.width*0.02, bounds.height*0.075);
+						bounds = bounds.pad(bounds.width*0.035, bounds.height*0.075);
 				}
 
 				chart.update({
