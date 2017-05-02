@@ -286,9 +286,9 @@ class ViewController extends Controller {
 
 			// Give the image exporter a head start on the request for imageUrl
 			// This isn't a strong cachebuster (Cloudflare caches these meta tags) but it should help it get through eventually
-			$imageQuery = $query . ($query ? "&" : "") . "size=1200x800&v=" . $chart->makeCacheTag();
+			$imageQuery = $query . ($query ? "&" : "") . "size=1020x720&v=" . $chart->makeCacheTag();
 			if (!str_contains(\Request::path(), ".export")) {
-				Chart::exportPNGAsync($chart->slug, $imageQuery, 1200, 800);
+				Chart::exportPNGAsync($chart->slug, $imageQuery, 1020, 720);
 			}
 
 			$chartMeta->imageUrl = $baseUrl . ".png?" . $imageQuery;

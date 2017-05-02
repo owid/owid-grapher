@@ -55,13 +55,13 @@ class ShareMenu extends Component {
 
     @computed get pngUrl() : string {
         const {baseUrl, queryStr, cacheTag} = this
-        var pngHref = baseUrl + '.png' + queryStr, defaultTargetSize = "1200x800"
+        var pngHref = baseUrl + '.png' + queryStr, defaultTargetSize = App.IDEAL_WIDTH + "x" + App.IDEAL_HEIGHT
         return pngHref + (_.includes(pngHref, "?") ? "&" : "?") + "size=" + defaultTargetSize + "&v=" + cacheTag
     }
 
     @computed get svgUrl() : string {
         const {baseUrl, queryStr, cacheTag} = this
-        var svgHref = baseUrl + '.svg' + queryStr, defaultTargetSize = "1200x800"
+        var svgHref = baseUrl + '.svg' + queryStr, defaultTargetSize = App.IDEAL_WIDTH + "x" + App.IDEAL_HEIGHT
         return svgHref + (_.includes(svgHref, "?") ? "&" : "?") + "size=" + defaultTargetSize + "&v=" + cacheTag
     }
 
