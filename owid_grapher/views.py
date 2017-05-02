@@ -4,7 +4,7 @@ import re
 import datetime
 from urllib.parse import urlparse
 from django import forms
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.conf import settings
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
@@ -18,11 +18,48 @@ from owid_grapher.forms import InviteUserForm, InvitedUserRegisterForm
 manifest = json.loads(open(os.path.join(settings.BASE_DIR, "public/build/manifest.json")).read())
 jspath = "/build/%s" % (manifest['charts.js'])
 csspath = "/build/%s" % (manifest['charts.css'])
+adminjspath = "/build/%s" % (manifest['admin.js'])
+admincsspath = "/build/%s" % (manifest['admin.css'])
 
 
 @login_required
 def index(request):
-    return HttpResponse('This is a main page placeholder')
+    return redirect('listcharts')
+
+
+@login_required
+def listcharts(request):
+    rootrequest = request.build_absolute_uri('/')[:-1]
+    charts = Chart.objects.all().order_by('-last_edited_at')
+    allvariables = Variable.objects.all()
+    vardict = {}
+    for var in allvariables:
+        vardict[var.pk] = {'id': var.pk, 'name': var.name}
+
+    chartlist = []
+    for chart in charts:
+        each = {}
+        each['published'] = chart.published
+        each['starred'] = chart.starred
+        each['name'] = chart.name
+        each['type'] = chart.type
+        each['slug'] = chart.slug
+        each['notes'] = chart.notes
+        each['origin_url'] = chart.origin_url
+        each['last_edited_at'] = chart.last_edited_at
+        each['last_edited_by'] = chart.last_edited_by
+        each['variables'] = []
+        configfile = json.loads(chart.config)
+        for chartvar in configfile['chart-dimensions']:
+            if vardict.get(int(chartvar['variableId']), 0):
+                each['variables'].append(vardict[int(chartvar['variableId'])])
+        chartlist.append(each)
+    return render(request, 'grapher/admin.charts.html', context={'adminjspath': adminjspath,
+                                                                 'admincsspath': admincsspath,
+                                                                 'rootrequest': rootrequest,
+                                                                 'current_user': request.user.name,
+                                                                 'charts': chartlist,
+                                                                 })
 
 
 def test_all(request):
