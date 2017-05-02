@@ -3,15 +3,17 @@ import webpack from 'webpack'
 import ExtractTextPlugin from 'extract-text-webpack-plugin'
 import ManifestPlugin from 'webpack-manifest-plugin'
 import OptimizeCssAssetsPlugin from 'optimize-css-assets-webpack-plugin'
+import LodashModuleReplacementPlugin from 'lodash-webpack-plugin'
+import ParallelUglifyPlugin from 'webpack-parallel-uglify-plugin'
 
 const isProduction = process.argv.indexOf('-p') !== -1
 
 export default {
-    context: path.join(__dirname, "public/js"),
+    context: path.join(__dirname, "js"),
     entry: {
         charts: "./charts.entry.js",
         admin: "./admin.entry.js"
-    },      
+    },
     output: {
         path: path.join(__dirname, "public/build"),
         filename: (isProduction ? "[name].bundle.[chunkhash].js" : "[name].bundle.js")
@@ -20,17 +22,17 @@ export default {
         extensions: [".js", ".jsx", ".css"],
         alias: {
             'react': 'preact-compat',
-            'react-dom': 'preact-compat'
+            'react-dom': 'preact-compat',
         },
         modules: [
-  	        path.join(__dirname, "public/js/libs"),
-            path.join(__dirname, "public/css/libs"),
+  	        path.join(__dirname, "js/libs"),
+            path.join(__dirname, "css/libs"),
             path.join(__dirname, "node_modules"),
         ],
     },
     module: {
         rules: [
-            { 
+            {
                 test: /(preact-compat|\.jsx)/, // Preact-compat uses getters that don't work in IE11 for some reason
                 loader: "babel-loader",
             },
@@ -53,6 +55,8 @@ export default {
         // into a separate CSS bundle for download
         new ExtractTextPlugin('[name].bundle.[chunkhash].css'),
 
+        new LodashModuleReplacementPlugin(),
+
         // CSS optimization
         new OptimizeCssAssetsPlugin({
             assetNameRegExp: /\.bundle.*\.css$/,
@@ -60,25 +64,29 @@ export default {
         }),
 
         // JS optimization
-        new webpack.optimize.UglifyJsPlugin({
-            compress: {
-              warnings: false,
-              screw_ie8: true,
-              conditionals: true,
-              unused: true,
-              comparisons: true,
-              sequences: true,
-              dead_code: true,
-              evaluate: true,
-              if_return: true,
-              join_vars: true
-            },
+        new ParallelUglifyPlugin({
+            cachePath: path.join(__dirname, 'tmp'),
+            uglifyJS: {
+                compress: {
+                  warnings: false,
+                  screw_ie8: true,
+                  conditionals: true,
+                  unused: false,
+                  comparisons: true,
+                  sequences: true,
+                  dead_code: true,
+                  evaluate: true,
+                  if_return: true,
+                  join_vars: true
+                },
+            }
         }),
 
         // Output manifest so server can figure out the hashed
         // filenames
-        new ManifestPlugin(),        
+        new ManifestPlugin(),
     ] : [
+        new LodashModuleReplacementPlugin(),
         new ExtractTextPlugin('[name].bundle.css'),
     ]),
     devServer: {
