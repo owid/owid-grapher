@@ -15,15 +15,13 @@ import owid from '../owid'
 import {svgAsDataUri} from './saveSvgAsPng'
 
 export default function(chart) {
-	if (!_.isFunction(window.callPhantom))
-		window.callPhantom = console.log;
+    let callPhantom = window.callPhantom || console.log
 
 	d3.select('body').classed('export', true);
 
 	var params = owid.getQueryParams(),
 		targetWidth = params.size && params.size.split("x") ? parseInt(params.size.split("x")[0]) : App.IDEAL_WIDTH,
-		targetHeight = params.size && params.size.split("x") ? parseInt(params.size.split("x")[1]) : App.IDEAL_HEIGHT,
-		margin = Math.min(20*(targetWidth/chart.authorHeight, 20*(targetHeight/chart.authorWidth)));
+		targetHeight = params.size && params.size.split("x") ? parseInt(params.size.split("x")[1]) : App.IDEAL_HEIGHT;
 
 	chart.update({
 		outerBounds: new Bounds(0, 0, targetWidth, targetHeight)
@@ -35,8 +33,7 @@ export default function(chart) {
 			chart.now('svg', function(svg) {
 				svg.selectAll(".nv-add-btn, .nv-controlsWrap").remove();
 
-				if (window.callPhantom)
-					window.callPhantom({ targetWidth: targetWidth, targetHeight: targetHeight }); // Notify phantom that we're ready for PNG screenshot
+				callPhantom({ targetWidth: targetWidth, targetHeight: targetHeight }); // Notify phantom that we're ready for PNG screenshot
 				prepareSVGForExport(svg);
 			});
 
@@ -79,7 +76,7 @@ export default function(chart) {
 
 		svgAsDataUri(svg.node(), {}, function(uri) {
 			var svgData = uri.substring('data:image/svg+xml;base64,'.length);
-			window.callPhantom({ "svg": svgData });
+			callPhantom({ "svg": svgData });
 		});
 	}
 };

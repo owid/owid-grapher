@@ -65,7 +65,7 @@ class Header extends Component {
         let title = null
         let fontSize = 1.25
         while (fontSize > 1.0) {
-            title = preInstantiate(<Paragraph width={props.width-logo.width-20} fontSize={fontSize+'em'} fill="#555" lineHeight={1}>{props.title.trim()}</Paragraph>)
+            title = preInstantiate(<Paragraph width={props.width-logo.width-10} fontSize={fontSize+'em'} fill="#555" lineHeight={1}>{props.title.trim()}</Paragraph>)
             if (title.lines.length <= 1)
                 break
             fontSize -= 0.05
@@ -78,7 +78,7 @@ class Header extends Component {
         const {props, logo, title} = this
 
         // If the subtitle is entirely below the logo, we can go underneath it
-        const subtitleWidth = title.height > logo.height ? props.width : props.width-logo.width-20
+        const subtitleWidth = title.height > logo.height ? props.width : props.width-logo.width-10
 
         // Subtitle text must always be smaller than title text.
         var fontSize = 0.6;

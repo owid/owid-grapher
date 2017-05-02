@@ -66,8 +66,13 @@ export default class Bounds {
         this.ctx.font = fontSize + ' ' + fontFace;
         const m = this.ctx.measureText(str)
 
-        const height = parseFloat(fontSize)
-        bounds = new Bounds(x, y-height, m.width, height)
+        let width = m.width
+        let height = parseFloat(fontSize)
+
+        if (window.callPhantom) // HACK (Mispy): under phantomjs ctx.measureText underestimates the width
+            width *= 1.03
+
+        bounds = new Bounds(x, y-height, width, height)
 
         this.textBoundsCache.set(key, bounds)
         return bounds
