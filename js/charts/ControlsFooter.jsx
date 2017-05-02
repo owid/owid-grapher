@@ -15,6 +15,7 @@ import * as Cookies from 'js-cookie'
 import ChartConfig from './ChartConfig'
 import {NullElement} from './Util'
 import dataflow from './owid.dataflow'
+import $ from 'jquery'
 
 @observer
 class EmbedMenu extends Component {
@@ -94,9 +95,6 @@ class ShareMenu extends Component {
 
         return <div class="shareMenu" onClick={(evt) => evt.stopPropagation()}>
             <h2>Share</h2>
-            <a class="btn" target="_blank" title="Link to visualization" href={baseUrl+queryStr}>
-                <i class="fa fa-link"/> Link
-            </a>
             <a class="btn" target="_blank" title="Tweet a link" href={"https://twitter.com/intent/tweet/?text=" + encodeURIComponent(title) + "&url=" + encodeURIComponent(baseUrl+queryStr)}>
                 <i class="fa fa-twitter"/> Twitter
             </a>
@@ -148,14 +146,23 @@ export default class ControlsFooter extends Component {
         this.isShareMenuActive = !this.isShareMenuActive
     }
 
+    @observable linkUrl
+    componentDidMount() {
+        this.linkUrl = window.location.toString()
+        $(window).on('query-change', () => {
+            this.linkUrl = window.location.toString()
+        })
+    }
+
     render() {
-        const {tabNames, activeTabName, isShareMenuActive} = this
+        const {props, tabNames, activeTabName, isShareMenuActive} = this
         return <div class="controlsFooter">
             <nav class="tabs">
                 <ul>
                     {_.map(tabNames, (tabName) => {
                         return <li class={"tab clickable" + (tabName == activeTabName ? ' active' : '')} onClick={() => this.onTabChange(tabName)}><a>{tabName}</a></li>
                     })}
+                    {props.isEmbed && <li class="clickable"><a title="Open chart in new tab" href={this.linkUrl} target="_blank"><i class="fa fa-expand"/></a></li>}
                     <li class="clickable"><a title="Share" onClick={this.onShareMenu}><i class="fa fa-share-alt"/></a></li>
                 </ul>
             </nav>

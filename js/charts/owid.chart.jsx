@@ -222,7 +222,7 @@ export default function() {
 
 	chart.render = function() {
 		requestAnimationFrame(function() {
-			chart.now('el, header, sourcesFooter, primaryTab, overlayTab, innerBounds, scale, loadingIcon', function(el, header, sourcesFooter, primaryTab, overlayTab, innerBounds, scale, loadingIcon) {
+			chart.now('el, header, sourcesFooter, primaryTab, overlayTab, innerBounds, scale, loadingIcon, isEmbed', function(el, header, sourcesFooter, primaryTab, overlayTab, innerBounds, scale, loadingIcon, isEmbed) {
 				loadingIcon.classed('hidden', false);
 
 				if (chart.model.get('chart-type') != App.ChartType.SlopeChart && chart.model.get('chart-type') != App.ChartType.ScatterPlot)
@@ -236,7 +236,7 @@ export default function() {
 
                 var controlsFooterHeight = 0
                 if (!chart.isExport)
-                    controlsFooter = render(<ControlsFooter config={chart.config} activeTabName={chart.activeTabName} ref={e => controlsFooterHeight=e.height}/>, chart.htmlNode, controlsFooter)
+                    controlsFooter = render(<ControlsFooter config={chart.config} isEmbed={isEmbed} activeTabName={chart.activeTabName} ref={e => controlsFooterHeight=e.height}/>, chart.htmlNode, controlsFooter)
 
 				bounds = bounds.padBottom(controlsFooterHeight);
 
