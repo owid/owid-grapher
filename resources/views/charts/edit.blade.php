@@ -15,7 +15,7 @@
 @section('scripts')
     <script type="text/javascript">
         var chartConfig = {!! $chartConfig !!};
-        owid.chart().update(
+        Chart().update(
             { chartConfig: chartConfig, containerNode: d3.select('.chart-container').node(), isEditor: true },
             function() {
                 new App.Views.FormView();

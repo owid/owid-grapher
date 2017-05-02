@@ -27,7 +27,7 @@ Route::group(['middleware' => ['basic', 'session', 'auth']], function()
 {
 	Route::resource( 'entities', 'EntitiesController' );
 	Route::resource( 'sources', 'SourcesController' );
-	Route::get('datasets/{dataset}.json', 'DatasetsController@showJson');	
+	Route::get('datasets/{dataset}.json', 'DatasetsController@showJson');
 	Route::get('datasets/{dataset}.csv', [ 'as' => 'datasets.exportCSV', 'uses' => 'DatasetsController@exportCSV' ]);
 	Route::resource( 'datasets', 'DatasetsController' );
 	Route::post('variables/{variable}/batchDestroy', [ 'as' => 'valuesBatchDestroy', 'uses' => 'VariablesController@batchDestroy' ]);
@@ -89,7 +89,7 @@ Route::group(['middleware' => ['basic', 'session', 'auth']], function()
 	Route::post('import/variables', 'ImportController@variables');
 
 	Route::get( 'entityIsoNames/validate', 'EntitiesController@validateISO' );
-	
+
 	//Route::get( 'logo', [ 'as' => 'logo', 'uses' => 'LogoController@index' ] );
 	//Route::post('logo/upload', 'LogoController@upload');
 
@@ -120,58 +120,18 @@ Route::group(['middleware' => ['basic', 'session']], function() {
 });
 
 Route::group(['middleware' => ['basic']], function () {
-	//api routes
-	Route::group( [ 'prefix' => 'v1', 'before' => 'auth.api_key' ], function() {
-		Route::get( '/data', 'ApiController@data' );
-		Route::get( '/variables', 'ApiController@variables' );
-		Route::get( '/entities', 'ApiController@entities' );
-	} );
-	Route::get( 'api', 'ApiController@index' );
+    Route::get('data/variables/{ids}', 'DataController@variables');
 
-	Route::get( 'view', 'ViewController@index' );
-	Route::get( 'view/{id}', [ 'as' => 'view', 'uses' => 'ViewController@show' ] );
-	Route::get( 'testall', 'ViewController@testall' );
-
-	Route::get('data', 'DataController@index');
-	Route::get('data/variables/{ids}', 'DataController@variables');
-	Route::get('data/config/{id}', 'ChartsController@config');
-	Route::get('data/dimensions', [ 'as' => 'dimensions', 'uses' => 'DataController@dimensions' ]);	
-	Route::post('data/exportToSvg', [ 'as' => 'exportToSvg', 'uses' => 'DataController@exportToSvg' ]);
-	Route::get('data/entities', 'DataController@entities');
-	Route::get('data/search', 'DataController@search');
-	Route::get('data/times', 'DataController@times');
-
-	Route::get('config/{chartId}', 'ViewController@config');
-	Route::get('logo/{logo}.png', 'ViewController@logo');
-
-	Route::get('latest', 'ViewController@latest');	
-	Route::any('{all}.csv', ['uses' => 'ViewController@exportCSV']);
-	Route::any('{all}.svg', ['uses' => 'ViewController@exportSVG']);	
-	Route::any('{all}.png', ['uses' => 'ViewController@exportPNG']);
-	Route::any('{all}.export', ['uses' => 'ViewController@show']);
-	Route::any('{all}', ['uses' => 'ViewController@show']);
+    Route::get('config/{chartId}', 'ViewController@config');
+    Route::get('testall', 'ViewController@testall');
+    Route::get('latest', 'ViewController@latest');
+    Route::any('{all}.csv', ['uses' => 'ViewController@exportCSV']);
+    Route::any('{all}.svg', ['uses' => 'ViewController@exportSVG']);
+    Route::any('{all}.png', ['uses' => 'ViewController@exportPNG']);
+    Route::any('{all}.export', ['uses' => 'ViewController@show']);
+    Route::any('{all}', ['uses' => 'ViewController@show']);
 });
 
-
-Response::macro( 'xml', function($vars, $status = 200, array $header = [], $xml = null, $elName = 'el' ) {
-	if( is_null( $xml ) ) {
-		$xml = new SimpleXMLElement( '<?xml version="1.0" encoding="UTF-8"?><response/>' );
-	}
-	foreach( $vars as $key => $value) {
-		if( is_array( $value ) ) {
-			Response::xml( $value, $status, $header, $xml->addChild( $key ), $elName );
-		} else if( is_object( $value ) ) {
-			$key = $elName;
-			Response::xml( $value, $status, $header, $xml->addChild( $key ), $elName );
-		} else {
-			$xml->addChild( $key, htmlspecialchars( $value ) );
-		}
-	}
-	if( empty( $header ) ) {
-		$header[ 'Content-Type' ] = 'application/xml';
-	}
-	return Response::make( $xml->asXML(), $status, $header );
-} );
 
 
 /*use App\Chart;
@@ -183,5 +143,5 @@ Route::get( '/temp', function() {
 		echo $chart->id. ': '. $config->{'chart-description'};
 		echo '<br />';
 	}
-	
+
 });*/

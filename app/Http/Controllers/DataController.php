@@ -17,16 +17,6 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 use Cache;
 
 class DataController extends Controller {
-
-	/**
-	 * Display a listing of the resource.
-	 *
-	 * @return Response
-	 */
-	public function index() {
-		return "Controller for data";
-	}
-
 	/**
 	 * Primary endpoint for mass retrieval of data for one or more variables
 	 */
@@ -74,7 +64,7 @@ class DataController extends Controller {
 		$dataQuery = DB::table('data_values')
 			->whereIn('data_values.fk_var_id', $var_ids)
 			->select('value', 'year',
-					 'data_values.fk_var_id as var_id', 
+					 'data_values.fk_var_id as var_id',
 					 'entities.id as entity_id', 'entities.name as entity_name',
 					 'entities.displayName as entity_displayName',
 					 'entities.code as entity_code')
@@ -121,7 +111,7 @@ class DataController extends Controller {
 		if( !Input::has( 'variableIds' ) ) {
 			return [];
 		}
-		
+
 		$variableIdsInput = Input::get( 'variableIds' );
 		$variableIds = explode( ',', $variableIdsInput );
 
@@ -150,7 +140,7 @@ class DataController extends Controller {
 	public function search( Request $request ) {
 
 		$data = array();
-		
+
 		if( Input::has( 's' ) ) {
 			$search = Input::get( 's' );
 			$variablesData = DB::table( 'variables' )

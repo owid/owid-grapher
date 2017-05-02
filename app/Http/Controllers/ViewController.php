@@ -44,7 +44,7 @@ class ViewController extends Controller {
 		$chartsPerPage = 5;
 
 		$query = Chart::where('published', '=', true)->where('origin_url', '!=', "");
-		if ($type && $type != 'map')	
+		if ($type && $type != 'map')
 			$query = $query->where('type', '=', $type);
 
 		$urls = [];
@@ -84,11 +84,11 @@ class ViewController extends Controller {
 
 		$nextPageUrl = null;
 		if ($page < $numPages)
-			$nextPageUrl = $request->fullUrlWithQuery(['page' => $page+1]);		
+			$nextPageUrl = $request->fullUrlWithQuery(['page' => $page+1]);
 
 		$prevPageUrl = null;
 		if ($page > 1)
-			$prevPageUrl = $request->fullUrlWithQuery(['page' => $page-1]);			
+			$prevPageUrl = $request->fullUrlWithQuery(['page' => $page-1]);
 
 		$urls = array_slice($urls, ($page-1)*$chartsPerPage, $chartsPerPage);
 
@@ -121,7 +121,7 @@ class ViewController extends Controller {
 
 		return response()->file($file,
 					['Cache-Control' => $request->input('v') ? 'public, max-age=31536000' : 'public, max-age=7200, s-maxage=604800',
-					 'Content-Disposition' => 'attachment']);
+					 'Content-Disposition' => $request->input('view') == 1 ? '' : 'attachment']);
 	}
 
 	public function exportPNG($slug, Request $request) {
@@ -180,13 +180,13 @@ class ViewController extends Controller {
 		// Now we pull out all the actual data
 		$dataQuery = DB::table('data_values')
 			->whereIn('data_values.fk_var_id', $varIds);
-		
+
 //		if ($entityIds)
 //			$dataQuery = $dataQuery->whereIn('data_values.fk_ent_id', $entityIds);
 
 		$dataQuery = $dataQuery
 			->select('value', 'year',
-					 'data_values.fk_var_id as var_id', 
+					 'data_values.fk_var_id as var_id',
 					 'entities.id as entity_id', 'entities.name as entity_name',
 					 'entities.code as entity_code');
 
@@ -232,16 +232,16 @@ class ViewController extends Controller {
 			fputcsv($out, $currentRow);
 		}, 200, [
 			"Content-Type" => "text/csv",
-			"Content-Disposition" => 'attachment; filename="' . $chart->slug . '.csv' . '"'	
+			"Content-Disposition" => 'attachment; filename="' . $chart->slug . '.csv' . '"'
 		]);
 
 		return $response;
 	}
 
 
-	public function showChart(Chart $chart) 
+	public function showChart(Chart $chart)
 	{
-		$referer_s = \Request::header('referer'); 
+		$referer_s = \Request::header('referer');
 		if ($referer_s) {
 			$root = parse_url(\Request::root());
 			$referer = parse_url($referer_s);
@@ -266,13 +266,13 @@ class ViewController extends Controller {
 			// This is because the real titles are calculated cilent-side
 			$title = $config->{"title"};
 			$title = preg_replace("/, \*time\*/", " over time", $title);
-			$title = preg_replace("/\*time\*/", "over time", $title);	
+			$title = preg_replace("/\*time\*/", "over time", $title);
 			$chartMeta->title = $title;
 
 			// Description is required by twitter
 			if (!empty($config->{"subtitle"}))
 				$chartMeta->description = $config->{"subtitle"};
-			else 
+			else
 				$chartMeta->description = "An interactive visualization from Our World In Data.";
 
 			$query = Chart::getQueryString();
@@ -293,10 +293,10 @@ class ViewController extends Controller {
 
 			$chartMeta->imageUrl = $baseUrl . ".png?" . $imageQuery;
 			$resp = response()->view('view.show', compact('chart', 'canonicalUrl', 'chartMeta', 'query'));
-					
+
 			if (str_contains(\Request::path(), ".export")) {
 				// We don't cache the export urls, just the resulting pngs
-				$resp->header('Cache-Control', 'no-cache');				
+				$resp->header('Cache-Control', 'no-cache');
 			} else {
 				$resp->header('Cache-Control', 'public, max-age=0, s-maxage=604800');
 			}
@@ -308,7 +308,7 @@ class ViewController extends Controller {
 	}
 
 	// Get the main config information for a chart
-	// This is the only request whose urls are invalidated on Cloudflare when the chart is 
+	// This is the only request whose urls are invalidated on Cloudflare when the chart is
 	// edited, so it is responsible for version stamping everything else.
 	public function config($chartId) {
 		$chart = Chart::find($chartId);

@@ -68,12 +68,12 @@ class ChartsController extends Controller {
 				$optgroups[$result->subcategory] = $optgroup;
 			}
 
-			if ($result->name != $result->dataset) 
+			if ($result->name != $result->dataset)
 				$result->name = $result->dataset . " - " . $result->name;
 			$optgroups[$result->subcategory]->variables[]= $result;
 		}
 		$data->optgroups = $optgroups;
-		return $data;		
+		return $data;
 	}
 
 	private function saveChart(Chart $chart, $data) {
@@ -87,7 +87,7 @@ class ChartsController extends Controller {
 					App::abort(422, "This chart slug is currently in use by another chart: " . $data["slug"]);
 				} else if ($chart->published && $chart->slug && $chart->slug != $data["slug"]) {
 					// Changing slug of an already published chart, create redirect
-		            DB::statement("INSERT INTO chart_slug_redirects (slug, chart_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE chart_id=VALUES(chart_id);", [$chart->slug, $chart->id]);                
+		            DB::statement("INSERT INTO chart_slug_redirects (slug, chart_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE chart_id=VALUES(chart_id);", [$chart->slug, $chart->id]);
 				}
 			}
 
@@ -97,13 +97,13 @@ class ChartsController extends Controller {
 
 			$chart->type = $data["chart-type"];
 			unset($data["chart-type"]);
-			
+
 			$chart->notes = $data["internalNotes"];
 			unset($data["internalNotes"]);
-			
+
 			$chart->slug = $data["slug"];
 			unset($data["slug"]);
-			
+
 			$chart->published = $data["published"];
 			unset($data["published"]);
 
@@ -126,7 +126,7 @@ class ChartsController extends Controller {
 				$files = glob(public_path() . "/exports/" . $chart->slug . "*");
 				foreach ($files as $file) {
 					unlink($file);
-				}			
+				}
 			}
 
 			$chart->save();
@@ -155,7 +155,7 @@ class ChartsController extends Controller {
 		$data = Input::all();
 		$chart = new Chart;
 		$this->saveChart($chart, $data);
-		return ['success' => true, 'data' => [ 'id' => $chart->id, 'viewUrl' => route( 'view', $chart->id )]];
+		return ['success' => true, 'data' => [ 'id' => $chart->id ]];
 	}
 
 	/**
@@ -165,10 +165,10 @@ class ChartsController extends Controller {
 	 * @return Response
 	 */
 	public function update( Chart $chart )
-	{	
+	{
 		$data = Input::all();
 		$this->saveChart($chart, $data);
-		return ['success' => true, 'data' => [ 'id' => $chart->id, 'viewUrl' => route( 'view', $chart->id ) ] ];
+		return ['success' => true, 'data' => [ 'id' => $chart->id ] ];
 	}
 
 
@@ -192,7 +192,7 @@ class ChartsController extends Controller {
 			return App::abort(404, "No such chart");
 
 		$config = Chart::getConfigWithUrl($chart);
-		
+
 		return response()->json($config);
 	}
 
@@ -219,7 +219,7 @@ class ChartsController extends Controller {
 	{
 		$chart->delete();
 
-				
+
 		return redirect()->route( 'charts.index' )->with( 'message', 'Chart deleted.' );
 	}
 

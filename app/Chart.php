@@ -64,7 +64,7 @@ class Chart extends Model {
 	public static function getConfigWithUrl($chart) {
 		if (!$chart)
 			return [ 'logosSVG' => Logo::where('name', 'OWD')->lists('svg') ];
-		
+
 		$config = json_decode($chart->config);
 		$config->id = $chart->id;
 		$config->{"title"} = $chart->name;
@@ -77,33 +77,7 @@ class Chart extends Model {
 
 		$config->logosSVG = Logo::whereIn('name', $config->logos)->lists('svg');
 
-		// Allow url parameters to override the chart's default
-		// selected countries configuration. We need to use the raw
-		// query string for this because we want to distinguish between
-		// %20 and +.
-		// TODO maybe unnecessary now
-		preg_match("/country=([^&]+)/", Chart::getQueryString(), $matches);
-		if ($matches) {
-			$countryCodes = array_map(function($code) { return urldecode($code); }, explode("+", $matches[1]));
-			$query = DB::table('entities')
-				->select('id', 'name')
-				->whereIn('code', $countryCodes)
-				->orWhere(function($query) use ($countryCodes) {
-					$query->whereIn('name', $countryCodes);
-				});
-
-			$oldSelectedCountries = $config->{"selected-countries"};
-			$config->{"selected-countries"} = $query->get();
-			foreach ($config->{"selected-countries"} as $entity) {
-				// Preserve custom colors
-				foreach ($oldSelectedCountries as $oldEntity) {
-					if (isset($oldEntity->color) && $oldEntity->name == $entity->name)
-						$entity->color = $oldEntity->color;
-				}
-			}
-		}
-
-		return $config;		
+		return $config;
 	}
 
 	public static function findWithRedirects($slug) {
@@ -119,7 +93,7 @@ class Chart extends Model {
 				$chart = Chart::whereNotNull('published')->whereId($redirect->chart_id)->first();
 		}
 
-		return $chart;		
+		return $chart;
 	}
 
 	/**
@@ -127,17 +101,17 @@ class Chart extends Model {
 	 *
 	 * @param string $slug The chart slug to export.
 	 * @param int $width Desired width in pixels of the exported image.
-	 * @param int $height Desired height in pixels of the exported image. 
+	 * @param int $height Desired height in pixels of the exported image.
 	 * @param string $format Either "svg" or "png". Both will be saved, only affects return
 	 * @return string Path to exported file.
 	 */
 	public static function export($slug, $query, $width, $height, $format) {
-		$phantomjs = base_path() . "/phantomjs/phantomjs";
+		$phantomjs = base_path() . "/node_modules/phantomjs-prebuilt/lib/phantom/bin/phantomjs";
 		$rasterize = base_path() . "/phantomjs/rasterize.js";
 		$target = \Request::root() . "/" . $slug . ".export" . "?" . $query;
 		$queryHash = hash('md5', $query);
-		$pngFile = public_path() . "/exports/" . $slug . "-" . $queryHash . ".png";		
-		$returnFile = public_path() . "/exports/" . $slug . "-" . $queryHash . "." . $format;	
+		$pngFile = public_path() . "/exports/" . $slug . "-" . $queryHash . ".png";
+		$returnFile = public_path() . "/exports/" . $slug . "-" . $queryHash . "." . $format;
 
 		if (!file_exists($returnFile)) {
 			$command = $phantomjs . " " . $rasterize . " " . escapeshellarg($target) . " " . escapeshellarg($pngFile) . " '" . $width . "px*" . $height . "px'" . " 2>&1";
@@ -154,8 +128,8 @@ class Chart extends Model {
 
 	public static function exportPNGAsync($slug, $query, $width, $height) {
 		if (env('APP_ENV', 'production') == 'local') return;
-		
-		$phantomjs = base_path() . "/phantomjs/phantomjs";
+
+		$phantomjs = base_path() . "/node_modules/phantomjs-prebuilt/lib/phantom/bin/phantomjs";
 		$rasterize = base_path() . "/phantomjs/rasterize.js";
 		$target = \Request::root() . "/" . $slug . ".export" . "?" . $query;
 		$queryHash = hash('md5', $query);
@@ -167,7 +141,7 @@ class Chart extends Model {
 			touch($tmpfile);
 			$command = "(" . $phantomjs . " " . $rasterize . " " . escapeshellarg($target) . " " . escapeshellarg($file) . " '" . $width . "px*" . $height . "px'" . " >/dev/null 2>/dev/null; rm " . $tmpfile . ";) &";
 			Log::info($command);
-			exec($command);			
+			exec($command);
 		}
 	}
 
@@ -205,7 +179,7 @@ class Chart extends Model {
 			->lists("updated_at");
 
 		$variableCacheTag .= implode(" + ", $varTimestamps);
-		$variableCacheTag = hash("md5", $variableCacheTag);		
+		$variableCacheTag = hash("md5", $variableCacheTag);
 		return $variableCacheTag;
 	}
 }
