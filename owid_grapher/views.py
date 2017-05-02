@@ -141,7 +141,7 @@ def showchart(request, chart):
             '.html' not in referer_s and 'wp-admin' not in referer_s and
             'preview=true' not in referer_s and 'how-to' not in referer_s and
             'grapher' not in referer_s and 'about' not in referer_s and 'roser/' not in referer_s
-            and 'slides' not in referer_s and 'blog' not in referer_s):
+            and 'slides' not in referer_s and 'blog' not in referer_s and 'testall' not in referer_s):
             origin_url = 'https://' + root.netloc + referer.path
             if chart.origin_url != origin_url:
                 chart.origin_url = origin_url
