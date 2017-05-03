@@ -57,6 +57,7 @@
   },
   "dependencies": {
     "@types/d3": "^4.8.0",
+    "@types/js-cookie": "^2.0.28",
     "@types/lodash": "^4.14.63",
     "@types/react": "^15.0.23",
     "@types/victor": "^0.2.28",

@@ -1,10 +1,10 @@
 // @flow
 
-import React, {Component} from 'react'
+import * as React from 'react'
 import Bounds from './Bounds'
 
 // Polyfill for dominant-baseline since it doesn't work in IE
-export default class Text extends Component {
+export default class Text extends React.Component<any, null> {
 	render() {
 		const baseline = this.props['dominant-baseline']
 		const bounds = Bounds.forText(this.props.children, { fontSize: this.props['font-size'] })
