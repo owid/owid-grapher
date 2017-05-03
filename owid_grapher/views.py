@@ -2,18 +2,21 @@ import os
 import json
 import re
 import datetime
+import urllib
 from urllib.parse import urlparse
 from django import forms
 from django.shortcuts import render, redirect
 from django.conf import settings
 from django.contrib import messages
 from django.db import connection
+from django.db.models import Q
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string
-from grapher_admin.models import Chart, Variable, License, DataValue, Entity, UserInvitation, User
+from django.utils.encoding import smart_str
+from grapher_admin.models import Chart, Variable, License, UserInvitation, User, ChartSlugRedirect
 from owid_grapher.forms import InviteUserForm, InvitedUserRegisterForm
 
 # putting these into global scope for reuse
@@ -187,6 +190,10 @@ def get_query_string(request):
     return urlparse(request.get_full_path()).query
 
 
+def get_query_as_dict(request):
+    return dict(urllib.parse.parse_qs(urllib.parse.urlsplit(request.get_full_path()).query))
+
+
 def showchart(request, chart):
     """
     :param request: Request object
@@ -210,18 +217,18 @@ def showchart(request, chart):
                 chart.save()
 
     if chart:
-        config = Chart.get_config_with_url(chart)
+        configfile = chart.get_config_with_url()
         canonicalurl = request.build_absolute_uri('/') + chart.slug
         baseurl = request.build_absolute_uri('/') + chart.slug
 
         chartmeta = {}
 
-        title = config['title']
+        title = configfile['title']
         title = re.sub("/, \*time\*/", " over time", title)
         title = re.sub("/\*time\*/", "over time", title)
         chartmeta['title'] = title
-        if config.get('subtitle', ''):
-            chartmeta['description'] = config['subtitle']
+        if configfile.get('subtitle', ''):
+            chartmeta['description'] = configfile['subtitle']
         else:
             chartmeta['description'] = 'An interactive visualization from Our World In Data.'
         query_string = get_query_string(request)
@@ -237,29 +244,46 @@ def showchart(request, chart):
 
         configpath = "%s/config/%s.js" % (settings.BASE_URL, chart.pk)
 
-        return render(request, 'grapher/show_chart.html', context={'chartmeta': chartmeta,
-                                                                            'configpath': configpath,
-                                                                            'jspath': jspath, 'csspath': csspath,
-                                                                            'query': query_string,
-                                                                            'rootrequest': rootrequest})
+        return render(request, 'grapher/show_chart.html', context={'chartmeta': chartmeta,'configpath': configpath,
+                                                                   'jspath': jspath, 'csspath': csspath,
+                                                                   'query': query_string,
+                                                                   'rootrequest': rootrequest})
     else:
         return HttpResponseNotFound('No chart found to view')
 
 
-@login_required
+def find_with_redirects(slug):
+    """
+    :param slug: Slug for the requested Chart
+    :return: Chart object
+    """
+    try:
+        intslug = int(slug)
+    except ValueError:
+        intslug = None
+    try:
+        chart = Chart.objects.get((Q(slug=slug) | Q(pk=intslug)), published__isnull=False)
+    except Chart.DoesNotExist:
+        try:
+            redirect_chart = ChartSlugRedirect.objects.get(slug=slug)
+        except ChartSlugRedirect.DoesNotExist:
+            return False
+        chart = Chart.objects.get(pk=redirect_chart.chart_id, published__isnull=False)
+    return chart
+
+
 def show(request, slug):
     """
     :param request: Request object
     :param slug: Chart slug
     :return: Rendered Chart page
     """
-    chart = Chart.find_with_redirects(slug)
+    chart = find_with_redirects(slug)
     if not chart:
         return HttpResponseNotFound('No such chart!')
     return showchart(request, chart)
 
 
-@login_required
 def config(request, configid):
     """
     :param request: Request object
@@ -296,7 +320,6 @@ def dictfetchall(cursor):
     ]
 
 
-@login_required
 def variables(request, ids):
     """
     :param request: Request object
@@ -364,7 +387,6 @@ def variables(request, ids):
     return HttpResponse(json.dumps(meta) + varstring + json.dumps(entitykey), content_type="text/plain")
 
 
-@login_required
 def latest(request):
     """
     :param request: Request object
@@ -446,6 +468,7 @@ def invite_user(request):
 
 
 def register_by_invite(request, code):
+    check_invitation_statuses()
     try:
         invite = UserInvitation.objects.get(code=code)
     except UserInvitation.DoesNotExist:
@@ -485,3 +508,25 @@ def register_by_invite(request, code):
                 return render(request, 'grapher/register_invited_user.html', context={'form': form})
         else:
             return render(request, 'grapher/register_invited_user.html', context={'form': form})
+
+
+def exportfile(request, slug, fileformat):
+    if fileformat not in ['csv', 'png', 'svg']:
+        return HttpResponseNotFound('Not Found.')
+    if fileformat in ['png', 'svg']:
+        chart = find_with_redirects(slug)
+        querydict = get_query_as_dict(request)
+        querystring = get_query_string(request)
+        if 'size' in querystring:
+            width = querydict['size'][0].split('x')[0]
+            height = querydict['size'][0].split('x')[1]
+        else:
+            width = '1200'
+            height = '800'
+        if chart:
+                downloadfile = chart.export_image(querystring, width, height, fileformat)
+
+        response = HttpResponse(open(downloadfile, 'rb'),
+            content_type='application/force-download')
+        response['Content-Disposition'] = 'attachment; filename=%s' % smart_str(slug + "." + fileformat)
+        return response

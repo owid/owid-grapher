@@ -1,12 +1,15 @@
 import json
 import subprocess
 import hashlib
+import os.path
+import shlex
+import sys
 from django.db import models
-from django.db.models import Q
 from django.core.mail import send_mail
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.base_user import BaseUserManager
+from owid_grapher import settings
 
 
 # contains helper methods for the User model
@@ -92,6 +95,26 @@ class Chart(models.Model):
                                                      ('DiscreteBar', 'Discrete bar'),
                                                      ('SlopeChart', 'Slope chart')), blank=True, null=True)
 
+
+    def export_image(self, query, width, height, format):
+        phantomjs = settings.BASE_DIR + "/node_modules/phantomjs-prebuilt/lib/phantom/bin/phantomjs"
+        rasterize = settings.BASE_DIR + "/phantomjs/rasterize.js"
+        target = settings.BASE_URL + "/" + self.slug + ".export" + "?" + query
+        m = hashlib.md5()
+        m.update(query.encode(encoding='utf-8'))
+        query_hash = m.hexdigest()
+        png_file = settings.BASE_DIR + "/public/exports/" + self.slug + "-" + query_hash + ".png"
+        return_file = settings.BASE_DIR + "/public/exports/" + self.slug + "-" + query_hash + "." + format
+
+        if not os.path.isfile(return_file):
+            command = "%s %s %s %s '%spx*%spx'" % (phantomjs, rasterize, shlex.quote(target), shlex.quote(png_file), width, height)
+            try:
+                command = subprocess.check_call(command, shell=True)
+            except subprocess.CalledProcessError:
+                pass  # will need to handle the error here
+
+        return return_file
+
     @classmethod
     def owid_commit(cls):
         """
@@ -121,46 +144,23 @@ class Chart(models.Model):
         variable_cache_tag = m.hexdigest()
         return variable_cache_tag
 
-
-    @classmethod
-    def get_config_with_url(cls, chart):
+    def get_config_with_url(self):
         """
-        :param chart: Chart object
         :return: A Chart's config dictionary
         """
-        config = json.loads(chart.config)
-        config['id'] = chart.pk
-        config['title'] = chart.name
-        config['chart-type'] = chart.type
-        config['internalNotes'] = chart.notes
-        config['slug'] = chart.slug
-        config['data-entry-url'] = chart.origin_url
-        config['published'] = chart.published
+        config = json.loads(self.config)
+        config['id'] = self.pk
+        config['title'] = self.name
+        config['chart-type'] = self.type
+        config['internalNotes'] = self.notes
+        config['slug'] = self.slug
+        config['data-entry-url'] = self.origin_url
+        config['published'] = self.published
         logos = []
         for each in list(Logo.objects.filter(name__in=config['logos'])):
             logos.append(each.svg)
         config['logosSVG'] = logos
         return config
-
-    @classmethod
-    def find_with_redirects(cls, slug):
-        """
-        :param slug: Slug for the requested Chart
-        :return: Chart object
-        """
-        try:
-            intslug = int(slug)
-        except ValueError:
-            intslug = None
-        try:
-            chart = Chart.objects.get((Q(slug=slug) | Q(pk=intslug)), published__isnull=False)
-        except Chart.DoesNotExist:
-            try:
-                redirect = ChartSlugRedirect.objects.get(slug=slug)
-            except ChartSlugRedirect.DoesNotExist:
-                return False
-            chart = Chart.objects.get(pk=redirect.chart_id, published__isnull=False)
-        return chart
 
 
 class DatasetCategory(models.Model):

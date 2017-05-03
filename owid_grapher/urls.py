@@ -31,5 +31,7 @@ urlpatterns = [
     url(r'^testall', views.test_all, name="testall"),
     url(r'^invite/$', views.invite_user, name="inviteuser"),
     url(r'^invitation/(?P<code>[\w]+)$', views.register_by_invite, name="registerbyinvite"),
+    url(r'^(?P<slug>.+)\.export', views.show, name="exportchart"),
+    url(r'^(?P<slug>.+)\.(?P<fileformat>.+)', views.exportfile, name="exportfile"),
     url(r'^(?P<slug>.+)/$', views.show, name="showchart"),
 ]
