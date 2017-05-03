@@ -7,6 +7,7 @@ from django import forms
 from django.shortcuts import render, redirect
 from django.conf import settings
 from django.contrib import messages
+from django.db import connection
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
@@ -286,6 +287,15 @@ def config(request, configid):
         return response
 
 
+def dictfetchall(cursor):
+    "Return all rows from a cursor as a dict"
+    columns = [col[0] for col in cursor.description]
+    return [
+        dict(zip(columns, row))
+        for row in cursor.fetchall()
+    ]
+
+
 @login_required
 def variables(request, ids):
     """
@@ -300,7 +310,7 @@ def variables(request, ids):
     meta['license'] = License.objects.values().first()
     meta['license']['created_at'] = str(meta['license']['created_at'])
     meta['license']['updated_at'] = str(meta['license']['updated_at'])
-    large_string = ''
+
     for each in ids.split('+'):
         varids.append(int(each))
 
@@ -325,19 +335,31 @@ def variables(request, ids):
         var['values'] = []
         meta['variables'][varobj.pk] = var
 
-    varstring = "\r\n"
+    varstring = ""
 
-    # Using the DataValue model here temporarily for testing
-    # Will switch to pure SQL soon
-    for each in varids:
-        varobj = DataValue.objects.filter(fk_var_id_id=each).select_related('fk_ent_id').order_by('year')
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT value, year, fk_var_id_id as var_id, entities.id as entity_id, "
+                       "entities.name as entity_name, entities.displayName as entity_displayName, "
+                       "entities.code as entity_code "
+                       "FROM data_values "
+                       "LEFT JOIN entities ON data_values.fk_ent_id_id = entities.id "
+                       "WHERE data_values.fk_var_id_id IN %s "
+                       "ORDER BY var_id ASC,  year ASC;", [varids])
+        rows = dictfetchall(cursor)
 
-        varstring += str(each)
-        for row in varobj:
-            varstring += ';' + str(row.year) + ',' + str(row.fk_ent_id.pk) + ',' + str(row.value)
-            if not entitykey.get(str(row.fk_ent_id.pk), 0):
-                entitykey[str(row.fk_ent_id.pk)] = {'name': row.fk_ent_id.name, 'code': row.fk_ent_id.code}
-        varstring += "\r\n"
+    seen_variables = {}
+    for each in rows:
+        if not seen_variables.get(each['var_id'], 0):
+            seen_variables[each['var_id']] = 1
+            varstring += "\r\n"
+            varstring += str(each['var_id'])
+
+        varstring += ';' + str(each['year']) + ',' + str(each['entity_id']) + ',' + str(each['value'])
+
+        if not entitykey.get(str(each['entity_id']), 0):
+            entitykey[str(each['entity_id'])] = {'name': each['entity_name'], 'code': each['entity_code']}
+
+    varstring += "\r\n"
 
     return HttpResponse(json.dumps(meta) + varstring + json.dumps(entitykey), content_type="text/plain")
 
