@@ -30,7 +30,7 @@ The default user account is "admin@example.com" with a password of "admin".
 
 ## Architecture notes
 
-Since this project is used in production and undergoing active development, the dependencies and code style are still in a state of flux. We eventually aim to fully migrate away from [nvd3](http://nvd3.org/) and [Backbone](http://backbonejs.org/) in favor of the more modern/faster [Preact](https://github.com/developit/preact) and [Mobx](https://github.com/mobxjs/mobx). New code should be written in [ES6](https://github.com/lukehoban/es6features) with [Flow](https://flowtype.org/) type annotation. We would also like to eventually replace the PHP backend with something more minimal (most of the code in this is frontend stuff).
+Since this project is used in production and undergoing active development, the dependencies and code style are still in a state of flux. We eventually aim to fully migrate away from [nvd3](http://nvd3.org/) and [Backbone](http://backbonejs.org/) in favor of the more modern/faster [Preact](https://github.com/developit/preact) and [Mobx](https://github.com/mobxjs/mobx). New code should be written in [TypeScript](https://www.typescriptlang.org/). We would also like to eventually replace the PHP backend with something more minimal (most of the code in this is frontend stuff).
 
 ## About
 
