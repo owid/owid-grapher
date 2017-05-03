@@ -186,6 +186,10 @@
   version "4.14.63"
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.63.tgz#5ac475f55bfdc62bc88c4239dbc482f2f3bead93"
 
+"@types/react@^15.0.23":
+  version "15.0.23"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-15.0.23.tgz#f3facbef5290610f54242f00308759d3a3c27346"
+
 "@types/victor@^0.2.28":
   version "0.2.28"
   resolved "https://registry.yarnpkg.com/@types/victor/-/victor-0.2.28.tgz#8d4f404f203049188f65787e49af33d7fa648757"

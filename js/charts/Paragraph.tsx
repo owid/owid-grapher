@@ -10,23 +10,34 @@
  * @created 2017-02-02
  */
 
-import React, {Component} from 'react'
+import * as React from 'react'
 import {computed} from 'mobx'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
-import _ from 'lodash'
+import * as _ from 'lodash'
+
+export interface ParagraphProps {
+    width: number,
+    children: any
+}
+
+interface WrapLine {
+    str: string,
+    width: number,
+    height: number
+}
 
 @observer
-export default class Paragraph extends Component {
+export default class Paragraph extends React.Component<ParagraphProps, undefined> {
 	// Since it is often desirable to operate on bounding data before
 	// the final rendering, wrapping can be precalced here
-	static wrap(str, targetWidth, opts={}) {
+	static wrap(str: string, targetWidth: number, opts: { lineHeight?: number, fontSize?: number } = {}) {
         str = str || ""
 		const words = str.split(' ')
-		const lines = []
+		const lines: WrapLine[] = []
 		const lineHeight = opts.lineHeight || 1.1
 
-		let line = []
+		let line: string[] = []
 		let lineBounds = Bounds.empty()
 		_.each(words, (word, i) => {
 			let nextLine = line.concat([word])
@@ -68,15 +79,15 @@ export default class Paragraph extends Component {
         return wrap
     }
 
-    @computed get lines() {
+    @computed get lines(): WrapLine[] {
         return this.wrap.lines
     }
 
-    @computed get height() {
+    @computed get height(): number {
         return this.wrap.height
     }
 
-    @computed get width() {
+    @computed get width(): number {
         return _.max(this.lines.map(l => l.width))
     }
 
