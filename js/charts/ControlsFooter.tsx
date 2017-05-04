@@ -144,8 +144,8 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps,
                     <li className={"tab clickable icon" + (props.activeTabName == 'download' ? ' active' : '')} onClick={() => this.onTabChange('download')} title="Download as .png or .svg">
                         <a><i className="fa fa-download"/></a>
                     </li>
-                    {props.chartView.isEmbed && <li className="clickable icon"><a title="Open chart in new tab" href={this.linkUrl} target="_blank"><i className="fa fa-expand"/></a></li>}
                     <li className="clickable icon"><a title="Share" onClick={this.onShareMenu}><i className="fa fa-share-alt"/></a></li>
+                    {props.chartView.isEmbed && <li className="clickable icon"><a title="Open chart in new tab" href={this.linkUrl} target="_blank"><i className="fa fa-expand"/></a></li>}
                 </ul>
             </nav>
             {isShareMenuActive && <ShareMenu chartView={this.props.chartView} config={this.props.config} onDismiss={() => this.isShareMenuActive = false}/>}
