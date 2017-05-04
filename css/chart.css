@@ -735,7 +735,7 @@ a {
     background: rgba(255,255,255,0.95);
     padding: 1em;
     text-align: left;
-    z-index: 1;
+    z-index: 12;
 }
 
 #chart .embedMenu p {

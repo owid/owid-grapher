@@ -122,6 +122,9 @@ export default function() {
 	chart.flow('htmlNode : el', function(el) {
 		return el.node();
 	});
+    chart.flow('overlayNode : el', function(el) {
+        return el.append('div').attr('class', 'overlay').node()
+    })
 	chart.flow('svg : el', function(el) {
 		return el.append('svg').attr('xmlns', 'http://www.w3.org/2000/svg').attr('xmls:xlink', 'http://www.w3.org/1999/xlink').attr('version', '1.1');
 	});
@@ -236,7 +239,7 @@ export default function() {
 
                 var controlsFooterHeight = 0
                 if (!chart.isExport)
-                    controlsFooter = render(<ControlsFooter config={chart.config} isEmbed={isEmbed} activeTabName={chart.activeTabName} ref={e => controlsFooterHeight=e.height}/>, chart.htmlNode, controlsFooter)
+                    controlsFooter = render(<ControlsFooter config={chart.config} chartView={this} scale={this.scale} activeTabName={this.activeTabName} ref={e => controlsFooterHeight=e.height}/>, chart.htmlNode, controlsFooter)
 
 				bounds = bounds.padBottom(controlsFooterHeight);
 

@@ -1,5 +1,5 @@
-
-import {geoRobinson} from 'd3-geo-projection'
+declare function require(name:string): any;
+const geoRobinson: any = require('d3-geo-projection').geoRobinson
 import * as d3 from 'd3'
 
 export default {

@@ -1,10 +1,7 @@
-// @flow
-
-import owid from '../owid'
-import _ from 'lodash'
+declare function require(name:string): any;
+const owid: any = require('../owid').default
+import * as _ from 'lodash'
 import {observable, computed, action, autorun, toJS} from 'mobx'
-import type {ScaleType} from './ScaleSelector'
-import ChartData from './ChartData'
 
 // In-progress mobx model layer that will eventually replace ChartModel
 export default class ChartConfig {
@@ -16,23 +13,23 @@ export default class ChartConfig {
     @observable.ref note: string
     @observable.ref internalNotes: string
 
-	@observable.ref selectedEntities = []
+	@observable.ref selectedEntities: Object[] = []
     @observable.ref timeRange: [number|null, number|null]
-    @observable timeline = null
+    @observable timeline: Object = null
 
-    @observable.ref yAxisConfig: Object
+    @observable.ref yAxisConfig: any
     @observable.ref yDomain: [number|null, number|null]
     @observable.ref yScaleType: 'linear'|'log'
     @observable.ref yScaleTypeOptions: string[]
     @observable.ref yAxisLabel: string
-    @observable.ref yTickFormat: (number) => string
+    @observable.ref yTickFormat: (v: number) => string
 
-    @observable.ref xAxisConfig: Object
+    @observable.ref xAxisConfig: any
     @observable.ref xDomain: [number|null, number|null]
     @observable.ref xScaleType: 'linear'|'log'
     @observable.ref xScaleTypeOptions: string[]
     @observable.ref xAxisLabel: string
-    @observable.ref xTickFormat: (number) => string
+    @observable.ref xTickFormat: (v: number) => string
 
 	model: any
 
@@ -45,7 +42,7 @@ export default class ChartConfig {
         this.note = this.model.get('chart-description')
         this.internalNotes = this.model.get('internalNotes')
 
-        this.selectedEntities = this.model.getSelectedEntities().map(e => e.name)
+        this.selectedEntities = this.model.getSelectedEntities().map((e: any) => e.name)
         this.timeline = this.model.get('timeline')
         this.timeRange = this.model.get('chart-time')||[]
 
@@ -125,21 +122,20 @@ export default class ChartConfig {
 		return this.model.getDimensions()
 	}
 
-	@computed get data() : ChartData {
-		return new ChartData(this)
-	}
-
 	@computed get timeDomain() : [number|null, number|null] {
 		return this.model.get("chart-time")||[null, null]
 	}
 
 	// Tabs that can be navigated to by the user
-	@computed get availableTabs() : string[] {
-        return _.sortBy(this.model.get('tabs'), function(name) {
-            return {
-                chart: 1,
-                map: 2
-            }[name] || 3;
+	@computed get availableTabs(): string[] {
+        const tabs: string[] = this.model.get('tabs')
+        return _.sortBy(tabs, function(name) {
+            if (name == 'chart')
+                return 1
+            else if (name == 'map')
+                return 2
+            else
+                return 3
         });
 	}
 
