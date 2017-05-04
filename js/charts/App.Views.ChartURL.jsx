@@ -64,7 +64,7 @@ export default function(chart) {
 		// Set tab if specified
 		var tab = params.tab;
 		if (tab) {
-			if (!_.includes(chart.model.get("tabs").concat('share'), tab))
+			if (!_.includes(chart.model.get("tabs").concat('share'), tab) && tab !== 'download')
 				console.error("Unexpected tab: " + tab);
 			else {
 				chart.update({ activeTabName: tab });

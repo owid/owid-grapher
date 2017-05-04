@@ -14,6 +14,7 @@ import ChartTab from './ChartTab'
 import DataTab from './DataTab'
 import MapTab from './MapTab'
 import SourcesTab from './SourcesTab'
+import DownloadTab from './DownloadTab'
 import dataflow from './owid.dataflow'
 import ChartModel from './App.Models.ChartModel'
 import mapdata from './owid.models.mapdata'
@@ -141,7 +142,8 @@ export default function() {
 			chart: ChartTab(chart),
 			data: DataTab(chart),
 			map: MapTab(chart),
-			sources: SourcesTab(chart)
+			sources: SourcesTab(chart),
+            download: DownloadTab(chart)
 		};
 	});
 

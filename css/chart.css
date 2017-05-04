@@ -604,7 +604,10 @@ a {
 /* Sources Tab
 --------------------------------------------- */
 
-#chart .sourcesTab {
+
+
+#chart .sourcesTab,
+#chart .downloadTab {
     padding: 1em;
     text-align: left;
     background: rgba(255,255,255,0.95);
@@ -1066,5 +1069,59 @@ body.export #chart .tab-pane {
     z-index: -1;
 }
 
+#chart .downloadTab {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    & > a {
+        color: #333;
+    }
+
+    & > a:hover {
+        text-decoration: none;
+    }
+
+    & a:hover aside {
+        text-decoration: underline;
+    }
+
+    & aside {
+        margin: 1em;
+    }
+
+
+    & .imgLoader {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #ccc;
+        color: #333;
+        margin: 1em;
+    }
+}
+
+#chart.landscape .downloadTab {
+    font-size: 0.9em;
+    padding: 3em;
+
+    & > a > div {
+        display: flex;
+    }
+}
+
+#chart.portrait .downloadTab {
+    font-size: 0.7em;
+    padding: 1em;
+
+    & .imgLoader {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    & h2 {
+        margin-bottom: 0.2em;
+    }
+}
 
 /*# sourceMappingURL=front-sass.css.map */

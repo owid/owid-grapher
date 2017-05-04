@@ -48,24 +48,8 @@ class ShareMenu extends React.Component<ShareMenuProps, null> {
         return this.props.chartView.url.lastQueryStr||""
     }
 
-    @computed get cacheTag() : string {
-        return this.props.chartView.model.get("variableCacheTag")
-    }
-
     @computed get editUrl() : string {
         return Cookies.get('isAdmin') ? (Global.rootUrl + '/charts/' + this.props.chartView.model.get('id') + '/edit') : null
-    }
-
-    @computed get pngUrl() : string {
-        const {baseUrl, queryStr, cacheTag} = this
-        var pngHref = baseUrl + '.png' + queryStr, defaultTargetSize = App.IDEAL_WIDTH + "x" + App.IDEAL_HEIGHT
-        return pngHref + (_.includes(pngHref, "?") ? "&" : "?") + "size=" + defaultTargetSize + "&v=" + cacheTag
-    }
-
-    @computed get svgUrl() : string {
-        const {baseUrl, queryStr, cacheTag} = this
-        var svgHref = baseUrl + '.svg' + queryStr, defaultTargetSize = App.IDEAL_WIDTH + "x" + App.IDEAL_HEIGHT
-        return svgHref + (_.includes(svgHref, "?") ? "&" : "?") + "size=" + defaultTargetSize + "&v=" + cacheTag
     }
 
     @observable isEmbedMenuActive : boolean = false
@@ -95,7 +79,7 @@ class ShareMenu extends React.Component<ShareMenuProps, null> {
     }
 
     render() {
-        const {title, baseUrl, queryStr, editUrl, pngUrl, svgUrl, isEmbedMenuActive} = this
+        const {title, baseUrl, queryStr, editUrl, isEmbedMenuActive} = this
 
         return <div className="shareMenu" onClick={(evt) => evt.stopPropagation()}>
             <h2>Share</h2>
@@ -107,12 +91,6 @@ class ShareMenu extends React.Component<ShareMenuProps, null> {
             </a>
             <a className="btn" title="Embed this visualization in another HTML document" onClick={this.onEmbed}>
                 <i className="fa fa-code"/> Embed
-            </a>
-            <a className="btn" target="_blank" title="Save visualization in raster format" href={pngUrl}>
-                <i className="fa fa-download"/> Save as PNG
-            </a>
-            <a className="btn" target="_blank" title="Save visualization in vector graphics format" href={svgUrl}>
-                <i className="fa fa-download"/> Save as SVG
             </a>
             {editUrl && <a className="btn" target="_blank" title="Edit chart" href={editUrl}>
                 <i className="fa fa-edit"/> Edit
@@ -130,7 +108,7 @@ interface ControlsFooterProps {
 @observer
 export default class ControlsFooter extends React.Component<ControlsFooterProps, null> {
     @computed get tabNames() : string[] {
-        return this.props.config.availableTabs
+        return this.props.config.availableTabs.concat(['download'])
     }
 
     @computed get height() {
@@ -161,7 +139,7 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps,
             <nav className="tabs">
                 <ul>
                     {_.map(tabNames, (tabName) => {
-                        return <li className={"tab clickable" + (tabName == props.activeTabName ? ' active' : '')} onClick={() => this.onTabChange(tabName)}><a>{tabName}</a></li>
+                        return <li className={"tab clickable" + (tabName == props.activeTabName ? ' active' : '')} onClick={() => this.onTabChange(tabName)}><a>{tabName == 'download' ? <i className="fa fa-download"/> : tabName}</a></li>
                     })}
                     {props.chartView.isEmbed && <li className="clickable"><a title="Open chart in new tab" href={this.linkUrl} target="_blank"><i className="fa fa-expand"/></a></li>}
                     <li className="clickable"><a title="Share" onClick={this.onShareMenu}><i className="fa fa-share-alt"/></a></li>
