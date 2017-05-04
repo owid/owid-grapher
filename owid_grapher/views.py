@@ -3,6 +3,8 @@ import json
 import re
 import datetime
 import urllib
+from io import StringIO
+import csv
 from urllib.parse import urlparse
 from django import forms
 from django.shortcuts import render, redirect
@@ -10,7 +12,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.db import connection
 from django.db.models import Q
-from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect, StreamingHttpResponse
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.utils import timezone
@@ -526,7 +528,74 @@ def exportfile(request, slug, fileformat):
         if chart:
                 downloadfile = chart.export_image(querystring, width, height, fileformat)
 
-        response = HttpResponse(open(downloadfile, 'rb'),
-            content_type='application/force-download')
-        response['Content-Disposition'] = 'attachment; filename=%s' % smart_str(slug + "." + fileformat)
+        with open(downloadfile, 'rb') as f:
+            response = HttpResponse(f, content_type='application/force-download')
+            response['Content-Disposition'] = 'attachment; filename=%s' % smart_str(slug + "." + fileformat)
+            return response
+
+    if fileformat == 'csv':
+        try:
+            chart = find_with_redirects(slug)
+        except Chart.DoesNotExist:
+            return HttpResponseNotFound('No such chart!')
+        configfile = json.loads(chart.config)
+        allvariables = Variable.objects.all()
+        allvardict = {}
+        chartvarlist = []
+
+        for var in allvariables:
+            allvardict[var.pk] = {'id': var.pk, 'name': var.name}
+
+        for chartvar in configfile['chart-dimensions']:
+            if allvardict.get(int(chartvar['variableId']), 0):
+                chartvarlist.append(allvardict[int(chartvar['variableId'])])
+
+        chartvarlist = sorted(chartvarlist, key=lambda k: k['id'])
+
+        sql_query = 'SELECT maintable.entity as entity, maintable.year as year, maintable.country_code as country_code'
+
+        table_counter = 1
+        join_string = ''
+        id_tuple = ''
+        headerlist = ['Entity', 'Year', 'Country code']
+        for each in chartvarlist:
+            sql_query += ', table%s.value as value%s' % (table_counter, table_counter)
+
+            join_string += 'LEFT JOIN (SELECT * FROM data_values WHERE fk_var_id_id = %s) as table%s on ' \
+                           'maintable.`fk_ent_id_id` = table%s.`fk_ent_id_id` and ' \
+                           'maintable.year = table%s.year ' % (each['id'], table_counter, table_counter,
+                                                               table_counter)
+
+            table_counter += 1
+            id_tuple += str(each['id']) + ','
+            headerlist.append(each['name'])
+
+        id_tuple = id_tuple[:-1]
+        sql_query += ' FROM (SELECT fk_ent_id_id, entities.name as entity, year, entities.code as ' \
+                     'country_code FROM data_values LEFT OUTER JOIN entities on data_values.fk_ent_id_id = entities.id ' \
+                     'WHERE fk_var_id_id in (%s) ORDER BY entity, year, data_values.fk_var_id_id) as maintable ' % id_tuple
+
+        sql_query += join_string + 'GROUP BY entity, year, country_code;'
+
+        with connection.cursor() as cursor:
+            cursor.execute(sql_query)
+            rows = cursor.fetchall()
+
+        def stream():
+            buffer_ = StringIO()
+            writer = csv.writer(buffer_)
+            writer.writerow(headerlist)
+            for row in rows:
+                writer.writerow(row)
+                buffer_.seek(0)
+                data = buffer_.read()
+                buffer_.seek(0)
+                buffer_.truncate()
+                yield data
+
+        response = StreamingHttpResponse(
+            stream(), content_type='text/csv'
+        )
+        disposition = "attachment; filename=%s.csv" % slug
+        response['Content-Disposition'] = disposition
         return response
