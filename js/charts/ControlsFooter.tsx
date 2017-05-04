@@ -108,7 +108,7 @@ interface ControlsFooterProps {
 @observer
 export default class ControlsFooter extends React.Component<ControlsFooterProps, null> {
     @computed get tabNames() : string[] {
-        return this.props.config.availableTabs.concat(['download'])
+        return this.props.config.availableTabs
     }
 
     @computed get height() {
@@ -139,8 +139,11 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps,
             <nav className="tabs">
                 <ul>
                     {_.map(tabNames, (tabName) => {
-                        return <li className={"tab clickable" + (tabName == props.activeTabName ? ' active' : '')} onClick={() => this.onTabChange(tabName)}><a>{tabName == 'download' ? <i className="fa fa-download"/> : tabName}</a></li>
+                        return <li className={"tab clickable" + (tabName == props.activeTabName ? ' active' : '')} onClick={() => this.onTabChange(tabName)}><a>{tabName}</a></li>
                     })}
+                    <li className={"tab clickable" + (props.activeTabName == 'download' ? ' active' : '')} onClick={() => this.onTabChange('download')} title="Download as .png or .svg">
+                        <a><i className="fa fa-download"/></a>
+                    </li>
                     {props.chartView.isEmbed && <li className="clickable"><a title="Open chart in new tab" href={this.linkUrl} target="_blank"><i className="fa fa-expand"/></a></li>}
                     <li className="clickable"><a title="Share" onClick={this.onShareMenu}><i className="fa fa-share-alt"/></a></li>
                 </ul>
