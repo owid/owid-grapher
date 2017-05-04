@@ -1102,7 +1102,7 @@ body.export #chart .tab-pane {
 }
 
 #chart.landscape .downloadTab {
-    font-size: 0.9em;
+    font-size: 0.8em;
     padding: 3em;
 
     & > a > div {

@@ -108,7 +108,7 @@ export default function(chart) {
 
 		var year = params.year;
 		if (year !== undefined) {
-			chart.map.set("defaultYear", year);
+			chart.map.set("defaultYear", parseInt(year));
 		}
 
 		var region = params.region;

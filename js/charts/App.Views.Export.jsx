@@ -13,6 +13,7 @@ import _ from 'lodash'
 import Bounds from './Bounds'
 import owid from '../owid'
 import {svgAsDataUri} from './saveSvgAsPng'
+import $ from 'jquery'
 
 export default function(chart) {
     let callPhantom = window.callPhantom || console.log
@@ -73,6 +74,10 @@ export default function(chart) {
 		svg.style("width", chart.el.style("width"));
 		svg.style("height", chart.el.style("height"));
 		svg.style("font-size", svg.style("font-size"));
+        svg.style("background-color", "#fff")
+
+        // Remove all other styles for easier testing that this works
+        //d3.selectAll('link').remove()
 
 		svgAsDataUri(svg.node(), {}, function(uri) {
 			var svgData = uri.substring('data:image/svg+xml;base64,'.length);
