@@ -15,7 +15,6 @@ import * as d3 from 'd3'
 import React, { Component } from 'react'
 import {observable, computed, action} from 'mobx'
 import {observer} from 'mobx-react'
-import {bind} from 'decko'
 
 import type {SVGElement} from './Util'
 import type {ScaleType} from './ScaleSelector'
@@ -24,6 +23,7 @@ import Text from './Text'
 import Paragraph from './Paragraph'
 import NoData from './NoData'
 import ScaleSelector from './ScaleSelector'
+import {preInstantiate} from './Util'
 
 export type SlopeChartSeries = {
 	label: string,
@@ -127,20 +127,17 @@ class Slope extends Component {
 		const labelColor = '#333'
 		const opacity = isFocused ? 1 : 0.5
 
-//		if (hasLeftLabel) owid.boundsDebug(leftLabelBounds);
-//		if (hasRightLabel) owid.boundsDebug(rightLabelBounds)
-
         const leftValueLabelBounds = Bounds.forText(leftValueStr, { fontSize: labelFontSize })
         const rightValueLabelBounds = Bounds.forText(rightValueStr, { fontSize: labelFontSize })
 
 		return <g class="slope">
-			{hasLeftLabel && <Paragraph x={leftLabelBounds.x+leftLabelBounds.width} y={leftLabelBounds.y} text-anchor="end" font-size={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{leftLabel}</Paragraph>}
-			{hasLeftLabel && <Text x={x1-8} y={y1-leftValueLabelBounds.height/2} text-anchor="end" font-size={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{leftValueStr}</Text>}
+			{hasLeftLabel && <Paragraph {...leftLabel.props} x={leftLabelBounds.x+leftLabelBounds.width} y={leftLabelBounds.y} text-anchor="end" fill={labelColor} font-weight={isFocused&&'bold'} precalc={leftLabel}>{leftLabel.text}</Paragraph>}
+			{hasLeftLabel && <Text x={x1-8} y={y1-leftValueLabelBounds.height/2} text-anchor="end" fontSize={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{leftValueStr}</Text>}
 			<circle cx={x1} cy={y1} r={isFocused ? 4 : 2} fill={lineColor} opacity={opacity}/>
 			<line ref={(el) => this.line = el} x1={x1} y1={y1} x2={x2} y2={y2} stroke={lineColor} stroke-width={isFocused ? 2*size : size} opacity={opacity}/>
 			<circle cx={x2} cy={y2} r={isFocused ? 4 : 2} fill={lineColor} opacity={opacity}/>
 			{hasRightLabel && <Text x={x2+8} y={y2-rightValueLabelBounds.height/2} text-anchor="start" dominant-baseline="middle" font-size={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{rightValueStr}</Text>}
-			{hasRightLabel && <Paragraph x={rightLabelBounds.x} y={rightLabelBounds.y} text-anchor="start" font-size={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{rightLabel}</Paragraph>}
+			{hasRightLabel && <Paragraph {...rightLabel.props} x={rightLabelBounds.x} y={rightLabelBounds.y} text-anchor="start" fill={labelColor} font-weight={isFocused&&'bold'} precalc={rightLabel}>{rightLabel.text}</Paragraph>}
 		</g>
 	}
 }
@@ -247,20 +244,20 @@ export default class LabelledSlopes extends Component {
 			const [ v1, v2 ] = series.values
 			const [ x1, x2 ] = [ xScale(v1.x), xScale(v2.x) ]
 			const [ y1, y2 ] = [ yScale(v1.y), yScale(v2.y) ]
-			const fontSize = (isPortrait ? 0.5 : 0.55) + 'em'
+			const fontSize = (isPortrait ? 0.5 : 0.55)
 			const leftValueStr = yTickFormat(v1.y)
 			const rightValueStr = yTickFormat(v2.y)
-			const leftValueWidth = Bounds.forText(leftValueStr, { fontSize: fontSize }).width
-			const rightValueWidth = Bounds.forText(rightValueStr, { fontSize: fontSize }).width
-			const leftLabel = Paragraph.wrap(series.label, maxLabelWidth, { fontSize: fontSize })
-			const rightLabel = Paragraph.wrap(series.label, maxLabelWidth, { fontSize: fontSize })
+			const leftValueWidth = Bounds.forText(leftValueStr, { fontSize: fontSize+'em' }).width
+			const rightValueWidth = Bounds.forText(rightValueStr, { fontSize: fontSize+'em' }).width
+			const leftLabel = preInstantiate(<Paragraph width={maxLabelWidth} fontSize={fontSize}>{series.label}</Paragraph>)
+            const rightLabel = preInstantiate(<Paragraph width={maxLabelWidth} fontSize={fontSize}>{series.label}</Paragraph>)
 
 			slopeData.push({ x1: x1, y1: y1, x2: x2, y2: y2, color: series.color,
 							 size: sizeScale(series.size)||1,
 							 leftValueStr: leftValueStr, rightValueStr: rightValueStr,
 							 leftValueWidth: leftValueWidth, rightValueWidth: rightValueWidth,
 							 leftLabel: leftLabel, rightLabel: rightLabel,
-							 labelFontSize: fontSize, key: series.key, isFocused: false,
+							 labelFontSize: fontSize+'em', key: series.key, isFocused: false,
 							 hasLeftLabel: true, hasRightLabel: true })
 		})
 
@@ -363,7 +360,7 @@ export default class LabelledSlopes extends Component {
 		return slopeData
 	}
 
-	@bind onMouseMove() {
+	@action.bound onMouseMove() {
 		const mouse = d3.mouse(this.base)
 		if (!this.props.bounds.containsPoint(...mouse))
 			this.focusKey = null

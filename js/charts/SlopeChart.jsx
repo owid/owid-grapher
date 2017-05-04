@@ -14,7 +14,6 @@ import Layout from './Layout'
 import Observations from './Observations'
 import ChartConfig from './ChartConfig'
 import Text from './Text'
-import Paragraph from './Paragraph'
 import LabelledSlopes from './LabelledSlopes'
 import type {SlopeChartSeries} from './LabelledSlopes'
 window.Observations = Observations

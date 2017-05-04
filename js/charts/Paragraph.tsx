@@ -18,73 +18,73 @@ import * as _ from 'lodash'
 
 export interface ParagraphProps {
     width: number,
-    children: any
+    lineHeight?: number,
+    fontSize?: number, // DEPRECATED
+    scale?: number,
+    x: number,
+    y: number,
+    style?: Object,
+    children: string,
+    precalc?: Paragraph
 }
 
 interface WrapLine {
-    str: string,
+    text: string,
     width: number,
     height: number
 }
 
 @observer
 export default class Paragraph extends React.Component<ParagraphProps, undefined> {
-	// Since it is often desirable to operate on bounding data before
-	// the final rendering, wrapping can be precalced here
-	static wrap(str: string, targetWidth: number, opts: { lineHeight?: number, fontSize?: number } = {}) {
-        str = str || ""
-		const words = str.split(' ')
-		const lines: WrapLine[] = []
-		const lineHeight = opts.lineHeight || 1.1
+    @computed get maxWidth(): number {
+        return this.props.width
+    }
 
-		let line: string[] = []
-		let lineBounds = Bounds.empty()
-		_.each(words, (word, i) => {
-			let nextLine = line.concat([word])
-			let nextBounds = Bounds.forText(nextLine.join(' '), opts)
+    @computed get lineHeight(): number {
+        return this.props.lineHeight || 1.1
+    }
 
-			if (nextBounds.width > targetWidth && line.length >= 1) {
-				lines.push({ str: line.join(' '), width: lineBounds.width, height: lineBounds.height })
-				line = [word]
-				lineBounds = Bounds.forText(word, opts)
-			} else {
-				line = nextLine
-				lineBounds = nextBounds
-			}
-		})
-		if (line.length > 0)
-			lines.push({ str: line.join(' '), width: lineBounds.width, height: lineBounds.height })
+    @computed get fontSize(): number {
+        return this.props.scale || this.props.fontSize || 1
+    }
 
-		let height = 0
-		let width = 0
-		_.each(lines, (line) => {
-			height += line.height+lineHeight
-			width = Math.max(width, line.width)
-		})
-
-		return {
-			lines: lines,
-			lineHeight: lineHeight,
-			width: width,
-			height: height,
-            opts: opts,
-            fontSize: opts.fontSize
-		}
-	}
-
-    @computed get wrap() {
-        let wrap = this.props.children
-        if (!wrap || !wrap.lines)
-            wrap = Paragraph.wrap(this.props.children, this.props.width, this.props)
-        return wrap
+    @computed get text(): string {
+        return this.props.children || ""
     }
 
     @computed get lines(): WrapLine[] {
-        return this.wrap.lines
+        if (this.props.precalc)
+            return this.props.precalc.lines
+
+        const {props, text, maxWidth, lineHeight, fontSize} = this
+
+        const words = text.split(' ')
+        const lines: WrapLine[] = []
+
+        let line: string[] = []
+        let lineBounds = Bounds.empty()
+        _.each(words, (word, i) => {
+            let nextLine = line.concat([word])
+            let nextBounds = Bounds.forText(nextLine.join(' '), {fontSize: fontSize+'em'})
+
+            if (nextBounds.width > maxWidth && line.length >= 1) {
+                lines.push({ text: line.join(' '), width: lineBounds.width, height: lineBounds.height })
+                line = [word]
+                lineBounds = Bounds.forText(word, {fontSize: fontSize+'em'})
+            } else {
+                line = nextLine
+                lineBounds = nextBounds
+            }
+        })
+        if (line.length > 0)
+            lines.push({ text: line.join(' '), width: lineBounds.width, height: lineBounds.height })
+
+        return lines
     }
 
+
     @computed get height(): number {
-        return this.wrap.height
+        return _.reduce(this.lines, (total, line) => total+line.height+this.lineHeight, 0)
     }
 
     @computed get width(): number {
@@ -92,10 +92,11 @@ export default class Paragraph extends React.Component<ParagraphProps, undefined
     }
 
 	render() {
-        let wrappedText = this.wrap
-		return <text {...wrappedText.opts} {...this.props} y={this.props.y+wrappedText.lines[0].height-wrappedText.lines[0].height*0.2}>
-			{_.map(wrappedText.lines, (line, i) => {
-				return <tspan x={this.props.x} dy={i == 0 ? 0 : wrappedText.lineHeight + 'em'}>{line.str}</tspan>
+        const {props, lines, fontSize, lineHeight} = this
+
+		return <text {...(props as any)} fontSize={fontSize+'em'} x={0} y={props.y+lines[0].height-lines[0].height*0.2}>
+			{_.map(lines, (line, i) => {
+				return <tspan x={props.x} dy={i == 0 ? 0 : lineHeight + 'em'}>{line.text}</tspan>
 			})}
 		</text>
 	}

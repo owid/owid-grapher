@@ -324,8 +324,8 @@ export default class MapLegend extends Component {
     }
     @computed get hasCategorical(): boolean { return this.categoricalLegendData.length > 1 }
 
-    @computed get wrapLabel(): Object {
-       return Paragraph.wrap(this.props.title, this.props.bounds.width, { fontSize: "0.6em" })
+    @computed get mainLabel(): Object {
+        return preInstantiate(<Paragraph width={this.props.bounds.width} scale={0.6}>{this.props.title}</Paragraph>)
     }
 
     @computed get focusBracket() {
@@ -340,7 +340,7 @@ export default class MapLegend extends Component {
     }
 
     @computed get categoryLegend(): CategoricalMapLegend {
-        const {props, hasCategorical, hasNumeric, wrapLabel, categoricalLegendData, focusBracket} = this
+        const {props, hasCategorical, hasNumeric, categoricalLegendData, focusBracket} = this
         return hasCategorical && preInstantiate(<CategoricalMapLegend {...props} legendData={categoricalLegendData} focusBracket={focusBracket} scale={hasNumeric ? 1 : 1} maxWidth={props.bounds.width*0.8}/>)
     }
 
@@ -349,7 +349,7 @@ export default class MapLegend extends Component {
     }
 
     @computed get numericLegend(): NumericMapLegend {
-        const {props, hasNumeric, numericLegendData, wrapLabel, categoryLegendHeight, focusBracket} = this
+        const {props, hasNumeric, numericLegendData, categoryLegendHeight, focusBracket} = this
         return hasNumeric && preInstantiate(<NumericMapLegend {...props} legendData={numericLegendData} width={props.bounds.width*0.5} focusBracket={focusBracket}/>)
     }
 
@@ -358,18 +358,18 @@ export default class MapLegend extends Component {
     }
 
     @computed get height(): number {
-        return this.wrapLabel.height+this.categoryLegendHeight+this.numericLegendHeight+10
+        return this.mainLabel.height+this.categoryLegendHeight+this.numericLegendHeight+10
     }
 
     render() {
         const {bounds, title} = this.props
-        const {wrapLabel, numericLegend, categoryLegend, categoryLegendHeight, hasNumeric, hasCategorical} = this
+        const {mainLabel, numericLegend, categoryLegend, categoryLegendHeight, hasNumeric, hasCategorical} = this
         //Bounds.debug([new Bounds(bounds.centerX-wrapLabel.width/2, bounds.bottom-wrapLabel.height, wrapLabel.width, wrapLabel.height)])
 
         return <g>
-            {hasNumeric && <NumericMapLegend {...numericLegend.props} x={bounds.centerX-numericLegend.width/2} y={bounds.bottom-wrapLabel.height-categoryLegendHeight-numericLegend.height-4}/>}
-            {hasCategorical && <CategoricalMapLegend {...categoryLegend.props} x={bounds.centerX-categoryLegend.width/2} y={bounds.bottom-wrapLabel.height-categoryLegendHeight}/>}
-            <Paragraph x={bounds.centerX-wrapLabel.width/2} y={bounds.bottom-wrapLabel.height}>{wrapLabel}</Paragraph>
+            {hasNumeric && <NumericMapLegend {...numericLegend.props} x={bounds.centerX-numericLegend.width/2} y={bounds.bottom-mainLabel.height-categoryLegendHeight-numericLegend.height-4}/>}
+            {hasCategorical && <CategoricalMapLegend {...categoryLegend.props} x={bounds.centerX-categoryLegend.width/2} y={bounds.bottom-mainLabel.height-categoryLegendHeight}/>}
+            <Paragraph {...mainLabel.props} x={bounds.centerX-mainLabel.width/2} y={bounds.bottom-mainLabel.height}/>
         </g>
     }
 }

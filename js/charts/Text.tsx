@@ -7,7 +7,7 @@ import Bounds from './Bounds'
 export default class Text extends React.Component<any, null> {
 	render() {
 		const baseline = this.props['dominant-baseline']
-		const bounds = Bounds.forText(this.props.children, { fontSize: this.props['font-size'] })
+		const bounds = Bounds.forText(this.props.children, { fontSize: this.props['font-size']||this.props['fontSize'] })
 		let {x, y} = this.props
 
         y = y+bounds.height-bounds.height*0.2

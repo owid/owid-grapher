@@ -65,7 +65,7 @@ class Header extends Component {
         let title = null
         let fontSize = 1.25
         while (fontSize > 1.0) {
-            title = preInstantiate(<Paragraph width={props.width-logo.width-10} fontSize={fontSize+'em'} fill="#555" lineHeight={1}>{props.title.trim()}</Paragraph>)
+            title = preInstantiate(<Paragraph width={props.width-logo.width-10} fontSize={fontSize} fill="#555" lineHeight={1}>{props.title.trim()}</Paragraph>)
             if (title.lines.length <= 1)
                 break
             fontSize -= 0.05
@@ -83,7 +83,7 @@ class Header extends Component {
         // Subtitle text must always be smaller than title text.
         var fontSize = 0.6;
 
-        return preInstantiate(<Paragraph width={subtitleWidth} fontSize={fontSize+'em'} fill="#666">{props.subtitle.trim()}</Paragraph>)
+        return preInstantiate(<Paragraph width={subtitleWidth} fontSize={fontSize} fill="#666">{props.subtitle.trim()}</Paragraph>)
     }
 
     @computed get height() {
@@ -98,9 +98,9 @@ class Header extends Component {
         return <g>
             <Logo {...logo.props} x={props.x+props.width-logo.width} y={props.y}/>
             <a href={props.titleLink} target="_blank">
-                <Paragraph {...title.props} x={props.x} y={props.y}>{title.wrap}</Paragraph>
+                <Paragraph {...title.props} x={props.x} y={props.y}>{title.text}</Paragraph>
             </a>
-            <Paragraph {...subtitle.props} x={props.x} y={props.y+title.height+2}>{subtitle.wrap}</Paragraph>
+            <Paragraph {...subtitle.props} x={props.x} y={props.y+title.height+2}>{subtitle.text}</Paragraph>
         </g>
     }
 }
