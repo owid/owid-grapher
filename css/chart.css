@@ -282,10 +282,14 @@ a {
 
 #chart nav.tabs li > a {
     display: block;
-    padding: 0.5em 1.0em;
+    padding: 0.5em 0;
     text-transform: uppercase;
     color: #666;
     font-size: 0.9em;
+}
+
+#chart nav.tabs li.icon > a {
+    padding: 0.5em 0.4em;
 }
 
 #chart nav.tabs li > a:hover {
@@ -302,6 +306,10 @@ a {
 
 #chart.landscape nav.tabs li {
     float: left;
+}
+
+#chart.landscape nav.tabs li > a {
+    padding: 0.5em 1em;
 }
 
 #chart.portrait nav.tabs ul {
