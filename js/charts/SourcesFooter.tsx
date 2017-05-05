@@ -43,7 +43,7 @@ class SourcesFooterMain extends React.Component<SourcesFooterMainProps, null> {
     }
 
     @computed get paraMargin() {
-        return 5
+        return 2
     }
 
     @computed get height() {
