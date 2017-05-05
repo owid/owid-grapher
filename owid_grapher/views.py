@@ -1,25 +1,22 @@
 import os
 import json
 import re
-import datetime
 import urllib
-from io import StringIO
 import csv
+from io import StringIO
+from multiprocessing import Process
 from urllib.parse import urlparse
-from django import forms
 from django.shortcuts import render, redirect
 from django.conf import settings
-from django.contrib import messages
 from django.db import connection
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect, StreamingHttpResponse
+from django.template.response import TemplateResponse
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
-from django.utils import timezone
-from django.utils.crypto import get_random_string
 from django.utils.encoding import smart_str
-from grapher_admin.models import Chart, Variable, License, UserInvitation, User, ChartSlugRedirect
-from owid_grapher.forms import InviteUserForm, InvitedUserRegisterForm
+from grapher_admin.models import Chart, Variable, License, ChartSlugRedirect
+
 
 # putting these into global scope for reuse
 manifest = json.loads(open(os.path.join(settings.BASE_DIR, "public/build/manifest.json")).read())
@@ -33,65 +30,6 @@ rootrequest = settings.BASE_URL
 @login_required
 def index(request):
     return redirect('listcharts')
-
-
-def check_invitation_statuses():
-    invites = UserInvitation.objects.filter(status='pending')
-    for each in invites:
-        if each.valid_till <= timezone.now():
-            each.status = 'expired'
-            each.save()
-
-
-@login_required
-def listusers(request):
-    check_invitation_statuses()
-    users = User.objects.all().order_by('created_at')
-    userlist = []
-
-    for each in users:
-        userlist.append({'name': each.name, 'created_at': each.created_at})
-
-    return render(request, 'grapher/admin.users.html', context={'adminjspath': adminjspath,
-                                                                'admincsspath': admincsspath,
-                                                                'rootrequest': rootrequest,
-                                                                'current_user': request.user.name,
-                                                                'users': userlist,
-                                                                })
-
-
-@login_required
-def listcharts(request):
-    charts = Chart.objects.all().order_by('-last_edited_at')
-    allvariables = Variable.objects.all()
-    vardict = {}
-    for var in allvariables:
-        vardict[var.pk] = {'id': var.pk, 'name': var.name}
-
-    chartlist = []
-    for chart in charts:
-        each = {}
-        each['published'] = chart.published
-        each['starred'] = chart.starred
-        each['name'] = chart.name
-        each['type'] = chart.type
-        each['slug'] = chart.slug
-        each['notes'] = chart.notes
-        each['origin_url'] = chart.origin_url
-        each['last_edited_at'] = chart.last_edited_at
-        each['last_edited_by'] = chart.last_edited_by
-        each['variables'] = []
-        configfile = json.loads(chart.config)
-        for chartvar in configfile['chart-dimensions']:
-            if vardict.get(int(chartvar['variableId']), 0):
-                each['variables'].append(vardict[int(chartvar['variableId'])])
-        chartlist.append(each)
-    return render(request, 'grapher/admin.charts.html', context={'adminjspath': adminjspath,
-                                                                 'admincsspath': admincsspath,
-                                                                 'rootrequest': rootrequest,
-                                                                 'current_user': request.user.name,
-                                                                 'charts': chartlist,
-                                                                 })
 
 
 def test_all(request):
@@ -178,7 +116,7 @@ def test_all(request):
     end_point = ((test_page - 1) * charts_per_page) + charts_per_page
     links = urls[starting_point:end_point]
 
-    return render(request, 'grapher/testall.html', context={'urls': links, 'next_page_url': next_page_url,
+    return render(request, 'testall.html', context={'urls': links, 'next_page_url': next_page_url,
                                                             'prev_page_url': prev_page_url, 'compare': test_compare,
                                                             'jspath': jspath, 'csspath': csspath,
                                                             'rootrequest': rootrequest})
@@ -193,6 +131,10 @@ def get_query_string(request):
 
 
 def get_query_as_dict(request):
+    """
+    :param request: Request object
+    :return: The dictionary containing URL query parameters
+    """
     return dict(urllib.parse.parse_qs(urllib.parse.urlsplit(request.get_full_path()).query))
 
 
@@ -218,40 +160,50 @@ def showchart(request, chart):
                 chart.origin_url = origin_url
                 chart.save()
 
-    if chart:
-        configfile = chart.get_config_with_url()
-        canonicalurl = request.build_absolute_uri('/') + chart.slug
-        baseurl = request.build_absolute_uri('/') + chart.slug
+    configfile = chart.get_config_with_url()
+    canonicalurl = request.build_absolute_uri('/') + chart.slug
+    baseurl = request.build_absolute_uri('/') + chart.slug
 
-        chartmeta = {}
+    chartmeta = {}
 
-        title = configfile['title']
-        title = re.sub("/, \*time\*/", " over time", title)
-        title = re.sub("/\*time\*/", "over time", title)
-        chartmeta['title'] = title
-        if configfile.get('subtitle', ''):
-            chartmeta['description'] = configfile['subtitle']
-        else:
-            chartmeta['description'] = 'An interactive visualization from Our World In Data.'
-        query_string = get_query_string(request)
-        if query_string:
-            canonicalurl += '?' + query_string
-        chartmeta['canonicalUrl'] = canonicalurl
-        if query_string:
-            imagequery = query_string + '&' + "size=1200x800&v=" + chart.make_cache_tag()
-        else:
-            imagequery = "size=1200x800&v=" + chart.make_cache_tag()
-
-        chartmeta['imageUrl'] = baseurl + '.png?' + imagequery
-
-        configpath = "%s/config/%s.js" % (settings.BASE_URL, chart.pk)
-
-        return render(request, 'grapher/show_chart.html', context={'chartmeta': chartmeta,'configpath': configpath,
-                                                                   'jspath': jspath, 'csspath': csspath,
-                                                                   'query': query_string,
-                                                                   'rootrequest': rootrequest})
+    title = configfile['title']
+    title = re.sub("/, \*time\*/", " over time", title)
+    title = re.sub("/\*time\*/", "over time", title)
+    chartmeta['title'] = title
+    if configfile.get('subtitle', ''):
+        chartmeta['description'] = configfile['subtitle']
     else:
-        return HttpResponseNotFound('No chart found to view')
+        chartmeta['description'] = 'An interactive visualization from Our World In Data.'
+    query_string = get_query_string(request)
+    if query_string:
+        canonicalurl += '?' + query_string
+    chartmeta['canonicalUrl'] = canonicalurl
+    if query_string:
+        imagequery = query_string + '&' + "size=1200x800&v=" + chart.make_cache_tag()
+    else:
+        imagequery = "size=1200x800&v=" + chart.make_cache_tag()
+
+    chartmeta['imageUrl'] = baseurl + '.png?' + imagequery
+
+    configpath = "%s/config/%s.js" % (settings.BASE_URL, chart.pk)
+
+    response = TemplateResponse(request, 'show_chart.html',
+                                context={'chartmeta': chartmeta, 'configpath': configpath,
+                                         'jspath': jspath, 'csspath': csspath,
+                                         'query': query_string,
+                                         'rootrequest': rootrequest})
+
+    # will spawn another process for image generating
+    query_str = get_query_string(request)
+    if '.export' not in urlparse(request.get_full_path()).path:
+        p = Process(target=chart.export_image_async,
+                    args=(query_str, '1200', '800',))
+        p.start()
+        response['Cache-Control'] = 'public, max-age=0, s-maxage=604800'
+    else:
+        response['Cache-Control'] = 'no-cache'
+
+    return response
 
 
 def find_with_redirects(slug):
@@ -294,7 +246,7 @@ def config(request, configid):
     """
 
     if '.js' not in configid:
-        return HttpResponseNotFound('Nothing here')
+        return HttpResponseNotFound('Not found.')
     else:
         chartid = int(configid[:configid.find('.js')])
         try:
@@ -305,16 +257,19 @@ def config(request, configid):
         configdict = Chart.get_config_with_url(chartobj)
         configdict['variableCacheTag'] = chartobj.make_cache_tag()
 
-        config = 'App.loadChart(' + json.dumps(configdict) + ')'
+        configfile = 'App.loadChart(' + json.dumps(configdict) + ')'
 
-        response = HttpResponse(config, content_type="application/javascript")
+        response = HttpResponse(configfile, content_type="application/javascript")
         response['Cache-Control'] = 'public, max-age=0, s-maxage=604800'
 
         return response
 
 
 def dictfetchall(cursor):
-    "Return all rows from a cursor as a dict"
+    """
+    :param cursor: Database cursor
+    :return: Returns all rows from the cursor as a list of dicts
+    """
     columns = [col[0] for col in cursor.description]
     return [
         dict(zip(columns, row))
@@ -386,7 +341,14 @@ def variables(request, ids):
 
     varstring += "\r\n"
 
-    return HttpResponse(json.dumps(meta) + varstring + json.dumps(entitykey), content_type="text/plain")
+    response = HttpResponse(json.dumps(meta) + varstring + json.dumps(entitykey), content_type="text/plain")
+
+    if get_query_string(request):
+        response['Cache-Control'] = 'max-age=31536000 public'
+    else:
+        response['Cache-Control'] = 'no-cache'
+
+    return response
 
 
 def latest(request):
@@ -402,117 +364,13 @@ def latest(request):
     return HttpResponseRedirect(reverse('showchart', args=[slug]))
 
 
-@login_required
-def invite_user(request):
-    if request.method == 'GET':
-        if not request.user.is_superuser:
-            return HttpResponse('Permission denied!')
-        else:
-            form = InviteUserForm()
-            return render(request, 'grapher/invite_user.html', context={'form': form, 'adminjspath': adminjspath,
-                                                                 'admincsspath': admincsspath,
-                                                                 'rootrequest': rootrequest,
-                                                                 'current_user': request.user.name,})
-    if request.method == 'POST':
-        if not request.user.is_superuser:
-            return HttpResponse('Permission denied!')
-        else:
-            form = InviteUserForm(request.POST)
-            if form.is_valid():
-                email = form.cleaned_data['email']
-                name = form.cleaned_data['name']
-                try:
-                    newuser = User.objects.get(email=email)
-                    messages.error(request, 'The user you are inviting is registered in the system.')
-                    return render(request, 'grapher/invite_user.html', context={'form': form, 'adminjspath': adminjspath,
-                                                                 'admincsspath': admincsspath,
-                                                                 'rootrequest': rootrequest,
-                                                                 'current_user': request.user.name,})
-                except User.DoesNotExist:
-                    pass
-                try:
-                    newuser = User.objects.get(name=name)
-                    messages.error(request, 'The user with that name is registered in the system.')
-                    return render(request, 'grapher/invite_user.html', context={'form': form, 'adminjspath': adminjspath,
-                                                                 'admincsspath': admincsspath,
-                                                                 'rootrequest': rootrequest,
-                                                                 'current_user': request.user.name,})
-                except User.DoesNotExist:
-                    pass
-                newuser = User()
-                newuser.email = email
-                newuser.name = name
-                newuser.is_active = False
-                newuser.is_superuser = False
-                newuser.save()
-                invitation = UserInvitation()
-                invitation.code = get_random_string(length=40)
-                invitation.email = newuser.email
-                invitation.user_id = newuser
-                invitation.status = 'pending'
-                invitation.valid_till = timezone.now() + datetime.timedelta(days=2)
-                invitation.save()
-                newuser.email_user('Invitation to join OWID',
-                                   'Hi %s, please follow this link in order '
-                                   'to register on owid-grapher: %s' %
-                                   (newuser.name, settings.BASE_URL + reverse('registerbyinvite', args=[invitation.code])),
-                                   'no-reply@ourworldindata.org')
-                messages.success(request, 'The invite was sent successfully.')
-                return render(request, 'grapher/invite_user.html', context={'form': InviteUserForm(), 'adminjspath': adminjspath,
-                                                                            'admincsspath': admincsspath,
-                                                                            'rootrequest': rootrequest,
-                                                                            'current_user': request.user.name, })
-            else:
-                return render(request, 'grapher/invite_user.html', context={'form': form, 'adminjspath': adminjspath,
-                                                                            'admincsspath': admincsspath,
-                                                                            'rootrequest': rootrequest,
-                                                                            'current_user': request.user.name, })
-
-
-def register_by_invite(request, code):
-    check_invitation_statuses()
-    try:
-        invite = UserInvitation.objects.get(code=code)
-    except UserInvitation.DoesNotExist:
-        return HttpResponseNotFound('Your invitation code does not exist in the system.')
-    invited_user = invite.user_id
-
-    if request.method == 'GET':
-        if invite.status == 'successful':
-            return HttpResponse('Your invitation code has already been used.')
-        if invite.status == 'expired':
-            return HttpResponse('Your invitation code has expired.')
-        if invite.status == 'cancelled':
-            return HttpResponse('Your invitation code has been cancelled.')
-        form = InvitedUserRegisterForm(data={'name': invited_user.name})
-        return render(request, 'grapher/register_invited_user.html', context={'form': form})
-    if request.method == 'POST':
-        form = InvitedUserRegisterForm(request.POST)
-        if form.is_valid():
-            name = form.cleaned_data['name']
-            try:
-                newuser = User.objects.get(name=name)
-                if newuser != invited_user:
-                    messages.error(request, 'The username you chose is not available. Please choose another username.')
-                    return render(request, 'grapher/register_invited_user.html', context={'form': form})
-            except User.DoesNotExist:
-                pass
-            if form.cleaned_data['password1'] == form.cleaned_data['password2']:
-                newuser.name = name
-                newuser.set_password(form.cleaned_data['password1'])
-                newuser.is_active = True
-                newuser.save()
-                invite.status = 'successful'
-                invite.save()
-                return HttpResponseRedirect(reverse("login"))
-            else:
-                messages.error(request, "Passwords don't match!")
-                return render(request, 'grapher/register_invited_user.html', context={'form': form})
-        else:
-            return render(request, 'grapher/register_invited_user.html', context={'form': form})
-
-
 def exportfile(request, slug, fileformat):
+    """
+    :param request: Request object
+    :param slug: Chart slug
+    :param fileformat: Requested format of the file: [png, svg, csv]
+    :return: Returns the file for download
+    """
     if fileformat not in ['csv', 'png', 'svg']:
         return HttpResponseNotFound('Not Found.')
     if fileformat in ['png', 'svg']:
@@ -527,6 +385,8 @@ def exportfile(request, slug, fileformat):
             height = '800'
         if chart:
                 downloadfile = chart.export_image(querystring, width, height, fileformat)
+        else:
+            return HttpResponseNotFound('No such chart!')
 
         with open(downloadfile, 'rb') as f:
             response = HttpResponse(f, content_type='application/force-download')
@@ -534,68 +394,68 @@ def exportfile(request, slug, fileformat):
             return response
 
     if fileformat == 'csv':
-        try:
-            chart = find_with_redirects(slug)
-        except Chart.DoesNotExist:
-            return HttpResponseNotFound('No such chart!')
-        configfile = json.loads(chart.config)
-        allvariables = Variable.objects.all()
-        allvardict = {}
-        chartvarlist = []
+        chart = find_with_redirects(slug)
+        if chart:
+            configfile = json.loads(chart.config)
+            allvariables = Variable.objects.all()
+            allvardict = {}
+            chartvarlist = []
 
-        for var in allvariables:
-            allvardict[var.pk] = {'id': var.pk, 'name': var.name}
+            for var in allvariables:
+                allvardict[var.pk] = {'id': var.pk, 'name': var.name}
 
-        for chartvar in configfile['chart-dimensions']:
-            if allvardict.get(int(chartvar['variableId']), 0):
-                chartvarlist.append(allvardict[int(chartvar['variableId'])])
+            for chartvar in configfile['chart-dimensions']:
+                if allvardict.get(int(chartvar['variableId']), 0):
+                    chartvarlist.append(allvardict[int(chartvar['variableId'])])
 
-        chartvarlist = sorted(chartvarlist, key=lambda k: k['id'])
+            chartvarlist = sorted(chartvarlist, key=lambda k: k['id'])
 
-        sql_query = 'SELECT maintable.entity as entity, maintable.year as year, maintable.country_code as country_code'
+            sql_query = 'SELECT maintable.entity as entity, maintable.year as year, maintable.country_code as country_code'
 
-        table_counter = 1
-        join_string = ''
-        id_tuple = ''
-        headerlist = ['Entity', 'Year', 'Country code']
-        for each in chartvarlist:
-            sql_query += ', table%s.value as value%s' % (table_counter, table_counter)
+            table_counter = 1
+            join_string = ''
+            id_tuple = ''
+            headerlist = ['Entity', 'Year', 'Country code']
+            for each in chartvarlist:
+                sql_query += ', table%s.value as value%s' % (table_counter, table_counter)
 
-            join_string += 'LEFT JOIN (SELECT * FROM data_values WHERE fk_var_id_id = %s) as table%s on ' \
-                           'maintable.`fk_ent_id_id` = table%s.`fk_ent_id_id` and ' \
-                           'maintable.year = table%s.year ' % (each['id'], table_counter, table_counter,
-                                                               table_counter)
+                join_string += 'LEFT JOIN (SELECT * FROM data_values WHERE fk_var_id_id = %s) as table%s on ' \
+                               'maintable.`fk_ent_id_id` = table%s.`fk_ent_id_id` and ' \
+                               'maintable.year = table%s.year ' % (each['id'], table_counter, table_counter,
+                                                                   table_counter)
 
-            table_counter += 1
-            id_tuple += str(each['id']) + ','
-            headerlist.append(each['name'])
+                table_counter += 1
+                id_tuple += str(each['id']) + ','
+                headerlist.append(each['name'])
 
-        id_tuple = id_tuple[:-1]
-        sql_query += ' FROM (SELECT fk_ent_id_id, entities.name as entity, year, entities.code as ' \
-                     'country_code FROM data_values LEFT OUTER JOIN entities on data_values.fk_ent_id_id = entities.id ' \
-                     'WHERE fk_var_id_id in (%s) ORDER BY entity, year, data_values.fk_var_id_id) as maintable ' % id_tuple
+            id_tuple = id_tuple[:-1]
+            sql_query += ' FROM (SELECT fk_ent_id_id, entities.name as entity, year, entities.code as ' \
+                         'country_code FROM data_values LEFT OUTER JOIN entities on data_values.fk_ent_id_id = entities.id ' \
+                         'WHERE fk_var_id_id in (%s) ORDER BY entity, year, data_values.fk_var_id_id) as maintable ' % id_tuple
 
-        sql_query += join_string + 'GROUP BY entity, year, country_code;'
+            sql_query += join_string + 'GROUP BY entity, year, country_code;'
 
-        with connection.cursor() as cursor:
-            cursor.execute(sql_query)
-            rows = cursor.fetchall()
+            with connection.cursor() as cursor:
+                cursor.execute(sql_query)
+                rows = cursor.fetchall()
 
-        def stream():
-            buffer_ = StringIO()
-            writer = csv.writer(buffer_)
-            writer.writerow(headerlist)
-            for row in rows:
-                writer.writerow(row)
-                buffer_.seek(0)
-                data = buffer_.read()
-                buffer_.seek(0)
-                buffer_.truncate()
-                yield data
+            def stream():
+                buffer_ = StringIO()
+                writer = csv.writer(buffer_)
+                writer.writerow(headerlist)
+                for row in rows:
+                    writer.writerow(row)
+                    buffer_.seek(0)
+                    data = buffer_.read()
+                    buffer_.seek(0)
+                    buffer_.truncate()
+                    yield data
 
-        response = StreamingHttpResponse(
-            stream(), content_type='text/csv'
-        )
-        disposition = "attachment; filename=%s.csv" % slug
-        response['Content-Disposition'] = disposition
-        return response
+            response = StreamingHttpResponse(
+                stream(), content_type='text/csv'
+            )
+            disposition = "attachment; filename=%s.csv" % slug
+            response['Content-Disposition'] = disposition
+            return response
+        else:
+            HttpResponseNotFound('No such chart!')

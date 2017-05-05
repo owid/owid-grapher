@@ -3,13 +3,12 @@ import subprocess
 import hashlib
 import os.path
 import shlex
-import sys
 from django.db import models
 from django.core.mail import send_mail
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.base_user import BaseUserManager
-from owid_grapher import settings
+from django.conf import settings
 
 
 # contains helper methods for the User model
@@ -95,7 +94,6 @@ class Chart(models.Model):
                                                      ('DiscreteBar', 'Discrete bar'),
                                                      ('SlopeChart', 'Slope chart')), blank=True, null=True)
 
-
     def export_image(self, query, width, height, format):
         phantomjs = settings.BASE_DIR + "/node_modules/phantomjs-prebuilt/lib/phantom/bin/phantomjs"
         rasterize = settings.BASE_DIR + "/phantomjs/rasterize.js"
@@ -107,13 +105,37 @@ class Chart(models.Model):
         return_file = settings.BASE_DIR + "/public/exports/" + self.slug + "-" + query_hash + "." + format
 
         if not os.path.isfile(return_file):
-            command = "%s %s %s %s '%spx*%spx'" % (phantomjs, rasterize, shlex.quote(target), shlex.quote(png_file), width, height)
+            command = "%s %s %s %s '%spx*%spx'" % (phantomjs, rasterize, shlex.quote(target), shlex.quote(png_file),
+                                                   width, height)
             try:
                 command = subprocess.check_call(command, shell=True)
             except subprocess.CalledProcessError:
                 pass  # will need to handle the error here
 
         return return_file
+
+    def export_image_async(self, query, width, height):
+        phantomjs = settings.BASE_DIR + "/node_modules/phantomjs-prebuilt/lib/phantom/bin/phantomjs"
+        rasterize = settings.BASE_DIR + "/phantomjs/rasterize.js"
+        target = settings.BASE_URL + "/" + self.slug + ".export" + "?" + query
+        m = hashlib.md5()
+        m.update(query.encode(encoding='utf-8'))
+        query_hash = m.hexdigest()
+        image_file = settings.BASE_DIR + "/public/exports/" + self.slug + "-" + query_hash + ".png"
+        temp_file = image_file + "#tmp"
+
+        if not os.path.isfile(image_file) and not os.path.isfile(temp_file):
+            command = "%s %s %s %s '%spx*%spx'" % (phantomjs, rasterize, shlex.quote(target), shlex.quote(image_file),
+                                                   width, height)
+            open(temp_file, 'a').close()
+            try:
+                command = subprocess.check_call(command, shell=True)
+            except subprocess.CalledProcessError:
+                pass  # will need to handle the error here
+            try:
+                command = subprocess.check_call('rm %s' % temp_file, shell=True)
+            except subprocess.CalledProcessError:
+                pass
 
     @classmethod
     def owid_commit(cls):
