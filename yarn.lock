@@ -204,6 +204,10 @@
   version "15.0.23"
   resolved "https://registry.yarnpkg.com/@types/react/-/react-15.0.23.tgz#f3facbef5290610f54242f00308759d3a3c27346"
 
+"@types/striptags@^0.0.5":
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/@types/striptags/-/striptags-0.0.5.tgz#6465973627519c5b874e77c7eee3a08aaab07c86"
+
 "@types/topojson@^3.0.1":
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/@types/topojson/-/topojson-3.0.1.tgz#ca764520e0ed9dbf04d18fdc7ae4a1e1ee1b3f40"
@@ -4567,6 +4571,10 @@ strip-bom@^2.0.0:
 strip-json-comments@~2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/strip-json-comments/-/strip-json-comments-2.0.1.tgz#3c531942e908c2697c0ec344858c286c7ca0a60a"
+
+striptags@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/striptags/-/striptags-3.0.1.tgz#48f0d6932549c47bb3582920c87527cf49a160c1"
 
 style-loader@^0.13.1:
   version "0.13.2"

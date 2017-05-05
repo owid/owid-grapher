@@ -384,18 +384,12 @@ a {
 /* Footer
 --------------------------------------------- */
 
-#chart .footer {
-    font-size: 0.6em;
-}
-#chart .footer text {
-    fill: #666;
-}
-#chart .footer a:not(.bold) {
-    opacity: 0.8;
-}
-#chart .footer a.bold {
-    font-weight: bold;
-    fill: #666;
+#chart .sourcesFooter {
+    fill: #777;
+
+    & a {
+        fill: #777;
+    }
 }
 
 /* Legend

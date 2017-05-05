@@ -6,6 +6,7 @@ import {observer} from 'mobx-react'
 import Bounds from './Bounds'
 import {preInstantiate} from './Util'
 import Paragraph from './Paragraph'
+import Text from './Text'
 
 /*class WrappingText extends Component {
     @computed get innerSVG(): string {
@@ -132,26 +133,43 @@ class SourcesFooterMain extends React.Component<SourcesFooterMainProps, null> {
     }
 
     @computed get sources() {
-        return preInstantiate(<Paragraph maxWidth={this.props.maxWidth-this.ccIcon.width-5} fontSize={this.fontSize}>{this.props.sourcesText}</Paragraph>)
+        return preInstantiate(<Paragraph maxWidth={this.props.maxWidth} fontSize={this.fontSize}>{this.props.sourcesText}</Paragraph>)
     }
 
     @computed get notes() {
-        return preInstantiate(<Paragraph maxWidth={this.props.maxWidth-this.ccIcon.width-5} fontSize={this.fontSize}>{this.props.notesText}</Paragraph>)
+        return preInstantiate(<Paragraph maxWidth={this.props.maxWidth} fontSize={this.fontSize}>{this.props.notesText}</Paragraph>)
+    }
+
+    @computed get license() {
+        const {licenseSvg} = this.props
+        return preInstantiate(<Paragraph raw={true} maxWidth={this.props.maxWidth*3} fontSize={this.fontSize}>{licenseSvg}</Paragraph>)
+    }
+
+    // Put the license stuff to the side if there's room
+    @computed get isCompact() {
+        return this.props.maxWidth-this.sources.width-5 > this.license.width
+    }
+
+    @computed get paraMargin() {
+        return 5
     }
 
     @computed get height() {
-        const {sources, notes} = this
-        return sources.height+(notes.height == 0 ? 0 : notes.height+3)
+        const {sources, notes, license, isCompact, paraMargin} = this
+        return sources.height+(notes.height ? paraMargin+notes.height : 0)+(isCompact ? 0 : paraMargin+license.height)
     }
 
     render() {
-        const {props, sources, notes, ccIcon} = this
-        console.log(this.props.sourcesText)
+        const {props, sources, notes, license, ccIcon, isCompact, paraMargin} = this
 
-        return <g fill="#777">
-            <Paragraph cursor="pointer" onClick={this.props.onSourcesClick} {...sources.props} x={props.x} y={props.y}/>
-            <Paragraph {...notes.props} x={props.x} y={props.y+sources.height+3}/>
-            <CCIcon {...ccIcon.props} x={props.x+props.maxWidth-ccIcon.width-5} y={props.y+this.height-ccIcon.height-5}/>
+        return <g className="sourcesFooter">
+            <a onClick={this.props.onSourcesClick}><Paragraph {...sources.props} x={props.x} y={props.y}/></a>
+            <Paragraph {...notes.props} x={props.x} y={props.y+sources.height+paraMargin}/>
+            {isCompact
+                ? <Paragraph {...license.props} x={props.x+props.maxWidth-license.width} y={props.y}/>
+                : <Paragraph {...license.props} x={props.x} y={props.y+sources.height+paraMargin+(notes.height ? notes.height+paraMargin : 0)}/>
+            }
+            {/*<CCIcon {...ccIcon.props} x={props.x+props.maxWidth-ccIcon.width-5} y={props.y+this.height-ccIcon.height-5}/>*/}
         </g>
     }
 }
@@ -178,7 +196,7 @@ export default class SourcesFooter extends React.Component<SourcesFooterProps, n
     }
 
     @computed get notesText(): string {
-        return this.props.note ? `Notes: ${this.props.note}` : '';
+        return this.props.note ? `Note: ${this.props.note}` : '';
     }
 
     @computed get licenseSvg(): string {
@@ -201,8 +219,8 @@ export default class SourcesFooter extends React.Component<SourcesFooterProps, n
     }
 
     @computed get footerMain() {
-        const {sourcesText, notesText} = this
-        return preInstantiate(<SourcesFooterMain sourcesText={sourcesText} notesText={notesText} maxWidth={this.props.bounds.width} onSourcesClick={this.onSourcesClick}/>)
+        const {sourcesText, notesText, licenseSvg} = this
+        return preInstantiate(<SourcesFooterMain sourcesText={sourcesText} notesText={notesText} licenseSvg={licenseSvg} maxWidth={this.props.bounds.width} onSourcesClick={this.onSourcesClick}/>)
     }
 
     @computed get height() {
