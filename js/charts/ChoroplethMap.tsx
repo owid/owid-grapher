@@ -1,11 +1,9 @@
 // @flow
 
-import _ from 'lodash'
+import * as _ from 'lodash'
 import * as d3 from 'd3'
-import owid from '../owid'
-import dataflow from './owid.dataflow'
 import Bounds from './Bounds'
-import React, { Component } from 'react'
+import * as React from 'react'
 import {observable, computed, asFlat, asStructure, autorunAsync, action} from 'mobx'
 import {observer} from 'mobx-react'
 import {bind} from 'decko'
@@ -24,43 +22,52 @@ export type ChoroplethData = {
 
 export type MapProjection = 'World' | 'Africa' | 'N.America' | 'S.America' | 'Asia' | 'Europe' | 'Australia';
 
-@observer
-export default class ChoroplethMap extends Component {
-    props: {
-        choroplethData: ChoroplethData,
-        bounds: Bounds,
-        projection: MapProjection,
-        defaultFill: string,
-    }
+type GeoFeature = GeoJSON.Feature<GeoJSON.GeometryObject>
+type MapBracket = any
+type MapEntity = any
 
+interface ChoroplethMapProps {
+    choroplethData: ChoroplethData,
+    bounds: Bounds,
+    projection: MapProjection,
+    defaultFill: string,
+    focusBracket: MapBracket,
+    focusEntity: MapEntity,
+    onClick: (d: GeoFeature) => void,
+    onHover: (d: GeoFeature, ev: React.MouseEvent<SVGPathElement>) => void,
+    onHoverStop: () => void
+}
+
+@observer
+export default class ChoroplethMap extends React.Component<ChoroplethMapProps, null> {
     subunits: any
 
-    @computed get geoData() {
+    @computed get geoData(): GeoFeature[] {
         return topojson.feature(MapTopology, MapTopology.objects.world).features.filter(function(feature) {
             return feature.id !== "ATA";
         });
     }
 
-    @computed.struct get projection() : MapProjection {
+    @computed.struct get projection(): MapProjection {
         return this.props.projection
     }
 
-    @computed.struct get bounds() : Bounds {
+    @computed.struct get bounds(): Bounds {
         return this.props.bounds
     }
 
-    @computed.struct get choroplethData() : ChoroplethData {
+    @computed.struct get choroplethData(): ChoroplethData {
         return this.props.choroplethData
     }
 
-    @computed.struct get defaultFill() : string {
+    @computed.struct get defaultFill(): string {
         return this.props.defaultFill
     }
 
-    @computed get pathData() : { [key: string]: string } {
+    @computed get pathData(): { [key: string]: string } {
         const {geoData, projection} = this
 
-        const pathData = {}
+        const pathData: { [key: string]: string } = {}
         const pathF = MapProjections[projection]().path;
 
         _.each(geoData, (d) => {
@@ -70,16 +77,16 @@ export default class ChoroplethMap extends Component {
         return pathData
     }
 
-    @computed get focusBracket() {
+    @computed get focusBracket(): MapBracket {
         return this.props.focusBracket
     }
 
-    @computed get focusEntity() {
+    @computed get focusEntity(): MapEntity {
         return this.props.focusEntity
     }
 
     // Check if a geo entity is currently focused, either directly or via the bracket
-    hasFocus(geo) {
+    hasFocus(geo: GeoFeature) {
         const {choroplethData, focusBracket, focusEntity} = this
         if (focusEntity && focusEntity.id == geo.id)
             return true
@@ -98,13 +105,13 @@ export default class ChoroplethMap extends Component {
         const focusColor = "#FFEC38"
         const focusStrokeWidth = 2.5
 
-        return <g class="map" clip-path="url(#boundsClip)">
+        return <g className="map" clip-path="url(#boundsClip)">
             <defs>
                 <clipPath id="boundsClip">
-                    <rect {...bounds}></rect>
+                    <rect x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height}></rect>
                 </clipPath>
             </defs>
-            <g class="subunits" ref={g => this.subunits = g}>
+            <g className="subunits" ref={g => this.subunits = g}>
                 {_.map(geoData.filter(d => !choroplethData[d.id]), d => {
                     const isFocus = this.hasFocus(d)
                     const stroke = isFocus ? focusColor : "#333"
@@ -122,7 +129,7 @@ export default class ChoroplethMap extends Component {
                     ]
                 }), p => p[0].props['stroke-width'])}
             </g>
-            {/*<text class="disclaimer" x={bounds.left+bounds.width-5} y={bounds.top+bounds.height-10} font-size="0.5em" text-anchor="end">
+            {/*<text className="disclaimer" x={bounds.left+bounds.width-5} y={bounds.top+bounds.height-10} font-size="0.5em" text-anchor="end">
                 Mapped on current borders
             </text>*/}
         </g>
