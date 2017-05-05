@@ -75,7 +75,7 @@ class MapTab extends Component {
 
     componentDidMount() {
         // Nice little intro animation
-        //d3.select(this.base).select(".slopes").attr('stroke-dasharray', "100%").attr('stroke-dashoffset', "100%").transition().attr('stroke-dashoffset', "0%")
+        d3.select(this.base).attr('opacity', 0).transition().attr('opacity', 1)
     }
 
     componentWillUnmount() {
