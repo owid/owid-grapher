@@ -84,7 +84,7 @@ class Header extends Component {
         const subtitleWidth = title.height > logo.height ? props.width : props.width-logo.width-10
 
         // Subtitle text must always be smaller than title text.
-        var fontSize = 0.65;
+        var fontSize = 0.6;
 
         return preInstantiate(<Paragraph width={subtitleWidth} fontSize={fontSize} fill="#666">{props.subtitle.trim()}</Paragraph>)
     }

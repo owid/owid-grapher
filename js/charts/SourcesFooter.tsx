@@ -21,7 +21,7 @@ interface SourcesFooterMainProps {
 @observer
 class SourcesFooterMain extends React.Component<SourcesFooterMainProps, null> {
     @computed get fontSize() {
-        return 0.6
+        return 0.5
     }
 
     @computed get sources() {
