@@ -64,12 +64,15 @@ class Header extends Component {
         // Try to fit the title into a single line if possible-- but not if it would make the text super small
         let title = null
         let fontSize = 1.25
-        while (fontSize > 1.0) {
+        while (fontSize > 0.9) {
             title = preInstantiate(<Paragraph width={props.width-logo.width-10} fontSize={fontSize} fill="#555" lineHeight={1}>{props.title.trim()}</Paragraph>)
             if (title.lines.length <= 1)
                 break
             fontSize -= 0.05
         }
+
+        if (title.lines.length > 1)
+            fontSize = 1.1
 
         return title
     }

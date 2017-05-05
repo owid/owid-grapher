@@ -1,13 +1,8 @@
-// @flow
-
 import Bounds from './Bounds'
-import {cloneElement} from 'preact'
 
 export type SVGElement = any;
 export type VNode = any;
-export const NullElement : any = () => null;
-
-import React, {Component} from 'react'
+export const NullElement : any = (): null => null;
 
 export function getRelativeMouse(node : SVGElement, event : MouseEvent) {
   var svg = node.ownerSVGElement || node;
@@ -25,18 +20,4 @@ export function getRelativeMouse(node : SVGElement, event : MouseEvent) {
 
 export function preInstantiate(vnode: VNode) {
     return new vnode.nodeName(vnode.props)
-}
-
-export function cacheChild(parent, key: string, vnode: VNode) {
-    key = "_"+key
-
-    if (!parent[key] && vnode) {
-        parent[key] = new vnode.nodeName(vnode.props)
-    } else if (parent[key] && !vnode) {
-        parent[key] = null
-    }
-
-    if (parent[key])
-        parent[key].props = vnode.props
-    return parent[key]
 }

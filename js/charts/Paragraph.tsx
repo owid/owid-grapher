@@ -58,7 +58,7 @@ export default class Paragraph extends React.Component<ParagraphProps, undefined
         if (this.props.precalc)
             return this.props.precalc.lines
 
-        function strip(html)
+        function strip(html: string)
         {
            var tmp = document.createElement("DIV");
            tmp.innerHTML = html;

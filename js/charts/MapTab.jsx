@@ -75,7 +75,7 @@ class MapTab extends Component {
 
     componentDidMount() {
         // Nice little intro animation
-        d3.select(this.base).attr('opacity', 0).transition().attr('opacity', 1)
+        //d3.select(this.base).attr('opacity', 0).transition().attr('opacity', 1)
     }
 
     componentWillUnmount() {
