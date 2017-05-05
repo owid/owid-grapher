@@ -36,6 +36,13 @@ interface WrapLine {
     height: number
 }
 
+function strip(html: string)
+{
+   var tmp = document.createElement("DIV");
+   tmp.innerHTML = html;
+   return tmp.textContent || tmp.innerText || "";
+}
+
 @observer
 export default class Paragraph extends React.Component<ParagraphProps, undefined> {
     @computed get maxWidth(): number {
@@ -58,14 +65,6 @@ export default class Paragraph extends React.Component<ParagraphProps, undefined
         if (this.props.precalc)
             return this.props.precalc.lines
 
-        function strip(html: string)
-        {
-           var tmp = document.createElement("DIV");
-           tmp.innerHTML = html;
-           return tmp.textContent || tmp.innerText || "";
-        }
-
-
         const {props, text, maxWidth, lineHeight, fontSize} = this
 
         const words = _.isEmpty(text) ? [] : text.split(' ')
@@ -78,6 +77,8 @@ export default class Paragraph extends React.Component<ParagraphProps, undefined
             let nextLine = line.concat([word])
             let nextBounds = Bounds.forText(strip(nextLine.join(' ')), {fontSize: fontSize+'em'})
 
+            const newlines = (word.match(/\n/g)||[]).length
+
             if (nextBounds.width > maxWidth && line.length >= 1) {
                 lines.push({ text: line.join(' '), width: lineBounds.width, height: lineBounds.height })
                 line = [word]
@@ -85,6 +86,10 @@ export default class Paragraph extends React.Component<ParagraphProps, undefined
             } else {
                 line = nextLine
                 lineBounds = nextBounds
+            }
+
+            for (var i = 0; i < newlines; i++) {
+                lines.push({ text: "", width: 0, height: lineHeight })
             }
         })
         if (line.length > 0)
@@ -113,7 +118,7 @@ export default class Paragraph extends React.Component<ParagraphProps, undefined
                 if (props.raw)
                     return <tspan x={props.x} dy={i == 0 ? 0 : lineHeight + 'em'} dangerouslySetInnerHTML={{__html: line.text}}/>
                 else
-    				return <tspan x={props.x} dy={i == 0 ? 0 : lineHeight + 'em'}>{line.text}</tspan>
+    				return <tspan x={props.x} dy={i == 0 ? 0 : lineHeight + 'em'}>{strip(line.text)}</tspan>
 			})}
 		</text>
 	}
