@@ -44,7 +44,7 @@ class Logo extends Component {
     render() {
         const {props, scale} = this
         const svg = props.svg.match(/<svg>(.*)<\/svg>/)[1]||props.svg
-        return <g transform={`translate(${props.x}, ${props.y}) scale(${scale})`} dangerouslySetInnerHTML={{ __html: svg }}/>
+        return <g opacity={0.9} transform={`translate(${props.x}, ${props.y}) scale(${scale})`} dangerouslySetInnerHTML={{ __html: svg }}/>
     }
 }
 
@@ -81,7 +81,7 @@ class Header extends Component {
         const subtitleWidth = title.height > logo.height ? props.width : props.width-logo.width-10
 
         // Subtitle text must always be smaller than title text.
-        var fontSize = 0.6;
+        var fontSize = 0.65;
 
         return preInstantiate(<Paragraph width={subtitleWidth} fontSize={fontSize} fill="#666">{props.subtitle.trim()}</Paragraph>)
     }

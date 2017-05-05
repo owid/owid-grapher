@@ -81,7 +81,6 @@ export default function() {
 	});
 
 	chart.flow('header : model', function() { return Header(chart); });
-	chart.flow('sourcesFooter : model', function() { return SourcesFooter(chart); });
 
 	// Container setup
 	chart.flow('containerNode', function(containerNode) {
@@ -224,10 +223,11 @@ export default function() {
 
 
     let controlsFooter = null
+    let sourcesFooter = null
 
 	chart.render = function() {
 		requestAnimationFrame(function() {
-			chart.now('el, header, sourcesFooter, primaryTab, overlayTab, innerBounds, scale, loadingIcon, isEmbed', function(el, header, sourcesFooter, primaryTab, overlayTab, innerBounds, scale, loadingIcon, isEmbed) {
+			chart.now('el, header, primaryTab, overlayTab, innerBounds, scale, loadingIcon, isEmbed', function(el, header, primaryTab, overlayTab, innerBounds, scale, loadingIcon, isEmbed) {
 				loadingIcon.classed('hidden', false);
 
 				if (chart.model.get('chart-type') != App.ChartType.SlopeChart && chart.model.get('chart-type') != App.ChartType.ScatterPlot)
@@ -238,15 +238,17 @@ export default function() {
 				header.render(bounds);
 				bounds = bounds.padTop(header.view.bbox.height+10)
 
-
                 var controlsFooterHeight = 0
                 if (!chart.isExport)
-                    controlsFooter = render(<ControlsFooter config={chart.config} chartView={this} scale={this.scale} activeTabName={this.activeTabName} ref={e => controlsFooterHeight=e.height}/>, chart.htmlNode, controlsFooter)
+                    controlsFooter = render(<ControlsFooter config={chart.config} chartView={this} scale={this.scale} activeTabName={this
+                        .activeTabName} ref={e => controlsFooterHeight=e.height}/>, chart.htmlNode, controlsFooter)
 
-				bounds = bounds.padBottom(controlsFooterHeight);
+                bounds = bounds.padBottom(controlsFooterHeight);
 
-				sourcesFooter.render(bounds);
-				bounds = bounds.padBottom(sourcesFooter.height);
+                var sourcesFooterHeight = 0
+                sourcesFooter = render(<SourcesFooter bounds={bounds} chartView={this} note={chart.model.get('chart-description')} originUrl={chart.model.get('data-entry-url')} ref={e => sourcesFooterHeight=e.height} />, chart.svgNode, sourcesFooter)
+
+				bounds = bounds.padBottom(sourcesFooterHeight);
 
 				if (primaryTab)
 					primaryTab.render(bounds);

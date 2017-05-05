@@ -17,14 +17,15 @@ import Bounds from './Bounds'
 import * as _ from 'lodash'
 
 export interface ParagraphProps {
-    width: number,
+    width?: number,
+    maxWidth?: number,
     lineHeight?: number,
     fontSize?: number, // DEPRECATED
     scale?: number,
-    x: number,
-    y: number,
+    x?: number,
+    y?: number,
     style?: Object,
-    children: string,
+    children?: string,
     precalc?: Paragraph
 }
 
@@ -37,7 +38,7 @@ interface WrapLine {
 @observer
 export default class Paragraph extends React.Component<ParagraphProps, undefined> {
     @computed get maxWidth(): number {
-        return this.props.width
+        return this.props.width || this.props.maxWidth
     }
 
     @computed get lineHeight(): number {
@@ -56,13 +57,22 @@ export default class Paragraph extends React.Component<ParagraphProps, undefined
         if (this.props.precalc)
             return this.props.precalc.lines
 
+        function strip(html)
+        {
+           var tmp = document.createElement("DIV");
+           tmp.innerHTML = html;
+           return tmp.textContent || tmp.innerText || "";
+        }
+
+
         const {props, text, maxWidth, lineHeight, fontSize} = this
 
-        const words = text.split(' ')
+        const words = strip(text).split(' ')
         const lines: WrapLine[] = []
 
         let line: string[] = []
         let lineBounds = Bounds.empty()
+
         _.each(words, (word, i) => {
             let nextLine = line.concat([word])
             let nextBounds = Bounds.forText(nextLine.join(' '), {fontSize: fontSize+'em'})
