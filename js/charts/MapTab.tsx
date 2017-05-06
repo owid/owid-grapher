@@ -83,7 +83,7 @@ export default class MapTab extends React.Component<MapTabProps, null> {
         if (this.props.years.length <= 1 || this.props.chartView.isExport) return null
         const {years, inputYear} = this.props
 
-        return preInstantiate(<Timeline bounds={this.props.bounds.fromBottom(35)} years={years} inputYear={inputYear}/>)
+        return preInstantiate(<Timeline bounds={this.props.bounds.fromBottom(35)} onTargetChange={this.onTargetChange} years={years} inputYear={inputYear}/>)
     }
 
     @computed get timelineHeight() {
@@ -105,7 +105,7 @@ export default class MapTab extends React.Component<MapTabProps, null> {
             {/*<rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height-timelineHeight} fill="#ecf6fc"/>*/}
             <ChoroplethMap bounds={bounds.padBottom(timelineHeight+mapLegend.height+15).padTop(10)} choroplethData={choroplethData} projection={projection} defaultFill={defaultFill} onHover={this.onMapMouseOver} onHoverStop={this.onMapMouseLeave} onClick={this.onClick} focusBracket={focusBracket} focusEntity={focusEntity}/>,
             <MapLegend {...mapLegend.props}/>
-            {timeline && <Timeline {...timeline.props} onTargetChange={this.onTargetChange} ref={e => this.props.chartView.tabs.map.timeline = e}/>}
+            {timeline && <Timeline {...timeline.props} ref={e => this.props.chartView.tabs.map.timeline = e}/>}
         </g>
     }
 }
