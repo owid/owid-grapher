@@ -140,7 +140,7 @@ export default function() {
 		return {
 			chart: ChartTab(chart),
 			data: DataTab(chart),
-			map: MapTab(chart),
+			map: { isOverlay: false },//MapTab(chart),
 			sources: SourcesTab(chart),
             download: DownloadTab(chart)
 		};
@@ -153,7 +153,7 @@ export default function() {
 		if (tab.isOverlay)
 			return chart.primaryTab;
 
-		if (chart.primaryTab && !tab.isOverlay)
+		if (chart.primaryTab && !tab.isOverlay && chart.primaryTab.clean)
 			chart.primaryTab.clean();
 
 		return tab.isOverlay ? chart.primaryTab : tab;
@@ -224,10 +224,11 @@ export default function() {
 
     let controlsFooter = null
     let sourcesFooter = null
+    let mapTab = null
 
 	chart.render = function() {
 		requestAnimationFrame(function() {
-			chart.now('el, header, primaryTab, overlayTab, innerBounds, scale, loadingIcon, isEmbed', function(el, header, primaryTab, overlayTab, innerBounds, scale, loadingIcon, isEmbed) {
+			chart.now('el, header, primaryTab, overlayTab, innerBounds, scale, loadingIcon, isEmbed, activeTabName', function(el, header, primaryTab, overlayTab, innerBounds, scale, loadingIcon, isEmbed, activeTabName) {
 				loadingIcon.classed('hidden', false);
 
 				if (chart.model.get('chart-type') != App.ChartType.SlopeChart && chart.model.get('chart-type') != App.ChartType.ScatterPlot)
@@ -250,8 +251,15 @@ export default function() {
 
 				bounds = bounds.padBottom(sourcesFooterHeight);
 
-				if (primaryTab)
-					primaryTab.render(bounds);
+                if (activeTabName == 'map') {
+                   chart.mapdata.update();
+
+                   mapTab = render(<MapTab bounds={bounds} chartView={this} choroplethData={chart.mapdata.currentValues} years={chart.map.getYears()} inputYear={+chart.map.get('targetYear')} legendData={chart.mapdata.legendData} legendTitle={chart.mapdata.legendTitle} projection={chart.map.get('projection')} defaultFill={chart.mapdata.getNoDataColor()} />, chart.svg.node(), mapTab)
+				} else {
+                    mapTab = render("", chart.svgNode, mapTab)
+                    if (primaryTab)
+					   primaryTab.render(bounds);
+                }
 
 				if (overlayTab)
 					overlayTab.render(innerBounds.padBottom(controlsFooterHeight+2));

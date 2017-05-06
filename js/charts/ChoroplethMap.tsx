@@ -20,9 +20,9 @@ export type ChoroplethData = {
 
 export type MapProjection = 'World' | 'Africa' | 'N.America' | 'S.America' | 'Asia' | 'Europe' | 'Australia';
 
-type GeoFeature = GeoJSON.Feature<GeoJSON.GeometryObject>
-type MapBracket = any
-type MapEntity = any
+export type GeoFeature = GeoJSON.Feature<GeoJSON.GeometryObject>
+export type MapBracket = any
+export type MapEntity = any
 
 interface ChoroplethMapProps {
     choroplethData: ChoroplethData,

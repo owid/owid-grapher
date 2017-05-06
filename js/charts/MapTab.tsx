@@ -1,76 +1,59 @@
-// @flow
-
+import * as _ from 'lodash'
+import * as React from 'react'
 import * as d3 from 'd3'
-import _ from 'lodash'
-import owid from '../owid'
-import dataflow from './owid.dataflow'
 import Bounds from './Bounds'
-import React, { Component } from 'react'
-import { render } from 'preact'
-import { observable, computed, asFlat, action } from 'mobx'
+import {observable, computed, action} from 'mobx'
 import {observer} from 'mobx-react'
-import type ChoroplethData from './ChoroplethMap'
-import type MapProjection from './ChoroplethMap'
-import ChoroplethMap from './ChoroplethMap'
+import ChoroplethMap, {ChoroplethData, MapProjection, GeoFeature, MapBracket, MapEntity} from './ChoroplethMap'
 import Timeline from './Timeline'
-import Layout from './Layout'
 import MapLegend from './MapLegend'
-import {preInstantiate, cacheChild} from './Util'
+import {preInstantiate, entityNameForMap} from './Util'
 
 type MapLegendData = any;
 
+interface MapTabProps {
+    chartView: any,
+    bounds: Bounds,
+    choroplethData: ChoroplethData,
+    years: number[],
+    inputYear: number,
+    legendData: MapLegendData,
+    legendTitle: string,
+    projection: MapProjection,
+    defaultFill: string
+}
+
 @observer
-class MapTab extends Component {
-    props: {
-        bounds: Bounds,
-        choroplethData: ChoroplethData,
-        years: number[],
-        inputYear: number,
-        legendData: MapLegendData,
-        legendTitle: string,
-        projection: MapProjection,
-        defaultFill: string
-    }
+export default class MapTab extends React.Component<MapTabProps, null> {
+    @observable focusEntity: any = null
 
-    legend: any
-    g: any
-    chart: any
-
-    constructor() {
-        super()
-        let chart = window.chart
-        this.chart = chart
-    }
-
-    @observable focusEntity = null
-
-    @action.bound onMapMouseOver(d, ev) {
+    @action.bound onMapMouseOver(d: GeoFeature, ev: React.MouseEvent<SVGPathElement>) {
         const datum = this.props.choroplethData[d.id]
         this.focusEntity = { id: d.id, datum: datum || { value: "No data" } }
 
-        this.chart.tooltip.fromMap(d, ev);
+        this.props.chartView.tooltip.fromMap(d, ev);
     }
 
-    @action.bound onMapMouseLeave(d) {
+    @action.bound onMapMouseLeave() {
         this.focusEntity = null
-        this.chart.tooltip.hide();
+        this.props.chartView.tooltip.hide();
     }
 
-    @action.bound onClick(d) {
-        const {chart} = this
-        if (chart.isMobile || !_.includes(chart.model.get("tabs"), "chart")) return;
+    @action.bound onClick(d: GeoFeature) {
+        const {chartView} = this.props
+        if (chartView.isMobile || !_.includes(chartView.model.get("tabs"), "chart")) return;
 
         var entityName = d.id,
-            availableEntities = chart.vardata.get("availableEntities"),
-            entity = _.find(availableEntities, function(e) {
-                return owid.entityNameForMap(e.name) == d.id;
+            availableEntities = chartView.vardata.get("availableEntities"),
+            entity = _.find(availableEntities, function(e: any) {
+                return entityNameForMap(e.name) == d.id;
             });
 
         if (!entity) return;
-        chart.model.set({ "selected-countries": [entity] }, { silent: true });
-        chart.data.chartData = null;
-        chart.update({ activeTabName: 'chart' });
-        chart.url.updateCountryParam();
+        chartView.model.set({ "selected-countries": [entity] }, { silent: true });
+        chartView.data.chartData = null;
+        chartView.update({ activeTabName: 'chart' });
+        chartView.url.updateCountryParam();
     }
 
     componentDidMount() {
@@ -83,13 +66,13 @@ class MapTab extends Component {
         this.onLegendMouseLeave()
     }
 
-    @observable focusBracket
-    @action.bound onLegendMouseOver(d) {
+    @observable focusBracket: MapBracket
+    @action.bound onLegendMouseOver(d: MapEntity) {
         this.focusBracket = d
     }
 
-    @action.bound onTargetChange(targetYear) {
-        this.chart.map.set('targetYear', targetYear)
+    @action.bound onTargetChange(targetYear: number) {
+        this.props.chartView.map.set('targetYear', targetYear)
     }
 
     @action.bound onLegendMouseLeave() {
@@ -97,7 +80,7 @@ class MapTab extends Component {
     }
 
     @computed get timeline() {
-        if (this.props.years.length <= 1 || window.chart.isExport) return null
+        if (this.props.years.length <= 1 || this.props.chartView.isExport) return null
         const {years, inputYear} = this.props
 
         return preInstantiate(<Timeline bounds={this.props.bounds.fromBottom(35)} years={years} inputYear={inputYear}/>)
@@ -118,16 +101,16 @@ class MapTab extends Component {
         let { bounds } = this.props
         const {focusBracket, focusEntity, timeline, timelineHeight, mapLegend} = this
 
-        return <g class="mapTab" ref={g => this.g = g}>
+        return <g className="mapTab">
             {/*<rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height-timelineHeight} fill="#ecf6fc"/>*/}
             <ChoroplethMap bounds={bounds.padBottom(timelineHeight+mapLegend.height+15).padTop(10)} choroplethData={choroplethData} projection={projection} defaultFill={defaultFill} onHover={this.onMapMouseOver} onHoverStop={this.onMapMouseLeave} onClick={this.onClick} focusBracket={focusBracket} focusEntity={focusEntity}/>,
             <MapLegend {...mapLegend.props}/>
-            {timeline && <Timeline {...timeline.props} onTargetChange={this.onTargetChange} ref={e => this.chart.tabs.map.timeline = e}/>}
+            {timeline && <Timeline {...timeline.props} onTargetChange={this.onTargetChange} ref={e => this.props.chartView.tabs.map.timeline = e}/>}
         </g>
     }
 }
 
-export default function(chart : any) {
+/*export default function(chart : any) {
     var mapTab = dataflow();
 
     let rootNode = null
@@ -138,9 +121,7 @@ export default function(chart : any) {
             return;
         }
 
-        chart.mapdata.update();
 
-        rootNode = render(<MapTab bounds={bounds} choroplethData={chart.mapdata.currentValues} years={chart.map.getYears()} inputYear={+chart.map.get('targetYear')} legendData={chart.mapdata.legendData} legendTitle={chart.mapdata.legendTitle} projection={chart.map.get('projection')} defaultFill={chart.mapdata.getNoDataColor()} />, chart.svg.node(), rootNode)
         chart.dispatch.call('renderEnd');
     };
 
@@ -150,3 +131,4 @@ export default function(chart : any) {
 
     return mapTab;
 };
+*/

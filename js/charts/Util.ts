@@ -18,6 +18,27 @@ export function getRelativeMouse(node : SVGElement, event : MouseEvent) {
   return [event.clientX - rect.left - node.clientLeft, event.clientY - rect.top - node.clientTop];
 };
 
+// Create an instance of a JSX node before rendering
+// Used for when we need to precalculate bounds
 export function preInstantiate(vnode: VNode) {
     return new vnode.nodeName(vnode.props)
 }
+
+
+// Make an arbitrary string workable as a css class name
+export function makeSafeForCSS(name: string) {
+    return name.replace(/[^a-z0-9]/g, function(s) {
+        var c = s.charCodeAt(0);
+        if (c == 32) return '-';
+        if (c == 95) return '_';
+        if (c >= 65 && c <= 90) return s;
+        return '__' + ('000' + c.toString(16)).slice(-4);
+    });
+};
+
+// Transform entity name to match counterpart in world.ids.json
+// Covers e.g. Cote d'Ivoire -> Cote_d_Ivoire
+// Also removes non-ascii characters which may break datamaps
+export function entityNameForMap(name: string) {
+    return makeSafeForCSS(name.replace(/[ '&:\(\)\/]/g, "_"));
+};
