@@ -32,7 +32,10 @@ export default {
     },
     module: {
         rules: [
-            { test: /\.tsx?$/, loader: "awesome-typescript-loader" },
+            {
+                test: /\.tsx?$/,
+                loader: "awesome-typescript-loader"
+            },
             {
                 test: /(preact-compat|\.jsx)/, // Preact-compat uses getters that don't work in IE11 for some reason
                 loader: "babel-loader",
@@ -87,7 +90,6 @@ export default {
         // filenames
         new ManifestPlugin(),
     ] : [
-        new LodashModuleReplacementPlugin(),
         new ExtractTextPlugin('[name].bundle.css'),
     ]),
     devServer: {

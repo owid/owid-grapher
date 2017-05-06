@@ -6,10 +6,8 @@ import {observable, computed, action} from 'mobx'
 import {observer} from 'mobx-react'
 import ChoroplethMap, {ChoroplethData, MapProjection, GeoFeature, MapBracket, MapEntity} from './ChoroplethMap'
 import Timeline from './Timeline'
-import MapLegend from './MapLegend'
+import MapLegend, {MapLegendBin} from './MapLegend'
 import {preInstantiate, entityNameForMap} from './Util'
-
-type MapLegendData = any;
 
 interface MapTabProps {
     chartView: any,
@@ -17,7 +15,7 @@ interface MapTabProps {
     choroplethData: ChoroplethData,
     years: number[],
     inputYear: number,
-    legendData: MapLegendData,
+    legendData: MapLegendBin[],
     legendTitle: string,
     projection: MapProjection,
     defaultFill: string
