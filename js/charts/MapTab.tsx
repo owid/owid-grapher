@@ -103,7 +103,7 @@ export default class MapTab extends React.Component<MapTabProps, null> {
             {/*<rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height-timelineHeight} fill="#ecf6fc"/>*/}
             <ChoroplethMap bounds={bounds.padBottom(timelineHeight+mapLegend.height+15).padTop(10)} choroplethData={choroplethData} projection={projection} defaultFill={defaultFill} onHover={this.onMapMouseOver} onHoverStop={this.onMapMouseLeave} onClick={this.onClick} focusBracket={focusBracket} focusEntity={focusEntity}/>,
             <MapLegend {...mapLegend.props}/>
-            {timeline && <Timeline {...timeline.props} ref={e => this.props.chartView.tabs.map.timeline = e}/>}
+            {timeline && <Timeline {...timeline.props}/>}
         </g>
     }
 }

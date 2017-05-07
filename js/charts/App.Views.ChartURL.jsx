@@ -13,6 +13,7 @@
 import _ from 'lodash'
 import $ from 'jquery'
 import owid from '../owid'
+import {autorun} from 'mobx'
 
 export default function(chart) {
 	function urlBinder() { }
@@ -36,7 +37,7 @@ export default function(chart) {
 
 		origConfig = _.clone(chart.model.attributes);
 
-		chart.flow('activeTabName', onTabChange);
+        autorun(() => onTabChange())
 
 		chart.model.on("change:selected-countries", updateCountryParam);
 		chart.model.on("change:activeLegendKeys", updateLegendKeys);
@@ -67,10 +68,10 @@ export default function(chart) {
 			if (!_.includes(chart.model.get("tabs").concat('share'), tab) && tab !== 'download')
 				console.error("Unexpected tab: " + tab);
 			else {
-				chart.update({ activeTabName: tab });
+				chart.activeTabName = tab
 			}
 		} else {
-			chart.update({ activeTabName: chart.model.get('default-tab') });
+			chart.activeTabName = chart.model.get('default-tab')
 		}
 
 		// Affiliate logo if any
