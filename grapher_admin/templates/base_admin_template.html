@@ -64,6 +64,11 @@
 				<!-- /.sidebar -->
 			  </aside>
 			<div class="content-wrapper">
+            {% if messages %}
+                {% for each in messages %}
+                    <div class='alert alert-{{ each.tags }}'>{{ each }}</div>
+                {% endfor %}
+            {% endif %}
 				{% block content %}
                 {% endblock %}
 			</div>
@@ -94,7 +99,7 @@
 					headers: {
 						'Content-Type': 'application/json',
 						'Accept': 'application/json',
-						'X-CSRF-TOKEN': '{{ csrf_token }}'
+						'X-CSRFToken': '{{ csrf_token }}'
 					},
 					body: JSON.stringify(data)
 				})

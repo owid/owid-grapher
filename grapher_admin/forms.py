@@ -11,8 +11,6 @@ class InviteUserForm(forms.Form):
     helper.form_method = 'POST'
     helper.layout = Layout(
         Div(
-            HTML(
-                "{% if messages %} {% for each in messages %} <div class='alert alert-{{ each.tags }}'>{{ each }}</div> {% endfor %} {% endif %}"),
             'email',
             'name',
             Submit('submit', 'Send invite'),
@@ -21,9 +19,9 @@ class InviteUserForm(forms.Form):
 
 
 class InvitedUserRegisterForm(forms.Form):
-    name = forms.CharField(max_length=255, label="Enter your username", required=True)
-    password1 = forms.CharField(required=True, widget=forms.PasswordInput)
-    password2 = forms.CharField(required=True, widget=forms.PasswordInput)
+    name = forms.CharField(max_length=255, label="Choose a username", required=True)
+    password1 = forms.CharField(required=True, widget=forms.PasswordInput, label='Choose a password')
+    password2 = forms.CharField(required=True, widget=forms.PasswordInput, label='Confirm your password')
     helper = FormHelper()
     helper.form_method = 'POST'
     helper.layout = Layout(

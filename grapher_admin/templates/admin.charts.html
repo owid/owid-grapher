@@ -30,7 +30,7 @@
 							<tr>
 								<td>
 									{% if chart.published %}
-										<a class="star-toggle" data-chart-id="{{chart.id}}" title="Show this chart on the front page of the website.">
+										<a class="star-toggle" data-chart-id="{{ chart.id }}" title="Show this chart on the front page of the website.">
 											{% if chart.starred %}
 												<i class="fa fa-star"></i>
 											{% else %}
@@ -64,7 +64,7 @@
 										by {{ chart.last_edited_by }}
 									{% endif %}
 								</td>
-								<td><a href="#" class="btn btn-primary">Edit</a></td>
+								<td><a href="{% url 'editchart' chart.id %}" class="btn btn-primary">Edit</a></td>
 								<td>
 									Delete
                                 </td>

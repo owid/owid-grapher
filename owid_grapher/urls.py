@@ -21,8 +21,15 @@ from django.contrib.auth.views import logout
 
 urlpatterns = [
     url(r'^$', owid_views.index, name="index"),
-    url(r'^charts/$',  admin_views.listcharts, name="listcharts"),
+    url(r'^charts/$', admin_views.listcharts, name="listcharts"),
+    url(r'^charts/(?P<chartid>[\w]+)/edit/$', admin_views.editchart, name="editchart"),
+    url(r'^charts/(?P<chartid>[\w]+)$', admin_views.managechart, name="managechart"), # update, destroy requests
     url(r'^users/$', admin_views.listusers, name="listusers"),
+    # for future use on the frontend
+    url(r'^charts\.json$',  admin_views.listcharts, name="listchartsjson"),
+    url(r'^charts/(?P<chartid>[\w]+)/edit\.json$', admin_views.editchart, name="editchartjson"),
+    url(r'^users\.json$', admin_views.listusers, name="listusersjson"),
+    #
     url(r'^login/$', admin_views.custom_login, name='login'),
     url(r'^logout/$', logout, {'next_page': '/'}, name="logout"),
     url(r'^config/(?P<configid>.+\.js)$', owid_views.config, name="serveconfig"),
