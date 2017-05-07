@@ -2,7 +2,6 @@ import * as _ from 'lodash'
 import * as React from 'react'
 import Bounds from './Bounds'
 import owid from '../owid'
-import {render} from 'preact'
 import Text from './Text'
 import Paragraph from './Paragraph'
 import {preInstantiate} from './Util'
@@ -160,10 +159,10 @@ export default class Header extends React.Component<HeaderProps, null> {
 
     @computed get headerMain() {
         const {props, title, subtitle} = this
-        const {bounds, logosSVG, titleLink} = props
+        const {bounds, logosSVG} = props
 
         return preInstantiate(
-            <HeaderMain x={0} y={0} width={bounds.width} title={titleStr} subtitle={subtitleStr} logosSVG={logosSVG} titleLink={titleLink}/>
+            <HeaderMain x={bounds.x} y={bounds.y} width={bounds.width} title={title} subtitle={subtitle} logosSVG={logosSVG} titleLink={"foo"}/>
         )
     }
 
@@ -179,7 +178,7 @@ export default class Header extends React.Component<HeaderProps, null> {
     }
 }
 
-function(chart) {
+/*function(chart) {
 	var headerControl = dataflow();
 
 	headerControl.inputs({
@@ -260,4 +259,4 @@ function(chart) {
 	};
 
 	return headerControl;
-}
+}*/

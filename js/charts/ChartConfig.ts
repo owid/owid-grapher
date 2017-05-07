@@ -12,8 +12,10 @@ export default class ChartConfig {
     @observable.ref sourceDesc: string
     @observable.ref note: string
     @observable.ref internalNotes: string
+    @observable.ref logosSVG: string[]
 
 	@observable.ref selectedEntities: Object[] = []
+    @observable.ref entityType: string = "country"
     @observable.ref timeRange: [number|null, number|null]
     @observable timeline: Object = null
 
@@ -41,8 +43,10 @@ export default class ChartConfig {
         this.sourceDesc = this.model.get('sourceDesc')
         this.note = this.model.get('chart-description')
         this.internalNotes = this.model.get('internalNotes')
+        this.logosSVG = this.model.get('logosSVG')
 
         this.selectedEntities = this.model.getSelectedEntities().map((e: any) => e.name)
+        this.entityType = this.model.get('entity-type')
         this.timeline = this.model.get('timeline')
         this.timeRange = this.model.get('chart-time')||[]
 
@@ -138,5 +142,4 @@ export default class ChartConfig {
                 return 3
         });
 	}
-
 }

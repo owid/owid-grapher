@@ -8,8 +8,11 @@ import ChoroplethMap, {ChoroplethData, MapProjection, GeoFeature, MapBracket, Ma
 import Timeline from './Timeline'
 import MapLegend, {MapLegendBin} from './MapLegend'
 import {preInstantiate, entityNameForMap} from './Util'
+import Header from './Header'
+import ChartConfig from './ChartConfig'
 
 interface MapTabProps {
+    chart: ChartConfig,
     chartView: any,
     bounds: Bounds,
     choroplethData: ChoroplethData,
@@ -77,6 +80,25 @@ export default class MapTab extends React.Component<MapTabProps, null> {
         this.focusBracket = null
     }
 
+
+    @computed get header() {
+        const {props} = this
+        const {bounds, chart} = props
+
+        const targetYear = this.props.chartView.map.get('targetYear')
+
+        return preInstantiate(<Header
+            bounds={bounds}
+            titleTemplate={chart.title}
+            subtitleTemplate={chart.subtitle}
+            logosSVG={chart.logosSVG}
+            entities={chart.selectedEntities}
+            entityType={chart.entityType}
+            minYear={targetYear}
+            maxYear={targetYear}
+        />)
+    }
+
     @computed get timeline() {
         if (this.props.years.length <= 1 || this.props.chartView.isExport) return null
         const {years, inputYear} = this.props
@@ -97,11 +119,12 @@ export default class MapTab extends React.Component<MapTabProps, null> {
     render() {
         const { choroplethData, projection, defaultFill, legendTitle, legendData } = this.props
         let { bounds } = this.props
-        const {focusBracket, focusEntity, timeline, timelineHeight, mapLegend} = this
+        const {header, focusBracket, focusEntity, timeline, timelineHeight, mapLegend} = this
 
         return <g className="mapTab">
             {/*<rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height-timelineHeight} fill="#ecf6fc"/>*/}
-            <ChoroplethMap bounds={bounds.padBottom(timelineHeight+mapLegend.height+15).padTop(10)} choroplethData={choroplethData} projection={projection} defaultFill={defaultFill} onHover={this.onMapMouseOver} onHoverStop={this.onMapMouseLeave} onClick={this.onClick} focusBracket={focusBracket} focusEntity={focusEntity}/>,
+            <Header {...header.props}/>
+            <ChoroplethMap bounds={bounds.padTop(header.height).padBottom(timelineHeight+mapLegend.height+15)} choroplethData={choroplethData} projection={projection} defaultFill={defaultFill} onHover={this.onMapMouseOver} onHoverStop={this.onMapMouseLeave} onClick={this.onClick} focusBracket={focusBracket} focusEntity={focusEntity}/>,
             <MapLegend {...mapLegend.props}/>
             {timeline && <Timeline {...timeline.props}/>}
         </g>

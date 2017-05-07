@@ -34,7 +34,9 @@ interface ChartViewProps {
 @observer
 export default class ChartView extends React.Component<ChartViewProps, null> {
     static bootstrap({ jsonConfig, containerNode }: { jsonConfig: Object, containerNode: HTMLElement }) {
-        ReactDOM.render(<ChartView jsonConfig={jsonConfig}/>, containerNode)
+        d3.select(containerNode).classed('chart-container', true)
+        const rect = containerNode.getBoundingClientRect()
+        ReactDOM.render(<ChartView bounds={Bounds.fromProps(rect)} jsonConfig={jsonConfig}/>, containerNode)
     }
 
     @computed get isExport() { return !!window.location.pathname.match(/.export$/) }
@@ -45,7 +47,7 @@ export default class ChartView extends React.Component<ChartViewProps, null> {
     @computed get containerBounds() {
         const {isEmbed} = this
 
-        var bounds = new Bounds(0, 0, 1000, 1000)
+        let bounds = this.props.bounds
 
         if (isEmbed) {
             bounds = bounds.pad(3);
@@ -84,7 +86,7 @@ export default class ChartView extends React.Component<ChartViewProps, null> {
     }
 
     @computed get svgBounds() {
-        return new Bounds(0, 0, this.renderWidth, this.renderHeight)
+        return (new Bounds(0, 0, this.renderWidth, this.renderHeight)).pad(15)
     }
 
     constructor(props: ChartViewProps) {
@@ -140,7 +142,7 @@ export default class ChartView extends React.Component<ChartViewProps, null> {
         return [
             <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1"
                  style={{ width: "100%", height: "100%" }} viewBox={`0 0 ${renderWidth} ${renderHeight}`}>
-                <MapTab bounds={svgBounds.padBottom(controlsFooter.height)} chartView={this} choroplethData={this.mapdata.currentValues} years={this.map.getYears()} inputYear={+this.map.get('targetYear')} legendData={this.mapdata.legendData} legendTitle={this.mapdata.legendTitle} projection={this.map.get('projection')} defaultFill={this.mapdata.getNoDataColor()} />
+                <MapTab bounds={svgBounds.padBottom(controlsFooter.height)} chartView={this} chart={this.config} choroplethData={this.mapdata.currentValues} years={this.map.getYears()} inputYear={+this.map.get('targetYear')} legendData={this.mapdata.legendData} legendTitle={this.mapdata.legendTitle} projection={this.map.get('projection')} defaultFill={this.mapdata.getNoDataColor()} />
             </svg>,
             <ControlsFooter {...controlsFooter.props}/>
         ]
