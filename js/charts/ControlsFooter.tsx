@@ -102,13 +102,15 @@ class ShareMenu extends React.Component<ShareMenuProps, null> {
 interface ControlsFooterProps {
     config: ChartConfig,
     activeTabName: string,
-    chartView: any
+    chartView: any,
+    availableTabs: string[],
+    onTabChange: (tabName: string) => void
 }
 
 @observer
 export default class ControlsFooter extends React.Component<ControlsFooterProps, null> {
     @computed get tabNames() : string[] {
-        return this.props.config.availableTabs
+        return this.props.availableTabs
     }
 
     @computed get height() {
@@ -116,10 +118,6 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps,
     }
 
     @observable isShareMenuActive: boolean = false
-
-    @action.bound onTabChange(tabName: string) {
-        this.props.chartView.update({ activeTabName: tabName })
-    }
 
     @action.bound onShareMenu() {
         this.isShareMenuActive = !this.isShareMenuActive
@@ -139,9 +137,9 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps,
             <nav className="tabs">
                 <ul>
                     {_.map(tabNames, (tabName) => {
-                        return <li className={"tab clickable" + (tabName == props.activeTabName ? ' active' : '')} onClick={() => this.onTabChange(tabName)}><a>{tabName}</a></li>
+                        return <li className={"tab clickable" + (tabName == props.activeTabName ? ' active' : '')} onClick={() => this.props.onTabChange(tabName)}><a>{tabName}</a></li>
                     })}
-                    <li className={"tab clickable icon" + (props.activeTabName == 'download' ? ' active' : '')} onClick={() => this.onTabChange('download')} title="Download as .png or .svg">
+                    <li className={"tab clickable icon" + (props.activeTabName == 'download' ? ' active' : '')} onClick={() => this.props.onTabChange('download')} title="Download as .png or .svg">
                         <a><i className="fa fa-download"/></a>
                     </li>
                     <li className="clickable icon"><a title="Share" onClick={this.onShareMenu}><i className="fa fa-share-alt"/></a></li>

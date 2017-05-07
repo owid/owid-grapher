@@ -3,7 +3,7 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as d3 from 'd3'
-import {observable, computed} from 'mobx'
+import {observable, computed, autorun} from 'mobx'
 import {observer} from 'mobx-react'
 
 import ChartConfig from './ChartConfig'
@@ -26,6 +26,10 @@ import Bounds from './Bounds'
 import {preInstantiate} from './Util'
 
 declare const App: any // XXX
+declare const Global: any // XXX
+
+window.App.IDEAL_WIDTH = 1020
+window.App.IDEAL_HEIGHT = 720
 
 interface ChartViewProps {
     jsonConfig: any
@@ -33,6 +37,8 @@ interface ChartViewProps {
 
 @observer
 export default class ChartView extends React.Component<ChartViewProps, null> {
+    chart: ChartConfig
+
     static bootstrap({ jsonConfig, containerNode }: { jsonConfig: Object, containerNode: HTMLElement }) {
         d3.select(containerNode).classed('chart-container', true)
         const rect = containerNode.getBoundingClientRect()
@@ -89,12 +95,19 @@ export default class ChartView extends React.Component<ChartViewProps, null> {
         return (new Bounds(0, 0, this.renderWidth, this.renderHeight)).pad(15)
     }
 
+
+    @observable isReady = false
+    @observable activeTabName: string = 'chart'
+    @observable primaryTabName: string = 'chart'
+    @observable overlayTabName: string? = null
+
     constructor(props: ChartViewProps) {
         super(props)
         // XXX all of this stuff needs refactoring
         this.model = new ChartModel(props.jsonConfig)
         App.ChartModel = this.model
         this.config = new ChartConfig(this.model)
+        this.chart = this.config
         App.VariableData = new VariableData()
         this.vardata = App.VariableData
         App.ChartData = new ChartData()
@@ -109,17 +122,35 @@ export default class ChartView extends React.Component<ChartViewProps, null> {
         Bounds.baseFontSize = 22
         Bounds.baseFontFamily = "Helvetica, Arial"
 
-        this.data.ready(() => this.isReady = true)
+        autorun(() => {
+            if (this.activeTabName == 'map' || this.activeTabName == 'chart') {
+                this.primaryTabName = this.activeTabName
+                this.overlayTabName = null
+            } else {
+                this.overlayTabName = this.activeTabName
+            }
+        })
 
+        this.activeTabName = this.model.get('default-tab')
+        this.data.ready(() => this.isReady = true)
         this.model.on('change', () => this.forceUpdate())
         this.map.on('change', () => this.forceUpdate())
     }
 
-    @observable isReady = false
+
+    getChildContext() {
+        return { chartView: this }
+    }
 
     @computed get controlsFooter() {
-        return preInstantiate(<ControlsFooter config={this.config} chartView={this} scale={this.scale} activeTabName={this
-                        .activeTabName}/>)
+        return preInstantiate(<ControlsFooter
+            availableTabs={this.chart.availableTabs}
+            onTabChange={tabName => this.activeTabName = tabName}
+            config={this.config}
+            chartView={this}
+            scale={this.scale}
+            activeTabName={this.activeTabName}
+         />)
     }
 
     @computed get classNames(): string {
@@ -134,17 +165,37 @@ export default class ChartView extends React.Component<ChartViewProps, null> {
         return _.filter(classNames).join(' ')
     }
 
+    renderPrimaryTab(bounds: Bounds) {
+        const {primaryTabName, svgBounds} = this
+
+        return <MapTab bounds={bounds} chartView={this} chart={this.chart}/>
+    }
+
+    renderOverlayTab(bounds: Bounds) {
+        const {chart, overlayTabName} = this
+
+        if (overlayTabName == 'sources')
+            return <SourcesTab bounds={bounds} sources={this.data.transformDataForSources()}/>
+        else if (overlayTabName == 'data')
+            return <DataTab bounds={bounds} csvUrl={Global.rootUrl+'/'+chart.slug+'.csv'}/>
+        else if (overlayTabName == 'download')
+            return <DownloadTab bounds={bounds} chartView={this} imageWidth={App.IDEAL_WIDTH} imageHeight={App.IDEAL_HEIGHT}/>
+        else
+            return null
+    }
+
     renderReady() {
-        const {renderWidth, renderHeight, svgBounds, controlsFooter} = this
+        const {renderWidth, renderHeight, svgBounds, controlsFooter, scale} = this
 
         this.mapdata.update()
 
         return [
             <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1"
                  style={{ width: "100%", height: "100%" }} viewBox={`0 0 ${renderWidth} ${renderHeight}`}>
-                <MapTab bounds={svgBounds.padBottom(controlsFooter.height)} chartView={this} chart={this.config} choroplethData={this.mapdata.currentValues} years={this.map.getYears()} inputYear={+this.map.get('targetYear')} legendData={this.mapdata.legendData} legendTitle={this.mapdata.legendTitle} projection={this.map.get('projection')} defaultFill={this.mapdata.getNoDataColor()} />
+                 {this.renderPrimaryTab(svgBounds.padBottom(controlsFooter.height))}
             </svg>,
-            <ControlsFooter {...controlsFooter.props}/>
+            <ControlsFooter {...controlsFooter.props}/>,
+            this.renderOverlayTab(svgBounds.scale(scale).padBottom(controlsFooter.height))
         ]
     }
 
@@ -153,6 +204,7 @@ export default class ChartView extends React.Component<ChartViewProps, null> {
     }
 
     render() {
+        window.cv = this
         const {renderWidth, renderHeight, scale} = this
 
         const style = { width: renderWidth*scale + 'px', height: renderHeight*scale + 'px' }

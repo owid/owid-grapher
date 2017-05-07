@@ -43,7 +43,7 @@ class ImgLoader extends Component {
 }
 
 @observer
-class DownloadTab extends Component {
+export default class DownloadTab extends Component {
     @computed get baseUrl() : string {
         return Global.rootUrl + '/' + this.props.chartView.config.slug
     }
@@ -57,11 +57,11 @@ class DownloadTab extends Component {
     }
 
     @computed get targetWidth(): number {
-        return App.IDEAL_WIDTH
+        return this.props.imageWidth
     }
 
     @computed get targetHeight(): number {
-        return App.IDEAL_HEIGHT
+        return this.props.imageHeight
     }
 
     @computed get pngUrl() : string {
@@ -134,22 +134,4 @@ class DownloadTab extends Component {
 	render() {
         return this.isPortrait ? this.renderPortrait() : this.renderLandscape()
 	}
-}
-
-export default function(chart) {
-	var downloadTab = dataflow();
-
-	downloadTab.isOverlay = true;
-
-	let rootNode = null
-
-	downloadTab.render = function(bounds) {
-        rootNode = render(<DownloadTab bounds={bounds.scale(chart.scale)} chartView={chart} sources={chart.data.transformDataForSources()}/>, chart.htmlNode, rootNode)
-	};
-
-	downloadTab.beforeClean(function() {
-		rootNode = render(NullElement, chart.htmlNode, rootNode);
-	});
-
-	return downloadTab;
 }

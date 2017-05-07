@@ -15,7 +15,7 @@ import ChoroplethMap from './ChoroplethMap'
 import Timeline from './Timeline'
 import {NullElement} from './Util'
 
-class DataTab extends Component {
+export default class DataTab extends Component {
 	props: {
 		bounds: Bounds,
 		csvUrl: string
@@ -45,21 +45,3 @@ class DataTab extends Component {
 		</div>
 	}
 }
-
-export default function(chart) {
-	var dataTab = dataflow();
-
-	dataTab.isOverlay = true;
-
-	let rootNode = null
-
-	dataTab.render = function(bounds) {
-        rootNode = render(<DataTab bounds={bounds.scale(chart.scale)} csvUrl={Global.rootUrl+'/'+chart.model.get('slug')+'.csv'}/>, chart.htmlNode, rootNode)
-	};
-
-	dataTab.beforeClean(function() {
-		rootNode = render(NullElement, chart.htmlNode, rootNode);
-	});
-
-	return dataTab;
-};
