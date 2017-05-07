@@ -20,8 +20,8 @@
 			<meta property="og:title" content="{{ $chartMeta->title }}">
 			<meta property="og:description" content="{{ $chartMeta->description }}">
 			<meta property="og:image" content="{!! $chartMeta->imageUrl !!}">
-			<meta property="og:image:width" content="1200">
-			<meta property="og:image:height" content="800">
+			<meta property="og:image:width" content="1080">
+			<meta property="og:image:height" content="720">
 			<meta property="og:site_name" content="Our World In Data">
 
 			<meta name="twitter:card" content="summary_large_image">
