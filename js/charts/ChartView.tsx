@@ -18,13 +18,11 @@ import VariableData from './App.Models.VariableData'
 import ChartModel from './App.Models.ChartModel'
 import ChartData from './App.Models.ChartData'
 import Colors from './App.Models.Colors'
-import Export from './App.Views.Export'
 import UrlBinder from './App.Views.ChartURL'
 import mapdata from './owid.models.mapdata'
 import tooltip from './owid.view.tooltip'
 import Bounds from './Bounds'
 import {preInstantiate, VNode} from './Util'
-import Resizable from 'react-component-resizable'
 
 declare const App: any // XXX
 declare const Global: any // XXX
@@ -34,28 +32,35 @@ App.IDEAL_HEIGHT = 720
 
 interface ChartViewProps {
     bounds: Bounds,
-    jsonConfig: any
+    jsonConfig: any,
+    isExport?: boolean
 }
 
 @observer
 export default class ChartView extends React.Component<ChartViewProps, null> {
     static bootstrap({ jsonConfig, containerNode }: { jsonConfig: Object, containerNode: HTMLElement }) {
         d3.select(containerNode).classed('chart-container', true)
-        const rect = containerNode.getBoundingClientRect()
-        ReactDOM.render(<ChartView bounds={Bounds.fromRect(rect)} jsonConfig={jsonConfig}/>, containerNode)
+
+        function render() {
+            const rect = containerNode.getBoundingClientRect()
+            ReactDOM.render(<ChartView bounds={Bounds.fromRect(rect)} jsonConfig={jsonConfig}/>, containerNode)
+        }
+
+        render()
+        window.onresize = render
     }
 
-    @computed get isExport() { return !!window.location.pathname.match(/.export$/) }
+    @computed get isExport() { return !!this.props.isExport }
     @computed get isEditor() { return App.isEditor }
     @computed get isEmbed() { return window.self != window.top || this.isEditor }
     @computed get isMobile() { return d3.select('html').classed('touchevents') }
 
     @computed get containerBounds() {
-        const {isEmbed} = this
+        const {isEmbed, isExport} = this
 
         let bounds = this.props.bounds
 
-        if (isEmbed) {
+        if (isEmbed || isExport) {
             bounds = bounds.pad(3);
         } else {
             if (bounds.width < 800)
@@ -144,7 +149,6 @@ export default class ChartView extends React.Component<ChartViewProps, null> {
             }
         })
 
-        this.activeTabName = this.model.get('default-tab')
         this.data.ready(() => this.isReady = true)
         this.model.on('change', () => this.forceUpdate())
         this.map.on('change', () => this.forceUpdate())
@@ -189,9 +193,9 @@ export default class ChartView extends React.Component<ChartViewProps, null> {
         const {primaryTabName, svgBounds} = this
 
         if (primaryTabName == 'chart')
-            return <ChartTab bounds={bounds} chartView={this} chart={this.chart}/>
+            return <ChartTab bounds={bounds} chartView={this} chart={this.chart} onRenderEnd={this.props.onRenderEnd}/>
         else
-            return <MapTab bounds={bounds} chartView={this} chart={this.chart}/>
+            return <MapTab bounds={bounds} chartView={this} chart={this.chart} onRenderEnd={this.props.onRenderEnd}/>
     }
 
     renderOverlayTab(bounds: Bounds) {
@@ -212,10 +216,11 @@ export default class ChartView extends React.Component<ChartViewProps, null> {
 
         return [
             <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1"
-                 style={{ width: "100%", height: "100%" }} viewBox={`0 0 ${renderWidth} ${renderHeight}`}>
+                 style={{ width: "100%", height: "100%" }} viewBox={`0 0 ${renderWidth} ${renderHeight}`}
+                 ref={e => this.svgNode = e}>
                  {this.renderPrimaryTab(svgBounds.padBottom(controlsFooter.height))}
             </svg>,
-            <ControlsFooter {...controlsFooter.props}/>,
+            !this.isExport && <ControlsFooter {...controlsFooter.props}/>,
             this.renderOverlayTab(svgBounds.scale(scale).padBottom(controlsFooter.height)),
             this.popups
         ]
@@ -239,7 +244,6 @@ export default class ChartView extends React.Component<ChartViewProps, null> {
     componentDidMount() {
         this.htmlNode = this.base
     }
-
 
     // XXX
     getTransformedBounds(node: HTMLElement) {

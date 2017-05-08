@@ -204,7 +204,7 @@ export default class Timeline extends React.Component<TimelineProps, null> {
         const toggleText = isPlaying ? "\uf28c" : "\uf01d"
         const toggleTextBounds = Bounds.forText(toggleText, { fontSize: "1.3em" })
 
-		return <g className="timeline clickable" onMouseDown={this.onMouseDown} ref={g => this.g = g}>
+		return <g className="clickable" onMouseDown={this.onMouseDown} ref={g => this.g = g}>
 			<rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height} fill="white"></rect>
 			<Text className="toggle" onClick={() => this.isPlaying = !this.isPlaying} x={bounds.left+10} y={bounds.centerY-toggleTextBounds.height/2} font-family="FontAwesome" font-size="1.3em">{toggleText}
 			</Text>

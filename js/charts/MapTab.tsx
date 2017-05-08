@@ -115,19 +115,22 @@ class TimelineMap extends React.Component<TimelineMapProps, null> {
 interface MapTabProps {
     chartView: any,
     chart: ChartConfig,
-    bounds: Bounds
+    bounds: Bounds,
+    onRenderEnd: () => void
 }
 
+@observer
 export default class MapTab extends React.Component<MapTabProps, null> {
     @computed get header() {
         const {props} = this
         const {bounds, chart} = props
 
-        const targetYear = this.context.chartView.map.get('targetYear')
+        const targetYear = this.props.chartView.map.get('targetYear')
 
         return preInstantiate(<Header
             bounds={bounds}
             titleTemplate={chart.title}
+            titleLink={this.props.chartView.url.getCurrentLink()}
             subtitleTemplate={chart.subtitle}
             logosSVG={chart.logosSVG}
             entities={chart.selectedEntities}
@@ -147,6 +150,11 @@ export default class MapTab extends React.Component<MapTabProps, null> {
             note={chart.note}
             originUrl={chart.originUrl}
          />)
+    }
+
+    componentDidMount() {
+        if (this.props.onRenderEnd)
+            this.props.onRenderEnd()
     }
 
     render() {

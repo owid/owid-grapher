@@ -48,7 +48,12 @@
             window.App = {}
             App.isEditor = false;
             App.loadChart = function(jsonConfig) {
-                window.ChartView.bootstrap({ jsonConfig: jsonConfig, containerNode: document.body });
+                var isExport = !!window.location.pathname.match(/.export$/)
+
+                if (isExport)
+                    window.ExportView.bootstrap({ jsonConfig: jsonConfig, containerNode: document.body });
+                else
+                    window.ChartView.bootstrap({ jsonConfig: jsonConfig, containerNode: document.body });
             };
             App.isDebug = {!! env('APP_ENV', 'production') != 'production' ? "true" : "false" !!};
 

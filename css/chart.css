@@ -32,7 +32,7 @@ body.chart-container {
     overflow: hidden;
 }
 
-body.chart-container:not(.export) {
+body.chart-container {
     text-align: center;
 }
 
@@ -199,7 +199,7 @@ select.disabled {
     overflow: hidden;
 }
 
-body:not(.export) #chart {
+#chart:not(.export) {
     vertical-align: middle;
     border: 1px solid #f0f0f0;
     border-radius: 2px;
@@ -1028,23 +1028,23 @@ a {
  * a special .export url to screenshot the chart. #chart-export styles therefore apply specifically
  * to these screenshots. */
 
-body.export #chart {
+#chart.static {
     padding: 0 !important;
 }
 /* Remove interactive UI elements since obviously they can't be used in a static image
 * NOTE (Mispy): Unneeded SVG elements should be removed entirely by the JS as well as hidden here. */
-body.export #chart .controlsFooter,
-body.export #chart .fullscreen-link,
-body.export #chart .timeline,
-body.export #chart .settings-control,
-body.export #chart .color-blind-control,
-body.export #chart .map-controls-header,
-body.export #chart .nv-add-btn,
-body.export #chart .nv-controlsWrap,
-body.export #chart .scaleSelector {
+#chart.static .controlsFooter,
+#chart.static .fullscreen-link,
+#chart.static .timeline,
+#chart.static .settings-control,
+#chart.static .color-blind-control,
+#chart.static .map-controls-header,
+#chart.static .nv-add-btn,
+#chart.static .nv-controlsWrap,
+#chart.static .scaleSelector {
     display: none !important;
 }
-body.export #chart .tab-pane {
+#chart.static .tab-pane {
     border: none !important;
 }
 

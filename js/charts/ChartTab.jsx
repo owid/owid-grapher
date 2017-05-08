@@ -26,6 +26,7 @@ export default class ChartTab extends React.Component {
     }
 
     componentDidUpdate() {
+        this.chartTab.onRenderEnd = this.props.onRenderEnd
         this.chartTab.render(this.bounds)
     }
 
@@ -37,17 +38,23 @@ export default class ChartTab extends React.Component {
         const {props} = this
         const {bounds, chart} = props
 
-        const targetYear = this.context.chartView.map.get('targetYear')
+        let minYear = null
+        let maxYear = null
+        if (chart.type == App.ChartType.ScatterPlot) {
+            minYear = chart.timeRange[0];
+            maxYear = chart.timeRange[1];
+        }
 
         return preInstantiate(<Header
             bounds={bounds}
             titleTemplate={chart.title}
+            titleLink={this.props.chartView.url.getCurrentLink()}
             subtitleTemplate={chart.subtitle}
             logosSVG={chart.logosSVG}
             entities={chart.selectedEntities}
             entityType={chart.entityType}
-            minYear={targetYear}
-            maxYear={targetYear}
+            minYear={minYear}
+            maxYear={maxYear}
         />)
     }
 
@@ -115,7 +122,7 @@ const chartTabOld = function(chart) {
 
 	var xDomain, yDomain, isClamped;
 
-	chartTab.scaleSelectors = scaleSelectors(chart);
+	chartTab.scaleSelectors = scaleSelectors(chart, chartTab);
 
 	var nvOptions = {
 		showLegend: false
@@ -753,7 +760,8 @@ const chartTabOld = function(chart) {
 			});
 		}
 
-//		chart.dispatch.call('renderEnd');
+        if (chartTab.onRenderEnd)
+            chartTab.onRenderEnd()
 	}
 
 	return chartTab;

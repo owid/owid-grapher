@@ -4069,10 +4069,6 @@ rc@^1.1.7:
     minimist "^1.2.0"
     strip-json-comments "~2.0.1"
 
-react-component-resizable@^1.1.0-rc1:
-  version "1.1.0-rc1"
-  resolved "https://registry.yarnpkg.com/react-component-resizable/-/react-component-resizable-1.1.0-rc1.tgz#167b635dfde48da512b0000cbd224c6bc539f2b3"
-
 react-virtual-list@^2.0.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/react-virtual-list/-/react-virtual-list-2.2.0.tgz#64ebe4a81a3c031dc843f0b6a8e30c1e467eeb40"

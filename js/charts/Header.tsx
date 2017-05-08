@@ -103,7 +103,7 @@ class HeaderMain extends React.Component<HeaderMainProps, null> {
 
         //Bounds.debug([new Bounds(props.x, props.y+title.height+2, subtitle.width, subtitle.height)])
 
-        return <g>
+        return <g className="header">
             <Logo {...logo.props} x={props.x+props.width-logo.width} y={props.y}/>
             <a href={props.titleLink} target="_blank">
                 <Paragraph {...title.props} x={props.x} y={props.y}>{title.text}</Paragraph>
@@ -129,13 +129,14 @@ export default class Header extends React.Component<HeaderProps, null> {
         const {entities, entityType, minYear, maxYear} = this.props
 
         if (_.includes(text, "*country*")) {
-            var entityStr = _.map(entities, "name").join(', ');
+            var entityStr = entities.join(', ');
             text = text.replace("*country*", entityStr || ("in selected " + entityType));
         }
 
         if (_.includes(text, "*time")) {
             if (!_.isFinite(minYear)) {
-                text = text.replace("*time*", "over time");
+                text = text.replace(", *time*", "")
+                text = text.replace("*time*", "");
             } else {
                 var timeFrom = formatYear(minYear),
                     timeTo = formatYear(maxYear),
@@ -160,10 +161,10 @@ export default class Header extends React.Component<HeaderProps, null> {
 
     @computed get headerMain() {
         const {props, title, subtitle} = this
-        const {bounds, logosSVG} = props
+        const {bounds, logosSVG, titleLink} = props
 
         return preInstantiate(
-            <HeaderMain x={bounds.x} y={bounds.y} width={bounds.width} title={title} subtitle={subtitle} logosSVG={logosSVG} titleLink={"foo"}/>
+            <HeaderMain x={bounds.x} y={bounds.y} width={bounds.width} title={title} subtitle={subtitle} logosSVG={logosSVG} titleLink={titleLink}/>
         )
     }
 

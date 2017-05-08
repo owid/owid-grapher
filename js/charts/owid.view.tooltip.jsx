@@ -1,4 +1,5 @@
 import owid from '../owid'
+import $ from 'jquery'
 
 export default function(chart) {
     function tooltip() {}

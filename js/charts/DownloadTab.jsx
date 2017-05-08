@@ -67,13 +67,13 @@ export default class DownloadTab extends Component {
     @computed get pngUrl() : string {
         const {baseUrl, queryStr, cacheTag, targetWidth, targetHeight} = this
         var pngHref = baseUrl + '.png' + queryStr, defaultTargetSize = targetWidth + "x" + targetHeight
-        return pngHref + (_.includes(pngHref, "?") ? "&" : "?") + "size=" + defaultTargetSize + "&v=" + cacheTag
+        return pngHref + (_.includes(pngHref, "?") ? "&" : "?") + "v=" + cacheTag
     }
 
     @computed get svgUrl() : string {
         const {baseUrl, queryStr, cacheTag, targetWidth, targetHeight} = this
         var svgHref = baseUrl + '.svg' + queryStr, defaultTargetSize = targetWidth + "x" + targetHeight
-        return svgHref + (_.includes(svgHref, "?") ? "&" : "?") + "size=" + defaultTargetSize + "&v=" + cacheTag
+        return svgHref + (_.includes(svgHref, "?") ? "&" : "?") + "v=" + cacheTag
     }
 
     @computed get isPortrait(): boolean {
