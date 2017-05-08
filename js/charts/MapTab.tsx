@@ -20,7 +20,8 @@ interface TimelineMapProps {
     legendData: MapLegendBin[],
     legendTitle: string,
     projection: MapProjection,
-    defaultFill: string
+    defaultFill: string,
+    chartView: any
 }
 
 @observer
@@ -49,11 +50,11 @@ class TimelineMap extends React.Component<TimelineMapProps, null> {
                 return entityNameForMap(e.name) == d.id;
             });
 
-        if (!entity) return;
-        chartView.model.set({ "selected-countries": [entity] }, { silent: true });
-        chartView.data.chartData = null;
-        chartView.update({ activeTabName: 'chart' });
-        chartView.url.updateCountryParam();
+        if (!entity) return
+        chartView.model.set({ "selected-countries": [entity] }, { silent: true })
+        chartView.data.chartData = null
+        chartView.activeTabName = 'chart'
+        chartView.url.updateCountryParam()
     }
 
     componentDidMount() {
@@ -80,7 +81,7 @@ class TimelineMap extends React.Component<TimelineMapProps, null> {
     }
 
     @computed get timeline() {
-        if (this.props.years.length <= 1 || this.context.chartView.isExport) return null
+        if (this.props.years.length <= 1 || this.props.chartView.isExport) return null
 
         const {years, inputYear} = this.props
 
@@ -104,7 +105,7 @@ class TimelineMap extends React.Component<TimelineMapProps, null> {
 
         return <g className="mapTab">
             {/*<rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height-timelineHeight} fill="#ecf6fc"/>*/}
-            <ChoroplethMap bounds={bounds.padBottom(timelineHeight+mapLegend.height+15)} choroplethData={choroplethData} projection={projection} defaultFill={defaultFill} onHover={this.onMapMouseOver} onHoverStop={this.onMapMouseLeave} onClick={this.onClick} focusBracket={focusBracket} focusEntity={focusEntity}/>,
+            <ChoroplethMap bounds={bounds.padBottom(timelineHeight+mapLegend.height+15)} choroplethData={choroplethData} projection={projection} defaultFill={defaultFill} onHover={this.onMapMouseOver} onHoverStop={this.onMapMouseLeave} onClick={this.onClick} focusBracket={focusBracket} focusEntity={focusEntity}/>
             <MapLegend {...mapLegend.props}/>
             {timeline && <Timeline {...timeline.props}/>}
         </g>
@@ -113,6 +114,7 @@ class TimelineMap extends React.Component<TimelineMapProps, null> {
 
 interface MapTabProps {
     chartView: any,
+    chart: ChartConfig,
     bounds: Bounds
 }
 
@@ -151,7 +153,9 @@ export default class MapTab extends React.Component<MapTabProps, null> {
         const {chartView, bounds} = this.props
         const {header, footer} = this
 
-        return <g class="mapTab">
+        chartView.mapdata.update()
+
+        return <g className="mapTab">
             <Header {...header.props}/>
             <TimelineMap
                 chartView={chartView}

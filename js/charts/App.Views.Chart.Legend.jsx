@@ -41,7 +41,7 @@ export default class Legend {
 			removeBtns.append('path').attr({ 'd': 'M0,0 L7,7', 'class': 'nv-box' });
 			removeBtns.append('path').attr({ 'd': 'M7,0 L0,7', 'class': 'nv-box' });
 		}
-			
+
 		seriesEnter.append('text')
 			.attr('text-anchor', 'start')
 			.attr('class','nv-legend-text')
@@ -57,7 +57,7 @@ export default class Legend {
 				if (addCountryMode !== "add-country") {
 					App.ChartModel.toggleLegendKey(d.key);
 				} else {
-					App.ChartModel.removeSelectedCountry(d.entityId);						
+					App.ChartModel.removeSelectedCountry(d.entityId);
 				}
 			});
 
@@ -82,9 +82,9 @@ export default class Legend {
 			transformX += nodeTextLength + spaceBetweenLabels;
 		});
 
-		g.attr('transform', 'translate(' + offsetX + ',' + (offsetY+12) + ')');			
-		
-		// Size the rectangles around the positioned text	
+		g.attr('transform', 'translate(' + offsetX + ',' + (offsetY+12) + ')');
+
+		// Size the rectangles around the positioned text
 		seriesShape
 			.attr('width', function(d,i) {
 				//position remove btn

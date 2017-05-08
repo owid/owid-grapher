@@ -29,7 +29,7 @@ class EmbedMenu extends React.Component<{ embedUrl: string }, null> {
 }
 
 interface ShareMenuProps {
-    config: ChartConfig,
+    chart: ChartConfig,
     chartView: any,
     onDismiss: () => void
 }
@@ -41,7 +41,7 @@ class ShareMenu extends React.Component<ShareMenuProps, null> {
     }
 
     @computed get baseUrl() : string {
-        return Global.rootUrl + '/' + this.props.config.slug
+        return Global.rootUrl + '/' + this.props.chart.slug
     }
 
     @computed get queryStr() : string {
@@ -59,10 +59,7 @@ class ShareMenu extends React.Component<ShareMenuProps, null> {
     componentDidMount() {
         setTimeout(() => {
             d3.select(window).on('click.shareMenu', () => {
-                if (this.embedMenu) {
-                    ReactDOM.unmountComponentAtNode(this.props.chartView.overlayNode)
-                    this.embedMenu = null
-                }
+                this.props.chartView.removePopup(EmbedMenu)
 
                 if (this.props.onDismiss)
                     this.props.onDismiss()
@@ -75,7 +72,7 @@ class ShareMenu extends React.Component<ShareMenuProps, null> {
     }
 
     @action.bound onEmbed() {
-        this.embedMenu = ReactDOM.render(<EmbedMenu embedUrl={this.baseUrl+this.queryStr} />, this.props.chartView.overlayNode)
+        this.props.chartView.addPopup(<EmbedMenu embedUrl={this.baseUrl+this.queryStr}/>)
     }
 
     render() {
@@ -100,7 +97,7 @@ class ShareMenu extends React.Component<ShareMenuProps, null> {
 }
 
 interface ControlsFooterProps {
-    config: ChartConfig,
+    chart: ChartConfig,
     activeTabName: string,
     chartView: any,
     availableTabs: string[],
@@ -146,7 +143,7 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps,
                     {props.chartView.isEmbed && <li className="clickable icon"><a title="Open chart in new tab" href={this.linkUrl} target="_blank"><i className="fa fa-expand"/></a></li>}
                 </ul>
             </nav>
-            {isShareMenuActive && <ShareMenu chartView={this.props.chartView} config={this.props.config} onDismiss={() => this.isShareMenuActive = false}/>}
+            {isShareMenuActive && <ShareMenu chartView={this.props.chartView} chart={this.props.chart} onDismiss={() => this.isShareMenuActive = false}/>}
         </div>
     }
 }

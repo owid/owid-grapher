@@ -1,5 +1,6 @@
 // WIP replacement for owid.chart.jsx
 
+import * as _ from 'lodash'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as d3 from 'd3'
@@ -7,7 +8,6 @@ import {observable, computed, autorun} from 'mobx'
 import {observer} from 'mobx-react'
 
 import ChartConfig from './ChartConfig'
-import SourcesFooter from './SourcesFooter'
 import ControlsFooter from './ControlsFooter'
 import ChartTab from './ChartTab'
 import DataTab from './DataTab'
@@ -18,31 +18,31 @@ import VariableData from './App.Models.VariableData'
 import ChartModel from './App.Models.ChartModel'
 import ChartData from './App.Models.ChartData'
 import Colors from './App.Models.Colors'
-import Header from './App.Views.Chart.Header'
 import Export from './App.Views.Export'
 import UrlBinder from './App.Views.ChartURL'
 import mapdata from './owid.models.mapdata'
+import tooltip from './owid.view.tooltip'
 import Bounds from './Bounds'
-import {preInstantiate} from './Util'
+import {preInstantiate, VNode} from './Util'
+import Resizable from 'react-component-resizable'
 
 declare const App: any // XXX
 declare const Global: any // XXX
 
-window.App.IDEAL_WIDTH = 1020
-window.App.IDEAL_HEIGHT = 720
+App.IDEAL_WIDTH = 1020
+App.IDEAL_HEIGHT = 720
 
 interface ChartViewProps {
+    bounds: Bounds,
     jsonConfig: any
 }
 
 @observer
 export default class ChartView extends React.Component<ChartViewProps, null> {
-    chart: ChartConfig
-
     static bootstrap({ jsonConfig, containerNode }: { jsonConfig: Object, containerNode: HTMLElement }) {
         d3.select(containerNode).classed('chart-container', true)
         const rect = containerNode.getBoundingClientRect()
-        ReactDOM.render(<ChartView bounds={Bounds.fromProps(rect)} jsonConfig={jsonConfig}/>, containerNode)
+        ReactDOM.render(<ChartView bounds={Bounds.fromRect(rect)} jsonConfig={jsonConfig}/>, containerNode)
     }
 
     @computed get isExport() { return !!window.location.pathname.match(/.export$/) }
@@ -99,7 +99,20 @@ export default class ChartView extends React.Component<ChartViewProps, null> {
     @observable isReady = false
     @observable activeTabName: string = 'chart'
     @observable primaryTabName: string = 'chart'
-    @observable overlayTabName: string? = null
+    @observable overlayTabName: string = null
+    @observable popups: VNode[] = []
+
+    model: any
+    config: any
+    chart: ChartConfig
+    vardata: any
+    data: any
+    map: any
+    mapdata: any
+    url: any
+    tooltip: any
+    htmlNode: HTMLDivElement
+    base: HTMLDivElement
 
     constructor(props: ChartViewProps) {
         super(props)
@@ -117,7 +130,7 @@ export default class ChartView extends React.Component<ChartViewProps, null> {
         this.map = App.MapModel
         this.mapdata = mapdata(this)
         this.url = UrlBinder(this)
-        this.tooltip = new owid.view.tooltip(this)
+        this.tooltip = tooltip(this)
 
         Bounds.baseFontSize = 22
         Bounds.baseFontFamily = "Helvetica, Arial"
@@ -146,9 +159,8 @@ export default class ChartView extends React.Component<ChartViewProps, null> {
         return preInstantiate(<ControlsFooter
             availableTabs={this.chart.availableTabs}
             onTabChange={tabName => this.activeTabName = tabName}
-            config={this.config}
+            chart={this.chart}
             chartView={this}
-            scale={this.scale}
             activeTabName={this.activeTabName}
          />)
     }
@@ -165,10 +177,21 @@ export default class ChartView extends React.Component<ChartViewProps, null> {
         return _.filter(classNames).join(' ')
     }
 
+    addPopup(vnode: VNode) {
+        this.popups.push(vnode)
+    }
+
+    removePopup(vnodeType: any) {
+        this.popups = this.popups.filter(d => !(d.nodeName == vnodeType))
+    }
+
     renderPrimaryTab(bounds: Bounds) {
         const {primaryTabName, svgBounds} = this
 
-        return <MapTab bounds={bounds} chartView={this} chart={this.chart}/>
+        if (primaryTabName == 'chart')
+            return <ChartTab bounds={bounds} chartView={this} chart={this.chart}/>
+        else
+            return <MapTab bounds={bounds} chartView={this} chart={this.chart}/>
     }
 
     renderOverlayTab(bounds: Bounds) {
@@ -187,30 +210,47 @@ export default class ChartView extends React.Component<ChartViewProps, null> {
     renderReady() {
         const {renderWidth, renderHeight, svgBounds, controlsFooter, scale} = this
 
-        this.mapdata.update()
-
         return [
             <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1"
                  style={{ width: "100%", height: "100%" }} viewBox={`0 0 ${renderWidth} ${renderHeight}`}>
                  {this.renderPrimaryTab(svgBounds.padBottom(controlsFooter.height))}
             </svg>,
             <ControlsFooter {...controlsFooter.props}/>,
-            this.renderOverlayTab(svgBounds.scale(scale).padBottom(controlsFooter.height))
+            this.renderOverlayTab(svgBounds.scale(scale).padBottom(controlsFooter.height)),
+            this.popups
         ]
     }
 
     renderLoading() {
-        return <div class="loadingIcon"><i class="fa fa-spinner fa-spin"/></div>
+        return <div className="loadingIcon"><i className="fa fa-spinner fa-spin"/></div>
     }
 
     render() {
-        window.cv = this
+        window.chart = this
         const {renderWidth, renderHeight, scale} = this
 
-        const style = { width: renderWidth*scale + 'px', height: renderHeight*scale + 'px' }
+        const style = { width: renderWidth*scale + 'px', height: renderHeight*scale + 'px', fontSize: 16*scale + 'px' }
 
         return <div id="chart" className={this.classNames} style={style}>
             {this.isReady ? this.renderReady() : this.renderLoading()}
         </div>
     }
+
+    componentDidMount() {
+        this.htmlNode = this.base
+    }
+
+
+    // XXX
+    getTransformedBounds(node: HTMLElement) {
+        var chartRect = this.base.getBoundingClientRect(),
+            nodeRect = node.getBoundingClientRect();
+
+        return new Bounds(
+            nodeRect.left-chartRect.left,
+            nodeRect.top-chartRect.top,
+            nodeRect.width,
+            nodeRect.height
+        );
+    };
 }

@@ -1,12 +1,12 @@
 import * as _ from 'lodash'
 import * as React from 'react'
 import Bounds from './Bounds'
-import owid from '../owid'
 import Text from './Text'
 import Paragraph from './Paragraph'
 import {preInstantiate} from './Util'
 import {observable, computed} from 'mobx'
 import {observer} from 'mobx-react'
+import {formatYear} from './Util'
 
 interface LogoProps {
     x: number,
@@ -24,7 +24,7 @@ class Logo extends React.Component<LogoProps, null> {
         var div = document.createElement('div');
         div.innerHTML = this.props.svg;
         document.body.appendChild(div)
-        const bbox = div.childNodes[0].getBBox()
+        const bbox = (div.childNodes[0] as SVGSVGElement).getBBox()
         document.body.removeChild(div)
         return bbox
     }
@@ -48,6 +48,7 @@ interface HeaderMainProps {
     y: number,
     width: number,
     title: string,
+    titleLink: string,
     subtitle: string,
     logosSVG: string[]
 }
@@ -69,7 +70,7 @@ class HeaderMain extends React.Component<HeaderMainProps, null> {
         let title = null
         let fontSize = 1.25
         while (fontSize > 0.9) {
-            title = preInstantiate(<Paragraph width={props.width-logo.width-10} fontSize={fontSize} fill="#555" lineHeight={1}>{props.title.trim()}</Paragraph>)
+            title = preInstantiate(<Paragraph width={props.width-logo.width-10} fontSize={fontSize} style={{ fill: "#555" }} lineHeight={1}>{props.title.trim()}</Paragraph>)
             if (title.lines.length <= 1)
                 break
             fontSize -= 0.05
@@ -90,7 +91,7 @@ class HeaderMain extends React.Component<HeaderMainProps, null> {
         // Subtitle text must always be smaller than title text.
         var fontSize = 0.6;
 
-        return preInstantiate(<Paragraph width={subtitleWidth} fontSize={fontSize} fill="#666">{props.subtitle.trim()}</Paragraph>)
+        return preInstantiate(<Paragraph width={subtitleWidth} fontSize={fontSize} style={{ fill: "#666" }}>{props.subtitle.trim()}</Paragraph>)
     }
 
     @computed get height() {
@@ -136,8 +137,8 @@ export default class Header extends React.Component<HeaderProps, null> {
             if (!_.isFinite(minYear)) {
                 text = text.replace("*time*", "over time");
             } else {
-                var timeFrom = owid.displayYear(minYear),
-                    timeTo = owid.displayYear(maxYear),
+                var timeFrom = formatYear(minYear),
+                    timeTo = formatYear(maxYear),
                     time = timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo;
 
                 text = text.replace("*time*", time);
@@ -210,7 +211,7 @@ export default class Header extends React.Component<HeaderProps, null> {
 				timeTo = chart.mapdata.maxToleranceYear || mapConfig.targetYear,
 				year = mapConfig.targetYear,
 				hasTargetYear = _.find(chart.mapdata.currentValues, function(d) { return d.year == year; }),
-				d = owid.displayYear,
+				d = formatYear,
 				timeline = chart.tabs.map.timeline;
 
 			if (timeline && (timeline.isPlaying || timeline.isDragging))

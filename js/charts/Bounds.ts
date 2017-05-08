@@ -26,6 +26,10 @@ export default class Bounds {
 		return this.fromProps(bbox)
 	}
 
+    static fromRect(rect : ClientRect) {
+        return new Bounds(rect.left, rect.top, rect.width, rect.height)
+    }
+
 	static fromCorners(p1: Vector2, p2: Vector2) {
 		const x1 = Math.min(p1.x, p2.x)
 		const x2 = Math.max(p1.x, p2.x)
