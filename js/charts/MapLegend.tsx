@@ -434,7 +434,7 @@ export default class MapLegend extends React.Component<MapLegendProps, null> {
         const {mainLabel, numericLegend, categoryLegend, categoryLegendHeight, hasNumeric, hasCategorical} = this
         //Bounds.debug([new Bounds(bounds.centerX-wrapLabel.width/2, bounds.bottom-wrapLabel.height, wrapLabel.width, wrapLabel.height)])
 
-        return <g>
+        return <g className="mapLegend">
             {hasNumeric && <NumericMapLegend {...numericLegend.props} x={bounds.centerX-numericLegend.width/2} y={bounds.bottom-mainLabel.height-categoryLegendHeight-numericLegend.height-4}/>}
             {hasCategorical && <CategoricalMapLegend {...categoryLegend.props} x={bounds.centerX-categoryLegend.width/2} y={bounds.bottom-mainLabel.height-categoryLegendHeight}/>}
             <Paragraph {...mainLabel.props} x={bounds.centerX-mainLabel.width/2} y={bounds.bottom-mainLabel.height}/>

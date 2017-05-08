@@ -265,8 +265,8 @@ class ViewController extends Controller {
 			// Replace the chart title placeholders with generic equivalents for now
 			// This is because the real titles are calculated cilent-side
 			$title = $config->{"title"};
-			$title = preg_replace("/, \*time\*/", " over time", $title);
-			$title = preg_replace("/\*time\*/", "over time", $title);
+			$title = preg_replace("/, \*time\*/", "", $title);
+			$title = preg_replace("/\*time\*/", "", $title);
 			$chartMeta->title = $title;
 
 			// Description is required by twitter
@@ -286,7 +286,7 @@ class ViewController extends Controller {
 
 			// Give the image exporter a head start on the request for imageUrl
 			// This isn't a strong cachebuster (Cloudflare caches these meta tags) but it should help it get through eventually
-			$imageQuery = $query . ($query ? "&" : "") . "size=1020x720&v=" . $chart->makeCacheTag();
+			$imageQuery = $query . ($query ? "&" : "") . "v=" . $chart->makeCacheTag();
 			if (!str_contains(\Request::path(), ".export")) {
 				Chart::exportPNGAsync($chart->slug, $imageQuery, 1020, 720);
 			}

@@ -12,8 +12,11 @@ export default class ChartConfig {
     @observable.ref sourceDesc: string
     @observable.ref note: string
     @observable.ref internalNotes: string
+    @observable.ref logosSVG: string[]
+    @observable.ref originUrl: string
 
 	@observable.ref selectedEntities: Object[] = []
+    @observable.ref entityType: string = "country"
     @observable.ref timeRange: [number|null, number|null]
     @observable timeline: Object = null
 
@@ -30,6 +33,7 @@ export default class ChartConfig {
     @observable.ref xScaleTypeOptions: string[]
     @observable.ref xAxisLabel: string
     @observable.ref xTickFormat: (v: number) => string
+    @observable.struct availableTabs: string[]
 
 	model: any
 
@@ -41,8 +45,11 @@ export default class ChartConfig {
         this.sourceDesc = this.model.get('sourceDesc')
         this.note = this.model.get('chart-description')
         this.internalNotes = this.model.get('internalNotes')
+        this.logosSVG = this.model.get('logosSVG')
+        this.originUrl = this.model.get('data-entry-url')
 
         this.selectedEntities = this.model.getSelectedEntities().map((e: any) => e.name)
+        this.entityType = this.model.get('entity-type')
         this.timeline = this.model.get('timeline')
         this.timeRange = this.model.get('chart-time')||[]
 
@@ -83,6 +90,15 @@ export default class ChartConfig {
                   xAxisFormat = xAxis["axis-format"] || 5
             this.xTickFormat = (d) => xAxisPrefix + owid.unitFormat({ format: xAxisFormat||5 }, d) + xAxisSuffix
         })()
+
+        this.availableTabs = _.sortBy(this.model.get('tabs'), name => {
+            if (name == 'chart')
+                return 1
+            else if (name == 'map')
+                return 2
+            else
+                return 3
+        })
     }
 
 	constructor(model : any) {
@@ -125,18 +141,4 @@ export default class ChartConfig {
 	@computed get timeDomain() : [number|null, number|null] {
 		return this.model.get("chart-time")||[null, null]
 	}
-
-	// Tabs that can be navigated to by the user
-	@computed get availableTabs(): string[] {
-        const tabs: string[] = this.model.get('tabs')
-        return _.sortBy(tabs, function(name) {
-            if (name == 'chart')
-                return 1
-            else if (name == 'map')
-                return 2
-            else
-                return 3
-        });
-	}
-
 }

@@ -39,7 +39,7 @@ var scaleSelector = function() {
 	return scaleSelector;
 };
 
-export default function(chart) {
+export default function(chart, chartTab) {
 	var scaleSelectors = dataflow();
 
 	var xScaleSelector = scaleSelector(),
@@ -75,10 +75,8 @@ export default function(chart) {
         	yScaleSelector.clean();
         }
 
-		var legend = chart.tabs.chart.legend;
-
 		if (chart.model.get('chart-type') == App.ChartType.ScatterPlot) {
-			var innerBounds = chart.tabs.chart.viz.scatter.scatter.axisBox.innerBounds.scale(chart.scale);
+			var innerBounds = chartTab.viz.scatter.scatter.axisBox.innerBounds.scale(chart.scale);
 
 			xScaleSelector.update({ left: innerBounds.left+innerBounds.width-50, top: innerBounds.top+innerBounds.height-15 });
 			yScaleSelector.update({ left: innerBounds.left-30, top: innerBounds.top-20 });

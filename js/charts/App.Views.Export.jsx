@@ -31,12 +31,11 @@ export default function(chart) {
 	chart.dispatch.on('renderEnd', function() {
 		setTimeout(function() {
 			// Remove SVG UI elements that aren't needed for export
-			chart.now('svg', function(svg) {
-				svg.selectAll(".nv-add-btn, .nv-controlsWrap").remove();
+            const svg = d3.select(chart.svgNode)
+			svg.selectAll(".nv-add-btn, .nv-controlsWrap").remove();
 
-				callPhantom({ targetWidth: targetWidth, targetHeight: targetHeight }); // Notify phantom that we're ready for PNG screenshot
-				prepareSVGForExport(svg);
-			});
+			callPhantom({ targetWidth: targetWidth, targetHeight: targetHeight }); // Notify phantom that we're ready for PNG screenshot
+			prepareSVGForExport(svg);
 
 		}.bind(this), 100);
 	}.bind(this));

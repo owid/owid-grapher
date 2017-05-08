@@ -32,7 +32,7 @@ body.chart-container {
     overflow: hidden;
 }
 
-body.chart-container:not(.export) {
+body.chart-container {
     text-align: center;
 }
 
@@ -199,7 +199,7 @@ select.disabled {
     overflow: hidden;
 }
 
-body:not(.export) #chart {
+#chart:not(.export) {
     vertical-align: middle;
     border: 1px solid #f0f0f0;
     border-radius: 2px;
@@ -266,7 +266,7 @@ a {
     position: absolute;
     bottom: 0;
     border-top: 1px solid #e1e1e1;
-    z-index: 1;
+    z-index: 2;
 }
 
 #chart nav.tabs ul {
@@ -678,6 +678,7 @@ a {
     box-shadow: 0 0 2px 0 rgba(0,0,0,0.12), 0 2px 2px 0 rgba(0,0,0,0.24);
     padding-bottom: 0.5em;
     width: 15em;
+    z-index: 2;
 }
 
 #chart .shareMenu h2 {
@@ -1028,23 +1029,23 @@ a {
  * a special .export url to screenshot the chart. #chart-export styles therefore apply specifically
  * to these screenshots. */
 
-body.export #chart {
+#chart.export {
     padding: 0 !important;
 }
 /* Remove interactive UI elements since obviously they can't be used in a static image
 * NOTE (Mispy): Unneeded SVG elements should be removed entirely by the JS as well as hidden here. */
-body.export #chart .controlsFooter,
-body.export #chart .fullscreen-link,
-body.export #chart .timeline,
-body.export #chart .settings-control,
-body.export #chart .color-blind-control,
-body.export #chart .map-controls-header,
-body.export #chart .nv-add-btn,
-body.export #chart .nv-controlsWrap,
-body.export #chart .scaleSelector {
+#chart.export .controlsFooter,
+#chart.export .fullscreen-link,
+#chart.export .timeline,
+#chart.export .settings-control,
+#chart.export .color-blind-control,
+#chart.export .map-controls-header,
+#chart.export .nv-add-btn,
+#chart.export .nv-controlsWrap,
+#chart.export .scaleSelector {
     display: none !important;
 }
-body.export #chart .tab-pane {
+#chart.export .tab-pane {
     border: none !important;
 }
 
@@ -1069,6 +1070,12 @@ body.export #chart .tab-pane {
 /* HACK (Mispy): Once we properly update to Bootstrap 4 javascript this shouldn't be needed. */
 .modal-backdrop {
     z-index: -1;
+}
+
+#chart .downloadTab,
+#chart .dataTab,
+#chart .sourcesTab {
+    z-index: 1;
 }
 
 #chart .downloadTab {

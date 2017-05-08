@@ -42,3 +42,15 @@ export function makeSafeForCSS(name: string) {
 export function entityNameForMap(name: string) {
     return makeSafeForCSS(name.replace(/[ '&:\(\)\/]/g, "_"));
 };
+
+export function formatYear(year: number): string {
+    if (isNaN(year)) {
+        console.error("Invalid year '" + year + "'");
+        return null;
+    }
+
+    if (year < 0)
+        return Math.abs(year) + " BCE";
+    else
+        return year.toString();
+}

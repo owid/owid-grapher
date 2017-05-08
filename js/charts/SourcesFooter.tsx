@@ -120,7 +120,7 @@ export default class SourcesFooter extends React.Component<SourcesFooterProps, n
     }
 
     @action.bound onSourcesClick() {
-        this.props.chartView.update({ activeTabName: 'sources' })
+        this.props.chartView.activeTabName = 'sources'
     }
 
     render() {

@@ -1,26 +1,21 @@
-// @flow
-
-import _ from 'lodash'
-import 'innersvg'
+import * as _ from 'lodash'
+import * as React from 'react'
 import Bounds from './Bounds'
-import * as d3 from 'd3'
-import owid from '../owid'
-import dataflow from './owid.dataflow'
-import {stripTags} from 'underscore.string'
-import React, {Component} from 'react'
-import {render} from 'preact'
 import Text from './Text'
 import Paragraph from './Paragraph'
 import {preInstantiate} from './Util'
 import {observable, computed} from 'mobx'
 import {observer} from 'mobx-react'
+import {formatYear} from './Util'
+
+interface LogoProps {
+    x: number,
+    y: number,
+    svg: string
+}
 
 @observer
-class Logo extends Component {
-    props: {
-        svg: string,
-    }
-
+class Logo extends React.Component<LogoProps, null> {
     @computed get targetHeight() {
         return 40
     }
@@ -29,7 +24,7 @@ class Logo extends Component {
         var div = document.createElement('div');
         div.innerHTML = this.props.svg;
         document.body.appendChild(div)
-        const bbox = div.childNodes[0].getBBox()
+        const bbox = (div.childNodes[0] as SVGSVGElement).getBBox()
         document.body.removeChild(div)
         return bbox
     }
@@ -48,14 +43,24 @@ class Logo extends Component {
     }
 }
 
+interface HeaderMainProps {
+    x: number,
+    y: number,
+    width: number,
+    title: string,
+    titleLink: string,
+    subtitle: string,
+    logosSVG: string[]
+}
+
 @observer
-class Header extends Component {
+class HeaderMain extends React.Component<HeaderMainProps, null> {
     @computed get logoSVG() {
         return this.props.logosSVG[0]
     }
 
     @computed get logo() {
-        return preInstantiate(<Logo svg={this.logoSVG}/>)
+        return preInstantiate(<Logo x={0} y={0} svg={this.logoSVG}/>)
     }
 
     @computed get title() {
@@ -65,7 +70,7 @@ class Header extends Component {
         let title = null
         let fontSize = 1.25
         while (fontSize > 0.9) {
-            title = preInstantiate(<Paragraph width={props.width-logo.width-10} fontSize={fontSize} fill="#555" lineHeight={1}>{props.title.trim()}</Paragraph>)
+            title = preInstantiate(<Paragraph width={props.width-logo.width-10} fontSize={fontSize} style={{ fill: "#555" }} lineHeight={1}>{props.title.trim()}</Paragraph>)
             if (title.lines.length <= 1)
                 break
             fontSize -= 0.05
@@ -86,7 +91,7 @@ class Header extends Component {
         // Subtitle text must always be smaller than title text.
         var fontSize = 0.6;
 
-        return preInstantiate(<Paragraph width={subtitleWidth} fontSize={fontSize} fill="#666">{props.subtitle.trim()}</Paragraph>)
+        return preInstantiate(<Paragraph width={subtitleWidth} fontSize={fontSize} style={{ fill: "#666" }}>{props.subtitle.trim()}</Paragraph>)
     }
 
     @computed get height() {
@@ -98,7 +103,7 @@ class Header extends Component {
 
         //Bounds.debug([new Bounds(props.x, props.y+title.height+2, subtitle.width, subtitle.height)])
 
-        return <g>
+        return <g className="header">
             <Logo {...logo.props} x={props.x+props.width-logo.width} y={props.y}/>
             <a href={props.titleLink} target="_blank">
                 <Paragraph {...title.props} x={props.x} y={props.y}>{title.text}</Paragraph>
@@ -108,10 +113,76 @@ class Header extends Component {
     }
 }
 
-export default function(chart) {
-	var headerControl = dataflow();
+interface HeaderProps {
+    bounds: Bounds,
+    titleTemplate: string,
+    subtitleTemplate: string,
+    minYear: number,
+    maxYear: number,
+    entities: any[],
+    entityType: string,
+    logosSVG: string[]
+}
 
-	headerControl.needs('containerNode', 'bounds');
+@observer
+export default class Header extends React.Component<HeaderProps, null> {
+    fillTemplate(text: string) {
+        const {entities, entityType, minYear, maxYear} = this.props
+
+        if (_.includes(text, "*country*")) {
+            var entityStr = entities.join(', ');
+            text = text.replace("*country*", entityStr || ("in selected " + entityType));
+        }
+
+        if (_.includes(text, "*time")) {
+            if (!_.isFinite(minYear)) {
+                text = text.replace(", *time*", "")
+                text = text.replace("*time*", "");
+            } else {
+                var timeFrom = formatYear(minYear),
+                    timeTo = formatYear(maxYear),
+                    time = timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo;
+
+                text = text.replace("*time*", time);
+                text = text.replace("*timeFrom*", timeFrom);
+                text = text.replace("*timeTo*", timeTo);
+            }
+        }
+
+        return text;
+    }
+
+    @computed get title() {
+        return this.fillTemplate(this.props.titleTemplate)
+    }
+
+    @computed get subtitle() {
+        return this.fillTemplate(this.props.subtitleTemplate)
+    }
+
+    @computed get headerMain() {
+        const {props, title, subtitle} = this
+        const {bounds, logosSVG, titleLink} = props
+
+        return preInstantiate(
+            <HeaderMain x={bounds.x} y={bounds.y} width={bounds.width} title={title} subtitle={subtitle} logosSVG={logosSVG} titleLink={titleLink}/>
+        )
+    }
+
+    @computed get height() {
+        return this.headerMain.height
+    }
+
+    render() {
+        const {headerMain, title} = this
+
+        document.title = title
+        return <HeaderMain {...headerMain.props}/>
+    }
+}
+
+/*function(chart) {
+	var headerControl = dataflow();
 
 	headerControl.inputs({
 		titleTemplate: "",
@@ -124,46 +195,9 @@ export default function(chart) {
 		maxYear: null,
 	});
 
-	// Replaces things like *time* and *country* with the actual time and
-	// country displayed by the current chart context
-	headerControl.flow("fillTemplate : minYear, maxYear, entities, entityType", function(minYear, maxYear, entities, entityType) {
-		return function(text) {
-			if (_.includes(text, "*country*")) {
-				var entityStr = _.map(entities, "name").join(', ');
-				text = text.replace("*country*", entityStr || ("in selected " + entityType));
-			}
-
-			if (_.includes(text, "*time")) {
-				if (!_.isFinite(minYear)) {
-					text = text.replace("*time*", "over time");
-				} else {
-					var timeFrom = owid.displayYear(minYear),
-						timeTo = owid.displayYear(maxYear),
-						time = timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo;
-
-					text = text.replace("*time*", time);
-					text = text.replace("*timeFrom*", timeFrom);
-					text = text.replace("*timeTo*", timeTo);
-				}
-			}
-
-			return text;
-		};
-	});
-
-	headerControl.flow("titleStr : titleTemplate, fillTemplate", function(titleTemplate, fillTemplate) {
-		return fillTemplate(titleTemplate);
-	});
-
-	headerControl.flow("subtitleStr : subtitleTemplate, fillTemplate", function(subtitleTemplate, fillTemplate) {
-		return fillTemplate(subtitleTemplate);
-	});
-
     let rootNode = null
 	headerControl.flow('containerNode, bounds, logosSVG, titleStr, titleLink, subtitleStr', function(containerNode, bounds, logosSVG, titleStr, titleLink, subtitleStr) {
-        rootNode = render(<Header title={titleStr} subtitle={subtitleStr} logosSVG={logosSVG} x={bounds.left} y={bounds.top} width={bounds.width} titleLink={titleLink} ref={e => headerControl.view = { bbox: { height: e.height }}}/>, chart.svg.node(), rootNode)
 
-        document.title = titleStr
 	});
 
 	headerControl.render = function(bounds, done) {
@@ -179,7 +213,7 @@ export default function(chart) {
 				timeTo = chart.mapdata.maxToleranceYear || mapConfig.targetYear,
 				year = mapConfig.targetYear,
 				hasTargetYear = _.find(chart.mapdata.currentValues, function(d) { return d.year == year; }),
-				d = owid.displayYear,
+				d = formatYear,
 				timeline = chart.tabs.map.timeline;
 
 			if (timeline && (timeline.isPlaying || timeline.isDragging))
@@ -193,11 +227,6 @@ export default function(chart) {
 			} else if (!hasTargetYear && timeFrom == timeTo && timeFrom != year) {
 				// The target year isn't in the data and we're displaying some other single year
 				disclaimer = " Since observations for " + d(year) + " are not available the map displays the closest available data (from " + d(timeFrom) + ").";
-			} else if (!hasTargetYear) {
-				disclaimer = " No observations are available for this year.";
-			} else {
-//				disclaimer = "<span style='visibility: hidden;'>A rather long placeholder to ensure that the text flow remains the same when changing between various years.</span>";
-				disclaimer = "";
 			}
 
 			minYear = year;
@@ -233,4 +262,4 @@ export default function(chart) {
 	};
 
 	return headerControl;
-}
+}*/
