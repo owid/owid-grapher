@@ -16,7 +16,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from .forms import InviteUserForm, InvitedUserRegisterForm
-from .models import Chart, Variable, User, UserInvitation, Logo, ChartSlugRedirect, ChartDimension
+from .models import Chart, Variable, User, UserInvitation, Logo, ChartSlugRedirect, ChartDimension, Dataset, Setting, DatasetSubcategory, Entity
 from owid_grapher.views import get_query_string
 
 # putting these into global scope for reuse
@@ -338,6 +338,61 @@ def unstarchart(request, chartid):
         chart.starred = False
         chart.save()
         return JsonResponse({'starred': False}, safe=False)
+
+
+@login_required
+def importdata(request):
+    datasets = Dataset.objects.filter(namespace='owid').order_by('name').values()
+    datasetlist = []
+    for each in datasets:
+        each['created_at'] = str(each['created_at'])
+        each['updated_at'] = str(each['updated_at'])
+        each['fk_dst_cat_id'] = each['fk_dst_cat_id_id']
+        each['fk_dst_subcat_id'] = each['fk_dst_subcat_id_id']
+        each.pop('fk_dst_subcat_id_id', None)
+        each.pop('fk_dst_cat_id_id', None)
+        datasetlist.append(each)
+
+    vartypes = Variable.objects.values()
+    vartypeslist = []
+    for each in vartypes:
+        each['fk_dst_id'] = each['fk_dst_id_id']
+        each['fk_var_type_id'] = each['fk_var_type_id_id']
+        each['sourceId'] = each['sourceid_id']
+        each['uploaded_by'] = each['uploaded_by_id']
+        each.pop('fk_dst_id_id', None)
+        each.pop('fk_var_type_id_id', None)
+        each.pop('sourceid_id', None)
+        each.pop('uploaded_by_id', None)
+        each['created_at'] = str(each['created_at'])
+        each['updated_at'] = str(each['updated_at'])
+        each['uploaded_at'] = str(each['uploaded_at'])
+        vartypeslist.append(each)
+
+    source_template = dict(Setting.objects.filter(meta_name='sourceTemplate').values().first())
+    source_template['created_at'] = str(source_template['created_at'])
+    source_template['updated_at'] = str(source_template['updated_at'])
+
+    categories = DatasetSubcategory.objects.all().select_related().order_by('fk_dst_cat_id__pk').order_by('pk')
+    category_list = []
+    for each in categories:
+        category_list.append({'name': each.name, 'id': each.pk, 'parent': each.fk_dst_cat_id.name})
+    entitynames = Entity.objects.all()
+    entitynameslist = []
+    entitycodeslist = []
+    for each in entitynames:
+        entitynameslist.append(each.name)
+        entitycodeslist.append(each.code)
+    all_entitynames = entitynameslist + entitycodeslist
+
+    data = json.dumps({'datasets': datasetlist, 'categories': category_list, 'varTypes': vartypeslist, 'sourceTemplate': source_template,
+            'entityNames': all_entitynames})
+
+    return render(request, 'admin.importer.html', context={'adminjspath': adminjspath,
+                                                           'admincsspath': admincsspath,
+                                                           'rootrequest': rootrequest,
+                                                           'current_user': request.user.name,
+                                                           'importerdata': data})
 
 
 def check_invitation_statuses():

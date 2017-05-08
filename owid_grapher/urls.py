@@ -29,6 +29,7 @@ urlpatterns = [
     url(r'^charts/(?P<chartid>[\w]+)/$', admin_views.showchart, name="showchartinternal"),
     url(r'^charts/(?P<chartid>[\w]+)/star$', admin_views.starchart, name="starchart"),
     url(r'^charts/(?P<chartid>[\w]+)/unstar$', admin_views.unstarchart, name="unstarchart"),
+    url(r'^import/$', admin_views.importdata, name="importdata"),
     url(r'^users/$', admin_views.listusers, name="listusers"),
     # for future use on the frontend
     url(r'^charts\.json$',  admin_views.listcharts, name="listchartsjson"),
