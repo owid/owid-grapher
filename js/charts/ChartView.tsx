@@ -60,7 +60,9 @@ export default class ChartView extends React.Component<ChartViewProps, null> {
 
         let bounds = this.props.bounds
 
-        if (isEmbed || isExport) {
+        if (isExport) {
+            bounds = bounds
+        } else if (isEmbed) {
             bounds = bounds.pad(3);
         } else {
             if (bounds.width < 800)
@@ -218,7 +220,7 @@ export default class ChartView extends React.Component<ChartViewProps, null> {
             <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1"
                  style={{ width: "100%", height: "100%" }} viewBox={`0 0 ${renderWidth} ${renderHeight}`}
                  ref={e => this.svgNode = e}>
-                 {this.renderPrimaryTab(svgBounds.padBottom(controlsFooter.height))}
+                 {this.renderPrimaryTab(svgBounds.padBottom(this.isExport ? 0 : controlsFooter.height))}
             </svg>,
             !this.isExport && <ControlsFooter {...controlsFooter.props}/>,
             this.renderOverlayTab(svgBounds.scale(scale).padBottom(controlsFooter.height)),

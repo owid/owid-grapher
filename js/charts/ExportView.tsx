@@ -53,7 +53,7 @@ function prepareSVGForExport(chartView, svg) {
     svg.style("font-family", chartEl.style("font-family"));
     svg.style("width", chartEl.style("width"));
     svg.style("height", chartEl.style("height"));
-    svg.style("font-size", chartEl.style("font-size"));
+    svg.style("font-size", svg.style("font-size"));
     svg.style("background-color", "#fff")
 
     // Remove all other styles for easier testing that this works
