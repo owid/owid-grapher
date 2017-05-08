@@ -8,13 +8,10 @@
  * @created 2017-03-09
  */
 
-
-// @flow
-
-import _ from 'lodash'
+import * as _ from 'lodash'
 import * as d3 from 'd3'
 import owid from '../owid'
-import React, { createElement, Component, cloneElement } from 'react'
+import * as React from 'react'
 import {observable, computed, action, autorun} from 'mobx'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
@@ -25,19 +22,21 @@ import AxisScale from './AxisScale'
 import Layout from './Layout'
 import Timeline from './Timeline'
 import PointsWithLabels from './PointsWithLabels'
-import type {ScatterSeries} from './PointsWithLabels'
+import {preInstantiate} from './Util'
+
+type ScatterSeries = any
+
+interface ScatterWithAxisProps {
+    bounds: Bounds,
+    data: ScatterSeries[],
+    xScale: AxisScale,
+    yScale: AxisScale,
+    xAxisLabel: string,
+    yAxisLabel: string
+}
 
 @observer
-class ScatterWithAxis extends Component {
-    props: {
-        bounds: Bounds,
-        data: ScatterSeries[],
-        xScale: AxisScale,
-        yScale: AxisScale,
-        xAxisLabel: string,
-        yAxisLabel: string
-    }
-
+class ScatterWithAxis extends React.Component<any, null> {
     render() {
         const {bounds, xScale, yScale, xAxisLabel, yAxisLabel, data} = this.props
 
@@ -46,20 +45,15 @@ class ScatterWithAxis extends Component {
         const innerBounds = bounds.padBottom(xAxisBounds.height).padLeft(yAxisBounds.width)
 
         return <g>
-            <Axis orient="left" scale={yScale} label={yAxisLabel} bounds={bounds.padBottom(xAxisBounds.height)}/>
-            <Axis orient="bottom" scale={xScale} label={xAxisLabel} bounds={bounds.padLeft(yAxisBounds.width)}/>
+            <Axis orient="left" scale={yScale} labelText={yAxisLabel} bounds={bounds.padBottom(xAxisBounds.height)}/>
+            <Axis orient="bottom" scale={xScale} labelText={xAxisLabel} bounds={bounds.padLeft(yAxisBounds.width)}/>
             <PointsWithLabels {...this.props} xScale={xScale} yScale={yScale} data={data} bounds={innerBounds}/>
         </g>
     }
 }
 
 @observer
-export default class ScatterPlot extends Component {
-    props: {
-        bounds: Bounds,
-        config: ChartConfig
-    };
-
+export default class ScatterPlot extends React.Component<{ bounds: Bounds, config: ChartConfig }, null> {
     @computed get chart() : ChartConfig {
         return this.props.config
     }
@@ -293,11 +287,18 @@ export default class ScatterPlot extends Component {
         this.chart.selectedEntities = focusKeys
     }
 
+    @computed get timeline() {
+        const {bounds, yearsWithData, startYear, endYear, onTimelineChange} = this
+        return preInstantiate(
+            <Timeline bounds={bounds.fromBottom(35)} onChange={onTimelineChange} years={yearsWithData} startYear={startYear} endYear={endYear}/>
+        )
+    }
+
     render() {
-        const {currentData, bounds, yearsWithData, startYear, endYear, xScale, yScale, chart} = this
-        return <Layout bounds={bounds}>
-            <ScatterWithAxis data={currentData} bounds={Layout.bounds} xScale={xScale} yScale={yScale} xAxisLabel={chart.xAxisLabel} yAxisLabel={chart.yAxisLabel} onSelectEntity={this.onSelectEntity} focusKeys={this.chart.selectedEntities}/>
-            <Timeline bounds={Layout.bounds} layout="bottom" onChange={this.onTimelineChange} years={yearsWithData} startYear={startYear} endYear={endYear}/>
-        </Layout>
+        const {currentData, bounds, yearsWithData, startYear, endYear, xScale, yScale, chart, timeline} = this
+        return <g>
+            <ScatterWithAxis data={currentData} bounds={this.bounds.padBottom(timeline.height)} xScale={xScale} yScale={yScale} xAxisLabel={chart.xAxisLabel} yAxisLabel={chart.yAxisLabel} onSelectEntity={this.onSelectEntity} focusKeys={this.chart.selectedEntities}/>
+            <Timeline {...timeline.props}/>
+        </g>
     }
 }

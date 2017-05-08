@@ -91,14 +91,14 @@ export default class ChartConfig {
             this.xTickFormat = (d) => xAxisPrefix + owid.unitFormat({ format: xAxisFormat||5 }, d) + xAxisSuffix
         })()
 
-        this.availableTabs = _.sortBy(this.model.get('tabs'), name => {
+        this.availableTabs = (_.sortBy(this.model.get('tabs'), name => {
             if (name == 'chart')
                 return 1
             else if (name == 'map')
                 return 2
             else
                 return 3
-        })
+        }) as string[])
     }
 
 	constructor(model : any) {
