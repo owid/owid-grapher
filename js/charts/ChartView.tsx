@@ -33,17 +33,18 @@ App.IDEAL_HEIGHT = 720
 interface ChartViewProps {
     bounds: Bounds,
     jsonConfig: any,
-    isExport?: boolean
+    isExport?: boolean,
+    isEditor?: boolean
 }
 
 @observer
 export default class ChartView extends React.Component<ChartViewProps, null> {
-    static bootstrap({ jsonConfig, containerNode }: { jsonConfig: Object, containerNode: HTMLElement }) {
+    static bootstrap({ jsonConfig, containerNode, isEditor }: { jsonConfig: Object, containerNode: HTMLElement, isEditor: boolean }) {
         d3.select(containerNode).classed('chart-container', true)
 
         function render() {
             const rect = containerNode.getBoundingClientRect()
-            ReactDOM.render(<ChartView bounds={Bounds.fromRect(rect)} jsonConfig={jsonConfig}/>, containerNode)
+            ReactDOM.render(<ChartView bounds={Bounds.fromRect(rect)} jsonConfig={jsonConfig} isEditor={isEditor}/>, containerNode)
         }
 
         render()
@@ -51,12 +52,12 @@ export default class ChartView extends React.Component<ChartViewProps, null> {
     }
 
     @computed get isExport() { return !!this.props.isExport }
-    @computed get isEditor() { return App.isEditor }
+    @computed get isEditor() { return !!this.props.isEditor }
     @computed get isEmbed() { return window.self != window.top || this.isEditor }
     @computed get isMobile() { return d3.select('html').classed('touchevents') }
 
     @computed get containerBounds() {
-        const {isEmbed, isExport} = this
+        const {isEmbed, isExport, isEditor} = this
 
         let bounds = this.props.bounds
 
@@ -74,7 +75,7 @@ export default class ChartView extends React.Component<ChartViewProps, null> {
         return bounds
     }
 
-    @computed get isPortrait() { return this.containerBounds.width < this.containerBounds.height }
+    @computed get isPortrait() { return this.isEditor || this.containerBounds.width < this.containerBounds.height }
     @computed get isLandscape() { return !this.isPortrait }
 
     @computed get authorDimensions() {

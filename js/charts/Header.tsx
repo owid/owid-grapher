@@ -124,6 +124,7 @@ interface HeaderProps {
     logosSVG: string[]
 }
 
+@observer
 export default class Header extends React.Component<HeaderProps, null> {
     fillTemplate(text: string) {
         const {entities, entityType, minYear, maxYear} = this.props

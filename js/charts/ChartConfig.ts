@@ -33,6 +33,7 @@ export default class ChartConfig {
     @observable.ref xScaleTypeOptions: string[]
     @observable.ref xAxisLabel: string
     @observable.ref xTickFormat: (v: number) => string
+    @observable.struct availableTabs: string[]
 
 	model: any
 
@@ -89,6 +90,15 @@ export default class ChartConfig {
                   xAxisFormat = xAxis["axis-format"] || 5
             this.xTickFormat = (d) => xAxisPrefix + owid.unitFormat({ format: xAxisFormat||5 }, d) + xAxisSuffix
         })()
+
+        this.availableTabs = _.sortBy(this.model.get('tabs'), name => {
+            if (name == 'chart')
+                return 1
+            else if (name == 'map')
+                return 2
+            else
+                return 3
+        })
     }
 
 	constructor(model : any) {
@@ -130,18 +140,5 @@ export default class ChartConfig {
 
 	@computed get timeDomain() : [number|null, number|null] {
 		return this.model.get("chart-time")||[null, null]
-	}
-
-	// Tabs that can be navigated to by the user
-	@computed get availableTabs(): string[] {
-        const tabs: string[] = this.model.get('tabs')
-        return _.sortBy(tabs, function(name) {
-            if (name == 'chart')
-                return 1
-            else if (name == 'map')
-                return 2
-            else
-                return 3
-        });
 	}
 }

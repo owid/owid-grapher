@@ -70,12 +70,20 @@ export default class ChartTab extends React.Component {
          />)
     }
 
+    renderChart() {
+        if (this.props.chart.type == App.ChartType.SlopeChart)
+            return <SlopeChart bounds={this.bounds.padTop(20)} config={this.props.chartView.chart}/>
+        else
+            return null
+    }
+
     render() {
         const {header, footer} = this
         this.bounds = this.props.bounds.padTop(header.height).padBottom(footer.height)
 
         return <g class="chartTab">
             <Header {...header.props}/>
+            {this.renderChart()}
             <SourcesFooter {...footer.props}/>
         </g>
     }
@@ -188,7 +196,7 @@ const chartTabOld = function(chart) {
 			} else if (chartType == App.ChartType.DiscreteBar) {
 				renderDiscreteBar();
 			} else if (chartType == App.ChartType.SlopeChart) {
-				renderSlopeChart()
+				return
 			}
 
 			if (nvd3) {
@@ -309,19 +317,6 @@ const chartTabOld = function(chart) {
 		} else {
 			chart.model.replaceSelectedCountry({ id: $select.val(), name: text });
 		}
-	}
-
-	var rootNode = null;
-	function renderSlopeChart() {
-		let bounds = new Bounds(chartOffsetX, chartOffsetY+10, chartWidth-10, chartHeight-10)
-
-//			const props = slopeChartTransform.getProps({ dimensions: chart.model.getDimensions(), xDomain: chartTime })
-//			chartTab.minYear = props.xDomain[0]
-//			chartTab.maxYear = props.xDomain[1]
-
-		rootNode = render(<SlopeChart bounds={bounds} config={new ChartConfig(chart.model)}/>, chart.svg.node(), rootNode)
-		postRender();
-		chart.header.render();
 	}
 
 	function renderLineChart() {

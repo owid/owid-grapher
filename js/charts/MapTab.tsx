@@ -167,7 +167,7 @@ export default class MapTab extends React.Component<MapTabProps, null> {
             <Header {...header.props}/>
             <TimelineMap
                 chartView={chartView}
-                bounds={bounds.padTop(header.height).padBottom(footer.height)}
+                bounds={bounds.padTop(header.height+5).padBottom(footer.height)}
                 choroplethData={chartView.mapdata.currentValues}
                 years={chartView.map.getYears()}
                 inputYear={+chartView.map.get('targetYear')}

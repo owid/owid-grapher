@@ -398,10 +398,6 @@ export default class LabelledSlopes extends Component {
     	const {x1, x2} = slopeData[0]
     	const [y1, y2] = yScale.range()
 
-		// hack
-		window.chart.tabs.chart.minYear = xDomain[0]
-		window.chart.tabs.chart.maxYear = xDomain[1]
-
 	    return (
 	    	<g class="slopeChart">
 				<g class="gridlines">
