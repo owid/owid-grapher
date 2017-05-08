@@ -22,8 +22,13 @@ from django.contrib.auth.views import logout
 urlpatterns = [
     url(r'^$', owid_views.index, name="index"),
     url(r'^charts/$', admin_views.listcharts, name="listcharts"),
+    url(r'^charts$', admin_views.storechart, name="storechart"),  # post request for storing
+    url(r'^charts/create/$', admin_views.createchart, name="createchart"),
     url(r'^charts/(?P<chartid>[\w]+)/edit/$', admin_views.editchart, name="editchart"),
-    url(r'^charts/(?P<chartid>[\w]+)$', admin_views.managechart, name="managechart"), # update, destroy requests
+    url(r'^charts/(?P<chartid>[\w]+)$', admin_views.managechart, name="managechart"),  # update, destroy requests
+    url(r'^charts/(?P<chartid>[\w]+)/$', admin_views.showchart, name="showchartinternal"),
+    url(r'^charts/(?P<chartid>[\w]+)/star$', admin_views.starchart, name="starchart"),
+    url(r'^charts/(?P<chartid>[\w]+)/unstar$', admin_views.unstarchart, name="unstarchart"),
     url(r'^users/$', admin_views.listusers, name="listusers"),
     # for future use on the frontend
     url(r'^charts\.json$',  admin_views.listcharts, name="listchartsjson"),

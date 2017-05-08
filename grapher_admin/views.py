@@ -2,19 +2,22 @@ import copy
 import datetime
 import json
 import os
+import re
 from urllib.parse import urlparse
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import login as loginview
 from django.db.models import Q
-from django.http import HttpResponseRedirect, HttpResponse, HttpResponseNotFound, JsonResponse
+from django.http import HttpResponseRedirect, HttpResponse, HttpResponseNotFound, JsonResponse, QueryDict
+from django.template.response import TemplateResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from .forms import InviteUserForm, InvitedUserRegisterForm
 from .models import Chart, Variable, User, UserInvitation, Logo, ChartSlugRedirect, ChartDimension
+from owid_grapher.views import get_query_string
 
 # putting these into global scope for reuse
 manifest = json.loads(open(os.path.join(settings.BASE_DIR, "public/build/manifest.json")).read())
@@ -26,6 +29,11 @@ rootrequest = settings.BASE_URL
 
 
 def custom_login(request):
+    """
+    Redirects to index page if the user is already logged in
+    :param request: Request object
+    :return: Redirects to index page if the user is logged in, otherwise will show the login page
+    """
     if request.user.is_authenticated():
         return HttpResponseRedirect('/')
     else:
@@ -65,10 +73,43 @@ def listcharts(request):
         return JsonResponse(chartlist, safe=False)
     else:
         return render(request, 'admin.charts.html', context={'adminjspath': adminjspath,
+                                                             'admincsspath': admincsspath,
+                                                             'rootrequest': rootrequest,
+                                                             'current_user': request.user.name,
+                                                             'charts': chartlist
+                                                             })
+
+
+@login_required
+def storechart(request):
+    if request.method == 'POST':
+        chart = Chart()
+        data = json.loads(request.body)
+        return savechart(chart, data, request.user)
+    else:
+        return HttpResponseRedirect(reverse('listcharts'))
+
+
+@login_required
+def createchart(request):
+
+    data = editor_data()
+    logos = []
+    for each in list(Logo.objects.filter(name='OWD')):
+        logos.append(each.svg)
+
+    chartconfig = {}
+    chartconfig['logosSVG'] = logos
+    chartconfig = json.dumps(chartconfig)
+
+    if '.json' in urlparse(request.get_full_path()).path:
+        return JsonResponse({'data': data, 'config': chartconfig}, safe=False)
+    else:
+        return render(request, 'admin.edit_chart.html', context={'adminjspath': adminjspath,
                                                                  'admincsspath': admincsspath,
                                                                  'rootrequest': rootrequest,
                                                                  'current_user': request.user.name,
-                                                                 'charts': chartlist
+                                                                 'data': data, 'chartconfig': chartconfig
                                                                  })
 
 
@@ -122,7 +163,7 @@ def editchart(request, chartid):
     chartconfig = json.dumps(chart.get_config_with_url())
 
     if '.json' in urlparse(request.get_full_path()).path:
-        return JsonResponse(data, safe=False)
+        return JsonResponse({'data': data, 'config': chartconfig}, safe=False)
     else:
         return render(request, 'admin.edit_chart.html', context={'adminjspath': adminjspath,
                                                             'admincsspath': admincsspath,
@@ -160,29 +201,32 @@ def savechart(chart, data, user):
     chart.slug = data["slug"]
     data.pop("slug", None)
 
-    chart.published = data["published"]
+    if data["published"]:
+        chart.published = data["published"]
     data.pop("published", None)
 
     data.pop("logosSVG", None)
 
     dims = []
     i = 0
+
+    chart.config = json.dumps(data)
+    chart.last_edited_by = user
+    chart.save()
+
     for dim in data["chart-dimensions"]:
         newdim = ChartDimension()
         newdim.order = i
         newdim.chartid = chart
-        newdim.color = dim.get('color', None)
+        newdim.color = dim.get('color', "")
         newdim.tolerance = dim.get('tolerance', None)
         newdim.targetyear = dim.get('targetYear', None)
-        newdim.displayname = dim.get('displayName', None)
+        newdim.displayname = dim.get('displayName', "")
         newdim.unit = dim.get('unit', None)
         newdim.property = dim.get('property', None)
         newdim.variableid = Variable.objects.get(pk=int(dim.get('variableId', None)))
         dims.append(newdim)
         i += 1
-
-    chart.config = json.dumps(data)
-    chart.last_edited_by = user
 
     """
     TO DO: Implement png and svg file purging
@@ -192,7 +236,6 @@ def savechart(chart, data, user):
     TO DO: Cloudflare cache invalidation
     """
 
-    chart.save()
     for each in ChartDimension.objects.filter(chartid=chart.pk):
         each.delete()
     for each in dims:
@@ -212,6 +255,89 @@ def managechart(request, chartid):
     if request.method == 'PUT':
         data = json.loads(request.body)
         return savechart(chart, data, request.user)
+    if request.method == 'POST':
+        data = QueryDict(request.body)
+        if data.get('_method', '0') == 'DELETE':
+            chart.delete()
+            messages.success(request, 'Chart deleted successfully')
+        return HttpResponseRedirect(reverse('listcharts'))
+    if request.method == 'GET':
+        return HttpResponseRedirect(reverse('showchartinternal', args=(chartid,)))
+
+
+@login_required
+def showchart(request, chartid):
+    try:
+        chart = Chart.objects.get(pk=int(chartid))
+    except Chart.DoesNotExist:
+        return HttpResponseNotFound('No such chart!')
+    except ValueError:
+        return HttpResponseNotFound('No such chart!')
+    if request.method != 'GET':
+        return JsonResponse(chart.get_config_with_url(), safe=False)
+    else:
+        # this part was lifted directly from the public facing side
+        configfile = chart.get_config_with_url()
+        canonicalurl = request.build_absolute_uri('/') + chart.slug
+        baseurl = request.build_absolute_uri('/') + chart.slug
+
+        chartmeta = {}
+
+        title = configfile['title']
+        title = re.sub("/, \*time\*/", " over time", title)
+        title = re.sub("/\*time\*/", "over time", title)
+        chartmeta['title'] = title
+        if configfile.get('subtitle', ''):
+            chartmeta['description'] = configfile['subtitle']
+        else:
+            chartmeta['description'] = 'An interactive visualization from Our World In Data.'
+        query_string = get_query_string(request)
+        if query_string:
+            canonicalurl += '?' + query_string
+        chartmeta['canonicalUrl'] = canonicalurl
+        if query_string:
+            imagequery = query_string + '&' + "size=1200x800&v=" + chart.make_cache_tag()
+        else:
+            imagequery = "size=1200x800&v=" + chart.make_cache_tag()
+
+        chartmeta['imageUrl'] = baseurl + '.png?' + imagequery
+
+        configpath = "%s/config/%s.js" % (settings.BASE_URL, chart.pk)
+
+        response = TemplateResponse(request, 'show_chart.html',
+                                    context={'chartmeta': chartmeta, 'configpath': configpath,
+                                             'jspath': jspath, 'csspath': csspath,
+                                             'query': query_string,
+                                             'rootrequest': rootrequest})
+        return response
+
+
+@login_required
+def starchart(request, chartid):
+    try:
+        chart = Chart.objects.get(pk=int(chartid))
+    except Chart.DoesNotExist:
+        return HttpResponseNotFound('No such chart!')
+    except ValueError:
+        return HttpResponseNotFound('No such chart!')
+    if request.method == 'POST':
+        chart.starred = True
+        chart.save()
+        return JsonResponse({'starred': True}, safe=False)
+
+
+@login_required
+def unstarchart(request, chartid):
+    try:
+        chart = Chart.objects.get(pk=int(chartid))
+    except Chart.DoesNotExist:
+        return HttpResponseNotFound('No such chart!')
+    except ValueError:
+        return HttpResponseNotFound('No such chart!')
+    if request.method == 'POST':
+        chart.starred = False
+        chart.save()
+        return JsonResponse({'starred': False}, safe=False)
 
 
 def check_invitation_statuses():
