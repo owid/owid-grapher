@@ -266,7 +266,7 @@ a {
     position: absolute;
     bottom: 0;
     border-top: 1px solid #e1e1e1;
-    z-index: 1;
+    z-index: 2;
 }
 
 #chart nav.tabs ul {
@@ -678,6 +678,7 @@ a {
     box-shadow: 0 0 2px 0 rgba(0,0,0,0.12), 0 2px 2px 0 rgba(0,0,0,0.24);
     padding-bottom: 0.5em;
     width: 15em;
+    z-index: 2;
 }
 
 #chart .shareMenu h2 {
@@ -1028,23 +1029,23 @@ a {
  * a special .export url to screenshot the chart. #chart-export styles therefore apply specifically
  * to these screenshots. */
 
-#chart.static {
+#chart.export {
     padding: 0 !important;
 }
 /* Remove interactive UI elements since obviously they can't be used in a static image
 * NOTE (Mispy): Unneeded SVG elements should be removed entirely by the JS as well as hidden here. */
-#chart.static .controlsFooter,
-#chart.static .fullscreen-link,
-#chart.static .timeline,
-#chart.static .settings-control,
-#chart.static .color-blind-control,
-#chart.static .map-controls-header,
-#chart.static .nv-add-btn,
-#chart.static .nv-controlsWrap,
-#chart.static .scaleSelector {
+#chart.export .controlsFooter,
+#chart.export .fullscreen-link,
+#chart.export .timeline,
+#chart.export .settings-control,
+#chart.export .color-blind-control,
+#chart.export .map-controls-header,
+#chart.export .nv-add-btn,
+#chart.export .nv-controlsWrap,
+#chart.export .scaleSelector {
     display: none !important;
 }
-#chart.static .tab-pane {
+#chart.export .tab-pane {
     border: none !important;
 }
 
@@ -1069,6 +1070,12 @@ a {
 /* HACK (Mispy): Once we properly update to Bootstrap 4 javascript this shouldn't be needed. */
 .modal-backdrop {
     z-index: -1;
+}
+
+#chart .downloadTab,
+#chart .dataTab,
+#chart .sourcesTab {
+    z-index: 1;
 }
 
 #chart .downloadTab {

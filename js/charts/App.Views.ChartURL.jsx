@@ -47,12 +47,12 @@ export default function(chart) {
         chart.model.on("change:chart-time", updateTime);
         populateFromURL();
 
-        autorun(() => onTabChange())
         $(window).on('query-change', function() {
             var tabName = chart.activeTabName;
             if (tabName == 'chart' || tabName == 'map')
                 urlBinder.lastQueryStr = window.location.search;
         });
+        autorun(() => onTabChange())
     };
 
     /**
