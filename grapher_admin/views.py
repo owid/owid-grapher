@@ -9,6 +9,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import login as loginview
 from django.db.models import Q
+from django.db import connection
 from django.http import HttpResponseRedirect, HttpResponse, HttpResponseNotFound, JsonResponse, QueryDict
 from django.template.response import TemplateResponse
 from django.shortcuts import render
@@ -16,7 +17,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from .forms import InviteUserForm, InvitedUserRegisterForm
-from .models import Chart, Variable, User, UserInvitation, Logo, ChartSlugRedirect, ChartDimension, Dataset, Setting, DatasetSubcategory, Entity
+from .models import Chart, Variable, User, UserInvitation, Logo, ChartSlugRedirect, ChartDimension, Dataset, Setting, DatasetSubcategory, Entity, Source, VariableType, DataValue
 from owid_grapher.views import get_query_string
 
 # putting these into global scope for reuse
@@ -277,6 +278,7 @@ def showchart(request, chartid):
         return JsonResponse(chart.get_config_with_url(), safe=False)
     else:
         # this part was lifted directly from the public facing side
+        # so if anything changes there, be sure to make the same changes here
         configfile = chart.get_config_with_url()
         canonicalurl = request.build_absolute_uri('/') + chart.slug
         baseurl = request.build_absolute_uri('/') + chart.slug
@@ -385,14 +387,135 @@ def importdata(request):
         entitycodeslist.append(each.code)
     all_entitynames = entitynameslist + entitycodeslist
 
-    data = json.dumps({'datasets': datasetlist, 'categories': category_list, 'varTypes': vartypeslist, 'sourceTemplate': source_template,
-            'entityNames': all_entitynames})
+    data = {'datasets': datasetlist, 'categories': category_list, 'varTypes': vartypeslist, 'sourceTemplate': source_template,
+            'entityNames': all_entitynames}
 
-    return render(request, 'admin.importer.html', context={'adminjspath': adminjspath,
+    if '.json' in urlparse(request.get_full_path()).path:
+        return JsonResponse(data, safe=False)
+    else:
+        return render(request, 'admin.importer.html', context={'adminjspath': adminjspath,
                                                            'admincsspath': admincsspath,
                                                            'rootrequest': rootrequest,
                                                            'current_user': request.user.name,
-                                                           'importerdata': data})
+                                                           'importerdata': json.dumps(data)})
+
+
+@login_required
+def store_import_data(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+
+        datasetmeta = data['dataset']
+        entities = data['entities']
+        entitynames = data['entityNames']
+        years = data['years']
+        variables = data['variables']
+
+        datasetprops = {'name': datasetmeta['name'],
+                        'description': datasetmeta['description'],
+                        'fk_dst_cat_id': DatasetSubcategory.objects.get(pk=datasetmeta['subcategoryId']).fk_dst_cat_id,
+                        'fk_dst_subcat_id': DatasetSubcategory.objects.get(pk=datasetmeta['subcategoryId'])
+                        }
+
+        if datasetmeta['id']:
+            dataset = Dataset.objects.filter(pk=datasetmeta['id']).update(**datasetprops)
+        else:
+            dataset = Dataset(**datasetprops)
+            dataset.save()
+
+        dataset_id = dataset.pk
+
+        codes = Entity.objects.filter(validated=True).values('name', 'code')
+
+        codes_dict = {}
+
+        for each in codes:
+            codes_dict[each['code']] = each['name']
+
+        entitynames_list = Entity.objects.values_list('name', flat=True)
+
+        for i in range(0, len(entitynames)):
+            name = entitynames[i]
+            if codes_dict.get(name, 0):
+                entitynames[i] = codes_dict[name]
+
+        entitynames_to_insert = []
+
+        for each in entitynames:
+            if each not in entitynames_list:
+                entitynames_to_insert.append(each)
+
+        alist = [Entity(name=val) for val in entitynames_to_insert]
+
+        Entity.objects.bulk_create(alist)
+
+        codes = Entity.objects.values('name', 'id')
+
+        entitiy_name_to_id = {}
+
+        for each in codes:
+            entitiy_name_to_id[each['name']] = each['id']
+
+        source_ids_by_name = {}
+
+        for variable in variables:
+            source_name = variable['source']['name']
+            if source_ids_by_name.get(source_name, 0):
+                source_id = source_ids_by_name[source_name]
+            else:
+                if variable['source']['id']:
+                    source_id = variable['source']['id']
+                else:
+                    source_id = None
+                source_desc = variable['source']['description']
+                if source_id:
+                    Source.objects.filter(pk=source_id).update(**variable['source'])
+                else:
+                    new_source = Source(datasetid=Dataset.objects.get(pk=dataset_id), name=source_name, description=source_desc)
+                    new_source.save()
+                    source_id = new_source.pk
+                    source_ids_by_name[source_name] = source_id
+
+            values = variable['values']
+            variableprops = {'name': variable['name'], 'description': variable['description'], 'unit': variable['unit'],
+                             'coverage': variable['coverage'], 'timespan': variable['timespan'],
+                             'fk_var_type_id': VariableType.objects.get(pk=3),
+                             'fk_dst_id': Dataset.objects.get(pk=dataset_id),
+                             'sourceid': Source.objects.get(pk=source_id),
+                             'uploaded_at': datetime.datetime.now(),
+                             'updated_at': datetime.datetime.now(),
+                             'uploaded_by': request.user
+                             }
+            if variable['overwriteId']:
+                Variable.objects.filter(pk=variable['overwriteId']).update(**variableprops)
+                varid = variable['overwriteId']
+            else:
+                varid = Variable(**variableprops)
+                varid.save()
+                varid = varid.pk
+            DataValue.objects.filter(fk_var_id=Variable.objects.get(pk=varid)).delete()
+
+            newdatavalues = []
+
+            for i in range(0, len(years)):
+                if values[i] == '':
+                    continue
+
+                newdatavalues.append(DataValue(fk_var_id=Variable.objects.get(pk=varid),
+                                               fk_ent_id=Entity.objects.get(pk=entitiy_name_to_id[entitynames[entities[i]]]),
+                                               year=years[i],
+                                               value=values[i]))
+
+                if len(newdatavalues) > 10000:
+                    DataValue.objects.bulk_create(newdatavalues)
+                    newdatavalues = []
+
+            if len(newdatavalues) > 0:
+                DataValue.objects.bulk_create(newdatavalues)
+            with connection.cursor() as cursor:
+                cursor.execute("DELETE FROM sources WHERE sources.id NOT IN (SELECT variables.sourceId FROM variables)")
+
+        return JsonResponse({'datasetId': dataset_id}, safe=False)
 
 
 def check_invitation_statuses():

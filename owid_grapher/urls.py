@@ -30,10 +30,13 @@ urlpatterns = [
     url(r'^charts/(?P<chartid>[\w]+)/star$', admin_views.starchart, name="starchart"),
     url(r'^charts/(?P<chartid>[\w]+)/unstar$', admin_views.unstarchart, name="unstarchart"),
     url(r'^import/$', admin_views.importdata, name="importdata"),
+    url(r'^import/variables$', admin_views.store_import_data, name="storeimportdata"),  # data import post requests
     url(r'^users/$', admin_views.listusers, name="listusers"),
     # for future use on the frontend
     url(r'^charts\.json$',  admin_views.listcharts, name="listchartsjson"),
+    url(r'^charts/create.json$', admin_views.createchart, name="createchartjson"),
     url(r'^charts/(?P<chartid>[\w]+)/edit\.json$', admin_views.editchart, name="editchartjson"),
+    url(r'^import.json$', admin_views.importdata, name="importdatajson"),
     url(r'^users\.json$', admin_views.listusers, name="listusersjson"),
     #
     url(r'^login/$', admin_views.custom_login, name='login'),
