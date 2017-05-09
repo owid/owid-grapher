@@ -482,8 +482,8 @@ def store_import_data(request):
                              'fk_var_type_id': VariableType.objects.get(pk=3),
                              'fk_dst_id': Dataset.objects.get(pk=dataset_id),
                              'sourceid': Source.objects.get(pk=source_id),
-                             'uploaded_at': datetime.datetime.now(),
-                             'updated_at': datetime.datetime.now(),
+                             'uploaded_at': timezone.now(),
+                             'updated_at': timezone.now(),
                              'uploaded_by': request.user
                              }
             if variable['overwriteId']:
