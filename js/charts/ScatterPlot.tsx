@@ -32,7 +32,10 @@ interface ColorLegendProps {
     y?: number,
     maxWidth: number,
     colors: string[],
-    scale: d3.ScaleOrdinal<string, string>
+    scale: d3.ScaleOrdinal<string, string>,
+    focusColor?: string,
+    onMouseOver: (color: string) => void,
+    onMouseLeave: () => void
 }
 
 @observer
@@ -45,8 +48,10 @@ class ColorLegend extends React.Component<ColorLegendProps, null> {
     @computed get labelMarks() {
         const {props, fontSize, rectSize, rectPadding} = this
 
-        return _.map(props.colors, color => {            
+        return _.filter(_.map(props.colors, color => {            
             const value = props.scale.domain()[props.scale.range().indexOf(color)]
+            if (!value) return null
+
             const label = preInstantiate(<Paragraph maxWidth={props.maxWidth} fontSize={fontSize}>{value}</Paragraph>)
             return {
                 label: label,
@@ -54,7 +59,7 @@ class ColorLegend extends React.Component<ColorLegendProps, null> {
                 width: rectSize+rectPadding+label.width,
                 height: Math.max(label.height, rectSize)
             }
-        })
+        }))
     }
 
     @computed get width() {
@@ -69,12 +74,15 @@ class ColorLegend extends React.Component<ColorLegendProps, null> {
         const {props, rectSize, rectPadding, lineHeight} = this
         let offset = 0
 
-        return <g>
+        return <g class="ColorLegend" style={{cursor: 'default'}}>
             {_.map(this.labelMarks, mark => {
-                const result = [
-                    <rect x={props.x} y={props.y+offset+rectSize/2} width={rectSize} height={rectSize} fill={mark.color}/>,
+                const isFocus = mark.color == props.focusColor
+
+                const result = <g class="legendMark" onMouseOver={e => this.props.onMouseOver(mark.color)} onMouseLeave={e => this.props.onMouseLeave()}>
+                    <rect x={props.x} y={props.y+offset+rectSize/2} width={mark.width} height={mark.height} opacity={0}/>,
+                    <rect x={props.x} y={props.y+offset+rectSize/2} width={rectSize} height={rectSize} fill={mark.color} stroke={isFocus && "#FFEC38"}/>,
                     <Paragraph {...mark.label.props} x={props.x+rectSize+rectPadding} y={props.y+offset}/>
-                ]
+                </g>
 
                 offset += mark.height+lineHeight
                 return result
@@ -368,11 +376,28 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         return preInstantiate(<ColorLegend maxWidth={this.bounds.width/3} colors={this.colorsInUse} scale={this.colorScale}/>)
     }
 
+    @observable focusColor: string|null = null
+    @action.bound onLegendMouseOver(color: string) {
+        this.focusColor = color
+    }
+
+    @action.bound onLegendMouseLeave() {
+        this.focusColor = null
+    }
+
+    @computed get focusKeys(): string[] {
+        if (this.focusColor) {
+            return _.map(_.filter(this.allSeries, series => series.color == this.focusColor), series => series.key)
+        } else {
+            return this.chart.selectedEntities
+        }
+    }
+
     render() {
-        const {currentData, bounds, yearsWithData, startYear, endYear, xScale, yScale, chart, timeline, timelineHeight, legend} = this
+        const {currentData, bounds, yearsWithData, startYear, endYear, xScale, yScale, chart, timeline, timelineHeight, legend, focusKeys, focusColor} = this
         return <g>
-            <ScatterWithAxis data={currentData} bounds={this.bounds.padBottom(timelineHeight).padRight(legend.width+20)} xScale={xScale} yScale={yScale} xAxisLabel={chart.xAxisLabel} yAxisLabel={chart.yAxisLabel} onSelectEntity={this.onSelectEntity} focusKeys={this.chart.selectedEntities}/>
-            <ColorLegend {...legend.props} x={bounds.right-legend.width-5} y={bounds.top}/>
+            <ScatterWithAxis data={currentData} bounds={this.bounds.padBottom(timelineHeight).padRight(legend.width+20)} xScale={xScale} yScale={yScale} xAxisLabel={chart.xAxisLabel} yAxisLabel={chart.yAxisLabel} onSelectEntity={this.onSelectEntity} focusKeys={focusKeys}/>
+            <ColorLegend {...legend.props} x={bounds.right-legend.width-5} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} focusColor={focusColor}/>
             {timeline && <Timeline {...timeline.props}/>}
         </g>
     }

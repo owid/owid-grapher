@@ -21,7 +21,7 @@ type AxisProps = {
 export default class Axis extends Component {
     static labelPadding = 5
     static tickFontSize = "0.7em"
-    static labelFontSize = 0.7
+    static labelFontSize = 0.5
 
     static calculateBounds(containerBounds : Bounds, props : any) {
         const {orient, scale, label} = props
