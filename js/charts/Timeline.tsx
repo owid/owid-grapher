@@ -151,7 +151,7 @@ export default class RangeTimeline extends React.Component<TimelineProps, undefi
 	animRequest: number;
 
 	@action.bound onStartPlaying() {
-		let lastTime = null, ticksPerSec = 5;
+		let lastTime: number|null = null, ticksPerSec = 5;
 
 		const playFrame = (time : number) => {
 			const { isPlaying, startYear, endYear, years, minYear, maxYear } = this
@@ -159,8 +159,10 @@ export default class RangeTimeline extends React.Component<TimelineProps, undefi
 
 			if (lastTime === null) {
 				// If we start playing from the end, loop around to beginning
-				if (endYear >= maxYear)
+				if (endYear >= maxYear) {
+                    this.startYearInput = minYear
 					this.endYearInput = minYear
+                }
 			} else {
 				const elapsed = time-lastTime;
 
@@ -170,7 +172,10 @@ export default class RangeTimeline extends React.Component<TimelineProps, undefi
 					const nextYear = years[years.indexOf(endYear)+1]
 					const yearsToNext = nextYear-endYear
 
+
 					this.endYearInput = endYear+(Math.max(yearsToNext/3, 1)*elapsed*ticksPerSec/1000)
+                    if (this.props.singleYearMode)
+                        this.startYearInput = this.endYearInput
 				}
 			}
 
@@ -198,7 +203,7 @@ export default class RangeTimeline extends React.Component<TimelineProps, undefi
 
     dragOffsets = [0, 0]
 
-    @action.bound onDrag(inputYear : number) {
+    @action.bound onDrag(inputYear: number) {
         const {props, dragTarget, minYear, maxYear} = this
 
         if (props.singleYearMode) {
@@ -223,7 +228,7 @@ export default class RangeTimeline extends React.Component<TimelineProps, undefi
     }
 
 
-    @action.bound onMouseDown(e : MouseEvent) {
+    @action.bound onMouseDown(e: any) {
         // Don't do mousemove if we clicked the play or pause button
         const targetEl = d3.select(e.target)
         if (targetEl.classed('toggle')) return;
@@ -304,7 +309,7 @@ export default class RangeTimeline extends React.Component<TimelineProps, undefi
         const toggleText = isPlaying ? "\uf28c" : "\uf01d"
         const toggleTextBounds = Bounds.forText(toggleText, { fontSize: "1.3em" })
 
-		return <g className="timeline clickable" onMouseDown={this.onMouseDown} ref={g => this.g = g}>
+		return <g className="clickable" onMouseDown={this.onMouseDown} ref={g => this.g = g}>
 			<rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height} fill="white"></rect>
             <Text className="toggle" onClick={() => this.isPlaying = !this.isPlaying} x={bounds.left+10} y={bounds.centerY-toggleTextBounds.height/2} font-family="FontAwesome" font-size="1.3em">
                 {toggleText}

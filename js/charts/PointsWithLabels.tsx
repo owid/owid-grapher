@@ -1,4 +1,4 @@
-/* PointsWithLabels.jsx
+/* PointsWithLabels.tsx
  * ================
  *
  * Core scatterplot renderer
@@ -8,25 +8,18 @@
  * @created 2017-03-09
  */
 
-// @flow
-
-import React, {Component} from 'react'
+import * as React from 'react'
+import * as _ from 'lodash'
+import * as d3 from 'd3'
 import {observable, computed, action, autorun} from 'mobx'
 import {observer} from 'mobx-react'
-import _ from 'lodash'
-import * as d3 from 'd3'
-import owid from '../owid'
 import Bounds from './Bounds'
 import NoData from './NoData'
 import AxisScale from './AxisScale'
-import styles from './ScatterPlot.css'
-import {getRelativeMouse} from './Util'
-import Labels from './Labels'
-import type {LabelDatum} from './Labels'
-import type {SVGElement} from './Util'
+import {getRelativeMouse, makeSafeForCSS} from './Util'
 import Vector2 from './Vector2'
 
-export type ScatterSeries = {
+interface ScatterSeries {
     color: string,
     key: string,
     label: string,
@@ -34,19 +27,19 @@ export type ScatterSeries = {
 };
 
 
-@observer
-export default class PointsWithLabels extends Component {
-    props: {
-        data: ScatterSeries[],
-        focusKeys: string[],
-        bounds: Bounds,
-        xScale: AxisScale,
-        yScale: AxisScale
-    }
+interface PointsWithLabelsProps {
+    data: ScatterSeries[],
+    focusKeys: string[],
+    bounds: Bounds,
+    xScale: AxisScale,
+    yScale: AxisScale
+}
 
+@observer
+export default class PointsWithLabels extends React.Component<PointsWithLabelsProps, undefined> {
     @observable hoverKey : ?string = null
 
-    @computed get focusKeys() {
+    @computed get focusKeys(): string[] {
         return this.props.focusKeys || []
     }
 
@@ -106,7 +99,7 @@ export default class PointsWithLabels extends Component {
 
             return {
                 key: d.key,
-                displayKey: "key-" + owid.makeSafeForCSS(d.key),
+                displayKey: "key-" + makeSafeForCSS(d.key),
                 color: d.color || defaultColorScale(d.key),
                 size: _.last(values).size,
                 fontSize: fontSize,
@@ -130,8 +123,18 @@ export default class PointsWithLabels extends Component {
     }
 
     @computed get renderData(): { position: Vector2, size: number, time: Object }[] {
-        const {initialRenderData, hoverKey, tmpFocusKeys, labelPriority} = this
-        const renderData = _.sortBy(initialRenderData, d => -d.size)
+        let {initialRenderData, hoverKey, tmpFocusKeys, labelPriority, bounds} = this
+        let renderData = _.sortBy(initialRenderData, d => -d.size)
+
+        /*if (tmpFocusKeys.length < 1) {
+            let newRenderData = []
+            _.each(renderData, d => {
+                const d2 = _.clone(d)
+                d2.values = [_.first(d.values), _.last(d.values)]
+                newRenderData.push(d2)
+            })
+            renderData = newRenderData
+        }*/
 
         _.each(renderData, d => {
             d.isHovered = d.key == hoverKey
@@ -200,6 +203,17 @@ export default class PointsWithLabels extends Component {
                 }))
         })
 
+        // Ensure labels fit inside bounds
+        _.each(renderData, d => {
+            _.each(d.labels, l => {
+                if (l.bounds.left < bounds.left) {
+                    l.bounds = l.bounds.extend({ x: l.bounds.x+l.bounds.width })
+                } else if (l.bounds.right > bounds.right) {
+                    l.bounds = l.bounds.extend({ x: l.bounds.x-l.bounds.width })
+                }
+            })
+        })
+
         // Eliminate overlapping labels,
         _.each(renderData, d => { d.isActive = true })
         _.each(renderData, (d1, i) => {
@@ -227,7 +241,7 @@ export default class PointsWithLabels extends Component {
             })
         })
 
-        return _.sortBy(renderData, d => d.isActive ? 1 : 0)
+        return _.sortBy(renderData, d => d.isFocused ? 2 : (d.isActive ? 1 : 0))
     }
 
     /*@computed get renderData() : Object[] {
@@ -301,8 +315,8 @@ export default class PointsWithLabels extends Component {
 
         const defaultOpacity = 1
 
-        return <g class={styles.ScatterPlot}>
-            <g class="entities" strokeOpacity={defaultOpacity} fillOpacity={defaultOpacity}>
+        return <g className="ScatterPlot">
+            <g className="entities" strokeOpacity={defaultOpacity} fillOpacity={defaultOpacity}>
                 {_.map(renderData, d => {
                     const color = ((isFocusMode && !d.isFocused) || !d.isActive) ? "#e2e2e2" : d.color
                     const focusMul = d.isHovered ? 3 : (d.isFocused ? 2 : 0.5)
@@ -323,7 +337,7 @@ export default class PointsWithLabels extends Component {
                             </defs>,
                             <polyline
                                 key={d.displayKey+'-line'}
-                                class={d.displayKey}
+                                className={d.displayKey}
                                 strokeLinecap="round"
                                 stroke={color}
                                 strokeOpacity={d.isFocused && 1}
@@ -337,10 +351,10 @@ export default class PointsWithLabels extends Component {
                         ]
                 })}
             </g>
-            <g class="labels">
+            <g className="labels">
                 {_.map(renderData, d =>
                     _.map(d.labels, (l, i) =>
-                        d.isActive && !l.isHidden && <text x={l.bounds.x} y={l.bounds.y+l.bounds.height} fontSize={l.fontSize} fontWeight={d.isHovered && "bold"} opacity={d.isFocused ? 1 : 0.8}>{l.text}</text>
+                        d.isActive && !l.isHidden && <text x={l.bounds.x} y={l.bounds.y+l.bounds.height} fontSize={l.fontSize} fontWeight={d.isHovered && "bold"} fill={!isFocusMode || d.isFocused ? "#333" : "#999"}>{l.text}</text>
                     )
                 )}
                 {_.map(renderData, d =>

@@ -53,7 +53,7 @@ class ScatterWithAxis extends React.Component<any, null> {
 }
 
 @observer
-export default class ScatterPlot extends React.Component<{ bounds: Bounds, config: ChartConfig }, null> {
+export default class ScatterPlot extends React.Component<{ bounds: Bounds, config: ChartConfig, isStatic: boolean }, null> {
     @computed get chart() : ChartConfig {
         return this.props.config
     }
@@ -222,12 +222,11 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     }
 
     componentWillMount() {
-        console.log(this.chart.timeRange)
         if (!_.isNumber(this.chart.timeRange[0]) || !_.isNumber(this.chart.timeRange[1]))
             this.chart.timeRange = [this.yearsWithData[0], _.last(this.yearsWithData)]
     }
 
-    @action.bound onTimelineChange({startYear, endYear, targetStartYear, targetEndYear}) {
+    @action.bound onTargetChange({targetStartYear, targetEndYear}: {targetStartYear: number, targetEndYear: number}) {
         this.chart.timeRange = [targetStartYear, targetEndYear]
     }
 
@@ -287,18 +286,24 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         this.chart.selectedEntities = focusKeys
     }
 
-    @computed get timeline() {
-        const {bounds, yearsWithData, startYear, endYear, onTimelineChange} = this
+    @computed get timeline(): Timeline|null {
+        if (this.props.isStatic) return null
+
+        const {bounds, yearsWithData, startYear, endYear, onTargetChange} = this
         return preInstantiate(
-            <Timeline bounds={bounds.fromBottom(35)} onChange={onTimelineChange} years={yearsWithData} startYear={startYear} endYear={endYear}/>
+            <Timeline bounds={bounds.fromBottom(35)} onTargetChange={onTargetChange} years={yearsWithData} startYear={startYear} endYear={endYear}/>
         )
     }
 
+    @computed get timelineHeight(): number {
+        return this.timeline ? this.timeline.height : 0
+    }
+
     render() {
-        const {currentData, bounds, yearsWithData, startYear, endYear, xScale, yScale, chart, timeline} = this
+        const {currentData, bounds, yearsWithData, startYear, endYear, xScale, yScale, chart, timeline, timelineHeight} = this
         return <g>
-            <ScatterWithAxis data={currentData} bounds={this.bounds.padBottom(timeline.height)} xScale={xScale} yScale={yScale} xAxisLabel={chart.xAxisLabel} yAxisLabel={chart.yAxisLabel} onSelectEntity={this.onSelectEntity} focusKeys={this.chart.selectedEntities}/>
-            <Timeline {...timeline.props}/>
+            <ScatterWithAxis data={currentData} bounds={this.bounds.padBottom(timelineHeight)} xScale={xScale} yScale={yScale} xAxisLabel={chart.xAxisLabel} yAxisLabel={chart.yAxisLabel} onSelectEntity={this.onSelectEntity} focusKeys={this.chart.selectedEntities}/>
+            {timeline && <Timeline {...timeline.props}/>}
         </g>
     }
 }

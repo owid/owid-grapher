@@ -193,6 +193,10 @@ export default class Bounds {
 		return this.containsPoint(p.x, p.y)
 	}
 
+    encloses(bounds: Bounds) {
+        return this.containsPoint(bounds.left, bounds.top) && this.containsPoint(bounds.left, bounds.bottom) && this.containsPoint(bounds.right, bounds.top) && this.containsPoint(bounds.right, bounds.bottom)
+    }
+
 	toCSS() : { left: string, top: string, width: string, height: string } {
 		return { left: this.left+'px', top: this.top+'px', width: this.width+'px', height: this.height+'px'}
 	}

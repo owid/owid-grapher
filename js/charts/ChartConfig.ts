@@ -107,16 +107,16 @@ export default class ChartConfig {
         this.syncFromModel()
         this.model.on('change', this.syncFromModel)
 
-		/*autorun(() => {
+		autorun(() => {
 			const entities = this.selectedEntities
-			if (window.chart.vardata) {
+			if (window.chart && window.chart.vardata) {
 				const entityKey = window.chart.vardata.get('entityKey')
                 if (!_.isEmpty(entityKey)) {
                     const selectedEntities = _.filter(_.values(entityKey), e => _.includes(entities, e.name))
                     this.model.set('selected-countries', selectedEntities)
                 }
 			}
-		})*/
+		})
 
         autorun(() => this.model.set('chart-type', this.type))
         autorun(() => this.model.set('slug', this.slug))

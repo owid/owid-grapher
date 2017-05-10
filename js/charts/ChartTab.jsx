@@ -27,8 +27,12 @@ export default class ChartTab extends React.Component {
     }
 
     componentDidUpdate() {
-        this.chartTab.onRenderEnd = this.props.onRenderEnd
-        this.chartTab.render(this.bounds)
+		if (this.props.chart.type == App.ChartType.ScatterPlot || this.props.chart.type == App.ChartType.SlopeChart)
+			this.props.onRenderEnd && this.props.onRenderEnd()
+		else {
+			this.chartTab.onRenderEnd = this.props.onRenderEnd
+			this.chartTab.render(this.bounds)
+		}
     }
 
     componentWillUnmount() {
@@ -75,7 +79,7 @@ export default class ChartTab extends React.Component {
         if (this.props.chart.type == App.ChartType.SlopeChart)
             return <SlopeChart bounds={this.bounds.padTop(20)} config={this.props.chartView.chart}/>
         else if (this.props.chart.type == App.ChartType.ScatterPlot)
-            return <ScatterPlot bounds={this.bounds} config={this.props.chartView.chart}/>
+            return <ScatterPlot bounds={this.bounds.padBottom(10)} config={this.props.chartView.chart} isStatic={this.props.chartView.isExport}/>
         else
             return null
     }
@@ -145,7 +149,6 @@ const chartTabOld = function(chart) {
 
 	chartTab.clean = function() {
 		if (viz) viz = viz.destroy();
-		if (rootNode) rootNode = render(() => null, chart.svg.node(), rootNode)
 
 		chartTab.scaleSelectors.clean();
 
