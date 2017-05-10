@@ -23,8 +23,65 @@ import Layout from './Layout'
 import Timeline from './Timeline'
 import PointsWithLabels from './PointsWithLabels'
 import {preInstantiate} from './Util'
+import Paragraph from './Paragraph'
 
 type ScatterSeries = any
+
+interface ColorLegendProps {
+    x?: number,
+    y?: number,
+    maxWidth: number,
+    colors: string[],
+    scale: d3.ScaleOrdinal<string, string>
+}
+
+@observer
+class ColorLegend extends React.Component<ColorLegendProps, null> {
+    @computed get fontSize(): number { return 0.5 }
+    @computed get rectSize(): number { return 5 }
+    @computed get rectPadding(): number { return 5 }
+    @computed get lineHeight(): number { return 5 }
+
+    @computed get labelMarks() {
+        const {props, fontSize, rectSize, rectPadding} = this
+
+        return _.map(props.colors, color => {            
+            const value = props.scale.domain()[props.scale.range().indexOf(color)]
+            const label = preInstantiate(<Paragraph maxWidth={props.maxWidth} fontSize={fontSize}>{value}</Paragraph>)
+            return {
+                label: label,
+                color: color,
+                width: rectSize+rectPadding+label.width,
+                height: Math.max(label.height, rectSize)
+            }
+        })
+    }
+
+    @computed get width() {
+        return _.max(_.map(this.labelMarks, 'width'))
+    }
+
+    @computed get height() {
+        return _.sum(_.map(this.labelMarks, 'height')) + this.lineHeight*this.labelMarks.length
+    }
+
+    render() {
+        const {props, rectSize, rectPadding, lineHeight} = this
+        let offset = 0
+
+        return <g>
+            {_.map(this.labelMarks, mark => {
+                const result = [
+                    <rect x={props.x} y={props.y+offset+rectSize/2} width={rectSize} height={rectSize} fill={mark.color}/>,
+                    <Paragraph {...mark.label.props} x={props.x+rectSize+rectPadding} y={props.y+offset}/>
+                ]
+
+                offset += mark.height+lineHeight
+                return result
+            })}
+        </g>
+    }
+}
 
 interface ScatterWithAxisProps {
     bounds: Bounds,
@@ -238,15 +295,19 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         return this.chart.timeRange[1]
     }
 
-    @computed get allValues() : Object[] {
+    @computed get allSeries(): Object[] {
         const {dataByEntityAndYear} = this
         return _.flatten(
                   _.map(dataByEntityAndYear, dataByYear =>
-                      _.flatten(
-                          _.map(dataByYear, series => series.values)
-                      )
+                      _.values(dataByYear)
                   )
                )
+        
+    }
+
+    @computed get allValues() : Object[] {
+        const {dataByEntityAndYear} = this
+        return _.flatten(_.map(this.allSeries, series => series.values))
     }
 
     // domains across the entire timeline
@@ -270,6 +331,10 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
             _.defaultTo(this.chart.yDomain[0], this.yDomainDefault[0]),
             _.defaultTo(this.chart.yDomain[1], this.yDomainDefault[1])
         ]
+    }
+
+    @computed get colorsInUse(): string[] {
+        return _.uniq(_.map(this.allSeries, 'color'))
     }
 
     @computed get xScale() : AxisScale {
@@ -299,10 +364,15 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         return this.timeline ? this.timeline.height : 0
     }
 
+    @computed get legend(): ColorLegend {
+        return preInstantiate(<ColorLegend maxWidth={this.bounds.width/3} colors={this.colorsInUse} scale={this.colorScale}/>)
+    }
+
     render() {
-        const {currentData, bounds, yearsWithData, startYear, endYear, xScale, yScale, chart, timeline, timelineHeight} = this
+        const {currentData, bounds, yearsWithData, startYear, endYear, xScale, yScale, chart, timeline, timelineHeight, legend} = this
         return <g>
-            <ScatterWithAxis data={currentData} bounds={this.bounds.padBottom(timelineHeight)} xScale={xScale} yScale={yScale} xAxisLabel={chart.xAxisLabel} yAxisLabel={chart.yAxisLabel} onSelectEntity={this.onSelectEntity} focusKeys={this.chart.selectedEntities}/>
+            <ScatterWithAxis data={currentData} bounds={this.bounds.padBottom(timelineHeight).padRight(legend.width+20)} xScale={xScale} yScale={yScale} xAxisLabel={chart.xAxisLabel} yAxisLabel={chart.yAxisLabel} onSelectEntity={this.onSelectEntity} focusKeys={this.chart.selectedEntities}/>
+            <ColorLegend {...legend.props} x={bounds.right-legend.width-5} y={bounds.top}/>
             {timeline && <Timeline {...timeline.props}/>}
         </g>
     }

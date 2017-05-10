@@ -23,9 +23,8 @@ interface ScatterSeries {
     color: string,
     key: string,
     label: string,
-    values: { x: number, y: number, size: number }
+    values: { x: number, y: number, size: number }[]
 };
-
 
 interface PointsWithLabelsProps {
     data: ScatterSeries[],
@@ -33,6 +32,19 @@ interface PointsWithLabelsProps {
     bounds: Bounds,
     xScale: AxisScale,
     yScale: AxisScale
+}
+
+interface ScatterRenderDatum {
+    key: string,
+    displayKey: string,
+    color: string,
+    size: number,
+    fontSize: number,
+    values: { position: Vector2, size: number, time: any }[],
+    label: string,
+    isActive: boolean,
+    isHovered: boolean,
+    isFocused: boolean
 }
 
 @observer
@@ -80,7 +92,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     }
 
     // Pre-transform data for rendering
-    @computed get initialRenderData() : { position: Vector2, size: number, time: Object }[] {
+    @computed get initialRenderData() : ScatterRenderDatum[] {
         window.Vector2 = Vector2
         const {data, xScale, yScale, defaultColorScale, sizeScale, fontScale} = this
 
@@ -109,7 +121,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         }), 'size')
     }
 
-    labelPriority(d1: Object, d2: Object): Object {
+    labelPriority(d1: ScatterRenderDatum, d2: ScatterRenderDatum): ScatterRenderDatum {
         if (d1.isHovered)
             return d1
         else if (d2.isHovered)
@@ -122,8 +134,49 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             return d1
     }
 
+    makeYearLabels(d: ScatterRenderDatum, fontSize: number) {
+        return _.map(d.values.slice(0, -1), (v, i) => {
+            const prevPos = i > 0 && d.values[i-1].position
+            const prevSegment = i > 0 && v.position.subtract(prevPos)
+            const nextPos = d.values[i+1].position
+            const nextSegment = nextPos.subtract(v.position)
+
+            let pos = v.position
+            if (prevSegment) {
+                const normals = prevSegment.add(nextSegment).normalize().normals().map(x => x.times(5))
+                const potentialSpots = _.map(normals, n => v.position.add(n))
+                pos = _.sortBy(potentialSpots, p => {
+                    return -(Vector2.distance(p, prevPos)+Vector2.distance(p, nextPos))
+                })[0]
+            } else {
+                pos = v.position.subtract(nextSegment.normalize().times(5))
+            }
+
+            let bounds = Bounds.forText(v.time.x.toString(), { x: pos.x, y: pos.y, fontSize: fontSize*0.7 })
+            if (pos.x < v.position.x)
+                bounds = new Bounds(bounds.x-bounds.width+2, bounds.y, bounds.width, bounds.height)
+            if (pos.y > v.position.y)
+                bounds = new Bounds(bounds.x, bounds.y+bounds.height/2, bounds.width, bounds.height)
+
+            return {
+                text: v.time.x.toString(),
+                fontSize: fontSize*0.7,
+                pos: v.position,
+                bounds: bounds
+            }
+        }))
+    }
+
+    @computed get meanXPos(): number {
+        return _.meanBy(this.initialRenderData, d => _.last(d.values).position.x)
+    }
+
+    @computed get meanYPos(): number {
+        return _.meanBy(this.initialRenderData, d => _.last(d.values).position.y)
+    }
+
     @computed get renderData(): { position: Vector2, size: number, time: Object }[] {
-        let {initialRenderData, hoverKey, tmpFocusKeys, labelPriority, bounds} = this
+        let {initialRenderData, hoverKey, tmpFocusKeys, labelPriority, bounds, meanXPos, meanYPos} = this
         let renderData = _.sortBy(initialRenderData, d => -d.size)
 
         /*if (tmpFocusKeys.length < 1) {
@@ -172,36 +225,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
             // Individual year labels
             if (d.isFocused)
-                d.labels = d.labels.concat(_.map(d.values.slice(0, -1), (v, i) => {
-                    const prevPos = i > 0 && d.values[i-1].position
-                    const prevSegment = i > 0 && v.position.subtract(prevPos)
-                    const nextPos = d.values[i+1].position
-                    const nextSegment = nextPos.subtract(v.position)
-
-                    let pos = v.position
-                    if (prevSegment) {
-                        const normals = prevSegment.add(nextSegment).normalize().normals().map(x => x.times(5))
-                        const potentialSpots = _.map(normals, n => v.position.add(n))
-                        pos = _.sortBy(potentialSpots, p => {
-                            return -(Vector2.distance(p, prevPos)+Vector2.distance(p, nextPos))
-                        })[0]
-                    } else {
-                        pos = v.position.subtract(nextSegment.normalize().times(5))
-                    }
-
-                    let bounds = Bounds.forText(v.time.x.toString(), { x: pos.x, y: pos.y, fontSize: fontSize*0.7 })
-                    if (pos.x < v.position.x)
-                        bounds = new Bounds(bounds.x-bounds.width+2, bounds.y, bounds.width, bounds.height)
-                    if (pos.y > v.position.y)
-                        bounds = new Bounds(bounds.x, bounds.y+bounds.height/2, bounds.width, bounds.height)
-
-                    return {
-                        text: v.time.x.toString(),
-                        fontSize: fontSize*0.7,
-                        pos: v.position,
-                        bounds: bounds
-                    }
-                }))
+                d.labels = d.labels.concat(this.makeYearLabels(d, fontSize))
         })
 
         // Ensure labels fit inside bounds
@@ -270,9 +294,12 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             this.hoverKey = null
         else {
             const closestSeries = _.sortBy(this.renderData, (series) => {
-                return Vector2.distanceSq(_.last(series.values).position, mouse)
+                return _.min(_.map(series.values, v => Vector2.distanceSq(v.position, mouse)))
             })[0]
-            this.hoverKey = closestSeries.key
+            if (closestSeries && _.min(_.map(closestSeries.values, v => Vector2.distance(v.position, mouse))) < 20)
+                this.hoverKey = closestSeries.key
+            else
+                this.hoverKey = null
         }
     }
 
