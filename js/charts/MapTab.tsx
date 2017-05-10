@@ -72,8 +72,8 @@ class TimelineMap extends React.Component<TimelineMapProps, null> {
         this.focusBracket = d
     }
 
-    @action.bound onTargetChange(targetYear: number) {
-        this.context.chartView.map.set('targetYear', targetYear)
+    @action.bound onTargetChange({targetStartYear}: {targetStartYear: number}) {
+        this.context.chartView.map.set('targetYear', targetStartYear)
     }
 
     @action.bound onLegendMouseLeave() {
@@ -85,7 +85,7 @@ class TimelineMap extends React.Component<TimelineMapProps, null> {
 
         const {years, inputYear} = this.props
 
-        return preInstantiate(<Timeline bounds={this.props.bounds.fromBottom(35)} onTargetChange={this.onTargetChange} years={years} inputYear={inputYear}/>)
+        return preInstantiate(<Timeline bounds={this.props.bounds.fromBottom(35)} onTargetChange={this.onTargetChange} years={years} startYear={inputYear} endYear={inputYear} singleYearMode={true}/>)
     }
 
     @computed get timelineHeight() {
