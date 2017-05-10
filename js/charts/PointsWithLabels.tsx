@@ -153,7 +153,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                 offsetVector = lastPos.subtract(prevPos)
             }
 
-            const labelPos = lastPos.add(offsetVector.normalize().times(10))
+            const labelPos = lastPos.add(offsetVector.normalize().times(5))
 
             let labelBounds = Bounds.forText(d.label, { x: labelPos.x, y: labelPos.y, fontSize: fontSize })
             if (labelPos.x < lastPos.x)
@@ -165,7 +165,8 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                 {
                     text: d.label,
                     fontSize: fontSize,
-                    bounds: labelBounds
+                    bounds: labelBounds,
+                    origin: _.last(d.values)
                 }
             ]
 
@@ -269,13 +270,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             this.hoverKey = null
         else {
             const closestSeries = _.sortBy(this.renderData, (series) => {
-                if (series.values.length == 1) {
-                    return Vector2.distanceSq(series.values[0].position, mouse)
-                } else {
-                    return _.min(_.map(series.values.slice(0, -1), (d, i) => {
-                        return Vector2.distanceFromPointToLineSq(mouse, d.position, series.values[i+1].position)
-                    }))
-                }
+                return Vector2.distanceSq(_.last(series.values).position, mouse)
             })[0]
             this.hoverKey = closestSeries.key
         }
@@ -316,10 +311,12 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         const defaultOpacity = 1
 
         return <g className="ScatterPlot">
+            <rect x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="#fff"/>
             <g className="entities" strokeOpacity={defaultOpacity} fillOpacity={defaultOpacity}>
                 {_.map(renderData, d => {
-                    const color = ((isFocusMode && !d.isFocused) || !d.isActive) ? "#e2e2e2" : d.color
+                    const color = !d.isFocused ? "#e2e2e2" : d.color
                     const focusMul = d.isHovered ? 3 : (d.isFocused ? 2 : 0.5)
+                    const lastValue = _.last(d.values)
 
                     if (d.values.length == 1) {
                         const v = d.values[0]
@@ -343,18 +340,30 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                                 strokeOpacity={d.isFocused && 1}
                                 points={_.map(d.values, v => `${v.position.x},${v.position.y}`).join(' ')}
                                 fill="none"
-                                strokeWidth={d.isHovered ? 3 : (d.isFocused ? 2 : 0.5)}
-                                markerStart={`url(#${d.displayKey}-start)`}
-                                markerMid={`url(#${d.displayKey}-start)`}
-                                markerEnd={`url(#${d.displayKey})`}
+                                strokeWidth={d.isHovered ? 3 : (d.isFocused ? 2 : 0.3)}
+                                //stroke-dasharray="1, 5" 
+                                //opacity={0.5}                               
+                               // markerStart={`url(#${d.displayKey}-start)`}
+                               // markerMid={`url(#${d.displayKey}-start)`}
+                               // markerEnd={`url(#${d.displayKey})`}
                             />
                         ]
+                })}
+                {_.map(renderData, d => {
+                    const firstValue = _.first(d.values)
+                    const lastValue = _.last(d.values)
+                    return [
+                        <circle cx={lastValue.position.x} cy={lastValue.position.y} r={3} fill={(!isFocusMode || d.isFocused) ? d.color : "#e2e2e2"} opacity={0.8} stroke="#ccc"/>,
+                        <circle cx={firstValue.position.x} cy={firstValue.position.y} r={1.5} fill={(!isFocusMode || d.isFocused) ? d.color : "#e2e2e2"} opacity={0.4} stroke="#ccc"/>
+                    ]
                 })}
             </g>
             <g className="labels">
                 {_.map(renderData, d =>
                     _.map(d.labels, (l, i) =>
-                        d.isActive && !l.isHidden && <text x={l.bounds.x} y={l.bounds.y+l.bounds.height} fontSize={l.fontSize} fontWeight={d.isHovered && "bold"} fill={!isFocusMode || d.isFocused ? "#333" : "#999"}>{l.text}</text>
+                        d.isActive && !l.isHidden && [
+                            <text x={l.bounds.x} y={l.bounds.y+l.bounds.height} fontSize={l.fontSize} fontWeight={d.isHovered && "bold"} fill={!isFocusMode || d.isFocused ? "#333" : "#999"}>{l.text}</text>
+                        ]                    
                     )
                 )}
                 {_.map(renderData, d =>
