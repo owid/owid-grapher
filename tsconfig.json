@@ -1,14 +1,16 @@
 {
     "compilerOptions": {
-        "allowJs": true,
+        "allowJs": false,
         "alwaysStrict": true,
-        "outDir": "./dist/",
+        "noImplicitAny": true,
+        "outDir": "./tmp/dist/",
         "sourceMap": true,
         "module": "commonjs",
         "target": "es5",
-        "jsx": "react"
+        "jsx": "react",
+        "experimentalDecorators": true
     },
     "include": [
-        "./src/**/*"
+        "./js/**/*"
     ]
 }

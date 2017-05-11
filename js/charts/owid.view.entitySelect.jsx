@@ -19,7 +19,7 @@ export default function() {
             if (d3.event.code == 'Escape')
                 entitySelect.clean();
         });
-        
+
         /*var h2 = el.append('h2').text("Select entity");
         var closeBtn = h2.append('button').attr('class', 'btnClose clickable').html('<i class="fa fa-close"></i>');
 

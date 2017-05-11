@@ -83,13 +83,13 @@ export default Backbone.Model.extend({
 				// If in multi-variable, multi-entity mode, two entity labels are colored along the same gradient
 				if (this.colorCache[group.entityId])
 					group.color = this.assignColorForKey(group.key, this.colorCache[group.entityId]);
-				else {						
+				else {
 					group.color = this.assignColorForKey(group.key);
 					this.colorCache[group.entityId] = group.color;
 				}
 			} else {
-				group.color = this.assignColorForKey(group.key);					
-			}			
+				group.color = this.assignColorForKey(group.key);
+			}
 		}.bind(this));
 	},
 
@@ -100,7 +100,7 @@ export default Backbone.Model.extend({
 			if (chartType == App.ChartType.DiscreteBar || chartType == App.ChartType.ScatterPlot) {
 				_.each(series.values, function(d) {
 					d.color = this.assignColorForKey(d.key, d.color);
-				}.bind(this));					
+				}.bind(this));
 			} else {
 				series.color = this.assignColorForKey(series.key, series.color);
 			}

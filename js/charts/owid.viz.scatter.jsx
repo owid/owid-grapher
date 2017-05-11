@@ -82,6 +82,7 @@ const scatterWithoutTimeline = function() {
                 if (year < targetYear-tolerance || year > targetYear+tolerance)
                     continue;
 
+
                 var series = owid.default(dataByEntity, entityId, {
                     id: entityId,
                     label: entity.name,
@@ -95,12 +96,16 @@ const scatterWithoutTimeline = function() {
                     continue;
 
                 var d = series.values[0];
-                d.time[dimension.property] = year;
 
-                if (dimension.property == 'color')
+                if (dimension.property == 'color') {
                     series.color = colorScale(value);
-                else
-                    d[dimension.property] = value;
+                } else {
+                    // Skip non-numeric data
+                    if (_.isFinite(parseFloat(value))) {
+                        d[dimension.property] = value;
+                        d.time[dimension.property] = year;
+                    }
+                }
             }
         });
 
@@ -157,9 +162,8 @@ const scatterWithTimeline = function() {
         return _.filter(dimensions, function(d) { return d.property == 'x' || d.property == 'y'; });
     });
 
-    viz.flow('timeRanges, defaultYear, tolerance : timelineConfig', function(timelineConfig) {
+    viz.flow('defaultYear, tolerance : timelineConfig', function(timelineConfig) {
         return [
-            _.result(timelineConfig, 'timeRanges', null),
             _.result(timelineConfig, 'defaultYear', 'latest'),
             _.result(timelineConfig, 'tolerance', 0)
         ];
@@ -192,11 +196,8 @@ const scatterWithTimeline = function() {
         return _.sortBy(_.intersection.apply(_, yearSets));
     });
 
-    viz.flow('timelineYears : timeRanges, yearsWithData', function(timeRanges, yearsWithData) {
-        return _.intersection(
-            owid.timeRangesToYears(timeRanges, _.first(yearsWithData), _.last(yearsWithData)),
-            yearsWithData
-        );
+    viz.flow('timelineYears : yearsWithData', function(yearsWithData) {
+        return yearsWithData
     });
 
     // Set default input year if none is given
@@ -258,7 +259,7 @@ const scatterWithTimeline = function() {
 
                     if (dimension.property == 'color')
                         series.color = colorScale(value);
-                    else {
+                    else if (_.isFinite(parseFloat(value))) {
                         d.time[dimension.property] = year;
                         d[dimension.property] = value;
                     }

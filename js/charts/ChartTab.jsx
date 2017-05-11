@@ -1,5 +1,9 @@
 import React from 'react'
-import {h, render, Component} from 'preact'
+import {render} from 'preact'
+import {computed} from 'mobx'
+import {preInstantiate} from './Util'
+import Header from './Header'
+import SourcesFooter from './SourcesFooter'
 import SlopeChart from './SlopeChart'
 import Bounds from './Bounds'
 import ChartConfig from './ChartConfig'
@@ -13,17 +17,89 @@ import EntitySelect from './owid.view.entitySelect'
 import Legend from './App.Views.Chart.Legend'
 import nv from 'nvd3'
 
+export default class ChartTab extends React.Component {
+    componentDidMount() {
+        this.props.chartView.svg = d3.select(d3.select(this.base).node().parentNode)
+        this.props.chartView.el = d3.select("#chart")
+        this.chartTab = chartTabOld(this.props.chartView)
+        this.componentDidUpdate()
+    }
+
+    componentDidUpdate() {
+        this.chartTab.onRenderEnd = this.props.onRenderEnd
+        this.chartTab.render(this.bounds)
+    }
+
+    componentWillUnmount() {
+        this.chartTab.clean()
+    }
+
+    @computed get header() {
+        const {props} = this
+        const {bounds, chart} = props
+
+        let minYear = null
+        let maxYear = null
+        if (chart.type == App.ChartType.ScatterPlot) {
+            minYear = chart.timeRange[0];
+            maxYear = chart.timeRange[1];
+        }
+
+        return preInstantiate(<Header
+            bounds={bounds}
+            titleTemplate={chart.title}
+            titleLink={this.props.chartView.url.getCurrentLink()}
+            subtitleTemplate={chart.subtitle}
+            logosSVG={chart.logosSVG}
+            entities={chart.selectedEntities}
+            entityType={chart.entityType}
+            minYear={minYear}
+            maxYear={maxYear}
+        />)
+    }
+
+    @computed get footer() {
+        const {props} = this
+        const {chart} = props
+
+        return preInstantiate(<SourcesFooter
+            bounds={props.bounds}
+            chartView={props.chartView}
+            note={chart.note}
+            originUrl={chart.originUrl}
+         />)
+    }
+
+    renderChart() {
+        if (this.props.chart.type == App.ChartType.SlopeChart)
+            return <SlopeChart bounds={this.bounds.padTop(20)} config={this.props.chartView.chart}/>
+        else
+            return null
+    }
+
+    render() {
+        const {header, footer} = this
+        this.bounds = this.props.bounds.padTop(header.height).padBottom(footer.height)
+
+        return <g class="chartTab">
+            <Header {...header.props}/>
+            {this.renderChart()}
+            <SourcesFooter {...footer.props}/>
+        </g>
+    }
+}
+
 // Override nvd3 handling of zero data charts to prevent it removing
 // all of our svg stuff
 nv.utils.noData = function(nvd3, container) {
     container.selectAll('g.nv-wrap').remove();
-    chart.showMessage("No data available.");
+    //chart.showMessage("No data available.");
 };
 
-export default function(chart) {
+const chartTabOld = function(chart) {
 	var chartTab = dataflow();
 
-	var $svg, $tab, $entitiesSelect,
+	var $svg, $tab, //$entitiesSelect,
 		$xAxisScale, $yAxisScale,
 		svg, nvd3, viz;
 
@@ -54,7 +130,7 @@ export default function(chart) {
 
 	var xDomain, yDomain, isClamped;
 
-	chartTab.scaleSelectors = scaleSelectors(chart);
+	chartTab.scaleSelectors = scaleSelectors(chart, chartTab);
 
 	var nvOptions = {
 		showLegend: false
@@ -97,7 +173,7 @@ export default function(chart) {
 		$(".chart-error").remove();
 		if (missingMsg || (_.isEmpty(localData) && chartType != App.ChartType.ScatterPlot && chartType != App.ChartType.SlopeChart)) {
 			chart.el.selectAll(".nv-wrap").remove();
-			chart.showMessage(missingMsg || "No available data.");
+			//chart.showMessage(missingMsg || "No available data.");
 			return;
 		}
 
@@ -120,7 +196,7 @@ export default function(chart) {
 			} else if (chartType == App.ChartType.DiscreteBar) {
 				renderDiscreteBar();
 			} else if (chartType == App.ChartType.SlopeChart) {
-				renderSlopeChart()
+				return
 			}
 
 			if (nvd3) {
@@ -173,9 +249,7 @@ export default function(chart) {
 		chartType = chart.model.get('chart-type');
 		svg = chart.svg;
 		svg.attr("class", "nvd3-svg " + chartType);
-
-
-		$entitiesSelect = $(svg.node()).find('[name=available_entities]');
+//		$entitiesSelect = $(svg.node()).find('[name=available_entities]');
 	}
 
 	function configureData() {
@@ -220,7 +294,7 @@ export default function(chart) {
 			entityType = chart.model.get("entity-type");
 
 		// Fill entity selector with all entities not currently selected
-		$entitiesSelect.empty();
+		/*$entitiesSelect.empty();
 		$entitiesSelect.append("<option disabled selected>Select " + entityType + "</option>");
 		_.each(availableEntities, function(entity) {
 			if (!selectedEntitiesById[entity.id]) {
@@ -229,7 +303,7 @@ export default function(chart) {
 		});
 
 		$entitiesSelect.trigger("chosen:updated");
-		$entitiesSelect.off('change').on('change', onAvailableCountries);
+		$entitiesSelect.off('change').on('change', onAvailableCountries);*/
 	}
 
 	function onAvailableCountries(evt) {
@@ -243,19 +317,6 @@ export default function(chart) {
 		} else {
 			chart.model.replaceSelectedCountry({ id: $select.val(), name: text });
 		}
-	}
-
-	var rootNode = null;
-	function renderSlopeChart() {
-		let bounds = new Bounds(chartOffsetX, chartOffsetY+10, chartWidth-10, chartHeight-10)
-
-//			const props = slopeChartTransform.getProps({ dimensions: chart.model.getDimensions(), xDomain: chartTime })
-//			chartTab.minYear = props.xDomain[0]
-//			chartTab.maxYear = props.xDomain[1]
-
-		rootNode = render(<SlopeChart bounds={bounds} config={new ChartConfig(chart.model)}/>, chart.svg.node(), rootNode)
-		postRender();
-		chart.header.render();
 	}
 
 	function renderLineChart() {
@@ -694,8 +755,10 @@ export default function(chart) {
 			});
 		}
 
-		chart.dispatch.call('renderEnd');
+        if (chartTab.onRenderEnd)
+            chartTab.onRenderEnd()
 	}
 
 	return chartTab;
 };
+

@@ -1,6 +1,6 @@
 // @flow
 
-import _ from 'lodash'
+import * as _ from 'lodash'
 import * as d3 from 'd3'
 import Vector2 from './Vector2'
 
@@ -26,6 +26,10 @@ export default class Bounds {
 		return this.fromProps(bbox)
 	}
 
+    static fromRect(rect : ClientRect) {
+        return new Bounds(rect.left, rect.top, rect.width, rect.height)
+    }
+
 	static fromCorners(p1: Vector2, p2: Vector2) {
 		const x1 = Math.min(p1.x, p2.x)
 		const x2 = Math.max(p1.x, p2.x)
@@ -39,15 +43,16 @@ export default class Bounds {
 		return new Bounds(0,0,0,0)
 	}
 
-    static textBoundsCache : Map<string, Bounds>
-    static ctx : any
-    static baseFontSize : number
+    static textBoundsCache: { [key: string]: Bounds }
+    static ctx: CanvasRenderingContext2D
+    static baseFontSize: number
+    static baseFontFamily: string
 
     static forText(str: string, { x = 0, y = 0, fontSize = '1em' }: { x?: number, y?: number, fontSize?: string|number } = {}): Bounds {
         if (str == "")
             return Bounds.empty()
 
-        this.textBoundsCache = this.textBoundsCache || new Map()
+        this.textBoundsCache = this.textBoundsCache || {}
         this.ctx = this.ctx || document.createElement('canvas').getContext('2d')
         this.baseFontSize = this.baseFontSize || parseFloat(d3.select('svg').style('font-size'))
         this.baseFontFamily = this.baseFontFamily || d3.select('svg').style('font-family')
@@ -60,20 +65,25 @@ export default class Bounds {
         const key = str+'-'+fontSize
         const fontFace = this.baseFontFamily
 
-        let bounds = this.textBoundsCache.get(key)
+        let bounds = this.textBoundsCache[key]
         if (bounds) return bounds
 
         this.ctx.font = fontSize + ' ' + fontFace;
         const m = this.ctx.measureText(str)
 
-        const height = parseFloat(fontSize)
-        bounds = new Bounds(x, y-height, m.width, height)
+        let width = m.width
+        let height = parseFloat(fontSize)
 
-        this.textBoundsCache.set(key, bounds)
+        if (window.hasOwnProperty("callPhantom")) // HACK (Mispy): under phantomjs ctx.measureText underestimates the width
+            width *= 1.03
+
+        bounds = new Bounds(x, y-height, width, height)
+
+        this.textBoundsCache[key] = bounds
         return bounds
     }
 
-    static debug(boundsArray : Bounds[], containerNode = null) {
+    static debug(boundsArray: Bounds[], containerNode: HTMLElement = null) {
         var container = containerNode ? d3.select(containerNode) : d3.select('svg');
 
         container.selectAll('rect.boundsDebug').remove()
@@ -92,8 +102,6 @@ export default class Bounds {
 
 	get left(): number { return this.x }
 	get top(): number { return this.y }
-    get centerX(): number { return this.x+this.width/2 }
-    get centerY(): number { return this.y+this.height/2 }
 	get right(): number { return this.x+this.width }
 	get bottom(): number { return this.y+this.height }
     get centerX(): number { return this.x+this.width/2 }

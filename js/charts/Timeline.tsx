@@ -1,52 +1,48 @@
-// @flow
-
-import * as _ from 'underscore'
+import * as _ from 'lodash'
+import * as React from 'react'
 import * as d3 from 'd3'
-import owid from '../owid'
 import Bounds from './Bounds'
 import Text from './Text'
-import type { SVGElement } from './Util'
-import { getRelativeMouse } from './Util'
-import React, {Component} from 'react'
-import { observable, computed, asFlat, autorun, autorunAsync, action } from 'mobx'
+import {getRelativeMouse} from './Util'
+import { observable, computed, autorun, autorunAsync, action } from 'mobx'
 import {observer} from 'mobx-react'
-import { bind } from 'decko'
 
 type TimelineProps = {
 	years: number[],
 	inputYear: number,
-	onTimeChange: (number, number) => void,
+	onTargetChange: (targetYear: number) => void,
 	bounds: Bounds
 };
 
 @observer
-export default class Timeline extends Component {
-	props: TimelineProps
-
-	@observable inputYear : number = 0
-	@observable isPlaying : boolean = false
-	@observable isDragging : boolean = false
+export default class Timeline extends React.Component<TimelineProps, null> {
+	@observable inputYear: number = 0
+	@observable isPlaying: boolean = false
+	@observable isDragging: boolean = false
 
 	g: SVGElement
 
-	constructor(props : TimelineProps) {
+	constructor(props: TimelineProps) {
 		super(props)
 		this.inputYear = props.inputYear
-
-		autorun(() => {
-			const { isPlaying } = this
-
-			if (isPlaying)
-				this.onStartPlaying()
-			else
-				this.onStopPlaying()
-		})
-
-		autorunAsync(() => {
-			if (this.props.onTargetChange)
-                this.props.onTargetChange(this.targetYear)
-		})
 	}
+
+    componentWillMount() {
+        autorun(() => {
+            const { isPlaying } = this
+
+            if (isPlaying) {
+                this.onStartPlaying()
+            } else {
+                this.onStopPlaying()
+            }
+        })
+
+        autorunAsync(() => {
+            if (this.props.onTargetChange)
+                this.props.onTargetChange(this.targetYear)
+        })
+    }
 
 	@computed get years(): number[] { return this.props.years }
 	@computed get bounds(): Bounds { return this.props.bounds }
@@ -107,7 +103,7 @@ export default class Timeline extends Component {
 	animRequest: number;
 
 	@action onStartPlaying() {
-		let lastTime = null, ticksPerSec = 5;
+		let lastTime: number = null, ticksPerSec = 5;
 
 		const playFrame = (time : number) => {
 			const { isPlaying, activeYear, targetYear, years, minYear, maxYear } = this
@@ -142,9 +138,9 @@ export default class Timeline extends Component {
 		cancelAnimationFrame(this.animRequest)
 	}
 
-	getInputYearFromMouse(evt: MouseEvent) {
+	getInputYearFromMouse(ev: any) {
 		const { sliderBounds, minYear, maxYear, g } = this
-        const mouseX = getRelativeMouse(g, evt)[0]
+        const mouseX = getRelativeMouse(g, ev)[0]
 
         var fracWidth = (mouseX-sliderBounds.x) / sliderBounds.width,
             inputYear = minYear + fracWidth*(maxYear-minYear);
@@ -153,13 +149,13 @@ export default class Timeline extends Component {
 	}
 
 
-    @action.bound onMouseDown(evt : MouseEvent) {
+    @action.bound onMouseDown(ev: any) {
         // Don't do mousemove if we clicked the play or pause button
-        if (d3.select(evt.target).classed('toggle')) return;
+        if (d3.select(ev.target as HTMLElement).classed('toggle')) return;
 
         this.isDragging = true
-        this.inputYear = this.getInputYearFromMouse(evt)
-        evt.preventDefault()
+        this.inputYear = this.getInputYearFromMouse(ev)
+        ev.preventDefault()
 
 /*        container.on('mousemove.timeline', onMouseMove);
         container.on('mouseup.timeline', onMouseUp);
@@ -172,16 +168,16 @@ export default class Timeline extends Component {
 
 	@action.bound onMouseMove() {
 		if (!this.isDragging || this.mouseFrameQueued) return
-		const evt = d3.event
+		const ev = d3.event
 
 		this.mouseFrameQueued = true
 		requestAnimationFrame(() => {
-			this.inputYear = this.getInputYearFromMouse(evt)
+			this.inputYear = this.getInputYearFromMouse(ev)
 	        this.mouseFrameQueued = false
 	    })
 	}
 
-    @action.bound onMouseUp(evt : MouseEvent) {
+    @action.bound onMouseUp(ev : MouseEvent) {
     	this.isDragging = false
     }
 
@@ -208,19 +204,19 @@ export default class Timeline extends Component {
         const toggleText = isPlaying ? "\uf28c" : "\uf01d"
         const toggleTextBounds = Bounds.forText(toggleText, { fontSize: "1.3em" })
 
-		return <g class="timeline clickable" onMouseDown={this.onMouseDown} ref={g => this.g = g}>
+		return <g className="clickable" onMouseDown={this.onMouseDown} ref={g => this.g = g}>
 			<rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height} fill="white"></rect>
-			<Text class="toggle" onClick={() => this.isPlaying = !this.isPlaying} x={bounds.left+10} y={bounds.centerY-toggleTextBounds.height/2} font-family="FontAwesome" font-size="1.3em">{toggleText}
+			<Text className="toggle" onClick={() => this.isPlaying = !this.isPlaying} x={bounds.left+10} y={bounds.centerY-toggleTextBounds.height/2} font-family="FontAwesome" font-size="1.3em">{toggleText}
 			</Text>
-			<Text class="minYearLabel" x={minYearBox.x} y={minYearBox.y} font-size="0.7em" fill="#666">{minYear}</Text>
-			<Text class="maxYearLabel" x={maxYearBox.x} y={maxYearBox.y} font-size="0.7em" fill="#666">{maxYear}</Text>
-			<g class="ticks">
+			<Text className="minYearLabel" x={minYearBox.x} y={minYearBox.y} font-size="0.7em" fill="#666">{minYear}</Text>
+			<Text className="maxYearLabel" x={maxYearBox.x} y={maxYearBox.y} font-size="0.7em" fill="#666">{maxYear}</Text>
+			<g className="ticks">
 				{_.map(years.slice(1, -1), (year) => {
-					return <rect class="tick" x={xScale(year)} y={sliderBounds.top+sliderBounds.height-1} width="1px" height="0.2em" fill="rgba(0,0,0,0.2)" />
+					return <rect className="tick" x={xScale(year)} y={sliderBounds.top+sliderBounds.height-1} width="1px" height="0.2em" fill="rgba(0,0,0,0.2)" />
 				})}
 			</g>
-			<rect class="sliderBackground" x={sliderBounds.left} y={sliderBounds.top} width={sliderBounds.width} height={sliderBounds.height} rx={5} ry={5} stroke-width={0.1} fill="#eee"/>
-			<g class="handle" fill="#3F9EFF" transform={`translate(${xScale(activeYear)}, ${sliderBounds.centerY})`}>
+			<rect className="sliderBackground" x={sliderBounds.left} y={sliderBounds.top} width={sliderBounds.width} height={sliderBounds.height} rx={5} ry={5} stroke-width={0.1} fill="#eee"/>
+			<g className="handle" fill="#3F9EFF" transform={`translate(${xScale(activeYear)}, ${sliderBounds.centerY})`}>
 				<circle r={8} stroke="#000" stroke-width={0.1}/>
 				<text y={-9} font-size="0.6em" text-anchor="middle">
 					{targetYear == minYear || targetYear == maxYear ? '' : targetYear}
