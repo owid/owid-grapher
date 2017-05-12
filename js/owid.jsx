@@ -438,8 +438,8 @@ owid.queryParamsToStr = function(params) {
 
 owid.setQueryVariable = function(key, val) {
 	var params = owid.getQueryParams();
-
-	if (val === null || val === undefined) {
+	
+	if (val == null || val == "") {
 		delete params[key];
 	} else {
 		params[key] = val;

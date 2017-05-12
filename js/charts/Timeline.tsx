@@ -257,6 +257,12 @@ export default class RangeTimeline extends React.Component<TimelineProps, undefi
         //container.on('mouseleave.timeline', onMouseUp);
     }
 
+    @action.bound onDoubleClick(e: any) {
+        const inputYear = this.getInputYearFromMouse(e)
+        this.startYearInput = inputYear
+        this.endYearInput = inputYear        
+    }
+
 	mouseFrameQueued: boolean
 
 	@action.bound onMouseMove() {
@@ -309,7 +315,7 @@ export default class RangeTimeline extends React.Component<TimelineProps, undefi
         const toggleText = isPlaying ? "\uf28c" : "\uf01d"
         const toggleTextBounds = Bounds.forText(toggleText, { fontSize: "1.3em" })
 
-		return <g className="clickable" onMouseDown={this.onMouseDown} ref={g => this.g = g}>
+		return <g className="clickable" onMouseDown={this.onMouseDown} onDoubleClick={this.onDoubleClick} ref={g => this.g = g}>
 			<rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height} fill="white"></rect>
             <Text className="toggle" onClick={() => this.isPlaying = !this.isPlaying} x={bounds.left+10} y={bounds.centerY-toggleTextBounds.height/2} font-family="FontAwesome" font-size="1.3em">
                 {toggleText}

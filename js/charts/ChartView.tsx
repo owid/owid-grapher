@@ -4,7 +4,7 @@ import * as _ from 'lodash'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as d3 from 'd3'
-import {observable, computed, autorun} from 'mobx'
+import {observable, computed, autorun, action} from 'mobx'
 import {observer} from 'mobx-react'
 
 import ChartConfig from './ChartConfig'
@@ -157,11 +157,6 @@ export default class ChartView extends React.Component<ChartViewProps, null> {
         this.map.on('change', () => this.forceUpdate())
     }
 
-
-    getChildContext() {
-        return { chartView: this }
-    }
-
     @computed get controlsFooter() {
         return preInstantiate(<ControlsFooter
             availableTabs={this.chart.availableTabs}
@@ -190,6 +185,10 @@ export default class ChartView extends React.Component<ChartViewProps, null> {
 
     removePopup(vnodeType: any) {
         this.popups = this.popups.filter(d => !(d.nodeName == vnodeType))
+    }
+
+    getChildContext() {
+        return { chartView: this, addPopup: this.addPopup.bind(this), removePopup: this.removePopup.bind(this), scale: this.scale }
     }
 
     renderPrimaryTab(bounds: Bounds) {

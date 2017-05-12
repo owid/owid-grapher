@@ -18,6 +18,7 @@ import NoData from './NoData'
 import AxisScale from './AxisScale'
 import {getRelativeMouse, makeSafeForCSS} from './Util'
 import Vector2 from './Vector2'
+import {Triangle} from './Marks'
 
 interface ScatterSeries {
     color: string,
@@ -34,7 +35,7 @@ interface PointsWithLabelsProps {
     yScale: AxisScale
 }
 
-interface ScatterRenderDatum {
+interface ScatterRenderSeries {
     key: string,
     displayKey: string,
     color: string,
@@ -53,6 +54,10 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
     @computed get focusKeys(): string[] {
         return this.props.focusKeys || []
+    }
+
+    @computed get isLighterFocus() {
+        return this.focusKeys.length > 3
     }
 
     @computed get tmpFocusKeys() : string[] {
@@ -92,12 +97,11 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     }
 
     // Pre-transform data for rendering
-    @computed get initialRenderData() : ScatterRenderDatum[] {
+    @computed get initialRenderData() : ScatterRenderSeries[] {
         window.Vector2 = Vector2
         const {data, xScale, yScale, defaultColorScale, sizeScale, fontScale} = this
 
         return _.sortBy(_.map(data, d => {
-            const fontSize = fontScale(_.last(d.values).size||1)
             const values = _.map(d.values, v => {
                 return {
                     position: new Vector2(
@@ -114,14 +118,13 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                 displayKey: "key-" + makeSafeForCSS(d.key),
                 color: d.color || defaultColorScale(d.key),
                 size: _.last(values).size,
-                fontSize: fontSize,
                 values: values,
                 label: d.label
             }
         }), 'size')
     }
 
-    labelPriority(d1: ScatterRenderDatum, d2: ScatterRenderDatum): ScatterRenderDatum {
+    labelPriority(d1: ScatterRenderSeries, d2: ScatterRenderSeries): ScatterRenderSeries {
         if (d1.isHovered)
             return d1
         else if (d2.isHovered)
@@ -134,15 +137,51 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             return d1
     }
 
-    makeYearLabels(d: ScatterRenderDatum, fontSize: number) {
-        return _.map(d.values.slice(0, -1), (v, i) => {
-            const prevPos = i > 0 && d.values[i-1].position
-            const prevSegment = i > 0 && v.position.subtract(prevPos)
-            const nextPos = d.values[i+1].position
+    // Create the start year label for a series
+    makeStartLabel(series: ScatterRenderSeries) {
+        // No room to label the year if it's a single point        
+        if (!series.isFocused || series.values.length <= 1)
+            return null
+
+        const {isLighterFocus} = this
+        const fontSize = series.isFocused ? (isLighterFocus ? 6 : 8) : 6
+        const firstValue = series.values[0]
+        const nextValue = series.values[1]
+        const nextSegment = nextValue.position.subtract(firstValue.position)
+
+        let pos = firstValue.position.subtract(nextSegment.normalize().times(5))
+        let bounds = Bounds.forText(firstValue.time.x.toString(), { x: pos.x, y: pos.y, fontSize: fontSize })
+        if (pos.x < firstValue.position.x)
+            bounds = new Bounds(bounds.x-bounds.width+2, bounds.y, bounds.width, bounds.height)
+        if (pos.y > firstValue.position.y)
+            bounds = new Bounds(bounds.x, bounds.y+bounds.height/2, bounds.width, bounds.height)
+
+        return {
+            text: firstValue.time.x.toString(),
+            fontSize: fontSize,
+            pos: firstValue.position,
+            bounds: bounds,
+            isStart: true
+        }        
+    }
+
+    // Make labels for the points between start and end on a series
+    // Positioned using normals of the line segments
+    makeMidLabels(series: ScatterRenderSeries) {
+        if (!series.isFocused || series.values.length <= 1)
+            return []
+
+        const {isLighterFocus} = this
+        const fontSize = series.isFocused ? (isLighterFocus ? 6 : 8) : 6
+        
+        return _.map(series.values.slice(1, -1), (v, i) => {
+            const prevPos = i > 0 && series.values[i-1].position
+            const prevSegment = prevPos && v.position.subtract(prevPos)
+            const nextPos = series.values[i+1].position
             const nextSegment = nextPos.subtract(v.position)
 
             let pos = v.position
-            if (prevSegment) {
+            if (prevPos) {
                 const normals = prevSegment.add(nextSegment).normalize().normals().map(x => x.times(5))
                 const potentialSpots = _.map(normals, n => v.position.add(n))
                 pos = _.sortBy(potentialSpots, p => {
@@ -152,7 +191,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                 pos = v.position.subtract(nextSegment.normalize().times(5))
             }
 
-            let bounds = Bounds.forText(v.time.x.toString(), { x: pos.x, y: pos.y, fontSize: fontSize*0.7 })
+            let bounds = Bounds.forText(v.time.x.toString(), { x: pos.x, y: pos.y, fontSize: fontSize})
             if (pos.x < v.position.x)
                 bounds = new Bounds(bounds.x-bounds.width+2, bounds.y, bounds.width, bounds.height)
             if (pos.y > v.position.y)
@@ -160,113 +199,97 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
             return {
                 text: v.time.x.toString(),
-                fontSize: fontSize*0.7,
+                fontSize: fontSize,
                 pos: v.position,
-                bounds: bounds
+                bounds: bounds,
+                isMid: true
             }
         }))
     }
 
-    @computed get meanXPos(): number {
-        return _.meanBy(this.initialRenderData, d => _.last(d.values).position.x)
+    // Make the end label (entity label) for a series. Will be pushed
+    // slightly out based on the direction of the series if multiple values
+    // are present
+    makeEndLabel(series: ScatterRenderSeries) {
+        const {isLighterFocus} = this
+        const lastValue = _.last(series.values)
+        const lastPos = lastValue.position
+        const fontSize = series.isFocused ? (isLighterFocus ? 9 : 12) : 8
+
+        let offsetVector = Vector2.up
+        if (series.values.length > 1) {
+            const prevValue = series.values[series.values.length-2]
+            const prevPos = prevValue.position
+            offsetVector = lastPos.subtract(prevPos)
+        }
+        series.offsetVector = offsetVector
+
+        const labelPos = lastPos.add(offsetVector.normalize().times(5))
+
+        let labelBounds = Bounds.forText(series.label, { x: labelPos.x, y: labelPos.y, fontSize: fontSize })
+        if (labelPos.x < lastPos.x)
+            labelBounds = labelBounds.extend({ x: labelBounds.x-labelBounds.width })
+        if (labelPos.y > lastPos.y)
+            labelBounds = labelBounds.extend({ y: labelBounds.y+labelBounds.height/2 })
+
+        return {
+            text: series.label,
+            fontSize: fontSize,
+            bounds: labelBounds,
+            isEnd: true
+        }
     }
 
-    @computed get meanYPos(): number {
-        return _.meanBy(this.initialRenderData, d => _.last(d.values).position.y)
-    }
-
-    @computed get renderData(): { position: Vector2, size: number, time: Object }[] {
-        let {initialRenderData, hoverKey, tmpFocusKeys, labelPriority, bounds, meanXPos, meanYPos} = this
+    @computed get renderData(): ScatterRenderSeries[] {
+        let {initialRenderData, hoverKey, tmpFocusKeys, labelPriority, bounds, isLighterFocus} = this
         let renderData = _.sortBy(initialRenderData, d => -d.size)
 
-        /*if (tmpFocusKeys.length < 1) {
-            let newRenderData = []
-            _.each(renderData, d => {
-                const d2 = _.clone(d)
-                d2.values = [_.first(d.values), _.last(d.values)]
-                newRenderData.push(d2)
-            })
-            renderData = newRenderData
-        }*/
-
-        _.each(renderData, d => {
-            d.isHovered = d.key == hoverKey
-            d.isFocused = _.includes(tmpFocusKeys, d.key)
+        _.each(renderData, series => {
+            series.isHovered = series.key == hoverKey
+            series.isFocused = _.includes(tmpFocusKeys, series.key)
         })
 
-        _.each(renderData, d => {
-            const lastValue = _.last(d.values)
-            const lastPos = lastValue.position
-            const fontSize = d.fontSize * (d.isFocused ? 2 : 1)
-
-            let offsetVector = Vector2.up
-            if (d.values.length > 1) {
-                const prevValue = d.values[d.values.length-2]
-                const prevPos = prevValue.position
-                offsetVector = lastPos.subtract(prevPos)
-            }
-
-            const labelPos = lastPos.add(offsetVector.normalize().times(5))
-
-            let labelBounds = Bounds.forText(d.label, { x: labelPos.x, y: labelPos.y, fontSize: fontSize })
-            if (labelPos.x < lastPos.x)
-                labelBounds = labelBounds.extend({ x: labelBounds.x-labelBounds.width })
-            if (labelPos.y > lastPos.y)
-                labelBounds = labelBounds.extend({ y: labelBounds.y+labelBounds.height/2 })
-
-            d.labels = [
-                {
-                    text: d.label,
-                    fontSize: fontSize,
-                    bounds: labelBounds,
-                    origin: _.last(d.values)
-                }
-            ]
-
-            // Individual year labels
-            if (d.isFocused)
-                d.labels = d.labels.concat(this.makeYearLabels(d, fontSize))
+        _.each(renderData, series => {
+            series.startLabel = this.makeStartLabel(series)
+            series.midLabels = this.makeMidLabels(series)
+            series.endLabel = this.makeEndLabel(series)
+            series.allLabels = _.filter([series.startLabel].concat(series.midLabels).concat([series.endLabel]))
         })
+
+        const allLabels = _.flatten(_.map(renderData, series => series.allLabels))
 
         // Ensure labels fit inside bounds
-        _.each(renderData, d => {
-            _.each(d.labels, l => {
-                if (l.bounds.left < bounds.left) {
-                    l.bounds = l.bounds.extend({ x: l.bounds.x+l.bounds.width })
-                } else if (l.bounds.right > bounds.right) {
-                    l.bounds = l.bounds.extend({ x: l.bounds.x-l.bounds.width })
-                }
-            })
+        // Must do before collision detection since it'll change the positions
+        _.each(allLabels, l => {
+            if (l.bounds.left < bounds.left) {
+                l.bounds = l.bounds.extend({ x: l.bounds.x+l.bounds.width })
+            } else if (l.bounds.right > bounds.right) {
+                l.bounds = l.bounds.extend({ x: l.bounds.x-l.bounds.width })
+            }
         })
 
-        // Eliminate overlapping labels,
-        _.each(renderData, d => { d.isActive = true })
-        _.each(renderData, (d1, i) => {
-            _.each(renderData.slice(i+1), d2 => {
-                const intersect = _.some(d1.labels, l => _.some(d2.labels, l2 => l.bounds.intersects(l2.bounds)))
-                if (d1 !== d2 && d1.isActive && d2.isActive && intersect) {
-                    //if (d1.labels[0].text == "Tajikistan" || d2.labels[0].text == "Tajikistan")
-                    //    console.log(d1, d2)
-                    if (labelPriority(d1, d2) == d1)
-                        d2.isActive = false
-                    else
-                        d1.isActive = false
-                }
-            })
-        })
+        // Main collision detection
+        const labelsByPriority = _.sortBy(allLabels, l => -l.fontSize)
+        for (var i = 0; i < labelsByPriority.length; i++) {
+            const l1 = labelsByPriority[i]
+            if (l1.isHidden) continue
 
-        _.each(renderData, d => {
-            if (!d.isActive) return
+            for (var j = i+1; j < labelsByPriority.length; j++) {
+                const l2 = labelsByPriority[j]
+                if (l2.isHidden) continue
 
-            _.each(d.labels, (l1, i) => {
-                _.each(d.labels.slice(i+1), l2 => {
-                    if (l1.bounds.intersects(l2.bounds))
+                if (l1.bounds.intersects(l2.bounds)) {
+                    if (l1.fontSize > l2.fontSize)
                         l2.isHidden = true
-                })
-            })
-        })
+                    else if (l2.fontSize > l1.fontSize)
+                        l1.isHidden = true
+                    else
+                        l1.isHidden = true
+                }
+            }
+        }
 
-        return _.sortBy(renderData, d => d.isFocused ? 2 : (d.isActive ? 1 : 0))
+        return renderData
     }
 
     /*@computed get renderData() : Object[] {
@@ -294,6 +317,9 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             this.hoverKey = null
         else {
             const closestSeries = _.sortBy(this.renderData, (series) => {
+//                    return _.min(_.map(series.values.slice(0, -1), (d, i) => {
+//                        return Vector2.distanceFromPointToLineSq(mouse, d.position, series.values[i+1].position)
+//                    }))
                 return _.min(_.map(series.values, v => Vector2.distanceSq(v.position, mouse)))
             })[0]
             if (closestSeries && _.min(_.map(closestSeries.values, v => Vector2.distance(v.position, mouse))) < 20)
@@ -301,6 +327,11 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             else
                 this.hoverKey = null
         }
+
+        if (this.props.onMouseOver && this.hoverKey)
+            this.props.onMouseOver(_.find(this.data, d => d.key == this.hoverKey))        
+        else if (this.props.onMouseLeave && !this.hoverKey)
+            this.props.onMouseLeave()
     }
 
     @action.bound onClick() {
@@ -327,6 +358,128 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         return !!(this.tmpFocusKeys.length || this.renderData.length == 1)
     }
 
+    @computed get backgroundGroups(): ScatterRenderSeries[] {
+        return _.filter(this.renderData, group => !group.isFocused)
+    }
+
+    @computed get focusGroups(): ScatterRenderSeries[] {
+        return _.filter(this.renderData, group => group.isFocused)
+    }
+
+    // First pass: render the subtle polylines for background groups
+    renderBackgroundLines() {
+        const {backgroundGroups} = this
+
+        return _.map(backgroundGroups, d => {
+            if (d.values.length == 1)
+                return null
+            else {
+                return <polyline
+                    key={d.displayKey+'-line'}
+                    strokeLinecap="round"
+                    stroke={"#e2e2e2"}
+                    points={_.map(d.values, v => `${v.position.x},${v.position.y}`).join(' ')}
+                    fill="none"
+                    strokeWidth={0.3}
+                />                
+            }
+        })
+    }
+
+    // Second pass: render the starting points for each background group
+    renderBackgroundStartPoints() {
+        const {backgroundGroups, isFocusMode} = this
+        return _.map(backgroundGroups, group => {
+            if (group.values.length == 1)
+                return null
+            else {
+                const firstValue = _.first(group.values)
+                const color = !isFocusMode ? group.color : "#e2e2e2"
+
+                //return <polygon transform={`translate(${firstValue.position.x}, ${firstValue.position.y}) scale(0.5) rotate(180)`} points="0,0 10,0 5.0,8.66" fill={color} opacity={0.4} stroke="#ccc"/>
+                return <circle key={group.displayKey+'-start'} cx={firstValue.position.x} cy={firstValue.position.y} r={1.5} fill={!isFocusMode ? group.color : "#e2e2e2"} opacity={0.6} stroke="#ccc"/>
+            }
+        })
+    }
+
+    // Third pass: render the end points for each background group
+    renderBackgroundEndPoints() {
+        const {backgroundGroups, isFocusMode} = this
+        return _.map(backgroundGroups, group => {
+            const lastValue = _.last(group.values)
+            const color = !isFocusMode ? group.color : "#e2e2e2"            
+            let rotation = Vector2.angle(group.offsetVector, Vector2.up)
+            if (group.offsetVector.x < 0) rotation = -rotation
+
+            const cx = lastValue.position.x, cy = lastValue.position.y
+
+            if (group.values.length == 1) {
+                return <circle key={group.displayKey+'-end'} cx={cx} cy={cy} r={3} fill={color} opacity={0.8} stroke="#ccc"/>
+            } else {
+                return <Triangle key={group.displayKey+'-end'} transform={`rotate(${rotation}, ${cx}, ${cy})`} cx={cx} cy={cy} r={2} fill={color} stroke="#ccc" strokeWidth={0.2} opacity={1}/>
+            }
+        })    
+    }
+
+    renderBackgroundLabels() {
+        const {backgroundGroups, isFocusMode} = this
+        return _.map(backgroundGroups, series => {
+            return _.map(series.allLabels, l => 
+                !l.isHidden && <text key={series.displayKey+'-endLabel'} 
+                  x={l.bounds.x} 
+                  y={l.bounds.y+l.bounds.height} 
+                  fontSize={l.fontSize} 
+                  fill={!isFocusMode ? "#333" : "#999"}>{l.text}</text>
+            )
+        })     
+    }
+
+    renderFocusLines() {
+        const {focusGroups, isLighterFocus} = this
+        
+        return _.map(focusGroups, group => {
+                const focusMul = (group.isHovered ? 3 : 2) * (isLighterFocus ? 0.5 : 1)
+                const lastValue = _.last(group.values)
+
+            if (group.values.length == 1) {
+                const v = group.values[0]
+                return <circle key={group.displayKey} cx={v.position.x} cy={v.position.y} fill={group.color} r={1+focusMul*2}/>
+            } else
+                return [
+                    <defs key={group.displayKey+'-defs'}>
+                        <marker id={group.displayKey+'-arrow'} fill={group.color} viewBox="0 -5 10 10" refx={5} refY={0} markerWidth={4} markerHeight={4} orient="auto">
+                            <path d="M0,-5L10,0L0,5"/>
+                        </marker>
+                        <marker id={group.displayKey+'-circle'} viewBox="0 0 12 12"
+                                refX={5} refY={5} orient="auto" fill={group.color}>
+                            <circle cx={5} cy={5} r={5}/>
+                        </marker>
+                    </defs>,
+                    <polyline
+                        key={group.displayKey+'-line'}
+                        strokeLinecap="round"
+                        stroke={group.color}
+                        points={_.map(group.values, v => `${v.position.x},${v.position.y}`).join(' ')}
+                        fill="none"
+                        strokeWidth={focusMul}
+                        markerStart={`url(#${group.displayKey}-circle)`}
+                        markerMid={`url(#${group.displayKey}-circle)`}
+                        markerEnd={`url(#${group.displayKey}-arrow)`}
+                        opacity={isLighterFocus && 0.6}
+                    />
+                ]
+        })      
+    }
+
+    renderFocusLabels() {
+        const {focusGroups} = this
+        return _.map(focusGroups, series => {
+            return _.map(series.allLabels, (l, i) =>
+                !l.isHidden && <text key={series.displayKey+'-label-'+i} x={l.bounds.x} y={l.bounds.y+l.bounds.height} fontSize={l.fontSize} fill="#333">{l.text}</text>
+            )
+        })
+    }
+
     render() {
         //Bounds.debug(_.flatten(_.map(this.renderData, d => _.map(d.labels, 'bounds'))))
         const {bounds, renderData, xScale, yScale, sizeScale, tmpFocusKeys, allColors, isFocusMode} = this
@@ -335,72 +488,14 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         if (_.isEmpty(renderData))
             return <NoData bounds={bounds}/>
 
-        const defaultOpacity = 1
-
         return <g className="ScatterPlot">
-            <rect x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="#fff"/>
-            <g className="entities" strokeOpacity={defaultOpacity} fillOpacity={defaultOpacity}>
-                {_.map(renderData, d => {
-                    const color = !d.isFocused ? "#e2e2e2" : d.color
-                    const focusMul = d.isHovered ? 3 : (d.isFocused ? 2 : 0.5)
-                    const lastValue = _.last(d.values)
-
-                    if (d.values.length == 1) {
-                        const v = d.values[0]
-                        return <circle key={d.displayKey} cx={v.position.x} cy={v.position.y} fill={color} r={1+focusMul*2}/>
-                    } else
-                        return [
-                            <defs key={d.displayKey+'-defs'}>
-                                <marker key={d.displayKey} id={d.displayKey} fill={color} viewBox="0 -5 10 10" refx={5} refY={0} markerWidth={4} markerHeight={4} orient="auto">
-                                    <path d="M0,-5L10,0L0,5"/>
-                                </marker>
-                               <marker id={d.displayKey+'-start'} viewBox="0 0 12 12"
-                                       refX={5} refY={5} orient="auto" fill={color}>
-                                 <circle cx={5} cy={5} r={5}/>
-                               </marker>
-                            </defs>,
-                            <polyline
-                                key={d.displayKey+'-line'}
-                                className={d.displayKey}
-                                strokeLinecap="round"
-                                stroke={color}
-                                strokeOpacity={d.isFocused && 1}
-                                points={_.map(d.values, v => `${v.position.x},${v.position.y}`).join(' ')}
-                                fill="none"
-                                strokeWidth={d.isHovered ? 3 : (d.isFocused ? 2 : 0.3)}
-                                //stroke-dasharray="1, 5" 
-                                //opacity={0.5}                               
-                               // markerStart={`url(#${d.displayKey}-start)`}
-                               // markerMid={`url(#${d.displayKey}-start)`}
-                               // markerEnd={`url(#${d.displayKey})`}
-                            />
-                        ]
-                })}
-                {_.map(renderData, d => {
-                    const firstValue = _.first(d.values)
-                    const lastValue = _.last(d.values)
-                    return [
-                        <circle cx={lastValue.position.x} cy={lastValue.position.y} r={3} fill={(!isFocusMode || d.isFocused) ? d.color : "#e2e2e2"} opacity={0.8} stroke="#ccc"/>,
-                        <circle cx={firstValue.position.x} cy={firstValue.position.y} r={1.5} fill={(!isFocusMode || d.isFocused) ? d.color : "#e2e2e2"} opacity={0.4} stroke="#ccc"/>
-                    ]
-                })}
-            </g>
-            <g className="labels">
-                {_.map(renderData, d =>
-                    _.map(d.labels, (l, i) =>
-                        d.isActive && !l.isHidden && [
-                            <text x={l.bounds.x} y={l.bounds.y+l.bounds.height} fontSize={l.fontSize} fontWeight={d.isHovered && "bold"} fill={!isFocusMode || d.isFocused ? "#333" : "#999"}>{l.text}</text>
-                        ]                    
-                    )
-                )}
-                {_.map(renderData, d =>
-                    d.isFocused && _.map(d.labels, (l, i) =>
-                        l.normals && _.map(l.normals, n =>
-                            <line x1={l.pos.x} y1={l.pos.y} x2={l.pos.x+n.x} y2={l.pos.y+n.y} stroke="blue"/>
-                        )
-                    )
-                )}
-            </g>
+            <rect key="background" x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="#fff"/>
+            {this.renderBackgroundLines()}
+            {this.renderBackgroundStartPoints()}
+            {this.renderBackgroundEndPoints()}
+            {this.renderBackgroundLabels()}
+            {this.renderFocusLines()}
+            {this.renderFocusLabels()}
         </g>
     }
 }

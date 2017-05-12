@@ -10,11 +10,11 @@
 
 import * as _ from 'lodash'
 import * as d3 from 'd3'
-import owid from '../owid'
 import * as React from 'react'
 import {observable, computed, action, autorun} from 'mobx'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
+import owid from '../owid'
 import ChartConfig from './ChartConfig'
 import NoData from './NoData'
 import Axis from './Axis'
@@ -24,6 +24,8 @@ import Timeline from './Timeline'
 import PointsWithLabels from './PointsWithLabels'
 import {preInstantiate} from './Util'
 import Paragraph from './Paragraph'
+import ShapeLegend from './ShapeLegend'
+import {Triangle} from './Marks'
 
 type ScatterSeries = any
 
@@ -35,11 +37,20 @@ interface ColorLegendProps {
     scale: d3.ScaleOrdinal<string, string>,
     focusColor?: string,
     onMouseOver: (color: string) => void,
+    onClick: (color: string) => void,
     onMouseLeave: () => void
 }
 
 @observer
 class ColorLegend extends React.Component<ColorLegendProps, null> {
+    static defaultProps: Partial<ShapeLegendProps> = {
+        x: 0,
+        y: 0,
+        onMouseOver: () => null,
+        onClick: () => null
+        onMouseLeave: () => null
+    }
+
     @computed get fontSize(): number { return 0.5 }
     @computed get rectSize(): number { return 5 }
     @computed get rectPadding(): number { return 5 }
@@ -74,11 +85,11 @@ class ColorLegend extends React.Component<ColorLegendProps, null> {
         const {props, rectSize, rectPadding, lineHeight} = this
         let offset = 0
 
-        return <g class="ColorLegend" style={{cursor: 'default'}}>
+        return <g class="ColorLegend clickable" style={{cursor: 'pointer'}}>
             {_.map(this.labelMarks, mark => {
                 const isFocus = mark.color == props.focusColor
 
-                const result = <g class="legendMark" onMouseOver={e => this.props.onMouseOver(mark.color)} onMouseLeave={e => this.props.onMouseLeave()}>
+                const result = <g class="legendMark" onMouseOver={e => this.props.onMouseOver(mark.color)} onMouseLeave={e => this.props.onMouseLeave()} onClick={e => this.props.onClick(mark.color)}>
                     <rect x={props.x} y={props.y+offset+rectSize/2} width={mark.width} height={mark.height} opacity={0}/>,
                     <rect x={props.x} y={props.y+offset+rectSize/2} width={rectSize} height={rectSize} fill={mark.color} stroke={isFocus && "#FFEC38"}/>,
                     <Paragraph {...mark.label.props} x={props.x+rectSize+rectPadding} y={props.y+offset}/>
@@ -373,7 +384,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     }
 
     @computed get legend(): ColorLegend {
-        return preInstantiate(<ColorLegend maxWidth={this.bounds.width/3} colors={this.colorsInUse} scale={this.colorScale}/>)
+        return preInstantiate(<ColorLegend maxWidth={this.sidebarMaxWidth} colors={this.colorsInUse} scale={this.colorScale}/>)
     }
 
     @observable focusColor: string|null = null
@@ -385,20 +396,121 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         this.focusColor = null
     }
 
+    @action.bound onLegendClick() {
+        if (_.isEqual(this.focusKeys, this.chart.selectedEntities))
+            this.chart.selectedEntities = []
+        else
+            this.chart.selectedEntities = this.focusKeys
+    }
+
     @computed get focusKeys(): string[] {
         if (this.focusColor) {
-            return _.map(_.filter(this.allSeries, series => series.color == this.focusColor), series => series.key)
+            return _.uniq(_.map(_.filter(this.allSeries, series => series.color == this.focusColor), series => series.key))
         } else {
             return this.chart.selectedEntities
         }
     }
 
+    @computed get shapeLegend(): ShapeLegend {
+        if (this.focusKeys.length || this.hoverSeries || this.chart.timeRange[0] == this.chart.timeRange[1])
+            return null
+
+        const shapeData=[
+            {
+                shape: <circle cx={3} cy={3} r={2} fill={"#333"} stroke="#ccc" strokeWidth={0.2} opacity={0.8}/>,
+                text: this.chart.timeRange[0].toString()
+            },
+            { 
+                shape: <Triangle cx={3} cy={3} r={3} fill={"#333"} stroke="#ccc" strokeWidth={0.2} opacity={1}/>,
+                text: this.chart.timeRange[1].toString()
+            }
+        ]
+        return preInstantiate(
+            <ShapeLegend maxWidth={this.sidebarWidth} data={shapeData} shapeWidth={6}/>
+        )
+    }
+
+    @observable.ref hoverSeries = null
+    @action.bound onScatterMouseOver(series: ScatterSeries) {
+        this.hoverSeries = series
+    }
+
+    @action.bound onScatterMouseLeave() {
+        this.hoverSeries = null
+    }
+
+    @computed get tooltipSeries() {
+        if (this.hoverSeries)
+            return this.hoverSeries
+        else if (this.focusKeys && this.focusKeys.length == 1)
+            return _.find(this.currentData, series => series.key == this.focusKeys[0])
+        else
+            return null
+    }
+
+    @computed get sidebarMaxWidth() { return this.bounds.width*0.5 }
+    @computed get sidebarMinWidth() { return 0 }
+    @computed get sidebarWidth() {
+        const {sidebarMinWidth, sidebarMaxWidth, legend} = this
+        return Math.max(Math.min(legend.width, sidebarMaxWidth), sidebarMinWidth)
+    }
+
     render() {
-        const {currentData, bounds, yearsWithData, startYear, endYear, xScale, yScale, chart, timeline, timelineHeight, legend, focusKeys, focusColor} = this
+        const {currentData, bounds, yearsWithData, startYear, endYear, xScale, yScale, chart, timeline, timelineHeight, legend, focusKeys, focusColor, shapeLegend, hoverSeries, sidebarWidth, tooltipSeries} = this
         return <g>
-            <ScatterWithAxis data={currentData} bounds={this.bounds.padBottom(timelineHeight).padRight(legend.width+20)} xScale={xScale} yScale={yScale} xAxisLabel={chart.xAxisLabel} yAxisLabel={chart.yAxisLabel} onSelectEntity={this.onSelectEntity} focusKeys={focusKeys}/>
-            <ColorLegend {...legend.props} x={bounds.right-legend.width-5} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} focusColor={focusColor}/>
+            <ScatterWithAxis data={currentData} onMouseOver={this.onScatterMouseOver} bounds={this.bounds.padBottom(timelineHeight).padRight(sidebarWidth+20)} xScale={xScale} yScale={yScale} xAxisLabel={chart.xAxisLabel} yAxisLabel={chart.yAxisLabel} onSelectEntity={this.onSelectEntity} focusKeys={focusKeys} onMouseLeave={this.onScatterMouseLeave}/>
+            <ColorLegend {...legend.props} x={bounds.right-sidebarWidth} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} onClick={this.onLegendClick} focusColor={focusColor}/>
+            {(shapeLegend || tooltipSeries) && <line x1={bounds.right-sidebarWidth} y1={bounds.top+legend.height+2} x2={bounds.right-5} y2={bounds.top+legend.height+2} stroke="#ccc"/>}
+            {shapeLegend && <ShapeLegend {...shapeLegend.props} x={bounds.right-sidebarWidth} y={bounds.top+legend.height+11}/>}            
             {timeline && <Timeline {...timeline.props}/>}
+            {tooltipSeries && <ScatterTooltip series={tooltipSeries} units={chart.units} maxWidth={sidebarWidth} x={bounds.right-sidebarWidth} y={bounds.top+legend.height+11+(shapeLegend ? shapeLegend.height : 0)}/>}}
+        </g>
+    }
+}
+
+interface ScatterTooltipProps {
+    series: ScatterSeries
+}
+
+@observer
+class ScatterTooltip extends React.Component<ScatterTooltipProps, undefined> {
+    formatValue(value, property) {
+        const {units} = this.props
+        const unit = _.find(units, { property: property })
+        let s = owid.unitFormat(unit, value[property])
+        if (!unit || !unit.title)
+            s = property + ": " + s
+        return s
+	}
+
+    render() {
+        const {x, y, maxWidth, series} = this.props
+        const lineHeight = 5
+
+        const firstValue = _.first(series.values)
+        const lastValue = _.last(series.values)
+        const values = series.values.length == 1 ? [firstValue] : [firstValue, lastValue]
+
+        const elements = []
+        const offset = 0
+
+        const heading = preInstantiate(<Paragraph x={x} y={y+offset} maxWidth={maxWidth} fontSize={0.6}>{series.label}</Paragraph>)
+        elements.push(heading)
+        offset += heading.height+lineHeight
+
+
+        _.each(values, v => {
+            const year = preInstantiate(<Paragraph x={x} y={y+offset} maxWidth={maxWidth} fontSize={0.5}>{v.time.x.toString()}</Paragraph>)
+            offset += year.height+lineHeight
+            const line1 = preInstantiate(<Paragraph x={x} y={y+offset} maxWidth={maxWidth} fontSize={0.4}>{this.formatValue(v, 'x')}</Paragraph>)
+            offset += line1.height+lineHeight
+            const line2 = preInstantiate(<Paragraph x={x} y={y+offset} maxWidth={maxWidth} fontSize={0.4}>{this.formatValue(v, 'y')}</Paragraph>)
+            offset += line2.height+lineHeight            
+            elements.push(...[year, line1, line2])
+        })
+
+        return <g class="scatterTooltip">
+            {_.map(elements, el => el.render())}
         </g>
     }
 }

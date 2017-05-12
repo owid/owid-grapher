@@ -33,6 +33,7 @@ export default class ChartConfig {
     @observable.ref xScaleTypeOptions: string[]
     @observable.ref xAxisLabel: string
     @observable.ref xTickFormat: (v: number) => string
+    @observable.ref units: Object[]
     @observable.struct availableTabs: string[]
 
 	model: any
@@ -52,6 +53,7 @@ export default class ChartConfig {
         this.entityType = this.model.get('entity-type')
         this.timeline = this.model.get('timeline')
         this.timeRange = this.model.get('chart-time')||[]
+        this.units = JSON.parse(this.model.get('units'))
 
         this.yAxisConfig = this.model.get('y-axis')||{}
         let min = owid.numeric(this.yAxisConfig["axis-min"])

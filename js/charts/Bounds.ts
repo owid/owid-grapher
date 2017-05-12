@@ -66,7 +66,7 @@ export default class Bounds {
         const fontFace = this.baseFontFamily
 
         let bounds = this.textBoundsCache[key]
-        if (bounds) return bounds
+        if (bounds) return bounds.extend({ x: x, y: y-bounds.height })
 
         this.ctx.font = fontSize + ' ' + fontFace;
         const m = this.ctx.measureText(str)

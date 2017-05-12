@@ -16,16 +16,23 @@ interface LogoProps {
 
 @observer
 class Logo extends React.Component<LogoProps, null> {
+    static bboxCache = {}
+
     @computed get targetHeight() {
         return 40
     }
 
     @computed get bbox() {
+        if (Logo.bboxCache[this.props.svg])
+            return Logo.bboxCache[this.props.svg]
+
         var div = document.createElement('div');
         div.innerHTML = this.props.svg;
         document.body.appendChild(div)
         const bbox = (div.childNodes[0] as SVGSVGElement).getBBox()
         document.body.removeChild(div)
+
+        Logo.bboxCache[this.props.svg] = bbox
         return bbox
     }
 

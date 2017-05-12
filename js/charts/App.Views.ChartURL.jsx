@@ -192,7 +192,7 @@ export default function(chart) {
                 if (!foundEntity) return;
                 entityCodes.push(encodeURIComponent(foundEntity.code || foundEntity.name));
             });
-
+                        
             owid.setQueryVariable("country", entityCodes.join("+"));
         });
     }
