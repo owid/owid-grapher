@@ -82,11 +82,11 @@ class Chart(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     last_edited_by = models.ForeignKey(User, to_field='name', on_delete=models.DO_NOTHING, blank=True, null=True,
                                        db_column='last_edited_by')
-    last_edited_at = models.DateTimeField(auto_now=True)  # clarify the use of this one
+    last_edited_at = models.DateTimeField(auto_now=True)
     origin_url = models.CharField(max_length=255)
     notes = models.TextField()
     slug = models.CharField(max_length=255, blank=True, null=True)
-    published = models.BooleanField(default=False)
+    published = models.BooleanField(default=None)
     starred = models.BooleanField(default=False)
     type = models.CharField(max_length=255, choices=(('LineChart', 'Line chart'), ('ScatterPlot', 'Scatter plot'),
                                                      ('StackedArea', 'Stacked area'), ('MultiBar', 'Multi bar'),
@@ -200,7 +200,8 @@ class DatasetSubcategory(models.Model):
         unique_together = (('name', 'fk_dst_cat_id'),)
 
     name = models.CharField(max_length=255)
-    fk_dst_cat_id = models.ForeignKey(DatasetCategory, blank=True, null=True, on_delete=models.DO_NOTHING)
+    fk_dst_cat_id = models.ForeignKey(DatasetCategory, blank=True, null=True, on_delete=models.DO_NOTHING,
+                                      db_column='fk_dst_cat_id')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -214,8 +215,10 @@ class Dataset(models.Model):
     description = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    fk_dst_cat_id = models.ForeignKey(DatasetCategory, blank=True, null=True, on_delete=models.DO_NOTHING)
-    fk_dst_subcat_id = models.ForeignKey(DatasetSubcategory, blank=True, null=True, on_delete=models.DO_NOTHING)
+    fk_dst_cat_id = models.ForeignKey(DatasetCategory, blank=True, null=True, on_delete=models.DO_NOTHING,
+                                      db_column='fk_dst_cat_id')
+    fk_dst_subcat_id = models.ForeignKey(DatasetSubcategory, blank=True, null=True, on_delete=models.DO_NOTHING,
+                                         db_column='fk_dst_subcat_id')
     namespace = models.CharField(max_length=255, default='owid')
 
 
@@ -228,7 +231,7 @@ class Source(models.Model):
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    datasetid = models.ForeignKey(Dataset, db_column='datasetId', blank=True, null=True, on_delete=models.DO_NOTHING)
+    datasetId = models.ForeignKey(Dataset, db_column='datasetId', blank=True, null=True, on_delete=models.DO_NOTHING)
 
 
 class VariableType(models.Model):
@@ -236,7 +239,7 @@ class VariableType(models.Model):
         db_table = 'variable_types'
 
     name = models.CharField(max_length=255)
-    issortable = models.BooleanField(db_column='isSortable', default=False)
+    isSortable = models.BooleanField(db_column='isSortable', default=False)
 
 
 class Variable(models.Model):
@@ -247,13 +250,14 @@ class Variable(models.Model):
     name = models.CharField(max_length=255)
     unit = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
-    fk_dst_id = models.ForeignKey(Dataset, on_delete=models.CASCADE)
-    sourceid = models.ForeignKey(Source, on_delete=models.DO_NOTHING, db_column='sourceId')
-    created_at = models.DateTimeField(blank=True, null=True)
-    updated_at = models.DateTimeField(blank=True, null=True)
-    fk_var_type_id = models.ForeignKey(VariableType, on_delete=models.DO_NOTHING)
-    uploaded_by = models.ForeignKey(User, to_field='name', on_delete=models.DO_NOTHING, db_column='uploaded_by', blank=True, null=True)
-    uploaded_at = models.DateTimeField()
+    fk_dst_id = models.ForeignKey(Dataset, on_delete=models.CASCADE, db_column='fk_dst_id')
+    sourceId = models.ForeignKey(Source, on_delete=models.DO_NOTHING, db_column='sourceId')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    fk_var_type_id = models.ForeignKey(VariableType, on_delete=models.DO_NOTHING, db_column='fk_var_type_id')
+    uploaded_by = models.ForeignKey(User, to_field='name', on_delete=models.DO_NOTHING, db_column='uploaded_by',
+                                    blank=True, null=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
     code = models.CharField(max_length=255, blank=True, null=True)
     coverage = models.CharField(max_length=255)
     timespan = models.CharField(max_length=255)
@@ -263,13 +267,13 @@ class ChartDimension(models.Model):
     class Meta:
         db_table = "chart_dimensions"
 
-    chartid = models.ForeignKey(Chart, on_delete=models.CASCADE, db_column='chartId')
+    chartId = models.ForeignKey(Chart, on_delete=models.CASCADE, db_column='chartId')
     order = models.IntegerField()
-    variableid = models.ForeignKey(Variable, models.DO_NOTHING, db_column='variableId')
+    variableId = models.ForeignKey(Variable, models.DO_NOTHING, db_column='variableId')
     property = models.CharField(max_length=255)
     unit = models.CharField(max_length=255)
-    displayname = models.CharField(max_length=255, db_column='displayName')
-    targetyear = models.IntegerField(db_column='targetYear', blank=True, null=True)
+    displayName = models.CharField(max_length=255, db_column='displayName')
+    targetYear = models.IntegerField(db_column='targetYear', blank=True, null=True)
     tolerance = models.IntegerField(blank=True, default=5)
     color = models.CharField(max_length=255)
 
@@ -291,7 +295,7 @@ class Entity(models.Model):
     validated = models.BooleanField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    displayname = models.CharField(db_column='displayName', max_length=255)
+    displayName = models.CharField(db_column='displayName', max_length=255)
 
 
 class DataValue(models.Model):
@@ -300,8 +304,8 @@ class DataValue(models.Model):
         unique_together = (('fk_ent_id', 'fk_var_id', 'year'),)
 
     value = models.CharField(max_length=255)
-    fk_ent_id = models.ForeignKey(Entity, blank=True, null=True, on_delete=models.DO_NOTHING)
-    fk_var_id = models.ForeignKey(Variable, on_delete=models.CASCADE)
+    fk_ent_id = models.ForeignKey(Entity, blank=True, null=True, on_delete=models.DO_NOTHING, db_column='fk_ent_id')
+    fk_var_id = models.ForeignKey(Variable, on_delete=models.CASCADE, db_column='fk_var_id')
     year = models.IntegerField()
 
 
@@ -310,7 +314,7 @@ class InputFile(models.Model):
         db_table = 'input_files'
 
     raw_data = models.TextField()
-    fk_user_id = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    fk_user_id = models.ForeignKey(User, on_delete=models.DO_NOTHING, db_column='fk_user_id')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -351,7 +355,7 @@ class UserInvitation(models.Model):
 
     code = models.CharField(max_length=255)
     email = models.CharField(max_length=255)
-    user_id = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    user_id = models.ForeignKey(User, on_delete=models.DO_NOTHING, db_column='user_id')
     status = models.CharField(max_length=10, choices=(('pending', 'pending'), ('successful', 'successful'),
                                                       ('canceled', 'canceled'), ('expired', 'expired')))
     valid_till = models.DateTimeField()
