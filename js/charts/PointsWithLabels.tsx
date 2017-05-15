@@ -139,7 +139,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         if (!series.isFocused || series.values.length <= 1)
             return null
 
-        const fontSize = series.isFocused ? 8 : 6
+        const fontSize = series.isFocused ? 8 : 7
         const firstValue = series.values[0]
         const nextValue = series.values[1]
         const nextSegment = nextValue.position.subtract(firstValue.position)
@@ -166,7 +166,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         if (!series.isFocused || series.values.length <= 1)
             return []
 
-        const fontSize = series.isFocused ? 8 : 6
+        const fontSize = series.isFocused ? 8 : 7
         
         return _.map(series.values.slice(1, -1), (v, i) => {
             const prevPos = i > 0 && series.values[i-1].position
