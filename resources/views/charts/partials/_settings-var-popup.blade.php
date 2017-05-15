@@ -1,4 +1,4 @@
-<form class="settings-var-popup">	
+<form class="settings-var-popup">
 	<div class="modal">
 		<div class="modal-dialog">
 			<div class="modal-content">
@@ -11,8 +11,12 @@
 						<div class="settings-var-name">
 							<div class="input-wrapper">
 								<label for="display-name">Display Name</label>
-								<input class="form-control" type="text" name="display-name" style="width: 100%;"/>																
+								<input class="form-control" type="text" name="display-name" style="width: 100%;"/>
 							</div>
+							<label class="isProjection clickable">
+								<input type="checkbox"/>
+								<span>Is projection?</span>
+							</label>
 						</div>
 						<br>
 						<div class="advanced-settings">

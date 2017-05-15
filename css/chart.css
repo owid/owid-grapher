@@ -181,6 +181,20 @@ select.disabled {
     stroke-dasharray: 2, 2;
 }
 
+#chart .projection .nv-line {
+    stroke-dasharray: 3, 3;
+}
+
+#chart .projection .nv-point {
+    fill: #fff;
+    stroke-width: 1;
+    opacity: 0.5;
+}
+
+#chart .projection .nv-point.hover {
+    stroke-width: 4;
+}
+
 /* Chart General
 --------------------------------------------- */
 

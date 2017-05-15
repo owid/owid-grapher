@@ -1,9 +1,9 @@
 // @flow
 
 import React, {Component} from 'react'
-import {computed} from 'mobx'
-import type ChartConfig from '../app/ChartConfig'
-import {bind} from 'decko'
+import {computed, action} from 'mobx'
+import {observer} from 'mobx-react'
+import ChartConfig from '../charts/ChartConfig'
 import _ from 'lodash'
 
 function slugify(s) {
@@ -11,6 +11,7 @@ function slugify(s) {
 	return _.trim(s).replace(/ +/g,'-');
 }
 
+@observer
 export default class BasicTab extends Component {
 	props: {
 		chart: ChartConfig
@@ -22,8 +23,7 @@ export default class BasicTab extends Component {
 
 	lastTitle: string
 
-	@bind
-	onTitle(evt : SyntheticInputEvent) { 
+	@action.bound onTitle(evt : SyntheticInputEvent) { 
 		var currentTitle = this.lastTitle || this.chart.title || "";
 		var currentExpectedSlug = slugify(currentTitle);
 		var currentSlug = this.chart.slug;
@@ -39,23 +39,12 @@ export default class BasicTab extends Component {
 		this.chart.title = evt.target.value 
 	}
 
-	@bind
-	onSlug(evt : SyntheticInputEvent) { this.chart.slug = evt.target.value }
-
-	@bind
-	onSubtitle(evt : SyntheticInputEvent) { this.chart.subtitle = evt.target.value }
-
-	@bind
-	onChartType(evt : SyntheticInputEvent) { this.chart.type = evt.target.value }
-
-	@bind
-	onSource(evt : SyntheticInputEvent) { this.chart.sourceDesc = evt.target.value }
-
-	@bind
-	onNote(evt : SyntheticInputEvent) { this.chart.note = evt.target.value }
-
-	@bind
-	onInternalNotes(evt : SyntheticInputEvent) { this.chart.internalNotes = evt.target.value }
+	@action.bound onSlug(evt : SyntheticInputEvent) { this.chart.slug = evt.target.value }
+	@action.bound onSubtitle(evt : SyntheticInputEvent) { this.chart.subtitle = evt.target.value }
+	@action.bound onChartType(evt : SyntheticInputEvent) { this.chart.type = evt.target.value }
+	@action.bound onSource(evt : SyntheticInputEvent) { this.chart.sourceDesc = evt.target.value }
+	@action.bound onNote(evt : SyntheticInputEvent) { this.chart.note = evt.target.value }
+	@action.bound onInternalNotes(evt : SyntheticInputEvent) { this.chart.internalNotes = evt.target.value }
 
 	render() {
 		const { chart } = this
@@ -76,7 +65,7 @@ export default class BasicTab extends Component {
 	   		</section>
 			<section class="chart-type-section">
 				<h2>What type of chart</h2>
-				<select class="form-control chart-type-select" onChange={this.onChartType} ref={el => el.value = chart.type}>
+				<select class="form-control chart-type-select" onChange={this.onChartType} ref={el => { if (el) el.value = chart.type }}>
 					<option value="" disabled>Select type</option>
 					<option value="LineChart">Line Chart</option>
 					<option value="SlopeChart">Slope Chart</option>

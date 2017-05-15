@@ -147,7 +147,7 @@ export default class Header extends React.Component<HeaderProps, null> {
                 text = text.replace("*time*", "");
             } else {
                 var timeFrom = formatYear(minYear),
-                    timeTo = formatYear(maxYear),
+                    timeTo = formatYear(_.isFinite(maxYear) ? maxYear : minYear),
                     time = timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo;
 
                 text = text.replace("*time*", time);

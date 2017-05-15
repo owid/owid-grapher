@@ -174,7 +174,6 @@ const chartTabOld = function(chart) {
 			missingMsg = null
 		configureAxis();
 		renderLegend();
-//			renderTimeline();
 
 		$(".chart-error").remove();
 		if (missingMsg || (_.isEmpty(localData) && chartType != App.ChartType.ScatterPlot && chartType != App.ChartType.SlopeChart)) {
@@ -216,7 +215,6 @@ const chartTabOld = function(chart) {
 					setTimeout(postRender, 500);
 				});
 				setTimeout(postRender, 500);
-				window.nvd3 = nvd3;
 			}
 
 			renderAxis();
@@ -264,7 +262,7 @@ const chartTabOld = function(chart) {
 
 		// Add classes to the series so we can style e.g. the World line differently
 		_.each(localData, function(d) {
-			d.classed = owid.makeSafeForCSS(d.key);
+			d.classed = owid.makeSafeForCSS(d.key) + (d.isProjection ? " projection" : "");
 		});
 
 		lineType = chart.model.get('line-type');
@@ -669,7 +667,7 @@ const chartTabOld = function(chart) {
 					}
 					currentSeries = _.extend({}, series, { values: [] });
 					if (isMissing && lineType == App.LineType.DashedIfMissing)
-						currentSeries.classed = 'dashed';
+						currentSeries.p = 'dashed';
 					else if (isMissing)
 						currentSeries.classed = 'unstroked';
 					currentMissing = isMissing;
