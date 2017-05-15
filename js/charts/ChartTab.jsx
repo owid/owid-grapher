@@ -258,7 +258,7 @@ const chartTabOld = function(chart) {
 
 		// Add classes to the series so we can style e.g. the World line differently
 		_.each(localData, function(d) {
-			d.classed = owid.makeSafeForCSS(d.key);
+			d.classed = owid.makeSafeForCSS(d.key) + d.isProjection ? " projection" : "";
 		});
 
 		lineType = chart.model.get('line-type');
@@ -663,7 +663,7 @@ const chartTabOld = function(chart) {
 					}
 					currentSeries = _.extend({}, series, { values: [] });
 					if (isMissing && lineType == App.LineType.DashedIfMissing)
-						currentSeries.classed = 'dashed';
+						currentSeries.p = 'dashed';
 					else if (isMissing)
 						currentSeries.classed = 'unstroked';
 					currentMissing = isMissing;

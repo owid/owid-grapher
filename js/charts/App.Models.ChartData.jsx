@@ -82,7 +82,8 @@ export default Backbone.Model.extend({
 						entityName: entityKey[entityId].name,
 						entityId: entityId,
 						variableId: variable.id,
-						id: id
+						id: id,
+						isProjection: dimension.isProjection
 					};
 					seriesByEntity[entityId] = series;
 				}

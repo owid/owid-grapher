@@ -16,7 +16,8 @@ class ChartDimension extends Model {
         'variableId' => 'integer',
         'order' => 'integer',
         'tolerance' => 'integer',
-        'targetYear' => 'integer'
+        'targetYear' => 'integer',
+        'isProjection' => 'boolean'
     ];
 
 	public function chart() {
