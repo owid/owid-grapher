@@ -56,10 +56,6 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         return this.props.focusKeys || []
     }
 
-    @computed get isLighterFocus() {
-        return this.focusKeys.length > 3
-    }
-
     @computed get tmpFocusKeys() : string[] {
         const {focusKeys, hoverKey} = this
         return focusKeys.concat(hoverKey ? [hoverKey] : [])
@@ -143,8 +139,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         if (!series.isFocused || series.values.length <= 1)
             return null
 
-        const {isLighterFocus} = this
-        const fontSize = series.isFocused ? (isLighterFocus ? 6 : 8) : 6
+        const fontSize = series.isFocused ? 8 : 6
         const firstValue = series.values[0]
         const nextValue = series.values[1]
         const nextSegment = nextValue.position.subtract(firstValue.position)
@@ -171,8 +166,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         if (!series.isFocused || series.values.length <= 1)
             return []
 
-        const {isLighterFocus} = this
-        const fontSize = series.isFocused ? (isLighterFocus ? 6 : 8) : 6
+        const fontSize = series.isFocused ? 8 : 6
         
         return _.map(series.values.slice(1, -1), (v, i) => {
             const prevPos = i > 0 && series.values[i-1].position
@@ -211,10 +205,9 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     // slightly out based on the direction of the series if multiple values
     // are present
     makeEndLabel(series: ScatterRenderSeries) {
-        const {isLighterFocus} = this
         const lastValue = _.last(series.values)
         const lastPos = lastValue.position
-        const fontSize = series.isFocused ? (isLighterFocus ? 9 : 12) : 8
+        const fontSize = series.isFocused ? 12 : 8
 
         let offsetVector = Vector2.up
         if (series.values.length > 1) {
@@ -241,7 +234,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     }
 
     @computed get renderData(): ScatterRenderSeries[] {
-        let {initialRenderData, hoverKey, tmpFocusKeys, labelPriority, bounds, isLighterFocus} = this
+        let {initialRenderData, hoverKey, tmpFocusKeys, labelPriority, bounds} = this
         let renderData = _.sortBy(initialRenderData, d => -d.size)
 
         _.each(renderData, series => {
@@ -435,10 +428,10 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     }
 
     renderFocusLines() {
-        const {focusGroups, isLighterFocus} = this
+        const {focusGroups} = this
         
         return _.map(focusGroups, group => {
-                const focusMul = (group.isHovered ? 3 : 2) * (isLighterFocus ? 0.5 : 1)
+                const focusMul = (group.isHovered ? 3 : 2)
                 const lastValue = _.last(group.values)
 
             if (group.values.length == 1) {
@@ -465,7 +458,6 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                         markerStart={`url(#${group.displayKey}-circle)`}
                         markerMid={`url(#${group.displayKey}-circle)`}
                         markerEnd={`url(#${group.displayKey}-arrow)`}
-                        opacity={isLighterFocus && 0.6}
                     />
                 ]
         })      
@@ -488,8 +480,13 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         if (_.isEmpty(renderData))
             return <NoData bounds={bounds}/>
 
-        return <g className="ScatterPlot">
+        return <g className="ScatterPlot" clipPath="url(#scatterBounds)">
             <rect key="background" x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="#fff"/>
+            <defs>
+                <clipPath id="scatterBounds">
+                    <rect x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height}/>
+                </clipPath>
+            </defs>
             {this.renderBackgroundLines()}
             {this.renderBackgroundStartPoints()}
             {this.renderBackgroundEndPoints()}

@@ -1,4 +1,4 @@
-/* ScatterPlot.jsx
+/* ScatterPlot.tsx
  * ================
  *
  * Entry point for scatter charts
@@ -26,6 +26,7 @@ import {preInstantiate} from './Util'
 import Paragraph from './Paragraph'
 import ShapeLegend from './ShapeLegend'
 import {Triangle} from './Marks'
+import ScatterData from './ScatterData'
 
 type ScatterSeries = any
 
@@ -43,11 +44,11 @@ interface ColorLegendProps {
 
 @observer
 class ColorLegend extends React.Component<ColorLegendProps, null> {
-    static defaultProps: Partial<ShapeLegendProps> = {
+    static defaultProps: Partial<ColorLegendProps> = {
         x: 0,
         y: 0,
         onMouseOver: () => null,
-        onClick: () => null
+        onClick: () => null,
         onMouseLeave: () => null
     }
 
@@ -134,6 +135,10 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         return this.props.config
     }
 
+    @computed get data(): ScatterData {
+        return new ScatterData(this.chart)
+    }
+
     @computed get bounds() : Bounds {
         return this.props.bounds
     }
@@ -154,10 +159,10 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         return this.chart.dimensions
     }
 
-    @computed get colorScale() {
+    @computed get colorScale(): d3.ScaleOrdinal<string, string> {
         const {colorScheme, dimensions} = this
 
-        const colorScale = d3.scaleOrdinal().range(this.colorScheme)
+        const colorScale = d3.scaleOrdinal(this.colorScheme)
 
         var colorDim = _.find(dimensions, { property: 'color' });
         if (colorDim) {
@@ -179,7 +184,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     @computed get dataByEntityAndYear() {
         const {timelineYears, dimensions, configTolerance, colorScale} = this
         var dataByEntityAndYear = {};
-
+    
         // The data values
         _.each(dimensions, function(dimension) {
             var variable = dimension.variable,
@@ -268,33 +273,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     }
 
     @computed get yearsWithData() : number[] {
-        const {axisDimensions} = this
-        const tolerance = 0 // FIXME
-
-        var yearSets = [];
-
-        var minYear = _.min(_.map(axisDimensions, function(d) {
-            return _.first(d.variable.years);
-        }));
-
-        var maxYear = _.max(_.map(axisDimensions, function(d) {
-            return _.last(d.variable.years);
-        }));
-
-        _.each(axisDimensions, function(dimension) {
-            var variable = dimension.variable,
-                yearsForVariable = {};
-
-            _.each(_.uniq(variable.years), function(year) {
-                for (var i = Math.max(minYear, year-tolerance); i <= Math.min(maxYear, year+tolerance); i++) {
-                    yearsForVariable[i] = true;
-                }
-            });
-
-            yearSets.push(_.map(_.keys(yearsForVariable), function(year) { return parseInt(year); }));
-        });
-
-        return _.sortBy(_.intersection.apply(_, yearSets));
+        return this.data.years
     }
 
     componentWillMount() {
@@ -478,8 +457,6 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps, undefined> {
         const {units} = this.props
         const unit = _.find(units, { property: property })
         let s = owid.unitFormat(unit, value[property])
-        if (!unit || !unit.title)
-            s = property + ": " + s
         return s
 	}
 
@@ -501,9 +478,9 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps, undefined> {
 
         _.each(values, v => {
             const year = preInstantiate(<Paragraph x={x} y={y+offset} maxWidth={maxWidth} fontSize={0.5}>{v.time.x.toString()}</Paragraph>)
-            offset += year.height+lineHeight
+            offset += year.height
             const line1 = preInstantiate(<Paragraph x={x} y={y+offset} maxWidth={maxWidth} fontSize={0.4}>{this.formatValue(v, 'x')}</Paragraph>)
-            offset += line1.height+lineHeight
+            offset += line1.height
             const line2 = preInstantiate(<Paragraph x={x} y={y+offset} maxWidth={maxWidth} fontSize={0.4}>{this.formatValue(v, 'y')}</Paragraph>)
             offset += line2.height+lineHeight            
             elements.push(...[year, line1, line2])
