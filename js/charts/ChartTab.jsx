@@ -142,7 +142,6 @@ const chartTabOld = function(chart) {
 
 	chartTab.clean = function() {
 		if (viz) viz = viz.destroy();
-		if (rootNode) rootNode = render(() => null, chart.svg.node(), rootNode)
 
 		chartTab.scaleSelectors.clean();
 
@@ -168,7 +167,6 @@ const chartTabOld = function(chart) {
 			missingMsg = null
 		configureAxis();
 		renderLegend();
-//			renderTimeline();
 
 		$(".chart-error").remove();
 		if (missingMsg || (_.isEmpty(localData) && chartType != App.ChartType.ScatterPlot && chartType != App.ChartType.SlopeChart)) {
@@ -210,7 +208,6 @@ const chartTabOld = function(chart) {
 					setTimeout(postRender, 500);
 				});
 				setTimeout(postRender, 500);
-				window.nvd3 = nvd3;
 			}
 
 			renderAxis();
@@ -258,7 +255,7 @@ const chartTabOld = function(chart) {
 
 		// Add classes to the series so we can style e.g. the World line differently
 		_.each(localData, function(d) {
-			d.classed = owid.makeSafeForCSS(d.key) + d.isProjection ? " projection" : "";
+			d.classed = owid.makeSafeForCSS(d.key) + (d.isProjection ? " projection" : "");
 		});
 
 		lineType = chart.model.get('line-type');

@@ -457,7 +457,6 @@ export default Backbone.Model.extend({
 		if (this.chartData)
 			return this.get("chartData");
 
-
 		if (!variables || !App.ChartModel.hasVariables()) return [];
 
 		if (chartType == App.ChartType.LineChart)

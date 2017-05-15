@@ -118,12 +118,17 @@ export default class ChartConfig {
 			}
 		})*/
 
-        autorun(() => this.model.set('chart-type', this.type))
-        autorun(() => this.model.set('slug', this.slug))
-        autorun(() => this.model.set('title', this.title))
-        autorun(() => this.model.set('subtitle', this.subtitle))
-        autorun(() => this.model.set('sourceDesc', this.sourceDesc))
-        autorun(() => this.model.set('chart-description', this.note))
+        autorun(() => {
+            this.model.set({
+                'chart-type': this.type,
+                'slug': this.slug,
+                'title': this.title,
+                'subtitle': this.subtitle,
+                'sourceDesc': this.sourceDesc,
+                'chart-description': this.note,
+                'internalNotes': this.internalNotes
+            })
+        })
 
 		autorun(() => {
 			this.model.set('timeline', toJS(this.timeline))

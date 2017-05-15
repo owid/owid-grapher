@@ -152,9 +152,9 @@ export default class ChartView extends React.Component<ChartViewProps, null> {
             }
         })
 
-        this.data.ready(() => this.isReady = true)
-        this.model.on('change', () => this.forceUpdate())
-        this.map.on('change', () => this.forceUpdate())
+        this.data.ready(() => { this.isReady = true })
+        this.model.on('change', () => this.data.ready(() => this.forceUpdate()))
+        this.map.on('change', () => this.data.ready(() => this.forceUpdate()))
     }
 
 

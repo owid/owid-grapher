@@ -188,6 +188,7 @@ select.disabled {
 #chart .projection .nv-point {
     fill: #fff;
     stroke-width: 1;
+    opacity: 0.5;
 }
 
 #chart .projection .nv-point.hover {
