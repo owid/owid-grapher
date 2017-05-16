@@ -104,7 +104,6 @@ export default class ChartView extends React.Component<ChartViewProps, null> {
     }
 
 
-    @observable isReady = false
     @observable activeTabName: string = 'chart'
     @observable primaryTabName: string = 'chart'
     @observable overlayTabName: string = null
@@ -127,11 +126,11 @@ export default class ChartView extends React.Component<ChartViewProps, null> {
         // XXX all of this stuff needs refactoring
         this.model = new ChartModel(props.jsonConfig)
         App.ChartModel = this.model
-        this.config = new ChartConfig(this.model)
-        this.chart = this.config
         App.VariableData = new VariableData()
         this.vardata = App.VariableData
         App.ChartData = new ChartData()
+        this.config = new ChartConfig(this.model, App.ChartData)
+        this.chart = this.config
         this.data = App.ChartData
         App.Colors = new Colors(this)
         App.ChartModel.bind()
@@ -152,7 +151,6 @@ export default class ChartView extends React.Component<ChartViewProps, null> {
             }
         })
 
-        this.data.ready(() => { this.isReady = true })
         this.model.on('change', () => this.data.ready(() => this.forceUpdate()))
         this.map.on('change', () => this.data.ready(() => this.forceUpdate()))
     }
@@ -195,7 +193,7 @@ export default class ChartView extends React.Component<ChartViewProps, null> {
         const {primaryTabName, svgBounds} = this
 
         if (primaryTabName == 'chart')
-            return <ChartTab bounds={bounds} chartView={this} chart={this.chart} onRenderEnd={this.props.onRenderEnd}/>
+            return <ChartTab bounds={bounds} chartView={this} chart={this.chart} dimensions={this.chart.model.getDimensions()} onRenderEnd={this.props.onRenderEnd}/>
         else
             return <MapTab bounds={bounds} chartView={this} chart={this.chart} onRenderEnd={this.props.onRenderEnd}/>
     }
@@ -239,7 +237,7 @@ export default class ChartView extends React.Component<ChartViewProps, null> {
         const style = { width: renderWidth*scale + 'px', height: renderHeight*scale + 'px', fontSize: 16*scale + 'px' }
 
         return <div id="chart" className={this.classNames} style={style}>
-            {this.isReady ? this.renderReady() : this.renderLoading()}
+            {this.chart.dimensionsWithData ? this.renderReady() : this.renderLoading()}
         </div>
     }
 

@@ -142,103 +142,20 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     @computed get bounds() : Bounds {
         return this.props.bounds
     }
-
-    @computed get colorScheme() : string[] {
-        return [ // TODO less ad hoc color scheme (probably would have to annotate the datasets)
-            "#5675c1", // Africa
-            "#aec7e8", // Antarctica
-            "#d14e5b", // Asia
-            "#ffd336", // Europe
-            "#4d824b", // North America
-            "#a652ba", // Oceania
-            "#69c487", // South America
-            "#ff7f0e", "#1f77b4", "#ffbb78", "#2ca02c", "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b", "c49c94", "e377c2", "f7b6d2", "7f7f7f", "c7c7c7", "bcbd22", "dbdb8d", "17becf", "9edae5", "1f77b4"]
-    }
-
     @computed get dimensions() : Object[] {
-        return this.chart.dimensions
-    }
-
-    @computed get colorScale(): d3.ScaleOrdinal<string, string> {
-        const {colorScheme, dimensions} = this
-
-        const colorScale = d3.scaleOrdinal(this.colorScheme)
-
-        var colorDim = _.find(dimensions, { property: 'color' });
-        if (colorDim) {
-            colorScale.domain(colorDim.variable.categoricalValues);
-        }
-
-        return colorScale
+        return this.chart.dimensionsWithData
     }
 
     @computed get timelineYears() {
-        return this.yearsWithData
+        return this.yearsWithDat
     }
 
     @computed get configTolerance() {
         return 1
     }
 
-    // Precompute the data transformation for every timeline year (so later animation is fast)
     @computed get dataByEntityAndYear() {
-        const {timelineYears, dimensions, configTolerance, colorScale} = this
-        var dataByEntityAndYear = {};
-    
-        // The data values
-        _.each(dimensions, function(dimension) {
-            var variable = dimension.variable,
-                tolerance = (dimension.property == 'color' || dimension.property == 'size') ? Infinity : configTolerance;
-
-            var targetYears = timelineYears;
-
-            _.each(timelineYears, function(targetYear) {
-                for (var i = 0; i < variable.years.length; i++) {
-                    var year = variable.years[i],
-                        value = variable.values[i],
-                        entity = variable.entityKey[variable.entities[i]];
-
-                    // Skip years that aren't within tolerance of the target
-                    if (year < targetYear-tolerance || year > targetYear+tolerance)
-                        continue;
-
-                    var dataByYear = owid.default(dataByEntityAndYear, entity.id, {}),
-                        series = owid.default(dataByYear, targetYear, {
-                            id: entity.id,
-                            label: entity.name,
-                            key: entity.name,
-                            values: [{ time: {} }]
-                        });
-
-                    var d = series.values[0];
-
-                    // Ensure we use the closest year to the target
-                    var currentYear = d.time[dimension.property];
-                    if (_.isFinite(currentYear) && Math.abs(currentYear-targetYear) < Math.abs(year-targetYear))
-                        continue;
-
-                    if (dimension.property == 'color')
-                        series.color = colorScale(value);
-                    else {
-                        d.time[dimension.property] = year;
-                        d[dimension.property] = value;
-                    }
-                }
-            });
-        });
-
-        // Exclude any with data for only one axis
-        _.each(dataByEntityAndYear, function(v, k) {
-            var newDataByYear = {};
-            _.each(v, function(series, year) {
-                var datum = series.values[0];
-                if (_.has(datum, 'x') && _.has(datum, 'y'))
-                    newDataByYear[year] = series;
-            });
-            dataByEntityAndYear[k] = newDataByYear;
-        });
-
-        return dataByEntityAndYear;
+        return this.data.dataByEntityAndYear
     }
 
     @computed get currentData() : ScatterSeries[] {
@@ -278,7 +195,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
 
     componentWillMount() {
         if (!_.isNumber(this.chart.timeRange[0]) || !_.isNumber(this.chart.timeRange[1]))
-            this.chart.timeRange = [this.yearsWithData[0], _.last(this.yearsWithData)]
+            this.chart.timeRange = [_.first(this.data.years), _.last(this.data.years)]
     }
 
     @action.bound onTargetChange({targetStartYear, targetEndYear}: {targetStartYear: number, targetEndYear: number}) {
@@ -350,7 +267,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     }
 
     @computed get timeline(): Timeline|null {
-        if (this.props.isStatic) return null
+        if (this.props.isStatic || !this.chart.timeline) return null
 
         const {bounds, yearsWithData, startYear, endYear, onTargetChange} = this
         return preInstantiate(
@@ -363,7 +280,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     }
 
     @computed get legend(): ColorLegend {
-        return preInstantiate(<ColorLegend maxWidth={this.sidebarMaxWidth} colors={this.colorsInUse} scale={this.colorScale}/>)
+        return preInstantiate(<ColorLegend maxWidth={this.sidebarMaxWidth} colors={this.colorsInUse} scale={this.data.colorScale}/>)
     }
 
     @observable focusColor: string|null = null
@@ -457,6 +374,7 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps, undefined> {
         const {units} = this.props
         const unit = _.find(units, { property: property })
         let s = owid.unitFormat(unit, value[property])
+        s += " (data from " + value.time[property] + ")"
         return s
 	}
 

@@ -26,7 +26,7 @@ App.Views.FormView = owid.View.extend({
 
 	initialize: function() {
 		this.dispatcher = _.clone(Backbone.Events);
-		
+
 		var formConfig = App.ChartModel.get("form-config");
 
 		//create related models, either empty (when creating new chart), or prefilled from db (when editing existing chart)
@@ -38,12 +38,12 @@ App.Views.FormView = owid.View.extend({
 
 		//create search collection
 		App.SearchDataCollection = new SearchDataCollection();
-		
+
 		this.render();
 	},
 
 	render: function() {
-		const chart = new ChartConfig(window.chart.model)
+        const chart = window.chart.chart
 		render(<BasicTab chart={chart} />, d3.select('.tab-content').node())
 
 		//create subviews
@@ -63,7 +63,7 @@ App.Views.FormView = owid.View.extend({
 	onFormCollapse: function(ev) {
 		ev.preventDefault();
 		var $parent = this.$el.parent();
-		$parent.toggleClass("form-panel-collapsed");			
+		$parent.toggleClass("form-panel-collapsed");
 		//trigger re-rendering of chart
 		App.ChartModel.trigger( "change" );
 		//also triger custom event so that map can resize

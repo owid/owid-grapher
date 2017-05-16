@@ -18,7 +18,7 @@ export default class ChartConfig {
 	@observable.ref selectedEntities: Object[] = []
     @observable.ref entityType: string = "country"
     @observable.ref timeRange: [number|null, number|null]
-    @observable timeline: Object = null
+    @observable.struct timeline: Object = null
 
     @observable.ref yAxisConfig: any
     @observable.ref yDomain: [number|null, number|null]
@@ -35,6 +35,10 @@ export default class ChartConfig {
     @observable.ref xTickFormat: (v: number) => string
     @observable.ref units: Object[]
     @observable.struct availableTabs: string[]
+
+
+    @observable.struct dimensions: Object[]
+    @observable.ref dimensionsWithData: Object[]
 
 	model: any
 
@@ -101,13 +105,24 @@ export default class ChartConfig {
             else
                 return 3
         }) as string[])
+
+        this.dimensions = this.model.get('chart-dimensions')        
     }
 
-	constructor(model : any) {
+	constructor(model : any, data: any) {
 		this.model = model
 
         this.syncFromModel()
         this.model.on('change', this.syncFromModel)
+
+        data.ready(() => {
+            this.dimensionsWithData = this.model.getDimensions()
+        })
+        this.model.on('change:chart-dimensions change:chart-type', () => {
+            data.ready(() => {
+                this.dimensionsWithData = this.model.getDimensions()
+            })
+        })
 
 		autorun(() => {
 			const entities = this.selectedEntities
@@ -139,10 +154,6 @@ export default class ChartConfig {
         autorun(() => {
             this.model.set('chart-time', toJS(this.timeRange))
         })
-	}
-
-	@computed get dimensions() : Object[] {
-		return this.model.getDimensions()
 	}
 
 	@computed get timeDomain() : [number|null, number|null] {
