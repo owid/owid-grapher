@@ -181,6 +181,10 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
                 currentData.push(series)
         });
 
+        currentData = _.filter(currentData, series => {
+            return _.first(series.values).year == startYear && _.last(series.values).year == endYear
+        })
+
         return currentData;
     }
 
@@ -254,12 +258,12 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
 
     @computed get xScale() : AxisScale {
         const {xDomain, chart} = this
-        return new AxisScale({ scaleType: 'linear', domain: xDomain, tickFormat: chart.xTickFormat })
+        return new AxisScale({ scaleType: chart.xScaleType, domain: xDomain, tickFormat: chart.xTickFormat })
     }
 
     @computed get yScale() : AxisScale {
         const {yDomain, chart} = this
-        return new AxisScale({ scaleType: 'linear', domain: yDomain, tickFormat: chart.yTickFormat })
+        return new AxisScale({ scaleType: chart.yScaleType, domain: yDomain, tickFormat: chart.yTickFormat })
     }
 
     @action.bound onSelectEntity(focusKeys) {

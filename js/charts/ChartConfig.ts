@@ -62,14 +62,14 @@ export default class ChartConfig {
         this.yAxisConfig = this.model.get('y-axis')||{}
         let min = owid.numeric(this.yAxisConfig["axis-min"])
         let max = owid.numeric(this.yAxisConfig["axis-max"])
+        this.yScaleType = this.yAxisConfig['axis-scale'] || 'linear'
+        this.yScaleTypeOptions = this.model.get('y-axis-scale-selector') ? ['linear', 'log'] : [this.yScaleType]
         // 0 domain doesn't work with log scale
         if (!_.isFinite(min) || (this.yScaleType == 'log' && min <= 0))
             min = null
         if (!_.isFinite(max) || (this.yScaleType == 'log' && max <= 0))
             max = null
         this.yDomain = [min, max]
-        this.yScaleType = this.yAxisConfig['axis-scale'] || 'linear'
-        this.yScaleTypeOptions = this.model.get('y-axis-scale-selector') ? ['linear', 'log'] : [this.yScaleType]
         this.yAxisLabel = this.yAxisConfig['axis-label'] || ""
         const yAxis = this.yAxisConfig,
               yAxisPrefix = yAxis["axis-prefix"] || "",
@@ -81,14 +81,14 @@ export default class ChartConfig {
             this.xAxisConfig = this.model.get('x-axis')||{}
             let min = owid.numeric(this.xAxisConfig["axis-min"])
             let max = owid.numeric(this.xAxisConfig["axis-max"])
+            this.xScaleType = this.xAxisConfig['axis-scale'] || 'linear'
+            this.xScaleTypeOptions = this.model.get('y-axis-scale-selector') ? ['linear', 'log'] : [this.xScaleType]
             // 0 domain doesn't work with log scale
             if (!_.isFinite(min) || (this.xScaleType == 'log' && min <= 0))
                 min = null
             if (!_.isFinite(max) || (this.xScaleType == 'log' && max <= 0))
                 max = null
             this.xDomain = [min, max]
-            this.xScaleType = this.xAxisConfig['axis-scale'] || 'linear'
-            this.xScaleTypeOptions = this.model.get('y-axis-scale-selector') ? ['linear', 'log'] : [this.xScaleType]
             this.xAxisLabel = this.xAxisConfig['axis-label'] || ""
             const xAxis = this.xAxisConfig,
                   xAxisPrefix = xAxis["axis-prefix"] || "",

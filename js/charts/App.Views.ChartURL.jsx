@@ -99,7 +99,7 @@ export default function(chart) {
             if (m) {
                 chart.model.set('chart-time', [parseInt(m[1]), parseInt(m[2])])
             } else {
-                chart.model.set('chart-time', [parseInt(time), null])
+                chart.model.set('chart-time', [parseInt(time), parseInt(time)])
             }
         }
 //          chart.model.set("timeline", _.extend({}, chart.model.get('timeline'), { defaultYear: parseFloat(time) }));

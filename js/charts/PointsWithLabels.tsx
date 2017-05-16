@@ -254,10 +254,16 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         // Ensure labels fit inside bounds
         // Must do before collision detection since it'll change the positions
         _.each(allLabels, l => {
-            if (l.bounds.left < bounds.left) {
+            if (l.bounds.left < bounds.left-1) {
                 l.bounds = l.bounds.extend({ x: l.bounds.x+l.bounds.width })
-            } else if (l.bounds.right > bounds.right) {
+            } else if (l.bounds.right > bounds.right+1) {
                 l.bounds = l.bounds.extend({ x: l.bounds.x-l.bounds.width })
+            }
+            
+            if (l.bounds.top < bounds.top-1) {
+                l.bounds = l.bounds.extend({ y: l.bounds.y + l.bounds.height })
+            } else if (l.bounds.bottom > bounds.bottom+1) {
+                l.bounds = l.bounds.extend({ y: l.bounds.y - l.bounds.height })
             }
         })
 
@@ -279,16 +285,6 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
         return renderData
     }
-
-    /*@computed get renderData() : Object[] {
-        const {initialPointData, focusKey} = this
-
-        return _.map(initialPointData, d => {
-            return _.extend({}, d, {
-                size: d.size * (focusKey == d ? 1.5 : 1)
-            })
-        })
-    }*/
 
     @computed get allColors() : string[] {
         return _.uniq(_.map(this.renderData, 'color'))
@@ -479,7 +475,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             <rect key="background" x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="#fff"/>
             <defs>
                 <clipPath id="scatterBounds">
-                    <rect x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height}/>
+                    <rect x={bounds.x-5} y={bounds.y-5} width={bounds.width+10} height={bounds.height+10}/>
                 </clipPath>
             </defs>
             {this.renderBackgroundLines()}

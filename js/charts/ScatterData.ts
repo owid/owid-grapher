@@ -83,7 +83,7 @@ export default class ScatterData {
     // Precompute the data transformation for every timeline year (so later animation is fast)
     @computed get dataByEntityAndYear() {
         const {years, colorScale} = this
-        const {dimensionsWithData} = this.chart
+        const {dimensionsWithData, xScaleType, yScaleType} = this.chart
         var dataByEntityAndYear = {};
     
         // The data values
@@ -97,18 +97,24 @@ export default class ScatterData {
                         value = variable.values[i],
                         entity = variable.entityKey[variable.entities[i]];
 
-                    const targetYear = _.isFinite(dimension.targetYear) ? dimension.targetYear : outputYear
+                    const targetYear = (!this.chart.timeline && _.isFinite(dimension.targetYear)) ? dimension.targetYear : outputYear
 
                     // Skip years that aren't within tolerance of the target
                     if (year < targetYear-tolerance || year > targetYear+tolerance)
                         continue;
+
+                    // Skip values <= 0 for log scales
+/*                    if (xScaleType == 'log' && dimension.property == 'x' && parseFloat(value) <= 0)
+                        continue
+                    else if (yScaleType == 'log' && dimension.property == 'y' && parseFloat(value) <= 0)
+                        continue*/
 
                     var dataByYear = owid.default(dataByEntityAndYear, entity.id, {}),
                         series = owid.default(dataByYear, outputYear, {
                             id: entity.id,
                             label: entity.name,
                             key: entity.name,
-                            values: [{ time: {} }]
+                            values: [{ year: outputYear, time: {} }]
                         });
 
                     var d = series.values[0];
