@@ -197,21 +197,16 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         return this.data.years
     }
 
-    componentWillMount() {
-        if (!_.isNumber(this.chart.timeRange[0]) || !_.isNumber(this.chart.timeRange[1]))
-            this.chart.timeRange = [_.first(this.data.years), _.last(this.data.years)]
-    }
-
     @action.bound onTargetChange({targetStartYear, targetEndYear}: {targetStartYear: number, targetEndYear: number}) {
         this.chart.timeRange = [targetStartYear, targetEndYear]
     }
 
     @computed get startYear() {
-        return this.chart.timeRange[0]
+        return Math.max(_.first(this.data.years), this.chart.timeRange[0])
     }
 
     @computed get endYear() {
-        return this.chart.timeRange[1]
+        return Math.min(_.last(this.data.years), this.chart.timeRange[1])
     }
 
     @computed get allSeries(): Object[] {
@@ -312,17 +307,17 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     }
 
     @computed get shapeLegend(): ShapeLegend {
-        if (this.focusKeys.length || this.hoverSeries || this.chart.timeRange[0] == this.chart.timeRange[1])
+        if (this.focusKeys.length || this.hoverSeries || this.startYear == this.endYear)
             return null
 
         const shapeData=[
             {
                 shape: <circle cx={3} cy={3} r={2} fill={"#333"} stroke="#ccc" strokeWidth={0.2} opacity={0.8}/>,
-                text: this.chart.timeRange[0].toString()
+                text: this.startYear.toString()
             },
             { 
                 shape: <Triangle cx={3} cy={3} r={3} fill={"#333"} stroke="#ccc" strokeWidth={0.2} opacity={1}/>,
-                text: this.chart.timeRange[1].toString()
+                text: this.endYear.toString()
             }
         ]
         return preInstantiate(
