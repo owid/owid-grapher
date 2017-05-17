@@ -582,6 +582,11 @@ a {
 #chart .nvd3-svg {
     /* Tweak some nvd3 styling */
     /* Allow user to select text */
+    -webkit-user-select: initial;
+    -ms-user-select: initial;
+    -moz-user-select: initial;
+    -webkit-user-select: initial;
+    user-select: initial;        
 }
 #chart .nvd3-svg .nvd3 .nv-axis line {
     fill: none;
