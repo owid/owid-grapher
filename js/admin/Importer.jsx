@@ -519,6 +519,23 @@ class CSV {
 			}
 		})
 
+		// Warn about non-numeric data
+		const heading = rows[0]
+		const nonNumeric = []
+		for (let i = 1; i < rows.length; i++) {
+			const row = rows[i]
+			for (var j = 2; j < row.length; j++) {
+				if (row[j] != '' && !row[j].match(/^[0-9.-]+$/))
+					nonNumeric.push(i+1 + " `" + row[j] + "`")
+			}
+		}
+
+		if (nonNumeric.length)
+			validation.results.push({
+				class: 'warning',
+				message: "Non-numeric data detected on line " + nonNumeric.join(", ")
+			})
+
 		// Warn if we're creating novel entities
 		const newEntities = _.difference(this.data.entityNames, this.existingEntities)
 		if (newEntities.length >= 1) {
