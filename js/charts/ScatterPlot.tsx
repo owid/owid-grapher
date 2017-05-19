@@ -125,6 +125,14 @@ interface ScatterWithAxisProps {
 
 @observer
 class ScatterWithAxis extends React.Component<any, null> {
+    @action.bound onYScaleChange(scaleType: ScaleType) {
+        this.props.chart.yScaleType = scaleType
+    }
+
+    @action.bound onXScaleChange(scaleType: ScaleType) {
+        this.props.chart.xScaleType = scaleType
+    }
+
     render() {
         const {bounds, xScale, yScale, xAxisLabel, yAxisLabel, data} = this.props
 
@@ -133,8 +141,8 @@ class ScatterWithAxis extends React.Component<any, null> {
         const innerBounds = bounds.padBottom(xAxisBounds.height).padLeft(yAxisBounds.width)
 
         return <g>
-            <Axis orient="left" scale={yScale} labelText={yAxisLabel} bounds={bounds.padBottom(xAxisBounds.height)}/>
-            <Axis orient="bottom" scale={xScale} labelText={xAxisLabel} bounds={bounds.padLeft(yAxisBounds.width)}/>
+            <Axis orient="left" scale={yScale} labelText={yAxisLabel} bounds={bounds.padBottom(xAxisBounds.height)} onScaleTypeChange={this.onYScaleChange}/>
+            <Axis orient="bottom" scale={xScale} labelText={xAxisLabel} bounds={bounds.padLeft(yAxisBounds.width)} onScaleTypeChange={this.onXScaleChange}/>
             <AxisGrid orient="left" scale={yScale} bounds={innerBounds}/>
             <AxisGrid orient="bottom" scale={xScale} bounds={innerBounds}/>
             <PointsWithLabels {...this.props} xScale={xScale} yScale={yScale} data={data} bounds={innerBounds}/>
@@ -189,6 +197,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
                     return
 
                 series = series || _.extend({}, seriesForYear, { values: [] })
+                series.size = _.last(dataByYear[_.last(_.keys(dataByYear))].values).size
                 series.values = series.values.concat(seriesForYear.values)
             })
             if (series && series.values.length)
@@ -294,18 +303,26 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         ]
     }
 
+    @computed get sizeDomain(): [number, number] {
+        const sizeValues = _.chain(this.allValues).map('size').filter().value()
+        if (sizeValues.length == 0)
+            return [1,1]
+        else
+            return d3.extent(sizeValues)
+    }
+
     @computed get colorsInUse(): string[] {
         return _.uniq(_.map(this.allSeries, 'color'))
     }
 
     @computed get xScale() : AxisScale {
         const {xDomain, chart} = this
-        return new AxisScale({ scaleType: chart.xScaleType, domain: xDomain, tickFormat: chart.xTickFormat })
+        return new AxisScale({ scaleType: chart.xScaleType, scaleTypeOptions: chart.xScaleTypeOptions, domain: xDomain, tickFormat: chart.xTickFormat })
     }
 
     @computed get yScale() : AxisScale {
         const {yDomain, chart} = this
-        return new AxisScale({ scaleType: chart.yScaleType, domain: yDomain, tickFormat: chart.yTickFormat })
+        return new AxisScale({ scaleType: chart.yScaleType, scaleTypeOptions: chart.yScaleTypeOptions, domain: yDomain, tickFormat: chart.yTickFormat })
     }
 
     @action.bound onSelectEntity(focusKeys) {
@@ -398,9 +415,9 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     }
 
     render() {
-        const {currentData, bounds, yearsWithData, startYear, endYear, xScale, yScale, chart, timeline, timelineHeight, legend, focusKeys, focusColor, shapeLegend, hoverSeries, sidebarWidth, tooltipSeries} = this
+        const {currentData, bounds, yearsWithData, startYear, endYear, xScale, yScale, chart, timeline, timelineHeight, legend, focusKeys, focusColor, shapeLegend, hoverSeries, sidebarWidth, tooltipSeries, sizeDomain} = this
         return <g>
-            <ScatterWithAxis data={currentData} onMouseOver={this.onScatterMouseOver} bounds={this.bounds.padBottom(timelineHeight).padRight(sidebarWidth+20)} xScale={xScale} yScale={yScale} xAxisLabel={chart.xAxisLabel} yAxisLabel={chart.yAxisLabel} onSelectEntity={this.onSelectEntity} focusKeys={focusKeys} onMouseLeave={this.onScatterMouseLeave}/>
+            <ScatterWithAxis data={currentData} onMouseOver={this.onScatterMouseOver} chart={chart} bounds={this.bounds.padBottom(timelineHeight).padRight(sidebarWidth+20)} xScale={xScale} yScale={yScale} sizeDomain={sizeDomain} xAxisLabel={chart.xAxisLabel} yAxisLabel={chart.yAxisLabel} onSelectEntity={this.onSelectEntity} focusKeys={focusKeys} onMouseLeave={this.onScatterMouseLeave}/>
             <ColorLegend {...legend.props} x={bounds.right-sidebarWidth} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} onClick={this.onLegendClick} focusColor={focusColor}/>
             {(shapeLegend || tooltipSeries) && <line x1={bounds.right-sidebarWidth} y1={bounds.top+legend.height+2} x2={bounds.right-5} y2={bounds.top+legend.height+2} stroke="#ccc"/>}
             {shapeLegend && <ShapeLegend {...shapeLegend.props} x={bounds.right-sidebarWidth} y={bounds.top+legend.height+11}/>}            
@@ -438,7 +455,6 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps, undefined> {
         const heading = preInstantiate(<Paragraph x={x} y={y+offset} maxWidth={maxWidth} fontSize={0.6}>{series.label}</Paragraph>)
         elements.push(heading)
         offset += heading.height+lineHeight
-
 
         _.each(values, v => {
             const year = preInstantiate(<Paragraph x={x} y={y+offset} maxWidth={maxWidth} fontSize={0.5}>{v.year.toString()}</Paragraph>)

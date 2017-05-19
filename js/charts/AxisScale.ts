@@ -18,7 +18,8 @@ import {observable, computed, action, toJS} from 'mobx'
 export type ScaleType = 'linear' | 'log';
 
 export default class AxisScale {
-    @observable scaleType : ScaleType
+    @observable scaleType: ScaleType
+    @observable.struct scaleTypeOptions: ScaleType[]
     @observable tickFormat : (v: number) => string
     @observable.struct domain: [number, number]
     @observable.struct range: [number, number]
@@ -66,9 +67,15 @@ export default class AxisScale {
         return new AxisScale(_.extend(toJS(this), props))
     }
 
-    constructor({ scaleType = 'linear', tickFormat = (d => d.toString()), domain = [0, 0], range = [0, 0] } :
-                { scaleType: ScaleType, tickFormat: (v: number) => string, domain: [number, number], range?: [number, number] }) {
+    constructor({ scaleType = 'linear', 
+                  scaleTypeOptions = ['linear'],
+                  tickFormat = (d => d.toString()), 
+                  domain = [0, 0], 
+                  range = [0, 0] } :
+                { scaleType: ScaleType, scaleTypeOptions: ScaleType[],
+                  tickFormat: (v: number) => string, domain: [number, number], range?: [number, number] }) {
         this.scaleType = scaleType
+        this.scaleTypeOptions = scaleTypeOptions
         this.tickFormat = tickFormat
         this.domain = domain
         this.range = range

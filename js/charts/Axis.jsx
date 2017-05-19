@@ -8,13 +8,15 @@ import type {ScaleType} from './ScaleSelector'
 import AxisScale from './AxisScale'
 import Paragraph from './Paragraph'
 import {preInstantiate} from './Util'
+import ScaleSelector from './ScaleSelector'
 
 // @flow
 
 type AxisProps = {
     bounds: Bounds,
     orient: 'left' | 'right' | 'bottom',
-    scale: AxisScale
+    scale: AxisScale,
+    onScaleTypeChange: (ScaleType) => void
 };
 
 @observer
@@ -81,7 +83,7 @@ export default class Axis extends Component {
     }
 
     renderVertical() {
-        const {bounds, orient} = this.props
+        const {bounds, orient, onScaleTypeChange} = this.props
         const {scale, ticks, label, labelOffset} = this
         const textColor = '#666'
 
@@ -89,12 +91,14 @@ export default class Axis extends Component {
             label && <Paragraph {...label.props} x={-bounds.centerY-label.width/2} y={bounds.left} transform="rotate(-90)"/>,
             _.map(ticks, tick =>
                 <text x={bounds.left+labelOffset} y={scale.place(tick)} fill={textColor} dominant-baseline="middle" text-anchor="start" font-size={Axis.tickFontSize}>{scale.tickFormat(tick)}</text>
-            )
+            ),
+            scale.scaleTypeOptions.length > 1 && 
+                <ScaleSelector x={bounds.left} y={bounds.top} scaleType={scale.scaleType} scaleTypeOptions={scale.scaleTypeOptions} onChange={onScaleTypeChange}/>                        
         ]
     }
 
     renderHorizontal() {
-        const {bounds, orient} = this.props
+        const {bounds, orient, onScaleTypeChange} = this.props
         const {scale, ticks, label, labelOffset} = this
         const textColor = '#666'
 
@@ -102,7 +106,9 @@ export default class Axis extends Component {
             label && <Paragraph {...label.props} x={bounds.centerX-label.width/2} y={bounds.bottom-label.height}/>,
             _.map(ticks, tick =>
                 <text x={scale.place(tick)} y={bounds.bottom-labelOffset} fill={textColor} dominant-baseline={'auto'} text-anchor="middle" font-size={Axis.tickFontSize}>{scale.tickFormat(tick)}</text>
-            )
+            ),
+            scale.scaleTypeOptions.length > 1 && 
+                <ScaleSelector x={bounds.right} y={bounds.bottom-5} scaleType={scale.scaleType} scaleTypeOptions={scale.scaleTypeOptions} onChange={onScaleTypeChange}/>            
         ]
     }
 

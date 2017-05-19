@@ -186,7 +186,7 @@ export default class ChartView extends React.Component<ChartViewProps, null> {
     }
 
     getChildContext() {
-        return { chartView: this, addPopup: this.addPopup.bind(this), removePopup: this.removePopup.bind(this), scale: this.scale }
+        return { chartView: this, isStatic: this.isExport, addPopup: this.addPopup.bind(this), removePopup: this.removePopup.bind(this), scale: this.scale }
     }
 
     renderPrimaryTab(bounds: Bounds) {

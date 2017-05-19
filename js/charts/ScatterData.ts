@@ -92,12 +92,6 @@ export default class ScatterData {
                     if (year < targetYear-tolerance || year > targetYear+tolerance)
                         continue;
 
-                    // Skip values <= 0 for log scales
-/*                    if (xScaleType == 'log' && dimension.property == 'x' && parseFloat(value) <= 0)
-                        continue
-                    else if (yScaleType == 'log' && dimension.property == 'y' && parseFloat(value) <= 0)
-                        continue*/
-
                     var dataByYear = owid.default(dataByEntityAndYear, entity.id, {}),
                         series = owid.default(dataByYear, outputYear, {
                             id: entity.id,

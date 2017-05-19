@@ -55,6 +55,12 @@ export default class ScaleSelector extends Component {
 	render() {
 		const { x, y, onClick, scaleType } = this
 
-		return <Text x={x} y={y} onClick={onClick} dominant-baseline="middle" style={{'font-size': '12px', 'text-transform': 'uppercase', 'cursor': 'pointer'}}><tspan style={{'font-family': "FontAwesome"}}>{'\uf013'}</tspan> {scaleType}</Text>
+		if (this.context.isStatic)
+			return null
+
+		const style = {'font-size': '12px', 'text-transform': 'uppercase', 'cursor': 'pointer'}
+		return <text x={x} y={y} onClick={onClick} style={style}>
+			<tspan style={{'font-family': "FontAwesome"}}>{'\uf013'}</tspan> {scaleType}
+		</text>
 	}
 }

@@ -82,7 +82,7 @@ export default class ChartConfig {
             let min = owid.numeric(this.xAxisConfig["axis-min"])
             let max = owid.numeric(this.xAxisConfig["axis-max"])
             this.xScaleType = this.xAxisConfig['axis-scale'] || 'linear'
-            this.xScaleTypeOptions = this.model.get('y-axis-scale-selector') ? ['linear', 'log'] : [this.xScaleType]
+            this.xScaleTypeOptions = this.model.get('x-axis-scale-selector') ? ['linear', 'log'] : [this.xScaleType]
             // 0 domain doesn't work with log scale
             if (!_.isFinite(min) || (this.xScaleType == 'log' && min <= 0))
                 min = null

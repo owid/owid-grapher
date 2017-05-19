@@ -32,7 +32,8 @@ interface PointsWithLabelsProps {
     focusKeys: string[],
     bounds: Bounds,
     xScale: AxisScale,
-    yScale: AxisScale
+    yScale: AxisScale,
+    sizeDomain: [number, number]
 }
 
 interface ScatterRenderSeries {
@@ -83,12 +84,13 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
     @computed get sizeScale() : Function {
         const {data} = this
-        const sizeScale = d3.scaleLinear().range([3, 22])
-        const allSizes = _.chain(data).map(series => _.map(series.values, 'size')).flatten().filter().value()
+        const sizeScale = d3.scaleLinear().range([3, 22]).domain(this.props.sizeDomain)
+        return sizeScale
+/*        const allSizes = _.chain(data).map(series => _.map(series.values, 'size')).flatten().filter().value()
         if (allSizes.length == 0)
             return sizeScale.domain([1, 1])
         else
-            return sizeScale.domain(d3.extent(allSizes))
+            return sizeScale.domain(d3.extent(allSizes))*/
     }
 
     @computed get fontScale() : Function {
@@ -113,7 +115,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                         Math.floor(yScale.place(v.y))
                     ),
                     size: sizeScale(v.size||1),
-                    fontSize: fontScale(v.size||1),
+                    fontSize: fontScale(d.size||1),
                     time: v.time
                 }
             })
@@ -137,7 +139,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         if (l.series.isFocused)
             priority += 1000
         if (l.isEnd)
-            priority += 1000
+            priority += 100
 
         return priority
     }
@@ -369,7 +371,8 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                     stroke={isFocusMode ? "#e2e2e2" : d.color}
                     points={_.map(d.values, v => `${v.position.x},${v.position.y}`).join(' ')}
                     fill="none"
-                    strokeWidth={0.3}
+                    strokeWidth={0.3*(d.size/4)}
+                    opacity={0.8}
                 />                
             }
         })
@@ -378,15 +381,15 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     // Second pass: render the starting points for each background group
     renderBackgroundStartPoints() {
         const {backgroundGroups, isFocusMode, isConnected} = this
-        return _.map(backgroundGroups, group => {
-            if (!isConnected)
+        return _.map(backgroundGroups, series => {
+            if (!isConnected || isFocusMode)
                 return null
             else {
-                const firstValue = _.first(group.values)
-                const color = !isFocusMode ? group.color : "#e2e2e2"
+                const firstValue = _.first(series.values)
+                const color = !isFocusMode ? series.color : "#e2e2e2"
 
                 //return <polygon transform={`translate(${firstValue.position.x}, ${firstValue.position.y}) scale(0.5) rotate(180)`} points="0,0 10,0 5.0,8.66" fill={color} opacity={0.4} stroke="#ccc"/>
-                return <circle key={group.displayKey+'-start'} cx={firstValue.position.x} cy={firstValue.position.y} r={1.5} fill={!isFocusMode ? group.color : "#e2e2e2"} opacity={0.6} stroke="#ccc"/>
+                return <circle key={series.displayKey+'-start'} cx={firstValue.position.x} cy={firstValue.position.y} r={firstValue.size/3} fill={!isFocusMode ? series.color : "#e2e2e2"} stroke="#ccc"/>
             }
         })
     }
@@ -394,6 +397,10 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     // Third pass: render the end points for each background group
     renderBackgroundEndPoints() {
         const {backgroundGroups, isFocusMode, isConnected} = this
+
+        if (isConnected && isFocusMode)
+            return null
+
         return _.map(backgroundGroups, series => {
             const lastValue = _.last(series.values)
             const color = !isFocusMode ? series.color : "#e2e2e2"            
@@ -406,7 +413,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             } else if (series.values.length == 1) {
                 return null
             } else {
-                return <Triangle key={series.displayKey+'-end'} transform={`rotate(${rotation}, ${cx}, ${cy})`} cx={cx} cy={cy} r={2} fill={color} stroke="#ccc" strokeWidth={0.2} opacity={1}/>
+                return <Triangle key={series.displayKey+'-end'} transform={`rotate(${rotation}, ${cx}, ${cy})`} cx={cx} cy={cy} r={lastValue.size/3} fill={color} stroke="#ccc" strokeWidth={0.2} opacity={0.8}/>
             }
         })    
     }
@@ -477,7 +484,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         if (_.isEmpty(renderData))
             return <NoData bounds={bounds}/>
 
-        return <g className="ScatterPlot" clipPath="url(#scatterBounds)" onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
+        return <g className="ScatterPlot clickable" clipPath="url(#scatterBounds)" onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
             <rect key="background" x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="rgba(0,0,0,0)"/>
             <defs>
                 <clipPath id="scatterBounds">
