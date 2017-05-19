@@ -84,7 +84,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
     @computed get sizeScale() : Function {
         const {data} = this
-        const sizeScale = d3.scaleLinear().range([3, 22]).domain(this.props.sizeDomain)
+        const sizeScale = d3.scaleLinear().range([2, 25]).domain(this.props.sizeDomain)
         return sizeScale
 /*        const allSizes = _.chain(data).map(series => _.map(series.values, 'size')).flatten().filter().value()
         if (allSizes.length == 0)
@@ -367,10 +367,10 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                 return <polyline
                     key={d.displayKey+'-line'}
                     strokeLinecap="round"
-                    stroke={isFocusMode ? "#e2e2e2" : d.color}
+                    stroke={isFocusMode ? "#ccc" : d.color}
                     points={_.map(d.values, v => `${v.position.x},${v.position.y}`).join(' ')}
                     fill="none"
-                    strokeWidth={0.3*(d.size/4)}
+                    strokeWidth={0.3+(d.size/8)}
                     opacity={0.6}
                 />                
             }
@@ -396,9 +396,6 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     // Third pass: render the end points for each background group
     renderBackgroundEndPoints() {
         const {backgroundGroups, isFocusMode, isConnected} = this
-
-        if (isConnected && isFocusMode)
-            return null
 
         return _.map(backgroundGroups, series => {
             const lastValue = _.last(series.values)

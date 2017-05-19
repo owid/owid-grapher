@@ -43,7 +43,7 @@ class ViewController extends Controller {
 
 		$chartsPerPage = 5;
 
-		$query = Chart::where('published', '=', true)->where('origin_url', '!=', "");
+		$query = Chart::where('published', '=', true)->where('origin_url', '!=', "")->orderBy('last_edited_at', 'DESC');
 		if ($type && $type != 'map')
 			$query = $query->where('type', '=', $type);
 
