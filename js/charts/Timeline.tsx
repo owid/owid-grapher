@@ -237,14 +237,18 @@ export default class RangeTimeline extends React.Component<TimelineProps, undefi
         const {singleYearMode} = this.props
 
         const inputYear = this.getInputYearFromMouse(e)
-        if (!singleYearMode && (targetEl.classed('startMarker') || inputYear <= startYear))
+        if (startYear == endYear && (targetEl.classed('startMarker') || targetEl.classed('endMarker')))
+            this.dragTarget = 'both'
+        else if (!singleYearMode && (targetEl.classed('startMarker') || inputYear <= startYear))
             this.dragTarget = 'start'
         else if (!singleYearMode && (targetEl.classed('endMarker') || inputYear >= endYear))
             this.dragTarget = 'end'
-        else {
+        else
             this.dragTarget = 'both'
+
+
+        if (this.dragTarget == 'both')
             this.dragOffsets = [this.startYearInput-inputYear, this.endYearInput-inputYear]
-        }
 
         this.onDrag(inputYear)
 
@@ -329,8 +333,8 @@ export default class RangeTimeline extends React.Component<TimelineProps, undefi
 			</g>
 			<rect className="sliderBackground" x={sliderBounds.left} y={sliderBounds.top} width={sliderBounds.width} height={sliderBounds.height} rx={5} ry={5} stroke-width={0.1} fill="#eee"/>
             <rect x={xScale(startYear)} y={sliderBounds.top} width={xScale(endYear)-xScale(startYear)} height={sliderBounds.height} fill="#3F9EFF"/>
-            <TimelineHandle year={startYear} xScale={xScale} bounds={sliderBounds} label={startYear == minYear || startYear == maxYear ? '' : roundedStartYear} handleclassName="startMarker"/>
-            <TimelineHandle year={endYear} xScale={xScale} bounds={sliderBounds} label={endYear == minYear || endYear == maxYear ? '' : roundedEndYear} handleclassName="endMarker"/>
+            <TimelineHandle year={startYear} xScale={xScale} bounds={sliderBounds} label={startYear == minYear || startYear == maxYear ? '' : roundedStartYear} handleClass="startMarker"/>
+            <TimelineHandle year={endYear} xScale={xScale} bounds={sliderBounds} label={endYear == minYear || endYear == maxYear ? '' : roundedEndYear} handleClass="endMarker"/>
 		</g>
 	}
 }
