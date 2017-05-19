@@ -50,7 +50,7 @@ export default class ScatterTab extends Component {
         return <div id="scatter-tab" class="tab-pane">
             <section>
                 <h2>Timeline</h2>
-                <p class="form-section-desc">Note that the timeline settings will override any variable settings for target year and tolerance.</p>
+                <p class="form-section-desc">Note that the timeline settings will override any variable settings for target year (but not for tolerance).</p>
                 <label class="clickable"><input type="checkbox" checked={!!isEnabled} onChange={this.onToggleTimeline}/> Enable timeline</label>
             </section>
         </div>

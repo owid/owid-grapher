@@ -135,7 +135,7 @@ export default function(chart) {
                     return _.includes(codesOrNames, entity.code) || _.includes(codesOrNames, entity.name);
                 });
 
-                chart.model.set('selected-countries', entities);
+                chart.config.selectedEntities = _.map(entities, 'name')
             }
         });
 

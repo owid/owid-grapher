@@ -106,7 +106,6 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     @computed get initialRenderData() : ScatterRenderSeries[] {
         window.Vector2 = Vector2
         const {data, xScale, yScale, defaultColorScale, sizeScale, fontScale} = this
-
         return _.chain(data).map(d => {
             const values = _.map(d.values, v => {
                 return {
@@ -236,7 +235,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         if (labelPos.x < lastPos.x)
             labelBounds = labelBounds.extend({ x: labelBounds.x-labelBounds.width })
         if (labelPos.y > lastPos.y)
-            labelBounds = labelBounds.extend({ y: labelBounds.y+labelBounds.height/2 })
+            labelBounds = labelBounds.extend({ y: labelBounds.y+labelBounds.height/2 })            
 
         return {
             text: series.text,
@@ -372,7 +371,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                     points={_.map(d.values, v => `${v.position.x},${v.position.y}`).join(' ')}
                     fill="none"
                     strokeWidth={0.3*(d.size/4)}
-                    opacity={0.8}
+                    opacity={0.6}
                 />                
             }
         })
@@ -389,7 +388,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                 const color = !isFocusMode ? series.color : "#e2e2e2"
 
                 //return <polygon transform={`translate(${firstValue.position.x}, ${firstValue.position.y}) scale(0.5) rotate(180)`} points="0,0 10,0 5.0,8.66" fill={color} opacity={0.4} stroke="#ccc"/>
-                return <circle key={series.displayKey+'-start'} cx={firstValue.position.x} cy={firstValue.position.y} r={firstValue.size/3} fill={!isFocusMode ? series.color : "#e2e2e2"} stroke="#ccc"/>
+                return <circle key={series.displayKey+'-start'} cx={firstValue.position.x} cy={firstValue.position.y} r={1+firstValue.size/8} fill={!isFocusMode ? series.color : "#e2e2e2"} stroke="#ccc" opacity={0.6}/>
             }
         })
     }
@@ -407,13 +406,15 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             let rotation = Vector2.angle(series.offsetVector, Vector2.up)
             if (series.offsetVector.x < 0) rotation = -rotation
 
+
             const cx = lastValue.position.x, cy = lastValue.position.y, r = lastValue.size
+
             if (!isConnected) {
                 return <circle key={series.displayKey+'-end'} cx={cx} cy={cy} r={r} fill={color} opacity={0.8} stroke="#ccc"/>
             } else if (series.values.length == 1) {
                 return null
             } else {
-                return <Triangle key={series.displayKey+'-end'} transform={`rotate(${rotation}, ${cx}, ${cy})`} cx={cx} cy={cy} r={lastValue.size/3} fill={color} stroke="#ccc" strokeWidth={0.2} opacity={0.8}/>
+                return <Triangle key={series.displayKey+'-end'} transform={`rotate(${rotation}, ${cx}, ${cy})`} cx={cx} cy={cy} r={1+lastValue.size/8} fill={color} stroke="#ccc" strokeWidth={0.2} opacity={0.8}/>
             }
         })    
     }

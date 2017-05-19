@@ -57,7 +57,13 @@ export default class Axis extends Component {
     }
 
     @computed get ticks() : number[] {
-        return this.scale.getTickValues()
+        const ticks = this.scale.getTickValues()
+
+        if (this.bounds.width < 500) {
+            return _.filter(ticks, (v, i) => i%2 == 0)
+        } else {
+            return ticks
+        }
     }
 
     @computed get label(): Paragraph {

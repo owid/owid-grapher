@@ -68,9 +68,10 @@ class ColorLegend extends React.Component<ColorLegendProps, null> {
     @computed get labelMarks(): LabelMark[] {
         const {props, fontSize, rectSize, rectPadding} = this
 
-        return _.filter(_.map(props.colors, color => {            
-            const value = props.scale.domain()[props.scale.range().indexOf(color)]
-            if (!value) return null
+        return _.filter(_.map(props.scale.domain(), value => {            
+            const color = props.scale(value)
+            if (props.colors.indexOf(color) == -1)
+                return null
 
             const label = preInstantiate(<Paragraph maxWidth={props.maxWidth} fontSize={fontSize}>{value}</Paragraph>)
             return {
@@ -283,9 +284,15 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     }
 
     @computed get xDomain() : [number, number] {
+        let xMin = this.chart.xDomain[0]
+        let xMax = this.chart.xDomain[1]
+
+        if (this.chart.xScaleType == 'log' && xMin <= 0) xMin = null
+        if (this.chart.xScaleType == 'log' && xMax <= 0) xMax = null
+        
         return [
-            _.defaultTo(this.chart.xDomain[0], this.xDomainDefault[0]),
-            _.defaultTo(this.chart.xDomain[1], this.xDomainDefault[1])
+            _.defaultTo(xMin, this.xDomainDefault[0]),
+            _.defaultTo(xMax, this.xDomainDefault[1])
         ]
     }
 
@@ -297,10 +304,16 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     }
 
     @computed get yDomain() : [number, number] {
+        let yMin = this.chart.yDomain[0]
+        let yMax = this.chart.yDomain[1]
+
+        if (this.chart.yScaleType == 'log' && yMin <= 0) yMin = null
+        if (this.chart.yScaleType == 'log' && yMax <= 0) yMax = null
+        
         return [
-            _.defaultTo(this.chart.yDomain[0], this.yDomainDefault[0]),
-            _.defaultTo(this.chart.yDomain[1], this.yDomainDefault[1])
-        ]
+            _.defaultTo(yMin, this.yDomainDefault[0]),
+            _.defaultTo(yMax, this.yDomainDefault[1])
+        ]    
     }
 
     @computed get sizeDomain(): [number, number] {
@@ -437,7 +450,8 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps, undefined> {
         const {units} = this.props
         const unit = _.find(units, { property: property })
         let s = owid.unitFormat(unit, value[property])
-        s += " (data from " + value.time[property] + ")"
+        if (value.year != value.time[property])
+            s += " (data from " + value.time[property] + ")"
         return s
 	}
 
@@ -452,16 +466,16 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps, undefined> {
         const elements = []
         const offset = 0
 
-        const heading = preInstantiate(<Paragraph x={x} y={y+offset} maxWidth={maxWidth} fontSize={0.6}>{series.label}</Paragraph>)
+        const heading = preInstantiate(<Paragraph x={x} y={y+offset} maxWidth={maxWidth} fontSize={0.65}>{series.label}</Paragraph>)
         elements.push(heading)
         offset += heading.height+lineHeight
 
         _.each(values, v => {
-            const year = preInstantiate(<Paragraph x={x} y={y+offset} maxWidth={maxWidth} fontSize={0.5}>{v.year.toString()}</Paragraph>)
+            const year = preInstantiate(<Paragraph x={x} y={y+offset} maxWidth={maxWidth} fontSize={0.55}>{v.year.toString()}</Paragraph>)
             offset += year.height
-            const line1 = preInstantiate(<Paragraph x={x} y={y+offset} maxWidth={maxWidth} fontSize={0.4}>{this.formatValue(v, 'y')}</Paragraph>)
+            const line1 = preInstantiate(<Paragraph x={x} y={y+offset} maxWidth={maxWidth} fontSize={0.45}>{this.formatValue(v, 'y')}</Paragraph>)
             offset += line1.height
-            const line2 = preInstantiate(<Paragraph x={x} y={y+offset} maxWidth={maxWidth} fontSize={0.4}>{this.formatValue(v, 'x')}</Paragraph>)
+            const line2 = preInstantiate(<Paragraph x={x} y={y+offset} maxWidth={maxWidth} fontSize={0.45}>{this.formatValue(v, 'x')}</Paragraph>)
             offset += line2.height+lineHeight            
             elements.push(...[year, line1, line2])
         })

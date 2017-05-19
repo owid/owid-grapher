@@ -373,7 +373,7 @@ export default Backbone.Model.extend({
 			result = this.transformDataForDiscreteBar();
 		else
 			result = this.transformDataForLineChart();
-
+		
 		if (addCountryMode != "add-country" && chartType != App.ChartType.DiscreteBar) {
 			_.each(result.legendData, function(d) {
 				d.disabled = !App.ChartModel.isLegendKeyActive(d.key);

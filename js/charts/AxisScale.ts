@@ -33,7 +33,7 @@ export default class AxisScale {
     }
 
     getTickValues() {
-        const {scaleType, domain, d3_scale} = this
+        const {scaleType, domain, d3_scale} = this        
 
         if (scaleType == 'log') {
             let minPower10 = Math.ceil(Math.log(domain[0]) / Math.log(10));

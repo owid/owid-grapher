@@ -56,8 +56,14 @@ export default class ChartConfig {
         this.selectedEntities = this.model.getSelectedEntities().map((e: any) => e.name)
         this.entityType = this.model.get('entity-type')
         this.timeline = this.model.get('timeline')
-        this.timeRange = this.model.get('chart-time')||[]
-        this.units = JSON.parse(this.model.get('units'))
+
+        const timeRange = this.model.get('chart-time')
+        if (!timeRange)
+            this.timeRange = [null, null]
+        else
+            this.timeRange = _.map(timeRange, v => _.isString(v) ? parseInt(v) : v)
+
+        this.units = JSON.parse(this.model.get('units')||"{}")
 
         this.yAxisConfig = this.model.get('y-axis')||{}
         let min = owid.numeric(this.yAxisConfig["axis-min"])
@@ -124,12 +130,19 @@ export default class ChartConfig {
             })
         })
 
+        // TODO fix this. Colors shouldn't be part of selectedEntities
 		autorun(() => {
 			const entities = this.selectedEntities
+            const byName = _.keyBy(this.model.get('selected-countries'), 'name')
+
 			if (window.chart && window.chart.vardata) {
 				const entityKey = window.chart.vardata.get('entityKey')
                 if (!_.isEmpty(entityKey)) {
-                    const selectedEntities = _.filter(_.values(entityKey), e => _.includes(entities, e.name))
+                    const selectedEntities = _.filter(_.values(entityKey), e => _.includes(entities, e.name))                    
+                    _.each(selectedEntities, e => {
+                        if (byName[e.name])
+                            _.extend(e, byName[e.name])
+                    })
                     this.model.set('selected-countries', selectedEntities)
                 }
 			}
@@ -153,6 +166,14 @@ export default class ChartConfig {
 
         autorun(() => {
             this.model.set('chart-time', toJS(this.timeRange))
+        })
+
+        autorun(() => {            
+            this.model.setAxisConfig('y-axis', 'axis-scale', this.yScaleType)
+        })
+
+        autorun(() => {
+            this.model.setAxisConfig('x-axis', 'axis-scale', this.xScaleType)
         })
 	}
 
