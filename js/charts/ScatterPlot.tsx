@@ -245,7 +245,10 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
 
     // domains across the entire timeline
     @computed get xDomainDefault() : [number, number] {
-        return d3.extent(_.map(this.allValues, 'x'))
+        if (this.chart.xScaleType == 'log')
+            return d3.extent(_.chain(this.allValues).map('x').filter(v => v > 0).value())
+        else
+            return d3.extent(_.map(this.allValues, 'x'))
     }
 
     @computed get xDomain() : [number, number] {
@@ -256,7 +259,10 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     }
 
     @computed get yDomainDefault() : [number, number] {
-        return d3.extent(_.map(this.allValues, 'y'))
+        if (this.chart.yScaleType == 'log')
+            return d3.extent(_.chain(this.allValues).map('y').filter(v => v > 0).value())
+        else
+            return d3.extent(_.map(this.allValues, 'y'))
     }
 
     @computed get yDomain() : [number, number] {
