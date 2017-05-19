@@ -301,23 +301,23 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
     base: SVGElement
 
-    @action.bound onMouseMove() {
-        const mouse = Vector2.fromArray(d3.mouse(this.base))
+    @action.bound onMouseLeave() {
+        this.hoverKey = null
+    }
 
-        if (!this.bounds.contains(mouse))
-            this.hoverKey = null
-        else {
-            const closestSeries = _.sortBy(this.renderData, (series) => {
+    @action.bound onMouseMove(ev: any) {
+        const mouse = Vector2.fromArray(getRelativeMouse(this.base, ev))
+
+        const closestSeries = _.sortBy(this.renderData, (series) => {
 //                    return _.min(_.map(series.values.slice(0, -1), (d, i) => {
 //                        return Vector2.distanceFromPointToLineSq(mouse, d.position, series.values[i+1].position)
 //                    }))
-                return _.min(_.map(series.values, v => Vector2.distanceSq(v.position, mouse)))
-            })[0]
-            if (closestSeries) //&& _.min(_.map(closestSeries.values, v => Vector2.distance(v.position, mouse))) < 20)
-                this.hoverKey = closestSeries.key
-            else
-                this.hoverKey = null
-        }
+            return _.min(_.map(series.values, v => Vector2.distanceSq(v.position, mouse)))
+        })[0]
+        if (closestSeries) //&& _.min(_.map(closestSeries.values, v => Vector2.distance(v.position, mouse))) < 20)
+            this.hoverKey = closestSeries.key
+        else
+            this.hoverKey = null
 
         if (this.props.onMouseOver && this.hoverKey)
             this.props.onMouseOver(_.find(this.data, d => d.key == this.hoverKey))        
@@ -333,16 +333,6 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             this.props.onSelectEntity(_.without(this.focusKeys, hoverKey))
         else
             this.props.onSelectEntity(this.focusKeys.concat([hoverKey]))
-    }
-
-    componentDidMount() {
-        d3.select("html").on("mousemove.scatter", this.onMouseMove)
-        d3.select("html").on("click.scatter", this.onClick)
-    }
-
-    componentDidUnmount() {
-        d3.select("html").on("mousemove.scatter", null)
-        d3.select("html").on("click.scatter", null)
     }
 
     @computed get isFocusMode() : boolean {
@@ -472,12 +462,11 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     render() {
         //Bounds.debug(_.flatten(_.map(this.renderData, d => _.map(d.labels, 'bounds'))))
         const {bounds, renderData, xScale, yScale, sizeScale, tmpFocusKeys, allColors, isFocusMode} = this
-        window.p = this
 
         if (_.isEmpty(renderData))
             return <NoData bounds={bounds}/>
 
-        return <g className="ScatterPlot" clipPath="url(#scatterBounds)">
+        return <g className="ScatterPlot" clipPath="url(#scatterBounds)" onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
             <rect key="background" x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="rgba(0,0,0,0)"/>
             <defs>
                 <clipPath id="scatterBounds">

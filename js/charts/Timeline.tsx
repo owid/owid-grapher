@@ -246,7 +246,6 @@ export default class RangeTimeline extends React.Component<TimelineProps, undefi
         else
             this.dragTarget = 'both'
 
-
         if (this.dragTarget == 'both')
             this.dragOffsets = [this.startYearInput-inputYear, this.endYearInput-inputYear]
 

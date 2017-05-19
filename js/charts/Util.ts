@@ -4,7 +4,7 @@ export type SVGElement = any;
 export type VNode = any;
 export const NullElement : any = (): null => null;
 
-export function getRelativeMouse(node : SVGElement, event : MouseEvent) {
+export function getRelativeMouse(node: SVGElement, event: MouseEvent): [number, number] {
   var svg = node.ownerSVGElement || node;
 
   if (svg.createSVGPoint) {
