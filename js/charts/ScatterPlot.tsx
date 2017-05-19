@@ -27,6 +27,7 @@ import Paragraph from './Paragraph'
 import ShapeLegend from './ShapeLegend'
 import {Triangle} from './Marks'
 import ScatterData from './ScatterData'
+import AxisGrid from './AxisGrid'
 
 type ScatterSeries = any
 
@@ -124,6 +125,8 @@ class ScatterWithAxis extends React.Component<any, null> {
         return <g>
             <Axis orient="left" scale={yScale} labelText={yAxisLabel} bounds={bounds.padBottom(xAxisBounds.height)}/>
             <Axis orient="bottom" scale={xScale} labelText={xAxisLabel} bounds={bounds.padLeft(yAxisBounds.width)}/>
+            <AxisGrid orient="left" scale={yScale} bounds={innerBounds.padWidth(10)}/>
+            <AxisGrid orient="bottom" scale={xScale} bounds={innerBounds.padHeight(10)}/>
             <PointsWithLabels {...this.props} xScale={xScale} yScale={yScale} data={data} bounds={innerBounds}/>
         </g>
     }
@@ -202,11 +205,17 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     }
 
     @computed get startYear() {
-        return Math.max(_.first(this.data.years), this.chart.timeRange[0])
+        if (_.isFinite(this.chart.timeRange[0]))
+            return Math.max(_.first(this.data.years), this.chart.timeRange[0])
+        else
+            return _.first(this.data.years)
     }
 
     @computed get endYear() {
-        return Math.min(_.last(this.data.years), this.chart.timeRange[1])
+        if (_.isFinite(this.chart.timeRange[1]))
+            return Math.min(_.last(this.data.years), this.chart.timeRange[1])
+        else
+            return _.last(this.data.years)
     }
 
     @computed get allSeries(): Object[] {
@@ -394,11 +403,11 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps, undefined> {
 
 
         _.each(values, v => {
-            const year = preInstantiate(<Paragraph x={x} y={y+offset} maxWidth={maxWidth} fontSize={0.5}>{v.time.x.toString()}</Paragraph>)
+            const year = preInstantiate(<Paragraph x={x} y={y+offset} maxWidth={maxWidth} fontSize={0.5}>{v.time.y.toString()}</Paragraph>)
             offset += year.height
-            const line1 = preInstantiate(<Paragraph x={x} y={y+offset} maxWidth={maxWidth} fontSize={0.4}>{this.formatValue(v, 'x')}</Paragraph>)
+            const line1 = preInstantiate(<Paragraph x={x} y={y+offset} maxWidth={maxWidth} fontSize={0.4}>{this.formatValue(v, 'y')}</Paragraph>)
             offset += line1.height
-            const line2 = preInstantiate(<Paragraph x={x} y={y+offset} maxWidth={maxWidth} fontSize={0.4}>{this.formatValue(v, 'y')}</Paragraph>)
+            const line2 = preInstantiate(<Paragraph x={x} y={y+offset} maxWidth={maxWidth} fontSize={0.4}>{this.formatValue(v, 'x')}</Paragraph>)
             offset += line2.height+lineHeight            
             elements.push(...[year, line1, line2])
         })

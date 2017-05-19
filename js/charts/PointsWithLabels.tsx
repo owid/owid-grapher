@@ -79,12 +79,12 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
     @computed get sizeScale() : Function {
         const {data} = this
-        return d3.scaleLinear().range([1, 7])
+        return d3.scaleLinear().range([3, 22])
             .domain(d3.extent(_.flatten(_.map(data, series => _.map(series.values, 'size')))))
     }
 
     @computed get fontScale() : Function {
-        return d3.scaleLinear().range([9, 12]).domain(this.sizeScale.domain());
+        return d3.scaleLinear().range([10, 13]).domain(this.sizeScale.domain());
     }
 
     // Used if no color is specified for a series
@@ -105,6 +105,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                         Math.floor(yScale.place(v.y))
                     ),
                     size: sizeScale(v.size||1),
+                    fontSize: fontScale(v.size||1),
                     time: v.time
                 }
             })
@@ -207,7 +208,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     makeEndLabel(series: ScatterRenderSeries) {
         const lastValue = _.last(series.values)
         const lastPos = lastValue.position
-        const fontSize = series.isFocused ? 12 : 8
+        const fontSize = lastValue.fontSize*(series.isFocused ? 1.2 : 1)
 
         let offsetVector = Vector2.up
         if (series.values.length > 1) {
@@ -217,7 +218,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         }
         series.offsetVector = offsetVector
 
-        const labelPos = lastPos.add(offsetVector.normalize().times(5))
+        const labelPos = lastPos.add(offsetVector.normalize().times(series.values.length == 1 ? lastValue.size+1 : 5))
 
         let labelBounds = Bounds.forText(series.label, { x: labelPos.x, y: labelPos.y, fontSize: fontSize })
         if (labelPos.x < lastPos.x)
@@ -235,6 +236,8 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
     @computed get renderData(): ScatterRenderSeries[] {
         let {initialRenderData, hoverKey, tmpFocusKeys, labelPriority, bounds} = this
+
+        // Draw the largest points first so that smaller ones can sit on top of them
         let renderData = _.sortBy(initialRenderData, d => -d.size)
 
         _.each(renderData, series => {
@@ -306,7 +309,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 //                    }))
                 return _.min(_.map(series.values, v => Vector2.distanceSq(v.position, mouse)))
             })[0]
-            if (closestSeries && _.min(_.map(closestSeries.values, v => Vector2.distance(v.position, mouse))) < 20)
+            if (closestSeries) //&& _.min(_.map(closestSeries.values, v => Vector2.distance(v.position, mouse))) < 20)
                 this.hoverKey = closestSeries.key
             else
                 this.hoverKey = null
@@ -395,10 +398,10 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             let rotation = Vector2.angle(group.offsetVector, Vector2.up)
             if (group.offsetVector.x < 0) rotation = -rotation
 
-            const cx = lastValue.position.x, cy = lastValue.position.y
+            const cx = lastValue.position.x, cy = lastValue.position.y, r = lastValue.size
 
             if (group.values.length == 1) {
-                return <circle key={group.displayKey+'-end'} cx={cx} cy={cy} r={3} fill={color} opacity={0.8} stroke="#ccc"/>
+                return <circle key={group.displayKey+'-end'} cx={cx} cy={cy} r={r} fill={color} opacity={0.8} stroke="#ccc"/>
             } else {
                 return <Triangle key={group.displayKey+'-end'} transform={`rotate(${rotation}, ${cx}, ${cy})`} cx={cx} cy={cy} r={2} fill={color} stroke="#ccc" strokeWidth={0.2} opacity={1}/>
             }
@@ -427,7 +430,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
             if (group.values.length == 1) {
                 const v = group.values[0]
-                return <circle key={group.displayKey} cx={v.position.x} cy={v.position.y} fill={group.color} r={1+focusMul*2}/>
+                return <circle key={group.displayKey} cx={v.position.x} cy={v.position.y} fill={group.color} r={v.size}/>
             } else
                 return [
                     <defs key={group.displayKey+'-defs'}>
@@ -472,7 +475,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             return <NoData bounds={bounds}/>
 
         return <g className="ScatterPlot" clipPath="url(#scatterBounds)">
-            <rect key="background" x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="#fff"/>
+            <rect key="background" x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="rgba(0,0,0,0)"/>
             <defs>
                 <clipPath id="scatterBounds">
                     <rect x={bounds.x-5} y={bounds.y-5} width={bounds.width+10} height={bounds.height+10}/>

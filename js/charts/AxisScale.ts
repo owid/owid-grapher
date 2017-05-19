@@ -12,22 +12,22 @@
 // @flow
 
 import * as d3 from 'd3'
+import * as _ from 'lodash'
 import {observable, computed, action, toJS} from 'mobx'
-import _ from 'lodash'
 
 export type ScaleType = 'linear' | 'log';
 
 export default class AxisScale {
     @observable scaleType : ScaleType
-    @observable tickFormat : number => string
+    @observable tickFormat : (v: number) => string
     @observable domain : [number, number]
     @observable range : [number, number]
 
-    @computed get d3_scaleConstructor() : Function {
+    @computed get d3_scaleConstructor(): Function {
         return this.scaleType == 'log' ? d3.scaleLog : d3.scaleLinear
     }
 
-    @computed get d3_scale() : Function {
+    @computed get d3_scale(): d3.ScaleLinear<number, number> | d3.ScaleLogarithmic<number, number> {
         return this.d3_scaleConstructor().domain(this.domain).range(this.range)
     }
 
@@ -67,7 +67,7 @@ export default class AxisScale {
     }
 
     constructor({ scaleType = 'linear', tickFormat = (d => d.toString()), domain = [0, 0], range = [0, 0] } :
-                { scaleType: ScaleType, tickFormat: number => string, domain: [number, number], range?: [number, number] }) {
+                { scaleType: ScaleType, tickFormat: (v: number) => string, domain: [number, number], range?: [number, number] }) {
         this.scaleType = scaleType
         this.tickFormat = tickFormat
         this.domain = domain
