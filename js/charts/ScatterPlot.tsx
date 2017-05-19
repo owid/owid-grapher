@@ -43,6 +43,13 @@ interface ColorLegendProps {
     onMouseLeave: () => void
 }
 
+interface LabelMark {
+    label: Paragraph,
+    color: string,
+    width: number,
+    height: number
+}
+
 @observer
 class ColorLegend extends React.Component<ColorLegendProps, null> {
     static defaultProps: Partial<ColorLegendProps> = {
@@ -58,7 +65,7 @@ class ColorLegend extends React.Component<ColorLegendProps, null> {
     @computed get rectPadding(): number { return 5 }
     @computed get lineHeight(): number { return 5 }
 
-    @computed get labelMarks() {
+    @computed get labelMarks(): LabelMark[] {
         const {props, fontSize, rectSize, rectPadding} = this
 
         return _.filter(_.map(props.colors, color => {            
@@ -75,8 +82,11 @@ class ColorLegend extends React.Component<ColorLegendProps, null> {
         }))
     }
 
-    @computed get width() {
-        return _.max(_.map(this.labelMarks, 'width'))
+    @computed get width(): number {
+        if (this.labelMarks.length == 0)
+            return 0   
+        else 
+            return _.max(_.map(this.labelMarks, 'width'))
     }
 
     @computed get height() {
@@ -125,8 +135,8 @@ class ScatterWithAxis extends React.Component<any, null> {
         return <g>
             <Axis orient="left" scale={yScale} labelText={yAxisLabel} bounds={bounds.padBottom(xAxisBounds.height)}/>
             <Axis orient="bottom" scale={xScale} labelText={xAxisLabel} bounds={bounds.padLeft(yAxisBounds.width)}/>
-            <AxisGrid orient="left" scale={yScale} bounds={innerBounds.padWidth(10)}/>
-            <AxisGrid orient="bottom" scale={xScale} bounds={innerBounds.padHeight(10)}/>
+            <AxisGrid orient="left" scale={yScale} bounds={innerBounds}/>
+            <AxisGrid orient="bottom" scale={xScale} bounds={innerBounds}/>
             <PointsWithLabels {...this.props} xScale={xScale} yScale={yScale} data={data} bounds={innerBounds}/>
         </g>
     }
@@ -353,7 +363,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     }
 
     @computed get sidebarMaxWidth() { return this.bounds.width*0.5 }
-    @computed get sidebarMinWidth() { return 0 }
+    @computed get sidebarMinWidth() { return 100 }
     @computed get sidebarWidth() {
         const {sidebarMinWidth, sidebarMaxWidth, legend} = this
         return Math.max(Math.min(legend.width, sidebarMaxWidth), sidebarMinWidth)

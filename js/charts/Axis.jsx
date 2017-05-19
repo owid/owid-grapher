@@ -30,11 +30,11 @@ export default class Axis extends Component {
             // Vertical axis must account for tick length
             const longestTick = _.sortBy(scale.getFormattedTicks(), (tick) => -tick.length)[0]
             const labelWrap = label && preInstantiate(<Paragraph maxWidth={containerBounds.height} fontSize={Axis.labelFontSize}>label</Paragraph>)
-            const axisWidth = Bounds.forText(longestTick, { fontSize: Axis.tickFontSize }).width + (label ? (labelWrap.height + Axis.labelPadding*2) : 0)
+            const axisWidth = Bounds.forText(longestTick, { fontSize: Axis.tickFontSize }).width + (label ? (labelWrap.height + Axis.labelPadding*2) : 0)+5
             return new Bounds(containerBounds.x, containerBounds.y, axisWidth, containerBounds.height)
         } else {
             const labelWrap = label && preInstantiate(<Paragraph maxWidth={containerBounds.width} fontSize={Axis.labelFontSize}>label</Paragraph>)
-            const axisHeight = Bounds.forText(scale.getFormattedTicks()[0], { fontSize: Axis.tickFontSize }).height + (label ? (labelWrap.height + Axis.labelPadding*2) : 0)
+            const axisHeight = Bounds.forText(scale.getFormattedTicks()[0], { fontSize: Axis.tickFontSize }).height + (label ? (labelWrap.height + Axis.labelPadding*2) : 0)+5
             return new Bounds(containerBounds.x, containerBounds.y+(containerBounds.height-axisHeight), containerBounds.width, axisHeight)
         }
     }

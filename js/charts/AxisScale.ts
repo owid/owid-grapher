@@ -20,8 +20,8 @@ export type ScaleType = 'linear' | 'log';
 export default class AxisScale {
     @observable scaleType : ScaleType
     @observable tickFormat : (v: number) => string
-    @observable domain : [number, number]
-    @observable range : [number, number]
+    @observable.struct domain: [number, number]
+    @observable.struct range: [number, number]
 
     @computed get d3_scaleConstructor(): Function {
         return this.scaleType == 'log' ? d3.scaleLog : d3.scaleLinear

@@ -79,8 +79,12 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
     @computed get sizeScale() : Function {
         const {data} = this
-        return d3.scaleLinear().range([3, 22])
-            .domain(d3.extent(_.flatten(_.map(data, series => _.map(series.values, 'size')))))
+        const sizeScale = d3.scaleLinear().range([3, 22])
+        const allSizes = _.chain(data).map(series => _.map(series.values, 'size')).flatten().filter().value()
+        if (allSizes.length == 0)
+            return sizeScale.domain([1, 1])
+        else
+            return sizeScale.domain(d3.extent(allSizes))
     }
 
     @computed get fontScale() : Function {
@@ -399,7 +403,6 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             if (group.offsetVector.x < 0) rotation = -rotation
 
             const cx = lastValue.position.x, cy = lastValue.position.y, r = lastValue.size
-
             if (group.values.length == 1) {
                 return <circle key={group.displayKey+'-end'} cx={cx} cy={cy} r={r} fill={color} opacity={0.8} stroke="#ccc"/>
             } else {
