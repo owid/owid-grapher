@@ -66,7 +66,7 @@ export default class Bounds {
         const fontFace = this.baseFontFamily
 
         let bounds = this.textBoundsCache[key]
-        if (bounds) return bounds
+        if (bounds) return bounds.extend({ x: x, y: y-bounds.height })
 
         this.ctx.font = fontSize + ' ' + fontFace;
         const m = this.ctx.measureText(str)
@@ -192,6 +192,10 @@ export default class Bounds {
 	contains(p: Vector2) {
 		return this.containsPoint(p.x, p.y)
 	}
+
+    encloses(bounds: Bounds) {
+        return this.containsPoint(bounds.left, bounds.top) && this.containsPoint(bounds.left, bounds.bottom) && this.containsPoint(bounds.right, bounds.top) && this.containsPoint(bounds.right, bounds.bottom)
+    }
 
 	toCSS() : { left: string, top: string, width: string, height: string } {
 		return { left: this.left+'px', top: this.top+'px', width: this.width+'px', height: this.height+'px'}

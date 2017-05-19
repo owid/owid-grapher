@@ -18,7 +18,7 @@ export default class ChartConfig {
 	@observable.ref selectedEntities: Object[] = []
     @observable.ref entityType: string = "country"
     @observable.ref timeRange: [number|null, number|null]
-    @observable timeline: Object = null
+    @observable.struct timeline: Object = null
 
     @observable.ref yAxisConfig: any
     @observable.ref yDomain: [number|null, number|null]
@@ -33,7 +33,12 @@ export default class ChartConfig {
     @observable.ref xScaleTypeOptions: string[]
     @observable.ref xAxisLabel: string
     @observable.ref xTickFormat: (v: number) => string
+    @observable.ref units: Object[]
     @observable.struct availableTabs: string[]
+
+
+    @observable.struct dimensions: Object[]
+    @observable.ref dimensionsWithData: Object[]
 
 	model: any
 
@@ -52,18 +57,19 @@ export default class ChartConfig {
         this.entityType = this.model.get('entity-type')
         this.timeline = this.model.get('timeline')
         this.timeRange = this.model.get('chart-time')||[]
+        this.units = JSON.parse(this.model.get('units'))
 
         this.yAxisConfig = this.model.get('y-axis')||{}
         let min = owid.numeric(this.yAxisConfig["axis-min"])
         let max = owid.numeric(this.yAxisConfig["axis-max"])
+        this.yScaleType = this.yAxisConfig['axis-scale'] || 'linear'
+        this.yScaleTypeOptions = this.model.get('y-axis-scale-selector') ? ['linear', 'log'] : [this.yScaleType]
         // 0 domain doesn't work with log scale
         if (!_.isFinite(min) || (this.yScaleType == 'log' && min <= 0))
             min = null
         if (!_.isFinite(max) || (this.yScaleType == 'log' && max <= 0))
             max = null
         this.yDomain = [min, max]
-        this.yScaleType = this.yAxisConfig['axis-scale'] || 'linear'
-        this.yScaleTypeOptions = this.model.get('y-axis-scale-selector') ? ['linear', 'log'] : [this.yScaleType]
         this.yAxisLabel = this.yAxisConfig['axis-label'] || ""
         const yAxis = this.yAxisConfig,
               yAxisPrefix = yAxis["axis-prefix"] || "",
@@ -75,14 +81,14 @@ export default class ChartConfig {
             this.xAxisConfig = this.model.get('x-axis')||{}
             let min = owid.numeric(this.xAxisConfig["axis-min"])
             let max = owid.numeric(this.xAxisConfig["axis-max"])
+            this.xScaleType = this.xAxisConfig['axis-scale'] || 'linear'
+            this.xScaleTypeOptions = this.model.get('x-axis-scale-selector') ? ['linear', 'log'] : [this.xScaleType]
             // 0 domain doesn't work with log scale
             if (!_.isFinite(min) || (this.xScaleType == 'log' && min <= 0))
                 min = null
             if (!_.isFinite(max) || (this.xScaleType == 'log' && max <= 0))
                 max = null
             this.xDomain = [min, max]
-            this.xScaleType = this.xAxisConfig['axis-scale'] || 'linear'
-            this.xScaleTypeOptions = this.model.get('y-axis-scale-selector') ? ['linear', 'log'] : [this.xScaleType]
             this.xAxisLabel = this.xAxisConfig['axis-label'] || ""
             const xAxis = this.xAxisConfig,
                   xAxisPrefix = xAxis["axis-prefix"] || "",
@@ -91,32 +97,43 @@ export default class ChartConfig {
             this.xTickFormat = (d) => xAxisPrefix + owid.unitFormat({ format: xAxisFormat||5 }, d) + xAxisSuffix
         })()
 
-        this.availableTabs = _.sortBy(this.model.get('tabs'), name => {
+        this.availableTabs = (_.sortBy(this.model.get('tabs'), name => {
             if (name == 'chart')
                 return 1
             else if (name == 'map')
                 return 2
             else
                 return 3
-        })
+        }) as string[])
+
+        this.dimensions = this.model.get('chart-dimensions')        
     }
 
-	constructor(model : any) {
+	constructor(model : any, data: any) {
 		this.model = model
 
         this.syncFromModel()
         this.model.on('change', this.syncFromModel)
 
-		/*autorun(() => {
+        data.ready(() => {
+            this.dimensionsWithData = this.model.getDimensions()
+        })
+        this.model.on('change:chart-dimensions change:chart-type', () => {
+            data.ready(() => {
+                this.dimensionsWithData = this.model.getDimensions()
+            })
+        })
+
+		autorun(() => {
 			const entities = this.selectedEntities
-			if (window.chart.vardata) {
+			if (window.chart && window.chart.vardata) {
 				const entityKey = window.chart.vardata.get('entityKey')
                 if (!_.isEmpty(entityKey)) {
                     const selectedEntities = _.filter(_.values(entityKey), e => _.includes(entities, e.name))
                     this.model.set('selected-countries', selectedEntities)
                 }
 			}
-		})*/
+		})
 
         autorun(() => {
             this.model.set({
@@ -137,10 +154,6 @@ export default class ChartConfig {
         autorun(() => {
             this.model.set('chart-time', toJS(this.timeRange))
         })
-	}
-
-	@computed get dimensions() : Object[] {
-		return this.model.getDimensions()
 	}
 
 	@computed get timeDomain() : [number|null, number|null] {

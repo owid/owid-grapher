@@ -1152,4 +1152,12 @@ a {
     }
 }
 
+#chart .ScatterPlot {
+    cursor: pointer;
+
+    & circle {
+        stroke-width: 0.3;
+    }
+}
+
 /*# sourceMappingURL=front-sass.css.map */

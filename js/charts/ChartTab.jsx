@@ -16,6 +16,7 @@ import Scatter from './owid.viz.scatter'
 import EntitySelect from './owid.view.entitySelect'
 import Legend from './App.Views.Chart.Legend'
 import nv from 'nvd3'
+import ScatterPlot from './ScatterPlot'
 
 export default class ChartTab extends React.Component {
     componentDidMount() {
@@ -26,8 +27,12 @@ export default class ChartTab extends React.Component {
     }
 
     componentDidUpdate() {
-        this.chartTab.onRenderEnd = this.props.onRenderEnd
-        this.chartTab.render(this.bounds)
+		if (this.props.chart.type == App.ChartType.ScatterPlot || this.props.chart.type == App.ChartType.SlopeChart)
+			this.props.onRenderEnd && this.props.onRenderEnd()
+		else {
+			this.chartTab.onRenderEnd = this.props.onRenderEnd
+			this.chartTab.render(this.bounds)
+		}
     }
 
     componentWillUnmount() {
@@ -73,6 +78,8 @@ export default class ChartTab extends React.Component {
     renderChart() {
         if (this.props.chart.type == App.ChartType.SlopeChart)
             return <SlopeChart bounds={this.bounds.padTop(20)} config={this.props.chartView.chart}/>
+        else if (this.props.chart.type == App.ChartType.ScatterPlot)
+            return <ScatterPlot bounds={this.bounds.padTop(20).padBottom(10)} config={this.props.chartView.chart} isStatic={this.props.chartView.isExport}/>
         else
             return null
     }
@@ -186,7 +193,7 @@ const chartTabOld = function(chart) {
 			if (chartType == App.ChartType.LineChart) {
 				renderLineChart();
 			} else if (chartType == App.ChartType.ScatterPlot) {
-				renderScatterPlot();
+				return
 			} else if (chartType == App.ChartType.StackedArea) {
 				renderStackedArea();
 			} else if (chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar) {

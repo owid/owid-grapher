@@ -13,6 +13,7 @@ import * as _ from 'lodash'
 import * as $ from 'jquery'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
+import * as d3 from 'd3'
 import Bounds from './Bounds'
 import {svgAsDataUri} from './saveSvgAsPng'
 import ChartView from './ChartView'
@@ -66,10 +67,10 @@ function prepareSVGForExport(chartView, svg) {
 }
 
 export default class ExportView {
-    static bootstrap({ jsonConfig, containerNode }) {
+    static bootstrap({ jsonConfig, containerNode }: { jsonConfig: any, containerNode: HTMLElement }) {
         const targetWidth = App.IDEAL_WIDTH, targetHeight = App.IDEAL_HEIGHT;
         const targetBounds = new Bounds(0, 0, targetWidth, targetHeight)
-        let chartView = null
+        let chartView: ChartView|null = null
 
         const onRenderEnd = function() {
             const svg = d3.select(chartView.svgNode)

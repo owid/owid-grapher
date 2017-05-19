@@ -7,20 +7,23 @@ import Bounds from './Bounds'
 import type {ScaleType} from './ScaleSelector'
 import AxisScale from './AxisScale'
 import Paragraph from './Paragraph'
+import {preInstantiate} from './Util'
+import ScaleSelector from './ScaleSelector'
 
 // @flow
 
 type AxisProps = {
     bounds: Bounds,
     orient: 'left' | 'right' | 'bottom',
-    scale: AxisScale
+    scale: AxisScale,
+    onScaleTypeChange: (ScaleType) => void
 };
 
 @observer
 export default class Axis extends Component {
     static labelPadding = 5
     static tickFontSize = "0.7em"
-    static labelFontSize = "0.7em"
+    static labelFontSize = 0.5
 
     static calculateBounds(containerBounds : Bounds, props : any) {
         const {orient, scale, label} = props
@@ -28,12 +31,12 @@ export default class Axis extends Component {
         if (orient == 'left') {
             // Vertical axis must account for tick length
             const longestTick = _.sortBy(scale.getFormattedTicks(), (tick) => -tick.length)[0]
-            const labelWrap = label && Paragraph.wrap(label, containerBounds.height, { fontSize: Axis.labelFontSize })
-            const axisWidth = Bounds.forText(longestTick, { fontSize: Axis.tickFontSize }).width + (label ? (labelWrap.height + Axis.labelPadding*2) : 0)
+            const labelWrap = label && preInstantiate(<Paragraph maxWidth={containerBounds.height} fontSize={Axis.labelFontSize}>label</Paragraph>)
+            const axisWidth = Bounds.forText(longestTick, { fontSize: Axis.tickFontSize }).width + (label ? (labelWrap.height + Axis.labelPadding*2) : 0)+5
             return new Bounds(containerBounds.x, containerBounds.y, axisWidth, containerBounds.height)
         } else {
-            const labelWrap = label && Paragraph.wrap(label, containerBounds.width, { fontSize: Axis.labelFontSize })
-            const axisHeight = Bounds.forText(scale.getFormattedTicks()[0], { fontSize: Axis.tickFontSize }).height + (label ? (labelWrap.height + Axis.labelPadding*2) : 0)
+            const labelWrap = label && preInstantiate(<Paragraph maxWidth={containerBounds.width} fontSize={Axis.labelFontSize}>label</Paragraph>)
+            const axisHeight = Bounds.forText(scale.getFormattedTicks()[0], { fontSize: Axis.tickFontSize }).height + (label ? (labelWrap.height + Axis.labelPadding*2) : 0)+5
             return new Bounds(containerBounds.x, containerBounds.y+(containerBounds.height-axisHeight), containerBounds.width, axisHeight)
         }
     }
@@ -57,35 +60,55 @@ export default class Axis extends Component {
         return this.scale.getTickValues()
     }
 
+    @computed get label(): Paragraph {
+        const {labelText} = this.props
+        const {bounds, isVertical} = this
+
+        if (!labelText) return null
+
+        if (isVertical) {
+            return preInstantiate(<Paragraph maxWidth={bounds.height} fontSize={Axis.labelFontSize}>{labelText}</Paragraph>)
+        } else {
+            return preInstantiate(<Paragraph maxWidth={bounds.width} fontSize={Axis.labelFontSize}>{labelText}</Paragraph>)
+        }
+    }
+
+    @computed get labelOffset(): number {
+        const {label} = this
+
+        if (!label)
+            return 0
+        else
+            return label.height + Axis.labelPadding*2
+    }
+
     renderVertical() {
-        const {bounds, orient, label} = this.props
-        const {scale, ticks} = this
+        const {bounds, orient, onScaleTypeChange} = this.props
+        const {scale, ticks, label, labelOffset} = this
         const textColor = '#666'
 
-        const wrapLabel = label && Paragraph.wrap(label, bounds.height, { fontSize: Axis.labelFontSize })
-        const labelOffset = label ? (wrapLabel.height+Axis.labelPadding*2) : 0
-
         return [
-            label && <Paragraph x={-bounds.centerY} y={bounds.left+wrapLabel.lines[0].height} text-anchor="middle" transform="rotate(-90)">{wrapLabel}</Paragraph>,
+            label && <Paragraph {...label.props} x={-bounds.centerY-label.width/2} y={bounds.left} transform="rotate(-90)"/>,
             _.map(ticks, tick =>
                 <text x={bounds.left+labelOffset} y={scale.place(tick)} fill={textColor} dominant-baseline="middle" text-anchor="start" font-size={Axis.tickFontSize}>{scale.tickFormat(tick)}</text>
-            )
+            ),
+            scale.scaleTypeOptions.length > 1 && 
+                <ScaleSelector x={bounds.left} y={bounds.top} scaleType={scale.scaleType} scaleTypeOptions={scale.scaleTypeOptions} onChange={onScaleTypeChange}/>                        
         ]
     }
 
     renderHorizontal() {
-        const {bounds, orient, label} = this.props
-        const {scale, ticks} = this
+        const {bounds, orient, onScaleTypeChange} = this.props
+        const {scale, ticks, label, labelOffset} = this
         const textColor = '#666'
 
-        const wrapLabel = label && Paragraph.wrap(label, bounds.width, { fontSize: Axis.labelFontSize })
-        const labelOffset = label ? (wrapLabel.height+Axis.labelPadding*2) : 0
-
         return [
-            label && <Paragraph x={bounds.centerX} y={bounds.bottom-wrapLabel.height} text-anchor="middle" dominant-baseline="hanging">{wrapLabel}</Paragraph>,
+            label && <Paragraph {...label.props} x={bounds.centerX-label.width/2} y={bounds.bottom-label.height}/>,
             _.map(ticks, tick =>
                 <text x={scale.place(tick)} y={bounds.bottom-labelOffset} fill={textColor} dominant-baseline={'auto'} text-anchor="middle" font-size={Axis.tickFontSize}>{scale.tickFormat(tick)}</text>
-            )
+            ),
+            scale.scaleTypeOptions.length > 1 && 
+                <ScaleSelector x={bounds.right} y={bounds.bottom-5} scaleType={scale.scaleType} scaleTypeOptions={scale.scaleTypeOptions} onChange={onScaleTypeChange}/>            
         ]
     }
 

@@ -2,7 +2,6 @@ import _ from 'lodash'
 import $ from 'jquery'
 import Backbone from 'backbone'
 import owid from '../owid'
-import ChartData from './ChartData'
 
 export default Backbone.Model.extend({
 	initialize: function() {
