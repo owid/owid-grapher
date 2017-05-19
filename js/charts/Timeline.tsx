@@ -55,7 +55,7 @@ export default class RangeTimeline extends React.Component<TimelineProps, undefi
 
         autorunAsync(() => {
             if (this.props.onTargetChange)
-                this.props.onTargetChange({ targetStartYear: this.roundedStartYear, targetEndYear: this.roundedEndYear })
+                this.props.onTargetChange({ targetStartYear: this.targetStartYear, targetEndYear: this.targetEndYear })
         })
     }
 
@@ -313,7 +313,7 @@ export default class RangeTimeline extends React.Component<TimelineProps, undefi
     }
 
   	render() {
-		const { bounds, sliderBounds, minYear, maxYear, minYearBox, maxYearBox, xScale, years, isPlaying, startYear, endYear, roundedStartYear, roundedEndYear } = this
+		const { bounds, sliderBounds, minYear, maxYear, minYearBox, maxYearBox, xScale, years, isPlaying, startYear, endYear, roundedStartYear, roundedEndYear, targetStartYear, targetEndYear } = this
 
         const toggleText = isPlaying ? "\uf28c" : "\uf01d"
         const toggleTextBounds = Bounds.forText(toggleText, { fontSize: "1.3em" })
@@ -332,8 +332,8 @@ export default class RangeTimeline extends React.Component<TimelineProps, undefi
 			</g>
 			<rect className="sliderBackground" x={sliderBounds.left} y={sliderBounds.top} width={sliderBounds.width} height={sliderBounds.height} rx={5} ry={5} stroke-width={0.1} fill="#eee"/>
             <rect x={xScale(startYear)} y={sliderBounds.top} width={xScale(endYear)-xScale(startYear)} height={sliderBounds.height} fill="#3F9EFF"/>
-            <TimelineHandle year={startYear} xScale={xScale} bounds={sliderBounds} label={startYear == minYear || startYear == maxYear ? '' : roundedStartYear} handleClass="startMarker"/>
-            <TimelineHandle year={endYear} xScale={xScale} bounds={sliderBounds} label={endYear == minYear || endYear == maxYear ? '' : roundedEndYear} handleClass="endMarker"/>
+            <TimelineHandle year={startYear} xScale={xScale} bounds={sliderBounds} label={startYear == minYear || startYear == maxYear ? '' : targetStartYear} handleClass="startMarker"/>
+            <TimelineHandle year={endYear} xScale={xScale} bounds={sliderBounds} label={endYear == minYear || endYear == maxYear ? '' : targetEndYear} handleClass="endMarker"/>
 		</g>
 	}
 }

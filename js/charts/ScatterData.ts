@@ -36,22 +36,11 @@ export default class ScatterData {
             return [maxYear]
         }
 
-        // We use the axis variable with the lowest tolerance as the source of years to show
-        const anchorDim = _.sortBy(this.axisDimensions, d => d.tolerance)[0]
-        const anchorYears = _.uniq(anchorDim.variable.years)
-        const otherDim = _.find(this.axisDimensions, d => d !== anchorDim)
-
-        // Compute tolerance years
-        const otherYearIndex = {}
-        _(otherDim.variable.years).uniq().each(year => {
-            for (var i = year-otherDim.tolerance; i <= year+otherDim.tolerance; i++) {
-                otherYearIndex[i] = true
-            }
-        })
-
-        const otherYears = _.chain(otherYearIndex).keys().map(d => parseInt(d)).value()
-
-        return _.intersection(anchorYears, otherDim.variable.years)
+        // Show years with at least some data for both variables
+        return _.intersection(
+            _.uniq(this.axisDimensions[0].variable.years), 
+            _.uniq(this.axisDimensions[1].variable.years)
+        )
     }
 
     @computed get colorScheme() : string[] {

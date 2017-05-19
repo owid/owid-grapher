@@ -173,6 +173,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
 
     @computed get currentData() : ScatterSeries[] {
         const {dataByEntityAndYear, startYear, endYear, isInterpolating} = this
+        const {xScaleType, yScaleType} = this.chart
         var currentData = [];
 
         _.each(dataByEntityAndYear, (dataByYear) => {
@@ -194,10 +195,31 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
                 currentData.push(series)
         });
 
-        currentData = _.filter(currentData, series => {
-            return _.first(series.values).year == startYear && _.last(series.values).year == endYear
+        currentData = _.map(currentData, series => {
+            // Only allow tolerance data to occur once in any given chart (no duplicate data points)
+            // Prioritize the start and end years first, then the "true" year
+            let values = _.chain(series.values).groupBy(v => v.time.y).map(vals => 
+                _.sortBy(vals, v => (v.year == startYear || v.year == endYear) ? -Infinity : Math.abs(v.year-v.time.y))[0]
+            ).value()
+
+            values = _.chain(values).groupBy(v => v.time.x).map(vals => { 
+                return _.sortBy(vals, v => (v.year == startYear || v.year == endYear) ? -Infinity : Math.abs(v.year-v.time.x))[0]
+            }).value()
+
+            // Don't allow values <= 0 for log scales
+            values = _.filter(values, v => {
+                return (v.y > 0 || yScaleType != 'log') && (v.x > 0 || xScaleType != 'log')
+            })
+
+            return _.extend({}, series, {
+                values: values
+            })
         })
 
+        currentData = _.filter(currentData, series => {
+            return series.values.length > 0 && _.first(series.values).year == startYear && (_.last(series.values).year == endYear || _.first(series.values).year == startYear)
+        })
+        
         return currentData;
     }
 
@@ -419,7 +441,7 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps, undefined> {
 
 
         _.each(values, v => {
-            const year = preInstantiate(<Paragraph x={x} y={y+offset} maxWidth={maxWidth} fontSize={0.5}>{v.time.y.toString()}</Paragraph>)
+            const year = preInstantiate(<Paragraph x={x} y={y+offset} maxWidth={maxWidth} fontSize={0.5}>{v.year.toString()}</Paragraph>)
             offset += year.height
             const line1 = preInstantiate(<Paragraph x={x} y={y+offset} maxWidth={maxWidth} fontSize={0.4}>{this.formatValue(v, 'y')}</Paragraph>)
             offset += line1.height

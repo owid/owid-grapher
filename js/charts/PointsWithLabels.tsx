@@ -42,7 +42,7 @@ interface ScatterRenderSeries {
     size: number,
     fontSize: number,
     values: { position: Vector2, size: number, time: any }[],
-    label: string,
+    text: string,
     isActive: boolean,
     isHovered: boolean,
     isFocused: boolean
@@ -77,6 +77,10 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         return this.props.yScale.extend({ range: this.bounds.yRange() })
     }
 
+    @computed get isConnected(): boolean {
+        return _.some(this.data, series => series.values.length > 1)
+    }
+
     @computed get sizeScale() : Function {
         const {data} = this
         const sizeScale = d3.scaleLinear().range([3, 22])
@@ -101,7 +105,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         window.Vector2 = Vector2
         const {data, xScale, yScale, defaultColorScale, sizeScale, fontScale} = this
 
-        return _.sortBy(_.map(data, d => {
+        return _.chain(data).map(d => {
             const values = _.map(d.values, v => {
                 return {
                     position: new Vector2(
@@ -120,22 +124,22 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                 color: d.color || defaultColorScale(d.key),
                 size: _.last(values).size,
                 values: values,
-                label: d.label
+                text: d.label
             }
-        }), 'size')
+        }).sortBy('size').value()
     }
 
-    labelPriority(d1: ScatterRenderSeries, d2: ScatterRenderSeries): ScatterRenderSeries {
-        if (d1.isHovered)
-            return d1
-        else if (d2.isHovered)
-            return d2
-        else if (d1.isFocused)
-            return d1
-        else if (d2.isFocused)
-            return d2
-        else
-            return d1
+    labelPriority(l) {
+        let priority = l.fontSize
+
+        if (l.series.isHovered)
+            priority += 10000
+        if (l.series.isFocused)
+            priority += 1000
+        if (l.isEnd)
+            priority += 1000
+
+        return priority
     }
 
     // Create the start year label for a series
@@ -161,6 +165,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             fontSize: fontSize,
             pos: firstValue.position,
             bounds: bounds,
+            series: series,
             isStart: true
         }        
     }
@@ -201,6 +206,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                 fontSize: fontSize,
                 pos: v.position,
                 bounds: bounds,
+                series: series,
                 isMid: true
             }
         }))
@@ -224,16 +230,17 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
         const labelPos = lastPos.add(offsetVector.normalize().times(series.values.length == 1 ? lastValue.size+1 : 5))
 
-        let labelBounds = Bounds.forText(series.label, { x: labelPos.x, y: labelPos.y, fontSize: fontSize })
+        let labelBounds = Bounds.forText(series.text, { x: labelPos.x, y: labelPos.y, fontSize: fontSize })
         if (labelPos.x < lastPos.x)
             labelBounds = labelBounds.extend({ x: labelBounds.x-labelBounds.width })
         if (labelPos.y > lastPos.y)
             labelBounds = labelBounds.extend({ y: labelBounds.y+labelBounds.height/2 })
 
         return {
-            text: series.label,
+            text: series.text,
             fontSize: fontSize,
             bounds: labelBounds,
+            series: series,
             isEnd: true
         }
     }
@@ -268,14 +275,14 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             }
             
             if (l.bounds.top < bounds.top-1) {
-                l.bounds = l.bounds.extend({ y: l.bounds.y + l.bounds.height })
+                l.bounds = l.bounds.extend({ y: bounds.top })
             } else if (l.bounds.bottom > bounds.bottom+1) {
-                l.bounds = l.bounds.extend({ y: l.bounds.y - l.bounds.height })
+                l.bounds = l.bounds.extend({ y: bounds.bottom-l.bounds.height})
             }
         })
 
         // Main collision detection
-        const labelsByPriority = _.sortBy(allLabels, l => -l.fontSize)
+        const labelsByPriority = _.sortBy(allLabels, l => -labelPriority(l))
         for (var i = 0; i < labelsByPriority.length; i++) {
             const l1 = labelsByPriority[i]
             if (l1.isHidden) continue
@@ -303,6 +310,9 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
     @action.bound onMouseLeave() {
         this.hoverKey = null
+
+        if (this.props.onMouseLeave)
+            this.props.onMouseLeave()
     }
 
     @action.bound onMouseMove(ev: any) {
@@ -319,10 +329,8 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         else
             this.hoverKey = null
 
-        if (this.props.onMouseOver && this.hoverKey)
+        if (this.props.onMouseOver)
             this.props.onMouseOver(_.find(this.data, d => d.key == this.hoverKey))        
-        else if (this.props.onMouseLeave && !this.hoverKey)
-            this.props.onMouseLeave()
     }
 
     @action.bound onClick() {
@@ -349,7 +357,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
     // First pass: render the subtle polylines for background groups
     renderBackgroundLines() {
-        const {backgroundGroups} = this
+        const {backgroundGroups, isFocusMode} = this
 
         return _.map(backgroundGroups, d => {
             if (d.values.length == 1)
@@ -358,7 +366,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                 return <polyline
                     key={d.displayKey+'-line'}
                     strokeLinecap="round"
-                    stroke={"#e2e2e2"}
+                    stroke={isFocusMode ? "#e2e2e2" : d.color}
                     points={_.map(d.values, v => `${v.position.x},${v.position.y}`).join(' ')}
                     fill="none"
                     strokeWidth={0.3}
@@ -369,9 +377,9 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
     // Second pass: render the starting points for each background group
     renderBackgroundStartPoints() {
-        const {backgroundGroups, isFocusMode} = this
+        const {backgroundGroups, isFocusMode, isConnected} = this
         return _.map(backgroundGroups, group => {
-            if (group.values.length == 1)
+            if (!isConnected)
                 return null
             else {
                 const firstValue = _.first(group.values)
@@ -385,18 +393,20 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
     // Third pass: render the end points for each background group
     renderBackgroundEndPoints() {
-        const {backgroundGroups, isFocusMode} = this
-        return _.map(backgroundGroups, group => {
-            const lastValue = _.last(group.values)
-            const color = !isFocusMode ? group.color : "#e2e2e2"            
-            let rotation = Vector2.angle(group.offsetVector, Vector2.up)
-            if (group.offsetVector.x < 0) rotation = -rotation
+        const {backgroundGroups, isFocusMode, isConnected} = this
+        return _.map(backgroundGroups, series => {
+            const lastValue = _.last(series.values)
+            const color = !isFocusMode ? series.color : "#e2e2e2"            
+            let rotation = Vector2.angle(series.offsetVector, Vector2.up)
+            if (series.offsetVector.x < 0) rotation = -rotation
 
             const cx = lastValue.position.x, cy = lastValue.position.y, r = lastValue.size
-            if (group.values.length == 1) {
-                return <circle key={group.displayKey+'-end'} cx={cx} cy={cy} r={r} fill={color} opacity={0.8} stroke="#ccc"/>
+            if (!isConnected) {
+                return <circle key={series.displayKey+'-end'} cx={cx} cy={cy} r={r} fill={color} opacity={0.8} stroke="#ccc"/>
+            } else if (series.values.length == 1) {
+                return null
             } else {
-                return <Triangle key={group.displayKey+'-end'} transform={`rotate(${rotation}, ${cx}, ${cy})`} cx={cx} cy={cy} r={2} fill={color} stroke="#ccc" strokeWidth={0.2} opacity={1}/>
+                return <Triangle key={series.displayKey+'-end'} transform={`rotate(${rotation}, ${cx}, ${cy})`} cx={cx} cy={cy} r={2} fill={color} stroke="#ccc" strokeWidth={0.2} opacity={1}/>
             }
         })    
     }
@@ -431,8 +441,8 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                             <path d="M0,-5L10,0L0,5"/>
                         </marker>
                         <marker id={group.displayKey+'-circle'} viewBox="0 0 12 12"
-                                refX={5} refY={5} orient="auto" fill={group.color}>
-                            <circle cx={5} cy={5} r={5}/>
+                                refX={4} refY={4} orient="auto" fill={group.color}>
+                            <circle cx={4} cy={4} r={4}/>
                         </marker>
                     </defs>,
                     <polyline
@@ -462,6 +472,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     render() {
         //Bounds.debug(_.flatten(_.map(this.renderData, d => _.map(d.labels, 'bounds'))))
         const {bounds, renderData, xScale, yScale, sizeScale, tmpFocusKeys, allColors, isFocusMode} = this
+        const clipBounds = bounds.pad(-10)
 
         if (_.isEmpty(renderData))
             return <NoData bounds={bounds}/>
@@ -470,7 +481,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             <rect key="background" x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="rgba(0,0,0,0)"/>
             <defs>
                 <clipPath id="scatterBounds">
-                    <rect x={bounds.x-5} y={bounds.y-5} width={bounds.width+10} height={bounds.height+10}/>
+                    <rect x={clipBounds.x} y={clipBounds.y} width={clipBounds.width} height={clipBounds.height}/>
                 </clipPath>
             </defs>
             {this.renderBackgroundLines()}
