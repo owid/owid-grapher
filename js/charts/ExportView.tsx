@@ -62,7 +62,7 @@ function prepareSVGForExport(chartView, svg) {
 
     svgAsDataUri(svg.node(), {}, function(uri) {
         var svgData = uri.substring('data:image/svg+xml;base64,'.length);
-        callPhantom({ "svg": svgData });
+        callPhantom(svgData);
     });
 }
 
@@ -76,7 +76,7 @@ export default class ExportView {
             const svg = d3.select(chartView.svgNode)
             svg.selectAll(".nv-add-btn, .nv-controlsWrap").remove();
 
-            callPhantom({ targetWidth: targetWidth, targetHeight: targetHeight }); // Notify phantom that we're ready for PNG screenshot
+            //callPhantom({ targetWidth: targetWidth, targetHeight: targetHeight }); // Notify phantom that we're ready for PNG screenshot
             prepareSVGForExport(chartView, svg);
         }
 
