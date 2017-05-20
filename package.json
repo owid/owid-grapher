@@ -69,6 +69,7 @@
     "chrome-remote-interface": "^0.22.0",
     "dataframe-js": "^1.2.2",
     "lighthouse": "^2.0.0",
+    "lockfile": "^1.0.3",
     "minimist": "^1.2.0",
     "phantomjs-prebuilt": "^2.1.14",
     "preact": "^8.1.0",
