@@ -12,7 +12,7 @@ import {NullElement} from './Util'
 import dataflow from './owid.dataflow'
 
 @observer
-class SourcesTab extends Component {
+export default class SourcesTab extends Component {
 	props: {
 		bounds: Bounds,
 		sources: Object[]
@@ -36,22 +36,4 @@ class SourcesTab extends Component {
 			</div>
 		</div>
 	}
-}
-
-export default function(chart) {
-	var sourcesTab = dataflow();
-
-	sourcesTab.isOverlay = true;
-
-	let rootNode = null
-
-	sourcesTab.render = function(bounds) {
-        rootNode = render(<SourcesTab bounds={bounds.scale(chart.scale)} sources={chart.data.transformDataForSources()}/>, chart.htmlNode, rootNode)
-	};
-
-	sourcesTab.beforeClean(function() {
-		rootNode = render(NullElement, chart.htmlNode, rootNode);
-	});
-
-	return sourcesTab;
 }

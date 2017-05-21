@@ -10,10 +10,8 @@
  * @created 2017-03-15
  */
 
-// @flow
-
-import _ from 'lodash'
-import Victor from 'victor'
+import * as _ from 'lodash'
+import Victor = require('victor')
 
 export default class Vector2 {
     static get epsilon() {
@@ -22,7 +20,6 @@ export default class Vector2 {
 
 	x: number
 	y: number
-	_v: Victor
 
     static get left() {
         return new Vector2(-1, 0)
@@ -52,7 +49,7 @@ export default class Vector2 {
         return Math.acos(Math.max(Math.min(Vector2.dot(a.normalize(), b.normalize()), 1), -1)) * 57.29578
     }
 
-    static dot(lhs, rhs) {
+    static dot(lhs: Vector2, rhs: Vector2) {
         return lhs.x * rhs.x + lhs.y * rhs.y
     }
 

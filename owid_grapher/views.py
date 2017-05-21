@@ -75,7 +75,7 @@ def test_all(request):
             continue
 
         count += 1
-        local_url = request.build_absolute_uri('/') + each.slug
+        local_url = request.build_absolute_uri('/grapher/') + each.slug
         live_url = "https://ourworldindata.org/grapher/" + each.slug
         local_url_png = local_url + '.png'
         live_url_png = live_url + '.png'
@@ -101,7 +101,7 @@ def test_all(request):
         if not query_string:
             next_page_url = request.get_full_path() + '?page=%s' % (test_page + 1)
         else:
-            next_page_url = request.build_absolute_uri('/testall') + '?page=%s' % (test_page + 1) + '&' +\
+            next_page_url = request.build_absolute_uri('/grapher/testall') + '?page=%s' % (test_page + 1) + '&' +\
                             query_string
 
     prev_page_url = None
@@ -109,7 +109,7 @@ def test_all(request):
         if not query_string:
             prev_page_url = request.get_full_path() + '?page=%s' % (test_page - 1)
         else:
-            prev_page_url = request.build_absolute_uri('/testall') + '?page=%s' % (test_page - 1) + '&' +\
+            prev_page_url = request.build_absolute_uri('/grapher/testall') + '?page=%s' % (test_page - 1) + '&' +\
                             query_string
 
     starting_point = (test_page - 1) * charts_per_page
@@ -154,21 +154,21 @@ def showchart(request, chart):
             '.html' not in referer_s and 'wp-admin' not in referer_s and
             'preview=true' not in referer_s and 'how-to' not in referer_s and
             'grapher' not in referer_s and 'about' not in referer_s and 'roser/' not in referer_s
-            and 'slides' not in referer_s and 'blog' not in referer_s and 'testall' not in referer_s):
+            and 'slides' not in referer_s and 'blog' not in referer_s):
             origin_url = 'https://' + root.netloc + referer.path
             if chart.origin_url != origin_url:
                 chart.origin_url = origin_url
                 chart.save()
 
     configfile = chart.get_config_with_url()
-    canonicalurl = request.build_absolute_uri('/') + chart.slug
-    baseurl = request.build_absolute_uri('/') + chart.slug
+    canonicalurl = request.build_absolute_uri('/grapher/') + chart.slug
+    baseurl = request.build_absolute_uri('/grapher/') + chart.slug
 
     chartmeta = {}
 
     title = configfile['title']
-    title = re.sub("/, \*time\*/", " over time", title)
-    title = re.sub("/\*time\*/", "over time", title)
+    title = re.sub("/, \*time\*/", "", title)
+    title = re.sub("/\*time\*/", "", title)
     chartmeta['title'] = title
     if configfile.get('subtitle', ''):
         chartmeta['description'] = configfile['subtitle']
@@ -179,9 +179,9 @@ def showchart(request, chart):
         canonicalurl += '?' + query_string
     chartmeta['canonicalUrl'] = canonicalurl
     if query_string:
-        imagequery = query_string + '&' + "size=1200x800&v=" + chart.make_cache_tag()
+        imagequery = query_string + '&' + "v=" + chart.make_cache_tag()
     else:
-        imagequery = "size=1200x800&v=" + chart.make_cache_tag()
+        imagequery = "v=" + chart.make_cache_tag()
 
     chartmeta['imageUrl'] = baseurl + '.png?' + imagequery
 
@@ -197,7 +197,7 @@ def showchart(request, chart):
     query_str = get_query_string(request)
     if '.export' not in urlparse(request.get_full_path()).path:
         p = Process(target=chart.export_image_async,
-                    args=(query_str, '1200', '800',))
+                    args=(query_str, '1020', '720',))
         p.start()
         response['Cache-Control'] = 'public, max-age=0, s-maxage=604800'
     else:
@@ -211,18 +211,19 @@ def find_with_redirects(slug):
     :param slug: Slug for the requested Chart
     :return: Chart object
     """
+    chart = None
+    redirect_chart = None
+
     try:
         intslug = int(slug)
     except ValueError:
         intslug = None
-    try:
-        chart = Chart.objects.get((Q(slug=slug) | Q(pk=intslug)), published__isnull=False)
-    except Chart.DoesNotExist:
-        try:
-            redirect_chart = ChartSlugRedirect.objects.get(slug=slug)
-        except ChartSlugRedirect.DoesNotExist:
-            return False
-        chart = Chart.objects.get(pk=redirect_chart.chart_id, published__isnull=False)
+    chart = Chart.objects.filter((Q(slug=slug) | Q(pk=intslug)), published__isnull=False).first()
+    if not chart:
+        redirect_chart = ChartSlugRedirect.objects.filter(slug=slug).first()
+        if redirect_chart:
+            chart = Chart.objects.filter(pk=redirect_chart.chart_id, published__isnull=False).first()
+
     return chart
 
 
@@ -254,7 +255,7 @@ def config(request, configid):
         except Chart.DoesNotExist:
             return HttpResponseNotFound('Config file does not exist!')
 
-        configdict = Chart.get_config_with_url(chartobj)
+        configdict = chartobj.get_config_with_url()
         configdict['variableCacheTag'] = chartobj.make_cache_tag()
 
         configfile = 'App.loadChart(' + json.dumps(configdict) + ')'
@@ -296,34 +297,45 @@ def variables(request, ids):
 
     varids = sorted(varids)
 
-    for each in varids:
-        varobj = Variable.objects.select_related('sourceid__datasetid__fk_dst_cat_id').get(pk=each)
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT variables.id as var_id, variables.name as var_name, variables.description as var_desc, "
+                       "variables.unit as var_unit, variables.created_at, sources.name as source_name, "
+                       "sources.description as source_desc, datasets.name as dataset_name "
+                       "FROM variables "
+                       "JOIN datasets on variables.fk_dst_id = datasets.id "
+                       "LEFT JOIN sources on variables.sourceId = sources.id "
+                       "WHERE variables.id IN %s;", [varids])
+
+        varrows = dictfetchall(cursor)
+
+
+    for each in varrows:
         source = {}
-        source['name'] = varobj.sourceid.name
-        source['description'] = varobj.sourceid.description
+        source['name'] = each['source_name']
+        source['description'] = each['source_desc']
 
         var = {}
-        var['id'] = varobj.pk
-        var['name'] = varobj.name
-        var['dataset_name'] = varobj.fk_dst_id.name
-        var['created_at'] = str(varobj.created_at)
-        var['description'] = varobj.description
-        var['unit'] = varobj.unit
+        var['id'] = int(each['var_id'])
+        var['name'] = each['var_name']
+        var['dataset_name'] = each['dataset_name']
+        var['created_at'] = str(each['created_at'])
+        var['description'] = each['var_desc']
+        var['unit'] = each['var_unit']
         var['source'] = source
         var['entities'] = []
         var['years'] = []
         var['values'] = []
-        meta['variables'][varobj.pk] = var
+        meta['variables'][int(each['var_id'])] = var
 
     varstring = ""
 
     with connection.cursor() as cursor:
-        cursor.execute("SELECT value, year, fk_var_id_id as var_id, entities.id as entity_id, "
+        cursor.execute("SELECT value, year, fk_var_id as var_id, entities.id as entity_id, "
                        "entities.name as entity_name, entities.displayName as entity_displayName, "
                        "entities.code as entity_code "
                        "FROM data_values "
-                       "LEFT JOIN entities ON data_values.fk_ent_id_id = entities.id "
-                       "WHERE data_values.fk_var_id_id IN %s "
+                       "LEFT JOIN entities ON data_values.fk_ent_id = entities.id "
+                       "WHERE data_values.fk_var_id IN %s "
                        "ORDER BY var_id ASC,  year ASC;", [varids])
         rows = dictfetchall(cursor)
 
@@ -381,8 +393,8 @@ def exportfile(request, slug, fileformat):
             width = querydict['size'][0].split('x')[0]
             height = querydict['size'][0].split('x')[1]
         else:
-            width = '1200'
-            height = '800'
+            width = '1020'
+            height = '720'
         if chart:
                 downloadfile = chart.export_image(querystring, width, height, fileformat)
         else:

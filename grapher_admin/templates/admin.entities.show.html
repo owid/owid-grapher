@@ -1,0 +1,7 @@
+{% extends 'base_admin_template.html' %}
+
+{% block content %}
+	<a class="back-btn" href="{% url 'listentities' %}"><i class="fa fa-arrow-left"></i>Back to the list of entities</a>
+
+	<h2>{{ entity.name }}</h2>
+{% endblock %}

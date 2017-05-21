@@ -43,7 +43,7 @@
 									{% if not chart.published %}
 										<span style="color: red;">Draft: </span> {{ chart.name }}
 									{% else %}
-										<a href="/{{ chart.slug }}">{{ chart.name }}</a>
+										<a href="{{ rootrequest }}/{{ chart.slug }}">{{ chart.name }}</a>
 									{% endif %}
 								</td>
 								<td>{{ chart.type }}</td>

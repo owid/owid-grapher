@@ -1,0 +1,33 @@
+{% extends 'base_admin_template.html' %}
+
+{% block content %}
+
+    <h2>Sources</h2>
+	<table class="table table-bordered table-hover dataTable">
+		<thead>
+			<tr>
+				<th>Source</th>
+				<th>Dataset</th>
+				<th>Variables</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for source in sources %}
+				<tr>
+					<td><a href="{% url 'showsource' source.id %}">{{ source.name }}</a></td>
+					<td>
+                        {% if source.dataset.id %}
+						<a href="{% url 'showdataset' source.dataset.id %}">{{ source.dataset.name }}</a>
+                        {% endif %}
+					</td>
+					<td>
+                        {% for variable in source.variables %}
+							<a href="{% url 'showvariable' variable.id %}">{{ variable.name }}</a><br>
+						{% endfor %}
+					</td>
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+
+{% endblock %}

@@ -3,6 +3,8 @@ import datetime
 import json
 import os
 import re
+import csv
+from io import StringIO
 from urllib.parse import urlparse
 from django.conf import settings
 from django.contrib import messages
@@ -10,15 +12,15 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import login as loginview
 from django.db.models import Q
 from django.db import connection
-from django.http import HttpResponseRedirect, HttpResponse, HttpResponseNotFound, JsonResponse, QueryDict
+from django.http import HttpResponseRedirect, HttpResponse, HttpResponseNotFound, JsonResponse, QueryDict, StreamingHttpResponse
 from django.template.response import TemplateResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from .forms import InviteUserForm, InvitedUserRegisterForm
-from .models import Chart, Variable, User, UserInvitation, Logo, ChartSlugRedirect, ChartDimension, Dataset, Setting, DatasetSubcategory, Entity, Source, VariableType, DataValue
-from owid_grapher.views import get_query_string
+from .models import Chart, Variable, User, UserInvitation, Logo, ChartSlugRedirect, ChartDimension, Dataset, Setting, DatasetCategory, DatasetSubcategory, Entity, Source, VariableType, DataValue, License
+from owid_grapher.views import get_query_string, get_query_as_dict
 
 # putting these into global scope for reuse
 manifest = json.loads(open(os.path.join(settings.BASE_DIR, "public/build/manifest.json")).read())
@@ -55,7 +57,7 @@ def listcharts(request):
         each['published'] = chart.published
         each['starred'] = chart.starred
         each['name'] = chart.name
-        each['type'] = chart.type
+        each['type'] = chart.show_type()
         each['slug'] = chart.slug
         each['notes'] = chart.notes
         each['origin_url'] = chart.origin_url
@@ -77,7 +79,7 @@ def listcharts(request):
                                                              'admincsspath': admincsspath,
                                                              'rootrequest': rootrequest,
                                                              'current_user': request.user.name,
-                                                             'charts': chartlist
+                                                             'charts': chartlist,
                                                              })
 
 
@@ -349,23 +351,11 @@ def importdata(request):
     for each in datasets:
         each['created_at'] = str(each['created_at'])
         each['updated_at'] = str(each['updated_at'])
-        each['fk_dst_cat_id'] = each['fk_dst_cat_id_id']
-        each['fk_dst_subcat_id'] = each['fk_dst_subcat_id_id']
-        each.pop('fk_dst_subcat_id_id', None)
-        each.pop('fk_dst_cat_id_id', None)
         datasetlist.append(each)
 
     vartypes = Variable.objects.values()
     vartypeslist = []
     for each in vartypes:
-        each['fk_dst_id'] = each['fk_dst_id_id']
-        each['fk_var_type_id'] = each['fk_var_type_id_id']
-        each['sourceId'] = each['sourceid_id']
-        each['uploaded_by'] = each['uploaded_by_id']
-        each.pop('fk_dst_id_id', None)
-        each.pop('fk_var_type_id_id', None)
-        each.pop('sourceid_id', None)
-        each.pop('uploaded_by_id', None)
         each['created_at'] = str(each['created_at'])
         each['updated_at'] = str(each['updated_at'])
         each['uploaded_at'] = str(each['uploaded_at'])
@@ -403,7 +393,7 @@ def importdata(request):
 @login_required
 def store_import_data(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
+        data = json.loads(request.body.decode('utf-8'))
 
         datasetmeta = data['dataset']
         entities = data['entities']
@@ -471,7 +461,7 @@ def store_import_data(request):
                 if source_id:
                     Source.objects.filter(pk=source_id).update(**variable['source'])
                 else:
-                    new_source = Source(datasetid=Dataset.objects.get(pk=dataset_id), name=source_name, description=source_desc)
+                    new_source = Source(datasetId=dataset_id, name=source_name, description=source_desc)
                     new_source.save()
                     source_id = new_source.pk
                     source_ids_by_name[source_name] = source_id
@@ -481,7 +471,7 @@ def store_import_data(request):
                              'coverage': variable['coverage'], 'timespan': variable['timespan'],
                              'fk_var_type_id': VariableType.objects.get(pk=3),
                              'fk_dst_id': Dataset.objects.get(pk=dataset_id),
-                             'sourceid': Source.objects.get(pk=source_id),
+                             'sourceId': Source.objects.get(pk=source_id),
                              'uploaded_at': timezone.now(),
                              'updated_at': timezone.now(),
                              'uploaded_by': request.user
@@ -518,12 +508,1028 @@ def store_import_data(request):
         return JsonResponse({'datasetId': dataset_id}, safe=False)
 
 
+@login_required
+def listdatasets(request):
+    variables = Variable.objects.filter(fk_dst_id__namespace='owid').select_related('fk_dst_id').order_by('-fk_dst_id__updated_at')
+    datasets = {}
+    for each in variables:
+        if each.uploaded_by:
+            uploaded_by = each.uploaded_by.name
+        else:
+            uploaded_by = None
+        if datasets.get(each.fk_dst_id.pk, 0):
+            datasets[each.fk_dst_id.pk]['variables'].append({'name': each.name, 'id': each.pk,
+                                                             'uploaded_at': str(each.uploaded_at),
+                                                             'uploaded_by': uploaded_by})
+        else:
+            datasets[each.fk_dst_id.pk] = {'name': each.fk_dst_id.name, 'id': each.fk_dst_id.pk, 'variables': [{'name': each.name,
+                                                                                       'id': each.pk,
+                                                                                       'uploaded_at': str(
+                                                                                           each.uploaded_at),
+                                                                                       'uploaded_by': uploaded_by
+                                                                                       }]}
+    dataset_list = []
+    for value in sorted(datasets.keys(), reverse=True):
+        dataset_list.append(datasets[value])
+    return render(request, 'admin.datasets.html', context={'adminjspath': adminjspath,
+                                                         'admincsspath': admincsspath,
+                                                         'rootrequest': rootrequest,
+                                                         'current_user': request.user.name,
+                                                         'datasets': dataset_list,
+                                                         })
+
+
+@login_required
+def showdataset(request, datasetid):
+    try:
+        dataset = Dataset.objects.get(pk=int(datasetid))
+    except Dataset.DoesNotExist:
+        return HttpResponseNotFound('Dataset does not exist!')
+
+    dataset_dict = {'id': dataset.pk, 'name': dataset.name, 'category': dataset.fk_dst_cat_id.name,
+                    'subcategory': dataset.fk_dst_subcat_id.name,
+                    'description': dataset.description}
+
+    dataset_vars = Variable.objects.filter(fk_dst_id=dataset)
+    dataset_chartdims = ChartDimension.objects.filter(variableId__in=dataset_vars)
+    dataset_chart_ids = []
+    for each in dataset_chartdims:
+        dataset_chart_ids.append(each.chartId.pk)
+    dataset_charts = Chart.objects.filter(pk__in=dataset_chart_ids).values()
+    return render(request, 'admin.datasets.show.html', context={'adminjspath': adminjspath,
+                                                           'admincsspath': admincsspath,
+                                                           'rootrequest': rootrequest,
+                                                           'current_user': request.user.name,
+                                                           'dataset': dataset_dict,
+                                                            'variables': dataset_vars.values(),
+                                                                'charts': dataset_charts,
+                                                           })
+
+
+@login_required
+def editdataset(request, datasetid):
+    try:
+        dataset = Dataset.objects.filter(pk=int(datasetid)).values()[0]
+    except Dataset.DoesNotExist:
+        return HttpResponseNotFound('Dataset does not exist!')
+
+    sources_list = []
+    sources = Source.objects.all().values('pk', 'name')
+    for each in sources:
+        sources_list.append({'id': int(each['pk']), 'name': each['name']})
+    cats_list = []
+    categories = DatasetCategory.objects.values('pk', 'name')
+    for each in categories:
+        cats_list.append({'id': int(each['pk']), 'name': each['name']})
+    subcats_list = []
+    subcategories = DatasetSubcategory.objects.values('pk', 'name')
+    for each in subcategories:
+        subcats_list.append({'id': int(each['pk']), 'name': each['name']})
+    return render(request, 'admin.datasets.edit.html', context={'adminjspath': adminjspath,
+                                                                'admincsspath': admincsspath,
+                                                                'rootrequest': rootrequest,
+                                                                'current_user': request.user.name,
+                                                                'dataset': dataset,
+                                                                'sources': sources_list,
+                                                                'categories': cats_list,
+                                                                'subcategories': subcats_list,
+                                                                })
+
+
+@login_required
+def managedataset(request, datasetid):
+    try:
+        dataset = Dataset.objects.filter(pk=int(datasetid))
+    except Dataset.DoesNotExist:
+        return HttpResponseNotFound('Dataset does not exist!')
+
+    if request.method == 'POST':
+        request_dict = QueryDict(request.body).dict()
+        if request_dict['_method'] == 'DELETE':
+            try:
+                dataset.delete()
+            except Exception as e:
+                if e.args[0] == 1451:
+                    messages.error(request, 'Dataset cannot be deleted while a chart still needs it. Delete charts or change their variables first.')
+                    return HttpResponseRedirect(reverse('showdataset', args=[datasetid]))
+                else:
+                    messages.error(request, e.args[1])
+                    return HttpResponseRedirect(reverse('showdataset', args=[datasetid]))
+            messages.success(request, 'Dataset deleted.')
+            return HttpResponseRedirect(reverse('listdatasets'))
+        if request_dict['_method'] == 'PATCH':
+            request_dict.pop('_method', None)
+            request_dict.pop('csrfmiddlewaretoken', None)
+            request_dict['fk_dst_cat_id'] = DatasetCategory.objects.get(pk=request_dict['fk_dst_cat_id'])
+            request_dict['fk_dst_subcat_id'] = DatasetSubcategory.objects.get(pk=request_dict['fk_dst_subcat_id'])
+            Dataset.objects.filter(pk=datasetid).update(**request_dict)
+            messages.success(request, 'Dataset updated!')
+            return HttpResponseRedirect(reverse('showdataset', args=[datasetid]))
+
+    if request.method == 'GET':
+        return HttpResponseRedirect(reverse('showdataset', args=[datasetid]))
+
+
+@login_required
+def dataset_csv(request, datasetid):
+    try:
+        dataset = Dataset.objects.get(pk=int(datasetid))
+    except Dataset.DoesNotExist:
+        return HttpResponseNotFound('Dataset does not exist!')
+
+    allvariables = Variable.objects.all()
+    allvardict = {}
+    chartvarlist = []
+
+    for var in allvariables:
+        allvardict[var.pk] = {'id': var.pk, 'name': var.name}
+        if var.fk_dst_id == dataset:
+            chartvarlist.append({'id': var.pk, 'name': var.name})
+
+    chartvarlist = sorted(chartvarlist, key=lambda k: k['id'])
+
+    sql_query = 'SELECT maintable.entity as entity, maintable.year as year, maintable.country_code as country_code'
+
+    table_counter = 1
+    join_string = ''
+    id_tuple = ''
+    headerlist = ['Entity', 'Year', 'Country code']
+    for each in chartvarlist:
+        sql_query += ', table%s.value as value%s' % (table_counter, table_counter)
+
+        join_string += 'LEFT JOIN (SELECT * FROM data_values WHERE fk_var_id = %s) as table%s on ' \
+                       'maintable.`fk_ent_id` = table%s.`fk_ent_id` and ' \
+                       'maintable.year = table%s.year ' % (each['id'], table_counter, table_counter,
+                                                           table_counter)
+
+        table_counter += 1
+        id_tuple += str(each['id']) + ','
+        headerlist.append(each['name'])
+
+    id_tuple = id_tuple[:-1]
+    sql_query += ' FROM (SELECT fk_ent_id, entities.name as entity, year, entities.code as ' \
+                 'country_code FROM data_values LEFT OUTER JOIN entities on data_values.fk_ent_id = entities.id ' \
+                 'WHERE fk_var_id in (%s) ORDER BY entity, year, data_values.fk_var_id) as maintable ' % id_tuple
+
+    sql_query += join_string + 'GROUP BY entity, year, country_code;'
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql_query)
+        rows = cursor.fetchall()
+
+    def stream():
+        buffer_ = StringIO()
+        writer = csv.writer(buffer_)
+        writer.writerow(headerlist)
+        for row in rows:
+            writer.writerow(row)
+            buffer_.seek(0)
+            data = buffer_.read()
+            buffer_.seek(0)
+            buffer_.truncate()
+            yield data
+
+    response = StreamingHttpResponse(
+        stream(), content_type='text/csv'
+    )
+    disposition = "attachment; filename=%s.csv" % dataset.name
+    response['Content-Disposition'] = disposition
+    return response
+
+
+@login_required
+def dataset_json(request, datasetid):
+    try:
+        dataset = Dataset.objects.get(pk=int(datasetid))
+    except Dataset.DoesNotExist:
+        return HttpResponseNotFound('Dataset does not exist!')
+
+    data = {'name': dataset.name, 'description': dataset.description, 'categoryId': dataset.fk_dst_cat_id.pk,
+            'subcategoryId': dataset.fk_dst_subcat_id.pk, 'variables': []}
+
+    allchart_dimensions = ChartDimension.objects.all().values('chartId', 'variableId')
+    var_to_chart = {}
+    for each in allchart_dimensions:
+        if var_to_chart.get(each['variableId'], 0):
+            var_to_chart[each['variableId']].append(each['chartId'])
+        else:
+            var_to_chart[each['variableId']] = []
+            var_to_chart[each['variableId']].append(each['chartId'])
+
+    allvariables = Variable.objects.all().select_related('sourceId')
+
+    for var in allvariables:
+        if var.fk_dst_id == dataset:
+
+            sourcedata = {
+                'id': var.sourceId.pk,
+                'name': var.sourceId.name,
+                'description': var.sourceId.description
+            }
+
+            chartdata = []
+
+            for onechart in var_to_chart.get(var.pk, []):
+                chart = Chart.objects.get(pk=onechart)
+                chartdata.append({
+                    'id': chart.pk,
+                    'name': chart.name
+                })
+
+            vardata = {
+                'id': var.pk,
+                'name': var.name,
+                'unit': var.unit,
+                'description': var.description,
+                'coverage': var.coverage,
+                'timespan': var.timespan,
+                'source': sourcedata,
+                'charts': chartdata
+            }
+
+            data['variables'].append(vardata)
+
+    return JsonResponse(data, safe=False)
+
+
+@login_required
+def listentities(request):
+
+    items_per_page = 10
+    allentities = Entity.objects.all().values()
+    total_rows = len(allentities)
+    total_pages = -(-len(allentities) // items_per_page)
+    page_number = get_query_as_dict(request).get('page', [0])
+
+    try:
+        page_number = int(page_number[0])
+    except ValueError:
+        page_number = 0
+
+    if page_number > 1:
+        entities = allentities[(page_number-1)*items_per_page:page_number*items_per_page]
+    else:
+        entities = allentities[:items_per_page]
+
+    if entities:
+        if total_pages >= 13:
+            if page_number < 7:
+                nav_pages = [1, 2, 3, 4, 5, 6, 7, 8, '#', total_pages - 1, total_pages]
+            elif page_number > total_pages - 5:
+                nav_pages = [1, 2, '#', total_pages - 7, total_pages - 6, total_pages - 5, total_pages - 4, total_pages - 3,
+                             total_pages - 2, total_pages - 1, total_pages]
+            else:
+                nav_pages = [1, 2, '#', page_number - 3, page_number - 2, page_number - 1, page_number, page_number + 1,
+                             page_number + 2, page_number + 3, '#', total_pages - 1, total_pages]
+        else:
+            nav_pages = [n for n in range(1, total_pages + 1)]
+    else:
+        nav_pages = []
+
+    return render(request, 'admin.entities.html', context={'adminjspath': adminjspath,
+                                                            'admincsspath': admincsspath,
+                                                            'rootrequest': rootrequest,
+                                                            'current_user': request.user.name,
+                                                            'entities': entities,
+                                                            'nav_pages': nav_pages,
+                                                            'current_page': page_number,
+                                                            'total_rows': total_rows
+                                                            })
+
+
+@login_required
+def validate_iso(request):
+    entities = json.loads(request.GET.get('entities', ''))
+
+    query = Entity.objects.filter(Q(validated=True) & (Q(name__in=entities) | Q(code__in=entities))).values('name', 'code')
+
+    matched = {}
+
+    for each in query:
+        matched[each['name']] = True
+        matched[each['code']] = True
+
+    unmatched = []
+    for each in entities:
+        if not (matched.get(each, 0)):
+            unmatched.append(each)
+    return JsonResponse({'unmatched': unmatched}, safe=False)
+
+
 def check_invitation_statuses():
     invites = UserInvitation.objects.filter(status='pending')
     for each in invites:
         if each.valid_till <= timezone.now():
             each.status = 'expired'
             each.save()
+
+
+@login_required
+def showentity(request, entityid):
+    try:
+        entity = Entity.objects.filter(pk=int(entityid)).values('name')[0]
+    except Entity.DoesNotExist:
+        return HttpResponseNotFound('Entity does not exist!')
+
+    return render(request, 'admin.entities.show.html', context={'adminjspath': adminjspath,
+                                                           'admincsspath': admincsspath,
+                                                           'rootrequest': rootrequest,
+                                                           'current_user': request.user.name,
+                                                           'entity': entity
+                                                           })
+
+
+@login_required
+def manageentity(request, entityid):
+    try:
+        entity = Entity.objects.filter(pk=int(entityid)).values('name', 'displayName')[0]
+    except Entity.DoesNotExist:
+        return HttpResponseNotFound('Entity does not exist!')
+
+    if request.method == 'POST':
+        request_dict = QueryDict(request.body).dict()
+        if request_dict['_method'] == 'PATCH':
+            request_dict.pop('_method', None)
+            request_dict.pop('csrfmiddlewaretoken', None)
+            Entity.objects.filter(pk=entityid).update(**request_dict)
+            messages.success(request, 'Entity updated!')
+            return HttpResponseRedirect(reverse('showentity', args=[entityid]))
+
+
+@login_required
+def editentity(request, entityid):
+    try:
+        entity = Entity.objects.filter(pk=int(entityid)).values('name', 'displayName', 'pk')[0]
+    except Entity.DoesNotExist:
+        return HttpResponseNotFound('Entity does not exist!')
+
+    return render(request, 'admin.entities.edit.html', context={'adminjspath': adminjspath,
+                                                                'admincsspath': admincsspath,
+                                                                'rootrequest': rootrequest,
+                                                                'current_user': request.user.name,
+                                                                'entity': entity
+                                                                })
+
+
+@login_required
+def listcategories(request):
+    categories = DatasetCategory.objects.values()
+    return render(request, 'admin.categories.html', context={'adminjspath': adminjspath,
+                                                                'admincsspath': admincsspath,
+                                                                'rootrequest': rootrequest,
+                                                                'current_user': request.user.name,
+                                                                'categories': categories
+                                                                })
+
+@login_required
+def showcategory(request, catid):
+    try:
+        category = DatasetCategory.objects.filter(pk=int(catid)).values()[0]
+        catobj = DatasetCategory.objects.get(pk=int(catid))
+    except DatasetCategory.DoesNotExist:
+        return HttpResponseNotFound('Category does not exist!')
+
+    subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=catobj).values()
+
+    category['subcategories'] = subcategories
+
+    return render(request, 'admin.categories.show.html', context={'adminjspath': adminjspath,
+                                                             'admincsspath': admincsspath,
+                                                             'rootrequest': rootrequest,
+                                                             'current_user': request.user.name,
+                                                             'category': category
+                                                             })
+
+
+@login_required
+def managecategory(request, catid):
+    try:
+        category = DatasetCategory.objects.filter(pk=int(catid)).values()[0]
+    except DatasetCategory.DoesNotExist:
+        return HttpResponseNotFound('Category does not exist!')
+
+    if request.method == 'POST':
+        request_dict = QueryDict(request.body).dict()
+        if request_dict['_method'] == 'PATCH':
+            request_dict.pop('_method', None)
+            request_dict.pop('csrfmiddlewaretoken', None)
+            DatasetCategory.objects.filter(pk=catid).update(**request_dict)
+            messages.success(request, 'Category updated!')
+            return HttpResponseRedirect(reverse('showcategory', args=[catid]))
+        if request_dict['_method'] == 'DELETE':
+            request_dict.pop('_method', None)
+            request_dict.pop('csrfmiddlewaretoken', None)
+            category = DatasetCategory.objects.get(pk=int(catid))
+            subcategory = DatasetSubcategory.objects.filter(fk_dst_cat_id=category)
+            try:
+                for each in subcategory:
+                    each.delete()
+                category.delete()
+            except Exception as e:
+                messages.error(request, e.args[1])
+                return HttpResponseRedirect(reverse('editcategory', args=[catid]))
+            messages.success(request, 'Category deleted!')
+            return HttpResponseRedirect(reverse('listcategories'))
+
+
+@login_required
+def editcategory(request, catid):
+    try:
+        category = DatasetCategory.objects.filter(pk=int(catid)).values()[0]
+    except DatasetCategory.DoesNotExist:
+        return HttpResponseNotFound('Category does not exist!')
+
+    return render(request, 'admin.categories.edit.html', context={'adminjspath': adminjspath,
+                                                                'admincsspath': admincsspath,
+                                                                'rootrequest': rootrequest,
+                                                                'current_user': request.user.name,
+                                                                'category': category
+                                                                })
+
+
+@login_required
+def listvariables(request):
+    variables = Variable.objects.values()
+
+    return render(request, 'admin.variables.html', context={'adminjspath': adminjspath,
+                                                             'admincsspath': admincsspath,
+                                                             'rootrequest': rootrequest,
+                                                             'current_user': request.user.name,
+                                                             'variables': variables
+                                                             })
+
+
+@login_required
+def showvariable(request, variableid):
+
+    try:
+        variable = Variable.objects.get(pk=int(variableid))
+    except Variable.DoesNotExist:
+        return HttpResponseNotFound('Variable does not exist!')
+
+    items_per_page = 50
+
+    chart_dims = list(ChartDimension.objects.filter(variableId=variable).values('chartId'))
+    chart_id_list = []
+    for each in chart_dims:
+        chart_id_list.append(each['chartId'])
+    charts = list(Chart.objects.filter(pk__in=chart_id_list).values('name', 'id'))
+
+    variable_dict = {}
+    variable_dict['name'] = variable.name
+    variable_dict['id'] = variable.pk
+    variable_dict['unit'] = variable.unit
+    variable_dict['description'] = variable.description
+    variable_dict['dataset'] = {'name': variable.fk_dst_id.name, 'id': variable.fk_dst_id.pk}
+    variable_dict['source'] = {'name': variable.sourceId.name, 'id': variable.sourceId.pk}
+    variable_dict['charts'] = charts
+
+    request_dict = get_query_as_dict(request)
+    if request_dict.get('search', [0])[0]:
+        value_query = request_dict.get('value', [''])[0]
+        year_query = request_dict.get('year', [None])[0]
+        entity_query = request_dict.get('name', [''])[0]
+        try:
+            year_query = int(year_query)
+        except ValueError:
+            year_query = 0
+        except TypeError:
+            year_query = 0
+
+        values = DataValue.objects.filter(fk_var_id=variable)
+        if value_query:
+            values = values.filter(value=value_query)
+        if year_query:
+            values = values.filter(year=year_query)
+        if entity_query:
+            values = values.filter(fk_ent_id__name=entity_query)
+
+    else:
+        values = DataValue.objects.filter(fk_var_id=variable)
+
+    values = list(values.values('pk', 'value', 'year', 'fk_ent_id__name'))
+
+    total_rows = len(values)
+    total_pages = -(-len(values) // items_per_page)
+    page_number = get_query_as_dict(request).get('page', [0])
+
+    try:
+        page_number = int(page_number[0])
+    except ValueError:
+        page_number = 0
+
+    if page_number > 1:
+        vals = values[(page_number - 1) * items_per_page:page_number * items_per_page]
+    else:
+        vals = values[:items_per_page]
+
+    if vals:
+        if total_pages >= 13:
+            if page_number < 7:
+                nav_pages = [1, 2, 3, 4, 5, 6, 7, 8, '#', total_pages - 1, total_pages]
+            elif page_number > total_pages - 5:
+                nav_pages = [1, 2, '#', total_pages - 7, total_pages - 6, total_pages - 5, total_pages - 4,
+                             total_pages - 3,
+                             total_pages - 2, total_pages - 1, total_pages]
+            else:
+                nav_pages = [1, 2, '#', page_number - 3, page_number - 2, page_number - 1, page_number,
+                             page_number + 1,
+                             page_number + 2, page_number + 3, '#', total_pages - 1, total_pages]
+        else:
+            nav_pages = [n for n in range(1, total_pages + 1)]
+    else:
+        nav_pages = []
+
+    variable_dict['values'] = vals
+
+    allentities = []
+    for each in values:
+        if each['fk_ent_id__name'] not in allentities:
+            allentities.append(each['fk_ent_id__name'])
+
+    request_string_for_pages = '?'
+    for key, value in request_dict.items():
+        if key != 'page':
+            request_string_for_pages += key + '=' + value[0] + '&'
+
+    return render(request, 'admin.variables.show.html', context={'adminjspath': adminjspath,
+                                                           'admincsspath': admincsspath,
+                                                           'rootrequest': rootrequest,
+                                                           'current_user': request.user.name,
+                                                           'variable': variable_dict,
+                                                           'nav_pages': nav_pages,
+                                                           'current_page': page_number,
+                                                           'total_rows': total_rows,
+                                                            'entities': allentities,
+                                                            'page_request_string': request_string_for_pages
+                                                           })
+
+
+@login_required
+def editvariable(request, variableid):
+    try:
+        variable = Variable.objects.get(pk=int(variableid))
+    except Variable.DoesNotExist:
+        return HttpResponseNotFound('Variable does not exist!')
+
+    variable_dict = {
+        'name': variable.name,
+        'id': variable.pk,
+        'unit': variable.unit,
+        'coverage': variable.coverage,
+        'timespan': variable.timespan,
+        'description': variable.description,
+        'source': {'id': variable.sourceId.pk, 'name': variable.sourceId.name}
+    }
+
+    return render(request, 'admin.variables.edit.html', context={'adminjspath': adminjspath,
+                                                                 'admincsspath': admincsspath,
+                                                                 'rootrequest': rootrequest,
+                                                                 'current_user': request.user.name,
+                                                                 'variable': variable_dict
+                                                                 })
+
+
+@login_required
+def managevariable(request, variableid):
+    try:
+        variable = Variable.objects.get(pk=int(variableid))
+    except Variable.DoesNotExist:
+        return HttpResponseNotFound('Variable does not exist!')
+
+    if request.method == 'POST':
+        request_dict = QueryDict(request.body).dict()
+        if request_dict['_method'] == 'DELETE':
+            try:
+                variable.delete()
+            except Exception as e:
+                messages.error(request, e.args[1])
+                return HttpResponseRedirect(reverse('showvariable', args=[variableid]))
+            messages.success(request, 'Variable deleted.')
+            return HttpResponseRedirect(reverse('listvariables'))
+        if request_dict['_method'] == 'PATCH':
+            request_dict.pop('_method', None)
+            request_dict.pop('csrfmiddlewaretoken', None)
+            request_dict.pop('sourceId', None)
+            Variable.objects.filter(pk=int(variableid)).update(**request_dict)
+            messages.success(request, 'Variable updated!')
+            return HttpResponseRedirect(reverse('showvariable', args=[variableid]))
+
+    if request.method == 'GET':
+        return HttpResponseRedirect(reverse('showvariable', args=[variableid]))
+
+
+@login_required
+def listlicenses(request):
+    licenses = License.objects.values()
+    return render(request, 'admin.licenses.html', context={'adminjspath': adminjspath,
+                                                        'admincsspath': admincsspath,
+                                                        'rootrequest': rootrequest,
+                                                        'current_user': request.user.name,
+                                                        'licenses': licenses
+                                                        })
+
+
+@login_required
+def showlicense(request, licenseid):
+    try:
+        license = License.objects.get(pk=int(licenseid))
+    except License.DoesNotExist:
+        return HttpResponseNotFound('License does not exist!')
+
+    return render(request, 'admin.licenses.show.html', context={'adminjspath': adminjspath,
+                                                           'admincsspath': admincsspath,
+                                                           'rootrequest': rootrequest,
+                                                           'current_user': request.user.name,
+                                                           'license': license
+                                                           })
+
+
+@login_required
+def editlicense(request, licenseid):
+    try:
+        license = License.objects.get(pk=int(licenseid))
+    except License.DoesNotExist:
+        return HttpResponseNotFound('License does not exist!')
+
+    license = {
+        'id': license.pk,
+        'name': license.name,
+        'description': license.description
+    }
+
+    return render(request, 'admin.licenses.edit.html', context={'adminjspath': adminjspath,
+                                                                'admincsspath': admincsspath,
+                                                                'rootrequest': rootrequest,
+                                                                'current_user': request.user.name,
+                                                                'license': license
+                                                                })
+
+
+@login_required
+def managelicense(request, licenseid):
+    try:
+        license = License.objects.get(pk=int(licenseid))
+    except License.DoesNotExist:
+        return HttpResponseNotFound('License does not exist!')
+
+    if request.method == 'POST':
+        request_dict = QueryDict(request.body).dict()
+        if request_dict['_method'] == 'PATCH':
+            request_dict.pop('_method', None)
+            request_dict.pop('csrfmiddlewaretoken', None)
+            License.objects.filter(pk=int(licenseid)).update(**request_dict)
+            messages.success(request, 'License updated!')
+            return HttpResponseRedirect(reverse('showlicense', args=[licenseid]))
+
+    if request.method == 'GET':
+        return HttpResponseRedirect(reverse('showlicense', args=[licenseid]))
+
+
+@login_required
+def listlogos(request):
+    logos = Logo.objects.values()
+    return render(request, 'admin.logos.html', context={'adminjspath': adminjspath,
+                                                        'admincsspath': admincsspath,
+                                                        'rootrequest': rootrequest,
+                                                        'current_user': request.user.name,
+                                                        'logos': logos
+                                                        })
+
+
+@login_required
+def createlogo(request):
+    return render(request, 'admin.logos.create.html', context={'adminjspath': adminjspath,
+                                                        'admincsspath': admincsspath,
+                                                        'rootrequest': rootrequest,
+                                                        'current_user': request.user.name})
+
+
+@login_required
+def storelogo(request):
+
+    if request.method == 'POST':
+        if not request.POST.get('name', 0):
+            messages.error(request, 'Name field should not be empty.')
+        if not request.FILES.get('image', 0):
+            messages.error(request, 'Image field should not be empty.')
+        if messages.get_messages(request):
+            return HttpResponseRedirect(reverse('createlogo'))
+        svg = request.FILES['image'].read()
+        logo = Logo(name=request.POST['name'], svg=svg)
+        logo.save()
+        messages.success(request, 'Logo created!')
+        return HttpResponseRedirect(reverse('listlogos'))
+
+    if request.method == 'GET':
+        return HttpResponseRedirect(reverse('listlogos'))
+
+
+@login_required
+def showlogo(request, logoid):
+    try:
+        logo = Logo.objects.get(pk=int(logoid))
+    except Logo.DoesNotExist:
+        return HttpResponseNotFound('Logo does not exist!')
+
+    logo = {
+        'id': logo.pk,
+        'name': logo.name,
+        'svg': logo.svg
+    }
+
+    return render(request, 'admin.logos.show.html', context={'adminjspath': adminjspath,
+                                                               'admincsspath': admincsspath,
+                                                               'rootrequest': rootrequest,
+                                                               'current_user': request.user.name,
+                                                             'logo': logo})
+
+
+@login_required
+def editlogo(request, logoid):
+    try:
+        logo = Logo.objects.get(pk=int(logoid))
+    except Logo.DoesNotExist:
+        return HttpResponseNotFound('Logo does not exist!')
+
+    logo = {
+        'id': logo.pk,
+        'name': logo.name
+    }
+
+    return render(request, 'admin.logos.edit.html', context={'adminjspath': adminjspath,
+                                                               'admincsspath': admincsspath,
+                                                               'rootrequest': rootrequest,
+                                                               'current_user': request.user.name,
+                                                             'logo': logo})
+
+
+@login_required
+def managelogo(request, logoid):
+    try:
+        logo = Logo.objects.get(pk=int(logoid))
+    except Logo.DoesNotExist:
+        return HttpResponseNotFound('Logo does not exist!')
+
+    if request.method == 'POST':
+        if request.POST.get('_method', '') == 'PATCH':
+            image_no_change = 0
+            if not request.POST.get('name', 0):
+                messages.error(request, 'Name field should not be empty.')
+            if not request.FILES.get('image', 0):
+                image_no_change = 1
+            if messages.get_messages(request):
+                return HttpResponseRedirect(reverse('editlogo', args=[logoid]))
+            if not image_no_change:
+                svg = request.FILES['image'].read()
+                logo.name = request.POST['name']
+                logo.svg = svg
+            else:
+                logo.name = request.POST['name']
+            logo.save()
+            messages.success(request, 'Logo updated!')
+            return HttpResponseRedirect(reverse('showlogo', args=[logoid]))
+        if request.POST.get('_method', '') == 'DELETE':
+            logo.delete()
+            messages.success(request, 'Logo deleted!')
+            return HttpResponseRedirect(reverse('listlogos'))
+
+    if request.method == 'GET':
+        return HttpResponseRedirect(reverse('showlogo', args=[logoid]))
+
+
+@login_required
+def listsources(request):
+
+    datasets = Dataset.objects.all()
+    variables = Variable.objects.all()
+    sources = Source.objects.all().order_by('name')
+
+    source_var_dict = {}
+    dataset_dict = {}
+
+    for each in datasets:
+        dataset_dict[each.pk] = {'id': each.pk, 'name': each.name}
+
+    for each in variables:
+        if not source_var_dict.get(each.sourceId.pk, 0):
+            source_var_dict[each.sourceId.pk] = []
+            source_var_dict[each.sourceId.pk].append({
+            'id': each.pk,
+            'name': each.name
+            })
+        else:
+            source_var_dict[each.sourceId.pk].append({
+            'id': each.pk,
+            'name': each.name
+            })
+
+    sources_list = []
+
+    for each in sources:
+        sources_list.append({'id': each.pk, 'name': each.name,
+                             'dataset': dataset_dict.get(each.datasetId, None),
+                             'variables': source_var_dict.get(each.pk, [])})
+
+    return render(request, 'admin.sources.html', context={'adminjspath': adminjspath,
+                                                               'admincsspath': admincsspath,
+                                                               'rootrequest': rootrequest,
+                                                               'current_user': request.user.name,
+                                                             'sources': sources_list})
+
+
+@login_required
+def showsource(request, sourceid):
+    try:
+        source = Source.objects.get(pk=int(sourceid))
+    except Source.DoesNotExist:
+        return HttpResponseNotFound('Source does not exist!')
+
+    source = {'id': source.pk, 'name': source.name, 'description': source.description}
+
+    try:
+        dataset = Dataset.objects.get(pk=source['id'])
+        source['dataset'] = {'id': dataset.pk, 'name': dataset.name}
+    except:
+        source['dataset'] = None
+
+    variables = Variable.objects.filter(sourceId__pk=source['id']).values()
+
+    source['variables'] = variables
+
+    return render(request, 'admin.sources.show.html', context={'adminjspath': adminjspath,
+                                                               'admincsspath': admincsspath,
+                                                               'rootrequest': rootrequest,
+                                                               'current_user': request.user.name,
+                                                             'source': source})
+
+
+@login_required
+def editsource(request, sourceid):
+    try:
+        source = Source.objects.get(pk=int(sourceid))
+    except Source.DoesNotExist:
+        return HttpResponseNotFound('Source does not exist!')
+
+    source = {
+        'id': source.pk,
+        'name': source.name,
+        'description': source.description
+    }
+
+    return render(request, 'admin.sources.edit.html', context={'adminjspath': adminjspath,
+                                                               'admincsspath': admincsspath,
+                                                               'rootrequest': rootrequest,
+                                                               'current_user': request.user.name,
+                                                               'source': source})
+
+
+@login_required
+def managesource(request, sourceid):
+    try:
+        source = Source.objects.get(pk=int(sourceid))
+    except Source.DoesNotExist:
+        return HttpResponseNotFound('Source does not exist!')
+
+    if request.method == 'POST':
+        request_dict = QueryDict(request.body).dict()
+        if request_dict['_method'] == 'DELETE':
+            try:
+                source.delete()
+            except Exception as e:
+                messages.error(request, e.args[1])
+                return HttpResponseRedirect(reverse('showsource', args=[sourceid]))
+            messages.success(request, 'Source deleted.')
+            return HttpResponseRedirect(reverse('listvariables'))
+        if request_dict['_method'] == 'PATCH':
+            request_dict.pop('_method', None)
+            request_dict.pop('csrfmiddlewaretoken', None)
+            try:
+                Source.objects.filter(pk=int(sourceid)).update(**request_dict)
+            except Exception as e:
+                messages.error(request, e.args[1])
+                return HttpResponseRedirect(reverse('showsource', args=[sourceid]))
+            messages.success(request, 'Source updated!')
+            return HttpResponseRedirect(reverse('showsource', args=[sourceid]))
+
+    if request.method == 'GET':
+        return HttpResponseRedirect(reverse('showsource', args=[sourceid]))
+
+
+@login_required
+def editsourcetemplate(request):
+    sourcetemplate = Setting.objects.filter(meta_name='sourceTemplate').first()
+
+    if request.method == 'GET':
+
+        sourcetemplate = {'meta_value': sourcetemplate.meta_value}
+
+        return render(request, 'admin.sourcetemplate.edit.html', context={'adminjspath': adminjspath,
+                                                               'admincsspath': admincsspath,
+                                                               'rootrequest': rootrequest,
+                                                               'current_user': request.user.name,
+                                                               'sourcetemplate': sourcetemplate})
+    if request.method == 'POST':
+        if not request.POST.get('source_template', 0):
+            messages.error(request, 'Source template field should not be empty.')
+            return render(request, 'admin.sourcetemplate.edit.html', context={'adminjspath': adminjspath,
+                                                                              'admincsspath': admincsspath,
+                                                                              'rootrequest': rootrequest,
+                                                                              'current_user': request.user.name,
+                                                                              'sourcetemplate': sourcetemplate})
+        else:
+            sourcetemplate.meta_value = request.POST['source_template']
+            sourcetemplate.save()
+            messages.success(request, 'Source template updated.')
+            return render(request, 'admin.sourcetemplate.edit.html', context={'adminjspath': adminjspath,
+                                                                              'admincsspath': admincsspath,
+                                                                              'rootrequest': rootrequest,
+                                                                              'current_user': request.user.name,
+                                                                              'sourcetemplate': sourcetemplate})
+
+
+@login_required
+def editsubcategory(request, subcatid):
+    try:
+        subcat = DatasetSubcategory.objects.get(pk=int(subcatid))
+    except DatasetSubcategory.DoesNotExist:
+        return HttpResponseNotFound('Subcategory does not exist!')
+
+    subcategory = {'id': subcat.pk, 'name': subcat.name, 'category': subcat.fk_dst_cat_id.pk}
+    categories = DatasetCategory.objects.values()
+    category = {'id': subcat.fk_dst_cat_id.pk}
+
+    return render(request, 'admin.subcategories.edit.html', context={'adminjspath': adminjspath,
+                                                                      'admincsspath': admincsspath,
+                                                                      'rootrequest': rootrequest,
+                                                                      'current_user': request.user.name,
+                                                                      'subcategory': subcategory,
+                                                                     'categories': categories,
+                                                                     'category': category})
+
+
+@login_required
+def managesubcategory(request, subcatid):
+    try:
+        subcat = DatasetSubcategory.objects.get(pk=int(subcatid))
+    except DatasetSubcategory.DoesNotExist:
+        return HttpResponseNotFound('Subcategory does not exist!')
+
+    parent_cat = subcat.fk_dst_cat_id.pk
+
+    if request.method == 'POST':
+        request_dict = QueryDict(request.body).dict()
+        if request_dict['_method'] == 'DELETE':
+            try:
+                subcat.delete()
+            except Exception as e:
+                messages.error(request, e.args[1])
+                return HttpResponseRedirect(reverse('editsubcategory', args=[subcatid]))
+            messages.success(request, 'Subcategory deleted.')
+            return HttpResponseRedirect(reverse('showcategory', args=[parent_cat]))
+        if request_dict['_method'] == 'PATCH':
+            request_dict.pop('_method', None)
+            request_dict.pop('csrfmiddlewaretoken', None)
+            try:
+                DatasetSubcategory.objects.filter(pk=int(subcatid)).update(**request_dict)
+            except Exception as e:
+                messages.error(request, e.args[1])
+                return HttpResponseRedirect(reverse('editsubcategory', args=[subcatid]))
+            messages.success(request, 'Subcategory updated!')
+            return HttpResponseRedirect(reverse('showcategory', args=[parent_cat]))
+
+
+@login_required
+def createsubcategory(request):
+    categories = DatasetCategory.objects.values()
+    return render(request, 'admin.subcategories.create.html',context={'adminjspath': adminjspath,
+                                   'admincsspath': admincsspath,
+                                   'rootrequest': rootrequest,
+                                   'current_user': request.user.name,
+                                   'categories': categories,
+                                   })
+
+
+@login_required
+def storesubcategory(request):
+    categories = DatasetCategory.objects.values()
+    if request.method == 'POST':
+        if not request.POST.get('name', 0):
+            messages.error(request, 'Name field should not be empty.')
+        if messages.get_messages(request):
+            return render(request, 'admin.subcategories.create.html',
+                          context={'adminjspath': adminjspath,
+                                   'admincsspath': admincsspath,
+                                   'rootrequest': rootrequest,
+                                   'current_user': request.user.name,
+                                   'categories': categories})
+        subcat = DatasetSubcategory()
+        subcat.name = request.POST['name']
+        subcat.fk_dst_cat_id = DatasetCategory.objects.get(pk=int(request.POST['fk_dst_cat_id']))
+        subcat.save()
+        messages.success(request, 'Subcategory created!')
+        return HttpResponseRedirect(reverse('listcategories'))
+
 
 
 @login_required

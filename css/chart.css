@@ -32,7 +32,7 @@ body.chart-container {
     overflow: hidden;
 }
 
-body.chart-container:not(.export) {
+body.chart-container {
     text-align: center;
 }
 
@@ -199,7 +199,7 @@ select.disabled {
     overflow: hidden;
 }
 
-body:not(.export) #chart {
+#chart:not(.export) {
     vertical-align: middle;
     border: 1px solid #f0f0f0;
     border-radius: 2px;
@@ -266,7 +266,7 @@ a {
     position: absolute;
     bottom: 0;
     border-top: 1px solid #e1e1e1;
-    z-index: 1;
+    z-index: 2;
 }
 
 #chart nav.tabs ul {
@@ -282,10 +282,14 @@ a {
 
 #chart nav.tabs li > a {
     display: block;
-    padding: 0.5em 1.0em;
+    padding: 0.5em 0;
     text-transform: uppercase;
     color: #666;
     font-size: 0.9em;
+}
+
+#chart nav.tabs li.icon > a {
+    padding: 0.5em 0.4em;
 }
 
 #chart nav.tabs li > a:hover {
@@ -302,6 +306,10 @@ a {
 
 #chart.landscape nav.tabs li {
     float: left;
+}
+
+#chart.landscape nav.tabs li > a {
+    padding: 0.5em 1em;
 }
 
 #chart.portrait nav.tabs ul {
@@ -376,18 +384,12 @@ a {
 /* Footer
 --------------------------------------------- */
 
-#chart .footer {
-    font-size: 0.6em;
-}
-#chart .footer text {
-    fill: #666;
-}
-#chart .footer a:not(.bold) {
-    opacity: 0.8;
-}
-#chart .footer a.bold {
-    font-weight: bold;
-    fill: #666;
+#chart .sourcesFooter {
+    fill: #777;
+
+    & a {
+        fill: #777;
+    }
 }
 
 /* Legend
@@ -604,7 +606,10 @@ a {
 /* Sources Tab
 --------------------------------------------- */
 
-#chart .sourcesTab {
+
+
+#chart .sourcesTab,
+#chart .downloadTab {
     padding: 1em;
     text-align: left;
     background: rgba(255,255,255,0.95);
@@ -673,6 +678,7 @@ a {
     box-shadow: 0 0 2px 0 rgba(0,0,0,0.12), 0 2px 2px 0 rgba(0,0,0,0.24);
     padding-bottom: 0.5em;
     width: 15em;
+    z-index: 2;
 }
 
 #chart .shareMenu h2 {
@@ -735,7 +741,7 @@ a {
     background: rgba(255,255,255,0.95);
     padding: 1em;
     text-align: left;
-    z-index: 1;
+    z-index: 12;
 }
 
 #chart .embedMenu p {
@@ -1023,23 +1029,23 @@ a {
  * a special .export url to screenshot the chart. #chart-export styles therefore apply specifically
  * to these screenshots. */
 
-body.export #chart {
+#chart.export {
     padding: 0 !important;
 }
 /* Remove interactive UI elements since obviously they can't be used in a static image
 * NOTE (Mispy): Unneeded SVG elements should be removed entirely by the JS as well as hidden here. */
-body.export #chart .controlsFooter,
-body.export #chart .fullscreen-link,
-body.export #chart .timeline,
-body.export #chart .settings-control,
-body.export #chart .color-blind-control,
-body.export #chart .map-controls-header,
-body.export #chart .nv-add-btn,
-body.export #chart .nv-controlsWrap,
-body.export #chart .scaleSelector {
+#chart.export .controlsFooter,
+#chart.export .fullscreen-link,
+#chart.export .timeline,
+#chart.export .settings-control,
+#chart.export .color-blind-control,
+#chart.export .map-controls-header,
+#chart.export .nv-add-btn,
+#chart.export .nv-controlsWrap,
+#chart.export .scaleSelector {
     display: none !important;
 }
-body.export #chart .tab-pane {
+#chart.export .tab-pane {
     border: none !important;
 }
 
@@ -1066,5 +1072,65 @@ body.export #chart .tab-pane {
     z-index: -1;
 }
 
+#chart .downloadTab,
+#chart .dataTab,
+#chart .sourcesTab {
+    z-index: 1;
+}
+
+#chart .downloadTab {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    & > a {
+        color: #333;
+    }
+
+    & > a:hover {
+        text-decoration: none;
+    }
+
+    & a:hover aside {
+        text-decoration: underline;
+    }
+
+    & aside {
+        margin: 1em;
+    }
+
+
+    & .imgLoader {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #ccc;
+        color: #333;
+        margin: 1em;
+    }
+}
+
+#chart.landscape .downloadTab {
+    font-size: 0.8em;
+    padding: 3em;
+
+    & > a > div {
+        display: flex;
+    }
+}
+
+#chart.portrait .downloadTab {
+    font-size: 0.7em;
+    padding: 1em;
+
+    & .imgLoader {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    & h2 {
+        margin-bottom: 0.2em;
+    }
+}
 
 /*# sourceMappingURL=front-sass.css.map */

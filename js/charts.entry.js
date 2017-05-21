@@ -16,4 +16,7 @@ import 'whatwg-fetch'
 //import 'preact/devtools'
 require('./charts/constants');
 
-window.Chart = require('./charts/owid.chart').default;
+window.d3 = require('./libs/d3old')
+
+window.ChartView = require('./charts/ChartView').default;
+window.ExportView = require('./charts/ExportView').default;

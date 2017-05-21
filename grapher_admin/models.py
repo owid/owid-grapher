@@ -184,6 +184,36 @@ class Chart(models.Model):
         config['logosSVG'] = logos
         return config
 
+    def show_type(self):
+        config = json.loads(self.config)
+        type = "Unknown"
+
+        if self.type == "LineChart":
+            type = "Line Chart"
+        elif self.type == "ScatterPlot":
+            type = "Scatter Plot"
+        elif self.type == "StackedArea":
+            type = "Stacked Area"
+        elif self.type == "MultiBar":
+            type = "Multi Bar"
+        elif self.type == "HorizontalMultiBar":
+            type = "Horizontal Multi Bar"
+        elif self.type == "DiscreteBar":
+            type = "Discrete Bar"
+        elif self.type == "SlopeChart":
+            type = "Slope Chart"
+
+        if config.get("default-tab", 0) and config.get("default-tab", 0) == "map":
+            if "chart" in config.get("tabs", ""):
+                return "Map + " + type
+            else:
+                return "Map"
+        else:
+            if "map" in config.get("tabs", ""):
+                return type + " + Map"
+            else:
+                return type
+
 
 class DatasetCategory(models.Model):
     class Meta:
@@ -225,13 +255,13 @@ class Dataset(models.Model):
 class Source(models.Model):
     class Meta:
         db_table = 'sources'
-        unique_together = (('name', 'datasetid'),)
+        unique_together = (('name', 'datasetId'),)
 
     name = models.CharField(max_length=255)
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    datasetId = models.ForeignKey(Dataset, db_column='datasetId', blank=True, null=True, on_delete=models.DO_NOTHING)
+    datasetId = models.IntegerField(db_column='datasetId', blank=True, null=True)
 
 
 class VariableType(models.Model):

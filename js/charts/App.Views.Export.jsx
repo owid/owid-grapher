@@ -13,17 +13,16 @@ import _ from 'lodash'
 import Bounds from './Bounds'
 import owid from '../owid'
 import {svgAsDataUri} from './saveSvgAsPng'
+import $ from 'jquery'
 
 export default function(chart) {
-	if (!_.isFunction(window.callPhantom))
-		window.callPhantom = console.log;
+    let callPhantom = window.callPhantom || console.log
 
 	d3.select('body').classed('export', true);
 
 	var params = owid.getQueryParams(),
-		targetWidth = params.size && params.size.split("x") ? parseInt(params.size.split("x")[0]) : 1200,
-		targetHeight = params.size && params.size.split("x") ? parseInt(params.size.split("x")[1]) : 800,
-		margin = Math.min(20*(targetWidth/App.AUTHOR_WIDTH), 20*(targetHeight/App.AUTHOR_HEIGHT));
+		targetWidth = params.size && params.size.split("x") ? parseInt(params.size.split("x")[0]) : App.IDEAL_WIDTH,
+		targetHeight = params.size && params.size.split("x") ? parseInt(params.size.split("x")[1]) : App.IDEAL_HEIGHT;
 
 	chart.update({
 		outerBounds: new Bounds(0, 0, targetWidth, targetHeight)
@@ -32,13 +31,11 @@ export default function(chart) {
 	chart.dispatch.on('renderEnd', function() {
 		setTimeout(function() {
 			// Remove SVG UI elements that aren't needed for export
-			chart.now('svg', function(svg) {
-				svg.selectAll(".nv-add-btn, .nv-controlsWrap").remove();
+            const svg = d3.select(chart.svgNode)
+			svg.selectAll(".nv-add-btn, .nv-controlsWrap").remove();
 
-				if (window.callPhantom)
-					window.callPhantom({ targetWidth: targetWidth, targetHeight: targetHeight }); // Notify phantom that we're ready for PNG screenshot
-				prepareSVGForExport(svg);
-			});
+			callPhantom({ targetWidth: targetWidth, targetHeight: targetHeight }); // Notify phantom that we're ready for PNG screenshot
+			prepareSVGForExport(svg);
 
 		}.bind(this), 100);
 	}.bind(this));
@@ -76,10 +73,14 @@ export default function(chart) {
 		svg.style("width", chart.el.style("width"));
 		svg.style("height", chart.el.style("height"));
 		svg.style("font-size", svg.style("font-size"));
+        svg.style("background-color", "#fff")
+
+        // Remove all other styles for easier testing that this works
+        //d3.selectAll('link').remove()
 
 		svgAsDataUri(svg.node(), {}, function(uri) {
 			var svgData = uri.substring('data:image/svg+xml;base64,'.length);
-			window.callPhantom({ "svg": svgData });
+			callPhantom({ "svg": svgData });
 		});
 	}
 };

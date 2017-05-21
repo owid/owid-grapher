@@ -466,12 +466,8 @@
     {% autoescape off %}
     <script type="text/javascript">
         var chartConfig = {{ chartconfig }};
-        Chart().update(
-            { chartConfig: chartConfig, containerNode: d3.select('.chart-container').node(), isEditor: true },
-            function() {
-                new App.Views.FormView();
-            }
-        );
+        ChartView.bootstrap({ jsonConfig: chartConfig, containerNode: d3.select('.chart-container').node(), isEditor: true })
+        new App.Views.FormView();
     </script>
     {% endautoescape %}
 {% endblock %}

@@ -9,7 +9,7 @@ window.Cookies = Cookies
 
 	// CSRF setup
 	$.ajaxSetup({
-		headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr("value") }
+		headers: { 'X-CSRFToken': $('meta[name="_token"]').attr("value") }
 	});
 
 

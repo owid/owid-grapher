@@ -1,0 +1,44 @@
+{% extends 'base_admin_template.html' %}
+
+{% block content %}
+	<div class="module-wrapper show-datasource-module">
+		<a class="back-btn" href="{% url 'listsources' %}"><i class="fa fa-arrow-left"></i>Back to the list of sources</a>
+		<div class="pull-right right-btns-wrapper clearfix">
+			<a href="{% url 'editsource' source.id %}"><i class="fa fa-pencil"></i> Edit source</a>
+			<form method="POST" action="{% url 'managesource' source.id %}" accept-charset="UTF-8" class="form-inline">
+                <input name="_method" type="hidden" value="DELETE">
+                {% csrf_token %}
+				<button class="delete-btn" type="submit"><i class="fa fa-remove"></i>Delete source</button>
+			</form>
+		</div>
+		<h2>{{ source.name }}</h2>
+		<div class="property-wrapper">
+			<h3>Dataset</h3>
+			<div class="property-value">
+				<ul>
+                    {% if source.dataset %}
+					<li><h5><a href="{% url 'showdataset' source.dataset.id %}">{{ source.dataset.name }}</a></h5></li>
+                    {% endif %}
+				</ul>
+			</div>
+		</div>
+		<div class="property-wrapper">
+			<h3>Variables</h3>
+			<div class="property-value">
+				<ul>
+                    {% for variable in source.variables %}
+					<li><a href="{% url 'showvariable' variable.id %}">{{ variable.name }}</a></li>
+                    {% endfor %}
+				</ul>
+			</div>
+		</div>
+		<div class="property-wrapper">
+			<h3>Description</h3>
+			<div class="property-value datasource-wrapper" style="font-size: 1.0em;">
+				{% autoescape off %}
+                {{ source.description }}
+			    {% endautoescape %}
+            </div>
+		</div>
+	</div>
+{% endblock %}

@@ -1,45 +1,83 @@
-// @flow
-
+import * as React from 'react'
 import * as _ from 'lodash'
 import * as d3 from 'd3'
-import owid from '../owid'
 import Bounds from './Bounds'
-import React, {Component} from 'react'
 import {observable, computed, asFlat, action} from 'mobx'
 import {observer} from 'mobx-react'
-import { getRelativeMouse } from './Util'
-import type {SVGElement, VNode} from './Util'
+import {getRelativeMouse} from './Util'
 import Paragraph from './Paragraph'
 import Text from './Text'
 import {preInstantiate} from './Util'
 
+// XXX refactor mapdata and make this an actual data structure (or rather two)
+export interface MapLegendBin {
+    index: number,
+    type: 'numeric' | 'categorical',
+    value?: string,
+    text?: string,
+    min?: number,
+    minText?: string,
+    max?: number,
+    maxText?: string,
+    color: string,
+    baseColor: string,
+    hidden?: boolean
+}
+
+interface NumericMapLegendProps {
+    x?: number,
+    y?: number,
+    width: number,
+    legendData: MapLegendBin[],
+    focusBracket: MapLegendBin,
+    onMouseOver: (d: MapLegendBin) => void,
+    onMouseLeave: () => void
+}
+
+interface PositionedBin {
+    x: number,
+    width: number,
+    margin: number,
+    bin: MapLegendBin
+}
+
+interface NumericLabel {
+    text: string,
+    fontSize: string,
+    bounds: Bounds,
+    priority?: boolean,
+    hidden: boolean,
+}
+
 @observer
-class NumericMapLegend extends Component {
-    @computed get numericLegendData() { return this.props.legendData.filter(l => l.type == "numeric") }
-    @computed get rectHeight() { return 10 }
+class NumericMapLegend extends React.Component<NumericMapLegendProps, null> {
+    g: SVGGElement
+
+    @computed get numericLegendData(): MapLegendBin[] { return this.props.legendData.filter(l => l.type == "numeric") }
+    @computed get rectHeight(): number { return 10 }
 
     // NumericMapLegend wants to map a range to a width. However, sometimes we are given
     // data without a clear min/max. So we must fit these scurrilous bins into the width somehow.
-    @computed get minValue() { return _.minBy(this.props.legendData.map(d => d.min).filter(v => _.isFinite(v))) }
-    @computed get maxValue() { return _.maxBy(this.props.legendData.map(d => d.max).filter(v => _.isFinite(v))) }
-    @computed get rangeSize() { return this.maxValue - this.minValue }
-    @computed get categoryBinWidth() {
+    @computed get minValue(): number { return _.minBy(this.props.legendData.map(d => d.min).filter(v => _.isFinite(v))) }
+    @computed get maxValue(): number { return _.maxBy(this.props.legendData.map(d => d.max).filter(v => _.isFinite(v))) }
+    @computed get rangeSize(): number { return this.maxValue - this.minValue }
+    @computed get categoryBinWidth(): number {
         //const meanRange = _.reduce(this.numericLegendData, (m, d) => m+(d.max-d.min), 0)/this.numericLegendData.length
         //return (meanRange/this.rangeSize) * this.props.width
         return Bounds.forText("No data", { fontSize: "0.5em" }).width
     }
-    @computed get categoryBinMargin() { return this.rectHeight*1.5 }
-    @computed get totalDefaultWidth() {
+    @computed get categoryBinMargin(): number { return this.rectHeight*1.5 }
+    @computed get totalDefaultWidth(): number {
         return _.reduce(
             this.props.legendData.map(d => !_.isFinite(d.max-d.min) ? this.categoryBinWidth+this.categoryBinMargin : 0),
-            (m, n) => m+n
+            (m, n) => m+n, 0
         )
     }
-    @computed get availableWidth() {
+    @computed get availableWidth(): number {
         return this.props.width-this.totalDefaultWidth
     }
 
-    @computed get positionedBins() {
+    @computed get positionedBins(): PositionedBin[] {
         const {props, rangeSize, categoryBinWidth, categoryBinMargin, availableWidth} = this
         let xOffset = 0
 
@@ -62,12 +100,12 @@ class NumericMapLegend extends Component {
         })
     }
 
-    @computed get numericLabels() {
+    @computed get numericLabels(): NumericLabel[] {
         const {width} = this.props
         const {minValue, rangeSize, rectHeight, positionedBins} = this
         const fontSize = "0.5em"
 
-        const makeBoundaryLabel = (d, minOrMax, text) => {
+        const makeBoundaryLabel = (d: PositionedBin, minOrMax: 'min'|'max', text: string) => {
             const labelBounds = Bounds.forText(text, { fontSize: fontSize })
             const x = d.x + (minOrMax == 'min' ? 0 : d.width) - labelBounds.width/2
             const y = -rectHeight-labelBounds.height-3
@@ -80,7 +118,7 @@ class NumericMapLegend extends Component {
             }
         }
 
-        const makeRangeLabel = (d) => {
+        const makeRangeLabel = (d: PositionedBin) => {
             const labelBounds = Bounds.forText(d.bin.text, { fontSize: fontSize })
             const x = d.x+d.width/2 - labelBounds.width/2
             const y = -rectHeight-labelBounds.height-3
@@ -94,7 +132,7 @@ class NumericMapLegend extends Component {
             }
         }
 
-        let labels = []
+        let labels: NumericLabel[] = []
         _.each(positionedBins, d => {
             if (d.bin.text)
                 labels.push(makeRangeLabel(d))
@@ -140,9 +178,11 @@ class NumericMapLegend extends Component {
         return labels
     }
 
-    @computed get height() { return Math.abs(_.minBy(this.numericLabels.map(l => l.bounds.y))) }
+    @computed get height(): number { return Math.abs(_.minBy(this.numericLabels.map(l => l.bounds.y))) }
 
-    @action.bound onMouseMove(evt) {
+
+
+    @action.bound onMouseMove() {
         const {props, bounds, g, minValue, rangeSize} = this
         const mouse = getRelativeMouse(g, d3.event)
         if (!this.bounds.containsPoint(mouse[0], mouse[1]))
@@ -172,11 +212,11 @@ class NumericMapLegend extends Component {
         d3.select('html').on('touchmove.mapLegend', null)
     }
 
-    @computed get width() {
+    @computed get width(): number {
         return this.props.width
     }
 
-    @computed get bounds() {
+    @computed get bounds(): Bounds {
         return new Bounds(this.props.x, this.props.y, this.width, this.height)
     }
 
@@ -192,15 +232,7 @@ class NumericMapLegend extends Component {
         const borderColor = "#333"
         const bottomY = props.y+height
 
-		return <g class="numericMapLegend" ref={(g) => this.g = g}>
-            <defs>
-                <pattern id={"diagonalHatch"} patternUnits="userSpaceOnUse" width="4" height="4">
-                    <path d="M-1,1 l2,-2
-                               M0,4 l4,-4
-                               M3,5 l2,-2"
-                            style="stroke: #fff; stroke-width:0.2" />
-                </pattern>
-            </defs>
+		return <g className="numericMapLegend" ref={(g) => this.g = g}>
             {_.map(numericLabels, label =>
                 <line x1={props.x+label.bounds.x+label.bounds.width/2} y1={bottomY-rectHeight} x2={props.x+label.bounds.x+label.bounds.width/2} y2={bottomY+label.bounds.y+label.bounds.height} stroke={borderColor} strokeWidth={0.3}/>
             )}
@@ -217,22 +249,49 @@ class NumericMapLegend extends Component {
 	}
 }
 
+interface CategoricalMapLegendProps {
+    x?: number,
+    y?: number,
+    maxWidth: number,
+    scale: number,
+    legendData: MapLegendBin[],
+    focusBracket: MapLegendBin,
+    onMouseOver: (d: MapLegendBin) => void,
+    onMouseLeave: () => void
+}
+
+interface CategoricalMark {
+    x: number,
+    y: number,
+    rectSize: number,
+    label: {
+        text: string,
+        bounds: Bounds,
+        fontSize: string
+    },
+    bin: MapLegendBin
+}
+
+interface MarkLine {
+    totalWidth: number,
+    marks: CategoricalMark[]
+}
+
 @observer
-class CategoricalMapLegend extends Component {
-    @computed get markLines() {
+class CategoricalMapLegend extends React.Component<CategoricalMapLegendProps, null> {
+    @computed get markLines(): MarkLine[] {
         const props = this.props, rectSize = 10*props.scale,
               rectPadding = 3, markPadding = 5, fontSize = (0.45*props.scale)+"em"
 
-        const lines = []
-        let line = [], xOffset = 0, yOffset = 0
+        const lines: MarkLine[] = []
+        let marks: CategoricalMark[] = [], xOffset = 0, yOffset = 0
         _.each(props.legendData, d => {
             const labelBounds = Bounds.forText(d.text, { fontSize: fontSize })
             const markWidth = rectSize+rectPadding+labelBounds.width+markPadding
 
             if (xOffset + markWidth > props.maxWidth) {
-                line.totalWidth = xOffset-markPadding
-                lines.push(line)
-                line = []
+                lines.push({ totalWidth: xOffset-markPadding, marks: marks })
+                marks = []
                 xOffset = 0
                 yOffset += rectSize+rectPadding
             }
@@ -245,7 +304,7 @@ class CategoricalMapLegend extends Component {
                 fontSize: fontSize
             }
 
-            line.push({
+            marks.push({
                 x: markX,
                 y: markY,
                 rectSize: rectSize,
@@ -256,19 +315,18 @@ class CategoricalMapLegend extends Component {
             xOffset += markWidth
         })
 
-        if (line.length > 0) {
-            line.totalWidth = xOffset-markPadding
-            lines.push(line)
+        if (marks.length > 0) {
+            lines.push({ totalWidth: xOffset-markPadding, marks: marks })
         }
 
         return lines
     }
 
-    @computed get width() {
+    @computed get width(): number {
         return _.maxBy(this.markLines.map(l => l.totalWidth))
     }
 
-    @computed get marks() {
+    @computed get marks(): CategoricalMark[] {
         const lines = this.markLines
 
         // Center each line
@@ -280,14 +338,14 @@ class CategoricalMapLegend extends Component {
             })
         })
 
-        return _.flatten(lines)
+        return _.flatten(_.map(lines, l => l.marks))
     }
 
-    @computed get height() {
+    @computed get height(): number {
         return _.maxBy(_.map(this.marks, m => m.y+m.rectSize))
     }
 
-    @computed get bounds() {
+    @computed get bounds(): Bounds {
         return new Bounds(this.props.x, this.props.y, this.width, this.height)
     }
 
@@ -295,7 +353,7 @@ class CategoricalMapLegend extends Component {
         const {props, marks, height} = this
         //Bounds.debug([this.bounds])
         //Bounds.debug(marks.map(m => m.label.bounds))
-        return <g class="categoricalMapLegend">
+        return <g className="categoricalMapLegend">
             {_.map(marks, m => {
                 const isFocus = props.focusBracket && m.bin.value == props.focusBracket.value
                 const stroke = isFocus ? "#FFEC38" : "#333"
@@ -308,9 +366,19 @@ class CategoricalMapLegend extends Component {
     }
 }
 
+export interface MapLegendProps {
+    legendData: MapLegendBin[],
+    title: string,
+    bounds: Bounds,
+    focusBracket: MapLegendBin,
+    focusEntity: any,
+    onMouseOver: (d: MapLegendBin) => void,
+    onMouseLeave: () => void
+}
+
 @observer
-export default class MapLegend extends Component {
-    @computed get numericLegendData(): Object[] {
+export default class MapLegend extends React.Component<MapLegendProps, null> {
+    @computed get numericLegendData(): MapLegendBin[] {
         if (this.hasCategorical || !_.some(this.props.legendData, d => d.value == "No data" && !d.hidden)) {
             return this.props.legendData.filter(l => l.type == "numeric" && !l.hidden)
         } else {
@@ -319,16 +387,16 @@ export default class MapLegend extends Component {
         }
     }
     @computed get hasNumeric(): boolean { return this.numericLegendData.length > 1 }
-    @computed get categoricalLegendData(): Object[] {
+    @computed get categoricalLegendData(): MapLegendBin[] {
         return this.props.legendData.filter(l => l.type == "categorical" && !l.hidden)
     }
     @computed get hasCategorical(): boolean { return this.categoricalLegendData.length > 1 }
 
-    @computed get wrapLabel(): Object {
-       return Paragraph.wrap(this.props.title, this.props.bounds.width, { fontSize: "0.6em" })
+    @computed get mainLabel(): Paragraph {
+        return preInstantiate(<Paragraph width={this.props.bounds.width} scale={0.6}>{this.props.title}</Paragraph>)
     }
 
-    @computed get focusBracket() {
+    @computed get focusBracket(): MapLegendBin {
         const {focusBracket, focusEntity, legendData} = this.props
         if (focusBracket) return focusBracket
         if (focusEntity) return _.find(legendData, bin => {
@@ -340,8 +408,8 @@ export default class MapLegend extends Component {
     }
 
     @computed get categoryLegend(): CategoricalMapLegend {
-        const {props, hasCategorical, hasNumeric, wrapLabel, categoricalLegendData, focusBracket} = this
-        return hasCategorical && preInstantiate(<CategoricalMapLegend {...props} legendData={categoricalLegendData} focusBracket={focusBracket} scale={hasNumeric ? 1 : 1} maxWidth={props.bounds.width*0.8}/>)
+        const {props, hasCategorical, hasNumeric, categoricalLegendData, focusBracket} = this
+        return hasCategorical && preInstantiate(<CategoricalMapLegend onMouseOver={props.onMouseOver} onMouseLeave={props.onMouseLeave} legendData={categoricalLegendData} focusBracket={focusBracket} scale={hasNumeric ? 1 : 1} maxWidth={props.bounds.width*0.8}/>)
     }
 
     @computed get categoryLegendHeight(): number {
@@ -349,8 +417,8 @@ export default class MapLegend extends Component {
     }
 
     @computed get numericLegend(): NumericMapLegend {
-        const {props, hasNumeric, numericLegendData, wrapLabel, categoryLegendHeight, focusBracket} = this
-        return hasNumeric && preInstantiate(<NumericMapLegend {...props} legendData={numericLegendData} width={props.bounds.width*0.5} focusBracket={focusBracket}/>)
+        const {props, hasNumeric, numericLegendData, categoryLegendHeight, focusBracket} = this
+        return hasNumeric && preInstantiate(<NumericMapLegend onMouseOver={props.onMouseOver} onMouseLeave={props.onMouseLeave} legendData={numericLegendData} width={props.bounds.width*0.5} focusBracket={focusBracket}/>)
     }
 
     @computed get numericLegendHeight(): number {
@@ -358,18 +426,18 @@ export default class MapLegend extends Component {
     }
 
     @computed get height(): number {
-        return this.wrapLabel.height+this.categoryLegendHeight+this.numericLegendHeight+10
+        return this.mainLabel.height+this.categoryLegendHeight+this.numericLegendHeight+10
     }
 
     render() {
         const {bounds, title} = this.props
-        const {wrapLabel, numericLegend, categoryLegend, categoryLegendHeight, hasNumeric, hasCategorical} = this
+        const {mainLabel, numericLegend, categoryLegend, categoryLegendHeight, hasNumeric, hasCategorical} = this
         //Bounds.debug([new Bounds(bounds.centerX-wrapLabel.width/2, bounds.bottom-wrapLabel.height, wrapLabel.width, wrapLabel.height)])
 
-        return <g>
-            {hasNumeric && <NumericMapLegend {...numericLegend.props} x={bounds.centerX-numericLegend.width/2} y={bounds.bottom-wrapLabel.height-categoryLegendHeight-numericLegend.height-4}/>}
-            {hasCategorical && <CategoricalMapLegend {...categoryLegend.props} x={bounds.centerX-categoryLegend.width/2} y={bounds.bottom-wrapLabel.height-categoryLegendHeight}/>}
-            <Paragraph x={bounds.centerX-wrapLabel.width/2} y={bounds.bottom-wrapLabel.height}>{wrapLabel}</Paragraph>
+        return <g className="mapLegend">
+            {hasNumeric && <NumericMapLegend {...numericLegend.props} x={bounds.centerX-numericLegend.width/2} y={bounds.bottom-mainLabel.height-categoryLegendHeight-numericLegend.height-4}/>}
+            {hasCategorical && <CategoricalMapLegend {...categoryLegend.props} x={bounds.centerX-categoryLegend.width/2} y={bounds.bottom-mainLabel.height-categoryLegendHeight}/>}
+            <Paragraph {...mainLabel.props} x={bounds.centerX-mainLabel.width/2} y={bounds.bottom-mainLabel.height}/>
         </g>
     }
 }

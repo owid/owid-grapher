@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "allowJs": false,
+        "alwaysStrict": true,
+        "noImplicitAny": true,
+        "outDir": "./tmp/dist/",
+        "sourceMap": true,
+        "module": "commonjs",
+        "target": "es5",
+        "jsx": "react",
+        "experimentalDecorators": true
+    },
+    "include": [
+        "./js/**/*"
+    ]
+}

@@ -14,7 +14,6 @@ import Layout from './Layout'
 import Observations from './Observations'
 import ChartConfig from './ChartConfig'
 import Text from './Text'
-import Paragraph from './Paragraph'
 import LabelledSlopes from './LabelledSlopes'
 import type {SlopeChartSeries} from './LabelledSlopes'
 window.Observations = Observations
@@ -144,7 +143,7 @@ export default class SlopeChart extends Component {
 	}
 
 	@computed get variableData() : Observations {
-		const variables = _.map(this.dimensions, 'variable')
+	const variables = _.map(this.dimensions, 'variable')
 		let obvs = []
 		_.each(variables, (v) => {
 			for (var i = 0; i < v.years.length; i++) {
