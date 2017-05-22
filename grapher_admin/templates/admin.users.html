@@ -1,0 +1,21 @@
+{% extends 'base_admin_template.html' %}
+{% block content %}
+	<h2>Users</h2>
+    <a href="{% url 'inviteuser' %}" class="btn btn-primary">Invite a User</a>
+    {% if not users %}
+        There are no users.
+    {% else %}
+		<table class="table table-bordered table-hover dataTable">
+			<tr>
+				<th>Name</th> 
+				<th>Joined</th>
+			</tr>
+			{% for user in users %}
+				<tr>
+					<td>{{ user.name }}</td>
+					<td><time class="timeago" datetime="{{ user.created_at|date:'c' }}">{{ user.created_at }}</time></td>
+				</tr>
+			{% endfor %}
+		</table>
+	{% endif %}
+{% endblock %}

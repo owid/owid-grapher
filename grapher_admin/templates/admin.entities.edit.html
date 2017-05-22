@@ -1,0 +1,20 @@
+{% extends 'base_admin_template.html' %}
+ 
+{% block content %}
+	<a class="back-btn" href="{% url 'listentities' %}"><i class="fa fa-arrow-left"></i>Back to the list of entities</a>
+	<h2>Edit {{ entity.name }}</h2>
+    <form method="POST" action="{% url 'manageentity' entity.pk %}" accept-charset="UTF-8" class="validate-form"><input name="_method" type="hidden" value="PATCH">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="name">Name:</label>
+            <input class="form-control required" name="name" type="text" value="{{ entity.name }}" id="name">
+        </div>
+        <div class="form-group">
+            <label for="displayName">Display Name:</label>
+            <input class="form-control" name="displayName" type="text" value="{{ entity.displayName }}" id="displayName">
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-success">Update Entity</button>
+        </div>
+    </form>
+{% endblock %}

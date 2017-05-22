@@ -1,0 +1,14 @@
+{% extends 'base_admin_template.html' %}
+
+{% block content %}
+	<h2>Variables</h2>
+	{% if not variables %}
+		There are no variables.
+	{% else %}
+		<ul>
+            {% for variable in variables %}
+				<li><a href="{% url 'showvariable' variable.id %}">{{ variable.name }}</a></li>
+            {% endfor %}
+		</ul>
+	{% endif %}
+{% endblock %}

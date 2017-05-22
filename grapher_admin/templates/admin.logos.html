@@ -1,0 +1,15 @@
+{% extends 'base_admin_template.html' %}
+
+{% block content %}
+	<h2>Logos</h2>
+	<a href="{% url 'createlogo' %}" class="btn btn-success btn-new-logo"><i class="fa fa-plus"></i> Create new logo</a>
+    {% if not logos %}
+		<p>There are no logos.</p>
+	{% else %}
+		<ul>
+            {% for logo in logos %}
+				<li><a href="{% url 'showlogo' logo.id %}">{{ logo.name }}</a></li>
+			{% endfor %}
+		</ul>
+	{% endif %}
+{% endblock %}

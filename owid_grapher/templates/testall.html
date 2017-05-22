@@ -1,0 +1,47 @@
+{% extends 'base_chart_template.html' %}
+
+{% block content %}
+
+    <style>
+		iframe {
+			border: 0;
+			width: 914px;
+			height: 600px;
+		}
+
+		.row {
+			padding: 10px;
+			margin: 0;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 100%;
+		}
+
+		nav.pagination {
+			width: 100%;
+			text-align: center;
+		}
+	</style>
+
+{% for i in urls %}
+    <div class="row">
+        {% if compare %}
+            <iframe src="{{ i.local_url }}"></iframe>
+            <iframe src="{{ i.live_url }}"></iframe>
+        {% else %}
+            <iframe src="{{ i.local_url }}"></iframe>
+        {% endif %}
+    </div>
+{% endfor %}
+
+    <nav class="pagination">
+		{% if prev_page_url %}
+			<a href="{{ prev_page_url }}"><< Prev</a>
+		{% endif %}
+		{% if next_page_url %}
+			<a href="{{ next_page_url }}">Next >></a>
+		{% endif %}
+	</nav>
+
+{% endblock %}
