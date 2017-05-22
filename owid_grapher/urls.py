@@ -20,6 +20,9 @@ from owid_grapher import views as owid_views
 from django.contrib.auth.views import logout
 
 urlpatterns = [
+
+    ### Admin-only
+
     url(r'^grapher/$', owid_views.index, name="index"),
     url(r'^grapher/charts/$', admin_views.listcharts, name="listcharts"),
     url(r'^grapher/charts$', admin_views.storechart, name="storechart"),  # post request for storing
@@ -71,7 +74,9 @@ urlpatterns = [
     url(r'^grapher/charts/(?P<chartid>[\w]+)/edit\.json$', admin_views.editchart, name="editchartjson"),
     url(r'^grapher/import.json$', admin_views.importdata, name="importdatajson"),
     url(r'^grapher/users\.json$', admin_views.listusers, name="listusersjson"),
-    #
+
+    ### Public
+
     url(r'^grapher/login/$', admin_views.custom_login, name='login'),
     url(r'^grapher/logout/$', logout, {'next_page': '/'}, name="logout"),
     url(r'^grapher/config/(?P<configid>.+\.js)$', owid_views.config, name="serveconfig"),

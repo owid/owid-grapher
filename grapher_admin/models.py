@@ -94,9 +94,8 @@ class Chart(models.Model):
                                                      ('DiscreteBar', 'Discrete bar'),
                                                      ('SlopeChart', 'Slope chart')), blank=True, null=True)
 
-    def export_image(self, query, width, height, format):
-        phantomjs = settings.BASE_DIR + "/node_modules/phantomjs-prebuilt/lib/phantom/bin/phantomjs"
-        rasterize = settings.BASE_DIR + "/phantomjs/rasterize.js"
+    def export_image(self, query, format, is_async=False):
+        screenshot = settings.BASE_DIR + "/js/screenshot.js"
         target = settings.BASE_URL + "/" + self.slug + ".export" + "?" + query
         m = hashlib.md5()
         m.update(query.encode(encoding='utf-8'))
@@ -105,37 +104,19 @@ class Chart(models.Model):
         return_file = settings.BASE_DIR + "/public/exports/" + self.slug + "-" + query_hash + "." + format
 
         if not os.path.isfile(return_file):
-            command = "%s %s %s %s '%spx*%spx'" % (phantomjs, rasterize, shlex.quote(target), shlex.quote(png_file),
-                                                   width, height)
-            try:
-                command = subprocess.check_call(command, shell=True)
-            except subprocess.CalledProcessError:
-                pass  # will need to handle the error here
+            command = "LIGHTHOUSE_CHROMIUM_PATH=/usr/bin/chromium-browser node %s --url=%s --output=%s" % \
+                      (screenshot, shlex.quote(target), shlex.quote(png_file))
+            print(command)
 
-        return return_file
+            if is_async:
+                subprocess.Popen(command, shell=True)
+            else:
+                try:
+                    subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
+                except subprocess.CalledProcessError as e:
+                    raise Exception(e.output)
 
-    def export_image_async(self, query, width, height):
-        phantomjs = settings.BASE_DIR + "/node_modules/phantomjs-prebuilt/lib/phantom/bin/phantomjs"
-        rasterize = settings.BASE_DIR + "/phantomjs/rasterize.js"
-        target = settings.BASE_URL + "/" + self.slug + ".export" + "?" + query
-        m = hashlib.md5()
-        m.update(query.encode(encoding='utf-8'))
-        query_hash = m.hexdigest()
-        image_file = settings.BASE_DIR + "/public/exports/" + self.slug + "-" + query_hash + ".png"
-        temp_file = image_file + "#tmp"
-
-        if not os.path.isfile(image_file) and not os.path.isfile(temp_file):
-            command = "%s %s %s %s '%spx*%spx'" % (phantomjs, rasterize, shlex.quote(target), shlex.quote(image_file),
-                                                   width, height)
-            open(temp_file, 'a').close()
-            try:
-                command = subprocess.check_call(command, shell=True)
-            except subprocess.CalledProcessError:
-                pass  # will need to handle the error here
-            try:
-                command = subprocess.check_call('rm %s' % temp_file, shell=True)
-            except subprocess.CalledProcessError:
-                pass
+                return return_file
 
     @classmethod
     def owid_commit(cls):

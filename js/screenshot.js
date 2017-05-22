@@ -91,6 +91,7 @@ async function run() {
       process.exit(1);
   }, timeout);
 
+  console.log("Navigating");
   // Navigate to target page
   await Page.navigate({url});
 }

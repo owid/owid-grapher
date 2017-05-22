@@ -17,7 +17,6 @@ from django.urls import reverse
 from django.utils.encoding import smart_str
 from grapher_admin.models import Chart, Variable, License, ChartSlugRedirect
 
-
 # putting these into global scope for reuse
 manifest = json.loads(open(os.path.join(settings.BASE_DIR, "public/build/manifest.json")).read())
 jspath = "/build/%s" % (manifest['charts.js'])
@@ -196,8 +195,8 @@ def showchart(request, chart):
     # will spawn another process for image generating
     query_str = get_query_string(request)
     if '.export' not in urlparse(request.get_full_path()).path:
-        p = Process(target=chart.export_image_async,
-                    args=(query_str, '1020', '720',))
+        p = Process(target=chart.export_image,
+                    args=(query_str, 'png'))
         p.start()
         response['Cache-Control'] = 'public, max-age=0, s-maxage=604800'
     else:
@@ -375,7 +374,6 @@ def latest(request):
         slug += '?' + query
     return HttpResponseRedirect(reverse('showchart', args=[slug]))
 
-
 def exportfile(request, slug, fileformat):
     """
     :param request: Request object
@@ -384,25 +382,34 @@ def exportfile(request, slug, fileformat):
     :return: Returns the file for download
     """
     if fileformat not in ['csv', 'png', 'svg']:
-        return HttpResponseNotFound('Not Found.')
+        return HttpResponseNotFound('Unknown chart export format.')
+
     if fileformat in ['png', 'svg']:
         chart = find_with_redirects(slug)
         querydict = get_query_as_dict(request)
         querystring = get_query_string(request)
-        if 'size' in querystring:
-            width = querydict['size'][0].split('x')[0]
-            height = querydict['size'][0].split('x')[1]
-        else:
-            width = '1020'
-            height = '720'
         if chart:
-                downloadfile = chart.export_image(querystring, width, height, fileformat)
+            downloadfile = chart.export_image(querystring, fileformat)
         else:
             return HttpResponseNotFound('No such chart!')
 
+        if fileformat == 'png':
+            content_type = 'image/png'
+        elif fileformat == 'svg':
+            content_type = 'image/svg+xml'
+
+        # If this is a cachebuster url, go for maximum caching.
+        if 'v' in request.GET:
+            caching = 'public, max-age=31536000'
+        else:
+            caching = 'public, max-age=7200, s-maxage=604800'
+
         with open(downloadfile, 'rb') as f:
-            response = HttpResponse(f, content_type='application/force-download')
-            response['Content-Disposition'] = 'attachment; filename=%s' % smart_str(slug + "." + fileformat)
+            response = HttpResponse(f, content_type=content_type)
+            response['Cache-Control'] = caching
+            # Allow 'view' parameter to override download behavior for debugging
+            if 'view' not in request.GET:
+                response['Content-Disposition'] = 'attachment; filename=%s' % smart_str(slug + "." + fileformat)
             return response
 
     if fileformat == 'csv':
