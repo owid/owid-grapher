@@ -752,25 +752,6 @@ def dataset_json(request, datasetid):
     return JsonResponse(data, safe=False)
 
 
-@login_required
-def validate_iso(request):
-    entities = json.loads(request.GET.get('entities', ''))
-
-    query = Entity.objects.filter(Q(validated=True) & (Q(name__in=entities) | Q(code__in=entities))).values('name', 'code')
-
-    matched = {}
-
-    for each in query:
-        matched[each['name']] = True
-        matched[each['code']] = True
-
-    unmatched = []
-    for each in entities:
-        if not (matched.get(each, 0)):
-            unmatched.append(each)
-    return JsonResponse({'unmatched': unmatched}, safe=False)
-
-
 def check_invitation_statuses():
     invites = UserInvitation.objects.filter(status='pending')
     for each in invites:

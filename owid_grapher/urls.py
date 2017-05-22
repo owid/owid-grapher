@@ -37,7 +37,6 @@ urlpatterns = [
     url(r'^grapher/datasets/(?P<datasetid>[\w]+)/edit/$', admin_views.editdataset, name="editdataset"),
     url(r'^grapher/datasets/(?P<datasetid>[\w]+)\.csv$', admin_views.dataset_csv, name="datasetcsv"),
     url(r'^grapher/datasets/(?P<datasetid>[\w]+)\.json$', admin_views.dataset_json, name="datasetjson"),
-    url(r'^grapher/entityIsoNames/validate$', admin_views.validate_iso, name="validateiso"),
     url(r'^grapher/categories/$', admin_views.listcategories, name="listcategories"),
     url(r'^grapher/categories/(?P<catid>[\w]+)/$', admin_views.showcategory, name="showcategory"),
     url(r'^grapher/categories/(?P<catid>[\w]+)$', admin_views.managecategory, name="managecategory"),
