@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/OurWorldInData/owid-grapher.svg?branch=master)](https://travis-ci.org/OurWorldInData/owid-grapher)
 
-This is the project we use internally at the University of Oxford to create embeddable visualizations for [Our World in Data](https://ourworldindata.org). Note that it is not yet a mature OSS project and may be difficult to apply elsewhere as a full package. That said, you are very welcome to read and reuse any of our code!
+This is the project we use internally at the University of Oxford to create embeddable visualizations for [Our World In Data](https://ourworldindata.org). Note that it is not yet a mature OSS project and may be difficult to apply elsewhere as a full package. That said, you are very welcome to read and reuse any of our code!
 
 An example of what this can make (click for interactive):
 
@@ -34,4 +34,4 @@ Since this project is used in production and undergoing active development, the 
 
 ## About
 
-owid-grapher was originally created by [Zdenek Hynek](https://github.com/zdenekhynek) for [Our World in Data](https://ourworldindata.org). It is currently being developed by [Jaiden Mispy](http://github.com/mispy) with design assistance from [Max Roser](http://maxroser.com/).
+owid-grapher was originally created by [Zdenek Hynek](https://github.com/zdenekhynek) for [Our World In Data](https://ourworldindata.org). It is currently being developed by [Jaiden Mispy](http://github.com/mispy) and [Aibek Aldabergenov](https://github.com/aaldaber) with design assistance from [Max Roser](http://maxroser.com/) and the OWID research team.
