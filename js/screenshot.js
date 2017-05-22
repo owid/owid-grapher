@@ -10,7 +10,7 @@ const timeout = 30000
 
 async function run() {
   // Start the Chrome Debugging browser
-  const browser = await CDP({target: 'ws://localhost:9222/devtools/browser'})
+  /*const browser = await CDP({target: 'ws://localhost:9222/devtools/browser'})
 
   const {Target} = browser;
   const {browserContextId} = await Target.createBrowserContext();
@@ -25,7 +25,17 @@ async function run() {
       };
   }
 
-  const client = await CDP({target: findTargetById(targetId)});
+  const client = await CDP({target: findTargetById(targetId)});*/
+
+ /* let tabMeta = await CDP.New({ remote : true });
+  let client = await CDP({ tab : tabMeta})
+  client._target = tabMeta;
+
+  process.on('exit', async () => {
+    return await client.Target.closeTarget(client._target.id);
+  })*/
+
+  const client = await CDP()
 
   const {Emulation, Page, Runtime} = client;
 
@@ -59,7 +69,7 @@ async function run() {
         process.exit(1);
       }
 
-      const screenshot = await Page.captureScreenshot({fromSurface: true, format: 'png'})
+      const screenshot = await Page.captureScreenshot({format: 'png'})
       const buffer = new Buffer(screenshot.data, 'base64');
       file.writeFile(output, buffer, 'base64', function(err) {
         if (err) {
