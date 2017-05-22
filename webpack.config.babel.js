@@ -91,6 +91,8 @@ export default {
         new ManifestPlugin(),
     ] : [
         new ExtractTextPlugin('[name].bundle.css'),
+
+        new ManifestPlugin()        
     ]),
     devServer: {
         host: '0.0.0.0',

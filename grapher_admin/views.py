@@ -753,51 +753,6 @@ def dataset_json(request, datasetid):
 
 
 @login_required
-def listentities(request):
-
-    items_per_page = 10
-    allentities = Entity.objects.all().values()
-    total_rows = len(allentities)
-    total_pages = -(-len(allentities) // items_per_page)
-    page_number = get_query_as_dict(request).get('page', [0])
-
-    try:
-        page_number = int(page_number[0])
-    except ValueError:
-        page_number = 0
-
-    if page_number > 1:
-        entities = allentities[(page_number-1)*items_per_page:page_number*items_per_page]
-    else:
-        entities = allentities[:items_per_page]
-
-    if entities:
-        if total_pages >= 13:
-            if page_number < 7:
-                nav_pages = [1, 2, 3, 4, 5, 6, 7, 8, '#', total_pages - 1, total_pages]
-            elif page_number > total_pages - 5:
-                nav_pages = [1, 2, '#', total_pages - 7, total_pages - 6, total_pages - 5, total_pages - 4, total_pages - 3,
-                             total_pages - 2, total_pages - 1, total_pages]
-            else:
-                nav_pages = [1, 2, '#', page_number - 3, page_number - 2, page_number - 1, page_number, page_number + 1,
-                             page_number + 2, page_number + 3, '#', total_pages - 1, total_pages]
-        else:
-            nav_pages = [n for n in range(1, total_pages + 1)]
-    else:
-        nav_pages = []
-
-    return render(request, 'admin.entities.html', context={'adminjspath': adminjspath,
-                                                            'admincsspath': admincsspath,
-                                                            'rootrequest': rootrequest,
-                                                            'current_user': request.user.name,
-                                                            'entities': entities,
-                                                            'nav_pages': nav_pages,
-                                                            'current_page': page_number,
-                                                            'total_rows': total_rows
-                                                            })
-
-
-@login_required
 def validate_iso(request):
     entities = json.loads(request.GET.get('entities', ''))
 
@@ -822,53 +777,6 @@ def check_invitation_statuses():
         if each.valid_till <= timezone.now():
             each.status = 'expired'
             each.save()
-
-
-@login_required
-def showentity(request, entityid):
-    try:
-        entity = Entity.objects.filter(pk=int(entityid)).values('name')[0]
-    except Entity.DoesNotExist:
-        return HttpResponseNotFound('Entity does not exist!')
-
-    return render(request, 'admin.entities.show.html', context={'adminjspath': adminjspath,
-                                                           'admincsspath': admincsspath,
-                                                           'rootrequest': rootrequest,
-                                                           'current_user': request.user.name,
-                                                           'entity': entity
-                                                           })
-
-
-@login_required
-def manageentity(request, entityid):
-    try:
-        entity = Entity.objects.filter(pk=int(entityid)).values('name', 'displayName')[0]
-    except Entity.DoesNotExist:
-        return HttpResponseNotFound('Entity does not exist!')
-
-    if request.method == 'POST':
-        request_dict = QueryDict(request.body).dict()
-        if request_dict['_method'] == 'PATCH':
-            request_dict.pop('_method', None)
-            request_dict.pop('csrfmiddlewaretoken', None)
-            Entity.objects.filter(pk=entityid).update(**request_dict)
-            messages.success(request, 'Entity updated!')
-            return HttpResponseRedirect(reverse('showentity', args=[entityid]))
-
-
-@login_required
-def editentity(request, entityid):
-    try:
-        entity = Entity.objects.filter(pk=int(entityid)).values('name', 'displayName', 'pk')[0]
-    except Entity.DoesNotExist:
-        return HttpResponseNotFound('Entity does not exist!')
-
-    return render(request, 'admin.entities.edit.html', context={'adminjspath': adminjspath,
-                                                                'admincsspath': admincsspath,
-                                                                'rootrequest': rootrequest,
-                                                                'current_user': request.user.name,
-                                                                'entity': entity
-                                                                })
 
 
 @login_required
