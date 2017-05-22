@@ -10,3 +10,4 @@ __pycache__/
 *.py[cod]
 /node_modules
 .sublime*
+yarn-error.log
