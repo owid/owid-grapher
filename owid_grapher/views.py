@@ -192,12 +192,10 @@ def showchart(request, chart):
                                          'query': query_string,
                                          'rootrequest': rootrequest})
 
-    # will spawn another process for image generating
-    query_str = get_query_string(request)
     if '.export' not in urlparse(request.get_full_path()).path:
-        p = Process(target=chart.export_image,
-                    args=(query_str, 'png'))
-        p.start()
+        # Spawn an image exporting process in advance (in case the user then requests an export)
+        query_str = get_query_string(request)    
+        chart.export_image(query_str, 'png', is_async=True)
         response['Cache-Control'] = 'public, max-age=0, s-maxage=604800'
     else:
         response['Cache-Control'] = 'no-cache'
@@ -373,6 +371,7 @@ def latest(request):
     if query:
         slug += '?' + query
     return HttpResponseRedirect(reverse('showchart', args=[slug]))
+
 
 def exportfile(request, slug, fileformat):
     """
