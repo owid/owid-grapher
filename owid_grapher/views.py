@@ -17,14 +17,7 @@ from django.urls import reverse
 from django.utils.encoding import smart_str
 from grapher_admin.models import Chart, Variable, License, ChartSlugRedirect
 
-# putting these into global scope for reuse
-manifest = json.loads(open(os.path.join(settings.BASE_DIR, "public/build/manifest.json")).read())
-jspath = "/build/%s" % (manifest['charts.js'])
-csspath = "/build/%s" % (manifest['charts.css'])
-adminjspath = "/build/%s" % (manifest['admin.js'])
-admincsspath = "/build/%s" % (manifest['admin.css'])
 rootrequest = settings.BASE_URL
-
 
 @login_required
 def index(request):
@@ -117,8 +110,7 @@ def test_all(request):
 
     return render(request, 'testall.html', context={'urls': links, 'next_page_url': next_page_url,
                                                             'prev_page_url': prev_page_url, 'compare': test_compare,
-                                                            'jspath': jspath, 'csspath': csspath,
-                                                            'rootrequest': rootrequest})
+                                                                               'rootrequest': rootrequest})
 
 
 def get_query_string(request):
@@ -188,7 +180,6 @@ def showchart(request, chart):
 
     response = TemplateResponse(request, 'show_chart.html',
                                 context={'chartmeta': chartmeta, 'configpath': configpath,
-                                         'jspath': jspath, 'csspath': csspath,
                                          'query': query_string,
                                          'rootrequest': rootrequest})
 

@@ -8,6 +8,8 @@ if [ "$1" == "test" ]; then
   NAME="test-grapher"
 elif [ "$1" == "live" ]; then
   NAME="grapher"
+  echo "Make sure python stuff is ready first!"
+  exit 1
 else
   echo "Please select either live or test."
   exit 1
@@ -33,10 +35,11 @@ ssh -t $HOST 'bash -e -s' <<EOF
   ln -sf $LIVE_DATA/uploads $LIVE_TARGET/public/uploads
   ln -sf $LIVE_DATA/exports $LIVE_TARGET/public/exports
   ln -sf $LIVE_TARGET/public $ROOT/ourworldindata.org/$NAME
-  cd $LIVE_TARGET && php artisan migrate --force
+  cd $LIVE_TARGET && python manage.py migrate
   cd $LIVE_TARGET && yarn install --production
   sudo chown owid:www-data -R /home/owid/*
   sudo chown www-data:www-data -R /home/owid/ourworldindata.org
-  sudo chmod g+rw -R /home/owid/*
+  sudo chmod g+rw -R /home/owid/*  
+  sudo service grapher restart
 EOF
 

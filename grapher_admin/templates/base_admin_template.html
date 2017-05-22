@@ -1,5 +1,5 @@
 <!doctype html>
-{% load static %}
+{% load webpack %}
 <html class="no-js" lang="">
 	<head>
 		<meta charset="utf-8">
@@ -13,7 +13,7 @@
 		<link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic" rel="stylesheet" type="text/css">
 		<!-- Place favicon.ico in the root directory -->
 
-		<link href="{% static admincsspath %}" rel="stylesheet" type="text/css">
+		<link href="{% webpack "admin.css" %}" rel="stylesheet" type="text/css">
 	</head>
 	<body class="skin-blue">
 		<!--[if lt IE 9]>
@@ -105,7 +105,7 @@
 			}
 		</script>
 
-		<script src="{% static adminjspath %}"></script>
+		<script src="{% webpack "admin.js" %}"></script>
 
 		{% block scripts %}
         {% endblock %}

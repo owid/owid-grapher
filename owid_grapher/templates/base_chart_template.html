@@ -1,5 +1,5 @@
 <!doctype html>
-{% load static %}
+{% load webpack %}
 <html class="no-js" lang="">
 {% autoescape off %}
 <head>
@@ -32,7 +32,7 @@
 	<meta name="twitter:description" content="{{ chartmeta.description }}">
 	<meta name="twitter:image" content="{{ chartmeta.imageUrl }}">
     {% endif %}
-    <link href="{% static csspath %}" rel="stylesheet" type="text/css">
+    <link href="{% webpack "charts.css" %}" rel="stylesheet" type="text/css">
 </head>
 {% endautoescape %}
 <body>
@@ -58,7 +58,7 @@
         App.isDebug = true;
 	</script>
 
-    <script src="{% static jspath %}"></script>
+    <script src="{% webpack "charts.js" %}"></script>
     {% block config_file %}
     {% endblock %}
 </body>

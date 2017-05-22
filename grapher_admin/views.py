@@ -26,8 +26,6 @@ from owid_grapher.views import get_query_string, get_query_as_dict
 manifest = json.loads(open(os.path.join(settings.BASE_DIR, "public/build/manifest.json")).read())
 jspath = "/build/%s" % (manifest['charts.js'])
 csspath = "/build/%s" % (manifest['charts.css'])
-adminjspath = "/build/%s" % (manifest['admin.js'])
-admincsspath = "/build/%s" % (manifest['admin.css'])
 rootrequest = settings.BASE_URL
 
 
@@ -75,9 +73,7 @@ def listcharts(request):
     if '.json' in urlparse(request.get_full_path()).path:
         return JsonResponse(chartlist, safe=False)
     else:
-        return render(request, 'admin.charts.html', context={'adminjspath': adminjspath,
-                                                             'admincsspath': admincsspath,
-                                                             'rootrequest': rootrequest,
+        return render(request, 'admin.charts.html', context={'rootrequest': rootrequest,
                                                              'current_user': request.user.name,
                                                              'charts': chartlist,
                                                              })
@@ -108,9 +104,7 @@ def createchart(request):
     if '.json' in urlparse(request.get_full_path()).path:
         return JsonResponse({'data': data, 'config': chartconfig}, safe=False)
     else:
-        return render(request, 'admin.edit_chart.html', context={'adminjspath': adminjspath,
-                                                                 'admincsspath': admincsspath,
-                                                                 'rootrequest': rootrequest,
+        return render(request, 'admin.edit_chart.html', context={'rootrequest': rootrequest,
                                                                  'current_user': request.user.name,
                                                                  'data': data, 'chartconfig': chartconfig
                                                                  })
@@ -168,9 +162,7 @@ def editchart(request, chartid):
     if '.json' in urlparse(request.get_full_path()).path:
         return JsonResponse({'data': data, 'config': chartconfig}, safe=False)
     else:
-        return render(request, 'admin.edit_chart.html', context={'adminjspath': adminjspath,
-                                                            'admincsspath': admincsspath,
-                                                            'rootrequest': rootrequest,
+        return render(request, 'admin.edit_chart.html', context={'rootrequest': rootrequest,
                                                             'current_user': request.user.name,
                                                             'data': data, 'chartconfig': chartconfig})
 
@@ -383,9 +375,7 @@ def importdata(request):
     if '.json' in urlparse(request.get_full_path()).path:
         return JsonResponse(data, safe=False)
     else:
-        return render(request, 'admin.importer.html', context={'adminjspath': adminjspath,
-                                                           'admincsspath': admincsspath,
-                                                           'rootrequest': rootrequest,
+        return render(request, 'admin.importer.html', context={'rootrequest': rootrequest,
                                                            'current_user': request.user.name,
                                                            'importerdata': json.dumps(data)})
 
@@ -531,9 +521,7 @@ def listdatasets(request):
     dataset_list = []
     for value in sorted(datasets.keys(), reverse=True):
         dataset_list.append(datasets[value])
-    return render(request, 'admin.datasets.html', context={'adminjspath': adminjspath,
-                                                         'admincsspath': admincsspath,
-                                                         'rootrequest': rootrequest,
+    return render(request, 'admin.datasets.html', context={'rootrequest': rootrequest,
                                                          'current_user': request.user.name,
                                                          'datasets': dataset_list,
                                                          })
@@ -556,9 +544,7 @@ def showdataset(request, datasetid):
     for each in dataset_chartdims:
         dataset_chart_ids.append(each.chartId.pk)
     dataset_charts = Chart.objects.filter(pk__in=dataset_chart_ids).values()
-    return render(request, 'admin.datasets.show.html', context={'adminjspath': adminjspath,
-                                                           'admincsspath': admincsspath,
-                                                           'rootrequest': rootrequest,
+    return render(request, 'admin.datasets.show.html', context={'rootrequest': rootrequest,
                                                            'current_user': request.user.name,
                                                            'dataset': dataset_dict,
                                                             'variables': dataset_vars.values(),
@@ -585,9 +571,7 @@ def editdataset(request, datasetid):
     subcategories = DatasetSubcategory.objects.values('pk', 'name')
     for each in subcategories:
         subcats_list.append({'id': int(each['pk']), 'name': each['name']})
-    return render(request, 'admin.datasets.edit.html', context={'adminjspath': adminjspath,
-                                                                'admincsspath': admincsspath,
-                                                                'rootrequest': rootrequest,
+    return render(request, 'admin.datasets.edit.html', context={'rootrequest': rootrequest,
                                                                 'current_user': request.user.name,
                                                                 'dataset': dataset,
                                                                 'sources': sources_list,
@@ -763,9 +747,7 @@ def check_invitation_statuses():
 @login_required
 def listcategories(request):
     categories = DatasetCategory.objects.values()
-    return render(request, 'admin.categories.html', context={'adminjspath': adminjspath,
-                                                                'admincsspath': admincsspath,
-                                                                'rootrequest': rootrequest,
+    return render(request, 'admin.categories.html', context={'rootrequest': rootrequest,
                                                                 'current_user': request.user.name,
                                                                 'categories': categories
                                                                 })
@@ -782,9 +764,7 @@ def showcategory(request, catid):
 
     category['subcategories'] = subcategories
 
-    return render(request, 'admin.categories.show.html', context={'adminjspath': adminjspath,
-                                                             'admincsspath': admincsspath,
-                                                             'rootrequest': rootrequest,
+    return render(request, 'admin.categories.show.html', context={'rootrequest': rootrequest,
                                                              'current_user': request.user.name,
                                                              'category': category
                                                              })
@@ -828,9 +808,7 @@ def editcategory(request, catid):
     except DatasetCategory.DoesNotExist:
         return HttpResponseNotFound('Category does not exist!')
 
-    return render(request, 'admin.categories.edit.html', context={'adminjspath': adminjspath,
-                                                                'admincsspath': admincsspath,
-                                                                'rootrequest': rootrequest,
+    return render(request, 'admin.categories.edit.html', context={'rootrequest': rootrequest,
                                                                 'current_user': request.user.name,
                                                                 'category': category
                                                                 })
@@ -840,9 +818,7 @@ def editcategory(request, catid):
 def listvariables(request):
     variables = Variable.objects.values()
 
-    return render(request, 'admin.variables.html', context={'adminjspath': adminjspath,
-                                                             'admincsspath': admincsspath,
-                                                             'rootrequest': rootrequest,
+    return render(request, 'admin.variables.html', context={'rootrequest': rootrequest,
                                                              'current_user': request.user.name,
                                                              'variables': variables
                                                              })
@@ -941,9 +917,7 @@ def showvariable(request, variableid):
         if key != 'page':
             request_string_for_pages += key + '=' + value[0] + '&'
 
-    return render(request, 'admin.variables.show.html', context={'adminjspath': adminjspath,
-                                                           'admincsspath': admincsspath,
-                                                           'rootrequest': rootrequest,
+    return render(request, 'admin.variables.show.html', context={'rootrequest': rootrequest,
                                                            'current_user': request.user.name,
                                                            'variable': variable_dict,
                                                            'nav_pages': nav_pages,
@@ -971,9 +945,7 @@ def editvariable(request, variableid):
         'source': {'id': variable.sourceId.pk, 'name': variable.sourceId.name}
     }
 
-    return render(request, 'admin.variables.edit.html', context={'adminjspath': adminjspath,
-                                                                 'admincsspath': admincsspath,
-                                                                 'rootrequest': rootrequest,
+    return render(request, 'admin.variables.edit.html', context={'rootrequest': rootrequest,
                                                                  'current_user': request.user.name,
                                                                  'variable': variable_dict
                                                                  })
@@ -1011,9 +983,7 @@ def managevariable(request, variableid):
 @login_required
 def listlicenses(request):
     licenses = License.objects.values()
-    return render(request, 'admin.licenses.html', context={'adminjspath': adminjspath,
-                                                        'admincsspath': admincsspath,
-                                                        'rootrequest': rootrequest,
+    return render(request, 'admin.licenses.html', context={'rootrequest': rootrequest,
                                                         'current_user': request.user.name,
                                                         'licenses': licenses
                                                         })
@@ -1026,9 +996,7 @@ def showlicense(request, licenseid):
     except License.DoesNotExist:
         return HttpResponseNotFound('License does not exist!')
 
-    return render(request, 'admin.licenses.show.html', context={'adminjspath': adminjspath,
-                                                           'admincsspath': admincsspath,
-                                                           'rootrequest': rootrequest,
+    return render(request, 'admin.licenses.show.html', context={'rootrequest': rootrequest,
                                                            'current_user': request.user.name,
                                                            'license': license
                                                            })
@@ -1047,9 +1015,7 @@ def editlicense(request, licenseid):
         'description': license.description
     }
 
-    return render(request, 'admin.licenses.edit.html', context={'adminjspath': adminjspath,
-                                                                'admincsspath': admincsspath,
-                                                                'rootrequest': rootrequest,
+    return render(request, 'admin.licenses.edit.html', context={'rootrequest': rootrequest,
                                                                 'current_user': request.user.name,
                                                                 'license': license
                                                                 })
@@ -1078,9 +1044,7 @@ def managelicense(request, licenseid):
 @login_required
 def listlogos(request):
     logos = Logo.objects.values()
-    return render(request, 'admin.logos.html', context={'adminjspath': adminjspath,
-                                                        'admincsspath': admincsspath,
-                                                        'rootrequest': rootrequest,
+    return render(request, 'admin.logos.html', context={'rootrequest': rootrequest,
                                                         'current_user': request.user.name,
                                                         'logos': logos
                                                         })
@@ -1088,9 +1052,7 @@ def listlogos(request):
 
 @login_required
 def createlogo(request):
-    return render(request, 'admin.logos.create.html', context={'adminjspath': adminjspath,
-                                                        'admincsspath': admincsspath,
-                                                        'rootrequest': rootrequest,
+    return render(request, 'admin.logos.create.html', context={'rootrequest': rootrequest,
                                                         'current_user': request.user.name})
 
 
@@ -1127,9 +1089,7 @@ def showlogo(request, logoid):
         'svg': logo.svg
     }
 
-    return render(request, 'admin.logos.show.html', context={'adminjspath': adminjspath,
-                                                               'admincsspath': admincsspath,
-                                                               'rootrequest': rootrequest,
+    return render(request, 'admin.logos.show.html', context={'rootrequest': rootrequest,
                                                                'current_user': request.user.name,
                                                              'logo': logo})
 
@@ -1146,9 +1106,7 @@ def editlogo(request, logoid):
         'name': logo.name
     }
 
-    return render(request, 'admin.logos.edit.html', context={'adminjspath': adminjspath,
-                                                               'admincsspath': admincsspath,
-                                                               'rootrequest': rootrequest,
+    return render(request, 'admin.logos.edit.html', context={'rootrequest': rootrequest,
                                                                'current_user': request.user.name,
                                                              'logo': logo})
 
@@ -1220,9 +1178,7 @@ def listsources(request):
                              'dataset': dataset_dict.get(each.datasetId, None),
                              'variables': source_var_dict.get(each.pk, [])})
 
-    return render(request, 'admin.sources.html', context={'adminjspath': adminjspath,
-                                                               'admincsspath': admincsspath,
-                                                               'rootrequest': rootrequest,
+    return render(request, 'admin.sources.html', context={'rootrequest': rootrequest,
                                                                'current_user': request.user.name,
                                                              'sources': sources_list})
 
@@ -1246,9 +1202,7 @@ def showsource(request, sourceid):
 
     source['variables'] = variables
 
-    return render(request, 'admin.sources.show.html', context={'adminjspath': adminjspath,
-                                                               'admincsspath': admincsspath,
-                                                               'rootrequest': rootrequest,
+    return render(request, 'admin.sources.show.html', context={'rootrequest': rootrequest,
                                                                'current_user': request.user.name,
                                                              'source': source})
 
@@ -1266,9 +1220,7 @@ def editsource(request, sourceid):
         'description': source.description
     }
 
-    return render(request, 'admin.sources.edit.html', context={'adminjspath': adminjspath,
-                                                               'admincsspath': admincsspath,
-                                                               'rootrequest': rootrequest,
+    return render(request, 'admin.sources.edit.html', context={'rootrequest': rootrequest,
                                                                'current_user': request.user.name,
                                                                'source': source})
 
@@ -1313,26 +1265,20 @@ def editsourcetemplate(request):
 
         sourcetemplate = {'meta_value': sourcetemplate.meta_value}
 
-        return render(request, 'admin.sourcetemplate.edit.html', context={'adminjspath': adminjspath,
-                                                               'admincsspath': admincsspath,
-                                                               'rootrequest': rootrequest,
+        return render(request, 'admin.sourcetemplate.edit.html', context={'rootrequest': rootrequest,
                                                                'current_user': request.user.name,
                                                                'sourcetemplate': sourcetemplate})
     if request.method == 'POST':
         if not request.POST.get('source_template', 0):
             messages.error(request, 'Source template field should not be empty.')
-            return render(request, 'admin.sourcetemplate.edit.html', context={'adminjspath': adminjspath,
-                                                                              'admincsspath': admincsspath,
-                                                                              'rootrequest': rootrequest,
+            return render(request, 'admin.sourcetemplate.edit.html', context={'rootrequest': rootrequest,
                                                                               'current_user': request.user.name,
                                                                               'sourcetemplate': sourcetemplate})
         else:
             sourcetemplate.meta_value = request.POST['source_template']
             sourcetemplate.save()
             messages.success(request, 'Source template updated.')
-            return render(request, 'admin.sourcetemplate.edit.html', context={'adminjspath': adminjspath,
-                                                                              'admincsspath': admincsspath,
-                                                                              'rootrequest': rootrequest,
+            return render(request, 'admin.sourcetemplate.edit.html', context={'rootrequest': rootrequest,
                                                                               'current_user': request.user.name,
                                                                               'sourcetemplate': sourcetemplate})
 
@@ -1348,9 +1294,7 @@ def editsubcategory(request, subcatid):
     categories = DatasetCategory.objects.values()
     category = {'id': subcat.fk_dst_cat_id.pk}
 
-    return render(request, 'admin.subcategories.edit.html', context={'adminjspath': adminjspath,
-                                                                      'admincsspath': admincsspath,
-                                                                      'rootrequest': rootrequest,
+    return render(request, 'admin.subcategories.edit.html', context={'rootrequest': rootrequest,
                                                                       'current_user': request.user.name,
                                                                       'subcategory': subcategory,
                                                                      'categories': categories,
@@ -1391,9 +1335,7 @@ def managesubcategory(request, subcatid):
 @login_required
 def createsubcategory(request):
     categories = DatasetCategory.objects.values()
-    return render(request, 'admin.subcategories.create.html',context={'adminjspath': adminjspath,
-                                   'admincsspath': admincsspath,
-                                   'rootrequest': rootrequest,
+    return render(request, 'admin.subcategories.create.html',context={'rootrequest': rootrequest,
                                    'current_user': request.user.name,
                                    'categories': categories,
                                    })
@@ -1407,9 +1349,7 @@ def storesubcategory(request):
             messages.error(request, 'Name field should not be empty.')
         if messages.get_messages(request):
             return render(request, 'admin.subcategories.create.html',
-                          context={'adminjspath': adminjspath,
-                                   'admincsspath': admincsspath,
-                                   'rootrequest': rootrequest,
+                          context={'rootrequest': rootrequest,
                                    'current_user': request.user.name,
                                    'categories': categories})
         subcat = DatasetSubcategory()
@@ -1433,9 +1373,7 @@ def listusers(request):
     if '.json' in urlparse(request.get_full_path()).path:
         return JsonResponse(userlist, safe=False)
     else:
-        return render(request, 'admin.users.html', context={'adminjspath': adminjspath,
-                                                                'admincsspath': admincsspath,
-                                                                'rootrequest': rootrequest,
+        return render(request, 'admin.users.html', context={'rootrequest': rootrequest,
                                                                 'current_user': request.user.name,
                                                                 'users': userlist
                                                                 })
@@ -1448,9 +1386,7 @@ def invite_user(request):
             return HttpResponse('Permission denied!')
         else:
             form = InviteUserForm()
-            return render(request, 'admin.invite_user.html', context={'form': form, 'adminjspath': adminjspath,
-                                                                 'admincsspath': admincsspath,
-                                                                 'rootrequest': rootrequest,
+            return render(request, 'admin.invite_user.html', context={'form': form, 'rootrequest': rootrequest,
                                                                  'current_user': request.user.name})
     if request.method == 'POST':
         if not request.user.is_superuser:
@@ -1463,18 +1399,14 @@ def invite_user(request):
                 try:
                     newuser = User.objects.get(email=email)
                     messages.error(request, 'The user you are inviting is registered in the system.')
-                    return render(request, 'admin.invite_user.html', context={'form': form, 'adminjspath': adminjspath,
-                                                                 'admincsspath': admincsspath,
-                                                                 'rootrequest': rootrequest,
+                    return render(request, 'admin.invite_user.html', context={'form': form, 'rootrequest': rootrequest,
                                                                  'current_user': request.user.name})
                 except User.DoesNotExist:
                     pass
                 try:
                     newuser = User.objects.get(name=name)
                     messages.error(request, 'The user with that name is registered in the system.')
-                    return render(request, 'admin.invite_user.html', context={'form': form, 'adminjspath': adminjspath,
-                                                                 'admincsspath': admincsspath,
-                                                                 'rootrequest': rootrequest,
+                    return render(request, 'admin.invite_user.html', context={'form': form, 'rootrequest': rootrequest,
                                                                  'current_user': request.user.name})
                 except User.DoesNotExist:
                     pass
@@ -1497,14 +1429,10 @@ def invite_user(request):
                                    (newuser.name, settings.BASE_URL + reverse('registerbyinvite', args=[invitation.code])),
                                    'no-reply@ourworldindata.org')
                 messages.success(request, 'The invite was sent successfully.')
-                return render(request, 'admin.invite_user.html', context={'form': InviteUserForm(), 'adminjspath': adminjspath,
-                                                                            'admincsspath': admincsspath,
-                                                                            'rootrequest': rootrequest,
+                return render(request, 'admin.invite_user.html', context={'form': InviteUserForm(), 'rootrequest': rootrequest,
                                                                             'current_user': request.user.name, })
             else:
-                return render(request, 'admin.invite_user.html', context={'form': form, 'adminjspath': adminjspath,
-                                                                            'admincsspath': admincsspath,
-                                                                            'rootrequest': rootrequest,
+                return render(request, 'admin.invite_user.html', context={'form': form, 'rootrequest': rootrequest,
                                                                             'current_user': request.user.name, })
 
 
