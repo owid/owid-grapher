@@ -87,7 +87,7 @@ def listcharts(request):
 def storechart(request):
     if request.method == 'POST':
         chart = Chart()
-        data = json.loads(request.body)
+        data = json.loads(request.body.decode('utf-8'))
         return savechart(chart, data, request.user)
     else:
         return HttpResponseRedirect(reverse('listcharts'))
@@ -220,14 +220,14 @@ def savechart(chart, data, user):
     for dim in data["chart-dimensions"]:
         newdim = ChartDimension()
         newdim.order = i
-        newdim.chartid = chart
+        newdim.chartId = chart
         newdim.color = dim.get('color', "")
         newdim.tolerance = dim.get('tolerance', None)
         newdim.targetyear = dim.get('targetYear', None)
         newdim.displayname = dim.get('displayName', "")
         newdim.unit = dim.get('unit', None)
         newdim.property = dim.get('property', None)
-        newdim.variableid = Variable.objects.get(pk=int(dim.get('variableId', None)))
+        newdim.variableId = Variable.objects.get(pk=int(dim.get('variableId', None)))
         dims.append(newdim)
         i += 1
 
@@ -239,7 +239,7 @@ def savechart(chart, data, user):
     TO DO: Cloudflare cache invalidation
     """
 
-    for each in ChartDimension.objects.filter(chartid=chart.pk):
+    for each in ChartDimension.objects.filter(chartId=chart.pk):
         each.delete()
     for each in dims:
         each.save()

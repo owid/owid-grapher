@@ -431,8 +431,8 @@ def exportfile(request, slug, fileformat):
             for each in chartvarlist:
                 sql_query += ', table%s.value as value%s' % (table_counter, table_counter)
 
-                join_string += 'LEFT JOIN (SELECT * FROM data_values WHERE fk_var_id_id = %s) as table%s on ' \
-                               'maintable.`fk_ent_id_id` = table%s.`fk_ent_id_id` and ' \
+                join_string += 'LEFT JOIN (SELECT * FROM data_values WHERE fk_var_id = %s) as table%s on ' \
+                               'maintable.`fk_ent_id` = table%s.`fk_ent_id` and ' \
                                'maintable.year = table%s.year ' % (each['id'], table_counter, table_counter,
                                                                    table_counter)
 
@@ -441,9 +441,9 @@ def exportfile(request, slug, fileformat):
                 headerlist.append(each['name'])
 
             id_tuple = id_tuple[:-1]
-            sql_query += ' FROM (SELECT fk_ent_id_id, entities.name as entity, year, entities.code as ' \
-                         'country_code FROM data_values LEFT OUTER JOIN entities on data_values.fk_ent_id_id = entities.id ' \
-                         'WHERE fk_var_id_id in (%s) ORDER BY entity, year, data_values.fk_var_id_id) as maintable ' % id_tuple
+            sql_query += ' FROM (SELECT fk_ent_id, entities.name as entity, year, entities.code as ' \
+                         'country_code FROM data_values LEFT OUTER JOIN entities on data_values.fk_ent_id = entities.id ' \
+                         'WHERE fk_var_id in (%s) ORDER BY entity, year, data_values.fk_var_id) as maintable ' % id_tuple
 
             sql_query += join_string + 'GROUP BY entity, year, country_code;'
 

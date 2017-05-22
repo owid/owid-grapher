@@ -22,7 +22,7 @@
 		<h3>Variables</h3>
 		<ul>
             {% for variable in variables %}
-				<li><a href="#">
+				<li><a href="{% url 'showvariable' variable.id %}">
                     {% if variable.name %}
                         {{ variable.name }}
                     {% else %}

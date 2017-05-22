@@ -49,7 +49,7 @@
 								<td>{{ chart.type }}</td>
 								<td>
                                     {% for variable in chart.variables %}
-										<a href="#">{{ variable.name }}</a><br>
+										<a href="{% url 'showvariable' variable.id %}">{{ variable.name }}</a><br>
 									{% endfor %}
 								</td>
 								<td>{{ chart.notes }}</td>
