@@ -4,10 +4,9 @@
 .env
 .idea/
 db.sqlite3
-settings.py
-migrations/
 __pycache__/
 *.py[cod]
 /node_modules
 .sublime*
 yarn-error.log
+secret_settings.py
