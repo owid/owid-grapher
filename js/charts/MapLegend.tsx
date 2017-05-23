@@ -332,7 +332,7 @@ class CategoricalMapLegend extends React.Component<CategoricalMapLegendProps, nu
         // Center each line
         _.each(lines, line => {
             const xShift = this.width/2-line.totalWidth/2
-            _.each(line, m => {
+            _.each(line.marks, m => {
                 m.x += xShift
                 m.label.bounds = m.label.bounds.extend({ x: m.label.bounds.x+xShift })
             })

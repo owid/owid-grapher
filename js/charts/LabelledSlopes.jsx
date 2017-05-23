@@ -361,6 +361,7 @@ export default class LabelledSlopes extends Component {
 	}
 
 	@action.bound onMouseMove() {
+		if (!this.base) return
 		const mouse = d3.mouse(this.base)
 		if (!this.props.bounds.containsPoint(...mouse))
 			this.focusKey = null

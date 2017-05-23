@@ -238,10 +238,12 @@ export default function(chart) {
 			};
 		}
 
-        mapdata.minCurrentValue = _.minBy(_.values(currentValues), function(d, i) { return d.value; }).value;
-		mapdata.maxCurrentValue = _.maxBy(_.values(currentValues), function(d, i) { return d.value; }).value;
-		mapdata.minToleranceYear = _.minBy(_.values(currentValues), function(d, i) { return d.year; }).year;
-		mapdata.maxToleranceYear = _.maxBy(_.values(currentValues), function(d, i) { return d.year; }).year;
+		if (currentValues.length) {
+			mapdata.minCurrentValue = _.minBy(_.values(currentValues), function(d, i) { return d.value; }).value;
+			mapdata.maxCurrentValue = _.maxBy(_.values(currentValues), function(d, i) { return d.value; }).value;
+			mapdata.minToleranceYear = _.minBy(_.values(currentValues), function(d, i) { return d.year; }).year;
+			mapdata.maxToleranceYear = _.maxBy(_.values(currentValues), function(d, i) { return d.year; }).year;
+		}
 		mapdata.currentValues = currentValues;
 	}
 

@@ -28,7 +28,6 @@ App.Views.Form.AddDataSectionView = owid.View.extend({
 		this.listenTo(this.selectVarPopup, "new-variable", this.onNewVariable.bind(this));
 		this.listenTo(this.settingsVarPopup, "variable-settings", this.onVariableSettingsUpdate.bind(this));
 
-
 		this.$reserveSection = this.$el.find(".add-data-section");
 		this.$dimensionsContent = $("<div></div>").appendTo(this.$el.find(".dimensions-section"));
 		this.$groupByVariableWrapper = this.$el.find(".group-by-variable-wrapper");			
@@ -117,7 +116,8 @@ App.Views.Form.AddDataSectionView = owid.View.extend({
 					unit: $item.attr("data-unit"),
 					targetYear: _.isNumber(parseInt($item.attr("data-targetYear"))) ? parseInt($item.attr("data-targetYear")) : null,
 					tolerance: $item.attr("data-tolerance"),
-					color: $item.attr("data-color")
+					color: $item.attr("data-color"),
+					isProjection: $item.attr("data-isProjection") == "true"
 				});
 			});
 		});
@@ -176,7 +176,8 @@ App.Views.Form.AddDataSectionView = owid.View.extend({
 		var defaults = {
 			unit: '',
 			targetYear: '',
-			tolerance: 5,				
+			tolerance: 5,	
+			isProjection: false			
 		};
 
 		var settings = _.extend({}, defaults, dimensionSettings);
@@ -205,6 +206,7 @@ App.Views.Form.AddDataSectionView = owid.View.extend({
 		$li.attr("data-targetYear", settings.targetYear);
 		$li.attr("data-tolerance", settings.tolerance);
 		$li.attr("data-color", settings.color);
+		$li.attr("data-isProjection", settings.isProjection);
 		if (settings.color) $li.css("background-color", settings.color);
 	},
 

@@ -11,7 +11,7 @@ const isProduction = process.argv.indexOf('-p') !== -1
 export default {
     context: path.join(__dirname, "js"),
     entry: {
-        charts: "./charts.entry.js",
+        charts: "./charts.entry.ts",
         admin: "./admin.entry.js"
     },
     output: {

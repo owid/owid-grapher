@@ -58,7 +58,7 @@ window.Editor = require('./admin/ChartEditor').default
 require('./libs/bootstrap3-wysihtml5.all')
 window.Papa = require('./libs/papaparse')
 window.moment = require('moment')
-require('./admin/App.Models.ChartModel')
+require('./charts/App.Models.ChartModel')
 require('./admin/App.Models.Import.DatasetModel')
 require('./admin/App.Models.Importer')
 require('./admin/App.Views.UI.ImportProgressPopup')

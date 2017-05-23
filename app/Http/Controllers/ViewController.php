@@ -43,7 +43,7 @@ class ViewController extends Controller {
 
 		$chartsPerPage = 5;
 
-		$query = Chart::where('published', '=', true)->where('origin_url', '!=', "");
+		$query = Chart::where('published', '=', true)->where('origin_url', '!=', "")->orderBy('last_edited_at', 'DESC');
 		if ($type && $type != 'map')
 			$query = $query->where('type', '=', $type);
 
@@ -111,13 +111,7 @@ class ViewController extends Controller {
 		if (!$chart)
 			return App::abort(404, "No such chart");
 
-		$size = $request->input("size");
-		if (!$size) $size = "1020x720";
-		$split = explode("x", $size);
-		$width = min(intval($split[0]), 3000);
-		$height = min(intval($split[1]), 3000);
-
-		$file = Chart::export($slug, $_SERVER['QUERY_STRING'], $width, $height, $format);
+		$file = Chart::export($slug, $_SERVER['QUERY_STRING'], $format);
 
 		return response()->file($file,
 					['Cache-Control' => $request->input('v') ? 'public, max-age=31536000' : 'public, max-age=7200, s-maxage=604800',
@@ -287,9 +281,9 @@ class ViewController extends Controller {
 			// Give the image exporter a head start on the request for imageUrl
 			// This isn't a strong cachebuster (Cloudflare caches these meta tags) but it should help it get through eventually
 			$imageQuery = $query . ($query ? "&" : "") . "v=" . $chart->makeCacheTag();
-			if (!str_contains(\Request::path(), ".export")) {
+/*			if (!str_contains(\Request::path(), ".export")) {
 				Chart::exportPNGAsync($chart->slug, $imageQuery, 1020, 720);
-			}
+			}*/
 
 			$chartMeta->imageUrl = $baseUrl . ".png?" . $imageQuery;
 			$resp = response()->view('view.show', compact('chart', 'canonicalUrl', 'chartMeta', 'query'));

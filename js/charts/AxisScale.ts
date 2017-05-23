@@ -12,27 +12,28 @@
 // @flow
 
 import * as d3 from 'd3'
+import * as _ from 'lodash'
 import {observable, computed, action, toJS} from 'mobx'
-import _ from 'lodash'
 
 export type ScaleType = 'linear' | 'log';
 
 export default class AxisScale {
-    @observable scaleType : ScaleType
-    @observable tickFormat : number => string
-    @observable domain : [number, number]
-    @observable range : [number, number]
+    @observable scaleType: ScaleType
+    @observable.struct scaleTypeOptions: ScaleType[]
+    @observable tickFormat : (v: number) => string
+    @observable.struct domain: [number, number]
+    @observable.struct range: [number, number]
 
-    @computed get d3_scaleConstructor() : Function {
+    @computed get d3_scaleConstructor(): Function {
         return this.scaleType == 'log' ? d3.scaleLog : d3.scaleLinear
     }
 
-    @computed get d3_scale() : Function {
+    @computed get d3_scale(): d3.ScaleLinear<number, number> | d3.ScaleLogarithmic<number, number> {
         return this.d3_scaleConstructor().domain(this.domain).range(this.range)
     }
 
     getTickValues() {
-        const {scaleType, domain, d3_scale} = this
+        const {scaleType, domain, d3_scale} = this        
 
         if (scaleType == 'log') {
             let minPower10 = Math.ceil(Math.log(domain[0]) / Math.log(10));
@@ -57,6 +58,8 @@ export default class AxisScale {
     place(value: number) {
         if (!this.range)
             throw "Can't place value on scale without a defined output range"
+        else if (this.scaleType == 'log' && value <= 0)
+            throw "Can't have values <= 0 on a log scale"
         return this.d3_scale(value)
     }
 
@@ -64,9 +67,15 @@ export default class AxisScale {
         return new AxisScale(_.extend(toJS(this), props))
     }
 
-    constructor({ scaleType = 'linear', tickFormat = (d => d.toString()), domain = [0, 0], range = [0, 0] } :
-                { scaleType: ScaleType, tickFormat: number => string, domain: [number, number], range?: [number, number] }) {
+    constructor({ scaleType = 'linear', 
+                  scaleTypeOptions = ['linear'],
+                  tickFormat = (d => d.toString()), 
+                  domain = [0, 0], 
+                  range = [0, 0] } :
+                { scaleType: ScaleType, scaleTypeOptions: ScaleType[],
+                  tickFormat: (v: number) => string, domain: [number, number], range?: [number, number] }) {
         this.scaleType = scaleType
+        this.scaleTypeOptions = scaleTypeOptions
         this.tickFormat = tickFormat
         this.domain = domain
         this.range = range

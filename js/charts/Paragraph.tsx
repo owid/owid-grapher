@@ -38,9 +38,7 @@ interface WrapLine {
 
 function strip(html: string)
 {
-   var tmp = document.createElement("DIV");
-   tmp.innerHTML = html;
-   return tmp.textContent || tmp.innerText || "";
+   return html.replace(/<\/?[^>]+>/g, "");
 }
 
 @observer
@@ -58,7 +56,7 @@ export default class Paragraph extends React.Component<ParagraphProps, undefined
     }
 
     @computed get text(): string {
-        return this.props.children || ""
+        return this.props.children ? ""+this.props.children : ""
     }
 
     @computed get lines(): WrapLine[] {

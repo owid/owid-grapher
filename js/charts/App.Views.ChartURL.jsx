@@ -99,7 +99,7 @@ export default function(chart) {
             if (m) {
                 chart.model.set('chart-time', [parseInt(m[1]), parseInt(m[2])])
             } else {
-                chart.model.set('chart-time', [parseInt(time), null])
+                chart.model.set('chart-time', [parseInt(time), parseInt(time)])
             }
         }
 //          chart.model.set("timeline", _.extend({}, chart.model.get('timeline'), { defaultYear: parseFloat(time) }));
@@ -135,7 +135,7 @@ export default function(chart) {
                     return _.includes(codesOrNames, entity.code) || _.includes(codesOrNames, entity.name);
                 });
 
-                chart.model.set('selected-countries', entities);
+                chart.config.selectedEntities = _.map(entities, 'name')
             }
         });
 
@@ -192,7 +192,7 @@ export default function(chart) {
                 if (!foundEntity) return;
                 entityCodes.push(encodeURIComponent(foundEntity.code || foundEntity.name));
             });
-
+                        
             owid.setQueryVariable("country", entityCodes.join("+"));
         });
     }

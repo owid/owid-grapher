@@ -181,6 +181,20 @@ select.disabled {
     stroke-dasharray: 2, 2;
 }
 
+#chart .projection .nv-line {
+    stroke-dasharray: 3, 3;
+}
+
+#chart .projection .nv-point {
+    fill: #fff;
+    stroke-width: 1;
+    opacity: 0.5;
+}
+
+#chart .projection .nv-point.hover {
+    stroke-width: 4;
+}
+
 /* Chart General
 --------------------------------------------- */
 
@@ -568,6 +582,11 @@ a {
 #chart .nvd3-svg {
     /* Tweak some nvd3 styling */
     /* Allow user to select text */
+    -webkit-user-select: initial;
+    -ms-user-select: initial;
+    -moz-user-select: initial;
+    -webkit-user-select: initial;
+    user-select: initial;        
 }
 #chart .nvd3-svg .nvd3 .nv-axis line {
     fill: none;
@@ -1130,6 +1149,14 @@ a {
 
     & h2 {
         margin-bottom: 0.2em;
+    }
+}
+
+#chart .ScatterPlot {
+    cursor: pointer;
+
+    & circle {
+        stroke-width: 0.3;
     }
 }
 

@@ -15,6 +15,7 @@ App.Views.UI.SettingsVarPopup = owid.View.extend({
 		this.$cancelBtn = this.$el.find(".btn-default");
 
 		this.$nameInput = this.$el.find(".settings-var-name input");
+		this.$isProjectionInput = this.$el.find(".isProjection input")
 		this.$advancedSettings = this.$el.find(".advanced-settings");
 		this.$digitInputs = this.$el.find(".digit-input");
 
@@ -30,7 +31,8 @@ App.Views.UI.SettingsVarPopup = owid.View.extend({
 		//repopulate from element
 		var name = $variableLabel.attr("data-display-name"),
 			targetYear = $variableLabel.attr("data-targetYear"),
-			tolerance = $variableLabel.attr("data-tolerance");
+			tolerance = $variableLabel.attr("data-tolerance"),
+			isProjection = $variableLabel.attr("data-isProjection") == "true";
 
 		var chartType = App.ChartModel.get("chart-type");
 		if (chartType == App.ChartType.ScatterPlot) {
@@ -40,6 +42,7 @@ App.Views.UI.SettingsVarPopup = owid.View.extend({
 		}
 
 		this.$nameInput.val(name);
+		this.$isProjectionInput.prop('checked', isProjection)
 		this.$el.find("[name=targetYear]").val(targetYear);
 		this.$el.find("[name=tolerance]").val(tolerance);
 
@@ -62,6 +65,7 @@ App.Views.UI.SettingsVarPopup = owid.View.extend({
 
 		data["targetYear"] = this.$el.find("[name=targetYear]").val();
 		data.tolerance = parseFloat(this.$el.find("[name=tolerance]").val());
+		data.isProjection = this.$el.find(".isProjection input").prop("checked");
 		this.trigger("variable-settings", data);
 	},
 

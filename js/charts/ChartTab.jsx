@@ -16,6 +16,7 @@ import Scatter from './owid.viz.scatter'
 import EntitySelect from './owid.view.entitySelect'
 import Legend from './App.Views.Chart.Legend'
 import nv from 'nvd3'
+import ScatterPlot from './ScatterPlot'
 
 export default class ChartTab extends React.Component {
     componentDidMount() {
@@ -26,8 +27,12 @@ export default class ChartTab extends React.Component {
     }
 
     componentDidUpdate() {
-        this.chartTab.onRenderEnd = this.props.onRenderEnd
-        this.chartTab.render(this.bounds)
+		if (this.props.chart.type == App.ChartType.ScatterPlot || this.props.chart.type == App.ChartType.SlopeChart)
+			this.props.onRenderEnd && this.props.onRenderEnd()
+		else {
+			this.chartTab.onRenderEnd = this.props.onRenderEnd
+			this.chartTab.render(this.bounds)
+		}
     }
 
     componentWillUnmount() {
@@ -73,6 +78,8 @@ export default class ChartTab extends React.Component {
     renderChart() {
         if (this.props.chart.type == App.ChartType.SlopeChart)
             return <SlopeChart bounds={this.bounds.padTop(20)} config={this.props.chartView.chart}/>
+        else if (this.props.chart.type == App.ChartType.ScatterPlot)
+            return <ScatterPlot bounds={this.bounds.padTop(20).padBottom(10)} config={this.props.chartView.chart} isStatic={this.props.chartView.isExport}/>
         else
             return null
     }
@@ -142,7 +149,6 @@ const chartTabOld = function(chart) {
 
 	chartTab.clean = function() {
 		if (viz) viz = viz.destroy();
-		if (rootNode) rootNode = render(() => null, chart.svg.node(), rootNode)
 
 		chartTab.scaleSelectors.clean();
 
@@ -168,7 +174,6 @@ const chartTabOld = function(chart) {
 			missingMsg = null
 		configureAxis();
 		renderLegend();
-//			renderTimeline();
 
 		$(".chart-error").remove();
 		if (missingMsg || (_.isEmpty(localData) && chartType != App.ChartType.ScatterPlot && chartType != App.ChartType.SlopeChart)) {
@@ -188,7 +193,7 @@ const chartTabOld = function(chart) {
 			if (chartType == App.ChartType.LineChart) {
 				renderLineChart();
 			} else if (chartType == App.ChartType.ScatterPlot) {
-				renderScatterPlot();
+				return
 			} else if (chartType == App.ChartType.StackedArea) {
 				renderStackedArea();
 			} else if (chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar) {
@@ -210,7 +215,6 @@ const chartTabOld = function(chart) {
 					setTimeout(postRender, 500);
 				});
 				setTimeout(postRender, 500);
-				window.nvd3 = nvd3;
 			}
 
 			renderAxis();
@@ -258,7 +262,7 @@ const chartTabOld = function(chart) {
 
 		// Add classes to the series so we can style e.g. the World line differently
 		_.each(localData, function(d) {
-			d.classed = owid.makeSafeForCSS(d.key);
+			d.classed = owid.makeSafeForCSS(d.key) + (d.isProjection ? " projection" : "");
 		});
 
 		lineType = chart.model.get('line-type');
@@ -663,7 +667,7 @@ const chartTabOld = function(chart) {
 					}
 					currentSeries = _.extend({}, series, { values: [] });
 					if (isMissing && lineType == App.LineType.DashedIfMissing)
-						currentSeries.classed = 'dashed';
+						currentSeries.p = 'dashed';
 					else if (isMissing)
 						currentSeries.classed = 'unstroked';
 					currentMissing = isMissing;

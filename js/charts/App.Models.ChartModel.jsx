@@ -289,7 +289,7 @@ export default Backbone.Model.extend( {
 
 	getTimeFrom: function() {
 		var chartTime = this.get("chart-time");
-		if (_.isEmpty(chartTime))
+		if (_.isEmpty(chartTime) || chartTime[0] == null)
 			return -Infinity;
 		else
 			return chartTime[0];
@@ -297,7 +297,7 @@ export default Backbone.Model.extend( {
 
 	getTimeTo: function() {
 		var chartTime = this.get("chart-time");
-		if (_.isEmpty(chartTime) || chartTime.length < 2)
+		if (_.isEmpty(chartTime) || chartTime.length < 2 || chartTime[1] == null)
 			return Infinity;
 		else
 			return chartTime[1];

@@ -105,16 +105,15 @@ class Chart extends Model {
 	 * @param string $format Either "svg" or "png". Both will be saved, only affects return
 	 * @return string Path to exported file.
 	 */
-	public static function export($slug, $query, $width, $height, $format) {
-		$phantomjs = base_path() . "/node_modules/phantomjs-prebuilt/lib/phantom/bin/phantomjs";
-		$rasterize = base_path() . "/phantomjs/rasterize.js";
+	public static function export($slug, $query, $format) {
+		$screenshot = base_path() . "/js/screenshot.js";
 		$target = \Request::root() . "/" . $slug . ".export" . "?" . $query;
 		$queryHash = hash('md5', $query);
 		$pngFile = public_path() . "/exports/" . $slug . "-" . $queryHash . ".png";
 		$returnFile = public_path() . "/exports/" . $slug . "-" . $queryHash . "." . $format;
 
 		if (!file_exists($returnFile)) {
-			$command = $phantomjs . " " . $rasterize . " " . escapeshellarg($target) . " " . escapeshellarg($pngFile) . " '" . $width . "px*" . $height . "px'" . " 2>&1";
+			$command = "LIGHTHOUSE_CHROMIUM_PATH=/usr/bin/chromium-browser node " . $screenshot . " --url=" . escapeshellarg($target) . " --output=" . escapeshellarg($pngFile) . " 2>&1";
 			Log::info($command);
 			exec($command, $output, $retval);
 
@@ -122,27 +121,7 @@ class Chart extends Model {
            		return \App::abort(406, json_encode($output));
 		}
 
-
 		return $returnFile;
-	}
-
-	public static function exportPNGAsync($slug, $query, $width, $height) {
-		if (env('APP_ENV', 'production') == 'local') return;
-
-		$phantomjs = base_path() . "/node_modules/phantomjs-prebuilt/lib/phantom/bin/phantomjs";
-		$rasterize = base_path() . "/phantomjs/rasterize.js";
-		$target = \Request::root() . "/" . $slug . ".export" . "?" . $query;
-		$queryHash = hash('md5', $query);
-		$file = public_path() . "/exports/" . $slug . "-" . $queryHash . ".png";
-		$tmpfile = $file . "#tmp";
-
-		if (!file_exists($file) && !file_exists($tmpfile)) {
-			// Create a temporary marker file so we don't double up on requests
-			touch($tmpfile);
-			$command = "(" . $phantomjs . " " . $rasterize . " " . escapeshellarg($target) . " " . escapeshellarg($file) . " '" . $width . "px*" . $height . "px'" . " >/dev/null 2>/dev/null; rm " . $tmpfile . ";) &";
-			Log::info($command);
-			exec($command);
-		}
 	}
 
 	// We're using a null/true boolean so that the uniqueness index doesn't
