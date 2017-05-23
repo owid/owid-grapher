@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "dev": "./node_modules/.bin/concurrently --kill-others --raw \"./node_modules/.bin/webpack-dev-server -d\" \"python3 manage.py runserver\"",
+    "dev": "./node_modules/.bin/concurrently --kill-others --raw \"./node_modules/.bin/webpack-dev-server -d\" \"python3 manage.py runserver 0.0.0.0:8000\"",
     "build": "webpack -p --progress"
   },
   "devDependencies": {

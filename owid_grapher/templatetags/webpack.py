@@ -16,4 +16,4 @@ def webpack(asset_name: str) -> str:
         # Read version-stamped urls from manifest.json once and cache for process lifetime
         if not hasattr(webpack, 'manifest'):
             webpack.manifest = json.loads(open(os.path.join(settings.BASE_DIR, "public/build/manifest.json")).read())
-        return static(f"/build/" + webpack.manifest[asset_name])
+        return static("/build/" + webpack.manifest[asset_name])
