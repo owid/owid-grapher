@@ -285,6 +285,7 @@ class ChartDimension(models.Model):
     unit = models.CharField(max_length=255)
     displayName = models.CharField(max_length=255, db_column='displayName')
     targetYear = models.IntegerField(db_column='targetYear', blank=True, null=True)
+    isProjection = models.BooleanField(default=False)
     tolerance = models.IntegerField(blank=True, default=5)
     color = models.CharField(max_length=255)
 

@@ -9,9 +9,9 @@ register = template.Library()
 
 
 @register.simple_tag
-def webpack(asset_name: str) -> str:
+def webpack(asset_name):
     if settings.DEBUG:
-        return f"http://localhost:8090/{asset_name}"
+        return "http://localhost:8090/%s" % asset_name
     else:
         # Read version-stamped urls from manifest.json once and cache for process lifetime
         if not hasattr(webpack, 'manifest'):
