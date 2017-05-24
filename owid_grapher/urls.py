@@ -17,6 +17,7 @@ Including another URLconf
 from django.conf.urls import url, include
 from grapher_admin import views as admin_views
 from owid_grapher import views as owid_views
+from country_name_tool import views as countrytool_views
 from django.contrib.auth.views import logout
 
 urlpatterns = [
@@ -68,6 +69,8 @@ urlpatterns = [
     url(r'^grapher/subcategories/create/$', admin_views.createsubcategory, name="createsubcategory"),
     url(r'^grapher/subcategories$', admin_views.storesubcategory, name="storesubcategory"),
     url(r'^grapher/users/$', admin_views.listusers, name="listusers"),
+    url(r'^grapher/standardize/$', countrytool_views.country_tool_page, name="countrytoolpage"),
+    url(r'^grapher/standardize/update/$', countrytool_views.country_tool_update, name="countrytoolupdate"),
     # for future use on the frontend
     url(r'^grapher/charts\.json$',  admin_views.listcharts, name="listchartsjson"),
     url(r'^grapher/charts/create.json$', admin_views.createchart, name="createchartjson"),

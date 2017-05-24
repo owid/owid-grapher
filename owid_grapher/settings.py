@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'grapher_admin',
     'importer',
+    'country_name_tool',
 ]
 
 MIDDLEWARE = [
