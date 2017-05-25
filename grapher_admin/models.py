@@ -76,6 +76,7 @@ class Chart(models.Model):
         db_table = "charts"
         unique_together = (('slug', 'published'),)
 
+    id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
     config = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -116,7 +117,7 @@ class Chart(models.Model):
                 except subprocess.CalledProcessError as e:
                     raise Exception(e.output)
 
-                return return_file
+        return return_file
 
     @classmethod
     def owid_commit(cls):

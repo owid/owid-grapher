@@ -4,6 +4,8 @@ import json
 import os
 import re
 import csv
+import glob
+import os
 from io import StringIO
 from urllib.parse import urlparse
 from django.conf import settings
@@ -23,11 +25,7 @@ from .models import Chart, Variable, User, UserInvitation, Logo, ChartSlugRedire
 from owid_grapher.views import get_query_string, get_query_as_dict
 
 # putting these into global scope for reuse
-manifest = json.loads(open(os.path.join(settings.BASE_DIR, "public/build/manifest.json")).read())
-jspath = "/build/%s" % (manifest['charts.js'])
-csspath = "/build/%s" % (manifest['charts.css'])
 rootrequest = settings.BASE_URL
-
 
 def custom_login(request):
     """
@@ -168,6 +166,8 @@ def editchart(request, chartid):
 
 
 def savechart(chart, data, user):
+    isExisting = chart.id != None
+
     if data.get('published', 0):
         if ChartSlugRedirect.objects.filter(~Q(chart_id=chart.pk)).filter(Q(slug=data['slug'])):
             return HttpResponse("This chart slug was previously used by another chart: %s" % data["slug"], status=402)
@@ -222,6 +222,11 @@ def savechart(chart, data, user):
         newdim.variableId = Variable.objects.get(pk=int(dim.get('variableId', None)))
         dims.append(newdim)
         i += 1
+
+
+    if isExisting:
+        for path in glob.glob(os.path.join(settings.BASE_DIR, "public/exports/", chart.slug, "*")):
+            os.remove(path)
 
     """
     TO DO: Implement png and svg file purging
@@ -302,7 +307,6 @@ def showchart(request, chartid):
 
         response = TemplateResponse(request, 'show_chart.html',
                                     context={'chartmeta': chartmeta, 'configpath': configpath,
-                                             'jspath': jspath, 'csspath': csspath,
                                              'query': query_string,
                                              'rootrequest': rootrequest})
         return response
