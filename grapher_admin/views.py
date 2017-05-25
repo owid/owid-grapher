@@ -350,6 +350,7 @@ def importdata(request: HttpRequest):
     datasets = Dataset.objects.filter(namespace='owid').order_by('name').values()
     datasetlist = []
     for each in datasets:
+        each['fk_dst_subcat_id'] = each['fk_dst_subcat_id_id'] # XXX
         each['created_at'] = str(each['created_at'])
         each['updated_at'] = str(each['updated_at'])
         datasetlist.append(each)
