@@ -6,6 +6,7 @@ import re
 import csv
 import glob
 import os
+import CloudFlare
 from io import StringIO
 from urllib.parse import urlparse
 from django.conf import settings
@@ -224,17 +225,24 @@ def savechart(chart, data, user):
         i += 1
 
 
+    # Remove any old image exports as they will no longer represent the new chart state
     if isExisting:
         for path in glob.glob(os.path.join(settings.BASE_DIR, "public/exports/", chart.slug, "*")):
             os.remove(path)
 
-    """
-    TO DO: Implement png and svg file purging
-    """
+    # Invalidate the Cloudflare cache for the chart config url
+    # Also invalidate the html for some common query string urls to update the meta tags
+    # TODO: an invalidation job queue / coverage of more urls with query strings
+    if settings.CLOUDFLARE_KEY:
+        config_url = f"{settings.BASE_URL}/config/{chart.id}.js"
+        chart_url = f"{settings.BASE_URL}/{chart.slug}"
+        urls_to_purge = [config_url, chart_url, chart_url + "?tab=chart", chart_url + "?tab=map"]
+        cf = CloudFlare.CloudFlare(email=settings.CLOUDFLARE_EMAIL, token=settings.CLOUDFLARE_KEY)
+        cf.zones.purge_cache.delete(settings.CLOUDFLARE_ZONE_ID, data={ "files": urls_to_purge })
 
-    """
-    TO DO: Cloudflare cache invalidation
-    """
+
+#        $cache = new \Cloudflare\Zone\Cache(env('CLOUDFLARE_EMAIL'), env('CLOUDFLARE_KEY'));
+#        $cache->purge_files(env('CLOUDFLARE_ZONE_ID'), [$configUrl, $chartUrl, $chartUrl + "?tab=chart", $chartUrl + "?tab=map"]);
 
     for each in ChartDimension.objects.filter(chartId=chart.pk):
         each.delete()
