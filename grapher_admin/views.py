@@ -641,12 +641,12 @@ def dataset_csv(request: HttpRequest, datasetid: str):
 
     chartvarlist = sorted(chartvarlist, key=lambda k: k['id'])
 
-    sql_query = 'SELECT maintable.entity as entity, maintable.year as year, maintable.country_code as country_code'
+    sql_query = 'SELECT maintable.entity as entity, maintable.year as year'
 
     table_counter = 1
     join_string = ''
     id_tuple = ''
-    headerlist = ['Entity', 'Year', 'Country code']
+    headerlist = ['Entity', 'Year']
     for each in chartvarlist:
         sql_query += ', table%s.value as value%s' % (table_counter, table_counter)
 
@@ -660,11 +660,11 @@ def dataset_csv(request: HttpRequest, datasetid: str):
         headerlist.append(each['name'])
 
     id_tuple = id_tuple[:-1]
-    sql_query += ' FROM (SELECT fk_ent_id, entities.name as entity, year, entities.code as ' \
-                 'country_code FROM data_values LEFT OUTER JOIN entities on data_values.fk_ent_id = entities.id ' \
+    sql_query += ' FROM (SELECT fk_ent_id, entities.name as entity, year FROM data_values ' \
+                 'LEFT OUTER JOIN entities on data_values.fk_ent_id = entities.id ' \
                  'WHERE fk_var_id in (%s) ORDER BY entity, year, data_values.fk_var_id) as maintable ' % id_tuple
 
-    sql_query += join_string + 'GROUP BY entity, year, country_code;'
+    sql_query += join_string + 'GROUP BY entity, year;'
 
     with connection.cursor() as cursor:
         cursor.execute(sql_query)
