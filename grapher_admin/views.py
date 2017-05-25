@@ -1242,14 +1242,6 @@ def managesource(request: HttpRequest, sourceid: str):
 
     if request.method == 'POST':
         request_dict = QueryDict(request.body).dict()
-        if request_dict['_method'] == 'DELETE':
-            try:
-                source.delete()
-            except Exception as e:
-                messages.error(request, e.args[1])
-                return HttpResponseRedirect(reverse('showsource', args=[sourceid]))
-            messages.success(request, 'Source deleted.')
-            return HttpResponseRedirect(reverse('listvariables'))
         if request_dict['_method'] == 'PATCH':
             request_dict.pop('_method', None)
             request_dict.pop('csrfmiddlewaretoken', None)
