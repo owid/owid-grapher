@@ -32,7 +32,7 @@
 		<div class="property-wrapper">
 			<h3 class="property-title">Source</h3>
 			<div class="property-value">
-                <a href="">{{ variable.source.name }}</a>
+                <a href="{% url 'managesource' variable.source.id %}">{{ variable.source.name }}</a>
             </div>
 		</div>
 		<div class="property-wrapper">
