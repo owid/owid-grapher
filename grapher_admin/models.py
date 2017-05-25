@@ -76,6 +76,7 @@ class Chart(models.Model):
         db_table = "charts"
         unique_together = (('slug', 'published'),)
 
+    id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
     config = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -86,7 +87,8 @@ class Chart(models.Model):
     origin_url = models.CharField(max_length=255)
     notes = models.TextField()
     slug = models.CharField(max_length=255, blank=True, null=True)
-    published = models.BooleanField(default=None)
+    # Null/True due to the behavior of mysql unique indexes (we only want slugs to conflict if not published)
+    published = models.NullBooleanField(default=None, choices=((None, 'false'), (True, 'true')))
     starred = models.BooleanField(default=False)
     type = models.CharField(max_length=255, choices=(('LineChart', 'Line chart'), ('ScatterPlot', 'Scatter plot'),
                                                      ('StackedArea', 'Stacked area'), ('MultiBar', 'Multi bar'),
@@ -94,7 +96,7 @@ class Chart(models.Model):
                                                      ('DiscreteBar', 'Discrete bar'),
                                                      ('SlopeChart', 'Slope chart')), blank=True, null=True)
 
-    def export_image(self, query, format, is_async=False):
+    def export_image(self, query: str, format: str, is_async: bool = False):
         screenshot = settings.BASE_DIR + "/js/screenshot.js"
         target = settings.BASE_URL + "/" + self.slug + ".export" + "?" + query
         m = hashlib.md5()
@@ -116,7 +118,7 @@ class Chart(models.Model):
                 except subprocess.CalledProcessError as e:
                     raise Exception(e.output)
 
-                return return_file
+        return return_file
 
     @classmethod
     def owid_commit(cls):

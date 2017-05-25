@@ -5,11 +5,6 @@
 		<a class="back-btn" href="{% url 'listsources' %}"><i class="fa fa-arrow-left"></i>Back to the list of sources</a>
 		<div class="pull-right right-btns-wrapper clearfix">
 			<a href="{% url 'editsource' source.id %}"><i class="fa fa-pencil"></i> Edit source</a>
-			<form method="POST" action="{% url 'managesource' source.id %}" accept-charset="UTF-8" class="form-inline">
-                <input name="_method" type="hidden" value="DELETE">
-                {% csrf_token %}
-				<button class="delete-btn" type="submit"><i class="fa fa-remove"></i>Delete source</button>
-			</form>
 		</div>
 		<h2>{{ source.name }}</h2>
 		<div class="property-wrapper">

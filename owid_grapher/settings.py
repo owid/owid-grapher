@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 
 import os
 import pymysql
-from .secret_settings import SECRET_KEY, ENV, DB_HOST, DB_NAME, DB_PASS, DB_PORT, DB_USER, EMAIL_HOST, EMAIL_HOST_USER, EMAIL_USE_TLS, EMAIL_HOST_PASSWORD, EMAIL_PORT
+from .secret_settings import SECRET_KEY, ENV, ALLOWED_HOSTS, BASE_URL, DB_HOST, DB_NAME, DB_PASS, DB_PORT, DB_USER, EMAIL_HOST, EMAIL_HOST_USER, EMAIL_USE_TLS, EMAIL_HOST_PASSWORD, EMAIL_PORT, CLOUDFLARE_BASE_URL, CLOUDFLARE_EMAIL, CLOUDFLARE_KEY, CLOUDFLARE_ZONE_ID
 
 pymysql.install_as_MySQLdb()
 
@@ -34,9 +34,6 @@ elif ENV == 'production':
     DEBUG = False
 else:
     DEBUG = False
-
-ALLOWED_HOSTS = ['localhost']
-
 
 # Application definition
 
@@ -146,8 +143,6 @@ STATIC_URL = '/grapher/public/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "public"),
 ]
-
-BASE_URL = 'http://localhost:8090/grapher'
 
 AUTH_USER_MODEL = 'grapher_admin.User'
 

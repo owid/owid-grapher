@@ -233,25 +233,22 @@ def config(request, configid):
     :param configid: id of the config.js file being requested
     :return: config.js file
     """
+    
+    chartid = int(configid)
+    try:
+        chartobj = Chart.objects.get(pk=chartid)
+    except Chart.DoesNotExist:
+        return HttpResponseNotFound('Config file does not exist!')
 
-    if '.js' not in configid:
-        return HttpResponseNotFound('Not found.')
-    else:
-        chartid = int(configid[:configid.find('.js')])
-        try:
-            chartobj = Chart.objects.get(pk=chartid)
-        except Chart.DoesNotExist:
-            return HttpResponseNotFound('Config file does not exist!')
+    configdict = chartobj.get_config_with_url()
+    configdict['variableCacheTag'] = chartobj.make_cache_tag()
 
-        configdict = chartobj.get_config_with_url()
-        configdict['variableCacheTag'] = chartobj.make_cache_tag()
+    configfile = 'App.loadChart(' + json.dumps(configdict) + ')'
 
-        configfile = 'App.loadChart(' + json.dumps(configdict) + ')'
+    response = HttpResponse(configfile, content_type="application/javascript")
+    response['Cache-Control'] = 'public, max-age=0, s-maxage=604800'
 
-        response = HttpResponse(configfile, content_type="application/javascript")
-        response['Cache-Control'] = 'public, max-age=0, s-maxage=604800'
-
-        return response
+    return response
 
 
 def dictfetchall(cursor):
