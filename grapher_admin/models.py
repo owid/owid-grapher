@@ -95,7 +95,7 @@ class Chart(models.Model):
                                                      ('DiscreteBar', 'Discrete bar'),
                                                      ('SlopeChart', 'Slope chart')), blank=True, null=True)
 
-    def export_image(self, query, format, is_async=False):
+    def export_image(self, query: str, format: str, is_async: bool = False):
         screenshot = settings.BASE_DIR + "/js/screenshot.js"
         target = settings.BASE_URL + "/" + self.slug + ".export" + "?" + query
         m = hashlib.md5()

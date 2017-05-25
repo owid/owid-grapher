@@ -9,7 +9,7 @@ register = template.Library()
 
 
 @register.simple_tag
-def webpack(asset_name):
+def webpack(asset_name: str) -> str:
     if settings.DEBUG:
         return "http://localhost:8090/%s" % asset_name
     else:

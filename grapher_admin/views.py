@@ -15,7 +15,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import login as loginview
 from django.db.models import Q
 from django.db import connection
-from django.http import HttpResponseRedirect, HttpResponse, HttpResponseNotFound, JsonResponse, QueryDict, StreamingHttpResponse
+from django.http import HttpRequest, HttpResponseRedirect, HttpResponse, HttpResponseNotFound, JsonResponse, QueryDict, StreamingHttpResponse
 from django.template.response import TemplateResponse
 from django.shortcuts import render
 from django.urls import reverse
@@ -24,11 +24,12 @@ from django.utils.crypto import get_random_string
 from .forms import InviteUserForm, InvitedUserRegisterForm
 from .models import Chart, Variable, User, UserInvitation, Logo, ChartSlugRedirect, ChartDimension, Dataset, Setting, DatasetCategory, DatasetSubcategory, Entity, Source, VariableType, DataValue, License
 from owid_grapher.views import get_query_string, get_query_as_dict
+from typing import Dict
 
 # putting these into global scope for reuse
 rootrequest = settings.BASE_URL
 
-def custom_login(request):
+def custom_login(request: HttpRequest):
     """
     Redirects to index page if the user is already logged in
     :param request: Request object
@@ -41,7 +42,7 @@ def custom_login(request):
 
 
 @login_required
-def listcharts(request):
+def listcharts(request: HttpRequest):
     charts = Chart.objects.all().order_by('-last_edited_at')
     allvariables = Variable.objects.all()
     vardict = {}
@@ -79,7 +80,7 @@ def listcharts(request):
 
 
 @login_required
-def storechart(request):
+def storechart(request: HttpRequest):
     if request.method == 'POST':
         chart = Chart()
         data = json.loads(request.body.decode('utf-8'))
@@ -89,7 +90,7 @@ def storechart(request):
 
 
 @login_required
-def createchart(request):
+def createchart(request: HttpRequest):
 
     data = editor_data()
     logos = []
@@ -98,14 +99,14 @@ def createchart(request):
 
     chartconfig = {}
     chartconfig['logosSVG'] = logos
-    chartconfig = json.dumps(chartconfig)
+    chartconfig_str = json.dumps(chartconfig)
 
     if '.json' in urlparse(request.get_full_path()).path:
-        return JsonResponse({'data': data, 'config': chartconfig}, safe=False)
+        return JsonResponse({'data': data, 'config': chartconfig_str}, safe=False)
     else:
         return render(request, 'admin.edit_chart.html', context={'rootrequest': rootrequest,
                                                                  'current_user': request.user.name,
-                                                                 'data': data, 'chartconfig': chartconfig
+                                                                 'data': data, 'chartconfig': chartconfig_str
                                                                  })
 
 
@@ -144,9 +145,9 @@ def editor_data():
 
 
 @login_required
-def editchart(request, chartid):
+def editchart(request: HttpRequest, chartid_str: str):
     try:
-        chartid = int(chartid)
+        chartid = int(chartid_str)
     except ValueError:
         return HttpResponseNotFound('Invalid chart id!')
 
@@ -166,7 +167,7 @@ def editchart(request, chartid):
                                                             'data': data, 'chartconfig': chartconfig})
 
 
-def savechart(chart, data, user):
+def savechart(chart: Chart, data: Dict, user: User):
     isExisting = chart.id != None
 
     if data.get('published', 0):
@@ -248,7 +249,7 @@ def savechart(chart, data, user):
 
 
 @login_required
-def managechart(request, chartid):
+def managechart(request: HttpRequest, chartid: str):
     try:
         chart = Chart.objects.get(pk=int(chartid))
     except Chart.DoesNotExist:
@@ -269,7 +270,7 @@ def managechart(request, chartid):
 
 
 @login_required
-def showchart(request, chartid):
+def showchart(request: HttpRequest, chartid: str):
     try:
         chart = Chart.objects.get(pk=int(chartid))
     except Chart.DoesNotExist:
@@ -316,7 +317,7 @@ def showchart(request, chartid):
 
 
 @login_required
-def starchart(request, chartid):
+def starchart(request: HttpRequest, chartid: str):
     try:
         chart = Chart.objects.get(pk=int(chartid))
     except Chart.DoesNotExist:
@@ -330,7 +331,7 @@ def starchart(request, chartid):
 
 
 @login_required
-def unstarchart(request, chartid):
+def unstarchart(request: HttpRequest, chartid: str):
     try:
         chart = Chart.objects.get(pk=int(chartid))
     except Chart.DoesNotExist:
@@ -344,7 +345,7 @@ def unstarchart(request, chartid):
 
 
 @login_required
-def importdata(request):
+def importdata(request: HttpRequest):
     datasets = Dataset.objects.filter(namespace='owid').order_by('name').values()
     datasetlist = []
     for each in datasets:
@@ -388,7 +389,7 @@ def importdata(request):
 
 
 @login_required
-def store_import_data(request):
+def store_import_data(request: HttpRequest):
     if request.method == 'POST':
         data = json.loads(request.body.decode('utf-8'))
 
@@ -443,7 +444,7 @@ def store_import_data(request):
         for each in codes:
             entitiy_name_to_id[each['name']] = each['id']
 
-        source_ids_by_name = {}
+        source_ids_by_name: Dict[str, str] = {}
 
         for variable in variables:
             source_name = variable['source']['name']
@@ -506,9 +507,9 @@ def store_import_data(request):
 
 
 @login_required
-def listdatasets(request):
+def listdatasets(request: HttpRequest):
     variables = Variable.objects.filter(fk_dst_id__namespace='owid').select_related('fk_dst_id').order_by('-fk_dst_id__updated_at')
-    datasets = {}
+    datasets: Dict = {}
     for each in variables:
         if each.uploaded_by:
             uploaded_by = each.uploaded_by.name
@@ -535,7 +536,7 @@ def listdatasets(request):
 
 
 @login_required
-def showdataset(request, datasetid):
+def showdataset(request: HttpRequest, datasetid: str):
     try:
         dataset = Dataset.objects.get(pk=int(datasetid))
     except Dataset.DoesNotExist:
@@ -560,7 +561,7 @@ def showdataset(request, datasetid):
 
 
 @login_required
-def editdataset(request, datasetid):
+def editdataset(request: HttpRequest, datasetid: str):
     try:
         dataset = Dataset.objects.filter(pk=int(datasetid)).values()[0]
     except Dataset.DoesNotExist:
@@ -588,7 +589,7 @@ def editdataset(request, datasetid):
 
 
 @login_required
-def managedataset(request, datasetid):
+def managedataset(request: HttpRequest, datasetid: str):
     try:
         dataset = Dataset.objects.filter(pk=int(datasetid))
     except Dataset.DoesNotExist:
@@ -622,7 +623,7 @@ def managedataset(request, datasetid):
 
 
 @login_required
-def dataset_csv(request, datasetid):
+def dataset_csv(request: HttpRequest, datasetid: str):
     try:
         dataset = Dataset.objects.get(pk=int(datasetid))
     except Dataset.DoesNotExist:
@@ -689,7 +690,7 @@ def dataset_csv(request, datasetid):
 
 
 @login_required
-def dataset_json(request, datasetid):
+def dataset_json(request: HttpRequest, datasetid: str):
     try:
         dataset = Dataset.objects.get(pk=int(datasetid))
     except Dataset.DoesNotExist:
@@ -752,7 +753,7 @@ def check_invitation_statuses():
 
 
 @login_required
-def listcategories(request):
+def listcategories(request: HttpRequest):
     categories = DatasetCategory.objects.values()
     return render(request, 'admin.categories.html', context={'rootrequest': rootrequest,
                                                                 'current_user': request.user.name,
@@ -760,7 +761,7 @@ def listcategories(request):
                                                                 })
 
 @login_required
-def showcategory(request, catid):
+def showcategory(request: HttpRequest, catid: str):
     try:
         category = DatasetCategory.objects.filter(pk=int(catid)).values()[0]
         catobj = DatasetCategory.objects.get(pk=int(catid))
@@ -778,7 +779,7 @@ def showcategory(request, catid):
 
 
 @login_required
-def managecategory(request, catid):
+def managecategory(request: HttpRequest, catid: str):
     try:
         category = DatasetCategory.objects.filter(pk=int(catid)).values()[0]
     except DatasetCategory.DoesNotExist:
@@ -809,7 +810,7 @@ def managecategory(request, catid):
 
 
 @login_required
-def editcategory(request, catid):
+def editcategory(request: HttpRequest, catid: str):
     try:
         category = DatasetCategory.objects.filter(pk=int(catid)).values()[0]
     except DatasetCategory.DoesNotExist:
@@ -822,7 +823,7 @@ def editcategory(request, catid):
 
 
 @login_required
-def listvariables(request):
+def listvariables(request: HttpRequest):
     variables = Variable.objects.values()
 
     return render(request, 'admin.variables.html', context={'rootrequest': rootrequest,
@@ -832,8 +833,7 @@ def listvariables(request):
 
 
 @login_required
-def showvariable(request, variableid):
-
+def showvariable(request: HttpRequest, variableid: str):
     try:
         variable = Variable.objects.get(pk=int(variableid))
     except Variable.DoesNotExist:
@@ -936,7 +936,7 @@ def showvariable(request, variableid):
 
 
 @login_required
-def editvariable(request, variableid):
+def editvariable(request: HttpRequest, variableid: str):
     try:
         variable = Variable.objects.get(pk=int(variableid))
     except Variable.DoesNotExist:
@@ -959,7 +959,7 @@ def editvariable(request, variableid):
 
 
 @login_required
-def managevariable(request, variableid):
+def managevariable(request: HttpRequest, variableid: str):
     try:
         variable = Variable.objects.get(pk=int(variableid))
     except Variable.DoesNotExist:
@@ -988,7 +988,7 @@ def managevariable(request, variableid):
 
 
 @login_required
-def listlicenses(request):
+def listlicenses(request: HttpRequest):
     licenses = License.objects.values()
     return render(request, 'admin.licenses.html', context={'rootrequest': rootrequest,
                                                         'current_user': request.user.name,
@@ -997,7 +997,7 @@ def listlicenses(request):
 
 
 @login_required
-def showlicense(request, licenseid):
+def showlicense(request: HttpRequest, licenseid: str):
     try:
         license = License.objects.get(pk=int(licenseid))
     except License.DoesNotExist:
@@ -1010,7 +1010,7 @@ def showlicense(request, licenseid):
 
 
 @login_required
-def editlicense(request, licenseid):
+def editlicense(request: HttpRequest, licenseid: str):
     try:
         license = License.objects.get(pk=int(licenseid))
     except License.DoesNotExist:
@@ -1029,7 +1029,7 @@ def editlicense(request, licenseid):
 
 
 @login_required
-def managelicense(request, licenseid):
+def managelicense(request: HttpRequest, licenseid: str):
     try:
         license = License.objects.get(pk=int(licenseid))
     except License.DoesNotExist:
@@ -1049,7 +1049,7 @@ def managelicense(request, licenseid):
 
 
 @login_required
-def listlogos(request):
+def listlogos(request: HttpRequest):
     logos = Logo.objects.values()
     return render(request, 'admin.logos.html', context={'rootrequest': rootrequest,
                                                         'current_user': request.user.name,
@@ -1058,13 +1058,13 @@ def listlogos(request):
 
 
 @login_required
-def createlogo(request):
+def createlogo(request: HttpRequest):
     return render(request, 'admin.logos.create.html', context={'rootrequest': rootrequest,
                                                         'current_user': request.user.name})
 
 
 @login_required
-def storelogo(request):
+def storelogo(request: HttpRequest):
 
     if request.method == 'POST':
         if not request.POST.get('name', 0):
@@ -1084,7 +1084,7 @@ def storelogo(request):
 
 
 @login_required
-def showlogo(request, logoid):
+def showlogo(request: HttpRequest, logoid: str):
     try:
         logo = Logo.objects.get(pk=int(logoid))
     except Logo.DoesNotExist:
@@ -1102,7 +1102,7 @@ def showlogo(request, logoid):
 
 
 @login_required
-def editlogo(request, logoid):
+def editlogo(request: HttpRequest, logoid: str):
     try:
         logo = Logo.objects.get(pk=int(logoid))
     except Logo.DoesNotExist:
@@ -1119,7 +1119,7 @@ def editlogo(request, logoid):
 
 
 @login_required
-def managelogo(request, logoid):
+def managelogo(request: HttpRequest, logoid: str):
     try:
         logo = Logo.objects.get(pk=int(logoid))
     except Logo.DoesNotExist:
@@ -1153,14 +1153,14 @@ def managelogo(request, logoid):
 
 
 @login_required
-def listsources(request):
+def listsources(request: HttpRequest):
 
     datasets = Dataset.objects.all()
     variables = Variable.objects.all()
     sources = Source.objects.all().order_by('name')
 
-    source_var_dict = {}
-    dataset_dict = {}
+    source_var_dict: Dict = {}
+    dataset_dict: Dict = {}
 
     for each in datasets:
         dataset_dict[each.pk] = {'id': each.pk, 'name': each.name}
@@ -1191,7 +1191,7 @@ def listsources(request):
 
 
 @login_required
-def showsource(request, sourceid):
+def showsource(request: HttpRequest, sourceid: str):
     try:
         source = Source.objects.get(pk=int(sourceid))
     except Source.DoesNotExist:
@@ -1215,7 +1215,7 @@ def showsource(request, sourceid):
 
 
 @login_required
-def editsource(request, sourceid):
+def editsource(request: HttpRequest, sourceid: str):
     try:
         source = Source.objects.get(pk=int(sourceid))
     except Source.DoesNotExist:
@@ -1233,7 +1233,7 @@ def editsource(request, sourceid):
 
 
 @login_required
-def managesource(request, sourceid):
+def managesource(request: HttpRequest, sourceid: str):
     try:
         source = Source.objects.get(pk=int(sourceid))
     except Source.DoesNotExist:
@@ -1265,7 +1265,7 @@ def managesource(request, sourceid):
 
 
 @login_required
-def editsourcetemplate(request):
+def editsourcetemplate(request: HttpRequest):
     sourcetemplate = Setting.objects.filter(meta_name='sourceTemplate').first()
 
     if request.method == 'GET':
@@ -1291,7 +1291,7 @@ def editsourcetemplate(request):
 
 
 @login_required
-def editsubcategory(request, subcatid):
+def editsubcategory(request: HttpRequest, subcatid: str):
     try:
         subcat = DatasetSubcategory.objects.get(pk=int(subcatid))
     except DatasetSubcategory.DoesNotExist:
@@ -1309,7 +1309,7 @@ def editsubcategory(request, subcatid):
 
 
 @login_required
-def managesubcategory(request, subcatid):
+def managesubcategory(request: HttpRequest, subcatid: str):
     try:
         subcat = DatasetSubcategory.objects.get(pk=int(subcatid))
     except DatasetSubcategory.DoesNotExist:
@@ -1340,7 +1340,7 @@ def managesubcategory(request, subcatid):
 
 
 @login_required
-def createsubcategory(request):
+def createsubcategory(request: HttpRequest):
     categories = DatasetCategory.objects.values()
     return render(request, 'admin.subcategories.create.html',context={'rootrequest': rootrequest,
                                    'current_user': request.user.name,
@@ -1349,7 +1349,7 @@ def createsubcategory(request):
 
 
 @login_required
-def storesubcategory(request):
+def storesubcategory(request: HttpRequest):
     categories = DatasetCategory.objects.values()
     if request.method == 'POST':
         if not request.POST.get('name', 0):
@@ -1369,7 +1369,7 @@ def storesubcategory(request):
 
 
 @login_required
-def listusers(request):
+def listusers(request: HttpRequest):
     check_invitation_statuses()
     users = User.objects.all().order_by('created_at')
     userlist = []
@@ -1387,7 +1387,7 @@ def listusers(request):
 
 
 @login_required
-def invite_user(request):
+def invite_user(request: HttpRequest):
     if request.method == 'GET':
         if not request.user.is_superuser:
             return HttpResponse('Permission denied!')
@@ -1443,7 +1443,7 @@ def invite_user(request):
                                                                             'current_user': request.user.name, })
 
 
-def register_by_invite(request, code):
+def register_by_invite(request: HttpRequest, code: str):
     check_invitation_statuses()
     try:
         invite = UserInvitation.objects.get(code=code)
