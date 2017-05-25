@@ -10,3 +10,5 @@ __pycache__/
 .sublime*
 yarn-error.log
 secret_settings.py
+env
+.vscode/tags
