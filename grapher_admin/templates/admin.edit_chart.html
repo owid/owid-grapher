@@ -398,8 +398,13 @@
 						<label class="variable-wrapper">
 							Database:
 							<select name='database' class='form-control'>
-								<option value="owid" selected>OWID</option>
-								<option value="qog">QoG Standard</option>
+                                {% for eachone in data.namespaces %}
+                                    {% if namespace == 'owid' %}
+								        <option value="{{ eachone.namespace }}" selected>{{ eachone.namespace }}</option>
+                                    {% else %}
+                                        <option value="{{ eachone.namespace }}">{{ eachone.namespace }}</option>
+                                    {% endif %}
+                                {% endfor %}
 							</select>
 						</label>
 						<label class="variable-wrapper">

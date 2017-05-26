@@ -1,5 +1,5 @@
 <!doctype html>
-{% load webpack %}
+{% load webpack %}{% load rootrequest %}
 <html class="no-js" lang="">
 {% autoescape off %}
 <head>
@@ -43,7 +43,7 @@
 	<![endif]-->
 	<script>
 		var Global = {};
-        Global.rootUrl = "{{ rootrequest }}";
+        Global.rootUrl = "{% rootrequest %}";
 
         window.App = {}
         App.isEditor = false;

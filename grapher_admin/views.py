@@ -26,8 +26,6 @@ from .models import Chart, Variable, User, UserInvitation, Logo, ChartSlugRedire
 from owid_grapher.views import get_query_string, get_query_as_dict
 from typing import Dict, Union
 
-# putting these into global scope for reuse
-rootrequest = settings.BASE_URL
 
 def custom_login(request: HttpRequest):
     """
@@ -36,7 +34,7 @@ def custom_login(request: HttpRequest):
     :return: Redirects to index page if the user is logged in, otherwise will show the login page
     """
     if request.user.is_authenticated():
-        return HttpResponseRedirect('/')
+        return HttpResponseRedirect(settings.BASE_URL)
     else:
         return loginview(request)
 
@@ -73,8 +71,7 @@ def listcharts(request: HttpRequest):
     if '.json' in urlparse(request.get_full_path()).path:
         return JsonResponse(chartlist, safe=False)
     else:
-        return render(request, 'admin.charts.html', context={'rootrequest': rootrequest,
-                                                             'current_user': request.user.name,
+        return render(request, 'admin.charts.html', context={'current_user': request.user.name,
                                                              'charts': chartlist,
                                                              })
 
@@ -104,9 +101,8 @@ def createchart(request: HttpRequest):
     if '.json' in urlparse(request.get_full_path()).path:
         return JsonResponse({'data': data, 'config': chartconfig_str}, safe=False)
     else:
-        return render(request, 'admin.edit_chart.html', context={'rootrequest': rootrequest,
-                                                                 'current_user': request.user.name,
-                                                                 'data': data, 'chartconfig': chartconfig_str
+        return render(request, 'admin.edit_chart.html', context={'current_user': request.user.name,
+                                                                 'data': data, 'chartconfig': chartconfig_str,
                                                                  })
 
 
@@ -136,10 +132,13 @@ def editor_data():
 
         newresult = copy.deepcopy(result)
         if result['name'] != result['dataset']:
-            newresult['name'] = result['dataset'] + result['name']
+            newresult['name'] = result['dataset'] + ' - ' + result['name']
 
         optgroups[newresult['subcategory']]['variables'].append(newresult)
 
+    namespaces = Dataset.objects.values('namespace').distinct()
+
+    data['namespaces'] = namespaces
     data['optgroups'] = optgroups
     return data
 
@@ -162,9 +161,8 @@ def editchart(request: HttpRequest, chartid: Union[str, int]):
     if '.json' in urlparse(request.get_full_path()).path:
         return JsonResponse({'data': data, 'config': chartconfig}, safe=False)
     else:
-        return render(request, 'admin.edit_chart.html', context={'rootrequest': rootrequest,
-                                                            'current_user': request.user.name,
-                                                            'data': data, 'chartconfig': chartconfig})
+        return render(request, 'admin.edit_chart.html', context={'current_user': request.user.name,
+                                                                 'data': data, 'chartconfig': chartconfig})
 
 
 def savechart(chart: Chart, data: Dict, user: User):
@@ -312,8 +310,8 @@ def showchart(request: HttpRequest, chartid: str):
 
         response = TemplateResponse(request, 'show_chart.html',
                                     context={'chartmeta': chartmeta, 'configpath': configpath,
-                                             'query': query_string,
-                                             'rootrequest': rootrequest})
+                                             'query': query_string
+                                             })
         return response
 
 
@@ -385,9 +383,8 @@ def importdata(request: HttpRequest):
     if '.json' in urlparse(request.get_full_path()).path:
         return JsonResponse(data, safe=False)
     else:
-        return render(request, 'admin.importer.html', context={'rootrequest': rootrequest,
-                                                           'current_user': request.user.name,
-                                                           'importerdata': json.dumps(data)})
+        return render(request, 'admin.importer.html', context={'current_user': request.user.name,
+                                                               'importerdata': json.dumps(data)})
 
 
 @login_required
@@ -531,10 +528,8 @@ def listdatasets(request: HttpRequest):
     dataset_list = []
     for value in sorted(datasets.keys(), reverse=True):
         dataset_list.append(datasets[value])
-    return render(request, 'admin.datasets.html', context={'rootrequest': rootrequest,
-                                                         'current_user': request.user.name,
-                                                         'datasets': dataset_list,
-                                                         })
+    return render(request, 'admin.datasets.html', context={'current_user': request.user.name,
+                                                           'datasets': dataset_list})
 
 
 @login_required
@@ -554,12 +549,11 @@ def showdataset(request: HttpRequest, datasetid: str):
     for each in dataset_chartdims:
         dataset_chart_ids.append(each.chartId.pk)
     dataset_charts = Chart.objects.filter(pk__in=dataset_chart_ids).values()
-    return render(request, 'admin.datasets.show.html', context={'rootrequest': rootrequest,
-                                                           'current_user': request.user.name,
-                                                           'dataset': dataset_dict,
-                                                            'variables': dataset_vars.values(),
+    return render(request, 'admin.datasets.show.html', context={'current_user': request.user.name,
+                                                                'dataset': dataset_dict,
+                                                                'variables': dataset_vars.values(),
                                                                 'charts': dataset_charts,
-                                                           })
+                                                                })
 
 
 @login_required
@@ -581,8 +575,7 @@ def editdataset(request: HttpRequest, datasetid: str):
     subcategories = DatasetSubcategory.objects.values('pk', 'name')
     for each in subcategories:
         subcats_list.append({'id': int(each['pk']), 'name': each['name']})
-    return render(request, 'admin.datasets.edit.html', context={'rootrequest': rootrequest,
-                                                                'current_user': request.user.name,
+    return render(request, 'admin.datasets.edit.html', context={'current_user': request.user.name,
                                                                 'dataset': dataset,
                                                                 'sources': sources_list,
                                                                 'categories': cats_list,
@@ -757,10 +750,9 @@ def check_invitation_statuses():
 @login_required
 def listcategories(request: HttpRequest):
     categories = DatasetCategory.objects.values()
-    return render(request, 'admin.categories.html', context={'rootrequest': rootrequest,
-                                                                'current_user': request.user.name,
-                                                                'categories': categories
-                                                                })
+    return render(request, 'admin.categories.html', context={'current_user': request.user.name,
+                                                             'categories': categories
+                                                             })
 
 @login_required
 def showcategory(request: HttpRequest, catid: str):
@@ -774,10 +766,9 @@ def showcategory(request: HttpRequest, catid: str):
 
     category['subcategories'] = subcategories
 
-    return render(request, 'admin.categories.show.html', context={'rootrequest': rootrequest,
-                                                             'current_user': request.user.name,
-                                                             'category': category
-                                                             })
+    return render(request, 'admin.categories.show.html', context={'current_user': request.user.name,
+                                                                  'category': category
+                                                                  })
 
 
 @login_required
@@ -818,20 +809,18 @@ def editcategory(request: HttpRequest, catid: str):
     except DatasetCategory.DoesNotExist:
         return HttpResponseNotFound('Category does not exist!')
 
-    return render(request, 'admin.categories.edit.html', context={'rootrequest': rootrequest,
-                                                                'current_user': request.user.name,
-                                                                'category': category
-                                                                })
+    return render(request, 'admin.categories.edit.html', context={'current_user': request.user.name,
+                                                                  'category': category
+                                                                  })
 
 
 @login_required
 def listvariables(request: HttpRequest):
     variables = Variable.objects.values()
 
-    return render(request, 'admin.variables.html', context={'rootrequest': rootrequest,
-                                                             'current_user': request.user.name,
-                                                             'variables': variables
-                                                             })
+    return render(request, 'admin.variables.html', context={'current_user': request.user.name,
+                                                            'variables': variables
+                                                            })
 
 
 @login_required
@@ -926,15 +915,14 @@ def showvariable(request: HttpRequest, variableid: str):
         if key != 'page':
             request_string_for_pages += key + '=' + value[0] + '&'
 
-    return render(request, 'admin.variables.show.html', context={'rootrequest': rootrequest,
-                                                           'current_user': request.user.name,
-                                                           'variable': variable_dict,
-                                                           'nav_pages': nav_pages,
-                                                           'current_page': page_number,
-                                                           'total_rows': total_rows,
-                                                            'entities': allentities,
-                                                            'page_request_string': request_string_for_pages
-                                                           })
+    return render(request, 'admin.variables.show.html', context={'current_user': request.user.name,
+                                                                 'variable': variable_dict,
+                                                                 'nav_pages': nav_pages,
+                                                                 'current_page': page_number,
+                                                                 'total_rows': total_rows,
+                                                                 'entities': allentities,
+                                                                 'page_request_string': request_string_for_pages
+                                                                 })
 
 
 @login_required
@@ -954,8 +942,7 @@ def editvariable(request: HttpRequest, variableid: str):
         'source': {'id': variable.sourceId.pk, 'name': variable.sourceId.name}
     }
 
-    return render(request, 'admin.variables.edit.html', context={'rootrequest': rootrequest,
-                                                                 'current_user': request.user.name,
+    return render(request, 'admin.variables.edit.html', context={'current_user': request.user.name,
                                                                  'variable': variable_dict
                                                                  })
 
@@ -992,10 +979,9 @@ def managevariable(request: HttpRequest, variableid: str):
 @login_required
 def listlicenses(request: HttpRequest):
     licenses = License.objects.values()
-    return render(request, 'admin.licenses.html', context={'rootrequest': rootrequest,
-                                                        'current_user': request.user.name,
-                                                        'licenses': licenses
-                                                        })
+    return render(request, 'admin.licenses.html', context={'current_user': request.user.name,
+                                                           'licenses': licenses
+                                                           })
 
 
 @login_required
@@ -1005,10 +991,9 @@ def showlicense(request: HttpRequest, licenseid: str):
     except License.DoesNotExist:
         return HttpResponseNotFound('License does not exist!')
 
-    return render(request, 'admin.licenses.show.html', context={'rootrequest': rootrequest,
-                                                           'current_user': request.user.name,
-                                                           'license': license
-                                                           })
+    return render(request, 'admin.licenses.show.html', context={'current_user': request.user.name,
+                                                                'license': license
+                                                                })
 
 
 @login_required
@@ -1024,8 +1009,7 @@ def editlicense(request: HttpRequest, licenseid: str):
         'description': license.description
     }
 
-    return render(request, 'admin.licenses.edit.html', context={'rootrequest': rootrequest,
-                                                                'current_user': request.user.name,
+    return render(request, 'admin.licenses.edit.html', context={'current_user': request.user.name,
                                                                 'license': license
                                                                 })
 
@@ -1053,16 +1037,14 @@ def managelicense(request: HttpRequest, licenseid: str):
 @login_required
 def listlogos(request: HttpRequest):
     logos = Logo.objects.values()
-    return render(request, 'admin.logos.html', context={'rootrequest': rootrequest,
-                                                        'current_user': request.user.name,
+    return render(request, 'admin.logos.html', context={'current_user': request.user.name,
                                                         'logos': logos
                                                         })
 
 
 @login_required
 def createlogo(request: HttpRequest):
-    return render(request, 'admin.logos.create.html', context={'rootrequest': rootrequest,
-                                                        'current_user': request.user.name})
+    return render(request, 'admin.logos.create.html', context={'current_user': request.user.name})
 
 
 @login_required
@@ -1098,8 +1080,7 @@ def showlogo(request: HttpRequest, logoid: str):
         'svg': logo.svg
     }
 
-    return render(request, 'admin.logos.show.html', context={'rootrequest': rootrequest,
-                                                               'current_user': request.user.name,
+    return render(request, 'admin.logos.show.html', context={'current_user': request.user.name,
                                                              'logo': logo})
 
 
@@ -1115,8 +1096,7 @@ def editlogo(request: HttpRequest, logoid: str):
         'name': logo.name
     }
 
-    return render(request, 'admin.logos.edit.html', context={'rootrequest': rootrequest,
-                                                               'current_user': request.user.name,
+    return render(request, 'admin.logos.edit.html', context={'current_user': request.user.name,
                                                              'logo': logo})
 
 
@@ -1187,9 +1167,8 @@ def listsources(request: HttpRequest):
                              'dataset': dataset_dict.get(each.datasetId, None),
                              'variables': source_var_dict.get(each.pk, [])})
 
-    return render(request, 'admin.sources.html', context={'rootrequest': rootrequest,
-                                                               'current_user': request.user.name,
-                                                             'sources': sources_list})
+    return render(request, 'admin.sources.html', context={'current_user': request.user.name,
+                                                          'sources': sources_list})
 
 
 @login_required
@@ -1211,9 +1190,8 @@ def showsource(request: HttpRequest, sourceid: str):
 
     source['variables'] = variables
 
-    return render(request, 'admin.sources.show.html', context={'rootrequest': rootrequest,
-                                                               'current_user': request.user.name,
-                                                             'source': source})
+    return render(request, 'admin.sources.show.html', context={'current_user': request.user.name,
+                                                               'source': source})
 
 
 @login_required
@@ -1229,8 +1207,7 @@ def editsource(request: HttpRequest, sourceid: str):
         'description': source.description
     }
 
-    return render(request, 'admin.sources.edit.html', context={'rootrequest': rootrequest,
-                                                               'current_user': request.user.name,
+    return render(request, 'admin.sources.edit.html', context={'current_user': request.user.name,
                                                                'source': source})
 
 
@@ -1266,21 +1243,18 @@ def editsourcetemplate(request: HttpRequest):
 
         sourcetemplate = {'meta_value': sourcetemplate.meta_value}
 
-        return render(request, 'admin.sourcetemplate.edit.html', context={'rootrequest': rootrequest,
-                                                               'current_user': request.user.name,
-                                                               'sourcetemplate': sourcetemplate})
+        return render(request, 'admin.sourcetemplate.edit.html', context={'current_user': request.user.name,
+                                                                          'sourcetemplate': sourcetemplate})
     if request.method == 'POST':
         if not request.POST.get('source_template', 0):
             messages.error(request, 'Source template field should not be empty.')
-            return render(request, 'admin.sourcetemplate.edit.html', context={'rootrequest': rootrequest,
-                                                                              'current_user': request.user.name,
+            return render(request, 'admin.sourcetemplate.edit.html', context={'current_user': request.user.name,
                                                                               'sourcetemplate': sourcetemplate})
         else:
             sourcetemplate.meta_value = request.POST['source_template']
             sourcetemplate.save()
             messages.success(request, 'Source template updated.')
-            return render(request, 'admin.sourcetemplate.edit.html', context={'rootrequest': rootrequest,
-                                                                              'current_user': request.user.name,
+            return render(request, 'admin.sourcetemplate.edit.html', context={'current_user': request.user.name,
                                                                               'sourcetemplate': sourcetemplate})
 
 
@@ -1295,9 +1269,8 @@ def editsubcategory(request: HttpRequest, subcatid: str):
     categories = DatasetCategory.objects.values()
     category = {'id': subcat.fk_dst_cat_id.pk}
 
-    return render(request, 'admin.subcategories.edit.html', context={'rootrequest': rootrequest,
-                                                                      'current_user': request.user.name,
-                                                                      'subcategory': subcategory,
+    return render(request, 'admin.subcategories.edit.html', context={'current_user': request.user.name,
+                                                                     'subcategory': subcategory,
                                                                      'categories': categories,
                                                                      'category': category})
 
@@ -1336,10 +1309,9 @@ def managesubcategory(request: HttpRequest, subcatid: str):
 @login_required
 def createsubcategory(request: HttpRequest):
     categories = DatasetCategory.objects.values()
-    return render(request, 'admin.subcategories.create.html',context={'rootrequest': rootrequest,
-                                   'current_user': request.user.name,
-                                   'categories': categories,
-                                   })
+    return render(request, 'admin.subcategories.create.html',context={'current_user': request.user.name,
+                                                                      'categories': categories
+                                                                      })
 
 
 @login_required
@@ -1350,8 +1322,7 @@ def storesubcategory(request: HttpRequest):
             messages.error(request, 'Name field should not be empty.')
         if messages.get_messages(request):
             return render(request, 'admin.subcategories.create.html',
-                          context={'rootrequest': rootrequest,
-                                   'current_user': request.user.name,
+                          context={'current_user': request.user.name,
                                    'categories': categories})
         subcat = DatasetSubcategory()
         subcat.name = request.POST['name']
@@ -1374,10 +1345,9 @@ def listusers(request: HttpRequest):
     if '.json' in urlparse(request.get_full_path()).path:
         return JsonResponse(userlist, safe=False)
     else:
-        return render(request, 'admin.users.html', context={'rootrequest': rootrequest,
-                                                                'current_user': request.user.name,
-                                                                'users': userlist
-                                                                })
+        return render(request, 'admin.users.html', context={'current_user': request.user.name,
+                                                            'users': userlist
+                                                            })
 
 
 @login_required
@@ -1387,8 +1357,8 @@ def invite_user(request: HttpRequest):
             return HttpResponse('Permission denied!')
         else:
             form = InviteUserForm()
-            return render(request, 'admin.invite_user.html', context={'form': form, 'rootrequest': rootrequest,
-                                                                 'current_user': request.user.name})
+            return render(request, 'admin.invite_user.html', context={'form': form,
+                                                                      'current_user': request.user.name})
     if request.method == 'POST':
         if not request.user.is_superuser:
             return HttpResponse('Permission denied!')
@@ -1400,15 +1370,15 @@ def invite_user(request: HttpRequest):
                 try:
                     newuser = User.objects.get(email=email)
                     messages.error(request, 'The user you are inviting is registered in the system.')
-                    return render(request, 'admin.invite_user.html', context={'form': form, 'rootrequest': rootrequest,
-                                                                 'current_user': request.user.name})
+                    return render(request, 'admin.invite_user.html', context={'form': form,
+                                                                              'current_user': request.user.name})
                 except User.DoesNotExist:
                     pass
                 try:
                     newuser = User.objects.get(name=name)
                     messages.error(request, 'The user with that name is registered in the system.')
-                    return render(request, 'admin.invite_user.html', context={'form': form, 'rootrequest': rootrequest,
-                                                                 'current_user': request.user.name})
+                    return render(request, 'admin.invite_user.html', context={'form': form,
+                                                                              'current_user': request.user.name})
                 except User.DoesNotExist:
                     pass
                 newuser = User()
@@ -1427,14 +1397,14 @@ def invite_user(request: HttpRequest):
                 newuser.email_user('Invitation to join OWID',
                                    'Hi %s, please follow this link in order '
                                    'to register on owid-grapher: %s' %
-                                   (newuser.name, settings.BASE_URL + reverse('registerbyinvite', args=[invitation.code])),
+                                   (newuser.name, request.build_absolute_uri(reverse('registerbyinvite', args=[invitation.code]))),
                                    'no-reply@ourworldindata.org')
                 messages.success(request, 'The invite was sent successfully.')
-                return render(request, 'admin.invite_user.html', context={'form': InviteUserForm(), 'rootrequest': rootrequest,
-                                                                            'current_user': request.user.name, })
+                return render(request, 'admin.invite_user.html', context={'form': InviteUserForm(),
+                                                                          'current_user': request.user.name, })
             else:
-                return render(request, 'admin.invite_user.html', context={'form': form, 'rootrequest': rootrequest,
-                                                                            'current_user': request.user.name, })
+                return render(request, 'admin.invite_user.html', context={'form': form,
+                                                                          'current_user': request.user.name, })
 
 
 def register_by_invite(request: HttpRequest, code: str):

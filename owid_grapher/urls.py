@@ -14,6 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 
+from django.conf import settings
 from django.conf.urls import url, include
 from grapher_admin import views as admin_views
 from owid_grapher import views as owid_views
@@ -80,8 +81,8 @@ urlpatterns = [
 
     ### Public
 
-    url(r'^grapher/login/$', admin_views.custom_login, name='login'),
-    url(r'^grapher/logout/$', logout, {'next_page': '/'}, name="logout"),
+    url(r'^grapher/login$', admin_views.custom_login, name='login'),
+    url(r'^grapher/logout/$', logout, {'next_page': settings.BASE_URL}, name="logout"),
     url(r'^grapher/config/(?P<configid>\d+)\.js$', owid_views.config, name="serveconfig"),
     url(r'^grapher/data/variables/(?P<ids>[\w\+]+)', owid_views.variables, name="servevariables"),
     url(r'^grapher/latest/?$', owid_views.latest, name="latestchart"),

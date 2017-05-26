@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 
 import os
 import pymysql
-from .secret_settings import SECRET_KEY, ENV, ALLOWED_HOSTS, BASE_URL, DB_HOST, DB_NAME, DB_PASS, DB_PORT, DB_USER, EMAIL_HOST, EMAIL_HOST_USER, EMAIL_USE_TLS, EMAIL_HOST_PASSWORD, EMAIL_PORT, CLOUDFLARE_BASE_URL, CLOUDFLARE_EMAIL, CLOUDFLARE_KEY, CLOUDFLARE_ZONE_ID
+from .secret_settings import SECRET_KEY, ENV, ALLOWED_HOSTS, BASE_URL, DB_HOST, DB_NAME, DB_PASS, DB_PORT, DB_USER, EMAIL_HOST, EMAIL_HOST_USER, EMAIL_USE_TLS, EMAIL_HOST_PASSWORD, EMAIL_PORT, CLOUDFLARE_BASE_URL, CLOUDFLARE_EMAIL, CLOUDFLARE_KEY, CLOUDFLARE_ZONE_ID, SLACK_TOKEN, SLACK_LOGGING_ENABLED, SLACK_CHANNEL, LOG_FILE_LOCATION
 
 pymysql.install_as_MySQLdb()
 
@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_slack',
     'crispy_forms',
     'grapher_admin',
     'importer',
@@ -75,7 +76,9 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
             ],
             'libraries': {
-                'webpack': 'owid_grapher.templatetags.webpack'
+                'webpack': 'owid_grapher.templatetags.webpack',
+                'isdebug': 'owid_grapher.templatetags.isdebug',
+                'rootrequest': 'owid_grapher.templatetags.rootrequest',
                 },
         },
     },
@@ -164,9 +167,51 @@ ADMIN_ENABLED = False
 
 if ENV == 'development':
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # For dev environment
-if ENV == 'production':
-    EMAIL_HOST = EMAIL_HOST
-    EMAIL_PORT = EMAIL_PORT
-    EMAIL_HOST_USER = EMAIL_HOST_USER
-    EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD
-    EMAIL_USE_TLS = EMAIL_USE_TLS
+    EMAIL_HOST = None
+    EMAIL_PORT = None
+    EMAIL_HOST_USER = None
+    EMAIL_HOST_PASSWORD = None
+    EMAIL_USE_TLS = None
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'standard': {
+            'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+        },
+    },
+    'handlers': {
+        'default': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOG_FILE_LOCATION,
+            'maxBytes': 1024*1024*100,  # 100MB
+            'backupCount': 5,
+            'formatter': 'standard',
+        },
+    },
+    'loggers': {
+        '': {
+            'handlers': ['default'],
+            'level': 'ERROR',
+            'propagate': True
+        },
+    },
+}
+
+if SLACK_LOGGING_ENABLED:
+    LOGGING['filters'] = {
+            'require_debug_false': {
+                '()': 'django.utils.log.RequireDebugFalse'
+            }
+        }
+    LOGGING['handlers']['slack_admins'] = {
+                'level': 'ERROR',
+                'filters': ['require_debug_false'],
+                'class': 'django_slack.log.SlackExceptionHandler'
+            }
+    LOGGING['loggers']['django'] = {
+                'level': 'ERROR',
+                'handlers': ['slack_admins']
+            }
