@@ -1,5 +1,5 @@
 <!doctype html>
-{% load webpack %}
+{% load webpack %}{% load rootrequest %}{% load isdebug %}
 <html class="no-js" lang="">
 	<head>
 		<meta charset="utf-8">
@@ -77,11 +77,11 @@
 
 		<script>
 			window.Global = {}
-			Global.rootUrl = "{{ rootrequest }}"
+			Global.rootUrl = "{% rootrequest %}"
 
 			window.App = {}
 			App.isEditor = true
-			App.isDebug = true
+			App.isDebug = {% isdebug %}
 
 			App.url = function(path) {
 				return Global.rootUrl + path;

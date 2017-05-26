@@ -1,0 +1,9 @@
+{% extends 'base_admin_template.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+<h1>
+Upload country data
+</h1>
+    <p>The file should be in csv format</p>
+    {% crispy form %}
+{% endblock %}

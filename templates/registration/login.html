@@ -1,11 +1,6 @@
-{% extends 'base/base.html' %}
-{% load static %}
+{% extends 'base/base_admin_no_sidebar.html' %}
 {% load crispy_forms_tags %}
-{% block assets %}
- <link href="{% static "bootstrap/css/bootstrap.min.css" %}" rel="stylesheet">
-{% endblock %}
 {% block title %}Login{% endblock %}
-
 {% block content %}
     <form method="post" action="{% url 'login' %}">
     {% csrf_token %}

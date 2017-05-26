@@ -17,7 +17,6 @@ from django.urls import reverse
 from django.utils.encoding import smart_str
 from grapher_admin.models import Chart, Variable, License, ChartSlugRedirect
 
-rootrequest = settings.BASE_URL
 
 @login_required
 def index(request):
@@ -110,7 +109,7 @@ def test_all(request):
 
     return render(request, 'testall.html', context={'urls': links, 'next_page_url': next_page_url,
                                                             'prev_page_url': prev_page_url, 'compare': test_compare,
-                                                                               'rootrequest': rootrequest})
+                                                    })
 
 
 def get_query_string(request):
@@ -181,11 +180,11 @@ def showchart(request, chart):
     response = TemplateResponse(request, 'show_chart.html',
                                 context={'chartmeta': chartmeta, 'configpath': configpath,
                                          'query': query_string,
-                                         'rootrequest': rootrequest})
+                                         })
 
     if '.export' not in urlparse(request.get_full_path()).path:
         # Spawn an image exporting process in advance (in case the user then requests an export)
-        query_str = get_query_string(request)    
+        query_str = get_query_string(request)
         chart.export_image(query_str, 'png', is_async=True)
         response['Cache-Control'] = 'public, max-age=0, s-maxage=604800'
     else:
@@ -233,7 +232,7 @@ def config(request, configid):
     :param configid: id of the config.js file being requested
     :return: config.js file
     """
-    
+
     chartid = int(configid)
     try:
         chartobj = Chart.objects.get(pk=chartid)
