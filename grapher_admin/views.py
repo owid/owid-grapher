@@ -15,6 +15,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import login as loginview
 from django.db.models import Q
 from django.db import connection
+from django.db import transaction
 from django.http import HttpRequest, HttpResponseRedirect, HttpResponse, HttpResponseNotFound, JsonResponse, QueryDict, StreamingHttpResponse
 from django.template.response import TemplateResponse
 from django.shortcuts import render
@@ -256,10 +257,10 @@ def managechart(request: HttpRequest, chartid: str):
     except ValueError:
         return HttpResponseNotFound('No such chart!')
     if request.method == 'PUT':
-        data = json.loads(request.body)
+        data = json.loads(request.body.decode('utf-8'))
         return savechart(chart, data, request.user)
     if request.method == 'POST':
-        data = QueryDict(request.body)
+        data = QueryDict(request.body.decode('utf-8'))
         if data.get('_method', '0') == 'DELETE':
             chart.delete()
             messages.success(request, 'Chart deleted successfully')
@@ -390,119 +391,130 @@ def importdata(request: HttpRequest):
 @login_required
 def store_import_data(request: HttpRequest):
     if request.method == 'POST':
-        data = json.loads(request.body.decode('utf-8'))
+        try:
+            with transaction.atomic():
+                data = json.loads(request.body.decode('utf-8'))
 
-        datasetmeta = data['dataset']
-        entities = data['entities']
-        entitynames = data['entityNames']
-        years = data['years']
-        variables = data['variables']
+                datasetmeta = data['dataset']
+                entities = data['entities']
+                entitynames = data['entityNames']
+                years = data['years']
+                variables = data['variables']
 
-        datasetprops = {'name': datasetmeta['name'],
-                        'description': datasetmeta['description'],
-                        'fk_dst_cat_id': DatasetSubcategory.objects.get(pk=datasetmeta['subcategoryId']).fk_dst_cat_id,
-                        'fk_dst_subcat_id': DatasetSubcategory.objects.get(pk=datasetmeta['subcategoryId'])
-                        }
+                datasetprops = {'name': datasetmeta['name'],
+                                'description': datasetmeta['description'],
+                                'fk_dst_cat_id': DatasetSubcategory.objects.get(pk=datasetmeta['subcategoryId']).fk_dst_cat_id,
+                                'fk_dst_subcat_id': DatasetSubcategory.objects.get(pk=datasetmeta['subcategoryId'])
+                                }
 
-        if datasetmeta['id']:
-            dataset = Dataset.objects.filter(pk=datasetmeta['id']).update(**datasetprops)
-        else:
-            dataset = Dataset(**datasetprops)
-            dataset.save()
-
-        dataset_id = dataset.pk
-
-        codes = Entity.objects.filter(validated=True).values('name', 'code')
-
-        codes_dict = {}
-
-        for each in codes:
-            codes_dict[each['code']] = each['name']
-
-        entitynames_list = Entity.objects.values_list('name', flat=True)
-
-        for i in range(0, len(entitynames)):
-            name = entitynames[i]
-            if codes_dict.get(name, 0):
-                entitynames[i] = codes_dict[name]
-
-        entitynames_to_insert = []
-
-        for each in entitynames:
-            if each not in entitynames_list:
-                entitynames_to_insert.append(each)
-
-        alist = [Entity(name=val) for val in entitynames_to_insert]
-
-        Entity.objects.bulk_create(alist)
-
-        codes = Entity.objects.values('name', 'id')
-
-        entitiy_name_to_id = {}
-
-        for each in codes:
-            entitiy_name_to_id[each['name']] = each['id']
-
-        source_ids_by_name: Dict[str, str] = {}
-
-        for variable in variables:
-            source_name = variable['source']['name']
-            if source_ids_by_name.get(source_name, 0):
-                source_id = source_ids_by_name[source_name]
-            else:
-                if variable['source']['id']:
-                    source_id = variable['source']['id']
+                if datasetmeta['id']:
+                    dataset = Dataset.objects.get(pk=datasetmeta['id'])
+                    Dataset.objects.filter(pk=datasetmeta['id']).update(updated_at=timezone.now(), **datasetprops)
                 else:
-                    source_id = None
-                source_desc = variable['source']['description']
-                if source_id:
-                    Source.objects.filter(pk=source_id).update(**variable['source'])
-                else:
-                    new_source = Source(datasetId=dataset_id, name=source_name, description=source_desc)
-                    new_source.save()
-                    source_id = new_source.pk
-                    source_ids_by_name[source_name] = source_id
+                    dataset = Dataset(**datasetprops)
+                    dataset.save()
 
-            values = variable['values']
-            variableprops = {'name': variable['name'], 'description': variable['description'], 'unit': variable['unit'],
-                             'coverage': variable['coverage'], 'timespan': variable['timespan'],
-                             'fk_var_type_id': VariableType.objects.get(pk=3),
-                             'fk_dst_id': Dataset.objects.get(pk=dataset_id),
-                             'sourceId': Source.objects.get(pk=source_id),
-                             'uploaded_at': timezone.now(),
-                             'updated_at': timezone.now(),
-                             'uploaded_by': request.user
-                             }
-            if variable['overwriteId']:
-                Variable.objects.filter(pk=variable['overwriteId']).update(**variableprops)
-                varid = variable['overwriteId']
-            else:
-                varid = Variable(**variableprops)
-                varid.save()
-                varid = varid.pk
-            DataValue.objects.filter(fk_var_id=Variable.objects.get(pk=varid)).delete()
+                dataset_id = dataset.pk
 
-            newdatavalues = []
+                codes = Entity.objects.filter(validated=True).values('name', 'code')
 
-            for i in range(0, len(years)):
-                if values[i] == '':
-                    continue
+                codes_dict = {}
 
-                newdatavalues.append(DataValue(fk_var_id=Variable.objects.get(pk=varid),
-                                               fk_ent_id=Entity.objects.get(pk=entitiy_name_to_id[entitynames[entities[i]]]),
-                                               year=years[i],
-                                               value=values[i]))
+                for each in codes:
+                    codes_dict[each['code']] = each['name']
 
-                if len(newdatavalues) > 10000:
-                    DataValue.objects.bulk_create(newdatavalues)
+                entitynames_list = Entity.objects.values_list('name', flat=True)
+
+                for i in range(0, len(entitynames)):
+                    name = entitynames[i]
+                    if codes_dict.get(name, 0):
+                        entitynames[i] = codes_dict[name]
+
+                entitynames_to_insert = []
+
+                for each in entitynames:
+                    if each not in entitynames_list:
+                        entitynames_to_insert.append(each)
+
+                alist = [Entity(name=val, validated=False) for val in entitynames_to_insert]
+
+                Entity.objects.bulk_create(alist)
+
+                codes = Entity.objects.values('name', 'id')
+
+                entitiy_name_to_id = {}
+
+                for each in codes:
+                    entitiy_name_to_id[each['name']] = each['id']
+
+                source_ids_by_name: Dict[str, str] = {}
+
+                for variable in variables:
+                    source_name = variable['source']['name']
+                    if source_ids_by_name.get(source_name, 0):
+                        source_id = source_ids_by_name[source_name]
+                    else:
+                        if variable['source']['id']:
+                            source_id = variable['source']['id']
+                        else:
+                            source_id = None
+                        source_desc = variable['source']['description']
+                        if source_id:
+                            Source.objects.filter(pk=source_id).update(updated_at=timezone.now(), **variable['source'])
+                        else:
+                            new_source = Source(datasetId=dataset_id, name=source_name, description=source_desc)
+                            new_source.save()
+                            source_id = new_source.pk
+                            source_ids_by_name[source_name] = source_id
+
+                    values = variable['values']
+                    variableprops = {'name': variable['name'], 'description': variable['description'], 'unit': variable['unit'],
+                                     'coverage': variable['coverage'], 'timespan': variable['timespan'],
+                                     'fk_var_type_id': VariableType.objects.get(pk=3),
+                                     'fk_dst_id': Dataset.objects.get(pk=dataset_id),
+                                     'sourceId': Source.objects.get(pk=source_id),
+                                     'uploaded_at': timezone.now(),
+                                     'updated_at': timezone.now(),
+                                     'uploaded_by': request.user
+                                     }
+                    if variable['overwriteId']:
+                        Variable.objects.filter(pk=variable['overwriteId']).update(**variableprops)
+                        varid = variable['overwriteId']
+                    else:
+                        varid = Variable(**variableprops)
+                        varid.save()
+                        varid = varid.pk
+                    DataValue.objects.filter(fk_var_id=Variable.objects.get(pk=varid)).delete()
+
                     newdatavalues = []
 
-            if len(newdatavalues) > 0:
-                DataValue.objects.bulk_create(newdatavalues)
-            with connection.cursor() as cursor:
-                cursor.execute("DELETE FROM sources WHERE sources.id NOT IN (SELECT variables.sourceId FROM variables)")
+                    for i in range(0, len(years)):
+                        if values[i] == '':
+                            continue
 
-        return JsonResponse({'datasetId': dataset_id}, safe=False)
+                        newdatavalues.append(DataValue(fk_var_id=Variable.objects.get(pk=varid),
+                                                       fk_ent_id=Entity.objects.get(pk=entitiy_name_to_id[entitynames[entities[i]]]),
+                                                       year=years[i],
+                                                       value=values[i]))
+
+                        if len(newdatavalues) > 10000:
+                            DataValue.objects.bulk_create(newdatavalues)
+                            newdatavalues = []
+
+                    if len(newdatavalues) > 0:
+                        DataValue.objects.bulk_create(newdatavalues)
+                    with connection.cursor() as cursor:
+                        cursor.execute("DELETE FROM sources WHERE sources.id NOT IN (SELECT variables.sourceId FROM variables)")
+
+                return JsonResponse({'datasetId': dataset_id}, safe=False)
+        except Exception as e:
+            if len(e.args) > 1:
+                error_m = str(e.args[0]) + ' ' + str(e.args[1])
+            else:
+                error_m = e.args[0]
+            return HttpResponse(error_m, status=500)
+
+
 
 
 @login_required
@@ -591,7 +603,7 @@ def managedataset(request: HttpRequest, datasetid: str):
         return HttpResponseNotFound('Dataset does not exist!')
 
     if request.method == 'POST':
-        request_dict = QueryDict(request.body).dict()
+        request_dict = QueryDict(request.body.decode('utf-8')).dict()
         if request_dict['_method'] == 'DELETE':
             try:
                 dataset.delete()
@@ -609,7 +621,7 @@ def managedataset(request: HttpRequest, datasetid: str):
             request_dict.pop('csrfmiddlewaretoken', None)
             request_dict['fk_dst_cat_id'] = DatasetCategory.objects.get(pk=request_dict['fk_dst_cat_id'])
             request_dict['fk_dst_subcat_id'] = DatasetSubcategory.objects.get(pk=request_dict['fk_dst_subcat_id'])
-            Dataset.objects.filter(pk=datasetid).update(**request_dict)
+            Dataset.objects.filter(pk=datasetid).update(updated_at=timezone.now(), **request_dict)
             messages.success(request, 'Dataset updated!')
             return HttpResponseRedirect(reverse('showdataset', args=[datasetid]))
 
@@ -779,11 +791,11 @@ def managecategory(request: HttpRequest, catid: str):
         return HttpResponseNotFound('Category does not exist!')
 
     if request.method == 'POST':
-        request_dict = QueryDict(request.body).dict()
+        request_dict = QueryDict(request.body.decode('utf-8')).dict()
         if request_dict['_method'] == 'PATCH':
             request_dict.pop('_method', None)
             request_dict.pop('csrfmiddlewaretoken', None)
-            DatasetCategory.objects.filter(pk=catid).update(**request_dict)
+            DatasetCategory.objects.filter(pk=catid).update(updated_at=timezone.now(), **request_dict)
             messages.success(request, 'Category updated!')
             return HttpResponseRedirect(reverse('showcategory', args=[catid]))
         if request_dict['_method'] == 'DELETE':
@@ -955,7 +967,7 @@ def managevariable(request: HttpRequest, variableid: str):
         return HttpResponseNotFound('Variable does not exist!')
 
     if request.method == 'POST':
-        request_dict = QueryDict(request.body).dict()
+        request_dict = QueryDict(request.body.decode('utf-8')).dict()
         if request_dict['_method'] == 'DELETE':
             try:
                 variable.delete()
@@ -968,7 +980,7 @@ def managevariable(request: HttpRequest, variableid: str):
             request_dict.pop('_method', None)
             request_dict.pop('csrfmiddlewaretoken', None)
             request_dict.pop('sourceId', None)
-            Variable.objects.filter(pk=int(variableid)).update(**request_dict)
+            Variable.objects.filter(pk=int(variableid)).update(updated_at=timezone.now(), **request_dict)
             messages.success(request, 'Variable updated!')
             return HttpResponseRedirect(reverse('showvariable', args=[variableid]))
 
@@ -1022,11 +1034,11 @@ def managelicense(request: HttpRequest, licenseid: str):
         return HttpResponseNotFound('License does not exist!')
 
     if request.method == 'POST':
-        request_dict = QueryDict(request.body).dict()
+        request_dict = QueryDict(request.body.decode('utf-8')).dict()
         if request_dict['_method'] == 'PATCH':
             request_dict.pop('_method', None)
             request_dict.pop('csrfmiddlewaretoken', None)
-            License.objects.filter(pk=int(licenseid)).update(**request_dict)
+            License.objects.filter(pk=int(licenseid)).update(updated_at=timezone.now(), **request_dict)
             messages.success(request, 'License updated!')
             return HttpResponseRedirect(reverse('showlicense', args=[licenseid]))
 
@@ -1219,12 +1231,12 @@ def managesource(request: HttpRequest, sourceid: str):
         return HttpResponseNotFound('Source does not exist!')
 
     if request.method == 'POST':
-        request_dict = QueryDict(request.body).dict()
+        request_dict = QueryDict(request.body.decode('utf-8')).dict()
         if request_dict['_method'] == 'PATCH':
             request_dict.pop('_method', None)
             request_dict.pop('csrfmiddlewaretoken', None)
             try:
-                Source.objects.filter(pk=int(sourceid)).update(**request_dict)
+                Source.objects.filter(pk=int(sourceid)).update(updated_at=timezone.now(), **request_dict)
             except Exception as e:
                 messages.error(request, e.args[1])
                 return HttpResponseRedirect(reverse('showsource', args=[sourceid]))
@@ -1285,7 +1297,7 @@ def managesubcategory(request: HttpRequest, subcatid: str):
     parent_cat = subcat.fk_dst_cat_id.pk
 
     if request.method == 'POST':
-        request_dict = QueryDict(request.body).dict()
+        request_dict = QueryDict(request.body.decode('utf-8')).dict()
         if request_dict['_method'] == 'DELETE':
             try:
                 subcat.delete()
@@ -1298,7 +1310,7 @@ def managesubcategory(request: HttpRequest, subcatid: str):
             request_dict.pop('_method', None)
             request_dict.pop('csrfmiddlewaretoken', None)
             try:
-                DatasetSubcategory.objects.filter(pk=int(subcatid)).update(**request_dict)
+                DatasetSubcategory.objects.filter(pk=int(subcatid)).update(updated_at=timezone.now(), **request_dict)
             except Exception as e:
                 messages.error(request, e.args[1])
                 return HttpResponseRedirect(reverse('editsubcategory', args=[subcatid]))
