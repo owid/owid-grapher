@@ -125,7 +125,7 @@ class Chart(models.Model):
         """
         :return: Will return latest commit revision for the repo
         """
-        git_commit = subprocess.check_output('git rev-parse HEAD', shell=True)
+        git_commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], shell=False)
         return str(git_commit)
 
     def make_cache_tag(self):
