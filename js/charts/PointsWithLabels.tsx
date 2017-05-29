@@ -97,6 +97,10 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         return d3.scaleLinear().range([10, 13]).domain(this.sizeScale.domain());
     }
 
+    @computed get labelFontFamily(): string {
+        return "Arial Narrow, Arial, sans-serif"
+    }
+
     // Used if no color is specified for a series
     @computed get defaultColorScale() {
         return d3.scaleOrdinal().range(d3.schemeCategory20)
@@ -149,13 +153,14 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         if (!series.isFocused || series.values.length <= 1)
             return null
 
+        const {labelFontFamily} = this
         const fontSize = series.isFocused ? 9 : 7
         const firstValue = series.values[0]
         const nextValue = series.values[1]
         const nextSegment = nextValue.position.subtract(firstValue.position)
 
         let pos = firstValue.position.subtract(nextSegment.normalize().times(5))
-        let bounds = Bounds.forText(firstValue.time.x.toString(), { x: pos.x, y: pos.y, fontSize: fontSize })
+        let bounds = Bounds.forText(firstValue.time.x.toString(), { x: pos.x, y: pos.y, fontSize: fontSize, fontFamily: labelFontFamily })
         if (pos.x < firstValue.position.x)
             bounds = new Bounds(bounds.x-bounds.width+2, bounds.y, bounds.width, bounds.height)
         if (pos.y > firstValue.position.y)
@@ -178,6 +183,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             return []
 
         const fontSize = series.isFocused ? 9 : 7
+        const {labelFontFamily} = this
         
         return _.map(series.values.slice(1, -1), (v, i) => {
             const prevPos = i > 0 && series.values[i-1].position
@@ -196,7 +202,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                 pos = v.position.subtract(nextSegment.normalize().times(5))
             }
 
-            let bounds = Bounds.forText(v.time.x.toString(), { x: pos.x, y: pos.y, fontSize: fontSize})
+            let bounds = Bounds.forText(v.time.x.toString(), { x: pos.x, y: pos.y, fontSize: fontSize, fontFamily: labelFontFamily })
             if (pos.x < v.position.x)
                 bounds = new Bounds(bounds.x-bounds.width+2, bounds.y, bounds.width, bounds.height)
             if (pos.y > v.position.y)
@@ -220,6 +226,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         const lastValue = _.last(series.values)
         const lastPos = lastValue.position
         const fontSize = lastValue.fontSize*(series.isFocused ? 1.2 : 1)
+        const {labelFontFamily} = this
 
         let offsetVector = Vector2.up
         if (series.values.length > 1) {
@@ -231,7 +238,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
         const labelPos = lastPos.add(offsetVector.normalize().times(series.values.length == 1 ? lastValue.size+1 : 5))
 
-        let labelBounds = Bounds.forText(series.text, { x: labelPos.x, y: labelPos.y, fontSize: fontSize })
+        let labelBounds = Bounds.forText(series.text, { x: labelPos.x, y: labelPos.y, fontSize: fontSize, fontFamily: labelFontFamily })
         if (labelPos.x < lastPos.x)
             labelBounds = labelBounds.extend({ x: labelBounds.x-labelBounds.width })
         if (labelPos.y > lastPos.y)
@@ -417,13 +424,14 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     }
 
     renderBackgroundLabels() {
-        const {backgroundGroups, isFocusMode} = this
+        const {backgroundGroups, isFocusMode, labelFontFamily} = this
         return _.map(backgroundGroups, series => {
             return _.map(series.allLabels, l => 
                 !l.isHidden && <text key={series.displayKey+'-endLabel'} 
                   x={l.bounds.x} 
                   y={l.bounds.y+l.bounds.height} 
                   fontSize={l.fontSize} 
+                  fontFamily={labelFontFamily}
                   fill={!isFocusMode ? "#333" : "#999"}>{l.text}</text>
             )
         })     
@@ -466,10 +474,16 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     }
 
     renderFocusLabels() {
-        const {focusGroups} = this
+        const {focusGroups, labelFontFamily} = this
         return _.map(focusGroups, series => {
             return _.map(series.allLabels, (l, i) =>
-                !l.isHidden && <text key={series.displayKey+'-label-'+i} x={l.bounds.x} y={l.bounds.y+l.bounds.height} fontSize={l.fontSize} fill="#333">{l.text}</text>
+                !l.isHidden && <text 
+                    key={series.displayKey+'-label-'+i} 
+                    x={l.bounds.x} 
+                    y={l.bounds.y+l.bounds.height} 
+                    fontSize={l.fontSize} 
+                    fontFamily={labelFontFamily}
+                    fill="#333">{l.text}</text>
             )
         })
     }

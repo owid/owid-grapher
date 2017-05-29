@@ -48,7 +48,7 @@ export default class Bounds {
     static baseFontSize: number
     static baseFontFamily: string
 
-    static forText(str: string, { x = 0, y = 0, fontSize = '1em' }: { x?: number, y?: number, fontSize?: string|number } = {}): Bounds {
+    static forText(str: string, { x = 0, y = 0, fontSize = '1em', fontFamily = null }: { x?: number, y?: number, fontSize?: string|number, fontFamily?: string } = {}): Bounds {
         if (str == "")
             return Bounds.empty()
 
@@ -63,7 +63,7 @@ export default class Bounds {
             fontSize = this.baseFontSize*parseFloat(fontSize)+'px'
 
         const key = str+'-'+fontSize
-        const fontFace = this.baseFontFamily
+        const fontFace = fontFamily || this.baseFontFamily
 
         let bounds = this.textBoundsCache[key]
         if (bounds) return bounds.extend({ x: x, y: y-bounds.height })
