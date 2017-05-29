@@ -168,10 +168,6 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         return this.chart.dimensionsWithData
     }
 
-    @computed get timelineYears() {
-        return this.yearsWithDat
-    }
-
     @computed get configTolerance() {
         return 1
     }
