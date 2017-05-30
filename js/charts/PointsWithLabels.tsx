@@ -99,7 +99,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     }
 
     @computed get fontScale() : Function {
-        return d3.scaleLinear().range([10, 13]).domain(this.sizeScale.domain());
+        return d3.scaleLinear().range([9, 12]).domain(this.sizeScale.domain());
     }
 
     @computed get labelFontFamily(): string {
@@ -368,64 +368,54 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         return _.filter(this.renderData, group => group.isFocused)
     }
 
-    // First pass: render the subtle polylines for background groups
     renderBackgroundLines() {
-        const {backgroundGroups, isFocusMode} = this
-
-        return _.map(backgroundGroups, d => {
-            if (d.values.length == 1)
-                return null
-            else {
-                return <polyline
-                    key={d.displayKey+'-line'}
-                    strokeLinecap="round"
-                    stroke={isFocusMode ? "#ccc" : d.color}
-                    points={_.map(d.values, v => `${v.position.x},${v.position.y}`).join(' ')}
-                    fill="none"
-                    strokeWidth={0.3+(d.size/8)}
-                    opacity={0.6}
-                />                
-            }
-        })
-    }
-
-    // Second pass: render the starting points for each background group
-    renderBackgroundStartPoints() {
-        const {backgroundGroups, isFocusMode, isConnected} = this
-        return _.map(backgroundGroups, series => {
-            if (!isConnected || isFocusMode)
-                return null
-            else {
-                const firstValue = _.first(series.values)
-                const color = !isFocusMode ? series.color : "#e2e2e2"
-
-                //return <polygon transform={`translate(${firstValue.position.x}, ${firstValue.position.y}) scale(0.5) rotate(180)`} points="0,0 10,0 5.0,8.66" fill={color} opacity={0.4} stroke="#ccc"/>
-                return <circle key={series.displayKey+'-start'} cx={firstValue.position.x} cy={firstValue.position.y} r={1+firstValue.size/8} fill={!isFocusMode ? series.color : "#e2e2e2"} stroke="#ccc" opacity={0.6}/>
-            }
-        })
-    }
-
-    // Third pass: render the end points for each background group
-    renderBackgroundEndPoints() {
-        const {backgroundGroups, isFocusMode, isConnected} = this
+        const {backgroundGroups, isConnected, isFocusMode} = this
 
         return _.map(backgroundGroups, series => {
-            const lastValue = _.last(series.values)
-            const color = !isFocusMode ? series.color : "#e2e2e2"            
-            let rotation = Vector2.angle(series.offsetVector, Vector2.up)
-            if (series.offsetVector.x < 0) rotation = -rotation
-
-
-            const cx = lastValue.position.x, cy = lastValue.position.y, r = lastValue.size
-
             if (!isConnected) {
-                return <circle key={series.displayKey+'-end'} cx={cx} cy={cy} r={r} fill={color} opacity={0.8} stroke="#ccc"/>
+                return <circle key={series.displayKey+'-end'} cx={cx} cy={cy} r={r} fill={color} opacity={0.8} stroke="#ccc"/>    
             } else if (series.values.length == 1) {
                 return null
             } else {
-                return <Triangle key={series.displayKey+'-end'} transform={`rotate(${rotation}, ${cx}, ${cy})`} cx={cx} cy={cy} r={1+lastValue.size/8} fill={color} stroke="#ccc" strokeWidth={0.2} opacity={0.6}/>
+                const firstValue = _.first(series.values)
+                const lastValue = _.last(series.values)
+                const color = !isFocusMode ? series.color : "#e2e2e2"            
+                let rotation = Vector2.angle(series.offsetVector, Vector2.up)
+                if (series.offsetVector.x < 0) rotation = -rotation
+
+                return [
+                    <circle 
+                        key={series.displayKey+'-start'} 
+                        cx={firstValue.position.x} 
+                        cy={firstValue.position.y} 
+                        r={1+firstValue.size/16} 
+                        fill={!isFocusMode ? series.color : "#e2e2e2"} 
+                        stroke="#ccc" 
+                        opacity={0.6}
+                    />,
+                    <polyline
+                        key={series.displayKey+'-line'}
+                        strokeLinecap="round"
+                        stroke={isFocusMode ? "#ccc" : series.color}
+                        points={_.map(series.values, v => `${v.position.x},${v.position.y}`).join(' ')}
+                        fill="none"
+                        strokeWidth={0.3+(series.size/16)}
+                        opacity={0.6}
+                    />,
+                   <Triangle 
+                        key={series.displayKey+'-end'} 
+                        transform={`rotate(${rotation}, ${lastValue.position.x}, ${lastValue.position.y})`} 
+                        cx={lastValue.position.x} 
+                        cy={lastValue.position.y} 
+                        r={1+lastValue.size/16} 
+                        fill={color} 
+                        stroke="#ccc" 
+                        strokeWidth={0.2} 
+                        opacity={0.6}
+                    />                    
+                ]
             }
-        })    
+        })
     }
 
     renderBackgroundLabels() {
@@ -510,8 +500,6 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                 </clipPath>
             </defs>
             {this.renderBackgroundLines()}
-            {this.renderBackgroundStartPoints()}
-            {this.renderBackgroundEndPoints()}
             {this.renderBackgroundLabels()}
             {this.renderFocusLines()}
             {this.renderFocusLabels()}
