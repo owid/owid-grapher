@@ -104,7 +104,7 @@ class ColorLegend extends React.Component<ColorLegendProps, null> {
 
                 const result = <g class="legendMark" onMouseOver={e => this.props.onMouseOver(mark.color)} onMouseLeave={e => this.props.onMouseLeave()} onClick={e => this.props.onClick(mark.color)}>
                     <rect x={props.x} y={props.y+offset+rectSize/2} width={mark.width} height={mark.height} opacity={0}/>,
-                    <rect x={props.x} y={props.y+offset+rectSize/2} width={rectSize} height={rectSize} fill={mark.color} stroke={isFocus && "#FFEC38"}/>,
+                    <rect x={props.x} y={props.y+offset+rectSize/2} width={rectSize} height={rectSize} fill={mark.color}/>,
                     <Paragraph {...mark.label.props} x={props.x+rectSize+rectPadding} y={props.y+offset}/>
                 </g>
 
@@ -368,7 +368,6 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     @action.bound onLegendClick() {
         if (this.chart.addCountryMode == 'disabled')
             return
-            
         if (_.isEqual(this.focusKeys, this.chart.selectedEntities))
             this.chart.selectedEntities = []
         else

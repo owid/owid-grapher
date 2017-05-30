@@ -159,7 +159,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             return null
 
         const {labelFontFamily} = this
-        const fontSize = series.isFocused ? 9 : 7
+        const fontSize = series.isFocused ? (this.isSubtleFocus ? 8 : 9) : 7
         const firstValue = series.values[0]
         const nextValue = series.values[1]
         const nextSegment = nextValue.position.subtract(firstValue.position)
@@ -187,7 +187,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         if (!series.isFocused || series.values.length <= 1 || (!series.isHovered && this.isSubtleFocus))
             return []
 
-        const fontSize = series.isFocused ? 9 : 7
+        const fontSize = series.isFocused ? (this.isSubtleFocus ? 8 : 9) : 7
         const {labelFontFamily} = this
         
         return _.map(series.values.slice(1, -1), (v, i) => {
@@ -228,10 +228,11 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     // slightly out based on the direction of the series if multiple values
     // are present
     makeEndLabel(series: ScatterRenderSeries) {
+        const {isSubtleFocus, labelFontFamily} = this
+
         const lastValue = _.last(series.values)
         const lastPos = lastValue.position
-        const fontSize = lastValue.fontSize*(series.isFocused ? 1.2 : 1)
-        const {labelFontFamily} = this
+        const fontSize = lastValue.fontSize*(series.isFocused ? (isSubtleFocus ? 1.1 : 1.2) : 1)
 
         let offsetVector = Vector2.up
         if (series.values.length > 1) {
@@ -435,35 +436,35 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     renderFocusLines() {
         const {focusGroups, isSubtleFocus} = this
         
-        return _.map(focusGroups, group => {
-            const lastValue = _.last(group.values)
-            const strokeWidth = group.isHovered ? 3 : (isSubtleFocus ? 1.5 : 2)
+        return _.map(focusGroups, series => {
+            const lastValue = _.last(series.values)
+            const strokeWidth = (series.isHovered ? 3 : (isSubtleFocus ? 0.8 : 2)) + lastValue.size*0.05
 
-            if (group.values.length == 1) {
-                const v = group.values[0]
-                return <circle key={group.displayKey} cx={v.position.x} cy={v.position.y} fill={group.color} r={v.size}/>
+            if (series.values.length == 1) {
+                const v = series.values[0]
+                return <circle key={series.displayKey} cx={v.position.x} cy={v.position.y} fill={series.color} r={v.size}/>
             } else
                 return [
-                    <defs key={group.displayKey+'-defs'}>
-                        <marker id={group.displayKey+'-arrow'} fill={group.color} viewBox="0 -5 10 10" refx={5} refY={0} markerWidth={4} markerHeight={4} orient="auto">
+                    <defs key={series.displayKey+'-defs'}>
+                        <marker id={series.displayKey+'-arrow'} fill={series.color} viewBox="0 -5 10 10" refx={5} refY={0} markerWidth={4} markerHeight={4} orient="auto">
                             <path d="M0,-5L10,0L0,5"/>
                         </marker>
-                        <marker id={group.displayKey+'-circle'} viewBox="0 0 12 12"
-                                refX={4} refY={4} orient="auto" fill={group.color}>
+                        <marker id={series.displayKey+'-circle'} viewBox="0 0 12 12"
+                                refX={4} refY={4} orient="auto" fill={series.color}>
                             <circle cx={4} cy={4} r={4}/>
                         </marker>
                     </defs>,
                     <polyline
-                        key={group.displayKey+'-line'}
+                        key={series.displayKey+'-line'}
                         strokeLinecap="round"
-                        stroke={group.color}
-                        points={_.map(group.values, v => `${v.position.x},${v.position.y}`).join(' ')}
+                        stroke={series.color}
+                        points={_.map(series.values, v => `${v.position.x},${v.position.y}`).join(' ')}
                         fill="none"
                         strokeWidth={strokeWidth}
-                        opacity={isSubtleFocus ? 0.8 : 1}
-                        markerStart={`url(#${group.displayKey}-circle)`}
-                        markerMid={`url(#${group.displayKey}-circle)`}
-                        markerEnd={`url(#${group.displayKey}-arrow)`}
+                        opacity={isSubtleFocus ? 0.6 : 1}
+                        markerStart={`url(#${series.displayKey}-circle)`}
+                        markerMid={`url(#${series.displayKey}-circle)`}
+                        markerEnd={`url(#${series.displayKey}-arrow)`}
                     />
                 ]
         })      
