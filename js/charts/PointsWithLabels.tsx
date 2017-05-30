@@ -82,6 +82,11 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         return _.some(this.data, series => series.values.length > 1)
     }
 
+    // When focusing multiple entities, we hide some information to declutter
+    @computed get isSubtleFocus(): boolean {
+        return this.focusKeys.length > 1
+    }
+
     @computed get sizeScale() : Function {
         const {data} = this
         const sizeScale = d3.scaleLinear().range([2, 25]).domain(this.props.sizeDomain)
@@ -179,7 +184,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     // Make labels for the points between start and end on a series
     // Positioned using normals of the line segments
     makeMidLabels(series: ScatterRenderSeries) {
-        if (!series.isFocused || series.values.length <= 1)
+        if (!series.isFocused || series.values.length <= 1 || (!series.isHovered && this.isSubtleFocus))
             return []
 
         const fontSize = series.isFocused ? 9 : 7
@@ -438,11 +443,11 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     }
 
     renderFocusLines() {
-        const {focusGroups} = this
+        const {focusGroups, isSubtleFocus} = this
         
         return _.map(focusGroups, group => {
-                const focusMul = (group.isHovered ? 3 : 2)
-                const lastValue = _.last(group.values)
+            const lastValue = _.last(group.values)
+            const strokeWidth = group.isHovered ? 3 : (isSubtleFocus ? 1.5 : 2)
 
             if (group.values.length == 1) {
                 const v = group.values[0]
@@ -464,7 +469,8 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                         stroke={group.color}
                         points={_.map(group.values, v => `${v.position.x},${v.position.y}`).join(' ')}
                         fill="none"
-                        strokeWidth={focusMul}
+                        strokeWidth={strokeWidth}
+                        opacity={isSubtleFocus ? 0.8 : 1}
                         markerStart={`url(#${group.displayKey}-circle)`}
                         markerMid={`url(#${group.displayKey}-circle)`}
                         markerEnd={`url(#${group.displayKey}-arrow)`}
