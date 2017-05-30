@@ -239,19 +239,19 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     }
 
     @action.bound onTargetChange({targetStartYear, targetEndYear}: {targetStartYear: number, targetEndYear: number}) {
-        this.chart.timeRange = [targetStartYear, targetEndYear]
+        this.chart.timeDomain = [targetStartYear, targetEndYear]
     }
 
     @computed get startYear() {
-        if (_.isFinite(this.chart.timeRange[0]))
-            return Math.max(_.first(this.data.years), this.chart.timeRange[0])
+        if (_.isFinite(this.chart.timeDomain[0]))
+            return Math.max(_.first(this.data.years), this.chart.timeDomain[0])
         else
             return _.first(this.data.years)
     }
 
     @computed get endYear() {
-        if (_.isFinite(this.chart.timeRange[1]))
-            return Math.min(_.last(this.data.years), this.chart.timeRange[1])
+        if (_.isFinite(this.chart.timeDomain[1]))
+            return Math.min(_.last(this.data.years), this.chart.timeDomain[1])
         else
             return _.last(this.data.years)
     }
@@ -335,7 +335,8 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     }
 
     @action.bound onSelectEntity(focusKeys) {
-        this.chart.selectedEntities = focusKeys
+        if (this.chart.addCountryMode != 'disabled')
+            this.chart.selectedEntities = focusKeys
     }
 
     @computed get timeline(): Timeline|null {
@@ -365,6 +366,9 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     }
 
     @action.bound onLegendClick() {
+        if (this.chart.addCountryMode == 'disabled')
+            return
+            
         if (_.isEqual(this.focusKeys, this.chart.selectedEntities))
             this.chart.selectedEntities = []
         else

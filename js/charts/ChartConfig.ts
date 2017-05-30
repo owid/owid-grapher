@@ -17,7 +17,7 @@ export default class ChartConfig {
 
 	@observable.ref selectedEntities: Object[] = []
     @observable.ref entityType: string = "country"
-    @observable.ref timeRange: [number|null, number|null]
+    @observable.ref timeDomain: [number|null, number|null]
     @observable.struct timeline: Object = null
 
     @observable.ref yAxisConfig: any
@@ -36,11 +36,15 @@ export default class ChartConfig {
     @observable.ref units: Object[]
     @observable.struct availableTabs: string[]
 
-
     @observable.struct dimensions: Object[]
     @observable.ref dimensionsWithData: Object[]
+    @observable.ref addCountryMode: 'add-country'|'change-country'|'disabled' = 'add-country'
 
 	model: any
+
+    @computed get selectedEntitiesByName() {
+        return _.keyBy(this.selectedEntities)
+    }
 
     @action.bound syncFromModel() {
         this.type = this.model.get('chart-type')
@@ -57,11 +61,11 @@ export default class ChartConfig {
         this.entityType = this.model.get('entity-type')
         this.timeline = this.model.get('timeline')
 
-        const timeRange = this.model.get('chart-time')
-        if (!timeRange)
-            this.timeRange = [null, null]
+        const timeDomain = this.model.get('chart-time')
+        if (!timeDomain)
+            this.timeDomain = [null, null]
         else
-            this.timeRange = _.map(timeRange, v => _.isString(v) ? parseInt(v) : v)
+            this.timeDomain = _.map(timeDomain, v => _.isString(v) ? parseInt(v) : v)
 
         this.units = JSON.parse(this.model.get('units')||"{}")
 
@@ -113,6 +117,7 @@ export default class ChartConfig {
         }) as string[])
 
         this.dimensions = this.model.get('chart-dimensions')        
+        this.addCountryMode = this.model.get('add-country-mode')
     }
 
 	constructor(model : any, data: any) {
@@ -165,7 +170,7 @@ export default class ChartConfig {
 		})
 
         autorun(() => {
-            this.model.set('chart-time', toJS(this.timeRange))
+            this.model.set('chart-time', toJS(this.timeDomain))
         })
 
         autorun(() => {            
@@ -175,9 +180,5 @@ export default class ChartConfig {
         autorun(() => {
             this.model.setAxisConfig('x-axis', 'axis-scale', this.xScaleType)
         })
-	}
-
-	@computed get timeDomain() : [number|null, number|null] {
-		return this.model.get("chart-time")||[null, null]
 	}
 }

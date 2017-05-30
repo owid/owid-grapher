@@ -24,13 +24,17 @@ export default class ScatterData {
         this.chart = chart       
     }
 
+    @computed get hideBackgroundEntities() {
+        return this.chart.addCountryMode == 'disabled'
+    }
+
     @computed get axisDimensions() {
         return _.filter(this.chart.dimensionsWithData, d => d.property == 'x' || d.property == 'y')
     }
 
     @computed get years(): number[] {
         if (!this.chart.timeline) {
-            let maxYear = this.chart.timeRange[1]
+            let maxYear = this.chart.timeDomain[1]
             if (!_.isFinite(maxYear))
                 maxYear = _(this.axisDimensions).map(d => _.max(d.variable.years)).max()
             return [maxYear]
@@ -71,8 +75,8 @@ export default class ScatterData {
 
     // Precompute the data transformation for every timeline year (so later animation is fast)
     @computed get dataByEntityAndYear() {
-        const {years, colorScale} = this
-        const {dimensionsWithData, xScaleType, yScaleType} = this.chart
+        const {years, colorScale, hideBackgroundEntities} = this
+        const {dimensionsWithData, xScaleType, yScaleType, selectedEntitiesByName} = this.chart
         var dataByEntityAndYear = {};
     
         // The data values
@@ -84,7 +88,10 @@ export default class ScatterData {
                 for (var i = 0; i < variable.years.length; i++) {
                     var year = variable.years[i],
                         value = variable.values[i],
-                        entity = variable.entityKey[variable.entities[i]];
+                        entity = variable.entityKey[variable.entities[i]];                    
+
+                    if (hideBackgroundEntities && !selectedEntitiesByName[entity.name])
+                        continue
 
                     const targetYear = (!this.chart.timeline && _.isFinite(dimension.targetYear)) ? dimension.targetYear : outputYear
 

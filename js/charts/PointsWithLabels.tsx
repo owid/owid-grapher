@@ -418,7 +418,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             } else if (series.values.length == 1) {
                 return null
             } else {
-                return <Triangle key={series.displayKey+'-end'} transform={`rotate(${rotation}, ${cx}, ${cy})`} cx={cx} cy={cy} r={1+lastValue.size/8} fill={color} stroke="#ccc" strokeWidth={0.2} opacity={0.8}/>
+                return <Triangle key={series.displayKey+'-end'} transform={`rotate(${rotation}, ${cx}, ${cy})`} cx={cx} cy={cy} r={1+lastValue.size/8} fill={color} stroke="#ccc" strokeWidth={0.2} opacity={0.6}/>
             }
         })    
     }

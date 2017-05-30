@@ -69,7 +69,7 @@ async function run() {
         process.exit(1);
       }
 
-      const screenshot = await Page.captureScreenshot({format: 'png'})
+      const screenshot = await Page.captureScreenshot({format: 'png', fromSurface: true})
       const buffer = new Buffer(screenshot.data, 'base64');
       file.writeFile(output, buffer, 'base64', function(err) {
         if (err) {
