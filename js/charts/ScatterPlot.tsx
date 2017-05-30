@@ -223,7 +223,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         })
 
         currentData = _.filter(currentData, series => {
-            return series.values.length > 0 && _.first(series.values).year == startYear && (_.last(series.values).year == endYear || _.first(series.values).year == startYear)
+            return series.values.length > 0 && ((_.first(series.values).year == startYear && (_.last(series.values).year == endYear || _.first(series.values).year == startYear)) || _.includes(this.chart.selectedEntities, series.key)
         })
         
         return currentData;

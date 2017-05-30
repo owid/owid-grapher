@@ -99,7 +99,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     }
 
     @computed get fontScale() : Function {
-        return d3.scaleLinear().range([9, 12]).domain(this.sizeScale.domain());
+        return d3.scaleLinear().range([10, 13]).domain(this.sizeScale.domain());
     }
 
     @computed get labelFontFamily(): string {
@@ -373,14 +373,15 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         const {backgroundGroups, isConnected, isFocusMode} = this
 
         return _.map(backgroundGroups, series => {
+            const firstValue = _.first(series.values)
+            const color = !isFocusMode ? series.color : "#e2e2e2"            
+
             if (!isConnected) {
-                return <circle key={series.displayKey+'-end'} cx={cx} cy={cy} r={r} fill={color} opacity={0.8} stroke="#ccc"/>    
+                return <circle key={series.displayKey+'-end'} cx={firstValue.position.x} cy={firstValue.position.y} r={firstValue.size} fill={color} opacity={0.8} stroke="#ccc"/>    
             } else if (series.values.length == 1) {
                 return null
             } else {
-                const firstValue = _.first(series.values)
                 const lastValue = _.last(series.values)
-                const color = !isFocusMode ? series.color : "#e2e2e2"            
                 let rotation = Vector2.angle(series.offsetVector, Vector2.up)
                 if (series.offsetVector.x < 0) rotation = -rotation
 
