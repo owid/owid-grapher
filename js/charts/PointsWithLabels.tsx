@@ -437,7 +437,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                   y={l.bounds.y+l.bounds.height} 
                   fontSize={l.fontSize} 
                   fontFamily={labelFontFamily}
-                  fill={!isFocusMode ? "#333" : "#999"}>{l.text}</text>
+                  fill={!isFocusMode ? "#666" : "#aaa"}>{l.text}</text>
             )
         })     
     }
