@@ -13,10 +13,6 @@ import * as d3 from 'd3'
 import ChartConfig from './ChartConfig'
 import {computed, observable, extras} from 'mobx'
 
-// [1990, 1, null]
-// [1992, null, 2] ^
-// [1995, 3, null]
-
 export default class ScatterData {
     chart: ChartConfig
 

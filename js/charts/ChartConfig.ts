@@ -3,6 +3,10 @@ const owid: any = require('../owid').default
 import * as _ from 'lodash'
 import {observable, computed, action, autorun, toJS} from 'mobx'
 
+interface TimelineConfig {
+    compareEndPointsOnly: boolean
+}
+
 // In-progress mobx model layer that will eventually replace ChartModel
 export default class ChartConfig {
     @observable.ref type: string
@@ -18,7 +22,7 @@ export default class ChartConfig {
 	@observable.ref selectedEntities: Object[] = []
     @observable.ref entityType: string = "country"
     @observable.ref timeDomain: [number|null, number|null]
-    @observable.struct timeline: Object = null
+    @observable.ref timeline: TimelineConfig|null = null
 
     @observable.ref yAxisConfig: any
     @observable.ref yDomain: [number|null, number|null]

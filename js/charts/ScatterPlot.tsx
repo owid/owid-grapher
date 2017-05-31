@@ -178,7 +178,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
 
     @computed get currentData() : ScatterSeries[] {
         const {dataByEntityAndYear, startYear, endYear, isInterpolating} = this
-        const {xScaleType, yScaleType} = this.chart
+        const {xScaleType, yScaleType, timeline} = this.chart
         var currentData = [];
 
         _.each(dataByEntityAndYear, (dataByYear) => {
@@ -225,6 +225,12 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         currentData = _.filter(currentData, series => {
             return series.values.length > 0 && ((_.first(series.values).year == startYear && (_.last(series.values).year == endYear || _.first(series.values).year == startYear)) || _.includes(this.chart.selectedEntities, series.key)
         })
+
+        if (timeline && timeline.compareEndPointsOnly) {
+            _.each(currentData, series => {
+                series.values = [_.first(series.values), _.last(series.values)]
+            })
+        }
         
         return currentData;
     }
