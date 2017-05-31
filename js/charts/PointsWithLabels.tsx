@@ -332,12 +332,20 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     @action.bound onMouseMove(ev: any) {
         const mouse = Vector2.fromArray(getRelativeMouse(this.base, ev))
 
-        const closestSeries = _.sortBy(this.renderData, (series) => {
-//                    return _.min(_.map(series.values.slice(0, -1), (d, i) => {
-//                        return Vector2.distanceFromPointToLineSq(mouse, d.position, series.values[i+1].position)
-//                    }))
-            return _.min(_.map(series.values, v => Vector2.distanceSq(v.position, mouse)))
+        let closestSeries = _.sortBy(this.renderData, (series) => {
+            if (_.some(series.allLabels, l => !l.isHidden && l.bounds.contains(mouse)))
+                return -Infinity
+
+
+            if (this.isConnected) {
+                return _.min(_.map(series.values.slice(0, -1), (d, i) => {
+                    return Vector2.distanceFromPointToLineSq(mouse, d.position, series.values[i+1].position)
+                }))
+            } else {
+                return _.min(_.map(series.values, v => Vector2.distanceSq(v.position, mouse)))
+            }
         })[0]
+
         if (closestSeries) //&& _.min(_.map(closestSeries.values, v => Vector2.distance(v.position, mouse))) < 20)
             this.hoverKey = closestSeries.key
         else

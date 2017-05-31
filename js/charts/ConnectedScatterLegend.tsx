@@ -52,8 +52,8 @@ export default class ConnectedScatterLegend extends React.Component<ConnectedSca
         const lineY = props.y+this.height/2-0.5
 
         return <g className="ConnectedScatterLegend">
-            <Paragraph {...startLabel.props} x={props.x} y={props.y}/>
-            <Paragraph {...endLabel.props} x={props.x+props.maxWidth-endLabel.width} y={props.y}/>
+            <Paragraph {...startLabel.props} precalc={startLabel} x={props.x} y={props.y}/>
+            <Paragraph {...endLabel.props} precalc={endLabel} x={props.x+props.maxWidth-endLabel.width} y={props.y}/>
             <line x1={lineLeft} y1={lineY} x2={lineRight} y2={lineY} stroke="#666" strokeWidth={1}/>
             <circle cx={lineLeft} cy={lineY} r={2} fill="#666" stroke="#ccc" strokeWidth={0.2}/>
             <Triangle cx={lineRight} cy={lineY} r={3} fill="#666" stroke="#ccc" strokeWidth={0.2} 
