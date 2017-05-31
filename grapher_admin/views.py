@@ -157,7 +157,7 @@ def editchart(request: HttpRequest, chartid: Union[str, int]):
         return HttpResponseNotFound('Invalid chart id!')
 
     data = editor_data()
-    chartconfig = json.dumps(chart.get_config_with_url())
+    chartconfig = json.dumps(chart.get_config())
 
     if '.json' in urlparse(request.get_full_path()).path:
         return JsonResponse({'data': data, 'config': chartconfig}, safe=False)
@@ -278,11 +278,11 @@ def showchart(request: HttpRequest, chartid: str):
     except ValueError:
         return HttpResponseNotFound('No such chart!')
     if request.method != 'GET':
-        return JsonResponse(chart.get_config_with_url(), safe=False)
+        return JsonResponse(chart.get_config(), safe=False)
     else:
         # this part was lifted directly from the public facing side
         # so if anything changes there, be sure to make the same changes here
-        configfile = chart.get_config_with_url()
+        configfile = chart.get_config()
         canonicalurl = request.build_absolute_uri('/') + chart.slug
         baseurl = request.build_absolute_uri('/') + chart.slug
 

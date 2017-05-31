@@ -74,6 +74,7 @@ export default class ScatterData {
     }
 
     // Precompute the data transformation for every timeline year (so later animation is fast)
+    // If there's no timeline, this uses the same structure but only computes for a single year
     @computed get dataByEntityAndYear() {
         const {years, colorScale, hideBackgroundEntities} = this
         const {dimensionsWithData, xScaleType, yScaleType, selectedEntitiesByName} = this.chart
@@ -88,7 +89,7 @@ export default class ScatterData {
                 for (var i = 0; i < variable.years.length; i++) {
                     var year = variable.years[i],
                         value = variable.values[i],
-                        entity = variable.entityKey[variable.entities[i]];                    
+                        entity = variable.entityKey[variable.entities[i]];
 
                     if (hideBackgroundEntities && !selectedEntitiesByName[entity.name])
                         continue

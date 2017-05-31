@@ -150,7 +150,7 @@ def showchart(request, chart):
                 chart.origin_url = origin_url
                 chart.save()
 
-    configfile = chart.get_config_with_url()
+    configfile = chart.get_config()
     canonicalurl = request.build_absolute_uri('/grapher/') + chart.slug
     baseurl = request.build_absolute_uri('/grapher/') + chart.slug
 
@@ -239,7 +239,7 @@ def config(request, configid):
     except Chart.DoesNotExist:
         return HttpResponseNotFound('Config file does not exist!')
 
-    configdict = chartobj.get_config_with_url()
+    configdict = chartobj.get_config()
     configdict['variableCacheTag'] = chartobj.make_cache_tag()
 
     configfile = 'App.loadChart(' + json.dumps(configdict) + ')'

@@ -149,7 +149,7 @@ class Chart(models.Model):
         variable_cache_tag = m.hexdigest()
         return variable_cache_tag
 
-    def get_config_with_url(self):
+    def get_config(self):
         """
         :return: A Chart's config dictionary
         """
@@ -165,6 +165,11 @@ class Chart(models.Model):
         for each in list(Logo.objects.filter(name__in=config['logos'])):
             logos.append(each.svg)
         config['logosSVG'] = logos
+        config['chart-dimensions'] = list(self.chartdimension_set.values())
+        # XXX
+        for dim in config['chart-dimensions']:
+            dim['chartId'] = dim.pop('chartId_id')
+            dim['variableId'] = dim.pop('variableId_id')
         return config
 
     def show_type(self):
