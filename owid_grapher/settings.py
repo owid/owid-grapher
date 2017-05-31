@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'grapher_admin',
     'importer',
     'country_name_tool',
+    'django_extensions'
 ]
 
 MIDDLEWARE = [

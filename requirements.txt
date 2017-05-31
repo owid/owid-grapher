@@ -18,3 +18,4 @@ requests==2.13.0
 six==1.10.0
 cloudflare==1.5.1
 django_slack==5.8.0
+django-extensions==1.7.9
