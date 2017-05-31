@@ -98,7 +98,7 @@ export default class Paragraph extends React.Component<ParagraphProps, undefined
 
 
     @computed get height(): number {
-        return _.reduce(this.lines, (total, line) => total+line.height+this.lineHeight, 0)
+        return _.reduce(this.lines, (total, line) => total+line.height, 0) + this.lineHeight*(this.lines.length-1)
     }
 
     @computed get width(): number {
@@ -121,3 +121,4 @@ export default class Paragraph extends React.Component<ParagraphProps, undefined
 		</text>
 	}
 }
+''

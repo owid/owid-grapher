@@ -24,96 +24,13 @@ import Timeline from './Timeline'
 import PointsWithLabels from './PointsWithLabels'
 import {preInstantiate} from './Util'
 import Paragraph from './Paragraph'
-import ShapeLegend from './ShapeLegend'
+import ConnectedScatterLegend from './ConnectedScatterLegend'
 import {Triangle} from './Marks'
 import ScatterData from './ScatterData'
 import AxisGrid from './AxisGrid'
+import ColorLegend from './ColorLegend'
 
 type ScatterSeries = any
-
-interface ColorLegendProps {
-    x?: number,
-    y?: number,
-    maxWidth: number,
-    colors: string[],
-    scale: d3.ScaleOrdinal<string, string>,
-    focusColor?: string,
-    onMouseOver: (color: string) => void,
-    onClick: (color: string) => void,
-    onMouseLeave: () => void
-}
-
-interface LabelMark {
-    label: Paragraph,
-    color: string,
-    width: number,
-    height: number
-}
-
-@observer
-class ColorLegend extends React.Component<ColorLegendProps, null> {
-    static defaultProps: Partial<ColorLegendProps> = {
-        x: 0,
-        y: 0,
-        onMouseOver: () => null,
-        onClick: () => null,
-        onMouseLeave: () => null
-    }
-
-    @computed get fontSize(): number { return 0.5 }
-    @computed get rectSize(): number { return 5 }
-    @computed get rectPadding(): number { return 5 }
-    @computed get lineHeight(): number { return 5 }
-
-    @computed get labelMarks(): LabelMark[] {
-        const {props, fontSize, rectSize, rectPadding} = this
-
-        return _.filter(_.map(props.scale.domain(), value => {            
-            const color = props.scale(value)
-            if (props.colors.indexOf(color) == -1)
-                return null
-
-            const label = preInstantiate(<Paragraph maxWidth={props.maxWidth} fontSize={fontSize}>{value}</Paragraph>)
-            return {
-                label: label,
-                color: color,
-                width: rectSize+rectPadding+label.width,
-                height: Math.max(label.height, rectSize)
-            }
-        }))
-    }
-
-    @computed get width(): number {
-        if (this.labelMarks.length == 0)
-            return 0   
-        else 
-            return _.max(_.map(this.labelMarks, 'width'))
-    }
-
-    @computed get height() {
-        return _.sum(_.map(this.labelMarks, 'height')) + this.lineHeight*this.labelMarks.length
-    }
-
-    render() {
-        const {props, rectSize, rectPadding, lineHeight} = this
-        let offset = 0
-
-        return <g class="ColorLegend clickable" style={{cursor: 'pointer'}}>
-            {_.map(this.labelMarks, mark => {
-                const isFocus = mark.color == props.focusColor
-
-                const result = <g class="legendMark" onMouseOver={e => this.props.onMouseOver(mark.color)} onMouseLeave={e => this.props.onMouseLeave()} onClick={e => this.props.onClick(mark.color)}>
-                    <rect x={props.x} y={props.y+offset+rectSize/2} width={mark.width} height={mark.height} opacity={0}/>,
-                    <rect x={props.x} y={props.y+offset+rectSize/2} width={rectSize} height={rectSize} fill={mark.color}/>,
-                    <Paragraph {...mark.label.props} x={props.x+rectSize+rectPadding} y={props.y+offset}/>
-                </g>
-
-                offset += mark.height+lineHeight
-                return result
-            })}
-        </g>
-    }
-}
 
 interface ScatterWithAxisProps {
     bounds: Bounds,
@@ -388,22 +305,12 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         }
     }
 
-    @computed get shapeLegend(): ShapeLegend {
+    @computed get shapeLegend(): ConnectedScatterLegend {
         if (this.focusKeys.length || this.hoverSeries || this.startYear == this.endYear)
             return null
 
-        const shapeData=[
-            {
-                shape: <circle cx={3} cy={3} r={2} fill={"#333"} stroke="#ccc" strokeWidth={0.2} opacity={0.8}/>,
-                text: this.startYear.toString()
-            },
-            { 
-                shape: <Triangle cx={3} cy={3} r={3} fill={"#333"} stroke="#ccc" strokeWidth={0.2} opacity={1}/>,
-                text: this.endYear.toString()
-            }
-        ]
         return preInstantiate(
-            <ShapeLegend maxWidth={this.sidebarWidth} data={shapeData} shapeWidth={6}/>
+            <ConnectedScatterLegend maxWidth={this.sidebarWidth} startYear={this.startYear} endYear={this.endYear}/>
         )
     }
 
@@ -438,7 +345,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
             <ScatterWithAxis data={currentData} onMouseOver={this.onScatterMouseOver} chart={chart} bounds={this.bounds.padBottom(timelineHeight).padRight(sidebarWidth+20)} xScale={xScale} yScale={yScale} sizeDomain={sizeDomain} xAxisLabel={chart.xAxisLabel} yAxisLabel={chart.yAxisLabel} onSelectEntity={this.onSelectEntity} focusKeys={focusKeys} onMouseLeave={this.onScatterMouseLeave}/>
             <ColorLegend {...legend.props} x={bounds.right-sidebarWidth} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} onClick={this.onLegendClick} focusColor={focusColor}/>
             {(shapeLegend || tooltipSeries) && <line x1={bounds.right-sidebarWidth} y1={bounds.top+legend.height+2} x2={bounds.right-5} y2={bounds.top+legend.height+2} stroke="#ccc"/>}
-            {shapeLegend && <ShapeLegend {...shapeLegend.props} x={bounds.right-sidebarWidth} y={bounds.top+legend.height+11}/>}            
+            {shapeLegend && <ConnectedScatterLegend {...shapeLegend.props} x={bounds.right-sidebarWidth} y={bounds.top+legend.height+11}/>}            
             {timeline && <Timeline {...timeline.props}/>}
             {tooltipSeries && <ScatterTooltip series={tooltipSeries} units={chart.units} maxWidth={sidebarWidth} x={bounds.right-sidebarWidth} y={bounds.top+legend.height+11+(shapeLegend ? shapeLegend.height : 0)}/>}}
         </g>

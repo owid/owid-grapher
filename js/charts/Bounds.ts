@@ -74,9 +74,6 @@ export default class Bounds {
         let width = m.width
         let height = parseFloat(fontSize)
 
-        if (window.hasOwnProperty("callPhantom")) // HACK (Mispy): under phantomjs ctx.measureText underestimates the width
-            width *= 1.03
-
         bounds = new Bounds(x, y-height, width, height)
 
         this.textBoundsCache[key] = bounds
