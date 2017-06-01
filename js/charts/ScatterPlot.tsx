@@ -208,7 +208,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
 
         if (this.chart.xScaleType == 'log' && xMin <= 0) xMin = null
         if (this.chart.xScaleType == 'log' && xMax <= 0) xMax = null
-        
+
         return [
             _.defaultTo(xMin, this.xDomainDefault[0]),
             _.defaultTo(xMax, this.xDomainDefault[1])

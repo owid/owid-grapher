@@ -97,8 +97,11 @@ export default class ScatterData {
                     var year = variable.years[i],
                         value = variable.values[i],
                         entity = variable.entityKey[variable.entities[i]].name;
-
+                    
                     if (!validEntityByName[entity])
+                        continue
+
+                    if ((dimension.property == 'x' || dimension.property == 'y') && !_.isNumber(value))
                         continue
     
                     const targetYear = (!this.chart.timeline && _.isFinite(dimension.targetYear)) ? dimension.targetYear : outputYear
