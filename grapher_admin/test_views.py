@@ -1,10 +1,20 @@
 import json
+from django.db import transaction
+from django.db import connection
 from django.test import TestCase
-from grapher_admin.models import Chart, DatasetSubcategory, Dataset, Variable, Source, DataValue, Entity
+from grapher_admin.models import DatasetSubcategory, Dataset, Variable, Source, DataValue, Entity
 
 
 class OwidTests(TestCase):
-    fixtures = ['owid_grapher/fixtures/owid_data.json']
+
+    @transaction.atomic()
+    def setUp(self):
+        with connection.cursor() as cursor:
+            file = open('owid_grapher/fixtures/owid_data.sql', 'r', encoding='utf8').read()
+            delimit = ");\n"  # the delimiter that separates each INSERT statement in our export file
+            file = [e + delimit for e in file.split(delimit) if e]
+            for eachline in file:
+                cursor.execute(eachline)
 
     # Tests for the admin side of the grapher
 
