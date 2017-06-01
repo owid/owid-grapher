@@ -524,8 +524,8 @@ class CSV {
 		const nonNumeric = []
 		for (let i = 1; i < rows.length; i++) {
 			const row = rows[i]
-			for (var j = 2; j < row.length; j++) {
-				if (row[j] != '' && !row[j].match(/^[0-9.-]+$/))
+			for (var j = 2; j < row.length; j++) {				
+				if (row[j] != '' && (isNaN(parseFloat(row[j])) || !row[j].match(/^[0-9.-]+$/)))
 					nonNumeric.push(i+1 + " `" + row[j] + "`")
 			}
 		}
