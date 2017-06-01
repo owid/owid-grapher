@@ -461,6 +461,7 @@ def exportfile(request, slug, fileformat):
             )
             disposition = "attachment; filename=%s.csv" % slug
             response['Content-Disposition'] = disposition
+            response['Cache-Control'] = 'public, max-age=0, s-maxage=604800'
             return response
         else:
             HttpResponseNotFound('No such chart!')
