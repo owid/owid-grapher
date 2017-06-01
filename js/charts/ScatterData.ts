@@ -13,10 +13,6 @@ import * as d3 from 'd3'
 import ChartConfig from './ChartConfig'
 import {computed, observable, extras} from 'mobx'
 
-// [1990, 1, null]
-// [1992, null, 2] ^
-// [1995, 3, null]
-
 export default class ScatterData {
     chart: ChartConfig
 
@@ -28,9 +24,23 @@ export default class ScatterData {
         return _.filter(this.chart.dimensionsWithData, d => d.property == 'x' || d.property == 'y')
     }
 
+    @computed get hideBackgroundEntities() {
+        return this.chart.addCountryMode == 'disabled'
+    }
+
+    @computed get validEntities() {
+        if (this.hideBackgroundEntities)
+            return this.chart.selectedEntities
+        else
+            return _.intersection(
+                _.map(_.uniq(this.axisDimensions[0].variable.entities), e => this.axisDimensions[0].variable.entityKey[e].name)
+                _.map(_.uniq(this.axisDimensions[1].variable.entities), e => this.axisDimensions[1].variable.entityKey[e].name)
+            )
+    }
+
     @computed get years(): number[] {
-        if (!this.chart.timeline) {
-            let maxYear = this.chart.timeRange[1]
+       if (!this.chart.timeline) {
+            let maxYear = this.chart.timeDomain[1]
             if (!_.isFinite(maxYear))
                 maxYear = _(this.axisDimensions).map(d => _.max(d.variable.years)).max()
             return [maxYear]
@@ -70,10 +80,12 @@ export default class ScatterData {
     }
 
     // Precompute the data transformation for every timeline year (so later animation is fast)
+    // If there's no timeline, this uses the same structure but only computes for a single year
     @computed get dataByEntityAndYear() {
-        const {years, colorScale} = this
+        const {years, colorScale, hideBackgroundEntities, validEntities} = this
         const {dimensionsWithData, xScaleType, yScaleType} = this.chart
-        var dataByEntityAndYear = {};
+        const dataByEntityAndYear = {};
+        const validEntityByName = _.keyBy(validEntities)
     
         // The data values
         _.each(dimensionsWithData, (dimension) => {
@@ -84,19 +96,25 @@ export default class ScatterData {
                 for (var i = 0; i < variable.years.length; i++) {
                     var year = variable.years[i],
                         value = variable.values[i],
-                        entity = variable.entityKey[variable.entities[i]];
+                        entity = variable.entityKey[variable.entities[i]].name;
+                    
+                    if (!validEntityByName[entity])
+                        continue
 
+                    if ((dimension.property == 'x' || dimension.property == 'y') && !_.isNumber(value))
+                        continue
+    
                     const targetYear = (!this.chart.timeline && _.isFinite(dimension.targetYear)) ? dimension.targetYear : outputYear
 
                     // Skip years that aren't within tolerance of the target
                     if (year < targetYear-tolerance || year > targetYear+tolerance)
                         continue;
 
-                    var dataByYear = owid.default(dataByEntityAndYear, entity.id, {}),
+                    var dataByYear = owid.default(dataByEntityAndYear, entity, {}),
                         series = owid.default(dataByYear, outputYear, {
-                            id: entity.id,
-                            label: entity.name,
-                            key: entity.name,
+                            id: entity,
+                            label: entity,
+                            key: entity,
                             values: [{ year: outputYear, time: {} }]
                         });
 
@@ -105,7 +123,7 @@ export default class ScatterData {
                     // Ensure we use the closest year to the target
                     var originYear = d.time[dimension.property];
                     if (_.isFinite(originYear) && Math.abs(originYear-targetYear) < Math.abs(year-targetYear))
-                        continue;
+                        continue;                
 
                     if (dimension.property == 'color')
                         series.color = colorScale(value);

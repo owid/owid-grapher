@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'grapher_admin',
     'importer',
     'country_name_tool',
+    'django_extensions'
 ]
 
 MIDDLEWARE = [
@@ -94,7 +95,12 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'OPTIONS': {
-            'sql_mode': 'traditional'
+            'sql_mode': 'traditional',
+            'charset': 'utf8',
+            'init_command': 'SET '
+                'default_storage_engine=INNODB,'
+                'character_set_connection=utf8,'
+                'collation_connection=utf8_bin'
         },
         'NAME': DB_NAME,
         'USER': DB_USER,
@@ -159,7 +165,7 @@ PASSWORD_HASHERS = [
 
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
-LOGIN_URL = '/grapher/login'
+LOGIN_URL = '/grapher/admin/login'
 
 LOGIN_REDIRECT_URL = '/grapher/'
 

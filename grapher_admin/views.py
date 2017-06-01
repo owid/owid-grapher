@@ -26,7 +26,7 @@ from .forms import InviteUserForm, InvitedUserRegisterForm
 from .models import Chart, Variable, User, UserInvitation, Logo, ChartSlugRedirect, ChartDimension, Dataset, Setting, DatasetCategory, DatasetSubcategory, Entity, Source, VariableType, DataValue, License
 from owid_grapher.views import get_query_string, get_query_as_dict
 from typing import Dict, Union
-
+from django.db import transaction
 
 def custom_login(request: HttpRequest):
     """
@@ -35,7 +35,7 @@ def custom_login(request: HttpRequest):
     :return: Redirects to index page if the user is logged in, otherwise will show the login page
     """
     if request.user.is_authenticated():
-        return HttpResponseRedirect(settings.BASE_URL)
+        return HttpResponseRedirect(reverse('listcharts'))
     else:
         return loginview(request)
 
@@ -157,7 +157,7 @@ def editchart(request: HttpRequest, chartid: Union[str, int]):
         return HttpResponseNotFound('Invalid chart id!')
 
     data = editor_data()
-    chartconfig = json.dumps(chart.get_config_with_url())
+    chartconfig = json.dumps(chart.get_config())
 
     if '.json' in urlparse(request.get_full_path()).path:
         return JsonResponse({'data': data, 'config': chartconfig}, safe=False)
@@ -242,7 +242,7 @@ def savechart(chart: Chart, data: Dict, user: User):
     if settings.CLOUDFLARE_KEY:
         config_url = f"{settings.CLOUDFLARE_BASE_URL}/config/{chart.id}.js"
         chart_url = f"{settings.CLOUDFLARE_BASE_URL}/{chart.slug}"
-        urls_to_purge = [config_url, chart_url, chart_url + "?tab=chart", chart_url + "?tab=map"]
+        urls_to_purge = [config_url, chart_url, chart_url + "?tab=chart", chart_url + "?tab=map", chart_url + ".csv", chart_url + ".png", chart_url + ".svg"]
         cf = CloudFlare.CloudFlare(email=settings.CLOUDFLARE_EMAIL, token=settings.CLOUDFLARE_KEY)
         cf.zones.purge_cache.delete(settings.CLOUDFLARE_ZONE_ID, data={ "files": urls_to_purge })
 
@@ -279,11 +279,11 @@ def showchart(request: HttpRequest, chartid: str):
     except ValueError:
         return HttpResponseNotFound('No such chart!')
     if request.method != 'GET':
-        return JsonResponse(chart.get_config_with_url(), safe=False)
+        return JsonResponse(chart.get_config(), safe=False)
     else:
         # this part was lifted directly from the public facing side
         # so if anything changes there, be sure to make the same changes here
-        configfile = chart.get_config_with_url()
+        configfile = chart.get_config()
         canonicalurl = request.build_absolute_uri('/') + chart.slug
         baseurl = request.build_absolute_uri('/') + chart.slug
 
@@ -318,6 +318,7 @@ def showchart(request: HttpRequest, chartid: str):
 
 
 @login_required
+@transaction.atomic
 def starchart(request: HttpRequest, chartid: str):
     try:
         chart = Chart.objects.get(pk=int(chartid))
@@ -325,7 +326,9 @@ def starchart(request: HttpRequest, chartid: str):
         return HttpResponseNotFound('No such chart!')
     except ValueError:
         return HttpResponseNotFound('No such chart!')
+
     if request.method == 'POST':
+        Chart.objects.update(starred=False)
         chart.starred = True
         chart.save()
         return JsonResponse({'starred': True}, safe=False)

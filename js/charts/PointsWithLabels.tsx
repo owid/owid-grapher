@@ -82,6 +82,11 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         return _.some(this.data, series => series.values.length > 1)
     }
 
+    // When focusing multiple entities, we hide some information to declutter
+    @computed get isSubtleFocus(): boolean {
+        return this.focusKeys.length > 1
+    }
+
     @computed get sizeScale() : Function {
         const {data} = this
         const sizeScale = d3.scaleLinear().range([2, 25]).domain(this.props.sizeDomain)
@@ -95,6 +100,10 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
     @computed get fontScale() : Function {
         return d3.scaleLinear().range([10, 13]).domain(this.sizeScale.domain());
+    }
+
+    @computed get labelFontFamily(): string {
+        return "Arial Narrow, Arial, sans-serif"
     }
 
     // Used if no color is specified for a series
@@ -149,13 +158,14 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         if (!series.isFocused || series.values.length <= 1)
             return null
 
-        const fontSize = series.isFocused ? 9 : 7
+        const {labelFontFamily} = this
+        const fontSize = series.isFocused ? (this.isSubtleFocus ? 8 : 9) : 7
         const firstValue = series.values[0]
         const nextValue = series.values[1]
         const nextSegment = nextValue.position.subtract(firstValue.position)
 
         let pos = firstValue.position.subtract(nextSegment.normalize().times(5))
-        let bounds = Bounds.forText(firstValue.time.x.toString(), { x: pos.x, y: pos.y, fontSize: fontSize })
+        let bounds = Bounds.forText(firstValue.time.x.toString(), { x: pos.x, y: pos.y, fontSize: fontSize, fontFamily: labelFontFamily })
         if (pos.x < firstValue.position.x)
             bounds = new Bounds(bounds.x-bounds.width+2, bounds.y, bounds.width, bounds.height)
         if (pos.y > firstValue.position.y)
@@ -174,10 +184,11 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     // Make labels for the points between start and end on a series
     // Positioned using normals of the line segments
     makeMidLabels(series: ScatterRenderSeries) {
-        if (!series.isFocused || series.values.length <= 1)
+        if (!series.isFocused || series.values.length <= 1 || (!series.isHovered && this.isSubtleFocus))
             return []
 
-        const fontSize = series.isFocused ? 9 : 7
+        const fontSize = series.isFocused ? (this.isSubtleFocus ? 8 : 9) : 7
+        const {labelFontFamily} = this
         
         return _.map(series.values.slice(1, -1), (v, i) => {
             const prevPos = i > 0 && series.values[i-1].position
@@ -196,7 +207,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                 pos = v.position.subtract(nextSegment.normalize().times(5))
             }
 
-            let bounds = Bounds.forText(v.time.x.toString(), { x: pos.x, y: pos.y, fontSize: fontSize})
+            let bounds = Bounds.forText(v.time.x.toString(), { x: pos.x, y: pos.y, fontSize: fontSize, fontFamily: labelFontFamily })
             if (pos.x < v.position.x)
                 bounds = new Bounds(bounds.x-bounds.width+2, bounds.y, bounds.width, bounds.height)
             if (pos.y > v.position.y)
@@ -217,9 +228,11 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     // slightly out based on the direction of the series if multiple values
     // are present
     makeEndLabel(series: ScatterRenderSeries) {
+        const {isSubtleFocus, labelFontFamily} = this
+
         const lastValue = _.last(series.values)
         const lastPos = lastValue.position
-        const fontSize = lastValue.fontSize*(series.isFocused ? 1.2 : 1)
+        const fontSize = lastValue.fontSize*(series.isFocused ? (isSubtleFocus ? 1.1 : 1.2) : 1)
 
         let offsetVector = Vector2.up
         if (series.values.length > 1) {
@@ -231,7 +244,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
         const labelPos = lastPos.add(offsetVector.normalize().times(series.values.length == 1 ? lastValue.size+1 : 5))
 
-        let labelBounds = Bounds.forText(series.text, { x: labelPos.x, y: labelPos.y, fontSize: fontSize })
+        let labelBounds = Bounds.forText(series.text, { x: labelPos.x, y: labelPos.y, fontSize: fontSize, fontFamily: labelFontFamily })
         if (labelPos.x < lastPos.x)
             labelBounds = labelBounds.extend({ x: labelBounds.x-labelBounds.width })
         if (labelPos.y > lastPos.y)
@@ -319,12 +332,20 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     @action.bound onMouseMove(ev: any) {
         const mouse = Vector2.fromArray(getRelativeMouse(this.base, ev))
 
-        const closestSeries = _.sortBy(this.renderData, (series) => {
-//                    return _.min(_.map(series.values.slice(0, -1), (d, i) => {
-//                        return Vector2.distanceFromPointToLineSq(mouse, d.position, series.values[i+1].position)
-//                    }))
-            return _.min(_.map(series.values, v => Vector2.distanceSq(v.position, mouse)))
+        let closestSeries = _.sortBy(this.renderData, (series) => {
+            if (_.some(series.allLabels, l => !l.isHidden && l.bounds.contains(mouse)))
+                return -Infinity
+
+
+            if (this.isConnected) {
+                return _.min(_.map(series.values.slice(0, -1), (d, i) => {
+                    return Vector2.distanceFromPointToLineSq(mouse, d.position, series.values[i+1].position)
+                }))
+            } else {
+                return _.min(_.map(series.values, v => Vector2.distanceSq(v.position, mouse)))
+            }
         })[0]
+
         if (closestSeries) //&& _.min(_.map(closestSeries.values, v => Vector2.distance(v.position, mouse))) < 20)
             this.hoverKey = closestSeries.key
         else
@@ -356,120 +377,119 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         return _.filter(this.renderData, group => group.isFocused)
     }
 
-    // First pass: render the subtle polylines for background groups
     renderBackgroundLines() {
-        const {backgroundGroups, isFocusMode} = this
-
-        return _.map(backgroundGroups, d => {
-            if (d.values.length == 1)
-                return null
-            else {
-                return <polyline
-                    key={d.displayKey+'-line'}
-                    strokeLinecap="round"
-                    stroke={isFocusMode ? "#ccc" : d.color}
-                    points={_.map(d.values, v => `${v.position.x},${v.position.y}`).join(' ')}
-                    fill="none"
-                    strokeWidth={0.3+(d.size/8)}
-                    opacity={0.6}
-                />                
-            }
-        })
-    }
-
-    // Second pass: render the starting points for each background group
-    renderBackgroundStartPoints() {
-        const {backgroundGroups, isFocusMode, isConnected} = this
-        return _.map(backgroundGroups, series => {
-            if (!isConnected || isFocusMode)
-                return null
-            else {
-                const firstValue = _.first(series.values)
-                const color = !isFocusMode ? series.color : "#e2e2e2"
-
-                //return <polygon transform={`translate(${firstValue.position.x}, ${firstValue.position.y}) scale(0.5) rotate(180)`} points="0,0 10,0 5.0,8.66" fill={color} opacity={0.4} stroke="#ccc"/>
-                return <circle key={series.displayKey+'-start'} cx={firstValue.position.x} cy={firstValue.position.y} r={1+firstValue.size/8} fill={!isFocusMode ? series.color : "#e2e2e2"} stroke="#ccc" opacity={0.6}/>
-            }
-        })
-    }
-
-    // Third pass: render the end points for each background group
-    renderBackgroundEndPoints() {
-        const {backgroundGroups, isFocusMode, isConnected} = this
+        const {backgroundGroups, isConnected, isFocusMode} = this
 
         return _.map(backgroundGroups, series => {
-            const lastValue = _.last(series.values)
+            const firstValue = _.first(series.values)
             const color = !isFocusMode ? series.color : "#e2e2e2"            
-            let rotation = Vector2.angle(series.offsetVector, Vector2.up)
-            if (series.offsetVector.x < 0) rotation = -rotation
-
-
-            const cx = lastValue.position.x, cy = lastValue.position.y, r = lastValue.size
 
             if (!isConnected) {
-                return <circle key={series.displayKey+'-end'} cx={cx} cy={cy} r={r} fill={color} opacity={0.8} stroke="#ccc"/>
+                return <circle key={series.displayKey+'-end'} cx={firstValue.position.x} cy={firstValue.position.y} r={firstValue.size} fill={color} opacity={0.8} stroke="#ccc"/>    
             } else if (series.values.length == 1) {
                 return null
             } else {
-                return <Triangle key={series.displayKey+'-end'} transform={`rotate(${rotation}, ${cx}, ${cy})`} cx={cx} cy={cy} r={1+lastValue.size/8} fill={color} stroke="#ccc" strokeWidth={0.2} opacity={0.8}/>
+                const lastValue = _.last(series.values)
+                let rotation = Vector2.angle(series.offsetVector, Vector2.up)
+                if (series.offsetVector.x < 0) rotation = -rotation
+
+                return [
+                    <circle 
+                        key={series.displayKey+'-start'} 
+                        cx={firstValue.position.x} 
+                        cy={firstValue.position.y} 
+                        r={1+firstValue.size/16} 
+                        fill={!isFocusMode ? series.color : "#e2e2e2"} 
+                        stroke="#ccc" 
+                        opacity={0.6}
+                    />,
+                    <polyline
+                        key={series.displayKey+'-line'}
+                        strokeLinecap="round"
+                        stroke={isFocusMode ? "#ccc" : series.color}
+                        points={_.map(series.values, v => `${v.position.x},${v.position.y}`).join(' ')}
+                        fill="none"
+                        strokeWidth={0.3+(series.size/16)}
+                        opacity={0.6}
+                    />,
+                   <Triangle 
+                        key={series.displayKey+'-end'} 
+                        transform={`rotate(${rotation}, ${lastValue.position.x}, ${lastValue.position.y})`} 
+                        cx={lastValue.position.x} 
+                        cy={lastValue.position.y} 
+                        r={1+lastValue.size/16} 
+                        fill={color} 
+                        stroke="#ccc" 
+                        strokeWidth={0.2} 
+                        opacity={0.6}
+                    />                    
+                ]
             }
-        })    
+        })
     }
 
     renderBackgroundLabels() {
-        const {backgroundGroups, isFocusMode} = this
+        const {backgroundGroups, isFocusMode, labelFontFamily} = this
         return _.map(backgroundGroups, series => {
             return _.map(series.allLabels, l => 
                 !l.isHidden && <text key={series.displayKey+'-endLabel'} 
                   x={l.bounds.x} 
                   y={l.bounds.y+l.bounds.height} 
                   fontSize={l.fontSize} 
-                  fill={!isFocusMode ? "#333" : "#999"}>{l.text}</text>
+                  fontFamily={labelFontFamily}
+                  fill={!isFocusMode ? "#666" : "#aaa"}>{l.text}</text>
             )
         })     
     }
 
     renderFocusLines() {
-        const {focusGroups} = this
+        const {focusGroups, isSubtleFocus} = this
         
-        return _.map(focusGroups, group => {
-                const focusMul = (group.isHovered ? 3 : 2)
-                const lastValue = _.last(group.values)
+        return _.map(focusGroups, series => {
+            const lastValue = _.last(series.values)
+            const strokeWidth = (series.isHovered ? 3 : (isSubtleFocus ? 0.8 : 2)) + lastValue.size*0.05
 
-            if (group.values.length == 1) {
-                const v = group.values[0]
-                return <circle key={group.displayKey} cx={v.position.x} cy={v.position.y} fill={group.color} r={v.size}/>
+            if (series.values.length == 1) {
+                const v = series.values[0]
+                return <circle key={series.displayKey} cx={v.position.x} cy={v.position.y} fill={series.color} r={v.size}/>
             } else
                 return [
-                    <defs key={group.displayKey+'-defs'}>
-                        <marker id={group.displayKey+'-arrow'} fill={group.color} viewBox="0 -5 10 10" refx={5} refY={0} markerWidth={4} markerHeight={4} orient="auto">
+                    <defs key={series.displayKey+'-defs'}>
+                        <marker id={series.displayKey+'-arrow'} fill={series.color} viewBox="0 -5 10 10" refx={5} refY={0} markerWidth={4} markerHeight={4} orient="auto">
                             <path d="M0,-5L10,0L0,5"/>
                         </marker>
-                        <marker id={group.displayKey+'-circle'} viewBox="0 0 12 12"
-                                refX={4} refY={4} orient="auto" fill={group.color}>
+                        <marker id={series.displayKey+'-circle'} viewBox="0 0 12 12"
+                                refX={4} refY={4} orient="auto" fill={series.color}>
                             <circle cx={4} cy={4} r={4}/>
                         </marker>
                     </defs>,
                     <polyline
-                        key={group.displayKey+'-line'}
+                        key={series.displayKey+'-line'}
                         strokeLinecap="round"
-                        stroke={group.color}
-                        points={_.map(group.values, v => `${v.position.x},${v.position.y}`).join(' ')}
+                        stroke={series.color}
+                        points={_.map(series.values, v => `${v.position.x},${v.position.y}`).join(' ')}
                         fill="none"
-                        strokeWidth={focusMul}
-                        markerStart={`url(#${group.displayKey}-circle)`}
-                        markerMid={`url(#${group.displayKey}-circle)`}
-                        markerEnd={`url(#${group.displayKey}-arrow)`}
+                        strokeWidth={strokeWidth}
+                        opacity={isSubtleFocus ? 0.6 : 1}
+                        markerStart={`url(#${series.displayKey}-circle)`}
+                        markerMid={`url(#${series.displayKey}-circle)`}
+                        markerEnd={`url(#${series.displayKey}-arrow)`}
                     />
                 ]
         })      
     }
 
     renderFocusLabels() {
-        const {focusGroups} = this
+        const {focusGroups, labelFontFamily} = this
         return _.map(focusGroups, series => {
             return _.map(series.allLabels, (l, i) =>
-                !l.isHidden && <text key={series.displayKey+'-label-'+i} x={l.bounds.x} y={l.bounds.y+l.bounds.height} fontSize={l.fontSize} fill="#333">{l.text}</text>
+                !l.isHidden && <text 
+                    key={series.displayKey+'-label-'+i} 
+                    x={l.bounds.x} 
+                    y={l.bounds.y+l.bounds.height} 
+                    fontSize={l.fontSize} 
+                    fontFamily={labelFontFamily}
+                    fill="#333">{l.text}</text>
             )
         })
     }
@@ -483,15 +503,13 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             return <NoData bounds={bounds}/>
 
         return <g className="ScatterPlot clickable" clipPath="url(#scatterBounds)" onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
-            <rect key="background" x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="rgba(0,0,0,0)"/>
+            <rect key="background" x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="rgba(255,255,255,0)"/>
             <defs>
                 <clipPath id="scatterBounds">
                     <rect x={clipBounds.x} y={clipBounds.y} width={clipBounds.width} height={clipBounds.height}/>
                 </clipPath>
             </defs>
             {this.renderBackgroundLines()}
-            {this.renderBackgroundStartPoints()}
-            {this.renderBackgroundEndPoints()}
             {this.renderBackgroundLabels()}
             {this.renderFocusLines()}
             {this.renderFocusLabels()}

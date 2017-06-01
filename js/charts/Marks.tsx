@@ -2,7 +2,7 @@ import * as React from 'react'
 import {observer} from 'mobx-react'
 
 interface TriangleProps {
-    x: number,
+    cx: number,
     cy: number,
     r: number
 }

@@ -145,7 +145,7 @@
 
 			var html = '<h4>These charts will be updated</h4><ul>';
 			_.each(charts, function(chart, i) {
-				html += '<li><a href="' + Global.rootUrl + '/charts/' + chart.id + '/edit">' + chart.name + '</a></li>';
+				html += '<li><a href="' + Global.adminRootUrl + '/charts/' + chart.id + '/edit">' + chart.name + '</a></li>';
 			});
 			html += "</ul>";
 

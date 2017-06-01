@@ -9,10 +9,10 @@ export default Backbone.Model.extend( {
         if( $("#form-view").length ) {
             if( id ) {
                 //editing existing
-                return Global.rootUrl + "/charts/" + id;
+                return Global.adminRootUrl + "/charts/" + id;
             } else {
                 //saving new
-                return Global.rootUrl + "/charts";
+                return Global.adminRootUrl + "/charts";
             }
 
         } else {

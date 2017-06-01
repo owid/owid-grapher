@@ -46,8 +46,8 @@ export default class ChartTab extends React.Component {
         let minYear = null
         let maxYear = null
         if (chart.type == App.ChartType.ScatterPlot) {
-            minYear = chart.timeRange[0];
-            maxYear = chart.timeRange[1];
+            minYear = chart.timeDomain[0];
+            maxYear = chart.timeDomain[1];
         }
 
         return preInstantiate(<Header

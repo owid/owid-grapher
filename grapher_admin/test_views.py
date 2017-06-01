@@ -67,12 +67,12 @@ class OwidTests(TestCase):
 
     def test_listcharts(self):
         self.client.login(email='admin@example.com', password='admin')
-        response = self.client.get('/grapher/charts/')
+        response = self.client.get('/grapher/admin/charts/')
         self.assertEqual(response.status_code, 200)
 
     def test_createchart(self):
         self.client.login(email='admin@example.com', password='admin')
-        response = self.client.get('/grapher/charts/create/')
+        response = self.client.get('/grapher/admin/charts/create/')
         self.assertEqual(response.status_code, 200)
 
     # this is for scenarios where the dataset does not overwrite anything
@@ -89,7 +89,7 @@ class OwidTests(TestCase):
         for each in all_entity_names:
             all_entity_names_list.append(each['name'])
 
-        response = self.client.post('/grapher/import/variables', json.dumps(test_dataset), content_type="application/json")
+        response = self.client.post('/grapher/admin/import/variables', json.dumps(test_dataset), content_type="application/json")
         last_dataset_insert_id = Dataset.objects.all().last()
         last_dataset_insert_id = last_dataset_insert_id.pk
 
@@ -126,7 +126,7 @@ class OwidTests(TestCase):
         self.client.login(email='admin@example.com', password='admin')
 
         test_dataset = self.create_new_dataset_json()
-        self.client.post('/grapher/import/variables', json.dumps(test_dataset), content_type="application/json")
+        self.client.post('/grapher/admin/import/variables', json.dumps(test_dataset), content_type="application/json")
         last_dataset_insert_id = Dataset.objects.all().last()
         self.assertEqual(test_dataset['dataset']['name'], last_dataset_insert_id.name)  # making sure that the post request went through
         test_dataset['dataset']['id'] = last_dataset_insert_id.pk  # set the dataset id to overwrite
@@ -146,7 +146,7 @@ class OwidTests(TestCase):
         initial_number_of_sources = Source.objects.all().count()
         initial_number_of_values = DataValue.objects.all().count()
 
-        response = self.client.post('/grapher/import/variables', json.dumps(test_dataset),
+        response = self.client.post('/grapher/admin/import/variables', json.dumps(test_dataset),
                                     content_type="application/json")
 
         final_number_of_variables = Variable.objects.all().count()
