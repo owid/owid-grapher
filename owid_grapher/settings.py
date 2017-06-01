@@ -165,7 +165,7 @@ PASSWORD_HASHERS = [
 
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
-LOGIN_URL = '/grapher/login'
+LOGIN_URL = '/grapher/admin/login'
 
 LOGIN_REDIRECT_URL = '/grapher/'
 
