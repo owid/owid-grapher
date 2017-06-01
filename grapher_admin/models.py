@@ -83,7 +83,7 @@ class Chart(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     last_edited_by = models.ForeignKey(User, to_field='name', on_delete=models.DO_NOTHING, blank=True, null=True,
                                        db_column='last_edited_by')
-    last_edited_at = models.DateTimeField(auto_now=True)
+    last_edited_at = models.DateTimeField()
     origin_url = models.CharField(max_length=255)
     notes = models.TextField()
     slug = models.CharField(max_length=255, blank=True, null=True)
