@@ -7,9 +7,7 @@ ROOT="/home/owid"
 if [ "$1" == "test" ]; then
   NAME="test-grapher"
 elif [ "$1" == "live" ]; then
-  NAME="grapher"
-  echo "Make sure python stuff is ready first!"
-  exit 1
+  NAME="live-grapher"
 else
   echo "Please select either live or test."
   exit 1
