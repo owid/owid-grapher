@@ -1,5 +1,5 @@
 import * as d3 from 'd3'
-import _ from 'lodash'
+import * as _ from 'lodash'
 import * as React from 'react'
 import {observable, computed, action, toJS} from 'mobx'
 import {observer} from 'mobx-react'
@@ -16,7 +16,7 @@ export default class ScatterTab extends React.Component<{ chart: ChartConfig }, 
 
     constructor(props) {
         super(props)
-        this.timeline = props.chart.timeline || this.timeline
+        _.extend(this.timeline, props.chart.timeline)
     }
 
     componentDidMount() {
