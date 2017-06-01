@@ -16,7 +16,7 @@ from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.utils.encoding import smart_str
 from grapher_admin.models import Chart, Variable, License, ChartSlugRedirect
-
+from django.views.decorators.clickjacking import xframe_options_exempt
 
 @login_required
 def index(request):
@@ -127,7 +127,7 @@ def get_query_as_dict(request):
     """
     return dict(urllib.parse.parse_qs(urllib.parse.urlsplit(request.get_full_path()).query))
 
-
+@xframe_options_exempt # Allow embedding
 def showchart(request, chart):
     """
     :param request: Request object
