@@ -26,7 +26,7 @@ from .forms import InviteUserForm, InvitedUserRegisterForm
 from .models import Chart, Variable, User, UserInvitation, Logo, ChartSlugRedirect, ChartDimension, Dataset, Setting, DatasetCategory, DatasetSubcategory, Entity, Source, VariableType, DataValue, License
 from owid_grapher.views import get_query_string, get_query_as_dict
 from typing import Dict, Union
-
+from django.db import transaction
 
 def custom_login(request: HttpRequest):
     """
@@ -317,6 +317,7 @@ def showchart(request: HttpRequest, chartid: str):
 
 
 @login_required
+@transaction.atomic
 def starchart(request: HttpRequest, chartid: str):
     try:
         chart = Chart.objects.get(pk=int(chartid))
@@ -324,7 +325,9 @@ def starchart(request: HttpRequest, chartid: str):
         return HttpResponseNotFound('No such chart!')
     except ValueError:
         return HttpResponseNotFound('No such chart!')
+
     if request.method == 'POST':
+        Chart.objects.update(starred=False)
         chart.starred = True
         chart.save()
         return JsonResponse({'starred': True}, safe=False)
