@@ -208,6 +208,7 @@ def savechart(chart: Chart, data: Dict, user: User):
     i = 0
 
     chart.config = json.dumps(data)
+    chart.last_edited_at = timezone.now()
     chart.last_edited_by = user
     chart.save()
 
