@@ -352,7 +352,7 @@ def latest(request):
     :param request: Request object
     :return: Redirects to the Chart page with the latest published chart
     """
-    chart = Chart.objects.filter(published=True).order_by("-last_edited_at", "starred").first()
+    chart = Chart.objects.filter(published=True).order_by("-starred", "-created_at").first()
     slug = chart.slug
     query = get_query_string(request)
     if query:
