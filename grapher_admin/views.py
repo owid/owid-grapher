@@ -40,7 +40,6 @@ def custom_login(request: HttpRequest):
         return loginview(request)
 
 
-@login_required
 def listcharts(request: HttpRequest):
     charts = Chart.objects.all().order_by('-last_edited_at')
     allvariables = Variable.objects.all()
@@ -77,7 +76,6 @@ def listcharts(request: HttpRequest):
                                                              })
 
 
-@login_required
 def storechart(request: HttpRequest):
     if request.method == 'POST':
         chart = Chart()
@@ -87,7 +85,6 @@ def storechart(request: HttpRequest):
         return HttpResponseRedirect(reverse('listcharts'))
 
 
-@login_required
 def createchart(request: HttpRequest):
 
     data = editor_data()
@@ -144,7 +141,6 @@ def editor_data():
     return data
 
 
-@login_required
 def editchart(request: HttpRequest, chartid: Union[str, int]):
     try:
         chartid = int(chartid)
@@ -249,7 +245,6 @@ def savechart(chart: Chart, data: Dict, user: User):
     return JsonResponse({'success': True, 'data': {'id': chart.pk}}, safe=False)
 
 
-@login_required
 def managechart(request: HttpRequest, chartid: str):
     try:
         chart = Chart.objects.get(pk=int(chartid))
@@ -270,7 +265,6 @@ def managechart(request: HttpRequest, chartid: str):
         return HttpResponseRedirect(reverse('showchartinternal', args=(chartid,)))
 
 
-@login_required
 def showchart(request: HttpRequest, chartid: str):
     try:
         chart = Chart.objects.get(pk=int(chartid))
@@ -317,7 +311,6 @@ def showchart(request: HttpRequest, chartid: str):
         return response
 
 
-@login_required
 @transaction.atomic
 def starchart(request: HttpRequest, chartid: str):
     try:
@@ -334,7 +327,6 @@ def starchart(request: HttpRequest, chartid: str):
         return JsonResponse({'starred': True}, safe=False)
 
 
-@login_required
 def unstarchart(request: HttpRequest, chartid: str):
     try:
         chart = Chart.objects.get(pk=int(chartid))
@@ -348,7 +340,6 @@ def unstarchart(request: HttpRequest, chartid: str):
         return JsonResponse({'starred': False}, safe=False)
 
 
-@login_required
 def importdata(request: HttpRequest):
     datasets = Dataset.objects.filter(namespace='owid').order_by('name').values()
     datasetlist = []
@@ -392,7 +383,6 @@ def importdata(request: HttpRequest):
                                                                'importerdata': json.dumps(data)})
 
 
-@login_required
 def store_import_data(request: HttpRequest):
     if request.method == 'POST':
         try:
@@ -519,9 +509,6 @@ def store_import_data(request: HttpRequest):
             return HttpResponse(error_m, status=500)
 
 
-
-
-@login_required
 def listdatasets(request: HttpRequest):
     variables = Variable.objects.filter(fk_dst_id__namespace='owid').select_related('fk_dst_id').order_by('-fk_dst_id__updated_at')
     datasets: Dict = {}
@@ -548,7 +535,6 @@ def listdatasets(request: HttpRequest):
                                                            'datasets': dataset_list})
 
 
-@login_required
 def showdataset(request: HttpRequest, datasetid: str):
     try:
         dataset = Dataset.objects.get(pk=int(datasetid))
@@ -572,7 +558,6 @@ def showdataset(request: HttpRequest, datasetid: str):
                                                                 })
 
 
-@login_required
 def editdataset(request: HttpRequest, datasetid: str):
     try:
         dataset = Dataset.objects.filter(pk=int(datasetid)).values()[0]
@@ -599,7 +584,6 @@ def editdataset(request: HttpRequest, datasetid: str):
                                                                 })
 
 
-@login_required
 def managedataset(request: HttpRequest, datasetid: str):
     try:
         dataset = Dataset.objects.filter(pk=int(datasetid))
@@ -633,7 +617,6 @@ def managedataset(request: HttpRequest, datasetid: str):
         return HttpResponseRedirect(reverse('showdataset', args=[datasetid]))
 
 
-@login_required
 def dataset_csv(request: HttpRequest, datasetid: str):
     try:
         dataset = Dataset.objects.get(pk=int(datasetid))
@@ -700,7 +683,6 @@ def dataset_csv(request: HttpRequest, datasetid: str):
     return response
 
 
-@login_required
 def dataset_json(request: HttpRequest, datasetid: str):
     try:
         dataset = Dataset.objects.get(pk=int(datasetid))
@@ -763,14 +745,13 @@ def check_invitation_statuses():
             each.save()
 
 
-@login_required
 def listcategories(request: HttpRequest):
     categories = DatasetCategory.objects.values()
     return render(request, 'admin.categories.html', context={'current_user': request.user.name,
                                                              'categories': categories
                                                              })
 
-@login_required
+
 def showcategory(request: HttpRequest, catid: str):
     try:
         category = DatasetCategory.objects.filter(pk=int(catid)).values()[0]
@@ -787,7 +768,6 @@ def showcategory(request: HttpRequest, catid: str):
                                                                   })
 
 
-@login_required
 def managecategory(request: HttpRequest, catid: str):
     try:
         category = DatasetCategory.objects.filter(pk=int(catid)).values()[0]
@@ -818,7 +798,6 @@ def managecategory(request: HttpRequest, catid: str):
             return HttpResponseRedirect(reverse('listcategories'))
 
 
-@login_required
 def editcategory(request: HttpRequest, catid: str):
     try:
         category = DatasetCategory.objects.filter(pk=int(catid)).values()[0]
@@ -830,7 +809,6 @@ def editcategory(request: HttpRequest, catid: str):
                                                                   })
 
 
-@login_required
 def listvariables(request: HttpRequest):
     variables = Variable.objects.values()
 
@@ -839,7 +817,6 @@ def listvariables(request: HttpRequest):
                                                             })
 
 
-@login_required
 def showvariable(request: HttpRequest, variableid: str):
     try:
         variable = Variable.objects.get(pk=int(variableid))
@@ -941,7 +918,6 @@ def showvariable(request: HttpRequest, variableid: str):
                                                                  })
 
 
-@login_required
 def editvariable(request: HttpRequest, variableid: str):
     try:
         variable = Variable.objects.get(pk=int(variableid))
@@ -963,7 +939,6 @@ def editvariable(request: HttpRequest, variableid: str):
                                                                  })
 
 
-@login_required
 def managevariable(request: HttpRequest, variableid: str):
     try:
         variable = Variable.objects.get(pk=int(variableid))
@@ -992,7 +967,6 @@ def managevariable(request: HttpRequest, variableid: str):
         return HttpResponseRedirect(reverse('showvariable', args=[variableid]))
 
 
-@login_required
 def listlicenses(request: HttpRequest):
     licenses = License.objects.values()
     return render(request, 'admin.licenses.html', context={'current_user': request.user.name,
@@ -1000,7 +974,6 @@ def listlicenses(request: HttpRequest):
                                                            })
 
 
-@login_required
 def showlicense(request: HttpRequest, licenseid: str):
     try:
         license = License.objects.get(pk=int(licenseid))
@@ -1012,7 +985,6 @@ def showlicense(request: HttpRequest, licenseid: str):
                                                                 })
 
 
-@login_required
 def editlicense(request: HttpRequest, licenseid: str):
     try:
         license = License.objects.get(pk=int(licenseid))
@@ -1030,7 +1002,6 @@ def editlicense(request: HttpRequest, licenseid: str):
                                                                 })
 
 
-@login_required
 def managelicense(request: HttpRequest, licenseid: str):
     try:
         license = License.objects.get(pk=int(licenseid))
@@ -1050,7 +1021,6 @@ def managelicense(request: HttpRequest, licenseid: str):
         return HttpResponseRedirect(reverse('showlicense', args=[licenseid]))
 
 
-@login_required
 def listlogos(request: HttpRequest):
     logos = Logo.objects.values()
     return render(request, 'admin.logos.html', context={'current_user': request.user.name,
@@ -1058,12 +1028,10 @@ def listlogos(request: HttpRequest):
                                                         })
 
 
-@login_required
 def createlogo(request: HttpRequest):
     return render(request, 'admin.logos.create.html', context={'current_user': request.user.name})
 
 
-@login_required
 def storelogo(request: HttpRequest):
 
     if request.method == 'POST':
@@ -1083,7 +1051,6 @@ def storelogo(request: HttpRequest):
         return HttpResponseRedirect(reverse('listlogos'))
 
 
-@login_required
 def showlogo(request: HttpRequest, logoid: str):
     try:
         logo = Logo.objects.get(pk=int(logoid))
@@ -1100,7 +1067,6 @@ def showlogo(request: HttpRequest, logoid: str):
                                                              'logo': logo})
 
 
-@login_required
 def editlogo(request: HttpRequest, logoid: str):
     try:
         logo = Logo.objects.get(pk=int(logoid))
@@ -1116,7 +1082,6 @@ def editlogo(request: HttpRequest, logoid: str):
                                                              'logo': logo})
 
 
-@login_required
 def managelogo(request: HttpRequest, logoid: str):
     try:
         logo = Logo.objects.get(pk=int(logoid))
@@ -1150,7 +1115,6 @@ def managelogo(request: HttpRequest, logoid: str):
         return HttpResponseRedirect(reverse('showlogo', args=[logoid]))
 
 
-@login_required
 def listsources(request: HttpRequest):
 
     datasets = Dataset.objects.all()
@@ -1187,7 +1151,6 @@ def listsources(request: HttpRequest):
                                                           'sources': sources_list})
 
 
-@login_required
 def showsource(request: HttpRequest, sourceid: str):
     try:
         source = Source.objects.get(pk=int(sourceid))
@@ -1210,7 +1173,6 @@ def showsource(request: HttpRequest, sourceid: str):
                                                                'source': source})
 
 
-@login_required
 def editsource(request: HttpRequest, sourceid: str):
     try:
         source = Source.objects.get(pk=int(sourceid))
@@ -1227,7 +1189,6 @@ def editsource(request: HttpRequest, sourceid: str):
                                                                'source': source})
 
 
-@login_required
 def managesource(request: HttpRequest, sourceid: str):
     try:
         source = Source.objects.get(pk=int(sourceid))
@@ -1251,7 +1212,6 @@ def managesource(request: HttpRequest, sourceid: str):
         return HttpResponseRedirect(reverse('showsource', args=[sourceid]))
 
 
-@login_required
 def editsourcetemplate(request: HttpRequest):
     sourcetemplate = Setting.objects.filter(meta_name='sourceTemplate').first()
 
@@ -1274,7 +1234,6 @@ def editsourcetemplate(request: HttpRequest):
                                                                               'sourcetemplate': sourcetemplate})
 
 
-@login_required
 def editsubcategory(request: HttpRequest, subcatid: str):
     try:
         subcat = DatasetSubcategory.objects.get(pk=int(subcatid))
@@ -1291,7 +1250,6 @@ def editsubcategory(request: HttpRequest, subcatid: str):
                                                                      'category': category})
 
 
-@login_required
 def managesubcategory(request: HttpRequest, subcatid: str):
     try:
         subcat = DatasetSubcategory.objects.get(pk=int(subcatid))
@@ -1322,7 +1280,6 @@ def managesubcategory(request: HttpRequest, subcatid: str):
             return HttpResponseRedirect(reverse('showcategory', args=[parent_cat]))
 
 
-@login_required
 def createsubcategory(request: HttpRequest):
     categories = DatasetCategory.objects.values()
     return render(request, 'admin.subcategories.create.html',context={'current_user': request.user.name,
@@ -1330,7 +1287,6 @@ def createsubcategory(request: HttpRequest):
                                                                       })
 
 
-@login_required
 def storesubcategory(request: HttpRequest):
     categories = DatasetCategory.objects.values()
     if request.method == 'POST':
@@ -1348,8 +1304,6 @@ def storesubcategory(request: HttpRequest):
         return HttpResponseRedirect(reverse('listcategories'))
 
 
-
-@login_required
 def listusers(request: HttpRequest):
     check_invitation_statuses()
     users = User.objects.all().order_by('created_at')
@@ -1366,7 +1320,6 @@ def listusers(request: HttpRequest):
                                                             })
 
 
-@login_required
 def invite_user(request: HttpRequest):
     if request.method == 'GET':
         if not request.user.is_superuser:
