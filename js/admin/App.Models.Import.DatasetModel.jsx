@@ -56,7 +56,7 @@
 			}
 
 			var $modal = owid.modal({ title: "Loading dataset..."});
-			this.req = $.get(Global.rootUrl + "/datasets/" + id + ".json")
+			this.req = $.get(Global.adminRootUrl + "/datasets/" + id + ".json")
 				.done(function(data) { 
 					this.set(_.omit(data, 'variables'));
 					this.set("oldVariables", data.variables);

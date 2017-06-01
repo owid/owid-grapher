@@ -6,7 +6,7 @@
 	
 	App.Models.VariableModel = Backbone.Model.extend( {
 		
-		urlRoot: Global.rootUrl + "/variable/",
+		urlRoot: Global.adminRootUrl + "/variable/",
 		defaults: { "id": "", "name": "", "values": [] },
 
 		import: function() {
