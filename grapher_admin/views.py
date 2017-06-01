@@ -241,7 +241,7 @@ def savechart(chart: Chart, data: Dict, user: User):
     if settings.CLOUDFLARE_KEY:
         config_url = f"{settings.CLOUDFLARE_BASE_URL}/config/{chart.id}.js"
         chart_url = f"{settings.CLOUDFLARE_BASE_URL}/{chart.slug}"
-        urls_to_purge = [config_url, chart_url, chart_url + "?tab=chart", chart_url + "?tab=map"]
+        urls_to_purge = [config_url, chart_url, chart_url + "?tab=chart", chart_url + "?tab=map", chart_url + ".csv", chart_url + ".png", chart_url + ".svg"]
         cf = CloudFlare.CloudFlare(email=settings.CLOUDFLARE_EMAIL, token=settings.CLOUDFLARE_KEY)
         cf.zones.purge_cache.delete(settings.CLOUDFLARE_ZONE_ID, data={ "files": urls_to_purge })
 
