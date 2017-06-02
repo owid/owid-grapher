@@ -60,6 +60,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'grapher_admin.disable_cache_protect_admin.DisableCacheProtectAdminPages',
 ]
 
 ROOT_URLCONF = 'owid_grapher.urls'

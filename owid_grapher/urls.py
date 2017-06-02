@@ -73,6 +73,7 @@ urlpatterns = [
     url(r'^grapher/admin/users/$', admin_views.listusers, name="listusers"),
     url(r'^grapher/admin/standardize/$', countrytool_views.country_tool_page, name="countrytoolpage"),
     url(r'^grapher/admin/standardize/update/$', countrytool_views.country_tool_update, name="countrytoolupdate"),
+    url(r'^grapher/admin/invite/$', admin_views.invite_user, name="inviteuser"),
     # for future use on the frontend
     url(r'^grapher/admin/charts\.json$',  admin_views.listcharts, name="listchartsjson"),
     url(r'^grapher/admin/charts/create.json$', admin_views.createchart, name="createchartjson"),
@@ -88,7 +89,6 @@ urlpatterns = [
     url(r'^grapher/data/variables/(?P<ids>[\w\+]+)', owid_views.variables, name="servevariables"),
     url(r'^grapher/latest/?$', owid_views.latest, name="latestchart"),
     url(r'^grapher/testall', owid_views.test_all, name="testall"),
-    url(r'^grapher/invite/$', admin_views.invite_user, name="inviteuser"),
     url(r'^grapher/invitation/(?P<code>[\w]+)$', admin_views.register_by_invite, name="registerbyinvite"),
     url(r'^grapher/(?P<slug>[^/]+)\.export', owid_views.show, name="exportchart"),
     url(r'^grapher/(?P<slug>[^/]+)\.(?P<fileformat>.+)', owid_views.exportfile, name="exportfile"),
