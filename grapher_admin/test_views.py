@@ -67,7 +67,7 @@ class OwidTests(TestCase):
 
     def test_listcharts(self):
         self.client.login(email='admin@example.com', password='admin')
-        response = self.client.get('/grapher/admin/charts/')
+        response = self.client.get('/grapher/admin/')
         self.assertEqual(response.status_code, 200)
 
     def test_createchart(self):
