@@ -25,6 +25,7 @@ App.Views.Form.EntitiesSectionView = owid.View.extend({
 		this.listenTo(App.VariableData, "change:availableEntities", this.render.bind(this));
 		this.listenTo(App.ChartModel, "change:selected-countries", this.render.bind(this));
 		this.listenTo(App.ChartModel, "change:add-country-mode", this.renderAddCountryMode.bind(this));
+		this.renderAddCountryMode()
 		this.render();
 	},
 
