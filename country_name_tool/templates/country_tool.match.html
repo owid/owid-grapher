@@ -1,0 +1,95 @@
+{% extends 'base_admin_template.html' %}
+
+{% block content %}
+    {% if results %}
+        <form id="submit" method="POST" action="{% url 'newcountrynames' %}">
+        {% csrf_token %}
+        <table class="table table-bordered table-hover dataTable">
+		<thead>
+			<tr>
+				<th>Original name</th>
+				<th>OWID Name</th>
+                <th>Enter new Name</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for result in results %}
+                {% if result.new.matched %}
+				<tr class="table-success">
+                {% else %}
+                <tr class="table-danger">
+                {% endif %}
+					<td>{{ result.original }}</td>
+                    {% if result.new.matched %}
+					<td>
+                        {{ result.new.country }}
+                    </td>
+                        <td>
+                        </td>
+                    {% else %}
+                    <td>
+                        <label for="{{ forloop.counter }}-select">Select an approximated result:</label>
+		                    <select class="form-control" id="{{ forloop.counter }}-select" name="{{ forloop.counter }}">
+                                {% for each in result.new.country %}
+                                    <option value="{{ owid_countries_dict|get_item:each.countryid }}">{{ owid_countries_dict|get_item:each.countryid }} - {{ each.score }}%</option>
+	                            {% endfor %}
+                            </select>
+                    </td>
+                        <td>
+                        <label for="{{ forloop.counter }}-textbox">Or enter the name manually:</label>
+                        <input class="form-control" type="text" id="{{ forloop.counter }}-textbox" name="{{ forloop.counter }}">
+                        </td>
+                    {% endif %}
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+        <input class="btn btn-success" id="submitbutton" type="submit" value="Submit">
+        </form>
+    {% endif %}
+{% endblock %}
+{% block scripts %}
+    {% autoescape off %}
+        <script>
+            $(document).ready(function() {
+                    $("select").change(function (event) {
+                        if ($('#' + event.target.id.substr(0, event.target.id.indexOf('-')) + '-textbox').val().length == 0) {
+                            data[parseInt(event.target.id.substr(0, event.target.id.indexOf('-')))][1] = $('#' + event.target.id).val();
+                        }
+                    });
+            });
+
+            $(document).ready(function() {
+                $("input").change(function(event) {
+                    if ($('#' + event.target.id).val().length > 0) {
+                        data[parseInt(event.target.id.substr(0, event.target.id.indexOf('-')))][1] = $('#' + event.target.id).val();
+                    }
+                    else {
+                        data[parseInt(event.target.id.substr(0, event.target.id.indexOf('-')))][1] = $('#' + event.target.id.substr(0, event.target.id.indexOf('-')) + '-select').val();
+                    }
+                });
+            });
+
+            $("#submit").submit(function( event ) {
+                    event.preventDefault();
+                    $.ajax({
+                    type: "POST",
+                    url: "{% url 'newcountrynames' %}",
+                        contentType: 'application/json',
+                    data: JSON.stringify(data),
+                        dataType: 'json'
+                    }).complete(function(response) {
+                        if (response.status == 200) {
+                            var filename = response['responseJSON'];
+                            $("#submitbutton").prop("disabled",true);
+                            window.location.replace(filename['filename']);
+                        }
+                    });
+                    return false;
+            });
+
+            data = {{ data }};
+
+        </script>
+    {% endautoescape %}
+{% endblock %}

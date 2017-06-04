@@ -81,6 +81,7 @@ TEMPLATES = [
                 'webpack': 'owid_grapher.templatetags.webpack',
                 'isdebug': 'owid_grapher.templatetags.isdebug',
                 'rootrequest': 'owid_grapher.templatetags.rootrequest',
+                'get_item': 'owid_grapher.templatefilters.get_item',
                 },
         },
     },

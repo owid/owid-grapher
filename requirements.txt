@@ -19,3 +19,4 @@ six==1.10.0
 cloudflare==1.5.1
 django_slack==5.8.0
 django-extensions==1.7.9
+fuzzywuzzy==0.15.0
