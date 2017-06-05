@@ -287,6 +287,7 @@ export default class RangeTimeline extends React.Component<TimelineProps, undefi
     // Allow proper dragging behavior even if mouse leaves timeline area
     componentDidMount() {
     	d3.select('html').on('mouseup.timeline', this.onMouseUp)
+    	d3.select('html').on('mouseleave.timeline', this.onMouseUp)
     	d3.select('html').on('mousemove.timeline', this.onMouseMove)
     	d3.select('html').on('touchend.timeline', this.onMouseUp)
     	d3.select('html').on('touchmove.timeline', this.onMouseMove)

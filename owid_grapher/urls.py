@@ -72,7 +72,9 @@ urlpatterns = [
     url(r'^grapher/admin/subcategories$', admin_views.storesubcategory, name="storesubcategory"),
     url(r'^grapher/admin/users/$', admin_views.listusers, name="listusers"),
     url(r'^grapher/admin/standardize/$', countrytool_views.country_tool_page, name="countrytoolpage"),
+    url(r'^grapher/admin/standardize/newnames/$', countrytool_views.newcountrynames, name="newcountrynames"),
     url(r'^grapher/admin/standardize/update/$', countrytool_views.country_tool_update, name="countrytoolupdate"),
+    url(r'^grapher/admin/standardize/csv/(?P<filename>[^/]+)$', countrytool_views.servecsv, name="servecsv"),
     url(r'^grapher/admin/invite/$', admin_views.invite_user, name="inviteuser"),
     # for future use on the frontend
     url(r'^grapher/admin/charts\.json$',  admin_views.listcharts, name="listchartsjson"),
