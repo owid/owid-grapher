@@ -291,7 +291,8 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     @action.bound onLegendClick() {
         if (this.chart.addCountryMode == 'disabled')
             return
-        if (_.isEqual(this.focusKeys, this.chart.selectedEntities))
+        
+        if (_.isEqual(_.sortBy(this.focusKeys), _.sortBy(this.chart.selectedEntities)))
             this.chart.selectedEntities = []
         else
             this.chart.selectedEntities = this.focusKeys
