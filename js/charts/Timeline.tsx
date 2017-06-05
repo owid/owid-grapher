@@ -320,7 +320,7 @@ export default class RangeTimeline extends React.Component<TimelineProps, undefi
         const toggleFontSize = "1em"
         const toggleTextBounds = Bounds.forText(toggleText, { fontSize: toggleFontSize })
 
-		return <g className="clickable" onMouseDown={this.onMouseDown} onDoubleClick={this.onDoubleClick} ref={g => this.g = g}>
+		return <g className="clickable" onTouchStart={this.onMouseDown} onMouseDown={this.onMouseDown} ref={g => this.g = g}>
 			<rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height} fill="white"></rect>
             <Text className="toggle" onClick={() => this.isPlaying = !this.isPlaying} x={bounds.left+10} y={bounds.centerY-toggleTextBounds.height/2} font-family="FontAwesome" font-size={toggleFontSize}>
                 {toggleText}
