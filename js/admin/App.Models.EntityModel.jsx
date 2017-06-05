@@ -3,7 +3,7 @@
 	owid.namespace("App.Models.EntityModel");
 	
 	App.Models.EntityModel = Backbone.Model.extend({		
-		urlRoot: Global.rootUrl + "/entity/",
+		urlRoot: Global.adminRootUrl + "/entity/",
 		defaults: { "id": "", "name": "", "values": [] },
 
 		import: function() {

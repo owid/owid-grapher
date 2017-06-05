@@ -28,6 +28,7 @@ export interface ParagraphProps {
     children?: string,
     precalc?: Paragraph,
     raw?: boolean
+    fill?: 
 }
 
 interface WrapLine {

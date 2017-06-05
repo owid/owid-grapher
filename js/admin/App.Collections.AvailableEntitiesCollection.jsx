@@ -6,7 +6,7 @@
 
 	App.Collections.AvailableEntitiesCollection = Backbone.Collection.extend( {
 		model: EntityModel,
-		urlRoot: Global.rootUrl + '/data/entities',
+		urlRoot: Global.adminRootUrl + '/data/entities',
 		
 		initialize: function () {
 		},

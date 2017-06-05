@@ -336,7 +336,6 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             if (_.some(series.allLabels, l => !l.isHidden && l.bounds.contains(mouse)))
                 return -Infinity
 
-
             if (this.isConnected) {
                 return _.min(_.map(series.values.slice(0, -1), (d, i) => {
                     return Vector2.distanceFromPointToLineSq(mouse, d.position, series.values[i+1].position)
