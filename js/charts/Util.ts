@@ -5,17 +5,20 @@ export type VNode = any;
 export const NullElement : any = (): null => null;
 
 export function getRelativeMouse(node: SVGElement, event: MouseEvent): [number, number] {
+  const clientX = event.clientX || event.targetTouches[0].clientX
+  const clientY = event.clientY || event.targetTouches[0].clientY
+
   var svg = node.ownerSVGElement || node;
 
   if (svg.createSVGPoint) {
     var point = svg.createSVGPoint();
-    point.x = event.clientX, point.y = event.clientY;
+    point.x = clientX, point.y = clientY;
     point = point.matrixTransform(node.getScreenCTM().inverse());
     return [point.x, point.y];
   }
 
   var rect = node.getBoundingClientRect();
-  return [event.clientX - rect.left - node.clientLeft, event.clientY - rect.top - node.clientTop];
+  return [clientX - rect.left - node.clientLeft, clientY - rect.top - node.clientTop];
 };
 
 // Create an instance of a JSX node before rendering
