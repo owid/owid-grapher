@@ -4,6 +4,7 @@ import country_name_tool
 import os
 import random
 import string
+import unidecode
 from fuzzywuzzy import fuzz
 from io import StringIO
 from django.shortcuts import render
@@ -29,7 +30,7 @@ def process_countries(country_list, input_type, output_type):
         all_owid_country_names = CountryData.objects.values('id', 'owid_name')
         all_country_dict = {}
         for each in all_country_names:
-            all_country_dict[each.country_name] = each.owid_country
+            all_country_dict[each.country_name.lower()] = each.owid_country
     else:
         all_country_names = CountryData.objects.all()
         all_country_dict = {}
@@ -72,8 +73,8 @@ def process_countries(country_list, input_type, output_type):
 
     for each in country_list:
         if input_type == 'country_name':
-            if all_country_dict.get(each, 0):
-                result_list.append({'matched': True, 'country': all_country_dict[each].owid_name})
+            if all_country_dict.get(unidecode.unidecode(each.lower()), 0):
+                result_list.append({'matched': True, 'country': all_country_dict[unidecode.unidecode(each.lower())].owid_name})
             else:
                 result_list.append({'matched': False, 'country': []})
                 for one in all_owid_country_names:
@@ -166,7 +167,11 @@ def country_tool_page(request):
         if form.is_valid():
             country_list = []
             other_data = {}
-            file = form.cleaned_data['file'].read().decode('utf-8')
+            file = form.cleaned_data['file'].read()
+            try:
+                file = file.decode('utf-8')
+            except UnicodeDecodeError:
+                file = file.decode('latin1')
             file = '\n'.join(file.splitlines())
             input_type = form.cleaned_data['input_type']
             output_type = form.cleaned_data['output_type']
