@@ -1,6 +1,6 @@
 language: node_js
 services: mysql
-node_js
+node_js:
   - 7.6.0
 python:
   - 3.6
