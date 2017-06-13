@@ -20,11 +20,9 @@ For static image exports, you will also need a recent version of [node](https://
 
 ## Database setup
 
-TODO: Python database setup
+An initial test database can be imported from `owid_grapher/fixtures/owid_data.sql`. For example, if your database is called `grapher`:
 
-The database schema can be imported from `database/schema.sql`. For example, if your database is called `grapher`:
-
-`mysql -u root -p -D grapher < database/schema.sql`	
+`mysql -u root -p -D grapher < owid_grapher/fixtures/owid_data.sql`	
 
 Now copy `owid_grapher/secret_settings.py.template` to `owid_grapher/secret_settings.py` and fill in your database details.
 
