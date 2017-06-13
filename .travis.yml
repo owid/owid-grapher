@@ -1,8 +1,14 @@
-language: python
+language: node_js
+services: mysql
+node_js
+  - 7.6.0
 python:
   - 3.6
 before_script:
   - cp owid_grapher/secret_settings.py.travis owid_grapher/secret_settings.py
+  - mysql -e 'CREATE DATABASE test_grapher;'
+  - yarn install
+  - webpack -p
 script:
   - python manage.py test
 notifications:
