@@ -388,7 +388,7 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps, undefined> {
         const values = series.values.length == 1 ? [firstValue] : [firstValue, lastValue]
 
         const elements = []
-        const offset = 0
+        let offset = 0
 
         const heading = preInstantiate(<Paragraph x={x} y={y+offset} maxWidth={maxWidth} fontSize={0.65}>{series.label}</Paragraph>)
         elements.push(heading)

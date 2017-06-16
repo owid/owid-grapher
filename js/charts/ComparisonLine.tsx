@@ -1,30 +1,44 @@
 import * as React from 'react'
 import * as _ from 'lodash'
+import * as d3 from 'd3'
 import {observer} from 'mobx-react'
 import AxisBox from './AxisBox'
+import evalEquation from './evalEquation'
 
 export interface ComparisonLineConfig {
-    x1?: number,
-    y1?: number,
-    x2?: number,
-    y2?: number
+    yEquals: string
 }
 
 @observer
 export default class ComparisonLine extends React.Component<{ axisBox: AxisBox, comparisonLine: ComparisonLineConfig }, undefined> {
     render() {
         const {comparisonLine, axisBox} = this.props
-        const {xScale, yScale} = axisBox 
+        const {xScale, yScale, innerBounds} = axisBox 
 
-        const x1 = _.defaultTo(comparisonLine.x1, xScale.domain[0])
-        const y1 = _.defaultTo(comparisonLine.y1, yScale.domain[0])
-        const x2 = _.defaultTo(comparisonLine.x2, xScale.domain[1])
-        const y2 = _.defaultTo(comparisonLine.y2, yScale.domain[1])
+        const yEquals = _.defaultTo(comparisonLine.yEquals, "x")
+        const yFunc = function(x) {
+            return evalEquation(yEquals, { x: x }, x)
+        }
 
-        return <line x1={xScale.place(x1)}
-                     y1={yScale.place(y1)}
-                     x2={xScale.place(x2)}
-                     y2={yScale.place(y2)}
-                     stroke="#ccc"/>
+        // Construct control data by running the equation across sample points
+        const numPoints = 100
+        const scale = d3.scaleLinear().domain([0, 100]).range(xScale.domain)
+        const controlData = []
+        for (var i = 0; i < numPoints; i++) {
+            const x = scale(i)
+            const y = yFunc(x)
+            controlData.push([x, y])
+        }        
+        console.log(controlData)
+        const line = d3.line().curve(d3.curveLinear).x(d => xScale.place(d[0])).y(d => yScale.place(d[1]))
+
+        return <g className="ComparisonLine">
+            <defs>
+                <clipPath id="axisBounds">
+                    <rect x={innerBounds.x} y={innerBounds.y} width={innerBounds.width} height={innerBounds.height}/>
+                </clipPath>
+            </defs>
+            <path d={line(controlData)} clipPath="url(#axisBounds)" fill="none" stroke="#ccc"/>
+        </g>
     }
 }

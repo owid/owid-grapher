@@ -45,18 +45,12 @@ export default class ScatterTab extends React.Component<{ chart: ChartConfig }, 
     }
 
     save() {
-        console.log(this.comparisonLine)
         if (this.hasTimeline)
             this.props.chart.timeline = toJS(this.timeline)
 
         if (this.hasComparisonLine) {
-            for (key of this.comparisonLine) {
-                if (!_.isNumber(this.comparisonLine[key]))
-                    delete this.comparisonLine[key]
-            }
             this.props.chart.comparisonLine = toJS(this.comparisonLine)
         }
-
     }
 
     setLineCoord(key, value) {
@@ -81,13 +75,10 @@ export default class ScatterTab extends React.Component<{ chart: ChartConfig }, 
                     <label className="clickable"><input type="checkbox" checked={!!this.timeline.compareEndPointsOnly} onChange={this.onToggleEndsOnly}/> Compare end points only</label>
                 </div>}
                 <h2>Comparison line</h2>
-                <p className="form-section-desc">Overlay a line segment onto the chart for comparison.</p>
-                <label className="clickable"><input type="checkbox" checked={!!hasComparisonLine} onChange={this.onToggleComparisonLine}/> Enable comparison line</label>
+                <p className="form-section-desc">Overlay a line onto the chart for comparison. Supports basic <a href="https://github.com/silentmatt/expr-eval#expression-syntax">mathematical expressions</a>.</p>
+                <label className="clickable"><input type="checkbox" checked={!!hasComparisonLine} onChange={this.onToggleComparisonLine}/> Enable comparison line</label>                
                 {hasComparisonLine && <div>
-                    <label>x1 <input type="number" onChange={e => this.setLineCoord('x1', e.target.value)}/></label>
-                    <label>y1 <input type="number" onChange={e => this.setLineCoord('y1', e.target.value)}/></label>
-                    <label>x2 <input type="number" onChange={e => this.setLineCoord('x2', e.target.value)}/></label>
-                    <label>y2 <input type="number" onChange={e => this.setLineCoord('y2', e.target.value)}/></label>
+                    <label>y= <input type="text" value={comparisonLine.yEquals} placeholder="x" onChange={e => { this.comparisonLine.yEquals = e.target.value; this.save() }}/></label>
                 </div>}
             </section>
         </div>

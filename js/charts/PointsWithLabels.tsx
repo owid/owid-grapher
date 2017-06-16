@@ -34,8 +34,8 @@ interface PointsWithLabelsProps {
     xScale: AxisScale,
     yScale: AxisScale,
     sizeDomain: [number, number],
-    onSelectEntity: entity: string => void,
-    onMouseOver: entity: string => void,
+    onSelectEntity: (entity: string) => void,
+    onMouseOver: (entity: string) => void,
     onMouseLeave: void => void
 }
 
@@ -54,7 +54,7 @@ interface ScatterRenderSeries {
 
 @observer
 export default class PointsWithLabels extends React.Component<PointsWithLabelsProps, undefined> {
-    @observable hoverKey : ?string = null
+    @observable hoverKey: string|null = null
 
     @computed get focusKeys(): string[] {
         return this.props.focusKeys || []
@@ -90,7 +90,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         return this.focusKeys.length > 1
     }
 
-    @computed get sizeScale(): Function {
+    @computed get sizeScale() {
         const {data} = this
         const sizeScale = d3.scaleLinear().range([2, 25]).domain(this.props.sizeDomain)
         return sizeScale
