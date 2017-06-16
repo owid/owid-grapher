@@ -2,6 +2,7 @@ declare function require(name:string): any;
 const owid: any = require('../owid').default
 import * as _ from 'lodash'
 import {observable, computed, action, autorun, toJS} from 'mobx'
+import {ScaleType} from './AxisScale'
 
 export interface TimelineConfig {
     compareEndPointsOnly?: boolean
@@ -26,15 +27,15 @@ export default class ChartConfig {
 
     @observable.ref yAxisConfig: any
     @observable.ref yDomain: [number|null, number|null]
-    @observable.ref yScaleType: 'linear'|'log'
-    @observable.ref yScaleTypeOptions: string[]
+    @observable.ref yScaleType: ScaleType
+    @observable.ref yScaleTypeOptions: ScaleType[]
     @observable.ref yAxisLabel: string
     @observable.ref yTickFormat: (v: number) => string
 
     @observable.ref xAxisConfig: any
     @observable.ref xDomain: [number|null, number|null]
-    @observable.ref xScaleType: 'linear'|'log'
-    @observable.ref xScaleTypeOptions: string[]
+    @observable.ref xScaleType: ScaleType
+    @observable.ref xScaleTypeOptions: ScaleType[]
     @observable.ref xAxisLabel: string
     @observable.ref xTickFormat: (v: number) => string
     @observable.ref units: Object[]
@@ -43,6 +44,7 @@ export default class ChartConfig {
     @observable.struct dimensions: Object[]
     @observable.ref dimensionsWithData: Object[]
     @observable.ref addCountryMode: 'add-country'|'change-country'|'disabled' = 'add-country'
+    @observable.ref identityLine: boolean
 
 	model: any
 
@@ -122,6 +124,7 @@ export default class ChartConfig {
 
         this.dimensions = this.model.get('chart-dimensions')        
         this.addCountryMode = this.model.get('add-country-mode')
+        this.identityLine = this.model.get("identityLine")
     }
 
 	constructor(model : any, data: any) {
@@ -175,6 +178,10 @@ export default class ChartConfig {
 
         autorun(() => {
             this.model.set('chart-time', toJS(this.timeDomain))
+        })
+
+        autorun(() => {
+            this.model.set('identityLine', toJS(this.identityLine))
         })
 
         autorun(() => {            

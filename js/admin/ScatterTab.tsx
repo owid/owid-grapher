@@ -10,7 +10,7 @@ import ChartConfig, {TimelineConfig} from '../charts/ChartConfig'
 export default class ScatterTab extends React.Component<{ chart: ChartConfig }, undefined> {
     @observable timeline: TimelineConfig = {}
 
-    @computed get isEnabled() {
+    @computed get hasTimeline() {
         return !!this.props.chart.timeline
     }
 
@@ -36,21 +36,25 @@ export default class ScatterTab extends React.Component<{ chart: ChartConfig }, 
     }
 
     save() {
-        if (this.isEnabled)
+        if (this.hasTimeline)
             this.props.chart.timeline = toJS(this.timeline)
     }
 
     render() {
-        const {isEnabled, timeline} = this
+        const {hasTimeline, timeline} = this
+        const {chart} = this.props
 
         return <div id="scatter-tab" className="tab-pane">
             <section>
                 <h2>Timeline</h2>
                 <p className="form-section-desc">Note that the timeline settings will override any variable settings for target year (but not for tolerance).</p>
-                <label className="clickable"><input type="checkbox" checked={!!isEnabled} onChange={this.onToggleTimeline}/> Enable timeline</label>
-                {isEnabled && <div>
+                <label className="clickable"><input type="checkbox" checked={!!hasTimeline} onChange={this.onToggleTimeline}/> Enable timeline</label>
+                {hasTimeline && <div>
                     <label className="clickable"><input type="checkbox" checked={!!this.timeline.compareEndPointsOnly} onChange={this.onToggleEndsOnly}/> Compare end points only</label>
                 </div>}
+                <h2>Identity line</h2>
+                <p className="form-section-desc">Indicates the expected path if x = y.</p>
+                <label className="clickable"><input type="checkbox" checked={!!chart.identityLine} onChange={e => chart.identityLine = !chart.identityLine}/> Enable identity line</label>                
             </section>
         </div>
     }

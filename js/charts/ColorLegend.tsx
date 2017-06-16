@@ -11,7 +11,7 @@ interface ColorLegendProps {
     maxWidth: number,
     colors: string[],
     scale: d3.ScaleOrdinal<string, string>,
-    focusColor?: string,
+    focusColor: string|null,
     onMouseOver: (color: string) => void,
     onClick: (color: string) => void,
     onMouseLeave: () => void

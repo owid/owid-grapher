@@ -33,7 +33,8 @@ interface PointsWithLabelsProps {
     bounds: Bounds,
     xScale: AxisScale,
     yScale: AxisScale,
-    sizeDomain: [number, number]
+    sizeDomain: [number, number],
+    onSelectEntity: entity: string => null
 }
 
 interface ScatterRenderSeries {
