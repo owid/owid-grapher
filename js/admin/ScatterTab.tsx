@@ -22,7 +22,7 @@ export default class ScatterTab extends React.Component<{ chart: ChartConfig }, 
     }
 
     componentDidMount() {
-        $(".nav-tabs").append("<li className='nav-item'><a className='nav-link' href='#scatter-tab' data-toggle='tab'>Scatter</a></li>")
+        $(".nav-tabs").append("<li class='nav-item'><a class='nav-link' href='#scatter-tab' data-toggle='tab'>Scatter</a></li>")
     }
 
     @action.bound onToggleTimeline(e: React.ChangeEvent<HTMLInputElement>) {
