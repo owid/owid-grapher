@@ -121,7 +121,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
 
         if (timeline && timeline.compareEndPointsOnly) {
             _.each(currentData, series => {
-                series.values = [_.first(series.values), _.last(series.values)]
+                series.values = series.values.length == 1 ? series.values : [_.first(series.values), _.last(series.values)]
             })
         }
         
