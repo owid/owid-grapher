@@ -29,7 +29,6 @@ export default class ComparisonLine extends React.Component<{ axisBox: AxisBox, 
             const y = yFunc(x)
             controlData.push([x, y])
         }        
-        console.log(controlData)
         const line = d3.line().curve(d3.curveLinear).x(d => xScale.place(d[0])).y(d => yScale.place(d[1]))
 
         return <g className="ComparisonLine">

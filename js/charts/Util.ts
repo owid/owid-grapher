@@ -5,8 +5,14 @@ export type VNode = any;
 export const NullElement : any = (): null => null;
 
 export function getRelativeMouse(node: SVGElement, event: MouseEvent|TouchEvent): [number, number] {
-  const clientX = (event as MouseEvent).clientX || (event as TouchEvent).targetTouches[0].clientX
-  const clientY = (event as MouseEvent).clientY || (event as TouchEvent).targetTouches[0].clientY
+    let clientX, clientY
+    if (_.isFinite((event as MouseEvent).clientX)) {
+        clientX = (event as MouseEvent).clientX
+        clientY = (event as MouseEvent).clientY
+    } else {
+        clientX = (event as TouchEvent).targetTouches[0].clientX
+        clientY = (event as TouchEvent).targetTouches[0].clientY
+    }
 
   var svg = node.ownerSVGElement || node;
 
