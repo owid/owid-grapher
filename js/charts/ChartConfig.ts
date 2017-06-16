@@ -3,8 +3,8 @@ const owid: any = require('../owid').default
 import * as _ from 'lodash'
 import {observable, computed, action, autorun, toJS} from 'mobx'
 
-interface TimelineConfig {
-    compareEndPointsOnly: boolean
+export interface TimelineConfig {
+    compareEndPointsOnly?: boolean
 }
 
 // In-progress mobx model layer that will eventually replace ChartModel

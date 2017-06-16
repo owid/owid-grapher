@@ -4,33 +4,33 @@ import * as React from 'react'
 import {observable, computed, action, toJS} from 'mobx'
 import {observer} from 'mobx-react'
 import Timeline from '../charts/Timeline'
-import ChartConfig from '../charts/ChartConfig'
+import ChartConfig, {TimelineConfig} from '../charts/ChartConfig'
 
 @observer
 export default class ScatterTab extends React.Component<{ chart: ChartConfig }, undefined> {
-    @observable timeline = {}
+    @observable timeline: TimelineConfig = {}
 
     @computed get isEnabled() {
         return !!this.props.chart.timeline
     }
 
-    constructor(props) {
+    constructor(props: { chart: ChartConfig }) {
         super(props)
         _.extend(this.timeline, props.chart.timeline)
     }
 
     componentDidMount() {
-        $(".nav-tabs").append("<li class='nav-item'><a class='nav-link' href='#scatter-tab' data-toggle='tab'>Scatter</a></li>")
+        $(".nav-tabs").append("<li className='nav-item'><a className='nav-link' href='#scatter-tab' data-toggle='tab'>Scatter</a></li>")
     }
 
-    @action.bound onToggleTimeline(e) {
+    @action.bound onToggleTimeline(e: React.ChangeEvent<HTMLInputElement>) {
         if (e.target.checked)
             this.props.chart.timeline = this.timeline
         else
             this.props.chart.timeline = null
     }    
 
-    @action.bound onToggleEndsOnly(e) {
+    @action.bound onToggleEndsOnly(e: React.ChangeEvent<HTMLInputElement>) {
         this.timeline.compareEndPointsOnly = !!e.target.checked
         this.save()
     }
@@ -43,13 +43,13 @@ export default class ScatterTab extends React.Component<{ chart: ChartConfig }, 
     render() {
         const {isEnabled, timeline} = this
 
-        return <div id="scatter-tab" class="tab-pane">
+        return <div id="scatter-tab" className="tab-pane">
             <section>
                 <h2>Timeline</h2>
-                <p class="form-section-desc">Note that the timeline settings will override any variable settings for target year (but not for tolerance).</p>
-                <label class="clickable"><input type="checkbox" checked={!!isEnabled} onChange={this.onToggleTimeline}/> Enable timeline</label>
+                <p className="form-section-desc">Note that the timeline settings will override any variable settings for target year (but not for tolerance).</p>
+                <label className="clickable"><input type="checkbox" checked={!!isEnabled} onChange={this.onToggleTimeline}/> Enable timeline</label>
                 {isEnabled && <div>
-                    <label class="clickable"><input type="checkbox" checked={!!this.timeline.compareEndPointsOnly} onChange={this.onToggleEndsOnly}/> Compare end points only</label>
+                    <label className="clickable"><input type="checkbox" checked={!!this.timeline.compareEndPointsOnly} onChange={this.onToggleEndsOnly}/> Compare end points only</label>
                 </div>}
             </section>
         </div>
