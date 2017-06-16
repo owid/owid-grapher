@@ -3,6 +3,7 @@ const owid: any = require('../owid').default
 import * as _ from 'lodash'
 import {observable, computed, action, autorun, toJS} from 'mobx'
 import {ScaleType} from './AxisScale'
+import {ComparisonLineConfig} from './ComparisonLine'
 
 export interface TimelineConfig {
     compareEndPointsOnly?: boolean
@@ -44,7 +45,7 @@ export default class ChartConfig {
     @observable.struct dimensions: Object[]
     @observable.ref dimensionsWithData: Object[]
     @observable.ref addCountryMode: 'add-country'|'change-country'|'disabled' = 'add-country'
-    @observable.ref identityLine: boolean
+    @observable.ref comparisonLine: ComparisonLineConfig|null
 
 	model: any
 
@@ -124,7 +125,7 @@ export default class ChartConfig {
 
         this.dimensions = this.model.get('chart-dimensions')        
         this.addCountryMode = this.model.get('add-country-mode')
-        this.identityLine = this.model.get("identityLine")
+        this.comparisonLine = this.model.get("comparisonLine")
     }
 
 	constructor(model : any, data: any) {
@@ -181,7 +182,7 @@ export default class ChartConfig {
         })
 
         autorun(() => {
-            this.model.set('identityLine', toJS(this.identityLine))
+            this.model.set('comparisonLine', toJS(this.comparisonLine))
         })
 
         autorun(() => {            

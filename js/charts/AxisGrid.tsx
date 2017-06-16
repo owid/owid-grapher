@@ -16,12 +16,6 @@ import {observer} from 'mobx-react'
 import Bounds from './Bounds'
 import AxisScale from './AxisScale'
 
-interface AxisGridProps {
-    orient: 'left' | 'bottom',
-    scale: AxisScale,
-    bounds: Bounds
-}
-
 export default class AxisGrid extends React.Component<AxisGridProps, null> {
     render() {
         const {orient, bounds} = this.props

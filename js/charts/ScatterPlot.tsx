@@ -30,6 +30,8 @@ import ScatterData from './ScatterData'
 import AxisGrid from './AxisGrid'
 import ColorLegend from './ColorLegend'
 import AxisBox, {AxisBoxView} from './AxisBox'
+import ComparisonLine from './ComparisonLine'
+import {ScaleType} from './AxisScale'
 
 type ScatterSeries = any
 
@@ -332,41 +334,38 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     }
 
     @action.bound onYScaleChange(scaleType: ScaleType) {
-        this.props.chart.yScaleType = scaleType
+        this.chart.yScaleType = scaleType
     }
 
     @action.bound onXScaleChange(scaleType: ScaleType) {
-        this.props.chart.xScaleType = scaleType
+        this.chart.xScaleType = scaleType
+    }
+    
+    @computed get comparisonLine() {
+        return this.chart.comparisonLine
     }
 
     render() {
-        const {bounds, xScale, yScale, xAxisLabel, yAxisLabel, data, chart} = this.props
-
-
-        return <g>
-            {/*<Axis orient="left" scale={yScale} labelText={yAxisLabel} bounds={bounds.padBottom(xAxisBounds.height)} onScaleTypeChange={this.onYScaleChange}/>
-            <Axis orient="bottom" scale={xScale} labelText={xAxisLabel} bounds={bounds.padLeft(yAxisBounds.width)} onScaleTypeChange={this.onXScaleChange}/>*/}
-            {/*
-            <AxisGrid orient="bottom" scale={xScale} bounds={innerBounds}/>*/}
-        </g>
-    }
-
-    render() {
-        const {currentData, bounds, yearsWithData, startYear, endYear, axisBox, chart, timeline, timelineHeight, legend, focusKeys, focusColor, shapeLegend, hoverSeries, sidebarWidth, tooltipSeries, sizeDomain} = this
-        return <g>
+        const {currentData, bounds, yearsWithData, startYear, endYear, axisBox, chart, timeline, timelineHeight, legend, focusKeys, focusColor, shapeLegend, hoverSeries, sidebarWidth, tooltipSeries, sizeDomain, comparisonLine} = this
+        return <g className="ScatterPlot">
             <AxisBoxView axisBox={axisBox} onXScaleChange={this.onXScaleChange} onYScaleChange={this.onYScaleChange}/>
+            {comparisonLine && <ComparisonLine axisBox={axisBox} comparisonLine={comparisonLine}/>}
             <PointsWithLabels data={currentData} bounds={axisBox.innerBounds} xScale={axisBox.xScale} yScale={axisBox.yScale} sizeDomain={sizeDomain} onSelectEntity={this.onSelectEntity} focusKeys={focusKeys}/>
             <ColorLegend {...legend.props} x={bounds.right-sidebarWidth} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} onClick={this.onLegendClick} focusColor={focusColor}/>
             {(shapeLegend || tooltipSeries) && <line x1={bounds.right-sidebarWidth} y1={bounds.top+legend.height+2} x2={bounds.right-5} y2={bounds.top+legend.height+2} stroke="#ccc"/>}
             {shapeLegend && <ConnectedScatterLegend {...shapeLegend.props} x={bounds.right-sidebarWidth} y={bounds.top+legend.height+11}/>}            
             {timeline && <Timeline {...timeline.props}/>}
-            {tooltipSeries && <ScatterTooltip series={tooltipSeries} units={chart.units} maxWidth={sidebarWidth} x={bounds.right-sidebarWidth} y={bounds.top+legend.height+11+(shapeLegend ? shapeLegend.height : 0)}/>}}
+            {tooltipSeries && <ScatterTooltip series={tooltipSeries} units={chart.units} maxWidth={sidebarWidth} x={bounds.right-sidebarWidth} y={bounds.top+legend.height+11+(shapeLegend ? shapeLegend.height : 0)}/>}
         </g>
     }
 }
 
 interface ScatterTooltipProps {
-    series: ScatterSeries
+    series: ScatterSeries,
+    units: any,
+    maxWidth: number,
+    x: number,
+    y: number
 }
 
 @observer

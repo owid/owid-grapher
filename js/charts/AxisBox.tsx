@@ -61,23 +61,21 @@ export default class AxisBox {
         this.yAxisConfig = props.yAxisConfig
 
     }
-
-    @computed get rendered() {
-        const {bounds} = this
-        return [
-            <AxisGrid orient="left" scale={yScale} bounds={innerBounds}/>,
-            <AxisGrid orient="bottom" scale={xScale} bounds={innerBounds}/>    
-        ]
-        return <line x1={bounds.left} y1={bounds.bottom} x2={bounds.right} y2={bounds.top} stroke="#ccc"/>
-    }
 }
 
-class AxisGrid extends React.Component<AxisGridProps, null> {
+
+interface AxisGridLinesProps {
+    orient: 'left' | 'bottom',
+    scale: AxisScale,
+    bounds: Bounds
+}
+
+class AxisGridLines extends React.Component<AxisGridLinesLinesProps, null> {
     render() {
         const {orient, bounds} = this.props
         let scale = this.props.scale.extend({ range: orient == 'left' ? bounds.yRange() : bounds.xRange() })
 
-        return <g className="axisGrid">
+        return <g className="AxisGridLines">
             {_.map(scale.getTickValues(), v => {
                 if (orient == 'left')
                     return <line x1={bounds.left} y1={scale.place(v)} x2={bounds.right} y2={scale.place(v)} stroke="#eee" stroke-dasharray="3,2"/>
@@ -94,11 +92,11 @@ export class AxisBoxView extends React.Component<any, undefined> {
         const {axisBox, onYScaleChange, onXScaleChange} = this.props
         const {bounds, xScale, yScale, xAxisConfig, yAxisConfig, xAxisBounds, yAxisBounds, innerBounds} = axisBox
 
-        return <g className="axisBox">
+        return <g className="AxisBoxView">
             <Axis orient="left" scale={yScale} labelText={yAxisConfig.label} bounds={bounds.padBottom(xAxisBounds.height)} onScaleTypeChange={onYScaleChange}/>
             <Axis orient="bottom" scale={xScale} labelText={xAxisConfig.label} bounds={bounds.padLeft(yAxisBounds.width)} onScaleTypeChange={onXScaleChange}/>
-            <AxisGrid orient="left" scale={yScale} bounds={innerBounds}/>
-            <AxisGrid orient="bottom" scale={xScale} bounds={innerBounds}/>
+            <AxisGridLines orient="left" scale={yScale} bounds={innerBounds}/>
+            <AxisGridLines orient="bottom" scale={xScale} bounds={innerBounds}/>
         </g>
     }
 }

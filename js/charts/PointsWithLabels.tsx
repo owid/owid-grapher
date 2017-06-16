@@ -502,7 +502,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         if (_.isEmpty(renderData))
             return <NoData bounds={bounds}/>
 
-        return <g className="ScatterPlot clickable" clipPath="url(#scatterBounds)" onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
+        return <g className="PointsWithLabels clickable" clipPath="url(#scatterBounds)" onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
             <rect key="background" x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="rgba(255,255,255,0)"/>
             <defs>
                 <clipPath id="scatterBounds">
