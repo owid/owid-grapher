@@ -63,14 +63,13 @@ export default class AxisBox {
     }
 }
 
-
 interface AxisGridLinesProps {
     orient: 'left' | 'bottom',
     scale: AxisScale,
     bounds: Bounds
 }
 
-class AxisGridLines extends React.Component<AxisGridLinesLinesProps, null> {
+class AxisGridLines extends React.Component<AxisGridLinesProps, null> {
     render() {
         const {orient, bounds} = this.props
         let scale = this.props.scale.extend({ range: orient == 'left' ? bounds.yRange() : bounds.xRange() })

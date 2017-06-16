@@ -11,10 +11,10 @@ interface ColorLegendProps {
     maxWidth: number,
     colors: string[],
     scale: d3.ScaleOrdinal<string, string>,
-    focusColor: string|null,
-    onMouseOver: (color: string) => void,
-    onClick: (color: string) => void,
-    onMouseLeave: () => void
+    focusColor?: string,
+    onMouseOver?: (color: string) => void,
+    onClick?: (color: string) => void,
+    onMouseLeave?: () => void
 }
 
 interface LabelMark {
@@ -26,23 +26,21 @@ interface LabelMark {
 
 @observer
 export default class ColorLegend extends React.Component<ColorLegendProps, null> {
-    static defaultProps: Partial<ColorLegendProps> = {
-        x: 0,
-        y: 0,
-        onMouseOver: () => null,
-        onClick: () => null,
-        onMouseLeave: () => null
-    }
-
     @computed get fontSize(): number { return 0.5 }
     @computed get rectSize(): number { return 5 }
     @computed get rectPadding(): number { return 5 }
     @computed get lineHeight(): number { return 5 }
+    @computed get onMouseOver(): Function { return this.props.onMouseOver || _.noop }
+    @computed get onMouseLeave(): Function { return this.props.onMouseLeave || _.noop }
+    @computed get onClick(): Function { return this.props.onClick || _.noop }
+    @computed get x(): number { return this.props.x || 0 }
+    @computed get y(): number { return this.props.y || 0 }
+    @computed get focusColor(): string|null { return this.props.focusColor||null }
 
     @computed get labelMarks(): LabelMark[] {
         const {props, fontSize, rectSize, rectPadding} = this
 
-        return _.filter(_.map(props.scale.domain(), value => {            
+        return (_.filter(_.map(props.scale.domain(), value => {            
             const color = props.scale(value)
             if (props.colors.indexOf(color) == -1)
                 return null
@@ -54,7 +52,7 @@ export default class ColorLegend extends React.Component<ColorLegendProps, null>
                 width: rectSize+rectPadding+label.width,
                 height: Math.max(label.height, rectSize)
             }
-        }))
+        })) as LabelMark[])
     }
 
     @computed get width(): number {
@@ -69,17 +67,17 @@ export default class ColorLegend extends React.Component<ColorLegendProps, null>
     }
 
     render() {
-        const {props, rectSize, rectPadding, lineHeight} = this
+        const {focusColor, rectSize, rectPadding, lineHeight} = this
         let offset = 0
 
-        return <g class="ColorLegend clickable" style={{cursor: 'pointer'}}>
+        return <g className="ColorLegend clickable" style={{cursor: 'pointer'}}>
             {_.map(this.labelMarks, mark => {
-                const isFocus = mark.color == props.focusColor
+                const isFocus = mark.color == focusColor
 
-                const result = <g class="legendMark" onMouseOver={e => this.props.onMouseOver(mark.color)} onMouseLeave={e => this.props.onMouseLeave()} onClick={e => this.props.onClick(mark.color)}>
-                    <rect x={props.x} y={props.y+offset-lineHeight/2} width={mark.width} height={mark.height+lineHeight} fill="#fff" opacity={0}/>,
-                    <rect x={props.x} y={props.y+offset+rectSize/2} width={rectSize} height={rectSize} fill={mark.color}/>,
-                    <Paragraph {...mark.label.props} x={props.x+rectSize+rectPadding} y={props.y+offset}/>
+                const result = <g className="legendMark" onMouseOver={e => this.onMouseOver(mark.color)} onMouseLeave={e => this.onMouseLeave()} onClick={e => this.onClick(mark.color)}>
+                    <rect x={this.x} y={this.y+offset-lineHeight/2} width={mark.width} height={mark.height+lineHeight} fill="#fff" opacity={0}/>,
+                    <rect x={this.x} y={this.y+offset+rectSize/2} width={rectSize} height={rectSize} fill={mark.color}/>,
+                    <Paragraph {...mark.label.props} x={this.x+rectSize+rectPadding} y={this.y+offset}/>
                 </g>
 
                 offset += mark.height+lineHeight

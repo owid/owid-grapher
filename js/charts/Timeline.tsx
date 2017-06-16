@@ -92,10 +92,10 @@ export default class RangeTimeline extends React.Component<TimelineProps, undefi
     // e.g. 1954 => 1950
     @computed get targetStartYear(): number {
         const { years, startYear } = this
-        return _.find(
+        return (_.find(
             _.sortBy(years, year => Math.abs(year-startYear)),
             year => year <= startYear
-        )
+        ) as number)
     }
 
     @computed get endYear(): number {
@@ -110,10 +110,10 @@ export default class RangeTimeline extends React.Component<TimelineProps, undefi
 
     @computed get targetEndYear(): number {
         const { years, endYear } = this
-        return _.find(
+        return (_.find(
             _.sortBy(years, year => Math.abs(year-endYear)),
             year => year <= endYear
-        )
+        ) as number)
     }
 
 	@computed get minYearBox(): Bounds {
@@ -137,7 +137,7 @@ export default class RangeTimeline extends React.Component<TimelineProps, undefi
 
 	@computed get xScale(): any {
 		const { years, sliderBounds } = this
-		return d3.scaleLinear().domain(d3.extent(years)).range([sliderBounds.left, sliderBounds.left+sliderBounds.width]);
+		return d3.scaleLinear().domain((d3.extent(years) as [number, number])).range([sliderBounds.left, sliderBounds.left+sliderBounds.width]);
 	}
 
 	@action componentWillReceiveProps(nextProps : TimelineProps) {
