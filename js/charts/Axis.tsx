@@ -1,26 +1,25 @@
-import _ from 'lodash'
+import * as _ from 'lodash'
 import * as d3 from 'd3'
-import React, {Component} from 'react'
+import * as React from 'react'
 import {observable, computed, action} from 'mobx'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
-import type {ScaleType} from './ScaleSelector'
+import {ScaleType} from './AxisScale'
 import AxisScale from './AxisScale'
 import Paragraph from './Paragraph'
 import {preInstantiate} from './Util'
 import ScaleSelector from './ScaleSelector'
 
-// @flow
-
 type AxisProps = {
     bounds: Bounds,
     orient: 'left' | 'right' | 'bottom',
     scale: AxisScale,
-    onScaleTypeChange: (ScaleType) => void
+    onScaleTypeChange: (scaleType: ScaleType) => void,
+    labelText: string
 };
 
 @observer
-export default class Axis extends Component {
+export default class Axis extends React.Component<AxisProps, undefined> {
     static labelPadding = 5
     static tickFontSize = "0.7em"
     static labelFontSize = 0.5
@@ -99,7 +98,7 @@ export default class Axis extends Component {
                 <text x={bounds.left+labelOffset} y={scale.place(tick)} fill={textColor} dominant-baseline="middle" text-anchor="start" font-size={Axis.tickFontSize}>{scale.tickFormat(tick)}</text>
             ),
             scale.scaleTypeOptions.length > 1 && 
-                <ScaleSelector x={bounds.left} y={bounds.top} scaleType={scale.scaleType} scaleTypeOptions={scale.scaleTypeOptions} onChange={onScaleTypeChange}/>                        
+                <ScaleSelector x={bounds.left} y={bounds.top-10} scaleType={scale.scaleType} scaleTypeOptions={scale.scaleTypeOptions} onChange={onScaleTypeChange}/>                        
         ]
     }
 

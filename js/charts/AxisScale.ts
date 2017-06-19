@@ -35,7 +35,7 @@ export default class AxisScale {
         return this.d3_scaleConstructor().domain(this.domain).range(this.range)
     }
 
-    getTickValues() {
+    getTickValues(): number[] {
         const {scaleType, domain, d3_scale} = this        
 
         if (scaleType == 'log') {
@@ -54,7 +54,7 @@ export default class AxisScale {
         }
     }
 
-    getFormattedTicks() : string[] {
+    getFormattedTicks(): string[] {
         return _.map(this.getTickValues(), this.tickFormat)
     }
 
@@ -66,7 +66,7 @@ export default class AxisScale {
         return this.d3_scale(value)
     }
 
-    extend(props : Object) {
+    extend(props: Object) {
         return new AxisScale(_.extend(toJS(this), props))
     }
 
