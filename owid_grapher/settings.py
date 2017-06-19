@@ -12,8 +12,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 
 import os
 import pymysql
-from .secret_settings import SECRET_KEY, ENV, ALLOWED_HOSTS, BASE_URL, DB_HOST, DB_NAME, DB_PASS, DB_PORT, DB_USER, EMAIL_HOST, EMAIL_HOST_USER, EMAIL_USE_TLS, EMAIL_HOST_PASSWORD, EMAIL_PORT, CLOUDFLARE_BASE_URL, CLOUDFLARE_EMAIL, CLOUDFLARE_KEY, CLOUDFLARE_ZONE_ID, SLACK_TOKEN, SLACK_LOGGING_ENABLED, SLACK_CHANNEL, LOG_FILE_LOCATION
-
+from .secret_settings import SECRET_KEY, ENV, ALLOWED_HOSTS, BASE_URL, DB_HOST, DB_NAME, DB_PASS, DB_PORT, DB_USER, EMAIL_HOST, EMAIL_HOST_USER, EMAIL_USE_TLS, EMAIL_HOST_PASSWORD, EMAIL_PORT, CLOUDFLARE_BASE_URL, CLOUDFLARE_EMAIL, CLOUDFLARE_KEY, CLOUDFLARE_ZONE_ID, SLACK_TOKEN, SLACK_LOGGING_ENABLED, SLACK_CHANNEL, LOG_FILE_LOCATION, WDI_FETCHER_LOG_FILE_LOCATION
 pymysql.install_as_MySQLdb()
 
 
@@ -198,11 +197,22 @@ LOGGING = {
             'backupCount': 5,
             'formatter': 'standard',
         },
+        'wdi_fetcher': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': WDI_FETCHER_LOG_FILE_LOCATION,
+            'formatter': 'standard',
+        },
     },
     'loggers': {
         '': {
             'handlers': ['default'],
             'level': 'ERROR',
+            'propagate': True
+        },
+        'importer': {
+            'handlers': ['wdi_fetcher'],
+            'level': 'DEBUG',
             'propagate': True
         },
     },

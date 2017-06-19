@@ -19,6 +19,7 @@ from django.conf.urls import url, include
 from grapher_admin import views as admin_views
 from owid_grapher import views as owid_views
 from country_name_tool import views as countrytool_views
+from importer import views as importer_views
 from django.contrib.auth.views import logout
 
 urlpatterns = [
@@ -76,6 +77,7 @@ urlpatterns = [
     url(r'^grapher/admin/standardize/update/$', countrytool_views.country_tool_update, name="countrytoolupdate"),
     url(r'^grapher/admin/standardize/csv/(?P<filename>[^/]+)$', countrytool_views.servecsv, name="servecsv"),
     url(r'^grapher/admin/invite/$', admin_views.invite_user, name="inviteuser"),
+    url(r'^grapher/admin/wdidatasets/$', importer_views.listwdidatasets, name="listwdidatasets"),
     # for future use on the frontend
     url(r'^grapher/admin/charts\.json$',  admin_views.listcharts, name="listchartsjson"),
     url(r'^grapher/admin/charts/create.json$', admin_views.createchart, name="createchartjson"),
@@ -95,4 +97,5 @@ urlpatterns = [
     url(r'^grapher/(?P<slug>[^/]+)\.export', owid_views.show, name="exportchart"),
     url(r'^grapher/(?P<slug>[^/]+)\.(?P<fileformat>.+)', owid_views.exportfile, name="exportfile"),
     url(r'^grapher/(?P<slug>[^/]+)/?$', owid_views.show, name="showchart"),
+    url(r'^grapher/wdi/WDI_Country_info.xls$', importer_views.serve_wdi_country_info_xls, name='servewdicountryinfo'),
 ]
