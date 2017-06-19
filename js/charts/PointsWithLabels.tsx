@@ -33,7 +33,10 @@ interface PointsWithLabelsProps {
     bounds: Bounds,
     xScale: AxisScale,
     yScale: AxisScale,
-    sizeDomain: [number, number]
+    sizeDomain: [number, number],
+    onSelectEntity: (entity: string) => void,
+    onMouseOver: (entity: string) => void,
+    onMouseLeave: void => void
 }
 
 interface ScatterRenderSeries {
@@ -51,13 +54,13 @@ interface ScatterRenderSeries {
 
 @observer
 export default class PointsWithLabels extends React.Component<PointsWithLabelsProps, undefined> {
-    @observable hoverKey : ?string = null
+    @observable hoverKey: string|null = null
 
     @computed get focusKeys(): string[] {
         return this.props.focusKeys || []
     }
 
-    @computed get tmpFocusKeys() : string[] {
+    @computed get tmpFocusKeys(): string[] {
         const {focusKeys, hoverKey} = this
         return focusKeys.concat(hoverKey ? [hoverKey] : [])
     }
@@ -66,15 +69,15 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         return this.props.data
     }
 
-    @computed get bounds() : Bounds {
+    @computed get bounds(): Bounds {
         return this.props.bounds
     }
 
-    @computed get xScale() : AxisScale {
+    @computed get xScale(): AxisScale {
         return this.props.xScale.extend({ range: this.bounds.xRange() })
     }
 
-    @computed get yScale() : AxisScale {
+    @computed get yScale(): AxisScale {
         return this.props.yScale.extend({ range: this.bounds.yRange() })
     }
 
@@ -87,7 +90,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         return this.focusKeys.length > 1
     }
 
-    @computed get sizeScale() : Function {
+    @computed get sizeScale() {
         const {data} = this
         const sizeScale = d3.scaleLinear().range([2, 25]).domain(this.props.sizeDomain)
         return sizeScale
@@ -98,7 +101,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             return sizeScale.domain(d3.extent(allSizes))*/
     }
 
-    @computed get fontScale() : Function {
+    @computed get fontScale(): Function {
         return d3.scaleLinear().range([10, 13]).domain(this.sizeScale.domain());
     }
 
@@ -107,13 +110,12 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     }
 
     // Used if no color is specified for a series
-    @computed get defaultColorScale() {
+    @computed get defaultColorScale() {        
         return d3.scaleOrdinal().range(d3.schemeCategory20)
     }
 
     // Pre-transform data for rendering
-    @computed get initialRenderData() : ScatterRenderSeries[] {
-        window.Vector2 = Vector2
+    @computed get initialRenderData(): ScatterRenderSeries[] {
         const {data, xScale, yScale, defaultColorScale, sizeScale, fontScale} = this
         return _.chain(data).map(d => {
             const values = _.map(d.values, v => {
@@ -159,7 +161,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             return null
 
         const {labelFontFamily} = this
-        const fontSize = series.isFocused ? (this.isSubtleFocus ? 8 : 9) : 7
+        const fontSize = series.isFocused ? (this.isSubtleFocus ? 8 : 9): 7
         const firstValue = series.values[0]
         const nextValue = series.values[1]
         const nextSegment = nextValue.position.subtract(firstValue.position)
@@ -187,7 +189,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         if (!series.isFocused || series.values.length <= 1 || (!series.isHovered && this.isSubtleFocus))
             return []
 
-        const fontSize = series.isFocused ? (this.isSubtleFocus ? 8 : 9) : 7
+        const fontSize = series.isFocused ? (this.isSubtleFocus ? 8 : 9): 7
         const {labelFontFamily} = this
         
         return _.map(series.values.slice(1, -1), (v, i) => {
@@ -232,7 +234,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
         const lastValue = _.last(series.values)
         const lastPos = lastValue.position
-        const fontSize = lastValue.fontSize*(series.isFocused ? (isSubtleFocus ? 1.1 : 1.2) : 1)
+        const fontSize = lastValue.fontSize*(series.isFocused ? (isSubtleFocus ? 1.1 : 1.2): 1)
 
         let offsetVector = Vector2.up
         if (series.values.length > 1) {
@@ -314,7 +316,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         return renderData
     }
 
-    @computed get allColors() : string[] {
+    @computed get allColors(): string[] {
         return _.uniq(_.map(this.renderData, 'color'))
     }
 
@@ -364,7 +366,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             this.props.onSelectEntity(this.focusKeys.concat([hoverKey]))
     }
 
-    @computed get isFocusMode() : boolean {
+    @computed get isFocusMode(): boolean {
         return !!(this.tmpFocusKeys.length || this.renderData.length == 1)
     }
 
@@ -501,7 +503,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         if (_.isEmpty(renderData))
             return <NoData bounds={bounds}/>
 
-        return <g className="ScatterPlot clickable" clipPath="url(#scatterBounds)" onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
+        return <g className="PointsWithLabels clickable" clipPath="url(#scatterBounds)" onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
             <rect key="background" x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="rgba(255,255,255,0)"/>
             <defs>
                 <clipPath id="scatterBounds">

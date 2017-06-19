@@ -1,21 +1,24 @@
-/* AxisScale.jsx
+/* AxisScale.ts
  * ================
- *
- *
  *
  * @project Our World In Data
  * @author  Jaiden Mispy
  * @created 2017-02-11
  */
 
-
-// @flow
-
 import * as d3 from 'd3'
 import * as _ from 'lodash'
 import {observable, computed, action, toJS} from 'mobx'
 
 export type ScaleType = 'linear' | 'log';
+
+export interface AxisConfig {
+    scaleType: ScaleType,
+    scaleTypeOptions: ScaleType[],
+    tickFormat: (v: number) => string,
+    domain: [number, number],
+    label: string
+}
 
 export default class AxisScale {
     @observable scaleType: ScaleType

@@ -1,12 +1,12 @@
-language: php
-php:
-  - 5.6.29
+language: python
+services: mysql
+python:
+  - 3.6
 before_script:
-  - cp .env.travis .env
-  - composer install --no-interaction
-  - mysql -e 'create database forge_test;'
+  - cp owid_grapher/secret_settings.py.travis owid_grapher/secret_settings.py
+  - mysql -e 'CREATE DATABASE test_grapher;'
 script:
-  - phpunit
+  - python manage.py test
 notifications:
   email:
     - jaiden@mispy.me

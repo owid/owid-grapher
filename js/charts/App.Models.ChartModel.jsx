@@ -54,7 +54,8 @@ export default Backbone.Model.extend( {
 		"y-axis-scale-selector": false,
 		"activeLegendKeys": null,
 		"currentStackMode": null,
-        "timeline": null
+        "timeline": null,
+		"identityLine": false
 	},
 
 	// Get defaults appropriate for this kind of chart

@@ -6,12 +6,14 @@
         "outDir": "./tmp/dist/",
         "sourceMap": true,
         "module": "commonjs",
-        "target": "es5",
+        "target": "es6",
         "jsx": "react",
         "experimentalDecorators": true,
         "strictNullChecks": true
     },
-    "include": [
-        "./js/**/*"
-    ]
+    "exclude": ["node_modules"],
+    "awesomeTypescriptLoaderOptions": {
+        "useBabel": true,
+        "useCache": true
+    }
 }

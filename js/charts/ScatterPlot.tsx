@@ -18,7 +18,7 @@ import owid from '../owid'
 import ChartConfig from './ChartConfig'
 import NoData from './NoData'
 import Axis from './Axis'
-import AxisScale from './AxisScale'
+import AxisScale, {AxisConfig} from './AxisScale'
 import Layout from './Layout'
 import Timeline from './Timeline'
 import PointsWithLabels from './PointsWithLabels'
@@ -29,6 +29,9 @@ import {Triangle} from './Marks'
 import ScatterData from './ScatterData'
 import AxisGrid from './AxisGrid'
 import ColorLegend from './ColorLegend'
+import AxisBox, {AxisBoxView} from './AxisBox'
+import ComparisonLine from './ComparisonLine'
+import {ScaleType} from './AxisScale'
 
 type ScatterSeries = any
 
@@ -39,33 +42,6 @@ interface ScatterWithAxisProps {
     yScale: AxisScale,
     xAxisLabel: string,
     yAxisLabel: string
-}
-
-@observer
-class ScatterWithAxis extends React.Component<any, null> {
-    @action.bound onYScaleChange(scaleType: ScaleType) {
-        this.props.chart.yScaleType = scaleType
-    }
-
-    @action.bound onXScaleChange(scaleType: ScaleType) {
-        this.props.chart.xScaleType = scaleType
-    }
-
-    render() {
-        const {bounds, xScale, yScale, xAxisLabel, yAxisLabel, data} = this.props
-
-        const xAxisBounds = Axis.calculateBounds(bounds, { orient: 'bottom', scale: xScale, label: xAxisLabel })
-        const yAxisBounds = Axis.calculateBounds(bounds, { orient: 'left', scale: yScale, label: yAxisLabel })
-        const innerBounds = bounds.padBottom(xAxisBounds.height).padLeft(yAxisBounds.width)
-
-        return <g>
-            <Axis orient="left" scale={yScale} labelText={yAxisLabel} bounds={bounds.padBottom(xAxisBounds.height)} onScaleTypeChange={this.onYScaleChange}/>
-            <Axis orient="bottom" scale={xScale} labelText={xAxisLabel} bounds={bounds.padLeft(yAxisBounds.width)} onScaleTypeChange={this.onXScaleChange}/>
-            <AxisGrid orient="left" scale={yScale} bounds={innerBounds}/>
-            <AxisGrid orient="bottom" scale={xScale} bounds={innerBounds}/>
-            <PointsWithLabels {...this.props} xScale={xScale} yScale={yScale} data={data} bounds={innerBounds}/>
-        </g>
-    }
 }
 
 @observer
@@ -88,7 +64,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     @computed get configTolerance() {
         return 1
     }
-
+π
     @computed get dataByEntityAndYear() {
         return this.data.dataByEntityAndYear
     }
@@ -145,7 +121,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
 
         if (timeline && timeline.compareEndPointsOnly) {
             _.each(currentData, series => {
-                series.values = [_.first(series.values), _.last(series.values)]
+                series.values = series.values.length == 1 ? series.values : [_.first(series.values), _.last(series.values)]
             })
         }
         
@@ -247,14 +223,26 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         return _.uniq(_.map(this.allSeries, 'color'))
     }
 
-    @computed get xScale() : AxisScale {
+    @computed get xAxisConfig(): AxisConfig {
         const {xDomain, chart} = this
-        return new AxisScale({ scaleType: chart.xScaleType, scaleTypeOptions: chart.xScaleTypeOptions, domain: xDomain, tickFormat: chart.xTickFormat })
+        return { 
+            scaleType: chart.xScaleType, 
+            scaleTypeOptions: chart.xScaleTypeOptions, 
+            domain: xDomain, 
+            tickFormat: chart.xTickFormat,
+            label: chart.xAxisLabel
+        }
     }
 
-    @computed get yScale() : AxisScale {
+    @computed get yAxisConfig(): AxisConfig {
         const {yDomain, chart} = this
-        return new AxisScale({ scaleType: chart.yScaleType, scaleTypeOptions: chart.yScaleTypeOptions, domain: yDomain, tickFormat: chart.yTickFormat })
+        return {
+            scaleType: chart.yScaleType, 
+            scaleTypeOptions: chart.yScaleTypeOptions, 
+            domain: yDomain, 
+            tickFormat: chart.yTickFormat,
+            label: chart.yAxisLabel            
+        }
     }
 
     @action.bound onSelectEntity(focusKeys) {
@@ -276,7 +264,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     }
 
     @computed get legend(): ColorLegend {
-        return preInstantiate(<ColorLegend maxWidth={this.sidebarMaxWidth} colors={this.colorsInUse} scale={this.data.colorScale}/>)
+        return preInstantiate(<ColorLegend maxWidth={this.sidebarMaxWidth} colors={this.colorsInUse} scale={this.data.colorScale} focusColor={null}/>)
     }
 
     @observable focusColor: string|null = null
@@ -340,21 +328,44 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         return Math.max(Math.min(legend.width, sidebarMaxWidth), sidebarMinWidth)
     }
 
+    @computed get axisBox() {
+        const {bounds, xAxisConfig, yAxisConfig, timelineHeight, sidebarWidth} = this
+        return new AxisBox({bounds: bounds.padBottom(timelineHeight).padRight(sidebarWidth+20), xAxisConfig, yAxisConfig})        
+    }
+
+    @action.bound onYScaleChange(scaleType: ScaleType) {
+        this.chart.yScaleType = scaleType
+    }
+
+    @action.bound onXScaleChange(scaleType: ScaleType) {
+        this.chart.xScaleType = scaleType
+    }
+    
+    @computed get comparisonLine() {
+        return this.chart.comparisonLine
+    }
+
     render() {
-        const {currentData, bounds, yearsWithData, startYear, endYear, xScale, yScale, chart, timeline, timelineHeight, legend, focusKeys, focusColor, shapeLegend, hoverSeries, sidebarWidth, tooltipSeries, sizeDomain} = this
-        return <g>
-            <ScatterWithAxis data={currentData} onMouseOver={this.onScatterMouseOver} chart={chart} bounds={this.bounds.padBottom(timelineHeight).padRight(sidebarWidth+20)} xScale={xScale} yScale={yScale} sizeDomain={sizeDomain} xAxisLabel={chart.xAxisLabel} yAxisLabel={chart.yAxisLabel} onSelectEntity={this.onSelectEntity} focusKeys={focusKeys} onMouseLeave={this.onScatterMouseLeave}/>
+        const {currentData, bounds, yearsWithData, startYear, endYear, axisBox, chart, timeline, timelineHeight, legend, focusKeys, focusColor, shapeLegend, hoverSeries, sidebarWidth, tooltipSeries, sizeDomain, comparisonLine} = this
+        return <g className="ScatterPlot">
+            <AxisBoxView axisBox={axisBox} onXScaleChange={this.onXScaleChange} onYScaleChange={this.onYScaleChange}/>
+            {comparisonLine && <ComparisonLine axisBox={axisBox} comparisonLine={comparisonLine}/>}
+            <PointsWithLabels data={currentData} bounds={axisBox.innerBounds} xScale={axisBox.xScale} yScale={axisBox.yScale} sizeDomain={sizeDomain} onSelectEntity={this.onSelectEntity} focusKeys={focusKeys} onMouseOver={this.onScatterMouseOver} onMouseLeave={this.onScatterMouseLeave}/>
             <ColorLegend {...legend.props} x={bounds.right-sidebarWidth} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} onClick={this.onLegendClick} focusColor={focusColor}/>
             {(shapeLegend || tooltipSeries) && <line x1={bounds.right-sidebarWidth} y1={bounds.top+legend.height+2} x2={bounds.right-5} y2={bounds.top+legend.height+2} stroke="#ccc"/>}
             {shapeLegend && <ConnectedScatterLegend {...shapeLegend.props} x={bounds.right-sidebarWidth} y={bounds.top+legend.height+11}/>}            
             {timeline && <Timeline {...timeline.props}/>}
-            {tooltipSeries && <ScatterTooltip series={tooltipSeries} units={chart.units} maxWidth={sidebarWidth} x={bounds.right-sidebarWidth} y={bounds.top+legend.height+11+(shapeLegend ? shapeLegend.height : 0)}/>}}
+            {tooltipSeries && <ScatterTooltip series={tooltipSeries} units={chart.units} maxWidth={sidebarWidth} x={bounds.right-sidebarWidth} y={bounds.top+legend.height+11+(shapeLegend ? shapeLegend.height : 0)}/>}
         </g>
     }
 }
 
 interface ScatterTooltipProps {
-    series: ScatterSeries
+    series: ScatterSeries,
+    units: any,
+    maxWidth: number,
+    x: number,
+    y: number
 }
 
 @observer
@@ -377,7 +388,7 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps, undefined> {
         const values = series.values.length == 1 ? [firstValue] : [firstValue, lastValue]
 
         const elements = []
-        const offset = 0
+        let offset = 0
 
         const heading = preInstantiate(<Paragraph x={x} y={y+offset} maxWidth={maxWidth} fontSize={0.65}>{series.label}</Paragraph>)
         elements.push(heading)

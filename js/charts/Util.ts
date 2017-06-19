@@ -4,9 +4,15 @@ export type SVGElement = any;
 export type VNode = any;
 export const NullElement : any = (): null => null;
 
-export function getRelativeMouse(node: SVGElement, event: MouseEvent): [number, number] {
-  const clientX = event.clientX || event.targetTouches[0].clientX
-  const clientY = event.clientY || event.targetTouches[0].clientY
+export function getRelativeMouse(node: SVGElement, event: MouseEvent|TouchEvent): [number, number] {
+    let clientX, clientY
+    if (_.isFinite((event as MouseEvent).clientX)) {
+        clientX = (event as MouseEvent).clientX
+        clientY = (event as MouseEvent).clientY
+    } else {
+        clientX = (event as TouchEvent).targetTouches[0].clientX
+        clientY = (event as TouchEvent).targetTouches[0].clientY
+    }
 
   var svg = node.ownerSVGElement || node;
 
@@ -49,7 +55,7 @@ export function entityNameForMap(name: string) {
 export function formatYear(year: number): string {
     if (isNaN(year)) {
         console.error("Invalid year '" + year + "'");
-        return null;
+        return "";
     }
 
     if (year < 0)
