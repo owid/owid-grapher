@@ -4,18 +4,27 @@ export type SVGElement = any;
 export type VNode = any;
 export const NullElement : any = (): null => null;
 
-export function getRelativeMouse(node: SVGElement, event: MouseEvent): [number, number] {
+export function getRelativeMouse(node: SVGElement, event: MouseEvent|TouchEvent): [number, number] {
+    let clientX, clientY
+    if (_.isFinite((event as MouseEvent).clientX)) {
+        clientX = (event as MouseEvent).clientX
+        clientY = (event as MouseEvent).clientY
+    } else {
+        clientX = (event as TouchEvent).targetTouches[0].clientX
+        clientY = (event as TouchEvent).targetTouches[0].clientY
+    }
+
   var svg = node.ownerSVGElement || node;
 
   if (svg.createSVGPoint) {
     var point = svg.createSVGPoint();
-    point.x = event.clientX, point.y = event.clientY;
+    point.x = clientX, point.y = clientY;
     point = point.matrixTransform(node.getScreenCTM().inverse());
     return [point.x, point.y];
   }
 
   var rect = node.getBoundingClientRect();
-  return [event.clientX - rect.left - node.clientLeft, event.clientY - rect.top - node.clientTop];
+  return [clientX - rect.left - node.clientLeft, clientY - rect.top - node.clientTop];
 };
 
 // Create an instance of a JSX node before rendering
@@ -46,7 +55,7 @@ export function entityNameForMap(name: string) {
 export function formatYear(year: number): string {
     if (isNaN(year)) {
         console.error("Invalid year '" + year + "'");
-        return null;
+        return "";
     }
 
     if (year < 0)

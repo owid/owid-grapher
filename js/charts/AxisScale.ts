@@ -1,21 +1,24 @@
-/* AxisScale.jsx
+/* AxisScale.ts
  * ================
- *
- *
  *
  * @project Our World In Data
  * @author  Jaiden Mispy
  * @created 2017-02-11
  */
 
-
-// @flow
-
 import * as d3 from 'd3'
 import * as _ from 'lodash'
 import {observable, computed, action, toJS} from 'mobx'
 
 export type ScaleType = 'linear' | 'log';
+
+export interface AxisConfig {
+    scaleType: ScaleType,
+    scaleTypeOptions: ScaleType[],
+    tickFormat: (v: number) => string,
+    domain: [number, number],
+    label: string
+}
 
 export default class AxisScale {
     @observable scaleType: ScaleType
@@ -32,7 +35,7 @@ export default class AxisScale {
         return this.d3_scaleConstructor().domain(this.domain).range(this.range)
     }
 
-    getTickValues() {
+    getTickValues(): number[] {
         const {scaleType, domain, d3_scale} = this        
 
         if (scaleType == 'log') {
@@ -51,7 +54,7 @@ export default class AxisScale {
         }
     }
 
-    getFormattedTicks() : string[] {
+    getFormattedTicks(): string[] {
         return _.map(this.getTickValues(), this.tickFormat)
     }
 
@@ -63,7 +66,7 @@ export default class AxisScale {
         return this.d3_scale(value)
     }
 
-    extend(props : Object) {
+    extend(props: Object) {
         return new AxisScale(_.extend(toJS(this), props))
     }
 

@@ -108,7 +108,7 @@
 				this.dispatcher.trigger("import-progress", "Preparing import for " + variables.length*importData.years.length + " values", true, "1/2");
 			}.bind(this), 100);
 
-			$.ajax(Global.rootUrl + "/import/variables", {
+			$.ajax(Global.adminRootUrl + "/import/variables", {
 				data: JSON.stringify(requestData),
 				contentType: 'application/json',
 				type: 'POST'			

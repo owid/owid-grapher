@@ -1,1 +1,0 @@
-You have been invited to join owid-grapher! Create an account here: <a href="{{ route('signup', ['code' => $invitation->code]) }}">{{ route('signup', ['code' => $invitation->code]) }}</a>

@@ -16,7 +16,7 @@ export default {
     },
     output: {
         path: path.join(__dirname, "public/build"),
-        filename: (isProduction ? "[name].bundle.[chunkhash].js" : "[name].bundle.js")
+        filename: (isProduction ? "[name].bundle.[chunkhash].js" : "[name].js")
     },
   	resolve: {
         extensions: [".js", ".jsx", ".ts", ".tsx", ".css"],
@@ -90,11 +90,16 @@ export default {
         // filenames
         new ManifestPlugin(),
     ] : [
-        new ExtractTextPlugin('[name].bundle.css'),
+        new ExtractTextPlugin('[name].css')
     ]),
     devServer: {
         host: '0.0.0.0',
         port: 8090,
-        contentBase: 'public'
+        contentBase: 'public',
+        headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+            "Access-Control-Allow-Headers": "X-Requested-With, content-type, Authorization"
+        }
     },
 }

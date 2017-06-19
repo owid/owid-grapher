@@ -36,8 +36,8 @@ class Logo extends React.Component<LogoProps, null> {
         return bbox
     }
 
-    @computed get scale() {
-        return this.targetHeight/this.bbox.height;
+    @computed get scale() {        
+        return this.bbox.height == 0 ? 1 : this.targetHeight/this.bbox.height;
     }
 
     @computed get width() { return this.bbox.width*this.scale }
@@ -111,7 +111,7 @@ class HeaderMain extends React.Component<HeaderMainProps, null> {
         //Bounds.debug([new Bounds(props.x, props.y+title.height+2, subtitle.width, subtitle.height)])
 
         return <g className="header">
-            <Logo {...logo.props} x={props.x+props.width-logo.width} y={props.y}/>
+            {logo.height > 0 && <Logo {...logo.props} x={props.x+props.width-logo.width} y={props.y}/>}
             <a href={props.titleLink} target="_blank">
                 <Paragraph {...title.props} x={props.x} y={props.y}>{title.text}</Paragraph>
             </a>

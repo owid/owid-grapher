@@ -92,10 +92,10 @@ export default class RangeTimeline extends React.Component<TimelineProps, undefi
     // e.g. 1954 => 1950
     @computed get targetStartYear(): number {
         const { years, startYear } = this
-        return _.find(
+        return (_.find(
             _.sortBy(years, year => Math.abs(year-startYear)),
             year => year <= startYear
-        )
+        ) as number)
     }
 
     @computed get endYear(): number {
@@ -110,16 +110,16 @@ export default class RangeTimeline extends React.Component<TimelineProps, undefi
 
     @computed get targetEndYear(): number {
         const { years, endYear } = this
-        return _.find(
+        return (_.find(
             _.sortBy(years, year => Math.abs(year-endYear)),
             year => year <= endYear
-        )
+        ) as number)
     }
 
 	@computed get minYearBox(): Bounds {
 		const { minYear, bounds } = this
         const minYearBox = Bounds.forText(minYear.toString(), { fontSize: "0.8em" })
-        return minYearBox.extend({ x: bounds.left+45, y: bounds.centerY-minYearBox.height/2 })
+        return minYearBox.extend({ x: bounds.left+35, y: bounds.centerY-minYearBox.height/2 })
 	}
 
 	@computed get maxYearBox(): Bounds {
@@ -137,7 +137,7 @@ export default class RangeTimeline extends React.Component<TimelineProps, undefi
 
 	@computed get xScale(): any {
 		const { years, sliderBounds } = this
-		return d3.scaleLinear().domain(d3.extent(years)).range([sliderBounds.left, sliderBounds.left+sliderBounds.width]);
+		return d3.scaleLinear().domain((d3.extent(years) as [number, number])).range([sliderBounds.left, sliderBounds.left+sliderBounds.width]);
 	}
 
 	@action componentWillReceiveProps(nextProps : TimelineProps) {
@@ -287,6 +287,7 @@ export default class RangeTimeline extends React.Component<TimelineProps, undefi
     // Allow proper dragging behavior even if mouse leaves timeline area
     componentDidMount() {
     	d3.select('html').on('mouseup.timeline', this.onMouseUp)
+    	d3.select('html').on('mouseleave.timeline', this.onMouseUp)
     	d3.select('html').on('mousemove.timeline', this.onMouseMove)
     	d3.select('html').on('touchend.timeline', this.onMouseUp)
     	d3.select('html').on('touchmove.timeline', this.onMouseMove)
@@ -315,12 +316,13 @@ export default class RangeTimeline extends React.Component<TimelineProps, undefi
   	render() {
 		const { bounds, sliderBounds, minYear, maxYear, minYearBox, maxYearBox, xScale, years, isPlaying, startYear, endYear, roundedStartYear, roundedEndYear, targetStartYear, targetEndYear } = this
 
-        const toggleText = isPlaying ? "\uf28c" : "\uf01d"
-        const toggleTextBounds = Bounds.forText(toggleText, { fontSize: "1.3em" })
+        const toggleText = isPlaying ? "\uf04c" : "\uf04b"
+        const toggleFontSize = "1em"
+        const toggleTextBounds = Bounds.forText(toggleText, { fontSize: toggleFontSize })
 
-		return <g className="clickable" onMouseDown={this.onMouseDown} onDoubleClick={this.onDoubleClick} ref={g => this.g = g}>
+		return <g className="clickable" onTouchStart={this.onMouseDown} onMouseDown={this.onMouseDown} ref={g => this.g = g}>
 			<rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height} fill="white"></rect>
-            <Text className="toggle" onClick={() => this.isPlaying = !this.isPlaying} x={bounds.left+10} y={bounds.centerY-toggleTextBounds.height/2} font-family="FontAwesome" font-size="1.3em">
+            <Text className="toggle" onClick={() => this.isPlaying = !this.isPlaying} x={bounds.left+10} y={bounds.centerY-toggleTextBounds.height/2} font-family="FontAwesome" font-size={toggleFontSize}>
                 {toggleText}
 			</Text>
 			<Text className="minYearLabel" x={minYearBox.x} y={minYearBox.y} font-size="0.8em" fill="#666">{minYear}</Text>

@@ -6,7 +6,7 @@
 	
 	App.Models.Import.DatasourceModel = Backbone.Model.extend( {
 		
-		urlRoot: Global.rootUrl + "/datasource/",
+		urlRoot: Global.adminRootUrl + "/datasource/",
 		defaults: { "name": "", "link": "", "description": "" },
 
 		import: function() {

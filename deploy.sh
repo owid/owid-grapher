@@ -7,7 +7,7 @@ ROOT="/home/owid"
 if [ "$1" == "test" ]; then
   NAME="test-grapher"
 elif [ "$1" == "live" ]; then
-  NAME="grapher"
+  NAME="live-grapher"
 else
   echo "Please select either live or test."
   exit 1
@@ -29,14 +29,18 @@ ssh -t $HOST 'bash -e -s' <<EOF
   cp -r $SYNC_TARGET $TMP_NEW
   mv $LIVE_TARGET $OLD_REPO
   mv $TMP_NEW $LIVE_TARGET
-  ln -sf $LIVE_DATA/env $LIVE_TARGET/.env
+  ln -sf $LIVE_DATA/secret_settings.py $LIVE_TARGET/owid_grapher/secret_settings.py
+  ln -sf $LIVE_DATA/env $LIVE_TARGET/env
   ln -sf $LIVE_DATA/uploads $LIVE_TARGET/public/uploads
   ln -sf $LIVE_DATA/exports $LIVE_TARGET/public/exports
   ln -sf $LIVE_TARGET/public $ROOT/ourworldindata.org/$NAME
-  cd $LIVE_TARGET && php artisan migrate --force
-  cd $LIVE_TARGET && yarn install --production
+  cd $LIVE_TARGET
+  yarn install --production
+  ./env/bin/pip3 install -r requirements.txt
+  ./env/bin/python3 manage.py migrate
   sudo chown owid:www-data -R /home/owid/*
   sudo chown www-data:www-data -R /home/owid/ourworldindata.org
-  sudo chmod g+rw -R /home/owid/*
+  sudo chmod g+rw -R /home/owid/*  
+  sudo service $NAME restart
 EOF
 

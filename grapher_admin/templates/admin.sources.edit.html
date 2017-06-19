@@ -1,0 +1,23 @@
+{% extends 'base_admin_template.html' %}
+
+{% block content %}
+<div class="module-wrapper edit-datasource-module">
+		<a class="back-btn" href="{% url 'showsource' source.id %}"><i class="fa fa-arrow-left"></i>Back to the source</a>
+		<h2>Edit source</h2>
+		<form method="POST" action="{% url 'managesource' source.id %}" accept-charset="UTF-8">
+            <input name="_method" type="hidden" value="PATCH">
+            {% csrf_token %}
+			<div class="form-group">
+				<label for="name">Name:</label>
+				<input class="form-control" name="name" type="text" value="{{ source.name }}" id="name">
+			</div>
+			<div class="form-group">
+				<label for="description">Description:</label>
+				<textarea class="form-control source-editor" rows="20" name="description" cols="50" id="description">{% autoescape off %}{{ source.description }}{% endautoescape %}</textarea>
+			</div>
+			<div class="form-group">
+				<input class="btn btn-success" type="submit" value="Update source">
+			</div>
+	    </form>
+	</div>
+{% endblock %}

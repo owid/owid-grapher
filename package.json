@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "dev": "webpack-dev-server -d",
+    "dev": "./node_modules/.bin/concurrently --kill-others --raw \"./node_modules/.bin/webpack-dev-server -d\" \"python3 manage.py runserver 0.0.0.0:8000\"",
     "build": "webpack -p --progress"
   },
   "devDependencies": {
@@ -17,6 +17,7 @@
     "babel-preset-react": "^6.22.0",
     "babel-preset-stage-0": "^6.22.0",
     "bootstrap": "^3.3.7",
+    "concurrently": "^3.4.0",
     "css-loader": "^0.26.1",
     "csv-parse": "^1.2.0",
     "d3": "^4.5.0",
@@ -68,7 +69,10 @@
     "awesome-typescript-loader": "^3.1.3",
     "chrome-remote-interface": "^0.22.0",
     "dataframe-js": "^1.2.2",
+    "expr-eval": "^1.0.1",
+    "immutable": "^3.8.1",
     "lighthouse": "^2.0.0",
+    "localeval": "^15.2.3",
     "lockfile": "^1.0.3",
     "minimist": "^1.2.0",
     "phantomjs-prebuilt": "^2.1.14",

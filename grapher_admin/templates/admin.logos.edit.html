@@ -1,0 +1,22 @@
+{% extends 'base_admin_template.html' %}
+
+{% block content %}
+
+    <div class="module-wrapper edit-logo-module">
+		<a class="back-btn" href="{% url 'showlogo' logo.id %}"><i class="fa fa-arrow-left"></i>Back to the logo</a>
+		<h2>Edit logo</h2>
+		<form method="POST" action="{% url 'managelogo' logo.id %}" accept-charset="UTF-8" enctype="multipart/form-data">
+            <input name="_method" type="hidden" value="PATCH">
+            {% csrf_token %}
+			<div class="form-group">
+				<label for="name">Name:</label>
+				<input class="form-control" name="name" type="text" value="{{ logo.name }}" id="name">
+			</div>
+			<input name="image" type="file">
+			<div class="form-group">
+				<input class="btn btn-success" type="submit" value="Update logo">
+			</div>
+	    </form>
+	</div>
+
+{% endblock %}

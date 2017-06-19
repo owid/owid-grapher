@@ -1,0 +1,21 @@
+{% extends 'base_admin_template.html' %}
+{% block content %}
+    <div class="module-wrapper edit-license-module">
+		<a class="back-btn" href="{% url 'showlicense' license.id %}"><i class="fa fa-arrow-left"></i>Back to the license</a>
+		<h2>Edit license</h2>
+		<form method="POST" action="{% url 'managelicense' license.id %}" accept-charset="UTF-8" class="validate-form"><input name="_method" type="hidden" value="PATCH">
+            {% csrf_token %}
+			<div class="form-group">
+				<label for="name">Name:</label>
+				<input class="form-control required" name="name" type="text" value="{{ license.name }}" id="name">
+			</div>
+			<div class="form-group">
+				<label for="description">Description:</label>
+				<textarea class="form-control" name="description" cols="50" rows="10" id="description">{{ license.description }}</textarea>
+			</div>
+			<div class="form-group">
+				<input class="btn btn-success" type="submit" value="Update license">
+			</div>
+	    </form>
+	</div>
+{% endblock %}

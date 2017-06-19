@@ -105,7 +105,7 @@ class Dataset {
 
 		this.importError = null
 		this.importSuccess = false
-		this.importRequest = App.postJSON('/import/variables', requestData).then(response => {
+		this.importRequest = App.postJSON('/admin/import/variables', requestData).then(response => {
 			if (response.status != 200)
 				return response.text().then(err => this.importError = err)
 			else {
@@ -139,7 +139,7 @@ class Dataset {
 		autorun(() => {
 			if (this.id == null) return;
 
-			App.fetchJSON(`/datasets/${this.id}.json`).then(data => {
+			App.fetchJSON(`/admin/datasets/${this.id}.json`).then(data => {
 				// todo error handling
 				this.existingVariables = data.variables
 			})
@@ -417,7 +417,7 @@ class ImportProgressModal extends Component {
 				{dataset.importSuccess && <p class="success"><i class="fa fa-check"/> Import successful!</p>}
 				{!dataset.importSuccess && !dataset.importError && <div style="text-align: center;"><i class="fa fa-spin fa-spinner"/></div>}
 			</div>
-			{dataset.importSuccess && <a class="btn btn-success" href={App.url(`/datasets/${dataset.id}`)}>Done</a>}
+			{dataset.importSuccess && <a class="btn btn-success" href={App.url(`/admin/datasets/${dataset.id}`)}>Done</a>}
 			{dataset.importError && <a class="btn btn-warning" onClick={this.onDismiss}>Dismiss</a>}
 		</div>
 	}
@@ -524,8 +524,8 @@ class CSV {
 		const nonNumeric = []
 		for (let i = 1; i < rows.length; i++) {
 			const row = rows[i]
-			for (var j = 2; j < row.length; j++) {
-				if (row[j] != '' && !row[j].match(/^[0-9.-]+$/))
+			for (var j = 2; j < row.length; j++) {				
+				if (row[j] != '' && (isNaN(parseFloat(row[j])) || !row[j].match(/^[0-9.-]+$/)))
 					nonNumeric.push(i+1 + " `" + row[j] + "`")
 			}
 		}

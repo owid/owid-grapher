@@ -1,0 +1,42 @@
+{% extends 'base_admin_template.html' %}
+
+{% block content %}
+	<div class="module-wrapper show-dataset-module">
+		<a class="back-btn" href="{% url 'listdatasets' %}"><i class="fa fa-arrow-left"></i>Back to the list of datasets</a>
+		<div class="pull-right right-btns-wrapper clearfix">
+			<a href="{% url 'datasetcsv' dataset.id %}"><i class="fa fa-download"></i> Export CSV</a>
+			<a href="{% url 'editdataset' dataset.id %}"><i class="fa fa-pencil"></i> Edit dataset</a>
+			<form method="POST" action="{% url 'managedataset' dataset.id %}" accept-charset="UTF-8" class="form-inline"><input name="_method" type="hidden" value="DELETE">
+                {% csrf_token %}
+				<button class="delete-btn" type="submit"><i class="fa fa-remove"></i> Delete dataset</button>
+            </form>
+		</div>
+		<h2>{{ dataset.name }}</h2>
+		<p>Categorized as: <strong>{{ dataset.category }}/{{ dataset.subcategory }}</strong>.</p>
+		<div class="property-wrapper">
+			<h3>Description</h3>
+			<div class="property-value">
+				{{ dataset.description }}
+			</div>
+		</div>
+		<h3>Variables</h3>
+		<ul>
+            {% for variable in variables %}
+				<li><a href="{% url 'showvariable' variable.id %}">
+                    {% if variable.name %}
+                        {{ variable.name }}
+                    {% else %}
+                        {{ variable.id }}
+                    {% endif %}
+                    </a></li>
+            {% endfor %}
+		</ul>
+		<h3>Charts</h3>
+		<ul>
+			{% for chart in charts %}
+				<li><a href="{% url 'editchart' chart.id %}">{{ chart.name }}</a></li>
+			{% endfor %}
+		</ul>
+
+	</div>
+{% endblock %}

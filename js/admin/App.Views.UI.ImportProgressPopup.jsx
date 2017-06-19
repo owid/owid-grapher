@@ -48,7 +48,7 @@
 			
 			if( finish ) {
 				this.datasetId = datasetId;
-				//window.location = Global.rootUrl + "/datasets/" + this.datasetId;
+				//window.location = Global.adminRootUrl + "/datasets/" + this.datasetId;
 				this.$body.append( "<p class='success'><i class='fa fa-check'></i>Import finished!</p>" );
 				this.$footer.show();
 				this.$title.addClass( "success" );

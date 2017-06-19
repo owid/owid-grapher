@@ -1,0 +1,14 @@
+{% extends 'base_admin_template.html' %}
+
+{% block content %}
+	<h2>Licenses</h2>
+	{% if not licenses %}
+		There are no licenses.
+	{% else %}
+		<ul>
+			{% for license in licenses %}
+				<li><a href="{% url 'showlicense' license.id %}">{{ license.name }}</a></li>
+			{% endfor %}
+		</ul>
+	{% endif %}
+{% endblock %}

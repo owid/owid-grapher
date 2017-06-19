@@ -6,7 +6,7 @@
 	
 	App.Models.Import.InputFileModel = Backbone.Model.extend( {
 		
-		urlRoot: Global.rootUrl + "/inputfile/",
+		urlRoot: Global.adminRootUrl + "/inputfile/",
 		defaults: { "rawData": "", "userId": "" },
 
 		import: function() {

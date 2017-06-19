@@ -1,0 +1,19 @@
+{% extends 'base_admin_template.html' %}
+
+{% block content %}
+<div class="module-wrapper show-logo-module">
+		<a class="back-btn" href="{% url 'listlogos' %}"><i class="fa fa-arrow-left"></i>Back to the list of logos</a>
+		<div class="pull-right right-btns-wrapper clearfix">
+			<a href="{% url 'editlogo' logo.id %}"><i class="fa fa-pencil"></i> Edit logo</a>
+			<form method="POST" action="{% url 'managelogo' logo.id %}" accept-charset="UTF-8" class="form-inline">
+                <input name="_method" type="hidden" value="DELETE">
+                {% csrf_token %}
+				<button class="delete-btn" type="submit"><i class="fa fa-remove"></i> Delete logo</button>
+			</form>
+		</div>
+		<h2>{{ logo.name }}</h2>
+        {% autoescape off %}
+        {{ logo.svg }}
+        {% endautoescape %}
+</div>
+{% endblock %}

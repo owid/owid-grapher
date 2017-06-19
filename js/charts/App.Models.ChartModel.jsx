@@ -9,10 +9,10 @@ export default Backbone.Model.extend( {
         if( $("#form-view").length ) {
             if( id ) {
                 //editing existing
-                return Global.rootUrl + "/charts/" + id;
+                return Global.adminRootUrl + "/charts/" + id;
             } else {
                 //saving new
-                return Global.rootUrl + "/charts";
+                return Global.adminRootUrl + "/charts";
             }
 
         } else {
@@ -54,7 +54,8 @@ export default Backbone.Model.extend( {
 		"y-axis-scale-selector": false,
 		"activeLegendKeys": null,
 		"currentStackMode": null,
-        "timeline": null
+        "timeline": null,
+		"identityLine": false
 	},
 
 	// Get defaults appropriate for this kind of chart

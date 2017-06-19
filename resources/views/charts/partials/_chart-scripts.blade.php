@@ -1,1 +1,0 @@
-<script src="{{ asset('js/app.js') }}?bust={!!time()!!}"></script>
