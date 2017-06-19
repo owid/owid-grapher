@@ -199,10 +199,8 @@ LOGGING = {
         },
         'wdi_fetcher': {
             'level': 'DEBUG',
-            'class': 'logging.handlers.RotatingFileHandler',
+            'class': 'logging.FileHandler',
             'filename': WDI_FETCHER_LOG_FILE_LOCATION,
-            'maxBytes': 1024*1024*100,  # 100MB
-            'backupCount': 5,
             'formatter': 'standard',
         },
     },
