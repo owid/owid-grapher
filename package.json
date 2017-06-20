@@ -82,6 +82,5 @@
     "striptags": "^3.0.1",
     "typescript": "2.2.2",
     "webpack-parallel-uglify-plugin": "^0.4.1"
-  },
-  "version": "0.24.5"
+  }
 }
