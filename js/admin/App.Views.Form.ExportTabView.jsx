@@ -10,13 +10,10 @@ import $ from 'jquery'
 		events: {
 			"click [type='checkbox']": "onTabsCheck",
 			"change [name='default-tab']": "onDefaultTabChange",
-			"change .embed-size-wrapper input": "onEmbedSizeChange"
 		},
 
 		initialize: function( options ) {
-			this.dispatcher = options.dispatcher;
-			this.listenTo(this.dispatcher, "chart-saved", this.onChartSaved.bind(this));
-			
+			this.dispatcher = options.dispatcher;			
 			this.render();
 		},
 
@@ -24,8 +21,6 @@ import $ from 'jquery'
 			
 			this.$checkboxes = this.$el.find( "[type='checkbox']" );
 			this.$defaultTabSelect = this.$el.find( "[name='default-tab']" );
-			this.$widthInput = this.$el.find( "[name='iframe-width']" );
-			this.$heightInput = this.$el.find( "[name='iframe-height']" );
 			this.$iframeTextArea = this.$el.find( "[name='iframe']" );
 
 			this.$mapTab = $( "[href='#map-tab']" );
@@ -43,15 +38,6 @@ import $ from 'jquery'
 
 			//update default tab from model
 			this.$defaultTabSelect.val( App.ChartModel.get( "default-tab" ) );
-
-			//update size from model
-			this.$widthInput.val( App.ChartModel.get( "iframe-width" ) );
-			this.$heightInput.val( App.ChartModel.get( "iframe-height" ) );
-			this.generateIframeCode();
-		},
-
-		onChartSaved: function() {
-			this.generateIframeCode();
 		},
 
 		onTabsCheck: function( evt ) {
@@ -80,29 +66,8 @@ import $ from 'jquery'
 		},
 
 		onDefaultTabChange: function( evt ) {
-
 			var $input = $( evt.currentTarget );
 			App.ChartModel.set( "default-tab", $input.val() );
-
 		},
-
-		onEmbedSizeChange: function( evt ) {
-
-			
-			var $input = $( evt.currentTarget );
-			//unnecessary to update everything just because generated code changed
-			App.ChartModel.set( $input.attr( "name" ), $input.val(), {silent:true} );
-
-			//if already generated code, update it
-			if( this.$iframeTextArea.text() != "" ) {
-				this.generateIframeCode();
-			}
-
-		},
-
-		generateIframeCode: function(id, viewUrl) {
-			var viewUrl = Global.rootUrl + '/' + App.ChartModel.get("slug");
-			this.$iframeTextArea.text('<iframe src="' + viewUrl + '" style="width: 100%; height: 600px; border: 0px none;"></iframe>');
-		}
 	});
 })();

@@ -40,7 +40,6 @@ require('./admin/App.Views.UI.SelectVarPopup')
 require('./admin/App.Views.UI.SettingsVarPopup')
 require('./admin/App.Views.UI.ColorPicker')
 
-require('./admin/App.Views.Form.ChartTypeSectionView')
 require('./admin/App.Views.Form.AddDataSectionView')
 require('./admin/App.Views.Form.EntitiesSectionView')
 require('./admin/App.Views.Form.TimeSectionView')

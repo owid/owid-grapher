@@ -12,7 +12,6 @@
 		initialize: function( options ) {			
 			this.dispatcher = options.dispatcher;
 
-			this.chartTypeSection = this.addChild(ChartTypeSectionView, { dispatcher: this.dispatcher });
 			this.addDataSection = this.addChild(AddDataSectionView, { dispatcher: this.dispatcher });
 			this.entitiesSection = this.addChild(EntitiesSectionView, { dispatcher: this.dispatcher });
 			this.timeSection = this.addChild(TimeSectionView, { dispatcher: this.dispatcher });
