@@ -20,6 +20,7 @@ export default class ChartConfig {
     @observable.ref internalNotes: string
     @observable.ref logosSVG: string[]
     @observable.ref originUrl: string
+    @observable.ref isPublished: boolean
 
 	@observable.ref selectedEntities: Object[] = []
     @observable.ref entityType: string = "country"
@@ -64,6 +65,7 @@ export default class ChartConfig {
         this.internalNotes = this.model.get('internalNotes')
         this.logosSVG = this.model.get('logosSVG')
         this.originUrl = this.model.get('data-entry-url')
+        this.isPublished = this.model.get('published')
 
         this.selectedEntities = this.model.getSelectedEntities().map((e: any) => e.name)
         this.entityColors = {}

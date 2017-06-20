@@ -1,6 +1,6 @@
 import React from 'react'
 import {render, h} from 'preact'
-import BasicTab from './BasicTab'
+import EditorBasicTab from './EditorBasicTab'
 import ScatterTab from './ScatterTab'
 import ChartConfig from '../charts/ChartConfig'
 import _ from 'lodash'
@@ -10,7 +10,6 @@ owid.namespace("App.Views.FormView");
 
 var	AvailableEntitiesCollection = App.Collections.AvailableEntitiesCollection,
 	SearchDataCollection = App.Collections.SearchDataCollection,
-	BasicTabView = App.Views.Form.BasicTabView,
 	DataTabView = App.Views.Form.DataTabView,
 	AxisTabView = App.Views.Form.AxisTabView,
 	StylingTabView = App.Views.Form.StylingTabView,
@@ -44,7 +43,7 @@ App.Views.FormView = owid.View.extend({
 
 	render: function() {
         const chart = window.chart.chart
-		render(<BasicTab chart={chart} />, d3.select('.tab-content').node())
+		render(<EditorBasicTab chart={chart} />, d3.select('.tab-content').node())
 
 		//create subviews
 		this.dataTabView = this.addChild(DataTabView, { dispatcher: this.dispatcher });
