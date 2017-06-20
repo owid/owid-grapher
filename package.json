@@ -58,6 +58,7 @@
   },
   "dependencies": {
     "@types/d3": "^4.8.0",
+    "@types/expr-eval": "^1.0.2",
     "@types/jquery": "^2.0.42",
     "@types/js-cookie": "^2.0.28",
     "@types/lodash": "^4.14.63",
@@ -81,5 +82,6 @@
     "striptags": "^3.0.1",
     "typescript": "2.2.2",
     "webpack-parallel-uglify-plugin": "^0.4.1"
-  }
+  },
+  "version": "0.24.6"
 }
