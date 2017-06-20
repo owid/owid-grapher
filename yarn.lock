@@ -178,6 +178,10 @@
     "@types/d3-voronoi" "*"
     "@types/d3-zoom" "*"
 
+"@types/expr-eval@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@types/expr-eval/-/expr-eval-1.0.2.tgz#15e437e2143acd142fcc4d28caf56d6036826167"
+
 "@types/geojson@*":
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/@types/geojson/-/geojson-1.0.2.tgz#b02d10ab028e2928ac592a051aaa4981a1941d03"

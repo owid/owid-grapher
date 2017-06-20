@@ -12,7 +12,7 @@ interface TimelineProps {
 	startYear: number,
     endYear: number,
     onTargetChange: ({ targetStartYear, targetEndYear }: { targetStartYear: number, targetEndYear: number }) => void,
-	onInputChange: ({ startYear, endYear }: { startYear: number, endYear: number }) => void,
+	onInputChange?: ({ startYear, endYear }: { startYear: number, endYear: number }) => void,
 	bounds: Bounds,
     singleYearMode: boolean
 };

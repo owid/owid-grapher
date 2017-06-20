@@ -45,7 +45,7 @@ interface ScatterWithAxisProps {
 }
 
 @observer
-export default class ScatterPlot extends React.Component<{ bounds: Bounds, config: ChartConfig, isStatic: boolean }, null> {
+export default class ScatterPlot extends React.Component<{ bounds: Bounds, config: ChartConfig, isStatic: boolean }, undefined> {
     @computed get chart() : ChartConfig {
         return this.props.config
     }
@@ -64,24 +64,18 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     @computed get configTolerance() {
         return 1
     }
-π
+
     @computed get dataByEntityAndYear() {
         return this.data.dataByEntityAndYear
     }
 
     @computed get currentData() : ScatterSeries[] {
-        const {dataByEntityAndYear, startYear, endYear, isInterpolating} = this
+        const {dataByEntityAndYear, startYear, endYear} = this
         const {xScaleType, yScaleType, timeline} = this.chart
-        var currentData = [];
+        let currentData: ScatterSeries[] = [];
 
         _.each(dataByEntityAndYear, (dataByYear) => {
-            /*if (!isInterpolating) {
-                if (dataByYear[timeline.targetYear])
-                    currentData.push(dataByYear[timeline.targetYear]);
-                return;
-            }*/
-
-            let series = null
+            let series: ScatterSeries|null = null
             _.each(dataByYear, (seriesForYear, year) => {
                 if (year < startYear || year > endYear)
                     return
@@ -245,7 +239,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         }
     }
 
-    @action.bound onSelectEntity(focusKeys) {
+    @action.bound onSelectEntity(focusKeys: string[]) {
         if (this.chart.addCountryMode != 'disabled')
             this.chart.selectedEntities = focusKeys
     }

@@ -1,3 +1,4 @@
+import * as _ from 'lodash'
 import Bounds from './Bounds'
 
 export type SVGElement = any;

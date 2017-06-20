@@ -19,7 +19,7 @@ interface SourcesFooterMainProps {
 }
 
 @observer
-class SourcesFooterMain extends React.Component<SourcesFooterMainProps, null> {
+class SourcesFooterMain extends React.Component<SourcesFooterMainProps, undefined> {
     @computed get fontSize() {
         return 0.5
     }
@@ -73,7 +73,7 @@ interface SourcesFooterProps {
     chartView: any
 }
 
-export default class SourcesFooter extends React.Component<SourcesFooterProps, null> {
+export default class SourcesFooter extends React.Component<SourcesFooterProps, undefined> {
     @computed get sourcesText(): string {
         let sourcesStr: string = this.props.chartView.model.get('sourceDesc')
         if (!sourcesStr) {

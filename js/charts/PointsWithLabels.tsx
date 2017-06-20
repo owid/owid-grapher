@@ -497,6 +497,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
     render() {
         //Bounds.debug(_.flatten(_.map(this.renderData, d => _.map(d.labels, 'bounds'))))
+        
         const {bounds, renderData, xScale, yScale, sizeScale, tmpFocusKeys, allColors, isFocusMode} = this
         const clipBounds = bounds.pad(-10)
 
