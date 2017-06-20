@@ -1,3 +1,6 @@
+// TODO remove this
+// we're just using it to export svg, not actually to save as png
+
 (function() {
   var out$ = typeof exports != 'undefined' && exports || typeof define != 'undefined' && {} || this;
 
