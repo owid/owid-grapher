@@ -83,5 +83,5 @@
     "typescript": "2.2.2",
     "webpack-parallel-uglify-plugin": "^0.4.1"
   },
-  "version": "0.24.6"
+  "version": "0.24.5"
 }
