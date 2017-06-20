@@ -11,7 +11,7 @@ function slugify(s: string) {
 
 @observer
 export default class EditorBasicTab extends React.Component<{ chart: ChartConfig }, undefined> {
-	get chart() : ChartConfig {
+	get chart(): ChartConfig {
 		return this.props.chart
 	}
 

@@ -4,6 +4,8 @@ import * as _ from 'lodash'
 import {observable, computed, action, autorun, toJS} from 'mobx'
 import {ScaleType} from './AxisScale'
 import {ComparisonLineConfig} from './ComparisonLine'
+import {component} from './Util'
+import AxisConfig from './AxisConfig'
 
 export interface TimelineConfig {
     compareEndPointsOnly?: boolean
@@ -28,12 +30,16 @@ export default class ChartConfig {
     @observable.ref timeline: TimelineConfig|null = null
     @observable.ref entityColors: {[key: string]: string} = {}
 
+    xAxis: AxisConfig
+
     @observable.ref yAxisConfig: any
     @observable.ref yDomain: [number|null, number|null]
     @observable.ref yScaleType: ScaleType
     @observable.ref yScaleTypeOptions: ScaleType[]
     @observable.ref yAxisLabel: string
     @observable.ref yTickFormat: (v: number) => string
+
+    yAxis: AxisConfig
 
     @observable.ref xAxisConfig: any
     @observable.ref xDomain: [number|null, number|null]
@@ -100,7 +106,17 @@ export default class ChartConfig {
               yAxisPrefix = yAxis["axis-prefix"] || "",
               yAxisSuffix = yAxis["axis-suffix"] || "",
               yAxisFormat = yAxis["axis-format"] || 5;
-        this.yTickFormat = (d) => yAxisPrefix + owid.unitFormat({ format: yAxisFormat||5 }, d) + yAxisSuffix;
+        this.yTickFormat = (d: number) => yAxisPrefix + owid.unitFormat({ format: yAxisFormat||5 }, d) + yAxisSuffix;
+
+        this.yAxis = component<AxisConfig>(this.yAxis, AxisConfig, {
+            label: this.yAxisLabel,
+            domain: this.yDomain,
+            prefix: yAxisPrefix,
+            suffix: yAxisSuffix,
+            scaleType: this.yScaleType,
+            scaleTypeOptions: this.yScaleTypeOptions,
+            numDecimalPlaces: yAxisFormat
+        });
 
         (() => {
             this.xAxisConfig = this.model.get('x-axis')||{}
@@ -120,6 +136,16 @@ export default class ChartConfig {
                   xAxisSuffix = xAxis["axis-suffix"] || "",
                   xAxisFormat = xAxis["axis-format"] || 5
             this.xTickFormat = (d) => xAxisPrefix + owid.unitFormat({ format: xAxisFormat||5 }, d) + xAxisSuffix
+
+            this.xAxis = component<AxisConfig>(this.xAxis, AxisConfig, {
+                label: this.xAxisLabel,
+                domain: this.xDomain,
+                prefix: xAxisPrefix,
+                suffix: xAxisSuffix,
+                scaleType: this.xScaleType,
+                scaleTypeOptions: this.xScaleTypeOptions,
+                numDecimalPlaces: xAxisFormat
+            });        
         })()
 
         this.availableTabs = (_.sortBy(this.model.get('tabs'), name => {

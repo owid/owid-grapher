@@ -36,7 +36,7 @@ interface ChartViewProps {
 }
 
 @observer
-export default class ChartView extends React.Component<ChartViewProps, null> {
+export default class ChartView extends React.Component<ChartViewProps, undefined> {
     static bootstrap({ jsonConfig, containerNode, isEditor }: { jsonConfig: Object, containerNode: HTMLElement, isEditor: boolean }) {
         d3.select(containerNode).classed('chart-container', true)
 

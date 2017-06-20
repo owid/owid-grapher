@@ -1,6 +1,7 @@
 import React from 'react'
 import {render, h} from 'preact'
 import EditorBasicTab from './EditorBasicTab'
+import EditorAxisTab from './EditorAxisTab'
 import ScatterTab from './ScatterTab'
 import ChartConfig from '../charts/ChartConfig'
 import _ from 'lodash'
@@ -44,10 +45,10 @@ App.Views.FormView = owid.View.extend({
 	render: function() {
         const chart = window.chart.chart
 		render(<EditorBasicTab chart={chart} />, d3.select('.tab-content').node())
+		render(<EditorAxisTab chart={chart} />, d3.select('.tab-content').node())
 
 		//create subviews
 		this.dataTabView = this.addChild(DataTabView, { dispatcher: this.dispatcher });
-		this.axisTabView = this.addChild(AxisTabView, { dispatcher: this.dispatcher });
 		this.stylingTabView = this.addChild(StylingTabView, { dispatcher: this.dispatcher });
 		this.exportTabView = this.addChild(ExportTabView, { dispatcher: this.dispatcher });
 		this.mapTabView = this.addChild(MapTabView, { dispatcher: this.dispatcher });

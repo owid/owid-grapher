@@ -64,3 +64,11 @@ export function formatYear(year: number): string {
     else
         return year.toString();
 }
+
+export function component<T extends {[key: string]: any}>(current: T|undefined, klass: { new(): T }, props: Partial<T>): T {
+    const instance = current || new klass()
+    _.each(_.keys(props), (key: string) => {
+        instance[key] = props[key]
+    })
+    return instance
+}
