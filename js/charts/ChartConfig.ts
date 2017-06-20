@@ -25,6 +25,7 @@ export default class ChartConfig {
     @observable.ref entityType: string = "country"
     @observable.ref timeDomain: [number|null, number|null]
     @observable.ref timeline: TimelineConfig|null = null
+    @observable.ref entityColors: {[key: string]: string} = {}
 
     @observable.ref yAxisConfig: any
     @observable.ref yDomain: [number|null, number|null]
@@ -65,6 +66,11 @@ export default class ChartConfig {
         this.originUrl = this.model.get('data-entry-url')
 
         this.selectedEntities = this.model.getSelectedEntities().map((e: any) => e.name)
+        this.entityColors = {}
+        _.each(this.model.getSelectedEntities(), e => {
+            if (e.color)
+                this.entityColors[e.name] = e.color
+        })
         this.entityType = this.model.get('entity-type')
         this.timeline = this.model.get('timeline')
 
