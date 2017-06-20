@@ -59,11 +59,4 @@ require('./libs/bootstrap3-wysihtml5.all')
 window.Papa = require('./libs/papaparse')
 window.moment = require('moment')
 require('./charts/App.Models.ChartModel')
-require('./admin/App.Models.Import.DatasetModel')
-require('./admin/App.Models.Importer')
-require('./admin/App.Views.UI.ImportProgressPopup')
-require('./admin/App.Views.Import.SourceSelector')
-require('./admin/App.Views.Import.ChooseDatasetSection')
-require('./admin/App.Views.Import.VariablesSection')
-require('./admin/App.Views.Import.CategorySection')
-App.Views.ImportView = require('./admin/App.Views.ImportView').default
+window.Importer = require('./admin/Importer').default

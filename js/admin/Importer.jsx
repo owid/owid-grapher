@@ -14,6 +14,7 @@ import * as _ from 'underscore'
 import owid from '../owid'
 
 import React, {Component} from 'react'
+import ReactDOM from 'react-dom'
 import {observable, computed, action, autorun} from 'mobx'
 import {observer} from 'mobx-react'
 import {bind} from 'decko'
@@ -633,6 +634,10 @@ class CSVSelector extends Component {
 
 @observer
 export default class Importer extends Component {
+	static bootstrap(props) {
+		ReactDOM.render(<Importer datasets={props.datasets} categories={props.categories} sourceTemplate={props.sourceTemplate.meta_value} existingEntities={props.entityNames}/>, document.getElementById("import-view"))
+	}
+
 	@observable csv = null
 	@observable dataset = new Dataset()
 

@@ -10,6 +10,7 @@
       {% autoescape off %}
     var importerData = {{ importerdata }};
       {% endautoescape %}
-	new App.Views.ImportView(importerData);
+
+    Importer.bootstrap(importerData)
   </script>
 {% endblock %}
