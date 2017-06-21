@@ -18,7 +18,7 @@ import owid from '../owid'
 import ChartConfig from './ChartConfig'
 import NoData from './NoData'
 import Axis from './Axis'
-import AxisScale, {AxisConfig} from './AxisScale'
+import AxisScale from './AxisScale'
 import Layout from './Layout'
 import Timeline from './Timeline'
 import PointsWithLabels from './PointsWithLabels'
@@ -32,6 +32,7 @@ import ColorLegend from './ColorLegend'
 import AxisBox, {AxisBoxView} from './AxisBox'
 import ComparisonLine from './ComparisonLine'
 import {ScaleType} from './AxisScale'
+import AxisSpec from './AxisSpec' 
 
 type ScatterSeries = any
 
@@ -166,42 +167,34 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
 
     // domains across the entire timeline
     @computed get xDomainDefault() : [number, number] {
-        if (this.chart.xScaleType == 'log')
+        if (this.chart.xAxis.scaleType == 'log')
             return d3.extent(_.chain(this.allValues).map('x').filter(v => v > 0).value())
         else
             return d3.extent(_.map(this.allValues, 'x'))
     }
 
     @computed get xDomain() : [number, number] {
-        let xMin = this.chart.xDomain[0]
-        let xMax = this.chart.xDomain[1]
-
-        if (this.chart.xScaleType == 'log' && xMin <= 0) xMin = null
-        if (this.chart.xScaleType == 'log' && xMax <= 0) xMax = null
+        const {min, max} = this.chart.xAxis
 
         return [
-            _.defaultTo(xMin, this.xDomainDefault[0]),
-            _.defaultTo(xMax, this.xDomainDefault[1])
+            _.defaultTo(min, this.xDomainDefault[0]),
+            _.defaultTo(max, this.xDomainDefault[1])
         ]
     }
 
     @computed get yDomainDefault() : [number, number] {
-        if (this.chart.yScaleType == 'log')
+        if (this.chart.yAxis.scaleType == 'log')
             return d3.extent(_.chain(this.allValues).map('y').filter(v => v > 0).value())
         else
             return d3.extent(_.map(this.allValues, 'y'))
     }
 
-    @computed get yDomain() : [number, number] {
-        let yMin = this.chart.yDomain[0]
-        let yMax = this.chart.yDomain[1]
-
-        if (this.chart.yScaleType == 'log' && yMin <= 0) yMin = null
-        if (this.chart.yScaleType == 'log' && yMax <= 0) yMax = null
+    @computed get yDomain(): [number, number] {
+        const {min, max} = this.chart.yAxis
         
         return [
-            _.defaultTo(yMin, this.yDomainDefault[0]),
-            _.defaultTo(yMax, this.yDomainDefault[1])
+            _.defaultTo(min, this.yDomainDefault[0]),
+            _.defaultTo(max, this.yDomainDefault[1])
         ]    
     }
 
@@ -217,26 +210,16 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         return _.uniq(_.map(this.allSeries, 'color'))
     }
 
-    @computed get xAxisConfig(): AxisConfig {
-        const {xDomain, chart} = this
-        return { 
-            scaleType: chart.xScaleType, 
-            scaleTypeOptions: chart.xScaleTypeOptions, 
-            domain: xDomain, 
-            tickFormat: chart.xTickFormat,
-            label: chart.xAxisLabel
-        }
+    @computed get xAxis(): AxisSpec {
+        return this.chart.xAxis.toSpec({
+            domain: this.xDomain
+        })
     }
 
-    @computed get yAxisConfig(): AxisConfig {
-        const {yDomain, chart} = this
-        return {
-            scaleType: chart.yScaleType, 
-            scaleTypeOptions: chart.yScaleTypeOptions, 
-            domain: yDomain, 
-            tickFormat: chart.yTickFormat,
-            label: chart.yAxisLabel            
-        }
+    @computed get yAxis(): AxisSpec {
+        return this.chart.yAxis.toSpec({
+            domain: this.yDomain
+        })
     }
 
     @action.bound onSelectEntity(focusKeys: string[]) {
@@ -323,8 +306,8 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     }
 
     @computed get axisBox() {
-        const {bounds, xAxisConfig, yAxisConfig, timelineHeight, sidebarWidth} = this
-        return new AxisBox({bounds: bounds.padBottom(timelineHeight).padRight(sidebarWidth+20), xAxisConfig, yAxisConfig})        
+        const {bounds, xAxis, yAxis, timelineHeight, sidebarWidth} = this
+        return new AxisBox({bounds: bounds.padBottom(timelineHeight).padRight(sidebarWidth+20), xAxis, yAxis})        
     }
 
     @action.bound onYScaleChange(scaleType: ScaleType) {

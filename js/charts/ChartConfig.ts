@@ -173,13 +173,5 @@ export default class ChartConfig {
         autorun(() => {
             this.model.set('comparisonLine', toJS(this.comparisonLine))
         })
-
-        autorun(() => {            
-            this.model.setAxisConfig('y-axis', 'axis-scale', this.yScaleType)
-        })
-
-        autorun(() => {
-            this.model.setAxisConfig('x-axis', 'axis-scale', this.xScaleType)
-        })
 	}
 }

@@ -15,11 +15,12 @@ import {observable, computed, action, toJS} from 'mobx'
 import Bounds from './Bounds'
 import AxisScale, {AxisConfig} from './AxisScale'
 import Axis from './Axis'
+import AxisSpec from './AxisSpec'
 
 interface AxisBoxProps {
     bounds: Bounds,
-    xAxisConfig: AxisConfig,
-    yAxisConfig: AxisConfig
+    xAxis: AxisSpec,
+    yAxis: AxisSpec
 }
 
 function component(current: any, klass: any, props: any) {
@@ -32,15 +33,15 @@ function component(current: any, klass: any, props: any) {
 
 export default class AxisBox {
     @observable.ref bounds: Bounds
-    @observable.ref xAxisConfig: AxisConfig
-    @observable.ref yAxisConfig: AxisConfig
+    @observable.ref xAxis: AxisSpec
+    @observable.ref yAxis: AxisSpec
 
     @computed get xAxisBounds(): Bounds {
-        return Axis.calculateBounds(this.bounds, { orient: 'bottom', scale: new AxisScale(this.xAxisConfig), label: this.xAxisConfig.label })
+        return Axis.calculateBounds(this.bounds, { orient: 'bottom', scale: new AxisScale(this.xAxis), label: this.xAxis.label })
     }
 
     @computed get yAxisBounds(): Bounds {
-        return Axis.calculateBounds(this.bounds, { orient: 'left', scale: new AxisScale(this.yAxisConfig), label: this.yAxisConfig.label })
+        return Axis.calculateBounds(this.bounds, { orient: 'left', scale: new AxisScale(this.yAxis), label: this.yAxis.label })
     }
 
     @computed get innerBounds(): Bounds {
@@ -48,18 +49,17 @@ export default class AxisBox {
     }
 
     @computed get xScale(): AxisScale {
-        return new AxisScale(_.extend(this.xAxisConfig, { range: this.innerBounds.xRange() }))
+        return new AxisScale(_.extend(this.xAxis, { range: this.innerBounds.xRange() }))
     }
 
     @computed get yScale(): AxisScale {
-        return new AxisScale(_.extend(this.yAxisConfig, { range: this.innerBounds.yRange() }))        
+        return new AxisScale(_.extend(this.yAxis, { range: this.innerBounds.yRange() }))        
     }
 
     constructor(props: AxisBoxProps) {
         this.bounds = props.bounds
-        this.xAxisConfig = props.xAxisConfig
-        this.yAxisConfig = props.yAxisConfig
-
+        this.xAxis = props.xAxis
+        this.yAxis = props.yAxis
     }
 }
 
@@ -89,11 +89,11 @@ class AxisGridLines extends React.Component<AxisGridLinesProps, null> {
 export class AxisBoxView extends React.Component<any, undefined> {
     render() {
         const {axisBox, onYScaleChange, onXScaleChange} = this.props
-        const {bounds, xScale, yScale, xAxisConfig, yAxisConfig, xAxisBounds, yAxisBounds, innerBounds} = axisBox
+        const {bounds, xScale, yScale, xAxis, yAxis, xAxisBounds, yAxisBounds, innerBounds} = axisBox
 
         return <g className="AxisBoxView">
-            <Axis orient="left" scale={yScale} labelText={yAxisConfig.label} bounds={bounds.padBottom(xAxisBounds.height)} onScaleTypeChange={onYScaleChange}/>
-            <Axis orient="bottom" scale={xScale} labelText={xAxisConfig.label} bounds={bounds.padLeft(yAxisBounds.width)} onScaleTypeChange={onXScaleChange}/>
+            <Axis orient="left" scale={yScale} labelText={yAxis.label} bounds={bounds.padBottom(xAxisBounds.height)} onScaleTypeChange={onYScaleChange}/>
+            <Axis orient="bottom" scale={xScale} labelText={xAxis.label} bounds={bounds.padLeft(yAxisBounds.width)} onScaleTypeChange={onXScaleChange}/>
             <AxisGridLines orient="left" scale={yScale} bounds={innerBounds}/>
             <AxisGridLines orient="bottom" scale={xScale} bounds={innerBounds}/>
         </g>

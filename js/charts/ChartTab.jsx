@@ -252,7 +252,6 @@ const chartTabOld = function(chart) {
 		chartType = chart.model.get('chart-type');
 		svg = chart.svg;
 		svg.attr("class", "nvd3-svg " + chartType);
-//		$entitiesSelect = $(svg.node()).find('[name=available_entities]');
 	}
 
 	function configureData() {
@@ -295,18 +294,6 @@ const chartTabOld = function(chart) {
 		var availableEntities = App.VariableData.get("availableEntities"),
 			selectedEntitiesById = chart.model.getSelectedEntitiesById(),
 			entityType = chart.model.get("entity-type");
-
-		// Fill entity selector with all entities not currently selected
-		/*$entitiesSelect.empty();
-		$entitiesSelect.append("<option disabled selected>Select " + entityType + "</option>");
-		_.each(availableEntities, function(entity) {
-			if (!selectedEntitiesById[entity.id]) {
-				$entitiesSelect.append("<option value='" + entity.id + "'>" + entity.name + "</option>");
-			}
-		});
-
-		$entitiesSelect.trigger("chosen:updated");
-		$entitiesSelect.off('change').on('change', onAvailableCountries);*/
 	}
 
 	function onAvailableCountries(evt) {
@@ -328,85 +315,6 @@ const chartTabOld = function(chart) {
 		chart.el.classed('line-dots', lineType == App.LineType.WithDots || lineType == App.LineType.DashedIfMissing);
 
 		nvd3 = nv.models.lineChart().options(nvOptions);
-	}
-
-	// TEMPORARY
-	chartTab.requires('xDomain', 'xAxisScale', 'xAxis', 'xAxisPrefix', 'xAxisFormat', 'xAxisSuffix',
-					  'yDomain', 'yAxisScale', 'yAxis', 'yAxisPrefix', 'yAxisFormat', 'yAxisSuffix');
-
-	chartTab.flow('xAxisConfig : xDomain, xAxisScale, xAxis, xAxisPrefix, xAxisFormat, xAxisSuffix', function(xDomain, xAxisScale, xAxis, xAxisPrefix, xAxisFormat, xAxisSuffix) {
-		return {
-			domain: xDomain,
-			scaleType: xAxisScale,
-			label: xAxis['axis-label'],
-			tickFormat: function(d) {
-				return xAxisPrefix + owid.unitFormat({ format: xAxisFormat||5 }, d) + xAxisSuffix;
-			}
-		};
-	});
-
-	chartTab.flow('yAxisConfig : yDomain, yAxisScale, yAxis, yAxisPrefix, yAxisFormat, yAxisSuffix', function(yDomain, yAxisScale, yAxis, yAxisPrefix, yAxisFormat, yAxisSuffix) {
-		return {
-			domain: yDomain,
-			scaleType: yAxisScale,
-			label: yAxis['axis-label'],
-			tickFormat: function(d) {
-				return yAxisPrefix + owid.unitFormat({ format: yAxisFormat||5 }, d) + yAxisSuffix;
-			}
-		};
-	});
-
-	chartTab.flow('axisConfig : xAxisConfig, yAxisConfig', function(xAxisConfig, yAxisConfig) {
-		return { x: xAxisConfig, y: yAxisConfig };
-	});
-
-	function renderScatterPlot() {
-		if (!viz) {
-			viz = Scatter();
-		} else if (viz.scatter.timeline && (viz.scatter.timeline.isPlaying || viz.scatter.timeline.isDragging)) {
-			return;
-		}
-
-        var xDomain = [], yDomain = [];
-
-        if (_.isFinite(xAxisMin) && (xAxisMin > 0 || xAxisScale != "log"))
-            xDomain[0] = xAxisMin;
-        if (_.isFinite(xAxisMax))
-            xDomain[1] = xAxisMax;
-
-        if (_.isFinite(yAxisMin) && (yAxisMin > 0 || yAxisScale != "log"))
-            yDomain[0] = yAxisMin;
-        if (_.isFinite(yAxisMax))
-            yDomain[1] = yAxisMax;
-
-        chartTab.update({
-        	xDomain: xDomain||"",
-        	xAxisScale: xAxisScale||"",
-        	xAxis: xAxis||"",
-        	xAxisPrefix: xAxisPrefix||"",
-        	xAxisFormat: xAxisFormat||"",
-        	xAxisSuffix: xAxisSuffix||"",
-
-        	yDomain: yDomain||"",
-        	yAxisScale: yAxisScale||"",
-        	yAxis: yAxis||"",
-        	yAxisPrefix: yAxisPrefix||"",
-        	yAxisFormat: yAxisFormat||"",
-        	yAxisSuffix: yAxisSuffix||"",
-        });
-
-		chartTab.viz = viz;
-
-		viz.update({
-			containerNode: chart.svg.node(),
-			bounds: { left: chartOffsetX, top: chartOffsetY+10, width: chartWidth-10, height: chartHeight-10 },
-			dimensions: chart.model.getDimensions(),
-			variables: chart.vardata.get('variables'),
-            timelineConfig: chart.model.get('timeline'),
-            axisConfig: chartTab.axisConfig
-		}, function() {
-			postRender();
-		});
 	}
 
 	function renderStackedArea() {

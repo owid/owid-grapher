@@ -217,10 +217,11 @@ export default class SlopeChart extends Component {
 
 	render() {
 		const {bounds, config} = this.props
+		const {yAxis} = config
 		const {data, legendData} = this
 
 		return <Layout bounds={bounds}>
-			<LabelledSlopes bounds={Layout.bounds} yDomain={config.yDomain} yTickFormat={config.yTickFormat} yScaleType={config.yScaleType} yScaleTypeOptions={config.yScaleTypeOptions} onScaleTypeChange={(scaleType) => { config.yScaleType = scaleType }} data={data}/>
+			<LabelledSlopes bounds={Layout.bounds} yDomain={yAxis.domain} yTickFormat={yAxis.tickFormat} yScaleType={yAxis.scaleType} yScaleTypeOptions={yAxis.scaleTypeOptions} onScaleTypeChange={(scaleType) => { config.yScaleType = scaleType }} data={data}/>
 		</Layout>
 	}
 }

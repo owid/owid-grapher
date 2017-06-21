@@ -1,7 +1,7 @@
 import {observable, computed, toJS} from 'mobx'
 import {unitFormat} from './Util'
-
-export type ScaleType = 'linear' | 'log';
+import AxisSpec from './AxisSpec'
+import ScaleType from './ScaleType'
 
 // Represents the actual entered configuration state in the editor
 export class AxisConfigProps {
@@ -58,5 +58,17 @@ export default class AxisConfig {
     @computed get tickFormat(): (d: number) => string {
         const { prefix, numDecimalPlaces, suffix } = this
         return (d) => prefix + unitFormat({ format: numDecimalPlaces||5 }, d) + suffix;
+    }
+
+    // Convert axis configuration to a finalized axis spec by supplying
+    // any needed information calculated from the data
+    toSpec({ domain } : { domain: [number, number] }) {
+        return {
+            label: this.label,
+            tickFormat: this.tickFormat,
+            domain: domain,
+            scaleType: this.scaleType,
+            scaleTypeOptions: this.scaleTypeOptions
+        }
     }
 }
