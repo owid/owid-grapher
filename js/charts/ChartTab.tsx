@@ -30,13 +30,11 @@ export default class ChartTab extends React.Component<{ chartView: ChartView, ch
     }
 
     componentDidUpdate() {
-		if (this.dispose) this.dispose()
-
 		if (this.props.chart.type == ChartType.ScatterPlot || this.props.chart.type == ChartType.SlopeChart)
 			this.props.onRenderEnd && this.props.onRenderEnd()
 		else {
 			this.chartTab.onRenderEnd = this.props.onRenderEnd
-			this.dispose = autorun(() => this.chartTab.render(this.bounds))
+			this.chartTab.render(this.bounds)
 		}
     }
 
@@ -167,9 +165,8 @@ const chartTabOld = function(chartView: ChartView) {
 		configureData();
 		renderLegend();
 
-		if (missingMsg || _.isEmpty(localData)) {
+		if (_.isEmpty(localData)) {
 			chartView.el.selectAll(".nv-wrap").remove();
-			console.error("No available data")
 			return;
 		}
 
@@ -237,7 +234,6 @@ const chartTabOld = function(chartView: ChartView) {
 
 	function configureData() {
 		localData = chartView.data.transformData();
-		missingMsg = chartView.model.checkMissingData();
 
 		// Add classes to the series so we can style e.g. the World line differently
 		_.each(localData, function(d) {

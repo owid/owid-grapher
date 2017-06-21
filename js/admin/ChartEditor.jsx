@@ -20,10 +20,6 @@ var	AvailableEntitiesCollection = App.Collections.AvailableEntitiesCollection,
 
 App.Views.FormView = owid.View.extend({
 	el: "#form-view",
-	events: {
-		"click .form-collapse-btn": "onFormCollapse",
-	},
-
 	initialize: function() {
 		this.dispatcher = _.clone(Backbone.Events);
 
@@ -58,15 +54,5 @@ App.Views.FormView = owid.View.extend({
 			render(<ScatterTab chart={chart}/>, d3.select('.tab-content').node())
 
 		$('.nav-tabs').stickyTabs();
-	},
-
-	onFormCollapse: function(ev) {
-		ev.preventDefault();
-		var $parent = this.$el.parent();
-		$parent.toggleClass("form-panel-collapsed");
-		//trigger re-rendering of chart
-		App.ChartModel.trigger( "change" );
-		//also triger custom event so that map can resize
-		App.ChartModel.trigger( "resize" );
 	},
 });

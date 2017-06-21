@@ -32,7 +32,6 @@ export default Backbone.Model.extend( {
 		"published": false,
 		// A range of form e.g. [0, 2015] with null meaning "all of it"
 		"chart-time": null,
-		"cache": true,
 		"selected-countries": [], // e.g. [{id: "1", name: "United Kingdom"}]
 		"tabs": [ "chart", "data", "sources" ],
 		"default-tab": "chart",
@@ -48,12 +47,9 @@ export default Backbone.Model.extend( {
 		"entity-type": "country",
 		"group-by-variables": false,
 		"add-country-mode": "add-country",
-		"x-axis-scale-selector": false,
-		"y-axis-scale-selector": false,
 		"activeLegendKeys": null,
 		"currentStackMode": null,
-        "timeline": null,
-		"identityLine": false
+        "timeline": null
 	},
 
 	// Get defaults appropriate for this kind of chart
@@ -61,11 +57,7 @@ export default Backbone.Model.extend( {
 		chartType = chartType || App.ChartModel.get("chart-type");
 		var defaults = _.clone(this.defaults);
 
-		if (chartType == ChartType.ScatterPlot) {
-			_.extend(defaults, {
-				"hide-legend": true,
-			});
-		} else if (chartType == ChartType.StackedArea) {
+		if (chartType == ChartType.StackedArea) {
 			_.extend(defaults, {
 				"add-country-mode": "change-country"
 			});
@@ -208,14 +200,6 @@ export default Backbone.Model.extend( {
 		if (prop == 'axis-scale') return 'linear';
 	},
 
-	// DEPRECATED: use App.MapModel instead
-	updateMapConfig: function(propName, propValue, silent, eventName) {
-		App.MapModel.set(propName, propValue, { silent: silent });
-
-		if (!silent && eventName)
-			this.trigger(eventName);
-	},
-
 	isNew: function() {
 		return !this.get("id");
 	},
@@ -352,19 +336,4 @@ export default Backbone.Model.extend( {
 	isMultiVariable: function() {
 		return this.getDimensions().length > 1;
 	},
-
-	checkMissingData: function() {
-		var dims = _.keyBy(this.getDimensions(), "property"),
-			chartType = this.get("chart-type"),
-			entityType = this.get("entity-type");
-
-		if (!dims.y)
-			return "Missing data for Y axis.";
-		else if (!dims.x && chartType == ChartType.ScatterPlot)
-			return "Missing data for X axis.";
-		else if (!this.hasEntities() && chartType != ChartType.ScatterPlot)
-			return "No " + entityType + " selected.";
-		else
-			return false;
-	}
 });
