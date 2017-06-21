@@ -13,6 +13,7 @@ from django.urls import reverse
 from .forms import StandardizeCountries, UploadNewData
 from .models import Continent, CountryData, CountryName
 from django.db import transaction
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 
@@ -340,6 +341,9 @@ def country_tool_update(request):
 
 
 def newcountrynames(request):
+    country_tool_csv_save_location = settings.BASE_DIR + '/data/country_tool/csvs/'
+    if not os.path.exists(country_tool_csv_save_location):
+        os.makedirs(country_tool_csv_save_location)
     if request.method == 'POST':
         json_data = json.loads(request.body)
         csv_headers = json_data[0][1:]
@@ -362,7 +366,7 @@ def newcountrynames(request):
                 csv_list.append(json_data[i][1:-1])
 
         filename = randomword(8) + '.csv'
-        file = os.path.dirname(country_name_tool.__file__) + '/csvs/' + filename
+        file = os.path.join(country_tool_csv_save_location, filename)
 
         with open(file, 'w') as f:
             writer = csv.writer(f)
@@ -375,9 +379,10 @@ def newcountrynames(request):
 
 
 def servecsv(request, filename):
-    if os.path.isfile(os.path.dirname(country_name_tool.__file__) + '/csvs/' + filename):
+    country_tool_csv_save_location = settings.BASE_DIR + '/data/country_tool/csvs/'
+    if os.path.isfile(os.path.join(country_tool_csv_save_location, filename)):
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="%s"' % filename
-        with open(os.path.dirname(country_name_tool.__file__) + '/csvs/' + filename, 'r') as f:
+        with open(os.path.join(country_tool_csv_save_location, filename), 'r') as f:
             response.write(f.read())
         return response
