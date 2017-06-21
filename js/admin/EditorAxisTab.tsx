@@ -1,10 +1,10 @@
-import * as _ from 'lodash'
 import * as React from 'react'
 import {computed, action} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartConfig from '../charts/ChartConfig'
 import AxisConfig from '../charts/AxisConfig'
 import {numberOrNull} from '../charts/Util'
+import {toString} from 'lodash'
 
 @observer
 export default class EditorAxisTab extends React.Component<{ chart: ChartConfig }, undefined> {
@@ -20,11 +20,11 @@ export default class EditorAxisTab extends React.Component<{ chart: ChartConfig 
 				</label>
 				<label>
 					{axisName}-Axis Max
-					<input className="form-control" type="number" value={axis.domain[1]||""} onChange={(ev) => axis.domain[1] = numberOrNull(ev.target.value)}/>
+					<input className="form-control" type="number" value={toString(axis.max)} onChange={(ev) => axis.max = numberOrNull(ev.target.value)}/>
 				</label>
 				<label>
 					{axisName}-Axis Min
-					<input className="form-control" type="number" value={axis.domain[0]||""} onChange={(ev) => axis.domain[0] = numberOrNull(ev.target.value)}/>
+					<input className="form-control" type="number" value={toString(axis.min)} onChange={(ev) => axis.min = numberOrNull(ev.target.value)}/>
 				</label>
 				<label>
 					{axisName}-Axis Prefix
@@ -36,7 +36,7 @@ export default class EditorAxisTab extends React.Component<{ chart: ChartConfig 
 				</label>
 				<label>
 					{axisName}-Axis No of decimal places
-					<input className="form-control" type="number" value={axis.numDecimalPlaces||""} onChange={(ev) => axis.numDecimalPlaces = numberOrNull(ev.target.value)}/>
+					<input className="form-control" type="number" value={toString(axis.numDecimalPlaces)} onChange={(ev) => axis.numDecimalPlaces = numberOrNull(ev.target.value)}/>
 				</label>
 				<label>
 					{axisName}-Axis Scale
