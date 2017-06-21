@@ -6,7 +6,7 @@ import {ScaleType} from './AxisScale'
 import {ComparisonLineConfig} from './ComparisonLine'
 import {component} from './Util'
 import AxisConfig from './AxisConfig'
-import ChartType from './ChartType'
+import {ChartTypeType} from './ChartType'
 import EntityKey from './EntityKey'
 
 export interface TimelineConfig {
@@ -15,7 +15,7 @@ export interface TimelineConfig {
 
 // WIP
 export class ChartConfigProps {
-    type: ChartType = "LineChart"
+    type: ChartTypeType = "LineChart"
     // Slug at which base chart can be found
     slug?: string
     // Chart title

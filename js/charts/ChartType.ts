@@ -1,9 +1,8 @@
 // TODO make this a string enum in TypeScript 2.4
 
-type ChartType = "LineChart" | "ScatterPlot" | "StackedArea" | "MultiBar" | "HorizontalMultiBar" | "DiscreteBar" | "SlopeChart"
-export default ChartType
+export type ChartTypeType = "LineChart" | "ScatterPlot" | "StackedArea" | "MultiBar" | "HorizontalMultiBar" | "DiscreteBar" | "SlopeChart"
 
-export class ChartTypes {
+export default class ChartType {
     static LineChart = "LineChart"
     static ScatterPlot = "ScatterPlot"
     static StackedArea = "StackedArea"

@@ -3,16 +3,6 @@
 
 	window.App = window.App || {};
 
-	App.ChartType = {
-		LineChart: "LineChart",
-		ScatterPlot: "ScatterPlot",
-		StackedArea: "StackedArea",
-		MultiBar: "MultiBar",
-		HorizontalMultiBar: "HorizontalMultiBar",
-		DiscreteBar: "DiscreteBar",
-		SlopeChart: "SlopeChart"
-	};
-
 	App.LineType = {
 		WithDots: 0,
 		WithoutDots: 1,

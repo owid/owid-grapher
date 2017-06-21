@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import Backbone from 'backbone'
 import owid from '../owid'
+import ChartType from './ChartType'
 
 var changes = owid.changes()
 export default Backbone.Model.extend({
@@ -355,7 +356,7 @@ export default Backbone.Model.extend({
 			addCountryMode = App.ChartModel.get("add-country-mode"),
 			result = null;
 
-		if (chartType == App.ChartType.ScatterPlot || chart.activeTabName == 'map')
+		if (chartType == ChartType.ScatterPlot || chart.activeTabName == 'map')
 			return [];
 
 		if (changes.any()) this.chartData = null;
@@ -365,16 +366,16 @@ export default Backbone.Model.extend({
 
 		if (!variables || !App.ChartModel.hasVariables()) return [];
 
-		if (chartType == App.ChartType.LineChart)
+		if (chartType == ChartType.LineChart)
 			result = this.transformDataForLineChart();
-		else if (chartType == App.ChartType.StackedArea)
+		else if (chartType == ChartType.StackedArea)
 			result = this.transformDataForStackedArea();
-		else if (chartType == App.ChartType.DiscreteBar)
+		else if (chartType == ChartType.DiscreteBar)
 			result = this.transformDataForDiscreteBar();
 		else
 			result = this.transformDataForLineChart();
 		
-		if (addCountryMode != "add-country" && chartType != App.ChartType.DiscreteBar) {
+		if (addCountryMode != "add-country" && chartType != ChartType.DiscreteBar) {
 			_.each(result.legendData, function(d) {
 				d.disabled = !App.ChartModel.isLegendKeyActive(d.key);
 			});

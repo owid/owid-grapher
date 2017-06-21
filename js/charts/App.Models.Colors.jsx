@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import Backbone from 'backbone'
+import ChartType from './ChartType'
 
 /**
  * This model handles the assignment and distribution of colors for
@@ -98,7 +99,7 @@ export default Backbone.Model.extend({
 		var chartType = App.ChartModel.get("chart-type");
 
 		_.each(chartData, function(series) {
-			if (chartType == App.ChartType.DiscreteBar || chartType == App.ChartType.ScatterPlot) {
+			if (chartType == ChartType.DiscreteBar || chartType == ChartType.ScatterPlot) {
 				_.each(series.values, function(d) {
 					d.color = this.assignColorForKey(d.key, d.color);
 				}.bind(this));

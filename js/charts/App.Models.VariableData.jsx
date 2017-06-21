@@ -2,6 +2,7 @@ import _ from 'lodash'
 import $ from 'jquery'
 import Backbone from 'backbone'
 import owid from '../owid'
+import ChartType from './ChartType'
 
 export default Backbone.Model.extend({
 	initialize: function() {
@@ -139,7 +140,7 @@ export default Backbone.Model.extend({
 			return availableEntitiesById[entity.id];
 		});
 
-		if (_.isEmpty(validEntities) && chartType != App.ChartType.ScatterPlot && chartType != App.ChartType.DiscreteBar && chartType != App.ChartType.SlopeChart) {
+		if (_.isEmpty(validEntities) && chartType != ChartType.ScatterPlot && chartType != ChartType.DiscreteBar && chartType != ChartType.SlopeChart) {
 			// Select a few random ones
 			validEntities = _.sampleSize(availableEntities, 3);
 		}

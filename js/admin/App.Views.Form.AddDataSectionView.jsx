@@ -1,5 +1,6 @@
 import _ from 'underscore'
 import $ from 'jquery'
+import ChartType from '../charts/ChartType'
 
 owid.namespace("App.Views.Form.AddDataSectionView");
 
@@ -157,7 +158,7 @@ App.Views.Form.AddDataSectionView = owid.View.extend({
 
 		// For line and stacked area charts, give an option to group by variable
 		var chartType = App.ChartModel.get("chart-type");
-		if (chartType == App.ChartType.LineChart || chartType == App.ChartType.StackedArea) {
+		if (chartType == ChartType.LineChart || chartType == ChartType.StackedArea) {
 			var groupByVariables = App.ChartModel.get("group-by-variables");
 			this.$groupByVariable.prop("checked", groupByVariables);
 			this.$groupByVariableWrapper.show();

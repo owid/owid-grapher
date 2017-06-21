@@ -1,5 +1,6 @@
 import _ from 'underscore'
 import $ from 'jquery'
+import ChartType from '../charts/ChartType'
 
 owid.namespace("App.Views.Form.StylingTabView");
 
@@ -52,14 +53,14 @@ App.Views.Form.StylingTabView = owid.View.extend({
 		this.$hideLegend.prop( "checked", hideLegend );
 		this.$entityType.val(App.ChartModel.get("entity-type"));
 
-		this.$hideToggle.closest('label').toggle(App.ChartModel.get("chart-type") == App.ChartType.StackedArea);
+		this.$hideToggle.closest('label').toggle(App.ChartModel.get("chart-type") == ChartType.StackedArea);
 		this.$hideToggle.prop("checked", !!App.ChartModel.get("hide-toggle"));
 
 		this.updateUnitsUI();
 		this.updateUnits();
 
 		var chartType = App.ChartModel.get("chart-type");
-		if (chartType == App.ChartType.LineChart) {
+		if (chartType == ChartType.LineChart) {
 			if (this.$typeOfLine) {
 				this.$el.prepend(this.$typeOfLine);
 				this.$typeOfLine = null;

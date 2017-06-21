@@ -6,6 +6,7 @@ import * as d3 from 'd3'
 import _ from 'lodash'
 import $ from 'jquery'
 import Backbone from 'backbone'
+import ChartType from './charts/ChartType'
 
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 // http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
@@ -344,9 +345,9 @@ owid.contentGenerator = function(data, isMapPopup) {
 		series = data.series[0], value = data.data,
 		string = "", valuesString = "";
 
-	if (!isMapPopup && chartType == App.ChartType.ScatterPlot)
+	if (!isMapPopup && chartType == ChartType.ScatterPlot)
 		return owid.scatterPlotTooltipGenerator(data);
-	else if (!isMapPopup && chartType == App.ChartType.StackedArea)
+	else if (!isMapPopup && chartType == ChartType.StackedArea)
 		return owid.stackedAreaTooltipGenerator(data);
 
 	if (!series) return "";
@@ -361,7 +362,7 @@ owid.contentGenerator = function(data, isMapPopup) {
 	string = "<h3>" + key + "</h3><p>";
 	valuesString = "";
 
-	if (!isMapPopup && (chartType == App.ChartType.MultiBar || chartType == App.ChartType.HorizontalMultiBar || chartType == App.ChartType.DiscreteBar)) {
+	if (!isMapPopup && (chartType == ChartType.MultiBar || chartType == ChartType.HorizontalMultiBar || chartType == ChartType.DiscreteBar)) {
 		//multibarchart has values in different format
 		point = { "y": series.value, "time": data.data.time };
 	}
@@ -380,7 +381,7 @@ owid.contentGenerator = function(data, isMapPopup) {
 				timeString = owid.displayYear(v.map);
 			else
 				timeString = owid.displayYear(v);
-		} else if (i === "y" || (i === "x" && chartType != App.ChartType.LineChart)) {
+		} else if (i === "y" || (i === "x" && chartType != ChartType.LineChart)) {
 			if (!isHidden) {
 				if (valuesString !== "")
 					valuesString += ", ";

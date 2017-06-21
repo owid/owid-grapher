@@ -2,6 +2,7 @@ import _ from 'lodash'
 import Backbone from 'backbone'
 import owid from '../owid'
 import MapModel from './App.Models.MapModel'
+import ChartType from './ChartType'
 
 export default Backbone.Model.extend( {
     url: function(id) {
@@ -27,7 +28,7 @@ export default Backbone.Model.extend( {
 		"slug": "",
 		"note": "",
 		"internalNotes": "",
-		"chart-type": App.ChartType.LineChart,
+		"chart-type": ChartType.LineChart,
 		"published": false,
 		// A range of form e.g. [0, 2015] with null meaning "all of it"
 		"chart-time": null,
@@ -60,11 +61,11 @@ export default Backbone.Model.extend( {
 		chartType = chartType || App.ChartModel.get("chart-type");
 		var defaults = _.clone(this.defaults);
 
-		if (chartType == App.ChartType.ScatterPlot) {
+		if (chartType == ChartType.ScatterPlot) {
 			_.extend(defaults, {
 				"hide-legend": true,
 			});
-		} else if (chartType == App.ChartType.StackedArea) {
+		} else if (chartType == ChartType.StackedArea) {
 			_.extend(defaults, {
 				"add-country-mode": "change-country"
 			});
@@ -103,7 +104,7 @@ export default Backbone.Model.extend( {
 				changes[key] = newDefaults[key];
 		}.bind(this));
 
-		if (this.get("chart-type") == App.ChartType.ScatterPlot || this.get("chart-type") == App.ChartType.SlopeChart)
+		if (this.get("chart-type") == ChartType.ScatterPlot || this.get("chart-type") == ChartType.SlopeChart)
 			changes["selected-countries"] = [];
 
 		if (!_.isEmpty(changes)) this.set(changes);
@@ -237,9 +238,9 @@ export default Backbone.Model.extend( {
 			color = { property: 'color', name: 'Color' },
 			size = { property: 'size', name: 'Size' };
 
-		if (chartType == App.ChartType.ScatterPlot)
+		if (chartType == ChartType.ScatterPlot)
 			return [xAxis, yAxis, size, color];
-		else if (chartType == App.ChartType.SlopeChart)
+		else if (chartType == ChartType.SlopeChart)
 			return [yAxis, size, color]
 		else
 			return [yAxis];
@@ -252,11 +253,11 @@ export default Backbone.Model.extend( {
 			validDimensions = _.filter(dimensions, function(dim) { return _.includes(validProperties, dim.property); });
 
 		// Give scatterplots a default color and size dimension if they don't have one
-		if ((this.get("chart-type") == App.ChartType.ScatterPlot || this.get("chart-type") == App.ChartType.SlopeChart) && !_.find(dimensions, { property: 'color' })) {
+		if ((this.get("chart-type") == ChartType.ScatterPlot || this.get("chart-type") == ChartType.SlopeChart) && !_.find(dimensions, { property: 'color' })) {
 			validDimensions = validDimensions.concat([{"variableId":"123","property":"color","unit":"","name":"Color","tolerance":"5"}]);
 		}
 
-		if ((this.get("chart-type") == App.ChartType.ScatterPlot || this.get("chart-type") == App.ChartType.SlopeChart) && !_.find(dimensions, { property: 'size' })) {
+		if ((this.get("chart-type") == ChartType.ScatterPlot || this.get("chart-type") == ChartType.SlopeChart) && !_.find(dimensions, { property: 'size' })) {
 			validDimensions = validDimensions.concat([{"variableId":"72","property":"size","unit":"","name":"Size","tolerance":"5"}]);
 		}
 
@@ -359,9 +360,9 @@ export default Backbone.Model.extend( {
 
 		if (!dims.y)
 			return "Missing data for Y axis.";
-		else if (!dims.x && chartType == App.ChartType.ScatterPlot)
+		else if (!dims.x && chartType == ChartType.ScatterPlot)
 			return "Missing data for X axis.";
-		else if (!this.hasEntities() && chartType != App.ChartType.ScatterPlot)
+		else if (!this.hasEntities() && chartType != ChartType.ScatterPlot)
 			return "No " + entityType + " selected.";
 		else
 			return false;

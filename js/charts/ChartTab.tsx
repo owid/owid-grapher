@@ -19,7 +19,7 @@ import ChartView from './ChartView'
 import AxisConfig from './AxisConfig'
 import {defaultTo} from 'lodash'
 import * as d3 from '../libs/d3old'
-import {ChartTypes} from './ChartType'
+import ChartType from './ChartType'
 
 export default class ChartTab extends React.Component<{ chartView: ChartView, chart: ChartConfig }, undefined> {
     componentDidMount() {
@@ -32,7 +32,7 @@ export default class ChartTab extends React.Component<{ chartView: ChartView, ch
     componentDidUpdate() {
 		if (this.dispose) this.dispose()
 
-		if (this.props.chart.type == ChartTypes.ScatterPlot || this.props.chart.type == ChartTypes.SlopeChart)
+		if (this.props.chart.type == ChartType.ScatterPlot || this.props.chart.type == ChartType.SlopeChart)
 			this.props.onRenderEnd && this.props.onRenderEnd()
 		else {
 			this.chartTab.onRenderEnd = this.props.onRenderEnd
@@ -50,7 +50,7 @@ export default class ChartTab extends React.Component<{ chartView: ChartView, ch
 
         let minYear = null
         let maxYear = null
-        if (chart.type == ChartTypes.ScatterPlot) {
+        if (chart.type == ChartType.ScatterPlot) {
             minYear = chart.timeDomain[0];
             maxYear = chart.timeDomain[1];
         }
@@ -81,9 +81,9 @@ export default class ChartTab extends React.Component<{ chartView: ChartView, ch
     }
 
     renderChart() {
-        if (this.props.chart.type == ChartTypes.SlopeChart)
+        if (this.props.chart.type == ChartType.SlopeChart)
             return <SlopeChart bounds={this.bounds.padTop(20)} config={this.props.chartView.chart}/>
-        else if (this.props.chart.type == ChartTypes.ScatterPlot)
+        else if (this.props.chart.type == ChartType.ScatterPlot)
             return <ScatterPlot bounds={this.bounds.padTop(20).padBottom(10)} config={this.props.chartView.chart} isStatic={this.props.chartView.isExport}/>
         else
             return null
@@ -178,25 +178,25 @@ const chartTabOld = function(chartView: ChartView) {
 		// Initialize or update the nvd3 graph
 
 		function updateGraph() {
-			if (chart.type == ChartTypes.LineChart && (lineType == App.LineType.DashedIfMissing))
+			if (chart.type == ChartType.LineChart && (lineType == App.LineType.DashedIfMissing))
 				localData = splitSeriesByMissing(localData);
 
-			if (chart.type == ChartTypes.LineChart) {
+			if (chart.type == ChartType.LineChart) {
 				var lineType = chartView.model.get("line-type");
 				chartView.el.classed('line-dots', lineType == App.LineType.WithDots || lineType == App.LineType.DashedIfMissing);
 				nvd3 = nv.models.lineChart().options(nvOptions);
-			} else if (chart.type == ChartTypes.StackedArea) {
+			} else if (chart.type == ChartType.StackedArea) {
 				renderStackedArea();
-			} else if (chart.type == ChartTypes.MultiBar || chart.type == ChartTypes.HorizontalMultiBar) {
+			} else if (chart.type == ChartType.MultiBar || chart.type == ChartType.HorizontalMultiBar) {
 				renderMultiBar();
-			} else if (chart.type == ChartTypes.DiscreteBar) {
+			} else if (chart.type == ChartType.DiscreteBar) {
 				renderDiscreteBar();
 			}
 
 			nvd3.width(chartWidth);
 			nvd3.height(chartHeight);
 			var marginBottom = +margins.bottom + 20;
-			if (chart.type == ChartTypes.MultiBar || chart.type == ChartTypes.DiscreteBar)
+			if (chart.type == ChartType.MultiBar || chart.type == ChartType.DiscreteBar)
 				marginBottom += 10;
 			nvd3.margin({ left: +margins.left + 10, top: +margins.top, right: +margins.right + 20, bottom: marginBottom });
 			nv.dispatch.on("render_end", function() {
@@ -338,9 +338,9 @@ const chartTabOld = function(chartView: ChartView) {
             });
         }
 
-		if (chart.type == ChartTypes.MultiBar) {
+		if (chart.type == ChartType.MultiBar) {
 			nvd3 = nv.models.multiBarChart().options(nvOptions);
-		} else if (chart.type == ChartTypes.HorizontalMultiBar) {
+		} else if (chart.type == ChartType.HorizontalMultiBar) {
 			nvd3 = nv.models.multiBarHorizontalChart().options(nvOptions);
 		}
 
@@ -365,7 +365,7 @@ const chartTabOld = function(chartView: ChartView) {
 	}
 
 	function renderTooltips() {
-		if (chart.type == ChartTypes.StackedArea)
+		if (chart.type == ChartType.StackedArea)
 			nvd3.interactiveLayer.tooltip.contentGenerator(owid.contentGenerator);
 		else
 			nvd3.tooltip.contentGenerator(owid.contentGenerator);
@@ -401,7 +401,7 @@ const chartTabOld = function(chartView: ChartView) {
 		yDomain[1] += (yDomain[1]-yDomain[0])/100;
 
 		if (isClamped) {
-			if (nvd3 && chart.type !== ChartTypes.MultiBar && chart.type !== ChartTypes.HorizontalMultiBar && chart.type !== ChartTypes.DiscreteBar && chartView.model.get("currentStackMode") != "relative") {
+			if (nvd3 && chart.type !== ChartType.MultiBar && chart.type !== ChartType.HorizontalMultiBar && chart.type !== ChartType.DiscreteBar && chartView.model.get("currentStackMode") != "relative") {
 				//version which makes sure min/max values are present, but will display values outside of the range
 				nvd3.forceX(xDomain);
 				nvd3.forceY(yDomain);
@@ -430,7 +430,7 @@ const chartTabOld = function(chartView: ChartView) {
 			.axisLabel(xAxis.label)
 			.axisLabelDistance(defaultTo(xAxis.props.labelDistance, 0))
 			.tickFormat(function(d) {
-				if (chart.type == ChartTypes.DiscreteBar) {
+				if (chart.type == ChartType.DiscreteBar) {
 					return d;
 				} else {
 					return owid.formatTimeLabel("Year", d, xAxis.prefix, xAxis.suffix, xAxis.numDecimalPlaces);
@@ -574,7 +574,7 @@ const chartTabOld = function(chartView: ChartView) {
 			chartView.model.set("currentStackMode", $(ev.target).closest('.nv-series').text().toLowerCase());
 		});
 
-		if (chart.type == ChartTypes.StackedArea) {
+		if (chart.type == ChartType.StackedArea) {
 			// Stop the tooltip from overlapping the chart controls
 			d3.selectAll("svg").on("mousemove.stackedarea", function() {
 				var $target = $(d3.event.target);

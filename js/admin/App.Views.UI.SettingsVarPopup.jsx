@@ -1,4 +1,5 @@
 import $ from 'jquery'
+import ChartType from '../charts/ChartType'
 
 owid.namespace("App.Views.UI.SettingsVarPopup");
 
@@ -35,7 +36,7 @@ App.Views.UI.SettingsVarPopup = owid.View.extend({
 			isProjection = $variableLabel.attr("data-isProjection") == "true";
 
 		var chartType = App.ChartModel.get("chart-type");
-		if (chartType == App.ChartType.ScatterPlot) {
+		if (chartType == ChartType.ScatterPlot) {
 			this.$advancedSettings.show();
 		} else {
 			this.$advancedSettings.hide();
