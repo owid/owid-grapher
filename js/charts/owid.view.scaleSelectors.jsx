@@ -75,24 +75,17 @@ export default function(chart, chartTab) {
         	yScaleSelector.clean();
         }
 
-		if (chart.model.get('chart-type') == App.ChartType.ScatterPlot) {
-			var innerBounds = chartTab.viz.scatter.scatter.axisBox.innerBounds.scale(chart.scale);
+		var rect = d3.select('svg').select('.nv-distWrap');
+		if (rect.empty())
+			rect = d3.select('svg').select('.nv-wrap > g > rect');
+		if (rect.empty())
+			rect = d3.select('svg').select('.nv-background > rect');
 
-			xScaleSelector.update({ left: innerBounds.left+innerBounds.width-50, top: innerBounds.top+innerBounds.height-15 });
-			yScaleSelector.update({ left: innerBounds.left-30, top: innerBounds.top-20 });
-		} else {
-			var rect = d3.select('svg').select('.nv-distWrap');
-			if (rect.empty())
-				rect = d3.select('svg').select('.nv-wrap > g > rect');
-			if (rect.empty())
-				rect = d3.select('svg').select('.nv-background > rect');
+		if (!rect.empty()) {
+			var rectBounds = chart.getTransformedBounds(rect.node());
 
-			if (!rect.empty()) {
-				var rectBounds = chart.getTransformedBounds(rect.node());
-
-				xScaleSelector.update({ left: rectBounds.left+rectBounds.width-100, top: rectBounds.height-30 });
-				yScaleSelector.update({ left: rectBounds.left, top: rectBounds.top-10 });
-			}
+			xScaleSelector.update({ left: rectBounds.left+rectBounds.width-100, top: rectBounds.height-30 });
+			yScaleSelector.update({ left: rectBounds.left, top: rectBounds.top-10 });
 		}
 	};
 

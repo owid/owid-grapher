@@ -14,6 +14,7 @@ export class AxisConfigProps {
     numDecimalPlaces?: number
     scaleType: ScaleType = "linear"
     canChangeScaleType?: true
+    labelDistance?: number // DEPRECATED - remove when nvd3 is gone
 }
 
 // Interface used to access configuration by charts

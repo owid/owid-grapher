@@ -19,8 +19,10 @@ import ScatterPlot from './ScatterPlot'
 import ChartView from './ChartView'
 import AxisConfig from './AxisConfig'
 import {defaultTo} from 'lodash'
+import * as d3 from '../libs/d3old'
+import {ChartTypes} from './ChartType'
 
-export default class ChartTab extends React.Component<{ chartView: ChartView }, undefined> {
+export default class ChartTab extends React.Component<{ chartView: ChartView, chart: ChartConfig }, undefined> {
     componentDidMount() {
         this.props.chartView.svg = d3.select(d3.select(this.base).node().parentNode)
         this.props.chartView.el = d3.select("#chart")
@@ -29,7 +31,7 @@ export default class ChartTab extends React.Component<{ chartView: ChartView }, 
     }
 
     componentDidUpdate() {
-		if (this.props.chart.type == App.ChartType.ScatterPlot || this.props.chart.type == App.ChartType.SlopeChart)
+		if (this.props.chart.type == ChartTypes.ScatterPlot || this.props.chart.type == ChartTypes.SlopeChart)
 			this.props.onRenderEnd && this.props.onRenderEnd()
 		else {
 			this.chartTab.onRenderEnd = this.props.onRenderEnd
@@ -47,7 +49,7 @@ export default class ChartTab extends React.Component<{ chartView: ChartView }, 
 
         let minYear = null
         let maxYear = null
-        if (chart.type == App.ChartType.ScatterPlot) {
+        if (chart.type == ChartTypes.ScatterPlot) {
             minYear = chart.timeDomain[0];
             maxYear = chart.timeDomain[1];
         }
@@ -78,9 +80,9 @@ export default class ChartTab extends React.Component<{ chartView: ChartView }, 
     }
 
     renderChart() {
-        if (this.props.chart.type == App.ChartType.SlopeChart)
+        if (this.props.chart.type == ChartTypes.SlopeChart)
             return <SlopeChart bounds={this.bounds.padTop(20)} config={this.props.chartView.chart}/>
-        else if (this.props.chart.type == App.ChartType.ScatterPlot)
+        else if (this.props.chart.type == ChartTypes.ScatterPlot)
             return <ScatterPlot bounds={this.bounds.padTop(20).padBottom(10)} config={this.props.chartView.chart} isStatic={this.props.chartView.isExport}/>
         else
             return null
@@ -130,7 +132,7 @@ const chartTabOld = function(chartView: ChartView) {
 	let yDomain: [number, number] = [0,0]
 	let xDomain: [number, number] = [0,0]
 
-	chartTab.scaleSelectors = scaleSelectors(chart, chartTab);
+	chartTab.scaleSelectors = scaleSelectors(chartView, chartTab);
 
 	var nvOptions = {
 		showLegend: false
@@ -174,16 +176,16 @@ const chartTabOld = function(chartView: ChartView) {
 		// Initialize or update the nvd3 graph
 
 		function updateGraph() {
-			if (chart.type == App.ChartType.LineChart && (lineType == App.LineType.DashedIfMissing))
+			if (chart.type == ChartTypes.LineChart && (lineType == App.LineType.DashedIfMissing))
 				localData = splitSeriesByMissing(localData);
 
-			if (chart.type == App.ChartType.LineChart) {
+			if (chart.type == ChartTypes.LineChart) {
 				renderLineChart();
-			} else if (chart.type == App.ChartType.StackedArea) {
+			} else if (chart.type == ChartTypes.StackedArea) {
 				renderStackedArea();
-			} else if (chart.type == App.ChartType.MultiBar || chart.type == App.ChartType.HorizontalMultiBar) {
+			} else if (chart.type == ChartTypes.MultiBar || chart.type == ChartTypes.HorizontalMultiBar) {
 				renderMultiBar();
-			} else if (chart.type == App.ChartType.DiscreteBar) {
+			} else if (chart.type == ChartTypes.DiscreteBar) {
 				renderDiscreteBar();
 			}
 
@@ -191,7 +193,7 @@ const chartTabOld = function(chartView: ChartView) {
 				nvd3.width(chartWidth);
 				nvd3.height(chartHeight);
 				var marginBottom = +margins.bottom + 20;
-				if (chart.type == App.ChartType.MultiBar || chart.type == App.ChartType.DiscreteBar)
+				if (chart.type == ChartTypes.MultiBar || chart.type == ChartTypes.DiscreteBar)
 					marginBottom += 10;
 				nvd3.margin({ left: +margins.left + 10, top: +margins.top, right: +margins.right + 20, bottom: marginBottom });
 				nv.dispatch.on("render_end", function() {
@@ -357,9 +359,9 @@ const chartTabOld = function(chartView: ChartView) {
             });
         }
 
-		if (chart.type == App.ChartType.MultiBar) {
+		if (chart.type == ChartTypes.MultiBar) {
 			nvd3 = nv.models.multiBarChart().options(nvOptions);
-		} else if (chart.type == App.ChartType.HorizontalMultiBar) {
+		} else if (chart.type == ChartTypes.HorizontalMultiBar) {
 			nvd3 = nv.models.multiBarHorizontalChart().options(nvOptions);
 		}
 
@@ -386,7 +388,7 @@ const chartTabOld = function(chartView: ChartView) {
 	function renderTooltips() {
 		if (!nvd3) return;
 
-		if (chart.type == App.ChartType.StackedArea)
+		if (chart.type == ChartTypes.StackedArea)
 			nvd3.interactiveLayer.tooltip.contentGenerator(owid.contentGenerator);
 		else
 			nvd3.tooltip.contentGenerator(owid.contentGenerator);
@@ -424,7 +426,7 @@ const chartTabOld = function(chartView: ChartView) {
 		yDomain[1] += (yDomain[1]-yDomain[0])/100;
 
 		if (isClamped) {
-			if (nvd3 && chart.type !== App.ChartType.MultiBar && chart.type !== App.ChartType.HorizontalMultiBar && chart.type !== App.ChartType.DiscreteBar && chartView.model.get("currentStackMode") != "relative") {
+			if (nvd3 && chart.type !== ChartTypes.MultiBar && chart.type !== ChartTypes.HorizontalMultiBar && chart.type !== ChartTypes.DiscreteBar && chartView.model.get("currentStackMode") != "relative") {
 				//version which makes sure min/max values are present, but will display values outside of the range
 				nvd3.forceX(xDomain);
 				nvd3.forceY(yDomain);
@@ -452,7 +454,7 @@ const chartTabOld = function(chartView: ChartView) {
 			.axisLabel(xAxis.label)
 			.axisLabelDistance(defaultTo(xAxis.props.labelDistance, 0))
 			.tickFormat(function(d) {
-				if (chart.type == App.ChartType.DiscreteBar) {
+				if (chart.type == ChartTypes.DiscreteBar) {
 					return d;
 				} else {
 					return owid.formatTimeLabel("Year", d, xAxis.prefix, xAxis.suffix, xAxis.numDecimalPlaces);
@@ -597,7 +599,7 @@ const chartTabOld = function(chartView: ChartView) {
 			chartView.model.set("currentStackMode", $(ev.target).closest('.nv-series').text().toLowerCase());
 		});
 
-		if (chart.type == App.ChartType.StackedArea) {
+		if (chart.type == ChartTypes.StackedArea) {
 			// Stop the tooltip from overlapping the chart controls
 			d3.selectAll("svg").on("mousemove.stackedarea", function() {
 				var $target = $(d3.event.target);

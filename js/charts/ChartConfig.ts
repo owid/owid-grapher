@@ -6,6 +6,7 @@ import {ScaleType} from './AxisScale'
 import {ComparisonLineConfig} from './ComparisonLine'
 import {component} from './Util'
 import AxisConfig from './AxisConfig'
+import ChartType from './ChartType'
 
 export interface TimelineConfig {
     compareEndPointsOnly?: boolean
@@ -13,7 +14,7 @@ export interface TimelineConfig {
 
 // In-progress mobx model layer that will eventually replace ChartModel
 export default class ChartConfig {
-    @observable.ref type: string
+    @observable.ref type: ChartType
     @observable.ref slug: string
     @observable.ref title: string
     @observable.ref subtitle: string
