@@ -20,6 +20,7 @@ import AxisConfig from './AxisConfig'
 import {defaultTo} from 'lodash'
 import * as d3 from '../libs/d3old'
 import ChartType from './ChartType'
+import LineType from './LineType'
 
 export default class ChartTab extends React.Component<{ chartView: ChartView, chart: ChartConfig }, undefined> {
     componentDidMount() {
@@ -178,12 +179,12 @@ const chartTabOld = function(chartView: ChartView) {
 		// Initialize or update the nvd3 graph
 
 		function updateGraph() {
-			if (chart.type == ChartType.LineChart && (lineType == App.LineType.DashedIfMissing))
+			if (chart.type == ChartType.LineChart && (lineType == LineType.DashedIfMissing))
 				localData = splitSeriesByMissing(localData);
 
 			if (chart.type == ChartType.LineChart) {
 				var lineType = chartView.model.get("line-type");
-				chartView.el.classed('line-dots', lineType == App.LineType.WithDots || lineType == App.LineType.DashedIfMissing);
+				chartView.el.classed('line-dots', lineType == LineType.WithDots || lineType == LineType.DashedIfMissing);
 				nvd3 = nv.models.lineChart().options(nvOptions);
 			} else if (chart.type == ChartType.StackedArea) {
 				renderStackedArea();
@@ -498,7 +499,7 @@ const chartTabOld = function(chartView: ChartView) {
 						newData.push(currentSeries);
 					}
 					currentSeries = _.extend({}, series, { values: [] });
-					if (isMissing && lineType == App.LineType.DashedIfMissing)
+					if (isMissing && lineType == LineType.DashedIfMissing)
 						currentSeries.p = 'dashed';
 					else if (isMissing)
 						currentSeries.classed = 'unstroked';

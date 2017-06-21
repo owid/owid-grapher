@@ -20,7 +20,6 @@ var mobxFormatters = require('mobx-formatters').default
 mobxFormatters(Mobx)
 
 //import 'preact/devtools'
-require('./charts/constants');
 
 window.d3 = require('./libs/d3old')
 

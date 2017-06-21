@@ -1,6 +1,7 @@
 import _ from 'underscore'
 import $ from 'jquery'
 import ChartType from '../charts/ChartType'
+import LineType from '../charts/LineType'
 
 owid.namespace("App.Views.Form.StylingTabView");
 
@@ -75,7 +76,7 @@ App.Views.Form.StylingTabView = owid.View.extend({
 		this.$lineTypeRadios.filter( "[value='" + lineType + "']" ).prop( "checked", true );
 		this.$lineTolerance.val(App.ChartModel.get("line-tolerance"));
 
-		if (lineType == App.LineType.UnjoinedIfMissing || lineType == App.LineType.DashedIfMissing)
+		if (lineType == LineType.UnjoinedIfMissing || lineType == LineType.DashedIfMissing)
 			this.$lineTolerance.closest("label").show();
 		else
 			this.$lineTolerance.closest("label").hide();
