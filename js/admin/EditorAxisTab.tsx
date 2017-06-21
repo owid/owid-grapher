@@ -2,17 +2,17 @@ import * as React from 'react'
 import {computed, action} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartConfig from '../charts/ChartConfig'
-import AxisConfig from '../charts/AxisConfig'
+import {AxisConfigProps} from '../charts/AxisConfig'
 import {numberOrNull} from '../charts/Util'
 import {toString} from 'lodash'
 import {TextField, NumberField, SelectField, Toggle} from './Forms'
 
 @observer
 export default class EditorAxisTab extends React.Component<{ chart: ChartConfig }, undefined> {
-	@computed get xAxis() { return this.props.chart.xAxis }
-	@computed get yAxis() { return this.props.chart.yAxis }
+	@computed get xAxis() { return this.props.chart.xAxis.props }
+	@computed get yAxis() { return this.props.chart.yAxis.props }
 
-	renderForAxis(axisName: string, axis: AxisConfig) {
+	renderForAxis(axisName: string, axis: AxisConfigProps) {
 		return <div>
 			<h3>{axisName} Axis</h3>
 			<TextField label={axisName+"-Axis Label"} value={axis.label} onValue={(value) => axis.label = value}/>

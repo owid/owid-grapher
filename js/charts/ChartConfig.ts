@@ -108,7 +108,7 @@ export default class ChartConfig {
               yAxisFormat = yAxis["axis-format"] || 5;
         this.yTickFormat = (d: number) => yAxisPrefix + owid.unitFormat({ format: yAxisFormat||5 }, d) + yAxisSuffix;
 
-        this.yAxis = component(this.yAxis, AxisConfig, {
+        this.yAxis = component(this.yAxis, AxisConfig, { props: {
             label: this.yAxisLabel,
             min: this.yDomain[0],
             max: this.yDomain[1],
@@ -117,7 +117,7 @@ export default class ChartConfig {
             scaleType: this.yScaleType,
             canChangeScaleType: this.yScaleTypeOptions.length > 1,
             numDecimalPlaces: yAxisFormat
-        });
+        }});
 
         (() => {
             this.xAxisConfig = this.model.get('x-axis')||{}
@@ -138,7 +138,7 @@ export default class ChartConfig {
                   xAxisFormat = xAxis["axis-format"] || 5
             this.xTickFormat = (d) => xAxisPrefix + owid.unitFormat({ format: xAxisFormat||5 }, d) + xAxisSuffix
 
-            this.xAxis = component(this.xAxis, AxisConfig, {
+            this.xAxis = component(this.xAxis, AxisConfig, { props: {
                 label: this.xAxisLabel,
                 min: this.xDomain[0],
                 max: this.xDomain[1],
@@ -147,7 +147,7 @@ export default class ChartConfig {
                 scaleType: this.xScaleType,
                 canChangeScaleType: this.xScaleTypeOptions.length > 1,
                 numDecimalPlaces: xAxisFormat
-            });        
+            }});        
         })()
 
         this.availableTabs = (_.sortBy(this.model.get('tabs'), name => {
