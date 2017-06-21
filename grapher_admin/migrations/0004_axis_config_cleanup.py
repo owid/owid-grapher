@@ -12,29 +12,59 @@ def tweak_selectedEntities(apps, schema_editor):
             
             for axisName in ['x', 'y']:
                 axis = {}
-                old = config[axisName+'-axis']
-                if not isinstance(axis, dict):
+                old = config.get(axisName+'-axis', None)
+                if not isinstance(old, dict):
                     old = {}
-                axis['label'] = old.get("axis-label", "")
-                axis['min'] = None if old.get("axis-min", None) is None else float(old['axis-min'])
-                axis['max'] = None if old.get("axis-max", None) is None else float(old['axis-max'])
+                
+                label = old.get('axis-label', None)
+                if isinstance(label, str) and len(label) > 0:
+                    axis['label'] = label
 
-#                            label: yAxis["axis-label"],
-#            min: yAxis["axis-min"],
-#            max: yAxis["axis-max"],
-#            prefix: yAxis["axis-prefix"],
-#            suffix: yAxis["axis-suffix"],
-#            scaleType: yAxis["axis-scale"],
-#            canChangeScaleType: this.model.get("y-axis-scale-selector"),
-#            numDecimalPlaces: yAxis["axis-format"]
+                prefix = old.get('axis-prefix', None)
+                if isinstance(prefix, str) and len(prefix) > 0:
+                    axis['prefix'] = prefix
 
+                suffix = old.get('axis-suffix', None)
+                if isinstance(suffix, str) and len(suffix) > 0:
+                    axis['suffix'] = suffix
 
-            print(config['x-axis'])
+                try:
+                    axis['min'] = float(old.get('axis-min', None))
+                except (TypeError, ValueError):
+                    pass
+                try:
+                    axis['max'] = float(old.get('axis-max', None))
+                except (TypeError, ValueError):
+                    pass
+
+                scaleType = old.get('scaleType', 'linear')
+                if scaleType == 'log':
+                    axis['scaleType'] = 'log'
+                else:
+                    axis['scaleType'] = 'linear'
+
+                if config.get(axisName + "-axis-scale-selector", False):
+                    axis['canChangeScaleType'] = True
+
+                try:
+                    axis['numDecimalPlaces'] = float(old.get('axis-format', None))
+                except (TypeError, ValueError):
+                    pass
+
+                if old.get("axis-label-distance"):
+                    axis['labelDistance'] = float(old.get("axis-label-distance"))
+                    
+
+                print(axisName)
+                print(old)
+                print(axis)
+                print()
+                config[axisName+'Axis'] = axis
+                if axisName+'-axis' in config:
+                    del config[axisName+'-axis']
 
             chart.config = json.dumps(config)
-#                chart.save()
-    import sys
-    sys.exit(1)
+            chart.save()
 
 class Migration(migrations.Migration):
     dependencies = [

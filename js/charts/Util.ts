@@ -66,10 +66,10 @@ export function formatYear(year: number): string {
         return year.toString();
 }
 
-export function numberOrNull(value: any): number|null {
+export function numberOnly(value: any): number|undefined {
     const number = parseFloat(value)
     if (isNaN(number))
-        return null
+        return undefined
     else
         return number
 }

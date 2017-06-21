@@ -6,7 +6,7 @@
 
 import * as React from 'react'
 import {toString} from 'lodash'
-import {numberOrNull} from '../charts/Util'
+import {numberOnly} from '../charts/Util'
 
 export interface TextFieldProps {
     label: string,
@@ -26,8 +26,8 @@ export class TextField extends React.Component<TextFieldProps, undefined> {
 
 export interface NumberFieldProps {
     label: string,
-    value: number|null,
-    onValue: (value: number|null) => void
+    value: number|undefined,
+    onValue: (value: number|undefined) => void
 }
 
 export class NumberField extends React.Component<NumberFieldProps, undefined> {
@@ -35,14 +35,14 @@ export class NumberField extends React.Component<NumberFieldProps, undefined> {
         const {props} = this
         return <label>
             {props.label}
-            <input className="form-control" type="number" value={toString(props.value)} onChange={(ev) => props.onValue(numberOrNull(ev.currentTarget.value))}/>
+            <input className="form-control" type="number" value={toString(props.value)} onChange={(ev) => props.onValue(numberOnly(ev.currentTarget.value))}/>
         </label>    
     }
 }
 
 export interface SelectFieldProps {
     label: string,
-    value: string,
+    value: string|undefined,
     onValue: (value: string) => void,
     options: string[]
 }
@@ -52,7 +52,7 @@ export class SelectField extends React.Component<SelectFieldProps, undefined> {
         const {props} = this
         return <label>
             {props.label}
-            <select className="form-control" value={toString(props.value)} onChange={(ev) => props.onValue(ev.currentTarget.value)}>
+            <select className="form-control" value={toString(props.value)} onChange={(ev: React.FormEvent<HTMLSelectElement>) => props.onValue(ev.currentTarget.value.length == 0 ? undefined : ev.currentTarget.value)}>
                 {props.options.map(value => 
                     <option value={value}>{value}</option>
                 )}

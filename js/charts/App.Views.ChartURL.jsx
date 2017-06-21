@@ -21,8 +21,8 @@ export default function(chart) {
     // Keep the query params separate between map and the other tabs
     var lastTabName = null,
         originalDefaultTab = chart.model.get('default-tab'),
-        originalXAxisScale = chart.model.getAxisConfig('x-axis', 'axis-scale'),
-        originalYAxisScale = chart.model.getAxisConfig('y-axis', 'axis-scale');
+        originalXAxisScale = chart.config.xAxis.scaleType,
+        originalYAxisScale = chart.config.yAxis.scaleType;
 
     urlBinder.mapQueryStr = '?';
     urlBinder.chartQueryStr = '?';
@@ -87,11 +87,11 @@ export default function(chart) {
         // Axis scale mode
         var xAxisScale = params.xScale;
         if (xAxisScale !== undefined)
-            chart.model.setAxisConfig('x-axis', 'axis-scale', xAxisScale);
+            chart.config.xAxis.props.scaleType = xAxisScale
 
         var yAxisScale = params.yScale;
         if (yAxisScale !== undefined)
-            chart.model.setAxisConfig('y-axis', 'axis-scale', yAxisScale);
+            chart.config.yAxis.props.scaleType = xAxisScale
 
         var time = params.time;
         if (time !== undefined) {

@@ -33,7 +33,7 @@ export default Backbone.Model.extend({
 			timeFrom = App.ChartModel.getTimeFrom(),
 			timeTo = App.ChartModel.getTimeTo(),
 			selectedEntitiesById = App.ChartModel.getSelectedEntitiesById(),
-			yAxis = App.ChartModel.get("y-axis"),
+			yAxis = chart.config.yAxis,
 			addCountryMode = App.ChartModel.get("add-country-mode"),
 			chartData = [], legendData = [],
 			hasManyVariables = _.size(variables) > 1,
@@ -59,7 +59,7 @@ export default Backbone.Model.extend({
 				// e.g. http://ourworldindata.org/grapher/view/101
 				if (isNaN(value)) continue;
 				// Values <= 0 break d3 log scales horribly
-				if (yAxis['axis-scale'] === 'log' && value <= 0) continue;
+				if (yAxis.scaleType === 'log' && value <= 0) continue;
 				// Check for time range
 				if (year < timeFrom || year > timeTo) continue;
 

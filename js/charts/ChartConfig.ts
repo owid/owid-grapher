@@ -76,31 +76,8 @@ export default class ChartConfig {
 
         this.units = JSON.parse(this.model.get('units')||"{}")
 
-        const yAxis = this.model.get('y-axis')||{}        
-
-        this.yAxis = component(this.yAxis, AxisConfig, { props: {
-            label: yAxis["axis-label"],
-            min: yAxis["axis-min"],
-            max: yAxis["axis-max"],
-            prefix: yAxis["axis-prefix"],
-            suffix: yAxis["axis-suffix"],
-            scaleType: yAxis["axis-scale"],
-            canChangeScaleType: this.model.get("y-axis-scale-selector"),
-            numDecimalPlaces: yAxis["axis-format"]
-        }});
-
-        const xAxis = this.model.get('x-axis')||{}        
-
-        this.xAxis = component(this.xAxis, AxisConfig, { props: {
-            label: xAxis["axis-label"],
-            min: xAxis["axis-min"],
-            max: xAxis["axis-max"],
-            prefix: xAxis["axis-prefix"],
-            suffix: xAxis["axis-suffix"],
-            scaleType: xAxis["axis-scale"],
-            canChangeScaleType: this.model.get("y-axis-scale-selector"),
-            numDecimalPlaces: xAxis["axis-format"]
-        }});
+        this.yAxis = component(this.yAxis, AxisConfig, { props: this.model.get("yAxis") })
+        this.xAxis = component(this.xAxis, AxisConfig, { props: this.model.get("xAxis") })
 
         this.availableTabs = (_.sortBy(this.model.get('tabs'), name => {
             if (name == 'chart')

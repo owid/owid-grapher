@@ -72,7 +72,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
 
     @computed get currentData() : ScatterSeries[] {
         const {dataByEntityAndYear, startYear, endYear} = this
-        const {xScaleType, yScaleType, timeline} = this.chart
+        const {xAxis, yAxis, timeline} = this.chart
         let currentData: ScatterSeries[] = [];
 
         _.each(dataByEntityAndYear, (dataByYear) => {
@@ -102,7 +102,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
 
             // Don't allow values <= 0 for log scales
             values = _.filter(values, v => {
-                return (v.y > 0 || yScaleType != 'log') && (v.x > 0 || xScaleType != 'log')
+                return (v.y > 0 || yAxis.scaleType != 'log') && (v.x > 0 || xAxis.scaleType != 'log')
             })
 
             return _.extend({}, series, {
@@ -311,11 +311,11 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     }
 
     @action.bound onYScaleChange(scaleType: ScaleType) {
-        this.chart.yScaleType = scaleType
+        this.chart.yAxis.scaleType = scaleType
     }
 
     @action.bound onXScaleChange(scaleType: ScaleType) {
-        this.chart.xScaleType = scaleType
+        this.chart.xAxis.scaleType = scaleType
     }
     
     @computed get comparisonLine() {

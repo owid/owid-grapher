@@ -13,16 +13,16 @@ export class AxisConfigProps {
     max?: number
     numDecimalPlaces?: number
     scaleType: ScaleType = "linear"
-    canChangeScaleType: boolean = false
+    canChangeScaleType?: true
 }
 
 // Interface used to access configuration by charts
 export default class AxisConfig {
     @observable props: AxisConfigProps
 
-    @computed get label() { return defaultTo(this.props.label, "") }
-    @computed get prefix() { return defaultTo(this.props.prefix, "") }
-    @computed get suffix() { return defaultTo(this.props.suffix, "") }
+    @computed get label(): string { return defaultTo(this.props.label, "") }
+    @computed get prefix(): string { return defaultTo(this.props.prefix, "") }
+    @computed get suffix(): string { return defaultTo(this.props.suffix, "") }
 
     // A log scale domain cannot have values <= 0, so we
     // double check here
@@ -41,9 +41,9 @@ export default class AxisConfig {
             return defaultTo(this.props.max, null)
     }
 
-    @computed get numDecimalPlaces() { return defaultTo(this.props.numDecimalPlaces, 5) }
-    @computed get scaleType() { return this.props.scaleType }
-    @computed get canChangeScaleType() { return this.props.canChangeScaleType }
+    @computed get numDecimalPlaces(): number { return defaultTo(this.props.numDecimalPlaces, 0) }
+    @computed get scaleType(): ScaleType { return this.props.scaleType }
+    @computed get canChangeScaleType(): boolean { return defaultTo(this.props.canChangeScaleType, false) }
 
     @computed get domain(): [number|null, number|null] {
         return [this.min, this.max]

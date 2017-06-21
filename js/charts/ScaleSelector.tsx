@@ -8,28 +8,24 @@
  * @created 2017-02-11
  */
 
-// @flow
-
 import * as d3 from 'd3'
-import React, { Component } from 'react'
+import * as React from 'react'
 import {observable, computed, action} from 'mobx'
 import {observer} from 'mobx-react'
 import {bind} from 'decko'
-
 import Text from './Text'
+import ScaleType from './ScaleType'
 
-export type ScaleType = 'linear' | 'log';
+interface ScaleSelectorProps {
+	x: number
+	y: number
+	scaleType: ScaleType
+	scaleTypeOptions: ScaleType[]
+	onChange: (scaleType: ScaleType) => void
+}
 
 @observer
-export default class ScaleSelector extends Component {
-	props: {
-		x: number,
-		y: number,
-		scaleType: ScaleType,
-		scaleTypeOptions: ScaleType[],
-		onChange: (ScaleType) => void
-	}
-
+export default class ScaleSelector extends React.Component<ScaleSelectorProps, undefined> {
 	@computed get x() : number { return this.props.x }
 	@computed get y() : number { return this.props.y }
 
@@ -47,7 +43,6 @@ export default class ScaleSelector extends Component {
 		let nextScaleTypeIndex = scaleTypeOptions.indexOf(scaleType)+1
 		if (nextScaleTypeIndex >= scaleTypeOptions.length)
 			nextScaleTypeIndex = 0
-
 
 		this.props.onChange(scaleTypeOptions[nextScaleTypeIndex])
 	}

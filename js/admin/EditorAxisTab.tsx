@@ -3,7 +3,6 @@ import {computed, action} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartConfig from '../charts/ChartConfig'
 import {AxisConfigProps} from '../charts/AxisConfig'
-import {numberOrNull} from '../charts/Util'
 import {toString} from 'lodash'
 import {TextField, NumberField, SelectField, Toggle} from './Forms'
 
