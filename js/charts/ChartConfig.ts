@@ -32,21 +32,8 @@ export default class ChartConfig {
 
     xAxis: AxisConfig
 
-    @observable.ref yAxisConfig: any
-    @observable.ref yDomain: [number|null, number|null]
-    @observable.ref yScaleType: ScaleType
-    @observable.ref yScaleTypeOptions: ScaleType[]
-    @observable.ref yAxisLabel: string
-    @observable.ref yTickFormat: (v: number) => string
-
     yAxis: AxisConfig
 
-    @observable.ref xAxisConfig: any
-    @observable.ref xDomain: [number|null, number|null]
-    @observable.ref xScaleType: ScaleType
-    @observable.ref xScaleTypeOptions: ScaleType[]
-    @observable.ref xAxisLabel: string
-    @observable.ref xTickFormat: (v: number) => string
     @observable.ref units: Object[]
     @observable.struct availableTabs: string[]
 
@@ -90,65 +77,31 @@ export default class ChartConfig {
 
         this.units = JSON.parse(this.model.get('units')||"{}")
 
-        this.yAxisConfig = this.model.get('y-axis')||{}
-        let min = owid.numeric(this.yAxisConfig["axis-min"])
-        let max = owid.numeric(this.yAxisConfig["axis-max"])
-        this.yScaleType = this.yAxisConfig['axis-scale'] || 'linear'
-        this.yScaleTypeOptions = this.model.get('y-axis-scale-selector') ? ['linear', 'log'] : [this.yScaleType]
-        // 0 domain doesn't work with log scale
-        if (!_.isFinite(min) || (this.yScaleType == 'log' && min <= 0))
-            min = null
-        if (!_.isFinite(max) || (this.yScaleType == 'log' && max <= 0))
-            max = null
-        this.yDomain = [min, max]
-        this.yAxisLabel = this.yAxisConfig['axis-label'] || ""
-        const yAxis = this.yAxisConfig,
-              yAxisPrefix = yAxis["axis-prefix"] || "",
-              yAxisSuffix = yAxis["axis-suffix"] || "",
-              yAxisFormat = yAxis["axis-format"] || 5;
-        this.yTickFormat = (d: number) => yAxisPrefix + owid.unitFormat({ format: yAxisFormat||5 }, d) + yAxisSuffix;
+        const yAxis = this.model.get('y-axis')||{}        
 
         this.yAxis = component(this.yAxis, AxisConfig, { props: {
-            label: this.yAxisLabel,
-            min: this.yDomain[0],
-            max: this.yDomain[1],
-            prefix: yAxisPrefix,
-            suffix: yAxisSuffix,
-            scaleType: this.yScaleType,
-            canChangeScaleType: this.yScaleTypeOptions.length > 1,
-            numDecimalPlaces: yAxisFormat
+            label: yAxis["axis-label"],
+            min: yAxis["axis-min"],
+            max: yAxis["axis-max"],
+            prefix: yAxis["axis-prefix"],
+            suffix: yAxis["axis-suffix"],
+            scaleType: yAxis["axis-scale"],
+            canChangeScaleType: this.model.get("y-axis-scale-selector"),
+            numDecimalPlaces: yAxis["axis-format"]
         }});
 
-        (() => {
-            this.xAxisConfig = this.model.get('x-axis')||{}
-            let min = owid.numeric(this.xAxisConfig["axis-min"])
-            let max = owid.numeric(this.xAxisConfig["axis-max"])
-            this.xScaleType = this.xAxisConfig['axis-scale'] || 'linear'
-            this.xScaleTypeOptions = this.model.get('x-axis-scale-selector') ? ['linear', 'log'] : [this.xScaleType]
-            // 0 domain doesn't work with log scale
-            if (!_.isFinite(min) || (this.xScaleType == 'log' && min <= 0))
-                min = null
-            if (!_.isFinite(max) || (this.xScaleType == 'log' && max <= 0))
-                max = null
-            this.xDomain = [min, max]
-            this.xAxisLabel = this.xAxisConfig['axis-label'] || ""
-            const xAxis = this.xAxisConfig,
-                  xAxisPrefix = xAxis["axis-prefix"] || "",
-                  xAxisSuffix = xAxis["axis-suffix"] || "",
-                  xAxisFormat = xAxis["axis-format"] || 5
-            this.xTickFormat = (d) => xAxisPrefix + owid.unitFormat({ format: xAxisFormat||5 }, d) + xAxisSuffix
+        const xAxis = this.model.get('x-axis')||{}        
 
-            this.xAxis = component(this.xAxis, AxisConfig, { props: {
-                label: this.xAxisLabel,
-                min: this.xDomain[0],
-                max: this.xDomain[1],
-                prefix: xAxisPrefix,
-                suffix: xAxisSuffix,
-                scaleType: this.xScaleType,
-                canChangeScaleType: this.xScaleTypeOptions.length > 1,
-                numDecimalPlaces: xAxisFormat
-            }});        
-        })()
+        this.xAxis = component(this.xAxis, AxisConfig, { props: {
+            label: xAxis["axis-label"],
+            min: xAxis["axis-min"],
+            max: xAxis["axis-max"],
+            prefix: xAxis["axis-prefix"],
+            suffix: xAxis["axis-suffix"],
+            scaleType: xAxis["axis-scale"],
+            canChangeScaleType: this.model.get("y-axis-scale-selector"),
+            numDecimalPlaces: xAxis["axis-format"]
+        }});
 
         this.availableTabs = (_.sortBy(this.model.get('tabs'), name => {
             if (name == 'chart')
