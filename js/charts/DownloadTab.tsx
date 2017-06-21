@@ -1,20 +1,25 @@
-import _ from 'lodash'
+import {includes, extend} from 'lodash'
 import * as d3 from 'd3'
-import React, {Component} from 'react'
+import * as React from 'react'
 import {render} from 'preact'
-import owid from '../owid'
 import {observable, computed, autorun} from 'mobx'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
-import {NullElement} from './Util'
+import ChartView from './ChartView'
+
+interface ImgLoaderProps {
+    width: number,
+    height: number,
+    src: string
+}
 
 @observer
-class ImgLoader extends Component {
+class ImgLoader extends React.Component<ImgLoaderProps, undefined> {
     @computed get src() {
         return this.props.src
     }
 
-    @observable img = null
+    @observable img: HTMLImageElement|null = null
     componentDidMount() {
         autorun(() => {
             var img = new Image()
@@ -41,8 +46,15 @@ class ImgLoader extends Component {
     }
 }
 
+interface DownloadTabProps {
+    imageWidth: number,
+    imageHeight: number,
+    bounds: Bounds,
+    chartView: ChartView
+}
+
 @observer
-export default class DownloadTab extends Component {
+export default class DownloadTab extends React.Component<DownloadTabProps, undefined> {
     @computed get baseUrl() : string {
         return Global.rootUrl + '/' + this.props.chartView.config.slug
     }
@@ -66,13 +78,13 @@ export default class DownloadTab extends Component {
     @computed get pngUrl() : string {
         const {baseUrl, queryStr, cacheTag, targetWidth, targetHeight} = this
         var pngHref = baseUrl + '.png' + queryStr, defaultTargetSize = targetWidth + "x" + targetHeight
-        return pngHref + (_.includes(pngHref, "?") ? "&" : "?") + "v=" + cacheTag
+        return pngHref + (includes(pngHref, "?") ? "&" : "?") + "v=" + cacheTag
     }
 
     @computed get svgUrl() : string {
         const {baseUrl, queryStr, cacheTag, targetWidth, targetHeight} = this
         var svgHref = baseUrl + '.svg' + queryStr, defaultTargetSize = targetWidth + "x" + targetHeight
-        return svgHref + (_.includes(svgHref, "?") ? "&" : "?") + "v=" + cacheTag
+        return svgHref + (includes(svgHref, "?") ? "&" : "?") + "v=" + cacheTag
     }
 
     @computed get isPortrait(): boolean {
@@ -84,7 +96,7 @@ export default class DownloadTab extends Component {
         const previewWidth = props.bounds.width*0.6
         const previewHeight = (targetHeight/targetWidth) * previewWidth
 
-        return <div className='downloadTab' style={_.extend(props.bounds.toCSS(), { position: 'absolute' })}>
+        return <div className='downloadTab' style={extend(props.bounds.toCSS(), { position: 'absolute' })}>
             <a href={pngUrl}>
                 <div>
                     <h2>Save as .png</h2>
@@ -108,7 +120,7 @@ export default class DownloadTab extends Component {
         const previewHeight = props.bounds.height*0.4
         const previewWidth = (targetWidth/targetHeight) * previewHeight
 
-        return <div className='downloadTab' style={_.extend(props.bounds.toCSS(), { position: 'absolute' })}>
+        return <div className='downloadTab' style={extend(props.bounds.toCSS(), { position: 'absolute' })}>
             <a href={pngUrl}>
                 <div>
                     <ImgLoader width={previewWidth} height={previewHeight} src={pngUrl}/>
