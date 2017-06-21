@@ -1,27 +1,20 @@
-// @flow
-
-import _ from 'lodash'
+import * as _ from 'lodash'
 import * as d3 from 'd3'
 import owid from '../owid'
-import React, { createElement, Component, cloneElement } from 'react'
+import * as React from 'react'
 import {observable, computed, asFlat, action, spy} from 'mobx'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
 import {bind} from 'decko'
 import {getRelativeMouse} from './Util'
-import type {SVGElement} from './Util'
 import Layout from './Layout'
 import Observations from './Observations'
 import ChartConfig from './ChartConfig'
 import Text from './Text'
-import LabelledSlopes from './LabelledSlopes'
-import type {SlopeChartSeries} from './LabelledSlopes'
+import LabelledSlopes, {SlopeChartSeries} from './LabelledSlopes'
 window.Observations = Observations
 
-class WrapLayout extends Component {
-	props: {
-		bounds: Bounds
-	}
+class WrapLayout extends React.Component<{ bounds: Bounds }, undefined> {
 	render() {
 		let {bounds, children} = this.props
 		let x = bounds.x, y = bounds.y, lineHeight = 0
@@ -41,7 +34,7 @@ class WrapLayout extends Component {
 
 	    children = _.map(children, (vnode) => {
 	    	if (!vnode.nodeName) return vnode
-            return cloneElement(vnode, { layout: layout })
+            return React.cloneElement(vnode, { layout: layout })
 	    })
 
 	    return <g {...this.props}>
@@ -50,13 +43,14 @@ class WrapLayout extends Component {
 	}
 }
 
+interface ColorLegendItemProps {
+	label: string
+	color: string
+	layout: (x: number, y: number) => Bounds
+}
+
 @observer
-class ColorLegendItem extends Component {
-	props: {
-		label: string,
-		color: string,
-		layout: (number, number) => Bounds
-	}
+class ColorLegendItem extends React.Component<ColorLegendItemProps, undefined> {
 	@computed get rectSize() {
 		return 10
 	}
@@ -93,7 +87,7 @@ class ColorLegendItem extends Component {
 }
 
 @observer
-class ColorLegend extends Component {
+class ColorLegend extends React.Component<{ bounds: Bounds, legendData: Object[] }, undefined> {
 	static calculateBounds(bounds) {
 		return bounds;
 	}
@@ -116,12 +110,7 @@ class ColorLegend extends Component {
 }
 
 @observer
-export default class SlopeChart extends Component {
-	props: {
-		bounds: Bounds,
-		config: ChartConfig
-	}
-
+export default class SlopeChart extends React.Component<{ bounds: Bounds, config: ChartConfig }, undefined> {
 	@computed.struct get dimensions() : Object[] {
 		return this.props.config.model.getDimensions()
 	}
