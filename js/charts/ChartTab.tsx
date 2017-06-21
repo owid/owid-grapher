@@ -9,7 +9,6 @@ import ChartConfig from './ChartConfig'
 import * as _ from 'lodash'
 import * as $ from 'jquery'
 import owid from '../owid'
-import dataflow from './owid.dataflow'
 import scaleSelectors from './owid.view.scaleSelectors'
 import EntitySelect from './owid.view.entitySelect'
 import Legend from './App.Views.Chart.Legend'
@@ -110,7 +109,7 @@ nv.utils.noData = function(nvd3: any, container: any) {
 };
 
 const chartTabOld = function(chartView: ChartView) {
-	var chartTab = dataflow();
+	var chartTab = {};
 	const chart = chartView.chart
 
 	let localData: any

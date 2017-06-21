@@ -25,11 +25,11 @@ interface TimelineMapProps {
 }
 
 @observer
-class TimelineMap extends React.Component<TimelineMapProps, null> {
+class TimelineMap extends React.Component<TimelineMapProps, undefined> {
     @observable focusEntity: any = null
 
     @action.bound onMapMouseOver(d: GeoFeature, ev: React.MouseEvent<SVGPathElement>) {
-        const datum = this.props.choroplethData[d.id]
+        const datum = d.id == undefined ? undefined : this.props.choroplethData[d.id]
         this.focusEntity = { id: d.id, datum: datum || { value: "No data" } }
 
         this.context.chartView.tooltip.fromMap(d, ev);
@@ -120,7 +120,7 @@ interface MapTabProps {
 }
 
 @observer
-export default class MapTab extends React.Component<MapTabProps, null> {
+export default class MapTab extends React.Component<MapTabProps, undefined> {
     @computed get header() {
         const {props} = this
         const {bounds, chart} = props
@@ -181,26 +181,3 @@ export default class MapTab extends React.Component<MapTabProps, null> {
 
     }
 }
-
-/*export default function(chart : any) {
-    var mapTab = dataflow();
-
-    let rootNode = null
-
-    mapTab.render = function(bounds) {
-        if (!chart.map.getVariable()) {
-            chart.showMessage("No variable selected for map.");
-            return;
-        }
-
-
-        chart.dispatch.call('renderEnd');
-    };
-
-    mapTab.beforeClean(function() {
-        rootNode = render(() => null, chart.svg.node(), rootNode)
-    })
-
-    return mapTab;
-};
-*/

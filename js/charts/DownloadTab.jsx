@@ -7,7 +7,6 @@ import {observable, computed, autorun} from 'mobx'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
 import {NullElement} from './Util'
-import dataflow from './owid.dataflow'
 
 @observer
 class ImgLoader extends Component {
