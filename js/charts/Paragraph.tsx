@@ -44,7 +44,7 @@ function strip(html: string)
 
 @observer
 export default class Paragraph extends React.Component<ParagraphProps, undefined> {
-    @computed get maxWidth(): number {
+    @computed get maxWidth(): number|undefined {
         return this.props.width || this.props.maxWidth
     }
 

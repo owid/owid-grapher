@@ -1,5 +1,4 @@
 import * as React from 'react'
-import {render} from 'preact'
 import {computed, autorun} from 'mobx'
 import {preInstantiate} from './Util'
 import Header from './Header'
