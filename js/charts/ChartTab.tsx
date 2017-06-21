@@ -373,8 +373,6 @@ const chartTabOld = function(chartView: ChartView) {
 	}
 
 	function renderAxis() {
-		if (!nvd3) return;
-
 		//get extend
 		var allValues = [];
 		_.each(localData, function(v, i) {

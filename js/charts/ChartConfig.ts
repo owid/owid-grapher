@@ -7,9 +7,38 @@ import {ComparisonLineConfig} from './ComparisonLine'
 import {component} from './Util'
 import AxisConfig from './AxisConfig'
 import ChartType from './ChartType'
+import EntityKey from './EntityKey'
 
 export interface TimelineConfig {
     compareEndPointsOnly?: boolean
+}
+
+// WIP
+export class ChartConfigProps {
+    type: ChartType = "LineChart"
+    // Slug at which base chart can be found
+    slug?: string
+    // Chart title
+    title?: string
+    // Chart subtitle
+    subtitle?: string
+    // Override for source description text in footer
+    sourceDesc?: string
+    // Additional note text for footer
+    note?: string
+    // Internal notes for admin use
+    internalNotes?: string
+    // svg for logos in header
+    logosSVG: string[]
+    // OWID-specific: entry url where this chart is embedded
+    originUrl: string
+    // Whether the chart is publicly accessible
+    isPublished?: true
+    // List of active/selected entities to show
+    selectedEntities: EntityKey[]
+    // Human-friendly name of entities (e.g. "country", "city")
+    entityType: string
+    
 }
 
 // In-progress mobx model layer that will eventually replace ChartModel
