@@ -1,4 +1,5 @@
 import * as _ from 'lodash'
+import * as d3 from 'd3'
 import Bounds from './Bounds'
 
 export type SVGElement = any;
@@ -65,6 +66,16 @@ export function formatYear(year: number): string {
         return year.toString();
 }
 
+export function numberOrNull(value: any): number|null {
+    const number = parseFloat(value)
+    if (isNaN(number))
+        return null
+    else
+        return number
+}
+
+// Bind a "mobx component"
+// Still working out exactly how this pattern goes
 export function component<T extends {[key: string]: any}>(current: T|undefined, klass: { new(): T }, props: Partial<T>): T {
     const instance = current || new klass()
     _.each(_.keys(props), (key: string) => {
@@ -72,3 +83,47 @@ export function component<T extends {[key: string]: any}>(current: T|undefined, 
     })
     return instance
 }
+
+// Todo: clean this up a bit, it's from old stuff
+export function unitFormat(unit: any, value: any, options?: any): string {
+	if (value === "") return "";
+
+	unit = unit || {};
+	options = options || {};
+	options.noTrailingZeroes = options.noTrailingZeroes || true;
+
+	var titlePrefix = (unit.title ? unit.title + ": " : ""),
+		unitSuffix = (unit.unit ? _.trim(unit.unit) : "");
+
+	// Do precision fiddling, if the value is numeric
+	if (_.isNumber(value)) {
+		if (value % 1 == 0 && Math.abs(value) >= 1e6) {
+			if (value >= 1e12) value = value/1e12 + " trillion"
+			else if (value >= 1e9) value = value/1e9 + " billion"
+			else if (value >= 1e6) value = value/1e6 + " million"
+		} else {
+            const unitFormat = parseInt(unit.format)
+			if (_.isFinite(unitFormat) && unitFormat >= 0) {
+				var fixed = Math.min(20, unit.format);
+				value = d3.format(",." + fixed + "f")(value);
+			} else {
+				value = d3.format(",")(value);
+			}
+
+			if (options.noTrailingZeroes) {
+				var m = value.match(/([0-9,-]+.[0-9,]*?)0*$/);
+				if (m) value = m[1];
+				if (value[value.length-1] == ".")
+					value = value.slice(0, value.length-1);
+			}
+		}
+	}
+
+	if (unitSuffix == "$" || unitSuffix == "£")
+		return titlePrefix + unitSuffix + value;
+	else {
+		if (unitSuffix && unitSuffix[0] != "%")
+			unitSuffix = " " + unitSuffix;
+		return titlePrefix + value + unitSuffix;
+	}
+};

@@ -108,7 +108,7 @@ export default class ChartConfig {
               yAxisFormat = yAxis["axis-format"] || 5;
         this.yTickFormat = (d: number) => yAxisPrefix + owid.unitFormat({ format: yAxisFormat||5 }, d) + yAxisSuffix;
 
-        this.yAxis = component<AxisConfig>(this.yAxis, AxisConfig, {
+        this.yAxis = component(this.yAxis, AxisConfig, {
             label: this.yAxisLabel,
             domain: this.yDomain,
             prefix: yAxisPrefix,
@@ -137,7 +137,7 @@ export default class ChartConfig {
                   xAxisFormat = xAxis["axis-format"] || 5
             this.xTickFormat = (d) => xAxisPrefix + owid.unitFormat({ format: xAxisFormat||5 }, d) + xAxisSuffix
 
-            this.xAxis = component<AxisConfig>(this.xAxis, AxisConfig, {
+            this.xAxis = component(this.xAxis, AxisConfig, {
                 label: this.xAxisLabel,
                 domain: this.xDomain,
                 prefix: xAxisPrefix,

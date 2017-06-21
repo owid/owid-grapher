@@ -16,7 +16,7 @@ import 'whatwg-fetch'
 // Enable mobx-formatters
 var Mobx = require('mobx')
 var mobxFormatters = require('mobx-formatters').default
- 
+
 mobxFormatters(Mobx)
 
 //import 'preact/devtools'
