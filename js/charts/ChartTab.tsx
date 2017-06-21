@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {render} from 'preact'
-import {computed} from 'mobx'
+import {computed, autorun} from 'mobx'
 import {preInstantiate} from './Util'
 import Header from './Header'
 import SourcesFooter from './SourcesFooter'
@@ -31,11 +31,13 @@ export default class ChartTab extends React.Component<{ chartView: ChartView, ch
     }
 
     componentDidUpdate() {
+		if (this.dispose) this.dispose()
+
 		if (this.props.chart.type == ChartTypes.ScatterPlot || this.props.chart.type == ChartTypes.SlopeChart)
 			this.props.onRenderEnd && this.props.onRenderEnd()
 		else {
 			this.chartTab.onRenderEnd = this.props.onRenderEnd
-			this.chartTab.render(this.bounds)
+			this.dispose = autorun(() => this.chartTab.render(this.bounds))
 		}
     }
 
@@ -111,8 +113,10 @@ const chartTabOld = function(chartView: ChartView) {
 	var chartTab = dataflow();
 	const chart = chartView.chart
 
-	var localData, missingMsg, lineType;
-	var bounds: Bounds;
+	let localData: any
+	let missingMsg: string
+	let bounds: Bounds
+	let lineType: string
 
 	var legend = new Legend();
 	chartTab.legend = legend;
@@ -122,7 +126,7 @@ const chartTabOld = function(chartView: ChartView) {
 	let xAxis: AxisConfig = chartView.config.xAxis
 	let yAxis: AxisConfig = chartView.config.yAxis
 
-	let margins: any
+	let margins: any = { top: 10, left: 60, bottom: 10, right: 10 }
 	let svg: any
 	let nvd3: any
 	let chartOffsetX: number = 0
@@ -135,7 +139,8 @@ const chartTabOld = function(chartView: ChartView) {
 	chartTab.scaleSelectors = scaleSelectors(chartView, chartTab);
 
 	var nvOptions = {
-		showLegend: false
+		showLegend: false,
+		showTotalInTooltip: false
 	};
 
 	chartView.model.on('change:chart-type', function() {
@@ -151,10 +156,9 @@ const chartTabOld = function(chartView: ChartView) {
 		nvd3 = null;
 	},
 
-	chartTab.render = function(inputBounds) {
+	chartTab.render = function(inputBounds: Bounds) {
 		bounds = inputBounds.pad(10);
 
-		margins = _.clone(chartView.model.get("margins"));
 		chartOffsetX = bounds.left;
 		chartOffsetY = bounds.top;
 		chartHeight = bounds.height;
@@ -164,10 +168,9 @@ const chartTabOld = function(chartView: ChartView) {
 		configureData();
 		renderLegend();
 
-		$(".chart-error").remove();
 		if (missingMsg || _.isEmpty(localData)) {
 			chartView.el.selectAll(".nv-wrap").remove();
-			//chartView.showMessage(missingMsg || "No available data.");
+			console.error("No available data")
 			return;
 		}
 
@@ -180,7 +183,9 @@ const chartTabOld = function(chartView: ChartView) {
 				localData = splitSeriesByMissing(localData);
 
 			if (chart.type == ChartTypes.LineChart) {
-				renderLineChart();
+				var lineType = chartView.model.get("line-type");
+				chartView.el.classed('line-dots', lineType == App.LineType.WithDots || lineType == App.LineType.DashedIfMissing);
+				nvd3 = nv.models.lineChart().options(nvOptions);
 			} else if (chart.type == ChartTypes.StackedArea) {
 				renderStackedArea();
 			} else if (chart.type == ChartTypes.MultiBar || chart.type == ChartTypes.HorizontalMultiBar) {
@@ -189,37 +194,33 @@ const chartTabOld = function(chartView: ChartView) {
 				renderDiscreteBar();
 			}
 
-			if (nvd3) {
-				nvd3.width(chartWidth);
-				nvd3.height(chartHeight);
-				var marginBottom = +margins.bottom + 20;
-				if (chart.type == ChartTypes.MultiBar || chart.type == ChartTypes.DiscreteBar)
-					marginBottom += 10;
-				nvd3.margin({ left: +margins.left + 10, top: +margins.top, right: +margins.right + 20, bottom: marginBottom });
-				nv.dispatch.on("render_end", function() {
-					setTimeout(postRender, 500);
-				});
+			nvd3.width(chartWidth);
+			nvd3.height(chartHeight);
+			var marginBottom = +margins.bottom + 20;
+			if (chart.type == ChartTypes.MultiBar || chart.type == ChartTypes.DiscreteBar)
+				marginBottom += 10;
+			nvd3.margin({ left: +margins.left + 10, top: +margins.top, right: +margins.right + 20, bottom: marginBottom });
+			nv.dispatch.on("render_end", function() {
 				setTimeout(postRender, 500);
-			}
+			});
+			setTimeout(postRender, 500);
 
 			renderAxis();
 			renderTooltips();
 
-			if (nvd3) {
-				nvd3.duration(0);
-				svg.datum(localData).call(nvd3);
+			nvd3.duration(0);
+			svg.datum(localData).call(nvd3);
 
-				var nvWrap = d3.select('.nvd3.nv-wrap > g');
-				nvWrap.attr('transform', 'translate(' + chartOffsetX + ',' + chartOffsetY + ')');
-				$('.nvtooltip:not(.owid-tooltip)').remove();
+			var nvWrap = d3.select('.nvd3.nv-wrap > g');
+			nvWrap.attr('transform', 'translate(' + chartOffsetX + ',' + chartOffsetY + ')');
+			$('.nvtooltip:not(.owid-tooltip)').remove();
 
-				//if y axis has zero, display solid line
-				var $pathDomain = $(".nvd3 .nv-axis.nv-x path.domain");
-				if (yDomain[0] === 0) {
-					$pathDomain.css("stroke-opacity", "1");
-				} else {
-					$pathDomain.css("stroke-opacity", "0");
-				}
+			//if y axis has zero, display solid line
+			var $pathDomain = $(".nvd3 .nv-axis.nv-x path.domain");
+			if (yDomain[0] === 0) {
+				$pathDomain.css("stroke-opacity", "1");
+			} else {
+				$pathDomain.css("stroke-opacity", "0");
 			}
 		}
 
@@ -251,27 +252,6 @@ const chartTabOld = function(chartView: ChartView) {
 		var availableEntities = App.VariableData.get("availableEntities"),
 			selectedEntitiesById = chartView.model.getSelectedEntitiesById(),
 			entityType = chartView.model.get("entity-type");
-	}
-
-	function onAvailableCountries(evt) {
-		var $select = $(evt.currentTarget),
-			val = $select.val(),
-			$option = $select.find("[value=" + val + "]"),
-			text = $option.text();
-
-		if (chartView.model.get("add-country-mode") === "add-country") {
-			chartView.model.addSelectedCountry({ id: $select.val(), name: text });
-		} else {
-			chartView.model.replaceSelectedCountry({ id: $select.val(), name: text });
-		}
-	}
-
-	function renderLineChart() {
-		var lineType = chartView.model.get("line-type");
-
-		chartView.el.classed('line-dots', lineType == App.LineType.WithDots || lineType == App.LineType.DashedIfMissing);
-
-		nvd3 = nv.models.lineChart().options(nvOptions);
 	}
 
 	function renderStackedArea() {
@@ -386,8 +366,6 @@ const chartTabOld = function(chartView: ChartView) {
 	}
 
 	function renderTooltips() {
-		if (!nvd3) return;
-
 		if (chart.type == ChartTypes.StackedArea)
 			nvd3.interactiveLayer.tooltip.contentGenerator(owid.contentGenerator);
 		else
@@ -435,20 +413,21 @@ const chartTabOld = function(chartView: ChartView) {
 
 		if (yAxis.scaleType == 'linear')
 			nvd3.yScale(d3.scale.linear())
-		else
+		else {
 			nvd3.yScale(d3.scale.log())
 
-		// MISPY: Custom calculation of axis ticks, since nvd3 doesn't
-		// account for log scale when doing its own calc and that can result in
-		// overlapping axis labels.
-		var minPower10 = Math.ceil(Math.log(yDomain[0]) / Math.log(10));
-		var maxPower10 = Math.floor(Math.log(yDomain[1]) / Math.log(10));
+			// MISPY: Custom calculation of axis ticks, since nvd3 doesn't
+			// account for log scale when doing its own calc and that can result in
+			// overlapping axis labels.
+			var minPower10 = Math.ceil(Math.log(yDomain[0]) / Math.log(10));
+			var maxPower10 = Math.floor(Math.log(yDomain[1]) / Math.log(10));
 
-		var tickValues = [];
-		for (var i = minPower10; i <= maxPower10; i++) {
-			tickValues.push(Math.pow(10, i));
+			var tickValues = [];
+			for (var i = minPower10; i <= maxPower10; i++) {
+				tickValues.push(Math.pow(10, i));
+			}
+			nvd3.yAxis.tickValues(tickValues);
 		}
-		nvd3.yAxis.tickValues(tickValues);
 
 		nvd3.xAxis
 			.axisLabel(xAxis.label)
@@ -479,7 +458,7 @@ const chartTabOld = function(chartView: ChartView) {
 	}
 
 	function renderLegend() {
-		if (chartView.model.get("hide-legend")) {
+		if (!chartView.model.get("hide-legend")) {
 			legend.dispatch.on("addEntity", function() {
 				if (entitySelect)
 					entitySelect = entitySelect.destroy();
@@ -553,10 +532,9 @@ const chartTabOld = function(chartView: ChartView) {
 		var targetHeight = chartHeight,
 			targetWidth = chartWidth;
 
-		if (xAxis.label) {
-			var xAxisLabel = d3.select('.nv-x .nv-axislabel, .bottom.axis .axis-label');
-			if (!xAxisLabel.node()) return
+		var xAxisLabel = d3.select('.nv-x .nv-axislabel, .bottom.axis .axis-label');
 
+		if (xAxisLabel.node()) {
 			xAxisLabel.attr('transform', '');
 			var box = xAxisLabel.node().getBBox(),
 				diff = box.width-(targetWidth-10);
@@ -571,9 +549,9 @@ const chartTabOld = function(chartView: ChartView) {
 			}
 		}
 
-		if (yAxis.label) {
-			var yAxisLabel = d3.select('.nv-y .nv-axislabel, .left.axis .axis-label');
+		var yAxisLabel = d3.select('.nv-y .nv-axislabel, .left.axis .axis-label');
 
+		if (yAxisLabel.node()) {
 			yAxisLabel.attr('transform', 'rotate(-90)');
 
 			var box = yAxisLabel.node().getBBox(),

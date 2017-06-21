@@ -39,37 +39,35 @@ var scaleSelector = function() {
 	return scaleSelector;
 };
 
-export default function(chart, chartTab) {
+export default function(chartView, chartTab) {
+	const chart = chartView.chart
 	var scaleSelectors = dataflow();
 
 	var xScaleSelector = scaleSelector(),
 		yScaleSelector = scaleSelector();
 
 	xScaleSelector.flow('currentScale', function(currentScale) {
-		chart.model.setAxisConfig('x-axis', "axis-scale", currentScale);
+		chart.xAxis.scaleType = currentScale
 	});
 
 	yScaleSelector.flow('currentScale', function(currentScale) {
-		chart.model.setAxisConfig('y-axis', "axis-scale", currentScale);
+		chart.yAxis.scaleType = currentScale
 	});
 
 	scaleSelectors.render = function(bounds) {
-        var hasXSelector = chart.model.get('x-axis-scale-selector'),
-            hasYSelector = chart.model.get('y-axis-scale-selector');
-
-        if (hasXSelector) {
+        if (chart.xAxis.canChangeScaleType) {
 			xScaleSelector.update({
 				containerNode: chart.htmlNode,
-				currentScale: chart.model.getAxisConfig('x-axis', 'axis-scale')
+				currentScale: chart.xAxis.scaleType
 			});
         } else {
         	xScaleSelector.clean();
         }
 
-        if (hasYSelector) {
+        if (chart.yAxis.canChangeScaleType) {
 			yScaleSelector.update({
-				containerNode: chart.htmlNode,
-				currentScale: chart.model.getAxisConfig('y-axis', 'axis-scale')
+				containerNode: chartView.htmlNode,
+				currentScale: chart.yAxis.scaleType
 			});
         } else {
         	yScaleSelector.clean();
@@ -82,7 +80,7 @@ export default function(chart, chartTab) {
 			rect = d3.select('svg').select('.nv-background > rect');
 
 		if (!rect.empty()) {
-			var rectBounds = chart.getTransformedBounds(rect.node());
+			var rectBounds = chartView.getTransformedBounds(rect.node());
 
 			xScaleSelector.update({ left: rectBounds.left+rectBounds.width-100, top: rectBounds.height-30 });
 			yScaleSelector.update({ left: rectBounds.left, top: rectBounds.top-10 });

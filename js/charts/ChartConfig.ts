@@ -73,7 +73,7 @@ export default class ChartConfig {
         if (!timeDomain)
             this.timeDomain = [null, null]
         else
-            this.timeDomain = _.map(timeDomain, v => _.isString(v) ? parseInt(v) : v)
+            this.timeDomain = (_.map(timeDomain, v => _.isString(v) ? parseInt(v) : v) as [number|null, number|null])
 
         this.units = JSON.parse(this.model.get('units')||"{}")
 

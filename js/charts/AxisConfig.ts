@@ -27,26 +27,27 @@ export default class AxisConfig {
 
     // A log scale domain cannot have values <= 0, so we
     // double check here
-    @computed get min(): number|null {
+    @computed get min(): number|undefined {
         if (this.scaleType == 'log' && (this.props.min||0) <= 0) {
-            return null
+            return undefined
         } else {
-            return defaultTo(this.props.min, null)
+            return defaultTo(this.props.min, undefined)
         }
     }
 
-    @computed get max(): number|null {
+    @computed get max(): number|undefined {
         if (this.scaleType == 'log' && (this.props.max||0) <= 0)
-            return null
+            return undefined
         else
-            return defaultTo(this.props.max, null)
+            return defaultTo(this.props.max, undefined)
     }
 
     @computed get numDecimalPlaces(): number { return defaultTo(this.props.numDecimalPlaces, 0) }
     @computed get scaleType(): ScaleType { return this.props.scaleType }
+    set scaleType(scaleType: ScaleType) { this.props.scaleType = scaleType }
     @computed get canChangeScaleType(): boolean { return defaultTo(this.props.canChangeScaleType, false) }
 
-    @computed get domain(): [number|null, number|null] {
+    @computed get domain(): [number|undefined, number|undefined] {
         return [this.min, this.max]
     }
 

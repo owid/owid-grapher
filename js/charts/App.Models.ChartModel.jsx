@@ -41,7 +41,6 @@ export default Backbone.Model.extend( {
 		"sourceDesc": "",
 		"chart-dimensions": [],
 		"logos": ['OWD'],
-		"margins": { top: 10, left: 60, bottom: 10, right: 10 },
 		"units": "",
 		"hide-legend": false,
 		"hide-toggle": false,
