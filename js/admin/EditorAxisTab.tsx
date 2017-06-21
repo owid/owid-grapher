@@ -5,6 +5,7 @@ import ChartConfig from '../charts/ChartConfig'
 import AxisConfig from '../charts/AxisConfig'
 import {numberOrNull} from '../charts/Util'
 import {toString} from 'lodash'
+import {TextField, NumberField, SelectField, Toggle} from './Forms'
 
 @observer
 export default class EditorAxisTab extends React.Component<{ chart: ChartConfig }, undefined> {
@@ -14,43 +15,14 @@ export default class EditorAxisTab extends React.Component<{ chart: ChartConfig 
 	renderForAxis(axisName: string, axis: AxisConfig) {
 		return <div>
 			<h3>{axisName} Axis</h3>
-				<label>
-					{axisName}-Axis Label
-					<input className="form-control" type="text" value={axis.label} onChange={(ev) => axis.label = ev.target.value}/>
-				</label>
-				<label>
-					{axisName}-Axis Max
-					<input className="form-control" type="number" value={toString(axis.max)} onChange={(ev) => axis.max = numberOrNull(ev.target.value)}/>
-				</label>
-				<label>
-					{axisName}-Axis Min
-					<input className="form-control" type="number" value={toString(axis.min)} onChange={(ev) => axis.min = numberOrNull(ev.target.value)}/>
-				</label>
-				<label>
-					{axisName}-Axis Prefix
-					<input className="form-control" type="text" value={axis.prefix} onChange={(ev) => axis.prefix = ev.target.value}/>
-				</label>
-				<label>
-					{axisName}-Axis Suffix
-					<input className="form-control" type="text" value={axis.suffix} onChange={(ev) => axis.suffix = ev.target.value}/>
-				</label>
-				<label>
-					{axisName}-Axis No of decimal places
-					<input className="form-control" type="number" value={toString(axis.numDecimalPlaces)} onChange={(ev) => axis.numDecimalPlaces = numberOrNull(ev.target.value)}/>
-				</label>
-				<label>
-					{axisName}-Axis Scale
-					<select className="form-control" type="text" value={axis.scaleType} onChange={(ev) => axis.scaleType = ev.target.value == 'linear' ? 'linear' : 'log'}>
-						<option value="linear">Linear</option>
-						<option value="log">Log</option>
-					</select>
-				</label>
-				<div className="input-wrapper axis-scale-selector-wrapper">
-					<label>
-						<input type="checkbox" checked={axis.canChangeScaleType} onChange={(ev) => axis.canChangeScaleType = ev.target.checked}/>
-						User can select {axisName} axis scale
-					</label>
-				</div>
+			<TextField label={axisName+"-Axis Label"} value={axis.label} onValue={(value) => axis.label = value}/>
+			<NumberField label={axisName+"-Axis Max"} value={axis.max} onValue={(value) => axis.max = value}/>
+			<NumberField label={axisName+"-Axis Min"} value={axis.min} onValue={(value) => axis.min = value}/>
+			<TextField label={axisName+"-Axis Prefix"} value={axis.prefix} onValue={(value) => axis.prefix = value}/>
+			<TextField label={axisName+"-Axis Suffix"} value={axis.suffix} onValue={(value) => axis.suffix = value}/>
+			<NumberField label={axisName+"-Axis No of decimal places"} value={axis.numDecimalPlaces} onValue={(value) => axis.numDecimalPlaces = value}/>
+			<SelectField label={axisName+"-Axis Scale"} value={axis.scaleType} options={['linear', 'log']} onValue={(value) => axis.scaleType = value == 'linear' ? 'linear' : 'log'}/>
+			{" "}<Toggle label={`User can select ${axisName} axis scale`} value={axis.canChangeScaleType} onValue={(value) => axis.canChangeScaleType = value}/>
 		</div>
 	}
 

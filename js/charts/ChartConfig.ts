@@ -110,11 +110,12 @@ export default class ChartConfig {
 
         this.yAxis = component(this.yAxis, AxisConfig, {
             label: this.yAxisLabel,
-            domain: this.yDomain,
+            min: this.yDomain[0],
+            max: this.yDomain[1],
             prefix: yAxisPrefix,
             suffix: yAxisSuffix,
             scaleType: this.yScaleType,
-            scaleTypeOptions: this.yScaleTypeOptions,
+            canChangeScaleType: this.yScaleTypeOptions.length > 1,
             numDecimalPlaces: yAxisFormat
         });
 
@@ -139,11 +140,12 @@ export default class ChartConfig {
 
             this.xAxis = component(this.xAxis, AxisConfig, {
                 label: this.xAxisLabel,
-                domain: this.xDomain,
+                min: this.xDomain[0],
+                max: this.xDomain[1],
                 prefix: xAxisPrefix,
                 suffix: xAxisSuffix,
                 scaleType: this.xScaleType,
-                scaleTypeOptions: this.xScaleTypeOptions,
+                canChangeScaleType: this.xScaleTypeOptions.length > 1,
                 numDecimalPlaces: xAxisFormat
             });        
         })()
