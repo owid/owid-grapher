@@ -14,7 +14,7 @@ declare const Global: any
 declare const App: any
 
 @observer
-class EmbedMenu extends React.Component<{ embedUrl: string }, null> {
+class EmbedMenu extends React.Component<{ embedUrl: string }, undefined> {
     render() {
         const {embedUrl} = this.props
 
@@ -35,7 +35,7 @@ interface ShareMenuProps {
 }
 
 @observer
-class ShareMenu extends React.Component<ShareMenuProps, null> {
+class ShareMenu extends React.Component<ShareMenuProps, undefined> {
     @computed get title() : string {
         return document.title.replace(" - Our World In Data", "")
     }
@@ -105,7 +105,7 @@ interface ControlsFooterProps {
 }
 
 @observer
-export default class ControlsFooter extends React.Component<ControlsFooterProps, null> {
+export default class ControlsFooter extends React.Component<ControlsFooterProps, undefined> {
     @computed get tabNames() : string[] {
         return this.props.availableTabs
     }

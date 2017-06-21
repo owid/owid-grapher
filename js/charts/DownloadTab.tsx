@@ -1,7 +1,6 @@
 import {includes, extend} from 'lodash'
 import * as d3 from 'd3'
 import * as React from 'react'
-import {render} from 'preact'
 import {observable, computed, autorun} from 'mobx'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
@@ -39,7 +38,7 @@ class ImgLoader extends React.Component<ImgLoaderProps, undefined> {
             return <img className="imgLoader" src={img.src} style={style}/>
         } else {
             return <div className="imgLoader" style={style}>
-                <i class="fa fa-spinner fa-spin"/>
+                <i className="fa fa-spinner fa-spin"/>
             </div>
         }
 
