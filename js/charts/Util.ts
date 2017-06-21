@@ -127,3 +127,8 @@ export function unitFormat(unit: any, value: any, options?: any): string {
 		return titlePrefix + value + unitSuffix;
 	}
 };
+
+export function defaultTo<T, K>(value: T|undefined|null, defaultValue: K): T|K {
+    if (value == null) return defaultValue
+    else return value
+}

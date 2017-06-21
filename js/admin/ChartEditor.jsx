@@ -12,7 +12,6 @@ owid.namespace("App.Views.FormView");
 var	AvailableEntitiesCollection = App.Collections.AvailableEntitiesCollection,
 	SearchDataCollection = App.Collections.SearchDataCollection,
 	DataTabView = App.Views.Form.DataTabView,
-	AxisTabView = App.Views.Form.AxisTabView,
 	StylingTabView = App.Views.Form.StylingTabView,
 	ExportTabView = App.Views.Form.ExportTabView,
 	MapTabView = App.Views.Form.MapTabView,

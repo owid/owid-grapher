@@ -31,7 +31,6 @@ export default class ChartConfig {
     @observable.ref entityColors: {[key: string]: string} = {}
 
     xAxis: AxisConfig
-
     yAxis: AxisConfig
 
     @observable.ref units: Object[]

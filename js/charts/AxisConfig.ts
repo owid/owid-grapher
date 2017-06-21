@@ -2,44 +2,46 @@ import {observable, computed, toJS} from 'mobx'
 import {unitFormat} from './Util'
 import AxisSpec from './AxisSpec'
 import ScaleType from './ScaleType'
+import {defaultTo} from './Util'
 
 // Represents the actual entered configuration state in the editor
 export class AxisConfigProps {
-    label: string = ""
-    prefix: string = ""
-    suffix: string = ""
-    min: number|null = null
-    max: number|null = null
+    label?: string
+    prefix?: string
+    suffix?: string
+    min?: number
+    max?: number
+    numDecimalPlaces?: number
     scaleType: ScaleType = "linear"
-    numDecimalPlaces: number|null = null
     canChangeScaleType: boolean = false
 }
 
 // Interface used to access configuration by charts
-export default class AxisConfig {    
+export default class AxisConfig {
     @observable props: AxisConfigProps
 
-    @computed get label() { return this.props.label }
-    @computed get prefix() { return this.props.prefix }
-    @computed get suffix() { return this.props.suffix }    
+    @computed get label() { return defaultTo(this.props.label, "") }
+    @computed get prefix() { return defaultTo(this.props.prefix, "") }
+    @computed get suffix() { return defaultTo(this.props.suffix, "") }
 
     // A log scale domain cannot have values <= 0, so we
     // double check here
     @computed get min(): number|null {
-        if (this.scaleType == 'log' && this.props.min||0 <= 0)
+        if (this.scaleType == 'log' && (this.props.min||0) <= 0) {
             return null
-        else
-            return this.props.min
+        } else {
+            return defaultTo(this.props.min, null)
+        }
     }
 
     @computed get max(): number|null {
-        if (this.scaleType == 'log' && this.props.max||0 <= 0)
+        if (this.scaleType == 'log' && (this.props.max||0) <= 0)
             return null
         else
-            return this.props.max
+            return defaultTo(this.props.max, null)
     }
 
-    @computed get numDecimalPlaces() { return this.props.numDecimalPlaces }
+    @computed get numDecimalPlaces() { return defaultTo(this.props.numDecimalPlaces, 5) }
     @computed get scaleType() { return this.props.scaleType }
     @computed get canChangeScaleType() { return this.props.canChangeScaleType }
 
@@ -57,7 +59,7 @@ export default class AxisConfig {
 
     @computed get tickFormat(): (d: number) => string {
         const { prefix, numDecimalPlaces, suffix } = this
-        return (d) => prefix + unitFormat({ format: numDecimalPlaces||5 }, d) + suffix;
+        return (d) => prefix + unitFormat({ format: numDecimalPlaces }, d) + suffix;
     }
 
     // Convert axis configuration to a finalized axis spec by supplying

@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import {render} from 'preact'
 import {computed} from 'mobx'
 import {preInstantiate} from './Util'
@@ -7,17 +7,19 @@ import SourcesFooter from './SourcesFooter'
 import SlopeChart from './SlopeChart'
 import Bounds from './Bounds'
 import ChartConfig from './ChartConfig'
-import _ from 'lodash'
-import $ from 'jquery'
+import * as _ from 'lodash'
+import * as $ from 'jquery'
 import owid from '../owid'
 import dataflow from './owid.dataflow'
 import scaleSelectors from './owid.view.scaleSelectors'
 import EntitySelect from './owid.view.entitySelect'
 import Legend from './App.Views.Chart.Legend'
-import nv from 'nvd3'
+import * as nv from '../libs/nvd3'
 import ScatterPlot from './ScatterPlot'
+import ChartView from './ChartView'
+import AxisConfig from './AxisConfig'
 
-export default class ChartTab extends React.Component {
+export default class ChartTab extends React.Component<{ chartView: ChartView }, undefined> {
     componentDidMount() {
         this.props.chartView.svg = d3.select(d3.select(this.base).node().parentNode)
         this.props.chartView.el = d3.select("#chart")
@@ -105,10 +107,6 @@ nv.utils.noData = function(nvd3, container) {
 const chartTabOld = function(chart) {
 	var chartTab = dataflow();
 
-	var $svg, $tab, //$entitiesSelect,
-		$xAxisScale, $yAxisScale,
-		svg, nvd3, viz;
-
 	var chartType, localData, missingMsg, lineType;
 	var bounds;
 
@@ -117,24 +115,20 @@ const chartTabOld = function(chart) {
 
 	var timeline;
 
-	var xAxis = chart.model.get("x-axis"),
-		yAxis = chart.model.get("y-axis"),
-		xAxisPrefix = xAxis["axis-prefix"] || "",
-		xAxisSuffix = xAxis["axis-suffix"] || "",
-		yAxisPrefix = yAxis["axis-prefix"] || "",
-		yAxisSuffix = yAxis["axis-suffix"] || "",
-		xAxisLabelDistance = +xAxis["axis-label-distance"] || 0,
-		yAxisLabelDistance = +yAxis["axis-label-distance"] || 0,
-		xAxisMin = owid.numeric(xAxis["axis-min"], null),
-		xAxisMax = owid.numeric(xAxis["axis-max"], null),
-		yAxisMin = owid.numeric(yAxis["axis-min"], null),
-		yAxisMax = owid.numeric(yAxis["axis-max"], null),
-		xAxisScale = xAxis["axis-scale"] || "linear",
-		yAxisScale = yAxis["axis-scale"] || "linear",
-		xAxisFormat = xAxis["axis-format"],
-		yAxisFormat = yAxis["axis-format"] || 5;
+	let xAxis: AxisConfig = chart.config.xAxis
+	let yAxis: AxisConfig = chart.config.yAxis
+	let xAxisLabelDistance: number = 0
+	let yAxisLabelDistance: number = 0
 
-	var xDomain, yDomain, isClamped;
+	let margins: any
+	let svg: any
+	let nvd3: any
+	let chartOffsetX: number = 0
+	let chartOffsetY: number = 0
+	let chartWidth: number = 0
+	let chartHeight: number = 0
+	let yDomain: [number, number] = [0,0]
+	let xDomain: [number, number] = [0,0]
 
 	chartTab.scaleSelectors = scaleSelectors(chart, chartTab);
 
@@ -147,8 +141,6 @@ const chartTabOld = function(chart) {
 	});
 
 	chartTab.clean = function() {
-		if (viz) viz = viz.destroy();
-
 		chartTab.scaleSelectors.clean();
 
 		d3.selectAll(".nvd3, .axisBox, .nvtooltip:not(.owid-tooltip), .timeline").remove();
@@ -267,26 +259,9 @@ const chartTabOld = function(chart) {
 	}
 
 	function configureAxis() {
-		xAxis = chart.model.get("x-axis");
-		yAxis = chart.model.get("y-axis");
-		xAxisPrefix = xAxis["axis-prefix"] || "";
-		xAxisSuffix = xAxis["axis-suffix"] || "";
-		yAxisPrefix = yAxis["axis-prefix"] || "";
-		yAxisSuffix = yAxis["axis-suffix"] || "";
-		xAxisLabelDistance = +xAxis["axis-label-distance"] || 0;
-		yAxisLabelDistance = +yAxis["axis-label-distance"] || 0;
-		xAxisMin = owid.numeric(xAxis["axis-min"], null),
-		xAxisMax = owid.numeric(xAxis["axis-max"], null),
-		yAxisMin = owid.numeric(yAxis["axis-min"], null),
-		yAxisMax = owid.numeric(yAxis["axis-max"], null),
-		xAxisScale = xAxis["axis-scale"] || "linear";
-		yAxisScale = yAxis["axis-scale"] || "linear";
-		xAxisFormat = xAxis["axis-format"];
-		yAxisFormat = yAxis["axis-format"] || 5;
+		xAxisLabelDistance = +chart.model.get("x-axis")["axis-label-distance"] || 0;
+		yAxisLabelDistance = +chart.model.get("y-axis")["axis-label-distance"] || 0;
 	}
-
-	var margins, tabBounds, chartOffsetX, chartOffsetY,
-		chartWidth, chartHeight;
 
 	function updateAvailableCountries() {
 		if (chartType == App.ChartType.ScatterPlot) return;
@@ -442,34 +417,29 @@ const chartTabOld = function(chart) {
 
 		//get extend
 		var allValues = [];
-		_.each( localData, function( v, i ) {
-			if( v.values ) {
-				allValues = allValues.concat( v.values );
-			} else if(_.isArray(v)) {
+		_.each(localData, function(v, i) {
+			if (v.values) {
+				allValues = allValues.concat(v.values);
+			} else if (_.isArray(v)) {
 				//special case for discrete bar chart
 				allValues = v;
 			}
-		} );
+		});
 
 		//domain setup
-		xDomain = d3.extent(allValues.map(function(d) { return d.x; }));
-		yDomain = d3.extent(allValues.map(function(d) { return d.y; }));
-		isClamped = _.isFinite(xAxisMin) || _.isFinite(xAxisMax) || _.isFinite(yAxisMin) || _.isFinite(yAxisMax);
+		const xDomainDefault = d3.extent(allValues.map(function(d) { return d.x; }))
+		const yDomainDefault = d3.extent(allValues.map(function(d) { return d.y; }))
+		const isClamped = _.isFinite(xAxis.min) || _.isFinite(xAxis.max) || _.isFinite(yAxis.min) || _.isFinite(yAxis.max)
 
-		if (_.isFinite(xAxisMin) && (xAxisMin > 0 || xAxisScale != "log"))
-			xDomain[0] = xAxisMin;
-		if (_.isFinite(xAxisMax))
-			xDomain[1] = xAxisMax;
+		xDomain = [
+			_.defaultTo(xAxis.min, xDomainDefault[0]),
+			_.defaultTo(xAxis.max, xDomainDefault[1])
+		]
 
-		if (_.isFinite(yAxisMin) && (yAxisMin > 0 || yAxisScale != "log")) {
-			yDomain[0] = yAxisMin;
-		} else {
-			//default is zero (don't do it for stack bar chart or log scale, messes up things)
-			if (chartType != App.ChartType.StackedArea && yAxisScale != "log")
-				yDomain[0] = 0;
-		}
-		if (_.isFinite(yAxisMax))
-			yDomain[1] = yAxisMax;
+		yDomain = [
+			_.defaultTo(yAxis.min, yDomainDefault[0]),
+			_.defaultTo(yAxis.max, yDomainDefault[1])
+		]
 
 		yDomain[1] += (yDomain[1]-yDomain[0])/100;
 
@@ -481,41 +451,38 @@ const chartTabOld = function(chart) {
 			}
 		}
 
-		if (yAxisScale === "linear") {
-			nvd3.yScale(d3.scale.linear());
-		} else if (yAxisScale === "log") {
-			nvd3.yScale(d3.scale.log());
+		if (yAxis.scaleType == 'linear')
+			nvd3.yScale(d3.scale.linear())
+		else
+			nvd3.yScale(d3.scale.log())
 
-			// MISPY: Custom calculation of axis ticks, since nvd3 doesn't
-			// account for log scale when doing its own calc and that can result in
-			// overlapping axis labels.
-			var minPower10 = Math.ceil(Math.log(yDomain[0]) / Math.log(10));
-			var maxPower10 = Math.floor(Math.log(yDomain[1]) / Math.log(10));
+		// MISPY: Custom calculation of axis ticks, since nvd3 doesn't
+		// account for log scale when doing its own calc and that can result in
+		// overlapping axis labels.
+		var minPower10 = Math.ceil(Math.log(yDomain[0]) / Math.log(10));
+		var maxPower10 = Math.floor(Math.log(yDomain[1]) / Math.log(10));
 
-			var tickValues = [];
-			for (var i = minPower10; i <= maxPower10; i++) {
-				tickValues.push(Math.pow(10, i));
-			}
-			nvd3.yAxis.tickValues(tickValues);
+		var tickValues = [];
+		for (var i = minPower10; i <= maxPower10; i++) {
+			tickValues.push(Math.pow(10, i));
 		}
+		nvd3.yAxis.tickValues(tickValues);
 
 		nvd3.xAxis
-			.axisLabel(xAxis["axis-label"])
+			.axisLabel(xAxis.label)
 			.axisLabelDistance(xAxisLabelDistance)
 			.tickFormat(function(d) {
-				if (chartType == App.ChartType.ScatterPlot) {
-					return xAxisPrefix + owid.unitFormat({ format: xAxisFormat }, d) + xAxisSuffix;
-				} else if (chartType == App.ChartType.DiscreteBar) {
+				if (chartType == App.ChartType.DiscreteBar) {
 					return d;
 				} else {
-					return owid.formatTimeLabel("Year", d, xAxisPrefix, xAxisSuffix, xAxisFormat);
+					return owid.formatTimeLabel("Year", d, xAxis.prefix, xAxis.suffix, xAxis.numDecimalPlaces);
 				}
 			});
 
 		nvd3.yAxis
-			.axisLabel(yAxis["axis-label"])
+			.axisLabel(yAxis.label)
 			.axisLabelDistance(yAxisLabelDistance)
-			.tickFormat(function(d) { return yAxisPrefix + owid.unitFormat({ format: yAxisFormat }, d) + yAxisSuffix; })
+			.tickFormat(yAxis.tickFormat)
 			.showMaxMin(false);
 	}
 
@@ -601,12 +568,10 @@ const chartTabOld = function(chart) {
 	}
 
 	function ensureLabelsFit() {
-		if (chart.model.get('chart-type') == App.ChartType.SlopeChart || (viz && !d3.select('.axisBox').node())) return
-
-		var targetHeight = viz ? d3.select('.axisBox').node().getBBox().height : chartHeight,
+		var targetHeight = chartHeight,
 			targetWidth = chartWidth;
 
-		if (xAxis['axis-label']) {
+		if (xAxis.label) {
 			var xAxisLabel = d3.select('.nv-x .nv-axislabel, .bottom.axis .axis-label');
 			if (!xAxisLabel.node()) return
 
@@ -624,7 +589,7 @@ const chartTabOld = function(chart) {
 			}
 		}
 
-		if (yAxis['axis-label']) {
+		if (yAxis.label) {
 			var yAxisLabel = d3.select('.nv-y .nv-axislabel, .left.axis .axis-label');
 
 			yAxisLabel.attr('transform', 'rotate(-90)');
