@@ -17,7 +17,6 @@ var	AvailableEntitiesCollection = App.Collections.AvailableEntitiesCollection,
 	SearchDataCollection = App.Collections.SearchDataCollection,
 	DataTabView = App.Views.Form.DataTabView,
 	StylingTabView = App.Views.Form.StylingTabView,
-	ExportTabView = App.Views.Form.ExportTabView,
 	MapTabView = App.Views.Form.MapTabView;
 
 export default class ChartEditorView extends React.Component<{ editor: ChartEditorState }, undefined> {
@@ -46,7 +45,6 @@ export default class ChartEditorView extends React.Component<{ editor: ChartEdit
 	componentDidMount() {
 		this.dataTabView = new DataTabView()
 		this.stylingTabView = new StylingTabView()
-		this.exportTabView = new ExportTabView()
 		this.mapTabView = new MapTabView()
 		$('.nav-tabs').stickyTabs();
 	}

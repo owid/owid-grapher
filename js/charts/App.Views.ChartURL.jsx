@@ -64,8 +64,6 @@ export default function(chartView) {
             else {
                 chart.tab = tab
             }
-        } else {
-            chart.tab = chartView.model.get('default-tab')
         }
 
         // Affiliate logo if any

@@ -3,6 +3,8 @@ import * as React from 'react'
 import {computed, action} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartConfig from '../charts/ChartConfig'
+import {ChartTypeType} from '../charts/ChartType'
+import {Toggle} from './Forms'
 
 function slugify(s: string) {
 	s = s.toLowerCase().replace(/\s*\*.+\*/, '').replace(/[^\w- ]+/g,'');
@@ -35,7 +37,7 @@ export default class EditorBasicTab extends React.Component<{ chart: ChartConfig
 
 	@action.bound onSlug(evt: React.FormEvent<HTMLInputElement>) { this.chart.slug = evt.currentTarget.value }
 	@action.bound onSubtitle(evt: React.FormEvent<HTMLTextAreaElement>) { this.chart.subtitle = evt.currentTarget.value }
-	@action.bound onChartType(evt: React.FormEvent<HTMLSelectElement>) { this.chart.type = evt.currentTarget.value }
+	@action.bound onChartType(evt: React.FormEvent<HTMLSelectElement>) { this.chart.type = (evt.currentTarget.value as ChartTypeType) }
 	@action.bound onSource(evt: React.FormEvent<HTMLTextAreaElement>) { this.chart.sourceDesc = evt.currentTarget.value }
 	@action.bound onNote(evt: React.FormEvent<HTMLTextAreaElement>) { this.chart.note = evt.currentTarget.value }
 	@action.bound onInternalNotes(evt: React.FormEvent<HTMLTextAreaElement>) { this.chart.internalNotes = evt.currentTarget.value }
@@ -69,6 +71,8 @@ export default class EditorBasicTab extends React.Component<{ chart: ChartConfig
 					<option value="HorizontalMultiBar">Horizontal Multi Bar</option>
 					<option value="DiscreteBar">Discrete Bar</option>
 				</select>
+				<Toggle label="Chart tab" value={chart.hasChartTab} onValue={value => chart.hasChartTab = value}/>				
+				{" "}<Toggle label="Map tab" value={chart.hasMapTab} onValue={value => chart.hasMapTab = value}/>				
 			</section>
 			<section>
 				<h2>Sources</h2>

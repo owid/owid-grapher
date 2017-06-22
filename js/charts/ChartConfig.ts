@@ -62,11 +62,13 @@ export default class ChartConfig {
     @observable.ref entityColors: {[key: string]: string} = {}
     @observable.ref tab: ChartTabOption
 
+    @observable.ref hasChartTab: boolean = true
+    @observable.ref hasMapTab: boolean = false
+
     xAxis: AxisConfig
     yAxis: AxisConfig
 
     @observable.ref units: Object[]
-    @observable.struct availableTabs: ChartTabOption[]
 
     @observable.struct dimensions: Object[]
     @observable.ref dimensionsWithData: Object[]
@@ -77,6 +79,10 @@ export default class ChartConfig {
 
     @computed get selectedEntitiesByName() {
         return _.keyBy(this.selectedEntities)
+    }
+
+    @computed get availableTabs(): ChartTabOption[] {
+        return _.filter([this.hasChartTab && 'chart', this.hasMapTab && 'map', 'data', 'sources']) as ChartTabOption[]
     }
 
     @action.bound syncFromModel() {
@@ -111,14 +117,8 @@ export default class ChartConfig {
         this.yAxis = component(this.yAxis, AxisConfig, { props: this.model.get("yAxis") })
         this.xAxis = component(this.xAxis, AxisConfig, { props: this.model.get("xAxis") })
 
-        this.availableTabs = (_.sortBy(this.model.get('tabs'), name => {
-            if (name == 'chart')
-                return 1
-            else if (name == 'map')
-                return 2
-            else
-                return 3
-        }) as ChartTabOption[])
+        this.hasChartTab = this.model.get('tabs').includes("chart")
+        this.hasMapTab = this.model.get('tabs').includes("map")
 
         this.dimensions = this.model.get('chart-dimensions')        
         this.addCountryMode = this.model.get('add-country-mode')
@@ -181,6 +181,10 @@ export default class ChartConfig {
 
         autorun(() => {
             this.model.set('comparisonLine', toJS(this.comparisonLine))
+        })
+
+        autorun(() => {
+            this.model.set('tabs', this.availableTabs)
         })
 
         autorun(() => { this.model.set('default-tab', this.tab) })
