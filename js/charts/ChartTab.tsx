@@ -14,12 +14,14 @@ import EntitySelect from './owid.view.entitySelect'
 import Legend from './App.Views.Chart.Legend'
 import * as nv from '../libs/nvd3'
 import ScatterPlot from './ScatterPlot'
+import LineChart from './LineChart'
 import ChartView from './ChartView'
 import AxisConfig from './AxisConfig'
 import {defaultTo} from 'lodash'
 import * as d3 from '../libs/d3old'
 import ChartType from './ChartType'
 import LineType from './LineType'
+
 
 export default class ChartTab extends React.Component<{ chartView: ChartView, chart: ChartConfig }, undefined> {
     componentDidMount() {
@@ -32,7 +34,8 @@ export default class ChartTab extends React.Component<{ chartView: ChartView, ch
     componentDidUpdate() {
 		if (this.props.chart.type == ChartType.ScatterPlot || this.props.chart.type == ChartType.SlopeChart)
 			this.props.onRenderEnd && this.props.onRenderEnd()
-		else {
+		else if (this.props.chart.type == ChartType.LineChart) {
+		} else {
 			this.chartTab.onRenderEnd = this.props.onRenderEnd
 			this.chartTab.render(this.bounds)
 		}
@@ -79,10 +82,13 @@ export default class ChartTab extends React.Component<{ chartView: ChartView, ch
     }
 
     renderChart() {
-        if (this.props.chart.type == ChartType.SlopeChart)
-            return <SlopeChart bounds={this.bounds.padTop(20)} config={this.props.chartView.chart}/>
-        else if (this.props.chart.type == ChartType.ScatterPlot)
-            return <ScatterPlot bounds={this.bounds.padTop(20).padBottom(10)} config={this.props.chartView.chart} isStatic={this.props.chartView.isExport}/>
+		const {chart, chartView} = this.props
+        if (chart.type == ChartType.SlopeChart)
+            return <SlopeChart bounds={this.bounds.padTop(20)} config={chart}/>
+        else if (chart.type == ChartType.ScatterPlot)
+            return <ScatterPlot bounds={this.bounds.padTop(20).padBottom(10)} config={chart} isStatic={this.props.chartView.isExport}/>
+		else if (chart.type == ChartType.LineChart)
+			return <LineChart bounds={this.bounds.padTop(20)} chart={chart} localData={chartView.data.transformData()}/>
         else
             return null
     }

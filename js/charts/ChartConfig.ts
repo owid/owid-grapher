@@ -9,6 +9,7 @@ import AxisConfig from './AxisConfig'
 import {ChartTypeType} from './ChartType'
 import EntityKey from './EntityKey'
 import ChartTabOption from './ChartTabOption'
+import LineType from './LineType'
 
 export interface TimelineConfig {
     compareEndPointsOnly?: boolean
@@ -58,13 +59,15 @@ export default class ChartConfig {
     @observable.ref entityColors: {[key: string]: string} = {}
     @observable.ref tab: ChartTabOption
 
+    // XXX special line chart stuff that should maybe go elsewhere
+    @observable.ref lineType: LineType = LineType.WithDots
+    @observable.ref lineTolerance: number = 1
+
     @observable.ref hasChartTab: boolean = true
     @observable.ref hasMapTab: boolean = false
 
     xAxis: AxisConfig
     yAxis: AxisConfig
-
-    @observable.ref units: Object[]
 
     @observable.struct dimensions: Object[]
     @observable.ref dimensionsWithData: Object[]
@@ -107,8 +110,6 @@ export default class ChartConfig {
         else
             this.timeDomain = (_.map(timeDomain, v => _.isString(v) ? parseInt(v) : v) as [number|null, number|null])
 
-        this.units = JSON.parse(this.model.get('units')||"{}")
-
         this.yAxis = component(this.yAxis, AxisConfig, { props: this.model.get("yAxis") })
         this.xAxis = component(this.xAxis, AxisConfig, { props: this.model.get("xAxis") })
 
@@ -119,6 +120,9 @@ export default class ChartConfig {
         this.addCountryMode = this.model.get('add-country-mode')
         this.comparisonLine = this.model.get("comparisonLine")
         this.tab = this.model.get("default-tab")
+
+        this.lineType = this.model.get("line-type")
+        this.lineTolerance = parseInt(this.model.get("line-tolerance")) || 1
     }
 
 	constructor(model : any, data: any) {

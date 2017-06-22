@@ -1,13 +1,10 @@
-/* owid.component.urlBinder.js
+/* App.Views.ChartURL.ts
  * ================
  *
  * This component is responsible for handling data binding between the
  * the chartView and url parameters, to enable nice linking support
  * for specific countries and years.
  *
- * @project Our World In Data
- * @author  Jaiden Mispy
- * @created 2016-03-31
  */
 
 import * as _ from 'lodash'
@@ -71,13 +68,7 @@ export default function(chartView: ChartView) {
             }
         }
 
-        // Affiliate logo if any
-        var logo = params.logo;
-        if (logo) {
-            chartView.model.set('second-logo', '/logo/' + params.logo + '.png');
-        }
-
-        // Stack mode for bar and stacked are chartViews
+        // Stack mode for bar and stacked area charts
         var stackMode = params.stackMode;
         if (stackMode !== undefined)
             chartView.model.set("currentStackMode", stackMode);

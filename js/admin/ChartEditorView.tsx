@@ -176,9 +176,6 @@ export default class ChartEditorView extends React.Component<{ editor: ChartEdit
 								Hide absolute/relative toggle
 							</label>
 						</section>
-						<section className="units-section">
-							<h2>Popup Units</h2>
-						</section>
 					</div>
 					{chart.type == ChartType.ScatterPlot && <EditorScatterTab chart={chart}/>}
 					<div id="map-tab" className="tab-pane">
