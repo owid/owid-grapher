@@ -16,6 +16,8 @@ import ChartConfig from './ChartConfig'
 import Bounds from './Bounds'
 import LineType from './LineType'
 import {defaultTo} from './Util'
+import Legend from './App.Views.Chart.Legend'
+import EntitySelect from './owid.view.entitySelect'
 
 interface LineChartValue {
     x: number,
@@ -34,6 +36,9 @@ interface LineChartSeries {
 
 @observer
 export default class LineChart extends React.Component<{ bounds: Bounds, chart: ChartConfig, localData: LineChartSeries[] }, undefined> {
+    @computed get chart() { return this.props.chart }
+    @computed get bounds() { return this.props.bounds }
+
 	splitSeriesByMissing(localData: LineChartSeries[]) {
         const {chart} = this.props
         const {lineTolerance} = chart
@@ -104,9 +109,12 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
     }
 
     @action.bound renderNVD3() {
-        const {chart, bounds} = this.props
-        const {svg, localData, xDomainDefault, yDomainDefault} = this
+        const {chart, svg, localData, xDomainDefault, yDomainDefault} = this
         const {xAxis, yAxis} = chart
+        let bounds = this.bounds
+
+        const legend = this.renderLegend()
+        bounds = bounds.padTop(legend.height()+10)
 
         //chartView.el.classed('line-dots', chart.lineType == LineType.WithDots || chart.lineType == LineType.DashedIfMissing);
         const nvd3 = nv.models.lineChart().options({ showLegend: false });
@@ -187,6 +195,41 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
             $pathDomain.css("stroke-opacity", "0");
         }
     }
+
+    @computed get legend() {
+        return new Legend();        
+    }
+
+    entitySelect: EntitySelect
+    updateEntitySelect() {
+        if (this.entitySelect)
+            this.entitySelect.update({
+                containerNode: window.chart.htmlNode,
+                entities: window.chart.model.getUnselectedEntities()
+            });
+    }
+
+    renderLegend(): Legend {
+        const {legend, svg, bounds} = this
+
+		legend.dispatch.on("addEntity", () => {
+			if (this.entitySelect)
+				this.entitySelect = this.entitySelect.destroy();
+			else {
+				this.entitySelect = EntitySelect();
+				this.entitySelect.afterClean(() => this.entitySelect = null);
+			}
+			this.updateEntitySelect();
+		});
+		this.updateEntitySelect();
+
+		legend.render({
+			containerNode: svg.node(),
+			bounds: bounds
+		});
+
+        return legend
+	}
 
     componentDidMount() {
         this.componentDidUpdate() 
