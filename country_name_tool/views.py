@@ -4,6 +4,7 @@ import country_name_tool
 import os
 import random
 import string
+import unidecode
 from fuzzywuzzy import fuzz
 from io import StringIO
 from django.shortcuts import render
@@ -12,6 +13,7 @@ from django.urls import reverse
 from .forms import StandardizeCountries, UploadNewData
 from .models import Continent, CountryData, CountryName
 from django.db import transaction
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 
@@ -29,7 +31,7 @@ def process_countries(country_list, input_type, output_type):
         all_owid_country_names = CountryData.objects.values('id', 'owid_name')
         all_country_dict = {}
         for each in all_country_names:
-            all_country_dict[each.country_name] = each.owid_country
+            all_country_dict[each.country_name.lower()] = each.owid_country
     else:
         all_country_names = CountryData.objects.all()
         all_country_dict = {}
@@ -72,8 +74,8 @@ def process_countries(country_list, input_type, output_type):
 
     for each in country_list:
         if input_type == 'country_name':
-            if all_country_dict.get(each, 0):
-                result_list.append({'matched': True, 'country': all_country_dict[each].owid_name})
+            if all_country_dict.get(unidecode.unidecode(each.lower()), 0):
+                result_list.append({'matched': True, 'country': all_country_dict[unidecode.unidecode(each.lower())].owid_name})
             else:
                 result_list.append({'matched': False, 'country': []})
                 for one in all_owid_country_names:
@@ -166,7 +168,11 @@ def country_tool_page(request):
         if form.is_valid():
             country_list = []
             other_data = {}
-            file = form.cleaned_data['file'].read().decode('utf-8')
+            file = form.cleaned_data['file'].read()
+            try:
+                file = file.decode('utf-8')
+            except UnicodeDecodeError:
+                file = file.decode('latin1')
             file = '\n'.join(file.splitlines())
             input_type = form.cleaned_data['input_type']
             output_type = form.cleaned_data['output_type']
@@ -335,6 +341,9 @@ def country_tool_update(request):
 
 
 def newcountrynames(request):
+    country_tool_csv_save_location = settings.BASE_DIR + '/data/country_tool/csvs/'
+    if not os.path.exists(country_tool_csv_save_location):
+        os.makedirs(country_tool_csv_save_location)
     if request.method == 'POST':
         json_data = json.loads(request.body)
         csv_headers = json_data[0][1:]
@@ -357,7 +366,7 @@ def newcountrynames(request):
                 csv_list.append(json_data[i][1:-1])
 
         filename = randomword(8) + '.csv'
-        file = os.path.dirname(country_name_tool.__file__) + '/csvs/' + filename
+        file = os.path.join(country_tool_csv_save_location, filename)
 
         with open(file, 'w') as f:
             writer = csv.writer(f)
@@ -370,9 +379,10 @@ def newcountrynames(request):
 
 
 def servecsv(request, filename):
-    if os.path.isfile(os.path.dirname(country_name_tool.__file__) + '/csvs/' + filename):
+    country_tool_csv_save_location = settings.BASE_DIR + '/data/country_tool/csvs/'
+    if os.path.isfile(os.path.join(country_tool_csv_save_location, filename)):
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="%s"' % filename
-        with open(os.path.dirname(country_name_tool.__file__) + '/csvs/' + filename, 'r') as f:
+        with open(os.path.join(country_tool_csv_save_location, filename), 'r') as f:
             response.write(f.read())
         return response
