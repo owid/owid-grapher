@@ -66,11 +66,11 @@ export default class AxisConfig {
 
     // Convert axis configuration to a finalized axis spec by supplying
     // any needed information calculated from the data
-    toSpec({ domain } : { domain: [number, number] }) {
+    toSpec({ defaultDomain } : { defaultDomain: [number, number] }): AxisSpec {
         return {
             label: this.label,
             tickFormat: this.tickFormat,
-            domain: domain,
+            domain: [defaultTo(this.domain[0], defaultDomain[0]), defaultTo(this.domain[1], defaultDomain[1])],
             scaleType: this.scaleType,
             scaleTypeOptions: this.scaleTypeOptions
         }

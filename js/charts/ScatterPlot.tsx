@@ -212,13 +212,13 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
 
     @computed get xAxis(): AxisSpec {
         return this.chart.xAxis.toSpec({
-            domain: this.xDomain
+            defaultDomain: this.xDomainDefault
         })
     }
 
     @computed get yAxis(): AxisSpec {
         return this.chart.yAxis.toSpec({
-            domain: this.yDomain
+            defaultDomain: this.yDomainDefault
         })
     }
 
