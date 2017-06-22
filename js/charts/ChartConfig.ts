@@ -182,6 +182,14 @@ export default class ChartConfig {
             this.model.set('tabs', this.availableTabs)
         })
 
+        autorun(() => {            
+            this.model.set('xAxis', toJS(this.xAxis.props))
+        })
+
+        autorun(() => {
+            this.model.set('yAxis', toJS(this.yAxis.props))
+        })
+
         autorun(() => { this.model.set('default-tab', this.tab) })
 	}
 }

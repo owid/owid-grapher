@@ -183,23 +183,6 @@ export default Backbone.Model.extend( {
 		});
 	},
 
-	setAxisConfig: function(axisName, prop, value) {
-		var axis = _.extend({}, this.get(axisName));
-		if (axis[prop] !== value) {
-			axis[prop] = value;
-			this.set(axisName, axis);
-		}
-	},
-
-	getAxisConfig: function(axisName, prop) {
-		var axis = this.get(axisName);
-		if (!axis) return undefined;
-		if (axis[prop] !== undefined) return axis[prop];
-
-		// Defaults
-		if (prop == 'axis-scale') return 'linear';
-	},
-
 	isNew: function() {
 		return !this.get("id");
 	},

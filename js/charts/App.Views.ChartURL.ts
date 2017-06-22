@@ -10,18 +10,20 @@
  * @created 2016-03-31
  */
 
-import _ from 'lodash'
-import $ from 'jquery'
+import * as _ from 'lodash'
+import * as $ from 'jquery'
 import owid from '../owid'
 import {autorun} from 'mobx'
+import ChartView from './ChartView'
+import ChartTabOption from './ChartTabOption'
 
-export default function(chartView) {
+export default function(chartView: ChartView) {
     const {chart} = chartView
     function urlBinder() { }
 
     // Keep the query params separate between map and the other tabs
     var lastTabName = null,
-        originalTab = chartView.model.get('default-tab'),
+        originalTab = chart.tab,
         originalXAxisScale = chart.xAxis.scaleType,
         originalYAxisScale = chart.yAxis.scaleType;
 
@@ -38,7 +40,7 @@ export default function(chartView) {
         chartView.map.on("change:targetYear", updateYearParam);
         chartView.map.on("change:mode change:projection change:isColorblind", updateMapParams);
         chartView.model.on("change:currentStackMode", updateStackMode);
-        chartView.model.on("change:chartView-time", updateTime);
+        chartView.model.on("change:chart-time", updateTime);
         populateFromURL();
 
         $(window).on('query-change', function() {
@@ -47,14 +49,17 @@ export default function(chartView) {
                 urlBinder.lastQueryStr = window.location.search;
         });
         autorun(() => onTabChange())
-        autorun(() => updateAxisScales())
+        autorun(() => {
+            owid.setQueryVariable("xScale", chart.xAxis.scaleType == originalXAxisScale ? null : chart.xAxis.scaleType);
+            owid.setQueryVariable("yScale", chart.yAxis.scaleType == originalYAxisScale ? null : chart.yAxis.scaleType);            
+        })
     };
 
     /**
      * Apply any url parameters on chartView startup
      */
     function populateFromURL() {
-        var params = owid.getQueryParams();
+        var params: {[key: string]: string} = owid.getQueryParams();
 
         // Set tab if specified
         var tab = params.tab;
@@ -62,7 +67,7 @@ export default function(chartView) {
             if (!_.includes(chart.availableTabs, tab) && tab !== 'download')
                 console.error("Unexpected tab: " + tab);
             else {
-                chart.tab = tab
+                chart.tab = (tab as ChartTabOption)
             }
         }
 
@@ -78,14 +83,22 @@ export default function(chartView) {
             chartView.model.set("currentStackMode", stackMode);
 
         // Axis scale mode
-        var xAxisScale = params.xScale;
-        if (xAxisScale !== undefined)
-            chart.xAxis.props.scaleType = xAxisScale
+        const xScaleType = params.xScale
+        if (xScaleType) {
+            if (xScaleType == 'linear' || xScaleType == 'log')
+                chart.xAxis.props.scaleType = xScaleType
+            else
+                console.error("Unexpected xScale: " + xScaleType)
+        }
 
-        var yAxisScale = params.yScale;
-        if (yAxisScale !== undefined)
-            chart.yAxis.props.scaleType = xAxisScale
-
+        const yScaleType = params.yScale
+        if (yScaleType) {
+            if (yScaleType == 'linear' || yScaleType == 'log')
+                chart.yAxis.props.scaleType = yScaleType
+            else
+                console.error("Unexpected xScale: " + yScaleType)
+        }
+        
         var time = params.time;
         if (time !== undefined) {
             const m = time.match(/^(\d+)\.\.(\d+)$/)
@@ -260,20 +273,6 @@ export default function(chartView) {
             owid.setQueryVariable("stackMode", stackMode);
         else
             owid.setQueryVariable("stackMode", null);
-    }
-
-    function updateAxisScales() {
-        var xAxisScale = chart.xAxis.scaleType
-        if (xAxisScale != originalXAxisScale)
-            owid.setQueryVariable("xScale", xAxisScale);
-        else
-            owid.setQueryVariable("xScale", null);
-
-        var yAxisScale = chart.yAxis.scaleType
-        if (yAxisScale != originalYAxisScale)
-            owid.setQueryVariable("yScale", yAxisScale);
-        else
-            owid.setQueryVariable("yScale", null);
     }
 
     urlBinder.getCurrentLink = function() {
