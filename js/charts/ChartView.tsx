@@ -21,6 +21,7 @@ import mapdata from './owid.models.mapdata'
 import tooltip from './owid.view.tooltip'
 import Bounds from './Bounds'
 import {preInstantiate, VNode} from './Util'
+import ChartTabOption from './ChartTabOption'
 
 declare const App: any // XXX
 declare const Global: any // XXX
@@ -104,9 +105,8 @@ export default class ChartView extends React.Component<ChartViewProps, undefined
     }
 
 
-    @observable activeTabName: string = 'chart'
-    @observable primaryTabName: string = 'chart'
-    @observable overlayTabName: string = null
+    @observable primaryTabName: ChartTabOption = 'chart'
+    @observable overlayTabName: ChartTabOption|null = null
     @observable popups: VNode[] = []
 
     model: any
@@ -143,11 +143,11 @@ export default class ChartView extends React.Component<ChartViewProps, undefined
         Bounds.baseFontFamily = "Helvetica, Arial"
 
         autorun(() => {
-            if (this.activeTabName == 'map' || this.activeTabName == 'chart') {
-                this.primaryTabName = this.activeTabName
+            if (this.chart.tab == 'map' || this.chart.tab == 'chart') {
+                this.primaryTabName = this.chart.tab
                 this.overlayTabName = null
             } else {
-                this.overlayTabName = this.activeTabName
+                this.overlayTabName = this.chart.tab
             }
         })
 
@@ -158,10 +158,10 @@ export default class ChartView extends React.Component<ChartViewProps, undefined
     @computed get controlsFooter() {
         return preInstantiate(<ControlsFooter
             availableTabs={this.chart.availableTabs}
-            onTabChange={tabName => this.activeTabName = tabName}
+            onTabChange={tabName => this.chart.tab = tabName}
             chart={this.chart}
             chartView={this}
-            activeTabName={this.activeTabName}
+            activeTabName={this.chart.tab}
          />)
     }
 

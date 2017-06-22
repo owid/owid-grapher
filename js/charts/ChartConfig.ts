@@ -8,6 +8,7 @@ import {component} from './Util'
 import AxisConfig from './AxisConfig'
 import {ChartTypeType} from './ChartType'
 import EntityKey from './EntityKey'
+import ChartTabOption from './ChartTabOption'
 
 export interface TimelineConfig {
     compareEndPointsOnly?: boolean
@@ -43,7 +44,7 @@ export class ChartConfigProps {
 
 // In-progress mobx model layer that will eventually replace ChartModel
 export default class ChartConfig {
-    @observable.ref type: ChartType
+    @observable.ref type: ChartTypeType
     @observable.ref slug: string
     @observable.ref title: string
     @observable.ref subtitle: string
@@ -54,17 +55,18 @@ export default class ChartConfig {
     @observable.ref originUrl: string
     @observable.ref isPublished: boolean
 
-	@observable.ref selectedEntities: Object[] = []
+	@observable.ref selectedEntities: EntityKey[] = []
     @observable.ref entityType: string = "country"
     @observable.ref timeDomain: [number|null, number|null]
     @observable.ref timeline: TimelineConfig|null = null
     @observable.ref entityColors: {[key: string]: string} = {}
+    @observable.ref tab: ChartTabOption
 
     xAxis: AxisConfig
     yAxis: AxisConfig
 
     @observable.ref units: Object[]
-    @observable.struct availableTabs: string[]
+    @observable.struct availableTabs: ChartTabOption[]
 
     @observable.struct dimensions: Object[]
     @observable.ref dimensionsWithData: Object[]
@@ -116,11 +118,12 @@ export default class ChartConfig {
                 return 2
             else
                 return 3
-        }) as string[])
+        }) as ChartTabOption[])
 
         this.dimensions = this.model.get('chart-dimensions')        
         this.addCountryMode = this.model.get('add-country-mode')
         this.comparisonLine = this.model.get("comparisonLine")
+        this.tab = this.model.get("default-tab")
     }
 
 	constructor(model : any, data: any) {
@@ -179,5 +182,7 @@ export default class ChartConfig {
         autorun(() => {
             this.model.set('comparisonLine', toJS(this.comparisonLine))
         })
+
+        autorun(() => { this.model.set('default-tab', this.tab) })
 	}
 }

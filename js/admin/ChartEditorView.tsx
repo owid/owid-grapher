@@ -224,15 +224,6 @@ export default class ChartEditorView extends React.Component<{ editor: ChartEdit
 									</label>
 								</li>
 							</ol>
-							<label>
-								<span>Open by default:</span>
-								<select type="text" name="default-tab" className="form-control">
-									<option value="chart">Chart tab</option>
-									<option value="data">Data tab</option>
-									<option value="map">Map tab</option>
-									<option value="sources">Sources tab</option>
-								</select>
-							</label>
 						</section>
 					</div>
 					<div id="map-tab" className="tab-pane">

@@ -9,6 +9,7 @@ import {observer} from 'mobx-react'
 import * as Cookies from 'js-cookie'
 import ChartConfig from './ChartConfig'
 import * as $ from 'jquery'
+import ChartTabOption from './ChartTabOption'
 
 declare const Global: any
 declare const App: any
@@ -100,13 +101,13 @@ interface ControlsFooterProps {
     chart: ChartConfig,
     activeTabName: string,
     chartView: any,
-    availableTabs: string[],
-    onTabChange: (tabName: string) => void
+    availableTabs: ChartTabOption[],
+    onTabChange: (tabName: ChartTabOption) => void
 }
 
 @observer
 export default class ControlsFooter extends React.Component<ControlsFooterProps, undefined> {
-    @computed get tabNames() : string[] {
+    @computed get tabNames(): ChartTabOption[] {
         return this.props.availableTabs
     }
 
