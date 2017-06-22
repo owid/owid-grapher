@@ -8,6 +8,8 @@ import {clone} from 'lodash'
 import * as $ from 'jquery'
 import ChartType from '../charts/ChartType'
 import ChartView from '../charts/ChartView'
+import ChartEditorState, {ChartEditorStateProps} from './ChartEditorState'
+import SaveButtons from './SaveButtons'
 
 declare const App: any
 
@@ -16,13 +18,13 @@ var	AvailableEntitiesCollection = App.Collections.AvailableEntitiesCollection,
 	DataTabView = App.Views.Form.DataTabView,
 	StylingTabView = App.Views.Form.StylingTabView,
 	ExportTabView = App.Views.Form.ExportTabView,
-	MapTabView = App.Views.Form.MapTabView,
-	SaveButtonsView = App.Views.Form.SaveButtons;
+	MapTabView = App.Views.Form.MapTabView;
 
-export default class ChartEditor extends React.Component<{ chartView: ChartView }, undefined> {
-    static bootstrap({ chartView } : { chartView: ChartView }) {
-		console.log(chartView)
-		ReactDOM.render(<ChartEditor chartView={chartView}/>, document.getElementById("form-view"))
+export default class ChartEditorView extends React.Component<{ editor: ChartEditorState }, undefined> {
+    static bootstrap({ chartView }: { chartView: ChartView }) {
+		const editor = new ChartEditorState({ chart: chartView.chart })
+		window.editor = editor
+		ReactDOM.render(<ChartEditorView editor={editor}/>, document.getElementById("form-view"))
     }
 
     constructor(props: any) {
@@ -46,15 +48,15 @@ export default class ChartEditor extends React.Component<{ chartView: ChartView 
 		this.stylingTabView = new StylingTabView()
 		this.exportTabView = new ExportTabView()
 		this.mapTabView = new MapTabView()
-		this.saveButtons = new SaveButtonsView()
 		$('.nav-tabs').stickyTabs();
 	}
 
 	render() {
-        const chart = this.props.chartView.chart
+		const {editor} = this.props
+		const {chart} = editor
 
 		return <div className="form-wrapper-inner">
-			<form method="POST" action="{{ charturl }}" accept-charset="UTF-8"><input name="_method" type="hidden" value="PUT"/>
+			<form method="POST" accept-charset="UTF-8"><input name="_method" type="hidden" value="PUT"/>
 				<div className="nav-tabs-custom">
 					<ul className="nav nav-tabs no-bullets">
 						<li className="nav-item active">
@@ -293,11 +295,7 @@ export default class ChartEditor extends React.Component<{ chartView: ChartView 
 						</section>
 					</div>
 				</div>
-				<section className="form-section-submit">
-					<button id="save-chart" type="submit" className="btn btn-lg btn-success btn-primary">Update chart</button>
-					<button id="save-as-new" className="btn btn-lg btn-primary">Save as new</button>
-					<button id="publish-toggle" className="btn btn-lg btn-danger">Publish</button>
-				</section>
+				<SaveButtons editor={editor}/>
 			</form>
 		</div>
 	}

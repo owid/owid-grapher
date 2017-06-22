@@ -48,8 +48,7 @@ require('./admin/App.Views.Form.StylingTabView')
 require('./admin/App.Views.Form.ExportTabView')
 require('./admin/App.Views.Form.MapColorSection')
 require('./admin/App.Views.Form.MapTabView')
-require('./admin/App.Views.Form.SaveButtons')
-window.ChartEditor = require('./admin/ChartEditor').default
+window.ChartEditorView = require('./admin/ChartEditorView').default
 
 // Importer code
 

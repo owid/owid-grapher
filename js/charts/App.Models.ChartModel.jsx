@@ -49,7 +49,9 @@ export default Backbone.Model.extend( {
 		"add-country-mode": "add-country",
 		"activeLegendKeys": null,
 		"currentStackMode": null,
-        "timeline": null
+        "timeline": null,
+		"xAxis": { scaleType: "linear" },
+		"yAxis": { scaleType: "linear" }
 	},
 
 	// Get defaults appropriate for this kind of chart

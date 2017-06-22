@@ -170,8 +170,6 @@ const chartTabOld = function(chartView: ChartView) {
 			return;
 		}
 
-		updateAvailableCountries();
-
 		// Initialize or update the nvd3 graph
 
 		function updateGraph() {
@@ -241,12 +239,6 @@ const chartTabOld = function(chartView: ChartView) {
 		});
 
 		lineType = chartView.model.get('line-type');
-	}
-
-	function updateAvailableCountries() {
-		var availableEntities = App.VariableData.get("availableEntities"),
-			selectedEntitiesById = chartView.model.getSelectedEntitiesById(),
-			entityType = chartView.model.get("entity-type");
 	}
 
 	function renderStackedArea() {
