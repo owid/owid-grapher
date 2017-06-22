@@ -39,14 +39,16 @@ interface ChartViewProps {
 export default class ChartView extends React.Component<ChartViewProps, undefined> {
     static bootstrap({ jsonConfig, containerNode, isEditor }: { jsonConfig: Object, containerNode: HTMLElement, isEditor: boolean }) {
         d3.select(containerNode).classed('chart-container', true)
+        let chartView
 
         function render() {
             const rect = containerNode.getBoundingClientRect()
-            ReactDOM.render(<ChartView bounds={Bounds.fromRect(rect)} jsonConfig={jsonConfig} isEditor={isEditor}/>, containerNode)
+            chartView = ReactDOM.render(<ChartView bounds={Bounds.fromRect(rect)} jsonConfig={jsonConfig} isEditor={isEditor}/>, containerNode)
         }
 
         render()
         window.onresize = render
+        return chartView
     }
 
     @computed get isExport() { return !!this.props.isExport }

@@ -21,8 +21,6 @@ App.Views.Form.MapTabView = owid.View.extend({
 	},
 
 	initialize: function(options) {
-		this.dispatcher = options.dispatcher;
-
 		this.$variableIdSelect = this.$el.find( "[name='map-variable-id']" );
 		
 		this.$timeToleranceInput = this.$el.find( "[name='map-time-tolerance']" );

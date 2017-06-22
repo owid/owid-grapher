@@ -5,8 +5,6 @@ owid.namespace("App.Views.UI.SettingsVarPopup");
 
 App.Views.UI.SettingsVarPopup = owid.View.extend({
 	init: function(options) {
-		this.dispatcher = options.dispatcher;
-
 		//will be filled when opening popup
 		this.variableId = -1;
 

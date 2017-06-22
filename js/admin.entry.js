@@ -49,7 +49,7 @@ require('./admin/App.Views.Form.ExportTabView')
 require('./admin/App.Views.Form.MapColorSection')
 require('./admin/App.Views.Form.MapTabView')
 require('./admin/App.Views.Form.SaveButtons')
-window.Editor = require('./admin/ChartEditor').default
+window.ChartEditor = require('./admin/ChartEditor').default
 
 // Importer code
 

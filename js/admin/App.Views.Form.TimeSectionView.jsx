@@ -13,7 +13,6 @@ App.Views.Form.TimeSectionView = owid.View.extend({
 	},
 
 	initialize: function( options ) {			
-		this.dispatcher = options.dispatcher;
 		this.listenTo(App.VariableData, "change", this.render.bind(this));
 		this.render();
 	},

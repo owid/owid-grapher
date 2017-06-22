@@ -8,7 +8,7 @@ import ChartConfig, {TimelineConfig} from '../charts/ChartConfig'
 import {ComparisonLineConfig} from '../charts/ComparisonLine'
 
 @observer
-export default class ScatterTab extends React.Component<{ chart: ChartConfig }, undefined> {
+export default class EditorScatterTab extends React.Component<{ chart: ChartConfig }, undefined> {
     @observable timeline: TimelineConfig = {}
     @observable comparisonLine: ComparisonLineConfig = {}
     
@@ -51,15 +51,6 @@ export default class ScatterTab extends React.Component<{ chart: ChartConfig }, 
         if (this.hasComparisonLine) {
             this.props.chart.comparisonLine = toJS(this.comparisonLine)
         }
-    }
-
-    setLineCoord(key, value) {
-        const num = parseFloat(value)
-        if (!_.isFinite(num))
-            delete this.comparisonLine[key]
-        else
-            this.comparisonLine[key] = num
-        this.save()
     }
 
     render() {

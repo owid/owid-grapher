@@ -10,8 +10,7 @@
 			"click #publish-toggle": "onPublishToggle"
 		},
 
-		initialize: function(options) {
-			this.dispatcher = options.dispatcher;
+		initialize: function() {
 			this.$saveBtn = this.$("#save-chart");
 			this.$saveNewBtn = this.$("#save-as-new");
 			this.$publishBtn = this.$("#publish-toggle");
@@ -56,7 +55,6 @@
 						// New chart saved, switch to edit mode
 						window.location = App.ChartModel.url(response.data.id) + '/edit';
 					} else {
-						this.dispatcher.trigger("chart-saved", response.data.id, response.data.viewUrl);						
 						for (var key in newAttrs) {
 							App.ChartModel.trigger("change:" + key);
 						}

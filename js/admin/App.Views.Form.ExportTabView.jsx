@@ -12,8 +12,7 @@ import $ from 'jquery'
 			"change [name='default-tab']": "onDefaultTabChange",
 		},
 
-		initialize: function( options ) {
-			this.dispatcher = options.dispatcher;			
+		initialize: function() {
 			this.render();
 		},
 

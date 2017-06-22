@@ -18,7 +18,6 @@ App.Views.Form.EntitiesSectionView = owid.View.extend({
 	},
 
 	initialize: function(options) {
-		this.dispatcher = options.dispatcher;
 		this.$currentEntities = this.$el.find(".selected-countries-box");
 		this.$entitiesSelect = this.$el.find(".countries-select");
 		this.$addCountryControlInput = this.$el.find("[name='add-country-control']");

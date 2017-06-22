@@ -20,8 +20,6 @@ App.Views.Form.StylingTabView = owid.View.extend({
 	},
 
 	initialize: function( options ) {
-		this.dispatcher = options.dispatcher;
-
 		//logos
 		this.$logo = this.$el.find("[name='logo']");
 
