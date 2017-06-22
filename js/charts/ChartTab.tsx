@@ -443,29 +443,25 @@ const chartTabOld = function(chartView: ChartView) {
 	}
 
 	function renderLegend() {
-		if (!chartView.model.get("hide-legend")) {
-			legend.dispatch.on("addEntity", function() {
-				if (entitySelect)
-					entitySelect = entitySelect.destroy();
-				else {
-					entitySelect = EntitySelect();
+		legend.dispatch.on("addEntity", function() {
+			if (entitySelect)
+				entitySelect = entitySelect.destroy();
+			else {
+				entitySelect = EntitySelect();
 
-					entitySelect.afterClean(function() { entitySelect = null; });
-				}
-				updateEntitySelect();
-			});
+				entitySelect.afterClean(function() { entitySelect = null; });
+			}
 			updateEntitySelect();
+		});
+		updateEntitySelect();
 
-			legend.render({
-				containerNode: svg.node(),
-				bounds: bounds
-			});
+		legend.render({
+			containerNode: svg.node(),
+			bounds: bounds
+		});
 
-			chartOffsetY += legend.height() + 10;
-			chartHeight -= legend.height() + 10;
-		} else {
-			chartView.svg.selectAll(".nvd3.nv-custom-legend").remove();
-		}
+		chartOffsetY += legend.height() + 10;
+		chartHeight -= legend.height() + 10;
 	}
 
 	function splitSeriesByMissing(localData) {

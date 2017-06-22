@@ -11,7 +11,6 @@ export default class Legend {
 			bounds = config.bounds.padLeft(35);
 
 		var legendData = App.ChartData.get("legendData"),
-			entityType = App.ChartModel.get("entity-type"),
 			groupByVariables = App.ChartModel.get("group-by-variables"),
 			addCountryMode = App.ChartModel.get("add-country-mode"),
 			remainingEntities = App.VariableData.getRemainingEntities(),
@@ -122,13 +121,13 @@ export default class Legend {
 		}
 
 		if (addCountryMode === "add-country") {
-			addEntityBtn.select("text").text("Add " + entityType);
+			addEntityBtn.select("text").text("Add");
 			addEntityBtn.select(".add-btn-path" ).attr( "display", "block");
 			addEntityBtn.select(".change-btn-path" ).attr( "display", "none");
 		} else if (addCountryMode === "change-country") {
 			addEntityBtn.select(".add-btn-path").attr("display", "none");
 			addEntityBtn.select(".change-btn-path").attr("display", "block");
-			addEntityBtn.select("text").text("Change " + entityType);
+			addEntityBtn.select("text").text("Change");
 		}
 
 		if (isAddBtnShown) {

@@ -36,10 +36,7 @@ export class ChartConfigProps {
     // Whether the chart is publicly accessible
     isPublished?: true
     // List of active/selected entities to show
-    selectedEntities: EntityKey[]
-    // Human-friendly name of entities (e.g. "country", "city")
-    entityType: string
-    
+    selectedEntities: EntityKey[]    
 }
 
 // In-progress mobx model layer that will eventually replace ChartModel
@@ -56,7 +53,6 @@ export default class ChartConfig {
     @observable.ref isPublished: boolean
 
 	@observable.ref selectedEntities: EntityKey[] = []
-    @observable.ref entityType: string = "country"
     @observable.ref timeDomain: [number|null, number|null]
     @observable.ref timeline: TimelineConfig|null = null
     @observable.ref entityColors: {[key: string]: string} = {}
@@ -103,7 +99,6 @@ export default class ChartConfig {
             if (e.color)
                 this.entityColors[e.name] = e.color
         })
-        this.entityType = this.model.get('entity-type')
         this.timeline = this.model.get('timeline')
 
         const timeDomain = this.model.get('chart-time')

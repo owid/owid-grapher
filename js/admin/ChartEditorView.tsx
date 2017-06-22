@@ -70,9 +70,6 @@ export default class ChartEditorView extends React.Component<{ editor: ChartEdit
 							<a className="nav-link" href="#styling-tab" data-toggle="tab" aria-expanded="false">Styling</a>
 						</li>
 						<li className="nav-item">
-							<a className="nav-link" href="#export-tab" data-toggle="tab" aria-expanded="false">Export</a>
-						</li>
-						<li className="nav-item">
 							<a className="nav-link" href="#map-tab" data-toggle="tab" aria-expanded="false">Map</a>
 						</li>
 					</ul>
@@ -174,18 +171,9 @@ export default class ChartEditorView extends React.Component<{ editor: ChartEdit
 						</section>
 						<section className="legend-section">
 							<h2>Legend</h2>
-
-							<label className="clickable">
-								<input type="checkbox" name="hide-legend" />
-								Hide legend
-							</label><br/>
 							<label className="clickable">
 								<input type="checkbox" name="hide-toggle" />
 								Hide absolute/relative toggle
-							</label><br/>
-							<label>
-								<span>Type of entity shown</span>
-								<input type="input" className="form-control" name="entity-type" value=""/>
 							</label>
 						</section>
 						<section className="units-section">
@@ -193,37 +181,6 @@ export default class ChartEditorView extends React.Component<{ editor: ChartEdit
 						</section>
 					</div>
 					{chart.type == ChartType.ScatterPlot && <EditorScatterTab chart={chart}/>}
-					<div id="export-tab" className="tab-pane">
-						<section className="tabs-section">
-							<h2>Which tabs</h2>
-							<ol>
-								<li>
-									<label className="chart-tab-check">
-										<input type="checkbox" value="chart"/>
-										Chart tab
-									</label>
-								</li>
-								<li>
-									<label className="data-tab-check">
-										<input type="checkbox" value="data"/>
-										Data tab
-									</label>
-								</li>
-								<li>
-									<label className="map-tab-check">
-										<input type="checkbox" value="map"/>
-										Map tab
-									</label>
-								</li>
-								<li>
-									<label className="sources-tab-check">
-										<input type="checkbox" value="sources"/>
-										Sources tab
-									</label>
-								</li>
-							</ol>
-						</section>
-					</div>
 					<div id="map-tab" className="tab-pane">
 						<section className="map-variable-section">
 							<h2>Which variable on map</h2>

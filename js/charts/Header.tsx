@@ -127,7 +127,6 @@ interface HeaderProps {
     minYear: number,
     maxYear: number,
     entities: any[],
-    entityType: string,
     logosSVG: string[],
     titleLink: string
 }
@@ -135,11 +134,16 @@ interface HeaderProps {
 @observer
 export default class Header extends React.Component<HeaderProps, undefined> {
     fillTemplate(text: string) {
-        const {entities, entityType, minYear, maxYear} = this.props
+        const {entities, minYear, maxYear} = this.props
 
         if (_.includes(text, "*country*")) {
-            var entityStr = entities.join(', ');
-            text = text.replace("*country*", entityStr || ("in selected " + entityType));
+            const entityStr = entities.join(', ');
+            if (entityStr.length > 0)
+                text = text.replace("*country*", entityStr);
+            else {
+                text = text.replace(", *country*", "")
+                text = text.replace("*country*", "");                
+            }
         }
 
         if (_.includes(text, "*time")) {
