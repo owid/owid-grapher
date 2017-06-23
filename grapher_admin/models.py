@@ -3,6 +3,7 @@ import subprocess
 import hashlib
 import os.path
 import shlex
+import gevent
 from django.db import models
 from django.core.mail import send_mail
 from django.contrib.auth.models import PermissionsMixin
@@ -96,6 +97,9 @@ class Chart(models.Model):
                                                      ('DiscreteBar', 'Discrete bar'),
                                                      ('SlopeChart', 'Slope chart')), blank=True, null=True)
 
+    
+    max_exports_per_worker = 2
+    exports_in_progress = 0
     def export_image(self, query: str, format: str, is_async: bool = False):
         screenshot = settings.BASE_DIR + "/js/screenshot.js"
         target = settings.BASE_URL + "/" + self.slug + ".export" + "?" + query
@@ -105,18 +109,29 @@ class Chart(models.Model):
         png_file = settings.BASE_DIR + "/public/exports/" + self.slug + "-" + query_hash + ".png"
         return_file = settings.BASE_DIR + "/public/exports/" + self.slug + "-" + query_hash + "." + format
 
-        if not os.path.isfile(return_file):
-            command = "LIGHTHOUSE_CHROMIUM_PATH=/usr/bin/chromium-browser nice node %s --url=%s --output=%s" % \
-                      (screenshot, shlex.quote(target), shlex.quote(png_file))
-            print(command)
-
-            if is_async:
-                subprocess.Popen(command, shell=True)
+        if Chart.exports_in_progress >= Chart.max_exports_per_worker:
+            if is_async: return return_file
             else:
-                try:
-                    subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
-                except subprocess.CalledProcessError as e:
-                    raise Exception(e.output)
+                while Chart.exports_in_progress >= Chart.max_exports_per_worker:
+                    gevent.sleep(0.5)
+
+        Chart.exports_in_progress += 1
+
+        try:
+            if not os.path.isfile(return_file):
+                command = "LIGHTHOUSE_CHROMIUM_PATH=/usr/bin/chromium-browser nice node %s --url=%s --output=%s" % \
+                        (screenshot, shlex.quote(target), shlex.quote(png_file))
+                print(command)
+
+                if is_async:
+                    subprocess.Popen(command, shell=True)
+                else:
+                    try:
+                        subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
+                    except subprocess.CalledProcessError as e:
+                        raise Exception(e.output)
+        finally:
+            Chart.exports_in_progress -= 1
 
         return return_file
 
