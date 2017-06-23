@@ -106,7 +106,7 @@ class Chart(models.Model):
         return_file = settings.BASE_DIR + "/public/exports/" + self.slug + "-" + query_hash + "." + format
 
         if not os.path.isfile(return_file):
-            command = "LIGHTHOUSE_CHROMIUM_PATH=/usr/bin/chromium-browser node %s --url=%s --output=%s" % \
+            command = "LIGHTHOUSE_CHROMIUM_PATH=/usr/bin/chromium-browser nice node %s --url=%s --output=%s" % \
                       (screenshot, shlex.quote(target), shlex.quote(png_file))
             print(command)
 
