@@ -21,6 +21,7 @@ import {defaultTo} from 'lodash'
 import * as d3 from '../libs/d3old'
 import ChartType from './ChartType'
 import LineType from './LineType'
+import StackedArea from './StackedArea'
 
 
 export default class ChartTab extends React.Component<{ chartView: ChartView, chart: ChartConfig }, undefined> {
@@ -34,7 +35,7 @@ export default class ChartTab extends React.Component<{ chartView: ChartView, ch
     componentDidUpdate() {
 		if (this.props.chart.type == ChartType.ScatterPlot || this.props.chart.type == ChartType.SlopeChart)
 			this.props.onRenderEnd && this.props.onRenderEnd()
-		else if (this.props.chart.type == ChartType.LineChart) {
+		else if (this.props.chart.type == ChartType.LineChart || this.props.chart.type == ChartType.StackedArea) {
 		} else {
 			this.chartTab.onRenderEnd = this.props.onRenderEnd
 			this.chartTab.render(this.bounds)
@@ -89,6 +90,8 @@ export default class ChartTab extends React.Component<{ chartView: ChartView, ch
             return <ScatterPlot bounds={this.bounds.padTop(20).padBottom(10)} config={chart} isStatic={this.props.chartView.isExport}/>
 		else if (chart.type == ChartType.LineChart)
 			return <LineChart bounds={this.bounds.padTop(20)} chart={chart} localData={chartView.data.transformData()}/>
+		else if (chart.type == ChartType.StackedArea)
+			return <StackedArea bounds={this.bounds.padTop(20)} chart={chart} localData={chartView.data.transformData()}/>
         else
             return null
     }
