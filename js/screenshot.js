@@ -13,9 +13,9 @@ const {exec} = require('child_process')
 // Maximum time to wait for an image export
 const timeout = 30000
 // Maximum number of simultaneous exports
-const maxWorkers = 10
+const maxWorkers = 4
 // Hard max on number of screenshot.js processes before they start erroring out
-const hardMaxWorkers = 100
+const hardMaxWorkers = 30
 
 let chromeProcess = null
 nodeCleanup((exitCode, signal) => {
@@ -113,41 +113,25 @@ setTimeout(function () {
 
 
 function tryLaunch() {
-    exec('ps x|grep screenshot.js', (err, stdout, stderr) => {
-        const pids = stdout.split("\n").map(l => parseInt(l.trim().split(/\s+/)[0]))
-        const numPriorityPids = pids.filter(pid => !isNaN(pid) && pid < process.pid).length
-
-        if (numPriorityPids >= maxWorkers) {
-            console.error("Too many screenshot.js workers ("+numPriorityPids+"/"+maxWorkers+"). Waiting...")
-            setTimeout(tryLaunch, 1000)
-            return
+    lockfile.lock(output + '.lock', function (err) {
+        if (err) {
+            // Another process is already working on this. Just wait until it's finished.
+            console.log("Waiting for other process")
+            lockfile.lock(output + '.lock', { wait: timeout }, function (err) {
+                process.exit(0)
+            })
+        } else {
+            chromeLauncher.launch({
+                chromeFlags: [
+                    '--window-size=1020,720',
+                    '--disable-gpu',
+                    '--headless'
+                ]
+            }).then(run).catch(e => {
+                console.error(e);
+                process.exit(1);
+            })
         }
-
-        if (numPriorityPids >= hardMaxWorkers) {
-            console.error("Way too many screenshot.js workers ("+numPriorityPids+"/"+maxWorkers+"). Exiting!")
-            process.exit(1)
-        }
-
-        lockfile.lock(output + '.lock', function (err) {
-            if (err) {
-                // Another process is already working on this. Just wait until it's finished.
-                console.log("Waiting for other process")
-                lockfile.lock(output + '.lock', { wait: timeout }, function (err) {
-                    process.exit(0)
-                })
-            } else {
-                chromeLauncher.launch({
-                    chromeFlags: [
-                        '--window-size=1020,720',
-                        '--disable-gpu',
-                        '--headless'
-                    ]
-                }).then(run).catch(e => {
-                    console.error(e);
-                    process.exit(1);
-                })
-            }
-        })
     })
 }
 
