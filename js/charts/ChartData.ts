@@ -1,61 +1,89 @@
-import _ from 'lodash'
-import Backbone from 'backbone'
+import * as _ from 'lodash'
 import owid from '../owid'
 import ChartType from './ChartType'
+import {computed} from 'mobx'
+import ChartConfig from './ChartConfig'
+import VariableData from './VariableData'
+import EntityKey from './EntityKey'
 
-var changes = owid.changes()
-export default Backbone.Model.extend({
-	initialize: function() {
-		changes.track(App.ChartModel);
-	},
+export default class ChartData {
+	chart: ChartConfig
+	vardata: VariableData
 
-	defaults: {
-		chartData: [],
-		legendData: []
-	},
+	constructor(chart: ChartConfig, vardata: VariableData) {
+		this.chart = chart
+		this.vardata = vardata
+	}
 
-	ready: function(callback) {
-		var variables = App.VariableData.get("variables");
-		if (!variables) {
-			App.VariableData.once("change:variables", function() {
-				// Run this after the other handlers
-				setTimeout(callback, 1);
-			}.bind(this));
-		} else {
-			callback();
-		}
-	},
+	@computed get data() {
+		const {chart, vardata} = this
+		const {variablesById} = vardata
 
-	transformDataForLineChart: function() {
-		var dimensions = _.clone(App.ChartModel.getDimensions()).reverse(), // Keep them stacked in the same visual order as editor
-			variableData = this.get('variableData'),
-			variables = App.VariableData.get("variables"),
-			entityKey = App.VariableData.get("entityKey"),
-			timeFrom = App.ChartModel.getTimeFrom(),
-			timeTo = App.ChartModel.getTimeTo(),
-			selectedEntitiesById = App.ChartModel.getSelectedEntitiesById(),
-			yAxis = chart.config.yAxis,
-			addCountryMode = App.ChartModel.get("add-country-mode"),
-			chartData = [], legendData = [],
-			hasManyVariables = _.size(variables) > 1,
-			hasManyEntities = _.size(selectedEntitiesById) > 1,
-			minYear = Infinity,
-			maxYear = -Infinity;
+		if (chart.type == ChartType.ScatterPlot || chart.tab == 'map' || _.isEmpty(variablesById) || _.isEmpty(chart.dimensions))
+			return null;
+
+		let result
+		if (chart.type == ChartType.LineChart)
+			result = this.transformDataForLineChart();
+		else if (chart.type == ChartType.StackedArea)
+			result = this.transformDataForStackedArea();
+		else if (chart.type == ChartType.DiscreteBar)
+			result = this.transformDataForDiscreteBar();
+		else
+			result = this.transformDataForLineChart();
+		
+		/*if (addCountryMode != "add-country" && chartType != ChartType.DiscreteBar) {
+			_.each(result.legendData, function(d) {
+				d.disabled = !this.chart.isLegendKeyActive(d.key);
+			});
+			_.each(result.chartData, function(d) {
+				d.disabled = !this.chart.isLegendKeyActive(d.key);
+			});
+		}*/
+		App.Colors.assignColorsForLegend(result.legendData);
+		App.Colors.assignColorsForChart(result.chartData);
+
+		return result;		
+	}
+
+	@computed get chartData() {
+		return this.data ? this.data.chartData : []
+	}
+
+	@computed get legendData() {
+		return this.data ? this.data.legendData : []
+	}
+
+	transformDataForLineChart() {
+		const {chart, vardata} = this
+		const {timeDomain, selectedEntitiesByKey, yAxis, addCountryMode} = chart
+		const dimensions = _.clone(chart.dimensions).reverse()
+		const {variablesById} = vardata
+
+
+		const timeFrom = _.defaultTo(timeDomain[0], -Infinity),
+			timeTo = _.defaultTo(timeDomain[1], Infinity),
+			hasManyVariables = _.size(variablesById) > 1,
+			hasManyEntities = _.size(selectedEntitiesByKey) > 1
+
+		let chartData = []
+		let legendData = []
+		let minYear = Infinity
+		let maxYear = -Infinity
 
 		_.each(dimensions, function(dimension) {
-			var variable = variables[dimension.variableId],
+			var variable = variablesById[dimension.variableId],
 				variableName = dimension.displayName || variable.name,
-				seriesByEntity = {};
+				seriesByEntity: {[key: EntityKey]: any} = {};
 
 			for (var i = 0; i < variable.years.length; i++) {
 				var year = parseInt(variable.years[i]),
 					value = parseFloat(variable.values[i]),
-					entityId = variable.entities[i],
-					entity = selectedEntitiesById[entityId],
-					series = seriesByEntity[entityId];
+					entity = variable.entities[i],
+					series = seriesByEntity[entity];
 
 				// Not a selected entity, don't add any data for it
-				if (!entity) continue;
+				if (!selectedEntitiesByKey[entity]) continue;
 				// It's possible we may be missing data for this year/entity combination
 				// e.g. http://ourworldindata.org/grapher/view/101
 				if (isNaN(value)) continue;
@@ -65,11 +93,11 @@ export default Backbone.Model.extend({
 				if (year < timeFrom || year > timeTo) continue;
 
 				if (!series) {
-					var key = entityKey[entityId].name,
-						id = entityId;
+					let key = entity,
+						id = entity;
 
 					if (!hasManyEntities && addCountryMode == "disabled") {
-						id = variable.id;
+						id = variable.id.toString();
 						key = variableName;
 					} else if (hasManyVariables) {
 						id += "-" + variable.id;
@@ -79,14 +107,14 @@ export default Backbone.Model.extend({
 					series = {
 						values: [],
 						key: key,
-						label: entityKey[entityId].name,
-						entityName: entityKey[entityId].name,
-						entityId: entityId,
+						label: entity,
+						entityName: entity,
+						entityId: entity,
 						variableId: variable.id,
 						id: id,
 						isProjection: dimension.isProjection
 					};
-					seriesByEntity[entityId] = series;
+					seriesByEntity[entity] = series;
 				}
 
 				var prevValue = series.values[series.values.length-1];
@@ -108,12 +136,12 @@ export default Backbone.Model.extend({
 		});
 
 		return { chartData: chartData, legendData: legendData, minYear: minYear, maxYear: maxYear };
-	},
+	}
 
 	// Ensures that every series has a value entry for every year in the data
 	// Even if that value is just 0
 	// Stacked area charts with incomplete data will fail to render otherwise
-	zeroPadData: function(chartData) {
+	zeroPadData(chartData) {
 		var allYears = {};
 		var yearsForSeries = {};
 
@@ -139,7 +167,7 @@ export default Backbone.Model.extend({
 	},
 
 	// Zero pads for every single year in the data
-	zeroPadDataRange: function(chartData) {
+	zeroPadDataRange(chartData) {
 		var minYear = Infinity, maxYear = -Infinity;
 		_.each(chartData, function(series) {
 			minYear = Math.min(minYear, series.values[0].x);
@@ -165,22 +193,22 @@ export default Backbone.Model.extend({
 		return chartData;
 	},
 
-	transformDataForStackedArea: function() {
-		if (!App.ChartModel.get("group-by-variables")) {
+	transformDataForStackedArea() {
+		//if (!this.chart.get("group-by-variables")) {
 			var result = this.transformDataForLineChart();
 			result.chartData = this.zeroPadData(result.chartData);
 			return result;
-		}
+		//}
 
-		var dimensions = App.ChartModel.getDimensions(),
-			variableData = this.get('variableData'),
-			variables = App.VariableData.get("variables"),
-			entityKey = App.VariableData.get("entityKey"),
+		/*const {chart, vardata} = this
+		const {dimensions} = chart
+		const {variablesById} = vardata
+
 			// Group-by-variable chart only has one selected country
-			selectedCountry = _.values(App.ChartModel.getSelectedEntitiesById())[0],
+			selectedCountry = _.values(this.chart.getSelectedEntitiesById())[0],
 			chartData = [], legendData = [],
-			timeFrom = App.ChartModel.getTimeFrom(),
-			timeTo = App.ChartModel.getTimeTo(),
+			timeFrom = this.chart.getTimeFrom(),
+			timeTo = this.chart.getTimeTo(),
 			minYear = Infinity,
 			maxYear = -Infinity;
 
@@ -218,10 +246,10 @@ export default Backbone.Model.extend({
 			return { label: series.label, key: series.key, entityId: series.entityId, variableId: series.variableId };
 		});
 
-		return { chartData: chartData, legendData: legendData, minYear: minYear, maxYear: maxYear };
-	},
+		return { chartData: chartData, legendData: legendData, minYear: minYear, maxYear: maxYear };*/
+	}
 
-	makeCategoryTransform: function(property, values) {
+	makeCategoryTransform(property, values) {
 		var colors = [ "#aec7e8", "#ff7f0e", "#1f77b4", "#ffbb78", "#2ca02c", "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b", "c49c94", "e377c2", "f7b6d2", "7f7f7f", "c7c7c7", "bcbd22", "dbdb8d", "17becf", "9edae5", "1f77b4" ];
 		var shapes = [ "circle", "cross", "triangle-up", "triangle-down", "diamond", "square" ];
 
@@ -238,13 +266,13 @@ export default Backbone.Model.extend({
 		return categoryTransform;
 	},
 
-	transformDataForDiscreteBar: function() {
-		var dimensions = App.ChartModel.getDimensions(),
-			variables = App.VariableData.get("variables"),
-			entityKey = App.VariableData.get("entityKey"),
-			timeFrom = App.ChartModel.getTimeFrom(),
-			timeTo = App.ChartModel.getTimeTo(),
-			selectedCountriesById = App.ChartModel.getSelectedEntitiesById(),
+	transformDataForDiscreteBar() {
+		var dimensions = this.chart.dimensions,
+			variables = this.vardata.get("variables"),
+			entityKey = this.vardata.get("entityKey"),
+			timeFrom = this.chart.getTimeFrom(),
+			timeTo = this.chart.getTimeTo(),
+			selectedCountriesById = this.chart.getSelectedEntitiesById(),
 			targetYear,
 			chartData = [], legendData = [];
 
@@ -303,7 +331,7 @@ export default Backbone.Model.extend({
 		return { chartData: chartData, legendData: legendData, minYear: targetYear, maxYear: targetYear };
 	},
 
-	getSourceDescHtml: function(variable, source) {
+	getSourceDescHtml(variable, source) {
 		var html = '';
 
 		html += '<div class="datasource-wrapper">' +
@@ -326,68 +354,29 @@ export default Backbone.Model.extend({
 
 
 		return html;
-	},
+	}
 
-	transformDataForSources: function() {
-		var variables = App.VariableData.get("variables");
-		if (!variables) return [];
+	transformDataForSources() {
+		const {chart, vardata} = this
+		const {dimensions} = chart
+		const {variablesById} = vardata
 
-		var sources = _.map(App.ChartModel.getDimensions(), function(dimension) {
-			var variable = variables[dimension.variableId],
-				source = _.extend({}, variable.source);
 
-				// HACK (Mispy): Ignore the default color source on scatterplots.
+		if (_.isEmpty(variablesById)) return []
+
+		let sources = _.map(dimensions, (dim) => {
+			const variable = variablesById[dim.variableId]
+			const source = _.clone(variable.source)
+
+			// HACK (Mispy): Ignore the default color source on scatterplots.
 			if (variable.name == "Countries Continents" || variable.name == "Total population (Gapminder)")
 				source.ignore = true;
 
 			source.description = this.getSourceDescHtml(variable, variable.source);
 			return source;
-		}.bind(this));
+		});
 
 		sources = _.filter(sources, function(source) { return !source.ignore; });
-
 		return sources;
-		//return _.uniq(sources, function(source) { return source.name; });
 	},
-
-	transformData: function() {
-		var variables = App.VariableData.get("variables"),
-			chartType = App.ChartModel.get("chart-type"),
-			addCountryMode = App.ChartModel.get("add-country-mode"),
-			result = null;
-
-		if (chartType == ChartType.ScatterPlot || chart.activeTabName == 'map')
-			return [];
-
-		if (changes.any()) this.chartData = null;
-
-		if (this.chartData)
-			return this.get("chartData");
-
-		if (!variables || !App.ChartModel.hasVariables()) return [];
-
-		if (chartType == ChartType.LineChart)
-			result = this.transformDataForLineChart();
-		else if (chartType == ChartType.StackedArea)
-			result = this.transformDataForStackedArea();
-		else if (chartType == ChartType.DiscreteBar)
-			result = this.transformDataForDiscreteBar();
-		else
-			result = this.transformDataForLineChart();
-		
-		if (addCountryMode != "add-country" && chartType != ChartType.DiscreteBar) {
-			_.each(result.legendData, function(d) {
-				d.disabled = !App.ChartModel.isLegendKeyActive(d.key);
-			});
-			_.each(result.chartData, function(d) {
-				d.disabled = !App.ChartModel.isLegendKeyActive(d.key);
-			});
-		}
-		App.Colors.assignColorsForLegend(result.legendData);
-		App.Colors.assignColorsForChart(result.chartData);
-		this.chartData = result.chartData;
-		this.set(result);
-
-		return result.chartData;
-	}
 });

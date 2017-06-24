@@ -12,11 +12,11 @@ import DataTab from './DataTab'
 import MapTab from './MapTab'
 import SourcesTab from './SourcesTab'
 import DownloadTab from './DownloadTab'
-import VariableData from './App.Models.VariableData'
+import VariableData from './VariableData'
 import ChartModel from './App.Models.ChartModel'
-import ChartData from './App.Models.ChartData'
+import ChartData from './ChartData'
 import Colors from './App.Models.Colors'
-import UrlBinder from './App.Views.ChartURL'
+import UrlBinder from './URLBinder'
 import mapdata from './owid.models.mapdata'
 import tooltip from './owid.view.tooltip'
 import Bounds from './Bounds'
@@ -124,19 +124,11 @@ export default class ChartView extends React.Component<ChartViewProps, undefined
     constructor(props: ChartViewProps) {
         super(props)
         // XXX all of this stuff needs refactoring
-        this.model = new ChartModel(props.jsonConfig)
-        App.ChartModel = this.model
-        App.VariableData = new VariableData()
-        this.vardata = App.VariableData
-        App.ChartData = new ChartData()
-        this.config = new ChartConfig(this.model, App.ChartData)
-        this.chart = this.config
-        this.data = App.ChartData
+        this.chart = new ChartConfig(props.jsonConfig)
         App.Colors = new Colors(this)
-        App.ChartModel.bind()
-        this.map = App.MapModel
-        this.mapdata = mapdata(this)
-        this.url = UrlBinder(this)
+//        this.map = App.MapModel
+//        this.mapdata = mapdata(this)
+        this.url = new UrlBinder(this.chart)
         this.tooltip = tooltip(this)
 
         Bounds.baseFontSize = 22
@@ -154,14 +146,14 @@ export default class ChartView extends React.Component<ChartViewProps, undefined
             }
         )
 
-        this.model.on('change', () => this.data.ready(() => this.forceUpdate()))
-        this.map.on('change', () => this.data.ready(() => this.forceUpdate()))
+        //this.model.on('change', () => this.data.ready(() => this.forceUpdate()))
+        //this.map.on('change', () => this.data.ready(() => this.forceUpdate()))
     }
 
     @computed get controlsFooter() {
         return preInstantiate(<ControlsFooter
             availableTabs={this.chart.availableTabs}
-            onTabChange={action(tabName => this.chart.tab = tabName)}
+            onTabChange={action(tabName => this.chart.tab = (tabName as ChartTabOption))}
             chart={this.chart}
             chartView={this}
             activeTabName={this.chart.tab}
@@ -202,7 +194,7 @@ export default class ChartView extends React.Component<ChartViewProps, undefined
         const {primaryTabName, svgBounds} = this
 
         if (primaryTabName == 'chart')
-            return <ChartTab bounds={bounds} chartView={this} chart={this.chart} dimensions={this.chart.model.getDimensions()} onRenderEnd={this.props.onRenderEnd}/>
+            return <ChartTab bounds={bounds} chartView={this} chart={this.chart} onRenderEnd={this.props.onRenderEnd}/>
         else
             return <MapTab bounds={bounds} chartView={this} chart={this.chart} onRenderEnd={this.props.onRenderEnd}/>
     }
@@ -211,7 +203,7 @@ export default class ChartView extends React.Component<ChartViewProps, undefined
         const {chart, overlayTabName} = this
 
         if (overlayTabName == 'sources')
-            return <SourcesTab bounds={bounds} sources={this.data.transformDataForSources()}/>
+            return <SourcesTab bounds={bounds} sources={this.chart.data.transformDataForSources()}/>
         else if (overlayTabName == 'data')
             return <DataTab bounds={bounds} csvUrl={Global.rootUrl+'/'+chart.slug+'.csv'}/>
         else if (overlayTabName == 'download')
@@ -240,7 +232,6 @@ export default class ChartView extends React.Component<ChartViewProps, undefined
     }
 
     render() {
-        window.chart = this
         const {renderWidth, renderHeight, scale} = this
 
         const style = { width: renderWidth*scale + 'px', height: renderHeight*scale + 'px', fontSize: 16*scale + 'px' }

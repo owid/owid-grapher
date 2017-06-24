@@ -18,8 +18,6 @@ export type ChoroplethData = {
     }
 };
 
-export type MapProjection = 'World' | 'Africa' | 'N.America' | 'S.America' | 'Asia' | 'Europe' | 'Australia';
-
 export type GeoFeature = GeoJSON.Feature<GeoJSON.GeometryObject>
 export type MapBracket = any
 export type MapEntity = any

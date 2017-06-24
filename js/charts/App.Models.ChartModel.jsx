@@ -1,7 +1,6 @@
 import _ from 'lodash'
 import Backbone from 'backbone'
 import owid from '../owid'
-import MapModel from './App.Models.MapModel'
 import ChartType from './ChartType'
 
 export default Backbone.Model.extend( {
@@ -75,11 +74,6 @@ export default Backbone.Model.extend( {
 
 	initialize: function() {
 		this.on("change:chart-type", this.onChangeType, this);
-		App.MapModel = new MapModel();
-	},
-
-	bind: function() {
-		App.MapModel.bind(this);
 	},
 
 	// When the chart type is changed, we update values to the new defaults

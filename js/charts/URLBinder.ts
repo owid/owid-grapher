@@ -1,4 +1,4 @@
-/* App.Views.ChartURL.ts
+/* URLBinder.ts
  * ================
  *
  * This component is responsible for handling data binding between the
@@ -10,19 +10,141 @@
 import * as _ from 'lodash'
 import * as $ from 'jquery'
 import owid from '../owid'
-import {autorun, action} from 'mobx'
+import {observable, autorun, action, reaction} from 'mobx'
 import ChartView from './ChartView'
 import ChartTabOption from './ChartTabOption'
+import ScaleType from './ScaleType'
+import {defaultTo} from './Util'
+import ChartConfig from './ChartConfig'
 
-export default function(chartView: ChartView) {
+interface ChartParams {
+    tab?: string,
+    stackMode?: string,
+    xScale?: string,
+    yScale?: string,
+    time?: string,
+    year?: string,
+    region?: string,
+    country?: string,
+    shown?: string
+}
+
+export default class URLBinder {
+    chart: ChartConfig
+
+    lastTabName: ChartTabOption
+    originalTab: ChartTabOption
+    originalXAxisScale: ScaleType
+    originalYAxisScale: ScaleType
+
+    constructor(chart: ChartConfig) {
+        this.chart = chart
+        this.lastTabName = chart.tab
+        this.originalTab = chart.tab
+        this.originalXAxisScale = chart.xAxis.scaleType
+        this.originalYAxisScale = chart.yAxis.scaleType
+        this.populateFromURL()
+    }
+
+
+    getCurrentLink() {
+        var baseUrl = Global.rootUrl + "/" + this.chart.slug,
+            queryParams = owid.getQueryParams(),
+            queryStr = owid.queryParamsToStr(queryParams),
+            canonicalUrl = baseUrl + queryStr;
+
+        return canonicalUrl
+    }
+
+    /**
+     * Apply any url parameters on chartView startup
+     */    
+    populateFromURL() {
+        var params: ChartParams = owid.getQueryParams();
+        const {chart} = this
+
+        // Set tab if specified
+        const tab = params.tab;
+        if (tab) {
+            if (!_.includes(chart.availableTabs, tab) && tab !== 'download')
+                console.error("Unexpected tab: " + tab);
+            else
+                chart.tab = (tab as ChartTabOption)
+        }
+
+        // Stack mode for bar and stacked area charts
+        //chart.currentStackMode = defaultTo(params.stackMode, chart.currentStackMode)
+
+        // Axis scale mode
+        const xScaleType = params.xScale
+        if (xScaleType) {
+            if (xScaleType == 'linear' || xScaleType == 'log')
+                chart.xAxis.scaleType = xScaleType
+            else
+                console.error("Unexpected xScale: " + xScaleType)
+        }
+
+        const yScaleType = params.yScale
+        if (yScaleType) {
+            if (yScaleType == 'linear' || yScaleType == 'log')
+                chart.yAxis.scaleType = yScaleType
+            else
+                console.error("Unexpected xScale: " + yScaleType)
+        }
+        
+        var time = params.time;
+        if (time !== undefined) {
+            const m = time.match(/^(\d+)\.\.(\d+)$/)
+            if (m) {
+                chart.timeDomain = [parseInt(m[1]), parseInt(m[2])]
+            } else {
+                chart.timeDomain = [parseInt(time), parseInt(time)]
+            }
+        }
+
+        // Map stuff below
+
+        /*var year = params.year;
+        if (year !== undefined) {
+            chartView.map.set("defaultYear", parseInt(year));
+        }
+
+        var region = params.region;
+        if (region !== undefined) {
+            chartView.map.set("defaultProjection", region);
+        }*/
+
+        // Selected countries -- we can't actually look these up until we have the data
+        var country = params.country;
+        autorun(() => {
+            if (!chart.data.availableEntities) return
+
+            if (country) {
+                const entityCodes = _.map(country.split('+'), decodeURIComponent)
+                chart.selectedEntities = _.filter(chart.data.availableEntities, entity => {
+                    const meta = chart.vardata.entityMetaByKey[entity]
+                    return _.includes(entityCodes, meta.code) || _.includes(entityCodes, meta.name)
+                })
+            }
+        })
+
+        // Set shown legend keys for chartViews with toggleable series
+        var shown = params.shown;
+        if (_.isString(shown)) {
+            var keys = _.map(shown.split("+"), function(key) {
+                return decodeURIComponent(key);
+            });
+
+            chart.activeLegendKeys = keys
+        }
+    }
+}
+
+export function foof(chartView: ChartView) {
     const {chart} = chartView
     function urlBinder() { }
 
     // Keep the query params separate between map and the other tabs
-    var lastTabName = null,
-        originalTab = chart.tab,
-        originalXAxisScale = chart.xAxis.scaleType,
-        originalYAxisScale = chart.yAxis.scaleType;
 
     urlBinder.mapQueryStr = '?';
     urlBinder.chartQueryStr = '?';
@@ -34,11 +156,11 @@ export default function(chartView: ChartView) {
 
         chartView.model.on("change:selected-countries", updateCountryParam);
         chartView.model.on("change:activeLegendKeys", updateLegendKeys);
-        chartView.map.on("change:targetYear", updateYearParam);
-        chartView.map.on("change:mode change:projection change:isColorblind", updateMapParams);
+        //chartView.map.on("change:targetYear", updateYearParam);
+        //chartView.map.on("change:mode change:projection change:isColorblind", updateMapParams);
         chartView.model.on("change:currentStackMode", updateStackMode);
         chartView.model.on("change:chart-time", updateTime);
-        action(populateFromURL)();
+        autorun(populateFromURL)
 
         $(window).on('query-change', function() {
             var tabName = chart.tab;
@@ -52,100 +174,6 @@ export default function(chartView: ChartView) {
         })
     };
 
-    /**
-     * Apply any url parameters on chartView startup
-     */    
-    function populateFromURL() {
-        var params: {[key: string]: string} = owid.getQueryParams();
-
-        // Set tab if specified
-        var tab = params.tab;
-        if (tab) {
-            if (!_.includes(chart.availableTabs, tab) && tab !== 'download')
-                console.error("Unexpected tab: " + tab);
-            else {
-                chart.tab = (tab as ChartTabOption)
-            }
-        }
-
-        // Stack mode for bar and stacked area charts
-        var stackMode = params.stackMode;
-        if (stackMode !== undefined)
-            chartView.model.set("currentStackMode", stackMode);
-
-        // Axis scale mode
-        const xScaleType = params.xScale
-        if (xScaleType) {
-            if (xScaleType == 'linear' || xScaleType == 'log')
-                chart.xAxis.props.scaleType = xScaleType
-            else
-                console.error("Unexpected xScale: " + xScaleType)
-        }
-
-        const yScaleType = params.yScale
-        if (yScaleType) {
-            if (yScaleType == 'linear' || yScaleType == 'log')
-                chart.yAxis.props.scaleType = yScaleType
-            else
-                console.error("Unexpected xScale: " + yScaleType)
-        }
-        
-        var time = params.time;
-        if (time !== undefined) {
-            const m = time.match(/^(\d+)\.\.(\d+)$/)
-            if (m) {
-                chartView.model.set('chartView-time', [parseInt(m[1]), parseInt(m[2])])
-            } else {
-                chartView.model.set('chartView-time', [parseInt(time), parseInt(time)])
-            }
-        }
-//          chartView.model.set("timeline", _.extend({}, chartView.model.get('timeline'), { defaultYear: parseFloat(time) }));
-
-        // Map stuff below
-
-        var year = params.year;
-        if (year !== undefined) {
-            chartView.map.set("defaultYear", parseInt(year));
-        }
-
-        var region = params.region;
-        if (region !== undefined) {
-            chartView.map.set("defaultProjection", region);
-        }
-
-        var colorblind = params.colorblind;
-        if (colorblind == 1) {
-            chartView.map.set("isColorblind", true);
-        }
-
-        var interpolate = params.interpolate;
-        if (interpolate == 0) {
-            chartView.map.set("mode", "no-interpolation");
-        }
-
-        // Selected countries -- we can't actually look these up until we have the data
-        chartView.data.ready(action(function() {
-            var country = params.country;
-            if (country) {
-                var codesOrNames = _.map(country.split('+'), function(v) { return decodeURIComponent(v) }),
-                    entities = _.filter(chartView.vardata.get('availableEntities'), function(entity) {
-                    return _.includes(codesOrNames, entity.code) || _.includes(codesOrNames, entity.name);
-                });
-
-                chart.selectedEntities = _.map(entities, 'name')
-            }
-        }));
-
-        // Set shown legend keys for chartViews with toggleable series
-        var shown = params.shown;
-        if (_.isString(shown)) {
-            var keys = _.map(shown.split("+"), function(key) {
-                return decodeURIComponent(key);
-            });
-
-            chartView.model.set("activeLegendKeys", keys);
-        }
-    }
 
     /**
      * Save the current tab the user is on, and keep url params correctly isolated
@@ -234,28 +262,6 @@ export default function(chartView: ChartView) {
     }
 
     /**
-     * Store current projection in URL
-     */
-    function updateMapParams() {
-        var mapConfig = chartView.map.attributes;
-
-        var projection = mapConfig.projection;
-        owid.setQueryVariable("region", projection);
-
-        var colorblind = mapConfig.isColorblind;
-        if (colorblind)
-            owid.setQueryVariable("colorblind", 1);
-        else
-            owid.setQueryVariable("colorblind", null);
-
-        var interpolate = (mapConfig.mode !== "no-interpolation");
-        if (interpolate)
-            owid.setQueryVariable("interpolate", null);
-        else
-            owid.setQueryVariable("interpolate", 0);
-    }
-
-    /**
      * Special config for stacked area chartViews
      */
     function updateStackMode() {
@@ -264,15 +270,6 @@ export default function(chartView: ChartView) {
             owid.setQueryVariable("stackMode", stackMode);
         else
             owid.setQueryVariable("stackMode", null);
-    }
-
-    urlBinder.getCurrentLink = function() {
-        var baseUrl = Global.rootUrl + "/" + chartView.model.get("slug"),
-            queryParams = owid.getQueryParams(),
-            queryStr = owid.queryParamsToStr(queryParams),
-            canonicalUrl = baseUrl + queryStr;
-
-        return canonicalUrl
     }
 
     initialize();

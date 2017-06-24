@@ -1,65 +1,69 @@
-/* App.Models.MapModel.js         
+/* MapConfig.ts       
  * ================                                                             
  *
- * MapModel holds the data and underlying logic needed by MapTab.
- * It wraps the map-config property on ChartModel.
+ * MapConfig holds the data and underlying logic needed by MapTab.
+ * It wraps the map property on ChartConfig.
  *
- * @project Our World In Data
- * @author  Jaiden Mispy                                                     
- * @created 2016-08-08
  */ 
 
-import _ from 'lodash'
-import Backbone from 'backbone'
-import owid from '../owid'
+import * as _ from 'lodash'
 import colorbrewer from './owid.colorbrewer'
+import {observable} from 'mobx'
+import MapProjection from './MapProjection'
+
+// Represents the actual entered configuration state in the editor
+export class MapConfigProps {
+	@observable.ref variableId?: number = undefined
+	@observable.ref targetYear?: number = undefined
+	@observable.ref targetYearMode: 'earliest'|'latest' = 'latest'
+	@observable.ref defaultYear?: number = undefined
+	@observable.ref timeTolerance?: number = 1
+	// timeRanges is a collection of objects specifying year ranges e.g.
+	//
+	// [
+	//   { year: 1980 },
+	//   { startYear: 1990, endYear: 2000, interval: 5 },
+	//   { startYear: 2005, endYear: 2008 }
+	// ]
+	//
+	// Produces the years: 1980, 1990, 1995, 2000, 2005, 2007, 2008	
+	@observable.ref timeRanges: Object[] = []
+	// Name of an owid.colorbrewer scheme, may then be further customized	
+	@observable.ref baseColorScheme: string = "BuGn"
+	// Number of numeric intervals used to color data
+	@observable.ref colorSchemeInterval: number = 10
+	// Minimum value shown on map legend
+	@observable.ref colorSchemeMinValue?: string = undefined
+	@observable.ref colorSchemeValues: any[] = []
+	@observable.ref colorSchemeLabels: string[] = []
+	@observable.ref colorSchemeValuesAutomatic?: true = undefined
+	// Whether to reverse the color scheme on output
+	@observable.ref colorSchemeInvert?: true = undefined
+	@observable.ref customColorsActive?: true = undefined
+	// e.g. ["#000", "#c00", "#0c0", "#00c", "#c0c"]
+	@observable.ref customNumericColors: string[] = []
+	// e.g. { 'foo' => '#c00' }
+	@observable.ref customCategoryColors: {[key: string]: string} = {}
+	@observable.ref customCategoryLabels: {[key: string]: string} = {}
+
+	// Allow hiding categories from the legend
+	@observable.ref customHiddenCategories: {[key: string]: true} = {}
+	@observable.ref projection: MapProjection = 'World'
+	@observable.ref defaultProjection: MapProjection = 'World'
+
+	@observable.ref legendDescription?: string = undefined
+	@observable.ref legendStepSize: number = 20
+}
+
+export default class MapConfig {
+    @observable props: MapConfigProps = new MapConfigProps()
+
+    update(props: Partial<MapConfigProps>) {
+        _.extend(this.props, props)
+    }
+}
 
 export default Backbone.Model.extend({
-	defaults: {
-		"variableId": -1,
-		"targetYear": 1980,
-		"targetYearMode": "latest",
-		"defaultYear": 1980,
-		"mode": "specific",
-		"timeTolerance": 1,
-		// timeRanges is a collection of objects specifying year ranges e.g.
-		//
-		// [
-		//   { year: 1980 },
-		//   { startYear: 1990, endYear: 2000, interval: 5 },
-		//   { startYear: 2005, endYear: 2008 }
-		// ]
-		//
-		// Produces the years: 1980, 1990, 1995, 2000, 2005, 2007, 2008
-		"timeRanges": [],
-		"timelineMode": "slider",
-		// Name of an owid.colorbrewer scheme, may then be further customized
-		"baseColorScheme": "BuGn",
-		// Number of numeric intervals used to color data
-		"colorSchemeInterval": 10,
-		// Minimum value shown on map legend
-		"colorSchemeMinValue": "",
-		"colorSchemeValues": [],
-		"colorSchemeLabels": [],
-		"colorSchemeValuesAutomatic": true,
-		// Whether to reverse the color scheme on output
-		"colorSchemeInvert": false,
-		"customColorsActive": false,
-		// e.g. ["#000", "#c00", "#0c0", "#00c", "#c0c"]
-		"customNumericColors": [],			
-		// e.g. { 'foo' => '#c00' }
-		"customCategoryColors": {},
-		"customCategoryLabels": {},
-		// Allow hiding categories from the legend
-		"customHiddenCategories": {},
-		"isColorblind": false,
-		"projection": "World",
-		"defaultProjection": "World",
-		"legendDescription": "",
-		"legendStepSize": 20,
-		"legendOrientation": "portrait",
-	},
-
 	bind: function(chartModel) {
 		this.chartModel = chartModel;
 

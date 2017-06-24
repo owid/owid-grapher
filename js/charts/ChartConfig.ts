@@ -6,14 +6,29 @@ import {ScaleType} from './AxisScale'
 import {ComparisonLineConfig} from './ComparisonLine'
 import {component} from './Util'
 import AxisConfig, {AxisConfigProps} from './AxisConfig'
-import {ChartTypeType} from './ChartType'
+import ChartType, {ChartTypeType} from './ChartType'
 import EntityKey from './EntityKey'
 import ChartTabOption from './ChartTabOption'
 import LineType from './LineType'
 import {defaultTo} from './Util'
+import VariableData from './VariableData'
+import ChartData from './ChartData'
 
 export interface TimelineConfig {
     compareEndPointsOnly?: boolean
+}
+
+export interface ChartDimension {
+    id: number,
+    variableId: number,
+    color: string,
+    displayName: string,    
+    isProjection: boolean,
+    order: number,
+    property: string,
+    targetYear: number|null,
+    tolerance: number,
+    unit: string    
 }
 
 // WIP
@@ -32,7 +47,7 @@ export class ChartConfigProps {
     @observable.struct timeDomain: [number|null, number|null]
     @observable.struct entityColors: {[key: string]: string} = {}
 
-    @observable.struct dimensions: Object[] = []
+    @observable.struct dimensions: ChartDimension[] = []
     @observable.ref addCountryMode: 'add-country'|'change-country'|'disabled' = 'add-country'
 
     // XXX special line chart stuff that should maybe go elsewhere
@@ -40,6 +55,7 @@ export class ChartConfigProps {
     @observable.ref comparisonLine?: ComparisonLineConfig = undefined
     @observable.ref lineType: LineType = LineType.WithDots
     @observable.ref lineTolerance?: number = undefined
+    @observable.ref stackMode: string = 'expanded'
 
     @observable.ref hasChartTab: boolean = true
     @observable.ref hasMapTab: boolean = false
@@ -71,7 +87,6 @@ export default class ChartConfig {
     @computed get tab() { return this.props.tab }
     @computed get lineType() { return defaultTo(this.props.lineType, LineType.WithDots) }
     @computed get lineTolerance() { return defaultTo(this.props.lineTolerance, 1) }
-    @computed get dimensions() { return this.props.dimensions }
     @computed get addCountryMode() { return this.props.addCountryMode }
     @computed get comparisonLine() { return this.props.comparisonLine }
     @computed get timeline() { return this.props.timeline }
@@ -83,11 +98,59 @@ export default class ChartConfig {
     xAxis: AxisConfig
     yAxis: AxisConfig
 
-    @observable.ref dimensionsWithData: Object[]
+    @observable.ref variableCacheTag: string
+
+    vardata: VariableData
+    data: ChartData
+
+	// Get the empty dimension slots appropriate for this type of chart
+	@computed get emptyDimensions() {
+		let xAxis = { property: 'x', name: 'X axis' },
+			yAxis = { property: 'y', name: 'Y axis' },
+			color = { property: 'color', name: 'Color' },
+			size = { property: 'size', name: 'Size' };
+
+		if (this.type == ChartType.ScatterPlot)
+			return [xAxis, yAxis, size, color];
+		else if (this.type == ChartType.SlopeChart)
+			return [yAxis, size, color]
+		else
+			return [yAxis];
+	}
+
+
+    @computed get dimensions() {
+        const dimensions = _.map(this.props.dimensions, _.clone)
+        const validProperties = _.map(this.emptyDimensions, 'property')
+        let validDimensions = _.filter(dimensions, dim => _.includes(validProperties, dim.property))
+
+		// Give scatterplots a default color and size dimension if they don't have one
+		if ((this.type == ChartType.ScatterPlot || this.type == ChartType.SlopeChart) && !_.find(dimensions, { property: 'color' })) {
+			validDimensions = validDimensions.concat([{"variableId":"123","property":"color","unit":"","name":"Color","tolerance":"5"}]);
+		}
+
+		if ((this.type == ChartType.ScatterPlot || this.type == ChartType.SlopeChart) && !_.find(dimensions, { property: 'size' })) {
+			validDimensions = validDimensions.concat([{"variableId":"72","property":"size","unit":"","name":"Size","tolerance":"5"}]);
+		}
+
+        return validDimensions
+    }
+
+    @computed get dimensionsWithData() {
+        if (!this.vardata.isReady) return null
+
+        return _.map(this.dimensions, dim => {
+            const variable = this.vardata.variablesById[dim.variableId]
+            return _.extend({}, dim, {
+                displayName: dim.displayName || variable.name,
+                variable: variable
+            })
+        })
+    }
 
 	model: any
 
-    @computed get selectedEntitiesByName() {
+    @computed get selectedEntitiesByKey() {
         return _.keyBy(this.selectedEntities)
     }
 
@@ -134,28 +197,19 @@ export default class ChartConfig {
 
         this.props.lineType = props["line-type"]
         this.props.lineTolerance = parseInt(props["line-tolerance"]) || 1
+        
+        this.variableCacheTag = props["variableCacheTag"]
     }
 
-	constructor(model : any, data: any) {
+	constructor(props: ChartConfigProps) {        
         this.xAxis = new AxisConfig()
         this.yAxis = new AxisConfig()
-
-		this.model = model
-
-        this.update(this.model.toJSON())
-        this.model.on('change', () => this.update(this.model.toJSON()))
-
-        data.ready(action(() => {
-            this.dimensionsWithData = this.model.getDimensions()
-        }))
-        this.model.on('change:chart-dimensions change:chart-type', () => {
-            data.ready(action(() => {
-                this.dimensionsWithData = this.model.getDimensions()
-            }))
-        })
+        this.update(props)
+        this.vardata = new VariableData(this)
+        this.data = new ChartData(this, this.vardata)
 
         // TODO fix this. Colors shouldn't be part of selectedEntities
-		autorun(() => {
+		/*autorun(() => {
 			const entities = this.selectedEntities
             const byName = _.keyBy(this.model.get('selected-countries'), 'name')
 
@@ -170,44 +224,6 @@ export default class ChartConfig {
                     this.model.set('selected-countries', selectedEntities)
                 }
 			}
-		})
-
-        autorun(() => {
-            this.model.set({
-                'chart-type': this.type,
-                'slug': this.slug,
-                'title': this.title,
-                'subtitle': this.subtitle,
-                'sourceDesc': this.sourceDesc,
-                'chart-description': this.note,
-                'internalNotes': this.internalNotes
-            })
-        })
-
-		autorun(() => {
-			this.model.set('timeline', toJS(this.timeline))
-		})
-
-        autorun(() => {
-            this.model.set('chart-time', toJS(this.timeDomain))
-        })
-
-        autorun(() => {
-            this.model.set('comparisonLine', toJS(this.comparisonLine))
-        })
-
-        autorun(() => {
-            this.model.set('tabs', this.availableTabs)
-        })
-
-        autorun(() => {            
-            this.model.set('xAxis', toJS(this.xAxis.props))
-        })
-
-        autorun(() => {
-            this.model.set('yAxis', toJS(this.yAxis.props))
-        })
-
-        autorun(() => { this.model.set('default-tab', this.tab) })
+		})*/
 	}
 }

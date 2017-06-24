@@ -7,6 +7,7 @@ import Bounds from './Bounds'
 import {preInstantiate} from './Util'
 import Paragraph from './Paragraph'
 import Text from './Text'
+import ChartConfig from './ChartConfig'
 
 interface SourcesFooterMainProps {
     x?: number,
@@ -70,14 +71,14 @@ interface SourcesFooterProps {
     bounds: Bounds,
     note: string,
     originUrl: string,
-    chartView: any
+    chart: ChartConfig
 }
 
 export default class SourcesFooter extends React.Component<SourcesFooterProps, undefined> {
     @computed get sourcesText(): string {
-        let sourcesStr: string = this.props.chartView.model.get('sourceDesc')
+        let sourcesStr: string = this.props.chart.sourceDesc
         if (!sourcesStr) {
-            const sources = this.props.chartView.data.transformDataForSources()
+            const sources = this.props.chart.data.transformDataForSources()
             const sourceNames = _.uniq(_.map(sources, 'name'))
             sourceNames.forEach((sourceName, i) => {
                  if (i > 0) sourcesStr += ", "
@@ -120,7 +121,7 @@ export default class SourcesFooter extends React.Component<SourcesFooterProps, u
     }
 
     @action.bound onSourcesClick() {
-        this.props.chartView.activeTabName = 'sources'
+        this.props.chart.tab = 'sources'
     }
 
     render() {

@@ -66,7 +66,7 @@ export default class ChartTab extends React.Component<{ chartView: ChartView, ch
 
         return preInstantiate(<SourcesFooter
             bounds={props.bounds}
-            chartView={props.chartView}
+			chart={chart}
             note={chart.note}
             originUrl={chart.originUrl}
          />)

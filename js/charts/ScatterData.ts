@@ -33,8 +33,8 @@ export default class ScatterData {
             return this.chart.selectedEntities
         else
             return _.intersection(
-                _.map(_.uniq(this.axisDimensions[0].variable.entities), e => this.axisDimensions[0].variable.entityKey[e].name)
-                _.map(_.uniq(this.axisDimensions[1].variable.entities), e => this.axisDimensions[1].variable.entityKey[e].name)
+                this.axisDimensions[0].variable.entitiesUniq,
+                this.axisDimensions[1].variable.entitiesUniq
             )
     }
 
@@ -47,10 +47,10 @@ export default class ScatterData {
         }
 
         // Show years with at least some data for both variables
-        return _.intersection(
-            _.uniq(this.axisDimensions[0].variable.years), 
-            _.uniq(this.axisDimensions[1].variable.years)
-        )
+        return (_.intersection(
+            this.axisDimensions[0].variable.yearsUniq, 
+            this.axisDimensions[1].variable.yearsUniq
+        ) as number[])
     }
 
     @computed get colorScheme() : string[] {
@@ -96,7 +96,7 @@ export default class ScatterData {
                 for (var i = 0; i < variable.years.length; i++) {
                     var year = variable.years[i],
                         value = variable.values[i],
-                        entity = variable.entityKey[variable.entities[i]].name;
+                        entity = variable.entities[i];
                     
                     if (!validEntityByName[entity])
                         continue

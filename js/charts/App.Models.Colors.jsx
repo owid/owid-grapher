@@ -27,13 +27,13 @@ export default Backbone.Model.extend({
 
 		// Make sure colors stay consistent on multi-variable "change country" charts
 		// e.g. https://ourworldindata.org/grapher/composition-of-tax-revenues-regional
-		App.ChartModel.on("change:selected-countries", function() {
+		/*App.ChartModel.on("change:selected-countries", function() {
 			var addCountryMode = chart.addCountryMode;
 			if (addCountryMode != "add-country") {
 				this.colorCache = {};
 				this.colorIndex = 0;
 			}
-		}.bind(this));
+		}.bind(this));*/
 	},
 
 	assignColorForKey: function(key, color, options) {
