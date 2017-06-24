@@ -3,23 +3,28 @@ import {unitFormat} from './Util'
 import AxisSpec from './AxisSpec'
 import ScaleType from './ScaleType'
 import {defaultTo} from './Util'
+import {extend} from 'lodash'
 
 // Represents the actual entered configuration state in the editor
 export class AxisConfigProps {
-    label?: string
-    prefix?: string
-    suffix?: string
-    min?: number
-    max?: number
-    numDecimalPlaces?: number
-    scaleType: ScaleType = "linear"
-    canChangeScaleType?: true
-    labelDistance?: number // DEPRECATED - remove when nvd3 is gone
+    @observable.ref label?: string = undefined
+    @observable.ref prefix?: string = undefined
+    @observable.ref suffix?: string = undefined
+    @observable.ref min?: number = undefined
+    @observable.ref max?: number = undefined
+    @observable.ref numDecimalPlaces?: number = undefined
+    @observable.ref scaleType: ScaleType = 'linear'
+    @observable.ref canChangeScaleType?: true = undefined
+    @observable.ref labelDistance?: number // DEPRECATED - remove when nvd3 is gone
 }
 
 // Interface used to access configuration by charts
 export default class AxisConfig {
-    @observable props: AxisConfigProps
+    @observable props: AxisConfigProps = new AxisConfigProps()
+
+    update(props: Partial<AxisConfigProps>) {
+        extend(this.props, props)
+    }
 
     @computed get label(): string { return defaultTo(this.props.label, "") }
     @computed get prefix(): string { return defaultTo(this.props.prefix, "") }

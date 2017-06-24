@@ -46,8 +46,6 @@ export default class Lines extends React.Component<LinesProps, undefined> {
     render() {
         const {renderData} = this
 
-        console.log("render")
-
         return <g className="Lines">
             {_.map(renderData, series =>
                 <polyline

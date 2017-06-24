@@ -25,7 +25,7 @@ interface LabelMark {
 }
 
 @observer
-export default class ColorLegend extends React.Component<ColorLegendProps, null> {
+export default class ScatterColorLegend extends React.Component<ColorLegendProps, undefined> {
     @computed get fontSize(): number { return 0.5 }
     @computed get rectSize(): number { return 5 }
     @computed get rectPadding(): number { return 5 }

@@ -18,7 +18,7 @@ var Mobx = require('mobx')
 var mobxFormatters = require('mobx-formatters').default
 
 mobxFormatters(Mobx)
-Mobx.useStrict(true)
+//Mobx.useStrict(true)
 
 //import 'preact/devtools'
 

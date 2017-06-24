@@ -83,7 +83,7 @@ export default class ScatterData {
     // If there's no timeline, this uses the same structure but only computes for a single year
     @computed get dataByEntityAndYear() {
         const {years, colorScale, hideBackgroundEntities, validEntities} = this
-        const {dimensionsWithData, xScaleType, yScaleType, entityColors} = this.chart
+        const {dimensionsWithData, entityColors} = this.chart
         const dataByEntityAndYear = {};
         const validEntityByName = _.keyBy(validEntities)
     

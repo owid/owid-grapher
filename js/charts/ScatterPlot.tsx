@@ -28,7 +28,7 @@ import ConnectedScatterLegend from './ConnectedScatterLegend'
 import {Triangle} from './Marks'
 import ScatterData from './ScatterData'
 import AxisGrid from './AxisGrid'
-import ColorLegend from './ScatterColorLegend'
+import ScatterColorLegend from './ScatterColorLegend'
 import AxisBox, {AxisBoxView} from './AxisBox'
 import ComparisonLine from './ComparisonLine'
 import {ScaleType} from './AxisScale'
@@ -55,7 +55,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         return new ScatterData(this.chart)
     }
 
-    @computed get bounds() : Bounds {
+    @computed.struct get bounds() : Bounds {
         return this.props.bounds
     }
     @computed get dimensions() : Object[] {
@@ -236,12 +236,12 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         )
     }
 
-    @computed get timelineHeight(): number {
+    @computed.struct get timelineHeight(): number {
         return this.timeline ? this.timeline.height : 0
     }
 
-    @computed get legend(): ColorLegend {
-        return preInstantiate(<ColorLegend maxWidth={this.sidebarMaxWidth} colors={this.colorsInUse} scale={this.data.colorScale} focusColor={null}/>)
+    @computed get legend(): ScatterColorLegend {
+        return preInstantiate(<ScatterColorLegend maxWidth={this.sidebarMaxWidth} colors={this.colorsInUse} scale={this.data.colorScale} focusColor={null}/>)
     }
 
     @observable focusColor: string|null = null
@@ -300,7 +300,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
 
     @computed get sidebarMaxWidth() { return this.bounds.width*0.5 }
     @computed get sidebarMinWidth() { return 100 }
-    @computed get sidebarWidth() {
+    @computed.struct get sidebarWidth() {
         const {sidebarMinWidth, sidebarMaxWidth, legend} = this
         return Math.max(Math.min(legend.width, sidebarMaxWidth), sidebarMinWidth)
     }
@@ -328,7 +328,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
             <AxisBoxView axisBox={axisBox} onXScaleChange={this.onXScaleChange} onYScaleChange={this.onYScaleChange}/>
             {comparisonLine && <ComparisonLine axisBox={axisBox} comparisonLine={comparisonLine}/>}
             <PointsWithLabels data={currentData} bounds={axisBox.innerBounds} xScale={axisBox.xScale} yScale={axisBox.yScale} sizeDomain={sizeDomain} onSelectEntity={this.onSelectEntity} focusKeys={focusKeys} onMouseOver={this.onScatterMouseOver} onMouseLeave={this.onScatterMouseLeave}/>
-            <ColorLegend {...legend.props} x={bounds.right-sidebarWidth} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} onClick={this.onLegendClick} focusColor={focusColor}/>
+            <ScatterColorLegend {...legend.props} x={bounds.right-sidebarWidth} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} onClick={this.onLegendClick} focusColor={focusColor}/>
             {(shapeLegend || tooltipSeries) && <line x1={bounds.right-sidebarWidth} y1={bounds.top+legend.height+2} x2={bounds.right-5} y2={bounds.top+legend.height+2} stroke="#ccc"/>}
             {shapeLegend && <ConnectedScatterLegend {...shapeLegend.props} x={bounds.right-sidebarWidth} y={bounds.top+legend.height+11}/>}            
             {timeline && <Timeline {...timeline.props}/>}

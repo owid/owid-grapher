@@ -10,7 +10,7 @@ import * as _ from 'lodash'
 import * as nv from '../libs/nvd3'
 import * as d3 from '../libs/d3old'
 import * as $ from 'jquery'
-import {computed, action} from 'mobx'
+import {computed, action, observable} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartConfig from './ChartConfig'
 import Bounds from './Bounds'
@@ -23,6 +23,7 @@ import Lines from './Lines'
 import {preInstantiate} from "./Util"
 import Paragraph from './Paragraph'
 import Text from './Text'
+import ColorLegend, {ColorLegendView} from './ColorLegend'
 
 export interface LineChartValue {
     x: number,
@@ -38,7 +39,6 @@ export interface LineChartSeries {
     values: LineChartValue[],
     classed?: string 
 }
-
 
 @observer
 export default class LineChart extends React.Component<{ bounds: Bounds, chart: ChartConfig, localData: LineChartSeries[] }, undefined> {
@@ -59,25 +59,28 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
 
     @computed get yDomainDefault(): [number, number] {
         return (d3.extent(this.allValues.map(function(d) { return d.y; })) as [number, number])
-    }   
+    }
+
+    @computed get legend() {
+        const _this = this
+        return new ColorLegend({
+            maxWidth: 300,
+            get items() { return _this.localData }
+        })
+    }
 
     render() {
-        const {chart, bounds, localData, xDomainDefault, yDomainDefault} = this
+        const {chart, bounds, localData, xDomainDefault, yDomainDefault, legend} = this
 
         const xAxis = chart.xAxis.toSpec({ defaultDomain: xDomainDefault })
         const yAxis = chart.yAxis.toSpec({ defaultDomain: yDomainDefault })
+        const axisBox = new AxisBox({bounds: bounds.padRight(legend.width), xAxis, yAxis})
 
+        console.log(bounds.right-legend.width, bounds.top)
         return <g className="LineChart">
-            <Legend x={legend => bounds.right-legend.width} y={bounds.top} maxHeight={bounds.height} data={localData}>
-                {legend => {
-                    const axisBox = new AxisBox({bounds: bounds.padRight(legend.width), xAxis, yAxis})
-
-                    return [
-                        <StandardAxisBoxView axisBox={axisBox} chart={chart}/>,
-                        <Lines xScale={axisBox.xScale} yScale={axisBox.yScale} data={localData}/>
-                    ]
-                }}
-            </Legend>
+            <ColorLegendView x={bounds.right-legend.width} y={bounds.top} legend={legend}/>
+            <StandardAxisBoxView axisBox={axisBox} chart={chart}/>
+            <Lines xScale={axisBox.xScale} yScale={axisBox.yScale} data={localData}/>
         </g>
     }
 }

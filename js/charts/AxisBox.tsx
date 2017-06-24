@@ -12,6 +12,7 @@ import * as d3 from 'd3'
 import * as _ from 'lodash'
 import * as React from 'react'
 import {observable, computed, action, toJS} from 'mobx'
+import {observer} from 'mobx-react'
 import Bounds from './Bounds'
 import AxisScale, {AxisConfig} from './AxisScale'
 import Axis from './Axis'
@@ -69,6 +70,7 @@ interface AxisGridLinesProps {
     bounds: Bounds
 }
 
+@observer
 class AxisGridLines extends React.Component<AxisGridLinesProps, null> {
     render() {
         const {orient, bounds} = this.props
@@ -86,6 +88,7 @@ class AxisGridLines extends React.Component<AxisGridLinesProps, null> {
     }
 }
 
+@observer
 export class AxisBoxView extends React.Component<any, undefined> {
     render() {
         const {axisBox, onYScaleChange, onXScaleChange} = this.props

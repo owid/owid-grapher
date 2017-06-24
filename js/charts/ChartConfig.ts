@@ -5,11 +5,12 @@ import {observable, computed, action, autorun, toJS} from 'mobx'
 import {ScaleType} from './AxisScale'
 import {ComparisonLineConfig} from './ComparisonLine'
 import {component} from './Util'
-import AxisConfig from './AxisConfig'
+import AxisConfig, {AxisConfigProps} from './AxisConfig'
 import {ChartTypeType} from './ChartType'
 import EntityKey from './EntityKey'
 import ChartTabOption from './ChartTabOption'
 import LineType from './LineType'
+import {defaultTo} from './Util'
 
 export interface TimelineConfig {
     compareEndPointsOnly?: boolean
@@ -17,62 +18,70 @@ export interface TimelineConfig {
 
 // WIP
 export class ChartConfigProps {
-    type: ChartTypeType = "LineChart"
-    // Slug at which base chart can be found
-    slug?: string
-    // Chart title
-    title?: string
-    // Chart subtitle
-    subtitle?: string
-    // Override for source description text in footer
-    sourceDesc?: string
-    // Additional note text for footer
-    note?: string
-    // Internal notes for admin use
-    internalNotes?: string
-    // svg for logos in header
-    logosSVG: string[]
-    // OWID-specific: entry url where this chart is embedded
-    originUrl: string
-    // Whether the chart is publicly accessible
-    isPublished?: true
-    // List of active/selected entities to show
-    selectedEntities: EntityKey[]    
+    @observable.ref type: ChartTypeType = "LineChart"
+    @observable.ref slug?: string = undefined
+    @observable.ref title?: string = undefined
+    @observable.ref subtitle?: string = undefined
+    @observable.ref sourceDesc?: string = undefined
+    @observable.ref note?: string = undefined
+
+    @observable.ref xAxis: AxisConfigProps = new AxisConfigProps()
+    @observable.ref yAxis: AxisConfigProps = new AxisConfigProps()
+
+    @observable.struct selectedEntities: EntityKey[] = []
+    @observable.struct timeDomain: [number|null, number|null]
+    @observable.struct entityColors: {[key: string]: string} = {}
+
+    @observable.struct dimensions: Object[] = []
+    @observable.ref addCountryMode: 'add-country'|'change-country'|'disabled' = 'add-country'
+
+    // XXX special line chart stuff that should maybe go elsewhere
+    @observable.ref timeline?: TimelineConfig = undefined
+    @observable.ref comparisonLine?: ComparisonLineConfig = undefined
+    @observable.ref lineType: LineType = LineType.WithDots
+    @observable.ref lineTolerance?: number = undefined
+
+    @observable.ref hasChartTab: boolean = true
+    @observable.ref hasMapTab: boolean = false
+    @observable.ref tab: ChartTabOption = 'chart'
+
+    @observable.ref internalNotes?: string = undefined
+    @observable.ref logosSVG: string[] = []
+    @observable.ref originUrl?: string = undefined
+    @observable.ref isPublished?: true = undefined
 }
 
 // In-progress mobx model layer that will eventually replace ChartModel
 export default class ChartConfig {
-    @observable.ref type: ChartTypeType
-    @observable.ref slug: string
-    @observable.ref title: string
-    @observable.ref subtitle: string
-    @observable.ref sourceDesc: string
-    @observable.ref note: string
-    @observable.ref internalNotes: string
-    @observable.ref logosSVG: string[]
-    @observable.ref originUrl: string
-    @observable.ref isPublished: boolean
+    props: ChartConfigProps = new ChartConfigProps()
 
-	@observable.ref selectedEntities: EntityKey[] = []
-    @observable.ref timeDomain: [number|null, number|null]
-    @observable.ref timeline: TimelineConfig|null = null
-    @observable.ref entityColors: {[key: string]: string} = {}
-    @observable.ref tab: ChartTabOption
+    @computed get type() { return this.props.type }
+    @computed get slug() { return defaultTo(this.props.slug, "") }
+    @computed get title() { return defaultTo(this.props.title, "") }
+    @computed get subtitle() { return defaultTo(this.props.subtitle, "") }
+    @computed get sourceDesc() { return defaultTo(this.props.sourceDesc, "") }
+    @computed get note() { return defaultTo(this.props.note, "") }
+    @computed get internalNotes() { return defaultTo(this.props.internalNotes, "") }
+    @computed get logosSVG() { return this.props.logosSVG }
+    @computed get originUrl() { return defaultTo(this.props.originUrl, "") }
+    @computed get isPublished() { return defaultTo(this.props.isPublished, false) }
+    @computed get selectedEntities() { return this.props.selectedEntities }
+    @computed get timeDomain() { return this.props.timeDomain }
+    @computed get entityColors() { return this.props.entityColors }
+    @computed get tab() { return this.props.tab }
+    @computed get lineType() { return defaultTo(this.props.lineType, LineType.WithDots) }
+    @computed get lineTolerance() { return defaultTo(this.props.lineTolerance, 1) }
+    @computed get dimensions() { return this.props.dimensions }
+    @computed get addCountryMode() { return this.props.addCountryMode }
+    @computed get comparisonLine() { return this.props.comparisonLine }
+    @computed get timeline() { return this.props.timeline }
 
-    // XXX special line chart stuff that should maybe go elsewhere
-    @observable.ref lineType: LineType = LineType.WithDots
-    @observable.ref lineTolerance: number = 1
-
-    @observable.ref hasChartTab: boolean = true
-    @observable.ref hasMapTab: boolean = false
+    set timeDomain(value) { this.props.timeDomain = value }
 
     xAxis: AxisConfig
     yAxis: AxisConfig
 
-    @observable.struct dimensions: Object[]
     @observable.ref dimensionsWithData: Object[]
-    @observable.ref addCountryMode: 'add-country'|'change-country'|'disabled' = 'add-country'
-    @observable.ref comparisonLine: ComparisonLineConfig|null
 
 	model: any
 
@@ -81,55 +90,58 @@ export default class ChartConfig {
     }
 
     @computed get availableTabs(): ChartTabOption[] {
-        return _.filter([this.hasChartTab && 'chart', this.hasMapTab && 'map', 'data', 'sources']) as ChartTabOption[]
+        return _.filter([this.props.hasChartTab && 'chart', this.props.hasMapTab && 'map', 'data', 'sources']) as ChartTabOption[]
     }
 
-    @action.bound syncFromModel() {
-        this.type = this.model.get('chart-type')
-        this.slug = this.model.get('slug')
-        this.title = this.model.get('title')
-        this.subtitle = this.model.get('subtitle')
-        this.sourceDesc = this.model.get('sourceDesc')
-        this.note = this.model.get('chart-description')
-        this.internalNotes = this.model.get('internalNotes')
-        this.logosSVG = this.model.get('logosSVG')
-        this.originUrl = this.model.get('data-entry-url')
-        this.isPublished = this.model.get('published')
+    @action.bound update(props: any) {
+        this.props.type = props['chart-type']
+        this.props.slug = props['slug']
+        this.props.title = props['title']
+        this.props.subtitle = props['subtitle']
+        this.props.sourceDesc = props['sourceDesc']
+        this.props.note = props['chart-description']
+        this.props.internalNotes = props['internalNotes']
+        this.props.logosSVG = props['logosSVG']
+        this.props.originUrl = props['data-entry-url']
+        this.props.isPublished = props['published']
 
-        this.selectedEntities = this.model.getSelectedEntities().map((e: any) => e.name)
-        this.entityColors = {}
-        _.each(this.model.getSelectedEntities(), e => {
+        this.props.selectedEntities = props['selected-countries'].map((e: any) => e.name)
+        this.props.entityColors = {}
+        props['selected-countries'].forEach((e: any) => {
             if (e.color)
-                this.entityColors[e.name] = e.color
+                this.props.entityColors[e.name] = e.color
         })
-        this.timeline = this.model.get('timeline')
+        this.props.timeline = props['timeline']
 
-        const timeDomain = this.model.get('chart-time')
+        const timeDomain = props['chart-time']
         if (!timeDomain)
-            this.timeDomain = [null, null]
+            this.props.timeDomain = [null, null]
         else
-            this.timeDomain = (_.map(timeDomain, v => _.isString(v) ? parseInt(v) : v) as [number|null, number|null])
+            this.props.timeDomain = (_.map(timeDomain, v => _.isString(v) ? parseInt(v) : v) as [number|null, number|null])
 
-        this.yAxis = component(this.yAxis, AxisConfig, { props: this.model.get("yAxis") })
-        this.xAxis = component(this.xAxis, AxisConfig, { props: this.model.get("xAxis") })
+        this.props.hasChartTab = props['tabs'].includes("chart")
+        this.props.hasMapTab = props['tabs'].includes("map")
 
-        this.hasChartTab = this.model.get('tabs').includes("chart")
-        this.hasMapTab = this.model.get('tabs').includes("map")
+        this.props.xAxis = props['xAxis']
+        this.props.yAxis = props['yAxis']
 
-        this.dimensions = this.model.get('chart-dimensions')        
-        this.addCountryMode = this.model.get('add-country-mode')
-        this.comparisonLine = this.model.get("comparisonLine")
-        this.tab = this.model.get("default-tab")
+        this.props.dimensions = props['chart-dimensions'] 
+        this.props.addCountryMode = props['add-country-mode']
+        this.props.comparisonLine = props["comparisonLine"]
+        this.props.tab = props["default-tab"]
 
-        this.lineType = this.model.get("line-type")
-        this.lineTolerance = parseInt(this.model.get("line-tolerance")) || 1
+        this.props.lineType = props["line-type"]
+        this.props.lineTolerance = parseInt(props["line-tolerance"]) || 1
     }
 
 	constructor(model : any, data: any) {
+        this.xAxis = new AxisConfig()
+        this.yAxis = new AxisConfig()
+
 		this.model = model
 
-        this.syncFromModel()
-        this.model.on('change', this.syncFromModel)
+        this.update(this.model.toJSON())
+        this.model.on('change', () => this.update(this.model.toJSON()))
 
         data.ready(action(() => {
             this.dimensionsWithData = this.model.getDimensions()

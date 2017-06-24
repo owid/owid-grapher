@@ -14,13 +14,7 @@ import TextWrap from './TextWrap'
 
 export interface ColorLegendProps {
     items: ColorLegendItem[],
-    x: (legend: ColorLegend) => number
-    y: (legend: ColorLegend) => number,
-    bounding?: (legend: ColorLegend) => React.ReactNode
     maxWidth?: number,
-    onMouseOver?: (color: string) => void,
-    onClick?: (color: string) => void,
-    onMouseLeave?: () => void
 }
 
 export interface ColorLegendItem {
@@ -42,13 +36,9 @@ export default class ColorLegend {
     @computed get rectSize(): number { return 10 }
     @computed get rectPadding(): number { return 5 }
     @computed get lineHeight(): number { return 5 }
-    @computed get bounding() { return defaultTo(this.props.bounding, _.noop) }
     @computed get maxWidth() { return defaultTo(this.props.maxWidth, Infinity) }
-    @computed get onMouseOver(): Function { return defaultTo(this.props.onMouseOver, _.noop) }
-    @computed get onMouseLeave(): Function { return defaultTo(this.props.onMouseLeave, _.noop) }
-    @computed get onClick(): Function { return defaultTo(this.props.onClick, _.noop) }
 
-    @computed get marks(): ColorLegendMark[] {
+    @computed.struct get marks(): ColorLegendMark[] {
         const {fontSize, rectSize, rectPadding, maxWidth} = this
         const maxTextWidth = maxWidth-rectSize-rectPadding
 
@@ -73,22 +63,39 @@ export default class ColorLegend {
     @computed get height() {
         return _(this.marks).map('height').sum() + this.lineHeight*this.marks.length
     }
+
+    constructor(props: ColorLegendProps) {
+        this.props = props
+    }
+}
+
+export interface ColorLegendViewProps {
+    x: number,
+    y: number,
+    legend: ColorLegend,
+    onMouseOver?: (color: string) => void,
+    onClick?: (color: string) => void,
+    onMouseLeave?: () => void
 }
 
 @observer
-export class ColorLegendView extends React.Component<{ x: number, y: number, legend: ColorLegend }, undefined> {
+export class ColorLegendView extends React.Component<ColorLegendViewProps, undefined> {
+    @computed get onMouseOver(): Function { return defaultTo(this.props.onMouseOver, _.noop) }
+    @computed get onMouseLeave(): Function { return defaultTo(this.props.onMouseLeave, _.noop) }
+    @computed get onClick(): Function { return defaultTo(this.props.onClick, _.noop) }
+
     render() {
         const {x, y, legend} = this.props
         const {rectSize, rectPadding, lineHeight} = legend
-
+        
         let offset = 0
         return <g className="ColorLegend">
             <g className="clickable" style={{cursor: 'pointer'}}>
                 {legend.marks.map(mark => {
                     const result = <g className="legendMark" onMouseOver={e => this.onMouseOver(mark.color)} onMouseLeave={e => this.onMouseLeave()} onClick={e => this.onClick(mark.color)}>
-                        <rect x={x} y={y+offset-lineHeight/2} width={mark.width} height={mark.height+lineHeight} fill="#fff" opacity={0}/>,
-                        <rect x={x} y={y+offset+rectSize/2} width={rectSize} height={rectSize} fill={mark.color}/>,
-                        <Paragraph {...mark.label.props} x={x+rectSize+rectPadding} y={y+offset}/>
+                        <rect x={x} y={y+offset-lineHeight/2} width={mark.width} height={mark.height+lineHeight} fill="#fff" opacity={0}/>
+                        <rect x={x} y={y+offset+rectSize/2} width={rectSize} height={rectSize} fill={mark.color}/>
+                        {mark.textWrap.render(x+rectSize+rectPadding, y+offset)}
                     </g>
 
                     offset += mark.height+lineHeight

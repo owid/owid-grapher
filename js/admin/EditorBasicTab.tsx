@@ -20,27 +20,27 @@ export default class EditorBasicTab extends React.Component<{ chart: ChartConfig
 	lastTitle: string
 
 	@action.bound onTitle(evt: React.FormEvent<HTMLInputElement>) { 
-		var currentTitle = this.lastTitle || this.chart.title || "";
+		var currentTitle = this.lastTitle || this.chart.props.title || "";
 		var currentExpectedSlug = slugify(currentTitle);
-		var currentSlug = this.chart.slug;
+		var currentSlug = this.chart.props.slug;
 
 		// We only automatically update the slug to match title if it's an unpublished chart, to discourage changing them later
 		// Also if the user manually enters a slug we should honour that and not change it
-		if (!this.chart.isPublished && (_.isEmpty(currentSlug) || currentExpectedSlug == currentSlug)) {
+		if (!this.chart.props.isPublished && (_.isEmpty(currentSlug) || currentExpectedSlug == currentSlug)) {
 			var slug = slugify(evt.currentTarget.value);
-			this.chart.slug = slug
+			this.chart.props.slug = slug
 		}
 
 		this.lastTitle = evt.currentTarget.value
-		this.chart.title = evt.currentTarget.value 
+		this.chart.props.title = evt.currentTarget.value 
 	}
 
-	@action.bound onSlug(evt: React.FormEvent<HTMLInputElement>) { this.chart.slug = evt.currentTarget.value }
-	@action.bound onSubtitle(evt: React.FormEvent<HTMLTextAreaElement>) { this.chart.subtitle = evt.currentTarget.value }
-	@action.bound onChartType(evt: React.FormEvent<HTMLSelectElement>) { this.chart.type = (evt.currentTarget.value as ChartTypeType) }
-	@action.bound onSource(evt: React.FormEvent<HTMLTextAreaElement>) { this.chart.sourceDesc = evt.currentTarget.value }
-	@action.bound onNote(evt: React.FormEvent<HTMLTextAreaElement>) { this.chart.note = evt.currentTarget.value }
-	@action.bound onInternalNotes(evt: React.FormEvent<HTMLTextAreaElement>) { this.chart.internalNotes = evt.currentTarget.value }
+	@action.bound onSlug(evt: React.FormEvent<HTMLInputElement>) { this.chart.props.slug = evt.currentTarget.value }
+	@action.bound onSubtitle(evt: React.FormEvent<HTMLTextAreaElement>) { this.chart.props.subtitle = evt.currentTarget.value }
+	@action.bound onChartType(evt: React.FormEvent<HTMLSelectElement>) { this.chart.props.type = (evt.currentTarget.value as ChartTypeType) }
+	@action.bound onSource(evt: React.FormEvent<HTMLTextAreaElement>) { this.chart.props.sourceDesc = evt.currentTarget.value }
+	@action.bound onNote(evt: React.FormEvent<HTMLTextAreaElement>) { this.chart.props.note = evt.currentTarget.value }
+	@action.bound onInternalNotes(evt: React.FormEvent<HTMLTextAreaElement>) { this.chart.props.internalNotes = evt.currentTarget.value }
 
 	render() {
 		const { chart } = this
@@ -71,8 +71,8 @@ export default class EditorBasicTab extends React.Component<{ chart: ChartConfig
 					<option value="HorizontalMultiBar">Horizontal Multi Bar</option>
 					<option value="DiscreteBar">Discrete Bar</option>
 				</select>
-				<Toggle label="Chart tab" value={chart.hasChartTab} onValue={value => chart.hasChartTab = value}/>				
-				{" "}<Toggle label="Map tab" value={chart.hasMapTab} onValue={value => chart.hasMapTab = value}/>				
+				<Toggle label="Chart tab" value={chart.props.hasChartTab} onValue={value => chart.props.hasChartTab = value}/>				
+				{" "}<Toggle label="Map tab" value={chart.props.hasMapTab} onValue={value => chart.props.hasMapTab = value}/>				
 			</section>
 			<section>
 				<h2>Sources</h2>
