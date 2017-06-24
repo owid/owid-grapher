@@ -55,7 +55,7 @@ interface DownloadTabProps {
 @observer
 export default class DownloadTab extends React.Component<DownloadTabProps, undefined> {
     @computed get baseUrl() : string {
-        return Global.rootUrl + '/' + this.props.chartView.config.slug
+        return Global.rootUrl + '/' + this.props.chartView.chart.slug
     }
 
     @computed get queryStr() : string {
@@ -63,7 +63,7 @@ export default class DownloadTab extends React.Component<DownloadTabProps, undef
     }
 
     @computed get cacheTag() : string {
-        return this.props.chartView.model.get("variableCacheTag")
+        return this.props.chartView.chart.variableCacheTag
     }
 
     @computed get targetWidth(): number {

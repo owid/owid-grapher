@@ -132,3 +132,48 @@ export function defaultTo<T, K>(value: T|undefined|null, defaultValue: K): T|K {
     if (value == null) return defaultValue
     else return value
 }
+
+export type QueryParams = {[key: string]: string}
+
+export function getQueryParams(): QueryParams {
+	var queryStr = window.location.search.substring(1),
+		querySplit = _.filter(queryStr.split("&"), function(s) { return !_.isEmpty(s); }),
+		params: QueryParams = {};
+
+	for (var i = 0; i < querySplit.length; i++) {
+		var pair = querySplit[i].split("=");
+		params[pair[0]] = pair[1];
+	}
+
+	return params;
+};
+
+export function queryParamsToStr(params: QueryParams) {
+	var newQueryStr = "";
+
+	_.each(params, function(v,k) {
+        if (v == undefined) return
+        
+		if (_.isEmpty(newQueryStr)) newQueryStr += "?";
+		else newQueryStr += "&";
+		newQueryStr += k + '=' + v;
+	});
+
+	return newQueryStr;
+};
+
+export function setQueryVariable(key: string, val: string|null) {
+	var params = getQueryParams();
+	
+	if (val == null || val == "") {
+		delete params[key];
+	} else {
+		params[key] = val;
+	}
+
+	setQueryStr(queryParamsToStr(params));
+};
+
+export function setQueryStr(str: string) {
+	history.replaceState(null, null, window.location.pathname + str + window.location.hash);
+};

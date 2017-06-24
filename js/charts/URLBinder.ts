@@ -9,15 +9,16 @@
 
 import * as _ from 'lodash'
 import * as $ from 'jquery'
-import owid from '../owid'
-import {observable, autorun, action, reaction} from 'mobx'
+import {computed, observable, autorun, action, reaction, toJS} from 'mobx'
 import ChartView from './ChartView'
 import ChartTabOption from './ChartTabOption'
 import ScaleType from './ScaleType'
 import {defaultTo} from './Util'
-import ChartConfig from './ChartConfig'
+import ChartConfig, {ChartConfigProps} from './ChartConfig'
+import EntityKey from './EntityKey'
+import {getQueryParams, setQueryVariable, setQueryStr, queryParamsToStr, QueryParams} from './Util'
 
-interface ChartParams {
+interface ChartQueryParams {
     tab?: string,
     stackMode?: string,
     xScale?: string,
@@ -33,24 +34,97 @@ export default class URLBinder {
     chart: ChartConfig
 
     lastTabName: ChartTabOption
-    originalTab: ChartTabOption
-    originalXAxisScale: ScaleType
-    originalYAxisScale: ScaleType
+    origChart: ChartConfigProps
+    chartQueryStr: string = "?"
+    mapQueryStr: string = "?"
 
     constructor(chart: ChartConfig) {
         this.chart = chart
         this.lastTabName = chart.tab
-        this.originalTab = chart.tab
-        this.originalXAxisScale = chart.xAxis.scaleType
-        this.originalYAxisScale = chart.yAxis.scaleType
+        this.origChart = toJS(chart.props)
         this.populateFromURL()
+
+
+        // There is a surprisingly considerable performance overhead to updating the url
+        // while animating, so we debounce to allow e.g. smoother timelines
+        const pushParams = _.debounce(function(params: ChartQueryParams) {
+            setQueryStr(queryParamsToStr(params as QueryParams))
+        }, 50)
+        autorun(() => {
+            const {params} = this
+            pushParams(params)
+        })
+    }
+
+    @computed get timeParam(): string|undefined {
+        const {timeDomain} = this.chart.props
+        if (!_.isEqual(timeDomain, this.origChart.timeDomain)) {
+            if (_.isFinite(timeDomain[0]) && _.isFinite(timeDomain[1]) && timeDomain[0] != timeDomain[1]) {
+                return timeDomain[0] + ".." + timeDomain[1]
+            } else if (_.isNumber(timeDomain[0])) {
+                return _.toString(timeDomain[0])
+            }
+        } else {
+            return undefined
+        }
+    }
+
+    @computed get countryParam(): string|undefined {
+        const {chart, origChart} = this
+        if (this.chart.vardata.isReady && !_.isEqual(chart.props.selectedEntities, origChart.selectedEntities)) {
+            function getCode(entity: EntityKey) { 
+                const meta = this.chart.vardata.entityMetaByKey[entity]
+                return meta ? meta.code : entity
+            }
+            const codes = chart.selectedEntities.map(getCode).map(encodeURIComponent)
+            setQueryVariable("country", codes.join("+"))
+        } else {
+            return undefined
+        }
+    }
+
+    @computed.struct get params(): ChartQueryParams {
+        const params: ChartQueryParams = {}
+        const {chart, origChart} = this
+
+        params.tab = chart.props.tab == origChart.tab ? undefined : chart.tab
+        params.xScale = chart.props.xAxis.scaleType == origChart.xAxis.scaleType ? undefined : chart.xAxis.scaleType
+        params.yScale = chart.props.yAxis.scaleType == origChart.yAxis.scaleType? undefined : chart.yAxis.scaleType
+        params.time = this.timeParam
+        params.country = this.countryParam
+
+        return params
+    }    
+
+    /**
+     * Set e.g. &shown=Africa when the user selects Africa on a stacked area chartView or other
+     * toggle-based legend chartView.
+     */
+    updateLegendKeys() {
+        /*var activeLegendKeys = chartView.model.get("activeLegendKeys");
+        if (activeLegendKeys === null)
+            setQueryVariable("shown", null);
+        else {
+            var keys = _.map(activeLegendKeys, function(key) {
+                return encodeURIComponent(key);
+            });
+            setQueryVariable("shown", keys.join("+"));
+        }*/
+     }
+
+    /**
+     * Set e.g. &year=1990 when the user uses the map slider to go to 1990
+     */
+    updateYearParam() {
+        //if (chart.tab == 'map')
+        //    setQueryVariable("year", chartView.map.get("targetYear"));
     }
 
 
     getCurrentLink() {
         var baseUrl = Global.rootUrl + "/" + this.chart.slug,
-            queryParams = owid.getQueryParams(),
-            queryStr = owid.queryParamsToStr(queryParams),
+            queryParams = getQueryParams(),
+            queryStr = queryParamsToStr(queryParams),
             canonicalUrl = baseUrl + queryStr;
 
         return canonicalUrl
@@ -60,8 +134,7 @@ export default class URLBinder {
      * Apply any url parameters on chartView startup
      */    
     populateFromURL() {
-        var params: ChartParams = owid.getQueryParams();
-        const {chart} = this
+        const {params, chart} = this
 
         // Set tab if specified
         const tab = params.tab;
@@ -168,97 +241,23 @@ export function foof(chartView: ChartView) {
                 urlBinder.lastQueryStr = window.location.search;
         });
         autorun(() => onTabChange())
-        autorun(() => {
-            owid.setQueryVariable("xScale", chart.xAxis.scaleType == originalXAxisScale ? null : chart.xAxis.scaleType);
-            owid.setQueryVariable("yScale", chart.yAxis.scaleType == originalYAxisScale ? null : chart.yAxis.scaleType);            
-        })
+
     };
 
 
-    /**
-     * Save the current tab the user is on, and keep url params correctly isolated
-     */
-    function onTabChange() {
-        var tabName = chart.tab;
 
-        if (lastTabName == "map" && tabName != "map") {
-            urlBinder.mapQueryStr = window.location.search;
-            owid.setQueryStr(urlBinder.chartQueryStr);
-        } else if (lastTabName == "map" && tabName != "map") {
-            urlBinder.chartQueryStr = window.location.search;
-            owid.setQueryStr(urlBinder.mapQueryStr);
-        }
 
-        if (tabName == originalTab)
-            owid.setQueryVariable("tab", null);
-        else
-            owid.setQueryVariable("tab", tabName);
-
-        lastTabName = tabName;
-    }
-
-    /**
-     * Set e.g. &country=AFG+USA when user adds Afghanistan and the United States
-     * using the legend add country buttons
-     */
     function updateCountryParam() {
-        var selectedEntities = chartView.model.get("selected-countries"),
-            entityCodes = [];
 
-        App.ChartData.ready(function() {
-            // Sort them by name so the order in the url matches the legend
-            var sortedEntities = _.sortBy(selectedEntities, function(entity) {
-                return entity.name;
-            });
-
-            var entityCodes = [];
-            _.each(sortedEntities, function(entity) {
-                var foundEntity = App.VariableData.getEntityById(entity.id);
-                if (!foundEntity) return;
-                entityCodes.push(encodeURIComponent(foundEntity.code || foundEntity.name));
-            });
-                        
-            owid.setQueryVariable("country", entityCodes.join("+"));
-        });
     }
     urlBinder.updateCountryParam = updateCountryParam;
 
-    /**
-     * Set e.g. &shown=Africa when the user selects Africa on a stacked area chartView or other
-     * toggle-based legend chartView.
-     */
-    function updateLegendKeys() {
-        var activeLegendKeys = chartView.model.get("activeLegendKeys");
-        if (activeLegendKeys === null)
-            owid.setQueryVariable("shown", null);
-        else {
-            var keys = _.map(activeLegendKeys, function(key) {
-                return encodeURIComponent(key);
-            });
-            owid.setQueryVariable("shown", keys.join("+"));
-        }
-     }
-
-    /**
-     * Set e.g. &year=1990 when the user uses the map slider to go to 1990
-     */
-    function updateYearParam() {
-        if (chart.tab == 'map')
-            owid.setQueryVariable("year", chartView.map.get("targetYear"));
-    }
 
     /**
      * Set e.g. &time=1990 when the user uses the slider to go to 1990
      */
     function updateTime() {
-        if (chart.tab == 'chart' && chartView.model.get('timeline')) {
-            const timeRange = chartView.model.get('chart-time')
-            if (_.isNumber(timeRange[0]) && _.isNumber(timeRange[1]) && timeRange[0] != timeRange[1]) {
-                owid.setQueryVariable("time", timeRange[0] + ".." + timeRange[1])
-            } else if (_.isNumber(timeRange[0])) {
-                owid.setQueryVariable("time", timeRange[0])
-            }
-        }
+
     }
 
     /**
@@ -267,9 +266,9 @@ export function foof(chartView: ChartView) {
     function updateStackMode() {
         var stackMode = chartView.model.get("currentStackMode");
         if (stackMode != origConfig.currentStackMode)
-            owid.setQueryVariable("stackMode", stackMode);
+            setQueryVariable("stackMode", stackMode);
         else
-            owid.setQueryVariable("stackMode", null);
+            setQueryVariable("stackMode", null);
     }
 
     initialize();

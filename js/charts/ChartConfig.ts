@@ -33,6 +33,7 @@ export interface ChartDimension {
 
 // WIP
 export class ChartConfigProps {
+    @observable.ref id: number
     @observable.ref type: ChartTypeType = "LineChart"
     @observable.ref slug?: string = undefined
     @observable.ref title?: string = undefined
@@ -71,6 +72,7 @@ export class ChartConfigProps {
 export default class ChartConfig {
     props: ChartConfigProps = new ChartConfigProps()
 
+    @computed get id() { return this.props.id }
     @computed get type() { return this.props.type }
     @computed get slug() { return defaultTo(this.props.slug, "") }
     @computed get title() { return defaultTo(this.props.title, "") }
@@ -159,6 +161,7 @@ export default class ChartConfig {
     }
 
     @action.bound update(props: any) {
+        this.props.id = props['id']
         this.props.type = props['chart-type']
         this.props.slug = props['slug']
         this.props.title = props['title']

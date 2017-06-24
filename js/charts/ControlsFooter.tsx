@@ -50,7 +50,7 @@ class ShareMenu extends React.Component<ShareMenuProps, undefined> {
     }
 
     @computed get editUrl() : string {
-        return Cookies.get('isAdmin') ? (Global.adminRootUrl + '/charts/' + this.props.chartView.model.get('id') + '/edit') : null
+        return Cookies.get('isAdmin') ? (Global.adminRootUrl + '/charts/' + this.props.chart.id + '/edit') : null
     }
 
     @observable isEmbedMenuActive : boolean = false

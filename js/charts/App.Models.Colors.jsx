@@ -11,6 +11,7 @@ export default class Colors {
 
 	constructor(chartView) {
 		const chart = chartView.chart
+		this.chart = chart
 		this.colorScale = d3.scaleOrdinal().range(Colors.basicScheme);
 		this.colorCache = {};
 		this.colorIndex = 0;
@@ -66,14 +67,13 @@ export default class Colors {
 	// We set colors for the legend data separately to give more precise control
 	// over the priority and ordering, since legend data doesn't move around as much.
 	assignColorsForLegend(legendData) {
-		var selectedEntitiesById = App.ChartModel.getSelectedEntitiesById(),
-			addCountryMode = App.ChartModel.get("add-country-mode");
+		const {selectedEntitiesByKey, addCountryMode, dimensions} = this.chart
 
 		_.each(legendData, function(group) {
-			var entity = selectedEntitiesById[group.entityId],
-				dimension = App.ChartModel.getDimensionById(group.variableId),
-				isMultiVariable = App.ChartModel.isMultiVariable(),
-				isMultiEntity = App.ChartModel.isMultiEntity();
+			var entity = selectedEntitiesByKey[group.entityId],
+				dimension = _.find(dimensions, dim => dim.variableId == group.variableId),
+				isMultiVariable = false,//App.ChartModel.isMultiVariable(),
+				isMultiEntity = true//App.ChartModel.isMultiEntity();
 
 			if (group.color) {
 				group.color = this.assignColorForKey(group.key, group.color, { canVary: false });
@@ -96,10 +96,10 @@ export default class Colors {
 	}
 
 	assignColorsForChart(chartData) {
-		var chartType = App.ChartModel.get("chart-type");
+		const {chart} = this
 
 		_.each(chartData, function(series) {
-			if (chartType == ChartType.DiscreteBar || chartType == ChartType.ScatterPlot) {
+			if (chart.type == ChartType.DiscreteBar || chart.type == ChartType.ScatterPlot) {
 				_.each(series.values, function(d) {
 					d.color = this.assignColorForKey(d.key, d.color);
 				}.bind(this));

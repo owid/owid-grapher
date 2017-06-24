@@ -109,7 +109,6 @@ export default class ChartView extends React.Component<ChartViewProps, undefined
     @observable popups: VNode[] = []
 
     model: any
-    config: any
     chart: ChartConfig
     vardata: any
     data: any
