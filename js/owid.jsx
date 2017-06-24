@@ -5,7 +5,6 @@
 import * as d3 from 'd3'
 import _ from 'lodash'
 import $ from 'jquery'
-import Backbone from 'backbone'
 import ChartType from './charts/ChartType'
 
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
@@ -535,46 +534,6 @@ owid.confirm = function(options, callback) {
 		callback();
 };
 
-// MISPY: Extension of Backbone view to allow tracking of child views
-owid.View = Backbone.View.extend({
-	addChild: function(viewClass, options) {
-		this.children = this.children || [];
-
-		var child = new viewClass(options);
-		if (!_.isFunction(child.cleanup))
-			console.error("Attempted to add child without cleanup method");
-		this.children.push(child);
-		return child;
-	},
-
-	listenTo: function(obj, name, handler) {
-		if (obj.jquery) {
-			this.jqueryListens = this.jqueryListens || [];
-			this.jqueryListens.push({ obj: obj, name: name, handler: handler });
-			obj.on(name, handler);
-		} else {
-			Backbone.View.prototype.listenTo.apply(this, [obj, name, handler]);
-		}
-	},
-
-	cleanup: function() {
-		this.children = this.children || [];
-
-		this.stopListening();
-		this.undelegateEvents();
-
-		_.each(this.jqueryListens, function(binding) {
-			binding.obj.off(binding.name, binding.handler);
-		});
-		this.jqueryListens = [];
-
-		_.each(this.children, function(child) {
-			child.cleanup();
-		});
-		this.children = [];
-	},
-
-});
 
 owid.makeSafeForCSS = function(name) {
     return name.replace(/[^a-z0-9]/g, function(s) {

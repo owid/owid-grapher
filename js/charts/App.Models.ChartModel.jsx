@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import Backbone from 'backbone'
 import owid from '../owid'
 import ChartType from './ChartType'
 
@@ -189,22 +188,6 @@ export default Backbone.Model.extend( {
 		return !_.isEmpty(this.get("selected-countries"));
 	},
 
-	// Get the empty dimension slots appropriate for this type of chart
-	getEmptyDimensions: function() {
-		var chartType = this.get("chart-type");
-
-		var xAxis = { property: 'x', name: 'X axis', },
-			yAxis = { property: 'y', name: 'Y axis', },
-			color = { property: 'color', name: 'Color' },
-			size = { property: 'size', name: 'Size' };
-
-		if (chartType == ChartType.ScatterPlot)
-			return [xAxis, yAxis, size, color];
-		else if (chartType == ChartType.SlopeChart)
-			return [yAxis, size, color]
-		else
-			return [yAxis];
-	},
 
 	// Get chart dimensions, ensuring we return only those appropriate for the type
 	getDimensions: function() {

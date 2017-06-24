@@ -1,18 +1,17 @@
 import _ from 'lodash'
 import * as d3 from 'd3'
-import Backbone from 'backbone'
 import ChartType from './ChartType'
 
 /**
  * This model handles the assignment and distribution of colors for
  * different entities and chart types.
  */
-export default Backbone.Model.extend({
-	basicScheme: ["#3360a9", "#ca2628", "#34983f", "#ed6c2d", "#df3c64", "#a85a4a", "#e6332e", "#6bb537", "#ffd53e", "#f07f59", "#b077b1", "#932834", "#674c98", "#5eb77e", "#f6a324", "#2a939b", "#818282", "#7ec7ce", "#fceb8c", "#cfcd1e", "#58888f", "#ce8ebd", "#9ecc8a", "#db2445", "#f9bc8f", "#d26e66", "#c8c8c8"],
+export default class Colors {
+	static basicScheme = ["#3360a9", "#ca2628", "#34983f", "#ed6c2d", "#df3c64", "#a85a4a", "#e6332e", "#6bb537", "#ffd53e", "#f07f59", "#b077b1", "#932834", "#674c98", "#5eb77e", "#f6a324", "#2a939b", "#818282", "#7ec7ce", "#fceb8c", "#cfcd1e", "#58888f", "#ce8ebd", "#9ecc8a", "#db2445", "#f9bc8f", "#d26e66", "#c8c8c8"]
 
-	initialize: function(chartView) {
+	constructor(chartView) {
 		const chart = chartView.chart
-		this.colorScale = d3.scaleOrdinal().range(this.basicScheme);
+		this.colorScale = d3.scaleOrdinal().range(Colors.basicScheme);
 		this.colorCache = {};
 		this.colorIndex = 0;
 
@@ -34,9 +33,9 @@ export default Backbone.Model.extend({
 				this.colorIndex = 0;
 			}
 		}.bind(this));*/
-	},
+	}
 
-	assignColorForKey: function(key, color, options) {
+	assignColorForKey(key, color, options) {
 		options = _.extend({ canVary: true }, options);
 		color = color || this.colorScale(this.colorIndex);
 
@@ -62,11 +61,11 @@ export default Backbone.Model.extend({
 		}
 
 		return this.colorCache[key];
-	},
+	}
 
 	// We set colors for the legend data separately to give more precise control
 	// over the priority and ordering, since legend data doesn't move around as much.
-	assignColorsForLegend: function(legendData) {
+	assignColorsForLegend(legendData) {
 		var selectedEntitiesById = App.ChartModel.getSelectedEntitiesById(),
 			addCountryMode = App.ChartModel.get("add-country-mode");
 
@@ -94,9 +93,9 @@ export default Backbone.Model.extend({
 				group.color = this.assignColorForKey(group.key);
 			}
 		}.bind(this));
-	},
+	}
 
-	assignColorsForChart: function(chartData) {
+	assignColorsForChart(chartData) {
 		var chartType = App.ChartModel.get("chart-type");
 
 		_.each(chartData, function(series) {
@@ -111,4 +110,4 @@ export default Backbone.Model.extend({
 
 		return chartData;
 	}
-});
+}
