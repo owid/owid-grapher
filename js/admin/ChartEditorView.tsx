@@ -78,9 +78,6 @@ export default class ChartEditorView extends React.Component<{ editor: ChartEdit
 					<EditorBasicTab chart={chart}/>					
 					<div id="data-tab" className="tab-pane">
 						<section className="add-data-section">
-
-								<h2>Add your data</h2>
-
 								<a className="add-data-btn"><i className="fa fa-plus"/>Add variable</a>
 								<div className="dd">
 									<div className="dd-empty"></div>

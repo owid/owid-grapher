@@ -131,13 +131,13 @@ export default class ChartConfig {
         this.syncFromModel()
         this.model.on('change', this.syncFromModel)
 
-        data.ready(() => {
+        data.ready(action(() => {
             this.dimensionsWithData = this.model.getDimensions()
-        })
+        }))
         this.model.on('change:chart-dimensions change:chart-type', () => {
-            data.ready(() => {
+            data.ready(action(() => {
                 this.dimensionsWithData = this.model.getDimensions()
-            })
+            }))
         })
 
         // TODO fix this. Colors shouldn't be part of selectedEntities

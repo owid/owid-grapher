@@ -10,7 +10,7 @@
 import * as _ from 'lodash'
 import * as $ from 'jquery'
 import owid from '../owid'
-import {autorun} from 'mobx'
+import {autorun, action} from 'mobx'
 import ChartView from './ChartView'
 import ChartTabOption from './ChartTabOption'
 
@@ -38,7 +38,7 @@ export default function(chartView: ChartView) {
         chartView.map.on("change:mode change:projection change:isColorblind", updateMapParams);
         chartView.model.on("change:currentStackMode", updateStackMode);
         chartView.model.on("change:chart-time", updateTime);
-        populateFromURL();
+        action(populateFromURL)();
 
         $(window).on('query-change', function() {
             var tabName = chart.tab;
@@ -54,7 +54,7 @@ export default function(chartView: ChartView) {
 
     /**
      * Apply any url parameters on chartView startup
-     */
+     */    
     function populateFromURL() {
         var params: {[key: string]: string} = owid.getQueryParams();
 
@@ -124,7 +124,7 @@ export default function(chartView: ChartView) {
         }
 
         // Selected countries -- we can't actually look these up until we have the data
-        chartView.data.ready(function() {
+        chartView.data.ready(action(function() {
             var country = params.country;
             if (country) {
                 var codesOrNames = _.map(country.split('+'), function(v) { return decodeURIComponent(v) }),
@@ -134,7 +134,7 @@ export default function(chartView: ChartView) {
 
                 chart.selectedEntities = _.map(entities, 'name')
             }
-        });
+        }));
 
         // Set shown legend keys for chartViews with toggleable series
         var shown = params.shown;

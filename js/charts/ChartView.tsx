@@ -2,7 +2,7 @@ import * as _ from 'lodash'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as d3 from 'd3'
-import {observable, computed, autorun, action} from 'mobx'
+import {observable, computed, autorun, action, reaction} from 'mobx'
 import {observer} from 'mobx-react'
 
 import ChartConfig from './ChartConfig'
@@ -142,14 +142,17 @@ export default class ChartView extends React.Component<ChartViewProps, undefined
         Bounds.baseFontSize = 22
         Bounds.baseFontFamily = "Helvetica, Arial"
 
-        autorun(() => {
-            if (this.chart.tab == 'map' || this.chart.tab == 'chart') {
-                this.primaryTabName = this.chart.tab
-                this.overlayTabName = null
-            } else {
-                this.overlayTabName = this.chart.tab
+        reaction(
+            () => this.chart.tab,
+            tab => {
+                if (tab == 'map' || tab == 'chart') {
+                    this.primaryTabName = tab
+                    this.overlayTabName = null
+                } else {
+                    this.overlayTabName = tab
+                }
             }
-        })
+        )
 
         this.model.on('change', () => this.data.ready(() => this.forceUpdate()))
         this.map.on('change', () => this.data.ready(() => this.forceUpdate()))
@@ -158,7 +161,7 @@ export default class ChartView extends React.Component<ChartViewProps, undefined
     @computed get controlsFooter() {
         return preInstantiate(<ControlsFooter
             availableTabs={this.chart.availableTabs}
-            onTabChange={tabName => this.chart.tab = tabName}
+            onTabChange={action(tabName => this.chart.tab = tabName)}
             chart={this.chart}
             chartView={this}
             activeTabName={this.chart.tab}
@@ -186,7 +189,13 @@ export default class ChartView extends React.Component<ChartViewProps, undefined
     }
 
     getChildContext() {
-        return { chartView: this, isStatic: this.isExport, addPopup: this.addPopup.bind(this), removePopup: this.removePopup.bind(this), scale: this.scale }
+        return { 
+            chartView: this, 
+            isStatic: this.isExport, 
+            addPopup: this.addPopup.bind(this), 
+            removePopup: this.removePopup.bind(this),
+            scale: this.scale 
+        }
     }
 
     renderPrimaryTab(bounds: Bounds) {

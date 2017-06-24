@@ -1,13 +1,21 @@
-// @flow
-
 import * as React from 'react'
 import Bounds from './Bounds'
 
-// Polyfill for dominant-baseline since it doesn't work in IE
-export default class Text extends React.Component<any, null> {
+// The default SVG text behavior is to put the text on *top* of the specified y coordinate
+// Nothing else we do works like that though, so this wraps it to use the same spatial behavior
+// as other componets
+
+interface TextProps {
+	x: number,
+	y: number,
+	fontSize?: string,
+	fontFamily?: string,
+	children: string
+}
+
+export default class Text extends React.Component<TextProps, undefined> {
 	render() {
-		const baseline = this.props['dominant-baseline']
-		const bounds = Bounds.forText(this.props.children, { fontSize: this.props['font-size']||this.props['fontSize'] })
+		const bounds = Bounds.forText(this.props.children, { fontSize: this.props['fontSize'], fontFamily: this.props['fontFamily'] })
 		let {x, y} = this.props
 
         y = y+bounds.height-bounds.height*0.2

@@ -37,7 +37,7 @@ interface ChoroplethMapProps {
 }
 
 @observer
-export default class ChoroplethMap extends React.Component<ChoroplethMapProps, null> {
+export default class ChoroplethMap extends React.Component<ChoroplethMapProps, undefined> {
     subunits: any
 
     @computed get geoData(): GeoFeature[] {

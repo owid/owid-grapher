@@ -30,7 +30,6 @@ export default class EditorAxisTab extends React.Component<{ chart: ChartConfig 
 
 		return <div id="axis-tab" className="tab-pane">
 			<section>
-				<h2>Refine your axis</h2>
 				{this.renderForAxis('Y', yAxis)}
 				{this.renderForAxis('X', xAxis)}
 			</section>

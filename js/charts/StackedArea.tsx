@@ -158,25 +158,26 @@ export default class StackedArea extends React.Component<{ bounds: Bounds, chart
         return [0, (_(stackedData).map('values').flatten().map('y').max() as number)]
     }
 
+    renderAreas(bounds: Bounds) {
+        const {chart, stackedData, xDomainDefault, yDomainDefault} = this
+        const xAxis = chart.xAxis.toSpec({ defaultDomain: xDomainDefault })
+        const yAxis = chart.yAxis.toSpec({ defaultDomain: yDomainDefault })
+
+        const axisBox = new AxisBox({bounds, xAxis, yAxis})
+
+        return [
+            <StandardAxisBoxView axisBox={axisBox} chart={chart}/>,
+            <Areas xScale={axisBox.xScale} yScale={axisBox.yScale} data={stackedData}/>
+        ]
+    }
+
     render() {
         const {chart, bounds, stackedData, xDomainDefault, yDomainDefault} = this
         console.log(yDomainDefault)
 
-        const xAxis = chart.xAxis.toSpec({ defaultDomain: xDomainDefault })
-        const yAxis = chart.yAxis.toSpec({ defaultDomain: yDomainDefault })
-
-        const stack = d3.stack()
-
         return <g className="StackedArea">
             <Legend x={legend => bounds.right-legend.width} y={bounds.top} maxHeight={bounds.height} data={stackedData}>
-                {legend => {
-                    const axisBox = new AxisBox({bounds: bounds.padRight(legend.width), xAxis, yAxis})
-
-                    return [
-                        <StandardAxisBoxView axisBox={axisBox} chart={chart}/>,
-                        <Areas xScale={axisBox.xScale} yScale={axisBox.yScale} data={stackedData}/>
-                    ]
-                }}
+                {legend => this.renderAreas(bounds.padRight(legend.width))}
             </Legend>
         </g>
     }
@@ -224,7 +225,7 @@ export class Areas extends React.Component<AreasProps, undefined> {
         const xBottomLeft = `${xScale.range[0]},${yScale.range[0]}`
         const xBottomRight = `${xScale.range[1]},${yScale.range[0]}`
 
-        return <g className="Areas">
+        return <g className="Areas" opacity={0.8}>
             {_.map(renderData, series =>
                 <polyline
                     key={series.key+'-line'}

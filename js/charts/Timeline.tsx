@@ -18,7 +18,7 @@ interface TimelineProps {
 };
 
 @observer
-export default class RangeTimeline extends React.Component<TimelineProps, undefined> {
+export default class Timeline extends React.Component<TimelineProps, undefined> {
 	props: TimelineProps
 
     @observable startYearInput: number
@@ -34,8 +34,10 @@ export default class RangeTimeline extends React.Component<TimelineProps, undefi
 
 	constructor(props : TimelineProps) {
 		super(props)
-		this.startYearInput = props.startYear
-        this.endYearInput = props.endYear
+        action(() => {
+            this.startYearInput = props.startYear
+            this.endYearInput = props.endYear
+        })()
 	}
 
     componentWillMount() {
@@ -140,7 +142,7 @@ export default class RangeTimeline extends React.Component<TimelineProps, undefi
 		return d3.scaleLinear().domain((d3.extent(years) as [number, number])).range([sliderBounds.left, sliderBounds.left+sliderBounds.width]);
 	}
 
-	@action componentWillReceiveProps(nextProps : TimelineProps) {
+	@action.bound componentWillReceiveProps(nextProps : TimelineProps) {
 		const { isPlaying, isDragging } = this
 		if (!isPlaying && !isDragging) {
 			this.startYearInput = nextProps.startYear
@@ -153,7 +155,7 @@ export default class RangeTimeline extends React.Component<TimelineProps, undefi
 	@action.bound onStartPlaying() {
 		let lastTime: number|null = null, ticksPerSec = 5;
 
-		const playFrame = (time : number) => {
+		const playFrame = action((time : number) => {
 			const { isPlaying, startYear, endYear, years, minYear, maxYear } = this
 			if (!isPlaying) return;
 
@@ -182,7 +184,7 @@ export default class RangeTimeline extends React.Component<TimelineProps, undefi
 
 			lastTime = time;
 			this.animRequest = requestAnimationFrame(playFrame)
-		}
+		})
 
 		this.animRequest = requestAnimationFrame(playFrame)
 	}
@@ -296,8 +298,10 @@ export default class RangeTimeline extends React.Component<TimelineProps, undefi
             // If we're not playing or dragging, lock the input to the closest year (no interpolation)
             const {isPlaying, isDragging, roundedStartYear, roundedEndYear} = this
             if (!isPlaying && !isDragging) {
-                this.startYearInput = roundedStartYear
-                this.endYearInput = roundedEndYear
+                action(() => {
+                    this.startYearInput = roundedStartYear
+                    this.endYearInput = roundedEndYear
+                })()
             }
         })
     }
