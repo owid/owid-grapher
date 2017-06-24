@@ -7,8 +7,6 @@
 
 import * as React from 'react'
 import * as _ from 'lodash'
-import * as nv from '../libs/nvd3'
-import * as d3 from '../libs/d3old'
 import * as $ from 'jquery'
 import {computed, action, observable} from 'mobx'
 import {observer} from 'mobx-react'

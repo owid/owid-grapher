@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import * as d3 from 'd3'
 import Backbone from 'backbone'
 import ChartType from './ChartType'
 
@@ -11,7 +12,7 @@ export default Backbone.Model.extend({
 
 	initialize: function(chartView) {
 		const chart = chartView.chart
-		this.colorScale = d3.scale.ordinal().range(this.basicScheme);
+		this.colorScale = d3.scaleOrdinal().range(this.basicScheme);
 		this.colorCache = {};
 		this.colorIndex = 0;
 

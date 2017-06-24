@@ -22,7 +22,5 @@ mobxFormatters(Mobx)
 
 //import 'preact/devtools'
 
-window.d3 = require('./libs/d3old')
-
 window.ChartView = require('./charts/ChartView').default;
 window.ExportView = require('./charts/ExportView').default;

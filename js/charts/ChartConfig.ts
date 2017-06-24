@@ -77,6 +77,8 @@ export default class ChartConfig {
     @computed get timeline() { return this.props.timeline }
 
     set timeDomain(value) { this.props.timeDomain = value }
+    set tab(value) { this.props.tab = value }
+    set selectedEntities(value) { this.props.selectedEntities = value }
 
     xAxis: AxisConfig
     yAxis: AxisConfig

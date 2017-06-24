@@ -7,18 +7,16 @@ import SlopeChart from './SlopeChart'
 import Bounds from './Bounds'
 import ChartConfig from './ChartConfig'
 import * as _ from 'lodash'
+import * as d3 from 'd3'
 import * as $ from 'jquery'
 import owid from '../owid'
 import scaleSelectors from './owid.view.scaleSelectors'
 import EntitySelect from './owid.view.entitySelect'
-import Legend from './App.Views.Chart.Legend'
-import * as nv from '../libs/nvd3'
 import ScatterPlot from './ScatterPlot'
 import LineChart from './LineChart'
 import ChartView from './ChartView'
 import AxisConfig from './AxisConfig'
 import {defaultTo} from 'lodash'
-import * as d3 from '../libs/d3old'
 import ChartType from './ChartType'
 import LineType from './LineType'
 import StackedArea from './StackedArea'
@@ -27,9 +25,6 @@ import DiscreteBarChart from './DiscreteBarChart'
 
 export default class ChartTab extends React.Component<{ chartView: ChartView, chart: ChartConfig }, undefined> {
     componentDidMount() {
-        this.props.chartView.svg = d3.select(d3.select(this.base).node().parentNode)
-        this.props.chartView.el = d3.select("#chart")
-        this.chartTab = chartTabOld(this.props.chartView)
         this.componentDidUpdate()
     }
 
@@ -105,12 +100,6 @@ export default class ChartTab extends React.Component<{ chartView: ChartView, ch
     }
 }
 
-// Override nvd3 handling of zero data charts to prevent it removing
-// all of our svg stuff
-nv.utils.noData = function(nvd3: any, container: any) {
-    container.selectAll('g.nv-wrap').remove();
-    //chart.showMessage("No data available.");
-};
 
 const chartTabOld = function(chartView: ChartView) {
 	var chartTab = {};

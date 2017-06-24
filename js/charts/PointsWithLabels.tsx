@@ -325,16 +325,18 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     base: SVGElement
 
     @action.bound onMouseLeave() {
-        this.hoverKey = null
+        requestAnimationFrame(() => {
+            this.hoverKey = null
 
-        if (this.props.onMouseLeave)
-            this.props.onMouseLeave()
+            if (this.props.onMouseLeave)
+                this.props.onMouseLeave()
+        })
     }
 
     @action.bound onMouseMove(ev: any) {
-        const mouse = Vector2.fromArray(getRelativeMouse(this.base, ev))
-
         requestAnimationFrame(() => {
+            const mouse = Vector2.fromArray(getRelativeMouse(this.base, ev))
+
             let closestSeries = _.sortBy(this.renderData, (series) => {
                 if (_.some(series.allLabels, l => !l.isHidden && l.bounds.contains(mouse)))
                     return -Infinity
