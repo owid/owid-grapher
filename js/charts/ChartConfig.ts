@@ -210,7 +210,8 @@ export default class ChartConfig {
         this.update(props)
         this.vardata = new VariableData(this)
         this.data = new ChartData(this, this.vardata)
-
+        window.chart = this
+        
         // TODO fix this. Colors shouldn't be part of selectedEntities
 		/*autorun(() => {
 			const entities = this.selectedEntities

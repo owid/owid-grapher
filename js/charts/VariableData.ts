@@ -28,7 +28,7 @@ class Variable {
 	}
 
 	@computed get categoricalValues() {
-		return _.filter(this.values, v => _.isString(v))
+		return _.sortBy(_.filter(this.values, v => _.isString(v)))
 	}
 
 	@computed get hasCategoricalValues() {
