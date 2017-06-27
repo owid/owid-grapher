@@ -7,6 +7,7 @@ import csv
 import glob
 import os
 import CloudFlare
+from unidecode import unidecode
 from io import StringIO
 from urllib.parse import urlparse
 from django.conf import settings
@@ -625,62 +626,71 @@ def dataset_csv(request: HttpRequest, datasetid: str):
         return HttpResponseNotFound('Dataset does not exist!')
 
     allvariables = Variable.objects.all()
-    allvardict = {}
     chartvarlist = []
 
     for var in allvariables:
-        allvardict[var.pk] = {'id': var.pk, 'name': var.name}
         if var.fk_dst_id == dataset:
             chartvarlist.append({'id': var.pk, 'name': var.name})
 
     chartvarlist = sorted(chartvarlist, key=lambda k: k['id'])
 
-    sql_query = 'SELECT maintable.entity as entity, maintable.year as year'
-
-    table_counter = 1
-    join_string = ''
     id_tuple = ''
+    varlist = []
     headerlist = ['Entity', 'Year']
+
     for each in chartvarlist:
-        sql_query += ', table%s.value as value%s' % (table_counter, table_counter)
-
-        join_string += 'LEFT JOIN (SELECT * FROM data_values WHERE fk_var_id = %s) as table%s on ' \
-                       'maintable.`fk_ent_id` = table%s.`fk_ent_id` and ' \
-                       'maintable.year = table%s.year ' % (each['id'], table_counter, table_counter,
-                                                           table_counter)
-
-        table_counter += 1
         id_tuple += str(each['id']) + ','
         headerlist.append(each['name'])
+        varlist.append(each['id'])
 
     id_tuple = id_tuple[:-1]
-    sql_query += ' FROM (SELECT fk_ent_id, entities.name as entity, year FROM data_values ' \
-                 'LEFT OUTER JOIN entities on data_values.fk_ent_id = entities.id ' \
-                 'WHERE fk_var_id in (%s) ORDER BY entity, year, data_values.fk_var_id) as maintable ' % id_tuple
 
-    sql_query += join_string + 'GROUP BY entity, year;'
+    sql_query = 'SELECT `value`, `year`, data_values.`fk_var_id` as var_id, entities.id as entity_id, ' \
+                'entities.name as entity_name from data_values ' \
+                'join entities on data_values.`fk_ent_id` = entities.`id` WHERE ' \
+                'data_values.`fk_var_id` in (%s) ORDER BY entity_name, year, fk_var_id;' % id_tuple
 
     with connection.cursor() as cursor:
         cursor.execute(sql_query)
         rows = cursor.fetchall()
 
     def stream():
+
         buffer_ = StringIO()
         writer = csv.writer(buffer_)
         writer.writerow(headerlist)
+        current_row = None
+
         for row in rows:
-            writer.writerow(row)
-            buffer_.seek(0)
-            data = buffer_.read()
-            buffer_.seek(0)
-            buffer_.truncate()
-            yield data
+            if not current_row or current_row[0] != row[4] or current_row[1] != row[1]:
+                if current_row:
+                    writer.writerow(current_row)
+                    buffer_.seek(0)
+                    data = buffer_.read()
+                    buffer_.seek(0)
+                    buffer_.truncate()
+                    yield data
+
+                current_row = [row[4], row[1]]
+                for i in range(0, len(varlist)):
+                    current_row.append("")
+
+            theindex = 2 + varlist.index(row[2])
+            current_row[theindex] = row[0]
+        writer.writerow(current_row)
+        buffer_.seek(0)
+        data = buffer_.read()
+        buffer_.seek(0)
+        buffer_.truncate()
+        yield data
 
     response = StreamingHttpResponse(
         stream(), content_type='text/csv'
     )
-    disposition = "attachment; filename=%s.csv" % dataset.name
+    ascii_filename = unidecode(dataset.name)
+    disposition = "attachment; filename='%s.csv'" % ascii_filename
     response['Content-Disposition'] = disposition
+    response['Cache-Control'] = 'public, max-age=0, s-maxage=604800'
     return response
 
 
