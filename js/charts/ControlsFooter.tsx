@@ -110,7 +110,7 @@ class HighlightToggle extends React.Component<{ chart: ChartConfig }, undefined>
     @computed get highlight() { return this.chart.highlightToggle }
 
     @computed get highlightParams() {
-        return owid.getQueryParams(this.highlight.paramStr.substring(1))
+        return owid.getQueryParams((this.highlight.paramStr||"").substring(1))
     }
 
     @action.bound onHighlightToggle(e) {
@@ -126,7 +126,6 @@ class HighlightToggle extends React.Component<{ chart: ChartConfig }, undefined>
         const params = owid.getQueryParams()
         let isActive = true
         _.keys(this.highlightParams).forEach((key) => {
-            console.log(params, key, params[key], this.highlightParams[key])
             if (params[key] != this.highlightParams[key])
                 isActive = false
         })
@@ -149,7 +148,10 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps,
 
     @computed get height() {
         const height = Bounds.forText("CHART", { fontSize: 16*this.props.chartView.scale +'px' }).height*2/this.props.chartView.scale
-        return height*2
+        if (this.props.chartView.isPortrait && this.props.chart.type == App.ChartType.ScatterPlot)
+            return height*2
+        else
+            return height
     }
 
     @observable isShareMenuActive: boolean = false
@@ -171,12 +173,12 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps,
         const {chart, chartView} = props
 
         return <div className="controlsFooter">
-            <div className="scatterControls" style={{paddingLeft: '5px', fontSize: "0.8em"}}>
+            <div className="scatterControls">
                 {chart.highlightToggle && chartView.activeTabName == 'chart' && <HighlightToggle chart={chart}/>}
-                <button className="btn btn-default">
+                {/*<button className="btn btn-default">
                     <i class="fa fa-search"/>
                     Search
-                </button>
+                </button>*/}
             </div>
             <nav className="tabs">
                 <ul>

@@ -87,7 +87,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
     // When focusing multiple entities, we hide some information to declutter
     @computed get isSubtleFocus(): boolean {
-        return this.focusKeys.length > 1
+        return this.focusKeys.length > 1 && _.some(this.props.data, series => series.values.length > 2)
     }
 
     @computed get sizeScale() {
@@ -234,7 +234,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
         const lastValue = _.last(series.values)
         const lastPos = lastValue.position
-        const fontSize = lastValue.fontSize*(series.isFocused ? (isSubtleFocus ? 1.1 : 1.2): 1)
+        const fontSize = lastValue.fontSize*(series.isFocused ? (isSubtleFocus ? 1.2 : 1.3): 1.1)
 
         let offsetVector = Vector2.up
         if (series.values.length > 1) {

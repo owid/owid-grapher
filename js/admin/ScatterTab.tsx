@@ -96,8 +96,8 @@ export default class ScatterTab extends React.Component<{ chart: ChartConfig }, 
                 <p className="form-section-desc">Allow users to toggle a particular chart selection state to highlight certain entities.</p>
                 <label className="clickable"><input type="checkbox" checked={!!hasHighlightToggle} onChange={this.onToggleHighlightToggle}/> Enable highlight toggle</label>
                 {hasHighlightToggle && <div>
-                    <label>Description <input type="text" value={highlightToggle.description} onChange={e => { this.highlightToggle.description = e.target.value; this.save() }}/></label>
-                    <label>URL Params <input type="text" value={highlightToggle.paramStr} onChange={e => { this.highlightToggle.paramStr = e.target.value; this.save() }} placeholder="e.g. ?country=AFG"/></label>
+                    <label>Description <input type="text" value={highlightToggle.description} onBlur={e => { this.highlightToggle.description = e.target.value; this.save() }}/></label>
+                    <label>URL Params <input type="text" value={highlightToggle.paramStr} onBlur={e => { this.highlightToggle.paramStr = e.target.value; this.save() }} placeholder="e.g. ?country=AFG"/></label>
                 </div>}
                 
             </section>

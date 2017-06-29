@@ -293,6 +293,20 @@ a {
     border-bottom: 1px solid #e1e1e1;
 }
 
+#chart .scatterControls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding-left: 1em;
+    font-size: 0.8em;
+}
+
+#chart .scatterControls label {
+    margin-bottom: 0.5em;
+    margin-top: 0.5em;
+}
+
 #chart nav.tabs ul {
     margin: 0;
     padding: 0;
