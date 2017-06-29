@@ -30,7 +30,7 @@ export default class ChartConfig {
     @observable.ref entityType: string = "country"
     @observable.ref timeDomain: [number|null, number|null]
     @observable.ref timeline: TimelineConfig|null = null
-    @observable.ref entityColors: {[key: string]: string} = {}
+    @observable.struct entityColors: {[key: string]: string} = {}
 
     @observable.ref yAxisConfig: any
     @observable.ref yDomain: [number|null, number|null]
