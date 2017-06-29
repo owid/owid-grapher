@@ -5,11 +5,59 @@ import {defaultTo} from './Util'
 import * as _ from 'lodash'
 import * as d3 from 'd3'
 import colorbrewer from './owid.colorbrewer'
+import Color from './Color'
+import {ChoroplethData} from './ChoroplethMap'
 
 export interface MapDataValue {
     value: number|string,
     year: number
 }
+
+export class NumericBin {
+    index: number
+    min: number
+    max: number
+    color: Color
+    label: string
+    
+    get minText() { return this.min.toString() }
+    get maxText() { return this.max.toString() }
+    get type() { return 'numeric' }
+
+    contains(d: MapDataValue) {
+        return (this.index == 0 ? d.value >= this.min : d.value > this.min) && d.value <= this.max
+    }
+
+    constructor({ index, min, max, label, color }: { index: number, min: number, max: number, label: string, color: Color }) {
+        this.index = index
+        this.min = min
+        this.max = max
+        this.color = color
+        this.label = label
+    }
+}
+
+export class CategoricalBin {
+    index: number
+    value: string
+    color: Color
+    label: string
+
+    get type() { return 'categorical' }
+
+    contains(d: any) {
+        return (d == null && this.value == 'No data') || d.value == this.value
+    }
+
+    constructor({ index, value, color, label }: { index: number, value: string, color: Color, label: string }) {
+        this.index = index
+        this.value = value
+        this.color = color
+        this.label = label
+    }
+}
+
+export type MapLegendBin = NumericBin | CategoricalBin
 
 export default class MapData {
     map: MapConfig
@@ -24,7 +72,7 @@ export default class MapData {
     }
 
     @computed get targetYear() {
-        return defaultTo(this.map.targetYear, this.variable.years[0])
+        return defaultTo(this.map.props.targetYear, this.variable.years[0])
     }
 
     @computed get legendTitle() {
@@ -63,7 +111,7 @@ export default class MapData {
 		if (!variable.hasNumericValues || numBuckets <= 0)
 			return [];
 
-        let values = []
+        let values = _.clone(colorSchemeValues)
 		while (values.length < numBuckets)
 			values.push(0);
 		while (values.length > numBuckets)
@@ -110,6 +158,19 @@ export default class MapData {
 		return colors;
 	}
 
+    // Add default 'No data' category
+    @computed get categoricalValues() {
+        const {categoricalValues} = this.variable
+        if (!_.includes(categoricalValues, "No data"))
+            return ["No data"].concat(categoricalValues)
+        else
+            return categoricalValues
+    }
+
+    // Ensure there's always a custom color for "No data"
+    @computed get customCategoryColors(): {[key: string]: Color} {
+		return _.extend({}, this.map.customCategoryColors, { 'No data': this.map.noDataColor });
+    }
 
     @computed get legendData() {
 		// Will eventually produce something like this:
@@ -118,64 +179,40 @@ export default class MapData {
 		//  { type: 'categorical', value: 'Foobar', text: "Foobar Boop", color: '#bbbbbb'}]
 		var legendData = [];
 
-        const {map, variable, bucketMaximums, baseColors} = this
+        const {map, variable, bucketMaximums, baseColors, categoricalValues, customCategoryColors} = this
         const {isAutoBuckets, customBucketLabels, isCustomColors, customNumericColors, customCategoryLabels, customHiddenCategories, minBucketValue, noDataColor} = map
-        let customCategoryColors = _.clone(map.customCategoryColors)
-		let categoricalValues = _.clone(variable.categoricalValues)
 
         /*var unitsString = chart.model.get("units"),
             units = !_.isEmpty(unitsString) ? JSON.parse(unitsString) : {},
             yUnit = _.find(units, { property: 'y' });*/
 
 		// Numeric 'buckets' of color
-		if (!_.isEmpty(bucketMaximums)) {
-			var minValue = minBucketValue;
-			if (!_.isFinite(parseFloat(minValue))) minValue = 0;
-
-			for (var i = 0; i < bucketMaximums.length; i++) {
-				const baseColor = baseColors[i]
-				const color = defaultTo(customNumericColors[i], baseColor)
-				const maxValue = +bucketMaximums[i]
-				const label = customBucketLabels[i] || ""
-				const minText = minValue.toString()//owid.unitFormat(yUnit, minValue),
-				const maxText = maxValue.toString()//owid.unitFormat(yUnit, maxValue);
-
-				legendData.push({ type: 'numeric',
-								  min: _.isFinite(parseFloat(minValue)) ? +minValue : -Infinity, max: maxValue,
-								  minText: minText, maxText: maxText,
-								  label: label, text: label, baseColor: baseColor, color: color,
-                                  index: i,
-                                  contains: function(d) {
-                                    return d && (this.index == 0 ? d.value >= this.min : d.value > this.min) && d.value <= this.max
-                                  }});
-				minValue = maxValue;
-			}
-		}
-
-		// Add default 'No data' category
-		if (!_.includes(categoricalValues, 'No data')) categoricalValues.push('No data');
-		customCategoryColors = _.extend({}, customCategoryColors, { 'No data': noDataColor });
+        var minValue = minBucketValue;
+        for (var i = 0; i < bucketMaximums.length; i++) {
+            const baseColor = baseColors[i]
+            const color = defaultTo(customNumericColors[i], baseColor)
+            const maxValue = +bucketMaximums[i]
+            const label = customBucketLabels[i] || ""
+            legendData.push(new NumericBin({ index: i, min: minValue, max: maxValue, color: color, label: label }))
+            minValue = maxValue;
+        }
 
 		// Categorical values, each assigned a color
-		if (!_.isEmpty(categoricalValues)) {
-			for (var i = 0; i < categoricalValues.length; i++) {
-				var value = categoricalValues[i], boundingOffset = _.isEmpty(bucketMaximums) ? 0 : bucketMaximums.length-1,
-					baseColor = baseColors[i+boundingOffset],
-					color = customCategoryColors[value] || baseColor,
-					label = customCategoryLabels[value] || "",
-					text = label || value;
+        for (var i = 0; i < categoricalValues.length; i++) {
+            var value = categoricalValues[i], boundingOffset = _.isEmpty(bucketMaximums) ? 0 : bucketMaximums.length-1,
+                baseColor = baseColors[i+boundingOffset],
+                color = customCategoryColors[value] || baseColor,
+                label = customCategoryLabels[value] || "",
+                text = label || value;
 
-				legendData.push({ type: 'categorical', value: value, baseColor: baseColor, color: color, label: label, text: text, hidden: customHiddenCategories[value], contains: function(d) {
-                    return (d == null && value == 'No data') || d.value == this.value
-                }});
-			}
-		}
+            legendData.push(new CategoricalBin({ value: value, color: color, label: label, hidden: customHiddenCategories[value] }))
+        }
 
         return legendData
     }
 
-    // Get values for the current year
-    @computed get currentValuesByEntity() {
+    // Get values for the current year, without any color info yet
+    @computed get valuesByEntity() {
         const {map, variable, targetYear} = this
         const {tolerance} = map
         const {years, values, entities} = variable
@@ -198,14 +235,25 @@ export default class MapData {
 			};
 		}
 
-		/*if (currentValues.length) {
-			mapdata.minCurrentValue = _.minBy(_.values(currentValues), function(d, i) { return d.value; }).value;
-			mapdata.maxCurrentValue = _.maxBy(_.values(currentValues), function(d, i) { return d.value; }).value;
-			mapdata.minToleranceYear = _.minBy(_.values(currentValues), function(d, i) { return d.year; }).year;
-			mapdata.maxToleranceYear = _.maxBy(_.values(currentValues), function(d, i) { return d.year; }).year;
-		}*/
 		return currentValues
-	}    
+	}
+
+    // Get the final data incorporating the binning colors
+    @computed get choroplethData(): ChoroplethData {
+        const {valuesByEntity, legendData} = this
+        let choroplethData: ChoroplethData = {}
+
+        _.each(valuesByEntity, (datum, entity) => {
+            const bin = _.find(legendData, bin => bin.contains(datum))
+            if (!bin) return
+            choroplethData[entity] = _.extend({}, datum, {
+                color: bin.color,
+                highlightFillColor: bin.color
+            })
+        })
+
+        return choroplethData
+    }
 
     constructor(map: MapConfig, vardata: VariableData) {
         this.map = map

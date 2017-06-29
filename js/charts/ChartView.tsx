@@ -176,6 +176,7 @@ export default class ChartView extends React.Component<ChartViewProps, undefined
 
     getChildContext() {
         return { 
+            chart: this.chart,
             chartView: this, 
             isStatic: this.isExport, 
             addPopup: this.addPopup.bind(this), 

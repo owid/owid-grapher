@@ -6,12 +6,13 @@ import {observable, computed, action} from 'mobx'
 import {observer} from 'mobx-react'
 import ChoroplethMap, {ChoroplethData, MapProjection, GeoFeature, MapBracket, MapEntity} from './ChoroplethMap'
 import Timeline from './Timeline'
-import MapLegend, {MapLegendBin} from './MapLegend'
+import MapLegend from './MapLegend'
 import {preInstantiate, entityNameForMap} from './Util'
 import Header from './Header'
 import SourcesFooter from './SourcesFooter'
 import ChartConfig from './ChartConfig'
 import MapConfig from './MapConfig'
+import {MapLegendBin} from './MapData'
 
 interface TimelineMapProps {
     bounds: Bounds,
@@ -74,7 +75,7 @@ class TimelineMap extends React.Component<TimelineMapProps, undefined> {
     }
 
     @action.bound onTargetChange({targetStartYear}: {targetStartYear: number}) {
-        this.context.chartView.map.set('targetYear', targetStartYear)
+        this.context.chart.map.targetYear = targetStartYear
     }
 
     @action.bound onLegendMouseLeave() {
@@ -103,7 +104,6 @@ class TimelineMap extends React.Component<TimelineMapProps, undefined> {
         const { choroplethData, projection, defaultFill, legendTitle, legendData } = this.props
         let { bounds } = this.props
         const {focusBracket, focusEntity, timeline, timelineHeight, mapLegend} = this
-
         return <g className="mapTab">
             {/*<rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height-timelineHeight} fill="#ecf6fc"/>*/}
             <ChoroplethMap bounds={bounds.padBottom(timelineHeight+mapLegend.height+15)} choroplethData={choroplethData} projection={projection} defaultFill={defaultFill} onHover={this.onMapMouseOver} onHoverStop={this.onMapMouseLeave} onClick={this.onClick} focusBracket={focusBracket} focusEntity={focusEntity}/>
@@ -136,8 +136,8 @@ export default class MapTab extends React.Component<MapTabProps, undefined> {
             logosSVG={chart.logosSVG}
             entities={chart.selectedEntities}
             entityType={chart.entityType}
-            minYear={chart.map.targetYear}
-            maxYear={chart.map.targetYear}
+            minYear={chart.map.data.targetYear}
+            maxYear={chart.map.data.targetYear}
         />)
     }
 
@@ -159,17 +159,20 @@ export default class MapTab extends React.Component<MapTabProps, undefined> {
     }
 
     render() {
+        const {map} = this
+        if (!map.data) return null
+        
         const {chartView, bounds} = this.props
-        const {map, header, footer} = this
+        const {header, footer} = this
 
         return <g className="mapTab">
             <Header {...header.props}/>
             <TimelineMap
                 chartView={chartView}
                 bounds={bounds.padTop(header.height+5).padBottom(footer.height)}
-                choroplethData={map.data.currentValuesByEntity}
+                choroplethData={map.data.choroplethData}
                 years={map.data.years}
-                inputYear={map.targetYear}
+                inputYear={map.data.targetYear}
                 legendData={map.data.legendData}
                 legendTitle={map.data.legendTitle}
                 projection={map.projection}

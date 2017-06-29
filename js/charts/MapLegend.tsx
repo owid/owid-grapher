@@ -11,7 +11,6 @@ import {preInstantiate} from './Util'
 
 // XXX refactor mapdata and make this an actual data structure (or rather two)
 export interface MapLegendBin {
-    index: number,
     type: 'numeric' | 'categorical',
     value?: string,
     text?: string,
@@ -20,7 +19,6 @@ export interface MapLegendBin {
     max?: number,
     maxText?: string,
     color: string,
-    baseColor: string,
     hidden?: boolean
 }
 

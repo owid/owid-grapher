@@ -9,10 +9,10 @@ export default function(chart) {
     $tooltip.hide();
 
     tooltip.fromMap = function(d, ev) {
-        var datum = chart.mapdata.currentValues[d.id],
-            availableEntities = chart.vardata.get("availableEntities"),
+        var datum = chart.chart.map.data.choroplethData[d.id],
+            availableEntities = chart.chart.vardata.availableEntities,
             entity = _.find(availableEntities, function(e) {
-                return owid.entityNameForMap(e.name) == d.id;
+                return owid.entityNameForMap(e) == d.id;
             });
 
         if (!datum || !entity) {

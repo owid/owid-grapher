@@ -13,7 +13,7 @@ export type ChoroplethData = {
     [key:string]: {
         color: string,
         highlightFillColor: string,
-        value: number,
+        value: number|string,
         year: number
     }
 };
