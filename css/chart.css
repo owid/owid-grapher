@@ -305,11 +305,15 @@ a {
 }
 
 #chart .scatterControls .HighlightToggle {
+    margin: 0;
     padding-right: 0.5em;
     border-right: 1px solid #ccc;
 }
 
 #chart .scatterControls button {
+    margin: 0;
+    padding-top: 0.1em;
+    padding-bottom: 0.1em;
     padding-left: 0.5em;
 }
 
