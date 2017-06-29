@@ -9,6 +9,7 @@ import {observer} from 'mobx-react'
 import * as Cookies from 'js-cookie'
 import ChartConfig from './ChartConfig'
 import * as $ from 'jquery'
+import EntitySelect from './owid.view.entitySelect'
 
 declare const Global: any
 declare const App: any
@@ -134,7 +135,7 @@ class HighlightToggle extends React.Component<{ chart: ChartConfig }, undefined>
 
     render() {
         const {highlight, isHighlightActive} = this
-        return <label className="clickable">
+        return <label className="clickable HighlightToggle">
             <input type="checkbox" checked={isHighlightActive} onChange={this.onHighlightToggle}/> {highlight.description}
         </label>
     }
@@ -168,17 +169,30 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps,
         })
     }
 
+    entitySelect: EntitySelect = null
+    @action.bound onEntitySelect() {
+        const unselectedEntities = _.without(this.props.chart.scatterData.validEntities, ...this.props.chart.selectedEntities)
+        setTimeout(() => {
+            this.entitySelect = EntitySelect()
+            this.entitySelect.update({
+                containerNode: this.props.chartView.htmlNode,
+                entities: unselectedEntities.map(e => ({ name: e }))
+            });
+        }, 0)
+					//entitySelect.afterClean(function() { entitySelect = null; });
+    }
+
     render() {
         const {props, tabNames, isShareMenuActive} = this
         const {chart, chartView} = props
-
         return <div className="controlsFooter">
-            <div className="scatterControls">
-                {chart.highlightToggle && chartView.activeTabName == 'chart' && <HighlightToggle chart={chart}/>}
-                {/*<button className="btn btn-default">
-                    <i class="fa fa-search"/>
-                    Search
-                </button>*/}
+            <div className="scatterControls">            
+            {chart.type == App.ChartType.ScatterPlot && chartView.activeTabName == 'chart' && 
+                    [chart.highlightToggle && <HighlightToggle chart={chart}/>,
+                    <button onClick={this.onEntitySelect}>
+                        <i class="fa fa-search"/> Search
+                    </button>]
+            }
             </div>
             <nav className="tabs">
                 <ul>

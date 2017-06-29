@@ -98,7 +98,7 @@ export default class Axis extends React.Component<AxisProps, undefined> {
                 <text x={bounds.left+labelOffset} y={scale.place(tick)} fill={textColor} dominant-baseline="middle" text-anchor="start" font-size={Axis.tickFontSize}>{scale.tickFormat(tick)}</text>
             ),
             scale.scaleTypeOptions.length > 1 && 
-                <ScaleSelector x={bounds.left} y={bounds.top-10} scaleType={scale.scaleType} scaleTypeOptions={scale.scaleTypeOptions} onChange={onScaleTypeChange}/>                        
+                <ScaleSelector x={bounds.left} y={bounds.top-5} scaleType={scale.scaleType} scaleTypeOptions={scale.scaleTypeOptions} onChange={onScaleTypeChange}/>                        
         ]
     }
 

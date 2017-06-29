@@ -300,11 +300,17 @@ a {
     height: 100%;
     padding-left: 1em;
     font-size: 0.8em;
+    padding-top: 0.4em;
+    padding-bottom: 0.4em;
 }
 
-#chart .scatterControls label {
-    margin-bottom: 0.5em;
-    margin-top: 0.5em;
+#chart .scatterControls .HighlightToggle {
+    padding-right: 0.5em;
+    border-right: 1px solid #ccc;
+}
+
+#chart .scatterControls button {
+    padding-left: 0.5em;
 }
 
 #chart nav.tabs ul {
@@ -803,6 +809,7 @@ a {
     width: 100%;
     overflow-y: auto;
     border-top: 1px solid #e1e1e1;
+    z-index: 3;
 }
 
 #chart .entitySelect h2 {
