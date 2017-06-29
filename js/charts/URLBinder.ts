@@ -44,7 +44,6 @@ export default class URLBinder {
         this.origChart = toJS(chart.props)
         this.populateFromURL()
 
-
         // There is a surprisingly considerable performance overhead to updating the url
         // while animating, so we debounce to allow e.g. smoother timelines
         const pushParams = _.debounce(function(params: ChartQueryParams) {

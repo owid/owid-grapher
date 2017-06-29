@@ -102,7 +102,7 @@
     {% autoescape off %}
     <script type="text/javascript">
         var chartConfig = {{ chartconfig }};
-        var chartView = ChartView.bootstrap({ jsonConfig: chartConfig, containerNode: d3.select('.chart-container').node(), isEditor: true })
+        var chartView = ChartView.bootstrap({ jsonConfig: chartConfig, containerNode: document.getElementsByClassName('chart-container')[0], isEditor: true })
 		ChartEditorView.bootstrap({ chartView: chartView })
     </script>
     {% endautoescape %}

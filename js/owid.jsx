@@ -559,6 +559,48 @@ owid.transformElement = function(element, transform) {
 	element.style.transform = transform;
 };
 
+// MISPY: Extension of Backbone view to allow tracking of child views
+import Backbone from 'backbone'
+owid.View = Backbone.View.extend({
+	addChild: function(viewClass, options) {
+		this.children = this.children || [];
+
+		var child = new viewClass(options);
+		if (!_.isFunction(child.cleanup))
+			console.error("Attempted to add child without cleanup method");
+		this.children.push(child);
+		return child;
+	},
+
+	listenTo: function(obj, name, handler) {
+		if (obj.jquery) {
+			this.jqueryListens = this.jqueryListens || [];
+			this.jqueryListens.push({ obj: obj, name: name, handler: handler });
+			obj.on(name, handler);
+		} else {
+			Backbone.View.prototype.listenTo.apply(this, [obj, name, handler]);
+		}
+	},
+
+	cleanup: function() {
+		this.children = this.children || [];
+
+		this.stopListening();
+		this.undelegateEvents();
+
+		_.each(this.jqueryListens, function(binding) {
+			binding.obj.off(binding.name, binding.handler);
+		});
+		this.jqueryListens = [];
+
+		_.each(this.children, function(child) {
+			child.cleanup();
+		});
+		this.children = [];
+	},
+
+});
+
 owid.changeTracker = function(obj, trackedKeys) {
 	if (!trackedKeys) trackedKeys = _.keys(obj);
 
