@@ -1,4 +1,4 @@
-/* ChartEditorState.ts
+/* ChartEditor.ts
  * ================
  *
  * Mobx store that represents the current editor state and governs non-UI-related operations.
@@ -12,7 +12,24 @@ export interface ChartEditorProps {
     chart: ChartConfig
 }
 
-export default class ChartEditorState {
+   url: function(id) {
+        id = id || this.id;
+        if( $("#form-view").length ) {
+            if( id ) {
+                //editing existing
+                return Global.adminRootUrl + "/charts/" + id;
+            } else {
+                //saving new
+                return Global.adminRootUrl + "/charts";
+            }
+
+        } else {
+            // Pass any query parameters on to config
+            return Global.rootUrl + "/data/config/" + id + window.location.search;
+        }
+    },
+
+export default class ChartEditor {
     @observable.ref chart: ChartConfig
 
     // Whether the current chart state is saved or not
@@ -20,60 +37,62 @@ export default class ChartEditorState {
 
     // XXX refactor all of this
 	// @param newAttrs Attributes which will only be set on the model if the save is successful.
-	saveChart(newAttrs?: any) {
-		var formConfig = {
-			"entities-collection": App.AvailableEntitiesCollection.toJSON()
-		};
+	saveChart() {
+		const {chart} = this
+		var isNew = chart.model.isNew();
 
-		var isNew = App.ChartModel.isNew();
-
-		var prevAttrs = App.ChartModel.toJSON();
+		var prevAttrs = chart.model.toJSON();
 		var attrs = _.extend({}, prevAttrs, newAttrs);
 		attrs["form-config"] = formConfig;
-		App.ChartModel.set(attrs, { silent: true });
+		chart.model.set(attrs, { silent: true });
 
-		App.ChartModel.save({}, {
+		const targetUrl = isNew ? "/admin/charts" : `/admin/charts/${chart.id}`
+
+
+		App.postJSON(targetUrl, {
 			success: function (model, response, options) {
 				if (isNew) {
 					// New chart saved, switch to edit mode
-					window.location = App.ChartModel.url(response.data.id) + '/edit';
+					window.location = chart.model.url(response.data.id) + '/edit';
 				} else {
 					for (var key in newAttrs) {
-						App.ChartModel.trigger("change:" + key);
+						chart.model.trigger("change:" + key);
 					}
-					App.ChartModel.trigger("change");
+					chart.model.trigger("change");
 				}
                 this.isSaved = true
 			}.bind(this),
 			error: function (model, xhr, options) {
 				var $modal = owid.modal({ title: "Error saving chart", content: xhr.responseText });
 				$modal.addClass("error");
-				App.ChartModel.set(prevAttrs, { silent: true });
+				chart.model.set(prevAttrs, { silent: true });
 			}
 		});
 	}
 
     saveAsNewChart() {
+		const {chart} = this
+
 		var formConfig = {
 			"entities-collection": App.AvailableEntitiesCollection.toJSON()
 		};
 
-		App.ChartModel.set( "form-config", formConfig, { silent: true } );			
-		var origId = App.ChartModel.get('id'),
-			origPublished = App.ChartModel.get("published");
-		App.ChartModel.set({ id: null, published: null }, { silent: true });
+		chart.model.set( "form-config", formConfig, { silent: true } );			
+		var origId = chart.model.get('id'),
+			origPublished = chart.model.get("published");
+		chart.model.set({ id: null, published: null }, { silent: true });
 
 		// Need to open intermediary tab before AJAX to avoid popup blockers
 		var w = window.open("/", "_blank");
 
-		App.ChartModel.save({}, {
+		chart.model.save({}, {
 			success: function (model, response, options) {
-				w.location = App.ChartModel.url(response.data.id) + "/edit";
-				App.ChartModel.set({ id: origId, published: origPublished });
+				w.location = chart.model.url(response.data.id) + "/edit";
+				chart.model.set({ id: origId, published: origPublished });
 			},
 			error: function (model, xhr, options) {
 				w.close();
-				App.ChartModel.set({ id: origId, published: origPublished });
+				chart.model.set({ id: origId, published: origPublished });
 				var $modal = owid.modal({ title: "Error saving chart", content: xhr.responseText });
 				$modal.addClass("error");
 			}
@@ -81,7 +100,7 @@ export default class ChartEditorState {
     }
 
 	publishChart() {
-		var url = Global.rootUrl + "/" + App.ChartModel.get("slug");
+		var url = Global.rootUrl + "/" + chart.model.get("slug");
 		
 		var $modal = owid.modal();
 		$modal.find(".modal-title").html("Publish chart");
@@ -110,6 +129,6 @@ export default class ChartEditorState {
     constructor(props: ChartEditorProps) {
         this.chart = props.chart
 
-        App.ChartModel.on("change", e => this.isSaved = false)
+        this.chart.model.on("change", e => this.isSaved = false)
     }
 }

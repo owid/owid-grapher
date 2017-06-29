@@ -112,8 +112,6 @@ export default class ChartView extends React.Component<ChartViewProps, undefined
     chart: ChartConfig
     vardata: any
     data: any
-    map: any
-    mapdata: any
     url: any
     tooltip: any
     htmlNode: HTMLDivElement
@@ -124,26 +122,24 @@ export default class ChartView extends React.Component<ChartViewProps, undefined
         // XXX all of this stuff needs refactoring
         this.chart = new ChartConfig(props.jsonConfig)
         App.Colors = new Colors(this)
-//        this.map = App.MapModel
-//        this.mapdata = mapdata(this)
         this.url = new UrlBinder(this.chart)
         this.tooltip = tooltip(this)
 
         Bounds.baseFontSize = 22
         Bounds.baseFontFamily = "Helvetica, Arial"
 
-        reaction(
-            () => this.chart.tab,
-            tab => {
+        autorun(() => {
+            const tab = this.chart.tab
+
+            action(tab => {
                 if (tab == 'map' || tab == 'chart') {
                     this.primaryTabName = tab
                     this.overlayTabName = null
                 } else {
                     this.overlayTabName = tab
                 }
-            }
-        )
-
+            })(tab)
+        })
         //this.model.on('change', () => this.data.ready(() => this.forceUpdate()))
         //this.map.on('change', () => this.data.ready(() => this.forceUpdate()))
     }

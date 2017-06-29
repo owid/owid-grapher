@@ -40,6 +40,7 @@ export default class URLBinder {
 
     constructor(chart: ChartConfig) {
         this.chart = chart
+        return
         this.lastTabName = chart.tab
         this.origChart = toJS(chart.props)
         this.populateFromURL()

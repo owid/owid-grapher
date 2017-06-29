@@ -18,12 +18,12 @@ export default class Colors {
 
 		// Clear the color cache in the editor so chart creator can see the
 		// true final colors on the chart
-		if (chartView.isEditor) {
+		/*if (chartView.isEditor) {
 			App.ChartModel.on("change", function() {
 				this.colorCache = {};
 				this.colorIndex = 0;
 			}.bind(this));
-		}
+		}*/
 
 		// Make sure colors stay consistent on multi-variable "change country" charts
 		// e.g. https://ourworldindata.org/grapher/composition-of-tax-revenues-regional

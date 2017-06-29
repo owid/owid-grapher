@@ -8,7 +8,7 @@ import {clone} from 'lodash'
 import * as $ from 'jquery'
 import ChartType from '../charts/ChartType'
 import ChartView from '../charts/ChartView'
-import ChartEditorState, {ChartEditorStateProps} from './ChartEditorState'
+import ChartEditor, {ChartEditorProps} from './ChartEditor'
 import SaveButtons from './SaveButtons'
 
 declare const App: any
@@ -19,9 +19,9 @@ var	AvailableEntitiesCollection = App.Collections.AvailableEntitiesCollection,
 	StylingTabView = App.Views.Form.StylingTabView,
 	MapTabView = App.Views.Form.MapTabView;
 
-export default class ChartEditorView extends React.Component<{ editor: ChartEditorState }, undefined> {
+export default class ChartEditorView extends React.Component<{ editor: ChartEditor }, undefined> {
     static bootstrap({ chartView }: { chartView: ChartView }) {
-		const editor = new ChartEditorState({ chart: chartView.chart })
+		const editor = new ChartEditor({ chart: chartView.chart })
 		window.editor = editor
 		ReactDOM.render(<ChartEditorView editor={editor}/>, document.getElementById("form-view"))
     }
@@ -29,7 +29,7 @@ export default class ChartEditorView extends React.Component<{ editor: ChartEdit
     constructor(props: any) {
         super(props)
 
-		var formConfig = App.ChartModel.get("form-config");
+		/*var formConfig = App.ChartModel.get("form-config");
 
 		//create related models, either empty (when creating new chart), or prefilled from db (when editing existing chart)
 		if (formConfig && formConfig["entities-collection"]) {
@@ -39,7 +39,7 @@ export default class ChartEditorView extends React.Component<{ editor: ChartEdit
 		}
 
 		//create search collection
-		App.SearchDataCollection = new SearchDataCollection();
+		App.SearchDataCollection = new SearchDataCollection();*/
 	}
 
 	componentDidMount() {

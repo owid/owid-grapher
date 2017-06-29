@@ -8,15 +8,17 @@
 
 import * as _ from 'lodash'
 import colorbrewer from './owid.colorbrewer'
-import {observable} from 'mobx'
+import {observable, computed} from 'mobx'
 import MapProjection from './MapProjection'
+import Chart from './ChartConfig'
+import MapData from './MapData'
+import {defaultTo} from './Util'
 
 // Represents the actual entered configuration state in the editor
 export class MapConfigProps {
 	@observable.ref variableId?: number = undefined
 	@observable.ref targetYear?: number = undefined
 	@observable.ref targetYearMode: 'earliest'|'latest' = 'latest'
-	@observable.ref defaultYear?: number = undefined
 	@observable.ref timeTolerance?: number = 1
 	// timeRanges is a collection of objects specifying year ranges e.g.
 	//
@@ -29,11 +31,11 @@ export class MapConfigProps {
 	// Produces the years: 1980, 1990, 1995, 2000, 2005, 2007, 2008	
 	@observable.ref timeRanges: Object[] = []
 	// Name of an owid.colorbrewer scheme, may then be further customized	
-	@observable.ref baseColorScheme: string = "BuGn"
+	@observable.ref baseColorScheme?: string = "BuGn"
 	// Number of numeric intervals used to color data
-	@observable.ref colorSchemeInterval: number = 10
+	@observable.ref colorSchemeInterval?: number = 10
 	// Minimum value shown on map legend
-	@observable.ref colorSchemeMinValue?: string = undefined
+	@observable.ref colorSchemeMinValue?: number = undefined
 	@observable.ref colorSchemeValues: any[] = []
 	@observable.ref colorSchemeLabels: string[] = []
 	@observable.ref colorSchemeValuesAutomatic?: true = undefined
@@ -56,14 +58,45 @@ export class MapConfigProps {
 }
 
 export default class MapConfig {
-    @observable props: MapConfigProps = new MapConfigProps()
+	chart: Chart
 
-    update(props: Partial<MapConfigProps>) {
-        _.extend(this.props, props)
-    }
+	@computed get props() {
+		return _.extend(new MapConfigProps(), this.chart.props.map)
+	}
+
+	@computed get variableId() { return this.props.variableId }
+	@computed get targetYear() { return this.props.targetYear }
+	@computed get tolerance() { return defaultTo(this.props.timeTolerance, 0) }
+
+	@computed get numBuckets() { return defaultTo(this.props.colorSchemeInterval, 10) }
+	@computed get isAutoBuckets() { return defaultTo(this.props.colorSchemeValuesAutomatic, false) }
+	@computed get minBucketValue() { return this.props.colorSchemeMinValue }
+	@computed get colorSchemeValues() { return defaultTo(this.props.colorSchemeValues, []) }
+	@computed get isCustomColors() { return defaultTo(this.props.customColorsActive, false) }
+	@computed get customNumericColors(): string[] { return defaultTo(this.isCustomColors && this.props.customNumericColors, []) as string[] }
+	@computed get customCategoryColors() { return defaultTo(this.isCustomColors && this.props.customCategoryColors, {}) }
+	@computed get customHiddenCategories() { return defaultTo(this.props.customHiddenCategories, {}) }
+	@computed get bucketLabels() { return defaultTo(this.props.colorSchemeLabels, []) }
+	@computed get isColorSchemeInverted() { return defaultTo(this.props.colorSchemeInvert, false) }
+	@computed get customCategoryLabels() { return defaultTo(this.props.customCategoryLabels, {}) }
+	@computed get customBucketLabels() { return defaultTo(this.props.colorSchemeLabels, []) }
+	@computed get projection() { return defaultTo(this.props.projection, "World") }
+
+	@computed get baseColorScheme() { return this.props.baseColorScheme }
+	@computed get noDataColor() {
+		return defaultTo(this.props.customCategoryColors['No data'], "#adacac")
+	}
+
+	@computed get data() {
+		return this.chart.vardata.isReady && new MapData(this, this.chart.vardata)
+	}
+
+	constructor(chart: Chart) {
+		this.chart = chart
+	}
 }
 
-export default Backbone.Model.extend({
+/*export default Backbone.Model.extend({
 	bind: function(chartModel) {
 		this.chartModel = chartModel;
 
@@ -242,4 +275,4 @@ export default Backbone.Model.extend({
 		}
 		return colors;
 	},
-});
+});*/

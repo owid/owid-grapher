@@ -11,6 +11,7 @@ import {preInstantiate, entityNameForMap} from './Util'
 import Header from './Header'
 import SourcesFooter from './SourcesFooter'
 import ChartConfig from './ChartConfig'
+import MapConfig from './MapConfig'
 
 interface TimelineMapProps {
     bounds: Bounds,
@@ -121,11 +122,11 @@ interface MapTabProps {
 
 @observer
 export default class MapTab extends React.Component<MapTabProps, undefined> {
+    @computed get map(): MapConfig { return (this.props.chart.map as MapConfig) }
+
     @computed get header() {
         const {props} = this
         const {bounds, chart} = props
-
-        const targetYear = this.props.chartView.map.get('targetYear')
 
         return preInstantiate(<Header
             bounds={bounds}
@@ -135,8 +136,8 @@ export default class MapTab extends React.Component<MapTabProps, undefined> {
             logosSVG={chart.logosSVG}
             entities={chart.selectedEntities}
             entityType={chart.entityType}
-            minYear={targetYear}
-            maxYear={targetYear}
+            minYear={chart.map.targetYear}
+            maxYear={chart.map.targetYear}
         />)
     }
 
@@ -146,7 +147,7 @@ export default class MapTab extends React.Component<MapTabProps, undefined> {
 
         return preInstantiate(<SourcesFooter
             bounds={props.bounds}
-            chartView={props.chartView}
+            chart={chart}
             note={chart.note}
             originUrl={chart.originUrl}
          />)
@@ -159,22 +160,20 @@ export default class MapTab extends React.Component<MapTabProps, undefined> {
 
     render() {
         const {chartView, bounds} = this.props
-        const {header, footer} = this
-
-        chartView.mapdata.update()
+        const {map, header, footer} = this
 
         return <g className="mapTab">
             <Header {...header.props}/>
             <TimelineMap
                 chartView={chartView}
                 bounds={bounds.padTop(header.height+5).padBottom(footer.height)}
-                choroplethData={chartView.mapdata.currentValues}
-                years={chartView.map.getYears()}
-                inputYear={+chartView.map.get('targetYear')}
-                legendData={chartView.mapdata.legendData}
-                legendTitle={chartView.mapdata.legendTitle}
-                projection={chartView.map.get('projection')}
-                defaultFill={chartView.mapdata.getNoDataColor()}
+                choroplethData={map.data.currentValuesByEntity}
+                years={map.data.years}
+                inputYear={map.targetYear}
+                legendData={map.data.legendData}
+                legendTitle={map.data.legendTitle}
+                projection={map.projection}
+                defaultFill={map.noDataColor}
             />
             <SourcesFooter {...footer.props}/>
         </g>

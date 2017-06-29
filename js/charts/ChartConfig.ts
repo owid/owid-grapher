@@ -13,6 +13,7 @@ import LineType from './LineType'
 import {defaultTo} from './Util'
 import VariableData from './VariableData'
 import ChartData from './ChartData'
+import MapConfig, {MapConfigProps} from './MapConfig'
 
 export interface TimelineConfig {
     compareEndPointsOnly?: boolean
@@ -66,6 +67,8 @@ export class ChartConfigProps {
     @observable.ref logosSVG: string[] = []
     @observable.ref originUrl?: string = undefined
     @observable.ref isPublished?: true = undefined
+
+    @observable.ref map?: MapConfigProps = undefined
 }
 
 // In-progress mobx model layer that will eventually replace ChartModel
@@ -172,6 +175,7 @@ export default class ChartConfig {
         this.props.logosSVG = props['logosSVG']
         this.props.originUrl = props['data-entry-url']
         this.props.isPublished = props['published']
+        this.props.map = props['map-config']
 
         this.props.selectedEntities = props['selected-countries'].map((e: any) => e.name)
         this.props.entityColors = {}
@@ -204,12 +208,17 @@ export default class ChartConfig {
         this.variableCacheTag = props["variableCacheTag"]
     }
 
+    @computed get map() {
+        return this.props.hasMapTab && new MapConfig(this)
+    }
+
 	constructor(props: ChartConfigProps) {        
         this.xAxis = new AxisConfig()
         this.yAxis = new AxisConfig()
         this.update(props)
         this.vardata = new VariableData(this)
         this.data = new ChartData(this, this.vardata)
+        
         window.chart = this
         
         // TODO fix this. Colors shouldn't be part of selectedEntities
