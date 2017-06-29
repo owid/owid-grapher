@@ -410,9 +410,9 @@ owid.getLengthForPoint = function(path, pointNum) {
 	return phantomPath.getTotalLength();
 };
 
-owid.getQueryParams = function() {
-	var queryStr = window.location.search.substring(1),
-		querySplit = _.filter(queryStr.split("&"), function(s) { return !_.isEmpty(s); }),
+owid.getQueryParams = function(queryStr) {
+	queryStr = queryStr || window.location.search.substring(1)
+	var querySplit = _.filter(queryStr.split("&"), function(s) { return !_.isEmpty(s); }),
 		params = {};
 
 	for (var i = 0; i < querySplit.length; i++) {

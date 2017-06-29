@@ -4,21 +4,24 @@ import * as React from 'react'
 import {observable, computed, action, toJS, autorun} from 'mobx'
 import {observer} from 'mobx-react'
 import Timeline from '../charts/Timeline'
-import ChartConfig, {TimelineConfig} from '../charts/ChartConfig'
+import ChartConfig, {TimelineConfig, HighlightToggleConfig} from '../charts/ChartConfig'
 import {ComparisonLineConfig} from '../charts/ComparisonLine'
 
 @observer
 export default class ScatterTab extends React.Component<{ chart: ChartConfig }, undefined> {
     @observable timeline: TimelineConfig = {}
     @observable comparisonLine: ComparisonLineConfig = {}
-    
+    @observable highlightToggle: HighlightToggleConfig = {}
+
     @computed get hasTimeline() { return !!this.props.chart.timeline }
     @computed get hasComparisonLine() { return !!this.props.chart.comparisonLine }
+    @computed get hasHighlightToggle() { return !!this.props.chart.highlightToggle }
 
     constructor(props: { chart: ChartConfig }) {
         super(props)
         _.extend(this.timeline, props.chart.timeline)
         _.extend(this.comparisonLine, props.chart.comparisonLine)
+        _.extend(this.highlightToggle, props.chart.highlightToggle)
     }
 
     componentDidMount() {
@@ -44,13 +47,22 @@ export default class ScatterTab extends React.Component<{ chart: ChartConfig }, 
             this.props.chart.comparisonLine = null
     }
 
+    @action.bound onToggleHighlightToggle(e: React.ChangeEvent<HTMLInputElement>) {
+        if (e.target.checked)
+            this.props.chart.highlightToggle = this.highlightToggle
+        else
+            this.props.chart.highlightToggle = null
+    }
+
     save() {
         if (this.hasTimeline)
             this.props.chart.timeline = toJS(this.timeline)
 
-        if (this.hasComparisonLine) {
+        if (this.hasComparisonLine)
             this.props.chart.comparisonLine = toJS(this.comparisonLine)
-        }
+
+        if (this.hasHighlightToggle)
+            this.props.chart.highlightToggle = toJS(this.highlightToggle)
     }
 
     setLineCoord(key, value) {
@@ -63,7 +75,7 @@ export default class ScatterTab extends React.Component<{ chart: ChartConfig }, 
     }
 
     render() {
-        const {hasTimeline, hasComparisonLine, timeline, comparisonLine} = this
+        const {hasTimeline, hasComparisonLine, hasHighlightToggle, timeline, comparisonLine, highlightToggle} = this
         const {chart} = this.props
 
         return <div id="scatter-tab" className="tab-pane">
@@ -80,6 +92,14 @@ export default class ScatterTab extends React.Component<{ chart: ChartConfig }, 
                 {hasComparisonLine && <div>
                     <label>y= <input type="text" value={comparisonLine.yEquals} placeholder="x" onChange={e => { this.comparisonLine.yEquals = e.target.value; this.save() }}/></label>
                 </div>}
+                <h2>Highlight toggle</h2>
+                <p className="form-section-desc">Allow users to toggle a particular chart selection state to highlight certain entities.</p>
+                <label className="clickable"><input type="checkbox" checked={!!hasHighlightToggle} onChange={this.onToggleHighlightToggle}/> Enable highlight toggle</label>
+                {hasHighlightToggle && <div>
+                    <label>Description <input type="text" value={highlightToggle.description} onChange={e => { this.highlightToggle.description = e.target.value; this.save() }}/></label>
+                    <label>URL Params <input type="text" value={highlightToggle.paramStr} onChange={e => { this.highlightToggle.paramStr = e.target.value; this.save() }} placeholder="e.g. ?country=AFG"/></label>
+                </div>}
+                
             </section>
         </div>
     }

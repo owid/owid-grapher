@@ -104,14 +104,52 @@ interface ControlsFooterProps {
     onTabChange: (tabName: string) => void
 }
 
+class HighlightToggle extends React.Component<{ chart: ChartConfig }, undefined> {
+    @computed get chartView() { return window.chart }
+    @computed get chart() { return this.props.chart }
+    @computed get highlight() { return this.chart.highlightToggle }
+
+    @computed get highlightParams() {
+        return owid.getQueryParams(this.highlight.paramStr.substring(1))
+    }
+
+    @action.bound onHighlightToggle(e) {
+        if (e.target.checked) {
+            const params = owid.getQueryParams()
+            this.chartView.url.populateFromURL(_.extend(params, this.highlightParams))
+        } else {
+            this.chart.selectedEntities = []
+        }
+    }
+
+    get isHighlightActive() {
+        const params = owid.getQueryParams()
+        let isActive = true
+        _.keys(this.highlightParams).forEach((key) => {
+            console.log(params, key, params[key], this.highlightParams[key])
+            if (params[key] != this.highlightParams[key])
+                isActive = false
+        })
+        return isActive
+    }
+
+    render() {
+        const {highlight, isHighlightActive} = this
+        return <label className="clickable">
+            <input type="checkbox" checked={isHighlightActive} onChange={this.onHighlightToggle}/> {highlight.description}
+        </label>
+    }
+}
+
 @observer
-export default class ControlsFooter extends React.Component<ControlsFooterProps, null> {
+export default class ControlsFooter extends React.Component<ControlsFooterProps, undefined> {
     @computed get tabNames() : string[] {
         return this.props.availableTabs
     }
 
     @computed get height() {
-        return Bounds.forText("CHART", { fontSize: 16*this.props.chartView.scale +'px' }).height*2/this.props.chartView.scale
+        const height = Bounds.forText("CHART", { fontSize: 16*this.props.chartView.scale +'px' }).height*2/this.props.chartView.scale
+        return height*2
     }
 
     @observable isShareMenuActive: boolean = false
@@ -130,7 +168,16 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps,
 
     render() {
         const {props, tabNames, isShareMenuActive} = this
+        const {chart, chartView} = props
+
         return <div className="controlsFooter">
+            <div className="scatterControls" style={{paddingLeft: '5px', fontSize: "0.8em"}}>
+                {chart.highlightToggle && chartView.activeTabName == 'chart' && <HighlightToggle chart={chart}/>}
+                <button className="btn btn-default">
+                    <i class="fa fa-search"/>
+                    Search
+                </button>
+            </div>
             <nav className="tabs">
                 <ul>
                     {_.map(tabNames, (tabName) => {

@@ -9,6 +9,11 @@ export interface TimelineConfig {
     compareEndPointsOnly?: boolean
 }
 
+export interface HighlightToggleConfig {
+    description: string
+    paramStr: stirng
+}
+
 // In-progress mobx model layer that will eventually replace ChartModel
 export default class ChartConfig {
     @observable.ref type: string
@@ -47,6 +52,9 @@ export default class ChartConfig {
     @observable.ref dimensionsWithData: Object[]
     @observable.ref addCountryMode: 'add-country'|'change-country'|'disabled' = 'add-country'
     @observable.ref comparisonLine: ComparisonLineConfig|null
+
+    @observable.ref highlightToggle: HighlightToggleConfig|undefined
+    
 
 	model: any
 
@@ -132,6 +140,7 @@ export default class ChartConfig {
         this.dimensions = this.model.get('chart-dimensions')        
         this.addCountryMode = this.model.get('add-country-mode')
         this.comparisonLine = this.model.get("comparisonLine")
+        this.highlightToggle = this.model.get("highlightToggle")
     }
 
 	constructor(model : any, data: any) {
@@ -189,6 +198,10 @@ export default class ChartConfig {
 
         autorun(() => {
             this.model.set('comparisonLine', toJS(this.comparisonLine))
+        })
+
+        autorun(() => {
+            this.model.set('highlightToggle', toJS(this.highlightToggle))
         })
 
         autorun(() => {            

@@ -283,9 +283,20 @@ a {
     z-index: 2;
 }
 
+#chart.landscape .controlsFooter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#chart.portrait .scatterControls {
+    border-bottom: 1px solid #e1e1e1;
+}
+
 #chart nav.tabs ul {
     margin: 0;
     padding: 0;
+    display: flex;
 }
 
 #chart nav.tabs li {
@@ -312,14 +323,6 @@ a {
 
 #chart nav.tabs li.active {
     border-bottom-color: rgba(0,33,71,.9);
-}
-
-#chart.landscape nav.tabs {
-    float: right;
-}
-
-#chart.landscape nav.tabs li {
-    float: left;
 }
 
 #chart.landscape nav.tabs li > a {
