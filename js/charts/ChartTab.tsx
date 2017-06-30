@@ -24,18 +24,6 @@ import DiscreteBarChart from './DiscreteBarChart'
 
 
 export default class ChartTab extends React.Component<{ chartView: ChartView, chart: ChartConfig }, undefined> {
-    componentDidMount() {
-        this.componentDidUpdate()
-    }
-
-    componentDidUpdate() {
-		this.props.onRenderEnd && this.props.onRenderEnd()
-    }
-
-    componentWillUnmount() {
-        this.chartTab.clean()
-    }
-
     @computed get header() {
         const {props} = this
         const {bounds, chart} = props
@@ -566,9 +554,6 @@ const chartTabOld = function(chartView: ChartView) {
 				chartView.model.focusToggleLegendKey(d.key);
 			});
 		}
-
-        if (chartTab.onRenderEnd)
-            chartTab.onRenderEnd()
 	}
 
 	return chartTab;

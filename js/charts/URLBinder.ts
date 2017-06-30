@@ -32,7 +32,6 @@ interface ChartQueryParams {
 
 export default class URLBinder {
     chart: ChartConfig
-
     lastTabName: ChartTabOption
     origChart: ChartConfigProps
     chartQueryStr: string = "?"
@@ -40,10 +39,9 @@ export default class URLBinder {
 
     constructor(chart: ChartConfig) {
         this.chart = chart
-        return
         this.lastTabName = chart.tab
         this.origChart = toJS(chart.props)
-        this.populateFromURL()
+        this.populateFromURL(getQueryParams())
 
         // There is a surprisingly considerable performance overhead to updating the url
         // while animating, so we debounce to allow e.g. smoother timelines
@@ -55,6 +53,22 @@ export default class URLBinder {
             pushParams(params)
         })
     }
+
+
+    // Autocomputed url params to reflect difference between current chart state
+    // and original config state
+    @computed.struct get params(): ChartQueryParams {
+        const params: ChartQueryParams = {}
+        const {chart, origChart} = this
+
+        params.tab = chart.props.tab == origChart.tab ? undefined : chart.tab
+        params.xScale = chart.props.xAxis.scaleType == origChart.xAxis.scaleType ? undefined : chart.xAxis.scaleType
+        params.yScale = chart.props.yAxis.scaleType == origChart.yAxis.scaleType? undefined : chart.yAxis.scaleType
+        params.time = this.timeParam
+        params.country = this.countryParam
+
+        return params
+    }    
 
     @computed get timeParam(): string|undefined {
         const {timeDomain} = this.chart.props
@@ -71,9 +85,9 @@ export default class URLBinder {
 
     @computed get countryParam(): string|undefined {
         const {chart, origChart} = this
-        if (this.chart.vardata.isReady && !_.isEqual(chart.props.selectedEntities, origChart.selectedEntities)) {
+        if (chart.vardata.isReady && !_.isEqual(chart.props.selectedEntities, origChart.selectedEntities)) {
             function getCode(entity: EntityKey) { 
-                const meta = this.chart.vardata.entityMetaByKey[entity]
+                const meta = chart.vardata.entityMetaByKey[entity]
                 return meta ? meta.code : entity
             }
             const codes = chart.selectedEntities.map(getCode).map(encodeURIComponent)
@@ -82,19 +96,6 @@ export default class URLBinder {
             return undefined
         }
     }
-
-    @computed.struct get params(): ChartQueryParams {
-        const params: ChartQueryParams = {}
-        const {chart, origChart} = this
-
-        params.tab = chart.props.tab == origChart.tab ? undefined : chart.tab
-        params.xScale = chart.props.xAxis.scaleType == origChart.xAxis.scaleType ? undefined : chart.xAxis.scaleType
-        params.yScale = chart.props.yAxis.scaleType == origChart.yAxis.scaleType? undefined : chart.yAxis.scaleType
-        params.time = this.timeParam
-        params.country = this.countryParam
-
-        return params
-    }    
 
     /**
      * Set e.g. &shown=Africa when the user selects Africa on a stacked area chartView or other
@@ -133,8 +134,8 @@ export default class URLBinder {
     /**
      * Apply any url parameters on chartView startup
      */    
-    populateFromURL() {
-        const {params, chart} = this
+    populateFromURL(params: ChartQueryParams) {
+        const {chart} = this
 
         // Set tab if specified
         const tab = params.tab;
@@ -212,65 +213,3 @@ export default class URLBinder {
         }
     }
 }
-
-export function foof(chartView: ChartView) {
-    const {chart} = chartView
-    function urlBinder() { }
-
-    // Keep the query params separate between map and the other tabs
-
-    urlBinder.mapQueryStr = '?';
-    urlBinder.chartQueryStr = '?';
-
-    var origConfig = null;
-
-    function initialize() {
-        origConfig = _.clone(chartView.model.attributes);
-
-        chartView.model.on("change:selected-countries", updateCountryParam);
-        chartView.model.on("change:activeLegendKeys", updateLegendKeys);
-        //chartView.map.on("change:targetYear", updateYearParam);
-        //chartView.map.on("change:mode change:projection change:isColorblind", updateMapParams);
-        chartView.model.on("change:currentStackMode", updateStackMode);
-        chartView.model.on("change:chart-time", updateTime);
-        autorun(populateFromURL)
-
-        $(window).on('query-change', function() {
-            var tabName = chart.tab;
-            if (tabName == 'chart' || tabName == 'map')
-                urlBinder.lastQueryStr = window.location.search;
-        });
-        autorun(() => onTabChange())
-
-    };
-
-
-
-
-    function updateCountryParam() {
-
-    }
-    urlBinder.updateCountryParam = updateCountryParam;
-
-
-    /**
-     * Set e.g. &time=1990 when the user uses the slider to go to 1990
-     */
-    function updateTime() {
-
-    }
-
-    /**
-     * Special config for stacked area chartViews
-     */
-    function updateStackMode() {
-        var stackMode = chartView.model.get("currentStackMode");
-        if (stackMode != origConfig.currentStackMode)
-            setQueryVariable("stackMode", stackMode);
-        else
-            setQueryVariable("stackMode", null);
-    }
-
-    initialize();
-    return urlBinder;
-};

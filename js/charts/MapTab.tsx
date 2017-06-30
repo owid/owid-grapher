@@ -4,7 +4,7 @@ import * as d3 from 'd3'
 import Bounds from './Bounds'
 import {observable, computed, action} from 'mobx'
 import {observer} from 'mobx-react'
-import ChoroplethMap, {ChoroplethData, MapProjection, GeoFeature, MapBracket, MapEntity} from './ChoroplethMap'
+import ChoroplethMap, {ChoroplethData, GeoFeature, MapBracket, MapEntity} from './ChoroplethMap'
 import Timeline from './Timeline'
 import MapLegend from './MapLegend'
 import {preInstantiate, entityNameForMap} from './Util'
@@ -13,6 +13,7 @@ import SourcesFooter from './SourcesFooter'
 import ChartConfig from './ChartConfig'
 import MapConfig from './MapConfig'
 import {MapLegendBin} from './MapData'
+import MapProjection from './MapProjection'
 
 interface TimelineMapProps {
     bounds: Bounds,
@@ -116,8 +117,7 @@ class TimelineMap extends React.Component<TimelineMapProps, undefined> {
 interface MapTabProps {
     chartView: any,
     chart: ChartConfig,
-    bounds: Bounds,
-    onRenderEnd: () => void
+    bounds: Bounds
 }
 
 @observer
@@ -151,11 +151,6 @@ export default class MapTab extends React.Component<MapTabProps, undefined> {
             note={chart.note}
             originUrl={chart.originUrl}
          />)
-    }
-
-    componentDidMount() {
-        if (this.props.onRenderEnd)
-            this.props.onRenderEnd()
     }
 
     render() {

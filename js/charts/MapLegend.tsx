@@ -8,19 +8,7 @@ import {getRelativeMouse} from './Util'
 import Paragraph from './Paragraph'
 import Text from './Text'
 import {preInstantiate} from './Util'
-
-// XXX refactor mapdata and make this an actual data structure (or rather two)
-export interface MapLegendBin {
-    type: 'numeric' | 'categorical',
-    value?: string,
-    text?: string,
-    min?: number,
-    minText?: string,
-    max?: number,
-    maxText?: string,
-    color: string,
-    hidden?: boolean
-}
+import {MapLegendBin} from './MapData'
 
 interface NumericMapLegendProps {
     x?: number,
@@ -48,7 +36,7 @@ interface NumericLabel {
 }
 
 @observer
-class NumericMapLegend extends React.Component<NumericMapLegendProps, null> {
+class NumericMapLegend extends React.Component<NumericMapLegendProps, undefined> {
     g: SVGGElement
 
     @computed get numericLegendData(): MapLegendBin[] { return this.props.legendData.filter(l => l.type == "numeric") }
@@ -276,7 +264,7 @@ interface MarkLine {
 }
 
 @observer
-class CategoricalMapLegend extends React.Component<CategoricalMapLegendProps, null> {
+class CategoricalMapLegend extends React.Component<CategoricalMapLegendProps, undefined> {
     @computed get markLines(): MarkLine[] {
         const props = this.props, rectSize = 10*props.scale,
               rectPadding = 3, markPadding = 5, fontSize = (0.45*props.scale)+"em"
@@ -375,7 +363,7 @@ export interface MapLegendProps {
 }
 
 @observer
-export default class MapLegend extends React.Component<MapLegendProps, null> {
+export default class MapLegend extends React.Component<MapLegendProps, undefined> {
     @computed get numericLegendData(): MapLegendBin[] {
         if (this.hasCategorical || !_.some(this.props.legendData, d => d.value == "No data" && !d.hidden)) {
             return this.props.legendData.filter(l => l.type == "numeric" && !l.hidden)

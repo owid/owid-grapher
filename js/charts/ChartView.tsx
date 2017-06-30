@@ -189,9 +189,9 @@ export default class ChartView extends React.Component<ChartViewProps, undefined
         const {primaryTabName, svgBounds} = this
 
         if (primaryTabName == 'chart')
-            return <ChartTab bounds={bounds} chartView={this} chart={this.chart} onRenderEnd={this.props.onRenderEnd}/>
+            return <ChartTab bounds={bounds} chartView={this} chart={this.chart}/>
         else
-            return <MapTab bounds={bounds} chartView={this} chart={this.chart} onRenderEnd={this.props.onRenderEnd}/>
+            return <MapTab bounds={bounds} chartView={this} chart={this.chart}/>
     }
 
     renderOverlayTab(bounds: Bounds) {

@@ -24,8 +24,8 @@ export class NumericBin {
     get maxText() { return this.max.toString() }
     get type() { return 'numeric' }
 
-    contains(d: MapDataValue) {
-        return (this.index == 0 ? d.value >= this.min : d.value > this.min) && d.value <= this.max
+    contains(d: MapDataValue|null) {
+        return d && (this.index == 0 ? d.value >= this.min : d.value > this.min) && d.value <= this.max
     }
 
     constructor({ index, min, max, label, color }: { index: number, min: number, max: number, label: string, color: Color }) {
