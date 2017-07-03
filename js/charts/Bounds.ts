@@ -80,7 +80,7 @@ export default class Bounds {
         return bounds
     }
 
-    static debug(boundsArray: Bounds[], containerNode: HTMLElement = null) {
+    static debug(boundsArray: Bounds[], containerNode?: HTMLElement) {
         var container = containerNode ? d3.select(containerNode) : d3.select('svg');
 
         container.selectAll('rect.boundsDebug').remove()

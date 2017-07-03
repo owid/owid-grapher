@@ -16,7 +16,6 @@ import VariableData from './VariableData'
 import ChartData from './ChartData'
 import Colors from './App.Models.Colors'
 import UrlBinder from './URLBinder'
-import mapdata from './owid.models.mapdata'
 import tooltip from './owid.view.tooltip'
 import Bounds from './Bounds'
 import {preInstantiate, VNode} from './Util'
@@ -108,13 +107,11 @@ export default class ChartView extends React.Component<ChartViewProps, undefined
     @observable overlayTabName: ChartTabOption|null = null
     @observable popups: VNode[] = []
 
-    model: any
     chart: ChartConfig
-    vardata: any
-    data: any
     url: any
     tooltip: any
     htmlNode: HTMLDivElement
+    svgNode: SVGSVGElement
     base: HTMLDivElement
 
     constructor(props: ChartViewProps) {
@@ -129,16 +126,15 @@ export default class ChartView extends React.Component<ChartViewProps, undefined
         Bounds.baseFontFamily = "Helvetica, Arial"
 
         autorun(() => {
-            const tab = this.chart.tab
-
-            action(tab => {
+            const tabName = this.chart.tab
+            action((tab: ChartTabOption) => {
                 if (tab == 'map' || tab == 'chart') {
                     this.primaryTabName = tab
                     this.overlayTabName = null
                 } else {
                     this.overlayTabName = tab
                 }
-            })(tab)
+            })(tabName)
         })
         //this.model.on('change', () => this.data.ready(() => this.forceUpdate()))
         //this.map.on('change', () => this.data.ready(() => this.forceUpdate()))

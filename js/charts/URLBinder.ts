@@ -32,14 +32,12 @@ interface ChartQueryParams {
 
 export default class URLBinder {
     chart: ChartConfig
-    lastTabName: ChartTabOption
     origChart: ChartConfigProps
     chartQueryStr: string = "?"
     mapQueryStr: string = "?"
 
     constructor(chart: ChartConfig) {
         this.chart = chart
-        this.lastTabName = chart.tab
         this.origChart = toJS(chart.props)
         this.populateFromURL(getQueryParams())
 
@@ -54,7 +52,6 @@ export default class URLBinder {
         })
     }
 
-
     // Autocomputed url params to reflect difference between current chart state
     // and original config state
     @computed.struct get params(): ChartQueryParams {
@@ -64,14 +61,27 @@ export default class URLBinder {
         params.tab = chart.props.tab == origChart.tab ? undefined : chart.tab
         params.xScale = chart.props.xAxis.scaleType == origChart.xAxis.scaleType ? undefined : chart.xAxis.scaleType
         params.yScale = chart.props.yAxis.scaleType == origChart.yAxis.scaleType? undefined : chart.yAxis.scaleType
+        params.year = this.yearParam
         params.time = this.timeParam
         params.country = this.countryParam
 
         return params
     }    
 
+    @computed get yearParam(): string|undefined {
+        const {chart, origChart} = this
+
+        if (chart.tab == 'map' && chart.props.map && origChart.map && chart.props.map.targetYear != origChart.map.targetYear) {
+            return _.toString(chart.props.map.targetYear)
+        } else {
+            return undefined
+        }
+    }
+
     @computed get timeParam(): string|undefined {
-        const {timeDomain} = this.chart.props
+        const {chart} = this
+
+        const {timeDomain} = chart.props
         if (!_.isEqual(timeDomain, this.origChart.timeDomain)) {
             if (_.isFinite(timeDomain[0]) && _.isFinite(timeDomain[1]) && timeDomain[0] != timeDomain[1]) {
                 return timeDomain[0] + ".." + timeDomain[1]

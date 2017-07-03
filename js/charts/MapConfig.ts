@@ -54,9 +54,7 @@ export default class MapConfig {
 	}
 
 	@computed get variableId() { return this.props.variableId }
-	@computed get targetYear() { return this.props.targetYear }
 	@computed get tolerance() { return defaultTo(this.props.timeTolerance, 0) }
-
 	@computed get numBuckets() { return defaultTo(this.props.colorSchemeInterval, 10) }
 	@computed get isAutoBuckets() { return defaultTo(this.props.colorSchemeValuesAutomatic, false) }
 	@computed get minBucketValue() { return +defaultTo(this.props.colorSchemeMinValue, 0) }

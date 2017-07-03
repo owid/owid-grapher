@@ -105,7 +105,7 @@ export function unitFormat(unit: any, value: any, options?: any): string {
             const unitFormat = parseInt(unit.format)
 			if (_.isFinite(unitFormat) && unitFormat >= 0) {
 				var fixed = Math.min(20, unit.format);
-				value = d3.format(",." + fixed + "f")(value);
+				value = d3.format("." + fixed + "f")(value);
 			} else {
 				value = d3.format(",")(value);
 			}

@@ -47,6 +47,10 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
         return this.props.localData
     }
 
+    @computed get focusData(): LineChartSeries[] {
+        return this.localData.filter(d => _.includes(this.chart.selectedEntities, d.key))
+    }
+
     @computed get allValues(): LineChartValue[] {
         return _.flatten(_.map(this.localData, series => series.values))
     }
@@ -63,20 +67,20 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
         const _this = this
         return new ColorLegend({
             maxWidth: 300,
-            get items() { return _this.localData }
+            get items() { return _this.focusData }
         })
     }
 
     render() {
-        const {chart, bounds, localData, xDomainDefault, yDomainDefault, legend} = this
+        const {chart, bounds, localData, focusData, xDomainDefault, yDomainDefault, legend} = this
 
         const xAxis = chart.xAxis.toSpec({ defaultDomain: xDomainDefault })
         const yAxis = chart.yAxis.toSpec({ defaultDomain: yDomainDefault })
-        const axisBox = new AxisBox({bounds: bounds.padRight(legend.width), xAxis, yAxis})
+        const axisBox = new AxisBox({bounds: bounds.padRight(10), xAxis, yAxis}) //.padRight(legend.width)
 
         console.log(bounds.right-legend.width, bounds.top)
         return <g className="LineChart">
-            <ColorLegendView x={bounds.right-legend.width} y={bounds.top} legend={legend}/>
+            {/*<ColorLegendView x={bounds.right-legend.width} y={bounds.top} legend={legend}/>*/}
             <StandardAxisBoxView axisBox={axisBox} chart={chart}/>
             <Lines xScale={axisBox.xScale} yScale={axisBox.yScale} data={localData}/>
         </g>

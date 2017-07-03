@@ -27,8 +27,12 @@ class Variable {
 		return _.some(this.values, v => _.isFinite(v))
 	}
 
-	@computed get categoricalValues() {
-		return _.sortBy(_.filter(this.values, v => _.isString(v)))
+	@computed get numericValues(): number[] {
+		return _.sortBy(_.filter(this.values, v => _.isNumber(v))) as number[]
+	}	
+
+	@computed get categoricalValues(): string[] {
+		return _.sortBy(_.filter(this.values, v => _.isString(v))) as string[]
 	}
 
 	@computed get hasCategoricalValues() {
@@ -44,11 +48,11 @@ class Variable {
 	}
 
 	@computed get minValue() {
-		return _.min(this.values)
+		return _.min(this.numericValues)
 	}
 
 	@computed get maxValue() {
-		return _.max(this.values)
+		return _.max(this.numericValues)
 	}
 
 	@computed get isNumeric() {

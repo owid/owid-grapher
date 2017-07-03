@@ -45,19 +45,15 @@ class TimelineMap extends React.Component<TimelineMapProps, undefined> {
 
     @action.bound onClick(d: GeoFeature) {
         const {chartView} = this.props
-        if (chartView.isMobile || !_.includes(chartView.model.get("tabs"), "chart")) return;
+        const {chart} = chartView
 
-        var entityName = d.id,
-            availableEntities = chartView.vardata.get("availableEntities"),
-            entity = _.find(availableEntities, function(e: any) {
-                return entityNameForMap(e.name) == d.id;
-            });
+        if (chartView.isMobile || !chart.hasChartTab) return;
+
+        const entity = _.find(chart.vardata.availableEntities, e => entityNameForMap(e) == d.id)
 
         if (!entity) return
-        chartView.model.set({ "selected-countries": [entity] }, { silent: true })
-        chartView.data.chartData = null
-        chartView.activeTabName = 'chart'
-        chartView.url.updateCountryParam()
+        chart.selectedCountries = [entity]
+        chart.tab = 'chart'
     }
 
     componentDidMount() {
@@ -125,9 +121,11 @@ export default class MapTab extends React.Component<MapTabProps, undefined> {
     @computed get map(): MapConfig { return (this.props.chart.map as MapConfig) }
 
     @computed get header() {
-        const {props} = this
+        const {props, map} = this
         const {bounds, chart} = props
 
+        if (!map.data) return null
+        
         return preInstantiate(<Header
             bounds={bounds}
             titleTemplate={chart.title}
@@ -135,9 +133,8 @@ export default class MapTab extends React.Component<MapTabProps, undefined> {
             subtitleTemplate={chart.subtitle}
             logosSVG={chart.logosSVG}
             entities={chart.selectedEntities}
-            entityType={chart.entityType}
-            minYear={chart.map.data.targetYear}
-            maxYear={chart.map.data.targetYear}
+            minYear={map.data.targetYear}
+            maxYear={map.data.targetYear}
         />)
     }
 

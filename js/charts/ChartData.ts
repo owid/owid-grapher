@@ -15,6 +15,10 @@ export default class ChartData {
 		this.vardata = vardata
 	}
 
+	@computed get availableEntities() {
+		return this.vardata.availableEntities
+	}
+
 	@computed get data() {
 		const {chart, vardata} = this
 		const {variablesById} = vardata
@@ -77,13 +81,13 @@ export default class ChartData {
 				seriesByEntity: {[key: EntityKey]: any} = {};
 
 			for (var i = 0; i < variable.years.length; i++) {
-				var year = parseInt(variable.years[i]),
-					value = parseFloat(variable.values[i]),
+				var year = variable.years[i],
+					value = _.toNumber(variable.values[i]),
 					entity = variable.entities[i],
 					series = seriesByEntity[entity];
 
 				// Not a selected entity, don't add any data for it
-				if (!selectedEntitiesByKey[entity]) continue;
+				//if (!selectedEntitiesByKey[entity]) continue;
 				// It's possible we may be missing data for this year/entity combination
 				// e.g. http://ourworldindata.org/grapher/view/101
 				if (isNaN(value)) continue;

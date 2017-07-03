@@ -23,7 +23,7 @@ import StackedArea from './StackedArea'
 import DiscreteBarChart from './DiscreteBarChart'
 
 
-export default class ChartTab extends React.Component<{ chartView: ChartView, chart: ChartConfig }, undefined> {
+export default class ChartTab extends React.Component<{ chartView: ChartView, chart: ChartConfig, bounds: Bounds }, undefined> {
     @computed get header() {
         const {props} = this
         const {bounds, chart} = props

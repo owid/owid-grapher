@@ -64,7 +64,7 @@ export default class MapData {
     vardata: VariableData
 
     @computed get variable() {
-        return this.vardata.variablesById[this.map.variableId]
+        return this.map.variableId ? this.vardata.variablesById[this.map.variableId] : _.values(this.vardata.variablesById)[0]
     }
 
     @computed get years() {
@@ -90,13 +90,13 @@ export default class MapData {
 		var rangeValue = variable.maxValue - variable.minValue,
 			rangeMagnitude = Math.floor(Math.log(rangeValue) / Math.log(10));
 
-		var minValue = owid.floor(variable.minValue, -(rangeMagnitude-1)),
-			maxValue = owid.ceil(variable.maxValue, -(rangeMagnitude-1));
+		var minValue = _.floor(variable.minValue, -(rangeMagnitude-1)),
+			maxValue = _.ceil(variable.maxValue, -(rangeMagnitude-1));
 
 		var bucketMaximums = [];
 		for (var i = 1; i <= numBuckets; i++) {
 			var value = minValue + (i/numBuckets)*(maxValue-minValue);
-			bucketMaximums.push(owid.round(value, -(rangeMagnitude-1)));
+			bucketMaximums.push(_.round(value, -(rangeMagnitude-1)));
 		}
 
 		return bucketMaximums;
