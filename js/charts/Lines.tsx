@@ -96,7 +96,7 @@ export default class Lines extends React.Component<LinesProps, undefined> {
         const {renderData, hover, bounds} = this        
 
         return <g className="Lines" onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseLeave}>
-            <rect x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="rgba(255,255,255,0)" opacity={0}/>
+            <rect x={Math.round(bounds.x)} y={Math.round(bounds.y)} width={Math.round(bounds.width)} height={Math.round(bounds.height)} fill="rgba(255,255,255,0)" opacity={0}/>
             {_.map(renderData, series =>
                 <polyline
                     key={series.key+'-line'}
