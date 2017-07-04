@@ -32,6 +32,7 @@ interface TimelineMapProps {
 @observer
 class TimelineMap extends React.Component<TimelineMapProps, undefined> {
     @observable focusEntity: any = null
+    @observable.ref tooltip: React.ReactNode|null = null
 
     context: { chartView: ChartView, chart: ChartConfig }
 
@@ -40,12 +41,12 @@ class TimelineMap extends React.Component<TimelineMapProps, undefined> {
         this.focusEntity = { id: d.id, datum: datum || { value: "No data" } }
 
         if (datum)
-            this.context.chart.tooltip = <Tooltip x={ev.pageX} y={ev.pageY} datum={datum}/>
+            this.tooltip = <Tooltip x={ev.pageX} y={ev.pageY} datum={datum} isFixed={true}/>
     }
 
     @action.bound onMapMouseLeave() {
         this.focusEntity = null
-        this.context.chart.tooltip = null
+        this.tooltip = null
 //        this.context.chartView.tooltip.hide();
     }
 
@@ -103,12 +104,13 @@ class TimelineMap extends React.Component<TimelineMapProps, undefined> {
     render() {
         const { choroplethData, projection, defaultFill, legendTitle, legendData } = this.props
         let { bounds } = this.props
-        const {focusBracket, focusEntity, timeline, timelineHeight, mapLegend} = this
+        const {focusBracket, focusEntity, timeline, timelineHeight, mapLegend, tooltip} = this
         return <g className="mapTab">
             {/*<rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height-timelineHeight} fill="#ecf6fc"/>*/}
             <ChoroplethMap bounds={bounds.padBottom(timelineHeight+mapLegend.height+15)} choroplethData={choroplethData} projection={projection} defaultFill={defaultFill} onHover={this.onMapMouseOver} onHoverStop={this.onMapMouseLeave} onClick={this.onClick} focusBracket={focusBracket} focusEntity={focusEntity}/>
             <MapLegend {...mapLegend.props}/>
             {timeline && <Timeline {...timeline.props}/>}
+            {tooltip}
         </g>
     }
 }

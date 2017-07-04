@@ -14,7 +14,8 @@ export interface TooltipDatum {
 export interface TooltipProps {
     x: number,
     y: number,
-    datum: TooltipDatum
+    datum: TooltipDatum,
+    isFixed: boolean
 }
 
 
@@ -24,12 +25,12 @@ export default class Tooltip extends React.Component<TooltipProps, undefined> {
 
     @computed get rendered() {
         const {props} = this
-        const {datum} = props
+        const {datum, isFixed} = props
         const {chartView} = this.context
-        const x = props.x*chartView.scale
-        const y = props.y*chartView.scale
+        const x = props.x*(isFixed ? 1 : chartView.scale)
+        const y = props.y*(isFixed ? 1 : chartView.scale)
         
-        return <div className="nvtooltip tooltip-xy owid-tooltip" style={{ position: 'absolute', left: x+'px', top: y+'px' }}>
+        return <div className="nvtooltip tooltip-xy owid-tooltip" style={{ position: isFixed ? 'fixed' : 'absolute', left: x+'px', top: y+'px' }}>
             <h3>{datum.entity}</h3>
             <p>
                 <span>{datum.value}</span><br/>
