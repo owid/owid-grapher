@@ -45,7 +45,7 @@ export default class URLBinder {
         // There is a surprisingly considerable performance overhead to updating the url
         // while animating, so we debounce to allow e.g. smoother timelines
         const pushParams = _.debounce(function(params: ChartQueryParams) {
-            setQueryStr(queryParamsToStr(params as QueryParams))
+            requestAnimationFrame(() => setQueryStr(queryParamsToStr(params as QueryParams)))
         }, 50)
         autorun(() => {
             const {params} = this
@@ -67,7 +67,7 @@ export default class URLBinder {
         params.country = this.countryParam
 
         return params
-    }    
+    }
 
     @computed get yearParam(): string|undefined {
         const {chart, origChart} = this

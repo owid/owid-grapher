@@ -24,6 +24,8 @@ import Text from './Text'
 import ColorLegend, {ColorLegendView} from './ColorLegend'
 import Vector2 from './Vector2'
 import {getRelativeMouse} from './Util'
+import {HoverTarget} from './Lines'
+import Tooltip from './Tooltip'
 
 export interface LineChartValue {
     x: number,
@@ -42,6 +44,9 @@ export interface LineChartSeries {
 
 @observer
 export default class LineChart extends React.Component<{ bounds: Bounds, chart: ChartConfig, localData: LineChartSeries[] }, undefined> {
+    base: SVGGElement
+    @observable.ref tooltip: React.ReactNode|null
+
     @computed get chart() { return this.props.chart }
     @computed get bounds() { return this.props.bounds }
 
@@ -73,21 +78,27 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
         })
     }
 
-    @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement>) {
-        const mouse = Vector2.fromArray(getRelativeMouse(this.base, ev))
+    @action.bound onHoverPoint(target: HoverTarget) {
+        const tooltipDatum = { entity: target.series.key, year: target.value.x, value: target.value.y }
+        this.tooltip = <Tooltip x={target.pos.x} y={target.pos.y} datum={tooltipDatum}/>
+    }
+
+    @action.bound onHoverStop() {
+        this.tooltip = null
     }
 
     render() {
-        const {chart, bounds, localData, focusData, xDomainDefault, yDomainDefault, legend} = this
+        const {chart, bounds, localData, focusData, xDomainDefault, yDomainDefault, legend, tooltip} = this
 
         const xAxis = chart.xAxis.toSpec({ defaultDomain: xDomainDefault })
         const yAxis = chart.yAxis.toSpec({ defaultDomain: yDomainDefault })
         const axisBox = new AxisBox({bounds: bounds.padRight(10).padRight(legend.width), xAxis, yAxis})
 
-        return <g className="LineChart" onMouseMove={this.onMouseMove}>
+        return <g className="LineChart">
             <ColorLegendView x={bounds.right-legend.width} y={bounds.top} legend={legend}/>
             <StandardAxisBoxView axisBox={axisBox} chart={chart}/>
-            <Lines xScale={axisBox.xScale} yScale={axisBox.yScale} data={localData}/>
+            <Lines xScale={axisBox.xScale} yScale={axisBox.yScale} data={localData} onHoverPoint={this.onHoverPoint} onHoverStop={this.onHoverStop}/>
+            {tooltip}
         </g>
     }
 }

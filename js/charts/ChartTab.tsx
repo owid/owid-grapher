@@ -83,7 +83,7 @@ export default class ChartTab extends React.Component<{ chartView: ChartView, ch
     render() {
         const {header, footer} = this
 
-        return <g class="chartTab">
+        return <g className="chartTab">
             <Header {...header.props}/>
             {this.renderChart()}
             <SourcesFooter {...footer.props}/>

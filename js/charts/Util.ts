@@ -6,7 +6,7 @@ export type SVGElement = any;
 export type VNode = any;
 export const NullElement : any = (): null => null;
 
-export function getRelativeMouse(node: SVGElement, event: MouseEvent|TouchEvent): [number, number] {
+export function getRelativeMouse(node: SVGElement, event: Object): [number, number] {
     let clientX, clientY
     if (_.isFinite((event as MouseEvent).clientX)) {
         clientX = (event as MouseEvent).clientX

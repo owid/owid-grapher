@@ -15,58 +15,7 @@ import MapConfig from './MapConfig'
 import {MapLegendBin} from './MapData'
 import MapProjection from './MapProjection'
 import ChartView from './ChartView'
-
-interface MapTooltipProps {
-    x: number,
-    y: number,
-    datum: ChoroplethDatum
-}
-
-class MapTooltip extends React.Component<MapTooltipProps, undefined> {
-    render() {
-       /* var datum = chart.chart.map.data.choroplethData[d.id],
-            availableEntities = chart.chart.vardata.availableEntities,
-            entity = _.find(availableEntities, function(e) {
-                return owid.entityNameForMap(e) == d.id;
-            });
-
-        if (!datum || !entity) {
-            // No data available
-            $tooltip.hide();
-        } else {
-            //transform datamaps data into format close to nvd3 so that we can reuse the same popup generator
-            var variableId = App.MapModel.get("variableId"),
-                propertyName = owid.getPropertyByVariableId(App.ChartModel, variableId) || "y";
-
-            var obj = {
-                point: {
-                    time: datum.year
-                },
-                series: [{
-                    key: entity.name
-                }]
-            };
-            obj.point[propertyName] = datum.value;
-            $tooltip.html(owid.contentGenerator(obj, true));
-
-            $tooltip.css({
-                position: 'absolute',
-                left: ev.pageX,
-                top: ev.pageY
-            });
-            $tooltip.show();*/
-            const {props} = this
-            const d = props.datum
-            return <div className="nvtooltip tooltip-xy owid-tooltip" style={{ position: 'fixed', left: props.x+'px', top: props.y+'px' }}>
-                <h3>{d.entity}</h3>
-                <p>
-                    <span>{d.value}</span><br/>
-                    in<br/>
-                    <span>{d.year}</span>                
-                </p>
-            </div>
-    }    
-}
+import Tooltip from './Tooltip'
 
 interface TimelineMapProps {
     bounds: Bounds,
@@ -91,7 +40,7 @@ class TimelineMap extends React.Component<TimelineMapProps, undefined> {
         this.focusEntity = { id: d.id, datum: datum || { value: "No data" } }
 
         if (datum)
-            this.context.chart.tooltip = <MapTooltip x={ev.pageX} y={ev.pageY} datum={datum}/>
+            this.context.chart.tooltip = <Tooltip x={ev.pageX} y={ev.pageY} datum={datum}/>
     }
 
     @action.bound onMapMouseLeave() {
