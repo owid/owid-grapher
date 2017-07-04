@@ -214,7 +214,8 @@ export default class ChartView extends React.Component<ChartViewProps, undefined
             </svg>,
             !this.isExport && <ControlsFooter {...controlsFooter.props}/>,
             this.renderOverlayTab(svgBounds.scale(scale).padBottom(controlsFooter.height)),
-            this.popups
+            this.popups,
+            this.chart.tooltip
         ]
     }
 

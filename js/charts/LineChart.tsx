@@ -76,11 +76,10 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
 
         const xAxis = chart.xAxis.toSpec({ defaultDomain: xDomainDefault })
         const yAxis = chart.yAxis.toSpec({ defaultDomain: yDomainDefault })
-        const axisBox = new AxisBox({bounds: bounds.padRight(10), xAxis, yAxis}) //.padRight(legend.width)
+        const axisBox = new AxisBox({bounds: bounds.padRight(10).padRight(legend.width), xAxis, yAxis})
 
-        console.log(bounds.right-legend.width, bounds.top)
         return <g className="LineChart">
-            {/*<ColorLegendView x={bounds.right-legend.width} y={bounds.top} legend={legend}/>*/}
+            <ColorLegendView x={bounds.right-legend.width} y={bounds.top} legend={legend}/>
             <StandardAxisBoxView axisBox={axisBox} chart={chart}/>
             <Lines xScale={axisBox.xScale} yScale={axisBox.yScale} data={localData}/>
         </g>

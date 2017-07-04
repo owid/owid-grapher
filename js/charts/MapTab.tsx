@@ -4,7 +4,7 @@ import * as d3 from 'd3'
 import Bounds from './Bounds'
 import {observable, computed, action} from 'mobx'
 import {observer} from 'mobx-react'
-import ChoroplethMap, {ChoroplethData, GeoFeature, MapBracket, MapEntity} from './ChoroplethMap'
+import ChoroplethMap, {ChoroplethData, ChoroplethDatum, GeoFeature, MapBracket, MapEntity} from './ChoroplethMap'
 import Timeline from './Timeline'
 import MapLegend from './MapLegend'
 import {preInstantiate, entityNameForMap} from './Util'
@@ -14,6 +14,59 @@ import ChartConfig from './ChartConfig'
 import MapConfig from './MapConfig'
 import {MapLegendBin} from './MapData'
 import MapProjection from './MapProjection'
+import ChartView from './ChartView'
+
+interface MapTooltipProps {
+    x: number,
+    y: number,
+    datum: ChoroplethDatum
+}
+
+class MapTooltip extends React.Component<MapTooltipProps, undefined> {
+    render() {
+       /* var datum = chart.chart.map.data.choroplethData[d.id],
+            availableEntities = chart.chart.vardata.availableEntities,
+            entity = _.find(availableEntities, function(e) {
+                return owid.entityNameForMap(e) == d.id;
+            });
+
+        if (!datum || !entity) {
+            // No data available
+            $tooltip.hide();
+        } else {
+            //transform datamaps data into format close to nvd3 so that we can reuse the same popup generator
+            var variableId = App.MapModel.get("variableId"),
+                propertyName = owid.getPropertyByVariableId(App.ChartModel, variableId) || "y";
+
+            var obj = {
+                point: {
+                    time: datum.year
+                },
+                series: [{
+                    key: entity.name
+                }]
+            };
+            obj.point[propertyName] = datum.value;
+            $tooltip.html(owid.contentGenerator(obj, true));
+
+            $tooltip.css({
+                position: 'absolute',
+                left: ev.pageX,
+                top: ev.pageY
+            });
+            $tooltip.show();*/
+            const {props} = this
+            const d = props.datum
+            return <div className="nvtooltip tooltip-xy owid-tooltip" style={{ position: 'fixed', left: props.x+'px', top: props.y+'px' }}>
+                <h3>{d.entity}</h3>
+                <p>
+                    <span>{d.value}</span><br/>
+                    in<br/>
+                    <span>{d.year}</span>                
+                </p>
+            </div>
+    }    
+}
 
 interface TimelineMapProps {
     bounds: Bounds,
@@ -31,29 +84,30 @@ interface TimelineMapProps {
 class TimelineMap extends React.Component<TimelineMapProps, undefined> {
     @observable focusEntity: any = null
 
+    context: { chartView: ChartView, chart: ChartConfig }
+
     @action.bound onMapMouseOver(d: GeoFeature, ev: React.MouseEvent<SVGPathElement>) {
         const datum = d.id == undefined ? undefined : this.props.choroplethData[d.id]
         this.focusEntity = { id: d.id, datum: datum || { value: "No data" } }
 
-        this.context.chartView.tooltip.fromMap(d, ev);
+        if (datum)
+            this.context.chart.tooltip = <MapTooltip x={ev.pageX} y={ev.pageY} datum={datum}/>
     }
 
     @action.bound onMapMouseLeave() {
         this.focusEntity = null
-        this.context.chartView.tooltip.hide();
+        this.context.chart.tooltip = null
+//        this.context.chartView.tooltip.hide();
     }
 
     @action.bound onClick(d: GeoFeature) {
-        const {chartView} = this.props
-        const {chart} = chartView
+        const {chartView, chart} = this.context
 
-        if (chartView.isMobile || !chart.hasChartTab) return;
-
-        const entity = _.find(chart.vardata.availableEntities, e => entityNameForMap(e) == d.id)
-
-        if (!entity) return
-        chart.selectedCountries = [entity]
+        if (chartView.isMobile || !chart.hasChartTab || !d.id) return;
+        const entity = this.props.choroplethData[d.id].entity
+        
         chart.tab = 'chart'
+        chart.selectedEntities = [entity]
     }
 
     componentDidMount() {

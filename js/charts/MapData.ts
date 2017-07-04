@@ -7,8 +7,10 @@ import * as d3 from 'd3'
 import colorbrewer from './owid.colorbrewer'
 import Color from './Color'
 import {ChoroplethData} from './ChoroplethMap'
+import EntityKey from './EntityKey'
 
 export interface MapDataValue {
+    entity: EntityKey,
     value: number|string,
     year: number
 }
@@ -230,8 +232,9 @@ export default class MapData {
 				continue;
 
 			currentValues[entityName] = {
+                entity: entities[i],
+				year: years[i],
 				value: values[i],
-				year: years[i]
 			};
 		}
 
@@ -246,7 +249,7 @@ export default class MapData {
         _.each(valuesByEntity, (datum, entity) => {
             const bin = _.find(legendData, bin => bin.contains(datum))
             if (!bin) return
-            choroplethData[entity] = _.extend({}, datum, {
+            choroplethData[entity] = _.extend({}, datum, {                
                 color: bin.color,
                 highlightFillColor: bin.color
             })

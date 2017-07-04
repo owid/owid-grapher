@@ -51,7 +51,7 @@ export default class Lines extends React.Component<LinesProps, undefined> {
                 <polyline
                     key={series.key+'-line'}
                     strokeLinecap="round"
-                    stroke={series.isFocus ? series.color : "#ddd"}
+                    stroke={series.color}
                     points={_.map(series.values, v => `${v.x},${v.y}`).join(' ')}
                     fill="none"
                     strokeWidth={1}

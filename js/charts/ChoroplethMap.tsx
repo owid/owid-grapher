@@ -8,14 +8,18 @@ import {bind} from 'decko'
 import * as topojson from 'topojson'
 import MapProjections from './MapProjections'
 import MapTopology from './MapTopology'
+import EntityKey from './EntityKey'
+
+export type ChoroplethDatum = {
+    entity: EntityKey,
+    year: number,
+    value: number|string,
+    color: string,
+    highlightFillColor: string
+}
 
 export type ChoroplethData = {
-    [key:string]: {
-        color: string,
-        highlightFillColor: string,
-        value: number|string,
-        year: number
-    }
+    [key:string]: ChoroplethDatum
 };
 
 export type GeoFeature = GeoJSON.Feature<GeoJSON.GeometryObject>

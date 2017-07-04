@@ -101,7 +101,7 @@ export default class URLBinder {
                 return meta ? meta.code : entity
             }
             const codes = chart.selectedEntities.map(getCode).map(encodeURIComponent)
-            setQueryVariable("country", codes.join("+"))
+            return codes.join("+")
         } else {
             return undefined
         }
@@ -203,13 +203,15 @@ export default class URLBinder {
         autorun(() => {
             if (!chart.data.availableEntities) return
 
-            if (country) {
-                const entityCodes = _.map(country.split('+'), decodeURIComponent)
-                chart.selectedEntities = _.filter(chart.data.availableEntities, entity => {
-                    const meta = chart.vardata.entityMetaByKey[entity]
-                    return _.includes(entityCodes, meta.code) || _.includes(entityCodes, meta.name)
-                })
-            }
+            action(() => {
+                if (country) {
+                    const entityCodes = _.map(country.split('+'), decodeURIComponent)
+                    chart.selectedEntities = _.filter(chart.data.availableEntities, entity => {
+                        const meta = chart.vardata.entityMetaByKey[entity]
+                        return _.includes(entityCodes, meta.code) || _.includes(entityCodes, meta.name)
+                    })
+                }
+            })()
         })
 
         // Set shown legend keys for chartViews with toggleable series

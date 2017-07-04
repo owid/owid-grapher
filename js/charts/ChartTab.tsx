@@ -62,23 +62,25 @@ export default class ChartTab extends React.Component<{ chartView: ChartView, ch
 
     renderChart() {
 		const {chart, chartView} = this.props
+		const {header, footer} = this
+        const bounds = this.props.bounds.padTop(header.height).padBottom(footer.height)
+
         if (chart.type == ChartType.SlopeChart)
-            return <SlopeChart bounds={this.bounds.padTop(20)} config={chart}/>
+            return <SlopeChart bounds={bounds.padTop(20)} config={chart}/>
         else if (chart.type == ChartType.ScatterPlot)
-            return <ScatterPlot bounds={this.bounds.padTop(20).padBottom(10)} config={chart} isStatic={this.props.chartView.isExport}/>
+            return <ScatterPlot bounds={bounds.padTop(20).padBottom(10)} config={chart} isStatic={this.props.chartView.isExport}/>
 		else if (chart.type == ChartType.LineChart)
-			return <LineChart bounds={this.bounds.padTop(20).padBottom(10)} chart={chart} localData={chart.data.chartData}/>
+			return <LineChart bounds={bounds.padTop(20).padBottom(10)} chart={chart} localData={chart.data.chartData}/>
 		else if (chart.type == ChartType.StackedArea)
-			return <StackedArea bounds={this.bounds.padTop(20).padBottom(10)} chart={chart} localData={chart.data.chartData}/>
+			return <StackedArea bounds={bounds.padTop(20).padBottom(10)} chart={chart} localData={chart.data.chartData}/>
 		else if (chart.type == ChartType.DiscreteBar)
-			return <DiscreteBarChart bounds={this.bounds.padTop(20).padBottom(10)} chart={chart} localData={chart.data.chartData}/>
+			return <DiscreteBarChart bounds={bounds.padTop(20).padBottom(10)} chart={chart} localData={chart.data.chartData}/>
         else
             return null
     }
 
     render() {
         const {header, footer} = this
-        this.bounds = this.props.bounds.padTop(header.height).padBottom(footer.height)
 
         return <g class="chartTab">
             <Header {...header.props}/>

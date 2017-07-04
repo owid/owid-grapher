@@ -55,7 +55,7 @@ class SourcesFooterMain extends React.Component<SourcesFooterMainProps, undefine
     render() {
         const {props, sources, notes, license, isCompact, paraMargin} = this
 
-        return <g className="sourcesFooter">
+        return <g className="SourcesFooter">
             <a onClick={this.props.onSourcesClick}><Paragraph {...sources.props} x={props.x} y={props.y}/></a>
             <Paragraph {...notes.props} x={props.x} y={props.y+sources.height+paraMargin}/>
             {isCompact

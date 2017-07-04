@@ -87,7 +87,7 @@ export default class ChartData {
 					series = seriesByEntity[entity];
 
 				// Not a selected entity, don't add any data for it
-				//if (!selectedEntitiesByKey[entity]) continue;
+				if (!selectedEntitiesByKey[entity]) continue;
 				// It's possible we may be missing data for this year/entity combination
 				// e.g. http://ourworldindata.org/grapher/view/101
 				if (isNaN(value)) continue;

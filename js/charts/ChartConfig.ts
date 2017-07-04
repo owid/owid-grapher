@@ -102,6 +102,8 @@ export default class ChartConfig {
     @computed get comparisonLine() { return this.props.comparisonLine }
     @computed get highlightToggle() { return this.props.highlightToggle }
     @computed get timeline() { return this.props.timeline }
+    @computed get hasChartTab() { return this.props.hasChartTab }
+    @computed get hasMapTab() { return this.props.hasMapTab }
 
     set timeDomain(value) { this.props.timeDomain = value }
     set tab(value) { this.props.tab = value }
@@ -111,6 +113,7 @@ export default class ChartConfig {
     yAxis: AxisConfig
 
     @observable.ref variableCacheTag: string
+    @observable.ref tooltip: React.ReactNode
 
     vardata: VariableData
     data: ChartData
