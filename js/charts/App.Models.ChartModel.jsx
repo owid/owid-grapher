@@ -46,7 +46,9 @@ export default Backbone.Model.extend( {
 		"currentStackMode": null,
         "timeline": null,
 		"xAxis": { scaleType: "linear" },
-		"yAxis": { scaleType: "linear" }
+		"yAxis": { scaleType: "linear" },
+		"comparisonLine": undefined,
+		"highlightToggle": undefined
 	},
 
 	// Get defaults appropriate for this kind of chart

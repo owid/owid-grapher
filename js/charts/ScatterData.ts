@@ -17,7 +17,8 @@ export default class ScatterData {
     chart: ChartConfig
 
     constructor(chart: ChartConfig) { 
-        this.chart = chart       
+        this.chart = chart
+        this.chart.scatterData = this
     }
 
     @computed get axisDimensions() {

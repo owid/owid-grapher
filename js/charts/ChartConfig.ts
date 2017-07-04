@@ -19,6 +19,11 @@ export interface TimelineConfig {
     compareEndPointsOnly?: boolean
 }
 
+export interface HighlightToggleConfig {
+    description: string
+    paramStr: string
+}
+
 export interface ChartDimension {
     id: number,
     variableId: number,
@@ -55,6 +60,7 @@ export class ChartConfigProps {
     // XXX special line chart stuff that should maybe go elsewhere
     @observable.ref timeline?: TimelineConfig = undefined
     @observable.ref comparisonLine?: ComparisonLineConfig = undefined
+    @observable.ref highlightToggle: HighlightToggleConfig|undefined
     @observable.ref lineType: LineType = LineType.WithDots
     @observable.ref lineTolerance?: number = undefined
     @observable.ref stackMode: string = 'expanded'
@@ -94,6 +100,7 @@ export default class ChartConfig {
     @computed get lineTolerance() { return defaultTo(this.props.lineTolerance, 1) }
     @computed get addCountryMode() { return this.props.addCountryMode }
     @computed get comparisonLine() { return this.props.comparisonLine }
+    @computed get highlightToggle() { return this.props.highlightToggle }
     @computed get timeline() { return this.props.timeline }
 
     set timeDomain(value) { this.props.timeDomain = value }
@@ -191,6 +198,7 @@ export default class ChartConfig {
         else
             this.props.timeDomain = (_.map(timeDomain, v => _.isString(v) ? parseInt(v) : v) as [number|null, number|null])
 
+
         this.props.hasChartTab = props['tabs'].includes("chart")
         this.props.hasMapTab = props['tabs'].includes("map")
 
@@ -200,6 +208,7 @@ export default class ChartConfig {
         this.props.dimensions = props['chart-dimensions'] 
         this.props.addCountryMode = props['add-country-mode']
         this.props.comparisonLine = props["comparisonLine"]
+        this.props.highlightToggle = props["highlightToggle"]
         this.props.tab = props["default-tab"]
 
         this.props.lineType = props["line-type"]
@@ -238,5 +247,6 @@ export default class ChartConfig {
                 }
 			}
 		})*/
+
 	}
 }
