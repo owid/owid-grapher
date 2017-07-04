@@ -85,7 +85,7 @@ export default class ChartData {
 					value = _.toNumber(variable.values[i]),
 					entity = variable.entities[i],
 					series = seriesByEntity[entity];
-
+					
 				// Not a selected entity, don't add any data for it
 				if (!selectedEntitiesByKey[entity]) continue;
 				// It's possible we may be missing data for this year/entity combination

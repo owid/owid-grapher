@@ -22,6 +22,8 @@ import {preInstantiate} from "./Util"
 import Paragraph from './Paragraph'
 import Text from './Text'
 import ColorLegend, {ColorLegendView} from './ColorLegend'
+import Vector2 from './Vector2'
+import {getRelativeMouse} from './Util'
 
 export interface LineChartValue {
     x: number,
@@ -71,6 +73,10 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
         })
     }
 
+    @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement>) {
+        const mouse = Vector2.fromArray(getRelativeMouse(this.base, ev))
+    }
+
     render() {
         const {chart, bounds, localData, focusData, xDomainDefault, yDomainDefault, legend} = this
 
@@ -78,7 +84,7 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
         const yAxis = chart.yAxis.toSpec({ defaultDomain: yDomainDefault })
         const axisBox = new AxisBox({bounds: bounds.padRight(10).padRight(legend.width), xAxis, yAxis})
 
-        return <g className="LineChart">
+        return <g className="LineChart" onMouseMove={this.onMouseMove}>
             <ColorLegendView x={bounds.right-legend.width} y={bounds.top} legend={legend}/>
             <StandardAxisBoxView axisBox={axisBox} chart={chart}/>
             <Lines xScale={axisBox.xScale} yScale={axisBox.yScale} data={localData}/>

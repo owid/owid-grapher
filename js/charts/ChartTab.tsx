@@ -1,5 +1,6 @@
 import * as React from 'react'
 import {computed, autorun} from 'mobx'
+import {observer} from 'mobx-react'
 import {preInstantiate} from './Util'
 import Header from './Header'
 import SourcesFooter from './SourcesFooter'
@@ -22,7 +23,7 @@ import LineType from './LineType'
 import StackedArea from './StackedArea'
 import DiscreteBarChart from './DiscreteBarChart'
 
-
+@observer
 export default class ChartTab extends React.Component<{ chartView: ChartView, chart: ChartConfig, bounds: Bounds }, undefined> {
     @computed get header() {
         const {props} = this

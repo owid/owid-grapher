@@ -101,6 +101,7 @@ export default class VariableData {
 		if (!this.isReady) return
 
 		let validEntities = chart.selectedEntities.filter(entity => entityMetaByKey[entity])
+
 		if (_.isEmpty(validEntities) && chart.type != ChartType.ScatterPlot && chart.type != ChartType.DiscreteBar && chart.type != ChartType.SlopeChart) {
 			// Select a few random ones
 			validEntities = _.sampleSize(availableEntities, 3);
@@ -142,7 +143,7 @@ export default class VariableData {
 		})
 	}
 
-	receiveData(rawData: string) {
+	@action.bound receiveData(rawData: string) {
 		var lines = rawData.split("\r\n");
 
 		let variablesById: {[id: string]: Variable} = {}

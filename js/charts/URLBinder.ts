@@ -39,6 +39,7 @@ export default class URLBinder {
     constructor(chart: ChartConfig) {
         this.chart = chart
         this.origChart = toJS(chart.props)
+        window.origChart = this.origChart
         this.populateFromURL(getQueryParams())
 
         // There is a surprisingly considerable performance overhead to updating the url
@@ -95,7 +96,7 @@ export default class URLBinder {
 
     @computed get countryParam(): string|undefined {
         const {chart, origChart} = this
-        if (chart.vardata.isReady && !_.isEqual(chart.props.selectedEntities, origChart.selectedEntities)) {
+        if (chart.vardata.isReady && !_.isEqual(toJS(chart.props.selectedEntities), origChart.selectedEntities)) {
             function getCode(entity: EntityKey) { 
                 const meta = chart.vardata.entityMetaByKey[entity]
                 return meta ? meta.code : entity
@@ -205,9 +206,9 @@ export default class URLBinder {
 
             action(() => {
                 if (country) {
-                    const entityCodes = _.map(country.split('+'), decodeURIComponent)
+                    const entityCodes = _.map(country.split('+'), decodeURIComponent)                    
                     chart.selectedEntities = _.filter(chart.data.availableEntities, entity => {
-                        const meta = chart.vardata.entityMetaByKey[entity]
+                        const meta = chart.vardata.entityMetaByKey[entity]                        
                         return _.includes(entityCodes, meta.code) || _.includes(entityCodes, meta.name)
                     })
                 }
