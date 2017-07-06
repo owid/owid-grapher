@@ -71,7 +71,15 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps, u
         const pathF = MapProjections[projection]().path;
 
         _.each(geoData, (d) => {
-            pathData[d.id] = pathF(d)
+            const s = pathF(d)
+            const paths = s.split(/Z/).filter(_.identity)
+
+            const newPaths = paths.map(path => {
+                const points = path.split(/[MLZ]/).filter((f: any) => f)        
+                const rounded = points.map(p => p.split(/,/).map(Math.round).join(','))
+                return "M"+rounded.join("L")
+            })
+            pathData[d.id] = newPaths.join("Z")+"Z"
         })
 
         return pathData
