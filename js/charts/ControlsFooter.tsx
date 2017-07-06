@@ -185,12 +185,15 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps,
     render() {
         const {props, tabNames, isShareMenuActive} = this
         const {chart, chartView} = props
+
+        const style = chart.type == App.ChartType.ScatterPlot ? {} : { padding: 0, border: 0 }
+
         return <div className="controlsFooter">
-            <div className="scatterControls">            
+            <div className="scatterControls" style={style}>            
             {chart.type == App.ChartType.ScatterPlot && chartView.activeTabName == 'chart' && 
                     [chart.highlightToggle && <HighlightToggle chart={chart}/>,
                     <button onClick={this.onEntitySelect}>
-                        <i class="fa fa-search"/> Search
+                        <i className="fa fa-search"/> Search
                     </button>]
             }
             </div>
