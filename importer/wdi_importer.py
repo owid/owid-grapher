@@ -83,9 +83,9 @@ wdi_downloads_save_location = settings.BASE_DIR + '/data/wdi_downloads/'
 
 if not os.path.exists(wdi_downloads_save_location):
     os.makedirs(wdi_downloads_save_location)
-else:
-    shutil.rmtree(wdi_downloads_save_location)
-    os.makedirs(wdi_downloads_save_location)
+#else:
+#    shutil.rmtree(wdi_downloads_save_location)
+#    os.makedirs(wdi_downloads_save_location)
 
 logger = logging.getLogger('importer')
 start_time = time.time()
@@ -108,9 +108,9 @@ else:
 
 wdi_category_name_in_db = 'World Development Indicators'  # set the name of the root category of all data that will be imported by this script
 
-
 import_history = ImportHistory.objects.filter(import_type='wdi')
 
+#excel_filename = wdi_downloads_save_location + "WDIEXCEL.xlsx"
 
 with transaction.atomic():
     # if wdi imports were never performed
