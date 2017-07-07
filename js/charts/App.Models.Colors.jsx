@@ -12,6 +12,7 @@ export default class Colors {
 	constructor(chartView) {
 		const chart = chartView.chart
 		this.chart = chart
+		this.basicScheme = Colors.basicScheme
 		this.colorScale = d3.scaleOrdinal().range(Colors.basicScheme);
 		this.colorCache = {};
 		this.colorIndex = 0;

@@ -1,3 +1,5 @@
+
+
 ;(function() {
 	"use strict";
 	owid.namespace("App.Views.UI.ColorPicker");

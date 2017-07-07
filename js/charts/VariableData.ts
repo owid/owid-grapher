@@ -107,13 +107,13 @@ export default class VariableData {
 			validEntities = _.sampleSize(availableEntities, 3);
 		}
 
-		action(() => chart.selectedEntities = validEntities)()
+		//action(() => chart.selectedEntities = validEntities)()
 	}
 
-	@computed get remainingEntities() {
+	@computed.struct get remainingEntities(): EntityKey[] {
 		const {chart, availableEntities} = this
 		const {selectedEntities} = chart
-		return _.intersection(selectedEntities, availableEntities)
+		return _.without(availableEntities, ...selectedEntities)
 	}
 
 	update() {

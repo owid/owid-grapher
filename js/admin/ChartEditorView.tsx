@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import EditorBasicTab from './EditorBasicTab'
+import EditorDataTab from './EditorDataTab'
 import EditorAxisTab from './EditorAxisTab'
 import EditorScatterTab from './EditorScatterTab'
 import EditorStylingTab from './EditorStylingTab'
@@ -14,11 +15,6 @@ import SaveButtons from './SaveButtons'
 
 declare const App: any
 
-var	AvailableEntitiesCollection = App.Collections.AvailableEntitiesCollection,
-	SearchDataCollection = App.Collections.SearchDataCollection,
-	DataTabView = App.Views.Form.DataTabView,
-	MapTabView = App.Views.Form.MapTabView;
-
 export default class ChartEditorView extends React.Component<{ editor: ChartEditor }, undefined> {
     static bootstrap({ chartView }: { chartView: ChartView }) {
 		const editor = new ChartEditor({ chart: chartView.chart })
@@ -28,23 +24,9 @@ export default class ChartEditorView extends React.Component<{ editor: ChartEdit
 
     constructor(props: any) {
         super(props)
-
-		/*var formConfig = App.ChartModel.get("form-config");
-
-		//create related models, either empty (when creating new chart), or prefilled from db (when editing existing chart)
-		if (formConfig && formConfig["entities-collection"]) {
-			App.AvailableEntitiesCollection = new AvailableEntitiesCollection(formConfig["entities-collection"]);
-		} else {
-			App.AvailableEntitiesCollection = new AvailableEntitiesCollection();
-		}
-
-		//create search collection
-		App.SearchDataCollection = new SearchDataCollection();*/
 	}
 
 	componentDidMount() {
-		this.dataTabView = new DataTabView()
-		this.mapTabView = new MapTabView()
 		$('.nav-tabs').stickyTabs();
 	}
 
@@ -74,66 +56,8 @@ export default class ChartEditorView extends React.Component<{ editor: ChartEdit
 					</ul>
 				</div>
 				<div className="tab-content">
-					<EditorBasicTab chart={chart}/>					
-					<div id="data-tab" className="tab-pane">
-						<section className="add-data-section">
-								<a className="add-data-btn"><i className="fa fa-plus"/>Add variable</a>
-								<div className="dd">
-									<div className="dd-empty"></div>
-								</div>
-							<p className="form-section-desc hidden">Assign variables to the graph dimensions below by dragging them.</p>
-						</section>
-						<section className="dimensions-section">
-							<input type="hidden" name="chart-dimensions" value="" />
-						</section>
-						<section className="entities-section">
-
-								<h2>Pick your countries</h2>
-
-								<p className="form-section-desc">Select countries from drop down below. You can set country colors by clicking on the country label itself.</p>
-								<ul className="selected-countries-box no-bullets">
-
-								</ul>
-								<select className="form-control countries-select" data-placeholder="Choose a Country...">
-									<option value=""></option>
-								</select>
-								<div className="add-country-control-wrapper">
-									<h4>Can user add/change countries?</h4>
-									<radiogroup>
-										<label>
-											<input type="radio" name="add-country-mode" value="add-country" checked={true}/>
-											User can add and remove countries
-										</label>
-										<label>
-											<input type="radio" name="add-country-mode" value="change-country" selected={true}/>
-											User can change country
-										</label>
-										<label>
-											<input type="radio" name="add-country-mode" value="disabled" selected={true}/>
-											User cannot change/add country
-										</label>
-									</radiogroup>
-								</div>
-						</section>
-						<section className="time-section">
-							<h2>Define your time</h2>
-							<label>
-								<input type="checkbox" name="dynamic-time" checked={true}/>
-								Use entire time period of the selected data
-							</label>
-							<input type="text" name="chart-time" value=""/>
-							<div className="chart-time-inputs-wrapper">
-								<label>
-									Time from:
-									<input type="text" name="chart-time-from" className="form-control" value="" />
-								</label>
-								<label>
-									Time to:
-									<input type="text" name="chart-time-to" className="form-control" value="" />
-								</label>
-							</div>
-						</section>
-					</div>
+					<EditorBasicTab chart={chart}/>
+					<EditorDataTab chart={chart}/>
 					<EditorAxisTab chart={chart}/>
 					<EditorStylingTab chart={chart}/>
 					{chart.type == ChartType.ScatterPlot && <EditorScatterTab chart={chart}/>}

@@ -33,18 +33,10 @@ require('./admin/admin.global')
 require('./admin/App.Models.ChartVariableModel')
 require('./admin/App.Models.EntityModel')
 
-require('./admin/App.Collections.SearchDataCollection')
-require('./admin/App.Collections.AvailableEntitiesCollection')
-
 require('./admin/App.Views.UI.SelectVarPopup')
 require('./admin/App.Views.UI.SettingsVarPopup')
 require('./admin/App.Views.UI.ColorPicker')
 
-require('./admin/App.Views.Form.AddDataSectionView')
-require('./admin/App.Views.Form.EntitiesSectionView')
-require('./admin/App.Views.Form.TimeSectionView')
-require('./admin/App.Views.Form.DataTabView')
-require('./admin/App.Views.Form.StylingTabView')
 require('./admin/App.Views.Form.MapColorSection')
 require('./admin/App.Views.Form.MapTabView')
 window.ChartEditorView = require('./admin/ChartEditorView').default

@@ -47,6 +47,7 @@ export default class URLBinder {
         const pushParams = _.debounce(function(params: ChartQueryParams) {
             requestAnimationFrame(() => setQueryStr(queryParamsToStr(params as QueryParams)))
         }, 50)
+        
         autorun(() => {
             const {params} = this
             pushParams(params)
