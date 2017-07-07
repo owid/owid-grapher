@@ -3,6 +3,7 @@ import * as ReactDOM from 'react-dom'
 import EditorBasicTab from './EditorBasicTab'
 import EditorAxisTab from './EditorAxisTab'
 import EditorScatterTab from './EditorScatterTab'
+import EditorStylingTab from './EditorStylingTab'
 import ChartConfig from '../charts/ChartConfig'
 import {clone} from 'lodash'
 import * as $ from 'jquery'
@@ -16,7 +17,6 @@ declare const App: any
 var	AvailableEntitiesCollection = App.Collections.AvailableEntitiesCollection,
 	SearchDataCollection = App.Collections.SearchDataCollection,
 	DataTabView = App.Views.Form.DataTabView,
-	StylingTabView = App.Views.Form.StylingTabView,
 	MapTabView = App.Views.Form.MapTabView;
 
 export default class ChartEditorView extends React.Component<{ editor: ChartEditor }, undefined> {
@@ -44,7 +44,6 @@ export default class ChartEditorView extends React.Component<{ editor: ChartEdit
 
 	componentDidMount() {
 		this.dataTabView = new DataTabView()
-		this.stylingTabView = new StylingTabView()
 		this.mapTabView = new MapTabView()
 		$('.nav-tabs').stickyTabs();
 	}
@@ -136,35 +135,7 @@ export default class ChartEditorView extends React.Component<{ editor: ChartEdit
 						</section>
 					</div>
 					<EditorAxisTab chart={chart}/>
-					<div id="styling-tab" className="tab-pane">
-						<section className="type-of-line-section">
-							<h2>Choose Type of Line</h2>
-							<label>
-								<input type="radio" name="line-type" value="0"/>
-								Line with dots
-							</label>
-							<label>
-								<input type="radio" name="line-type" value="1"/>
-								Line without dots
-							</label>
-							<label>
-								<input type="radio" name="line-type" value="3"/>
-								Dotted with dashed line for missing observations
-							</label>
-							<br/>
-							<label style={{display: "none"}}>
-								Maximum year gap to tolerate
-								<input type="input" className="form-control" name="line-tolerance" value=""/>
-							</label>
-						</section>
-						<section className="legend-section">
-							<h2>Legend</h2>
-							<label className="clickable">
-								<input type="checkbox" name="hide-toggle" />
-								Hide absolute/relative toggle
-							</label>
-						</section>
-					</div>
+					<EditorStylingTab chart={chart}/>
 					{chart.type == ChartType.ScatterPlot && <EditorScatterTab chart={chart}/>}
 					<div id="map-tab" className="tab-pane">
 						<section className="map-variable-section">
