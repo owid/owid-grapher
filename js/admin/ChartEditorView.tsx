@@ -137,15 +137,6 @@ export default class ChartEditorView extends React.Component<{ editor: ChartEdit
 					</div>
 					<EditorAxisTab chart={chart}/>
 					<div id="styling-tab" className="tab-pane">
-						<section className="logo-section">
-								<h2>Logos</h2>
-								<select name="logo" className="form-control logo-select">
-									<option value="" disabled selected>Select type</option>
-									{/*% for each in data.logos %}
-										<option value="{{ each }}">{{ each }}</option>
-									{% endfor %*/}
-								</select>
-						</section>
 						<section className="type-of-line-section">
 							<h2>Choose Type of Line</h2>
 							<label>

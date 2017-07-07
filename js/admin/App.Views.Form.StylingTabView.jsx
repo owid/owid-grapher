@@ -8,8 +8,6 @@ owid.namespace("App.Views.Form.StylingTabView");
 App.Views.Form.StylingTabView = owid.View.extend({
 	el: "#form-view #styling-tab",
 	events: {
-		"change [name='logo']": "onLogoChange",
-		"change [name='second-logo']": "onLogoChange",
 		"change [name='line-type']": "onLineTypeChange",
 		"change [name='line-tolerance']": "onLineToleranceChange",
 		"change [name='hide-legend']": "onHideLegendChange",
@@ -18,9 +16,6 @@ App.Views.Form.StylingTabView = owid.View.extend({
 	},
 
 	initialize: function( options ) {
-		//logos
-		this.$logo = this.$el.find("[name='logo']");
-
 		this.$lineTypeRadios = this.$el.find( "[name='line-type']" );
 		this.$lineTolerance = this.$el.find("[name='line-tolerance']");
 
@@ -37,9 +32,6 @@ App.Views.Form.StylingTabView = owid.View.extend({
 	},
 
 	render: function() {
-		var logos = App.ChartModel.get('logos');
-		this.$logo.val(logos[0]);
-
 		this.renderLineType();
 
 		var hideLegend = ( App.ChartModel.get( "hide-legend" ) )? true: false;
@@ -69,10 +61,6 @@ App.Views.Form.StylingTabView = owid.View.extend({
 			this.$lineTolerance.closest("label").show();
 		else
 			this.$lineTolerance.closest("label").hide();
-	},
-
-	onLogoChange: function(evt) {
-		App.ChartModel.set("logos", [this.$logo.val()]);
 	},
 
 	onLineTypeChange: function(evt) {

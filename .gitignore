@@ -14,3 +14,4 @@ env
 .vscode/tags
 .mypy_cache
 .awcache
+data

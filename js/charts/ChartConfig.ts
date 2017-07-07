@@ -224,6 +224,10 @@ export default class ChartConfig {
         return this.props.hasMapTab && new MapConfig(this)
     }
 
+    @computed.struct get json() {
+        return toJS(this.props)
+    }
+
 	constructor(props: ChartConfigProps) {        
         this.xAxis = new AxisConfig()
         this.yAxis = new AxisConfig()

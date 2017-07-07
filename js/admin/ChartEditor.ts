@@ -5,14 +5,14 @@
  *
  */
 
-import {observable, computed} from 'mobx'
+import {observable, computed, reaction} from 'mobx'
 import ChartConfig from '../charts/ChartConfig'
 
 export interface ChartEditorProps {
     chart: ChartConfig
 }
 
-   url: function(id) {
+   /*url: function(id) {
         id = id || this.id;
         if( $("#form-view").length ) {
             if( id ) {
@@ -27,7 +27,7 @@ export interface ChartEditorProps {
             // Pass any query parameters on to config
             return Global.rootUrl + "/data/config/" + id + window.location.search;
         }
-    },
+    },*/
 
 export default class ChartEditor {
     @observable.ref chart: ChartConfig
@@ -127,8 +127,12 @@ export default class ChartEditor {
 	}
 
     constructor(props: ChartEditorProps) {
-        this.chart = props.chart
+		const {chart} = props
+        this.chart = chart
 
-        this.chart.model.on("change", e => this.isSaved = false)
+		reaction(
+			() => chart.json,
+			() => this.isSaved = false
+		)
     }
 }
