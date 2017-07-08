@@ -97,7 +97,7 @@ class Chart(models.Model):
                                                      ('DiscreteBar', 'Discrete bar'),
                                                      ('SlopeChart', 'Slope chart')), blank=True, null=True)
 
-    
+
     max_exports_per_worker = 2
     exports_in_progress = 0
     def export_image(self, query: str, format: str, is_async: bool = False):
@@ -225,6 +225,7 @@ class DatasetCategory(models.Model):
     name = models.CharField(max_length=255, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    fetcher_autocreated = models.BooleanField(default=False)
 
 
 class DatasetSubcategory(models.Model):
