@@ -283,9 +283,44 @@ a {
     z-index: 2;
 }
 
+#chart.landscape .controlsFooter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#chart.portrait .scatterControls {
+    border-bottom: 1px solid #e1e1e1;
+}
+
+#chart .scatterControls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding-left: 1em;
+    font-size: 0.8em;
+    padding-top: 0.4em;
+    padding-bottom: 0.4em;
+}
+
+#chart .scatterControls .HighlightToggle {
+    margin: 0;
+    padding-right: 0.5em;
+    border-right: 1px solid #ccc;
+}
+
+#chart .scatterControls button {
+    margin: 0;
+    padding-top: 0.1em;
+    padding-bottom: 0.1em;
+    padding-left: 0.5em;
+}
+
 #chart nav.tabs ul {
     margin: 0;
     padding: 0;
+    display: flex;
 }
 
 #chart nav.tabs li {
@@ -312,14 +347,6 @@ a {
 
 #chart nav.tabs li.active {
     border-bottom-color: rgba(0,33,71,.9);
-}
-
-#chart.landscape nav.tabs {
-    float: right;
-}
-
-#chart.landscape nav.tabs li {
-    float: left;
 }
 
 #chart.landscape nav.tabs li > a {
@@ -786,6 +813,7 @@ a {
     width: 100%;
     overflow-y: auto;
     border-top: 1px solid #e1e1e1;
+    z-index: 3;
 }
 
 #chart .entitySelect h2 {

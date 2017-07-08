@@ -9,6 +9,7 @@ import {observer} from 'mobx-react'
 import * as Cookies from 'js-cookie'
 import ChartConfig from './ChartConfig'
 import * as $ from 'jquery'
+import EntitySelect from './owid.view.entitySelect'
 
 declare const Global: any
 declare const App: any
@@ -104,14 +105,54 @@ interface ControlsFooterProps {
     onTabChange: (tabName: string) => void
 }
 
+class HighlightToggle extends React.Component<{ chart: ChartConfig }, undefined> {
+    @computed get chartView() { return window.chart }
+    @computed get chart() { return this.props.chart }
+    @computed get highlight() { return this.chart.highlightToggle }
+
+    @computed get highlightParams() {
+        return owid.getQueryParams((this.highlight.paramStr||"").substring(1))
+    }
+
+    @action.bound onHighlightToggle(e) {
+        if (e.target.checked) {
+            const params = owid.getQueryParams()
+            this.chartView.url.populateFromURL(_.extend(params, this.highlightParams))
+        } else {
+            this.chart.selectedEntities = []
+        }
+    }
+
+    get isHighlightActive() {
+        const params = owid.getQueryParams()
+        let isActive = true
+        _.keys(this.highlightParams).forEach((key) => {
+            if (params[key] != this.highlightParams[key])
+                isActive = false
+        })
+        return isActive
+    }
+
+    render() {
+        const {highlight, isHighlightActive} = this
+        return <label className="clickable HighlightToggle">
+            <input type="checkbox" checked={isHighlightActive} onChange={this.onHighlightToggle}/> {highlight.description}
+        </label>
+    }
+}
+
 @observer
-export default class ControlsFooter extends React.Component<ControlsFooterProps, null> {
+export default class ControlsFooter extends React.Component<ControlsFooterProps, undefined> {
     @computed get tabNames() : string[] {
         return this.props.availableTabs
     }
 
     @computed get height() {
-        return Bounds.forText("CHART", { fontSize: 16*this.props.chartView.scale +'px' }).height*2/this.props.chartView.scale
+        const height = Bounds.forText("CHART", { fontSize: 16*this.props.chartView.scale +'px' }).height*2/this.props.chartView.scale
+        if (this.props.chartView.isPortrait && this.props.chart.type == App.ChartType.ScatterPlot)
+            return height*2
+        else
+            return height
     }
 
     @observable isShareMenuActive: boolean = false
@@ -128,9 +169,34 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps,
         })
     }
 
+    entitySelect: EntitySelect = null
+    @action.bound onEntitySelect() {
+        const unselectedEntities = _.without(this.props.chart.scatterData.validEntities, ...this.props.chart.selectedEntities)
+        setTimeout(() => {
+            this.entitySelect = EntitySelect()
+            this.entitySelect.update({
+                containerNode: this.props.chartView.htmlNode,
+                entities: unselectedEntities.map(e => ({ name: e }))
+            });
+        }, 0)
+					//entitySelect.afterClean(function() { entitySelect = null; });
+    }
+
     render() {
         const {props, tabNames, isShareMenuActive} = this
+        const {chart, chartView} = props
+
+        const style = chart.type == App.ChartType.ScatterPlot ? {} : { padding: 0, border: 0 }
+
         return <div className="controlsFooter">
+            <div className="scatterControls" style={style}>            
+            {chart.type == App.ChartType.ScatterPlot && chartView.activeTabName == 'chart' && 
+                    [chart.highlightToggle && <HighlightToggle chart={chart}/>,
+                    <button onClick={this.onEntitySelect}>
+                        <i className="fa fa-search"/> Search
+                    </button>]
+            }
+            </div>
             <nav className="tabs">
                 <ul>
                     {_.map(tabNames, (tabName) => {

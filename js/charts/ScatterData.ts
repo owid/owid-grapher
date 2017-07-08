@@ -17,7 +17,8 @@ export default class ScatterData {
     chart: ChartConfig
 
     constructor(chart: ChartConfig) { 
-        this.chart = chart       
+        this.chart = chart
+        this.chart.scatterData = this
     }
 
     @computed get axisDimensions() {
@@ -83,7 +84,7 @@ export default class ScatterData {
     // If there's no timeline, this uses the same structure but only computes for a single year
     @computed get dataByEntityAndYear() {
         const {years, colorScale, hideBackgroundEntities, validEntities} = this
-        const {dimensionsWithData, xScaleType, yScaleType} = this.chart
+        const {dimensionsWithData, xScaleType, yScaleType, entityColors} = this.chart
         const dataByEntityAndYear = {};
         const validEntityByName = _.keyBy(validEntities)
     
@@ -115,7 +116,8 @@ export default class ScatterData {
                             id: entity,
                             label: entity,
                             key: entity,
-                            values: [{ year: outputYear, time: {} }]
+                            values: [{ year: outputYear, time: {} }],
+                            color: entityColors[entity]
                         });
 
                     var d = series.values[0];
@@ -125,9 +127,9 @@ export default class ScatterData {
                     if (_.isFinite(originYear) && Math.abs(originYear-targetYear) < Math.abs(year-targetYear))
                         continue;                
 
-                    if (dimension.property == 'color')
-                        series.color = colorScale(value);
-                    else {
+                    if (dimension.property == 'color') {
+                        if (!series.color) series.color = colorScale(value);
+                    } else {
                         d.time[dimension.property] = year;
                         d[dimension.property] = value;
                     }

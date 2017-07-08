@@ -56,10 +56,33 @@ export default class Axis extends React.Component<AxisProps, undefined> {
     }
 
     @computed get ticks() : number[] {
-        const ticks = this.scale.getTickValues()
+        const {scale, isVertical, labelOffset, bounds} = this
+        const ticks = scale.getTickValues()
 
-        if (this.bounds.width < 500) {
-            return _.filter(ticks, (v, i) => i%2 == 0)
+        if (!isVertical) {
+            // Collision detection
+            const tickPlacements = ticks.map(tick => {
+                const bounds = Bounds.forText(scale.tickFormat(tick), { fontSize: Axis.tickFontSize })
+                return {
+                    tick: tick,
+                    bounds: bounds.extend({ x: scale.place(tick)-bounds.width/2, y: bounds.bottom-labelOffset }),
+                    isHidden: false
+                }
+            })
+            
+            for (let i = 0; i < tickPlacements.length; i++) {
+                for (let j = 1; j < tickPlacements.length; j++) {
+                    const t1 = tickPlacements[i], t2 = tickPlacements[j]
+                    if (t1 == t2 || t1.isHidden || t2.isHidden) continue
+                    if (t1.bounds.intersects(t2.bounds)) {
+                        if (i == 0) t2.isHidden = true
+                        else if (j == tickPlacements.length-1) t1.isHidden = true
+                        else t2.isHidden = true
+                    }
+                }
+            }
+
+            return tickPlacements.filter(t => !t.isHidden).map(t => t.tick)
         } else {
             return ticks
         }
@@ -98,7 +121,7 @@ export default class Axis extends React.Component<AxisProps, undefined> {
                 <text x={bounds.left+labelOffset} y={scale.place(tick)} fill={textColor} dominant-baseline="middle" text-anchor="start" font-size={Axis.tickFontSize}>{scale.tickFormat(tick)}</text>
             ),
             scale.scaleTypeOptions.length > 1 && 
-                <ScaleSelector x={bounds.left} y={bounds.top-10} scaleType={scale.scaleType} scaleTypeOptions={scale.scaleTypeOptions} onChange={onScaleTypeChange}/>                        
+                <ScaleSelector x={bounds.left} y={bounds.top-8} scaleType={scale.scaleType} scaleTypeOptions={scale.scaleTypeOptions} onChange={onScaleTypeChange}/>                        
         ]
     }
 

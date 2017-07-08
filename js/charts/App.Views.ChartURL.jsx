@@ -45,7 +45,7 @@ export default function(chart) {
         chart.model.on("change:x-axis", updateAxisScales);
         chart.model.on("change:y-axis", updateAxisScales);
         chart.model.on("change:chart-time", updateTime);
-        populateFromURL();
+        populateFromURL(owid.getQueryParams());
 
         $(window).on('query-change', function() {
             var tabName = chart.activeTabName;
@@ -58,9 +58,7 @@ export default function(chart) {
     /**
      * Apply any url parameters on chart startup
      */
-    function populateFromURL() {
-        var params = owid.getQueryParams();
-
+    function populateFromURL(params) {
         // Set tab if specified
         var tab = params.tab;
         if (tab) {
@@ -149,6 +147,7 @@ export default function(chart) {
             chart.model.set("activeLegendKeys", keys);
         }
     }
+    urlBinder.populateFromURL = populateFromURL
 
     /**
      * Save the current tab the user is on, and keep url params correctly isolated

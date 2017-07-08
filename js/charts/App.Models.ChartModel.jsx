@@ -55,7 +55,8 @@ export default Backbone.Model.extend( {
 		"activeLegendKeys": null,
 		"currentStackMode": null,
         "timeline": null,
-		"identityLine": false
+		"identityLine": false,
+		"highlightToggle": undefined
 	},
 
 	// Get defaults appropriate for this kind of chart

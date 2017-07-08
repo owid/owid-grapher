@@ -9,6 +9,11 @@ export interface TimelineConfig {
     compareEndPointsOnly?: boolean
 }
 
+export interface HighlightToggleConfig {
+    description: string
+    paramStr: stirng
+}
+
 // In-progress mobx model layer that will eventually replace ChartModel
 export default class ChartConfig {
     @observable.ref type: string
@@ -25,6 +30,7 @@ export default class ChartConfig {
     @observable.ref entityType: string = "country"
     @observable.ref timeDomain: [number|null, number|null]
     @observable.ref timeline: TimelineConfig|null = null
+    @observable.struct entityColors: {[key: string]: string} = {}
 
     @observable.ref yAxisConfig: any
     @observable.ref yDomain: [number|null, number|null]
@@ -47,6 +53,9 @@ export default class ChartConfig {
     @observable.ref addCountryMode: 'add-country'|'change-country'|'disabled' = 'add-country'
     @observable.ref comparisonLine: ComparisonLineConfig|null
 
+    @observable.ref highlightToggle: HighlightToggleConfig|undefined
+    
+
 	model: any
 
     @computed get selectedEntitiesByName() {
@@ -65,6 +74,11 @@ export default class ChartConfig {
         this.originUrl = this.model.get('data-entry-url')
 
         this.selectedEntities = this.model.getSelectedEntities().map((e: any) => e.name)
+        this.entityColors = {}
+        _.each(this.model.getSelectedEntities(), e => {
+            if (e.color)
+                this.entityColors[e.name] = e.color
+        })
         this.entityType = this.model.get('entity-type')
         this.timeline = this.model.get('timeline')
 
@@ -126,6 +140,7 @@ export default class ChartConfig {
         this.dimensions = this.model.get('chart-dimensions')        
         this.addCountryMode = this.model.get('add-country-mode')
         this.comparisonLine = this.model.get("comparisonLine")
+        this.highlightToggle = this.model.get("highlightToggle")
     }
 
 	constructor(model : any, data: any) {
@@ -183,6 +198,10 @@ export default class ChartConfig {
 
         autorun(() => {
             this.model.set('comparisonLine', toJS(this.comparisonLine))
+        })
+
+        autorun(() => {
+            this.model.set('highlightToggle', toJS(this.highlightToggle))
         })
 
         autorun(() => {            

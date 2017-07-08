@@ -15,8 +15,8 @@ interface LogoProps {
 }
 
 @observer
-class Logo extends React.Component<LogoProps, null> {
-    static bboxCache = {}
+class Logo extends React.Component<LogoProps, undefined> {
+    static bboxCache: {[svg: string]: SVGRect} = {}
 
     @computed get targetHeight() {
         return 40
@@ -45,7 +45,7 @@ class Logo extends React.Component<LogoProps, null> {
 
     render() {
         const {props, scale} = this
-        const svg = props.svg.match(/<svg>(.*)<\/svg>/)[1]||props.svg
+        const svg = (props.svg.match(/<svg>(.*)<\/svg>/)||"")[1]||props.svg
         return <g opacity={0.9} transform={`translate(${props.x}, ${props.y}) scale(${scale})`} dangerouslySetInnerHTML={{ __html: svg }}/>
     }
 }
@@ -61,7 +61,7 @@ interface HeaderMainProps {
 }
 
 @observer
-class HeaderMain extends React.Component<HeaderMainProps, null> {
+class HeaderMain extends React.Component<HeaderMainProps, undefined> {
     @computed get logoSVG() {
         return this.props.logosSVG[0]
     }
@@ -128,11 +128,12 @@ interface HeaderProps {
     maxYear: number,
     entities: any[],
     entityType: string,
-    logosSVG: string[]
+    logosSVG: string[],
+    titleLink: string
 }
 
 @observer
-export default class Header extends React.Component<HeaderProps, null> {
+export default class Header extends React.Component<HeaderProps, undefined> {
     fillTemplate(text: string) {
         const {entities, entityType, minYear, maxYear} = this.props
 
@@ -187,86 +188,3 @@ export default class Header extends React.Component<HeaderProps, null> {
         return <HeaderMain {...headerMain.props}/>
     }
 }
-
-/*function(chart) {
-	var headerControl = dataflow();
-
-	headerControl.inputs({
-		titleTemplate: "",
-		titleLink: "",
-		subtitleTemplate: "",
-		logosSVG: [],
-		entities: [],
-		entityType: "",
-		minYear: null,
-		maxYear: null,
-	});
-
-    let rootNode = null
-	headerControl.flow('containerNode, bounds, logosSVG, titleStr, titleLink, subtitleStr', function(containerNode, bounds, logosSVG, titleStr, titleLink, subtitleStr) {
-
-	});
-
-	headerControl.render = function(bounds, done) {
-		bounds = bounds || this.cachedBounds
-		this.cachedBounds = bounds
-
-		var minYear, maxYear, disclaimer="";
-		if (chart.activeTabName == "map") {
-			chart.mapdata.update();
-
-			var mapConfig = chart.map.attributes,
-				timeFrom = chart.mapdata.minToleranceYear || mapConfig.targetYear,
-				timeTo = chart.mapdata.maxToleranceYear || mapConfig.targetYear,
-				year = mapConfig.targetYear,
-				hasTargetYear = _.find(chart.mapdata.currentValues, function(d) { return d.year == year; }),
-				d = formatYear,
-				timeline = chart.tabs.map.timeline;
-
-			if (timeline && (timeline.isPlaying || timeline.isDragging))
-				disclaimer = "";
-			else if (hasTargetYear && timeFrom != timeTo) {
-				// The target year is in the data but we're displaying a range, meaning not available for all countries
-				disclaimer = " Since some observations for " + d(year) + " are not available the map displays the closest available data (" + d(timeFrom) + " to " + d(timeTo) + ").";
-			} else if (!hasTargetYear && timeFrom != timeTo) {
-				// The target year isn't in the data at all and we're displaying a range of other nearby values
-				disclaimer = " Since observations for " + d(year) + " are not available the map displays the closest available data (" + d(timeFrom) + " to " + d(timeTo) + ").";
-			} else if (!hasTargetYear && timeFrom == timeTo && timeFrom != year) {
-				// The target year isn't in the data and we're displaying some other single year
-				disclaimer = " Since observations for " + d(year) + " are not available the map displays the closest available data (from " + d(timeFrom) + ").";
-			}
-
-			minYear = year;
-			maxYear = year;
-		} else if (chart.model.get('chart-type') == App.ChartType.ScatterPlot) {
-			minYear = (chart.model.get('chart-time')||[])[0];
-			maxYear = (chart.model.get('chart-time')||[])[1];
-		} else if (chart.model.get('chart-type') == App.ChartType.SlopeChart) {
-			minYear = chart.tabs.chart.minYear
-			maxYear = chart.tabs.chart.maxYear
-		} else {
-			minYear = chart.data.get('minYear');
-			maxYear = chart.data.get('maxYear');
-		}
-
-		var baseUrl = Global.rootUrl + "/" + chart.model.get("slug"),
-			queryParams = owid.getQueryParams(),
-			queryStr = owid.queryParamsToStr(queryParams),
-			canonicalUrl = baseUrl + queryStr;
-
-		headerControl.update({
-			containerNode: chart.svg.node(),
-			bounds: bounds,
-			titleTemplate: chart.model.get('title'),
-			titleLink: canonicalUrl,
-			subtitleTemplate: chart.model.get('subtitle') + disclaimer,
-			logosSVG: chart.model.get('logosSVG'),
-			entities: chart.model.getSelectedEntities(),
-			entityType: chart.model.get('entity-type'),
-			minYear: minYear,
-			maxYear: maxYear
-		}, done);
-	};
-
-	return headerControl;
-}*/

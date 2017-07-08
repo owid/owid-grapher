@@ -2,6 +2,10 @@
 # yarn lockfile v1
 
 
+"@types/core-js@^0.9.41":
+  version "0.9.41"
+  resolved "https://registry.yarnpkg.com/@types/core-js/-/core-js-0.9.41.tgz#cfeceb63c2beaa29f882252c7c18e0e9471ff4e2"
+
 "@types/d3-array@*":
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/@types/d3-array/-/d3-array-1.2.0.tgz#9b1fc3202fc1a9f7da0f2873bd38b443137a9d34"
@@ -193,6 +197,14 @@
 "@types/lodash@^4.14.63":
   version "4.14.64"
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.64.tgz#979cf3a3d4a368670840bf9b3e448dc33ffe84ee"
+
+"@types/mkdirp@^0.3.29":
+  version "0.3.29"
+  resolved "https://registry.yarnpkg.com/@types/mkdirp/-/mkdirp-0.3.29.tgz#7f2ad7ec55f914482fc9b1ec4bb1ae6028d46066"
+
+"@types/node@6.0.66":
+  version "6.0.66"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-6.0.66.tgz#5680b74a6135d33d4c00447e7c3dc691a4601625"
 
 "@types/react-dom@^15.5.0":
   version "15.5.0"
@@ -437,9 +449,9 @@ aws4@^1.2.1:
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/aws4/-/aws4-1.6.0.tgz#83ef5ca860b2b32e4a0deedee8c771b9db57471e"
 
-axe-core@2.2.0:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/axe-core/-/axe-core-2.2.0.tgz#00b410b3fc899207d4f2f8e3753cff150d34e4bb"
+axe-core@2.2.1:
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/axe-core/-/axe-core-2.2.1.tgz#d8fe7be13e2d80e407f96d3374ed64d5fb1c3e54"
 
 babar@0.0.3:
   version "0.0.3"
@@ -1428,6 +1440,17 @@ chrome-devtools-frontend@1.0.422034:
   version "1.0.422034"
   resolved "https://registry.yarnpkg.com/chrome-devtools-frontend/-/chrome-devtools-frontend-1.0.422034.tgz#071c8ce14466b7653032fcd1ad1a4a68d5e3cbd9"
 
+chrome-launcher@^0.2.1:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/chrome-launcher/-/chrome-launcher-0.2.1.tgz#6ce9f54d146d6b8071e9ab7020ee5b11b61cc46f"
+  dependencies:
+    "@types/core-js" "^0.9.41"
+    "@types/mkdirp" "^0.3.29"
+    "@types/node" "6.0.66"
+    lighthouse-logger "^1.0.0"
+    mkdirp "0.5.1"
+    rimraf "2.2.8"
+
 chrome-remote-interface@^0.22.0:
   version "0.22.0"
   resolved "https://registry.yarnpkg.com/chrome-remote-interface/-/chrome-remote-interface-0.22.0.tgz#91a987c252929f883f60d98bf079f1ba2d3870b0"
@@ -2082,15 +2105,21 @@ debug@0.7.4, debug@~0.7.4:
   version "0.7.4"
   resolved "https://registry.yarnpkg.com/debug/-/debug-0.7.4.tgz#06e1ea8082c2cb14e39806e22e2f6f757f92af39"
 
-debug@2.2.0, debug@^2.1.1, debug@^2.2.0, debug@~2.2.0:
+debug@2.2.0, debug@^2.1.1, debug@~2.2.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/debug/-/debug-2.2.0.tgz#f87057e995b1a1f6ae6a4960664137bc56f039da"
   dependencies:
     ms "0.7.1"
 
-debug@2.6.7, debug@^2.6.6:
+debug@2.6.7:
   version "2.6.7"
   resolved "https://registry.yarnpkg.com/debug/-/debug-2.6.7.tgz#92bad1f6d05bbb6bba22cca88bcd0ec894c2861e"
+  dependencies:
+    ms "2.0.0"
+
+debug@^2.2.0, debug@^2.6.6, debug@^2.6.8:
+  version "2.6.8"
+  resolved "https://registry.yarnpkg.com/debug/-/debug-2.6.8.tgz#e731531ca2ede27d188222427da17821d68ff4fc"
   dependencies:
     ms "2.0.0"
 
@@ -3247,11 +3276,17 @@ lcid@^1.0.0:
   dependencies:
     invert-kv "^1.0.0"
 
-lighthouse@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/lighthouse/-/lighthouse-2.0.0.tgz#55962239ab858eadf46af03468ae1ca17703fde2"
+lighthouse-logger@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/lighthouse-logger/-/lighthouse-logger-1.0.0.tgz#c6abdfbbbf0b4a541ab33864802cbad8944bcc8c"
   dependencies:
-    axe-core "2.2.0"
+    debug "^2.6.8"
+
+lighthouse@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/lighthouse/-/lighthouse-2.1.0.tgz#caa6a3993e3b22098f82f2f745e16cda84c71aa3"
+  dependencies:
+    axe-core "2.2.1"
     chrome-devtools-frontend "1.0.422034"
     debug "2.2.0"
     devtools-timeline-model "1.1.6"
@@ -3541,6 +3576,10 @@ nan@^2.3.0:
 negotiator@0.6.1:
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/negotiator/-/negotiator-0.6.1.tgz#2b327184e8992101177b28563fb5e7102acd0ca9"
+
+node-cleanup@^2.1.2:
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/node-cleanup/-/node-cleanup-2.1.2.tgz#7ac19abd297e09a7f72a71545d951b517e4dde2c"
 
 node-fetch@^1.0.1:
   version "1.6.3"
