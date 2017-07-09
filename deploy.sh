@@ -39,8 +39,8 @@ ssh -t $HOST 'bash -e -s' <<EOF
   yarn install --production
   ./env/bin/pip3 install -r requirements.txt
   ./env/bin/python3 manage.py migrate
-  sudo chown owid:www-data -R /home/owid/*
-  sudo chown www-data:www-data -R /home/owid/ourworldindata.org
+  sudo chown owid:www-data -R $LIVE_TARGET
+  sudo chown owid:www-data -R $LIVE_DATA
   sudo chmod g+rw -R /home/owid/*  
   sudo service $NAME restart
 EOF
