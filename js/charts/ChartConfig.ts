@@ -134,7 +134,7 @@ export default class ChartConfig {
 	}
 
 
-    @computed get dimensions() {
+    @computed get dimensions(): ChartDimension[] {
         const dimensions = _.map(this.props.dimensions, _.clone)
         const validProperties = _.map(this.emptyDimensions, 'property')
         let validDimensions = _.filter(dimensions, dim => _.includes(validProperties, dim.property))

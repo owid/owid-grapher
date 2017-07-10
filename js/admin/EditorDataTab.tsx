@@ -8,7 +8,7 @@ import ChartType from '../charts/ChartType'
 import EntityKey from '../charts/EntityKey'
 import Color from '../charts/Color'
 import {defaultTo} from '../charts/Util'
-import {SelectField, Toggle} from './Forms'
+import {SelectField, Toggle, NumberField} from './Forms'
 import ChartEditor from './ChartEditor'
 import EditorVariable from './EditorVariable'
 /// XXXX todo
@@ -201,7 +201,7 @@ class VariableItem extends React.Component<{ variable: EditorVariable }, undefin
 @observer
 class VariablesSection extends React.Component<{ editor: ChartEditor }, undefined> {
 	base: HTMLDivElement
-	@observable.ref isAddingVariable: boolean = true
+	@observable.ref isAddingVariable: boolean = false
 	@observable.struct unassignedVariables: EditorVariable[] = []
 
 	@action.bound onAddVariableStart() { this.isAddingVariable = true }
@@ -238,6 +238,58 @@ class VariablesSection extends React.Component<{ editor: ChartEditor }, undefine
 }
 
 @observer
+class TimeSection extends React.Component<{ editor: ChartEditor }, undefined> {
+	base: HTMLDivElement
+
+	@computed get chart() { return this.props.editor.chart }
+
+	@computed get isDynamicTime() {
+		return this.chart.props.timeDomain[0] == null && this.chart.props.timeDomain[1] == null
+	}
+
+	@computed get minTime() { return this.chart.props.timeDomain[0]||undefined }
+	@computed get maxTime() { return this.chart.props.timeDomain[1]||undefined }
+	@computed get minPossibleTime() { 
+		return this.chart.data.primaryVariable ? this.chart.data.primaryVariable.minYear : 1900
+	}
+	@computed get maxPossibleTime() {
+		return this.chart.data.primaryVariable ? this.chart.data.primaryVariable.maxYear : 2015
+	}
+
+	@action.bound onToggleDynamicTime() {
+		if (this.isDynamicTime) {
+			this.chart.props.timeDomain = [this.minPossibleTime, this.maxPossibleTime]
+		} else {
+			this.chart.props.timeDomain = [null, null]
+		}
+	}
+
+	@action.bound onMinTime(value: number) {
+		this.chart.props.timeDomain[0] = value
+	}
+
+	@action.bound onMaxTime(value: number) {
+		this.chart.props.timeDomain[1] = value
+	}
+
+	render() {
+		const {chart, minTime, maxTime, isDynamicTime} = this
+
+		return <section className="time-section">
+			<h2>Define your time</h2>
+			<Toggle label="Use entire time period of the selected data" value={isDynamicTime} onValue={this.onToggleDynamicTime}/>
+
+			{!isDynamicTime && <div>
+				<div className="chart-time-inputs-wrapper">				
+					<NumberField label="Time from" value={minTime} onValue={this.onMinTime}/>
+					<NumberField label="Time to" value={maxTime} onValue={this.onMaxTime}/>
+				</div>
+			</div>}
+		</section>
+	}
+}
+
+@observer
 export default class EditorDataTab extends React.Component<{ editor: ChartEditor }, undefined> {
 	render() {
 		const {editor} = this.props
@@ -245,24 +297,7 @@ export default class EditorDataTab extends React.Component<{ editor: ChartEditor
 		return <div id="data-tab" className="tab-pane">
 			<VariablesSection editor={editor}/>
 			<EntitiesSection chart={editor.chart}/>
-			<section className="time-section">
-				<h2>Define your time</h2>
-				<label>
-					<input type="checkbox" name="dynamic-time" checked={true}/>
-					Use entire time period of the selected data
-				</label>
-				<input type="text" name="chart-time" value=""/>
-				<div className="chart-time-inputs-wrapper">
-					<label>
-						Time from:
-						<input type="text" name="chart-time-from" className="form-control" value="" />
-					</label>
-					<label>
-						Time to:
-						<input type="text" name="chart-time-to" className="form-control" value="" />
-					</label>
-				</div>
-			</section>
+			<TimeSection editor={editor}/>
 		</div>
 	}
 }

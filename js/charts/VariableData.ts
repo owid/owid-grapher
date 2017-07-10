@@ -47,6 +47,14 @@ class Variable {
 		return _.uniq(this.years)
 	}
 
+	@computed get minYear() {
+		return _.min(this.yearsUniq)
+	}
+
+	@computed get maxYear() {
+		return _.max(this.yearsUniq)
+	}
+
 	@computed get minValue() {
 		return _.min(this.numericValues)
 	}

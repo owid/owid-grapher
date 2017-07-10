@@ -30,9 +30,9 @@ export default class EditorScatterTab extends React.Component<{ chart: ChartConf
 
     @action.bound onToggleTimeline(e: React.ChangeEvent<HTMLInputElement>) {
         if (e.target.checked)
-            this.props.chart.timeline = this.timeline
+            this.props.chart.props.timeline = this.timeline
         else
-            this.props.chart.timeline = null
+            this.props.chart.props.timeline = undefined
     }      
 
     @action.bound onToggleEndsOnly(e: React.ChangeEvent<HTMLInputElement>) {
@@ -42,27 +42,27 @@ export default class EditorScatterTab extends React.Component<{ chart: ChartConf
 
     @action.bound onToggleComparisonLine(e: React.ChangeEvent<HTMLInputElement>) {
         if (e.target.checked)
-            this.props.chart.comparisonLine = this.comparisonLine
+            this.props.chart.props.comparisonLine = this.comparisonLine
         else
-            this.props.chart.comparisonLine = null
+            this.props.chart.props.comparisonLine = undefined
     }
 
     @action.bound onToggleHighlightToggle(e: React.ChangeEvent<HTMLInputElement>) {
         if (e.target.checked)
-            this.props.chart.highlightToggle = this.highlightToggle
+            this.props.chart.props.highlightToggle = this.highlightToggle
         else
-            this.props.chart.highlightToggle = null
+            this.props.chart.props.highlightToggle = undefined
     }
 
     save() {
         if (this.hasTimeline)
-            this.props.chart.timeline = toJS(this.timeline)
+            this.props.chart.props.timeline = toJS(this.timeline)
 
         if (this.hasComparisonLine)
-            this.props.chart.comparisonLine = toJS(this.comparisonLine)
+            this.props.chart.props.comparisonLine = toJS(this.comparisonLine)
 
         if (this.hasHighlightToggle)
-            this.props.chart.highlightToggle = toJS(this.highlightToggle)
+            this.props.chart.props.highlightToggle = toJS(this.highlightToggle)
     }
 
     render() {

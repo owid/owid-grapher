@@ -58,6 +58,11 @@ export default class ChartData {
 		return this.data ? this.data.legendData : []
 	}
 
+	@computed get primaryVariable() {
+		const yDimension = _.find(this.chart.dimensions, { property: 'y' })
+		return yDimension ? this.vardata.variablesById[yDimension.variableId] : undefined
+	}
+
 	transformDataForLineChart() {
 		const {chart, vardata} = this
 		const {timeDomain, selectedEntitiesByKey, yAxis, addCountryMode} = chart
