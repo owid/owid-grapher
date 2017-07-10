@@ -42,10 +42,7 @@ export default class ChartEditorView extends React.Component<{ editor: ChartEdit
 		const {editor} = this.props
 		const {chart} = editor
 
-		console.log(editor.currentModal)
-
 		return <div className="form-wrapper-inner">
-			{editor.currentModal}
 			<form method="POST" accept-charset="UTF-8"><input name="_method" type="hidden" value="PUT"/>
 				<div className="nav-tabs-custom">
 					<ul className="nav nav-tabs no-bullets">

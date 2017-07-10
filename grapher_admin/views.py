@@ -106,34 +106,27 @@ def createchart(request: HttpRequest):
 
 
 def editor_data():
-    data = {}
-    variable_query = Variable.objects.all().select_related()
-    query_result = []
-    for each in variable_query:
-        query_result.append({'name': each.name, 'id': each.pk, 'unit': each.unit, 'description': each.description,
-                       'dataset': each.fk_dst_id.name, 'category': each.fk_dst_id.fk_dst_cat_id.name,
-                       'subcategory': each.fk_dst_id.fk_dst_subcat_id.name, 'namespace': each.fk_dst_id.namespace})
-    optgroups = {}
-
-    for result in query_result:
-        if not optgroups.get(result['subcategory'], 0):
-            optgroup = {}
-            optgroup['name'] = result['subcategory']
-            optgroup['namespace'] = result['namespace']
-            optgroup['variables'] = []
-            optgroups[result['subcategory']] = optgroup
-
-        newresult = copy.deepcopy(result)
-        if result['name'] != result['dataset']:
-            newresult['name'] = result['dataset'] + ' - ' + result['name']
-
-        optgroups[newresult['subcategory']]['variables'].append(newresult)
+    variables = []
+    for variable in Variable.objects.all().select_related():
+        variables.append({
+            'name': variable.name, 
+            'id': variable.pk, 
+            'unit': variable.unit, 
+            'description': variable.description,
+            'dataset': {
+                'name': variable.fk_dst_id.name,
+                'namespace': variable.fk_dst_id.namespace,
+                'category': variable.fk_dst_id.fk_dst_cat_id.name,
+                'subcategory': variable.fk_dst_id.fk_dst_subcat_id.name
+            }
+        })
 
     namespaces = list(Dataset.objects.values_list('namespace', flat=True).distinct())
 
-    data['namespaces'] = namespaces
-    #data['optgroups'] = optgroups
-    return data
+    return {
+        'variables': variables,
+        'namespaces': namespaces
+    }
 
 
 def editchart(request: HttpRequest, chartid: Union[str, int]):

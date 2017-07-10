@@ -7,11 +7,12 @@
 
 import {observable, computed, reaction} from 'mobx'
 import ChartConfig from '../charts/ChartConfig'
-
+import EditorVariable from './EditorVariable'
 
 // Contextual information received from server about what is in the database
 export interface EditorData {
-	namespaces: string[]
+	namespaces: string[],
+	variables: EditorVariable[]
 }
 
 export interface ChartEditorProps {
@@ -43,8 +44,6 @@ export default class ChartEditor {
 
     // Whether the current chart state is saved or not
     @observable.ref isSaved: boolean = true
-	
-	@observable.ref currentModal: React.ReactNode|undefined
 
     // XXX refactor all of this
 	// @param newAttrs Attributes which will only be set on the model if the save is successful.
