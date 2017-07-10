@@ -8,9 +8,17 @@
 import {observable, computed, reaction} from 'mobx'
 import ChartConfig from '../charts/ChartConfig'
 
-export interface ChartEditorProps {
-    chart: ChartConfig
+
+// Contextual information received from server about what is in the database
+export interface EditorData {
+	namespaces: string[]
 }
+
+export interface ChartEditorProps {
+    chart: ChartConfig,
+	data: EditorData
+}
+
 
    /*url: function(id) {
         id = id || this.id;
@@ -31,9 +39,12 @@ export interface ChartEditorProps {
 
 export default class ChartEditor {
     @observable.ref chart: ChartConfig
+	@observable.ref data: EditorData
 
     // Whether the current chart state is saved or not
     @observable.ref isSaved: boolean = true
+	
+	@observable.ref currentModal: React.ReactNode|undefined
 
     // XXX refactor all of this
 	// @param newAttrs Attributes which will only be set on the model if the save is successful.
@@ -127,8 +138,9 @@ export default class ChartEditor {
 	}
 
     constructor(props: ChartEditorProps) {
-		const {chart} = props
+		const {chart, data} = props
         this.chart = chart
+		this.data = data
 
 		reaction(
 			() => chart.json,

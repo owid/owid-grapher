@@ -107,12 +107,6 @@ def createchart(request: HttpRequest):
 
 def editor_data():
     data = {}
-    data['logos'] = []
-
-    logos = Logo.objects.all()
-    for each in logos:
-        data['logos'].append(each.name)
-
     variable_query = Variable.objects.all().select_related()
     query_result = []
     for each in variable_query:
@@ -135,10 +129,10 @@ def editor_data():
 
         optgroups[newresult['subcategory']]['variables'].append(newresult)
 
-    namespaces = Dataset.objects.values('namespace').distinct()
+    namespaces = list(Dataset.objects.values_list('namespace', flat=True).distinct())
 
     data['namespaces'] = namespaces
-    data['optgroups'] = optgroups
+    #data['optgroups'] = optgroups
     return data
 
 

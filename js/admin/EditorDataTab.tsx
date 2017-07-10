@@ -1,12 +1,16 @@
 import * as _ from 'lodash'
 import * as React from 'react'
-import {computed, action} from 'mobx'
+import * as ReactDOM from 'react-dom'
+import {computed, action, observable} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartConfig from '../charts/ChartConfig'
 import ChartType from '../charts/ChartType'
 import {Toggle} from './Forms'
 import EntityKey from '../charts/EntityKey'
 import Color from '../charts/Color'
+import {ChartEditor} from 'ChartEditor'
+import {defaultTo} from '../charts/Util'
+import {SelectField} from './Forms'
 /// XXXX todo
 
 var ColorPicker = App.Views.UI.ColorPicker;
@@ -88,25 +92,103 @@ class EntitiesSection extends React.Component<{ chart: ChartConfig }, undefined>
 	}
 }
 
+interface VariableSelectorProps {
+	editor: ChartEditor,
+	onClose: () => void
+}
+
 @observer
-export default class EditorDataTab extends React.Component<{ chart: ChartConfig }, undefined> {
-	@computed get chart(): ChartConfig { return this.props.chart }
+class VariableSelector extends React.Component<VariableSelectorProps, undefined> {
+	@observable.ref chosenNamespace: string|undefined
+
+	@computed get currentNamespace() {
+		return defaultTo(this.chosenNamespace, this.props.editor.data.namespaces[0])
+	}
+
+	@action.bound onDismiss() {
+		return this.props.onClose()
+	}
+
+	@action.bound onComplete() {
+
+	}
 
 	render() {
-		const { chart } = this
+		const {chart} = this.props.editor
+		const {namespaces} = this.props.editor.data
+		const {currentNamespace} = this
 
-		return <div id="data-tab" className="tab-pane">
-			<section className="add-data-section">
-					<a className="add-data-btn"><i className="fa fa-plus"/>Add variable</a>
-					<div className="dd">
-						<div className="dd-empty"></div>
+		return <div className="editorModal VariableSelector">
+			<div className="modal-dialog">
+				<div className="modal-content">
+					<div className="modal-header">
+						<button type="button" className="close" onClick={this.onDismiss}><span aria-hidden="true">×</span></button>
+						<h4 className="modal-title">Select variable from database</h4>
 					</div>
+					<div className="modal-body">
+						<div className="form-variable-select-wrapper">
+							<SelectField label="Database" options={namespaces} value={currentNamespace}/>
+							
+							<label className="variable-wrapper">
+								Variable:
+								<select name='chart-variable' data-placeholder="Select your variable" className="form-control form-variable-select chosen-select">
+									{/*% for key, optgroup in data.optgroups.items %}
+										<optgroup label="{{ optgroup.name }}">
+											{% for variable in optgroup.variables %}
+												<option title="{{ variable.description }}" data-namespace="{{ variable.namespace }}" data-unit="{{ variable.unit }}" value="{{ variable.id }}">{{ variable.name }}</option>
+											{% endfor %}
+										</optgroup>
+									{% endfor %*/}
+								</select>
+							</label>
+						</div>
+					</div>
+					<div className="modal-footer">
+						<button type="button" className="btn btn-default pull-left" onClick={this.onDismiss}>Close</button>
+						<button type="button" className="btn btn-primary" onClick={this.onComplete}>Add variable</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	}
+}
+
+@observer
+class VariablesSection extends React.Component<{ editor: ChartEditor }, undefined> {
+	@observable.ref isAddingVariable: boolean = true
+
+	@action.bound onAddVariableStart() { this.isAddingVariable = true }
+	@action.bound onAddVariableDone() {
+		this.isAddingVariable = false
+	}
+
+	render() {
+		const {props, isAddingVariable} = this
+
+		return <div>
+			<section className="add-data-section">
+				<a className="add-data-btn" onClick={this.onAddVariableStart}><i className="fa fa-plus"/>Add variable</a>
+				<div className="dd">
+					<div className="dd-empty"></div>
+				</div>
 				<p className="form-section-desc hidden">Assign variables to the graph dimensions below by dragging them.</p>
 			</section>
 			<section className="dimensions-section">
 				<input type="hidden" name="chart-dimensions" value="" />
 			</section>
-			<EntitiesSection chart={chart}/>
+			{isAddingVariable && <VariableSelector editor={props.editor} onClose={this.onAddVariableDone}/>}
+		</div>
+	}
+}
+
+@observer
+export default class EditorDataTab extends React.Component<{ editor: ChartEditor }, undefined> {
+	render() {
+		const {editor} = this.props
+
+		return <div id="data-tab" className="tab-pane">
+			<VariablesSection editor={editor}/>
+			<EntitiesSection chart={editor.chart}/>
 			<section className="time-section">
 				<h2>Define your time</h2>
 				<label>

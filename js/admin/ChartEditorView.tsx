@@ -12,18 +12,26 @@ import ChartType from '../charts/ChartType'
 import ChartView from '../charts/ChartView'
 import ChartEditor, {ChartEditorProps} from './ChartEditor'
 import SaveButtons from './SaveButtons'
+import {observer} from 'mobx-react'
 
 declare const App: any
 
+@observer
 export default class ChartEditorView extends React.Component<{ editor: ChartEditor }, undefined> {
-    static bootstrap({ chartView }: { chartView: ChartView }) {
-		const editor = new ChartEditor({ chart: chartView.chart })
+    static bootstrap({ chartView, editorData }: { chartView: ChartView, editorData: any }) {
+		const editor = new ChartEditor({ chart: chartView.chart, data: editorData })
 		window.editor = editor
 		ReactDOM.render(<ChartEditorView editor={editor}/>, document.getElementById("form-view"))
     }
 
     constructor(props: any) {
         super(props)
+	}
+	
+	getChildContext() {
+		return {
+			editor: this.props.editor
+		}
 	}
 
 	componentDidMount() {
@@ -34,7 +42,10 @@ export default class ChartEditorView extends React.Component<{ editor: ChartEdit
 		const {editor} = this.props
 		const {chart} = editor
 
+		console.log(editor.currentModal)
+
 		return <div className="form-wrapper-inner">
+			{editor.currentModal}
 			<form method="POST" accept-charset="UTF-8"><input name="_method" type="hidden" value="PUT"/>
 				<div className="nav-tabs-custom">
 					<ul className="nav nav-tabs no-bullets">
@@ -57,7 +68,7 @@ export default class ChartEditorView extends React.Component<{ editor: ChartEdit
 				</div>
 				<div className="tab-content">
 					<EditorBasicTab chart={chart}/>
-					<EditorDataTab chart={chart}/>
+					<EditorDataTab editor={editor}/>
 					<EditorAxisTab chart={chart}/>
 					<EditorStylingTab chart={chart}/>
 					{chart.type == ChartType.ScatterPlot && <EditorScatterTab chart={chart}/>}

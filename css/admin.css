@@ -171,31 +171,31 @@ button > i {
   background-color: #ecf0f5; }
 
 /* select-var-popup */
-.select-var-popup .form-variable-select-wrapper label {
+.VariableSelector .form-variable-select-wrapper label {
   display: block;
   width: 100%; }
 
-.select-var-popup .form-variable-select-wrapper .chosen-container {
+.VariableSelector .form-variable-select-wrapper .chosen-container {
   width: 100% !important; }
 
-.select-var-popup .select-var-search-wrapper {
+.VariableSelector .select-var-search-wrapper {
   position: relative;
   padding: 20px;
   margin-bottom: 20px;
   background-color: #ecf0f5; }
 
-.select-var-popup .search-input-wrapper {
+.VariableSelector .search-input-wrapper {
   position: relative; }
 
-.select-var-popup .search-input-wrapper i {
+.VariableSelector .search-input-wrapper i {
   position: absolute;
   top: 10px;
   right: 10px; }
 
-.select-var-popup .search-input-wrapper .fa-times {
+.VariableSelector .search-input-wrapper .fa-times {
   cursor: pointer; }
 
-.select-var-popup .search-results {
+.VariableSelector .search-results {
   position: absolute;
   left: 20px;
   right: 20px;
@@ -206,12 +206,12 @@ button > i {
   border-top: 0;
   display: none; }
 
-.select-var-popup .search-results li {
+.VariableSelector .search-results li {
   padding: 6px 6px;
   cursor: pointer; }
 
-.select-var-popup .search-results .selected,
-.select-var-popup .search-results li:hover {
+.VariableSelector .search-results .selected,
+.VariableSelector .search-results li:hover {
   background-color: #eeeeee; }
 
 /* override ugly chosen */
@@ -774,23 +774,18 @@ li[data-color^=".*"] {
   color: white !important;
 }
 
-/**
-*	select var popup
-**/
-.select-var-popup {
-  position: absolute;
+.editorModal {
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
+  background: rgba(0,0,0,0.3);
   z-index: 1040;
-  display: none; }
-
-.select-var-popup .modal {
-  display: block; }
-
-.modal-dialog {
-  z-index: 2002;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 10%;
 }
 
 /**
