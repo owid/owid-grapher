@@ -59,7 +59,7 @@ export default class DownloadTab extends React.Component<DownloadTabProps, undef
     }
 
     @computed get queryStr() : string {
-        return this.props.chartView.url.lastQueryStr||""
+        return this.props.chart.url.lastQueryStr||""
     }
 
     @computed get cacheTag() : string {

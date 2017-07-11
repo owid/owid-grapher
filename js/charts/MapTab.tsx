@@ -134,7 +134,7 @@ export default class MapTab extends React.Component<MapTabProps, undefined> {
         return preInstantiate(<Header
             bounds={bounds}
             titleTemplate={chart.title}
-            titleLink={this.props.chartView.url.getCurrentLink()}
+            titleLink={chart.url.canonicalUrl}
             subtitleTemplate={chart.subtitle}
             logosSVG={chart.logosSVG}
             entities={chart.selectedEntities}

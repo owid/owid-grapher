@@ -48,7 +48,7 @@ class ShareMenu extends React.Component<ShareMenuProps, undefined> {
     }
 
     @computed get queryStr() : string {
-        return this.props.chartView.url.lastQueryStr||""
+        return this.props.chart.url.lastQueryStr||""
     }
 
     @computed get editUrl() : string {
@@ -119,7 +119,7 @@ class HighlightToggle extends React.Component<{ chart: ChartConfig }, undefined>
     @action.bound onHighlightToggle(e) {
         if (e.target.checked) {
             const params = owid.getQueryParams()
-            this.chartView.url.populateFromURL(_.extend(params, this.highlightParams))
+            this.chart.url.populateFromURL(_.extend(params, this.highlightParams))
         } else {
             this.chart.selectedEntities = []
         }

@@ -15,7 +15,6 @@ import DownloadTab from './DownloadTab'
 import VariableData from './VariableData'
 import ChartData from './ChartData'
 import Colors from './App.Models.Colors'
-import UrlBinder from './URLBinder'
 import tooltip from './owid.view.tooltip'
 import Bounds from './Bounds'
 import {preInstantiate, VNode} from './Util'
@@ -108,7 +107,6 @@ export default class ChartView extends React.Component<ChartViewProps, undefined
     @observable popups: VNode[] = []
 
     chart: ChartConfig
-    url: any
     tooltip: any
     htmlNode: HTMLDivElement
     svgNode: SVGSVGElement
@@ -119,7 +117,6 @@ export default class ChartView extends React.Component<ChartViewProps, undefined
         // XXX all of this stuff needs refactoring
         this.chart = new ChartConfig(props.jsonConfig)
         App.Colors = new Colors(this)
-        this.url = new UrlBinder(this.chart)
         this.tooltip = tooltip(this)
 
         Bounds.baseFontSize = 22

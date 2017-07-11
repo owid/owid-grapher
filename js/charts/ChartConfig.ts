@@ -14,6 +14,7 @@ import {defaultTo} from './Util'
 import VariableData from './VariableData'
 import ChartData from './ChartData'
 import MapConfig, {MapConfigProps} from './MapConfig'
+import URLBinder from './URLBinder'
 
 export interface TimelineConfig {
     compareEndPointsOnly?: boolean
@@ -37,7 +38,6 @@ export interface ChartDimension {
     unit: string    
 }
 
-// WIP
 export class ChartConfigProps {
     @observable.ref id: number
     @observable.ref type: ChartTypeType = "LineChart"
@@ -77,7 +77,6 @@ export class ChartConfigProps {
     @observable map?: MapConfigProps = undefined
 }
 
-// In-progress mobx model layer that will eventually replace ChartModel
 export default class ChartConfig {
     props: ChartConfigProps = new ChartConfigProps()
 
@@ -234,26 +233,8 @@ export default class ChartConfig {
         this.update(props)
         this.vardata = new VariableData(this)
         this.data = new ChartData(this, this.vardata)
+        this.url = new URLBinder(this)
         
         window.chart = this
-        
-        // TODO fix this. Colors shouldn't be part of selectedEntities
-		/*autorun(() => {
-			const entities = this.selectedEntities
-            const byName = _.keyBy(this.model.get('selected-countries'), 'name')
-
-			if (window.chart && window.chart.vardata) {
-				const entityKey = window.chart.vardata.get('entityKey')
-                if (!_.isEmpty(entityKey)) {
-                    const selectedEntities = _.filter(_.values(entityKey), e => _.includes(entities, e.name))                    
-                    _.each(selectedEntities, e => {
-                        if (byName[e.name])
-                            _.extend(e, byName[e.name])
-                    })
-                    this.model.set('selected-countries', selectedEntities)
-                }
-			}
-		})*/
-
 	}
 }

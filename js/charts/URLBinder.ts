@@ -2,7 +2,7 @@
  * ================
  *
  * This component is responsible for handling data binding between the
- * the chartView and url parameters, to enable nice linking support
+ * the chart and url parameters, to enable nice linking support
  * for specific countries and years.
  *
  */
@@ -70,6 +70,15 @@ export default class URLBinder {
         return params
     }
 
+    // Get the full url representing the canonical location of this chart state
+    @computed get canonicalUrl() {
+        var baseUrl = Global.rootUrl + "/" + this.chart.slug,
+            queryStr = queryParamsToStr(this.params),
+            canonicalUrl = baseUrl + queryStr;
+
+        return canonicalUrl
+    }
+
     @computed get yearParam(): string|undefined {
         const {chart, origChart} = this
 
@@ -131,16 +140,6 @@ export default class URLBinder {
     updateYearParam() {
         //if (chart.tab == 'map')
         //    setQueryVariable("year", chartView.map.get("targetYear"));
-    }
-
-
-    getCurrentLink() {
-        var baseUrl = Global.rootUrl + "/" + this.chart.slug,
-            queryParams = getQueryParams(),
-            queryStr = queryParamsToStr(queryParams),
-            canonicalUrl = baseUrl + queryStr;
-
-        return canonicalUrl
     }
 
     /**
