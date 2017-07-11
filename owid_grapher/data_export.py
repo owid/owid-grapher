@@ -63,8 +63,8 @@ for one_type in chart_ids:
         for each in chart_dims:
             if not seen_categories.get(each.variableId.fk_dst_id.fk_dst_cat_id.pk, 0):
                 category = each.variableId.fk_dst_id.fk_dst_cat_id
-                out += 'INSERT INTO dataset_categories (`id`, `name`, `created_at`, `updated_at`) VALUES ' \
-                       "(%s, '%s', '%s', '%s');\n" % (category.pk, category.name.replace("'", "\\'"), current_time, current_time)
+                out += 'INSERT INTO dataset_categories (`id`, `name`, `fetcher_autocreated`, `created_at`, `updated_at`) VALUES ' \
+                       "(%s, '%s', 0, '%s', '%s');\n" % (category.pk, category.name.replace("'", "\\'"), current_time, current_time)
                 seen_categories[each.variableId.fk_dst_id.fk_dst_cat_id.pk] = 1
             if not seen_subcategories.get(each.variableId.fk_dst_id.fk_dst_subcat_id.pk, 0):
                 subcategory = each.variableId.fk_dst_id.fk_dst_subcat_id

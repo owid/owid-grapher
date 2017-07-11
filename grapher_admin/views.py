@@ -363,7 +363,8 @@ def importdata(request: HttpRequest):
     source_template['created_at'] = str(source_template['created_at'])
     source_template['updated_at'] = str(source_template['updated_at'])
 
-    categories = DatasetSubcategory.objects.all().select_related().order_by('fk_dst_cat_id__pk').order_by('pk')
+    categories = DatasetSubcategory.objects.all().select_related().filter(
+        fk_dst_cat_id__fetcher_autocreated=False).order_by('fk_dst_cat_id__pk').order_by('pk')
     category_list = []
     for each in categories:
         category_list.append({'name': each.name, 'id': each.pk, 'parent': each.fk_dst_cat_id.name})
@@ -562,7 +563,7 @@ def showdataset(request: HttpRequest, datasetid: str):
 
 def editdataset(request: HttpRequest, datasetid: str):
     try:
-        dataset = Dataset.objects.filter(pk=int(datasetid)).values()[0]
+        dataset = Dataset.objects.get(pk=int(datasetid))
     except Dataset.DoesNotExist:
         return HttpResponseNotFound('Dataset does not exist!')
 
@@ -571,11 +572,17 @@ def editdataset(request: HttpRequest, datasetid: str):
     for each in sources:
         sources_list.append({'id': int(each['pk']), 'name': each['name']})
     cats_list = []
-    categories = DatasetCategory.objects.values('pk', 'name')
+    if dataset.namespace == 'owid':
+        categories = DatasetCategory.objects.filter(fetcher_autocreated=False).values('pk', 'name')
+    else:
+        categories = DatasetCategory.objects.values('pk', 'name')
     for each in categories:
         cats_list.append({'id': int(each['pk']), 'name': each['name']})
     subcats_list = []
-    subcategories = DatasetSubcategory.objects.values('pk', 'name')
+    if dataset.namespace == 'owid':
+        subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id__fetcher_autocreated=False).values('pk', 'name')
+    else:
+        subcategories = DatasetSubcategory.objects.values('pk', 'name')
     for each in subcategories:
         subcats_list.append({'id': int(each['pk']), 'name': each['name']})
     return render(request, 'admin.datasets.edit.html', context={'current_user': request.user.name,
@@ -588,7 +595,7 @@ def editdataset(request: HttpRequest, datasetid: str):
 
 def managedataset(request: HttpRequest, datasetid: str):
     try:
-        dataset = Dataset.objects.filter(pk=int(datasetid))
+        dataset = Dataset.objects.get(pk=int(datasetid))
     except Dataset.DoesNotExist:
         return HttpResponseNotFound('Dataset does not exist!')
 
@@ -765,13 +772,12 @@ def listcategories(request: HttpRequest):
 
 def showcategory(request: HttpRequest, catid: str):
     try:
-        category = DatasetCategory.objects.filter(pk=int(catid)).values()[0]
         catobj = DatasetCategory.objects.get(pk=int(catid))
     except DatasetCategory.DoesNotExist:
         return HttpResponseNotFound('Category does not exist!')
 
     subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=catobj).values()
-
+    category = DatasetCategory.objects.filter(pk=int(catid)).values()[0]
     category['subcategories'] = subcategories
 
     return render(request, 'admin.categories.show.html', context={'current_user': request.user.name,
@@ -781,7 +787,7 @@ def showcategory(request: HttpRequest, catid: str):
 
 def managecategory(request: HttpRequest, catid: str):
     try:
-        category = DatasetCategory.objects.filter(pk=int(catid)).values()[0]
+        category = DatasetCategory.objects.get(pk=int(catid))
     except DatasetCategory.DoesNotExist:
         return HttpResponseNotFound('Category does not exist!')
 
@@ -811,10 +817,10 @@ def managecategory(request: HttpRequest, catid: str):
 
 def editcategory(request: HttpRequest, catid: str):
     try:
-        category = DatasetCategory.objects.filter(pk=int(catid)).values()[0]
+        category = DatasetCategory.objects.get(pk=int(catid))
     except DatasetCategory.DoesNotExist:
         return HttpResponseNotFound('Category does not exist!')
-
+    category = DatasetCategory.objects.filter(pk=int(catid)).values()[0]
     return render(request, 'admin.categories.edit.html', context={'current_user': request.user.name,
                                                                   'category': category
                                                                   })
