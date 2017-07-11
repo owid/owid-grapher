@@ -30,16 +30,17 @@ interface ChartQueryParams {
     shown?: string
 }
 
+declare const App: any
+
 export default class URLBinder {
     chart: ChartConfig
-    origChart: ChartConfigProps
+    origChartProps: ChartConfigProps
     chartQueryStr: string = "?"
     mapQueryStr: string = "?"
 
     constructor(chart: ChartConfig) {
         this.chart = chart
-        this.origChart = toJS(chart.props)
-        window.origChart = this.origChart
+        this.origChartProps = toJS(chart.props)
         this.populateFromURL(getQueryParams())
 
         // There is a surprisingly considerable performance overhead to updating the url
@@ -52,6 +53,15 @@ export default class URLBinder {
             const {params} = this
             pushParams(params)
         })
+    }
+
+    @computed get origChart() {
+        if (App.isEditor) {
+            // In the editor, the current chart state is always the "original" state
+            return toJS(this.chart.props)
+        } else {
+            return this.origChartProps
+        }
     }
 
     // Autocomputed url params to reflect difference between current chart state
