@@ -24,10 +24,6 @@ export default class EditorScatterTab extends React.Component<{ chart: ChartConf
         _.extend(this.highlightToggle, props.chart.highlightToggle)
     }
 
-    componentDidMount() {
-        $(".nav-tabs").append("<li class='nav-item'><a class='nav-link' href='#scatter-tab' data-toggle='tab'>Scatter</a></li>")
-    }
-
     @action.bound onToggleTimeline(e: React.ChangeEvent<HTMLInputElement>) {
         if (e.target.checked)
             this.props.chart.props.timeline = this.timeline

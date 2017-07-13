@@ -928,13 +928,6 @@ li[data-color^=".*"] {
   display: inline-block;
   width: 35%; }
 
-
-/**
-*	export section
-**/
-.nav-tabs-custom > .nav-tabs > li [href="#map-tab"] {
-  display: none; }
-
 /**
 *	map tab
 **/

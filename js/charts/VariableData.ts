@@ -103,6 +103,10 @@ export default class VariableData {
 		return !this.dataRequest && !_.isEmpty(this.variablesById)
 	}
 
+	@computed get variables(): Variable[] {
+		return _.values(this.variablesById)
+	}
+
 	// When available entities changes, we need to double check that any selection is still appropriate
 	validateEntities() {
 		const {chart, availableEntities, entityMetaByKey} = this

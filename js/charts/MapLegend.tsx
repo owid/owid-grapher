@@ -8,14 +8,14 @@ import {getRelativeMouse} from './Util'
 import Paragraph from './Paragraph'
 import Text from './Text'
 import {preInstantiate} from './Util'
-import {MapLegendBin} from './MapData'
+import {MapLegendBin, NumericBin, CategoricalBin} from './MapData'
 
 interface NumericMapLegendProps {
     x?: number,
     y?: number,
     width: number,
-    legendData: MapLegendBin[],
-    focusBracket: MapLegendBin,
+    legendData: (MapLegendBin)[],
+    focusBracket: MapLegendBin|undefined,
     onMouseOver: (d: MapLegendBin) => void,
     onMouseLeave: () => void
 }
@@ -39,23 +39,21 @@ interface NumericLabel {
 class NumericMapLegend extends React.Component<NumericMapLegendProps, undefined> {
     g: SVGGElement
 
-    @computed get numericLegendData(): MapLegendBin[] { return this.props.legendData.filter(l => l.type == "numeric") }
+    @computed get numericBins(): NumericBin[] { return this.props.legendData.filter(l => l instanceof NumericBin) as NumericBin[] }
     @computed get rectHeight(): number { return 10 }
 
     // NumericMapLegend wants to map a range to a width. However, sometimes we are given
     // data without a clear min/max. So we must fit these scurrilous bins into the width somehow.
-    @computed get minValue(): number { return _.minBy(this.props.legendData.map(d => d.min).filter(v => _.isFinite(v))) }
-    @computed get maxValue(): number { return _.maxBy(this.props.legendData.map(d => d.max).filter(v => _.isFinite(v))) }
+    @computed get minValue(): number { return _(this.numericBins).map('min').min() }
+    @computed get maxValue(): number { return _(this.numericBins).map('max').max() }
     @computed get rangeSize(): number { return this.maxValue - this.minValue }
     @computed get categoryBinWidth(): number {
-        //const meanRange = _.reduce(this.numericLegendData, (m, d) => m+(d.max-d.min), 0)/this.numericLegendData.length
-        //return (meanRange/this.rangeSize) * this.props.width
         return Bounds.forText("No data", { fontSize: "0.5em" }).width
     }
     @computed get categoryBinMargin(): number { return this.rectHeight*1.5 }
     @computed get totalDefaultWidth(): number {
         return _.reduce(
-            this.props.legendData.map(d => !_.isFinite(d.max-d.min) ? this.categoryBinWidth+this.categoryBinMargin : 0),
+            this.props.legendData.map(d => d instanceof CategoricalBin ? this.categoryBinWidth+this.categoryBinMargin : 0),
             (m, n) => m+n, 0
         )
     }
@@ -69,7 +67,7 @@ class NumericMapLegend extends React.Component<NumericMapLegendProps, undefined>
 
         return _.map(props.legendData, d => {
             let width = categoryBinWidth, margin = categoryBinMargin
-            if (_.isFinite(d.max-d.min)) {
+            if (d instanceof NumericBin) {
                 width = ((d.max-d.min)/rangeSize)*availableWidth
                 margin = 0
             }
@@ -122,9 +120,9 @@ class NumericMapLegend extends React.Component<NumericMapLegendProps, undefined>
         _.each(positionedBins, d => {
             if (d.bin.text)
                 labels.push(makeRangeLabel(d))
-            else {
-                if (_.isFinite(d.bin.min)) labels.push(makeBoundaryLabel(d, 'min', d.bin.minText))
-                if (_.isFinite(d.bin.max) && d == _.last(positionedBins))
+            else if (d.bin instanceof NumericBin) {
+                labels.push(makeBoundaryLabel(d, 'min', d.bin.minText))
+                if (d == _.last(positionedBins))
                     labels.push(makeBoundaryLabel(d, 'max', d.bin.maxText))
             }
         })
@@ -166,13 +164,11 @@ class NumericMapLegend extends React.Component<NumericMapLegendProps, undefined>
 
     @computed get height(): number { return Math.abs(_.minBy(this.numericLabels.map(l => l.bounds.y))) }
 
-
-
     @action.bound onMouseMove() {
         const {props, bounds, g, minValue, rangeSize} = this
         const mouse = getRelativeMouse(g, d3.event)
         if (!this.bounds.containsPoint(mouse[0], mouse[1]))
-            if (props.focusBracket && (props.focusBracket.value == "No data" || props.focusBracket.type == 'numeric'))
+            if (props.focusBracket && (props.focusBracket.value == "No data" || props.focusBracket.isNumeric))
                 return this.props.onMouseLeave()
             else
                 return
@@ -365,16 +361,16 @@ export interface MapLegendProps {
 @observer
 export default class MapLegend extends React.Component<MapLegendProps, undefined> {
     @computed get numericLegendData(): MapLegendBin[] {
-        if (this.hasCategorical || !_.some(this.props.legendData, d => d.value == "No data" && !d.hidden)) {
-            return this.props.legendData.filter(l => l.type == "numeric" && !l.hidden)
+        if (this.hasCategorical || !_.some(this.props.legendData, d => d.value == "No data" && !d.isHidden)) {
+            return this.props.legendData.filter(l => l instanceof NumericBin && !l.isHidden)
         } else {
-            const l = this.props.legendData.filter(l => (l.type == "numeric" || l.value == "No data") && !l.hidden)
+            const l = this.props.legendData.filter(l => (l instanceof NumericBin || l.value == "No data") && !l.isHidden)
             return _.flatten([l[l.length-1], l.slice(0, -1)])
         }
     }
     @computed get hasNumeric(): boolean { return this.numericLegendData.length > 1 }
     @computed get categoricalLegendData(): MapLegendBin[] {
-        return this.props.legendData.filter(l => l.type == "categorical" && !l.hidden)
+        return this.props.legendData.filter(l => l instanceof CategoricalBin && !l.isHidden)
     }
     @computed get hasCategorical(): boolean { return this.categoricalLegendData.length > 1 }
 
@@ -382,13 +378,13 @@ export default class MapLegend extends React.Component<MapLegendProps, undefined
         return preInstantiate(<Paragraph width={this.props.bounds.width} scale={0.6}>{this.props.title}</Paragraph>)
     }
 
-    @computed get focusBracket(): MapLegendBin {
+    @computed get focusBracket(): MapLegendBin|undefined {
         const {focusBracket, focusEntity, legendData} = this.props
         if (focusBracket) return focusBracket
         if (focusEntity) return _.find(legendData, bin => {
-            if (bin.type == "categorical")
+            if (bin instanceof CategoricalBin)
                 return focusEntity.datum.value == bin.value
-            else if (bin.type == "numeric")
+            else if (bin instanceof NumericBin)
                 return focusEntity.datum.value >= bin.min && focusEntity.datum.value <= bin.max
         })
     }

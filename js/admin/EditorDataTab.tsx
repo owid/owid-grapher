@@ -202,7 +202,6 @@ class EntitiesSection extends React.Component<{ chart: ChartConfig }, undefined>
 		const {chart} = this.props
 		const {selectedEntities, entityColors} = chart
 		const {remainingEntities} = chart.vardata
-		console.log("render")
 
 		return <section className="entities-section">
 			<h2>Pick your entities</h2>

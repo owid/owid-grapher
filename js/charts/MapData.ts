@@ -21,10 +21,11 @@ export class NumericBin {
     max: number
     color: Color
     label: string
+    isHidden: boolean = false
     
     get minText() { return this.min.toString() }
     get maxText() { return this.max.toString() }
-    get type() { return 'numeric' }
+    get text() { return this.label }
 
     contains(d: MapDataValue|null) {
         return d && (this.index == 0 ? d.value >= this.min : d.value > this.min) && d.value <= this.max
@@ -44,18 +45,20 @@ export class CategoricalBin {
     value: string
     color: Color
     label: string
+    isHidden: boolean
 
-    get type() { return 'categorical' }
+    get text() { return this.label || this.value }
 
     contains(d: any) {
         return (d == null && this.value == 'No data') || d.value == this.value
     }
 
-    constructor({ index, value, color, label }: { index: number, value: string, color: Color, label: string }) {
+    constructor({ index, value, color, label, isHidden }: { index: number, value: string, color: Color, label: string, isHidden: boolean }) {
         this.index = index
         this.value = value
         this.color = color
         this.label = label
+        this.isHidden = isHidden
     }
 }
 
@@ -113,7 +116,7 @@ export default class MapData {
 		if (!variable.hasNumericValues || numBuckets <= 0)
 			return [];
 
-        let values = _.clone(colorSchemeValues)
+        let values = _.toArray(colorSchemeValues)
 		while (values.length < numBuckets)
 			values.push(0);
 		while (values.length > numBuckets)
@@ -131,32 +134,32 @@ export default class MapData {
         const {isColorSchemeInverted} = this.map
 		const numColors = bucketMaximums.length + variable.categoricalValues.length
         
+        let colors: Color[]
+		if (!_.isEmpty(colorScheme.colors[numColors])) {
+			colors = _.clone(colorScheme.colors[numColors]);
+		} else if (numColors == 1 && !_.isEmpty(colorScheme.colors[2])) {
+    		// Handle the case of a single color (just for completeness' sake)
+			colors = [colorScheme.colors[2][0]];
+        } else {
+            // If there's no preset color colorScheme for this many colors, improvise a new one
+            colors = _.clone(colorScheme.colors[colorScheme.colors.length-1]);
+            while (colors.length < numColors) {
+                for (var i = 1; i < colors.length; i++) {
+                    var startColor = d3.rgb(colors[i-1]);
+                    var endColor = d3.rgb(colors[i]);
+                    var newColor = d3.interpolate(startColor, endColor)(0.5);
+                    colors.splice(i, 0, newColor);
+                    i += 1;
 
-		/*if (colorSchemeInvert) {
-			var colors = getColors(numColors, _.extend({}, mapConfig, { colorSchemeInvert: false }));
-			return colors.reverse();
-		}*/
+                    if (colors.length >= numColors) break;
+                }
+            }
+        }
 
-		if (!_.isEmpty(colorScheme.colors[numColors]))
-			return _.clone(colorScheme.colors[numColors]);
+        if (isColorSchemeInverted) {
+            _.reverse(colors)
+        }
 
-		// Handle the case of a single color (just for completeness' sake)
-		if (numColors == 1 && !_.isEmpty(colorScheme.colors[2]))
-			return [colorScheme.colors[2][0]];
-
-		// If there's no preset color colorScheme for this many colors, improvise a new one
-		var colors = _.clone(colorScheme.colors[colorScheme.colors.length-1]);
-		while (colors.length < numColors) {
-			for (var i = 1; i < colors.length; i++) {
-				var startColor = d3.rgb(colors[i-1]);
-				var endColor = d3.rgb(colors[i]);
-				var newColor = d3.interpolate(startColor, endColor)(0.5);
-				colors.splice(i, 0, newColor);
-				i += 1;
-
-				if (colors.length >= numColors) break;
-			}
-		}
 		return colors;
 	}
 
@@ -176,13 +179,13 @@ export default class MapData {
 
     @computed get legendData() {
 		// Will eventually produce something like this:
-		// [{ type: 'numeric', min: 10, max: 20, minText: "10%", maxText: "20%", color: '#faeaef' },
-		//  { type: 'numeric', min: 20, max: 30, minText: "20%", maxText: "30%", color: '#fefabc' },
-		//  { type: 'categorical', value: 'Foobar', text: "Foobar Boop", color: '#bbbbbb'}]
+		// [{ min: 10, max: 20, minText: "10%", maxText: "20%", color: '#faeaef' },
+		//  { min: 20, max: 30, minText: "20%", maxText: "30%", color: '#fefabc' },
+		//  { value: 'Foobar', text: "Foobar Boop", color: '#bbbbbb'}]
 		var legendData = [];
 
         const {map, variable, bucketMaximums, baseColors, categoricalValues, customCategoryColors} = this
-        const {isAutoBuckets, customBucketLabels, isCustomColors, customNumericColors, customCategoryLabels, customHiddenCategories, minBucketValue, noDataColor} = map
+        const {isAutoBuckets, customBucketLabels, customNumericColors, customCategoryLabels, customHiddenCategories, minBucketValue, noDataColor} = map
 
         /*var unitsString = chart.model.get("units"),
             units = !_.isEmpty(unitsString) ? JSON.parse(unitsString) : {},
@@ -194,7 +197,7 @@ export default class MapData {
             const baseColor = baseColors[i]
             const color = defaultTo(customNumericColors[i], baseColor)
             const maxValue = +bucketMaximums[i]
-            const label = customBucketLabels[i] || ""
+            const label = customBucketLabels[i]
             legendData.push(new NumericBin({ index: i, min: minValue, max: maxValue, color: color, label: label }))
             minValue = maxValue;
         }
@@ -207,7 +210,7 @@ export default class MapData {
                 label = customCategoryLabels[value] || "",
                 text = label || value;
 
-            legendData.push(new CategoricalBin({ value: value, color: color, label: label, hidden: customHiddenCategories[value] }))
+            legendData.push(new CategoricalBin({ value: value, color: color, label: label, isHidden: customHiddenCategories[value] }))
         }
 
         return legendData
