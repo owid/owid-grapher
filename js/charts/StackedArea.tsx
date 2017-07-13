@@ -21,6 +21,7 @@ import StandardAxisBoxView from './StandardAxisBoxView'
 import Lines from './Lines'
 import {preInstantiate} from "./Util"
 import Paragraph from './Paragraph'
+import AxisScale from './AxisScale'
 
 export interface LineChartValue {
     x: number,
@@ -42,27 +43,46 @@ interface LegendData {
     color: string
 }
 
-interface LegendProps {
-    x: (legend: Legend) => number
-    y: number,
-    maxHeight: number,
-    children: (legend: Legend) => JSX.Element|JSX.Element[]
-    data: LegendData[],
-    focusColor?: string,
-    onMouseOver?: (color: string) => void,
-    onClick?: (color: string) => void,
-    onMouseLeave?: () => void
+
+class StackedAreaLegendView extends React.Component<{ stackedArea: StackedArea, legend: Legend }, undefined> {
+    render() {
+        const {rectSize, rectPadding, labelMarks} = this.props.legend
+        const {areaMiddleHeights} = this.props.stackedArea
+        const {xScale} = this.props.stackedArea.props
+
+        const x = xScale.range[1] + 5
+
+        return <g className="ColorLegend">
+            <g className="clickable" style={{cursor: 'pointer'}}>
+                {_.map(labelMarks, (mark, i) => {
+                    const yMid = areaMiddleHeights[i]
+                    const result = <g className="legendMark">
+                        {/*<rect x={x} y={yMid-rectSize/2} width={rectSize} height={rectSize} fill={mark.color} opacity={0.7}/>*/},
+                        <Paragraph {...mark.label.props} x={x} y={yMid-mark.label.height/2}/>
+                    </g>
+                    return result
+                })}
+            </g>
+        </g>
+    }
 }
 
-class Legend extends React.Component<LegendProps, undefined> {
-    @computed get fontSize(): number { return 0.8 }
+
+
+interface LegendProps {
+    data: LegendData[]
+}
+
+class Legend {
+    props: LegendProps
+    constructor(props: LegendProps) {
+        this.props = props
+    }
+
+    @computed get fontSize(): number { return 0.65 }
     @computed get rectSize(): number { return 10 }
     @computed get rectPadding(): number { return 5 }
     @computed get lineHeight(): number { return 5 }
-    @computed get onMouseOver(): Function { return this.props.onMouseOver || _.noop }
-    @computed get onMouseLeave(): Function { return this.props.onMouseLeave || _.noop }
-    @computed get onClick(): Function { return this.props.onClick || _.noop }
-    @computed get focusColor(): string|null { return this.props.focusColor||null }
     @computed get columnWidth(): number { return 300 }
 
     @computed get labelMarks(): LabelMark[] {
@@ -89,37 +109,84 @@ class Legend extends React.Component<LegendProps, undefined> {
     @computed get height() {
         return _.sum(_.map(this.labelMarks, 'height')) + this.lineHeight*this.labelMarks.length
     }
+}
 
+interface StackedAreaProps {
+    xScale: AxisScale,
+    yScale: AxisScale,
+    data: LineChartSeries[]    
+}
+
+interface AreaRenderSeries {
+    key: string,
+    color: string,
+    values: { x: number, y: number }[]
+}
+
+class StackedArea {
+    props: StackedAreaProps
+
+    @computed get renderData(): AreaRenderSeries[] {
+        const {data, xScale, yScale} = this.props
+        let renderData = _.map(data, series => {
+            return {
+                key: series.key,
+                color: series.color,
+                values: series.values.map(v => {
+                    return {
+                        x: xScale.place(v.x),
+                        y: yScale.place(v.y)
+                    }
+                })
+            }
+        })
+
+        return renderData.reverse()
+    }
+
+    @computed get areaMiddleHeights() {
+        const {data, yScale} = this.props
+        let prevY = 0
+        return _.map(data, (series, i) => {
+            const lastValue = _.last(series.values)
+            const middleY = prevY + (lastValue.y - prevY)/2
+            prevY = lastValue.y
+            return yScale.place(middleY)
+        })
+    }
+
+    constructor(props: StackedAreaProps) {
+        this.props = props
+    }
+}
+
+@observer
+export class StackedAreaView extends React.Component<{ stackedArea: StackedArea }, undefined> {
     render() {
-        const {focusColor, rectSize, rectPadding, lineHeight} = this
-        let offset = 0
+        const {xScale, yScale} = this.props.stackedArea.props
+        const {renderData} = this.props.stackedArea
 
-        const x = this.props.x(this)
-        const y = this.props.y
+        const xBottomLeft = `${Math.round(xScale.range[0])},${Math.round(yScale.range[0])}`
+        const xBottomRight = `${Math.round(xScale.range[1])},${Math.round(yScale.range[0])}`
 
-        return <g className="ColorLegend">
-            <g className="clickable" style={{cursor: 'pointer'}}>
-                {_.map(this.labelMarks, mark => {
-                    const isFocus = mark.color == focusColor
-
-                    const result = <g className="legendMark" onMouseOver={e => this.onMouseOver(mark.color)} onMouseLeave={e => this.onMouseLeave()} onClick={e => this.onClick(mark.color)}>
-                        <rect x={x} y={y+offset-lineHeight/2} width={mark.width} height={mark.height+lineHeight} fill="#fff" opacity={0}/>,
-                        <rect x={x} y={y+offset+rectSize/2} width={rectSize} height={rectSize} fill={mark.color}/>,
-                        <Paragraph {...mark.label.props} x={x+rectSize+rectPadding} y={y+offset}/>
-                    </g>
-
-                    offset += mark.height+lineHeight
-                    return result
-                })}
-            </g>
-            {this.props.children(this)}            
+        return <g className="Areas" opacity={0.7}>
+            {_.map(renderData, series =>
+                <polyline
+                    key={series.key+'-line'}
+                    strokeLinecap="round"
+                    stroke={series.color}
+                    points={xBottomLeft + ' ' + _.map(series.values, v => `${Math.round(v.x)},${Math.round(v.y)}`).join(' ') + ' ' + xBottomRight}
+                    fill={series.color}
+                    strokeWidth={1}
+                    opacity={1}
+                />,
+            )}
         </g>
     }
 }
 
-
 @observer
-export default class StackedArea extends React.Component<{ bounds: Bounds, chart: ChartConfig, localData: LineChartSeries[] }, undefined> {
+export default class StackedAreaChart extends React.Component<{ bounds: Bounds, chart: ChartConfig, localData: LineChartSeries[] }, undefined> {
     @computed get chart() { return this.props.chart }
     @computed get bounds() { return this.props.bounds }
 
@@ -154,89 +221,45 @@ export default class StackedArea extends React.Component<{ bounds: Bounds, chart
 
     @computed get yDomainDefault(): [number, number] {
         const {stackedData} = this
-
         return [0, (_(stackedData).map('values').flatten().map('y').max() as number)]
     }
 
-    renderAreas(bounds: Bounds) {
-        const {chart, stackedData, xDomainDefault, yDomainDefault} = this
-        const xAxis = chart.xAxis.toSpec({ defaultDomain: xDomainDefault })
-        const yAxis = chart.yAxis.toSpec({ defaultDomain: yDomainDefault })
-
-        const axisBox = new AxisBox({bounds, xAxis, yAxis})
-
-        return [
-            <StandardAxisBoxView axisBox={axisBox} chart={chart}/>,
-            <Areas xScale={axisBox.xScale} yScale={axisBox.yScale} data={stackedData}/>
-        ]
-    }
-
-    render() {
-        const {chart, bounds, stackedData, xDomainDefault, yDomainDefault} = this
-        console.log(yDomainDefault)
-
-        return <g className="StackedArea">
-            <Legend x={legend => bounds.right-legend.width} y={bounds.top} maxHeight={bounds.height} data={stackedData}>
-                {legend => this.renderAreas(bounds.padRight(legend.width))}
-            </Legend>
-        </g>
-    }
-}
-
-
-export interface AreasProps {
-    xScale: AxisScale,
-    yScale: AxisScale,
-    data: LineChartSeries[]
-}
-
-interface AreaRenderSeries {
-    key: string,
-    color: string,
-    values: { x: number, y: number }[]
-}
-
-@observer
-export class Areas extends React.Component<AreasProps, undefined> {
-    @computed get renderData(): AreaRenderSeries[] {
-        const {data, xScale, yScale} = this.props
-        let renderData = _.map(data, series => {
-            return {
-                key: series.key,
-                color: series.color,
-                values: series.values.map(v => {
-                    return {
-                        x: xScale.place(v.x),
-                        y: yScale.place(v.y)
-                    }
-                })
-            }
+    @computed get legend() {
+        const _this = this
+        return new Legend({
+            get data() { return _this.stackedData }
         })
-
-        return renderData.reverse()
     }
 
+    @computed get xAxis() {
+        return this.chart.xAxis.toSpec({ defaultDomain: this.xDomainDefault })
+    }
+
+    @computed get yAxis() {
+        return this.chart.yAxis.toSpec({ defaultDomain: this.yDomainDefault })
+    }
+
+    @computed get axisBox() {
+        const {bounds, xAxis, yAxis, legend} = this
+        return new AxisBox({bounds: bounds.padRight(legend.width), xAxis, yAxis})
+    }
+
+    @computed get stackedArea() {
+        const _this = this
+        return new StackedArea({
+            get xScale() { return _this.axisBox.xScale },
+            get yScale() { return _this.axisBox.yScale },
+            get data() { return _this.stackedData }
+        })
+    }
+
+
     render() {
-        const {xScale, yScale} = this.props
-        const {renderData} = this
-
-        console.log(yScale.range)
-
-        const xBottomLeft = `${xScale.range[0]},${yScale.range[0]}`
-        const xBottomRight = `${xScale.range[1]},${yScale.range[0]}`
-
-        return <g className="Areas" opacity={0.8}>
-            {_.map(renderData, series =>
-                <polyline
-                    key={series.key+'-line'}
-                    strokeLinecap="round"
-                    stroke={series.color}
-                    points={xBottomLeft + ' ' + _.map(series.values, v => `${v.x},${v.y}`).join(' ') + ' ' + xBottomRight}
-                    fill={series.color}
-                    strokeWidth={1}
-                    opacity={1}
-                />,
-            )}
+        const {chart, bounds, axisBox, stackedArea, legend} = this
+        return <g className="StackedArea">
+            <StandardAxisBoxView axisBox={axisBox} chart={chart}/>
+            <StackedAreaView stackedArea={stackedArea}/>
+            <StackedAreaLegendView stackedArea={stackedArea} legend={legend}/>
         </g>
     }
 }

@@ -1,7 +1,7 @@
 declare function require(name:string): any;
 const owid: any = require('../owid').default
 import * as _ from 'lodash'
-import {observable, computed, action, autorun, toJS} from 'mobx'
+import {observable, computed, action, autorun, toJS, runInAction} from 'mobx'
 import {ScaleType} from './AxisScale'
 import {ComparisonLineConfig} from './ComparisonLine'
 import {component} from './Util'
@@ -236,5 +236,12 @@ export default class ChartConfig {
         this.url = new URLBinder(this)
         
         window.chart = this
+
+        // Sanity check configuration
+        autorun(() => {
+            if (!_.includes(this.availableTabs, this.props.tab)) {
+                runInAction(() => this.props.tab = this.availableTabs[0])
+            }
+        })
 	}
 }

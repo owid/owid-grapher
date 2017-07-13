@@ -68,18 +68,18 @@ export default class Colors {
 	// We set colors for the legend data separately to give more precise control
 	// over the priority and ordering, since legend data doesn't move around as much.
 	assignColorsForLegend(legendData) {
-		const {selectedEntitiesByKey, addCountryMode, dimensions} = this.chart
+		const {entityColors, addCountryMode, dimensions} = this.chart
 
 		_.each(legendData, function(group) {
-			var entity = selectedEntitiesByKey[group.entityId],
+			var entityColor = entityColors[group.entityId],
 				dimension = _.find(dimensions, dim => dim.variableId == group.variableId),
 				isMultiVariable = false,//App.ChartModel.isMultiVariable(),
 				isMultiEntity = true//App.ChartModel.isMultiEntity();
 
 			if (group.color) {
 				group.color = this.assignColorForKey(group.key, group.color, { canVary: false });
-			} else if (entity && entity.color) {
-				group.color = this.assignColorForKey(group.key, entity.color, { canVary: isMultiVariable });
+			} else if (entityColor) {
+				group.color = this.assignColorForKey(group.key, entityColor, { canVary: isMultiVariable });
 			} else if (dimension && dimension.color) {
 				group.color = this.assignColorForKey(group.key, dimension.color, { canVary: isMultiEntity });
 			} else if (isMultiEntity) {

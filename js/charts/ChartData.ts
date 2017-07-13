@@ -1,10 +1,11 @@
 import * as _ from 'lodash'
 import owid from '../owid'
 import ChartType from './ChartType'
-import {computed} from 'mobx'
+import {computed, autorun, action} from 'mobx'
 import ChartConfig from './ChartConfig'
 import VariableData from './VariableData'
 import EntityKey from './EntityKey'
+import {bind} from 'decko'
 
 export default class ChartData {
 	chart: ChartConfig
@@ -13,6 +14,24 @@ export default class ChartData {
 	constructor(chart: ChartConfig, vardata: VariableData) {
 		this.chart = chart
 		this.vardata = vardata
+
+		autorun(this.validateEntities)
+	}
+
+	// When available entities changes, we need to double check that any selection is still appropriate
+	@bind validateEntities() {
+		const {chart, vardata} = this
+		if (!vardata.isReady) return
+
+		const {availableEntities, entityMetaByKey} = vardata
+		let validEntities = chart.selectedEntities.filter(entity => entityMetaByKey[entity])
+
+		if (_.isEmpty(validEntities) && chart.type != ChartType.ScatterPlot && chart.type != ChartType.DiscreteBar && chart.type != ChartType.SlopeChart) {
+			// Select a few random ones
+			validEntities = _.sampleSize(availableEntities, 3);
+		}
+
+		action(() => chart.selectedEntities = validEntities)()
 	}
 
 	@computed get availableEntities() {
@@ -45,7 +64,7 @@ export default class ChartData {
 			});
 		}*/
 		App.Colors.assignColorsForLegend(result.legendData);
-		App.Colors.assignColorsForChart(result.chartData);
+		App.Colors.assignColorsForChart(result.chartData);		
 
 		return result;		
 	}
@@ -68,7 +87,6 @@ export default class ChartData {
 		const {timeDomain, selectedEntitiesByKey, yAxis, addCountryMode} = chart
 		const dimensions = _.clone(chart.dimensions).reverse()
 		const {variablesById} = vardata
-
 
 		const timeFrom = _.defaultTo(timeDomain[0], -Infinity),
 			timeTo = _.defaultTo(timeDomain[1], Infinity),
@@ -137,7 +155,7 @@ export default class ChartData {
 			chartData = chartData.concat(_.values(seriesByEntity));
 		});
 
-		if (addCountryMode === "add-country")
+		//if (addCountryMode === "add-country")
 			chartData = _.sortBy(chartData, function(series) { return series.entityName; });
 
 		legendData = _.map(chartData, function(series) {

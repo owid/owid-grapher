@@ -76,14 +76,12 @@ interface EntityMeta {
 
 export default class VariableData {
 	chart: ChartConfig
-	dataRequest: any
+	@observable.ref dataRequest: any
 	@observable.ref variablesById: {[id: number]: Variable} = {}
 	@observable.ref entityMetaByKey: {[key: string]: EntityMeta} = {}
 
 	constructor(chart: ChartConfig) {
 		this.chart = chart
-
-		autorun(() => this.validateEntities())
 		this.update()
 	}
 
@@ -105,21 +103,6 @@ export default class VariableData {
 
 	@computed get variables(): Variable[] {
 		return _.values(this.variablesById)
-	}
-
-	// When available entities changes, we need to double check that any selection is still appropriate
-	validateEntities() {
-		const {chart, availableEntities, entityMetaByKey} = this
-		if (!this.isReady) return
-
-		let validEntities = chart.selectedEntities.filter(entity => entityMetaByKey[entity])
-
-		if (_.isEmpty(validEntities) && chart.type != ChartType.ScatterPlot && chart.type != ChartType.DiscreteBar && chart.type != ChartType.SlopeChart) {
-			// Select a few random ones
-			validEntities = _.sampleSize(availableEntities, 3);
-		}
-
-		//action(() => chart.selectedEntities = validEntities)()
 	}
 
 	@computed.struct get remainingEntities(): EntityKey[] {
