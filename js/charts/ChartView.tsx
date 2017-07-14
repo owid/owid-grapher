@@ -14,8 +14,6 @@ import SourcesTab from './SourcesTab'
 import DownloadTab from './DownloadTab'
 import VariableData from './VariableData'
 import ChartData from './ChartData'
-import Colors from './App.Models.Colors'
-import tooltip from './owid.view.tooltip'
 import Bounds from './Bounds'
 import {preInstantiate, VNode} from './Util'
 import ChartTabOption from './ChartTabOption'
@@ -107,7 +105,6 @@ export default class ChartView extends React.Component<ChartViewProps, undefined
     @observable popups: VNode[] = []
 
     chart: ChartConfig
-    tooltip: any
     htmlNode: HTMLDivElement
     svgNode: SVGSVGElement
     base: HTMLDivElement
@@ -116,8 +113,6 @@ export default class ChartView extends React.Component<ChartViewProps, undefined
         super(props)
         // XXX all of this stuff needs refactoring
         this.chart = new ChartConfig(props.jsonConfig)
-        App.Colors = new Colors(this)
-        this.tooltip = tooltip(this)
 
         Bounds.baseFontSize = 22
         Bounds.baseFontFamily = "Helvetica, Arial"

@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as _ from 'lodash'
 import Color from '../charts/Color'
 import {bind} from 'decko'
+import ColorBinder from '../charts/ColorBinder'
 
 export default class Colorpicker extends React.Component<{ color: Color, onColor: (color: Color) => void, onClose: () => void }, undefined> {
     @bind onCloseButton(ev: React.MouseEvent<HTMLAnchorElement>) {
@@ -10,7 +11,7 @@ export default class Colorpicker extends React.Component<{ color: Color, onColor
     }
 
     render() {
-        const availableColors: Color[] = App.Colors.basicScheme
+        const availableColors: Color[] = ColorBinder.basicScheme
 
         return <div className="popup-picker-wrapper" tabIndex={0} onBlur={() => console.log("blur")}>
             <a href='#' className='close-btn pull-right' onClick={this.onCloseButton}>

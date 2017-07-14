@@ -24,21 +24,14 @@ require('./libs/bootstrap.min.js')
 require('./libs/admin-lte-app.min')
 require('./libs/ion.rangeSlider.min')
 require('./libs/jquery.nestable')
-require('./libs/jquery.stickytabs')
 require('./libs/jquery.timeago')
 require('./libs/chosen.jquery')
 
 require('./admin/admin.global')
 
-require('./admin/App.Models.ChartVariableModel')
-require('./admin/App.Models.EntityModel')
-
 require('./admin/App.Views.UI.SelectVarPopup')
 require('./admin/App.Views.UI.SettingsVarPopup')
-require('./admin/App.Views.UI.ColorPicker')
 
-require('./admin/App.Views.Form.MapColorSection')
-require('./admin/App.Views.Form.MapTabView')
 window.ChartEditorView = require('./admin/ChartEditorView').default
 
 // Importer code
