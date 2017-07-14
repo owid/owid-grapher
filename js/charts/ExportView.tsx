@@ -13,10 +13,13 @@ import * as _ from 'lodash'
 import * as $ from 'jquery'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
+import * as ReactDOMServer from 'react-dom/server'
 import * as d3 from 'd3'
 import Bounds from './Bounds'
 import {svgAsDataUri} from './saveSvgAsPng'
 import ChartView from './ChartView'
+import {when} from 'mobx'
+import ChartConfig, {ChartConfigProps} from './ChartConfig'
 
 const callPhantom = window.callPhantom || console.log
 
@@ -57,34 +60,40 @@ function prepareSVGForExport(chartView, svg) {
     svg.style("font-size", svg.style("font-size"));
     svg.style("background-color", "#fff")
 
+    $(svg.node())
+
     // Remove all other styles for easier testing that this works
     //d3.selectAll('link').remove()
 
-    svgAsDataUri(svg.node(), {}, function(uri) {
+    /*svgAsDataUri(svg.node(), {}, function(uri) {
         var svgData = uri.substring('data:image/svg+xml;base64,'.length);
         callPhantom(svgData);
-    });
+    });*/
 }
 
 export default class ExportView {
-    static bootstrap({ jsonConfig, containerNode }: { jsonConfig: any, containerNode: HTMLElement }) {
+    static bootstrap({ jsonConfig, containerNode }: { jsonConfig: ChartConfigProps, containerNode: HTMLElement }) {
         const targetWidth = App.IDEAL_WIDTH, targetHeight = App.IDEAL_HEIGHT;
         const targetBounds = new Bounds(0, 0, targetWidth, targetHeight)
-        let chartView: ChartView|null = null
+        let chartView: ChartView
 
-        const onRenderEnd = function() {
-            const svg = d3.select(chartView.svgNode)
-            svg.selectAll(".nv-add-btn, .nv-controlsWrap").remove();
+        const chart = new ChartConfig(jsonConfig)
 
-            //callPhantom({ targetWidth: targetWidth, targetHeight: targetHeight }); // Notify phantom that we're ready for PNG screenshot
-            prepareSVGForExport(chartView, svg);
-        }
+        when(
+            () => chart.vardata.isReady,
+            () => {
+                const svg = ReactDOMServer.renderToStaticMarkup(<ChartView
+                    chart={chart}
+                    isExport={true}
+                    bounds={targetBounds}/>)
 
-        ReactDOM.render(<ChartView
-            isExport={true}
-            bounds={targetBounds}
-            jsonConfig={jsonConfig}
-            onRenderEnd={onRenderEnd}
-            ref={e => chartView = e}/>, containerNode)
+                $("body").append(svg)
+
+                /*const svg = d3.select(chartView.svgNode)
+                svg.selectAll(".nv-add-btn, .nv-controlsWrap").remove();
+                prepareSVGForExport(chartView, svg);*/
+            }
+        )
+
     }
 }

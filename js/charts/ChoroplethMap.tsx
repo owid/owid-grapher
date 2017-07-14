@@ -7,6 +7,7 @@ import {observer} from 'mobx-react'
 import {bind} from 'decko'
 import * as topojson from 'topojson'
 import MapProjections from './MapProjections'
+import MapProjection from './MapProjection'
 import MapTopology from './MapTopology'
 import EntityKey from './EntityKey'
 
@@ -64,14 +65,17 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps, u
         return this.props.defaultFill
     }
 
+    @computed get geoPath() {
+        return MapProjections[this.projection]
+    }
+
     @computed get pathData(): { [key: string]: string } {
-        const {geoData, projection} = this
+        const {geoData, geoPath} = this
 
         const pathData: { [key: string]: string } = {}
-        const pathF = MapProjections[projection]().path;
 
         _.each(geoData, (d) => {
-            const s = pathF(d)
+            const s = geoPath(d)
             const paths = s.split(/Z/).filter(_.identity)
 
             const newPaths = paths.map(path => {
@@ -155,8 +159,8 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps, u
         var viewports = {
             "World": { x: 0.565, y: 0.5, width: 1, height: 1 },
             "Africa": { x: 0.48, y: 0.70, width: 0.21, height: 0.38 },
-            "N.America": { x: 0.49, y: 0.40, width: 0.19, height: 0.32 },
-            "S.America": { x: 0.52, y: 0.815, width: 0.10, height: 0.26 },
+            "NorthAmerica": { x: 0.49, y: 0.40, width: 0.19, height: 0.32 },
+            "SouthAmerica": { x: 0.52, y: 0.815, width: 0.10, height: 0.26 },
             "Asia": { x: 0.49, y: 0.52, width: 0.22, height: 0.38 },
             "Australia": { x: 0.51, y: 0.77, width: 0.1, height: 0.12 },
             "Europe": { x: 0.54, y: 0.54, width: 0.05, height: 0.15 },

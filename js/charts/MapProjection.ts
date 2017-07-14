@@ -1,2 +1,2 @@
-type MapProjection = 'World' | 'Africa' | 'N.America' | 'S.America' | 'Asia' | 'Europe' | 'Australia';
+type MapProjection = 'World' | 'Africa' | 'NorthAmerica' | 'SouthAmerica' | 'Asia' | 'Europe' | 'Australia';
 export default MapProjection

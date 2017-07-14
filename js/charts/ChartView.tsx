@@ -5,7 +5,7 @@ import * as d3 from 'd3'
 import {observable, computed, autorun, action, reaction} from 'mobx'
 import {observer} from 'mobx-react'
 
-import ChartConfig from './ChartConfig'
+import ChartConfig, {ChartConfigProps} from './ChartConfig'
 import ControlsFooter from './ControlsFooter'
 import ChartTab from './ChartTab'
 import DataTab from './DataTab'
@@ -26,26 +26,30 @@ App.IDEAL_HEIGHT = 720
 
 interface ChartViewProps {
     bounds: Bounds,
-    jsonConfig: any,
+    chart: ChartConfig,
     isExport?: boolean,
     isEditor?: boolean
 }
 
 @observer
 export default class ChartView extends React.Component<ChartViewProps, undefined> {
-    static bootstrap({ jsonConfig, containerNode, isEditor }: { jsonConfig: Object, containerNode: HTMLElement, isEditor: boolean }) {
+    static bootstrap({ jsonConfig, containerNode, isEditor }: { jsonConfig: ChartConfigProps, containerNode: HTMLElement, isEditor: boolean }) {
         d3.select(containerNode).classed('chart-container', true)
         let chartView
+        const chart = new ChartConfig(jsonConfig)
 
         function render() {
             const rect = containerNode.getBoundingClientRect()
-            chartView = ReactDOM.render(<ChartView bounds={Bounds.fromRect(rect)} jsonConfig={jsonConfig} isEditor={isEditor}/>, containerNode)
+
+            chartView = ReactDOM.render(<ChartView bounds={Bounds.fromRect(rect)} chart={chart} isEditor={isEditor}/>, containerNode)
         }
 
         render()
         window.onresize = render
         return chartView
     }
+
+    @computed get chart() { return this.props.chart }
 
     @computed get isExport() { return !!this.props.isExport }
     @computed get isEditor() { return !!this.props.isEditor }
@@ -104,32 +108,28 @@ export default class ChartView extends React.Component<ChartViewProps, undefined
     @observable overlayTabName: ChartTabOption|null = null
     @observable popups: VNode[] = []
 
-    chart: ChartConfig
-    htmlNode: HTMLDivElement
-    svgNode: SVGSVGElement
+    @observable.ref htmlNode: HTMLDivElement
+    @observable.ref svgNode: SVGSVGElement
     base: HTMLDivElement
 
     constructor(props: ChartViewProps) {
         super(props)
-        // XXX all of this stuff needs refactoring
-        this.chart = new ChartConfig(props.jsonConfig)
 
         Bounds.baseFontSize = 22
         Bounds.baseFontFamily = "Helvetica, Arial"
 
-        autorun(() => {
-            const tabName = this.chart.tab
-            action((tab: ChartTabOption) => {
-                if (tab == 'map' || tab == 'chart') {
-                    this.primaryTabName = tab
-                    this.overlayTabName = null
-                } else {
-                    this.overlayTabName = tab
-                }
-            })(tabName)
-        })
-        //this.model.on('change', () => this.data.ready(() => this.forceUpdate()))
-        //this.map.on('change', () => this.data.ready(() => this.forceUpdate()))
+        const {chart} = this
+        const updateTab = () => {
+            if (chart.tab == 'map' || chart.tab == 'chart') {
+                this.primaryTabName = chart.tab
+                this.overlayTabName = null
+            } else {
+                this.overlayTabName = chart.tab
+            }
+        }
+
+        updateTab()
+        reaction(() => chart.tab, updateTab)
     }
 
     @computed get controlsFooter() {
