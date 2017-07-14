@@ -177,7 +177,7 @@ class Chart(models.Model):
         config['data-entry-url'] = self.origin_url
         config['published'] = self.published
         logos = []
-        for each in list(Logo.objects.filter(name__in=config['logos'])):
+        for each in list(Logo.objects.filter(name__in=['owd'])):
             logos.append(each.svg)
         config['logosSVG'] = logos
         config['chart-dimensions'] = list(self.chartdimension_set.values())

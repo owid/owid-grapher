@@ -39,7 +39,7 @@ export interface ChartDimension {
 }
 
 export class ChartConfigProps {
-    @observable.ref id: number
+    @observable.ref id: number|undefined = undefined
     @observable.ref type: ChartTypeType = "LineChart"
     @observable.ref slug?: string = undefined
     @observable.ref title?: string = undefined
@@ -116,6 +116,7 @@ export default class ChartConfig {
 
     vardata: VariableData
     data: ChartData
+    url: URLBinder
 
 	// Get the empty dimension slots appropriate for this type of chart
 	@computed get emptyDimensions() {
@@ -224,7 +225,31 @@ export default class ChartConfig {
     }
 
     @computed.struct get json() {
-        return toJS(this.props)
+        const {props} = this
+
+        const json: any = toJS(this.props)
+
+        // XXX backwards compatibility
+        json['chart-type'] = props.type
+        json['chart-description'] = props.note
+        json['published'] = props.isPublished
+        json['map-config'] = props.map
+        json['selected-countries'] = props.selectedEntities.map(e => {
+            return {
+                name: e,
+                color: props.entityColors[e]
+            }
+        })
+
+        json['chart-time'] = props.timeDomain
+        json['tabs'] = this.availableTabs
+        json['chart-dimensions'] = props.dimensions
+        json['add-country-mode'] = props.addCountryMode
+        json['default-tab'] = props.tab
+        json['line-type'] = props.lineType
+        json['line-tolerance'] = props.lineTolerance
+
+        return json
     }
 
 	constructor(props: ChartConfigProps) {        
@@ -234,7 +259,7 @@ export default class ChartConfig {
         this.vardata = new VariableData(this)
         this.data = new ChartData(this, this.vardata)
         this.url = new URLBinder(this)
-        
+
         window.chart = this
 
         // Sanity check configuration

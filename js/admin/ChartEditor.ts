@@ -8,6 +8,8 @@
 import {observable, computed, reaction} from 'mobx'
 import ChartConfig from '../charts/ChartConfig'
 import EditorVariable from './EditorVariable'
+import Admin from './Admin'
+import * as _ from 'lodash'
 
 // Contextual information received from server about what is in the database
 export interface EditorData {
@@ -20,98 +22,85 @@ export interface ChartEditorProps {
 	data: EditorData
 }
 
-
-   /*url: function(id) {
-        id = id || this.id;
-        if( $("#form-view").length ) {
-            if( id ) {
-                //editing existing
-                return Global.adminRootUrl + "/charts/" + id;
-            } else {
-                //saving new
-                return Global.adminRootUrl + "/charts";
-            }
-
-        } else {
-            // Pass any query parameters on to config
-            return Global.rootUrl + "/data/config/" + id + window.location.search;
-        }
-    },*/
-
 export default class ChartEditor {
     @observable.ref chart: ChartConfig
 	@observable.ref data: EditorData
 
     // Whether the current chart state is saved or not
     @observable.ref isSaved: boolean = true
+	@observable.ref currentRequest: Promise<any>|undefined
 
-    // XXX refactor all of this
-	// @param newAttrs Attributes which will only be set on the model if the save is successful.
-	saveChart() {
-		const {chart} = this
-		var isNew = chart.model.isNew();
-
-		var prevAttrs = chart.model.toJSON();
-		var attrs = _.extend({}, prevAttrs, newAttrs);
-		attrs["form-config"] = formConfig;
-		chart.model.set(attrs, { silent: true });
-
-		const targetUrl = isNew ? "/admin/charts" : `/admin/charts/${chart.id}`
-
-
-		App.postJSON(targetUrl, {
-			success: function (model, response, options) {
-				if (isNew) {
-					// New chart saved, switch to edit mode
-					window.location = chart.model.url(response.data.id) + '/edit';
-				} else {
-					for (var key in newAttrs) {
-						chart.model.trigger("change:" + key);
-					}
-					chart.model.trigger("change");
-				}
-                this.isSaved = true
-			}.bind(this),
-			error: function (model, xhr, options) {
-				var $modal = owid.modal({ title: "Error saving chart", content: xhr.responseText });
-				$modal.addClass("error");
-				chart.model.set(prevAttrs, { silent: true });
-			}
-		});
+	@computed get isNewChart() {
+		return this.chart.id === undefined
 	}
 
-    saveAsNewChart() {
+	load<T>(promise: Promise<T>) {
+		this.currentRequest = promise
+		promise.then(() => this.currentRequest = undefined).catch(() => this.currentRequest = undefined)
+		return promise
+	}
+
+	async saveChart({ onError }: { onError?: () => void } = {}) {
+		const {chart, isNewChart} = this
+
+		const targetUrl = isNewChart ? "/admin/charts" : `/admin/charts/${chart.id}`
+
+
+		const handleError = (err: string) => {
+			var $modal = owid.modal({ title: "Error saving chart", content: _.toString(err) });
+			$modal.addClass("error");
+			if (onError) onError()
+		}
+
+		try {
+			const response = await this.load(Admin.request(targetUrl, chart.json, isNewChart ? 'POST' : 'PUT'))
+			if (!response.ok)
+				return handleError(await response.text())
+
+			const json = await response.json()
+
+			if (isNewChart) {
+				window.location.assign(Admin.url(`/admin/charts/${json.data.id}`))
+			} else {
+				this.isSaved = true
+			}
+		} catch (err) {
+			handleError(err)
+		}
+	}
+
+    async saveAsNewChart() {
 		const {chart} = this
 
-		var formConfig = {
-			"entities-collection": App.AvailableEntitiesCollection.toJSON()
-		};
-
-		chart.model.set( "form-config", formConfig, { silent: true } );			
-		var origId = chart.model.get('id'),
-			origPublished = chart.model.get("published");
-		chart.model.set({ id: null, published: null }, { silent: true });
+		const json = chart.json
+		delete json.id
+		delete json.published
 
 		// Need to open intermediary tab before AJAX to avoid popup blockers
 		var w = window.open("/", "_blank");
 
-		chart.model.save({}, {
-			success: function (model, response, options) {
-				w.location = chart.model.url(response.data.id) + "/edit";
-				chart.model.set({ id: origId, published: origPublished });
-			},
-			error: function (model, xhr, options) {
-				w.close();
-				chart.model.set({ id: origId, published: origPublished });
-				var $modal = owid.modal({ title: "Error saving chart", content: xhr.responseText });
-				$modal.addClass("error");
-			}
-		});        
+		const handleError = (err: string) => {
+			w.close()
+			var $modal = owid.modal({ title: "Error saving chart", content: _.toString(err) });
+			$modal.addClass("error");
+		}
+
+		try {
+			const response = await this.load(Admin.request("/admin/charts", chart.json, 'POST'))
+			if (!response.ok)
+				return handleError(await response.text())
+
+			const json = await response.json()
+
+			w.location.assign(Admin.url(`/admin/charts/${json.data.id}/edit`))
+		} catch (err) {
+			handleError(err)
+		}
     }
 
 	publishChart() {
-		var url = Global.rootUrl + "/" + chart.model.get("slug");
-		
+		const url = this.chart.url.canonicalUrl
+
 		var $modal = owid.modal();
 		$modal.find(".modal-title").html("Publish chart");
 		$modal.find(".modal-body").html(
@@ -124,15 +113,18 @@ export default class ChartEditor {
 			'<button class="btn btn-cancel" data-dismiss="modal">Cancel</button>'
 		);
 
-		$modal.find(".btn-danger").on("click", function() {
+		$modal.find(".btn-danger").on("click", () => {
 			$modal.modal('hide');
-			this.saveChart({ published: true });
-		}.bind(this));
+
+			this.chart.props.isPublished = true
+			this.saveChart({ onError: () => this.chart.props.isPublished = undefined })
+		})
 	}
 
 	unpublishChart() {
 		owid.confirm({ text: "Really unpublish chart?" }, function() {
-			this.saveChart({ published: false });
+			this.chart.props.isPublished = undefined
+			this.saveChart({ onError: () => this.chart.props.isPublished = true })
 		}.bind(this));
 	}
 

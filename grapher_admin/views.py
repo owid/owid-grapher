@@ -170,20 +170,19 @@ def savechart(chart: Chart, data: Dict, user: User):
                 new_chart_redirect.slug = chart.slug
                 new_chart_redirect.save()
 
-    chart.name = data["title"]
+    chart.name = data.get("title")
     data.pop("title", None)
 
     chart.type = data["chart-type"]
     data.pop("chart-type", None)
 
-    chart.notes = data["internalNotes"]
+    chart.notes = data.get("internalNotes")
     data.pop("internalNotes", None)
 
-    chart.slug = data["slug"]
+    chart.slug = data.get("slug")
     data.pop("slug", None)
 
-    if data["published"]:
-        chart.published = data["published"]
+    chart.published = data.get("published", False)
     data.pop("published", None)
 
     data.pop("logosSVG", None)

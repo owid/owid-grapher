@@ -9,7 +9,7 @@ import * as React from 'react'
 import * as _ from 'lodash'
 import * as d3 from 'd3'
 import * as $ from 'jquery'
-import {computed, action} from 'mobx'
+import {computed, action, observable} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartConfig from './ChartConfig'
 import Bounds from './Bounds'
@@ -22,6 +22,8 @@ import Lines from './Lines'
 import {preInstantiate} from "./Util"
 import Paragraph from './Paragraph'
 import AxisScale from './AxisScale'
+import Vector2 from './Vector2'
+import {getRelativeMouse} from './Util'
 
 export interface LineChartValue {
     x: number,
@@ -162,14 +164,41 @@ class StackedArea {
 
 @observer
 export class StackedAreaView extends React.Component<{ stackedArea: StackedArea }, undefined> {
+    base: SVGGElement
+    
+    @observable hoverIndex: number|undefined = 0
+
+    @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement>) {
+        const {renderData} = this.props.stackedArea
+        const mouse = Vector2.fromArray(getRelativeMouse(this.base, ev))
+        const closestPoint = _.sortBy(renderData[0].values, d => Math.abs(d.x - mouse.x))[0]
+        const index = renderData[0].values.indexOf(closestPoint)
+        this.hoverIndex = index
+    }
+
+    @computed get hoverData(): { x: number }|undefined {
+        const {hoverIndex} = this
+        if (hoverIndex === undefined) return undefined
+
+        const hoverData = {}
+        _.each(this.props.stackedArea.renderData, series => {
+            hoverData.x = series.values[hoverIndex].x
+//            series.values[hoverIndex]
+        })
+
+        return hoverData
+    }
+
     render() {
         const {xScale, yScale} = this.props.stackedArea.props
         const {renderData} = this.props.stackedArea
+        const {hoverData} = this
 
         const xBottomLeft = `${Math.round(xScale.range[0])},${Math.round(yScale.range[0])}`
         const xBottomRight = `${Math.round(xScale.range[1])},${Math.round(yScale.range[0])}`
 
-        return <g className="Areas" opacity={0.7}>
+        return <g className="Areas" opacity={0.7} onMouseMove={this.onMouseMove}>
+            <rect x={xScale.range[0]} y={yScale.range[1]} width={xScale.range[1]-xScale.range[0]} height={yScale.range[0]-yScale.range[1]} opacity={0} fill="rgba(255,255,255,0)"/> 
             {_.map(renderData, series =>
                 <polyline
                     key={series.key+'-line'}
@@ -181,6 +210,7 @@ export class StackedAreaView extends React.Component<{ stackedArea: StackedArea 
                     opacity={1}
                 />,
             )}
+            {hoverData && <line x1={hoverData.x} y1={yScale.range[0]} x2={hoverData.x} y2={yScale.range[1]} stroke="black"/>}
         </g>
     }
 }

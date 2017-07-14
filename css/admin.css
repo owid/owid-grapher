@@ -803,6 +803,10 @@ li[data-color^=".*"] {
 .settings-var-popup .modal {
   display: block; }
 
+.modal-dialog {
+  z-index: 2000;
+}
+
 .settings-var-popup .settings-var-header {
   padding-bottom: 10px;
   margin-bottom: 15px;
