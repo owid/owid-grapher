@@ -90,7 +90,7 @@ export default class ChartEditorView extends React.Component<{ editor: ChartEdit
 					<ul className="nav nav-tabs no-bullets">
 						{_.map(availableTabs, tab => 
 							<li className={tab == editor.tab ? "nav-item active" : "nav-item"}>
-								<a className="nav-link" onClick={() => editor.tab = tab}>{_.capitalize(tab)}</a>
+								<a className="nav-link clickable" onClick={() => editor.tab = tab}>{_.capitalize(tab)}</a>
 							</li>
 						)}
 					</ul>

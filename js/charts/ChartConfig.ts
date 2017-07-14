@@ -15,6 +15,7 @@ import VariableData from './VariableData'
 import ChartData from './ChartData'
 import MapConfig, {MapConfigProps} from './MapConfig'
 import URLBinder from './URLBinder'
+import ColorBinder from './ColorBinder'
 
 export interface TimelineConfig {
     compareEndPointsOnly?: boolean
@@ -117,6 +118,7 @@ export default class ChartConfig {
     vardata: VariableData
     data: ChartData
     url: URLBinder
+    colors: ColorBinder
 
 	// Get the empty dimension slots appropriate for this type of chart
 	@computed get emptyDimensions() {
@@ -259,6 +261,7 @@ export default class ChartConfig {
         this.vardata = new VariableData(this)
         this.data = new ChartData(this, this.vardata)
         this.url = new URLBinder(this)
+        this.colors = new ColorBinder(this)
 
         window.chart = this
 
@@ -269,4 +272,18 @@ export default class ChartConfig {
             }
         })
 	}
+
+    // TODO - make these unnecessary
+	@computed get isMultiEntity() {
+        if (this.selectedEntities.length > 1)
+            return true
+        else if (this.addCountryMode == "add-country")
+            return true
+		else
+			return false;
+	}
+
+    @computed get isMultiVariable() {
+        return this.dimensions.length > 1
+    }
 }

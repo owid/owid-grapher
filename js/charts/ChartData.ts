@@ -63,8 +63,8 @@ export default class ChartData {
 				d.disabled = !this.chart.isLegendKeyActive(d.key);
 			});
 		}*/
-		App.Colors.assignColorsForLegend(result.legendData);
-		App.Colors.assignColorsForChart(result.chartData);		
+		chart.colors.assignColorsForLegend(result.legendData);
+		chart.colors.assignColorsForChart(result.chartData);		
 
 		return result;		
 	}
@@ -275,23 +275,6 @@ export default class ChartData {
 
 		return { chartData: chartData, legendData: legendData, minYear: minYear, maxYear: maxYear };*/
 	}
-
-	makeCategoryTransform(property, values) {
-		var colors = [ "#aec7e8", "#ff7f0e", "#1f77b4", "#ffbb78", "#2ca02c", "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b", "c49c94", "e377c2", "f7b6d2", "7f7f7f", "c7c7c7", "bcbd22", "dbdb8d", "17becf", "9edae5", "1f77b4" ];
-		var shapes = [ "circle", "cross", "triangle-up", "triangle-down", "diamond", "square" ];
-
-		var outputValues = property == "color" ? colors : shapes,
-			index = 0,
-			categoryTransform = {};
-
-		_.each(_.sortBy(_.uniq(values)), function(value) {
-			categoryTransform[value] = outputValues[index];
-			index += 1;
-			if (index >= outputValues.length) index = 0;
-		});
-
-		return categoryTransform;
-	},
 
 	transformDataForDiscreteBar() {
 		var dimensions = this.chart.dimensions,
