@@ -45,7 +45,7 @@ export default class EditorBasicTab extends React.Component<{ chart: ChartConfig
 	render() {
 		const { chart } = this
 
-		return <div id="basic-tab" className="tab-pane active">
+		return <div className="tab-pane active">
 			<section>
 				<h2>Title of the visualization</h2>
 				<p className="form-section-desc">Never use specific countries or years since these can be changed by the viewer. Instead use <b>*time*</b> or <b>*country*</b> as placeholders. These will be interpreted by the grapher to match what is being looked at.</p>

@@ -47,7 +47,7 @@ export default class URLBinder {
         // while animating, so we debounce to allow e.g. smoother timelines
         const pushParams = _.debounce(function(params: ChartQueryParams) {
             requestAnimationFrame(() => setQueryStr(queryParamsToStr(params as QueryParams)))
-        }, 50)
+        }, 100)
         
         autorun(() => {
             const {params} = this
@@ -83,7 +83,7 @@ export default class URLBinder {
     // Get the full url representing the canonical location of this chart state
     @computed get canonicalUrl() {
         var baseUrl = Global.rootUrl + "/" + this.chart.slug,
-            queryStr = queryParamsToStr(this.params),
+            queryStr = queryParamsToStr(this.params as QueryParams),
             canonicalUrl = baseUrl + queryStr;
 
         return canonicalUrl

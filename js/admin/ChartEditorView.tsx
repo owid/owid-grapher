@@ -14,7 +14,7 @@ import ChartView from '../charts/ChartView'
 import ChartEditor, {ChartEditorProps, EditorTab} from './ChartEditor'
 import SaveButtons from './SaveButtons'
 import {observer} from 'mobx-react'
-import {observable, computed, action} from 'mobx'
+import {observable, computed, action, autorun} from 'mobx'
 
 declare const App: any
 
@@ -62,6 +62,11 @@ export default class ChartEditorView extends React.Component<{ editor: ChartEdit
 	componentDidMount() {
 		window.addEventListener("hashchange", this.onHashChange)
 		this.onHashChange()
+
+		autorun(() => {
+			const tab = this.props.editor.tab
+			setTimeout(() => window.location.hash = `#${tab}-tab`, 100)
+		})
 	}
 
 	componentDidUnmount() {
@@ -85,7 +90,7 @@ export default class ChartEditorView extends React.Component<{ editor: ChartEdit
 					<ul className="nav nav-tabs no-bullets">
 						{_.map(availableTabs, tab => 
 							<li className={tab == editor.tab ? "nav-item active" : "nav-item"}>
-								<a className="nav-link" href={`#${tab}-tab`}>{_.capitalize(tab)}</a>
+								<a className="nav-link" onClick={() => editor.tab = tab}>{_.capitalize(tab)}</a>
 							</li>
 						)}
 					</ul>

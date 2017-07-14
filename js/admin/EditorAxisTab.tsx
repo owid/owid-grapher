@@ -21,14 +21,14 @@ export default class EditorAxisTab extends React.Component<{ chart: ChartConfig 
 			<TextField label={axisName+"-Axis Suffix"} value={axis.suffix} onValue={(value) => axis.suffix = value}/>
 			<NumberField label={axisName+"-Axis No of decimal places"} value={axis.numDecimalPlaces} onValue={(value) => axis.numDecimalPlaces = value}/>
 			<SelectField label={axisName+"-Axis Scale"} value={axis.scaleType} options={['linear', 'log']} onValue={(value) => axis.scaleType = value == 'linear' ? 'linear' : 'log'}/>
-			{" "}<Toggle label={`User can select ${axisName} axis scale`} value={axis.canChangeScaleType} onValue={(value) => axis.canChangeScaleType = value}/>
+			{" "}<Toggle label={`User can select ${axisName} axis scale`} value={axis.canChangeScaleType||false} onValue={(value) => axis.canChangeScaleType = value||undefined}/>
 		</div>
 	}
 
 	render() {
 		const {xAxis, yAxis} = this
 
-		return <div id="axis-tab" className="tab-pane">
+		return <div className="tab-pane">
 			<section>
 				{this.renderForAxis('Y', yAxis)}
 				{this.renderForAxis('X', xAxis)}

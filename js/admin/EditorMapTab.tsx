@@ -269,7 +269,7 @@ export default class EditorMapTab extends React.Component<{ editor: ChartEditor 
 		if (!map.data)
 			return null
 
-		return <div id="map-tab" className="tab-pane">
+		return <div className="tab-pane">
 			<VariableSection map={map}/>
 			<TimelineSection map={map}/>
 			<ColorsSection map={map}/>

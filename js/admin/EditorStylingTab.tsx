@@ -18,7 +18,7 @@ export default class EditorStylingTab extends React.Component<{ chart: ChartConf
 	render() {
 		const { chart } = this
 
-		return <div id="styling-tab" className="tab-pane">
+		return <div className="tab-pane">
 			{chart.type == ChartType.LineChart && <section className="type-of-line-section">
 				<h2>Choose Type of Line</h2>
 				<label>

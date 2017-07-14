@@ -294,7 +294,7 @@ export default class EditorDataTab extends React.Component<{ editor: ChartEditor
 	render() {
 		const {editor} = this.props
 
-		return <div id="data-tab" className="tab-pane">
+		return <div className="tab-pane">
 			<VariablesSection editor={editor}/>
 			<EntitiesSection chart={editor.chart}/>
 			<TimeSection editor={editor}/>

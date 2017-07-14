@@ -65,7 +65,7 @@ export default class EditorScatterTab extends React.Component<{ chart: ChartConf
         const {hasTimeline, hasComparisonLine, hasHighlightToggle, timeline, comparisonLine, highlightToggle} = this
         const {chart} = this.props
 
-        return <div id="scatter-tab" className="tab-pane">
+        return <div className="tab-pane">
             <section>
                 <h2>Timeline</h2>
                 <p className="form-section-desc">Note that the timeline settings will override any variable settings for target year (but not for tolerance).</p>
