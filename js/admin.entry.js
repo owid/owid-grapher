@@ -14,11 +14,7 @@ import '../css/admin.css'
 // Admin only code
 
 window.$ = window.jQuery = require('jquery')
-import _ from 'underscore'
-window._ = _
-window.Backbone = require('backbone')
 window.owid = require('./owid').default;
-
 
 require('./libs/bootstrap.min.js')
 require('./libs/admin-lte-app.min')
@@ -28,9 +24,6 @@ require('./libs/jquery.timeago')
 require('./libs/chosen.jquery')
 
 require('./admin/admin.global')
-
-require('./admin/App.Views.UI.SelectVarPopup')
-require('./admin/App.Views.UI.SettingsVarPopup')
 
 window.ChartEditorView = require('./admin/ChartEditorView').default
 

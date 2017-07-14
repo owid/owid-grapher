@@ -11,9 +11,7 @@ import {defaultTo} from '../charts/Util'
 import {SelectField, Toggle, NumberField} from './Forms'
 import ChartEditor from './ChartEditor'
 import EditorVariable from './EditorVariable'
-/// XXXX todo
-
-var ColorPicker = App.Views.UI.ColorPicker;
+import Colorpicker from './Colorpicker'
 
 interface VariableSelectorProps {
 	editor: ChartEditor,
@@ -162,19 +160,15 @@ class VariablesSection extends React.Component<{ editor: ChartEditor }, undefine
 
 @observer
 class EntityItem extends React.Component<{ chart: ChartConfig, entity: EntityKey }, undefined> {
+	@observable.ref isChoosingColor: boolean = false
+
 	@computed get entity() { return this.props.entity }
 	@computed get color() { return this.props.chart.entityColors[this.props.entity] }
 
-	base: HTMLLIElement
-	colorPicker: any
-	@action.bound onChooseColor() {
-		if (this.colorPicker) this.colorPicker.onClose();
-		this.colorPicker = new ColorPicker({ target: $(this.base), currentColor: this.color });
-		this.colorPicker.onSelected = (color: Color) => {
-			const entityColors = _.clone(this.props.chart.entityColors)
-			entityColors[this.entity] = color
-			this.props.chart.props.entityColors = entityColors
-		}
+	@action.bound onColor(color: Color) {
+		const entityColors = _.clone(this.props.chart.entityColors)
+		entityColors[this.entity] = color
+		this.props.chart.props.entityColors = entityColors
 	}
 
 	@action.bound onRemove(ev: React.MouseEvent<HTMLSpanElement>) {
@@ -183,11 +177,12 @@ class EntityItem extends React.Component<{ chart: ChartConfig, entity: EntityKey
 	}
 
 	render() {
-		const {entity, color} = this
+		const {entity, color, isChoosingColor} = this
 
 		return <li className="country-label" style={{ backgroundColor: color||"white" }} onClick={this.onChooseColor}>
 			<span className="fa fa-remove" onClick={this.onRemove}/>
 			{entity}
+			{isChoosingColor && <Colorpicker color={color} onColor={this.onColor} onClose={e => this.isChoosingColor = false}/>}
 		</li>
 	}
 }
