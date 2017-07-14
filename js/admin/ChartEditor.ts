@@ -7,6 +7,7 @@
 
 import {observable, computed, reaction} from 'mobx'
 import ChartConfig from '../charts/ChartConfig'
+import ChartType from '../charts/ChartType'
 import EditorVariable from './EditorVariable'
 import Admin from './Admin'
 import * as _ from 'lodash'
@@ -22,6 +23,8 @@ export interface ChartEditorProps {
 	data: EditorData
 }
 
+export type EditorTab = 'basic'|'data'|'axis'|'styling'|'map'|'scatter'
+
 export default class ChartEditor {
     @observable.ref chart: ChartConfig
 	@observable.ref data: EditorData
@@ -29,6 +32,15 @@ export default class ChartEditor {
     // Whether the current chart state is saved or not
     @observable.ref isSaved: boolean = true
 	@observable.ref currentRequest: Promise<any>|undefined
+
+	@observable.ref tab: EditorTab = 'basic'
+
+	@computed get availableTabs(): EditorTab[] {
+		const tabs: EditorTab[] = ['basic', 'data', 'axis', 'styling']
+		if (this.chart.hasMapTab) tabs.push('map')
+		if (this.chart.type == ChartType.ScatterPlot) tabs.push('scatter')
+		return tabs
+	}
 
 	@computed get isNewChart() {
 		return this.chart.id === undefined

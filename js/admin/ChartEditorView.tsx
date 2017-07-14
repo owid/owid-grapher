@@ -7,13 +7,14 @@ import EditorScatterTab from './EditorScatterTab'
 import EditorStylingTab from './EditorStylingTab'
 import EditorMapTab from './EditorMapTab'
 import ChartConfig from '../charts/ChartConfig'
-import {clone} from 'lodash'
+import * as _ from 'lodash'
 import * as $ from 'jquery'
 import ChartType from '../charts/ChartType'
 import ChartView from '../charts/ChartView'
-import ChartEditor, {ChartEditorProps} from './ChartEditor'
+import ChartEditor, {ChartEditorProps, EditorTab} from './ChartEditor'
 import SaveButtons from './SaveButtons'
 import {observer} from 'mobx-react'
+import {observable, computed, action} from 'mobx'
 
 declare const App: any
 
@@ -59,45 +60,43 @@ export default class ChartEditorView extends React.Component<{ editor: ChartEdit
 	}
 
 	componentDidMount() {
-		$('.nav-tabs').stickyTabs();
+		window.addEventListener("hashchange", this.onHashChange)
+		this.onHashChange()
 	}
 
+	componentDidUnmount() {
+		window.removeEventListener("hashchange", this.onHashChange)
+	}
+
+	@action.bound onHashChange() {
+		const match = window.location.hash.match(/#(.+?)-tab/)
+		if (match)
+			this.props.editor.tab = (match[1] as EditorTab)
+	}
+	
 	render() {
 		const {editor} = this.props
-		const {chart} = editor
+		const {chart, availableTabs} = editor
 
 		return <div className="form-wrapper-inner">
 			{editor.currentRequest && <LoadingBlocker/>}
-			<form method="POST" accept-charset="UTF-8"><input name="_method" type="hidden" value="PUT"/>
+			<form>
 				<div className="nav-tabs-custom">
 					<ul className="nav nav-tabs no-bullets">
-						<li className="nav-item active">
-							<a className="nav-link" href="#basic-tab" data-toggle="tab" aria-expanded="false">Basic</a>
-						</li>
-						<li className="nav-item">
-							<a className="nav-link" href="#data-tab" data-toggle="tab" aria-expanded="false">Data</a>
-						</li>
-						<li className="nav-item">
-							<a className="nav-link" href="#axis-tab" data-toggle="tab" aria-expanded="false">Axis</a>
-						</li>
-						<li className="nav-item">
-							<a className="nav-link" href="#styling-tab" data-toggle="tab" aria-expanded="false">Styling</a>
-						</li>
-						{chart.type == ChartType.ScatterPlot && <li className="nav-item">
-							<a className="nav-link" href="#scatter-tab" data-toggle="tab" aria-expanded="false">Scatter</a>
-						</li>}
-						{chart.hasMapTab && <li className="nav-item">
-							<a className="nav-link" href="#map-tab" data-toggle="tab" aria-expanded="false">Map</a>
-						</li>}
+						{_.map(availableTabs, tab => 
+							<li className={tab == editor.tab ? "nav-item active" : "nav-item"}>
+								<a className="nav-link" href={`#${tab}-tab`}>{_.capitalize(tab)}</a>
+							</li>
+						)}
 					</ul>
 				</div>
-				<div className="tab-content">
-					<EditorBasicTab chart={chart}/>
-					<EditorDataTab editor={editor}/>
-					<EditorAxisTab chart={chart}/>
-					<EditorStylingTab chart={chart}/>
-					{chart.type == ChartType.ScatterPlot && <EditorScatterTab chart={chart}/>}
-					{chart.hasMapTab && <EditorMapTab editor={editor}/>}
+				<div>
+					{editor.tab == 'basic' && <EditorBasicTab chart={chart}/>}
+					{editor.tab == 'data' && <EditorDataTab editor={editor}/>}
+					{editor.tab == 'axis' && <EditorAxisTab chart={chart}/>}
+					{editor.tab == 'styling' && <EditorStylingTab chart={chart}/>}
+					{editor.tab == 'scatter' && <EditorScatterTab chart={chart}/>}
+					{editor.tab == 'map' && <EditorMapTab editor={editor}/>}
 				</div>
 				<SaveButtons editor={editor}/>
 			</form>
