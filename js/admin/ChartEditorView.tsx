@@ -17,6 +17,29 @@ import {observer} from 'mobx-react'
 
 declare const App: any
 
+class LoadingBlocker extends React.Component<{}, undefined> {
+	render() {
+		const style: any = {
+			position: 'fixed',
+			top: 0,
+			left: 0,
+			bottom: 0,
+			right: 0,
+			backgroundColor: 'black',
+			opacity: 0.5,
+			zIndex: 2100,
+			display: 'flex',
+			alignItems: 'center',
+			justifyContent: 'center',
+			fontSize: '36px',
+			color: 'white'
+		}
+        return <div style={style}>
+			<i className="fa fa-spinner fa-spin"/>
+		</div>		
+	}
+}
+
 @observer
 export default class ChartEditorView extends React.Component<{ editor: ChartEditor }, undefined> {
     static bootstrap({ chartView, editorData }: { chartView: ChartView, editorData: any }) {
@@ -44,6 +67,7 @@ export default class ChartEditorView extends React.Component<{ editor: ChartEdit
 		const {chart} = editor
 
 		return <div className="form-wrapper-inner">
+			{editor.currentRequest && <LoadingBlocker/>}
 			<form method="POST" accept-charset="UTF-8"><input name="_method" type="hidden" value="PUT"/>
 				<div className="nav-tabs-custom">
 					<ul className="nav nav-tabs no-bullets">
