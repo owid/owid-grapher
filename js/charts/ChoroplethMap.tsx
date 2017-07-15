@@ -10,6 +10,7 @@ import MapProjections from './MapProjections'
 import MapProjection from './MapProjection'
 import MapTopology from './MapTopology'
 import EntityKey from './EntityKey'
+import Vector2 from './Vector2'
 
 export type ChoroplethDatum = {
     entity: EntityKey,
@@ -69,6 +70,16 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps, u
         return MapProjections[this.projection]
     }
 
+    @computed get geoBounds() {
+        const {geoData, geoPath} = this
+        const allBounds = _.map(geoData, geoPath.bounds)
+        const x1 = _.min(_.map(allBounds, b => b[0][0]))
+        const y1 = _.min(_.map(allBounds, b => b[0][1]))
+        const x2 = _.max(_.map(allBounds, b => b[1][0]))
+        const y2 = _.max(_.map(allBounds, b => b[1][1]))
+        return Bounds.fromCorners(new Vector2(x1, y1), new Vector2(x2, y2))
+    }
+
     @computed get pathData(): { [key: string]: string } {
         const {geoData, geoPath} = this
 
@@ -112,8 +123,47 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps, u
             return false
     }
 
+    @computed get matrixTransform() {
+        let { bounds, projection, geoBounds } = this
+
+        var viewports = {
+            "World": { x: 0.565, y: 0.5, width: 1, height: 1 },
+            "Africa": { x: 0.48, y: 0.70, width: 0.21, height: 0.38 },
+            "NorthAmerica": { x: 0.49, y: 0.40, width: 0.19, height: 0.32 },
+            "SouthAmerica": { x: 0.52, y: 0.815, width: 0.10, height: 0.26 },
+            "Asia": { x: 0.49, y: 0.52, width: 0.22, height: 0.38 },
+            "Australia": { x: 0.51, y: 0.77, width: 0.1, height: 0.12 },
+            "Europe": { x: 0.54, y: 0.54, width: 0.05, height: 0.15 },
+        };
+
+        var viewport = viewports[projection];
+
+        // Calculate our reference dimensions. All of these values are independent of the current
+        // map translation and scaling.
+        var mapX = geoBounds.x + 1,
+            mapY = geoBounds.y + 1,
+            viewportWidth = viewport.width*geoBounds.width,
+            viewportHeight = viewport.height*geoBounds.height;
+
+        // Calculate what scaling should be applied to the untransformed map to match the current viewport to the container
+        var scale = Math.min(bounds.width/viewportWidth, bounds.height/viewportHeight);
+
+        // Work out how to center the map, accounting for the new scaling we've worked out
+        var newWidth = geoBounds.width*scale,
+            newHeight = geoBounds.height*scale,
+            boundsCenterX = bounds.left + bounds.width/2,
+            boundsCenterY = bounds.top + bounds.height/2,
+            newCenterX = mapX + (scale-1)*geoBounds.x + viewport.x*newWidth,
+            newCenterY = mapY + (scale-1)*geoBounds.y + viewport.y*newHeight,
+            newOffsetX = boundsCenterX - newCenterX,
+            newOffsetY = boundsCenterY - newCenterY;
+
+        var matrixStr = "matrix(" + scale + ",0,0," + scale + "," + newOffsetX + "," + newOffsetY + ")";
+        return matrixStr
+    }    
+
     render() {
-        const { bounds, choroplethData, defaultFill, geoData, pathData, hasFocus } = this
+        const { bounds, choroplethData, defaultFill, geoData, pathData, hasFocus, matrixTransform } = this
         const focusColor = "#FFEC38"
         const focusStrokeWidth = 2.5
 
@@ -123,7 +173,7 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps, u
                     <rect x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height}></rect>
                 </clipPath>
             </defs>
-            <g className="subunits" ref={g => this.subunits = g}>
+            <g className="subunits" transform={matrixTransform}>
                 {_.map(geoData.filter(d => !choroplethData[d.id]), d => {
                     const isFocus = this.hasFocus(d)
                     const stroke = isFocus ? focusColor : "#333"
@@ -145,50 +195,5 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps, u
                 Mapped on current borders
             </text>*/}
         </g>
-    }
-
-    componentDidMount() {
-        this.postRenderResize()
-        autorunAsync(this.postRenderResize)
-    }
-
-    @bind postRenderResize() {
-        let { bounds, projection, subunits } = this
-        const bbox = subunits.getBBox()
-
-        var viewports = {
-            "World": { x: 0.565, y: 0.5, width: 1, height: 1 },
-            "Africa": { x: 0.48, y: 0.70, width: 0.21, height: 0.38 },
-            "NorthAmerica": { x: 0.49, y: 0.40, width: 0.19, height: 0.32 },
-            "SouthAmerica": { x: 0.52, y: 0.815, width: 0.10, height: 0.26 },
-            "Asia": { x: 0.49, y: 0.52, width: 0.22, height: 0.38 },
-            "Australia": { x: 0.51, y: 0.77, width: 0.1, height: 0.12 },
-            "Europe": { x: 0.54, y: 0.54, width: 0.05, height: 0.15 },
-        };
-
-        var viewport = viewports[projection];
-
-        // Calculate our reference dimensions. All of these values are independent of the current
-        // map translation and scaling-- getBBox() gives us the original, untransformed values.
-        var mapX = bbox.x + 1,
-            mapY = bbox.y + 1,
-            viewportWidth = viewport.width*bbox.width,
-            viewportHeight = viewport.height*bbox.height;
-
-        // Calculate what scaling should be applied to the untransformed map to match the current viewport to the container
-        var scale = Math.min(bounds.width/viewportWidth, bounds.height/viewportHeight);
-
-        // Work out how to center the map, accounting for the new scaling we've worked out
-        var newWidth = bbox.width*scale,
-            newHeight = bbox.height*scale,
-            boundsCenterX = bounds.left + bounds.width/2,
-            boundsCenterY = bounds.top + bounds.height/2,
-            newCenterX = mapX + (scale-1)*bbox.x + viewport.x*newWidth,
-            newCenterY = mapY + (scale-1)*bbox.y + viewport.y*newHeight,
-            newOffsetX = boundsCenterX - newCenterX,
-            newOffsetY = boundsCenterY - newCenterY;
-
-        var matrixStr = "matrix(" + scale + ",0,0," + scale + "," + newOffsetX + "," + newOffsetY + ")";
-        d3.select(subunits).attr('transform', matrixStr);
     }
 }

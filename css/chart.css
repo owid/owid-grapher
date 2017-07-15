@@ -16,10 +16,6 @@ button {
     border: none;
 }
 
-#chart > svg {
-    font-size: 22px;
-}
-
 #chart .btn {
     font-size: 0.8em;
     white-space: normal;
@@ -147,23 +143,6 @@ select.disabled {
     fill-opacity: 1;
 }
 
-#chart .nv-point {
-    stroke-width: 0;
-}
-
-#chart .nv-point.hover {
-    stroke-width: 4;
-}
-
-#chart svg.LineChart .nv-group .nv-line {
-    stroke-width: 2.5 !important;
-}
-
-#chart svg.MultiBar .nv-controlsWrap {
-    -webkit-transform: translate(0, -30px);
-    transform: translate(0, -30px);
-}
-
 /* Make World line slightly thicker */
 #chart svg .nv-group.World .nv-line {
     stroke-width: 5 !important;
@@ -175,10 +154,6 @@ select.disabled {
 
 .nv-group.World .nv-point.hover {
     stroke-width: 6;
-}
-
-#chart .dashed .nv-line {
-    stroke-dasharray: 2, 2;
 }
 
 #chart .projection .nv-line {
@@ -257,19 +232,6 @@ a {
 
 #chart {
     z-index: 1;
-}
-
-#chart .html-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
-}
-
-#chart .html-overlay > * {
-    z-index: 2;
 }
 
 /* Controls Footer
@@ -421,95 +383,6 @@ a {
 #chart .header path {
     stroke: #FFFFFF;
     stroke-width: 1px;
-}
-/* Footer
---------------------------------------------- */
-
-#chart .SourcesFooter {
-    fill: #777;
-
-    & a {
-        fill: #777;
-    }
-}
-
-/* Legend
---------------------------------------------- */
-
-#chart .nv-custom-legend.transparent .nv-series {
-    opacity: .8;
-}
-#chart .nv-custom-legend.transparent .nv-series.highlight {
-    opacity: 1;
-}
-#chart .nv-custom-legend .nv-series {
-    cursor: pointer;
-}
-#chart .nv-custom-legend .nv-series .nv-custom-legend-symbol {
-    stroke-width: 1px !important;
-}
-#chart .nv-custom-legend .nv-remove-btn {
-    display: none;
-}
-#chart .nv-custom-legend .nv-series:hover .nv-remove-btn {
-    display: block;
-}
-#chart .nv-custom-legend .nv-remove-btn .nv-box {
-    stroke-width: 3px;
-    stroke: #fff;
-}
-#chart .nv-custom-legend .nv-legend-text {
-    fill: #fff;
-}
-#chart .nv-custom-legend .nv-add-btn {
-    cursor: pointer;
-}
-#chart .nv-custom-legend .nv-add-btn .add-btn-bg {
-    fill: #fff;
-}
-#chart .nv-custom-legend .nv-add-btn:hover .add-btn-bg {
-    fill: #444444;
-}
-#chart .nv-custom-legend .nv-add-btn:hover text {
-    fill: #fff;
-}
-#chart .nv-custom-legend .nv-add-btn:hover .nv-box {
-    stroke: #fff;
-    fill: #fff;
-}
-#chart .nv-custom-legend .nv-add-btn .nv-box {
-    stroke-width: 4px;
-    stroke: #000;
-}
-#chart .nv-custom-legend .nv-disabled {
-    fill-opacity: 0;
-}
-#chart .nv-custom-legend .nv-disabled .nv-legend-text {
-    fill: #333;
-    fill-opacity: 1;
-}
-
-#chart .available-countries-select-wrapper {
-    position: relative;
-    z-index: 51;
-    line-height: 0;
-}
-#chart .available-countries-select-wrapper select {
-    display: none;
-}
-#chart .available-countries-select-wrapper .chosen-container {
-    width: 100% !important;
-}
-#chart .available-countries-select-wrapper .chosen-single {
-    display: none;
-}
-#chart .available-countries-select-wrapper .chosen-container .chosen-fp {
-    box-shadow: none;
-    border-top: 1px solid #aaa;
-    border-radius: 0;
-}
-#chart .available-countries-select-wrapper .chosen-container .chosen-results li.highlighted {
-    background: #002147;
 }
 
 /* Axis and Gridlines
@@ -800,300 +673,11 @@ a {
     height: 80%;
 }
 
-/* Entity Selection Menu
---------------------------------------------- */
-
-#chart .entitySelect {
-    padding: 0.8em;
-    text-align: left;
-    background: rgba(255,255,255,0.9);
-    position: absolute;
-    top: 0%;
-    height: 100%;
-    width: 100%;
-    overflow-y: auto;
-    border-top: 1px solid #e1e1e1;
-    z-index: 3;
-}
-
-#chart .entitySelect h2 {
-    font-size: 1em;
-}
-
-#chart .entitySelect input[type=search] {
-    width: 100%;
-    font-size: 0.9em;
-    padding: 0.3em;
-    margin-bottom: 0.4em;
-}
-
-#chart .entitySelect ul {
-    padding: 0;
-}
-
-#chart .entitySelect li {
-    list-style-type: none;
-    padding: 0.5em;
-    color: rgba(0,0,0,0.87);
-}
-
-#chart .entitySelect li:hover {
-    background-color: #eee;
-}
-
-#chart .entitySelect .btnClose {
-    float: right;
-}
-
-#chart .btnClose {
-    background: none;
-    border: none;
-}
-
-/* Map Tab
---------------------------------------------- */
-
-#chart .mapLegend .legend-step rect {
-    stroke: #4F4F4F;
-    stroke-width: .1px;
-}
-#chart .mapLegend .legend-step text {
-    font-size: 0.8em;
-}
-#chart .mapLegend .legend-step line {
-    stroke: #4F4F4F;
-    stroke-width: 1px;
-}
-#chart .mapLegend .map-label {
-    font-size: 0.6em;
-}
-#chart g.map .border-disclaimer {
-    font-size: 0.6em;
-}
-.datamaps-hoverover {
-    font-family: inherit !important;
-    text-align: center;
-}
-.datamaps-hoverover h3 {
-    margin: 0 !important;
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-}
-.datamaps-hoverover .hoverinfo {
-    padding: 0;
-    box-shadow: none;
-}
-#chart #map-chart-tab {
-    overflow: inherit;
-    padding: 0 !important;
-}
-#chart .map-controls-header {
-    position: absolute;
-    top: 10px;
-    left: 20px;
-    z-index: 3;
-}
-#chart .map-controls-header .control {
-    float: left;
-    margin-right: 0.2em;
-    cursor: pointer;
-    -webkit-transition: .3s height;
-    transition: .3s height;
-    white-space: nowrap;
-    overflow: hidden;
-}
-#chart .map-controls-header .control:hover .control-head,
-#chart .map-controls-header .control:hover .control-body,
-#chart .map-controls-header .control.active .control-head,
-#chart .map-controls-header .control.active .control-body {
-    color: #fff;
-    background-color: #444;
-    border: 1px solid #444;
-}
-#chart .map-controls-header .control:hover .control-body,
-#chart .map-controls-header .control.active .control-body {
-    display: block;
-}
-#chart .map-controls-header .control .control-head,
-#chart .map-controls-header .control .control-body {
-    padding: 0.2em 0.4em;
-    border: 1px solid #EEEEEE;
-    background-color: #FAFAFA;
-}
-#chart .map-controls-header .control .control-head {
-    display: inline-block;
-    width: auto;
-}
-#chart .map-controls-header .control .control-head label {
-    margin-bottom: 0;
-}
-#chart .map-controls-header .control .control-body {
-    display: none;
-    position: absolute;
-}
-#chart .map-controls-header .control .control-body label {
-    margin-bottom: 0;
-    cursor: pointer;
-}
-#chart .map-controls-header .target-year-control .control-body {
-    width: 200.5em;
-}
-#chart .map-controls-header .target-year-control input {
-    display: inline-block;
-    margin: 0.6em 0;
-    /*writing-mode: bt-lr;
-        -webkit-appearance: slider-vertical;*/
-}
-#chart .map-controls-header .region-control .region-label {
-    text-align: center;
-    font-size: 0.9em;
-}
-#chart .map-controls-header .region-control ul {
-    z-index: 3;
-    position: relative;
-    margin: 0.2em 0;
-    padding: 0;
-    list-style-type: none;
-    font-size: 0.8em;
-}
-#chart .map-controls-header .region-control ul li {
-    padding: 2px;
-}
-#chart .map-controls-header .region-control li:hover,
-#chart .map-controls-header .region-control li.highlight {
-    cursor: pointer;
-    color: #FFEC38;
-}
-#chart .map-controls-header .settings-control .control-body {
-    width: 17.5em;
-    padding: 0.3em 0.9em 0.3em 0.6em;
-}
-#chart .map-controls-header .settings-control .control-body input[type=checkbox] {
-    margin-right: 6px;
-}
-
-/* Timeline
---------------------------------------------- */
-
-#chart .timeline {
-    z-index: 2;
-    width: 100%;
-    color: #404040;
-    font-size: 0.9em;
-}
-#chart .timeline .play-pause-control {
-    width: 3.5em;
-    margin-right: 0.5em;
-    text-align: right;
-}
-#chart .timeline .play-pause-control .play-btn:hover,
-#chart .timeline .play-pause-control .pause-btn:hover {
-    color: #666;
-}
-#chart .timeline .play-pause-control .play-btn:active,
-#chart .timeline .play-pause-control .pause-btn:active {
-    box-shadow: none;
-}
-#chart .timeline .play-pause-control .btn {
-  color: #404040;
-  height: 100%;
-  padding: 0;
-}
-#chart .timeline .play-btn,
-#chart .timeline .pause-btn {
-    font-size: 1.8em;
-    line-height: 1.3em;
-}
-#chart .timeline .pause-btn {
-    position: relative;
-}
-
-#chart .timeline {
-    display: flex;
-    align-items: center;
-}
-
-#chart .timeline-slider,
-#chart .timeline-min-year,
-#chart .timeline-max-year {
-    cursor: pointer;
-}
-
-#chart .timeline .timeline-min-year,
-#chart .timeline .timeline-max-year {
-    padding: .3em .5em;
-    margin: .5em;
-}
-
-#chart .timeline.min-active .timeline-min-year,
-#chart .timeline.max-active .timeline-max-year {
-    background-color: #404040;
-    color: #fff;
-}
-
-#chart .timeline .timeline-slider {
-    background: #eee;
-    flex-grow: 1;
-    height: 0.8em;
-    position: relative;
-    margin: 0 0.5em;
-    border-radius: 8px;
-}
-
-#chart .timeline .timeline-marker {
-    width: .5em;
-    height: 100%;
-    background: black;
-    position: absolute;
-    left: 0%;
-}
-
-#chart .timeline .timeline-label {
-    position: absolute;
-    text-align: center;
-    top: -1.8em;
-    background-color: #404040;
-    color: #fff;
-    padding: .3em .8em;
-    z-index: 1;
-    left: 50%;
-    transform: translate(-50%);
-}
-
-#chart .timeline.min-active .timeline-label,
-#chart .timeline.max-active .timeline-label {
-    display: none;
-}
-
-#chart .timeline .timeline-range {
-    position: absolute;
-    background: green;
-    height: 100%;
-}
-
 /* Export
 --------------------------------------------- */
-/* MISPY: When the "download image" button is clicked, the backend fires up phantomjs and hits
- * a special .export url to screenshot the chart. #chart-export styles therefore apply specifically
- * to these screenshots. */
 
 #chart.export {
     padding: 0 !important;
-}
-/* Remove interactive UI elements since obviously they can't be used in a static image
-* NOTE (Mispy): Unneeded SVG elements should be removed entirely by the JS as well as hidden here. */
-#chart.export .controlsFooter,
-#chart.export .fullscreen-link,
-#chart.export .timeline,
-#chart.export .settings-control,
-#chart.export .color-blind-control,
-#chart.export .map-controls-header,
-#chart.export .nv-add-btn,
-#chart.export .nv-controlsWrap,
-#chart.export .scaleSelector {
-    display: none !important;
-}
-#chart.export .tab-pane {
-    border: none !important;
 }
 
 /* Miscellaneous
@@ -1179,13 +763,4 @@ a {
         margin-bottom: 0.2em;
     }
 }
-
-#chart .ScatterPlot {
-    cursor: pointer;
-
-    & circle {
-        stroke-width: 0.3;
-    }
-}
-
 /*# sourceMappingURL=front-sass.css.map */

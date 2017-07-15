@@ -16,60 +16,9 @@ import * as ReactDOM from 'react-dom'
 import * as ReactDOMServer from 'react-dom/server'
 import * as d3 from 'd3'
 import Bounds from './Bounds'
-import {svgAsDataUri} from './saveSvgAsPng'
 import ChartView from './ChartView'
 import {when} from 'mobx'
 import ChartConfig, {ChartConfigProps} from './ChartConfig'
-
-const callPhantom = window.callPhantom || console.log
-
-function prepareSVGForExport(chartView, svg) {
-    // Inline the CSS styles, since the exported SVG won't have a stylesheet
-    var styleSheets = document.styleSheets;
-    var elems = [];
-    _.each(document.styleSheets, function(styleSheet) {
-        _.each(styleSheet.cssRules, function(rule) {
-            try {
-                $(rule.selectorText).each(function(i, elem) {
-                    if (!elem.origStyle && !elem.hasChangedStyle) {
-                        elem.origStyle = elem.style.cssText;
-                        elem.style.cssText = "";
-                        elems.push(elem);
-                    }
-
-                    if ($(elem).parent().closest("svg").length) {
-                        elem.style.cssText += rule.style.cssText;
-                        elem.hasChangedStyle = true;
-                    }
-                });
-            } catch (e) {}
-        });
-    });
-
-    _.each(elems, function(elem) {
-        if (elem.origStyle)
-            elem.style.cssText += elem.origStyle;
-    });
-
-    const chartEl = d3.select(chartView.base)
-
-    // MISPY: Need to propagate a few additional styles from the external document into the SVG
-    svg.style("font-family", chartEl.style("font-family"));
-    svg.style("width", chartEl.style("width"));
-    svg.style("height", chartEl.style("height"));
-    svg.style("font-size", svg.style("font-size"));
-    svg.style("background-color", "#fff")
-
-    $(svg.node())
-
-    // Remove all other styles for easier testing that this works
-    //d3.selectAll('link').remove()
-
-    /*svgAsDataUri(svg.node(), {}, function(uri) {
-        var svgData = uri.substring('data:image/svg+xml;base64,'.length);
-        callPhantom(svgData);
-    });*/
-}
 
 export default class ExportView {
     static bootstrap({ jsonConfig, containerNode }: { jsonConfig: ChartConfigProps, containerNode: HTMLElement }) {
@@ -82,16 +31,14 @@ export default class ExportView {
         when(
             () => chart.vardata.isReady,
             () => {
-                const svg = ReactDOMServer.renderToStaticMarkup(<ChartView
+                const html = ReactDOMServer.renderToStaticMarkup(<ChartView
                     chart={chart}
                     isExport={true}
                     bounds={targetBounds}/>)
 
-                $("body").append(svg)
-
-                /*const svg = d3.select(chartView.svgNode)
-                svg.selectAll(".nv-add-btn, .nv-controlsWrap").remove();
-                prepareSVGForExport(chartView, svg);*/
+                $("link").remove()
+                $("body").append(html)
+                console.log((document.getElementById("chart") as HTMLDivElement).innerHTML)
             }
         )
 
