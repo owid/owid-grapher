@@ -47,6 +47,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
+    first_name = models.CharField(max_length=255, null=True)
+    last_name = models.CharField(max_length=255, null=True)
 
     objects = UserManager()
 
@@ -54,7 +56,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = []
 
     def get_full_name(self):
-        return self.name
+        if self.first_name is not None and self.last_name is not None:
+            return '%s %s' % (self.first_name, self.last_name)
+        else:
+            return self.name
 
     def get_short_name(self):
         return self.name
@@ -283,6 +288,7 @@ class Variable(models.Model):
 
     name = models.CharField(max_length=255)
     unit = models.CharField(max_length=255)
+    short_unit = models.CharField(max_length=255, null=True)
     description = models.TextField(blank=True, null=True)
     fk_dst_id = models.ForeignKey(Dataset, on_delete=models.CASCADE, db_column='fk_dst_id')
     sourceId = models.ForeignKey(Source, on_delete=models.DO_NOTHING, db_column='sourceId')
@@ -396,3 +402,13 @@ class UserInvitation(models.Model):
     valid_till = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+class DatasetCommitHistory(models.Model):
+    class Meta:
+        db_table = 'dataset_commit_history'
+
+    dataset_id = models.ForeignKey(Dataset)
+    commit_date = models.DateTimeField()
+    commit_hash = models.CharField(max_length=255, unique=True)
+    commit_made_by = models.CharField(max_length=255, null=True)
