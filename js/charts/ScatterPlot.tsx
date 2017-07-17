@@ -45,7 +45,7 @@ interface ScatterWithAxisProps {
 }
 
 @observer
-export default class ScatterPlot extends React.Component<{ bounds: Bounds, config: ChartConfig, isStatic: boolean }, null> {
+export default class ScatterPlot extends React.Component<{ bounds: Bounds, config: ChartConfig, isStatic: boolean }, undefined> {
     @computed get chart() : ChartConfig {
         return this.props.config
     }
@@ -64,7 +64,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     @computed get configTolerance() {
         return 1
     }
-π
+
     @computed get dataByEntityAndYear() {
         return this.data.dataByEntityAndYear
     }
@@ -346,7 +346,11 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     }
 
     render() {
+        if (!this.data.isReady)
+            return <NoData bounds={this.bounds}/>
+
         const {currentData, bounds, yearsWithData, startYear, endYear, axisBox, chart, timeline, timelineHeight, legend, focusKeys, focusColor, shapeLegend, hoverSeries, sidebarWidth, tooltipSeries, sizeDomain, comparisonLine} = this
+
         return <g className="ScatterPlot">
             <AxisBoxView axisBox={axisBox} onXScaleChange={this.onXScaleChange} onYScaleChange={this.onYScaleChange}/>
             {comparisonLine && <ComparisonLine axisBox={axisBox} comparisonLine={comparisonLine}/>}
