@@ -199,7 +199,7 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps,
             <nav className="tabs">
                 <ul>
                     {_.map(tabNames, (tabName) => {
-                        return <li className={"tab clickable" + (tabName == props.activeTabName ? ' active' : '')} onClick={() => this.props.onTabChange(tabName)}><a>{tabName}</a></li>
+                        return tabName != 'download' && <li className={"tab clickable" + (tabName == props.activeTabName ? ' active' : '')} onClick={() => this.props.onTabChange(tabName)}><a>{tabName}</a></li>
                     })}
                     <li className={"tab clickable icon" + (props.activeTabName == 'download' ? ' active' : '')} onClick={() => this.props.onTabChange('download')} title="Download as .png or .svg">
                         <a><i className="fa fa-download"/></a>

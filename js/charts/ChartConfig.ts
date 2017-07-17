@@ -172,7 +172,7 @@ export default class ChartConfig {
     }
 
     @computed get availableTabs(): ChartTabOption[] {
-        return _.filter([this.props.hasChartTab && 'chart', this.props.hasMapTab && 'map', 'data', 'sources']) as ChartTabOption[]
+        return _.filter([this.props.hasChartTab && 'chart', this.props.hasMapTab && 'map', 'data', 'sources', 'download']) as ChartTabOption[]
     }
 
     @action.bound update(props: any) {

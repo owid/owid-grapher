@@ -4,7 +4,7 @@ import * as React from 'react'
 import {observable, computed, autorun} from 'mobx'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
-import ChartView from './ChartView'
+import ChartConfig from './ChartConfig'
 
 interface ImgLoaderProps {
     width: number,
@@ -49,13 +49,13 @@ interface DownloadTabProps {
     imageWidth: number,
     imageHeight: number,
     bounds: Bounds,
-    chartView: ChartView
+    chart: ChartConfig
 }
 
 @observer
 export default class DownloadTab extends React.Component<DownloadTabProps, undefined> {
     @computed get baseUrl() : string {
-        return Global.rootUrl + '/' + this.props.chartView.chart.slug
+        return Global.rootUrl + '/' + this.props.chart.slug
     }
 
     @computed get queryStr() : string {
@@ -63,7 +63,7 @@ export default class DownloadTab extends React.Component<DownloadTabProps, undef
     }
 
     @computed get cacheTag() : string {
-        return this.props.chartView.chart.variableCacheTag
+        return this.props.chart.variableCacheTag
     }
 
     @computed get targetWidth(): number {

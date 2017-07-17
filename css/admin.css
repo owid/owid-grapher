@@ -982,3 +982,9 @@ li[data-color^=".*"] {
 .explanatory-notes {
   font-size: 11pt; 
 }
+
+/* Utility moved from charts.css */
+
+.hidden {
+    display: none !important;
+}

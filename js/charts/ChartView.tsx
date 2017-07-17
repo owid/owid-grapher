@@ -190,7 +190,7 @@ export default class ChartView extends React.Component<ChartViewProps, undefined
         else if (overlayTabName == 'data')
             return <DataTab bounds={bounds} csvUrl={Global.rootUrl+'/'+chart.slug+'.csv'}/>
         else if (overlayTabName == 'download')
-            return <DownloadTab bounds={bounds} chartView={this} imageWidth={App.IDEAL_WIDTH} imageHeight={App.IDEAL_HEIGHT}/>
+            return <DownloadTab bounds={bounds} chart={chart} imageWidth={App.IDEAL_WIDTH} imageHeight={App.IDEAL_HEIGHT}/>
         else
             return null
     }
