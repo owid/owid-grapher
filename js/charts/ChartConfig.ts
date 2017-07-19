@@ -16,6 +16,7 @@ import ChartData from './ChartData'
 import MapConfig, {MapConfigProps} from './MapConfig'
 import URLBinder from './URLBinder'
 import ColorBinder from './ColorBinder'
+import DiscreteBarTransform from './DiscreteBarTransform'
 
 export interface TimelineConfig {
     compareEndPointsOnly?: boolean
@@ -253,6 +254,8 @@ export default class ChartConfig {
 
         return json
     }
+
+    @computed get discreteBar() { return new DiscreteBarTransform(this) }
 
 	constructor(props: ChartConfigProps) {        
         this.xAxis = new AxisConfig()
