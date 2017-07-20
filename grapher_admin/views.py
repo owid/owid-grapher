@@ -1683,7 +1683,7 @@ def write_dataset_csv(datasetid: int, new_dataset_name, old_dataset_name, commit
 
     # now saving the dataset to tmp dir
 
-    with open(os.path.join('/tmp/', dataset_filename), 'w', newline='', encoding='utf8') as f:
+    with open(os.path.join(settings.DATASETS_TMP_LOCATION, dataset_filename), 'w', newline='', encoding='utf8') as f:
         writer = csv.writer(f)
         writer.writerow(headerlist)
         current_row = None
@@ -1708,7 +1708,7 @@ def write_dataset_csv(datasetid: int, new_dataset_name, old_dataset_name, commit
         current_row[0] = allentities_dict[current_row[0]]
         writer.writerow(current_row)
 
-    with open(os.path.join('/tmp/', metadata_filename), 'w', encoding='utf8') as f:
+    with open(os.path.join(settings.DATASETS_TMP_LOCATION, metadata_filename), 'w', encoding='utf8') as f:
         json.dump(dataset_meta, f, indent=4)
 
     try:
@@ -1720,9 +1720,9 @@ def write_dataset_csv(datasetid: int, new_dataset_name, old_dataset_name, commit
                                                   'git rev-parse HEAD' %
                                                   (old_dataset_file_path_escaped,
                                                    old_metadata_file_path_escaped,
-                                                   shlex.quote(os.path.join('/tmp/', dataset_filename)),
+                                                   shlex.quote(os.path.join(settings.DATASETS_TMP_LOCATION, dataset_filename)),
                                                    dataset_file_path_escaped,
-                                                   shlex.quote(os.path.join('/tmp/', metadata_filename)),
+                                                   shlex.quote(os.path.join(settings.DATASETS_TMP_LOCATION, metadata_filename)),
                                                    metadata_file_path_escaped,
                                                    dataset_file_path_escaped,
                                                    metadata_file_path_escaped,
@@ -1738,9 +1738,9 @@ def write_dataset_csv(datasetid: int, new_dataset_name, old_dataset_name, commit
                                                   'git add %s %s && '
                                                   'git commit -m %s %s %s --quiet --author="%s <%s>" && '
                                                   'git rev-parse HEAD' %
-                                                  (shlex.quote(os.path.join('/tmp/', dataset_filename)),
+                                                  (shlex.quote(os.path.join(settings.DATASETS_TMP_LOCATION, dataset_filename)),
                                                    dataset_file_path_escaped,
-                                                   shlex.quote(os.path.join('/tmp/', metadata_filename)),
+                                                   shlex.quote(os.path.join(settings.DATASETS_TMP_LOCATION, metadata_filename)),
                                                    metadata_file_path_escaped,
                                                    dataset_file_path_escaped,
                                                    metadata_file_path_escaped,
@@ -1776,6 +1776,7 @@ def show_dataset_history(request: HttpRequest, datasetid: str):
 
     repo_folder = os.path.join(settings.DATASETS_REPO_LOCATION, dataset.namespace)
     history = None
+    meta_history = None
     commit_fields = ['commit_hash', 'commit_made_by', 'commit_date']
     log_format = ['%H', '%an', '%ad']
     # %x1f and %x1e are for delimiting and separating each record
@@ -1792,10 +1793,6 @@ def show_dataset_history(request: HttpRequest, datasetid: str):
             meta_history = subprocess.check_output('git log --format="%s" --follow %s ' %
                                                    (log_format, shlex.quote(dataset.name + '.json')), shell=True,
                                                    cwd=repo_folder)
-            if history:
-                history += meta_history
-            else:
-                history = meta_history
         except subprocess.CalledProcessError:
             pass
 
@@ -1803,16 +1800,23 @@ def show_dataset_history(request: HttpRequest, datasetid: str):
         history = history.decode('utf-8').strip('\n\x1e').split("\x1e")
         history = [row.strip().split("\x1f") for row in history]
         history = [dict(zip(commit_fields, row)) for row in history]
-        history = sorted([dict(t) for t in set([tuple(d.items()) for d in history])], 
-                         key=lambda k: k['commit_date'], reverse=True)
         # we will need to parse the date string returned by git
         for each in history:
+            each['commit_date'] = parser.parse(each['commit_date'])
+            each['namespace'] = dataset.namespace
+    if meta_history:
+        meta_history = meta_history.decode('utf-8').strip('\n\x1e').split("\x1e")
+        meta_history = [row.strip().split("\x1f") for row in meta_history]
+        meta_history = [dict(zip(commit_fields, row)) for row in meta_history]
+        # we will need to parse the date string returned by git
+        for each in meta_history:
             each['commit_date'] = parser.parse(each['commit_date'])
             each['namespace'] = dataset.namespace
 
     return render(request, 'admin.datasets.history.html', context={'current_user': request.user.name,
                                                                    'dataset_name': dataset.name,
                                                                    'history': history,
+                                                                   'meta_history': meta_history,
                                                                    'datasetid': dataset.id
                                                                    })
 
