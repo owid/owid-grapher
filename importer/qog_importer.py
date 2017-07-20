@@ -338,7 +338,7 @@ with transaction.atomic():
         newimport.save()
         # now exporting csvs to the repo
         for category, dataset in datasets_ref_models.items():
-            write_dataset_csv(dataset.pk, None, 'qog_fetcher', '')
+            write_dataset_csv(dataset.pk, dataset.name, None, 'qog_fetcher', '')
 
         logger.info("Import complete.")
     else:
@@ -475,11 +475,11 @@ with transaction.atomic():
                                  namespace='qog', fk_dst_cat_id=the_category,
                                  fk_dst_subcat_id=categories_ref_models[category])
                 newdataset.save()
-                dataset_id_oldname_list.append({'id': newdataset.pk, 'oldname': None})
+                dataset_id_oldname_list.append({'id': newdataset.pk, 'newname': newdataset.name, 'oldname': None})
                 logger.info("Inserting a dataset %s." % newdataset.name.encode('utf8'))
             else:
                 newdataset = Dataset.objects.get(namespace='qog', fk_dst_cat_id=the_category, fk_dst_subcat_id=categories_ref_models[category])
-                dataset_id_oldname_list.append({'id': newdataset.pk, 'oldname': newdataset.name})
+                dataset_id_oldname_list.append({'id': newdataset.pk, 'newname': newdataset.name, 'oldname': newdataset.name})
             datasets_ref_models[category] = newdataset
 
         up_to_date_sources = {}
@@ -689,7 +689,7 @@ with transaction.atomic():
                 variable.name = '%s - %s' % (vardata['name'], varcode)
                 variable.unit = ''
                 variable.description = vardata['description']
-                variable.timespan = vardata['timespan'],
+                variable.timespan = vardata['timespan']
                 variable.fk_dst_id = datasets_ref_models[vardata['category']]
                 variable.fk_var_type_id = VariableType.objects.get(pk=4)
                 variable.sourceId = source
@@ -755,7 +755,7 @@ with transaction.atomic():
 
         # now exporting csvs to the repo
         for dataset in dataset_id_oldname_list:
-            write_dataset_csv(dataset['id'], dataset['oldname'], 'qog_fetcher', '')
+            write_dataset_csv(dataset['id'], dataset['newname'], dataset['oldname'], 'qog_fetcher', '')
 
         logger.info("Import complete.")
 

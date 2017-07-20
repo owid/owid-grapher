@@ -9,7 +9,7 @@
                         <thead>
                         <tr>
                             <th style="width:250px">Date</th>
-                            <th>Dataset</th>
+                            <th>Message</th>
                             <th>User</th>
                             <th>Download</th>
                             <th>Diff file</th>
@@ -19,10 +19,10 @@
                         {% for each in history_items %}
                             <tr>
                                 <td>{{ each.commit_date|date:"M d, Y P" }}</td>
-                                <td>{{ each.dataset_id__name }}</td>
+                                <td>{{ each.message }}</td>
                                 <td>{{ each.commit_made_by }}</td>
-                                <td><a href="{% url 'datasetcommitfile' each.dataset_id__id each.commit_hash 'csv' %}">Dataset</a>/<a href="{% url 'datasetcommitfile' each.dataset_id__id each.commit_hash 'json' %}">Metadata</a></td>
-                                <td><a href="{% url 'datasetdiff' each.dataset_id__id each.commit_hash %}">Show</a></td>
+                                <td><a href="{% url 'datasetcommitfile' each.namespace each.commit_hash 'csv' %}">Dataset</a>/<a href="{% url 'datasetcommitfile' each.namespace each.commit_hash 'json' %}">Metadata</a></td>
+                                <td><a href="{% url 'datasetdiff' each.namespace each.commit_hash %}">Show</a></td>
                             </tr>
                         {% endfor %}
                         </tbody>

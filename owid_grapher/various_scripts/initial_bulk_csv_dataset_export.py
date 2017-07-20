@@ -17,4 +17,4 @@ for each in all_datasets:
             committer_name = 'Initial export script'
         else:
             committer_name = committer.uploaded_by.get_full_name()
-        write_dataset_csv(each.pk, None, committer_name, '')
+        write_dataset_csv(each.pk, each.name, None, committer_name, '')

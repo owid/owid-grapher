@@ -1,7 +1,7 @@
 import copy
 import datetime
+from dateutil import parser
 import json
-import os
 import re
 import csv
 import glob
@@ -11,17 +11,14 @@ import shlex
 import time
 import CloudFlare
 from ansi2html import Ansi2HTMLConverter
-from threading import Thread
 from unidecode import unidecode
 from io import StringIO
 from urllib.parse import urlparse
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import login as loginview
 from django.db.models import Q
 from django.db import connection
-from django.db import transaction
 from django.http import HttpRequest, HttpResponseRedirect, HttpResponse, HttpResponseNotFound, JsonResponse, QueryDict, StreamingHttpResponse
 from django.template.response import TemplateResponse
 from django.shortcuts import render
@@ -29,10 +26,11 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from .forms import InviteUserForm, InvitedUserRegisterForm
-from .models import Chart, Variable, User, UserInvitation, Logo, ChartSlugRedirect, ChartDimension, Dataset, Setting, DatasetCategory, DatasetSubcategory, Entity, Source, VariableType, DataValue, License, DatasetCommitHistory
+from .models import Chart, Variable, User, UserInvitation, Logo, ChartSlugRedirect, ChartDimension, Dataset, Setting, DatasetCategory, DatasetSubcategory, Entity, Source, VariableType, DataValue, License
 from owid_grapher.views import get_query_string, get_query_as_dict
 from typing import Dict, Union
 from django.db import transaction
+
 
 def custom_login(request: HttpRequest):
     """
@@ -509,8 +507,8 @@ def store_import_data(request: HttpRequest):
                     with connection.cursor() as cursor:
                         cursor.execute("DELETE FROM sources WHERE sources.id NOT IN (SELECT variables.sourceId FROM variables)")
 
-                csv_write_thread = Thread(target=write_dataset_csv, args=(dataset.pk, dataset_old_name, request.user.get_full_name(), request.user.email))
-                csv_write_thread.start()
+                write_dataset_csv(dataset.pk, datasetprops['name'],
+                                  dataset_old_name, request.user.get_full_name(), request.user.email)
 
                 return JsonResponse({'datasetId': dataset_id}, safe=False)
         except Exception as e:
@@ -629,8 +627,8 @@ def managedataset(request: HttpRequest, datasetid: str):
             request_dict['fk_dst_cat_id'] = DatasetCategory.objects.get(pk=request_dict['fk_dst_cat_id'])
             request_dict['fk_dst_subcat_id'] = DatasetSubcategory.objects.get(pk=request_dict['fk_dst_subcat_id'])
             Dataset.objects.filter(pk=datasetid).update(updated_at=timezone.now(), **request_dict)
-            csv_write_thread = Thread(target=write_dataset_csv, args=(dataset.pk, dataset_old_name, request.user.get_full_name(), request.user.email))
-            csv_write_thread.start()
+            write_dataset_csv(dataset.pk, request_dict['name'],
+                              dataset_old_name, request.user.get_full_name(), request.user.email)
             messages.success(request, 'Dataset updated!')
             return HttpResponseRedirect(reverse('showdataset', args=[datasetid]))
 
@@ -1384,8 +1382,7 @@ def edituser(request: HttpRequest, userid: str):
             userdict = {
                 'id': user.pk,
                 'name': user.name,
-                'first_name': user.first_name if user.first_name else '',
-                'last_name': user.last_name if user.last_name else '',
+                'full_name': user.full_name if user.full_name else '',
                 'active': user.is_active,
                 'super': user.is_superuser
             }
@@ -1395,8 +1392,7 @@ def edituser(request: HttpRequest, userid: str):
         userdict = {
             'id': user.pk,
             'name': user.name,
-            'first_name': user.first_name if user.first_name else '',
-            'last_name': user.last_name if user.last_name else '',
+            'full_name': user.full_name if user.full_name else '',
             'selfedit': True
         }
         return render(request, 'admin.users.edit.html', context={'current_user': request.user.name,
@@ -1429,11 +1425,9 @@ def manageuser(request: HttpRequest, userid: str):
         if request_dict['_method'] == 'PATCH':
             request_dict.pop('_method', None)
             request_dict.pop('csrfmiddlewaretoken', None)
-            first_name = request_dict['first_name'] if request_dict['first_name'] else None
-            last_name = request_dict['last_name'] if request_dict['last_name'] else None
+            full_name = request_dict['full_name'] if request_dict['full_name'] else None
 
-            user.first_name = first_name
-            user.last_name = last_name
+            user.full_name = full_name
 
             if request.user.pk != int(userid):  # user cannot change 'active' or 'superuser' fields for himself
                 is_active = True if request_dict.get('useractive', 0) else False
@@ -1549,13 +1543,14 @@ def register_by_invite(request: HttpRequest, code: str):
             return render(request, 'register_invited_user.html', context={'form': form})
 
 
-def write_dataset_csv(datasetid: int, old_dataset_name, committer, committer_email):
+def write_dataset_csv(datasetid: int, new_dataset_name, old_dataset_name, committer, committer_email):
 
     """
     The function to write a dataset's csv file to a git repo
     :param datasetid: ID of a dataset to export
+    :param new_dataset_name: The name of the file that will be written to disk
     :param old_dataset_name: If the dataset is being updated, we need its old name
-    :param committer: Committer's name will show up both in history table and in repo's commit info
+    :param committer: Committer's name will show up in repo's commit info
     :param committer_email: Committer's email
     :return:
     """
@@ -1662,8 +1657,8 @@ def write_dataset_csv(datasetid: int, old_dataset_name, committer, committer_ema
                 ' WHERE data_values.`fk_var_id` in (%s) AND ' \
                 'data_values.`fk_ent_id` in (%s) ORDER BY fk_ent_id, year, fk_var_id;'
 
-    metadata_filename = (unidecode(dataset.name) + '.json').replace('/', '_')
-    dataset_filename = (unidecode(dataset.name) + '.csv').replace('/', '_')
+    metadata_filename = (unidecode(new_dataset_name) + '.json').replace('/', '_')
+    dataset_filename = (unidecode(new_dataset_name) + '.csv').replace('/', '_')
 
     if old_dataset_name:
         old_metadata_name = (unidecode(old_dataset_name) + '.json').replace('/', '_')
@@ -1673,22 +1668,12 @@ def write_dataset_csv(datasetid: int, old_dataset_name, committer, committer_ema
         old_metadata_file_path_escaped = shlex.quote(os.path.join(current_dataset_folder, old_metadata_name))
         old_dataset_file_path_escaped = shlex.quote(os.path.join(current_dataset_folder, old_dataset_name))
 
-    metadata_file_path = os.path.join(current_dataset_folder, metadata_filename)
-    dataset_file_path = os.path.join(current_dataset_folder, dataset_filename)
     metadata_file_path_escaped = shlex.quote(os.path.join(current_dataset_folder, metadata_filename))
     dataset_file_path_escaped = shlex.quote(os.path.join(current_dataset_folder, dataset_filename))
 
     delete_previous = False
     if old_dataset_name is not None:
         if os.path.isfile(old_dataset_file_path):
-            subprocess.check_output('git -C %s rm %s' %
-                                    (current_dataset_folder,
-                                     old_dataset_file_path_escaped),
-                                    shell=True)
-            subprocess.check_output('git -C %s rm %s' %
-                                    (current_dataset_folder,
-                                     old_metadata_file_path_escaped),
-                                    shell=True)
             delete_previous = True
             commit_message = 'Updating the dataset: %s'
         else:
@@ -1696,9 +1681,9 @@ def write_dataset_csv(datasetid: int, old_dataset_name, committer, committer_ema
     else:
         commit_message = 'Creating the dataset: %s'
 
-    # now saving the dataset to file
+    # now saving the dataset to tmp dir
 
-    with open(dataset_file_path, 'w', newline='', encoding='utf8') as f:
+    with open(os.path.join('/tmp/', dataset_filename), 'w', newline='', encoding='utf8') as f:
         writer = csv.writer(f)
         writer.writerow(headerlist)
         current_row = None
@@ -1723,59 +1708,54 @@ def write_dataset_csv(datasetid: int, old_dataset_name, committer, committer_ema
         current_row[0] = allentities_dict[current_row[0]]
         writer.writerow(current_row)
 
-    with open(metadata_file_path, 'w', encoding='utf8') as f:
+    with open(os.path.join('/tmp/', metadata_filename), 'w', encoding='utf8') as f:
         json.dump(dataset_meta, f, indent=4)
 
-    changed_files = subprocess.check_output('git add %s %s && '
-                                            'git status --porcelain' %
-                                            (dataset_file_path_escaped,
-                                             metadata_file_path_escaped),
-                                            shell=True, cwd=current_dataset_folder)
-
-    changed_files = changed_files.decode('unicode_escape').splitlines()
-    changed_files_list = []
-    # getting the list of added, modified, deleted files
-    for each in changed_files:
-        if len(each.split('->')) > 1:  # finding the status R (file renamed)
-            filename = each.split('->')[1].strip()
-        else:
-            filename = each[each.find(' ') + 1:].strip()
-        if filename.startswith('"') and filename.endswith('"'):
-            changed_files_list.append(filename[1:-1])
-        else:
-            changed_files_list.append(filename)
-
-    if dataset_filename in changed_files_list or metadata_filename in changed_files_list:
-        # three commands are in one string here because we want to execute them sequentially and immediately
+    try:
         if delete_previous:
-            commit_hash = subprocess.check_output('git -C %s commit -m %s %s %s %s %s --quiet --author="%s <%s>" && '
-                                                  'git -C %s rev-parse HEAD' %
-                                                  (current_dataset_folder, shlex.quote(commit_message % unidecode(dataset.name)),
+            commit_hash = subprocess.check_output('git rm %s %s --quiet && '
+                                                  'mv %s %s && mv %s %s && '
+                                                  'git add %s %s && '
+                                                  'git commit -m %s %s %s %s %s --quiet --author="%s <%s>" && '
+                                                  'git rev-parse HEAD' %
+                                                  (old_dataset_file_path_escaped,
+                                                   old_metadata_file_path_escaped,
+                                                   shlex.quote(os.path.join('/tmp/', dataset_filename)),
+                                                   dataset_file_path_escaped,
+                                                   shlex.quote(os.path.join('/tmp/', metadata_filename)),
+                                                   metadata_file_path_escaped,
+                                                   dataset_file_path_escaped,
+                                                   metadata_file_path_escaped,
+                                                   shlex.quote(commit_message % unidecode(dataset.name)),
                                                    dataset_file_path_escaped,
                                                    metadata_file_path_escaped,
                                                    old_metadata_file_path_escaped,
                                                    old_dataset_file_path_escaped,
                                                    committer, committer_email,
-                                                   current_dataset_folder
-                                                   ), shell=True)
+                                                   ), shell=True, cwd=current_dataset_folder)
         else:
-            commit_hash = subprocess.check_output('git -C %s commit -m %s %s %s --quiet --author="%s <%s>" && '
-                                                  'git -C %s rev-parse HEAD' %
-                                                  (current_dataset_folder, shlex.quote(commit_message % unidecode(dataset.name)),
+            commit_hash = subprocess.check_output('mv %s %s && mv %s %s && '
+                                                  'git add %s %s && '
+                                                  'git commit -m %s %s %s --quiet --author="%s <%s>" && '
+                                                  'git rev-parse HEAD' %
+                                                  (shlex.quote(os.path.join('/tmp/', dataset_filename)),
+                                                   dataset_file_path_escaped,
+                                                   shlex.quote(os.path.join('/tmp/', metadata_filename)),
+                                                   metadata_file_path_escaped,
+                                                   dataset_file_path_escaped,
+                                                   metadata_file_path_escaped,
+                                                   shlex.quote(commit_message % unidecode(dataset.name)),
                                                    metadata_file_path_escaped,
                                                    dataset_file_path_escaped,
                                                    committer, committer_email,
-                                                   current_dataset_folder
-                                                   ), shell=True)
-    else:
-        # if the files were not changed, just stop the script
-        return
+                                                   ), shell=True, cwd=current_dataset_folder)
+    except subprocess.CalledProcessError as e:
+        if 'nothing to commit' in e.output.decode('utf-8').lower():
+            return
+        else:
+            raise Exception('An error occured while exporting the dataset to the git repo.')
 
     commit_hash = commit_hash.decode('utf-8').strip()
-    newcommit = DatasetCommitHistory(dataset_id=dataset, commit_date=timezone.now().isoformat(),
-                                     commit_hash=commit_hash, commit_made_by=committer)
-    newcommit.save()
-
     # now saving the diff show output to html
     conv = Ansi2HTMLConverter()
     commit_info = subprocess.check_output('git -C %s show --color %s'
@@ -1783,7 +1763,8 @@ def write_dataset_csv(datasetid: int, old_dataset_name, committer, committer_ema
     html = conv.convert(commit_info.decode('utf-8'))
     if not os.path.exists(os.path.join(settings.DATASETS_DIFF_HTML_LOCATION, dataset.namespace)):
         os.makedirs(os.path.join(settings.DATASETS_DIFF_HTML_LOCATION, dataset.namespace))
-    with open(os.path.join(settings.DATASETS_DIFF_HTML_LOCATION, dataset.namespace, '%s.html' % commit_hash), 'w', encoding='utf8') as f:
+    with open(os.path.join(settings.DATASETS_DIFF_HTML_LOCATION, dataset.namespace, '%s.html' % commit_hash),
+              'w', encoding='utf8') as f:
         f.write(html)
 
 
@@ -1793,7 +1774,41 @@ def show_dataset_history(request: HttpRequest, datasetid: str):
     except Dataset.DoesNotExist:
         return HttpResponseNotFound('Dataset does not exist!')
 
-    history = list(DatasetCommitHistory.objects.filter(dataset_id=dataset).order_by('-commit_date').values('commit_date', 'commit_hash', 'commit_made_by'))
+    repo_folder = os.path.join(settings.DATASETS_REPO_LOCATION, dataset.namespace)
+    history = None
+    commit_fields = ['commit_hash', 'commit_made_by', 'commit_date']
+    log_format = ['%H', '%an', '%ad']
+    # %x1f and %x1e are for delimiting and separating each record
+    log_format = '%x1f'.join(log_format) + '%x1e'
+    if os.path.exists(repo_folder):
+        try:
+            history = subprocess.check_output('git log --format="%s" --follow %s ' %
+                                              (log_format, shlex.quote(dataset.name + '.csv')), shell=True,
+                                              cwd=repo_folder)
+        except subprocess.CalledProcessError:
+            # subprocess will raise exception if git doesn't find any commits related to the given file name
+            pass
+        try:
+            meta_history = subprocess.check_output('git log --format="%s" --follow %s ' %
+                                                   (log_format, shlex.quote(dataset.name + '.json')), shell=True,
+                                                   cwd=repo_folder)
+            if history:
+                history += meta_history
+            else:
+                history = meta_history
+        except subprocess.CalledProcessError:
+            pass
+
+    if history:
+        history = history.decode('utf-8').strip('\n\x1e').split("\x1e")
+        history = [row.strip().split("\x1f") for row in history]
+        history = [dict(zip(commit_fields, row)) for row in history]
+        history = sorted([dict(t) for t in set([tuple(d.items()) for d in history])], 
+                         key=lambda k: k['commit_date'], reverse=True)
+        # we will need to parse the date string returned by git
+        for each in history:
+            each['commit_date'] = parser.parse(each['commit_date'])
+            each['namespace'] = dataset.namespace
 
     return render(request, 'admin.datasets.history.html', context={'current_user': request.user.name,
                                                                    'dataset_name': dataset.name,
@@ -1802,13 +1817,10 @@ def show_dataset_history(request: HttpRequest, datasetid: str):
                                                                    })
 
 
-def serve_diff_html(request: HttpRequest, datasetid: str, commit_hash: str):
-    try:
-        dataset = Dataset.objects.get(pk=int(datasetid))
-    except Dataset.DoesNotExist:
-        return HttpResponseNotFound('Dataset does not exist!')
-    if os.path.isfile(os.path.join(settings.DATASETS_DIFF_HTML_LOCATION, dataset.namespace, '%s.html' % commit_hash)):
-        return HttpResponse(open(os.path.join(settings.DATASETS_DIFF_HTML_LOCATION, dataset.namespace, '%s.html' % commit_hash), 'r').read())
+def serve_diff_html(request: HttpRequest, namespace: str, commit_hash: str):
+    if os.path.isfile(os.path.join(settings.DATASETS_DIFF_HTML_LOCATION, namespace, '%s.html' % commit_hash)):
+        return HttpResponse(open(os.path.join(settings.DATASETS_DIFF_HTML_LOCATION, namespace, '%s.html' % commit_hash),
+                                 'r', encoding='utf8').read())
     else:
         return HttpResponse('No diff file found for that commit!')
 
@@ -1817,10 +1829,38 @@ def all_dataset_history(request: HttpRequest):
 
     items_per_page = 50
 
-    history = list(
-        DatasetCommitHistory.objects.all().order_by('-commit_date').values(
-            'dataset_id__id', 'commit_date', 'commit_hash', 'dataset_id__name', 'commit_made_by')
-    )
+    namespaces = Dataset.objects.all().values('namespace').distinct()
+
+    history = []
+
+    commit_fields = ['commit_hash', 'commit_made_by', 'commit_date', 'message']
+    log_format = ['%H', '%an', '%ad', '%s']
+    # %x1f and %x1e are for delimiting and separating each record
+    log_format = '%x1f'.join(log_format) + '%x1e'
+
+    for namespace in namespaces:
+        if os.path.exists(os.path.join(settings.DATASETS_REPO_LOCATION, namespace['namespace'])):
+            try:
+                output = subprocess.check_output('git log --format="%s"' %
+                                                 log_format, shell=True,
+                                                 cwd=os.path.join(settings.DATASETS_REPO_LOCATION, namespace['namespace']))
+            except subprocess.CalledProcessError:
+                # subprocess will raise exception if git doesn't find any commits
+                # we then give back a None
+                output = None
+
+            if output:
+                output = output.decode('utf-8').strip('\n\x1e').split("\x1e")
+                output = [row.strip().split("\x1f") for row in output]
+                output = [dict(zip(commit_fields, row)) for row in output]
+                # we will need to parse the date string returned by git
+                for each in output:
+                    each['commit_date'] = parser.parse(each['commit_date'])
+                    each['namespace'] = namespace['namespace']
+                    history.append(each)
+
+    # sort everything by date
+    history = sorted(history, key=lambda k: k['commit_date'], reverse=True)
 
     total_rows = len(history)
     total_pages = -(-len(history) // items_per_page)
@@ -1861,13 +1901,9 @@ def all_dataset_history(request: HttpRequest):
                                                                        })
 
 
-def serve_commit_file(request: HttpRequest, datasetid: str, commit_hash: str, filetype: str):
-    try:
-        dataset = Dataset.objects.get(pk=int(datasetid))
-    except Dataset.DoesNotExist:
-        return HttpResponseNotFound('Dataset does not exist!')
+def serve_commit_file(request: HttpRequest, namespace: str, commit_hash: str, filetype: str):
 
-    repo_folder = os.path.join(settings.DATASETS_REPO_LOCATION, dataset.namespace)
+    repo_folder = os.path.join(settings.DATASETS_REPO_LOCATION, namespace)
 
     files_list = subprocess.check_output(
         'git diff-tree --no-commit-id --name-status  -r %s' % commit_hash,
@@ -1903,3 +1939,67 @@ def serve_commit_file(request: HttpRequest, datasetid: str, commit_hash: str, fi
         return response
     else:
         return HttpResponse('Could not get file contents.')
+
+
+def treeview_datasets(request: HttpRequest):
+    tree = []
+    tree_dict = {}
+    all_variables = Variable.objects.all().values('id', 'name', 'fk_dst_id__fk_dst_cat_id__name',
+                                                  'fk_dst_id__fk_dst_subcat_id__name', 'fk_dst_id__name', 'fk_dst_id')
+
+    for var in all_variables:
+        if var['fk_dst_id__fk_dst_cat_id__name'] not in tree_dict:
+            tree_dict[var['fk_dst_id__fk_dst_cat_id__name']] = {}
+
+        if var['fk_dst_id__fk_dst_subcat_id__name'] not in tree_dict[var['fk_dst_id__fk_dst_cat_id__name']]:
+            tree_dict[var['fk_dst_id__fk_dst_cat_id__name']][var['fk_dst_id__fk_dst_subcat_id__name']] = {}
+
+        if var['fk_dst_id__name'] not in tree_dict[var['fk_dst_id__fk_dst_cat_id__name']][
+            var['fk_dst_id__fk_dst_subcat_id__name']]:
+            tree_dict[var['fk_dst_id__fk_dst_cat_id__name']][var['fk_dst_id__fk_dst_subcat_id__name']][
+                var['fk_dst_id__name']] = {'id': var['fk_dst_id'], 'vars': []}
+
+        tree_dict[var['fk_dst_id__fk_dst_cat_id__name']][var['fk_dst_id__fk_dst_subcat_id__name']][
+            var['fk_dst_id__name']]['vars'].append({'varname': var['name'], 'varid': var['id']})
+    cat_id_count = 0
+    subcat_id_count = 0
+    for cat, catcontent in tree_dict.items():
+        subcatlist = []
+        subcatcount = 0
+        cat_id_count += 1
+        for subcat, subcatcontent in catcontent.items():
+            datasetlist = []
+            datasetcount = 0
+            subcat_id_count += 1
+            for dataset, datasetcontent in subcatcontent.items():
+                varlist = []
+                varcount = 0
+                for onevar in datasetcontent['vars']:
+                    varlist.append({'text': onevar['varname'], 'selectable': False, 'backColor': "#FF5C5C",
+                                    'href': reverse('showvariable', args=(onevar['varid'], ))})
+                    varcount += 1
+                datasetlist.append({'text': dataset + ' - (%s)' % str(varcount), 'selectable': False,
+                                    'backColor': "#5697FF",
+                                    'href': reverse('showdataset', args=(datasetcontent['id'], )), 'nodes': varlist})
+                datasetcount += 1
+            subcatlist.append({'text': subcat + ' - (%s)' % str(datasetcount),
+                               'selectable': False, 'backColor': "#AAFF5C", 'href': "#subcat%s" % subcat_id_count,
+                               'nodes': datasetlist})
+            subcatcount += 1
+        tree.append({'text': cat + ' - (%s)' % str(subcatcount), 'selectable': False, 'href': "#cat%s" % cat_id_count,
+                     'nodes': subcatlist})
+
+    for cat in tree:
+        cat['nodes'] = sorted(cat['nodes'], key=lambda k: k['text'])
+        for subcat in cat['nodes']:
+            subcat['nodes'] = sorted(subcat['nodes'], key=lambda k: k['text'])
+            for dataset in subcat['nodes']:
+                dataset['nodes'] = sorted(dataset['nodes'], key=lambda k: k['text'])
+
+    tree = sorted(tree, key=lambda k: k['text'])
+
+    tree_json = json.dumps(tree)
+
+    return render(request, 'admin.datasets.by.category.html', context={'current_user': request.user.name,
+                                                                       'tree_json': tree_json
+                                                                       })

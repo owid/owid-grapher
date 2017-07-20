@@ -395,7 +395,7 @@ with transaction.atomic():
                                   import_state=json.dumps({'file_hash': file_checksum(wdi_downloads_save_location + 'wdi.zip')}))
         newimport.save()
         for dataset in datasets_list:
-            write_dataset_csv(dataset.pk, None, 'wdi_fetcher', '')
+            write_dataset_csv(dataset.pk, dataset.name, None, 'wdi_fetcher', '')
         logger.info("Import complete.")
 
     else:
@@ -624,12 +624,12 @@ with transaction.atomic():
                                      fk_dst_subcat_id=DatasetSubcategory.objects.get(name=category,
                                                                                      fk_dst_cat_id=the_category))
                 newdataset.save()
-                dataset_id_oldname_list.append({'id': newdataset.pk, 'oldname': None})
+                dataset_id_oldname_list.append({'id': newdataset.pk, 'newname': newdataset.name, 'oldname': None})
                 logger.info("Inserting a dataset %s." % newdataset.name.encode('utf8'))
             else:
                 newdataset = Dataset.objects.get(name='World Development Indicators - ' + category, fk_dst_cat_id=DatasetCategory.objects.get(
                                                                                          name=wdi_category_name_in_db))
-                dataset_id_oldname_list.append({'id': newdataset.pk, 'oldname': newdataset.name})
+                dataset_id_oldname_list.append({'id': newdataset.pk, 'newname': newdataset.name, 'oldname': newdataset.name})
             row_number = 0
             for row in data_ws.rows:
                 row_number += 1
@@ -801,6 +801,6 @@ with transaction.atomic():
 
         # now exporting csvs to the repo
         for dataset in dataset_id_oldname_list:
-            write_dataset_csv(dataset['id'], dataset['oldname'], 'wdi_fetcher', '')
+            write_dataset_csv(dataset['id'], dataset['newname'], dataset['oldname'], 'wdi_fetcher', '')
 
 print("--- %s seconds ---" % (time.time() - start_time))

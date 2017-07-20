@@ -47,8 +47,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
-    first_name = models.CharField(max_length=255, null=True)
-    last_name = models.CharField(max_length=255, null=True)
+    full_name = models.CharField(max_length=255, null=True)
 
     objects = UserManager()
 
@@ -56,8 +55,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = []
 
     def get_full_name(self):
-        if self.first_name is not None and self.last_name is not None:
-            return '%s %s' % (self.first_name, self.last_name)
+        if self.full_name is not None:
+            return self.full_name
         else:
             return self.name
 
@@ -402,13 +401,3 @@ class UserInvitation(models.Model):
     valid_till = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-
-class DatasetCommitHistory(models.Model):
-    class Meta:
-        db_table = 'dataset_commit_history'
-
-    dataset_id = models.ForeignKey(Dataset)
-    commit_date = models.DateTimeField()
-    commit_hash = models.CharField(max_length=255, unique=True)
-    commit_made_by = models.CharField(max_length=255, null=True)

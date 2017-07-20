@@ -470,7 +470,7 @@ with transaction.atomic():
                                        'file_name': file_to_parse
                                        }))
         newimport.save()
-        write_dataset_csv(newdataset.pk, None, 'unwpp_fetcher', '')
+        write_dataset_csv(newdataset.pk, newdataset.name, None, 'unwpp_fetcher', '')
     else:
 
         if imported_before_hash == file_checksum(os.path.join(wpp_downloads_save_location, file_to_parse)):
@@ -826,4 +826,4 @@ with transaction.atomic():
                                        'file_name': file_to_parse
                                        }))
         newimport.save()
-        write_dataset_csv(newdataset.pk, newdataset.name, 'unwpp_fetcher', '')
+        write_dataset_csv(newdataset.pk, newdataset.name, newdataset.name, 'unwpp_fetcher', '')

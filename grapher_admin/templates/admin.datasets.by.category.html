@@ -1,0 +1,19 @@
+{% extends 'base_admin_template.html' %}
+{% block content %}
+	<h2>Datasets by categories</h2>
+	<div id="datasettree">
+
+    </div>
+{% endblock %}
+{% block scripts %}
+    <script>
+    {% autoescape off %}
+        $('#datasettree').treeview( {data: {{ tree_json }},
+            levels: 1,
+            collapseIcon: "fa fa-folder-open-o",
+            expandIcon: "fa fa-folder-o",
+            enableLinks: true,
+        } );
+    {% endautoescape %}
+    </script>
+{% endblock %}

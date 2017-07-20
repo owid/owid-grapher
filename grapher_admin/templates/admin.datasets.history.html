@@ -17,8 +17,8 @@
 					<td>{{ dataset.commit_date|date:"M d, Y P" }}</td>
 					<td>{{ dataset.commit_hash }}</td>
 					<td>{{ dataset.commit_made_by }}</td>
-                    <td><a href="{% url 'datasetcommitfile' datasetid dataset.commit_hash 'csv' %}">Dataset</a>/<a href="{% url 'datasetcommitfile' datasetid dataset.commit_hash 'json' %}">Metadata</a></td>
-                    <td><a href="{% url 'datasetdiff' datasetid dataset.commit_hash %}">Show</a></td>
+                    <td><a href="{% url 'datasetcommitfile' dataset.namespace dataset.commit_hash 'csv' %}">Dataset</a>/<a href="{% url 'datasetcommitfile' dataset.namespace dataset.commit_hash 'json' %}">Metadata</a></td>
+                    <td><a href="{% url 'datasetdiff' dataset.namespace dataset.commit_hash %}">Show</a></td>
 				</tr>
 			{% endfor %}
 		</tbody>
