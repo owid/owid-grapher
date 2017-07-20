@@ -1563,8 +1563,8 @@ def write_dataset_csv(datasetid: int, new_dataset_name, old_dataset_name, commit
     # This location (base_repo_folder) shouldn't be a repo
     # All repos will be created automatically by the script on first export
     base_repo_folder = settings.DATASETS_REPO_LOCATION
-    current_dataset_folder = os.path.join(base_repo_folder, dataset.namespace)
-
+    current_dataset_folder = os.path.abspath(os.path.join(base_repo_folder, dataset.namespace))
+    temp_dataset_folder = os.path.abspath(settings.DATASETS_TMP_LOCATION)
     if not os.path.exists(base_repo_folder):
         os.makedirs(base_repo_folder)
 
@@ -1683,7 +1683,7 @@ def write_dataset_csv(datasetid: int, new_dataset_name, old_dataset_name, commit
 
     # now saving the dataset to tmp dir
 
-    with open(os.path.join(settings.DATASETS_TMP_LOCATION, dataset_filename), 'w', newline='', encoding='utf8') as f:
+    with open(os.path.join(temp_dataset_folder, dataset_filename), 'w', newline='', encoding='utf8') as f:
         writer = csv.writer(f)
         writer.writerow(headerlist)
         current_row = None
@@ -1708,7 +1708,7 @@ def write_dataset_csv(datasetid: int, new_dataset_name, old_dataset_name, commit
         current_row[0] = allentities_dict[current_row[0]]
         writer.writerow(current_row)
 
-    with open(os.path.join(settings.DATASETS_TMP_LOCATION, metadata_filename), 'w', encoding='utf8') as f:
+    with open(os.path.join(temp_dataset_folder, metadata_filename), 'w', encoding='utf8') as f:
         json.dump(dataset_meta, f, indent=4)
 
     try:
@@ -1720,9 +1720,9 @@ def write_dataset_csv(datasetid: int, new_dataset_name, old_dataset_name, commit
                                                   'git rev-parse HEAD' %
                                                   (old_dataset_file_path_escaped,
                                                    old_metadata_file_path_escaped,
-                                                   shlex.quote(os.path.join(settings.DATASETS_TMP_LOCATION, dataset_filename)),
+                                                   shlex.quote(os.path.join(temp_dataset_folder, dataset_filename)),
                                                    dataset_file_path_escaped,
-                                                   shlex.quote(os.path.join(settings.DATASETS_TMP_LOCATION, metadata_filename)),
+                                                   shlex.quote(os.path.join(temp_dataset_folder, metadata_filename)),
                                                    metadata_file_path_escaped,
                                                    dataset_file_path_escaped,
                                                    metadata_file_path_escaped,
@@ -1738,9 +1738,9 @@ def write_dataset_csv(datasetid: int, new_dataset_name, old_dataset_name, commit
                                                   'git add %s %s && '
                                                   'git commit -m %s %s %s --quiet --author="%s <%s>" && '
                                                   'git rev-parse HEAD' %
-                                                  (shlex.quote(os.path.join(settings.DATASETS_TMP_LOCATION, dataset_filename)),
+                                                  (shlex.quote(os.path.join(temp_dataset_folder, dataset_filename)),
                                                    dataset_file_path_escaped,
-                                                   shlex.quote(os.path.join(settings.DATASETS_TMP_LOCATION, metadata_filename)),
+                                                   shlex.quote(os.path.join(temp_dataset_folder, metadata_filename)),
                                                    metadata_file_path_escaped,
                                                    dataset_file_path_escaped,
                                                    metadata_file_path_escaped,
