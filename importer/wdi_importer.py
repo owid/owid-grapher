@@ -11,13 +11,14 @@ import zipfile
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 import owid_grapher.wsgi
 from openpyxl import load_workbook
-from grapher_admin.models import Entity, DatasetSubcategory, DatasetCategory, Dataset, Source, Variable, VariableType, DataValue
+from grapher_admin.models import Entity, DatasetSubcategory, DatasetCategory, Dataset, Source, Variable, VariableType, DataValue, ChartDimension
 from importer.models import ImportHistory, AdditionalCountryInfo
 from country_name_tool.models import CountryName
 from django.conf import settings
 from django.db import connection, transaction
 from django.utils import timezone
 from django.urls import reverse
+from grapher_admin.views import write_dataset_csv
 
 
 # we will use the file checksum to check if the downloaded file has changed since we last saw it
@@ -30,6 +31,29 @@ def file_checksum(filename, blocksize=2**20):
                 break
             m.update(buffer)
     return m.hexdigest()
+
+
+def short_unit_extract(unit: str):
+    common_short_units = ['$', '£', '€', '%']  # used for extracting short forms of units of measurement
+    short_unit = None
+    if unit:
+        if ' per ' in unit:
+            short_form = unit.split(' per ')[0]
+            if any(w in short_form for w in common_short_units):
+                for x in common_short_units:
+                    if x in short_form:
+                        short_unit = x
+                        break
+            else:
+                short_unit = short_form
+        elif any(x in unit for x in common_short_units):
+            for y in common_short_units:
+                if y in unit:
+                    short_unit = y
+                    break
+        elif len(unit) < 9:  # this length is sort of arbitrary at this point, taken from the unit 'hectares'
+            short_unit = unit
+    return short_unit
 
 source_template = '<table>' \
                     '<tr>' \
@@ -54,7 +78,8 @@ source_template = '<table>' \
                     '</tr>' \
                     '<tr>' \
                         '<td>Link</td>' \
-                        '<td>http://data.worldbank.org/data-catalog/world-development-indicators</td>' \
+                        '<td><a target="_blank" href="http://data.worldbank.org/data-catalog/world-development-indicators">' \
+                  'http://data.worldbank.org/data-catalog/world-development-indicators</a></td>' \
                     '</tr>' \
                     '<tr>' \
                         '<td>Retrieved</td>' \
@@ -203,7 +228,7 @@ with transaction.atomic():
         existing_categories_list = {item['name'] for item in existing_categories}
 
         if wdi_category_name_in_db not in existing_categories_list:
-            the_category = DatasetCategory(name=wdi_category_name_in_db)
+            the_category = DatasetCategory(name=wdi_category_name_in_db, fetcher_autocreated=True)
             the_category.save()
             logger.info("Inserting a category %s." % wdi_category_name_in_db.encode('utf8'))
 
@@ -279,13 +304,14 @@ with transaction.atomic():
 
         insert_string = 'INSERT into data_values (value, year, fk_ent_id, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
         data_values_tuple_list = []
-
+        datasets_list = []
         for category in wdi_categories_list:
             newdataset = Dataset(name='World Development Indicators - ' + category,
                                  description='This is a dataset imported by the automated fetcher',
                                  namespace='wdi', fk_dst_cat_id=the_category,
                                  fk_dst_subcat_id=DatasetSubcategory.objects.get(name=category, fk_dst_cat_id=the_category))
             newdataset.save()
+            datasets_list.append(newdataset)
             logger.info("Inserting a dataset %s." % newdataset.name.encode('utf8'))
             row_number = 0
             for row in data_ws.rows:
@@ -338,8 +364,8 @@ with transaction.atomic():
                                                            datasetId=newdataset.pk)
                                         newsource.save()
                                         logger.info("Inserting a source %s." % newsource.name.encode('utf8'))
-
-                                        newvariable = Variable(name=global_cat[indicator_code]['name'], unit=global_cat[indicator_code]['unitofmeasure'] if global_cat[indicator_code]['unitofmeasure'] else '', description=global_cat[indicator_code]['description'],
+                                        s_unit = short_unit_extract(global_cat[indicator_code]['unitofmeasure'])
+                                        newvariable = Variable(name=global_cat[indicator_code]['name'], unit=global_cat[indicator_code]['unitofmeasure'] if global_cat[indicator_code]['unitofmeasure'] else '', short_unit=s_unit, description=global_cat[indicator_code]['description'],
                                                                code=indicator_code, timespan='1960-' + str(last_available_year), fk_dst_id=newdataset, fk_var_type_id=VariableType.objects.get(pk=4), sourceId=newsource)
                                         newvariable.save()
                                         logger.info("Inserting a variable %s." % newvariable.name.encode('utf8'))
@@ -368,7 +394,8 @@ with transaction.atomic():
                                   import_notes='Initial import of WDI',
                                   import_state=json.dumps({'file_hash': file_checksum(wdi_downloads_save_location + 'wdi.zip')}))
         newimport.save()
-
+        for dataset in datasets_list:
+            write_dataset_csv(dataset.pk, dataset.name, None, 'wdi_fetcher', '')
         logger.info("Import complete.")
 
     else:
@@ -380,11 +407,22 @@ with transaction.atomic():
             sys.exit('No updates available.')
 
         logger.info('New data is available.')
-        available_variables = Variable.objects.filter(fk_dst_id__in=Dataset.objects.filter(fk_dst_cat_id=DatasetCategory.objects.get(name=wdi_category_name_in_db))).values('code')
+        available_variables = Variable.objects.filter(fk_dst_id__in=Dataset.objects.filter(namespace='wdi'))
         available_variables_list = []
 
-        for each in available_variables:
+        for each in available_variables.values('code'):
             available_variables_list.append(each['code'])
+
+        chart_dimension_vars = ChartDimension.objects.all().values('variableId').distinct()
+        chart_dimension_vars_list = {item['variableId'] for item in chart_dimension_vars}
+        existing_variables_ids = [item['id'] for item in available_variables.values('id')]
+        existing_variables_id_code = {item['id']: item['code'] for item in available_variables.values('id', 'code')}
+        existing_variables_code_id = {item['code']: item['id'] for item in available_variables.values('id', 'code')}
+
+        vars_being_used = []  # we will not be deleting any variables that are currently being used by charts
+        for each_var in existing_variables_ids:
+            if each_var in chart_dimension_vars_list:
+                vars_being_used.append(existing_variables_id_code[each_var])
 
         wb = load_workbook(excel_filename, read_only=True)
 
@@ -468,26 +506,18 @@ with transaction.atomic():
         newly_added_vars = list(set(new_variables).difference(available_variables_list))
         vars_to_delete = list(set(available_variables_list).difference(new_variables))
 
-        if vars_to_delete:
-            with connection.cursor() as c:
-                c.execute('DELETE FROM %s WHERE fk_var_id IN (SELECT id from %s WHERE code IN (%s));' %
-                      (DataValue._meta.db_table, Variable._meta.db_table, ', '.join('"{0}"'.format(w) for w in vars_to_delete)))
-            logger.info('Deleting data values for variables that are not present in the new dataset: ' + ', '.join('"{0}"'.format(w) for w in vars_to_delete))
-
-        sources_to_delete = Variable.objects.filter(code__in=vars_to_delete).values('sourceId')
-        sources_to_delete_list_int = []
-        for each in sources_to_delete:
-            sources_to_delete_list_int.append(each['sourceId'])
-
-        if vars_to_delete:
-            Variable.objects.filter(code__in=vars_to_delete).delete()
-            logger.info('Deleting variables that are not present in the new dataset: ' + ', '.join('"{0}"'.format(w) for w in vars_to_delete))
-
-        if vars_to_delete:
-            source_names_to_delete = Source.objects.filter(pk__in=sources_to_delete_list_int).values('name')
-            source_names_to_delete_str = ', '.join('"{0}"'.format(w['name']) for w in source_names_to_delete)
-            Source.objects.filter(pk__in=sources_to_delete_list_int).delete()
-            logger.info('Deleting sources for variables that are not present in the new dataset: %s' % source_names_to_delete_str.encode('utf8'))
+        for each in vars_to_delete:
+            if each not in vars_being_used:
+                logger.info("Deleting data values for the variable: %s" % each.encode('utf8'))
+                while DataValue.objects.filter(fk_var_id__pk=existing_variables_code_id[each]).first():
+                    with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang
+                        c.execute('DELETE FROM %s WHERE fk_var_id = %s LIMIT 10000;' %
+                                  (DataValue._meta.db_table, existing_variables_code_id[each]))
+                source_object = Variable.objects.get(code=each, fk_dst_id__in=Dataset.objects.filter(namespace='wdi')).sourceId
+                Variable.objects.get(code=each, fk_dst_id__in=Dataset.objects.filter(namespace='wdi')).delete()
+                logger.info("Deleting the variable: %s" % each.encode('utf8'))
+                logger.info("Deleting the source: %s" % source_object.name.encode('utf8'))
+                source_object.delete()
 
         category_vars = {}  # categories and their corresponding variables
 
@@ -502,7 +532,7 @@ with transaction.atomic():
         existing_categories_list = {item['name'] for item in existing_categories}
 
         if wdi_category_name_in_db not in existing_categories_list:
-            the_category = DatasetCategory(name=wdi_category_name_in_db)
+            the_category = DatasetCategory(name=wdi_category_name_in_db, fetcher_autocreated=True)
             the_category.save()
             logger.info("Inserting a category %s." % wdi_category_name_in_db.encode('utf8'))
 
@@ -522,15 +552,6 @@ with transaction.atomic():
                 logger.info("Inserting a subcategory %s." % key.encode('utf8'))
 
         cats_to_add = list(set(wdi_categories_list).difference(list(existing_subcategories_list)))
-        cats_to_delete = list(set(list(existing_subcategories_list)).difference(wdi_categories_list))
-
-        if cats_to_delete:
-            Dataset.objects.filter(fk_dst_subcat_id__in=DatasetSubcategory.objects.filter(name__in=cats_to_delete, fk_dst_cat_id=the_category)).delete()
-            logger.info("Deleting the datasets under the categories %s." % ', '.join('"{0}"'.format(w) for w in cats_to_delete))
-
-        if cats_to_delete:
-            DatasetSubcategory.objects.filter(name__in=cats_to_delete, fk_dst_cat_id=the_category).delete()
-            logger.info("Deleting the categories %s." % ', '.join('"{0}"'.format(w) for w in cats_to_delete))
 
         existing_entities = Entity.objects.values('name')
         existing_entities_list = {item['name'] for item in existing_entities}
@@ -593,6 +614,7 @@ with transaction.atomic():
         data_values_tuple_list = []
 
         total_values_tracker = 0
+        dataset_id_oldname_list = []
 
         for category in wdi_categories_list:
             if category in cats_to_add:
@@ -602,10 +624,12 @@ with transaction.atomic():
                                      fk_dst_subcat_id=DatasetSubcategory.objects.get(name=category,
                                                                                      fk_dst_cat_id=the_category))
                 newdataset.save()
+                dataset_id_oldname_list.append({'id': newdataset.pk, 'newname': newdataset.name, 'oldname': None})
                 logger.info("Inserting a dataset %s." % newdataset.name.encode('utf8'))
             else:
                 newdataset = Dataset.objects.get(name='World Development Indicators - ' + category, fk_dst_cat_id=DatasetCategory.objects.get(
                                                                                          name=wdi_category_name_in_db))
+                dataset_id_oldname_list.append({'id': newdataset.pk, 'newname': newdataset.name, 'oldname': newdataset.name})
             row_number = 0
             for row in data_ws.rows:
                 row_number += 1
@@ -670,9 +694,11 @@ with transaction.atomic():
                                         newsource.save()
                                         logger.info("Inserting a source %s." % newsource.name.encode('utf8'))
                                         global_cat[indicator_code]['source_object'] = newsource
+                                        s_unit = short_unit_extract(global_cat[indicator_code]['unitofmeasure'])
                                         newvariable = Variable(name=global_cat[indicator_code]['name'],
                                                                unit=global_cat[indicator_code]['unitofmeasure'] if
                                                                global_cat[indicator_code]['unitofmeasure'] else '',
+                                                               short_unit=s_unit,
                                                                description=global_cat[indicator_code]['description'],
                                                                code=indicator_code,
                                                                timespan='1960-' + str(last_available_year),
@@ -709,9 +735,11 @@ with transaction.atomic():
                                             newsource.datasetId=newdataset.pk
                                             newsource.save()
                                             logger.info("Updating the source %s." % newsource.name.encode('utf8'))
+                                            s_unit = short_unit_extract(global_cat[indicator_code]['unitofmeasure'])
                                             newvariable = Variable.objects.get(code=indicator_code)
                                             newvariable.name = global_cat[indicator_code]['name']
                                             newvariable.unit=global_cat[indicator_code]['unitofmeasure'] if global_cat[indicator_code]['unitofmeasure'] else ''
+                                            newvariable.short_unit = s_unit
                                             newvariable.description=global_cat[indicator_code]['description']
                                             newvariable.timespan='1960-' + str(last_available_year)
                                             newvariable.fk_dst_id=newdataset
@@ -724,10 +752,11 @@ with transaction.atomic():
                                             newvariable = global_cat[indicator_code]['variable_object']
                                         if indicator_code not in newly_added_vars:
                                             if not deleted_indicators.get(indicator_code, 0):
-                                                with connection.cursor() as c:
-                                                    c.execute(
-                                                        'DELETE FROM %s WHERE fk_var_id = %s;' %
-                                                        (DataValue._meta.db_table, newvariable.pk))
+                                                while DataValue.objects.filter(fk_var_id__pk=newvariable.pk).first():
+                                                    with connection.cursor() as c:
+                                                        c.execute(
+                                                                  'DELETE FROM %s WHERE fk_var_id = %s LIMIT 10000;' %
+                                                                  (DataValue._meta.db_table, newvariable.pk))
                                                 deleted_indicators[indicator_code] = True
                                                 logger.info("Deleting data values for the variable %s." % indicator_code.encode('utf8'))
                                     for i in range(0, len(data_values)):
@@ -749,10 +778,29 @@ with transaction.atomic():
                 c.executemany(insert_string, data_values_tuple_list)
             logger.info("Dumping data values...")
 
+        # now deleting subcategories and datasets that are empty (that don't contain any variables), if any
+
+        all_wdi_datasets = Dataset.objects.filter(namespace='wdi')
+        all_wdi_datasets_with_vars = Variable.objects.filter(fk_dst_id__in=all_wdi_datasets).values(
+            'fk_dst_id').distinct()
+        all_wdi_datasets_with_vars_dict = {item['fk_dst_id'] for item in all_wdi_datasets_with_vars}
+
+        for each in all_wdi_datasets:
+            if each.pk not in all_wdi_datasets_with_vars_dict:
+                cat_to_delete = each.fk_dst_subcat_id
+                logger.info("Deleting empty dataset %s." % each.name)
+                logger.info("Deleting empty category %s." % cat_to_delete.name)
+                each.delete()
+                cat_to_delete.delete()
+
         newimport = ImportHistory(import_type='wdi', import_time=timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
                                   import_notes='Imported a total of %s data values.' % total_values_tracker,
                                   import_state=json.dumps(
                                       {'file_hash': file_checksum(wdi_downloads_save_location + 'wdi.zip')}))
         newimport.save()
+
+        # now exporting csvs to the repo
+        for dataset in dataset_id_oldname_list:
+            write_dataset_csv(dataset['id'], dataset['newname'], dataset['oldname'], 'wdi_fetcher', '')
 
 print("--- %s seconds ---" % (time.time() - start_time))

@@ -1,0 +1,30 @@
+{% extends 'base_admin_template.html' %}
+{% block content %}
+<div class="module-wrapper edit-variable-module">
+		<a class="back-btn" href="{% url 'listusers' %}"><i class="fa fa-arrow-left"></i>Back to users list</a>
+        {% if not user.selfedit %}
+        <form method="POST" action="{% url 'manageuser' user.id %}" accept-charset="UTF-8" class="form-inline"><input name="_method" type="hidden" value="DELETE">{% csrf_token %}
+				<button class="delete-btn" type="submit"><i class="fa fa-remove"></i> Delete user</button>
+        </form>
+        {% endif %}
+		<h2>Edit user {{ user.name }}</h2>
+		<form method="POST" action="{% url 'manageuser' user.id %}" accept-charset="UTF-8" class="validate-form"><input name="_method" type="hidden" value="PATCH">
+            {% csrf_token %}
+			<div class="form-group">
+				<label for="full_name">Full Name:</label>
+				<input class="form-control" name="full_name" type="text" value="{{ user.full_name }}" id="full_name">
+			</div>
+            {% if not user.selfedit %}
+			<div class="form-group">
+                <input type="checkbox" name="useractive" value="True" {% if user.active %}checked{% else %}{% endif %}> User is active
+			</div>
+            <div class="form-group">
+				<input type="checkbox" name="usersuper" value="True" {% if user.super %}checked{% else %}{% endif %}> User is superuser
+			</div>
+            {% endif %}
+			<div class="form-group">
+				<input class="btn btn-success" type="submit" value="Update user">
+			</div>
+	    </form>
+	</div>
+{% endblock %}

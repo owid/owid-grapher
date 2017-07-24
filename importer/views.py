@@ -22,6 +22,36 @@ def listwdidatasets(request: HttpRequest):
                                                            'datasets': datasets})
 
 
+def listunwppdatasets(request: HttpRequest):
+    variables = Variable.objects.filter(fk_dst_id__namespace='unwpp')
+    datasets: Dict = {}
+
+    for each in variables:
+        if datasets.get(each.fk_dst_id.fk_dst_subcat_id.name):
+            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+        else:
+            datasets[each.fk_dst_id.fk_dst_subcat_id.name] = []
+            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+
+    return render(request, 'admin.unwpp.data.html', context={'current_user': request.user.name,
+                                                           'datasets': datasets})
+
+
+def listqogdatasets(request: HttpRequest):
+    variables = Variable.objects.filter(fk_dst_id__namespace='qog')
+    datasets: Dict = {}
+
+    for each in variables:
+        if datasets.get(each.fk_dst_id.fk_dst_subcat_id.name):
+            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+        else:
+            datasets[each.fk_dst_id.fk_dst_subcat_id.name] = []
+            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+
+    return render(request, 'admin.qog.data.html', context={'current_user': request.user.name,
+                                                           'datasets': datasets})
+
+
 def serve_wdi_country_info_xls(request: HttpRequest):
 
     wb = Workbook()

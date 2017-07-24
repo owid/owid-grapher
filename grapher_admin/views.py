@@ -1,22 +1,24 @@
 import copy
 import datetime
+from dateutil import parser
 import json
-import os
 import re
 import csv
 import glob
 import os
+import subprocess
+import shlex
+import time
 import CloudFlare
+from ansi2html import Ansi2HTMLConverter
 from unidecode import unidecode
 from io import StringIO
 from urllib.parse import urlparse
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import login as loginview
 from django.db.models import Q
 from django.db import connection
-from django.db import transaction
 from django.http import HttpRequest, HttpResponseRedirect, HttpResponse, HttpResponseNotFound, JsonResponse, QueryDict, StreamingHttpResponse
 from django.template.response import TemplateResponse
 from django.shortcuts import render
@@ -28,6 +30,7 @@ from .models import Chart, Variable, User, UserInvitation, Logo, ChartSlugRedire
 from owid_grapher.views import get_query_string, get_query_as_dict
 from typing import Dict, Union
 from django.db import transaction
+
 
 def custom_login(request: HttpRequest):
     """
@@ -391,7 +394,6 @@ def store_import_data(request: HttpRequest):
         try:
             with transaction.atomic():
                 data = json.loads(request.body.decode('utf-8'))
-
                 datasetmeta = data['dataset']
                 entities = data['entities']
                 entitynames = data['entityNames']
@@ -406,9 +408,11 @@ def store_import_data(request: HttpRequest):
 
                 if datasetmeta['id']:
                     dataset = Dataset.objects.get(pk=datasetmeta['id'])
+                    dataset_old_name = dataset.name  # needed for version tracking csv export
                     Dataset.objects.filter(pk=datasetmeta['id']).update(updated_at=timezone.now(), **datasetprops)
                 else:
                     dataset = Dataset(**datasetprops)
+                    dataset_old_name = None
                     dataset.save()
 
                 dataset_id = dataset.pk
@@ -502,6 +506,9 @@ def store_import_data(request: HttpRequest):
                         DataValue.objects.bulk_create(newdatavalues)
                     with connection.cursor() as cursor:
                         cursor.execute("DELETE FROM sources WHERE sources.id NOT IN (SELECT variables.sourceId FROM variables)")
+
+                write_dataset_csv(dataset.pk, datasetprops['name'],
+                                  dataset_old_name, request.user.get_full_name(), request.user.email)
 
                 return JsonResponse({'datasetId': dataset_id}, safe=False)
         except Exception as e:
@@ -614,11 +621,14 @@ def managedataset(request: HttpRequest, datasetid: str):
             messages.success(request, 'Dataset deleted.')
             return HttpResponseRedirect(reverse('listdatasets'))
         if request_dict['_method'] == 'PATCH':
+            dataset_old_name = dataset.name
             request_dict.pop('_method', None)
             request_dict.pop('csrfmiddlewaretoken', None)
             request_dict['fk_dst_cat_id'] = DatasetCategory.objects.get(pk=request_dict['fk_dst_cat_id'])
             request_dict['fk_dst_subcat_id'] = DatasetSubcategory.objects.get(pk=request_dict['fk_dst_subcat_id'])
             Dataset.objects.filter(pk=datasetid).update(updated_at=timezone.now(), **request_dict)
+            write_dataset_csv(dataset.pk, request_dict['name'],
+                              dataset_old_name, request.user.get_full_name(), request.user.email)
             messages.success(request, 'Dataset updated!')
             return HttpResponseRedirect(reverse('showdataset', args=[datasetid]))
 
@@ -631,64 +641,83 @@ def dataset_csv(request: HttpRequest, datasetid: str):
         dataset = Dataset.objects.get(pk=int(datasetid))
     except Dataset.DoesNotExist:
         return HttpResponseNotFound('Dataset does not exist!')
+    # all variables that belong to a dataset being downloaded
+    allvariables = Variable.objects.filter(fk_dst_id=dataset)
 
-    allvariables = Variable.objects.all()
-    chartvarlist = []
+    datasetvarlist = []
 
-    for var in allvariables:
-        if var.fk_dst_id == dataset:
-            chartvarlist.append({'id': var.pk, 'name': var.name})
+    for var in allvariables.values('id', 'name'):
+        datasetvarlist.append({'id': var['id'], 'name': var['name']})
 
-    chartvarlist = sorted(chartvarlist, key=lambda k: k['id'])
+    datasetvarlist = sorted(datasetvarlist, key=lambda k: k['id'])
 
     id_tuple = ''
     varlist = []
     headerlist = ['Entity', 'Year']
 
-    for each in chartvarlist:
+    for each in datasetvarlist:
         id_tuple += str(each['id']) + ','
         headerlist.append(each['name'])
         varlist.append(each['id'])
-
+    # removing that last comma
     id_tuple = id_tuple[:-1]
+    # get all entity ids that have data values in the current dataset
+    with connection.cursor() as entity_cursor:
+        entity_cursor.execute('select distinct fk_ent_id from data_values where fk_var_id in (%s);' % ','.join([str(item['id']) for item in allvariables.values('id')]))
+        dataset_entities_list = [item[0] for item in entity_cursor.fetchall()]
+    # get the names for entity ids
+    allentities = Entity.objects.filter(pk__in=dataset_entities_list).values('id', 'name')
+    allentities_dict = {item['id']: item['name'] for item in allentities}
+    allentities_list = []
+    for each in allentities:
+        allentities_list.append({'id': each['id'], 'name': each['name']})
+    allentities_list = sorted(allentities_list, key=lambda k: k['name'])
+    allentities_list = [item['id'] for item in allentities_list]
+    # we are splitting the entities to groups of 3 for querying
+    # this is still not very efficient, but better than querying values for each entity separately
+    # if we don't set this limitation and query for values from all entities, th db usually hangs -
+    # - when there are many rows present
+    entity_chunks = [allentities_list[x:x + 3] for x in range(0, len(allentities_list), 3)]
 
-    sql_query = 'SELECT `value`, `year`, data_values.`fk_var_id` as var_id, entities.id as entity_id, ' \
-                'entities.name as entity_name from data_values ' \
-                'join entities on data_values.`fk_ent_id` = entities.`id` WHERE ' \
-                'data_values.`fk_var_id` in (%s) ORDER BY entity_name, year, fk_var_id;' % id_tuple
+    sql_query = 'SELECT `value`, `year`, data_values.`fk_var_id` as var_id, data_values.`fk_ent_id` as entity_id ' \
+                ' from data_values ' \
+                ' WHERE ' \
+                'data_values.`fk_var_id` in (%s) AND data_values.`fk_ent_id` in (%s) ORDER BY fk_ent_id, year, fk_var_id;'
 
-    with connection.cursor() as cursor:
-        cursor.execute(sql_query)
-        rows = cursor.fetchall()
+    # our csv streaming function
 
     def stream():
-
         buffer_ = StringIO()
         writer = csv.writer(buffer_)
         writer.writerow(headerlist)
         current_row = None
 
-        for row in rows:
-            if not current_row or current_row[0] != row[4] or current_row[1] != row[1]:
-                if current_row:
-                    writer.writerow(current_row)
-                    buffer_.seek(0)
-                    data = buffer_.read()
-                    buffer_.seek(0)
-                    buffer_.truncate()
-                    yield data
+        for chunk in entity_chunks:
+            with connection.cursor() as outer_cursor:
+                outer_cursor.execute(sql_query % (id_tuple, ','.join([str(x) for x in chunk])))
+                rows = outer_cursor.fetchall()
+            for row in rows:
+                if not current_row or current_row[0] != row[3] or current_row[1] != row[1]:
+                    if current_row:
+                        current_row[0] = allentities_dict[current_row[0]]
+                        writer.writerow(current_row)
+                        buffer_.seek(0)
+                        data = buffer_.read()
+                        buffer_ = StringIO()
+                        writer = csv.writer(buffer_)
+                        yield data
 
-                current_row = [row[4], row[1]]
-                for i in range(0, len(varlist)):
-                    current_row.append("")
+                    current_row = [row[3], row[1]]
+                    for i in range(0, len(varlist)):
+                        current_row.append("")
 
-            theindex = 2 + varlist.index(row[2])
-            current_row[theindex] = row[0]
+                theindex = 2 + varlist.index(row[2])
+                current_row[theindex] = row[0]
+
+        current_row[0] = allentities_dict[current_row[0]]
         writer.writerow(current_row)
         buffer_.seek(0)
         data = buffer_.read()
-        buffer_.seek(0)
-        buffer_.truncate()
         yield data
 
     response = StreamingHttpResponse(
@@ -852,6 +881,7 @@ def showvariable(request: HttpRequest, variableid: str):
     variable_dict['name'] = variable.name
     variable_dict['id'] = variable.pk
     variable_dict['unit'] = variable.unit
+    variable_dict['short_unit'] = variable.short_unit
     variable_dict['description'] = variable.description
     variable_dict['dataset'] = {'name': variable.fk_dst_id.name, 'id': variable.fk_dst_id.pk}
     variable_dict['source'] = {'name': variable.sourceId.name, 'id': variable.sourceId.pk}
@@ -945,6 +975,7 @@ def editvariable(request: HttpRequest, variableid: str):
         'name': variable.name,
         'id': variable.pk,
         'unit': variable.unit,
+        'short_unit': variable.short_unit if variable.short_unit else '',
         'coverage': variable.coverage,
         'timespan': variable.timespan,
         'description': variable.description,
@@ -976,6 +1007,7 @@ def managevariable(request: HttpRequest, variableid: str):
             request_dict.pop('_method', None)
             request_dict.pop('csrfmiddlewaretoken', None)
             request_dict.pop('sourceId', None)
+            request_dict['short_unit'] = None if not request_dict['short_unit'].strip() else request_dict['short_unit'].strip()
             Variable.objects.filter(pk=int(variableid)).update(updated_at=timezone.now(), **request_dict)
             messages.success(request, 'Variable updated!')
             return HttpResponseRedirect(reverse('showvariable', args=[variableid]))
@@ -1327,7 +1359,8 @@ def listusers(request: HttpRequest):
     userlist = []
 
     for each in users:
-        userlist.append({'name': each.name, 'created_at': each.created_at})
+        userlist.append({'id': each.pk, 'name': each.name, 'fullname': each.get_full_name(), 'created_at': each.created_at,
+                         'status': 'active' if each.is_active else 'inactive'})
 
     if '.json' in urlparse(request.get_full_path()).path:
         return JsonResponse(userlist, safe=False)
@@ -1335,6 +1368,80 @@ def listusers(request: HttpRequest):
         return render(request, 'admin.users.html', context={'current_user': request.user.name,
                                                             'users': userlist
                                                             })
+
+
+def edituser(request: HttpRequest, userid: str):
+    try:
+        user = User.objects.get(pk=int(userid))
+    except User.DoesNotExist:
+        return HttpResponseNotFound('User does not exist!')
+    if request.user.pk != int(userid):
+        if not request.user.is_superuser:
+            return HttpResponse('Permission denied!')
+        else:
+            userdict = {
+                'id': user.pk,
+                'name': user.name,
+                'full_name': user.full_name if user.full_name else '',
+                'active': user.is_active,
+                'super': user.is_superuser
+            }
+            return render(request, 'admin.users.edit.html', context={'current_user': request.user.name,
+                                                                     'user': userdict})
+    else:
+        userdict = {
+            'id': user.pk,
+            'name': user.name,
+            'full_name': user.full_name if user.full_name else '',
+            'selfedit': True
+        }
+        return render(request, 'admin.users.edit.html', context={'current_user': request.user.name,
+                                                                 'user': userdict})
+
+
+def manageuser(request: HttpRequest, userid: str):
+    if request.user.pk != int(userid):
+        if not request.user.is_superuser:
+            return HttpResponse('Permission denied!')
+    try:
+        user = User.objects.get(pk=int(userid))
+    except User.DoesNotExist:
+        return HttpResponseNotFound('User does not exist!')
+
+    if request.method == 'POST':
+        request_dict = QueryDict(request.body.decode('utf-8')).dict()
+        if request_dict['_method'] == 'DELETE':
+            if request.user.pk != int(userid):
+                try:
+                    user.delete()
+                except Exception as e:
+                    messages.error(request, e.args[1])
+                    return HttpResponseRedirect(reverse('listusers'))
+                messages.success(request, 'User deleted.')
+                return HttpResponseRedirect(reverse('listusers'))
+            else:
+                messages.error(request, 'You cannot delete yourself!')
+                return HttpResponseRedirect(reverse('listusers'))
+        if request_dict['_method'] == 'PATCH':
+            request_dict.pop('_method', None)
+            request_dict.pop('csrfmiddlewaretoken', None)
+            full_name = request_dict['full_name'] if request_dict['full_name'] else None
+
+            user.full_name = full_name
+
+            if request.user.pk != int(userid):  # user cannot change 'active' or 'superuser' fields for himself
+                is_active = True if request_dict.get('useractive', 0) else False
+                is_superuser = True if request_dict.get('usersuper', 0) else False
+                user.is_active = is_active
+                user.is_superuser = is_superuser
+
+            user.save()
+
+            messages.success(request, 'User updated!')
+            return HttpResponseRedirect(reverse('listusers'))
+
+    if request.method == 'GET':
+        return HttpResponseRedirect(reverse('listusers'))
 
 
 def invite_user(request: HttpRequest):
@@ -1434,3 +1541,469 @@ def register_by_invite(request: HttpRequest, code: str):
                 return render(request, 'register_invited_user.html', context={'form': form})
         else:
             return render(request, 'register_invited_user.html', context={'form': form})
+
+
+def write_dataset_csv(datasetid: int, new_dataset_name, old_dataset_name, committer, committer_email):
+
+    """
+    The function to write a dataset's csv file to a git repo
+    :param datasetid: ID of a dataset to export
+    :param new_dataset_name: The name of the file that will be written to disk
+    :param old_dataset_name: If the dataset is being updated, we need its old name
+    :param committer: Committer's name will show up in repo's commit info
+    :param committer_email: Committer's email
+    :return:
+    """
+
+    try:
+        dataset = Dataset.objects.get(pk=datasetid)
+    except Dataset.DoesNotExist:
+        return
+
+    # This location (base_repo_folder) shouldn't be a repo
+    # All repos will be created automatically by the script on first export
+    base_repo_folder = settings.DATASETS_REPO_LOCATION
+    current_dataset_folder = os.path.abspath(os.path.join(base_repo_folder, dataset.namespace))
+    temp_dataset_folder = os.path.abspath(settings.DATASETS_TMP_LOCATION)
+    if not os.path.exists(base_repo_folder):
+        os.makedirs(base_repo_folder)
+
+    if not os.path.exists(current_dataset_folder):
+        os.makedirs(current_dataset_folder)
+        subprocess.check_output(
+            'git init && '
+            'git config user.name "%s" && '
+            'git config user.email "%s"' %
+            (settings.DATASETS_REPO_USERNAME, settings.DATASETS_REPO_EMAIL), shell=True,
+            cwd=current_dataset_folder)
+    else:
+        if not os.path.exists(os.path.join(current_dataset_folder, '.git')):
+            subprocess.check_output(
+                'git init && '
+                'git config user.name "%s" && '
+                'git config user.email "%s"' %
+                (settings.DATASETS_REPO_USERNAME, settings.DATASETS_REPO_EMAIL), shell=True,
+                cwd=current_dataset_folder)
+
+    allvariables = Variable.objects.filter(fk_dst_id=dataset)
+
+    if not allvariables:
+        # if the dataset does not contain any data, no need to export it, just stop the script here
+        return
+
+    datasetvarlist = []
+    vardata = []
+    source_ids = []
+    for var in allvariables.values('id', 'name', 'unit', 'description', 'code', 'coverage', 'timespan', 'sourceId__name', 'sourceId__id'):
+        datasetvarlist.append({'id': var['id'], 'name': var['name']})
+        vardata.append({
+            'name': var['name'], 'unit': var['unit'], 'description': var['description'],
+            'code': var['code'], 'coverage': var['coverage'], 'timespan': var['timespan'],
+            'source_id': var['sourceId__name']
+        })
+        source_ids.append(var['sourceId__id'])
+
+    datasetvarlist = sorted(datasetvarlist, key=lambda k: k['id'])
+
+    id_tuple = ''
+    varlist = []
+    headerlist = ['Entity', 'Year']
+
+    for each in datasetvarlist:
+        id_tuple += str(each['id']) + ','
+        headerlist.append(each['name'])
+        varlist.append(each['id'])
+    # removing that last comma
+    id_tuple = id_tuple[:-1]
+    # get all entity ids that have data values in the current dataset
+    with connection.cursor() as entity_cursor:
+        entity_cursor.execute('select distinct fk_ent_id from data_values where fk_var_id in (%s);' %
+                              ','.join([str(item['id']) for item in allvariables.values('id')]))
+        dataset_entities_list = [item[0] for item in entity_cursor.fetchall()]
+    # get the names for entity ids
+    allentities = Entity.objects.filter(pk__in=dataset_entities_list).values('id', 'name')
+    allentities_dict = {item['id']: item['name'] for item in allentities}
+    allentities_list = []
+    for each in allentities:
+        allentities_list.append({'id': each['id'], 'name': each['name']})
+    allentities_list = sorted(allentities_list, key=lambda k: k['name'])
+    allentities_list = [item['id'] for item in allentities_list]
+    # we are splitting the entities to groups of 3 for querying
+    # this is still not very efficient, but better than querying values for each entity separately
+    # if we don't set this limitation and query for values from all entities, th db usually hangs -
+    # - when there are many rows present
+    entity_chunks = [allentities_list[x:x + 3] for x in range(0, len(allentities_list), 3)]
+
+    dataset_meta = {}
+
+    with connection.cursor() as source_cursor:
+        source_cursor.execute('select name, description from sources where id in (%s);' % ','.join([str(x) for x in source_ids]))
+        dataset_meta['sources'] = [{'name': item[0], 'description': item[1]} for item in source_cursor.fetchall()]
+
+    counter = 0
+    source_name_to_id = {}
+    for each in dataset_meta['sources']:
+        each['id'] = counter
+        source_name_to_id[each['name']] = counter
+        counter += 1
+
+    for each in vardata:
+        each['source_id'] = source_name_to_id[each['source_id']]
+
+    dataset_meta['variables'] = vardata
+
+    sql_query = 'SELECT `value`, `year`, data_values.`fk_var_id` as var_id, data_values.`fk_ent_id` as entity_id ' \
+                ' from data_values ' \
+                ' WHERE data_values.`fk_var_id` in (%s) AND ' \
+                'data_values.`fk_ent_id` in (%s) ORDER BY fk_ent_id, year, fk_var_id;'
+
+    metadata_filename = (unidecode(new_dataset_name) + '.json').replace('/', '_')
+    dataset_filename = (unidecode(new_dataset_name) + '.csv').replace('/', '_')
+
+    if old_dataset_name:
+        old_metadata_name = (unidecode(old_dataset_name) + '.json').replace('/', '_')
+        old_dataset_name = (unidecode(old_dataset_name) + '.csv').replace('/', '_')
+        old_metadata_file_path = os.path.join(current_dataset_folder, old_metadata_name)
+        old_dataset_file_path = os.path.join(current_dataset_folder, old_dataset_name)
+        old_metadata_file_path_escaped = shlex.quote(os.path.join(current_dataset_folder, old_metadata_name))
+        old_dataset_file_path_escaped = shlex.quote(os.path.join(current_dataset_folder, old_dataset_name))
+
+    metadata_file_path_escaped = shlex.quote(os.path.join(current_dataset_folder, metadata_filename))
+    dataset_file_path_escaped = shlex.quote(os.path.join(current_dataset_folder, dataset_filename))
+
+    delete_previous = False
+    if old_dataset_name is not None:
+        if os.path.isfile(old_dataset_file_path):
+            delete_previous = True
+            commit_message = 'Updating the dataset: %s'
+        else:
+            commit_message = 'Creating the dataset: %s'
+    else:
+        commit_message = 'Creating the dataset: %s'
+
+    # now saving the dataset to tmp dir
+
+    with open(os.path.join(temp_dataset_folder, dataset_filename), 'w', newline='', encoding='utf8') as f:
+        writer = csv.writer(f)
+        writer.writerow(headerlist)
+        current_row = None
+
+        for chunk in entity_chunks:
+            with connection.cursor() as outer_cursor:
+                outer_cursor.execute(sql_query % (id_tuple, ','.join([str(x) for x in chunk])))
+                rows = outer_cursor.fetchall()
+            for row in rows:
+                if not current_row or current_row[0] != row[3] or current_row[1] != row[1]:
+                    if current_row:
+                        current_row[0] = allentities_dict[current_row[0]]
+                        writer.writerow(current_row)
+
+                    current_row = [row[3], row[1]]
+                    for i in range(0, len(varlist)):
+                        current_row.append("")
+
+                theindex = 2 + varlist.index(row[2])
+                current_row[theindex] = row[0]
+
+        current_row[0] = allentities_dict[current_row[0]]
+        writer.writerow(current_row)
+
+    with open(os.path.join(temp_dataset_folder, metadata_filename), 'w', encoding='utf8') as f:
+        json.dump(dataset_meta, f, indent=4)
+
+    try:
+        if delete_previous:
+            commit_hash = subprocess.check_output('git rm %s %s --quiet && '
+                                                  'mv %s %s && mv %s %s && '
+                                                  'git add %s %s && '
+                                                  'git commit -m %s %s %s %s %s --quiet --author="%s <%s>" && '
+                                                  'git rev-parse HEAD' %
+                                                  (old_dataset_file_path_escaped,
+                                                   old_metadata_file_path_escaped,
+                                                   shlex.quote(os.path.join(temp_dataset_folder, dataset_filename)),
+                                                   dataset_file_path_escaped,
+                                                   shlex.quote(os.path.join(temp_dataset_folder, metadata_filename)),
+                                                   metadata_file_path_escaped,
+                                                   dataset_file_path_escaped,
+                                                   metadata_file_path_escaped,
+                                                   shlex.quote(commit_message % unidecode(dataset.name)),
+                                                   dataset_file_path_escaped,
+                                                   metadata_file_path_escaped,
+                                                   old_metadata_file_path_escaped,
+                                                   old_dataset_file_path_escaped,
+                                                   committer, committer_email,
+                                                   ), shell=True, cwd=current_dataset_folder)
+        else:
+            commit_hash = subprocess.check_output('mv %s %s && mv %s %s && '
+                                                  'git add %s %s && '
+                                                  'git commit -m %s %s %s --quiet --author="%s <%s>" && '
+                                                  'git rev-parse HEAD' %
+                                                  (shlex.quote(os.path.join(temp_dataset_folder, dataset_filename)),
+                                                   dataset_file_path_escaped,
+                                                   shlex.quote(os.path.join(temp_dataset_folder, metadata_filename)),
+                                                   metadata_file_path_escaped,
+                                                   dataset_file_path_escaped,
+                                                   metadata_file_path_escaped,
+                                                   shlex.quote(commit_message % unidecode(dataset.name)),
+                                                   metadata_file_path_escaped,
+                                                   dataset_file_path_escaped,
+                                                   committer, committer_email,
+                                                   ), shell=True, cwd=current_dataset_folder)
+    except subprocess.CalledProcessError as e:
+        if 'nothing to commit' in e.output.decode('utf-8').lower():
+            return
+        else:
+            raise Exception('An error occured while exporting the dataset to the git repo.')
+
+    commit_hash = commit_hash.decode('utf-8').strip()
+    # now saving the diff show output to html
+    conv = Ansi2HTMLConverter()
+    commit_info = subprocess.check_output('git -C %s show --color %s'
+                                          % (current_dataset_folder, commit_hash), shell=True)
+    html = conv.convert(commit_info.decode('utf-8'))
+    if not os.path.exists(os.path.join(settings.DATASETS_DIFF_HTML_LOCATION, dataset.namespace)):
+        os.makedirs(os.path.join(settings.DATASETS_DIFF_HTML_LOCATION, dataset.namespace))
+    with open(os.path.join(settings.DATASETS_DIFF_HTML_LOCATION, dataset.namespace, '%s.html' % commit_hash),
+              'w', encoding='utf8') as f:
+        f.write(html)
+
+
+def show_dataset_history(request: HttpRequest, datasetid: str):
+    try:
+        dataset = Dataset.objects.get(pk=int(datasetid))
+    except Dataset.DoesNotExist:
+        return HttpResponseNotFound('Dataset does not exist!')
+
+    repo_folder = os.path.join(settings.DATASETS_REPO_LOCATION, dataset.namespace)
+    history = None
+    meta_history = None
+    commit_fields = ['commit_hash', 'commit_made_by', 'commit_date']
+    log_format = ['%H', '%an', '%ad']
+    # %x1f and %x1e are for delimiting and separating each record
+    log_format = '%x1f'.join(log_format) + '%x1e'
+    if os.path.exists(repo_folder):
+        try:
+            history = subprocess.check_output('git log --format="%s" --follow %s ' %
+                                              (log_format, shlex.quote(dataset.name + '.csv')), shell=True,
+                                              cwd=repo_folder)
+        except subprocess.CalledProcessError:
+            # subprocess will raise exception if git doesn't find any commits related to the given file name
+            pass
+        try:
+            meta_history = subprocess.check_output('git log --format="%s" --follow %s ' %
+                                                   (log_format, shlex.quote(dataset.name + '.json')), shell=True,
+                                                   cwd=repo_folder)
+        except subprocess.CalledProcessError:
+            pass
+
+    if history:
+        history = history.decode('utf-8').strip('\n\x1e').split("\x1e")
+        history = [row.strip().split("\x1f") for row in history]
+        history = [dict(zip(commit_fields, row)) for row in history]
+        # we will need to parse the date string returned by git
+        for each in history:
+            each['commit_date'] = parser.parse(each['commit_date'])
+            each['namespace'] = dataset.namespace
+    if meta_history:
+        meta_history = meta_history.decode('utf-8').strip('\n\x1e').split("\x1e")
+        meta_history = [row.strip().split("\x1f") for row in meta_history]
+        meta_history = [dict(zip(commit_fields, row)) for row in meta_history]
+        # we will need to parse the date string returned by git
+        for each in meta_history:
+            each['commit_date'] = parser.parse(each['commit_date'])
+            each['namespace'] = dataset.namespace
+
+    return render(request, 'admin.datasets.history.html', context={'current_user': request.user.name,
+                                                                   'dataset_name': dataset.name,
+                                                                   'history': history,
+                                                                   'meta_history': meta_history,
+                                                                   'datasetid': dataset.id
+                                                                   })
+
+
+def serve_diff_html(request: HttpRequest, namespace: str, commit_hash: str):
+    if os.path.isfile(os.path.join(settings.DATASETS_DIFF_HTML_LOCATION, namespace, '%s.html' % commit_hash)):
+        return HttpResponse(open(os.path.join(settings.DATASETS_DIFF_HTML_LOCATION, namespace, '%s.html' % commit_hash),
+                                 'r', encoding='utf8').read())
+    else:
+        return HttpResponse('No diff file found for that commit!')
+
+
+def all_dataset_history(request: HttpRequest):
+
+    items_per_page = 50
+
+    namespaces = Dataset.objects.all().values('namespace').distinct()
+
+    history = []
+
+    commit_fields = ['commit_hash', 'commit_made_by', 'commit_date', 'message']
+    log_format = ['%H', '%an', '%ad', '%s']
+    # %x1f and %x1e are for delimiting and separating each record
+    log_format = '%x1f'.join(log_format) + '%x1e'
+
+    for namespace in namespaces:
+        if os.path.exists(os.path.join(settings.DATASETS_REPO_LOCATION, namespace['namespace'])):
+            try:
+                output = subprocess.check_output('git log --format="%s"' %
+                                                 log_format, shell=True,
+                                                 cwd=os.path.join(settings.DATASETS_REPO_LOCATION, namespace['namespace']))
+            except subprocess.CalledProcessError:
+                # subprocess will raise exception if git doesn't find any commits
+                # we then give back a None
+                output = None
+
+            if output:
+                output = output.decode('utf-8').strip('\n\x1e').split("\x1e")
+                output = [row.strip().split("\x1f") for row in output]
+                output = [dict(zip(commit_fields, row)) for row in output]
+                # we will need to parse the date string returned by git
+                for each in output:
+                    each['commit_date'] = parser.parse(each['commit_date'])
+                    each['namespace'] = namespace['namespace']
+                    history.append(each)
+
+    # sort everything by date
+    history = sorted(history, key=lambda k: k['commit_date'], reverse=True)
+
+    total_rows = len(history)
+    total_pages = -(-len(history) // items_per_page)
+    page_number = get_query_as_dict(request).get('page', [0])
+
+    try:
+        page_number = int(page_number[0])
+    except ValueError:
+        page_number = 0
+
+    if page_number > 1:
+        vals = history[(page_number - 1) * items_per_page:page_number * items_per_page]
+    else:
+        vals = history[:items_per_page]
+
+    if vals:
+        if total_pages >= 13:
+            if page_number < 7:
+                nav_pages = [1, 2, 3, 4, 5, 6, 7, 8, '#', total_pages - 1, total_pages]
+            elif page_number > total_pages - 5:
+                nav_pages = [1, 2, '#', total_pages - 7, total_pages - 6, total_pages - 5, total_pages - 4,
+                             total_pages - 3,
+                             total_pages - 2, total_pages - 1, total_pages]
+            else:
+                nav_pages = [1, 2, '#', page_number - 3, page_number - 2, page_number - 1, page_number,
+                             page_number + 1,
+                             page_number + 2, page_number + 3, '#', total_pages - 1, total_pages]
+        else:
+            nav_pages = [n for n in range(1, total_pages + 1)]
+    else:
+        nav_pages = []
+
+    return render(request, 'admin.datasets.all_history.html', context={'current_user': request.user.name,
+                                                                       'history_items': vals,
+                                                                       'nav_pages': nav_pages,
+                                                                       'current_page': page_number,
+                                                                       'total_rows': total_rows
+                                                                       })
+
+
+def serve_commit_file(request: HttpRequest, namespace: str, commit_hash: str, filetype: str):
+
+    repo_folder = os.path.join(settings.DATASETS_REPO_LOCATION, namespace)
+
+    files_list = subprocess.check_output(
+        'git diff-tree --no-commit-id --name-status  -r %s' % commit_hash,
+        shell=True,
+        cwd=repo_folder
+    )
+
+    if not files_list:  # the commit might be the very first commit
+        files_list = subprocess.check_output(
+            'git diff-tree --no-commit-id --name-status  --root %s' % commit_hash,
+            shell=True,
+            cwd=repo_folder
+        )
+
+    files_list = files_list.decode('utf-8').splitlines()
+
+    file_type_dict = {}
+    for each in files_list:
+        status = each.split('\t')[0]
+        filename = each.split('\t')[1]
+        if status != 'D':
+            file_type_dict[os.path.splitext(filename)[1]] = filename
+
+    filetype = '.%s' % filetype
+    if filetype in file_type_dict:
+        file_contents = subprocess.check_output('git show %s:%s' % (commit_hash, shlex.quote(file_type_dict[filetype])),
+                                                shell=True, cwd=repo_folder)
+        file_contents = file_contents.decode('utf-8')
+        response = HttpResponse(file_contents)
+        ascii_filename = unidecode(file_type_dict[filetype])
+        disposition = "attachment; filename='%s'" % ascii_filename
+        response['Content-Disposition'] = disposition
+        return response
+    else:
+        return HttpResponse('Could not get file contents.')
+
+
+def treeview_datasets(request: HttpRequest):
+    tree = []
+    tree_dict = {}
+    all_variables = Variable.objects.all().values('id', 'name', 'fk_dst_id__fk_dst_cat_id__name',
+                                                  'fk_dst_id__fk_dst_subcat_id__name', 'fk_dst_id__name', 'fk_dst_id')
+
+    for var in all_variables:
+        if var['fk_dst_id__fk_dst_cat_id__name'] not in tree_dict:
+            tree_dict[var['fk_dst_id__fk_dst_cat_id__name']] = {}
+
+        if var['fk_dst_id__fk_dst_subcat_id__name'] not in tree_dict[var['fk_dst_id__fk_dst_cat_id__name']]:
+            tree_dict[var['fk_dst_id__fk_dst_cat_id__name']][var['fk_dst_id__fk_dst_subcat_id__name']] = {}
+
+        if var['fk_dst_id__name'] not in tree_dict[var['fk_dst_id__fk_dst_cat_id__name']][
+            var['fk_dst_id__fk_dst_subcat_id__name']]:
+            tree_dict[var['fk_dst_id__fk_dst_cat_id__name']][var['fk_dst_id__fk_dst_subcat_id__name']][
+                var['fk_dst_id__name']] = {'id': var['fk_dst_id'], 'vars': []}
+
+        tree_dict[var['fk_dst_id__fk_dst_cat_id__name']][var['fk_dst_id__fk_dst_subcat_id__name']][
+            var['fk_dst_id__name']]['vars'].append({'varname': var['name'], 'varid': var['id']})
+    cat_id_count = 0
+    subcat_id_count = 0
+    for cat, catcontent in tree_dict.items():
+        subcatlist = []
+        subcatcount = 0
+        cat_id_count += 1
+        for subcat, subcatcontent in catcontent.items():
+            datasetlist = []
+            datasetcount = 0
+            subcat_id_count += 1
+            for dataset, datasetcontent in subcatcontent.items():
+                varlist = []
+                varcount = 0
+                for onevar in datasetcontent['vars']:
+                    varlist.append({'text': onevar['varname'], 'selectable': False, 'backColor': "#FF5C5C",
+                                    'href': reverse('showvariable', args=(onevar['varid'], ))})
+                    varcount += 1
+                datasetlist.append({'text': dataset + ' - (%s)' % str(varcount), 'selectable': False,
+                                    'backColor': "#5697FF",
+                                    'href': reverse('showdataset', args=(datasetcontent['id'], )), 'nodes': varlist})
+                datasetcount += 1
+            subcatlist.append({'text': subcat + ' - (%s)' % str(datasetcount),
+                               'selectable': False, 'backColor': "#AAFF5C", 'href': "#subcat%s" % subcat_id_count,
+                               'nodes': datasetlist})
+            subcatcount += 1
+        tree.append({'text': cat + ' - (%s)' % str(subcatcount), 'selectable': False, 'href': "#cat%s" % cat_id_count,
+                     'nodes': subcatlist})
+
+    for cat in tree:
+        cat['nodes'] = sorted(cat['nodes'], key=lambda k: k['text'])
+        for subcat in cat['nodes']:
+            subcat['nodes'] = sorted(subcat['nodes'], key=lambda k: k['text'])
+            for dataset in subcat['nodes']:
+                dataset['nodes'] = sorted(dataset['nodes'], key=lambda k: k['text'])
+
+    tree = sorted(tree, key=lambda k: k['text'])
+
+    tree_json = json.dumps(tree)
+
+    return render(request, 'admin.datasets.by.category.html', context={'current_user': request.user.name,
+                                                                       'tree_json': tree_json
+                                                                       })

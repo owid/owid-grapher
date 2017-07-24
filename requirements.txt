@@ -22,3 +22,4 @@ django-extensions==1.7.9
 fuzzywuzzy==0.15.0
 gevent==1.2.2
 Unidecode==0.4.20
+ansi2html==1.2.0
