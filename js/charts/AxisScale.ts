@@ -35,6 +35,10 @@ export default class AxisScale {
         return this.d3_scaleConstructor().domain(this.domain).range(this.range)
     }
 
+    @computed get rangeSize() {
+        return Math.abs(this.range[1]-this.range[0])
+    }
+
     getTickValues(): number[] {
         const {scaleType, domain, d3_scale} = this        
 

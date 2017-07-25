@@ -15,7 +15,7 @@ import {observable, computed, action, toJS} from 'mobx'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
 import AxisScale, {AxisConfig} from './AxisScale'
-import Axis from './Axis'
+import {HorizontalAxis, VerticalAxis, HorizontalAxisView, VerticalAxisView} from './Axis'
 import AxisSpec from './AxisSpec'
 
 interface AxisBoxProps {
@@ -24,43 +24,74 @@ interface AxisBoxProps {
     yAxis: AxisSpec
 }
 
-function component(current: any, klass: any, props: any) {
-    current = current || new klass()
-    _.each(_.keys(props), key => {
-        current[key] = props[key]
-    })
-    return current
-}
-
+// AxisBox has the important task of coordinating two axes so that they work together!
+// There is a *two-way dependency* between the bounding size of each axis.
+// e.g. if the y axis becomes wider because a label is present, the x axis then has less
+// space to work with, and vice versa
 export default class AxisBox {
-    @observable.ref bounds: Bounds
-    @observable.ref xAxis: AxisSpec
-    @observable.ref yAxis: AxisSpec
+    props: AxisBoxProps
 
-    @computed get xAxisBounds(): Bounds {
-        return Axis.calculateBounds(this.bounds, { orient: 'bottom', scale: new AxisScale(this.xAxis), label: this.xAxis.label })
+    constructor(props: AxisBoxProps) {
+        this.props = props
     }
 
-    @computed get yAxisBounds(): Bounds {
-        return Axis.calculateBounds(this.bounds, { orient: 'left', scale: new AxisScale(this.yAxis), label: this.yAxis.label })
+    // We calculate an initial width/height for the axes in isolation
+    @computed get xAxisHeight() {
+        return new HorizontalAxis({
+            scale: new AxisScale(this.props.xAxis).extend({ range: [0, this.props.bounds.width] }),
+            labelText: this.props.xAxis.label
+        }).height
     }
 
+    @computed get yAxisWidth() {
+        return new VerticalAxis({
+            scale: new AxisScale(this.props.yAxis).extend({ range: [0, this.props.bounds.height] }),
+            labelText: this.props.yAxis.label
+        }).width
+    }
+
+    // Now we can determine the "true" inner bounds of the axis box
     @computed get innerBounds(): Bounds {
-        return this.bounds.padBottom(this.xAxisBounds.height).padLeft(this.yAxisBounds.width)
+        return this.props.bounds.padBottom(this.xAxisHeight).padLeft(this.yAxisWidth)
     }
+
+    @computed get xAxisScale() {
+        return new AxisScale(this.props.xAxis).extend({ range: this.innerBounds.xRange() })
+    }
+
+    @computed get xAxis() {
+        const _this = this
+        return new HorizontalAxis({
+            get width() { return _this.props.bounds.width - _this.yAxisWidth },
+            get scale() { return _this.xAxisScale },
+            get labelText() { return _this.props.xAxis.label }
+        })
+    }
+
+    @computed get yAxisScale() {
+        return new AxisScale(this.props.yAxis).extend({ range: this.innerBounds.yRange() })
+    }
+
+    @computed get yAxis() {
+        const _this = this
+        return new VerticalAxis({
+            get height() { return _this.props.bounds.height - _this.xAxisHeight },
+            get scale() { return _this.yAxisScale },
+            get labelText() { return _this.props.yAxis.label }
+        })
+    }
+
 
     @computed get xScale(): AxisScale {
-        return new AxisScale(_.extend(this.xAxis, { range: this.innerBounds.xRange() }))
+        return new AxisScale(_.extend(this.props.xAxis, { range: this.innerBounds.xRange() }))
     }
 
     @computed get yScale(): AxisScale {
-        return new AxisScale(_.extend(this.yAxis, { range: this.innerBounds.yRange() }))        
+        return new AxisScale(_.extend(this.props.yAxis, { range: this.innerBounds.yRange() }))        
     }
 
-    constructor(props: AxisBoxProps) {
-        this.bounds = props.bounds
-        this.xAxis = props.xAxis
-        this.yAxis = props.yAxis
+    @computed get bounds() {
+        return this.props.bounds
     }
 }
 
@@ -71,7 +102,7 @@ interface AxisGridLinesProps {
 }
 
 @observer
-class AxisGridLines extends React.Component<AxisGridLinesProps, null> {
+class AxisGridLines extends React.Component<AxisGridLinesProps, undefined> {
     render() {
         const {orient, bounds} = this.props
         let scale = this.props.scale.extend({ range: orient == 'left' ? bounds.yRange() : bounds.xRange() })
@@ -92,11 +123,11 @@ class AxisGridLines extends React.Component<AxisGridLinesProps, null> {
 export class AxisBoxView extends React.Component<any, undefined> {
     render() {
         const {axisBox, onYScaleChange, onXScaleChange} = this.props
-        const {bounds, xScale, yScale, xAxis, yAxis, xAxisBounds, yAxisBounds, innerBounds} = axisBox
+        const {bounds, xScale, yScale, xAxis, yAxis, innerBounds} = axisBox
 
         return <g className="AxisBoxView">
-            <Axis orient="left" scale={yScale} labelText={yAxis.label} bounds={bounds.padBottom(xAxisBounds.height)} onScaleTypeChange={onYScaleChange}/>
-            <Axis orient="bottom" scale={xScale} labelText={xAxis.label} bounds={bounds.padLeft(yAxisBounds.width)} onScaleTypeChange={onXScaleChange}/>
+            <HorizontalAxisView bounds={bounds} axis={axisBox.xAxis} onScaleTypeChange={onYScaleChange}/>
+            <VerticalAxisView bounds={bounds} axis={axisBox.yAxis} onScaleTypeChange={onXScaleChange}/>
             <AxisGridLines orient="left" scale={yScale} bounds={innerBounds}/>
             <AxisGridLines orient="bottom" scale={xScale} bounds={innerBounds}/>
         </g>

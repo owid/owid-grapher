@@ -47,7 +47,7 @@ export default class ColorBinder {
 		}.bind(this));*/
 	}
 
-	assignColorForKey(key, color, options) {
+	assignColorForKey(key: string, color?: string, options?: any) {
 		options = _.extend({ canVary: true }, options);
 		color = color || this.colorScale(this.colorIndex.toString());
 

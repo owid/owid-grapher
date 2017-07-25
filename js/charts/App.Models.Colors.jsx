@@ -37,7 +37,7 @@ export default class Colors {
 		}.bind(this));*/
 	}
 
-	assignColorForKey(key, color, options) {
+	assignColorForKey(key, color = undefined, options = undefined) {
 		options = _.extend({ canVary: true }, options);
 		color = color || this.colorScale(this.colorIndex);
 

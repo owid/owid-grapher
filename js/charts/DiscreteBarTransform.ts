@@ -1,17 +1,24 @@
 import {computed} from 'mobx'
 import * as _ from 'lodash'
 import ChartConfig from './ChartConfig'
+import Color from './Color'
+
+export interface DiscreteBarValue {
+    x: string,
+    y: number,
+    color: Color
+}
 
 // Responsible for translating chart configuration into the form
 // of a discrete bar chart
-class DiscreteBarTransform {
+export default class DiscreteBarTransform {
     chart: ChartConfig
 
     constructor(chart: ChartConfig) {
         this.chart = chart
     }
 
-	@computed get data() {
+	@computed get values(): DiscreteBarValue[] {
         const {chart} = this
         const {dimensions, vardata, timeDomain, selectedEntitiesByKey} = chart
         const {variablesById} = vardata
@@ -20,9 +27,10 @@ class DiscreteBarTransform {
 		const timeTo = _.defaultTo(timeDomain[1], Infinity)
         const dimension = _.find(dimensions, d => d.property == "y")
 
+        if (!dimension)
+            return []
 
         const variable = variablesById[dimension.variableId]
-        const valuesByEntity = {}
 
         let targetYear
         if (_.isFinite(timeTo))
@@ -30,48 +38,22 @@ class DiscreteBarTransform {
         else
             targetYear = _.max(variable.yearsUniq);
 
-        var series = {
-            values: [],
-            key: variable.name,
-            id: dimension.variableId
-        };
+
+        const data = []
 
         for (var i = 0; i < variable.years.length; i++) {
-            var year = parseInt(variable.years[i]),
-                entityId = variable.entities[i],
-                entity = selectedCountriesById[entityId];
-
-            if (!entity) continue;
-
-            var value = valuesByEntity[entityId];
+            const year = variable.years[i]
+            const entity = variable.entities[i]
 
             if (year != targetYear) continue;
 
-            value = {
-                time: year,
-                x: entityKey[entityId].name,
+            data.push({
+                x: entity,
                 y: +variable.values[i],
-                key: entityKey[entityId].name,
-                entityId: entityId,
-                variableId: dimension.variableId
-            };
-
-            valuesByEntity[entityId] = value;
+                color: chart.colors.assignColorForKey(entity)
+            })
         }
 
-        _.each(valuesByEntity, function(value) {
-            series.values.push(value);
-        });
-
-        series.values = _.sortBy(series.values, 'y');
-        chartData.push(series);
-
-		if (chartData.length) {
-			legendData = _.map(chartData[0].values, function(v) {
-				return { label: v.x, key: v.key, entityId: v.entityId, variableId: v.variableId };
-			});
-		}
-
-		return { chartData: chartData, legendData: legendData, minYear: targetYear, maxYear: targetYear };
-	},    
+        return _.sortBy(data, value => value.y)
+	}
 }
