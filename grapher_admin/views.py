@@ -1675,11 +1675,11 @@ def write_dataset_csv(datasetid: int, new_dataset_name, old_dataset_name, commit
     if old_dataset_name is not None:
         if os.path.isfile(old_dataset_file_path):
             delete_previous = True
-            commit_message = 'Updating the dataset: %s'
+            commit_message = 'Updating: %s'
         else:
-            commit_message = 'Creating the dataset: %s'
+            commit_message = 'Creating: %s'
     else:
-        commit_message = 'Creating the dataset: %s'
+        commit_message = 'Creating: %s'
 
     # now saving the dataset to tmp dir
 
