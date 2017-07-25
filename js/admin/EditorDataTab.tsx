@@ -179,10 +179,10 @@ class EntityItem extends React.Component<{ chart: ChartConfig, entity: EntityKey
 	render() {
 		const {entity, color, isChoosingColor} = this
 
-		return <li className="country-label" style={{ backgroundColor: color||"white" }} onClick={this.onChooseColor}>
+		return <li className="country-label" style={{ backgroundColor: color||"white" }} onClick={e => this.isChoosingColor = true}>
 			<span className="fa fa-remove" onClick={this.onRemove}/>
 			{entity}
-			{isChoosingColor && <Colorpicker color={color} onColor={this.onColor} onClose={e => this.isChoosingColor = false}/>}
+			{isChoosingColor && <Colorpicker color={color} onColor={this.onColor} onClose={() => this.isChoosingColor = false}/>}
 		</li>
 	}
 }

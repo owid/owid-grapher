@@ -3,26 +3,31 @@ import * as _ from 'lodash'
 import Color from '../charts/Color'
 import {bind} from 'decko'
 import ColorBinder from '../charts/ColorBinder'
+import {observable} from 'mobx'
+import {TextField} from './Forms'
 
-export default class Colorpicker extends React.Component<{ color: Color, onColor: (color: Color) => void, onClose: () => void }, undefined> {
-    @bind onCloseButton(ev: React.MouseEvent<HTMLAnchorElement>) {
-        this.props.onClose()
-        ev.stopPropagation()
-    }
+export interface ColorpickerProps {
+    color: Color
+    onColor: (color: Color|undefined) => void
+    onClose: () => void 
+}
+
+export default class Colorpicker extends React.Component<ColorpickerProps, undefined> {
+    base: HTMLDivElement
 
     render() {
         const availableColors: Color[] = ColorBinder.basicScheme
 
-        return <div className="popup-picker-wrapper" tabIndex={0} onBlur={() => console.log("blur")}>
-            <a href='#' className='close-btn pull-right' onClick={this.onCloseButton}>
-                <i className='fa fa-times'></i>
+        return <div className="popup-picker-wrapper" tabIndex={0} onClick={e => e.stopPropagation()}>
+            <a href='#' className='close-btn pull-right' onClick={this.props.onClose}>
+                <i className='fa fa-times' style={{color: 'white'}}></i>
             </a>
             <ul className='no-bullets'>
                 {_.map(availableColors, color => 
-                    <li style={{backgroundColor: color}} onClick={() => this.props.onColor(color)}/>
+                    <li style={{backgroundColor: color}} onClick={() => { this.props.onColor(color); this.props.onClose() }}/>
                 )}
             </ul>
-            <input style={{width: "100%"}} className="hex-color" title="RGB hex color code" type="text" value={this.props.color}/>
+            <TextField placeholder="#xxxxxx" value={this.props.color} onValue={this.props.onColor}/>
         </div>
     }
 }

@@ -88,7 +88,7 @@ class Chart(models.Model):
     origin_url = models.CharField(max_length=255)
     notes = models.TextField()
     slug = models.CharField(max_length=255, blank=True, null=True)
-    # Null/True due to the behavior of mysql unique indexes (we only want slugs to conflict if not published)
+    # Null/True due to the behavior of mysql unique indexes (we only want slugs to conflict if published)
     published = models.NullBooleanField(default=None, choices=((None, 'false'), (True, 'true')))
     starred = models.BooleanField(default=False)
     type = models.CharField(max_length=255, choices=(('LineChart', 'Line chart'), ('ScatterPlot', 'Scatter plot'),
