@@ -54,10 +54,6 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
         return this.props.localData
     }
 
-    @computed get focusData(): LineChartSeries[] {
-        return this.localData.filter(d => _.includes(this.chart.selectedEntities, d.key))
-    }
-
     @computed get allValues(): LineChartValue[] {
         return _.flatten(_.map(this.localData, series => series.values))
     }
@@ -70,11 +66,17 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
         return (d3.extent(this.allValues.map(function(d) { return d.y; })) as [number, number])
     }
 
+    // Order of the legend items on a line chart should visually correspond
+    // to the order of the lines as the approach the legend
+    @computed get legendItems() {
+        return _.sortBy(this.localData, series => -_.last(series.values).y)
+    }
+
     @computed get legend() {
         const _this = this
         return new ColorLegend({
             maxWidth: 300,
-            get items() { return _this.focusData }
+            get items() { return _this.legendItems }
         })
     }
 
@@ -88,7 +90,7 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
     }
 
     render() {
-        const {chart, bounds, localData, focusData, xDomainDefault, yDomainDefault, legend, tooltip} = this
+        const {chart, bounds, localData, xDomainDefault, yDomainDefault, legend, tooltip} = this
 
         const xAxis = chart.xAxis.toSpec({ defaultDomain: xDomainDefault })
         const yAxis = chart.yAxis.toSpec({ defaultDomain: yDomainDefault })

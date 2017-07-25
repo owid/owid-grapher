@@ -17,7 +17,7 @@ export interface TooltipProps {
     x: number,
     y: number,
     datum: TooltipDatum,
-    isFixed: boolean
+    isFixed?: boolean
 }
 
 

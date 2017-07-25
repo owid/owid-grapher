@@ -94,7 +94,7 @@ export class ColorLegendView extends React.Component<ColorLegendViewProps, undef
                 {legend.marks.map(mark => {
                     const result = <g className="legendMark" onMouseOver={e => this.onMouseOver(mark.color)} onMouseLeave={e => this.onMouseLeave()} onClick={e => this.onClick(mark.color)}>
                         <rect x={x} y={y+offset-lineHeight/2} width={mark.width} height={mark.height+lineHeight} fill="#fff" opacity={0}/>
-                        <rect x={x} y={y+offset+rectSize/2} width={rectSize} height={rectSize} fill={mark.color}/>
+                        <rect x={x} y={y+offset+rectSize/2} width={rectSize} height={rectSize/4} fill={mark.color}/>
                         {mark.textWrap.render(x+rectSize+rectPadding, y+offset)}
                     </g>
 
