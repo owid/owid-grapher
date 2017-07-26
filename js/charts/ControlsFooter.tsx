@@ -188,14 +188,13 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps,
         const {props, tabNames, isShareMenuActive} = this
         const {chart, chartView} = props
         return <div className="controlsFooter">
-            <div className="scatterControls">            
             {chart.type == ChartType.ScatterPlot && chartView.activeTabName == 'chart' && 
-                    [chart.highlightToggle && <HighlightToggle chart={chart}/>,
-                    <button onClick={this.onEntitySelect}>
-                        <i class="fa fa-search"/> Search
-                    </button>]
-            }
-            </div>
+                <div className="scatterControls">                                
+                        chart.highlightToggle && <HighlightToggle chart={chart}/>,
+                        <button onClick={this.onEntitySelect}>
+                            <i className="fa fa-search"/> Search
+                        </button>
+                </div>}
             <nav className="tabs">
                 <ul>
                     {_.map(tabNames, (tabName) => {

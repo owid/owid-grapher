@@ -91,7 +91,7 @@ interface AxisGridLinesProps {
 }
 
 @observer
-class AxisGridLines extends React.Component<AxisGridLinesProps, undefined> {
+export class AxisGridLines extends React.Component<AxisGridLinesProps, undefined> {
     render() {
         const {orient, bounds} = this.props
         let scale = this.props.scale.extend({ range: orient == 'left' ? bounds.yRange() : bounds.xRange() })

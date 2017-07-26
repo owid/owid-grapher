@@ -2,12 +2,7 @@ import {computed} from 'mobx'
 import * as _ from 'lodash'
 import ChartConfig from './ChartConfig'
 import Color from './Color'
-
-export interface DiscreteBarValue {
-    x: string,
-    y: number,
-    color: Color
-}
+import {DiscreteBarDatum} from './DiscreteBarChart'
 
 // Responsible for translating chart configuration into the form
 // of a discrete bar chart
@@ -18,7 +13,7 @@ export default class DiscreteBarTransform {
         this.chart = chart
     }
 
-	@computed get values(): DiscreteBarValue[] {
+	@computed get data(): DiscreteBarDatum[] {
         const {chart} = this
         const {dimensions, vardata, timeDomain, selectedEntitiesByKey} = chart
         const {variablesById} = vardata
@@ -39,22 +34,22 @@ export default class DiscreteBarTransform {
             targetYear = _.max(variable.yearsUniq);
 
 
-        const data = []
+        const data: DiscreteBarDatum[] = []
 
         for (var i = 0; i < variable.years.length; i++) {
             const year = variable.years[i]
             const entity = variable.entities[i]
 
-//            if (year != targetYear || !selectedEntitiesByKey[entity]) continue;
-            if (year != targetYear) continue;
+            if (year != targetYear || !selectedEntitiesByKey[entity]) continue;
+//            if (year != targetYear) continue;
 
             data.push({
-                x: entity,
-                y: +variable.values[i],
+                value: +variable.values[i],
+                label: entity,
                 color: chart.colors.assignColorForKey(entity)
             })
         }
 
-        return _.sortBy(data, value => value.y)
+        return _.sortBy(data, d => -d.value)
 	}
 }

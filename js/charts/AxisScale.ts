@@ -89,8 +89,8 @@ export default class AxisScale {
                   isDiscrete = false,
                   domain = [0, 0], 
                   range = [0, 0] } :
-                { scaleType: ScaleType, scaleTypeOptions: ScaleType[],
-                  tickFormat: (v: number) => string, isDiscrete: boolean, domain: [number, number], range?: [number, number] }) {
+                { scaleType?: ScaleType, scaleTypeOptions?: ScaleType[],
+                  tickFormat?: (v: number) => string, isDiscrete?: boolean, domain: [number, number], range?: [number, number] }) {
         this.scaleType = scaleType
         this.scaleTypeOptions = scaleTypeOptions
         this.tickFormat = tickFormat

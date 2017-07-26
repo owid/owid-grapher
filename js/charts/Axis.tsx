@@ -114,10 +114,6 @@ export class HorizontalAxis {
         return _.some(this.tickPlacements, t1 => _.some(this.tickPlacements, t2 => t1.bounds.intersects(t2.bounds)))
     }
 
-    @computed get rotateTicks() {
-        return this.hasTickCollision
-    }
-
     @computed get ticks() : number[] {
         const {scale, labelOffset} = this
         const ticks = scale.getTickValues()
@@ -158,7 +154,7 @@ export class HorizontalAxis {
     }
 }
 
-export class VerticalAxisView extends React.Component<{ bounds: Bounds, axis: VerticalAxis, onScaleTypeChange: (scale: ScaleType) => void }, undefined> {
+export class VerticalAxisView extends React.Component<{ bounds: Bounds, axis: VerticalAxis, onScaleTypeChange?: (scale: ScaleType) => void }, undefined> {
     render() {
         const {bounds, axis, onScaleTypeChange} = this.props
         const {scale, ticks, label, labelOffset} = axis
@@ -167,15 +163,15 @@ export class VerticalAxisView extends React.Component<{ bounds: Bounds, axis: Ve
         return <g className="VerticalAxis">
             {label && <Paragraph {...label.props} x={-bounds.centerY-label.width/2} y={bounds.left} transform="rotate(-90)"/>}
             {_.map(ticks, tick =>
-                <text x={bounds.left+labelOffset} y={scale.place(tick)} fill={textColor} dominant-baseline="middle" text-anchor="start" font-size={VerticalAxis.tickFontSize}>{scale.tickFormat(tick)}</text>
+                <text x={bounds.left+axis.width-5} y={scale.place(tick)} fill={textColor} dominant-baseline="middle" textAnchor="end" font-size={VerticalAxis.tickFontSize}>{scale.tickFormat(tick)}</text>
             )}
-            {scale.scaleTypeOptions.length > 1 && 
+            {scale.scaleTypeOptions.length > 1 && onScaleTypeChange &&
                 <ScaleSelector x={bounds.left} y={bounds.top-8} scaleType={scale.scaleType} scaleTypeOptions={scale.scaleTypeOptions} onChange={onScaleTypeChange}/>}
         </g>
     }
 }
 
-export class HorizontalAxisView extends React.Component<{ bounds: Bounds, axis: HorizontalAxis, onScaleTypeChange: (scale: ScaleType) => void }, undefined> {
+export class HorizontalAxisView extends React.Component<{ bounds: Bounds, axis: HorizontalAxis, onScaleTypeChange?: (scale: ScaleType) => void }, undefined> {
     render() {
         const {bounds, axis, onScaleTypeChange} = this.props
         const {scale, ticks, label, labelOffset} = axis
@@ -184,15 +180,9 @@ export class HorizontalAxisView extends React.Component<{ bounds: Bounds, axis: 
         return <g className="HorizontalAxis">
             {label && <Paragraph {...label.props} x={bounds.centerX-label.width/2} y={bounds.bottom-label.height}/>}
             {_.map(ticks, tick => {
-                const x = scale.place(tick)
-                const y = bounds.bottom-labelOffset
-                if (axis.rotateTicks) {
-                    return <text transform={`translate(${x-5}, ${y-5}) rotate(40)`} fill={textColor} textAnchor="start" fontSize={"0.6em"}>{scale.tickFormat(tick)}</text>
-                } else {
-                    return <text x={x} y={y} fill={textColor} textAnchor="middle" fontSize={HorizontalAxis.tickFontSize}>{scale.tickFormat(tick)}</text>
-                }
+                return <text x={scale.place(tick)} y={bounds.bottom-labelOffset} fill={textColor} textAnchor="middle" fontSize={HorizontalAxis.tickFontSize}>{scale.tickFormat(tick)}</text>
             })}
-            {scale.scaleTypeOptions.length > 1 && 
+            {scale.scaleTypeOptions.length > 1 && onScaleTypeChange && 
                 <ScaleSelector x={bounds.right} y={bounds.bottom-5} scaleType={scale.scaleType} scaleTypeOptions={scale.scaleTypeOptions} onChange={onScaleTypeChange}/>}
         </g>
     }
