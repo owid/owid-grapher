@@ -23,9 +23,10 @@ export interface AxisConfig {
 export default class AxisScale {
     @observable scaleType: ScaleType
     @observable.struct scaleTypeOptions: ScaleType[]
-    @observable tickFormat : (v: number) => string
+    @observable tickFormat: (v: number) => string
     @observable.struct domain: [number, number]
     @observable.struct range: [number, number]
+    @observable.ref isDiscrete: boolean
 
     @computed get d3_scaleConstructor(): Function {
         return this.scaleType == 'log' ? d3.scaleLog : d3.scaleLinear
@@ -40,7 +41,15 @@ export default class AxisScale {
     }
 
     getTickValues(): number[] {
-        const {scaleType, domain, d3_scale} = this        
+        const {scaleType, domain, d3_scale, isDiscrete} = this
+
+        if (isDiscrete) {
+            const ticks = []
+            for (var i = _.min(domain); i <= _.max(domain); i++) {
+                ticks.push(i)
+            }
+            return ticks
+        }
 
         if (scaleType == 'log') {
             let minPower10 = Math.ceil(Math.log(domain[0]) / Math.log(10));
@@ -76,14 +85,16 @@ export default class AxisScale {
 
     constructor({ scaleType = 'linear', 
                   scaleTypeOptions = ['linear'],
-                  tickFormat = (d => d.toString()), 
+                  tickFormat = (d => d.toString()),
+                  isDiscrete = false,
                   domain = [0, 0], 
                   range = [0, 0] } :
                 { scaleType: ScaleType, scaleTypeOptions: ScaleType[],
-                  tickFormat: (v: number) => string, domain: [number, number], range?: [number, number] }) {
+                  tickFormat: (v: number) => string, isDiscrete: boolean, domain: [number, number], range?: [number, number] }) {
         this.scaleType = scaleType
         this.scaleTypeOptions = scaleTypeOptions
         this.tickFormat = tickFormat
+        this.isDiscrete = isDiscrete
         this.domain = domain
         this.range = range
     }

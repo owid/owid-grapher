@@ -56,7 +56,7 @@ class SourcesFooterMain extends React.Component<SourcesFooterMainProps, undefine
         const {props, sources, notes, license, isCompact, paraMargin} = this
 
         return <g className="SourcesFooter" style={{fill: "#777"}}>
-            <a onClick={this.props.onSourcesClick}><Paragraph {...sources.props} x={props.x} y={props.y}/></a>
+            <a onClick={this.props.onSourcesClick} style={{fill: "#777"}}><Paragraph {...sources.props} x={props.x} y={props.y}/></a>
             <Paragraph {...notes.props} x={props.x} y={props.y+sources.height+paraMargin}/>
             {isCompact
                 ? <Paragraph {...license.props} x={props.x+props.maxWidth-license.width} y={props.y}/>
@@ -94,7 +94,7 @@ export default class SourcesFooter extends React.Component<SourcesFooterProps, u
 
     @computed get licenseSvg(): string {
         const {originUrl} = this.props
-        let licenseSvg = `*data-entry* • <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA</a>`;
+        let licenseSvg = `*data-entry* • <a style="fill: #777;" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA</a>`;
 
         // Make sure the link back to OWID is consistent
         if (originUrl && originUrl.indexOf("ourworldindata.org") !== -1) {
@@ -102,10 +102,10 @@ export default class SourcesFooter extends React.Component<SourcesFooterProps, u
             a.href = originUrl
             const path = a.pathname[0] == "/" ? a.pathname : "/" + a.pathname // MISPY: cross-browser compat (Internet Explorer doesn't have a slash)
             const finalUrl = `https://ourworldindata.org${path}${a.search}`
-          licenseSvg = licenseSvg.replace(/\*data-entry\*/, "<a target='_blank' href='" + finalUrl + "'>" + "OurWorldInData.org" + path + a.search + "</a>")
+          licenseSvg = licenseSvg.replace(/\*data-entry\*/, "<a target='_blank' style='fill: #777;' href='" + finalUrl + "'>" + "OurWorldInData.org" + path + a.search + "</a>")
         } else {
           licenseSvg = licenseSvg.replace(/\*data-entry\*/,
-                "<a target='_blank' href='http://ourworldindata.org'>OurWorldInData.org</a>")
+                "<a target='_blank' style='fill: #777;' href='http://ourworldindata.org'>OurWorldInData.org</a>")
         }
 
         return licenseSvg;

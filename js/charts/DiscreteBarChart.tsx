@@ -34,14 +34,14 @@ export interface LineChartValue {
 @observer
 export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }, undefined> {
     @computed get chart() { return this.props.chart }
-    @computed get bounds() { return this.props.bounds }
+    @computed get bounds() { return this.props.bounds.padRight(50).padBottom(60) }
 
     @computed get values() {
         return this.props.chart.discreteBar.values
     }
 
     @computed get xDomainDefault(): [number, number] {
-        return [0, this.values.length]
+        return [0, this.values.length-1]
     }
 
     @computed get yDomainDefault(): [number, number] {
@@ -50,7 +50,10 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
 
     render() {
         const {chart, values, bounds, xDomainDefault, yDomainDefault} = this
-        const xAxis = chart.xAxis.toSpec({ defaultDomain: xDomainDefault })
+        const xAxis = _.extend(chart.xAxis.toSpec({ defaultDomain: xDomainDefault }), {
+            tickFormat: (i: number) => this.values[i].x,
+            isDiscrete: true
+        })
         const yAxis = chart.yAxis.toSpec({ defaultDomain: yDomainDefault })
         const axisBox = new AxisBox({bounds, xAxis, yAxis})
 

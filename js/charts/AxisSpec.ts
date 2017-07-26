@@ -12,7 +12,8 @@ interface AxisSpec {
     tickFormat: (d: number) => string
     domain: [number, number]
     scaleType: ScaleType
-    scaleTypeOptions: ScaleType[]
+    scaleTypeOptions: ScaleType[],
+    isDiscrete?: boolean
 }
 
 export default AxisSpec

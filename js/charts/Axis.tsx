@@ -93,12 +93,13 @@ export class HorizontalAxis {
         return this.props.scale
     }
 
-    @computed get ticks() : number[] {
-        const {scale, labelOffset} = this
-        const ticks = scale.getTickValues()
+    @computed get baseTicks(): number [] {
+        return this.scale.getTickValues()
+    }
 
-        // Collision detection
-        const tickPlacements = ticks.map(tick => {
+    @computed get tickPlacements() {
+        const {scale, labelOffset} = this
+        return this.baseTicks.map(tick => {
             const bounds = Bounds.forText(scale.tickFormat(tick), { fontSize: HorizontalAxis.tickFontSize })
             return {
                 tick: tick,
@@ -106,7 +107,24 @@ export class HorizontalAxis {
                 isHidden: false
             }
         })
-        
+    }
+
+    // Detect if some ticks are overlapping one another
+    @computed get hasTickCollision() {
+        return _.some(this.tickPlacements, t1 => _.some(this.tickPlacements, t2 => t1.bounds.intersects(t2.bounds)))
+    }
+
+    @computed get rotateTicks() {
+        return this.hasTickCollision
+    }
+
+    @computed get ticks() : number[] {
+        const {scale, labelOffset} = this
+        const ticks = scale.getTickValues()
+
+        if (scale.isDiscrete) return ticks
+
+        const {tickPlacements} = this
         for (let i = 0; i < tickPlacements.length; i++) {
             for (let j = 1; j < tickPlacements.length; j++) {
                 const t1 = tickPlacements[i], t2 = tickPlacements[j]
@@ -165,9 +183,15 @@ export class HorizontalAxisView extends React.Component<{ bounds: Bounds, axis: 
 
         return <g className="HorizontalAxis">
             {label && <Paragraph {...label.props} x={bounds.centerX-label.width/2} y={bounds.bottom-label.height}/>}
-            {_.map(ticks, tick =>
-                <text x={scale.place(tick)} y={bounds.bottom-labelOffset} fill={textColor} dominant-baseline={'auto'} text-anchor="middle" font-size={HorizontalAxis.tickFontSize}>{scale.tickFormat(tick)}</text>
-            )}
+            {_.map(ticks, tick => {
+                const x = scale.place(tick)
+                const y = bounds.bottom-labelOffset
+                if (axis.rotateTicks) {
+                    return <text transform={`translate(${x-5}, ${y-5}) rotate(40)`} fill={textColor} textAnchor="start" fontSize={"0.6em"}>{scale.tickFormat(tick)}</text>
+                } else {
+                    return <text x={x} y={y} fill={textColor} textAnchor="middle" fontSize={HorizontalAxis.tickFontSize}>{scale.tickFormat(tick)}</text>
+                }
+            })}
             {scale.scaleTypeOptions.length > 1 && 
                 <ScaleSelector x={bounds.right} y={bounds.bottom-5} scaleType={scale.scaleType} scaleTypeOptions={scale.scaleTypeOptions} onChange={onScaleTypeChange}/>}
         </g>

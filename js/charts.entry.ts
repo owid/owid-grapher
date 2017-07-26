@@ -22,5 +22,10 @@ mobxFormatters(Mobx)
 
 //import 'preact/devtools'
 
-window.ChartView = require('./charts/ChartView').default;
-window.ExportView = require('./charts/ExportView').default;
+import ChartView from './charts/ChartView'
+import ExportView from './charts/ExportView'
+window.ChartView = ChartView
+window.ExportView = ExportView
+
+import Debug from './charts/Debug'
+Debug.expose()

@@ -55,39 +55,28 @@ export default class AxisBox {
         return this.props.bounds.padBottom(this.xAxisHeight).padLeft(this.yAxisWidth)
     }
 
-    @computed get xAxisScale() {
+    @computed get xScale() {
         return new AxisScale(this.props.xAxis).extend({ range: this.innerBounds.xRange() })
     }
 
     @computed get xAxis() {
         const _this = this
         return new HorizontalAxis({
-            get width() { return _this.props.bounds.width - _this.yAxisWidth },
-            get scale() { return _this.xAxisScale },
+            get scale() { return _this.xScale },
             get labelText() { return _this.props.xAxis.label }
         })
     }
 
-    @computed get yAxisScale() {
+    @computed get yScale() {
         return new AxisScale(this.props.yAxis).extend({ range: this.innerBounds.yRange() })
     }
 
     @computed get yAxis() {
         const _this = this
         return new VerticalAxis({
-            get height() { return _this.props.bounds.height - _this.xAxisHeight },
-            get scale() { return _this.yAxisScale },
+            get scale() { return _this.yScale },
             get labelText() { return _this.props.yAxis.label }
         })
-    }
-
-
-    @computed get xScale(): AxisScale {
-        return new AxisScale(_.extend(this.props.xAxis, { range: this.innerBounds.xRange() }))
-    }
-
-    @computed get yScale(): AxisScale {
-        return new AxisScale(_.extend(this.props.yAxis, { range: this.innerBounds.yRange() }))        
     }
 
     @computed get bounds() {

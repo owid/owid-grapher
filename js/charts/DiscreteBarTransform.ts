@@ -45,6 +45,7 @@ export default class DiscreteBarTransform {
             const year = variable.years[i]
             const entity = variable.entities[i]
 
+//            if (year != targetYear || !selectedEntitiesByKey[entity]) continue;
             if (year != targetYear) continue;
 
             data.push({
