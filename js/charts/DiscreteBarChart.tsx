@@ -59,13 +59,17 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
         return Bounds.forText(_.sortBy(this.data, d => -d.value.toString().length)[0].value.toString(), { fontSize: this.valueFontSize+'em' }).width
     }
 
+    @computed get hasNegative() {
+        return _.some(this.data, d => d.value < 0)
+    }
+
     // Now we can work out the main x axis scale
     @computed get xDomainDefault(): [number, number] {
-        return [0, _.max(_.map(this.data, d => d.value))]
+        return [Math.min(0, _.min(_.map(this.data, d => d.value))), _.max(_.map(this.data, d => d.value))]
     }
 
     @computed get xRange() {
-        return [this.bounds.left+this.legendWidth, this.bounds.right-this.maxValueWidth]
+        return [this.bounds.left+this.legendWidth+(this.hasNegative ? this.maxValueWidth : 0), this.bounds.right-this.maxValueWidth]
     }
 
     @computed get xScale() {
@@ -102,10 +106,14 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
             <HorizontalAxisView bounds={bounds} axis={xAxis}/>
             <AxisGridLines orient="bottom" scale={xScale} bounds={bounds.padLeft(legendWidth).padBottom(xAxis.height)}/>
             {_.map(data, (d, i) => {
+                const isNegative = d.value < 0
+                const barX = isNegative ? xScale.place(d.value) : xScale.place(0)
+                const barWidth = isNegative ? xScale.place(0)-barX : xScale.place(d.value)-barX
+
                 const result = <g>
                     <text x={bounds.left+legendWidth-5} y={yOffset} fill="#666" dominant-baseline="middle" textAnchor="end" fontSize={valueFontSize+'em'}>{d.label}</text>
-                    <rect x={xScale.range[0]} y={yOffset-barHeight/2} width={xScale.place(d.value)-xScale.range[0]} height={barHeight} fill="#F2585B" opacity={0.85}/>
-                    <text x={xScale.place(d.value)+5} y={yOffset} fill="#666" dominant-baseline="middle" fontSize="0.55em">{d.value}</text>
+                    <rect x={barX} y={yOffset-barHeight/2} width={barWidth} height={barHeight} fill="#F2585B" opacity={0.85}/>
+                    <text x={xScale.place(d.value) + (isNegative ? -5 : 5)} y={yOffset} fill="#666" dominant-baseline="middle" textAnchor={isNegative ? "end" : "start"} fontSize="0.55em">{d.value}</text>
                 </g>
                 yOffset += barHeight+barSpacing
                 return result
