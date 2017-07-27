@@ -172,7 +172,7 @@ def savechart(chart: Chart, data: Dict, user: User):
     if data.get('published'):
         if ChartSlugRedirect.objects.filter(~Q(chart_id=chart.pk)).filter(Q(slug=data['slug'])):
             return HttpResponse("This chart slug was previously used by another chart: %s" % data["slug"], status=402)
-        elif Chart.objects.filter(~Q(pk=chart.pk)).filter(Q(slug=data['slug'])):
+        elif Chart.objects.filter(~Q(pk=chart.pk)).filter(Q(slug=data['slug'], published=True)):
             return HttpResponse("This chart slug is currently in use by another chart: %s" % data["slug"], status=402)
         elif chart.published and chart.slug and chart.slug != data['slug']:
             # Changing the slug of an already published chart-- create a redirect
