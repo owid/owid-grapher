@@ -11,7 +11,7 @@ common_short_units = ['$', '£', '€', '%']
 all_variables = Variable.objects.filter(fk_dst_id__namespace='wdi')
 
 for each in all_variables:
-    if each.unit:
+    if each.unit and not each.short_unit:
         if ' per ' in each.unit:
             short_form = each.unit.split(' per ')[0]
             if any(w in short_form for w in common_short_units):
