@@ -5,7 +5,7 @@ import {computed, action, observable} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartConfig from '../charts/ChartConfig'
 import ChartType from '../charts/ChartType'
-import EntityKey from '../charts/EntityKey'
+import DataKey from '../charts/DataKey'
 import Color from '../charts/Color'
 import {defaultTo} from '../charts/Util'
 import {SelectField, Toggle, NumberField} from './Forms'
@@ -159,73 +159,73 @@ class VariablesSection extends React.Component<{ editor: ChartEditor }, undefine
 }
 
 @observer
-class EntityItem extends React.Component<{ chart: ChartConfig, entity: EntityKey }, undefined> {
+class DataKeyItem extends React.Component<{ chart: ChartConfig, datakey: DataKey }, undefined> {
 	@observable.ref isChoosingColor: boolean = false
 
-	@computed get entity() { return this.props.entity }
-	@computed get color() { return this.props.chart.entityColors[this.props.entity] }
+	@computed get datakey() { return this.props.datakey }
+	@computed get color() { return this.props.chart.keyColors[this.props.datakey] }
 
 	@action.bound onColor(color: Color) {
-		const entityColors = _.clone(this.props.chart.entityColors)
-		entityColors[this.entity] = color
-		this.props.chart.props.entityColors = entityColors
+		const keyColors = _.clone(this.props.chart.keyColors)
+		keyColors[this.datakey] = color
+		this.props.chart.props.keyColors = keyColors
 	}
 
 	@action.bound onRemove(ev: React.MouseEvent<HTMLSpanElement>) {
-		this.props.chart.selectedEntities = this.props.chart.selectedEntities.filter(e => e != this.entity)
+		this.props.chart.selectedKeys = this.props.chart.selectedKeys.filter(e => e != this.datakey)
 		ev.stopPropagation()
 	}
 
 	render() {
-		const {entity, color, isChoosingColor} = this
+		const {datakey, color, isChoosingColor} = this
 
 		return <li className="country-label" style={{ backgroundColor: color||"white" }} onClick={e => this.isChoosingColor = true}>
 			<span className="fa fa-remove" onClick={this.onRemove}/>
-			{entity}
+			{this.props.chart.data.formatKey(datakey)}
 			{isChoosingColor && <Colorpicker color={color} onColor={this.onColor} onClose={() => this.isChoosingColor = false}/>}
 		</li>
 	}
 }
 
 @observer
-class EntitiesSection extends React.Component<{ chart: ChartConfig }, undefined> {
-	@action.bound onAddEntity(ev: React.ChangeEvent<HTMLSelectElement>) {
-		this.props.chart.selectedEntities.push(ev.target.value)
+class KeysSection extends React.Component<{ chart: ChartConfig }, undefined> {
+	@action.bound onAddKey(ev: React.ChangeEvent<HTMLSelectElement>) {
+		this.props.chart.selectedKeys.push(ev.target.value)
 	}
 
 	render() {
 		const {chart} = this.props
-		const {selectedEntities, entityColors} = chart
-		const {remainingEntities} = chart.vardata
+		const {selectedKeys, keyColors} = chart
+		const {remainingKeys} = chart.data
 
 		return <section className="entities-section">
-			<h2>Pick your entities</h2>
+			<h2>Choose your data</h2>
 
-			<p className="form-section-desc">You can set colors for individual entities by clicking on the labels.</p>
+			<p className="form-section-desc">You can set individual colors by clicking on the labels.</p>
 			<ul className="selected-countries-box no-bullets">
-				{_.map(selectedEntities, entity =>
-					<EntityItem chart={chart} entity={entity}/>
+				{_.map(selectedKeys, datakey =>
+					<DataKeyItem chart={chart} datakey={datakey}/>
 				)}
 			</ul>
-			<select className="form-control countries-select" onChange={this.onAddEntity} value="Select entity">
-				<option value="Select entity" selected={true} disabled={true}>Select entity</option>
-				{_.map(remainingEntities, entity =>
-					<option value={entity}>{entity}</option>
+			<select className="form-control countries-select" onChange={this.onAddKey} value="Select data">
+				<option value="Select data" selected={true} disabled={true}>Select data</option>
+				{_.map(remainingKeys, key =>
+					<option value={key}>{chart.data.formatKey(key)}</option>
 				)}
 			</select>
 			<div className="add-country-control-wrapper">
-				<h4>Can user add/change entities?</h4>
+				<h4>Can user add/change data?</h4>
 				<label>
 					<input type="radio" name="add-country-mode" value="add-country" selected={chart.addCountryMode == "add-country"} onClick={e => chart.props.addCountryMode = "add-country"}/>
-					User can add and remove entities
+					User can add and remove data
 				</label>
 				<label>
 					<input type="radio" name="add-country-mode" value="change-country" selected={chart.addCountryMode == "change-country"} onClick={e => chart.props.addCountryMode = "change-country"}/>
-					User can change entity
+					User can change data
 				</label>
 				<label>
 					<input type="radio" name="add-country-mode" value="disabled" selected={chart.addCountryMode == "disabled"} onClick={e => chart.props.addCountryMode = "disabled"}/>
-					User cannot change/add entity
+					User cannot change/add data
 				</label>
 			</div>
 		</section>
@@ -291,7 +291,7 @@ export default class EditorDataTab extends React.Component<{ editor: ChartEditor
 
 		return <div className="tab-pane">
 			<VariablesSection editor={editor}/>
-			<EntitiesSection chart={editor.chart}/>
+			<KeysSection chart={editor.chart}/>
 			<TimeSection editor={editor}/>
 		</div>
 	}

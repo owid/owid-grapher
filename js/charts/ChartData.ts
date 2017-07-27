@@ -1,10 +1,9 @@
 import * as _ from 'lodash'
-import owid from '../owid'
 import ChartType from './ChartType'
 import {computed, autorun, action} from 'mobx'
 import ChartConfig from './ChartConfig'
 import VariableData from './VariableData'
-import EntityKey from './EntityKey'
+import DataKey from './DataKey'
 import {bind} from 'decko'
 
 export default class ChartData {
@@ -15,27 +14,62 @@ export default class ChartData {
 		this.chart = chart
 		this.vardata = vardata
 
-		autorun(this.validateEntities)
+		autorun(this.validateKeys)
 	}
 
 	// When available entities changes, we need to double check that any selection is still appropriate
-	@bind validateEntities() {
+	@bind validateKeys() {
 		const {chart, vardata} = this
 		if (!vardata.isReady) return
 
-		const {availableEntities, entityMetaByKey} = vardata
-		let validEntities = chart.selectedEntities.filter(entity => entityMetaByKey[entity])
+		const {labelsByKey, availableKeys} = this
 
-		if (_.isEmpty(validEntities) && chart.type != ChartType.ScatterPlot && chart.type != ChartType.DiscreteBar && chart.type != ChartType.SlopeChart) {
+		let validKeys = chart.selectedKeys.filter(entity => labelsByKey[entity])
+
+		if (_.isEmpty(validKeys) && chart.type != ChartType.ScatterPlot && chart.type != ChartType.DiscreteBar && chart.type != ChartType.SlopeChart) {
 			// Select a few random ones
-			validEntities = _.sampleSize(availableEntities, 3);
+			validKeys = _.sampleSize(availableKeys, 3);
 		}
 
-		action(() => chart.selectedEntities = validEntities)()
+		action(() => chart.selectedKeys = validKeys)()
 	}
 
 	@computed get availableEntities() {
 		return this.vardata.availableEntities
+	}
+
+	// Calculate the available keys and their associated labels
+	// Since the keys use numeric variable ids, they can't be used directly for display
+	@computed get labelsByKey(): {[key: string]: string} {
+		const {chart, vardata} = this
+		if (!vardata.isReady) return {}
+		
+		const mainDimensions = chart.dimensions.filter(dim => dim.property == 'y')
+
+		const labelsByKey: {[key: string]: string} = {}
+		_.each(mainDimensions, dim => {
+			const variable = chart.vardata.variablesById[dim.variableId]
+			_.each(variable.entitiesUniq, entity => {
+				const key = `${entity} - ${variable.id}`
+				labelsByKey[key] = `${entity} - ${dim.displayName || variable.name}`
+			})
+		})
+
+		return labelsByKey
+	}
+
+	@computed.struct get availableKeys(): DataKey[] {
+		return _.sortBy(_.keys(this.labelsByKey))
+	}
+
+	@computed.struct get remainingKeys(): DataKey[] {
+		const {chart, availableKeys} = this
+		const {selectedKeys} = chart
+		return _.without(availableKeys, ...selectedKeys)
+	}
+
+	formatKey(key: DataKey) {
+		return this.labelsByKey[key]
 	}
 
 	@computed get data() {
@@ -88,10 +122,10 @@ export default class ChartData {
 		const dimensions = _.clone(chart.dimensions).reverse()
 		const {variablesById} = vardata
 
-		const timeFrom = _.defaultTo(timeDomain[0], -Infinity),
-			timeTo = _.defaultTo(timeDomain[1], Infinity),
-			hasManyVariables = _.size(variablesById) > 1,
-			hasManyEntities = _.size(selectedEntitiesByKey) > 1
+		const timeFrom = _.defaultTo(timeDomain[0], -Infinity)
+		const timeTo = _.defaultTo(timeDomain[1], Infinity)
+		const hasManyVariables = _.size(variablesById) > 1
+		const hasManyEntities = _.size(selectedEntitiesByKey) > 1
 
 		let chartData = []
 		let legendData = []
@@ -101,7 +135,7 @@ export default class ChartData {
 		_.each(dimensions, function(dimension) {
 			var variable = variablesById[dimension.variableId],
 				variableName = dimension.displayName || variable.name,
-				seriesByEntity: {[key: EntityKey]: any} = {};
+				seriesByEntity: {[key: DataKey]: any} = {};
 
 			for (var i = 0; i < variable.years.length; i++) {
 				var year = variable.years[i],
@@ -120,16 +154,7 @@ export default class ChartData {
 				if (year < timeFrom || year > timeTo) continue;
 
 				if (!series) {
-					let key = entity,
-						id = entity;
-
-					if (!hasManyEntities && addCountryMode == "disabled") {
-						id = variable.id.toString();
-						key = variableName;
-					} else if (hasManyVariables) {
-						id += "-" + variable.id;
-						key += " - " + variableName;
-					}
+					let key = `${entity} - ${variable.id}`
 
 					series = {
 						values: [],
@@ -138,7 +163,6 @@ export default class ChartData {
 						entityName: entity,
 						entityId: entity,
 						variableId: variable.id,
-						id: id,
 						isProjection: dimension.isProjection
 					};
 					seriesByEntity[entity] = series;

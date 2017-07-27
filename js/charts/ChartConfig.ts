@@ -94,8 +94,10 @@ export default class ChartConfig {
     @computed get originUrl() { return defaultTo(this.props.originUrl, "") }
     @computed get isPublished() { return defaultTo(this.props.isPublished, false) }
     @computed get selectedEntities() { return this.props.selectedEntities }
+    @computed get selectedKeys() { return this.props.selectedEntities }
     @computed get timeDomain() { return this.props.timeDomain }
     @computed get entityColors() { return this.props.entityColors }
+    @computed get keyColors() { return this.props.entityColors }
     @computed get tab() { return this.props.tab }
     @computed get lineType() { return defaultTo(this.props.lineType, LineType.WithDots) }
     @computed get lineTolerance() { return defaultTo(this.props.lineTolerance, 1) }
@@ -109,6 +111,7 @@ export default class ChartConfig {
     set timeDomain(value) { this.props.timeDomain = value }
     set tab(value) { this.props.tab = value }
     set selectedEntities(value) { this.props.selectedEntities = value }
+    set selectedKeys(value) { this.props.selectedEntities = value }
 
     xAxis: AxisConfig
     yAxis: AxisConfig

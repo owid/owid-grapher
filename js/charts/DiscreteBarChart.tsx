@@ -45,7 +45,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
     }
 
     @computed get legendFontSize() {
-        return 0.7
+        return 0.7 
     }
 
     // Account for the width of the legend
@@ -105,7 +105,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
         const mouse = Vector2.fromArray(getRelativeMouse(this.base, ev))
         const {barHeight, barSpacing} = this
 //        console.log(mouse.y, barHeight+barSpacing, mouse.y/(barHeight+barSpacing))
-        this.hoverIndex = Math.floor(mouse.y/(barHeight+barSpacing)) 
+        //this.hoverIndex = Math.floor(mouse.y/(barHeight+barSpacing)) 
     }
 
     @action.bound onMouseLeave() {
@@ -128,7 +128,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
                 const barX = isNegative ? xScale.place(d.value) : xScale.place(0)
                 const barWidth = isNegative ? xScale.place(0)-barX : xScale.place(d.value)-barX                
 
-                const result = <g onMouseOver={e => this.hoverIndex = i} opacity={isFaded ? 0.5 : 1}>
+                const result = <g opacity={isFaded ? 0.5 : 1}>
                     <text x={bounds.left+legendWidth-5} y={yOffset} fill="#666" dominant-baseline="middle" textAnchor="end" fontSize={valueFontSize+'em'}>{d.label}</text>
                     <rect x={barX} y={yOffset-barHeight/2} width={barWidth} height={barHeight} fill="#F2585B" opacity={isHover ? 1 : 0.85}/>
                     <text x={xScale.place(d.value) + (isNegative ? -5 : 5)} y={yOffset} fill="#666" dominant-baseline="middle" textAnchor={isNegative ? "end" : "start"} fontSize="0.55em">{d.value}</text>
