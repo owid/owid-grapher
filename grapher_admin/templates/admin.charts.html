@@ -19,7 +19,6 @@
 								<th>Type</th>
 								<th>Variables</th>
 								<th>Notes</th>
-								<th>Last Seen On</th>
 								<th>Last Updated</th>
 								<th></th>
 								<th></th>
@@ -53,11 +52,6 @@
 									{% endfor %}
 								</td>
 								<td>{{ chart.notes }}</td>
-								<td>
-                                    {% if chart.origin_url %}
-										<a href="{{ chart.origin_url }}">{{ chart.origin_url }}</a>
-									{% endif %}
-								</td>
 								<td>
 									<time class="timeago" datetime="{{ chart.last_edited_at|date:'c' }}">{{ chart.last_edited_at }}</time>
 									{% if chart.last_edited_by %}
