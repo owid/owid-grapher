@@ -41,15 +41,7 @@ export default class AxisScale {
     }
 
     getTickValues(): number[] {
-        const {scaleType, domain, d3_scale, isDiscrete} = this
-
-        if (isDiscrete) {
-            const ticks = []
-            for (var i = _.min(domain); i <= _.max(domain); i++) {
-                ticks.push(i)
-            }
-            return ticks
-        }
+        const {scaleType, domain, d3_scale} = this
 
         if (scaleType == 'log') {
             let minPower10 = Math.ceil(Math.log(domain[0]) / Math.log(10));
@@ -86,15 +78,13 @@ export default class AxisScale {
     constructor({ scaleType = 'linear', 
                   scaleTypeOptions = ['linear'],
                   tickFormat = (d => d.toString()),
-                  isDiscrete = false,
                   domain = [0, 0], 
                   range = [0, 0] } :
                 { scaleType?: ScaleType, scaleTypeOptions?: ScaleType[],
-                  tickFormat?: (v: number) => string, isDiscrete?: boolean, domain: [number, number], range?: [number, number] }) {
+                  tickFormat?: (v: number) => string, domain: [number, number], range?: [number, number] }) {
         this.scaleType = scaleType
         this.scaleTypeOptions = scaleTypeOptions
         this.tickFormat = tickFormat
-        this.isDiscrete = isDiscrete
         this.domain = domain
         this.range = range
     }

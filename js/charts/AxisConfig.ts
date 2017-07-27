@@ -47,7 +47,7 @@ export default class AxisConfig {
             return defaultTo(this.props.max, undefined)
     }
 
-    @computed get numDecimalPlaces(): number { return defaultTo(this.props.numDecimalPlaces, 0) }
+    @computed get numDecimalPlaces(): number|undefined { return defaultTo(this.props.numDecimalPlaces, undefined) }
     @computed get scaleType(): ScaleType { return this.props.scaleType }
     set scaleType(scaleType: ScaleType) { this.props.scaleType = scaleType }
     @computed get canChangeScaleType(): boolean { return defaultTo(this.props.canChangeScaleType, false) }

@@ -9,12 +9,12 @@ import * as React from 'react'
 import * as _ from 'lodash'
 import * as d3 from 'd3'
 import * as $ from 'jquery'
-import {computed, action} from 'mobx'
+import {computed, action, observable} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartConfig from './ChartConfig'
 import Bounds from './Bounds'
 import LineType from './LineType'
-import {defaultTo} from './Util'
+import {getRelativeMouse, defaultTo} from './Util'
 import AxisBox from './AxisBox'
 import StandardAxisBoxView from './StandardAxisBoxView'
 import Lines from './Lines'
@@ -24,6 +24,7 @@ import AxisScale from './AxisScale'
 import Color from './Color'
 import {HorizontalAxis, HorizontalAxisView} from './Axis'
 import {AxisGridLines} from './AxisBox'
+import Vector2 from './Vector2'
 
 export interface DiscreteBarDatum {
     value: number,
@@ -33,6 +34,9 @@ export interface DiscreteBarDatum {
 
 @observer
 export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }, undefined> {
+    base: SVGGElement
+    @observable.ref hoverIndex?: number
+
     @computed get chart() { return this.props.chart }
     @computed get bounds() { return this.props.bounds.padRight(10) }
 
@@ -81,7 +85,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
         const _this = this
         return new HorizontalAxis({
             get scale() { return _this.xScale },
-            get labelText() { return _this.chart.xAxis.label }
+            get labelText() { return _this.chart.yAxis.label }
         })
     }
 
@@ -97,22 +101,36 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
         return (this.innerBounds.height/this.data.length) - this.barHeight
     }
 
+    @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement>) {
+        const mouse = Vector2.fromArray(getRelativeMouse(this.base, ev))
+        const {barHeight, barSpacing} = this
+//        console.log(mouse.y, barHeight+barSpacing, mouse.y/(barHeight+barSpacing))
+        this.hoverIndex = Math.floor(mouse.y/(barHeight+barSpacing)) 
+    }
+
+    @action.bound onMouseLeave() {
+        this.hoverIndex = undefined
+    }
+
     render() {
-        const {chart, data, bounds, legendWidth, xAxis, xScale, innerBounds, barHeight, barSpacing, valueFontSize} = this
+        const {chart, data, bounds, legendWidth, xAxis, xScale, innerBounds, barHeight, barSpacing, valueFontSize, hoverIndex} = this
 
         let yOffset = this.innerBounds.top+barHeight/2
 
-        return <g className="DiscreteBarChart">
+        return <g className="DiscreteBarChart" onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseLeave}>
+            <rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height} opacity={0} fill="rgba(255,255,255,0)"/>
             <HorizontalAxisView bounds={bounds} axis={xAxis}/>
-            <AxisGridLines orient="bottom" scale={xScale} bounds={bounds.padLeft(legendWidth).padBottom(xAxis.height)}/>
+            <AxisGridLines orient="bottom" scale={xScale} bounds={innerBounds}/>
             {_.map(data, (d, i) => {
+                const isHover = i == hoverIndex
+                const isFaded = !isHover && hoverIndex != undefined
                 const isNegative = d.value < 0
                 const barX = isNegative ? xScale.place(d.value) : xScale.place(0)
-                const barWidth = isNegative ? xScale.place(0)-barX : xScale.place(d.value)-barX
+                const barWidth = isNegative ? xScale.place(0)-barX : xScale.place(d.value)-barX                
 
-                const result = <g>
+                const result = <g onMouseOver={e => this.hoverIndex = i} opacity={isFaded ? 0.5 : 1}>
                     <text x={bounds.left+legendWidth-5} y={yOffset} fill="#666" dominant-baseline="middle" textAnchor="end" fontSize={valueFontSize+'em'}>{d.label}</text>
-                    <rect x={barX} y={yOffset-barHeight/2} width={barWidth} height={barHeight} fill="#F2585B" opacity={0.85}/>
+                    <rect x={barX} y={yOffset-barHeight/2} width={barWidth} height={barHeight} fill="#F2585B" opacity={isHover ? 1 : 0.85}/>
                     <text x={xScale.place(d.value) + (isNegative ? -5 : 5)} y={yOffset} fill="#666" dominant-baseline="middle" textAnchor={isNegative ? "end" : "start"} fontSize="0.55em">{d.value}</text>
                 </g>
                 yOffset += barHeight+barSpacing
