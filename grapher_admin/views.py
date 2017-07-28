@@ -45,8 +45,18 @@ def custom_login(request: HttpRequest):
 
 
 def listcharts(request: HttpRequest):
-    charts = Chart.objects.all().order_by('-last_edited_at')
-    allvariables = Variable.objects.all()
+    charts = list(Chart.objects.all().order_by('-last_edited_at'))
+    chart_vars = ChartDimension.objects.all().values('chartId', 'variableId').iterator()
+    vars_used_in_charts = set()
+    vars_per_chart = {}
+    for each in chart_vars:
+        vars_used_in_charts.add(each['variableId'])
+        if each['chartId'] not in vars_per_chart:
+            vars_per_chart[each['chartId']] = []
+            vars_per_chart[each['chartId']].append(each['variableId'])
+        else:
+            vars_per_chart[each['chartId']].append(each['variableId'])
+    allvariables = Variable.objects.filter(pk__in=vars_used_in_charts).iterator()
     vardict = {}
     for var in allvariables:
         vardict[var.pk] = {'id': var.pk, 'name': var.name}
@@ -67,10 +77,10 @@ def listcharts(request: HttpRequest):
         else:
             each['last_edited_by'] = None
         each['variables'] = []
-        configfile = json.loads(chart.config)
-        for chartvar in configfile['chart-dimensions']:
-            if vardict.get(int(chartvar['variableId']), 0):
-                each['variables'].append(vardict[int(chartvar['variableId'])])
+        if vars_per_chart.get(chart.pk):
+            for chartvar in vars_per_chart[chart.pk]:
+                if vardict.get(int(chartvar), 0):
+                    each['variables'].append(vardict[int(chartvar)])
         chartlist.append(each)
     if '.json' in urlparse(request.get_full_path()).path:
         return JsonResponse(chartlist, safe=False)
@@ -116,7 +126,8 @@ def editor_data():
     for each in logos:
         data['logos'].append(each.name)
 
-    variable_query = Variable.objects.all().select_related()
+    variable_query = Variable.objects.all().select_related('fk_dst_id__fk_dst_cat_id',
+                                                           'fk_dst_id__fk_dst_subcat_id').iterator()
     query_result = []
     for each in variable_query:
         query_result.append({'name': each.name, 'id': each.pk, 'unit': each.unit, 'description': each.description,
@@ -132,11 +143,10 @@ def editor_data():
             optgroup['variables'] = []
             optgroups[result['subcategory']] = optgroup
 
-        newresult = copy.deepcopy(result)
         if result['name'] != result['dataset']:
-            newresult['name'] = result['dataset'] + ' - ' + result['name']
+            result['name'] = result['dataset'] + ' - ' + result['name']
 
-        optgroups[newresult['subcategory']]['variables'].append(newresult)
+        optgroups[result['subcategory']]['variables'].append(result)
 
     namespaces = Dataset.objects.values('namespace').distinct()
 
@@ -371,7 +381,7 @@ def importdata(request: HttpRequest):
     category_list = []
     for each in categories:
         category_list.append({'name': each.name, 'id': each.pk, 'parent': each.fk_dst_cat_id.name})
-    entitynames = Entity.objects.all()
+    entitynames = Entity.objects.all().iterator()
     entitynameslist = []
     entitycodeslist = []
     for each in entitynames:
@@ -485,25 +495,28 @@ def store_import_data(request: HttpRequest):
                         varid = Variable(**variableprops)
                         varid.save()
                         varid = varid.pk
-                    DataValue.objects.filter(fk_var_id=Variable.objects.get(pk=varid)).delete()
+                    while DataValue.objects.filter(fk_var_id__pk=varid).first():
+                        with connection.cursor() as c:
+                            c.execute('DELETE FROM %s WHERE fk_var_id = %s LIMIT 10000;' %
+                                      (DataValue._meta.db_table, varid))
 
-                    newdatavalues = []
-
+                    insert_string = 'INSERT into data_values (value, year, fk_ent_id, fk_var_id) VALUES (%s, %s, %s, %s)'
+                    data_values_tuple_list = []
                     for i in range(0, len(years)):
                         if values[i] == '':
                             continue
+                        data_values_tuple_list.append((values[i], years[i],
+                                                       entitiy_name_to_id[entitynames[entities[i]]],
+                                                       varid))
 
-                        newdatavalues.append(DataValue(fk_var_id=Variable.objects.get(pk=varid),
-                                                       fk_ent_id=Entity.objects.get(pk=entitiy_name_to_id[entitynames[entities[i]]]),
-                                                       year=years[i],
-                                                       value=values[i]))
+                        if len(data_values_tuple_list) > 3000:  # insert when the length of the list goes over 3000
+                            with connection.cursor() as dbconnection:
+                                dbconnection.executemany(insert_string, data_values_tuple_list)
+                            data_values_tuple_list = []
 
-                        if len(newdatavalues) > 10000:
-                            DataValue.objects.bulk_create(newdatavalues)
-                            newdatavalues = []
-
-                    if len(newdatavalues) > 0:
-                        DataValue.objects.bulk_create(newdatavalues)
+                    if len(data_values_tuple_list):  # insert any leftover data_values
+                        with connection.cursor() as dbconnection:
+                            dbconnection.executemany(insert_string, data_values_tuple_list)
                     with connection.cursor() as cursor:
                         cursor.execute("DELETE FROM sources WHERE sources.id NOT IN (SELECT variables.sourceId FROM variables)")
 
@@ -1166,9 +1179,9 @@ def managelogo(request: HttpRequest, logoid: str):
 
 def listsources(request: HttpRequest):
 
-    datasets = Dataset.objects.all()
-    variables = Variable.objects.all()
-    sources = Source.objects.all().order_by('name')
+    datasets = Dataset.objects.all().iterator()
+    variables = Variable.objects.all().iterator()
+    sources = Source.objects.all().order_by('name').iterator()
 
     source_var_dict: Dict = {}
     dataset_dict: Dict = {}
@@ -1949,7 +1962,7 @@ def treeview_datasets(request: HttpRequest):
     tree = []
     tree_dict = {}
     all_variables = Variable.objects.all().values('id', 'name', 'fk_dst_id__fk_dst_cat_id__name',
-                                                  'fk_dst_id__fk_dst_subcat_id__name', 'fk_dst_id__name', 'fk_dst_id')
+                                                  'fk_dst_id__fk_dst_subcat_id__name', 'fk_dst_id__name', 'fk_dst_id').iterator()
 
     for var in all_variables:
         if var['fk_dst_id__fk_dst_cat_id__name'] not in tree_dict:
