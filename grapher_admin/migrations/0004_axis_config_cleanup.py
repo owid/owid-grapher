@@ -62,6 +62,8 @@ def tweak_selectedEntities(apps, schema_editor):
                 config[axisName+'Axis'] = axis
                 if axisName+'-axis' in config:
                     del config[axisName+'-axis']
+                if axisName+'-axis-scale-selector' in config:
+                    del config[axisName+'-axis-scale-selector']
 
             chart.config = json.dumps(config)
             chart.save()

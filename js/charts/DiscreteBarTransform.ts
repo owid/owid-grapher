@@ -15,7 +15,7 @@ export default class DiscreteBarTransform {
 
 	@computed get data(): DiscreteBarDatum[] {
         const {chart} = this
-        const {dimensions, vardata, timeDomain, selectedEntitiesByKey} = chart
+        const {dimensions, vardata, timeDomain, selectedKeysByKey} = chart
         const {variablesById} = vardata
 
 		const timeFrom = _.defaultTo(timeDomain[0], -Infinity)
@@ -29,24 +29,24 @@ export default class DiscreteBarTransform {
 
         let targetYear
         if (_.isFinite(timeTo))
-            targetYear = _.sortBy(variable.yearsUniq, function(year) { return Math.abs(year-timeTo); })[0];
+            targetYear = _.sortBy(variable.yearsUniq, year => Math.abs(year-timeTo))[0];
         else
             targetYear = _.max(variable.yearsUniq);
-
 
         const data: DiscreteBarDatum[] = []
 
         for (var i = 0; i < variable.years.length; i++) {
             const year = variable.years[i]
             const entity = variable.entities[i]
+            const key = `${entity} - ${variable.id}`
 
-            if (year != targetYear || !selectedEntitiesByKey[entity]) continue;
-//            if (year != targetYear) continue;
+//            if (year != targetYear || !selectedKeysByKey[key]) continue;
+            if (year != targetYear) continue;
 
             data.push({
                 value: +variable.values[i],
-                label: entity,
-                color: chart.colors.assignColorForKey(entity)
+                label: chart.data.formatKey(key),
+                color: chart.colors.assignColorForKey(key)
             })
         }
 

@@ -78,10 +78,10 @@ export default class ColorBinder {
 	// We set colors for the legend data separately to give more precise control
 	// over the priority and ordering, since legend data doesn't move around as much.
 	assignColorsForLegend(legendData) {
-		const {entityColors, addCountryMode, dimensions, isMultiVariable, isMultiEntity} = this.chart
+		const {keyColors, addCountryMode, dimensions, isMultiVariable, isMultiEntity} = this.chart
 
 		_.each(legendData, function(group) {
-			const entityColor = entityColors[group.entityId]
+			const entityColor = keyColors[group.key]
 			const dimension = _.find(dimensions, dim => dim.variableId == group.variableId)
 
 			if (group.color) {
@@ -92,11 +92,11 @@ export default class ColorBinder {
 				group.color = this.assignColorForKey(group.key, dimension.color, { canVary: isMultiEntity });
 			} else if (isMultiEntity) {
 				// If in multi-variable, multi-entity mode, two entity labels are colored along the same gradient
-				if (this.colorCache[group.entityId])
-					group.color = this.assignColorForKey(group.key, this.colorCache[group.entityId]);
+				if (this.colorCache[group.key])
+					group.color = this.assignColorForKey(group.key, this.colorCache[group.key]);
 				else {
 					group.color = this.assignColorForKey(group.key);
-					this.colorCache[group.entityId] = group.color;
+					this.colorCache[group.key] = group.color;
 				}
 			} else {
 				group.color = this.assignColorForKey(group.key);

@@ -113,7 +113,7 @@ class VariableItem extends React.Component<{ variable: EditorVariable }, undefin
 				</div>
 			</div>
 			<span className="buttons">
-				<span className="fa fa-paint-brush clickable" title="Set color"></span> <span className="fa fa-cog clickable" title="Variable settings"></span> <span className="fa fa-close clickable"></span>
+				<span className="fa fa-cog clickable" title="Variable settings"></span> <span className="fa fa-close clickable"></span>
 			</span>
 		</li>
 	}

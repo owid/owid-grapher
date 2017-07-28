@@ -15,7 +15,6 @@ import ChartConfig from './ChartConfig'
 import Bounds from './Bounds'
 import LineType from './LineType'
 import {defaultTo} from './Util'
-import EntitySelect from './owid.view.entitySelect'
 import AxisBox from './AxisBox'
 import StandardAxisBoxView from './StandardAxisBoxView'
 import Lines from './Lines'
@@ -275,6 +274,7 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
     }
 
     @computed get stackedArea() {
+        console.log(this.xDomainDefault, this.yDomainDefault)
         const _this = this
         return new StackedArea({
             get xScale() { return _this.axisBox.xScale },

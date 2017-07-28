@@ -37,7 +37,6 @@ export interface LineChartValue {
 export interface LineChartSeries {
     key: string,
     color: string,
-    label: string
     values: LineChartValue[],
     classed?: string 
 }
@@ -69,7 +68,10 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
     // Order of the legend items on a line chart should visually correspond
     // to the order of the lines as the approach the legend
     @computed get legendItems() {
-        return _.sortBy(this.localData, series => -_.last(series.values).y)
+        return _(this.localData).sortBy(series => -_.last(series.values).y).map(d => ({
+            color: d.color,
+            label: this.chart.data.formatKey(d.key)
+        })).value()
     }
 
     @computed get legend() {
@@ -81,7 +83,7 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
     }
 
     @action.bound onHoverPoint(target: HoverTarget) {
-        const tooltipDatum = { entity: target.series.key, year: target.value.x, value: target.value.y }
+        const tooltipDatum = { entity: this.chart.data.formatKey(target.series.key), year: target.value.x, value: target.value.y }
         this.tooltip = <Tooltip x={target.pos.x} y={target.pos.y} datum={tooltipDatum}/>
     }
 

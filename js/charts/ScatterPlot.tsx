@@ -111,7 +111,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         })
 
         currentData = _.filter(currentData, series => {
-            return series.values.length > 0 && ((_.first(series.values).year == startYear && (_.last(series.values).year == endYear || _.first(series.values).year == startYear)) || _.includes(this.chart.selectedEntities, series.key)
+            return series.values.length > 0 && ((_.first(series.values).year == startYear && (_.last(series.values).year == endYear || _.first(series.values).year == startYear)) || _.includes(this.chart.selectedKeys, series.key)
         })
 
         if (timeline && timeline.compareEndPointsOnly) {
@@ -224,7 +224,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
 
     @action.bound onSelectEntity(focusKeys: string[]) {
         if (this.chart.addCountryMode != 'disabled')
-            this.chart.selectedEntities = focusKeys
+            this.chart.selectedKeys = focusKeys
     }
 
     @computed get timeline(): Timeline|null {
@@ -257,23 +257,23 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         if (this.chart.addCountryMode == 'disabled')
             return
         
-        if (_.isEqual(_.sortBy(this.focusKeys), _.sortBy(this.chart.selectedEntities)))
-            this.chart.selectedEntities = []
+        if (_.isEqual(_.sortBy(this.focusKeys), _.sortBy(this.chart.selectedKeys)))
+            this.chart.selectedKeys = []
         else
-            this.chart.selectedEntities = this.focusKeys
+            this.chart.selectedKeys = this.focusKeys
     }
 
     @computed get focusKeys(): string[] {
         if (this.focusColor) {
             return _.uniq(_.map(_.filter(this.allSeries, series => series.color == this.focusColor), series => series.key))
         } else {
-            return this.chart.selectedEntities
+            return this.chart.selectedKeys
         }
     }
 
-    @computed get shapeLegend(): ConnectedScatterLegend {
+    @computed get shapeLegend(): ConnectedScatterLegend|undefined {
         if (this.focusKeys.length || this.hoverSeries || this.startYear == this.endYear)
-            return null
+            return undefined
 
         return preInstantiate(
             <ConnectedScatterLegend maxWidth={this.sidebarWidth} startYear={this.startYear} endYear={this.endYear}/>

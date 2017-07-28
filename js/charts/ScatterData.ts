@@ -12,6 +12,8 @@ import * as _ from 'lodash'
 import * as d3 from 'd3'
 import ChartConfig from './ChartConfig'
 import {computed, observable, extras} from 'mobx'
+import {defaultTo} from './Util'
+import {ChartDimension} from './ChartConfig'
 
 export default class ScatterData {
     chart: ChartConfig
@@ -31,7 +33,7 @@ export default class ScatterData {
 
     @computed get validEntities() {
         if (this.hideBackgroundEntities)
-            return this.chart.selectedEntities
+            return this.chart.selectedKeys
         else
             return _.intersection(
                 this.axisDimensions[0].variable.entitiesUniq,
@@ -83,10 +85,11 @@ export default class ScatterData {
     // Precompute the data transformation for every timeline year (so later animation is fast)
     // If there's no timeline, this uses the same structure but only computes for a single year
     @computed get dataByEntityAndYear() {
-        const {years, colorScale, hideBackgroundEntities, validEntities} = this
-        const {dimensionsWithData, entityColors} = this.chart
+        const {chart, years, colorScale, hideBackgroundEntities, validEntities} = this
+        const {dimensionsWithData, keyColors} = chart
         const dataByEntityAndYear = {};
         const validEntityByName = _.keyBy(validEntities)
+        const mainDimension = this.chart.dimensions.find(dim => dim.property == 'y') as ChartDimension
     
         // The data values
         _.each(dimensionsWithData, (dimension) => {
@@ -98,6 +101,8 @@ export default class ScatterData {
                     var year = variable.years[i],
                         value = variable.values[i],
                         entity = variable.entities[i];
+
+                    const datakey = `${entity} - ${mainDimension.variableId}`
                     
                     if (!validEntityByName[entity])
                         continue
@@ -113,11 +118,10 @@ export default class ScatterData {
 
                     var dataByYear = owid.default(dataByEntityAndYear, entity, {}),
                         series = owid.default(dataByYear, outputYear, {
-                            id: entity,
-                            label: entity,
-                            key: entity,
+                            key: datakey,
+                            label: chart.data.formatKey(datakey),
                             values: [{ year: outputYear, time: {} }],
-                            color: entityColors[entity]
+                            color: keyColors[datakey]
                         });
 
                     var d = series.values[0];

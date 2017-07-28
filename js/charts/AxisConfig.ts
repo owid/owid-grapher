@@ -20,10 +20,10 @@ export class AxisConfigProps {
 
 // Interface used to access configuration by charts
 export default class AxisConfig {
-    @observable props: AxisConfigProps = new AxisConfigProps()
+    props: AxisConfigProps
 
-    update(props: Partial<AxisConfigProps>) {
-        extend(this.props, props)
+    constructor(props: AxisConfigProps) {
+        this.props = props
     }
 
     @computed get label(): string { return defaultTo(this.props.label, "") }

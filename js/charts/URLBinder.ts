@@ -121,7 +121,7 @@ export default class URLBinder {
                 const meta = chart.vardata.entityMetaByKey[entity]
                 return meta ? meta.code : entity
             }
-            const codes = chart.selectedEntities.map(getCode).map(encodeURIComponent)
+            const codes = chart.selectedKeys.map(getCode).map(encodeURIComponent)
             return codes.join("+")
         } else {
             return undefined
@@ -217,7 +217,7 @@ export default class URLBinder {
             action(() => {
                 if (country) {
                     const entityCodes = _.map(country.split('+'), decodeURIComponent)                    
-                    chart.selectedEntities = _.filter(chart.data.availableEntities, entity => {
+                    chart.selectedKeys = _.filter(chart.data.availableEntities, entity => {
                         const meta = chart.vardata.entityMetaByKey[entity]                        
                         return _.includes(entityCodes, meta.code) || _.includes(entityCodes, meta.name)
                     })

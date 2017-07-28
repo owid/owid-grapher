@@ -57,7 +57,7 @@ class TimelineMap extends React.Component<TimelineMapProps, undefined> {
         const entity = this.props.choroplethData[d.id].entity
         
         chart.tab = 'chart'
-        chart.selectedEntities = [entity]
+        chart.selectedKeys = [entity]
     }
 
     componentDidMount() {
@@ -137,7 +137,7 @@ export default class MapTab extends React.Component<MapTabProps, undefined> {
             titleLink={chart.url.canonicalUrl}
             subtitleTemplate={chart.subtitle}
             logosSVG={chart.logosSVG}
-            entities={chart.selectedEntities}
+            entities={chart.selectedKeys}
             minYear={map.data.targetYear}
             maxYear={map.data.targetYear}
         />)

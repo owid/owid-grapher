@@ -52,9 +52,9 @@ export class ChartConfigProps {
     @observable.ref xAxis: AxisConfigProps = new AxisConfigProps()
     @observable.ref yAxis: AxisConfigProps = new AxisConfigProps()
 
-    @observable.struct selectedEntities: EntityKey[] = []
+    @observable.struct selectedKeys: EntityKey[] = []
     @observable.struct timeDomain: [number|null, number|null]
-    @observable.struct entityColors: {[key: string]: string} = {}
+    @observable.struct keyColors: {[key: string]: string} = {}
 
     @observable.struct dimensions: ChartDimension[] = []
     @observable.ref addCountryMode: 'add-country'|'change-country'|'disabled' = 'add-country'
@@ -93,11 +93,9 @@ export default class ChartConfig {
     @computed get logosSVG() { return this.props.logosSVG }
     @computed get originUrl() { return defaultTo(this.props.originUrl, "") }
     @computed get isPublished() { return defaultTo(this.props.isPublished, false) }
-    @computed get selectedEntities() { return this.props.selectedEntities }
-    @computed get selectedKeys() { return this.props.selectedEntities }
+    @computed get selectedKeys() { return this.props.selectedKeys }
     @computed get timeDomain() { return this.props.timeDomain }
-    @computed get entityColors() { return this.props.entityColors }
-    @computed get keyColors() { return this.props.entityColors }
+    @computed get keyColors() { return this.props.keyColors }
     @computed get tab() { return this.props.tab }
     @computed get lineType() { return defaultTo(this.props.lineType, LineType.WithDots) }
     @computed get lineTolerance() { return defaultTo(this.props.lineTolerance, 1) }
@@ -110,11 +108,15 @@ export default class ChartConfig {
 
     set timeDomain(value) { this.props.timeDomain = value }
     set tab(value) { this.props.tab = value }
-    set selectedEntities(value) { this.props.selectedEntities = value }
-    set selectedKeys(value) { this.props.selectedEntities = value }
+    set selectedKeys(value) { this.props.selectedKeys = value }
 
-    xAxis: AxisConfig
-    yAxis: AxisConfig
+    @computed get xAxis() {
+        return new AxisConfig(this.props.xAxis)
+    }
+
+    @computed get yAxis() {
+        return new AxisConfig(this.props.yAxis)
+    }
 
     @observable.ref variableCacheTag: string
     @observable.ref tooltip: React.ReactNode
@@ -171,8 +173,8 @@ export default class ChartConfig {
 
 	model: any
 
-    @computed get selectedEntitiesByKey() {
-        return _.keyBy(this.selectedEntities)
+    @computed get selectedKeysByKey() {
+        return _.keyBy(this.selectedKeys)
     }
 
     @computed get availableTabs(): ChartTabOption[] {
@@ -180,6 +182,7 @@ export default class ChartConfig {
     }
 
     @action.bound update(props: any) {
+        console.log(props)
         this.props.id = props['id']
         this.props.type = props['chart-type']
         this.props.slug = props['slug']
@@ -193,11 +196,11 @@ export default class ChartConfig {
         this.props.isPublished = props['published']
         this.props.map = props['map-config'] ? _.extend(new MapConfigProps(), props['map-config']) : undefined
 
-        this.props.selectedEntities = props['selected-countries'].map((e: any) => e.name)
-        this.props.entityColors = {}
+        this.props.selectedKeys = props['selected-countries'].map((e: any) => e.name)
+        this.props.keyColors = {}
         props['selected-countries'].forEach((e: any) => {
             if (e.color)
-                this.props.entityColors[e.name] = e.color
+                this.props.keyColors[e.name] = e.color
         })
         this.props.timeline = props['timeline']
 
@@ -211,8 +214,8 @@ export default class ChartConfig {
         this.props.hasChartTab = props['tabs'].includes("chart")
         this.props.hasMapTab = props['tabs'].includes("map")
 
-        this.props.xAxis = props['xAxis']
-        this.props.yAxis = props['yAxis']
+        _.extend(this.props.xAxis, props['xAxis'])
+        _.extend(this.props.yAxis, props['yAxis'])
 
         this.props.dimensions = props['chart-dimensions'] 
         this.props.addCountryMode = props['add-country-mode']
@@ -240,10 +243,10 @@ export default class ChartConfig {
         json['chart-description'] = props.note
         json['published'] = props.isPublished
         json['map-config'] = props.map
-        json['selected-countries'] = props.selectedEntities.map(e => {
+        json['selected-countries'] = props.selectedKeys.map(e => {
             return {
                 name: e,
-                color: props.entityColors[e]
+                color: props.keyColors[e]
             }
         })
 
@@ -261,8 +264,6 @@ export default class ChartConfig {
     @computed get discreteBar() { return new DiscreteBarTransform(this) }
 
 	constructor(props: ChartConfigProps) {        
-        this.xAxis = new AxisConfig()
-        this.yAxis = new AxisConfig()
         this.update(props)
         this.vardata = new VariableData(this)
         this.data = new ChartData(this, this.vardata)
@@ -281,7 +282,7 @@ export default class ChartConfig {
 
     // TODO - make these unnecessary
 	@computed get isMultiEntity() {
-        if (this.selectedEntities.length > 1)
+        if (this.selectedKeys.length > 1)
             return true
         else if (this.addCountryMode == "add-country")
             return true

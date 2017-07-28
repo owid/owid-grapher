@@ -121,7 +121,7 @@ class HighlightToggle extends React.Component<{ chart: ChartConfig }, undefined>
             const params = owid.getQueryParams()
             this.chart.url.populateFromURL(_.extend(params, this.highlightParams))
         } else {
-            this.chart.selectedEntities = []
+            this.chart.selectedKeys = []
         }
     }
 
@@ -173,7 +173,7 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps,
 
     entitySelect: EntitySelect = null
     @action.bound onEntitySelect() {
-        const unselectedEntities = _.without(this.props.chart.scatterData.validEntities, ...this.props.chart.selectedEntities)
+        const unselectedEntities = _.without(this.props.chart.scatterData.validEntities, ...this.props.chart.selectedKeys)
         setTimeout(() => {
             this.entitySelect = EntitySelect()
             this.entitySelect.update({

@@ -51,7 +51,8 @@ export default class ChartData {
 			const variable = chart.vardata.variablesById[dim.variableId]
 			_.each(variable.entitiesUniq, entity => {
 				const key = `${entity} - ${variable.id}`
-				labelsByKey[key] = `${entity} - ${dim.displayName || variable.name}`
+
+				labelsByKey[key] = mainDimensions.length > 1 ? `${entity} - ${dim.displayName || variable.name}` : entity
 			})
 		})
 
@@ -118,14 +119,12 @@ export default class ChartData {
 
 	transformDataForLineChart() {
 		const {chart, vardata} = this
-		const {timeDomain, selectedEntitiesByKey, yAxis, addCountryMode} = chart
+		const {timeDomain, selectedKeysByKey, yAxis, addCountryMode} = chart
 		const dimensions = _.clone(chart.dimensions).reverse()
 		const {variablesById} = vardata
 
 		const timeFrom = _.defaultTo(timeDomain[0], -Infinity)
 		const timeTo = _.defaultTo(timeDomain[1], Infinity)
-		const hasManyVariables = _.size(variablesById) > 1
-		const hasManyEntities = _.size(selectedEntitiesByKey) > 1
 
 		let chartData = []
 		let legendData = []
@@ -135,16 +134,17 @@ export default class ChartData {
 		_.each(dimensions, function(dimension) {
 			var variable = variablesById[dimension.variableId],
 				variableName = dimension.displayName || variable.name,
-				seriesByEntity: {[key: DataKey]: any} = {};
+				seriesByKey: {[key: DataKey]: any} = {};
 
 			for (var i = 0; i < variable.years.length; i++) {
-				var year = variable.years[i],
-					value = _.toNumber(variable.values[i]),
-					entity = variable.entities[i],
-					series = seriesByEntity[entity];
-					
+				const year = variable.years[i]
+				const value = _.toNumber(variable.values[i])
+				const entity = variable.entities[i]
+				const datakey = `${entity} - ${variable.id}`
+				let series = seriesByKey[datakey]
+
 				// Not a selected entity, don't add any data for it
-				if (!selectedEntitiesByKey[entity]) continue;
+				if (!selectedKeysByKey[datakey]) continue;
 				// It's possible we may be missing data for this year/entity combination
 				// e.g. http://ourworldindata.org/grapher/view/101
 				if (isNaN(value)) continue;
@@ -154,18 +154,12 @@ export default class ChartData {
 				if (year < timeFrom || year > timeTo) continue;
 
 				if (!series) {
-					let key = `${entity} - ${variable.id}`
-
 					series = {
 						values: [],
-						key: key,
-						label: entity,
-						entityName: entity,
-						entityId: entity,
-						variableId: variable.id,
+						key: datakey,
 						isProjection: dimension.isProjection
 					};
-					seriesByEntity[entity] = series;
+					seriesByKey[datakey] = series;
 				}
 
 				var prevValue = series.values[series.values.length-1];
@@ -176,7 +170,7 @@ export default class ChartData {
 				maxYear = Math.max(maxYear, year);
 			}
 
-			chartData = chartData.concat(_.values(seriesByEntity));
+			chartData = chartData.concat(_.values(seriesByKey));
 		});
 
 		//if (addCountryMode === "add-country")
@@ -211,33 +205,6 @@ export default class ChartData {
 					series.values.push({ x: year, y: 0, time: year, fake: true });
 			});
 
-			series.values = _.sortBy(series.values, function(d) { return d.x; });
-		});
-
-		return chartData;
-	},
-
-	// Zero pads for every single year in the data
-	zeroPadDataRange(chartData) {
-		var minYear = Infinity, maxYear = -Infinity;
-		_.each(chartData, function(series) {
-			minYear = Math.min(minYear, series.values[0].x);
-			maxYear = Math.max(maxYear, series.values[series.values.length-1].x);
-		});
-
-		var yearsForSeries = {};
-		_.each(chartData, function(series) {
-			yearsForSeries[series.id] = {};
-			_.each(series.values, function(d, i) {
-				yearsForSeries[series.id][d.x] = true;
-			});
-		});
-
-		_.each(chartData, function(series) {
-			for (var year = minYear; year <= maxYear; year++) {
-				if (!yearsForSeries[series.id][year])
-					series.values.push({ x: year, y: 0, time: year, fake: true });
-			}
 			series.values = _.sortBy(series.values, function(d) { return d.x; });
 		});
 
