@@ -3,7 +3,6 @@ import * as $ from 'jquery'
 import ChartType from './ChartType'
 import ChartConfig from './ChartConfig'
 import {observable, computed, autorun, action} from 'mobx'
-import EntityKey from './EntityKey'
 
 
 class Variable {
@@ -78,7 +77,7 @@ export default class VariableData {
 	chart: ChartConfig
 	@observable.ref dataRequest: any
 	@observable.ref variablesById: {[id: number]: Variable} = {}
-	@observable.ref entityMetaByKey: {[key: string]: EntityMeta} = {}
+	@observable.ref entityMetaById: {[id: number]: EntityMeta} = {}
 
 	constructor(chart: ChartConfig) {
 		this.chart = chart
@@ -87,6 +86,10 @@ export default class VariableData {
 
 	@computed get variableIds() {
 		return this.chart.dimensions.map(d => d.variableId)
+	}
+
+	@computed get entityMetaByKey() {
+		return _.keyBy(this.entityMetaById, 'name')
 	}
 
 	@computed get cacheTag() {
@@ -103,12 +106,6 @@ export default class VariableData {
 
 	@computed get variables(): Variable[] {
 		return _.values(this.variablesById)
-	}
-
-	@computed.struct get remainingEntities(): EntityKey[] {
-		const {chart, availableEntities} = this
-		const {selectedEntities} = chart
-		return _.without(availableEntities, ...selectedEntities)
 	}
 
 	update() {
@@ -173,6 +170,6 @@ export default class VariableData {
 
 		_.each(variablesById, v => v.entities = _.map(v.entities, id => entityMetaById[id].name))
 		this.variablesById = variablesById
-		this.entityMetaByKey = _.keyBy(entityMetaById, 'name')
+		this.entityMetaById = entityMetaById
 	}
 }

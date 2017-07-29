@@ -33,7 +33,7 @@ export default class ScatterData {
 
     @computed get validEntities() {
         if (this.hideBackgroundEntities)
-            return this.chart.selectedKeys
+            return this.chart.data.selectedKeys.map(datakey => this.chart.data.lookupKey(datakey).entity)
         else
             return _.intersection(
                 this.axisDimensions[0].variable.entitiesUniq,
@@ -88,11 +88,11 @@ export default class ScatterData {
         const {chart, years, colorScale, hideBackgroundEntities, validEntities} = this
         const {dimensionsWithData, keyColors} = chart
         const dataByEntityAndYear = {};
-        const validEntityByName = _.keyBy(validEntities)
+        const validEntityLookup = _.keyBy(validEntities)
         const mainDimension = this.chart.dimensions.find(dim => dim.property == 'y') as ChartDimension
     
         // The data values
-        _.each(dimensionsWithData, (dimension) => {
+        _.each(dimensionsWithData, (dimension, dimIndex) => {
             var variable = dimension.variable,
                 tolerance = (dimension.property == 'color' || dimension.property == 'size') ? Infinity : dimension.tolerance;
 
@@ -102,9 +102,9 @@ export default class ScatterData {
                         value = variable.values[i],
                         entity = variable.entities[i];
 
-                    const datakey = `${entity} - ${mainDimension.variableId}`
+                    const datakey = chart.data.keyFor(entity, 0)
                     
-                    if (!validEntityByName[entity])
+                    if (!validEntityLookup[entity])
                         continue
 
                     if ((dimension.property == 'x' || dimension.property == 'y') && !_.isNumber(value))

@@ -41,7 +41,7 @@ export default class ChartTab extends React.Component<{ chartView: ChartView, ch
             titleLink={chart.url.canonicalUrl}
             subtitleTemplate={chart.subtitle}
             logosSVG={chart.logosSVG}
-            entities={chart.selectedKeys}
+            entities={chart.data.selectedKeys}
             entityType={chart.entityType}
             minYear={minYear}
             maxYear={maxYear}

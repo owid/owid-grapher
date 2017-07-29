@@ -38,7 +38,8 @@ export interface LineChartSeries {
     key: string,
     color: string,
     values: LineChartValue[],
-    classed?: string 
+    classed?: string,
+    isProjection?: boolean
 }
 
 @observer

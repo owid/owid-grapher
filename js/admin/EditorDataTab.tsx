@@ -172,7 +172,7 @@ class DataKeyItem extends React.Component<{ chart: ChartConfig, datakey: DataKey
 	}
 
 	@action.bound onRemove(ev: React.MouseEvent<HTMLSpanElement>) {
-		this.props.chart.selectedKeys = this.props.chart.selectedKeys.filter(e => e != this.datakey)
+		this.props.chart.data.selectedKeys = this.props.chart.data.selectedKeys.filter(e => e != this.datakey)
 		ev.stopPropagation()
 	}
 
@@ -190,7 +190,7 @@ class DataKeyItem extends React.Component<{ chart: ChartConfig, datakey: DataKey
 @observer
 class KeysSection extends React.Component<{ chart: ChartConfig }, undefined> {
 	@action.bound onAddKey(ev: React.ChangeEvent<HTMLSelectElement>) {
-		this.props.chart.selectedKeys.push(ev.target.value)
+		this.props.chart.data.selectKey(ev.target.value)
 	}
 
 	render() {

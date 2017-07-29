@@ -212,7 +212,7 @@ export default class URLBinder {
         // Selected countries -- we can't actually look these up until we have the data
         var country = params.country;
         autorun(() => {
-            if (!chart.data.availableEntities) return
+            if (!chart.vardata.isReady) return
 
             action(() => {
                 if (country) {

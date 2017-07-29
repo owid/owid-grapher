@@ -5,6 +5,13 @@ import ChartConfig from './ChartConfig'
 import VariableData from './VariableData'
 import DataKey from './DataKey'
 import {bind} from 'decko'
+import {LineChartSeries} from './LineChart'
+
+interface DataKeyInfo {
+	entity: string 
+	index: number 
+	label: string 
+}
 
 export default class ChartData {
 	chart: ChartConfig
@@ -13,64 +20,93 @@ export default class ChartData {
 	constructor(chart: ChartConfig, vardata: VariableData) {
 		this.chart = chart
 		this.vardata = vardata
-
-		autorun(this.validateKeys)
 	}
 
-	// When available entities changes, we need to double check that any selection is still appropriate
-	@bind validateKeys() {
+	// Make a unique string key for an entity on a variable
+	keyFor(entity: string, dimensionIndex: number): DataKey {
+		return `${entity}_${dimensionIndex}`
+	}
+
+	@computed get selectedKeys() {
+		const {chart, vardata} = this
+		const validSelections = _.filter(chart.props.selection, sel => {
+			// Must be a dimension that's on the chart
+			const dimension = chart.primaryDimensions[sel.index]
+			if (dimension == null) return false
+			
+			// Entity must be within that dimension
+			const entityMeta = vardata.entityMetaById[sel.entityId]
+			const variable = vardata.variablesById[dimension.variableId]
+			if (entityMeta == null || !_.includes(variable.entitiesUniq, entityMeta.name)) return false
+
+			return true
+		})
+		return _.map(validSelections, sel => this.keyFor(vardata.entityMetaById[sel.entityId].name, sel.index))
+	}
+
+	set selectedKeys(keys: DataKey[]) {
 		const {chart, vardata} = this
 		if (!vardata.isReady) return
-
-		const {labelsByKey, availableKeys} = this
-
-		let validKeys = chart.selectedKeys.filter(entity => labelsByKey[entity])
-
-		if (_.isEmpty(validKeys) && chart.type != ChartType.ScatterPlot && chart.type != ChartType.DiscreteBar && chart.type != ChartType.SlopeChart) {
-			// Select a few random ones
-			validKeys = _.sampleSize(availableKeys, 3);
-		}
-
-		action(() => chart.selectedKeys = validKeys)()
-	}
-
-	@computed get availableEntities() {
-		return this.vardata.availableEntities
-	}
-
-	// Calculate the available keys and their associated labels
-	// Since the keys use numeric variable ids, they can't be used directly for display
-	@computed get labelsByKey(): {[key: string]: string} {
-		const {chart, vardata} = this
-		if (!vardata.isReady) return {}
 		
-		const mainDimensions = chart.dimensions.filter(dim => dim.property == 'y')
+		const colors = new Map()
+		_.each(chart.props.selection, sel => colors.set(sel.entityId, sel.color))
 
-		const labelsByKey: {[key: string]: string} = {}
-		_.each(mainDimensions, dim => {
+		const selection = _.map(keys, datakey => {
+			const {entity, index} = this.lookupKey(datakey)
+			return {
+				entityId: vardata.entityMetaByKey[entity].id,
+				index: index,
+				color: colors.get(datakey)
+			}
+		})
+		chart.props.selection = selection
+	}
+
+	@computed get selectedKeysByKey() {
+		return _.keyBy(this.selectedKeys)
+	}
+
+	// Calculate the available datakeys and their associated info
+	@computed get keyData(): Map<DataKey, DataKeyInfo> {
+		const {chart, vardata} = this
+		if (!vardata.isReady) return new Map()
+		
+		const keyData = new Map()
+		_.each(chart.primaryDimensions, (dim, index) => {
 			const variable = chart.vardata.variablesById[dim.variableId]
 			_.each(variable.entitiesUniq, entity => {
-				const key = `${entity} - ${variable.id}`
+				const key = this.keyFor(entity, index)
 
-				labelsByKey[key] = mainDimensions.length > 1 ? `${entity} - ${dim.displayName || variable.name}` : entity
+				keyData.set(key, {
+					entity: entity,
+					index: index,
+					label: chart.primaryDimensions.length > 1 ? `${entity} - ${dim.displayName || variable.name}` : entity
+				})
 			})
 		})
 
-		return labelsByKey
+		return keyData
 	}
 
 	@computed.struct get availableKeys(): DataKey[] {
-		return _.sortBy(_.keys(this.labelsByKey))
+		return _.sortBy([...this.keyData.keys()])
 	}
 
 	@computed.struct get remainingKeys(): DataKey[] {
-		const {chart, availableKeys} = this
-		const {selectedKeys} = chart
+		const {chart, availableKeys, selectedKeys} = this
 		return _.without(availableKeys, ...selectedKeys)
 	}
 
-	formatKey(key: DataKey) {
-		return this.labelsByKey[key]
+	lookupKey(key: DataKey) {
+		const keyDatum = this.keyData.get(key)
+		if (keyDatum !== undefined)
+			return keyDatum
+		else
+			throw new Error(`Unknown data key: ${key}`)		
+	}
+
+	formatKey(key: DataKey): string {
+		return this.lookupKey(key).label
 	}
 
 	@computed get data() {
@@ -85,8 +121,6 @@ export default class ChartData {
 			result = this.transformDataForLineChart();
 		else if (chart.type == ChartType.StackedArea)
 			result = this.transformDataForStackedArea();
-		else if (chart.type == ChartType.DiscreteBar)
-			result = this.transformDataForDiscreteBar();
 		else
 			result = this.transformDataForLineChart();
 		
@@ -118,8 +152,8 @@ export default class ChartData {
 	}
 
 	transformDataForLineChart() {
-		const {chart, vardata} = this
-		const {timeDomain, selectedKeysByKey, yAxis, addCountryMode} = chart
+		const {chart, vardata, selectedKeysByKey} = this
+		const {timeDomain, yAxis, addCountryMode} = chart
 		const dimensions = _.clone(chart.dimensions).reverse()
 		const {variablesById} = vardata
 
@@ -131,17 +165,18 @@ export default class ChartData {
 		let minYear = Infinity
 		let maxYear = -Infinity
 
-		_.each(dimensions, function(dimension) {
+		_.each(dimensions, (dimension, dimIndex) => {
 			var variable = variablesById[dimension.variableId],
 				variableName = dimension.displayName || variable.name,
-				seriesByKey: {[key: DataKey]: any} = {};
+
+			const seriesByKey = new Map<DataKey, LineChartSeries>()
 
 			for (var i = 0; i < variable.years.length; i++) {
 				const year = variable.years[i]
 				const value = _.toNumber(variable.values[i])
 				const entity = variable.entities[i]
-				const datakey = `${entity} - ${variable.id}`
-				let series = seriesByKey[datakey]
+				const datakey = this.keyFor(entity, dimIndex)
+				let series = seriesByKey.get(datakey)
 
 				// Not a selected entity, don't add any data for it
 				if (!selectedKeysByKey[datakey]) continue;
@@ -159,7 +194,7 @@ export default class ChartData {
 						key: datakey,
 						isProjection: dimension.isProjection
 					};
-					seriesByKey[datakey] = series;
+					seriesByKey.set(datakey, series);
 				}
 
 				var prevValue = series.values[series.values.length-1];
@@ -170,7 +205,7 @@ export default class ChartData {
 				maxYear = Math.max(maxYear, year);
 			}
 
-			chartData = chartData.concat(_.values(seriesByKey));
+			chartData = chartData.concat([...seriesByKey.values()]);
 		});
 
 		//if (addCountryMode === "add-country")

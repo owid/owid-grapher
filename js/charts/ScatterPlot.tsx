@@ -111,7 +111,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         })
 
         currentData = _.filter(currentData, series => {
-            return series.values.length > 0 && ((_.first(series.values).year == startYear && (_.last(series.values).year == endYear || _.first(series.values).year == startYear)) || _.includes(this.chart.selectedKeys, series.key)
+            return series.values.length > 0 && ((_.first(series.values).year == startYear && (_.last(series.values).year == endYear || _.first(series.values).year == startYear)) || _.includes(this.chart.data.selectedKeys, series.key)
         })
 
         if (timeline && timeline.compareEndPointsOnly) {
@@ -224,7 +224,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
 
     @action.bound onSelectEntity(focusKeys: string[]) {
         if (this.chart.addCountryMode != 'disabled')
-            this.chart.selectedKeys = focusKeys
+            this.chart.data.selectedKeys = focusKeys
     }
 
     @computed get timeline(): Timeline|null {
@@ -257,17 +257,17 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         if (this.chart.addCountryMode == 'disabled')
             return
         
-        if (_.isEqual(_.sortBy(this.focusKeys), _.sortBy(this.chart.selectedKeys)))
-            this.chart.selectedKeys = []
+        if (_.isEqual(_.sortBy(this.focusKeys), _.sortBy(this.chart.data.selectedKeys)))
+            this.chart.data.selectedKeys = []
         else
-            this.chart.selectedKeys = this.focusKeys
+            this.chart.data.selectedKeys = this.focusKeys
     }
 
     @computed get focusKeys(): string[] {
         if (this.focusColor) {
             return _.uniq(_.map(_.filter(this.allSeries, series => series.color == this.focusColor), series => series.key))
         } else {
-            return this.chart.selectedKeys
+            return this.chart.data.selectedKeys
         }
     }
 

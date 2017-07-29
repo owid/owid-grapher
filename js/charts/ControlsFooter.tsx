@@ -121,7 +121,7 @@ class HighlightToggle extends React.Component<{ chart: ChartConfig }, undefined>
             const params = owid.getQueryParams()
             this.chart.url.populateFromURL(_.extend(params, this.highlightParams))
         } else {
-            this.chart.selectedKeys = []
+            this.chart.data.selectedKeys = []
         }
     }
 

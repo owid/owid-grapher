@@ -38,7 +38,7 @@ export default class DiscreteBarTransform {
         for (var i = 0; i < variable.years.length; i++) {
             const year = variable.years[i]
             const entity = variable.entities[i]
-            const key = `${entity} - ${variable.id}`
+            const key = chart.data.keyFor(entity, 0)
 
 //            if (year != targetYear || !selectedKeysByKey[key]) continue;
             if (year != targetYear) continue;

@@ -7,7 +7,7 @@ import {ComparisonLineConfig} from './ComparisonLine'
 import {component} from './Util'
 import AxisConfig, {AxisConfigProps} from './AxisConfig'
 import ChartType, {ChartTypeType} from './ChartType'
-import EntityKey from './EntityKey'
+import DataKey from './DataKey'
 import ChartTabOption from './ChartTabOption'
 import LineType from './LineType'
 import {defaultTo} from './Util'
@@ -17,6 +17,7 @@ import MapConfig, {MapConfigProps} from './MapConfig'
 import URLBinder from './URLBinder'
 import ColorBinder from './ColorBinder'
 import DiscreteBarTransform from './DiscreteBarTransform'
+import Color from './Color'
 
 export interface TimelineConfig {
     compareEndPointsOnly?: boolean
@@ -37,7 +38,13 @@ export interface ChartDimension {
     property: string,
     targetYear: number|null,
     tolerance: number,
-    unit: string    
+    unit: string
+}
+
+export interface EntitySelection {
+    entityId: number,
+    index: number, // Which dimension the entity is from
+    color?: Color
 }
 
 export class ChartConfigProps {
@@ -52,7 +59,7 @@ export class ChartConfigProps {
     @observable.ref xAxis: AxisConfigProps = new AxisConfigProps()
     @observable.ref yAxis: AxisConfigProps = new AxisConfigProps()
 
-    @observable.struct selectedKeys: EntityKey[] = []
+    @observable.ref selection: EntitySelection[] = []
     @observable.struct timeDomain: [number|null, number|null]
     @observable.struct keyColors: {[key: string]: string} = {}
 
@@ -93,7 +100,6 @@ export default class ChartConfig {
     @computed get logosSVG() { return this.props.logosSVG }
     @computed get originUrl() { return defaultTo(this.props.originUrl, "") }
     @computed get isPublished() { return defaultTo(this.props.isPublished, false) }
-    @computed get selectedKeys() { return this.props.selectedKeys }
     @computed get timeDomain() { return this.props.timeDomain }
     @computed get keyColors() { return this.props.keyColors }
     @computed get tab() { return this.props.tab }
@@ -108,7 +114,6 @@ export default class ChartConfig {
 
     set timeDomain(value) { this.props.timeDomain = value }
     set tab(value) { this.props.tab = value }
-    set selectedKeys(value) { this.props.selectedKeys = value }
 
     @computed get xAxis() {
         return new AxisConfig(this.props.xAxis)
@@ -159,6 +164,10 @@ export default class ChartConfig {
         return validDimensions
     }
 
+    @computed get primaryDimensions() {
+		return this.dimensions.filter(dim => dim.property == 'y')        
+    }
+
     @computed get dimensionsWithData() {
         if (!this.vardata.isReady) return null
 
@@ -173,16 +182,11 @@ export default class ChartConfig {
 
 	model: any
 
-    @computed get selectedKeysByKey() {
-        return _.keyBy(this.selectedKeys)
-    }
-
     @computed get availableTabs(): ChartTabOption[] {
         return _.filter([this.props.hasChartTab && 'chart', this.props.hasMapTab && 'map', 'data', 'sources', 'download']) as ChartTabOption[]
     }
 
     @action.bound update(props: any) {
-        console.log(props)
         this.props.id = props['id']
         this.props.type = props['chart-type']
         this.props.slug = props['slug']
@@ -196,12 +200,7 @@ export default class ChartConfig {
         this.props.isPublished = props['published']
         this.props.map = props['map-config'] ? _.extend(new MapConfigProps(), props['map-config']) : undefined
 
-        this.props.selectedKeys = props['selected-countries'].map((e: any) => e.name)
-        this.props.keyColors = {}
-        props['selected-countries'].forEach((e: any) => {
-            if (e.color)
-                this.props.keyColors[e.name] = e.color
-        })
+        this.props.selection = props['selection']
         this.props.timeline = props['timeline']
 
         const timeDomain = props['chart-time']
@@ -282,7 +281,7 @@ export default class ChartConfig {
 
     // TODO - make these unnecessary
 	@computed get isMultiEntity() {
-        if (this.selectedKeys.length > 1)
+        if (this.data.selectedKeys.length > 1)
             return true
         else if (this.addCountryMode == "add-country")
             return true
