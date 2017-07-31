@@ -24,7 +24,7 @@ export default class ScatterData {
     }
 
     @computed get axisDimensions() {
-        return _.filter(this.chart.dimensionsWithData, d => d.property == 'x' || d.property == 'y')
+        return _.filter(this.chart.data.filledDimensions, d => d.property == 'x' || d.property == 'y')
     }
 
     @computed get hideBackgroundEntities() {
@@ -46,7 +46,7 @@ export default class ScatterData {
             let maxYear = this.chart.timeDomain[1]
             if (!_.isFinite(maxYear))
                 maxYear = _(this.axisDimensions).map(d => _.max(d.variable.years)).max()
-            return [maxYear]
+            return [maxYear] as number[]
         }
 
         // Show years with at least some data for both variables
@@ -70,11 +70,9 @@ export default class ScatterData {
 
     @computed get colorScale(): d3.ScaleOrdinal<string, string> {
         const {colorScheme} = this
-        const {dimensionsWithData} = this.chart
+        const colorDim = this.chart.data.dimensionsByField['color']
 
         const colorScale = d3.scaleOrdinal(this.colorScheme)
-
-        var colorDim = _.find(dimensionsWithData, { property: 'color' });
         if (colorDim) {
             colorScale.domain(colorDim.variable.categoricalValues);
         }
@@ -86,13 +84,14 @@ export default class ScatterData {
     // If there's no timeline, this uses the same structure but only computes for a single year
     @computed get dataByEntityAndYear() {
         const {chart, years, colorScale, hideBackgroundEntities, validEntities} = this
-        const {dimensionsWithData, keyColors} = chart
+        const {keyColors} = chart
+        const {filledDimensions} = chart.data
         const dataByEntityAndYear = {};
         const validEntityLookup = _.keyBy(validEntities)
         const mainDimension = this.chart.dimensions.find(dim => dim.property == 'y') as ChartDimension
     
         // The data values
-        _.each(dimensionsWithData, (dimension, dimIndex) => {
+        _.each(filledDimensions, (dimension, dimIndex) => {
             var variable = dimension.variable,
                 tolerance = (dimension.property == 'color' || dimension.property == 'size') ? Infinity : dimension.tolerance;
 
@@ -110,7 +109,7 @@ export default class ScatterData {
                     if ((dimension.property == 'x' || dimension.property == 'y') && !_.isNumber(value))
                         continue
     
-                    const targetYear = (!this.chart.timeline && _.isFinite(dimension.targetYear)) ? dimension.targetYear : outputYear
+                    const targetYear = (!this.chart.timeline && _.isFinite(dimension.targetYear)) ? (dimension.targetYear as number) : outputYear
 
                     // Skip years that aren't within tolerance of the target
                     if (year < targetYear-tolerance || year > targetYear+tolerance)
@@ -132,7 +131,7 @@ export default class ScatterData {
                         continue;                
 
                     if (dimension.property == 'color') {
-                        if (!series.color) series.color = colorScale(value);
+                        if (!series.color) series.color = colorScale(value as string);
                     } else {
                         d.time[dimension.property] = year;
                         d[dimension.property] = value;

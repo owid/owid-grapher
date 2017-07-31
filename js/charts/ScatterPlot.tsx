@@ -58,10 +58,6 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     @computed.struct get bounds() : Bounds {
         return this.props.bounds
     }
-    @computed get dimensions() : Object[] {
-        return this.chart.dimensionsWithData
-    }
-
     @computed get configTolerance() {
         return 1
     }
@@ -121,11 +117,6 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         }
         
         return currentData;
-    }
-
-
-    @computed get axisDimensions() : Object[] {
-        return _.filter(this.dimensions, function(d) { return d.property == 'x' || d.property == 'y'; });
     }
 
     @computed get yearsWithData() : number[] {

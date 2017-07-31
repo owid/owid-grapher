@@ -179,7 +179,7 @@ export default class ChartView extends React.Component<ChartViewProps, undefined
         if (primaryTabName == 'chart')
             return <ChartTab bounds={bounds} chartView={this} chart={this.chart}/>
         else
-            return <MapTab bounds={bounds} chartView={this} chart={this.chart}/>
+            return <MapTab bounds={bounds} chart={this.chart}/>
     }
 
     renderOverlayTab(bounds: Bounds) {
@@ -229,7 +229,7 @@ export default class ChartView extends React.Component<ChartViewProps, undefined
         const style = { width: renderWidth*scale + 'px', height: renderHeight*scale + 'px', fontSize: 16*scale + 'px' }
 
         return <div id="chart" className={this.classNames} style={style}>
-            {this.chart.dimensionsWithData ? this.renderReady() : this.renderLoading()}
+            {this.chart.vardata.isReady ? this.renderReady() : this.renderLoading()}
         </div>
     }
 

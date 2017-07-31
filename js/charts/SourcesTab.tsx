@@ -8,7 +8,7 @@ import ChartConfig from './ChartConfig'
 import {SourceWithVariable} from './ChartData'
 
 @observer
-export default class SourcesTab extends React.Component<{ bounds: Bounds, chart: ChartConfig }, undefined> {
+export default class SourcesTab extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
 	@computed get bounds() {
 		return this.props.bounds
 	}

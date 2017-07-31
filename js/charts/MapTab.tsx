@@ -159,13 +159,12 @@ export default class MapTab extends React.Component<MapTabProps, undefined> {
         const {map} = this
         if (!map.data) return null
         
-        const {chartView, bounds} = this.props
+        const {bounds} = this.props
         const {header, footer} = this
 
         return <g className="mapTab">
             <Header {...header.props}/>
             <TimelineMap
-                chartView={chartView}
                 bounds={bounds.padTop(header.height+5).padBottom(footer.height)}
                 choroplethData={map.data.choroplethData}
                 years={map.data.years}

@@ -168,18 +168,6 @@ export default class ChartConfig {
 		return this.dimensions.filter(dim => dim.property == 'y')        
     }
 
-    @computed get dimensionsWithData() {
-        if (!this.vardata.isReady) return null
-
-        return _.map(this.dimensions, dim => {
-            const variable = this.vardata.variablesById[dim.variableId]
-            return _.extend({}, dim, {
-                displayName: dim.displayName || variable.name,
-                variable: variable
-            })
-        })
-    }
-
 	model: any
 
     @computed get availableTabs(): ChartTabOption[] {

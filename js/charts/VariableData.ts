@@ -4,6 +4,7 @@ import ChartType from './ChartType'
 import ChartConfig from './ChartConfig'
 import {observable, computed, autorun, action} from 'mobx'
 
+declare var Global: { rootUrl: string }
 
 export class Variable {
 	@observable.ref id: number

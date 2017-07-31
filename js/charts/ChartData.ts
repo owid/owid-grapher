@@ -1,7 +1,7 @@
 import * as _ from 'lodash'
 import ChartType from './ChartType'
 import {computed, autorun, action} from 'mobx'
-import ChartConfig from './ChartConfig'
+import ChartConfig, {ChartDimension} from './ChartConfig'
 import VariableData, {Variable} from './VariableData'
 import DataKey from './DataKey'
 import {bind} from 'decko'
@@ -19,6 +19,11 @@ export interface SourceWithVariable {
 	variable: Variable
 }
 
+// A chart dimension plus the variable+data that it requested for itself
+export interface FilledDimension extends ChartDimension {
+	variable: Variable
+}
+
 export default class ChartData {
 	chart: ChartConfig
 	vardata: VariableData
@@ -33,7 +38,23 @@ export default class ChartData {
 		return `${entity}_${dimensionIndex}`
 	}
 
-	@computed get selectedKeys() {
+	@computed get filledDimensions(): FilledDimension[] {
+        if (!this.vardata.isReady) return []
+
+        return _.map(this.chart.dimensions, dim => {
+            const variable = this.vardata.variablesById[dim.variableId]
+            return _.extend({}, dim, {
+                displayName: dim.displayName || variable.name,
+                variable: variable
+            })
+        })
+    }
+
+	@computed get dimensionsByField(): _.Dictionary<FilledDimension> {
+		return _.keyBy(this.filledDimensions, 'property')
+	}
+
+	@computed get selectedKeys(): DataKey[] {
 		const {chart, vardata} = this
 		const validSelections = _.filter(chart.props.selectedData, sel => {
 			// Must be a dimension that's on the chart
@@ -68,7 +89,7 @@ export default class ChartData {
 		chart.props.selectedData = selection
 	}
 
-	@computed get selectedKeysByKey() {
+	@computed get selectedKeysByKey(): _.Dictionary<DataKey> {
 		return _.keyBy(this.selectedKeys)
 	}
 
@@ -144,7 +165,7 @@ export default class ChartData {
 		return result;		
 	}
 
-	@computed get chartData() {
+	@computed get chartData() {		
 		return this.data ? this.data.chartData : []
 	}
 
