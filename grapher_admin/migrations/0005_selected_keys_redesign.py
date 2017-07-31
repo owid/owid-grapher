@@ -28,7 +28,7 @@ def selectedKeysRedesign(apps, schema_editor):
             print(selection)
             print()
 
-            config['selection'] = selection
+            config['selectedData'] = selection
             del config['selected-countries']
 
             chart.config = json.dumps(config)

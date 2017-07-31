@@ -75,17 +75,14 @@ interface SourcesFooterProps {
 }
 
 export default class SourcesFooter extends React.Component<SourcesFooterProps, undefined> {
+    @computed get defaultSourceDesc(): string {
+       return _(this.props.chart.data.sources).map('name').uniq().join(",")
+    }
+
     @computed get sourcesText(): string {
-        let sourcesStr: string = this.props.chart.sourceDesc
-        if (!sourcesStr) {
-            const sources = this.props.chart.data.transformDataForSources()
-            const sourceNames = _.uniq(_.map(sources, 'name'))
-            sourceNames.forEach((sourceName, i) => {
-                 if (i > 0) sourcesStr += ", "
-                 sourcesStr += sourceName
-            })
-        }
-        return sourcesStr ? `Source: ${sourcesStr}` : ''
+        const {chart} = this.props
+        const sourceDesc = chart.sourceDesc || this.defaultSourceDesc
+        return sourceDesc ? `Source: ${sourceDesc}` : ''
     }
 
     @computed get notesText(): string {

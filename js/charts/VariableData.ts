@@ -5,11 +5,13 @@ import ChartConfig from './ChartConfig'
 import {observable, computed, autorun, action} from 'mobx'
 
 
-class Variable {
+export class Variable {
 	@observable.ref id: number
 	@observable.ref name: string
 	@observable.ref description: string
 	@observable.ref unit: string
+	@observable.ref coverage: string
+	@observable.ref timespan: string
 	@observable.struct source: {
 		name: string,
 		description: string

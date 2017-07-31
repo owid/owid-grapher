@@ -2,7 +2,7 @@ import * as _ from 'lodash'
 import ChartType from './ChartType'
 import {computed, autorun, action} from 'mobx'
 import ChartConfig from './ChartConfig'
-import VariableData from './VariableData'
+import VariableData, {Variable} from './VariableData'
 import DataKey from './DataKey'
 import {bind} from 'decko'
 import {LineChartSeries} from './LineChart'
@@ -11,6 +11,12 @@ interface DataKeyInfo {
 	entity: string 
 	index: number 
 	label: string 
+}
+
+export interface SourceWithVariable {
+	name: string,
+	description: string,
+	variable: Variable
 }
 
 export default class ChartData {
@@ -29,7 +35,7 @@ export default class ChartData {
 
 	@computed get selectedKeys() {
 		const {chart, vardata} = this
-		const validSelections = _.filter(chart.props.selection, sel => {
+		const validSelections = _.filter(chart.props.selectedData, sel => {
 			// Must be a dimension that's on the chart
 			const dimension = chart.primaryDimensions[sel.index]
 			if (dimension == null) return false
@@ -49,7 +55,7 @@ export default class ChartData {
 		if (!vardata.isReady) return
 		
 		const colors = new Map()
-		_.each(chart.props.selection, sel => colors.set(sel.entityId, sel.color))
+		_.each(chart.props.selectedData, sel => colors.set(sel.entityId, sel.color))
 
 		const selection = _.map(keys, datakey => {
 			const {entity, index} = this.lookupKey(datakey)
@@ -59,7 +65,7 @@ export default class ChartData {
 				color: colors.get(datakey)
 			}
 		})
-		chart.props.selection = selection
+		chart.props.selectedData = selection
 	}
 
 	@computed get selectedKeysByKey() {
@@ -244,111 +250,22 @@ export default class ChartData {
 		});
 
 		return chartData;
-	},
-
-	transformDataForStackedArea() {
-		//if (!this.chart.get("group-by-variables")) {
-			var result = this.transformDataForLineChart();
-			result.chartData = this.zeroPadData(result.chartData);
-			return result;
-		//}
-
-		/*const {chart, vardata} = this
-		const {dimensions} = chart
-		const {variablesById} = vardata
-
-			// Group-by-variable chart only has one selected country
-			selectedCountry = _.values(this.chart.getSelectedEntitiesById())[0],
-			chartData = [], legendData = [],
-			timeFrom = this.chart.getTimeFrom(),
-			timeTo = this.chart.getTimeTo(),
-			minYear = Infinity,
-			maxYear = -Infinity;
-
-		_.each(dimensions, function(dimension) {
-			var variable = variables[dimension.variableId];
-
-			var series = {
-				id: variable.id,
-				key: dimension.displayName || variable.name,
-				entityName: selectedCountry.name,
-				entityId: selectedCountry.id,
-				variableId: dimension.variableId,
-				values: []
-			};
-
-			for (var i = 0; i < variable.years.length; i++) {
-				var year = parseInt(variable.years[i]),
-					value = parseFloat(variable.values[i]),
-					entityId = variable.entities[i];
-
-				if (entityId != selectedCountry.id) continue;
-				if (year < timeFrom || year > timeTo) continue;
-
-				series.values.push({ x: year, y: value, time: year });
-				minYear = Math.min(minYear, year);
-				maxYear = Math.max(maxYear, year);
-			}
-
-			chartData.push(series);
-		});
-
-		chartData = this.zeroPadData(chartData);
-
-		legendData = _.map(chartData, function(series) {
-			return { label: series.label, key: series.key, entityId: series.entityId, variableId: series.variableId };
-		});
-
-		return { chartData: chartData, legendData: legendData, minYear: minYear, maxYear: maxYear };*/
 	}
 
-
-	getSourceDescHtml(variable, source) {
-		var html = '';
-
-		html += '<div class="datasource-wrapper">' +
-			   		'<h2>' + variable.name + '</h2>';
-
-
-		html += 	'<table class="variable-desc">';
-
-		if (variable.description)
-			html +=		'<tr><td>Variable description</td><td>' + variable.description + '</td>';
-		if (variable.coverage)
-			html += 	'<tr><td>Variable geographic coverage</td>' + variable.coverage + '</td>';
-		if (variable.timespan)
-			html += 	'<tr><td>Variable time span</td>' + variable.timespan + '</td>';
-
-		html += 	'</table>';
-
-		html +=	   	source.description +
-				'</div>';
-
-
-		return html;
-	}
-
-	transformDataForSources() {
+	@computed get sources(): SourceWithVariable[] {
 		const {chart, vardata} = this
 		const {dimensions} = chart
 		const {variablesById} = vardata
 
-
 		if (_.isEmpty(variablesById)) return []
 
-		let sources = _.map(dimensions, (dim) => {
+		let sources: SourceWithVariable[] = []
+		_.each(dimensions, (dim) => {
 			const variable = variablesById[dim.variableId]
-			const source = _.clone(variable.source)
-
 			// HACK (Mispy): Ignore the default color source on scatterplots.
-			if (variable.name == "Countries Continents" || variable.name == "Total population (Gapminder)")
-				source.ignore = true;
-
-			source.description = this.getSourceDescHtml(variable, variable.source);
-			return source;
+			if (variable.name != "Countries Continents" && variable.name != "Total population (Gapminder)")
+				sources.push(_.extend({}, variable.source, { variable: variable }))
 		});
-
-		sources = _.filter(sources, function(source) { return !source.ignore; });
-		return sources;
-	},
-});
+		return sources
+	}
+}

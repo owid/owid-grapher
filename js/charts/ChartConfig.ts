@@ -59,7 +59,7 @@ export class ChartConfigProps {
     @observable.ref xAxis: AxisConfigProps = new AxisConfigProps()
     @observable.ref yAxis: AxisConfigProps = new AxisConfigProps()
 
-    @observable.ref selection: EntitySelection[] = []
+    @observable.ref selectedData: EntitySelection[] = []
     @observable.struct timeDomain: [number|null, number|null]
     @observable.struct keyColors: {[key: string]: string} = {}
 
@@ -200,7 +200,7 @@ export default class ChartConfig {
         this.props.isPublished = props['published']
         this.props.map = props['map-config'] ? _.extend(new MapConfigProps(), props['map-config']) : undefined
 
-        this.props.selection = props['selection']
+        this.props.selectedData = props['selectedData']
         this.props.timeline = props['timeline']
 
         const timeDomain = props['chart-time']
@@ -242,13 +242,7 @@ export default class ChartConfig {
         json['chart-description'] = props.note
         json['published'] = props.isPublished
         json['map-config'] = props.map
-        json['selected-countries'] = props.selectedKeys.map(e => {
-            return {
-                name: e,
-                color: props.keyColors[e]
-            }
-        })
-
+        json['selectedData'] = props.selectedData
         json['chart-time'] = props.timeDomain
         json['tabs'] = this.availableTabs
         json['chart-dimensions'] = props.dimensions
