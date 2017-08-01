@@ -87,12 +87,11 @@ export default class LineChartTransform {
 
     @computed get yAxis(): AxisSpec {
         const {chart, yDomainDefault, yDimensionFirst} = this
-
-        yDimensionFirst.variable.unit
+        const {variable} = yDimensionFirst
 
         return {
             label: chart.yAxis.label,
-            tickFormat: chart.yAxis.tickFormat,//(d: number) => d + yDimensionFirst.variable.unit,
+            tickFormat: (d: number) => d + (yDimensionFirst.variable.shortUnit||""),
             domain: [defaultTo(chart.yAxis.domain[0], yDomainDefault[0]), defaultTo(chart.yAxis.domain[1], yDomainDefault[1])],
             scaleType: chart.yAxis.scaleType,
             scaleTypeOptions: chart.yAxis.scaleTypeOptions            

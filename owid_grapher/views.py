@@ -305,7 +305,7 @@ def variables(request, ids):
         var['createdAt'] = str(each['created_at'])
         var['description'] = each['var_desc']
         var['unit'] = each['var_unit']
-        var['shortUnit'] = each['var_short_unit']
+        #var['shortUnit'] = each['var_short_unit']
         var['source'] = source
         var['entities'] = []
         var['years'] = []

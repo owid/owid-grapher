@@ -53,7 +53,7 @@ interface ScatterRenderSeries {
 }
 
 @observer
-export default class PointsWithLabels extends React.Component<PointsWithLabelsProps, undefined> {
+export default class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     @observable hoverKey: string|null = null
 
     @computed get focusKeys(): string[] {

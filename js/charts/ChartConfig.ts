@@ -19,6 +19,7 @@ import ColorBinder from './ColorBinder'
 import DiscreteBarTransform from './DiscreteBarTransform'
 import StackedAreaTransform from './StackedAreaTransform'
 import LineChartTransform from './LineChartTransform'
+import ScatterTransform from './ScatterTransform'
 import Color from './Color'
 
 export interface TimelineConfig {
@@ -244,6 +245,7 @@ export default class ChartConfig {
     @computed get discreteBar() { return new DiscreteBarTransform(this) }
     @computed get stackedArea() { return new StackedAreaTransform(this) }
     @computed get lineChart() { return new LineChartTransform(this) }
+    @computed get scatter() { return new ScatterTransform(this) }
 
 	constructor(props: ChartConfigProps) {        
         this.update(props)

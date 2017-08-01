@@ -133,6 +133,9 @@ export function defaultTo<T, K>(value: T|undefined|null, defaultValue: K): T|K {
     else return value
 }
 
+export function first<T>(arr: T[]) { return arr[0] }
+export function last<T>(arr: T[]) { return arr[arr.length-1] }
+
 export type QueryParams = {[key: string]: string}
 
 export function getQueryParams(queryStr?: string): QueryParams {
