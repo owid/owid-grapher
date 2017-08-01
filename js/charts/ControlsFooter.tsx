@@ -12,12 +12,14 @@ import * as $ from 'jquery'
 import ChartTabOption from './ChartTabOption'
 import EntitySelect from './owid.view.entitySelect'
 import ChartType from './ChartType'
+import {getQueryParams} from './Util'
+import ChartView from './ChartView'
 
 declare const Global: any
 declare const App: any
 
 @observer
-class EmbedMenu extends React.Component<{ embedUrl: string }, undefined> {
+class EmbedMenu extends React.Component<{ embedUrl: string }> {
     render() {
         const {embedUrl} = this.props
 
@@ -38,7 +40,7 @@ interface ShareMenuProps {
 }
 
 @observer
-class ShareMenu extends React.Component<ShareMenuProps, undefined> {
+class ShareMenu extends React.Component<ShareMenuProps> {
     @computed get title() : string {
         return document.title.replace(" - Our World In Data", "")
     }
@@ -51,7 +53,7 @@ class ShareMenu extends React.Component<ShareMenuProps, undefined> {
         return this.props.chart.url.lastQueryStr||""
     }
 
-    @computed get editUrl() : string {
+    @computed get editUrl() : string|null {
         return Cookies.get('isAdmin') ? (Global.adminRootUrl + '/charts/' + this.props.chart.id + '/edit') : null
     }
 
@@ -101,24 +103,20 @@ class ShareMenu extends React.Component<ShareMenuProps, undefined> {
 
 interface ControlsFooterProps {
     chart: ChartConfig,
-    activeTabName: string,
-    chartView: any,
-    availableTabs: ChartTabOption[],
-    onTabChange: (tabName: ChartTabOption) => void
+    chartView: ChartView,
 }
 
-class HighlightToggle extends React.Component<{ chart: ChartConfig }, undefined> {
-    @computed get chartView() { return window.chart }
+class HighlightToggle extends React.Component<{ chart: ChartConfig }> {
     @computed get chart() { return this.props.chart }
     @computed get highlight() { return this.chart.highlightToggle }
 
     @computed get highlightParams() {
-        return owid.getQueryParams((this.highlight.paramStr||"").substring(1))
+        return getQueryParams((this.highlight.paramStr||"").substring(1))
     }
 
     @action.bound onHighlightToggle(e) {
         if (e.target.checked) {
-            const params = owid.getQueryParams()
+            const params = getQueryParams()
             this.chart.url.populateFromURL(_.extend(params, this.highlightParams))
         } else {
             this.chart.data.selectedKeys = []
@@ -126,7 +124,7 @@ class HighlightToggle extends React.Component<{ chart: ChartConfig }, undefined>
     }
 
     get isHighlightActive() {
-        const params = owid.getQueryParams()
+        const params = getQueryParams()
         let isActive = true
         _.keys(this.highlightParams).forEach((key) => {
             if (params[key] != this.highlightParams[key])
@@ -144,11 +142,7 @@ class HighlightToggle extends React.Component<{ chart: ChartConfig }, undefined>
 }
 
 @observer
-export default class ControlsFooter extends React.Component<ControlsFooterProps, undefined> {
-    @computed get tabNames(): ChartTabOption[] {
-        return this.props.availableTabs
-    }
-
+export default class ControlsFooter extends React.Component<ControlsFooterProps> {
     @computed get height() {
         const height = Bounds.forText("CHART", { fontSize: 16*this.props.chartView.scale +'px' }).height*2/this.props.chartView.scale
         if (this.props.chartView.isPortrait && this.props.chart.type == ChartType.ScatterPlot)
@@ -185,22 +179,22 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps,
     }
 
     render() {
-        const {props, tabNames, isShareMenuActive} = this
+        const {props, isShareMenuActive} = this
         const {chart, chartView} = props
         return <div className="controlsFooter">
-            {chart.type == ChartType.ScatterPlot && chartView.activeTabName == 'chart' && 
+            {chart.type == ChartType.ScatterPlot && chart.tab == 'chart' && 
                 <div className="scatterControls">                                
-                        chart.highlightToggle && <HighlightToggle chart={chart}/>,
-                        <button onClick={this.onEntitySelect}>
-                            <i className="fa fa-search"/> Search
-                        </button>
+                    {chart.highlightToggle && <HighlightToggle chart={chart}/>}
+                    <button onClick={this.onEntitySelect}>
+                        <i className="fa fa-search"/> Search
+                    </button>
                 </div>}
             <nav className="tabs">
                 <ul>
-                    {_.map(tabNames, (tabName) => {
-                        return tabName != 'download' && <li className={"tab clickable" + (tabName == props.activeTabName ? ' active' : '')} onClick={() => this.props.onTabChange(tabName)}><a>{tabName}</a></li>
+                    {_.map(chart.availableTabs, (tabName) => {
+                        return tabName != 'download' && <li className={"tab clickable" + (tabName == chart.tab ? ' active' : '')} onClick={() => chart.tab = tabName}><a>{tabName}</a></li>
                     })}
-                    <li className={"tab clickable icon" + (props.activeTabName == 'download' ? ' active' : '')} onClick={() => this.props.onTabChange('download')} title="Download as .png or .svg">
+                    <li className={"tab clickable icon" + (chart.tab == 'download' ? ' active' : '')} onClick={() => chart.tab = 'download'} title="Download as .png or .svg">
                         <a><i className="fa fa-download"/></a>
                     </li>
                     <li className="clickable icon"><a title="Share" onClick={this.onShareMenu}><i className="fa fa-share-alt"/></a></li>

@@ -20,7 +20,7 @@ interface SourcesFooterMainProps {
 }
 
 @observer
-class SourcesFooterMain extends React.Component<SourcesFooterMainProps, undefined> {
+class SourcesFooterMain extends React.Component<SourcesFooterMainProps> {
     @computed get fontSize() {
         return 0.5
     }
@@ -69,12 +69,10 @@ class SourcesFooterMain extends React.Component<SourcesFooterMainProps, undefine
 
 interface SourcesFooterProps {
     bounds: Bounds,
-    note: string,
-    originUrl: string,
     chart: ChartConfig
 }
 
-export default class SourcesFooter extends React.Component<SourcesFooterProps, undefined> {
+export default class SourcesFooter extends React.Component<SourcesFooterProps> {
     @computed get defaultSourceDesc(): string {
        return _(this.props.chart.data.sources).map('name').uniq().join(",")
     }
@@ -85,12 +83,12 @@ export default class SourcesFooter extends React.Component<SourcesFooterProps, u
         return sourceDesc ? `Source: ${sourceDesc}` : ''
     }
 
-    @computed get notesText(): string {
-        return this.props.note ? `Note: ${this.props.note}` : '';
+    @computed get noteText(): string {
+        return this.props.chart.note ? `Note: ${this.props.chart.note}` : '';
     }
 
     @computed get licenseSvg(): string {
-        const {originUrl} = this.props
+        const {originUrl} = this.props.chart
         let licenseSvg = `*data-entry* • <a style="fill: #777;" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA</a>`;
 
         // Make sure the link back to OWID is consistent
@@ -109,8 +107,8 @@ export default class SourcesFooter extends React.Component<SourcesFooterProps, u
     }
 
     @computed get footerMain() {
-        const {sourcesText, notesText, licenseSvg} = this
-        return preInstantiate(<SourcesFooterMain sourcesText={sourcesText} notesText={notesText} licenseSvg={licenseSvg} maxWidth={this.props.bounds.width} onSourcesClick={this.onSourcesClick}/>)
+        const {sourcesText, noteText, licenseSvg} = this
+        return preInstantiate(<SourcesFooterMain sourcesText={sourcesText} notesText={noteText} licenseSvg={licenseSvg} maxWidth={this.props.bounds.width} onSourcesClick={this.onSourcesClick}/>)
     }
 
     @computed get height() {

@@ -135,10 +135,10 @@ export function defaultTo<T, K>(value: T|undefined|null, defaultValue: K): T|K {
 
 export type QueryParams = {[key: string]: string}
 
-export function getQueryParams(): QueryParams {
-	var queryStr = window.location.search.substring(1),
-		querySplit = _.filter(queryStr.split("&"), function(s) { return !_.isEmpty(s); }),
-		params: QueryParams = {};
+export function getQueryParams(queryStr?: string): QueryParams {
+	queryStr = queryStr || window.location.search.substring(1)
+	const querySplit = _.filter(queryStr.split("&"), function(s) { return !_.isEmpty(s); })
+	const params: QueryParams = {};
 
 	for (var i = 0; i < querySplit.length; i++) {
 		var pair = querySplit[i].split("=");
@@ -175,5 +175,5 @@ export function setQueryVariable(key: string, val: string|null) {
 };
 
 export function setQueryStr(str: string) {
-	history.replaceState(null, null, window.location.pathname + str + window.location.hash);
+	history.replaceState(null, document.title, window.location.pathname + str + window.location.hash);
 };

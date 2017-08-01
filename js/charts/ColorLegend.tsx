@@ -79,7 +79,7 @@ export interface ColorLegendViewProps {
 }
 
 @observer
-export class ColorLegendView extends React.Component<ColorLegendViewProps, undefined> {
+export class ColorLegendView extends React.Component<ColorLegendViewProps> {
     @computed get onMouseOver(): Function { return defaultTo(this.props.onMouseOver, _.noop) }
     @computed get onMouseLeave(): Function { return defaultTo(this.props.onMouseLeave, _.noop) }
     @computed get onClick(): Function { return defaultTo(this.props.onClick, _.noop) }

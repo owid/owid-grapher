@@ -14,12 +14,9 @@ import * as React from 'react'
 import {observable, computed, action, autorun} from 'mobx'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
-import owid from '../owid'
 import ChartConfig from './ChartConfig'
 import NoData from './NoData'
-import Axis from './Axis'
 import AxisScale from './AxisScale'
-import Layout from './Layout'
 import Timeline from './Timeline'
 import PointsWithLabels from './PointsWithLabels'
 import {preInstantiate} from './Util'
@@ -27,14 +24,27 @@ import Paragraph from './Paragraph'
 import ConnectedScatterLegend from './ConnectedScatterLegend'
 import {Triangle} from './Marks'
 import ScatterData from './ScatterData'
-import AxisGrid from './AxisGrid'
 import ScatterColorLegend from './ScatterColorLegend'
 import AxisBox, {AxisBoxView} from './AxisBox'
 import ComparisonLine from './ComparisonLine'
 import {ScaleType} from './AxisScale'
 import AxisSpec from './AxisSpec' 
+import {unitFormat} from './Util'
 
-type ScatterSeries = any
+interface ScatterValue {
+    x: number,
+    y: number,
+    year: number
+    time: {
+        x: number,
+        y: number
+    }
+}
+
+interface ScatterSeries {
+    size: number
+    values: ScatterValue[]
+}
 
 interface ScatterWithAxisProps {
     bounds: Bounds,
@@ -46,7 +56,7 @@ interface ScatterWithAxisProps {
 }
 
 @observer
-export default class ScatterPlot extends React.Component<{ bounds: Bounds, config: ChartConfig, isStatic: boolean }, undefined> {
+export default class ScatterPlot extends React.Component<{ bounds: Bounds, config: ChartConfig, isStatic: boolean }> {
     @computed get chart() : ChartConfig {
         return this.props.config
     }
@@ -77,7 +87,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
                 if (year < startYear || year > endYear)
                     return
 
-                series = series || _.extend({}, seriesForYear, { values: [] })
+                series = series || _.extend({}, seriesForYear, { values: [] }) as ScatterSeries
                 series.size = _.last(dataByYear[_.last(_.keys(dataByYear))].values).size
                 series.values = series.values.concat(seriesForYear.values)
             })
@@ -198,7 +208,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     }
 
     @computed get colorsInUse(): string[] {
-        return _.uniq(_.map(this.allSeries, 'color'))
+        return _(this.allSeries).map(s => s.color).uniq().value()
     }
 
     @computed get xAxis(): AxisSpec {
@@ -337,11 +347,11 @@ interface ScatterTooltipProps {
 }
 
 @observer
-class ScatterTooltip extends React.Component<ScatterTooltipProps, undefined> {
+class ScatterTooltip extends React.Component<ScatterTooltipProps> {
     formatValue(value, property) {
         const {units} = this.props
         const unit = _.find(units, { property: property })
-        let s = owid.unitFormat(unit, value[property])
+        let s = unitFormat(unit, value[property])
         if (value.year != value.time[property])
             s += " (data from " + value.time[property] + ")"
         return s

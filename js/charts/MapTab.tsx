@@ -25,12 +25,11 @@ interface TimelineMapProps {
     legendData: MapLegendBin[],
     legendTitle: string,
     projection: MapProjection,
-    defaultFill: string,
-    chartView: any
+    defaultFill: string
 }
 
 @observer
-class TimelineMap extends React.Component<TimelineMapProps, undefined> {
+class TimelineMap extends React.Component<TimelineMapProps> {
     @observable focusEntity: any = null
     @observable.ref tooltip: React.ReactNode|null = null
 
@@ -84,7 +83,7 @@ class TimelineMap extends React.Component<TimelineMapProps, undefined> {
     }
 
     @computed get timeline() {
-        if (this.props.years.length <= 1 || this.props.chartView.isExport) return null
+        if (this.props.years.length <= 1 || this.context.chartView.isExport) return null
 
         const {years, inputYear} = this.props
 
@@ -122,7 +121,7 @@ interface MapTabProps {
 }
 
 @observer
-export default class MapTab extends React.Component<MapTabProps, undefined> {
+export default class MapTab extends React.Component<MapTabProps> {
     @computed get map(): MapConfig { return (this.props.chart.map as MapConfig) }
 
     @computed get header() {
@@ -144,15 +143,7 @@ export default class MapTab extends React.Component<MapTabProps, undefined> {
     }
 
     @computed get footer() {
-        const {props} = this
-        const {chart} = props
-
-        return preInstantiate(<SourcesFooter
-            bounds={props.bounds}
-            chart={chart}
-            note={chart.note}
-            originUrl={chart.originUrl}
-         />)
+        return preInstantiate(<SourcesFooter bounds={this.props.bounds} chart={this.props.chart}/>)
     }
 
     render() {

@@ -15,7 +15,7 @@ interface ConnectedScatterLegendProps {
 }
 
 @observer
-export default class ConnectedScatterLegend extends React.Component<ConnectedScatterLegendProps, null> {
+export default class ConnectedScatterLegend extends React.Component<ConnectedScatterLegendProps> {
     static defaultProps: Partial<ConnectedScatterLegendProps> = {
         x: 0,
         y: 0

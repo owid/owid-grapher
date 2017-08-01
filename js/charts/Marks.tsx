@@ -8,7 +8,7 @@ interface TriangleProps {
 }
 
 @observer
-export class Triangle extends React.Component<TriangleProps, undefined> {
+export class Triangle extends React.Component<TriangleProps> {
     render() {
         const {cx, cy, r} = this.props
         const x = cx-r, y = cy-r

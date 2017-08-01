@@ -217,7 +217,7 @@ export default class ChartConfig {
     }
 
     @computed get map() {
-        return this.props.hasMapTab && new MapConfig(this)
+        return new MapConfig(this)
     }
 
     @computed.struct get json() {

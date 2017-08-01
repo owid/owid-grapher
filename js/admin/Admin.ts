@@ -4,6 +4,8 @@
  * Singleton which governs interaction with the grapher admin server.
  */
 
+declare var Global: { rootUrl: string }
+
 class Admin {
     url(path: string): string {
         return Global.rootUrl + path;
@@ -35,5 +37,6 @@ class Admin {
 }
 
 const admin = new Admin()
+declare var window: any
 window.Admin = admin
 export default admin

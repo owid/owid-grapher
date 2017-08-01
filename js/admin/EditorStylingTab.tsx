@@ -10,7 +10,7 @@ import {Toggle} from './Forms'
 /// XXXX todo
 
 @observer
-export default class EditorStylingTab extends React.Component<{ chart: ChartConfig }, undefined> {
+export default class EditorStylingTab extends React.Component<{ chart: ChartConfig }> {
 	get chart(): ChartConfig {
 		return this.props.chart
 	}

@@ -15,7 +15,6 @@ import ChartTabOption from './ChartTabOption'
 import ScaleType from './ScaleType'
 import {defaultTo} from './Util'
 import ChartConfig, {ChartConfigProps} from './ChartConfig'
-import EntityKey from './EntityKey'
 import {getQueryParams, setQueryVariable, setQueryStr, queryParamsToStr, QueryParams} from './Util'
 
 interface ChartQueryParams {
@@ -31,6 +30,7 @@ interface ChartQueryParams {
 }
 
 declare const App: any
+declare const Global: { rootUrl: string }
 
 export default class URLBinder {
     chart: ChartConfig
@@ -80,11 +80,14 @@ export default class URLBinder {
         return params
     }
 
+    @computed get queryStr(): string {
+        return queryParamsToStr(this.params as QueryParams)
+    }
+
     // Get the full url representing the canonical location of this chart state
-    @computed get canonicalUrl() {
+    @computed get canonicalUrl(): string {
         var baseUrl = Global.rootUrl + "/" + this.chart.slug,
-            queryStr = queryParamsToStr(this.params as QueryParams),
-            canonicalUrl = baseUrl + queryStr;
+            canonicalUrl = baseUrl + this.queryStr;
 
         return canonicalUrl
     }
@@ -216,7 +219,8 @@ export default class URLBinder {
 
             action(() => {
                 if (country) {
-                    const entityCodes = _.map(country.split('+'), decodeURIComponent)                    
+                    const entityCodes = _.map(country.split('+'), decodeURIComponent)
+
                     chart.selectedKeys = _.filter(chart.data.availableEntities, entity => {
                         const meta = chart.vardata.entityMetaByKey[entity]                        
                         return _.includes(entityCodes, meta.code) || _.includes(entityCodes, meta.name)

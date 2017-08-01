@@ -8,7 +8,7 @@ import ChartConfig, {TimelineConfig, HighlightToggleConfig} from '../charts/Char
 import {ComparisonLineConfig} from '../charts/ComparisonLine'
 
 @observer
-export default class EditorScatterTab extends React.Component<{ chart: ChartConfig }, undefined> {
+export default class EditorScatterTab extends React.Component<{ chart: ChartConfig }> {
     @observable timeline: TimelineConfig = {}
     @observable comparisonLine: ComparisonLineConfig = {}
     @observable highlightToggle: HighlightToggleConfig = {}

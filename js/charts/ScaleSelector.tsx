@@ -12,7 +12,6 @@ import * as d3 from 'd3'
 import * as React from 'react'
 import {observable, computed, action} from 'mobx'
 import {observer} from 'mobx-react'
-import {bind} from 'decko'
 import Text from './Text'
 import ScaleType from './ScaleType'
 
@@ -25,7 +24,7 @@ interface ScaleSelectorProps {
 }
 
 @observer
-export default class ScaleSelector extends React.Component<ScaleSelectorProps, undefined> {
+export default class ScaleSelector extends React.Component<ScaleSelectorProps> {
 	@computed get x() : number { return this.props.x }
 	@computed get y() : number { return this.props.y }
 
@@ -37,13 +36,13 @@ export default class ScaleSelector extends React.Component<ScaleSelectorProps, u
 		return this.props.scaleType
 	}
 
-	@bind @action onClick() {
+	@action.bound onClick() {
 		const { scaleType, scaleTypeOptions } = this
 
 		let nextScaleTypeIndex = scaleTypeOptions.indexOf(scaleType)+1
 		if (nextScaleTypeIndex >= scaleTypeOptions.length)
 			nextScaleTypeIndex = 0
-
+			
 		this.props.onChange(scaleTypeOptions[nextScaleTypeIndex])
 	}
 

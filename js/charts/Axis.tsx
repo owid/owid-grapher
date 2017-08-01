@@ -154,7 +154,7 @@ export class HorizontalAxis {
     }
 }
 
-export class VerticalAxisView extends React.Component<{ bounds: Bounds, axis: VerticalAxis, onScaleTypeChange?: (scale: ScaleType) => void }, undefined> {
+export class VerticalAxisView extends React.Component<{ bounds: Bounds, axis: VerticalAxis, onScaleTypeChange?: (scale: ScaleType) => void }> {
     render() {
         const {bounds, axis, onScaleTypeChange} = this.props
         const {scale, ticks, label, labelOffset} = axis
@@ -171,7 +171,7 @@ export class VerticalAxisView extends React.Component<{ bounds: Bounds, axis: Ve
     }
 }
 
-export class HorizontalAxisView extends React.Component<{ bounds: Bounds, axis: HorizontalAxis, onScaleTypeChange?: (scale: ScaleType) => void }, undefined> {
+export class HorizontalAxisView extends React.Component<{ bounds: Bounds, axis: HorizontalAxis, onScaleTypeChange?: (scale: ScaleType) => void }> {
     render() {
         const {bounds, axis, onScaleTypeChange} = this.props
         const {scale, ticks, label, labelOffset} = axis

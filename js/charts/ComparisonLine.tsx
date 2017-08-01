@@ -10,7 +10,7 @@ export interface ComparisonLineConfig {
 }
 
 @observer
-export default class ComparisonLine extends React.Component<{ axisBox: AxisBox, comparisonLine: ComparisonLineConfig }, undefined> {
+export default class ComparisonLine extends React.Component<{ axisBox: AxisBox, comparisonLine: ComparisonLineConfig }> {
     render() {
         const {comparisonLine, axisBox} = this.props
         const {xScale, yScale, innerBounds} = axisBox 

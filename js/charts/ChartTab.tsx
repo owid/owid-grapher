@@ -52,12 +52,7 @@ export default class ChartTab extends React.Component<{ chart: ChartConfig, boun
         const {props} = this
         const {chart} = props
 
-        return preInstantiate(<SourcesFooter
-            bounds={props.bounds}
-			chart={chart}
-            note={chart.note}
-            originUrl={chart.originUrl}
-         />)
+        return preInstantiate(<SourcesFooter bounds={props.bounds} chart={chart}/>)
     }
 
     renderChart() {

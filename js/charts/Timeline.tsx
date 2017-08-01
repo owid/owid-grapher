@@ -18,7 +18,7 @@ interface TimelineProps {
 };
 
 @observer
-export default class Timeline extends React.Component<TimelineProps, undefined> {
+export default class Timeline extends React.Component<TimelineProps> {
 	props: TimelineProps
 
     @observable startYearInput: number
@@ -345,7 +345,7 @@ export default class Timeline extends React.Component<TimelineProps, undefined> 
 }
 
 @observer
-class TimelineHandle extends React.Component<any, undefined> {
+class TimelineHandle extends React.Component<any> {
     render() {
         const {year, xScale, bounds, label, handleClass} = this.props
 

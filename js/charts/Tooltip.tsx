@@ -1,14 +1,13 @@
 import * as _ from 'lodash'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import EntityKey from './EntityKey'
 import ChartView from './ChartView'
 import {computed} from 'mobx'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
 
 export interface TooltipDatum {
-    entity: EntityKey,
+    entity: string,
     year: number,
     value: number|string
 }
@@ -22,7 +21,7 @@ export interface TooltipProps {
 
 
 @observer
-export default class Tooltip extends React.Component<TooltipProps, undefined> {
+export default class Tooltip extends React.Component<TooltipProps> {
     context: { chartView: ChartView }
 
     @computed get rendered() {

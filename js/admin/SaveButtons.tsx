@@ -1,10 +1,10 @@
 import * as React from 'react'
-import ChartEditorState from './ChartEditorState'
+import ChartEditor from './ChartEditor'
 import {action} from 'mobx'
 import {observer} from 'mobx-react'
 
 @observer
-export default class SaveButtons extends React.Component<{ editor: ChartEditorState }, undefined> {
+export default class SaveButtons extends React.Component<{ editor: ChartEditor }> {
 	@action.bound onSaveChart(ev: React.FormEvent<HTMLButtonElement>) {
 		this.props.editor.saveChart()
 	}

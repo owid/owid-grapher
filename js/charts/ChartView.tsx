@@ -32,7 +32,7 @@ interface ChartViewProps {
 }
 
 @observer
-export default class ChartView extends React.Component<ChartViewProps, undefined> {
+export default class ChartView extends React.Component<ChartViewProps> {
     static bootstrap({ jsonConfig, containerNode, isEditor }: { jsonConfig: ChartConfigProps, containerNode: HTMLElement, isEditor: boolean }) {
         d3.select(containerNode).classed('chart-container', true)
         let chartView
@@ -133,13 +133,7 @@ export default class ChartView extends React.Component<ChartViewProps, undefined
     }
 
     @computed get controlsFooter() {
-        return preInstantiate(<ControlsFooter
-            availableTabs={this.chart.availableTabs}
-            onTabChange={action(tabName => this.chart.tab = (tabName as ChartTabOption))}
-            chart={this.chart}
-            chartView={this}
-            activeTabName={this.chart.tab}
-         />)
+        return preInstantiate(<ControlsFooter chart={this.chart} chartView={this}/>)
     }
 
     @computed get classNames(): string {

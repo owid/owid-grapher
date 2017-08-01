@@ -359,7 +359,7 @@ export interface MapLegendProps {
 }
 
 @observer
-export default class MapLegend extends React.Component<MapLegendProps, undefined> {
+export default class MapLegend extends React.Component<MapLegendProps> {
     @computed get numericLegendData(): MapLegendBin[] {
         if (this.hasCategorical || !_.some(this.props.legendData, d => d.value == "No data" && !d.isHidden)) {
             return this.props.legendData.filter(l => l instanceof NumericBin && !l.isHidden)

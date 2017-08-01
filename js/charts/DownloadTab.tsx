@@ -13,7 +13,7 @@ interface ImgLoaderProps {
 }
 
 @observer
-class ImgLoader extends React.Component<ImgLoaderProps, undefined> {
+class ImgLoader extends React.Component<ImgLoaderProps> {
     @computed get src() {
         return this.props.src
     }
@@ -52,14 +52,16 @@ interface DownloadTabProps {
     chart: ChartConfig
 }
 
+declare var Global: { rootUrl: string }
+
 @observer
-export default class DownloadTab extends React.Component<DownloadTabProps, undefined> {
+export default class DownloadTab extends React.Component<DownloadTabProps> {
     @computed get baseUrl() : string {
         return Global.rootUrl + '/' + this.props.chart.slug
     }
 
     @computed get queryStr() : string {
-        return this.props.chart.url.lastQueryStr||""
+        return this.props.chart.url.queryStr
     }
 
     @computed get cacheTag() : string {

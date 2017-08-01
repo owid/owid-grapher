@@ -20,7 +20,7 @@ interface VariableSelectorProps {
 }
 
 @observer
-class VariableSelector extends React.Component<VariableSelectorProps, undefined> {
+class VariableSelector extends React.Component<VariableSelectorProps> {
 	@observable.ref chosenNamespace: string|undefined
 	@observable.ref chosenVariableId: number|undefined
 
@@ -102,7 +102,7 @@ class VariableSelector extends React.Component<VariableSelectorProps, undefined>
 }
 
 @observer
-class VariableItem extends React.Component<{ variable: EditorVariable }, undefined> {
+class VariableItem extends React.Component<{ variable: EditorVariable }> {
 	render() {
 		const {variable} = this.props
 
@@ -120,7 +120,7 @@ class VariableItem extends React.Component<{ variable: EditorVariable }, undefin
 }
 
 @observer
-class VariablesSection extends React.Component<{ editor: ChartEditor }, undefined> {
+class VariablesSection extends React.Component<{ editor: ChartEditor }> {
 	base: HTMLDivElement
 	@observable.ref isAddingVariable: boolean = false
 	@observable.struct unassignedVariables: EditorVariable[] = []
@@ -159,7 +159,7 @@ class VariablesSection extends React.Component<{ editor: ChartEditor }, undefine
 }
 
 @observer
-class DataKeyItem extends React.Component<{ chart: ChartConfig, datakey: DataKey }, undefined> {
+class DataKeyItem extends React.Component<{ chart: ChartConfig, datakey: DataKey }> {
 	@observable.ref isChoosingColor: boolean = false
 
 	@computed get datakey() { return this.props.datakey }
@@ -188,15 +188,15 @@ class DataKeyItem extends React.Component<{ chart: ChartConfig, datakey: DataKey
 }
 
 @observer
-class KeysSection extends React.Component<{ chart: ChartConfig }, undefined> {
+class KeysSection extends React.Component<{ chart: ChartConfig }> {
 	@action.bound onAddKey(ev: React.ChangeEvent<HTMLSelectElement>) {
-		this.props.chart.data.selectKey(ev.target.value)
+		this.props.chart.data.selectedKeys = this.props.chart.data.selectedKeys.concat([ev.target.value])
 	}
 
 	render() {
 		const {chart} = this.props
-		const {selectedKeys, keyColors} = chart
-		const {remainingKeys} = chart.data
+		const {keyColors} = chart
+		const {selectedKeys, remainingKeys} = chart.data
 
 		return <section className="entities-section">
 			<h2>Choose your data</h2>
@@ -233,7 +233,7 @@ class KeysSection extends React.Component<{ chart: ChartConfig }, undefined> {
 }
 
 @observer
-class TimeSection extends React.Component<{ editor: ChartEditor }, undefined> {
+class TimeSection extends React.Component<{ editor: ChartEditor }> {
 	base: HTMLDivElement
 
 	@computed get chart() { return this.props.editor.chart }
@@ -285,7 +285,7 @@ class TimeSection extends React.Component<{ editor: ChartEditor }, undefined> {
 }
 
 @observer
-export default class EditorDataTab extends React.Component<{ editor: ChartEditor }, undefined> {
+export default class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
 	render() {
 		const {editor} = this.props
 

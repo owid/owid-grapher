@@ -18,7 +18,7 @@ import {observable, computed, action, autorun} from 'mobx'
 
 declare const App: any
 
-class LoadingBlocker extends React.Component<{}, undefined> {
+class LoadingBlocker extends React.Component {
 	render() {
 		const style: any = {
 			position: 'fixed',
@@ -41,8 +41,10 @@ class LoadingBlocker extends React.Component<{}, undefined> {
 	}
 }
 
+declare const window: any
+
 @observer
-export default class ChartEditorView extends React.Component<{ editor: ChartEditor }, undefined> {
+export default class ChartEditorView extends React.Component<{ editor: ChartEditor }> {
     static bootstrap({ chartView, editorData }: { chartView: ChartView, editorData: any }) {
 		const editor = new ChartEditor({ chart: chartView.chart, data: editorData })
 		window.editor = editor

@@ -16,7 +16,7 @@ import Color from '../charts/Color'
 import Colorpicker from './Colorpicker'
 
 @observer
-class VariableSection extends React.Component<{ map: MapConfig }, undefined> {
+class VariableSection extends React.Component<{ map: MapConfig }> {
 	@action.bound onVariableId(variableId: number) {
 		this.props.map.props.variableId = variableId
 	}
@@ -36,7 +36,7 @@ class VariableSection extends React.Component<{ map: MapConfig }, undefined> {
 }
 
 @observer
-class TimelineSection extends React.Component<{ map: MapConfig }, undefined> {
+class TimelineSection extends React.Component<{ map: MapConfig }> {
 	@action.bound onTolerance(tolerance: number) {
 		this.props.map.props.timeTolerance = tolerance
 	}
@@ -54,7 +54,7 @@ class TimelineSection extends React.Component<{ map: MapConfig }, undefined> {
 }
 
 @observer
-class ColorBox extends React.Component<{ color: Color, onColor: (color: Color) => void }, undefined> {
+class ColorBox extends React.Component<{ color: Color, onColor: (color: Color) => void }> {
 	@observable.ref isChoosingColor = false
 
 	@action.bound onClick() {
@@ -72,7 +72,7 @@ class ColorBox extends React.Component<{ color: Color, onColor: (color: Color) =
 }
 
 @observer
-class NumericBinView extends React.Component<{ map: MapConfig, bin: NumericBin, index: number }, undefined> {
+class NumericBinView extends React.Component<{ map: MapConfig, bin: NumericBin, index: number }> {
 	@action.bound onColor(color: Color) {
 		const {map, index} = this.props
 
@@ -116,7 +116,7 @@ class NumericBinView extends React.Component<{ map: MapConfig, bin: NumericBin, 
 }
 
 @observer
-class CategoricalBinView extends React.Component<{ map: MapConfig, bin: CategoricalBin }, undefined> {
+class CategoricalBinView extends React.Component<{ map: MapConfig, bin: CategoricalBin }> {
 	@action.bound onColor(color: Color) {
 		const {map, bin} = this.props
 		if (!map.isCustomColors) {
@@ -162,7 +162,7 @@ class CategoricalBinView extends React.Component<{ map: MapConfig, bin: Categori
 }
 
 @observer
-class ColorSchemeEditor extends React.Component<{ map: MapConfig }, undefined> {
+class ColorSchemeEditor extends React.Component<{ map: MapConfig }> {
 	@action.bound onMinimalValue(value: number) {
 		this.props.map.props.colorSchemeMinValue = value
 	}
@@ -188,7 +188,7 @@ class ColorSchemeEditor extends React.Component<{ map: MapConfig }, undefined> {
 }
 
 @observer
-class ColorsSection extends React.Component<{ map: MapConfig }, undefined> {
+class ColorsSection extends React.Component<{ map: MapConfig }> {
 	@action.bound onColorScheme(schemeKey: string) {
 		const {map} = this.props
 		if (schemeKey == 'custom') {
@@ -229,7 +229,7 @@ class ColorsSection extends React.Component<{ map: MapConfig }, undefined> {
 }
 
 @observer
-class MapProjectionSection extends React.Component<{ map: MapConfig }, undefined> {
+class MapProjectionSection extends React.Component<{ map: MapConfig }> {
 	@action.bound onProjection(projection: string) {
 		this.props.map.props.projection = (projection as MapProjection)
 	}
@@ -244,7 +244,7 @@ class MapProjectionSection extends React.Component<{ map: MapConfig }, undefined
 }
 
 @observer
-class MapLegendSection extends React.Component<{ map: MapConfig }, undefined> {
+class MapLegendSection extends React.Component<{ map: MapConfig }> {
 	@action.bound onDescription(description: string|undefined) {
 		this.props.map.props.legendDescription = description
 	}
@@ -259,7 +259,7 @@ class MapLegendSection extends React.Component<{ map: MapConfig }, undefined> {
 }
 
 @observer
-export default class EditorMapTab extends React.Component<{ editor: ChartEditor }, undefined> {
+export default class EditorMapTab extends React.Component<{ editor: ChartEditor }> {
 	@computed get chart() { return this.props.editor.chart } 
 	@computed get map() { return this.chart.map as MapConfig }
 

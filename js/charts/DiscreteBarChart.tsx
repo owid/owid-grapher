@@ -69,7 +69,10 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
 
     // Now we can work out the main x axis scale
     @computed get xDomainDefault(): [number, number] {
-        return [Math.min(0, _.min(_.map(this.data, d => d.value))), _.max(_.map(this.data, d => d.value))]
+        const allValues = _.map(this.data, d => d.value)
+        const minX = Math.min(0, _.min(allValues) as number)
+        const maxX = _.max(allValues) as number
+        return [minX, maxX]
     }
 
     @computed get xRange() {

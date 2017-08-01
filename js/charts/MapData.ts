@@ -7,10 +7,10 @@ import * as d3 from 'd3'
 import colorbrewer from './owid.colorbrewer'
 import Color from './Color'
 import {ChoroplethData} from './ChoroplethMap'
-import EntityKey from './EntityKey'
+import {entityNameForMap} from './Util'
 
 export interface MapDataValue {
-    entity: EntityKey,
+    entity: string,
     value: number|string,
     year: number
 }
@@ -20,18 +20,18 @@ export class NumericBin {
     min: number
     max: number
     color: Color
-    label: string
+    label?: string
     isHidden: boolean = false
     
     get minText() { return this.min.toString() }
     get maxText() { return this.max.toString() }
     get text() { return this.label }
 
-    contains(d: MapDataValue|null) {
-        return d && (this.index == 0 ? d.value >= this.min : d.value > this.min) && d.value <= this.max
+    contains(d: MapDataValue|null): boolean {
+        return !!(d && (this.index == 0 ? d.value >= this.min : d.value > this.min) && d.value <= this.max)
     }
 
-    constructor({ index, min, max, label, color }: { index: number, min: number, max: number, label: string, color: Color }) {
+    constructor({ index, min, max, label, color }: { index: number, min: number, max: number, label?: string, color: Color }) {
         this.index = index
         this.min = min
         this.max = max
@@ -49,7 +49,7 @@ export class CategoricalBin {
 
     get text() { return this.label || this.value }
 
-    contains(d: any) {
+    contains(d: MapDataValue|null): boolean {
         return (d == null && this.value == 'No data') || d.value == this.value
     }
 
@@ -210,7 +210,7 @@ export default class MapData {
                 label = customCategoryLabels[value] || "",
                 text = label || value;
 
-            legendData.push(new CategoricalBin({ value: value, color: color, label: label, isHidden: customHiddenCategories[value] }))
+            legendData.push(new CategoricalBin({ index: i, value: value, color: color, label: label, isHidden: customHiddenCategories[value] }))
         }
 
         return legendData
@@ -229,7 +229,7 @@ export default class MapData {
 				continue;
 
 			// Make sure we use the closest year within tolerance (favoring later years)
-			const entityName = owid.entityNameForMap(entities[i]);            
+			const entityName = entityNameForMap(entities[i]);            
 			const existing = currentValues[entityName];
 			if (existing && Math.abs(existing.year - targetYear) < Math.abs(year - targetYear))
 				continue;

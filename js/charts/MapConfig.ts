@@ -7,7 +7,6 @@
  */ 
 
 import * as _ from 'lodash'
-import colorbrewer from './owid.colorbrewer'
 import {observable, computed, toJS} from 'mobx'
 import MapProjection from './MapProjection'
 import Chart from './ChartConfig'
@@ -63,7 +62,7 @@ export default class MapConfig {
 	@computed get isCustomColors() { return defaultTo(this.props.customColorsActive, false) }
 	@computed get customNumericColors() { return defaultTo(this.isCustomColors ? this.props.customNumericColors : [], []) }
 	@computed get customCategoryColors(): {[key: string]: string} { return defaultTo(this.isCustomColors ? this.props.customCategoryColors : {}, {}) }
-	@computed get customHiddenCategories() { return defaultTo(this.props.customHiddenCategories, {}) }
+	@computed get customHiddenCategories(): {[key: string]: true} { return defaultTo(this.props.customHiddenCategories, {}) }
 	@computed get isColorSchemeInverted() { return defaultTo(this.props.colorSchemeInvert, false) }
 	@computed get customCategoryLabels(): {[key: string]: string} { return defaultTo(this.props.customCategoryLabels, {}) }
 	@computed get customBucketLabels() { 

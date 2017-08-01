@@ -18,7 +18,7 @@ export interface TextFieldProps {
     disabled?: boolean
 }
 
-export class TextField extends React.Component<TextFieldProps, undefined> {
+export class TextField extends React.Component<TextFieldProps> {
     @bind onChange(ev: React.FormEvent<HTMLInputElement>) {
         const value = ev.currentTarget.value
         if (value == "") {
@@ -47,7 +47,7 @@ export interface NumberFieldProps {
     disabled?: boolean
 }
 
-export class NumberField extends React.Component<NumberFieldProps, undefined> {
+export class NumberField extends React.Component<NumberFieldProps> {
     render() {
         const {props} = this
         const input = <input type="number" value={toString(props.value)} onChange={(ev) => props.onValue(numberOnly(ev.currentTarget.value))} {..._.pick(props, ['min', 'max', 'placeholder', 'disabled'])}/>
@@ -67,7 +67,7 @@ export interface SelectFieldProps {
     options: string[]
 }
 
-export class SelectField extends React.Component<SelectFieldProps, undefined> {
+export class SelectField extends React.Component<SelectFieldProps> {
     render() {
         const {props} = this
         return <label>
@@ -89,7 +89,7 @@ export interface NumericSelectFieldProps {
     optionLabels: string[]
 }
 
-export class NumericSelectField extends React.Component<NumericSelectFieldProps, undefined> {
+export class NumericSelectField extends React.Component<NumericSelectFieldProps> {
     onChange(ev: React.FormEvent<HTMLSelectElement>) {
         this.props.onValue(parseFloat(ev.currentTarget.value))
     }
@@ -113,7 +113,7 @@ export interface ToggleProps {
     onValue: (value: boolean) => void
 }
 
-export class Toggle extends React.Component<ToggleProps, undefined> {
+export class Toggle extends React.Component<ToggleProps> {
     render() {
         const {props} = this
         return <label className="clickable">

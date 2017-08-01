@@ -12,7 +12,7 @@ export interface ColorpickerProps {
     onClose: () => void 
 }
 
-export default class Colorpicker extends React.Component<ColorpickerProps, undefined> {
+export default class Colorpicker extends React.Component<ColorpickerProps> {
     base: HTMLDivElement
 
     render() {

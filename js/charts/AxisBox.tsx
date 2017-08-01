@@ -91,7 +91,7 @@ interface AxisGridLinesProps {
 }
 
 @observer
-export class AxisGridLines extends React.Component<AxisGridLinesProps, undefined> {
+export class AxisGridLines extends React.Component<AxisGridLinesProps> {
     render() {
         const {orient, bounds} = this.props
         let scale = this.props.scale.extend({ range: orient == 'left' ? bounds.yRange() : bounds.xRange() })
@@ -109,14 +109,14 @@ export class AxisGridLines extends React.Component<AxisGridLinesProps, undefined
 }
 
 @observer
-export class AxisBoxView extends React.Component<any, undefined> {
+export class AxisBoxView extends React.Component<any> {
     render() {
         const {axisBox, onYScaleChange, onXScaleChange} = this.props
         const {bounds, xScale, yScale, xAxis, yAxis, innerBounds} = axisBox
 
         return <g className="AxisBoxView">
-            <HorizontalAxisView bounds={bounds} axis={axisBox.xAxis} onScaleTypeChange={onYScaleChange}/>
-            <VerticalAxisView bounds={bounds} axis={axisBox.yAxis} onScaleTypeChange={onXScaleChange}/>
+            <HorizontalAxisView bounds={bounds} axis={axisBox.xAxis} onScaleTypeChange={onXScaleChange}/>
+            <VerticalAxisView bounds={bounds} axis={axisBox.yAxis} onScaleTypeChange={onYScaleChange}/>
             <AxisGridLines orient="left" scale={yScale} bounds={innerBounds}/>
             <AxisGridLines orient="bottom" scale={xScale} bounds={innerBounds}/>
         </g>

@@ -24,6 +24,7 @@ mobxFormatters(Mobx)
 
 import ChartView from './charts/ChartView'
 import ExportView from './charts/ExportView'
+declare var window: any
 window.ChartView = ChartView
 window.ExportView = ExportView
 

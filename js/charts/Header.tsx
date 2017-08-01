@@ -15,7 +15,7 @@ interface LogoProps {
 }
 
 @observer
-class Logo extends React.Component<LogoProps, undefined> {
+class Logo extends React.Component<LogoProps> {
     static bboxCache: {[svg: string]: SVGRect} = {}
 
     @computed get targetHeight() {
@@ -61,7 +61,7 @@ interface HeaderMainProps {
 }
 
 @observer
-class HeaderMain extends React.Component<HeaderMainProps, undefined> {
+class HeaderMain extends React.Component<HeaderMainProps> {
     @computed get logoSVG() {
         return this.props.logosSVG[0]
     }
@@ -132,7 +132,7 @@ interface HeaderProps {
 }
 
 @observer
-export default class Header extends React.Component<HeaderProps, undefined> {
+export default class Header extends React.Component<HeaderProps> {
     fillTemplate(text: string) {
         const {entities, minYear, maxYear} = this.props
 

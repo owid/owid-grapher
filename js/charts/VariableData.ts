@@ -25,7 +25,7 @@ export class Variable {
 		_.extend(this, meta)
 	}
 
-	@computed get hasNumericValues() {
+	@computed get hasNumericValues(): boolean {
 		return _.some(this.values, v => _.isFinite(v))
 	}
 
@@ -37,15 +37,15 @@ export class Variable {
 		return _.sortBy(_.filter(this.values, v => _.isString(v))) as string[]
 	}
 
-	@computed get hasCategoricalValues() {
+	@computed get hasCategoricalValues(): boolean {
 		return _.some(this.values, v => _.isString(v))
 	}
 
-	@computed get entitiesUniq() {
+	@computed get entitiesUniq(): string[] {
 		return _.uniq(this.entities)
 	}
 
-	@computed get yearsUniq() {
+	@computed get yearsUniq(): number[] {
 		return _.uniq(this.years)
 	}
 
@@ -53,19 +53,19 @@ export class Variable {
 		return _.min(this.yearsUniq)
 	}
 
-	@computed get maxYear() {
-		return _.max(this.yearsUniq)
+	@computed get maxYear(): number {
+		return _.max(this.yearsUniq) as number
 	}
 
-	@computed get minValue() {
-		return _.min(this.numericValues)
+	@computed get minValue(): number {
+		return _.min(this.numericValues) as number
 	}
 
-	@computed get maxValue() {
-		return _.max(this.numericValues)
+	@computed get maxValue(): number {
+		return _.max(this.numericValues) as number
 	}
 
-	@computed get isNumeric() {
+	@computed get isNumeric(): boolean {
 		return this.hasNumericValues && !this.hasCategoricalValues		
 	}
 }

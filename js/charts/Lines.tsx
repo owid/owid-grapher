@@ -37,7 +37,7 @@ export interface HoverTarget {
 }
 
 @observer
-export default class Lines extends React.Component<LinesProps, undefined> {
+export default class Lines extends React.Component<LinesProps> {
     base: SVGGElement
     @observable.ref hover: HoverTarget|null = null
 

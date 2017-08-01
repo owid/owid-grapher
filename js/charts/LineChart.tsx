@@ -43,7 +43,7 @@ export interface LineChartSeries {
 }
 
 @observer
-export default class LineChart extends React.Component<{ bounds: Bounds, chart: ChartConfig, localData: LineChartSeries[] }, undefined> {
+export default class LineChart extends React.Component<{ bounds: Bounds, chart: ChartConfig, localData: LineChartSeries[] }> {
     base: SVGGElement
     @observable.ref tooltip: React.ReactNode|null
 
@@ -69,7 +69,7 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
     // Order of the legend items on a line chart should visually correspond
     // to the order of the lines as the approach the legend
     @computed get legendItems() {
-        return _(this.localData).sortBy(series => -_.last(series.values).y).map(d => ({
+        return _(this.localData).sortBy(series => -(_.last(series.values) as LineChartValue).y).map(d => ({
             color: d.color,
             label: this.chart.data.formatKey(d.key)
         })).value()

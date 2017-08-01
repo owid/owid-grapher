@@ -13,7 +13,7 @@ interface TextProps {
 	children: string
 }
 
-export default class Text extends React.Component<TextProps, undefined> {
+export default class Text extends React.Component<TextProps> {
 	render() {
 		const bounds = Bounds.forText(this.props.children, { fontSize: this.props['fontSize'], fontFamily: this.props['fontFamily'] })
 		let {x, y} = this.props

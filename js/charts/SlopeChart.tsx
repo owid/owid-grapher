@@ -14,7 +14,7 @@ import Text from './Text'
 import LabelledSlopes, {SlopeChartSeries} from './LabelledSlopes'
 window.Observations = Observations
 
-class WrapLayout extends React.Component<{ bounds: Bounds }, undefined> {
+class WrapLayout extends React.Component<{ bounds: Bounds }> {
 	render() {
 		let {bounds, children} = this.props
 		let x = bounds.x, y = bounds.y, lineHeight = 0
@@ -50,7 +50,7 @@ interface ColorLegendItemProps {
 }
 
 @observer
-class ColorLegendItem extends React.Component<ColorLegendItemProps, undefined> {
+class ColorLegendItem extends React.Component<ColorLegendItemProps> {
 	@computed get rectSize() {
 		return 10
 	}
@@ -87,7 +87,7 @@ class ColorLegendItem extends React.Component<ColorLegendItemProps, undefined> {
 }
 
 @observer
-class ColorLegend extends React.Component<{ bounds: Bounds, legendData: Object[] }, undefined> {
+class ColorLegend extends React.Component<{ bounds: Bounds, legendData: Object[] }> {
 	static calculateBounds(bounds) {
 		return bounds;
 	}
@@ -110,7 +110,7 @@ class ColorLegend extends React.Component<{ bounds: Bounds, legendData: Object[]
 }
 
 @observer
-export default class SlopeChart extends React.Component<{ bounds: Bounds, config: ChartConfig }, undefined> {
+export default class SlopeChart extends React.Component<{ bounds: Bounds, config: ChartConfig }> {
 	@computed.struct get dimensions() : Object[] {
 		return this.props.config.model.getDimensions()
 	}

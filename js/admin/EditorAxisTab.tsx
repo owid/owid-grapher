@@ -7,7 +7,7 @@ import {toString} from 'lodash'
 import {TextField, NumberField, SelectField, Toggle} from './Forms'
 
 @observer
-export default class EditorAxisTab extends React.Component<{ chart: ChartConfig }, undefined> {
+export default class EditorAxisTab extends React.Component<{ chart: ChartConfig }> {
 	@computed get xAxis() { return this.props.chart.xAxis.props }
 	@computed get yAxis() { return this.props.chart.yAxis.props }
 
