@@ -25,8 +25,8 @@ interface ScaleSelectorProps {
 
 @observer
 export default class ScaleSelector extends React.Component<ScaleSelectorProps> {
-	@computed get x() : number { return this.props.x }
-	@computed get y() : number { return this.props.y }
+	@computed get x(): number { return this.props.x }
+	@computed get y(): number { return this.props.y }
 
 	@computed get scaleTypeOptions() : ScaleType[] {
 		return this.props.scaleTypeOptions

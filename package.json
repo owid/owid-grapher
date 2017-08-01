@@ -81,7 +81,7 @@
     "preact": "^8.1.0",
     "preact-compat": "^3.16.0",
     "striptags": "^3.0.1",
-    "typescript": "^2.3.4",
+    "typescript": "^2.4.2",
     "webpack-parallel-uglify-plugin": "^0.4.1"
   }
 }
