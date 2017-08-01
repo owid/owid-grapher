@@ -17,6 +17,7 @@ import MapConfig, {MapConfigProps} from './MapConfig'
 import URLBinder from './URLBinder'
 import ColorBinder from './ColorBinder'
 import DiscreteBarTransform from './DiscreteBarTransform'
+import StackedAreaTransform from './StackedAreaTransform'
 import Color from './Color'
 
 export interface TimelineConfig {
@@ -243,7 +244,8 @@ export default class ChartConfig {
     }
 
     @computed get discreteBar() { return new DiscreteBarTransform(this) }
-
+    @computed get stackedArea() { return new StackedAreaTransform(this) }
+    
 	constructor(props: ChartConfigProps) {        
         this.update(props)
         this.vardata = new VariableData(this)

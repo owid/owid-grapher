@@ -81,7 +81,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
 
     @computed get xScale() {
         const xAxis = this.chart.yAxis.toSpec({ defaultDomain: this.xDomainDefault }) // XXX
-        return new AxisScale(xAxis).extend({ range: this.xRange })
+        return new AxisScale(xAxis).extend({ domain: this.xDomainDefault, range: this.xRange })
     }
 
     @computed get xAxis() {
@@ -128,7 +128,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
                 const isHover = i == hoverIndex
                 const isFaded = !isHover && hoverIndex != undefined
                 const isNegative = d.value < 0
-                const barX = isNegative ? xScale.place(d.value) : xScale.place(xScale.domain[0])
+                const barX = isNegative ? xScale.place(d.value) : xScale.place(0)
                 const barWidth = isNegative ? xScale.place(0)-barX : xScale.place(d.value)-barX                
 
                 const result = <g opacity={isFaded ? 0.5 : 1}>

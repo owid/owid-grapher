@@ -143,13 +143,7 @@ export default class ChartData {
 		if (chart.type == ChartType.ScatterPlot || chart.tab == 'map' || _.isEmpty(variablesById) || _.isEmpty(chart.dimensions))
 			return null;
 
-		let result
-		if (chart.type == ChartType.LineChart)
-			result = this.transformDataForLineChart();
-		else if (chart.type == ChartType.StackedArea)
-			result = this.transformDataForStackedArea();
-		else
-			result = this.transformDataForLineChart();
+		let result = this.transformDataForLineChart();
 		
 		/*if (addCountryMode != "add-country" && chartType != ChartType.DiscreteBar) {
 			_.each(result.legendData, function(d) {

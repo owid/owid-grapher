@@ -24,19 +24,19 @@ import AxisScale from './AxisScale'
 import Vector2 from './Vector2'
 import {getRelativeMouse} from './Util'
 
-export interface LineChartValue {
+export interface StackedAreaValue {
     x: number,
     y: number,
     time: number,
-    gapYearsToNext: number
+    gapYearsToNext?: number
 }
 
-export interface LineChartSeries {
+export interface StackedAreaSeries {
     key: string,
     color: string,
-    label: string
-    values: LineChartValue[],
-    classed?: string 
+    values: StackedAreaValue[],
+    classed?: string,
+    isProjection?: boolean
 }
 
 interface LegendData {
@@ -45,7 +45,7 @@ interface LegendData {
 }
 
 
-class StackedAreaLegendView extends React.Component<{ stackedArea: StackedArea, legend: Legend }, undefined> {
+class StackedAreaLegendView extends React.Component<{ stackedArea: StackedArea, legend: Legend }> {
     render() {
         const {rectSize, rectPadding, labelMarks} = this.props.legend
         const {areaMiddleHeights} = this.props.stackedArea
@@ -115,7 +115,7 @@ class Legend {
 interface StackedAreaProps {
     xScale: AxisScale,
     yScale: AxisScale,
-    data: LineChartSeries[]    
+    data: StackedAreaSeries[]    
 }
 
 interface AreaRenderSeries {
@@ -162,7 +162,7 @@ class StackedArea {
 }
 
 @observer
-export class StackedAreaView extends React.Component<{ stackedArea: StackedArea }, undefined> {
+export class StackedAreaView extends React.Component<{ stackedArea: StackedArea }> {
     base: SVGGElement
     
     @observable hoverIndex: number|undefined = 0
@@ -215,81 +215,38 @@ export class StackedAreaView extends React.Component<{ stackedArea: StackedArea 
 }
 
 @observer
-export default class StackedAreaChart extends React.Component<{ bounds: Bounds, chart: ChartConfig, localData: LineChartSeries[] }, undefined> {
+export default class StackedAreaChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
     @computed get chart() { return this.props.chart }
     @computed get bounds() { return this.props.bounds }
-
-    @computed get localData(): LineChartSeries[] {
-        return this.props.localData
-    }
-
-    @computed get allValues(): LineChartValue[] {
-        return _.flatten(_.map(this.localData, series => series.values))
-    }
-
-    @computed get xDomainDefault(): [number, number] {
-        return (d3.extent(this.allValues.map(function(d) { return d.x; })) as [number, number])
-    }
-
-    @computed get stackedData(): LineChartSeries[] {
-        const {localData} = this
-        
-        if (_.some(localData, series => series.values.length !== localData[0].values.length))
-            throw `Unexpected variation in stacked area chart series: ${_.map(localData, series => series.values.length)}`
-
-        let stackedData = _.cloneDeep(localData)
-
-        for (var i = 1; i < stackedData.length; i++) {
-            for (var j = 0; j < stackedData[0].values.length; j++) {
-                stackedData[i].values[j].y += stackedData[i-1].values[j].y
-            }
-        }
-
-        return stackedData
-    }
-
-    @computed get yDomainDefault(): [number, number] {
-        const {stackedData} = this
-        return [0, (_(stackedData).map('values').flatten().map('y').max() as number)]
-    }
-
-    @computed get legend() {
-        const _this = this
-        return new Legend({
-            get data() { return _this.stackedData }
-        })
-    }
+    @computed get transform() { return this.props.chart.stackedArea }
 
     @computed get xAxis() {
-        return this.chart.xAxis.toSpec({ defaultDomain: this.xDomainDefault })
+        return this.chart.xAxis.toSpec({ defaultDomain: this.transform.xDomainDefault })
     }
 
     @computed get yAxis() {
-        return this.chart.yAxis.toSpec({ defaultDomain: this.yDomainDefault })
+        return this.chart.yAxis.toSpec({ defaultDomain: this.transform.yDomainDefault })
     }
 
     @computed get axisBox() {
-        const {bounds, xAxis, yAxis, legend} = this
-        return new AxisBox({bounds: bounds.padRight(legend.width), xAxis, yAxis})
+        const {bounds, xAxis, yAxis} = this
+        return new AxisBox({bounds: bounds, xAxis, yAxis})
     }
 
     @computed get stackedArea() {
-        console.log(this.xDomainDefault, this.yDomainDefault)
         const _this = this
         return new StackedArea({
             get xScale() { return _this.axisBox.xScale },
             get yScale() { return _this.axisBox.yScale },
-            get data() { return _this.stackedData }
+            get data() { return _this.transform.stackedData }
         })
     }
 
-
     render() {
-        const {chart, bounds, axisBox, stackedArea, legend} = this
+        const {chart, bounds, axisBox, stackedArea} = this
         return <g className="StackedArea">
             <StandardAxisBoxView axisBox={axisBox} chart={chart}/>
             <StackedAreaView stackedArea={stackedArea}/>
-            <StackedAreaLegendView stackedArea={stackedArea} legend={legend}/>
         </g>
     }
 }
