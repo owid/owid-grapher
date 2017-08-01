@@ -666,7 +666,7 @@ const chartTabOld = function(chart) {
 					}
 					currentSeries = _.extend({}, series, { values: [] });
 					if (isMissing && lineType == App.LineType.DashedIfMissing)
-						currentSeries.p = 'dashed';
+						currentSeries.classed = 'dashed';
 					else if (isMissing)
 						currentSeries.classed = 'unstroked';
 					currentMissing = isMissing;
