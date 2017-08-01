@@ -7,13 +7,19 @@
     {% else %}
 		<table class="table table-bordered table-hover dataTable">
 			<tr>
-				<th>Name</th> 
+				<th>Name</th>
+                <th>Full Name</th>
 				<th>Joined</th>
+                <th>Status</th>
+                <th>Action</th>
 			</tr>
 			{% for user in users %}
 				<tr>
 					<td>{{ user.name }}</td>
+                    <td>{{ user.fullname }}</td>
 					<td><time class="timeago" datetime="{{ user.created_at|date:'c' }}">{{ user.created_at }}</time></td>
+                    <td>{{ user.status }}</td>
+                    <td><a href="{% url 'edituser' user.id %}">Edit</a></td>
 				</tr>
 			{% endfor %}
 		</table>

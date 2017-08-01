@@ -47,6 +47,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
+    full_name = models.CharField(max_length=255, null=True)
 
     objects = UserManager()
 
@@ -54,7 +55,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = []
 
     def get_full_name(self):
-        return self.name
+        if self.full_name is not None:
+            return self.full_name
+        else:
+            return self.name
 
     def get_short_name(self):
         return self.name
@@ -97,7 +101,7 @@ class Chart(models.Model):
                                                      ('DiscreteBar', 'Discrete bar'),
                                                      ('SlopeChart', 'Slope chart')), blank=True, null=True)
 
-    
+
     max_exports_per_worker = 2
     exports_in_progress = 0
     def export_image(self, query: str, format: str, is_async: bool = False):
@@ -225,6 +229,7 @@ class DatasetCategory(models.Model):
     name = models.CharField(max_length=255, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    fetcher_autocreated = models.BooleanField(default=False)
 
 
 class DatasetSubcategory(models.Model):
@@ -282,6 +287,7 @@ class Variable(models.Model):
 
     name = models.CharField(max_length=255)
     unit = models.CharField(max_length=255)
+    short_unit = models.CharField(max_length=255, null=True)
     description = models.TextField(blank=True, null=True)
     fk_dst_id = models.ForeignKey(Dataset, on_delete=models.CASCADE, db_column='fk_dst_id')
     sourceId = models.ForeignKey(Source, on_delete=models.DO_NOTHING, db_column='sourceId')

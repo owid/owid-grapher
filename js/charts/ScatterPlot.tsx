@@ -324,7 +324,11 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     }
 
     render() {
+        if (!this.data.isReady)
+            return <NoData bounds={this.bounds}/>
+
         const {currentData, bounds, yearsWithData, startYear, endYear, axisBox, chart, timeline, timelineHeight, legend, focusKeys, focusColor, shapeLegend, hoverSeries, sidebarWidth, tooltipSeries, sizeDomain, comparisonLine} = this
+
         return <g className="ScatterPlot">
             <AxisBoxView axisBox={axisBox} onXScaleChange={this.onXScaleChange} onYScaleChange={this.onYScaleChange}/>
             {comparisonLine && <ComparisonLine axisBox={axisBox} comparisonLine={comparisonLine}/>}

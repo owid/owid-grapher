@@ -23,6 +23,10 @@ export default class ScatterData {
         this.chart.scatterData = this
     }
 
+    @computed get isReady() {
+        return this.axisDimensions.length == 2
+    }
+
     @computed get axisDimensions() {
         return _.filter(this.chart.data.filledDimensions, d => d.property == 'x' || d.property == 'y')
     }

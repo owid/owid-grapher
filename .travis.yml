@@ -5,6 +5,7 @@ python:
 before_script:
   - cp owid_grapher/secret_settings.py.travis owid_grapher/secret_settings.py
   - mysql -e 'CREATE DATABASE test_grapher;'
+  - mkdir tmp
 script:
   - python manage.py test
 notifications:

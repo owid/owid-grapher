@@ -104,11 +104,10 @@ button > i {
 #editor {
   background-color: #ffffff; 
   display: flex;
-  align-items: center;
 }
 
 #editor .chart-container {
-  height: 100%;
+  height: 90vh;
   width: 50%;
   display: flex;
   justify-content: center;
