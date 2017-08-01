@@ -26,11 +26,13 @@ export interface FilledDimension extends ChartDimension {
 
 export default class ChartData {
 	chart: ChartConfig
-	vardata: VariableData
 
-	constructor(chart: ChartConfig, vardata: VariableData) {
+	constructor(chart: ChartConfig) {
 		this.chart = chart
-		this.vardata = vardata
+	}
+
+	@computed get vardata() {
+		return this.chart.vardata
 	}
 
 	// Make a unique string key for an entity on a variable
@@ -184,77 +186,11 @@ export default class ChartData {
 		return yDimension ? this.vardata.variablesById[yDimension.variableId] : undefined
 	}
 
-	transformDataForLineChart() {
-		const {chart, vardata, selectedKeysByKey} = this
-		const {timeDomain, yAxis, addCountryMode} = chart
-		const dimensions = _.clone(chart.dimensions).reverse()
-		const {variablesById} = vardata
-
-		const timeFrom = _.defaultTo(timeDomain[0], -Infinity)
-		const timeTo = _.defaultTo(timeDomain[1], Infinity)
-
-		let chartData = []
-		let legendData = []
-		let minYear = Infinity
-		let maxYear = -Infinity
-
-		_.each(dimensions, (dimension, dimIndex) => {
-			var variable = variablesById[dimension.variableId],
-				variableName = dimension.displayName || variable.name,
-
-			const seriesByKey = new Map<DataKey, LineChartSeries>()
-
-			for (var i = 0; i < variable.years.length; i++) {
-				const year = variable.years[i]
-				const value = _.toNumber(variable.values[i])
-				const entity = variable.entities[i]
-				const datakey = this.keyFor(entity, dimIndex)
-				let series = seriesByKey.get(datakey)
-
-				// Not a selected entity, don't add any data for it
-				if (!selectedKeysByKey[datakey]) continue;
-				// It's possible we may be missing data for this year/entity combination
-				// e.g. http://ourworldindata.org/grapher/view/101
-				if (isNaN(value)) continue;
-				// Values <= 0 break d3 log scales horribly
-				if (yAxis.scaleType === 'log' && value <= 0) continue;
-				// Check for time range
-				if (year < timeFrom || year > timeTo) continue;
-
-				if (!series) {
-					series = {
-						values: [],
-						key: datakey,
-						isProjection: dimension.isProjection
-					};
-					seriesByKey.set(datakey, series);
-				}
-
-				var prevValue = series.values[series.values.length-1];
-				if (prevValue)
-					prevValue.gapYearsToNext = year-prevValue.x;
-				series.values.push({ x: year, y: value, time: year });
-				minYear = Math.min(minYear, year);
-				maxYear = Math.max(maxYear, year);
-			}
-
-			chartData = chartData.concat([...seriesByKey.values()]);
-		});
-
-		//if (addCountryMode === "add-country")
-			chartData = _.sortBy(chartData, function(series) { return series.entityName; });
-
-		legendData = _.map(chartData, function(series) {
-			return { label: series.key, key: series.key, entityId: series.entityId, variableId: series.variableId };
-		});
-
-		return { chartData: chartData, legendData: legendData, minYear: minYear, maxYear: maxYear };
-	}
 
 	// Ensures that every series has a value entry for every year in the data
 	// Even if that value is just 0
 	// Stacked area charts with incomplete data will fail to render otherwise
-	zeroPadData(chartData) {
+	/*zeroPadData(chartData) {
 		var allYears = {};
 		var yearsForSeries = {};
 
@@ -277,7 +213,7 @@ export default class ChartData {
 		});
 
 		return chartData;
-	}
+	}*/
 
 	@computed get sources(): SourceWithVariable[] {
 		const {chart, vardata} = this

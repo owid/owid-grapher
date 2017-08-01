@@ -35,6 +35,8 @@ export default class ScatterTransform {
         return _.find(this.chart.data.filledDimensions, d => d.property == 'x') as FilledDimension
     }
     @computed get axisDimensions(): [FilledDimension, FilledDimension] {
+        console.assert(this.yDimension)
+        console.assert(this.xDimension)
         return [this.yDimension, this.xDimension]
     }
 
@@ -57,7 +59,7 @@ export default class ScatterTransform {
             // If there's no timeline, we're just showing a single target year
             let maxYear = this.chart.timeDomain[1]
             if (!_.isFinite(maxYear))
-                maxYear = _(this.axisDimensions).map(d => _.max(d.variable.years)).max() as number
+                maxYear = _(this.axisDimensions).map(d => d.variable.maxYear).max() as number
             return [maxYear] as number[]
         }
 
@@ -113,6 +115,7 @@ export default class ScatterTransform {
                         value = variable.values[i],
                         entity = variable.entities[i];
 
+                    // Since scatterplots interrelate two variables via entity overlap, their datakeys are solely entity-based
                     const datakey = chart.data.keyFor(entity, 0)
                     
                     if (!validEntityLookup[entity])

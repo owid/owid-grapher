@@ -250,7 +250,7 @@ export default class ChartConfig {
 	constructor(props: ChartConfigProps) {        
         this.update(props)
         this.vardata = new VariableData(this)
-        this.data = new ChartData(this, this.vardata)
+        this.data = new ChartData(this)
         this.url = new URLBinder(this)
         this.colors = new ColorBinder(this)
 
