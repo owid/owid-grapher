@@ -220,16 +220,9 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
     @computed get bounds() { return this.props.bounds }
     @computed get transform() { return this.props.chart.stackedArea }
 
-    @computed get xAxis() {
-        return this.chart.xAxis.toSpec({ defaultDomain: this.transform.xDomainDefault })
-    }
-
-    @computed get yAxis() {
-        return this.chart.yAxis.toSpec({ defaultDomain: this.transform.yDomainDefault })
-    }
-
     @computed get axisBox() {
-        const {bounds, xAxis, yAxis} = this
+        const {bounds, transform} = this
+        const {xAxis, yAxis} = transform
         return new AxisBox({bounds: bounds, xAxis, yAxis})
     }
 

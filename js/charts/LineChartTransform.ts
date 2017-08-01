@@ -5,10 +5,12 @@ import Color from './Color'
 import DataKey from './DataKey'
 import {StackedAreaSeries, StackedAreaValue} from './StackedArea'
 import AxisSpec from './AxisSpec'
+import {defaultTo} from './Util'
+import {FilledDimension} from './ChartData'
 
 // Responsible for translating chart configuration into the form
-// of a stacked area chart
-export default class StackedAreaTransform {
+// of a line chart
+export default class LineChartTransform {
     chart: ChartConfig
 
     constructor(chart: ChartConfig) {
@@ -64,28 +66,11 @@ export default class StackedAreaTransform {
     }
 
     @computed get xDomainDefault(): [number, number] {
-        return [_(this.allValues).map(v => v.x).min() as number, _(this.allValues).map(v => v.x).max() as number]
-    }
-
-    @computed get stackedData(): StackedAreaSeries[] {
-        const {groupedData} = this
-        
-        if (_.some(groupedData, series => series.values.length !== groupedData[0].values.length))
-            throw `Unexpected variation in stacked area chart series: ${_.map(groupedData, series => series.values.length)}`
-
-        let stackedData = _.cloneDeep(groupedData)
-
-        for (var i = 1; i < stackedData.length; i++) {
-            for (var j = 0; j < stackedData[0].values.length; j++) {
-                stackedData[i].values[j].y += stackedData[i-1].values[j].y
-            }
-        }
-
-        return stackedData
+        return [_(this.allValues).map((v => v.x)).min() as number, _(this.allValues).map(v => v.x).max() as number]
     }
 
     @computed get yDomainDefault(): [number, number] {
-        return [0, (_(this.stackedData).map('values').flatten().map('y').max() as number)]
+        return [(_(this.allValues).map(v => v.y).min() as number), (_(this.allValues).map(v => v.y).max() as number)]
     }
 
     @computed get xAxis(): AxisSpec {
@@ -96,12 +81,21 @@ export default class StackedAreaTransform {
         ) as AxisSpec
     }
 
+    @computed get yDimensionFirst() {
+        return _.find(this.chart.data.filledDimensions, { property: 'y' }) as FilledDimension
+    }
+
     @computed get yAxis(): AxisSpec {
-        const {chart, yDomainDefault} = this
-        
-        return _.extend(
-            chart.yAxis.toSpec({ defaultDomain: yDomainDefault }),
-            { domain: [yDomainDefault[0], chart.yAxis.domain[1]||yDomainDefault[1]] }
-        ) as AxisSpec
+        const {chart, yDomainDefault, yDimensionFirst} = this
+
+        yDimensionFirst.variable.unit
+
+        return {
+            label: chart.yAxis.label,
+            tickFormat: chart.yAxis.tickFormat,//(d: number) => d + yDimensionFirst.variable.unit,
+            domain: [defaultTo(chart.yAxis.domain[0], yDomainDefault[0]), defaultTo(chart.yAxis.domain[1], yDomainDefault[1])],
+            scaleType: chart.yAxis.scaleType,
+            scaleTypeOptions: chart.yAxis.scaleTypeOptions            
+        }
     }
 }

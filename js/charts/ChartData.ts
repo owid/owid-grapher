@@ -71,6 +71,7 @@ export default class ChartData {
 		return _.map(validSelections, sel => this.keyFor(vardata.entityMetaById[sel.entityId].name, sel.index))
 	}
 
+	// Map keys back to their components for storage
 	set selectedKeys(keys: DataKey[]) {
 		const {chart, vardata} = this
 		if (!vardata.isReady) return
@@ -123,6 +124,17 @@ export default class ChartData {
 		const {chart, availableKeys, selectedKeys} = this
 		return _.without(availableKeys, ...selectedKeys)
 	}
+
+	@computed get availableKeysByEntity(): Map<string, DataKey[]> {
+		const keysByEntity = new Map()
+		this.keyData.forEach((info, key) => {
+			const keys = keysByEntity.get(info.entity) || []
+			keys.push(key)
+			keysByEntity.set(info.entity, keys)
+		})
+		return keysByEntity
+	}
+
 
 	lookupKey(key: DataKey) {
 		const keyDatum = this.keyData.get(key)

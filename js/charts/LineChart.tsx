@@ -43,33 +43,18 @@ export interface LineChartSeries {
 }
 
 @observer
-export default class LineChart extends React.Component<{ bounds: Bounds, chart: ChartConfig, localData: LineChartSeries[] }> {
+export default class LineChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
     base: SVGGElement
     @observable.ref tooltip: React.ReactNode|null
 
     @computed get chart() { return this.props.chart }
     @computed get bounds() { return this.props.bounds }
-
-    @computed get localData(): LineChartSeries[] {
-        return this.props.localData
-    }
-
-    @computed get allValues(): LineChartValue[] {
-        return _.flatten(_.map(this.localData, series => series.values))
-    }
-
-    @computed get xDomainDefault(): [number, number] {
-        return (d3.extent(this.allValues.map(function(d) { return d.x; })) as [number, number])
-    }
-
-    @computed get yDomainDefault(): [number, number] {
-        return (d3.extent(this.allValues.map(function(d) { return d.y; })) as [number, number])
-    }
+    @computed get transform() { return this.props.chart.lineChart }
 
     // Order of the legend items on a line chart should visually correspond
     // to the order of the lines as the approach the legend
     @computed get legendItems() {
-        return _(this.localData).sortBy(series => -(_.last(series.values) as LineChartValue).y).map(d => ({
+        return _(this.transform.groupedData).sortBy(series => -(_.last(series.values) as LineChartValue).y).map(d => ({
             color: d.color,
             label: this.chart.data.formatKey(d.key)
         })).value()
@@ -93,16 +78,15 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
     }
 
     render() {
-        const {chart, bounds, localData, xDomainDefault, yDomainDefault, legend, tooltip} = this
+        const {chart, transform, bounds, legend, tooltip} = this
+        const {groupedData, xAxis, yAxis} = transform
 
-        const xAxis = chart.xAxis.toSpec({ defaultDomain: xDomainDefault })
-        const yAxis = chart.yAxis.toSpec({ defaultDomain: yDomainDefault })
         const axisBox = new AxisBox({bounds: bounds.padRight(10).padRight(legend.width), xAxis, yAxis})
 
         return <g className="LineChart">
             <ColorLegendView x={bounds.right-legend.width} y={bounds.top} legend={legend}/>
             <StandardAxisBoxView axisBox={axisBox} chart={chart}/>
-            <Lines xScale={axisBox.xScale} yScale={axisBox.yScale} data={localData} onHoverPoint={this.onHoverPoint} onHoverStop={this.onHoverStop}/>
+            <Lines xScale={axisBox.xScale} yScale={axisBox.yScale} data={groupedData} onHoverPoint={this.onHoverPoint} onHoverStop={this.onHoverStop}/>
             {tooltip}
         </g>
     }

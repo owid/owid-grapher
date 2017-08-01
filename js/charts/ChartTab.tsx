@@ -65,7 +65,7 @@ export default class ChartTab extends React.Component<{ chart: ChartConfig, boun
         else if (chart.type == ChartType.ScatterPlot)
             return <ScatterPlot bounds={bounds.padTop(20).padBottom(10)} config={chart} isStatic={this.props.chartView.isExport}/>
 		else if (chart.type == ChartType.LineChart)
-			return <LineChart bounds={bounds.padTop(20).padBottom(10)} chart={chart} localData={chart.data.chartData}/>
+			return <LineChart bounds={bounds.padTop(20).padBottom(10)} chart={chart}/>
 		else if (chart.type == ChartType.StackedArea)
 			return <StackedArea bounds={bounds.padTop(20).padBottom(10)} chart={chart}/>
 		else if (chart.type == ChartType.DiscreteBar)

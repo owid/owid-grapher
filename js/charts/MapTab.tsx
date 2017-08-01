@@ -56,7 +56,7 @@ class TimelineMap extends React.Component<TimelineMapProps> {
         const entity = this.props.choroplethData[d.id].entity
         
         chart.tab = 'chart'
-        chart.data.selectEntity(entity)
+        chart.data.selectedKeys = chart.data.availableKeysByEntity.get(entity)||[]
     }
 
     componentDidMount() {

@@ -11,6 +11,7 @@ export class Variable {
 	@observable.ref name: string
 	@observable.ref description: string
 	@observable.ref unit: string
+	@observable.ref shortUnit: string
 	@observable.ref coverage: string
 	@observable.ref timespan: string
 	@observable.struct source: {
@@ -172,6 +173,7 @@ export default class VariableData {
 		});
 
 		_.each(variablesById, v => v.entities = _.map(v.entities, id => entityMetaById[id].name))
+		_.each(entityMetaById, (e, id) => e.id = +id)
 		this.variablesById = variablesById
 		this.entityMetaById = entityMetaById
 	}

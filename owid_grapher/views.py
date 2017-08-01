@@ -283,7 +283,7 @@ def variables(request, ids):
 
     with connection.cursor() as cursor:
         cursor.execute("SELECT variables.id as var_id, variables.name as var_name, variables.description as var_desc, "
-                       "variables.unit as var_unit, variables.created_at, sources.name as source_name, "
+                       "variables.unit as var_unit, variables.short_unit as var_short_unit, variables.created_at, sources.name as source_name, "
                        "sources.description as source_desc, datasets.name as dataset_name "
                        "FROM variables "
                        "JOIN datasets on variables.fk_dst_id = datasets.id "
@@ -301,10 +301,11 @@ def variables(request, ids):
         var = {}
         var['id'] = int(each['var_id'])
         var['name'] = each['var_name']
-        var['dataset_name'] = each['dataset_name']
-        var['created_at'] = str(each['created_at'])
+        var['datasetName'] = each['dataset_name']
+        var['createdAt'] = str(each['created_at'])
         var['description'] = each['var_desc']
         var['unit'] = each['var_unit']
+        var['shortUnit'] = each['var_short_unit']
         var['source'] = source
         var['entities'] = []
         var['years'] = []

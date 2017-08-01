@@ -18,6 +18,7 @@ import URLBinder from './URLBinder'
 import ColorBinder from './ColorBinder'
 import DiscreteBarTransform from './DiscreteBarTransform'
 import StackedAreaTransform from './StackedAreaTransform'
+import LineChartTransform from './LineChartTransform'
 import Color from './Color'
 
 export interface TimelineConfig {
@@ -217,10 +218,6 @@ export default class ChartConfig {
         this.variableCacheTag = props["variableCacheTag"]
     }
 
-    @computed get map() {
-        return new MapConfig(this)
-    }
-
     @computed.struct get json() {
         const {props} = this
 
@@ -243,9 +240,11 @@ export default class ChartConfig {
         return json
     }
 
+    @computed get map() { return new MapConfig(this) }
     @computed get discreteBar() { return new DiscreteBarTransform(this) }
     @computed get stackedArea() { return new StackedAreaTransform(this) }
-    
+    @computed get lineChart() { return new LineChartTransform(this) }
+
 	constructor(props: ChartConfigProps) {        
         this.update(props)
         this.vardata = new VariableData(this)
