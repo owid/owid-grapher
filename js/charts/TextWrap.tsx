@@ -8,6 +8,7 @@ import * as React from 'react'
 export interface TextWrapProps {
     text: string,
     maxWidth: number,
+    lineHeight?: number,
     fontSize?: FontSize,
     raw?: true
 }
@@ -30,7 +31,7 @@ export default class TextWrap {
     }    
 
     @computed get maxWidth(): number { return defaultTo(this.props.maxWidth, Infinity) }
-    @computed get lineHeight(): number { return 1.1 }
+    @computed get lineHeight(): number { return defaultTo(this.props.lineHeight, 1.1) }
     @computed get fontSize(): FontSize { return defaultTo(this.props.fontSize, 1) }
     @computed get text(): string { return this.props.text }
 

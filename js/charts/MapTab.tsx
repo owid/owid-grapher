@@ -143,7 +143,11 @@ export default class MapTab extends React.Component<MapTabProps> {
     }
 
     @computed get footer() {
-        return preInstantiate(<SourcesFooter bounds={this.props.bounds} chart={this.props.chart}/>)
+        const _this = this
+        return new SourcesFooter({
+            get chart() { return _this.props.chart },
+            get maxWidth() { return _this.props.bounds.width }
+        })
     }
 
     render() {
@@ -165,7 +169,7 @@ export default class MapTab extends React.Component<MapTabProps> {
                 projection={map.projection}
                 defaultFill={map.noDataColor}
             />
-            <SourcesFooter {...footer.props}/>
+            {footer.render(bounds.x, bounds.bottom-footer.height)}
         </g>
 
     }

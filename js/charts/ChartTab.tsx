@@ -50,7 +50,7 @@ export default class ChartTab extends React.Component<{ chart: ChartConfig, char
     @computed get footer() {
         const _this = this
         return new SourcesFooter({
-            chart: _this.props.chart,
+            get chart() { return _this.props.chart },
             get maxWidth() { return _this.props.bounds.width }
         })
     }
