@@ -2,8 +2,8 @@ import * as React from 'react'
 import * as _ from 'lodash'
 import {computed} from 'mobx'
 import {observer} from 'mobx-react'
-import Paragraph from './Paragraph'
 import {preInstantiate} from './Util'
+import TextWrap from './TextWrap'
 
 interface ColorLegendProps {
     x?: number,
@@ -18,7 +18,7 @@ interface ColorLegendProps {
 }
 
 interface LabelMark {
-    label: Paragraph,
+    label: TextWrap,
     color: string,
     width: number,
     height: number
@@ -45,7 +45,7 @@ export default class ScatterColorLegend extends React.Component<ColorLegendProps
             if (props.colors.indexOf(color) == -1)
                 return null
 
-            const label = preInstantiate(<Paragraph maxWidth={props.maxWidth} fontSize={fontSize}>{value}</Paragraph>)
+            const label = new TextWrap({ maxWidth: props.maxWidth, fontSize: fontSize, text: value })
             return {
                 label: label,
                 color: color,
@@ -77,7 +77,7 @@ export default class ScatterColorLegend extends React.Component<ColorLegendProps
                 const result = <g className="legendMark" onMouseOver={e => this.onMouseOver(mark.color)} onMouseLeave={e => this.onMouseLeave()} onClick={e => this.onClick(mark.color)}>
                     <rect x={this.x} y={this.y+offset-lineHeight/2} width={mark.width} height={mark.height+lineHeight} fill="#fff" opacity={0}/>,
                     <rect x={this.x} y={this.y+offset+rectSize/2} width={rectSize} height={rectSize} fill={mark.color}/>,
-                    <Paragraph {...mark.label.props} x={this.x+rectSize+rectPadding} y={this.y+offset}/>
+                    {mark.label.render(this.x+rectSize+rectPadding, this.y+offset)}
                 </g>
 
                 offset += mark.height+lineHeight

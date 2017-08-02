@@ -19,7 +19,6 @@ import AxisBox from './AxisBox'
 import StandardAxisBoxView from './StandardAxisBoxView'
 import Lines from './Lines'
 import {preInstantiate} from "./Util"
-import Paragraph from './Paragraph'
 import Text from './Text'
 import ColorLegend, {ColorLegendView} from './ColorLegend'
 import Vector2 from './Vector2'

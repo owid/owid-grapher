@@ -8,7 +8,8 @@ import * as React from 'react'
 export interface TextWrapProps {
     text: string,
     maxWidth: number,
-    fontSize?: FontSize
+    fontSize?: FontSize,
+    raw?: true
 }
 
 interface WrapLine {
@@ -84,9 +85,9 @@ export default class TextWrap {
 
 		return <text fontSize={fontSize+'em'} x={0} y={y+lines[0].height-lines[0].height*0.2} {...options}>
 			{_.map(lines, (line, i) => {
-                //if (props.raw)
-                //    return <tspan x={x} dy={i == 0 ? 0 : lineHeight + 'em'} dangerouslySetInnerHTML={{__html: line.text}}/>
-                //else
+                if (props.raw)
+                    return <tspan x={x} dy={i == 0 ? 0 : lineHeight + 'em'} dangerouslySetInnerHTML={{__html: line.text}}/>
+                else
     				return <tspan x={x} dy={i == 0 ? 0 : lineHeight + 'em'}>{strip(line.text)}</tspan>
 			})}
 		</text>

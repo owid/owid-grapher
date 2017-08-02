@@ -5,10 +5,10 @@ import Bounds from './Bounds'
 import {observable, computed, asFlat, action} from 'mobx'
 import {observer} from 'mobx-react'
 import {getRelativeMouse} from './Util'
-import Paragraph from './Paragraph'
 import Text from './Text'
 import {preInstantiate} from './Util'
 import {MapLegendBin, NumericBin, CategoricalBin} from './MapData'
+import TextWrap from './TextWrap'
 
 interface NumericMapLegendProps {
     width: number,
@@ -379,8 +379,9 @@ export default class MapLegend extends React.Component<MapLegendProps> {
     }
     @computed get hasCategorical(): boolean { return this.categoricalLegendData.length > 1 }
 
-    @computed get mainLabel(): Paragraph {
-        return preInstantiate(<Paragraph width={this.props.bounds.width} scale={0.6}>{this.props.title}</Paragraph>)
+    @computed get mainLabel(): TextWrap {
+        const {props} = this
+        return new TextWrap({ maxWidth: props.bounds.width, fontSize: 0.6, text: props.title })
     }
 
     @computed get numericFocusBracket(): MapLegendBin|undefined {
@@ -436,7 +437,7 @@ export default class MapLegend extends React.Component<MapLegendProps> {
         return <g className="mapLegend">
             {numericLegend && <NumericMapLegendView legend={numericLegend} x={bounds.centerX-numericLegend.width/2} y={bounds.bottom-mainLabel.height-categoryLegendHeight-numericLegend.height-4} onMouseOver={onMouseOver} onMouseLeave={onMouseLeave}/>}
             {categoryLegend && <CategoricalMapLegend {...categoryLegend.props} x={bounds.centerX-categoryLegend.width/2} y={bounds.bottom-mainLabel.height-categoryLegendHeight}/>}
-            <Paragraph {...mainLabel.props} x={bounds.centerX-mainLabel.width/2} y={bounds.bottom-mainLabel.height}/>
+            {mainLabel.render(bounds.centerX-mainLabel.width/2, bounds.bottom-mainLabel.height)}
         </g>
     }
 }

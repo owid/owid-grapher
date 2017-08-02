@@ -5,74 +5,26 @@ import {computed, action} from 'mobx'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
 import {preInstantiate} from './Util'
-import Paragraph from './Paragraph'
 import Text from './Text'
+import TextWrap from './TextWrap'
 import ChartConfig from './ChartConfig'
 
-interface SourcesFooterMainProps {
-    x?: number,
-    y?: number,
-    maxWidth: number,
-    sourcesText: string,
-    notesText: string,
-    licenseSvg: string,
-    onSourcesClick: () => void
-}
-
-@observer
-class SourcesFooterMain extends React.Component<SourcesFooterMainProps> {
-    @computed get fontSize() {
-        return 0.5
-    }
-
-    @computed get sources() {
-        return preInstantiate(<Paragraph maxWidth={this.props.maxWidth} fontSize={this.fontSize}>{this.props.sourcesText}</Paragraph>)
-    }
-
-    @computed get notes() {
-        return preInstantiate(<Paragraph maxWidth={this.props.maxWidth} fontSize={this.fontSize}>{this.props.notesText}</Paragraph>)
-    }
-
-    @computed get license() {
-        const {licenseSvg} = this.props
-        return preInstantiate(<Paragraph raw={true} maxWidth={this.props.maxWidth*3} fontSize={this.fontSize}>{licenseSvg}</Paragraph>)
-    }
-
-    // Put the license stuff to the side if there's room
-    @computed get isCompact() {
-        return this.props.maxWidth-this.sources.width-5 > this.license.width
-    }
-
-    @computed get paraMargin() {
-        return 2
-    }
-
-    @computed get height() {
-        const {sources, notes, license, isCompact, paraMargin} = this
-        return sources.height+(notes.height ? paraMargin+notes.height : 0)+(isCompact ? 0 : paraMargin+license.height)
-    }
-
-    render() {
-        const {props, sources, notes, license, isCompact, paraMargin} = this
-
-        return <g className="SourcesFooter" style={{fill: "#777"}}>
-            <a onClick={this.props.onSourcesClick} style={{fill: "#777"}}><Paragraph {...sources.props} x={props.x} y={props.y}/></a>
-            <Paragraph {...notes.props} x={props.x} y={props.y+sources.height+paraMargin}/>
-            {isCompact
-                ? <Paragraph {...license.props} x={props.x+props.maxWidth-license.width} y={props.y}/>
-                : <Paragraph {...license.props} x={props.x} y={props.y+sources.height+paraMargin+(notes.height ? notes.height+paraMargin : 0)}/>
-            }
-            {/*<CCIcon {...ccIcon.props} x={props.x+props.maxWidth-ccIcon.width-5} y={props.y+this.height-ccIcon.height-5}/>*/}
-        </g>
-    }
-}
 
 interface SourcesFooterProps {
-    bounds: Bounds,
-    chart: ChartConfig
+    chart: ChartConfig,
+    maxWidth: number
 }
 
-export default class SourcesFooter extends React.Component<SourcesFooterProps> {
+export default class SourcesFooter {
+    props: SourcesFooterProps
+    constructor(props: SourcesFooterProps) {
+        this.props = props
+    }
+    
+    @computed get maxWidth() {
+        return this.props.maxWidth
+    }
+
     @computed get defaultSourceDesc(): string {
        return _(this.props.chart.data.sources).map('name').uniq().join(",")
     }
@@ -106,21 +58,53 @@ export default class SourcesFooter extends React.Component<SourcesFooterProps> {
         return licenseSvg;
     }
 
-    @computed get footerMain() {
-        const {sourcesText, noteText, licenseSvg} = this
-        return preInstantiate(<SourcesFooterMain sourcesText={sourcesText} notesText={noteText} licenseSvg={licenseSvg} maxWidth={this.props.bounds.width} onSourcesClick={this.onSourcesClick}/>)
+    @computed get fontSize() {
+        return 0.5
     }
 
-    @computed get height() {
-        return this.footerMain.height
+    @computed get sources() {
+        const {maxWidth, fontSize, sourcesText} = this
+        return new TextWrap({ maxWidth: maxWidth, fontSize: fontSize, text: sourcesText })
+    }
+
+    @computed get note() {
+        const {maxWidth, fontSize, noteText} = this
+        return new TextWrap({ maxWidth: maxWidth, fontSize: fontSize, text: noteText })
+    }
+
+    @computed get license() {
+        const {maxWidth, fontSize, licenseSvg} = this
+        return new TextWrap({ maxWidth: maxWidth*3, fontSize: fontSize, text: licenseSvg, raw: true })
+    }
+
+    // Put the license stuff to the side if there's room
+    @computed get isCompact() {
+        return this.maxWidth-this.sources.width-5 > this.license.width
+    }
+
+    @computed get paraMargin() {
+        return 2
+    }
+
+    @computed get height(): number {
+        const {sources, note, license, isCompact, paraMargin} = this
+        return sources.height+(note.height ? paraMargin+note.height : 0)+(isCompact ? 0 : paraMargin+license.height)
     }
 
     @action.bound onSourcesClick() {
         this.props.chart.tab = 'sources'
     }
 
-    render() {
-        const {props, footerMain} = this
-        return <SourcesFooterMain {...footerMain.props} x={props.bounds.left} y={props.bounds.bottom-footerMain.height}/>
+    render(targetX: number, targetY: number) {
+        const {sources, note, license, maxWidth, isCompact, paraMargin, onSourcesClick} = this
+
+        return <g className="SourcesFooter" style={{fill: "#777"}}>
+            <a onClick={onSourcesClick} style={{fill: "#777"}}>{sources.render(targetX, targetY)}</a>
+            {note.render(targetX, targetY+sources.height+paraMargin)}
+            {isCompact
+                ? license.render(targetX+maxWidth-license.width, targetY)
+                : license.render(targetX, targetY+sources.height+paraMargin+(note.height ? note.height+paraMargin : 0))
+            }
+        </g>
     }
 }

@@ -19,7 +19,6 @@ import AxisBox from './AxisBox'
 import StandardAxisBoxView from './StandardAxisBoxView'
 import Lines from './Lines'
 import {preInstantiate} from "./Util"
-import Paragraph from './Paragraph'
 import AxisScale from './AxisScale'
 import Color from './Color'
 import {HorizontalAxis, HorizontalAxisView} from './Axis'

@@ -48,10 +48,11 @@ export default class ChartTab extends React.Component<{ chart: ChartConfig, char
     }
 
     @computed get footer() {
-        const {props} = this
-        const {chart} = props
-
-        return preInstantiate(<SourcesFooter bounds={props.bounds} chart={chart}/>)
+        const _this = this
+        return new SourcesFooter({
+            chart: _this.props.chart,
+            get maxWidth() { return _this.props.bounds.width }
+        })
     }
 
     renderChart() {
@@ -74,12 +75,12 @@ export default class ChartTab extends React.Component<{ chart: ChartConfig, char
     }
 
     render() {
-        const {header, footer} = this
+        const {header, footer, props} = this
 
         return <g className="chartTab">
             <Header {...header.props}/>
             {this.renderChart()}
-            <SourcesFooter {...footer.props}/>
+            {footer.render(props.bounds.x, props.bounds.bottom-footer.height)}
         </g>
     }
 }
