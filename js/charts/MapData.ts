@@ -24,7 +24,7 @@ export class NumericBin {
     
     get minText() { return this.min.toString() }
     get maxText() { return this.max.toString() }
-    get text() { return this.label }
+    get text() { return this.label||"" }
 
     contains(d: MapDataValue|null): boolean {
         return !!(d && (this.index == 0 ? d.value >= this.min : d.value > this.min) && d.value <= this.max)

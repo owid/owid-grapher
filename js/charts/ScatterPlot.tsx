@@ -28,7 +28,7 @@ import AxisBox, {AxisBoxView} from './AxisBox'
 import ComparisonLine from './ComparisonLine'
 import {ScaleType} from './AxisScale'
 import AxisSpec from './AxisSpec' 
-import {unitFormat} from './Util'
+import {unitFormat, first, last} from './Util'
 
 export interface ScatterValue {
     x: number
@@ -96,13 +96,13 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         return preInstantiate(<ScatterColorLegend maxWidth={this.sidebarMaxWidth} colors={this.transform.colorsInUse} scale={this.transform.colorScale}/>)
     }
 
-    @observable focusColor: string|null = null
+    @observable focusColor: string|undefined
     @action.bound onLegendMouseOver(color: string) {
         this.focusColor = color
     }
 
     @action.bound onLegendMouseLeave() {
-        this.focusColor = null
+        this.focusColor = undefined
     }
 
     @action.bound onLegendClick() {
@@ -221,8 +221,8 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps> {
         const {x, y, maxWidth, series} = this.props
         const lineHeight = 5
 
-        const firstValue = _.first(series.values)
-        const lastValue = _.last(series.values)
+        const firstValue = first(series.values)
+        const lastValue = last(series.values)
         const values = series.values.length == 1 ? [firstValue] : [firstValue, lastValue]
 
         const elements = []
@@ -242,7 +242,7 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps> {
             elements.push(...[year, line1, line2])
         })
 
-        return <g class="scatterTooltip">
+        return <g className="scatterTooltip">
             {_.map(elements, el => el.render())}
         </g>
     }

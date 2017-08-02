@@ -8,7 +8,7 @@ import AxisSpec from './AxisSpec'
 import {defaultTo} from './Util'
 import {DimensionWithData} from './ChartData'
 import Observations from './Observations'
-import{SlopeChartSeries} from './LabelledSlopes'
+import {SlopeChartSeries} from './LabelledSlopes'
 
 // Responsible for translating chart configuration into the form
 // of a line chart

@@ -59,7 +59,7 @@ export default class ScatterColorLegend extends React.Component<ColorLegendProps
         if (this.labelMarks.length == 0)
             return 0   
         else 
-            return _.max(_.map(this.labelMarks, 'width'))
+            return _(this.labelMarks).map('width').max() as number
     }
 
     @computed get height() {

@@ -28,15 +28,15 @@ interface ScatterSeries {
 };
 
 interface PointsWithLabelsProps {
-    data: ScatterSeries[],
-    focusKeys: string[],
-    bounds: Bounds,
-    xScale: AxisScale,
-    yScale: AxisScale,
-    sizeDomain: [number, number],
-    onSelectEntity: (entity: string) => void,
-    onMouseOver: (entity: string) => void,
-    onMouseLeave: void => void
+    data: ScatterSeries[]
+    focusKeys: string[]
+    bounds: Bounds
+    xScale: AxisScale
+    yScale: AxisScale
+    sizeDomain: [number, number]
+    onSelectEntity: (entity: string) => void
+    onMouseOver: (entity: string) => void
+    onMouseLeave: () => void
 }
 
 interface ScatterRenderSeries {

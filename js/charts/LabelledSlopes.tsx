@@ -8,16 +8,14 @@
  * @created 2017-02-11
  */
 
-// @flow
-
-import _ from 'lodash'
+import * as _ from 'lodash'
 import * as d3 from 'd3'
-import React, { Component } from 'react'
+import * as React from 'react'
 import {observable, computed, action} from 'mobx'
 import {observer} from 'mobx-react'
 
-import type {SVGElement} from './Util'
-import type {ScaleType} from './ScaleSelector'
+import {SVGElement} from './Util'
+import ScaleType from './ScaleType'
 import Bounds from './Bounds'
 import Text from './Text'
 import Paragraph from './Paragraph'
@@ -25,29 +23,29 @@ import NoData from './NoData'
 import ScaleSelector from './ScaleSelector'
 import {preInstantiate} from './Util'
 
-export type SlopeChartSeries = {
-	label: string,
-	key: string,
-	color: string,
-	size: number,
+export interface SlopeChartSeries {
+	label: string
+	key: string
+	color: string
+	size: number
 	values: { x: number, y: number }[]
 };
 
-type AxisProps = {
-	bounds: Bounds,
-	orient: 'left' | 'right' | 'bottom',
-	tickFormat: (number) => string,
-	scale: any,
+interface AxisProps {
+	bounds: Bounds
+	orient: 'left' | 'right' | 'bottom'
+	tickFormat: (value: number) => string
+	scale: any
 	scaleType: ScaleType
 };
 
 @observer
-class Axis extends Component {
-	static calculateBounds(containerBounds : Bounds, props : any) {
+class Axis extends React.Component<AxisProps> {
+	static calculateBounds(containerBounds: Bounds, props: any) {
 		const {orient, scale} = props
 
 //		if (orient == 'left' || orient == 'right') {
-			const longestTick = _.sortBy(_.map(scale.ticks(6), props.tickFormat), (tick) => -tick.length)[0]
+			const longestTick = _(scale.ticks(6)).map(props.tickFormat).sortBy(tick => -tick.length)[0]
 			const axisWidth = Bounds.forText(longestTick).width
 			if (orient == "left")
 				return new Bounds(containerBounds.x, containerBounds.y, axisWidth, containerBounds.height)
@@ -58,7 +56,7 @@ class Axis extends Component {
 //		}
 	}
 
-	static getTicks(scale, scaleType : ScaleType) {
+	static getTicks(scale, scaleType: ScaleType) {
 		if (scaleType == 'log') {
 			let minPower10 = Math.ceil(Math.log(scale.domain()[0]) / Math.log(10));
 			if (!_.isFinite(minPower10)) minPower10 = 0
@@ -97,27 +95,27 @@ class Axis extends Component {
 	}
 }
 
-export type SlopeProps = {
-	x1: number,
-	y1: number,
-	x2: number,
-	y2: number,
-	color: string,
-	size: number,
-	hasLeftLabel: boolean,
-	hasRightLabel: boolean,
-	labelFontSize: string,
-	leftLabelBounds: Bounds,
-	rightLabelBounds: Bounds,
-	leftValueStr: string,
-	rightValueStr: string,
-	leftLabel: Object,
-	rightLabel: Object,
+export interface SlopeProps {
+	x1: number
+	y1: number
+	x2: number
+	y2: number
+	color: string
+	size: number
+	hasLeftLabel: boolean
+	hasRightLabel: boolean
+	labelFontSize: string
+	leftLabelBounds: Bounds
+	rightLabelBounds: Bounds
+	leftValueStr: string
+	rightValueStr: string
+	leftLabel: Object
+	rightLabel: Object
 	isFocused: boolean
 };
 
 @observer
-class Slope extends Component {
+class Slope extends React.Component<SlopeProps> {
 	props: SlopeProps
 	line: SVGElement
 
@@ -130,7 +128,7 @@ class Slope extends Component {
         const leftValueLabelBounds = Bounds.forText(leftValueStr, { fontSize: labelFontSize })
         const rightValueLabelBounds = Bounds.forText(rightValueStr, { fontSize: labelFontSize })
 
-		return <g class="slope">
+		return <g className="slope">
 			{hasLeftLabel && <Paragraph {...leftLabel.props} x={leftLabelBounds.x+leftLabelBounds.width} y={leftLabelBounds.y} text-anchor="end" fill={labelColor} font-weight={isFocused&&'bold'} precalc={leftLabel}>{leftLabel.text}</Paragraph>}
 			{hasLeftLabel && <Text x={x1-8} y={y1-leftValueLabelBounds.height/2} text-anchor="end" fontSize={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{leftValueStr}</Text>}
 			<circle cx={x1} cy={y1} r={isFocused ? 4 : 2} fill={lineColor} opacity={opacity}/>
@@ -142,18 +140,18 @@ class Slope extends Component {
 	}
 }
 
-@observer
-export default class LabelledSlopes extends Component {
-	props: {
-		bounds: Bounds,
-		data: SlopeChartSeries[],
-		yDomain: [number|null, number|null],
-		yTickFormat: (number) => string,
-		yScaleType: ScaleType,
-		yScaleTypeOptions: ScaleType[],
-		onScaleTypeChange: (ScaleType) => void
-	}
+export interface LabelledSlopesProps {
+	bounds: Bounds
+	data: SlopeChartSeries[]
+	yDomain: [number|null number|null]
+	yTickFormat: (number) => string
+	yScaleType: ScaleType
+	yScaleTypeOptions: ScaleType[]
+	onScaleTypeChange: (ScaleType) => void
+}
 
+@observer
+export default class LabelledSlopes extends React.Component<LabelledSlopesProps> {
 	base: SVGElement
 	svg: SVGElement
 
@@ -400,8 +398,8 @@ export default class LabelledSlopes extends Component {
     	const [y1, y2] = yScale.range()
 
 	    return (
-	    	<g class="slopeChart">
-				<g class="gridlines">
+	    	<g className="slopeChart">
+				<g className="gridlines">
 					{_.map(Axis.getTicks(yScale, yScaleType), (tick) => {
 						return <line x1={x1} y1={yScale(tick)} x2={x2} y2={yScale(tick)} stroke="#eee" stroke-dasharray="3,2"/>
 					})}
@@ -413,7 +411,7 @@ export default class LabelledSlopes extends Component {
 	    		{yScaleTypeOptions.length > 1 && <ScaleSelector x={x1+5} y={y2-8} scaleType={yScaleType} scaleTypeOptions={yScaleTypeOptions} onChange={onScaleTypeChange}/>}
 	    		<Text x={x1} y={y1+10} text-anchor="middle" dominant-baseline="hanging" fill="#666">{xDomain[0]}</Text>
 	    		<Text x={x2} y={y1+10} text-anchor="middle" dominant-baseline="hanging" fill="#666">{xDomain[1]}</Text>
-				<g class="slopes">
+				<g className="slopes">
 					{_.map(slopeData, (slope) => {
 				    	return <Slope key={slope.key} {...slope} />
 			    	})}
