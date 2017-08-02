@@ -21,7 +21,8 @@ import Text from './Text'
 import TextWrap from './TextWrap'
 import NoData from './NoData'
 import ScaleSelector from './ScaleSelector'
-import {preInstantiate} from './Util'
+import {getRelativeMouse} from './Util'
+import Vector2 from './Vector2'
 
 export interface SlopeChartSeries {
 	label: string
@@ -33,30 +34,22 @@ export interface SlopeChartSeries {
 
 interface AxisProps {
 	bounds: Bounds
-	orient: 'left' | 'right' | 'bottom'
+	orient: 'left' | 'right'
 	tickFormat: (value: number) => string
 	scale: any
 	scaleType: ScaleType
 };
 
 @observer
-class Axis extends React.Component<AxisProps> {
-	static calculateBounds(containerBounds: Bounds, props: any) {
+class SlopeChartAxis extends React.Component<AxisProps> {
+	static calculateBounds(containerBounds: Bounds, props: { tickFormat: (value: number) => string, orient: 'left' | 'right', scale: d3.ScaleLinear<number, number> }) {
 		const {orient, scale} = props
-
-//		if (orient == 'left' || orient == 'right') {
-			const longestTick = _(scale.ticks(6)).map(props.tickFormat).sortBy(tick => -tick.length)[0]
-			const axisWidth = Bounds.forText(longestTick).width
-			if (orient == "left")
-				return new Bounds(containerBounds.x, containerBounds.y, axisWidth, containerBounds.height)
-			else
-				return new Bounds(containerBounds.x+(containerBounds.width-axisWidth), containerBounds.y, axisWidth, containerBounds.height)
-//		} else {
-//			return new Bounds(containerBounds.x, containerBounds.y, 0, containerBounds.height)
-//		}
+		const longestTick = _(scale.ticks(6)).map(props.tickFormat).sortBy(tick => -tick.length).first() as string
+		const axisWidth = Bounds.forText(longestTick).width
+		return new Bounds(containerBounds.x, containerBounds.y, axisWidth, containerBounds.height)
 	}
 
-	static getTicks(scale, scaleType: ScaleType) {
+	static getTicks(scale: d3.ScaleLinear<number, number>|d3.ScaleLogarithmic<number, number>, scaleType: ScaleType) {
 		if (scaleType == 'log') {
 			let minPower10 = Math.ceil(Math.log(scale.domain()[0]) / Math.log(10));
 			if (!_.isFinite(minPower10)) minPower10 = 0
@@ -76,7 +69,7 @@ class Axis extends React.Component<AxisProps> {
 	props: AxisProps
 
 	@computed get ticks() {
-		return Axis.getTicks(this.props.scale, this.props.scaleType)
+		return SlopeChartAxis.getTicks(this.props.scale, this.props.scaleType)
 	}
 
 	render() {
@@ -86,16 +79,14 @@ class Axis extends React.Component<AxisProps> {
 
 		return <g className="axis" font-size="0.8em">
 			{_.map(ticks, (tick) => {
-				if (orient == 'left' || orient == 'right')
-					return <text x={orient == 'left' ? bounds.left : bounds.right} y={scale(tick)} fill={textColor} dominant-baseline="middle" text-anchor={orient == 'left' ? 'start' : 'end'}>{tickFormat(tick)}</text>
-				else if (orient == 'top' || orient == 'bottom')
-					return <text x={scale(tick)} y={orient == 'top' ? bounds.top : bounds.bottom} fill={textColor} dominant-baseline={orient == 'top' ? 'auto' : 'hanging'} text-anchor="middle">{tickFormat(tick)}</text>
+				return <text x={orient == 'left' ? bounds.left : bounds.right} y={scale(tick)} fill={textColor} dominant-baseline="middle" text-anchor={orient == 'left' ? 'start' : 'end'}>{tickFormat(tick)}</text>
 			})}
 	    </g>
 	}
 }
 
 export interface SlopeProps {
+	key: string
 	x1: number
 	y1: number
 	x2: number
@@ -145,7 +136,7 @@ class Slope extends React.Component<SlopeProps> {
 export interface LabelledSlopesProps {
 	bounds: Bounds
 	data: SlopeChartSeries[]
-	yDomain: [number|null number|null]
+	yDomain: [number|undefined, number|undefined]
 	yTickFormat: (value: number) => string
 	yScaleType: ScaleType
 	yScaleTypeOptions: ScaleType[]
@@ -157,7 +148,7 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 	base: SVGElement
 	svg: SVGElement
 
-	@observable focusKey = null
+	@observable focusKey?: string
 
 	@computed get data(): SlopeChartSeries[] {
 		return this.props.data
@@ -176,15 +167,15 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 	}
 
 	@computed get xDomainDefault(): [number, number] {
-		const xValues = _(this.props.data).map(g => g.values).flatten().map(v => v.x).value()
+		const xValues = _(this.props.data).map(g => g.values).flatten().map((v: any) => v.x).value()
 		return d3.extent(xValues) as [number, number]
 	}
 
 	@computed get yDomainDefault(): [number, number] {
-		let yValues = _(this.props.data).map(g => g.values).flatten().map(v => v.y)
-		if (this.props.scaleType == 'log')
+		let yValues = _(this.props.data).map(g => g.values).flatten().map((v: any) => v.y)
+		if (this.props.yScaleType == 'log')
 			yValues = yValues.filter(y => y > 0)
-		return d3.extent(yValues.value())
+		return d3.extent(yValues.value()) as [number, number]
 	}
 
 	@computed get xDomain(): [number, number] {
@@ -199,20 +190,20 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 	}
 
 	@computed get sizeScale(): d3.ScaleLinear<number, number> {
-		return d3.scaleLinear().domain(d3.extent(_.map(this.props.data, 'size'))).range([1, 4])
+		return d3.scaleLinear().domain(d3.extent(_.map(this.props.data, d => d.size)) as [number, number]).range([1, 4])
 	}
 
-	@computed get yScaleConstructor(): d3.ScaleLog|d3.ScaleLinear {
+	@computed get yScaleConstructor(): Function {
 		return this.props.yScaleType == 'log' ? d3.scaleLog : d3.scaleLinear
 	}
 
-	@computed get yScale(): d3.ScaleLinear<number, number> {
+	@computed get yScale(): d3.ScaleLinear<number, number>|d3.ScaleLogarithmic<number, number> {
 		return this.yScaleConstructor().domain(this.yDomain).range(this.props.bounds.padBottom(50).yRange())
 	}
 
 	@computed get xScale(): d3.ScaleLinear<number, number> {
 		const {bounds, isPortrait, xDomain, yScale} = this
-		const padding = isPortrait ? 0 : Axis.calculateBounds(bounds, { orient: 'left', scale: yScale, tickFormat: this.props.yTickFormat }).width
+		const padding = isPortrait ? 0 : SlopeChartAxis.calculateBounds(bounds, { orient: 'left', scale: yScale, tickFormat: this.props.yTickFormat }).width
 		return d3.scaleLinear().domain(xDomain).range(bounds.padWidth(padding).xRange())
 	}
 
@@ -262,7 +253,7 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 							 leftValueWidth: leftValueWidth, rightValueWidth: rightValueWidth,
 							 leftLabel: leftLabel, rightLabel: rightLabel,
 							 labelFontSize: fontSize+'em', key: series.key, isFocused: false,
-							 hasLeftLabel: true, hasRightLabel: true })
+							 hasLeftLabel: true, hasRightLabel: true } as SlopeProps)
 		})
 
 		return slopeData
@@ -305,7 +296,7 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 		})
 
 		// How to work out which of two slopes to prioritize for labelling conflicts
-		function chooseLabel(s1, s2) {
+		function chooseLabel(s1: SlopeProps, s2: SlopeProps) {
 			if (s1.isFocused && !s2.isFocused) // Focused slopes always have priority
 				return s1
 			else if (!s1.isFocused && s2.isFocused)
@@ -352,35 +343,26 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 		return slopeData
 	}
 
-	@action.bound onMouseMove() {
-		if (!this.base) return
-		const mouse = d3.mouse(this.base)
-		if (!this.props.bounds.containsPoint(...mouse))
-			this.focusKey = null
-		else {
-			const slope = _.sortBy(this.slopeData, (slope) => {
-				const distToLine = Math.abs((slope.y2-slope.y1)*mouse[0] - (slope.x2-slope.x1)*mouse[1] + slope.x2*slope.y1 - slope.y2*slope.x1) / Math.sqrt((slope.y2-slope.y1)**2 + (slope.x2-slope.x1)**2)
-				return distToLine
-			})[0]
-			this.focusKey = slope.key
-		}
+	@action.bound onMouseMove(ev: React.MouseEvent<SVGGElement>|React.TouchEvent<SVGGElement>) {
+		const mouse = Vector2.fromArray(getRelativeMouse(this.base, ev))
+		
+		requestAnimationFrame(() => {
+			if (!this.props.bounds.contains(mouse))
+				this.focusKey = undefined
+			else {
+				const slope = _.sortBy(this.slopeData, (slope) => {
+					const distToLine = Math.abs((slope.y2-slope.y1)*mouse.x - (slope.x2-slope.x1)*mouse.y + slope.x2*slope.y1 - slope.y2*slope.x1) / Math.sqrt((slope.y2-slope.y1)**2 + (slope.x2-slope.x1)**2)
+					return distToLine
+				})[0]
+				this.focusKey = slope.key
+			}
+		})
 	}
 
 	componentDidMount() {
-		d3.select('html').on('mousemove.slopechart', this.onMouseMove)
-		d3.select('html').on('touchmove.slopechart', this.onMouseMove)
-		d3.select('html').on('touchstart.slopechart', this.onMouseMove)
-
 		// Nice little intro animation
 		d3.select(this.base).select(".slopes").attr('stroke-dasharray', "100%").attr('stroke-dashoffset', "100%").transition().attr('stroke-dashoffset', "0%")
 	}
-
-	componentDidUnmount() {
-		d3.select('html').on('mousemove.slopechart', null)
-		d3.select('html').on('touchmove.slopechart', null)
-		d3.select('html').on('touchstart.slopechart', null)
-	}
-
     render() {
     	const { yTickFormat, yScaleType, yScaleTypeOptions, onScaleTypeChange } = this.props
     	const { bounds, slopeData, isPortrait, xDomain, xScale, yScale } = this
@@ -389,22 +371,25 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
     		return <NoData bounds={bounds}/>
 
     	const {x1, x2} = slopeData[0]
-    	const [y1, y2] = yScale.range()
+		const [y1, y2] = yScale.range()
+		
+		const onMouseMove = _.throttle(this.onMouseMove, 100)
 
 	    return (
-	    	<g className="slopeChart">
+	    	<g className="LabelledSlopes" onMouseMove={onMouseMove} onTouchMove={onMouseMove} onTouchStart={onMouseMove} onMouseLeave={onMouseMove}>
+				<rect x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="rgba(0,0,0,0)" opacity={0}/>
 				<g className="gridlines">
-					{_.map(Axis.getTicks(yScale, yScaleType), (tick) => {
+					{_.map(SlopeChartAxis.getTicks(yScale, yScaleType), (tick) => {
 						return <line x1={x1} y1={yScale(tick)} x2={x2} y2={yScale(tick)} stroke="#eee" stroke-dasharray="3,2"/>
 					})}
 				</g>
-				{!isPortrait && <Axis layout="left" orient="left" tickFormat={yTickFormat} scale={yScale} scaleType={yScaleType} bounds={bounds}/>}
-	    		{!isPortrait && <Axis layout="right" orient="right" tickFormat={yTickFormat} scale={yScale} scaleType={yScaleType} bounds={bounds}/>}
+				{!isPortrait && <SlopeChartAxis orient="left" tickFormat={yTickFormat} scale={yScale} scaleType={yScaleType} bounds={bounds}/>}
+	    		{!isPortrait && <SlopeChartAxis orient="right" tickFormat={yTickFormat} scale={yScale} scaleType={yScaleType} bounds={bounds}/>}
 	    		<line x1={x1} y1={y1} x2={x1} y2={y2} stroke="#333"/>
 	    		<line x1={x2} y1={y1} x2={x2} y2={y2} stroke="#333"/>
 	    		{yScaleTypeOptions.length > 1 && <ScaleSelector x={x1+5} y={y2-8} scaleType={yScaleType} scaleTypeOptions={yScaleTypeOptions} onChange={onScaleTypeChange}/>}
-	    		<Text x={x1} y={y1+10} text-anchor="middle" dominant-baseline="hanging" fill="#666">{xDomain[0]}</Text>
-	    		<Text x={x2} y={y1+10} text-anchor="middle" dominant-baseline="hanging" fill="#666">{xDomain[1]}</Text>
+	    		<Text x={x1} y={y1+10} textAnchor="middle" fill="#666">{xDomain[0].toString()}</Text>
+	    		<Text x={x2} y={y1+10} textAnchor="middle" fill="#666">{xDomain[1].toString()}</Text>
 				<g className="slopes">
 					{_.map(slopeData, (slope) => {
 				    	return <Slope key={slope.key} {...slope} />

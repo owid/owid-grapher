@@ -70,11 +70,11 @@ export default class Timeline extends React.Component<TimelineProps> {
 	}
 
 	@computed get minYear(): number {
-		return _.first(this.props.years)
+		return _.first(this.props.years) as number
 	}
 
 	@computed get maxYear(): number {
-		return _.last(this.props.years)
+		return _.last(this.props.years) as number
 	}
 
     // Sanity check the input
@@ -324,13 +324,13 @@ export default class Timeline extends React.Component<TimelineProps> {
         const toggleFontSize = "1em"
         const toggleTextBounds = Bounds.forText(toggleText, { fontSize: toggleFontSize })
 
-		return <g className="clickable" onTouchStart={this.onMouseDown} onMouseDown={this.onMouseDown} ref={g => this.g = g}>
+		return <g className="clickable" onTouchStart={this.onMouseDown} onMouseDown={this.onMouseDown}>
 			<rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height} fill="white"></rect>
-            <Text className="toggle" onClick={() => this.isPlaying = !this.isPlaying} x={bounds.left+10} y={bounds.centerY-toggleTextBounds.height/2} font-family="FontAwesome" font-size={toggleFontSize}>
+            <Text className="toggle" onClick={() => this.isPlaying = !this.isPlaying} x={bounds.left+10} y={bounds.centerY-toggleTextBounds.height/2} fontFamily="FontAwesome" fontSize={toggleFontSize}>
                 {toggleText}
 			</Text>
-			<Text className="minYearLabel" x={minYearBox.x} y={minYearBox.y} font-size="0.8em" fill="#666">{minYear}</Text>
-            <Text className="maxYearLabel" x={maxYearBox.x} y={maxYearBox.y} font-size="0.8em" fill="#666">{maxYear}</Text>
+			<Text className="minYearLabel" x={minYearBox.x} y={minYearBox.y} fontSize="0.8em" fill="#666">{minYear.toString()}</Text>
+            <Text className="maxYearLabel" x={maxYearBox.x} y={maxYearBox.y} fontSize="0.8em" fill="#666">{maxYear.toString()}</Text>
 			<g className="ticks">
 				{_.map(years.slice(1, -1), (year) => {
 					return <rect className="tick" x={xScale(year)} y={sliderBounds.top+sliderBounds.height-1} width="1px" height="0.2em" fill="rgba(0,0,0,0.2)" />

@@ -5,11 +5,9 @@ import Bounds from './Bounds'
 // Nothing else we do works like that though, so this wraps it to use the same spatial behavior
 // as other componets
 
-interface TextProps {
+interface TextProps extends React.SVGProps<SVGTextElement> {
 	x: number,
 	y: number,
-	fontSize?: string,
-	fontFamily?: string,
 	children: string
 }
 

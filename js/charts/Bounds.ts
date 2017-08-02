@@ -5,10 +5,10 @@ import * as d3 from 'd3'
 import Vector2 from './Vector2'
 
 export default class Bounds {
-	x: number
-	y: number
-	width: number
-	height: number
+	readonly x: number
+	readonly y: number
+	readonly width: number
+	readonly height: number
 
 	constructor(x: number, y: number, width: number, height: number) {
 		this.x = x
@@ -81,17 +81,17 @@ export default class Bounds {
     }
 
     static debug(boundsArray: Bounds[], containerNode?: HTMLElement) {
-        var container = containerNode ? d3.select(containerNode) : d3.select('svg');
+        var container: any = containerNode ? d3.select(containerNode) : d3.select('svg');
 
         container.selectAll('rect.boundsDebug').remove()
 
         container.selectAll('rect.boundsDebug')
             .data(boundsArray).enter()
             .append('rect')
-                .attr('x', b => b.left)
-                .attr('y', b => b.top)
-                .attr('width', b => b.width)
-                .attr('height', b => b.height)
+                .attr('x', (b: Bounds) => b.left)
+                .attr('y', (b: Bounds) => b.top)
+                .attr('width', (b: Bounds) => b.width)
+                .attr('height', (b: Bounds) => b.height)
                 .attr('class', 'boundsDebug')
                 .style('fill', 'rgba(0,0,0,0)')
                 .style('stroke', 'red');
@@ -167,12 +167,6 @@ export default class Bounds {
 			[this.bottomRight, this.bottomLeft],
 			[this.bottomLeft, this.topLeft]
 		]
-	}
-
-	intersectLine(a: Vector2, m: Vector2): Vector2[] {
-		return _.map(_.filter(_.map(this.lines(), line => {
-			return Vector2.intersectLines(a, m, line[0], line[1])
-		})), this.boundedPoint.bind(this))
 	}
 
 	boundedPoint(p: Vector2): Vector2 {

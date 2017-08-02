@@ -94,11 +94,6 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         const {data} = this
         const sizeScale = d3.scaleLinear().range([2, 25]).domain(this.props.sizeDomain)
         return sizeScale
-/*        const allSizes = _.chain(data).map(series => _.map(series.values, 'size')).flatten().filter().value()
-        if (allSizes.length == 0)
-            return sizeScale.domain([1, 1])
-        else
-            return sizeScale.domain(d3.extent(allSizes))*/
     }
 
     @computed get fontScale(): Function {
@@ -223,7 +218,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                 series: series,
                 isMid: true
             }
-        }))
+        })
     }
 
     // Make the end label (entity label) for a series. Will be pushed
@@ -350,7 +345,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                 }
             })[0]
 
-            if (closestSeries) //&& _.min(_.map(closestSeries.values, v => Vector2.distance(v.position, mouse))) < 20)
+            if (closestSeries)
                 this.hoverKey = closestSeries.key
             else
                 this.hoverKey = null
