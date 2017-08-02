@@ -1,26 +1,23 @@
 import * as _ from 'lodash'
 import * as d3 from 'd3'
-import owid from '../owid'
 import * as React from 'react'
 import {observable, computed, asFlat, action, spy} from 'mobx'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
 import {bind} from 'decko'
 import {getRelativeMouse} from './Util'
-import Layout from './Layout'
 import Observations from './Observations'
 import ChartConfig from './ChartConfig'
 import Text from './Text'
 import LabelledSlopes, {SlopeChartSeries} from './LabelledSlopes'
-window.Observations = Observations
 import {DimensionWithData} from './ChartData'
 
-class WrapLayout extends React.Component<{ bounds: Bounds }> {
+class WrapLayout extends React.Component<{ bounds: Bounds, children: React.ReactNode[], className?: string }> {
 	render() {
 		let {bounds, children} = this.props
 		let x = bounds.x, y = bounds.y, lineHeight = 0
 
-		function layout(width, height) {
+		function layout(width: number, height: number) {
 			lineHeight = Math.max(lineHeight, height)
 
 			if (x + width > bounds.right) {
@@ -34,11 +31,11 @@ class WrapLayout extends React.Component<{ bounds: Bounds }> {
 		}
 
 	    children = _.map(children, (vnode) => {
-	    	if (!vnode.nodeName) return vnode
-            return React.cloneElement(vnode, { layout: layout })
+	    	if (!(vnode as any).nodeName) return vnode
+            return React.cloneElement(vnode as any, { layout: layout })
 	    })
 
-	    return <g {...this.props}>
+	    return <g {...(this.props as any)}>
 	    	{children}
 	    </g>
 	}
@@ -89,7 +86,7 @@ class ColorLegendItem extends React.Component<ColorLegendItemProps> {
 
 @observer
 class ColorLegend extends React.Component<{ bounds: Bounds, legendData: Object[] }> {
-	static calculateBounds(bounds) {
+	static calculateBounds(bounds: Bounds) {
 		return bounds;
 	}
 
@@ -99,7 +96,7 @@ class ColorLegend extends React.Component<{ bounds: Bounds, legendData: Object[]
 		const rectSize = 10
 		const rectSpacing = 5
 
-		return <WrapLayout class="legend" bounds={bounds}>
+		return <WrapLayout className="legend" bounds={bounds}>
 			{_.map(legendData, (d) => {
 				return  <g>
 					<rect x={bounds.x} y={bounds.y+(bounds.height/2 - rectSize/2)} width={rectSize} height={rectSize} fill={d.color}/>
@@ -129,8 +126,6 @@ export default class SlopeChart extends React.Component<{ bounds: Bounds, chart:
 		const {legendData, transform} = this
 		const {data} = transform
 
-		return <Layout bounds={bounds}>
-			<LabelledSlopes bounds={Layout.bounds} yDomain={yAxis.domain} yTickFormat={yAxis.tickFormat} yScaleType={yAxis.scaleType} yScaleTypeOptions={yAxis.scaleTypeOptions} onScaleTypeChange={(scaleType) => { config.yScaleType = scaleType }} data={data}/>
-		</Layout>
+		return <LabelledSlopes bounds={bounds} yDomain={yAxis.domain} yTickFormat={yAxis.tickFormat} yScaleType={yAxis.scaleType} yScaleTypeOptions={yAxis.scaleTypeOptions} onScaleTypeChange={(scaleType) => { config.yScaleType = scaleType }} data={data}/>
 	}
 }

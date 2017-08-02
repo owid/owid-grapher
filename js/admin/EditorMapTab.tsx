@@ -10,7 +10,7 @@ import MapConfig from '../charts/MapConfig'
 import MapData from '../charts/MapData'
 import MapProjections from '../charts/MapProjections'
 import MapProjection from '../charts/MapProjection'
-import colorbrewer from '../charts/owid.colorbrewer'
+import ColorSchemes from '../charts/ColorSchemes'
 import {NumericBin, CategoricalBin} from '../charts/MapData'
 import Color from '../charts/Color'
 import Colorpicker from './Colorpicker'
@@ -214,7 +214,7 @@ class ColorsSection extends React.Component<{ map: MapConfig }> {
 	render() {
 		const {map} = this.props
 
-		const availableColorSchemes = _(colorbrewer).map((v: any, k: any) => _.extend({}, v, { key: k })).filter((v: any) => !!v.name).value()
+		const availableColorSchemes = _(ColorSchemes).map((v: any, k: any) => _.extend({}, v, { key: k })).filter((v: any) => !!v.name).value()
 		const currentColorScheme = map.isCustomColors ? 'custom' : map.props.baseColorScheme
 
 		return <section>

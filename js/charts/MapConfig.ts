@@ -19,7 +19,7 @@ export class MapConfigProps {
 	@observable.ref variableId?: number
 	@observable.ref targetYear?: number
 	@observable.ref timeTolerance?: number
-	// Name of an owid.colorbrewer scheme, may then be further customized	
+	// Key for a colorbrewer scheme, may then be further customized	
 	@observable.ref baseColorScheme?: string
 	// Number of numeric intervals used to color data
 	@observable.ref colorSchemeInterval?: number = 10

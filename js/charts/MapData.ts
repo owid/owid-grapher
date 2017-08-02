@@ -3,7 +3,7 @@ import ChartConfig from './ChartConfig'
 import {defaultTo} from './Util'
 import * as _ from 'lodash'
 import * as d3 from 'd3'
-import colorbrewer from './owid.colorbrewer'
+import ColorSchemes from './ColorSchemes'
 import Color from './Color'
 import {ChoroplethData} from './ChoroplethMap'
 import {entityNameForMap} from './Util'
@@ -130,7 +130,7 @@ export default class MapData {
 
     @computed get colorScheme() {
         const {baseColorScheme} = this.map
-        return defaultTo(colorbrewer[baseColorScheme], colorbrewer[_.keys(colorbrewer[0])])
+        return defaultTo(ColorSchemes[baseColorScheme], ColorSchemes[_.keys(ColorSchemes)[0]])
     }
 
 	@computed get baseColors() {

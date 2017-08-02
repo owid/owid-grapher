@@ -1,5 +1,6 @@
-import {computed} from 'mobx'
 import * as _ from 'lodash'
+import * as d3 from 'd3'
+import {computed} from 'mobx'
 import ChartConfig from './ChartConfig'
 import Color from './Color'
 import DataKey from './DataKey'
@@ -9,6 +10,7 @@ import {defaultTo} from './Util'
 import {DimensionWithData} from './ChartData'
 import Observations from './Observations'
 import {SlopeChartSeries} from './LabelledSlopes'
+import {first, last, makeSafeForCSS} from './Util'
 
 // Responsible for translating chart configuration into the form
 // of a line chart
@@ -37,10 +39,10 @@ export default class SlopeChartTransform {
 
 	@computed get variableData() : Observations {
 		const variables = _.map(this.chart.data.filledDimensions, 'variable')
-		let obvs = []
+		let obvs : any[]= []
 		_.each(variables, (v) => {
 			for (var i = 0; i < v.years.length; i++) {
-				let d = { year: v.years[i], entity: v.entities[i] }
+				let d: any = { year: v.years[i], entity: v.entities[i] }
 				d[v.id] = v.values[i]
 				obvs.push(d)
 			}
@@ -48,7 +50,7 @@ export default class SlopeChartTransform {
 		return new Observations(obvs)
 	}
 
-	@computed get colorScale() : any {
+	@computed get colorScale(): d3.ScaleOrdinal<string, string> {
 		const {colorDim} = this
 
         const colorScheme = [ // TODO less ad hoc color scheme (probably would have to annotate the datasets)
@@ -61,7 +63,7 @@ export default class SlopeChartTransform {
                 "#69c487", // South America
                 "#ff7f0e", "#1f77b4", "#ffbb78", "#2ca02c", "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b", "c49c94", "e377c2", "f7b6d2", "7f7f7f", "c7c7c7", "bcbd22", "dbdb8d", "17becf", "9edae5", "1f77b4"]
 
-        const colorScale = d3.scaleOrdinal().range(colorScheme)
+        const colorScale = d3.scaleOrdinal(colorScheme)
         if (colorDim.variable)
 	        colorScale.domain(colorDim.variable.categoricalValues)
 
@@ -75,28 +77,28 @@ export default class SlopeChartTransform {
 		const entityKey = this.chart.vardata.entityMetaByKey
 
 		// Make sure we're using time bounds that actually contain data
-		const longestRange = data.filter((d) => _.isFinite(d[yDim.variableId]))
-			.mergeBy('entity', (rows) => rows.pluck('year'))
-			.sortBy((d) => _.last(d)-_.first(d))
+		const longestRange: number[] = data.filter((d: any) => _.isFinite(d[yDim.variableId]))
+			.mergeBy('entity', (rows: Observations) => rows.pluck('year'))
+			.sortBy((d: number[]) => last(d)-first(d))
 			.last()
 
-		const minYear = xDomain[0] == null ? _.first(longestRange) : Math.max(xDomain[0], _.first(longestRange))
-		const maxYear = xDomain[1] == null ? _.last(longestRange) : Math.min(xDomain[1], _.last(longestRange))
+		const minYear = xDomain[0] == null ? _.first(longestRange) : Math.max(xDomain[0]||-Infinity, first(longestRange))
+		const maxYear = xDomain[1] == null ? _.last(longestRange) : Math.min(xDomain[1]||Infinity, last(longestRange))
 
 		data = data.mergeBy('entity', (rows : Observations, entity : string) => {
 			return {
 				label: entityKey[entity].name,
-				key: owid.makeSafeForCSS(entityKey[entity].name),
+				key: makeSafeForCSS(entityKey[entity].name),
 				color: colorScale(rows.first(colorDim.variableId)),
 				size: rows.first(sizeDim.variableId),
-				values: rows.filter((d) => _.isFinite(d[yDim.variableId]) && (d.year == minYear || d.year == maxYear)).mergeBy('year').map((d) => {
+				values: rows.filter((d: any) => _.isFinite(d[yDim.variableId]) && (d.year == minYear || d.year == maxYear)).mergeBy('year').map((d: any) => {
 					return {
 						x: d.year,
 						y: d[yDim.variableId]
 					}
 				}).toArray()
 			}
-		}).filter((d) => d.values.length >= 2)
+		}).filter((d: any) => d.values.length >= 2)
 
 		return data.toArray()
 	}
