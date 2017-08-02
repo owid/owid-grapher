@@ -19,11 +19,11 @@ class Admin {
     }
 
     fetchJSON(path: string) {
-        return window.fetch(this.url(path), { credentials: 'same-origin' }).then(function(data) { return data.json(); });
+        return fetch(this.url(path), { credentials: 'same-origin' }).then(data => data.json());
     }
 
     request(path: string, data: Object, method: 'PUT'|'POST') {
-        return window.fetch(this.url(path), {
+        return fetch(this.url(path), {
             method: method,
             credentials: 'same-origin',
             headers: {

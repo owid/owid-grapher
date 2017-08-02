@@ -10,7 +10,6 @@ import ChartConfig from './ChartConfig'
 import * as _ from 'lodash'
 import * as d3 from 'd3'
 import * as $ from 'jquery'
-import owid from '../owid'
 import EntitySelect from './owid.view.entitySelect'
 import ScatterPlot from './ScatterPlot'
 import LineChart from './LineChart'
@@ -23,7 +22,7 @@ import StackedArea from './StackedArea'
 import DiscreteBarChart from './DiscreteBarChart'
 
 @observer
-export default class ChartTab extends React.Component<{ chart: ChartConfig, bounds: Bounds }, undefined> {
+export default class ChartTab extends React.Component<{ chart: ChartConfig, chartView: ChartView, bounds: Bounds }> {
     @computed get header() {
         const {props} = this
         const {bounds, chart} = props
@@ -63,7 +62,7 @@ export default class ChartTab extends React.Component<{ chart: ChartConfig, boun
         if (chart.type == ChartType.SlopeChart)
             return <SlopeChart bounds={bounds.padTop(20)} chart={chart}/>
         else if (chart.type == ChartType.ScatterPlot)
-            return <ScatterPlot bounds={bounds.padTop(20).padBottom(10)} config={chart} isStatic={this.props.chartView.isExport}/>
+            return <ScatterPlot bounds={bounds.padTop(20).padBottom(10)} config={chart} isStatic={chartView.isExport}/>
 		else if (chart.type == ChartType.LineChart)
 			return <LineChart bounds={bounds.padTop(20).padBottom(10)} chart={chart}/>
 		else if (chart.type == ChartType.StackedArea)

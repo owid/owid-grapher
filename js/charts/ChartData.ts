@@ -154,42 +154,10 @@ export default class ChartData {
 		return this.lookupKey(key).label
 	}
 
-	@computed get data() {
-		const {chart, vardata} = this
-		const {variablesById} = vardata
-
-		if (chart.type == ChartType.ScatterPlot || chart.tab == 'map' || _.isEmpty(variablesById) || _.isEmpty(chart.dimensions))
-			return null;
-
-		let result = this.transformDataForLineChart();
-		
-		/*if (addCountryMode != "add-country" && chartType != ChartType.DiscreteBar) {
-			_.each(result.legendData, function(d) {
-				d.disabled = !this.chart.isLegendKeyActive(d.key);
-			});
-			_.each(result.chartData, function(d) {
-				d.disabled = !this.chart.isLegendKeyActive(d.key);
-			});
-		}*/
-		chart.colors.assignColorsForLegend(result.legendData);
-		chart.colors.assignColorsForChart(result.chartData);		
-
-		return result;		
-	}
-
-	@computed get chartData() {		
-		return this.data ? this.data.chartData : []
-	}
-
-	@computed get legendData() {
-		return this.data ? this.data.legendData : []
-	}
-
 	@computed get primaryVariable() {
 		const yDimension = _.find(this.chart.dimensions, { property: 'y' })
 		return yDimension ? this.vardata.variablesById[yDimension.variableId] : undefined
 	}
-
 
 	// Ensures that every series has a value entry for every year in the data
 	// Even if that value is just 0

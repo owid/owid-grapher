@@ -6,9 +6,9 @@ import {observer} from 'mobx-react'
 import Bounds from './Bounds'
 import {ScaleType} from './AxisScale'
 import AxisScale from './AxisScale'
-import Paragraph from './Paragraph'
 import {preInstantiate} from './Util'
 import ScaleSelector from './ScaleSelector'
+import TextWrap from './TextWrap'
 
 interface VerticalAxisProps {
     scale: AxisScale,
@@ -21,11 +21,19 @@ export class VerticalAxis {
     static tickFontSize = "0.7em"
     static labelFontSize = 0.5
 
+    @computed get label(): TextWrap|undefined {
+        const {props, height} = this
+        return props.labelText ? new TextWrap({ maxWidth: height, fontSize: VerticalAxis.labelFontSize, text: props.labelText}) : undefined
+    }
+
+    @computed get labelOffset(): number {
+        return this.label ? this.label.height + VerticalAxis.labelPadding*2 : 0
+    }
+
     @computed get width() {
-        const {scale, labelText} = this.props
-        const longestTick = _.sortBy(scale.getFormattedTicks(), (tick) => -tick.length)[0]
-        const labelWrap = labelText && preInstantiate(<Paragraph maxWidth={this.height} fontSize={VerticalAxis.labelFontSize}>label</Paragraph>)
-        return Bounds.forText(longestTick, { fontSize: VerticalAxis.tickFontSize }).width + (labelText ? (labelWrap.height + VerticalAxis.labelPadding*2) : 0)+5
+        const {props, labelOffset} = this
+        const longestTick = _.sortBy(props.scale.getFormattedTicks(), (tick) => -tick.length)[0]
+        return Bounds.forText(longestTick, { fontSize: VerticalAxis.tickFontSize }).width + labelOffset + 5
     }
 
     @computed get height() {
@@ -43,23 +51,6 @@ export class VerticalAxis {
 
     @computed get ticks() : number[] {
         return this.scale.getTickValues()
-    }
-
-    @computed get label(): Paragraph|undefined {
-        const {labelText} = this.props
-
-        if (!labelText) return undefined
-
-        return preInstantiate(<Paragraph maxWidth={this.height} fontSize={VerticalAxis.labelFontSize}>{labelText}</Paragraph>)
-    }
-
-    @computed get labelOffset(): number {
-        const {label} = this
-
-        if (!label)
-            return 0
-        else
-            return label.height + VerticalAxis.labelPadding*2
     }
 }
 
@@ -79,14 +70,22 @@ export class HorizontalAxis {
         this.props = props
     }
 
+    @computed get label(): TextWrap|undefined {
+        const {props, width} = this
+        return props.labelText ? new TextWrap({ maxWidth: width, fontSize: HorizontalAxis.labelFontSize, text: props.labelText }) : undefined
+    }
+
+    @computed get labelOffset(): number {
+        return this.label ? this.label.height + HorizontalAxis.labelPadding*2 : 0
+    }
+
     @computed get width() {
         return this.props.scale.rangeSize
     }
 
     @computed get height() {
-        const {scale, labelText} = this.props
-        const labelWrap = labelText && preInstantiate(<Paragraph maxWidth={this.width} fontSize={HorizontalAxis.labelFontSize}>label</Paragraph>)
-        return Bounds.forText(scale.getFormattedTicks()[0], { fontSize: HorizontalAxis.tickFontSize }).height + (labelText ? (labelWrap.height + HorizontalAxis.labelPadding*2) : 0)+5
+        const {props, labelOffset} = this
+        return Bounds.forText(props.scale.getFormattedTicks()[0], { fontSize: HorizontalAxis.tickFontSize }).height + labelOffset + 5
     }
 
     @computed get scale() : AxisScale {
@@ -135,23 +134,6 @@ export class HorizontalAxis {
 
         return tickPlacements.filter(t => !t.isHidden).map(t => t.tick)
     }
-
-    @computed get label(): Paragraph|undefined {
-        const {labelText} = this.props
-
-        if (!labelText) return undefined
-
-        return preInstantiate(<Paragraph maxWidth={this.width} fontSize={HorizontalAxis.labelFontSize}>{labelText}</Paragraph>)
-    }
-
-    @computed get labelOffset(): number {
-        const {label} = this
-
-        if (!label)
-            return 0
-        else
-            return label.height + HorizontalAxis.labelPadding*2
-    }
 }
 
 export class VerticalAxisView extends React.Component<{ bounds: Bounds, axis: VerticalAxis, onScaleTypeChange?: (scale: ScaleType) => void }> {
@@ -161,7 +143,7 @@ export class VerticalAxisView extends React.Component<{ bounds: Bounds, axis: Ve
         const textColor = '#666'
 
         return <g className="VerticalAxis">
-            {label && <Paragraph {...label.props} x={-bounds.centerY-label.width/2} y={bounds.left} transform="rotate(-90)"/>}
+            {label && label.render(-bounds.centerY-label.width/2, bounds.left, { transform: "rotate(-90)" })}
             {_.map(ticks, tick =>
                 <text x={bounds.left+axis.width-5} y={scale.place(tick)} fill={textColor} dominant-baseline="middle" textAnchor="end" font-size={VerticalAxis.tickFontSize}>{scale.tickFormat(tick)}</text>
             )}
@@ -178,7 +160,7 @@ export class HorizontalAxisView extends React.Component<{ bounds: Bounds, axis: 
         const textColor = '#666'
 
         return <g className="HorizontalAxis">
-            {label && <Paragraph {...label.props} x={bounds.centerX-label.width/2} y={bounds.bottom-label.height}/>}
+            {label && label.render(bounds.centerX-label.width/2, bounds.bottom-label.height)}
             {_.map(ticks, tick => {
                 return <text x={scale.place(tick)} y={bounds.bottom-labelOffset} fill={textColor} textAnchor="middle" fontSize={HorizontalAxis.tickFontSize}>{scale.tickFormat(tick)}</text>
             })}

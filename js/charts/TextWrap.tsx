@@ -73,7 +73,7 @@ export default class TextWrap {
     }
 
     @computed get width(): number {
-        return _.max(this.lines.map(l => l.width))
+        return _(this.lines).map(l => l.width).max() as number
     }
 
 	render(x: number, y: number, options?: any) {
