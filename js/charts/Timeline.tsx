@@ -19,7 +19,8 @@ interface TimelineProps {
 
 @observer
 export default class Timeline extends React.Component<TimelineProps> {
-	props: TimelineProps
+    props: TimelineProps
+    base: SVGGElement
 
     @observable startYearInput: number
     @observable endYearInput: number
@@ -194,8 +195,8 @@ export default class Timeline extends React.Component<TimelineProps> {
 	}
 
 	getInputYearFromMouse(evt: MouseEvent) {
-		const { sliderBounds, minYear, maxYear, g } = this
-        const mouseX = getRelativeMouse(g, evt)[0]
+		const { sliderBounds, minYear, maxYear, base } = this
+        const mouseX = getRelativeMouse(base, evt)[0]
 
         var fracWidth = (mouseX-sliderBounds.x) / sliderBounds.width,
             inputYear = minYear + fracWidth*(maxYear-minYear);

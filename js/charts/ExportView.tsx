@@ -29,7 +29,7 @@ export default class ExportView {
         const chart = new ChartConfig(jsonConfig)
 
         when(
-            () => chart.vardata.isReady,
+            () => chart.data.isReady,
             () => {
                 const html = ReactDOMServer.renderToStaticMarkup(<ChartView
                     chart={chart}

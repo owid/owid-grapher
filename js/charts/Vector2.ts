@@ -21,21 +21,11 @@ export default class Vector2 {
 	x: number
 	y: number
 
-    static get left() {
-        return new Vector2(-1, 0)
-    }
-
-    static get right() {
-        return new Vector2(1, 0)
-    }
-
-    static get up() {
-        return new Vector2(0, -1)
-    }
-
-    static get down() {
-        return new Vector2(0, 1)
-    }
+	static left = new Vector2(-1, 0)
+	static right = new Vector2(1, 0)
+	static up = new Vector2(0, -1)
+	static down = new Vector2(0, -1)
+	static zero = new Vector2(0,0)
 
 	static distanceSq(a: Vector2, b: Vector2): number {
 		return (b.x-a.x)**2 + (b.y-a.y)**2

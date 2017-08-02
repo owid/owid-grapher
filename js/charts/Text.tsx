@@ -18,6 +18,6 @@ export default class Text extends React.Component<TextProps> {
 
         y = y+bounds.height-bounds.height*0.2
 
-		return <text {...this.props} y={y} dominant-baseline={null} dangerouslySetInnerHTML={{__html: this.props.children}}/>
+		return <text {...this.props} y={y} dangerouslySetInnerHTML={{__html: this.props.children}}/>
 	}
 }

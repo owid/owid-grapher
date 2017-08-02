@@ -9,7 +9,7 @@ type TriangleProps = Readonly<{
     stroke?: string
     strokeWidth?: number
     transform?: string
-}>
+}> & React.SVGProps<SVGPolygonElement>
 
 @observer
 export class Triangle extends React.Component<TriangleProps> {

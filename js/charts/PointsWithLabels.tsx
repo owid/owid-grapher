@@ -24,7 +24,8 @@ interface ScatterSeries {
     color: string,
     key: string,
     label: string,
-    values: { x: number, y: number, size: number }[]
+    size: number,
+    values: { x: number, y: number, size: number, time: { x: number, y: number } }[]
 };
 
 interface PointsWithLabelsProps {
@@ -34,22 +35,47 @@ interface PointsWithLabelsProps {
     xScale: AxisScale
     yScale: AxisScale
     sizeDomain: [number, number]
-    onSelectEntity: (entity: string) => void
-    onMouseOver: (entity: string) => void
+    onSelectEntity: (entities: string[]) => void
+    onMouseOver: (series: ScatterSeries) => void
     onMouseLeave: () => void
 }
 
+interface ScatterRenderValue {
+    position: Vector2
+    size: number
+    fontSize: number
+    time: {
+        x: number
+        y: number
+    }
+}
+
 interface ScatterRenderSeries {
-    key: string,
-    displayKey: string,
-    color: string,
-    size: number,
-    fontSize: number,
-    values: { position: Vector2, size: number, time: any }[],
-    text: string,
-    isActive: boolean,
-    isHovered: boolean,
+    key: string
+    displayKey: string
+    color: string
+    size: number
+    values: ScatterRenderValue[]
+    text: string
+    isHovered: boolean
     isFocused: boolean
+    offsetVector: Vector2
+    startLabel?: ScatterLabel
+    midLabels: ScatterLabel[]
+    endLabel?: ScatterLabel
+    allLabels: ScatterLabel[]
+}
+
+interface ScatterLabel {
+    text: string
+    fontSize: number
+    pos: Vector2
+    bounds: Bounds
+    series: ScatterRenderSeries
+    isHidden?: boolean
+    isStart?: boolean    
+    isMid?: boolean
+    isEnd?: boolean
 }
 
 @observer
@@ -105,8 +131,8 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     }
 
     // Used if no color is specified for a series
-    @computed get defaultColorScale() {        
-        return d3.scaleOrdinal().range(d3.schemeCategory20)
+    @computed get defaultColorScale(): d3.ScaleOrdinal<string, string> {        
+        return d3.scaleOrdinal(d3.schemeCategory20)
     }
 
     // Pre-transform data for rendering
@@ -129,14 +155,19 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                 key: d.key,
                 displayKey: "key-" + makeSafeForCSS(d.key),
                 color: d.color || defaultColorScale(d.key),
-                size: _.last(values).size,
+                size: (_.last(values) as any).size,
                 values: values,
-                text: d.label
+                text: d.label,
+                isHovered: false,
+                isFocused: false,
+                midLabels: [],
+                allLabels: [],
+                offsetVector: Vector2.zero
             }
         }).sortBy('size').value()
     }
 
-    labelPriority(l) {
+    labelPriority(l: ScatterLabel) {
         let priority = l.fontSize
 
         if (l.series.isHovered)
@@ -150,10 +181,10 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     }
 
     // Create the start year label for a series
-    makeStartLabel(series: ScatterRenderSeries) {
+    makeStartLabel(series: ScatterRenderSeries): ScatterLabel|undefined {
         // No room to label the year if it's a single point        
         if (!series.isFocused || series.values.length <= 1)
-            return null
+            return undefined
 
         const {labelFontFamily} = this
         const fontSize = series.isFocused ? (this.isSubtleFocus ? 8 : 9): 7
@@ -180,7 +211,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
     // Make labels for the points between start and end on a series
     // Positioned using normals of the line segments
-    makeMidLabels(series: ScatterRenderSeries) {
+    makeMidLabels(series: ScatterRenderSeries): ScatterLabel[] {
         if (!series.isFocused || series.values.length <= 1 || (!series.isHovered && this.isSubtleFocus))
             return []
 
@@ -194,7 +225,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             const nextSegment = nextPos.subtract(v.position)
 
             let pos = v.position
-            if (prevPos) {
+            if (prevPos && prevSegment) {
                 const normals = prevSegment.add(nextSegment).normalize().normals().map(x => x.times(5))
                 const potentialSpots = _.map(normals, n => v.position.add(n))
                 pos = _.sortBy(potentialSpots, p => {
@@ -227,7 +258,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     makeEndLabel(series: ScatterRenderSeries) {
         const {isSubtleFocus, labelFontFamily} = this
 
-        const lastValue = _.last(series.values)
+        const lastValue = _.last(series.values) as ScatterRenderValue
         const lastPos = lastValue.position
         const fontSize = lastValue.fontSize*(series.isFocused ? (isSubtleFocus ? 1.2 : 1.3): 1.1)
 
@@ -252,6 +283,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             fontSize: fontSize,
             bounds: labelBounds,
             series: series,
+            pos: labelPos,
             isEnd: true
         }
     }
@@ -271,7 +303,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             series.startLabel = this.makeStartLabel(series)
             series.midLabels = this.makeMidLabels(series)
             series.endLabel = this.makeEndLabel(series)
-            series.allLabels = _.filter([series.startLabel].concat(series.midLabels).concat([series.endLabel]))
+            series.allLabels = _.filter([series.startLabel].concat(series.midLabels).concat([series.endLabel])) as ScatterLabel[]
         })
 
         const allLabels = _.flatten(_.map(renderData, series => series.allLabels))
@@ -350,8 +382,11 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             else
                 this.hoverKey = null
 
-            if (this.props.onMouseOver)
-                this.props.onMouseOver(_.find(this.data, d => d.key == this.hoverKey))        
+            if (this.props.onMouseOver) {
+                const datum = _.find(this.data, d => d.key == this.hoverKey)
+                if (datum)
+                    this.props.onMouseOver(datum)
+            }
         })
     }
 
@@ -381,7 +416,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         const {backgroundGroups, isConnected, isFocusMode} = this
 
         return _.map(backgroundGroups, series => {
-            const firstValue = _.first(series.values)
+            const firstValue = _.first(series.values) as ScatterRenderValue
             const color = !isFocusMode ? series.color : "#e2e2e2"            
 
             if (!isConnected) {
@@ -389,7 +424,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             } else if (series.values.length == 1) {
                 return null
             } else {
-                const lastValue = _.last(series.values)
+                const lastValue = _.last(series.values) as ScatterRenderValue
                 let rotation = Vector2.angle(series.offsetVector, Vector2.up)
                 if (series.offsetVector.x < 0) rotation = -rotation
 
@@ -446,7 +481,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         const {focusGroups, isSubtleFocus} = this
         
         return _.map(focusGroups, series => {
-            const lastValue = _.last(series.values)
+            const lastValue = _.last(series.values) as ScatterRenderValue
             const strokeWidth = (series.isHovered ? 3 : (isSubtleFocus ? 0.8 : 2)) + lastValue.size*0.05
 
             if (series.values.length == 1) {
@@ -455,7 +490,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             } else
                 return [
                     <defs key={series.displayKey+'-defs'}>
-                        <marker id={series.displayKey+'-arrow'} fill={series.color} viewBox="0 -5 10 10" refx={5} refY={0} markerWidth={4} markerHeight={4} orient="auto">
+                        <marker id={series.displayKey+'-arrow'} fill={series.color} viewBox="0 -5 10 10" refX={5} refY={0} markerWidth={4} markerHeight={4} orient="auto">
                             <path d="M0,-5L10,0L0,5"/>
                         </marker>
                         <marker id={series.displayKey+'-circle'} viewBox="0 0 12 12"
