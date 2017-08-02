@@ -20,6 +20,7 @@ import DiscreteBarTransform from './DiscreteBarTransform'
 import StackedAreaTransform from './StackedAreaTransform'
 import LineChartTransform from './LineChartTransform'
 import ScatterTransform from './ScatterTransform'
+import SlopeChartTransform './SlopeChartTransform'
 import Color from './Color'
 
 export interface TimelineConfig {
@@ -246,6 +247,7 @@ export default class ChartConfig {
     @computed get stackedArea() { return new StackedAreaTransform(this) }
     @computed get lineChart() { return new LineChartTransform(this) }
     @computed get scatter() { return new ScatterTransform(this) }
+    @computed get slopeChart() { return new SlopeChartTransform(this) }
 
 	constructor(props: ChartConfigProps) {        
         this.update(props)

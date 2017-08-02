@@ -61,7 +61,7 @@ export default class ChartTab extends React.Component<{ chart: ChartConfig, boun
         const bounds = this.props.bounds.padTop(header.height).padBottom(footer.height)
 
         if (chart.type == ChartType.SlopeChart)
-            return <SlopeChart bounds={bounds.padTop(20)} config={chart}/>
+            return <SlopeChart bounds={bounds.padTop(20)} chart={chart}/>
         else if (chart.type == ChartType.ScatterPlot)
             return <ScatterPlot bounds={bounds.padTop(20).padBottom(10)} config={chart} isStatic={this.props.chartView.isExport}/>
 		else if (chart.type == ChartType.LineChart)

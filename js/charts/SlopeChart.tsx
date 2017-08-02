@@ -13,6 +13,7 @@ import ChartConfig from './ChartConfig'
 import Text from './Text'
 import LabelledSlopes, {SlopeChartSeries} from './LabelledSlopes'
 window.Observations = Observations
+import {FilledDimension} from './ChartData'
 
 class WrapLayout extends React.Component<{ bounds: Bounds }> {
 	render() {
@@ -110,25 +111,25 @@ class ColorLegend extends React.Component<{ bounds: Bounds, legendData: Object[]
 }
 
 @observer
-export default class SlopeChart extends React.Component<{ bounds: Bounds, config: ChartConfig }> {
-	@computed.struct get dimensions() : Object[] {
-		return this.props.config.model.getDimensions()
+export default class SlopeChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
+	@computed.struct get dimensions() {
+		return this.props.chart.data.filledDimensions
 	}
 
 	@computed.struct get xDomain() : [number|null, number|null] {
-		return this.props.config.timeDomain
+		return this.props.chart.timeDomain
 	}
 
-	@computed.struct get sizeDim() : Object {
-		return _.find(this.dimensions, { property: 'size' })||{}
+	@computed.struct get sizeDim(): FilledDimension {
+		return _.find(this.dimensions, d => d.property == 'size') as FilledDimension
 	}
 
-	@computed.struct get colorDim() : Object {
-		return _.find(this.dimensions, { property: 'color' })||{}
+	@computed.struct get colorDim(): FilledDimension {
+		return _.find(this.dimensions, d => d.property == 'color') as FilledDimension
 	}
 
-	@computed.struct get yDim() : Object {
-		return _.find(this.dimensions, { property: 'y' })||{}
+	@computed.struct get yDim(): FilledDimension {
+		return _.find(this.dimensions, d => d.property == 'y') as FilledDimension
 	}
 
 	@computed get variableData() : Observations {
@@ -205,8 +206,8 @@ export default class SlopeChart extends React.Component<{ bounds: Bounds, config
 	}
 
 	render() {
-		const {bounds, config} = this.props
-		const {yAxis} = config
+		const {bounds, chart} = this.props
+		const {yAxis} = chart
 		const {data, legendData} = this
 
 		return <Layout bounds={bounds}>
