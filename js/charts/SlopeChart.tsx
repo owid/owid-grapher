@@ -13,7 +13,7 @@ import ChartConfig from './ChartConfig'
 import Text from './Text'
 import LabelledSlopes, {SlopeChartSeries} from './LabelledSlopes'
 window.Observations = Observations
-import {FilledDimension} from './ChartData'
+import {DimensionWithData} from './ChartData'
 
 class WrapLayout extends React.Component<{ bounds: Bounds }> {
 	render() {
@@ -120,16 +120,16 @@ export default class SlopeChart extends React.Component<{ bounds: Bounds, chart:
 		return this.props.chart.timeDomain
 	}
 
-	@computed.struct get sizeDim(): FilledDimension {
-		return _.find(this.dimensions, d => d.property == 'size') as FilledDimension
+	@computed.struct get sizeDim(): DimensionWithData {
+		return _.find(this.dimensions, d => d.property == 'size') as DimensionWithData
 	}
 
-	@computed.struct get colorDim(): FilledDimension {
-		return _.find(this.dimensions, d => d.property == 'color') as FilledDimension
+	@computed.struct get colorDim(): DimensionWithData {
+		return _.find(this.dimensions, d => d.property == 'color') as DimensionWithData
 	}
 
-	@computed.struct get yDim(): FilledDimension {
-		return _.find(this.dimensions, d => d.property == 'y') as FilledDimension
+	@computed.struct get yDim(): DimensionWithData {
+		return _.find(this.dimensions, d => d.property == 'y') as DimensionWithData
 	}
 
 	@computed get variableData() : Observations {

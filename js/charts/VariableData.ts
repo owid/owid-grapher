@@ -118,10 +118,6 @@ export default class VariableData {
 		return _.keys(this.entityMetaByKey)
 	}
 
-	@computed get isReady() {
-		return !this.dataRequest && !_.isEmpty(this.variablesById)
-	}
-
 	@computed get variables(): Variable[] {
 		return _.values(this.variablesById)
 	}

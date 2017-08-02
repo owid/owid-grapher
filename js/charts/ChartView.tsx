@@ -223,7 +223,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
         const style = { width: renderWidth*scale + 'px', height: renderHeight*scale + 'px', fontSize: 16*scale + 'px' }
 
         return <div id="chart" className={this.classNames} style={style}>
-            {this.chart.vardata.isReady ? this.renderReady() : this.renderLoading()}
+            {this.chart.data.isReady ? this.renderReady() : this.renderLoading()}
         </div>
     }
 

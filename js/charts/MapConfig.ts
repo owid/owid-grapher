@@ -79,7 +79,7 @@ export default class MapConfig {
 	}
 
 	@computed get data() {
-		return this.chart.vardata.isReady && new MapData(this, this.chart.vardata)
+		return new MapData(this.chart)
 	}
 
 	set targetYear(value: number) {

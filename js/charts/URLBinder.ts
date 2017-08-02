@@ -119,7 +119,7 @@ export default class URLBinder {
 
     @computed get countryParam(): string|undefined {
         const {chart, origChart} = this
-        if (chart.vardata.isReady && !_.isEqual(toJS(chart.props.selectedEntities), origChart.selectedEntities)) {
+        if (chart.data.isReady && !_.isEqual(toJS(chart.props.selectedEntities), origChart.selectedEntities)) {
             function getCode(entity: EntityKey) { 
                 const meta = chart.vardata.entityMetaByKey[entity]
                 return meta ? meta.code : entity
@@ -215,7 +215,7 @@ export default class URLBinder {
         // Selected countries -- we can't actually look these up until we have the data
         var country = params.country;
         autorun(() => {
-            if (!chart.vardata.isReady) return
+            if (!chart.data.isReady) return
 
             action(() => {
                 if (country) {

@@ -3,7 +3,7 @@ import * as d3 from 'd3'
 import ChartConfig from './ChartConfig'
 import {computed, observable, extras} from 'mobx'
 import {defaultTo, first, last} from './Util'
-import {FilledDimension} from './ChartData'
+import {DimensionWithData} from './ChartData'
 import {ScatterSeries, ScatterValue} from './ScatterPlot'
 import AxisSpec from './AxisSpec'
 
@@ -28,13 +28,13 @@ export default class ScatterTransform {
 
     // Scatterplot should have exactly one dimension for each of x and y
     // The y dimension is treated as the "primary" variable
-    @computed get yDimension(): FilledDimension {
-        return _.find(this.chart.data.filledDimensions, d => d.property == 'y') as FilledDimension
+    @computed get yDimension(): DimensionWithData {
+        return _.find(this.chart.data.filledDimensions, d => d.property == 'y') as DimensionWithData
     }
-    @computed get xDimension(): FilledDimension {
-        return _.find(this.chart.data.filledDimensions, d => d.property == 'x') as FilledDimension
+    @computed get xDimension(): DimensionWithData {
+        return _.find(this.chart.data.filledDimensions, d => d.property == 'x') as DimensionWithData
     }
-    @computed get axisDimensions(): [FilledDimension, FilledDimension] {
+    @computed get axisDimensions(): [DimensionWithData, DimensionWithData] {
         console.assert(this.yDimension)
         console.assert(this.xDimension)
         return [this.yDimension, this.xDimension]
@@ -194,7 +194,7 @@ export default class ScatterTransform {
     }
 
     @computed get primaryDimension() {
-        return _.find(this.chart.data.filledDimensions, { property: 'y' }) as FilledDimension
+        return _.find(this.chart.data.filledDimensions, { property: 'y' }) as DimensionWithData
     }
 
     // domains across the entire timeline

@@ -6,11 +6,11 @@ import DataKey from './DataKey'
 import {StackedAreaSeries, StackedAreaValue} from './StackedArea'
 import AxisSpec from './AxisSpec'
 import {defaultTo} from './Util'
-import {FilledDimension} from './ChartData'
+import {DimensionWithData} from './ChartData'
 
 // Responsible for translating chart configuration into the form
 // of a line chart
-export default class LineChartTransform {
+export default class SlopeChartTransform {
     chart: ChartConfig
 
     constructor(chart: ChartConfig) {
@@ -82,7 +82,7 @@ export default class LineChartTransform {
     }
 
     @computed get yDimensionFirst() {
-        return _.find(this.chart.data.filledDimensions, { property: 'y' }) as FilledDimension
+        return _.find(this.chart.data.filledDimensions, { property: 'y' }) as DimensionWithData
     }
 
     @computed get yAxis(): AxisSpec {

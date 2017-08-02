@@ -20,7 +20,7 @@ import DiscreteBarTransform from './DiscreteBarTransform'
 import StackedAreaTransform from './StackedAreaTransform'
 import LineChartTransform from './LineChartTransform'
 import ScatterTransform from './ScatterTransform'
-import SlopeChartTransform './SlopeChartTransform'
+import SlopeChartTransform from './SlopeChartTransform'
 import Color from './Color'
 
 export interface TimelineConfig {

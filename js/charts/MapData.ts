@@ -1,6 +1,5 @@
 import {computed} from 'mobx'
-import MapConfig from './MapConfig'
-import VariableData from './VariableData'
+import ChartConfig from './ChartConfig'
 import {defaultTo} from './Util'
 import * as _ from 'lodash'
 import * as d3 from 'd3'
@@ -65,8 +64,13 @@ export class CategoricalBin {
 export type MapLegendBin = NumericBin | CategoricalBin
 
 export default class MapData {
-    map: MapConfig
-    vardata: VariableData
+    chart: ChartConfig
+    constructor(chart: ChartConfig) {
+        this.chart = chart
+    }
+
+    @computed get map() { return this.chart.map }
+    @computed get vardata() { return this.chart.vardata }
 
     @computed get variable() {
         return this.map.variableId ? this.vardata.variablesById[this.map.variableId] : _.values(this.vardata.variablesById)[0]
@@ -259,10 +263,5 @@ export default class MapData {
         })
 
         return choroplethData
-    }
-
-    constructor(map: MapConfig, vardata: VariableData) {
-        this.map = map
-        this.vardata = vardata
     }
 }

@@ -20,7 +20,7 @@ export interface SourceWithVariable {
 }
 
 // A chart dimension plus the variable+data that it requested for itself
-export interface FilledDimension extends ChartDimension {
+export interface DimensionWithData extends ChartDimension {
 	variable: Variable
 }
 
@@ -35,14 +35,18 @@ export default class ChartData {
 		return this.chart.vardata
 	}
 
+	// ChartData is ready to go iff we have retrieved data for every variable associated with the chart
+	@computed get isReady(): boolean {
+		const {chart, vardata} = this
+		return _.every(chart.dimensions, dim => vardata.variablesById[dim.variableId])
+	}
+
 	// Make a unique string key for an entity on a variable
 	keyFor(entity: string, dimensionIndex: number): DataKey {
 		return `${entity}_${dimensionIndex}`
 	}
 
-	@computed get filledDimensions(): FilledDimension[] {
-        if (!this.vardata.isReady) return []
-
+	@computed get filledDimensions(): DimensionWithData[] {
         return _.map(this.chart.dimensions, dim => {
             const variable = this.vardata.variablesById[dim.variableId]
             return _.extend({}, dim, {
@@ -52,7 +56,7 @@ export default class ChartData {
         })
     }
 
-	@computed get dimensionsByField(): _.Dictionary<FilledDimension> {
+	@computed get dimensionsByField(): _.Dictionary<DimensionWithData> {
 		return _.keyBy(this.filledDimensions, 'property')
 	}
 
@@ -76,7 +80,7 @@ export default class ChartData {
 	// Map keys back to their components for storage
 	set selectedKeys(keys: DataKey[]) {
 		const {chart, vardata} = this
-		if (!vardata.isReady) return
+		if (!this.isReady) return
 		
 		const colors = new Map()
 		_.each(chart.props.selectedData, sel => colors.set(sel.entityId, sel.color))
@@ -99,7 +103,7 @@ export default class ChartData {
 	// Calculate the available datakeys and their associated info
 	@computed get keyData(): Map<DataKey, DataKeyInfo> {
 		const {chart, vardata} = this
-		if (!vardata.isReady) return new Map()
+		if (!this.isReady) return new Map()
 		
 		const keyData = new Map()
 		_.each(chart.primaryDimensions, (dim, index) => {
