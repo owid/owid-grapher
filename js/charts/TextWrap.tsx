@@ -24,7 +24,6 @@ function strip(html: string)
 
 export default class TextWrap {
     props: TextWrapProps
-
     constructor(props: TextWrapProps) {
         this.props = props
     }    
@@ -77,13 +76,13 @@ export default class TextWrap {
         return _.max(this.lines.map(l => l.width))
     }
 
-	render(x: number, y: number) {
+	render(x: number, y: number, options?: any) {
         const {props, lines, fontSize, lineHeight} = this
 
         if (lines.length == 0)
             return null
 
-		return <text fontSize={fontSize+'em'} x={0} y={y+lines[0].height-lines[0].height*0.2}>
+		return <text fontSize={fontSize+'em'} x={0} y={y+lines[0].height-lines[0].height*0.2} {...options}>
 			{_.map(lines, (line, i) => {
                 //if (props.raw)
                 //    return <tspan x={x} dy={i == 0 ? 0 : lineHeight + 'em'} dangerouslySetInnerHTML={{__html: line.text}}/>

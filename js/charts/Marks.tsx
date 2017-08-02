@@ -1,11 +1,15 @@
 import * as React from 'react'
 import {observer} from 'mobx-react'
 
-interface TriangleProps {
-    cx: number,
-    cy: number,
+type TriangleProps = Readonly<{
+    cx: number
+    cy: number
     r: number
-}
+    fill?: string
+    stroke?: string
+    strokeWidth?: number
+    transform?: string
+}>
 
 @observer
 export class Triangle extends React.Component<TriangleProps> {

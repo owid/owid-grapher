@@ -123,16 +123,19 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         }
     }
 
-    @computed get shapeLegend(): ConnectedScatterLegend|undefined {
+    @computed get arrowLegend(): ConnectedScatterLegend|undefined {
         const {focusKeys, hoverSeries, sidebarWidth, transform} = this
         const {startYear, endYear} = transform
 
         if (focusKeys.length || hoverSeries || startYear == endYear)
             return undefined
 
-        return preInstantiate(
-            <ConnectedScatterLegend maxWidth={sidebarWidth} startYear={startYear} endYear={endYear}/>
-        )
+        const _this = this
+        return new ConnectedScatterLegend({
+            get maxWidth() { return _this.sidebarWidth },
+            get startYear() { return _this.transform.startYear },
+            get endYear() { return _this.transform.endYear }
+        })
     }
 
     @observable.ref hoverSeries?: ScatterSeries
@@ -183,17 +186,17 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         if (this.transform.failMessage)
             return <NoData bounds={this.bounds} message={this.transform.failMessage}/>
 
-        const {transform, bounds, axisBox, chart, timeline, timelineHeight, legend, focusKeys, focusColor, shapeLegend, hoverSeries, sidebarWidth, tooltipSeries, comparisonLine} = this
+        const {transform, bounds, axisBox, chart, timeline, timelineHeight, legend, focusKeys, focusColor, arrowLegend, hoverSeries, sidebarWidth, tooltipSeries, comparisonLine} = this
         const {currentData, sizeDomain} = transform
         return <g className="ScatterPlot">
             <AxisBoxView axisBox={axisBox} onXScaleChange={this.onXScaleChange} onYScaleChange={this.onYScaleChange}/>
             {comparisonLine && <ComparisonLine axisBox={axisBox} comparisonLine={comparisonLine}/>}
             <PointsWithLabels data={currentData} bounds={axisBox.innerBounds} xScale={axisBox.xScale} yScale={axisBox.yScale} sizeDomain={sizeDomain} onSelectEntity={this.onSelectEntity} focusKeys={focusKeys} onMouseOver={this.onScatterMouseOver} onMouseLeave={this.onScatterMouseLeave}/>
             <ScatterColorLegend {...legend.props} x={bounds.right-sidebarWidth} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} onClick={this.onLegendClick} focusColor={focusColor}/>
-            {(shapeLegend || tooltipSeries) && <line x1={bounds.right-sidebarWidth} y1={bounds.top+legend.height+2} x2={bounds.right-5} y2={bounds.top+legend.height+2} stroke="#ccc"/>}
-            {shapeLegend && <ConnectedScatterLegend {...shapeLegend.props} x={bounds.right-sidebarWidth} y={bounds.top+legend.height+11}/>}            
+            {(arrowLegend || tooltipSeries) && <line x1={bounds.right-sidebarWidth} y1={bounds.top+legend.height+2} x2={bounds.right-5} y2={bounds.top+legend.height+2} stroke="#ccc"/>}
+            {arrowLegend && arrowLegend.render(bounds.right-sidebarWidth, bounds.top+legend.height+11)}
             {timeline && <Timeline {...timeline.props}/>}
-            {tooltipSeries && <ScatterTooltip series={tooltipSeries} units={chart.units} maxWidth={sidebarWidth} x={bounds.right-sidebarWidth} y={bounds.top+legend.height+11+(shapeLegend ? shapeLegend.height : 0)}/>}
+            {tooltipSeries && <ScatterTooltip series={tooltipSeries} units={chart.units} maxWidth={sidebarWidth} x={bounds.right-sidebarWidth} y={bounds.top+legend.height+11+(arrowLegend ? arrowLegend.height : 0)}/>}
         </g>
     }
 }
