@@ -7,6 +7,8 @@ import {StackedAreaSeries, StackedAreaValue} from './StackedArea'
 import AxisSpec from './AxisSpec'
 import {defaultTo} from './Util'
 import {DimensionWithData} from './ChartData'
+import Observations from './Observations'
+import{SlopeChartSeries} from './LabelledSlopes'
 
 // Responsible for translating chart configuration into the form
 // of a line chart
@@ -17,84 +19,85 @@ export default class SlopeChartTransform {
         this.chart = chart
     }
 
-	@computed get groupedData(): StackedAreaSeries[] {
-		const {chart} = this
-		const {timeDomain, yAxis, addCountryMode} = chart
-        const {filledDimensions, selectedKeysByKey} = chart.data
-
-		const timeFrom = _.defaultTo(timeDomain[0], -Infinity)
-		const timeTo = _.defaultTo(timeDomain[1], Infinity)
-		let chartData: StackedAreaSeries[] = []
-
-		_.each(filledDimensions, (dimension, dimIndex) => {
-            const {variable} = dimension
-			const seriesByKey = new Map<DataKey, StackedAreaSeries>()
-
-			for (var i = 0; i < variable.years.length; i++) {
-				const year = variable.years[i]
-				const value = +variable.values[i]
-				const entity = variable.entities[i]
-				const datakey = chart.data.keyFor(entity, dimIndex)
-				let series = seriesByKey.get(datakey)
-
-				// Not a selected key, don't add any data for it
-				if (!selectedKeysByKey[datakey]) continue;
-				// Check for time range
-				if (year < timeFrom || year > timeTo) continue;
-
-				if (!series) {
-					series = {
-						values: [],
-						key: datakey,
-						isProjection: dimension.isProjection,
-                        color: chart.colors.assignColorForKey(datakey)
-					};
-					seriesByKey.set(datakey, series);
-				}
-
-				series.values.push({ x: year, y: value, time: year });
-			}
-
-			chartData = chartData.concat([...seriesByKey.values()]);
-		});
-
-        return chartData
+	@computed.struct get xDomain() : [number|null, number|null] {
+		return this.chart.timeDomain
 	}
 
-    @computed get allValues(): StackedAreaValue[] {
-        return _(this.groupedData).map(series => series.values).flatten().value() as StackedAreaValue[]
-    }
+	@computed.struct get sizeDim(): DimensionWithData {
+		return _.find(this.chart.data.filledDimensions, d => d.property == 'size') as DimensionWithData
+	}
 
-    @computed get xDomainDefault(): [number, number] {
-        return [_(this.allValues).map((v => v.x)).min() as number, _(this.allValues).map(v => v.x).max() as number]
-    }
+	@computed.struct get colorDim(): DimensionWithData {
+		return _.find(this.chart.data.filledDimensions, d => d.property == 'color') as DimensionWithData
+	}
 
-    @computed get yDomainDefault(): [number, number] {
-        return [(_(this.allValues).map(v => v.y).min() as number), (_(this.allValues).map(v => v.y).max() as number)]
-    }
+	@computed.struct get yDim(): DimensionWithData {
+		return _.find(this.chart.data.filledDimensions, d => d.property == 'y') as DimensionWithData
+	}
 
-    @computed get xAxis(): AxisSpec {
-        const {chart, xDomainDefault} = this
-        return _.extend(
-            chart.xAxis.toSpec({ defaultDomain: xDomainDefault }),
-            { tickFormat: (year: number) => year.toString() }
-        ) as AxisSpec
-    }
+	@computed get variableData() : Observations {
+		const variables = _.map(this.chart.data.filledDimensions, 'variable')
+		let obvs = []
+		_.each(variables, (v) => {
+			for (var i = 0; i < v.years.length; i++) {
+				let d = { year: v.years[i], entity: v.entities[i] }
+				d[v.id] = v.values[i]
+				obvs.push(d)
+			}
+		})
+		return new Observations(obvs)
+	}
 
-    @computed get yDimensionFirst() {
-        return _.find(this.chart.data.filledDimensions, { property: 'y' }) as DimensionWithData
-    }
+	@computed get colorScale() : any {
+		const {colorDim} = this
 
-    @computed get yAxis(): AxisSpec {
-        const {chart, yDomainDefault, yDimensionFirst} = this
-        const {variable} = yDimensionFirst
+        const colorScheme = [ // TODO less ad hoc color scheme (probably would have to annotate the datasets)
+                "#5675c1", // Africa
+                "#aec7e8", // Antarctica
+                "#d14e5b", // Asia
+                "#ffd336", // Europe
+                "#4d824b", // North America
+                "#a652ba", // Oceania
+                "#69c487", // South America
+                "#ff7f0e", "#1f77b4", "#ffbb78", "#2ca02c", "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b", "c49c94", "e377c2", "f7b6d2", "7f7f7f", "c7c7c7", "bcbd22", "dbdb8d", "17becf", "9edae5", "1f77b4"]
 
-        return {
-            label: chart.yAxis.label,
-            tickFormat: (d: number) => d + (yDimensionFirst.variable.shortUnit||""),
-            domain: [defaultTo(chart.yAxis.domain[0], yDomainDefault[0]), defaultTo(chart.yAxis.domain[1], yDomainDefault[1])],
-            scaleType: chart.yAxis.scaleType,
-            scaleTypeOptions: chart.yAxis.scaleTypeOptions            
-        }
-    }
+        const colorScale = d3.scaleOrdinal().range(colorScheme)
+        if (colorDim.variable)
+	        colorScale.domain(colorDim.variable.categoricalValues)
+
+	    return colorScale
+	}
+
+	@computed get data() : SlopeChartSeries[] {
+		if (_.isEmpty(this.yDim)) return []
+		let {variableData, sizeDim, yDim, xDomain, colorDim, colorScale} = this
+		let data = variableData
+		const entityKey = this.chart.vardata.entityMetaByKey
+
+		// Make sure we're using time bounds that actually contain data
+		const longestRange = data.filter((d) => _.isFinite(d[yDim.variableId]))
+			.mergeBy('entity', (rows) => rows.pluck('year'))
+			.sortBy((d) => _.last(d)-_.first(d))
+			.last()
+
+		const minYear = xDomain[0] == null ? _.first(longestRange) : Math.max(xDomain[0], _.first(longestRange))
+		const maxYear = xDomain[1] == null ? _.last(longestRange) : Math.min(xDomain[1], _.last(longestRange))
+
+		data = data.mergeBy('entity', (rows : Observations, entity : string) => {
+			return {
+				label: entityKey[entity].name,
+				key: owid.makeSafeForCSS(entityKey[entity].name),
+				color: colorScale(rows.first(colorDim.variableId)),
+				size: rows.first(sizeDim.variableId),
+				values: rows.filter((d) => _.isFinite(d[yDim.variableId]) && (d.year == minYear || d.year == maxYear)).mergeBy('year').map((d) => {
+					return {
+						x: d.year,
+						y: d[yDim.variableId]
+					}
+				}).toArray()
+			}
+		}).filter((d) => d.values.length >= 2)
+
+		return data.toArray()
+	}
 }
