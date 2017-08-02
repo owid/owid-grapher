@@ -28,13 +28,17 @@ export interface ParagraphProps {
     children?: string,
     precalc?: Paragraph,
     raw?: boolean
-    fill?: 
 }
 
 interface WrapLine {
     text: string,
     width: number,
     height: number
+}
+
+function strip(html: string)
+{
+   return html.replace(/<\/?[^>]+>/g, "");
 }
 
 @observer
@@ -69,14 +73,14 @@ export default class Paragraph extends React.Component<ParagraphProps> {
 
         _.each(words, (word, i) => {
             let nextLine = line.concat([word])
-            let nextBounds = Bounds.forText(nextLine.join(' '), {fontSize: fontSize+'em'})
+            let nextBounds = Bounds.forText(strip(nextLine.join(' ')), {fontSize: fontSize+'em'})
 
             const newlines = (word.match(/\n/g)||[]).length
 
             if (nextBounds.width > maxWidth && line.length >= 1) {
                 lines.push({ text: line.join(' '), width: lineBounds.width, height: lineBounds.height })
                 line = [word]
-                lineBounds = Bounds.forText(word, {fontSize: fontSize+'em'})
+                lineBounds = Bounds.forText(strip(word), {fontSize: fontSize+'em'})
             } else {
                 line = nextLine
                 lineBounds = nextBounds
