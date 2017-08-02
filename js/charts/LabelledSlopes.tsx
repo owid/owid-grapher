@@ -18,7 +18,7 @@ import {SVGElement} from './Util'
 import ScaleType from './ScaleType'
 import Bounds from './Bounds'
 import Text from './Text'
-import Paragraph from './Paragraph'
+import TextWrap from './TextWrap'
 import NoData from './NoData'
 import ScaleSelector from './ScaleSelector'
 import {preInstantiate} from './Util'
@@ -109,9 +109,11 @@ export interface SlopeProps {
 	rightLabelBounds: Bounds
 	leftValueStr: string
 	rightValueStr: string
-	leftLabel: Object
-	rightLabel: Object
+	leftLabel: TextWrap
+	rightLabel: TextWrap
 	isFocused: boolean
+	leftValueWidth: number
+	rightValueWidth: number
 };
 
 @observer
@@ -129,13 +131,13 @@ class Slope extends React.Component<SlopeProps> {
         const rightValueLabelBounds = Bounds.forText(rightValueStr, { fontSize: labelFontSize })
 
 		return <g className="slope">
-			{hasLeftLabel && <Paragraph {...leftLabel.props} x={leftLabelBounds.x+leftLabelBounds.width} y={leftLabelBounds.y} text-anchor="end" fill={labelColor} font-weight={isFocused&&'bold'} precalc={leftLabel}>{leftLabel.text}</Paragraph>}
+			{hasLeftLabel && leftLabel.render(leftLabelBounds.x+leftLabelBounds.width, leftLabelBounds.y, { textAnchor: 'end', fill: labelColor, fontWeight: isFocused&&'bold'})}
 			{hasLeftLabel && <Text x={x1-8} y={y1-leftValueLabelBounds.height/2} text-anchor="end" fontSize={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{leftValueStr}</Text>}
 			<circle cx={x1} cy={y1} r={isFocused ? 4 : 2} fill={lineColor} opacity={opacity}/>
 			<line ref={(el) => this.line = el} x1={x1} y1={y1} x2={x2} y2={y2} stroke={lineColor} stroke-width={isFocused ? 2*size : size} opacity={opacity}/>
 			<circle cx={x2} cy={y2} r={isFocused ? 4 : 2} fill={lineColor} opacity={opacity}/>
-			{hasRightLabel && <Text x={x2+8} y={y2-rightValueLabelBounds.height/2} text-anchor="start" dominant-baseline="middle" font-size={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{rightValueStr}</Text>}
-			{hasRightLabel && <Paragraph {...rightLabel.props} x={rightLabelBounds.x} y={rightLabelBounds.y} text-anchor="start" fill={labelColor} font-weight={isFocused&&'bold'} precalc={rightLabel}>{rightLabel.text}</Paragraph>}
+			{hasRightLabel && <Text x={x2+8} y={y2-rightValueLabelBounds.height/2} dominant-baseline="middle" fontSize={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{rightValueStr}</Text>}
+			{hasRightLabel && rightLabel.render(rightLabelBounds.x, rightLabelBounds.y, { fill: 'labelColor', fontWeight: isFocused&&'bold' })}
 		</g>
 	}
 }
@@ -144,10 +146,10 @@ export interface LabelledSlopesProps {
 	bounds: Bounds
 	data: SlopeChartSeries[]
 	yDomain: [number|null number|null]
-	yTickFormat: (number) => string
+	yTickFormat: (value: number) => string
 	yScaleType: ScaleType
 	yScaleTypeOptions: ScaleType[]
-	onScaleTypeChange: (ScaleType) => void
+	onScaleTypeChange: (scaleType: ScaleType) => void
 }
 
 @observer
@@ -157,60 +159,64 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 
 	@observable focusKey = null
 
-	@computed get data() : Object[] {
+	@computed get data(): SlopeChartSeries[] {
 		return this.props.data
 	}
 
-	@computed get yTickFormat() : (number) => string {
+	@computed get yTickFormat(): (value: number) => string {
 		return this.props.yTickFormat
 	}
 
-	@computed get bounds() : Bounds {
+	@computed get bounds(): Bounds {
 		return this.props.bounds
 	}
 
-	@computed get isPortrait() : boolean {
+	@computed get isPortrait(): boolean {
 		return this.bounds.width < 400
 	}
 
-	@computed get xDomainDefault() : [number, number] {
-		return d3.extent(_.map(_.flatten(_.map(this.props.data, 'values')), 'x'))
+	@computed get xDomainDefault(): [number, number] {
+		const xValues = _(this.props.data).map(g => g.values).flatten().map(v => v.x).value()
+		return d3.extent(xValues) as [number, number]
 	}
 
-	@computed get yDomainDefault() : [number, number] {
-		return d3.extent(_.filter(_.map(_.flatten(_.map(this.props.data, 'values')), 'y'), (d) => d > 0 || this.props.yScaleType != 'log'))
+	@computed get yDomainDefault(): [number, number] {
+		let yValues = _(this.props.data).map(g => g.values).flatten().map(v => v.y)
+		if (this.props.scaleType == 'log')
+			yValues = yValues.filter(y => y > 0)
+		return d3.extent(yValues.value())
 	}
 
-	@computed get xDomain() : [number, number] {
+	@computed get xDomain(): [number, number] {
 		return this.xDomainDefault
 	}
 
-	@computed get yDomain() : [number, number] {
+	@computed get yDomain(): [number, number] {
 		return [
 			this.props.yDomain[0] == null ? this.yDomainDefault[0] : this.props.yDomain[0],
 		 	this.props.yDomain[1] == null ? this.yDomainDefault[1] : this.props.yDomain[1]
-		]
+		] as [number, number]
 	}
 
-	@computed get sizeScale() : any {
+	@computed get sizeScale(): d3.ScaleLinear<number, number> {
 		return d3.scaleLinear().domain(d3.extent(_.map(this.props.data, 'size'))).range([1, 4])
 	}
 
-	@computed get yScaleConstructor() : any {
+	@computed get yScaleConstructor(): d3.ScaleLog|d3.ScaleLinear {
 		return this.props.yScaleType == 'log' ? d3.scaleLog : d3.scaleLinear
 	}
 
-	@computed get yScale() : any {
+	@computed get yScale(): d3.ScaleLinear<number, number> {
 		return this.yScaleConstructor().domain(this.yDomain).range(this.props.bounds.padBottom(50).yRange())
 	}
 
-	@computed get xScale() : any {
+	@computed get xScale(): d3.ScaleLinear<number, number> {
 		const {bounds, isPortrait, xDomain, yScale} = this
 		const padding = isPortrait ? 0 : Axis.calculateBounds(bounds, { orient: 'left', scale: yScale, tickFormat: this.props.yTickFormat }).width
 		return d3.scaleLinear().domain(xDomain).range(bounds.padWidth(padding).xRange())
 	}
 
-	@computed get colorScale() : any {
+	@computed get colorScale(): d3.ScaleOrdinal<string, string> {
         const colorScheme = [ // TODO less ad hoc color scheme (probably would have to annotate the datasets)
                 "#5675c1", // Africa
                 "#aec7e8", // Antarctica
@@ -221,17 +227,17 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
                 "#69c487", // South America
                 "#ff7f0e", "#1f77b4", "#ffbb78", "#2ca02c", "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b", "c49c94", "e377c2", "f7b6d2", "7f7f7f", "c7c7c7", "bcbd22", "dbdb8d", "17becf", "9edae5", "1f77b4"]
 
-        return d3.scaleOrdinal().domain(_.uniq(_.map(this.props.data, 'color'))).range(colorScheme)
+        return d3.scaleOrdinal(colorScheme).domain(_.uniq(_.map(this.props.data, 'color')))
 	}
 
-	@computed get maxLabelWidth() : number {
+	@computed get maxLabelWidth(): number {
 		return this.bounds.width/5
 	}
 
-	@computed get initialSlopeData() : SlopeProps[] {
+	@computed get initialSlopeData(): SlopeProps[] {
 		const { data, bounds, isPortrait, xScale, yScale, sizeScale, yTickFormat, maxLabelWidth } = this
 
-		const slopeData = []
+		const slopeData: SlopeProps[] = []
 		const yDomain = yScale.domain()
 
 		_.each(data, (series) => {
@@ -247,8 +253,8 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 			const rightValueStr = yTickFormat(v2.y)
 			const leftValueWidth = Bounds.forText(leftValueStr, { fontSize: fontSize+'em' }).width
 			const rightValueWidth = Bounds.forText(rightValueStr, { fontSize: fontSize+'em' }).width
-			const leftLabel = preInstantiate(<Paragraph width={maxLabelWidth} fontSize={fontSize}>{series.label}</Paragraph>)
-            const rightLabel = preInstantiate(<Paragraph width={maxLabelWidth} fontSize={fontSize}>{series.label}</Paragraph>)
+			const leftLabel = new TextWrap({ maxWidth: maxLabelWidth, fontSize: fontSize, text: series.label })
+			const rightLabel = new TextWrap({ maxWidth: maxLabelWidth, fontSize: fontSize, text: series.label })
 
 			slopeData.push({ x1: x1, y1: y1, x2: x2, y2: y2, color: series.color,
 							 size: sizeScale(series.size)||1,
@@ -262,15 +268,9 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 		return slopeData
 	}
 
-	@computed get maxValueWidth() : number {
-		return _.max(_.map(this.initialSlopeData, (slope) => slope.leftValueWidth))
+	@computed get maxValueWidth(): number {
+		return _(this.initialSlopeData).map(s => s.leftValueWidth).max() as number
 	}
-
-	// We calc max before doing overlaps because visible labels may change later but
-	// layout should remain constant
-/*	@computed get maxLabelWidth() : number {
-		return _.max(_.map(this.initialSlopeData, (slope) => slope.leftLabelBounds.width))
-	}*/
 
 	@computed get labelAccountedSlopeData() {
 		const {maxLabelWidth, maxValueWidth, isPortrait} = this
@@ -344,12 +344,6 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 				}
 			})
 		})
-
-		/*d3.selectAll(".boundsDebug").remove()
-		_.each(slopeData, (slope) => {
-			if (slope.hasRightLabel)
-				owid.boundsDebug(slope.rightLabelBounds)
-		})*/
 
 		// Order by focus and size for draw order
 		slopeData = _.sortBy(slopeData, (slope) => slope.size)

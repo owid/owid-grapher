@@ -19,7 +19,7 @@ import AxisBox from './AxisBox'
 import StandardAxisBoxView from './StandardAxisBoxView'
 import Lines from './Lines'
 import {preInstantiate} from "./Util"
-import Paragraph from './Paragraph'
+import TextWrap from './TextWrap'
 import AxisScale from './AxisScale'
 import Vector2 from './Vector2'
 import {getRelativeMouse} from './Util'
@@ -59,7 +59,7 @@ class StackedAreaLegendView extends React.Component<{ stackedArea: StackedArea, 
                     const yMid = areaMiddleHeights[i]
                     const result = <g className="legendMark">
                         {/*<rect x={x} y={yMid-rectSize/2} width={rectSize} height={rectSize} fill={mark.color} opacity={0.7}/>*/},
-                        <Paragraph {...mark.label.props} x={x} y={yMid-mark.label.height/2}/>
+                        {mark.label.render(x, yMid-mark.label.height/2)}
                     </g>
                     return result
                 })}
@@ -67,8 +67,6 @@ class StackedAreaLegendView extends React.Component<{ stackedArea: StackedArea, 
         </g>
     }
 }
-
-
 
 interface LegendProps {
     data: LegendData[]
@@ -89,8 +87,8 @@ class Legend {
     @computed get labelMarks(): LabelMark[] {
         const {props, fontSize, rectSize, rectPadding, columnWidth} = this
 
-        return _.map(props.data, series => {            
-            const label = preInstantiate(<Paragraph maxWidth={columnWidth} fontSize={fontSize}>{series.label}</Paragraph>)
+        return _.map(props.data, series => {
+            const label = new TextWrap({ maxWidth: columnWidth, fontSize: fontSize, text: series.label })
             return {
                 label: label,
                 color: series.color,

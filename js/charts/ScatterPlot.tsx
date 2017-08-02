@@ -20,7 +20,7 @@ import AxisScale from './AxisScale'
 import Timeline from './Timeline'
 import PointsWithLabels from './PointsWithLabels'
 import {preInstantiate} from './Util'
-import Paragraph from './Paragraph'
+import TextWrap from './TextWrap'
 import ConnectedScatterLegend from './ConnectedScatterLegend'
 import {Triangle} from './Marks'
 import ScatterColorLegend from './ScatterColorLegend'
@@ -228,25 +228,25 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps> {
         const lastValue = last(series.values)
         const values = series.values.length == 1 ? [firstValue] : [firstValue, lastValue]
 
-        const elements = []
+        const elements: {x: number, y: number, wrap: TextWrap}[] = []
         let offset = 0
 
-        const heading = preInstantiate(<Paragraph x={x} y={y+offset} maxWidth={maxWidth} fontSize={0.65}>{series.label}</Paragraph>)
+        const heading = { x: x, y: y+offset, wrap: new TextWrap({ maxWidth: maxWidth, fontSize: 0.65, text: series.label }) }
         elements.push(heading)
-        offset += heading.height+lineHeight
+        offset += heading.wrap.height+lineHeight
 
         _.each(values, v => {
-            const year = preInstantiate(<Paragraph x={x} y={y+offset} maxWidth={maxWidth} fontSize={0.55}>{v.year.toString()}</Paragraph>)
-            offset += year.height
-            const line1 = preInstantiate(<Paragraph x={x} y={y+offset} maxWidth={maxWidth} fontSize={0.45}>{this.formatValue(v, 'y')}</Paragraph>)
-            offset += line1.height
-            const line2 = preInstantiate(<Paragraph x={x} y={y+offset} maxWidth={maxWidth} fontSize={0.45}>{this.formatValue(v, 'x')}</Paragraph>)
-            offset += line2.height+lineHeight            
+            const year = { x: x, y: y+offset, wrap: new TextWrap({ maxWidth: maxWidth, fontSize: 0.55, text: v.year.toString() }) }
+            offset += year.wrap.height
+            const line1 = { x: x, y: y+offset, wrap: new TextWrap({ maxWidth: maxWidth, fontSize: 0.45, text: this.formatValue(v, 'y')}) }
+            offset += line1.wrap.height
+            const line2 = { x: x, y: y+offset, wrap: new TextWrap({ maxWidth: maxWidth, fontSize: 0.45, text: this.formatValue(v, 'x')}) }
+            offset += line2.wrap.height+lineHeight            
             elements.push(...[year, line1, line2])
         })
 
         return <g className="scatterTooltip">
-            {_.map(elements, el => el.render())}
+            {_.map(elements, el => el.wrap.render(el.x, el.y))}
         </g>
     }
 }
