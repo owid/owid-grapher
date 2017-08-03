@@ -26,6 +26,7 @@ App.Views.UI.SettingsVarPopup = owid.View.extend({
 	},
 
 	show: function($variableLabel) {
+		this.$variableLabel = $variableLabel
 		this.variableId = $variableLabel.attr("data-variable-id");
 		
 		//repopulate from element
@@ -66,7 +67,7 @@ App.Views.UI.SettingsVarPopup = owid.View.extend({
 		data["targetYear"] = this.$el.find("[name=targetYear]").val();
 		data.tolerance = parseFloat(this.$el.find("[name=tolerance]").val());
 		data.isProjection = this.$el.find(".isProjection input").prop("checked");
-		this.trigger("variable-settings", data);
+		this.trigger("variable-settings", this.$variableLabel, data);
 	},
 
 	onCancelBtn: function(evt) {

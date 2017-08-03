@@ -66,8 +66,7 @@ App.Views.Form.AddDataSectionView = owid.View.extend({
 		this.settingsVarPopup.show($(evt.target).closest('.variable-label'));		
 	},
 
-	onVariableSettingsUpdate: function(settings) {
-		var $li = $(".variable-label[data-variable-id='" + settings.variableId + "']");
+	onVariableSettingsUpdate: function($li, settings) {
 		this.applySettingsToItem($li, settings);
 
 		// settings already come back in the form e.g. 'targetYear'
