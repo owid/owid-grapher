@@ -24,27 +24,13 @@ import DiscreteBarChart from './DiscreteBarChart'
 @observer
 export default class ChartTab extends React.Component<{ chart: ChartConfig, chartView: ChartView, bounds: Bounds }> {
     @computed get header() {
-        const {props} = this
-        const {bounds, chart} = props
-
-        let minYear = null
-        let maxYear = null
-        if (chart.type == ChartType.ScatterPlot) {
-            minYear = chart.timeDomain[0];
-            maxYear = chart.timeDomain[1];
-        }
-
-        return preInstantiate(<Header
-            bounds={bounds}
-            titleTemplate={chart.title}
-            titleLink={chart.url.canonicalUrl}
-            subtitleTemplate={chart.subtitle}
-            logosSVG={chart.logosSVG}
-            entities={chart.data.selectedKeys}
-            entityType={chart.entityType}
-            minYear={minYear}
-            maxYear={maxYear}
-        />)
+        const _this = this
+        return new Header({
+            get chart() { return _this.props.chart },
+            get maxWidth() { return _this.props.bounds.width },
+            get minYear() { return _this.props.chart.type == ChartType.ScatterPlot ? _this.props.chart.timeDomain[0] : null },
+            get maxYear() { return _this.props.chart.type == ChartType.ScatterPlot ? _this.props.chart.timeDomain[1] : null }
+        })
     }
 
     @computed get footer() {
@@ -78,7 +64,7 @@ export default class ChartTab extends React.Component<{ chart: ChartConfig, char
         const {header, footer, props} = this
 
         return <g className="chartTab">
-            <Header {...header.props}/>
+            {header.render(props.bounds.x, props.bounds.y)}
             {this.renderChart()}
             {footer.render(props.bounds.x, props.bounds.bottom-footer.height)}
         </g>

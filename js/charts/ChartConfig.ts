@@ -23,6 +23,8 @@ import ScatterTransform from './ScatterTransform'
 import SlopeChartTransform from './SlopeChartTransform'
 import Color from './Color'
 
+declare const window: any
+
 export interface TimelineConfig {
     compareEndPointsOnly?: boolean
 }
@@ -33,16 +35,16 @@ export interface HighlightToggleConfig {
 }
 
 export interface ChartDimension {
-    id: number,
+    id?: number,
     variableId: number,
-    color: string,
-    displayName: string,    
-    isProjection: boolean,
+    color?: string,
+    displayName?: string,    
+    isProjection?: boolean,
     order: number,
     property: string,
-    targetYear: number|null,
+    targetYear?: number,
     tolerance: number,
-    unit: string
+    unit?: string
 }
 
 export interface EntitySelection {
@@ -158,11 +160,11 @@ export default class ChartConfig {
 
 		// Give scatterplots a default color and size dimension if they don't have one
 		if ((this.type == ChartType.ScatterPlot || this.type == ChartType.SlopeChart) && !_.find(dimensions, { property: 'color' })) {
-			validDimensions = validDimensions.concat([{"variableId":"123","property":"color","unit":"","name":"Color","tolerance":"5"}]);
+			validDimensions = validDimensions.concat([{ variableId: 123, property: "color", tolerance: 5, order: 0 }]);
 		}
 
 		if ((this.type == ChartType.ScatterPlot || this.type == ChartType.SlopeChart) && !_.find(dimensions, { property: 'size' })) {
-			validDimensions = validDimensions.concat([{"variableId":"72","property":"size","unit":"","name":"Size","tolerance":"5"}]);
+			validDimensions = validDimensions.concat([{ variableId: 72, property: "size", tolerance: 5, order: 0 }]);
 		}
 
         return validDimensions

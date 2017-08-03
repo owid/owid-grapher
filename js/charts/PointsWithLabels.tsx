@@ -20,12 +20,12 @@ import {getRelativeMouse, makeSafeForCSS} from './Util'
 import Vector2 from './Vector2'
 import {Triangle} from './Marks'
 
-interface ScatterSeries {
+export interface ScatterSeries {
     color: string,
     key: string,
     label: string,
     size: number,
-    values: { x: number, y: number, size: number, time: { x: number, y: number } }[]
+    values: { x: number, y: number, size: number, year: number, time: { x: number, y: number } }[]
 };
 
 interface PointsWithLabelsProps {

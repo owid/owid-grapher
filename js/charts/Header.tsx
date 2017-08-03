@@ -7,6 +7,7 @@ import {preInstantiate} from './Util'
 import {observable, computed} from 'mobx'
 import {observer} from 'mobx-react'
 import {formatYear} from './Util'
+import ChartConfig from './ChartConfig'
 
 interface LogoProps {
     svg: string
@@ -45,90 +46,25 @@ class Logo {
     }
 }
 
-interface HeaderMainProps {
-    x: number,
-    y: number,
-    width: number,
-    title: string,
-    titleLink: string,
-    subtitle: string,
-    logosSVG: string[]
-}
-
-@observer
-class HeaderMain extends React.Component<HeaderMainProps> {
-    @computed get logo() {
-        return new Logo({ svg: this.props.logosSVG[0] })
-    }
-
-    @computed get title() {
-        const {props, logo} = this
-
-        // Try to fit the title into a single line if possible-- but not if it would make the text super small
-        let title: TextWrap
-        let fontSize = 1.25
-        while (true) {
-            title = new TextWrap({ maxWidth: props.width-logo.width-10, fontSize: fontSize, text: props.title.trim(), lineHeight: 1 })
-            if (fontSize <= 0.9 || title.lines.length <= 1)
-                break
-            fontSize -= 0.05
-        }
-
-        if (title.lines.length > 1)
-            fontSize = 1.1
-
-        return title
-    }
-
-    @computed get subtitleWidth() {
-        // If the subtitle is entirely below the logo, we can go underneath it
-        return this.title.height > this.logo.height ? this.props.width : this.props.width-this.logo.width-10
-    }
-
-    @computed get subtitle() {
-        const _this = this
-        return new TextWrap({
-            get maxWidth() { return _this.subtitleWidth },
-            get fontSize() { return 0.6 },
-            get text() { return _this.props.subtitle.trim() }
-        })
-    }
-
-    @computed get height() {
-        return Math.max(this.title.height+this.subtitle.height+2, this.logo.height)
-    }
-
-    render() {
-        const {props, logo, title, subtitle} = this
-
-        return <g className="header">
-            {logo.height > 0 && logo.render(props.x+props.width-logo.width, props.y)}
-            <a href={props.titleLink} target="_blank">
-                {title.render(props.x, props.y, { fill: "#555" })}
-            </a>
-            {subtitle.render(props.x, props.y+title.height+2, { fill: "#666" })}
-        </g>
-    }
-}
-
 interface HeaderProps {
-    bounds: Bounds,
-    titleTemplate: string,
-    subtitleTemplate: string,
-    minYear: number,
-    maxYear: number,
-    entities: any[],
-    logosSVG: string[],
-    titleLink: string
+    maxWidth: number,
+    minYear: number|null,
+    maxYear: number|null,
+    chart: ChartConfig
 }
 
-@observer
-export default class Header extends React.Component<HeaderProps> {
+export default class Header {
+    props: HeaderProps
+    constructor(props: HeaderProps) {
+        this.props = props
+    }
+
     fillTemplate(text: string) {
-        const {entities, minYear, maxYear} = this.props
+        const {chart, minYear, maxYear} = this.props
+        const {selectedKeys} = chart.data
 
         if (_.includes(text, "*country*")) {
-            const entityStr = entities.join(', ');
+            const entityStr = selectedKeys.join(', ');
             if (entityStr.length > 0)
                 text = text.replace("*country*", entityStr);
             else {
@@ -142,8 +78,8 @@ export default class Header extends React.Component<HeaderProps> {
                 text = text.replace(", *time*", "")
                 text = text.replace("*time*", "");
             } else {
-                var timeFrom = formatYear(minYear),
-                    timeTo = formatYear(_.isFinite(maxYear) ? maxYear : minYear),
+                var timeFrom = formatYear(minYear as number),
+                    timeTo = formatYear(_.isFinite(maxYear) ? maxYear as number : minYear as number),
                     time = timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo;
 
                 text = text.replace("*time*", time);
@@ -152,34 +88,78 @@ export default class Header extends React.Component<HeaderProps> {
             }
         }
 
-        return text;
+        return text.trim();
+    }
+
+    @computed get titleText() {
+        return this.fillTemplate(this.props.chart.title)
+    }
+
+    @computed get subtitleText() {
+        return this.fillTemplate(this.props.chart.subtitle)
+    }
+
+    @computed get logo() {
+        return new Logo({ svg: this.props.chart.logosSVG[0] })
     }
 
     @computed get title() {
-        return this.fillTemplate(this.props.titleTemplate)
+        const {props, logo, titleText} = this
+
+        // Try to fit the title into a single line if possible-- but not if it would make the text super small
+        let title: TextWrap
+        let fontSize = 1.25
+        while (true) {
+            title = new TextWrap({ maxWidth: props.maxWidth-logo.width-10, fontSize: fontSize, text: titleText, lineHeight: 1 })
+            if (fontSize <= 0.9 || title.lines.length <= 1)
+                break
+            fontSize -= 0.05
+        }
+
+        if (title.lines.length > 1)
+            fontSize = 1.1
+
+        return title
+    }
+
+    @computed get subtitleWidth() {
+        // If the subtitle is entirely below the logo, we can go underneath it
+        return this.title.height > this.logo.height ? this.props.maxWidth : this.props.maxWidth-this.logo.width-10
     }
 
     @computed get subtitle() {
-        return this.fillTemplate(this.props.subtitleTemplate)
-    }
-
-    @computed get headerMain() {
-        const {props, title, subtitle} = this
-        const {bounds, logosSVG, titleLink} = props
-
-        return preInstantiate(
-            <HeaderMain x={bounds.x} y={bounds.y} width={bounds.width} title={title} subtitle={subtitle} logosSVG={logosSVG} titleLink={titleLink}/>
-        )
+        const _this = this
+        return new TextWrap({
+            get maxWidth() { return _this.subtitleWidth },
+            get fontSize() { return 0.6 },
+            get text() { return _this.subtitleText }
+        })
     }
 
     @computed get height() {
-        return this.headerMain.height
+        return Math.max(this.title.height+this.subtitle.height+2, this.logo.height)
     }
 
-    render() {
-        const {headerMain, title} = this
+    render(x: number, y: number) {
+        return <HeaderView x={x} y={y} header={this}/>
+    }
+}
 
-        document.title = title
-        return <HeaderMain {...headerMain.props}/>
+@observer
+class HeaderView extends React.Component<{ x: number, y: number, header: Header }> {
+    render() {
+        const {props} = this
+        const {title, titleText, logo, subtitle} = props.header
+        const {chart, maxWidth} = props.header.props
+
+        document.title = titleText
+
+        return <g className="HeaderView">
+            {logo.height > 0 && logo.render(props.x+maxWidth-logo.width, props.y)}
+            <a href={chart.url.canonicalUrl} target="_blank">
+                {title.render(props.x, props.y, { fill: "#555" })}
+            </a>
+            {subtitle.render(props.x, props.y+title.height+2, { fill: "#666" })}
+        </g>
     }
 }

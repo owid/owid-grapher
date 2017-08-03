@@ -18,7 +18,7 @@ import ChartConfig from './ChartConfig'
 import NoData from './NoData'
 import AxisScale from './AxisScale'
 import Timeline from './Timeline'
-import PointsWithLabels from './PointsWithLabels'
+import PointsWithLabels, {ScatterSeries} from './PointsWithLabels'
 import {preInstantiate} from './Util'
 import TextWrap from './TextWrap'
 import ConnectedScatterLegend from './ConnectedScatterLegend'
@@ -36,14 +36,6 @@ export interface ScatterValue {
     year: number
     size: number
     time: {[key: string]: number}
-}
-
-export interface ScatterSeries {
-    key: string
-    label: string
-    size: number
-    color: string
-    values: ScatterValue[]
 }
 
 interface ScatterWithAxisProps {

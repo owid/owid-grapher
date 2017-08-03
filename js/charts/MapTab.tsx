@@ -125,21 +125,13 @@ export default class MapTab extends React.Component<MapTabProps> {
     @computed get map(): MapConfig { return (this.props.chart.map as MapConfig) }
 
     @computed get header() {
-        const {props, map} = this
-        const {bounds, chart} = props
-
-        if (!map.data) return null
-        
-        return preInstantiate(<Header
-            bounds={bounds}
-            titleTemplate={chart.title}
-            titleLink={chart.url.canonicalUrl}
-            subtitleTemplate={chart.subtitle}
-            logosSVG={chart.logosSVG}
-            entities={chart.data.selectedKeys}
-            minYear={map.data.targetYear}
-            maxYear={map.data.targetYear}
-        />)
+        const _this = this
+        return new Header({
+            get chart() { return _this.props.chart },
+            get maxWidth() { return _this.props.bounds.width },
+            get minYear() { return _this.map.data.targetYear },
+            get maxYear() { return _this.map.data.targetYear }
+        })
     }
 
     @computed get footer() {
@@ -158,7 +150,7 @@ export default class MapTab extends React.Component<MapTabProps> {
         const {header, footer} = this
 
         return <g className="mapTab">
-            <Header {...header.props}/>
+            {header.render(bounds.x, bounds.y)}
             <TimelineMap
                 bounds={bounds.padTop(header.height+5).padBottom(footer.height)}
                 choroplethData={map.data.choroplethData}
