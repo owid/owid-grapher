@@ -18,7 +18,7 @@ import ChartConfig from './ChartConfig'
 import NoData from './NoData'
 import AxisScale from './AxisScale'
 import Timeline from './Timeline'
-import PointsWithLabels, {ScatterSeries} from './PointsWithLabels'
+import PointsWithLabels, {ScatterSeries, ScatterValue} from './PointsWithLabels'
 import {preInstantiate} from './Util'
 import TextWrap from './TextWrap'
 import ConnectedScatterLegend from './ConnectedScatterLegend'
@@ -29,14 +29,7 @@ import ComparisonLine from './ComparisonLine'
 import {ScaleType} from './AxisScale'
 import AxisSpec from './AxisSpec' 
 import {unitFormat, first, last} from './Util'
-
-export interface ScatterValue {
-    x: number
-    y: number
-    year: number
-    size: number
-    time: {[key: string]: number}
-}
+import AxisBoxHighlight from './AxisBoxHighlight'
 
 interface ScatterWithAxisProps {
     bounds: Bounds,
@@ -181,64 +174,14 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         const {transform, bounds, axisBox, chart, timeline, timelineHeight, legend, focusKeys, focusColor, arrowLegend, hoverSeries, sidebarWidth, tooltipSeries, comparisonLine} = this
         const {currentData, sizeDomain} = transform
         return <g className="ScatterPlot">
-            <AxisBoxView axisBox={axisBox} onXScaleChange={this.onXScaleChange} onYScaleChange={this.onYScaleChange}/>
+            <AxisBoxView axisBox={axisBox} onXScaleChange={this.onXScaleChange} onYScaleChange={this.onYScaleChange} highlightValue={hoverSeries && _.last(hoverSeries.values)}/>
             {comparisonLine && <ComparisonLine axisBox={axisBox} comparisonLine={comparisonLine}/>}
+            {tooltipSeries && <AxisBoxHighlight axisBox={axisBox} value={_.last(tooltipSeries.values) as ScatterValue}/>}
             <PointsWithLabels data={currentData} bounds={axisBox.innerBounds} xScale={axisBox.xScale} yScale={axisBox.yScale} sizeDomain={sizeDomain} onSelectEntity={this.onSelectEntity} focusKeys={focusKeys} onMouseOver={this.onScatterMouseOver} onMouseLeave={this.onScatterMouseLeave}/>
             <ScatterColorLegend {...legend.props} x={bounds.right-sidebarWidth} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} onClick={this.onLegendClick} focusColor={focusColor}/>
-            {(arrowLegend || tooltipSeries) && <line x1={bounds.right-sidebarWidth} y1={bounds.top+legend.height+2} x2={bounds.right-5} y2={bounds.top+legend.height+2} stroke="#ccc"/>}
+            {arrowLegend && <line x1={bounds.right-sidebarWidth} y1={bounds.top+legend.height+2} x2={bounds.right-5} y2={bounds.top+legend.height+2} stroke="#ccc"/>}
             {arrowLegend && arrowLegend.render(bounds.right-sidebarWidth, bounds.top+legend.height+11)}
             {timeline && <Timeline {...timeline.props}/>}
-            {tooltipSeries && <ScatterTooltip series={tooltipSeries} units={chart.units} maxWidth={sidebarWidth} x={bounds.right-sidebarWidth} y={bounds.top+legend.height+11+(arrowLegend ? arrowLegend.height : 0)}/>}
-        </g>
-    }
-}
-
-interface ScatterTooltipProps {
-    series: ScatterSeries,
-    units: any,
-    maxWidth: number,
-    x: number,
-    y: number
-}
-
-@observer
-class ScatterTooltip extends React.Component<ScatterTooltipProps> {
-    formatValue(value, property) {
-        const {units} = this.props
-        const unit = _.find(units, { property: property })
-        let s = unitFormat(unit, value[property])
-        if (value.year != value.time[property])
-            s += " (data from " + value.time[property] + ")"
-        return s
-	}
-
-    render() {
-        const {x, y, maxWidth, series} = this.props
-        const lineHeight = 5
-
-        const firstValue = first(series.values)
-        const lastValue = last(series.values)
-        const values = series.values.length == 1 ? [firstValue] : [firstValue, lastValue]
-
-        const elements: {x: number, y: number, wrap: TextWrap}[] = []
-        let offset = 0
-
-        const heading = { x: x, y: y+offset, wrap: new TextWrap({ maxWidth: maxWidth, fontSize: 0.65, text: series.label }) }
-        elements.push(heading)
-        offset += heading.wrap.height+lineHeight
-
-        _.each(values, v => {
-            const year = { x: x, y: y+offset, wrap: new TextWrap({ maxWidth: maxWidth, fontSize: 0.55, text: v.year.toString() }) }
-            offset += year.wrap.height
-            const line1 = { x: x, y: y+offset, wrap: new TextWrap({ maxWidth: maxWidth, fontSize: 0.45, text: this.formatValue(v, 'y')}) }
-            offset += line1.wrap.height
-            const line2 = { x: x, y: y+offset, wrap: new TextWrap({ maxWidth: maxWidth, fontSize: 0.45, text: this.formatValue(v, 'x')}) }
-            offset += line2.wrap.height+lineHeight            
-            elements.push(...[year, line1, line2])
-        })
-
-        return <g className="scatterTooltip">
-            {_.map(elements, el => el.wrap.render(el.x, el.y))}
         </g>
     }
 }

@@ -15,11 +15,13 @@ import AxisScale from './AxisScale'
 import Vector2 from './Vector2'
 import {getRelativeMouse} from './Util'
 import Bounds from './Bounds'
+import DataKey from './DataKey'
 
 export interface LinesProps {
     xScale: AxisScale,
     yScale: AxisScale,
     data: LineChartSeries[],
+    focusKeys: DataKey[],
     onHoverPoint?: (target: HoverTarget) => void,
     onHoverStop?: () => void
 }
@@ -27,7 +29,8 @@ export interface LinesProps {
 interface LineRenderSeries {
     key: string,
     color: string,
-    values: Vector2[]
+    values: Vector2[],
+    isFocus: boolean
 }
 
 export interface HoverTarget {
@@ -42,16 +45,21 @@ export default class Lines extends React.Component<LinesProps> {
     @observable.ref hover: HoverTarget|null = null
 
     @computed get renderData(): LineRenderSeries[] {
-        const {data, xScale, yScale} = this.props
+        const {data, xScale, yScale, focusKeys} = this.props
         return _.map(data, series => {
             return {
                 key: series.key,
                 color: series.color,
                 values: series.values.map(v => {
                     return new Vector2(Math.round(xScale.place(v.x)), Math.round(yScale.place(v.y)))
-                })
+                }),
+                isFocus: _.includes(focusKeys, series.key)
             }
         })
+    }
+
+    @computed get isFocusMode(): boolean {
+        return _.some(this.renderData, d => d.isFocus)
     }
 
     @computed get hoverData(): HoverTarget[] {
@@ -92,22 +100,49 @@ export default class Lines extends React.Component<LinesProps> {
                                   new Vector2(xScale.range[1], yScale.range[1]))
     }
 
+    @computed get focusGroups() {
+        return _.filter(this.renderData, g => g.isFocus)
+    }
+
+    @computed get backgroundGroups() {
+        return _.filter(this.renderData, g => !g.isFocus)
+    }
+
+    renderFocusGroups() {
+        return _.map(this.focusGroups, series =>
+            <polyline
+                key={series.key+'-line'}
+                strokeLinecap="round"
+                stroke={series.color}
+                points={_.map(series.values, v => `${v.x},${v.y}`).join(' ')}
+                fill="none"
+                strokeWidth={1}
+                opacity={1}
+            />,
+        )
+    }
+
+    renderBackgroundGroups() {
+       return _.map(this.backgroundGroups, series =>
+            <polyline
+                key={series.key+'-line'}
+                strokeLinecap="round"
+                stroke="#ccc"
+                points={_.map(series.values, v => `${v.x},${v.y}`).join(' ')}
+                fill="none"
+                strokeWidth={1}
+                opacity={1}
+            />,
+        )
+    }
+
     render() {
-        const {renderData, hover, bounds} = this        
+        const {renderData, hover, bounds, isFocusMode} = this        
 
         return <g className="Lines" onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseLeave}>
             <rect x={Math.round(bounds.x)} y={Math.round(bounds.y)} width={Math.round(bounds.width)} height={Math.round(bounds.height)} fill="rgba(255,255,255,0)" opacity={0}/>
-            {_.map(renderData, series =>
-                <polyline
-                    key={series.key+'-line'}
-                    strokeLinecap="round"
-                    stroke={series.color}
-                    points={_.map(series.values, v => `${v.x},${v.y}`).join(' ')}
-                    fill="none"
-                    strokeWidth={1}
-                    opacity={1}
-                />,
-            )}
+            {this.renderBackgroundGroups()}
+            {this.renderFocusGroups()}
             {hover && <circle cx={hover.pos.x} cy={hover.pos.y} r={5} fill={hover.series.color}/>}
         </g>
     }

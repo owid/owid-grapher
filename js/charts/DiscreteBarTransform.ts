@@ -15,17 +15,14 @@ export default class DiscreteBarTransform {
 
 	@computed get data(): DiscreteBarDatum[] {
         const {chart} = this
-        const {dimensions, vardata, timeDomain, selectedKeysByKey} = chart
-        const {variablesById} = vardata
+        const {timeDomain} = chart
+        const {filledDimensions, selectedKeysByKey} = chart.data
 
 		const timeFrom = _.defaultTo(timeDomain[0], -Infinity)
 		const timeTo = _.defaultTo(timeDomain[1], Infinity)
-        const dimension = _.find(dimensions, d => d.property == "y")
-
-        if (!dimension)
-            return []
-
-        const variable = variablesById[dimension.variableId]
+        const dimension = _.find(filledDimensions, d => d.property == "y")
+        if (!dimension) return []
+        const {variable} = dimension
 
         let targetYear
         if (_.isFinite(timeTo))

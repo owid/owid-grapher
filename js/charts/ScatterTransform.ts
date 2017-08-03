@@ -4,7 +4,7 @@ import ChartConfig from './ChartConfig'
 import {computed, observable, extras} from 'mobx'
 import {defaultTo, first, last} from './Util'
 import {DimensionWithData} from './ChartData'
-import {ScatterSeries, ScatterValue} from './ScatterPlot'
+import {ScatterSeries, ScatterValue} from './PointsWithLabels'
 import AxisSpec from './AxisSpec'
 
 // Responsible for translating chart configuration into the form
@@ -150,14 +150,14 @@ export default class ScatterTransform {
                     const d = series.values[0];
 
                     // Ensure we use the closest year to the target
-                    const originYear = d.time[dimension.property];
+                    const originYear = (d.time as any)[dimension.property];
                     if (_.isFinite(originYear) && Math.abs(originYear-targetYear) < Math.abs(year-targetYear))
                         continue;                
 
                     if (dimension.property == 'color') {
                         if (!series.color) series.color = colorScale(value as string);
                     } else {
-                        d.time[dimension.property] = year;
+                        (d.time as any)[dimension.property] = year;
                         (d as any)[dimension.property] = value;
                     }
                 }

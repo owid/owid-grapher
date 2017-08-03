@@ -2,7 +2,7 @@ import * as _ from 'lodash'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as d3 from 'd3'
-import {observable, computed, autorun, action, reaction} from 'mobx'
+import {observable, computed, autorun, action, reaction, when} from 'mobx'
 import {observer} from 'mobx-react'
 
 import ChartConfig, {ChartConfigProps} from './ChartConfig'
@@ -203,7 +203,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
         return [
             <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1"
                  style={svgStyle} viewBox={`0 0 ${renderWidth} ${renderHeight}`}
-                 ref={e => this.svgNode = e}>
+                 ref={e => this.svgNode = e as SVGSVGElement}>
                  {this.renderPrimaryTab(svgBounds.padBottom(this.isExport ? 0 : controlsFooter.height))}
             </svg>,
             !this.isExport && <ControlsFooter {...controlsFooter.props}/>,
@@ -229,6 +229,15 @@ export default class ChartView extends React.Component<ChartViewProps> {
 
     componentDidMount() {
         this.htmlNode = this.base
+    }
+
+    
+    hasFadedIn: boolean = false
+    componentDidUpdate() {
+        if (this.chart.data.isReady && !this.hasFadedIn) {
+            d3.selectAll("div > *").style('opacity', 0).transition().style('opacity', 1)
+            this.hasFadedIn = true
+        }
     }
 
     // XXX

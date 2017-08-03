@@ -12,7 +12,8 @@ import {action} from 'mobx'
 
 export interface StandardAxisBoxViewProps {
     axisBox: AxisBox,
-    chart: ChartConfig
+    chart: ChartConfig,
+    highlightValue: { x: number, y: number }|undefined
 }
 
 export default class StandardAxisBoxView extends React.Component<StandardAxisBoxViewProps> {
@@ -25,7 +26,7 @@ export default class StandardAxisBoxView extends React.Component<StandardAxisBox
     }
 
     render() {
-        const {axisBox, chart} = this.props
-        return <AxisBoxView axisBox={axisBox} onXScaleChange={this.onXScaleChange} onYScaleChange={this.onYScaleChange}/>
+        const {axisBox, chart, highlightValue} = this.props
+        return <AxisBoxView axisBox={axisBox} onXScaleChange={this.onXScaleChange} onYScaleChange={this.onYScaleChange} highlightValue={highlightValue}/>
     }
 }

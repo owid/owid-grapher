@@ -192,6 +192,10 @@ export default class Bounds {
 		return { left: this.left+'px', top: this.top+'px', width: this.width+'px', height: this.height+'px'}
 	}
 
+	toProps(): { x: number, y: number, width: number, height: number } {
+		return { x: this.x, y: this.y, width: this.width, height: this.height }
+	}
+
 	xRange() : [number, number] {
 		return [this.left, this.right]
 	}

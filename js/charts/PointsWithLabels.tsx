@@ -25,8 +25,19 @@ export interface ScatterSeries {
     key: string,
     label: string,
     size: number,
-    values: { x: number, y: number, size: number, year: number, time: { x: number, y: number } }[]
+    values: ScatterValue[]
 };
+
+export interface ScatterValue {
+    x: number
+    y: number
+    size: number
+    year: number
+    time: {
+        x: number,
+        y: number
+    }
+}
 
 interface PointsWithLabelsProps {
     data: ScatterSeries[]

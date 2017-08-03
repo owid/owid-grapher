@@ -115,7 +115,6 @@ class TimelineMap extends React.Component<TimelineMapProps> {
 }
 
 interface MapTabProps {
-    chartView: any,
     chart: ChartConfig,
     bounds: Bounds
 }

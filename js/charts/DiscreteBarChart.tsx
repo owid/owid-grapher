@@ -21,7 +21,7 @@ import Lines from './Lines'
 import {preInstantiate} from "./Util"
 import AxisScale from './AxisScale'
 import Color from './Color'
-import {HorizontalAxis, HorizontalAxisView} from './Axis'
+import HorizontalAxis, {HorizontalAxisView} from './HorizontalAxis'
 import {AxisGridLines} from './AxisBox'
 import Vector2 from './Vector2'
 
@@ -112,6 +112,12 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
 
     @action.bound onMouseLeave() {
         this.hoverIndex = undefined
+    }
+
+    componentDidMount() {
+        const bars = d3.select(this.base).selectAll("rect")
+        const widths = bars.nodes().map((el: SVGRectElement) => el.getAttribute('width'))
+        bars.attr('width', 0).transition().attr('width', (d, i) => widths[i])
     }
 
     render() {

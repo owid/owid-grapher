@@ -15,8 +15,11 @@ import {observable, computed, action, toJS} from 'mobx'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
 import AxisScale, {AxisConfig} from './AxisScale'
-import {HorizontalAxis, VerticalAxis, HorizontalAxisView, VerticalAxisView} from './Axis'
+import VerticalAxis, {VerticalAxisView} from './VerticalAxis'
+import HorizontalAxis, {HorizontalAxisView} from './HorizontalAxis'
 import AxisSpec from './AxisSpec'
+import ScaleType from './ScaleType'
+import TextWrap from './TextWrap'
 
 interface AxisBoxProps {
     bounds: Bounds,
@@ -108,15 +111,22 @@ export class AxisGridLines extends React.Component<AxisGridLinesProps> {
     }
 }
 
+export interface AxisBoxViewProps {
+    axisBox: AxisBox,
+    onYScaleChange: (scaleType: ScaleType) => void,
+    onXScaleChange: (scaleType: ScaleType) => void,
+    highlightValue?: { x: number, y: number }
+}
+
 @observer
-export class AxisBoxView extends React.Component<any> {
+export class AxisBoxView extends React.Component<AxisBoxViewProps> {
     render() {
-        const {axisBox, onYScaleChange, onXScaleChange} = this.props
+        const {axisBox, onYScaleChange, onXScaleChange, highlightValue} = this.props
         const {bounds, xScale, yScale, xAxis, yAxis, innerBounds} = axisBox
 
         return <g className="AxisBoxView">
-            <HorizontalAxisView bounds={bounds} axis={axisBox.xAxis} onScaleTypeChange={onXScaleChange}/>
-            <VerticalAxisView bounds={bounds} axis={axisBox.yAxis} onScaleTypeChange={onYScaleChange}/>
+            <HorizontalAxisView bounds={bounds} axis={xAxis} onScaleTypeChange={onXScaleChange}/>
+            <VerticalAxisView bounds={bounds} axis={yAxis} onScaleTypeChange={onYScaleChange}/>
             <AxisGridLines orient="left" scale={yScale} bounds={innerBounds}/>
             <AxisGridLines orient="bottom" scale={xScale} bounds={innerBounds}/>
         </g>

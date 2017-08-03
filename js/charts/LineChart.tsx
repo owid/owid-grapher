@@ -25,6 +25,8 @@ import Vector2 from './Vector2'
 import {getRelativeMouse} from './Util'
 import {HoverTarget} from './Lines'
 import Tooltip from './Tooltip'
+import AxisBoxHighlight from './AxisBoxHighlight'
+import DataKey from './DataKey'
 
 export interface LineChartValue {
     x: number,
@@ -55,6 +57,7 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
     @computed get legendItems() {
         return _(this.transform.groupedData).sortBy(series => -(_.last(series.values) as LineChartValue).y).map(d => ({
             color: d.color,
+            key: d.key,
             label: this.chart.data.formatKey(d.key)
         })).value()
     }
@@ -67,25 +70,29 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
         })
     }
 
+    @observable hoverTarget?: HoverTarget
     @action.bound onHoverPoint(target: HoverTarget) {
-        const tooltipDatum = { entity: this.chart.data.formatKey(target.series.key), year: target.value.x, value: target.value.y }
-        this.tooltip = <Tooltip x={target.pos.x} y={target.pos.y} datum={tooltipDatum}/>
+        this.hoverTarget = target
+    }
+    @action.bound onHoverStop() {
+        this.hoverTarget = undefined
     }
 
-    @action.bound onHoverStop() {
-        this.tooltip = null
+    @computed get focusKeys(): DataKey[] {
+        return this.hoverTarget ? [this.hoverTarget.series.key] : this.chart.data.selectedKeys
     }
 
     render() {
-        const {chart, transform, bounds, legend, tooltip} = this
+        const {chart, transform, bounds, legend, tooltip, hoverTarget, focusKeys} = this
         const {groupedData, xAxis, yAxis} = transform
 
         const axisBox = new AxisBox({bounds: bounds.padRight(10).padRight(legend.width), xAxis, yAxis})
 
         return <g className="LineChart">
-            <ColorLegendView x={bounds.right-legend.width} y={bounds.top} legend={legend}/>
+            <ColorLegendView x={bounds.right-legend.width} y={bounds.top} legend={legend} focusKeys={focusKeys}/>
             <StandardAxisBoxView axisBox={axisBox} chart={chart}/>
-            <Lines xScale={axisBox.xScale} yScale={axisBox.yScale} data={groupedData} onHoverPoint={this.onHoverPoint} onHoverStop={this.onHoverStop}/>
+            {/*hoverTarget && <AxisBoxHighlight axisBox={axisBox} value={hoverTarget.value}/>*/}
+            <Lines xScale={axisBox.xScale} yScale={axisBox.yScale} data={groupedData} onHoverPoint={this.onHoverPoint} onHoverStop={this.onHoverStop} focusKeys={focusKeys}/>
             {tooltip}
         </g>
     }

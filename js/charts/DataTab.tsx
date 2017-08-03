@@ -9,7 +9,7 @@ import ChartConfig from './ChartConfig'
 declare var Global: { rootUrl: string }
 
 @observer
-export default class DataTab extends React.Component<{ bounds: Bounds, chart: ChartConfig }, undefined> {
+export default class DataTab extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
 	@computed get bounds() {
 		return this.props.bounds
 	}
