@@ -12,8 +12,6 @@ import ChartView from './ChartView'
 @observer
 export default class DataSelector extends React.Component<{ chart: ChartConfig, chartView: ChartView, onDismiss: () => void }> {
     @observable searchInput?: string
-    @observable.ref previouslySelectedData: DataKeyInfo[]
-    @observable.ref previouslyUnselectedData: DataKeyInfo[]
     searchField: HTMLInputElement
 
     @computed get availableData(): DataKeyInfo[] {
@@ -21,8 +19,15 @@ export default class DataSelector extends React.Component<{ chart: ChartConfig, 
         return chart.data.availableKeys.map(key => chart.data.lookupKey(key))
     }
     
+    @computed get selectedData() {
+        return this.availableData.filter(d => this.props.chart.data.selectedKeysByKey[d.key])
+    }
+
+    @computed get unselectedData() {
+        return this.availableData.filter(d => !this.props.chart.data.selectedKeysByKey[d.key])
+    }
     @computed get fuseSearch(): any {
-        return new Fuse(this.previouslyUnselectedData, {
+        return new Fuse(this.unselectedData, {
             shouldSort: true,
             threshold: 0.6,
             location: 0,
@@ -34,12 +39,10 @@ export default class DataSelector extends React.Component<{ chart: ChartConfig, 
     }
 
     @computed get searchResults(): DataKeyInfo[] {
-        return this.searchInput ? this.fuseSearch.search(this.searchInput) : this.previouslyUnselectedData
+        return this.searchInput ? this.fuseSearch.search(this.searchInput) : this.unselectedData
     }
 
     componentWillMount() {
-        this.previouslySelectedData = this.availableData.filter(d => this.props.chart.data.selectedKeysByKey[d.key])
-        this.previouslyUnselectedData = this.availableData.filter(d => !this.props.chart.data.selectedKeysByKey[d.key])
     }
 
     componentDidMount() {
@@ -62,30 +65,35 @@ export default class DataSelector extends React.Component<{ chart: ChartConfig, 
 
     render() {
         const {chart} = this.props
-        const {previouslySelectedData, searchResults} = this
+        const {selectedData, searchResults} = this
 
         return <div className={styles.DataSelector} onClick={e => e.stopPropagation()}>
             <h2>Choose data to show <button onClick={this.props.onDismiss}><i className="fa fa-times"/></button></h2>
-            
-            <ul>
-                {previouslySelectedData.map(d => {
-                    return <li>
-                        <label className="clickable">
-                            <input type="checkbox" checked={!!chart.data.selectedKeysByKey[d.key]} onChange={e => chart.data.toggleKey(d.key)}/> {d.label}
-                        </label>
-                    </li>
-                })}
-            </ul>
-            <input type="search" placeholder="Search..." onInput={e => this.searchInput = e.currentTarget.value} onKeyDown={this.onSearchKeyDown} ref={e => this.searchField = (e as HTMLInputElement)}/>
-            <ul>
-                {searchResults.map(d => {
-                    return <li>
-                        <label className="clickable">
-                            <input type="checkbox" checked={!!chart.data.selectedKeysByKey[d.key]} onChange={e => chart.data.toggleKey(d.key)}/> {d.label}
-                        </label>
-                    </li>
-                })}
-            </ul>
+            <div>
+                <div className="selectedData">
+                    <ul>
+                        {selectedData.map(d => {
+                            return <li>
+                                <label className="clickable">
+                                    <input type="checkbox" checked={!!chart.data.selectedKeysByKey[d.key]} onChange={e => chart.data.toggleKey(d.key)}/> {d.label}
+                                </label>
+                            </li>
+                        })}
+                    </ul>
+                </div>
+                <div className="searchResults">
+                    <input type="search" placeholder="Search..." onInput={e => this.searchInput = e.currentTarget.value} onKeyDown={this.onSearchKeyDown} ref={e => this.searchField = (e as HTMLInputElement)}/>
+                    <ul>
+                        {searchResults.map(d => {
+                            return <li>
+                                <label className="clickable">
+                                    <input type="checkbox" checked={!!chart.data.selectedKeysByKey[d.key]} onChange={e => chart.data.toggleKey(d.key)}/> {d.label}
+                                </label>
+                            </li>
+                        })}
+                    </ul>
+                </div>
+            </div>
         </div>
     }
 }

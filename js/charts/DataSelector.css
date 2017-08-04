@@ -7,17 +7,28 @@
     background: rgba(255,255,255,0.9);
     padding: 1em;
     z-index: 10;
-    overflow-y: auto;
+    overflow-y: scroll;
     text-align: left;
 
     & h2 button {
         float: right;
     }
 
-    & ul {
-        padding: 0;
+    & > div {
+        display: flex;
+    }
+
+    & .selectedData {
+        min-width: 20%;
+    }
+
+    & .searchResults ul {
         display: flex;
         flex-wrap: wrap;
+    }
+
+    & ul {
+        padding: 0;
     }
     
     & li {
