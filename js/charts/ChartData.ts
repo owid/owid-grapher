@@ -109,12 +109,14 @@ export default class ChartData {
 		_.each(chart.primaryDimensions, (dim, index) => {
 			const variable = chart.vardata.variablesById[dim.variableId]
 			_.each(variable.entitiesUniq, entity => {
+				const entityMeta = chart.vardata.entityMetaByKey[entity]
 				const key = this.keyFor(entity, index)
 
 				keyData.set(key, {
 					entity: entity,
 					index: index,
-					label: chart.primaryDimensions.length > 1 ? `${entity} - ${dim.displayName || variable.name}` : entity
+					label: chart.primaryDimensions.length > 1 ? `${entity} - ${dim.displayName || variable.name}` : entity,
+					shortCode: chart.primaryDimensions.length > 1 ? `${entityMeta.code||entityMeta.name}-${dim.order}` : entityMeta.code
 				})
 			})
 		})

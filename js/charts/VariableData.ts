@@ -49,8 +49,8 @@ export class Variable {
 		return _.uniq(this.years)
 	}
 
-	@computed get minYear() {
-		return _.min(this.yearsUniq)
+	@computed get minYear(): number {
+		return _.min(this.yearsUniq) as number
 	}
 
 	@computed get maxYear(): number {

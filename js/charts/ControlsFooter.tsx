@@ -14,6 +14,7 @@ import EntitySelect from './owid.view.entitySelect'
 import ChartType from './ChartType'
 import {getQueryParams} from './Util'
 import ChartView from './ChartView'
+import {HighlightToggleConfig} from './ChartConfig'
 
 declare const Global: any
 declare const App: any
@@ -23,10 +24,10 @@ class EmbedMenu extends React.Component<{ embedUrl: string }> {
     render() {
         const {embedUrl} = this.props
 
-        return <div className="embedMenu" onClick={(evt) => evt.stopPropagation()}>
+        return <div className="embedMenu" onClick={evt => evt.stopPropagation()}>
             <h2>Embed</h2>
             <p>Paste this into any HTML page:</p>
-            <textarea onFocus={function(evt: any) { evt.target.select(); }}>
+            <textarea onFocus={evt => evt.currentTarget.select()}>
                 {`<iframe src="${embedUrl}" style="width: 100%; height: 600px; border: 0px none;"></iframe>`}
             </textarea>
         </div>
@@ -45,16 +46,12 @@ class ShareMenu extends React.Component<ShareMenuProps> {
         return document.title.replace(" - Our World In Data", "")
     }
 
-    @computed get baseUrl() : string {
-        return Global.rootUrl + '/' + this.props.chart.slug
-    }
-
-    @computed get queryStr() : string {
-        return this.props.chart.url.lastQueryStr||""
-    }
-
     @computed get editUrl() : string|null {
         return Cookies.get('isAdmin') ? (Global.adminRootUrl + '/charts/' + this.props.chart.id + '/edit') : null
+    }
+
+    @computed get canonicalUrl(): string {
+        return this.props.chart.url.canonicalUrl
     }
 
     @observable isEmbedMenuActive : boolean = false
@@ -77,18 +74,18 @@ class ShareMenu extends React.Component<ShareMenuProps> {
     }
 
     @action.bound onEmbed() {
-        this.props.chartView.addPopup(<EmbedMenu embedUrl={this.baseUrl+this.queryStr}/>)
+        this.props.chartView.addPopup(<EmbedMenu embedUrl={this.canonicalUrl}/>)
     }
 
     render() {
-        const {title, baseUrl, queryStr, editUrl, isEmbedMenuActive} = this
+        const {title, editUrl, canonicalUrl, isEmbedMenuActive} = this
 
         return <div className="shareMenu" onClick={(evt) => evt.stopPropagation()}>
             <h2>Share</h2>
-            <a className="btn" target="_blank" title="Tweet a link" href={"https://twitter.com/intent/tweet/?text=" + encodeURIComponent(title) + "&url=" + encodeURIComponent(baseUrl+queryStr)}>
+            <a className="btn" target="_blank" title="Tweet a link" href={"https://twitter.com/intent/tweet/?text=" + encodeURIComponent(title) + "&url=" + encodeURIComponent(canonicalUrl)}>
                 <i className="fa fa-twitter"/> Twitter
             </a>
-            <a className="btn" target="_blank" title="Share on Facebook" href={"https://www.facebook.com/dialog/share?app_id=1149943818390250&display=page&href=" + encodeURIComponent(baseUrl+queryStr)}>
+            <a className="btn" target="_blank" title="Share on Facebook" href={"https://www.facebook.com/dialog/share?app_id=1149943818390250&display=page&href=" + encodeURIComponent(canonicalUrl)}>
                 <i className="fa fa-facebook"/> Facebook
             </a>
             <a className="btn" title="Embed this visualization in another HTML document" onClick={this.onEmbed}>
@@ -106,16 +103,16 @@ interface ControlsFooterProps {
     chartView: ChartView,
 }
 
-class HighlightToggle extends React.Component<{ chart: ChartConfig }> {
+class HighlightToggle extends React.Component<{ chart: ChartConfig, highlightToggle: HighlightToggleConfig }> {
     @computed get chart() { return this.props.chart }
-    @computed get highlight() { return this.chart.highlightToggle }
+    @computed get highlight() { return this.props.highlightToggle }
 
     @computed get highlightParams() {
         return getQueryParams((this.highlight.paramStr||"").substring(1))
     }
 
-    @action.bound onHighlightToggle(e) {
-        if (e.target.checked) {
+    @action.bound onHighlightToggle(e: React.FormEvent<HTMLInputElement>) {
+        if (e.currentTarget.checked) {
             const params = getQueryParams()
             this.chart.url.populateFromURL(_.extend(params, this.highlightParams))
         } else {
@@ -167,14 +164,14 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps>
 
     entitySelect: EntitySelect = null
     @action.bound onEntitySelect() {
-        const unselectedEntities = _.without(this.props.chart.scatterData.validEntities, ...this.props.chart.selectedKeys)
+        /*const unselectedEntities = _.without(this.props.chart.scatterData.validEntities, ...this.props.chart.selectedKeys)
         setTimeout(() => {
             this.entitySelect = EntitySelect()
             this.entitySelect.update({
                 containerNode: this.props.chartView.htmlNode,
                 entities: unselectedEntities.map(e => ({ name: e }))
             });
-        }, 0)
+        }, 0)*/
 					//entitySelect.afterClean(function() { entitySelect = null; });
     }
 
@@ -187,7 +184,7 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps>
         return <div className="controlsFooter">
             <div className="scatterControls" style={style}>            
             {chart.type == ChartType.ScatterPlot && chart.tab == 'chart' && 
-                    [chart.highlightToggle && <HighlightToggle chart={chart}/>,
+                    [chart.highlightToggle && <HighlightToggle chart={chart} highlightToggle={chart.highlightToggle}/>,
                     <button onClick={this.onEntitySelect}>
                         <i className="fa fa-search"/> Search
                     </button>]

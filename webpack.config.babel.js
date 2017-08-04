@@ -96,6 +96,7 @@ export default {
         host: '0.0.0.0',
         port: 8090,
         contentBase: 'public',
+        disableHostCheck: true,
         headers: {
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",

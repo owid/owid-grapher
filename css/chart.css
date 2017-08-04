@@ -672,16 +672,6 @@ a {
     & aside {
         margin: 1em;
     }
-
-
-    & .imgLoader {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid #ccc;
-        color: #333;
-        margin: 1em;
-    }
 }
 
 #chart.landscape .downloadTab {

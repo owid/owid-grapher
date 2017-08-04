@@ -38,7 +38,7 @@ export default class LineChartTransform {
 				let series = seriesByKey.get(datakey)
 
 				// Not a selected key, don't add any data for it
-				//if (!selectedKeysByKey[datakey]) continue;
+				if (!selectedKeysByKey[datakey]) continue;
 				// Check for time range
 				if (year < timeFrom || year > timeTo) continue;
 

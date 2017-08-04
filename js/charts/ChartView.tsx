@@ -100,7 +100,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
     }
 
     @computed get svgBounds() {
-        return (new Bounds(0, 0, this.renderWidth, this.renderHeight)).pad(15)
+        return (new Bounds(0, 0, this.renderWidth, this.renderHeight)).pad(15).padBottom(this.isExport ? 0 : this.controlsFooter.height)
     }
 
 
@@ -184,13 +184,13 @@ export default class ChartView extends React.Component<ChartViewProps> {
         else if (overlayTabName == 'data')
             return <DataTab bounds={bounds} chart={chart}/>
         else if (overlayTabName == 'download')
-            return <DownloadTab bounds={bounds} chart={chart} imageWidth={App.IDEAL_WIDTH} imageHeight={App.IDEAL_HEIGHT}/>
+            return <DownloadTab bounds={bounds} chart={chart}/>
         else
             return null
     }
 
-    renderReady() {
-        const {renderWidth, renderHeight, svgBounds, controlsFooter, scale} = this
+    renderSVG() {
+        const {renderWidth, renderHeight, scale, svgBounds} = this
 
         const svgStyle = {
             width: "100%",
@@ -200,13 +200,18 @@ export default class ChartView extends React.Component<ChartViewProps> {
             backgroundColor: "white"
         }
 
+        return <svg xmlns="http://www.w3.org/2000/svg" version="1.1" style={svgStyle} width={renderWidth*scale} height={renderHeight*scale} viewBox={`0 0 ${renderWidth} ${renderHeight}`}
+                ref={e => this.svgNode = e as SVGSVGElement}>
+                {this.renderPrimaryTab(svgBounds)}
+        </svg>
+    }
+
+    renderReady() {
+        const {svgBounds, controlsFooter, scale, isExport} = this
+
         return [
-            <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1"
-                 style={svgStyle} viewBox={`0 0 ${renderWidth} ${renderHeight}`}
-                 ref={e => this.svgNode = e as SVGSVGElement}>
-                 {this.renderPrimaryTab(svgBounds.padBottom(this.isExport ? 0 : controlsFooter.height))}
-            </svg>,
-            !this.isExport && <ControlsFooter {...controlsFooter.props}/>,
+            this.renderSVG(),
+            <ControlsFooter {...controlsFooter.props}/>,
             this.renderOverlayTab(svgBounds.scale(scale).padBottom(controlsFooter.height)),
             this.popups,
             this.chart.tooltip
@@ -218,13 +223,17 @@ export default class ChartView extends React.Component<ChartViewProps> {
     }
 
     render() {
-        const {renderWidth, renderHeight, scale} = this
+        if (this.isExport) {
+            return this.renderSVG()
+        } else{
+            const {renderWidth, renderHeight, scale} = this
 
-        const style = { width: renderWidth*scale + 'px', height: renderHeight*scale + 'px', fontSize: 16*scale + 'px' }
+            const style = { width: renderWidth*scale + 'px', height: renderHeight*scale + 'px', fontSize: 16*scale + 'px' }
 
-        return <div id="chart" className={this.classNames} style={style}>
-            {this.chart.data.isReady ? this.renderReady() : this.renderLoading()}
-        </div>
+            return <div id="chart" className={this.classNames} style={style}>
+                {this.chart.data.isReady ? this.renderReady() : this.renderLoading()}
+            </div>
+        }
     }
 
     componentDidMount() {

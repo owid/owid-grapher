@@ -22,6 +22,10 @@ import LineChartTransform from './LineChartTransform'
 import ScatterTransform from './ScatterTransform'
 import SlopeChartTransform from './SlopeChartTransform'
 import Color from './Color'
+import ChartView from './ChartView'
+import * as React from 'react'
+import * as ReactDOMServer from 'react-dom/server'
+import Bounds from './Bounds'
 
 declare const window: any
 
@@ -280,5 +284,14 @@ export default class ChartConfig {
 
     @computed get isMultiVariable() {
         return this.dimensions.length > 1
+    }
+
+    @computed get staticSVG(): string {
+        const svg = ReactDOMServer.renderToStaticMarkup(<ChartView
+            chart={this}
+            isExport={true}
+            bounds={new Bounds(0, 0, App.IDEAL_WIDTH, App.IDEAL_HEIGHT)}/>)
+
+        return svg
     }
 }

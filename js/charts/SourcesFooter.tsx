@@ -99,7 +99,7 @@ export default class SourcesFooter {
         const {sources, note, license, maxWidth, isCompact, paraMargin, onSourcesClick} = this
 
         return <g className="SourcesFooter" style={{fill: "#777"}}>
-            <a onClick={onSourcesClick} style={{fill: "#777"}}>{sources.render(targetX, targetY)}</a>
+            <g onClick={onSourcesClick} style={{fill: "#777"}}>{sources.render(targetX, targetY)}</g>
             {note.render(targetX, targetY+sources.height+paraMargin)}
             {isCompact
                 ? license.render(targetX+maxWidth-license.width, targetY)

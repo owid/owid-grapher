@@ -42,7 +42,7 @@
     "postcss-smart-import": "^0.6.9",
     "precss": "^1.4.0",
     "react-virtual-list": "^2.0.0",
-    "save-svg-as-png": "^1.1.0",
+    "save-svg-as-png": "^1.2.0",
     "source-map-loader": "^0.1.5",
     "style-loader": "^0.13.1",
     "topojson": "^2.2.0",

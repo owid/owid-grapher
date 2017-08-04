@@ -216,15 +216,15 @@ class KeysSection extends React.Component<{ chart: ChartConfig }> {
 			<div className="add-country-control-wrapper">
 				<h4>Can user add/change data?</h4>
 				<label>
-					<input type="radio" name="add-country-mode" value="add-country" selected={chart.addCountryMode == "add-country"} onClick={e => chart.props.addCountryMode = "add-country"}/>
+					<input type="radio" name="add-country-mode" value="add-country" checked={chart.addCountryMode == "add-country"} onClick={e => chart.props.addCountryMode = "add-country"}/>
 					User can add and remove data
 				</label>
 				<label>
-					<input type="radio" name="add-country-mode" value="change-country" selected={chart.addCountryMode == "change-country"} onClick={e => chart.props.addCountryMode = "change-country"}/>
+					<input type="radio" name="add-country-mode" value="change-country" checked={chart.addCountryMode == "change-country"} onClick={e => chart.props.addCountryMode = "change-country"}/>
 					User can change data
 				</label>
 				<label>
-					<input type="radio" name="add-country-mode" value="disabled" selected={chart.addCountryMode == "disabled"} onClick={e => chart.props.addCountryMode = "disabled"}/>
+					<input type="radio" name="add-country-mode" value="disabled" checked={chart.addCountryMode == "disabled"} onClick={e => chart.props.addCountryMode = "disabled"}/>
 					User cannot change/add data
 				</label>
 			</div>

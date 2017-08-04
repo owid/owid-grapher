@@ -16,6 +16,7 @@ import ScaleType from './ScaleType'
 import {defaultTo} from './Util'
 import ChartConfig, {ChartConfigProps} from './ChartConfig'
 import {getQueryParams, setQueryVariable, setQueryStr, queryParamsToStr, QueryParams} from './Util'
+import DataKey from './DataKey'
 
 interface ChartQueryParams {
     tab?: string,
@@ -84,12 +85,13 @@ export default class URLBinder {
         return queryParamsToStr(this.params as QueryParams)
     }
 
+    @computed get baseUrl(): string {
+        return Global.rootUrl + "/" + this.chart.slug
+    }
+
     // Get the full url representing the canonical location of this chart state
     @computed get canonicalUrl(): string {
-        var baseUrl = Global.rootUrl + "/" + this.chart.slug,
-            canonicalUrl = baseUrl + this.queryStr;
-
-        return canonicalUrl
+        return this.baseUrl + this.queryStr
     }
 
     @computed get yearParam(): string|undefined {
@@ -119,13 +121,8 @@ export default class URLBinder {
 
     @computed get countryParam(): string|undefined {
         const {chart, origChart} = this
-        if (chart.data.isReady && !_.isEqual(toJS(chart.props.selectedEntities), origChart.selectedEntities)) {
-            function getCode(entity: EntityKey) { 
-                const meta = chart.vardata.entityMetaByKey[entity]
-                return meta ? meta.code : entity
-            }
-            const codes = chart.selectedKeys.map(getCode).map(encodeURIComponent)
-            return codes.join("+")
+        if (chart.data.isReady && !_.isEqual(toJS(chart.props.selectedData), origChart.selectedData)) {
+            return chart.data.selectedKeys.map(k => chart.data.lookupKey(k).shortCode).map(encodeURIComponent).join("+")
         } else {
             return undefined
         }

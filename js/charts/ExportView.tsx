@@ -31,13 +31,12 @@ export default class ExportView {
         when(
             () => chart.data.isReady,
             () => {
-                const html = ReactDOMServer.renderToStaticMarkup(<ChartView
+                const svg = ReactDOMServer.renderToStaticMarkup(<ChartView
                     chart={chart}
                     isExport={true}
                     bounds={targetBounds}/>)
-
                 $("link").remove()
-                $("body").append(html)
+                $("body").append(svg)
                 console.log((document.getElementById("chart") as HTMLDivElement).innerHTML)
             }
         )

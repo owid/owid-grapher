@@ -5180,7 +5180,7 @@ safe-buffer@5.1.1, safe-buffer@^5.0.1, safe-buffer@^5.1.0, safe-buffer@~5.1.0, s
   version "5.1.1"
   resolved "https://registry.yarnpkg.com/safe-buffer/-/safe-buffer-5.1.1.tgz#893312af69b2123def71f57889001671eeb2c853"
 
-save-svg-as-png@^1.1.0:
+save-svg-as-png@^1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/save-svg-as-png/-/save-svg-as-png-1.2.0.tgz#b09a5e8bea5ba57ccd8d269ef92c00d894cf6b1c"
 

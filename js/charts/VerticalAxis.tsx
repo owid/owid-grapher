@@ -52,7 +52,7 @@ export default class VerticalAxis {
 
 export class VerticalAxisView extends React.Component<{ bounds: Bounds, axis: VerticalAxis, onScaleTypeChange?: (scale: ScaleType) => void }> {
     render() {
-        const {bounds, axis, onScaleTypeChange, highlightValue} = this.props
+        const {bounds, axis, onScaleTypeChange} = this.props
         const {scale, ticks, label, labelOffset} = axis
         const textColor = '#666'
 

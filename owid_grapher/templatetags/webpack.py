@@ -16,4 +16,4 @@ def webpack(asset_name: str) -> str:
             webpack.manifest = json.loads(open(os.path.join(settings.BASE_DIR, "public/build/manifest.json")).read())
         return static("/build/" + webpack.manifest[asset_name])
     else:
-        return "http://localhost:8090/%s" % asset_name
+        return settings.WEBPACK_DEV_URL + "/" + asset_name
