@@ -19,7 +19,8 @@
     }
 
     & .selectedData {
-        min-width: 20%;
+        min-width: 25%;
+        padding-left: 1em;
     }
 
     & .searchResults ul {

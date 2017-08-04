@@ -70,9 +70,10 @@ export default class DataSelector extends React.Component<{ chart: ChartConfig, 
         return <div className={styles.DataSelector} onClick={e => e.stopPropagation()}>
             <h2>Choose data to show <button onClick={this.props.onDismiss}><i className="fa fa-times"/></button></h2>
             <div>
-                <div className="selectedData">
+                <div className="searchResults">
+                    <input type="search" placeholder="Search..." onInput={e => this.searchInput = e.currentTarget.value} onKeyDown={this.onSearchKeyDown} ref={e => this.searchField = (e as HTMLInputElement)}/>
                     <ul>
-                        {selectedData.map(d => {
+                        {searchResults.map(d => {
                             return <li>
                                 <label className="clickable">
                                     <input type="checkbox" checked={!!chart.data.selectedKeysByKey[d.key]} onChange={e => chart.data.toggleKey(d.key)}/> {d.label}
@@ -81,10 +82,9 @@ export default class DataSelector extends React.Component<{ chart: ChartConfig, 
                         })}
                     </ul>
                 </div>
-                <div className="searchResults">
-                    <input type="search" placeholder="Search..." onInput={e => this.searchInput = e.currentTarget.value} onKeyDown={this.onSearchKeyDown} ref={e => this.searchField = (e as HTMLInputElement)}/>
+                <div className="selectedData">
                     <ul>
-                        {searchResults.map(d => {
+                        {selectedData.map(d => {
                             return <li>
                                 <label className="clickable">
                                     <input type="checkbox" checked={!!chart.data.selectedKeysByKey[d.key]} onChange={e => chart.data.toggleKey(d.key)}/> {d.label}
