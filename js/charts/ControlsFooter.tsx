@@ -10,11 +10,11 @@ import * as Cookies from 'js-cookie'
 import ChartConfig from './ChartConfig'
 import * as $ from 'jquery'
 import ChartTabOption from './ChartTabOption'
-import EntitySelect from './owid.view.entitySelect'
 import ChartType from './ChartType'
 import {getQueryParams} from './Util'
 import ChartView from './ChartView'
 import {HighlightToggleConfig} from './ChartConfig'
+import DataSelector from './DataSelector'
 
 declare const Global: any
 declare const App: any
@@ -162,33 +162,22 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps>
         })
     }
 
-    entitySelect: EntitySelect = null
-    @action.bound onEntitySelect() {
-        /*const unselectedEntities = _.without(this.props.chart.scatterData.validEntities, ...this.props.chart.selectedKeys)
-        setTimeout(() => {
-            this.entitySelect = EntitySelect()
-            this.entitySelect.update({
-                containerNode: this.props.chartView.htmlNode,
-                entities: unselectedEntities.map(e => ({ name: e }))
-            });
-        }, 0)*/
-					//entitySelect.afterClean(function() { entitySelect = null; });
+    @action.bound onDataSelect() {
+        this.props.chartView.isSelectingData = true
     }
 
     render() {
         const {props, isShareMenuActive} = this
         const {chart, chartView} = props
 
-        const style = chart.type == ChartType.ScatterPlot ? {} : { padding: 0, border: 0 }
+        const style = chart.type == ChartType.ScatterPlot ? {} : {} //padding: 0, border: 0 }
 
         return <div className="controlsFooter">
-            <div className="scatterControls" style={style}>            
-            {chart.type == ChartType.ScatterPlot && chart.tab == 'chart' && 
-                    [chart.highlightToggle && <HighlightToggle chart={chart} highlightToggle={chart.highlightToggle}/>,
-                    <button onClick={this.onEntitySelect}>
-                        <i className="fa fa-search"/> Search
-                    </button>]
-            }
+            <div className="scatterControls" style={style}>          
+            {chart.tab == 'chart' && chart.data.availableKeys.length > 1 && <button onClick={this.onDataSelect}>
+                <i className="fa fa-plus"/> Add data
+            </button>}
+            {chart.type == ChartType.ScatterPlot && chart.tab == 'chart' && chart.highlightToggle && <HighlightToggle chart={chart} highlightToggle={chart.highlightToggle}/>}
             </div>
             <nav className="tabs">
                 <ul>

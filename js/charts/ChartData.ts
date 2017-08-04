@@ -7,9 +7,10 @@ import DataKey from './DataKey'
 import {bind} from 'decko'
 import {LineChartSeries} from './LineChart'
 
-interface DataKeyInfo {
+export interface DataKeyInfo {
 	entity: string 
 	index: number 
+	key: string
 	label: string 
 }
 
@@ -113,6 +114,7 @@ export default class ChartData {
 				const key = this.keyFor(entity, index)
 
 				keyData.set(key, {
+					key: key,
 					entity: entity,
 					index: index,
 					label: chart.primaryDimensions.length > 1 ? `${entity} - ${dim.displayName || variable.name}` : entity,
@@ -154,6 +156,14 @@ export default class ChartData {
 
 	formatKey(key: DataKey): string {
 		return this.lookupKey(key).label
+	}
+
+	toggleKey(key: DataKey) {
+		if (_.includes(this.selectedKeys, key)) {
+			this.selectedKeys = this.selectedKeys.filter(k => k != key)
+		} else {
+			this.selectedKeys = this.selectedKeys.concat([key])
+		}
 	}
 
 	@computed get primaryVariable() {

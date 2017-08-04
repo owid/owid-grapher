@@ -1,4 +1,4 @@
-import {extend} from 'lodash'
+import * as _ from 'lodash'
 import * as d3 from 'd3'
 import Bounds from './Bounds'
 import * as React from 'react'
@@ -15,21 +15,57 @@ export default class DataTab extends React.Component<{ bounds: Bounds, chart: Ch
 	}
 
 	@computed get csvUrl() {
-		return Global.rootUrl+'/'+this.props.chart.slug+'.csv'
+		const {chart} = this.props
+		const {vardata} = chart
+
+		const dimensions = _.filter(chart.data.filledDimensions, d => d.property != 'color')
+		const entitiesUniq = _(dimensions).map(d => d.variable.entitiesUniq).flatten().uniq().sort().value() as string[]
+		const yearsUniq = _(dimensions).map(d => d.variable.yearsUniq).flatten().uniq().sort().value() as number[]
+
+		const rows: string[] = []
+
+		const titleRow = ["Entity", "Code", "Year"]
+		dimensions.forEach(dim => {
+			titleRow.push(dim.variable.name)
+		})
+		rows.push(titleRow.join(","))
+
+		entitiesUniq.forEach(entity => {
+			yearsUniq.forEach(year => {
+				const row = [entity, vardata.entityMetaByKey[entity].code||"", year]
+				
+				let rowHasSomeValue = false
+				dimensions.forEach(dim => {
+					const valueByYear = dim.variable.valueByEntityAndYear.get(entity)
+					const value = valueByYear ? valueByYear.get(year) : null
+
+					if (value == null)
+						row.push("")
+					else {
+						row.push(value)
+						rowHasSomeValue = true
+					}
+				})
+
+				// Only add rows which actually have some data in them
+				if (rowHasSomeValue)
+					rows.push(row.join(","))
+			})
+		})
+		return "data:text/csv;charset=utf-8,"+encodeURIComponent(rows.join("\n"))
 	}
 
 	@computed get csvFilename() {
-		const m = this.csvUrl.match(/\/([^\/]*)$/)
-		return m && m[1]
+		return this.props.chart.slug + ".csv"
 	}
 
 	render() {
-		const { bounds, csvUrl, csvFilename } = this
+		const {bounds, csvUrl, csvFilename} = this
 
-		return <div className="dataTab" style={extend(bounds.toCSS(), { position: 'absolute' })}>
+		return <div className="dataTab" style={_.extend(bounds.toCSS(), { position: 'absolute' })}>
 			<div>
 				<p>Download a CSV file containing all data used in this visualization:</p>
-				<a href={csvUrl} className="btn btn-primary" target="_blank"><i className="fa fa-download"></i> {csvFilename}</a>
+				<a href={csvUrl} download={csvFilename} className="btn btn-primary" target="_blank"><i className="fa fa-download"></i> {csvFilename}</a>
 			</div>
 		</div>
 	}

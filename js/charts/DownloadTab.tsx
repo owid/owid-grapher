@@ -16,8 +16,6 @@ interface ImgLoaderProps {
 }
 
 interface DownloadTabProps {
-    imageWidth: number,
-    imageHeight: number,
     bounds: Bounds,
     chart: ChartConfig
 }

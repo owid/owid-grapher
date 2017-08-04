@@ -17,6 +17,7 @@ import ChartData from './ChartData'
 import Bounds from './Bounds'
 import {preInstantiate, VNode} from './Util'
 import ChartTabOption from './ChartTabOption'
+import DataSelector from './DataSelector'
 
 declare const App: any // XXX
 declare const Global: any // XXX
@@ -107,6 +108,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
     @observable primaryTabName: ChartTabOption = 'chart'
     @observable overlayTabName: ChartTabOption|null = null
     @observable popups: VNode[] = []
+    @observable.ref isSelectingData: boolean = false
 
     @observable.ref htmlNode: HTMLDivElement
     @observable.ref svgNode: SVGSVGElement
@@ -207,14 +209,15 @@ export default class ChartView extends React.Component<ChartViewProps> {
     }
 
     renderReady() {
-        const {svgBounds, controlsFooter, scale, isExport} = this
+        const {svgBounds, controlsFooter, scale, isExport, chart} = this
 
         return [
             this.renderSVG(),
             <ControlsFooter {...controlsFooter.props}/>,
             this.renderOverlayTab(svgBounds.scale(scale).padBottom(controlsFooter.height)),
             this.popups,
-            this.chart.tooltip
+            this.chart.tooltip,
+            this.isSelectingData && <DataSelector chart={chart} chartView={this} onDismiss={action(() => this.isSelectingData = false)}/>
         ]
     }
 
