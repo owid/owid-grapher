@@ -13,6 +13,7 @@ import ChartView from './ChartView'
 export default class DataSelector extends React.Component<{ chart: ChartConfig, chartView: ChartView, onDismiss: () => void }> {
     @observable searchInput?: string
     searchField: HTMLInputElement
+    base: HTMLDivElement
 
     @computed get availableData(): DataKeyInfo[] {
         const {chart} = this.props
@@ -45,33 +46,38 @@ export default class DataSelector extends React.Component<{ chart: ChartConfig, 
     componentWillMount() {
     }
 
+    @action.bound onClickOutside(e: MouseEvent) {
+        if (this.base && !this.base.contains(e.target as Node))
+            this.props.onDismiss()
+    }
+
     componentDidMount() {
-        //d3.select("html").on("click.DataSelector", this.props.onDismiss)
+        setTimeout(() => document.addEventListener("click", this.onClickOutside), 1)
         if (!this.props.chartView.isMobile)
             this.searchField.focus()
-
     }
 
     componentDidUnmount() {
-        d3.select("html").on("click.DataSelector", null)
+        document.removeEventListener("click", this.onClickOutside)
     }
 
     @action.bound onSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-        if (e.key == "Enter" && this.searchResults.length > 0)
+        if (e.key == "Enter" && this.searchResults.length > 0) {
             this.props.chart.data.toggleKey(this.searchResults[0].key)
-        else if (e.key == "Escape")
+            this.searchInput = ""
+        } else if (e.key == "Escape")
             this.props.onDismiss()
     }
 
     render() {
         const {chart} = this.props
-        const {selectedData, searchResults} = this
+        const {selectedData, searchResults, searchInput} = this
 
         return <div className={styles.DataSelector} onClick={e => e.stopPropagation()}>
             <h2>Choose data to show <button onClick={this.props.onDismiss}><i className="fa fa-times"/></button></h2>
             <div>
                 <div className="searchResults">
-                    <input type="search" placeholder="Search..." onInput={e => this.searchInput = e.currentTarget.value} onKeyDown={this.onSearchKeyDown} ref={e => this.searchField = (e as HTMLInputElement)}/>
+                    <input type="search" placeholder="Search..." value={searchInput} onInput={e => this.searchInput = e.currentTarget.value} onKeyDown={this.onSearchKeyDown} ref={e => this.searchField = (e as HTMLInputElement)}/>
                     <ul>
                         {searchResults.map(d => {
                             return <li>

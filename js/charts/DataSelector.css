@@ -16,11 +16,16 @@
 
     & > div {
         display: flex;
+        justify-content: space-between;
     }
 
     & .selectedData {
         min-width: 25%;
         padding-left: 1em;
+    }
+
+    & .searchResults {
+        width: 100%;
     }
 
     & .searchResults ul {
@@ -37,11 +42,21 @@
         flex: 1 0 15em;
     }
 
+    & li > label {
+        width: 100%;
+    }
+
     & input[type=search] {
         width: 100%;
         font-size: 0.9em;
         padding: 0.4em;
         margin-bottom: 0.4em;
         border: 1px solid #ccc;
+    }
+}
+
+#chart.portrait .DataSelector {
+    & .selectedData {
+        min-width: 50%;
     }
 }
