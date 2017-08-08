@@ -3,6 +3,7 @@ import * as _ from 'lodash'
 import ChartConfig from './ChartConfig'
 import Color from './Color'
 import {DiscreteBarDatum} from './DiscreteBarChart'
+import {DimensionWithData} from './ChartData'
 
 // Responsible for translating chart configuration into the form
 // of a discrete bar chart
@@ -13,22 +14,25 @@ export default class DiscreteBarTransform {
         this.chart = chart
     }
 
-	@computed get data(): DiscreteBarDatum[] {
-        const {chart} = this
-        const {timeDomain} = chart
-        const {filledDimensions, selectedKeysByKey} = chart.data
+    @computed get primaryDimension(): DimensionWithData {
+        return _.find(this.chart.data.filledDimensions, d => d.property == "y") as DimensionWithData
+    }
 
-		const timeFrom = _.defaultTo(timeDomain[0], -Infinity)
-		const timeTo = _.defaultTo(timeDomain[1], Infinity)
-        const dimension = _.find(filledDimensions, d => d.property == "y")
-        if (!dimension) return []
-        const {variable} = dimension
-
-        let targetYear
-        if (_.isFinite(timeTo))
-            targetYear = _.sortBy(variable.yearsUniq, year => Math.abs(year-timeTo))[0];
+    @computed get targetYear(): number {
+        const maxYear = this.chart.timeDomain[1]
+        const {variable} = this.primaryDimension
+        if (maxYear != null)
+            return _.sortBy(variable.yearsUniq, year => Math.abs(year-maxYear))[0];
         else
-            targetYear = _.max(variable.yearsUniq);
+            return _.max(variable.yearsUniq) as number;
+
+    }
+
+	@computed get data(): DiscreteBarDatum[] {
+        const {chart, targetYear, primaryDimension} = this
+        const {filledDimensions, selectedKeysByKey} = chart.data
+        if (!primaryDimension) return []
+        const {variable} = primaryDimension
 
         const data: DiscreteBarDatum[] = []
 

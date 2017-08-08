@@ -78,6 +78,7 @@ export default class Header {
                 text = text.replace(", *time*", "")
                 text = text.replace("*time*", "");
             } else {
+                console.log(minYear, maxYear)
                 var timeFrom = formatYear(minYear as number),
                     timeTo = formatYear(_.isFinite(maxYear) ? maxYear as number : minYear as number),
                     time = timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo;

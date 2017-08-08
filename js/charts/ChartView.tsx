@@ -104,6 +104,10 @@ export default class ChartView extends React.Component<ChartViewProps> {
         return (new Bounds(0, 0, this.renderWidth, this.renderHeight)).padBottom(this.isExport ? 0 : this.controlsFooter.height/this.scale)
     }
 
+    @computed get svgInnerBounds() {
+        return this.svgRenderBounds.pad(15)
+    }
+
     @observable primaryTabName: ChartTabOption = 'chart'
     @observable overlayTabName: ChartTabOption|null = null
     @observable popups: VNode[] = []
@@ -191,7 +195,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
     }
 
     renderSVG() {
-        const {renderWidth, renderHeight, scale, svgRenderBounds} = this
+        const {renderWidth, renderHeight, scale, svgInnerBounds} = this
 
         const svgStyle = {
             fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
@@ -201,7 +205,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
 
         return <svg xmlns="http://www.w3.org/2000/svg" version="1.1" style={svgStyle} viewBox={`0 0 ${renderWidth} ${renderHeight}`}
                 ref={e => this.svgNode = e as SVGSVGElement}>
-                {this.renderPrimaryTab(svgRenderBounds.pad(15))}
+                {this.renderPrimaryTab(svgInnerBounds)}
         </svg>
     }
 

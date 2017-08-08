@@ -47,7 +47,7 @@ export default class AxisConfig {
             return defaultTo(this.props.max, undefined)
     }
 
-    @computed get numDecimalPlaces(): number|undefined { return defaultTo(this.props.numDecimalPlaces, undefined) }
+    @computed get maxDecimalPlaces(): number|undefined { return defaultTo(this.props.numDecimalPlaces, 2) }
     @computed get scaleType(): ScaleType { return this.props.scaleType }
     set scaleType(scaleType: ScaleType) { this.props.scaleType = scaleType }
     @computed get canChangeScaleType(): boolean { return defaultTo(this.props.canChangeScaleType, false) }
@@ -65,8 +65,8 @@ export default class AxisConfig {
     }
 
     @computed get tickFormat(): (d: number) => string {
-        const { prefix, numDecimalPlaces, suffix } = this
-        return (d) => prefix + unitFormat({ format: numDecimalPlaces }, d) + suffix;
+        const { prefix, maxDecimalPlaces, suffix } = this
+        return (d) => prefix + unitFormat({ format: maxDecimalPlaces }, d) + suffix;
     }
 
     // Convert axis configuration to a finalized axis spec by supplying

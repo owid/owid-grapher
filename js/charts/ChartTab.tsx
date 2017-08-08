@@ -22,13 +22,35 @@ import DiscreteBarChart from './DiscreteBarChart'
 
 @observer
 export default class ChartTab extends React.Component<{ chart: ChartConfig, chartView: ChartView, bounds: Bounds }> {
+    // XXX refactor into the transforms
+    @computed get minYear(): number|null {
+        const {chart} = this.props
+        if (chart.type == ChartType.ScatterPlot)
+            return chart.timeDomain[0]
+        else if (chart.type == ChartType.DiscreteBar)
+            return chart.discreteBar.targetYear
+        else
+            return null
+    }
+
+    @computed get maxYear(): number|null {
+        const {chart} = this.props
+        if (chart.type == ChartType.ScatterPlot)
+            return chart.timeDomain[1]
+        else if (chart.type == ChartType.DiscreteBar)
+            return chart.discreteBar.targetYear
+        else
+            return null
+    }
+
     @computed get header() {
         const _this = this
+
         return new Header({
             get chart() { return _this.props.chart },
             get maxWidth() { return _this.props.bounds.width },
-            get minYear() { return _this.props.chart.type == ChartType.ScatterPlot ? _this.props.chart.timeDomain[0] : null },
-            get maxYear() { return _this.props.chart.type == ChartType.ScatterPlot ? _this.props.chart.timeDomain[1] : null }
+            get minYear() { return _this.minYear },
+            get maxYear() { return _this.maxYear }
         })
     }
 

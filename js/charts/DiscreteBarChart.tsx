@@ -9,7 +9,7 @@ import * as React from 'react'
 import * as _ from 'lodash'
 import * as d3 from 'd3'
 import * as $ from 'jquery'
-import {computed, action, observable} from 'mobx'
+import {computed, action, observable, autorun, runInAction, IReactionDisposer} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartConfig from './ChartConfig'
 import Bounds from './Bounds'
@@ -35,13 +35,12 @@ export interface DiscreteBarDatum {
 @observer
 export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
     base: SVGGElement
-    @observable.ref hoverIndex?: number
 
     @computed get chart() { return this.props.chart }
-    @computed get bounds() { return this.props.bounds.padRight(10) }
+    @computed.struct get bounds() { return this.props.bounds.padRight(10) }
 
     @computed get data() {
-        return this.props.chart.discreteBar.data
+        return this.chart.discreteBar.data
     }
 
     @computed get legendFontSize() {
@@ -59,8 +58,9 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
         return 0.6
     }
 
-    @computed get maxValueWidth() {
-        return Bounds.forText(_.sortBy(this.data, d => -d.value.toString().length)[0].value.toString(), { fontSize: this.valueFontSize+'em' }).width
+    @computed get maxValueWidth(): number {
+        const maxValue = _.sortBy(this.data, d => -d.value.toString().length)[0].value
+        return Bounds.forText(this.barValueFormat(maxValue), { fontSize: this.valueFontSize+'em' }).width
     }
 
     @computed get hasNegative() {
@@ -103,47 +103,62 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
     @computed get barSpacing() {
         return (this.innerBounds.height/this.data.length) - this.barHeight
     }
+    
+    @computed get barPlacements() {
+        const {data, xScale} = this
+        return _.map(data, (d, i) => {
+            const isNegative = d.value < 0
+            const barX = isNegative ? xScale.place(d.value) : xScale.place(0)
+            const barWidth = isNegative ? xScale.place(0)-barX : xScale.place(d.value)-barX                
 
-    @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement>) {
-        const mouse = Vector2.fromArray(getRelativeMouse(this.base, ev))
-        const {barHeight, barSpacing} = this
-//        console.log(mouse.y, barHeight+barSpacing, mouse.y/(barHeight+barSpacing))
-        //this.hoverIndex = Math.floor(mouse.y/(barHeight+barSpacing)) 
+            return { x: barX, width: barWidth }
+        })
     }
 
-    @action.bound onMouseLeave() {
-        this.hoverIndex = undefined
-    }
 
+    dispose: IReactionDisposer
     componentDidMount() {
-        const bars = d3.select(this.base).selectAll("rect")
-        const widths = bars.nodes().map((el: SVGRectElement) => el.getAttribute('width'))
-        bars.attr('width', 0).transition().attr('width', (d, i) => widths[i])
+        this.dispose = autorun(() => {
+            console.log("autorun")
+            if (this.data.length == 0) return
+
+            const widths = this.barPlacements.map(b => b.width)
+            runInAction(() => {
+                const bars = d3.select(this.base).selectAll("g.bar > rect")
+                bars.attr('width', 0).transition().attr('width', (d, i) => widths[i])
+            })
+        })
+    }
+
+    componentDidUnmount() {
+        this.dispose()
+    }
+
+    @computed get barValueFormat() {
+        return this.chart.yAxis.tickFormat
     }
 
     render() {
         if (this.data.length == 0)
-            return <NoData bounds={this.props.bounds}/>
+            return <NoData bounds={this.bounds}/>
 
-        const {chart, data, bounds, legendWidth, xAxis, xScale, innerBounds, barHeight, barSpacing, valueFontSize, hoverIndex} = this
+        const {chart, data, bounds, legendWidth, xAxis, xScale, innerBounds, barHeight, barSpacing, valueFontSize, barValueFormat} = this
 
-        let yOffset = this.innerBounds.top+barHeight/2
+        let yOffset = innerBounds.top+barHeight/2
 
-        return <g className="DiscreteBarChart" onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseLeave}>
+        return <g className="DiscreteBarChart">
             <rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height} opacity={0} fill="rgba(255,255,255,0)"/>
             <HorizontalAxisView bounds={bounds} axis={xAxis}/>
             <AxisGridLines orient="bottom" scale={xScale} bounds={innerBounds}/>
             {_.map(data, (d, i) => {
-                const isHover = i == hoverIndex
-                const isFaded = !isHover && hoverIndex != undefined
                 const isNegative = d.value < 0
                 const barX = isNegative ? xScale.place(d.value) : xScale.place(0)
                 const barWidth = isNegative ? xScale.place(0)-barX : xScale.place(d.value)-barX                
 
-                const result = <g opacity={isFaded ? 0.5 : 1}>
+                const result = <g className="bar">
                     <text x={bounds.left+legendWidth-5} y={yOffset} fill="#666" dominant-baseline="middle" textAnchor="end" fontSize={valueFontSize+'em'}>{d.label}</text>
-                    <rect x={barX} y={yOffset-barHeight/2} width={barWidth} height={barHeight} fill="#F2585B" opacity={isHover ? 1 : 0.85}/>
-                    <text x={xScale.place(d.value) + (isNegative ? -5 : 5)} y={yOffset} fill="#666" dominant-baseline="middle" textAnchor={isNegative ? "end" : "start"} fontSize="0.55em">{d.value}</text>
+                    <rect x={barX} y={yOffset-barHeight/2} width={barWidth} height={barHeight} fill="#F2585B" opacity={0.85}/>
+                    <text x={xScale.place(d.value) + (isNegative ? -5 : 5)} y={yOffset} fill="#666" dominant-baseline="middle" textAnchor={isNegative ? "end" : "start"} fontSize="0.55em">{barValueFormat(d.value)}</text>
                 </g>
                 yOffset += barHeight+barSpacing
                 return result

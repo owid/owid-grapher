@@ -9,7 +9,7 @@
 
 import * as _ from 'lodash'
 import * as $ from 'jquery'
-import {computed, observable, autorun, action, reaction, toJS} from 'mobx'
+import {computed, observable, autorun, when, action, runInAction, reaction, toJS} from 'mobx'
 import ChartView from './ChartView'
 import ChartTabOption from './ChartTabOption'
 import ScaleType from './ScaleType'
@@ -211,19 +211,18 @@ export default class URLBinder {
 
         // Selected countries -- we can't actually look these up until we have the data
         var country = params.country;
-        autorun(() => {
-            if (!chart.data.isReady) return
-
-            action(() => {
+        when(() => chart.data.isReady, () => {
+            runInAction(() => {
                 if (country) {
                     const entityCodes = _.map(country.split('+'), decodeURIComponent)
 
-                    chart.selectedKeys = _.filter(chart.data.availableEntities, entity => {
-                        const meta = chart.vardata.entityMetaByKey[entity]                        
-                        return _.includes(entityCodes, meta.code) || _.includes(entityCodes, meta.name)
+                    chart.data.selectedKeys = _.filter(chart.data.availableKeys, datakey => {
+                        const meta = chart.data.lookupKey(datakey)                         
+                        const entityMeta = chart.vardata.entityMetaByKey[meta.entity]
+                        return _.includes(entityCodes, entityMeta.code) || _.includes(entityCodes, entityMeta.name)
                     })
                 }
-            })()
+            })
         })
 
         // Set shown legend keys for chartViews with toggleable series

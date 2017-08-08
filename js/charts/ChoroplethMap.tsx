@@ -90,7 +90,7 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
 
             const newPaths = paths.map(path => {
                 const points = path.split(/[MLZ]/).filter((f: any) => f)        
-                const rounded = points.map(p => p.split(/,/).map(v => Math.round(parseFloat(v))).join(','))
+                const rounded = points.map(p => p.split(/,/).map(v => parseFloat(v)/*Math.round(parseFloat(v))*/).join(','))
                 return "M"+rounded.join("L")
             })
             pathData[d.id as string] = newPaths.join("Z")+"Z"
