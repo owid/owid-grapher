@@ -1,9 +1,12 @@
 import * as React from 'react'
 import Bounds from './Bounds'
-
+import TextWrap from './TextWrap'
 export default class NoData extends React.Component<{bounds: Bounds, message?: string}> {
 	render() {
 		const {bounds, message} = this.props
-		return <text x={bounds.x+bounds.width/2} y={bounds.y+bounds.height/2} text-anchor="middle" dominant-baseline="middle">{message || "No available data"}</text>
+		const msgWrap = new TextWrap({ maxWidth: bounds.width, text: message||"No available data" })
+		return <g className="NoData">
+			{msgWrap.render(bounds.x+bounds.width/2-msgWrap.width/2, bounds.y+bounds.height/2-msgWrap.height/2, { fill: "#444" })}
+		</g>
 	}
 }

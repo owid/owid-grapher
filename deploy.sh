@@ -6,6 +6,8 @@ ROOT="/home/owid"
 
 if [ "$1" == "test" ]; then
   NAME="test-grapher"
+elif [ "$1" == "mispytest" ]; then
+  NAME="mispytest-grapher"
 elif [ "$1" == "live" ]; then
   NAME="live-grapher"
 else

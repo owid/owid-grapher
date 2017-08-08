@@ -141,8 +141,8 @@ class HighlightToggle extends React.Component<{ chart: ChartConfig, highlightTog
 @observer
 export default class ControlsFooter extends React.Component<ControlsFooterProps> {
     @computed get height() {
-        const height = Bounds.forText("CHART", { fontSize: 16*this.props.chartView.scale +'px' }).height*2/this.props.chartView.scale
-        if (this.props.chartView.isPortrait && this.props.chart.type == ChartType.ScatterPlot)
+        const height = Bounds.forText("CHART", { fontSize: 16*this.props.chartView.scale +'px' }).height*2
+        if (this.props.chartView.isPortrait)
             return height*2
         else
             return height

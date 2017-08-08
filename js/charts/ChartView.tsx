@@ -100,10 +100,9 @@ export default class ChartView extends React.Component<ChartViewProps> {
             return Math.min(this.containerBounds.width/this.renderWidth, this.containerBounds.height/this.renderHeight)
     }
 
-    @computed get svgBounds() {
-        return (new Bounds(0, 0, this.renderWidth, this.renderHeight)).pad(15).padBottom(this.isExport ? 0 : this.controlsFooter.height)
+    @computed get svgRenderBounds() {
+        return (new Bounds(0, 0, this.renderWidth, this.renderHeight)).padBottom(this.isExport ? 0 : this.controlsFooter.height/this.scale)
     }
-
 
     @observable primaryTabName: ChartTabOption = 'chart'
     @observable overlayTabName: ChartTabOption|null = null
@@ -170,7 +169,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
     }
 
     renderPrimaryTab(bounds: Bounds) {
-        const {primaryTabName, svgBounds} = this
+        const {primaryTabName} = this
 
         if (primaryTabName == 'chart')
             return <ChartTab bounds={bounds} chartView={this} chart={this.chart}/>
@@ -192,29 +191,27 @@ export default class ChartView extends React.Component<ChartViewProps> {
     }
 
     renderSVG() {
-        const {renderWidth, renderHeight, scale, svgBounds} = this
+        const {renderWidth, renderHeight, scale, svgRenderBounds} = this
 
         const svgStyle = {
-            width: "100%",
-            height: "100%",
             fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
             fontSize: "22px",
             backgroundColor: "white"
         }
 
-        return <svg xmlns="http://www.w3.org/2000/svg" version="1.1" style={svgStyle} width={renderWidth*scale} height={renderHeight*scale} viewBox={`0 0 ${renderWidth} ${renderHeight}`}
+        return <svg xmlns="http://www.w3.org/2000/svg" version="1.1" style={svgStyle} viewBox={`0 0 ${renderWidth} ${renderHeight}`}
                 ref={e => this.svgNode = e as SVGSVGElement}>
-                {this.renderPrimaryTab(svgBounds)}
+                {this.renderPrimaryTab(svgRenderBounds.pad(15))}
         </svg>
     }
 
     renderReady() {
-        const {svgBounds, controlsFooter, scale, isExport, chart} = this
+        const {svgRenderBounds, controlsFooter, scale, isExport, chart} = this
 
         return [
             this.renderSVG(),
             <ControlsFooter {...controlsFooter.props}/>,
-            this.renderOverlayTab(svgBounds.scale(scale).padBottom(controlsFooter.height)),
+            this.renderOverlayTab(svgRenderBounds.scale(scale)),
             this.popups,
             this.chart.tooltip,
             this.isSelectingData && <DataSelector chart={chart} chartView={this} onDismiss={action(() => this.isSelectingData = false)}/>

@@ -38,7 +38,7 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
             const canvas = document.createElement("canvas")
             canvas.width = targetWidth
             canvas.height = targetHeight
-            const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+            const ctx = canvas.getContext("2d", {alpha: false}) as CanvasRenderingContext2D;
             const DOMURL = self.URL || (self as any).webkitURL || self;
             const img = new Image();
             const svg = new Blob([chart.staticSVG], {type: "image/svg+xml;charset=utf-8"});

@@ -24,6 +24,7 @@ import Color from './Color'
 import HorizontalAxis, {HorizontalAxisView} from './HorizontalAxis'
 import {AxisGridLines} from './AxisBox'
 import Vector2 from './Vector2'
+import NoData from './NoData'
 
 export interface DiscreteBarDatum {
     value: number,
@@ -121,6 +122,9 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
     }
 
     render() {
+        if (this.data.length == 0)
+            return <NoData bounds={this.props.bounds}/>
+
         const {chart, data, bounds, legendWidth, xAxis, xScale, innerBounds, barHeight, barSpacing, valueFontSize, hoverIndex} = this
 
         let yOffset = this.innerBounds.top+barHeight/2
