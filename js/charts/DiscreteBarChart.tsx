@@ -119,7 +119,6 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
     dispose: IReactionDisposer
     componentDidMount() {
         this.dispose = autorun(() => {
-            console.log("autorun")
             if (this.data.length == 0) return
 
             const widths = this.barPlacements.map(b => b.width)

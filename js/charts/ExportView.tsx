@@ -36,8 +36,9 @@ export default class ExportView {
                     isExport={true}
                     bounds={targetBounds}/>)
                 $("link").remove()
+                $("body").empty()
                 $("body").append(svg)
-                console.log((document.getElementById("chart") as HTMLDivElement).innerHTML)
+                requestAnimationFrame(() => console.log(document.body.innerHTML))
             }
         )
 

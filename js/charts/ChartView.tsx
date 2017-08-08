@@ -203,7 +203,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
             backgroundColor: "white"
         }
 
-        return <svg xmlns="http://www.w3.org/2000/svg" version="1.1" style={svgStyle} viewBox={`0 0 ${renderWidth} ${renderHeight}`}
+        return <svg xmlns="http://www.w3.org/2000/svg" version="1.1" style={svgStyle} width={renderWidth*scale} height={renderHeight*scale} viewBox={`0 0 ${renderWidth} ${renderHeight}`}
                 ref={e => this.svgNode = e as SVGSVGElement}>
                 {this.renderPrimaryTab(svgInnerBounds)}
         </svg>

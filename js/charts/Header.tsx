@@ -42,7 +42,7 @@ class Logo {
     render(targetX: number, targetY: number) {
         const {props, scale} = this
         const svg = (props.svg.match(/<svg>(.*)<\/svg>/)||"")[1]||props.svg
-        return <g opacity={0.9} transform={`translate(${targetX}, ${targetY}) scale(${scale})`} dangerouslySetInnerHTML={{ __html: svg }}/>
+        return <g opacity={0.9} transform={`translate(${Math.round(targetX)}, ${targetY}) scale(${parseFloat(scale.toFixed(2))})`} dangerouslySetInnerHTML={{ __html: svg }}/>
     }
 }
 
@@ -78,7 +78,6 @@ export default class Header {
                 text = text.replace(", *time*", "")
                 text = text.replace("*time*", "");
             } else {
-                console.log(minYear, maxYear)
                 var timeFrom = formatYear(minYear as number),
                     timeTo = formatYear(_.isFinite(maxYear) ? maxYear as number : minYear as number),
                     time = timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo;
