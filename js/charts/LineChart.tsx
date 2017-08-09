@@ -20,13 +20,14 @@ import StandardAxisBoxView from './StandardAxisBoxView'
 import Lines from './Lines'
 import {preInstantiate} from "./Util"
 import Text from './Text'
-import ColorLegend, {ColorLegendView} from './ColorLegend'
+import HeightedLegend, {HeightedLegendView} from './HeightedLegend'
 import Vector2 from './Vector2'
 import {getRelativeMouse} from './Util'
 import {HoverTarget} from './Lines'
 import Tooltip from './Tooltip'
 import AxisBoxHighlight from './AxisBoxHighlight'
 import DataKey from './DataKey'
+import NoData from './NoData'
 
 export interface LineChartValue {
     x: number,
@@ -55,17 +56,18 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
     // Order of the legend items on a line chart should visually correspond
     // to the order of the lines as the approach the legend
     @computed get legendItems() {
-        return _(this.transform.groupedData).sortBy(series => -(_.last(series.values) as LineChartValue).y).map(d => ({
+        return _(this.transform.groupedData).map(d => ({
             color: d.color,
             key: d.key,
-            label: this.chart.data.formatKey(d.key)
+            label: this.chart.data.formatKey(d.key),
+            yValue: (_.last(d.values) as LineChartValue).y
         })).value()
     }
 
     @computed get legend() {
         const _this = this
-        return new ColorLegend({
-            maxWidth: 300,
+        return new HeightedLegend({
+            get maxWidth() { return _this.bounds.width/3 },
             get items() { return _this.legendItems }
         })
     }
@@ -83,13 +85,16 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
     }
 
     render() {
+        if (this.transform.groupedData.length == 0)
+            return <NoData bounds={this.props.bounds}/>
+
         const {chart, transform, bounds, legend, tooltip, hoverTarget, focusKeys} = this
         const {groupedData, xAxis, yAxis} = transform
 
         const axisBox = new AxisBox({bounds: bounds.padRight(10).padRight(legend.width), xAxis, yAxis})
 
         return <g className="LineChart">
-            <ColorLegendView x={bounds.right-legend.width} y={bounds.top} legend={legend} focusKeys={focusKeys}/>
+            <HeightedLegendView x={bounds.right-legend.width} legend={legend} focusKeys={focusKeys} yScale={axisBox.yScale}/>
             <StandardAxisBoxView axisBox={axisBox} chart={chart}/>
             {/*hoverTarget && <AxisBoxHighlight axisBox={axisBox} value={hoverTarget.value}/>*/}
             <Lines xScale={axisBox.xScale} yScale={axisBox.yScale} data={groupedData} onHoverPoint={this.onHoverPoint} onHoverStop={this.onHoverStop} focusKeys={focusKeys}/>

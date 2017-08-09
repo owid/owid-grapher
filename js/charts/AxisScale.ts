@@ -40,6 +40,14 @@ export default class AxisScale {
         return Math.abs(this.range[1]-this.range[0])
     }
 
+    @computed get rangeMax() {
+        return Math.max(this.range[1], this.range[0])
+    }
+
+    @computed get rangeMin() {
+        return Math.min(this.range[1], this.range[0])
+    }
+
     getTickValues(): number[] {
         const {scaleType, domain, d3_scale} = this
 

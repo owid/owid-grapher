@@ -17,7 +17,7 @@ export default class LineChartTransform {
         this.chart = chart
     }
 
-	@computed get groupedData(): StackedAreaSeries[] {
+	@computed get initialData(): StackedAreaSeries[] {
 		const {chart} = this
 		const {timeDomain, yAxis, addCountryMode} = chart
         const {filledDimensions, selectedKeysByKey} = chart.data
@@ -32,7 +32,7 @@ export default class LineChartTransform {
 
 			for (var i = 0; i < variable.years.length; i++) {
 				const year = variable.years[i]
-				const value = +variable.values[i]
+				const value = parseFloat(variable.values[i] as string)
 				const entity = variable.entities[i]
 				const datakey = chart.data.keyFor(entity, dimIndex)
 				let series = seriesByKey.get(datakey)
@@ -62,7 +62,7 @@ export default class LineChartTransform {
 	}
 
     @computed get allValues(): StackedAreaValue[] {
-        return _(this.groupedData).map(series => series.values).flatten().value() as StackedAreaValue[]
+        return _(this.initialData).map(series => series.values).flatten().value() as StackedAreaValue[]
     }
 
     @computed get xDomainDefault(): [number, number] {
@@ -96,5 +96,17 @@ export default class LineChartTransform {
             scaleType: chart.yAxis.scaleType,
             scaleTypeOptions: chart.yAxis.scaleTypeOptions            
         }
+    }
+
+    // Filter the data so it fits within the domains
+    @computed get groupedData() {
+        const {initialData, xAxis, yAxis} = this
+        const groupedData = _.cloneDeep(initialData)
+
+        _.each(groupedData, g => {
+            g.values = g.values.filter(d => d.x >= xAxis.domain[0] && d.x <= xAxis.domain[1] && d.y >= yAxis.domain[0] && d.y <= yAxis.domain[1])
+        })
+
+        return groupedData.filter(g => g.values.length > 0)
     }
 }

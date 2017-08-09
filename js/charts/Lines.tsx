@@ -13,7 +13,7 @@ import {observer} from 'mobx-react'
 import {LineChartSeries, LineChartValue} from './LineChart'
 import AxisScale from './AxisScale'
 import Vector2 from './Vector2'
-import {getRelativeMouse} from './Util'
+import {getRelativeMouse, makeSafeForCSS} from './Util'
 import Bounds from './Bounds'
 import DataKey from './DataKey'
 
@@ -28,6 +28,7 @@ export interface LinesProps {
 
 interface LineRenderSeries {
     key: string,
+    displayKey: string,
     color: string,
     values: Vector2[],
     isFocus: boolean
@@ -49,6 +50,7 @@ export default class Lines extends React.Component<LinesProps> {
         return _.map(data, series => {
             return {
                 key: series.key,
+                displayKey: "key-" + makeSafeForCSS(series.key),
                 color: series.color,
                 values: series.values.map(v => {
                     return new Vector2(Math.round(xScale.place(v.x)), Math.round(yScale.place(v.y)))
@@ -110,15 +112,26 @@ export default class Lines extends React.Component<LinesProps> {
 
     renderFocusGroups() {
         return _.map(this.focusGroups, series =>
-            <polyline
-                key={series.key+'-line'}
-                strokeLinecap="round"
-                stroke={series.color}
-                points={_.map(series.values, v => `${v.x},${v.y}`).join(' ')}
-                fill="none"
-                strokeWidth={1}
-                opacity={1}
-            />,
+            <g className={series.displayKey}>
+                <defs key={series.displayKey+'-defs'}>
+                    <marker id={series.displayKey+'-circle'} viewBox="0 0 16 16"
+                            refX={8} refY={8} orient="auto" fill={series.color}>
+                        <circle cx={8} cy={8} r={8}/>
+                    </marker>
+                </defs>
+                <polyline
+                    key={series.key+'-line'}
+                    strokeLinecap="round"
+                    stroke={series.color}
+                    points={_.map(series.values, v => `${v.x},${v.y}`).join(' ')}
+                    fill="none"
+                    strokeWidth={1}
+                    opacity={1}
+                    markerStart={`url(#${series.displayKey}-circle)`}
+                    markerMid={`url(#${series.displayKey}-circle)`}
+                    markerEnd={`url(#${series.displayKey}-circle)`}
+                />
+            </g>
         )
     }
 
