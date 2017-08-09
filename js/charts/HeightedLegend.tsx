@@ -51,7 +51,7 @@ export default class HeightedLegend {
                 item: item,
                 textWrap: textWrap,
                 width: rectSize+rectPadding+textWrap.width,
-                height: Math.max(textWrap.height, rectSize)
+                height: Math.max(textWrap.height, rectSize/4)
             }
         })
     }
@@ -97,13 +97,13 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
             let y = yScale.place(m.item.yValue)
 
             // Don't let them go off the edge
-            if (y+m.height > yScale.rangeMax) {
+            /*if (y+m.height > yScale.rangeMax) {
                 y = yScale.rangeMax-m.height
             } else if (y < yScale.rangeMin) {
                 y = yScale.rangeMin
-            }
+            }*/
             
-            const bounds = new Bounds(x, y, m.width, m.height)
+            const bounds = new Bounds(x, y-m.height/2, m.width, m.height)
             
             return {
                 mark: m,
@@ -148,7 +148,10 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
 
         let marks = _.cloneDeep(initialMarks).reverse()
         for (let i = 0; i < marks.length; i++) {
-            const m1 = marks[i]
+            const m1 = marks[i]            
+            if (i == 0 && m1.bounds.bottom > yScale.rangeMax) {
+                m1.bounds = m1.bounds.extend({ y: yScale.rangeMax-m1.bounds.height })
+            }
 
             for (let j = i+1; j < marks.length; j++) {
                 const m2 = marks[j]
@@ -217,8 +220,8 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
         return backgroundMarks.map((mark, i) => {
             const result = <g className="legendMark" onMouseOver={e => this.onMouseOver(mark.mark.item.color)} onMouseLeave={e => this.onMouseLeave()} onClick={e => this.onClick(mark.mark.item.color)}>
                 <rect x={x} y={mark.bounds.y} width={mark.bounds.width} height={mark.bounds.height} fill="#fff" opacity={0}/>
-                <rect x={x} y={mark.bounds.y-rectSize/8} width={rectSize} height={rectSize/4} fill={isFocusMode ? "#ccc" : mark.mark.item.color}/>
-                {mark.mark.textWrap.render(x+rectSize+rectPadding, mark.bounds.y-mark.mark.textWrap.lines[0].height/2, { fill: isFocusMode ? "#ccc" : "#eee" })}
+                <rect x={x} y={mark.bounds.centerY-rectSize/8} width={rectSize} height={rectSize/4} fill={isFocusMode ? "#ccc" : mark.mark.item.color}/>
+                {mark.mark.textWrap.render(x+rectSize+rectPadding, mark.bounds.y, { fill: isFocusMode ? "#ccc" : "#eee" })}
             </g>
 
             return result
@@ -233,12 +236,16 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
         return focusMarks.map((mark, i) => {
             const result = <g className="legendMark" onMouseOver={e => this.onMouseOver(mark.mark.item.color)} onMouseLeave={e => this.onMouseLeave()} onClick={e => this.onClick(mark.mark.item.color)}>
                 <rect x={x} y={mark.bounds.y} width={mark.bounds.width} height={mark.bounds.height} fill="#fff" opacity={0}/>
-                <rect x={x} y={mark.bounds.y-rectSize/8} width={rectSize} height={rectSize/4} fill={mark.mark.item.color}/>
-                {mark.mark.textWrap.render(x+rectSize+rectPadding, mark.bounds.y-mark.mark.textWrap.lines[0].height/2, { fill: "#333" })}
+                <rect x={x} y={mark.bounds.centerY-rectSize/8} width={rectSize} height={rectSize/4} fill={mark.mark.item.color}/>
+                {mark.mark.textWrap.render(x+rectSize+rectPadding, mark.bounds.y, { fill: "#333" })}
             </g>
 
             return result
         })
+    }
+
+    componentDidMount() {
+        //Bounds.debug(this.placedMarks.map(b => b.bounds))        
     }
 
     render() {        
