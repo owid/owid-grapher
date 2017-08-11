@@ -61,10 +61,10 @@ export default class Header {
 
     fillTemplate(text: string) {
         const {chart, minYear, maxYear} = this.props
-        const {selectedKeys} = chart.data
+        const {selectedEntities} = chart.data
 
         if (_.includes(text, "*country*")) {
-            const entityStr = selectedKeys.join(', ');
+            const entityStr = selectedEntities.join(', ');
             if (entityStr.length > 0)
                 text = text.replace("*country*", entityStr);
             else {

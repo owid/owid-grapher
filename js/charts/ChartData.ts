@@ -78,6 +78,10 @@ export default class ChartData {
 		return _.map(validSelections, sel => this.keyFor(vardata.entityMetaById[sel.entityId].name, sel.index))
 	}
 
+	@computed get selectedEntities(): string[] {
+		return _(this.selectedKeys).map(key => this.lookupKey(key).entity).uniq().value()
+	}
+
 	// Map keys back to their components for storage
 	set selectedKeys(keys: DataKey[]) {
 		const {chart, vardata} = this
@@ -113,11 +117,20 @@ export default class ChartData {
 				const entityMeta = chart.vardata.entityMetaByKey[entity]
 				const key = this.keyFor(entity, index)
 
+				let label = entity
+				if (chart.primaryDimensions.length > 1) {
+					if (this.vardata.availableEntities.length > 1) {
+						label = `${entity} - ${dim.displayName || variable.name}`
+					} else {
+						label = `${dim.displayName || variable.name}`
+					}
+				}
+
 				keyData.set(key, {
 					key: key,
 					entity: entity,
 					index: index,
-					label: chart.primaryDimensions.length > 1 ? `${entity} - ${dim.displayName || variable.name}` : entity,
+					label: label,
 					shortCode: chart.primaryDimensions.length > 1 ? `${entityMeta.code||entityMeta.name}-${dim.order}` : entityMeta.code
 				})
 			})

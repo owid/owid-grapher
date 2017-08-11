@@ -23,6 +23,7 @@ import TextWrap from './TextWrap'
 import AxisScale from './AxisScale'
 import Vector2 from './Vector2'
 import {getRelativeMouse} from './Util'
+import HeightedLegend, {HeightedLegendView} from './HeightedLegend'
 
 export interface StackedAreaValue {
     x: number,
@@ -37,77 +38,6 @@ export interface StackedAreaSeries {
     values: StackedAreaValue[],
     classed?: string,
     isProjection?: boolean
-}
-
-interface LegendData {
-    label: string,
-    color: string
-}
-
-
-class StackedAreaLegendView extends React.Component<{ stackedArea: StackedArea, legend: Legend }> {
-    render() {
-        const {rectSize, rectPadding, labelMarks} = this.props.legend
-        const {areaMiddleHeights} = this.props.stackedArea
-        const {xScale} = this.props.stackedArea.props
-
-        const x = xScale.range[1] + 5
-
-        return <g className="ColorLegend">
-            <g className="clickable" style={{cursor: 'pointer'}}>
-                {_.map(labelMarks, (mark, i) => {
-                    const yMid = areaMiddleHeights[i]
-                    const result = <g className="legendMark">
-                        {/*<rect x={x} y={yMid-rectSize/2} width={rectSize} height={rectSize} fill={mark.color} opacity={0.7}/>*/},
-                        {mark.label.render(x, yMid-mark.label.height/2)}
-                    </g>
-                    return result
-                })}
-            </g>
-        </g>
-    }
-}
-
-interface LegendProps {
-    data: LegendData[]
-}
-
-class Legend {
-    props: LegendProps
-    constructor(props: LegendProps) {
-        this.props = props
-    }
-
-    @computed get fontSize(): number { return 0.65 }
-    @computed get rectSize(): number { return 10 }
-    @computed get rectPadding(): number { return 5 }
-    @computed get lineHeight(): number { return 5 }
-    @computed get columnWidth(): number { return 300 }
-
-    @computed get labelMarks(): LabelMark[] {
-        const {props, fontSize, rectSize, rectPadding, columnWidth} = this
-
-        return _.map(props.data, series => {
-            const label = new TextWrap({ maxWidth: columnWidth, fontSize: fontSize, text: series.label })
-            return {
-                label: label,
-                color: series.color,
-                width: rectSize+rectPadding+label.width,
-                height: Math.max(label.height, rectSize)
-            }
-        })
-    }
-
-    @computed get width(): number {
-        if (this.labelMarks.length == 0)
-            return 0   
-        else 
-            return _.max(_.map(this.labelMarks, 'width'))
-    }
-
-    @computed get height() {
-        return _.sum(_.map(this.labelMarks, 'height')) + this.lineHeight*this.labelMarks.length
-    }
 }
 
 interface StackedAreaProps {
@@ -141,17 +71,6 @@ class StackedArea {
         })
 
         return renderData.reverse()
-    }
-
-    @computed get areaMiddleHeights() {
-        const {data, yScale} = this.props
-        let prevY = 0
-        return _.map(data, (series, i) => {
-            const lastValue = _.last(series.values)
-            const middleY = prevY + (lastValue.y - prevY)/2
-            prevY = lastValue.y
-            return yScale.place(middleY)
-        })
     }
 
     constructor(props: StackedAreaProps) {
@@ -218,10 +137,39 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
     @computed get bounds() { return this.props.bounds }
     @computed get transform() { return this.props.chart.stackedArea }
 
+
+    @computed get midpoints() {
+        let prevY = 0
+        return _.map(this.transform.stackedData, (series, i) => {
+            const lastValue = _.last(series.values) as StackedAreaValue
+            const middleY = prevY + (lastValue.y - prevY)/2
+            prevY = lastValue.y
+            return middleY
+        })
+    }
+
+    @computed get legendItems() {
+        const {transform, midpoints} = this
+        return _(transform.stackedData).map((d, i) => ({
+            color: d.color,
+            key: d.key,
+            label: this.chart.data.formatKey(d.key),
+            yValue: midpoints[i]
+        })).sortBy(d => d.yValue).value()
+    }
+
+    @computed get legend() {
+        const _this = this
+        return new HeightedLegend({
+            get maxWidth() { return 150 },
+            get items() { return _this.legendItems }
+        })
+    }
+
     @computed get axisBox() {
-        const {bounds, transform} = this
+        const {bounds, transform, legend} = this
         const {xAxis, yAxis} = transform
-        return new AxisBox({bounds: bounds, xAxis, yAxis})
+        return new AxisBox({bounds: bounds.padRight(legend.width+5), xAxis, yAxis})
     }
 
     @computed get stackedArea() {
@@ -234,10 +182,11 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
     }
 
     render() {
-        const {chart, bounds, axisBox, stackedArea} = this
+        const {chart, bounds, axisBox, stackedArea, legend} = this
         return <g className="StackedArea">
             <StandardAxisBoxView axisBox={axisBox} chart={chart}/>
             <StackedAreaView stackedArea={stackedArea}/>
+            <HeightedLegendView legend={legend} x={bounds.right-legend.width} yScale={axisBox.yScale} focusKeys={[]}/>
         </g>
     }
 }
