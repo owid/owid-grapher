@@ -223,7 +223,6 @@ def savechart(chart: Chart, data: Dict, user: User):
     chart.save()
 
     for dim in data["chart-dimensions"]:
-        print(dim)
         newdim = ChartDimension()
         newdim.order = i
         newdim.chartId = chart
