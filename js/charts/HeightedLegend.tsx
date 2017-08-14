@@ -1,13 +1,11 @@
 /* HeightedLegend.tsx
  * ================
  *
- * Pure component responsible for basic rendering of color=>text legend.
- *
  */
 
 import * as React from 'react'
 import * as _ from 'lodash'
-import {preInstantiate, defaultTo} from './Util'
+import {defaultTo} from './Util'
 import {computed} from 'mobx'
 import {observer} from 'mobx-react'
 import TextWrap from './TextWrap'
@@ -217,7 +215,6 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
     }
 
     renderBackground() {        
-        console.log(this.numMovesNeeded)
         const {x, legend} = this.props
         const {rectSize, rectPadding} = legend
         const {backgroundMarks, isFocusMode} = this

@@ -18,7 +18,6 @@ import {defaultTo} from './Util'
 import AxisBox from './AxisBox'
 import StandardAxisBoxView from './StandardAxisBoxView'
 import Lines from './Lines'
-import {preInstantiate} from "./Util"
 import Text from './Text'
 import HeightedLegend, {HeightedLegendView} from './HeightedLegend'
 import Vector2 from './Vector2'

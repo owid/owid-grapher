@@ -15,6 +15,15 @@ export default class StackedAreaTransform {
         this.chart = chart
     }
 
+	// Stacked area may display in either absolute or relative mode
+	@computed get isRelative(): boolean {
+		return this.chart.props.stackMode == 'relative'
+	}
+
+	set isRelative(value: boolean) {
+		this.chart.props.stackMode = value ? 'relative' : 'absolute'
+	}
+
 	@computed get groupedData(): StackedAreaSeries[] {
 		const {chart} = this
 		const {timeDomain, yAxis, addCountryMode} = chart
@@ -68,7 +77,7 @@ export default class StackedAreaTransform {
     }
 
     @computed get stackedData(): StackedAreaSeries[] {
-        const {groupedData} = this
+        const {groupedData, isRelative} = this
         
         if (_.some(groupedData, series => series.values.length !== groupedData[0].values.length))
             throw `Unexpected variation in stacked area chart series: ${_.map(groupedData, series => series.values.length)}`
@@ -80,6 +89,15 @@ export default class StackedAreaTransform {
                 stackedData[i].values[j].y += stackedData[i-1].values[j].y
             }
         }
+
+		if (isRelative) {
+			for (var i = 0; i < stackedData[0].values.length; i++) {
+				const total = _(stackedData).map(series => series.values[i].y).max() as number
+				for (var j = 0; j < stackedData.length; j++) {
+					stackedData[j].values[i].y = (stackedData[j].values[i].y/total)*100
+				}
+			}
+		}
 
         return stackedData
     }
@@ -97,11 +115,12 @@ export default class StackedAreaTransform {
     }
 
     @computed get yAxis(): AxisSpec {
-        const {chart, yDomainDefault} = this
+        const {chart, yDomainDefault, isRelative} = this
         
         return _.extend(
             chart.yAxis.toSpec({ defaultDomain: yDomainDefault }),
-            { domain: [yDomainDefault[0], chart.yAxis.domain[1]||yDomainDefault[1]] }
+            { domain: [yDomainDefault[0], chart.yAxis.domain[1]||yDomainDefault[1]],
+			  tickFormat: isRelative ? (v: number) => v.toString()+"%" : chart.yAxis.tickFormat }
         ) as AxisSpec
     }
 

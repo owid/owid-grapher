@@ -1,7 +1,6 @@
 import * as React from 'react'
 import {computed} from 'mobx'
 import {observer} from 'mobx-react'
-import {preInstantiate} from './Util'
 import {Triangle} from './Marks'
 import Bounds from './Bounds'
 import TextWrap from './TextWrap'

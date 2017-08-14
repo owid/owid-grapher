@@ -11,6 +11,7 @@ export interface DataKeyInfo {
 	entity: string 
 	index: number 
 	key: string
+	fullLabel: string
 	label: string 
 }
 
@@ -117,10 +118,14 @@ export default class ChartData {
 				const entityMeta = chart.vardata.entityMetaByKey[entity]
 				const key = this.keyFor(entity, index)
 
+				// Full label completely represents the data in the key and is used in the editor
+				const fullLabel = `${entity} - ${dim.displayName || variable.name}`
+
+				// The output label however is context-dependent
 				let label = entity
 				if (chart.primaryDimensions.length > 1) {
 					if (this.vardata.availableEntities.length > 1) {
-						label = `${entity} - ${dim.displayName || variable.name}`
+						label = fullLabel
 					} else {
 						label = `${dim.displayName || variable.name}`
 					}
@@ -130,6 +135,7 @@ export default class ChartData {
 					key: key,
 					entity: entity,
 					index: index,
+					fullLabel: fullLabel,
 					label: label,
 					shortCode: chart.primaryDimensions.length > 1 ? `${entityMeta.code||entityMeta.name}-${dim.order}` : entityMeta.code
 				})

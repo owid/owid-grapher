@@ -6,7 +6,6 @@ import {observer} from 'mobx-react'
 import Bounds from './Bounds'
 import {ScaleType} from './AxisScale'
 import AxisScale from './AxisScale'
-import {preInstantiate} from './Util'
 import ScaleSelector from './ScaleSelector'
 import TextWrap from './TextWrap'
 

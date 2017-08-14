@@ -138,6 +138,20 @@ class HighlightToggle extends React.Component<{ chart: ChartConfig, highlightTog
     }
 }
 
+class AbsRelToggle extends React.Component<{ chart: ChartConfig }> {
+    @action.bound onToggle() {
+        const {stackedArea} = this.props.chart
+        stackedArea.isRelative = !stackedArea.isRelative
+    }
+
+    render() {
+        const {chart} = this.props
+        return <label className="clickable">
+            <input type="checkbox" checked={chart.stackedArea.isRelative} onChange={this.onToggle}/> Relative
+        </label>
+    }
+}
+
 @observer
 export default class ControlsFooter extends React.Component<ControlsFooterProps> {
     @computed get height() {
@@ -170,15 +184,14 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps>
         const {props, isShareMenuActive} = this
         const {chart, chartView} = props
 
-        const style = chart.type == ChartType.ScatterPlot ? {} : {} //padding: 0, border: 0 }
-
         return <div className="controlsFooter">
-            <div className="scatterControls" style={style}>          
-            {chart.tab == 'chart' && chart.data.availableKeys.length > 1 && <button onClick={this.onDataSelect}>
-                <i className="fa fa-plus"/> Add data
-            </button>}
-            {chart.type == ChartType.ScatterPlot && chart.tab == 'chart' && chart.highlightToggle && <HighlightToggle chart={chart} highlightToggle={chart.highlightToggle}/>}
-            </div>
+            {chart.tab == 'chart' && <div className="extraControls">          
+                {chart.data.availableKeys.length > 1 && <button onClick={this.onDataSelect}>
+                    <i className="fa fa-plus"/> Add data
+                </button>}
+                {chart.type == ChartType.ScatterPlot && chart.highlightToggle && <HighlightToggle chart={chart} highlightToggle={chart.highlightToggle}/>}
+                {chart.type == ChartType.StackedArea && <AbsRelToggle chart={chart}/>}
+            </div>}
             <nav className="tabs">
                 <ul>
                     {_.map(chart.availableTabs, (tabName) => {

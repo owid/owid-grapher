@@ -56,11 +56,7 @@ export default class DiscreteBarTransform {
 
     @computed get data(): DiscreteBarDatum[] {
 		const {chart, targetYear} = this
-		const {timeDomain, yAxis, addCountryMode} = chart
         const {filledDimensions, selectedKeysByKey} = chart.data
-
-		const timeFrom = _.defaultTo(timeDomain[0], -Infinity)
-		const timeTo = _.defaultTo(timeDomain[1], Infinity)
         const data: DiscreteBarDatum[] = []
 
 		_.each(filledDimensions, (dimension, dimIndex) => {

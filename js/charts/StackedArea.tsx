@@ -18,7 +18,6 @@ import {defaultTo} from './Util'
 import AxisBox from './AxisBox'
 import StandardAxisBoxView from './StandardAxisBoxView'
 import Lines from './Lines'
-import {preInstantiate} from "./Util"
 import TextWrap from './TextWrap'
 import AxisScale from './AxisScale'
 import Vector2 from './Vector2'

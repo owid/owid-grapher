@@ -1,7 +1,6 @@
 import * as React from 'react'
 import {computed, autorun} from 'mobx'
 import {observer} from 'mobx-react'
-import {preInstantiate} from './Util'
 import Header from './Header'
 import SourcesFooter from './SourcesFooter'
 import SlopeChart from './SlopeChart'

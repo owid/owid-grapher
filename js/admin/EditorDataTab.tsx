@@ -181,7 +181,7 @@ class DataKeyItem extends React.Component<{ chart: ChartConfig, datakey: DataKey
 
 		return <li className="country-label" style={{ backgroundColor: color||"white" }} onClick={e => this.isChoosingColor = true}>
 			<span className="fa fa-remove" onClick={this.onRemove}/>
-			{this.props.chart.data.formatKey(datakey)}
+			{this.props.chart.data.lookupKey(datakey).fullLabel}
 			{isChoosingColor && <Colorpicker color={color} onColor={this.onColor} onClose={() => this.isChoosingColor = false}/>}
 		</li>
 	}

@@ -18,7 +18,6 @@ import {getRelativeMouse, defaultTo} from './Util'
 import AxisBox from './AxisBox'
 import StandardAxisBoxView from './StandardAxisBoxView'
 import Lines from './Lines'
-import {preInstantiate} from "./Util"
 import AxisScale from './AxisScale'
 import Color from './Color'
 import HorizontalAxis, {HorizontalAxisView} from './HorizontalAxis'

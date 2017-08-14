@@ -192,11 +192,11 @@ a {
     align-items: center;
 }
 
-#chart.portrait .scatterControls {
+#chart.portrait .extraControls {
     border-bottom: 1px solid #e1e1e1;
 }
 
-#chart .scatterControls {
+#chart .extraControls {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -207,13 +207,13 @@ a {
     padding-bottom: 0.4em;
 }
 
-#chart .scatterControls .HighlightToggle {
+#chart .extraControls label {
     margin: 0;
+    padding-left: 0.5em;
     padding-right: 0.5em;
-    border-right: 1px solid #ccc;
 }
 
-#chart .scatterControls button {
+#chart .extraControls button {
     margin: 0;
     padding-top: 0.1em;
     padding-bottom: 0.1em;

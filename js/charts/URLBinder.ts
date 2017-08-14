@@ -74,6 +74,7 @@ export default class URLBinder {
         params.tab = chart.props.tab == origChart.tab ? undefined : chart.tab
         params.xScale = chart.props.xAxis.scaleType == origChart.xAxis.scaleType ? undefined : chart.xAxis.scaleType
         params.yScale = chart.props.yAxis.scaleType == origChart.yAxis.scaleType? undefined : chart.yAxis.scaleType
+        params.stackMode = chart.props.stackMode == origChart.stackMode ? undefined : chart.props.stackMode
         params.year = this.yearParam
         params.time = this.timeParam
         params.country = this.countryParam
