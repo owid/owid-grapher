@@ -49,7 +49,7 @@ export class CategoricalBin {
     get text() { return this.label || this.value }
 
     contains(d: MapDataValue|null): boolean {
-        return (d == null && this.value == 'No data') || d.value == this.value
+        return (d == null && this.value == 'No data') || (d != null && d.value == this.value)
     }
 
     constructor({ index, value, color, label, isHidden }: { index: number, value: string, color: Color, label: string, isHidden: boolean }) {

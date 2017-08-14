@@ -106,11 +106,19 @@ export default class ChartData {
 		return _.keyBy(this.selectedKeys)
 	}
 
+	@computed get isSingleEntity(): boolean {
+		return this.vardata.availableEntities.length == 1 || this.chart.addCountryMode != 'add-country'
+	}
+
+	@computed get isSingleVariable(): boolean {
+		return this.chart.primaryDimensions.length == 1
+	}
+
 	// Calculate the available datakeys and their associated info
 	@computed get keyData(): Map<DataKey, DataKeyInfo> {
-		const {chart, vardata} = this
 		if (!this.isReady) return new Map()
-		
+		const {chart, vardata, isSingleEntity, isSingleVariable} = this
+	
 		const keyData = new Map()
 		_.each(chart.primaryDimensions, (dim, index) => {
 			const variable = chart.vardata.variablesById[dim.variableId]
@@ -122,13 +130,11 @@ export default class ChartData {
 				const fullLabel = `${entity} - ${dim.displayName || variable.name}`
 
 				// The output label however is context-dependent
-				let label = entity
-				if (chart.primaryDimensions.length > 1) {
-					if (this.vardata.availableEntities.length > 1) {
-						label = fullLabel
-					} else {
-						label = `${dim.displayName || variable.name}`
-					}
+				let label = fullLabel
+				if (isSingleVariable) {
+					label = entity
+				} else if (isSingleEntity) {
+					label = `${dim.displayName || variable.name}`
 				}
 
 				keyData.set(key, {
