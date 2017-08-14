@@ -204,5 +204,8 @@ export default class Bounds {
 		return [this.bottom, this.top]
 	}
 
+	equals(bounds: Bounds) {
+		return this.x == bounds.x && this.y == bounds.y && this.width == bounds.width && this.height == bounds.height
+	}
 }
 

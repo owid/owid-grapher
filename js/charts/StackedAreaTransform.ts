@@ -104,4 +104,32 @@ export default class StackedAreaTransform {
             { domain: [yDomainDefault[0], chart.yAxis.domain[1]||yDomainDefault[1]] }
         ) as AxisSpec
     }
+
+	// Ensures that every series has a value entry for every year in the data
+	// Even if that value is just 0
+	// Stacked area charts with incomplete data will fail to render otherwise
+	/*zeroPadData(chartData) {
+		var allYears = {};
+		var yearsForSeries = {};
+
+		_.each(chartData, function(series) {
+			yearsForSeries[series.id] = {};
+			_.each(series.values, function(d, i) {
+				allYears[d.x] = true;
+				yearsForSeries[series.id][d.x] = true;
+			});
+		});
+
+		_.each(chartData, function(series) {
+			_.each(Object.keys(allYears), function(year) {
+				year = parseInt(year);
+				if (!yearsForSeries[series.id][year])
+					series.values.push({ x: year, y: 0, time: year, fake: true });
+			});
+
+			series.values = _.sortBy(series.values, function(d) { return d.x; });
+		});
+
+		return chartData;
+	}*/
 }

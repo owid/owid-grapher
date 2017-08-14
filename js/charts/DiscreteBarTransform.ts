@@ -28,7 +28,7 @@ export default class DiscreteBarTransform {
 
     }
 
-	@computed get data(): DiscreteBarDatum[] {
+	/*@computed get data(): DiscreteBarDatum[] {
         const {chart, targetYear, primaryDimension} = this
         const {filledDimensions, selectedKeysByKey} = chart.data
         if (!primaryDimension) return []
@@ -52,5 +52,37 @@ export default class DiscreteBarTransform {
         }
 
         return _.sortBy(data, d => -d.value)
-	}
+	}*/
+
+    @computed get data(): DiscreteBarDatum[] {
+		const {chart, targetYear} = this
+		const {timeDomain, yAxis, addCountryMode} = chart
+        const {filledDimensions, selectedKeysByKey} = chart.data
+
+		const timeFrom = _.defaultTo(timeDomain[0], -Infinity)
+		const timeTo = _.defaultTo(timeDomain[1], Infinity)
+        const data: DiscreteBarDatum[] = []
+
+		_.each(filledDimensions, (dimension, dimIndex) => {
+            const {variable} = dimension
+
+			for (var i = 0; i < variable.years.length; i++) {
+				const year = variable.years[i]
+				const value = parseFloat(variable.values[i] as string)
+				const entity = variable.entities[i]
+				const datakey = chart.data.keyFor(entity, dimIndex)
+
+				// Not a selected key, don't add any data for it
+				if (year != targetYear || !selectedKeysByKey[datakey]) continue;
+
+                data.push({
+                    value: +variable.values[i],
+                    label: chart.data.formatKey(datakey),
+                    color: chart.colors.assignColorForKey(datakey)
+                })
+			}
+		});
+
+        return _.sortBy(data, d => -d.value)
+    }
 }

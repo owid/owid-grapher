@@ -212,7 +212,12 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
         return this.placedMarks.filter(m => isFocusMode ? _.includes(focusKeys, m.mark.item.key) : !m.isOverlap)
     }
 
-    renderBackground() {
+    @computed get numMovesNeeded() {
+        return this.placedMarks.filter(m => m.isOverlap || !m.bounds.equals(m.origBounds)).length
+    }
+
+    renderBackground() {        
+        console.log(this.numMovesNeeded)
         const {x, legend} = this.props
         const {rectSize, rectPadding} = legend
         const {backgroundMarks, isFocusMode} = this

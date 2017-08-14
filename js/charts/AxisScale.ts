@@ -51,20 +51,21 @@ export default class AxisScale {
     getTickValues(): number[] {
         const {scaleType, domain, d3_scale} = this
 
+        let ticks: number[] = []
         if (scaleType == 'log') {
             let minPower10 = Math.ceil(Math.log(domain[0]) / Math.log(10));
             if (!_.isFinite(minPower10)) minPower10 = 0
             let maxPower10 = Math.floor(Math.log(domain[1]) / Math.log(10));
             if (maxPower10 <= minPower10) maxPower10 += 1
 
-            var tickValues = [];
             for (var i = minPower10; i <= maxPower10; i++) {
-                tickValues.push(Math.pow(10, i));
+                ticks.push(Math.pow(10, i));
             }
-            return tickValues
         } else {
-            return d3_scale.ticks(6)
+            ticks = d3_scale.ticks(6)
         }
+
+        return ticks
     }
 
     getFormattedTicks(): string[] {
