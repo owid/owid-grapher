@@ -67,8 +67,6 @@ export default class EditorBasicTab extends React.Component<{ chart: ChartConfig
 					<option value="SlopeChart">Slope Chart</option>
 					<option value="ScatterPlot">Scatter Plot</option>
 					<option value="StackedArea">Stacked Area</option>
-					<option value="MultiBar">Multi Bar</option>
-					<option value="HorizontalMultiBar">Horizontal Multi Bar</option>
 					<option value="DiscreteBar">Discrete Bar</option>
 				</select>
 				<Toggle label="Chart tab" value={chart.props.hasChartTab} onValue={value => chart.props.hasChartTab = value}/>				

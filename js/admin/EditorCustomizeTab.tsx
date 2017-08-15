@@ -15,14 +15,14 @@ export default class EditorCustomizeTab extends React.Component<{ editor: ChartE
 	renderForAxis(axisName: string, axis: AxisConfigProps) {
 		return <div>
 			<h3>{axisName} Axis</h3>
-			<TextField label={axisName+"-Axis Label"} value={axis.label} onValue={(value) => axis.label = value}/>
-			<NumberField label={axisName+"-Axis Max"} value={axis.max} onValue={(value) => axis.max = value}/>
-			<NumberField label={axisName+"-Axis Min"} value={axis.min} onValue={(value) => axis.min = value}/>
-			<TextField label={axisName+"-Axis Prefix"} value={axis.prefix} onValue={(value) => axis.prefix = value}/>
+			<TextField label={"Label"} value={axis.label} onValue={(value) => axis.label = value}/><br/>
+			<NumberField label={"Max"} value={axis.max} onValue={(value) => axis.max = value}/><br/>
+			<NumberField label={"Min"} value={axis.min} onValue={(value) => axis.min = value}/><br/>
+			{/*<TextField label={axisName+"-Axis Prefix"} value={axis.prefix} onValue={(value) => axis.prefix = value}/>
 			<TextField label={axisName+"-Axis Suffix"} value={axis.suffix} onValue={(value) => axis.suffix = value}/>
 			<NumberField label={axisName+"-Axis No of decimal places"} value={axis.numDecimalPlaces} onValue={(value) => axis.numDecimalPlaces = value}/>
-			<SelectField label={axisName+"-Axis Scale"} value={axis.scaleType} options={['linear', 'log']} onValue={(value) => axis.scaleType = value == 'linear' ? 'linear' : 'log'}/>
-			{" "}<Toggle label={`User can select ${axisName} axis scale`} value={axis.canChangeScaleType||false} onValue={(value) => axis.canChangeScaleType = value||undefined}/>
+			<SelectField label={axisName+"-Axis Scale"} value={axis.scaleType} options={['linear', 'log']} onValue={(value) => axis.scaleType = value == 'linear' ? 'linear' : 'log'}/>*/}
+			{" "}<Toggle label={`Enable log/linear selector`} value={axis.canChangeScaleType||false} onValue={(value) => axis.canChangeScaleType = value||undefined}/>
 		</div>
 	}
 
@@ -52,13 +52,14 @@ export default class EditorCustomizeTab extends React.Component<{ editor: ChartE
 					<input type="input" className="form-control" name="line-tolerance" value=""/>
 				</label>
 			</section>}
-			<section className="legend-section">
+			{(features.hideLegend || features.stackedArea) && <section className="legend-section">
 				<h2>Legend</h2>
-				<label className="clickable">
+				{features.hideLegend && <Toggle label={`Hide legend`} value={!!chart.hideLegend} onValue={(value) => chart.props.hideLegend = value||undefined}/>}
+				{features.stackedArea && <label className="clickable">
 					<input type="checkbox" name="hide-toggle" />
 					Hide absolute/relative toggle
-				</label>
-			</section>
+				</label>}
+			</section>}
 			<section>
 				{features.customYAxis && this.renderForAxis('Y', yAxis)}
 				{features.customXAxis && this.renderForAxis('X', xAxis)}

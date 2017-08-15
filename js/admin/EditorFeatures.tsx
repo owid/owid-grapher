@@ -21,4 +21,12 @@ export default class EditorFeatures {
     @computed get customXAxis() {
         return this.chart.type == ChartType.ScatterPlot
     }
+
+    @computed get hideLegend() {
+        return this.chart.type == ChartType.LineChart || this.chart.type == ChartType.StackedArea
+    }
+
+    @computed get stackedArea() {
+        return this.chart.type == ChartType.StackedArea
+    }
 }

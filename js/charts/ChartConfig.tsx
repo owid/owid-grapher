@@ -255,6 +255,7 @@ export default class ChartConfig {
         json['default-tab'] = props.tab
         json['line-type'] = props.lineType
         json['line-tolerance'] = props.lineTolerance
+        json['hide-legend'] = props.hideLegend
 
         return json
     }

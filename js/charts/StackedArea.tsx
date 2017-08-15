@@ -158,6 +158,9 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
     }
 
     @computed get legend() {
+        if (this.chart.hideLegend)
+            return undefined
+
         const _this = this
         return new HeightedLegend({
             get maxWidth() { return 150 },
@@ -168,7 +171,7 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
     @computed get axisBox() {
         const {bounds, transform, legend} = this
         const {xAxis, yAxis} = transform
-        return new AxisBox({bounds: bounds.padRight(legend.width+5), xAxis, yAxis})
+        return new AxisBox({bounds: bounds.padRight(legend ? legend.width+5 : 10), xAxis, yAxis})
     }
 
     @computed get stackedArea() {
@@ -185,7 +188,7 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
         return <g className="StackedArea">
             <StandardAxisBoxView axisBox={axisBox} chart={chart}/>
             <StackedAreaView stackedArea={stackedArea}/>
-            <HeightedLegendView legend={legend} x={bounds.right-legend.width} yScale={axisBox.yScale} focusKeys={[]}/>
+            {legend && <HeightedLegendView legend={legend} x={bounds.right-legend.width} yScale={axisBox.yScale} focusKeys={[]}/>}
         </g>
     }
 }
