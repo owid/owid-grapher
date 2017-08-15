@@ -1,0 +1,20 @@
+.EditorDataTab {
+    & .DimensionCard {
+        background: white;
+        border: 1px solid #bbb;
+        padding: 10px 20px;
+        margin-bottom: 5px;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    & .dimensionSlot {
+        cursor: pointer;
+        min-height: 50px;
+        border: 1px dashed #bbb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #666;
+    }
+}

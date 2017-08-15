@@ -92,9 +92,9 @@ export default class StackedAreaTransform {
 
 		if (isRelative) {
 			for (var i = 0; i < stackedData[0].values.length; i++) {
-				const total = _(stackedData).map(series => series.values[i].y).max() as number
+				const maxValue = _(stackedData).map(series => series.values[i].y).max() as number
 				for (var j = 0; j < stackedData.length; j++) {
-					stackedData[j].values[i].y = (stackedData[j].values[i].y/total)*100
+					stackedData[j].values[i].y = (stackedData[j].values[i].y/maxValue)*100
 				}
 			}
 		}
@@ -119,7 +119,7 @@ export default class StackedAreaTransform {
         
         return _.extend(
             chart.yAxis.toSpec({ defaultDomain: yDomainDefault }),
-            { domain: [yDomainDefault[0], chart.yAxis.domain[1]||yDomainDefault[1]],
+            { domain: isRelative ? [0, 100] : [yDomainDefault[0], chart.yAxis.domain[1]||yDomainDefault[1]],
 			  tickFormat: isRelative ? (v: number) => v.toString()+"%" : chart.yAxis.tickFormat }
         ) as AxisSpec
     }

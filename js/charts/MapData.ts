@@ -72,8 +72,14 @@ export default class MapData {
     @computed get map() { return this.chart.map }
     @computed get vardata() { return this.chart.vardata }
 
+    // Make sure map has an assigned variable and the data is ready
+	@computed get isReady(): boolean {
+		const {map, vardata} = this
+        return map.variableId != null && !!vardata.variablesById[map.variableId]
+	}
+
     @computed get variable() {
-        return this.map.variableId ? this.vardata.variablesById[this.map.variableId] : _.values(this.vardata.variablesById)[0]
+        return this.vardata.variablesById[this.map.variableId as number]
     }
 
     @computed get years() {

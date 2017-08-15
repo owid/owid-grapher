@@ -60,31 +60,21 @@ export default class Header {
 
     fillTemplate(text: string) {
         const {chart, minYear, maxYear} = this.props
-        const {selectedEntities} = chart.data
 
-        if (_.includes(text, "*country*")) {
+        if (chart.tab == "map" && chart.addCountryMode != "add-country" && chart.data.selectedEntities.length == 1) {
+            const {selectedEntities} = chart.data
             const entityStr = selectedEntities.join(', ');
-            if (entityStr.length > 0)
-                text = text.replace("*country*", entityStr);
-            else {
-                text = text.replace(", *country*", "")
-                text = text.replace("*country*", "");                
+            if (entityStr.length > 0) {
+                text = text + ", " + entityStr
             }
         }
 
-        if (_.includes(text, "*time")) {
-            if (!_.isFinite(minYear)) {
-                text = text.replace(", *time*", "")
-                text = text.replace("*time*", "");
-            } else {
-                var timeFrom = formatYear(minYear as number),
-                    timeTo = formatYear(_.isFinite(maxYear) ? maxYear as number : minYear as number),
-                    time = timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo;
+        if (_.isFinite(minYear)) {
+            var timeFrom = formatYear(minYear as number),
+            timeTo = formatYear(_.isFinite(maxYear) ? maxYear as number : minYear as number),
+            time = timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo;
 
-                text = text.replace("*time*", time);
-                text = text.replace("*timeFrom*", timeFrom);
-                text = text.replace("*timeTo*", timeTo);
-            }
+            text = text + ", " + time
         }
 
         return text.trim();
@@ -95,7 +85,7 @@ export default class Header {
     }
 
     @computed get subtitleText() {
-        return this.fillTemplate(this.props.chart.subtitle)
+        return this.props.chart.subtitle
     }
 
     @computed get logo() {

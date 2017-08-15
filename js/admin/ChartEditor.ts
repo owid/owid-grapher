@@ -46,6 +46,10 @@ export default class ChartEditor {
 		return this.chart.id === undefined
 	}
 
+	@computed get variablesById() {
+		return _.keyBy(this.data.variables, v => v.id)
+	}
+
 	load<T>(promise: Promise<T>) {
 		this.currentRequest = promise
 		promise.then(() => this.currentRequest = undefined).catch(() => this.currentRequest = undefined)

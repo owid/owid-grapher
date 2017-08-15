@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import {computed, action, observable} from 'mobx'
 import {observer} from 'mobx-react'
-import ChartConfig from '../charts/ChartConfig'
+import ChartConfig, {DimensionSlot, ChartDimension} from '../charts/ChartConfig'
 import ChartType from '../charts/ChartType'
 import DataKey from '../charts/DataKey'
 import Color from '../charts/Color'
@@ -12,6 +12,7 @@ import {SelectField, Toggle, NumberField} from './Forms'
 import ChartEditor from './ChartEditor'
 import EditorVariable from './EditorVariable'
 import Colorpicker from './Colorpicker'
+const styles = require("./EditorDataTab.css")
 
 interface VariableSelectorProps {
 	editor: ChartEditor,
@@ -120,40 +121,65 @@ class VariableItem extends React.Component<{ variable: EditorVariable }> {
 }
 
 @observer
+class DimensionCard extends React.Component<{ dimension: ChartDimension, editor: ChartEditor }> {
+	@action.bound onRemove() {
+		const {chart} = this.props.editor
+		console.log(this.props.dimension)
+		chart.props.dimensions = chart.props.dimensions.filter(d => d.property != this.props.dimension.property || d.order != this.props.dimension.order)
+	}
+
+	render() {
+		const {dimension, editor} = this.props
+		const variable = editor.variablesById[dimension.variableId]
+		return <div className="DimensionCard">
+			<div>{variable.name}</div>
+			<div className="buttons">
+				<i className="fa fa-pencil clickable"/> <i className="fa fa-close clickable" onClick={this.onRemove}/>
+			</div>
+		</div>
+	}
+}
+
+@observer
+class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: ChartEditor }> {
+	@observable isAddingVariable: boolean = false
+
+	@action.bound onAddVariable() { this.isAddingVariable = true }
+
+	render() {
+		const {slot, editor} = this.props
+		const {isAddingVariable} = this
+
+		return <div>
+			<h5>{slot.name}</h5>
+			{slot.dimensions.map(dim => 
+				<DimensionCard dimension={dim} editor={editor}/>
+			)}
+			<div className="dimensionSlot" onClick={this.onAddVariable}>Add variable</div>
+			{isAddingVariable && <VariableSelector editor={editor} onDismiss={this.onAddVariableDone} onComplete={this.onAddVariableDone}/>}
+		</div>
+	}
+}
+
+@observer
 class VariablesSection extends React.Component<{ editor: ChartEditor }> {
 	base: HTMLDivElement
 	@observable.ref isAddingVariable: boolean = false
 	@observable.struct unassignedVariables: EditorVariable[] = []
 
-	@action.bound onAddVariableStart() { this.isAddingVariable = true }
-	@action.bound onAddVariableDone(variable?: EditorVariable) {
-		if (variable) {
-			this.unassignedVariables.push(variable)
-		}
-		this.isAddingVariable = false
-	}
-
-	componentDidMount() {
-		$(this.base).find(".dd").nestable()
-	}
+    @computed get slots(): DimensionSlot[] {
+		const {chart} = this.props.editor
+        let slots = _.cloneDeep(chart.emptyDimensionSlots)
+        slots.forEach(slot => slot.dimensions = chart.dimensions.filter(dim => dim.property == slot.property))
+        return slots
+    }
 
 	render() {
-		const {props, isAddingVariable, unassignedVariables} = this
+		const {props, isAddingVariable, unassignedVariables, slots} = this
 
 		return <section className="add-data-section">
-			<h2>Add your data</h2>
-			<a className="add-data-btn" onClick={this.onAddVariableStart}><i className="fa fa-plus"/>Add variable</a>
-			<div className="dd">
-				{_.isEmpty(unassignedVariables) 
-					? <div className="dd-empty"></div> 
-					: <ol className="dd-list">
-						{_.map(unassignedVariables, variable =>
-							<VariableItem variable={variable}/>
-						)}
-					</ol>}
-			</div>
-			{unassignedVariables.length > 0 && <p className="form-section-desc">Assign variables to the graph dimensions below by dragging them.</p>}
-			{isAddingVariable && <VariableSelector editor={props.editor} onDismiss={this.onAddVariableDone} onComplete={this.onAddVariableDone}/>}
+			<h2>Add variables</h2>
+			{slots.map(slot => <DimensionSlotView slot={slot} editor={props.editor}/>)}
 		</section>
 	}
 }
@@ -177,11 +203,12 @@ class DataKeyItem extends React.Component<{ chart: ChartConfig, datakey: DataKey
 	}
 
 	render() {
-		const {datakey, color, isChoosingColor} = this
+		const {props, datakey, color, isChoosingColor} = this
+		const meta = props.chart.data.keyData.get(datakey)
 
 		return <li className="country-label" style={{ backgroundColor: color||"white" }} onClick={e => this.isChoosingColor = true}>
 			<span className="fa fa-remove" onClick={this.onRemove}/>
-			{this.props.chart.data.lookupKey(datakey).fullLabel}
+			{meta ? meta.fullLabel : datakey}
 			{isChoosingColor && <Colorpicker color={color} onColor={this.onColor} onClose={() => this.isChoosingColor = false}/>}
 		</li>
 	}
@@ -199,7 +226,7 @@ class KeysSection extends React.Component<{ chart: ChartConfig }> {
 		const {selectedKeys, remainingKeys} = chart.data
 
 		return <section className="entities-section">
-			<h2>Choose your data</h2>
+			<h2>Choose data to show</h2>
 
 			<p className="form-section-desc">You can set individual colors by clicking on the labels.</p>
 			<ul className="selected-countries-box no-bullets">
@@ -289,7 +316,7 @@ export default class EditorDataTab extends React.Component<{ editor: ChartEditor
 	render() {
 		const {editor} = this.props
 
-		return <div className="tab-pane">
+		return <div className={"tab-pane " + styles.EditorDataTab}>
 			<VariablesSection editor={editor}/>
 			<KeysSection chart={editor.chart}/>
 			<TimeSection editor={editor}/>

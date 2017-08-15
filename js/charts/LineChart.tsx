@@ -63,7 +63,10 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
         })).value()
     }
 
-    @computed get legend() {
+    @computed get legend(): HeightedLegend|undefined {
+        if (this.chart.hideLegend)
+            return undefined
+            
         const _this = this
         return new HeightedLegend({
             get maxWidth() { return _this.bounds.width/3 },
@@ -90,10 +93,10 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
         const {chart, transform, bounds, legend, tooltip, hoverTarget, focusKeys} = this
         const {groupedData, xAxis, yAxis} = transform
 
-        const axisBox = new AxisBox({bounds: bounds.padRight(10).padRight(legend.width), xAxis, yAxis})
+        const axisBox = new AxisBox({bounds: bounds.padRight(10).padRight(legend ? legend.width : 0), xAxis, yAxis})
 
         return <g className="LineChart">
-            <HeightedLegendView x={bounds.right-legend.width} legend={legend} focusKeys={focusKeys} yScale={axisBox.yScale}/>
+            {legend && <HeightedLegendView x={bounds.right-legend.width} legend={legend} focusKeys={focusKeys} yScale={axisBox.yScale}/>}
             <StandardAxisBoxView axisBox={axisBox} chart={chart}/>
             {/*hoverTarget && <AxisBoxHighlight axisBox={axisBox} value={hoverTarget.value}/>*/}
             <Lines xScale={axisBox.xScale} yScale={axisBox.yScale} data={groupedData} onHoverPoint={this.onHoverPoint} onHoverStop={this.onHoverStop} focusKeys={focusKeys}/>

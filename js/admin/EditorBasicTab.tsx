@@ -48,7 +48,7 @@ export default class EditorBasicTab extends React.Component<{ chart: ChartConfig
 		return <div className="tab-pane active">
 			<section>
 				<h2>Title of the visualization</h2>
-				<p className="form-section-desc">Never use specific countries or years since these can be changed by the viewer. Instead use <b>*time*</b> or <b>*country*</b> as placeholders. These will be interpreted by the grapher to match what is being looked at.</p>
+				<p className="form-section-desc">Avoid using specific countries or years in the title. The grapher will add this information automatically when it is appropriate.</p>
 				<input className="form-control input-lg .col-xs-12" placeholder="Title (shorter is better)" type="text" value={chart.title} onInput={this.onTitle}/>
 				<div className="input-group">
 					<span className="input-group-addon">/grapher/</span>

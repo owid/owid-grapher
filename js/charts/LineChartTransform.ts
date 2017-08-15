@@ -82,16 +82,16 @@ export default class LineChartTransform {
     }
 
     @computed get yDimensionFirst() {
-        return _.find(this.chart.data.filledDimensions, { property: 'y' }) as DimensionWithData
+        return _.find(this.chart.data.filledDimensions, { property: 'y' })
     }
 
     @computed get yAxis(): AxisSpec {
         const {chart, yDomainDefault, yDimensionFirst} = this
-        const {variable} = yDimensionFirst
+        const variable = yDimensionFirst && yDimensionFirst.variable
 
         return {
             label: chart.yAxis.label,
-            tickFormat: (d: number) => d + (yDimensionFirst.variable.shortUnit||""),
+            tickFormat: variable ? (d: number) => d + (variable.shortUnit||"") : _.identity,
             domain: [defaultTo(chart.yAxis.domain[0], yDomainDefault[0]), defaultTo(chart.yAxis.domain[1], yDomainDefault[1])],
             scaleType: chart.yAxis.scaleType,
             scaleTypeOptions: chart.yAxis.scaleTypeOptions            

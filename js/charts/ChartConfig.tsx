@@ -51,6 +51,13 @@ export interface ChartDimension {
     unit?: string
 }
 
+export interface DimensionSlot {
+    property: string
+    name: string
+    allowMultiple?: boolean,
+    dimensions: ChartDimension[]
+}
+
 export interface EntitySelection {
     entityId: number,
     index: number, // Which dimension the entity is from
@@ -76,13 +83,13 @@ export class ChartConfigProps {
     @observable.struct dimensions: ChartDimension[] = []
     @observable.ref addCountryMode: 'add-country'|'change-country'|'disabled' = 'add-country'
 
-    // XXX special line chart stuff that should maybe go elsewhere
     @observable.ref timeline?: TimelineConfig = undefined
     @observable.ref comparisonLine?: ComparisonLineConfig = undefined
     @observable.ref highlightToggle: HighlightToggleConfig|undefined
     @observable.ref lineType: LineType = LineType.WithDots
     @observable.ref lineTolerance?: number = undefined
     @observable.ref stackMode: string = 'expanded'
+    @observable.ref hideLegend?: true = undefined
 
     @observable.ref hasChartTab: boolean = true
     @observable.ref hasMapTab: boolean = false
@@ -121,6 +128,7 @@ export default class ChartConfig {
     @computed get timeline() { return this.props.timeline }
     @computed get hasChartTab() { return this.props.hasChartTab }
     @computed get hasMapTab() { return this.props.hasMapTab }
+    @computed get hideLegend() { return this.props.hideLegend }
 
     set timeDomain(value) { this.props.timeDomain = value }
     set tab(value) { this.props.tab = value }
@@ -141,25 +149,27 @@ export default class ChartConfig {
     url: URLBinder
     colors: ColorBinder
 
-	// Get the empty dimension slots appropriate for this type of chart
-	@computed get emptyDimensions() {
-		let xAxis = { property: 'x', name: 'X axis' },
-			yAxis = { property: 'y', name: 'Y axis' },
-			color = { property: 'color', name: 'Color' },
-			size = { property: 'size', name: 'Size' };
-
+	// Get the dimension slots appropriate for this type of chart
+	@computed get emptyDimensionSlots(): DimensionSlot[] {
+		const xAxis = { property: 'x', name: 'X axis', dimensions: [] }
+		const yAxis = { property: 'y', name: 'Y axis', dimensions: [] }
+		const color = { property: 'color', name: 'Color', dimensions: [] }
+		const size = { property: 'size', name: 'Size', dimensions: [] }
+        
+        let slots = []
 		if (this.type == ChartType.ScatterPlot)
-			return [xAxis, yAxis, size, color];
+			slots = [yAxis, xAxis, size, color];
 		else if (this.type == ChartType.SlopeChart)
-			return [yAxis, size, color]
+			slots = [yAxis, size, color]
 		else
-			return [yAxis];
+		    slots = [{ property: 'y', name: 'Y axis', allowMultiple: true, dimensions: [] }];
+        
+        return slots
 	}
-
 
     @computed get dimensions(): ChartDimension[] {
         const dimensions = _.map(this.props.dimensions, _.clone)
-        const validProperties = _.map(this.emptyDimensions, 'property')
+        const validProperties = _.map(this.emptyDimensionSlots, 'property')
         let validDimensions = _.filter(dimensions, dim => _.includes(validProperties, dim.property))
 
 		// Give scatterplots a default color and size dimension if they don't have one
@@ -186,7 +196,7 @@ export default class ChartConfig {
 
     @action.bound update(props: any) {
         this.props.id = props['id']
-        this.props.type = props['chart-type']
+        if (props['chart-type']) this.props.type = props['chart-type']
         this.props.slug = props['slug']
         this.props.title = props['title']
         this.props.subtitle = props['subtitle']
@@ -206,10 +216,9 @@ export default class ChartConfig {
             this.props.timeDomain = [null, null]
         else
             this.props.timeDomain = (_.map(timeDomain, v => _.isString(v) ? parseInt(v) : v) as [number|null, number|null])
-
-
-        this.props.hasChartTab = props['tabs'].includes("chart")
-        this.props.hasMapTab = props['tabs'].includes("map")
+        
+        this.props.hasChartTab = props['tabs'] ? props['tabs'].includes("chart") : true
+        this.props.hasMapTab = props['tabs'] ? props['tabs'].includes("map") : false
 
         _.extend(this.props.xAxis, props['xAxis'])
         _.extend(this.props.yAxis, props['yAxis'])
@@ -222,6 +231,7 @@ export default class ChartConfig {
 
         this.props.lineType = props["line-type"]
         this.props.lineTolerance = parseInt(props["line-tolerance"]) || 1
+        this.props.hideLegend = props["hide-legend"]
         
         this.variableCacheTag = props["variableCacheTag"]
     }
@@ -268,6 +278,12 @@ export default class ChartConfig {
         autorun(() => {
             if (!_.includes(this.availableTabs, this.props.tab)) {
                 runInAction(() => this.props.tab = this.availableTabs[0])
+            }
+        })
+
+        autorun(() => {
+            if (this.props.hasMapTab && !this.props.map) {
+                runInAction(() => this.props.map = new MapConfigProps())
             }
         })
 	}

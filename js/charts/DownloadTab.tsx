@@ -21,6 +21,7 @@ interface DownloadTabProps {
 }
 
 declare var Global: { rootUrl: string }
+declare var App: { IDEAL_WIDTH: number, IDEAL_HEIGHT: number }
 
 @observer
 export default class DownloadTab extends React.Component<DownloadTabProps> {

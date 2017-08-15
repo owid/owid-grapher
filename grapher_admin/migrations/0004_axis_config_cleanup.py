@@ -37,7 +37,7 @@ def tweak_selectedEntities(apps, schema_editor):
                 except (TypeError, ValueError):
                     pass
 
-                scaleType = old.get('scaleType', 'linear')
+                scaleType = old.get('axis-scale', 'linear')
                 if scaleType == 'log':
                     axis['scaleType'] = 'log'
                 else:

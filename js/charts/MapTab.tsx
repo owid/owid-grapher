@@ -16,6 +16,7 @@ import {MapLegendBin} from './MapData'
 import MapProjection from './MapProjection'
 import ChartView from './ChartView'
 import Tooltip from './Tooltip'
+import NoData from './NoData'
 
 interface TimelineMapProps {
     bounds: Bounds,
@@ -143,7 +144,8 @@ export default class MapTab extends React.Component<MapTabProps> {
 
     render() {
         const {map} = this
-        if (!map.data) return null
+        if (!map.data.isReady)
+            return <NoData bounds={this.props.bounds}/>
         
         const {bounds} = this.props
         const {header, footer} = this
