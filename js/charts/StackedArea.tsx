@@ -23,6 +23,8 @@ import AxisScale from './AxisScale'
 import Vector2 from './Vector2'
 import {getRelativeMouse} from './Util'
 import HeightedLegend, {HeightedLegendView} from './HeightedLegend'
+import NoData from './NoData'
+import Tooltip from './Tooltip'
 
 export interface StackedAreaValue {
     x: number,
@@ -52,47 +54,63 @@ interface AreaRenderSeries {
 }
 
 @observer
-export class Areas extends React.Component<{ xScale: AxisScale, yScale: AxisScale, data: StackedAreaSeries[] }> {
+export class Areas extends React.Component<{ axisBox: AxisBox, data: StackedAreaSeries[], onHover: (hoverIndex: number|undefined) => void }> {
     base: SVGGElement
     
-    @observable hoverIndex: number|undefined = 0
+    @observable hoverIndex?: number
 
     @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement>) {
-        const {xScale, data} = this.props
+        const {axisBox, data} = this.props
 
         const mouse = Vector2.fromArray(getRelativeMouse(this.base, ev))
-        const closestPoint = _.sortBy(data[0].values, d => Math.abs(xScale.place(d.x) - mouse.x))[0]
-        const index = data[0].values.indexOf(closestPoint)
-        this.hoverIndex = index
+        
+        if (axisBox.innerBounds.contains(mouse)) {
+            const closestPoint = _.sortBy(data[0].values, d => Math.abs(axisBox.xScale.place(d.x) - mouse.x))[0]
+            const index = data[0].values.indexOf(closestPoint)
+            this.hoverIndex = index
+        } else {
+            this.hoverIndex = undefined
+        }
+
+        this.props.onHover(this.hoverIndex)
     }
 
-    render() {
-        const {xScale, yScale, data} = this.props
-
+    @computed get polylines() {
+        const {axisBox, data} = this.props
+        const {xScale, yScale} = axisBox
         const xBottomLeft = `${Math.round(xScale.range[0])},${Math.round(yScale.range[0])}`
         const xBottomRight = `${Math.round(xScale.range[1])},${Math.round(yScale.range[0])}`
 
-        return <g className="Areas" opacity={0.7} onMouseMove={this.onMouseMove}>
-            <rect x={xScale.range[0]} y={yScale.range[1]} width={xScale.range[1]-xScale.range[0]} height={yScale.range[0]-yScale.range[1]} opacity={0} fill="rgba(255,255,255,0)"/> 
-            {data.map((series, i) => {
-                const prevPoints = i == 0 ? [xBottomLeft, xBottomRight] : _.map(data[i-1].values, v => `${Math.round(xScale.place(v.x))},${Math.round(yScale.place(v.y))}`)
-                const mainPoints = _.map(series.values, v => `${Math.round(xScale.place(v.x))},${Math.round(yScale.place(v.y))}`)
-                const points = mainPoints.concat(_(prevPoints).clone().reverse())
+        return data.map((series, i) => {
+            const prevPoints = i == 0 ? [xBottomLeft, xBottomRight] : _.map(data[i-1].values, v => `${Math.round(xScale.place(v.x))},${Math.round(yScale.place(v.y))}`)
+            const mainPoints = _.map(series.values, v => `${Math.round(xScale.place(v.x))},${Math.round(yScale.place(v.y))}`)
+            const points = mainPoints.concat(_(prevPoints).clone().reverse())
 
-                return <polyline
-                    key={series.key+'-line'}
-                    strokeLinecap="round"
-                    stroke={series.color}
-                    points={points.join(" ")}
-                    fill={series.color}
-                    strokeWidth={1}
-                />
-            }
-            )}
-            {/*hoverTarget && <g className="hoverIndicator">
-                <line x1={hoverTarget.x} y1={yScale.range[0]} x2={hoverTarget.x} y2={yScale.range[1]} stroke="#fff"/>
-                {hoverTarget.yValues.map(y => <circle cx={hoverTarget.x} cy={y} r={5} fill="#fff"/>)}
-            </g>*/}
+            return <polyline
+                key={series.key+'-line'}
+                strokeLinecap="round"
+                stroke={series.color}
+                points={points.join(" ")}
+                fill={series.color}
+                strokeWidth={1}
+            />
+        })
+    }
+
+    render() {
+        const {axisBox, data} = this.props
+        const {xScale, yScale} = axisBox
+        const {hoverIndex} = this
+
+        return <g className="Areas" opacity={0.7} onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseMove}>
+            <rect x={xScale.range[0]} y={yScale.range[1]} width={xScale.range[1]-xScale.range[0]} height={yScale.range[0]-yScale.range[1]} opacity={0} fill="rgba(255,255,255,0)"/> 
+            {this.polylines}
+            {hoverIndex != null && <g className="hoverIndicator">
+                {data.map(series => {
+                    return <circle cx={xScale.place(series.values[hoverIndex].x)} cy={yScale.place(series.values[hoverIndex].y)} r={5} fill={series.color}/>
+                })}
+                <line x1={xScale.place(data[0].values[hoverIndex].x)} y1={yScale.range[0]} x2={xScale.place(data[0].values[hoverIndex].x)} y2={yScale.range[1]} stroke="#ccc"/>
+            </g>}
         </g>
     }
 }
@@ -141,12 +159,50 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
         return new AxisBox({bounds: bounds.padRight(legend ? legend.width+5 : 0), xAxis, yAxis})
     }
 
+    @observable hoverIndex: number
+    @action.bound onHover(hoverIndex: number) {
+        this.hoverIndex = hoverIndex
+    }
+
+    @computed get tooltip() {
+        if (this.hoverIndex == null) return undefined
+
+        const {transform, hoverIndex, axisBox, chart} = this
+
+        const refValue = transform.stackedData[0].values[hoverIndex]
+
+        return <Tooltip x={axisBox.xScale.place(refValue.x)} y={axisBox.yScale.rangeMin + axisBox.yScale.rangeSize/2}>
+            <table>
+                <tr>
+                    <td>{refValue.x}</td>
+                    <td>
+                        {!transform.isRelative && <span>
+                            {transform.yAxis.tickFormat(transform.stackedData[transform.stackedData.length-1].values[hoverIndex].y)}
+                        </span>}
+                    </td>
+                </tr>
+                {_(transform.groupedData).clone().reverse().map(series => {
+                    return <tr>
+                        <td>
+                            <div style={{width: '10px', height: '10px', backgroundColor: series.color, border: "1px solid #ccc", display: 'inline-block'}}/> {chart.data.formatKey(series.key)}
+                        </td>
+                        <td>{transform.yAxis.tickFormat(series.values[hoverIndex].y)}</td>
+                    </tr>
+                })}
+            </table>
+        </Tooltip>
+    }
+
     render() {
+        if (!this.transform.initialData.length)
+            return <NoData bounds={this.props.bounds}/>
+            
         const {chart, bounds, axisBox, legend, transform} = this
         return <g className="StackedArea">
             <StandardAxisBoxView axisBox={axisBox} chart={chart}/>
             {legend && <HeightedLegendView legend={legend} x={bounds.right-legend.width} yScale={axisBox.yScale} focusKeys={[]}/>}
-            <Areas xScale={axisBox.xScale} yScale={axisBox.yScale} data={transform.stackedData}/>
+            <Areas axisBox={axisBox} data={transform.stackedData} onHover={this.onHover}/>
+            {this.tooltip}
         </g>
     }
 }
