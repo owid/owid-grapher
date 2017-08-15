@@ -120,12 +120,13 @@ def createchart(request: HttpRequest):
 
 def editor_data():
     variables = []
-    for variable in Variable.objects.all().select_related():
+    for variable in Variable.objects.all().select_related('fk_dst_id'):
         variables.append({
             'name': variable.name, 
             'id': variable.pk, 
             'unit': variable.unit, 
             'description': variable.description,
+            'namespace': variable.fk_dst_id.namespace,
             'dataset': {
                 'name': variable.fk_dst_id.name,
                 'namespace': variable.fk_dst_id.namespace,

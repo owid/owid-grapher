@@ -24,7 +24,7 @@ export interface ChartEditorProps {
 	data: EditorData
 }
 
-export type EditorTab = 'data'|'basic'|'axis'|'styling'|'map'|'scatter'
+export type EditorTab = string
 
 export default class ChartEditor {
     @observable.ref chart: ChartConfig
@@ -37,7 +37,7 @@ export default class ChartEditor {
 	@observable.ref tab: EditorTab = 'basic'
 
 	@computed get availableTabs(): EditorTab[] {
-		const tabs: EditorTab[] = ['basic', 'data', 'axis', 'styling']
+		const tabs: EditorTab[] = ['basic', 'data', 'customize']
 		if (this.chart.hasMapTab) tabs.push('map')
 		if (this.chart.type == ChartType.ScatterPlot) tabs.push('scatter')
 		return tabs

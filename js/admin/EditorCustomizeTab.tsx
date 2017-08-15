@@ -5,9 +5,10 @@ import ChartEditor from './ChartEditor'
 import {AxisConfigProps} from '../charts/AxisConfig'
 import {toString} from 'lodash'
 import {TextField, NumberField, SelectField, Toggle} from './Forms'
+import ChartType from '../charts/ChartType'
 
 @observer
-export default class EditorAxisTab extends React.Component<{ editor: ChartEditor }> {
+export default class EditorCustomizeTab extends React.Component<{ editor: ChartEditor }> {
 	@computed get xAxis() { return this.props.editor.chart.xAxis.props }
 	@computed get yAxis() { return this.props.editor.chart.yAxis.props }
 
@@ -28,8 +29,36 @@ export default class EditorAxisTab extends React.Component<{ editor: ChartEditor
 	render() {
 		const {xAxis, yAxis} = this
 		const {features} = this.props.editor
+		const {chart} = this.props.editor
 
 		return <div className="tab-pane">
+			{chart.type == ChartType.LineChart && <section className="type-of-line-section">
+				<h2>Choose Type of Line</h2>
+				<label>
+					<input type="radio" name="line-type" value="0"/>
+					Line with dots
+				</label>
+				<label>
+					<input type="radio" name="line-type" value="1"/>
+					Line without dots
+				</label>
+				<label>
+					<input type="radio" name="line-type" value="3"/>
+					Dotted with dashed line for missing observations
+				</label>
+				<br/>
+				<label style={{display: "none"}}>
+					Maximum year gap to tolerate
+					<input type="input" className="form-control" name="line-tolerance" value=""/>
+				</label>
+			</section>}
+			<section className="legend-section">
+				<h2>Legend</h2>
+				<label className="clickable">
+					<input type="checkbox" name="hide-toggle" />
+					Hide absolute/relative toggle
+				</label>
+			</section>
 			<section>
 				{features.customYAxis && this.renderForAxis('Y', yAxis)}
 				{features.customXAxis && this.renderForAxis('X', xAxis)}

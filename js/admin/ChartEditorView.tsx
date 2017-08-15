@@ -2,9 +2,8 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import EditorBasicTab from './EditorBasicTab'
 import EditorDataTab from './EditorDataTab'
-import EditorAxisTab from './EditorAxisTab'
+import EditorCustomizeTab from './EditorCustomizeTab'
 import EditorScatterTab from './EditorScatterTab'
-import EditorStylingTab from './EditorStylingTab'
 import EditorMapTab from './EditorMapTab'
 import ChartConfig from '../charts/ChartConfig'
 import * as _ from 'lodash'
@@ -98,10 +97,9 @@ export default class ChartEditorView extends React.Component<{ editor: ChartEdit
 					</ul>
 				</div>
 				<div>
-					{editor.tab == 'data' && <EditorDataTab editor={editor}/>}
 					{editor.tab == 'basic' && <EditorBasicTab chart={chart}/>}
-					{editor.tab == 'axis' && <EditorAxisTab editor={editor}/>}
-					{editor.tab == 'styling' && <EditorStylingTab chart={chart}/>}
+					{editor.tab == 'data' && <EditorDataTab editor={editor}/>}
+					{editor.tab == 'customize' && <EditorCustomizeTab editor={editor}/>}
 					{editor.tab == 'scatter' && <EditorScatterTab chart={chart}/>}
 					{editor.tab == 'map' && <EditorMapTab editor={editor}/>}
 				</div>
