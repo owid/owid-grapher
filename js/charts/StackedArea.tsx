@@ -51,81 +51,48 @@ interface AreaRenderSeries {
     values: { x: number, y: number }[]
 }
 
-class StackedArea {
-    props: StackedAreaProps
-
-    @computed get renderData(): AreaRenderSeries[] {
-        const {data, xScale, yScale} = this.props
-        let renderData = _.map(data, series => {
-            return {
-                key: series.key,
-                color: series.color,
-                values: series.values.map(v => {
-                    return {
-                        x: xScale.place(v.x),
-                        y: yScale.place(v.y)
-                    }
-                })
-            }
-        })
-
-        return renderData.reverse()
-    }
-
-    constructor(props: StackedAreaProps) {
-        this.props = props
-    }
-}
-
 @observer
-export class StackedAreaView extends React.Component<{ stackedArea: StackedArea }> {
+export class Areas extends React.Component<{ xScale: AxisScale, yScale: AxisScale, data: StackedAreaSeries[] }> {
     base: SVGGElement
     
     @observable hoverIndex: number|undefined = 0
 
     @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement>) {
-        const {renderData} = this.props.stackedArea
+        const {xScale, data} = this.props
+
         const mouse = Vector2.fromArray(getRelativeMouse(this.base, ev))
-        const closestPoint = _.sortBy(renderData[0].values, d => Math.abs(d.x - mouse.x))[0]
-        const index = renderData[0].values.indexOf(closestPoint)
+        const closestPoint = _.sortBy(data[0].values, d => Math.abs(xScale.place(d.x) - mouse.x))[0]
+        const index = data[0].values.indexOf(closestPoint)
         this.hoverIndex = index
     }
 
-    @computed get hoverData(): { x: number }|undefined {
-        const {hoverIndex} = this
-        if (hoverIndex === undefined) return undefined
-
-        const hoverData = {}
-        _.each(this.props.stackedArea.renderData, series => {
-            hoverData.x = series.values[hoverIndex].x
-//            series.values[hoverIndex]
-        })
-
-        return hoverData
-    }
-
     render() {
-        const {xScale, yScale} = this.props.stackedArea.props
-        const {renderData} = this.props.stackedArea
-        const {hoverData} = this
+        const {xScale, yScale, data} = this.props
 
         const xBottomLeft = `${Math.round(xScale.range[0])},${Math.round(yScale.range[0])}`
         const xBottomRight = `${Math.round(xScale.range[1])},${Math.round(yScale.range[0])}`
 
         return <g className="Areas" opacity={0.7} onMouseMove={this.onMouseMove}>
             <rect x={xScale.range[0]} y={yScale.range[1]} width={xScale.range[1]-xScale.range[0]} height={yScale.range[0]-yScale.range[1]} opacity={0} fill="rgba(255,255,255,0)"/> 
-            {_.map(renderData, series =>
-                <polyline
+            {data.map((series, i) => {
+                const prevPoints = i == 0 ? [xBottomLeft, xBottomRight] : _.map(data[i-1].values, v => `${Math.round(xScale.place(v.x))},${Math.round(yScale.place(v.y))}`)
+                const mainPoints = _.map(series.values, v => `${Math.round(xScale.place(v.x))},${Math.round(yScale.place(v.y))}`)
+                const points = mainPoints.concat(_(prevPoints).clone().reverse())
+
+                return <polyline
                     key={series.key+'-line'}
                     strokeLinecap="round"
                     stroke={series.color}
-                    points={xBottomLeft + ' ' + _.map(series.values, v => `${Math.round(v.x)},${Math.round(v.y)}`).join(' ') + ' ' + xBottomRight}
+                    points={points.join(" ")}
                     fill={series.color}
                     strokeWidth={1}
-                    opacity={1}
-                />,
+                />
+            }
             )}
-            {hoverData && <line x1={hoverData.x} y1={yScale.range[0]} x2={hoverData.x} y2={yScale.range[1]} stroke="black"/>}
+            {/*hoverTarget && <g className="hoverIndicator">
+                <line x1={hoverTarget.x} y1={yScale.range[0]} x2={hoverTarget.x} y2={yScale.range[1]} stroke="#fff"/>
+                {hoverTarget.yValues.map(y => <circle cx={hoverTarget.x} cy={y} r={5} fill="#fff"/>)}
+            </g>*/}
         </g>
     }
 }
@@ -171,24 +138,15 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
     @computed get axisBox() {
         const {bounds, transform, legend} = this
         const {xAxis, yAxis} = transform
-        return new AxisBox({bounds: bounds.padRight(legend ? legend.width+5 : 10), xAxis, yAxis})
-    }
-
-    @computed get stackedArea() {
-        const _this = this
-        return new StackedArea({
-            get xScale() { return _this.axisBox.xScale },
-            get yScale() { return _this.axisBox.yScale },
-            get data() { return _this.transform.stackedData }
-        })
+        return new AxisBox({bounds: bounds.padRight(legend ? legend.width+5 : 0), xAxis, yAxis})
     }
 
     render() {
-        const {chart, bounds, axisBox, stackedArea, legend} = this
+        const {chart, bounds, axisBox, legend, transform} = this
         return <g className="StackedArea">
             <StandardAxisBoxView axisBox={axisBox} chart={chart}/>
-            <StackedAreaView stackedArea={stackedArea}/>
             {legend && <HeightedLegendView legend={legend} x={bounds.right-legend.width} yScale={axisBox.yScale} focusKeys={[]}/>}
+            <Areas xScale={axisBox.xScale} yScale={axisBox.yScale} data={transform.stackedData}/>
         </g>
     }
 }
