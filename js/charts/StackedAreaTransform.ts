@@ -6,6 +6,8 @@ import DataKey from './DataKey'
 import {StackedAreaSeries, StackedAreaValue} from './StackedArea'
 import AxisSpec from './AxisSpec'
 
+
+
 // Responsible for translating chart configuration into the form
 // of a stacked area chart
 export default class StackedAreaTransform {
@@ -24,7 +26,7 @@ export default class StackedAreaTransform {
 		this.chart.props.stackMode = value ? 'relative' : 'absolute'
 	}
 
-	@computed get groupedData(): StackedAreaSeries[] {
+	@computed get initialData(): StackedAreaSeries[] {
 		const {chart} = this
 		const {timeDomain, yAxis, addCountryMode} = chart
         const {filledDimensions, selectedKeysByKey} = chart.data
@@ -64,6 +66,35 @@ export default class StackedAreaTransform {
 
 			chartData = chartData.concat([...seriesByKey.values()]);
 		});
+
+		return chartData
+	}
+
+	@computed get groupedData(): StackedAreaSeries[] {
+		let chartData = _.cloneDeep(this.initialData)
+
+		// Ensure that every series has a value entry for every year in the data
+		// Even if that value is just 0
+		// Stacked area charts with incomplete data will fail to render otherwise
+		var allYears: {[key: number]: boolean} = {};
+		var yearsForSeries: {[key: string]: {[key: number]: boolean}} = {};
+
+		chartData.forEach(series => {
+			yearsForSeries[series.key] = {}
+			series.values.forEach(d => {
+				allYears[d.x] = true
+				yearsForSeries[series.key][d.x] = true
+			})
+		})
+
+		chartData.forEach(series => {
+			_(allYears).keys().each(yearS => {
+				const year = parseInt(yearS)
+				if (!yearsForSeries[series.key][year])
+					series.values.push({ x: year, y: 0, time: year, fake: true })
+			})
+			series.values = _.sortBy(series.values, function(d) { return d.x; });
+		})
 
         return chartData
 	}
@@ -119,36 +150,9 @@ export default class StackedAreaTransform {
         
         return _.extend(
             chart.yAxis.toSpec({ defaultDomain: yDomainDefault }),
-            { domain: isRelative ? [0, 100] : [yDomainDefault[0], chart.yAxis.domain[1]||yDomainDefault[1]],
+            { domain: isRelative ? [0, 100] : [yDomainDefault[0], yDomainDefault[1]], // Stacked area chart must have its own y domain
 			  tickFormat: isRelative ? (v: number) => v.toString()+"%" : chart.yAxis.tickFormat }
         ) as AxisSpec
     }
 
-	// Ensures that every series has a value entry for every year in the data
-	// Even if that value is just 0
-	// Stacked area charts with incomplete data will fail to render otherwise
-	/*zeroPadData(chartData) {
-		var allYears = {};
-		var yearsForSeries = {};
-
-		_.each(chartData, function(series) {
-			yearsForSeries[series.id] = {};
-			_.each(series.values, function(d, i) {
-				allYears[d.x] = true;
-				yearsForSeries[series.id][d.x] = true;
-			});
-		});
-
-		_.each(chartData, function(series) {
-			_.each(Object.keys(allYears), function(year) {
-				year = parseInt(year);
-				if (!yearsForSeries[series.id][year])
-					series.values.push({ x: year, y: 0, time: year, fake: true });
-			});
-
-			series.values = _.sortBy(series.values, function(d) { return d.x; });
-		});
-
-		return chartData;
-	}*/
 }

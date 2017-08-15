@@ -9,6 +9,7 @@ import {observable, computed, reaction} from 'mobx'
 import ChartConfig from '../charts/ChartConfig'
 import ChartType from '../charts/ChartType'
 import EditorVariable from './EditorVariable'
+import EditorFeatures from './EditorFeatures'
 import Admin from './Admin'
 import * as _ from 'lodash'
 
@@ -23,7 +24,7 @@ export interface ChartEditorProps {
 	data: EditorData
 }
 
-export type EditorTab = 'basic'|'data'|'axis'|'styling'|'map'|'scatter'
+export type EditorTab = 'data'|'basic'|'axis'|'styling'|'map'|'scatter'
 
 export default class ChartEditor {
     @observable.ref chart: ChartConfig
@@ -48,6 +49,10 @@ export default class ChartEditor {
 
 	@computed get variablesById() {
 		return _.keyBy(this.data.variables, v => v.id)
+	}
+
+	@computed get features() {
+		return new EditorFeatures(this)
 	}
 
 	load<T>(promise: Promise<T>) {

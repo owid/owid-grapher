@@ -1,15 +1,15 @@
 import * as React from 'react'
 import {computed, action} from 'mobx'
 import {observer} from 'mobx-react'
-import ChartConfig from '../charts/ChartConfig'
+import ChartEditor from './ChartEditor'
 import {AxisConfigProps} from '../charts/AxisConfig'
 import {toString} from 'lodash'
 import {TextField, NumberField, SelectField, Toggle} from './Forms'
 
 @observer
-export default class EditorAxisTab extends React.Component<{ chart: ChartConfig }> {
-	@computed get xAxis() { return this.props.chart.xAxis.props }
-	@computed get yAxis() { return this.props.chart.yAxis.props }
+export default class EditorAxisTab extends React.Component<{ editor: ChartEditor }> {
+	@computed get xAxis() { return this.props.editor.chart.xAxis.props }
+	@computed get yAxis() { return this.props.editor.chart.yAxis.props }
 
 	renderForAxis(axisName: string, axis: AxisConfigProps) {
 		return <div>
@@ -27,11 +27,12 @@ export default class EditorAxisTab extends React.Component<{ chart: ChartConfig 
 
 	render() {
 		const {xAxis, yAxis} = this
+		const {features} = this.props.editor
 
 		return <div className="tab-pane">
 			<section>
-				{this.renderForAxis('Y', yAxis)}
-				{this.renderForAxis('X', xAxis)}
+				{features.customYAxis && this.renderForAxis('Y', yAxis)}
+				{features.customXAxis && this.renderForAxis('X', xAxis)}
 			</section>
 		</div>
 	}

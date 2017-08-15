@@ -98,9 +98,9 @@ export default class ChartEditorView extends React.Component<{ editor: ChartEdit
 					</ul>
 				</div>
 				<div>
-					{editor.tab == 'basic' && <EditorBasicTab chart={chart}/>}
 					{editor.tab == 'data' && <EditorDataTab editor={editor}/>}
-					{editor.tab == 'axis' && <EditorAxisTab chart={chart}/>}
+					{editor.tab == 'basic' && <EditorBasicTab chart={chart}/>}
+					{editor.tab == 'axis' && <EditorAxisTab editor={editor}/>}
 					{editor.tab == 'styling' && <EditorStylingTab chart={chart}/>}
 					{editor.tab == 'scatter' && <EditorScatterTab chart={chart}/>}
 					{editor.tab == 'map' && <EditorMapTab editor={editor}/>}

@@ -156,7 +156,7 @@ class AbsRelToggle extends React.Component<{ chart: ChartConfig }> {
 export default class ControlsFooter extends React.Component<ControlsFooterProps> {
     @computed get height() {
         const height = Bounds.forText("CHART", { fontSize: 16*this.props.chartView.scale +'px' }).height*2
-        if (this.props.chartView.isPortrait)
+        if (this.props.chartView.isPortrait && this.props.chart.tab == 'chart')
             return height*2
         else
             return height
@@ -185,13 +185,6 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps>
         const {chart, chartView} = props
 
         return <div className="controlsFooter">
-            {chart.tab == 'chart' && <div className="extraControls">          
-                {chart.data.availableKeys.length > 1 && <button onClick={this.onDataSelect}>
-                    <i className="fa fa-plus"/> Add data
-                </button>}
-                {chart.type == ChartType.ScatterPlot && chart.highlightToggle && <HighlightToggle chart={chart} highlightToggle={chart.highlightToggle}/>}
-                {chart.type == ChartType.StackedArea && <AbsRelToggle chart={chart}/>}
-            </div>}
             <nav className="tabs">
                 <ul>
                     {_.map(chart.availableTabs, (tabName) => {
@@ -204,6 +197,13 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps>
                     {props.chartView.isEmbed && <li className="clickable icon"><a title="Open chart in new tab" href={this.linkUrl} target="_blank"><i className="fa fa-expand"/></a></li>}
                 </ul>
             </nav>
+            {chart.tab == 'chart' && <div className="extraControls">          
+                {chart.data.availableKeys.length > 1 && <button onClick={this.onDataSelect}>
+                    <i className="fa fa-plus"/> Add data
+                </button>}
+                {chart.type == ChartType.ScatterPlot && chart.highlightToggle && <HighlightToggle chart={chart} highlightToggle={chart.highlightToggle}/>}
+                {chart.type == ChartType.StackedArea && <AbsRelToggle chart={chart}/>}
+            </div>}
             {isShareMenuActive && <ShareMenu chartView={this.props.chartView} chart={this.props.chart} onDismiss={() => this.isShareMenuActive = false}/>}
         </div>
     }

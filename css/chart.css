@@ -86,8 +86,8 @@ select.disabled {
 }
 
 /* Make World line slightly thicker */
-#chart svg .nv-group.World .nv-line {
-    stroke-width: 5 !important;
+#chart svg .key-World_0 polyline {
+    stroke-width: 2 !important;
 }
 
 .nv-group.World .nv-point {
@@ -189,6 +189,7 @@ a {
 #chart.landscape .controlsFooter {
     display: flex;
     justify-content: space-between;
+    flex-direction: row-reverse;
     align-items: center;
 }
 

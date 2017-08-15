@@ -174,9 +174,8 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         const {transform, bounds, axisBox, chart, timeline, timelineHeight, legend, focusKeys, focusColor, arrowLegend, hoverSeries, sidebarWidth, tooltipSeries, comparisonLine} = this
         const {currentData, sizeDomain} = transform
         return <g className="ScatterPlot">
-            <AxisBoxView axisBox={axisBox} onXScaleChange={this.onXScaleChange} onYScaleChange={this.onYScaleChange} highlightValue={hoverSeries && _.last(hoverSeries.values)}/>
+            <AxisBoxView axisBox={axisBox} onXScaleChange={this.onXScaleChange} onYScaleChange={this.onYScaleChange}/>
             {comparisonLine && <ComparisonLine axisBox={axisBox} comparisonLine={comparisonLine}/>}
-            {tooltipSeries && <AxisBoxHighlight axisBox={axisBox} value={_.last(tooltipSeries.values) as ScatterValue}/>}
             <PointsWithLabels data={currentData} bounds={axisBox.innerBounds} xScale={axisBox.xScale} yScale={axisBox.yScale} sizeDomain={sizeDomain} onSelectEntity={this.onSelectEntity} focusKeys={focusKeys} onMouseOver={this.onScatterMouseOver} onMouseLeave={this.onScatterMouseLeave}/>
             <ScatterColorLegend {...legend.props} x={bounds.right-sidebarWidth} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} onClick={this.onLegendClick} focusColor={focusColor}/>
             {arrowLegend && <line x1={bounds.right-sidebarWidth} y1={bounds.top+legend.height+2} x2={bounds.right-5} y2={bounds.top+legend.height+2} stroke="#ccc"/>}

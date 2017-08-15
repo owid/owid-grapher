@@ -9,7 +9,7 @@ def remove_country_time_title(apps, schema_editor):
     with transaction.atomic():
         for chart in Chart.objects.all():
             title = chart.name
-            newtitle = title.replace(", *time*", "").replace("from *time*", "").replace("in *time*", "").replace(" *time*", "").replace("*country* – ", "").replace(" in *country*", "").replace(", *country*", "").replace(" *country*", "")
+            newtitle = title.replace(", *time*", "").replace(" from *time*", "").replace(" in *time*", "").replace(" *time*", "").replace("*country* – ", "").replace(" in *country*", "").replace(", *country*", "").replace(" *country*", "")
             if title != newtitle:
                 print(title)
                 print(newtitle)

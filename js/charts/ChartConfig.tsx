@@ -88,7 +88,7 @@ export class ChartConfigProps {
     @observable.ref highlightToggle: HighlightToggleConfig|undefined
     @observable.ref lineType: LineType = LineType.WithDots
     @observable.ref lineTolerance?: number = undefined
-    @observable.ref stackMode: string = 'expanded'
+    @observable.ref stackMode: string = 'absolute'
     @observable.ref hideLegend?: true = undefined
 
     @observable.ref hasChartTab: boolean = true
@@ -232,6 +232,7 @@ export default class ChartConfig {
         this.props.lineType = props["line-type"]
         this.props.lineTolerance = parseInt(props["line-tolerance"]) || 1
         this.props.hideLegend = props["hide-legend"]
+        this.props.stackMode = props["currentStackMode"]
         
         this.variableCacheTag = props["variableCacheTag"]
     }
