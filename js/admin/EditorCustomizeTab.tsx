@@ -55,10 +55,10 @@ export default class EditorCustomizeTab extends React.Component<{ editor: ChartE
 			{(features.hideLegend || features.stackedArea) && <section className="legend-section">
 				<h2>Legend</h2>
 				{features.hideLegend && <Toggle label={`Hide legend`} value={!!chart.hideLegend} onValue={(value) => chart.props.hideLegend = value||undefined}/>}
-				{features.stackedArea && <label className="clickable">
+				{/*features.stackedArea && <label className="clickable">
 					<input type="checkbox" name="hide-toggle" />
 					Hide absolute/relative toggle
-				</label>}
+				</label>*/}
 			</section>}
 			<section>
 				{features.customYAxis && this.renderForAxis('Y', yAxis)}

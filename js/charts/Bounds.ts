@@ -84,7 +84,7 @@ export default class Bounds {
         return bounds
     }
 
-    static debug(boundsArray: Bounds[], containerNode?: HTMLElement) {
+    static debugSVG(boundsArray: Bounds[], containerNode?: HTMLElement) {
         var container: any = containerNode ? d3.select(containerNode) : d3.select('svg');
 
         container.selectAll('rect.boundsDebug').remove()
@@ -99,6 +99,23 @@ export default class Bounds {
                 .attr('class', 'boundsDebug')
                 .style('fill', 'rgba(0,0,0,0)')
                 .style('stroke', 'red');
+    }
+
+    static debugHTML(boundsArray: Bounds[], containerNode?: HTMLElement) {
+        var container: any = containerNode ? d3.select(containerNode) : d3.select('#chart');
+
+        container.selectAll('div.boundsDebug').remove()
+
+        container.selectAll('div.boundsDebug')
+            .data(boundsArray).enter()
+            .append('div')
+				.style('position', 'absolute')
+                .style('left', (b: Bounds) => b.left + 'px')
+                .style('top', (b: Bounds) => b.top + 'px')
+                .style('width', (b: Bounds) => b.width + 'px')
+                .style('height', (b: Bounds) => b.height + 'px')
+                .attr('class', 'boundsDebug')
+                .style('border', '1px solid red');
     }
 
 	get left(): number { return this.x }

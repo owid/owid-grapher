@@ -15,7 +15,7 @@ export default class EditorFeatures {
     }
 
     @computed get customYAxis() {
-        return true
+        return this.chart.type != ChartType.StackedArea
     }
 
     @computed get customXAxis() {

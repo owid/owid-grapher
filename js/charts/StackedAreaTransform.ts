@@ -17,15 +17,6 @@ export default class StackedAreaTransform {
         this.chart = chart
     }
 
-	// Stacked area may display in either absolute or relative mode
-	@computed get isRelative(): boolean {
-		return this.chart.props.stackMode == 'relative'
-	}
-
-	set isRelative(value: boolean) {
-		this.chart.props.stackMode = value ? 'relative' : 'absolute'
-	}
-
 	@computed get initialData(): StackedAreaSeries[] {
 		const {chart} = this
 		const {timeDomain, yAxis, addCountryMode} = chart
@@ -67,12 +58,6 @@ export default class StackedAreaTransform {
 			chartData = chartData.concat([...seriesByKey.values()]);
 		});
 
-		return chartData
-	}
-
-	@computed get groupedData(): StackedAreaSeries[] {
-		let chartData = _.cloneDeep(this.initialData)
-
 		// Ensure that every series has a value entry for every year in the data
 		// Even if that value is just 0
 		// Stacked area charts with incomplete data will fail to render otherwise
@@ -96,7 +81,46 @@ export default class StackedAreaTransform {
 			series.values = _.sortBy(series.values, function(d) { return d.x; });
 		})
 
-        return chartData
+		return chartData
+	}
+
+	// It may be that the data being presented is already percentage-like, in which case
+	// offering a absolute/relative mode toggle would be redundant
+	@computed get isDataRelative(): boolean {
+		const {initialData} = this
+
+		if (initialData.length == 0)
+			return true
+			
+		let totals = []
+		for (var i = 0; i < initialData[0].values.length; i++) {
+			totals.push(_(initialData).map(series => series.values[i].y).sum())
+		}
+		return _.uniq(totals).length == 1
+	}
+
+	// Stacked area may display in either absolute or relative mode
+	@computed get isRelative(): boolean {
+		return this.chart.props.stackMode == 'relative'
+	}
+
+	set isRelative(value: boolean) {
+		this.chart.props.stackMode = value ? 'relative' : 'absolute'
+	}
+
+	@computed get groupedData(): StackedAreaSeries[] {
+		let groupedData = _.cloneDeep(this.initialData)
+
+		if (this.isRelative) {
+			for (var i = 0; i < groupedData[0].values.length; i++) {
+				const total = _(groupedData).map(series => series.values[i].y).sum() as number
+				for (var j = 0; j < groupedData.length; j++) {
+					groupedData[j].values[i].y = total == 0 ? 0 : (groupedData[j].values[i].y/total)*100
+				}
+			}
+		}
+
+        return groupedData
 	}
 
     @computed get allValues(): StackedAreaValue[] {
@@ -120,15 +144,6 @@ export default class StackedAreaTransform {
                 stackedData[i].values[j].y += stackedData[i-1].values[j].y
             }
         }
-
-		if (isRelative) {
-			for (var i = 0; i < stackedData[0].values.length; i++) {
-				const maxValue = _(stackedData).map(series => series.values[i].y).max() as number
-				for (var j = 0; j < stackedData.length; j++) {
-					stackedData[j].values[i].y = (stackedData[j].values[i].y/maxValue)*100
-				}
-			}
-		}
 
         return stackedData
     }

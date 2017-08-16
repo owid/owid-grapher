@@ -1,12 +1,13 @@
 import * as _ from 'lodash'
 import * as d3 from 'd3'
 import Bounds from './Bounds'
+import Vector2 from './Vector2'
 
 export type SVGElement = any;
 export type VNode = any;
 export const NullElement : any = (): null => null;
 
-export function getRelativeMouse(node: SVGElement, event: Object): [number, number] {
+export function getRelativeMouse(node: SVGElement, event: Object): Vector2 {
     let clientX, clientY
     if (_.isFinite((event as MouseEvent).clientX)) {
         clientX = (event as MouseEvent).clientX
@@ -22,11 +23,11 @@ export function getRelativeMouse(node: SVGElement, event: Object): [number, numb
     var point = svg.createSVGPoint();
     point.x = clientX, point.y = clientY;
     point = point.matrixTransform(node.getScreenCTM().inverse());
-    return [point.x, point.y];
+    return new Vector2(point.x, point.y);
   }
 
   var rect = node.getBoundingClientRect();
-  return [clientX - rect.left - node.clientLeft, clientY - rect.top - node.clientTop];
+  return new Vector2(clientX - rect.left - node.clientLeft, clientY - rect.top - node.clientTop);
 };
 
 // Create an instance of a JSX node before rendering

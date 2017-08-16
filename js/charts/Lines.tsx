@@ -79,7 +79,7 @@ export default class Lines extends React.Component<LinesProps> {
     }
 
     @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement>) {
-        const mouse = Vector2.fromArray(getRelativeMouse(this.base, ev))
+        const mouse = getRelativeMouse(this.base, ev)
         const {props, hoverData} = this
 
         const value = _.sortBy(hoverData, v => Vector2.distanceSq(v.pos, mouse))[0]

@@ -185,7 +185,7 @@ class NumericMapLegendView extends React.Component<{ legend: NumericMapLegend, x
         const {legend, props, bounds, base} = this
         const {minValue, rangeSize, focusBracket} = legend
         const mouse = getRelativeMouse(base, d3.event)
-        if (!this.bounds.containsPoint(mouse[0], mouse[1]))
+        if (!this.bounds.contains(mouse))
             if (focusBracket)
                 return this.props.onMouseLeave()
             else
@@ -193,7 +193,7 @@ class NumericMapLegendView extends React.Component<{ legend: NumericMapLegend, x
 
         let newFocusBracket = null
         legend.positionedBins.forEach(d => {
-            if (mouse[0] >= props.x+d.x && mouse[0] <= props.x+d.x+d.width)
+            if (mouse.x >= props.x+d.x && mouse.x <= props.x+d.x+d.width)
                 newFocusBracket = d.bin
         })
 

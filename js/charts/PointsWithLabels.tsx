@@ -373,7 +373,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
     @action.bound onMouseMove(ev: any) {
         requestAnimationFrame(() => {
-            const mouse = Vector2.fromArray(getRelativeMouse(this.base, ev))
+            const mouse = getRelativeMouse(this.base, ev)
 
             let closestSeries = _.sortBy(this.renderData, (series) => {
                 if (_.some(series.allLabels, l => !l.isHidden && l.bounds.contains(mouse)))

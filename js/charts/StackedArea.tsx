@@ -62,7 +62,7 @@ export class Areas extends React.Component<{ axisBox: AxisBox, data: StackedArea
     @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement>) {
         const {axisBox, data} = this.props
 
-        const mouse = Vector2.fromArray(getRelativeMouse(this.base, ev))
+        const mouse = getRelativeMouse(this.base, ev)
         
         if (axisBox.innerBounds.contains(mouse)) {
             const closestPoint = _.sortBy(data[0].values, d => Math.abs(axisBox.xScale.place(d.x) - mouse.x))[0]
@@ -176,7 +176,7 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
                 <tr>
                     <td>{refValue.x}</td>
                     <td>
-                        {!transform.isRelative && <span>
+                        {!transform.isRelative && !transform.isDataRelative && <span>
                             {transform.yAxis.tickFormat(transform.stackedData[transform.stackedData.length-1].values[hoverIndex].y)}
                         </span>}
                     </td>

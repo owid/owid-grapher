@@ -100,6 +100,14 @@ export default class ChartView extends React.Component<ChartViewProps> {
             return Math.min(this.containerBounds.width/this.renderWidth, this.containerBounds.height/this.renderHeight)
     }
 
+    @computed get targetWidth() {
+        return this.scale*this.renderWidth
+    }
+
+    @computed get targetHeight() {
+        return this.scale*this.renderHeight
+    }
+
     @computed get svgRenderBounds() {
         return (new Bounds(0, 0, this.renderWidth, this.renderHeight)).padBottom(this.isExport ? 0 : this.controlsFooter.height/this.scale)
     }
@@ -242,6 +250,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
 
     componentDidMount() {
         this.htmlNode = this.base
+        window.chartView = this
     }
 
     

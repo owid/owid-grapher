@@ -7,7 +7,7 @@ import {observer} from 'mobx-react'
 import ChoroplethMap, {ChoroplethData, ChoroplethDatum, GeoFeature, MapBracket, MapEntity} from './ChoroplethMap'
 import Timeline from './Timeline'
 import MapLegend from './MapLegend'
-import {preInstantiate, entityNameForMap} from './Util'
+import {getRelativeMouse, preInstantiate, entityNameForMap} from './Util'
 import Header from './Header'
 import SourcesFooter from './SourcesFooter'
 import ChartConfig from './ChartConfig'
@@ -36,12 +36,23 @@ class TimelineMap extends React.Component<TimelineMapProps> {
 
     context: { chartView: ChartView, chart: ChartConfig }
 
+    base: SVGGElement
     @action.bound onMapMouseOver(d: GeoFeature, ev: React.MouseEvent<SVGPathElement>) {
         const datum = d.id == undefined ? undefined : this.props.choroplethData[d.id]
         this.focusEntity = { id: d.id, datum: datum || { value: "No data" } }
+        const {chart} = this.context
 
-        if (datum)
-            this.tooltip = <Tooltip x={ev.pageX} y={ev.pageY} datum={datum} isFixed={true}/>
+        const mouse = getRelativeMouse(this.base, ev)
+        if (datum) {
+            this.tooltip = <Tooltip x={mouse.x} y={mouse.y}>
+                <h3>{datum.entity}</h3>
+                <p>
+                    <span>{chart.yAxis.tickFormat(datum.value as number)}</span><br/>
+                    in<br/>
+                    <span>{datum.year}</span>
+                </p>
+            </Tooltip>
+        }
     }
 
     @action.bound onMapMouseLeave() {

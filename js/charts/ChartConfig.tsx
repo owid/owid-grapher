@@ -99,6 +99,7 @@ export class ChartConfigProps {
     @observable.ref logosSVG: string[] = []
     @observable.ref originUrl?: string = undefined
     @observable.ref isPublished?: true = undefined
+    @observable.ref baseColorScheme?: string = undefined
 
     @observable map?: MapConfigProps = undefined
 }
@@ -129,7 +130,8 @@ export default class ChartConfig {
     @computed get hasChartTab() { return this.props.hasChartTab }
     @computed get hasMapTab() { return this.props.hasMapTab }
     @computed get hideLegend() { return this.props.hideLegend }
-
+    @computed get baseColorScheme() { return this.props.baseColorScheme }
+    
     set timeDomain(value) { this.props.timeDomain = value }
     set tab(value) { this.props.tab = value }
 

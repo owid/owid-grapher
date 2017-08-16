@@ -196,7 +196,7 @@ export default class Timeline extends React.Component<TimelineProps> {
 
 	getInputYearFromMouse(evt: MouseEvent) {
 		const { sliderBounds, minYear, maxYear, base } = this
-        const mouseX = getRelativeMouse(base, evt)[0]
+        const mouseX = getRelativeMouse(base, evt).x
 
         var fracWidth = (mouseX-sliderBounds.x) / sliderBounds.width,
             inputYear = minYear + fracWidth*(maxYear-minYear);
