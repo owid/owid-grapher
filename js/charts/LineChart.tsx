@@ -46,7 +46,6 @@ export interface LineChartSeries {
 @observer
 export default class LineChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
     base: SVGGElement
-    @observable.ref tooltip: React.ReactNode|null
 
     @computed get chart() { return this.props.chart }
     @computed get bounds() { return this.props.bounds }
@@ -66,7 +65,7 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
     @computed get legend(): HeightedLegend|undefined {
         if (this.chart.hideLegend)
             return undefined
-            
+
         const _this = this
         return new HeightedLegend({
             get maxWidth() { return _this.bounds.width/3 },
@@ -84,6 +83,20 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
 
     @computed get focusKeys(): DataKey[] {
         return this.hoverTarget ? [this.hoverTarget.series.key] : this.chart.data.selectedKeys
+    }
+
+    @computed get tooltip() {
+        const {hoverTarget, chart} = this
+        if (hoverTarget == null) return undefined
+
+        return <Tooltip x={hoverTarget.pos.x} y={hoverTarget.pos.y}>
+            <h3>{chart.data.formatKey(hoverTarget.series.key)}</h3>
+            <p>
+                <span>{chart.yAxis.tickFormat(hoverTarget.value.y)}</span><br/>
+                in<br/>
+                <span>{hoverTarget.value.x}</span>
+            </p>
+        </Tooltip>
     }
 
     render() {
