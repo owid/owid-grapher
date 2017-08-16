@@ -5,11 +5,51 @@ import ChartConfig from './ChartConfig'
 import {computed, reaction} from 'mobx'
 import Color from './Color'
 
+export default class ColorBinder {
+	chart: ChartConfig
+	constructor(props: { chart: ChartConfig }) {
+		this.chart = props.chart
+	}
+
+    @computed get colorScale() {
+        return d3.scaleOrdinal().range(["#3360a9", "#ca2628", "#34983f", "#ed6c2d", "#df3c64", "#a85a4a", "#e6332e", "#6bb537", "#ffd53e", "#f07f59", "#b077b1", "#932834", "#674c98", "#5eb77e", "#f6a324", "#2a939b", "#818282", "#7ec7ce", "#fceb8c", "#cfcd1e", "#58888f", "#ce8ebd", "#9ecc8a", "#db2445", "#f9bc8f", "#d26e66", "#c8c8c8"])
+    }
+
+	getColorForKey(key: string) {
+		options = _.extend({ canVary: true }, options);
+		color = color || this.colorScale(this.colorIndex.toString());
+
+		// Unless the color is manually fixed, we lighten on collision
+		var colorIsTaken = _.includes(_.values(this.colorCache), color);
+		if (colorIsTaken && options.canVary) {
+			var c = d3.rgb(color),
+				magnitude = (c.r+c.g+c.b)/(255*3),
+				newColor;
+
+			//if (magnitude > 0.5)
+			//	newColor = d3.rgb(color).darker().toString();
+			//else
+				newColor = d3.rgb(color).brighter().toString();
+
+			if (newColor != color && newColor != "#ffffff" && newColor != "#000000")
+				return this.assignColorForKey(key, newColor, options);
+		}
+
+		if (!this.colorCache[key]) {
+			this.colorCache[key] = color || this.colorScale(this.colorIndex.toString());
+			this.colorIndex += 1;
+		}
+
+		return this.colorCache[key];
+	}
+
+}
+
 /**
  * This model handles the assignment and distribution of colors for
  * different entities and chart types.
  */
-export default class ColorBinder {
+export class ColorBinderOld {
 	static basicScheme = ["#3360a9", "#ca2628", "#34983f", "#ed6c2d", "#df3c64", "#a85a4a", "#e6332e", "#6bb537", "#ffd53e", "#f07f59", "#b077b1", "#932834", "#674c98", "#5eb77e", "#f6a324", "#2a939b", "#818282", "#7ec7ce", "#fceb8c", "#cfcd1e", "#58888f", "#ce8ebd", "#9ecc8a", "#db2445", "#f9bc8f", "#d26e66", "#c8c8c8"]
 
     chart: ChartConfig

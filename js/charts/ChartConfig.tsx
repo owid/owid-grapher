@@ -149,7 +149,6 @@ export default class ChartConfig {
     vardata: VariableData
     data: ChartData
     url: URLBinder
-    colors: ColorBinder
 
 	// Get the dimension slots appropriate for this type of chart
 	@computed get emptyDimensionSlots(): DimensionSlot[] {
@@ -274,7 +273,6 @@ export default class ChartConfig {
         this.vardata = new VariableData(this)
         this.data = new ChartData(this)
         this.url = new URLBinder(this)
-        this.colors = new ColorBinder(this)
 
         window.chart = this
 

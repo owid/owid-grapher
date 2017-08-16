@@ -7,6 +7,7 @@ import {StackedAreaSeries, StackedAreaValue} from './StackedArea'
 import AxisSpec from './AxisSpec'
 import {defaultTo} from './Util'
 import {DimensionWithData} from './ChartData'
+import ColorBinder from './ColorBinder'
 
 // Responsible for translating chart configuration into the form
 // of a line chart
@@ -17,8 +18,15 @@ export default class LineChartTransform {
         this.chart = chart
     }
 
+    @computed get colors() {
+        const _this = this
+        return new ColorBinder({
+            get chart() { return _this.chart }
+        })
+    }
+
 	@computed get initialData(): StackedAreaSeries[] {
-		const {chart} = this
+		const {chart, colors} = this
 		const {timeDomain, yAxis, addCountryMode} = chart
         const {filledDimensions, selectedKeysByKey} = chart.data
 
@@ -47,7 +55,7 @@ export default class LineChartTransform {
 						values: [],
 						key: datakey,
 						isProjection: dimension.isProjection,
-                        color: chart.colors.assignColorForKey(datakey)
+                        color: colors.getColorForKey(datakey)
 					};
 					seriesByKey.set(datakey, series);
 				}

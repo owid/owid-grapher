@@ -223,7 +223,7 @@ class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
 	render() {
 		const {chart} = this.props
 		const colorSchemes = ['default']
-		return <SelectField label="Color scheme" value={chart.baseColorScheme} onValue={this.onValue} options={colorSchemes}/>
+		return <SelectField label="Color scheme" value={chart.baseColorScheme||"default"} onValue={this.onValue} options={colorSchemes}/>
 	}
 }
 
