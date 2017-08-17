@@ -184,13 +184,18 @@ a {
     bottom: 0;
     border-top: 1px solid #e1e1e1;
     z-index: 2;
-}
-
-#chart.landscape .controlsFooter {
     display: flex;
     justify-content: space-between;
-    flex-direction: row-reverse;
     align-items: center;
+    flex-direction: row-reverse;
+}
+
+#chart.portrait .controlsFooter {
+    flex-direction: column-reverse;
+}
+
+#chart.portrait .controlsFooter > * {
+    width: 100%;
 }
 
 #chart.portrait .extraControls {
@@ -370,7 +375,7 @@ a {
 /* Tooltips
 --------------------------------------------- */
 
-#chart .owid-tooltip {
+/*#chart .owid-tooltip {
     font-size: 1em;
     background: white;
     border: 1px solid rgba(0, 0, 0, 0.2);
@@ -390,34 +395,7 @@ a {
     font-size: 0.8em;
     padding: 0.3em 0.9em;
     margin: 0;
-}
-#chart .owid-tooltip .var-popup-value {
-    display: block;
-}
-
-.nvtooltip {
-    background-color: white;
-    color: black;
-    border: 1px solid rgba(0, 0, 0, 0.2);
-    border-radius: 0;
-    box-shadow: none;
-}
-.nvtooltip table tbody,
-.nvtooltip table td {
-    border: 0;
-}
-.nvtooltip h3 {
-    padding: 0.3em 0.9em;
-    font-size: 20px;
-    margin-top: 0 !important;
-}
-.nvtooltip p {
-    font-size: 16px;
-    padding: 0.3em 0.9em;
-}
-.nvtooltip .var-popup-value {
-    display: block;
-}
+}*/
 /* Chart Tab
 --------------------------------------------- */
 

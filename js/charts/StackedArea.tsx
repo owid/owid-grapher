@@ -172,18 +172,18 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
         const refValue = transform.stackedData[0].values[hoverIndex]
 
         return <Tooltip x={axisBox.xScale.place(refValue.x)} y={axisBox.yScale.rangeMin + axisBox.yScale.rangeSize/2}>
-            <table>
+            <table style={{fontSize: "0.9em", lineHeight: "1.4em"}}>
                 <tr>
-                    <td>{refValue.x}</td>
+                    <td><strong>{refValue.x}</strong></td>
                     <td>
                         {!transform.isRelative && !transform.isDataRelative && <span>
-                            {transform.yAxis.tickFormat(transform.stackedData[transform.stackedData.length-1].values[hoverIndex].y)}
+                            <strong>{transform.yAxis.tickFormat(transform.stackedData[transform.stackedData.length-1].values[hoverIndex].y)}</strong>
                         </span>}
                     </td>
                 </tr>
                 {_(transform.groupedData).clone().reverse().map(series => {
                     return <tr>
-                        <td>
+                        <td style={{paddingRight: "0.8em", fontSize: "0.9em"}}>
                             <div style={{width: '10px', height: '10px', backgroundColor: series.color, border: "1px solid #ccc", display: 'inline-block'}}/> {chart.data.formatKey(series.key)}
                         </td>
                         <td>{transform.yAxis.tickFormat(series.values[hoverIndex].y)}</td>
