@@ -189,12 +189,10 @@ class DataKeyItem extends React.Component<{ chart: ChartConfig, datakey: DataKey
 	@observable.ref isChoosingColor: boolean = false
 
 	@computed get datakey() { return this.props.datakey }
-	@computed get color() { return this.props.chart.keyColors[this.props.datakey] }
+	@computed get color() { return this.props.chart.data.keyColors[this.props.datakey] }
 
-	@action.bound onColor(color: Color) {
-		const keyColors = _.clone(this.props.chart.keyColors)
-		keyColors[this.datakey] = color
-		this.props.chart.props.keyColors = keyColors
+	@action.bound onColor(color: Color|undefined) {
+		this.props.chart.data.setKeyColor(this.datakey, color)
 	}
 
 	@action.bound onRemove(ev: React.MouseEvent<HTMLSpanElement>) {

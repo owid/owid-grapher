@@ -6,9 +6,11 @@ import VariableData, {Variable} from './VariableData'
 import DataKey from './DataKey'
 import {bind} from 'decko'
 import {LineChartSeries} from './LineChart'
+import Color from './Color'
 
 export interface DataKeyInfo {
 	entity: string 
+	entityId: number
 	index: number 
 	key: string
 	fullLabel: string
@@ -62,7 +64,7 @@ export default class ChartData {
 		return _.keyBy(this.filledDimensions, 'property')
 	}
 
-	@computed get selectedKeys(): DataKey[] {
+	@computed get selectionData(): { key: DataKey, color?: Color }[] {
 		const {chart, vardata} = this
 		const validSelections = _.filter(chart.props.selectedData, sel => {
 			// Must be a dimension that's on the chart
@@ -76,11 +78,41 @@ export default class ChartData {
 
 			return true
 		})
-		return _.map(validSelections, sel => this.keyFor(vardata.entityMetaById[sel.entityId].name, sel.index))
+		return _.map(validSelections, sel => {
+			return {
+				key: this.keyFor(vardata.entityMetaById[sel.entityId].name, sel.index),
+				color: sel.color
+			}
+		})
+	}
+
+	@computed get selectedKeys(): DataKey[] {
+		return this.selectionData.map(d => d.key)
+	}
+
+	@computed get keyColors(): {[datakey: string]: Color|undefined}{
+		const keyColors: {[datakey: string]: Color|undefined} = {}
+		this.selectionData.forEach(d => keyColors[d.key] = d.color)
+		return keyColors
+	}
+
+	setKeyColor(datakey: DataKey, color: Color|undefined) {
+		const meta = this.lookupKey(datakey)
+		const selectedData = _.cloneDeep(this.chart.props.selectedData)
+		selectedData.forEach(d => {
+			if (d.entityId == meta.entityId && d.index == meta.index) {
+				d.color = color
+			}
+		})
+		this.chart.props.selectedData = selectedData
 	}
 
 	@computed get selectedEntities(): string[] {
 		return _(this.selectedKeys).map(key => this.lookupKey(key).entity).uniq().value()
+	}
+
+	@computed get availableEntities(): string[] {
+		return _(this.availableKeys).map(key => this.lookupKey(key).entity).uniq().value()
 	}
 
 	// Map keys back to their components for storage
@@ -139,6 +171,7 @@ export default class ChartData {
 
 				keyData.set(key, {
 					key: key,
+					entityId: entityMeta.id,
 					entity: entity,
 					index: index,
 					fullLabel: fullLabel,
@@ -149,6 +182,14 @@ export default class ChartData {
 		})
 
 		return keyData
+	}
+
+	@computed get canAddData(): boolean {
+		return this.chart.addCountryMode == "add-country" && this.availableKeys.length > 1
+	}
+
+	@computed get canChangeEntity(): boolean {
+		return this.chart.addCountryMode == "change-country" && this.availableEntities.length > 1
 	}
 
 	@computed.struct get availableKeys(): DataKey[] {

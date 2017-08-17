@@ -8,12 +8,12 @@ import AxisSpec from './AxisSpec'
 import {defaultTo} from './Util'
 import {DimensionWithData} from './ChartData'
 import ColorBinder from './ColorBinder'
+import ColorSchemes from './ColorSchemes'
 
 // Responsible for translating chart configuration into the form
 // of a line chart
 export default class LineChartTransform {
     chart: ChartConfig
-
     constructor(chart: ChartConfig) {
         this.chart = chart
     }
@@ -21,7 +21,8 @@ export default class LineChartTransform {
     @computed get colors() {
         const _this = this
         return new ColorBinder({
-            get chart() { return _this.chart }
+            get chart() { return _this.chart },
+            get colorScheme() { return _.last(ColorSchemes['owid-distinct'].colors) as Color[] }
         })
     }
 

@@ -99,7 +99,7 @@ export default class Header {
         let title: TextWrap
         let fontSize = 1.25
         while (true) {
-            title = new TextWrap({ maxWidth: props.maxWidth-logo.width-10, fontSize: fontSize, text: titleText, lineHeight: 1 })
+            title = new TextWrap({ maxWidth: props.maxWidth-logo.width-15, fontSize: fontSize, text: titleText, lineHeight: 1 })
             if (fontSize <= 0.9 || title.lines.length <= 1)
                 break
             fontSize -= 0.05

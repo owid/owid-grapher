@@ -14,7 +14,6 @@ import ChartType from './ChartType'
 import {getQueryParams} from './Util'
 import ChartView from './ChartView'
 import {HighlightToggleConfig} from './ChartConfig'
-import DataSelector from './DataSelector'
 
 declare const Global: any
 declare const App: any
@@ -198,9 +197,14 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps>
                 </ul>
             </nav>
             {chart.tab == 'chart' && <div className="extraControls">          
-                {chart.data.availableKeys.length > 1 && <button onClick={this.onDataSelect}>
+                {chart.data.canAddData && <button onClick={this.onDataSelect}>
                     <i className="fa fa-plus"/> Add data
                 </button>}
+
+                {chart.data.canChangeEntity && <button onClick={this.onDataSelect}>
+                    <i className="fa fa-exchange"/> Change entity
+                </button>}
+                
                 {chart.type == ChartType.ScatterPlot && chart.highlightToggle && <HighlightToggle chart={chart} highlightToggle={chart.highlightToggle}/>}
                 {chart.type == ChartType.StackedArea && !chart.stackedArea.isDataRelative && <AbsRelToggle chart={chart}/>}
             </div>}

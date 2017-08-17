@@ -2,9 +2,9 @@ import * as React from 'react'
 import * as _ from 'lodash'
 import Color from '../charts/Color'
 import {bind} from 'decko'
-import ColorBinder from '../charts/ColorBinder'
 import {observable} from 'mobx'
 import {TextField} from './Forms'
+import ColorSchemes from '../charts/ColorSchemes'
 
 export interface ColorpickerProps {
     color: Color
@@ -16,7 +16,7 @@ export default class Colorpicker extends React.Component<ColorpickerProps> {
     base: HTMLDivElement
 
     render() {
-        const availableColors: Color[] = ColorBinder.basicScheme
+        const availableColors: Color[] = _.last(ColorSchemes['owid-distinct'].colors) as Color[]
 
         return <div className="popup-picker-wrapper" tabIndex={0} onClick={e => e.stopPropagation()}>
             <a href='#' className='close-btn pull-right' onClick={this.props.onClose}>

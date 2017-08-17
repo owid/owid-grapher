@@ -5,9 +5,11 @@ import Color from './Color'
 import DataKey from './DataKey'
 import {StackedAreaSeries, StackedAreaValue} from './StackedArea'
 import AxisSpec from './AxisSpec'
+import ColorSchemes from './ColorSchemes'
+import ColorBinder from './ColorBinder'
+import * as d3_chromatic from 'd3-scale-chromatic'
 
-
-
+window.d3_chromatic = d3_chromatic
 // Responsible for translating chart configuration into the form
 // of a stacked area chart
 export default class StackedAreaTransform {
@@ -17,10 +19,23 @@ export default class StackedAreaTransform {
         this.chart = chart
     }
 
+	@computed get baseColorScheme() {
+		//return ["#9e0142","#d53e4f","#f46d43","#fdae61","#fee08b","#ffffbf","#e6f598","#abdda4","#66c2a5","#3288bd","#5e4fa2"]
+		return _.last(ColorSchemes['owid-distinct'].colors) as Color[]
+	}
+
+    @computed get colors() {
+        const _this = this
+        return new ColorBinder({
+            get chart() { return _this.chart },
+            get colorScheme() { return _this.baseColorScheme }
+        })
+    }
+
 	@computed get initialData(): StackedAreaSeries[] {
-		const {chart} = this
+		const {chart, colors} = this
 		const {timeDomain, yAxis, addCountryMode} = chart
-        const {filledDimensions, selectedKeysByKey} = chart.data
+        const {filledDimensions, selectedKeys, selectedKeysByKey} = chart.data
 
 		const timeFrom = _.defaultTo(timeDomain[0], -Infinity)
 		const timeTo = _.defaultTo(timeDomain[1], Infinity)
@@ -47,7 +62,7 @@ export default class StackedAreaTransform {
 						values: [],
 						key: datakey,
 						isProjection: dimension.isProjection,
-                        color: chart.colors.assignColorForKey(datakey)
+                        color: "#fff" // tmp
 					};
 					seriesByKey.set(datakey, series);
 				}
@@ -80,6 +95,10 @@ export default class StackedAreaTransform {
 			})
 			series.values = _.sortBy(series.values, function(d) { return d.x; });
 		})
+
+		// Preserve order and colorize
+		chartData = _.sortBy(chartData, series => -selectedKeys.indexOf(series.key))
+		chartData.forEach(series => series.color = colors.getColorForKey(series.key))
 
 		return chartData
 	}

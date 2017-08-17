@@ -57,6 +57,7 @@
   "dependencies": {
     "@types/colorbrewer": "^1.0.29",
     "@types/d3": "^4.8.0",
+    "@types/d3-scale-chromatic": "^1.0.2",
     "@types/expr-eval": "^1.0.2",
     "@types/jquery": "^2.0.42",
     "@types/js-cookie": "^2.0.28",
@@ -70,6 +71,7 @@
     "chrome-launcher": "^0.2.1",
     "chrome-remote-interface": "^0.22.0",
     "colorbrewer": "^1.0.0",
+    "d3-scale-chromatic": "^1.1.1",
     "dataframe-js": "^1.2.2",
     "expr-eval": "^1.0.1",
     "immutable": "^3.8.1",

@@ -78,7 +78,6 @@ export class ChartConfigProps {
 
     @observable.ref selectedData: EntitySelection[] = []
     @observable.struct timeDomain: [number|null, number|null]
-    @observable.struct keyColors: {[key: string]: string} = {}
 
     @observable.struct dimensions: ChartDimension[] = []
     @observable.ref addCountryMode: 'add-country'|'change-country'|'disabled' = 'add-country'
@@ -119,7 +118,6 @@ export default class ChartConfig {
     @computed get originUrl() { return defaultTo(this.props.originUrl, "") }
     @computed get isPublished() { return defaultTo(this.props.isPublished, false) }
     @computed get timeDomain() { return this.props.timeDomain }
-    @computed get keyColors() { return this.props.keyColors }
     @computed get tab() { return this.props.tab }
     @computed get lineType() { return defaultTo(this.props.lineType, LineType.WithDots) }
     @computed get lineTolerance() { return defaultTo(this.props.lineTolerance, 1) }

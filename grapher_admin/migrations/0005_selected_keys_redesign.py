@@ -17,11 +17,13 @@ def selectedKeysRedesign(apps, schema_editor):
 
             selection = []
 
-            for entity in config['selected-countries']:
+            for entity in reversed(sorted(config['selected-countries'], key=lambda e: int(e['id']))):
                 for i, dim in enumerate(mainDimensions):
                     sel = { 'entityId': int(entity['id']), 'index': i }
                     if 'color' in entity:
                         sel['color'] = entity['color']
+                    elif 'color' in dim:
+                        sel['color'] = dim['color']
                     selection.append(sel)
 
             print(config['selected-countries'])
