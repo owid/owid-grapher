@@ -1,4 +1,5 @@
 import {computed} from 'mobx'
+import * as d3 from 'd3'
 import * as _ from 'lodash'
 import ChartConfig from './ChartConfig'
 import Color from './Color'
@@ -8,6 +9,7 @@ import AxisSpec from './AxisSpec'
 import ColorSchemes from './ColorSchemes'
 import ColorBinder from './ColorBinder'
 import * as d3_chromatic from 'd3-scale-chromatic'
+import {formatValue} from './Util'
 
 window.d3_chromatic = d3_chromatic
 // Responsible for translating chart configuration into the form
@@ -54,6 +56,8 @@ export default class StackedAreaTransform {
 
 				// Not a selected key, don't add any data for it
 				if (!selectedKeysByKey[datakey]) continue;
+				// Must be numeric
+				if (isNaN(value)) continue;
 				// Check for time range
 				if (year < timeFrom || year > timeTo) continue;
 
@@ -108,7 +112,7 @@ export default class StackedAreaTransform {
 	@computed get isDataRelative(): boolean {
 		const {initialData} = this
 
-		if (initialData.length == 0)
+		if (initialData.length == 0)// || (this.yDimensionFirst && this.yDimensionFirst.variable.shortUnit == "%"))
 			return true
 			
 		let totals = []
@@ -179,13 +183,19 @@ export default class StackedAreaTransform {
         ) as AxisSpec
     }
 
+    @computed get yDimensionFirst() {
+        return _.find(this.chart.data.filledDimensions, { property: 'y' })
+    }
+		
     @computed get yAxis(): AxisSpec {
-        const {chart, yDomainDefault, isRelative} = this
-        
+        const {chart, yDomainDefault, isRelative, yDimensionFirst} = this
+		const variable = yDimensionFirst && yDimensionFirst.variable
+		const tickFormat = variable ? (d: number) => formatValue(d, { unit: variable.shortUnit }) : _.identity
+
         return _.extend(
             chart.yAxis.toSpec({ defaultDomain: yDomainDefault }),
             { domain: isRelative ? [0, 100] : [yDomainDefault[0], yDomainDefault[1]], // Stacked area chart must have its own y domain
-			  tickFormat: isRelative ? (v: number) => v.toString()+"%" : chart.yAxis.tickFormat }
+			  tickFormat: isRelative ? (v: number) => formatValue(v, { unit: "%" }) : tickFormat }
         ) as AxisSpec
     }
 

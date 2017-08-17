@@ -69,9 +69,9 @@ export class Variable {
 		return this.hasNumericValues && !this.hasCategoricalValues		
 	}
 
-	@computed get shortUnit(): string|null {
+	@computed get shortUnit(): string|undefined {
 		const {unit} = this
-		if (!unit) return null
+		if (!unit) return undefined
 
 		if (unit.length < 3)
 			return unit
@@ -80,7 +80,7 @@ export class Variable {
 			if (_.some(commonShortUnits, u => unit[0] == u))
 				return unit[0]
 			else
-				return null
+				return undefined
 		}
 	}
 

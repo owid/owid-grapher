@@ -85,13 +85,13 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
     }
 
     @computed get tooltip() {
-        const {hoverTarget, chart} = this
+        const {hoverTarget, chart, transform} = this
         if (hoverTarget == null) return undefined
 
         return <Tooltip x={hoverTarget.pos.x} y={hoverTarget.pos.y}>
             <h3>{chart.data.formatKey(hoverTarget.series.key)}</h3>
             <p>
-                <span>{chart.yAxis.tickFormat(hoverTarget.value.y)}</span><br/>
+                <span>{transform.yAxis.tickFormat(hoverTarget.value.y)}</span><br/>
                 in<br/>
                 <span>{hoverTarget.value.x}</span>
             </p>

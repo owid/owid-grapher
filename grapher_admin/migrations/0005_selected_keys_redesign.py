@@ -14,12 +14,17 @@ def selectedKeysRedesign(apps, schema_editor):
                 continue
                 
             mainDimensions = [dim for dim in config['chart-dimensions'] if dim['property'] == 'y']
+            if config.get('group-by-variables'):
+                mainDimensions.reverse()
 
             selection = []
 
             for entity in reversed(sorted(config['selected-countries'], key=lambda e: int(e['id']))):
                 for i, dim in enumerate(mainDimensions):
-                    sel = { 'entityId': int(entity['id']), 'index': i }
+                    index = i
+                    if config.get('group-by-variables'):
+                        index = len(mainDimensions)-1-i
+                    sel = { 'entityId': int(entity['id']), 'index': index }
                     if 'color' in entity:
                         sel['color'] = entity['color']
                     elif 'color' in dim:

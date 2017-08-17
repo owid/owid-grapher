@@ -156,7 +156,7 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
     @computed get axisBox() {
         const {bounds, transform, legend} = this
         const {xAxis, yAxis} = transform
-        return new AxisBox({bounds: bounds.padRight(legend ? legend.width+5 : 0), xAxis, yAxis})
+        return new AxisBox({bounds: bounds.padRight(legend ? legend.width+5 : 20), xAxis, yAxis})
     }
 
     @observable hoverIndex: number

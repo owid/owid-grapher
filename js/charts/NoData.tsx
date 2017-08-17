@@ -1,6 +1,7 @@
 import * as React from 'react'
 import Bounds from './Bounds'
 import TextWrap from './TextWrap'
+
 export default class NoData extends React.Component<{bounds: Bounds, message?: string}> {
 	render() {
 		const {bounds, message} = this.props

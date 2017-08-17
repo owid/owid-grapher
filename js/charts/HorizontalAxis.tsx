@@ -71,11 +71,6 @@ export default class HorizontalAxis {
         })
     }
 
-    // Detect if some ticks are overlapping one another
-    @computed get hasTickCollision() {
-        return _.some(this.tickPlacements, t1 => _.some(this.tickPlacements, t2 => t1.bounds.intersects(t2.bounds)))
-    }
-
     @computed get ticks() : number[] {
         const {scale, labelOffset} = this
         const ticks = scale.getTickValues()
@@ -87,7 +82,7 @@ export default class HorizontalAxis {
             for (let j = 1; j < tickPlacements.length; j++) {
                 const t1 = tickPlacements[i], t2 = tickPlacements[j]
                 if (t1 == t2 || t1.isHidden || t2.isHidden) continue
-                if (t1.bounds.intersects(t2.bounds)) {
+                if (t1.bounds.intersects(t2.bounds.padWidth(-5))) {
                     if (i == 0) t2.isHidden = true
                     else if (j == tickPlacements.length-1) t1.isHidden = true
                     else t2.isHidden = true
