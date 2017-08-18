@@ -191,12 +191,13 @@ export default class VariableData {
 						variable.years.push(+spl[0]);
 						variable.entities.push(spl[1]);
 						const asNumber = parseFloat(spl[2])
-						if (asNumber.toString() == spl[2])
+						if (!isNaN(asNumber))
 							variable.values.push(asNumber)
 						else
 							variable.values.push(spl[2]);
 					}
 				});
+				console.log(variable.categoricalValues)
 			}
 		});
 

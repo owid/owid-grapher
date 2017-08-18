@@ -98,8 +98,7 @@ export default class ScatterTransform {
     // If there's no timeline, this uses the same structure but only computes for a single year
     @computed get dataByEntityAndYear() {
         const {chart, availableYears, colorScale, hideBackgroundEntities, validEntities} = this
-        const {keyColors} = chart
-        const {filledDimensions} = chart.data
+        const {filledDimensions, keyColors} = chart.data
         const validEntityLookup = _.keyBy(validEntities)
         
         let dataByEntityAndYear = new Map<string, Map<number, ScatterSeries>>()
