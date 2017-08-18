@@ -4,6 +4,7 @@ import ChartConfig from './ChartConfig'
 import Color from './Color'
 import {DiscreteBarDatum} from './DiscreteBarChart'
 import {DimensionWithData} from './ChartData'
+import ColorBinder from './ColorBinder'
 
 // Responsible for translating chart configuration into the form
 // of a discrete bar chart
@@ -12,6 +13,19 @@ export default class DiscreteBarTransform {
 
     constructor(chart: ChartConfig) {
         this.chart = chart
+    }
+
+	@computed get baseColorScheme() {
+		//return ["#9e0142","#d53e4f","#f46d43","#fdae61","#fee08b","#ffffbf","#e6f598","#abdda4","#66c2a5","#3288bd","#5e4fa2"]
+		return ["#F2585B"]
+	}
+
+    @computed get colors() {
+        const _this = this
+        return new ColorBinder({
+            get chart() { return _this.chart },
+            get colorScheme() { return _this.baseColorScheme }
+        })
     }
 
     @computed get primaryDimension(): DimensionWithData {
@@ -55,7 +69,7 @@ export default class DiscreteBarTransform {
 	}*/
 
     @computed get data(): DiscreteBarDatum[] {
-		const {chart, targetYear} = this
+		const {chart, targetYear, colors} = this
         const {filledDimensions, selectedKeysByKey} = chart.data
         const data: DiscreteBarDatum[] = []
 
@@ -74,7 +88,7 @@ export default class DiscreteBarTransform {
                 data.push({
                     value: +variable.values[i],
                     label: chart.data.formatKey(datakey),
-                    color: chart.colors.assignColorForKey(datakey)
+                    color: colors.getColorForKey(datakey)
                 })
 			}
 		});

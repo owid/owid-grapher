@@ -155,7 +155,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
 
                 const result = <g className="bar">
                     <text x={bounds.left+legendWidth-5} y={yOffset} fill="#666" dominant-baseline="middle" textAnchor="end" fontSize={valueFontSize+'em'}>{d.label}</text>
-                    <rect x={barX} y={yOffset-barHeight/2} width={barWidth} height={barHeight} fill="#F2585B" opacity={0.85}/>
+                    <rect x={barX} y={yOffset-barHeight/2} width={barWidth} height={barHeight} fill={d.color} opacity={0.85}/>
                     <text x={xScale.place(d.value) + (isNegative ? -5 : 5)} y={yOffset} fill="#666" dominant-baseline="middle" textAnchor={isNegative ? "end" : "start"} fontSize="0.55em">{barValueFormat(d.value)}</text>
                 </g>
                 yOffset += barHeight+barSpacing
