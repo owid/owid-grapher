@@ -83,7 +83,7 @@ export class SelectField extends React.Component<SelectFieldProps> {
 
 export interface NumericSelectFieldProps {
     label?: string,
-    value: number,
+    value?: number,
     onValue: (value: number) => void,
     options: number[],
     optionLabels: string[]

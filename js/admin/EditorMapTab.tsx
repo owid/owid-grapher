@@ -24,12 +24,9 @@ class VariableSection extends React.Component<{ map: MapConfig }> {
 	render() {
 		const {map} = this.props
 
-		if (!map.data)
-			return null
-
 		return <section>
 			<h2>Which variable on map</h2>
-			<NumericSelectField value={map.data.variable.id} options={_.map(map.data.vardata.variables, 'id')} optionLabels={_.map(map.data.vardata.variables, 'name')} onValue={this.onVariableId}/>
+			<NumericSelectField value={map.variableId} options={_.map(map.data.vardata.variables, 'id')} optionLabels={_.map(map.data.vardata.variables, 'name')} onValue={this.onVariableId}/>
 		</section>
 
 	}
@@ -266,15 +263,14 @@ export default class EditorMapTab extends React.Component<{ editor: ChartEditor 
 	render() {
 		const {chart, map} = this
 
-		if (!map.data)
-			return null
-
 		return <div className="tab-pane">
 			<VariableSection map={map}/>
-			<TimelineSection map={map}/>
-			<ColorsSection map={map}/>
-			<MapProjectionSection map={map}/>
-			<MapLegendSection map={map}/>
+			{map.data.isReady && 
+				[<TimelineSection map={map}/>,
+				<ColorsSection map={map}/>,
+				<MapProjectionSection map={map}/>,
+				<MapLegendSection map={map}/>]
+			}
 		</div>
 	}
 }

@@ -1,4 +1,4 @@
-import {computed} from 'mobx'
+import {computed, autorun, runInAction} from 'mobx'
 import ChartConfig from './ChartConfig'
 import {defaultTo} from './Util'
 import * as _ from 'lodash'
@@ -67,6 +67,15 @@ export default class MapData {
     chart: ChartConfig
     constructor(chart: ChartConfig) {
         this.chart = chart
+
+        // Validate the map variable id selection to something on the chart
+        autorun(() => {
+            const hasVariable = chart.map.variableId != null && chart.vardata.variablesById[chart.map.variableId]
+            if (!hasVariable && chart.data.primaryVariable) {
+                const variableId = chart.data.primaryVariable.id
+                runInAction(() => chart.map.props.variableId = variableId)
+            }
+        })
     }
 
     @computed get map() { return this.chart.map }

@@ -119,16 +119,13 @@ export default class ChartData {
 	set selectedKeys(keys: DataKey[]) {
 		const {chart, vardata} = this
 		if (!this.isReady) return
-		
-		const colors = new Map()
-		_.each(chart.props.selectedData, sel => colors.set(sel.entityId, sel.color))
 
 		const selection = _.map(keys, datakey => {
 			const {entity, index} = this.lookupKey(datakey)
 			return {
 				entityId: vardata.entityMetaByKey[entity].id,
 				index: index,
-				color: colors.get(datakey)
+				color: this.keyColors[datakey]
 			}
 		})
 		chart.props.selectedData = selection
