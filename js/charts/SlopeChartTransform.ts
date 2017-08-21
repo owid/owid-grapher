@@ -80,7 +80,7 @@ export default class SlopeChartTransform {
 		const longestRange: number[] = data.filter((d: any) => _.isFinite(d[yDim.variableId]))
 			.mergeBy('entity', (rows: Observations) => rows.pluck('year'))
 			.sortBy((d: number[]) => last(d)-first(d))
-			.last()
+			.last() as number[]
 
 		const minYear = xDomain[0] == null ? _.first(longestRange) : Math.max(xDomain[0]||-Infinity, first(longestRange))
 		const maxYear = xDomain[1] == null ? _.last(longestRange) : Math.min(xDomain[1]||Infinity, last(longestRange))
@@ -100,6 +100,6 @@ export default class SlopeChartTransform {
 			}
 		}).filter((d: any) => d.values.length >= 2)
 
-		return data.toArray()
+		return data.toArray() as SlopeChartSeries[]
 	}
 }

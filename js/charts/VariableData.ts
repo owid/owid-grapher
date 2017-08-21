@@ -197,7 +197,6 @@ export default class VariableData {
 							variable.values.push(spl[2]);
 					}
 				});
-				console.log(variable.categoricalValues)
 			}
 		});
 

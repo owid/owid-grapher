@@ -15,6 +15,7 @@ export interface DataKeyInfo {
 	key: string
 	fullLabel: string
 	label: string 
+	shortCode: string
 }
 
 export interface SourceWithVariable {

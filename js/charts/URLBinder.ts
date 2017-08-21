@@ -133,8 +133,8 @@ export default class URLBinder {
      * Set e.g. &shown=Africa when the user selects Africa on a stacked area chartView or other
      * toggle-based legend chartView.
      */
-    updateLegendKeys() {
-        /*var activeLegendKeys = chartView.model.get("activeLegendKeys");
+    /*updateLegendKeys() {
+        var activeLegendKeys = chartView.model.get("activeLegendKeys");
         if (activeLegendKeys === null)
             setQueryVariable("shown", null);
         else {
@@ -142,8 +142,8 @@ export default class URLBinder {
                 return encodeURIComponent(key);
             });
             setQueryVariable("shown", keys.join("+"));
-        }*/
-     }
+        }
+    }*/
 
     /**
      * Set e.g. &year=1990 when the user uses the map slider to go to 1990
@@ -227,13 +227,13 @@ export default class URLBinder {
         })
 
         // Set shown legend keys for chartViews with toggleable series
-        var shown = params.shown;
+       /*var shown = params.shown;
         if (_.isString(shown)) {
             var keys = _.map(shown.split("+"), function(key) {
                 return decodeURIComponent(key);
             });
 
             chart.activeLegendKeys = keys
-        }
+        }*/
     }
 }

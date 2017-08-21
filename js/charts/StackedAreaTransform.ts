@@ -8,10 +8,8 @@ import {StackedAreaSeries, StackedAreaValue} from './StackedArea'
 import AxisSpec from './AxisSpec'
 import ColorSchemes from './ColorSchemes'
 import ColorBinder from './ColorBinder'
-import * as d3_chromatic from 'd3-scale-chromatic'
 import {formatValue} from './Util'
 
-window.d3_chromatic = d3_chromatic
 // Responsible for translating chart configuration into the form
 // of a stacked area chart
 export default class StackedAreaTransform {
@@ -95,7 +93,7 @@ export default class StackedAreaTransform {
 			_(allYears).keys().each(yearS => {
 				const year = parseInt(yearS)
 				if (!yearsForSeries[series.key][year])
-					series.values.push({ x: year, y: 0, time: year, fake: true })
+					series.values.push({ x: year, y: 0, time: year })//, fake: true })
 			})
 			series.values = _.sortBy(series.values, function(d) { return d.x; });
 		})

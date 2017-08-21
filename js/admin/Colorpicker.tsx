@@ -7,7 +7,7 @@ import {TextField} from './Forms'
 import ColorSchemes from '../charts/ColorSchemes'
 
 export interface ColorpickerProps {
-    color: Color
+    color?: Color
     onColor: (color: Color|undefined) => void
     onClose: () => void 
 }

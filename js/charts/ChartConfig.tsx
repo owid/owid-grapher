@@ -27,6 +27,7 @@ import * as React from 'react'
 import * as ReactDOMServer from 'react-dom/server'
 import Bounds from './Bounds'
 
+declare const App: any
 declare const window: any
 
 export interface TimelineConfig {

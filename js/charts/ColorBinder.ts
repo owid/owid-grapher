@@ -48,7 +48,7 @@ export default class ColorBinder {
  * This model handles the assignment and distribution of colors for
  * different entities and chart types.
  */
-export class ColorBinderOld {
+/*export class ColorBinderOld {
 	static basicScheme = ["#3360a9", "#ca2628", "#34983f", "#ed6c2d", "#df3c64", "#a85a4a", "#e6332e", "#6bb537", "#ffd53e", "#f07f59", "#b077b1", "#932834", "#674c98", "#5eb77e", "#f6a324", "#2a939b", "#818282", "#7ec7ce", "#fceb8c", "#cfcd1e", "#58888f", "#ce8ebd", "#9ecc8a", "#db2445", "#f9bc8f", "#d26e66", "#c8c8c8"]
 
     chart: ChartConfig
@@ -77,13 +77,13 @@ export class ColorBinderOld {
 
 		// Make sure colors stay consistent on multi-variable "change country" charts
 		// e.g. https://ourworldindata.org/grapher/composition-of-tax-revenues-regional
-		/*App.ChartModel.on("change:selected-countries", function() {
+		App.ChartModel.on("change:selected-countries", function() {
 			var addCountryMode = chart.addCountryMode;
 			if (addCountryMode != "add-country") {
 				this.colorCache = {};
 				this.colorIndex = 0;
 			}
-		}.bind(this));*/
+		}.bind(this));
 	}
 
 	assignColorForKey(key: string, color?: string, options?: any) {
@@ -158,4 +158,4 @@ export class ColorBinderOld {
 
 		return chartData;
 	}
-}
+}*/

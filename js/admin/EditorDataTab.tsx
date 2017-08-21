@@ -146,6 +146,10 @@ class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: C
 
 	@action.bound onAddVariable() { this.isAddingVariable = true }
 
+	onAddVariableDone() {
+		
+	}
+
 	render() {
 		const {slot, editor} = this.props
 		const {isAddingVariable} = this
@@ -233,7 +237,6 @@ class KeysSection extends React.Component<{ chart: ChartConfig }> {
 
 	render() {
 		const {chart} = this.props
-		const {keyColors} = chart
 		const {selectedKeys, remainingKeys} = chart.data
 
 		return <section className="entities-section">

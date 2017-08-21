@@ -1,6 +1,4 @@
-// @flow
-
-import _ from 'lodash'
+import * as _ from 'lodash'
 
 export default class Observations {
 	data: Object[]
@@ -9,7 +7,7 @@ export default class Observations {
 		this.data = data
 	}
 
-	mergeBy(key : string, mergeFMaybe? : (Observations, any) => Object) {
+	mergeBy(key: string, mergeFMaybe?: (o: Observations, key: any) => Object) {
 		const mergeF = mergeFMaybe || ((rows) => {
 			const merged = {}
 			rows.each((row) => {
@@ -18,41 +16,41 @@ export default class Observations {
 			return merged
 		})
 
-		return new Observations(_.map(_.groupBy(this.data, (d) => d[key]), (arr, key) => mergeF(new Observations(arr), key)))
+		return new Observations(_.map(_.groupBy(this.data, (d: any) => d[key]), (arr: any, key: any) => mergeF(new Observations(arr), key)))
 	}
 
-	sortBy(sortF : (any) => number) {
+	sortBy(sortF: (row: any) => number) {
 		return new Observations(_.sortBy(this.data, sortF))
 	}
 
-	filter(filterF : (Object) => boolean) {
+	filter(filterF : (row: any) => boolean) {
 		return new Observations(_.filter(this.data, filterF))
 	}
 
-	map(mapF : (Object) => Object) {
+	map(mapF: (row: any) => any) {
 		return new Observations(_.map(this.data, mapF))
 	}
 
-	each(eachF : (Object) => void) {
+	each(eachF: (row: any) => void) {
 		_.each(this.data, eachF)
 	}
 
-	minValue(key : string) {
+	minValue(key : any) {
 		return _.min(_.map(this.data, key))
 	}
 
-	maxValue(key : string) {
+	maxValue(key : any) {
 		return _.max(_.map(this.data, key))
 	}
 
-	first(key? : string) {
+	first(key? : any) {
 		if (key == null)
 			return _.first(this.data)
 		else
-			return (_.find(this.data, (d) => d[key] !== undefined)||{})[key]
+			return (_.find(this.data, (d: any) => d[key] !== undefined)||{})[key]
 	}
 
-	last(key? : string) {
+	last(key? : any) {
 		if (key == null)
 			return _.last(this.data)
 //		else
@@ -63,7 +61,7 @@ export default class Observations {
 		return this.data
 	}
 
-	pluck(key : string) {
+	pluck(key : any) {
 		return _.map(this.data, key)
 	}
 }

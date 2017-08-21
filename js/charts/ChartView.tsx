@@ -21,6 +21,7 @@ import DataSelector from './DataSelector'
 
 declare const App: any // XXX
 declare const Global: any // XXX
+declare const window: any
 
 App.IDEAL_WIDTH = 1020
 App.IDEAL_HEIGHT = 720

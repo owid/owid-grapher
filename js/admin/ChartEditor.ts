@@ -12,6 +12,7 @@ import EditorVariable from './EditorVariable'
 import EditorFeatures from './EditorFeatures'
 import Admin from './Admin'
 import * as _ from 'lodash'
+import * as $ from 'jquery'
 
 // Contextual information received from server about what is in the database
 export interface EditorData {
@@ -68,7 +69,7 @@ export default class ChartEditor {
 
 
 		const handleError = (err: string) => {
-			var $modal = owid.modal({ title: "Error saving chart", content: _.toString(err) });
+			var $modal = modal({ title: "Error saving chart", content: _.toString(err) });
 			$modal.addClass("error");
 			if (onError) onError()
 		}
@@ -102,7 +103,7 @@ export default class ChartEditor {
 
 		const handleError = (err: string) => {
 			w.close()
-			var $modal = owid.modal({ title: "Error saving chart", content: _.toString(err) });
+			var $modal = modal({ title: "Error saving chart", content: _.toString(err) });
 			$modal.addClass("error");
 		}
 
@@ -122,7 +123,7 @@ export default class ChartEditor {
 	publishChart() {
 		const url = this.chart.url.canonicalUrl
 
-		var $modal = owid.modal();
+		var $modal = modal();
 		$modal.find(".modal-title").html("Publish chart");
 		$modal.find(".modal-body").html(
 			'<p>This chart will be available at:</p>' +
@@ -143,10 +144,10 @@ export default class ChartEditor {
 	}
 
 	unpublishChart() {
-		owid.confirm({ text: "Really unpublish chart?" }, function() {
+		if (window.confirm("Really unpublish chart?")) {
 			this.chart.props.isPublished = undefined
 			this.saveChart({ onError: () => this.chart.props.isPublished = true })
-		}.bind(this));
+		}
 	}
 
     constructor(props: ChartEditorProps) {
@@ -160,3 +161,33 @@ export default class ChartEditor {
 		)
     }
 }
+
+// XXX this is old stuff
+function modal(options?: any) {
+	options = _.extend({}, options);
+	$(".owidModal").remove();
+
+	var html = '<div class="modal owidModal fade" role="dialog">' +
+					'<div class="modal-dialog modal-lg">' +
+						'<div class="modal-content">' +
+							'<div class="modal-header">' +
+								'<button type="button" class="close" data-dismiss="modal" aria-label="Close">' +
+									'<span aria-hidden="true">&times;</span>' +
+								'</button>' +
+								'<h4 class="modal-title"></h4>' +
+							'</div>' +
+							'<div class="modal-body">' +
+							'</div>' +
+							'<div class="modal-footer">' +
+							'</div>' +
+						'</div>' +
+					'</div>' +
+				'</div>';
+
+	$("body").prepend(html);
+	var $modal = $(".owidModal") as any;
+	$modal.find(".modal-title").html(options.title);
+	$modal.find(".modal-body").html(options.content);
+	$modal.modal("show");
+	return $modal;
+};

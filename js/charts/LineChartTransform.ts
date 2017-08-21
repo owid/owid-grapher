@@ -3,7 +3,7 @@ import * as _ from 'lodash'
 import ChartConfig from './ChartConfig'
 import Color from './Color'
 import DataKey from './DataKey'
-import {StackedAreaSeries, StackedAreaValue} from './StackedArea'
+import {LineChartSeries, LineChartValue} from './LineChart'
 import AxisSpec from './AxisSpec'
 import {defaultTo} from './Util'
 import {DimensionWithData} from './ChartData'
@@ -26,18 +26,18 @@ export default class LineChartTransform {
         })
     }
 
-	@computed get initialData(): StackedAreaSeries[] {
+	@computed get initialData(): LineChartSeries[] {
 		const {chart, colors} = this
 		const {timeDomain, yAxis, addCountryMode} = chart
         const {filledDimensions, selectedKeysByKey} = chart.data
 
 		const timeFrom = _.defaultTo(timeDomain[0], -Infinity)
 		const timeTo = _.defaultTo(timeDomain[1], Infinity)
-		let chartData: StackedAreaSeries[] = []
+		let chartData: LineChartSeries[] = []
 
 		_.each(filledDimensions, (dimension, dimIndex) => {
             const {variable} = dimension
-			const seriesByKey = new Map<DataKey, StackedAreaSeries>()
+			const seriesByKey = new Map<DataKey, LineChartSeries>()
 
 			for (var i = 0; i < variable.years.length; i++) {
 				const year = variable.years[i]
@@ -61,7 +61,7 @@ export default class LineChartTransform {
 					seriesByKey.set(datakey, series);
 				}
 
-				series.values.push({ x: year, y: value, time: year });
+				series.values.push({ x: year, y: value, time: year, gapYearsToNext: 0 });
 			}
 
 			chartData = chartData.concat([...seriesByKey.values()]);
@@ -70,8 +70,8 @@ export default class LineChartTransform {
         return chartData
 	}
 
-    @computed get allValues(): StackedAreaValue[] {
-        return _(this.initialData).map(series => series.values).flatten().value() as StackedAreaValue[]
+    @computed get allValues(): LineChartValue[] {
+        return _(this.initialData).map(series => series.values).flatten().value() as LineChartValue[]
     }
 
     @computed get xDomainDefault(): [number, number] {
