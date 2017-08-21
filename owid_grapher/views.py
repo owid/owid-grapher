@@ -113,14 +113,14 @@ def test_all(request):
 
 def testsome(request):
     ids = [646, 292, 51, 72, 132, 144, 194, 197, 864, 190, 302]
-    query = Chart.objects.filter(id__in=ids)
+    charts = sorted(Chart.objects.filter(id__in=ids), key=lambda c: ids.index(c.id))
 
     urls = []
-    for each in query:
-        configfile = json.loads(each.config)
+    for chart in charts:
+        configfile = json.loads(chart.config)
 
-        local_url = request.build_absolute_uri('/grapher/') + each.slug
-        live_url = "https://ourworldindata.org/grapher/" + each.slug
+        local_url = request.build_absolute_uri('/grapher/') + chart.slug
+        live_url = "https://ourworldindata.org/grapher/" + chart.slug
         local_url_png = local_url + '.png'
         live_url_png = live_url + '.png'
 

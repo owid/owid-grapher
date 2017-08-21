@@ -6,6 +6,7 @@ import {defaultTo, first, last} from './Util'
 import {DimensionWithData} from './ChartData'
 import {ScatterSeries, ScatterValue} from './PointsWithLabels'
 import AxisSpec from './AxisSpec'
+import {formatValue} from './Util'
 
 // Responsible for translating chart configuration into the form
 // of a scatter plot
@@ -38,6 +39,12 @@ export default class ScatterTransform {
         console.assert(this.yDimension)
         console.assert(this.xDimension)
         return [this.yDimension, this.xDimension]
+    }
+
+    // In relative mode, the timeline scatterplot calculates changes relative
+    // to the lower bound year rather than creating an arrow chart
+    @computed get isRelativeMode() {
+        return true
     }
 
     @computed get hideBackgroundEntities() {
@@ -123,7 +130,7 @@ export default class ScatterTransform {
                     if ((dimension.property == 'x' || dimension.property == 'y') && !_.isNumber(value))
                         continue
     
-                    const targetYear = (!this.chart.timeline && _.isFinite(dimension.targetYear)) ? (dimension.targetYear as number) : outputYear
+                    const targetYear = (!chart.timeline && _.isFinite(dimension.targetYear)) ? (dimension.targetYear as number) : outputYear
 
                     // Skip years that aren't within tolerance of the target
                     if (year < targetYear-tolerance || year > targetYear+tolerance)
@@ -192,41 +199,39 @@ export default class ScatterTransform {
         return _(this.allGroups).map(group => group.values).flatten().value() as ScatterValue[]
     }
 
-    @computed get primaryDimension() {
-        return _.find(this.chart.data.filledDimensions, { property: 'y' }) as DimensionWithData
-    }
-
     // domains across the entire timeline
     @computed get xDomainDefault() : [number, number] {
-        if (this.chart.xAxis.scaleType == 'log')
-            return d3.extent(_.chain(this.allValues).map('x').filter(v => v > 0).value()) as [number, number]
-        else
-            return d3.extent(_.map(this.allValues, 'x')) as [number, number]
-    }
-
-    @computed get xDomain() : [number, number] {
-        const {min, max} = this.chart.xAxis
-
-        return [
-            _.defaultTo(min, this.xDomainDefault[0]),
-            _.defaultTo(max, this.xDomainDefault[1])
-        ]
+        if (this.isRelativeMode) {
+            const changes: number[] = []
+            this.dataByEntityAndYear.forEach(dataByYear => {
+                const extent = d3.extent(Array.from(dataByYear.values()).map(group => group.values[0].x)) as [number, number]
+                changes.push((extent[1]/extent[0])*100)
+            })
+            const maxChange = _.max(changes)
+            return [-(maxChange as number), maxChange] as [number, number]
+        } else {
+            if (this.chart.xAxis.scaleType == 'log')
+                return d3.extent(_(this.allValues).map('x').filter(v => v > 0).value()) as [number, number]
+            else
+                return d3.extent(_.map(this.allValues, 'x')) as [number, number]
+        }
     }
 
     @computed get yDomainDefault() : [number, number] {
-        if (this.chart.yAxis.scaleType == 'log')
-            return d3.extent(_.chain(this.allValues).map('y').filter(v => v > 0).value()) as [number, number]
-        else
-            return d3.extent(_.map(this.allValues, 'y')) as [number, number]
-    }
-
-    @computed get yDomain(): [number, number] {
-        const {min, max} = this.chart.yAxis
-        
-        return [
-            _.defaultTo(min, this.yDomainDefault[0]),
-            _.defaultTo(max, this.yDomainDefault[1])
-        ]    
+        if (this.isRelativeMode) {
+            const changes: number[] = []
+            this.dataByEntityAndYear.forEach(dataByYear => {
+                const extent = d3.extent(Array.from(dataByYear.values()).map(group => group.values[0].y)) as [number, number]
+                changes.push((extent[1]/extent[0])*100)
+            })
+            const maxChange = _.max(changes)
+            return [-(maxChange as number), maxChange] as [number, number]
+        } else {
+            if (this.chart.yAxis.scaleType == 'log')
+                return d3.extent(_.chain(this.allValues).map('y').filter(v => v > 0).value()) as [number, number]
+            else
+                return d3.extent(_.map(this.allValues, 'y')) as [number, number]
+        }
     }
 
     @computed get sizeDomain(): [number, number] {
@@ -241,16 +246,40 @@ export default class ScatterTransform {
         return _(this.allGroups).map(s => s.color).uniq().value()
     }
 
-    @computed get xAxis(): AxisSpec {
-        return this.chart.xAxis.toSpec({
-            defaultDomain: this.xDomainDefault
-        })
+    @computed get yScaleType() {
+        return this.isRelativeMode ? 'linear' : this.chart.xAxis.scaleType
     }
 
     @computed get yAxis(): AxisSpec {
-        return this.chart.yAxis.toSpec({
-            defaultDomain: this.yDomainDefault
-        })
+        const {chart, yDomainDefault, yDimension, isRelativeMode, yScaleType} = this
+		const tickFormat = (d: number) => formatValue(d, { unit: yDimension.variable.shortUnit })
+
+        const props: Partial<AxisSpec> = { tickFormat: tickFormat }
+        props.scaleType = yScaleType
+        if (isRelativeMode) {
+            props.domain = yDomainDefault
+            props.tickFormat = (v: number) => formatValue(v, { unit: "%" })
+        }
+
+        return _.extend(chart.yAxis.toSpec({ defaultDomain: yDomainDefault }), props) as AxisSpec
+    }
+
+    @computed get xScaleType() {
+        return this.isRelativeMode ? 'linear' : this.chart.xAxis.scaleType
+    }
+
+    @computed get xAxis(): AxisSpec {
+        const {chart, xDomainDefault, xDimension, isRelativeMode, xScaleType} = this
+		const tickFormat = (d: number) => formatValue(d, { unit: xDimension.variable.shortUnit })
+
+        const props: Partial<AxisSpec> = { tickFormat: tickFormat }
+        props.scaleType = xScaleType
+        if (isRelativeMode) {
+            props.domain = xDomainDefault
+            props.tickFormat = (v: number) => formatValue(v, { unit: "%" })
+        }
+
+        return _.extend(chart.xAxis.toSpec({ defaultDomain: xDomainDefault }), props) as AxisSpec
     }
 
     @computed get defaultStartYear(): number { return first(this.availableYears) as number }
@@ -272,7 +301,7 @@ export default class ScatterTransform {
     }
 
     @computed get currentData(): ScatterSeries[] {
-        const {dataByEntityAndYear, startYear, endYear, xAxis, yAxis} = this
+        const {dataByEntityAndYear, startYear, endYear, xScaleType, yScaleType, isRelativeMode} = this
         const {timeline} = this.chart
         let currentData: ScatterSeries[] = [];
 
@@ -310,7 +339,7 @@ export default class ScatterTransform {
 
             // Don't allow values <= 0 for log scales
             values = _.filter(values, v => {
-                return (v.y > 0 || yAxis.scaleType != 'log') && (v.x > 0 || xAxis.scaleType != 'log')
+                return (v.y > 0 || yScaleType != 'log') && (v.x > 0 || xScaleType != 'log')
             })
 
             return _.extend({}, series, {
@@ -327,7 +356,21 @@ export default class ScatterTransform {
                 series.values = series.values.length == 1 ? series.values : [first(series.values), last(series.values)]
             })
         }
-        
+
+        if (isRelativeMode) {
+            _.each(currentData, series => {
+                const indexValue = first(series.values)
+                const targetValue = last(series.values)
+                series.values = [{
+                    x: (targetValue.x/indexValue.x)*100,
+                    y: (targetValue.y/indexValue.y)*100,
+                    size: targetValue.size,
+                    year: targetValue.year,
+                    time: targetValue.time
+                }]
+            })
+        }
+
         return currentData;
     }
 }
