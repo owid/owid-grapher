@@ -30,11 +30,11 @@ export class Variable {
 	}
 
 	@computed get numericValues(): number[] {
-		return _.sortBy(_.filter(this.values, v => _.isNumber(v))) as number[]
+		return _(this.values).filter(v => _.isNumber(v)).sort().uniq().value() as number[]
 	}	
 
 	@computed get categoricalValues(): string[] {
-		return _.sortBy(_.filter(this.values, v => _.isString(v))) as string[]
+		return _(this.values).filter(v => _.isString(v)).sort().uniq().value() as string[]
 	}
 
 	@computed get hasCategoricalValues(): boolean {
