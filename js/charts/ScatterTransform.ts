@@ -44,7 +44,7 @@ export default class ScatterTransform {
     // In relative mode, the timeline scatterplot calculates changes relative
     // to the lower bound year rather than creating an arrow chart
     @computed get isRelativeMode() {
-        return false
+		return this.chart.props.stackMode == 'relative'
     }
 
     @computed get hideBackgroundEntities() {
@@ -205,7 +205,7 @@ export default class ScatterTransform {
             const changes: number[] = []
             this.dataByEntityAndYear.forEach(dataByYear => {
                 const extent = d3.extent(Array.from(dataByYear.values()).map(group => group.values[0].x)) as [number, number]
-                changes.push((extent[1]/extent[0])*100)
+                changes.push(extent[1]-extent[0])
             })
             const maxChange = _.max(changes)
             return [-(maxChange as number), maxChange] as [number, number]
@@ -222,7 +222,7 @@ export default class ScatterTransform {
             const changes: number[] = []
             this.dataByEntityAndYear.forEach(dataByYear => {
                 const extent = d3.extent(Array.from(dataByYear.values()).map(group => group.values[0].y)) as [number, number]
-                changes.push((extent[1]/extent[0])*100)
+                changes.push(extent[1]-extent[0])
             })
             const maxChange = _.max(changes)
             return [-(maxChange as number), maxChange] as [number, number]
@@ -258,7 +258,8 @@ export default class ScatterTransform {
         props.scaleType = yScaleType
         if (isRelativeMode) {
             props.domain = yDomainDefault
-            props.tickFormat = (v: number) => formatValue(v, { unit: "%" })
+            props.scaleTypeOptions = ['linear']
+            //props.tickFormat = (v: number) => formatValue(v, { unit: "%" })
         }
 
         return _.extend(chart.yAxis.toSpec({ defaultDomain: yDomainDefault }), props) as AxisSpec
@@ -276,7 +277,8 @@ export default class ScatterTransform {
         props.scaleType = xScaleType
         if (isRelativeMode) {
             props.domain = xDomainDefault
-            props.tickFormat = (v: number) => formatValue(v, { unit: "%" })
+            props.scaleTypeOptions = ['linear']
+            //props.tickFormat = (v: number) => formatValue(v, { unit: "%" })
         }
 
         return _.extend(chart.xAxis.toSpec({ defaultDomain: xDomainDefault }), props) as AxisSpec
@@ -362,8 +364,8 @@ export default class ScatterTransform {
                 const indexValue = first(series.values)
                 const targetValue = last(series.values)
                 series.values = [{
-                    x: (targetValue.x/indexValue.x)*100,
-                    y: (targetValue.y/indexValue.y)*100,
+                    x: targetValue.x-indexValue.x,
+                    y: targetValue.y-indexValue.y,
                     size: targetValue.size,
                     year: targetValue.year,
                     time: targetValue.time
