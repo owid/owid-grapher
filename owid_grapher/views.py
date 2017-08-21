@@ -111,6 +111,24 @@ def test_all(request):
                                                             'prev_page_url': prev_page_url, 'compare': test_compare,
                                                     })
 
+def testsome(request):
+    ids = [646, 292, 51, 72, 132, 144, 194, 197, 864, 190, 302]
+    query = Chart.objects.filter(id__in=ids)
+
+    urls = []
+    for each in query:
+        configfile = json.loads(each.config)
+
+        local_url = request.build_absolute_uri('/grapher/') + each.slug
+        live_url = "https://ourworldindata.org/grapher/" + each.slug
+        local_url_png = local_url + '.png'
+        live_url_png = live_url + '.png'
+
+        urls.append({'local_url': local_url, 'live_url': live_url, 'local_url_png': local_url_png,
+                     'live_url_png': live_url_png})
+
+    return render(request, 'testsome.html', context={'urls': urls})
+
 
 def get_query_string(request):
     """

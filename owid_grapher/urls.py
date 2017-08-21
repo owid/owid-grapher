@@ -102,6 +102,7 @@ urlpatterns = [
     url(r'^grapher/data/variables/(?P<ids>[\w\+]+)', owid_views.variables, name="servevariables"),
     url(r'^grapher/latest/?$', owid_views.latest, name="latestchart"),
     url(r'^grapher/testall', owid_views.test_all, name="testall"),
+    url(r'^grapher/testsome', owid_views.testsome, name="testsome"),
     url(r'^grapher/invitation/(?P<code>[\w]+)$', admin_views.register_by_invite, name="registerbyinvite"),
     url(r'^grapher/(?P<slug>[^/]+)\.export', owid_views.show, name="exportchart"),
     url(r'^grapher/(?P<slug>[^/]+)\.(?P<fileformat>.+)', owid_views.exportfile, name="exportfile"),
