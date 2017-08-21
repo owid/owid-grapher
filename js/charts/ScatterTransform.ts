@@ -44,7 +44,7 @@ export default class ScatterTransform {
     // In relative mode, the timeline scatterplot calculates changes relative
     // to the lower bound year rather than creating an arrow chart
     @computed get isRelativeMode() {
-        return true
+        return false
     }
 
     @computed get hideBackgroundEntities() {
