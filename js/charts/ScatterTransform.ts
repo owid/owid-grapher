@@ -129,7 +129,7 @@ export default class ScatterTransform {
 
                     if ((dimension.property == 'x' || dimension.property == 'y') && !_.isNumber(value))
                         continue
-    
+                    
                     const targetYear = (!chart.timeline && _.isFinite(dimension.targetYear)) ? (dimension.targetYear as number) : outputYear
 
                     // Skip years that aren't within tolerance of the target
@@ -171,14 +171,14 @@ export default class ScatterTransform {
         });
 
         // Exclude any with data for only one axis
-        _.each(dataByEntityAndYear, function(v, k) {
-            var newDataByYear = new Map();
-            _.each(v, function(series, year) {
-                var datum = series.values[0];
+        dataByEntityAndYear.forEach((dataByYear, year) => {
+            const newDataByYear = new Map();
+            dataByYear.forEach((series, year) => {
+                const datum = series.values[0];
                 if (_.has(datum, 'x') && _.has(datum, 'y'))
                     newDataByYear.set(year, series);
             });
-            dataByEntityAndYear.set(k, newDataByYear);
+            dataByEntityAndYear.set(year, newDataByYear);
         });
 
         return dataByEntityAndYear;
