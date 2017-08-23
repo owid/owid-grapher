@@ -276,8 +276,9 @@ export default class ScatterTransform {
         if (isRelativeMode) {
             props.domain = yDomainDefault
             props.scaleTypeOptions = ['linear']
-            if (chart.yAxis.label) {
-                props.label = "Compound annual change in " + chart.yAxis.label.charAt(0).toLowerCase() + chart.yAxis.label.slice(1)
+            const label = chart.yAxis.label
+            if (label && label.length > 1) {
+                props.label = "Compound annual change in " + (label.charAt(1).match(/[A-Z]/) ? label : label.charAt(0).toLowerCase() + label.slice(1))
             }
             props.tickFormat = (v: number) => formatValue(v, { unit: "%" })
         }
@@ -298,8 +299,9 @@ export default class ScatterTransform {
         if (isRelativeMode) {
             props.domain = xDomainDefault
             props.scaleTypeOptions = ['linear']
-            if (chart.xAxis.label) {
-                props.label = "Compound annual change in " + chart.xAxis.label.charAt(0).toLowerCase() + chart.xAxis.label.slice(1)
+            const label = chart.xAxis.label
+            if (label && label.length > 1) {
+                props.label = "Compound annual change in " + (label.charAt(1).match(/[A-Z]/) ? label : label.charAt(0).toLowerCase() + label.slice(1))
             }
             props.tickFormat = (v: number) => formatValue(v, { unit: "%" })
         }
