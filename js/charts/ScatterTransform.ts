@@ -158,7 +158,7 @@ export default class ScatterTransform {
                     // Ensure we use the closest year to the target
                     const originYear = (d.time as any)[dimension.property];
                     if (_.isFinite(originYear) && Math.abs(originYear-targetYear) < Math.abs(year-targetYear))
-                        continue;                
+                        continue;
 
                     if (dimension.property == 'color') {
                         if (!series.color) series.color = colorScale(value as string);
@@ -219,7 +219,7 @@ export default class ScatterTransform {
            return [minChange, maxChange]
         } else {
             if (this.chart.xAxis.scaleType == 'log')
-                return d3.extent(_(this.allValues).map('x').filter(v => v > 0).value()) as [number, number]
+                return d3.extent(_(this.allValues).map(v => v.x).filter(v => v > 0).value()) as [number, number]
             else
                 return d3.extent(_.map(this.allValues, 'x')) as [number, number]
         }
@@ -244,7 +244,7 @@ export default class ScatterTransform {
            return [minChange, maxChange]
         } else {
             if (this.chart.yAxis.scaleType == 'log')
-                return d3.extent(_.chain(this.allValues).map('y').filter(v => v > 0).value()) as [number, number]
+                return d3.extent(_(this.allValues).map(v => v.y).filter(v => v > 0).value()) as [number, number]
             else
                 return d3.extent(_.map(this.allValues, 'y')) as [number, number]
         }
@@ -263,7 +263,7 @@ export default class ScatterTransform {
     }
 
     @computed get yScaleType() {
-        return this.isRelativeMode ? 'linear' : this.chart.xAxis.scaleType
+        return this.isRelativeMode ? 'linear' : this.chart.yAxis.scaleType
     }
 
     @computed get yAxis(): AxisSpec {
@@ -405,13 +405,23 @@ export default class ScatterTransform {
 function cagrX(indexValue: ScatterValue, targetValue: ScatterValue) {
     if (targetValue.year-indexValue.year == 0)
         return 0
-    else
-        return (Math.pow((targetValue.x/indexValue.x), (1/(targetValue.year-indexValue.year))) - 1) * 100
+    else {
+        const frac = targetValue.x/indexValue.x
+        if (frac < 0)
+            return -(Math.pow(-frac, 1/(targetValue.year-indexValue.year)) - 1) * 100        
+        else
+            return (Math.pow(frac, 1/(targetValue.year-indexValue.year)) - 1) * 100
+    }
 }
 
 function cagrY(indexValue: ScatterValue, targetValue: ScatterValue) {
     if (targetValue.year-indexValue.year == 0)
         return 0
-    else
-        return (Math.pow((targetValue.y/indexValue.y), (1/(targetValue.year-indexValue.year))) - 1) * 100
+    else {
+        const frac = targetValue.y/indexValue.y
+        if (frac < 0)
+            return -(Math.pow(-frac, 1/(targetValue.year-indexValue.year)) - 1) * 100        
+        else
+            return (Math.pow(frac, 1/(targetValue.year-indexValue.year)) - 1) * 100
+    }
 }

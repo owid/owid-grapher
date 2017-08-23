@@ -147,7 +147,7 @@ class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: C
 	@action.bound onAddVariable() { this.isAddingVariable = true }
 
 	onAddVariableDone() {
-		
+
 	}
 
 	render() {
@@ -159,7 +159,7 @@ class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: C
 			{slot.dimensions.map(dim => 
 				<DimensionCard dimension={dim} editor={editor}/>
 			)}
-			<div className="dimensionSlot" onClick={this.onAddVariable}>Add variable</div>
+			{slot.allowMultiple && <div className="dimensionSlot" onClick={this.onAddVariable}>Add variable</div>}
 			{isAddingVariable && <VariableSelector editor={editor} onDismiss={this.onAddVariableDone} onComplete={this.onAddVariableDone}/>}
 		</div>
 	}
