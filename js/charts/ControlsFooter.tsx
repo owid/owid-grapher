@@ -146,7 +146,7 @@ class AbsRelToggle extends React.Component<{ chart: ChartConfig }> {
     render() {
         const {chart} = this.props
         return <label className="clickable">
-            <input type="checkbox" checked={chart.stackedArea.isRelative} onChange={this.onToggle}/> {chart.type == ChartType.StackedArea ? "Relative" : "Index to start year"}
+            <input type="checkbox" checked={chart.stackedArea.isRelative} onChange={this.onToggle}/> {chart.type == ChartType.StackedArea ? "Relative" : "Average annual change"}
         </label>
     }
 }
