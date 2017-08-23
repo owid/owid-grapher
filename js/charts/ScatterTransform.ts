@@ -202,16 +202,21 @@ export default class ScatterTransform {
     // domains across the entire timeline
     @computed get xDomainDefault() : [number, number] {
         if (this.isRelativeMode) {
-            const changes: number[] = []
+            let minChange = 0
+            let maxChange = 0
             this.dataByEntityAndYear.forEach(dataByYear => {
                 const values = _.map(Array.from(dataByYear.values()), g => g.values[0])
-                const indexValue = _.minBy(values, v => v.x) as ScatterValue
-                const targetValue = _.maxBy(values, v => v.x) as ScatterValue
-                const cagr = cagrX(indexValue, targetValue)
-                changes.push(Math.abs(cagr))
-            })
-            const maxChange = _.max(changes)
-            return [-(maxChange as number), maxChange] as [number, number]
+                for (var i = 0; i < values.length; i++) {
+                    const indexValue = values[i]
+                    for (var j = i; j < values.length; j++) {
+                        const targetValue = values[j]
+                        const change = cagrX(indexValue, targetValue)
+                        if (change < minChange) minChange = change
+                        if (change > maxChange) maxChange = change
+                    }
+                }
+           })
+           return [minChange, maxChange]
         } else {
             if (this.chart.xAxis.scaleType == 'log')
                 return d3.extent(_(this.allValues).map('x').filter(v => v > 0).value()) as [number, number]
@@ -222,16 +227,21 @@ export default class ScatterTransform {
 
     @computed get yDomainDefault() : [number, number] {
         if (this.isRelativeMode) {
-            const changes: number[] = []
+            let minChange = 0
+            let maxChange = 0
             this.dataByEntityAndYear.forEach(dataByYear => {
                 const values = _.map(Array.from(dataByYear.values()), g => g.values[0])
-                const indexValue = _.minBy(values, v => v.y) as ScatterValue
-                const targetValue = _.maxBy(values, v => v.y) as ScatterValue
-                const cagr = cagrY(indexValue, targetValue)
-                changes.push(Math.abs(cagr))
-            })
-            const maxChange = _.max(changes)
-            return [-(maxChange as number), maxChange] as [number, number]
+                for (var i = 0; i < values.length; i++) {
+                    const indexValue = values[i]
+                    for (var j = i; j < values.length; j++) {
+                        const targetValue = values[j]
+                        const change = cagrY(indexValue, targetValue)
+                        if (change < minChange) minChange = change
+                        if (change > maxChange) maxChange = change
+                    }
+                }
+           })
+           return [minChange, maxChange]
         } else {
             if (this.chart.yAxis.scaleType == 'log')
                 return d3.extent(_.chain(this.allValues).map('y').filter(v => v > 0).value()) as [number, number]
