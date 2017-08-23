@@ -112,7 +112,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         const {focusKeys, hoverSeries, sidebarWidth, transform} = this
         const {startYear, endYear} = transform
 
-        if (focusKeys.length || hoverSeries || startYear == endYear)
+        if (focusKeys.length || hoverSeries || startYear == endYear || transform.isRelativeMode)
             return undefined
 
         const _this = this

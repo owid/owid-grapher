@@ -169,7 +169,7 @@ export default class URLBinder {
         }
 
         // Stack mode for bar and stacked area charts
-        //chart.currentStackMode = defaultTo(params.stackMode, chart.currentStackMode)
+        chart.props.stackMode = defaultTo(params.stackMode, chart.props.stackMode)
 
         // Axis scale mode
         const xScaleType = params.xScale

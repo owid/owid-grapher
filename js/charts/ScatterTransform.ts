@@ -204,8 +204,11 @@ export default class ScatterTransform {
         if (this.isRelativeMode) {
             const changes: number[] = []
             this.dataByEntityAndYear.forEach(dataByYear => {
-                const extent = d3.extent(Array.from(dataByYear.values()).map(group => group.values[0].x)) as [number, number]
-                changes.push(extent[1]-extent[0])
+                const values = _.map(Array.from(dataByYear.values()), g => g.values[0])
+                const indexValue = _.minBy(values, v => v.x) as ScatterValue
+                const targetValue = _.maxBy(values, v => v.x) as ScatterValue
+                const cagr = cagrX(indexValue, targetValue)
+                changes.push(Math.abs(cagr))
             })
             const maxChange = _.max(changes)
             return [-(maxChange as number), maxChange] as [number, number]
@@ -221,8 +224,11 @@ export default class ScatterTransform {
         if (this.isRelativeMode) {
             const changes: number[] = []
             this.dataByEntityAndYear.forEach(dataByYear => {
-                const extent = d3.extent(Array.from(dataByYear.values()).map(group => group.values[0].y)) as [number, number]
-                changes.push(extent[1]-extent[0])
+                const values = _.map(Array.from(dataByYear.values()), g => g.values[0])
+                const indexValue = _.minBy(values, v => v.y) as ScatterValue
+                const targetValue = _.maxBy(values, v => v.y) as ScatterValue
+                const cagr = cagrY(indexValue, targetValue)
+                changes.push(Math.abs(cagr))
             })
             const maxChange = _.max(changes)
             return [-(maxChange as number), maxChange] as [number, number]
@@ -254,12 +260,16 @@ export default class ScatterTransform {
         const {chart, yDomainDefault, yDimension, isRelativeMode, yScaleType} = this
 		const tickFormat = (d: number) => formatValue(d, { unit: yDimension.variable.shortUnit })
 
-        const props: Partial<AxisSpec> = { tickFormat: tickFormat }
+        const props: Partial<AxisSpec> = {}
+        props.tickFormat = tickFormat
         props.scaleType = yScaleType
         if (isRelativeMode) {
             props.domain = yDomainDefault
             props.scaleTypeOptions = ['linear']
-            //props.tickFormat = (v: number) => formatValue(v, { unit: "%" })
+            if (chart.yAxis.label) {
+                props.label = "Compound annual change in " + chart.yAxis.label.charAt(0).toLowerCase() + chart.yAxis.label.slice(1)
+            }
+            props.tickFormat = (v: number) => formatValue(v, { unit: "%" })
         }
 
         return _.extend(chart.yAxis.toSpec({ defaultDomain: yDomainDefault }), props) as AxisSpec
@@ -278,7 +288,10 @@ export default class ScatterTransform {
         if (isRelativeMode) {
             props.domain = xDomainDefault
             props.scaleTypeOptions = ['linear']
-            //props.tickFormat = (v: number) => formatValue(v, { unit: "%" })
+            if (chart.xAxis.label) {
+                props.label = "Compound annual change in " + chart.xAxis.label.charAt(0).toLowerCase() + chart.xAxis.label.slice(1)
+            }
+            props.tickFormat = (v: number) => formatValue(v, { unit: "%" })
         }
 
         return _.extend(chart.xAxis.toSpec({ defaultDomain: xDomainDefault }), props) as AxisSpec
@@ -364,8 +377,8 @@ export default class ScatterTransform {
                 const indexValue = first(series.values)
                 const targetValue = last(series.values)
                 series.values = [{
-                    x: targetValue.x-indexValue.x,
-                    y: targetValue.y-indexValue.y,
+                    x: cagrX(indexValue, targetValue),
+                    y: cagrY(indexValue, targetValue),
                     size: targetValue.size,
                     year: targetValue.year,
                     time: targetValue.time
@@ -375,4 +388,18 @@ export default class ScatterTransform {
 
         return currentData;
     }
+}
+
+function cagrX(indexValue: ScatterValue, targetValue: ScatterValue) {
+    if (targetValue.year-indexValue.year == 0)
+        return 0
+    else
+        return (Math.pow((targetValue.x/indexValue.x), (1/(targetValue.year-indexValue.year))) - 1) * 100
+}
+
+function cagrY(indexValue: ScatterValue, targetValue: ScatterValue) {
+    if (targetValue.year-indexValue.year == 0)
+        return 0
+    else
+        return (Math.pow((targetValue.y/indexValue.y), (1/(targetValue.year-indexValue.year))) - 1) * 100
 }
