@@ -48,7 +48,7 @@ export interface ChartDimension {
     order: number,
     property: string,
     targetYear?: number,
-    tolerance: number,
+    tolerance?: number,
     unit?: string
 }
 

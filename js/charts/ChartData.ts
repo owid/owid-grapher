@@ -52,6 +52,8 @@ export default class ChartData {
 	}
 
 	@computed get filledDimensions(): DimensionWithData[] {
+		if (!this.isReady) return []
+		
         return _.map(this.chart.dimensions, dim => {
             const variable = this.vardata.variablesById[dim.variableId]
             return _.extend({}, dim, {
@@ -236,14 +238,11 @@ export default class ChartData {
 	}
 
 	@computed get sources(): SourceWithVariable[] {
-		const {chart, vardata} = this
-		const {dimensions} = chart
+		const {chart, vardata, filledDimensions} = this
 		const {variablesById} = vardata
 
-		if (_.isEmpty(variablesById)) return []
-
 		let sources: SourceWithVariable[] = []
-		_.each(dimensions, (dim) => {
+		_.each(filledDimensions, (dim) => {
 			const variable = variablesById[dim.variableId]
 			// HACK (Mispy): Ignore the default color source on scatterplots.
 			if (variable.name != "Countries Continents" && variable.name != "Total population (Gapminder)")

@@ -2,7 +2,7 @@ import * as _ from 'lodash'
 import * as $ from 'jquery'
 import ChartType from './ChartType'
 import ChartConfig from './ChartConfig'
-import {observable, computed, autorun, action} from 'mobx'
+import {observable, computed, autorun, action, reaction} from 'mobx'
 
 declare var Global: { rootUrl: string }
 
@@ -117,6 +117,7 @@ export default class VariableData {
 
 	constructor(chart: ChartConfig) {
 		this.chart = chart
+		reaction(() => this.variableIds, this.update)
 		this.update()
 	}
 
@@ -140,7 +141,7 @@ export default class VariableData {
 		return _.values(this.variablesById)
 	}
 
-	update() {
+	@action.bound update() {
 		const {variableIds, cacheTag} = this
 		// If the requested data changes and we're already downloading a previous request, we
 		// might as well cancel it since it won't be what we're after
@@ -161,10 +162,10 @@ export default class VariableData {
 			this.dataRequest = $.get(Global.rootUrl + "/data/variables/" + variableIds.join("+") + "?v=" + Date.now());
 		}
 
-		this.dataRequest.done((rawData: string) => {
+		this.dataRequest.done(action((rawData: string) => {
 			this.dataRequest = null
 			this.receiveData(rawData)
-		})
+		}))
 	}
 
 	@action.bound receiveData(rawData: string) {

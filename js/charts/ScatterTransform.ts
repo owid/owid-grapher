@@ -328,6 +328,9 @@ export default class ScatterTransform {
     }
 
     @computed get currentData(): ScatterSeries[] {
+        if (!this.chart.data.isReady)
+            return []
+
         const {dataByEntityAndYear, startYear, endYear, xScaleType, yScaleType, isRelativeMode} = this
         const {timeline} = this.chart
         let currentData: ScatterSeries[] = [];
