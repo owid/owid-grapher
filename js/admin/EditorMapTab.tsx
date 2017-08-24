@@ -233,9 +233,10 @@ class MapProjectionSection extends React.Component<{ map: MapConfig }> {
 
 	render() {
 		const {map} = this.props
+		const projections = ['World', 'Africa', 'NorthAmerica', 'SouthAmerica', 'Asia', 'Europe', 'Australia']
 		return <section>
 			<h2>Displayed region</h2>
-			<SelectField label="Which region map should be focused on:" value={map.props.projection} options={_.keys(MapProjections)} onValue={this.onProjection}/>
+			<SelectField label="Which region map should be focused on:" value={map.props.projection} options={projections} onValue={this.onProjection}/>
 		</section>
 	}
 }
