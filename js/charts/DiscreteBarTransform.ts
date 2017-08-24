@@ -15,8 +15,15 @@ export default class DiscreteBarTransform {
         this.chart = chart
     }
 
+    @computed get failMessage(): string|undefined {
+        const {filledDimensions} = this.chart.data
+        if (!_.some(filledDimensions, d => d.property == 'y'))
+            return "Missing variable"
+        else if (_.isEmpty(this.data))
+            return "No matching data"
+    }
+
 	@computed get baseColorScheme() {
-		//return ["#9e0142","#d53e4f","#f46d43","#fdae61","#fee08b","#ffffbf","#e6f598","#abdda4","#66c2a5","#3288bd","#5e4fa2"]
 		return ["#F2585B"]
 	}
 
@@ -28,12 +35,14 @@ export default class DiscreteBarTransform {
         })
     }
 
-    @computed get primaryDimension(): DimensionWithData {
-        return _.find(this.chart.data.filledDimensions, d => d.property == "y") as DimensionWithData
+    @computed get primaryDimension(): DimensionWithData|undefined {
+        return _.find(this.chart.data.filledDimensions, d => d.property == "y")
     }
 
     @computed get targetYear(): number {
         const maxYear = this.chart.timeDomain[1]
+        if (!this.primaryDimension) return 1900
+
         const {variable} = this.primaryDimension
         if (maxYear != null)
             return _.sortBy(variable.yearsUniq, year => Math.abs(year-maxYear))[0];
@@ -41,32 +50,6 @@ export default class DiscreteBarTransform {
             return _.max(variable.yearsUniq) as number;
 
     }
-
-	/*@computed get data(): DiscreteBarDatum[] {
-        const {chart, targetYear, primaryDimension} = this
-        const {filledDimensions, selectedKeysByKey} = chart.data
-        if (!primaryDimension) return []
-        const {variable} = primaryDimension
-
-        const data: DiscreteBarDatum[] = []
-
-        for (var i = 0; i < variable.years.length; i++) {
-            const year = variable.years[i]
-            const entity = variable.entities[i]
-            const key = chart.data.keyFor(entity, 0)
-
-            if (year != targetYear || !selectedKeysByKey[key]) continue;
-//            if (year != targetYear) continue;
-
-            data.push({
-                value: +variable.values[i],
-                label: chart.data.formatKey(key),
-                color: chart.colors.assignColorForKey(key)
-            })
-        }
-
-        return _.sortBy(data, d => -d.value)
-	}*/
 
     @computed get data(): DiscreteBarDatum[] {
 		const {chart, targetYear, colors} = this

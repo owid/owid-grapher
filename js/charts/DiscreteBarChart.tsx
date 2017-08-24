@@ -38,6 +38,10 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
     @computed get chart() { return this.props.chart }
     @computed.struct get bounds() { return this.props.bounds.padRight(10) }
 
+    @computed get failMessage() {
+        return this.chart.discreteBar.failMessage
+    }
+
     @computed get data() {
         return this.chart.discreteBar.data
     }
@@ -118,7 +122,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
     dispose: IReactionDisposer
     componentDidMount() {
         this.dispose = autorun(() => {
-            if (this.data.length == 0) return
+            if (this.failMessage) return
 
             const widths = this.barPlacements.map(b => b.width)
             runInAction(() => {
@@ -137,8 +141,8 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
     }
 
     render() {
-        if (this.data.length == 0)
-            return <NoData bounds={this.bounds}/>
+        if (this.failMessage)
+            return <NoData bounds={this.bounds} message={this.failMessage}/>
 
         const {chart, data, bounds, legendWidth, xAxis, xScale, innerBounds, barHeight, barSpacing, valueFontSize, barValueFormat} = this
 

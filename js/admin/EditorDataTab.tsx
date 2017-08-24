@@ -140,20 +140,14 @@ class VariableItem extends React.Component<{ variable: EditorVariable }> {
 }
 
 @observer
-class DimensionCard extends React.Component<{ dimension: ChartDimension, editor: ChartEditor, onEdit: () => void }> {
-	@action.bound onRemove() {
-		const {chart} = this.props.editor
-		console.log(this.props.dimension)
-		chart.props.dimensions = chart.props.dimensions.filter(d => d.property != this.props.dimension.property || d.order != this.props.dimension.order)
-	}
-
+class DimensionCard extends React.Component<{ dimension: ChartDimension, editor: ChartEditor, onEdit: () => void, onRemove: () => void }> {
 	render() {
 		const {dimension, editor} = this.props
 		const variable = editor.variablesById[dimension.variableId]
 		return <div className="DimensionCard">
 			<div>{variable.name}</div>
 			<div className="buttons">
-				<i className="fa fa-pencil clickable" onClick={this.props.onEdit}/> <i className="fa fa-close clickable" onClick={this.onRemove}/>
+				<i className="fa fa-pencil clickable" onClick={this.props.onEdit}/> <i className="fa fa-close clickable" onClick={this.props.onRemove}/>
 			</div>
 		</div>
 	}
@@ -164,7 +158,7 @@ class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: C
 	@observable editingDimensionIndex?: number
 
 	@action.bound onAddVariable() {
-		this.editingDimensionIndex = this.props.slot.dimensions.length
+		this.editingDimensionIndex = this.props.editor.chart.dimensions.length
 	}
 
 	@action.bound onUpdateDimension(dimension?: ChartDimension) {
@@ -182,6 +176,13 @@ class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: C
 		}
 
 		this.editingDimensionIndex = undefined
+	}
+
+	@action.bound removeDimension(index: number) {
+		const {chart} = this.props.editor
+		const dimensions = _.clone(chart.dimensions)
+		dimensions.splice(index, 1)
+		chart.props.dimensions = dimensions
 	}
 
 	@computed get editingDimension(): ChartDimension|undefined {
@@ -207,13 +208,14 @@ class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: C
 		const {chart} = editor
 		const {dimensions} = chart
 		const {editingDimension} = this
+		const canAddMore = slot.allowMultiple || dimensions.filter(d => d.property == slot.property).length == 0
 
 		return <div>
 			<h5>{slot.name}</h5>
 			{dimensions.map((dim, i) => {
-				return dim.property == slot.property && <DimensionCard dimension={dim} editor={editor} onEdit={action(() => this.editingDimensionIndex = i)}/>
+				return dim.property == slot.property && <DimensionCard dimension={dim} editor={editor} onEdit={action(() => this.editingDimensionIndex = i)} onRemove={() => this.removeDimension(i)}/>
 			})}
-			{slot.allowMultiple && <div className="dimensionSlot" onClick={this.onAddVariable}>Add variable</div>}
+			{canAddMore && <div className="dimensionSlot" onClick={this.onAddVariable}>Add variable</div>}
 			{editingDimension && <VariableSelector editor={editor} dimension={editingDimension} onDismiss={this.onUpdateDimension} onComplete={this.onUpdateDimension}/>}
 		</div>
 	}

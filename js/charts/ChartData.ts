@@ -46,11 +46,6 @@ export default class ChartData {
 		return _.every(chart.dimensions, dim => vardata.variablesById[dim.variableId])
 	}
 
-	// Make a unique string key for an entity on a variable
-	keyFor(entity: string, dimensionIndex: number): DataKey {
-		return `${entity}_${dimensionIndex}`
-	}
-
 	@computed get filledDimensions(): DimensionWithData[] {
 		if (!this.isReady) return []
 		
@@ -63,21 +58,29 @@ export default class ChartData {
         })
     }
 
+	// Make a unique string key for an entity on a variable
+	keyFor(entity: string, dimensionIndex: number): DataKey {
+		return `${entity}_${dimensionIndex}`
+	}
+
 	@computed get dimensionsByField(): _.Dictionary<DimensionWithData> {
 		return _.keyBy(this.filledDimensions, 'property')
 	}
 
+	@computed get primaryDimensions() {
+		return this.filledDimensions.filter(dim => dim.property == 'y')        
+    }
+
 	@computed get selectionData(): { key: DataKey, color?: Color }[] {
-		const {chart, vardata} = this
+		const {chart, vardata, primaryDimensions} = this
 		const validSelections = _.filter(chart.props.selectedData, sel => {
 			// Must be a dimension that's on the chart
-			const dimension = chart.primaryDimensions[sel.index]
+			const dimension = primaryDimensions[sel.index]
 			if (dimension == null) return false
 			
 			// Entity must be within that dimension
 			const entityMeta = vardata.entityMetaById[sel.entityId]
-			const variable = vardata.variablesById[dimension.variableId]
-			if (entityMeta == null || !_.includes(variable.entitiesUniq, entityMeta.name)) return false
+			if (entityMeta == null || !_.includes(dimension.variable.entitiesUniq, entityMeta.name)) return false
 
 			return true
 		})
@@ -143,17 +146,17 @@ export default class ChartData {
 	}
 
 	@computed get isSingleVariable(): boolean {
-		return this.chart.primaryDimensions.length == 1
+		return this.primaryDimensions.length == 1
 	}
 
 	// Calculate the available datakeys and their associated info
 	@computed get keyData(): Map<DataKey, DataKeyInfo> {
 		if (!this.isReady) return new Map()
-		const {chart, vardata, isSingleEntity, isSingleVariable} = this
+		const {chart, vardata, isSingleEntity, isSingleVariable, primaryDimensions} = this
 	
 		const keyData = new Map()
-		_.each(chart.primaryDimensions, (dim, index) => {
-			const variable = chart.vardata.variablesById[dim.variableId]
+		_.each(primaryDimensions, (dim, index) => {
+			const {variable} = dim
 			_.each(variable.entitiesUniq, entity => {
 				const entityMeta = chart.vardata.entityMetaByKey[entity]
 				const key = this.keyFor(entity, index)
@@ -176,7 +179,7 @@ export default class ChartData {
 					index: index,
 					fullLabel: fullLabel,
 					label: label,
-					shortCode: chart.primaryDimensions.length > 1 ? `${entityMeta.code||entityMeta.name}-${dim.order}` : entityMeta.code
+					shortCode: primaryDimensions.length > 1 ? `${entityMeta.code||entityMeta.name}-${dim.order}` : entityMeta.code
 				})
 			})
 		})
@@ -210,7 +213,6 @@ export default class ChartData {
 		})
 		return keysByEntity
 	}
-
 
 	lookupKey(key: DataKey) {
 		const keyDatum = this.keyData.get(key)
