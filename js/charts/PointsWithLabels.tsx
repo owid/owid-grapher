@@ -309,12 +309,14 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         let {initialRenderData, hoverKeys, focusKeys, isLayerMode, labelPriority, bounds} = this
 
         // Draw the largest points first so that smaller ones can sit on top of them
-        let renderData = _.sortBy(initialRenderData, d => -d.size)
+        let renderData = _.cloneDeep(_.sortBy(initialRenderData, d => -d.size))
 
         _.each(renderData, series => {
             series.isHover = _.includes(hoverKeys, series.key)
             series.isFocus = _.includes(focusKeys, series.key)
             series.isForeground = series.isHover || series.isFocus
+            if (series.isHover)
+                series.size += 1
         })
 
         _.each(renderData, series => {
@@ -496,11 +498,11 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                 const v = series.values[0]
                 if (series.isFocus) {
                     return <g key={series.displayKey}>
-                        <circle cx={v.position.x} cy={v.position.y} fill="none" stroke={series.color} r={v.size+2}/>
-                        <circle cx={v.position.x} cy={v.position.y} fill={series.color} r={v.size}/>
+                        <circle cx={v.position.x} cy={v.position.y} fill="none" stroke={series.color} r={series.size+2}/>
+                        <circle cx={v.position.x} cy={v.position.y} fill={series.color} r={series.size}/>
                     </g>
                 } else {
-                    return <circle key={series.displayKey} cx={v.position.x} cy={v.position.y} fill={series.color} r={v.size}/>
+                    return <circle key={series.displayKey} cx={v.position.x} cy={v.position.y} fill={series.color} r={series.size}/>
                 }
             } else {
                 const firstValue = series.values[0]
