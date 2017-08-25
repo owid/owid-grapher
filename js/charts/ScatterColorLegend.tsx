@@ -10,7 +10,7 @@ interface ColorLegendProps {
     maxWidth: number,
     colors: string[],
     scale: d3.ScaleOrdinal<string, string>,
-    focusColor?: string,
+    focusColors?: string[],
     onMouseOver?: (color: string) => void,
     onClick?: (color: string) => void,
     onMouseLeave?: () => void
@@ -34,7 +34,7 @@ export default class ScatterColorLegend extends React.Component<ColorLegendProps
     @computed get onClick(): Function { return this.props.onClick || _.noop }
     @computed get x(): number { return this.props.x || 0 }
     @computed get y(): number { return this.props.y || 0 }
-    @computed get focusColor(): string|null { return this.props.focusColor||null }
+    @computed get focusColors(): string[] { return this.props.focusColors||[] }
 
     @computed get labelMarks(): LabelMark[] {
         const {props, fontSize, rectSize, rectPadding} = this
@@ -66,17 +66,17 @@ export default class ScatterColorLegend extends React.Component<ColorLegendProps
     }
 
     render() {
-        const {focusColor, rectSize, rectPadding, lineHeight} = this
+        const {focusColors, rectSize, rectPadding, lineHeight} = this
         let offset = 0
 
         return <g className="ColorLegend clickable" style={{cursor: 'pointer'}}>
             {_.map(this.labelMarks, mark => {
-                const isFocus = mark.color == focusColor
+                const isFocus = _.includes(focusColors, mark.color)
 
                 const result = <g className="legendMark" onMouseOver={e => this.onMouseOver(mark.color)} onMouseLeave={e => this.onMouseLeave()} onClick={e => this.onClick(mark.color)}>
                     <rect x={this.x} y={this.y+offset-lineHeight/2} width={mark.width} height={mark.height+lineHeight} fill="#fff" opacity={0}/>,
                     <rect x={this.x} y={this.y+offset+rectSize/2} width={rectSize} height={rectSize} fill={mark.color}/>,
-                    {mark.label.render(this.x+rectSize+rectPadding, this.y+offset)}
+                    {mark.label.render(this.x+rectSize+rectPadding, this.y+offset, isFocus ? { style: { fontWeight: 'bold' } } : undefined)}
                 </g>
 
                 offset += mark.height+lineHeight
