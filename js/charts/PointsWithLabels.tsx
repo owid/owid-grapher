@@ -41,6 +41,7 @@ export interface ScatterValue {
 
 interface PointsWithLabelsProps {
     data: ScatterSeries[]
+    hoverKeys: string[]
     focusKeys: string[]
     bounds: Bounds
     xScale: AxisScale
@@ -99,7 +100,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
     @computed get tmpFocusKeys(): string[] {
         const {focusKeys, hoverKey} = this
-        return focusKeys.concat(hoverKey ? [hoverKey] : [])
+        return focusKeys.concat(hoverKey ? [hoverKey] : []).concat(this.props.hoverKeys)
     }
 
     @computed get data(): ScatterSeries[] {
