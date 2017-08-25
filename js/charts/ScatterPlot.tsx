@@ -186,12 +186,14 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
             {(arrowLegend||tooltipSeries) && <line x1={bounds.right-sidebarWidth} y1={bounds.top+legend.height+2} x2={bounds.right-5} y2={bounds.top+legend.height+2} stroke="#ccc"/>}
             {arrowLegend && arrowLegend.render(bounds.right-sidebarWidth, bounds.top+legend.height+11)}
             {timeline && <Timeline {...timeline.props}/>}
-            {tooltipSeries && <ScatterTooltip series={tooltipSeries} maxWidth={sidebarWidth} x={bounds.right-sidebarWidth} y={bounds.top+legend.height+11+(arrowLegend ? arrowLegend.height : 0)}/>}
+            {tooltipSeries && <ScatterTooltip yAxis={transform.yAxis} xAxis={transform.xAxis} series={tooltipSeries} maxWidth={sidebarWidth} x={bounds.right-sidebarWidth} y={bounds.top+legend.height+11+(arrowLegend ? arrowLegend.height : 0)}/>}
         </g>
     }
 }
 
 interface ScatterTooltipProps {
+    yAxis: AxisSpec,
+    xAxis: AxisSpec,
     series: ScatterSeries,
     maxWidth: number,
     x: number,
@@ -200,10 +202,17 @@ interface ScatterTooltipProps {
 
 @observer
 class ScatterTooltip extends React.Component<ScatterTooltipProps> {
-    formatValue(value, property) {
-        let s = value[property].toString()
-        if (value.year != value.time[property])
-            s += " (data from " + value.time[property] + ")"
+    formatValueY(value: ScatterValue) {
+        let s = "Y: " + this.props.yAxis.tickFormat(value.y)
+        if (value.year != value.time.y)
+            s += " (data from " + value.time.y + ")"
+        return s
+    }
+
+    formatValueX(value: ScatterValue) {
+        let s = "X: " + this.props.xAxis.tickFormat(value.x)
+        if (value.year != value.time.x)
+            s += " (data from " + value.time.x + ")"
         return s
     }
 
@@ -225,9 +234,9 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps> {
         _.each(values, v => {
             const year = { x: x, y: y+offset, wrap: new TextWrap({ maxWidth: maxWidth, fontSize: 0.55, text: v.year.toString() }) }
             offset += year.wrap.height
-            const line1 = { x: x, y: y+offset, wrap: new TextWrap({ maxWidth: maxWidth, fontSize: 0.45, text: this.formatValue(v, 'y')}) }
+            const line1 = { x: x, y: y+offset, wrap: new TextWrap({ maxWidth: maxWidth, fontSize: 0.45, text: this.formatValueY(v)}) }
             offset += line1.wrap.height
-            const line2 = { x: x, y: y+offset, wrap: new TextWrap({ maxWidth: maxWidth, fontSize: 0.45, text: this.formatValue(v, 'x')}) }
+            const line2 = { x: x, y: y+offset, wrap: new TextWrap({ maxWidth: maxWidth, fontSize: 0.45, text: this.formatValueX(v)}) }
             offset += line2.wrap.height+lineHeight            
             elements.push(...[year, line1, line2])
         })

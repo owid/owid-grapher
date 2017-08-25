@@ -47,10 +47,11 @@ export default class ScatterTransform {
 		return this.chart.props.stackMode == 'relative'
     }
 
+    // Unlike other charts, the scatterplot shows all available data by default, and the selection
+    // is just for emphasis. But this behavior can be disabled.
     @computed get hideBackgroundEntities() {
         return this.chart.addCountryMode == 'disabled'
     }
-
     @computed get validEntities() {
         if (this.hideBackgroundEntities)
             return this.chart.data.selectedKeys.map(datakey => this.chart.data.lookupKey(datakey).entity)
@@ -378,7 +379,10 @@ export default class ScatterTransform {
         })
 
         currentData = _.filter(currentData, series => {
-            return series.values.length > 0 && ((first(series.values).year == startYear && (last(series.values).year == endYear || first(series.values).year == startYear)) || _.includes(this.chart.data.selectedKeys, series.key))
+            return series.values.length > 0
+            // This disabled behavior prevents showing data unless it spans the whole timeline range
+            // We decided not to do this because it's confusing to have a series disappear when you're moving the timeline
+            // && ((first(series.values).year == startYear && (last(series.values).year == endYear || first(series.values).year == startYear)) || _.includes(this.chart.data.selectedKeys, series.key))
         })
 
         if (timeline && timeline.compareEndPointsOnly) {
