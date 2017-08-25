@@ -69,8 +69,9 @@ interface ScatterRenderSeries {
     size: number
     values: ScatterRenderValue[]
     text: string
-    isHovered: boolean
-    isFocused: boolean
+    isHover?: boolean
+    isFocus?: boolean
+    isForeground?: boolean
     offsetVector: Vector2
     startLabel?: ScatterLabel
     midLabels: ScatterLabel[]
@@ -98,9 +99,14 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         return this.props.focusKeys || []
     }
 
-    @computed get tmpFocusKeys(): string[] {
-        const {focusKeys, hoverKey} = this
-        return focusKeys.concat(hoverKey ? [hoverKey] : []).concat(this.props.hoverKeys)
+    @computed get hoverKeys(): string[] {
+        return this.props.hoverKeys.concat(this.hoverKey ? [this.hoverKey] : [])
+    }
+
+    // Layered mode occurs when any entity on the chart is hovered or focused
+    // Then, a special "foreground" set of entities is rendered over the background
+    @computed get isLayerMode() {
+        return this.focusKeys.length > 0 || this.hoverKeys.length > 0
     }
 
     @computed get data(): ScatterSeries[] {
@@ -124,7 +130,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     }
 
     // When focusing multiple entities, we hide some information to declutter
-    @computed get isSubtleFocus(): boolean {
+    @computed get isSubtleForeground(): boolean {
         return this.focusKeys.length > 1 && _.some(this.props.data, series => series.values.length > 2)
     }
 
@@ -171,8 +177,6 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                 size: (_.last(values) as any).size,
                 values: values,
                 text: d.label,
-                isHovered: false,
-                isFocused: false,
                 midLabels: [],
                 allLabels: [],
                 offsetVector: Vector2.zero
@@ -183,9 +187,9 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     labelPriority(l: ScatterLabel) {
         let priority = l.fontSize
 
-        if (l.series.isHovered)
+        if (l.series.isHover)
             priority += 10000
-        if (l.series.isFocused)
+        if (l.series.isFocus)
             priority += 1000
         if (l.isEnd)
             priority += 100
@@ -196,11 +200,11 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     // Create the start year label for a series
     makeStartLabel(series: ScatterRenderSeries): ScatterLabel|undefined {
         // No room to label the year if it's a single point        
-        if (!series.isFocused || series.values.length <= 1)
+        if (!series.isForeground || series.values.length <= 1)
             return undefined
 
         const {labelFontFamily} = this
-        const fontSize = series.isFocused ? (this.isSubtleFocus ? 8 : 9): 7
+        const fontSize = series.isForeground ? (this.isSubtleForeground ? 8 : 9): 7
         const firstValue = series.values[0]
         const nextValue = series.values[1]
         const nextSegment = nextValue.position.subtract(firstValue.position)
@@ -225,10 +229,10 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     // Make labels for the points between start and end on a series
     // Positioned using normals of the line segments
     makeMidLabels(series: ScatterRenderSeries): ScatterLabel[] {
-        if (!series.isFocused || series.values.length <= 1 || (!series.isHovered && this.isSubtleFocus))
+        if (!series.isForeground || series.values.length <= 1 || (!series.isHover && this.isSubtleForeground))
             return []
 
-        const fontSize = series.isFocused ? (this.isSubtleFocus ? 8 : 9): 7
+        const fontSize = series.isForeground ? (this.isSubtleForeground ? 8 : 9): 7
         const {labelFontFamily} = this
         
         return _.map(series.values.slice(1, -1), (v, i) => {
@@ -269,11 +273,11 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     // slightly out based on the direction of the series if multiple values
     // are present
     makeEndLabel(series: ScatterRenderSeries) {
-        const {isSubtleFocus, labelFontFamily} = this
+        const {isSubtleForeground, labelFontFamily} = this
 
         const lastValue = _.last(series.values) as ScatterRenderValue
         const lastPos = lastValue.position
-        const fontSize = lastValue.fontSize*(series.isFocused ? (isSubtleFocus ? 1.2 : 1.3): 1.1)
+        const fontSize = lastValue.fontSize*(series.isForeground ? (isSubtleForeground ? 1.2 : 1.3): 1.1)
 
         let offsetVector = Vector2.up
         if (series.values.length > 1) {
@@ -302,14 +306,15 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     }
 
     @computed get renderData(): ScatterRenderSeries[] {
-        let {initialRenderData, hoverKey, tmpFocusKeys, labelPriority, bounds} = this
+        let {initialRenderData, hoverKeys, focusKeys, isLayerMode, labelPriority, bounds} = this
 
         // Draw the largest points first so that smaller ones can sit on top of them
         let renderData = _.sortBy(initialRenderData, d => -d.size)
 
         _.each(renderData, series => {
-            series.isHovered = series.key == hoverKey
-            series.isFocused = _.includes(tmpFocusKeys, series.key)
+            series.isHover = _.includes(hoverKeys, series.key)
+            series.isFocus = _.includes(focusKeys, series.key)
+            series.isForeground = series.isHover || series.isFocus
         })
 
         _.each(renderData, series => {
@@ -410,24 +415,20 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         this.props.onSelectEntity(hoverKey)
     }
 
-    @computed get isFocusMode(): boolean {
-        return !!(this.tmpFocusKeys.length || this.renderData.length == 1)
-    }
-
     @computed get backgroundGroups(): ScatterRenderSeries[] {
-        return _.filter(this.renderData, group => !group.isFocused)
+        return _.filter(this.renderData, group => !group.isForeground)
     }
 
     @computed get focusGroups(): ScatterRenderSeries[] {
-        return _.filter(this.renderData, group => group.isFocused)
+        return _.filter(this.renderData, group => group.isForeground)
     }
 
     renderBackgroundLines() {
-        const {backgroundGroups, isConnected, isFocusMode} = this
+        const {backgroundGroups, isConnected, isLayerMode} = this
 
         return _.map(backgroundGroups, series => {
             const firstValue = _.first(series.values) as ScatterRenderValue
-            const color = !isFocusMode ? series.color : "#e2e2e2"            
+            const color = !isLayerMode ? series.color : "#e2e2e2"            
 
             if (!isConnected) {
                 return <circle key={series.displayKey+'-end'} cx={firstValue.position.x} cy={firstValue.position.y} r={firstValue.size} fill={color} opacity={0.8} stroke="#ccc"/>    
@@ -444,14 +445,14 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                         cx={firstValue.position.x} 
                         cy={firstValue.position.y} 
                         r={1+firstValue.size/16} 
-                        fill={!isFocusMode ? series.color : "#e2e2e2"} 
+                        fill={!isLayerMode ? series.color : "#e2e2e2"} 
                         stroke="#ccc" 
                         opacity={0.6}
                     />,
                     <polyline
                         key={series.displayKey+'-line'}
                         strokeLinecap="round"
-                        stroke={isFocusMode ? "#ccc" : series.color}
+                        stroke={isLayerMode ? "#ccc" : series.color}
                         points={_.map(series.values, v => `${v.position.x},${v.position.y}`).join(' ')}
                         fill="none"
                         strokeWidth={0.3+(series.size/16)}
@@ -474,7 +475,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     }
 
     renderBackgroundLabels() {
-        const {backgroundGroups, isFocusMode, labelFontFamily} = this
+        const {backgroundGroups, isLayerMode, labelFontFamily} = this
         return _.map(backgroundGroups, series => {
             return _.map(series.allLabels, l => 
                 !l.isHidden && <text key={series.displayKey+'-endLabel'} 
@@ -482,17 +483,17 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                   y={l.bounds.y+l.bounds.height} 
                   fontSize={l.fontSize} 
                   fontFamily={labelFontFamily}
-                  fill={!isFocusMode ? "#666" : "#aaa"}>{l.text}</text>
+                  fill={!isLayerMode ? "#666" : "#aaa"}>{l.text}</text>
             )
         })     
     }
 
     renderFocusLines() {
-        const {focusGroups, isSubtleFocus} = this
+        const {focusGroups, isSubtleForeground} = this
         
         return _.map(focusGroups, series => {
             const lastValue = _.last(series.values) as ScatterRenderValue
-            const strokeWidth = (series.isHovered ? 3 : (isSubtleFocus ? 0.8 : 2)) + lastValue.size*0.05
+            const strokeWidth = (series.isHover ? 3 : (isSubtleForeground ? 0.8 : 2)) + lastValue.size*0.05
 
             if (series.values.length == 1) {
                 const v = series.values[0]
@@ -515,7 +516,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                         points={_.map(series.values, v => `${v.position.x},${v.position.y}`).join(' ')}
                         fill="none"
                         strokeWidth={strokeWidth}
-                        opacity={isSubtleFocus ? 0.6 : 1}
+                        opacity={isSubtleForeground ? 0.6 : 1}
                         markerStart={`url(#${series.displayKey}-circle)`}
                         markerMid={`url(#${series.displayKey}-circle)`}
                         markerEnd={`url(#${series.displayKey}-arrow)`}
@@ -542,7 +543,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     render() {
         //Bounds.debug(_.flatten(_.map(this.renderData, d => _.map(d.labels, 'bounds'))))
         
-        const {bounds, renderData, xScale, yScale, sizeScale, tmpFocusKeys, allColors, isFocusMode} = this
+        const {bounds, renderData, xScale, yScale, sizeScale, allColors} = this
         const clipBounds = bounds.pad(-10)
 
         if (_.isEmpty(renderData))
