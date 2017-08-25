@@ -199,6 +199,7 @@ a {
 }
 
 #chart.portrait .extraControls {
+    font-size: 0.7em;
     border-bottom: 1px solid #e1e1e1;
 }
 
@@ -207,10 +208,13 @@ a {
     align-items: center;
     justify-content: center;
     height: 100%;
-    padding-left: 1em;
-    font-size: 0.8em;
     padding-top: 0.4em;
     padding-bottom: 0.4em;
+}
+
+#chart.landscape .extraControls {
+    padding-left: 1em;
+    font-size: 0.8em;
 }
 
 #chart .extraControls label {
@@ -221,6 +225,9 @@ a {
 
 #chart .extraControls button {
     margin: 0;
+}
+
+#chart.landscape .extraControls button {
     padding-top: 0.1em;
     padding-bottom: 0.1em;
     padding-left: 0.5em;

@@ -36,7 +36,7 @@ class LoadingBlocker extends React.Component {
 		}
         return <div style={style}>
 			<i className="fa fa-spinner fa-spin"/>
-		</div>		
+		</div>
 	}
 }
 

@@ -184,10 +184,6 @@ export default class ChartConfig {
         return validDimensions
     }
 
-    @computed get primaryDimensions() {
-		return this.dimensions.filter(dim => dim.property == 'y')        
-    }
-
 	model: any
 
     @computed get availableTabs(): ChartTabOption[] {
@@ -310,5 +306,9 @@ export default class ChartConfig {
             bounds={new Bounds(0, 0, App.IDEAL_WIDTH, App.IDEAL_HEIGHT)}/>)
 
         return svg
+    }
+
+    @computed get isScatter() {
+        return this.type == ChartType.ScatterPlot
     }
 }

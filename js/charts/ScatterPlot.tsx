@@ -81,31 +81,36 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         return preInstantiate(<ScatterColorLegend maxWidth={this.sidebarMaxWidth} colors={this.transform.colorsInUse} scale={this.transform.colorScale}/>)
     }
 
-    @observable focusColor: string|undefined
+    @observable focusColors: string[] = []
+    @observable hoverColor: string|undefined
     @action.bound onLegendMouseOver(color: string) {
-        this.focusColor = color
+        this.hoverColor = color
     }
 
     @action.bound onLegendMouseLeave() {
-        this.focusColor = undefined
+        this.hoverColor = undefined
     }
 
+    // When the color legend is clicked, toggle selection fo all associated keys
     @action.bound onLegendClick() {
         if (this.chart.addCountryMode == 'disabled')
             return
-        
-        if (_.isEqual(_.sortBy(this.focusKeys), _.sortBy(this.chart.data.selectedKeys)))
-            this.chart.data.selectedKeys = []
-        else
-            this.chart.data.selectedKeys = this.focusKeys
+
+        if (this.hoverColor) {
+            if (this.focusColors.indexOf(this.hoverColor) == -1)
+                this.focusColors.push(this.hoverColor)
+            else
+                this.focusColors = this.focusColors.filter(c => c != this.hoverColor)
+        }
+    }
+
+    @computed get hoverColorKeys(): string[] {
+        const {transform, hoverColor, focusColors} = this
+        return _(this.transform.allGroups).filter(series => series.color && (series.color == hoverColor || focusColors.indexOf(series.color) != -1)).map(series => series.key).uniq().value()
     }
 
     @computed get focusKeys(): string[] {
-        if (this.focusColor) {
-            return _.uniq(_.map(_.filter(this.transform.allGroups, series => series.color == this.focusColor), series => series.key))
-        } else {
-            return this.chart.data.selectedKeys
-        }
+        return this.chart.data.selectedKeys.concat(this.hoverColorKeys)
     }
 
     @computed get arrowLegend(): ConnectedScatterLegend|undefined {
@@ -171,13 +176,13 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         if (this.transform.failMessage)
             return <NoData bounds={this.bounds} message={this.transform.failMessage}/>
 
-        const {transform, bounds, axisBox, chart, timeline, timelineHeight, legend, focusKeys, focusColor, arrowLegend, hoverSeries, sidebarWidth, tooltipSeries, comparisonLine} = this
+        const {transform, bounds, axisBox, chart, timeline, timelineHeight, legend, focusKeys, hoverColor, arrowLegend, hoverSeries, sidebarWidth, tooltipSeries, comparisonLine} = this
         const {currentData, sizeDomain} = transform
         return <g className="ScatterPlot">
             <AxisBoxView axisBox={axisBox} onXScaleChange={this.onXScaleChange} onYScaleChange={this.onYScaleChange}/>
             {comparisonLine && <ComparisonLine axisBox={axisBox} comparisonLine={comparisonLine}/>}
             <PointsWithLabels data={currentData} bounds={axisBox.innerBounds} xScale={axisBox.xScale} yScale={axisBox.yScale} sizeDomain={sizeDomain} onSelectEntity={this.onSelectEntity} focusKeys={focusKeys} onMouseOver={this.onScatterMouseOver} onMouseLeave={this.onScatterMouseLeave}/>
-            <ScatterColorLegend {...legend.props} x={bounds.right-sidebarWidth} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} onClick={this.onLegendClick} focusColor={focusColor}/>
+            <ScatterColorLegend {...legend.props} x={bounds.right-sidebarWidth} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} onClick={this.onLegendClick} focusColor={hoverColor}/>
             {(arrowLegend||tooltipSeries) && <line x1={bounds.right-sidebarWidth} y1={bounds.top+legend.height+2} x2={bounds.right-5} y2={bounds.top+legend.height+2} stroke="#ccc"/>}
             {arrowLegend && arrowLegend.render(bounds.right-sidebarWidth, bounds.top+legend.height+11)}
             {timeline && <Timeline {...timeline.props}/>}

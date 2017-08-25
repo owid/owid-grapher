@@ -129,7 +129,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
     @computed get sizeScale() {
         const {data} = this
-        const sizeScale = d3.scaleLinear().range([2, 25]).domain(this.props.sizeDomain)
+        const sizeScale = d3.scaleLinear().range([10, 1000]).domain(this.props.sizeDomain)
         return sizeScale
     }
 
@@ -151,12 +151,13 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         const {data, xScale, yScale, defaultColorScale, sizeScale, fontScale} = this
         return _.chain(data).map(d => {
             const values = _.map(d.values, v => {
+                const area = sizeScale(v.size||1)
                 return {
                     position: new Vector2(
                         Math.floor(xScale.place(v.x)),
                         Math.floor(yScale.place(v.y))
                     ),
-                    size: sizeScale(v.size||1),
+                    size: Math.sqrt(area/Math.PI),
                     fontSize: fontScale(d.size||1),
                     time: v.time
                 }

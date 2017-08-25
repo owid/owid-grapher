@@ -53,7 +53,7 @@ export default class ScaleSelector extends React.Component<ScaleSelectorProps> {
 			return null
 
 		const style = {'font-size': '12px', 'text-transform': 'uppercase', 'cursor': 'pointer'}
-		return <text x={x} y={y} onClick={onClick} style={style}>
+		return <text x={x} y={y} onClick={onClick} style={style} className="clickable">
 			<tspan style={{'font-family': "FontAwesome"}}>{'\uf013'}</tspan> {scaleType}
 		</text>
 	}

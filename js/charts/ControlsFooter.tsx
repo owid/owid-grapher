@@ -198,7 +198,7 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps>
             </nav>
             {chart.tab == 'chart' && <div className="extraControls">          
                 {chart.data.canAddData && <button onClick={this.onDataSelect}>
-                    <i className="fa fa-plus"/> Add data
+                    {chart.isScatter ? <span><i className="fa fa-search"/> Search</span> : <span><i className="fa fa-plus"/> Add data</span>}
                 </button>}
 
                 {chart.data.canChangeEntity && <button onClick={this.onDataSelect}>
