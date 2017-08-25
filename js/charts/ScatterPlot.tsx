@@ -105,12 +105,14 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     }
 
     @computed get hoverKeys(): string[] {
-        const {transform, hoverColor, focusColors} = this
-        return _(this.transform.allGroups).filter(series => series.color && (series.color == hoverColor || focusColors.indexOf(series.color) != -1)).map(series => series.key).uniq().value()
+        const {transform, hoverColor} = this
+        return _(this.transform.allGroups).filter(series => hoverColor && series.color == hoverColor).map(series => series.key).uniq().value()
     }
 
     @computed get focusKeys(): string[] {
-        return this.chart.data.selectedKeys
+        const {transform, focusColors} = this
+        const focusColorKeys = _(transform.allGroups).filter(series => _.includes(focusColors, series.color)).map(series => series.key).uniq().value()
+        return this.chart.data.selectedKeys.concat(focusColorKeys)
     }
 
     @computed get arrowLegend(): ConnectedScatterLegend|undefined {

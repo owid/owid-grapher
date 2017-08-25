@@ -419,7 +419,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         return _.filter(this.renderData, group => !group.isForeground)
     }
 
-    @computed get focusGroups(): ScatterRenderSeries[] {
+    @computed get foregroundGroups(): ScatterRenderSeries[] {
         return _.filter(this.renderData, group => group.isForeground)
     }
 
@@ -439,27 +439,24 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                 let rotation = Vector2.angle(series.offsetVector, Vector2.up)
                 if (series.offsetVector.x < 0) rotation = -rotation
 
-                return [
+                return <g key={series.displayKey} className={series.displayKey}>
                     <circle 
-                        key={series.displayKey+'-start'} 
                         cx={firstValue.position.x} 
                         cy={firstValue.position.y} 
                         r={1+firstValue.size/16} 
                         fill={!isLayerMode ? series.color : "#e2e2e2"} 
                         stroke="#ccc" 
                         opacity={0.6}
-                    />,
+                    />
                     <polyline
-                        key={series.displayKey+'-line'}
                         strokeLinecap="round"
                         stroke={isLayerMode ? "#ccc" : series.color}
                         points={_.map(series.values, v => `${v.position.x},${v.position.y}`).join(' ')}
                         fill="none"
                         strokeWidth={0.3+(series.size/16)}
                         opacity={0.6}
-                    />,
+                    />
                    <Triangle 
-                        key={series.displayKey+'-end'} 
                         transform={`rotate(${rotation}, ${lastValue.position.x}, ${lastValue.position.y})`} 
                         cx={lastValue.position.x} 
                         cy={lastValue.position.y} 
@@ -469,7 +466,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                         strokeWidth={0.2} 
                         opacity={0.6}
                     />                    
-                ]
+                </g>
             }
         })
     }
@@ -488,19 +485,27 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         })     
     }
 
-    renderFocusLines() {
-        const {focusGroups, isSubtleForeground} = this
+    renderForegroundLines() {
+        const {foregroundGroups, isSubtleForeground} = this
         
-        return _.map(focusGroups, series => {
+        return _.map(foregroundGroups, series => {
             const lastValue = _.last(series.values) as ScatterRenderValue
             const strokeWidth = (series.isHover ? 3 : (isSubtleForeground ? 0.8 : 2)) + lastValue.size*0.05
 
             if (series.values.length == 1) {
                 const v = series.values[0]
-                return <circle key={series.displayKey} cx={v.position.x} cy={v.position.y} fill={series.color} r={v.size}/>
-            } else
-                return [
-                    <defs key={series.displayKey+'-defs'}>
+                if (series.isFocus) {
+                    return <g key={series.displayKey}>
+                        <circle cx={v.position.x} cy={v.position.y} fill="none" stroke={series.color} r={v.size+2}/>
+                        <circle cx={v.position.x} cy={v.position.y} fill={series.color} r={v.size}/>
+                    </g>
+                } else {
+                    return <circle key={series.displayKey} cx={v.position.x} cy={v.position.y} fill={series.color} r={v.size}/>
+                }
+            } else {
+                const firstValue = series.values[0]
+                return <g key={series.displayKey} className={series.displayKey}>
+                    <defs>
                         <marker id={series.displayKey+'-arrow'} fill={series.color} viewBox="0 -5 10 10" refX={5} refY={0} markerWidth={4} markerHeight={4} orient="auto">
                             <path d="M0,-5L10,0L0,5"/>
                         </marker>
@@ -508,9 +513,16 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                                 refX={4} refY={4} orient="auto" fill={series.color}>
                             <circle cx={4} cy={4} r={4}/>
                         </marker>
-                    </defs>,
+                    </defs>
+                    {series.isFocus && <circle 
+                        cx={firstValue.position.x} 
+                        cy={firstValue.position.y} 
+                        r={strokeWidth + 1} 
+                        fill="none"
+                        stroke={series.color} 
+                        opacity={0.6}
+                    />}
                     <polyline
-                        key={series.displayKey+'-line'}
                         strokeLinecap="round"
                         stroke={series.color}
                         points={_.map(series.values, v => `${v.position.x},${v.position.y}`).join(' ')}
@@ -521,13 +533,14 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                         markerMid={`url(#${series.displayKey}-circle)`}
                         markerEnd={`url(#${series.displayKey}-arrow)`}
                     />
-                ]
+                </g>
+            }
         })      
     }
 
-    renderFocusLabels() {
-        const {focusGroups, labelFontFamily} = this
-        return _.map(focusGroups, series => {
+    renderForegroundLabels() {
+        const {foregroundGroups, labelFontFamily} = this
+        return _.map(foregroundGroups, series => {
             return _.map(series.allLabels, (l, i) =>
                 !l.isHidden && <text 
                     key={series.displayKey+'-label-'+i} 
@@ -558,8 +571,8 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             </defs>
             {this.renderBackgroundLines()}
             {this.renderBackgroundLabels()}
-            {this.renderFocusLines()}
-            {this.renderFocusLabels()}
+            {this.renderForegroundLines()}
+            {this.renderForegroundLabels()}
         </g>
     }
 }
