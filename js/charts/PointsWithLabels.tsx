@@ -377,8 +377,8 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             const mouse = getRelativeMouse(this.base, ev)
 
             let closestSeries = _.sortBy(this.renderData, (series) => {
-                if (_.some(series.allLabels, l => !l.isHidden && l.bounds.contains(mouse)))
-                    return -Infinity
+                /*if (_.some(series.allLabels, l => !l.isHidden && l.bounds.contains(mouse)))
+                    return -Infinity*/
 
                 if (this.isConnected) {
                     return _.min(_.map(series.values.slice(0, -1), (d, i) => {
