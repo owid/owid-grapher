@@ -46,7 +46,7 @@ interface PointsWithLabelsProps {
     xScale: AxisScale
     yScale: AxisScale
     sizeDomain: [number, number]
-    onSelectEntity: (entities: string[]) => void
+    onSelectEntity: (datakey: string) => void
     onMouseOver: (series: ScatterSeries) => void
     onMouseLeave: () => void
 }
@@ -205,14 +205,14 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         const nextSegment = nextValue.position.subtract(firstValue.position)
 
         let pos = firstValue.position.subtract(nextSegment.normalize().times(5))
-        let bounds = Bounds.forText(firstValue.time.x.toString(), { x: pos.x, y: pos.y, fontSize: fontSize, fontFamily: labelFontFamily })
+        let bounds = Bounds.forText(firstValue.time.y.toString(), { x: pos.x, y: pos.y, fontSize: fontSize, fontFamily: labelFontFamily })
         if (pos.x < firstValue.position.x)
             bounds = new Bounds(bounds.x-bounds.width+2, bounds.y, bounds.width, bounds.height)
         if (pos.y > firstValue.position.y)
             bounds = new Bounds(bounds.x, bounds.y+bounds.height/2, bounds.width, bounds.height)
 
         return {
-            text: firstValue.time.x.toString(),
+            text: firstValue.time.y.toString(),
             fontSize: fontSize,
             pos: firstValue.position,
             bounds: bounds,
@@ -247,14 +247,14 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                 pos = v.position.subtract(nextSegment.normalize().times(5))
             }
 
-            let bounds = Bounds.forText(v.time.x.toString(), { x: pos.x, y: pos.y, fontSize: fontSize, fontFamily: labelFontFamily })
+            let bounds = Bounds.forText(v.time.y.toString(), { x: pos.x, y: pos.y, fontSize: fontSize, fontFamily: labelFontFamily })
             if (pos.x < v.position.x)
                 bounds = new Bounds(bounds.x-bounds.width+2, bounds.y, bounds.width, bounds.height)
             if (pos.y > v.position.y)
                 bounds = new Bounds(bounds.x, bounds.y+bounds.height/2, bounds.width, bounds.height)
 
             return {
-                text: v.time.x.toString(),
+                text: v.time.y.toString(),
                 fontSize: fontSize,
                 pos: v.position,
                 bounds: bounds,
@@ -406,10 +406,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         const {hoverKey, focusKeys} = this
         if (!hoverKey) return
 
-        if (_.includes(this.focusKeys, hoverKey))
-            this.props.onSelectEntity(_.without(this.focusKeys, hoverKey))
-        else
-            this.props.onSelectEntity(this.focusKeys.concat([hoverKey]))
+        this.props.onSelectEntity(hoverKey)
     }
 
     @computed get isFocusMode(): boolean {

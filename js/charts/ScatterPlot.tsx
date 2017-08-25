@@ -58,9 +58,9 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         this.chart.timeDomain = [targetStartYear, targetEndYear]
     }
 
-    @action.bound onSelectEntity(focusKeys: string[]) {
+    @action.bound onSelectEntity(datakey: string) {
         if (this.chart.addCountryMode != 'disabled')
-            this.chart.data.selectedKeys = focusKeys
+            this.chart.data.toggleKey(datakey)
     }
 
     @computed get timeline(): Timeline|null {
