@@ -302,6 +302,9 @@ for file in glob.glob(metadata_dir + "/*.csv"):
     # dataset files that can't be extracted by python will be put in csv format in the folder with other .zip files
     all_files_meta.append(os.path.splitext(os.path.basename(file))[0] + ".csv")
 
+print("########################################################################################")
+print("Please make sure you set the ulimit on your operating system to a value higher than 5000")
+print("########################################################################################")
 
 # Will now perform the checks for files, dataset categories and file structures
 parsing_notes = []
@@ -540,147 +543,144 @@ def process_csv_file_insert(filename_to_process: str, original_filename: str):
                 process_one_row(year, value, countryname, variablecode, variablename, existing_fao_variables_dict,
                                 row['Unit'], newsource, newdataset, variable_description, data_values_tuple_list)
 
+            unique_data_tracker.update(current_file_vars_countries)
+
+        # these are the files that require several iterations over all rows
         if filecolumns == column_types[5] or filecolumns == column_types[6] or filecolumns == column_types[7]:
-            unique_vars = []
-            # first we collect all variable names
-            for row in currentreader:
-                if filecolumns == column_types[5]:
-                    variablename = '%s - Donors' % row['Item']
-                if filecolumns == column_types[6]:
-                    variablename = '%s - %s - Reporters' % (row['Item'], row['Element'])
-                if filecolumns == column_types[7]:
-                    variablename = '%s - %s - Donors' % (row['Item'], row['Purpose'])
-                if variablename not in unique_vars:
-                    unique_vars.append(variablename)
-            # then we collect values for these variables
-            processed_rows = set()
-            for onevar in unique_vars:
-                row_counter = 0
-                unique_records_holder = {}
-                currentfile.seek(0)  # going back to the top of the file
-                for row in currentreader:
-                    if row_counter in processed_rows:
-                        row_counter += 1
-                        continue
-                    if row_counter % 300 == 0:
-                        time.sleep(0.001)  # this is done in order to not keep the CPU busy all the time
-                    if row['Year'] == 'Year':
-                        continue
-                    if filecolumns == column_types[5]:
-                        variablename = '%s - Donors' % row['Item']
-                    if filecolumns == column_types[6]:
-                        variablename = '%s - %s - Reporters' % (row['Item'], row['Element'])
-                    if filecolumns == column_types[7]:
-                        variablename = '%s - %s - Donors' % (row['Item'], row['Purpose'])
-                    if variablename == onevar:
-                        processed_rows.add(row_counter)
-                        if filecolumns == column_types[5]:
-                            countryname = row['Donor Country']
-                            variablecode = row['Item Code']
-                            variableunit = row['Unit']
-                        if filecolumns == column_types[6]:
-                            countryname = row['Reporter Countries']
-                            variablecode = '%s - %s' % (row['Item Code'], row['Element Code'])
-                            variableunit = row['Unit']
-                        if filecolumns == column_types[7]:
-                            countryname = row['Donor']
-                            variablecode = '%s - %s' % (row['Item Code'], row['Purpose Code'])
-                            variableunit = row['Unit']
-
-                        try:
-                            year = int(row['Year'])
-                            value = float(row['Value'])
-                        except ValueError:
-                            year = False
-                            value = False
-                        if year is not False and value is not False:
-                            unique_record = tuple([countryname, int(row['Year'])])
-                            if unique_record not in unique_records_holder:
-                                unique_records_holder[unique_record] = float(row['Value'])
-                            else:
-                                unique_records_holder[unique_record] += float(row['Value'])
-
-                    row_counter += 1
-
-                for key, value in unique_records_holder.items():
-                    variablename = file_dataset_names[original_filename] + ': ' + onevar
-                    process_one_row(list(key)[1], str(value), list(key)[0], variablecode, variablename, existing_fao_variables_dict,
-                                    variableunit, newsource, newdataset, variable_description, data_values_tuple_list)
-            currentfile.seek(0)
-
-            unique_vars = []
-            for row in currentreader:
-                if row['Year'] == 'Year':
-                    continue
-                if filecolumns == column_types[5]:
-                    variablename = '%s - Recipients' % row['Item']
-                if filecolumns == column_types[6]:
-                    variablename = '%s - %s - Partners' % (row['Item'], row['Element'])
-                if filecolumns == column_types[7]:
-                    variablename = '%s - %s - Recipients' % (row['Item'], row['Purpose'])
-                if variablename not in unique_vars:
-                    unique_vars.append(variablename)
-            processed_rows = set()
-            for onevar in unique_vars:
-                row_counter = 0
-                unique_records_holder = {}
+            if filecolumns == column_types[5]:
+                iterations = [
+                    {
+                        'country_field': 'Donor Country',
+                        'varname_format': '%s - Donors'
+                    },
+                    {
+                        'country_field': 'Recipient Country',
+                        'varname_format': '%s - Recipients'
+                    }]
+            if filecolumns == column_types[6]:
+                iterations = [
+                    {
+                        'country_field': 'Reporter Countries',
+                        'varname_format': '%s - %s - Reporters'
+                    },
+                    {
+                        'country_field': 'Partner Countries',
+                        'varname_format': '%s - %s - Partners'
+                    }]
+            if filecolumns == column_types[7]:
+                iterations = [
+                    {
+                        'country_field': 'Donor',
+                        'varname_format': '%s - %s - Donors'
+                    },
+                    {
+                        'country_field': 'Recipient Country',
+                        'varname_format': '%s - %s - Recipients'
+                    }]
+            for oneiteration in iterations:
+                file_stream_holder = {}  # we will break down these files into smaller files
+                dict_writer_holder = {}
+                separate_files_names = {}  # we will keep the filenames in this dict
+                unique_vars = []
+                # first we collect all variable names
                 currentfile.seek(0)
+                row_counter = 0
                 for row in currentreader:
-                    if row_counter in processed_rows:
-                        row_counter += 1
-                        continue
-                    if row_counter % 300 == 0:
-                        time.sleep(0.001)  # this is done in order to not keep the CPU busy all the time
                     if row['Year'] == 'Year':
                         continue
-                    if filecolumns == column_types[5]:
-                        variablename = '%s - Recipients' % row['Item']
-                    if filecolumns == column_types[6]:
-                        variablename = '%s - %s - Partners' % (row['Item'], row['Element'])
-                    if filecolumns == column_types[7]:
-                        variablename = '%s - %s - Recipients' % (row['Item'], row['Purpose'])
-                    if variablename == onevar:
-                        processed_rows.add(row_counter)
-                        if filecolumns == column_types[5]:
-                            countryname = row['Recipient Country']
-                            variablecode = row['Item Code']
-                            variableunit = row['Unit']
-                        if filecolumns == column_types[6]:
-                            countryname = row['Partner Countries']
-                            variablecode = '%s - %s' % (row['Item Code'], row['Element Code'])
-                            variableunit = row['Unit']
-                        if filecolumns == column_types[7]:
-                            countryname = row['Recipient Country']
-                            variablecode = '%s - %s' % (row['Item Code'], row['Purpose Code'])
-                            variableunit = row['Unit']
-
-                        try:
-                            year = int(row['Year'])
-                            value = float(row['Value'])
-                        except ValueError:
-                            year = False
-                            value = False
-                        if year is not False and value is not False:
-                            unique_record = tuple([countryname, int(row['Year'])])
-                            if unique_record not in unique_records_holder:
-                                unique_records_holder[unique_record] = float(row['Value'])
-                            else:
-                                unique_records_holder[unique_record] += float(row['Value'])
-
                     row_counter += 1
+                    if row_counter % 300 == 0:
+                        time.sleep(0.001)  # this is done in order to not keep the CPU busy all the time
+                    if filecolumns == column_types[5]:
+                        variablename = oneiteration['varname_format'] % row['Item']
+                    if filecolumns == column_types[6]:
+                        variablename = oneiteration['varname_format'] % (row['Item'], row['Element'])
+                    if filecolumns == column_types[7]:
+                        variablename = oneiteration['varname_format'] % (row['Item'], row['Purpose'])
+                    if variablename not in unique_vars:
+                        unique_vars.append(variablename)
+                # then we break the dataset into files named after the variable names
+                for varname in unique_vars:
+                    separate_files_names[varname.replace('/', '+') + '.csv'] = varname
+                    file_stream_holder[varname] = open(os.path.join('/tmp', varname.replace('/', '+') + '.csv'),
+                                                       'w+', encoding='latin-1')
+                    dict_writer_holder[varname] = csv.DictWriter(file_stream_holder[varname],
+                                                                 fieldnames=['Country', 'Variable', 'Varcode', 'Year',
+                                                                             'Unit', 'Value'])
+                    dict_writer_holder[varname].writeheader()
+                # go back to the beginning of the file
+                currentfile.seek(0)
+                row_counter = 0
+                for row in currentreader:
+                    if row['Year'] == 'Year':
+                        continue
+                    row_counter += 1
+                    if row_counter % 300 == 0:
+                        time.sleep(0.001)  # this is done in order to not keep the CPU busy all the time
+                    if filecolumns == column_types[5]:
+                        variablename = oneiteration['varname_format'] % row['Item']
+                        variablecode = row['Item Code']
+                        dict_writer_holder[variablename].writerow({'Country': row[oneiteration['country_field']], 'Variable': variablename,
+                                                                   'Varcode': variablecode, 'Unit': row['Unit'],
+                                                                   'Year': row['Year'], 'Value': row['Value']})
+                    if filecolumns == column_types[6]:
+                        variablename = oneiteration['varname_format'] % (row['Item'], row['Element'])
+                        variablecode = '%s - %s' % (row['Item Code'], row['Element Code'])
+                        dict_writer_holder[variablename].writerow({'Country': row[oneiteration['country_field']], 'Variable': variablename,
+                                                                   'Varcode': variablecode, 'Unit': row['Unit'], 'Year': row['Year'],
+                                                                   'Value': row['Value']})
+                    if filecolumns == column_types[7]:
+                        variablename = oneiteration['varname_format'] % (row['Item'], row['Purpose'])
+                        variablecode = '%s - %s' % (row['Item Code'], row['Purpose Code'])
+                        dict_writer_holder[variablename].writerow({'Country': row[oneiteration['country_field']], 'Variable': variablename,
+                                                                   'Varcode': variablecode, 'Unit': row['Unit'],
+                                                                   'Year': row['Year'], 'Value': row['Value']})
+                    if row_counter % 100000 == 0:
+                        for fileholder, actual_file in file_stream_holder.items():
+                            actual_file.flush()
+                            os.fsync(actual_file.fileno())
+                for fileholder, actual_file in file_stream_holder.items():
+                    actual_file.close()
 
-                for key, value in unique_records_holder.items():
-                    variablename = file_dataset_names[original_filename] + ': ' + onevar
-                    process_one_row(list(key)[1], str(value), list(key)[0], variablecode, variablename,
-                                    existing_fao_variables_dict,
-                                    variableunit, newsource, newdataset, variable_description,
-                                    data_values_tuple_list)
+                # now parsing and importing each file individually
+
+                for each_separate_file, file_variable_name in separate_files_names.items():
+                    unique_records_holder = {}
+                    with open('/tmp/%s' % each_separate_file, encoding='latin-1') as separate_file:
+                        separate_file_reader = csv.DictReader(separate_file)
+                        row_counter = 0
+                        for row in separate_file_reader:
+                            row_counter += 1
+                            if row_counter % 300 == 0:
+                                time.sleep(0.001)  # this is done in order to not keep the CPU busy all the time
+                            countryname = row['Country']
+                            variablecode = row['Varcode']
+                            variableunit = row['Unit']
+                            year = row['Year']
+                            value = row['Value']
+
+                            try:
+                                year = int(year)
+                                value = float(value)
+                            except ValueError:
+                                year = False
+                                value = False
+                            if year is not False and value is not False:
+                                unique_record = tuple([countryname, year])
+                                if unique_record not in unique_records_holder:
+                                    unique_records_holder[unique_record] = value
+                                else:
+                                    unique_records_holder[unique_record] += value
+                    for key, value in unique_records_holder.items():
+                        variablename = file_dataset_names[original_filename] + ': ' + file_variable_name
+                        process_one_row(list(key)[1], str(value), list(key)[0], variablecode, variablename, existing_fao_variables_dict,
+                                        variableunit, newsource, newdataset, variable_description, data_values_tuple_list)
+
+                    os.remove('/tmp/%s' % each_separate_file)
 
         if len(data_values_tuple_list):  # insert any leftover data_values
             with connection.cursor() as c:
                 c.executemany(insert_string, data_values_tuple_list)
-
-    unique_data_tracker.update(current_file_vars_countries)
 
 
 def process_one_row(year, value, countryname, variablecode, variablename, existing_fao_variables_dict,
