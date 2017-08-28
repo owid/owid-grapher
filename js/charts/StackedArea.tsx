@@ -171,7 +171,7 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
 
         const refValue = transform.stackedData[0].values[hoverIndex]
 
-        return <Tooltip x={axisBox.xScale.place(refValue.x)} y={axisBox.yScale.rangeMin + axisBox.yScale.rangeSize/2}>
+        return <Tooltip x={axisBox.xScale.place(refValue.x)} y={axisBox.yScale.rangeMin + axisBox.yScale.rangeSize/2} style={{padding: "0.3em"}}>
             <table style={{fontSize: "0.9em", lineHeight: "1.4em"}}>
                 <tr>
                     <td><strong>{refValue.x}</strong></td>

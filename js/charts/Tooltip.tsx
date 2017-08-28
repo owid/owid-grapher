@@ -6,15 +6,10 @@ import {observable, computed} from 'mobx'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
 
-export interface TooltipDatum {
-    entity: string,
-    year: number,
-    value: number|string
-}
-
 export interface TooltipProps {
     x: number
-    y: number
+    y: number,
+    style?: React.CSSProperties
 }
 
 @observer
@@ -39,8 +34,10 @@ class TooltipView extends React.Component<TooltipProps> {
             if (y < 0)
                 y = 0
         }
+        
+        const style = { position: 'absolute', whiteSpace: 'nowrap', pointerEvents: 'none', left: x+'px', top: y+'px', backgroundColor: "white", border: "1px solid #ccc", textAlign: 'left', fontSize: "0.9em" }
 
-        return <div style={{ position: 'absolute', whiteSpace: 'nowrap', pointerEvents: 'none', left: x+'px', top: y+'px', backgroundColor: "white", border: "1px solid #ccc", textAlign: 'left', fontSize: "0.9em" }}>
+        return <div style={_.extend(style, props.style||{})}>
             {props.children}
         </div>
     }

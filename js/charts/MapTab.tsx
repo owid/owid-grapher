@@ -41,29 +41,7 @@ class TimelineMap extends React.Component<TimelineMapProps> {
         const datum = d.id == undefined ? undefined : this.props.choroplethData[d.id]
         this.focusEntity = { id: d.id, datum: datum || { value: "No data" } }
         const {chart} = this.context
-
-/*#chart .owid-tooltip {
-    font-size: 1em;
-    background: white;
-    border: 1px solid rgba(0, 0, 0, 0.2);
-    pointer-events: none;
-}
-#chart .owid-tooltip h3 {
-    padding: 0.3em 0.9em;
-    font-size: 1em;
-    margin: 0;
-    line-height: 18px;
-    font-weight: normal;
-    background-color: rgba(247,247,247,0.75);
-    text-align: center;
-    border-bottom: 1px solid #ebebeb;
-}
-#chart .owid-tooltip p {
-    font-size: 0.8em;
-    padding: 0.3em 0.9em;
-    margin: 0;
-}*/
-
+        
         const mouse = getRelativeMouse(this.base, ev)
         if (datum) {
             this.tooltip = <Tooltip x={mouse.x} y={mouse.y}>
@@ -79,8 +57,7 @@ class TimelineMap extends React.Component<TimelineMapProps> {
 
     @action.bound onMapMouseLeave() {
         this.focusEntity = null
-        //this.tooltip = null
-//        this.context.chartView.tooltip.hide();
+        this.tooltip = null
     }
 
     @action.bound onClick(d: GeoFeature) {

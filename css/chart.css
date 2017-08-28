@@ -194,7 +194,7 @@ a {
     flex-direction: column-reverse;
 }
 
-#chart.portrait .controlsFooter > * {
+#chart.portrait .controlsFooter > *:not(.shareMenu) {
     width: 100%;
 }
 
