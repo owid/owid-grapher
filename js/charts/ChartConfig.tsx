@@ -94,6 +94,7 @@ export class ChartConfigProps {
     @observable.ref hasChartTab: boolean = true
     @observable.ref hasMapTab: boolean = false
     @observable.ref tab: ChartTabOption = 'chart'
+    @observable.ref overlay?: ChartTabOption = undefined
 
     @observable.ref internalNotes?: string = undefined
     @observable.ref logosSVG: string[] = []
@@ -119,7 +120,9 @@ export default class ChartConfig {
     @computed get originUrl() { return defaultTo(this.props.originUrl, "") }
     @computed get isPublished() { return defaultTo(this.props.isPublished, false) }
     @computed get timeDomain() { return this.props.timeDomain }
-    @computed get tab() { return this.props.tab }
+    @computed get primaryTab() { return this.props.tab }
+    @computed get overlayTab() { return this.props.overlay }
+    @computed get tab() { return this.props.overlay ? this.props.overlay : this.props.tab }
     @computed get lineType() { return defaultTo(this.props.lineType, LineType.WithDots) }
     @computed get lineTolerance() { return defaultTo(this.props.lineTolerance, 1) }
     @computed get addCountryMode() { return this.props.addCountryMode }
@@ -132,7 +135,14 @@ export default class ChartConfig {
     @computed get baseColorScheme() { return this.props.baseColorScheme }
     
     set timeDomain(value) { this.props.timeDomain = value }
-    set tab(value) { this.props.tab = value }
+    set tab(value) { 
+        if (value == 'chart' || value == 'map') {
+            this.props.tab = value
+            this.props.overlay = undefined
+        } else {
+            this.props.overlay = value
+        }
+    }
 
     @computed get xAxis() {
         return new AxisConfig(this.props.xAxis)

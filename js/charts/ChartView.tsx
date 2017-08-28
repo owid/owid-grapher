@@ -117,8 +117,6 @@ export default class ChartView extends React.Component<ChartViewProps> {
         return this.svgRenderBounds.pad(15)
     }
 
-    @observable primaryTabName: ChartTabOption = 'chart'
-    @observable overlayTabName: ChartTabOption|null = null
     @observable popups: VNode[] = []
     @observable.ref isSelectingData: boolean = false
 
@@ -131,19 +129,6 @@ export default class ChartView extends React.Component<ChartViewProps> {
 
         Bounds.baseFontSize = 22
         Bounds.baseFontFamily = "Helvetica, Arial"
-
-        const {chart} = this
-        const updateTab = () => {
-            if (chart.tab == 'map' || chart.tab == 'chart') {
-                this.primaryTabName = chart.tab
-                this.overlayTabName = null
-            } else {
-                this.overlayTabName = chart.tab
-            }
-        }
-
-        updateTab()
-        reaction(() => chart.tab, updateTab)
     }
 
     @computed get controlsFooter() {
@@ -182,22 +167,20 @@ export default class ChartView extends React.Component<ChartViewProps> {
     }
 
     renderPrimaryTab(bounds: Bounds) {
-        const {primaryTabName} = this
-
-        if (primaryTabName == 'chart')
+        const {chart} = this
+        if (chart.primaryTab == 'chart')
             return <ChartTab bounds={bounds} chartView={this} chart={this.chart}/>
         else
             return <MapTab bounds={bounds} chart={this.chart}/>
     }
 
     renderOverlayTab(bounds: Bounds) {
-        const {chart, overlayTabName} = this
-
-        if (overlayTabName == 'sources')
+        const {chart} = this
+        if (chart.overlayTab == 'sources')
             return <SourcesTab bounds={bounds} chart={chart}/>
-        else if (overlayTabName == 'data')
+        else if (chart.overlayTab == 'data')
             return <DataTab bounds={bounds} chart={chart}/>
-        else if (overlayTabName == 'download')
+        else if (chart.overlayTab == 'download')
             return <DownloadTab bounds={bounds} chart={chart}/>
         else
             return null
@@ -214,7 +197,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
 
         return <svg xmlns="http://www.w3.org/2000/svg" version="1.1" style={svgStyle} width={renderWidth*scale} height={renderHeight*scale} viewBox={`0 0 ${renderWidth} ${renderHeight}`}
                 ref={e => this.svgNode = e as SVGSVGElement}>
-                {this.renderPrimaryTab(svgInnerBounds)}
+            {this.renderPrimaryTab(svgInnerBounds)}
         </svg>
     }
 

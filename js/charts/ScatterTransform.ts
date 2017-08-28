@@ -78,6 +78,10 @@ export default class ScatterTransform {
         ) as number[])
     }
 
+    @computed get hasTimeline(): boolean {
+        return !!this.chart.timeline
+    }
+
     @computed get colorScheme() : string[] {
         return [ // TODO less ad hoc color scheme (probably would have to annotate the datasets)
             "#5675c1", // Africa
