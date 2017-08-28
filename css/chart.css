@@ -178,7 +178,7 @@ a {
 /* Controls Footer
 --------------------------------------------- */
 
-#chart .controlsFooter {
+#chart .ControlsFooter {
     width: 100%;
     position: absolute;
     bottom: 0;
@@ -190,11 +190,11 @@ a {
     flex-direction: row-reverse;
 }
 
-#chart.portrait .controlsFooter {
+#chart.portrait .ControlsFooter {
     flex-direction: column-reverse;
 }
 
-#chart.portrait .controlsFooter > *:not(.shareMenu) {
+#chart.portrait .ControlsFooter > *:not(.shareMenu) {
     width: 100%;
 }
 

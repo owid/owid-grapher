@@ -175,7 +175,7 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps>
         const {props, isShareMenuActive} = this
         const {chart, chartView} = props
 
-        return <div className="controlsFooter">
+        return <div className="ControlsFooter">
             <nav className="tabs">
                 <ul>
                     {_.map(chart.availableTabs, (tabName) => {

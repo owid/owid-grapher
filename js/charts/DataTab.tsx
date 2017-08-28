@@ -8,6 +8,14 @@ import ChartConfig from './ChartConfig'
 
 declare var Global: { rootUrl: string }
 
+function csvEscape(value: any): string {
+	const valueStr = _.toString(value)
+	if (_.includes(valueStr, ","))
+		return '"' + value.replace(/\"/g, "\"\"") + '"'
+	else
+		return value
+}
+
 @observer
 export default class DataTab extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
 	@computed get bounds() {
@@ -49,7 +57,7 @@ export default class DataTab extends React.Component<{ bounds: Bounds, chart: Ch
 
 				// Only add rows which actually have some data in them
 				if (rowHasSomeValue)
-					rows.push(row.join(","))
+					rows.push(row.map(csvEscape).join(","))
 			})
 		})
 		return "data:text/csv;charset=utf-8,"+encodeURIComponent(rows.join("\n"))

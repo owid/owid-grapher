@@ -39,8 +39,8 @@ export default class StackedAreaTransform {
 			return assignedColor
 			
 		// Keep the same colors when switching between entities on change-entity charts
-		const colorKey = this.chart.addCountryMode == "change-country" ? this.chart.data.lookupKey(datakey).dimension.variable.id.toString() : datakey
-		return this.colors.getColorForKey(colorKey)		
+		const colorKey = this.chart.data.canChangeEntity ? this.chart.data.lookupKey(datakey).dimension.variable.id.toString() : datakey
+		return this.colors.getColorForKey(colorKey)
 	}
 
 	@computed get initialData(): StackedAreaSeries[] {
