@@ -159,8 +159,6 @@ export function formatValue(value: number, options: { maxDecimalPlaces?: number,
 		}
 	}
 
-	console.log(unit)
-
 	if (unit == "$" || unit == "£")
 		output = unit + output;
 	else if (unit[0] == "%") {

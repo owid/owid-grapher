@@ -25,8 +25,8 @@ export default class SourcesTab extends React.Component<{ bounds: Bounds, chart:
 				{variable.description && <tr><td>Variable description</td><td>{variable.description}</td></tr>}
 				{variable.coverage && <tr><td>Variable geographic coverage</td><td>{variable.coverage}</td></tr>}
 				{variable.timespan && <tr><td>Variable time span</td><td>{variable.timespan}</td></tr>}
-				<div dangerouslySetInnerHTML={{__html: source.description}}/>
 			</table>
+			<div dangerouslySetInnerHTML={{__html: source.description}}/>
 		</div>
 	}
 
