@@ -228,7 +228,7 @@ export default class ChartData {
 	}
 
 	@computed get canChangeEntity(): boolean {
-		return this.chart.addCountryMode == "change-country" && this.availableEntities.length > 1
+		return !this.chart.isScatter && this.chart.addCountryMode == "change-country" && this.availableEntities.length > 1
 	}
 
 	@computed.struct get availableKeys(): DataKey[] {

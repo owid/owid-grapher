@@ -28,7 +28,7 @@ import AxisBox, {AxisBoxView} from './AxisBox'
 import ComparisonLine from './ComparisonLine'
 import {ScaleType} from './AxisScale'
 import AxisSpec from './AxisSpec' 
-import {unitFormat, first, last} from './Util'
+import {formatYear, first, last} from './Util'
 import AxisBoxHighlight from './AxisBoxHighlight'
 
 interface ScatterWithAxisProps {
@@ -205,14 +205,14 @@ interface ScatterTooltipProps {
 @observer
 class ScatterTooltip extends React.Component<ScatterTooltipProps> {
     formatValueY(value: ScatterValue) {
-        let s = "Y: " + this.props.formatY(value.y)
+        let s = this.props.formatY(value.y)
         if (value.year != value.time.y)
             s += " (data from " + value.time.y + ")"
         return s
     }
 
     formatValueX(value: ScatterValue) {
-        let s = "X: " + this.props.formatX(value.x)
+        let s = this.props.formatX(value.x)
         if (value.year != value.time.x)
             s += " (data from " + value.time.x + ")"
         return s
@@ -234,7 +234,7 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps> {
         offset += heading.wrap.height+lineHeight
 
         _.each(values, v => {
-            const year = { x: x, y: y+offset, wrap: new TextWrap({ maxWidth: maxWidth, fontSize: 0.55, text: v.year.toString() }) }
+            const year = { x: x, y: y+offset, wrap: new TextWrap({ maxWidth: maxWidth, fontSize: 0.55, text: formatYear(v.year) }) }
             offset += year.wrap.height
             const line1 = { x: x, y: y+offset, wrap: new TextWrap({ maxWidth: maxWidth, fontSize: 0.45, text: this.formatValueY(v)}) }
             offset += line1.wrap.height

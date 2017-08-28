@@ -3,7 +3,7 @@ import * as d3 from 'd3'
 import * as React from 'react'
 import Bounds from './Bounds'
 import Text from './Text'
-import {getRelativeMouse} from './Util'
+import {getRelativeMouse, formatYear} from './Util'
 import {observable, computed, asFlat, autorun, autorunAsync, action} from 'mobx'
 import {observer} from 'mobx-react'
 
@@ -121,15 +121,15 @@ export default class Timeline extends React.Component<TimelineProps> {
 
 	@computed get minYearBox(): Bounds {
 		const { minYear, bounds } = this
-        const minYearBox = Bounds.forText(minYear.toString(), { fontSize: "0.8em" })
+        const minYearBox = Bounds.forText(formatYear(minYear), { fontSize: "0.8em" })
         return minYearBox.extend({ x: bounds.left+35, y: bounds.centerY-minYearBox.height/2 })
 	}
 
 	@computed get maxYearBox(): Bounds {
-		const { minYear, bounds } = this
-        const maxYearBox = Bounds.forText(minYear.toString(), { fontSize: "0.8em" })
+		const { maxYear, bounds } = this
+        const maxYearBox = Bounds.forText(formatYear(maxYear), { fontSize: "0.8em" })
         return maxYearBox.extend({ x: bounds.right-maxYearBox.width, y: bounds.centerY-maxYearBox.height/2 })
-        }
+    }
 
 	@computed get sliderBounds(): Bounds {
 		const { bounds, minYearBox, maxYearBox } = this
@@ -330,7 +330,7 @@ export default class Timeline extends React.Component<TimelineProps> {
             <Text className="toggle" onClick={() => this.isPlaying = !this.isPlaying} x={bounds.left+10} y={bounds.centerY-toggleTextBounds.height/2} fontFamily="FontAwesome" fontSize={toggleFontSize}>
                 {toggleText}
 			</Text>
-			<Text className="minYearLabel" x={minYearBox.x} y={minYearBox.y} fontSize="0.8em" fill="#666">{minYear.toString()}</Text>
+			<Text className="minYearLabel" x={minYearBox.x} y={minYearBox.y} fontSize="0.8em" fill="#666">{formatYear(minYear)}</Text>
             <Text className="maxYearLabel" x={maxYearBox.x} y={maxYearBox.y} fontSize="0.8em" fill="#666">{maxYear.toString()}</Text>
 			<g className="ticks">
 				{_.map(years.slice(1, -1), (year) => {

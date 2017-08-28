@@ -25,7 +25,7 @@ export default class SourcesFooter {
     }
 
     @computed get defaultSourceDesc(): string {
-       return _(this.props.chart.data.sources).map('name').uniq().join(",")
+       return _(this.props.chart.data.sources).map('name').uniq().join(", ")
     }
 
     @computed get sourcesText(): string {

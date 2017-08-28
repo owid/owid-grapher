@@ -112,7 +112,7 @@ export default class URLBinder {
         const {chart} = this
 
         const {timeDomain} = chart.props
-        if (!_.isEqual(timeDomain, this.origChart.timeDomain)) {
+        if (!_.isEqual(toJS(timeDomain), this.origChart.timeDomain)) {
             if (_.isFinite(timeDomain[0]) && _.isFinite(timeDomain[1]) && timeDomain[0] != timeDomain[1]) {
                 return timeDomain[0] + ".." + timeDomain[1]
             } else if (_.isNumber(timeDomain[0])) {

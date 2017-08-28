@@ -5,7 +5,7 @@ import Color from './Color'
 import DataKey from './DataKey'
 import {LineChartSeries, LineChartValue} from './LineChart'
 import AxisSpec from './AxisSpec'
-import {defaultTo} from './Util'
+import {defaultTo, formatYear} from './Util'
 import {DimensionWithData} from './ChartData'
 import ColorBinder from './ColorBinder'
 import ColorSchemes from './ColorSchemes'
@@ -86,7 +86,7 @@ export default class LineChartTransform {
         const {chart, xDomainDefault} = this
         return _.extend(
             chart.xAxis.toSpec({ defaultDomain: xDomainDefault }),
-            { tickFormat: (year: number) => year.toString() }
+            { tickFormat: (year: number) => formatYear(year) }
         ) as AxisSpec
     }
 

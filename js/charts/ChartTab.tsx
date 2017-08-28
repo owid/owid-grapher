@@ -24,8 +24,8 @@ export default class ChartTab extends React.Component<{ chart: ChartConfig, char
     // XXX refactor into the transforms
     @computed get minYear(): number|null {
         const {chart} = this.props
-        if (chart.type == ChartType.ScatterPlot)
-            return chart.timeDomain[0]
+        if (chart.isScatter)
+            return chart.scatter.startYear
         else if (chart.type == ChartType.DiscreteBar)
             return chart.discreteBar.targetYear
         else
@@ -34,8 +34,8 @@ export default class ChartTab extends React.Component<{ chart: ChartConfig, char
 
     @computed get maxYear(): number|null {
         const {chart} = this.props
-        if (chart.type == ChartType.ScatterPlot)
-            return chart.timeDomain[1]
+        if (chart.isScatter)
+            return chart.scatter.endYear
         else if (chart.type == ChartType.DiscreteBar)
             return chart.discreteBar.targetYear
         else

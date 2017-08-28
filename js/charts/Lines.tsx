@@ -31,7 +31,8 @@ interface LineRenderSeries {
     displayKey: string,
     color: string,
     values: Vector2[],
-    isFocus: boolean
+    isFocus: boolean,
+    isProjection?: boolean
 }
 
 export interface HoverTarget {
@@ -55,7 +56,8 @@ export default class Lines extends React.Component<LinesProps> {
                 values: series.values.map(v => {
                     return new Vector2(Math.round(xScale.place(v.x)), Math.round(yScale.place(v.y)))
                 }),
-                isFocus: _.includes(focusKeys, series.key)
+                isFocus: _.includes(focusKeys, series.key),
+                isProjection: series.isProjection
             }
         })
     }
@@ -115,7 +117,7 @@ export default class Lines extends React.Component<LinesProps> {
             <g className={series.displayKey}>
                 <defs key={series.displayKey+'-defs'}>
                     <marker id={series.displayKey+'-circle'} viewBox="0 0 16 16"
-                            refX={8} refY={8} orient="auto" fill={series.color}>
+                            refX={8} refY={8} orient="auto" fill={series.isProjection ? "#fff" : series.color} stroke={series.color}>
                         <circle cx={8} cy={8} r={8}/>
                     </marker>
                 </defs>

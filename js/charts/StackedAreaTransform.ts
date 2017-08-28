@@ -8,7 +8,7 @@ import {StackedAreaSeries, StackedAreaValue} from './StackedArea'
 import AxisSpec from './AxisSpec'
 import ColorSchemes from './ColorSchemes'
 import ColorBinder from './ColorBinder'
-import {formatValue} from './Util'
+import {formatValue, formatYear} from './Util'
 
 // Responsible for translating chart configuration into the form
 // of a stacked area chart
@@ -32,6 +32,17 @@ export default class StackedAreaTransform {
         })
     }
 
+	getColorForKey(datakey: string): Color {
+		const {chart} = this
+		const assignedColor = chart.data.keyColors[datakey]
+		if (assignedColor)
+			return assignedColor
+			
+		// Keep the same colors when switching between entities on change-entity charts
+		const colorKey = this.chart.addCountryMode == "change-country" ? this.chart.data.lookupKey(datakey).dimension.variable.id.toString() : datakey
+		return this.colors.getColorForKey(colorKey)		
+	}
+
 	@computed get initialData(): StackedAreaSeries[] {
 		const {chart, colors} = this
 		const {timeDomain, yAxis, addCountryMode} = chart
@@ -51,7 +62,6 @@ export default class StackedAreaTransform {
 				const value = +variable.values[i]
 				const entity = variable.entities[i]
 				const datakey = chart.data.keyFor(entity, dimIndex)
-				colorKeys[datakey] = addCountryMode == "change-country" ? _.toString(variable.id) : datakey
 				let series = seriesByKey.get(datakey)
 
 				// Not a selected key, don't add any data for it
@@ -102,7 +112,7 @@ export default class StackedAreaTransform {
 
 		// Preserve order and colorize
 		chartData = _.sortBy(chartData, series => -selectedKeys.indexOf(series.key))
-		chartData.forEach(series => series.color = colors.getColorForKey(colorKeys[series.key]))
+		chartData.forEach(series => series.color = this.getColorForKey(series.key))
 
 		return chartData
 	}
@@ -179,7 +189,7 @@ export default class StackedAreaTransform {
         const {chart, xDomainDefault} = this
         return _.extend(
             chart.xAxis.toSpec({ defaultDomain: xDomainDefault }),
-            { tickFormat: (year: number) => year.toString() }
+            { tickFormat: (year: number) => formatYear(year) }
         ) as AxisSpec
     }
 

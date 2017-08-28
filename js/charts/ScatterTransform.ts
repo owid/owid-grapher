@@ -41,6 +41,12 @@ export default class ScatterTransform {
         return [this.yDimension, this.xDimension]
     }
 
+    // Possible to override the x axis dimension to target a special year
+    // In case you want to graph say, education in the past and democracy today https://ourworldindata.org/grapher/correlation-between-education-and-democracy
+    @computed get xOverrideYear(): number|undefined {
+        return this.xDimension.targetYear
+    }
+
     // In relative mode, the timeline scatterplot calculates changes relative
     // to the lower bound year rather than creating an arrow chart
     @computed get isRelativeMode() {
@@ -63,23 +69,49 @@ export default class ScatterTransform {
     }
 
     @computed get availableYears(): number[] {
-        if (!this.chart.timeline) {
-            // If there's no timeline, we're just showing a single target year
-            let maxYear = this.chart.timeDomain[1]
-            if (!_.isFinite(maxYear))
-                maxYear = _(this.axisDimensions).map(d => d.variable.maxYear).max() as number
-            return [maxYear] as number[]
-        }
+        if (this.xOverrideYear != null)
+            return this.yDimension.variable.yearsUniq
+        else
+            return _.intersection(
+                this.axisDimensions[0].variable.yearsUniq, 
+                this.axisDimensions[1].variable.yearsUniq
+            )
+    }
 
-        // For timeline scatters, allow years with at least some data for both variables
-        return (_.intersection(
-            this.axisDimensions[0].variable.yearsUniq, 
-            this.axisDimensions[1].variable.yearsUniq
-        ) as number[])
+    @computed get minAvailableYear(): number {
+        return _.min(this.availableYears) as number
+    }
+
+    @computed get maxAvailableYear(): number {
+        return _.max(this.availableYears) as number
+    }
+
+    @computed get startYear(): number {
+        const [minYear, maxYear] = this.chart.timeDomain
+        if (minYear != null)
+            return Math.max(this.minAvailableYear, minYear)
+        else
+            return this.maxAvailableYear
+    }
+
+    @computed get endYear(): number {
+        const [minYear, maxYear] = this.chart.timeDomain
+        if (maxYear != null)
+            return Math.min(this.maxAvailableYear, maxYear)
+        else
+            return this.maxAvailableYear
     }
 
     @computed get hasTimeline(): boolean {
         return !!this.chart.timeline
+    }
+
+    @computed get yearsToCalculate(): number[] {
+        if (this.hasTimeline) {
+            return this.availableYears
+        } else {
+            return this.availableYears.filter(y => y >= this.startYear && y <= this.endYear)
+        }
     }
 
     @computed get colorScheme() : string[] {
@@ -109,7 +141,7 @@ export default class ScatterTransform {
     // Precompute the data transformation for every timeline year (so later animation is fast)
     // If there's no timeline, this uses the same structure but only computes for a single year
     @computed get dataByEntityAndYear() {
-        const {chart, availableYears, colorScale, hideBackgroundEntities, validEntities} = this
+        const {chart, yearsToCalculate, colorScale, hideBackgroundEntities, validEntities, xOverrideYear} = this
         const {filledDimensions, keyColors} = chart.data
         const validEntityLookup = _.keyBy(validEntities)
         
@@ -120,7 +152,7 @@ export default class ScatterTransform {
             var variable = dimension.variable,
                 tolerance = (dimension.property == 'color' || dimension.property == 'size') ? Infinity : dimension.tolerance;
 
-            _.each(availableYears, (outputYear) =>  {
+            _.each(yearsToCalculate, (outputYear) =>  {
                 for (var i = 0; i < variable.years.length; i++) {
                     var year = variable.years[i],
                         value = variable.values[i],
@@ -135,7 +167,7 @@ export default class ScatterTransform {
                     if ((dimension.property == 'x' || dimension.property == 'y') && !_.isNumber(value))
                         continue
                     
-                    const targetYear = (!chart.timeline && _.isFinite(dimension.targetYear)) ? (dimension.targetYear as number) : outputYear
+                    const targetYear = (dimension.property == 'x' && xOverrideYear != null) ? xOverrideYear : outputYear
 
                     // Skip years that aren't within tolerance of the target
                     if (year < targetYear-tolerance || year > targetYear+tolerance)
@@ -313,24 +345,6 @@ export default class ScatterTransform {
         }
 
         return _.extend(chart.xAxis.toSpec({ defaultDomain: xDomainDefault }), props) as AxisSpec
-    }
-
-    @computed get defaultStartYear(): number { return first(this.availableYears) as number }
-    @computed get startYear(): number {
-        const {chart, defaultStartYear} = this
-        if (_.isFinite(chart.timeDomain[0]))
-            return Math.max(defaultStartYear, chart.timeDomain[0] as number)
-        else
-            return defaultStartYear
-    }
-
-    @computed get defaultEndYear(): number { return last(this.availableYears) as number }
-    @computed get endYear(): number {
-        const {chart, defaultEndYear} = this        
-        if (_.isFinite(chart.timeDomain[1]))
-            return Math.min(defaultEndYear, chart.timeDomain[1] as number)
-        else
-            return defaultEndYear
     }
 
     @computed get currentData(): ScatterSeries[] {
