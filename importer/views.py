@@ -52,6 +52,21 @@ def listqogdatasets(request: HttpRequest):
                                                            'datasets': datasets})
 
 
+def listfaodatasets(request: HttpRequest):
+    variables = Variable.objects.filter(fk_dst_id__namespace='faostat')
+    datasets: Dict = {}
+
+    for each in variables:
+        if datasets.get(each.fk_dst_id.fk_dst_subcat_id.name):
+            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+        else:
+            datasets[each.fk_dst_id.fk_dst_subcat_id.name] = []
+            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+
+    return render(request, 'admin.faostat.data.html', context={'current_user': request.user.name,
+                                                           'datasets': datasets})
+
+
 def serve_wdi_country_info_xls(request: HttpRequest):
 
     wb = Workbook()
