@@ -88,10 +88,12 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
         const {hoverTarget, chart, transform} = this
         if (hoverTarget == null) return undefined
 
+        const dimension = chart.data.lookupKey(hoverTarget.series.key).dimension
+
         return <Tooltip x={hoverTarget.pos.x} y={hoverTarget.pos.y} style={{textAlign: "center"}}>
             <h3 style={{padding: "0.3em 0.9em", margin: 0, backgroundColor: "#fcfcfc", borderBottom: "1px solid #ebebeb", fontWeight: "normal", fontSize: "1em"}}>{chart.data.formatKey(hoverTarget.series.key)}</h3>
             <p style={{margin: 0, padding: "0.3em 0.9em", fontSize: "0.8em"}}>
-                <span>{transform.yAxis.tickFormat(hoverTarget.value.y)}</span><br/>
+                <span>{dimension.formatValueLong(hoverTarget.value.y)}</span><br/>
                 in<br/>
                 <span>{hoverTarget.value.x}</span>
             </p>

@@ -77,7 +77,7 @@ export default class SlopeChartTransform {
 		const entityKey = this.chart.vardata.entityMetaByKey
 
 		// Make sure we're using time bounds that actually contain data
-		const longestRange: number[] = data.filter((d: any) => _.isFinite(d[yDim.variableId]))
+		const longestRange: number[] = data.filter((d: any) => _.isFinite(d[yDim.variable.id]))
 			.mergeBy('entity', (rows: Observations) => rows.pluck('year'))
 			.sortBy((d: number[]) => last(d)-first(d))
 			.last() as number[]
@@ -89,12 +89,12 @@ export default class SlopeChartTransform {
 			return {
 				label: entityKey[entity].name,
 				key: makeSafeForCSS(entityKey[entity].name),
-				color: colorScale(rows.first(colorDim.variableId)),
-				size: rows.first(sizeDim.variableId),
-				values: rows.filter((d: any) => _.isFinite(d[yDim.variableId]) && (d.year == minYear || d.year == maxYear)).mergeBy('year').map((d: any) => {
+				color: colorScale(rows.first(colorDim.variable.id)),
+				size: rows.first(sizeDim.variable.id),
+				values: rows.filter((d: any) => _.isFinite(d[yDim.variable.id]) && (d.year == minYear || d.year == maxYear)).mergeBy('year').map((d: any) => {
 					return {
 						x: d.year,
-						y: d[yDim.variableId]
+						y: d[yDim.variable.id]
 					}
 				}).toArray()
 			}

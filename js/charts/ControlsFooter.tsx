@@ -167,14 +167,6 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps>
         this.isShareMenuActive = !this.isShareMenuActive
     }
 
-    @observable linkUrl: string
-    componentDidMount() {
-        this.linkUrl = window.location.toString()
-        $(window).on('query-change', () => {
-            this.linkUrl = window.location.toString()
-        })
-    }
-
     @action.bound onDataSelect() {
         this.props.chartView.isSelectingData = true
     }
@@ -193,7 +185,7 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps>
                         <a><i className="fa fa-download"/></a>
                     </li>
                     <li className="clickable icon"><a title="Share" onClick={this.onShareMenu}><i className="fa fa-share-alt"/></a></li>
-                    {props.chartView.isEmbed && <li className="clickable icon"><a title="Open chart in new tab" href={this.linkUrl} target="_blank"><i className="fa fa-expand"/></a></li>}
+                    {props.chartView.isEmbed && <li className="clickable icon"><a title="Open chart in new tab" href={chart.url.canonicalUrl} target="_blank"><i className="fa fa-expand"/></a></li>}
                 </ul>
             </nav>
             {chart.tab == 'chart' && <div className="extraControls">          

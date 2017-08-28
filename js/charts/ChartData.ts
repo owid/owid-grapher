@@ -1,16 +1,18 @@
 import * as _ from 'lodash'
 import ChartType from './ChartType'
-import {computed, autorun, action} from 'mobx'
+import {observable, computed, autorun, action} from 'mobx'
 import ChartConfig, {ChartDimension} from './ChartConfig'
 import VariableData, {Variable} from './VariableData'
 import DataKey from './DataKey'
 import {bind} from 'decko'
 import {LineChartSeries} from './LineChart'
 import Color from './Color'
+import {formatValue} from './Util'
 
 export interface DataKeyInfo {
 	entity: string 
 	entityId: number
+	dimension: DimensionWithData
 	index: number 
 	key: string
 	fullLabel: string
@@ -24,9 +26,45 @@ export interface SourceWithVariable {
 	variable: Variable
 }
 
-// A chart dimension plus the variable+data that it requested for itself
-export interface DimensionWithData extends ChartDimension {
-	variable: Variable
+
+export class DimensionWithData {
+	@observable.ref index: number
+	@observable.ref dimension: ChartDimension
+	@observable.ref variable: Variable
+
+	@computed get property(): string {
+		return this.dimension.property
+	}
+
+	@computed get name(): string {
+		return this.dimension.displayName || this.variable.name
+	}
+
+	@computed get isProjection(): boolean {
+		return !!this.dimension.isProjection
+	}
+
+	@computed get targetYear(): number|undefined {
+		return this.dimension.targetYear
+	}
+
+	@computed get tolerance(): number {
+		return this.dimension.tolerance||0
+	}
+
+	@computed get formatValueShort(): (value: number) => string {
+		return value => formatValue(value, { unit: this.variable.shortUnit })
+	}
+
+	@computed get formatValueLong(): (value: number) => string {
+		return value => formatValue(value, { unit: this.variable.unit })
+	}
+
+    constructor(index: number, dimension: ChartDimension, variable: Variable) {
+		this.index = index
+        this.dimension = dimension
+		this.variable = variable
+    }
 }
 
 export default class ChartData {
@@ -49,12 +87,9 @@ export default class ChartData {
 	@computed get filledDimensions(): DimensionWithData[] {
 		if (!this.isReady) return []
 		
-        return _.map(this.chart.dimensions, dim => {
+        return _.map(this.chart.dimensions, (dim, i) => {
             const variable = this.vardata.variablesById[dim.variableId]
-            return _.extend({}, dim, {
-                displayName: dim.displayName || variable.name,
-                variable: variable
-            })
+			return new DimensionWithData(i, dim, variable)
         })
     }
 
@@ -162,24 +197,25 @@ export default class ChartData {
 				const key = this.keyFor(entity, index)
 
 				// Full label completely represents the data in the key and is used in the editor
-				const fullLabel = `${entity} - ${dim.displayName || variable.name}`
+				const fullLabel = `${entity} - ${dim.name}`
 
 				// The output label however is context-dependent
 				let label = fullLabel
 				if (isSingleVariable) {
 					label = entity
 				} else if (isSingleEntity) {
-					label = `${dim.displayName || variable.name}`
+					label = `${dim.name}`
 				}
 
 				keyData.set(key, {
 					key: key,
 					entityId: entityMeta.id,
 					entity: entity,
+					dimension: dim,
 					index: index,
 					fullLabel: fullLabel,
 					label: label,
-					shortCode: primaryDimensions.length > 1 ? `${entityMeta.code||entityMeta.name}-${dim.order}` : entityMeta.code
+					shortCode: (primaryDimensions.length > 1 && chart.addCountryMode != "change-country") ? `${entityMeta.code||entityMeta.name}-${dim.index}` : (entityMeta.code||entityMeta.name)
 				})
 			})
 		})
@@ -245,7 +281,7 @@ export default class ChartData {
 
 		let sources: SourceWithVariable[] = []
 		_.each(filledDimensions, (dim) => {
-			const variable = variablesById[dim.variableId]
+			const {variable} = dim
 			// HACK (Mispy): Ignore the default color source on scatterplots.
 			if (variable.name != "Countries Continents" && variable.name != "Total population (Gapminder)")
 				sources.push(_.extend({}, variable.source, { variable: variable }))

@@ -7,7 +7,7 @@ import {observer} from 'mobx-react'
 import ChoroplethMap, {ChoroplethData, ChoroplethDatum, GeoFeature, MapBracket, MapEntity} from './ChoroplethMap'
 import Timeline from './Timeline'
 import MapLegend from './MapLegend'
-import {getRelativeMouse, preInstantiate, entityNameForMap} from './Util'
+import {getRelativeMouse, preInstantiate, entityNameForMap, formatValue} from './Util'
 import Header from './Header'
 import SourcesFooter from './SourcesFooter'
 import ChartConfig from './ChartConfig'
@@ -47,7 +47,7 @@ class TimelineMap extends React.Component<TimelineMapProps> {
             this.tooltip = <Tooltip x={mouse.x} y={mouse.y}>
                 <h3 style={{padding: "0.3em 0.9em", margin: 0, backgroundColor: "#fcfcfc", borderBottom: "1px solid #ebebeb", fontWeight: "normal", fontSize: "1em"}}>{datum.entity}</h3>
                 <p style={{textAlign: "center", margin: 0, padding: "0.3em 0.9em", fontSize: "0.8em"}}>
-                    <span>{chart.yAxis.tickFormat(datum.value as number)}</span><br/>
+                    <span>{formatValue(datum.value as number, { unit: chart.map.data.variable.unit })}</span><br/>
                     in<br/>
                     <span>{datum.year}</span>
                 </p>

@@ -273,10 +273,8 @@ export default class ScatterTransform {
 
     @computed get yAxis(): AxisSpec {
         const {chart, yDomainDefault, yDimension, isRelativeMode, yScaleType} = this
-		const tickFormat = (d: number) => formatValue(d, { unit: yDimension.variable.shortUnit })
-
+        
         const props: Partial<AxisSpec> = {}
-        props.tickFormat = tickFormat
         props.scaleType = yScaleType
         if (isRelativeMode) {
             props.domain = yDomainDefault
@@ -286,6 +284,8 @@ export default class ScatterTransform {
                 props.label = "Average annual change in " + (label.charAt(1).match(/[A-Z]/) ? label : label.charAt(0).toLowerCase() + label.slice(1))
             }
             props.tickFormat = (v: number) => formatValue(v, { unit: "%" })
+        } else {
+            props.tickFormat = yDimension.formatValueShort
         }
 
         return _.extend(chart.yAxis.toSpec({ defaultDomain: yDomainDefault }), props) as AxisSpec
@@ -297,9 +297,8 @@ export default class ScatterTransform {
 
     @computed get xAxis(): AxisSpec {
         const {chart, xDomainDefault, xDimension, isRelativeMode, xScaleType} = this
-		const tickFormat = (d: number) => formatValue(d, { unit: xDimension.variable.shortUnit })
 
-        const props: Partial<AxisSpec> = { tickFormat: tickFormat }
+        const props: Partial<AxisSpec> = {}
         props.scaleType = xScaleType
         if (isRelativeMode) {
             props.domain = xDomainDefault
@@ -309,6 +308,8 @@ export default class ScatterTransform {
                 props.label = "Average annual change in " + (label.charAt(1).match(/[A-Z]/) ? label : label.charAt(0).toLowerCase() + label.slice(1))
             }
             props.tickFormat = (v: number) => formatValue(v, { unit: "%" })
+        } else {
+            props.tickFormat = xDimension.formatValueShort
         }
 
         return _.extend(chart.xAxis.toSpec({ defaultDomain: xDomainDefault }), props) as AxisSpec

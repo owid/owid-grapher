@@ -6,7 +6,7 @@ import * as d3 from 'd3'
 import ColorSchemes from './ColorSchemes'
 import Color from './Color'
 import {ChoroplethData} from './ChoroplethMap'
-import {entityNameForMap} from './Util'
+import {entityNameForMap, formatValue} from './Util'
 
 export interface MapDataValue {
     entity: string,
@@ -21,21 +21,23 @@ export class NumericBin {
     color: Color
     label?: string
     isHidden: boolean = false
+    format: (v: number) => string
     
-    get minText() { return this.min.toString() }
-    get maxText() { return this.max.toString() }
+    get minText() { return this.format(this.min) }
+    get maxText() { return this.format(this.max) }
     get text() { return this.label||"" }
 
     contains(d: MapDataValue|null): boolean {
         return !!(d && (this.index == 0 ? d.value >= this.min : d.value > this.min) && d.value <= this.max)
     }
 
-    constructor({ index, min, max, label, color }: { index: number, min: number, max: number, label?: string, color: Color }) {
+    constructor({ index, min, max, label, color, format }: { index: number, min: number, max: number, label?: string, color: Color, format: (v: number) => string }) {
         this.index = index
         this.min = min
         this.max = max
         this.color = color
         this.label = label
+        this.format = format
     }
 }
 
@@ -217,7 +219,7 @@ export default class MapData {
             const color = defaultTo(customNumericColors[i], baseColor)
             const maxValue = +(bucketMaximums[i] as number)
             const label = customBucketLabels[i]
-            legendData.push(new NumericBin({ index: i, min: minValue, max: maxValue, color: color, label: label }))
+            legendData.push(new NumericBin({ index: i, min: minValue, max: maxValue, color: color, label: label, format: v => formatValue(v, { unit: variable.shortUnit||""}) }))
             minValue = maxValue;
         }
 

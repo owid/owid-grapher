@@ -17,9 +17,11 @@ import {defaultTo} from './Util'
 import ChartConfig, {ChartConfigProps} from './ChartConfig'
 import {getQueryParams, setQueryVariable, setQueryStr, queryParamsToStr, QueryParams} from './Util'
 import DataKey from './DataKey'
+import MapProjection from './MapProjection'
 
 interface ChartQueryParams {
     tab?: string,
+    overlay?: string,
     stackMode?: string,
     xScale?: string,
     yScale?: string,
@@ -72,6 +74,7 @@ export default class URLBinder {
         const {chart, origChart} = this
 
         params.tab = chart.props.tab == origChart.tab ? undefined : chart.tab
+        params.overlay = chart.props.overlay == origChart.overlay ? undefined : chart.props.overlay
         params.xScale = chart.props.xAxis.scaleType == origChart.xAxis.scaleType ? undefined : chart.xAxis.scaleType
         params.yScale = chart.props.yAxis.scaleType == origChart.yAxis.scaleType? undefined : chart.yAxis.scaleType
         params.stackMode = chart.props.stackMode == origChart.stackMode ? undefined : chart.props.stackMode
@@ -98,7 +101,7 @@ export default class URLBinder {
     @computed get yearParam(): string|undefined {
         const {chart, origChart} = this
 
-        if (chart.tab == 'map' && chart.props.map && origChart.map && chart.props.map.targetYear != origChart.map.targetYear) {
+        if (chart.props.map && origChart.map && chart.props.map.targetYear != origChart.map.targetYear) {
             return _.toString(chart.props.map.targetYear)
         } else {
             return undefined
@@ -123,7 +126,7 @@ export default class URLBinder {
     @computed get countryParam(): string|undefined {
         const {chart, origChart} = this
         if (chart.data.isReady && !_.isEqual(toJS(chart.props.selectedData), origChart.selectedData)) {
-            return chart.data.selectedKeys.map(k => chart.data.lookupKey(k).shortCode).map(encodeURIComponent).join("+")
+            return _(chart.data.selectedKeys).map(k => chart.data.lookupKey(k).shortCode).map(encodeURIComponent).uniq().join("+")
         } else {
             return undefined
         }
@@ -146,14 +149,6 @@ export default class URLBinder {
     }*/
 
     /**
-     * Set e.g. &year=1990 when the user uses the map slider to go to 1990
-     */
-    updateYearParam() {
-        //if (chart.tab == 'map')
-        //    setQueryVariable("year", chartView.map.get("targetYear"));
-    }
-
-    /**
      * Apply any url parameters on chartView startup
      */    
     populateFromURL(params: ChartQueryParams) {
@@ -162,11 +157,20 @@ export default class URLBinder {
         // Set tab if specified
         const tab = params.tab;
         if (tab) {
-            if (!_.includes(chart.availableTabs, tab) && tab !== 'download')
+            if (!_.includes(chart.availableTabs, tab))
                 console.error("Unexpected tab: " + tab);
             else
-                chart.tab = (tab as ChartTabOption)
+                chart.props.tab = (tab as ChartTabOption)
         }
+
+        const overlay = params.overlay;
+        if (overlay) {
+            if (!_.includes(chart.availableTabs, overlay))
+                console.error("Unexpected overlay: " + overlay);
+            else
+                chart.props.overlay = (overlay as ChartTabOption)
+        }
+
 
         // Stack mode for bar and stacked area charts
         chart.props.stackMode = defaultTo(params.stackMode, chart.props.stackMode)
@@ -200,15 +204,18 @@ export default class URLBinder {
 
         // Map stuff below
 
-        /*var year = params.year;
-        if (year !== undefined) {
-            chartView.map.set("defaultYear", parseInt(year));
+        if (chart.props.map) {
+            var year = parseInt(params.year||"");
+            if (!isNaN(year)) {
+                chart.props.map.targetYear = year
+            }
+
+            var region = params.region;
+            if (region !== undefined) {
+                chart.props.map.projection = region as MapProjection
+            }
         }
 
-        var region = params.region;
-        if (region !== undefined) {
-            chartView.map.set("defaultProjection", region);
-        }*/
 
         // Selected countries -- we can't actually look these up until we have the data
         var country = params.country;

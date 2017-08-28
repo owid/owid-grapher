@@ -136,7 +136,7 @@ export function formatValue(value: number, options: { maxDecimalPlaces?: number,
 
 	let output: string = value.toString()
 	
-	if (!unit && value % 1 == 0 && Math.abs(value) >= 1e6) {
+	if (!unit && Math.abs(value) >= 1e6) {
 		if (value >= 1e12) 
 			return formatValue(value/1e12, _.extend({}, options, { unit: "trillion" }))
 		else if (value >= 1e9) 

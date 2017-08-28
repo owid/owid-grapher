@@ -84,7 +84,6 @@ export class Variable {
 		}
 	}
 
-
 	@computed get valueByEntityAndYear(): Map<string, Map<number, (string|number)>> {
         let valueByEntityAndYear = new Map<string, Map<number, (string|number)>>()
 		for (let i = 0; i < this.values.length; i++) {

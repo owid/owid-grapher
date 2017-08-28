@@ -5,7 +5,7 @@ import Color from './Color'
 import DataKey from './DataKey'
 import {LineChartSeries, LineChartValue} from './LineChart'
 import AxisSpec from './AxisSpec'
-import {defaultTo, formatValue} from './Util'
+import {defaultTo} from './Util'
 import {DimensionWithData} from './ChartData'
 import ColorBinder from './ColorBinder'
 import ColorSchemes from './ColorSchemes'
@@ -96,11 +96,10 @@ export default class LineChartTransform {
 
     @computed get yAxis(): AxisSpec {
         const {chart, yDomainDefault, yDimensionFirst} = this
-        const variable = yDimensionFirst && yDimensionFirst.variable
 
         return {
             label: chart.yAxis.label,
-            tickFormat: variable ? (d: number) => formatValue(d, { unit: variable.shortUnit }) : _.identity,
+            tickFormat: yDimensionFirst ? yDimensionFirst.formatValueShort : _.identity,
             domain: [defaultTo(chart.yAxis.domain[0], yDomainDefault[0]), defaultTo(chart.yAxis.domain[1], yDomainDefault[1])],
             scaleType: chart.yAxis.scaleType,
             scaleTypeOptions: chart.yAxis.scaleTypeOptions            

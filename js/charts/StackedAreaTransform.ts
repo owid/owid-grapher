@@ -40,6 +40,7 @@ export default class StackedAreaTransform {
 		const timeFrom = _.defaultTo(timeDomain[0], -Infinity)
 		const timeTo = _.defaultTo(timeDomain[1], Infinity)
 		let chartData: StackedAreaSeries[] = []
+		const colorKeys: {[key: string]: string} = {}
 
 		_.each(filledDimensions, (dimension, dimIndex) => {
             const {variable} = dimension
@@ -50,6 +51,7 @@ export default class StackedAreaTransform {
 				const value = +variable.values[i]
 				const entity = variable.entities[i]
 				const datakey = chart.data.keyFor(entity, dimIndex)
+				colorKeys[datakey] = addCountryMode == "change-country" ? _.toString(variable.id) : datakey
 				let series = seriesByKey.get(datakey)
 
 				// Not a selected key, don't add any data for it
@@ -100,7 +102,7 @@ export default class StackedAreaTransform {
 
 		// Preserve order and colorize
 		chartData = _.sortBy(chartData, series => -selectedKeys.indexOf(series.key))
-		chartData.forEach(series => series.color = colors.getColorForKey(series.key))
+		chartData.forEach(series => series.color = colors.getColorForKey(colorKeys[series.key]))
 
 		return chartData
 	}
@@ -187,8 +189,7 @@ export default class StackedAreaTransform {
 		
     @computed get yAxis(): AxisSpec {
         const {chart, yDomainDefault, isRelative, yDimensionFirst} = this
-		const variable = yDimensionFirst && yDimensionFirst.variable
-		const tickFormat = variable ? (d: number) => formatValue(d, { unit: variable.shortUnit }) : _.identity
+		const tickFormat = yDimensionFirst ? yDimensionFirst.formatValueShort : _.identity
 
         return _.extend(
             chart.yAxis.toSpec({ defaultDomain: yDomainDefault }),
