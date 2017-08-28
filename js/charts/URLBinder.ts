@@ -125,7 +125,7 @@ export default class URLBinder {
 
     @computed get countryParam(): string|undefined {
         const {chart, origChart} = this
-        if (chart.data.isReady && !_.isEqual(toJS(chart.props.selectedData), origChart.selectedData)) {
+        if (chart.data.isReady && JSON.stringify(chart.props.selectedData) != JSON.stringify(origChart.selectedData)) {
             return _(chart.data.selectedKeys).map(k => chart.data.lookupKey(k).shortCode).map(encodeURIComponent).uniq().join("+")
         } else {
             return undefined
@@ -227,7 +227,7 @@ export default class URLBinder {
                     chart.data.selectedKeys = _.filter(chart.data.availableKeys, datakey => {
                         const meta = chart.data.lookupKey(datakey)                         
                         const entityMeta = chart.vardata.entityMetaByKey[meta.entity]
-                        return _.includes(entityCodes, entityMeta.code) || _.includes(entityCodes, entityMeta.name)
+                        return _.includes(entityCodes, meta.shortCode) || _.includes(entityCodes, entityMeta.code) || _.includes(entityCodes, entityMeta.name)
                     })
                 }
             })

@@ -229,11 +229,11 @@ class TimeSection extends React.Component<{ editor: ChartEditor }> {
 	@computed get chart() { return this.props.editor.chart }
 
 	@computed get isDynamicTime() {
-		return this.chart.props.timeDomain[0] == null && this.chart.props.timeDomain[1] == null
+		return this.chart.timeDomain[0] == null && this.chart.timeDomain[1] == null
 	}
 
-	@computed get minTime() { return this.chart.props.timeDomain[0]||undefined }
-	@computed get maxTime() { return this.chart.props.timeDomain[1]||undefined }
+	@computed get minTime() { return this.chart.props.minTime }
+	@computed get maxTime() { return this.chart.props.maxTime }
 	@computed get minPossibleTime() { 
 		return this.chart.data.primaryVariable ? this.chart.data.primaryVariable.minYear : 1900
 	}
@@ -243,22 +243,22 @@ class TimeSection extends React.Component<{ editor: ChartEditor }> {
 
 	@action.bound onToggleDynamicTime() {
 		if (this.isDynamicTime) {
-			this.chart.props.timeDomain = [this.minPossibleTime, this.maxPossibleTime]
+			this.chart.timeDomain = [this.minPossibleTime, this.maxPossibleTime]
 		} else {
-			this.chart.props.timeDomain = [null, null]
+			this.chart.timeDomain = [null, null]
 		}
 	}
 
 	@action.bound onMinTime(value: number) {
-		this.chart.props.timeDomain[0] = value
+		this.chart.props.minTime = value
 	}
 
 	@action.bound onMaxTime(value: number) {
-		this.chart.props.timeDomain[1] = value
+		this.chart.props.maxTime = value
 	}
 
 	render() {
-		const {chart, minTime, maxTime, isDynamicTime} = this
+		const {chart, isDynamicTime} = this
 
 		return <section className="time-section">
 			<h2>Define your time</h2>
@@ -266,8 +266,8 @@ class TimeSection extends React.Component<{ editor: ChartEditor }> {
 
 			{!isDynamicTime && <div>
 				<div className="chart-time-inputs-wrapper">
-					<NumberField label="Time from" value={minTime} onValue={this.onMinTime}/>
-					<NumberField label="Time to" value={maxTime} onValue={this.onMaxTime}/>
+					<NumberField label="Time from" value={chart.props.minTime} onValue={this.onMinTime}/>
+					<NumberField label="Time to" value={chart.props.maxTime} onValue={this.onMaxTime}/>
 				</div>
 			</div>}
 		</section>

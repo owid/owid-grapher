@@ -23,10 +23,10 @@ def selectedKeysRedesign(apps, schema_editor):
                         if config.get('group-by-variables'):
                             index = len(mainDimensions)-1-i
                         sel = { 'entityId': int(entity['id']), 'index': index }
-                        if 'color' in entity:
-                            sel['color'] = entity['color']
-                        elif 'color' in dim:
-                            sel['color'] = dim['color']
+
+                        color = entity.get('color', None) or dim.get('color', None)
+                        if color:
+                            sel['color'] = color
                         selection.append(sel)
 
                 print(config['selected-countries'])
