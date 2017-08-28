@@ -141,7 +141,7 @@ export default class ScatterTransform {
     // Precompute the data transformation for every timeline year (so later animation is fast)
     // If there's no timeline, this uses the same structure but only computes for a single year
     @computed get dataByEntityAndYear() {
-        const {chart, yearsToCalculate, colorScale, hideBackgroundEntities, validEntities, xOverrideYear} = this
+        const {chart, yearsToCalculate, colorScale, hideBackgroundEntities, validEntities, xOverrideYear, test} = this
         const {filledDimensions, keyColors} = chart.data
         const validEntityLookup = _.keyBy(validEntities)
         

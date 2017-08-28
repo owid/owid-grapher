@@ -131,9 +131,12 @@ export default class ChartData {
 		return this.selectionData.map(d => d.key)
 	}
 
-	@computed get keyColors(): {[datakey: string]: Color|undefined}{
+	@computed.struct get keyColors(): {[datakey: string]: Color|undefined}{
 		const keyColors: {[datakey: string]: Color|undefined} = {}
-		this.selectionData.forEach(d => keyColors[d.key] = d.color)
+		this.selectionData.forEach(d => {
+			if (d.color)
+				keyColors[d.key] = d.color
+		})
 		return keyColors
 	}
 

@@ -109,14 +109,14 @@ export default class URLBinder {
     }
 
     @computed get timeParam(): string|undefined {
-        const {chart} = this
+        const {chart, origChart} = this
 
-        const {timeDomain} = chart.props
-        if (!_.isEqual(toJS(timeDomain), this.origChart.timeDomain)) {
-            if (_.isFinite(timeDomain[0]) && _.isFinite(timeDomain[1]) && timeDomain[0] != timeDomain[1]) {
-                return timeDomain[0] + ".." + timeDomain[1]
-            } else if (_.isNumber(timeDomain[0])) {
-                return _.toString(timeDomain[0])
+        const {minTime, maxTime} = chart.props
+        if (minTime != origChart.minTime || maxTime != origChart.maxTime) {
+            if (_.isFinite(minTime) && _.isFinite(maxTime) && minTime != maxTime) {
+                return minTime + ".." + maxTime
+            } else if (_.isNumber(minTime)) {
+                return _.toString(minTime)
             }
         } else {
             return undefined

@@ -26,6 +26,7 @@ import Tooltip from './Tooltip'
 import AxisBoxHighlight from './AxisBoxHighlight'
 import DataKey from './DataKey'
 import NoData from './NoData'
+import {formatYear} from './Util'
 
 export interface LineChartValue {
     x: number,
@@ -95,7 +96,7 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
             <p style={{margin: 0, padding: "0.3em 0.9em", fontSize: "0.8em"}}>
                 <span>{dimension.formatValueLong(hoverTarget.value.y)}</span><br/>
                 in<br/>
-                <span>{hoverTarget.value.x}</span>
+                <span>{formatYear(hoverTarget.value.x)}</span>
             </p>
         </Tooltip>
     }

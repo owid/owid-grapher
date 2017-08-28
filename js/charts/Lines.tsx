@@ -132,6 +132,7 @@ export default class Lines extends React.Component<LinesProps> {
                     markerStart={`url(#${series.displayKey}-circle)`}
                     markerMid={`url(#${series.displayKey}-circle)`}
                     markerEnd={`url(#${series.displayKey}-circle)`}
+                    stroke-dasharray={series.isProjection && "3,2"}
                 />
             </g>
         )

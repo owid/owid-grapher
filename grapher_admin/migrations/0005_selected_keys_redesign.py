@@ -10,33 +10,58 @@ def selectedKeysRedesign(apps, schema_editor):
         for chart in Chart.objects.all():
             config = json.loads(chart.config)
             
-            if not 'selected-countries' in config:
-                continue
-                
-            mainDimensions = [dim for dim in config['chart-dimensions'] if dim['property'] == 'y']
-            if config.get('group-by-variables'):
-                mainDimensions.reverse()
+            if 'selected-countries' in config:                
+                mainDimensions = [dim for dim in config['chart-dimensions'] if dim['property'] == 'y']
+                if config.get('group-by-variables'):
+                    mainDimensions.reverse()
 
-            selection = []
+                selection = []
 
-            for entity in reversed(sorted(config['selected-countries'], key=lambda e: int(e['id']))):
-                for i, dim in enumerate(mainDimensions):
-                    index = i
-                    if config.get('group-by-variables'):
-                        index = len(mainDimensions)-1-i
-                    sel = { 'entityId': int(entity['id']), 'index': index }
-                    if 'color' in entity:
-                        sel['color'] = entity['color']
-                    elif 'color' in dim:
-                        sel['color'] = dim['color']
-                    selection.append(sel)
+                for entity in reversed(sorted(config['selected-countries'], key=lambda e: int(e['id']))):
+                    for i, dim in enumerate(mainDimensions):
+                        index = i
+                        if config.get('group-by-variables'):
+                            index = len(mainDimensions)-1-i
+                        sel = { 'entityId': int(entity['id']), 'index': index }
+                        if 'color' in entity:
+                            sel['color'] = entity['color']
+                        elif 'color' in dim:
+                            sel['color'] = dim['color']
+                        selection.append(sel)
 
-            print(config['selected-countries'])
-            print(selection)
-            print()
+                print(config['selected-countries'])
+                print(selection)
+                print()
 
-            config['selectedData'] = selection
-            del config['selected-countries']
+                config['selectedData'] = selection
+                del config['selected-countries']
+
+            if 'chart-time' in config:
+                timeDomain = config.get('chart-time')
+
+                minTime = None
+                maxTime = None
+
+                if timeDomain:
+                    if len(timeDomain) > 0:
+                        try:
+                            minTime = int(timeDomain[0])
+                        except:
+                            pass
+                    if len(timeDomain) > 1:
+                        try:
+                            maxTime = int(timeDomain[1])
+                        except:
+                            pass
+
+                if chart.type == "ScatterPlot" and config.get("timeline", None) is None:
+                    minTime = maxTime
+
+                if minTime is not None:
+                    config['minTime'] = minTime
+                if maxTime is not None:
+                    config['maxTime'] = maxTime
+                del config['chart-time']
 
             chart.config = json.dumps(config)
             chart.save()

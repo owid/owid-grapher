@@ -78,7 +78,8 @@ export class ChartConfigProps {
     @observable.ref yAxis: AxisConfigProps = new AxisConfigProps()
 
     @observable.ref selectedData: EntitySelection[] = []
-    @observable.struct timeDomain: [number|null, number|null]
+    @observable.ref minTime?: number = undefined
+    @observable.ref maxTime?: number = undefined
 
     @observable.struct dimensions: ChartDimension[] = []
     @observable.ref addCountryMode: 'add-country'|'change-country'|'disabled' = 'add-country'
@@ -119,7 +120,6 @@ export default class ChartConfig {
     @computed get logosSVG() { return this.props.logosSVG }
     @computed get originUrl() { return defaultTo(this.props.originUrl, "") }
     @computed get isPublished() { return defaultTo(this.props.isPublished, false) }
-    @computed get timeDomain() { return this.props.timeDomain }
     @computed get primaryTab() { return this.props.tab }
     @computed get overlayTab() { return this.props.overlay }
     @computed get tab() { return this.props.overlay ? this.props.overlay : this.props.tab }
@@ -134,7 +134,15 @@ export default class ChartConfig {
     @computed get hideLegend() { return this.props.hideLegend }
     @computed get baseColorScheme() { return this.props.baseColorScheme }
     
-    set timeDomain(value) { this.props.timeDomain = value }
+    @computed get timeDomain(): [number|null, number|null] {
+        return [this.props.minTime||null, this.props.maxTime||null]
+    }
+
+    set timeDomain(value: [number|null, number|null]) { 
+        this.props.minTime = value[0]||undefined
+        this.props.maxTime = value[1]||undefined
+    }
+    
     set tab(value) { 
         if (value == 'chart' || value == 'map') {
             this.props.tab = value
@@ -217,11 +225,8 @@ export default class ChartConfig {
         this.props.selectedData = props['selectedData']
         this.props.timeline = props['timeline']
 
-        const timeDomain = props['chart-time']
-        if (!timeDomain)
-            this.props.timeDomain = [null, null]
-        else
-            this.props.timeDomain = (_.map(timeDomain, v => _.isString(v) ? parseInt(v) : v) as [number|null, number|null])
+        this.props.minTime = props['minTime']
+        this.props.maxTime = props['maxTime']
         
         this.props.hasChartTab = props['tabs'] ? props['tabs'].includes("chart") : true
         this.props.hasMapTab = props['tabs'] ? props['tabs'].includes("map") : false
@@ -254,7 +259,6 @@ export default class ChartConfig {
         json['published'] = props.isPublished
         json['map-config'] = props.map
         json['selectedData'] = props.selectedData
-        json['chart-time'] = props.timeDomain
         json['tabs'] = this.availableTabs
         json['chart-dimensions'] = props.dimensions
         json['add-country-mode'] = props.addCountryMode

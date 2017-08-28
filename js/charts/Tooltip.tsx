@@ -35,7 +35,7 @@ class TooltipView extends React.Component<TooltipProps> {
                 y = 0
         }
         
-        const style = { position: 'absolute', whiteSpace: 'nowrap', pointerEvents: 'none', left: x+'px', top: y+'px', backgroundColor: "white", border: "1px solid #ccc", textAlign: 'left', fontSize: "0.9em" }
+        const style = { position: 'absolute', whiteSpace: 'nowrap', pointerEvents: 'none', left: x+'px', top: y+'px', backgroundColor: "white", border: "1px solid #ccc", textAlign: 'left', fontSize: "0.9em", zIndex: 100 }
 
         return <div style={_.extend(style, props.style||{})}>
             {props.children}
