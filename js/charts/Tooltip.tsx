@@ -40,7 +40,7 @@ class TooltipView extends React.Component<TooltipProps> {
                 y = 0
         }
 
-        return <div style={{ position: 'absolute', whiteSpace: 'nowrap', pointerEvents: 'none', left: x+'px', top: y+'px', padding: "0.3em", backgroundColor: "white", border: "1px solid #ccc", textAlign: 'left', fontSize: "0.9em" }}>
+        return <div style={{ position: 'absolute', whiteSpace: 'nowrap', pointerEvents: 'none', left: x+'px', top: y+'px', backgroundColor: "white", border: "1px solid #ccc", textAlign: 'left', fontSize: "0.9em" }}>
             {props.children}
         </div>
     }
