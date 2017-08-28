@@ -84,12 +84,13 @@ export default class TextWrap {
         if (lines.length == 0)
             return null
 
-		return <text fontSize={fontSize+'em'} x={0} y={y+lines[0].height-lines[0].height*0.2} {...options}>
+        const yOffset = y+lines[0].height-lines[0].height*0.2
+		return <text fontSize={fontSize*Bounds.baseFontSize} x={x} y={yOffset} {...options}>
 			{_.map(lines, (line, i) => {
                 if (props.raw)
-                    return <tspan x={x} dy={i == 0 ? 0 : lineHeight + 'em'} dangerouslySetInnerHTML={{__html: line.text}}/>
+                    return <tspan x={x} y={yOffset + (i == 0 ? 0 : lineHeight*fontSize*Bounds.baseFontSize*i)} dangerouslySetInnerHTML={{__html: line.text}}/>
                 else
-    				return <tspan x={x} dy={i == 0 ? 0 : lineHeight + 'em'}>{strip(line.text)}</tspan>
+    				return <tspan x={x} y={yOffset + (i == 0 ? 0 : lineHeight*fontSize*Bounds.baseFontSize*i)}>{strip(line.text)}</tspan>
 			})}
 		</text>
 	}    
