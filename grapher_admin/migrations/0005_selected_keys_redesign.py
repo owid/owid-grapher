@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from django.db import migrations, models, transaction
 import json
 
+# This has become sorta the nvd3less migration in general
 def selectedKeysRedesign(apps, schema_editor):
     Chart = apps.get_model('grapher_admin', 'Chart')
     with transaction.atomic():
@@ -62,6 +63,9 @@ def selectedKeysRedesign(apps, schema_editor):
                 if maxTime is not None:
                     config['maxTime'] = maxTime
                 del config['chart-time']
+
+            if chart.type == "DiscreteBar":
+                config['add-country-mode'] = 'disabled'
 
             chart.config = json.dumps(config)
             chart.save()
