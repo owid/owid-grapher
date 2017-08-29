@@ -16,6 +16,8 @@ interface VerticalAxisProps {
 
 // Axis layout model. Computes the space needed for displaying an axis.
 export default class VerticalAxis {
+    static tickFontSize = "0.65em"
+
     @computed get label(): TextWrap|undefined {
         const {props, height} = this
         return props.labelText ? new TextWrap({ maxWidth: height, fontSize: 0.5, text: props.labelText}) : undefined
@@ -28,7 +30,7 @@ export default class VerticalAxis {
     @computed get width() {
         const {props, labelOffset} = this
         const longestTick = _.sortBy(props.scale.getFormattedTicks(), (tick) => -tick.length)[0]
-        return Bounds.forText(longestTick, { fontSize: "0.7em" }).width + labelOffset + 5
+        return Bounds.forText(longestTick, { fontSize: VerticalAxis.tickFontSize }).width + labelOffset + 5
     }
 
     @computed get height() {
@@ -58,7 +60,7 @@ export class VerticalAxisView extends React.Component<{ bounds: Bounds, axis: Ve
         return <g className="VerticalAxis">
             {label && label.render(-bounds.centerY-label.width/2, bounds.left, { transform: "rotate(-90)" })}
             {_.map(ticks, tick =>
-                <text x={bounds.left+axis.width-5} y={scale.place(tick)} fill={textColor} dominant-baseline="middle" textAnchor="end" fontSize={0.7+'em'}>{scale.tickFormat(tick)}</text>
+                <text x={bounds.left+axis.width-5} y={scale.place(tick)} fill={textColor} dominant-baseline="middle" textAnchor="end" fontSize={VerticalAxis.tickFontSize}>{scale.tickFormat(tick)}</text>
             )}
             {scale.scaleTypeOptions.length > 1 && onScaleTypeChange &&
                 <ScaleSelector x={bounds.left} y={bounds.top-8} scaleType={scale.scaleType} scaleTypeOptions={scale.scaleTypeOptions} onChange={onScaleTypeChange}/>}

@@ -127,7 +127,7 @@ export default class Lines extends React.Component<LinesProps> {
                     stroke={series.color}
                     points={_.map(series.values, v => `${v.x},${v.y}`).join(' ')}
                     fill="none"
-                    strokeWidth={1}
+                    strokeWidth={1.5}
                     opacity={1}
                     markerStart={`url(#${series.displayKey}-circle)`}
                     markerMid={`url(#${series.displayKey}-circle)`}

@@ -188,6 +188,7 @@ a {
     justify-content: space-between;
     align-items: center;
     flex-direction: row-reverse;
+    color: #777;
 }
 
 #chart.portrait .ControlsFooter {
@@ -199,7 +200,7 @@ a {
 }
 
 #chart.portrait .extraControls {
-    font-size: 0.7em;
+    font-size: 0.8em;
     border-bottom: 1px solid #e1e1e1;
 }
 
@@ -249,8 +250,8 @@ a {
     display: block;
     padding: 0.5em 0;
     text-transform: uppercase;
-    color: #666;
-    font-size: 0.9em;
+    color: #777;
+    font-size: 0.8em;
 }
 
 #chart nav.tabs li.icon > a {

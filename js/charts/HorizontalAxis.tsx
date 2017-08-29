@@ -18,7 +18,7 @@ interface HorizontalAxisProps {
 // Axis layout model. Computes the space needed for displaying an axis.
 export default class HorizontalAxis {
     static labelPadding = 5
-    static tickFontSize = "0.7em"
+    static tickFontSize = "0.65em"
     static labelFontSize = 0.5
 
     props: HorizontalAxisProps
