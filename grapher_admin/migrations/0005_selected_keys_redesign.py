@@ -9,6 +9,13 @@ def selectedKeysRedesign(apps, schema_editor):
     Chart = apps.get_model('grapher_admin', 'Chart')
     Variable = apps.get_model('grapher_admin', 'Variable')
     with transaction.atomic():
+        # Remove existing short units from variables
+        for variable in Variable.objects.select_related('fk_dst_id').all():
+            if variable.fk_dst_id.namespace != 'owid':
+                variable.short_unit = ""
+                variable.save()
+            
+
         for chart in Chart.objects.all():
             config = json.loads(chart.config)
             
