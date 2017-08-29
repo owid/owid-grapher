@@ -146,7 +146,7 @@ class AbsRelToggle extends React.Component<{ chart: ChartConfig }> {
     render() {
         const {chart} = this.props
         return <label className="clickable">
-            <input type="checkbox" checked={chart.stackedArea.isRelative} onChange={this.onToggle}/> {chart.type == ChartType.StackedArea ? "Relative" : "Average annual change"}
+            <input type="checkbox" checked={chart.stackedArea.isRelative} onChange={this.onToggle}/> {chart.isStackedArea ? "Relative" : "Average annual change"}
         </label>
     }
 }
@@ -198,7 +198,8 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps>
                 </button>}
                 
                 {chart.type == ChartType.ScatterPlot && chart.highlightToggle && <HighlightToggle chart={chart} highlightToggle={chart.highlightToggle}/>}
-                {(chart.type == ChartType.StackedArea || (chart.type == ChartType.ScatterPlot && chart.scatter.hasTimeline)) && <AbsRelToggle chart={chart}/>}
+                {chart.isStackedArea && chart.stackedArea.canToggleRelative && <AbsRelToggle chart={chart}/>}
+                {chart.isScatter && chart.scatter.hasTimeline && <AbsRelToggle chart={chart}/>}
             </div>}
             {isShareMenuActive && <ShareMenu chartView={this.props.chartView} chart={this.props.chart} onDismiss={() => this.isShareMenuActive = false}/>}
         </div>

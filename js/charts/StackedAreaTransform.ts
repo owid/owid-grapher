@@ -24,27 +24,8 @@ export default class StackedAreaTransform {
 		return _.last(ColorSchemes['owid-distinct'].colors) as Color[]
 	}
 
-    @computed get colors() {
-        const _this = this
-        return new ColorBinder({
-            get chart() { return _this.chart },
-            get colorScheme() { return _this.baseColorScheme }
-        })
-    }
-
-	getColorForKey(datakey: string): Color {
-		const {chart} = this
-		const assignedColor = chart.data.keyColors[datakey]
-		if (assignedColor)
-			return assignedColor
-			
-		// Keep the same colors when switching between entities on change-entity charts
-		const colorKey = this.chart.data.canChangeEntity ? this.chart.data.lookupKey(datakey).dimension.variable.id.toString() : datakey
-		return this.colors.getColorForKey(colorKey)
-	}
-
 	@computed get initialData(): StackedAreaSeries[] {
-		const {chart, colors} = this
+		const {chart} = this
 		const {timeDomain, yAxis, addCountryMode} = chart
         const {filledDimensions, selectedKeys, selectedKeysByKey} = chart.data
 
@@ -112,7 +93,12 @@ export default class StackedAreaTransform {
 
 		// Preserve order and colorize
 		chartData = _.sortBy(chartData, series => -selectedKeys.indexOf(series.key))
-		chartData.forEach(series => series.color = this.getColorForKey(series.key))
+
+        // Assign colors
+        const colorScale = d3.scaleOrdinal(this.baseColorScheme)
+        chartData.forEach(series => {
+            series.color = chart.data.keyColors[series.key] || colorScale(series.key)
+        })
 
 		return chartData
 	}
@@ -130,6 +116,10 @@ export default class StackedAreaTransform {
 			totals.push(_(initialData).map(series => series.values[i].y).sum())
 		}
 		return _.uniq(totals).length == 1
+	}
+
+	@computed get canToggleRelative(): boolean {
+		return !this.chart.props.hideRelativeToggle
 	}
 
 	// Stacked area may display in either absolute or relative mode

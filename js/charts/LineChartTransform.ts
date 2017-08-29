@@ -1,5 +1,6 @@
 import {computed} from 'mobx'
 import * as _ from 'lodash'
+import * as d3 from 'd3'
 import ChartConfig from './ChartConfig'
 import Color from './Color'
 import DataKey from './DataKey'
@@ -18,16 +19,8 @@ export default class LineChartTransform {
         this.chart = chart
     }
 
-    @computed get colors() {
-        const _this = this
-        return new ColorBinder({
-            get chart() { return _this.chart },
-            get colorScheme() { return _.last(ColorSchemes['owid-distinct'].colors) as Color[] }
-        })
-    }
-
 	@computed get initialData(): LineChartSeries[] {
-		const {chart, colors} = this
+		const {chart} = this
 		const {timeDomain, yAxis, addCountryMode} = chart
         const {filledDimensions, selectedKeysByKey} = chart.data
 
@@ -56,7 +49,8 @@ export default class LineChartTransform {
 						values: [],
 						key: datakey,
 						isProjection: dimension.isProjection,
-                        color: colors.getColorForKey(datakey)
+                        formatValue: dimension.formatValueLong,
+                        color: "#000" // tmp
 					};
 					seriesByKey.set(datakey, series);
 				}
@@ -66,6 +60,13 @@ export default class LineChartTransform {
 
 			chartData = chartData.concat([...seriesByKey.values()]);
 		});
+
+        // Assign colors
+        const colorScheme = _.last(ColorSchemes['owid-distinct'].colors) as Color[]
+        const colorScale = d3.scaleOrdinal(colorScheme)
+        chartData.forEach(series => {
+            series.color = chart.data.keyColors[series.key] || colorScale(series.key)
+        })
 
         return chartData
 	}

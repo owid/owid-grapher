@@ -93,6 +93,18 @@ export default class ChartData {
         })
     }
 
+	@computed get primaryDimensions() {
+		return this.filledDimensions.filter(dim => dim.property == 'y')        
+    }
+
+	@computed get isSingleEntity(): boolean {
+		return this.vardata.availableEntities.length == 1 || this.chart.addCountryMode != 'add-country'
+	}
+
+	@computed get isSingleVariable(): boolean {
+		return this.primaryDimensions.length == 1
+	}
+
 	// Make a unique string key for an entity on a variable
 	keyFor(entity: string, dimensionIndex: number): DataKey {
 		return `${entity}_${dimensionIndex}`
@@ -101,10 +113,6 @@ export default class ChartData {
 	@computed get dimensionsByField(): _.Dictionary<DimensionWithData> {
 		return _.keyBy(this.filledDimensions, 'property')
 	}
-
-	@computed get primaryDimensions() {
-		return this.filledDimensions.filter(dim => dim.property == 'y')        
-    }
 
 	@computed get selectionData(): { key: DataKey, color?: Color }[] {
 		const {chart, vardata, primaryDimensions} = this
@@ -159,6 +167,12 @@ export default class ChartData {
 		return _(this.availableKeys).map(key => this.lookupKey(key).entity).uniq().value()
 	}
 
+	switchEntity(entityId: number) {
+        const selectedData = _.cloneDeep(this.chart.props.selectedData)
+        selectedData.forEach(d => d.entityId = entityId)
+        this.chart.props.selectedData = selectedData		
+	}
+
 	// Map keys back to their components for storage
 	set selectedKeys(keys: DataKey[]) {
 		const {chart, vardata} = this
@@ -177,14 +191,6 @@ export default class ChartData {
 
 	@computed get selectedKeysByKey(): _.Dictionary<DataKey> {
 		return _.keyBy(this.selectedKeys)
-	}
-
-	@computed get isSingleEntity(): boolean {
-		return this.vardata.availableEntities.length == 1 || this.chart.addCountryMode != 'add-country'
-	}
-
-	@computed get isSingleVariable(): boolean {
-		return this.primaryDimensions.length == 1
 	}
 
 	// Calculate the available datakeys and their associated info

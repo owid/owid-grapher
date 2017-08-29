@@ -224,11 +224,19 @@ export default class URLBinder {
                 if (country) {
                     const entityCodes = _.map(country.split('+'), decodeURIComponent)
 
-                    chart.data.selectedKeys = _.filter(chart.data.availableKeys, datakey => {
-                        const meta = chart.data.lookupKey(datakey)                         
-                        const entityMeta = chart.vardata.entityMetaByKey[meta.entity]
-                        return _.includes(entityCodes, meta.shortCode) || _.includes(entityCodes, entityMeta.code) || _.includes(entityCodes, entityMeta.name)
-                    })
+                    if (chart.data.canChangeEntity) {
+                        chart.data.availableEntities.forEach(entity => {
+                            const entityMeta = chart.vardata.entityMetaByKey[entity]
+                            if (entityMeta.code == entityCodes[0] || entityMeta.name == entityCodes[0])
+                                chart.data.switchEntity(entityMeta.id)
+                        })
+                    } else {
+                        chart.data.selectedKeys = _.filter(chart.data.availableKeys, datakey => {
+                            const meta = chart.data.lookupKey(datakey)                         
+                            const entityMeta = chart.vardata.entityMetaByKey[meta.entity]
+                            return _.includes(entityCodes, meta.shortCode) || _.includes(entityCodes, entityMeta.code) || _.includes(entityCodes, entityMeta.name)
+                        })
+                    }
                 }
             })
         })

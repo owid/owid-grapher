@@ -91,6 +91,7 @@ export class ChartConfigProps {
     @observable.ref lineTolerance?: number = undefined
     @observable.ref stackMode: string = 'absolute'
     @observable.ref hideLegend?: true = undefined
+    @observable.ref hideRelativeToggle?: true = undefined
 
     @observable.ref hasChartTab: boolean = true
     @observable.ref hasMapTab: boolean = false
@@ -243,6 +244,7 @@ export default class ChartConfig {
         this.props.lineType = props["line-type"]
         this.props.lineTolerance = parseInt(props["line-tolerance"]) || 1
         this.props.hideLegend = props["hide-legend"]
+        this.props.hideRelativeToggle = props["hide-toggle"]
         this.props.stackMode = props["currentStackMode"]
         
         this.variableCacheTag = props["variableCacheTag"]
@@ -266,6 +268,7 @@ export default class ChartConfig {
         json['line-type'] = props.lineType
         json['line-tolerance'] = props.lineTolerance
         json['hide-legend'] = props.hideLegend
+        json['hide-toggle'] = props.hideRelativeToggle
 
         return json
     }
@@ -322,7 +325,6 @@ export default class ChartConfig {
         return svg
     }
 
-    @computed get isScatter() {
-        return this.type == ChartType.ScatterPlot
-    }
+    @computed get isScatter() { return this.type == ChartType.ScatterPlot }
+    @computed get isStackedArea() { return this.type == ChartType.StackedArea }
 }

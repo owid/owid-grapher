@@ -162,9 +162,7 @@ export class DataSelectorSingle extends React.Component<{ chart: ChartConfig, ch
     }
 
     @action.bound onSelect(entityId: number) {
-        const selectedData = _.cloneDeep(this.props.chart.props.selectedData)
-        selectedData.forEach(d => d.entityId = entityId)
-        this.props.chart.props.selectedData = selectedData
+        this.props.chart.data.switchEntity(entityId)
         this.props.onDismiss()
     }
 
