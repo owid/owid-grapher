@@ -100,6 +100,10 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
         </Tooltip>
     }
 
+    @action.bound onLegendClick(datakey: DataKey) {
+        this.chart.data.toggleKey(datakey)
+    }
+
     render() {
         if (this.transform.groupedData.length == 0)
             return <NoData bounds={this.props.bounds}/>
@@ -110,7 +114,7 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
         const axisBox = new AxisBox({bounds: bounds.padRight(10).padRight(legend ? legend.width : 0), xAxis, yAxis})
 
         return <g className="LineChart">
-            {legend && <HeightedLegendView x={bounds.right-legend.width} legend={legend} focusKeys={focusKeys} yScale={axisBox.yScale}/>}
+            {legend && <HeightedLegendView x={bounds.right-legend.width} legend={legend} focusKeys={focusKeys} yScale={axisBox.yScale} onClick={this.onLegendClick}/>}
             <StandardAxisBoxView axisBox={axisBox} chart={chart}/>
             {/*hoverTarget && <AxisBoxHighlight axisBox={axisBox} value={hoverTarget.value}/>*/}
             <Lines xScale={axisBox.xScale} yScale={axisBox.yScale} data={groupedData} onHoverPoint={this.onHoverPoint} onHoverStop={this.onHoverStop} focusKeys={focusKeys}/>
