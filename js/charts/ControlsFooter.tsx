@@ -171,6 +171,11 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps>
         this.props.chartView.isSelectingData = true
     }
 
+    @computed get addDataTerm() {
+        const {chart} = this.props
+        return chart.data.isSingleVariable ? chart.entityType : "data"
+    }
+
     render() {
         const {props, isShareMenuActive} = this
         const {chart, chartView} = props
@@ -190,11 +195,11 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps>
             </nav>
             {chart.tab == 'chart' && <div className="extraControls">          
                 {chart.data.canAddData && <button onClick={this.onDataSelect}>
-                    {chart.isScatter ? <span><i className="fa fa-search"/> Search</span> : <span><i className="fa fa-plus"/> Add data</span>}
+                    {chart.isScatter ? <span><i className="fa fa-search"/> Search</span> : <span><i className="fa fa-plus"/> Add {this.addDataTerm}</span>}
                 </button>}
 
                 {chart.data.canChangeEntity && <button onClick={this.onDataSelect}>
-                    <i className="fa fa-exchange"/> Change entity
+                    <i className="fa fa-exchange"/> Change {chart.entityType}
                 </button>}
                 
                 {chart.type == ChartType.ScatterPlot && chart.highlightToggle && <HighlightToggle chart={chart} highlightToggle={chart.highlightToggle}/>}

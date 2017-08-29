@@ -92,6 +92,7 @@ export class ChartConfigProps {
     @observable.ref stackMode: string = 'absolute'
     @observable.ref hideLegend?: true = undefined
     @observable.ref hideRelativeToggle?: true = undefined
+    @observable.ref entityType?: string = undefined
 
     @observable.ref hasChartTab: boolean = true
     @observable.ref hasMapTab: boolean = false
@@ -134,6 +135,8 @@ export default class ChartConfig {
     @computed get hasMapTab() { return this.props.hasMapTab }
     @computed get hideLegend() { return this.props.hideLegend }
     @computed get baseColorScheme() { return this.props.baseColorScheme }
+
+    @computed get entityType() { return this.props.entityType||"country" }
     
     @computed get timeDomain(): [number|null, number|null] {
         return [this.props.minTime||null, this.props.maxTime||null]
@@ -228,6 +231,7 @@ export default class ChartConfig {
 
         this.props.minTime = props['minTime']
         this.props.maxTime = props['maxTime']
+        this.props.entityType = props['entity-type']
         
         this.props.hasChartTab = props['tabs'] ? props['tabs'].includes("chart") : true
         this.props.hasMapTab = props['tabs'] ? props['tabs'].includes("map") : false
@@ -260,7 +264,6 @@ export default class ChartConfig {
         json['chart-description'] = props.note
         json['published'] = props.isPublished
         json['map-config'] = props.map
-        json['selectedData'] = props.selectedData
         json['tabs'] = this.availableTabs
         json['chart-dimensions'] = props.dimensions
         json['add-country-mode'] = props.addCountryMode
@@ -269,6 +272,7 @@ export default class ChartConfig {
         json['line-tolerance'] = props.lineTolerance
         json['hide-legend'] = props.hideLegend
         json['hide-toggle'] = props.hideRelativeToggle
+        json['entity-type'] = props.entityType
 
         return json
     }
