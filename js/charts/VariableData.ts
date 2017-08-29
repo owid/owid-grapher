@@ -11,6 +11,7 @@ export class Variable {
 	@observable.ref name: string
 	@observable.ref description: string
 	@observable.ref unit: string
+	@observable.ref shortUnit: string
 	@observable.ref coverage: string
 	@observable.ref timespan: string
 	@observable.struct source: {
@@ -67,21 +68,6 @@ export class Variable {
 
 	@computed get isNumeric(): boolean {
 		return this.hasNumericValues && !this.hasCategoricalValues		
-	}
-
-	@computed get shortUnit(): string|undefined {
-		const {unit} = this
-		if (!unit) return undefined
-
-		if (unit.length < 3)
-			return unit
-		else {
-			const commonShortUnits = ['$', '£', '€', '%']
-			if (_.some(commonShortUnits, u => unit[0] == u))
-				return unit[0]
-			else
-				return undefined
-		}
 	}
 
 	@computed get valueByEntityAndYear(): Map<string, Map<number, (string|number)>> {

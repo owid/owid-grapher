@@ -49,11 +49,28 @@ export class DimensionWithData {
 	}
 
 	@computed get tolerance(): number {
-		return this.dimension.tolerance||0
+		return this.dimension.tolerance||0	}
+
+
+	@computed get shortUnit(): string|undefined {
+		const {unit, shortUnit} = this.variable
+		if (shortUnit) return shortUnit
+
+		if (!unit) return undefined
+
+		if (unit.length < 3)
+			return unit
+		else {
+			const commonShortUnits = ['$', '£', '€', '%']
+			if (_.some(commonShortUnits, u => unit[0] == u))
+				return unit[0]
+			else
+				return undefined
+		}
 	}
 
 	@computed get formatValueShort(): (value: number) => string {
-		return value => formatValue(value, { unit: this.variable.shortUnit })
+		return value => formatValue(value, { unit: this.shortUnit })
 	}
 
 	@computed get formatValueLong(): (value: number) => string {

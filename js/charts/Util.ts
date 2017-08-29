@@ -161,7 +161,7 @@ export function formatValue(value: number, options: { maxDecimalPlaces?: number,
 
 	if (unit == "$" || unit == "£")
 		output = unit + output;
-	else if (unit[0] == "%") {
+	else if (unit[0] == "%" || unit.length == 1) {
 		output = output + unit
 	} else if (unit.length > 0) {
 		output = output + " " + unit

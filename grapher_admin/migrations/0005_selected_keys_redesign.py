@@ -7,6 +7,7 @@ import json
 # This has become sorta the nvd3less migration in general
 def selectedKeysRedesign(apps, schema_editor):
     Chart = apps.get_model('grapher_admin', 'Chart')
+    Variable = apps.get_model('grapher_admin', 'Variable')
     with transaction.atomic():
         for chart in Chart.objects.all():
             config = json.loads(chart.config)
@@ -66,6 +67,24 @@ def selectedKeysRedesign(apps, schema_editor):
 
             if chart.type == "DiscreteBar":
                 config['add-country-mode'] = 'disabled'
+
+            if 'form-config' in config:
+                del config['form-config']
+
+            # Put units onto variables
+            xShortUnit = config['xAxis'].get('prefix') or config['xAxis'].get('suffix')
+            yShortUnit = config['yAxis'].get('prefix') or config['yAxis'].get('suffix')
+            for dimension in config['chart-dimensions']:
+                if xShortUnit and dimension['property'] == 'x':
+                    variable = Variable.objects.get(id=dimension['variableId'])
+                    print(variable.name, xShortUnit)
+                    variable.short_unit = xShortUnit
+                    variable.save()
+                if yShortUnit and dimension['property'] == 'y':
+                    variable = Variable.objects.get(id=dimension['variableId'])
+                    print(variable.name, yShortUnit)
+                    variable.short_unit = yShortUnit
+                    variable.save()
 
             chart.config = json.dumps(config)
             chart.save()
