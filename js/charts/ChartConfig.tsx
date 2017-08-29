@@ -331,4 +331,5 @@ export default class ChartConfig {
 
     @computed get isScatter() { return this.type == ChartType.ScatterPlot }
     @computed get isStackedArea() { return this.type == ChartType.StackedArea }
+    @computed get isSlopeChart() { return this.type == ChartType.SlopeChart }
 }

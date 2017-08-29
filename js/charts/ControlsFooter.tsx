@@ -173,7 +173,7 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps>
 
     @computed get addDataTerm() {
         const {chart} = this.props
-        return chart.data.isSingleVariable ? chart.entityType : "data"
+        return chart.data.isSingleEntity ? "data" : chart.entityType
     }
 
     render() {

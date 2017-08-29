@@ -82,26 +82,18 @@ def test_all(request):
 
     num_pages = -(-count // charts_per_page)
 
-    query_string = get_query_string(request)
-    # removing the existing page parameter
-    if 'page=' in query_string:
-        query_string = query_string[7:]
 
     next_page_url = None
     if test_page < num_pages:
-        if not query_string:
-            next_page_url = request.get_full_path() + '?page=%s' % (test_page + 1)
-        else:
-            next_page_url = request.build_absolute_uri('/grapher/testall') + '?page=%s' % (test_page + 1) + '&' +\
-                            query_string
+        next_page_params = request.GET.copy()
+        next_page_params['page'] = test_page+1
+        next_page_url = request.build_absolute_uri('/grapher/testall') + "?" + urllib.parse.urlencode(next_page_params)
 
     prev_page_url = None
     if test_page > 1:
-        if not query_string:
-            prev_page_url = request.get_full_path() + '?page=%s' % (test_page - 1)
-        else:
-            prev_page_url = request.build_absolute_uri('/grapher/testall') + '?page=%s' % (test_page - 1) + '&' +\
-                            query_string
+        prev_page_params = request.GET.copy()
+        prev_page_params['page'] = test_page-1
+        prev_page_url = request.build_absolute_uri('/grapher/testall') + "?" + urllib.parse.urlencode(prev_page_params)
 
     starting_point = (test_page - 1) * charts_per_page
     end_point = ((test_page - 1) * charts_per_page) + charts_per_page
