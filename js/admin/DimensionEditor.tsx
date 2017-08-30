@@ -41,7 +41,7 @@ export default class DimensionEditor extends React.Component<DimensionEditorProp
 	@computed get variableId() {
 		if (this.chosenVariableId != null)
 			return this.chosenVariableId
-		else
+		else if (this.searchResults.length)
 			return this.searchResults[0].id
 	}
 
@@ -71,7 +71,8 @@ export default class DimensionEditor extends React.Component<DimensionEditorProp
     }
 
     @computed get searchResults(): Variable[] {
-		return this.searchInput ? this.fuseSearch.search(this.searchInput) : this.variables
+		const results = this.searchInput && this.fuseSearch.search(this.searchInput)
+		return (results && results.length) ? results : this.variables
     }
 
 	@action.bound onNamespace(namespace: string) {

@@ -59,6 +59,9 @@ export default class StackedAreaTransform {
 				if (isNaN(value)) continue;
 				// Check for time range
 				if (year < timeFrom || year > timeTo) continue;
+				// Stacked area chart can't go negative!
+				if (value < 0) continue;
+
 
 				if (!series) {
 					series = {
