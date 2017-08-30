@@ -33,4 +33,8 @@ export default class EditorFeatures {
     @computed get entityType() {
         return this.chart.addCountryMode == 'add-country' || this.chart.addCountryMode == 'change-country'
     }
+
+    @computed get linLogToggle() {
+        return !this.chart.isDiscreteBar
+    }
 }
