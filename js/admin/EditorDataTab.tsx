@@ -10,14 +10,13 @@ import DataKey from '../charts/DataKey'
 import Color from '../charts/Color'
 import {defaultTo} from '../charts/Util'
 import {SelectField, Toggle, NumberField} from './Forms'
-import ChartEditor from './ChartEditor'
-import EditorVariable from './EditorVariable'
+import ChartEditor, {Variable} from './ChartEditor'
 import Colorpicker from './Colorpicker'
 import DimensionEditor from './DimensionEditor'
 const styles = require("./EditorDataTab.css")
 
 @observer
-class VariableItem extends React.Component<{ variable: EditorVariable }> {
+class VariableItem extends React.Component<{ variable: Variable }> {
 	render() {
 		const {variable} = this.props
 
@@ -119,7 +118,7 @@ class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: C
 class VariablesSection extends React.Component<{ editor: ChartEditor }> {
 	base: HTMLDivElement
 	@observable.ref isAddingVariable: boolean = false
-	@observable.struct unassignedVariables: EditorVariable[] = []
+	@observable.struct unassignedVariables: Variable[] = []
 
     @computed get slots(): DimensionSlot[] {
 		return this.props.editor.chart.emptyDimensionSlots
@@ -189,20 +188,20 @@ class KeysSection extends React.Component<{ chart: ChartConfig }> {
 		return <section className="entities-section">
 			<h2>Choose data to show</h2>
 
-			<ColorSchemeSelector chart={chart}/>
+			{/*<ColorSchemeSelector chart={chart}/>*/}
 
 			<p className="form-section-desc">You can set individual colors by clicking on the labels.</p>
+			<select className="form-control countries-select" onChange={this.onAddKey} value="Select data">
+				<option value="Select data" selected={true} disabled={true}>Select data</option>
+				{_.map(remainingKeys, key =>
+					<option value={key}>{chart.data.lookupKey(key).fullLabel}</option>
+				)}
+			</select>
 			<ul className="selected-countries-box no-bullets">
 				{_.map(selectedKeys, datakey =>
 					<DataKeyItem chart={chart} datakey={datakey}/>
 				)}
 			</ul>
-			<select className="form-control countries-select" onChange={this.onAddKey} value="Select data">
-				<option value="Select data" selected={true} disabled={true}>Select data</option>
-				{_.map(remainingKeys, key =>
-					<option value={key}>{chart.data.formatKey(key)}</option>
-				)}
-			</select>
 			<div className="add-country-control-wrapper">
 				<h4>Can user add/change data?</h4>
 				<label>

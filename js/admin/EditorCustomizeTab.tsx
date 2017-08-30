@@ -32,7 +32,7 @@ export default class EditorCustomizeTab extends React.Component<{ editor: ChartE
 		const {chart} = this.props.editor
 
 		return <div className="tab-pane">
-			{chart.type == ChartType.LineChart && false && <section className="type-of-line-section">
+			{chart.isLineChart && false && <section className="type-of-line-section">
 				<h2>Choose Type of Line</h2>
 				<label>
 					<input type="radio" name="line-type" value="0"/>
@@ -53,16 +53,13 @@ export default class EditorCustomizeTab extends React.Component<{ editor: ChartE
 				</label>
 			</section>}
 			<section>
-				{features.customYAxis && this.renderForAxis('Y', yAxis)}
+				{features.customYAxis && this.renderForAxis(chart.isDiscreteBar ? 'X' : 'Y', yAxis)}
 				{features.customXAxis && this.renderForAxis('X', xAxis)}
 			</section>
 			{(features.hideLegend || features.stackedArea) && <section className="legend-section">
 				<h2>Legend</h2>
 				{features.hideLegend && <Toggle label={`Hide legend`} value={!!chart.hideLegend} onValue={(value) => chart.props.hideLegend = value||undefined}/>}
-				{features.stackedArea && <label className="clickable">
-					<Toggle label={`Hide absolute/relative toggle`} value={!!chart.props.hideRelativeToggle} onValue={value => chart.props.hideRelativeToggle = value||undefined}/>
-					Hide absolute/relative toggle
-				</label>}
+				{features.stackedArea && <Toggle label={`Hide absolute/relative toggle`} value={!!chart.props.hideRelativeToggle} onValue={value => chart.props.hideRelativeToggle = value||undefined}/>}
 			</section>}
 		</div>
 	}

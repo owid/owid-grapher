@@ -9,8 +9,8 @@ import {ComparisonLineConfig} from '../charts/ComparisonLine'
 
 @observer
 export default class EditorScatterTab extends React.Component<{ chart: ChartConfig }> {
-    @observable timeline: TimelineConfig = {}
-    @observable comparisonLine: ComparisonLineConfig = {}
+    @observable timeline: TimelineConfig = { compareEndPointsOnly: undefined }
+    @observable comparisonLine: ComparisonLineConfig = { yEquals: undefined }
     @observable highlightToggle: HighlightToggleConfig = { description: "", paramStr: "" }
 
     @computed get hasTimeline() { return !!this.props.chart.timeline }
@@ -83,8 +83,8 @@ export default class EditorScatterTab extends React.Component<{ chart: ChartConf
                 <p className="form-section-desc">Allow users to toggle a particular chart selection state to highlight certain entities.</p>
                 <label className="clickable"><input type="checkbox" checked={!!hasHighlightToggle} onChange={this.onToggleHighlightToggle}/> Enable highlight toggle</label>
                 {hasHighlightToggle && <div>
-                    <label>Description <input type="text" value={highlightToggle.description} onBlur={e => { this.highlightToggle.description = e.currentTarget.value; this.save() }}/></label>
-                    <label>URL Params <input type="text" value={highlightToggle.paramStr} onBlur={e => { this.highlightToggle.paramStr = e.currentTarget.value; this.save() }} placeholder="e.g. ?country=AFG"/></label>
+                    <label>Description <input type="text" value={highlightToggle.description} onInput={e => { this.highlightToggle.description = e.currentTarget.value; this.save() }}/></label>
+                    <label>URL Params <input type="text" value={highlightToggle.paramStr} onInput={e => { this.highlightToggle.paramStr = e.currentTarget.value; this.save() }} placeholder="e.g. ?country=AFG"/></label>
                 </div>}
                 
             </section>

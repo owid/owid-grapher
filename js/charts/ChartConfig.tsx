@@ -44,7 +44,7 @@ export interface ChartDimension {
     variableId: number,
     color?: string,
     displayName?: string,    
-    isProjection?: boolean,
+    isProjection?: true,
     order: number,
     property: string,
     targetYear?: number,
@@ -86,9 +86,7 @@ export class ChartConfigProps {
 
     @observable.ref timeline?: TimelineConfig = undefined
     @observable.ref comparisonLine?: ComparisonLineConfig = undefined
-    @observable.ref highlightToggle: HighlightToggleConfig|undefined
-    @observable.ref lineType: LineType = LineType.WithDots
-    @observable.ref lineTolerance?: number = undefined
+    @observable.ref highlightToggle?: HighlightToggleConfig = undefined
     @observable.ref stackMode: string = 'absolute'
     @observable.ref hideLegend?: true = undefined
     @observable.ref hideRelativeToggle?: true = undefined
@@ -125,8 +123,6 @@ export default class ChartConfig {
     @computed get primaryTab() { return this.props.tab }
     @computed get overlayTab() { return this.props.overlay }
     @computed get tab() { return this.props.overlay ? this.props.overlay : this.props.tab }
-    @computed get lineType() { return defaultTo(this.props.lineType, LineType.WithDots) }
-    @computed get lineTolerance() { return defaultTo(this.props.lineTolerance, 1) }
     @computed get addCountryMode() { return this.props.addCountryMode||"add-country" }
     @computed get comparisonLine() { return this.props.comparisonLine }
     @computed get highlightToggle() { return this.props.highlightToggle }
@@ -218,43 +214,27 @@ export default class ChartConfig {
     }
 
     @action.bound update(props: any) {
-        this.props.id = props['id']
-        if (props['chart-type']) this.props.type = props['chart-type']
-        this.props.slug = props['slug']
-        this.props.title = props['title']
-        this.props.subtitle = props['subtitle']
-        this.props.sourceDesc = props['sourceDesc']
+        for (let key in this.props) {
+            if (key in props && key != 'xAxis' && key != 'yAxis') {
+                (this.props as any)[key] = props[key]
+            }
+        }
+
         this.props.note = props['chart-description']
-        this.props.internalNotes = props['internalNotes']
-        this.props.logosSVG = props['logosSVG']
         this.props.originUrl = props['data-entry-url']
         this.props.isPublished = props['published']
-        this.props.map = props['map-config'] ? _.extend(new MapConfigProps(), props['map-config']) : undefined
-
-        this.props.selectedData = props['selectedData']
-        this.props.timeline = props['timeline']
-
-        this.props.minTime = props['minTime']
-        this.props.maxTime = props['maxTime']
-        this.props.entityType = props['entity-type']
-        
+        this.props.map = props['map-config'] ? _.extend(new MapConfigProps(), props['map-config']) : undefined        
         this.props.hasChartTab = props['tabs'] ? props['tabs'].includes("chart") : true
         this.props.hasMapTab = props['tabs'] ? props['tabs'].includes("map") : false
-
         _.extend(this.props.xAxis, props['xAxis'])
         _.extend(this.props.yAxis, props['yAxis'])
 
-        this.props.dimensions = props['chart-dimensions'] 
+        this.props.dimensions = props['chart-dimensions']||this.props.dimensions
         this.props.addCountryMode = props['add-country-mode']
-        this.props.comparisonLine = props["comparisonLine"]
-        this.props.highlightToggle = props["highlightToggle"]
         this.props.tab = props["default-tab"]
-
-        this.props.lineType = props["line-type"]
-        this.props.lineTolerance = parseInt(props["line-tolerance"]) || 1
         this.props.hideLegend = props["hide-legend"]
         this.props.hideRelativeToggle = props["hide-toggle"]
-        this.props.stackMode = props["currentStackMode"]
+        this.props.stackMode = props["currentStackMode"]||this.props.stackMode
         
         this.variableCacheTag = props["variableCacheTag"]
     }
@@ -273,8 +253,6 @@ export default class ChartConfig {
         json['chart-dimensions'] = props.dimensions
         json['add-country-mode'] = props.addCountryMode
         json['default-tab'] = props.tab
-        json['line-type'] = props.lineType
-        json['line-tolerance'] = props.lineTolerance
         json['hide-legend'] = props.hideLegend
         json['hide-toggle'] = props.hideRelativeToggle
         json['entity-type'] = props.entityType
@@ -311,20 +289,6 @@ export default class ChartConfig {
         })
 	}
 
-    // TODO - make these unnecessary
-	@computed get isMultiEntity() {
-        if (this.data.selectedKeys.length > 1)
-            return true
-        else if (this.addCountryMode == "add-country")
-            return true
-		else
-			return false;
-	}
-
-    @computed get isMultiVariable() {
-        return this.dimensions.length > 1
-    }
-
     @computed get staticSVG(): string {
         const svg = ReactDOMServer.renderToStaticMarkup(<ChartView
             chart={this}
@@ -334,6 +298,7 @@ export default class ChartConfig {
         return svg
     }
 
+    @computed get isLineChart() { return this.type == ChartType.LineChart }
     @computed get isScatter() { return this.type == ChartType.ScatterPlot }
     @computed get isStackedArea() { return this.type == ChartType.StackedArea }
     @computed get isSlopeChart() { return this.type == ChartType.SlopeChart }

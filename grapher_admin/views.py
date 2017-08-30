@@ -183,19 +183,19 @@ def savechart(chart: Chart, data: Dict, user: User):
                 new_chart_redirect.slug = chart.slug
                 new_chart_redirect.save()
 
-    chart.name = data.get("title")
+    chart.name = data.get("title", "")
     data.pop("title", None)
 
     chart.type = data["chart-type"]
     data.pop("chart-type", None)
 
-    chart.notes = data.get("internalNotes")
+    chart.notes = data.get("internalNotes", "")
     data.pop("internalNotes", None)
 
-    chart.slug = data.get("slug")
+    chart.slug = data.get("slug", "")
     data.pop("slug", None)
 
-    chart.published = data.get("published", False)
+    chart.published = data.get("published", None)
     data.pop("published", None)
 
     data.pop("logosSVG", None)
@@ -217,7 +217,7 @@ def savechart(chart: Chart, data: Dict, user: User):
         newdim.targetyear = dim.get('targetYear', None)
         newdim.displayname = dim.get('displayName', "")
         newdim.isProjection = dim.get('isProjection', False)
-        newdim.unit = dim.get('unit', None)
+        newdim.unit = dim.get('unit', "")
         newdim.property = dim.get('property', None)
         newdim.variableId = Variable.objects.get(pk=int(dim.get('variableId', None)))
         dims.append(newdim)

@@ -40,20 +40,6 @@ export class EditorDatabase {
 		return _(this.datasets).map(d => d.namespace).uniq().value()
 	}
 
-	/*@computed get variablesByNamespace() {
-		const variablesByNamespace: {[key: string]: { id: number, name: string, dataset: Dataset }} = {}
-		this.namespaces.forEach(namespace => variablesByNamespace[namespace] = [])
-		this.datasets.forEach(dataset => {
-			const variables = variablesByNamespace[dataset.namespace]
-			if (!variables) {
-				variables = []
-				variablesByNamespace[dataset.namespace] = variables
-			}
-			variablesByNamespace[dataset.namespace].push()
-		})
-		return variablesByNamespace
-	}*/
-
 	constructor(json: any) {
 		this.datasets = json.datasets
 	}
@@ -131,7 +117,7 @@ export default class ChartEditor {
 			const json = await response.json()
 
 			if (isNewChart) {
-				window.location.assign(Admin.url(`/admin/charts/${json.data.id}`))
+				window.location.assign(Admin.url(`/admin/charts/${json.data.id}/edit`))
 			} else {
 				this.isSaved = true
 			}

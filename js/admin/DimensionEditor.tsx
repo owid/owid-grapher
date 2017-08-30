@@ -22,6 +22,8 @@ export default class DimensionEditor extends React.Component<DimensionEditorProp
 	@observable.ref chosenNamespace: string|undefined
 	@observable.ref chosenVariableId: number|undefined
     @observable.ref searchInput?: string
+	@observable.ref isProjection?: true
+	@observable.ref tolerance?: number
 	searchField: HTMLInputElement
 
 	@computed get database() {
@@ -37,7 +39,10 @@ export default class DimensionEditor extends React.Component<DimensionEditorProp
 	}
 
 	@computed get variableId() {
-		return defaultTo(this.chosenVariableId, this.searchResults[0] && this.searchResults[0].id)
+		if (this.chosenVariableId != null)
+			return this.chosenVariableId
+		else
+			return this.searchResults[0].id
 	}
 
 	@computed get variables() {
@@ -65,7 +70,7 @@ export default class DimensionEditor extends React.Component<DimensionEditorProp
         });
     }
 
-    @computed get searchResults(): Dataset[] {
+    @computed get searchResults(): Variable[] {
 		return this.searchInput ? this.fuseSearch.search(this.searchInput) : this.variables
     }
 
@@ -102,7 +107,9 @@ export default class DimensionEditor extends React.Component<DimensionEditorProp
 
 	@computed get dimension(): ChartDimension {
 		return _.extend({}, this.props.dimension, {
-			variableId: this.variableId
+			variableId: this.variableId,
+			isProjection: this.isProjection,
+			tolerance: this.tolerance
 		})
 /*		return {
 			variableId: this.variableId,
@@ -119,12 +126,28 @@ export default class DimensionEditor extends React.Component<DimensionEditorProp
 	}
 	
 	componentDidMount() {
-		this.searchField.focus()
+		this.isProjection = this.props.dimension.isProjection
+		this.tolerance = defaultTo(this.props.dimension.tolerance, 5)
+
+		const variableId = this.props.dimension.variableId
+		if (variableId && variableId > 0) {
+			this.database.datasets.forEach(dataset => {
+				dataset.variables.forEach(variable => {
+					if (variable.id == variableId) {
+						this.chosenVariableId = variableId
+						this.chosenNamespace = dataset.namespace
+					}
+				})
+			})
+		}
+
+		if (this.chosenVariableId == null)
+			this.searchField.focus()
 	}
 
 	render() {
 		const {chart, database} = this.props.editor
-		const {currentNamespace, variables, variableId, searchInput, searchResults} = this
+		const {currentNamespace, variables, variableId, searchInput, searchResults, isProjection, tolerance} = this
 
 		return <div className="editorModal DimensionEditor">
 			<div className="modal-dialog">
@@ -144,6 +167,8 @@ export default class DimensionEditor extends React.Component<DimensionEditorProp
 									})}
 								</select>
 							</label>
+							{chart.isLineChart && <Toggle label="Is projection" value={!!isProjection} onValue={value => this.isProjection = value||undefined}/>}
+							{chart.isScatter && <NumberField label="Tolerance" value={tolerance} onValue={value => this.tolerance = value}/>}
 						</div>
 					</div>
 					<div className="modal-footer">
