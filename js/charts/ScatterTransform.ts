@@ -61,6 +61,10 @@ export default class ScatterTransform {
 		return this.chart.props.stackMode == 'relative'
     }
 
+    @computed get canToggleRelative() {
+        return this.chart.timeline && !this.chart.props.hideRelativeToggle
+    }
+
     // Unlike other charts, the scatterplot shows all available data by default, and the selection
     // is just for emphasis. But this behavior can be disabled.
     @computed get hideBackgroundEntities() {

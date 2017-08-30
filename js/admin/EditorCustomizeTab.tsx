@@ -77,10 +77,10 @@ export default class EditorCustomizeTab extends React.Component<{ editor: ChartE
 				{features.customYAxis && this.renderForAxis(chart.isDiscreteBar ? 'X' : 'Y', yAxis)}
 				{features.customXAxis && this.renderForAxis('X', xAxis)}
 			</section>
-			{(features.hideLegend || features.stackedArea) && <section className="legend-section">
+			{(features.hideLegend || features.relativeModeToggle) && <section className="legend-section">
 				<h2>Legend</h2>
 				{features.hideLegend && <Toggle label={`Hide legend`} value={!!chart.hideLegend} onValue={(value) => chart.props.hideLegend = value||undefined}/>}
-				{features.stackedArea && <Toggle label={`Hide absolute/relative toggle`} value={!!chart.props.hideRelativeToggle} onValue={value => chart.props.hideRelativeToggle = value||undefined}/>}
+				{features.relativeModeToggle && <Toggle label={`Hide relative toggle`} value={!!chart.props.hideRelativeToggle} onValue={value => chart.props.hideRelativeToggle = value||undefined}/>}
 				{features.entityType && <TextField label={`Entity name`} placeholder="country" value={chart.props.entityType} onValue={value => chart.props.entityType = value||undefined}/>}
 			</section>}
 		</div>

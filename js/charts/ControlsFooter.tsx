@@ -204,7 +204,7 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps>
                 
                 {chart.type == ChartType.ScatterPlot && chart.highlightToggle && <HighlightToggle chart={chart} highlightToggle={chart.highlightToggle}/>}
                 {chart.isStackedArea && chart.stackedArea.canToggleRelative && <AbsRelToggle chart={chart}/>}
-                {chart.isScatter && chart.scatter.hasTimeline && <AbsRelToggle chart={chart}/>}
+                {chart.isScatter && chart.scatter.canToggleRelative && <AbsRelToggle chart={chart}/>}
             </div>}
             {isShareMenuActive && <ShareMenu chartView={this.props.chartView} chart={this.props.chart} onDismiss={() => this.isShareMenuActive = false}/>}
         </div>
