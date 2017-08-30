@@ -188,7 +188,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
             {(arrowLegend||tooltipSeries) && <line x1={bounds.right-sidebarWidth} y1={bounds.top+legend.height+2} x2={bounds.right-5} y2={bounds.top+legend.height+2} stroke="#ccc"/>}
             {arrowLegend && arrowLegend.render(bounds.right-sidebarWidth, bounds.top+legend.height+11)}
             {timeline && <Timeline {...timeline.props}/>}
-            {tooltipSeries && <ScatterTooltip formatY={transform.yDimension.formatValueLong} formatX={transform.xDimension.formatValueLong} series={tooltipSeries} maxWidth={sidebarWidth} x={bounds.right-sidebarWidth} y={bounds.top+legend.height+11+(arrowLegend ? arrowLegend.height : 0)}/>}
+            {tooltipSeries && <ScatterTooltip formatY={transform.yFormatTooltip} formatX={transform.xFormatTooltip} series={tooltipSeries} maxWidth={sidebarWidth} x={bounds.right-sidebarWidth} y={bounds.top+legend.height+11+(arrowLegend ? arrowLegend.height : 0)}/>}
         </g>
     }
 }
@@ -205,14 +205,14 @@ interface ScatterTooltipProps {
 @observer
 class ScatterTooltip extends React.Component<ScatterTooltipProps> {
     formatValueY(value: ScatterValue) {
-        let s = this.props.formatY(value.y)
+        let s = "Y Axis: " + this.props.formatY(value.y)
         if (value.year != value.time.y)
             s += " (data from " + value.time.y + ")"
         return s
     }
 
     formatValueX(value: ScatterValue) {
-        let s = this.props.formatX(value.x)
+        let s = "X Axis: " + this.props.formatX(value.x)
         if (value.year != value.time.x)
             s += " (data from " + value.time.x + ")"
         return s

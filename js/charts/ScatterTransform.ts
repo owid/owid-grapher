@@ -352,6 +352,14 @@ export default class ScatterTransform {
         return _.extend(chart.xAxis.toSpec({ defaultDomain: xDomainDefault }), props) as AxisSpec
     }
 
+    @computed get xFormatTooltip() {
+        return this.isRelativeMode ? this.xAxis.tickFormat : this.xDimension.formatValueLong
+    }
+
+    @computed get yFormatTooltip() {
+        return this.isRelativeMode ? this.yAxis.tickFormat : this.yDimension.formatValueLong
+    }
+
     @computed get currentData(): ScatterSeries[] {
         if (!this.chart.data.isReady)
             return []
