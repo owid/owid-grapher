@@ -73,10 +73,13 @@ export default class AxisScale {
     }
 
     place(value: number) {
-        if (!this.range)
-            throw "Can't place value on scale without a defined output range"
-        else if (this.scaleType == 'log' && value <= 0)
-            throw "Can't have values <= 0 on a log scale"
+        if (!this.range) {
+            console.error("Can't place value on scale without a defined output range")
+            return value
+        } else if (this.scaleType == 'log' && value <= 0) {
+            console.error("Can't have values <= 0 on a log scale")
+            return value
+        }
         return this.d3_scale(value)
     }
 
