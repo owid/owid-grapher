@@ -174,6 +174,15 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         return this.chart.comparisonLine
     }
 
+    @action.bound onTimelineStart() {
+        this.transform.useTimelineDomains = true
+    }
+
+
+    @action.bound onTimelineStop() {
+        this.transform.useTimelineDomains = false
+    }
+
     render() {
         if (this.transform.failMessage)
             return <NoData bounds={this.bounds} message={this.transform.failMessage}/>
@@ -187,7 +196,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
             <ScatterColorLegend {...legend.props} x={bounds.right-sidebarWidth} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} onClick={this.onLegendClick} focusColors={focusColors}/>
             {(arrowLegend||tooltipSeries) && <line x1={bounds.right-sidebarWidth} y1={bounds.top+legend.height+2} x2={bounds.right-5} y2={bounds.top+legend.height+2} stroke="#ccc"/>}
             {arrowLegend && arrowLegend.render(bounds.right-sidebarWidth, bounds.top+legend.height+11)}
-            {timeline && <Timeline {...timeline.props}/>}
+            {timeline && <Timeline {...timeline.props} onStartDrag={this.onTimelineStart} onStopDrag={this.onTimelineStop}/>}
             {tooltipSeries && <ScatterTooltip formatY={transform.yFormatTooltip} formatX={transform.xFormatTooltip} series={tooltipSeries} maxWidth={sidebarWidth} x={bounds.right-sidebarWidth} y={bounds.top+legend.height+11+(arrowLegend ? arrowLegend.height : 0)}/>}
         </g>
     }

@@ -13,6 +13,8 @@ interface TimelineProps {
     endYear: number,
     onTargetChange: ({ targetStartYear, targetEndYear }: { targetStartYear: number, targetEndYear: number }) => void,
 	onInputChange?: ({ startYear, endYear }: { startYear: number, endYear: number }) => void,
+    onStartDrag?: () => void,
+    onStopDrag?: () => void,
 	bounds: Bounds,
     singleYearMode?: boolean
 };
@@ -50,6 +52,17 @@ export default class Timeline extends React.Component<TimelineProps> {
             else
                 this.onStopPlaying()
         })
+
+        const {onStartDrag, onStopDrag} = this.props
+        if (onStartDrag && onStopDrag) {
+            autorun(() => {
+                const {isPlaying, isDragging} = this
+                if (isPlaying || isDragging)
+                    onStartDrag()
+                else
+                    onStopDrag()
+            })
+        }
 
         autorunAsync(() => {
             if (this.props.onInputChange)

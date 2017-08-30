@@ -17,6 +17,8 @@ export default class ScatterTransform {
         this.chart = chart
     }
 
+    @observable.ref useTimelineDomains = false
+
     @computed get failMessage(): string|undefined {
         const {filledDimensions} = this.chart.data
         if (!_.some(filledDimensions, d => d.property == 'y'))
@@ -243,6 +245,11 @@ export default class ScatterTransform {
 
     // domains across the entire timeline
     @computed get xDomainDefault() : [number, number] {
+        if (!this.useTimelineDomains) {
+            const xValues = _(this.currentData).map(d => d.values).flatten().map((v: ScatterValue) => v.x).value()
+            return d3.extent(xValues) as [number, number]
+        }
+
         if (this.isRelativeMode) {
             let minChange = 0
             let maxChange = 0
@@ -268,6 +275,12 @@ export default class ScatterTransform {
     }
 
     @computed get yDomainDefault() : [number, number] {
+        if (!this.useTimelineDomains) {
+            const yValues = _(this.currentData).map(d => d.values).flatten().map((v: ScatterValue) => v.y).value()
+            return d3.extent(yValues) as [number, number]
+        }
+
+
         if (this.isRelativeMode) {
             let minChange = 0
             let maxChange = 0
