@@ -51,6 +51,8 @@ export default class LineChartTransform {
 				if (!selectedKeysByKey[datakey]) continue;
 				// Check for time range
 				if (year < timeFrom || year > timeTo) continue;
+                // Can't have values <= 0 on log scale
+                if (value <= 0 && yAxis.scaleType == 'log') continue;
 
 				if (!series) {
 					series = {
