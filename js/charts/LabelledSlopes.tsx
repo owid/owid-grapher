@@ -122,13 +122,13 @@ class Slope extends React.Component<SlopeProps> {
         const rightValueLabelBounds = Bounds.forText(rightValueStr, { fontSize: labelFontSize })
 
 		return <g className="slope">
-			{hasLeftLabel && leftLabel.render(leftLabelBounds.x+leftLabelBounds.width, leftLabelBounds.y, { textAnchor: 'end', fill: labelColor, fontWeight: isFocused&&'bold'})}
+			{hasLeftLabel && leftLabel.render(leftLabelBounds.x+leftLabelBounds.width, leftLabelBounds.y, { textAnchor: 'end', fill: labelColor, fontWeight: isFocused ? 'bold' : undefined})}
 			{hasLeftLabel && <Text x={x1-8} y={y1-leftValueLabelBounds.height/2} text-anchor="end" fontSize={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{leftValueStr}</Text>}
 			<circle cx={x1} cy={y1} r={isFocused ? 4 : 2} fill={lineColor} opacity={opacity}/>
 			<line ref={(el) => this.line = el} x1={x1} y1={y1} x2={x2} y2={y2} stroke={lineColor} stroke-width={isFocused ? 2*size : size} opacity={opacity}/>
 			<circle cx={x2} cy={y2} r={isFocused ? 4 : 2} fill={lineColor} opacity={opacity}/>
 			{hasRightLabel && <Text x={x2+8} y={y2-rightValueLabelBounds.height/2} dominant-baseline="middle" fontSize={labelFontSize} fill={labelColor} font-weight={isFocused&&'bold'}>{rightValueStr}</Text>}
-			{hasRightLabel && rightLabel.render(rightLabelBounds.x, rightLabelBounds.y, { fill: 'labelColor', fontWeight: isFocused&&'bold' })}
+			{hasRightLabel && rightLabel.render(rightLabelBounds.x, rightLabelBounds.y, { fill: 'labelColor', fontWeight: isFocused ? 'bold' : undefined })}
 		</g>
 	}
 }

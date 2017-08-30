@@ -29,4 +29,8 @@ export default class EditorFeatures {
     @computed get stackedArea() {
         return this.chart.type == ChartType.StackedArea
     }
+
+    @computed get entityType() {
+        return this.chart.addCountryMode == 'add-country' || this.chart.addCountryMode == 'change-country'
+    }
 }
