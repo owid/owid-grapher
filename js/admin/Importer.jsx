@@ -294,8 +294,8 @@ class EditVariable extends Component {
 					</button>
 				</label>
 				<label>Action
-					<select onChange={e => variable.overwriteId = e.target.value}>
-						<option selected={variable.overwriteId == null}>Create new variable</option>
+					<select onChange={e => { variable.overwriteId = e.target.value || null }}>
+						<option value="" selected={variable.overwriteId == null}>Create new variable</option>
 						{_.map(dataset.existingVariables, v =>
 							<option value={v.id} selected={variable.overwriteId == v.id}>Overwrite {v.name}</option>
 						)}

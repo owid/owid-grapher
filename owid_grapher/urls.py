@@ -87,6 +87,7 @@ urlpatterns = [
     url(r'^grapher/admin/wdidatasets/?$', importer_views.listwdidatasets, name="listwdidatasets"),
     url(r'^grapher/admin/unwppdatasets/?$', importer_views.listunwppdatasets, name="listunwppdatasets"),
     url(r'^grapher/admin/qogdatasets/?$', importer_views.listqogdatasets, name="listqogdatasets"),
+    url(r'^grapher/admin/faodatasets/?$', importer_views.listfaodatasets, name="listfaodatasets"),
     # for future use on the frontend
     url(r'^grapher/admin/charts\.json$',  admin_views.listcharts, name="listchartsjson"),
     url(r'^grapher/admin/charts/create.json$', admin_views.createchart, name="createchartjson"),

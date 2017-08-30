@@ -214,8 +214,8 @@ def savechart(chart: Chart, data: Dict, user: User):
         newdim.chartId = chart
         newdim.color = dim.get('color', "")
         newdim.tolerance = dim.get('tolerance', None)
-        newdim.targetyear = dim.get('targetYear', None)
-        newdim.displayname = dim.get('displayName', "")
+        newdim.targetYear = dim.get('targetYear', None)
+        newdim.displayName = dim.get('displayName', "")
         newdim.isProjection = dim.get('isProjection', False)
         newdim.unit = dim.get('unit', "")
         newdim.property = dim.get('property', None)
