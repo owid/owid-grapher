@@ -15,6 +15,7 @@ import * as $ from 'jquery'
 
 export interface ChartEditorProps {
     chart: ChartConfig
+	cacheTag: string
 }
 
 export type EditorTab = string
@@ -91,14 +92,14 @@ export default class ChartEditor {
 		return promise
 	}
 
-	async fetchData() {
+	async fetchData(cacheTag: string) {
 		const handleError = (err: string) => {
 			var $modal = modal({ title: "Error fetching editor data", content: _.toString(err) });
 			$modal.addClass("error");
 		}
 
 		try {
-			const response = await this.load(Admin.get("/admin/editorData.json"))
+			const response = await this.load(Admin.get("/admin/editorData." + cacheTag + ".json"))
 			if (!response.ok) {
 				return handleError(await response.text())
 			}
@@ -201,7 +202,7 @@ export default class ChartEditor {
     constructor(props: ChartEditorProps) {
 		const {chart} = props
         this.chart = chart
-		this.fetchData()
+		this.fetchData(props.cacheTag)
 		
 		reaction(
 			() => chart.json,

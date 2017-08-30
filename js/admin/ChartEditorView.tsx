@@ -45,8 +45,8 @@ declare const window: any
 
 @observer
 export default class ChartEditorView extends React.Component<{ editor: ChartEditor }> {
-    static bootstrap({ chartView }: { chartView: ChartView }) {
-		const editor = new ChartEditor({ chart: chartView.chart })
+    static bootstrap({ chartView }: { chartView: ChartView, cacheTag: string }) {
+		const editor = new ChartEditor({ chart: chartView.chart, cacheTag })
 		window.editor = editor
 		ReactDOM.render(<ChartEditorView editor={editor}/>, document.getElementById("form-view"))
     }

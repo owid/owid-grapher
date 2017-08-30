@@ -53,8 +53,8 @@ export class DimensionWithData {
 	}
 
 	@computed get tolerance(): number {
-		return this.dimension.tolerance||0	}
-
+		return this.dimension.tolerance||0
+	}
 
 	@computed get shortUnit(): string|undefined {
 		const {unit, shortUnit} = this.variable

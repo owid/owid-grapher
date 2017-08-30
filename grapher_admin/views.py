@@ -99,33 +99,41 @@ def storechart(request: HttpRequest):
     else:
         return HttpResponseRedirect(reverse('listcharts'))
 
+def chart_editor(request: HttpRequest, chartconfig: Dict):
+    # Cache tag for fetching all the variable names via ajax later
+    most_recent_variable = Variable.objects.order_by('-updated_at').first()
+    if most_recent_variable:
+        cachetag = str(int(most_recent_variable.updated_at.timestamp()))
 
-def createchart(request: HttpRequest):
+    # XXX this probably doesn't belong in chart config
     logos = []
     for each in list(Logo.objects.filter(name='OWD')):
         logos.append(each.svg)
-
-    chartconfig = {}
     chartconfig['logosSVG'] = logos
 
-    return render(request, 'admin.edit_chart.html', context={'current_user': request.user.name, 'chartconfig': json.dumps(chartconfig)})
+    return render(request, 'admin.edit_chart.html', context={
+        'current_user': request.user.name, 
+        'chartconfig': json.dumps(chartconfig),
+        'cachetag': cachetag
+    })
 
+def createchart(request: HttpRequest):
+    return chart_editor(request, {})
+
+def editchart(request: HttpRequest, chartid: Union[str, int]):
+    try:
+        chartid = int(chartid)
+    except ValueError:
+        return HttpResponseNotFound('Invalid chart id!')
+
+    try:
+        chart = Chart.objects.get(pk=chartid)
+    except Chart.DoesNotExist:
+        return HttpResponseNotFound('Invalid chart id!')
+
+    return chart_editor(request, chart.get_config())
 
 def editordata(request: HttpRequest, cachetag: Optional[str]):
-    """
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT variables.id, variables.name FROM variables "
-                        "JOIN datasets on variables.fk_dst_id = datasets.id ")
-
-            response = HttpResponse(content_type='text/plain')
-
-            writer = csv.writer(response)
-            writer.writerow(['id', 'name'])
-            for row in cursor.fetchall():
-                writer.writerow(row)
-
-            return response
-    """
     datasets = []
 
     def serializeVariable(variable: Variable):
@@ -153,23 +161,6 @@ def editordata(request: HttpRequest, cachetag: Optional[str]):
         response['Cache-Control'] = 'public, max-age=31536000'
 
     return response
-
-
-def editchart(request: HttpRequest, chartid: Union[str, int]):
-    try:
-        chartid = int(chartid)
-    except ValueError:
-        return HttpResponseNotFound('Invalid chart id!')
-
-    try:
-        chart = Chart.objects.get(pk=chartid)
-    except Chart.DoesNotExist:
-        return HttpResponseNotFound('Invalid chart id!')
-
-    return render(request, 'admin.edit_chart.html', context={
-        'current_user': request.user.name, 
-        'chartconfig': json.dumps(chart.get_config())
-    })
 
 
 def savechart(chart: Chart, data: Dict, user: User):
