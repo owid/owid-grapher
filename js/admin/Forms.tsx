@@ -14,6 +14,7 @@ export interface TextFieldProps {
     label?: string,
     value: string|undefined,
     onValue: (value: string|undefined) => void,
+    onEnter?: () => void,
     placeholder?: string,
     disabled?: boolean
 }
@@ -28,11 +29,17 @@ export class TextField extends React.Component<TextFieldProps> {
         }
     }
 
+    @bind onKeyDown(ev: React.KeyboardEvent<HTMLInputElement>) {
+        if (ev.key == "Enter" && this.props.onEnter) {
+            this.props.onEnter()
+        }
+    }
+
     render() {
         const {props} = this
         return <label>
             {props.label}
-            <input className="form-control" type="text" value={props.value} onChange={this.onChange} {..._.pick(props, ['placeholder', 'disabled'])}/>
+            <input className="form-control" type="text" value={props.value} onChange={this.onChange} onKeyDown={this.onKeyDown} {..._.pick(props, ['placeholder', 'disabled'])}/>
         </label>    
     }
 }

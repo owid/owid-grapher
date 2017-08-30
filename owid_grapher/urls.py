@@ -93,6 +93,7 @@ urlpatterns = [
     url(r'^grapher/admin/charts/(?P<chartid>[\w]+)/edit\.json$', admin_views.editchart, name="editchartjson"),
     url(r'^grapher/admin/import.json$', admin_views.importdata, name="importdatajson"),
     url(r'^grapher/admin/users\.json$', admin_views.listusers, name="listusersjson"),
+    url(r'^grapher/admin/editorData\.(?P<cachetag>[^.]*?)\.?json', admin_views.editordata, name="editordata"),
 
     ### Public
 

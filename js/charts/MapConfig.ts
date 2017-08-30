@@ -27,7 +27,7 @@ export class MapConfigProps {
 	@observable.ref colorSchemeMinValue?: number = undefined
 	@observable.struct colorSchemeValues: (number|undefined)[] = []
 	@observable.struct colorSchemeLabels: (string|undefined)[] = []
-	@observable.ref colorSchemeValuesAutomatic?: true = undefined
+	@observable.ref colorSchemeValuesAutomatic?: true = true
 	// Whether to reverse the color scheme on output
 	@observable.ref colorSchemeInvert?: true = undefined
 	@observable.ref customColorsActive?: true = undefined

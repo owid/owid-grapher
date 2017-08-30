@@ -55,9 +55,8 @@
     {% autoescape off %}
     <script type="text/javascript">
         var chartConfig = {{ chartconfig }};
-		var data = {{ data }};
         var chartView = ChartView.bootstrap({ jsonConfig: chartConfig, containerNode: document.getElementsByClassName('chart-container')[0], isEditor: true })
-		ChartEditorView.bootstrap({ chartView: chartView, editorData: data })
+		ChartEditorView.bootstrap({ chartView: chartView })
     </script>
     {% endautoescape %}
 {% endblock %}

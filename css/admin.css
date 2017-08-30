@@ -302,7 +302,7 @@ button[type="submit"]:not(".delete-btn") {
 .popup-picker-wrapper {
   position: absolute;
   top: 0px;
-  left: 100%;
+  left: 50%;
   width: 105px;
   padding: 10px;
   background-color: #666;

@@ -22,7 +22,11 @@ class Admin {
         return fetch(this.url(path), { credentials: 'same-origin' }).then(data => data.json());
     }
 
-    request(path: string, data: Object, method: 'PUT'|'POST') {
+    get(path: string) {
+        return this.request(path, {}, 'GET')
+    }
+
+    request(path: string, data: Object, method: 'GET'|'PUT'|'POST') {
         return fetch(this.url(path), {
             method: method,
             credentials: 'same-origin',
@@ -31,7 +35,7 @@ class Admin {
                 'Accept': 'application/json',
                 'X-CSRFToken': this.csrfToken
             },
-            body: JSON.stringify(data)
+            body: method != 'GET' ? JSON.stringify(data) : undefined
         })
     }
 }

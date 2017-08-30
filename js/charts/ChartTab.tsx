@@ -24,11 +24,11 @@ export default class ChartTab extends React.Component<{ chart: ChartConfig, char
     // XXX refactor into the transforms
     @computed get minYear(): number|null {
         const {chart} = this.props
-        if (chart.isScatter && chart.scatter.xOverrideYear != null)
+        if (chart.isScatter && !chart.scatter.failMessage && chart.scatter.xOverrideYear != null)
             return null
-        else if (chart.isScatter)
+        else if (chart.isScatter && !chart.scatter.failMessage)
             return chart.scatter.startYear
-        else if (chart.type == ChartType.DiscreteBar)
+        else if (chart.isDiscreteBar && !chart.discreteBar.failMessage)
             return chart.discreteBar.targetYear
         else
             return null
@@ -36,11 +36,11 @@ export default class ChartTab extends React.Component<{ chart: ChartConfig, char
 
     @computed get maxYear(): number|null {
         const {chart} = this.props
-        if (chart.isScatter && chart.scatter.xOverrideYear != null)
+        if (chart.isScatter && !chart.scatter.failMessage && chart.scatter.xOverrideYear != null)
             return null
-        else if (chart.isScatter)
+        else if (chart.isScatter && !chart.scatter.failMessage)
             return chart.scatter.endYear
-        else if (chart.type == ChartType.DiscreteBar)
+        else if (chart.isDiscreteBar && !chart.discreteBar.failMessage)
             return chart.discreteBar.targetYear
         else
             return null

@@ -14,7 +14,6 @@ def selectedKeysRedesign(apps, schema_editor):
             if variable.fk_dst_id.namespace != 'owid':
                 variable.short_unit = ""
                 variable.save()
-            
 
         for chart in Chart.objects.all():
             config = json.loads(chart.config)

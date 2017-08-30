@@ -5,31 +5,64 @@
  *
  */
 
-import {observable, computed, reaction} from 'mobx'
+import {observable, computed, reaction, action} from 'mobx'
 import ChartConfig from '../charts/ChartConfig'
 import ChartType from '../charts/ChartType'
-import EditorVariable from './EditorVariable'
 import EditorFeatures from './EditorFeatures'
 import Admin from './Admin'
 import * as _ from 'lodash'
 import * as $ from 'jquery'
 
-// Contextual information received from server about what is in the database
-export interface EditorData {
-	namespaces: string[],
-	variables: EditorVariable[]
-}
-
 export interface ChartEditorProps {
-    chart: ChartConfig,
-	data: EditorData
+    chart: ChartConfig
 }
 
 export type EditorTab = string
 
+export interface Variable {
+	id: number
+	name: string
+}
+
+export interface Dataset {
+	name: string
+	namespace: string
+	variables: Variable[]
+}
+
+// This contains the dataset/variable metadata for the entire database
+// Used for variable selector interface
+export class EditorDatabase {
+	@observable.ref datasets: Dataset[]
+
+	@computed get namespaces(): string[] {
+		return _(this.datasets).map(d => d.namespace).uniq().value()
+	}
+
+	/*@computed get variablesByNamespace() {
+		const variablesByNamespace: {[key: string]: { id: number, name: string, dataset: Dataset }} = {}
+		this.namespaces.forEach(namespace => variablesByNamespace[namespace] = [])
+		this.datasets.forEach(dataset => {
+			const variables = variablesByNamespace[dataset.namespace]
+			if (!variables) {
+				variables = []
+				variablesByNamespace[dataset.namespace] = variables
+			}
+			variablesByNamespace[dataset.namespace].push()
+		})
+		return variablesByNamespace
+	}*/
+
+	constructor(json: any) {
+		this.datasets = json.datasets
+	}
+}
+
 export default class ChartEditor {
     @observable.ref chart: ChartConfig
-	@observable.ref data: EditorData
+	// Since the database metadata is quite large, we only fetch it when it is needed
+	// and then store it here
+	@observable.ref database: EditorDatabase
 
     // Whether the current chart state is saved or not
     @observable.ref isSaved: boolean = true
@@ -48,10 +81,6 @@ export default class ChartEditor {
 		return this.chart.id === undefined
 	}
 
-	@computed get variablesById() {
-		return _.keyBy(this.data.variables, v => v.id)
-	}
-
 	@computed get features() {
 		return new EditorFeatures(this)
 	}
@@ -60,6 +89,25 @@ export default class ChartEditor {
 		this.currentRequest = promise
 		promise.then(() => this.currentRequest = undefined).catch(() => this.currentRequest = undefined)
 		return promise
+	}
+
+	async fetchData() {
+		const handleError = (err: string) => {
+			var $modal = modal({ title: "Error fetching editor data", content: _.toString(err) });
+			$modal.addClass("error");
+		}
+
+		try {
+			const response = await this.load(Admin.get("/admin/editorData.json"))
+			if (!response.ok) {
+				return handleError(await response.text())
+			}
+
+			const json = await response.json()
+			this.database = new EditorDatabase(json)
+		} catch (err) {
+			handleError(err)
+		}
 	}
 
 	async saveChart({ onError }: { onError?: () => void } = {}) {
@@ -151,14 +199,24 @@ export default class ChartEditor {
 	}
 
     constructor(props: ChartEditorProps) {
-		const {chart, data} = props
+		const {chart} = props
         this.chart = chart
-		this.data = data
-
+		this.fetchData()
+		
 		reaction(
 			() => chart.json,
 			() => this.isSaved = false
 		)
+
+		reaction(
+			() => chart.data.filledDimensions, 
+			() => {
+				// Be helpful and select some default data
+				if (chart.data.isReady && !chart.isScatter && !chart.isSlopeChart && _.isEmpty(chart.data.selectedKeys)) {
+					chart.data.selectedKeys = _.sampleSize(chart.data.availableKeys, 3)
+				}
+			}
+		)		
     }
 }
 

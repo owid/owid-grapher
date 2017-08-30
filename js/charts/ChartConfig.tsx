@@ -82,7 +82,7 @@ export class ChartConfigProps {
     @observable.ref maxTime?: number = undefined
 
     @observable.struct dimensions: ChartDimension[] = []
-    @observable.ref addCountryMode: 'add-country'|'change-country'|'disabled' = 'add-country'
+    @observable.ref addCountryMode?: 'add-country'|'change-country'|'disabled' = undefined
 
     @observable.ref timeline?: TimelineConfig = undefined
     @observable.ref comparisonLine?: ComparisonLineConfig = undefined
@@ -127,7 +127,7 @@ export default class ChartConfig {
     @computed get tab() { return this.props.overlay ? this.props.overlay : this.props.tab }
     @computed get lineType() { return defaultTo(this.props.lineType, LineType.WithDots) }
     @computed get lineTolerance() { return defaultTo(this.props.lineTolerance, 1) }
-    @computed get addCountryMode() { return this.props.addCountryMode }
+    @computed get addCountryMode() { return this.props.addCountryMode||"add-country" }
     @computed get comparisonLine() { return this.props.comparisonLine }
     @computed get highlightToggle() { return this.props.highlightToggle }
     @computed get timeline() { return this.props.timeline }
@@ -179,9 +179,9 @@ export default class ChartConfig {
 		const size = { property: 'size', name: 'Size', dimensions: [] }
         
         let slots = []
-		if (this.type == ChartType.ScatterPlot)
+		if (this.isScatter)
 			slots = [yAxis, xAxis, size, color];
-		else if (this.type == ChartType.SlopeChart)
+		else if (this.isSlopeChart)
 			slots = [yAxis, size, color]
 		else
 		    slots = [{ property: 'y', name: 'Y axis', allowMultiple: true, dimensions: [] }];
@@ -194,12 +194,17 @@ export default class ChartConfig {
         const validProperties = _.map(this.emptyDimensionSlots, 'property')
         let validDimensions = _.filter(dimensions, dim => _.includes(validProperties, dim.property))
 
-		// Give scatterplots a default color and size dimension if they don't have one
-		if ((this.type == ChartType.ScatterPlot || this.type == ChartType.SlopeChart) && !_.find(dimensions, { property: 'color' })) {
+        this.emptyDimensionSlots.forEach(slot => {
+            if (!slot.allowMultiple)
+                validDimensions = _.uniqWith(validDimensions, (a: ChartDimension, b: ChartDimension) => a.property == slot.property && a.property == b.property)
+        })
+    
+		// Give scatterplots and slope charts a default color and size dimension if they don't have one
+		if ((this.isScatter || this.isSlopeChart) && !_.find(dimensions, { property: 'color' })) {
 			validDimensions = validDimensions.concat([{ variableId: 123, property: "color", tolerance: 5, order: 0 }]);
 		}
 
-		if ((this.type == ChartType.ScatterPlot || this.type == ChartType.SlopeChart) && !_.find(dimensions, { property: 'size' })) {
+		if ((this.isScatter || this.isSlopeChart) && !_.find(dimensions, { property: 'size' })) {
 			validDimensions = validDimensions.concat([{ variableId: 72, property: "size", tolerance: 5, order: 0 }]);
 		}
 
@@ -332,4 +337,5 @@ export default class ChartConfig {
     @computed get isScatter() { return this.type == ChartType.ScatterPlot }
     @computed get isStackedArea() { return this.type == ChartType.StackedArea }
     @computed get isSlopeChart() { return this.type == ChartType.SlopeChart }
+    @computed get isDiscreteBar() { return this.type == ChartType.DiscreteBar }
 }

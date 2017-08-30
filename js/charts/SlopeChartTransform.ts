@@ -21,6 +21,15 @@ export default class SlopeChartTransform {
         this.chart = chart
     }
 
+    @computed get failMessage(): string|undefined {
+        const {filledDimensions} = this.chart.data
+        if (!_.some(filledDimensions, d => d.property == 'y'))
+            return "Missing Y axis variable"
+        else if (_.isEmpty(this.data))
+            return "No matching data"
+    }
+
+
 	@computed.struct get xDomain() : [number|null, number|null] {
 		return this.chart.timeDomain
 	}

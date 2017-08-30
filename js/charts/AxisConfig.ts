@@ -75,7 +75,7 @@ export default class AxisConfig {
         return {
             label: this.label,
             tickFormat: this.tickFormat,
-            domain: [defaultTo(this.domain[0], defaultDomain[0]), defaultTo(this.domain[1], defaultDomain[1])],
+            domain: [Math.min(defaultTo(this.domain[0], Infinity), defaultDomain[0]), Math.max(defaultTo(this.domain[1], -Infinity), defaultDomain[1])],
             scaleType: this.scaleType,
             scaleTypeOptions: this.scaleTypeOptions
         }

@@ -28,7 +28,7 @@ from django.utils.crypto import get_random_string
 from .forms import InviteUserForm, InvitedUserRegisterForm
 from .models import Chart, Variable, User, UserInvitation, Logo, ChartSlugRedirect, ChartDimension, Dataset, Setting, DatasetCategory, DatasetSubcategory, Entity, Source, VariableType, DataValue, License
 from owid_grapher.views import get_query_string, get_query_as_dict
-from typing import Dict, Union
+from typing import Dict, Union, Optional
 from django.db import transaction
 
 
@@ -85,9 +85,10 @@ def listcharts(request: HttpRequest):
     if '.json' in urlparse(request.get_full_path()).path:
         return JsonResponse(chartlist, safe=False)
     else:
-        return render(request, 'admin.charts.html', context={'current_user': request.user.name,
-                                                             'charts': chartlist,
-                                                             })
+        return render(request, 'admin.charts.html', context={
+            'current_user': request.user.name,
+            'charts': chartlist,
+        })
 
 
 def storechart(request: HttpRequest):
@@ -100,47 +101,58 @@ def storechart(request: HttpRequest):
 
 
 def createchart(request: HttpRequest):
-
-    data = editor_data()
     logos = []
     for each in list(Logo.objects.filter(name='OWD')):
         logos.append(each.svg)
 
     chartconfig = {}
     chartconfig['logosSVG'] = logos
-    chartconfig_str = json.dumps(chartconfig)
 
-    if '.json' in urlparse(request.get_full_path()).path:
-        return JsonResponse({'data': data, 'config': chartconfig_str}, safe=False)
-    else:
-        return render(request, 'admin.edit_chart.html', context={'current_user': request.user.name,
-                                                                 'data': data, 'chartconfig': chartconfig_str,
-                                                                 })
+    return render(request, 'admin.edit_chart.html', context={'current_user': request.user.name, 'chartconfig': json.dumps(chartconfig)})
 
 
-def editor_data():
-    variables = []
-    for variable in Variable.objects.all().select_related('fk_dst_id'):
-        variables.append({
-            'name': variable.name, 
-            'id': variable.pk, 
-            'unit': variable.unit, 
-            'description': variable.description,
-            'namespace': variable.fk_dst_id.namespace,
-            'dataset': {
-                'name': variable.fk_dst_id.name,
-                'namespace': variable.fk_dst_id.namespace,
-                'category': variable.fk_dst_id.fk_dst_cat_id.name,
-                'subcategory': variable.fk_dst_id.fk_dst_subcat_id.name
-            }
-        })
+def editordata(request: HttpRequest, cachetag: Optional[str]):
+    """
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT variables.id, variables.name FROM variables "
+                        "JOIN datasets on variables.fk_dst_id = datasets.id ")
 
+            response = HttpResponse(content_type='text/plain')
+
+            writer = csv.writer(response)
+            writer.writerow(['id', 'name'])
+            for row in cursor.fetchall():
+                writer.writerow(row)
+
+            return response
+    """
+    datasets = []
+
+    def serializeVariable(variable: Variable):
+        return {
+            'name': variable.name,
+            'id': variable.id,            
+        }
+
+    def serializeDataset(dataset: Dataset):
+        return {
+            'name': dataset.name,
+            'namespace': dataset.namespace,
+            'variables': [serializeVariable(v) for v in dataset.variable_set.all()]
+        }
+
+    datasets = [serializeDataset(d) for d in Dataset.objects.prefetch_related('variable_set')]
     namespaces = list(Dataset.objects.values_list('namespace', flat=True).distinct())
 
-    return {
-        'variables': variables,
+    response = JsonResponse({
+        'datasets': datasets,
         'namespaces': namespaces
-    }
+    })
+
+    if cachetag:
+        response['Cache-Control'] = 'public, max-age=31536000'
+
+    return response
 
 
 def editchart(request: HttpRequest, chartid: Union[str, int]):
@@ -154,14 +166,10 @@ def editchart(request: HttpRequest, chartid: Union[str, int]):
     except Chart.DoesNotExist:
         return HttpResponseNotFound('Invalid chart id!')
 
-    data = editor_data()
-    chartconfig = json.dumps(chart.get_config())
-
-    if '.json' in urlparse(request.get_full_path()).path:
-        return JsonResponse({'data': data, 'config': chartconfig}, safe=False)
-    else:
-        return render(request, 'admin.edit_chart.html', context={'current_user': request.user.name,
-                                                                 'data': data, 'chartconfig': chartconfig})
+    return render(request, 'admin.edit_chart.html', context={
+        'current_user': request.user.name, 
+        'chartconfig': json.dumps(chart.get_config())
+    })
 
 
 def savechart(chart: Chart, data: Dict, user: User):

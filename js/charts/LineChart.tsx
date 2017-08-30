@@ -105,8 +105,8 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
     }
 
     render() {
-        if (this.transform.groupedData.length == 0)
-            return <NoData bounds={this.props.bounds}/>
+        if (this.transform.failMessage)
+            return <NoData bounds={this.props.bounds} message={this.transform.failMessage}/>
 
         const {chart, transform, bounds, legend, tooltip, hoverTarget, focusKeys} = this
         const {groupedData, xAxis, yAxis} = transform

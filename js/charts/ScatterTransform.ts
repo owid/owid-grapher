@@ -23,6 +23,8 @@ export default class ScatterTransform {
             return "Missing Y axis variable"
         else if (!_.some(filledDimensions, d => d.property == 'x'))
             return "Missing X axis variable"
+        else if (_.isEmpty(this.possibleEntities))
+            return "No entities with data for both X and Y"
         else if (_.isEmpty(this.currentData))
             return "No matching data"
     }
@@ -44,7 +46,7 @@ export default class ScatterTransform {
     // Possible to override the x axis dimension to target a special year
     // In case you want to graph say, education in the past and democracy today https://ourworldindata.org/grapher/correlation-between-education-and-democracy
     @computed get xOverrideYear(): number|undefined {
-        return this.xDimension.targetYear
+        return this.xDimension && this.xDimension.targetYear
     }
 
     // In relative mode, the timeline scatterplot calculates changes relative
@@ -58,14 +60,17 @@ export default class ScatterTransform {
     @computed get hideBackgroundEntities() {
         return this.chart.addCountryMode == 'disabled'
     }
-    @computed get validEntities() {
+    @computed get possibleEntities() {
+        return _.intersection(
+            this.axisDimensions[0].variable.entitiesUniq,
+            this.axisDimensions[1].variable.entitiesUniq
+        )
+    }
+    @computed get entitiesToShow() {
         if (this.hideBackgroundEntities)
             return this.chart.data.selectedEntities
         else
-            return _.intersection(
-                this.axisDimensions[0].variable.entitiesUniq,
-                this.axisDimensions[1].variable.entitiesUniq
-            )
+            return this.possibleEntities
     }
 
     @computed get availableYears(): number[] {
@@ -141,9 +146,9 @@ export default class ScatterTransform {
     // Precompute the data transformation for every timeline year (so later animation is fast)
     // If there's no timeline, this uses the same structure but only computes for a single year
     @computed get dataByEntityAndYear() {
-        const {chart, yearsToCalculate, colorScale, hideBackgroundEntities, validEntities, xOverrideYear} = this
+        const {chart, yearsToCalculate, colorScale, hideBackgroundEntities, entitiesToShow, xOverrideYear} = this
         const {filledDimensions, keyColors} = chart.data
-        const validEntityLookup = _.keyBy(validEntities)
+        const validEntityLookup = _.keyBy(entitiesToShow)
         
         let dataByEntityAndYear = new Map<string, Map<number, ScatterSeries>>()
 

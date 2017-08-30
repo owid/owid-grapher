@@ -14,6 +14,7 @@ import ChartEditor, {ChartEditorProps, EditorTab} from './ChartEditor'
 import SaveButtons from './SaveButtons'
 import {observer} from 'mobx-react'
 import {observable, computed, action, autorun} from 'mobx'
+import Admin from './Admin'
 
 declare const App: any
 
@@ -44,8 +45,8 @@ declare const window: any
 
 @observer
 export default class ChartEditorView extends React.Component<{ editor: ChartEditor }> {
-    static bootstrap({ chartView, editorData }: { chartView: ChartView, editorData: any }) {
-		const editor = new ChartEditor({ chart: chartView.chart, data: editorData })
+    static bootstrap({ chartView }: { chartView: ChartView }) {
+		const editor = new ChartEditor({ chart: chartView.chart })
 		window.editor = editor
 		ReactDOM.render(<ChartEditorView editor={editor}/>, document.getElementById("form-view"))
     }
@@ -76,8 +77,11 @@ export default class ChartEditorView extends React.Component<{ editor: ChartEdit
 
 	@action.bound onHashChange() {
 		const match = window.location.hash.match(/#(.+?)-tab/)
-		if (match)
-			this.props.editor.tab = (match[1] as EditorTab)
+		if (match) {
+			const tab = match[1]
+			if (_.includes(this.props.editor.availableTabs, tab))
+				this.props.editor.tab = tab
+		}
 	}
 	
 	render() {
@@ -85,8 +89,8 @@ export default class ChartEditorView extends React.Component<{ editor: ChartEdit
 		const {chart, availableTabs} = editor
 
 		return <div className="form-wrapper-inner">
-			{editor.currentRequest && <LoadingBlocker/>}
-			<form>
+			{(editor.currentRequest || !chart.data.isReady) && <LoadingBlocker/>}
+			<form onSubmit={e => e.preventDefault()}>
 				<div className="nav-tabs-custom">
 					<ul className="nav nav-tabs no-bullets">
 						{_.map(availableTabs, tab => 

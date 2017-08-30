@@ -23,10 +23,16 @@ class VariableSection extends React.Component<{ map: MapConfig }> {
 
 	render() {
 		const {map} = this.props
+		const {filledDimensions} = map.chart.data
+
+		if (_.isEmpty(filledDimensions))
+			return <section>
+				<h2>Add some variables on data tab first</h2>
+			</section>
 
 		return <section>
 			<h2>Which variable on map</h2>
-			<NumericSelectField value={map.variableId} options={_.map(map.data.vardata.variables, 'id')} optionLabels={_.map(map.data.vardata.variables, 'name')} onValue={this.onVariableId}/>
+			<NumericSelectField value={map.variableId} options={filledDimensions.map(d => d.variableId)} optionLabels={filledDimensions.map(d => d.name)} onValue={this.onVariableId}/>
 		</section>
 
 	}

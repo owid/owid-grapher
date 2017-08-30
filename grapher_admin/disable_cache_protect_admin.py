@@ -10,7 +10,7 @@ class DisableCacheProtectAdminPages(object):
 
         response = self.get_response(request)
 
-        if '/grapher/admin' in request.path:
+        if '/grapher/admin' in request.path and not 'Cache-Control' in response:
             response['Cache-Control'] = 'no-cache'
 
         return response

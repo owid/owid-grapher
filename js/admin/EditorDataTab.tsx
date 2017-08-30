@@ -1,9 +1,10 @@
 import * as _ from 'lodash'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import {computed, action, observable} from 'mobx'
+import {computed, action, observable, when} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartConfig, {DimensionSlot, ChartDimension} from '../charts/ChartConfig'
+import {DimensionWithData} from '../charts/ChartData'
 import ChartType from '../charts/ChartType'
 import DataKey from '../charts/DataKey'
 import Color from '../charts/Color'
@@ -34,12 +35,11 @@ class VariableItem extends React.Component<{ variable: EditorVariable }> {
 }
 
 @observer
-class DimensionCard extends React.Component<{ dimension: ChartDimension, editor: ChartEditor, onEdit: () => void, onRemove: () => void }> {
+class DimensionCard extends React.Component<{ dimension: DimensionWithData, editor: ChartEditor, onEdit: () => void, onRemove: () => void }> {
 	render() {
 		const {dimension, editor} = this.props
-		const variable = editor.variablesById[dimension.variableId]
 		return <div className="DimensionCard">
-			<div>{variable.name}</div>
+			<div>{dimension.name}</div>
 			<div className="buttons">
 				<i className="fa fa-pencil clickable" onClick={this.props.onEdit}/> <i className="fa fa-close clickable" onClick={this.props.onRemove}/>
 			</div>
@@ -100,13 +100,13 @@ class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: C
 	render() {
 		const {slot, editor} = this.props
 		const {chart} = editor
-		const {dimensions} = chart
+		const {filledDimensions} = chart.data
 		const {editingDimension} = this
-		const canAddMore = slot.allowMultiple || dimensions.filter(d => d.property == slot.property).length == 0
+		const canAddMore = slot.allowMultiple || filledDimensions.filter(d => d.property == slot.property).length == 0
 
 		return <div>
 			<h5>{slot.name}</h5>
-			{dimensions.map((dim, i) => {
+			{filledDimensions.map((dim, i) => {
 				return dim.property == slot.property && <DimensionCard dimension={dim} editor={editor} onEdit={action(() => this.editingDimensionIndex = i)} onRemove={() => this.removeDimension(i)}/>
 			})}
 			{canAddMore && <div className="dimensionSlot" onClick={this.onAddVariable}>Add variable</div>}
@@ -155,7 +155,7 @@ class DataKeyItem extends React.Component<{ chart: ChartConfig, datakey: DataKey
 		const {props, datakey, color, isChoosingColor} = this
 		const meta = props.chart.data.keyData.get(datakey)
 
-		return <li className="country-label" style={{ backgroundColor: color||"white" }} onClick={e => this.isChoosingColor = true}>
+		return <li className="country-label clickable" style={{ backgroundColor: color||"white" }} onClick={e => this.isChoosingColor = true}>
 			<span className="fa fa-remove" onClick={this.onRemove}/>
 			{meta ? meta.fullLabel : datakey}
 			{isChoosingColor && <Colorpicker color={color} onColor={this.onColor} onClose={() => this.isChoosingColor = false}/>}

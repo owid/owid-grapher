@@ -194,8 +194,8 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
     }
 
     render() {
-        if (!this.transform.initialData.length)
-            return <NoData bounds={this.props.bounds}/>
+        if (this.transform.failMessage)
+            return <NoData bounds={this.props.bounds} message={this.transform.failMessage}/>
             
         const {chart, bounds, axisBox, legend, transform} = this
         return <g className="StackedArea">

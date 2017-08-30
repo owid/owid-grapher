@@ -19,6 +19,14 @@ export default class LineChartTransform {
         this.chart = chart
     }
 
+    @computed get failMessage(): string|undefined {
+        const {filledDimensions} = this.chart.data
+        if (!_.some(filledDimensions, d => d.property == 'y'))
+            return "Missing Y axis variable"
+        else if (_.isEmpty(this.groupedData))
+            return "No matching data"
+    }
+
 	@computed get initialData(): LineChartSeries[] {
 		const {chart} = this
 		const {timeDomain, yAxis, addCountryMode} = chart
@@ -101,7 +109,7 @@ export default class LineChartTransform {
         return {
             label: chart.yAxis.label,
             tickFormat: yDimensionFirst ? yDimensionFirst.formatValueShort : _.identity,
-            domain: [defaultTo(chart.yAxis.domain[0], yDomainDefault[0]), defaultTo(chart.yAxis.domain[1], yDomainDefault[1])],
+            domain: [Math.min(defaultTo(chart.yAxis.domain[0], Infinity), yDomainDefault[0]), Math.max(defaultTo(chart.yAxis.domain[1], -Infinity), yDomainDefault[1])],
             scaleType: chart.yAxis.scaleType,
             scaleTypeOptions: chart.yAxis.scaleTypeOptions            
         }

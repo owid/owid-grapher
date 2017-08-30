@@ -9,6 +9,7 @@ import ChartConfig from './ChartConfig'
 import Text from './Text'
 import LabelledSlopes, {SlopeChartSeries} from './LabelledSlopes'
 import {DimensionWithData} from './ChartData'
+import NoData from './NoData'
 
 @observer
 export default class SlopeChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
@@ -17,6 +18,9 @@ export default class SlopeChart extends React.Component<{ bounds: Bounds, chart:
 	}
 
 	render() {
+        if (this.transform.failMessage)
+            return <NoData bounds={this.props.bounds} message={this.transform.failMessage}/>
+
 		const {bounds, chart} = this.props
 		const {yAxis} = chart
 		const {data} = this.transform

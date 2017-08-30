@@ -32,6 +32,10 @@ export class DimensionWithData {
 	@observable.ref dimension: ChartDimension
 	@observable.ref variable: Variable
 
+	@computed get variableId(): number {
+		return this.dimension.variableId
+	}
+
 	@computed get property(): string {
 		return this.dimension.property
 	}
@@ -101,7 +105,7 @@ export default class ChartData {
 		return _.every(chart.dimensions, dim => vardata.variablesById[dim.variableId])
 	}
 
-	@computed get filledDimensions(): DimensionWithData[] {
+	@computed.struct get filledDimensions(): DimensionWithData[] {
 		if (!this.isReady) return []
 		
         return _.map(this.chart.dimensions, (dim, i) => {
