@@ -7,6 +7,7 @@ import {DimensionWithData} from './ChartData'
 import {ScatterSeries, ScatterValue} from './PointsWithLabels'
 import AxisSpec from './AxisSpec'
 import {formatValue} from './Util'
+import ColorSchemes from './ColorSchemes'
 
 // Responsible for translating chart configuration into the form
 // of a scatter plot
@@ -38,6 +39,9 @@ export default class ScatterTransform {
     }
     @computed get xDimension(): DimensionWithData {
         return _.find(this.chart.data.filledDimensions, d => d.property == 'x') as DimensionWithData
+    }
+    @computed get colorDimension(): DimensionWithData|undefined {
+        return _.find(this.chart.data.filledDimensions, d => d.property == 'color')
     }
     @computed get axisDimensions(): [DimensionWithData, DimensionWithData] {
         console.assert(this.yDimension)
@@ -121,8 +125,8 @@ export default class ScatterTransform {
         }
     }
 
-    @computed get colorScheme() : string[] {
-        return [ // TODO less ad hoc color scheme (probably would have to annotate the datasets)
+    @computed get defaultColors(): string[] {
+        return [ // default color scheme for continents
             "#5675c1", // Africa
             "#aec7e8", // Antarctica
             "#d14e5b", // Asia
@@ -131,6 +135,16 @@ export default class ScatterTransform {
             "#a652ba", // Oceania
             "#69c487", // South America
             "#ff7f0e", "#1f77b4", "#ffbb78", "#2ca02c", "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b", "c49c94", "e377c2", "f7b6d2", "7f7f7f", "c7c7c7", "bcbd22", "dbdb8d", "17becf", "9edae5", "1f77b4"]
+    }
+
+    @computed get colorScheme(): string[] {
+        const {baseColorScheme} = this.chart
+        const {colorDimension} = this
+
+        const colorScheme = baseColorScheme && ColorSchemes[baseColorScheme]
+        if (!colorScheme) return this.defaultColors
+        else if (!colorDimension) return colorScheme.getDistinctColors(4)
+        else return colorScheme.getDistinctColors(colorDimension.variable.categoricalValues.length)
     }
 
     @computed get colorScale(): d3.ScaleOrdinal<string, string> {

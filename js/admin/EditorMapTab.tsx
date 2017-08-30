@@ -222,7 +222,7 @@ class ColorsSection extends React.Component<{ map: MapConfig }> {
 
 		return <section>
 			<h2>Colors</h2>
-			<SelectField label="Color scheme:" value={currentColorScheme} options={_.map(availableColorSchemes, 'key')} onValue={this.onColorScheme}/>
+			<SelectField label="Color scheme:" value={currentColorScheme} options={_.map(availableColorSchemes, 'key').concat(['custom'])} onValue={this.onColorScheme}/>
 			<NumberField label="Number of intervals:" value={map.props.colorSchemeInterval} min={1} max={99} onValue={this.onNumIntervals}/>
 			<Toggle label="Invert colors" value={map.props.colorSchemeInvert||false} onValue={this.onInvert}/>
 			<Toggle label="Automatic classification" value={map.props.colorSchemeValuesAutomatic||false} onValue={this.onAutomatic}/>

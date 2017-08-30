@@ -163,19 +163,6 @@ class DataKeyItem extends React.Component<{ chart: ChartConfig, datakey: DataKey
 }
 
 @observer
-class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
-	@action.bound onValue(value: string) {
-		this.props.chart.props.baseColorScheme = value == 'default' ? undefined : value
-	}
-
-	render() {
-		const {chart} = this.props
-		const colorSchemes = ['default']
-		return <SelectField label="Color scheme" value={chart.baseColorScheme||"default"} onValue={this.onValue} options={colorSchemes}/>
-	}
-}
-
-@observer
 class KeysSection extends React.Component<{ chart: ChartConfig }> {
 	@action.bound onAddKey(ev: React.ChangeEvent<HTMLSelectElement>) {
 		this.props.chart.data.selectedKeys = this.props.chart.data.selectedKeys.concat([ev.target.value])
@@ -187,8 +174,6 @@ class KeysSection extends React.Component<{ chart: ChartConfig }> {
 
 		return <section className="entities-section">
 			<h2>Choose data to show</h2>
-
-			{/*<ColorSchemeSelector chart={chart}/>*/}
 
 			<p className="form-section-desc">You can set individual colors by clicking on the labels.</p>
 			<select className="form-control countries-select" onChange={this.onAddKey} value="Select data">

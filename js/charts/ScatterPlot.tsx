@@ -178,7 +178,6 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         this.transform.useTimelineDomains = true
     }
 
-
     @action.bound onTimelineStop() {
         this.transform.useTimelineDomains = false
     }

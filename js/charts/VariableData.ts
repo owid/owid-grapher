@@ -35,7 +35,7 @@ export class Variable {
 	}	
 
 	@computed get categoricalValues(): string[] {
-		return _(this.values).filter(v => _.isString(v)).sort().uniq().value() as string[]
+		return _(this.values).filter(v => _.isString(v)).uniq().value() as string[]
 	}
 
 	@computed get hasCategoricalValues(): boolean {

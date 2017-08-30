@@ -1,11 +1,30 @@
 import * as React from 'react'
+import * as _ from 'lodash'
 import {computed, action} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartEditor from './ChartEditor'
+import ChartConfig from '../charts/ChartConfig'
 import {AxisConfigProps} from '../charts/AxisConfig'
 import {toString} from 'lodash'
 import {TextField, NumberField, SelectField, Toggle} from './Forms'
-import ChartType from '../charts/ChartType'
+import ColorSchemes from '../charts/ColorSchemes'
+
+@observer
+class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
+	@action.bound onValue(value: string) {
+		this.props.chart.props.baseColorScheme = value == 'default' ? undefined : value
+	}
+
+	render() {
+		const {chart} = this.props
+		const availableColorSchemes = ['default'].concat(_(ColorSchemes).map((v: any, k: any) => _.extend({}, v, { key: k })).filter((v: any) => !!v.name).map('key').value())
+
+		return <section>
+			<h3>Colors</h3>
+			<SelectField label="Color scheme" value={chart.baseColorScheme||"default"} onValue={this.onValue} options={availableColorSchemes}/>
+		</section>
+	}
+}
 
 @observer
 export default class EditorCustomizeTab extends React.Component<{ editor: ChartEditor }> {
@@ -32,6 +51,8 @@ export default class EditorCustomizeTab extends React.Component<{ editor: ChartE
 		const {chart} = this.props.editor
 
 		return <div className="tab-pane">
+			{chart.isScatter && <ColorSchemeSelector chart={chart}/>}
+
 			{chart.isLineChart && false && <section className="type-of-line-section">
 				<h2>Choose Type of Line</h2>
 				<label>
