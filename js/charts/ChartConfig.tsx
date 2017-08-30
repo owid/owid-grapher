@@ -220,6 +220,7 @@ export default class ChartConfig {
             }
         }
 
+        this.props.type = props['chart-type']||ChartType.LineChart
         this.props.note = props['chart-description']
         this.props.originUrl = props['data-entry-url']
         this.props.isPublished = props['published']

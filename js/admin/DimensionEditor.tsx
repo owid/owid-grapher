@@ -141,8 +141,7 @@ export default class DimensionEditor extends React.Component<DimensionEditorProp
 			})
 		}
 
-		if (this.chosenVariableId == null)
-			this.searchField.focus()
+		this.searchField.focus()
 	}
 
 	render() {
