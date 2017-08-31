@@ -19,6 +19,7 @@ export default class Colorpicker extends React.Component<ColorpickerProps> {
         const textField = this.base.querySelector("input") as HTMLInputElement
         textField.focus()
     }
+    
 
     render() {
         const availableColors: Color[] = _.last(ColorSchemes['owid-distinct'].colors) as Color[]
@@ -32,7 +33,7 @@ export default class Colorpicker extends React.Component<ColorpickerProps> {
                     <li style={{backgroundColor: color}} onClick={() => { this.props.onColor(color); this.props.onClose() }}/>
                 )}
             </ul>
-            <TextField placeholder="#xxxxxx" value={this.props.color} onValue={this.props.onColor} onEnter={this.props.onClose}/>
+            <TextField placeholder="#xxxxxx" value={this.props.color} onValue={this.props.onColor} onEnter={this.props.onClose} onEscape={this.props.onClose}/>
         </div>
     }
 }

@@ -258,14 +258,11 @@ button[type="submit"]:not(".delete-btn") {
   position: relative;
   display: inline-block;
   margin-right: 10px;
-  margin-bottom: 10px;
-  padding: 10px 20px;
+  margin-left: 10px;
+  padding: 10px;
   background-color: #fff;
   border: 1px solid #bbb;
-}
-
-.country-label {
-  cursor: pointer;
+  cursor: grab;
 }
 
 .country-label:hover,
@@ -277,11 +274,6 @@ button[type="submit"]:not(".delete-btn") {
   color: #bbb;
   cursor: pointer;
   margin-right: 5px;
-  margin-left: -10px;
-}
-
-.country-label:hover .fa {
-  color: #666666; 
 }
 
 .country-label:hover .fa:hover {

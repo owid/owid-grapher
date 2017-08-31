@@ -15,6 +15,7 @@ export interface TextFieldProps {
     value: string|undefined,
     onValue: (value: string|undefined) => void,
     onEnter?: () => void,
+    onEscape?: () => void,
     placeholder?: string,
     disabled?: boolean
 }
@@ -32,6 +33,8 @@ export class TextField extends React.Component<TextFieldProps> {
     @bind onKeyDown(ev: React.KeyboardEvent<HTMLInputElement>) {
         if (ev.key == "Enter" && this.props.onEnter) {
             this.props.onEnter()
+        } else if (ev.key == "Escape" && this.props.onEscape) {
+            this.props.onEscape()
         }
     }
 

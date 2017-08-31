@@ -134,48 +134,76 @@ class VariablesSection extends React.Component<{ editor: ChartEditor }> {
 	}
 }
 
+interface DataKeyItemProps extends React.HTMLAttributes<HTMLLIElement> {
+	chart: ChartConfig
+	datakey: DataKey
+}
+
 @observer
-class DataKeyItem extends React.Component<{ chart: ChartConfig, datakey: DataKey }> {
+class DataKeyItem extends React.Component<DataKeyItemProps> {
 	@observable.ref isChoosingColor: boolean = false
 
-	@computed get datakey() { return this.props.datakey }
 	@computed get color() { return this.props.chart.data.keyColors[this.props.datakey] }
 
 	@action.bound onColor(color: Color|undefined) {
-		this.props.chart.data.setKeyColor(this.datakey, color)
+		this.props.chart.data.setKeyColor(this.props.datakey, color)
 	}
 
 	@action.bound onRemove(ev: React.MouseEvent<HTMLSpanElement>) {
-		this.props.chart.data.selectedKeys = this.props.chart.data.selectedKeys.filter(e => e != this.datakey)
+		this.props.chart.data.selectedKeys = this.props.chart.data.selectedKeys.filter(e => e != this.props.datakey)
 		ev.stopPropagation()
 	}
 
 	render() {
-		const {props, datakey, color, isChoosingColor} = this
-		const meta = props.chart.data.keyData.get(datakey)
+		const {props, color, isChoosingColor} = this
+		const {chart, datakey, ...rest} = props
+		const meta = chart.data.keyData.get(datakey)
 
-		return <li className="country-label clickable" style={{ backgroundColor: color||"white" }} onClick={e => this.isChoosingColor = true}>
-			<span className="fa fa-remove" onClick={this.onRemove}/>
+		return <li className="country-label clickable" style={{ backgroundColor: color||"white" }}{...rest}>
+			<i className="fa fa-remove" onClick={this.onRemove}/>
+			<i className="fa fa-paint-brush" onClick={e => this.isChoosingColor = true} style={{position: 'relative'}}>
+				{isChoosingColor && <Colorpicker color={color} onColor={this.onColor} onClose={() => this.isChoosingColor = false}/>}
+			</i>
 			{meta ? meta.fullLabel : datakey}
-			{isChoosingColor && <Colorpicker color={color} onColor={this.onColor} onClose={() => this.isChoosingColor = false}/>}
 		</li>
 	}
 }
 
 @observer
 class KeysSection extends React.Component<{ chart: ChartConfig }> {
+	@observable.ref dragKey?: DataKey
+
 	@action.bound onAddKey(ev: React.ChangeEvent<HTMLSelectElement>) {
 		this.props.chart.data.selectKey(ev.target.value)
+	}
+
+	@action.bound onStartDrag(key: DataKey) {
+		this.dragKey = key
+	}
+
+	@action.bound onMouseEnter(targetKey: DataKey) {
+		if (!this.dragKey || targetKey == this.dragKey)
+			return
+
+		const selectedKeys = _.clone(this.props.chart.data.selectedKeys)
+		const dragIndex = selectedKeys.indexOf(this.dragKey)
+		const targetIndex = selectedKeys.indexOf(targetKey)
+		selectedKeys.splice(dragIndex, 1)
+		selectedKeys.splice(targetIndex, 0, this.dragKey)
+		this.props.chart.data.selectedKeys = selectedKeys
+	}
+
+	@action.bound onMouseUp() {
+		this.dragKey = undefined
 	}
 
 	render() {
 		const {chart} = this.props
 		const {selectedKeys, remainingKeys} = chart.data
 
-		return <section className="entities-section">
+		return <section className="entities-section" onMouseUp={this.onMouseUp}>
 			<h2>Choose data to show</h2>
 
-			<p className="form-section-desc">You can set individual colors by clicking on the labels.</p>
 			<select className="form-control countries-select" onChange={this.onAddKey} value="Select data">
 				<option value="Select data" selected={true} disabled={true}>Select data</option>
 				{_.map(remainingKeys, key =>
@@ -184,7 +212,7 @@ class KeysSection extends React.Component<{ chart: ChartConfig }> {
 			</select>
 			<ul className="selected-countries-box no-bullets">
 				{_.map(selectedKeys, datakey =>
-					<DataKeyItem chart={chart} datakey={datakey}/>
+					<DataKeyItem chart={chart} datakey={datakey} onMouseDown={ev => this.onStartDrag(datakey)} onMouseEnter={ev => this.onMouseEnter(datakey)}/>
 				)}
 			</ul>
 			<div className="add-country-control-wrapper">
