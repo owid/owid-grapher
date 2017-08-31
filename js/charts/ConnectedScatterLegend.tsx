@@ -7,9 +7,10 @@ import TextWrap from './TextWrap'
 import {formatYear} from './Util'
 
 interface ConnectedScatterLegendProps {
-    maxWidth: number,
-    startYear: number,
+    maxWidth: number
+    startYear: number
     endYear: number
+    endpointsOnly: boolean
 }
 
 export default class ConnectedScatterLegend {
@@ -40,7 +41,7 @@ export default class ConnectedScatterLegend {
         return Math.max(this.startLabel.height, this.endLabel.height)
     }
  
-    render(targetX: number, targetY: number) {
+    render(targetX: number, targetY: number, options: React.SVGAttributes<SVGGElement> = {}) {
         const {props, startLabel, endLabel, fontColor} = this
         let offset = 0
 
@@ -48,11 +49,16 @@ export default class ConnectedScatterLegend {
         const lineRight = targetX+props.maxWidth-endLabel.width-5
         const lineY = targetY+this.height/2-0.5
 
-        return <g className="ConnectedScatterLegend">
+        return <g className="ConnectedScatterLegend" {...options}>
+            <rect x={targetX} y={targetY} width={this.width} height={this.height} fill="#fff" opacity={0}/>
             {startLabel.render(targetX, targetY, { fill: fontColor })}
             {endLabel.render(targetX+props.maxWidth-endLabel.width, targetY, { fill: fontColor })}
             <line x1={lineLeft} y1={lineY} x2={lineRight} y2={lineY} stroke="#666" strokeWidth={1}/>
             <circle cx={lineLeft} cy={lineY} r={2} fill="#666" stroke="#ccc" strokeWidth={0.2}/>
+            {!props.endpointsOnly && [
+                <circle cx={lineLeft+(lineRight-lineLeft)/3} cy={lineY} r={2} fill="#666" stroke="#ccc" strokeWidth={0.2}/>,
+                <circle cx={lineLeft+2*(lineRight-lineLeft)/3} cy={lineY} r={2} fill="#666" stroke="#ccc" strokeWidth={0.2}/>
+            ]}
             <Triangle cx={lineRight} cy={lineY} r={3} fill="#666" stroke="#ccc" strokeWidth={0.2} 
                       transform={`rotate(${90}, ${lineRight}, ${lineY})`}
             />

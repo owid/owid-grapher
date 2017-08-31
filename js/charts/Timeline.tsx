@@ -3,7 +3,7 @@ import * as d3 from 'd3'
 import * as React from 'react'
 import Bounds from './Bounds'
 import Text from './Text'
-import {getRelativeMouse, formatYear} from './Util'
+import {getRelativeMouse, formatYear, domainExtent} from './Util'
 import {observable, computed, asFlat, autorun, autorunAsync, action} from 'mobx'
 import {observer} from 'mobx-react'
 
@@ -153,7 +153,7 @@ export default class Timeline extends React.Component<TimelineProps> {
 
 	@computed get xScale(): any {
 		const { years, sliderBounds } = this
-		return d3.scaleLinear().domain((d3.extent(years) as [number, number])).range([sliderBounds.left, sliderBounds.left+sliderBounds.width]);
+		return d3.scaleLinear().domain(domainExtent(years, 'linear')).range([sliderBounds.left, sliderBounds.left+sliderBounds.width]);
 	}
 
 	@action.bound componentWillReceiveProps(nextProps : TimelineProps) {

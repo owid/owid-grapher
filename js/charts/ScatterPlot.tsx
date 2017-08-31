@@ -119,14 +119,15 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         const {focusKeys, hoverSeries, sidebarWidth, transform} = this
         const {startYear, endYear} = transform
 
-        if (focusKeys.length || hoverSeries || startYear == endYear || transform.isRelativeMode)
+        if (hoverSeries || startYear == endYear || transform.isRelativeMode)
             return undefined
 
         const _this = this
         return new ConnectedScatterLegend({
             get maxWidth() { return _this.sidebarWidth },
             get startYear() { return _this.transform.startYear },
-            get endYear() { return _this.transform.endYear }
+            get endYear() { return _this.transform.endYear },
+            get endpointsOnly() { return !!(_this.chart.timeline && _this.chart.timeline.compareEndPointsOnly) }
         })
     }
 
@@ -182,6 +183,13 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         this.transform.useTimelineDomains = false
     }
 
+    @action.bound onToggleEndpoints() {
+        const {timeline} = this.chart
+        if (timeline) {
+            this.chart.props.timeline = _.extend({}, timeline, { compareEndPointsOnly: !timeline.compareEndPointsOnly })
+        }
+    }
+
     render() {
         if (this.transform.failMessage)
             return <NoData bounds={this.bounds} message={this.transform.failMessage}/>
@@ -194,9 +202,11 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
             <PointsWithLabels data={currentData} bounds={axisBox.innerBounds} xScale={axisBox.xScale} yScale={axisBox.yScale} sizeDomain={sizeDomain} onSelectEntity={this.onSelectEntity} focusKeys={focusKeys} hoverKeys={hoverKeys} onMouseOver={this.onScatterMouseOver} onMouseLeave={this.onScatterMouseLeave}/>
             <ScatterColorLegend {...legend.props} x={bounds.right-sidebarWidth} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} onClick={this.onLegendClick} focusColors={focusColors}/>
             {(arrowLegend||tooltipSeries) && <line x1={bounds.right-sidebarWidth} y1={bounds.top+legend.height+2} x2={bounds.right-5} y2={bounds.top+legend.height+2} stroke="#ccc"/>}
-            {arrowLegend && arrowLegend.render(bounds.right-sidebarWidth, bounds.top+legend.height+11)}
+            {arrowLegend && <g className="clickable" onClick={this.onToggleEndpoints}>
+                {arrowLegend.render(bounds.right-sidebarWidth, bounds.top+legend.height+11)}
+            </g>}
             {timeline && <Timeline {...timeline.props} onStartDrag={this.onTimelineStart} onStopDrag={this.onTimelineStop}/>}
-            {tooltipSeries && <ScatterTooltip formatY={transform.yFormatTooltip} formatX={transform.xFormatTooltip} series={tooltipSeries} maxWidth={sidebarWidth} x={bounds.right-sidebarWidth} y={bounds.top+legend.height+11+(arrowLegend ? arrowLegend.height : 0)}/>}
+            {tooltipSeries && <ScatterTooltip formatY={transform.yFormatTooltip} formatX={transform.xFormatTooltip} series={tooltipSeries} maxWidth={sidebarWidth} x={bounds.right-sidebarWidth} y={bounds.top+legend.height+11+(arrowLegend ? arrowLegend.height+10 : 0)}/>}
         </g>
     }
 }

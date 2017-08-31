@@ -26,7 +26,6 @@ export interface SourceWithVariable {
 	variable: Variable
 }
 
-
 export class DimensionWithData {
 	@observable.ref index: number
 	@observable.ref dimension: ChartDimension

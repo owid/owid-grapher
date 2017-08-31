@@ -321,7 +321,7 @@ export default class ScatterTransform {
         if (sizeValues.length == 0)
             return [1,1]
         else
-            return d3.extent(sizeValues) as [number, number]
+            return domainExtent(sizeValues, 'linear')
     }
 
     @computed get colorsInUse(): string[] {

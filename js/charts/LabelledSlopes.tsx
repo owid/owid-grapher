@@ -21,7 +21,7 @@ import Text from './Text'
 import TextWrap from './TextWrap'
 import NoData from './NoData'
 import ScaleSelector from './ScaleSelector'
-import {getRelativeMouse} from './Util'
+import {getRelativeMouse, domainExtent} from './Util'
 import Vector2 from './Vector2'
 
 export interface SlopeChartSeries {
@@ -168,14 +168,12 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 
 	@computed get xDomainDefault(): [number, number] {
 		const xValues = _(this.props.data).map(g => g.values).flatten().map((v: any) => v.x).value()
-		return d3.extent(xValues) as [number, number]
+		return domainExtent(xValues, 'linear')
 	}
 
 	@computed get yDomainDefault(): [number, number] {
-		let yValues = _(this.props.data).map(g => g.values).flatten().map((v: any) => v.y)
-		if (this.props.yScaleType == 'log')
-			yValues = yValues.filter(y => y > 0)
-		return d3.extent(yValues.value()) as [number, number]
+		let yValues = _(this.props.data).map(g => g.values).flatten().map((v: any) => v.y).value()
+		return domainExtent(yValues, this.props.yScaleType)
 	}
 
 	@computed get xDomain(): [number, number] {
