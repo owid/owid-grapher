@@ -223,3 +223,17 @@ export function setQueryVariable(key: string, val: string|null) {
 export function setQueryStr(str: string) {
 	history.replaceState(null, document.title, window.location.pathname + str + window.location.hash);
 };
+
+
+// Calculate the extents of a set of numbers, with safeguards for log scales
+export function domainExtent(values: number[], scaleType: 'linear'|'log'): [number, number] {
+	if (scaleType == 'log')
+		values = values.filter(v => v > 0)
+	const [min, max] = d3.extent(values)
+
+	if (_.isFinite(min) && _.isFinite(max) && min != max) {
+		return [min, max] as [number, number]
+	} else {
+		return scaleType == 'log' ? [1, 100] : [-1, 1]
+	}
+}

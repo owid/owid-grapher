@@ -8,6 +8,8 @@ import {observer} from 'mobx-react'
 import {formatYear} from './Util'
 import ChartConfig from './ChartConfig'
 
+declare const App: any;
+
 interface LogoProps {
     svg: string
 }
@@ -92,23 +94,28 @@ export default class Header {
         return new Logo({ svg: this.props.chart.logosSVG[0] })
     }
 
+    fontSize?: number
     @computed get title() {
         const {props, logo, titleText} = this
 
-        // Try to fit the title into a single line if possible-- but not if it would make the text super small
-        let title: TextWrap
-        let fontSize = 1.25
-        while (true) {
-            title = new TextWrap({ maxWidth: props.maxWidth-logo.width-15, fontSize: fontSize, text: titleText, lineHeight: 1 })
-            if (fontSize <= 0.9 || title.lines.length <= 1)
-                break
-            fontSize -= 0.05
+        // Only calculate the title font size once unless we're in the editor
+        // This stops the chart froms "jumping around" e.g. in timeline mode
+        if (this.fontSize != null && !App.isEditor) {
+            return new TextWrap({ maxWidth: props.maxWidth-logo.width-15, fontSize: this.fontSize, text: titleText, lineHeight: 1 })
+        } else {
+            // Try to fit the title into a single line if possible-- but not if it would make the text super small
+            let title: TextWrap
+            let fontSize = 1.25
+            while (true) {
+                title = new TextWrap({ maxWidth: props.maxWidth-logo.width-15, fontSize: fontSize, text: titleText, lineHeight: 1 })
+                if (fontSize <= 0.9 || title.lines.length <= 1)
+                    break
+                fontSize -= 0.05
+            }
+            this.fontSize = fontSize
+
+            return title
         }
-
-        if (title.lines.length > 1)
-            fontSize = 1.1
-
-        return title
     }
 
     @computed get subtitleWidth() {

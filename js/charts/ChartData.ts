@@ -7,7 +7,7 @@ import DataKey from './DataKey'
 import {bind} from 'decko'
 import {LineChartSeries} from './LineChart'
 import Color from './Color'
-import {formatValue} from './Util'
+import {formatValue, last} from './Util'
 
 export interface DataKeyInfo {
 	entity: string 
@@ -119,7 +119,7 @@ export default class ChartData {
     }
 
 	@computed get isSingleEntity(): boolean {
-		return this.vardata.availableEntities.length == 1 || this.chart.addCountryMode != 'add-country'
+		return this.vardata.availableEntities.length == 1 || this.chart.addCountryMode == "change-country"
 	}
 
 	@computed get isSingleVariable(): boolean {
@@ -137,7 +137,7 @@ export default class ChartData {
 
 	@computed get selectionData(): { key: DataKey, color?: Color }[] {
 		const {chart, vardata, primaryDimensions} = this
-		const validSelections = _.filter(chart.props.selectedData, sel => {
+		let validSelections = chart.props.selectedData.filter(sel => {
 			// Must be a dimension that's on the chart
 			const dimension = primaryDimensions[sel.index]
 			if (dimension == null) return false
@@ -146,8 +146,15 @@ export default class ChartData {
 			const entityMeta = vardata.entityMetaById[sel.entityId]
 			if (entityMeta == null || !_.includes(dimension.variable.entitiesUniq, entityMeta.name)) return false
 
+			// "change entity" charts can only have one entity selected
+			if (chart.addCountryMode == "change-country" && sel.entityId != last(chart.props.selectedData).entityId)
+				return false
+
 			return true
 		})
+
+		validSelections = _.uniqWith(validSelections, (a: any, b: any) => a.entityId == b.entityId && a.index == b.index)
+
 		return _.map(validSelections, sel => {
 			return {
 				key: this.keyFor(vardata.entityMetaById[sel.entityId].name, sel.index),
@@ -158,6 +165,10 @@ export default class ChartData {
 
 	@computed get selectedKeys(): DataKey[] {
 		return this.selectionData.map(d => d.key)
+	}
+
+	selectKey(key: DataKey) {
+		this.selectedKeys = this.selectedKeys.concat([key])
 	}
 
 	@computed.struct get keyColors(): {[datakey: string]: Color|undefined}{

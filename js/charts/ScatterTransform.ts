@@ -6,7 +6,7 @@ import {defaultTo, first, last} from './Util'
 import {DimensionWithData} from './ChartData'
 import {ScatterSeries, ScatterValue} from './PointsWithLabels'
 import AxisSpec from './AxisSpec'
-import {formatValue} from './Util'
+import {formatValue, domainExtent} from './Util'
 import ColorSchemes from './ColorSchemes'
 
 // Responsible for translating chart configuration into the form
@@ -265,7 +265,7 @@ export default class ScatterTransform {
     @computed get xDomainDefault() : [number, number] {
         if (!this.useTimelineDomains) {
             const xValues = _(this.currentData).map(d => d.values).flatten().map((v: ScatterValue) => v.x).value()
-            return d3.extent(xValues) as [number, number]
+            return domainExtent(xValues, this.xScaleType)
         }
 
         if (this.isRelativeMode) {
@@ -285,19 +285,15 @@ export default class ScatterTransform {
            })
            return [minChange, maxChange]
         } else {
-            if (this.chart.xAxis.scaleType == 'log')
-                return d3.extent(_(this.allValues).map(v => v.x).filter(v => v > 0).value()) as [number, number]
-            else
-                return d3.extent(_.map(this.allValues, 'x')) as [number, number]
+            return domainExtent(this.allValues.map(v => v.x), this.xScaleType)
         }
     }
 
     @computed get yDomainDefault() : [number, number] {
         if (!this.useTimelineDomains) {
             const yValues = _(this.currentData).map(d => d.values).flatten().map((v: ScatterValue) => v.y).value()
-            return d3.extent(yValues) as [number, number]
+            return domainExtent(yValues, this.yScaleType)
         }
-
 
         if (this.isRelativeMode) {
             let minChange = 0
@@ -316,10 +312,7 @@ export default class ScatterTransform {
            })
            return [minChange, maxChange]
         } else {
-            if (this.chart.yAxis.scaleType == 'log')
-                return d3.extent(_(this.allValues).map(v => v.y).filter(v => v > 0).value()) as [number, number]
-            else
-                return d3.extent(_.map(this.allValues, 'y')) as [number, number]
+            return domainExtent(this.allValues.map(v => v.y), this.yScaleType)
         }
     }
 

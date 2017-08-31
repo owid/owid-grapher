@@ -108,7 +108,7 @@ class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: C
 			{filledDimensions.map((dim, i) => {
 				return dim.property == slot.property && <DimensionCard dimension={dim} editor={editor} onEdit={action(() => this.editingDimensionIndex = i)} onRemove={() => this.removeDimension(i)}/>
 			})}
-			{canAddMore && <div className="dimensionSlot" onClick={this.onAddVariable}>Add variable</div>}
+			{canAddMore && <div className="dimensionSlot" onClick={this.onAddVariable}>Add variable{slot.allowMultiple && 's'}</div>}
 			{editingDimension && <DimensionEditor dimension={editingDimension} editor={editor} onDismiss={this.onUpdateDimension} onComplete={this.onUpdateDimension}/>}
 		</div>
 	}
@@ -165,7 +165,7 @@ class DataKeyItem extends React.Component<{ chart: ChartConfig, datakey: DataKey
 @observer
 class KeysSection extends React.Component<{ chart: ChartConfig }> {
 	@action.bound onAddKey(ev: React.ChangeEvent<HTMLSelectElement>) {
-		this.props.chart.data.selectedKeys = this.props.chart.data.selectedKeys.concat([ev.target.value])
+		this.props.chart.data.selectKey(ev.target.value)
 	}
 
 	render() {
