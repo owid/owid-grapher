@@ -98,24 +98,25 @@ export default class Header {
     @computed get title() {
         const {props, logo, titleText} = this
 
-        // Only calculate the title font size once unless we're in the editor
-        // This stops the chart froms "jumping around" e.g. in timeline mode
-        if (this.fontSize != null && !App.isEditor) {
-            return new TextWrap({ maxWidth: props.maxWidth-logo.width-15, fontSize: this.fontSize, text: titleText, lineHeight: 1 })
-        } else {
-            // Try to fit the title into a single line if possible-- but not if it would make the text super small
-            let title: TextWrap
-            let fontSize = 1.25
-            while (true) {
-                title = new TextWrap({ maxWidth: props.maxWidth-logo.width-15, fontSize: fontSize, text: titleText, lineHeight: 1 })
-                if (fontSize <= 0.9 || title.lines.length <= 1)
-                    break
-                fontSize -= 0.05
-            }
-            this.fontSize = fontSize
+        let maxWidth = props.maxWidth-logo.width-15
 
-            return title
+        // HACK (Mispy): Stop the title jumping around during timeline transitions
+        if (props.minYear == props.maxYear && props.chart.timeline) {
+            maxWidth -= Bounds.forText(" in 2000", { fontSize: "1.25em" }).width
         }
+
+        // Try to fit the title into a single line if possible-- but not if it would make the text super small
+        let title: TextWrap
+        let fontSize = 1.25
+        while (true) {
+            title = new TextWrap({ maxWidth: maxWidth, fontSize: fontSize, text: titleText, lineHeight: 1 })
+            if (fontSize <= 0.9 || title.lines.length <= 1)
+                break
+            fontSize -= 0.05
+        }
+        this.fontSize = fontSize
+
+        return title
     }
 
     @computed get subtitleWidth() {
