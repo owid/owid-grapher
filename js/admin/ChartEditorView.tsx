@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import EditorBasicTab from './EditorBasicTab'
 import EditorDataTab from './EditorDataTab'
+import EditorTextTab from './EditorTextTab'
 import EditorCustomizeTab from './EditorCustomizeTab'
 import EditorScatterTab from './EditorScatterTab'
 import EditorMapTab from './EditorMapTab'
@@ -101,7 +102,8 @@ export default class ChartEditorView extends React.Component<{ editor: ChartEdit
 					</ul>
 				</div>
 				<div>
-					{editor.tab == 'basic' && <EditorBasicTab chart={chart}/>}
+					{editor.tab == 'basic' && <EditorBasicTab editor={editor}/>}
+					{editor.tab == 'text' && <EditorTextTab editor={editor}/>}
 					{editor.tab == 'data' && <EditorDataTab editor={editor}/>}
 					{editor.tab == 'customize' && <EditorCustomizeTab editor={editor}/>}
 					{editor.tab == 'scatter' && <EditorScatterTab chart={chart}/>}

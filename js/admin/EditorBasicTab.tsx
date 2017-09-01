@@ -1,64 +1,125 @@
 import * as _ from 'lodash'
 import * as React from 'react'
-import {computed, action} from 'mobx'
+import {observable, computed, action} from 'mobx'
 import {observer} from 'mobx-react'
-import ChartConfig from '../charts/ChartConfig'
+import ChartConfig, {DimensionSlot, ChartDimension} from '../charts/ChartConfig'
 import {ChartTypeType} from '../charts/ChartType'
 import {Toggle} from './Forms'
+import {DimensionWithData} from '../charts/ChartData'
+import ChartEditor, {Variable} from './ChartEditor'
+import DimensionEditor from './DimensionEditor'
+const styles = require("./EditorBasicTab.css")
 
-function slugify(s: string) {
-	s = s.toLowerCase().replace(/\s*\*.+\*/, '').replace(/[^\w- ]+/g,'');
-	return _.trim(s).replace(/ +/g,'-');
+@observer
+class DimensionCard extends React.Component<{ dimension: DimensionWithData, editor: ChartEditor, onEdit: () => void, onRemove: () => void }> {
+	render() {
+		const {dimension, editor} = this.props
+		return <div className="DimensionCard">
+			<div>{dimension.name}</div>
+			<div className="buttons">
+				<i className="fa fa-pencil clickable" onClick={this.props.onEdit}/> <i className="fa fa-close clickable" onClick={this.props.onRemove}/>
+			</div>
+		</div>
+	}
 }
 
 @observer
-export default class EditorBasicTab extends React.Component<{ chart: ChartConfig }> {
-	get chart(): ChartConfig {
-		return this.props.chart
+class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: ChartEditor }> {
+	@observable editingDimensionIndex?: number
+
+	@action.bound onAddVariable() {
+		this.editingDimensionIndex = this.props.editor.chart.dimensions.length
 	}
 
-	lastTitle: string
+	@action.bound onUpdateDimension(dimension?: ChartDimension) {
+		const {chart} = this.props.editor
+		const {editingDimensionIndex} = this
 
-	@action.bound onTitle(evt: React.FormEvent<HTMLInputElement>) { 
-		var currentTitle = this.lastTitle || this.chart.props.title || "";
-		var currentExpectedSlug = slugify(currentTitle);
-		var currentSlug = this.chart.props.slug;
-
-		// We only automatically update the slug to match title if it's an unpublished chart, to discourage changing them later
-		// Also if the user manually enters a slug we should honour that and not change it
-		if (!this.chart.props.isPublished && (_.isEmpty(currentSlug) || currentExpectedSlug == currentSlug)) {
-			var slug = slugify(evt.currentTarget.value);
-			this.chart.props.slug = slug
+		if (dimension && editingDimensionIndex !== undefined) {
+			let dimensions = _.clone(chart.dimensions)
+			if (editingDimensionIndex == dimensions.length) {
+				dimensions.push(dimension)
+			} else {
+				dimensions[editingDimensionIndex] = dimension
+			}
+			chart.props.dimensions = dimensions
 		}
 
-		this.lastTitle = evt.currentTarget.value
-		this.chart.props.title = evt.currentTarget.value 
+		this.editingDimensionIndex = undefined
 	}
 
-	@action.bound onSlug(evt: React.FormEvent<HTMLInputElement>) { this.chart.props.slug = evt.currentTarget.value }
-	@action.bound onSubtitle(evt: React.FormEvent<HTMLTextAreaElement>) { this.chart.props.subtitle = evt.currentTarget.value }
-	@action.bound onChartType(evt: React.FormEvent<HTMLSelectElement>) { this.chart.props.type = (evt.currentTarget.value as ChartTypeType) }
-	@action.bound onSource(evt: React.FormEvent<HTMLTextAreaElement>) { this.chart.props.sourceDesc = evt.currentTarget.value }
-	@action.bound onNote(evt: React.FormEvent<HTMLTextAreaElement>) { this.chart.props.note = evt.currentTarget.value }
-	@action.bound onInternalNotes(evt: React.FormEvent<HTMLTextAreaElement>) { this.chart.props.internalNotes = evt.currentTarget.value }
+	@action.bound removeDimension(index: number) {
+		const {chart} = this.props.editor
+		const dimensions = _.clone(chart.dimensions)
+		dimensions.splice(index, 1)
+		chart.props.dimensions = dimensions
+	}
+
+	@computed get editingDimension(): ChartDimension|undefined {
+		if (this.editingDimensionIndex == null)
+			return undefined
+
+		const {slot, editor} = this.props
+
+		if (this.editingDimensionIndex == editor.chart.dimensions.length) {
+			const order = slot.dimensions.length > 0 ? slot.dimensions[slot.dimensions.length-1].order+1 : 0
+			return {
+				variableId: -1,
+				property: this.props.slot.property,
+				order: order
+			}
+		} else {
+			return editor.chart.dimensions[this.editingDimensionIndex]
+		}
+	}
 
 	render() {
-		const { chart } = this
+		const {slot, editor} = this.props
+		const {chart} = editor
+		const {filledDimensions} = chart.data
+		const {editingDimension} = this
+		const canAddMore = slot.allowMultiple || filledDimensions.filter(d => d.property == slot.property).length == 0
 
-		return <div className="tab-pane active">
-			<section>
-				<h2>Title of the visualization</h2>
-				<p className="form-section-desc">Avoid using specific countries or years in the title. The grapher will add this information automatically when it is appropriate.</p>
-				<input className="form-control input-lg .col-xs-12" placeholder="Title (shorter is better)" type="text" value={chart.title} onInput={this.onTitle}/>
-				<div className="input-group">
-					<span className="input-group-addon">/grapher/</span>
-					<input className="form-control .col-xs-12" title="Human-friendly URL slug for this chart" type="text" value={chart.slug} onInput={this.onSlug}/>
-				</div>
-			</section>	
-			<section>
-				<h2>Subtitle of the visualization</h2>
-				<textarea className="form-control input-lg .col-xs-12" placeholder="Briefly describe the context of the data" value={chart.subtitle} onInput={this.onSubtitle} />
-	   		</section>
+		return <div>
+			<h5>{slot.name}</h5>
+			{filledDimensions.map((dim, i) => {
+				return dim.property == slot.property && <DimensionCard dimension={dim} editor={editor} onEdit={action(() => this.editingDimensionIndex = i)} onRemove={() => this.removeDimension(i)}/>
+			})}
+			{canAddMore && <div className="dimensionSlot" onClick={this.onAddVariable}>Add variable{slot.allowMultiple && 's'}</div>}
+			{editingDimension && <DimensionEditor dimension={editingDimension} editor={editor} onDismiss={this.onUpdateDimension} onComplete={this.onUpdateDimension}/>}
+		</div>
+	}
+}
+
+@observer
+class VariablesSection extends React.Component<{ editor: ChartEditor }> {
+	base: HTMLDivElement
+	@observable.ref isAddingVariable: boolean = false
+	@observable.struct unassignedVariables: Variable[] = []
+
+    @computed get slots(): DimensionSlot[] {
+		return this.props.editor.chart.emptyDimensionSlots
+    }
+
+	render() {
+		const {props, isAddingVariable, unassignedVariables, slots} = this
+
+		return <section className="add-data-section">
+			<h2>Add variables</h2>
+			{slots.map(slot => <DimensionSlotView slot={slot} editor={props.editor}/>)}
+		</section>
+	}
+}
+
+@observer
+export default class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
+	@action.bound onChartType(evt: React.FormEvent<HTMLSelectElement>) { this.props.editor.chart.props.type = (evt.currentTarget.value as ChartTypeType) }
+
+	render() {
+		const {editor} = this.props
+		const {chart} = editor
+
+		return <div className={"tab-pane active " + styles.EditorBasicTab}>
 			<section className="chart-type-section">
 				<h2>What type of chart</h2>
 				<select className="form-control chart-type-select" onChange={this.onChartType} ref={el => { if (el) el.value = chart.type }}>
@@ -69,21 +130,10 @@ export default class EditorBasicTab extends React.Component<{ chart: ChartConfig
 					<option value="StackedArea">Stacked Area</option>
 					<option value="DiscreteBar">Discrete Bar</option>
 				</select>
-				<Toggle label="Chart tab" value={chart.props.hasChartTab} onValue={value => chart.props.hasChartTab = value}/>				
-				{" "}<Toggle label="Map tab" value={chart.props.hasMapTab} onValue={value => chart.props.hasMapTab = value}/>				
+				<Toggle label="Chart tab" value={chart.props.hasChartTab} onValue={value => chart.props.hasChartTab = value}/>
+				{" "}<Toggle label="Map tab" value={chart.props.hasMapTab} onValue={value => chart.props.hasMapTab = value}/>
 			</section>
-			<section>
-				<h2>Sources</h2>
-				<textarea className="form-control input-lg .col-xs-12" placeholder="Override the autogenerated source names if needed" value={chart.sourceDesc} onInput={this.onSource}/>
-			</section>
-			<section>
-				<h2>Footer note</h2>
-				<textarea className="form-control input-lg .col-xs-12" placeholder="Any further relevant information e.g. adjustments or limitations" value={chart.note} onInput={this.onNote}/>
-			</section>
-			<section>						
-				<h2>Internal author notes</h2>						
-				<textarea className="form-control input-lg .col-xs-12" placeholder="WIP, needs review, etc" name="chart-notes" value={chart.internalNotes} onInput={this.onInternalNotes}/>
-			</section>
+			<VariablesSection editor={editor}/>
 		</div>
 	}
 }

@@ -11,12 +11,10 @@ import DataKey from '../charts/DataKey'
 import Color from '../charts/Color'
 import {defaultTo} from '../charts/Util'
 import {SelectField, Toggle, NumberField} from './Forms'
-import ChartEditor, {Variable} from './ChartEditor'
 import Colorpicker from './Colorpicker'
-import DimensionEditor from './DimensionEditor'
-const styles = require("./EditorDataTab.css")
+import ChartEditor from './ChartEditor'
 
-@observer
+/*@observer
 class VariableItem extends React.Component<{ variable: Variable }> {
 	render() {
 		const {variable} = this.props
@@ -32,108 +30,7 @@ class VariableItem extends React.Component<{ variable: Variable }> {
 			</span>
 		</li>
 	}
-}
-
-@observer
-class DimensionCard extends React.Component<{ dimension: DimensionWithData, editor: ChartEditor, onEdit: () => void, onRemove: () => void }> {
-	render() {
-		const {dimension, editor} = this.props
-		return <div className="DimensionCard">
-			<div>{dimension.name}</div>
-			<div className="buttons">
-				<i className="fa fa-pencil clickable" onClick={this.props.onEdit}/> <i className="fa fa-close clickable" onClick={this.props.onRemove}/>
-			</div>
-		</div>
-	}
-}
-
-@observer
-class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: ChartEditor }> {
-	@observable editingDimensionIndex?: number
-
-	@action.bound onAddVariable() {
-		this.editingDimensionIndex = this.props.editor.chart.dimensions.length
-	}
-
-	@action.bound onUpdateDimension(dimension?: ChartDimension) {
-		const {chart} = this.props.editor
-		const {editingDimensionIndex} = this
-
-		if (dimension && editingDimensionIndex !== undefined) {
-			let dimensions = _.clone(chart.dimensions)
-			if (editingDimensionIndex == dimensions.length) {
-				dimensions.push(dimension)
-			} else {
-				dimensions[editingDimensionIndex] = dimension
-			}
-			chart.props.dimensions = dimensions
-		}
-
-		this.editingDimensionIndex = undefined
-	}
-
-	@action.bound removeDimension(index: number) {
-		const {chart} = this.props.editor
-		const dimensions = _.clone(chart.dimensions)
-		dimensions.splice(index, 1)
-		chart.props.dimensions = dimensions
-	}
-
-	@computed get editingDimension(): ChartDimension|undefined {
-		if (this.editingDimensionIndex == null)
-			return undefined
-
-		const {slot, editor} = this.props
-
-		if (this.editingDimensionIndex == editor.chart.dimensions.length) {
-			const order = slot.dimensions.length > 0 ? slot.dimensions[slot.dimensions.length-1].order+1 : 0
-			return {
-				variableId: -1,
-				property: this.props.slot.property,
-				order: order
-			}
-		} else {
-			return editor.chart.dimensions[this.editingDimensionIndex]
-		}
-	}
-
-	render() {
-		const {slot, editor} = this.props
-		const {chart} = editor
-		const {filledDimensions} = chart.data
-		const {editingDimension} = this
-		const canAddMore = slot.allowMultiple || filledDimensions.filter(d => d.property == slot.property).length == 0
-
-		return <div>
-			<h5>{slot.name}</h5>
-			{filledDimensions.map((dim, i) => {
-				return dim.property == slot.property && <DimensionCard dimension={dim} editor={editor} onEdit={action(() => this.editingDimensionIndex = i)} onRemove={() => this.removeDimension(i)}/>
-			})}
-			{canAddMore && <div className="dimensionSlot" onClick={this.onAddVariable}>Add variable{slot.allowMultiple && 's'}</div>}
-			{editingDimension && <DimensionEditor dimension={editingDimension} editor={editor} onDismiss={this.onUpdateDimension} onComplete={this.onUpdateDimension}/>}
-		</div>
-	}
-}
-
-@observer
-class VariablesSection extends React.Component<{ editor: ChartEditor }> {
-	base: HTMLDivElement
-	@observable.ref isAddingVariable: boolean = false
-	@observable.struct unassignedVariables: Variable[] = []
-
-    @computed get slots(): DimensionSlot[] {
-		return this.props.editor.chart.emptyDimensionSlots
-    }
-
-	render() {
-		const {props, isAddingVariable, unassignedVariables, slots} = this
-
-		return <section className="add-data-section">
-			<h2>Add variables</h2>
-			{slots.map(slot => <DimensionSlotView slot={slot} editor={props.editor}/>)}
-		</section>
-	}
-}
+}*/
 
 interface DataKeyItemProps extends React.HTMLAttributes<HTMLLIElement> {
 	chart: ChartConfig
@@ -293,8 +190,7 @@ export default class EditorDataTab extends React.Component<{ editor: ChartEditor
 	render() {
 		const {editor} = this.props
 
-		return <div className={"tab-pane " + styles.EditorDataTab}>
-			<VariablesSection editor={editor}/>
+		return <div className={"tab-pane"}>
 			<KeysSection chart={editor.chart}/>
 			<TimeSection editor={editor}/>
 		</div>
