@@ -26,7 +26,7 @@ export default class AxisConfig {
         this.props = props
     }
 
-    @computed get label(): string { return defaultTo(this.props.label, "") }
+    @computed get label(): string|undefined { return this.props.label }
     @computed get prefix(): string { return defaultTo(this.props.prefix, "") }
     @computed get suffix(): string { return defaultTo(this.props.suffix, "") }
 

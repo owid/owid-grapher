@@ -337,20 +337,25 @@ export default class ScatterTransform implements IChartTransform {
         return this.isRelativeMode ? 'linear' : this.chart.yAxis.scaleType
     }
 
+    @computed get yAxisLabelBase() {
+        return defaultTo(this.chart.yAxis.label, this.yDimension.name)
+    }
+
     @computed get yAxis(): AxisSpec {
-        const {chart, yDomainDefault, yDimension, isRelativeMode, yScaleType} = this
+        const {chart, yDomainDefault, yDimension, isRelativeMode, yScaleType, yAxisLabelBase} = this
         
         const props: Partial<AxisSpec> = {}
         props.scaleType = yScaleType
         if (isRelativeMode) {
             props.domain = yDomainDefault
             props.scaleTypeOptions = ['linear']
-            const label = chart.yAxis.label
+            const label = yAxisLabelBase
             if (label && label.length > 1) {
                 props.label = "Average annual change in " + (label.charAt(1).match(/[A-Z]/) ? label : label.charAt(0).toLowerCase() + label.slice(1))
             }
             props.tickFormat = (v: number) => formatValue(v, { unit: "%" })
         } else {
+            props.label = yAxisLabelBase
             props.tickFormat = yDimension.formatValueShort
         }
 
@@ -361,20 +366,25 @@ export default class ScatterTransform implements IChartTransform {
         return this.isRelativeMode ? 'linear' : this.chart.xAxis.scaleType
     }
 
+    @computed get xAxisLabelBase() {
+        return defaultTo(this.chart.xAxis.label, this.xDimension.name)
+    }
+
     @computed get xAxis(): AxisSpec {
-        const {chart, xDomainDefault, xDimension, isRelativeMode, xScaleType} = this
+        const {chart, xDomainDefault, xDimension, isRelativeMode, xScaleType, xAxisLabelBase} = this
 
         const props: Partial<AxisSpec> = {}
         props.scaleType = xScaleType
         if (isRelativeMode) {
             props.domain = xDomainDefault
             props.scaleTypeOptions = ['linear']
-            const label = chart.xAxis.label
+            const label = xAxisLabelBase
             if (label && label.length > 1) {
                 props.label = "Average annual change in " + (label.charAt(1).match(/[A-Z]/) ? label : label.charAt(0).toLowerCase() + label.slice(1))
             }
             props.tickFormat = (v: number) => formatValue(v, { unit: "%" })
         } else {
+            props.label = xAxisLabelBase
             props.tickFormat = xDimension.formatValueShort
         }
 

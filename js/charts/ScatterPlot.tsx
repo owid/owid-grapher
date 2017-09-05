@@ -31,15 +31,6 @@ import AxisSpec from './AxisSpec'
 import {formatYear, first, last} from './Util'
 import AxisBoxHighlight from './AxisBoxHighlight'
 
-interface ScatterWithAxisProps {
-    bounds: Bounds,
-    data: ScatterSeries[],
-    xScale: AxisScale,
-    yScale: AxisScale,
-    xAxisLabel: string,
-    yAxisLabel: string
-}
-
 @observer
 export default class ScatterPlot extends React.Component<{ bounds: Bounds, config: ChartConfig, isStatic: boolean }> {
     @computed get chart() : ChartConfig {
