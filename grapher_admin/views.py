@@ -149,7 +149,7 @@ def editordata(request: HttpRequest, cachetag: Optional[str]):
             'variables': [serializeVariable(v) for v in dataset.variable_set.all()]
         }
 
-    datasets = [serializeDataset(d) for d in Dataset.objects.prefetch_related('variable_set')]
+    datasets = [serializeDataset(d) for d in Dataset.objects.order_by('-updated_at').prefetch_related('variable_set')]
     namespaces = list(Dataset.objects.values_list('namespace', flat=True).distinct())
 
     response = JsonResponse({

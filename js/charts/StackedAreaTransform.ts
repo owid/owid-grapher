@@ -151,6 +151,9 @@ export default class StackedAreaTransform implements IChartTransform {
 		let groupedData = _.cloneDeep(this.initialData)
 
 		if (this.isRelative) {
+			if (groupedData.length == 0)
+				return []
+				
 			for (var i = 0; i < groupedData[0].values.length; i++) {
 				const total = _(groupedData).map(series => series.values[i].y).sum() as number
 				for (var j = 0; j < groupedData.length; j++) {

@@ -91,19 +91,23 @@ button > i {
 	padding: 0;*/
   overflow: auto;
   position: relative;
-  padding: 20px; }
+}
 
 .form-wrapper {
-  padding: 0; }
+  padding: 0; 
+  padding-left: .9375rem;
+  padding-right: .9375rem;
+  width: 50%;
+}
 
 .form-wrapper-inner {
   position: relative;
-  overflow: auto;
-  height: 100%; }
+}
 
 #editor {
   background-color: #ffffff; 
   display: flex;
+  height: 100%;
 }
 
 #editor .chart-container {
@@ -119,7 +123,6 @@ button > i {
    ========================================================================== */
 .form-wrapper {
   /*overflow: auto;*/
-  height: 100%;
   /*box-shadow: -1px 2px 3px rgba(0,0,0,0.25) !important;*/
   border-left: 1px solid #ddd;
   background-color: #ecf0f5; }
@@ -168,50 +171,6 @@ button > i {
 .form-variable-select-wrapper {
   padding: 20px;
   background-color: #ecf0f5; }
-
-/* select-var-popup */
-.VariableSelector .form-variable-select-wrapper label {
-  display: block;
-  width: 100%; }
-
-.VariableSelector .form-variable-select-wrapper .chosen-container {
-  width: 100% !important; }
-
-.VariableSelector .select-var-search-wrapper {
-  position: relative;
-  padding: 20px;
-  margin-bottom: 20px;
-  background-color: #ecf0f5; }
-
-.VariableSelector .search-input-wrapper {
-  position: relative; }
-
-.VariableSelector .search-input-wrapper i {
-  position: absolute;
-  top: 10px;
-  right: 10px; }
-
-.VariableSelector .search-input-wrapper .fa-times {
-  cursor: pointer; }
-
-.VariableSelector .search-results {
-  position: absolute;
-  left: 20px;
-  right: 20px;
-  padding-left: 0;
-  z-index: 1;
-  background-color: white;
-  border: 1px solid #d2d6de;
-  border-top: 0;
-  display: none; }
-
-.VariableSelector .search-results li {
-  padding: 6px 6px;
-  cursor: pointer; }
-
-.VariableSelector .search-results .selected,
-.VariableSelector .search-results li:hover {
-  background-color: #eeeeee; }
 
 /* override ugly chosen */
 .chosen-container-single .chosen-single {
@@ -974,8 +933,7 @@ li[data-color^=".*"] {
 }
 
 .VariableSelector { 
-    width: 90vw;
-    height: 90vh;
+    width: 800px !important;
     
     text-align: left;
 
@@ -997,6 +955,13 @@ li[data-color^=".*"] {
 
     & .searchResults {
         width: 100%;
+    }
+
+    & .searchResults h5 {
+      color: #666;
+      font-size: 1rem;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #ccc;
     }
 
     & .searchResults ul {
@@ -1025,7 +990,9 @@ li[data-color^=".*"] {
         border: 1px solid #ccc;
     }
 }
+
 /* Utility moved from charts.css */
 .hidden {
     display: none !important;
 }
+

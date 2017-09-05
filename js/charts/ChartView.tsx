@@ -170,7 +170,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
         const {chart} = this
         if (chart.primaryTab == 'chart')
             return <ChartTab bounds={bounds} chartView={this} chart={this.chart}/>
-        else
+        else if (chart.primaryTab == 'map')
             return <MapTab bounds={bounds} chart={this.chart}/>
     }
 

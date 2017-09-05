@@ -14,24 +14,6 @@ import {SelectField, Toggle, NumberField} from './Forms'
 import Colorpicker from './Colorpicker'
 import ChartEditor from './ChartEditor'
 
-/*@observer
-class VariableItem extends React.Component<{ variable: Variable }> {
-	render() {
-		const {variable} = this.props
-
-		return <li className="variable-label dd-item">
-			<div className="dd-handle">
-				<div className="dd-inner-handle">
-					<span className="variable-label-name">{variable.name}</span>
-				</div>
-			</div>
-			<span className="buttons">
-				<span className="fa fa-cog clickable" title="Variable settings"></span> <span className="fa fa-close clickable"></span>
-			</span>
-		</li>
-	}
-}*/
-
 interface DataKeyItemProps extends React.HTMLAttributes<HTMLLIElement> {
 	chart: ChartConfig
 	datakey: DataKey

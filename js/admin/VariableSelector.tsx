@@ -20,7 +20,9 @@ interface VariableSelectorProps {
 
 interface Variable {
 	id: number
-	name: string
+	name: string,
+	datasetName: string,
+	searchKey: string
 }
 
 @observer
@@ -50,7 +52,9 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
 			dataset.variables.forEach(variable => {
 				variables.push({
 					id: variable.id,
-					name: variable.name
+					name: variable.name,
+					datasetName: dataset.name,
+					searchKey: dataset.name + " - " + variable.name
 					//name: variable.name.includes(dataset.name) ? variable.name : dataset.name + " - " + variable.name
 				})
 			})
@@ -63,13 +67,17 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
 	}
 
 	@computed get fuzzy(): FuzzySearch<Variable> {
-		return new FuzzySearch(this.unselectedVariables, 'name')
+		return new FuzzySearch(this.unselectedVariables, 'searchKey')
 	}
 
     @computed get searchResults(): Variable[] {
 		const results = this.searchInput && this.fuzzy.search(this.searchInput)
 		return (results && results.length) ? results : this.unselectedVariables
     }
+
+	@computed get resultsByDataset(): { [datasetName: string]: Variable[] } {
+		return _.groupBy(this.searchResults, d => d.datasetName)
+	}
 
 	@action.bound onNamespace(namespace: string) {
 		this.chosenNamespace = namespace
@@ -80,7 +88,10 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
 	}
 
 	@action.bound selectVariable(variable: Variable) {
-		this.chosenVariables = this.chosenVariables.concat(variable)
+		if (this.props.slot.allowMultiple)
+			this.chosenVariables = this.chosenVariables.concat(variable)
+		else
+			this.chosenVariables = [variable]
 	}
 
 	@action.bound unselectVariable(variable: Variable) {
@@ -116,7 +127,9 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
 
 		this.chosenVariables = this.props.slot.dimensionsWithData.map(d => ({
 			name: d.displayName,
-			id: d.variableId
+			id: d.variableId,
+			datasetName: "",
+			searchKey: ""
 		}))
 
 		this.searchField.focus()
@@ -127,28 +140,34 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
 	}
 
 	render() {
+		const {slot} = this.props
 		const {chart, database} = this.props.editor
-		const {currentNamespace, searchInput, searchResults, chosenVariables, isProjection, tolerance} = this
+		const {currentNamespace, searchInput, resultsByDataset, chosenVariables, isProjection, tolerance} = this
 
 		return <EditorModal>
 			<div className="modal-dialog VariableSelector">
 				<div className="modal-content">
 					<div className="modal-header">
 						<button type="button" className="close" onClick={this.onDismiss}><span aria-hidden="true">×</span></button>
-						<h4 className="modal-title">Select variables from database</h4>
+						<h4 className="modal-title">Set variable{slot.allowMultiple && 's'} for {slot.name}</h4>
 					</div>
 					<div className="modal-body">
 						<div className="searchResults">
 							<SelectField label="Database" options={database.namespaces} value={currentNamespace} onValue={this.onNamespace}/> <input type="search" placeholder="Search..." value={searchInput} onInput={this.onSearchInput} onKeyDown={this.onSearchKeyDown} ref={e => this.searchField = (e as HTMLInputElement)}/>
-							<ul>
-								{searchResults.map(d => {
-									return <li>
-										<label className="clickable">
-											<input type="checkbox" checked={false} onChange={e => this.selectVariable(d)}/> {d.name}
-										</label>
-									</li>
-								})}
-							</ul>
+							{_.map(resultsByDataset, (results, datasetName) => {
+								return <div>
+									<h5>{datasetName}</h5>
+									<ul>
+										{results.map(d => 
+											<li>
+												<label className="clickable">
+													<input type="checkbox" checked={false} onChange={e => this.selectVariable(d)}/> {d.name}
+												</label>
+											</li>
+										)}
+									</ul>
+								</div>
+							})}
 						</div>
 						<div className="selectedData">
 							<ul>
@@ -164,7 +183,7 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
 					</div>
 					<div className="modal-footer">
 						<button type="button" className="btn btn-default pull-left" onClick={this.onDismiss}>Close</button>
-						<button type="button" className="btn btn-primary" onClick={this.onComplete}>Set variables</button>
+						<button type="button" className="btn btn-primary" onClick={this.onComplete}>Set variable{slot.allowMultiple && 's'}</button>
 					</div>
 				</div>
 			</div>
