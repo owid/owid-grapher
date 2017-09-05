@@ -10,18 +10,19 @@ import {numberOnly} from '../charts/Util'
 import * as _ from 'lodash'
 import {bind} from 'decko'
 
-export interface TextFieldProps {
+export interface TextFieldProps extends React.HTMLAttributes<HTMLLabelElement> {
     label?: string,
     value: string|undefined,
     onValue: (value: string|undefined) => void,
     onEnter?: () => void,
     onEscape?: () => void,
     placeholder?: string,
+    title?: string,
     disabled?: boolean
 }
 
 export class TextField extends React.Component<TextFieldProps> {
-    @bind onChange(ev: React.FormEvent<HTMLInputElement>) {
+    @bind onInput(ev: React.FormEvent<HTMLInputElement>) {
         const value = ev.currentTarget.value
         if (value == "") {
             this.props.onValue(undefined)
@@ -40,10 +41,41 @@ export class TextField extends React.Component<TextFieldProps> {
 
     render() {
         const {props} = this
-        return <label>
-            {props.label}
-            <input className="form-control" type="text" value={props.value} onChange={this.onChange} onKeyDown={this.onKeyDown} {..._.pick(props, ['placeholder', 'disabled'])}/>
-        </label>    
+        const passthroughProps = _.pick(props, ['placeholder', 'title', 'disabled'])
+
+        if (props.label) {
+            return <label style={props.style}>
+                {props.label}
+                <input className="form-control" type="text" value={props.value} onInput={this.onInput} onKeyDown={this.onKeyDown} {...passthroughProps}/>
+            </label>    
+        } else {
+            return <input style={props.style} className="form-control" type="text" value={props.value} onInput={this.onInput} onKeyDown={this.onKeyDown} {...passthroughProps}/>
+        }
+    }
+}
+
+export class TextAreaField extends React.Component<TextFieldProps> {
+   @bind onInput(ev: React.FormEvent<HTMLTextAreaElement>) {
+        const value = ev.currentTarget.value
+        if (value == "") {
+            this.props.onValue(undefined)
+        } else {
+            this.props.onValue(value)
+        }
+    }
+
+    render() {
+        const {props} = this
+        const passthroughProps = _.pick(props, ['placeholder', 'title', 'disabled'])
+
+        if (props.label) {
+            return <label style={props.style}>
+                {props.label}
+                <textarea className="form-control" value={props.value} onInput={this.onInput} {...passthroughProps}/>
+            </label>    
+        } else {
+            return <textarea style={props.style} className="form-control" value={props.value} onInput={this.onInput} {...passthroughProps}/>
+        }
     }
 }
 

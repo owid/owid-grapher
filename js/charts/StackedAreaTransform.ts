@@ -9,15 +9,20 @@ import AxisSpec from './AxisSpec'
 import ColorSchemes from './ColorSchemes'
 import ColorBinder from './ColorBinder'
 import {formatValue, formatYear} from './Util'
+import IChartTransform from './IChartTransform'
 
 // Responsible for translating chart configuration into the form
 // of a stacked area chart
-export default class StackedAreaTransform {
+export default class StackedAreaTransform implements IChartTransform {
     chart: ChartConfig
 
     constructor(chart: ChartConfig) {
         this.chart = chart
     }
+
+	@computed get isValidConfig(): boolean {
+		return _.some(this.chart.dimensions, d => d.property == 'y')
+	}
 
     @computed get failMessage(): string|undefined {
         const {filledDimensions} = this.chart.data

@@ -7,7 +7,7 @@ import DataKey from './DataKey'
 import {bind} from 'decko'
 import {LineChartSeries} from './LineChart'
 import Color from './Color'
-import {formatValue, last} from './Util'
+import {formatValue, last, defaultTo, slugify} from './Util'
 
 export interface DataKeyInfo {
 	entity: string 
@@ -115,6 +115,30 @@ export default class ChartData {
 
 	@computed get primaryDimensions() {
 		return this.filledDimensions.filter(dim => dim.property == 'y')        
+    }
+
+	@computed get defaultTitle() {
+		return this.primaryDimensions.map(d => d.name).join(', ')
+	}
+
+	@computed get title() {
+		return defaultTo(this.chart.props.title, this.defaultTitle)
+	}
+
+	@computed get defaultSlug() {
+		return slugify(this.title)
+	}
+
+	@computed get slug() {
+		return defaultTo(this.chart.props.slug, this.defaultSlug)
+	}
+
+    @computed get defaultSourcesLine(): string {
+       return _(this.sources).map(source => source.name).uniq().join(", ")
+    }
+
+    @computed get sourcesLine(): string {
+		return defaultTo(this.chart.props.sourceDesc, this.defaultSourcesLine)
     }
 
 	@computed get isSingleEntity(): boolean {

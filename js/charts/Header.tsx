@@ -83,7 +83,7 @@ export default class Header {
     }
 
     @computed get titleText() {
-        return this.fillTemplate(this.props.chart.title)
+        return this.fillTemplate(this.props.chart.data.title)
     }
 
     @computed get subtitleText() {

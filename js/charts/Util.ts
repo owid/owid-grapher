@@ -237,3 +237,9 @@ export function domainExtent(values: number[], scaleType: 'linear'|'log'): [numb
 		return scaleType == 'log' ? [1, 100] : [-1, 1]
 	}
 }
+
+// Take an arbitrary string and turn it into a nice url slug
+export function slugify(s: string) {
+	s = s.toLowerCase().replace(/\s*\*.+\*/, '').replace(/[^\w- ]+/g,'');
+	return _.trim(s).replace(/ +/g,'-');
+}

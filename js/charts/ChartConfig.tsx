@@ -26,6 +26,7 @@ import ChartView from './ChartView'
 import * as React from 'react'
 import * as ReactDOMServer from 'react-dom/server'
 import Bounds from './Bounds'
+import IChartTransform from './IChartTransform'
 
 declare const App: any
 declare const window: any
@@ -111,10 +112,7 @@ export default class ChartConfig {
 
     @computed get id() { return this.props.id }
     @computed get type() { return this.props.type }
-    @computed get slug() { return defaultTo(this.props.slug, "") }
-    @computed get title() { return defaultTo(this.props.title, "") }
     @computed get subtitle() { return defaultTo(this.props.subtitle, "") }
-    @computed get sourceDesc() { return defaultTo(this.props.sourceDesc, "") }
     @computed get note() { return defaultTo(this.props.note, "") }
     @computed get internalNotes() { return defaultTo(this.props.internalNotes, "") }
     @computed get logosSVG() { return this.props.logosSVG }
@@ -219,6 +217,13 @@ export default class ChartConfig {
                 (this.props as any)[key] = props[key]
             }
         }
+        
+        if (props.isAutoTitle)
+            this.props.title = undefined
+
+        // Note: no auto slug outside of editor for obvious reasons
+        if (props.isAutoSlug && App.isEditor)
+            this.props.slug = undefined
 
         this.props.type = props['chart-type']||ChartType.LineChart
         this.props.note = props['chart-description']
@@ -245,6 +250,17 @@ export default class ChartConfig {
 
         const json: any = toJS(this.props)
 
+        // Chart title and slug may be autocalculated from data, in which case they won't be in props
+        // But the server will need to know what we calculated in order to do its job
+        if (!this.props.title) {
+            json.title = this.data.title
+            json.isAutoTitle = true
+        }
+        if (!this.props.slug) {
+            json.slug = this.data.slug
+            json.isAutoSlug = true
+        }
+
         // XXX backwards compatibility
         json['chart-type'] = props.type
         json['chart-description'] = props.note
@@ -261,12 +277,33 @@ export default class ChartConfig {
         return json
     }
 
-    @computed get map() { return new MapConfig(this) }
-    @computed get discreteBar() { return new DiscreteBarTransform(this) }
-    @computed get stackedArea() { return new StackedAreaTransform(this) }
+    @computed get isLineChart() { return this.type == ChartType.LineChart }
+    @computed get isScatter() { return this.type == ChartType.ScatterPlot }
+    @computed get isStackedArea() { return this.type == ChartType.StackedArea }
+    @computed get isSlopeChart() { return this.type == ChartType.SlopeChart }
+    @computed get isDiscreteBar() { return this.type == ChartType.DiscreteBar }
+
     @computed get lineChart() { return new LineChartTransform(this) }
     @computed get scatter() { return new ScatterTransform(this) }
+    @computed get stackedArea() { return new StackedAreaTransform(this) }
     @computed get slopeChart() { return new SlopeChartTransform(this) }
+    @computed get discreteBar() { return new DiscreteBarTransform(this) }
+    @computed get map() { return new MapConfig(this) }
+
+    @computed get activeTransform(): IChartTransform {
+        if (this.isLineChart)
+            return this.lineChart
+        else if (this.isScatter)
+            return this.scatter
+        else if (this.isStackedArea)
+            return this.stackedArea
+        else if (this.isSlopeChart)
+            return this.slopeChart
+        else if (this.isDiscreteBar)
+            return this.discreteBar
+        else
+            throw "No transform found"
+    }
 
 	constructor(props: ChartConfigProps) {        
         this.update(props)
@@ -298,10 +335,4 @@ export default class ChartConfig {
 
         return svg
     }
-
-    @computed get isLineChart() { return this.type == ChartType.LineChart }
-    @computed get isScatter() { return this.type == ChartType.ScatterPlot }
-    @computed get isStackedArea() { return this.type == ChartType.StackedArea }
-    @computed get isSlopeChart() { return this.type == ChartType.SlopeChart }
-    @computed get isDiscreteBar() { return this.type == ChartType.DiscreteBar }
 }

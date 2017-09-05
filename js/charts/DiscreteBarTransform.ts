@@ -5,14 +5,19 @@ import Color from './Color'
 import {DiscreteBarDatum} from './DiscreteBarChart'
 import {DimensionWithData} from './ChartData'
 import ColorBinder from './ColorBinder'
+import IChartTransform from './IChartTransform'
 
 // Responsible for translating chart configuration into the form
 // of a discrete bar chart
-export default class DiscreteBarTransform {
+export default class DiscreteBarTransform implements IChartTransform {
     chart: ChartConfig
 
     constructor(chart: ChartConfig) {
         this.chart = chart
+    }
+
+    @computed get isValidConfig() {
+        return _.some(this.chart.dimensions, d => d.property == 'y')
     }
 
     @computed get failMessage(): string|undefined {

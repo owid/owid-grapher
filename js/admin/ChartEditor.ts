@@ -58,10 +58,14 @@ export default class ChartEditor {
 	@observable.ref tab: EditorTab = 'basic'
 
 	@computed get availableTabs(): EditorTab[] {
-		const tabs: EditorTab[] = ['basic', 'data', 'text', 'customize']
-		if (this.chart.hasMapTab) tabs.push('map')
-		if (this.chart.type == ChartType.ScatterPlot) tabs.push('scatter')
-		return tabs
+		if (!this.chart.activeTransform.isValidConfig) {
+			return ['basic']
+		} else {
+			const tabs: EditorTab[] = ['basic', 'data', 'text', 'customize']
+			if (this.chart.hasMapTab) tabs.push('map')
+			if (this.chart.type == ChartType.ScatterPlot) tabs.push('scatter')
+			return tabs
+		}
 	}
 
 	@computed get isNewChart() {

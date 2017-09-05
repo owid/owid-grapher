@@ -114,21 +114,6 @@ class KeysSection extends React.Component<{ chart: ChartConfig }> {
 					<DataKeyItem chart={chart} datakey={datakey} onMouseDown={ev => this.onStartDrag(datakey)} onMouseEnter={ev => this.onMouseEnter(datakey)}/>
 				)}
 			</ul>
-			<div className="add-country-control-wrapper">
-				<h4>Can user add/change data?</h4>
-				<label>
-					<input type="radio" name="add-country-mode" value="add-country" checked={chart.addCountryMode == "add-country"} onClick={e => chart.props.addCountryMode = "add-country"}/>
-					User can add and remove data
-				</label>
-				<label>
-					<input type="radio" name="add-country-mode" value="change-country" checked={chart.addCountryMode == "change-country"} onClick={e => chart.props.addCountryMode = "change-country"}/>
-					User can change entity
-				</label>
-				<label>
-					<input type="radio" name="add-country-mode" value="disabled" checked={chart.addCountryMode == "disabled"} onClick={e => chart.props.addCountryMode = "disabled"}/>
-					User cannot change/add data
-				</label>
-			</div>
 		</section>
 	}
 }
@@ -189,8 +174,24 @@ class TimeSection extends React.Component<{ editor: ChartEditor }> {
 export default class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
 	render() {
 		const {editor} = this.props
+		const {chart} = editor
 
 		return <div className={"tab-pane"}>
+			<section className="add-country-control-wrapper">
+				<h4>Can user add/change data?</h4>
+				<label>
+					<input type="radio" name="add-country-mode" value="add-country" checked={chart.addCountryMode == "add-country"} onClick={e => chart.props.addCountryMode = "add-country"}/>
+					User can add and remove data
+				</label>
+				<label>
+					<input type="radio" name="add-country-mode" value="change-country" checked={chart.addCountryMode == "change-country"} onClick={e => chart.props.addCountryMode = "change-country"}/>
+					User can change entity
+				</label>
+				<label>
+					<input type="radio" name="add-country-mode" value="disabled" checked={chart.addCountryMode == "disabled"} onClick={e => chart.props.addCountryMode = "disabled"}/>
+					User cannot change/add data
+				</label>
+			</section>
 			<KeysSection chart={editor.chart}/>
 			<TimeSection editor={editor}/>
 		</div>

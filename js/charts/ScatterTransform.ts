@@ -8,10 +8,11 @@ import {ScatterSeries, ScatterValue} from './PointsWithLabels'
 import AxisSpec from './AxisSpec'
 import {formatValue, domainExtent} from './Util'
 import ColorSchemes from './ColorSchemes'
+import IChartTransform from './IChartTransform'
 
 // Responsible for translating chart configuration into the form
 // of a scatter plot
-export default class ScatterTransform {
+export default class ScatterTransform implements IChartTransform {
     chart: ChartConfig
 
     constructor(chart: ChartConfig) { 
@@ -19,6 +20,10 @@ export default class ScatterTransform {
     }
 
     @observable.ref useTimelineDomains = false
+
+    @computed get isValidConfig(): boolean {
+        return _.some(this.chart.dimensions, d => d.property == 'y') && _.some(this.chart.dimensions, d => d.property == 'x')
+    }
 
     @computed get failMessage(): string|undefined {
         const {filledDimensions} = this.chart.data

@@ -11,15 +11,20 @@ import {DimensionWithData} from './ChartData'
 import Observations from './Observations'
 import {SlopeChartSeries} from './LabelledSlopes'
 import {first, last, makeSafeForCSS} from './Util'
+import IChartTransform from './IChartTransform'
 
 // Responsible for translating chart configuration into the form
 // of a line chart
-export default class SlopeChartTransform {
+export default class SlopeChartTransform implements IChartTransform {
     chart: ChartConfig
 
     constructor(chart: ChartConfig) {
         this.chart = chart
     }
+
+	@computed get isValidConfig(): boolean {
+		return _.some(this.chart.dimensions, d => d.property == 'y')
+	}
 
     @computed get failMessage(): string|undefined {
         const {filledDimensions} = this.chart.data

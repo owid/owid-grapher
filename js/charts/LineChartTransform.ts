@@ -10,13 +10,18 @@ import {defaultTo, formatYear} from './Util'
 import {DimensionWithData} from './ChartData'
 import ColorBinder from './ColorBinder'
 import ColorSchemes from './ColorSchemes'
+import IChartTransform from './IChartTransform'
 
 // Responsible for translating chart configuration into the form
 // of a line chart
-export default class LineChartTransform {
+export default class LineChartTransform implements IChartTransform {
     chart: ChartConfig
     constructor(chart: ChartConfig) {
         this.chart = chart
+    }
+
+    @computed get isValidConfig() {
+        return _.some(this.chart.dimensions, d => d.property == 'y')
     }
 
     @computed get failMessage(): string|undefined {

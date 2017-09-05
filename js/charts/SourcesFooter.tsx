@@ -24,14 +24,9 @@ export default class SourcesFooter {
         return this.props.maxWidth
     }
 
-    @computed get defaultSourceDesc(): string {
-       return _(this.props.chart.data.sources).map('name').uniq().join(", ")
-    }
-
     @computed get sourcesText(): string {
-        const {chart} = this.props
-        const sourceDesc = chart.sourceDesc || this.defaultSourceDesc
-        return sourceDesc ? `Source: ${sourceDesc}` : ''
+        const sourcesLine = this.props.chart.data.sourcesLine
+        return sourcesLine ? `Source: ${sourcesLine}` : ''
     }
 
     @computed get noteText(): string {
