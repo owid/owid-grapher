@@ -5,10 +5,10 @@ import {computed, action, observable} from 'mobx'
 import ChartConfig from './ChartConfig'
 import Bounds from './Bounds'
 import {DataKeyInfo} from './ChartData'
-const Fuse = require("fuse.js")
 const styles = require("./DataSelector.css")
 import * as d3 from 'd3'
 import ChartView from './ChartView'
+import FuzzySearch from './FuzzySearch'
 
 @observer
 export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, chartView: ChartView, onDismiss: () => void }> {
@@ -28,20 +28,13 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
     @computed get unselectedData() {
         return this.availableData.filter(d => !this.props.chart.data.selectedKeysByKey[d.key])
     }
-    @computed get fuseSearch(): any {
-        return new Fuse(this.unselectedData, {
-            shouldSort: true,
-            threshold: 0.6,
-            location: 0,
-            distance: 100,
-            maxPatternLength: 32,
-            minMatchCharLength: 1,
-            keys: ["label"]
-        });
+
+    @computed get fuzzy(): FuzzySearch<DataKeyInfo> {
+        return new FuzzySearch(this.unselectedData, 'label')
     }
 
     @computed get searchResults(): DataKeyInfo[] {
-        return this.searchInput ? this.fuseSearch.search(this.searchInput) : this.unselectedData
+        return this.searchInput ? this.fuzzy.search(this.searchInput) : this.unselectedData
     }
 
     componentWillMount() {
@@ -83,7 +76,7 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
                         {searchResults.map(d => {
                             return <li>
                                 <label className="clickable">
-                                    <input type="checkbox" checked={!!chart.data.selectedKeysByKey[d.key]} onChange={e => chart.data.toggleKey(d.key)}/> {d.label}
+                                    <input type="checkbox" checked={false} onChange={e => chart.data.toggleKey(d.key)}/> {d.label}
                                 </label>
                             </li>
                         })}
@@ -94,7 +87,7 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
                         {selectedData.map(d => {
                             return <li>
                                 <label className="clickable">
-                                    <input type="checkbox" checked={!!chart.data.selectedKeysByKey[d.key]} onChange={e => chart.data.toggleKey(d.key)}/> {d.label}
+                                    <input type="checkbox" checked={true} onChange={e => chart.data.toggleKey(d.key)}/> {d.label}
                                 </label>
                             </li>
                         })}
@@ -122,20 +115,12 @@ export class DataSelectorSingle extends React.Component<{ chart: ChartConfig, ch
         return _.uniqBy(availableItems, d => d.label)
     }
 
-    @computed get fuseSearch(): any {
-        return new Fuse(this.availableItems, {
-            shouldSort: true,
-            threshold: 0.6,
-            location: 0,
-            distance: 100,
-            maxPatternLength: 32,
-            minMatchCharLength: 1,
-            keys: ["label"]
-        });
+    @computed get fuzzy(): FuzzySearch<{ id: number, label: string }> {
+        return new FuzzySearch(this.availableItems, 'label')
     }
 
     @computed get searchResults(): { id: number, label: string }[] {
-        return this.searchInput ? this.fuseSearch.search(this.searchInput) : this.availableItems
+        return this.searchInput ? this.fuzzy.search(this.searchInput) : this.availableItems
     }
 
     @action.bound onClickOutside(e: MouseEvent) {

@@ -12,7 +12,7 @@ import ChartTabOption from './ChartTabOption'
 import LineType from './LineType'
 import {defaultTo} from './Util'
 import VariableData from './VariableData'
-import ChartData from './ChartData'
+import ChartData, {DimensionWithData} from './ChartData'
 import MapConfig, {MapConfigProps} from './MapConfig'
 import URLBinder from './URLBinder'
 import ColorBinder from './ColorBinder'
@@ -53,17 +53,57 @@ export interface ChartDimension {
     unit?: string
 }
 
-export interface DimensionSlot {
-    property: string
-    name: string
-    allowMultiple?: boolean,
-    dimensions: ChartDimension[]
-}
-
 export interface EntitySelection {
     entityId: number,
     index: number, // Which dimension the entity is from
     color?: Color
+}
+
+export class DimensionSlot {
+    chart: ChartConfig
+    property: string
+    constructor(chart: ChartConfig, property: string) {
+        this.chart = chart
+        this.property = property
+    }
+
+    @computed get name(): string {
+        const names = {
+            'y': 'Y axis',
+            'x': 'X axis',
+            'size': 'Size',
+            'color': 'Color'
+        }
+
+        return (names as any)[this.property]||""
+    }
+
+    @computed get allowMultiple(): boolean {
+        return this.property == 'y' && !(this.chart.isScatter || this.chart.isSlopeChart)
+    }
+
+    @computed get dimensions(): ChartDimension[] {
+        return this.chart.dimensions.filter(d => d.property == this.property)
+    }
+
+    @computed get dimensionsWithData(): DimensionWithData[] {
+        return this.chart.data.filledDimensions.filter(d => d.property == this.property)
+    }
+
+    set dimensions(dims: ChartDimension[]) {
+        let newDimensions: ChartDimension[] = []
+        this.chart.dimensionSlots.forEach(slot => {
+            if (slot.property == this.property)
+                newDimensions = newDimensions.concat(dims)
+            else
+                newDimensions = newDimensions.concat(slot.dimensions)
+        })
+        this.chart.props.dimensions = newDimensions
+    }
+
+    createDimension(variableId: number) {
+        return { property: this.property, variableId: variableId, order: 0 }
+    }
 }
 
 export class ChartConfigProps {
@@ -166,29 +206,26 @@ export default class ChartConfig {
     url: URLBinder
 
 	// Get the dimension slots appropriate for this type of chart
-	@computed get emptyDimensionSlots(): DimensionSlot[] {
-		const xAxis = { property: 'x', name: 'X axis', dimensions: [] }
-		const yAxis = { property: 'y', name: 'Y axis', dimensions: [] }
-		const color = { property: 'color', name: 'Color', dimensions: [] }
-		const size = { property: 'size', name: 'Size', dimensions: [] }
-        
-        let slots = []
+	@computed get dimensionSlots(): DimensionSlot[] {
+		const xAxis = new DimensionSlot(this, 'x')
+        const yAxis = new DimensionSlot(this, 'y')
+        const color = new DimensionSlot(this, 'color')
+        const size = new DimensionSlot(this, 'size')
+
 		if (this.isScatter)
-			slots = [yAxis, xAxis, size, color];
+			return [yAxis, xAxis, size, color]
 		else if (this.isSlopeChart)
-			slots = [yAxis, size, color]
+			return [yAxis, size, color]
 		else
-		    slots = [{ property: 'y', name: 'Y axis', allowMultiple: true, dimensions: [] }];
-        
-        return slots
+		    return [yAxis]
 	}
 
     @computed get dimensions(): ChartDimension[] {
         const dimensions = _.map(this.props.dimensions, _.clone)
-        const validProperties = _.map(this.emptyDimensionSlots, 'property')
+        const validProperties = _.map(this.dimensionSlots, 'property')
         let validDimensions = _.filter(dimensions, dim => _.includes(validProperties, dim.property))
 
-        this.emptyDimensionSlots.forEach(slot => {
+        this.dimensionSlots.forEach(slot => {
             if (!slot.allowMultiple)
                 validDimensions = _.uniqWith(validDimensions, (a: ChartDimension, b: ChartDimension) => a.property == slot.property && a.property == b.property)
         })

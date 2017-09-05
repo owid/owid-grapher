@@ -776,7 +776,6 @@ li[data-color^=".*"] {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-bottom: 10%;
 }
 
 /**
@@ -974,8 +973,59 @@ li[data-color^=".*"] {
   font-size: 11pt; 
 }
 
-/* Utility moved from charts.css */
+.VariableSelector { 
+    width: 90vw;
+    height: 90vh;
+    
+    text-align: left;
 
+    & h2 button {
+        float: right;
+    }
+
+    & .modal-body {
+        display: flex;
+        justify-content: space-between;
+        max-height: 500px;
+        overflow-y: scroll;
+    }
+
+    & .selectedData {
+        min-width: 25%;
+        padding-left: 1em;
+    }
+
+    & .searchResults {
+        width: 100%;
+    }
+
+    & .searchResults ul {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    & ul {
+        padding: 0;
+    }
+    
+    & li {
+        list-style-type: none;
+        flex: 1 0 15em;
+    }
+
+    & li > label {
+        width: 100%;
+    }
+
+    & input[type=search] {
+        width: 100%;
+        font-size: 0.9em;
+        padding: 0.4em;
+        margin-bottom: 0.4em;
+        border: 1px solid #ccc;
+    }
+}
+/* Utility moved from charts.css */
 .hidden {
     display: none !important;
 }

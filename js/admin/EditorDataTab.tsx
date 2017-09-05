@@ -157,7 +157,6 @@ class TimeSection extends React.Component<{ editor: ChartEditor }> {
 		const {chart, isDynamicTime} = this
 
 		return <section className="time-section">
-			<h2>Define your time</h2>
 			<Toggle label="Use entire time period of the selected data" value={isDynamicTime} onValue={this.onToggleDynamicTime}/>
 
 			{!isDynamicTime && <div>

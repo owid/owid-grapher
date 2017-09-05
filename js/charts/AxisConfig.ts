@@ -73,7 +73,7 @@ export default class AxisConfig {
     // any needed information calculated from the data
     toSpec({ defaultDomain } : { defaultDomain: [number, number] }): AxisSpec {
         return {
-            label: this.label,
+            label: this.label||"",
             tickFormat: this.tickFormat,
             domain: [Math.min(defaultTo(this.domain[0], Infinity), defaultDomain[0]), Math.max(defaultTo(this.domain[1], -Infinity), defaultDomain[1])],
             scaleType: this.scaleType,

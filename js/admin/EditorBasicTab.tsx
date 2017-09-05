@@ -7,7 +7,7 @@ import {ChartTypeType} from '../charts/ChartType'
 import {Toggle} from './Forms'
 import {DimensionWithData} from '../charts/ChartData'
 import ChartEditor, {Variable} from './ChartEditor'
-import DimensionEditor from './DimensionEditor'
+import VariableSelector from './VariableSelector'
 const styles = require("./EditorBasicTab.css")
 
 @observer
@@ -25,28 +25,7 @@ class DimensionCard extends React.Component<{ dimension: DimensionWithData, edit
 
 @observer
 class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: ChartEditor }> {
-	@observable editingDimensionIndex?: number
-
-	@action.bound onAddVariable() {
-		this.editingDimensionIndex = this.props.editor.chart.dimensions.length
-	}
-
-	@action.bound onUpdateDimension(dimension?: ChartDimension) {
-		const {chart} = this.props.editor
-		const {editingDimensionIndex} = this
-
-		if (dimension && editingDimensionIndex !== undefined) {
-			let dimensions = _.clone(chart.dimensions)
-			if (editingDimensionIndex == dimensions.length) {
-				dimensions.push(dimension)
-			} else {
-				dimensions[editingDimensionIndex] = dimension
-			}
-			chart.props.dimensions = dimensions
-		}
-
-		this.editingDimensionIndex = undefined
-	}
+	@observable.ref isSelectingVariables: boolean = false
 
 	@action.bound removeDimension(index: number) {
 		const {chart} = this.props.editor
@@ -55,38 +34,30 @@ class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: C
 		chart.props.dimensions = dimensions
 	}
 
-	@computed get editingDimension(): ChartDimension|undefined {
-		if (this.editingDimensionIndex == null)
-			return undefined
+	@action.bound onVariables(variableIds: number[]) {
+		const {slot} = this.props
 
-		const {slot, editor} = this.props
+		slot.dimensions = variableIds.map(id => {
+			const existingDimension = slot.dimensions.find(d => d.variableId == id)
+			return existingDimension || slot.createDimension(id)
+		})
 
-		if (this.editingDimensionIndex == editor.chart.dimensions.length) {
-			const order = slot.dimensions.length > 0 ? slot.dimensions[slot.dimensions.length-1].order+1 : 0
-			return {
-				variableId: -1,
-				property: this.props.slot.property,
-				order: order
-			}
-		} else {
-			return editor.chart.dimensions[this.editingDimensionIndex]
-		}
+		this.isSelectingVariables = false
 	}
 
 	render() {
+		const {isSelectingVariables} = this
 		const {slot, editor} = this.props
 		const {chart} = editor
-		const {filledDimensions} = chart.data
-		const {editingDimension} = this
-		const canAddMore = slot.allowMultiple || filledDimensions.filter(d => d.property == slot.property).length == 0
+		const canAddMore = slot.allowMultiple || slot.dimensions.length == 0
 
 		return <div>
 			<h5>{slot.name}</h5>
-			{filledDimensions.map((dim, i) => {
-				return dim.property == slot.property && <DimensionCard dimension={dim} editor={editor} onEdit={action(() => this.editingDimensionIndex = i)} onRemove={() => this.removeDimension(i)}/>
+			{slot.dimensionsWithData.map((dim, i) => {
+				return dim.property == slot.property && <DimensionCard dimension={dim} editor={editor} onEdit={action(() => null)} onRemove={() => this.removeDimension(i)}/>
 			})}
-			{canAddMore && <div className="dimensionSlot" onClick={this.onAddVariable}>Add variable{slot.allowMultiple && 's'}</div>}
-			{editingDimension && <DimensionEditor dimension={editingDimension} editor={editor} onDismiss={this.onUpdateDimension} onComplete={this.onUpdateDimension}/>}
+			{canAddMore && <div className="dimensionSlot" onClick={action(() => this.isSelectingVariables = true)}>Add variable{slot.allowMultiple && 's'}</div>}
+			{isSelectingVariables && <VariableSelector editor={editor} slot={slot} onDismiss={action(() => this.isSelectingVariables = false)} onComplete={this.onVariables}/>}
 		</div>
 	}
 }
@@ -97,16 +68,13 @@ class VariablesSection extends React.Component<{ editor: ChartEditor }> {
 	@observable.ref isAddingVariable: boolean = false
 	@observable.struct unassignedVariables: Variable[] = []
 
-    @computed get slots(): DimensionSlot[] {
-		return this.props.editor.chart.emptyDimensionSlots
-    }
-
 	render() {
-		const {props, isAddingVariable, unassignedVariables, slots} = this
+		const {props, isAddingVariable, unassignedVariables} = this
+		const {dimensionSlots} = props.editor.chart
 
 		return <section className="add-data-section">
 			<h2>Add variables</h2>
-			{slots.map(slot => <DimensionSlotView slot={slot} editor={props.editor}/>)}
+			{dimensionSlots.map(slot => <DimensionSlotView slot={slot} editor={props.editor}/>)}
 		</section>
 	}
 }
