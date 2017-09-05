@@ -44,12 +44,12 @@ export class TextField extends React.Component<TextFieldProps> {
         const passthroughProps = _.pick(props, ['placeholder', 'title', 'disabled'])
 
         if (props.label) {
-            return <label style={props.style}>
+            return <label className="TextField" style={props.style}>
                 {props.label}
                 <input className="form-control" type="text" value={props.value} onInput={this.onInput} onKeyDown={this.onKeyDown} {...passthroughProps}/>
             </label>    
         } else {
-            return <input style={props.style} className="form-control" type="text" value={props.value} onInput={this.onInput} onKeyDown={this.onKeyDown} {...passthroughProps}/>
+            return <input style={props.style} className="TextField form-control" type="text" value={props.value} onInput={this.onInput} onKeyDown={this.onKeyDown} {...passthroughProps}/>
         }
     }
 }

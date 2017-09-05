@@ -4,9 +4,17 @@
         border: 1px solid #bbb;
         padding: 10px 20px;
         margin-bottom: 5px;
-        display: flex;
-        justify-content: space-between;
+
+        & header {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        & .TextField {
+            display: block;
+        }
     }
+
 
     & .dimensionSlot {
         cursor: pointer;

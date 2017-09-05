@@ -338,7 +338,7 @@ export default class ScatterTransform implements IChartTransform {
     }
 
     @computed get yAxisLabelBase() {
-        return defaultTo(this.chart.yAxis.label, this.yDimension.name)
+        return defaultTo(this.chart.yAxis.label, this.yDimension.displayName)
     }
 
     @computed get yAxis(): AxisSpec {
@@ -367,7 +367,7 @@ export default class ScatterTransform implements IChartTransform {
     }
 
     @computed get xAxisLabelBase() {
-        return defaultTo(this.chart.xAxis.label, this.xDimension.name)
+        return defaultTo(this.chart.xAxis.label, this.xDimension.displayName)
     }
 
     @computed get xAxis(): AxisSpec {
@@ -391,12 +391,12 @@ export default class ScatterTransform implements IChartTransform {
         return _.extend(chart.xAxis.toSpec({ defaultDomain: xDomainDefault }), props) as AxisSpec
     }
 
-    @computed get xFormatTooltip() {
-        return this.isRelativeMode ? this.xAxis.tickFormat : this.xDimension.formatValueLong
-    }
-
     @computed get yFormatTooltip() {
         return this.isRelativeMode ? this.yAxis.tickFormat : this.yDimension.formatValueLong
+    }
+
+    @computed get xFormatTooltip() {
+        return this.isRelativeMode ? this.xAxis.tickFormat : this.xDimension.formatValueLong
     }
 
     @computed get currentData(): ScatterSeries[] {

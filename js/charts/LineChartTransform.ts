@@ -114,7 +114,7 @@ export default class LineChartTransform implements IChartTransform {
         const {chart, yDomainDefault, yDimensionFirst} = this
 
         return {
-            label: chart.yAxis.label,
+            label: chart.yAxis.label||"",
             tickFormat: yDimensionFirst ? yDimensionFirst.formatValueShort : _.identity,
             domain: [Math.min(defaultTo(chart.yAxis.domain[0], Infinity), yDomainDefault[0]), Math.max(defaultTo(chart.yAxis.domain[1], -Infinity), yDomainDefault[1])],
             scaleType: chart.yAxis.scaleType,

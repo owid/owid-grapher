@@ -89,16 +89,18 @@ export default class URLBinder {
         return queryParamsToStr(this.params as QueryParams)
     }
 
-    @computed get baseUrl(): string {
+    @computed get baseUrl(): string|undefined {
         if (this.chart.isPublished)
             return Global.rootUrl + "/" + this.chart.data.slug
-        else
+        else if (this.chart.id != null)
             return Global.rootUrl + "/admin/charts/" + this.chart.id + "/"
+        else
+            return undefined
     }
 
     // Get the full url representing the canonical location of this chart state
-    @computed get canonicalUrl(): string {
-        return this.baseUrl + this.queryStr
+    @computed get canonicalUrl(): string|undefined {
+        return this.baseUrl ? this.baseUrl + this.queryStr : undefined
     }
 
     @computed get yearParam(): string|undefined {

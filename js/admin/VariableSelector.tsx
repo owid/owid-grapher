@@ -115,7 +115,7 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
 		}*/
 
 		this.chosenVariables = this.props.slot.dimensionsWithData.map(d => ({
-			name: d.name,
+			name: d.displayName,
 			id: d.variableId
 		}))
 
@@ -139,7 +139,7 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
 					</div>
 					<div className="modal-body">
 						<div className="searchResults">
-							<input type="search" placeholder="Search..." value={searchInput} onInput={e => this.searchInput = e.currentTarget.value} onKeyDown={this.onSearchKeyDown} ref={e => this.searchField = (e as HTMLInputElement)}/>
+							<SelectField label="Database" options={database.namespaces} value={currentNamespace} onValue={this.onNamespace}/> <input type="search" placeholder="Search..." value={searchInput} onInput={this.onSearchInput} onKeyDown={this.onSearchKeyDown} ref={e => this.searchField = (e as HTMLInputElement)}/>
 							<ul>
 								{searchResults.map(d => {
 									return <li>

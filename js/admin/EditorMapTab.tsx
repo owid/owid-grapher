@@ -32,7 +32,7 @@ class VariableSection extends React.Component<{ map: MapConfig }> {
 
 		return <section>
 			<h2>Which variable on map</h2>
-			<NumericSelectField value={map.variableId} options={filledDimensions.map(d => d.variableId)} optionLabels={filledDimensions.map(d => d.name)} onValue={this.onVariableId}/>
+			<NumericSelectField value={map.variableId} options={filledDimensions.map(d => d.variableId)} optionLabels={filledDimensions.map(d => d.displayName)} onValue={this.onVariableId}/>
 		</section>
 
 	}

@@ -27,36 +27,42 @@ export interface SourceWithVariable {
 }
 
 export class DimensionWithData {
+	props: ChartDimension
 	@observable.ref index: number
-	@observable.ref dimension: ChartDimension
 	@observable.ref variable: Variable
 
 	@computed get variableId(): number {
-		return this.dimension.variableId
+		return this.props.variableId
 	}
 
 	@computed get property(): string {
-		return this.dimension.property
+		return this.props.property
 	}
 
-	@computed get name(): string {
-		return this.dimension.displayName || this.variable.name
+	@computed get displayName(): string {
+		return defaultTo(this.props.displayName, this.variable.name)
+	}
+
+	@computed get unit(): string {
+		return defaultTo(this.props.unit, this.variable.unit)
 	}
 
 	@computed get isProjection(): boolean {
-		return !!this.dimension.isProjection
+		return !!this.props.isProjection
 	}
 
 	@computed get targetYear(): number|undefined {
-		return this.dimension.targetYear
+		return this.props.targetYear
 	}
 
 	@computed get tolerance(): number {
-		return this.dimension.tolerance||0
+		return this.props.tolerance||0
 	}
 
 	@computed get shortUnit(): string|undefined {
-		const {unit, shortUnit} = this.variable
+		const {unit} = this
+		const shortUnit = defaultTo(this.props.shortUnit, this.variable.shortUnit)
+		
 		if (shortUnit) return shortUnit
 
 		if (!unit) return undefined
@@ -73,16 +79,18 @@ export class DimensionWithData {
 	}
 
 	@computed get formatValueShort(): (value: number) => string {
-		return value => formatValue(value, { unit: this.shortUnit })
+		const {shortUnit} = this
+		return value => formatValue(value, { unit: shortUnit })
 	}
 
 	@computed get formatValueLong(): (value: number) => string {
-		return value => formatValue(value, { unit: this.variable.unit })
+		const {unit} = this
+		return value => formatValue(value, { unit: unit })
 	}
 
     constructor(index: number, dimension: ChartDimension, variable: Variable) {
 		this.index = index
-        this.dimension = dimension
+        this.props = dimension
 		this.variable = variable
     }
 }
@@ -119,13 +127,13 @@ export default class ChartData {
 
 	@computed get defaultTitle() {
 		if (this.chart.isScatter)
-			return this.filledDimensions.filter(dim => dim.property == 'y' || dim.property == 'x').map(d => d.name).join(" vs. ")
+			return this.filledDimensions.filter(dim => dim.property == 'y' || dim.property == 'x').map(d => d.displayName).join(" vs. ")
 		else if (this.primaryDimensions.length > 1 && _(this.primaryDimensions).map(d => d.variable.datasetName).uniq().value().length == 1)
 			return this.primaryDimensions[0].variable.datasetName
 		else if (this.primaryDimensions.length == 2)
-			return this.primaryDimensions.map(d => d.name).join(" and ")
+			return this.primaryDimensions.map(d => d.displayName).join(" and ")
 		else
-			return this.primaryDimensions.map(d => d.name).join(", ")
+			return this.primaryDimensions.map(d => d.displayName).join(", ")
 	}
 
 	@computed get title() {
@@ -268,14 +276,14 @@ export default class ChartData {
 				const key = this.keyFor(entity, index)
 
 				// Full label completely represents the data in the key and is used in the editor
-				const fullLabel = `${entity} - ${dim.name}`
+				const fullLabel = `${entity} - ${dim.displayName}`
 
 				// The output label however is context-dependent
 				let label = fullLabel
 				if (isSingleVariable) {
 					label = entity
 				} else if (isSingleEntity) {
-					label = `${dim.name}`
+					label = `${dim.displayName}`
 				}
 
 				keyData.set(key, {

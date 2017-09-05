@@ -49,7 +49,7 @@ class ShareMenu extends React.Component<ShareMenuProps> {
         return Cookies.get('isAdmin') ? (Global.adminRootUrl + '/charts/' + this.props.chart.id + '/edit') : null
     }
 
-    @computed get canonicalUrl(): string {
+    @computed get canonicalUrl(): string|undefined {
         return this.props.chart.url.canonicalUrl
     }
 
@@ -73,18 +73,33 @@ class ShareMenu extends React.Component<ShareMenuProps> {
     }
 
     @action.bound onEmbed() {
-        this.props.chartView.addPopup(<EmbedMenu embedUrl={this.canonicalUrl}/>)
+        if (this.canonicalUrl)
+            this.props.chartView.addPopup(<EmbedMenu embedUrl={this.canonicalUrl}/>)
+    }
+
+    @computed get twitterHref(): string {
+        let href = "https://twitter.com/intent/tweet/?text=" + encodeURIComponent(this.title)
+        if (this.canonicalUrl)
+            href += "&url=" + encodeURIComponent(this.canonicalUrl)
+        return href
+    }
+
+    @computed get facebookHref(): string {
+        let href = "https://www.facebook.com/dialog/share?app_id=1149943818390250&display=page"
+        if (this.canonicalUrl)
+            href += "&href=" + encodeURIComponent(this.canonicalUrl)
+        return href
     }
 
     render() {
-        const {title, editUrl, canonicalUrl, isEmbedMenuActive} = this
+        const {title, editUrl, canonicalUrl, isEmbedMenuActive, twitterHref, facebookHref} = this
 
         return <div className="shareMenu" onClick={(evt) => evt.stopPropagation()}>
             <h2>Share</h2>
-            <a className="btn" target="_blank" title="Tweet a link" href={"https://twitter.com/intent/tweet/?text=" + encodeURIComponent(title) + "&url=" + encodeURIComponent(canonicalUrl)}>
+            <a className="btn" target="_blank" title="Tweet a link" href={twitterHref}>
                 <i className="fa fa-twitter"/> Twitter
             </a>
-            <a className="btn" target="_blank" title="Share on Facebook" href={"https://www.facebook.com/dialog/share?app_id=1149943818390250&display=page&href=" + encodeURIComponent(canonicalUrl)}>
+            <a className="btn" target="_blank" title="Share on Facebook" href={facebookHref}>
                 <i className="fa fa-facebook"/> Facebook
             </a>
             <a className="btn" title="Embed this visualization in another HTML document" onClick={this.onEmbed}>

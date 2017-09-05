@@ -213,7 +213,7 @@ def savechart(chart: Chart, data: Dict, user: User):
         newdim.order = i
         newdim.chartId = chart
         newdim.color = dim.get('color', "")
-        newdim.tolerance = dim.get('tolerance', None)
+        newdim.tolerance = dim.get('tolerance', 5)
         newdim.targetYear = dim.get('targetYear', None)
         newdim.displayName = dim.get('displayName', "")
         newdim.isProjection = dim.get('isProjection', False)

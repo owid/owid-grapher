@@ -40,17 +40,27 @@ export interface HighlightToggleConfig {
     paramStr: string
 }
 
-export interface ChartDimension {
-    id?: number,
-    variableId: number,
-    color?: string,
-    displayName?: string,    
-    isProjection?: true,
-    order: number,
-    property: string,
-    targetYear?: number,
-    tolerance?: number,
-    unit?: string
+export class ChartDimension {
+    @observable property: string
+    @observable variableId: number
+    @observable displayName?: string = undefined
+    @observable unit?: string = undefined
+    @observable shortUnit?: string = undefined
+    @observable isProjection?: boolean = undefined
+    @observable targetYear?: number = undefined
+    @observable tolerance?: number = undefined
+
+    constructor(json: { property: string, variableId: number }) {
+        for (let key in this) {
+            if (key in json) {
+                (this as any)[key] = (json as any)[key]
+
+                // XXX migrate this away
+                if ((json as any)[key] === "")
+                    (this as any)[key] = undefined
+            }
+        }        
+    }
 }
 
 export interface EntitySelection {
@@ -102,7 +112,7 @@ export class DimensionSlot {
     }
 
     createDimension(variableId: number) {
-        return { property: this.property, variableId: variableId, order: 0 }
+        return new ChartDimension({ property: this.property, variableId: variableId })
     }
 }
 
@@ -122,7 +132,7 @@ export class ChartConfigProps {
     @observable.ref minTime?: number = undefined
     @observable.ref maxTime?: number = undefined
 
-    @observable.struct dimensions: ChartDimension[] = []
+    @observable.ref dimensions: ChartDimension[] = []
     @observable.ref addCountryMode?: 'add-country'|'change-country'|'disabled' = undefined
 
     @observable.ref timeline?: TimelineConfig = undefined
@@ -221,7 +231,7 @@ export default class ChartConfig {
 	}
 
     @computed get dimensions(): ChartDimension[] {
-        const dimensions = _.map(this.props.dimensions, _.clone)
+        const {dimensions} = this.props
         const validProperties = _.map(this.dimensionSlots, 'property')
         let validDimensions = _.filter(dimensions, dim => _.includes(validProperties, dim.property))
 
@@ -232,11 +242,11 @@ export default class ChartConfig {
     
 		// Give scatterplots and slope charts a default color and size dimension if they don't have one
 		if ((this.isScatter || this.isSlopeChart) && !_.find(dimensions, { property: 'color' })) {
-			validDimensions = validDimensions.concat([{ variableId: 123, property: "color", tolerance: 5, order: 0 }]);
+			validDimensions = validDimensions.concat(new ChartDimension({ variableId: 123, property: "color" }))
 		}
 
 		if ((this.isScatter || this.isSlopeChart) && !_.find(dimensions, { property: 'size' })) {
-			validDimensions = validDimensions.concat([{ variableId: 72, property: "size", tolerance: 5, order: 0 }]);
+			validDimensions = validDimensions.concat(new ChartDimension({ variableId: 72, property: "size" }))
 		}
 
         return validDimensions
@@ -248,38 +258,38 @@ export default class ChartConfig {
         return _.filter([this.props.hasChartTab && 'chart', this.props.hasMapTab && 'map', 'data', 'sources', 'download']) as ChartTabOption[]
     }
 
-    @action.bound update(props: any) {
+    @action.bound update(json: any) {
         for (let key in this.props) {
-            if (key in props && key != 'xAxis' && key != 'yAxis') {
-                (this.props as any)[key] = props[key]
+            if (key in json && key != 'xAxis' && key != 'yAxis') {
+                (this.props as any)[key] = json[key]
             }
         }
         
-        if (props.isAutoTitle)
+        if (json.isAutoTitle)
             this.props.title = undefined
 
         // Note: no auto slug outside of editor for obvious reasons
-        if (props.isAutoSlug && App.isEditor)
+        if (json.isAutoSlug && App.isEditor)
             this.props.slug = undefined
 
-        this.props.type = props['chart-type']||ChartType.LineChart
-        this.props.note = props['chart-description']
-        this.props.originUrl = props['data-entry-url']
-        this.props.isPublished = props['published']
-        this.props.map = props['map-config'] ? _.extend(new MapConfigProps(), props['map-config']) : undefined        
-        this.props.hasChartTab = props['tabs'] ? props['tabs'].includes("chart") : true
-        this.props.hasMapTab = props['tabs'] ? props['tabs'].includes("map") : false
-        _.extend(this.props.xAxis, props['xAxis'])
-        _.extend(this.props.yAxis, props['yAxis'])
+        this.props.type = json['chart-type']||ChartType.LineChart
+        this.props.note = json['chart-description']
+        this.props.originUrl = json['data-entry-url']
+        this.props.isPublished = json['published']
+        this.props.map = json['map-config'] ? _.extend(new MapConfigProps(), json['map-config']) : undefined        
+        this.props.hasChartTab = json['tabs'] ? json['tabs'].includes("chart") : true
+        this.props.hasMapTab = json['tabs'] ? json['tabs'].includes("map") : false
+        _.extend(this.props.xAxis, json['xAxis'])
+        _.extend(this.props.yAxis, json['yAxis'])
 
-        this.props.dimensions = props['chart-dimensions']||this.props.dimensions
-        this.props.addCountryMode = props['add-country-mode']
-        this.props.tab = props["default-tab"]
-        this.props.hideLegend = props["hide-legend"]
-        this.props.hideRelativeToggle = props["hide-toggle"]
-        this.props.stackMode = props["currentStackMode"]||this.props.stackMode
+        this.props.dimensions = (json['chart-dimensions']||[]).map((j: any) => new ChartDimension(j))
+        this.props.addCountryMode = json['add-country-mode']
+        this.props.tab = json["default-tab"]
+        this.props.hideLegend = json["hide-legend"]
+        this.props.hideRelativeToggle = json["hide-toggle"]
+        this.props.stackMode = json["currentStackMode"]||this.props.stackMode
         
-        this.variableCacheTag = props["variableCacheTag"]
+        this.variableCacheTag = json["variableCacheTag"]
     }
 
     @computed.struct get json() {
