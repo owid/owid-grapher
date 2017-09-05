@@ -64,7 +64,7 @@ export default class DataTab extends React.Component<{ bounds: Bounds, chart: Ch
 	}
 
 	@computed get csvFilename() {
-		return this.props.chart.slug + ".csv"
+		return this.props.chart.data.slug + ".csv"
 	}
 
 	render() {

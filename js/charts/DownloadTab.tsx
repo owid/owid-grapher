@@ -85,7 +85,7 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
         const imgStyle = { minWidth: previewWidth, minHeight: previewHeight, maxWidth: previewWidth, maxHeight: previewHeight, border: "1px solid #ccc", margin: "1em" }
 
         return [
-            <a href={pngUrl} download={chart.slug+".png"}>
+            <a href={pngUrl} download={chart.data.slug+".png"}>
                 {isPortrait
                 ? <div>
                     <h2>Save as .png</h2>
@@ -100,7 +100,7 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
                     </aside>
                 </div>}
             </a>,
-            <a href={svgUrl} download={chart.slug+".svg"}>
+            <a href={svgUrl} download={chart.data.slug+".svg"}>
                 {isPortrait
                 ? <div>
                     <h2>Save as .svg</h2>

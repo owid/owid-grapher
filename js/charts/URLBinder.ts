@@ -90,7 +90,7 @@ export default class URLBinder {
     }
 
     @computed get baseUrl(): string {
-        return Global.rootUrl + "/" + this.chart.slug
+        return Global.rootUrl + "/" + this.chart.data.slug
     }
 
     // Get the full url representing the canonical location of this chart state
