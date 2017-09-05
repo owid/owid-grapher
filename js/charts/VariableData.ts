@@ -14,6 +14,7 @@ export class Variable {
 	@observable.ref shortUnit: string
 	@observable.ref coverage: string
 	@observable.ref timespan: string
+	@observable.ref datasetName: string
 	@observable.struct source: {
 		name: string,
 		description: string

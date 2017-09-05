@@ -118,7 +118,12 @@ export default class ChartData {
     }
 
 	@computed get defaultTitle() {
-		return this.primaryDimensions.map(d => d.name).join(', ')
+		if (this.chart.isScatter)
+			return this.filledDimensions.filter(dim => dim.property == 'y' || dim.property == 'x').map(d => d.name).join(" vs. ")
+		else if (this.primaryDimensions.length > 1 && _(this.primaryDimensions).map(d => d.variable.datasetName).uniq().value().length == 1)
+			return this.primaryDimensions[0].variable.datasetName
+		else
+			return this.primaryDimensions.map(d => d.name).join(', ')
 	}
 
 	@computed get title() {
