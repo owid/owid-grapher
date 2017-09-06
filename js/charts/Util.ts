@@ -146,7 +146,7 @@ export function formatValue(value: number, options: { maxDecimalPlaces?: number,
 	} else {
 		if (maxDecimalPlaces >= 0 && value % 1 != 0) {
 			var fixed = Math.min(20, maxDecimalPlaces);
-			output = d3.format("." + fixed + "f")(value);
+			output = d3.format(",." + fixed + "f")(value);
 		} else {
 			output = d3.format(",")(value);
 		}

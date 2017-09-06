@@ -78,12 +78,12 @@ export class Areas extends React.Component<{ axisBox: AxisBox, data: StackedArea
     @computed get polylines() {
         const {axisBox, data} = this.props
         const {xScale, yScale} = axisBox
-        const xBottomLeft = `${Math.round(xScale.range[0])},${Math.round(yScale.range[0])}`
-        const xBottomRight = `${Math.round(xScale.range[1])},${Math.round(yScale.range[0])}`
+        const xBottomLeft = `${Math.floor(xScale.range[0])},${Math.floor(yScale.range[0])}`
+        const xBottomRight = `${Math.floor(xScale.range[1])},${Math.floor(yScale.range[0])}`
 
         return data.map((series, i) => {
-            const prevPoints = i == 0 ? [xBottomLeft, xBottomRight] : _.map(data[i-1].values, v => `${Math.round(xScale.place(v.x))},${Math.round(yScale.place(v.y))}`)
-            const mainPoints = _.map(series.values, v => `${Math.round(xScale.place(v.x))},${Math.round(yScale.place(v.y))}`)
+            const prevPoints = i == 0 ? [xBottomLeft, xBottomRight] : _.map(data[i-1].values, v => `${Math.floor(xScale.place(v.x))},${Math.floor(yScale.place(v.y))}`)
+            const mainPoints = _.map(series.values, v => `${Math.floor(xScale.place(v.x))},${Math.floor(yScale.place(v.y))}`)
             const points = mainPoints.concat(_(prevPoints).clone().reverse())
 
             return <polyline

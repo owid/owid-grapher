@@ -140,8 +140,8 @@ class TimeSection extends React.Component<{ editor: ChartEditor }> {
 		const {chart, isDynamicTime} = this
 
 		return <section className="time-section">
-			{features.timeDomain && <NumberField label="Min year" value={chart.props.minTime} onValue={this.onMinTime}/>}
-			<NumberField label={features.timeDomain ? "Max year" : "Target year"} value={chart.props.maxTime} onValue={this.onMaxTime}/>
+			{features.timeDomain && <NumberField label="Min year" value={chart.props.minTime} onValue={_.debounce(this.onMinTime)}/>}
+			<NumberField label={features.timeDomain ? "Max year" : "Target year"} value={chart.props.maxTime} onValue={_.debounce(this.onMaxTime)}/>
 		</section>
 	}
 }
@@ -168,7 +168,7 @@ export default class EditorDataTab extends React.Component<{ editor: ChartEditor
 					User cannot change/add data
 				</label>
 			</section>
-			{!editor.chart.data.isShowingTimeline && <TimeSection editor={editor}/>}
+			{!editor.chart.isScatter && <TimeSection editor={editor}/>}
 			<KeysSection chart={editor.chart}/>
 		</div>
 	}
