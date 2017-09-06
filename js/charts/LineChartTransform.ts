@@ -6,7 +6,7 @@ import Color from './Color'
 import DataKey from './DataKey'
 import {LineChartSeries, LineChartValue} from './LineChart'
 import AxisSpec from './AxisSpec'
-import {defaultTo, formatYear} from './Util'
+import {defaultTo, formatYear, findClosest} from './Util'
 import {DimensionWithData} from './ChartData'
 import ColorBinder from './ColorBinder'
 import ColorSchemes from './ColorSchemes'
@@ -32,13 +32,33 @@ export default class LineChartTransform implements IChartTransform {
             return "No matching data"
     }
 
+    @computed get timelineYears(): number[] {
+        return _.union(...this.chart.data.axisDimensions.map(d => d.variable.yearsUniq))
+    }
+
+    @computed get minTimelineYear(): number {
+        return defaultTo(_.min(this.timelineYears), 1900)
+    }
+
+    @computed get maxTimelineYear(): number {
+        return defaultTo(_.max(this.timelineYears), 2000)
+    }
+
+    @computed get startYear(): number {
+        const minYear = defaultTo(this.chart.timeDomain[0], this.minTimelineYear)
+        return defaultTo(findClosest(this.timelineYears, minYear), this.minTimelineYear)
+    }
+
+    @computed get endYear(): number {
+        const maxYear = defaultTo(this.chart.timeDomain[1], this.maxTimelineYear)
+        return defaultTo(findClosest(this.timelineYears, maxYear), this.maxTimelineYear)
+    }
+
 	@computed get initialData(): LineChartSeries[] {
-		const {chart} = this
+		const {chart, startYear, endYear} = this
 		const {timeDomain, yAxis, addCountryMode} = chart
         const {filledDimensions, selectedKeysByKey} = chart.data
 
-		const timeFrom = _.defaultTo(timeDomain[0], -Infinity)
-		const timeTo = _.defaultTo(timeDomain[1], Infinity)
 		let chartData: LineChartSeries[] = []
 
 		_.each(filledDimensions, (dimension, dimIndex) => {
@@ -55,7 +75,7 @@ export default class LineChartTransform implements IChartTransform {
 				// Not a selected key, don't add any data for it
 				if (!selectedKeysByKey[datakey]) continue;
 				// Check for time range
-				if (year < timeFrom || year > timeTo) continue;
+				if (year < startYear || year > endYear) continue;
                 // Can't have values <= 0 on log scale
                 if (value <= 0 && yAxis.scaleType == 'log') continue;
 

@@ -176,8 +176,8 @@ export default class EditorDataTab extends React.Component<{ editor: ChartEditor
 					User cannot change/add data
 				</label>
 			</section>
-			<KeysSection chart={editor.chart}/>
 			<TimeSection editor={editor}/>
+			<KeysSection chart={editor.chart}/>
 		</div>
 	}
 }

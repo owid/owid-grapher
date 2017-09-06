@@ -8,7 +8,7 @@ import {StackedAreaSeries, StackedAreaValue} from './StackedArea'
 import AxisSpec from './AxisSpec'
 import ColorSchemes from './ColorSchemes'
 import ColorBinder from './ColorBinder'
-import {formatValue, formatYear} from './Util'
+import {formatValue, formatYear, defaultTo, findClosest} from './Util'
 import IChartTransform from './IChartTransform'
 
 // Responsible for translating chart configuration into the form
@@ -37,13 +37,33 @@ export default class StackedAreaTransform implements IChartTransform {
 		return _.last(ColorSchemes['owid-distinct'].colors) as Color[]
 	}
 
+    @computed get timelineYears(): number[] {
+        return _.union(...this.chart.data.axisDimensions.map(d => d.variable.yearsUniq))
+    }
+
+    @computed get minTimelineYear(): number {
+        return defaultTo(_.min(this.timelineYears), 1900)
+    }
+
+    @computed get maxTimelineYear(): number {
+        return defaultTo(_.max(this.timelineYears), 2000)
+    }
+
+    @computed get startYear(): number {
+        const minYear = defaultTo(this.chart.timeDomain[0], this.minTimelineYear)
+        return defaultTo(findClosest(this.timelineYears, minYear), this.minTimelineYear)
+    }
+
+    @computed get endYear(): number {
+        const maxYear = defaultTo(this.chart.timeDomain[1], this.maxTimelineYear)
+        return defaultTo(findClosest(this.timelineYears, maxYear), this.maxTimelineYear)
+    }
+
 	@computed get initialData(): StackedAreaSeries[] {
-		const {chart} = this
+		const {chart, startYear, endYear} = this
 		const {timeDomain, yAxis, addCountryMode} = chart
         const {filledDimensions, selectedKeys, selectedKeysByKey} = chart.data
 
-		const timeFrom = _.defaultTo(timeDomain[0], -Infinity)
-		const timeTo = _.defaultTo(timeDomain[1], Infinity)
 		let chartData: StackedAreaSeries[] = []
 		const colorKeys: {[key: string]: string} = {}
 
@@ -63,7 +83,7 @@ export default class StackedAreaTransform implements IChartTransform {
 				// Must be numeric
 				if (isNaN(value)) continue;
 				// Check for time range
-				if (year < timeFrom || year > timeTo) continue;
+				if (year < startYear || year > endYear) continue;
 				// Stacked area chart can't go negative!
 				if (value < 0) continue;
 
