@@ -92,6 +92,14 @@ def selectedKeysRedesign(apps, schema_editor):
                     variable.short_unit = yShortUnit
                     variable.save()
 
+            # Hide timeline on old scatterplots
+            if chart.type == "ScatterPlot":                
+                timeline = config.get("timeline", None)
+                if timeline is None:
+                    config['hideTimeline'] = True
+                elif timeline != [] and timeline.get("compareEndPointsOnly", None):
+                    config['compareEndPointsOnly'] = timeline['compareEndPointsOnly']
+
             chart.config = json.dumps(config)
             chart.save()
 

@@ -22,6 +22,9 @@ export default class EditorFeatures {
         return this.chart.type == ChartType.ScatterPlot
     }
 
+    @computed get linLogToggle() { return !this.chart.isDiscreteBar }
+    @computed get axisMinMax() { return !this.chart.isDiscreteBar }
+
     @computed get hideLegend() {
         return this.chart.type == ChartType.LineChart || this.chart.type == ChartType.StackedArea
     }
@@ -34,11 +37,7 @@ export default class EditorFeatures {
         return (!this.chart.isScatter && this.chart.addCountryMode == 'add-country') || this.chart.addCountryMode == 'change-country'
     }
 
-    @computed get linLogToggle() {
-        return !this.chart.isDiscreteBar
-    }
-
     @computed get relativeModeToggle() {
-        return this.chart.isStackedArea || (this.chart.isScatter && this.chart.timeline)
+        return this.chart.isStackedArea || (this.chart.isScatter && this.chart.scatter.hasTimeline)
     }
 }

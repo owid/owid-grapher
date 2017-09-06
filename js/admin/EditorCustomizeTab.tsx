@@ -32,16 +32,18 @@ export default class EditorCustomizeTab extends React.Component<{ editor: ChartE
 	@computed get yAxis() { return this.props.editor.chart.yAxis.props }
 
 	renderForAxis(axisName: string, axis: AxisConfigProps) {
+		const {chart, features} = this.props.editor
+
 		return <div>
 			<h3>{axisName} Axis</h3>
 			<TextField label={"Label"} value={axis.label} onValue={(value) => axis.label = value}/><br/>
-			<NumberField label={"Max"} value={axis.max} onValue={(value) => axis.max = value}/><br/>
-			<NumberField label={"Min"} value={axis.min} onValue={(value) => axis.min = value}/><br/>
+			{features.axisMinMax && <NumberField label={"Max"} value={axis.max} onValue={(value) => axis.max = value}/>}<br/>
+			{features.axisMinMax && <NumberField label={"Min"} value={axis.min} onValue={(value) => axis.min = value}/>}<br/>
 			{/*<TextField label={axisName+"-Axis Prefix"} value={axis.prefix} onValue={(value) => axis.prefix = value}/>
 			<TextField label={axisName+"-Axis Suffix"} value={axis.suffix} onValue={(value) => axis.suffix = value}/>
 			<NumberField label={axisName+"-Axis No of decimal places"} value={axis.numDecimalPlaces} onValue={(value) => axis.numDecimalPlaces = value}/>
 			<SelectField label={axisName+"-Axis Scale"} value={axis.scaleType} options={['linear', 'log']} onValue={(value) => axis.scaleType = value == 'linear' ? 'linear' : 'log'}/>*/}
-			{" "}{this.props.editor.features.linLogToggle && <Toggle label={`Enable log/linear selector`} value={axis.canChangeScaleType||false} onValue={(value) => axis.canChangeScaleType = value||undefined}/>}
+			{" "}{features.linLogToggle && <Toggle label={`Enable log/linear selector`} value={axis.canChangeScaleType||false} onValue={(value) => axis.canChangeScaleType = value||undefined}/>}
 		</div>
 	}
 

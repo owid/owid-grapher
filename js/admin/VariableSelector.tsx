@@ -118,7 +118,7 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
 					<div className="modal-body">
 						<div className="searchResults">
 							<SelectField label="Database" options={database.namespaces} value={currentNamespace} onValue={this.onNamespace}/> <input type="search" placeholder="Search..." value={searchInput} onInput={this.onSearchInput} onKeyDown={this.onSearchKeyDown} ref={e => this.searchField = (e as HTMLInputElement)}/>
-							<div style={{height: numVisibleRows*rowHeight, 'overflow-y': 'scroll'}} onScroll={this.onScroll} ref={e => this.scrollElement = e}>
+							<div style={{height: numVisibleRows*rowHeight, 'overflow-y': 'scroll'}} onScroll={this.onScroll} ref={e => this.scrollElement = (e as HTMLDivElement)}>
 								<div style={{height: numTotalRows*rowHeight, 'padding-top': rowHeight*rowOffset}}>
 									<ul>
 										{searchResultRows.slice(rowOffset, rowOffset+numVisibleRows).map(d => {

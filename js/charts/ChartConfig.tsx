@@ -31,10 +31,6 @@ import IChartTransform from './IChartTransform'
 declare const App: any
 declare const window: any
 
-export interface TimelineConfig {
-    compareEndPointsOnly?: boolean
-}
-
 export interface HighlightToggleConfig {
     description: string
     paramStr: string
@@ -135,7 +131,6 @@ export class ChartConfigProps {
     @observable.ref dimensions: ChartDimension[] = []
     @observable.ref addCountryMode?: 'add-country'|'change-country'|'disabled' = undefined
 
-    @observable.ref timeline?: TimelineConfig = undefined
     @observable.ref comparisonLine?: ComparisonLineConfig = undefined
     @observable.ref highlightToggle?: HighlightToggleConfig = undefined
     @observable.ref stackMode: string = 'absolute'
@@ -153,6 +148,9 @@ export class ChartConfigProps {
     @observable.ref originUrl?: string = undefined
     @observable.ref isPublished?: true = undefined
     @observable.ref baseColorScheme?: string = undefined
+
+    @observable.ref hideTimeline?: true = undefined
+    @observable.ref compareEndPointsOnly?: true = undefined
 
     @observable map?: MapConfigProps = undefined
 }
@@ -174,7 +172,6 @@ export default class ChartConfig {
     @computed get addCountryMode() { return this.props.addCountryMode||"add-country" }
     @computed get comparisonLine() { return this.props.comparisonLine }
     @computed get highlightToggle() { return this.props.highlightToggle }
-    @computed get timeline() { return this.props.timeline }
     @computed get hasChartTab() { return this.props.hasChartTab }
     @computed get hasMapTab() { return this.props.hasMapTab }
     @computed get hideLegend() { return this.props.hideLegend }

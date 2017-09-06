@@ -125,9 +125,13 @@ export default class ChartData {
 		return this.filledDimensions.filter(dim => dim.property == 'y')        
     }
 
+	@computed get axisDimensions() {
+		return this.filledDimensions.filter(dim => dim.property == 'y' || dim.property == 'x')
+	}
+
 	@computed get defaultTitle() {
 		if (this.chart.isScatter)
-			return this.filledDimensions.filter(dim => dim.property == 'y' || dim.property == 'x').map(d => d.displayName).join(" vs. ")
+			return this.axisDimensions.map(d => d.displayName).join(" vs. ")
 		else if (this.primaryDimensions.length > 1 && _(this.primaryDimensions).map(d => d.variable.datasetName).uniq().value().length == 1)
 			return this.primaryDimensions[0].variable.datasetName
 		else if (this.primaryDimensions.length == 2)
@@ -165,7 +169,7 @@ export default class ChartData {
 	}
 
 	@computed get isShowingTimeline(): boolean {
-		return !!(this.chart.primaryTab == 'map' || (this.chart.isScatter && this.chart.timeline))
+		return !!(this.chart.primaryTab == 'map' || (this.chart.isScatter && this.chart.scatter.hasTimeline))
 	}
 
 	// Make a unique string key for an entity on a variable
@@ -238,9 +242,7 @@ export default class ChartData {
 	}
 
 	@computed get availableEntities(): string[] {
-		// Find entities with data for all primary dimensions
-		
-		const entitiesForDimensions = this.primaryDimensions.map(dim => {
+		const entitiesForDimensions = this.axisDimensions.map(dim => {
 			return _(this.availableKeys).map(key => this.lookupKey(key)).filter(d => d.dimension.variableId == dim.variableId).map(d => d.entity).value()
 		})
 

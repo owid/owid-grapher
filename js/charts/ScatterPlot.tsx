@@ -55,12 +55,12 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     }
 
     @computed get timeline(): Timeline|null {
-        if (this.props.isStatic || !this.chart.timeline) return null
+        if (this.props.isStatic || !this.transform.hasTimeline) return null
 
         const {bounds, transform, onTargetChange} = this
-        const {availableYears, startYear, endYear} = transform
+        const {timelineYears, startYear, endYear} = transform
         return preInstantiate(
-            <Timeline bounds={bounds.fromBottom(35)} onTargetChange={onTargetChange} years={availableYears} startYear={startYear} endYear={endYear}/>
+            <Timeline bounds={bounds.fromBottom(35)} onTargetChange={onTargetChange} years={timelineYears} startYear={startYear} endYear={endYear}/>
         )
     }
 
@@ -118,7 +118,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
             get maxWidth() { return _this.sidebarWidth },
             get startYear() { return _this.transform.startYear },
             get endYear() { return _this.transform.endYear },
-            get endpointsOnly() { return !!(_this.chart.timeline && _this.chart.timeline.compareEndPointsOnly) }
+            get endpointsOnly() { return _this.transform.compareEndPointsOnly }
         })
     }
 
@@ -175,10 +175,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     }
 
     @action.bound onToggleEndpoints() {
-        const {timeline} = this.chart
-        if (timeline) {
-            this.chart.props.timeline = _.extend({}, timeline, { compareEndPointsOnly: !timeline.compareEndPointsOnly })
-        }
+        this.transform.compareEndPointsOnly = !this.transform.compareEndPointsOnly
     }
 
     render() {

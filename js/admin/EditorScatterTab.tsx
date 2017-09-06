@@ -4,36 +4,21 @@ import * as React from 'react'
 import {observable, computed, action, toJS, autorun} from 'mobx'
 import {observer} from 'mobx-react'
 import Timeline from '../charts/Timeline'
-import ChartConfig, {TimelineConfig, HighlightToggleConfig} from '../charts/ChartConfig'
+import ChartConfig, {HighlightToggleConfig} from '../charts/ChartConfig'
 import {ComparisonLineConfig} from '../charts/ComparisonLine'
 
 @observer
 export default class EditorScatterTab extends React.Component<{ chart: ChartConfig }> {
-    @observable timeline: TimelineConfig = { compareEndPointsOnly: undefined }
     @observable comparisonLine: ComparisonLineConfig = { yEquals: undefined }
     @observable highlightToggle: HighlightToggleConfig = { description: "", paramStr: "" }
 
-    @computed get hasTimeline() { return !!this.props.chart.timeline }
     @computed get hasComparisonLine() { return !!this.props.chart.comparisonLine }
     @computed get hasHighlightToggle() { return !!this.props.chart.highlightToggle }
 
     constructor(props: { chart: ChartConfig }) {
         super(props)
-        _.extend(this.timeline, props.chart.timeline)
         _.extend(this.comparisonLine, props.chart.comparisonLine)
         _.extend(this.highlightToggle, props.chart.highlightToggle)
-    }
-
-    @action.bound onToggleTimeline(e: React.ChangeEvent<HTMLInputElement>) {
-        if (e.target.checked)
-            this.props.chart.props.timeline = this.timeline
-        else
-            this.props.chart.props.timeline = undefined
-    }      
-
-    @action.bound onToggleEndsOnly(e: React.ChangeEvent<HTMLInputElement>) {
-        this.timeline.compareEndPointsOnly = !!e.target.checked
-        this.save()
     }
 
     @action.bound onToggleComparisonLine(e: React.ChangeEvent<HTMLInputElement>) {
@@ -51,9 +36,6 @@ export default class EditorScatterTab extends React.Component<{ chart: ChartConf
     }
 
     save() {
-        if (this.hasTimeline)
-            this.props.chart.props.timeline = toJS(this.timeline)
-
         if (this.hasComparisonLine)
             this.props.chart.props.comparisonLine = toJS(this.comparisonLine)
 
@@ -62,17 +44,17 @@ export default class EditorScatterTab extends React.Component<{ chart: ChartConf
     }
 
     render() {
-        const {hasTimeline, hasComparisonLine, hasHighlightToggle, timeline, comparisonLine, highlightToggle} = this
+        const {hasComparisonLine, hasHighlightToggle, comparisonLine, highlightToggle} = this
         const {chart} = this.props
 
         return <div className="tab-pane">
             <section>
-                <h2>Timeline</h2>
+                {/*<h2>Timeline</h2>
                 <p className="form-section-desc">Note that the timeline settings will override any variable settings for target year (but not for tolerance).</p>
                 <label className="clickable"><input type="checkbox" checked={!!hasTimeline} onChange={this.onToggleTimeline}/> Enable timeline</label>
                 {hasTimeline && <div>
                     <label className="clickable"><input type="checkbox" checked={!!this.timeline.compareEndPointsOnly} onChange={this.onToggleEndsOnly}/> Compare end points only</label>
-                </div>}
+                </div>}*/}
                 <h2>Comparison line</h2>
                 <p className="form-section-desc">Overlay a line onto the chart for comparison. Supports basic <a href="https://github.com/silentmatt/expr-eval#expression-syntax">mathematical expressions</a>.</p>
                 <label className="clickable"><input type="checkbox" checked={!!hasComparisonLine} onChange={this.onToggleComparisonLine}/> Enable comparison line</label>                

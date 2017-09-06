@@ -33,25 +33,28 @@ export default class ScatterTransform implements IChartTransform {
             return "Missing X axis variable"
         else if (_.isEmpty(this.possibleEntities))
             return "No entities with data for both X and Y"
+        else if (_.isEmpty(this.timelineYears))
+            return "No years with data for both X and Y"
         else if (_.isEmpty(this.currentData))
             return "No matching data"
     }
 
     // Scatterplot should have exactly one dimension for each of x and y
     // The y dimension is treated as the "primary" variable
-    @computed get yDimension(): DimensionWithData {
-        return _.find(this.chart.data.filledDimensions, d => d.property == 'y') as DimensionWithData
+    @computed get yDimension(): DimensionWithData|undefined {
+        return _.find(this.chart.data.filledDimensions, d => d.property == 'y')
     }
-    @computed get xDimension(): DimensionWithData {
-        return _.find(this.chart.data.filledDimensions, d => d.property == 'x') as DimensionWithData
+    @computed get xDimension(): DimensionWithData|undefined {
+        return _.find(this.chart.data.filledDimensions, d => d.property == 'x')
     }
     @computed get colorDimension(): DimensionWithData|undefined {
         return _.find(this.chart.data.filledDimensions, d => d.property == 'color')
     }
-    @computed get axisDimensions(): [DimensionWithData, DimensionWithData] {
-        console.assert(this.yDimension)
-        console.assert(this.xDimension)
-        return [this.yDimension, this.xDimension]
+    @computed get axisDimensions(): DimensionWithData[] {
+        let dimensions = []
+        if (this.yDimension) dimensions.push(this.yDimension)
+        if (this.xDimension) dimensions.push(this.xDimension)
+        return dimensions
     }
 
     // Possible to override the x axis dimension to target a special year
@@ -67,7 +70,7 @@ export default class ScatterTransform implements IChartTransform {
     }
 
     @computed get canToggleRelative() {
-        return this.chart.timeline && !this.chart.props.hideRelativeToggle
+        return this.hasTimeline && !this.chart.props.hideRelativeToggle && this.xOverrideYear == null
     }
 
     // Unlike other charts, the scatterplot shows all available data by default, and the selection
@@ -76,10 +79,9 @@ export default class ScatterTransform implements IChartTransform {
         return this.chart.addCountryMode == 'disabled'
     }
     @computed get possibleEntities() {
-        return _.intersection(
-            this.axisDimensions[0].variable.entitiesUniq,
-            this.axisDimensions[1].variable.entitiesUniq
-        )
+        const yEntities = this.yDimension ? this.yDimension.variable.entitiesUniq : []
+        const xEntities = this.xDimension ? this.xDimension.variable.entitiesUniq : []
+        return _.intersection(yEntities, xEntities)
     }
     @computed get entitiesToShow() {
         if (this.hideBackgroundEntities)
@@ -88,49 +90,57 @@ export default class ScatterTransform implements IChartTransform {
             return this.possibleEntities
     }
 
-    @computed get availableYears(): number[] {
+    @computed get timelineYears(): number[] {
+        const yDimensionYears = this.yDimension ? this.yDimension.variable.yearsUniq : []
+        const xDimensionYears = this.xDimension ? this.xDimension.variable.yearsUniq : []
+
         if (this.xOverrideYear != null)
-            return this.yDimension.variable.yearsUniq
+            return yDimensionYears
         else
-            return _.intersection(
-                this.axisDimensions[0].variable.yearsUniq, 
-                this.axisDimensions[1].variable.yearsUniq
-            )
+            return _.intersection(yDimensionYears, xDimensionYears)
     }
 
-    @computed get minAvailableYear(): number {
-        return _.min(this.availableYears) as number
+    @computed get minTimelineYear(): number {
+        return _.min(this.timelineYears) as number
     }
 
-    @computed get maxAvailableYear(): number {
-        return _.max(this.availableYears) as number
+    @computed get maxTimelineYear(): number {
+        return _.max(this.timelineYears) as number
+    }
+
+    @computed get hasTimeline(): boolean {
+        return this.minTimelineYear != this.maxTimelineYear && !this.chart.props.hideTimeline
     }
 
     @computed get startYear(): number {
         const [minYear, maxYear] = this.chart.timeDomain
         if (minYear != null)
-            return Math.max(this.minAvailableYear, minYear)
+            return Math.max(this.minTimelineYear, minYear)
         else
-            return this.maxAvailableYear
+            return this.maxTimelineYear
     }
 
     @computed get endYear(): number {
         const [minYear, maxYear] = this.chart.timeDomain
         if (maxYear != null)
-            return Math.min(this.maxAvailableYear, maxYear)
+            return Math.min(this.maxTimelineYear, maxYear)
         else
-            return this.maxAvailableYear
+            return this.maxTimelineYear
     }
 
-    @computed get hasTimeline(): boolean {
-        return !!this.chart.timeline
+    @computed get compareEndPointsOnly(): boolean {
+        return !!this.chart.props.compareEndPointsOnly
+    }
+
+    set compareEndPointsOnly(value: boolean) {
+        this.chart.props.compareEndPointsOnly = value||undefined
     }
 
     @computed get yearsToCalculate(): number[] {
         if (this.hasTimeline) {
-            return this.availableYears
+            return this.timelineYears
         } else {
-            return this.availableYears.filter(y => y >= this.startYear && y <= this.endYear)
+            return this.timelineYears.filter(y => y >= this.startYear && y <= this.endYear)
         }
     }
 
@@ -338,7 +348,7 @@ export default class ScatterTransform implements IChartTransform {
     }
 
     @computed get yAxisLabelBase() {
-        return defaultTo(this.chart.yAxis.label, this.yDimension.displayName)
+        return defaultTo(this.chart.yAxis.label, this.yDimension ? this.yDimension.displayName : "")
     }
 
     @computed get yAxis(): AxisSpec {
@@ -356,7 +366,7 @@ export default class ScatterTransform implements IChartTransform {
             props.tickFormat = (v: number) => formatValue(v, { unit: "%" })
         } else {
             props.label = yAxisLabelBase
-            props.tickFormat = yDimension.formatValueShort
+            props.tickFormat = yDimension && yDimension.formatValueShort
         }
 
         return _.extend(chart.yAxis.toSpec({ defaultDomain: yDomainDefault }), props) as AxisSpec
@@ -367,7 +377,7 @@ export default class ScatterTransform implements IChartTransform {
     }
 
     @computed get xAxisLabelBase() {
-        return defaultTo(this.chart.xAxis.label, this.xDimension.displayName)
+        return defaultTo(this.chart.xAxis.label, this.xDimension ? this.xDimension.displayName : "")
     }
 
     @computed get xAxis(): AxisSpec {
@@ -385,26 +395,25 @@ export default class ScatterTransform implements IChartTransform {
             props.tickFormat = (v: number) => formatValue(v, { unit: "%" })
         } else {
             props.label = xAxisLabelBase
-            props.tickFormat = xDimension.formatValueShort
+            props.tickFormat = xDimension && xDimension.formatValueShort
         }
 
         return _.extend(chart.xAxis.toSpec({ defaultDomain: xDomainDefault }), props) as AxisSpec
     }
 
     @computed get yFormatTooltip() {
-        return this.isRelativeMode ? this.yAxis.tickFormat : this.yDimension.formatValueLong
+        return (this.isRelativeMode || !this.yDimension) ? this.yAxis.tickFormat : this.yDimension.formatValueLong
     }
 
     @computed get xFormatTooltip() {
-        return this.isRelativeMode ? this.xAxis.tickFormat : this.xDimension.formatValueLong
+        return (this.isRelativeMode || !this.xDimension) ? this.xAxis.tickFormat : this.xDimension.formatValueLong
     }
 
     @computed get currentData(): ScatterSeries[] {
         if (!this.chart.data.isReady)
             return []
 
-        const {dataByEntityAndYear, startYear, endYear, xScaleType, yScaleType, isRelativeMode} = this
-        const {timeline} = this.chart
+        const {dataByEntityAndYear, startYear, endYear, xScaleType, yScaleType, isRelativeMode, compareEndPointsOnly, xOverrideYear} = this
         let currentData: ScatterSeries[] = [];
 
         // As needed, join the individual year data points together to create an "arrow chart"
@@ -435,9 +444,11 @@ export default class ScatterTransform implements IChartTransform {
                 _.sortBy(vals, v => (v.year == startYear || v.year == endYear) ? -Infinity : Math.abs(v.year-v.time.y))[0]
             ).value()
 
-            values = _(values).groupBy(v => v.time.x).map((vals: ScatterValue[]) =>
-                _.sortBy(vals, v => (v.year == startYear || v.year == endYear) ? -Infinity : Math.abs(v.year-v.time.x))[0]
-            ).value()
+            if (xOverrideYear == null) {
+                values = _(values).groupBy(v => v.time.x).map((vals: ScatterValue[]) =>
+                    _.sortBy(vals, v => (v.year == startYear || v.year == endYear) ? -Infinity : Math.abs(v.year-v.time.x))[0]
+                ).value()
+            }
 
             // Don't allow values <= 0 for log scales
             values = _.filter(values, v => {
@@ -450,13 +461,16 @@ export default class ScatterTransform implements IChartTransform {
         })
 
         currentData = _.filter(currentData, series => {
+            // No point trying to render series with no valid points!
             return series.values.length > 0
+
             // This disabled behavior prevents showing data unless it spans the whole timeline range
             // We decided not to do this because it's confusing to have a series disappear when you're moving the timeline
+
             // && ((first(series.values).year == startYear && (last(series.values).year == endYear || first(series.values).year == startYear)) || _.includes(this.chart.data.selectedKeys, series.key))
         })
 
-        if (timeline && timeline.compareEndPointsOnly) {
+        if (compareEndPointsOnly) {
             _.each(currentData, series => {
                 series.values = series.values.length == 1 ? series.values : [first(series.values), last(series.values)]
             })
