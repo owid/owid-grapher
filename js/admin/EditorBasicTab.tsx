@@ -1,6 +1,6 @@
 import * as _ from 'lodash'
 import * as React from 'react'
-import {observable, computed, action, reaction, IReactionDisposer} from 'mobx'
+import {observable, computed, action, when, IReactionDisposer} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartConfig, {DimensionSlot, ChartDimension} from '../charts/ChartConfig'
 import {ChartTypeType} from '../charts/ChartType'
@@ -77,17 +77,18 @@ class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: C
 		})
 
 		this.isSelectingVariables = false
+		this.updateDefaults()
 	}
 
 	@action.bound onRemoveDimension(dim: DimensionWithData) {
 		this.props.slot.dimensions = this.props.slot.dimensions.filter(d => d.variableId != dim.variableId)
+		this.updateDefaults()
 	}
 
-	dispose: IReactionDisposer
-	componentDidMount() {
+	updateDefaults() {
 		const {chart} = this.props.editor
-		this.dispose = reaction(
-			() => chart.type && chart.data.primaryDimensions,
+		when(
+			() => !!(chart.type && chart.data.primaryDimensions),
 			() => {
 				if (chart.isScatter || chart.isSlopeChart) {
 					chart.data.selectedKeys = []
@@ -101,12 +102,9 @@ class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: C
 				}
 			}
 		)
+		
 	}
-
-	componentWillUnmount() {
-		this.dispose()
-	}
-
+	
 	render() {
 		const {isSelectingVariables} = this
 		const {slot, editor} = this.props
