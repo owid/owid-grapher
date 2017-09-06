@@ -2805,9 +2805,9 @@ function-bind@^1.0.2:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/function-bind/-/function-bind-1.1.0.tgz#16176714c801798e4e8f2cf7f7529467bb4a5771"
 
-fuse.js@^2.6.1:
-  version "2.7.4"
-  resolved "https://registry.yarnpkg.com/fuse.js/-/fuse.js-2.7.4.tgz#96e420fde7ef011ac49c258a621314fe576536f9"
+fuzzysort@^0.9.3:
+  version "0.9.3"
+  resolved "https://registry.yarnpkg.com/fuzzysort/-/fuzzysort-0.9.3.tgz#5747104160882e55b63ddf4a590ef84819c0c42d"
 
 gauge@~2.7.3:
   version "2.7.4"

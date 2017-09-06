@@ -34,6 +34,10 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
 	@observable.ref chosenVariables: Variable[] = []
 	searchField: HTMLInputElement
 
+	@observable rowOffset: number = 0
+	@observable numVisibleRows: number = 10
+	@observable rowHeight: number = 32
+
 	@computed get database() {
 		return this.props.editor.database
 	}
@@ -79,6 +83,92 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
 		return _.groupBy(this.searchResults, d => d.datasetName)
 	}
 
+	@computed get searchResultRows() {
+		const {resultsByDataset} = this
+		
+		let rows: (string|Variable[])[] = []
+		_.each(resultsByDataset, (variables, datasetName) => {
+			rows.push(datasetName)
+
+			for (let i = 0; i < variables.length; i += 2) {
+				rows.push(variables.slice(i, i+2))
+			}
+		})
+		return rows
+	}
+
+	@computed get numTotalRows(): number {
+		return this.searchResultRows.length
+	}
+
+	render() {
+		const {slot} = this.props
+		const {chart, database} = this.props.editor
+		const {currentNamespace, searchInput, chosenVariables, isProjection, tolerance} = this
+		const {rowHeight, rowOffset, numVisibleRows, numTotalRows, searchResultRows} = this
+
+		return <EditorModal>
+			<div className="modal-dialog VariableSelector">
+				<div className="modal-content">
+					<div className="modal-header">
+						<button type="button" className="close" onClick={this.onDismiss}><span aria-hidden="true">×</span></button>
+						<h4 className="modal-title">Set variable{slot.allowMultiple && 's'} for {slot.name}</h4>
+					</div>
+					<div className="modal-body">
+						<div className="searchResults">
+							<SelectField label="Database" options={database.namespaces} value={currentNamespace} onValue={this.onNamespace}/> <input type="search" placeholder="Search..." value={searchInput} onInput={this.onSearchInput} onKeyDown={this.onSearchKeyDown} ref={e => this.searchField = (e as HTMLInputElement)}/>
+							<div style={{height: numVisibleRows*rowHeight, 'overflow-y': 'scroll'}} onScroll={this.onScroll}>
+								<div style={{height: numTotalRows*rowHeight, 'padding-top': rowHeight*rowOffset}}>
+									<ul>
+										{searchResultRows.slice(rowOffset, rowOffset+numVisibleRows).map(d => {
+											if (_.isString(d)) {
+												return <li key={d} style={{'min-width': '100%'}}>
+													<h5>{d}</h5>
+												</li>
+											} else {
+												return d.map(v => <li key={v.id} style={{'min-width': '50%'}}>
+													<label className="clickable">
+														<input type="checkbox" checked={false} onChange={e => this.selectVariable(v)}/> {v.name}
+													</label>
+												</li>)
+											}
+										})}
+									</ul>
+								</div>
+							</div>
+
+						</div>
+						<div className="selectedData">
+							<ul>
+								{chosenVariables.map(d => {
+									return <li>
+										<label className="clickable">
+											<input type="checkbox" checked={true} onChange={e => this.unselectVariable(d)}/> {d.name}
+										</label>
+									</li>
+								})}
+							</ul>
+						</div>
+					</div>
+					<div className="modal-footer">
+						<button type="button" className="btn btn-default pull-left" onClick={this.onDismiss}>Close</button>
+						<button type="button" className="btn btn-primary" onClick={this.onComplete}>Set variable{slot.allowMultiple && 's'}</button>
+					</div>
+				</div>
+			</div>
+		</EditorModal>
+	}
+
+	@action.bound onScroll(ev: React.UIEvent<HTMLDivElement>) {
+		const {scrollTop, scrollHeight} = ev.currentTarget
+		const {numTotalRows} = this
+
+		const rowOffset = Math.round(scrollTop/scrollHeight * numTotalRows)
+		ev.currentTarget.scrollTop = Math.round(rowOffset/numTotalRows * scrollHeight)
+
+		this.rowOffset = rowOffset
+	}
+
 	@action.bound onNamespace(namespace: string) {
 		this.chosenNamespace = namespace
 	}
@@ -110,21 +200,6 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
 	}
 
 	componentDidMount() {
-		/*this.isProjection = this.props.dimension.isProjection
-		this.tolerance = defaultTo(this.props.dimension.tolerance, 5)
-
-		const variableId = this.props.dimension.variableId
-		if (variableId && variableId > 0) {
-			this.database.datasets.forEach(dataset => {
-				dataset.variables.forEach(variable => {
-					if (variable.id == variableId) {
-						this.chosenVariableId = variableId
-						this.chosenNamespace = dataset.namespace
-					}
-				})
-			})
-		}*/
-
 		this.chosenVariables = this.props.slot.dimensionsWithData.map(d => ({
 			name: d.displayName,
 			id: d.variableId,
@@ -137,56 +212,5 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
 
 	@action.bound onComplete() {
 		this.props.onComplete(this.chosenVariables.map(v => v.id))
-	}
-
-	render() {
-		const {slot} = this.props
-		const {chart, database} = this.props.editor
-		const {currentNamespace, searchInput, resultsByDataset, chosenVariables, isProjection, tolerance} = this
-
-		return <EditorModal>
-			<div className="modal-dialog VariableSelector">
-				<div className="modal-content">
-					<div className="modal-header">
-						<button type="button" className="close" onClick={this.onDismiss}><span aria-hidden="true">×</span></button>
-						<h4 className="modal-title">Set variable{slot.allowMultiple && 's'} for {slot.name}</h4>
-					</div>
-					<div className="modal-body">
-						<div className="searchResults">
-							<SelectField label="Database" options={database.namespaces} value={currentNamespace} onValue={this.onNamespace}/> <input type="search" placeholder="Search..." value={searchInput} onInput={this.onSearchInput} onKeyDown={this.onSearchKeyDown} ref={e => this.searchField = (e as HTMLInputElement)}/>
-							{_.map(resultsByDataset, (results, datasetName) => {
-								return <div>
-									<h5>{datasetName}</h5>
-									<ul>
-										{results.map(d => 
-											<li>
-												<label className="clickable">
-													<input type="checkbox" checked={false} onChange={e => this.selectVariable(d)}/> {d.name}
-												</label>
-											</li>
-										)}
-									</ul>
-								</div>
-							})}
-						</div>
-						<div className="selectedData">
-							<ul>
-								{chosenVariables.map(d => {
-									return <li>
-										<label className="clickable">
-											<input type="checkbox" checked={true} onChange={e => this.unselectVariable(d)}/> {d.name}
-										</label>
-									</li>
-								})}
-							</ul>
-						</div>
-					</div>
-					<div className="modal-footer">
-						<button type="button" className="btn btn-default pull-left" onClick={this.onDismiss}>Close</button>
-						<button type="button" className="btn btn-primary" onClick={this.onComplete}>Set variable{slot.allowMultiple && 's'}</button>
-					</div>
-				</div>
-			</div>
-		</EditorModal>
 	}
 }

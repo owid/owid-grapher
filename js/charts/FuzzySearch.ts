@@ -1,21 +1,16 @@
-const Fuse = require("fuse.js")
+import * as _ from 'lodash'
+const fuzzysort = require("fuzzysort")
 
 export default class FuzzySearch<T> {
-    fuse: any
+    strings: string[]
+    datamap: any
 
     constructor(data: T[], key: string) {
-        this.fuse = new Fuse(data, {
-            shouldSort: true,
-            threshold: 0.6,
-            location: 0,
-            distance: 100,
-            maxPatternLength: 32,
-            minMatchCharLength: 1,
-            keys: [key]
-        })
+        this.datamap = _.keyBy(data, key)
+        this.strings = data.map((d: any) => fuzzysort.prepare(d[key]))
     }
 
     search(input: string): T[] {
-        return this.fuse.search(input)
+        return fuzzysort.go(input, this.strings).map((result: any) => this.datamap[result._target])
     }
 }
