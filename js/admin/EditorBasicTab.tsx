@@ -1,6 +1,6 @@
 import * as _ from 'lodash'
 import * as React from 'react'
-import {observable, computed, action} from 'mobx'
+import {observable, computed, action, reaction, IReactionDisposer} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartConfig, {DimensionSlot, ChartDimension} from '../charts/ChartConfig'
 import {ChartTypeType} from '../charts/ChartType'
@@ -76,6 +76,30 @@ class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: C
 
 	@action.bound onRemoveDimension(dim: DimensionWithData) {
 		this.props.slot.dimensions = this.props.slot.dimensions.filter(d => d.variableId != dim.variableId)
+	}
+
+	dispose: IReactionDisposer
+	componentDidMount() {
+		const {chart} = this.props.editor
+		this.dispose = reaction(
+			() => chart.type && chart.data.primaryDimensions,
+			() => {
+				if (chart.isScatter || chart.isSlopeChart) {
+					chart.data.selectedKeys = []
+				} else if (chart.data.primaryDimensions.length > 1) {
+					const entity = _.includes(chart.data.availableEntities, "World") ? "World" : _.sample(chart.data.availableEntities)
+					chart.data.selectedKeys = chart.data.availableKeys.filter(key => chart.data.lookupKey(key).entity == entity)
+					chart.props.addCountryMode = 'change-country'
+				} else {
+					chart.data.selectedKeys = chart.data.availableKeys.length > 10 ? _.sampleSize(chart.data.availableKeys, 3) : chart.data.availableKeys
+					chart.props.addCountryMode = 'add-country'
+				}
+			}
+		)
+	}
+
+	componentWillUnmount() {
+		this.dispose()
 	}
 
 	render() {

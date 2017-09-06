@@ -96,13 +96,13 @@ export default class Header {
 
     fontSize?: number
     @computed get title() {
-        const {props, logo, titleText} = this
+        const {props, logo} = this
+        let {titleText} = this
 
         let maxWidth = props.maxWidth-logo.width-15
-
         // HACK (Mispy): Stop the title jumping around during timeline transitions
-        if (props.minYear == props.maxYear && props.chart.timeline) {
-            maxWidth -= Bounds.forText(" in 2000", { fontSize: "1.25em" }).width
+        if (props.minYear == props.maxYear && props.chart.data.isShowingTimeline) {
+            titleText = titleText + " in 2000"
         }
 
         // Try to fit the title into a single line if possible-- but not if it would make the text super small
@@ -116,7 +116,7 @@ export default class Header {
         }
         this.fontSize = fontSize
 
-        return title
+        return new TextWrap({ maxWidth: maxWidth, fontSize: fontSize, text: this.titleText, lineHeight: 1 })
     }
 
     @computed get subtitleWidth() {

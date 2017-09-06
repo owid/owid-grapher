@@ -164,6 +164,10 @@ export default class ChartData {
 		return this.primaryDimensions.length == 1
 	}
 
+	@computed get isShowingTimeline(): boolean {
+		return !!(this.chart.primaryTab == 'map' || (this.chart.isScatter && this.chart.timeline))
+	}
+
 	// Make a unique string key for an entity on a variable
 	keyFor(entity: string, dimensionIndex: number): DataKey {
 		return `${entity}_${dimensionIndex}`
@@ -234,7 +238,13 @@ export default class ChartData {
 	}
 
 	@computed get availableEntities(): string[] {
-		return _(this.availableKeys).map(key => this.lookupKey(key).entity).uniq().value()
+		// Find entities with data for all primary dimensions
+		
+		const entitiesForDimensions = this.primaryDimensions.map(dim => {
+			return _(this.availableKeys).map(key => this.lookupKey(key)).filter(d => d.dimension.variableId == dim.variableId).map(d => d.entity).value()
+		})
+
+		return _.intersection(...entitiesForDimensions)
 	}
 
 	switchEntity(entityId: number) {

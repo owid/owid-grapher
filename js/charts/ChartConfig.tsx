@@ -79,7 +79,7 @@ export class DimensionSlot {
 
     @computed get name(): string {
         const names = {
-            'y': 'Y axis',
+            'y': this.chart.isDiscreteBar ? 'X axis' : 'Y axis',
             'x': 'X axis',
             'size': 'Size',
             'color': 'Color'

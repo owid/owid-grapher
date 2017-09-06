@@ -199,7 +199,7 @@ export default class ChartEditor {
 			() => this.isSaved = false
 		)
 
-		reaction(
+		/*reaction(
 			() => chart.data.filledDimensions, 
 			() => {
 				// Be helpful and select some default data
@@ -207,7 +207,7 @@ export default class ChartEditor {
 					chart.data.selectedKeys = _.sampleSize(chart.data.availableKeys, 3)
 				}
 			}
-		)		
+		)*/
     }
 }
 
