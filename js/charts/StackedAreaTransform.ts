@@ -233,7 +233,8 @@ export default class StackedAreaTransform implements IChartTransform {
         return _.extend(
             chart.yAxis.toSpec({ defaultDomain: yDomainDefault }),
             { domain: isRelative ? [0, 100] : [yDomainDefault[0], yDomainDefault[1]], // Stacked area chart must have its own y domain
-			  tickFormat: isRelative ? (v: number) => formatValue(v, { unit: "%" }) : tickFormat }
+			  tickFormat: isRelative ? (v: number) => formatValue(v, { unit: "%" }) : tickFormat,
+			  label: isRelative ? undefined : chart.yAxis.label }
         ) as AxisSpec
     }
 
