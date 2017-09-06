@@ -57,7 +57,7 @@ export default class LineChartTransform implements IChartTransform {
 	@computed get initialData(): LineChartSeries[] {
 		const {chart, startYear, endYear} = this
 		const {timeDomain, yAxis, addCountryMode} = chart
-        const {filledDimensions, selectedKeysByKey} = chart.data
+        const {filledDimensions, selectedKeys, selectedKeysByKey} = chart.data
 
 		let chartData: LineChartSeries[] = []
 
@@ -102,6 +102,9 @@ export default class LineChartTransform implements IChartTransform {
         chartData.forEach(series => {
             series.color = chart.data.keyColors[series.key] || colorScale(series.key)
         })
+
+        // Preserve ordering. Note for line charts, the series order only affects the visual stacking order on overlaps.
+        chartData = _.sortBy(chartData, series => selectedKeys.indexOf(series.key))
 
         return chartData
 	}
