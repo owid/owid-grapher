@@ -33,9 +33,10 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
 	@observable.ref tolerance?: number
 	@observable.ref chosenVariables: Variable[] = []
 	searchField: HTMLInputElement
+	scrollElement: HTMLDivElement
 
 	@observable rowOffset: number = 0
-	@observable numVisibleRows: number = 10
+	@observable numVisibleRows: number = 15
 	@observable rowHeight: number = 32
 
 	@computed get database() {
@@ -117,18 +118,18 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
 					<div className="modal-body">
 						<div className="searchResults">
 							<SelectField label="Database" options={database.namespaces} value={currentNamespace} onValue={this.onNamespace}/> <input type="search" placeholder="Search..." value={searchInput} onInput={this.onSearchInput} onKeyDown={this.onSearchKeyDown} ref={e => this.searchField = (e as HTMLInputElement)}/>
-							<div style={{height: numVisibleRows*rowHeight, 'overflow-y': 'scroll'}} onScroll={this.onScroll}>
+							<div style={{height: numVisibleRows*rowHeight, 'overflow-y': 'scroll'}} onScroll={this.onScroll} ref={e => this.scrollElement = e}>
 								<div style={{height: numTotalRows*rowHeight, 'padding-top': rowHeight*rowOffset}}>
 									<ul>
 										{searchResultRows.slice(rowOffset, rowOffset+numVisibleRows).map(d => {
 											if (_.isString(d)) {
 												return <li key={d} style={{'min-width': '100%'}}>
-													<h5>{d}</h5>
+													<h5 dangerouslySetInnerHTML={{__html: this.fuzzy.highlight(searchInput||"", d)}}/>
 												</li>
 											} else {
 												return d.map(v => <li key={v.id} style={{'min-width': '50%'}}>
 													<label className="clickable">
-														<input type="checkbox" checked={false} onChange={e => this.selectVariable(v)}/> {v.name}
+														<input type="checkbox" checked={false} onChange={e => this.selectVariable(v)}/> <span dangerouslySetInnerHTML={{__html: this.fuzzy.highlight(searchInput||"", v.name)}}/>
 													</label>
 												</li>)
 											}
@@ -175,6 +176,8 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
 
 	@action.bound onSearchInput(e: React.KeyboardEvent<HTMLInputElement>) {
 		this.searchInput = e.currentTarget.value
+		this.rowOffset = 0
+		this.scrollElement.scrollTop = 0
 	}
 
 	@action.bound selectVariable(variable: Variable) {

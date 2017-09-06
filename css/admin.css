@@ -944,7 +944,7 @@ li[data-color^=".*"] {
     & .modal-body {
         display: flex;
         justify-content: space-between;
-        max-height: 500px;
+        max-height: 80vh;
         overflow-y: scroll;
     }
 
@@ -967,6 +967,10 @@ li[data-color^=".*"] {
     & .searchResults ul {
         display: flex;
         flex-wrap: wrap;
+    }
+
+    & .searchResults b {
+      color: orange;
     }
 
     & ul {
