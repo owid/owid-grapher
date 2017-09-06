@@ -100,6 +100,9 @@ def selectedKeysRedesign(apps, schema_editor):
                 elif timeline != [] and timeline.get("compareEndPointsOnly", None):
                     config['compareEndPointsOnly'] = timeline['compareEndPointsOnly']
 
+            if chart.type == "DiscreteBar" or "global" in chart.name.lower() or "world" in chart.name.lower():
+                config['hideTitleAnnotation'] = True
+
             chart.config = json.dumps(config)
             chart.save()
 
