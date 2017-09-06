@@ -183,7 +183,7 @@ export default class ChartConfig {
         return [this.props.minTime||null, this.props.maxTime||null]
     }
 
-    set timeDomain(value: [number|null, number|null]) { 
+    set timeDomain(value: [number|null, number|null]) {
         this.props.minTime = value[0]||undefined
         this.props.maxTime = value[1]||undefined
     }

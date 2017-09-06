@@ -56,13 +56,23 @@ export default class DiscreteBarTransform implements IChartTransform {
 
     }
 
+    @computed get barValueFormat(): (datum: DiscreteBarDatum) => string {
+        const {chart, primaryDimension, targetYear} = this
+        const formatValue = primaryDimension ? primaryDimension.formatValueShort : chart.yAxis.tickFormat
+
+        return (datum: DiscreteBarDatum) => {
+            return formatValue(datum.value) + (datum.year != targetYear ? " (in " + datum.year + ")" : "")
+        }
+    }
+
     @computed get data(): DiscreteBarDatum[] {
 		const {chart, targetYear, colors} = this
         const {filledDimensions, selectedKeysByKey} = chart.data
         const data: DiscreteBarDatum[] = []
+        const dataByKey: {[key: string]: DiscreteBarDatum} = {}
 
 		_.each(filledDimensions, (dimension, dimIndex) => {
-            const {variable} = dimension
+            const {variable, tolerance} = dimension
 
 			for (var i = 0; i < variable.years.length; i++) {
 				const year = variable.years[i]
@@ -70,17 +80,25 @@ export default class DiscreteBarTransform implements IChartTransform {
 				const entity = variable.entities[i]
 				const datakey = chart.data.keyFor(entity, dimIndex)
 
-				// Not a selected key, don't add any data for it
-				if (year != targetYear || !selectedKeysByKey[datakey]) continue;
+				if (year < targetYear-tolerance || year > targetYear+tolerance || !selectedKeysByKey[datakey]) 
+                    continue;
 
-                data.push({
+                const currentDatum = dataByKey[datakey]
+                // Make sure we use the closest value to the target year within tolerance (preferring later)
+                if (currentDatum && Math.abs(currentDatum.year-targetYear) < Math.abs(year-targetYear))
+                    continue
+
+                const datum = {
                     value: +variable.values[i],
+                    year: year,
                     label: chart.data.formatKey(datakey),
                     color: colors.getColorForKey(datakey)
-                })
+                }
+
+                dataByKey[datakey] = datum
 			}
 		});
 
-        return _.sortBy(data, d => -d.value)
+        return _.sortBy(_.values(dataByKey), d => -d.value)
     }
 }

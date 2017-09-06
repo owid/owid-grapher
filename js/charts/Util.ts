@@ -243,3 +243,8 @@ export function slugify(s: string) {
 	s = s.toLowerCase().replace(/\s*\*.+\*/, '').replace(/[^\w- ]+/g,'');
 	return _.trim(s).replace(/ +/g,'-');
 }
+
+
+export function findClosest(values: number[], targetValue: number): number|undefined {
+	return _.sortBy(values, value => Math.abs(value-targetValue))[0];	
+}

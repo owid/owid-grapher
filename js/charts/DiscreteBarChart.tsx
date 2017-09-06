@@ -27,6 +27,7 @@ import NoData from './NoData'
 
 export interface DiscreteBarDatum {
     value: number,
+    year: number,
     label: string,
     color: Color
 }
@@ -62,7 +63,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
     }
 
     @computed get maxValueWidth(): number {
-        const maxValue = _.sortBy(this.data, d => -d.value.toString().length)[0].value
+        const maxValue = _.sortBy(this.data, d => -d.value.toString().length)[0]
         return Bounds.forText(this.barValueFormat(maxValue), { fontSize: this.valueFontSize+'em' }).width
     }
 
@@ -137,7 +138,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
     }
 
     @computed get barValueFormat() {
-        return this.chart.yAxis.tickFormat
+        return this.chart.discreteBar.barValueFormat
     }
 
     render() {
@@ -160,7 +161,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
                 const result = <g className="bar">
                     <text x={bounds.left+legendWidth-5} y={yOffset} fill="#666" dominant-baseline="middle" textAnchor="end" fontSize={valueFontSize+'em'}>{d.label}</text>
                     <rect x={barX} y={yOffset-barHeight/2} width={barWidth} height={barHeight} fill={d.color} opacity={0.85}/>
-                    <text x={xScale.place(d.value) + (isNegative ? -5 : 5)} y={yOffset} fill="#666" dominant-baseline="middle" textAnchor={isNegative ? "end" : "start"} fontSize="0.55em">{barValueFormat(d.value)}</text>
+                    <text x={xScale.place(d.value) + (isNegative ? -5 : 5)} y={yOffset} fill="#666" dominant-baseline="middle" textAnchor={isNegative ? "end" : "start"} fontSize="0.55em">{barValueFormat(d)}</text>
                 </g>
                 yOffset += barHeight+barSpacing
                 return result

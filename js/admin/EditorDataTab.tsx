@@ -127,26 +127,29 @@ class TimeSection extends React.Component<{ editor: ChartEditor }> {
 		}
 	}
 
-	@action.bound onMinTime(value: number) {
+	@action.bound onMinTime(value: number|undefined) {
 		this.chart.props.minTime = value
+		
+		const {minTime, maxTime} = this.chart.props
+		if ((minTime as number) > (maxTime as number))
+			this.chart.props.maxTime = this.chart.props.minTime
 	}
 
-	@action.bound onMaxTime(value: number) {
+	@action.bound onMaxTime(value: number|undefined) {
 		this.chart.props.maxTime = value
+
+		const {minTime, maxTime} = this.chart.props
+		if ((minTime as number) > (maxTime as number))
+			this.chart.props.minTime = this.chart.props.maxTime
 	}
 
 	render() {
+		const {features} = this.props.editor
 		const {chart, isDynamicTime} = this
 
 		return <section className="time-section">
-			<Toggle label="Use entire time period of the selected data" value={isDynamicTime} onValue={this.onToggleDynamicTime}/>
-
-			{!isDynamicTime && <div>
-				<div className="chart-time-inputs-wrapper">
-					<NumberField label="Time from" value={chart.props.minTime} onValue={this.onMinTime}/>
-					<NumberField label="Time to" value={chart.props.maxTime} onValue={this.onMaxTime}/>
-				</div>
-			</div>}
+			{features.timeDomain && <NumberField label="Min year" value={chart.props.minTime} onValue={this.onMinTime}/>}
+			<NumberField label={features.timeDomain ? "Max year" : "Target year"} value={chart.props.maxTime} onValue={this.onMaxTime}/>
 		</section>
 	}
 }

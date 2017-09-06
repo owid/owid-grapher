@@ -6,7 +6,7 @@ import {defaultTo, first, last} from './Util'
 import {DimensionWithData} from './ChartData'
 import {ScatterSeries, ScatterValue} from './PointsWithLabels'
 import AxisSpec from './AxisSpec'
-import {formatValue, domainExtent} from './Util'
+import {formatValue, domainExtent, findClosest} from './Util'
 import ColorSchemes from './ColorSchemes'
 import IChartTransform from './IChartTransform'
 
@@ -118,16 +118,18 @@ export default class ScatterTransform implements IChartTransform {
 
     @computed get startYear(): number {
         const [minYear, maxYear] = this.chart.timeDomain
+
         if (minYear != null)
-            return Math.max(this.minTimelineYear, minYear)
+            return defaultTo(findClosest(this.timelineYears, minYear), this.minTimelineYear)
         else
             return this.maxTimelineYear
     }
 
     @computed get endYear(): number {
         const [minYear, maxYear] = this.chart.timeDomain
+
         if (maxYear != null)
-            return Math.min(this.maxTimelineYear, maxYear)
+            return defaultTo(findClosest(this.timelineYears, maxYear), this.maxTimelineYear)
         else
             return this.maxTimelineYear
     }

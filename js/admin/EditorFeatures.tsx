@@ -24,6 +24,7 @@ export default class EditorFeatures {
 
     @computed get linLogToggle() { return !this.chart.isDiscreteBar }
     @computed get axisMinMax() { return !this.chart.isDiscreteBar }
+    @computed get timeDomain() { return !this.chart.isDiscreteBar }
 
     @computed get hideLegend() {
         return this.chart.type == ChartType.LineChart || this.chart.type == ChartType.StackedArea
