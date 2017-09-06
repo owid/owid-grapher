@@ -6,7 +6,7 @@ import Color from './Color'
 import DataKey from './DataKey'
 import {StackedAreaSeries, StackedAreaValue} from './StackedArea'
 import AxisSpec from './AxisSpec'
-import {defaultTo} from './Util'
+import {defaultTo, findClosest} from './Util'
 import {DimensionWithData} from './ChartData'
 import Observations from './Observations'
 import {SlopeChartSeries} from './LabelledSlopes'
@@ -34,9 +34,30 @@ export default class SlopeChartTransform implements IChartTransform {
             return "No matching data"
     }
 
+    @computed get timelineYears(): number[] {
+        return _.union(...this.chart.data.axisDimensions.map(d => d.variable.yearsUniq))
+    }
+
+    @computed get minTimelineYear(): number {
+        return defaultTo(_.min(this.timelineYears), 1900)
+    }
+
+    @computed get maxTimelineYear(): number {
+        return defaultTo(_.max(this.timelineYears), 2000)
+    }
+
+    @computed get startYear(): number {
+        const minYear = defaultTo(this.chart.timeDomain[0], this.minTimelineYear)
+        return defaultTo(findClosest(this.timelineYears, minYear), this.minTimelineYear)
+    }
+
+    @computed get endYear(): number {
+        const maxYear = defaultTo(this.chart.timeDomain[1], this.maxTimelineYear)
+        return defaultTo(findClosest(this.timelineYears, maxYear), this.maxTimelineYear)
+    }
 
 	@computed.struct get xDomain() : [number|null, number|null] {
-		return this.chart.timeDomain
+		return [this.startYear, this.endYear]
 	}
 
 	@computed.struct get sizeDim(): DimensionWithData {

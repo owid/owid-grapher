@@ -129,18 +129,10 @@ class TimeSection extends React.Component<{ editor: ChartEditor }> {
 
 	@action.bound onMinTime(value: number|undefined) {
 		this.chart.props.minTime = value
-		
-		const {minTime, maxTime} = this.chart.props
-		if ((minTime as number) > (maxTime as number))
-			this.chart.props.maxTime = this.chart.props.minTime
 	}
 
 	@action.bound onMaxTime(value: number|undefined) {
 		this.chart.props.maxTime = value
-
-		const {minTime, maxTime} = this.chart.props
-		if ((minTime as number) > (maxTime as number))
-			this.chart.props.minTime = this.chart.props.maxTime
 	}
 
 	render() {
