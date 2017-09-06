@@ -353,8 +353,11 @@ export default class ScatterTransform implements IChartTransform {
         return this.isRelativeMode ? 'linear' : this.chart.yAxis.scaleType
     }
 
-    @computed get yAxisLabelBase() {
-        return defaultTo(this.chart.yAxis.label, this.yDimension ? this.yDimension.displayName : "")
+    @computed get yAxisLabelBase(): string|undefined {
+        if (this.chart.yAxis.label != null)
+            return this.chart.yAxis.label
+
+        return this.yDimension && this.yDimension.displayName
     }
 
     @computed get yAxis(): AxisSpec {
@@ -383,7 +386,14 @@ export default class ScatterTransform implements IChartTransform {
     }
 
     @computed get xAxisLabelBase() {
-        return defaultTo(this.chart.xAxis.label, this.xDimension ? this.xDimension.displayName : "")
+        if (this.chart.xAxis.label != null)
+            return this.chart.xAxis.label
+
+        const xDimName = this.xDimension && this.xDimension.displayName
+        if (this.xOverrideYear != null)
+            return xDimName + " in " + this.xOverrideYear
+        else
+            return xDimName
     }
 
     @computed get xAxis(): AxisSpec {
