@@ -66,7 +66,7 @@ export default class EditorScatterTab extends React.Component<{ chart: ChartConf
                 </div>}*/}
                 <h2>Timeline</h2>
                 <Toggle label="Hide timeline" value={!!chart.props.hideTimeline} onValue={this.onToggleHideTimeline}/>
-                <NumberField label="Override X axis target year" value={chart.scatter.xOverrideYear} onValue={this.onXOverrideYear}/>
+                <NumberField label="Override X axis target year" value={chart.scatter.xOverrideYear} onValue={_.debounce(this.onXOverrideYear, 300)}/>
                 <h2>Comparison line</h2>
                 <p className="form-section-desc">Overlay a line onto the chart for comparison. Supports basic <a href="https://github.com/silentmatt/expr-eval#expression-syntax">mathematical expressions</a>.</p>
                 <label className="clickable"><input type="checkbox" checked={!!hasComparisonLine} onChange={this.onToggleComparisonLine}/> Enable comparison line</label>                
