@@ -145,7 +145,6 @@ export class ChartConfigProps {
     @observable.ref overlay?: ChartTabOption = undefined
 
     @observable.ref internalNotes?: string = undefined
-    @observable.ref logosSVG: string[] = []
     @observable.ref originUrl?: string = undefined
     @observable.ref isPublished?: true = undefined
     @observable.ref baseColorScheme?: string = undefined
@@ -164,7 +163,6 @@ export default class ChartConfig {
     @computed get subtitle() { return defaultTo(this.props.subtitle, "") }
     @computed get note() { return defaultTo(this.props.note, "") }
     @computed get internalNotes() { return defaultTo(this.props.internalNotes, "") }
-    @computed get logosSVG() { return this.props.logosSVG }
     @computed get originUrl() { return defaultTo(this.props.originUrl, "") }
     @computed get isPublished() { return defaultTo(this.props.isPublished, false) }
     @computed get primaryTab() { return this.props.tab }
@@ -206,6 +204,7 @@ export default class ChartConfig {
         return new AxisConfig(this.props.yAxis)
     }
 
+    @observable.ref logosSVG: string[]
     @observable.ref variableCacheTag: string
     @observable.ref tooltip: React.ReactNode
 
@@ -271,23 +270,17 @@ export default class ChartConfig {
             this.props.slug = undefined
 
         this.props.type = json['chart-type']||ChartType.LineChart
-        this.props.note = json['chart-description']
         this.props.originUrl = json['data-entry-url']
         this.props.isPublished = json['published']
-        this.props.map = json['map-config'] ? _.extend(new MapConfigProps(), json['map-config']) : undefined        
+        this.props.map = json['map'] ? _.extend(new MapConfigProps(), json['map']) : undefined        
         this.props.hasChartTab = json['tabs'] ? json['tabs'].includes("chart") : true
         this.props.hasMapTab = json['tabs'] ? json['tabs'].includes("map") : false
         _.extend(this.props.xAxis, json['xAxis'])
         _.extend(this.props.yAxis, json['yAxis'])
 
-        this.props.dimensions = (json['chart-dimensions']||[]).map((j: any) => new ChartDimension(j))
-        this.props.addCountryMode = json['add-country-mode']
-        this.props.tab = json["default-tab"]
-        this.props.hideLegend = json["hide-legend"]
-        this.props.hideRelativeToggle = json["hide-toggle"]
-        this.props.stackMode = json["currentStackMode"]||this.props.stackMode
-        
+        this.props.dimensions = (json['chart-dimensions']||[]).map((j: any) => new ChartDimension(j))        
         this.variableCacheTag = json["variableCacheTag"]
+        this.logosSVG = json["logosSVG"]
     }
 
     @computed.struct get json() {
@@ -308,16 +301,9 @@ export default class ChartConfig {
 
         // XXX backwards compatibility
         json['chart-type'] = props.type
-        json['chart-description'] = props.note
         json['published'] = props.isPublished
-        json['map-config'] = props.map
         json['tabs'] = this.availableTabs
         json['chart-dimensions'] = props.dimensions
-        json['add-country-mode'] = props.addCountryMode
-        json['default-tab'] = props.tab
-        json['hide-legend'] = props.hideLegend
-        json['hide-toggle'] = props.hideRelativeToggle
-        json['entity-type'] = props.entityType
 
         return json
     }
