@@ -6,6 +6,7 @@ import {observer} from 'mobx-react'
 import Timeline from '../charts/Timeline'
 import ChartConfig, {HighlightToggleConfig} from '../charts/ChartConfig'
 import {ComparisonLineConfig} from '../charts/ComparisonLine'
+import {Toggle, NumberField} from './Forms'
 
 @observer
 export default class EditorScatterTab extends React.Component<{ chart: ChartConfig }> {
@@ -19,6 +20,14 @@ export default class EditorScatterTab extends React.Component<{ chart: ChartConf
         super(props)
         _.extend(this.comparisonLine, props.chart.comparisonLine)
         _.extend(this.highlightToggle, props.chart.highlightToggle)
+    }
+
+    @action.bound onToggleHideTimeline(value: boolean) {
+        this.props.chart.props.hideTimeline = value||undefined
+    }
+
+    @action.bound onXOverrideYear(value: number) {
+        this.props.chart.scatter.xOverrideYear = value
     }
 
     @action.bound onToggleComparisonLine(e: React.ChangeEvent<HTMLInputElement>) {
@@ -55,6 +64,9 @@ export default class EditorScatterTab extends React.Component<{ chart: ChartConf
                 {hasTimeline && <div>
                     <label className="clickable"><input type="checkbox" checked={!!this.timeline.compareEndPointsOnly} onChange={this.onToggleEndsOnly}/> Compare end points only</label>
                 </div>}*/}
+                <h2>Timeline</h2>
+                <Toggle label="Hide timeline" value={!!chart.props.hideTimeline} onValue={this.onToggleHideTimeline}/>
+                <NumberField label="Override X axis target year" value={chart.scatter.xOverrideYear} onValue={this.onXOverrideYear}/>
                 <h2>Comparison line</h2>
                 <p className="form-section-desc">Overlay a line onto the chart for comparison. Supports basic <a href="https://github.com/silentmatt/expr-eval#expression-syntax">mathematical expressions</a>.</p>
                 <label className="clickable"><input type="checkbox" checked={!!hasComparisonLine} onChange={this.onToggleComparisonLine}/> Enable comparison line</label>                

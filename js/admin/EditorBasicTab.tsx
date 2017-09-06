@@ -4,7 +4,7 @@ import {observable, computed, action, reaction, IReactionDisposer} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartConfig, {DimensionSlot, ChartDimension} from '../charts/ChartConfig'
 import {ChartTypeType} from '../charts/ChartType'
-import {TextField, Toggle} from './Forms'
+import {TextField, Toggle, NumberField} from './Forms'
 import {DimensionWithData} from '../charts/ChartData'
 import ChartEditor, {Variable} from './ChartEditor'
 import VariableSelector from './VariableSelector'
@@ -16,6 +16,10 @@ class DimensionCard extends React.Component<{ dimension: DimensionWithData, edit
 
 	@computed get hasExpandedOptions() {
 		return this.props.dimension.property == 'y' || this.props.dimension.property == 'x'
+	}
+
+	@action.bound onToggleExpand() {
+		this.isExpanded = !this.isExpanded
 	}
 
 	@action.bound onIsProjection(value: boolean) {
@@ -34,8 +38,8 @@ class DimensionCard extends React.Component<{ dimension: DimensionWithData, edit
 		this.props.dimension.props.shortUnit = value||undefined
 	}
 
-	@action.bound onToggleExpand() {
-		this.isExpanded = !this.isExpanded
+	@action.bound onTolerance(value: number|undefined) {
+		this.props.dimension.props.tolerance = value
 	}
 
 	render() {
@@ -53,6 +57,7 @@ class DimensionCard extends React.Component<{ dimension: DimensionWithData, edit
 				<TextField label="Display name" value={dimension.props.displayName} onValue={this.onDisplayName} placeholder={dimension.displayName}/>
 				<TextField label="Unit" value={dimension.props.unit} onValue={this.onUnit} placeholder={dimension.unit}/>
 				<TextField label="Short unit" value={dimension.props.shortUnit} onValue={this.onShortUnit} placeholder={dimension.shortUnit}/>
+				{(chart.isScatter || chart.isDiscreteBar) && <NumberField label="Tolerance" value={dimension.props.tolerance} onValue={this.onTolerance} placeholder={_.toString(dimension.tolerance)}/>}
 				{chart.isLineChart && <Toggle label="Is projection" value={!!dimension.props.isProjection} onValue={this.onIsProjection}/>}
 			</div>}
 		</div>

@@ -63,6 +63,10 @@ export default class ScatterTransform implements IChartTransform {
         return this.xDimension && this.xDimension.targetYear
     }
 
+    set xOverrideYear(value: number|undefined) {
+        (this.xDimension as DimensionWithData).props.targetYear = value
+    }
+
     // In relative mode, the timeline scatterplot calculates changes relative
     // to the lower bound year rather than creating an arrow chart
     @computed get isRelativeMode() {
@@ -101,11 +105,11 @@ export default class ScatterTransform implements IChartTransform {
     }
 
     @computed get minTimelineYear(): number {
-        return _.min(this.timelineYears) as number
+        return defaultTo(_.min(this.timelineYears), 1900)
     }
 
     @computed get maxTimelineYear(): number {
-        return _.max(this.timelineYears) as number
+        return defaultTo(_.max(this.timelineYears), 2000)
     }
 
     @computed get hasTimeline(): boolean {
@@ -136,7 +140,7 @@ export default class ScatterTransform implements IChartTransform {
         this.chart.props.compareEndPointsOnly = value||undefined
     }
 
-    @computed get yearsToCalculate(): number[] {
+    @computed.struct get yearsToCalculate(): number[] {
         if (this.hasTimeline) {
             return this.timelineYears
         } else {

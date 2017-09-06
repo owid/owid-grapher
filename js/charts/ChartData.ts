@@ -56,7 +56,7 @@ export class DimensionWithData {
 	}
 
 	@computed get tolerance(): number {
-		return this.props.tolerance||0
+		return this.props.tolerance == null ? 0 : this.props.tolerance
 	}
 
 	@computed get shortUnit(): string|undefined {
