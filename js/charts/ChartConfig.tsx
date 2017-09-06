@@ -120,6 +120,7 @@ export class ChartConfigProps {
     @observable.ref subtitle?: string = undefined
     @observable.ref sourceDesc?: string = undefined
     @observable.ref note?: string = undefined
+    @observable.ref hideTitleAnnotation?: true = undefined
 
     @observable.ref xAxis: AxisConfigProps = new AxisConfigProps()
     @observable.ref yAxis: AxisConfigProps = new AxisConfigProps()

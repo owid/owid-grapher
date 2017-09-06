@@ -61,25 +61,29 @@ export default class Header {
     }
 
     fillTemplate(text: string) {
-        const {chart, minYear, maxYear} = this.props
+        const {chart} = this.props
 
-        if (chart.tab == "chart" && chart.addCountryMode != "add-country" && chart.data.selectedEntities.length == 1) {
-            const {selectedEntities} = chart.data
-            const entityStr = selectedEntities.join(', ');
-            if (entityStr.length > 0) {
-                text = text + ", " + entityStr
+        if (!chart.props.hideTitleAnnotation) {
+            const {minYear, maxYear} = this.props
+
+            if (chart.tab == "chart" && chart.addCountryMode != "add-country" && chart.data.selectedEntities.length == 1) {
+                const {selectedEntities} = chart.data
+                const entityStr = selectedEntities.join(', ');
+                if (entityStr.length > 0) {
+                    text = text + ", " + entityStr
+                }
+            }
+
+            if (_.isFinite(minYear)) {
+                var timeFrom = formatYear(minYear as number),
+                timeTo = formatYear(_.isFinite(maxYear) ? maxYear as number : minYear as number),
+                time = timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo;
+
+                text = text + ", " + time
             }
         }
 
-        if (_.isFinite(minYear)) {
-            var timeFrom = formatYear(minYear as number),
-            timeTo = formatYear(_.isFinite(maxYear) ? maxYear as number : minYear as number),
-            time = timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo;
-
-            text = text + ", " + time
-        }
-
-        return text.trim();
+        return text.trim()
     }
 
     @computed get titleText() {

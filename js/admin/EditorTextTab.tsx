@@ -17,6 +17,7 @@ export default class EditorTextTab extends React.Component<{ editor: ChartEditor
 
 	@action.bound onTitle(title: string) { this.chart.props.title = title||undefined }
 	@action.bound onSlug(slug: string) { this.chart.props.slug = slug||undefined }
+	@action.bound onToggleTitleAnnotation(value: boolean) { this.chart.props.hideTitleAnnotation = value||undefined }
 	@action.bound onSubtitle(evt: React.FormEvent<HTMLTextAreaElement>) { this.chart.props.subtitle = evt.currentTarget.value }
 	@action.bound onSource(sourceDesc: string) { this.chart.props.sourceDesc = sourceDesc||undefined }
 	@action.bound onNote(evt: React.FormEvent<HTMLTextAreaElement>) { this.chart.props.note = evt.currentTarget.value }
@@ -28,12 +29,12 @@ export default class EditorTextTab extends React.Component<{ editor: ChartEditor
 		return <div className="tab-pane active">
 			<section>
 				<h2>Title of the visualization</h2>
-				<p className="form-section-desc">Avoid using specific countries or years in the title. The grapher will add this information automatically when it is appropriate.</p>
                 <TextField value={chart.props.title} onValue={this.onTitle} style={{width: "100%"}} placeholder={chart.data.title}/>
 				<div className="input-group">
 					<span className="input-group-addon">/grapher/</span>
                     <TextField value={chart.props.slug} onValue={this.onSlug} placeholder={chart.data.slug} title="Human-friendly URL slug for this chart"/>
 				</div>
+				<Toggle label="Hide automatic time/entity" value={!!chart.props.hideTitleAnnotation} onValue={this.onToggleTitleAnnotation}/>
 			</section>	
 			<section>
 				<h2>Subtitle of the visualization</h2>
