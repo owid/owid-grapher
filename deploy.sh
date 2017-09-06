@@ -43,7 +43,7 @@ ssh -t $HOST 'bash -e -s' <<EOF
   ./env/bin/python3 manage.py migrate
   sudo chown owid:www-data -R $LIVE_TARGET
   sudo chown owid:www-data -R $LIVE_DATA
-  sudo chmod g+rw -R /home/owid/*  
+  sudo chmod g+rw -R /home/owid/* || true
   sudo service $NAME restart
 EOF
 
