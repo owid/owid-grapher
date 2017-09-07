@@ -5,8 +5,6 @@ import './charts.entry'
 import 'AdminLTE.min.css'
 import 'datepicker3.css'
 import '_all-skins.min.css'
-import 'ion.rangeSlider.css'
-import 'ion.rangeSlider.skinFlat.css'
 import 'bootstrap3-wysihtml5.css'
 import '../css/admin.css'
 
@@ -18,7 +16,6 @@ window.owid = require('./owid').default;
 require('./libs/bootstrap.min.js')
 require('./libs/bootstrap-treeview.min.js')
 require('./libs/admin-lte-app.min')
-require('./libs/ion.rangeSlider.min')
 require('./libs/jquery.timeago')
 
 require('./admin/admin.global')

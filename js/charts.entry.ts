@@ -2,7 +2,6 @@
 
 import 'bootstrap.css'
 import 'font-awesome.css'
-import 'nv.d3.css'
 import 'normalize.css'
 import '../css/chart.css'
 
