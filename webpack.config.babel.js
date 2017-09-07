@@ -12,7 +12,7 @@ export default {
     context: path.join(__dirname, "js"),
     entry: {
         charts: "./charts.entry.ts",
-        admin: "./admin.entry.js"
+        admin: "./admin.entry.ts"
     },
     output: {
         path: path.join(__dirname, "public/build"),
