@@ -2,6 +2,7 @@
 
 import $ from 'jquery'
 import Cookies from 'js-cookie'
+import timeago from 'timeago.js'
 window.Cookies = Cookies
 
 ;(function() {
@@ -74,5 +75,5 @@ window.Cookies = Cookies
 	// Set site-wide cookie for charts so they know to show the edit link
 	Cookies.set("isAdmin", "true", { expires: 31 });
 	
-	$(".timeago").timeago();	
+	timeago().render(document.querySelectorAll('.timeago'))
 })();
