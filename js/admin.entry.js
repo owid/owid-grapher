@@ -4,7 +4,6 @@ import './charts.entry'
 
 import 'AdminLTE.min.css'
 import '_all-skins.min.css'
-import 'bootstrap3-wysihtml5.css'
 import '../css/admin.css'
 
 // Admin only code
@@ -21,6 +20,5 @@ window.ChartEditorView = require('./admin/ChartEditorView').default
 
 // Importer code
 
-require('./libs/bootstrap3-wysihtml5.all')
 window.moment = require('moment')
 window.Importer = require('./admin/Importer').default
