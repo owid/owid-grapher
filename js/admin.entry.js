@@ -3,7 +3,6 @@ import './charts.entry'
 // Admin only CSS
 
 import 'AdminLTE.min.css'
-import 'datepicker3.css'
 import '_all-skins.min.css'
 import 'bootstrap3-wysihtml5.css'
 import '../css/admin.css'
