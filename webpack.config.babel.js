@@ -59,7 +59,7 @@ export default {
         // into a separate CSS bundle for download
         new ExtractTextPlugin('[name].bundle.[chunkhash].css'),
 
-        new LodashModuleReplacementPlugin(),
+        new LodashModuleReplacementPlugin,
 
         // CSS optimization
         new OptimizeCssAssetsPlugin({

@@ -1,5 +1,4 @@
 import * as _ from 'lodash'
-import * as $ from 'jquery'
 import ChartType from './ChartType'
 import ChartConfig from './ChartConfig'
 import {observable, computed, autorun, action, reaction} from 'mobx'
@@ -97,7 +96,7 @@ interface EntityMeta {
 
 export default class VariableData {
 	chart: ChartConfig
-	@observable.ref dataRequest: any
+	@observable.ref dataRequest?: Promise<Response>
 	@observable.ref variablesById: {[id: number]: Variable} = {}
 	@observable.ref entityMetaById: {[id: number]: EntityMeta} = {}
 
@@ -115,11 +114,11 @@ export default class VariableData {
 		return _.keyBy(this.entityMetaById, 'name')
 	}
 
-	@computed get cacheTag() {
-		return this.chart.variableCacheTag
+	@computed get cacheTag(): string {
+		return this.chart.variableCacheTag || Date.now().toString()
 	}
 
-	@computed get availableEntities() {
+	@computed get availableEntities(): string[] {
 		return _.keys(this.entityMetaByKey)
 	}
 
@@ -129,29 +128,14 @@ export default class VariableData {
 
 	@action.bound update() {
 		const {variableIds, cacheTag} = this
-		// If the requested data changes and we're already downloading a previous request, we
-		// might as well cancel it since it won't be what we're after
-		if (this.dataRequest) {
-			this.dataRequest.abort()
-			this.dataRequest = null
-		}
-
 		if (variableIds.length == 0) {
 			// No data to download
 			return
 		}
 
-		if (cacheTag)
-			this.dataRequest = $.get(Global.rootUrl + "/data/variables/" + variableIds.join("+") + "?v=" + cacheTag);
-		else {
-			// Editor cachebusting
-			this.dataRequest = $.get(Global.rootUrl + "/data/variables/" + variableIds.join("+") + "?v=" + Date.now());
-		}
-
-		this.dataRequest.done(action((rawData: string) => {
-			this.dataRequest = null
-			this.receiveData(rawData)
-		}))
+		fetch(Global.rootUrl + "/data/variables/" + variableIds.join("+") + "?v=" + cacheTag)
+			.then(response => response.text())
+			.then(rawData => this.receiveData(rawData))
 	}
 
 	@action.bound receiveData(rawData: string) {

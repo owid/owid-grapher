@@ -14,7 +14,6 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as ReactDOMServer from 'react-dom/server'
 import * as d3 from 'd3'
-import * as $ from 'jquery'
 import Bounds from './Bounds'
 import ChartView from './ChartView'
 import {when} from 'mobx'
@@ -38,9 +37,9 @@ export default class ExportView {
                     chart={chart}
                     isExport={true}
                     bounds={targetBounds}/>)
-                $("link").remove()
-                $("body").empty()
-                $("body").append(svg)
+
+                document.querySelectorAll("link").forEach(el => (el.parentNode as Node).removeChild(el))
+                document.body.innerHTML = svg
                 requestAnimationFrame(() => console.log(document.body.innerHTML))
             }, 0)
         )
