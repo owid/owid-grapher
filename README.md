@@ -1,6 +1,6 @@
 # owid-grapher
 
-[![Build Status](https://travis-ci.org/OurWorldInData/owid-grapher.svg?branch=master)](https://travis-ci.org/OurWorldInData/owid-grapher)
+[![Build Status](https://travis-ci.org/owid/owid-grapher.svg?branch=master)](https://travis-ci.org/owid/owid-grapher)
 
 This is the project we use internally at the University of Oxford to create embeddable visualizations for [Our World In Data](https://ourworldindata.org). Note that it is not yet a mature OSS project and may be difficult to apply elsewhere as a full package. That said, you are very welcome to read and reuse any of our code!
 
