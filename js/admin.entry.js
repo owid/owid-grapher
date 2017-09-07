@@ -19,7 +19,6 @@ require('./libs/bootstrap.min.js')
 require('./libs/bootstrap-treeview.min.js')
 require('./libs/admin-lte-app.min')
 require('./libs/ion.rangeSlider.min')
-require('./libs/jquery.nestable')
 require('./libs/jquery.timeago')
 
 require('./admin/admin.global')
