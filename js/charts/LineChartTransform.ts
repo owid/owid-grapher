@@ -96,15 +96,15 @@ export default class LineChartTransform implements IChartTransform {
 			chartData = chartData.concat([...seriesByKey.values()]);
 		});
 
+        // Preserve ordering. Note for line charts, the series order only affects the visual stacking order on overlaps.
+        chartData = _.sortBy(chartData, series => selectedKeys.indexOf(series.key))
+
         // Assign colors
         const colorScheme = _.last(ColorSchemes['owid-distinct'].colors) as Color[]
         const colorScale = d3.scaleOrdinal(colorScheme)
         chartData.forEach(series => {
             series.color = chart.data.keyColors[series.key] || colorScale(series.key)
         })
-
-        // Preserve ordering. Note for line charts, the series order only affects the visual stacking order on overlaps.
-        chartData = _.sortBy(chartData, series => selectedKeys.indexOf(series.key))
 
         return chartData
 	}

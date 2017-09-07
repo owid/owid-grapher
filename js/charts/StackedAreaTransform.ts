@@ -127,7 +127,7 @@ export default class StackedAreaTransform implements IChartTransform {
 			series.values = _.sortBy(series.values, function(d) { return d.x; });
 		})
 
-		// Preserve order and colorize
+		// Preserve order
 		chartData = _.sortBy(chartData, series => -selectedKeys.indexOf(series.key))
 
         // Assign colors
