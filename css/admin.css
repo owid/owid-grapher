@@ -810,6 +810,19 @@ li[data-color^=".*"] {
   font-size: 11pt; 
 }
 
+input.NumberField, .NumberField > input {
+    padding: 0.375rem 0.75rem;
+    margin-right: 5px;
+}
+
+input.TextField, .TextField > input {
+  margin-right: 5px;
+}
+
+input.Toggle, .Toggle > input {
+  margin-right: 5px;
+}
+
 .VariableSelector { 
     width: 90vw !important;
     
@@ -870,6 +883,13 @@ li[data-color^=".*"] {
         padding: 0.4em;
         margin-bottom: 0.4em;
         border: 1px solid #ccc;
+    }
+}
+
+.EditorMapTab {
+    & .map-color-scheme-preview .TextField {
+        display: inline-block;
+        width: auto;
     }
 }
 

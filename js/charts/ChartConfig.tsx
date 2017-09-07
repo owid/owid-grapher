@@ -270,7 +270,7 @@ export default class ChartConfig {
         this.props.type = json['chart-type']||ChartType.LineChart
         this.props.originUrl = json['data-entry-url']
         this.props.isPublished = json['published']
-        this.props.map = json['map'] ? _.extend(new MapConfigProps(), json['map']) : undefined        
+        this.props.map = new MapConfigProps(json.map)
         this.props.hasChartTab = json['tabs'] ? json['tabs'].includes("chart") : true
         this.props.hasMapTab = json['tabs'] ? json['tabs'].includes("map") : false
         _.extend(this.props.xAxis, json['xAxis'])

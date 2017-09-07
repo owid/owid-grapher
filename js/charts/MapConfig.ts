@@ -7,7 +7,7 @@
  */ 
 
 import * as _ from 'lodash'
-import {observable, computed, toJS} from 'mobx'
+import {observable, computed, toJS, reaction} from 'mobx'
 import MapProjection from './MapProjection'
 import Chart from './ChartConfig'
 import MapData from './MapData'
@@ -44,6 +44,16 @@ export class MapConfigProps {
 
 	@observable.ref legendDescription?: string = undefined
 	@observable.ref legendStepSize: number = 20
+
+	constructor(json?: any) {
+		if (json !== undefined) {
+			for (let key in this) {
+				if (key in json) {
+					(this as any)[key] = (json as any)[key]
+				}
+			}
+		}
+    }
 }
 
 export default class MapConfig {

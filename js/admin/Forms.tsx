@@ -69,12 +69,12 @@ export class TextAreaField extends React.Component<TextFieldProps> {
         const passthroughProps = _.pick(props, ['placeholder', 'title', 'disabled'])
 
         if (props.label) {
-            return <label style={props.style}>
+            return <label style={props.style} className="TextAreaField">
                 {props.label}
                 <textarea className="form-control" value={props.value} onInput={this.onInput} {...passthroughProps}/>
             </label>    
         } else {
-            return <textarea style={props.style} className="form-control" value={props.value} onInput={this.onInput} {...passthroughProps}/>
+            return <textarea className="TextAreaField" style={props.style} className="form-control" value={props.value} onInput={this.onInput} {...passthroughProps}/>
         }
     }
 }
@@ -92,12 +92,14 @@ export interface NumberFieldProps {
 export class NumberField extends React.Component<NumberFieldProps> {
     render() {
         const {props} = this
-        const input = <input type="number" value={toString(props.value)} onChange={(ev) => props.onValue(numberOnly(ev.currentTarget.value))} {..._.pick(props, ['min', 'max', 'placeholder', 'disabled'])}/>
+        const passthroughProps = _.pick(props, ['min', 'max', 'placeholder', 'disabled'])
 
         if (props.label) {
-            return <label>{props.label} {input}</label>
+            return <label className="NumberField">
+                {props.label} <input type="number" value={toString(props.value)} onChange={(ev) => props.onValue(numberOnly(ev.currentTarget.value))}/>
+            </label>
         } else {
-            return input
+            return <input className="NumberField" type="number" value={toString(props.value)} onChange={(ev) => props.onValue(numberOnly(ev.currentTarget.value))}/>
         }
     }
 }
@@ -106,7 +108,8 @@ export interface SelectFieldProps {
     label: string,
     value: string|undefined,
     onValue: (value: string|undefined) => void,
-    options: string[]
+    options: string[],
+    optionLabels?: string[]
 }
 
 export class SelectField extends React.Component<SelectFieldProps> {
@@ -115,8 +118,8 @@ export class SelectField extends React.Component<SelectFieldProps> {
         return <label>
             {props.label}
             <select className="form-control" value={toString(props.value)} onChange={(ev: React.FormEvent<HTMLSelectElement>) => props.onValue(ev.currentTarget.value.length == 0 ? undefined : ev.currentTarget.value)}>
-                {props.options.map(value => 
-                    <option value={value}>{value}</option>
+                {props.options.map((value, i) => 
+                    <option value={value}>{props.optionLabels ? props.optionLabels[i] : value}</option>
                 )}
             </select>
         </label>    
