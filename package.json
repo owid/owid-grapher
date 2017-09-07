@@ -9,7 +9,6 @@
     "@types/d3": "^4.8.0",
     "@types/d3-scale-chromatic": "^1.0.2",
     "@types/expr-eval": "^1.0.2",
-    "@types/jquery": "^2.0.42",
     "@types/js-cookie": "^2.0.28",
     "@types/lodash": "^4.14.63",
     "@types/react": "^15.0.23",

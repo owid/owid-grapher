@@ -8,7 +8,6 @@ import { observable, computed, asFlat, autorun, autorunAsync, action } from 'mob
 import {observer} from 'mobx-react'
 import * as Cookies from 'js-cookie'
 import ChartConfig from './ChartConfig'
-import * as $ from 'jquery'
 import ChartTabOption from './ChartTabOption'
 import ChartType from './ChartType'
 import {getQueryParams} from './Util'

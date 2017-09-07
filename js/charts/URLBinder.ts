@@ -8,7 +8,6 @@
  */
 
 import * as _ from 'lodash'
-import * as $ from 'jquery'
 import {computed, observable, autorun, when, action, runInAction, reaction, toJS} from 'mobx'
 import ChartView from './ChartView'
 import ChartTabOption from './ChartTabOption'

@@ -8,7 +8,6 @@
 import * as React from 'react'
 import * as _ from 'lodash'
 import * as d3 from 'd3'
-import * as $ from 'jquery'
 import {computed, action, observable, autorun, runInAction, IReactionDisposer} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartConfig from './ChartConfig'

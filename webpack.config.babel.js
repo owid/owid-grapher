@@ -19,7 +19,7 @@ export default {
         filename: (isProduction ? "[name].bundle.[chunkhash].js" : "[name].js")
     },
   	resolve: {
-        extensions: [".js", ".jsx", ".ts", ".tsx", ".css"],
+        extensions: [".js", ".ts", ".tsx", ".css"],
         alias: {
             'react': 'preact-compat',
             'react-dom': 'preact-compat',
@@ -35,10 +35,6 @@ export default {
             {
                 test: /\.tsx?$/,
                 loader: "awesome-typescript-loader"
-            },
-            {
-                test: /(preact-compat|\.jsx)/, // Preact-compat uses getters that don't work in IE11 for some reason
-                loader: "babel-loader",
             },
             {
                 test: /\.css$/,
