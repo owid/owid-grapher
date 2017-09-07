@@ -18,10 +18,10 @@ export default class EditorTextTab extends React.Component<{ editor: ChartEditor
 	@action.bound onTitle(title: string) { this.chart.props.title = title||undefined }
 	@action.bound onSlug(slug: string) { this.chart.props.slug = slug||undefined }
 	@action.bound onToggleTitleAnnotation(value: boolean) { this.chart.props.hideTitleAnnotation = value||undefined }
-	@action.bound onSubtitle(evt: React.FormEvent<HTMLTextAreaElement>) { this.chart.props.subtitle = evt.currentTarget.value }
+	@action.bound onSubtitle(value: string) { this.chart.props.subtitle = value||undefined }
 	@action.bound onSource(sourceDesc: string) { this.chart.props.sourceDesc = sourceDesc||undefined }
-	@action.bound onNote(evt: React.FormEvent<HTMLTextAreaElement>) { this.chart.props.note = evt.currentTarget.value }
-	@action.bound onInternalNotes(evt: React.FormEvent<HTMLTextAreaElement>) { this.chart.props.internalNotes = evt.currentTarget.value }
+	@action.bound onNote(value: string) { this.chart.props.note = value||undefined }
+	@action.bound onInternalNotes(value: string) { this.chart.props.internalNotes = value||undefined }
 
 	render() {
 		const { chart } = this
@@ -38,7 +38,7 @@ export default class EditorTextTab extends React.Component<{ editor: ChartEditor
 			</section>	
 			<section>
 				<h2>Subtitle of the visualization</h2>
-				<textarea className="form-control input-lg .col-xs-12" placeholder="Briefly describe the context of the data" value={chart.subtitle} onInput={this.onSubtitle} />
+				<TextAreaField value={chart.props.subtitle} onValue={this.onSubtitle} placeholder="Briefly describe the context of the data"/>
 	   		</section>
 			<section>
 				<h2>Sources</h2>
@@ -46,11 +46,11 @@ export default class EditorTextTab extends React.Component<{ editor: ChartEditor
 			</section>
 			<section>
 				<h2>Footer note</h2>
-				<textarea className="form-control input-lg .col-xs-12" placeholder="Any further relevant information e.g. adjustments or limitations" value={chart.note} onInput={this.onNote}/>
+				<TextAreaField value={chart.props.note} onValue={this.onNote} placeholder="Any further relevant information e.g. adjustments or limitations"/>
 			</section>
 			<section>						
 				<h2>Internal author notes</h2>						
-				<textarea className="form-control input-lg .col-xs-12" placeholder="e.g. WIP, needs review, etc" name="chart-notes" value={chart.internalNotes} onInput={this.onInternalNotes}/>
+				<TextAreaField value={chart.props.internalNotes} onValue={this.onInternalNotes} placeholder="e.g. WIP, needs review, etc" />
 			</section>
 		</div>
 	}
