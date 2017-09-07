@@ -1,5 +1,3 @@
-declare function require(name:string): any;
-const owid: any = require('../owid').default
 import * as _ from 'lodash'
 import {observable, computed, action, autorun, toJS, runInAction} from 'mobx'
 import {ScaleType} from './AxisScale'
