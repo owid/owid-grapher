@@ -29,6 +29,5 @@ window.ChartEditorView = require('./admin/ChartEditorView').default
 // Importer code
 
 require('./libs/bootstrap3-wysihtml5.all')
-window.Papa = require('./libs/papaparse')
 window.moment = require('moment')
 window.Importer = require('./admin/Importer').default
