@@ -30,7 +30,7 @@ Run `yarn dev` and head to `localhost:8000`. If everything is going to plan, you
 
 ## Architecture notes
 
-Since this project is used in production and undergoing active development, the dependencies and code style are still in a state of flux. We eventually aim to fully migrate away from [nvd3](http://nvd3.org/) and [Backbone](http://backbonejs.org/) in favor of the more modern/faster [Preact](https://github.com/developit/preact) and [Mobx](https://github.com/mobxjs/mobx). New code should be written using [PEP 484 type hints](https://www.python.org/dev/peps/pep-0484/) and [TypeScript](https://www.typescriptlang.org/).
+owid-grapher is heavily based around [reactive programming](https://en.wikipedia.org/wiki/Reactive_programming) using the libraries [Preact](http://github.com/developit/preact) and [Mobx](http://github.com/mobxjs/mobx), allowing it to do pretty heavy client-side data processing efficiently. New code should be written using [PEP 484 type hints](https://www.python.org/dev/peps/pep-0484/) and [TypeScript](https://www.typescriptlang.org/). [Visual Studio Code](https://code.visualstudio.com/) is recommended for the autocompletion and other awesome editor analysis features enabled by static typing.
 
 ## About
 
