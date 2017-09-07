@@ -8,7 +8,6 @@ import '_all-skins.min.css'
 import 'ion.rangeSlider.css'
 import 'ion.rangeSlider.skinFlat.css'
 import 'bootstrap3-wysihtml5.css'
-import 'bootstrap-chosen.css'
 import '../css/admin.css'
 
 // Admin only code
@@ -22,7 +21,6 @@ require('./libs/admin-lte-app.min')
 require('./libs/ion.rangeSlider.min')
 require('./libs/jquery.nestable')
 require('./libs/jquery.timeago')
-require('./libs/chosen.jquery')
 
 require('./admin/admin.global')
 

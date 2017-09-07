@@ -172,10 +172,6 @@ button > i {
   padding: 20px;
   background-color: #ecf0f5; }
 
-/* override ugly chosen */
-.chosen-container-single .chosen-single {
-  background-color: #ffffff !important; }
-
 button[type="submit"]:not(".delete-btn") {
   margin: 20px 0px 0px; }
 

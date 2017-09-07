@@ -39,9 +39,6 @@ window.Cookies = Cookies
 		$valueIdsInput.val( JSON.stringify(ids) );
 	}
 
-	//chosen select
-	$( ".chosen-select" ).chosen();
-
 	// MISPY: Hack for zofe/rapyd bootstrap 4 compatibility.
 	$(".btn-toolbar li").each(function() {
 		$(this).replaceWith("<div class='btn-group' role='group'>" + $(this).html() + "</div>");
@@ -77,6 +74,5 @@ window.Cookies = Cookies
 	// Set site-wide cookie for charts so they know to show the edit link
 	Cookies.set("isAdmin", "true", { expires: 31 });
 	
-	$(".chosen-select").chosen();
 	$(".timeago").timeago();	
 })();
