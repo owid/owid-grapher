@@ -80,7 +80,7 @@ export default class AxisScale {
             console.error("Can't have values <= 0 on a log scale")
             return value
         }
-        return this.d3_scale(value)
+        return parseFloat(this.d3_scale(value).toFixed(1))
     }
 
     extend(props: Object) {

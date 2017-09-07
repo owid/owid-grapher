@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as _ from 'lodash'
 import * as d3 from 'd3'
+import {computed} from 'mobx'
 import {observer} from 'mobx-react'
 import AxisBox from './AxisBox'
 import evalEquation from './evalEquation'
@@ -11,7 +12,7 @@ export interface ComparisonLineConfig {
 
 @observer
 export default class ComparisonLine extends React.Component<{ axisBox: AxisBox, comparisonLine: ComparisonLineConfig }> {
-    render() {
+    @computed get lineData(): string|null {
         const {comparisonLine, axisBox} = this.props
         const {xScale, yScale, innerBounds} = axisBox 
 
@@ -35,6 +36,12 @@ export default class ComparisonLine extends React.Component<{ axisBox: AxisBox, 
             controlData.push([x, y])
         }                
         const line = d3.line().curve(d3.curveLinear).x(d => xScale.place(d[0])).y(d => yScale.place(d[1]))
+        return line(controlData)
+    }
+
+    render() {
+        const {innerBounds} = this.props.axisBox
+        const {lineData} = this
 
         return <g className="ComparisonLine">
             <defs>
@@ -42,7 +49,7 @@ export default class ComparisonLine extends React.Component<{ axisBox: AxisBox, 
                     <rect x={innerBounds.x} y={innerBounds.y} width={innerBounds.width} height={innerBounds.height}/>
                 </clipPath>
             </defs>
-            <path d={line(controlData)||undefined} clipPath="url(#axisBounds)" fill="none" stroke="#ccc"/>
+            <path d={lineData||undefined} clipPath="url(#axisBounds)" fill="none" stroke="#ccc"/>
         </g>
     }
 }

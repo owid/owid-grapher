@@ -102,9 +102,9 @@ export class AxisGridLines extends React.Component<AxisGridLinesProps> {
         return <g className="AxisGridLines">
             {_.map(scale.getTickValues(), v => {
                 if (orient == 'left')
-                    return <line x1={bounds.left} y1={Math.round(scale.place(v))} x2={bounds.right} y2={Math.round(scale.place(v))} stroke={v == 0 ? "#ccc" : "#ddd"} stroke-dasharray={v != 0 && "3,2"}/>
+                    return <line x1={bounds.left.toFixed(2)} y1={scale.place(v)} x2={bounds.right.toFixed(2)} y2={scale.place(v)} stroke={v == 0 ? "#ccc" : "#ddd"} stroke-dasharray={v != 0 && "3,2"}/>
                 else
-                    return <line x1={Math.round(scale.place(v))} y1={bounds.bottom} x2={Math.round(scale.place(v))} y2={bounds.top} stroke={v == 0 ? "#ccc" : "#ddd"} stroke-dasharray={v != 0 && "3,2"}/>
+                    return <line x1={scale.place(v)} y1={bounds.bottom.toFixed(2)} x2={scale.place(v)} y2={bounds.top.toFixed(2)} stroke={v == 0 ? "#ccc" : "#ddd"} stroke-dasharray={v != 0 && "3,2"}/>
                 
             })}    
         </g>

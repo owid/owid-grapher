@@ -85,7 +85,7 @@ export default class TextWrap {
             return null
 
         const yOffset = y+lines[0].height-lines[0].height*0.2
-		return <text fontSize={fontSize*Bounds.baseFontSize} x={x} y={yOffset} {...options}>
+		return <text fontSize={(fontSize*Bounds.baseFontSize).toFixed(2)} x={x.toFixed(1)} y={yOffset.toFixed(1)} {...options}>
 			{_.map(lines, (line, i) => {
                 if (props.raw)
                     return <tspan x={x} y={yOffset + (i == 0 ? 0 : lineHeight*fontSize*Bounds.baseFontSize*i)} dangerouslySetInnerHTML={{__html: line.text}}/>

@@ -78,12 +78,12 @@ export class Areas extends React.Component<{ axisBox: AxisBox, data: StackedArea
     @computed get polylines() {
         const {axisBox, data} = this.props
         const {xScale, yScale} = axisBox
-        const xBottomLeft = `${Math.floor(xScale.range[0])},${Math.floor(yScale.range[0])}`
-        const xBottomRight = `${Math.floor(xScale.range[1])},${Math.floor(yScale.range[0])}`
+        const xBottomLeft = `${_.identity(xScale.range[0])},${_.identity(yScale.range[0])}`
+        const xBottomRight = `${_.identity(xScale.range[1])},${_.identity(yScale.range[0])}`
 
         return data.map((series, i) => {
-            const prevPoints = i == 0 ? [xBottomLeft, xBottomRight] : _.map(data[i-1].values, v => `${Math.floor(xScale.place(v.x))},${Math.floor(yScale.place(v.y))}`)
-            const mainPoints = _.map(series.values, v => `${Math.floor(xScale.place(v.x))},${Math.floor(yScale.place(v.y))}`)
+            const prevPoints = i == 0 ? [xBottomLeft, xBottomRight] : _.map(data[i-1].values, v => `${_.identity(xScale.place(v.x))},${_.identity(yScale.place(v.y))}`)
+            const mainPoints = _.map(series.values, v => `${_.identity(xScale.place(v.x))},${_.identity(yScale.place(v.y))}`)
             const points = mainPoints.concat(_(prevPoints).clone().reverse())
 
             return <polyline

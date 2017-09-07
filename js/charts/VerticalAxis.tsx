@@ -60,7 +60,7 @@ export class VerticalAxisView extends React.Component<{ bounds: Bounds, axis: Ve
         return <g className="VerticalAxis">
             {label && label.render(-bounds.centerY-label.width/2, bounds.left, { transform: "rotate(-90)" })}
             {_.map(ticks, tick =>
-                <text x={bounds.left+axis.width-5} y={scale.place(tick)} fill={textColor} dominant-baseline="middle" textAnchor="end" fontSize={VerticalAxis.tickFontSize}>{scale.tickFormat(tick)}</text>
+                <text x={(bounds.left+axis.width-5).toFixed(2)} y={scale.place(tick)} fill={textColor} dominant-baseline="middle" textAnchor="end" fontSize={VerticalAxis.tickFontSize}>{scale.tickFormat(tick)}</text>
             )}
             {scale.scaleTypeOptions.length > 1 && onScaleTypeChange &&
                 <ScaleSelector x={bounds.left} y={bounds.top-8} scaleType={scale.scaleType} scaleTypeOptions={scale.scaleTypeOptions} onChange={onScaleTypeChange}/>}
