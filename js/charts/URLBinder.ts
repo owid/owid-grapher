@@ -19,16 +19,17 @@ import DataKey from './DataKey'
 import MapProjection from './MapProjection'
 
 interface ChartQueryParams {
-    tab?: string,
-    overlay?: string,
-    stackMode?: string,
-    xScale?: string,
-    yScale?: string,
-    time?: string,
-    year?: string,
-    region?: string,
-    country?: string,
+    tab?: string
+    overlay?: string
+    stackMode?: string
+    xScale?: string
+    yScale?: string
+    time?: string
+    year?: string
+    region?: string
+    country?: string
     shown?: string
+    endpointsOnly?: string
 }
 
 declare const App: any
@@ -77,6 +78,7 @@ export default class URLBinder {
         params.xScale = chart.props.xAxis.scaleType == origChart.xAxis.scaleType ? undefined : chart.xAxis.scaleType
         params.yScale = chart.props.yAxis.scaleType == origChart.yAxis.scaleType? undefined : chart.yAxis.scaleType
         params.stackMode = chart.props.stackMode == origChart.stackMode ? undefined : chart.props.stackMode
+        params.endpointsOnly = chart.props.compareEndPointsOnly == origChart.compareEndPointsOnly ? undefined : (chart.props.compareEndPointsOnly ? "1" : "0")
         params.year = this.yearParam
         params.time = this.timeParam
         params.country = this.countryParam
@@ -204,6 +206,11 @@ export default class URLBinder {
             } else {
                 chart.timeDomain = [parseInt(time), parseInt(time)]
             }
+        }
+
+        const endpointsOnly = params.endpointsOnly
+        if (endpointsOnly !== undefined) {
+            chart.props.compareEndPointsOnly = endpointsOnly == "1" ? true : undefined
         }
 
         // Map stuff below
