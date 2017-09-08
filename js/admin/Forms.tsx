@@ -74,7 +74,7 @@ export class TextAreaField extends React.Component<TextFieldProps> {
                 <textarea className="form-control" value={props.value} onInput={this.onInput} {...passthroughProps}/>
             </label>    
         } else {
-            return <textarea className="TextAreaField" style={props.style} className="form-control" value={props.value} onInput={this.onInput} {...passthroughProps}/>
+            return <textarea className="TextAreaField form-control" style={props.style} value={props.value} onInput={this.onInput} {...passthroughProps}/>
         }
     }
 }
