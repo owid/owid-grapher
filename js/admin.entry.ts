@@ -14,6 +14,7 @@ window.$ = window.jQuery = require('jquery')
 
 require('./libs/bootstrap-treeview.min.js')
 require('./libs/admin-lte-app.min')
+require('./libs/bootstrap.min.js')
 
 require('./admin/admin.global')
 
