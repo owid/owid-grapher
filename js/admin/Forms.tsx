@@ -93,13 +93,12 @@ export class NumberField extends React.Component<NumberFieldProps> {
     render() {
         const {props} = this
         const passthroughProps = _.pick(props, ['min', 'max', 'placeholder', 'disabled'])
-
         if (props.label) {
             return <label className="NumberField">
-                {props.label} <input type="number" value={toString(props.value)} onChange={(ev) => props.onValue(numberOnly(ev.currentTarget.value))}/>
+                {props.label} <input type="number" value={toString(props.value)} onChange={(ev) => props.onValue(numberOnly(ev.currentTarget.value))} {...passthroughProps}/>
             </label>
         } else {
-            return <input className="NumberField" type="number" value={toString(props.value)} onChange={(ev) => props.onValue(numberOnly(ev.currentTarget.value))}/>
+            return <input className="NumberField" type="number" value={toString(props.value)} onChange={(ev) => props.onValue(numberOnly(ev.currentTarget.value))} {...passthroughProps}/>
         }
     }
 }
@@ -161,7 +160,7 @@ export interface ToggleProps {
 export class Toggle extends React.Component<ToggleProps> {
     render() {
         const {props} = this
-        return <label className="clickable">
+        return <label className="Toggle clickable">
             <input type="checkbox" checked={props.value} onChange={(ev) => props.onValue(ev.target.checked)}/>
             {" " + props.label}
         </label>    

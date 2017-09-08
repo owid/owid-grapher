@@ -211,7 +211,7 @@ class ColorsSection extends React.Component<{ map: MapConfig }> {
 	}
 
 	@action.bound onAutomatic(isAutomatic: boolean) {
-		this.props.map.props.colorSchemeValuesAutomatic = isAutomatic||undefined
+		this.props.map.props.isManualBuckets = isAutomatic ? undefined : true
 	}
 
 	render() {
@@ -225,7 +225,7 @@ class ColorsSection extends React.Component<{ map: MapConfig }> {
 			<SelectField label="Color scheme:" value={currentColorScheme} options={_.map(availableColorSchemes, 'key').concat(['custom'])} optionLabels={_.map(availableColorSchemes, 'name').concat(['custom'])} onValue={this.onColorScheme}/>
 			<NumberField label="Number of intervals:" value={map.props.colorSchemeInterval} min={1} max={99} onValue={this.onNumIntervals}/>
 			<Toggle label="Invert colors" value={map.props.colorSchemeInvert||false} onValue={this.onInvert}/>
-			<Toggle label="Automatic classification" value={map.props.colorSchemeValuesAutomatic||false} onValue={this.onAutomatic}/>
+			<Toggle label="Automatic classification" value={!map.props.isManualBuckets} onValue={this.onAutomatic}/>
 			<ColorSchemeEditor map={map}/>
 		</section>
 	}
