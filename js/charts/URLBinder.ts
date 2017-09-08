@@ -51,10 +51,10 @@ export default class URLBinder {
             requestAnimationFrame(() => setQueryStr(queryParamsToStr(params as QueryParams)))
         }, 100)
         
-        autorun(() => {
-            const {params} = this
-            pushParams(params)
-        })
+        reaction(
+            () => this.params,
+            () => pushParams(this.params)
+        )
     }
 
     @computed get origChart() {
