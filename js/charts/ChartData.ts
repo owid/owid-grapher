@@ -129,7 +129,7 @@ export default class ChartData {
 		return this.filledDimensions.filter(dim => dim.property == 'y' || dim.property == 'x')
 	}
 
-	@computed get defaultTitle() {
+	@computed get defaultTitle(): string {
 		if (this.chart.isScatter)
 			return this.axisDimensions.map(d => d.displayName).join(" vs. ")
 		else if (this.primaryDimensions.length > 1 && _(this.primaryDimensions).map(d => d.variable.datasetName).uniq().value().length == 1)
@@ -140,15 +140,15 @@ export default class ChartData {
 			return this.primaryDimensions.map(d => d.displayName).join(", ")
 	}
 
-	@computed get title() {
+	@computed get title(): string {
 		return defaultTo(this.chart.props.title, this.defaultTitle)
 	}
 
-	@computed get defaultSlug() {
+	@computed get defaultSlug(): string {
 		return slugify(this.title)
 	}
 
-	@computed get slug() {
+	@computed get slug(): string {
 		return defaultTo(this.chart.props.slug, this.defaultSlug)
 	}
 

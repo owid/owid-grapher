@@ -777,10 +777,11 @@ li[data-color^=".*"] {
       float: left; }
     .map-color-scheme-preview > li .map-color-scheme-icon {
       display: inline-block;
-      width: 33px;
-      height: 33px;
+      width: 40px;
+      height: 40px;
       border: 1px solid #d2d6de;
-      cursor: pointer; }
+      cursor: pointer;
+      margin-right: 5px; }
     .map-color-scheme-preview > li .map-color-scheme-value {
       width: 30%;
       margin-left: 10px; }
@@ -808,6 +809,24 @@ li[data-color^=".*"] {
 
 .explanatory-notes {
   font-size: 11pt; 
+}
+
+input.NumberField, .NumberField > input {
+    padding: 0.375rem 0.75rem;
+    margin-right: 5px;
+}
+
+input.NumberField:disabled, .NumberField > input:disabled {
+    background-color: #eee;
+    border: 2px solid #eee;
+}
+
+input.TextField, .TextField > input {
+  margin-right: 5px;
+}
+
+.Toggle {
+  margin-right: 5px;
 }
 
 .VariableSelector { 
@@ -870,6 +889,13 @@ li[data-color^=".*"] {
         padding: 0.4em;
         margin-bottom: 0.4em;
         border: 1px solid #ccc;
+    }
+}
+
+.EditorMapTab {
+    & .map-color-scheme-preview .TextField {
+        display: inline-block;
+        width: auto;
     }
 }
 

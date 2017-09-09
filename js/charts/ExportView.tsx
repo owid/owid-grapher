@@ -10,11 +10,11 @@
  */
 
 import * as _ from 'lodash'
-import * as $ from 'jquery'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as ReactDOMServer from 'react-dom/server'
 import * as d3 from 'd3'
+import * as $ from 'jquery'
 import Bounds from './Bounds'
 import ChartView from './ChartView'
 import {when} from 'mobx'
@@ -30,9 +30,10 @@ export default class ExportView {
 
         const chart = new ChartConfig(jsonConfig)
 
+        // setTimeout is to give the urlbinder a chance to update the selection
         when(
             () => chart.data.isReady,
-            () => {
+            () => setTimeout(() => {
                 const svg = ReactDOMServer.renderToStaticMarkup(<ChartView
                     chart={chart}
                     isExport={true}
@@ -41,7 +42,7 @@ export default class ExportView {
                 $("body").empty()
                 $("body").append(svg)
                 requestAnimationFrame(() => console.log(document.body.innerHTML))
-            }
+            }, 0)
         )
 
     }

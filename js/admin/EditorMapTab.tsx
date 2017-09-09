@@ -211,21 +211,21 @@ class ColorsSection extends React.Component<{ map: MapConfig }> {
 	}
 
 	@action.bound onAutomatic(isAutomatic: boolean) {
-		this.props.map.props.colorSchemeValuesAutomatic = isAutomatic||undefined
+		this.props.map.props.isManualBuckets = isAutomatic ? undefined : true
 	}
 
 	render() {
 		const {map} = this.props
 
 		const availableColorSchemes = _(ColorSchemes).map((v: any, k: any) => _.extend({}, v, { key: k })).filter((v: any) => !!v.name).value()
-		const currentColorScheme = map.isCustomColors ? 'custom' : map.props.baseColorScheme
+		const currentColorScheme = map.isCustomColors ? 'custom' : map.baseColorScheme
 
 		return <section>
 			<h2>Colors</h2>
-			<SelectField label="Color scheme:" value={currentColorScheme} options={_.map(availableColorSchemes, 'key').concat(['custom'])} onValue={this.onColorScheme}/>
+			<SelectField label="Color scheme:" value={currentColorScheme} options={_.map(availableColorSchemes, 'key').concat(['custom'])} optionLabels={_.map(availableColorSchemes, 'name').concat(['custom'])} onValue={this.onColorScheme}/>
 			<NumberField label="Number of intervals:" value={map.props.colorSchemeInterval} min={1} max={99} onValue={this.onNumIntervals}/>
 			<Toggle label="Invert colors" value={map.props.colorSchemeInvert||false} onValue={this.onInvert}/>
-			<Toggle label="Automatic classification" value={map.props.colorSchemeValuesAutomatic||false} onValue={this.onAutomatic}/>
+			<Toggle label="Automatic classification" value={!map.props.isManualBuckets} onValue={this.onAutomatic}/>
 			<ColorSchemeEditor map={map}/>
 		</section>
 	}
@@ -270,7 +270,7 @@ export default class EditorMapTab extends React.Component<{ editor: ChartEditor 
 	render() {
 		const {chart, map} = this
 
-		return <div className="tab-pane">
+		return <div className="EditorMapTab tab-pane">
 			<VariableSection map={map}/>
 			{map.data.isReady && 
 				[<TimelineSection map={map}/>,

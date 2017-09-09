@@ -13,6 +13,8 @@ import Admin from './Admin'
 import * as _ from 'lodash'
 import * as $ from 'jquery'
 
+declare const Global: any
+
 export interface ChartEditorProps {
     chart: ChartConfig
 	cacheTag: string
@@ -160,7 +162,7 @@ export default class ChartEditor {
     }
 
 	publishChart() {
-		const url = this.chart.url.canonicalUrl
+		const url = Global.rootUrl + "/" + this.chart.data.slug
 
 		var $modal = modal();
 		$modal.find(".modal-title").html("Publish chart");

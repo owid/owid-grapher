@@ -12,7 +12,7 @@ export default {
     context: path.join(__dirname, "js"),
     entry: {
         charts: "./charts.entry.ts",
-        admin: "./admin.entry.js"
+        admin: "./admin.entry.ts"
     },
     output: {
         path: path.join(__dirname, "public/build"),
@@ -39,7 +39,7 @@ export default {
             {
                 test: /(preact-compat|\.jsx)/, // Preact-compat uses getters that don't work in IE11 for some reason
                 loader: "babel-loader",
-            },
+            },        
             {
                 test: /\.css$/,
                 loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: ['css-loader?modules&importLoaders=1&localIdentName=[local]', 'postcss-loader'] })

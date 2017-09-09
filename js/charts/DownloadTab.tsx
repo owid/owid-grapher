@@ -7,7 +7,6 @@ import {observer} from 'mobx-react'
 import Bounds from './Bounds'
 import ChartConfig from './ChartConfig'
 import ChartView from './ChartView'
-import * as $ from 'jquery'
 
 interface ImgLoaderProps {
     width: number,

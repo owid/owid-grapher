@@ -1,5 +1,5 @@
 declare function require(name:string): any;
-const geoRobinson: any = require('d3-geo-projection').geoRobinson
+import {geoRobinson} from 'd3-geo-projection'
 import * as d3 from 'd3'
 import MapProjection from './MapProjection'
 import {computed} from 'mobx'

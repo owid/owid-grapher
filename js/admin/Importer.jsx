@@ -11,7 +11,6 @@
 // @flow
 
 import * as _ from 'underscore'
-import owid from '../owid'
 
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'

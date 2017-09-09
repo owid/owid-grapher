@@ -7,7 +7,7 @@
  */ 
 
 import * as _ from 'lodash'
-import {observable, computed, toJS} from 'mobx'
+import {observable, computed, toJS, reaction} from 'mobx'
 import MapProjection from './MapProjection'
 import Chart from './ChartConfig'
 import MapData from './MapData'
@@ -27,7 +27,7 @@ export class MapConfigProps {
 	@observable.ref colorSchemeMinValue?: number = undefined
 	@observable.struct colorSchemeValues: (number|undefined)[] = []
 	@observable.struct colorSchemeLabels: (string|undefined)[] = []
-	@observable.ref colorSchemeValuesAutomatic?: true = true
+	@observable.ref isManualBuckets?: true = undefined
 	// Whether to reverse the color scheme on output
 	@observable.ref colorSchemeInvert?: true = undefined
 	@observable.ref customColorsActive?: true = undefined
@@ -44,6 +44,16 @@ export class MapConfigProps {
 
 	@observable.ref legendDescription?: string = undefined
 	@observable.ref legendStepSize: number = 20
+
+	constructor(json?: any) {
+		if (json !== undefined) {
+			for (let key in this) {
+				if (key in json) {
+					(this as any)[key] = (json as any)[key]
+				}
+			}
+		}
+    }
 }
 
 export default class MapConfig {
@@ -56,7 +66,7 @@ export default class MapConfig {
 	@computed get variableId() { return this.props.variableId }
 	@computed get tolerance() { return defaultTo(this.props.timeTolerance, 0) }
 	@computed get numBuckets() { return defaultTo(this.props.colorSchemeInterval, 10) }
-	@computed get isAutoBuckets() { return defaultTo(this.props.colorSchemeValuesAutomatic, false) }
+	@computed get isAutoBuckets() { return !this.props.isManualBuckets }
 	@computed get minBucketValue() { return +defaultTo(this.props.colorSchemeMinValue, 0) }
 	@computed get colorSchemeValues() { return defaultTo(this.props.colorSchemeValues, []) }
 	@computed get isCustomColors() { return defaultTo(this.props.customColorsActive, false) }

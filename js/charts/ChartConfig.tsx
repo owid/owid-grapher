@@ -1,5 +1,3 @@
-declare function require(name:string): any;
-const owid: any = require('../owid').default
 import * as _ from 'lodash'
 import {observable, computed, action, autorun, toJS, runInAction} from 'mobx'
 import {ScaleType} from './AxisScale'
@@ -123,7 +121,7 @@ export class ChartConfigProps {
     @observable.ref hideTitleAnnotation?: true = undefined
 
     @observable.ref xAxis: AxisConfigProps = new AxisConfigProps()
-    @observable.ref yAxis: AxisConfigProps = new AxisConfigProps()
+    @observable.ref yAxis: AxisConfigProps = _.extend(new AxisConfigProps(), { min: 0 }) // Default to 0 min for y axis
 
     @observable.ref selectedData: EntitySelection[] = []
     @observable.ref minTime?: number = undefined
@@ -272,7 +270,7 @@ export default class ChartConfig {
         this.props.type = json['chart-type']||ChartType.LineChart
         this.props.originUrl = json['data-entry-url']
         this.props.isPublished = json['published']
-        this.props.map = json['map'] ? _.extend(new MapConfigProps(), json['map']) : undefined        
+        this.props.map = new MapConfigProps(json.map)
         this.props.hasChartTab = json['tabs'] ? json['tabs'].includes("chart") : true
         this.props.hasMapTab = json['tabs'] ? json['tabs'].includes("map") : false
         _.extend(this.props.xAxis, json['xAxis'])

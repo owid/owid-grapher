@@ -1,4 +1,4 @@
-import {computed, autorun, runInAction} from 'mobx'
+import {computed, autorun, runInAction, reaction, toJS} from 'mobx'
 import ChartConfig from './ChartConfig'
 import {defaultTo} from './Util'
 import * as _ from 'lodash'
@@ -78,6 +78,24 @@ export default class MapData {
                 runInAction(() => chart.map.props.variableId = variableId)
             }
         })
+
+        // When automatic classification is turned off, assign defaults
+        reaction(
+            () => this.map.isAutoBuckets,
+            () => {
+                if (!this.map.isAutoBuckets) {
+                    const {autoBucketMaximums} = this
+                    let colorSchemeValues = toJS(this.map.props.colorSchemeValues) || []
+                    for (var i = 0; i < autoBucketMaximums.length; i++) {
+                        if (i >= colorSchemeValues.length)
+                            colorSchemeValues.push(autoBucketMaximums[i])
+                        else if (colorSchemeValues[i] === undefined)
+                            colorSchemeValues[i] = autoBucketMaximums[i]
+                    }
+                    this.map.props.colorSchemeValues = colorSchemeValues
+                }
+            }
+        )
     }
 
     @computed get map() { return this.chart.map }
