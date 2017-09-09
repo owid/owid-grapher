@@ -100,10 +100,19 @@ def storechart(request: HttpRequest):
         return HttpResponseRedirect(reverse('listcharts'))
 
 def chart_editor(request: HttpRequest, chartconfig: Dict):
-    # Cache tag for fetching all the variable names via ajax later
-    most_recent_variable = Variable.objects.order_by('-updated_at').first()
-    if most_recent_variable:
-        cachetag = str(int(most_recent_variable.updated_at.timestamp()))
+    # We cache the editor data based on the timestamp of the last database update
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT MAX(`MAX(updated_at)`)
+            FROM (
+                SELECT MAX(updated_at) from variables
+                UNION SELECT MAX(updated_at) from sources
+                UNION SELECT MAX(updated_at) from datasets
+            ) AS timestamps
+        """)
+        database_updated_at = cursor.fetchone()[0]
+
+    cachetag = str(int(database_updated_at.timestamp()))
 
     # XXX this probably doesn't belong in chart config
     logos = []
