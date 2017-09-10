@@ -89,6 +89,7 @@ urlpatterns = [
     url(r'^grapher/admin/qogdatasets/?$', importer_views.listqogdatasets, name="listqogdatasets"),
     url(r'^grapher/admin/faodatasets/?$', importer_views.listfaodatasets, name="listfaodatasets"),
     url(r'^grapher/admin/clioinfradatasets/$', importer_views.listclioinfradatasets, name="listclioinfradatasets"),
+    url(r'^grapher/admin/edstatsdatasets/$', importer_views.listedstatsdatasets, name="listedstatsdatasets"),
     # for future use on the frontend
     url(r'^grapher/admin/charts\.json$',  admin_views.listcharts, name="listchartsjson"),
     url(r'^grapher/admin/charts/create.json$', admin_views.createchart, name="createchartjson"),
@@ -111,4 +112,5 @@ urlpatterns = [
     url(r'^grapher/(?P<slug>[^/]+)\.(?P<fileformat>.+)', owid_views.exportfile, name="exportfile"),
     url(r'^grapher/(?P<slug>[^/]+)/?$', owid_views.show, name="showchart"),
     url(r'^grapher/wdi/WDI_Country_info.xls$', importer_views.serve_wdi_country_info_xls, name='servewdicountryinfo'),
+    url(r'^grapher/edstats/EDSTATS_Country_info.xls$', importer_views.serve_edstats_country_info_xls, name='serveedstatscountryinfo'),
 ]
