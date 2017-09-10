@@ -756,7 +756,7 @@ with transaction.atomic():
                                         logger.info("Inserting a variable %s." % newvariable.name.encode('utf8'))
                                     else:
                                         if not global_cat[indicator_code]['saved']:
-                                            newsource = Source.objects.get(name='World Bank EdStats: ' + Variable.objects.get(code=indicator_code).name)
+                                            newsource = Source.objects.get(name='World Bank EdStats: ' + Variable.objects.get(code=indicator_code, fk_dst_id__in=Dataset.objects.filter(namespace='edstats')).name)
                                             newsource.name = 'World Bank EdStats: ' + global_cat[indicator_code]['name']
                                             newsource.description=source_template % (global_cat[indicator_code]['category'],
                                                             global_cat[indicator_code]['unitofmeasure'],
@@ -780,7 +780,7 @@ with transaction.atomic():
                                             newsource.save()
                                             logger.info("Updating the source %s." % newsource.name.encode('utf8'))
                                             s_unit = short_unit_extract(global_cat[indicator_code]['unitofmeasure'])
-                                            newvariable = Variable.objects.get(code=indicator_code)
+                                            newvariable = Variable.objects.get(code=indicator_code, fk_dst_id__in=Dataset.objects.filter(namespace='edstats'))
                                             newvariable.name = global_cat[indicator_code]['name']
                                             newvariable.unit=global_cat[indicator_code]['unitofmeasure'] if global_cat[indicator_code]['unitofmeasure'] else ''
                                             newvariable.short_unit = s_unit
