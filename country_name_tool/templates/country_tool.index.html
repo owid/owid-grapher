@@ -1,5 +1,7 @@
 {% extends 'base_admin_template.html' %}
 {% load crispy_forms_tags %}
 {% block content %}
+    <div class="alert alert-info">Please note that all country names must be listed under the header name <b>Country</b> in the uploaded CSV file</div>
+    <div class="alert alert-info">If you want to update the country tool data via a CSV file, go <a href="{% url 'countrytoolupdate' %}">here</a>.</div>
     {% crispy form %}
 {% endblock %}

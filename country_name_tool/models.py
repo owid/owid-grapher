@@ -8,7 +8,6 @@ class Continent(models.Model):
 
 class CountryData(models.Model):
     owid_name = models.CharField(max_length=255, unique=True)
-    owid_code = models.CharField(max_length=255, unique=True, blank=True, null=True)
     iso_alpha2 = models.CharField(max_length=255, unique=True, blank=True, null=True)
     iso_alpha3 = models.CharField(max_length=255, unique=True, blank=True, null=True)
     continent = models.ForeignKey(Continent, db_column='continent', on_delete=models.CASCADE, null=True)
