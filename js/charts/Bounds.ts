@@ -1,4 +1,3 @@
-import {select} from 'd3-selection'
 import {isNumber, includes, extend} from './Util'
 import Vector2 from './Vector2'
 
@@ -56,8 +55,12 @@ export default class Bounds {
 
         this.textBoundsCache = this.textBoundsCache || {}
         this.ctx = this.ctx || document.createElement('canvas').getContext('2d')
-        this.baseFontSize = this.baseFontSize || parseFloat(select('svg').style('font-size'))
-        this.baseFontFamily = this.baseFontFamily || select('svg').style('font-family')
+
+		if (!this.baseFontSize || !this.baseFontFamily) {
+			const svg = document.querySelector("svg") as SVGSVGElement
+			this.baseFontSize = parseFloat(svg.style.fontSize as string)
+			this.baseFontFamily = svg.style.fontFamily as string
+		}
 
         if (isNumber(fontSize))
             fontSize = fontSize + 'px'
@@ -82,7 +85,7 @@ export default class Bounds {
         return bounds
     }
 
-    static debugSVG(boundsArray: Bounds[], containerNode?: HTMLElement) {
+    /*static debugSVG(boundsArray: Bounds[], containerNode?: HTMLElement) {
         var container: any = containerNode ? select(containerNode) : select('svg');
 
         container.selectAll('rect.boundsDebug').remove()
@@ -114,7 +117,7 @@ export default class Bounds {
                 .style('height', (b: Bounds) => b.height + 'px')
                 .attr('class', 'boundsDebug')
                 .style('border', '1px solid red');
-    }
+    }*/
 
 	get left(): number { return this.x }
 	get top(): number { return this.y }

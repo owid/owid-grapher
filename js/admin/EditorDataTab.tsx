@@ -1,7 +1,6 @@
 import * as _ from 'lodash'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import {select} from 'd3-selection'
 import {computed, action, observable, when} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartConfig, {DimensionSlot, ChartDimension} from '../charts/ChartConfig'
@@ -60,10 +59,12 @@ class KeysSection extends React.Component<{ chart: ChartConfig }> {
 	@action.bound onStartDrag(key: DataKey) {
 		this.dragKey = key
 
-		select(window).on('mouseup.keydrag', action(() => {
+		const onDrag = action(() => {
 			this.dragKey = undefined
-			select(window).on('mouseup.keydrag', null)
-		}))
+			window.removeEventListener('mouseup', onDrag)
+		})
+
+		window.addEventListener('mouseup', onDrag)
 	}
 
 	@action.bound onMouseEnter(targetKey: DataKey) {

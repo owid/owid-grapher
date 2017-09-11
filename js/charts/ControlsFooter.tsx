@@ -1,7 +1,6 @@
 import Bounds from './Bounds'
 import Text from './Text'
 import {extend, keys, map} from './Util'
-import {select} from 'd3-selection'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { observable, computed, asFlat, autorun, autorunAsync, action } from 'mobx'
@@ -56,19 +55,21 @@ class ShareMenu extends React.Component<ShareMenuProps> {
 
     embedMenu: any
 
+    @action.bound onClickOutside() {
+        this.props.chartView.removePopup(EmbedMenu)
+
+        if (this.props.onDismiss)
+            this.props.onDismiss()
+    }
+
     componentDidMount() {
         setTimeout(() => {
-            select(window).on('click.shareMenu', () => {
-                this.props.chartView.removePopup(EmbedMenu)
-
-                if (this.props.onDismiss)
-                    this.props.onDismiss()
-            })
+            window.addEventListener('click', this.onClickOutside)
         }, 50)
     }
 
     componentWillUnmount() {
-        select(window).on('click.shareMenu', null)
+        window.removeEventListener('click', this.onClickOutside)
     }
 
     @action.bound onEmbed() {

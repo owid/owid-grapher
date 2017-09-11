@@ -10,8 +10,6 @@
  * @created 2017-03-15
  */
 
-import Victor = require('victor')
-
 export default class Vector2 {
     static get epsilon() {
         return 1E-05
@@ -80,11 +78,11 @@ export default class Vector2 {
     }
 
 	subtract(v: Vector2): Vector2 {
-		return Vector2.fromObject(new Victor(this.x, this.y).subtract(new Victor(v.x, v.y)))
+		return new Vector2(this.x-v.x, this.y-v.y)
 	}
 
 	add(v: Vector2): Vector2 {
-		return Vector2.fromObject(new Victor(this.x, this.y).add(new Victor(v.x, v.y)))
+		return new Vector2(this.x+v.x, this.y+v.y)
 	}
 
 	times(n: number): Vector2 {
@@ -95,12 +93,17 @@ export default class Vector2 {
 		return new Vector2(this.x, this.y)
 	}
 
-	magnitude(): number {
-		return new Victor(this.x, this.y).magnitude()
+	get magnitude(): number {
+		return Math.sqrt(this.x**2 + this.y**2)
 	}
 
     normalize(): Vector2 {
-        return Vector2.fromObject(new Victor(this.x, this.y).normalize())
+		const magnitude = this.magnitude
+		if (magnitude > 1E-05) {
+			return new Vector2(this.x/magnitude, this.y/magnitude)
+		} else {
+			return new Vector2(0, 0)
+		}
     }
 
     normals(): Vector2[] {
@@ -109,10 +112,6 @@ export default class Vector2 {
 
     invert(): Vector2 {
         return this.times(-1)
-    }
-
-    equals(other: Vector2): boolean {
-        return other.subtract(this).magnitude() < Vector2.epsilon
     }
 
 	toString(): string {
