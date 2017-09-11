@@ -30,7 +30,7 @@ def standardize_long_unwpp_country_names(apps, schema_editor):
         name='Least developed countries, The group of least developed countries, as defined by the United Nations General Assembly in its resolutions (59/209, 59/210, 60/33, 62/97, 64/L.55, 67/L.43, 64/295 and 68/18) included 47 countries in June  2017:  33 in Africa,').delete()
 
     Entity.objects.filter(
-        name='Less developed regions, excluding least developed countries, Other less developed countries comprise the less developed regions excluding the least developed countries.').update(name='Less developed regions (excluding other less developed regions)')
+        name='Less developed regions, excluding least developed countries, Other less developed countries comprise the less developed regions excluding the least developed countries.').update(name='Less developed regions, excluding least developed countries')
 
     DataValue.objects.filter(fk_ent_id=Entity.objects.get(
         name='High-income countries, The country classification by income level is based on 2016 GNI per capita from the World Bank.').pk).update(
