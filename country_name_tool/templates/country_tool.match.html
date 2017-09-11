@@ -56,7 +56,7 @@
         <script>
             $(document).ready(function() {
                     $("select").change(function (event) {
-                        data["selections"][$('#' + event.target.id.substr(0, event.target.id.indexOf('-')) + '-original').html()] = $('#' + event.target.id).val();
+                        data["selections"][$('#' + event.target.id.substr(0, event.target.id.indexOf('-')) + '-original').html().replace(/&amp;/g, '&')] = $('#' + event.target.id).val();
                     });
             });
 
