@@ -23,7 +23,7 @@ def listwdidatasets(request: HttpRequest):
 
 
 def listunwppdatasets(request: HttpRequest):
-    variables = Variable.objects.filter(fk_dst_id__namespace='unwpp')
+    variables = Variable.objects.filter(fk_dst_id__namespace__contains='unwpp')
     datasets: Dict = {}
 
     for each in variables:

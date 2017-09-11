@@ -530,7 +530,7 @@ with transaction.atomic():
                             break
                     column_number = 0
 
-            thedataset = Dataset.objects.get(name='UN WPP - %s' % dataset_name, namespace='unwpp')
+            thedataset = Dataset.objects.get(name='UN WPP - %s' % dataset_name, namespace__contains='unwpp')
             available_variables = Variable.objects.filter(
                 fk_dst_id=thedataset)
             available_variables_list = []
@@ -596,7 +596,7 @@ with transaction.atomic():
 
                         if row_number == 18:
                             if not dataset_saved:
-                                newdataset = Dataset.objects.get(name='UN WPP - %s' % dataset_name, namespace='unwpp')
+                                newdataset = Dataset.objects.get(name='UN WPP - %s' % dataset_name, namespace__contains='unwpp')
                                 newdataset.fk_dst_cat_id = the_category
                                 newdataset.fk_dst_subcat_id = the_subcategory
                                 newdataset.save()
@@ -689,7 +689,7 @@ with transaction.atomic():
                             break
                     column_number = 0
 
-            thedataset = Dataset.objects.get(name='UN WPP - %s' % dataset_name, namespace='unwpp')
+            thedataset = Dataset.objects.get(name='UN WPP - %s' % dataset_name, namespace__contains='unwpp')
             available_variables = Variable.objects.filter(
                 fk_dst_id=thedataset)
             available_variables_list = []
@@ -754,7 +754,7 @@ with transaction.atomic():
 
                         if row_number == 18:
                             if not dataset_saved:
-                                newdataset = Dataset.objects.get(name='UN WPP - %s' % dataset_name, namespace='unwpp')
+                                newdataset = Dataset.objects.get(name='UN WPP - %s' % dataset_name, namespace__contains='unwpp')
                                 newdataset.fk_dst_cat_id = the_category
                                 newdataset.fk_dst_subcat_id = the_subcategory
                                 newdataset.save()
