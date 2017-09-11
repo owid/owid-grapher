@@ -4,6 +4,12 @@
 <h1>
 Upload country data
 </h1>
-    <p>The file should be in csv format</p>
+    <div class="alert alert-error">
+        Please note that the update process will wipe the existing data about countries in the country tool, and will insert the data you upload in the CSV file.
+        If you are trying to add only several countries, please download the existing country tool information from the link below, and add those countries to the end of the file before uploading.
+    </div>
+    <div class="alert alert-info">
+        <a href="{% url 'servecountrytooldata' %}">Download existing country tool data</a>
+    </div>
     {% crispy form %}
 {% endblock %}

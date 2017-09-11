@@ -80,7 +80,7 @@ urlpatterns = [
     url(r'^grapher/admin/users/(?P<userid>[\w]+)/edit/$', admin_views.edituser, name="edituser"),
     url(r'^grapher/admin/users/(?P<userid>[\w]+)$', admin_views.manageuser, name="manageuser"),
     url(r'^grapher/admin/standardize/$', countrytool_views.country_tool_page, name="countrytoolpage"),
-    url(r'^grapher/admin/standardize/newnames/$', countrytool_views.newcountrynames, name="newcountrynames"),
+    url(r'^grapher/admin/standardize/countrytooldata/$', countrytool_views.serve_country_tool_data, name="servecountrytooldata"),
     url(r'^grapher/admin/standardize/update/$', countrytool_views.country_tool_update, name="countrytoolupdate"),
     url(r'^grapher/admin/standardize/csv/(?P<filename>[^/]+)$', countrytool_views.servecsv, name="servecsv"),
     url(r'^grapher/admin/invite/?$', admin_views.invite_user, name="inviteuser"),
@@ -88,6 +88,8 @@ urlpatterns = [
     url(r'^grapher/admin/unwppdatasets/?$', importer_views.listunwppdatasets, name="listunwppdatasets"),
     url(r'^grapher/admin/qogdatasets/?$', importer_views.listqogdatasets, name="listqogdatasets"),
     url(r'^grapher/admin/faodatasets/?$', importer_views.listfaodatasets, name="listfaodatasets"),
+    url(r'^grapher/admin/clioinfradatasets/$', importer_views.listclioinfradatasets, name="listclioinfradatasets"),
+    url(r'^grapher/admin/edstatsdatasets/$', importer_views.listedstatsdatasets, name="listedstatsdatasets"),
     # for future use on the frontend
     url(r'^grapher/admin/charts\.json$',  admin_views.listcharts, name="listchartsjson"),
     url(r'^grapher/admin/charts/create.json$', admin_views.createchart, name="createchartjson"),
@@ -110,4 +112,5 @@ urlpatterns = [
     url(r'^grapher/(?P<slug>[^/]+)\.(?P<fileformat>.+)', owid_views.exportfile, name="exportfile"),
     url(r'^grapher/(?P<slug>[^/]+)/?$', owid_views.show, name="showchart"),
     url(r'^grapher/wdi/WDI_Country_info.xls$', importer_views.serve_wdi_country_info_xls, name='servewdicountryinfo'),
+    url(r'^grapher/edstats/EDSTATS_Country_info.xls$', importer_views.serve_edstats_country_info_xls, name='serveedstatscountryinfo'),
 ]
