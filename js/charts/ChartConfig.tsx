@@ -271,8 +271,8 @@ export default class ChartConfig {
         this.props.originUrl = json['data-entry-url']
         this.props.isPublished = json['published']
         this.props.map = new MapConfigProps(json.map)
-        this.props.hasChartTab = json['tabs'] ? json['tabs'].includes("chart") : true
-        this.props.hasMapTab = json['tabs'] ? json['tabs'].includes("map") : false
+        this.props.hasChartTab = json['tabs'] ? includes(json['tabs'], "chart") : true
+        this.props.hasMapTab = json['tabs'] ? includes(json['tabs'], "map") : false
         extend(this.props.xAxis, json['xAxis'])
         extend(this.props.yAxis, json['yAxis'])
 
