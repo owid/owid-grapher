@@ -2,13 +2,13 @@ import * as _ from 'lodash'
 
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import {observable, computed, action, autorun} from 'mobx'
+import {observable, computed, action, autorun, reaction} from 'mobx'
 import {observer} from 'mobx-react'
 import {bind} from 'decko'
 
 import * as parse from 'csv-parse'
 import {NullElement} from '../charts/Util'
-import Modal from './Modal'
+import EditorModal from './EditorModal'
 
 const styles = require('./Importer.css')
 
@@ -51,13 +51,24 @@ class Variable {
 	}
 }
 
+
+interface ExistingVariable {
+	id: number
+	name: string
+	source: {
+		id: number
+		name: string
+		description: string
+	}
+}
+
 class Dataset {
 	@observable id: number|null
 	@observable name: string
 	@observable description: string
 	@observable subcategoryId: number|null = null
-	@observable existingVariables: any[] = []
-	@observable newVariables: any[] = []
+	@observable existingVariables: ExistingVariable[] = []
+	@observable newVariables: Variable[] = []
 	@observable years: number[] = []
 	@observable entities: number[] = []
 	@observable entityNames: string[] = []
@@ -74,9 +85,9 @@ class Dataset {
 		return this.id && !this.existingVariables.length
 	}
 
-	@computed get sources() {
+	@computed get sources(): { name: string, description: string }[] {
 		const {newVariables, existingVariables} = this
-		const sources = _.map(existingVariables.concat(newVariables), v => v.source)
+		const sources = _.map(existingVariables, v => v.source).concat(_.map(newVariables, v => v.source))
 		return _.uniqBy(_.filter(sources), source => source.id)
 	}
 
@@ -117,15 +128,18 @@ class Dataset {
 
 		// When a single source becomes available (either from the database or added by user) we
 		// should use it as the default for all variables without a soruce
-		autorun(() => {
-			const defaultSource = this.sources[0]
-			if (!defaultSource) return
+		reaction(
+			() => this.sources[0] && this.newVariables,
+			() => {
+				const defaultSource = this.sources[0]
+				if (!defaultSource) return
 
-			for (let variable of this.newVariables) {
-				if (!variable.source)
-					variable.source = defaultSource
+				for (let variable of this.newVariables) {
+					if (!variable.source)
+						variable.source = defaultSource
+				}
 			}
-		})
+		)
 
 		autorun(() => {
 			if (this.id == null) return;
@@ -137,22 +151,25 @@ class Dataset {
 		})
 
 		// Match existing to new variables
-		autorun(() => {
-			if (!this.newVariables || !this.existingVariables)
-				return
-
-			this.newVariables.forEach(variable => {
-				const match = this.existingVariables.filter(v => v.name == variable.name)[0]
-				if (match) {
-					_.keys(match).forEach(key => {
-						if (key == 'id')
-							variable.overwriteId = match[key]
-						else
-							variable[key] = match[key]
-					})
-				}
-			})
-		})
+		reaction(
+			() => this.newVariables && this.existingVariables,
+			() => {
+				if (!this.newVariables || !this.existingVariables)
+					return
+				
+				this.newVariables.forEach(variable => {
+					const match = this.existingVariables.filter(v => v.name == variable.name)[0]
+					if (match) {
+						_.keys(match).forEach(key => {
+							if (key == 'id')
+								variable.overwriteId = (match as any)[key]
+							else
+								(variable as any)[key] = (match as any)[key]
+						})
+					}
+				})
+			}
+		)
 	}
 }
 
@@ -245,16 +262,16 @@ const EditCategory = ({categories, dataset}: any) => {
 
 @observer
 class EditVariable extends React.Component<{ variable: Variable, dataset: Dataset }> {
-	@observable editSource = false
+	@observable isEditingSource: boolean = false
 
-	@action.bound onEditSource(e: any) {
+	@action.bound onEditSource(e: React.MouseEvent<HTMLButtonElement>) {
 		e.preventDefault()
-		this.editSource = !this.editSource
+		this.isEditingSource = !this.isEditingSource
 	}
 
 	render() {
 		const {variable, dataset} = this.props
-		const {editSource} = this
+		const {isEditingSource} = this
 
 		const sourceName = variable.source && (variable.source.id ? variable.source.name : `New: ${variable.source.name}`)
 
@@ -278,7 +295,7 @@ class EditVariable extends React.Component<{ variable: Variable, dataset: Datase
 				<label>Geographic Coverage<input value={variable.coverage} onInput={e => variable.coverage = e.currentTarget.value} placeholder="e.g. Global by country"/></label>
 				<label>Time Span<input value={variable.timespan} onInput={e => variable.timespan = e.currentTarget.value} placeholder="e.g. 1920-1990"/></label>
 				<label>Source
-					<button onClick={this.onEditSource} style={{position: 'relative'}}>
+					<button className="clickable" onClick={this.onEditSource} style={{position: 'relative'}}>
 						<i className="fa fa-pencil"/> {sourceName || 'Add source'}
 						<input type="text" value={variable.source && variable.source.name} required style={{position: 'absolute', left: 0, top: 0, width: '100%', height: '100%', opacity: 0}}/>
 					</button>
@@ -292,7 +309,7 @@ class EditVariable extends React.Component<{ variable: Variable, dataset: Datase
 					</select>
 				</label>
 			</div>
-			{editSource && <EditSource variable={variable} dataset={dataset} onSave={() => this.editSource = false}/>}
+			{isEditingSource && <EditSource variable={variable} dataset={dataset} onSave={() => this.isEditingSource = false}/>}
 		</li>
 	}
 }
@@ -305,7 +322,6 @@ class EditVariables extends React.Component<{ dataset: Dataset }> {
 		return <section className="form-section variables-section">
 			<h3>Variable names and descriptions</h3>
 			<p className="form-section-desc">Here you can configure the variables that will be stored for your dataset.</p>
-
 			<ol>
 				{_.map(dataset.newVariables, variable =>
 					<EditVariable variable={variable} dataset={dataset}/>
@@ -325,9 +341,10 @@ class EditSource extends React.Component<{ variable: Variable, dataset: Dataset,
 	}
 
 	componentDidMount() {
-		autorun(() => {
-			this.source = this.props.variable.source || this.source
-		})
+		reaction(
+			() => this.props.variable.source,
+			() => this.source = this.props.variable.source || this.source
+		)
 	}
 
 	@action.bound onChangeSource(e: any) {
@@ -639,18 +656,21 @@ export default class Importer extends React.Component<{ datasets: any[], categor
 	}
 
 	componentDidMount() {
-		autorun(() => {
-			const {dataset, csv} = this
-			if (!dataset || !csv || !csv.isValid) return
+		reaction(
+			() => this.dataset && this.csv && this.csv.isValid,
+			() => {
+				const {dataset, csv} = this
+				if (!dataset || !csv || !csv.isValid) return
 
-			if (!dataset.name)
-				dataset.name = csv.basename
+				if (!dataset.name)
+					dataset.name = csv.basename
 
-			dataset.newVariables = _.map(csv.data.variables, _.clone)
-			dataset.entityNames = csv.data.entityNames
-			dataset.entities = csv.data.entities
-			dataset.years = csv.data.years
-		})
+				dataset.newVariables = _.map(csv.data.variables, _.clone)
+				dataset.entityNames = csv.data.entityNames
+				dataset.entities = csv.data.entities
+				dataset.years = csv.data.years
+			}
+		)
 	}
 
 	@action.bound onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -701,9 +721,9 @@ export default class Importer extends React.Component<{ datasets: any[], categor
 				{!dataset.isLoading && [
 					<EditVariables dataset={dataset}/>,
 					<input type="submit" className="btn btn-success" value={dataset.id ? "Update dataset" : "Create dataset"}/>,
-					<Modal isOpen={!!dataset.importRequest} contentLabel="Modal" parentSelector={() => document.querySelector('.wrapper')}>
+					dataset.importRequest && <EditorModal>
 						<ImportProgressModal dataset={dataset}/>
-					</Modal>
+					</EditorModal>
 				]}
 			</section>}
 		</form>
