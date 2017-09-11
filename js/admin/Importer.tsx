@@ -1,15 +1,3 @@
-/* Importer.jsx
- * ================
- *
- * Frontend for editing datasets.
- *
- * @project Our World In Data
- * @author  Jaiden Mispy
- * @created 2017-02-17
- */
-
-// @flow
-
 import * as _ from 'lodash'
 
 import * as React from 'react'
@@ -25,6 +13,7 @@ import Modal from './Modal'
 const styles = require('./Importer.css')
 
 declare const App: any
+declare const window: any
 
 class Source {
 	static template = ""
@@ -72,7 +61,7 @@ class Dataset {
 	@observable years: number[] = []
 	@observable entities: number[] = []
 	@observable entityNames: string[] = []
-	@observable importError = null
+	@observable importError: string|null = null
 	@observable importRequest = null
 	@observable importSuccess = false
 
@@ -107,7 +96,7 @@ class Dataset {
 
 		this.importError = null
 		this.importSuccess = false
-		this.importRequest = App.postJSON('/admin/import/variables', requestData).then(response => {
+		this.importRequest = App.postJSON('/admin/import/variables', requestData).then((response: Response) => {
 			if (response.status != 200)
 				return response.text().then(err => this.importError = err)
 			else {
@@ -282,7 +271,7 @@ class EditVariable extends React.Component<{ variable: Variable, dataset: Datase
 					The variable  description will be displayed in charts (‘Sources’ tab). It will be the first row in the table explaining the variable sources.<br />
 					Variable descriptions should be concise but clear and self-contained. They will correspond, roughly, to the information that will go in the subtitle of charts. <br />
 					For example: “Percentage of the population covered by health insurance (includes affiliated members of health insurance or estimation of the population having free access to health care services provided by the State)”</span>
-					<textarea rows={4} placeholder="Short description of variable" value={variable.description} onInput={e => variable.description = e.target.value}/>
+					<textarea rows={4} placeholder="Short description of variable" value={variable.description} onInput={e => variable.description = e.currentTarget.value}/>
 				</label>
 				<label>Unit <span className="form-section-desc explanatory-notes">(is displayed in axis-labels as suffix and in the legend of the map)</span>
 				<input value={variable.unit} onInput={e => variable.unit = e.currentTarget.value} placeholder="e.g. % or $"/></label>
@@ -303,7 +292,7 @@ class EditVariable extends React.Component<{ variable: Variable, dataset: Datase
 					</select>
 				</label>
 			</div>
-			{editSource && <EditSource variable={variable} dataset={dataset} onSave={e => this.editSource = false}/>}
+			{editSource && <EditSource variable={variable} dataset={dataset} onSave={() => this.editSource = false}/>}
 		</li>
 	}
 }
@@ -428,7 +417,7 @@ class ImportProgressModal extends React.Component<{ dataset: Dataset }> {
 class CSV {
 	filename: string
 	rows: string[][]
-	existingEntities: []
+	existingEntities: string[]
 
 	@computed get basename() {
 		return (this.filename.match(/(.*?)(.csv)?$/)||[])[1]
@@ -598,7 +587,7 @@ class CSVSelector extends React.Component<{ existingEntities: string[], onCSV: (
 
 	@action.bound onChooseCSV({target}: {target: HTMLInputElement}) {
 		const {existingEntities} = this.props
-		const file = target.files[0]
+		const file = target.files && target.files[0]
 		if (!file) return
 
 		var reader = new FileReader()
@@ -664,7 +653,7 @@ export default class Importer extends React.Component<{ datasets: any[], categor
 		})
 	}
 
-	@action.bound onSubmit(e) {
+	@action.bound onSubmit(e: React.FormEvent<HTMLFormElement>) {
 		e.preventDefault()
 		this.dataset.save()
 	}
@@ -681,7 +670,7 @@ export default class Importer extends React.Component<{ datasets: any[], categor
 		Source.template = this.props.sourceTemplate
 
 		if (dataset.subcategoryId == null) {
-			dataset.subcategoryId = (_.findWhere(categories, { name: "Uncategorized" })||{}).id
+			dataset.subcategoryId = (_.find(categories, c => c.name == "Uncategorized")||{}).id
 		}
 
 		return <form className={styles.importer} onSubmit={this.onSubmit}>
@@ -712,7 +701,7 @@ export default class Importer extends React.Component<{ datasets: any[], categor
 				{!dataset.isLoading && [
 					<EditVariables dataset={dataset}/>,
 					<input type="submit" className="btn btn-success" value={dataset.id ? "Update dataset" : "Create dataset"}/>,
-					<Modal isOpen={!!dataset.importRequest} contentLabel="Modal" parentSelector={e => document.querySelector('.wrapper')}>
+					<Modal isOpen={!!dataset.importRequest} contentLabel="Modal" parentSelector={() => document.querySelector('.wrapper')}>
 						<ImportProgressModal dataset={dataset}/>
 					</Modal>
 				]}
