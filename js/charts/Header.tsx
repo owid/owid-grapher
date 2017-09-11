@@ -1,4 +1,4 @@
-import * as _ from 'lodash'
+import {isFinite} from './Util'
 import * as React from 'react'
 import Bounds from './Bounds'
 import Text from './Text'
@@ -74,9 +74,9 @@ export default class Header {
                 }
             }
 
-            if (_.isFinite(minYear)) {
+            if (isFinite(minYear)) {
                 var timeFrom = formatYear(minYear as number),
-                timeTo = formatYear(_.isFinite(maxYear) ? maxYear as number : minYear as number),
+                timeTo = formatYear(isFinite(maxYear) ? maxYear as number : minYear as number),
                 time = timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo;
 
                 text = text + ", " + time

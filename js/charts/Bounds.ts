@@ -1,4 +1,4 @@
-import * as _ from 'lodash'
+import {isNumber, includes, extend} from './Util'
 import * as d3 from 'd3'
 import Vector2 from './Vector2'
 
@@ -59,9 +59,9 @@ export default class Bounds {
         this.baseFontSize = this.baseFontSize || parseFloat(d3.select('svg').style('font-size'))
         this.baseFontFamily = this.baseFontFamily || d3.select('svg').style('font-family')
 
-        if (_.isNumber(fontSize))
+        if (isNumber(fontSize))
             fontSize = fontSize + 'px'
-        else if (_.includes(fontSize, 'em'))
+        else if (includes(fontSize, 'em'))
             fontSize = this.baseFontSize*parseFloat(fontSize)+'px'
 
         const key = str+'-'+fontSize
@@ -165,7 +165,7 @@ export default class Bounds {
 	}
 
 	extend(props: { x?: number, y?: number, width?: number, height?: number }): Bounds {
-		return Bounds.fromProps(_.extend({}, this, props))
+		return Bounds.fromProps(extend({}, this, props))
 	}
 
 	scale(scale: number): Bounds {

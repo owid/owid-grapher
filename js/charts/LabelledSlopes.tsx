@@ -8,9 +8,9 @@
  * @created 2017-02-11
  */
 
-import * as _ from 'lodash'
 import * as d3 from 'd3'
 import * as React from 'react'
+import {every, uniq, first, last, sortBy, extend, min, max, isEmpty, throttle} from './Util'
 import {observable, computed, action} from 'mobx'
 import {observer} from 'mobx-react'
 
@@ -24,12 +24,17 @@ import ScaleSelector from './ScaleSelector'
 import {getRelativeMouse, domainExtent} from './Util'
 import Vector2 from './Vector2'
 
+export interface SlopeChartValue {
+	x: number
+	y: number
+}
+
 export interface SlopeChartSeries {
 	label: string
 	key: string
 	color: string
 	size: number
-	values: { x: number, y: number }[]
+	values: SlopeChartValue[]
 };
 
 interface AxisProps {
@@ -44,7 +49,7 @@ interface AxisProps {
 class SlopeChartAxis extends React.Component<AxisProps> {
 	static calculateBounds(containerBounds: Bounds, props: { tickFormat: (value: number) => string, orient: 'left' | 'right', scale: d3.ScaleLinear<number, number> }) {
 		const {orient, scale} = props
-		const longestTick = _(scale.ticks(6)).map(props.tickFormat).sortBy(tick => -tick.length).first() as string
+		const longestTick = first(sortBy(scale.ticks(6).map(props.tickFormat), tick => -tick.length)) as string
 		const axisWidth = Bounds.forText(longestTick).width
 		return new Bounds(containerBounds.x, containerBounds.y, axisWidth, containerBounds.height)
 	}
@@ -52,7 +57,7 @@ class SlopeChartAxis extends React.Component<AxisProps> {
 	static getTicks(scale: d3.ScaleLinear<number, number>|d3.ScaleLogarithmic<number, number>, scaleType: ScaleType) {
 		if (scaleType == 'log') {
 			let minPower10 = Math.ceil(Math.log(scale.domain()[0]) / Math.log(10));
-			if (!_.isFinite(minPower10)) minPower10 = 0
+			if (!isFinite(minPower10)) minPower10 = 0
 			let maxPower10 = Math.floor(Math.log(scale.domain()[1]) / Math.log(10));
 			if (maxPower10 <= minPower10) maxPower10 += 1
 
@@ -78,7 +83,7 @@ class SlopeChartAxis extends React.Component<AxisProps> {
 		const textColor = '#666'
 
 		return <g className="axis" font-size="0.8em">
-			{_.map(ticks, (tick) => {
+			{ticks.map(tick => {
 				return <text x={orient == 'left' ? bounds.left : bounds.right} y={scale(tick)} fill={textColor} dominant-baseline="middle" text-anchor={orient == 'left' ? 'start' : 'end'}>{tickFormat(tick)}</text>
 			})}
 	    </g>
@@ -166,14 +171,18 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 		return this.bounds.width < 400
 	}
 
+	@computed get allValues(): SlopeChartValue[] {
+		const values: SlopeChartValue[] = []
+		this.props.data.forEach(g => values.push(...g.values))
+		return values
+	}
+
 	@computed get xDomainDefault(): [number, number] {
-		const xValues = _(this.props.data).map(g => g.values).flatten().map((v: any) => v.x).value()
-		return domainExtent(xValues, 'linear')
+		return domainExtent(this.allValues.map(v => v.x), 'linear')
 	}
 
 	@computed get yDomainDefault(): [number, number] {
-		let yValues = _(this.props.data).map(g => g.values).flatten().map((v: any) => v.y).value()
-		return domainExtent(yValues, this.props.yScaleType)
+		return domainExtent(this.allValues.map(v => v.y), this.props.yScaleType)
 	}
 
 	@computed get xDomain(): [number, number] {
@@ -188,7 +197,7 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 	}
 
 	@computed get sizeScale(): d3.ScaleLinear<number, number> {
-		return d3.scaleLinear().domain(d3.extent(_.map(this.props.data, d => d.size)) as [number, number]).range([1, 4])
+		return d3.scaleLinear().domain(d3.extent(this.props.data.map(d => d.size)) as [number, number]).range([1, 4])
 	}
 
 	@computed get yScaleConstructor(): Function {
@@ -216,7 +225,7 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
                 "#69c487", // South America
                 "#ff7f0e", "#1f77b4", "#ffbb78", "#2ca02c", "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b", "c49c94", "e377c2", "f7b6d2", "7f7f7f", "c7c7c7", "bcbd22", "dbdb8d", "17becf", "9edae5", "1f77b4"]
 
-        return d3.scaleOrdinal(colorScheme).domain(_.uniq(_.map(this.props.data, 'color')))
+        return d3.scaleOrdinal(colorScheme).domain(uniq(this.props.data.map(d => d.color)))
 	}
 
 	@computed get maxLabelWidth(): number {
@@ -229,9 +238,9 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 		const slopeData: SlopeProps[] = []
 		const yDomain = yScale.domain()
 
-		_.each(data, (series) => {
+		data.forEach(series => {
 			// Ensure values fit inside the chart
-			if (!_.every(series.values, (d) => d.y >= yDomain[0] && d.y <= yDomain[1]))
+			if (!every(series.values, (d) => d.y >= yDomain[0] && d.y <= yDomain[1]))
 				return;
 
 			const [ v1, v2 ] = series.values
@@ -258,13 +267,13 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 	}
 
 	@computed get maxValueWidth(): number {
-		return _(this.initialSlopeData).map(s => s.leftValueWidth).max() as number
+		return max(this.initialSlopeData.map(s => s.leftValueWidth)) as number
 	}
 
 	@computed get labelAccountedSlopeData() {
 		const {maxLabelWidth, maxValueWidth, isPortrait} = this
 
-		return _.map(this.initialSlopeData, (slope) => {
+		return this.initialSlopeData.map(slope => {
 			// Squish slopes to make room for labels
 			const x1 = slope.x1+maxLabelWidth+maxValueWidth+8
 			const x2 = slope.x2-maxLabelWidth-maxValueWidth-8
@@ -273,7 +282,7 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 			const leftLabelBounds = new Bounds(x1-slope.leftValueWidth-12-slope.leftLabel.width, slope.y1-slope.leftLabel.height/2, slope.leftLabel.width, slope.leftLabel.height)
 			const rightLabelBounds = new Bounds(x2+slope.rightValueWidth+12, slope.y2-slope.rightLabel.height/2, slope.rightLabel.width, slope.rightLabel.height)
 
-			return _.extend({}, slope, {
+			return extend({}, slope, {
 				x1: x1,
 				x2: x2,
 				leftLabelBounds: leftLabelBounds,
@@ -287,8 +296,8 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 		const { focusKey } = this
 		let slopeData = this.labelAccountedSlopeData
 
-		slopeData = _.map(slopeData, (slope) => {
-			return _.extend({}, slope, {
+		slopeData = slopeData.map(slope => {
+			return extend({}, slope, {
 				isFocused: slope.key == focusKey,
 			})
 		})
@@ -312,8 +321,8 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 		}
 
 		// Eliminate overlapping labels, one pass for each side
-		_.each(slopeData, (s1) => {
-			_.each(slopeData, (s2) => {
+		slopeData.forEach(s1 => {
+			slopeData.forEach(s2 => {
 				if (s1 !== s2 && s1.hasLeftLabel && s2.hasLeftLabel && s1.leftLabelBounds.intersects(s2.leftLabelBounds)) {
 					if (chooseLabel(s1, s2) == s1)
 						s2.hasLeftLabel = false
@@ -323,8 +332,8 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 			})
 		})
 
-		_.each(slopeData, (s1) => {
-			_.each(slopeData, (s2) => {
+		slopeData.forEach(s1 => {
+			slopeData.forEach(s2 => {
 				if (s1 !== s2 && s1.hasRightLabel && s2.hasRightLabel && s1.rightLabelBounds.intersects(s2.rightLabelBounds)) {
 					if (chooseLabel(s1, s2) == s1)
 						s2.hasRightLabel = false
@@ -335,8 +344,8 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 		})
 
 		// Order by focus and size for draw order
-		slopeData = _.sortBy(slopeData, (slope) => slope.size)
-		slopeData = _.sortBy(slopeData, (slope) => slope.isFocused ? 1 : 0)
+		slopeData = sortBy(slopeData, (slope) => slope.size)
+		slopeData = sortBy(slopeData, (slope) => slope.isFocused ? 1 : 0)
 
 		return slopeData
 	}
@@ -348,7 +357,7 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 			if (!this.props.bounds.contains(mouse))
 				this.focusKey = undefined
 			else {
-				const slope = _.sortBy(this.slopeData, (slope) => {
+				const slope = sortBy(this.slopeData, (slope) => {
 					const distToLine = Math.abs((slope.y2-slope.y1)*mouse.x - (slope.x2-slope.x1)*mouse.y + slope.x2*slope.y1 - slope.y2*slope.x1) / Math.sqrt((slope.y2-slope.y1)**2 + (slope.x2-slope.x1)**2)
 					return distToLine
 				})[0]
@@ -365,19 +374,19 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
     	const { yTickFormat, yScaleType, yScaleTypeOptions, onScaleTypeChange } = this.props
     	const { bounds, slopeData, isPortrait, xDomain, xScale, yScale } = this
 
-    	if (_.isEmpty(slopeData))
+    	if (isEmpty(slopeData))
     		return <NoData bounds={bounds}/>
 
     	const {x1, x2} = slopeData[0]
 		const [y1, y2] = yScale.range()
 		
-		const onMouseMove = _.throttle(this.onMouseMove, 100)
+		const onMouseMove = throttle(this.onMouseMove, 100)
 
 	    return (
 	    	<g className="LabelledSlopes" onMouseMove={onMouseMove} onTouchMove={onMouseMove} onTouchStart={onMouseMove} onMouseLeave={onMouseMove}>
 				<rect x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="rgba(0,0,0,0)" opacity={0}/>
 				<g className="gridlines">
-					{_.map(SlopeChartAxis.getTicks(yScale, yScaleType), (tick) => {
+					{SlopeChartAxis.getTicks(yScale, yScaleType).map(tick => {
 						return <line x1={x1} y1={yScale(tick)} x2={x2} y2={yScale(tick)} stroke="#eee" stroke-dasharray="3,2"/>
 					})}
 				</g>
@@ -389,7 +398,7 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 	    		<Text x={x1} y={y1+10} textAnchor="middle" fill="#666">{xDomain[0].toString()}</Text>
 	    		<Text x={x2} y={y1+10} textAnchor="middle" fill="#666">{xDomain[1].toString()}</Text>
 				<g className="slopes">
-					{_.map(slopeData, (slope) => {
+					{slopeData.map(slope => {
 				    	return <Slope key={slope.key} {...slope} />
 			    	})}
 				</g>

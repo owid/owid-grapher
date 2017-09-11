@@ -7,7 +7,7 @@
  *
  */
 
-import * as _ from 'lodash'
+import {debounce, isNumber, includes, map, filter, uniq, toString, isFinite} from './Util'
 import {computed, observable, autorun, when, action, runInAction, reaction, toJS} from 'mobx'
 import ChartView from './ChartView'
 import ChartTabOption from './ChartTabOption'
@@ -48,7 +48,7 @@ export default class URLBinder {
 
         // There is a surprisingly considerable performance overhead to updating the url
         // while animating, so we debounce to allow e.g. smoother timelines
-        const pushParams = _.debounce(function(params: ChartQueryParams) {
+        const pushParams = debounce(function(params: ChartQueryParams) {
             requestAnimationFrame(() => setQueryStr(queryParamsToStr(params as QueryParams)))
         }, 100)
         
@@ -108,7 +108,7 @@ export default class URLBinder {
         const {chart, origChart} = this
 
         if (chart.props.map && origChart.map && chart.props.map.targetYear != origChart.map.targetYear) {
-            return _.toString(chart.props.map.targetYear)
+            return toString(chart.props.map.targetYear)
         } else {
             return undefined
         }
@@ -119,10 +119,10 @@ export default class URLBinder {
 
         const {minTime, maxTime} = chart.props
         if (minTime != origChart.minTime || maxTime != origChart.maxTime) {
-            if (_.isFinite(minTime) && _.isFinite(maxTime) && minTime != maxTime) {
+            if (isFinite(minTime) && isFinite(maxTime) && minTime != maxTime) {
                 return minTime + ".." + maxTime
-            } else if (_.isNumber(minTime)) {
-                return _.toString(minTime)
+            } else if (isNumber(minTime)) {
+                return toString(minTime)
             }
         } else {
             return undefined
@@ -132,7 +132,7 @@ export default class URLBinder {
     @computed get countryParam(): string|undefined {
         const {chart, origChart} = this
         if (chart.data.isReady && JSON.stringify(chart.props.selectedData) != JSON.stringify(origChart.selectedData)) {
-            return _(chart.data.selectedKeys).map(k => chart.data.lookupKey(k).shortCode).map(encodeURIComponent).uniq().join("+")
+            return uniq(chart.data.selectedKeys.map(k => chart.data.lookupKey(k).shortCode).map(encodeURIComponent)).join("+")
         } else {
             return undefined
         }
@@ -147,7 +147,7 @@ export default class URLBinder {
         if (activeLegendKeys === null)
             setQueryVariable("shown", null);
         else {
-            var keys = _.map(activeLegendKeys, function(key) {
+            var keys = map(activeLegendKeys, function(key) {
                 return encodeURIComponent(key);
             });
             setQueryVariable("shown", keys.join("+"));
@@ -163,7 +163,7 @@ export default class URLBinder {
         // Set tab if specified
         const tab = params.tab;
         if (tab) {
-            if (!_.includes(chart.availableTabs, tab))
+            if (!includes(chart.availableTabs, tab))
                 console.error("Unexpected tab: " + tab);
             else
                 chart.props.tab = (tab as ChartTabOption)
@@ -171,7 +171,7 @@ export default class URLBinder {
 
         const overlay = params.overlay;
         if (overlay) {
-            if (!_.includes(chart.availableTabs, overlay))
+            if (!includes(chart.availableTabs, overlay))
                 console.error("Unexpected overlay: " + overlay);
             else
                 chart.props.overlay = (overlay as ChartTabOption)
@@ -233,7 +233,7 @@ export default class URLBinder {
         when(() => chart.data.isReady, () => {
             runInAction(() => {
                 if (country) {
-                    const entityCodes = _.map(country.split('+'), decodeURIComponent)
+                    const entityCodes = map(country.split('+'), decodeURIComponent)
 
                     if (chart.data.canChangeEntity) {
                         chart.data.availableEntities.forEach(entity => {
@@ -242,10 +242,10 @@ export default class URLBinder {
                                 chart.data.switchEntity(entityMeta.id)
                         })
                     } else {
-                        chart.data.selectedKeys = _.filter(chart.data.availableKeys, datakey => {
+                        chart.data.selectedKeys = filter(chart.data.availableKeys, datakey => {
                             const meta = chart.data.lookupKey(datakey)                         
                             const entityMeta = chart.vardata.entityMetaByKey[meta.entity]
-                            return _.includes(entityCodes, meta.shortCode) || _.includes(entityCodes, entityMeta.code) || _.includes(entityCodes, entityMeta.name)
+                            return includes(entityCodes, meta.shortCode) || includes(entityCodes, entityMeta.code) || includes(entityCodes, entityMeta.name)
                         })
                     }
                 }
@@ -254,8 +254,8 @@ export default class URLBinder {
 
         // Set shown legend keys for chartViews with toggleable series
        /*var shown = params.shown;
-        if (_.isString(shown)) {
-            var keys = _.map(shown.split("+"), function(key) {
+        if (isString(shown)) {
+            var keys = map(shown.split("+"), function(key) {
                 return decodeURIComponent(key);
             });
 

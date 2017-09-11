@@ -10,7 +10,6 @@
  * @created 2017-03-15
  */
 
-import * as _ from 'lodash'
 import Victor = require('victor')
 
 export default class Vector2 {

@@ -1,5 +1,5 @@
 import {computed} from 'mobx'
-import * as _ from 'lodash'
+import {some, isEmpty, find, sortBy, min, max, values} from './Util'
 import ChartConfig from './ChartConfig'
 import Color from './Color'
 import {DiscreteBarDatum} from './DiscreteBarChart'
@@ -17,14 +17,14 @@ export default class DiscreteBarTransform implements IChartTransform {
     }
 
     @computed get isValidConfig() {
-        return _.some(this.chart.dimensions, d => d.property == 'y')
+        return some(this.chart.dimensions, d => d.property == 'y')
     }
 
     @computed get failMessage(): string|undefined {
         const {filledDimensions} = this.chart.data
-        if (!_.some(filledDimensions, d => d.property == 'y'))
+        if (!some(filledDimensions, d => d.property == 'y'))
             return "Missing variable"
-        else if (_.isEmpty(this.data))
+        else if (isEmpty(this.data))
             return "No matching data"
     }
 
@@ -41,7 +41,7 @@ export default class DiscreteBarTransform implements IChartTransform {
     }
 
     @computed get primaryDimension(): DimensionWithData|undefined {
-        return _.find(this.chart.data.filledDimensions, d => d.property == "y")
+        return find(this.chart.data.filledDimensions, d => d.property == "y")
     }
 
     @computed get targetYear(): number {
@@ -50,9 +50,9 @@ export default class DiscreteBarTransform implements IChartTransform {
 
         const {variable} = this.primaryDimension
         if (maxYear != null)
-            return _.sortBy(variable.yearsUniq, year => Math.abs(year-maxYear))[0];
+            return sortBy(variable.yearsUniq, year => Math.abs(year-maxYear))[0];
         else
-            return _.max(variable.yearsUniq) as number;
+            return max(variable.yearsUniq) as number;
 
     }
 
@@ -71,7 +71,7 @@ export default class DiscreteBarTransform implements IChartTransform {
         const data: DiscreteBarDatum[] = []
         const dataByKey: {[key: string]: DiscreteBarDatum} = {}
 
-		_.each(filledDimensions, (dimension, dimIndex) => {
+		filledDimensions.forEach((dimension, dimIndex) => {
             const {variable, tolerance} = dimension
 
 			for (var i = 0; i < variable.years.length; i++) {
@@ -99,6 +99,6 @@ export default class DiscreteBarTransform implements IChartTransform {
 			}
 		});
 
-        return _.sortBy(_.values(dataByKey), d => -d.value)
+        return sortBy(values(dataByKey), d => -d.value)
     }
 }

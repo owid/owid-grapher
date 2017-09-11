@@ -1,4 +1,4 @@
-import {extend, map} from 'lodash'
+import {extend, map} from './Util'
 import * as d3 from 'd3'
 import * as React from 'react'
 import {computed} from 'mobx'

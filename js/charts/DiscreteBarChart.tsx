@@ -6,8 +6,8 @@
  */
 
 import * as React from 'react'
-import * as _ from 'lodash'
 import * as d3 from 'd3'
+import {sortBy, some, min, max} from './Util'
 import {computed, action, observable, autorun, runInAction, IReactionDisposer} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartConfig from './ChartConfig'
@@ -52,7 +52,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
 
     // Account for the width of the legend
     @computed get legendWidth() {
-        const longestLabel = _.sortBy(this.data, d => -d.label.length)[0].label
+        const longestLabel = sortBy(this.data, d => -d.label.length)[0].label
         return Bounds.forText(longestLabel, { fontSize: this.legendFontSize+'em' }).width
     }
 
@@ -62,19 +62,19 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
     }
 
     @computed get maxValueWidth(): number {
-        const maxValue = _.sortBy(this.data, d => -d.value.toString().length)[0]
+        const maxValue = sortBy(this.data, d => -d.value.toString().length)[0]
         return Bounds.forText(this.barValueFormat(maxValue), { fontSize: this.valueFontSize+'em' }).width
     }
 
     @computed get hasNegative() {
-        return _.some(this.data, d => d.value < 0)
+        return some(this.data, d => d.value < 0)
     }
 
     // Now we can work out the main x axis scale
     @computed get xDomainDefault(): [number, number] {
-        const allValues = _.map(this.data, d => d.value)
-        const minX = Math.min(0, _.min(allValues) as number)
-        const maxX = _.max(allValues) as number
+        const allValues = this.data.map(d => d.value)
+        const minX = Math.min(0, min(allValues) as number)
+        const maxX = max(allValues) as number
         return [minX, maxX]
     }
 
@@ -109,7 +109,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
     
     @computed get barPlacements() {
         const {data, xScale} = this
-        return _.map(data, (d, i) => {
+        return data.map((d, i) => {
             const isNegative = d.value < 0
             const barX = isNegative ? xScale.place(d.value) : xScale.place(0)
             const barWidth = isNegative ? xScale.place(0)-barX : xScale.place(d.value)-barX                
@@ -152,7 +152,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
             <rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height} opacity={0} fill="rgba(255,255,255,0)"/>
             <HorizontalAxisView bounds={bounds} axis={xAxis}/>
             <AxisGridLines orient="bottom" scale={xScale} bounds={innerBounds}/>
-            {_.map(data, (d, i) => {
+            {data.map((d, i) => {
                 const isNegative = d.value < 0
                 const barX = isNegative ? xScale.place(d.value) : xScale.place(0)
                 const barWidth = isNegative ? xScale.place(0)-barX : xScale.place(d.value)-barX                

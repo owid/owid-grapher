@@ -1,4 +1,4 @@
-import * as _ from 'lodash'
+import {extend, map, filter, includes, uniqWith, find} from './Util'
 import {observable, computed, action, autorun, toJS, runInAction} from 'mobx'
 import {ScaleType} from './AxisScale'
 import {ComparisonLineConfig} from './ComparisonLine'
@@ -121,7 +121,7 @@ export class ChartConfigProps {
     @observable.ref hideTitleAnnotation?: true = undefined
 
     @observable.ref xAxis: AxisConfigProps = new AxisConfigProps()
-    @observable.ref yAxis: AxisConfigProps = _.extend(new AxisConfigProps(), { min: 0 }) // Default to 0 min for y axis
+    @observable.ref yAxis: AxisConfigProps = extend(new AxisConfigProps(), { min: 0 }) // Default to 0 min for y axis
 
     @observable.ref selectedData: EntitySelection[] = []
     @observable.ref minTime?: number = undefined
@@ -227,20 +227,20 @@ export default class ChartConfig {
 
     @computed get dimensions(): ChartDimension[] {
         const {dimensions} = this.props
-        const validProperties = _.map(this.dimensionSlots, 'property')
-        let validDimensions = _.filter(dimensions, dim => _.includes(validProperties, dim.property))
+        const validProperties = map(this.dimensionSlots, 'property')
+        let validDimensions = filter(dimensions, dim => includes(validProperties, dim.property))
 
         this.dimensionSlots.forEach(slot => {
             if (!slot.allowMultiple)
-                validDimensions = _.uniqWith(validDimensions, (a: ChartDimension, b: ChartDimension) => a.property == slot.property && a.property == b.property)
+                validDimensions = uniqWith(validDimensions, (a: ChartDimension, b: ChartDimension) => a.property == slot.property && a.property == b.property)
         })
     
 		// Give scatterplots and slope charts a default color and size dimension if they don't have one
-		if ((this.isScatter || this.isSlopeChart) && !_.find(dimensions, { property: 'color' })) {
+		if ((this.isScatter || this.isSlopeChart) && !find(dimensions, { property: 'color' })) {
 			validDimensions = validDimensions.concat(new ChartDimension({ variableId: 123, property: "color" }))
 		}
 
-		if ((this.isScatter || this.isSlopeChart) && !_.find(dimensions, { property: 'size' })) {
+		if ((this.isScatter || this.isSlopeChart) && !find(dimensions, { property: 'size' })) {
 			validDimensions = validDimensions.concat(new ChartDimension({ variableId: 72, property: "size" }))
 		}
 
@@ -250,7 +250,7 @@ export default class ChartConfig {
 	model: any
 
     @computed get availableTabs(): ChartTabOption[] {
-        return _.filter([this.props.hasChartTab && 'chart', this.props.hasMapTab && 'map', 'data', 'sources', 'download']) as ChartTabOption[]
+        return filter([this.props.hasChartTab && 'chart', this.props.hasMapTab && 'map', 'data', 'sources', 'download']) as ChartTabOption[]
     }
 
     @action.bound update(json: any) {
@@ -273,8 +273,8 @@ export default class ChartConfig {
         this.props.map = new MapConfigProps(json.map)
         this.props.hasChartTab = json['tabs'] ? json['tabs'].includes("chart") : true
         this.props.hasMapTab = json['tabs'] ? json['tabs'].includes("map") : false
-        _.extend(this.props.xAxis, json['xAxis'])
-        _.extend(this.props.yAxis, json['yAxis'])
+        extend(this.props.xAxis, json['xAxis'])
+        extend(this.props.yAxis, json['yAxis'])
 
         this.props.dimensions = (json['chart-dimensions']||[]).map((j: any) => new ChartDimension(j))        
         this.variableCacheTag = json["variableCacheTag"]
@@ -344,7 +344,7 @@ export default class ChartConfig {
 
         // Sanity check configuration
         autorun(() => {
-            if (!_.includes(this.availableTabs, this.props.tab)) {
+            if (!includes(this.availableTabs, this.props.tab)) {
                 runInAction(() => this.props.tab = this.availableTabs[0])
             }
         })

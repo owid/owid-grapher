@@ -1,4 +1,4 @@
-import * as _ from 'lodash'
+import {toString, includes, filter, map, flatten, uniq, sortBy, extend} from './Util'
 import * as d3 from 'd3'
 import Bounds from './Bounds'
 import * as React from 'react'
@@ -9,8 +9,8 @@ import ChartConfig from './ChartConfig'
 declare var Global: { rootUrl: string }
 
 function csvEscape(value: any): string {
-	const valueStr = _.toString(value)
-	if (_.includes(valueStr, ","))
+	const valueStr = toString(value)
+	if (includes(valueStr, ","))
 		return '"' + value.replace(/\"/g, "\"\"") + '"'
 	else
 		return value
@@ -26,9 +26,9 @@ export default class DataTab extends React.Component<{ bounds: Bounds, chart: Ch
 		const {chart} = this.props
 		const {vardata} = chart
 
-		const dimensions = _.filter(chart.data.filledDimensions, d => d.property != 'color')
-		const entitiesUniq = _(dimensions).map(d => d.variable.entitiesUniq).flatten().uniq().sort().value() as string[]
-		const yearsUniq = _(dimensions).map(d => d.variable.yearsUniq).flatten().uniq().sort().value() as number[]
+		const dimensions = chart.data.filledDimensions.filter(d => d.property != 'color')
+		const entitiesUniq = sortBy(uniq(flatten(dimensions.map(d => d.variable.entitiesUniq)))) as string[]
+		const yearsUniq = sortBy(uniq(flatten(dimensions.map(d => d.variable.yearsUniq)))) as number[]
 
 		const rows: string[] = []
 
@@ -70,7 +70,7 @@ export default class DataTab extends React.Component<{ bounds: Bounds, chart: Ch
 	render() {
 		const {bounds, csvUrl, csvFilename} = this
 
-		return <div className="dataTab" style={_.extend(bounds.toCSS(), { position: 'absolute' })}>
+		return <div className="dataTab" style={extend(bounds.toCSS(), { position: 'absolute' })}>
 			<div>
 				<p>Download a CSV file containing all data used in this visualization:</p>
 				<a href={csvUrl} download={csvFilename} className="btn btn-primary" target="_blank"><i className="fa fa-download"></i> {csvFilename}</a>

@@ -1,4 +1,4 @@
-import * as _ from 'lodash'
+import {first, last, sortBy, find, map} from './Util'
 import * as d3 from 'd3'
 import * as React from 'react'
 import Bounds from './Bounds'
@@ -84,11 +84,11 @@ export default class Timeline extends React.Component<TimelineProps> {
 	}
 
 	@computed get minYear(): number {
-		return _.first(this.props.years) as number
+		return first(this.props.years) as number
 	}
 
 	@computed get maxYear(): number {
-		return _.last(this.props.years) as number
+		return last(this.props.years) as number
 	}
 
     // Sanity check the input
@@ -101,15 +101,15 @@ export default class Timeline extends React.Component<TimelineProps> {
     // e.g. 1954 => 1955
     @computed get roundedStartYear(): number {
         const { years, startYear } = this
-        return _.sortBy(years, year => Math.abs(year-startYear))[0]
+        return sortBy(years, year => Math.abs(year-startYear))[0]
     }
 
     // Previous year from the input start year
     // e.g. 1954 => 1950
     @computed get targetStartYear(): number {
         const { years, startYear } = this
-        return (_.find(
-            _.sortBy(years, year => Math.abs(year-startYear)),
+        return (find(
+            sortBy(years, year => Math.abs(year-startYear)),
             year => year <= startYear
         ) as number)
     }
@@ -121,13 +121,13 @@ export default class Timeline extends React.Component<TimelineProps> {
 
     @computed get roundedEndYear(): number {
         const { years, endYear } = this
-        return _.sortBy(years, function(year) { return Math.abs(year-endYear); })[0]
+        return sortBy(years, function(year) { return Math.abs(year-endYear); })[0]
     }
 
     @computed get targetEndYear(): number {
         const { years, endYear } = this
-        return (_.find(
-            _.sortBy(years, year => Math.abs(year-endYear)),
+        return (find(
+            sortBy(years, year => Math.abs(year-endYear)),
             year => year <= endYear
         ) as number)
     }
@@ -346,7 +346,7 @@ export default class Timeline extends React.Component<TimelineProps> {
 			<Text className="minYearLabel" x={minYearBox.x} y={minYearBox.y} fontSize="0.8em" fill="#666">{formatYear(minYear)}</Text>
             <Text className="maxYearLabel" x={maxYearBox.x} y={maxYearBox.y} fontSize="0.8em" fill="#666">{maxYear.toString()}</Text>
 			<g className="ticks">
-				{_.map(years.slice(1, -1), (year) => {
+				{map(years.slice(1, -1), (year) => {
 					return <rect className="tick" x={xScale(year)} y={sliderBounds.top+sliderBounds.height-1} width="1px" height="0.2em" fill="rgba(0,0,0,0.2)" />
 				})}
 			</g>

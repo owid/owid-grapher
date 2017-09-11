@@ -1,6 +1,6 @@
-import * as _ from 'lodash'
 import * as d3 from 'd3'
 import * as React from 'react'
+import {uniq} from './Util'
 import {observable, computed, action} from 'mobx'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
@@ -56,7 +56,7 @@ export default class HorizontalAxis {
             ticks = [domain[0]].concat(ticks)
         if (domain[1] % 1 == 0)
             ticks = ticks.concat([domain[1]])
-        return _.uniq(ticks)
+        return uniq(ticks)
     }
 
     @computed get tickPlacements() {
@@ -102,7 +102,7 @@ export class HorizontalAxisView extends React.Component<{ bounds: Bounds, axis: 
 
         return <g className="HorizontalAxis">
             {label && label.render(bounds.centerX-label.width/2, bounds.bottom-label.height)}
-            {_.map(ticks, tick => {
+            {ticks.map(tick => {
                 return <text x={scale.place(tick)} y={bounds.bottom-labelOffset} fill={textColor} textAnchor="middle" fontSize={HorizontalAxis.tickFontSize}>{scale.tickFormat(tick)}</text>
             })}
             {scale.scaleTypeOptions.length > 1 && onScaleTypeChange && 

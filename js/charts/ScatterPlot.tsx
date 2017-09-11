@@ -8,10 +8,10 @@
  * @created 2017-03-09
  */
 
-import * as _ from 'lodash'
 import * as d3 from 'd3'
 import * as React from 'react'
 import {observable, computed, action, autorun} from 'mobx'
+import {find, includes, uniq} from './Util'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
 import ChartConfig from './ChartConfig'
@@ -97,12 +97,12 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
 
     @computed get hoverKeys(): string[] {
         const {transform, hoverColor} = this
-        return _(this.transform.allGroups).filter(series => hoverColor !== undefined && series.color == hoverColor).map(series => series.key).uniq().value()
+        return uniq(this.transform.allGroups.filter(g => hoverColor !== undefined && g.color == hoverColor).map(g => g.key))
     }
 
     @computed get focusKeys(): string[] {
         const {transform, focusColors} = this
-        const focusColorKeys = _(transform.allGroups).filter(series => _.includes(focusColors, series.color)).map(series => series.key).uniq().value()
+        const focusColorKeys = uniq(transform.allGroups.filter(g => includes(focusColors, g.color)).map(g => g.key))
         return this.chart.data.selectedKeys.concat(focusColorKeys)
     }
 
@@ -136,7 +136,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         if (hoverSeries)
             return hoverSeries
         else if (focusKeys && focusKeys.length == 1)
-            return _.find(transform.currentData, series => series.key == focusKeys[0])
+            return find(transform.currentData, series => series.key == focusKeys[0])
         else
             return null
     }
@@ -239,7 +239,7 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps> {
         elements.push(heading)
         offset += heading.wrap.height+lineHeight
 
-        _.each(values, v => {
+        values.forEach(v => {
             const year = { x: x, y: y+offset, wrap: new TextWrap({ maxWidth: maxWidth, fontSize: 0.55, text: formatYear(v.year) }) }
             offset += year.wrap.height
             const line1 = { x: x, y: y+offset, wrap: new TextWrap({ maxWidth: maxWidth, fontSize: 0.45, text: this.formatValueY(v)}) }
@@ -250,7 +250,7 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps> {
         })
 
         return <g className="scatterTooltip">
-            {_.map(elements, el => el.wrap.render(el.x, el.y))}
+            {elements.map(el => el.wrap.render(el.x, el.y))}
          </g>
      }
  }

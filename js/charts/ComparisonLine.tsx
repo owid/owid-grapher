@@ -1,10 +1,10 @@
 import * as React from 'react'
-import * as _ from 'lodash'
 import * as d3 from 'd3'
 import {computed} from 'mobx'
 import {observer} from 'mobx-react'
 import AxisBox from './AxisBox'
 import evalEquation from './evalEquation'
+import {defaultTo} from './Util'
 
 export interface ComparisonLineConfig {
     yEquals?: string
@@ -16,7 +16,7 @@ export default class ComparisonLine extends React.Component<{ axisBox: AxisBox, 
         const {comparisonLine, axisBox} = this.props
         const {xScale, yScale, innerBounds} = axisBox 
 
-        const yEquals = _.defaultTo<string>(comparisonLine.yEquals, "x")
+        const yEquals = defaultTo(comparisonLine.yEquals, "x")
         const yFunc = function(x: number) {
             return evalEquation(yEquals, { x: x }, x)
         }

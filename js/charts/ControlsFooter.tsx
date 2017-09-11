@@ -1,7 +1,7 @@
-import * as _ from 'lodash'
 import * as d3 from 'd3'
 import Bounds from './Bounds'
 import Text from './Text'
+import {extend, keys, map} from './Util'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { observable, computed, asFlat, autorun, autorunAsync, action } from 'mobx'
@@ -127,7 +127,7 @@ class HighlightToggle extends React.Component<{ chart: ChartConfig, highlightTog
     @action.bound onHighlightToggle(e: React.FormEvent<HTMLInputElement>) {
         if (e.currentTarget.checked) {
             const params = getQueryParams()
-            this.chart.url.populateFromURL(_.extend(params, this.highlightParams))
+            this.chart.url.populateFromURL(extend(params, this.highlightParams))
         } else {
             this.chart.data.selectedKeys = []
         }
@@ -136,7 +136,7 @@ class HighlightToggle extends React.Component<{ chart: ChartConfig, highlightTog
     get isHighlightActive() {
         const params = getQueryParams()
         let isActive = true
-        _.keys(this.highlightParams).forEach((key) => {
+        keys(this.highlightParams).forEach((key) => {
             if (params[key] != this.highlightParams[key])
                 isActive = false
         })
@@ -197,7 +197,7 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps>
         return <div className="ControlsFooter">
             <nav className="tabs">
                 <ul>
-                    {_.map(chart.availableTabs, (tabName) => {
+                    {map(chart.availableTabs, (tabName) => {
                         return tabName != 'download' && <li className={"tab clickable" + (tabName == chart.tab ? ' active' : '')} onClick={() => chart.tab = tabName}><a>{tabName}</a></li>
                     })}
                     <li className={"tab clickable icon" + (chart.tab == 'download' ? ' active' : '')} onClick={() => chart.tab = 'download'} title="Download as .png or .svg">

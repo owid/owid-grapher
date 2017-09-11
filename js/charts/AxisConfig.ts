@@ -3,7 +3,7 @@ import {unitFormat} from './Util'
 import AxisSpec from './AxisSpec'
 import ScaleType from './ScaleType'
 import {defaultTo} from './Util'
-import {extend} from 'lodash'
+import {extend} from './Util'
 
 // Represents the actual entered configuration state in the editor
 export class AxisConfigProps {

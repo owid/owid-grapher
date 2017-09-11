@@ -1,6 +1,6 @@
 import {computed} from 'mobx'
 import * as d3 from 'd3'
-import * as _ from 'lodash'
+import {some, isEmpty, last, union, min, max, sortBy, uniq, cloneDeep, keys, sum, extend, find, identity} from './Util'
 import ChartConfig from './ChartConfig'
 import Color from './Color'
 import DataKey from './DataKey'
@@ -21,32 +21,32 @@ export default class StackedAreaTransform implements IChartTransform {
     }
 
 	@computed get isValidConfig(): boolean {
-		return _.some(this.chart.dimensions, d => d.property == 'y')
+		return some(this.chart.dimensions, d => d.property == 'y')
 	}
 
     @computed get failMessage(): string|undefined {
         const {filledDimensions} = this.chart.data
-        if (!_.some(filledDimensions, d => d.property == 'y'))
+        if (!some(filledDimensions, d => d.property == 'y'))
             return "Missing Y axis variable"
-        else if (_.isEmpty(this.groupedData))
+        else if (isEmpty(this.groupedData))
             return "No matching data"
     }
 
 	@computed get baseColorScheme() {
 		//return ["#9e0142","#d53e4f","#f46d43","#fdae61","#fee08b","#ffffbf","#e6f598","#abdda4","#66c2a5","#3288bd","#5e4fa2"]
-		return _.last(ColorSchemes['owid-distinct'].colors) as Color[]
+		return last(ColorSchemes['owid-distinct'].colors) as Color[]
 	}
 
     @computed get timelineYears(): number[] {
-        return _.union(...this.chart.data.axisDimensions.map(d => d.variable.yearsUniq))
+        return union(...this.chart.data.axisDimensions.map(d => d.variable.yearsUniq))
     }
 
     @computed get minTimelineYear(): number {
-        return defaultTo(_.min(this.timelineYears), 1900)
+        return defaultTo(min(this.timelineYears), 1900)
     }
 
     @computed get maxTimelineYear(): number {
-        return defaultTo(_.max(this.timelineYears), 2000)
+        return defaultTo(max(this.timelineYears), 2000)
     }
 
     @computed get startYear(): number {
@@ -67,7 +67,7 @@ export default class StackedAreaTransform implements IChartTransform {
 		let chartData: StackedAreaSeries[] = []
 		const colorKeys: {[key: string]: string} = {}
 
-		_.each(filledDimensions, (dimension, dimIndex) => {
+		filledDimensions.forEach((dimension, dimIndex) => {
             const {variable} = dimension
 			const seriesByKey = new Map<DataKey, StackedAreaSeries>()
 
@@ -119,16 +119,17 @@ export default class StackedAreaTransform implements IChartTransform {
 		})
 
 		chartData.forEach(series => {
-			_(allYears).keys().each(yearS => {
-				const year = parseInt(yearS)
+
+			keys(allYears).forEach(yearStr => {
+				const year = parseInt(yearStr)
 				if (!yearsForSeries[series.key][year])
 					series.values.push({ x: year, y: 0, time: year })//, fake: true })
 			})
-			series.values = _.sortBy(series.values, function(d) { return d.x; });
+			series.values = sortBy(series.values, function(d) { return d.x; });
 		})
 
 		// Preserve order
-		chartData = _.sortBy(chartData, series => -selectedKeys.indexOf(series.key))
+		chartData = sortBy(chartData, series => -selectedKeys.indexOf(series.key))
 
         // Assign colors
         const colorScale = d3.scaleOrdinal(this.baseColorScheme)
@@ -149,9 +150,9 @@ export default class StackedAreaTransform implements IChartTransform {
 			
 		let totals = []
 		for (var i = 0; i < initialData[0].values.length; i++) {
-			totals.push(_(initialData).map(series => series.values[i].y).sum())
+			totals.push(sum(initialData.map(series => series.values[i].y)))
 		}
-		return _.uniq(totals).length == 1
+		return uniq(totals).length == 1
 	}
 
 	@computed get canToggleRelative(): boolean {
@@ -168,14 +169,14 @@ export default class StackedAreaTransform implements IChartTransform {
 	}
 
 	@computed get groupedData(): StackedAreaSeries[] {
-		let groupedData = _.cloneDeep(this.initialData)
+		let groupedData = cloneDeep(this.initialData)
 
 		if (this.isRelative) {
 			if (groupedData.length == 0)
 				return []
 			
 			for (var i = 0; i < groupedData[0].values.length; i++) {
-				const total = _(groupedData).map(series => series.values[i].y).sum() as number
+				const total = sum(groupedData.map(series => series.values[i].y))
 				for (var j = 0; j < groupedData.length; j++) {
 					groupedData[j].values[i].y = total == 0 ? 0 : (groupedData[j].values[i].y/total)*100
 				}
@@ -185,21 +186,17 @@ export default class StackedAreaTransform implements IChartTransform {
         return groupedData
 	}
 
-    @computed get allValues(): StackedAreaValue[] {
-        return _(this.groupedData).map(series => series.values).flatten().value() as StackedAreaValue[]
-    }
-
     @computed get xDomainDefault(): [number, number] {
-        return [_(this.allValues).map(v => v.x).min() as number, _(this.allValues).map(v => v.x).max() as number]
+		return [this.startYear, this.endYear]
     }
 
     @computed get stackedData(): StackedAreaSeries[] {
         const {groupedData, isRelative} = this
         
-        if (_.some(groupedData, series => series.values.length !== groupedData[0].values.length))
-            throw `Unexpected variation in stacked area chart series: ${_.map(groupedData, series => series.values.length)}`
+        if (some(groupedData, series => series.values.length !== groupedData[0].values.length))
+            throw `Unexpected variation in stacked area chart series: ${groupedData.map(series => series.values.length)}`
 
-        let stackedData = _.cloneDeep(groupedData)
+        let stackedData = cloneDeep(groupedData)
 
         for (var i = 1; i < stackedData.length; i++) {
             for (var j = 0; j < stackedData[0].values.length; j++) {
@@ -210,27 +207,37 @@ export default class StackedAreaTransform implements IChartTransform {
         return stackedData
     }
 
+    @computed get allStackedValues(): StackedAreaValue[] {
+		const allValues: StackedAreaValue[] = []
+		this.stackedData.forEach(series => allValues.push(...series.values))
+		return allValues
+    }
+
     @computed get yDomainDefault(): [number, number] {
-        return [0, (_(this.stackedData).map('values').flatten().map('y').max() as number)]
+		const yValues = this.allStackedValues.map(d => d.y)
+		return [
+			0,
+			defaultTo(max(yValues), 100)
+		]
     }
 
     @computed get xAxis(): AxisSpec {
         const {chart, xDomainDefault} = this
-        return _.extend(
+        return extend(
             chart.xAxis.toSpec({ defaultDomain: xDomainDefault }),
             { tickFormat: (year: number) => formatYear(year) }
         ) as AxisSpec
     }
 
     @computed get yDimensionFirst() {
-        return _.find(this.chart.data.filledDimensions, { property: 'y' })
+        return find(this.chart.data.filledDimensions, d => d.property == 'y')
     }
 		
     @computed get yAxis(): AxisSpec {
         const {chart, yDomainDefault, isRelative, yDimensionFirst} = this
-		const tickFormat = yDimensionFirst ? yDimensionFirst.formatValueShort : _.identity
+		const tickFormat = yDimensionFirst ? yDimensionFirst.formatValueShort : identity
 
-        return _.extend(
+        return extend(
             chart.yAxis.toSpec({ defaultDomain: yDomainDefault }),
             { domain: isRelative ? [0, 100] : [yDomainDefault[0], yDomainDefault[1]], // Stacked area chart must have its own y domain
 			  tickFormat: isRelative ? (v: number) => formatValue(v, { unit: "%" }) : tickFormat,

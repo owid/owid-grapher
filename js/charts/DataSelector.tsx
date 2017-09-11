@@ -1,5 +1,5 @@
+import {uniqBy} from './Util'
 import * as React from 'react'
-import * as _ from 'lodash'
 import {observer} from 'mobx-react'
 import {computed, action, observable} from 'mobx'
 import ChartConfig from './ChartConfig'
@@ -112,7 +112,7 @@ export class DataSelectorSingle extends React.Component<{ chart: ChartConfig, ch
                 label: meta.entity
             })
         })
-        return _.uniqBy(availableItems, d => d.label)
+        return uniqBy(availableItems, d => d.label)
     }
 
     @computed get fuzzy(): FuzzySearch<{ id: number, label: string }> {

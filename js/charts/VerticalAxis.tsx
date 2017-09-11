@@ -1,4 +1,4 @@
-import * as _ from 'lodash'
+import {sortBy, map} from './Util'
 import * as d3 from 'd3'
 import * as React from 'react'
 import {observable, computed, action} from 'mobx'
@@ -29,7 +29,7 @@ export default class VerticalAxis {
 
     @computed get width() {
         const {props, labelOffset} = this
-        const longestTick = _.sortBy(props.scale.getFormattedTicks(), (tick) => -tick.length)[0]
+        const longestTick = sortBy(props.scale.getFormattedTicks(), (tick) => -tick.length)[0]
         return Bounds.forText(longestTick, { fontSize: VerticalAxis.tickFontSize }).width + labelOffset + 5
     }
 
@@ -59,7 +59,7 @@ export class VerticalAxisView extends React.Component<{ bounds: Bounds, axis: Ve
 
         return <g className="VerticalAxis">
             {label && label.render(-bounds.centerY-label.width/2, bounds.left, { transform: "rotate(-90)" })}
-            {_.map(ticks, tick =>
+            {map(ticks, tick =>
                 <text x={(bounds.left+axis.width-5).toFixed(2)} y={scale.place(tick)} fill={textColor} dominant-baseline="middle" textAnchor="end" fontSize={VerticalAxis.tickFontSize}>{scale.tickFormat(tick)}</text>
             )}
             {scale.scaleTypeOptions.length > 1 && onScaleTypeChange &&

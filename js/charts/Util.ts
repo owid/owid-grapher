@@ -1,4 +1,51 @@
-import * as _ from 'lodash'
+
+// We import and re-export all the lodash functions we're using here to allow
+// webpack to tree-shake and remove the ones we're not using from the bundle
+import map from 'lodash-es/map'
+import sortBy from 'lodash-es/sortBy'
+import each from 'lodash-es/each'
+import keys from 'lodash-es/keys'
+import trim from 'lodash-es/trim'
+import isNumber from 'lodash-es/isNumber'
+import filter from 'lodash-es/filter'
+import extend from 'lodash-es/extend'
+import isEmpty from 'lodash-es/isEmpty'
+import isFinite from 'lodash-es/isFinite'
+import some from 'lodash-es/some'
+import every from 'lodash-es/every'
+import min from 'lodash-es/min'
+import max from 'lodash-es/max'
+import uniq from 'lodash-es/uniq'
+import cloneDeep from 'lodash-es/cloneDeep'
+import sum from 'lodash-es/sum'
+import find from 'lodash-es/find'
+import identity from 'lodash-es/identity'
+import union from 'lodash-es/union'
+import debounce from 'lodash-es/debounce'
+import includes from 'lodash-es/includes'
+import toString from 'lodash-es/toString'
+import isString from 'lodash-es/isString'
+import keyBy from 'lodash-es/keyBy'
+import values from 'lodash-es/values'
+import flatten from 'lodash-es/flatten'
+import groupBy from 'lodash-es/groupBy'
+import reverse from 'lodash-es/reverse'
+import clone from 'lodash-es/clone'
+import reduce from 'lodash-es/reduce'
+import noop from 'lodash-es/noop'
+import floor from 'lodash-es/floor'
+import ceil from 'lodash-es/ceil'
+import round from 'lodash-es/round'
+import toArray from 'lodash-es/toArray'
+import throttle from 'lodash-es/throttle'
+import has from 'lodash-es/has'
+import intersection from 'lodash-es/intersection'
+import uniqWith from 'lodash-es/uniqWith'
+import without from 'lodash-es/without'
+import uniqBy from 'lodash-es/uniqBy'
+
+export {map, sortBy, each, keys, trim, isNumber, filter, extend, isEmpty, isFinite, some, every, min, max, uniq, cloneDeep, sum, find, identity, union, debounce, includes, toString, isString, keyBy, values, flatten, groupBy, reverse, clone, reduce, noop, floor, ceil, round, toArray, throttle, has, intersection, uniqWith, without, uniqBy}
+
 import * as d3 from 'd3'
 import Bounds from './Bounds'
 import Vector2 from './Vector2'
@@ -9,7 +56,7 @@ export const NullElement : any = (): null => null;
 
 export function getRelativeMouse(node: SVGElement, event: Object): Vector2 {
     let clientX, clientY
-    if (_.isFinite((event as MouseEvent).clientX)) {
+    if (isFinite((event as MouseEvent).clientX)) {
         clientX = (event as MouseEvent).clientX
         clientY = (event as MouseEvent).clientY
     } else {
@@ -79,7 +126,7 @@ export function numberOnly(value: any): number|undefined {
 // Still working out exactly how this pattern goes
 export function component<T extends {[key: string]: any}>(current: T|undefined, klass: { new(): T }, props: Partial<T>): T {
     const instance = current || new klass()
-    _.each(_.keys(props), (key: string) => {
+    each(keys(props), (key: string) => {
         instance[key] = props[key]
     })
     return instance
@@ -94,17 +141,17 @@ export function unitFormat(unit: any, value: any, options?: any): string {
 	options.noTrailingZeroes = options.noTrailingZeroes || true;
 
 	var titlePrefix = (unit.title ? unit.title + ": " : ""),
-		unitSuffix = (unit.unit ? _.trim(unit.unit) : "");
+		unitSuffix = (unit.unit ? trim(unit.unit) : "");
 
 	// Do precision fiddling, if the value is numeric
-	if (_.isNumber(value)) {
+	if (isNumber(value)) {
 		if (value % 1 == 0 && Math.abs(value) >= 1e6) {
 			if (value >= 1e12) value = value/1e12 + " trillion"
 			else if (value >= 1e9) value = value/1e9 + " billion"
 			else if (value >= 1e6) value = value/1e6 + " million"
 		} else {
             const unitFormat = parseInt(unit.format)
-			if (_.isFinite(unitFormat) && unitFormat >= 0) {
+			if (isFinite(unitFormat) && unitFormat >= 0) {
 				var fixed = Math.min(20, unit.format);
 				value = d3.format("." + fixed + "f")(value);
 			} else {
@@ -138,11 +185,11 @@ export function formatValue(value: number, options: { maxDecimalPlaces?: number,
 	
 	if (!unit && Math.abs(value) >= 1e6) {
 		if (value >= 1e12) 
-			return formatValue(value/1e12, _.extend({}, options, { unit: "trillion" }))
+			return formatValue(value/1e12, extend({}, options, { unit: "trillion" }))
 		else if (value >= 1e9) 
-			return formatValue(value/1e9, _.extend({}, options, { unit: "billion" }))
+			return formatValue(value/1e9, extend({}, options, { unit: "billion" }))
 		else if (value >= 1e6) 
-			return formatValue(value/1e6, _.extend({}, options, { unit: "million" }))
+			return formatValue(value/1e6, extend({}, options, { unit: "million" }))
 	} else {
 		if (maxDecimalPlaces >= 0 && value % 1 != 0) {
 			var fixed = Math.min(20, maxDecimalPlaces);
@@ -183,7 +230,7 @@ export type QueryParams = {[key: string]: string}
 
 export function getQueryParams(queryStr?: string): QueryParams {
 	queryStr = queryStr || window.location.search.substring(1)
-	const querySplit = _.filter(queryStr.split("&"), function(s) { return !_.isEmpty(s); })
+	const querySplit = filter(queryStr.split("&"), function(s) { return !isEmpty(s); })
 	const params: QueryParams = {};
 
 	for (var i = 0; i < querySplit.length; i++) {
@@ -197,10 +244,10 @@ export function getQueryParams(queryStr?: string): QueryParams {
 export function queryParamsToStr(params: QueryParams) {
 	var newQueryStr = "";
 
-	_.each(params, function(v,k) {
+	each(params, function(v,k) {
         if (v == undefined) return
         
-		if (_.isEmpty(newQueryStr)) newQueryStr += "?";
+		if (isEmpty(newQueryStr)) newQueryStr += "?";
 		else newQueryStr += "&";
 		newQueryStr += k + '=' + v;
 	});
@@ -231,7 +278,7 @@ export function domainExtent(values: number[], scaleType: 'linear'|'log'): [numb
 		values = values.filter(v => v > 0)
 	const [min, max] = d3.extent(values)
 
-	if (_.isFinite(min) && _.isFinite(max) && min != max) {
+	if (isFinite(min) && isFinite(max) && min != max) {
 		return [min, max] as [number, number]
 	} else {
 		return scaleType == 'log' ? [1, 100] : [-1, 1]
@@ -241,10 +288,10 @@ export function domainExtent(values: number[], scaleType: 'linear'|'log'): [numb
 // Take an arbitrary string and turn it into a nice url slug
 export function slugify(s: string) {
 	s = s.toLowerCase().replace(/\s*\*.+\*/, '').replace(/[^\w- ]+/g,'');
-	return _.trim(s).replace(/ +/g,'-');
+	return trim(s).replace(/ +/g,'-');
 }
 
 
 export function findClosest(values: number[], targetValue: number): number|undefined {
-	return _.sortBy(values, value => Math.abs(value-targetValue))[0];	
+	return sortBy(values, value => Math.abs(value-targetValue))[0];	
 }

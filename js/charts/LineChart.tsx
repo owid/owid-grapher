@@ -6,8 +6,8 @@
  */
 
 import * as React from 'react'
-import * as _ from 'lodash'
 import * as d3 from 'd3'
+import {last} from './Util'
 import {computed, action, observable} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartConfig from './ChartConfig'
@@ -54,12 +54,12 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
     // Order of the legend items on a line chart should visually correspond
     // to the order of the lines as the approach the legend
     @computed get legendItems() {
-        return _(this.transform.groupedData).map(d => ({
+        return this.transform.groupedData.map(d => ({
             color: d.color,
             key: d.key,
             label: this.chart.data.formatKey(d.key),
-            yValue: (_.last(d.values) as LineChartValue).y
-        })).value()
+            yValue: (last(d.values) as LineChartValue).y
+        }))
     }
 
     @computed get legend(): HeightedLegend|undefined {

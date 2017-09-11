@@ -9,7 +9,6 @@
  */
 
 import * as d3 from 'd3'
-import * as _ from 'lodash'
 import * as React from 'react'
 import {observable, computed, action, toJS} from 'mobx'
 import {observer} from 'mobx-react'
@@ -100,7 +99,7 @@ export class AxisGridLines extends React.Component<AxisGridLinesProps> {
         let scale = this.props.scale.extend({ range: orient == 'left' ? bounds.yRange() : bounds.xRange() })
 
         return <g className="AxisGridLines">
-            {_.map(scale.getTickValues(), v => {
+            {scale.getTickValues().map(v => {
                 if (orient == 'left')
                     return <line x1={bounds.left.toFixed(2)} y1={scale.place(v)} x2={bounds.right.toFixed(2)} y2={scale.place(v)} stroke={v == 0 ? "#ccc" : "#ddd"} stroke-dasharray={v != 0 && "3,2"}/>
                 else

@@ -1,5 +1,4 @@
 import * as d3 from 'd3'
-import * as _ from 'lodash'
 
 declare const window: any
 
@@ -7,6 +6,5 @@ declare const window: any
 export default class Debug {
     static expose() {
         window.d3 = d3
-        window._ = _
     }
 }

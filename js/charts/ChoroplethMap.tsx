@@ -1,4 +1,4 @@
-import * as _ from 'lodash'
+import {map, min, max, each, identity, sortBy} from './Util'
 import * as d3 from 'd3'
 import Bounds from './Bounds'
 import * as React from 'react'
@@ -71,11 +71,11 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
 
     @computed get geoBounds() {
         const {geoData, geoPath} = this
-        const allBounds = _.map(geoData, geoPath.bounds)
-        const x1 = _.min(_.map(allBounds, b => b[0][0])) as number
-        const y1 = _.min(_.map(allBounds, b => b[0][1])) as number
-        const x2 = _.max(_.map(allBounds, b => b[1][0])) as number
-        const y2 = _.max(_.map(allBounds, b => b[1][1])) as number
+        const allBounds = map(geoData, geoPath.bounds)
+        const x1 = min(map(allBounds, b => b[0][0])) as number
+        const y1 = min(map(allBounds, b => b[0][1])) as number
+        const x2 = max(map(allBounds, b => b[1][0])) as number
+        const y2 = max(map(allBounds, b => b[1][1])) as number
         return Bounds.fromCorners(new Vector2(x1, y1), new Vector2(x2, y2))
     }
 
@@ -84,9 +84,9 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
 
         const pathData: { [key: string]: string } = {}
 
-        _.each(geoData, (d) => {
+        each(geoData, (d) => {
             const s = geoPath(d) as string
-            const paths = s.split(/Z/).filter(_.identity)
+            const paths = s.split(/Z/).filter(identity)
 
             const newPaths = paths.map(path => {
                 const points = path.split(/[MLZ]/).filter((f: any) => f)        
@@ -173,13 +173,13 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                 </clipPath>
             </defs>
             <g className="subunits" transform={matrixTransform}>
-                {_.map(geoData.filter(d => !choroplethData[d.id as string]), d => {
+                {map(geoData.filter(d => !choroplethData[d.id as string]), d => {
                     const isFocus = this.hasFocus(d)
                     const stroke = isFocus ? focusColor : "#333"
                     return <path key={d.id} d={pathData[d.id as string]} stroke-width={isFocus ? focusStrokeWidth : 0.3} stroke={stroke} cursor="pointer" fill={defaultFill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={(ev) => this.props.onClick(d)}/>
                 })}
 
-                {_.sortBy(_.map(geoData.filter(d => choroplethData[d.id as string]), (d) => {
+                {sortBy(map(geoData.filter(d => choroplethData[d.id as string]), (d) => {
                     const isFocus = this.hasFocus(d)
                     const datum = choroplethData[d.id as string]
                     const stroke = isFocus ? focusColor : "#333"

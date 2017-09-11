@@ -1,4 +1,4 @@
-import * as _ from 'lodash'
+import {extend, some, isString, isNumber, uniq, min, max, keyBy, keys, values, each, map, sortBy} from './Util'
 import ChartType from './ChartType'
 import ChartConfig from './ChartConfig'
 import {observable, computed, autorun, action, reaction} from 'mobx'
@@ -23,47 +23,47 @@ export class Variable {
 	@observable.ref values: (string|number)[]
 
 	constructor(meta: Partial<Variable>) {
-		_.extend(this, meta)
+		extend(this, meta)
 	}
 
 	@computed get hasNumericValues(): boolean {
-		return _.some(this.values, v => _.isFinite(v))
+		return some(this.values, v => isFinite(v as number))
 	}
 
 	@computed get numericValues(): number[] {
-		return _(this.values).filter(v => _.isNumber(v)).sort().uniq().value() as number[]
+		return uniq(sortBy(this.values.filter(v => isNumber(v)))) as number[]
 	}	
 
 	@computed get categoricalValues(): string[] {
-		return _(this.values).filter(v => _.isString(v)).uniq().value() as string[]
+		return uniq(sortBy(this.values.filter(v => isString(v)))) as string[]
 	}
 
 	@computed get hasCategoricalValues(): boolean {
-		return _.some(this.values, v => _.isString(v))
+		return some(this.values, v => isString(v))
 	}
 
 	@computed get entitiesUniq(): string[] {
-		return _.uniq(this.entities)
+		return uniq(this.entities)
 	}
 
 	@computed get yearsUniq(): number[] {
-		return _.uniq(this.years)
+		return uniq(this.years)
 	}
 
 	@computed get minYear(): number {
-		return _.min(this.yearsUniq) as number
+		return min(this.yearsUniq) as number
 	}
 
 	@computed get maxYear(): number {
-		return _.max(this.yearsUniq) as number
+		return max(this.yearsUniq) as number
 	}
 
 	@computed get minValue(): number {
-		return _.min(this.numericValues) as number
+		return min(this.numericValues) as number
 	}
 
 	@computed get maxValue(): number {
-		return _.max(this.numericValues) as number
+		return max(this.numericValues) as number
 	}
 
 	@computed get isNumeric(): boolean {
@@ -111,7 +111,7 @@ export default class VariableData {
 	}
 
 	@computed get entityMetaByKey() {
-		return _.keyBy(this.entityMetaById, 'name')
+		return keyBy(this.entityMetaById, 'name')
 	}
 
 	@computed get cacheTag(): string {
@@ -119,11 +119,11 @@ export default class VariableData {
 	}
 
 	@computed get availableEntities(): string[] {
-		return _.keys(this.entityMetaByKey)
+		return keys(this.entityMetaByKey)
 	}
 
 	@computed get variables(): Variable[] {
-		return _.values(this.variablesById)
+		return values(this.variablesById)
 	}
 
 	@action.bound update() {
@@ -146,7 +146,7 @@ export default class VariableData {
 
 		lines.forEach((line, i) => {
 			if (i === 0) { // First line contains the basic variable metadata
-				_(JSON.parse(line).variables).each((d: any) => {
+				each(JSON.parse(line).variables, (d: any) => {
 					variablesById[d.id] = new Variable(d)
 				})
 			} else if (i == lines.length-1) { // Final line is entity id => name mapping
@@ -171,8 +171,8 @@ export default class VariableData {
 			}
 		});
 
-		_.each(variablesById, v => v.entities = _.map(v.entities, id => entityMetaById[id].name))
-		_.each(entityMetaById, (e, id) => e.id = +id)
+		each(variablesById, v => v.entities = map(v.entities, id => entityMetaById[id].name))
+		each(entityMetaById, (e, id) => e.id = +id)
 		this.variablesById = variablesById
 		this.entityMetaById = entityMetaById
 	}

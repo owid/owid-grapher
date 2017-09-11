@@ -4,7 +4,7 @@
  */
 
 import * as React from 'react'
-import * as _ from 'lodash'
+import {some, noop, includes, cloneDeep, min, max, sortBy} from './Util'
 import {defaultTo} from './Util'
 import {computed} from 'mobx'
 import {observer} from 'mobx-react'
@@ -58,7 +58,7 @@ export default class HeightedLegend {
         if (this.marks.length == 0)
             return 0
         else 
-            return _(this.marks).map('width').max() as number
+            return defaultTo(max(this.marks.map(d => d.width)), 0)
     }
 
     constructor(props: HeightedLegendProps) {
@@ -78,20 +78,20 @@ export interface HeightedLegendViewProps {
 
 @observer
 export class HeightedLegendView extends React.Component<HeightedLegendViewProps> {
-    @computed get onMouseOver(): Function { return defaultTo(this.props.onMouseOver, _.noop) }
-    @computed get onMouseLeave(): Function { return defaultTo(this.props.onMouseLeave, _.noop) }
-    @computed get onClick(): Function { return defaultTo(this.props.onClick, _.noop) }
+    @computed get onMouseOver(): Function { return defaultTo(this.props.onMouseOver, noop) }
+    @computed get onMouseLeave(): Function { return defaultTo(this.props.onMouseLeave, noop) }
+    @computed get onClick(): Function { return defaultTo(this.props.onClick, noop) }
 
 
     @computed get isFocusMode() { 
-        return this.props.focusKeys.length != this.props.legend.marks.length && _.some(this.props.legend.marks, m => _.includes(this.props.focusKeys, m.item.key))
+        return this.props.focusKeys.length != this.props.legend.marks.length && some(this.props.legend.marks, m => includes(this.props.focusKeys, m.item.key))
     }
 
     // Naive initial placement of each mark at the target height, before collision detection
     @computed get initialMarks() {
         const {legend, x, yScale} = this.props
 
-        return _(legend.marks).map(m => {
+        return sortBy(legend.marks.map(m => {
             let y = yScale.place(m.item.yValue)
 
             // Don't let them go off the edge
@@ -109,7 +109,7 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
                 bounds: bounds,
                 isOverlap: false
             }
-        }).sortBy(m => m.bounds.y).value()
+        }), m => m.bounds.y)
     }
 
     // Each mark starts at target height. When a conflict is detected, the lower label is pushed down a bit.
@@ -117,7 +117,7 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
         const {initialMarks} = this
         const {yScale} = this.props
 
-        let marks = _.cloneDeep(initialMarks)
+        let marks = cloneDeep(initialMarks)
         for (let i = 0; i < marks.length; i++) {
             for (let j = i+1; j < marks.length; j++) {
                 const m1 = marks[i], m2 = marks[j]
@@ -144,7 +144,7 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
         const {initialMarks} = this
         const {yScale} = this.props
 
-        let marks = _.cloneDeep(initialMarks).reverse()
+        let marks = cloneDeep(initialMarks).reverse()
         for (let i = 0; i < marks.length; i++) {
             const m1 = marks[i]            
             if (i == 0 && m1.bounds.bottom > yScale.rangeMax) {
@@ -173,7 +173,7 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
 
     // Overlapping placement, for when we really can't find a solution without overlaps.
     @computed get overlappingPlacement() {
-        let marks = _.cloneDeep(this.initialMarks)
+        let marks = cloneDeep(this.initialMarks)
         for (let i = 0; i < marks.length; i++) {
             const m1 = marks[i]
 
@@ -201,13 +201,13 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
     @computed get backgroundMarks() {
         const {focusKeys} = this.props
         const {isFocusMode} = this
-        return this.placedMarks.filter(m => isFocusMode ? !_.includes(focusKeys, m.mark.item.key) : m.isOverlap)
+        return this.placedMarks.filter(m => isFocusMode ? !includes(focusKeys, m.mark.item.key) : m.isOverlap)
     }
 
     @computed get focusMarks() {
         const {focusKeys} = this.props
         const {isFocusMode} = this
-        return this.placedMarks.filter(m => isFocusMode ? _.includes(focusKeys, m.mark.item.key) : !m.isOverlap)
+        return this.placedMarks.filter(m => isFocusMode ? includes(focusKeys, m.mark.item.key) : !m.isOverlap)
     }
 
     @computed get numMovesNeeded() {

@@ -1,6 +1,6 @@
 import * as React from 'react'
-import * as _ from 'lodash'
 import * as d3 from 'd3'
+import {min, max, reduce, map, each, last, sortBy, flatten, some, find} from './Util'
 import Bounds from './Bounds'
 import {observable, computed, asFlat, action} from 'mobx'
 import {observer} from 'mobx-react'
@@ -43,15 +43,15 @@ class NumericMapLegend {
 
     // NumericMapLegend wants to map a range to a width. However, sometimes we are given
     // data without a clear min/max. So we must fit these scurrilous bins into the width somehow.
-    @computed get minValue(): number { return _(this.numericBins).map('min').min() as number }
-    @computed get maxValue(): number { return _(this.numericBins).map('max').max() as number }
+    @computed get minValue(): number { return min(this.numericBins.map(d => d.min)) as number }
+    @computed get maxValue(): number { return max(this.numericBins.map(d => d.max)) as number }
     @computed get rangeSize(): number { return this.maxValue - this.minValue }
     @computed get categoryBinWidth(): number {
         return Bounds.forText("No data", { fontSize: "0.5em" }).width
     }
     @computed get categoryBinMargin(): number { return this.rectHeight*1.5 }
     @computed get totalDefaultWidth(): number {
-        return _.reduce(
+        return reduce(
             this.props.legendData.map(d => d instanceof CategoricalBin ? this.categoryBinWidth+this.categoryBinMargin : 0),
             (m, n) => m+n, 0
         )
@@ -64,7 +64,7 @@ class NumericMapLegend {
         const {props, rangeSize, categoryBinWidth, categoryBinMargin, availableWidth} = this
         let xOffset = 0
 
-        return _.map(props.legendData, d => {
+        return map(props.legendData, d => {
             let width = categoryBinWidth, margin = categoryBinMargin
             if (d instanceof NumericBin) {
                 width = ((d.max-d.min)/rangeSize)*availableWidth
@@ -116,12 +116,12 @@ class NumericMapLegend {
         }
 
         let labels: NumericLabel[] = []
-        _.each(positionedBins, d => {
+        each(positionedBins, d => {
             if (d.bin.text)
                 labels.push(makeRangeLabel(d))
             else if (d.bin instanceof NumericBin) {
                 labels.push(makeBoundaryLabel(d, 'min', d.bin.minText))
-                if (d == _.last(positionedBins))
+                if (d == last(positionedBins))
                     labels.push(makeBoundaryLabel(d, 'max', d.bin.maxText))
             }
         })
@@ -161,7 +161,7 @@ class NumericMapLegend {
         return labels
     }
 
-    @computed get height(): number { return Math.abs(_(this.numericLabels).map(l => l.bounds.y).min() as number) }
+    @computed get height(): number { return Math.abs(min(this.numericLabels.map(l => l.bounds.y)) as number) }
 
     @computed get width(): number {
         return this.props.width
@@ -222,14 +222,14 @@ class NumericMapLegendView extends React.Component<{ legend: NumericMapLegend, x
         const bottomY = props.y+height
 
 		return <g className="numericMapLegend">
-            {_.map(numericLabels, label =>
+            {map(numericLabels, label =>
                 <line x1={props.x+label.bounds.x+label.bounds.width/2} y1={bottomY-rectHeight} x2={props.x+label.bounds.x+label.bounds.width/2} y2={bottomY+label.bounds.y+label.bounds.height} stroke={borderColor} strokeWidth={0.3}/>
             )}
-            {_.sortBy(_.map(positionedBins, (d, i) => {
+            {sortBy(map(positionedBins, (d, i) => {
                 const isFocus = focusBracket && ((d.bin as NumericBin).min == (focusBracket as NumericBin).min || ((d.bin as CategoricalBin).value != null && (d.bin as CategoricalBin).value == (focusBracket as CategoricalBin).value))
                 return <rect x={props.x+d.x} y={bottomY-rectHeight} width={d.width} height={rectHeight} fill={d.bin.color} stroke={isFocus ? "#FFEC38" : borderColor} strokeWidth={isFocus ? 2.5 : 0.3}/>
             }), r => r.props['stroke-width'])}
-            {_.map(numericLabels, label =>
+            {map(numericLabels, label =>
                 <text x={props.x+label.bounds.x} y={bottomY+label.bounds.y} fontSize={label.fontSize} dominant-baseline="hanging">{label.text}</text>
             )}
 		</g>
@@ -272,7 +272,7 @@ class CategoricalMapLegend extends React.Component<CategoricalMapLegendProps> {
 
         const lines: MarkLine[] = []
         let marks: CategoricalMark[] = [], xOffset = 0, yOffset = 0
-        _.each(props.legendData, d => {
+        each(props.legendData, d => {
             const labelBounds = Bounds.forText(d.text, { fontSize: fontSize })
             const markWidth = rectSize+rectPadding+labelBounds.width+markPadding
 
@@ -310,26 +310,26 @@ class CategoricalMapLegend extends React.Component<CategoricalMapLegendProps> {
     }
 
     @computed get width(): number {
-        return _(this.markLines).map(l => l.totalWidth).max() as number
+        return max(this.markLines.map(l => l.totalWidth)) as number
     }
 
     @computed get marks(): CategoricalMark[] {
         const lines = this.markLines
 
         // Center each line
-        _.each(lines, line => {
+        each(lines, line => {
             const xShift = this.width/2-line.totalWidth/2
-            _.each(line.marks, m => {
+            each(line.marks, m => {
                 m.x += xShift
                 m.label.bounds = m.label.bounds.extend({ x: m.label.bounds.x+xShift })
             })
         })
 
-        return _.flatten(_.map(lines, l => l.marks))
+        return flatten(map(lines, l => l.marks))
     }
 
     @computed get height(): number {
-        return _(this.marks).map(m => m.y+m.rectSize).max() as number
+        return max(this.marks.map(m => m.y+m.rectSize)) as number
     }
 
     @computed get bounds(): Bounds {
@@ -341,7 +341,7 @@ class CategoricalMapLegend extends React.Component<CategoricalMapLegendProps> {
         //Bounds.debug([this.bounds])
         //Bounds.debug(marks.map(m => m.label.bounds))
         return <g className="categoricalMapLegend">
-            {_.map(marks, m => {
+            {map(marks, m => {
                 const isFocus = props.focusBracket && m.bin.value == props.focusBracket.value
                 const stroke = isFocus ? "#FFEC38" : "#333"
                 return <g onMouseOver={e => this.props.onMouseOver(m.bin)} onMouseLeave={e => this.props.onMouseLeave()}>
@@ -366,11 +366,11 @@ export interface MapLegendProps {
 @observer
 export default class MapLegend extends React.Component<MapLegendProps> {
     @computed get numericLegendData(): MapLegendBin[] {
-        if (this.hasCategorical || !_.some(this.props.legendData, d => (d as CategoricalBin).value == "No data" && !d.isHidden)) {
+        if (this.hasCategorical || !some(this.props.legendData, d => (d as CategoricalBin).value == "No data" && !d.isHidden)) {
             return this.props.legendData.filter(l => l instanceof NumericBin && !l.isHidden)
         } else {
             const l = this.props.legendData.filter(l => (l instanceof NumericBin || l.value == "No data") && !l.isHidden)
-            return _.flatten([l[l.length-1], l.slice(0, -1)])
+            return flatten([l[l.length-1], l.slice(0, -1)])
         }
     }
     @computed get hasNumeric(): boolean { return this.numericLegendData.length > 1 }
@@ -388,7 +388,7 @@ export default class MapLegend extends React.Component<MapLegendProps> {
         const {focusBracket, focusEntity} = this.props
         const {numericLegendData} = this
         if (focusBracket) return focusBracket
-        if (focusEntity) return _.find(numericLegendData, bin => {
+        if (focusEntity) return find(numericLegendData, bin => {
             if (bin instanceof CategoricalBin)
                 return focusEntity.datum.value == bin.value
             else if (bin instanceof NumericBin)
@@ -402,7 +402,7 @@ export default class MapLegend extends React.Component<MapLegendProps> {
         const {focusBracket, focusEntity} = this.props
         const {categoricalLegendData} = this
         if (focusBracket && focusBracket instanceof CategoricalBin) return focusBracket
-        if (focusEntity) return _.find(categoricalLegendData, bin => focusEntity.datum.value == bin.value)
+        if (focusEntity) return find(categoricalLegendData, bin => focusEntity.datum.value == bin.value)
     }
 
     @computed get categoryLegend(): CategoricalMapLegend {

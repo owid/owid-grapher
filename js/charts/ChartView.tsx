@@ -1,4 +1,3 @@
-import * as _ from 'lodash'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as d3 from 'd3'
@@ -144,7 +143,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
             this.isLandscape && "landscape"
         ]
 
-        return _.filter(classNames).join(' ')
+        return classNames.filter(n => !!n).join(' ')
     }
 
     addPopup(vnode: VNode) {

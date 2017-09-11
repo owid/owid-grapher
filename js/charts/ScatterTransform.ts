@@ -1,6 +1,6 @@
-import * as _ from 'lodash'
 import * as d3 from 'd3'
 import ChartConfig from './ChartConfig'
+import {some, isEmpty, find, intersection, min, max, keyBy, identity, extend, isNumber, has, flatten, uniq, groupBy, sortBy, map} from './Util'
 import {computed, observable, extras} from 'mobx'
 import {defaultTo, first, last} from './Util'
 import {DimensionWithData} from './ChartData'
@@ -22,33 +22,33 @@ export default class ScatterTransform implements IChartTransform {
     @observable.ref useTimelineDomains = false
 
     @computed get isValidConfig(): boolean {
-        return _.some(this.chart.dimensions, d => d.property == 'y') && _.some(this.chart.dimensions, d => d.property == 'x')
+        return some(this.chart.dimensions, d => d.property == 'y') && some(this.chart.dimensions, d => d.property == 'x')
     }
 
     @computed get failMessage(): string|undefined {
         const {filledDimensions} = this.chart.data
-        if (!_.some(filledDimensions, d => d.property == 'y'))
+        if (!some(filledDimensions, d => d.property == 'y'))
             return "Missing Y axis variable"
-        else if (!_.some(filledDimensions, d => d.property == 'x'))
+        else if (!some(filledDimensions, d => d.property == 'x'))
             return "Missing X axis variable"
-        else if (_.isEmpty(this.possibleEntities))
+        else if (isEmpty(this.possibleEntities))
             return "No entities with data for both X and Y"
-        else if (_.isEmpty(this.timelineYears))
+        else if (isEmpty(this.timelineYears))
             return "No years with data for both X and Y"
-        else if (_.isEmpty(this.currentData))
+        else if (isEmpty(this.currentData))
             return "No matching data"
     }
 
     // Scatterplot should have exactly one dimension for each of x and y
     // The y dimension is treated as the "primary" variable
     @computed get yDimension(): DimensionWithData|undefined {
-        return _.find(this.chart.data.filledDimensions, d => d.property == 'y')
+        return find(this.chart.data.filledDimensions, d => d.property == 'y')
     }
     @computed get xDimension(): DimensionWithData|undefined {
-        return _.find(this.chart.data.filledDimensions, d => d.property == 'x')
+        return find(this.chart.data.filledDimensions, d => d.property == 'x')
     }
     @computed get colorDimension(): DimensionWithData|undefined {
-        return _.find(this.chart.data.filledDimensions, d => d.property == 'color')
+        return find(this.chart.data.filledDimensions, d => d.property == 'color')
     }
     @computed get axisDimensions(): DimensionWithData[] {
         let dimensions = []
@@ -85,7 +85,7 @@ export default class ScatterTransform implements IChartTransform {
     @computed get possibleEntities() {
         const yEntities = this.yDimension ? this.yDimension.variable.entitiesUniq : []
         const xEntities = this.xDimension ? this.xDimension.variable.entitiesUniq : []
-        return _.intersection(yEntities, xEntities)
+        return intersection(yEntities, xEntities)
     }
     @computed get entitiesToShow() {
         if (this.hideBackgroundEntities)
@@ -101,15 +101,15 @@ export default class ScatterTransform implements IChartTransform {
         if (this.xOverrideYear != null)
             return yDimensionYears
         else
-            return _.intersection(yDimensionYears, xDimensionYears)
+            return intersection(yDimensionYears, xDimensionYears)
     }
 
     @computed get minTimelineYear(): number {
-        return defaultTo(_.min(this.timelineYears), 1900)
+        return defaultTo(min(this.timelineYears), 1900)
     }
 
     @computed get maxTimelineYear(): number {
-        return defaultTo(_.max(this.timelineYears), 2000)
+        return defaultTo(max(this.timelineYears), 2000)
     }
 
     @computed get hasTimeline(): boolean {
@@ -189,16 +189,16 @@ export default class ScatterTransform implements IChartTransform {
     @computed get dataByEntityAndYear() {
         const {chart, yearsToCalculate, colorScale, hideBackgroundEntities, entitiesToShow, xOverrideYear} = this
         const {filledDimensions, keyColors} = chart.data
-        const validEntityLookup = _.keyBy(entitiesToShow)
+        const validEntityLookup = keyBy(entitiesToShow)
         
         let dataByEntityAndYear = new Map<string, Map<number, ScatterSeries>>()
 
         // The data values
-        _.each(filledDimensions, (dimension, dimIndex) => {
+        filledDimensions.forEach((dimension, dimIndex) => {
             var variable = dimension.variable,
                 tolerance = (dimension.property == 'color' || dimension.property == 'size') ? Infinity : dimension.tolerance;
 
-            _.each(yearsToCalculate, (outputYear) =>  {
+            yearsToCalculate.forEach((outputYear) =>  {
                 for (var i = 0; i < variable.years.length; i++) {
                     var year = variable.years[i],
                         value = variable.values[i],
@@ -210,7 +210,7 @@ export default class ScatterTransform implements IChartTransform {
                     if (!validEntityLookup[entity])
                         continue
 
-                    if ((dimension.property == 'x' || dimension.property == 'y') && !_.isNumber(value))
+                    if ((dimension.property == 'x' || dimension.property == 'y') && !isNumber(value))
                         continue
                     
                     const targetYear = (dimension.property == 'x' && xOverrideYear != null) ? xOverrideYear : outputYear
@@ -240,7 +240,7 @@ export default class ScatterTransform implements IChartTransform {
 
                     // Ensure we use the closest year to the target
                     const originYear = (d.time as any)[dimension.property];
-                    if (_.isFinite(originYear) && Math.abs(originYear-targetYear) < Math.abs(year-targetYear))
+                    if (isFinite(originYear) && Math.abs(originYear-targetYear) < Math.abs(year-targetYear))
                         continue;
 
                     if (dimension.property == 'color') {
@@ -258,7 +258,7 @@ export default class ScatterTransform implements IChartTransform {
             const newDataByYear = new Map();
             dataByYear.forEach((series, year) => {
                 const datum = series.values[0];
-                if (_.has(datum, 'x') && _.has(datum, 'y'))
+                if (has(datum, 'x') && has(datum, 'y'))
                     newDataByYear.set(year, series);
             });
             dataByEntityAndYear.set(year, newDataByYear);
@@ -279,21 +279,28 @@ export default class ScatterTransform implements IChartTransform {
     }
 
     @computed get allValues(): ScatterValue[] {
-        return _(this.allGroups).map(group => group.values).flatten().value() as ScatterValue[]
+        const allValues: ScatterValue[] = []
+        this.allGroups.forEach(group => allValues.push(...group.values))
+        return allValues
+    }
+
+    @computed get currentValues(): ScatterValue[] {
+        const currentValues: ScatterValue[] = []
+        this.currentData.forEach(group => currentValues.push(...group.values))
+        return currentValues
     }
 
     // domains across the entire timeline
     @computed get xDomainDefault() : [number, number] {
-        if (!this.useTimelineDomains) {
-            const xValues = _(this.currentData).map(d => d.values).flatten().map((v: ScatterValue) => v.x).value()
-            return domainExtent(xValues, this.xScaleType)
+        if (!this.useTimelineDomains) {            
+            return domainExtent(this.currentValues.map(d => d.x), this.xScaleType)
         }
 
         if (this.isRelativeMode) {
             let minChange = 0
             let maxChange = 0
             this.dataByEntityAndYear.forEach(dataByYear => {
-                const values = _.map(Array.from(dataByYear.values()), g => g.values[0])
+                const values = Array.from(dataByYear.values()).map(g => g.values[0])
                 for (var i = 0; i < values.length; i++) {
                     const indexValue = values[i]
                     for (var j = i; j < values.length; j++) {
@@ -312,15 +319,14 @@ export default class ScatterTransform implements IChartTransform {
 
     @computed get yDomainDefault() : [number, number] {
         if (!this.useTimelineDomains) {
-            const yValues = _(this.currentData).map(d => d.values).flatten().map((v: ScatterValue) => v.y).value()
-            return domainExtent(yValues, this.yScaleType)
+            return domainExtent(this.currentValues.map(d => d.y), this.yScaleType)
         }
 
         if (this.isRelativeMode) {
             let minChange = 0
             let maxChange = 0
             this.dataByEntityAndYear.forEach(dataByYear => {
-                const values = _.map(Array.from(dataByYear.values()), g => g.values[0])
+                const values = Array.from(dataByYear.values()).map(g => g.values[0])
                 for (var i = 0; i < values.length; i++) {
                     const indexValue = values[i]
                     for (var j = i; j < values.length; j++) {
@@ -338,7 +344,8 @@ export default class ScatterTransform implements IChartTransform {
     }
 
     @computed get sizeDomain(): [number, number] {
-        const sizeValues = _(this.allGroups).map(g => g.values[0].size).filter(_.identity).value()
+        const sizeValues: number[] = []
+        this.allGroups.forEach(g => g.values[0].size && sizeValues.push(g.values[0].size))
         if (sizeValues.length == 0)
             return [1,1]
         else
@@ -346,7 +353,7 @@ export default class ScatterTransform implements IChartTransform {
     }
 
     @computed get colorsInUse(): string[] {
-        return _(this.allGroups).map(s => s.color).uniq().value()
+        return uniq(this.allGroups.map(s => s.color))
     }
 
     @computed get yScaleType() {
@@ -378,7 +385,7 @@ export default class ScatterTransform implements IChartTransform {
             props.tickFormat = yDimension && yDimension.formatValueShort
         }
 
-        return _.extend(chart.yAxis.toSpec({ defaultDomain: yDomainDefault }), props) as AxisSpec
+        return extend(chart.yAxis.toSpec({ defaultDomain: yDomainDefault }), props) as AxisSpec
     }
 
     @computed get xScaleType() {
@@ -414,7 +421,7 @@ export default class ScatterTransform implements IChartTransform {
             props.tickFormat = xDimension && xDimension.formatValueShort
         }
 
-        return _.extend(chart.xAxis.toSpec({ defaultDomain: xDomainDefault }), props) as AxisSpec
+        return extend(chart.xAxis.toSpec({ defaultDomain: xDomainDefault }), props) as AxisSpec
     }
 
     @computed get yFormatTooltip() {
@@ -439,61 +446,61 @@ export default class ScatterTransform implements IChartTransform {
                 if (year < startYear || year > endYear)
                     return
 
-                group = group || _.extend({}, groupForYear, { values: [] }) as ScatterSeries
+                group = group || extend({}, groupForYear, { values: [] }) as ScatterSeries
                 group.values = group.values.concat(groupForYear.values)
-                if (_.isNumber(groupForYear.values[0].size))
+                if (isNumber(groupForYear.values[0].size))
                     group.size = groupForYear.values[0].size
             })
 
             if (group && group.values.length) {
-                group.size = _(group.values).map(v => v.size).filter(s => _.isNumber(s)).last() as number
+                group.size = last(group.values.map(v => v.size).filter(s => isNumber(s)))
                 currentData.push(group)
             }
         });
 
-        currentData = _.map(currentData, series => {
+        currentData = currentData.map(series => {
             // Only allow tolerance data to occur once in any given chart (no duplicate data points)
             // Prioritize the start and end years first, then the "true" year
             let values = series.values
             
-            values = _(values).groupBy(v => v.time.y).map((vals: ScatterValue[]) => 
-                _.sortBy(vals, v => (v.year == startYear || v.year == endYear) ? -Infinity : Math.abs(v.year-v.time.y))[0]
-            ).value()
+            values = map(groupBy(values, v => v.time.y), (vals: ScatterValue[]) => 
+                sortBy(vals, v => (v.year == startYear || v.year == endYear) ? -Infinity : Math.abs(v.year-v.time.y))[0]
+            )
 
             if (xOverrideYear == null) {
-                values = _(values).groupBy(v => v.time.x).map((vals: ScatterValue[]) =>
-                    _.sortBy(vals, v => (v.year == startYear || v.year == endYear) ? -Infinity : Math.abs(v.year-v.time.x))[0]
-                ).value()
+                values = map(groupBy(values, v => v.time.x),(vals: ScatterValue[]) =>
+                    sortBy(vals, v => (v.year == startYear || v.year == endYear) ? -Infinity : Math.abs(v.year-v.time.x))[0]
+                )
             }
 
             // Don't allow values <= 0 for log scales
-            values = _.filter(values, v => {
+            values = values.filter(v => {
                 return (v.y > 0 || yScaleType != 'log') && (v.x > 0 || xScaleType != 'log')
             })
 
-            return _.extend({}, series, {
+            return extend({}, series, {
                 values: values
             })
         })
 
-        currentData = _.filter(currentData, series => {
+        currentData = currentData.filter(series => {
             // No point trying to render series with no valid points!
             return series.values.length > 0
 
             // This disabled behavior prevents showing data unless it spans the whole timeline range
             // We decided not to do this because it's confusing to have a series disappear when you're moving the timeline
 
-            // && ((first(series.values).year == startYear && (last(series.values).year == endYear || first(series.values).year == startYear)) || _.includes(this.chart.data.selectedKeys, series.key))
+            // && ((first(series.values).year == startYear && (last(series.values).year == endYear || first(series.values).year == startYear)) || includes(this.chart.data.selectedKeys, series.key))
         })
 
         if (compareEndPointsOnly) {
-            _.each(currentData, series => {
+            currentData.forEach(series => {
                 series.values = series.values.length == 1 ? series.values : [first(series.values), last(series.values)]
             })
         }
 
         if (isRelativeMode) {
-            _.each(currentData, series => {
+            currentData.forEach(series => {
                 const indexValue = first(series.values)
                 const targetValue = last(series.values)
                 series.values = [{

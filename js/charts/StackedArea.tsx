@@ -6,8 +6,8 @@
  */
 
 import * as React from 'react'
-import * as _ from 'lodash'
 import * as d3 from 'd3'
+import {sortBy, reverse, clone, last} from './Util'
 import {computed, action, observable} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartConfig from './ChartConfig'
@@ -64,7 +64,7 @@ export class Areas extends React.Component<{ axisBox: AxisBox, data: StackedArea
         const mouse = getRelativeMouse(this.base, ev)
         
         if (axisBox.innerBounds.contains(mouse)) {
-            const closestPoint = _.sortBy(data[0].values, d => Math.abs(axisBox.xScale.place(d.x) - mouse.x))[0]
+            const closestPoint = sortBy(data[0].values, d => Math.abs(axisBox.xScale.place(d.x) - mouse.x))[0]
             const index = data[0].values.indexOf(closestPoint)
             this.hoverIndex = index
         } else {
@@ -77,13 +77,13 @@ export class Areas extends React.Component<{ axisBox: AxisBox, data: StackedArea
     @computed get polylines() {
         const {axisBox, data} = this.props
         const {xScale, yScale} = axisBox
-        const xBottomLeft = `${_.identity(xScale.range[0])},${_.identity(yScale.range[0])}`
-        const xBottomRight = `${_.identity(xScale.range[1])},${_.identity(yScale.range[0])}`
+        const xBottomLeft = `${xScale.range[0]},${yScale.range[0]}`
+        const xBottomRight = `${xScale.range[1]},${yScale.range[0]}`
 
         return data.map((series, i) => {
-            const prevPoints = i == 0 ? [xBottomLeft, xBottomRight] : _.map(data[i-1].values, v => `${_.identity(xScale.place(v.x))},${_.identity(yScale.place(v.y))}`)
-            const mainPoints = _.map(series.values, v => `${_.identity(xScale.place(v.x))},${_.identity(yScale.place(v.y))}`)
-            const points = mainPoints.concat(_(prevPoints).clone().reverse())
+            const prevPoints = i == 0 ? [xBottomLeft, xBottomRight] : data[i-1].values.map(v => `${xScale.place(v.x)},${yScale.place(v.y)}`)
+            const mainPoints = series.values.map(v => `${xScale.place(v.x)},${yScale.place(v.y)}`)
+            const points = mainPoints.concat(reverse(clone(prevPoints)))
 
             return <polyline
                 key={series.key+'-line'}
@@ -123,8 +123,8 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
 
     @computed get midpoints() {
         let prevY = 0
-        return _.map(this.transform.stackedData, (series, i) => {
-            const lastValue = _.last(series.values) as StackedAreaValue
+        return this.transform.stackedData.map((series, i) => {
+            const lastValue = last(series.values) as StackedAreaValue
             const middleY = prevY + (lastValue.y - prevY)/2
             prevY = lastValue.y
             return middleY
@@ -133,12 +133,13 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
 
     @computed get legendItems() {
         const {transform, midpoints} = this
-        return _(transform.stackedData).map((d, i) => ({
+        const items = transform.stackedData.map((d, i) => ({
             color: d.color,
             key: d.key,
             label: this.chart.data.formatKey(d.key),
             yValue: midpoints[i]
-        })).sortBy(d => d.yValue).value()
+        }))
+        return sortBy(items, d => d.yValue)
     }
 
     @computed get legend() {
@@ -180,7 +181,7 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
                         </span>}
                     </td>
                 </tr>
-                {_(transform.groupedData).clone().reverse().map(series => {
+                {reverse(clone(transform.groupedData)).map(series => {
                     return <tr>
                         <td style={{paddingRight: "0.8em", fontSize: "0.9em"}}>
                             <div style={{width: '10px', height: '10px', backgroundColor: series.color, border: "1px solid #ccc", display: 'inline-block'}}/> {chart.data.formatKey(series.key)}
