@@ -7,7 +7,7 @@
  *
  */
 
-import {debounce, isNumber, includes, map, filter, uniq, toString, isFinite} from './Util'
+import {debounce, isNumber, includes, filter, uniq, toString, isFinite} from './Util'
 import {computed, observable, autorun, when, action, runInAction, reaction, toJS} from 'mobx'
 import ChartView from './ChartView'
 import ChartTabOption from './ChartTabOption'
@@ -233,7 +233,7 @@ export default class URLBinder {
         when(() => chart.data.isReady, () => {
             runInAction(() => {
                 if (country) {
-                    const entityCodes = map(country.split('+'), decodeURIComponent)
+                    const entityCodes = country.split('+').map(decodeURIComponent)
 
                     if (chart.data.canChangeEntity) {
                         chart.data.availableEntities.forEach(entity => {

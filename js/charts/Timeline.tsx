@@ -1,4 +1,4 @@
-import {first, last, sortBy, find, map} from './Util'
+import {first, last, sortBy, find} from './Util'
 import * as d3 from 'd3'
 import * as React from 'react'
 import Bounds from './Bounds'
@@ -346,7 +346,7 @@ export default class Timeline extends React.Component<TimelineProps> {
 			<Text className="minYearLabel" x={minYearBox.x} y={minYearBox.y} fontSize="0.8em" fill="#666">{formatYear(minYear)}</Text>
             <Text className="maxYearLabel" x={maxYearBox.x} y={maxYearBox.y} fontSize="0.8em" fill="#666">{maxYear.toString()}</Text>
 			<g className="ticks">
-				{map(years.slice(1, -1), (year) => {
+				{years.slice(1, -1).map(year => {
 					return <rect className="tick" x={xScale(year)} y={sliderBounds.top+sliderBounds.height-1} width="1px" height="0.2em" fill="rgba(0,0,0,0.2)" />
 				})}
 			</g>

@@ -1,4 +1,4 @@
-import {sortBy, map} from './Util'
+import {sortBy} from './Util'
 import * as d3 from 'd3'
 import * as React from 'react'
 import {observable, computed, action} from 'mobx'
@@ -59,7 +59,7 @@ export class VerticalAxisView extends React.Component<{ bounds: Bounds, axis: Ve
 
         return <g className="VerticalAxis">
             {label && label.render(-bounds.centerY-label.width/2, bounds.left, { transform: "rotate(-90)" })}
-            {map(ticks, tick =>
+            {ticks.map(tick =>
                 <text x={(bounds.left+axis.width-5).toFixed(2)} y={scale.place(tick)} fill={textColor} dominant-baseline="middle" textAnchor="end" fontSize={VerticalAxis.tickFontSize}>{scale.tickFormat(tick)}</text>
             )}
             {scale.scaleTypeOptions.length > 1 && onScaleTypeChange &&

@@ -1,4 +1,4 @@
-import {extend, some, isString, isNumber, uniq, min, max, keyBy, keys, values, each, map, sortBy} from './Util'
+import {extend, some, isString, isNumber, uniq, min, max, keyBy, keys, values, each, sortBy} from './Util'
 import ChartType from './ChartType'
 import ChartConfig from './ChartConfig'
 import {observable, computed, autorun, action, reaction} from 'mobx'
@@ -171,7 +171,7 @@ export default class VariableData {
 			}
 		});
 
-		each(variablesById, v => v.entities = map(v.entities, id => entityMetaById[id].name))
+		each(variablesById, v => v.entities = v.entities.map(id => entityMetaById[id].name))
 		each(entityMetaById, (e, id) => e.id = +id)
 		this.variablesById = variablesById
 		this.entityMetaById = entityMetaById
