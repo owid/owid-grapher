@@ -756,38 +756,36 @@ def dataset_json(request: HttpRequest, datasetid: str):
             var_to_chart[each['variableId']] = []
             var_to_chart[each['variableId']].append(each['chartId'])
 
-    allvariables = Variable.objects.all().select_related('sourceId')
+    variables = Variable.objects.filter(fk_dst_id=dataset.id).select_related('sourceId')
 
-    for var in allvariables:
-        if var.fk_dst_id == dataset:
+    for var in variables:
+        sourcedata = {
+            'id': var.sourceId.pk,
+            'name': var.sourceId.name,
+            'description': var.sourceId.description
+        }
 
-            sourcedata = {
-                'id': var.sourceId.pk,
-                'name': var.sourceId.name,
-                'description': var.sourceId.description
-            }
+        chartdata = []
 
-            chartdata = []
+        for onechart in var_to_chart.get(var.pk, []):
+            chart = Chart.objects.get(pk=onechart)
+            chartdata.append({
+                'id': chart.pk,
+                'name': chart.name
+            })
 
-            for onechart in var_to_chart.get(var.pk, []):
-                chart = Chart.objects.get(pk=onechart)
-                chartdata.append({
-                    'id': chart.pk,
-                    'name': chart.name
-                })
+        vardata = {
+            'id': var.pk,
+            'name': var.name,
+            'unit': var.unit,
+            'description': var.description,
+            'coverage': var.coverage,
+            'timespan': var.timespan,
+            'source': sourcedata,
+            'charts': chartdata
+        }
 
-            vardata = {
-                'id': var.pk,
-                'name': var.name,
-                'unit': var.unit,
-                'description': var.description,
-                'coverage': var.coverage,
-                'timespan': var.timespan,
-                'source': sourcedata,
-                'charts': chartdata
-            }
-
-            data['variables'].append(vardata)
+        data['variables'].append(vardata)
 
     return JsonResponse(data, safe=False)
 
