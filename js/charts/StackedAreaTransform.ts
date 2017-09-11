@@ -101,7 +101,7 @@ export default class StackedAreaTransform implements IChartTransform {
 				series.values.push({ x: year, y: value, time: year });
 			}
 
-			chartData = chartData.concat([...seriesByKey.values()]);
+			chartData = chartData.concat([...Array.from(seriesByKey.values())]);
 		});
 
 		// Ensure that every series has a value entry for every year in the data

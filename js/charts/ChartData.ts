@@ -323,7 +323,7 @@ export default class ChartData {
 	}
 
 	@computed.struct get availableKeys(): DataKey[] {
-		return _.sortBy([...this.keyData.keys()])
+		return _.sortBy([...Array.from(this.keyData.keys())])
 	}
 
 	@computed.struct get remainingKeys(): DataKey[] {

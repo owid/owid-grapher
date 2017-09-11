@@ -93,7 +93,7 @@ export default class LineChartTransform implements IChartTransform {
 				series.values.push({ x: year, y: value, time: year, gapYearsToNext: 0 });
 			}
 
-			chartData = chartData.concat([...seriesByKey.values()]);
+			chartData = chartData.concat([...Array.from(seriesByKey.values())]);
 		});
 
         // Preserve ordering. Note for line charts, the series order only affects the visual stacking order on overlaps.

@@ -1,10 +1,9 @@
-import path from 'path'
-import webpack from 'webpack'
-import ExtractTextPlugin from 'extract-text-webpack-plugin'
-import ManifestPlugin from 'webpack-manifest-plugin'
-import OptimizeCssAssetsPlugin from 'optimize-css-assets-webpack-plugin'
-import LodashModuleReplacementPlugin from 'lodash-webpack-plugin'
-import ParallelUglifyPlugin from 'webpack-parallel-uglify-plugin'
+import * as path from 'path'
+import * as webpack from 'webpack'
+import * as OptimizeCssAssetsPlugin from 'optimize-css-assets-webpack-plugin'
+import * as ExtractTextPlugin from 'extract-text-webpack-plugin'
+const ManifestPlugin = require('webpack-manifest-plugin')
+const ParallelUglifyPlugin = require('webpack-parallel-uglify-plugin')
 
 const isProduction = process.argv.indexOf('-p') !== -1
 
@@ -37,10 +36,6 @@ export default {
                 loader: "awesome-typescript-loader"
             },
             {
-                test: /(preact-compat|\.jsx)/, // Preact-compat uses getters that don't work in IE11 for some reason
-                loader: "babel-loader",
-            },        
-            {
                 test: /\.css$/,
                 loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: ['css-loader?modules&importLoaders=1&localIdentName=[local]', 'postcss-loader'] })
             },
@@ -58,8 +53,6 @@ export default {
         // This plugin extracts css files required in the entry points
         // into a separate CSS bundle for download
         new ExtractTextPlugin('[name].bundle.[chunkhash].css'),
-
-        new LodashModuleReplacementPlugin,
 
         // CSS optimization
         new OptimizeCssAssetsPlugin({
