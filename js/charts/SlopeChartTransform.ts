@@ -1,4 +1,4 @@
-import * as d3 from 'd3'
+import {scaleOrdinal} from 'd3-scale'
 import {some, union, min, max, find, isEmpty} from './Util'
 import {computed} from 'mobx'
 import ChartConfig from './ChartConfig'
@@ -98,7 +98,7 @@ export default class SlopeChartTransform implements IChartTransform {
                 "#69c487", // South America
                 "#ff7f0e", "#1f77b4", "#ffbb78", "#2ca02c", "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b", "c49c94", "e377c2", "f7b6d2", "7f7f7f", "c7c7c7", "bcbd22", "dbdb8d", "17becf", "9edae5", "1f77b4"]
 
-        const colorScale = d3.scaleOrdinal(colorScheme)
+        const colorScale = scaleOrdinal(colorScheme)
         if (colorDim.variable)
 	        colorScale.domain(colorDim.variable.categoricalValues)
 

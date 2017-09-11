@@ -1,8 +1,9 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import * as d3 from 'd3'
 import {observable, computed, autorun, action, reaction, when} from 'mobx'
 import {observer} from 'mobx-react'
+import {select, selectAll, Selection} from 'd3-selection'
+import 'd3-transition'
 
 import ChartConfig, {ChartConfigProps} from './ChartConfig'
 import ControlsFooter from './ControlsFooter'
@@ -13,8 +14,8 @@ import SourcesTab from './SourcesTab'
 import DownloadTab from './DownloadTab'
 import VariableData from './VariableData'
 import ChartData from './ChartData'
-import Bounds from './Bounds'
 import {preInstantiate, VNode} from './Util'
+import Bounds from './Bounds'
 import ChartTabOption from './ChartTabOption'
 import DataSelector from './DataSelector'
 
@@ -35,7 +36,7 @@ interface ChartViewProps {
 @observer
 export default class ChartView extends React.Component<ChartViewProps> {
     static bootstrap({ jsonConfig, containerNode, isEditor }: { jsonConfig: ChartConfigProps, containerNode: HTMLElement, isEditor: boolean }) {
-        d3.select(containerNode).classed('chart-container', true)
+        select(containerNode).classed('chart-container', true)
         let chartView
         const chart = new ChartConfig(jsonConfig)
 
@@ -55,7 +56,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
     @computed get isExport() { return !!this.props.isExport }
     @computed get isEditor() { return !!this.props.isEditor }
     @computed get isEmbed() { return window.self != window.top || this.isEditor }
-    @computed get isMobile() { return d3.select('html').classed('touchevents') }
+    @computed get isMobile() { return select('html').classed('touchevents') }
 
     @computed get containerBounds() {
         const {isEmbed, isExport, isEditor} = this
@@ -240,7 +241,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
     hasFadedIn: boolean = false
     componentDidUpdate() {
         if (this.chart.data.isReady && !this.hasFadedIn) {
-            d3.selectAll("#chart > *").style('opacity', 0).transition().style('opacity', null)
+            selectAll("#chart > *").style('opacity', 0).transition().style('opacity', null)
             this.hasFadedIn = true
         }
     }

@@ -46,7 +46,9 @@ import uniqBy from 'lodash-es/uniqBy'
 
 export {map, sortBy, each, keys, trim, isNumber, filter, extend, isEmpty, isFinite, some, every, min, max, uniq, cloneDeep, sum, find, identity, union, debounce, includes, toString, isString, keyBy, values, flatten, groupBy, reverse, clone, reduce, noop, floor, ceil, round, toArray, throttle, has, intersection, uniqWith, without, uniqBy}
 
-import * as d3 from 'd3'
+import {format} from 'd3-format'
+import {extent} from 'd3-array'
+
 import Bounds from './Bounds'
 import Vector2 from './Vector2'
 
@@ -153,9 +155,9 @@ export function unitFormat(unit: any, value: any, options?: any): string {
             const unitFormat = parseInt(unit.format)
 			if (isFinite(unitFormat) && unitFormat >= 0) {
 				var fixed = Math.min(20, unit.format);
-				value = d3.format("." + fixed + "f")(value);
+				value = format("." + fixed + "f")(value);
 			} else {
-				value = d3.format(",")(value);
+				value = format(",")(value);
 			}
 
 			if (options.noTrailingZeroes) {
@@ -193,9 +195,9 @@ export function formatValue(value: number, options: { maxDecimalPlaces?: number,
 	} else {
 		if (maxDecimalPlaces >= 0 && value % 1 != 0) {
 			var fixed = Math.min(20, maxDecimalPlaces);
-			output = d3.format(",." + fixed + "f")(value);
+			output = format(",." + fixed + "f")(value);
 		} else {
-			output = d3.format(",")(value);
+			output = format(",")(value);
 		}
 
 		if (noTrailingZeroes) {
@@ -276,7 +278,7 @@ export function setQueryStr(str: string) {
 export function domainExtent(values: number[], scaleType: 'linear'|'log'): [number, number] {
 	if (scaleType == 'log')
 		values = values.filter(v => v > 0)
-	const [min, max] = d3.extent(values)
+	const [min, max] = extent(values)
 
 	if (isFinite(min) && isFinite(max) && min != max) {
 		return [min, max] as [number, number]

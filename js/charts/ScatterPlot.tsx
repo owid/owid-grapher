@@ -8,7 +8,6 @@
  * @created 2017-03-09
  */
 
-import * as d3 from 'd3'
 import * as React from 'react'
 import {observable, computed, action, autorun} from 'mobx'
 import {find, includes, uniq} from './Util'

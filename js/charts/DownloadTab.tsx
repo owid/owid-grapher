@@ -1,5 +1,4 @@
 import {includes, extend} from './Util'
-import * as d3 from 'd3'
 import * as React from 'react'
 import * as ReactDOMServer from 'react-dom/server'
 import {observable, computed, autorun} from 'mobx'

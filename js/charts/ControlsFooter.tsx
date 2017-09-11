@@ -1,7 +1,7 @@
-import * as d3 from 'd3'
 import Bounds from './Bounds'
 import Text from './Text'
 import {extend, keys, map} from './Util'
+import {select} from 'd3-selection'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { observable, computed, asFlat, autorun, autorunAsync, action } from 'mobx'
@@ -58,7 +58,7 @@ class ShareMenu extends React.Component<ShareMenuProps> {
 
     componentDidMount() {
         setTimeout(() => {
-            d3.select(window).on('click.shareMenu', () => {
+            select(window).on('click.shareMenu', () => {
                 this.props.chartView.removePopup(EmbedMenu)
 
                 if (this.props.onDismiss)
@@ -68,7 +68,7 @@ class ShareMenu extends React.Component<ShareMenuProps> {
     }
 
     componentWillUnmount() {
-        d3.select(window).on('click.shareMenu', null)
+        select(window).on('click.shareMenu', null)
     }
 
     @action.bound onEmbed() {

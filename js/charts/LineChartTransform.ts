@@ -1,6 +1,6 @@
 import {computed} from 'mobx'
 import {some, union, min, max, isEmpty, sortBy, extend, find, identity, cloneDeep} from './Util'
-import * as d3 from 'd3'
+import {scaleOrdinal} from 'd3-scale'
 import ChartConfig from './ChartConfig'
 import Color from './Color'
 import DataKey from './DataKey'
@@ -101,7 +101,7 @@ export default class LineChartTransform implements IChartTransform {
 
         // Assign colors
         const colorScheme = last(ColorSchemes['owid-distinct'].colors) as Color[]
-        const colorScale = d3.scaleOrdinal(colorScheme)
+        const colorScale = scaleOrdinal(colorScheme)
         chartData.forEach(series => {
             series.color = chart.data.keyColors[series.key] || colorScale(series.key)
         })

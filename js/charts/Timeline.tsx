@@ -1,5 +1,7 @@
+import {scaleLinear} from 'd3-scale'
+import {select} from 'd3-selection'
+
 import {first, last, sortBy, find} from './Util'
-import * as d3 from 'd3'
 import * as React from 'react'
 import Bounds from './Bounds'
 import Text from './Text'
@@ -153,7 +155,7 @@ export default class Timeline extends React.Component<TimelineProps> {
 
 	@computed get xScale(): any {
 		const { years, sliderBounds } = this
-		return d3.scaleLinear().domain(domainExtent(years, 'linear')).range([sliderBounds.left, sliderBounds.left+sliderBounds.width]);
+		return scaleLinear().domain(domainExtent(years, 'linear')).range([sliderBounds.left, sliderBounds.left+sliderBounds.width]);
 	}
 
 	@action.bound componentWillReceiveProps(nextProps : TimelineProps) {
@@ -246,7 +248,7 @@ export default class Timeline extends React.Component<TimelineProps> {
 
     @action.bound onMouseDown(e: any) {
         // Don't do mousemove if we clicked the play or pause button
-        const targetEl = d3.select(e.target)
+        const targetEl = select(e.target)
         if (targetEl.classed('toggle')) return;
 
         const {startYear, endYear} = this
@@ -284,14 +286,13 @@ export default class Timeline extends React.Component<TimelineProps> {
 
 	mouseFrameQueued: boolean
 
-	@action.bound onMouseMove() {
+	@action.bound onMouseMove(ev: MouseEvent) {
         const {dragTarget, mouseFrameQueued} = this
 		if (!dragTarget || mouseFrameQueued) return
 
-		const e = d3.event
 		this.mouseFrameQueued = true
 		requestAnimationFrame(() => {
-			this.onDrag(this.getInputYearFromMouse(e))
+			this.onDrag(this.getInputYearFromMouse(ev))
 	        this.mouseFrameQueued = false
 	    })
 	}
@@ -302,11 +303,11 @@ export default class Timeline extends React.Component<TimelineProps> {
 
     // Allow proper dragging behavior even if mouse leaves timeline area
     componentDidMount() {
-    	d3.select('html').on('mouseup.timeline', this.onMouseUp)
-    	d3.select('html').on('mouseleave.timeline', this.onMouseUp)
-    	d3.select('html').on('mousemove.timeline', this.onMouseMove)
-    	d3.select('html').on('touchend.timeline', this.onMouseUp)
-    	d3.select('html').on('touchmove.timeline', this.onMouseMove)
+        document.documentElement.addEventListener('mouseup', this.onMouseUp)
+    	document.documentElement.addEventListener('mouseleave', this.onMouseUp)
+    	document.documentElement.addEventListener('mousemove', this.onMouseMove)
+    	document.documentElement.addEventListener('touchend', this.onMouseUp)
+    	document.documentElement.addEventListener('touchmove', this.onMouseMove)
 
         autorun(() => {
             // If we're not playing or dragging, lock the input to the closest year (no interpolation)
@@ -325,10 +326,11 @@ export default class Timeline extends React.Component<TimelineProps> {
     }
 
     componentWillUnmount() {
-    	d3.select('html').on('mouseup.timeline', null)
-    	d3.select('html').on('mousemove.timeline', null)
-    	d3.select('html').on('touchend.timeline', null)
-    	d3.select('html').on('touchmove.timeline', null)
+        document.documentElement.removeEventListener('mouseup', this.onMouseUp)
+    	document.documentElement.removeEventListener('mouseleave', this.onMouseUp)
+    	document.documentElement.removeEventListener('mousemove', this.onMouseMove)
+    	document.documentElement.removeEventListener('touchend', this.onMouseUp)
+    	document.documentElement.removeEventListener('touchmove', this.onMouseMove)
     }
 
   	render() {

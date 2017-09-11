@@ -6,7 +6,7 @@
  */
 
 import * as React from 'react'
-import * as d3 from 'd3'
+import {select} from 'd3-selection'
 import {sortBy, some, min, max} from './Util'
 import {computed, action, observable, autorun, runInAction, IReactionDisposer} from 'mobx'
 import {observer} from 'mobx-react'
@@ -126,7 +126,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
 
             const widths = this.barPlacements.map(b => b.width)
             runInAction(() => {
-                const bars = d3.select(this.base).selectAll("g.bar > rect")
+                const bars = select(this.base).selectAll("g.bar > rect")
                 bars.attr('width', 0).transition().attr('width', (d, i) => widths[i])
             })
         })

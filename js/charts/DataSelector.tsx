@@ -6,7 +6,6 @@ import ChartConfig from './ChartConfig'
 import Bounds from './Bounds'
 import {DataKeyInfo} from './ChartData'
 const styles = require("./DataSelector.css")
-import * as d3 from 'd3'
 import ChartView from './ChartView'
 import FuzzySearch from './FuzzySearch'
 

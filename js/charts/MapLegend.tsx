@@ -1,5 +1,5 @@
+import {select} from 'd3-selection'
 import * as React from 'react'
-import * as d3 from 'd3'
 import {min, max, reduce, map, each, last, sortBy, flatten, some, find} from './Util'
 import Bounds from './Bounds'
 import {observable, computed, asFlat, action} from 'mobx'
@@ -181,10 +181,10 @@ class NumericMapLegendView extends React.Component<{ legend: NumericMapLegend, x
         return this.props.legend
     }
 
-    @action.bound onMouseMove() {
+    @action.bound onMouseMove(ev: MouseEvent) {
         const {legend, props, bounds, base} = this
         const {minValue, rangeSize, focusBracket} = legend
-        const mouse = getRelativeMouse(base, d3.event)
+        const mouse = getRelativeMouse(base, ev)
         if (!this.bounds.contains(mouse))
             if (focusBracket)
                 return this.props.onMouseLeave()
@@ -202,14 +202,13 @@ class NumericMapLegendView extends React.Component<{ legend: NumericMapLegend, x
     }
 
     componentDidMount() {
-        d3.select('html').on('mousemove.mapLegend', this.onMouseMove)
-        d3.select('html').on('touchmove.mapLegend', this.onMouseMove)
-//        Bounds.debug(this.numericLabels.map(l => l.bounds))
+        document.documentElement.addEventListener('mousemove', this.onMouseMove)
+        document.documentElement.addEventListener('touchmove', this.onMouseMove)
     }
 
     componentWillUnmount() {
-        d3.select('html').on('mousemove.mapLegend', null)
-        d3.select('html').on('touchmove.mapLegend', null)
+        document.documentElement.removeEventListener('mousemove', this.onMouseMove)
+        document.documentElement.removeEventListener('touchmove', this.onMouseMove)
     }
 
 	render() {

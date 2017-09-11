@@ -1,5 +1,4 @@
 import {map, min, max, each, identity, sortBy} from './Util'
-import * as d3 from 'd3'
 import Bounds from './Bounds'
 import * as React from 'react'
 import {observable, computed, asFlat, asStructure, autorunAsync, action} from 'mobx'

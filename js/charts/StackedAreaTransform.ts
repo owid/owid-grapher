@@ -1,5 +1,5 @@
 import {computed} from 'mobx'
-import * as d3 from 'd3'
+import {scaleOrdinal} from 'd3-scale'
 import {some, isEmpty, last, union, min, max, sortBy, uniq, cloneDeep, keys, sum, extend, find, identity} from './Util'
 import ChartConfig from './ChartConfig'
 import Color from './Color'
@@ -132,7 +132,7 @@ export default class StackedAreaTransform implements IChartTransform {
 		chartData = sortBy(chartData, series => -selectedKeys.indexOf(series.key))
 
         // Assign colors
-        const colorScale = d3.scaleOrdinal(this.baseColorScheme)
+        const colorScale = scaleOrdinal(this.baseColorScheme)
         chartData.forEach(series => {
             series.color = chart.data.keyColors[series.key] || colorScale(series.key)
         })

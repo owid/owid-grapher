@@ -8,8 +8,10 @@
  * @created 2017-02-11
  */
 
-import * as d3 from 'd3'
 import * as React from 'react'
+import {scaleLinear, scaleLog, scaleOrdinal, ScaleLinear, ScaleLogarithmic, ScaleOrdinal} from 'd3-scale'
+import {extent} from 'd3-array'
+import {select} from 'd3-selection'
 import {every, uniq, first, last, sortBy, extend, min, max, isEmpty, throttle} from './Util'
 import {observable, computed, action} from 'mobx'
 import {observer} from 'mobx-react'
@@ -47,14 +49,14 @@ interface AxisProps {
 
 @observer
 class SlopeChartAxis extends React.Component<AxisProps> {
-	static calculateBounds(containerBounds: Bounds, props: { tickFormat: (value: number) => string, orient: 'left' | 'right', scale: d3.ScaleLinear<number, number> }) {
+	static calculateBounds(containerBounds: Bounds, props: { tickFormat: (value: number) => string, orient: 'left' | 'right', scale: ScaleLinear<number, number> }) {
 		const {orient, scale} = props
 		const longestTick = first(sortBy(scale.ticks(6).map(props.tickFormat), tick => -tick.length)) as string
 		const axisWidth = Bounds.forText(longestTick).width
 		return new Bounds(containerBounds.x, containerBounds.y, axisWidth, containerBounds.height)
 	}
 
-	static getTicks(scale: d3.ScaleLinear<number, number>|d3.ScaleLogarithmic<number, number>, scaleType: ScaleType) {
+	static getTicks(scale: ScaleLinear<number, number>|ScaleLogarithmic<number, number>, scaleType: ScaleType) {
 		if (scaleType == 'log') {
 			let minPower10 = Math.ceil(Math.log(scale.domain()[0]) / Math.log(10));
 			if (!isFinite(minPower10)) minPower10 = 0
@@ -196,25 +198,25 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 		] as [number, number]
 	}
 
-	@computed get sizeScale(): d3.ScaleLinear<number, number> {
-		return d3.scaleLinear().domain(d3.extent(this.props.data.map(d => d.size)) as [number, number]).range([1, 4])
+	@computed get sizeScale(): ScaleLinear<number, number> {
+		return scaleLinear().domain(extent(this.props.data.map(d => d.size)) as [number, number]).range([1, 4])
 	}
 
 	@computed get yScaleConstructor(): Function {
-		return this.props.yScaleType == 'log' ? d3.scaleLog : d3.scaleLinear
+		return this.props.yScaleType == 'log' ? scaleLog : scaleLinear
 	}
 
-	@computed get yScale(): d3.ScaleLinear<number, number>|d3.ScaleLogarithmic<number, number> {
+	@computed get yScale(): ScaleLinear<number, number>|ScaleLogarithmic<number, number> {
 		return this.yScaleConstructor().domain(this.yDomain).range(this.props.bounds.padBottom(50).yRange())
 	}
 
-	@computed get xScale(): d3.ScaleLinear<number, number> {
+	@computed get xScale(): ScaleLinear<number, number> {
 		const {bounds, isPortrait, xDomain, yScale} = this
 		const padding = isPortrait ? 0 : SlopeChartAxis.calculateBounds(bounds, { orient: 'left', scale: yScale, tickFormat: this.props.yTickFormat }).width
-		return d3.scaleLinear().domain(xDomain).range(bounds.padWidth(padding).xRange())
+		return scaleLinear().domain(xDomain).range(bounds.padWidth(padding).xRange())
 	}
 
-	@computed get colorScale(): d3.ScaleOrdinal<string, string> {
+	@computed get colorScale(): ScaleOrdinal<string, string> {
         const colorScheme = [ // TODO less ad hoc color scheme (probably would have to annotate the datasets)
                 "#5675c1", // Africa
                 "#aec7e8", // Antarctica
@@ -225,7 +227,7 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
                 "#69c487", // South America
                 "#ff7f0e", "#1f77b4", "#ffbb78", "#2ca02c", "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b", "c49c94", "e377c2", "f7b6d2", "7f7f7f", "c7c7c7", "bcbd22", "dbdb8d", "17becf", "9edae5", "1f77b4"]
 
-        return d3.scaleOrdinal(colorScheme).domain(uniq(this.props.data.map(d => d.color)))
+        return scaleOrdinal(colorScheme).domain(uniq(this.props.data.map(d => d.color)))
 	}
 
 	@computed get maxLabelWidth(): number {
@@ -368,7 +370,7 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 
 	componentDidMount() {
 		// Nice little intro animation
-		d3.select(this.base).select(".slopes").attr('stroke-dasharray', "100%").attr('stroke-dashoffset', "100%").transition().attr('stroke-dashoffset', "0%")
+		select(this.base).select(".slopes").attr('stroke-dasharray', "100%").attr('stroke-dashoffset', "100%").transition().attr('stroke-dashoffset', "0%")
 	}
     render() {
     	const { yTickFormat, yScaleType, yScaleTypeOptions, onScaleTypeChange } = this.props

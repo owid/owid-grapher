@@ -1,5 +1,4 @@
 import {sortBy} from './Util'
-import * as d3 from 'd3'
 import * as React from 'react'
 import {observable, computed, action} from 'mobx'
 import {observer} from 'mobx-react'

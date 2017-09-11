@@ -6,7 +6,7 @@
  * @created 2017-02-11
  */
 
-import * as d3 from 'd3'
+import {scaleLog, scaleLinear, ScaleLinear, ScaleLogarithmic} from 'd3-scale'
 import {map, extend} from './Util'
 import {observable, computed, action, toJS} from 'mobx'
 
@@ -29,10 +29,10 @@ export default class AxisScale {
     @observable.ref isDiscrete: boolean
 
     @computed get d3_scaleConstructor(): Function {
-        return this.scaleType == 'log' ? d3.scaleLog : d3.scaleLinear
+        return this.scaleType == 'log' ? scaleLog : scaleLinear
     }
 
-    @computed get d3_scale(): d3.ScaleLinear<number, number> | d3.ScaleLogarithmic<number, number> {
+    @computed get d3_scale(): ScaleLinear<number, number> | ScaleLogarithmic<number, number> {
         return this.d3_scaleConstructor().domain(this.domain).range(this.range)
     }
 

@@ -1,5 +1,5 @@
+import {select} from 'd3-selection'
 import {isNumber, includes, extend} from './Util'
-import * as d3 from 'd3'
 import Vector2 from './Vector2'
 
 export default class Bounds {
@@ -56,8 +56,8 @@ export default class Bounds {
 
         this.textBoundsCache = this.textBoundsCache || {}
         this.ctx = this.ctx || document.createElement('canvas').getContext('2d')
-        this.baseFontSize = this.baseFontSize || parseFloat(d3.select('svg').style('font-size'))
-        this.baseFontFamily = this.baseFontFamily || d3.select('svg').style('font-family')
+        this.baseFontSize = this.baseFontSize || parseFloat(select('svg').style('font-size'))
+        this.baseFontFamily = this.baseFontFamily || select('svg').style('font-family')
 
         if (isNumber(fontSize))
             fontSize = fontSize + 'px'
@@ -83,7 +83,7 @@ export default class Bounds {
     }
 
     static debugSVG(boundsArray: Bounds[], containerNode?: HTMLElement) {
-        var container: any = containerNode ? d3.select(containerNode) : d3.select('svg');
+        var container: any = containerNode ? select(containerNode) : select('svg');
 
         container.selectAll('rect.boundsDebug').remove()
 
@@ -100,7 +100,7 @@ export default class Bounds {
     }
 
     static debugHTML(boundsArray: Bounds[], containerNode?: HTMLElement) {
-        var container: any = containerNode ? d3.select(containerNode) : d3.select('#chart');
+        var container: any = containerNode ? select(containerNode) : select('#chart');
 
         container.selectAll('div.boundsDebug').remove()
 

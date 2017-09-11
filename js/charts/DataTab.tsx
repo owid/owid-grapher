@@ -1,5 +1,4 @@
 import {toString, includes, filter, map, flatten, uniq, sortBy, extend} from './Util'
-import * as d3 from 'd3'
 import Bounds from './Bounds'
 import * as React from 'react'
 import {computed} from 'mobx'

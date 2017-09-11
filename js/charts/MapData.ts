@@ -1,8 +1,9 @@
+import {rgb} from 'd3-color'
+import {interpolate} from 'd3-interpolate'
 import {floor, ceil, round, toArray, keys, isEmpty, clone, reverse, includes, extend, each, find} from './Util'
 import {computed, autorun, runInAction, reaction, toJS} from 'mobx'
 import ChartConfig from './ChartConfig'
 import {defaultTo} from './Util'
-import * as d3 from 'd3'
 import ColorSchemes from './ColorSchemes'
 import Color from './Color'
 import {ChoroplethData} from './ChoroplethMap'
@@ -184,9 +185,9 @@ export default class MapData {
             colors = clone(colorScheme.colors[colorScheme.colors.length-1]);
             while (colors.length < numColors) {
                 for (var i = 1; i < colors.length; i++) {
-                    var startColor = d3.rgb(colors[i-1]);
-                    var endColor = d3.rgb(colors[i]);
-                    var newColor = d3.interpolate(startColor, endColor)(0.5);
+                    var startColor = rgb(colors[i-1]);
+                    var endColor = rgb(colors[i]);
+                    var newColor = interpolate(startColor, endColor)(0.5);
                     colors.splice(i, 0, newColor);
                     i += 1;
 

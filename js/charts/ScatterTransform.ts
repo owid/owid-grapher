@@ -1,4 +1,4 @@
-import * as d3 from 'd3'
+import {scaleOrdinal} from 'd3-scale'
 import ChartConfig from './ChartConfig'
 import {some, isEmpty, find, intersection, min, max, keyBy, identity, extend, isNumber, has, flatten, uniq, groupBy, sortBy, map} from './Util'
 import {computed, observable, extras} from 'mobx'
@@ -176,7 +176,7 @@ export default class ScatterTransform implements IChartTransform {
         const {colorScheme} = this
         const colorDim = this.chart.data.dimensionsByField['color']
 
-        const colorScale = d3.scaleOrdinal(this.colorScheme)
+        const colorScale = scaleOrdinal(this.colorScheme)
         if (colorDim) {
             colorScale.domain(colorDim.variable.categoricalValues);
         }

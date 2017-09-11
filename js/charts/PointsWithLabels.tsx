@@ -9,7 +9,7 @@
  */
 
 import * as React from 'react'
-import * as d3 from 'd3'
+import {scaleLinear, scaleOrdinal, ScaleOrdinal, schemeCategory20} from 'd3-scale'
 import {some, map, last, sortBy, cloneDeep, each, includes, filter, flatten, uniq, min, max, find, first, isEmpty} from './Util'
 import {observable, computed, action, autorun} from 'mobx'
 import {observer} from 'mobx-react'
@@ -136,12 +136,12 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
     @computed get sizeScale() {
         const {data} = this
-        const sizeScale = d3.scaleLinear().range([10, 1000]).domain(this.props.sizeDomain)
+        const sizeScale = scaleLinear().range([10, 1000]).domain(this.props.sizeDomain)
         return sizeScale
     }
 
     @computed get fontScale(): Function {
-        return d3.scaleLinear().range([10, 13]).domain(this.sizeScale.domain());
+        return scaleLinear().range([10, 13]).domain(this.sizeScale.domain());
     }
 
     @computed get labelFontFamily(): string {
@@ -149,8 +149,8 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     }
 
     // Used if no color is specified for a series
-    @computed get defaultColorScale(): d3.ScaleOrdinal<string, string> {        
-        return d3.scaleOrdinal(d3.schemeCategory20)
+    @computed get defaultColorScale(): ScaleOrdinal<string, string> {        
+        return scaleOrdinal(schemeCategory20)
     }
 
     // Pre-transform data for rendering

@@ -6,7 +6,6 @@
  */
 
 import * as React from 'react'
-import * as d3 from 'd3'
 import {map, flatten, some, includes, sortBy, filter} from './Util'
 import {computed, action, observable, autorun} from 'mobx'
 import {observer} from 'mobx-react'
