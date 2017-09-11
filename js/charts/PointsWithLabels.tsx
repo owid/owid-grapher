@@ -422,7 +422,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     }
 
     @computed get foregroundGroups(): ScatterRenderSeries[] {
-        return _.filter(this.renderData, group => group.isForeground)
+        return _.filter(this.renderData, group => !!group.isForeground)
     }
 
     renderBackgroundLines() {

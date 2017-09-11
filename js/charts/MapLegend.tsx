@@ -393,6 +393,8 @@ export default class MapLegend extends React.Component<MapLegendProps> {
                 return focusEntity.datum.value == bin.value
             else if (bin instanceof NumericBin)
                 return focusEntity.datum.value >= bin.min && focusEntity.datum.value <= bin.max
+            else
+                return false
         })        
     }
 

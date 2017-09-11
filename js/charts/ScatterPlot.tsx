@@ -97,7 +97,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
 
     @computed get hoverKeys(): string[] {
         const {transform, hoverColor} = this
-        return _(this.transform.allGroups).filter(series => hoverColor && series.color == hoverColor).map(series => series.key).uniq().value()
+        return _(this.transform.allGroups).filter(series => hoverColor !== undefined && series.color == hoverColor).map(series => series.key).uniq().value()
     }
 
     @computed get focusKeys(): string[] {

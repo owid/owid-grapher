@@ -109,7 +109,7 @@ export default class ChartData {
 	// ChartData is ready to go iff we have retrieved data for every variable associated with the chart
 	@computed get isReady(): boolean {
 		const {chart, vardata} = this
-		return _.every(chart.dimensions, dim => vardata.variablesById[dim.variableId])
+		return _.every(chart.dimensions, dim => vardata.variablesById[dim.variableId] !== undefined)
 	}
 
 	@computed.struct get filledDimensions(): DimensionWithData[] {
