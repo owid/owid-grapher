@@ -10,7 +10,7 @@
         "target": "es5",
         "experimentalDecorators": true,
         "strictNullChecks": true,
-        "lib": ["dom", "es6", "dom.iterable", "scripthost"]
+        "lib": ["dom", "es6"]
     },
     "exclude": ["node_modules"],
     "awesomeTypescriptLoaderOptions": {

@@ -36,7 +36,7 @@ export default class ExportView {
                     isExport={true}
                     bounds={targetBounds}/>)
 
-                document.querySelectorAll("link").forEach(el => (el.parentNode as Node).removeChild(el))
+                Array.from(document.querySelectorAll("link")).forEach(el => (el.parentNode as Node).removeChild(el))
                 document.body.innerHTML = svg
                 requestAnimationFrame(() => console.log(document.body.innerHTML))
             }, 0)
