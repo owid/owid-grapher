@@ -73,7 +73,7 @@ export class Areas extends React.Component<{ axisBox: AxisBox, data: StackedArea
         this.props.onHover(this.hoverIndex)
     }
 
-    @computed get polylines() {
+    @computed get polylines(): JSX.Element[] {
         const {axisBox, data} = this.props
         const {xScale, yScale} = axisBox
         const xBottomLeft = `${xScale.range[0]},${yScale.range[0]}`
@@ -117,12 +117,12 @@ export class Areas extends React.Component<{ axisBox: AxisBox, data: StackedArea
 
 @observer
 export default class StackedAreaChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
-    @computed get chart() { return this.props.chart }
-    @computed get bounds() { return this.props.bounds }
+    @computed get chart(): ChartConfig { return this.props.chart }
+    @computed get bounds(): Bounds { return this.props.bounds }
     @computed get transform() { return this.props.chart.stackedArea }
 
 
-    @computed get midpoints() {
+    @computed get midpoints(): number[] {
         let prevY = 0
         return this.transform.stackedData.map((series, i) => {
             const lastValue = last(series.values) as StackedAreaValue
@@ -143,7 +143,7 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
         return sortBy(items, d => d.yValue)
     }
 
-    @computed get legend() {
+    @computed get legend(): HeightedLegend|undefined {
         if (this.chart.hideLegend)
             return undefined
 
@@ -154,7 +154,7 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
         })
     }
 
-    @computed get axisBox() {
+    @computed get axisBox(): AxisBox {
         const {bounds, transform, legend} = this
         const {xAxis, yAxis} = transform
         return new AxisBox({bounds: bounds.padRight(legend ? legend.width+5 : 20), xAxis, yAxis})
@@ -165,7 +165,7 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
         this.hoverIndex = hoverIndex
     }
 
-    @computed get tooltip() {
+    @computed get tooltip(): JSX.Element|undefined {
         if (this.hoverIndex == null) return undefined
 
         const {transform, hoverIndex, axisBox, chart} = this

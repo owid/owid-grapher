@@ -14,7 +14,7 @@ const styles = require("./EditorBasicTab.css")
 class DimensionCard extends React.Component<{ dimension: DimensionWithData, editor: ChartEditor, onEdit?: () => void, onRemove?: () => void }> {
 	@observable.ref isExpanded: boolean = false
 
-	@computed get hasExpandedOptions() {
+	@computed get hasExpandedOptions(): boolean {
 		return this.props.dimension.property == 'y' || this.props.dimension.property == 'x'
 	}
 
@@ -53,7 +53,9 @@ class DimensionCard extends React.Component<{ dimension: DimensionWithData, edit
 					{this.props.onRemove && <span className="clickable" onClick={this.props.onRemove} style={{'margin-right': '10px'}}><i className="fa fa-times"/></span>}
 				</div>
 				<div>{dimension.variable.name}</div>
-				{this.hasExpandedOptions && <div className="clickable" onClick={this.onToggleExpand}><i className={"fa fa-chevron-" + (this.isExpanded ? 'up' : 'down')}/></div>}
+				<div>
+					{this.hasExpandedOptions && <span className="clickable" onClick={this.onToggleExpand}><i className={"fa fa-chevron-" + (this.isExpanded ? 'up' : 'down')}/></span>}
+				</div>
 			</header>
 			{this.isExpanded && <div>
 				<TextField label="Display name" value={dimension.props.displayName} onValue={this.onDisplayName} placeholder={dimension.displayName}/>

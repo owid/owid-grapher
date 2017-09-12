@@ -16,7 +16,7 @@ export default class DiscreteBarTransform implements IChartTransform {
         this.chart = chart
     }
 
-    @computed get isValidConfig() {
+    @computed get isValidConfig(): boolean {
         return some(this.chart.dimensions, d => d.property == 'y')
     }
 
@@ -28,11 +28,11 @@ export default class DiscreteBarTransform implements IChartTransform {
             return "No matching data"
     }
 
-	@computed get baseColorScheme() {
+	@computed get baseColorScheme(): Color[] {
 		return ["#F2585B"]
 	}
 
-    @computed get colors() {
+    @computed get colors(): ColorBinder {
         const _this = this
         return new ColorBinder({
             get chart() { return _this.chart },

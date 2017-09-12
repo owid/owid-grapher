@@ -69,25 +69,25 @@ export default class ScatterTransform implements IChartTransform {
 
     // In relative mode, the timeline scatterplot calculates changes relative
     // to the lower bound year rather than creating an arrow chart
-    @computed get isRelativeMode() {
+    @computed get isRelativeMode(): boolean {
 		return this.chart.props.stackMode == 'relative'
     }
 
-    @computed get canToggleRelative() {
+    @computed get canToggleRelative(): boolean {
         return this.hasTimeline && !this.chart.props.hideRelativeToggle && this.xOverrideYear == null
     }
 
     // Unlike other charts, the scatterplot shows all available data by default, and the selection
     // is just for emphasis. But this behavior can be disabled.
-    @computed get hideBackgroundEntities() {
+    @computed get hideBackgroundEntities(): boolean {
         return this.chart.addCountryMode == 'disabled'
     }
-    @computed get possibleEntities() {
+    @computed get possibleEntities(): string[] {
         const yEntities = this.yDimension ? this.yDimension.variable.entitiesUniq : []
         const xEntities = this.xDimension ? this.xDimension.variable.entitiesUniq : []
         return intersection(yEntities, xEntities)
     }
-    @computed get entitiesToShow() {
+    @computed get entitiesToShow(): string[] {
         let entities = this.hideBackgroundEntities ? this.chart.data.selectedEntities : this.possibleEntities
         const filterDimension = this.chart.data.dimensionsByField['filter']
         if (filterDimension)
@@ -187,7 +187,7 @@ export default class ScatterTransform implements IChartTransform {
 
     // Precompute the data transformation for every timeline year (so later animation is fast)
     // If there's no timeline, this uses the same structure but only computes for a single year
-    @computed get dataByEntityAndYear() {
+    @computed get dataByEntityAndYear(): Map<string, Map<number, ScatterSeries>> {
         const {chart, yearsToCalculate, colorScale, hideBackgroundEntities, entitiesToShow, xOverrideYear} = this
         const {filledDimensions, keyColors} = chart.data
         const validEntityLookup = keyBy(entitiesToShow)
@@ -318,7 +318,7 @@ export default class ScatterTransform implements IChartTransform {
         }
     }
 
-    @computed get yDomainDefault() : [number, number] {
+    @computed get yDomainDefault(): [number, number] {
         if (!this.useTimelineDomains) {
             return domainExtent(this.currentValues.map(d => d.y), this.yScaleType)
         }
@@ -389,11 +389,11 @@ export default class ScatterTransform implements IChartTransform {
         return extend(chart.yAxis.toSpec({ defaultDomain: yDomainDefault }), props) as AxisSpec
     }
 
-    @computed get xScaleType() {
+    @computed get xScaleType(): 'linear'|'log' {
         return this.isRelativeMode ? 'linear' : this.chart.xAxis.scaleType
     }
 
-    @computed get xAxisLabelBase() {
+    @computed get xAxisLabelBase(): string|undefined {
         if (this.chart.xAxis.label != null)
             return this.chart.xAxis.label
 
@@ -425,11 +425,11 @@ export default class ScatterTransform implements IChartTransform {
         return extend(chart.xAxis.toSpec({ defaultDomain: xDomainDefault }), props) as AxisSpec
     }
 
-    @computed get yFormatTooltip() {
+    @computed get yFormatTooltip(): (d: number) => string {
         return (this.isRelativeMode || !this.yDimension) ? this.yAxis.tickFormat : this.yDimension.formatValueLong
     }
 
-    @computed get xFormatTooltip() {
+    @computed get xFormatTooltip(): (d: number) => string {
         return (this.isRelativeMode || !this.xDimension) ? this.xAxis.tickFormat : this.xDimension.formatValueLong
     }
 

@@ -7,13 +7,13 @@ import {computed} from 'mobx'
 class MapProjections {
 	[key: string]: GeoPath<any, any>
 
-	@computed get World() {
+	@computed get World(): GeoPath<any, any> {
 		var projection = geoRobinson()
 		var path = geoPath().projection(projection)
 		return path
 	}
 
-	@computed get Africa() {
+	@computed get Africa(): GeoPath<any, any> {
 		//empiric
 		var k = 3.2;
 		var projection = geoConicConformal()
@@ -24,7 +24,7 @@ class MapProjections {
 		return path
 	}
 
-	@computed get NorthAmerica() {
+	@computed get NorthAmerica(): GeoPath<any, any> {
 		//empiric
 		var k = 3.2;
 		var projection = geoConicConformal()
@@ -35,7 +35,7 @@ class MapProjections {
 		return path
 	}
 
-	@computed get SouthAmerica() {
+	@computed get SouthAmerica(): GeoPath<any, any> {
 		//empiric
 		var k = 3.6;
 		var projection = geoConicConformal()
@@ -46,7 +46,7 @@ class MapProjections {
 		return path
 	}
 
-	@computed get Asia() {
+	@computed get Asia(): GeoPath<any, any> {
 		//empiric
 		var k = 3.2;
 		var projection = geoConicConformal()
@@ -57,7 +57,7 @@ class MapProjections {
 		return path
 	}
 
-	@computed get Europe() {
+	@computed get Europe(): GeoPath<any, any> {
 		//empiric
 		var k = 1.7;
 		var projection = geoConicConformal()
@@ -68,7 +68,7 @@ class MapProjections {
 		return path
 	}
 
-	@computed get Australia() {
+	@computed get Australia(): GeoPath<any, any> {
 		//empiric
 		var k = 3.2;
 		var projection = geoConicConformal()

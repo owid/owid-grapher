@@ -177,7 +177,7 @@ class NumericMapLegendView extends React.Component<{ legend: NumericMapLegend, x
         return new Bounds(props.x, props.y, props.legend.width, props.legend.height)
     }
 
-    @computed get legend() {
+    @computed get legend(): NumericMapLegend {
         return this.props.legend
     }
 

@@ -20,7 +20,7 @@ export default class LineChartTransform implements IChartTransform {
         this.chart = chart
     }
 
-    @computed get isValidConfig() {
+    @computed get isValidConfig(): boolean {
         return some(this.chart.dimensions, d => d.property == 'y')
     }
 
@@ -135,7 +135,7 @@ export default class LineChartTransform implements IChartTransform {
         ) as AxisSpec
     }
 
-    @computed get yDimensionFirst() {
+    @computed get yDimensionFirst(): DimensionWithData|undefined {
         return find(this.chart.data.filledDimensions, d => d.property == 'y')
     }
 
@@ -152,7 +152,7 @@ export default class LineChartTransform implements IChartTransform {
     }
 
     // Filter the data so it fits within the domains
-    @computed get groupedData() {
+    @computed get groupedData(): LineChartSeries[] {
         const {initialData, xAxis, yAxis} = this
         const groupedData = cloneDeep(initialData)
 
