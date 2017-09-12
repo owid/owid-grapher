@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+import sys
 import pymysql
 from .secret_settings import SECRET_KEY, ENV, ALLOWED_HOSTS, BASE_URL, DB_HOST, DB_NAME, DB_PASS, DB_PORT, DB_USER, EMAIL_HOST, EMAIL_HOST_USER, EMAIL_USE_TLS, EMAIL_HOST_PASSWORD, EMAIL_PORT, CLOUDFLARE_BASE_URL, CLOUDFLARE_EMAIL, CLOUDFLARE_KEY, CLOUDFLARE_ZONE_ID, SLACK_TOKEN, SLACK_LOGGING_ENABLED, SLACK_CHANNEL, LOG_FILE_LOCATION, WDI_FETCHER_LOG_FILE_LOCATION, DATASETS_REPO_LOCATION, DATASETS_DIFF_HTML_LOCATION, DATASETS_REPO_EMAIL, DATASETS_REPO_USERNAME, DATASETS_TMP_LOCATION, WEBPACK_DEV_URL
 pymysql.install_as_MySQLdb()
@@ -33,6 +34,8 @@ elif ENV == 'production':
     DEBUG = False
 else:
     DEBUG = False
+
+TESTING = sys.argv[1:2] == ['test']
 
 # Application definition
 
@@ -233,3 +236,14 @@ if SLACK_LOGGING_ENABLED:
                 'level': 'ERROR',
                 'handlers': ['slack_admins']
             }
+
+# Disable migrations when testing, we handle that with owid_data.sql
+if TESTING:
+    class DisableMigrations(object):
+        def __contains__(self, item):
+            return True
+
+        def __getitem__(self, item):
+            return None
+
+    MIGRATION_MODULES = DisableMigrations()
