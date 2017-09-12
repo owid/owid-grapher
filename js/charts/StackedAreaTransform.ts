@@ -108,21 +108,6 @@ export default class StackedAreaTransform implements IChartTransform {
         return defaultTo(findClosest(this.timelineYears, maxYear), this.maxTimelineYear)
     }
 
-	// It may be that the data being presented is already percentage-like, in which case
-	// offering a absolute/relative mode toggle would be redundant
-	@computed get isDataRelative(): boolean {
-		const {initialData} = this
-
-		if (initialData.length == 0)// || (this.yDimensionFirst && this.yDimensionFirst.variable.shortUnit == "%"))
-			return true
-			
-		let totals = []
-		for (var i = 0; i < initialData[0].values.length; i++) {
-			totals.push(sum(initialData.map(series => series.values[i].y)))
-		}
-		return uniq(totals).length == 1
-	}
-
 	@computed get canToggleRelative(): boolean {
 		return !this.chart.props.hideRelativeToggle
 	}
@@ -152,7 +137,9 @@ export default class StackedAreaTransform implements IChartTransform {
 		allYears = sortedUniq(sortBy(allYears))
 
 		groupedData.forEach(series => {
-			let i = 0;
+			let i = 0
+			let isBeforeStart = true
+
 			while (i < allYears.length) {
 				const value = series.values[i]
 				const expectedYear = allYears[i]
@@ -160,7 +147,7 @@ export default class StackedAreaTransform implements IChartTransform {
 				if (value === undefined || value.x > allYears[i]) {
 					let fakeY = 0
 
-					if (i > 0 && i < series.values.length-1) {
+					if (!isBeforeStart && i < series.values.length) {
 						// Missing data in the middle-- interpolate a value
 						const prevValue = series.values[i-1]
 						const nextValue = series.values[i]
@@ -168,6 +155,8 @@ export default class StackedAreaTransform implements IChartTransform {
 					}
 
 					series.values.splice(i, 0, { x: expectedYear, y: fakeY, time: expectedYear, isFake: true })
+				} else {
+					isBeforeStart = false
 				}
 				i += 1
 			}

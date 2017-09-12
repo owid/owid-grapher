@@ -181,7 +181,7 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
                 <tr>
                     <td><strong>{refValue.x}</strong></td>
                     <td>
-                        {!transform.isRelative && !transform.isDataRelative && !someMissing && <span>
+                        {!transform.isRelative && !someMissing && <span>
                             <strong>{transform.yAxis.tickFormat(transform.stackedData[transform.stackedData.length-1].values[hoverIndex].y)}</strong>
                         </span>}
                     </td>
