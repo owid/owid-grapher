@@ -1,5 +1,5 @@
-import * as _ from 'lodash'
 import * as React from 'react'
+import {extend, debounce} from '../charts/Util'
 import {observable, computed, action, toJS, autorun} from 'mobx'
 import {observer} from 'mobx-react'
 import Timeline from '../charts/Timeline'
@@ -17,8 +17,8 @@ export default class EditorScatterTab extends React.Component<{ chart: ChartConf
 
     constructor(props: { chart: ChartConfig }) {
         super(props)
-        _.extend(this.comparisonLine, props.chart.comparisonLine)
-        _.extend(this.highlightToggle, props.chart.highlightToggle)
+        extend(this.comparisonLine, props.chart.comparisonLine)
+        extend(this.highlightToggle, props.chart.highlightToggle)
     }
 
     @action.bound onToggleHideTimeline(value: boolean) {
@@ -65,7 +65,7 @@ export default class EditorScatterTab extends React.Component<{ chart: ChartConf
                 </div>}*/}
                 <h2>Timeline</h2>
                 <Toggle label="Hide timeline" value={!!chart.props.hideTimeline} onValue={this.onToggleHideTimeline}/>
-                <NumberField label="Override X axis target year" value={chart.scatter.xOverrideYear} onValue={_.debounce(this.onXOverrideYear, 300)}/>
+                <NumberField label="Override X axis target year" value={chart.scatter.xOverrideYear} onValue={debounce(this.onXOverrideYear, 300)}/>
                 <h2>Comparison line</h2>
                 <p className="form-section-desc">Overlay a line onto the chart for comparison. Supports basic <a href="https://github.com/silentmatt/expr-eval#expression-syntax">mathematical expressions</a>.</p>
                 <label className="clickable"><input type="checkbox" checked={!!hasComparisonLine} onChange={this.onToggleComparisonLine}/> Enable comparison line</label>                

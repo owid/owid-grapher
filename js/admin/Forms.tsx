@@ -5,9 +5,7 @@
  */
 
 import * as React from 'react'
-import {toString} from 'lodash'
-import {numberOnly} from '../charts/Util'
-import * as _ from 'lodash'
+import {toString, numberOnly, pick} from '../charts/Util'
 import {bind} from 'decko'
 
 export interface TextFieldProps extends React.HTMLAttributes<HTMLLabelElement> {
@@ -41,7 +39,7 @@ export class TextField extends React.Component<TextFieldProps> {
 
     render() {
         const {props} = this
-        const passthroughProps = _.pick(props, ['placeholder', 'title', 'disabled'])
+        const passthroughProps = pick(props, ['placeholder', 'title', 'disabled'])
 
         if (props.label) {
             return <label className="TextField" style={props.style}>
@@ -66,7 +64,7 @@ export class TextAreaField extends React.Component<TextFieldProps> {
 
     render() {
         const {props} = this
-        const passthroughProps = _.pick(props, ['placeholder', 'title', 'disabled'])
+        const passthroughProps = pick(props, ['placeholder', 'title', 'disabled'])
 
         if (props.label) {
             return <label style={props.style} className="TextAreaField">
@@ -92,7 +90,7 @@ export interface NumberFieldProps {
 export class NumberField extends React.Component<NumberFieldProps> {
     render() {
         const {props} = this
-        const passthroughProps = _.pick(props, ['min', 'max', 'placeholder', 'disabled'])
+        const passthroughProps = pick(props, ['min', 'max', 'placeholder', 'disabled'])
         if (props.label) {
             return <label className="NumberField">
                 {props.label} <input type="number" value={toString(props.value)} onChange={(ev) => props.onValue(numberOnly(ev.currentTarget.value))} {...passthroughProps}/>

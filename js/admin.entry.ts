@@ -22,5 +22,4 @@ window.ChartEditorView = require('./admin/ChartEditorView').default
 
 // Importer code
 
-window.moment = require('moment')
 window.Importer = require('./admin/Importer').default

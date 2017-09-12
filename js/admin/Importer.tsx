@@ -1,13 +1,11 @@
-import * as _ from 'lodash'
-
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
+import {map, uniqBy, filter, keys, groupBy, isEmpty, difference, find, clone} from '../charts/Util'
 import {observable, computed, action, autorun, reaction} from 'mobx'
 import {observer} from 'mobx-react'
 import {bind} from 'decko'
 
 import * as parse from 'csv-parse'
-import {NullElement} from '../charts/Util'
 import EditorModal from './EditorModal'
 
 const styles = require('./Importer.css')
@@ -87,8 +85,8 @@ class Dataset {
 
 	@computed get sources(): { name: string, description: string }[] {
 		const {newVariables, existingVariables} = this
-		const sources = _.map(existingVariables, v => v.source).concat(_.map(newVariables, v => v.source))
-		return _.uniqBy(_.filter(sources), source => source.id)
+		const sources = map(existingVariables, v => v.source).concat(map(newVariables, v => v.source))
+		return uniqBy(filter(sources), source => source.id)
 	}
 
 	@action.bound save() {
@@ -160,7 +158,7 @@ class Dataset {
 				this.newVariables.forEach(variable => {
 					const match = this.existingVariables.filter(v => v.name == variable.name)[0]
 					if (match) {
-						_.keys(match).forEach(key => {
+						keys(match).forEach(key => {
 							if (key == 'id')
 								variable.overwriteId = (match as any)[key]
 							else
@@ -199,10 +197,10 @@ class DataPreview extends React.Component<{ csv: CSV }> {
 		return <div style={{height: height*visibleRows, 'overflow-y': 'scroll'}} onScroll={this.onScroll as any}>
 			<div style={{height: height*numRows, 'padding-top': height*rowOffset}}>
 				<table className="table" style={{background: 'white'}}>
-				    {_.map(rows.slice(rowOffset, rowOffset+visibleRows), (row, i) =>
+				    {map(rows.slice(rowOffset, rowOffset+visibleRows), (row, i) =>
 				    	<tr>
 				    		<td>{rowOffset+i+1}</td>
-				    		{_.map(row, cell => <td style={{height: height}}>{cell}</td>)}
+				    		{map(row, cell => <td style={{height: height}}>{cell}</td>)}
 				    	</tr>
 				    )}
 				</table>
@@ -244,14 +242,14 @@ class EditDescription extends React.Component<{ dataset: Dataset }> {
 }
 
 const EditCategory = ({categories, dataset}: any) => {
-	const categoriesByParent = _.groupBy(categories, (category: any) => category.parent)
+	const categoriesByParent = groupBy(categories, (category: any) => category.parent)
 
 	return <label>
 		Category <span className="form-section-desc">(Currently used only for internal organization)</span>
 		<select onChange={e => dataset.subcategoryId = e.target.value} value={dataset.subcategoryId}>
-			{_.map(categoriesByParent, (subcats, parent) =>
+			{map(categoriesByParent, (subcats, parent) =>
 				<optgroup label={parent}>
-					{_.map(subcats, category =>
+					{map(subcats, category =>
 						<option value={category.id}>{category.name}</option>
 					)}
 				</optgroup>
@@ -303,7 +301,7 @@ class EditVariable extends React.Component<{ variable: Variable, dataset: Datase
 				<label>Action
 					<select onChange={e => { variable.overwriteId = e.target.value ? parseInt(e.target.value) : undefined }}>
 						<option value="" selected={variable.overwriteId == null}>Create new variable</option>
-						{_.map(dataset.existingVariables, v =>
+						{map(dataset.existingVariables, v =>
 							<option value={v.id} selected={variable.overwriteId == v.id}>Overwrite {v.name}</option>
 						)}
 					</select>
@@ -323,7 +321,7 @@ class EditVariables extends React.Component<{ dataset: Dataset }> {
 			<h3>Variable names and descriptions</h3>
 			<p className="form-section-desc">Here you can configure the variables that will be stored for your dataset.</p>
 			<ol>
-				{_.map(dataset.newVariables, variable =>
+				{map(dataset.newVariables, variable =>
 					<EditVariable variable={variable} dataset={dataset}/>
 				)}
 			</ol>
@@ -369,7 +367,7 @@ class EditSource extends React.Component<{ variable: Variable, dataset: Dataset,
 				<span>Source:</span>
 				<select onChange={this.onChangeSource}>
 					<option selected={!source.id}>Create new</option>
-					{_.map(dataset.sources, otherSource =>
+					{map(dataset.sources, otherSource =>
 						<option value={otherSource.name} selected={source.name == otherSource.name}>{otherSource.name}</option>
 					)}
 				</select>
@@ -495,7 +493,7 @@ class CSV {
 		const invalidLines = []
 		for (let i = 1; i < rows.length; i++) {
 			const year = rows[i][1]
-			if ((+year).toString() != year || _.isEmpty(rows[i][0])) {
+			if ((+year).toString() != year || isEmpty(rows[i][0])) {
 				invalidLines.push(i+1)
 			}
 		}
@@ -517,7 +515,7 @@ class CSV {
 			uniqCheck[key] += 1
 		}
 
-		_.keys(uniqCheck).forEach(key => {
+		keys(uniqCheck).forEach(key => {
 			const count = uniqCheck[key]
 			if (count > 1) {
 				validation.results.push({
@@ -545,7 +543,7 @@ class CSV {
 			})
 
 		// Warn if we're creating novel entities
-		const newEntities = _.difference(this.data.entityNames, this.existingEntities)
+		const newEntities = difference(this.data.entityNames, this.existingEntities)
 		if (newEntities.length >= 1) {
 			validation.results.push({
 				class: 'warning',
@@ -553,7 +551,7 @@ class CSV {
 			})
 		}
 
-		validation.passed = !_.find(validation.results, result => result.class == "error")
+		validation.passed = !find(validation.results, result => result.class == "error")
 
 		return validation
 	}
@@ -591,7 +589,7 @@ class ValidationResults extends React.Component<{ validation: any }> {
 		const {validation} = this.props
 
 		return <section className={styles.validation}>
-			{_.map(validation.results, (v: any) =>
+			{map(validation.results, (v: any) =>
 				<div className={`alert alert-${v.class}`}>{v.message}</div>
 			)}
 		</section>
@@ -651,7 +649,7 @@ export default class Importer extends React.Component<{ datasets: any[], categor
 
 	@action.bound onCSV(csv: CSV) {
 		this.csv = csv
-		const match = _.filter(this.props.datasets, d => d.name == csv.basename)[0]
+		const match = filter(this.props.datasets, d => d.name == csv.basename)[0]
 		this.dataset = match ? Dataset.fromServer(match) : new Dataset()
 	}
 
@@ -665,7 +663,7 @@ export default class Importer extends React.Component<{ datasets: any[], categor
 				if (!dataset.name)
 					dataset.name = csv.basename
 
-				dataset.newVariables = _.map(csv.data.variables, _.clone)
+				dataset.newVariables = map(csv.data.variables, clone)
 				dataset.entityNames = csv.data.entityNames
 				dataset.entities = csv.data.entities
 				dataset.years = csv.data.years
@@ -690,7 +688,7 @@ export default class Importer extends React.Component<{ datasets: any[], categor
 		Source.template = this.props.sourceTemplate
 
 		if (dataset.subcategoryId == null) {
-			dataset.subcategoryId = (_.find(categories, c => c.name == "Uncategorized")||{}).id
+			dataset.subcategoryId = (find(categories, c => c.name == "Uncategorized")||{}).id
 		}
 
 		return <form className={styles.importer} onSubmit={this.onSubmit}>
@@ -702,7 +700,7 @@ export default class Importer extends React.Component<{ datasets: any[], categor
 				<p style={{opacity: dataset.id ? 1 : 0}} className="updateWarning">Updating existing dataset</p>
 				<select className="chooseDataset" onChange={this.onChooseDataset}>
 					<option selected={dataset.id == null}>Create new dataset</option>
-					{_.map(datasets, (d) =>
+					{map(datasets, (d) =>
 						<option value={d.id} selected={d.id == dataset.id}>{d.name}</option>
 					)}
 				</select>

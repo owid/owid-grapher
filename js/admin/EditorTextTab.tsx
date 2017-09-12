@@ -1,4 +1,3 @@
-import * as _ from 'lodash'
 import * as React from 'react'
 import {computed, action} from 'mobx'
 import {observer} from 'mobx-react'

@@ -1,6 +1,6 @@
-import * as _ from 'lodash'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
+import {groupBy, each, isString} from '../charts/Util'
 import {computed, action, observable} from 'mobx'
 import {observer} from 'mobx-react'
 import {SelectField, Toggle, NumberField} from './Forms'
@@ -48,7 +48,7 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
 	}
 
 	@computed get datasets() {
-		return _(this.database.datasets).filter(d => d.namespace == this.currentNamespace).value()
+		return this.database.datasets.filter(d => d.namespace == this.currentNamespace)
 	}
 
 	@computed get availableVariables(): Variable[] {
@@ -81,14 +81,14 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
     }
 
 	@computed get resultsByDataset(): { [datasetName: string]: Variable[] } {
-		return _.groupBy(this.searchResults, d => d.datasetName)
+		return groupBy(this.searchResults, d => d.datasetName)
 	}
 
 	@computed get searchResultRows() {
 		const {resultsByDataset} = this
 		
 		let rows: (string|Variable[])[] = []
-		_.each(resultsByDataset, (variables, datasetName) => {
+		each(resultsByDataset, (variables, datasetName) => {
 			rows.push(datasetName)
 
 			for (let i = 0; i < variables.length; i += 2) {
@@ -122,7 +122,7 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
 								<div style={{height: numTotalRows*rowHeight, 'padding-top': rowHeight*rowOffset}}>
 									<ul>
 										{searchResultRows.slice(rowOffset, rowOffset+numVisibleRows).map(d => {
-											if (_.isString(d)) {
+											if (isString(d)) {
 												return <li key={d} style={{'min-width': '100%'}}>
 													<h5 dangerouslySetInnerHTML={{__html: this.fuzzy.highlight(searchInput||"", d)}}/>
 												</li>

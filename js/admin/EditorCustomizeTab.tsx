@@ -1,11 +1,10 @@
 import * as React from 'react'
-import * as _ from 'lodash'
+import {extend, toString, map} from '../charts/Util'
 import {computed, action} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartEditor from './ChartEditor'
 import ChartConfig from '../charts/ChartConfig'
 import {AxisConfigProps} from '../charts/AxisConfig'
-import {toString} from 'lodash'
 import {TextField, NumberField, SelectField, Toggle} from './Forms'
 import ColorSchemes from '../charts/ColorSchemes'
 
@@ -17,7 +16,7 @@ class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
 
 	render() {
 		const {chart} = this.props
-		const availableColorSchemes = ['default'].concat(_(ColorSchemes).map((v: any, k: any) => _.extend({}, v, { key: k })).filter((v: any) => !!v.name).map('key').value())
+		const availableColorSchemes = ['default'].concat(map(ColorSchemes, (v: any, k: any) => extend({}, v, { key: k })).filter((v: any) => !!v.name).map((d: any) => d.key))
 
 		return <section>
 			<h3>Colors</h3>

@@ -1,6 +1,6 @@
-import * as _ from 'lodash'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
+import {clone, map, debounce} from '../charts/Util'
 import {computed, action, observable, when} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartConfig, {DimensionSlot, ChartDimension} from '../charts/ChartConfig'
@@ -71,7 +71,7 @@ class KeysSection extends React.Component<{ chart: ChartConfig }> {
 		if (!this.dragKey || targetKey == this.dragKey)
 			return
 
-		const selectedKeys = _.clone(this.props.chart.data.selectedKeys)
+		const selectedKeys = clone(this.props.chart.data.selectedKeys)
 		const dragIndex = selectedKeys.indexOf(this.dragKey)
 		const targetIndex = selectedKeys.indexOf(targetKey)
 		selectedKeys.splice(dragIndex, 1)
@@ -88,12 +88,12 @@ class KeysSection extends React.Component<{ chart: ChartConfig }> {
 
 			<select className="form-control countries-select" onChange={this.onAddKey} value="Select data">
 				<option value="Select data" selected={true} disabled={true}>Select data</option>
-				{_.map(remainingKeys, key =>
+				{map(remainingKeys, key =>
 					<option value={key}>{chart.data.lookupKey(key).fullLabel}</option>
 				)}
 			</select>
 			<ul className="selected-countries-box no-bullets">
-				{_.map(selectedKeys, datakey =>
+				{map(selectedKeys, datakey =>
 					<DataKeyItem chart={chart} datakey={datakey} onMouseDown={ev => this.onStartDrag(datakey)} onMouseEnter={ev => this.onMouseEnter(datakey)}/>
 				)}
 			</ul>
@@ -141,8 +141,8 @@ class TimeSection extends React.Component<{ editor: ChartEditor }> {
 		const {chart, isDynamicTime} = this
 
 		return <section className="time-section">
-			{features.timeDomain && <NumberField label="Min year" value={chart.props.minTime} onValue={_.debounce(this.onMinTime)}/>}
-			<NumberField label={features.timeDomain ? "Max year" : "Target year"} value={chart.props.maxTime} onValue={_.debounce(this.onMaxTime)}/>
+			{features.timeDomain && <NumberField label="Min year" value={chart.props.minTime} onValue={debounce(this.onMinTime)}/>}
+			<NumberField label={features.timeDomain ? "Max year" : "Target year"} value={chart.props.maxTime} onValue={debounce(this.onMaxTime)}/>
 		</section>
 	}
 }

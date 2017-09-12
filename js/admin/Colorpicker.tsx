@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as _ from 'lodash'
+import {last} from '../charts/Util'
 import Color from '../charts/Color'
 import {bind} from 'decko'
 import {observable} from 'mobx'
@@ -22,14 +22,14 @@ export default class Colorpicker extends React.Component<ColorpickerProps> {
     
 
     render() {
-        const availableColors: Color[] = _.last(ColorSchemes['owid-distinct'].colors) as Color[]
+        const availableColors: Color[] = last(ColorSchemes['owid-distinct'].colors) as Color[]
 
         return <div className="popup-picker-wrapper" tabIndex={0} onClick={e => e.stopPropagation()}>
             <a href='#' className='close-btn pull-right' onClick={this.props.onClose}>
                 <i className='fa fa-times' style={{color: 'white'}}></i>
             </a>
             <ul className='no-bullets'>
-                {_.map(availableColors, color => 
+                {availableColors.map(color => 
                     <li style={{backgroundColor: color}} onClick={() => { this.props.onColor(color); this.props.onClose() }}/>
                 )}
             </ul>

@@ -1,5 +1,5 @@
-import * as _ from 'lodash'
 import * as React from 'react'
+import {toString, includes, sample, sampleSize} from '../charts/Util'
 import {observable, computed, action, reaction, IReactionDisposer} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartConfig, {DimensionSlot, ChartDimension} from '../charts/ChartConfig'
@@ -57,7 +57,7 @@ class DimensionCard extends React.Component<{ dimension: DimensionWithData, edit
 				<TextField label="Display name" value={dimension.props.displayName} onValue={this.onDisplayName} placeholder={dimension.displayName}/>
 				<TextField label="Unit" value={dimension.props.unit} onValue={this.onUnit} placeholder={dimension.unit}/>
 				<TextField label="Short unit" value={dimension.props.shortUnit} onValue={this.onShortUnit} placeholder={dimension.shortUnit}/>
-				{(chart.isScatter || chart.isDiscreteBar) && <NumberField label="Tolerance" value={dimension.props.tolerance} onValue={this.onTolerance} placeholder={_.toString(dimension.tolerance)}/>}
+				{(chart.isScatter || chart.isDiscreteBar) && <NumberField label="Tolerance" value={dimension.props.tolerance} onValue={this.onTolerance} placeholder={toString(dimension.tolerance)}/>}
 				{chart.isLineChart && <Toggle label="Is projection" value={!!dimension.props.isProjection} onValue={this.onIsProjection}/>}
 			</div>}
 		</div>
@@ -96,11 +96,11 @@ class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: C
 				if (chart.isScatter || chart.isSlopeChart) {
 					chart.data.selectedKeys = []
 				} else if (chart.data.primaryDimensions.length > 1) {
-					const entity = _.includes(chart.data.availableEntities, "World") ? "World" : _.sample(chart.data.availableEntities)
+					const entity = includes(chart.data.availableEntities, "World") ? "World" : sample(chart.data.availableEntities)
 					chart.data.selectedKeys = chart.data.availableKeys.filter(key => chart.data.lookupKey(key).entity == entity)
 					chart.props.addCountryMode = 'change-country'
 				} else {
-					chart.data.selectedKeys = chart.data.availableKeys.length > 10 ? _.sampleSize(chart.data.availableKeys, 3) : chart.data.availableKeys
+					chart.data.selectedKeys = chart.data.availableKeys.length > 10 ? sampleSize(chart.data.availableKeys, 3) : chart.data.availableKeys
 					chart.props.addCountryMode = 'add-country'
 				}
 			}
