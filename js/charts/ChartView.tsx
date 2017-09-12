@@ -162,15 +162,17 @@ export default class ChartView extends React.Component<ChartViewProps> {
         }
     }
 
-    renderPrimaryTab(bounds: Bounds) {
+    renderPrimaryTab(bounds: Bounds): JSX.Element|undefined {
         const {chart} = this
         if (chart.primaryTab == 'chart')
             return <ChartTab bounds={bounds} chartView={this} chart={this.chart}/>
         else if (chart.primaryTab == 'map')
             return <MapTab bounds={bounds} chart={this.chart}/>
+        else
+            return undefined
     }
 
-    renderOverlayTab(bounds: Bounds) {
+    renderOverlayTab(bounds: Bounds): JSX.Element|undefined {
         const {chart} = this
         if (chart.overlayTab == 'sources')
             return <SourcesTab bounds={bounds} chart={chart}/>
@@ -179,7 +181,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
         else if (chart.overlayTab == 'download')
             return <DownloadTab bounds={bounds} chart={chart}/>
         else
-            return null
+            return undefined
     }
 
     renderSVG() {

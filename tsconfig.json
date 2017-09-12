@@ -1,17 +1,17 @@
 {
     "compilerOptions": {
+        "strict": true,
+        "noImplicitReturns": true,
         "allowJs": false,
-        "alwaysStrict": true,
-        "noImplicitAny": true,
         "outDir": "./tmp/dist/",
         "sourceMap": true,
         "module": "commonjs",
         "jsx": "react",
         "target": "es5",
         "experimentalDecorators": true,
-        "strictNullChecks": true,
         "noUnusedLocals": true,
         "noUnusedParameters": true,
+        "forceConsistentCasingInFileNames": true,
         "lib": ["dom", "es6"]
     },
     "exclude": ["node_modules"]

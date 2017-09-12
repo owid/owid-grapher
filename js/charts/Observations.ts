@@ -53,6 +53,8 @@ export default class Observations {
 	last(key? : any) {
 		if (key == null)
 			return last(this.data)
+		else
+			return undefined
 //		else
 //			return (find(this.data, (d) => d[key] !== undefined)||{})[key]
 	}

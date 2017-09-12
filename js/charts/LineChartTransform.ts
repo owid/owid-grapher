@@ -29,6 +29,8 @@ export default class LineChartTransform implements IChartTransform {
             return "Missing Y axis variable"
         else if (isEmpty(this.groupedData))
             return "No matching data"
+        else
+            return undefined
     }
 
 	@computed get initialData(): LineChartSeries[] {

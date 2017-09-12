@@ -120,6 +120,8 @@ export default class URLBinder {
                 return minTime + ".." + maxTime
             } else if (isNumber(minTime)) {
                 return toString(minTime)
+            } else {
+                return undefined
             }
         } else {
             return undefined

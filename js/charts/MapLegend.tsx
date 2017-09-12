@@ -382,22 +382,30 @@ export default class MapLegend extends React.Component<MapLegendProps> {
     @computed get numericFocusBracket(): MapLegendBin|undefined {
         const {focusBracket, focusEntity} = this.props
         const {numericLegendData} = this
-        if (focusBracket) return focusBracket
-        if (focusEntity) return find(numericLegendData, bin => {
-            if (bin instanceof CategoricalBin)
-                return focusEntity.datum.value == bin.value
-            else if (bin instanceof NumericBin)
-                return focusEntity.datum.value >= bin.min && focusEntity.datum.value <= bin.max
-            else
-                return false
-        })        
+        if (focusBracket) 
+            return focusBracket
+        else if (focusEntity) 
+            return find(numericLegendData, bin => {
+                if (bin instanceof CategoricalBin)
+                    return focusEntity.datum.value == bin.value
+                else if (bin instanceof NumericBin)
+                    return focusEntity.datum.value >= bin.min && focusEntity.datum.value <= bin.max
+                else
+                    return false
+            })        
+        else
+            return undefined
     }
 
     @computed get categoricalFocusBracket(): CategoricalBin|undefined {
         const {focusBracket, focusEntity} = this.props
         const {categoricalLegendData} = this
-        if (focusBracket && focusBracket instanceof CategoricalBin) return focusBracket
-        if (focusEntity) return find(categoricalLegendData, bin => focusEntity.datum.value == bin.value)
+        if (focusBracket && focusBracket instanceof CategoricalBin) 
+            return focusBracket
+        else if (focusEntity) 
+            return find(categoricalLegendData, bin => focusEntity.datum.value == bin.value)
+        else
+            return undefined
     }
 
     @computed get categoryLegend(): CategoricalMapLegend {

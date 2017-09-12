@@ -26,6 +26,8 @@ export default class DiscreteBarTransform implements IChartTransform {
             return "Missing variable"
         else if (isEmpty(this.data))
             return "No matching data"
+        else
+            return undefined
     }
 
 	@computed get baseColorScheme(): Color[] {

@@ -37,6 +37,8 @@ export default class ScatterTransform implements IChartTransform {
             return "No years with data for both X and Y"
         else if (isEmpty(this.currentData))
             return "No matching data"
+        else
+            return undefined
     }
 
     // Scatterplot should have exactly one dimension for each of x and y

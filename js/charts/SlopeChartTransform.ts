@@ -28,6 +28,8 @@ export default class SlopeChartTransform implements IChartTransform {
             return "Missing Y axis variable"
         else if (isEmpty(this.data))
             return "No matching data"
+		else
+			return undefined
     }
 
     @computed get timelineYears(): number[] {
