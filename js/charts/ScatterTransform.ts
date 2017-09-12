@@ -88,10 +88,11 @@ export default class ScatterTransform implements IChartTransform {
         return intersection(yEntities, xEntities)
     }
     @computed get entitiesToShow() {
-        if (this.hideBackgroundEntities)
-            return this.chart.data.selectedEntities
-        else
-            return this.possibleEntities
+        let entities = this.hideBackgroundEntities ? this.chart.data.selectedEntities : this.possibleEntities
+        const filterDimension = this.chart.data.dimensionsByField['filter']
+        if (filterDimension)
+            entities = intersection(entities, filterDimension.variable.entitiesUniq)
+        return entities
     }
 
     @computed get timelineYears(): number[] {

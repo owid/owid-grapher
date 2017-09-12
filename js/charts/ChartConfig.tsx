@@ -76,7 +76,8 @@ export class DimensionSlot {
             'y': this.chart.isDiscreteBar ? 'X axis' : 'Y axis',
             'x': 'X axis',
             'size': 'Size',
-            'color': 'Color'
+            'color': 'Color',
+            'filter': 'Filter'
         }
 
         return (names as any)[this.property]||""
@@ -84,6 +85,10 @@ export class DimensionSlot {
 
     @computed get allowMultiple(): boolean {
         return this.property == 'y' && !(this.chart.isScatter || this.chart.isSlopeChart)
+    }
+
+    @computed get isOptional(): boolean {
+        return this.property == 'filter'
     }
 
     @computed get dimensions(): ChartDimension[] {
@@ -216,9 +221,10 @@ export default class ChartConfig {
         const yAxis = new DimensionSlot(this, 'y')
         const color = new DimensionSlot(this, 'color')
         const size = new DimensionSlot(this, 'size')
+        const filter = new DimensionSlot(this, 'filter')
 
 		if (this.isScatter)
-			return [yAxis, xAxis, size, color]
+			return [yAxis, xAxis, size, color, filter]
 		else if (this.isSlopeChart)
 			return [yAxis, size, color]
 		else

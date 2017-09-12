@@ -48,8 +48,10 @@ class DimensionCard extends React.Component<{ dimension: DimensionWithData, edit
 
 		return <div className="DimensionCard">
 			<header>
-				{this.props.onEdit && <span className="clickable" onClick={this.props.onEdit} style={{'margin-right': '10px'}}><i className="fa fa-exchange"/></span>}
-				{this.props.onRemove && <span className="clickable" onClick={this.props.onRemove} style={{'margin-right': '10px'}}><i className="fa fa-times"/></span>}
+				<div>
+					{this.props.onEdit && <span className="clickable" onClick={this.props.onEdit} style={{'margin-right': '10px'}}><i className="fa fa-exchange"/></span>}
+					{this.props.onRemove && <span className="clickable" onClick={this.props.onRemove} style={{'margin-right': '10px'}}><i className="fa fa-times"/></span>}
+				</div>
 				<div>{dimension.variable.name}</div>
 				{this.hasExpandedOptions && <div className="clickable" onClick={this.onToggleExpand}><i className={"fa fa-chevron-" + (this.isExpanded ? 'up' : 'down')}/></div>}
 			</header>
@@ -120,7 +122,7 @@ class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: C
 		return <div>
 			<h5>{slot.name}</h5>
 			{slot.dimensionsWithData.map((dim, i) => {
-				return dim.property == slot.property && <DimensionCard dimension={dim} editor={editor} onEdit={slot.allowMultiple ? undefined : action(() => this.isSelectingVariables = true)} onRemove={slot.allowMultiple ? () => this.onRemoveDimension(dim) : undefined}/>
+				return dim.property == slot.property && <DimensionCard dimension={dim} editor={editor} onEdit={slot.allowMultiple ? undefined : action(() => this.isSelectingVariables = true)} onRemove={slot.isOptional ? () => this.onRemoveDimension(dim) : undefined}/>
 			})}
 			{canAddMore && <div className="dimensionSlot" onClick={action(() => this.isSelectingVariables = true)}>Add variable{slot.allowMultiple && 's'}</div>}
 			{isSelectingVariables && <VariableSelector editor={editor} slot={slot} onDismiss={action(() => this.isSelectingVariables = false)} onComplete={this.onVariables}/>}
