@@ -117,15 +117,6 @@
 
 		<script src="{% webpack "admin.js" %}"></script>
 
-		<script>
-			// TODO: remove old jquery post code (mainly in the backbone models). Until then, needed.
-			$.ajaxSetup({
-				beforeSend: function(xhr, settings) {
-					xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}")
-				}
-			})
-		</script>
-
 		{% block scripts %}
         {% endblock %}
 	</body>
