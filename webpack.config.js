@@ -1,14 +1,14 @@
-import * as path from 'path'
-import * as webpack from 'webpack'
-import * as OptimizeCssAssetsPlugin from 'optimize-css-assets-webpack-plugin'
-import * as ExtractTextPlugin from 'extract-text-webpack-plugin'
+const path = require('path')
+const webpack = require('webpack')
+const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin')
+const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const ManifestPlugin = require('webpack-manifest-plugin')
 const ParallelUglifyPlugin = require('webpack-parallel-uglify-plugin')
 
 const isProduction = process.argv.indexOf('-p') !== -1
 
-export default {
+module.exports = {
     context: __dirname,
     entry: {
         charts: "./js/charts.entry.ts",
@@ -100,7 +100,7 @@ export default {
         new ExtractTextPlugin('[name].css')
     ]),
     devServer: {
-        host: '0.0.0.0',
+        host: 'localhost',
         port: 8090,
         contentBase: 'public',
         disableHostCheck: true,
