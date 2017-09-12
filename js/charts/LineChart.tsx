@@ -11,17 +11,12 @@ import {computed, action, observable} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartConfig from './ChartConfig'
 import Bounds from './Bounds'
-import LineType from './LineType'
-import {defaultTo} from './Util'
 import AxisBox from './AxisBox'
 import StandardAxisBoxView from './StandardAxisBoxView'
 import Lines from './Lines'
-import Text from './Text'
 import HeightedLegend, {HeightedLegendView} from './HeightedLegend'
-import Vector2 from './Vector2'
 import {HoverTarget} from './Lines'
 import Tooltip from './Tooltip'
-import AxisBoxHighlight from './AxisBoxHighlight'
 import DataKey from './DataKey'
 import NoData from './NoData'
 import {formatYear} from './Util'
@@ -85,7 +80,7 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
     }
 
     @computed get tooltip() {
-        const {hoverTarget, chart, transform} = this
+        const {hoverTarget, chart} = this
         if (hoverTarget == null) return undefined
 
         return <Tooltip x={hoverTarget.pos.x} y={hoverTarget.pos.y} style={{textAlign: "center"}}>
@@ -107,7 +102,7 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
         if (this.transform.failMessage)
             return <NoData bounds={this.props.bounds} message={this.transform.failMessage}/>
 
-        const {chart, transform, bounds, legend, tooltip, hoverTarget, focusKeys} = this
+        const {chart, transform, bounds, legend, tooltip, focusKeys} = this
         const {groupedData, xAxis, yAxis} = transform
 
         const axisBox = new AxisBox({bounds: bounds.padRight(10).padRight(legend ? legend.width : 0), xAxis, yAxis})

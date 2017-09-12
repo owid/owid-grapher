@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {noop, sum, includes, min, max} from './Util'
+import {noop, sum, includes, max} from './Util'
 import {computed} from 'mobx'
 import {observer} from 'mobx-react'
 import TextWrap from './TextWrap'
@@ -74,7 +74,7 @@ export default class ScatterColorLegend extends React.Component<ColorLegendProps
             {this.labelMarks.map(mark => {
                 const isFocus = includes(focusColors, mark.color)
 
-                const result = <g className="legendMark" onMouseOver={e => this.onMouseOver(mark.color)} onMouseLeave={e => this.onMouseLeave()} onClick={e => this.onClick(mark.color)}>
+                const result = <g className="legendMark" onMouseOver={() => this.onMouseOver(mark.color)} onMouseLeave={() => this.onMouseLeave()} onClick={() => this.onClick(mark.color)}>
                     <rect x={this.x} y={this.y+offset-lineHeight/2} width={mark.width} height={mark.height+lineHeight} fill="#fff" opacity={0}/>,
                     <rect x={this.x} y={this.y+offset+rectSize/2} width={rectSize} height={rectSize} fill={mark.color}/>,
                     {mark.label.render(this.x+rectSize+rectPadding, this.y+offset, isFocus ? { style: { fontWeight: 'bold' } } : undefined)}

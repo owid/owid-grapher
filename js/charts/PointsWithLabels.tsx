@@ -10,8 +10,8 @@
 
 import * as React from 'react'
 import {scaleLinear, scaleOrdinal, ScaleOrdinal, schemeCategory20} from 'd3-scale'
-import {some, map, last, sortBy, cloneDeep, each, includes, filter, flatten, uniq, min, max, find, first, isEmpty} from './Util'
-import {observable, computed, action, autorun} from 'mobx'
+import {some, map, last, sortBy, cloneDeep, each, includes, filter, flatten, uniq, min, find, first, isEmpty} from './Util'
+import {observable, computed, action} from 'mobx'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
 import NoData from './NoData'
@@ -135,7 +135,6 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     }
 
     @computed get sizeScale() {
-        const {data} = this
         const sizeScale = scaleLinear().range([10, 1000]).domain(this.props.sizeDomain)
         return sizeScale
     }
@@ -306,7 +305,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     }
 
     @computed get renderData(): ScatterRenderSeries[] {
-        let {initialRenderData, hoverKeys, focusKeys, isLayerMode, labelPriority, bounds} = this
+        let {initialRenderData, hoverKeys, focusKeys, labelPriority, bounds} = this
 
         // Draw the largest points first so that smaller ones can sit on top of them
         let renderData = cloneDeep(sortBy(initialRenderData, d => -d.size))
@@ -411,10 +410,8 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     }
 
     @action.bound onClick() {
-        const {hoverKey, focusKeys} = this
-        if (!hoverKey) return
-
-        this.props.onSelectEntity(hoverKey)
+        if (this.hoverKey)
+            this.props.onSelectEntity(this.hoverKey)
     }
 
     @computed get backgroundGroups(): ScatterRenderSeries[] {
@@ -558,7 +555,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     render() {
         //Bounds.debug(flatten(map(this.renderData, d => map(d.labels, 'bounds'))))
         
-        const {bounds, renderData, xScale, yScale, sizeScale, allColors} = this
+        const {bounds, renderData} = this
         const clipBounds = bounds.pad(-10)
 
         if (isEmpty(renderData))

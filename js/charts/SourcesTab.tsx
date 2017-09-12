@@ -30,7 +30,7 @@ export default class SourcesTab extends React.Component<{ bounds: Bounds, chart:
 	}
 
 	render() {
-		const { bounds, sources } = this
+		const {bounds} = this
 
 		return <div className="sourcesTab" style={extend(bounds.toCSS(), { position: 'absolute' })}>
 			<div>

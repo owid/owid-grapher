@@ -1,20 +1,16 @@
 import Bounds from './Bounds'
-import Text from './Text'
 import {extend, keys, map} from './Util'
 import * as React from 'react'
-import * as ReactDOM from 'react-dom'
-import { observable, computed, asFlat, autorun, autorunAsync, action } from 'mobx'
+import { observable, computed, action } from 'mobx'
 import {observer} from 'mobx-react'
 import * as Cookies from 'js-cookie'
 import ChartConfig from './ChartConfig'
-import ChartTabOption from './ChartTabOption'
 import ChartType from './ChartType'
 import {getQueryParams} from './Util'
 import ChartView from './ChartView'
 import {HighlightToggleConfig} from './ChartConfig'
 
 declare const Global: any
-declare const App: any
 
 @observer
 class EmbedMenu extends React.Component<{ embedUrl: string }> {
@@ -92,7 +88,7 @@ class ShareMenu extends React.Component<ShareMenuProps> {
     }
 
     render() {
-        const {title, editUrl, canonicalUrl, isEmbedMenuActive, twitterHref, facebookHref} = this
+        const {editUrl, twitterHref, facebookHref} = this
 
         return <div className="shareMenu" onClick={(evt) => evt.stopPropagation()}>
             <h2>Share</h2>
@@ -193,7 +189,7 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps>
 
     render() {
         const {props, isShareMenuActive} = this
-        const {chart, chartView} = props
+        const {chart} = props
 
         return <div className="ControlsFooter">
             <nav className="tabs">

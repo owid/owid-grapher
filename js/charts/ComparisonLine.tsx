@@ -15,7 +15,7 @@ export interface ComparisonLineConfig {
 export default class ComparisonLine extends React.Component<{ axisBox: AxisBox, comparisonLine: ComparisonLineConfig }> {
     @computed get lineData(): string|null {
         const {comparisonLine, axisBox} = this.props
-        const {xScale, yScale, innerBounds} = axisBox 
+        const {xScale, yScale} = axisBox 
 
         const yEquals = defaultTo(comparisonLine.yEquals, "x")
         const yFunc = function(x: number) {

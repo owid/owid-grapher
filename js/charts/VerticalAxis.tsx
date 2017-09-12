@@ -1,6 +1,6 @@
 import {sortBy} from './Util'
 import * as React from 'react'
-import {observable, computed, action} from 'mobx'
+import {computed} from 'mobx'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
 import {ScaleType} from './AxisScale'
@@ -50,10 +50,11 @@ export default class VerticalAxis {
     }
 }
 
+@observer
 export class VerticalAxisView extends React.Component<{ bounds: Bounds, axis: VerticalAxis, onScaleTypeChange?: (scale: ScaleType) => void }> {
     render() {
         const {bounds, axis, onScaleTypeChange} = this.props
-        const {scale, ticks, label, labelOffset} = axis
+        const {scale, ticks, label} = axis
         const textColor = '#666'
 
         return <g className="VerticalAxis">

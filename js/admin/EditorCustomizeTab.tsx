@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {extend, toString, map} from '../charts/Util'
+import {extend, map} from '../charts/Util'
 import {computed, action} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartEditor from './ChartEditor'
@@ -31,7 +31,7 @@ export default class EditorCustomizeTab extends React.Component<{ editor: ChartE
 	@computed get yAxis() { return this.props.editor.chart.yAxis.props }
 
 	renderForAxis(axisName: string, axis: AxisConfigProps) {
-		const {chart, features} = this.props.editor
+		const {features} = this.props.editor
 
 		return <div>
 			<h3>{axisName} Axis</h3>

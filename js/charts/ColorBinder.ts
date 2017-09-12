@@ -1,6 +1,5 @@
-import ChartType from './ChartType'
 import ChartConfig from './ChartConfig'
-import {computed, reaction} from 'mobx'
+import {computed} from 'mobx'
 import Color from './Color'
 import {scaleOrdinal} from 'd3-scale'
 

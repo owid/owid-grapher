@@ -6,7 +6,7 @@
  *
  */ 
 
-import {observable, computed, toJS, reaction} from 'mobx'
+import {observable, computed, toJS} from 'mobx'
 import MapProjection from './MapProjection'
 import Chart from './ChartConfig'
 import MapData from './MapData'

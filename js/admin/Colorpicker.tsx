@@ -1,8 +1,6 @@
 import * as React from 'react'
 import {last} from '../charts/Util'
 import Color from '../charts/Color'
-import {bind} from 'decko'
-import {observable} from 'mobx'
 import {TextField} from './Forms'
 import ColorSchemes from '../charts/ColorSchemes'
 

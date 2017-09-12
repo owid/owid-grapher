@@ -8,14 +8,11 @@
  */
 
 import {debounce, isNumber, includes, filter, uniq, toString, isFinite} from './Util'
-import {computed, observable, autorun, when, action, runInAction, reaction, toJS} from 'mobx'
-import ChartView from './ChartView'
+import {computed, when, runInAction, reaction, toJS} from 'mobx'
 import ChartTabOption from './ChartTabOption'
-import ScaleType from './ScaleType'
 import {defaultTo} from './Util'
 import ChartConfig, {ChartConfigProps} from './ChartConfig'
-import {getQueryParams, setQueryVariable, setQueryStr, queryParamsToStr, QueryParams} from './Util'
-import DataKey from './DataKey'
+import {getQueryParams, setQueryStr, queryParamsToStr, QueryParams} from './Util'
 import MapProjection from './MapProjection'
 
 interface ChartQueryParams {

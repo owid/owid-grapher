@@ -8,20 +8,14 @@
 import * as React from 'react'
 import {select} from 'd3-selection'
 import {sortBy, some, min, max} from './Util'
-import {computed, action, observable, autorun, runInAction, IReactionDisposer} from 'mobx'
+import {computed, autorun, runInAction, IReactionDisposer} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartConfig from './ChartConfig'
 import Bounds from './Bounds'
-import LineType from './LineType'
-import {defaultTo} from './Util'
-import AxisBox from './AxisBox'
-import StandardAxisBoxView from './StandardAxisBoxView'
-import Lines from './Lines'
 import AxisScale from './AxisScale'
 import Color from './Color'
 import HorizontalAxis, {HorizontalAxisView} from './HorizontalAxis'
 import {AxisGridLines} from './AxisBox'
-import Vector2 from './Vector2'
 import NoData from './NoData'
 
 export interface DiscreteBarDatum {
@@ -109,7 +103,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
     
     @computed get barPlacements() {
         const {data, xScale} = this
-        return data.map((d, i) => {
+        return data.map(d => {
             const isNegative = d.value < 0
             const barX = isNegative ? xScale.place(d.value) : xScale.place(0)
             const barWidth = isNegative ? xScale.place(0)-barX : xScale.place(d.value)-barX                
@@ -127,7 +121,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
             const widths = this.barPlacements.map(b => b.width)
             runInAction(() => {
                 const bars = select(this.base).selectAll("g.bar > rect")
-                bars.attr('width', 0).transition().attr('width', (d, i) => widths[i])
+                bars.attr('width', 0).transition().attr('width', (_, i) => widths[i])
             })
         })
     }
@@ -144,7 +138,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
         if (this.failMessage)
             return <NoData bounds={this.bounds} message={this.failMessage}/>
 
-        const {chart, data, bounds, legendWidth, xAxis, xScale, innerBounds, barHeight, barSpacing, valueFontSize, barValueFormat} = this
+        const {data, bounds, legendWidth, xAxis, xScale, innerBounds, barHeight, barSpacing, valueFontSize, barValueFormat} = this
 
         let yOffset = innerBounds.top+barHeight/2
 
@@ -152,7 +146,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
             <rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height} opacity={0} fill="rgba(255,255,255,0)"/>
             <HorizontalAxisView bounds={bounds} axis={xAxis}/>
             <AxisGridLines orient="bottom" scale={xScale} bounds={innerBounds}/>
-            {data.map((d, i) => {
+            {data.map(d => {
                 const isNegative = d.value < 0
                 const barX = isNegative ? xScale.place(d.value) : xScale.place(0)
                 const barWidth = isNegative ? xScale.place(0)-barX : xScale.place(d.value)-barX                

@@ -1,8 +1,8 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import {observable, computed, autorun, action, reaction, when} from 'mobx'
+import {observable, computed, action} from 'mobx'
 import {observer} from 'mobx-react'
-import {select, selectAll, Selection} from 'd3-selection'
+import {select, selectAll} from 'd3-selection'
 import 'd3-transition'
 
 import ChartConfig, {ChartConfigProps} from './ChartConfig'
@@ -12,15 +12,11 @@ import DataTab from './DataTab'
 import MapTab from './MapTab'
 import SourcesTab from './SourcesTab'
 import DownloadTab from './DownloadTab'
-import VariableData from './VariableData'
-import ChartData from './ChartData'
 import {preInstantiate, VNode} from './Util'
 import Bounds from './Bounds'
-import ChartTabOption from './ChartTabOption'
 import DataSelector from './DataSelector'
 
 declare const App: any // XXX
-declare const Global: any // XXX
 declare const window: any
 
 App.IDEAL_WIDTH = 1020
@@ -59,7 +55,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
     @computed get isMobile() { return select('html').classed('touchevents') }
 
     @computed get containerBounds() {
-        const {isEmbed, isExport, isEditor} = this
+        const {isEmbed, isExport} = this
 
         let bounds = this.props.bounds
 
@@ -202,7 +198,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
     }
 
     renderReady() {
-        const {svgRenderBounds, controlsFooter, scale, isExport, chart} = this
+        const {svgRenderBounds, controlsFooter, scale, chart} = this
 
         return [
             this.renderSVG(),

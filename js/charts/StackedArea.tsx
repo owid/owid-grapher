@@ -11,14 +11,8 @@ import {computed, action, observable} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartConfig from './ChartConfig'
 import Bounds from './Bounds'
-import LineType from './LineType'
-import {defaultTo} from './Util'
 import AxisBox from './AxisBox'
 import StandardAxisBoxView from './StandardAxisBoxView'
-import Lines from './Lines'
-import TextWrap from './TextWrap'
-import AxisScale from './AxisScale'
-import Vector2 from './Vector2'
 import {getRelativeMouse} from './Util'
 import HeightedLegend, {HeightedLegendView} from './HeightedLegend'
 import NoData from './NoData'
@@ -37,18 +31,6 @@ export interface StackedAreaSeries {
     values: StackedAreaValue[],
     classed?: string,
     isProjection?: boolean,
-}
-
-interface StackedAreaProps {
-    xScale: AxisScale,
-    yScale: AxisScale,
-    data: StackedAreaSeries[]    
-}
-
-interface AreaRenderSeries {
-    key: string,
-    color: string,
-    values: { x: number, y: number }[]
 }
 
 @observer
@@ -124,7 +106,7 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
 
     @computed get midpoints(): number[] {
         let prevY = 0
-        return this.transform.stackedData.map((series, i) => {
+        return this.transform.stackedData.map(series => {
             const lastValue = last(series.values) as StackedAreaValue
             const middleY = prevY + (lastValue.y - prevY)/2
             prevY = lastValue.y

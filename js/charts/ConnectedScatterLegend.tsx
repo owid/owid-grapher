@@ -1,8 +1,6 @@
 import * as React from 'react'
 import {computed} from 'mobx'
-import {observer} from 'mobx-react'
 import {Triangle} from './Marks'
-import Bounds from './Bounds'
 import TextWrap from './TextWrap'
 import {formatYear} from './Util'
 
@@ -43,7 +41,6 @@ export default class ConnectedScatterLegend {
  
     render(targetX: number, targetY: number, options: React.SVGAttributes<SVGGElement> = {}) {
         const {props, startLabel, endLabel, fontColor} = this
-        let offset = 0
 
         const lineLeft = targetX+startLabel.width+5
         const lineRight = targetX+props.maxWidth-endLabel.width-5

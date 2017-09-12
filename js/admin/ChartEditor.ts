@@ -5,7 +5,7 @@
  *
  */
 
-import {observable, computed, reaction, action} from 'mobx'
+import {observable, computed, reaction} from 'mobx'
 import {extend, toString, uniq} from '../charts/Util'
 import ChartConfig from '../charts/ChartConfig'
 import ChartType from '../charts/ChartType'

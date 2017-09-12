@@ -1,14 +1,10 @@
 import * as React from 'react'
-import * as ReactDOM from 'react-dom'
 import {clone, isEmpty, noop, extend, map} from '../charts/Util'
 import {computed, action, observable} from 'mobx'
 import {observer} from 'mobx-react'
-import ChartConfig from '../charts/ChartConfig'
 import ChartEditor from './ChartEditor'
 import {NumericSelectField, NumberField, SelectField, TextField, Toggle} from './Forms'
 import MapConfig from '../charts/MapConfig'
-import MapData from '../charts/MapData'
-import MapProjections from '../charts/MapProjections'
 import MapProjection from '../charts/MapProjection'
 import ColorSchemes from '../charts/ColorSchemes'
 import {NumericBin, CategoricalBin} from '../charts/MapData'
@@ -153,7 +149,7 @@ class CategoricalBinView extends React.Component<{ map: MapConfig, bin: Categori
 	}	
 
 	render() {
-		const {map, bin} = this.props
+		const {bin} = this.props
 
 		return <li className="categorical clearfix">
 			<ColorBox color={bin.color} onColor={this.onColor}/>
@@ -268,7 +264,7 @@ export default class EditorMapTab extends React.Component<{ editor: ChartEditor 
 	@computed get map() { return this.chart.map as MapConfig }
 
 	render() {
-		const {chart, map} = this
+		const {map} = this
 
 		return <div className="EditorMapTab tab-pane">
 			<VariableSection map={map}/>

@@ -1,5 +1,5 @@
 import {computed} from 'mobx'
-import {some, union, min, max, isEmpty, sortBy, extend, find, identity, cloneDeep, sortedUniq} from './Util'
+import {some, min, max, isEmpty, sortBy, extend, find, identity, cloneDeep, sortedUniq} from './Util'
 import {scaleOrdinal} from 'd3-scale'
 import ChartConfig from './ChartConfig'
 import Color from './Color'
@@ -8,7 +8,6 @@ import {LineChartSeries, LineChartValue} from './LineChart'
 import AxisSpec from './AxisSpec'
 import {defaultTo, formatYear, findClosest, last} from './Util'
 import {DimensionWithData} from './ChartData'
-import ColorBinder from './ColorBinder'
 import ColorSchemes from './ColorSchemes'
 import IChartTransform from './IChartTransform'
 
@@ -34,7 +33,7 @@ export default class LineChartTransform implements IChartTransform {
 
 	@computed get initialData(): LineChartSeries[] {
 		const {chart} = this
-		const {timeDomain, yAxis, addCountryMode} = chart
+		const {yAxis} = chart
         const {filledDimensions, selectedKeys, selectedKeysByKey} = chart.data
 
 		let chartData: LineChartSeries[] = []

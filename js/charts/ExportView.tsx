@@ -10,7 +10,6 @@
  */
 
 import * as React from 'react'
-import * as ReactDOM from 'react-dom'
 import * as ReactDOMServer from 'react-dom/server'
 import Bounds from './Bounds'
 import ChartView from './ChartView'
@@ -20,10 +19,9 @@ import ChartConfig, {ChartConfigProps} from './ChartConfig'
 declare const App: any
 
 export default class ExportView {
-    static bootstrap({ jsonConfig, containerNode }: { jsonConfig: ChartConfigProps, containerNode: HTMLElement }) {
+    static bootstrap({ jsonConfig }: { jsonConfig: ChartConfigProps }) {
         const targetWidth = App.IDEAL_WIDTH, targetHeight = App.IDEAL_HEIGHT;
         const targetBounds = new Bounds(0, 0, targetWidth, targetHeight)
-        let chartView: ChartView
 
         const chart = new ChartConfig(jsonConfig)
 

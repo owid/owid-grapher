@@ -5,15 +5,15 @@ import {observer} from 'mobx-react'
 
 @observer
 export default class SaveButtons extends React.Component<{ editor: ChartEditor }> {
-	@action.bound onSaveChart(ev: React.FormEvent<HTMLButtonElement>) {
+	@action.bound onSaveChart() {
 		this.props.editor.saveChart()
 	}
 
-	@action.bound onSaveAsNew(ev: React.FormEvent<HTMLButtonElement>) {
+	@action.bound onSaveAsNew() {
 		this.props.editor.saveAsNewChart()
 	}
 
-	@action.bound onPublishToggle(ev: React.FormEvent<HTMLButtonElement>) {
+	@action.bound onPublishToggle() {
 		if (this.props.editor.chart.isPublished)
 			this.props.editor.unpublishChart()
 		else

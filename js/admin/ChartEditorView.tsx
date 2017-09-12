@@ -7,17 +7,11 @@ import EditorTextTab from './EditorTextTab'
 import EditorCustomizeTab from './EditorCustomizeTab'
 import EditorScatterTab from './EditorScatterTab'
 import EditorMapTab from './EditorMapTab'
-import ChartConfig from '../charts/ChartConfig'
-import * as $ from 'jquery'
-import ChartType from '../charts/ChartType'
 import ChartView from '../charts/ChartView'
-import ChartEditor, {ChartEditorProps, EditorTab} from './ChartEditor'
+import ChartEditor from './ChartEditor'
 import SaveButtons from './SaveButtons'
 import {observer} from 'mobx-react'
-import {observable, computed, action, autorun} from 'mobx'
-import Admin from './Admin'
-
-declare const App: any
+import {action, autorun} from 'mobx'
 
 class LoadingBlocker extends React.Component {
 	render() {

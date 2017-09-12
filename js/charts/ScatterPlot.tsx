@@ -9,26 +9,22 @@
  */
 
 import * as React from 'react'
-import {observable, computed, action, autorun} from 'mobx'
+import {observable, computed, action} from 'mobx'
 import {find, includes, uniq} from './Util'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
 import ChartConfig from './ChartConfig'
 import NoData from './NoData'
-import AxisScale from './AxisScale'
 import Timeline from './Timeline'
 import PointsWithLabels, {ScatterSeries, ScatterValue} from './PointsWithLabels'
 import {preInstantiate} from './Util'
 import TextWrap from './TextWrap'
 import ConnectedScatterLegend from './ConnectedScatterLegend'
-import {Triangle} from './Marks'
 import ScatterColorLegend from './ScatterColorLegend'
 import AxisBox, {AxisBoxView} from './AxisBox'
 import ComparisonLine from './ComparisonLine'
 import {ScaleType} from './AxisScale'
-import AxisSpec from './AxisSpec' 
 import {formatYear, first, last} from './Util'
-import AxisBoxHighlight from './AxisBoxHighlight'
 
 @observer
 export default class ScatterPlot extends React.Component<{ bounds: Bounds, config: ChartConfig, isStatic: boolean }> {
@@ -95,7 +91,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     }
 
     @computed get hoverKeys(): string[] {
-        const {transform, hoverColor} = this
+        const {hoverColor} = this
         return uniq(this.transform.allGroups.filter(g => hoverColor !== undefined && g.color == hoverColor).map(g => g.key))
     }
 
@@ -106,7 +102,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     }
 
     @computed get arrowLegend(): ConnectedScatterLegend|undefined {
-        const {focusKeys, hoverSeries, sidebarWidth, transform} = this
+        const {transform} = this
         const {startYear, endYear} = transform
 
         if (startYear == endYear || transform.isRelativeMode)
@@ -181,7 +177,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         if (this.transform.failMessage)
             return <NoData bounds={this.bounds} message={this.transform.failMessage}/>
 
-        const {transform, bounds, axisBox, chart, timeline, timelineHeight, legend, focusKeys, hoverKeys, hoverColor, focusColors, arrowLegend, hoverSeries, sidebarWidth, tooltipSeries, comparisonLine} = this
+        const {transform, bounds, axisBox, timeline, legend, focusKeys, hoverKeys, focusColors, arrowLegend, sidebarWidth, tooltipSeries, comparisonLine} = this
         const {currentData, sizeDomain} = transform
         return <g className="ScatterPlot">
             <AxisBoxView axisBox={axisBox} onXScaleChange={this.onXScaleChange} onYScaleChange={this.onYScaleChange}/>

@@ -1,7 +1,7 @@
 import {scaleOrdinal} from 'd3-scale'
 import ChartConfig from './ChartConfig'
-import {some, isEmpty, find, intersection, min, max, keyBy, identity, extend, isNumber, has, flatten, uniq, groupBy, sortBy, map} from './Util'
-import {computed, observable, extras} from 'mobx'
+import {some, isEmpty, find, intersection, min, max, keyBy, extend, isNumber, has, uniq, groupBy, sortBy, map} from './Util'
+import {computed, observable} from 'mobx'
 import {defaultTo, first, last} from './Util'
 import {DimensionWithData} from './ChartData'
 import {ScatterSeries, ScatterValue} from './PointsWithLabels'
@@ -118,7 +118,7 @@ export default class ScatterTransform implements IChartTransform {
     }
 
     @computed get startYear(): number {
-        const [minYear, maxYear] = this.chart.timeDomain
+        const minYear = this.chart.timeDomain[0]
 
         if (minYear != null)
             return defaultTo(findClosest(this.timelineYears, minYear), this.minTimelineYear)
@@ -127,7 +127,7 @@ export default class ScatterTransform implements IChartTransform {
     }
 
     @computed get endYear(): number {
-        const [minYear, maxYear] = this.chart.timeDomain
+        const maxYear = this.chart.timeDomain[1]
 
         if (maxYear != null)
             return defaultTo(findClosest(this.timelineYears, maxYear), this.maxTimelineYear)
@@ -174,7 +174,6 @@ export default class ScatterTransform implements IChartTransform {
     }
 
     @computed get colorScale(): d3.ScaleOrdinal<string, string> {
-        const {colorScheme} = this
         const colorDim = this.chart.data.dimensionsByField['color']
 
         const colorScale = scaleOrdinal(this.colorScheme)
@@ -188,14 +187,14 @@ export default class ScatterTransform implements IChartTransform {
     // Precompute the data transformation for every timeline year (so later animation is fast)
     // If there's no timeline, this uses the same structure but only computes for a single year
     @computed get dataByEntityAndYear(): Map<string, Map<number, ScatterSeries>> {
-        const {chart, yearsToCalculate, colorScale, hideBackgroundEntities, entitiesToShow, xOverrideYear} = this
+        const {chart, yearsToCalculate, colorScale, entitiesToShow, xOverrideYear} = this
         const {filledDimensions, keyColors} = chart.data
         const validEntityLookup = keyBy(entitiesToShow)
         
         let dataByEntityAndYear = new Map<string, Map<number, ScatterSeries>>()
 
         // The data values
-        filledDimensions.forEach((dimension, dimIndex) => {
+        filledDimensions.forEach(dimension => {
             var variable = dimension.variable,
                 tolerance = (dimension.property == 'color' || dimension.property == 'size') ? Infinity : dimension.tolerance;
 

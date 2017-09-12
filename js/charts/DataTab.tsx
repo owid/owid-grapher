@@ -1,11 +1,9 @@
-import {toString, includes, filter, map, flatten, uniq, sortBy, extend} from './Util'
+import {toString, includes, flatten, uniq, sortBy, extend} from './Util'
 import Bounds from './Bounds'
 import * as React from 'react'
 import {computed} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartConfig from './ChartConfig'
-
-declare var Global: { rootUrl: string }
 
 function csvEscape(value: any): string {
 	const valueStr = toString(value)

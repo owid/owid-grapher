@@ -1,7 +1,6 @@
 import * as React from 'react'
 import {uniq} from './Util'
-import {observable, computed, action} from 'mobx'
-import {observer} from 'mobx-react'
+import {computed} from 'mobx'
 import Bounds from './Bounds'
 import {ScaleType} from './AxisScale'
 import AxisScale from './AxisScale'
@@ -71,7 +70,7 @@ export default class HorizontalAxis {
     }
 
     @computed get ticks() : number[] {
-        const {scale, labelOffset} = this
+        const {scale} = this
         const ticks = scale.getTickValues()
 
         if (scale.isDiscrete) return ticks

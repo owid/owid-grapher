@@ -1,9 +1,8 @@
 import {map, min, max, each, identity, sortBy} from './Util'
 import Bounds from './Bounds'
 import * as React from 'react'
-import {observable, computed, asFlat, asStructure, autorunAsync, action} from 'mobx'
+import {computed} from 'mobx'
 import {observer} from 'mobx-react'
-import {bind} from 'decko'
 import * as topojson from 'topojson'
 import MapProjections from './MapProjections'
 import MapProjection from './MapProjection'
@@ -161,7 +160,7 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
     }    
 
     render() {
-        const { bounds, choroplethData, defaultFill, geoData, pathData, hasFocus, matrixTransform } = this
+        const { bounds, choroplethData, defaultFill, geoData, pathData, matrixTransform } = this
         const focusColor = "#FFEC38"
         const focusStrokeWidth = 2.5
 
@@ -175,7 +174,7 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                 {map(geoData.filter(d => !choroplethData[d.id as string]), d => {
                     const isFocus = this.hasFocus(d)
                     const stroke = isFocus ? focusColor : "#333"
-                    return <path key={d.id} d={pathData[d.id as string]} stroke-width={isFocus ? focusStrokeWidth : 0.3} stroke={stroke} cursor="pointer" fill={defaultFill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={(ev) => this.props.onClick(d)}/>
+                    return <path key={d.id} d={pathData[d.id as string]} stroke-width={isFocus ? focusStrokeWidth : 0.3} stroke={stroke} cursor="pointer" fill={defaultFill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={() => this.props.onClick(d)}/>
                 })}
 
                 {sortBy(map(geoData.filter(d => choroplethData[d.id as string]), (d) => {
@@ -185,7 +184,7 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                     const fill = datum ? datum.color : defaultFill
 
                     return [
-                        <path key={d.id} d={pathData[d.id as string]} stroke-width={isFocus ? focusStrokeWidth : 0.5} stroke={stroke} cursor="pointer" fill={fill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={(ev) => this.props.onClick(d)}/>
+                        <path key={d.id} d={pathData[d.id as string]} stroke-width={isFocus ? focusStrokeWidth : 0.5} stroke={stroke} cursor="pointer" fill={fill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={() => this.props.onClick(d)}/>
                     ]
                 }), p => p[0].props['stroke-width'])}
             </g>

@@ -10,10 +10,9 @@
         "target": "es5",
         "experimentalDecorators": true,
         "strictNullChecks": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
         "lib": ["dom", "es6"]
     },
-    "exclude": ["node_modules"],
-    "awesomeTypescriptLoaderOptions": {
-        "useCache": true
-    }
+    "exclude": ["node_modules"]
 }

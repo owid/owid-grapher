@@ -3,7 +3,6 @@ import * as ReactDOM from 'react-dom'
 import {map, uniqBy, filter, keys, groupBy, isEmpty, difference, find, clone} from '../charts/Util'
 import {observable, computed, action, autorun, reaction} from 'mobx'
 import {observer} from 'mobx-react'
-import {bind} from 'decko'
 
 import * as parse from 'csv-parse'
 import EditorModal from './EditorModal'
@@ -37,7 +36,7 @@ class Variable {
 	@observable source: any
 	@observable values: string[]
 
-	constructor({overwriteId = null, name = "", description = "", coverage = "", timespan = "", unit = "", source = null, values = []} = {}) {
+	constructor({overwriteId = null, name = "", description = "", coverage = "", timespan = "", unit = "", source = null} = {}) {
 		this.overwriteId = overwriteId as any
 		this.name = name
 		this.unit = unit
@@ -90,7 +89,7 @@ class Dataset {
 	}
 
 	@action.bound save() {
-		const {id, name, description, subcategoryId, newVariables, entityNames, entities, years} = this
+		const {newVariables, entityNames, entities, years} = this
 
 		const requestData = {
 			dataset: {
@@ -357,7 +356,7 @@ class EditSource extends React.Component<{ variable: Variable, dataset: Dataset,
 	}
 
 	render() {
-		const {variable, dataset} = this.props
+		const {dataset} = this.props
 		const {source} = this
 
 		return <form className={styles.editSource} onSubmit={this.onSave}>
@@ -442,7 +441,6 @@ class CSV {
 		const {rows} = this
 
 		const variables: any[] = []
-		const entityNameIndex = 0
 		const entityNameCheck: any = {}
 		const entityNames = []
 		const entities = []
@@ -526,7 +524,6 @@ class CSV {
 		})
 
 		// Warn about non-numeric data
-		const heading = rows[0]
 		const nonNumeric = []
 		for (let i = 1; i < rows.length; i++) {
 			const row = rows[i]

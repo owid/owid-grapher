@@ -1,11 +1,8 @@
 import {some, map, every, keyBy, includes, uniqWith, cloneDeep, intersection, each, sortBy, without, find, extend, uniq} from './Util'
-import ChartType from './ChartType'
-import {observable, computed, autorun, action} from 'mobx'
+import {observable, computed} from 'mobx'
 import ChartConfig, {ChartDimension} from './ChartConfig'
-import VariableData, {Variable} from './VariableData'
+import {Variable} from './VariableData'
 import DataKey from './DataKey'
-import {bind} from 'decko'
-import {LineChartSeries} from './LineChart'
 import Color from './Color'
 import {formatValue, last, defaultTo, slugify} from './Util'
 
@@ -278,7 +275,7 @@ export default class ChartData {
 	// Calculate the available datakeys and their associated info
 	@computed get keyData(): Map<DataKey, DataKeyInfo> {
 		if (!this.isReady) return new Map()
-		const {chart, vardata, isSingleEntity, isSingleVariable, primaryDimensions} = this
+		const {chart, isSingleEntity, isSingleVariable, primaryDimensions} = this
 	
 		const keyData = new Map()
 		each(primaryDimensions, (dim, index) => {
@@ -327,7 +324,7 @@ export default class ChartData {
 	}
 
 	@computed.struct get remainingKeys(): DataKey[] {
-		const {chart, availableKeys, selectedKeys} = this
+		const {availableKeys, selectedKeys} = this
 		return without(availableKeys, ...selectedKeys)
 	}
 
@@ -367,8 +364,7 @@ export default class ChartData {
 	}
 
 	@computed get sources(): SourceWithVariable[] {
-		const {chart, vardata, filledDimensions} = this
-		const {variablesById} = vardata
+		const {filledDimensions} = this
 
 		let sources: SourceWithVariable[] = []
 		each(filledDimensions, (dim) => {

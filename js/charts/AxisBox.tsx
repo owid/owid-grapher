@@ -9,15 +9,14 @@
  */
 
 import * as React from 'react'
-import {observable, computed, action, toJS} from 'mobx'
+import {computed} from 'mobx'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
-import AxisScale, {AxisConfig} from './AxisScale'
+import AxisScale from './AxisScale'
 import VerticalAxis, {VerticalAxisView} from './VerticalAxis'
 import HorizontalAxis, {HorizontalAxisView} from './HorizontalAxis'
 import AxisSpec from './AxisSpec'
 import ScaleType from './ScaleType'
-import TextWrap from './TextWrap'
 
 interface AxisBoxProps {
     bounds: Bounds,
@@ -119,7 +118,7 @@ export interface AxisBoxViewProps {
 @observer
 export class AxisBoxView extends React.Component<AxisBoxViewProps> {
     render() {
-        const {axisBox, onYScaleChange, onXScaleChange, highlightValue} = this.props
+        const {axisBox, onYScaleChange, onXScaleChange} = this.props
         const {bounds, xScale, yScale, xAxis, yAxis, innerBounds} = axisBox
 
         return <g className="AxisBoxView">

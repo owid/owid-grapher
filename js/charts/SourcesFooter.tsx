@@ -1,11 +1,7 @@
 import * as React from 'react'
 import {computed, action} from 'mobx'
-import {observer} from 'mobx-react'
-import Bounds from './Bounds'
-import Text from './Text'
 import TextWrap from './TextWrap'
 import ChartConfig from './ChartConfig'
-
 
 interface SourcesFooterProps {
     chart: ChartConfig,

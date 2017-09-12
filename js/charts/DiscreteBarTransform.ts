@@ -1,5 +1,5 @@
 import {computed} from 'mobx'
-import {some, isEmpty, find, sortBy, min, max, values} from './Util'
+import {some, isEmpty, find, sortBy, max, values} from './Util'
 import ChartConfig from './ChartConfig'
 import Color from './Color'
 import {DiscreteBarDatum} from './DiscreteBarChart'
@@ -68,7 +68,6 @@ export default class DiscreteBarTransform implements IChartTransform {
     @computed get data(): DiscreteBarDatum[] {
 		const {chart, targetYear, colors} = this
         const {filledDimensions, selectedKeysByKey} = chart.data
-        const data: DiscreteBarDatum[] = []
         const dataByKey: {[key: string]: DiscreteBarDatum} = {}
 
 		filledDimensions.forEach((dimension, dimIndex) => {
@@ -76,7 +75,6 @@ export default class DiscreteBarTransform implements IChartTransform {
 
 			for (var i = 0; i < variable.years.length; i++) {
 				const year = variable.years[i]
-				const value = parseFloat(variable.values[i] as string)
 				const entity = variable.entities[i]
 				const datakey = chart.data.keyFor(entity, dimIndex)
 

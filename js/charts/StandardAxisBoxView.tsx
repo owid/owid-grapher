@@ -25,7 +25,7 @@ export default class StandardAxisBoxView extends React.Component<StandardAxisBox
     }
 
     render() {
-        const {axisBox, chart} = this.props
+        const {axisBox} = this.props
         return <AxisBoxView axisBox={axisBox} onXScaleChange={this.onXScaleChange} onYScaleChange={this.onYScaleChange}/>
     }
 }

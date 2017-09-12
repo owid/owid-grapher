@@ -12,7 +12,7 @@ import * as React from 'react'
 import {scaleLinear, scaleLog, scaleOrdinal, ScaleLinear, ScaleLogarithmic, ScaleOrdinal} from 'd3-scale'
 import {extent} from 'd3-array'
 import {select} from 'd3-selection'
-import {every, uniq, first, last, sortBy, extend, min, max, isEmpty, throttle} from './Util'
+import {every, uniq, first, sortBy, extend, max, isEmpty, throttle} from './Util'
 import {observable, computed, action} from 'mobx'
 import {observer} from 'mobx-react'
 
@@ -24,7 +24,6 @@ import TextWrap from './TextWrap'
 import NoData from './NoData'
 import ScaleSelector from './ScaleSelector'
 import {getRelativeMouse, domainExtent} from './Util'
-import Vector2 from './Vector2'
 
 export interface SlopeChartValue {
 	x: number
@@ -50,7 +49,7 @@ interface AxisProps {
 @observer
 class SlopeChartAxis extends React.Component<AxisProps> {
 	static calculateBounds(containerBounds: Bounds, props: { tickFormat: (value: number) => string, orient: 'left' | 'right', scale: ScaleLinear<number, number> }) {
-		const {orient, scale} = props
+		const {scale} = props
 		const longestTick = first(sortBy(scale.ticks(6).map(props.tickFormat), tick => -tick.length)) as string
 		const axisWidth = Bounds.forText(longestTick).width
 		return new Bounds(containerBounds.x, containerBounds.y, axisWidth, containerBounds.height)
@@ -235,7 +234,7 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 	}
 
 	@computed get initialSlopeData(): SlopeProps[] {
-		const { data, bounds, isPortrait, xScale, yScale, sizeScale, yTickFormat, maxLabelWidth } = this
+		const { data, isPortrait, xScale, yScale, sizeScale, yTickFormat, maxLabelWidth } = this
 
 		const slopeData: SlopeProps[] = []
 		const yDomain = yScale.domain()
@@ -273,7 +272,7 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 	}
 
 	@computed get labelAccountedSlopeData() {
-		const {maxLabelWidth, maxValueWidth, isPortrait} = this
+		const {maxLabelWidth, maxValueWidth} = this
 
 		return this.initialSlopeData.map(slope => {
 			// Squish slopes to make room for labels
@@ -374,7 +373,7 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 	}
     render() {
     	const { yTickFormat, yScaleType, yScaleTypeOptions, onScaleTypeChange } = this.props
-    	const { bounds, slopeData, isPortrait, xDomain, xScale, yScale } = this
+    	const { bounds, slopeData, isPortrait, xDomain, yScale } = this
 
     	if (isEmpty(slopeData))
     		return <NoData bounds={bounds}/>

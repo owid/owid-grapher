@@ -8,7 +8,7 @@
 
 import {scaleLog, scaleLinear, ScaleLinear, ScaleLogarithmic} from 'd3-scale'
 import {map, extend} from './Util'
-import {observable, computed, action, toJS} from 'mobx'
+import {observable, computed, toJS} from 'mobx'
 
 export type ScaleType = 'linear' | 'log';
 

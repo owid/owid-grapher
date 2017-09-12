@@ -2,10 +2,10 @@ import * as React from 'react'
 import Bounds from './Bounds'
 import {observable, computed, action} from 'mobx'
 import {observer} from 'mobx-react'
-import ChoroplethMap, {ChoroplethData, ChoroplethDatum, GeoFeature, MapBracket, MapEntity} from './ChoroplethMap'
+import ChoroplethMap, {ChoroplethData, GeoFeature, MapBracket, MapEntity} from './ChoroplethMap'
 import Timeline from './Timeline'
 import MapLegend from './MapLegend'
-import {getRelativeMouse, preInstantiate, entityNameForMap, formatValue} from './Util'
+import {getRelativeMouse, preInstantiate, formatValue} from './Util'
 import Header from './Header'
 import SourcesFooter from './SourcesFooter'
 import ChartConfig from './ChartConfig'
@@ -110,7 +110,7 @@ class TimelineMap extends React.Component<TimelineMapProps> {
     }
 
     render() {
-        const { choroplethData, projection, defaultFill, legendTitle, legendData } = this.props
+        const { choroplethData, projection, defaultFill } = this.props
         let { bounds } = this.props
         const {focusBracket, focusEntity, timeline, timelineHeight, mapLegend, tooltip} = this
         return <g className="mapTab">

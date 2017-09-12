@@ -2,7 +2,7 @@ import * as React from 'react'
 import {toString, includes, sample, sampleSize} from '../charts/Util'
 import {observable, computed, action, reaction, IReactionDisposer} from 'mobx'
 import {observer} from 'mobx-react'
-import ChartConfig, {DimensionSlot, ChartDimension} from '../charts/ChartConfig'
+import {DimensionSlot} from '../charts/ChartConfig'
 import {ChartTypeType} from '../charts/ChartType'
 import {TextField, Toggle, NumberField} from './Forms'
 import {DimensionWithData} from '../charts/ChartData'
@@ -118,12 +118,11 @@ class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: C
 	render() {
 		const {isSelectingVariables} = this
 		const {slot, editor} = this.props
-		const {chart} = editor
 		const canAddMore = slot.allowMultiple || slot.dimensions.length == 0
 
 		return <div>
 			<h5>{slot.name}</h5>
-			{slot.dimensionsWithData.map((dim, i) => {
+			{slot.dimensionsWithData.map(dim => {
 				return dim.property == slot.property && <DimensionCard dimension={dim} editor={editor} onEdit={slot.allowMultiple ? undefined : action(() => this.isSelectingVariables = true)} onRemove={slot.isOptional ? () => this.onRemoveDimension(dim) : undefined}/>
 			})}
 			{canAddMore && <div className="dimensionSlot" onClick={action(() => this.isSelectingVariables = true)}>Add variable{slot.allowMultiple && 's'}</div>}
@@ -139,7 +138,7 @@ class VariablesSection extends React.Component<{ editor: ChartEditor }> {
 	@observable.struct unassignedVariables: Variable[] = []
 
 	render() {
-		const {props, isAddingVariable, unassignedVariables} = this
+		const {props} = this
 		const {dimensionSlots} = props.editor.chart
 
 		return <section className="add-data-section">

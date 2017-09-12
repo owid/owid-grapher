@@ -1,14 +1,10 @@
 import {isFinite} from './Util'
 import * as React from 'react'
-import Bounds from './Bounds'
-import Text from './Text'
 import TextWrap from './TextWrap'
-import {observable, computed} from 'mobx'
+import {computed} from 'mobx'
 import {observer} from 'mobx-react'
 import {formatYear} from './Util'
 import ChartConfig from './ChartConfig'
-
-declare const App: any;
 
 interface LogoProps {
     svg: string

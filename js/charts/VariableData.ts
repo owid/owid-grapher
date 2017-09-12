@@ -1,7 +1,6 @@
 import {extend, some, isString, isNumber, uniq, min, max, keyBy, keys, values, each, sortBy} from './Util'
-import ChartType from './ChartType'
 import ChartConfig from './ChartConfig'
-import {observable, computed, autorun, action, reaction} from 'mobx'
+import {observable, computed, action, reaction} from 'mobx'
 
 declare var Global: { rootUrl: string }
 

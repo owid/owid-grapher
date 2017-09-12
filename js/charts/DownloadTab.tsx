@@ -1,24 +1,15 @@
-import {includes, extend} from './Util'
+import {extend} from './Util'
 import * as React from 'react'
-import * as ReactDOMServer from 'react-dom/server'
-import {observable, computed, autorun} from 'mobx'
+import {observable, computed} from 'mobx'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
 import ChartConfig from './ChartConfig'
-import ChartView from './ChartView'
-
-interface ImgLoaderProps {
-    width: number,
-    height: number,
-    src: string
-}
 
 interface DownloadTabProps {
     bounds: Bounds,
     chart: ChartConfig
 }
 
-declare var Global: { rootUrl: string }
 declare var App: { IDEAL_WIDTH: number, IDEAL_HEIGHT: number }
 
 @observer
@@ -42,7 +33,6 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
             const img = new Image();
             const svg = new Blob([chart.staticSVG], {type: "image/svg+xml;charset=utf-8"});
             const url = DOMURL.createObjectURL(svg);
-            const exportPng = ""
             img.onload = () => {
                 ctx.drawImage(img, 0, 0);
                 this.pngUrl = canvas.toDataURL("image/png");

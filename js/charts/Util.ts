@@ -56,7 +56,6 @@ export {map, sortBy, each, keys, trim, isNumber, filter, extend, isEmpty, isFini
 import {format} from 'd3-format'
 import {extent} from 'd3-array'
 
-import Bounds from './Bounds'
 import Vector2 from './Vector2'
 
 export type SVGElement = any;

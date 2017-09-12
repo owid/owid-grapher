@@ -6,7 +6,7 @@ import * as React from 'react'
 import Bounds from './Bounds'
 import Text from './Text'
 import {getRelativeMouse, formatYear, domainExtent} from './Util'
-import {observable, computed, asFlat, autorun, autorunAsync, action} from 'mobx'
+import {observable, computed, autorun, autorunAsync, action} from 'mobx'
 import {observer} from 'mobx-react'
 
 interface TimelineProps {
@@ -172,7 +172,7 @@ export default class Timeline extends React.Component<TimelineProps> {
 		let lastTime: number|null = null, ticksPerSec = 5;
 
 		const playFrame = action((time : number) => {
-			const { isPlaying, startYear, endYear, years, minYear, maxYear } = this
+			const { isPlaying, endYear, years, minYear, maxYear } = this
 			if (!isPlaying) return;
 
 			if (lastTime === null) {
@@ -297,7 +297,7 @@ export default class Timeline extends React.Component<TimelineProps> {
 	    })
 	}
 
-    @action.bound onMouseUp(evt : MouseEvent) {
+    @action.bound onMouseUp() {
     	this.dragTarget = null
     }
 
@@ -334,7 +334,7 @@ export default class Timeline extends React.Component<TimelineProps> {
     }
 
   	render() {
-		const { bounds, sliderBounds, minYear, maxYear, minYearBox, maxYearBox, xScale, years, isPlaying, startYear, endYear, roundedStartYear, roundedEndYear, targetStartYear, targetEndYear } = this
+		const { bounds, sliderBounds, minYear, maxYear, minYearBox, maxYearBox, xScale, years, isPlaying, startYear, endYear, targetStartYear, targetEndYear } = this
 
         const toggleText = isPlaying ? "\uf04c" : "\uf04b"
         const toggleFontSize = "1em"

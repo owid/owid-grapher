@@ -4,7 +4,7 @@
  */
 
 import * as React from 'react'
-import {some, noop, includes, cloneDeep, min, max, sortBy} from './Util'
+import {some, noop, includes, cloneDeep, max, sortBy} from './Util'
 import {defaultTo} from './Util'
 import {computed} from 'mobx'
 import {observer} from 'mobx-react'
@@ -219,8 +219,8 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
         const {rectSize, rectPadding} = legend
         const {backgroundMarks, isFocusMode} = this
 
-        return backgroundMarks.map((mark, i) => {
-            const result = <g className="legendMark" onMouseOver={e => this.onMouseOver(mark.mark.item.color)} onMouseLeave={e => this.onMouseLeave()} onClick={e => this.onClick(mark.mark.item.key)}>
+        return backgroundMarks.map(mark => {
+            const result = <g className="legendMark" onMouseOver={() => this.onMouseOver(mark.mark.item.color)} onMouseLeave={() => this.onMouseLeave()} onClick={() => this.onClick(mark.mark.item.key)}>
                 <rect x={x} y={mark.bounds.y} width={mark.bounds.width} height={mark.bounds.height} fill="#fff" opacity={0}/>
                 <rect x={x} y={mark.bounds.centerY-rectSize/8} width={rectSize} height={rectSize/4} fill={isFocusMode ? "#ccc" : mark.mark.item.color}/>
                 {mark.mark.textWrap.render(x+rectSize+rectPadding, mark.bounds.y, { fill: isFocusMode ? "#ccc" : "#eee" })}
@@ -235,8 +235,8 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
         const {rectSize, rectPadding} = legend
         const {focusMarks} = this
 
-        return focusMarks.map((mark, i) => {
-            const result = <g className="legendMark" onMouseOver={e => this.onMouseOver(mark.mark.item.color)} onMouseLeave={e => this.onMouseLeave()} onClick={e => this.onClick(mark.mark.item.key)}>
+        return focusMarks.map(mark => {
+            const result = <g className="legendMark" onMouseOver={() => this.onMouseOver(mark.mark.item.color)} onMouseLeave={() => this.onMouseLeave()} onClick={() => this.onClick(mark.mark.item.key)}>
                 <rect x={x} y={mark.bounds.y} width={mark.bounds.width} height={mark.bounds.height} fill="#fff" opacity={0}/>
                 <rect x={x} y={mark.bounds.centerY-rectSize/8} width={rectSize} height={rectSize/4} fill={mark.mark.item.color}/>
                 {mark.mark.textWrap.render(x+rectSize+rectPadding, mark.bounds.y, { fill: "#333" })}

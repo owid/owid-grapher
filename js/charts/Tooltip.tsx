@@ -1,6 +1,5 @@
 import {extend} from './Util'
 import * as React from 'react'
-import * as ReactDOM from 'react-dom'
 import ChartView from './ChartView'
 import {observable, computed} from 'mobx'
 import {observer} from 'mobx-react'

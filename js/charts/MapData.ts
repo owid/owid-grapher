@@ -151,7 +151,7 @@ export default class MapData {
         if (this.map.isAutoBuckets) return this.autoBucketMaximums
 
         const {map, variable} = this
-        const {minBucketValue, numBuckets, colorSchemeValues} = map
+        const {numBuckets, colorSchemeValues} = map
 
 		if (!variable.hasNumericValues || numBuckets <= 0)
 			return [];
@@ -225,7 +225,7 @@ export default class MapData {
 		var legendData = [];
 
         const {map, variable, bucketMaximums, baseColors, categoricalValues, customCategoryColors} = this
-        const {isAutoBuckets, customBucketLabels, customNumericColors, customCategoryLabels, customHiddenCategories, minBucketValue, noDataColor} = map
+        const {customBucketLabels, customNumericColors, customCategoryLabels, customHiddenCategories, minBucketValue} = map
 
         /*var unitsString = chart.model.get("units"),
             units = !isEmpty(unitsString) ? JSON.parse(unitsString) : {},
@@ -247,8 +247,7 @@ export default class MapData {
             var value = categoricalValues[i], boundingOffset = isEmpty(bucketMaximums) ? 0 : bucketMaximums.length-1,
                 baseColor = baseColors[i+boundingOffset],
                 color = customCategoryColors[value] || baseColor,
-                label = customCategoryLabels[value] || "",
-                text = label || value;
+                label = customCategoryLabels[value] || "";
 
             legendData.push(new CategoricalBin({ index: i, value: value, color: color, label: label, isHidden: customHiddenCategories[value] }))
         }

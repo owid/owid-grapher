@@ -2,23 +2,24 @@ import * as path from 'path'
 import * as webpack from 'webpack'
 import * as OptimizeCssAssetsPlugin from 'optimize-css-assets-webpack-plugin'
 import * as ExtractTextPlugin from 'extract-text-webpack-plugin'
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const ManifestPlugin = require('webpack-manifest-plugin')
 const ParallelUglifyPlugin = require('webpack-parallel-uglify-plugin')
 
 const isProduction = process.argv.indexOf('-p') !== -1
 
 export default {
-    context: path.join(__dirname, "js"),
+    context: __dirname,
     entry: {
-        charts: "./charts.entry.ts",
-        admin: "./admin.entry.ts"
+        charts: "./js/charts.entry.ts",
+        admin: "./js/admin.entry.ts"
     },
     output: {
         path: path.join(__dirname, "public/build"),
         filename: (isProduction ? "[name].bundle.[chunkhash].js" : "[name].js")
     },
   	resolve: {
-        extensions: [".js", ".jsx", ".ts", ".tsx", ".css"],
+        extensions: [".ts", ".tsx", ".js", ".css"],
         alias: {
             'react': 'preact-compat',
             'react-dom': 'preact-compat',
@@ -33,7 +34,10 @@ export default {
         rules: [
             {
                 test: /\.tsx?$/,
-                loader: "awesome-typescript-loader"
+                loader: "ts-loader",
+                options: {
+                    transpileOnly: true
+                }
             },
             {
                 test: /\.css$/,
@@ -90,6 +94,8 @@ export default {
         new webpack.optimize.CommonsChunkPlugin({
             name: "charts"
         }),
+
+        new ForkTsCheckerWebpackPlugin(),
 
         new ExtractTextPlugin('[name].css')
     ]),

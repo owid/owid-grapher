@@ -1,13 +1,12 @@
 import {computed} from 'mobx'
 import {scaleOrdinal} from 'd3-scale'
-import {some, isEmpty, last, union, min, max, sortBy, uniq, cloneDeep, keys, sum, extend, find, identity, sortedUniq} from './Util'
+import {some, isEmpty, last, min, max, sortBy, cloneDeep, sum, extend, find, identity, sortedUniq} from './Util'
 import ChartConfig from './ChartConfig'
 import Color from './Color'
 import DataKey from './DataKey'
 import {StackedAreaSeries, StackedAreaValue} from './StackedArea'
 import AxisSpec from './AxisSpec'
 import ColorSchemes from './ColorSchemes'
-import ColorBinder from './ColorBinder'
 import {formatValue, formatYear, defaultTo, findClosest} from './Util'
 import IChartTransform from './IChartTransform'
 
@@ -40,11 +39,9 @@ export default class StackedAreaTransform implements IChartTransform {
 	// Get the data for all years, before any time filtering
 	@computed get initialData(): StackedAreaSeries[] {
 		const {chart} = this
-		const {timeDomain, yAxis, addCountryMode} = chart
-        const {filledDimensions, selectedKeys, selectedKeysByKey} = chart.data
+        const {filledDimensions, selectedKeysByKey} = chart.data
 
 		let chartData: StackedAreaSeries[] = []
-		const colorKeys: {[key: string]: string} = {}
 
 		filledDimensions.forEach((dimension, dimIndex) => {
             const {variable} = dimension
@@ -193,7 +190,7 @@ export default class StackedAreaTransform implements IChartTransform {
     }
 
     @computed get stackedData(): StackedAreaSeries[] {
-        const {groupedData, isRelative} = this
+        const {groupedData} = this
         
         if (some(groupedData, series => series.values.length !== groupedData[0].values.length))
             throw `Unexpected variation in stacked area chart series: ${groupedData.map(series => series.values.length)}`

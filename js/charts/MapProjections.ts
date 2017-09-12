@@ -1,7 +1,5 @@
-declare function require(name:string): any;
 import geoRobinson from 'd3-geo-projection/src/robinson'
 import {geoPath, GeoPath, geoConicConformal} from 'd3-geo'
-import MapProjection from './MapProjection'
 import {computed} from 'mobx'
 
 class MapProjections {
@@ -15,7 +13,6 @@ class MapProjections {
 
 	@computed get Africa(): GeoPath<any, any> {
 		//empiric
-		var k = 3.2;
 		var projection = geoConicConformal()
 			.rotate([-25, 0])
 			.center([0, 0])
@@ -26,7 +23,6 @@ class MapProjections {
 
 	@computed get NorthAmerica(): GeoPath<any, any> {
 		//empiric
-		var k = 3.2;
 		var projection = geoConicConformal()
 			.rotate([98, 0])
 			.center([0, 38])
@@ -37,7 +33,6 @@ class MapProjections {
 
 	@computed get SouthAmerica(): GeoPath<any, any> {
 		//empiric
-		var k = 3.6;
 		var projection = geoConicConformal()
 			.rotate([68, 0])
 			.center([0, -14])
@@ -48,7 +43,6 @@ class MapProjections {
 
 	@computed get Asia(): GeoPath<any, any> {
 		//empiric
-		var k = 3.2;
 		var projection = geoConicConformal()
 			.rotate([-105, 0])
 			.center([0, 37])
@@ -59,7 +53,6 @@ class MapProjections {
 
 	@computed get Europe(): GeoPath<any, any> {
 		//empiric
-		var k = 1.7;
 		var projection = geoConicConformal()
 			.rotate([-15, 0])
 			.center([0, 55])
@@ -70,7 +63,6 @@ class MapProjections {
 
 	@computed get Australia(): GeoPath<any, any> {
 		//empiric
-		var k = 3.2;
 		var projection = geoConicConformal()
 			.rotate([-135, 0])
 			.center([0, -20])

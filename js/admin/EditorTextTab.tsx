@@ -1,10 +1,8 @@
 import * as React from 'react'
-import {computed, action} from 'mobx'
+import {action} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartEditor from './ChartEditor'
-import {ChartTypeType} from '../charts/ChartType'
 import {Toggle, TextField, TextAreaField} from './Forms'
-import {slugify} from '../charts/Util'
 
 @observer
 export default class EditorTextTab extends React.Component<{ editor: ChartEditor }> {

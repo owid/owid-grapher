@@ -1,11 +1,9 @@
-import {select} from 'd3-selection'
 import * as React from 'react'
 import {min, max, reduce, map, each, last, sortBy, flatten, some, find} from './Util'
 import Bounds from './Bounds'
-import {observable, computed, asFlat, action} from 'mobx'
+import {computed, action} from 'mobx'
 import {observer} from 'mobx-react'
 import {getRelativeMouse} from './Util'
-import Text from './Text'
 import {preInstantiate} from './Util'
 import {MapLegendBin, NumericBin, CategoricalBin} from './MapData'
 import TextWrap from './TextWrap'
@@ -84,8 +82,7 @@ class NumericMapLegend {
     }
 
     @computed get numericLabels(): NumericLabel[] {
-        const {width} = this.props
-        const {minValue, rangeSize, rectHeight, positionedBins} = this
+        const {rectHeight, positionedBins} = this
         const fontSize = "0.5em"
 
         const makeBoundaryLabel = (d: PositionedBin, minOrMax: 'min'|'max', text: string) => {
@@ -182,8 +179,8 @@ class NumericMapLegendView extends React.Component<{ legend: NumericMapLegend, x
     }
 
     @action.bound onMouseMove(ev: MouseEvent) {
-        const {legend, props, bounds, base} = this
-        const {minValue, rangeSize, focusBracket} = legend
+        const {legend, props, base} = this
+        const {focusBracket} = legend
         const mouse = getRelativeMouse(base, ev)
         if (!this.bounds.contains(mouse))
             if (focusBracket)
@@ -216,7 +213,6 @@ class NumericMapLegendView extends React.Component<{ legend: NumericMapLegend, x
         const {rectHeight, numericLabels, height, positionedBins, focusBracket} = legend
         //Bounds.debug([this.bounds])
 
-        const borderSize = 0.5
         const borderColor = "#333"
         const bottomY = props.y+height
 
@@ -224,7 +220,7 @@ class NumericMapLegendView extends React.Component<{ legend: NumericMapLegend, x
             {map(numericLabels, label =>
                 <line x1={props.x+label.bounds.x+label.bounds.width/2} y1={bottomY-rectHeight} x2={props.x+label.bounds.x+label.bounds.width/2} y2={bottomY+label.bounds.y+label.bounds.height} stroke={borderColor} strokeWidth={0.3}/>
             )}
-            {sortBy(map(positionedBins, (d, i) => {
+            {sortBy(map(positionedBins, d => {
                 const isFocus = focusBracket && ((d.bin as NumericBin).min == (focusBracket as NumericBin).min || ((d.bin as CategoricalBin).value != null && (d.bin as CategoricalBin).value == (focusBracket as CategoricalBin).value))
                 return <rect x={props.x+d.x} y={bottomY-rectHeight} width={d.width} height={rectHeight} fill={d.bin.color} stroke={isFocus ? "#FFEC38" : borderColor} strokeWidth={isFocus ? 2.5 : 0.3}/>
             }), r => r.props['stroke-width'])}
@@ -336,14 +332,14 @@ class CategoricalMapLegend extends React.Component<CategoricalMapLegendProps> {
     }
 
     render() {
-        const {props, marks, height} = this
+        const {props, marks} = this
         //Bounds.debug([this.bounds])
         //Bounds.debug(marks.map(m => m.label.bounds))
         return <g className="categoricalMapLegend">
             {map(marks, m => {
                 const isFocus = props.focusBracket && m.bin.value == props.focusBracket.value
                 const stroke = isFocus ? "#FFEC38" : "#333"
-                return <g onMouseOver={e => this.props.onMouseOver(m.bin)} onMouseLeave={e => this.props.onMouseLeave()}>
+                return <g onMouseOver={() => this.props.onMouseOver(m.bin)} onMouseLeave={() => this.props.onMouseLeave()}>
                   <rect x={(props.x as number)+m.x} y={(props.y as number)+m.y} width={m.rectSize} height={m.rectSize} fill={m.bin.color} stroke={stroke} stroke-width={0.4}/>,
                   <text x={(props.x as number)+m.label.bounds.x} y={(props.y as number)+m.label.bounds.y} fontSize={m.label.fontSize} dominant-baseline="hanging">{m.label.text}</text>
                 </g>
@@ -431,7 +427,7 @@ export default class MapLegend extends React.Component<MapLegendProps> {
     }
 
     render() {
-        const {bounds, title, onMouseOver, onMouseLeave} = this.props
+        const {bounds, onMouseOver, onMouseLeave} = this.props
         const {mainLabel, numericLegend, categoryLegend, categoryLegendHeight} = this
         //Bounds.debug([new Bounds(bounds.centerX-wrapLabel.width/2, bounds.bottom-wrapLabel.height, wrapLabel.width, wrapLabel.height)])
 

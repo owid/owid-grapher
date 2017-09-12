@@ -7,7 +7,7 @@
 
 import * as React from 'react'
 import {map, flatten, some, includes, sortBy, filter} from './Util'
-import {computed, action, observable, autorun} from 'mobx'
+import {computed, action, observable} from 'mobx'
 import {observer} from 'mobx-react'
 import {LineChartSeries, LineChartValue} from './LineChart'
 import AxisScale from './AxisScale'
@@ -67,7 +67,6 @@ export default class Lines extends React.Component<LinesProps> {
 
     @computed get hoverData(): HoverTarget[] {
         const {data} = this.props
-        const {renderData} = this
         return flatten(map(this.renderData, (series, i) => {
             return map(series.values, (v, j) => {
                 return {
@@ -81,7 +80,7 @@ export default class Lines extends React.Component<LinesProps> {
 
     @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement>) {
         const mouse = getRelativeMouse(this.base, ev)
-        const {props, hoverData} = this
+        const {hoverData} = this
 
         const value = sortBy(hoverData, v => Vector2.distanceSq(v.pos, mouse))[0]
         if (Vector2.distance(value.pos, mouse) < 100) {
@@ -152,7 +151,7 @@ export default class Lines extends React.Component<LinesProps> {
     }
 
     render() {
-        const {renderData, hover, bounds, isFocusMode} = this        
+        const {hover, bounds} = this        
 
         return <g className="Lines" onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseLeave}>
             <rect x={Math.round(bounds.x)} y={Math.round(bounds.y)} width={Math.round(bounds.width)} height={Math.round(bounds.height)} fill="rgba(255,255,255,0)" opacity={0}/>
