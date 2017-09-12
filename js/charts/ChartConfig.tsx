@@ -83,7 +83,7 @@ export class DimensionSlot {
     }
 
     @computed get isOptional(): boolean {
-        return this.property == 'filter'
+        return this.allowMultiple || this.property == 'filter'
     }
 
     @computed get dimensions(): ChartDimension[] {
