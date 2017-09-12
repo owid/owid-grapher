@@ -1,5 +1,5 @@
 import {computed} from 'mobx'
-import {some, union, min, max, isEmpty, sortBy, extend, find, identity, cloneDeep} from './Util'
+import {some, union, min, max, isEmpty, sortBy, extend, find, identity, cloneDeep, sortedUniq} from './Util'
 import {scaleOrdinal} from 'd3-scale'
 import ChartConfig from './ChartConfig'
 import Color from './Color'
@@ -32,30 +32,8 @@ export default class LineChartTransform implements IChartTransform {
             return "No matching data"
     }
 
-    @computed get timelineYears(): number[] {
-        return union(...this.chart.data.axisDimensions.map(d => d.variable.yearsUniq))
-    }
-
-    @computed get minTimelineYear(): number {
-        return defaultTo(min(this.timelineYears), 1900)
-    }
-
-    @computed get maxTimelineYear(): number {
-        return defaultTo(max(this.timelineYears), 2000)
-    }
-
-    @computed get startYear(): number {
-        const minYear = defaultTo(this.chart.timeDomain[0], this.minTimelineYear)
-        return defaultTo(findClosest(this.timelineYears, minYear), this.minTimelineYear)
-    }
-
-    @computed get endYear(): number {
-        const maxYear = defaultTo(this.chart.timeDomain[1], this.maxTimelineYear)
-        return defaultTo(findClosest(this.timelineYears, maxYear), this.maxTimelineYear)
-    }
-
 	@computed get initialData(): LineChartSeries[] {
-		const {chart, startYear, endYear} = this
+		const {chart} = this
 		const {timeDomain, yAxis, addCountryMode} = chart
         const {filledDimensions, selectedKeys, selectedKeysByKey} = chart.data
 
@@ -74,8 +52,6 @@ export default class LineChartTransform implements IChartTransform {
 
 				// Not a selected key, don't add any data for it
 				if (!selectedKeysByKey[datakey]) continue;
-				// Check for time range
-				if (year < startYear || year > endYear) continue;
                 // Can't have values <= 0 on log scale
                 if (value <= 0 && yAxis.scaleType == 'log') continue;
 
@@ -108,6 +84,30 @@ export default class LineChartTransform implements IChartTransform {
 
         return chartData
 	}
+
+    @computed get timelineYears(): number[] {
+		const allYears: number[] = []
+		this.initialData.forEach(g => allYears.push(...g.values.map(d => d.x)))
+		return sortedUniq(sortBy(allYears))
+    }
+
+    @computed get minTimelineYear(): number {
+        return defaultTo(min(this.timelineYears), 1900)
+    }
+
+    @computed get maxTimelineYear(): number {
+        return defaultTo(max(this.timelineYears), 2000)
+    }
+
+    @computed get startYear(): number {
+        const minYear = defaultTo(this.chart.timeDomain[0], this.minTimelineYear)
+        return defaultTo(findClosest(this.timelineYears, minYear), this.minTimelineYear)
+    }
+
+    @computed get endYear(): number {
+        const maxYear = defaultTo(this.chart.timeDomain[1], this.maxTimelineYear)
+        return defaultTo(findClosest(this.timelineYears, maxYear), this.maxTimelineYear)
+    }
 
     @computed get allValues(): LineChartValue[] {
         const allValues: LineChartValue[] = []

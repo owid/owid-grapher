@@ -75,6 +75,7 @@ export default class StackedAreaTransform implements IChartTransform {
 					seriesByKey.set(datakey, series);
 				}
 
+
 				series.values.push({ x: year, y: value, time: year });
 			}
 
@@ -87,7 +88,7 @@ export default class StackedAreaTransform implements IChartTransform {
     @computed get timelineYears(): number[] {	
 		const allYears: number[] = []
 		this.initialData.forEach(g => allYears.push(...g.values.map(d => d.x)))
-		return uniq(allYears)
+		return sortedUniq(sortBy(allYears))
     }
 
     @computed get minTimelineYear(): number {
