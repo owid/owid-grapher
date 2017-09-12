@@ -50,6 +50,10 @@ export default {
     devtool: (isProduction ? false : "cheap-module-eval-source-map"),
 
     plugins: (isProduction ? [
+        new webpack.optimize.CommonsChunkPlugin({
+            name: "charts"
+        }),
+
         // This plugin extracts css files required in the entry points
         // into a separate CSS bundle for download
         new ExtractTextPlugin('[name].bundle.[chunkhash].css'),
@@ -83,6 +87,10 @@ export default {
         // filenames
         new ManifestPlugin(),
     ] : [
+        new webpack.optimize.CommonsChunkPlugin({
+            name: "charts"
+        }),
+
         new ExtractTextPlugin('[name].css')
     ]),
     devServer: {
