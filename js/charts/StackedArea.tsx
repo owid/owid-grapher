@@ -28,7 +28,7 @@ export interface StackedAreaValue {
     x: number,
     y: number,
     time: number,
-    gapYearsToNext?: number
+    isFake?: true
 }
 
 export interface StackedAreaSeries {
@@ -36,7 +36,7 @@ export interface StackedAreaSeries {
     color: string,
     values: StackedAreaValue[],
     classed?: string,
-    isProjection?: boolean
+    isProjection?: boolean,
 }
 
 interface StackedAreaProps {
@@ -79,10 +79,12 @@ export class Areas extends React.Component<{ axisBox: AxisBox, data: StackedArea
         const xBottomLeft = `${xScale.range[0]},${yScale.range[0]}`
         const xBottomRight = `${xScale.range[1]},${yScale.range[0]}`
 
-        return data.map((series, i) => {
-            const prevPoints = i == 0 ? [xBottomLeft, xBottomRight] : data[i-1].values.map(v => `${xScale.place(v.x)},${yScale.place(v.y)}`)
+        // Stacked area chart stacks each series upon the previous series, so we must keep track of the last point set we used
+        let prevPoints = [xBottomLeft, xBottomRight]
+        return data.map(series => {
             const mainPoints = series.values.map(v => `${xScale.place(v.x)},${yScale.place(v.y)}`)
             const points = mainPoints.concat(reverse(clone(prevPoints)))
+            prevPoints = mainPoints
 
             return <polyline
                 key={series.key+'-line'}
@@ -168,24 +170,29 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
 
         const {transform, hoverIndex, axisBox, chart} = this
 
+        // Grab the first value to get the year from
         const refValue = transform.stackedData[0].values[hoverIndex]
+
+        // If some data is missing, don't calculate a total
+        const someMissing = transform.stackedData.some(g => !!g.values[hoverIndex].isFake)
 
         return <Tooltip x={axisBox.xScale.place(refValue.x)} y={axisBox.yScale.rangeMin + axisBox.yScale.rangeSize/2} style={{padding: "0.3em"}}>
             <table style={{fontSize: "0.9em", lineHeight: "1.4em"}}>
                 <tr>
                     <td><strong>{refValue.x}</strong></td>
                     <td>
-                        {!transform.isRelative && !transform.isDataRelative && <span>
+                        {!transform.isRelative && !transform.isDataRelative && !someMissing && <span>
                             <strong>{transform.yAxis.tickFormat(transform.stackedData[transform.stackedData.length-1].values[hoverIndex].y)}</strong>
                         </span>}
                     </td>
                 </tr>
                 {reverse(clone(transform.groupedData)).map(series => {
+                    const value = series.values[hoverIndex]
                     return <tr>
                         <td style={{paddingRight: "0.8em", fontSize: "0.9em"}}>
                             <div style={{width: '10px', height: '10px', backgroundColor: series.color, border: "1px solid #ccc", display: 'inline-block'}}/> {chart.data.formatKey(series.key)}
                         </td>
-                        <td>{transform.yAxis.tickFormat(series.values[hoverIndex].y)}</td>
+                        <td>{value.isFake ? "No data" : transform.yAxis.tickFormat(value.y)}</td>
                     </tr>
                 })}
             </table>
