@@ -163,8 +163,8 @@ with transaction.atomic():
                 if row_number > 1:
                     column_number += 1
                     if column_number == 1:
-                        global_cat[cell.value] = {}
-                        indicatordict = global_cat[cell.value]
+                        global_cat[cell.value.upper().strip()] = {}
+                        indicatordict = global_cat[cell.value.upper().strip()]
                     if column_number == 2:
                         indicatordict['category'] = cell.value.split(':')[0]
                     if column_number == 3:
@@ -333,9 +333,9 @@ with transaction.atomic():
                         if column_number == 3:
                             indicator_name = cell.value
                         if column_number == 4:
-                            indicator_code = cell.value
-                        if column_number > 4 and column_number < last_available_year - 1960 + 5:
-                            if cell.value:
+                            indicator_code = cell.value.upper().strip()
+                        if column_number > 4 and column_number <= last_available_year - 1960 + 5:
+                            if cell.value or cell.value == 0:
                                 data_values.append({'value': cell.value, 'year': 1960 - 5 + column_number})
                         if column_number > 4 and column_number == last_available_year - 1960 + 5:
                             if len(data_values):
@@ -445,8 +445,8 @@ with transaction.atomic():
                 if row_number > 1:
                     column_number += 1
                     if column_number == 1:
-                        global_cat[cell.value] = {}
-                        indicatordict = global_cat[cell.value]
+                        global_cat[cell.value.upper().strip()] = {}
+                        indicatordict = global_cat[cell.value.upper().strip()]
                     if column_number == 2:
                         indicatordict['category'] = cell.value.split(':')[0]
                     if column_number == 3:
@@ -650,9 +650,9 @@ with transaction.atomic():
                         if column_number == 3:
                             indicator_name = cell.value
                         if column_number == 4:
-                            indicator_code = cell.value
-                        if column_number > 4 and column_number < last_available_year - 1960 + 5:
-                            if cell.value:
+                            indicator_code = cell.value.upper().strip()
+                        if column_number > 4 and column_number <= last_available_year - 1960 + 5:
+                            if cell.value or cell.value == 0:
                                 data_values.append({'value': cell.value, 'year': 1960 - 5 + column_number})
                         if column_number > 4 and column_number == last_available_year - 1960 + 5:
                             if len(data_values):
