@@ -27,11 +27,12 @@ def listunwppdatasets(request: HttpRequest):
     datasets: Dict = {}
 
     for each in variables:
-        if datasets.get(each.fk_dst_id.fk_dst_subcat_id.name):
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+        dataset_full_name = each.fk_dst_id.namespace + '<br><br>' + each.fk_dst_id.name
+        if datasets.get(dataset_full_name):
+            datasets[dataset_full_name].append({'id': each.pk, 'name': each.name, 'code': each.code})
         else:
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name] = []
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+            datasets[dataset_full_name] = []
+            datasets[dataset_full_name].append({'id': each.pk, 'name': each.name, 'code': each.code})
 
     return render(request, 'admin.unwpp.data.html', context={'current_user': request.user.name,
                                                            'datasets': datasets})
