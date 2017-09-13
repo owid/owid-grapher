@@ -155,8 +155,8 @@ class Chart(models.Model):
         Cloudflare or the browser.
         """
         variable_cache_tag = str(self.updated_at) + ' + ' + Chart.owid_commit()
-        config = json.loads(self.config)
-        dims = config['chart-dimensions']
+        config = self.get_config()
+        dims = config['dimensions']
         varids = [int(d['variableId']) for d in dims if 'variableId' in d]
         vartimestamps = Variable.objects.filter(pk__in=varids)
         updated_at_list = []
@@ -184,9 +184,9 @@ class Chart(models.Model):
         for each in list(Logo.objects.filter(name__in=['owd'])):
             logos.append(each.svg)
         config['logosSVG'] = logos
-        config['chart-dimensions'] = list(self.chartdimension_set.values())
+        config['dimensions'] = list(self.chartdimension_set.values())
         # XXX
-        for dim in config['chart-dimensions']:
+        for dim in config['dimensions']:
             dim['chartId'] = dim.pop('chartId_id')
             dim['variableId'] = dim.pop('variableId_id')
         return config
@@ -315,6 +315,7 @@ class ChartDimension(models.Model):
     targetYear = models.IntegerField(db_column='targetYear', blank=True, null=True)
     isProjection = models.BooleanField(default=False)
     tolerance = models.IntegerField(blank=True, default=5)
+    conversionFactor = models.IntegerField(blank=True, null=True)
     color = models.CharField(max_length=255)
 
 

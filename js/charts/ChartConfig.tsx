@@ -6,7 +6,8 @@ import ChartType, {ChartTypeType} from './ChartType'
 import ChartTabOption from './ChartTabOption'
 import {defaultTo} from './Util'
 import VariableData from './VariableData'
-import ChartData, {DimensionWithData} from './ChartData'
+import ChartData from './ChartData'
+import DimensionWithData from './DimensionWithData'
 import MapConfig, {MapConfigProps} from './MapConfig'
 import URLBinder from './URLBinder'
 import DiscreteBarTransform from './DiscreteBarTransform'
@@ -38,6 +39,7 @@ export class ChartDimension {
     @observable isProjection?: boolean = undefined
     @observable targetYear?: number = undefined
     @observable tolerance?: number = undefined
+    @observable conversionFactor?: number = undefined
 
     constructor(json: { property: string, variableId: number }) {
         for (let key in this) {
@@ -278,7 +280,7 @@ export default class ChartConfig {
         extend(this.props.xAxis, json['xAxis'])
         extend(this.props.yAxis, json['yAxis'])
 
-        this.props.dimensions = (json['chart-dimensions']||[]).map((j: any) => new ChartDimension(j))        
+        this.props.dimensions = json.dimensions.map((j: any) => new ChartDimension(j))
         this.variableCacheTag = json["variableCacheTag"]
         this.logosSVG = json["logosSVG"]
     }
@@ -303,7 +305,6 @@ export default class ChartConfig {
         json['chart-type'] = props.type
         json['published'] = props.isPublished
         json['tabs'] = this.availableTabs
-        json['chart-dimensions'] = props.dimensions
 
         return json
     }

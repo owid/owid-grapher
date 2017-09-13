@@ -420,7 +420,7 @@ def exportfile(request, slug, fileformat):
             for var in allvariables:
                 allvardict[var.pk] = {'id': var.pk, 'name': var.name}
 
-            for chartvar in configfile['chart-dimensions']:
+            for chartvar in configfile['dimensions']:
                 if allvardict.get(int(chartvar['variableId']), 0):
                     chartvarlist.append(allvardict[int(chartvar['variableId'])])
 

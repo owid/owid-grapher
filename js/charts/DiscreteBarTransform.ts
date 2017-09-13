@@ -3,9 +3,9 @@ import {some, isEmpty, find, sortBy, max, values} from './Util'
 import ChartConfig from './ChartConfig'
 import Color from './Color'
 import {DiscreteBarDatum} from './DiscreteBarChart'
-import {DimensionWithData} from './ChartData'
 import ColorBinder from './ColorBinder'
 import IChartTransform from './IChartTransform'
+import DimensionWithData from './DimensionWithData'
 
 // Responsible for translating chart configuration into the form
 // of a discrete bar chart
@@ -73,11 +73,11 @@ export default class DiscreteBarTransform implements IChartTransform {
         const dataByKey: {[key: string]: DiscreteBarDatum} = {}
 
 		filledDimensions.forEach((dimension, dimIndex) => {
-            const {variable, tolerance} = dimension
+            const {tolerance} = dimension
 
-			for (var i = 0; i < variable.years.length; i++) {
-				const year = variable.years[i]
-				const entity = variable.entities[i]
+			for (var i = 0; i < dimension.years.length; i++) {
+				const year = dimension.years[i]
+				const entity = dimension.entities[i]
 				const datakey = chart.data.keyFor(entity, dimIndex)
 
 				if (year < targetYear-tolerance || year > targetYear+tolerance || !selectedKeysByKey[datakey]) 
@@ -89,7 +89,7 @@ export default class DiscreteBarTransform implements IChartTransform {
                     continue
 
                 const datum = {
-                    value: +variable.values[i],
+                    value: +dimension.values[i],
                     year: year,
                     label: chart.data.formatKey(datakey),
                     color: colors.getColorForKey(datakey)

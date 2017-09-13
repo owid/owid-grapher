@@ -3,7 +3,7 @@ import ChartConfig from './ChartConfig'
 import {some, isEmpty, find, intersection, min, max, keyBy, extend, isNumber, has, uniq, groupBy, sortBy, map, includes} from './Util'
 import {computed, observable} from 'mobx'
 import {defaultTo, first, last} from './Util'
-import {DimensionWithData} from './ChartData'
+import DimensionWithData from './DimensionWithData'
 import {ScatterSeries, ScatterValue} from './PointsWithLabels'
 import AxisSpec from './AxisSpec'
 import {formatValue, domainExtent, findClosest} from './Util'
@@ -207,14 +207,13 @@ export default class ScatterTransform implements IChartTransform {
 
         // The data values
         filledDimensions.forEach(dimension => {
-            var variable = dimension.variable,
-                tolerance = (dimension.property == 'color' || dimension.property == 'size') ? Infinity : dimension.tolerance;
+            var tolerance = (dimension.property == 'color' || dimension.property == 'size') ? Infinity : dimension.tolerance;
 
             yearsToCalculate.forEach((outputYear) =>  {
-                for (var i = 0; i < variable.years.length; i++) {
-                    var year = variable.years[i],
-                        value = variable.values[i],
-                        entity = variable.entities[i];
+                for (var i = 0; i < dimension.years.length; i++) {
+                    var year = dimension.years[i],
+                        value = dimension.values[i],
+                        entity = dimension.entities[i];
 
                     // Since scatterplots interrelate two variables via entity overlap, their datakeys are solely entity-based
                     const datakey = chart.data.keyFor(entity, 0)

@@ -5,7 +5,7 @@ import {observer} from 'mobx-react'
 import {DimensionSlot} from '../charts/ChartConfig'
 import {ChartTypeType} from '../charts/ChartType'
 import {TextField, Toggle, NumberField} from './Forms'
-import {DimensionWithData} from '../charts/ChartData'
+import DimensionWithData from '../charts/DimensionWithData'
 import ChartEditor, {Variable} from './ChartEditor'
 import VariableSelector from './VariableSelector'
 const styles = require("./EditorBasicTab.css")
@@ -42,6 +42,10 @@ class DimensionCard extends React.Component<{ dimension: DimensionWithData, edit
 		this.props.dimension.props.tolerance = value
 	}
 
+	@action.bound onConversionFactor(value: number|undefined) {
+		this.props.dimension.props.conversionFactor = value
+	}
+
 	render() {
 		const {dimension, editor} = this.props
 		const {chart} = editor
@@ -61,6 +65,7 @@ class DimensionCard extends React.Component<{ dimension: DimensionWithData, edit
 				<TextField label="Display name" value={dimension.props.displayName} onValue={this.onDisplayName} placeholder={dimension.displayName}/>
 				<TextField label="Unit" value={dimension.props.unit} onValue={this.onUnit} placeholder={dimension.unit}/>
 				<TextField label="Short unit" value={dimension.props.shortUnit} onValue={this.onShortUnit} placeholder={dimension.shortUnit}/>
+				<NumberField label="Unit conversion factor" value={dimension.props.conversionFactor} onValue={this.onConversionFactor} placeholder={"1"}/>
 				{(chart.isScatter || chart.isDiscreteBar) && <NumberField label="Tolerance" value={dimension.props.tolerance} onValue={this.onTolerance} placeholder={toString(dimension.tolerance)}/>}
 				{chart.isLineChart && <Toggle label="Is projection" value={!!dimension.props.isProjection} onValue={this.onIsProjection}/>}
 			</div>}

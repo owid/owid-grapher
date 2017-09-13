@@ -217,7 +217,7 @@ def savechart(chart: Chart, data: Dict, user: User):
     chart.last_edited_by = user
     chart.save()
 
-    for dim in data["chart-dimensions"]:
+    for dim in data["dimensions"]:
         newdim = ChartDimension()
         newdim.order = i
         newdim.chartId = chart
@@ -228,6 +228,7 @@ def savechart(chart: Chart, data: Dict, user: User):
         newdim.isProjection = dim.get('isProjection', False)
         newdim.unit = dim.get('unit', "")
         newdim.property = dim.get('property', None)
+        newdim.conversionFactor = dim.get('conversionFactor', None)
         newdim.variableId = Variable.objects.get(pk=int(dim.get('variableId', None)))
         dims.append(newdim)
         i += 1

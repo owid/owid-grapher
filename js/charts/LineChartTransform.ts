@@ -7,9 +7,9 @@ import DataKey from './DataKey'
 import {LineChartSeries, LineChartValue} from './LineChart'
 import AxisSpec from './AxisSpec'
 import {defaultTo, formatYear, findClosest, last} from './Util'
-import {DimensionWithData} from './ChartData'
 import ColorSchemes from './ColorSchemes'
 import IChartTransform from './IChartTransform'
+import DimensionWithData from './DimensionWithData'
 
 // Responsible for translating chart configuration into the form
 // of a line chart
@@ -41,13 +41,12 @@ export default class LineChartTransform implements IChartTransform {
 		let chartData: LineChartSeries[] = []
 
 		filledDimensions.forEach((dimension, dimIndex) => {
-            const {variable} = dimension
 			const seriesByKey = new Map<DataKey, LineChartSeries>()
 
-			for (var i = 0; i < variable.years.length; i++) {
-				const year = variable.years[i]
-				const value = parseFloat(variable.values[i] as string)
-				const entity = variable.entities[i]
+			for (var i = 0; i < dimension.years.length; i++) {
+				const year = dimension.years[i]
+				const value = parseFloat(dimension.values[i] as string)
+				const entity = dimension.entities[i]
 				const datakey = chart.data.keyFor(entity, dimIndex)
 				let series = seriesByKey.get(datakey)
 

@@ -46,13 +46,12 @@ export default class StackedAreaTransform implements IChartTransform {
 		let chartData: StackedAreaSeries[] = []
 
 		filledDimensions.forEach((dimension, dimIndex) => {
-            const {variable} = dimension
 			const seriesByKey = new Map<DataKey, StackedAreaSeries>()
 
-			for (var i = 0; i < variable.years.length; i++) {
-				const year = variable.years[i]
-				const value = +variable.values[i]
-				const entity = variable.entities[i]
+			for (var i = 0; i < dimension.years.length; i++) {
+				const year = dimension.years[i]
+				const value = +dimension.values[i]
+				const entity = dimension.entities[i]
 				const datakey = chart.data.keyFor(entity, dimIndex)
 				let series = seriesByKey.get(datakey)
 
