@@ -1,6 +1,6 @@
 import {scaleOrdinal} from 'd3-scale'
 import ChartConfig from './ChartConfig'
-import {some, isEmpty, find, intersection, min, max, keyBy, extend, isNumber, has, uniq, groupBy, sortBy, map} from './Util'
+import {some, isEmpty, find, intersection, min, max, keyBy, extend, isNumber, has, uniq, groupBy, sortBy, map, includes} from './Util'
 import {computed, observable} from 'mobx'
 import {defaultTo, first, last} from './Util'
 import {DimensionWithData} from './ChartData'
@@ -89,11 +89,21 @@ export default class ScatterTransform implements IChartTransform {
         const xEntities = this.xDimension ? this.xDimension.variable.entitiesUniq : []
         return intersection(yEntities, xEntities)
     }
+
+    @computed get excludedEntities(): string[] {
+        const entityIds = this.chart.props.excludedEntities||[]
+        return entityIds.map(id => this.chart.vardata.entityMetaById[id].name)
+    }
+
     @computed get entitiesToShow(): string[] {
         let entities = this.hideBackgroundEntities ? this.chart.data.selectedEntities : this.possibleEntities
-        const filterDimension = this.chart.data.dimensionsByField['filter']
-        if (filterDimension)
-            entities = intersection(entities, filterDimension.variable.entitiesUniq)
+
+        if (this.chart.props.matchingEntitiesOnly && this.colorDimension)
+            entities = intersection(entities, this.colorDimension.variable.entitiesUniq)
+
+        if (this.excludedEntities)
+            entities = entities.filter(entity => !includes(this.excludedEntities, entity))
+
         return entities
     }
 

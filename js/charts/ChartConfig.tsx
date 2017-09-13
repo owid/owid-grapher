@@ -149,6 +149,8 @@ export class ChartConfigProps {
 
     @observable.ref hideTimeline?: true = undefined
     @observable.ref compareEndPointsOnly?: true = undefined
+    @observable.ref matchingEntitiesOnly?: true = undefined
+    @observable.struct excludedEntities?: number[] = undefined
 
     @observable map?: MapConfigProps = undefined
 }
@@ -216,10 +218,9 @@ export default class ChartConfig {
         const yAxis = new DimensionSlot(this, 'y')
         const color = new DimensionSlot(this, 'color')
         const size = new DimensionSlot(this, 'size')
-        const filter = new DimensionSlot(this, 'filter')
 
 		if (this.isScatter)
-			return [yAxis, xAxis, size, color, filter]
+			return [yAxis, xAxis, size, color]
 		else if (this.isSlopeChart)
 			return [yAxis, size, color]
 		else
