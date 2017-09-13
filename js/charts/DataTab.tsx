@@ -34,7 +34,7 @@ export default class DataTab extends React.Component<{ bounds: Bounds, chart: Ch
 
 		const titleRow = ["Entity", "Code", "Year"]
 		dimensions.forEach(dim => {
-			titleRow.push(dim.variable.name)
+			titleRow.push(csvEscape(dim.variable.name))
 		})
 		rows.push(titleRow.join(","))
 
