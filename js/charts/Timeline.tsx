@@ -56,15 +56,16 @@ export default class Timeline extends React.Component<TimelineProps> {
         })
 
         const {onStartDrag, onStopDrag} = this.props
-        if (onStartDrag && onStopDrag) {
-            autorun(() => {
-                const {isPlaying, isDragging} = this
-                if (isPlaying || isDragging)
-                    onStartDrag()
-                else
-                    onStopDrag()
-            })
-        }
+        autorun(() => {
+            const {isPlaying, isDragging} = this
+            if (isPlaying || isDragging) {
+                this.context.chart.url.debounceMode = true
+                if (onStartDrag) onStartDrag()
+            } else {
+                this.context.chart.url.debounceMode = false
+                if (onStopDrag) onStopDrag()
+            }
+        })
 
         autorunAsync(() => {
             if (this.props.onInputChange)

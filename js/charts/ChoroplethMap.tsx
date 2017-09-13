@@ -157,14 +157,14 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
 
         var matrixStr = "matrix(" + scale + ",0,0," + scale + "," + newOffsetX + "," + newOffsetY + ")";
         return matrixStr
-    }    
+    }
 
     render() {
         const { bounds, choroplethData, defaultFill, geoData, pathData, matrixTransform } = this
         const focusColor = "#FFEC38"
         const focusStrokeWidth = 2.5
 
-        return <g className="map" clip-path="url(#boundsClip)">
+        return <g className="ChoroplethMap" clip-path="url(#boundsClip)">
             <defs>
                 <clipPath id="boundsClip">
                     <rect x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height}></rect>

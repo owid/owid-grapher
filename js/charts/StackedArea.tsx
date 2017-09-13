@@ -17,6 +17,8 @@ import {getRelativeMouse} from './Util'
 import HeightedLegend, {HeightedLegendView} from './HeightedLegend'
 import NoData from './NoData'
 import Tooltip from './Tooltip'
+import {select} from 'd3-selection'
+import {easeLinear} from 'd3-ease'
 
 export interface StackedAreaValue {
     x: number,
@@ -33,8 +35,25 @@ export interface StackedAreaSeries {
     isProjection?: boolean,
 }
 
+function pathify(points: [number, number][]) {
+    let path = ""
+    for (let i = 0; i < points.length; i++) {
+        if (i == 0)
+            path += `M${points[i][0]} ${points[i][1]}`
+        else
+            path += `L${points[i][0]} ${points[i][1]}`
+    }
+    return path
+}
+
+interface AreasProps extends React.SVGAttributes<SVGGElement> {
+    axisBox: AxisBox
+    data: StackedAreaSeries[]
+    onHover: (hoverIndex: number|undefined) => void 
+}
+
 @observer
-export class Areas extends React.Component<{ axisBox: AxisBox, data: StackedAreaSeries[], onHover: (hoverIndex: number|undefined) => void }> {
+export class Areas extends React.Component<AreasProps> {
     base: SVGGElement
     
     @observable hoverIndex?: number
@@ -58,23 +77,24 @@ export class Areas extends React.Component<{ axisBox: AxisBox, data: StackedArea
     @computed get polylines(): JSX.Element[] {
         const {axisBox, data} = this.props
         const {xScale, yScale} = axisBox
-        const xBottomLeft = `${xScale.range[0]},${yScale.range[0]}`
-        const xBottomRight = `${xScale.range[1]},${yScale.range[0]}`
+        const xBottomLeft = [xScale.range[0], yScale.range[0]]
+        const xBottomRight = [xScale.range[1], yScale.range[0]]
 
         // Stacked area chart stacks each series upon the previous series, so we must keep track of the last point set we used
         let prevPoints = [xBottomLeft, xBottomRight]
         return data.map(series => {
-            const mainPoints = series.values.map(v => `${xScale.place(v.x)},${yScale.place(v.y)}`)
+            const mainPoints = series.values.map(v => [xScale.place(v.x), yScale.place(v.y)] as [number, number])
             const points = mainPoints.concat(reverse(clone(prevPoints)))
             prevPoints = mainPoints
 
-            return <polyline
+            return <path
                 key={series.key+'-line'}
                 strokeLinecap="round"
                 stroke={series.color}
-                points={points.join(" ")}
+                d={pathify(points)}
                 fill={series.color}
                 strokeWidth={1}
+                clipPath={this.props.clipPath}
             />
         })
     }
@@ -181,15 +201,35 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
         </Tooltip>
     }
 
+    base: SVGGElement
+    componentDidMount() {
+        // Fancy intro animation
+
+        const base = select(this.base)
+        base.selectAll("clipPath > rect")
+            .attr("width", 0)
+            .transition()
+                .duration(1000)
+                .ease(easeLinear)
+                .attr("width", this.bounds.width)
+    }
+
     render() {
         if (this.transform.failMessage)
             return <NoData bounds={this.props.bounds} message={this.transform.failMessage}/>
             
         const {chart, bounds, axisBox, legend, transform} = this
         return <g className="StackedArea">
+            <defs>
+                <clipPath id="boundsClip">
+                    <rect x={axisBox.innerBounds.x} y={0} width={bounds.width} height={bounds.height*2}></rect>
+                </clipPath>
+            </defs>
             <StandardAxisBoxView axisBox={axisBox} chart={chart}/>
-            {legend && <HeightedLegendView legend={legend} x={bounds.right-legend.width} yScale={axisBox.yScale} focusKeys={[]}/>}
-            <Areas axisBox={axisBox} data={transform.stackedData} onHover={this.onHover}/>
+            <g clipPath="url(#boundsClip)">
+                {legend && <HeightedLegendView legend={legend} x={bounds.right-legend.width} yScale={axisBox.yScale} focusKeys={[]}/>}
+                <Areas axisBox={axisBox} data={transform.stackedData} onHover={this.onHover}/>
+            </g>
             {this.tooltip}
         </g>
     }

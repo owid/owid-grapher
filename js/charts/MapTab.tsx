@@ -15,6 +15,8 @@ import MapProjection from './MapProjection'
 import ChartView from './ChartView'
 import Tooltip from './Tooltip'
 import NoData from './NoData'
+import {select} from 'd3-selection'
+import {easeCubic} from 'd3-ease'
 
 interface TimelineMapProps {
     bounds: Bounds,
@@ -68,11 +70,6 @@ class TimelineMap extends React.Component<TimelineMapProps> {
         chart.data.selectedKeys = chart.data.availableKeysByEntity.get(entity)||[]
     }
 
-    componentDidMount() {
-        // Nice little intro animation
-        //d3.select(this.base).attr('opacity', 0).transition().attr('opacity', 1)
-    }
-
     componentWillUnmount() {
         this.onMapMouseLeave()
         this.onLegendMouseLeave()
@@ -107,6 +104,17 @@ class TimelineMap extends React.Component<TimelineMapProps> {
         const {legendData, legendTitle} = this.props
         const {focusBracket, focusEntity, timelineHeight} = this
         return preInstantiate(<MapLegend bounds={this.props.bounds.padBottom(timelineHeight+5)} legendData={legendData} title={legendTitle} focusBracket={focusBracket} focusEntity={focusEntity} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave}/>)
+    }
+
+    componentDidMount() {
+        select(this.base).selectAll("path")
+            .attr("data-fill", function() { return (this as SVGPathElement).getAttribute("fill")})
+            .attr("fill", this.context.chart.map.noDataColor)
+            .transition()
+                .duration(500)
+                .ease(easeCubic)
+                .attr("fill", function() { return (this as SVGPathElement).getAttribute("data-fill") })
+                .attr("data-fill", function() { return (this as SVGPathElement).getAttribute("fill") })
     }
 
     render() {

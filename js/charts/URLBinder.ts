@@ -37,6 +37,7 @@ export default class URLBinder {
     origChartProps: ChartConfigProps
     chartQueryStr: string = "?"
     mapQueryStr: string = "?"
+    debounceMode: boolean = false
 
     constructor(chart: ChartConfig) {
         this.chart = chart
@@ -45,13 +46,13 @@ export default class URLBinder {
 
         // There is a surprisingly considerable performance overhead to updating the url
         // while animating, so we debounce to allow e.g. smoother timelines
-        const pushParams = debounce(function(params: ChartQueryParams) {
-            requestAnimationFrame(() => setQueryStr(queryParamsToStr(params as QueryParams)))
-        }, 100)
+
+        const pushParams = () => setQueryStr(queryParamsToStr(this.params as QueryParams))
+        const debouncedPushParams = debounce(pushParams, 100)
         
         reaction(
             () => this.params,
-            () => pushParams(this.params)
+            () => this.debounceMode ? debouncedPushParams() : pushParams()
         )
     }
 

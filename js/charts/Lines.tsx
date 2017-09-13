@@ -110,6 +110,11 @@ export default class Lines extends React.Component<LinesProps> {
         return filter(this.renderData, g => !g.isFocus)
     }
 
+    // Don't display point markers for very long lines for performance reasons
+    @computed get hasMarkers(): boolean {
+        return !!this.renderData.every(series => series.values.length < 100)
+    }
+
     renderFocusGroups() {
         return map(this.focusGroups, series =>
             <g className={series.displayKey}>
@@ -127,9 +132,9 @@ export default class Lines extends React.Component<LinesProps> {
                     fill="none"
                     strokeWidth={1.5}
                     opacity={1}
-                    markerStart={`url(#${series.displayKey}-circle)`}
-                    markerMid={`url(#${series.displayKey}-circle)`}
-                    markerEnd={`url(#${series.displayKey}-circle)`}
+                    markerStart={this.hasMarkers ? `url(#${series.displayKey}-circle)` : undefined}
+                    markerMid={this.hasMarkers ? `url(#${series.displayKey}-circle)` : undefined}
+                    markerEnd={this.hasMarkers ? `url(#${series.displayKey}-circle)` : undefined}
                     stroke-dasharray={series.isProjection && "3,2"}
                 />
             </g>

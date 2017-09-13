@@ -246,16 +246,10 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
         })
     }
 
-    componentDidMount() {
-        //Bounds.debug(this.placedMarks.map(b => b.bounds))        
-    }
-
     render() {        
-        return <g className="HeightedLegend">
-            <g className="clickable" style={{cursor: 'pointer'}}>
-                {this.renderBackground()}
-                {this.renderFocus()}
-            </g>
+        return <g className="HeightedLegend clickable">
+            {this.renderBackground()}
+            {this.renderFocus()}
         </g>
     }
 }

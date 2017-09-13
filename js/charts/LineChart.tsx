@@ -20,6 +20,8 @@ import Tooltip from './Tooltip'
 import DataKey from './DataKey'
 import NoData from './NoData'
 import {formatYear} from './Util'
+import {select} from 'd3-selection'
+import {easeLinear} from 'd3-ease'
 
 export interface LineChartValue {
     x: number,
@@ -39,8 +41,6 @@ export interface LineChartSeries {
 
 @observer
 export default class LineChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
-    base: SVGGElement
-
     @computed get chart() { return this.props.chart }
     @computed get bounds() { return this.props.bounds }
     @computed get transform() { return this.props.chart.lineChart }
@@ -98,6 +98,19 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
             this.chart.data.toggleKey(datakey)
     }
 
+    base: SVGGElement
+    componentDidMount() {
+        // Fancy intro animation
+
+        const base = select(this.base)
+        base.selectAll("clipPath > rect")
+            .attr("width", 0)
+            .transition()
+                .duration(1000)
+                .ease(easeLinear)
+                .attr("width", this.bounds.width)
+    }
+
     render() {
         if (this.transform.failMessage)
             return <NoData bounds={this.props.bounds} message={this.transform.failMessage}/>
@@ -108,10 +121,17 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
         const axisBox = new AxisBox({bounds: bounds.padRight(10).padRight(legend ? legend.width : 0), xAxis, yAxis})
 
         return <g className="LineChart">
-            {legend && <HeightedLegendView x={bounds.right-legend.width} legend={legend} focusKeys={focusKeys} yScale={axisBox.yScale} onClick={this.onLegendClick}/>}
+            <defs>
+                <clipPath id="boundsClip">
+                    <rect x={axisBox.innerBounds.x} y={0} width={bounds.width} height={bounds.height*2}></rect>
+                </clipPath>
+            </defs>
             <StandardAxisBoxView axisBox={axisBox} chart={chart}/>
+            <g clipPath="url(#boundsClip)">
+                {legend && <HeightedLegendView x={bounds.right-legend.width} legend={legend} focusKeys={focusKeys} yScale={axisBox.yScale} onClick={this.onLegendClick}/>}
+                <Lines xScale={axisBox.xScale} yScale={axisBox.yScale} data={groupedData} onHoverPoint={this.onHoverPoint} onHoverStop={this.onHoverStop} focusKeys={focusKeys}/>
+            </g>
             {/*hoverTarget && <AxisBoxHighlight axisBox={axisBox} value={hoverTarget.value}/>*/}
-            <Lines xScale={axisBox.xScale} yScale={axisBox.yScale} data={groupedData} onHoverPoint={this.onHoverPoint} onHoverStop={this.onHoverStop} focusKeys={focusKeys}/>
             {tooltip}
         </g>
     }
