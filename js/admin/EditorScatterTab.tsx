@@ -83,7 +83,7 @@ export default class EditorScatterTab extends React.Component<{ chart: ChartConf
                 <Toggle label="Hide timeline" value={!!chart.props.hideTimeline} onValue={this.onToggleHideTimeline}/>
                 <NumberField label="Override X axis target year" value={chart.scatter.xOverrideYear} onValue={debounce(this.onXOverrideYear, 300)}/>
                 <h2>Filtering</h2>
-                <Toggle label="Only show entities matching legend" value={!!chart.props.matchingEntitiesOnly} onValue={action((value: boolean) => chart.props.matchingEntitiesOnly = value||undefined)}/>
+                <Toggle label="Exclude observations for entities that are not countries" value={!!chart.props.matchingEntitiesOnly} onValue={action((value: boolean) => chart.props.matchingEntitiesOnly = value||undefined)}/>
                 <SelectField label="Exclude individual entities" value={""} onValue={v => v && this.onExcludeEntity(v)} options={excludedEntityChoices}/>
                 {chart.scatter.excludedEntities && <div>
                     {chart.scatter.excludedEntities.map(entity => <div className="country-label clickable">
