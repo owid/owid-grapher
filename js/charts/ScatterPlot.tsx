@@ -207,14 +207,14 @@ interface ScatterTooltipProps {
 class ScatterTooltip extends React.Component<ScatterTooltipProps> {
     formatValueY(value: ScatterValue) {
         let s = "Y Axis: " + this.props.formatY(value.y)
-        if (value.year != value.time.y)
-            s += " (data from " + value.time.y + ")"
+//        if (value.year != value.time.y)
+//            s += " (data from " + value.time.y + ")"
         return s
     }
 
     formatValueX(value: ScatterValue) {
         let s = "X Axis: " + this.props.formatX(value.x)
-        if (value.year != value.time.x)
+        if (value.time.y != value.time.x)
             s += " (data from " + value.time.x + ")"
         return s
     }
@@ -235,12 +235,12 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps> {
         offset += heading.wrap.height+lineHeight
 
         values.forEach(v => {
-            const year = { x: x, y: y+offset, wrap: new TextWrap({ maxWidth: maxWidth, fontSize: 0.55, text: formatYear(v.year) }) }
+            const year = { x: x, y: y+offset, wrap: new TextWrap({ maxWidth: maxWidth, fontSize: 0.55, text: formatYear(v.time.y) }) }
             offset += year.wrap.height
             const line1 = { x: x, y: y+offset, wrap: new TextWrap({ maxWidth: maxWidth, fontSize: 0.45, text: this.formatValueY(v)}) }
             offset += line1.wrap.height
             const line2 = { x: x, y: y+offset, wrap: new TextWrap({ maxWidth: maxWidth, fontSize: 0.45, text: this.formatValueX(v)}) }
-            offset += line2.wrap.height+lineHeight            
+            offset += line2.wrap.height+lineHeight
             elements.push(...[year, line1, line2])
         })
 
