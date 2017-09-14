@@ -246,8 +246,7 @@ def savechart(chart: Chart, data: Dict, user: User):
                 variable.displayUnitConversionFactor = newdim.conversionFactor
             if 'tolerance' in dim:
                 variable.displayTolerance = newdim.tolerance
-            if 'isProjection' in dim:
-                variable.displayIsProjection = newdim.isProjection
+            variable.displayIsProjection = bool(newdim.isProjection)
             variable.save()
             
 
