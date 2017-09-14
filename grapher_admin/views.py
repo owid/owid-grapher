@@ -231,21 +231,25 @@ def savechart(chart: Chart, data: Dict, user: User):
         newdim.conversionFactor = dim.get('conversionFactor', None)
         newdim.tolerance = dim.get('tolerance', None)
         newdim.isProjection = dim.get('isProjection', None)
-
         newdim.targetYear = dim.get('targetYear', None)
 
         dims.append(newdim)
         
         if dim.get('saveToVariable'):
-            variable.displayName = newdim.displayName
-            variable.displayUnit = newdim.unit
-            variable.displayShortUnit = newdim.shortUnit
-            variable.displayUnitConversionFactor = newdim.conversionFactor
+            if newdim.displayName:
+                variable.displayName = newdim.displayName
+            if newdim.unit:
+                variable.displayUnit = newdim.unit
+            if newdim.shortUnit:
+                variable.displayShortUnit = newdim.shortUnit
+            if newdim.conversionFactor:
+                variable.displayUnitConversionFactor = newdim.conversionFactor
             if 'tolerance' in dim:
                 variable.displayTolerance = newdim.tolerance
             if 'isProjection' in dim:
                 variable.displayIsProjection = newdim.isProjection
             variable.save()
+            
 
     for each in ChartDimension.objects.filter(chartId=chart.pk):
         each.delete()
