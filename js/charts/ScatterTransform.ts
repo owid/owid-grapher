@@ -314,7 +314,7 @@ export default class ScatterTransform implements IChartTransform {
             let minChange = 0
             let maxChange = 0
             this.dataByEntityAndYear.forEach(dataByYear => {
-                const values = Array.from(dataByYear.values()).map(g => g.values[0])
+                const values = Array.from(dataByYear.values()).map(g => g.values[0]).filter(v => v.x != 0 && v.y != 0)
                 for (var i = 0; i < values.length; i++) {
                     const indexValue = values[i]
                     for (var j = i; j < values.length; j++) {
@@ -340,7 +340,7 @@ export default class ScatterTransform implements IChartTransform {
             let minChange = 0
             let maxChange = 0
             this.dataByEntityAndYear.forEach(dataByYear => {
-                const values = Array.from(dataByYear.values()).map(g => g.values[0])
+                const values = Array.from(dataByYear.values()).map(g => g.values[0]).filter(v => v.x != 0 && v.y != 0)
                 for (var i = 0; i < values.length; i++) {
                     const indexValue = values[i]
                     for (var j = i; j < values.length; j++) {
@@ -488,9 +488,14 @@ export default class ScatterTransform implements IChartTransform {
             }
 
             // Don't allow values <= 0 for log scales
-            values = values.filter(v => {
-                return (v.y > 0 || yScaleType != 'log') && (v.x > 0 || xScaleType != 'log')
-            })
+            if (yScaleType == 'log')
+                values = values.filter(v => v.y > 0)            
+            if (xScaleType == 'log')
+                values = values.filter(v => v.x > 0)
+
+            // Don't allow values *equal* to zero for CAGR mode
+            if (isRelativeMode)
+                values = values.filter(v => v.y != 0 && v.x != 0)
 
             return extend({}, series, {
                 values: values
