@@ -1,68 +1,15 @@
-import * as _ from 'lodash'
 import * as React from 'react'
-import {observable, computed, action, reaction, IReactionDisposer} from 'mobx'
+import {includes, sample, sampleSize} from '../charts/Util'
+import {observable, action, reaction, IReactionDisposer} from 'mobx'
 import {observer} from 'mobx-react'
-import ChartConfig, {DimensionSlot, ChartDimension} from '../charts/ChartConfig'
+import {DimensionSlot} from '../charts/ChartConfig'
 import {ChartTypeType} from '../charts/ChartType'
-import {TextField, Toggle, NumberField} from './Forms'
-import {DimensionWithData} from '../charts/ChartData'
+import {Toggle} from './Forms'
+import DimensionWithData from '../charts/DimensionWithData'
 import ChartEditor, {Variable} from './ChartEditor'
 import VariableSelector from './VariableSelector'
+import DimensionCard from './DimensionCard'
 const styles = require("./EditorBasicTab.css")
-
-@observer
-class DimensionCard extends React.Component<{ dimension: DimensionWithData, editor: ChartEditor, onEdit?: () => void, onRemove?: () => void }> {
-	@observable.ref isExpanded: boolean = false
-
-	@computed get hasExpandedOptions() {
-		return this.props.dimension.property == 'y' || this.props.dimension.property == 'x'
-	}
-
-	@action.bound onToggleExpand() {
-		this.isExpanded = !this.isExpanded
-	}
-
-	@action.bound onIsProjection(value: boolean) {
-		this.props.dimension.props.isProjection = value||undefined
-	}
-
-	@action.bound onDisplayName(value: string) {
-		this.props.dimension.props.displayName = value||undefined
-	}
-
-	@action.bound onUnit(value: string) {
-		this.props.dimension.props.unit = value||undefined
-	}
-
-	@action.bound onShortUnit(value: string) {
-		this.props.dimension.props.shortUnit = value||undefined
-	}
-
-	@action.bound onTolerance(value: number|undefined) {
-		this.props.dimension.props.tolerance = value
-	}
-
-	render() {
-		const {dimension, editor} = this.props
-		const {chart} = editor
-
-		return <div className="DimensionCard">
-			<header>
-				{this.props.onEdit && <span className="clickable" onClick={this.props.onEdit} style={{'margin-right': '10px'}}><i className="fa fa-exchange"/></span>}
-				{this.props.onRemove && <span className="clickable" onClick={this.props.onRemove} style={{'margin-right': '10px'}}><i className="fa fa-times"/></span>}
-				<div>{dimension.variable.name}</div>
-				{this.hasExpandedOptions && <div className="clickable" onClick={this.onToggleExpand}><i className={"fa fa-chevron-" + (this.isExpanded ? 'up' : 'down')}/></div>}
-			</header>
-			{this.isExpanded && <div>
-				<TextField label="Display name" value={dimension.props.displayName} onValue={this.onDisplayName} placeholder={dimension.displayName}/>
-				<TextField label="Unit" value={dimension.props.unit} onValue={this.onUnit} placeholder={dimension.unit}/>
-				<TextField label="Short unit" value={dimension.props.shortUnit} onValue={this.onShortUnit} placeholder={dimension.shortUnit}/>
-				{(chart.isScatter || chart.isDiscreteBar) && <NumberField label="Tolerance" value={dimension.props.tolerance} onValue={this.onTolerance} placeholder={_.toString(dimension.tolerance)}/>}
-				{chart.isLineChart && <Toggle label="Is projection" value={!!dimension.props.isProjection} onValue={this.onIsProjection}/>}
-			</div>}
-		</div>
-	}
-}
 
 @observer
 class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: ChartEditor }> {
@@ -96,11 +43,11 @@ class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: C
 				if (chart.isScatter || chart.isSlopeChart) {
 					chart.data.selectedKeys = []
 				} else if (chart.data.primaryDimensions.length > 1) {
-					const entity = _.includes(chart.data.availableEntities, "World") ? "World" : _.sample(chart.data.availableEntities)
+					const entity = includes(chart.data.availableEntities, "World") ? "World" : sample(chart.data.availableEntities)
 					chart.data.selectedKeys = chart.data.availableKeys.filter(key => chart.data.lookupKey(key).entity == entity)
 					chart.props.addCountryMode = 'change-country'
 				} else {
-					chart.data.selectedKeys = chart.data.availableKeys.length > 10 ? _.sampleSize(chart.data.availableKeys, 3) : chart.data.availableKeys
+					chart.data.selectedKeys = chart.data.availableKeys.length > 10 ? sampleSize(chart.data.availableKeys, 3) : chart.data.availableKeys
 					chart.props.addCountryMode = 'add-country'
 				}
 			}
@@ -114,13 +61,12 @@ class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: C
 	render() {
 		const {isSelectingVariables} = this
 		const {slot, editor} = this.props
-		const {chart} = editor
 		const canAddMore = slot.allowMultiple || slot.dimensions.length == 0
 
 		return <div>
 			<h5>{slot.name}</h5>
-			{slot.dimensionsWithData.map((dim, i) => {
-				return dim.property == slot.property && <DimensionCard dimension={dim} editor={editor} onEdit={slot.allowMultiple ? undefined : action(() => this.isSelectingVariables = true)} onRemove={slot.allowMultiple ? () => this.onRemoveDimension(dim) : undefined}/>
+			{slot.dimensionsWithData.map(dim => {
+				return dim.property == slot.property && <DimensionCard dimension={dim} editor={editor} onEdit={slot.allowMultiple ? undefined : action(() => this.isSelectingVariables = true)} onRemove={slot.isOptional ? () => this.onRemoveDimension(dim) : undefined}/>
 			})}
 			{canAddMore && <div className="dimensionSlot" onClick={action(() => this.isSelectingVariables = true)}>Add variable{slot.allowMultiple && 's'}</div>}
 			{isSelectingVariables && <VariableSelector editor={editor} slot={slot} onDismiss={action(() => this.isSelectingVariables = false)} onComplete={this.onVariables}/>}
@@ -135,7 +81,7 @@ class VariablesSection extends React.Component<{ editor: ChartEditor }> {
 	@observable.struct unassignedVariables: Variable[] = []
 
 	render() {
-		const {props, isAddingVariable, unassignedVariables} = this
+		const {props} = this
 		const {dimensionSlots} = props.editor.chart
 
 		return <section className="add-data-section">

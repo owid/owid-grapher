@@ -84,6 +84,11 @@
 }
 
 .importProgress {
+	background: white;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	padding: 20px;
+
 	& .success {
 		color: #00a65a;
 	}
@@ -96,5 +101,4 @@
 		overflow: auto;
 		margin: 10px;
 	}
-
 }

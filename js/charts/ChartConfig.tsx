@@ -1,19 +1,15 @@
-import * as _ from 'lodash'
+import {extend, map, filter, includes, uniqWith, find} from './Util'
 import {observable, computed, action, autorun, toJS, runInAction} from 'mobx'
-import {ScaleType} from './AxisScale'
 import {ComparisonLineConfig} from './ComparisonLine'
-import {component} from './Util'
 import AxisConfig, {AxisConfigProps} from './AxisConfig'
 import ChartType, {ChartTypeType} from './ChartType'
-import DataKey from './DataKey'
 import ChartTabOption from './ChartTabOption'
-import LineType from './LineType'
 import {defaultTo} from './Util'
 import VariableData from './VariableData'
-import ChartData, {DimensionWithData} from './ChartData'
+import ChartData from './ChartData'
+import DimensionWithData from './DimensionWithData'
 import MapConfig, {MapConfigProps} from './MapConfig'
 import URLBinder from './URLBinder'
-import ColorBinder from './ColorBinder'
 import DiscreteBarTransform from './DiscreteBarTransform'
 import StackedAreaTransform from './StackedAreaTransform'
 import LineChartTransform from './LineChartTransform'
@@ -25,6 +21,7 @@ import * as React from 'react'
 import * as ReactDOMServer from 'react-dom/server'
 import Bounds from './Bounds'
 import IChartTransform from './IChartTransform'
+import ChartDimension from './ChartDimension'
 
 declare const App: any
 declare const window: any
@@ -32,29 +29,6 @@ declare const window: any
 export interface HighlightToggleConfig {
     description: string
     paramStr: string
-}
-
-export class ChartDimension {
-    @observable property: string
-    @observable variableId: number
-    @observable displayName?: string = undefined
-    @observable unit?: string = undefined
-    @observable shortUnit?: string = undefined
-    @observable isProjection?: boolean = undefined
-    @observable targetYear?: number = undefined
-    @observable tolerance?: number = undefined
-
-    constructor(json: { property: string, variableId: number }) {
-        for (let key in this) {
-            if (key in json) {
-                (this as any)[key] = (json as any)[key]
-
-                // XXX migrate this away
-                if ((json as any)[key] === "")
-                    (this as any)[key] = undefined
-            }
-        }        
-    }
 }
 
 export interface EntitySelection {
@@ -76,7 +50,8 @@ export class DimensionSlot {
             'y': this.chart.isDiscreteBar ? 'X axis' : 'Y axis',
             'x': 'X axis',
             'size': 'Size',
-            'color': 'Color'
+            'color': 'Color',
+            'filter': 'Filter'
         }
 
         return (names as any)[this.property]||""
@@ -84,6 +59,10 @@ export class DimensionSlot {
 
     @computed get allowMultiple(): boolean {
         return this.property == 'y' && !(this.chart.isScatter || this.chart.isSlopeChart)
+    }
+
+    @computed get isOptional(): boolean {
+        return this.allowMultiple || this.property == 'filter'
     }
 
     @computed get dimensions(): ChartDimension[] {
@@ -121,7 +100,7 @@ export class ChartConfigProps {
     @observable.ref hideTitleAnnotation?: true = undefined
 
     @observable.ref xAxis: AxisConfigProps = new AxisConfigProps()
-    @observable.ref yAxis: AxisConfigProps = _.extend(new AxisConfigProps(), { min: 0 }) // Default to 0 min for y axis
+    @observable.ref yAxis: AxisConfigProps = extend(new AxisConfigProps(), { min: 0 }) // Default to 0 min for y axis
 
     @observable.ref selectedData: EntitySelection[] = []
     @observable.ref minTime?: number = undefined
@@ -149,6 +128,8 @@ export class ChartConfigProps {
 
     @observable.ref hideTimeline?: true = undefined
     @observable.ref compareEndPointsOnly?: true = undefined
+    @observable.ref matchingEntitiesOnly?: true = undefined
+    @observable.struct excludedEntities?: number[] = undefined
 
     @observable map?: MapConfigProps = undefined
 }
@@ -227,20 +208,20 @@ export default class ChartConfig {
 
     @computed get dimensions(): ChartDimension[] {
         const {dimensions} = this.props
-        const validProperties = _.map(this.dimensionSlots, 'property')
-        let validDimensions = _.filter(dimensions, dim => _.includes(validProperties, dim.property))
+        const validProperties = map(this.dimensionSlots, 'property')
+        let validDimensions = filter(dimensions, dim => includes(validProperties, dim.property))
 
         this.dimensionSlots.forEach(slot => {
             if (!slot.allowMultiple)
-                validDimensions = _.uniqWith(validDimensions, (a: ChartDimension, b: ChartDimension) => a.property == slot.property && a.property == b.property)
+                validDimensions = uniqWith(validDimensions, (a: ChartDimension, b: ChartDimension) => a.property == slot.property && a.property == b.property)
         })
     
 		// Give scatterplots and slope charts a default color and size dimension if they don't have one
-		if ((this.isScatter || this.isSlopeChart) && !_.find(dimensions, { property: 'color' })) {
+		if ((this.isScatter || this.isSlopeChart) && !find(dimensions, { property: 'color' })) {
 			validDimensions = validDimensions.concat(new ChartDimension({ variableId: 123, property: "color" }))
 		}
 
-		if ((this.isScatter || this.isSlopeChart) && !_.find(dimensions, { property: 'size' })) {
+		if ((this.isScatter || this.isSlopeChart) && !find(dimensions, { property: 'size' })) {
 			validDimensions = validDimensions.concat(new ChartDimension({ variableId: 72, property: "size" }))
 		}
 
@@ -250,7 +231,7 @@ export default class ChartConfig {
 	model: any
 
     @computed get availableTabs(): ChartTabOption[] {
-        return _.filter([this.props.hasChartTab && 'chart', this.props.hasMapTab && 'map', 'data', 'sources', 'download']) as ChartTabOption[]
+        return filter([this.props.hasChartTab && 'chart', this.props.hasMapTab && 'map', 'data', 'sources', 'download']) as ChartTabOption[]
     }
 
     @action.bound update(json: any) {
@@ -271,12 +252,12 @@ export default class ChartConfig {
         this.props.originUrl = json['data-entry-url']
         this.props.isPublished = json['published']
         this.props.map = new MapConfigProps(json.map)
-        this.props.hasChartTab = json['tabs'] ? json['tabs'].includes("chart") : true
-        this.props.hasMapTab = json['tabs'] ? json['tabs'].includes("map") : false
-        _.extend(this.props.xAxis, json['xAxis'])
-        _.extend(this.props.yAxis, json['yAxis'])
+        this.props.hasChartTab = json['tabs'] ? includes(json['tabs'], "chart") : true
+        this.props.hasMapTab = json['tabs'] ? includes(json['tabs'], "map") : false
+        extend(this.props.xAxis, json['xAxis'])
+        extend(this.props.yAxis, json['yAxis'])
 
-        this.props.dimensions = (json['chart-dimensions']||[]).map((j: any) => new ChartDimension(j))        
+        this.props.dimensions = (json.dimensions||[]).map((j: any) => new ChartDimension(j))
         this.variableCacheTag = json["variableCacheTag"]
         this.logosSVG = json["logosSVG"]
     }
@@ -301,7 +282,6 @@ export default class ChartConfig {
         json['chart-type'] = props.type
         json['published'] = props.isPublished
         json['tabs'] = this.availableTabs
-        json['chart-dimensions'] = props.dimensions
 
         return json
     }
@@ -344,7 +324,7 @@ export default class ChartConfig {
 
         // Sanity check configuration
         autorun(() => {
-            if (!_.includes(this.availableTabs, this.props.tab)) {
+            if (!includes(this.availableTabs, this.props.tab)) {
                 runInAction(() => this.props.tab = this.availableTabs[0])
             }
         })

@@ -13,6 +13,7 @@
 		<link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic" rel="stylesheet" type="text/css">
 		<!-- Place favicon.ico in the root directory -->
 
+		<link href="{% webpack "charts.css" %}" rel="stylesheet" type="text/css">
 		<link href="{% webpack "admin.css" %}" rel="stylesheet" type="text/css">
 	</head>
 	<body class="skin-blue">
@@ -61,7 +62,6 @@
                         <li><a href="{% url 'alldatasethistory' %}"><i class="fa fa-history"></i> Version history</a></li>
 						<li class="header">SETTINGS</li>
 						<li><a href="{% url 'listusers' %}"><i class="fa fa-users"></i> Users</a></li>
-						<li><a href="{% url 'listlicenses' %}"><i class="fa fa-gavel"></i> Licenses</a></li>
 						<li><a href="{% url 'listcategories' %}"><i class="fa fa-folder"></i> Categories</a></li>
 						<li><a href="{% url 'listlogos' %}"><i class="fa fa-picture-o"></i> Logos</a></li>
 						<li><a href="{% url 'editsourcetemplate' %}"><i class="fa fa-link"></i> Datasource template</a></li>
@@ -115,16 +115,8 @@
 			}
 		</script>
 
+		<script src="{% webpack "charts.js" %}"></script>
 		<script src="{% webpack "admin.js" %}"></script>
-
-		<script>
-			// TODO: remove old jquery post code (mainly in the backbone models). Until then, needed.
-			$.ajaxSetup({
-				beforeSend: function(xhr, settings) {
-					xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}")
-				}
-			})
-		</script>
 
 		{% block scripts %}
         {% endblock %}

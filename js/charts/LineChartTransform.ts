@@ -1,16 +1,15 @@
 import {computed} from 'mobx'
-import * as _ from 'lodash'
-import * as d3 from 'd3'
+import {some, min, max, isEmpty, sortBy, extend, find, identity, cloneDeep, sortedUniq} from './Util'
+import {scaleOrdinal} from 'd3-scale'
 import ChartConfig from './ChartConfig'
 import Color from './Color'
 import DataKey from './DataKey'
 import {LineChartSeries, LineChartValue} from './LineChart'
 import AxisSpec from './AxisSpec'
-import {defaultTo, formatYear, findClosest} from './Util'
-import {DimensionWithData} from './ChartData'
-import ColorBinder from './ColorBinder'
+import {defaultTo, formatYear, findClosest, last} from './Util'
 import ColorSchemes from './ColorSchemes'
 import IChartTransform from './IChartTransform'
+import DimensionWithData from './DimensionWithData'
 
 // Responsible for translating chart configuration into the form
 // of a line chart
@@ -20,62 +19,39 @@ export default class LineChartTransform implements IChartTransform {
         this.chart = chart
     }
 
-    @computed get isValidConfig() {
-        return _.some(this.chart.dimensions, d => d.property == 'y')
+    @computed get isValidConfig(): boolean {
+        return some(this.chart.dimensions, d => d.property == 'y')
     }
 
     @computed get failMessage(): string|undefined {
         const {filledDimensions} = this.chart.data
-        if (!_.some(filledDimensions, d => d.property == 'y'))
+        if (!some(filledDimensions, d => d.property == 'y'))
             return "Missing Y axis variable"
-        else if (_.isEmpty(this.groupedData))
+        else if (isEmpty(this.groupedData))
             return "No matching data"
-    }
-
-    @computed get timelineYears(): number[] {
-        return _.union(...this.chart.data.axisDimensions.map(d => d.variable.yearsUniq))
-    }
-
-    @computed get minTimelineYear(): number {
-        return defaultTo(_.min(this.timelineYears), 1900)
-    }
-
-    @computed get maxTimelineYear(): number {
-        return defaultTo(_.max(this.timelineYears), 2000)
-    }
-
-    @computed get startYear(): number {
-        const minYear = defaultTo(this.chart.timeDomain[0], this.minTimelineYear)
-        return defaultTo(findClosest(this.timelineYears, minYear), this.minTimelineYear)
-    }
-
-    @computed get endYear(): number {
-        const maxYear = defaultTo(this.chart.timeDomain[1], this.maxTimelineYear)
-        return defaultTo(findClosest(this.timelineYears, maxYear), this.maxTimelineYear)
+        else
+            return undefined
     }
 
 	@computed get initialData(): LineChartSeries[] {
-		const {chart, startYear, endYear} = this
-		const {timeDomain, yAxis, addCountryMode} = chart
+		const {chart} = this
+		const {yAxis} = chart
         const {filledDimensions, selectedKeys, selectedKeysByKey} = chart.data
 
 		let chartData: LineChartSeries[] = []
 
-		_.each(filledDimensions, (dimension, dimIndex) => {
-            const {variable} = dimension
+		filledDimensions.forEach((dimension, dimIndex) => {
 			const seriesByKey = new Map<DataKey, LineChartSeries>()
 
-			for (var i = 0; i < variable.years.length; i++) {
-				const year = variable.years[i]
-				const value = parseFloat(variable.values[i] as string)
-				const entity = variable.entities[i]
+			for (var i = 0; i < dimension.years.length; i++) {
+				const year = dimension.years[i]
+				const value = parseFloat(dimension.values[i] as string)
+				const entity = dimension.entities[i]
 				const datakey = chart.data.keyFor(entity, dimIndex)
 				let series = seriesByKey.get(datakey)
 
 				// Not a selected key, don't add any data for it
 				if (!selectedKeysByKey[datakey]) continue;
-				// Check for time range
-				if (year < startYear || year > endYear) continue;
                 // Can't have values <= 0 on log scale
                 if (value <= 0 && yAxis.scaleType == 'log') continue;
 
@@ -93,15 +69,15 @@ export default class LineChartTransform implements IChartTransform {
 				series.values.push({ x: year, y: value, time: year, gapYearsToNext: 0 });
 			}
 
-			chartData = chartData.concat([...seriesByKey.values()]);
+			chartData = chartData.concat([...Array.from(seriesByKey.values())]);
 		});
 
         // Preserve ordering. Note for line charts, the series order only affects the visual stacking order on overlaps.
-        chartData = _.sortBy(chartData, series => selectedKeys.indexOf(series.key))
+        chartData = sortBy(chartData, series => selectedKeys.indexOf(series.key))
 
         // Assign colors
-        const colorScheme = _.last(ColorSchemes['owid-distinct'].colors) as Color[]
-        const colorScale = d3.scaleOrdinal(colorScheme)
+        const colorScheme = last(ColorSchemes['owid-distinct'].colors) as Color[]
+        const colorScale = scaleOrdinal(colorScheme)
         chartData.forEach(series => {
             series.color = chart.data.keyColors[series.key] || colorScale(series.key)
         })
@@ -109,28 +85,58 @@ export default class LineChartTransform implements IChartTransform {
         return chartData
 	}
 
+    @computed get timelineYears(): number[] {
+		const allYears: number[] = []
+		this.initialData.forEach(g => allYears.push(...g.values.map(d => d.x)))
+		return sortedUniq(sortBy(allYears))
+    }
+
+    @computed get minTimelineYear(): number {
+        return defaultTo(min(this.timelineYears), 1900)
+    }
+
+    @computed get maxTimelineYear(): number {
+        return defaultTo(max(this.timelineYears), 2000)
+    }
+
+    @computed get startYear(): number {
+        const minYear = defaultTo(this.chart.timeDomain[0], this.minTimelineYear)
+        return defaultTo(findClosest(this.timelineYears, minYear), this.minTimelineYear)
+    }
+
+    @computed get endYear(): number {
+        const maxYear = defaultTo(this.chart.timeDomain[1], this.maxTimelineYear)
+        return defaultTo(findClosest(this.timelineYears, maxYear), this.maxTimelineYear)
+    }
+
     @computed get allValues(): LineChartValue[] {
-        return _(this.initialData).map(series => series.values).flatten().value() as LineChartValue[]
+        const allValues: LineChartValue[] = []
+        this.initialData.forEach(series => allValues.push(...series.values))
+        return allValues
     }
 
     @computed get xDomainDefault(): [number, number] {
-        return [_(this.allValues).map((v => v.x)).min() as number, _(this.allValues).map(v => v.x).max() as number]
+        return [this.startYear, this.endYear]
     }
 
     @computed get yDomainDefault(): [number, number] {
-        return [(_(this.allValues).map(v => v.y).min() as number), (_(this.allValues).map(v => v.y).max() as number)]
+        const yValues = this.allValues.map(v => v.y)
+        return [
+            defaultTo(min(yValues), 0),
+            defaultTo(max(yValues), 100)
+        ]
     }
 
     @computed get xAxis(): AxisSpec {
         const {chart, xDomainDefault} = this
-        return _.extend(
+        return extend(
             chart.xAxis.toSpec({ defaultDomain: xDomainDefault }),
             { tickFormat: (year: number) => formatYear(year) }
         ) as AxisSpec
     }
 
-    @computed get yDimensionFirst() {
-        return _.find(this.chart.data.filledDimensions, { property: 'y' })
+    @computed get yDimensionFirst(): DimensionWithData|undefined {
+        return find(this.chart.data.filledDimensions, d => d.property == 'y')
     }
 
     @computed get yAxis(): AxisSpec {
@@ -138,7 +144,7 @@ export default class LineChartTransform implements IChartTransform {
 
         return {
             label: chart.yAxis.label||"",
-            tickFormat: yDimensionFirst ? yDimensionFirst.formatValueShort : _.identity,
+            tickFormat: yDimensionFirst ? yDimensionFirst.formatValueShort : identity,
             domain: [Math.min(defaultTo(chart.yAxis.domain[0], Infinity), yDomainDefault[0]), Math.max(defaultTo(chart.yAxis.domain[1], -Infinity), yDomainDefault[1])],
             scaleType: chart.yAxis.scaleType,
             scaleTypeOptions: chart.yAxis.scaleTypeOptions            
@@ -146,11 +152,11 @@ export default class LineChartTransform implements IChartTransform {
     }
 
     // Filter the data so it fits within the domains
-    @computed get groupedData() {
+    @computed get groupedData(): LineChartSeries[] {
         const {initialData, xAxis, yAxis} = this
-        const groupedData = _.cloneDeep(initialData)
+        const groupedData = cloneDeep(initialData)
 
-        _.each(groupedData, g => {
+        groupedData.forEach(g => {
             g.values = g.values.filter(d => d.x >= xAxis.domain[0] && d.x <= xAxis.domain[1] && d.y >= yAxis.domain[0] && d.y <= yAxis.domain[1])
         })
 

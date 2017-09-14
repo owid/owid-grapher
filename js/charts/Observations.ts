@@ -1,4 +1,4 @@
-import * as _ from 'lodash'
+import {extend, map, groupBy, sortBy, filter, each, min, max, find, first, last} from './Util'
 
 export default class Observations {
 	data: Object[]
@@ -11,50 +11,52 @@ export default class Observations {
 		const mergeF = mergeFMaybe || ((rows) => {
 			const merged = {}
 			rows.each((row) => {
-				_.extend(merged, row)
+				extend(merged, row)
 			})
 			return merged
 		})
 
-		return new Observations(_.map(_.groupBy(this.data, (d: any) => d[key]), (arr: any, key: any) => mergeF(new Observations(arr), key)))
+		return new Observations(map(groupBy(this.data, (d: any) => d[key]), (arr: any, key: any) => mergeF(new Observations(arr), key)))
 	}
 
 	sortBy(sortF: (row: any) => number) {
-		return new Observations(_.sortBy(this.data, sortF))
+		return new Observations(sortBy(this.data, sortF))
 	}
 
 	filter(filterF : (row: any) => boolean) {
-		return new Observations(_.filter(this.data, filterF))
+		return new Observations(filter(this.data, filterF))
 	}
 
 	map(mapF: (row: any) => any) {
-		return new Observations(_.map(this.data, mapF))
+		return new Observations(map(this.data, mapF))
 	}
 
 	each(eachF: (row: any) => void) {
-		_.each(this.data, eachF)
+		each(this.data, eachF)
 	}
 
 	minValue(key : any) {
-		return _.min(_.map(this.data, key))
+		return min(map(this.data, key))
 	}
 
 	maxValue(key : any) {
-		return _.max(_.map(this.data, key))
+		return max(map(this.data, key))
 	}
 
 	first(key? : any) {
 		if (key == null)
-			return _.first(this.data)
+			return first(this.data)
 		else
-			return (_.find(this.data, (d: any) => d[key] !== undefined)||{})[key]
+			return (find(this.data, (d: any) => d[key] !== undefined)||{})[key]
 	}
 
 	last(key? : any) {
 		if (key == null)
-			return _.last(this.data)
+			return last(this.data)
+		else
+			return undefined
 //		else
-//			return (_.find(this.data, (d) => d[key] !== undefined)||{})[key]
+//			return (find(this.data, (d) => d[key] !== undefined)||{})[key]
 	}
 
 	toArray() {
@@ -62,6 +64,6 @@ export default class Observations {
 	}
 
 	pluck(key : any) {
-		return _.map(this.data, key)
+		return map(this.data, key)
 	}
 }

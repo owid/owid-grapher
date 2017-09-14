@@ -1,10 +1,12 @@
-import * as _ from 'lodash'
-import * as d3 from 'd3'
+import {scaleLinear} from 'd3-scale'
+import {select} from 'd3-selection'
+
+import {first, last, sortBy, find} from './Util'
 import * as React from 'react'
 import Bounds from './Bounds'
 import Text from './Text'
 import {getRelativeMouse, formatYear, domainExtent} from './Util'
-import {observable, computed, asFlat, autorun, autorunAsync, action} from 'mobx'
+import {observable, computed, autorun, autorunAsync, action} from 'mobx'
 import {observer} from 'mobx-react'
 
 interface TimelineProps {
@@ -54,15 +56,16 @@ export default class Timeline extends React.Component<TimelineProps> {
         })
 
         const {onStartDrag, onStopDrag} = this.props
-        if (onStartDrag && onStopDrag) {
-            autorun(() => {
-                const {isPlaying, isDragging} = this
-                if (isPlaying || isDragging)
-                    onStartDrag()
-                else
-                    onStopDrag()
-            })
-        }
+        autorun(() => {
+            const {isPlaying, isDragging} = this
+            if (isPlaying || isDragging) {
+                this.context.chart.url.debounceMode = true
+                if (onStartDrag) onStartDrag()
+            } else {
+                this.context.chart.url.debounceMode = false
+                if (onStopDrag) onStopDrag()
+            }
+        })
 
         autorunAsync(() => {
             if (this.props.onInputChange)
@@ -84,11 +87,11 @@ export default class Timeline extends React.Component<TimelineProps> {
 	}
 
 	@computed get minYear(): number {
-		return _.first(this.props.years) as number
+		return first(this.props.years) as number
 	}
 
 	@computed get maxYear(): number {
-		return _.last(this.props.years) as number
+		return last(this.props.years) as number
 	}
 
     // Sanity check the input
@@ -101,15 +104,15 @@ export default class Timeline extends React.Component<TimelineProps> {
     // e.g. 1954 => 1955
     @computed get roundedStartYear(): number {
         const { years, startYear } = this
-        return _.sortBy(years, year => Math.abs(year-startYear))[0]
+        return sortBy(years, year => Math.abs(year-startYear))[0]
     }
 
     // Previous year from the input start year
     // e.g. 1954 => 1950
     @computed get targetStartYear(): number {
         const { years, startYear } = this
-        return (_.find(
-            _.sortBy(years, year => Math.abs(year-startYear)),
+        return (find(
+            sortBy(years, year => Math.abs(year-startYear)),
             year => year <= startYear
         ) as number)
     }
@@ -121,13 +124,13 @@ export default class Timeline extends React.Component<TimelineProps> {
 
     @computed get roundedEndYear(): number {
         const { years, endYear } = this
-        return _.sortBy(years, function(year) { return Math.abs(year-endYear); })[0]
+        return sortBy(years, function(year) { return Math.abs(year-endYear); })[0]
     }
 
     @computed get targetEndYear(): number {
         const { years, endYear } = this
-        return (_.find(
-            _.sortBy(years, year => Math.abs(year-endYear)),
+        return (find(
+            sortBy(years, year => Math.abs(year-endYear)),
             year => year <= endYear
         ) as number)
     }
@@ -153,7 +156,7 @@ export default class Timeline extends React.Component<TimelineProps> {
 
 	@computed get xScale(): any {
 		const { years, sliderBounds } = this
-		return d3.scaleLinear().domain(domainExtent(years, 'linear')).range([sliderBounds.left, sliderBounds.left+sliderBounds.width]);
+		return scaleLinear().domain(domainExtent(years, 'linear')).range([sliderBounds.left, sliderBounds.left+sliderBounds.width]);
 	}
 
 	@action.bound componentWillReceiveProps(nextProps : TimelineProps) {
@@ -170,7 +173,7 @@ export default class Timeline extends React.Component<TimelineProps> {
 		let lastTime: number|null = null, ticksPerSec = 5;
 
 		const playFrame = action((time : number) => {
-			const { isPlaying, startYear, endYear, years, minYear, maxYear } = this
+			const { isPlaying, endYear, years, minYear, maxYear } = this
 			if (!isPlaying) return;
 
 			if (lastTime === null) {
@@ -246,7 +249,7 @@ export default class Timeline extends React.Component<TimelineProps> {
 
     @action.bound onMouseDown(e: any) {
         // Don't do mousemove if we clicked the play or pause button
-        const targetEl = d3.select(e.target)
+        const targetEl = select(e.target)
         if (targetEl.classed('toggle')) return;
 
         const {startYear, endYear} = this
@@ -268,12 +271,6 @@ export default class Timeline extends React.Component<TimelineProps> {
         this.onDrag(inputYear)
 
         e.preventDefault()
-
-/*        container.on('mousemove.timeline', onMouseMove);
-        container.on('mouseup.timeline', onMouseUp);
-        container.on('touchmove.timeline', onMouseMove);
-        container.on('touchend.timeline', onMouseUp);*/
-        //container.on('mouseleave.timeline', onMouseUp);
     }
 
     @action.bound onDoubleClick(e: any) {
@@ -284,29 +281,28 @@ export default class Timeline extends React.Component<TimelineProps> {
 
 	mouseFrameQueued: boolean
 
-	@action.bound onMouseMove() {
+	@action.bound onMouseMove(ev: MouseEvent) {
         const {dragTarget, mouseFrameQueued} = this
 		if (!dragTarget || mouseFrameQueued) return
 
-		const e = d3.event
 		this.mouseFrameQueued = true
 		requestAnimationFrame(() => {
-			this.onDrag(this.getInputYearFromMouse(e))
+			this.onDrag(this.getInputYearFromMouse(ev))
 	        this.mouseFrameQueued = false
 	    })
 	}
 
-    @action.bound onMouseUp(evt : MouseEvent) {
+    @action.bound onMouseUp() {
     	this.dragTarget = null
     }
 
     // Allow proper dragging behavior even if mouse leaves timeline area
     componentDidMount() {
-    	d3.select('html').on('mouseup.timeline', this.onMouseUp)
-    	d3.select('html').on('mouseleave.timeline', this.onMouseUp)
-    	d3.select('html').on('mousemove.timeline', this.onMouseMove)
-    	d3.select('html').on('touchend.timeline', this.onMouseUp)
-    	d3.select('html').on('touchmove.timeline', this.onMouseMove)
+        document.documentElement.addEventListener('mouseup', this.onMouseUp)
+    	document.documentElement.addEventListener('mouseleave', this.onMouseUp)
+    	document.documentElement.addEventListener('mousemove', this.onMouseMove)
+    	document.documentElement.addEventListener('touchend', this.onMouseUp)
+    	document.documentElement.addEventListener('touchmove', this.onMouseMove)
 
         autorun(() => {
             // If we're not playing or dragging, lock the input to the closest year (no interpolation)
@@ -325,14 +321,15 @@ export default class Timeline extends React.Component<TimelineProps> {
     }
 
     componentWillUnmount() {
-    	d3.select('html').on('mouseup.timeline', null)
-    	d3.select('html').on('mousemove.timeline', null)
-    	d3.select('html').on('touchend.timeline', null)
-    	d3.select('html').on('touchmove.timeline', null)
+        document.documentElement.removeEventListener('mouseup', this.onMouseUp)
+    	document.documentElement.removeEventListener('mouseleave', this.onMouseUp)
+    	document.documentElement.removeEventListener('mousemove', this.onMouseMove)
+    	document.documentElement.removeEventListener('touchend', this.onMouseUp)
+    	document.documentElement.removeEventListener('touchmove', this.onMouseMove)
     }
 
   	render() {
-		const { bounds, sliderBounds, minYear, maxYear, minYearBox, maxYearBox, xScale, years, isPlaying, startYear, endYear, roundedStartYear, roundedEndYear, targetStartYear, targetEndYear } = this
+		const { bounds, sliderBounds, minYear, maxYear, minYearBox, maxYearBox, xScale, years, isPlaying, startYear, endYear, targetStartYear, targetEndYear } = this
 
         const toggleText = isPlaying ? "\uf04c" : "\uf04b"
         const toggleFontSize = "1em"
@@ -346,7 +343,7 @@ export default class Timeline extends React.Component<TimelineProps> {
 			<Text className="minYearLabel" x={minYearBox.x} y={minYearBox.y} fontSize="0.8em" fill="#666">{formatYear(minYear)}</Text>
             <Text className="maxYearLabel" x={maxYearBox.x} y={maxYearBox.y} fontSize="0.8em" fill="#666">{maxYear.toString()}</Text>
 			<g className="ticks">
-				{_.map(years.slice(1, -1), (year) => {
+				{years.slice(1, -1).map(year => {
 					return <rect className="tick" x={xScale(year)} y={sliderBounds.top+sliderBounds.height-1} width="1px" height="0.2em" fill="rgba(0,0,0,0.2)" />
 				})}
 			</g>

@@ -1,13 +1,7 @@
-import * as _ from 'lodash'
-import * as d3 from 'd3'
 import * as React from 'react'
 import {computed, action} from 'mobx'
-import {observer} from 'mobx-react'
-import Bounds from './Bounds'
-import Text from './Text'
 import TextWrap from './TextWrap'
 import ChartConfig from './ChartConfig'
-
 
 interface SourcesFooterProps {
     chart: ChartConfig,

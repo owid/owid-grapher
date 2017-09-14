@@ -1,14 +1,10 @@
-import * as _ from 'lodash'
 import * as React from 'react'
-import * as ReactDOM from 'react-dom'
+import {clone, isEmpty, noop, extend, map} from '../charts/Util'
 import {computed, action, observable} from 'mobx'
 import {observer} from 'mobx-react'
-import ChartConfig from '../charts/ChartConfig'
 import ChartEditor from './ChartEditor'
 import {NumericSelectField, NumberField, SelectField, TextField, Toggle} from './Forms'
 import MapConfig from '../charts/MapConfig'
-import MapData from '../charts/MapData'
-import MapProjections from '../charts/MapProjections'
 import MapProjection from '../charts/MapProjection'
 import ColorSchemes from '../charts/ColorSchemes'
 import {NumericBin, CategoricalBin} from '../charts/MapData'
@@ -25,7 +21,7 @@ class VariableSection extends React.Component<{ map: MapConfig }> {
 		const {map} = this.props
 		const {filledDimensions} = map.chart.data
 
-		if (_.isEmpty(filledDimensions))
+		if (isEmpty(filledDimensions))
 			return <section>
 				<h2>Add some variables on data tab first</h2>
 			</section>
@@ -129,14 +125,14 @@ class CategoricalBinView extends React.Component<{ map: MapConfig, bin: Categori
 			map.props.customColorsActive = true
 		}
 
-		const customCategoryColors = _.clone(map.props.customCategoryColors)
+		const customCategoryColors = clone(map.props.customCategoryColors)
 		customCategoryColors[bin.value] = color
 		map.props.customCategoryColors = customCategoryColors		
 	}
 
 	@action.bound onLabel(value: string) {
 		const {map, bin} = this.props
-		const customCategoryLabels = _.clone(map.props.customCategoryLabels)
+		const customCategoryLabels = clone(map.props.customCategoryLabels)
 		customCategoryLabels[bin.value] = value
 		map.props.customCategoryLabels = customCategoryLabels
 	}
@@ -144,7 +140,7 @@ class CategoricalBinView extends React.Component<{ map: MapConfig, bin: Categori
 	@action.bound onToggleHidden() {
 		const {map, bin} = this.props
 		
-		const customHiddenCategories = _.clone(map.props.customHiddenCategories)
+		const customHiddenCategories = clone(map.props.customHiddenCategories)
 		if (bin.isHidden)
 			delete customHiddenCategories[bin.value]
 		else
@@ -153,11 +149,11 @@ class CategoricalBinView extends React.Component<{ map: MapConfig, bin: Categori
 	}	
 
 	render() {
-		const {map, bin} = this.props
+		const {bin} = this.props
 
 		return <li className="categorical clearfix">
 			<ColorBox color={bin.color} onColor={this.onColor}/>
-			<TextField value={bin.value} disabled={true} onValue={_.noop}/>
+			<TextField value={bin.value} disabled={true} onValue={noop}/>
 			<TextField placeholder="Custom label" value={bin.label} onValue={this.onLabel}/>
 			<Toggle label="Hide" value={bin.isHidden} onValue={this.onToggleHidden}/>
 		</li>
@@ -171,19 +167,19 @@ class ColorSchemeEditor extends React.Component<{ map: MapConfig }> {
 	}
 
 	render() {
-		const {map} = this.props		
-		if (!map.data) return null
+		const mapConfig = this.props.map
+		if (!mapConfig.data) return null
 
 		return <ul className="map-color-scheme-preview clearfix automatic-values">
-			{map.data.variable.hasNumericValues && <li className='clearfix min-color-wrapper'>
-				<NumberField label="Minimal value:" value={map.props.colorSchemeMinValue} onValue={this.onMinimalValue}/>
+			{mapConfig.data.variable.hasNumericValues && <li className='clearfix min-color-wrapper'>
+				<NumberField label="Minimal value:" value={mapConfig.props.colorSchemeMinValue} onValue={this.onMinimalValue}/>
 			 </li>}
 
-			{_.map(map.data.legendData, (bin, index) => {
+			{map(mapConfig.data.legendData, (bin, index) => {
 				if (bin instanceof NumericBin) {
-					return <NumericBinView map={map} bin={bin} index={index}/>
+					return <NumericBinView map={mapConfig} bin={bin} index={index}/>
 				} else {
-					return <CategoricalBinView map={map} bin={bin}/>
+					return <CategoricalBinView map={mapConfig} bin={bin}/>
 				}
 			})}
 		</ul>
@@ -215,18 +211,18 @@ class ColorsSection extends React.Component<{ map: MapConfig }> {
 	}
 
 	render() {
-		const {map} = this.props
+		const mapConfig = this.props.map
 
-		const availableColorSchemes = _(ColorSchemes).map((v: any, k: any) => _.extend({}, v, { key: k })).filter((v: any) => !!v.name).value()
-		const currentColorScheme = map.isCustomColors ? 'custom' : map.baseColorScheme
+		const availableColorSchemes = map(ColorSchemes, (v: any, k: any) => extend({}, v, { key: k })).filter((v: any) => !!v.name)
+		const currentColorScheme = mapConfig.isCustomColors ? 'custom' : mapConfig.baseColorScheme
 
 		return <section>
 			<h2>Colors</h2>
-			<SelectField label="Color scheme:" value={currentColorScheme} options={_.map(availableColorSchemes, 'key').concat(['custom'])} optionLabels={_.map(availableColorSchemes, 'name').concat(['custom'])} onValue={this.onColorScheme}/>
-			<NumberField label="Number of intervals:" value={map.props.colorSchemeInterval} min={1} max={99} onValue={this.onNumIntervals}/>
-			<Toggle label="Invert colors" value={map.props.colorSchemeInvert||false} onValue={this.onInvert}/>
-			<Toggle label="Automatic classification" value={!map.props.isManualBuckets} onValue={this.onAutomatic}/>
-			<ColorSchemeEditor map={map}/>
+			<SelectField label="Color scheme:" value={currentColorScheme} options={availableColorSchemes.map(d => d.key).concat(['custom'])} optionLabels={availableColorSchemes.map(d => d.name).concat(['custom'])} onValue={this.onColorScheme}/>
+			<NumberField label="Number of intervals:" value={mapConfig.props.colorSchemeInterval} min={1} max={99} onValue={this.onNumIntervals}/>
+			<Toggle label="Invert colors" value={mapConfig.props.colorSchemeInvert||false} onValue={this.onInvert}/>
+			<Toggle label="Automatic classification" value={!mapConfig.props.isManualBuckets} onValue={this.onAutomatic}/>
+			<ColorSchemeEditor map={mapConfig}/>
 		</section>
 	}
 }
@@ -268,7 +264,7 @@ export default class EditorMapTab extends React.Component<{ editor: ChartEditor 
 	@computed get map() { return this.chart.map as MapConfig }
 
 	render() {
-		const {chart, map} = this
+		const {map} = this
 
 		return <div className="EditorMapTab tab-pane">
 			<VariableSection map={map}/>

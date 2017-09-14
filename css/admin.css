@@ -210,7 +210,6 @@ button[type="submit"]:not(".delete-btn") {
   position: relative;
   display: inline-block;
   margin-right: 10px;
-  margin-left: 10px;
   padding: 10px;
   background-color: #fff;
   border: 1px solid #bbb;

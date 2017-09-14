@@ -1,13 +1,11 @@
-import * as _ from 'lodash'
 import * as React from 'react'
-import * as ReactDOM from 'react-dom'
+import {groupBy, each, isString} from '../charts/Util'
 import {computed, action, observable} from 'mobx'
 import {observer} from 'mobx-react'
-import {SelectField, Toggle, NumberField} from './Forms'
+import {SelectField} from './Forms'
 import ChartEditor from './ChartEditor'
-import ChartConfig, {DimensionSlot, ChartDimension} from '../charts/ChartConfig'
+import {DimensionSlot} from '../charts/ChartConfig'
 import {defaultTo} from '../charts/Util'
-import {EditorDatabase} from './ChartEditor'
 import FuzzySearch from '../charts/FuzzySearch'
 import EditorModal from './EditorModal'
 
@@ -48,7 +46,7 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
 	}
 
 	@computed get datasets() {
-		return _(this.database.datasets).filter(d => d.namespace == this.currentNamespace).value()
+		return this.database.datasets.filter(d => d.namespace == this.currentNamespace)
 	}
 
 	@computed get availableVariables(): Variable[] {
@@ -81,14 +79,14 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
     }
 
 	@computed get resultsByDataset(): { [datasetName: string]: Variable[] } {
-		return _.groupBy(this.searchResults, d => d.datasetName)
+		return groupBy(this.searchResults, d => d.datasetName)
 	}
 
 	@computed get searchResultRows() {
 		const {resultsByDataset} = this
 		
 		let rows: (string|Variable[])[] = []
-		_.each(resultsByDataset, (variables, datasetName) => {
+		each(resultsByDataset, (variables, datasetName) => {
 			rows.push(datasetName)
 
 			for (let i = 0; i < variables.length; i += 2) {
@@ -104,8 +102,8 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
 
 	render() {
 		const {slot} = this.props
-		const {chart, database} = this.props.editor
-		const {currentNamespace, searchInput, chosenVariables, isProjection, tolerance} = this
+		const {database} = this.props.editor
+		const {currentNamespace, searchInput, chosenVariables} = this
 		const {rowHeight, rowOffset, numVisibleRows, numTotalRows, searchResultRows} = this
 
 		return <EditorModal>
@@ -122,14 +120,14 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
 								<div style={{height: numTotalRows*rowHeight, 'padding-top': rowHeight*rowOffset}}>
 									<ul>
 										{searchResultRows.slice(rowOffset, rowOffset+numVisibleRows).map(d => {
-											if (_.isString(d)) {
+											if (isString(d)) {
 												return <li key={d} style={{'min-width': '100%'}}>
 													<h5 dangerouslySetInnerHTML={{__html: this.fuzzy.highlight(searchInput||"", d)}}/>
 												</li>
 											} else {
 												return d.map(v => <li key={v.id} style={{'min-width': '50%'}}>
 													<label className="clickable">
-														<input type="checkbox" checked={false} onChange={e => this.selectVariable(v)}/> <span dangerouslySetInnerHTML={{__html: this.fuzzy.highlight(searchInput||"", v.name)}}/>
+														<input type="checkbox" checked={false} onChange={() => this.selectVariable(v)}/> <span dangerouslySetInnerHTML={{__html: this.fuzzy.highlight(searchInput||"", v.name)}}/>
 													</label>
 												</li>)
 											}
@@ -144,7 +142,7 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
 								{chosenVariables.map(d => {
 									return <li>
 										<label className="clickable">
-											<input type="checkbox" checked={true} onChange={e => this.unselectVariable(d)}/> {d.name}
+											<input type="checkbox" checked={true} onChange={() => this.unselectVariable(d)}/> {d.name}
 										</label>
 									</li>
 								})}

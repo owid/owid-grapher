@@ -1,4 +1,4 @@
-import * as _ from 'lodash'
+import {keyBy} from './Util'
 const fuzzysort = require("fuzzysort")
 
 export default class FuzzySearch<T> {
@@ -6,7 +6,7 @@ export default class FuzzySearch<T> {
     datamap: any
 
     constructor(data: T[], key: string) {
-        this.datamap = _.keyBy(data, key)
+        this.datamap = keyBy(data, key)
         this.strings = data.map((d: any) => fuzzysort.prepare(d[key]))
     }
 

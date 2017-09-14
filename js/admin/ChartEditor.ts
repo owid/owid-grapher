@@ -5,12 +5,12 @@
  *
  */
 
-import {observable, computed, reaction, action} from 'mobx'
+import {observable, computed, reaction} from 'mobx'
+import {extend, toString, uniq} from '../charts/Util'
 import ChartConfig from '../charts/ChartConfig'
 import ChartType from '../charts/ChartType'
 import EditorFeatures from './EditorFeatures'
 import Admin from './Admin'
-import * as _ from 'lodash'
 import * as $ from 'jquery'
 
 declare const Global: any
@@ -39,7 +39,7 @@ export class EditorDatabase {
 	@observable.ref datasets: Dataset[]
 
 	@computed get namespaces(): string[] {
-		return _(this.datasets).map(d => d.namespace).uniq().value()
+		return uniq(this.datasets.map(d => d.namespace))
 	}
 
 	constructor(json: any) {
@@ -86,7 +86,7 @@ export default class ChartEditor {
 
 	async fetchData(cacheTag: string) {
 		const handleError = (err: string) => {
-			var $modal = modal({ title: "Error fetching editor data", content: _.toString(err) });
+			var $modal = modal({ title: "Error fetching editor data", content: toString(err) });
 			$modal.addClass("error");
 		}
 
@@ -110,7 +110,7 @@ export default class ChartEditor {
 
 
 		const handleError = (err: string) => {
-			var $modal = modal({ title: "Error saving chart", content: _.toString(err) });
+			var $modal = modal({ title: "Error saving chart", content: toString(err) });
 			$modal.addClass("error");
 			if (onError) onError()
 		}
@@ -144,7 +144,7 @@ export default class ChartEditor {
 
 		const handleError = (err: string) => {
 			w.close()
-			var $modal = modal({ title: "Error saving chart", content: _.toString(err) });
+			var $modal = modal({ title: "Error saving chart", content: toString(err) });
 			$modal.addClass("error");
 		}
 
@@ -205,8 +205,8 @@ export default class ChartEditor {
 			() => chart.data.filledDimensions, 
 			() => {
 				// Be helpful and select some default data
-				if (chart.data.isReady && !chart.isScatter && !chart.isSlopeChart && _.isEmpty(chart.data.selectedKeys)) {
-					chart.data.selectedKeys = _.sampleSize(chart.data.availableKeys, 3)
+				if (chart.data.isReady && !chart.isScatter && !chart.isSlopeChart && isEmpty(chart.data.selectedKeys)) {
+					chart.data.selectedKeys = sampleSize(chart.data.availableKeys, 3)
 				}
 			}
 		)*/
@@ -215,7 +215,7 @@ export default class ChartEditor {
 
 // XXX this is old stuff
 function modal(options?: any) {
-	options = _.extend({}, options);
+	options = extend({}, options);
 	$(".owidModal").remove();
 
 	var html = '<div class="modal owidModal fade" role="dialog">' +

@@ -1,7 +1,7 @@
+import {isEmpty, each, reduce, map, max} from './Util'
 import {computed} from 'mobx'
 import FontSize from './FontSize'
 import {defaultTo} from './Util'
-import * as _ from 'lodash'
 import Bounds from './Bounds'
 import * as React from 'react'
 
@@ -38,13 +38,13 @@ export default class TextWrap {
     @computed get lines(): WrapLine[] {
         const {text, maxWidth, lineHeight, fontSize} = this
 
-        const words = _.isEmpty(text) ? [] : text.split(' ')
+        const words = isEmpty(text) ? [] : text.split(' ')
         const lines: WrapLine[] = []
 
         let line: string[] = []
         let lineBounds = Bounds.empty()
 
-        _.each(words, (word, i) => {
+        each(words, (word, i) => {
             let nextLine = line.concat([word])
             let nextBounds = Bounds.forText(strip(nextLine.join(' ')), {fontSize: fontSize+'em'})
 
@@ -71,11 +71,11 @@ export default class TextWrap {
 
 
     @computed get height(): number {
-        return _.reduce(this.lines, (total, line) => total+line.height, 0) + this.lineHeight*(this.lines.length-1)
+        return reduce(this.lines, (total, line) => total+line.height, 0) + this.lineHeight*(this.lines.length-1)
     }
 
     @computed get width(): number {
-        return _(this.lines).map(l => l.width).max() as number
+        return defaultTo(max(this.lines.map(l => l.width)), 0)
     }
 
 	render(x: number, y: number, options?: React.SVGAttributes<SVGTextElement>) {
@@ -86,7 +86,7 @@ export default class TextWrap {
 
         const yOffset = y+lines[0].height-lines[0].height*0.2
 		return <text fontSize={(fontSize*Bounds.baseFontSize).toFixed(2)} x={x.toFixed(1)} y={yOffset.toFixed(1)} {...options}>
-			{_.map(lines, (line, i) => {
+			{map(lines, (line, i) => {
                 if (props.raw)
                     return <tspan x={x} y={yOffset + (i == 0 ? 0 : lineHeight*fontSize*Bounds.baseFontSize*i)} dangerouslySetInnerHTML={{__html: line.text}}/>
                 else

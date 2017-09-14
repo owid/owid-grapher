@@ -1,23 +1,17 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
+import {capitalize, includes} from '../charts/Util'
 import EditorBasicTab from './EditorBasicTab'
 import EditorDataTab from './EditorDataTab'
 import EditorTextTab from './EditorTextTab'
 import EditorCustomizeTab from './EditorCustomizeTab'
 import EditorScatterTab from './EditorScatterTab'
 import EditorMapTab from './EditorMapTab'
-import ChartConfig from '../charts/ChartConfig'
-import * as _ from 'lodash'
-import * as $ from 'jquery'
-import ChartType from '../charts/ChartType'
 import ChartView from '../charts/ChartView'
-import ChartEditor, {ChartEditorProps, EditorTab} from './ChartEditor'
+import ChartEditor from './ChartEditor'
 import SaveButtons from './SaveButtons'
 import {observer} from 'mobx-react'
-import {observable, computed, action, autorun} from 'mobx'
-import Admin from './Admin'
-
-declare const App: any
+import {action, autorun} from 'mobx'
 
 class LoadingBlocker extends React.Component {
 	render() {
@@ -80,7 +74,7 @@ export default class ChartEditorView extends React.Component<{ editor: ChartEdit
 		const match = window.location.hash.match(/#(.+?)-tab/)
 		if (match) {
 			const tab = match[1]
-			if (_.includes(this.props.editor.availableTabs, tab))
+			if (includes(this.props.editor.availableTabs, tab))
 				this.props.editor.tab = tab
 		}
 	}
@@ -94,9 +88,9 @@ export default class ChartEditorView extends React.Component<{ editor: ChartEdit
 			<form onSubmit={e => e.preventDefault()}>
 				<div className="nav-tabs-custom">
 					<ul className="nav nav-tabs no-bullets">
-						{_.map(availableTabs, tab => 
+						{availableTabs.map(tab => 
 							<li className={tab == editor.tab ? "nav-item active" : "nav-item"}>
-								<a className="nav-link clickable" onClick={() => editor.tab = tab}>{_.capitalize(tab)}</a>
+								<a className="nav-link clickable" onClick={() => editor.tab = tab}>{capitalize(tab)}</a>
 							</li>
 						)}
 					</ul>

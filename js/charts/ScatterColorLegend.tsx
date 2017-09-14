@@ -1,8 +1,9 @@
 import * as React from 'react'
-import * as _ from 'lodash'
+import {noop, sum, includes, max} from './Util'
 import {computed} from 'mobx'
 import {observer} from 'mobx-react'
 import TextWrap from './TextWrap'
+import {defaultTo} from './Util'
 
 interface ColorLegendProps {
     x?: number,
@@ -29,9 +30,9 @@ export default class ScatterColorLegend extends React.Component<ColorLegendProps
     @computed get rectSize(): number { return 5 }
     @computed get rectPadding(): number { return 5 }
     @computed get lineHeight(): number { return 5 }
-    @computed get onMouseOver(): Function { return this.props.onMouseOver || _.noop }
-    @computed get onMouseLeave(): Function { return this.props.onMouseLeave || _.noop }
-    @computed get onClick(): Function { return this.props.onClick || _.noop }
+    @computed get onMouseOver(): Function { return this.props.onMouseOver || noop }
+    @computed get onMouseLeave(): Function { return this.props.onMouseLeave || noop }
+    @computed get onClick(): Function { return this.props.onClick || noop }
     @computed get x(): number { return this.props.x || 0 }
     @computed get y(): number { return this.props.y || 0 }
     @computed get focusColors(): string[] { return this.props.focusColors||[] }
@@ -39,7 +40,7 @@ export default class ScatterColorLegend extends React.Component<ColorLegendProps
     @computed get labelMarks(): LabelMark[] {
         const {props, fontSize, rectSize, rectPadding} = this
 
-        return (_.filter(_.map(props.scale.domain(), value => {            
+        return props.scale.domain().map(value => {            
             const color = props.scale(value)
             if (props.colors.indexOf(color) == -1)
                 return null
@@ -51,18 +52,18 @@ export default class ScatterColorLegend extends React.Component<ColorLegendProps
                 width: rectSize+rectPadding+label.width,
                 height: Math.max(label.height, rectSize)
             }
-        })) as LabelMark[])
+        }).filter(v => !!v) as LabelMark[]
     }
 
     @computed get width(): number {
         if (this.labelMarks.length == 0)
             return 0   
         else 
-            return _(this.labelMarks).map('width').max() as number
+            return defaultTo(max(this.labelMarks.map(d => d.width)), 0)
     }
 
     @computed get height() {
-        return _.sum(_.map(this.labelMarks, 'height')) + this.lineHeight*this.labelMarks.length
+        return sum(this.labelMarks.map(d => d.height)) + this.lineHeight*this.labelMarks.length
     }
 
     render() {
@@ -70,10 +71,10 @@ export default class ScatterColorLegend extends React.Component<ColorLegendProps
         let offset = 0
 
         return <g className="ColorLegend clickable" style={{cursor: 'pointer'}}>
-            {_.map(this.labelMarks, mark => {
-                const isFocus = _.includes(focusColors, mark.color)
+            {this.labelMarks.map(mark => {
+                const isFocus = includes(focusColors, mark.color)
 
-                const result = <g className="legendMark" onMouseOver={e => this.onMouseOver(mark.color)} onMouseLeave={e => this.onMouseLeave()} onClick={e => this.onClick(mark.color)}>
+                const result = <g className="legendMark" onMouseOver={() => this.onMouseOver(mark.color)} onMouseLeave={() => this.onMouseLeave()} onClick={() => this.onClick(mark.color)}>
                     <rect x={this.x} y={this.y+offset-lineHeight/2} width={mark.width} height={mark.height+lineHeight} fill="#fff" opacity={0}/>,
                     <rect x={this.x} y={this.y+offset+rectSize/2} width={rectSize} height={rectSize} fill={mark.color}/>,
                     {mark.label.render(this.x+rectSize+rectPadding, this.y+offset, isFocus ? { style: { fontWeight: 'bold' } } : undefined)}

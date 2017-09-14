@@ -8,28 +8,23 @@
  * @created 2017-03-09
  */
 
-import * as _ from 'lodash'
-import * as d3 from 'd3'
 import * as React from 'react'
-import {observable, computed, action, autorun} from 'mobx'
+import {observable, computed, action} from 'mobx'
+import {find, includes, uniq} from './Util'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
 import ChartConfig from './ChartConfig'
 import NoData from './NoData'
-import AxisScale from './AxisScale'
 import Timeline from './Timeline'
 import PointsWithLabels, {ScatterSeries, ScatterValue} from './PointsWithLabels'
 import {preInstantiate} from './Util'
 import TextWrap from './TextWrap'
 import ConnectedScatterLegend from './ConnectedScatterLegend'
-import {Triangle} from './Marks'
 import ScatterColorLegend from './ScatterColorLegend'
 import AxisBox, {AxisBoxView} from './AxisBox'
 import ComparisonLine from './ComparisonLine'
 import {ScaleType} from './AxisScale'
-import AxisSpec from './AxisSpec' 
 import {formatYear, first, last} from './Util'
-import AxisBoxHighlight from './AxisBoxHighlight'
 
 @observer
 export default class ScatterPlot extends React.Component<{ bounds: Bounds, config: ChartConfig, isStatic: boolean }> {
@@ -96,18 +91,18 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     }
 
     @computed get hoverKeys(): string[] {
-        const {transform, hoverColor} = this
-        return _(this.transform.allGroups).filter(series => hoverColor && series.color == hoverColor).map(series => series.key).uniq().value()
+        const {hoverColor} = this
+        return uniq(this.transform.allGroups.filter(g => hoverColor !== undefined && g.color == hoverColor).map(g => g.key))
     }
 
     @computed get focusKeys(): string[] {
         const {transform, focusColors} = this
-        const focusColorKeys = _(transform.allGroups).filter(series => _.includes(focusColors, series.color)).map(series => series.key).uniq().value()
+        const focusColorKeys = uniq(transform.allGroups.filter(g => includes(focusColors, g.color)).map(g => g.key))
         return this.chart.data.selectedKeys.concat(focusColorKeys)
     }
 
     @computed get arrowLegend(): ConnectedScatterLegend|undefined {
-        const {focusKeys, hoverSeries, sidebarWidth, transform} = this
+        const {transform} = this
         const {startYear, endYear} = transform
 
         if (startYear == endYear || transform.isRelativeMode)
@@ -136,7 +131,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         if (hoverSeries)
             return hoverSeries
         else if (focusKeys && focusKeys.length == 1)
-            return _.find(transform.currentData, series => series.key == focusKeys[0])
+            return find(transform.currentData, series => series.key == focusKeys[0])
         else
             return null
     }
@@ -182,7 +177,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         if (this.transform.failMessage)
             return <NoData bounds={this.bounds} message={this.transform.failMessage}/>
 
-        const {transform, bounds, axisBox, chart, timeline, timelineHeight, legend, focusKeys, hoverKeys, hoverColor, focusColors, arrowLegend, hoverSeries, sidebarWidth, tooltipSeries, comparisonLine} = this
+        const {transform, bounds, axisBox, timeline, legend, focusKeys, hoverKeys, focusColors, arrowLegend, sidebarWidth, tooltipSeries, comparisonLine} = this
         const {currentData, sizeDomain} = transform
         return <g className="ScatterPlot">
             <AxisBoxView axisBox={axisBox} onXScaleChange={this.onXScaleChange} onYScaleChange={this.onYScaleChange}/>
@@ -239,7 +234,7 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps> {
         elements.push(heading)
         offset += heading.wrap.height+lineHeight
 
-        _.each(values, v => {
+        values.forEach(v => {
             const year = { x: x, y: y+offset, wrap: new TextWrap({ maxWidth: maxWidth, fontSize: 0.55, text: formatYear(v.year) }) }
             offset += year.wrap.height
             const line1 = { x: x, y: y+offset, wrap: new TextWrap({ maxWidth: maxWidth, fontSize: 0.45, text: this.formatValueY(v)}) }
@@ -250,7 +245,7 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps> {
         })
 
         return <g className="scatterTooltip">
-            {_.map(elements, el => el.wrap.render(el.x, el.y))}
+            {elements.map(el => el.wrap.render(el.x, el.y))}
          </g>
      }
  }

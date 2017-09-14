@@ -6,9 +6,9 @@
  * @created 2017-02-11
  */
 
-import * as d3 from 'd3'
-import * as _ from 'lodash'
-import {observable, computed, action, toJS} from 'mobx'
+import {scaleLog, scaleLinear, ScaleLinear, ScaleLogarithmic} from 'd3-scale'
+import {map, extend} from './Util'
+import {observable, computed, toJS} from 'mobx'
 
 export type ScaleType = 'linear' | 'log';
 
@@ -29,10 +29,10 @@ export default class AxisScale {
     @observable.ref isDiscrete: boolean
 
     @computed get d3_scaleConstructor(): Function {
-        return this.scaleType == 'log' ? d3.scaleLog : d3.scaleLinear
+        return this.scaleType == 'log' ? scaleLog : scaleLinear
     }
 
-    @computed get d3_scale(): d3.ScaleLinear<number, number> | d3.ScaleLogarithmic<number, number> {
+    @computed get d3_scale(): ScaleLinear<number, number> | ScaleLogarithmic<number, number> {
         return this.d3_scaleConstructor().domain(this.domain).range(this.range)
     }
 
@@ -54,7 +54,7 @@ export default class AxisScale {
         let ticks: number[] = []
         if (scaleType == 'log') {
             let minPower10 = Math.ceil(Math.log(domain[0]) / Math.log(10));
-            if (!_.isFinite(minPower10)) minPower10 = 0
+            if (!isFinite(minPower10)) minPower10 = 0
             let maxPower10 = Math.floor(Math.log(domain[1]) / Math.log(10));
             if (maxPower10 <= minPower10) maxPower10 += 1
 
@@ -69,7 +69,7 @@ export default class AxisScale {
     }
 
     getFormattedTicks(): string[] {
-        return _.map(this.getTickValues(), this.tickFormat)
+        return map(this.getTickValues(), this.tickFormat)
     }
 
     place(value: number) {
@@ -84,7 +84,7 @@ export default class AxisScale {
     }
 
     extend(props: Object) {
-        return new AxisScale(_.extend(toJS(this), props))
+        return new AxisScale(extend(toJS(this), props))
     }
 
     constructor({ scaleType = 'linear', 

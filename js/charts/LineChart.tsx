@@ -6,26 +6,22 @@
  */
 
 import * as React from 'react'
-import * as _ from 'lodash'
-import * as d3 from 'd3'
+import {last} from './Util'
 import {computed, action, observable} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartConfig from './ChartConfig'
 import Bounds from './Bounds'
-import LineType from './LineType'
-import {defaultTo} from './Util'
 import AxisBox from './AxisBox'
 import StandardAxisBoxView from './StandardAxisBoxView'
 import Lines from './Lines'
-import Text from './Text'
 import HeightedLegend, {HeightedLegendView} from './HeightedLegend'
-import Vector2 from './Vector2'
 import {HoverTarget} from './Lines'
 import Tooltip from './Tooltip'
-import AxisBoxHighlight from './AxisBoxHighlight'
 import DataKey from './DataKey'
 import NoData from './NoData'
 import {formatYear} from './Util'
+import {select} from 'd3-selection'
+import {easeLinear} from 'd3-ease'
 
 export interface LineChartValue {
     x: number,
@@ -45,8 +41,6 @@ export interface LineChartSeries {
 
 @observer
 export default class LineChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
-    base: SVGGElement
-
     @computed get chart() { return this.props.chart }
     @computed get bounds() { return this.props.bounds }
     @computed get transform() { return this.props.chart.lineChart }
@@ -54,12 +48,12 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
     // Order of the legend items on a line chart should visually correspond
     // to the order of the lines as the approach the legend
     @computed get legendItems() {
-        return _(this.transform.groupedData).map(d => ({
+        return this.transform.groupedData.map(d => ({
             color: d.color,
             key: d.key,
             label: this.chart.data.formatKey(d.key),
-            yValue: (_.last(d.values) as LineChartValue).y
-        })).value()
+            yValue: (last(d.values) as LineChartValue).y
+        }))
     }
 
     @computed get legend(): HeightedLegend|undefined {
@@ -86,7 +80,7 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
     }
 
     @computed get tooltip() {
-        const {hoverTarget, chart, transform} = this
+        const {hoverTarget, chart} = this
         if (hoverTarget == null) return undefined
 
         return <Tooltip x={hoverTarget.pos.x} y={hoverTarget.pos.y} style={{textAlign: "center"}}>
@@ -104,20 +98,40 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
             this.chart.data.toggleKey(datakey)
     }
 
+    base: SVGGElement
+    componentDidMount() {
+        // Fancy intro animation
+
+        const base = select(this.base)
+        base.selectAll("clipPath > rect")
+            .attr("width", 0)
+            .transition()
+                .duration(1000)
+                .ease(easeLinear)
+                .attr("width", this.bounds.width)
+    }
+
     render() {
         if (this.transform.failMessage)
             return <NoData bounds={this.props.bounds} message={this.transform.failMessage}/>
 
-        const {chart, transform, bounds, legend, tooltip, hoverTarget, focusKeys} = this
+        const {chart, transform, bounds, legend, tooltip, focusKeys} = this
         const {groupedData, xAxis, yAxis} = transform
 
         const axisBox = new AxisBox({bounds: bounds.padRight(10).padRight(legend ? legend.width : 0), xAxis, yAxis})
 
         return <g className="LineChart">
-            {legend && <HeightedLegendView x={bounds.right-legend.width} legend={legend} focusKeys={focusKeys} yScale={axisBox.yScale} onClick={this.onLegendClick}/>}
+            <defs>
+                <clipPath id="boundsClip">
+                    <rect x={axisBox.innerBounds.x} y={0} width={bounds.width} height={bounds.height*2}></rect>
+                </clipPath>
+            </defs>
             <StandardAxisBoxView axisBox={axisBox} chart={chart}/>
+            <g clipPath="url(#boundsClip)">
+                {legend && <HeightedLegendView x={bounds.right-legend.width} legend={legend} focusKeys={focusKeys} yScale={axisBox.yScale} onClick={this.onLegendClick}/>}
+                <Lines xScale={axisBox.xScale} yScale={axisBox.yScale} data={groupedData} onHoverPoint={this.onHoverPoint} onHoverStop={this.onHoverStop} focusKeys={focusKeys}/>
+            </g>
             {/*hoverTarget && <AxisBoxHighlight axisBox={axisBox} value={hoverTarget.value}/>*/}
-            <Lines xScale={axisBox.xScale} yScale={axisBox.yScale} data={groupedData} onHoverPoint={this.onHoverPoint} onHoverStop={this.onHoverStop} focusKeys={focusKeys}/>
             {tooltip}
         </g>
     }

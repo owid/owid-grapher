@@ -1,5 +1,4 @@
-import {extend, map} from 'lodash'
-import * as d3 from 'd3'
+import {extend} from './Util'
 import * as React from 'react'
 import {computed} from 'mobx'
 import {observer} from 'mobx-react'
@@ -31,7 +30,7 @@ export default class SourcesTab extends React.Component<{ bounds: Bounds, chart:
 	}
 
 	render() {
-		const { bounds, sources } = this
+		const {bounds} = this
 
 		return <div className="sourcesTab" style={extend(bounds.toCSS(), { position: 'absolute' })}>
 			<div>

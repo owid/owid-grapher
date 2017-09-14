@@ -9,12 +9,8 @@
  * @created 2016-08-09
  */
 
-import * as _ from 'lodash'
 import * as React from 'react'
-import * as ReactDOM from 'react-dom'
 import * as ReactDOMServer from 'react-dom/server'
-import * as d3 from 'd3'
-import * as $ from 'jquery'
 import Bounds from './Bounds'
 import ChartView from './ChartView'
 import {when} from 'mobx'
@@ -23,10 +19,9 @@ import ChartConfig, {ChartConfigProps} from './ChartConfig'
 declare const App: any
 
 export default class ExportView {
-    static bootstrap({ jsonConfig, containerNode }: { jsonConfig: ChartConfigProps, containerNode: HTMLElement }) {
+    static bootstrap({ jsonConfig }: { jsonConfig: ChartConfigProps }) {
         const targetWidth = App.IDEAL_WIDTH, targetHeight = App.IDEAL_HEIGHT;
         const targetBounds = new Bounds(0, 0, targetWidth, targetHeight)
-        let chartView: ChartView
 
         const chart = new ChartConfig(jsonConfig)
 
@@ -38,9 +33,9 @@ export default class ExportView {
                     chart={chart}
                     isExport={true}
                     bounds={targetBounds}/>)
-                $("link").remove()
-                $("body").empty()
-                $("body").append(svg)
+
+                Array.from(document.querySelectorAll("link")).forEach(el => (el.parentNode as Node).removeChild(el))
+                document.body.innerHTML = svg
                 requestAnimationFrame(() => console.log(document.body.innerHTML))
             }, 0)
         )

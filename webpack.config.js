@@ -1,25 +1,25 @@
-import path from 'path'
-import webpack from 'webpack'
-import ExtractTextPlugin from 'extract-text-webpack-plugin'
-import ManifestPlugin from 'webpack-manifest-plugin'
-import OptimizeCssAssetsPlugin from 'optimize-css-assets-webpack-plugin'
-import LodashModuleReplacementPlugin from 'lodash-webpack-plugin'
-import ParallelUglifyPlugin from 'webpack-parallel-uglify-plugin'
+const path = require('path')
+const webpack = require('webpack')
+const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin')
+const ExtractTextPlugin = require('extract-text-webpack-plugin')
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+const ManifestPlugin = require('webpack-manifest-plugin')
+const ParallelUglifyPlugin = require('webpack-parallel-uglify-plugin')
 
 const isProduction = process.argv.indexOf('-p') !== -1
 
-export default {
-    context: path.join(__dirname, "js"),
+module.exports = {
+    context: __dirname,
     entry: {
-        charts: "./charts.entry.ts",
-        admin: "./admin.entry.ts"
+        charts: "./js/charts.entry.ts",
+        admin: "./js/admin.entry.ts"
     },
     output: {
         path: path.join(__dirname, "public/build"),
         filename: (isProduction ? "[name].bundle.[chunkhash].js" : "[name].js")
     },
   	resolve: {
-        extensions: [".js", ".jsx", ".ts", ".tsx", ".css"],
+        extensions: [".ts", ".tsx", ".js", ".css"],
         alias: {
             'react': 'preact-compat',
             'react-dom': 'preact-compat',
@@ -34,12 +34,11 @@ export default {
         rules: [
             {
                 test: /\.tsx?$/,
-                loader: "awesome-typescript-loader"
+                loader: "ts-loader",
+                options: {
+                    transpileOnly: true
+                }
             },
-            {
-                test: /(preact-compat|\.jsx)/, // Preact-compat uses getters that don't work in IE11 for some reason
-                loader: "babel-loader",
-            },        
             {
                 test: /\.css$/,
                 loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: ['css-loader?modules&importLoaders=1&localIdentName=[local]', 'postcss-loader'] })
@@ -55,17 +54,19 @@ export default {
     devtool: (isProduction ? false : "cheap-module-eval-source-map"),
 
     plugins: (isProduction ? [
+        new webpack.optimize.CommonsChunkPlugin({
+            name: "charts"
+        }),
+
         // This plugin extracts css files required in the entry points
         // into a separate CSS bundle for download
         new ExtractTextPlugin('[name].bundle.[chunkhash].css'),
 
-        new LodashModuleReplacementPlugin(),
-
         // CSS optimization
-        new OptimizeCssAssetsPlugin({
+        /*new OptimizeCssAssetsPlugin({
             assetNameRegExp: /\.bundle.*\.css$/,
             cssProcessorOptions: { discardComments: { removeAll: true } }
-        }),
+        }),*/
 
         // JS optimization
         new ParallelUglifyPlugin({
@@ -90,10 +91,16 @@ export default {
         // filenames
         new ManifestPlugin(),
     ] : [
+        new webpack.optimize.CommonsChunkPlugin({
+            name: "charts"
+        }),
+
+        new ForkTsCheckerWebpackPlugin(),
+
         new ExtractTextPlugin('[name].css')
     ]),
     devServer: {
-        host: '0.0.0.0',
+        host: 'localhost',
         port: 8090,
         contentBase: 'public',
         disableHostCheck: true,

@@ -14,9 +14,7 @@ interface TextProps extends React.SVGProps<SVGTextElement> {
 export default class Text extends React.Component<TextProps> {
 	render() {
 		const bounds = Bounds.forText(this.props.children, { fontSize: this.props['fontSize'], fontFamily: this.props['fontFamily'] })
-		let {x, y} = this.props
-
-        y = y+bounds.height-bounds.height*0.2
+        const y = this.props.y+bounds.height-bounds.height*0.2
 
 		return <text {...this.props} y={y} dangerouslySetInnerHTML={{__html: this.props.children}}/>
 	}

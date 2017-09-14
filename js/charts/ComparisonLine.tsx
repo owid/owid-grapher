@@ -1,6 +1,7 @@
+import {scaleLinear} from 'd3-scale'
+import {line as d3_line, curveLinear} from 'd3-shape'
+import {defaultTo} from './Util'
 import * as React from 'react'
-import * as _ from 'lodash'
-import * as d3 from 'd3'
 import {computed} from 'mobx'
 import {observer} from 'mobx-react'
 import AxisBox from './AxisBox'
@@ -14,16 +15,16 @@ export interface ComparisonLineConfig {
 export default class ComparisonLine extends React.Component<{ axisBox: AxisBox, comparisonLine: ComparisonLineConfig }> {
     @computed get lineData(): string|null {
         const {comparisonLine, axisBox} = this.props
-        const {xScale, yScale, innerBounds} = axisBox 
+        const {xScale, yScale} = axisBox 
 
-        const yEquals = _.defaultTo<string>(comparisonLine.yEquals, "x")
+        const yEquals = defaultTo(comparisonLine.yEquals, "x")
         const yFunc = function(x: number) {
             return evalEquation(yEquals, { x: x }, x)
         }
 
         // Construct control data by running the equation across sample points
         const numPoints = 100
-        const scale = d3.scaleLinear().domain([0, 100]).range(xScale.domain)
+        const scale = scaleLinear().domain([0, 100]).range(xScale.domain)
         const controlData: [number, number][] = []
         for (var i = 0; i < numPoints; i++) {
             const x = scale(i)
@@ -35,7 +36,7 @@ export default class ComparisonLine extends React.Component<{ axisBox: AxisBox, 
                 continue
             controlData.push([x, y])
         }                
-        const line = d3.line().curve(d3.curveLinear).x(d => xScale.place(d[0])).y(d => yScale.place(d[1]))
+        const line = d3_line().curve(curveLinear).x(d => xScale.place(d[0])).y(d => yScale.place(d[1]))
         return line(controlData)
     }
 

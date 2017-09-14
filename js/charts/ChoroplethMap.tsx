@@ -1,10 +1,8 @@
-import * as _ from 'lodash'
-import * as d3 from 'd3'
+import {map, min, max, each, identity, sortBy} from './Util'
 import Bounds from './Bounds'
 import * as React from 'react'
-import {observable, computed, asFlat, asStructure, autorunAsync, action} from 'mobx'
+import {computed} from 'mobx'
 import {observer} from 'mobx-react'
-import {bind} from 'decko'
 import * as topojson from 'topojson'
 import MapProjections from './MapProjections'
 import MapProjection from './MapProjection'
@@ -71,11 +69,11 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
 
     @computed get geoBounds() {
         const {geoData, geoPath} = this
-        const allBounds = _.map(geoData, geoPath.bounds)
-        const x1 = _.min(_.map(allBounds, b => b[0][0])) as number
-        const y1 = _.min(_.map(allBounds, b => b[0][1])) as number
-        const x2 = _.max(_.map(allBounds, b => b[1][0])) as number
-        const y2 = _.max(_.map(allBounds, b => b[1][1])) as number
+        const allBounds = map(geoData, geoPath.bounds)
+        const x1 = min(map(allBounds, b => b[0][0])) as number
+        const y1 = min(map(allBounds, b => b[0][1])) as number
+        const x2 = max(map(allBounds, b => b[1][0])) as number
+        const y2 = max(map(allBounds, b => b[1][1])) as number
         return Bounds.fromCorners(new Vector2(x1, y1), new Vector2(x2, y2))
     }
 
@@ -84,9 +82,9 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
 
         const pathData: { [key: string]: string } = {}
 
-        _.each(geoData, (d) => {
+        each(geoData, (d) => {
             const s = geoPath(d) as string
-            const paths = s.split(/Z/).filter(_.identity)
+            const paths = s.split(/Z/).filter(identity)
 
             const newPaths = paths.map(path => {
                 const points = path.split(/[MLZ]/).filter((f: any) => f)        
@@ -159,34 +157,34 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
 
         var matrixStr = "matrix(" + scale + ",0,0," + scale + "," + newOffsetX + "," + newOffsetY + ")";
         return matrixStr
-    }    
+    }
 
     render() {
-        const { bounds, choroplethData, defaultFill, geoData, pathData, hasFocus, matrixTransform } = this
+        const { bounds, choroplethData, defaultFill, geoData, pathData, matrixTransform } = this
         const focusColor = "#FFEC38"
         const focusStrokeWidth = 2.5
 
-        return <g className="map" clip-path="url(#boundsClip)">
+        return <g className="ChoroplethMap" clip-path="url(#boundsClip)">
             <defs>
                 <clipPath id="boundsClip">
                     <rect x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height}></rect>
                 </clipPath>
             </defs>
             <g className="subunits" transform={matrixTransform}>
-                {_.map(geoData.filter(d => !choroplethData[d.id as string]), d => {
+                {map(geoData.filter(d => !choroplethData[d.id as string]), d => {
                     const isFocus = this.hasFocus(d)
                     const stroke = isFocus ? focusColor : "#333"
-                    return <path key={d.id} d={pathData[d.id as string]} stroke-width={isFocus ? focusStrokeWidth : 0.3} stroke={stroke} cursor="pointer" fill={defaultFill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={(ev) => this.props.onClick(d)}/>
+                    return <path key={d.id} d={pathData[d.id as string]} stroke-width={isFocus ? focusStrokeWidth : 0.3} stroke={stroke} cursor="pointer" fill={defaultFill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={() => this.props.onClick(d)}/>
                 })}
 
-                {_.sortBy(_.map(geoData.filter(d => choroplethData[d.id as string]), (d) => {
+                {sortBy(map(geoData.filter(d => choroplethData[d.id as string]), (d) => {
                     const isFocus = this.hasFocus(d)
                     const datum = choroplethData[d.id as string]
                     const stroke = isFocus ? focusColor : "#333"
                     const fill = datum ? datum.color : defaultFill
 
                     return [
-                        <path key={d.id} d={pathData[d.id as string]} stroke-width={isFocus ? focusStrokeWidth : 0.5} stroke={stroke} cursor="pointer" fill={fill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={(ev) => this.props.onClick(d)}/>
+                        <path key={d.id} d={pathData[d.id as string]} stroke-width={isFocus ? focusStrokeWidth : 0.5} stroke={stroke} cursor="pointer" fill={fill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={() => this.props.onClick(d)}/>
                     ]
                 }), p => p[0].props['stroke-width'])}
             </g>

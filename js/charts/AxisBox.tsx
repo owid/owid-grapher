@@ -8,18 +8,15 @@
  * @created 2017-02-11
  */
 
-import * as d3 from 'd3'
-import * as _ from 'lodash'
 import * as React from 'react'
-import {observable, computed, action, toJS} from 'mobx'
+import {computed} from 'mobx'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
-import AxisScale, {AxisConfig} from './AxisScale'
+import AxisScale from './AxisScale'
 import VerticalAxis, {VerticalAxisView} from './VerticalAxis'
 import HorizontalAxis, {HorizontalAxisView} from './HorizontalAxis'
 import AxisSpec from './AxisSpec'
 import ScaleType from './ScaleType'
-import TextWrap from './TextWrap'
 
 interface AxisBoxProps {
     bounds: Bounds,
@@ -100,7 +97,7 @@ export class AxisGridLines extends React.Component<AxisGridLinesProps> {
         let scale = this.props.scale.extend({ range: orient == 'left' ? bounds.yRange() : bounds.xRange() })
 
         return <g className="AxisGridLines">
-            {_.map(scale.getTickValues(), v => {
+            {scale.getTickValues().map(v => {
                 if (orient == 'left')
                     return <line x1={bounds.left.toFixed(2)} y1={scale.place(v)} x2={bounds.right.toFixed(2)} y2={scale.place(v)} stroke={v == 0 ? "#ccc" : "#ddd"} stroke-dasharray={v != 0 && "3,2"}/>
                 else
@@ -121,7 +118,7 @@ export interface AxisBoxViewProps {
 @observer
 export class AxisBoxView extends React.Component<AxisBoxViewProps> {
     render() {
-        const {axisBox, onYScaleChange, onXScaleChange, highlightValue} = this.props
+        const {axisBox, onYScaleChange, onXScaleChange} = this.props
         const {bounds, xScale, yScale, xAxis, yAxis, innerBounds} = axisBox
 
         return <g className="AxisBoxView">

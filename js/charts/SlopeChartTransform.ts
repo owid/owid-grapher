@@ -1,13 +1,9 @@
-import * as _ from 'lodash'
-import * as d3 from 'd3'
+import {scaleOrdinal} from 'd3-scale'
+import {some, union, min, max, find, isEmpty} from './Util'
 import {computed} from 'mobx'
 import ChartConfig from './ChartConfig'
-import Color from './Color'
-import DataKey from './DataKey'
-import {StackedAreaSeries, StackedAreaValue} from './StackedArea'
-import AxisSpec from './AxisSpec'
 import {defaultTo, findClosest} from './Util'
-import {DimensionWithData} from './ChartData'
+import DimensionWithData from './DimensionWithData'
 import Observations from './Observations'
 import {SlopeChartSeries} from './LabelledSlopes'
 import {first, last, makeSafeForCSS} from './Util'
@@ -23,27 +19,29 @@ export default class SlopeChartTransform implements IChartTransform {
     }
 
 	@computed get isValidConfig(): boolean {
-		return _.some(this.chart.dimensions, d => d.property == 'y')
+		return some(this.chart.dimensions, d => d.property == 'y')
 	}
 
     @computed get failMessage(): string|undefined {
         const {filledDimensions} = this.chart.data
-        if (!_.some(filledDimensions, d => d.property == 'y'))
+        if (!some(filledDimensions, d => d.property == 'y'))
             return "Missing Y axis variable"
-        else if (_.isEmpty(this.data))
+        else if (isEmpty(this.data))
             return "No matching data"
+		else
+			return undefined
     }
 
     @computed get timelineYears(): number[] {
-        return _.union(...this.chart.data.axisDimensions.map(d => d.variable.yearsUniq))
+        return union(...this.chart.data.axisDimensions.map(d => d.variable.yearsUniq))
     }
 
     @computed get minTimelineYear(): number {
-        return defaultTo(_.min(this.timelineYears), 1900)
+        return defaultTo(min(this.timelineYears), 1900)
     }
 
     @computed get maxTimelineYear(): number {
-        return defaultTo(_.max(this.timelineYears), 2000)
+        return defaultTo(max(this.timelineYears), 2000)
     }
 
     @computed get startYear(): number {
@@ -61,21 +59,21 @@ export default class SlopeChartTransform implements IChartTransform {
 	}
 
 	@computed.struct get sizeDim(): DimensionWithData {
-		return _.find(this.chart.data.filledDimensions, d => d.property == 'size') as DimensionWithData
+		return find(this.chart.data.filledDimensions, d => d.property == 'size') as DimensionWithData
 	}
 
 	@computed.struct get colorDim(): DimensionWithData {
-		return _.find(this.chart.data.filledDimensions, d => d.property == 'color') as DimensionWithData
+		return find(this.chart.data.filledDimensions, d => d.property == 'color') as DimensionWithData
 	}
 
 	@computed.struct get yDim(): DimensionWithData {
-		return _.find(this.chart.data.filledDimensions, d => d.property == 'y') as DimensionWithData
+		return find(this.chart.data.filledDimensions, d => d.property == 'y') as DimensionWithData
 	}
 
 	@computed get variableData() : Observations {
-		const variables = _.map(this.chart.data.filledDimensions, 'variable')
+		const variables = this.chart.data.filledDimensions.map(d => d.variable)
 		let obvs : any[]= []
-		_.each(variables, (v) => {
+		variables.forEach(v => {
 			for (var i = 0; i < v.years.length; i++) {
 				let d: any = { year: v.years[i], entity: v.entities[i] }
 				d[v.id] = v.values[i]
@@ -98,7 +96,7 @@ export default class SlopeChartTransform implements IChartTransform {
                 "#69c487", // South America
                 "#ff7f0e", "#1f77b4", "#ffbb78", "#2ca02c", "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b", "c49c94", "e377c2", "f7b6d2", "7f7f7f", "c7c7c7", "bcbd22", "dbdb8d", "17becf", "9edae5", "1f77b4"]
 
-        const colorScale = d3.scaleOrdinal(colorScheme)
+        const colorScale = scaleOrdinal(colorScheme)
         if (colorDim.variable)
 	        colorScale.domain(colorDim.variable.categoricalValues)
 
@@ -106,19 +104,19 @@ export default class SlopeChartTransform implements IChartTransform {
 	}
 
 	@computed get data() : SlopeChartSeries[] {
-		if (_.isEmpty(this.yDim)) return []
+		if (isEmpty(this.yDim)) return []
 		let {variableData, sizeDim, yDim, xDomain, colorDim, colorScale} = this
 		let data = variableData
 		const entityKey = this.chart.vardata.entityMetaByKey
 
 		// Make sure we're using time bounds that actually contain data
-		const longestRange: number[] = data.filter((d: any) => _.isFinite(d[yDim.variable.id]))
+		const longestRange: number[] = data.filter((d: any) => isFinite(d[yDim.variable.id]))
 			.mergeBy('entity', (rows: Observations) => rows.pluck('year'))
 			.sortBy((d: number[]) => last(d)-first(d))
 			.last() as number[]
 
-		const minYear = xDomain[0] == null ? _.first(longestRange) : Math.max(xDomain[0]||-Infinity, first(longestRange))
-		const maxYear = xDomain[1] == null ? _.last(longestRange) : Math.min(xDomain[1]||Infinity, last(longestRange))
+		const minYear = xDomain[0] == null ? first(longestRange) : Math.max(xDomain[0]||-Infinity, first(longestRange))
+		const maxYear = xDomain[1] == null ? last(longestRange) : Math.min(xDomain[1]||Infinity, last(longestRange))
 
 		data = data.mergeBy('entity', (rows : Observations, entity : string) => {
 			return {
@@ -126,7 +124,7 @@ export default class SlopeChartTransform implements IChartTransform {
 				key: makeSafeForCSS(entityKey[entity].name),
 				color: colorScale(rows.first(colorDim.variable.id)),
 				size: rows.first(sizeDim.variable.id),
-				values: rows.filter((d: any) => _.isFinite(d[yDim.variable.id]) && (d.year == minYear || d.year == maxYear)).mergeBy('year').map((d: any) => {
+				values: rows.filter((d: any) => isFinite(d[yDim.variable.id]) && (d.year == minYear || d.year == maxYear)).mergeBy('year').map((d: any) => {
 					return {
 						x: d.year,
 						y: d[yDim.variable.id]

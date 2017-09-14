@@ -1,6 +1,5 @@
-import * as _ from 'lodash'
+import {extend} from './Util'
 import * as React from 'react'
-import * as ReactDOM from 'react-dom'
 import ChartView from './ChartView'
 import {observable, computed} from 'mobx'
 import {observer} from 'mobx-react'
@@ -37,7 +36,7 @@ class TooltipView extends React.Component<TooltipProps> {
         
         const style = { position: 'absolute', whiteSpace: 'nowrap', pointerEvents: 'none', left: x+'px', top: y+'px', backgroundColor: "white", border: "1px solid #ccc", textAlign: 'left', fontSize: "0.9em", zIndex: 100 }
 
-        return <div style={_.extend(style, props.style||{})}>
+        return <div style={extend(style, props.style||{})}>
             {props.children}
         </div>
     }

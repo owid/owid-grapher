@@ -1,9 +1,8 @@
-import {observable, computed, toJS} from 'mobx'
+import {observable, computed} from 'mobx'
 import {unitFormat} from './Util'
 import AxisSpec from './AxisSpec'
 import ScaleType from './ScaleType'
 import {defaultTo} from './Util'
-import {extend} from 'lodash'
 
 // Represents the actual entered configuration state in the editor
 export class AxisConfigProps {

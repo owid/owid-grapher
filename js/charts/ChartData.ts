@@ -1,13 +1,11 @@
-import * as _ from 'lodash'
-import ChartType from './ChartType'
-import {observable, computed, autorun, action} from 'mobx'
-import ChartConfig, {ChartDimension} from './ChartConfig'
-import VariableData, {Variable} from './VariableData'
+import {map, every, keyBy, includes, uniqWith, cloneDeep, intersection, each, sortBy, without, find, extend, uniq} from './Util'
+import {computed} from 'mobx'
+import ChartConfig from './ChartConfig'
+import {Variable} from './VariableData'
 import DataKey from './DataKey'
-import {bind} from 'decko'
-import {LineChartSeries} from './LineChart'
 import Color from './Color'
-import {formatValue, last, defaultTo, slugify} from './Util'
+import {last, defaultTo, slugify} from './Util'
+import DimensionWithData from './DimensionWithData'
 
 export interface DataKeyInfo {
 	entity: string 
@@ -26,75 +24,6 @@ export interface SourceWithVariable {
 	variable: Variable
 }
 
-export class DimensionWithData {
-	props: ChartDimension
-	@observable.ref index: number
-	@observable.ref variable: Variable
-
-	@computed get variableId(): number {
-		return this.props.variableId
-	}
-
-	@computed get property(): string {
-		return this.props.property
-	}
-
-	@computed get displayName(): string {
-		return defaultTo(this.props.displayName, this.variable.name)
-	}
-
-	@computed get unit(): string {
-		return defaultTo(this.props.unit, this.variable.unit)
-	}
-
-	@computed get isProjection(): boolean {
-		return !!this.props.isProjection
-	}
-
-	@computed get targetYear(): number|undefined {
-		return this.props.targetYear
-	}
-
-	@computed get tolerance(): number {
-		return this.props.tolerance == null ? 0 : this.props.tolerance
-	}
-
-	@computed get shortUnit(): string|undefined {
-		const {unit} = this
-		const shortUnit = defaultTo(this.props.shortUnit, this.variable.shortUnit)
-		
-		if (shortUnit) return shortUnit
-
-		if (!unit) return undefined
-
-		if (unit.length < 3)
-			return unit
-		else {
-			const commonShortUnits = ['$', '£', '€', '%']
-			if (_.some(commonShortUnits, u => unit[0] == u))
-				return unit[0]
-			else
-				return undefined
-		}
-	}
-
-	@computed get formatValueShort(): (value: number) => string {
-		const {shortUnit} = this
-		return value => formatValue(value, { unit: shortUnit })
-	}
-
-	@computed get formatValueLong(): (value: number) => string {
-		const {unit} = this
-		return value => formatValue(value, { unit: unit })
-	}
-
-    constructor(index: number, dimension: ChartDimension, variable: Variable) {
-		this.index = index
-        this.props = dimension
-		this.variable = variable
-    }
-}
-
 export default class ChartData {
 	chart: ChartConfig
 
@@ -109,13 +38,13 @@ export default class ChartData {
 	// ChartData is ready to go iff we have retrieved data for every variable associated with the chart
 	@computed get isReady(): boolean {
 		const {chart, vardata} = this
-		return _.every(chart.dimensions, dim => vardata.variablesById[dim.variableId])
+		return every(chart.dimensions, dim => vardata.variablesById[dim.variableId] !== undefined)
 	}
 
 	@computed.struct get filledDimensions(): DimensionWithData[] {
 		if (!this.isReady) return []
 		
-        return _.map(this.chart.dimensions, (dim, i) => {
+        return map(this.chart.dimensions, (dim, i) => {
             const variable = this.vardata.variablesById[dim.variableId]
 			return new DimensionWithData(i, dim, variable)
         })
@@ -132,7 +61,7 @@ export default class ChartData {
 	@computed get defaultTitle(): string {
 		if (this.chart.isScatter)
 			return this.axisDimensions.map(d => d.displayName).join(" vs. ")
-		else if (this.primaryDimensions.length > 1 && _(this.primaryDimensions).map(d => d.variable.datasetName).uniq().value().length == 1)
+		else if (this.primaryDimensions.length > 1 && uniq(map(this.primaryDimensions, d => d.variable.datasetName)).length == 1)
 			return this.primaryDimensions[0].variable.datasetName
 		else if (this.primaryDimensions.length == 2)
 			return this.primaryDimensions.map(d => d.displayName).join(" and ")
@@ -153,7 +82,7 @@ export default class ChartData {
 	}
 
     @computed get defaultSourcesLine(): string {
-       return _(this.sources).map(source => source.name).uniq().join(", ")
+		return uniq(this.sources.map(source => source.name)).join(", ")
     }
 
     @computed get sourcesLine(): string {
@@ -177,8 +106,8 @@ export default class ChartData {
 		return `${entity}_${dimensionIndex}`
 	}
 
-	@computed get dimensionsByField(): _.Dictionary<DimensionWithData> {
-		return _.keyBy(this.filledDimensions, 'property')
+	@computed get dimensionsByField(): {[key: string]: DimensionWithData} {
+		return keyBy(this.filledDimensions, 'property')
 	}
 
 	@computed get selectionData(): { key: DataKey, color?: Color }[] {
@@ -190,7 +119,7 @@ export default class ChartData {
 			
 			// Entity must be within that dimension
 			const entityMeta = vardata.entityMetaById[sel.entityId]
-			if (entityMeta == null || !_.includes(dimension.variable.entitiesUniq, entityMeta.name)) return false
+			if (entityMeta == null || !includes(dimension.variable.entitiesUniq, entityMeta.name)) return false
 
 			// "change entity" charts can only have one entity selected
 			if (chart.addCountryMode == "change-country" && sel.entityId != last(chart.props.selectedData).entityId)
@@ -199,9 +128,9 @@ export default class ChartData {
 			return true
 		})
 
-		validSelections = _.uniqWith(validSelections, (a: any, b: any) => a.entityId == b.entityId && a.index == b.index)
+		validSelections = uniqWith(validSelections, (a: any, b: any) => a.entityId == b.entityId && a.index == b.index)
 
-		return _.map(validSelections, sel => {
+		return map(validSelections, sel => {
 			return {
 				key: this.keyFor(vardata.entityMetaById[sel.entityId].name, sel.index),
 				color: sel.color
@@ -228,7 +157,7 @@ export default class ChartData {
 
 	setKeyColor(datakey: DataKey, color: Color|undefined) {
 		const meta = this.lookupKey(datakey)
-		const selectedData = _.cloneDeep(this.chart.props.selectedData)
+		const selectedData = cloneDeep(this.chart.props.selectedData)
 		selectedData.forEach(d => {
 			if (d.entityId == meta.entityId && d.index == meta.index) {
 				d.color = color
@@ -238,19 +167,19 @@ export default class ChartData {
 	}
 
 	@computed get selectedEntities(): string[] {
-		return _(this.selectedKeys).map(key => this.lookupKey(key).entity).uniq().value()
+		return uniq(this.selectedKeys.map(key => this.lookupKey(key).entity))
 	}
 
 	@computed get availableEntities(): string[] {
 		const entitiesForDimensions = this.axisDimensions.map(dim => {
-			return _(this.availableKeys).map(key => this.lookupKey(key)).filter(d => d.dimension.variableId == dim.variableId).map(d => d.entity).value()
+			return this.availableKeys.map(key => this.lookupKey(key)).filter(d => d.dimension.variableId == dim.variableId).map(d => d.entity)
 		})
 
-		return _.intersection(...entitiesForDimensions)
+		return intersection(...entitiesForDimensions)
 	}
 
 	switchEntity(entityId: number) {
-        const selectedData = _.cloneDeep(this.chart.props.selectedData)
+        const selectedData = cloneDeep(this.chart.props.selectedData)
         selectedData.forEach(d => d.entityId = entityId)
         this.chart.props.selectedData = selectedData		
 	}
@@ -260,7 +189,7 @@ export default class ChartData {
 		const {chart, vardata} = this
 		if (!this.isReady) return
 
-		const selection = _.map(keys, datakey => {
+		const selection = map(keys, datakey => {
 			const {entity, index} = this.lookupKey(datakey)
 			return {
 				entityId: vardata.entityMetaByKey[entity].id,
@@ -271,19 +200,19 @@ export default class ChartData {
 		chart.props.selectedData = selection
 	}
 
-	@computed get selectedKeysByKey(): _.Dictionary<DataKey> {
-		return _.keyBy(this.selectedKeys)
+	@computed get selectedKeysByKey(): {[key: string]: DataKey} {
+		return keyBy(this.selectedKeys)
 	}
 
 	// Calculate the available datakeys and their associated info
 	@computed get keyData(): Map<DataKey, DataKeyInfo> {
 		if (!this.isReady) return new Map()
-		const {chart, vardata, isSingleEntity, isSingleVariable, primaryDimensions} = this
+		const {chart, isSingleEntity, isSingleVariable, primaryDimensions} = this
 	
 		const keyData = new Map()
-		_.each(primaryDimensions, (dim, index) => {
+		each(primaryDimensions, (dim, index) => {
 			const {variable} = dim
-			_.each(variable.entitiesUniq, entity => {
+			each(variable.entitiesUniq, entity => {
 				const entityMeta = chart.vardata.entityMetaByKey[entity]
 				const key = this.keyFor(entity, index)
 
@@ -323,12 +252,12 @@ export default class ChartData {
 	}
 
 	@computed.struct get availableKeys(): DataKey[] {
-		return _.sortBy([...this.keyData.keys()])
+		return sortBy([...Array.from(this.keyData.keys())])
 	}
 
 	@computed.struct get remainingKeys(): DataKey[] {
-		const {chart, availableKeys, selectedKeys} = this
-		return _.without(availableKeys, ...selectedKeys)
+		const {availableKeys, selectedKeys} = this
+		return without(availableKeys, ...selectedKeys)
 	}
 
 	@computed get availableKeysByEntity(): Map<string, DataKey[]> {
@@ -354,7 +283,7 @@ export default class ChartData {
 	}
 
 	toggleKey(key: DataKey) {
-		if (_.includes(this.selectedKeys, key)) {
+		if (includes(this.selectedKeys, key)) {
 			this.selectedKeys = this.selectedKeys.filter(k => k != key)
 		} else {
 			this.selectedKeys = this.selectedKeys.concat([key])
@@ -362,20 +291,19 @@ export default class ChartData {
 	}
 
 	@computed get primaryVariable() {
-		const yDimension = _.find(this.chart.dimensions, { property: 'y' })
+		const yDimension = find(this.chart.dimensions, { property: 'y' })
 		return yDimension ? this.vardata.variablesById[yDimension.variableId] : undefined
 	}
 
 	@computed get sources(): SourceWithVariable[] {
-		const {chart, vardata, filledDimensions} = this
-		const {variablesById} = vardata
+		const {filledDimensions} = this
 
 		let sources: SourceWithVariable[] = []
-		_.each(filledDimensions, (dim) => {
+		each(filledDimensions, (dim) => {
 			const {variable} = dim
 			// HACK (Mispy): Ignore the default color source on scatterplots.
 			if (variable.name != "Countries Continents" && variable.name != "Total population (Gapminder)")
-				sources.push(_.extend({}, variable.source, { variable: variable }))
+				sources.push(extend({}, variable.source, { variable: variable }))
 		});
 		return sources
 	}

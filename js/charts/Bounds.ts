@@ -1,5 +1,4 @@
-import * as _ from 'lodash'
-import * as d3 from 'd3'
+import {isNumber, includes, extend} from './Util'
 import Vector2 from './Vector2'
 
 export default class Bounds {
@@ -56,12 +55,16 @@ export default class Bounds {
 
         this.textBoundsCache = this.textBoundsCache || {}
         this.ctx = this.ctx || document.createElement('canvas').getContext('2d')
-        this.baseFontSize = this.baseFontSize || parseFloat(d3.select('svg').style('font-size'))
-        this.baseFontFamily = this.baseFontFamily || d3.select('svg').style('font-family')
 
-        if (_.isNumber(fontSize))
+		if (!this.baseFontSize || !this.baseFontFamily) {
+			const svg = document.querySelector("svg") as SVGSVGElement
+			this.baseFontSize = parseFloat(svg.style.fontSize as string)
+			this.baseFontFamily = svg.style.fontFamily as string
+		}
+
+        if (isNumber(fontSize))
             fontSize = fontSize + 'px'
-        else if (_.includes(fontSize, 'em'))
+        else if (includes(fontSize, 'em'))
             fontSize = this.baseFontSize*parseFloat(fontSize)+'px'
 
         const key = str+'-'+fontSize
@@ -82,8 +85,8 @@ export default class Bounds {
         return bounds
     }
 
-    static debugSVG(boundsArray: Bounds[], containerNode?: HTMLElement) {
-        var container: any = containerNode ? d3.select(containerNode) : d3.select('svg');
+    /*static debugSVG(boundsArray: Bounds[], containerNode?: HTMLElement) {
+        var container: any = containerNode ? select(containerNode) : select('svg');
 
         container.selectAll('rect.boundsDebug').remove()
 
@@ -100,7 +103,7 @@ export default class Bounds {
     }
 
     static debugHTML(boundsArray: Bounds[], containerNode?: HTMLElement) {
-        var container: any = containerNode ? d3.select(containerNode) : d3.select('#chart');
+        var container: any = containerNode ? select(containerNode) : select('#chart');
 
         container.selectAll('div.boundsDebug').remove()
 
@@ -114,7 +117,7 @@ export default class Bounds {
                 .style('height', (b: Bounds) => b.height + 'px')
                 .attr('class', 'boundsDebug')
                 .style('border', '1px solid red');
-    }
+    }*/
 
 	get left(): number { return this.x }
 	get top(): number { return this.y }
@@ -165,7 +168,7 @@ export default class Bounds {
 	}
 
 	extend(props: { x?: number, y?: number, width?: number, height?: number }): Bounds {
-		return Bounds.fromProps(_.extend({}, this, props))
+		return Bounds.fromProps(extend({}, this, props))
 	}
 
 	scale(scale: number): Bounds {

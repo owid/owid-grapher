@@ -5,13 +5,6 @@ import 'font-awesome.css'
 import 'normalize.css'
 import '../css/chart.css'
 
-// JS
-
-// Babel-polyfill emulates a proper ES6 environment in older browsers
-import 'babel-polyfill'
-// Polyfill for the new AJAX function "fetch"
-import 'whatwg-fetch'
-
 // Enable mobx-formatters
 var Mobx = require('mobx')
 var mobxFormatters = require('mobx-formatters').default

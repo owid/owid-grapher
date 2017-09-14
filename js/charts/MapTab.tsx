@@ -1,13 +1,11 @@
-import * as _ from 'lodash'
 import * as React from 'react'
-import * as d3 from 'd3'
 import Bounds from './Bounds'
 import {observable, computed, action} from 'mobx'
 import {observer} from 'mobx-react'
-import ChoroplethMap, {ChoroplethData, ChoroplethDatum, GeoFeature, MapBracket, MapEntity} from './ChoroplethMap'
+import ChoroplethMap, {ChoroplethData, GeoFeature, MapBracket, MapEntity} from './ChoroplethMap'
 import Timeline from './Timeline'
 import MapLegend from './MapLegend'
-import {getRelativeMouse, preInstantiate, entityNameForMap, formatValue} from './Util'
+import {getRelativeMouse, preInstantiate, formatValue} from './Util'
 import Header from './Header'
 import SourcesFooter from './SourcesFooter'
 import ChartConfig from './ChartConfig'
@@ -17,6 +15,8 @@ import MapProjection from './MapProjection'
 import ChartView from './ChartView'
 import Tooltip from './Tooltip'
 import NoData from './NoData'
+import {select} from 'd3-selection'
+import {easeCubic} from 'd3-ease'
 
 interface TimelineMapProps {
     bounds: Bounds,
@@ -70,11 +70,6 @@ class TimelineMap extends React.Component<TimelineMapProps> {
         chart.data.selectedKeys = chart.data.availableKeysByEntity.get(entity)||[]
     }
 
-    componentDidMount() {
-        // Nice little intro animation
-        //d3.select(this.base).attr('opacity', 0).transition().attr('opacity', 1)
-    }
-
     componentWillUnmount() {
         this.onMapMouseLeave()
         this.onLegendMouseLeave()
@@ -93,7 +88,7 @@ class TimelineMap extends React.Component<TimelineMapProps> {
         this.focusBracket = null
     }
 
-    @computed get timeline() {
+    @computed get timeline(): Timeline|null {
         if (this.props.years.length <= 1 || this.context.chartView.isExport) return null
 
         const {years, inputYear} = this.props
@@ -101,18 +96,29 @@ class TimelineMap extends React.Component<TimelineMapProps> {
         return preInstantiate(<Timeline bounds={this.props.bounds.fromBottom(35)} onTargetChange={this.onTargetChange} years={years} startYear={inputYear} endYear={inputYear} singleYearMode={true}/>)
     }
 
-    @computed get timelineHeight() {
+    @computed get timelineHeight(): number {
         return this.timeline ? this.timeline.height : 10
     }
 
-    @computed get mapLegend() {
+    @computed get mapLegend(): MapLegend {
         const {legendData, legendTitle} = this.props
         const {focusBracket, focusEntity, timelineHeight} = this
         return preInstantiate(<MapLegend bounds={this.props.bounds.padBottom(timelineHeight+5)} legendData={legendData} title={legendTitle} focusBracket={focusBracket} focusEntity={focusEntity} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave}/>)
     }
 
+    componentDidMount() {
+        select(this.base).selectAll("path")
+            .attr("data-fill", function() { return (this as SVGPathElement).getAttribute("fill")})
+            .attr("fill", this.context.chart.map.noDataColor)
+            .transition()
+                .duration(500)
+                .ease(easeCubic)
+                .attr("fill", function() { return (this as SVGPathElement).getAttribute("data-fill") })
+                .attr("data-fill", function() { return (this as SVGPathElement).getAttribute("fill") })
+    }
+
     render() {
-        const { choroplethData, projection, defaultFill, legendTitle, legendData } = this.props
+        const { choroplethData, projection, defaultFill } = this.props
         let { bounds } = this.props
         const {focusBracket, focusEntity, timeline, timelineHeight, mapLegend, tooltip} = this
         return <g className="mapTab">

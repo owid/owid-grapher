@@ -8,11 +8,9 @@
  * @created 2017-02-11
  */
 
-import * as d3 from 'd3'
 import * as React from 'react'
-import {observable, computed, action} from 'mobx'
+import {computed, action} from 'mobx'
 import {observer} from 'mobx-react'
-import Text from './Text'
 import ScaleType from './ScaleType'
 
 interface ScaleSelectorProps {

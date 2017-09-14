@@ -1,8 +1,9 @@
+import {rgb} from 'd3-color'
+import {interpolate} from 'd3-interpolate'
+import {floor, ceil, round, toArray, keys, isEmpty, clone, reverse, includes, extend, each, find} from './Util'
 import {computed, autorun, runInAction, reaction, toJS} from 'mobx'
 import ChartConfig from './ChartConfig'
 import {defaultTo} from './Util'
-import * as _ from 'lodash'
-import * as d3 from 'd3'
 import ColorSchemes from './ColorSchemes'
 import Color from './Color'
 import {ChoroplethData} from './ChoroplethMap'
@@ -134,13 +135,13 @@ export default class MapData {
 		var rangeValue = variable.maxValue - variable.minValue,
 			rangeMagnitude = Math.floor(Math.log(rangeValue) / Math.log(10));
 
-		var minValue = _.floor(variable.minValue, -(rangeMagnitude-1)),
-			maxValue = _.ceil(variable.maxValue, -(rangeMagnitude-1));
+		var minValue = floor(variable.minValue, -(rangeMagnitude-1)),
+			maxValue = ceil(variable.maxValue, -(rangeMagnitude-1));
 
 		var bucketMaximums = [];
 		for (var i = 1; i <= numBuckets; i++) {
 			var value = minValue + (i/numBuckets)*(maxValue-minValue);
-			bucketMaximums.push(_.round(value, -(rangeMagnitude-1)));
+			bucketMaximums.push(round(value, -(rangeMagnitude-1)));
 		}
 
 		return bucketMaximums;
@@ -150,12 +151,12 @@ export default class MapData {
         if (this.map.isAutoBuckets) return this.autoBucketMaximums
 
         const {map, variable} = this
-        const {minBucketValue, numBuckets, colorSchemeValues} = map
+        const {numBuckets, colorSchemeValues} = map
 
 		if (!variable.hasNumericValues || numBuckets <= 0)
 			return [];
 
-        let values = _.toArray(colorSchemeValues)
+        let values = toArray(colorSchemeValues)
 		while (values.length < numBuckets)
 			values.push(0);
 		while (values.length > numBuckets)
@@ -165,7 +166,7 @@ export default class MapData {
 
     @computed get colorScheme() {
         const {baseColorScheme} = this.map
-        return defaultTo(ColorSchemes[baseColorScheme], ColorSchemes[_.keys(ColorSchemes)[0]])
+        return defaultTo(ColorSchemes[baseColorScheme], ColorSchemes[keys(ColorSchemes)[0]])
     }
 
 	@computed get baseColors() {
@@ -174,19 +175,19 @@ export default class MapData {
 		const numColors = bucketMaximums.length + variable.categoricalValues.length
         
         let colors: Color[]
-		if (!_.isEmpty(colorScheme.colors[numColors])) {
-			colors = _.clone(colorScheme.colors[numColors]);
-		} else if (numColors == 1 && !_.isEmpty(colorScheme.colors[2])) {
+		if (!isEmpty(colorScheme.colors[numColors])) {
+			colors = clone(colorScheme.colors[numColors]);
+		} else if (numColors == 1 && !isEmpty(colorScheme.colors[2])) {
     		// Handle the case of a single color (just for completeness' sake)
 			colors = [colorScheme.colors[2][0]];
         } else {
             // If there's no preset color colorScheme for this many colors, improvise a new one
-            colors = _.clone(colorScheme.colors[colorScheme.colors.length-1]);
+            colors = clone(colorScheme.colors[colorScheme.colors.length-1]);
             while (colors.length < numColors) {
                 for (var i = 1; i < colors.length; i++) {
-                    var startColor = d3.rgb(colors[i-1]);
-                    var endColor = d3.rgb(colors[i]);
-                    var newColor = d3.interpolate(startColor, endColor)(0.5);
+                    var startColor = rgb(colors[i-1]);
+                    var endColor = rgb(colors[i]);
+                    var newColor = interpolate(startColor, endColor)(0.5);
                     colors.splice(i, 0, newColor);
                     i += 1;
 
@@ -196,7 +197,7 @@ export default class MapData {
         }
 
         if (isColorSchemeInverted) {
-            _.reverse(colors)
+            reverse(colors)
         }
 
 		return colors;
@@ -205,7 +206,7 @@ export default class MapData {
     // Add default 'No data' category
     @computed get categoricalValues() {
         const {categoricalValues} = this.variable
-        if (!_.includes(categoricalValues, "No data"))
+        if (!includes(categoricalValues, "No data"))
             return ["No data"].concat(categoricalValues)
         else
             return categoricalValues
@@ -213,7 +214,7 @@ export default class MapData {
 
     // Ensure there's always a custom color for "No data"
     @computed get customCategoryColors(): {[key: string]: Color} {
-		return _.extend({}, this.map.customCategoryColors, { 'No data': this.map.noDataColor });
+		return extend({}, this.map.customCategoryColors, { 'No data': this.map.noDataColor });
     }
 
     @computed get legendData() {
@@ -224,11 +225,11 @@ export default class MapData {
 		var legendData = [];
 
         const {map, variable, bucketMaximums, baseColors, categoricalValues, customCategoryColors} = this
-        const {isAutoBuckets, customBucketLabels, customNumericColors, customCategoryLabels, customHiddenCategories, minBucketValue, noDataColor} = map
+        const {customBucketLabels, customNumericColors, customCategoryLabels, customHiddenCategories, minBucketValue} = map
 
         /*var unitsString = chart.model.get("units"),
-            units = !_.isEmpty(unitsString) ? JSON.parse(unitsString) : {},
-            yUnit = _.find(units, { property: 'y' });*/
+            units = !isEmpty(unitsString) ? JSON.parse(unitsString) : {},
+            yUnit = find(units, { property: 'y' });*/
 
 		// Numeric 'buckets' of color
         var minValue = minBucketValue;
@@ -243,11 +244,10 @@ export default class MapData {
 
 		// Categorical values, each assigned a color
         for (var i = 0; i < categoricalValues.length; i++) {
-            var value = categoricalValues[i], boundingOffset = _.isEmpty(bucketMaximums) ? 0 : bucketMaximums.length-1,
+            var value = categoricalValues[i], boundingOffset = isEmpty(bucketMaximums) ? 0 : bucketMaximums.length-1,
                 baseColor = baseColors[i+boundingOffset],
                 color = customCategoryColors[value] || baseColor,
-                label = customCategoryLabels[value] || "",
-                text = label || value;
+                label = customCategoryLabels[value] || "";
 
             legendData.push(new CategoricalBin({ index: i, value: value, color: color, label: label, isHidden: customHiddenCategories[value] }))
         }
@@ -288,10 +288,10 @@ export default class MapData {
         const {valuesByEntity, legendData} = this
         let choroplethData: ChoroplethData = {}
 
-        _.each(valuesByEntity, (datum, entity) => {
-            const bin = _.find(legendData, bin => bin.contains(datum))
+        each(valuesByEntity, (datum, entity) => {
+            const bin = find(legendData, bin => bin.contains(datum))
             if (!bin) return
-            choroplethData[entity] = _.extend({}, datum, {                
+            choroplethData[entity] = extend({}, datum, {                
                 color: bin.color,
                 highlightFillColor: bin.color
             })

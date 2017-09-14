@@ -1,6 +1,5 @@
 // Because react-modal doesn't work so well with Preact.
 
-import * as _ from 'lodash'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 

@@ -1,14 +1,9 @@
-import * as _ from 'lodash'
-import * as d3 from 'd3'
 import * as React from 'react'
-import {observable, computed, asFlat, action, spy} from 'mobx'
+import {computed} from 'mobx'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
-import {bind} from 'decko'
 import ChartConfig from './ChartConfig'
-import Text from './Text'
-import LabelledSlopes, {SlopeChartSeries} from './LabelledSlopes'
-import {DimensionWithData} from './ChartData'
+import LabelledSlopes from './LabelledSlopes'
 import NoData from './NoData'
 
 @observer

@@ -1,11 +1,11 @@
 import {computed} from 'mobx'
-import * as _ from 'lodash'
+import {some, isEmpty, find, sortBy, max, values} from './Util'
 import ChartConfig from './ChartConfig'
 import Color from './Color'
 import {DiscreteBarDatum} from './DiscreteBarChart'
-import {DimensionWithData} from './ChartData'
 import ColorBinder from './ColorBinder'
 import IChartTransform from './IChartTransform'
+import DimensionWithData from './DimensionWithData'
 
 // Responsible for translating chart configuration into the form
 // of a discrete bar chart
@@ -16,23 +16,25 @@ export default class DiscreteBarTransform implements IChartTransform {
         this.chart = chart
     }
 
-    @computed get isValidConfig() {
-        return _.some(this.chart.dimensions, d => d.property == 'y')
+    @computed get isValidConfig(): boolean {
+        return some(this.chart.dimensions, d => d.property == 'y')
     }
 
     @computed get failMessage(): string|undefined {
         const {filledDimensions} = this.chart.data
-        if (!_.some(filledDimensions, d => d.property == 'y'))
+        if (!some(filledDimensions, d => d.property == 'y'))
             return "Missing variable"
-        else if (_.isEmpty(this.data))
+        else if (isEmpty(this.data))
             return "No matching data"
+        else
+            return undefined
     }
 
-	@computed get baseColorScheme() {
+	@computed get baseColorScheme(): Color[] {
 		return ["#F2585B"]
 	}
 
-    @computed get colors() {
+    @computed get colors(): ColorBinder {
         const _this = this
         return new ColorBinder({
             get chart() { return _this.chart },
@@ -41,7 +43,7 @@ export default class DiscreteBarTransform implements IChartTransform {
     }
 
     @computed get primaryDimension(): DimensionWithData|undefined {
-        return _.find(this.chart.data.filledDimensions, d => d.property == "y")
+        return find(this.chart.data.filledDimensions, d => d.property == "y")
     }
 
     @computed get targetYear(): number {
@@ -50,9 +52,9 @@ export default class DiscreteBarTransform implements IChartTransform {
 
         const {variable} = this.primaryDimension
         if (maxYear != null)
-            return _.sortBy(variable.yearsUniq, year => Math.abs(year-maxYear))[0];
+            return sortBy(variable.yearsUniq, year => Math.abs(year-maxYear))[0];
         else
-            return _.max(variable.yearsUniq) as number;
+            return max(variable.yearsUniq) as number;
 
     }
 
@@ -68,16 +70,14 @@ export default class DiscreteBarTransform implements IChartTransform {
     @computed get data(): DiscreteBarDatum[] {
 		const {chart, targetYear, colors} = this
         const {filledDimensions, selectedKeysByKey} = chart.data
-        const data: DiscreteBarDatum[] = []
         const dataByKey: {[key: string]: DiscreteBarDatum} = {}
 
-		_.each(filledDimensions, (dimension, dimIndex) => {
-            const {variable, tolerance} = dimension
+		filledDimensions.forEach((dimension, dimIndex) => {
+            const {tolerance} = dimension
 
-			for (var i = 0; i < variable.years.length; i++) {
-				const year = variable.years[i]
-				const value = parseFloat(variable.values[i] as string)
-				const entity = variable.entities[i]
+			for (var i = 0; i < dimension.years.length; i++) {
+				const year = dimension.years[i]
+				const entity = dimension.entities[i]
 				const datakey = chart.data.keyFor(entity, dimIndex)
 
 				if (year < targetYear-tolerance || year > targetYear+tolerance || !selectedKeysByKey[datakey]) 
@@ -89,7 +89,7 @@ export default class DiscreteBarTransform implements IChartTransform {
                     continue
 
                 const datum = {
-                    value: +variable.values[i],
+                    value: +dimension.values[i],
                     year: year,
                     label: chart.data.formatKey(datakey),
                     color: colors.getColorForKey(datakey)
@@ -99,6 +99,6 @@ export default class DiscreteBarTransform implements IChartTransform {
 			}
 		});
 
-        return _.sortBy(_.values(dataByKey), d => -d.value)
+        return sortBy(values(dataByKey), d => -d.value)
     }
 }

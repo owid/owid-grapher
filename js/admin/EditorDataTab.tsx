@@ -1,16 +1,11 @@
-import * as _ from 'lodash'
 import * as React from 'react'
-import * as ReactDOM from 'react-dom'
-import * as d3 from 'd3'
-import {computed, action, observable, when} from 'mobx'
+import {clone, map, debounce} from '../charts/Util'
+import {computed, action, observable} from 'mobx'
 import {observer} from 'mobx-react'
-import ChartConfig, {DimensionSlot, ChartDimension} from '../charts/ChartConfig'
-import {DimensionWithData} from '../charts/ChartData'
-import ChartType from '../charts/ChartType'
+import ChartConfig from '../charts/ChartConfig'
 import DataKey from '../charts/DataKey'
 import Color from '../charts/Color'
-import {defaultTo} from '../charts/Util'
-import {SelectField, Toggle, NumberField} from './Forms'
+import {NumberField} from './Forms'
 import Colorpicker from './Colorpicker'
 import ChartEditor from './ChartEditor'
 
@@ -41,7 +36,7 @@ class DataKeyItem extends React.Component<DataKeyItemProps> {
 
 		return <li className="country-label clickable" style={{ backgroundColor: color||"white" }}{...rest}>
 			<i className="fa fa-remove" onClick={this.onRemove}/>
-			<i className="fa fa-paint-brush" onClick={e => this.isChoosingColor = true} style={{position: 'relative'}}>
+			<i className="fa fa-paint-brush" onClick={_ => this.isChoosingColor = true} style={{position: 'relative'}}>
 				{isChoosingColor && <Colorpicker color={color} onColor={this.onColor} onClose={() => this.isChoosingColor = false}/>}
 			</i>
 			{meta ? meta.fullLabel : datakey}
@@ -60,17 +55,19 @@ class KeysSection extends React.Component<{ chart: ChartConfig }> {
 	@action.bound onStartDrag(key: DataKey) {
 		this.dragKey = key
 
-		d3.select(window).on('mouseup.keydrag', action(() => {
+		const onDrag = action(() => {
 			this.dragKey = undefined
-			d3.select(window).on('mouseup.keydrag', null)
-		}))
+			window.removeEventListener('mouseup', onDrag)
+		})
+
+		window.addEventListener('mouseup', onDrag)
 	}
 
 	@action.bound onMouseEnter(targetKey: DataKey) {
 		if (!this.dragKey || targetKey == this.dragKey)
 			return
 
-		const selectedKeys = _.clone(this.props.chart.data.selectedKeys)
+		const selectedKeys = clone(this.props.chart.data.selectedKeys)
 		const dragIndex = selectedKeys.indexOf(this.dragKey)
 		const targetIndex = selectedKeys.indexOf(targetKey)
 		selectedKeys.splice(dragIndex, 1)
@@ -87,13 +84,13 @@ class KeysSection extends React.Component<{ chart: ChartConfig }> {
 
 			<select className="form-control countries-select" onChange={this.onAddKey} value="Select data">
 				<option value="Select data" selected={true} disabled={true}>Select data</option>
-				{_.map(remainingKeys, key =>
+				{map(remainingKeys, key =>
 					<option value={key}>{chart.data.lookupKey(key).fullLabel}</option>
 				)}
 			</select>
 			<ul className="selected-countries-box no-bullets">
-				{_.map(selectedKeys, datakey =>
-					<DataKeyItem chart={chart} datakey={datakey} onMouseDown={ev => this.onStartDrag(datakey)} onMouseEnter={ev => this.onMouseEnter(datakey)}/>
+				{map(selectedKeys, datakey =>
+					<DataKeyItem chart={chart} datakey={datakey} onMouseDown={_ => this.onStartDrag(datakey)} onMouseEnter={_ => this.onMouseEnter(datakey)}/>
 				)}
 			</ul>
 		</section>
@@ -137,11 +134,11 @@ class TimeSection extends React.Component<{ editor: ChartEditor }> {
 
 	render() {
 		const {features} = this.props.editor
-		const {chart, isDynamicTime} = this
+		const {chart} = this
 
 		return <section className="time-section">
-			{features.timeDomain && <NumberField label="Min year" value={chart.props.minTime} onValue={_.debounce(this.onMinTime)}/>}
-			<NumberField label={features.timeDomain ? "Max year" : "Target year"} value={chart.props.maxTime} onValue={_.debounce(this.onMaxTime)}/>
+			{features.timeDomain && <NumberField label="Min year" value={chart.props.minTime} onValue={debounce(this.onMinTime)}/>}
+			<NumberField label={features.timeDomain ? "Max year" : "Target year"} value={chart.props.maxTime} onValue={debounce(this.onMaxTime)}/>
 		</section>
 	}
 }
@@ -156,15 +153,15 @@ export default class EditorDataTab extends React.Component<{ editor: ChartEditor
 			<section className="add-country-control-wrapper">
 				<h4>Can user add/change data?</h4>
 				<label>
-					<input type="radio" name="add-country-mode" value="add-country" checked={chart.addCountryMode == "add-country"} onClick={e => chart.props.addCountryMode = "add-country"}/>
+					<input type="radio" name="add-country-mode" value="add-country" checked={chart.addCountryMode == "add-country"} onClick={_ => chart.props.addCountryMode = "add-country"}/>
 					User can add and remove data
 				</label>
 				<label>
-					<input type="radio" name="add-country-mode" value="change-country" checked={chart.addCountryMode == "change-country"} onClick={e => chart.props.addCountryMode = "change-country"}/>
+					<input type="radio" name="add-country-mode" value="change-country" checked={chart.addCountryMode == "change-country"} onClick={_ => chart.props.addCountryMode = "change-country"}/>
 					User can change entity
 				</label>
 				<label>
-					<input type="radio" name="add-country-mode" value="disabled" checked={chart.addCountryMode == "disabled"} onClick={e => chart.props.addCountryMode = "disabled"}/>
+					<input type="radio" name="add-country-mode" value="disabled" checked={chart.addCountryMode == "disabled"} onClick={_ => chart.props.addCountryMode = "disabled"}/>
 					User cannot change/add data
 				</label>
 			</section>

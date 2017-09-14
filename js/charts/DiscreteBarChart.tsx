@@ -6,22 +6,16 @@
  */
 
 import * as React from 'react'
-import * as _ from 'lodash'
-import * as d3 from 'd3'
-import {computed, action, observable, autorun, runInAction, IReactionDisposer} from 'mobx'
+import {select} from 'd3-selection'
+import {sortBy, some, min, max} from './Util'
+import {computed, autorun, runInAction, IReactionDisposer} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartConfig from './ChartConfig'
 import Bounds from './Bounds'
-import LineType from './LineType'
-import {defaultTo} from './Util'
-import AxisBox from './AxisBox'
-import StandardAxisBoxView from './StandardAxisBoxView'
-import Lines from './Lines'
 import AxisScale from './AxisScale'
 import Color from './Color'
 import HorizontalAxis, {HorizontalAxisView} from './HorizontalAxis'
 import {AxisGridLines} from './AxisBox'
-import Vector2 from './Vector2'
 import NoData from './NoData'
 
 export interface DiscreteBarDatum {
@@ -52,7 +46,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
 
     // Account for the width of the legend
     @computed get legendWidth() {
-        const longestLabel = _.sortBy(this.data, d => -d.label.length)[0].label
+        const longestLabel = sortBy(this.data, d => -d.label.length)[0].label
         return Bounds.forText(longestLabel, { fontSize: this.legendFontSize+'em' }).width
     }
 
@@ -62,19 +56,19 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
     }
 
     @computed get maxValueWidth(): number {
-        const maxValue = _.sortBy(this.data, d => -d.value.toString().length)[0]
+        const maxValue = sortBy(this.data, d => -d.value.toString().length)[0]
         return Bounds.forText(this.barValueFormat(maxValue), { fontSize: this.valueFontSize+'em' }).width
     }
 
     @computed get hasNegative() {
-        return _.some(this.data, d => d.value < 0)
+        return some(this.data, d => d.value < 0)
     }
 
     // Now we can work out the main x axis scale
     @computed get xDomainDefault(): [number, number] {
-        const allValues = _.map(this.data, d => d.value)
-        const minX = Math.min(0, _.min(allValues) as number)
-        const maxX = _.max(allValues) as number
+        const allValues = this.data.map(d => d.value)
+        const minX = Math.min(0, min(allValues) as number)
+        const maxX = max(allValues) as number
         return [minX, maxX]
     }
 
@@ -109,7 +103,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
     
     @computed get barPlacements() {
         const {data, xScale} = this
-        return _.map(data, (d, i) => {
+        return data.map(d => {
             const isNegative = d.value < 0
             const barX = isNegative ? xScale.place(d.value) : xScale.place(0)
             const barWidth = isNegative ? xScale.place(0)-barX : xScale.place(d.value)-barX                
@@ -126,8 +120,8 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
 
             const widths = this.barPlacements.map(b => b.width)
             runInAction(() => {
-                const bars = d3.select(this.base).selectAll("g.bar > rect")
-                bars.attr('width', 0).transition().attr('width', (d, i) => widths[i])
+                const bars = select(this.base).selectAll("g.bar > rect")
+                bars.attr('width', 0).transition().attr('width', (_, i) => widths[i])
             })
         })
     }
@@ -144,7 +138,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
         if (this.failMessage)
             return <NoData bounds={this.bounds} message={this.failMessage}/>
 
-        const {chart, data, bounds, legendWidth, xAxis, xScale, innerBounds, barHeight, barSpacing, valueFontSize, barValueFormat} = this
+        const {data, bounds, legendWidth, xAxis, xScale, innerBounds, barHeight, barSpacing, valueFontSize, barValueFormat} = this
 
         let yOffset = innerBounds.top+barHeight/2
 
@@ -152,7 +146,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
             <rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height} opacity={0} fill="rgba(255,255,255,0)"/>
             <HorizontalAxisView bounds={bounds} axis={xAxis}/>
             <AxisGridLines orient="bottom" scale={xScale} bounds={innerBounds}/>
-            {_.map(data, (d, i) => {
+            {data.map(d => {
                 const isNegative = d.value < 0
                 const barX = isNegative ? xScale.place(d.value) : xScale.place(0)
                 const barWidth = isNegative ? xScale.place(0)-barX : xScale.place(d.value)-barX                

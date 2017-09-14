@@ -155,8 +155,8 @@ class Chart(models.Model):
         Cloudflare or the browser.
         """
         variable_cache_tag = str(self.updated_at) + ' + ' + Chart.owid_commit()
-        config = json.loads(self.config)
-        dims = config['chart-dimensions']
+        config = self.get_config()
+        dims = config['dimensions']
         varids = [int(d['variableId']) for d in dims if 'variableId' in d]
         vartimestamps = Variable.objects.filter(pk__in=varids)
         updated_at_list = []
@@ -184,9 +184,9 @@ class Chart(models.Model):
         for each in list(Logo.objects.filter(name__in=['owd'])):
             logos.append(each.svg)
         config['logosSVG'] = logos
-        config['chart-dimensions'] = list(self.chartdimension_set.values())
+        config['dimensions'] = list(self.chartdimension_set.values())
         # XXX
-        for dim in config['chart-dimensions']:
+        for dim in config['dimensions']:
             dim['chartId'] = dim.pop('chartId_id')
             dim['variableId'] = dim.pop('variableId_id')
         return config
@@ -288,6 +288,16 @@ class Variable(models.Model):
     name = models.CharField(max_length=255)
     unit = models.CharField(max_length=255)
     short_unit = models.CharField(max_length=255, null=True)
+    
+    # Separate "display" properties to allow overriding metadata for
+    # display on charts while also preserving the original source metadata
+    displayName = models.CharField(max_length=255, null=True)
+    displayUnit = models.CharField(max_length=255, null=True)
+    displayShortUnit = models.CharField(max_length=255, null=True)
+    displayUnitConversionFactor = models.FloatField(null=True)
+    displayIsProjection = models.NullBooleanField(null=True)
+    displayTolerance = models.IntegerField(null=True)
+
     description = models.TextField(blank=True, null=True)
     fk_dst_id = models.ForeignKey(Dataset, on_delete=models.CASCADE, db_column='fk_dst_id')
     sourceId = models.ForeignKey(Source, on_delete=models.DO_NOTHING, db_column='sourceId')
@@ -307,16 +317,20 @@ class ChartDimension(models.Model):
         db_table = "chart_dimensions"
 
     chartId = models.ForeignKey(Chart, on_delete=models.CASCADE, db_column='chartId')
-    order = models.IntegerField()
     variableId = models.ForeignKey(Variable, models.DO_NOTHING, db_column='variableId')
+    order = models.IntegerField()
     property = models.CharField(max_length=255)
-    unit = models.CharField(max_length=255)
-    displayName = models.CharField(max_length=255, db_column='displayName')
-    targetYear = models.IntegerField(db_column='targetYear', blank=True, null=True)
-    isProjection = models.BooleanField(default=False)
-    tolerance = models.IntegerField(blank=True, default=5)
-    color = models.CharField(max_length=255)
 
+    # These fields override the variable metadata on a per-chart basis
+    unit = models.CharField(max_length=255, null=True)
+    shortUnit = models.CharField(max_length=255, null=True)
+    displayName = models.CharField(max_length=255, db_column='displayName', null=True)
+    isProjection = models.NullBooleanField(null=True)
+    tolerance = models.IntegerField(null=True)
+    conversionFactor = models.IntegerField(null=True)
+
+    # XXX todo move this elsewhere
+    targetYear = models.IntegerField(db_column='targetYear', blank=True, null=True)
 
 class ChartSlugRedirect(models.Model):
     class Meta:

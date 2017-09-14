@@ -1,9 +1,9 @@
-import * as _ from 'lodash'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import * as d3 from 'd3'
-import {observable, computed, autorun, action, reaction, when} from 'mobx'
+import {observable, computed, action} from 'mobx'
 import {observer} from 'mobx-react'
+import {select, selectAll} from 'd3-selection'
+import 'd3-transition'
 
 import ChartConfig, {ChartConfigProps} from './ChartConfig'
 import ControlsFooter from './ControlsFooter'
@@ -12,15 +12,11 @@ import DataTab from './DataTab'
 import MapTab from './MapTab'
 import SourcesTab from './SourcesTab'
 import DownloadTab from './DownloadTab'
-import VariableData from './VariableData'
-import ChartData from './ChartData'
-import Bounds from './Bounds'
 import {preInstantiate, VNode} from './Util'
-import ChartTabOption from './ChartTabOption'
+import Bounds from './Bounds'
 import DataSelector from './DataSelector'
 
 declare const App: any // XXX
-declare const Global: any // XXX
 declare const window: any
 
 App.IDEAL_WIDTH = 1020
@@ -36,7 +32,7 @@ interface ChartViewProps {
 @observer
 export default class ChartView extends React.Component<ChartViewProps> {
     static bootstrap({ jsonConfig, containerNode, isEditor }: { jsonConfig: ChartConfigProps, containerNode: HTMLElement, isEditor: boolean }) {
-        d3.select(containerNode).classed('chart-container', true)
+        select(containerNode).classed('chart-container', true)
         let chartView
         const chart = new ChartConfig(jsonConfig)
 
@@ -56,10 +52,10 @@ export default class ChartView extends React.Component<ChartViewProps> {
     @computed get isExport() { return !!this.props.isExport }
     @computed get isEditor() { return !!this.props.isEditor }
     @computed get isEmbed() { return window.self != window.top || this.isEditor }
-    @computed get isMobile() { return d3.select('html').classed('touchevents') }
+    @computed get isMobile() { return select('html').classed('touchevents') }
 
     @computed get containerBounds() {
-        const {isEmbed, isExport, isEditor} = this
+        const {isEmbed, isExport} = this
 
         let bounds = this.props.bounds
 
@@ -144,7 +140,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
             this.isLandscape && "landscape"
         ]
 
-        return _.filter(classNames).join(' ')
+        return classNames.filter(n => !!n).join(' ')
     }
 
     addPopup(vnode: VNode) {
@@ -166,15 +162,17 @@ export default class ChartView extends React.Component<ChartViewProps> {
         }
     }
 
-    renderPrimaryTab(bounds: Bounds) {
+    renderPrimaryTab(bounds: Bounds): JSX.Element|undefined {
         const {chart} = this
         if (chart.primaryTab == 'chart')
             return <ChartTab bounds={bounds} chartView={this} chart={this.chart}/>
         else if (chart.primaryTab == 'map')
             return <MapTab bounds={bounds} chart={this.chart}/>
+        else
+            return undefined
     }
 
-    renderOverlayTab(bounds: Bounds) {
+    renderOverlayTab(bounds: Bounds): JSX.Element|undefined {
         const {chart} = this
         if (chart.overlayTab == 'sources')
             return <SourcesTab bounds={bounds} chart={chart}/>
@@ -183,7 +181,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
         else if (chart.overlayTab == 'download')
             return <DownloadTab bounds={bounds} chart={chart}/>
         else
-            return null
+            return undefined
     }
 
     renderSVG() {
@@ -202,7 +200,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
     }
 
     renderReady() {
-        const {svgRenderBounds, controlsFooter, scale, isExport, chart} = this
+        const {svgRenderBounds, controlsFooter, scale, chart} = this
 
         return [
             this.renderSVG(),
@@ -241,7 +239,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
     hasFadedIn: boolean = false
     componentDidUpdate() {
         if (this.chart.data.isReady && !this.hasFadedIn) {
-            d3.selectAll("#chart > *").style('opacity', 0).transition().style('opacity', null)
+            selectAll("#chart > *").style('opacity', 0).transition().style('opacity', null)
             this.hasFadedIn = true
         }
     }

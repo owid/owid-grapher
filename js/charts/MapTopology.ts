@@ -1,4 +1,4 @@
-export default {
+const topology: any = {
     "type": "Topology",
     "objects": {
         "world": {
@@ -11459,3 +11459,5 @@ export default {
         "translate": [-180, -85.609038]
     }
 }
+
+export default topology

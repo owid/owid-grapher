@@ -1,12 +1,10 @@
+import {uniqBy} from './Util'
 import * as React from 'react'
-import * as _ from 'lodash'
 import {observer} from 'mobx-react'
 import {computed, action, observable} from 'mobx'
 import ChartConfig from './ChartConfig'
-import Bounds from './Bounds'
 import {DataKeyInfo} from './ChartData'
 const styles = require("./DataSelector.css")
-import * as d3 from 'd3'
 import ChartView from './ChartView'
 import FuzzySearch from './FuzzySearch'
 
@@ -76,7 +74,7 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
                         {searchResults.map(d => {
                             return <li>
                                 <label className="clickable">
-                                    <input type="checkbox" checked={false} onChange={e => chart.data.toggleKey(d.key)}/> {d.label}
+                                    <input type="checkbox" checked={false} onChange={() => chart.data.toggleKey(d.key)}/> {d.label}
                                 </label>
                             </li>
                         })}
@@ -87,7 +85,7 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
                         {selectedData.map(d => {
                             return <li>
                                 <label className="clickable">
-                                    <input type="checkbox" checked={true} onChange={e => chart.data.toggleKey(d.key)}/> {d.label}
+                                    <input type="checkbox" checked={true} onChange={() => chart.data.toggleKey(d.key)}/> {d.label}
                                 </label>
                             </li>
                         })}
@@ -112,7 +110,7 @@ export class DataSelectorSingle extends React.Component<{ chart: ChartConfig, ch
                 label: meta.entity
             })
         })
-        return _.uniqBy(availableItems, d => d.label)
+        return uniqBy(availableItems, d => d.label)
     }
 
     @computed get fuzzy(): FuzzySearch<{ id: number, label: string }> {
@@ -152,14 +150,13 @@ export class DataSelectorSingle extends React.Component<{ chart: ChartConfig, ch
     }
 
     render() {
-        const {chart} = this.props
         const {searchResults, searchInput} = this
 
         return <div className={styles.DataSelectorSingle} onClick={e => e.stopPropagation()}>
             <input type="search" placeholder="Search..." value={searchInput} onInput={e => this.searchInput = e.currentTarget.value} onKeyDown={this.onSearchKeyDown} ref={e => this.searchField = (e as HTMLInputElement)}/>
             <ul>
                 {searchResults.map(d => {
-                    return <li className="clickable" onClick={e => this.onSelect(d.id)}>
+                    return <li className="clickable" onClick={() => this.onSelect(d.id)}>
                         {d.label}
                     </li>
                 })}

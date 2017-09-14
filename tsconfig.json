@@ -1,19 +1,19 @@
 {
     "compilerOptions": {
+        "strict": true,
+        "noImplicitReturns": true,
         "allowJs": false,
-        "alwaysStrict": true,
-        "noImplicitAny": true,
         "outDir": "./tmp/dist/",
         "sourceMap": true,
-        "module": "commonjs",
-        "target": "es6",
+        "module": "es6",
+        "moduleResolution": "node",
         "jsx": "react",
+        "target": "es5",
         "experimentalDecorators": true,
-        "strictNullChecks": true
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "forceConsistentCasingInFileNames": true,
+        "lib": ["dom", "es6"]
     },
-    "exclude": ["node_modules"],
-    "awesomeTypescriptLoaderOptions": {
-        "useBabel": true,
-        "useCache": true
-    }
+    "exclude": ["node_modules"]
 }

@@ -210,27 +210,45 @@ def savechart(chart: Chart, data: Dict, user: User):
     data.pop("logosSVG", None)
 
     dims = []
-    i = 0
 
     chart.config = json.dumps(data)
     chart.last_edited_at = timezone.now()
     chart.last_edited_by = user
     chart.save()
 
-    for dim in data["chart-dimensions"]:
+    for i, dim in enumerate(data["dimensions"]):
+        variable = Variable.objects.get(id=dim["variableId"])
+
         newdim = ChartDimension()
-        newdim.order = i
         newdim.chartId = chart
-        newdim.color = dim.get('color', "")
-        newdim.tolerance = dim.get('tolerance', 5)
-        newdim.targetYear = dim.get('targetYear', None)
-        newdim.displayName = dim.get('displayName', "")
-        newdim.isProjection = dim.get('isProjection', False)
-        newdim.unit = dim.get('unit', "")
+        newdim.variableId = variable
         newdim.property = dim.get('property', None)
-        newdim.variableId = Variable.objects.get(pk=int(dim.get('variableId', None)))
+        newdim.order = i
+
+        newdim.displayName = dim.get('displayName', None)
+        newdim.unit = dim.get('unit', None)
+        newdim.shortUnit = dim.get('shortUnit', None)
+        newdim.conversionFactor = dim.get('conversionFactor', None)
+        newdim.tolerance = dim.get('tolerance', None)
+        newdim.isProjection = dim.get('isProjection', None)
+        newdim.targetYear = dim.get('targetYear', None)
+
         dims.append(newdim)
-        i += 1
+        
+        if dim.get('saveToVariable'):
+            if newdim.displayName:
+                variable.displayName = newdim.displayName
+            if newdim.unit:
+                variable.displayUnit = newdim.unit
+            if newdim.shortUnit:
+                variable.displayShortUnit = newdim.shortUnit
+            if newdim.conversionFactor:
+                variable.displayUnitConversionFactor = newdim.conversionFactor
+            if 'tolerance' in dim:
+                variable.displayTolerance = newdim.tolerance
+            variable.displayIsProjection = bool(newdim.isProjection)
+            variable.save()
+            
 
     for each in ChartDimension.objects.filter(chartId=chart.pk):
         each.delete()
