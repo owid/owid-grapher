@@ -94,10 +94,10 @@ for one_type in chart_ids:
                                                                                                             variable.uploaded_by.name.replace("'", "\\'"), current_time, current_time, current_time)
                 seen_vars[each.variableId.pk] = 1
             chart_dim = each
-            out += 'INSERT INTO chart_dimensions (`id`, `order`, `property`, `unit`, `displayName`, `targetYear`, `isProjection`, `tolerance`, `color`, `chartId`, `variableId`) VALUES ' \
-                   "(%s, %s, '%s', '%s', '%s', %s, %s, %s, '%s', %s, %s);\n" % (chart_dim.pk, chart_dim.order, chart_dim.property.replace("'", "\\'"), chart_dim.unit.replace("'", "\\'"),
+            out += 'INSERT INTO chart_dimensions (`id`, `order`, `property`, `unit`, `displayName`, `targetYear`, `isProjection`, `tolerance`, `chartId`, `variableId`) VALUES ' \
+                   "(%s, %s, '%s', '%s', '%s', %s, %s, %s, %s, %s);\n" % (chart_dim.pk, chart_dim.order, chart_dim.property.replace("'", "\\'"), chart_dim.unit.replace("'", "\\'"),
                                                                                 chart_dim.displayName.replace("'", "\\'"), chart_dim.targetYear, chart_dim.isProjection,
-                                                                                chart_dim.tolerance, chart_dim.color.replace("'", "\\'"), chart_dim.chartId.pk, chart_dim.variableId.pk)
+                                                                                chart_dim.tolerance, chart_dim.chartId.pk, chart_dim.variableId.pk)
 
             entity_ids = DataValue.objects.filter(fk_var_id=each.variableId).values_list('fk_ent_id', flat=True)
             for one_id in entity_ids:
