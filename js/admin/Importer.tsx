@@ -636,36 +636,31 @@ export default class Importer extends React.Component<{ datasets: any[], categor
 		ReactDOM.render(<Importer datasets={props.datasets} categories={props.categories} sourceTemplate={props.sourceTemplate.meta_value} existingEntities={props.entityNames}/>, document.getElementById("import-view"))
 	}
 
-	@observable csv: CSV|null = null
-	@observable dataset = new Dataset()
+	@observable csv: CSV
+	@observable.ref dataset = new Dataset()
 
 	@action.bound onChooseDataset({target}: {target: HTMLSelectElement}) {
 		const d = this.props.datasets[target.selectedIndex-1]
 		this.dataset = d ? Dataset.fromServer(d) : new Dataset()
+		this.fillDataset(this.dataset)
 	}
 
 	@action.bound onCSV(csv: CSV) {
 		this.csv = csv
 		const match = filter(this.props.datasets, d => d.name == csv.basename)[0]
 		this.dataset = match ? Dataset.fromServer(match) : new Dataset()
+		this.fillDataset(this.dataset)
 	}
 
-	componentDidMount() {
-		reaction(
-			() => this.dataset && this.csv && this.csv.isValid,
-			() => {
-				const {dataset, csv} = this
-				if (!dataset || !csv || !csv.isValid) return
+	fillDataset(dataset: Dataset) {
+		const {csv} = this
+		if (!dataset.name)
+			dataset.name = csv.basename
 
-				if (!dataset.name)
-					dataset.name = csv.basename
-
-				dataset.newVariables = map(csv.data.variables, clone)
-				dataset.entityNames = csv.data.entityNames
-				dataset.entities = csv.data.entities
-				dataset.years = csv.data.years
-			}
-		)
+		dataset.newVariables = map(csv.data.variables, clone)
+		dataset.entityNames = csv.data.entityNames
+		dataset.entities = csv.data.entities
+		dataset.years = csv.data.years
 	}
 
 	@action.bound onSubmit(e: React.FormEvent<HTMLFormElement>) {
