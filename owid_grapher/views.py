@@ -104,6 +104,7 @@ def test_all(request):
                                                     })
 
 def testsome(request):
+    raise Exception("Testing exception")
     ids = [563, 646, 292, 51, 72, 132, 144, 194, 197, 864, 190, 302]
     charts = sorted(Chart.objects.filter(id__in=ids), key=lambda c: ids.index(c.id))
 
