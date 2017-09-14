@@ -762,8 +762,8 @@ def dataset_json(request: HttpRequest, datasetid: str):
     except Dataset.DoesNotExist:
         return HttpResponseNotFound('Dataset does not exist!')
 
-    data = {'name': dataset.name, 'description': dataset.description, 'categoryId': dataset.fk_dst_cat_id.pk,
-            'subcategoryId': dataset.fk_dst_subcat_id.pk, 'variables': []}
+    data = {'name': dataset.name, 'description': dataset.description, 'categoryId': dataset.fk_dst_cat_id_id,
+            'subcategoryId': dataset.fk_dst_subcat_id_id, 'variables': []}
 
     allchart_dimensions = ChartDimension.objects.all().values('chartId', 'variableId')
     var_to_chart = {}
