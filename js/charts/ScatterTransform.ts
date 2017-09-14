@@ -92,7 +92,10 @@ export default class ScatterTransform implements IChartTransform {
 
     @computed get excludedEntities(): string[] {
         const entityIds = this.chart.props.excludedEntities||[]
-        return entityIds.map(id => this.chart.vardata.entityMetaById[id].name)
+        return entityIds.map(id => {
+            const meta = this.chart.vardata.entityMetaById[id]
+            return meta && meta.name
+        }).filter(d => d)
     }
 
     @computed get entitiesToShow(): string[] {

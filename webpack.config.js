@@ -63,10 +63,10 @@ module.exports = {
         new ExtractTextPlugin('[name].bundle.[chunkhash].css'),
 
         // CSS optimization
-        new OptimizeCssAssetsPlugin({
+        /*new OptimizeCssAssetsPlugin({
             assetNameRegExp: /\.bundle.*\.css$/,
             cssProcessorOptions: { discardComments: { removeAll: true } }
-        }),
+        }),*/
 
         // JS optimization
         new ParallelUglifyPlugin({

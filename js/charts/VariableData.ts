@@ -13,13 +13,21 @@ export class Variable {
 	@observable.ref coverage: string
 	@observable.ref timespan: string
 	@observable.ref datasetName: string
+
+	@observable.ref displayName?: string = undefined
+	@observable.ref displayUnit?: string = undefined
+	@observable.ref displayShortUnit?: string = undefined
+	@observable.ref displayUnitConversionFactor?: number = undefined
+	@observable.ref displayTolerance?: number = undefined
+	@observable.ref displayIsProjection?: boolean = undefined
+
 	@observable.struct source: {
 		name: string,
 		description: string
 	}
-	@observable.ref years: number[]
-	@observable.ref entities: string[]
-	@observable.ref values: (string|number)[]
+	@observable.ref years: number[] = []
+	@observable.ref entities: string[] = []
+	@observable.ref values: (string|number)[] = []
 
 	constructor(meta: Partial<Variable>) {
 		extend(this, meta)

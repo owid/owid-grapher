@@ -278,77 +278,59 @@ def variables(request, ids):
     :param ids: ids of requested variables
     :return: json file of requested variables in plain text format
     """
-    varids = []
-    meta = {}
-    entitykey = {}
-    meta['variables'] = {}
-    meta['license'] = License.objects.values().first()
-    meta['license']['created_at'] = str(meta['license']['created_at'])
-    meta['license']['updated_at'] = str(meta['license']['updated_at'])
+    meta = { "variables": {} }
 
-    for each in ids.split('+'):
-        varids.append(int(each))
+    # First, grab all the variable metadata needed by the frontend
+    variable_ids = [int(idStr) for idStr in ids.split('+')]
+    variables = Variable.objects.filter(id__in=variable_ids).select_related('fk_dst_id', 'sourceId').values(
+        'id', 'name', 'description', 'unit', 'short_unit',
+        'displayName', 'displayUnit', 'displayShortUnit', 'displayUnitConversionFactor', 'displayTolerance', 'displayIsProjection',
+        'fk_dst_id__name', 'sourceId__name', 'sourceId__description'
+    )
 
-    varids = sorted(varids)
+    # Process the metadata into a nicer form
+    for variable in variables:
+        variable['shortUnit'] = variable.pop('short_unit')
+        variable['datasetName'] = variable.pop('fk_dst_id__name')
+        variable['source'] = {}
+        variable['source']['name'] = variable.pop('sourceId__name')
+        variable['source']['description'] = variable.pop('sourceId__description')
+        meta['variables'][variable['id']] = variable
 
-    with connection.cursor() as cursor:
-        cursor.execute("SELECT variables.id as var_id, variables.name as var_name, variables.description as var_desc, "
-                       "variables.unit as var_unit, variables.short_unit as var_short_unit, variables.created_at, sources.name as source_name, "
-                       "sources.description as source_desc, datasets.name as dataset_name "
-                       "FROM variables "
-                       "JOIN datasets on variables.fk_dst_id = datasets.id "
-                       "LEFT JOIN sources on variables.sourceId = sources.id "
-                       "WHERE variables.id IN %s;", [varids])
-
-        varrows = dictfetchall(cursor)
-
-
-    for each in varrows:
-        source = {}
-        source['name'] = each['source_name']
-        source['description'] = each['source_desc']
-
-        var = {}
-        var['id'] = int(each['var_id'])
-        var['name'] = each['var_name']
-        var['datasetName'] = each['dataset_name']
-        var['createdAt'] = str(each['created_at'])
-        var['description'] = each['var_desc']
-        var['unit'] = each['var_unit']
-        var['shortUnit'] = each['var_short_unit']
-        var['source'] = source
-        var['entities'] = []
-        var['years'] = []
-        var['values'] = []
-        meta['variables'][int(each['var_id'])] = var
-
+    # Now fetch the actual data, using a custom csv-like transfer format
+    # for efficiency (this is the most common expensive operation in the grapher)
     varstring = ""
-
     with connection.cursor() as cursor:
-        cursor.execute("SELECT value, year, fk_var_id as var_id, entities.id as entity_id, "
-                       "entities.name as entity_name, entities.displayName as entity_displayName, "
-                       "entities.code as entity_code "
-                       "FROM data_values "
-                       "LEFT JOIN entities ON data_values.fk_ent_id = entities.id "
-                       "WHERE data_values.fk_var_id IN %s "
-                       "ORDER BY var_id ASC,  year ASC;", [varids])
+        cursor.execute("""
+            SELECT value, year, fk_var_id as var_id, entities.id as entity_id, 
+            entities.name as entity_name, entities.code as entity_code 
+            FROM data_values 
+            LEFT JOIN entities ON data_values.fk_ent_id = entities.id 
+            WHERE data_values.fk_var_id IN %s 
+            ORDER BY var_id ASC, year ASC
+        """, [variable_ids])
         rows = dictfetchall(cursor)
 
-    seen_variables = {}
-    for each in rows:
-        if not seen_variables.get(each['var_id'], 0):
-            seen_variables[each['var_id']] = 1
-            varstring += "\r\n"
-            varstring += str(each['var_id'])
+    def stream():
+        yield json.dumps(meta)
 
-        varstring += ';' + str(each['year']) + ',' + str(each['entity_id']) + ',' + str(each['value'])
+        entitykey = {}
+        seen_variables = {}
+        for row in rows:
+            if row['var_id'] not in seen_variables:
+                seen_variables[row['var_id']] = True
+                yield "\r\n"
+                yield str(row['var_id'])
 
-        if not entitykey.get(str(each['entity_id']), 0):
-            entitykey[str(each['entity_id'])] = {'name': each['entity_name'], 'code': each['entity_code']}
+            yield f";{row['year']},{row['entity_id']},{row['value']}"
 
-    varstring += "\r\n"
+            if row['entity_id'] not in entitykey:
+                entitykey[row['entity_id']] = {'name': row['entity_name'], 'code': row['entity_code']}
 
-    response = HttpResponse(json.dumps(meta) + varstring + json.dumps(entitykey), content_type="text/plain")
+        yield "\r\n"
+        yield json.dumps(entitykey)
+
+    response = StreamingHttpResponse(stream(), content_type="text/plain")
 
     if get_query_string(request):
         response['Cache-Control'] = 'max-age=31536000 public'

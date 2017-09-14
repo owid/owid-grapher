@@ -1,7 +1,7 @@
-import {ChartDimension} from './ChartConfig'
 import {Variable} from './VariableData'
 import {observable, computed} from 'mobx'
 import {defaultTo, formatValue, some} from './Util'
+import ChartDimension from './ChartDimension'
 
 export default class DimensionWithData {
 	props: ChartDimension
@@ -17,15 +17,19 @@ export default class DimensionWithData {
 	}
 
 	@computed get displayName(): string {
-		return defaultTo(this.props.displayName, this.variable.name)
+		return defaultTo(defaultTo(this.props.displayName, this.variable.displayName), this.variable.name)
 	}
 
 	@computed get unit(): string {
-		return defaultTo(this.props.unit, this.variable.unit)
+		return defaultTo(defaultTo(this.props.unit, this.variable.displayUnit), this.variable.unit)
+	}
+
+	@computed get unitConversionFactor(): number {
+		return defaultTo(defaultTo(this.props.conversionFactor, this.variable.displayUnitConversionFactor), 1)
 	}
 
 	@computed get isProjection(): boolean {
-		return !!this.props.isProjection
+		return !!defaultTo(this.props.isProjection, this.variable.displayIsProjection)
 	}
 
 	@computed get targetYear(): number|undefined {
@@ -33,13 +37,13 @@ export default class DimensionWithData {
 	}
 
 	@computed get tolerance(): number {
-		return this.props.tolerance == null ? 0 : this.props.tolerance
+		return defaultTo(defaultTo(this.props.tolerance, this.variable.displayTolerance), 0)
 	}
 
 	@computed get shortUnit(): string|undefined {
 		const {unit} = this
-		const shortUnit = defaultTo(this.props.shortUnit, this.variable.shortUnit)
-		
+		const shortUnit = defaultTo(defaultTo(this.props.shortUnit, this.variable.displayShortUnit), this.variable.shortUnit)
+			
 		if (shortUnit) return shortUnit
 
 		if (!unit) return undefined
@@ -66,9 +70,9 @@ export default class DimensionWithData {
 	}
 
 	@computed get values() {
-		const {conversionFactor} = this.props
-		if (conversionFactor)
-			return this.variable.values.map(v => (v as number)*conversionFactor)
+		const {unitConversionFactor} = this
+		if (unitConversionFactor != 1)
+			return this.variable.values.map(v => (v as number)*unitConversionFactor)
 		else
 			return this.variable.values
 	}

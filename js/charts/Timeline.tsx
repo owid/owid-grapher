@@ -271,12 +271,6 @@ export default class Timeline extends React.Component<TimelineProps> {
         this.onDrag(inputYear)
 
         e.preventDefault()
-
-/*        container.on('mousemove.timeline', onMouseMove);
-        container.on('mouseup.timeline', onMouseUp);
-        container.on('touchmove.timeline', onMouseMove);
-        container.on('touchend.timeline', onMouseUp);*/
-        //container.on('mouseleave.timeline', onMouseUp);
     }
 
     @action.bound onDoubleClick(e: any) {

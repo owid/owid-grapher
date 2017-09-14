@@ -21,6 +21,7 @@ import * as React from 'react'
 import * as ReactDOMServer from 'react-dom/server'
 import Bounds from './Bounds'
 import IChartTransform from './IChartTransform'
+import ChartDimension from './ChartDimension'
 
 declare const App: any
 declare const window: any
@@ -28,30 +29,6 @@ declare const window: any
 export interface HighlightToggleConfig {
     description: string
     paramStr: string
-}
-
-export class ChartDimension {
-    @observable property: string
-    @observable variableId: number
-    @observable displayName?: string = undefined
-    @observable unit?: string = undefined
-    @observable shortUnit?: string = undefined
-    @observable isProjection?: boolean = undefined
-    @observable targetYear?: number = undefined
-    @observable tolerance?: number = undefined
-    @observable conversionFactor?: number = undefined
-
-    constructor(json: { property: string, variableId: number }) {
-        for (let key in this) {
-            if (key in json) {
-                (this as any)[key] = (json as any)[key]
-
-                // XXX migrate this away
-                if ((json as any)[key] === "")
-                    (this as any)[key] = undefined
-            }
-        }        
-    }
 }
 
 export interface EntitySelection {
@@ -280,7 +257,7 @@ export default class ChartConfig {
         extend(this.props.xAxis, json['xAxis'])
         extend(this.props.yAxis, json['yAxis'])
 
-        this.props.dimensions = json.dimensions.map((j: any) => new ChartDimension(j))
+        this.props.dimensions = (json.dimensions||[]).map((j: any) => new ChartDimension(j))
         this.variableCacheTag = json["variableCacheTag"]
         this.logosSVG = json["logosSVG"]
     }

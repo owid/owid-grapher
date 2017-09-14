@@ -60,11 +60,10 @@ import Vector2 from './Vector2'
 
 export type SVGElement = any;
 export type VNode = any;
-export const NullElement : any = (): null => null;
 
-export function getRelativeMouse(node: SVGElement, event: Object): Vector2 {
+export function getRelativeMouse(node: SVGElement, event: any): Vector2 {
     let clientX, clientY
-    if (isFinite((event as MouseEvent).clientX)) {
+    if ((event as MouseEvent).clientX != null) {
         clientX = (event as MouseEvent).clientX
         clientY = (event as MouseEvent).clientY
     } else {
@@ -75,14 +74,14 @@ export function getRelativeMouse(node: SVGElement, event: Object): Vector2 {
   var svg = node.ownerSVGElement || node;
 
   if (svg.createSVGPoint) {
-    var point = svg.createSVGPoint();
-    point.x = clientX, point.y = clientY;
-    point = point.matrixTransform(node.getScreenCTM().inverse());
-    return new Vector2(point.x, point.y);
+    var point = svg.createSVGPoint()
+    point.x = clientX, point.y = clientY
+    point = point.matrixTransform(node.getScreenCTM().inverse())
+    return new Vector2(point.x, point.y)
   }
 
-  var rect = node.getBoundingClientRect();
-  return new Vector2(clientX - rect.left - node.clientLeft, clientY - rect.top - node.clientTop);
+  var rect = node.getBoundingClientRect()
+  return new Vector2(clientX - rect.left - node.clientLeft, clientY - rect.top - node.clientTop)
 };
 
 // Create an instance of a JSX node before rendering
