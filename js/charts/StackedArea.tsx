@@ -209,7 +209,7 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
         base.selectAll("clipPath > rect")
             .attr("width", 0)
             .transition()
-                .duration(1000)
+                .duration(800)
                 .ease(easeLinear)
                 .attr("width", this.bounds.width)
     }
