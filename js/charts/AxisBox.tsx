@@ -9,7 +9,7 @@
  */
 
 import * as React from 'react'
-import {computed} from 'mobx'
+import {observable, computed, reaction, action} from 'mobx'
 import {observer} from 'mobx-react'
 import Bounds from './Bounds'
 import AxisScale from './AxisScale'
@@ -17,6 +17,7 @@ import VerticalAxis, {VerticalAxisView} from './VerticalAxis'
 import HorizontalAxis, {HorizontalAxisView} from './HorizontalAxis'
 import AxisSpec from './AxisSpec'
 import ScaleType from './ScaleType'
+import {extend} from './Util'
 
 interface AxisBoxProps {
     bounds: Bounds,
@@ -31,22 +32,91 @@ interface AxisBoxProps {
 export default class AxisBox {
     props: AxisBoxProps
 
+    @observable targetYDomain: [number, number] = [1, 100]
+    @observable targetXDomain: [number, number] = [1, 100]
+    @observable prevYDomain: [number, number] = [1, 100]
+    @observable prevXDomain: [number, number] = [1, 100]
+    @observable animProgress?: number
+
+    @computed.struct get currentYDomain(): [number, number] {
+        if (this.animProgress == null) return this.props.yAxis.domain
+
+        const [prevMinY, prevMaxY] = this.prevYDomain
+        const [targetMinY, targetMaxY] = this.targetYDomain
+
+        return [
+            prevMinY+(targetMinY-prevMinY)*this.animProgress,
+            prevMaxY+(targetMaxY-prevMaxY)*this.animProgress
+        ]
+    }
+
+    @computed.struct get currentXDomain(): [number, number] {
+        if (this.animProgress == null) return this.props.xAxis.domain
+
+        const [prevMinX, prevMaxX] = this.prevXDomain
+        const [targetMinX, targetMaxX] = this.targetXDomain
+
+        return [
+            prevMinX+(targetMinX-prevMinX)*this.animProgress,
+            prevMaxX+(targetMaxX-prevMaxX)*this.animProgress
+        ]
+    }
+
+    @action.bound setupAnimation() {
+        this.targetYDomain = this.props.yAxis.domain
+        this.targetXDomain = this.props.xAxis.domain
+        this.animProgress = 1
+
+        reaction(
+            () => [this.props.yAxis.domain, this.props.xAxis.domain],
+            () => {
+                this.prevXDomain = this.currentXDomain
+                this.prevYDomain = this.currentYDomain
+                this.targetYDomain = this.props.yAxis.domain
+                this.targetXDomain = this.props.xAxis.domain
+                this.animProgress = 0
+                requestAnimationFrame(this.frame)
+            }
+        )
+    }
+
     constructor(props: AxisBoxProps) {
         this.props = props
+    }
+
+    frameStart?: number
+    @action.bound frame(timestamp: number) {
+        if (this.animProgress == null) return
+
+        if (!this.frameStart) this.frameStart = timestamp
+        this.animProgress = Math.min(1, this.animProgress+(timestamp-this.frameStart)/300)
+
+        if (this.animProgress < 1) 
+            requestAnimationFrame(this.frame)
+        else
+            this.frameStart = undefined
+    }
+
+    @computed get yAxisSpec() {
+        return extend({}, this.props.yAxis, { domain: this.currentYDomain })
+    }
+
+    @computed get xAxisSpec() {
+        return extend({}, this.props.xAxis, { domain: this.currentXDomain })
     }
 
     // We calculate an initial width/height for the axes in isolation
     @computed get xAxisHeight() {
         return new HorizontalAxis({
-            scale: new AxisScale(this.props.xAxis).extend({ range: [0, this.props.bounds.width] }),
-            labelText: this.props.xAxis.label
+            scale: new AxisScale(this.xAxisSpec).extend({ range: [0, this.props.bounds.width] }),
+            labelText: this.xAxisSpec.label
         }).height
     }
 
     @computed get yAxisWidth() {
         return new VerticalAxis({
-            scale: new AxisScale(this.props.yAxis).extend({ range: [0, this.props.bounds.height] }),
-            labelText: this.props.yAxis.label
+            scale: new AxisScale(this.yAxisSpec).extend({ range: [0, this.props.bounds.height] }),
+            labelText: this.yAxisSpec.label
         }).width
     }
 
@@ -56,26 +126,26 @@ export default class AxisBox {
     }
 
     @computed get xScale() {
-        return new AxisScale(this.props.xAxis).extend({ range: this.innerBounds.xRange() })
-    }
-
-    @computed get xAxis() {
-        const _this = this
-        return new HorizontalAxis({
-            get scale() { return _this.xScale },
-            get labelText() { return _this.props.xAxis.label }
-        })
+        return new AxisScale(this.xAxisSpec).extend({ range: this.innerBounds.xRange() })
     }
 
     @computed get yScale() {
-        return new AxisScale(this.props.yAxis).extend({ range: this.innerBounds.yRange() })
+        return new AxisScale(this.yAxisSpec).extend({ range: this.innerBounds.yRange() })
+    }
+
+    @computed get xAxis() {
+        const that = this
+        return new HorizontalAxis({
+            get scale() { return that.xScale },
+            get labelText() { return that.xAxisSpec.label }
+        })
     }
 
     @computed get yAxis() {
-        const _this = this
+        const that = this
         return new VerticalAxis({
-            get scale() { return _this.yScale },
-            get labelText() { return _this.props.yAxis.label }
+            get scale() { return that.yScale },
+            get labelText() { return that.yAxisSpec.label }
         })
     }
 
@@ -117,6 +187,10 @@ export interface AxisBoxViewProps {
 
 @observer
 export class AxisBoxView extends React.Component<AxisBoxViewProps> {
+    componentDidMount() {
+        requestAnimationFrame(this.props.axisBox.setupAnimation)
+    }
+    
     render() {
         const {axisBox, onYScaleChange, onXScaleChange} = this.props
         const {bounds, xScale, yScale, xAxis, yAxis, innerBounds} = axisBox

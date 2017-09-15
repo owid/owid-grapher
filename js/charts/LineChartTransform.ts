@@ -1,5 +1,5 @@
 import {computed} from 'mobx'
-import {some, min, max, isEmpty, sortBy, extend, find, identity, cloneDeep, sortedUniq} from './Util'
+import {some, min, max, isEmpty, sortBy, find, identity, cloneDeep, sortedUniq} from './Util'
 import {scaleOrdinal} from 'd3-scale'
 import ChartConfig from './ChartConfig'
 import Color from './Color'
@@ -115,8 +115,23 @@ export default class LineChartTransform implements IChartTransform {
         return allValues
     }
 
-    @computed get xDomainDefault(): [number, number] {
+    @computed get xDomain(): [number, number] {
         return [this.startYear, this.endYear]
+    }
+
+    @computed get xAxis(): AxisSpec {
+        const {xDomain} = this
+        return {
+            label: "",
+            tickFormat: formatYear,
+            domain: xDomain,
+            scaleType: 'linear',
+            scaleTypeOptions: ['linear']
+        }
+    }
+
+    @computed get yDimensionFirst(): DimensionWithData|undefined {
+        return find(this.chart.data.filledDimensions, d => d.property == 'y')
     }
 
     @computed get yDomainDefault(): [number, number] {
@@ -127,25 +142,20 @@ export default class LineChartTransform implements IChartTransform {
         ]
     }
 
-    @computed get xAxis(): AxisSpec {
-        const {chart, xDomainDefault} = this
-        return extend(
-            chart.xAxis.toSpec({ defaultDomain: xDomainDefault }),
-            { tickFormat: (year: number) => formatYear(year) }
-        ) as AxisSpec
-    }
-
-    @computed get yDimensionFirst(): DimensionWithData|undefined {
-        return find(this.chart.data.filledDimensions, d => d.property == 'y')
+    @computed get yDomain(): [number, number] {
+        const {chart, yDomainDefault} = this
+        return [
+            Math.min(defaultTo(chart.yAxis.domain[0], Infinity), yDomainDefault[0]),
+            Math.max(defaultTo(chart.yAxis.domain[1], -Infinity), yDomainDefault[1])
+        ]
     }
 
     @computed get yAxis(): AxisSpec {
-        const {chart, yDomainDefault, yDimensionFirst} = this
-
+        const {chart, yDomain, yDimensionFirst} = this
         return {
             label: chart.yAxis.label||"",
             tickFormat: yDimensionFirst ? yDimensionFirst.formatValueShort : identity,
-            domain: [Math.min(defaultTo(chart.yAxis.domain[0], Infinity), yDomainDefault[0]), Math.max(defaultTo(chart.yAxis.domain[1], -Infinity), yDomainDefault[1])],
+            domain: yDomain,
             scaleType: chart.yAxis.scaleType,
             scaleTypeOptions: chart.yAxis.scaleTypeOptions            
         }

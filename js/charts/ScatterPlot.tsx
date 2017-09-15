@@ -144,9 +144,12 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     }
 
     @computed get axisBox() {
-        const {bounds, transform, timelineHeight, sidebarWidth} = this
-        const {xAxis, yAxis} = transform
-        return new AxisBox({bounds: bounds.padBottom(timelineHeight).padRight(sidebarWidth+20), xAxis, yAxis})        
+        const that = this
+        return new AxisBox({
+            get bounds() { return that.bounds.padBottom(that.timelineHeight).padRight(that.sidebarWidth+20) },
+            get xAxis() { return that.transform.xAxis },
+            get yAxis() { return that.transform.yAxis }
+        })
     }
 
     @action.bound onYScaleChange(scaleType: ScaleType) {

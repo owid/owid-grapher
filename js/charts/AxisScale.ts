@@ -26,7 +26,6 @@ export default class AxisScale {
     @observable tickFormat: (v: number) => string
     @observable.struct domain: [number, number]
     @observable.struct range: [number, number]
-    @observable.ref isDiscrete: boolean
 
     @computed get d3_scaleConstructor(): Function {
         return this.scaleType == 'log' ? scaleLog : scaleLinear

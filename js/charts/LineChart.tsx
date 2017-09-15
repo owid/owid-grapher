@@ -48,7 +48,13 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
     // Order of the legend items on a line chart should visually correspond
     // to the order of the lines as the approach the legend
     @computed get legendItems() {
-        return this.transform.groupedData.map(d => ({
+        // Only show projection legends if there are any projections
+        // Bit of a hack
+        let toShow = this.transform.groupedData
+        if (toShow.some(g => !!g.isProjection))
+            toShow = this.transform.groupedData.filter(g => g.isProjection)
+
+        return toShow.map(d => ({
             color: d.color,
             key: d.key,
             label: this.chart.data.formatKey(d.key),
@@ -111,14 +117,21 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
                 .attr("width", this.bounds.width)
     }
 
+    @computed get axisBox() {
+        const that = this
+        return new AxisBox({
+            get bounds() { return that.bounds.padRight(10).padRight(that.legend ? that.legend.width : 0) },
+            get yAxis() { return that.transform.yAxis },
+            get xAxis() { return that.transform.xAxis }
+        })
+    }
+
     render() {
         if (this.transform.failMessage)
             return <NoData bounds={this.props.bounds} message={this.transform.failMessage}/>
 
-        const {chart, transform, bounds, legend, tooltip, focusKeys} = this
-        const {groupedData, xAxis, yAxis} = transform
-
-        const axisBox = new AxisBox({bounds: bounds.padRight(10).padRight(legend ? legend.width : 0), xAxis, yAxis})
+        const {chart, transform, bounds, legend, tooltip, focusKeys, axisBox} = this
+        const {groupedData} = transform
 
         return <g className="LineChart">
             <defs>

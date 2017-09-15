@@ -17,6 +17,11 @@ interface VerticalAxisProps {
 export default class VerticalAxis {
     static tickFontSize = "0.65em"
 
+    props: VerticalAxisProps
+    constructor(props: VerticalAxisProps) {
+        this.props = props
+    }
+
     @computed get label(): TextWrap|undefined {
         const {props, height} = this
         return props.labelText ? new TextWrap({ maxWidth: height, fontSize: 0.5, text: props.labelText}) : undefined
@@ -34,11 +39,6 @@ export default class VerticalAxis {
 
     @computed get height() {
         return this.props.scale.rangeSize
-    }
-
-    props: VerticalAxisProps
-    constructor(props: VerticalAxisProps) {
-        this.props = props
     }
 
     @computed get scale() : AxisScale {
