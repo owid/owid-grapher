@@ -352,6 +352,13 @@ def starchart(request: HttpRequest, chartid: str):
         Chart.objects.update(starred=False)
         chart.starred = True
         chart.save()
+
+        # Purge the Cloudflare cache for the "latest visualization"
+        if settings.CLOUDFLARE_KEY:
+            chart_url = f"{settings.CLOUDFLARE_BASE_URL}/latest"
+            cf = CloudFlare.CloudFlare(email=settings.CLOUDFLARE_EMAIL, token=settings.CLOUDFLARE_KEY)
+            cf.zones.purge_cache.delete(settings.CLOUDFLARE_ZONE_ID, data={ "files": [chart_url] })
+
         return JsonResponse({'starred': True}, safe=False)
 
 
