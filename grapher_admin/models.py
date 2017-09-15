@@ -327,7 +327,7 @@ class ChartDimension(models.Model):
     displayName = models.CharField(max_length=255, db_column='displayName', null=True)
     isProjection = models.NullBooleanField(null=True)
     tolerance = models.IntegerField(null=True)
-    conversionFactor = models.IntegerField(null=True)
+    conversionFactor = models.FloatField(null=True)
 
     # XXX todo move this elsewhere
     targetYear = models.IntegerField(db_column='targetYear', blank=True, null=True)
