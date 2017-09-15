@@ -35,7 +35,7 @@ export default class EditorCustomizeTab extends React.Component<{ editor: ChartE
 
 		return <div>
 			<h3>{axisName} Axis</h3>
-			<TextField label={"Label"} value={axis.label} onValue={(value) => axis.label = value}/><br/>
+			{/*<TextField label={"Label"} value={axis.label} onValue={(value) => axis.label = value}/><br/>*/}
 			{features.axisMinMax && <NumberField label={"Max"} value={axis.max} onValue={(value) => axis.max = value}/>}<br/>
 			{features.axisMinMax && <NumberField label={"Min"} value={axis.min} onValue={(value) => axis.min = value}/>}<br/>
 			{/*<TextField label={axisName+"-Axis Prefix"} value={axis.prefix} onValue={(value) => axis.prefix = value}/>
