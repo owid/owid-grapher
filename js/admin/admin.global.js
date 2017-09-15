@@ -8,11 +8,11 @@ window.Cookies = Cookies
 ;(function() {
 	"use strict";
 
-	// CSRF setup
 	$.ajaxSetup({
-		headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr("value") }
-	});
-
+		beforeSend: function(xhr, settings) {
+			xhr.setRequestHeader("X-CSRFToken", $('meta[name="_token"]').attr("value") )
+		}
+	})
 
 	//delete buttons
 	$(".delete-btn, .btn-danger").on("click", function(evt) {
