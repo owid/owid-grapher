@@ -288,7 +288,7 @@ class Variable(models.Model):
     name = models.CharField(max_length=255)
     unit = models.CharField(max_length=255)
     short_unit = models.CharField(max_length=255, null=True)
-    
+
     # Separate "display" properties to allow overriding metadata for
     # display on charts while also preserving the original source metadata
     displayName = models.CharField(max_length=255, null=True)
@@ -415,3 +415,7 @@ class UserInvitation(models.Model):
     valid_till = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+class CloudflarePurgeQueue(models.Model):
+    url = models.CharField(max_length=255, unique=True)

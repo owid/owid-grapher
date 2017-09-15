@@ -7,9 +7,9 @@ import csv
 import glob
 import os
 import subprocess
+import threading
 import shlex
 import time
-import CloudFlare
 from ansi2html import Ansi2HTMLConverter
 from unidecode import unidecode
 from io import StringIO
@@ -26,8 +26,9 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from .forms import InviteUserForm, InvitedUserRegisterForm
-from .models import Chart, Variable, User, UserInvitation, Logo, ChartSlugRedirect, ChartDimension, Dataset, Setting, DatasetCategory, DatasetSubcategory, Entity, Source, VariableType, DataValue, License
+from .models import Chart, Variable, User, UserInvitation, Logo, ChartSlugRedirect, ChartDimension, Dataset, Setting, DatasetCategory, DatasetSubcategory, Entity, Source, VariableType, DataValue, License, CloudflarePurgeQueue
 from owid_grapher.views import get_query_string, get_query_as_dict
+from owid_grapher.various_scripts.purge_cloudflare_cache_queue import purge_cloudflare_cache_queue
 from typing import Dict, Union, Optional
 from django.db import transaction
 
@@ -121,7 +122,7 @@ def chart_editor(request: HttpRequest, chartconfig: Dict):
     chartconfig['logosSVG'] = logos
 
     return render(request, 'admin.edit_chart.html', context={
-        'current_user': request.user.name, 
+        'current_user': request.user.name,
         'chartconfig': json.dumps(chartconfig),
         'cachetag': cachetag
     })
@@ -148,7 +149,7 @@ def editordata(request: HttpRequest, cachetag: Optional[str]):
     def serializeVariable(variable: Variable):
         return {
             'name': variable.name,
-            'id': variable.id,            
+            'id': variable.id,
         }
 
     def serializeDataset(dataset: Dataset):
@@ -234,7 +235,7 @@ def savechart(chart: Chart, data: Dict, user: User):
         newdim.targetYear = dim.get('targetYear', None)
 
         dims.append(newdim)
-        
+
         if dim.get('saveToVariable'):
             if newdim.displayName:
                 variable.displayName = newdim.displayName
@@ -248,7 +249,7 @@ def savechart(chart: Chart, data: Dict, user: User):
                 variable.displayTolerance = newdim.tolerance
             variable.displayIsProjection = bool(newdim.isProjection)
             variable.save()
-            
+
 
     for each in ChartDimension.objects.filter(chartId=chart.pk):
         each.delete()
@@ -267,9 +268,13 @@ def savechart(chart: Chart, data: Dict, user: User):
         config_url = f"{settings.CLOUDFLARE_BASE_URL}/config/{chart.id}.js"
         chart_url = f"{settings.CLOUDFLARE_BASE_URL}/{chart.slug}"
         urls_to_purge = [config_url, chart_url, chart_url + "?tab=chart", chart_url + "?tab=map", chart_url + ".csv", chart_url + ".png", chart_url + ".svg"]
-        cf = CloudFlare.CloudFlare(email=settings.CLOUDFLARE_EMAIL, token=settings.CLOUDFLARE_KEY)
-        cf.zones.purge_cache.delete(settings.CLOUDFLARE_ZONE_ID, data={ "files": urls_to_purge })
-
+        existing_urls = {item['url'] for item in CloudflarePurgeQueue.objects.all().values('url')}
+        for each_url in urls_to_purge:
+            if each_url not in existing_urls:
+                new_url = CloudflarePurgeQueue(url=each_url)
+                new_url.save()
+        purge_cache = threading.Thread(target=purge_cloudflare_cache_queue, args=(), kwargs={})
+        purge_cache.start()
     return JsonResponse({'success': True, 'data': {'id': chart.pk}}, safe=False)
 
 
