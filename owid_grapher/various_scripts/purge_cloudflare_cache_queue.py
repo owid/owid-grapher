@@ -18,4 +18,5 @@ def purge_cloudflare_cache_queue():
         pass
 
 
-purge_cloudflare_cache_queue()
+if __name__ == "__main__":
+    purge_cloudflare_cache_queue()
