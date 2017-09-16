@@ -19,14 +19,14 @@ class TooltipView extends React.Component<TooltipProps> {
         const {props, bounds} = this
         const {chartView} = this.context
         
-        let x = props.x*chartView.scale
-        let y = props.y*chartView.scale
+        let x = props.x
+        let y = props.y
         
         // Ensure tooltip remains inside chart
         if (bounds) {
-            if (x+bounds.width > chartView.targetWidth)
+            if (x+bounds.width > chartView.renderWidth)
                 x -= bounds.width
-            if (y+bounds.height > chartView.targetHeight)
+            if (y+bounds.height > chartView.renderHeight)
                 y -= bounds.height
             if (x < 0)
                 x = 0

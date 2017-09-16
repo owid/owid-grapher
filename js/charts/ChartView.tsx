@@ -40,6 +40,8 @@ export default class ChartView extends React.Component<ChartViewProps> {
             const rect = containerNode.getBoundingClientRect()
             const containerBounds = Bounds.fromRect(rect)
 
+
+
             Bounds.baseFontSize = containerBounds.width > 800 ? 22 : 20
             Bounds.baseFontFamily = "Helvetica, Arial"
             chartView = ReactDOM.render(<ChartView bounds={containerBounds} chart={chart} isEditor={isEditor}/>, containerNode)
@@ -67,46 +69,39 @@ export default class ChartView extends React.Component<ChartViewProps> {
         } else if (isEmbed) {
             bounds = bounds.pad(3);
         } else {
-            if (bounds.width < 800)
-                bounds = bounds.padWidth(bounds.width*0.01).padHeight(bounds.height*0.02);
-            else
-                bounds = bounds.padWidth(bounds.width*0.035).padHeight(bounds.height*0.075);
+           // if (bounds.width > 800)
+           //     bounds = bounds.padWidth(bounds.width*0.035).padHeight(bounds.height*0.075);
         }
 
         return bounds
     }
 
+    @computed get authorWidth() { return this.isPortrait ? 400 : 850 }
+    @computed get authorHeight() { return this.isPortrait ? 640 : 600 }
+
+    // If the chart is an embed, or if the available space is very small, we use all of the space given to us
+    @computed get fitBounds(): boolean {
+        return this.isEmbed || this.isExport || this.containerBounds.width < this.authorWidth || this.containerBounds.height < this.authorHeight
+    }
+
     @computed get isPortrait() { return this.isEditor || this.containerBounds.width < this.containerBounds.height }
     @computed get isLandscape() { return !this.isPortrait }
 
-    @computed get authorDimensions() {
-        if (this.isPortrait) {
-            return [400, 640]
-        } else {
-            return [850, 600]
-        }
+    // If we have a big screen to be in, we can define our own aspect ratio and sit in the center
+    @computed get paddedWidth(): number { return this.containerBounds.width*0.8 }
+    @computed get paddedHeight(): number { return this.containerBounds.height*0.8 }
+    @computed get scaleToFitIdeal(): number {
+        return Math.min(this.paddedWidth/this.authorWidth, this.paddedHeight/this.authorHeight)        
     }
+    @computed get idealWidth(): number { return this.authorWidth*this.scaleToFitIdeal }
+    @computed get idealHeight(): number { return this.authorHeight*this.scaleToFitIdeal }
 
-    @computed get authorWidth() { return this.authorDimensions[0] }
-    @computed get authorHeight() { return this.authorDimensions[1] }
-    @computed get renderWidth() { return this.containerBounds.width }
-    @computed get renderHeight() { return this.containerBounds.height }
-
-    // Imitate the standard aspect-ratio preserving scaling behavior of a static <img>
-    @computed get scale() {
-        return 1
-    }
-
-    @computed get targetWidth() {
-        return this.scale*this.renderWidth
-    }
-
-    @computed get targetHeight() {
-        return this.scale*this.renderHeight
-    }
+    // These are the final target render dimensions
+    @computed get renderWidth() { return this.fitBounds ? this.containerBounds.width : this.idealWidth }
+    @computed get renderHeight() { return this.fitBounds ? this.containerBounds.height : this.idealHeight }
 
     @computed get svgBounds() {
-        return (new Bounds(0, 0, this.renderWidth, this.renderHeight)).padBottom(this.isExport ? 0 : this.controlsFooter.height/this.scale)
+        return (new Bounds(0, 0, this.renderWidth, this.renderHeight)).padBottom(this.isExport ? 0 : this.controlsFooter.height)
     }
 
     @computed get svgInnerBounds() {
@@ -154,8 +149,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
             chartView: this, 
             isStatic: this.isExport, 
             addPopup: this.addPopup.bind(this), 
-            removePopup: this.removePopup.bind(this),
-            scale: this.scale 
+            removePopup: this.removePopup.bind(this)
         }
     }
 
@@ -182,7 +176,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
     }
 
     renderSVG() {
-        const {renderWidth, renderHeight, scale, svgBounds, svgInnerBounds} = this
+        const {svgBounds, svgInnerBounds} = this
 
         const svgStyle = {
             fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
@@ -190,19 +184,18 @@ export default class ChartView extends React.Component<ChartViewProps> {
             backgroundColor: "white"
         }
 
-        return <svg xmlns="http://www.w3.org/2000/svg" version="1.1" style={svgStyle} width={svgBounds.width} height={svgBounds.height}>
-                ref={e => this.svgNode = e as SVGSVGElement}>
+        return <svg xmlns="http://www.w3.org/2000/svg" version="1.1" style={svgStyle} width={svgBounds.width} height={svgBounds.height} ref={(e: SVGSVGElement) => this.svgNode = e}>
             {this.renderPrimaryTab(svgInnerBounds)}
         </svg>
     }
 
     renderReady() {
-        const {svgBounds, controlsFooter, scale, chart} = this
+        const {svgBounds, controlsFooter, chart} = this
 
         return [
             this.renderSVG(),
             <ControlsFooter {...controlsFooter.props}/>,
-            this.renderOverlayTab(svgBounds.scale(scale)),
+            this.renderOverlayTab(svgBounds),
             this.popups,
             this.chart.tooltip,
             this.isSelectingData && <DataSelector chart={chart} chartView={this} onDismiss={action(() => this.isSelectingData = false)}/>
@@ -217,9 +210,9 @@ export default class ChartView extends React.Component<ChartViewProps> {
         if (this.isExport) {
             return this.renderSVG()
         } else{
-            const {renderWidth, renderHeight, scale} = this
+            const {renderWidth, renderHeight} = this
 
-            const style = { width: renderWidth*scale + 'px', height: renderHeight*scale + 'px', fontSize: 16*scale + 'px' }
+            const style = { width: renderWidth, height: renderHeight, fontSize: 16 }
 
             return <div id="chart" className={this.classNames} style={style}>
                 {this.chart.data.isReady ? this.renderReady() : this.renderLoading()}

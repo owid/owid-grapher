@@ -70,11 +70,6 @@ export default class HorizontalAxis {
     }
 
     @computed get ticks() : number[] {
-        const {scale} = this
-        const ticks = scale.getTickValues()
-
-        if (scale.isDiscrete) return ticks
-
         const {tickPlacements} = this
         for (let i = 0; i < tickPlacements.length; i++) {
             for (let j = 1; j < tickPlacements.length; j++) {
