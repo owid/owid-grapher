@@ -38,8 +38,11 @@ export default class ChartView extends React.Component<ChartViewProps> {
 
         function render() {
             const rect = containerNode.getBoundingClientRect()
+            const containerBounds = Bounds.fromRect(rect)
 
-            chartView = ReactDOM.render(<ChartView bounds={Bounds.fromRect(rect)} chart={chart} isEditor={isEditor}/>, containerNode)
+            Bounds.baseFontSize = containerBounds.width > 800 ? 22 : 20
+            Bounds.baseFontFamily = "Helvetica, Arial"
+            chartView = ReactDOM.render(<ChartView bounds={containerBounds} chart={chart} isEditor={isEditor}/>, containerNode)
         }
 
         render()
@@ -86,15 +89,12 @@ export default class ChartView extends React.Component<ChartViewProps> {
 
     @computed get authorWidth() { return this.authorDimensions[0] }
     @computed get authorHeight() { return this.authorDimensions[1] }
-    @computed get renderWidth() { return this.authorWidth }
-    @computed get renderHeight() { return this.authorHeight }
+    @computed get renderWidth() { return this.containerBounds.width }
+    @computed get renderHeight() { return this.containerBounds.height }
 
     // Imitate the standard aspect-ratio preserving scaling behavior of a static <img>
     @computed get scale() {
-        if (this.isEditor)
-            return 1
-        else
-            return Math.min(this.containerBounds.width/this.renderWidth, this.containerBounds.height/this.renderHeight)
+        return 1
     }
 
     @computed get targetWidth() {
@@ -105,12 +105,12 @@ export default class ChartView extends React.Component<ChartViewProps> {
         return this.scale*this.renderHeight
     }
 
-    @computed get svgRenderBounds() {
+    @computed get svgBounds() {
         return (new Bounds(0, 0, this.renderWidth, this.renderHeight)).padBottom(this.isExport ? 0 : this.controlsFooter.height/this.scale)
     }
 
     @computed get svgInnerBounds() {
-        return this.svgRenderBounds.pad(15)
+        return new Bounds(0, 0, this.svgBounds.width, this.svgBounds.height).pad(15)
     }
 
     @observable popups: VNode[] = []
@@ -122,9 +122,6 @@ export default class ChartView extends React.Component<ChartViewProps> {
 
     constructor(props: ChartViewProps) {
         super(props)
-
-        Bounds.baseFontSize = 22
-        Bounds.baseFontFamily = "Helvetica, Arial"
     }
 
     @computed get controlsFooter() {
@@ -185,7 +182,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
     }
 
     renderSVG() {
-        const {renderWidth, renderHeight, scale, svgInnerBounds} = this
+        const {renderWidth, renderHeight, scale, svgBounds, svgInnerBounds} = this
 
         const svgStyle = {
             fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
@@ -193,19 +190,19 @@ export default class ChartView extends React.Component<ChartViewProps> {
             backgroundColor: "white"
         }
 
-        return <svg xmlns="http://www.w3.org/2000/svg" version="1.1" style={svgStyle} width={renderWidth*scale} height={renderHeight*scale} viewBox={`0 0 ${renderWidth} ${renderHeight}`}
+        return <svg xmlns="http://www.w3.org/2000/svg" version="1.1" style={svgStyle} width={svgBounds.width} height={svgBounds.height}>
                 ref={e => this.svgNode = e as SVGSVGElement}>
             {this.renderPrimaryTab(svgInnerBounds)}
         </svg>
     }
 
     renderReady() {
-        const {svgRenderBounds, controlsFooter, scale, chart} = this
+        const {svgBounds, controlsFooter, scale, chart} = this
 
         return [
             this.renderSVG(),
             <ControlsFooter {...controlsFooter.props}/>,
-            this.renderOverlayTab(svgRenderBounds.scale(scale)),
+            this.renderOverlayTab(svgBounds.scale(scale)),
             this.popups,
             this.chart.tooltip,
             this.isSelectingData && <DataSelector chart={chart} chartView={this} onDismiss={action(() => this.isSelectingData = false)}/>

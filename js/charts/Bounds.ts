@@ -1,3 +1,4 @@
+import {observable} from 'mobx'
 import {isNumber, includes, extend} from './Util'
 import Vector2 from './Vector2'
 
@@ -46,7 +47,7 @@ export default class Bounds {
 
     static textBoundsCache: { [key: string]: Bounds }
     static ctx: CanvasRenderingContext2D
-    static baseFontSize: number
+    @observable static baseFontSize: number
     static baseFontFamily: string
 
     static forText(str: string, { x = 0, y = 0, fontSize = '1em', fontFamily = null }: { x?: number, y?: number, fontSize?: string|number, fontFamily?: string } = {}): Bounds {
