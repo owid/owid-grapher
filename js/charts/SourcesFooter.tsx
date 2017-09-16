@@ -47,7 +47,7 @@ export default class SourcesFooter {
     }
 
     @computed get fontSize() {
-        return 0.6
+        return 0.5
     }
 
     @computed get sources() {

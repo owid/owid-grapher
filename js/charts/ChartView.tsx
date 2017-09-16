@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import {observable, computed, action} from 'mobx'
+import {observable, computed, action, reaction} from 'mobx'
 import {observer} from 'mobx-react'
 import {select, selectAll} from 'd3-selection'
 import 'd3-transition'
@@ -39,12 +39,9 @@ export default class ChartView extends React.Component<ChartViewProps> {
         function render() {
             const rect = containerNode.getBoundingClientRect()
             const containerBounds = Bounds.fromRect(rect)
-
-
-
-            Bounds.baseFontSize = containerBounds.width > 800 ? 22 : 20
-            Bounds.baseFontFamily = "Helvetica, Arial"
             chartView = ReactDOM.render(<ChartView bounds={containerBounds} chart={chart} isEditor={isEditor}/>, containerNode)
+            Bounds.baseFontSize = (chartView as ChartView).baseFontSize
+            Bounds.baseFontFamily = "Helvetica, Arial"
         }
 
         render()
@@ -59,37 +56,27 @@ export default class ChartView extends React.Component<ChartViewProps> {
     @computed get isEmbed() { return window.self != window.top || this.isEditor }
     @computed get isMobile() { return select('html').classed('touchevents') }
 
-    @computed get containerBounds() {
-        const {isEmbed, isExport} = this
-
-        let bounds = this.props.bounds
-
-        if (isExport) {
-            bounds = bounds
-        } else if (isEmbed) {
-            bounds = bounds.pad(3);
-        } else {
-           // if (bounds.width > 800)
-           //     bounds = bounds.padWidth(bounds.width*0.035).padHeight(bounds.height*0.075);
-        }
-
-        return bounds
-    }
+    @computed get containerBounds() { return this.props.bounds }
 
     @computed get authorWidth() { return this.isPortrait ? 400 : 850 }
     @computed get authorHeight() { return this.isPortrait ? 640 : 600 }
 
     // If the chart is an embed, or if the available space is very small, we use all of the space given to us
     @computed get fitBounds(): boolean {
-        return this.isEmbed || this.isExport || this.containerBounds.width < this.authorWidth || this.containerBounds.height < this.authorHeight
+        const {isEditor, isEmbed, isExport, containerBounds, authorWidth, authorHeight} = this
+
+        if (isEditor)
+            return false
+        else
+            return isEmbed || isExport || containerBounds.width < authorWidth || containerBounds.height < authorHeight
     }
 
-    @computed get isPortrait() { return this.isEditor || this.containerBounds.width < this.containerBounds.height }
+    @computed get isPortrait() { return this.containerBounds.width < this.containerBounds.height }
     @computed get isLandscape() { return !this.isPortrait }
 
     // If we have a big screen to be in, we can define our own aspect ratio and sit in the center
-    @computed get paddedWidth(): number { return this.containerBounds.width*0.8 }
-    @computed get paddedHeight(): number { return this.containerBounds.height*0.8 }
+    @computed get paddedWidth(): number { return this.isPortrait ? this.containerBounds.width*0.9 : this.containerBounds.width*0.9 }
+    @computed get paddedHeight(): number { return this.isPortrait ? this.containerBounds.height*0.9 : this.containerBounds.height*0.9 }
     @computed get scaleToFitIdeal(): number {
         return Math.min(this.paddedWidth/this.authorWidth, this.paddedHeight/this.authorHeight)        
     }
@@ -97,8 +84,8 @@ export default class ChartView extends React.Component<ChartViewProps> {
     @computed get idealHeight(): number { return this.authorHeight*this.scaleToFitIdeal }
 
     // These are the final target render dimensions
-    @computed get renderWidth() { return this.fitBounds ? this.containerBounds.width : this.idealWidth }
-    @computed get renderHeight() { return this.fitBounds ? this.containerBounds.height : this.idealHeight }
+    @computed get renderWidth() { return this.fitBounds ? this.containerBounds.width-(this.isEmbed ? 3 : 0) : this.idealWidth }
+    @computed get renderHeight() { return this.fitBounds ? this.containerBounds.height-(this.isEmbed ? 3 : 0) : this.idealHeight }
 
     @computed get svgBounds() {
         return (new Bounds(0, 0, this.renderWidth, this.renderHeight)).padBottom(this.isExport ? 0 : this.controlsFooter.height)
@@ -108,16 +95,16 @@ export default class ChartView extends React.Component<ChartViewProps> {
         return new Bounds(0, 0, this.svgBounds.width, this.svgBounds.height).pad(15)
     }
 
+    @computed get baseFontSize() {
+        return Math.min(24, Math.max(20, 22*this.scaleToFitIdeal))
+    }
+
     @observable popups: VNode[] = []
     @observable.ref isSelectingData: boolean = false
 
     @observable.ref htmlNode: HTMLDivElement
     @observable.ref svgNode: SVGSVGElement
     base: HTMLDivElement
-
-    constructor(props: ChartViewProps) {
-        super(props)
-    }
 
     @computed get controlsFooter() {
         return preInstantiate(<ControlsFooter chart={this.chart} chartView={this}/>)
@@ -180,7 +167,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
 
         const svgStyle = {
             fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
-            fontSize: "22px",
+            fontSize: this.baseFontSize,
             backgroundColor: "white"
         }
 

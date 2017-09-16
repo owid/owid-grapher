@@ -4,6 +4,7 @@ import {computed} from 'mobx'
 import {observer} from 'mobx-react'
 import TextWrap from './TextWrap'
 import {defaultTo} from './Util'
+import Bounds from './Bounds'
 
 interface ColorLegendProps {
     x?: number,
@@ -27,7 +28,7 @@ interface LabelMark {
 @observer
 export default class ScatterColorLegend extends React.Component<ColorLegendProps> {
     @computed get fontSize(): number { return 0.5 }
-    @computed get rectSize(): number { return 5 }
+    @computed get rectSize(): number { return Bounds.baseFontSize/4 }
     @computed get rectPadding(): number { return 5 }
     @computed get lineHeight(): number { return 5 }
     @computed get onMouseOver(): Function { return this.props.onMouseOver || noop }

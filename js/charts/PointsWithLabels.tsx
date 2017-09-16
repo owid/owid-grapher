@@ -430,7 +430,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             const color = !isLayerMode ? series.color : "#e2e2e2"            
 
             if (!isConnected) {
-                return <circle key={series.displayKey+'-end'} cx={firstValue.position.x} cy={firstValue.position.y} r={firstValue.size} fill={color} opacity={0.8} stroke="#ccc"/>    
+                return <circle key={series.displayKey+'-end'} cx={firstValue.position.x} cy={firstValue.position.y} r={firstValue.size} fill={color} opacity={0.8}/>    
             } else if (series.values.length == 1) {
                 return null
             } else {
