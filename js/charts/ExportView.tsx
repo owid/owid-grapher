@@ -29,6 +29,9 @@ export default class ExportView {
         when(
             () => chart.data.isReady,
             () => setTimeout(() => {
+                Bounds.baseFontSize = 22
+                Bounds.baseFontFamily = "Helvetica, Arial"
+
                 const svg = ReactDOMServer.renderToStaticMarkup(<ChartView
                     chart={chart}
                     isExport={true}
