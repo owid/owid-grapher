@@ -6,7 +6,7 @@
  */
 
 import * as React from 'react'
-import {map, flatten, some, includes, sortBy, filter} from './Util'
+import {map, flatten, some, includes, sortBy, filter, sum} from './Util'
 import {computed, action, observable} from 'mobx'
 import {observer} from 'mobx-react'
 import {LineChartSeries, LineChartValue} from './LineChart'
@@ -110,9 +110,9 @@ export default class Lines extends React.Component<LinesProps> {
         return filter(this.renderData, g => !g.isFocus)
     }
 
-    // Don't display point markers for very long lines for performance reasons
+    // Don't display point markers if there are very many of them for performance reasons
     @computed get hasMarkers(): boolean {
-        return !!this.renderData.every(series => series.values.length < 100)
+        return sum(this.renderData.map(g => g.values.length)) < 500
     }
 
     renderFocusGroups() {
@@ -135,7 +135,7 @@ export default class Lines extends React.Component<LinesProps> {
                     markerStart={this.hasMarkers ? `url(#${series.displayKey}-circle)` : undefined}
                     markerMid={this.hasMarkers ? `url(#${series.displayKey}-circle)` : undefined}
                     markerEnd={this.hasMarkers ? `url(#${series.displayKey}-circle)` : undefined}
-                    stroke-dasharray={series.isProjection && "3,2"}
+                    stroke-dasharray={series.isProjection && "1,4"}
                 />
             </g>
         )
