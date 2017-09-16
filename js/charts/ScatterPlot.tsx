@@ -25,7 +25,6 @@ import AxisBox, {AxisBoxView} from './AxisBox'
 import ComparisonLine from './ComparisonLine'
 import {ScaleType} from './AxisScale'
 import {formatYear, first, last} from './Util'
-import {select} from 'd3-selection'
 
 @observer
 export default class ScatterPlot extends React.Component<{ bounds: Bounds, config: ChartConfig, isStatic: boolean }> {
@@ -175,16 +174,6 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
 
     @action.bound onToggleEndpoints() {
         this.transform.compareEndPointsOnly = !this.transform.compareEndPointsOnly
-    }
-
-    base: SVGGElement
-    componentDidMount() {
-        let radiuses: string[] = []
-        select(this.base).selectAll("circle").each(function() {
-            const circle = this as SVGCircleElement
-            radiuses.push(circle.getAttribute('r') as string)
-            circle.setAttribute('r', "0")
-        }).transition().duration(500).attr('r', (_, i) => radiuses[i])
     }
 
     render() {

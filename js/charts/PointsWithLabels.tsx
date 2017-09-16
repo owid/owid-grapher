@@ -19,6 +19,7 @@ import AxisScale from './AxisScale'
 import {getRelativeMouse, makeSafeForCSS} from './Util'
 import Vector2 from './Vector2'
 import {Triangle} from './Marks'
+import {select} from 'd3-selection'
 
 export interface ScatterSeries {
     color: string,
@@ -550,6 +551,15 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                     fill="#333">{l.text}</text>
             )
         })
+    }
+
+    componentDidMount() {
+        let radiuses: string[] = []
+        select(this.base).selectAll("circle").each(function() {
+            const circle = this as SVGCircleElement
+            radiuses.push(circle.getAttribute('r') as string)
+            circle.setAttribute('r', "0")
+        }).transition().duration(500).attr('r', (_, i) => radiuses[i])
     }
 
     render() {
