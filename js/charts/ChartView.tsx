@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import {observable, computed, action, reaction} from 'mobx'
+import {observable, computed, action} from 'mobx'
 import {observer} from 'mobx-react'
 import {select, selectAll} from 'd3-selection'
 import 'd3-transition'
@@ -75,24 +75,21 @@ export default class ChartView extends React.Component<ChartViewProps> {
         if (isEditor)
             return false
         else
-            return isEmbed || isExport || containerBounds.height < authorHeight || containerBounds.width < (authorWidth/authorHeight)*containerBounds.height
+            return isEmbed || isExport || containerBounds.height < authorHeight || containerBounds.width < authorWidth
     }
 
-    // In the case of an embed, our target height is specified for us; we can't change it
-    // because the embedding document won't reflow for us and it'll leave an empty gap
-    @computed get targetHeight() {
-        const {isEmbed, fitBounds, containerBounds} = this
-        return isEmbed || fitBounds ? containerBounds.height : containerBounds.height*0.9
+    // If we have a big screen to be in, we can define our own aspect ratio and sit in the center
+    @computed get paddedWidth(): number { return this.isPortrait ? this.containerBounds.width*0.9 : this.containerBounds.width*0.9 }
+    @computed get paddedHeight(): number { return this.isPortrait ? this.containerBounds.height*0.9 : this.containerBounds.height*0.9 }
+    @computed get scaleToFitIdeal(): number {
+        return Math.min(this.paddedWidth/this.authorWidth, this.paddedHeight/this.authorHeight)        
     }
-
-    @computed get targetWidth() {
-        const {fitBounds, containerBounds, authorWidth, authorHeight, targetHeight} = this
-        return fitBounds ? containerBounds.width : (authorWidth/authorHeight)*targetHeight
-    }
+    @computed get idealWidth(): number { return this.authorWidth*this.scaleToFitIdeal }
+    @computed get idealHeight(): number { return this.authorHeight*this.scaleToFitIdeal }
 
     // These are the final render dimensions
-    @computed get renderWidth() { return this.targetWidth-(this.isEmbed ? 3 : 0) }
-    @computed get renderHeight() { return this.targetHeight-(this.isEmbed ? 3 : 0) }
+    @computed get renderWidth() { return this.fitBounds ? this.containerBounds.width-(this.isEmbed ? 3 : 0) : this.idealWidth }
+    @computed get renderHeight() { return this.fitBounds ? this.containerBounds.height-(this.isEmbed ? 3 : 0) : this.idealHeight }
 
     @computed get svgBounds() {
         return (new Bounds(0, 0, this.renderWidth, this.renderHeight)).padBottom(this.isExport ? 0 : this.controlsFooter.height)

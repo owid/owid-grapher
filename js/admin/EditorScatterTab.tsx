@@ -24,6 +24,10 @@ export default class EditorScatterTab extends React.Component<{ chart: ChartConf
         this.props.chart.props.hideTimeline = value||undefined
     }
 
+    @action.bound onToggleHideLinesOutsideTolerance(value: boolean) {
+        this.props.chart.props.hideLinesOutsideTolerance = value||undefined
+    }
+
     @action.bound onXOverrideYear(value: number) {
         this.props.chart.scatter.xOverrideYear = value
     }
@@ -81,7 +85,9 @@ export default class EditorScatterTab extends React.Component<{ chart: ChartConf
             <section>
                 <h2>Timeline</h2>
                 <Toggle label="Hide timeline" value={!!chart.props.hideTimeline} onValue={this.onToggleHideTimeline}/>
+                <Toggle label="Hide entities without data for full time span (within tolerance)" value={!!chart.props.hideLinesOutsideTolerance} onValue={this.onToggleHideLinesOutsideTolerance}/>
                 <NumberField label="Override X axis target year" value={chart.scatter.xOverrideYear} onValue={debounce(this.onXOverrideYear, 300)}/>
+
                 <h2>Filtering</h2>
                 <Toggle label="Exclude observations for entities that are not countries" value={!!chart.props.matchingEntitiesOnly} onValue={action((value: boolean) => chart.props.matchingEntitiesOnly = value||undefined)}/>
                 <SelectField label="Exclude individual entities" value={""} onValue={v => v && this.onExcludeEntity(v)} options={excludedEntityChoices}/><br/>
@@ -91,12 +97,14 @@ export default class EditorScatterTab extends React.Component<{ chart: ChartConf
                         {entity}
                     </div>)}
                 </div>}
+
                 <h2>Comparison line</h2>
                 <p className="form-section-desc">Overlay a line onto the chart for comparison. Supports basic <a href="https://github.com/silentmatt/expr-eval#expression-syntax">mathematical expressions</a>.</p>
                 <label className="clickable"><input type="checkbox" checked={!!hasComparisonLine} onChange={this.onToggleComparisonLine}/> Enable comparison line</label>                
                 {hasComparisonLine && <div>
                     <label>y= <input type="text" value={comparisonLine.yEquals} placeholder="x" onChange={e => { this.comparisonLine.yEquals = e.target.value; this.save() }}/></label>
                 </div>}
+
                 <h2>Highlight toggle</h2>
                 <p className="form-section-desc">Allow users to toggle a particular chart selection state to highlight certain entities.</p>
                 <label className="clickable"><input type="checkbox" checked={!!hasHighlightToggle} onChange={this.onToggleHighlightToggle}/> Enable highlight toggle</label>

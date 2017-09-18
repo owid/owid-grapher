@@ -45,7 +45,7 @@ class NumericMapLegend {
     @computed get maxValue(): number { return max(this.numericBins.map(d => d.max)) as number }
     @computed get rangeSize(): number { return this.maxValue - this.minValue }
     @computed get categoryBinWidth(): number {
-        return Bounds.forText("No data", { fontSize: "0.5em" }).width
+        return Bounds.forText("No data", { fontSize: "0.6em" }).width
     }
     @computed get categoryBinMargin(): number { return this.rectHeight*1.5 }
     @computed get totalDefaultWidth(): number {
@@ -83,7 +83,7 @@ class NumericMapLegend {
 
     @computed get numericLabels(): NumericLabel[] {
         const {rectHeight, positionedBins} = this
-        const fontSize = "0.5em"
+        const fontSize = "0.6em"
 
         const makeBoundaryLabel = (d: PositionedBin, minOrMax: 'min'|'max', text: string) => {
             const labelBounds = Bounds.forText(text, { fontSize: fontSize })
@@ -376,7 +376,7 @@ export default class MapLegend extends React.Component<MapLegendProps> {
 
     @computed get mainLabel(): TextWrap {
         const {props} = this
-        return new TextWrap({ maxWidth: props.bounds.width, fontSize: 0.6, text: props.title })
+        return new TextWrap({ maxWidth: props.bounds.width, fontSize: 0.7, text: props.title })
     }
 
     @computed get numericFocusBracket(): MapLegendBin|undefined {

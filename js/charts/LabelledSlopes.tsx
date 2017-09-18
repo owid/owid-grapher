@@ -247,7 +247,7 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 			const [ v1, v2 ] = series.values
 			const [ x1, x2 ] = [ xScale(v1.x), xScale(v2.x) ]
 			const [ y1, y2 ] = [ yScale(v1.y), yScale(v2.y) ]
-			const fontSize = (isPortrait ? 0.5 : 0.55)
+			const fontSize = (isPortrait ? 0.6 : 0.65)
 			const leftValueStr = yTickFormat(v1.y)
 			const rightValueStr = yTickFormat(v2.y)
 			const leftValueWidth = Bounds.forText(leftValueStr, { fontSize: fontSize+'em' }).width

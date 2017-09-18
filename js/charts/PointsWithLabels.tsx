@@ -16,7 +16,7 @@ import {observer} from 'mobx-react'
 import Bounds from './Bounds'
 import NoData from './NoData'
 import AxisScale from './AxisScale'
-import {getRelativeMouse, makeSafeForCSS} from './Util'
+import {getRelativeMouse, makeSafeForCSS, intersection} from './Util'
 import Vector2 from './Vector2'
 import {Triangle} from './Marks'
 import {select} from 'd3-selection'
@@ -97,8 +97,16 @@ interface ScatterLabel {
 export default class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     @observable hoverKey: string|null = null
 
+    @computed get data(): ScatterSeries[] {
+        return this.props.data
+    }
+
+    @computed get isConnected(): boolean {
+        return some(this.data, g => g.values.length > 1)
+    }
+
     @computed get focusKeys(): string[] {
-        return this.props.focusKeys || []
+        return intersection(this.props.focusKeys||[], this.data.map(g => g.key))
     }
 
     @computed get hoverKeys(): string[] {
@@ -111,10 +119,6 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         return this.focusKeys.length > 0 || this.hoverKeys.length > 0
     }
 
-    @computed get data(): ScatterSeries[] {
-        return this.props.data
-    }
-
     @computed get bounds(): Bounds {
         return this.props.bounds
     }
@@ -125,10 +129,6 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
     @computed get yScale(): AxisScale {
         return this.props.yScale.extend({ range: this.bounds.yRange() })
-    }
-
-    @computed get isConnected(): boolean {
-        return some(this.data, series => series.values.length > 1)
     }
 
     // When focusing multiple entities, we hide some information to declutter
@@ -389,7 +389,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                 /*if (some(series.allLabels, l => !l.isHidden && l.bounds.contains(mouse)))
                     return -Infinity*/
 
-                if (this.isConnected) {
+                if (series.values.length > 1) {
                     return min(map(series.values.slice(0, -1), (d, i) => {
                         return Vector2.distanceFromPointToLineSq(mouse, d.position, series.values[i+1].position)
                     }))
@@ -425,16 +425,15 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     }
 
     renderBackgroundLines() {
-        const {backgroundGroups, isConnected, isLayerMode} = this
+        const {backgroundGroups, isLayerMode, isConnected} = this
 
         return map(backgroundGroups, series => {
             const firstValue = first(series.values) as ScatterRenderValue
             const color = !isLayerMode ? series.color : "#e2e2e2"            
 
-            if (!isConnected) {
-                return <circle key={series.displayKey+'-end'} cx={firstValue.position.x} cy={firstValue.position.y} r={firstValue.size} fill={color} opacity={0.8}/>    
-            } else if (series.values.length == 1) {
-                return null
+            if (series.values.length == 1) {
+                const size = isConnected ? 1+firstValue.size/16 : firstValue.size
+                return <circle key={series.displayKey+'-end'} cx={firstValue.position.x} cy={firstValue.position.y} r={size} fill={color} opacity={0.8}/>    
             } else {
                 const lastValue = last(series.values) as ScatterRenderValue
                 let rotation = Vector2.angle(series.offsetVector, Vector2.up)

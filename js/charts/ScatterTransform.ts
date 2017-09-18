@@ -504,12 +504,14 @@ export default class ScatterTransform implements IChartTransform {
 
         currentData = currentData.filter(series => {
             // No point trying to render series with no valid points!
-            return series.values.length > 0
+            if (series.values.length == 0)
+                return false
 
-            // This disabled behavior prevents showing data unless it spans the whole timeline range
-            // We decided not to do this because it's confusing to have a series disappear when you're moving the timeline
-
-            // && ((first(series.values).year == startYear && (last(series.values).year == endYear || first(series.values).year == startYear)) || includes(this.chart.data.selectedKeys, series.key))
+            // Hide lines which don't cover the full span
+            if (this.chart.props.hideLinesOutsideTolerance)
+                return first(series.values).year == startYear && last(series.values).year == endYear
+            
+            return true
         })
 
         if (compareEndPointsOnly) {

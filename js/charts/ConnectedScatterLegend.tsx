@@ -17,7 +17,7 @@ export default class ConnectedScatterLegend {
         this.props = props
     }
 
-    @computed get fontSize(): number { return 0.5 }
+    @computed get fontSize(): number { return 0.6 }
     @computed get fontColor(): string { return "#333" }
     @computed get maxLabelWidth(): number { return this.props.maxWidth/3 }
 

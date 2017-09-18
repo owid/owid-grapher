@@ -50,7 +50,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     }
 
     @computed get timeline(): Timeline|null {
-        if (this.props.isStatic || !this.transform.hasTimeline) return null
+        if (this.props.isStatic || !this.transform.hasTimeline || this.transform.timelineYears.length == 0) return null
 
         const {bounds, transform, onTargetChange} = this
         const {timelineYears, startYear, endYear} = transform
@@ -176,13 +176,14 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         this.transform.compareEndPointsOnly = !this.transform.compareEndPointsOnly
     }
 
-    render() {
+    renderInner() {
         if (this.transform.failMessage)
             return <NoData bounds={this.bounds} message={this.transform.failMessage}/>
 
-        const {transform, bounds, axisBox, timeline, legend, focusKeys, hoverKeys, focusColors, arrowLegend, sidebarWidth, tooltipSeries, comparisonLine} = this
+        const {transform, bounds, axisBox, legend, focusKeys, hoverKeys, focusColors, arrowLegend, sidebarWidth, tooltipSeries, comparisonLine} = this
         const {currentData, sizeDomain} = transform
-        return <g className="ScatterPlot">
+
+        return <g>
             <AxisBoxView axisBox={axisBox} onXScaleChange={this.onXScaleChange} onYScaleChange={this.onYScaleChange}/>
             {comparisonLine && <ComparisonLine axisBox={axisBox} comparisonLine={comparisonLine}/>}
             <PointsWithLabels data={currentData} bounds={axisBox.innerBounds} xScale={axisBox.xScale} yScale={axisBox.yScale} sizeDomain={sizeDomain} onSelectEntity={this.onSelectEntity} focusKeys={focusKeys} hoverKeys={hoverKeys} onMouseOver={this.onScatterMouseOver} onMouseLeave={this.onScatterMouseLeave}/>
@@ -191,8 +192,15 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
             {arrowLegend && <g className="clickable" onClick={this.onToggleEndpoints}>
                 {arrowLegend.render(bounds.right-sidebarWidth, bounds.top+legend.height+11)}
             </g>}
-            {timeline && <Timeline {...timeline.props} onStartDrag={this.onTimelineStart} onStopDrag={this.onTimelineStop}/>}
             {tooltipSeries && <ScatterTooltip formatY={transform.yFormatTooltip} formatX={transform.xFormatTooltip} series={tooltipSeries} maxWidth={sidebarWidth} x={bounds.right-sidebarWidth} y={bounds.top+legend.height+11+(arrowLegend ? arrowLegend.height+10 : 0)}/>}
+        </g>
+    }
+
+    render() {
+        const {timeline} = this
+        return <g className="ScatterPlot">
+            {this.renderInner()}
+            {timeline && <Timeline {...timeline.props} onStartDrag={this.onTimelineStart} onStopDrag={this.onTimelineStop}/>}
         </g>
     }
 }

@@ -126,7 +126,9 @@ export class ChartConfigProps {
     @observable.ref isPublished?: true = undefined
     @observable.ref baseColorScheme?: string = undefined
 
+    // Currently scatterplot-specific options
     @observable.ref hideTimeline?: true = undefined
+    @observable.ref hideLinesOutsideTolerance?: true = undefined
     @observable.ref compareEndPointsOnly?: true = undefined
     @observable.ref matchingEntitiesOnly?: true = undefined
     @observable.struct excludedEntities?: number[] = undefined
