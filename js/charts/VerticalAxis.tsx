@@ -15,7 +15,7 @@ interface VerticalAxisProps {
 
 // Axis layout model. Computes the space needed for displaying an axis.
 export default class VerticalAxis {
-    static tickFontSize = "0.65em"
+    static tickFontSize = "0.8em"
 
     props: VerticalAxisProps
     constructor(props: VerticalAxisProps) {
@@ -24,7 +24,7 @@ export default class VerticalAxis {
 
     @computed get label(): TextWrap|undefined {
         const {props, height} = this
-        return props.labelText ? new TextWrap({ maxWidth: height, fontSize: 0.5, text: props.labelText}) : undefined
+        return props.labelText ? new TextWrap({ maxWidth: height, fontSize: 0.7, text: props.labelText}) : undefined
     }
 
     @computed get labelOffset(): number {

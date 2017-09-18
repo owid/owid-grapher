@@ -34,7 +34,7 @@ interface HeightedLegendMark {
 export default class HeightedLegend {
     props: HeightedLegendProps
 
-    @computed get fontSize(): number { return 0.6 }
+    @computed get fontSize(): number { return 0.75 }
     @computed get rectSize(): number { return 10 }
     @computed get rectPadding(): number { return 5 }
     @computed get maxWidth() { return defaultTo(this.props.maxWidth, Infinity) }

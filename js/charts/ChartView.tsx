@@ -39,9 +39,12 @@ export default class ChartView extends React.Component<ChartViewProps> {
         function render() {
             const rect = containerNode.getBoundingClientRect()
             const containerBounds = Bounds.fromRect(rect)
-            chartView = ReactDOM.render(<ChartView bounds={containerBounds} chart={chart} isEditor={isEditor}/>, containerNode)
-            Bounds.baseFontSize = (chartView as ChartView).baseFontSize
+
+            Bounds.baseFontSize = 16
             Bounds.baseFontFamily = "Helvetica, Arial"
+            if (containerBounds.width > 850)
+                Bounds.baseFontSize = 18
+            chartView = ReactDOM.render(<ChartView bounds={containerBounds} chart={chart} isEditor={isEditor}/>, containerNode)
         }
 
         render()
@@ -58,10 +61,14 @@ export default class ChartView extends React.Component<ChartViewProps> {
 
     @computed get containerBounds() { return this.props.bounds }
 
+
+    @computed get isPortrait() { return this.containerBounds.width < this.containerBounds.height }
+    @computed get isLandscape() { return !this.isPortrait }
+
     @computed get authorWidth() { return this.isPortrait ? 400 : 850 }
     @computed get authorHeight() { return this.isPortrait ? 640 : 600 }
 
-    // If the chart is an embed, or if the available space is very small, we use all of the space given to us
+    // If the available space is very small, we use all of the space given to us
     @computed get fitBounds(): boolean {
         const {isEditor, isEmbed, isExport, containerBounds, authorWidth, authorHeight} = this
 
@@ -71,21 +78,21 @@ export default class ChartView extends React.Component<ChartViewProps> {
             return isEmbed || isExport || containerBounds.width < authorWidth || containerBounds.height < authorHeight
     }
 
-    @computed get isPortrait() { return this.containerBounds.width < this.containerBounds.height }
-    @computed get isLandscape() { return !this.isPortrait }
-
-    // If we have a big screen to be in, we can define our own aspect ratio and sit in the center
-    @computed get paddedWidth(): number { return this.isPortrait ? this.containerBounds.width*0.9 : this.containerBounds.width*0.9 }
-    @computed get paddedHeight(): number { return this.isPortrait ? this.containerBounds.height*0.9 : this.containerBounds.height*0.9 }
-    @computed get scaleToFitIdeal(): number {
-        return Math.min(this.paddedWidth/this.authorWidth, this.paddedHeight/this.authorHeight)        
+    // In the case of an embed, our target height is specified for us; we can't change it
+    // because the embedding document won't reflow for us and it'll leave an empty gap
+    @computed get targetHeight() {
+        const {isEmbed, fitBounds, containerBounds} = this
+        return isEmbed || fitBounds ? containerBounds.height : containerBounds.height*0.9
     }
-    @computed get idealWidth(): number { return this.authorWidth*this.scaleToFitIdeal }
-    @computed get idealHeight(): number { return this.authorHeight*this.scaleToFitIdeal }
 
-    // These are the final target render dimensions
-    @computed get renderWidth() { return this.fitBounds ? this.containerBounds.width-(this.isEmbed ? 3 : 0) : this.idealWidth }
-    @computed get renderHeight() { return this.fitBounds ? this.containerBounds.height-(this.isEmbed ? 3 : 0) : this.idealHeight }
+    @computed get targetWidth() {
+        const {fitBounds, containerBounds, authorWidth, authorHeight, targetHeight} = this
+        return fitBounds ? containerBounds.width : (authorWidth/authorHeight)*targetHeight
+    }
+
+    // These are the final render dimensions
+    @computed get renderWidth() { return this.targetWidth-(this.isEmbed ? 3 : 0) }
+    @computed get renderHeight() { return this.targetHeight-(this.isEmbed ? 3 : 0) }
 
     @computed get svgBounds() {
         return (new Bounds(0, 0, this.renderWidth, this.renderHeight)).padBottom(this.isExport ? 0 : this.controlsFooter.height)
@@ -93,10 +100,6 @@ export default class ChartView extends React.Component<ChartViewProps> {
 
     @computed get svgInnerBounds() {
         return new Bounds(0, 0, this.svgBounds.width, this.svgBounds.height).pad(15)
-    }
-
-    @computed get baseFontSize() {
-        return Math.min(24, Math.max(20, 22*this.scaleToFitIdeal))
     }
 
     @observable popups: VNode[] = []
@@ -167,7 +170,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
 
         const svgStyle = {
             fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
-            fontSize: this.baseFontSize,
+            fontSize: Bounds.baseFontSize,
             backgroundColor: "white"
         }
 

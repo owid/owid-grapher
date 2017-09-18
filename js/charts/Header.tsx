@@ -107,10 +107,10 @@ export default class Header {
 
         // Try to fit the title into a single line if possible-- but not if it would make the text super small
         let title: TextWrap
-        let fontSize = 1.25
+        let fontSize = 1.5
         while (true) {
             title = new TextWrap({ maxWidth: maxWidth, fontSize: fontSize, text: titleText, lineHeight: 1 })
-            if (fontSize <= 0.9 || title.lines.length <= 1)
+            if (fontSize <= 1 || title.lines.length <= 1)
                 break
             fontSize -= 0.05
         }
@@ -128,7 +128,7 @@ export default class Header {
         const _this = this
         return new TextWrap({
             get maxWidth() { return _this.subtitleWidth },
-            get fontSize() { return 0.6 },
+            get fontSize() { return 0.8 },
             get text() { return _this.subtitleText }
         })
     }
