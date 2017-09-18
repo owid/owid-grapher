@@ -332,7 +332,7 @@ export default class Timeline extends React.Component<TimelineProps> {
 		const { bounds, sliderBounds, minYear, maxYear, minYearBox, maxYearBox, xScale, years, isPlaying, startYear, endYear, targetStartYear, targetEndYear } = this
 
         const toggleText = isPlaying ? "\uf04c" : "\uf04b"
-        const toggleFontSize = "1em"
+        const toggleFontSize = "1.1em"
         const toggleTextBounds = Bounds.forText(toggleText, { fontSize: toggleFontSize })
 
 		return <g className="clickable" onTouchStart={this.onMouseDown} onMouseDown={this.onMouseDown}>
@@ -340,8 +340,8 @@ export default class Timeline extends React.Component<TimelineProps> {
             <Text className="toggle" onClick={() => this.isPlaying = !this.isPlaying} x={bounds.left+10} y={bounds.centerY-toggleTextBounds.height/2} fontFamily="FontAwesome" fontSize={toggleFontSize}>
                 {toggleText}
 			</Text>
-			<Text className="minYearLabel" x={minYearBox.x} y={minYearBox.y} fontSize="0.8em" fill="#666">{formatYear(minYear)}</Text>
-            <Text className="maxYearLabel" x={maxYearBox.x} y={maxYearBox.y} fontSize="0.8em" fill="#666">{maxYear.toString()}</Text>
+			<Text className="minYearLabel" x={minYearBox.x} y={minYearBox.y} fontSize="0.9em" fill="#666">{formatYear(minYear)}</Text>
+            <Text className="maxYearLabel" x={maxYearBox.x} y={maxYearBox.y} fontSize="0.9em" fill="#666">{maxYear.toString()}</Text>
 			<g className="ticks">
 				{years.slice(1, -1).map(year => {
 					return <rect className="tick" x={xScale(year)} y={sliderBounds.top+sliderBounds.height-1} width="1px" height="0.2em" fill="rgba(0,0,0,0.2)" />
@@ -362,7 +362,7 @@ class TimelineHandle extends React.Component<any> {
 
         return <g className="handle" fill="#3F9EFF" transform={`translate(${xScale(year)}, ${bounds.top+bounds.height/2})`}>
             <circle className={handleClass} r={8} stroke="#000" stroke-width={0.1}/>
-            <text y={-9} font-size="0.7em" text-anchor="middle">
+            <text y={-9} font-size="0.8em" text-anchor="middle">
                 {label}
             </text>
         </g>
