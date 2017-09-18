@@ -41,7 +41,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
     }
 
     @computed get legendFontSize() {
-        return 0.7 
+        return 0.85
     }
 
     // Account for the width of the legend
@@ -52,7 +52,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
 
     // Account for the width of the little value labels at the end of bars
     @computed get valueFontSize() {
-        return 0.6
+        return 0.75
     }
 
     @computed get maxValueWidth(): number {
@@ -154,7 +154,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
                 const result = <g className="bar">
                     <text x={bounds.left+legendWidth-5} y={yOffset} fill="#666" dominant-baseline="middle" textAnchor="end" fontSize={valueFontSize+'em'}>{d.label}</text>
                     <rect x={barX} y={yOffset-barHeight/2} width={barWidth} height={barHeight} fill={d.color} opacity={0.85}/>
-                    <text x={xScale.place(d.value) + (isNegative ? -5 : 5)} y={yOffset} fill="#666" dominant-baseline="middle" textAnchor={isNegative ? "end" : "start"} fontSize="0.55em">{barValueFormat(d)}</text>
+                    <text x={xScale.place(d.value) + (isNegative ? -5 : 5)} y={yOffset} fill="#666" dominant-baseline="middle" textAnchor={isNegative ? "end" : "start"} fontSize={this.valueFontSize+'em'}>{barValueFormat(d)}</text>
                 </g>
                 yOffset += barHeight+barSpacing
                 return result
