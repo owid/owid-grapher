@@ -56,7 +56,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
 
     @computed get isExport() { return !!this.props.isExport }
     @computed get isEditor() { return !!this.props.isEditor }
-    @computed get isEmbed() { return window.self != window.top || this.isEditor }
+    @computed get isEmbed() { return !this.isExport && (window.self != window.top || this.isEditor) }
     @computed get isMobile() { return select('html').classed('touchevents') }
 
     @computed get containerBounds() { return this.props.bounds }
