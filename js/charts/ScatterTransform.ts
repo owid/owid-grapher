@@ -527,7 +527,11 @@ export default class ScatterTransform implements IChartTransform {
                     y: cagrY(indexValue, targetValue),
                     size: targetValue.size,
                     year: targetValue.year,
-                    time: targetValue.time
+                    time: {
+                        y: targetValue.time.y,
+                        x: targetValue.time.x,
+                        span: [indexValue.time.y, targetValue.time.y]
+                    }
                 }]
             })
         }

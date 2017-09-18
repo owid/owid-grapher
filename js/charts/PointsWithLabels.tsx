@@ -36,7 +36,8 @@ export interface ScatterValue {
     year: number
     time: {
         x: number,
-        y: number
+        y: number,
+        span?: [number, number]
     }
 }
 
