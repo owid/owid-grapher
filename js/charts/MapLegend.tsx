@@ -263,7 +263,7 @@ interface MarkLine {
 class CategoricalMapLegend extends React.Component<CategoricalMapLegendProps> {
     @computed get markLines(): MarkLine[] {
         const props = this.props, rectSize = 10*props.scale,
-              rectPadding = 3, markPadding = 5, fontSize = (0.45*props.scale)+"em"
+              rectPadding = 5, markPadding = 5, fontSize = (0.6*props.scale)+"em"
 
         const lines: MarkLine[] = []
         let marks: CategoricalMark[] = [], xOffset = 0, yOffset = 0

@@ -15,7 +15,7 @@ interface VerticalAxisProps {
 
 // Axis layout model. Computes the space needed for displaying an axis.
 export default class VerticalAxis {
-    static tickFontSize = "0.8em"
+    static tickFontSize = "0.9em"
 
     props: VerticalAxisProps
     constructor(props: VerticalAxisProps) {

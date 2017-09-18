@@ -41,9 +41,13 @@ export default class ChartView extends React.Component<ChartViewProps> {
             const containerBounds = Bounds.fromRect(rect)
 
             Bounds.baseFontSize = 16
-            Bounds.baseFontFamily = "Helvetica, Arial"
-            if (containerBounds.width > 850)
+            if (containerBounds.width <= 350)
+                Bounds.baseFontSize = 14
+            else if (containerBounds.width >= 1080)
                 Bounds.baseFontSize = 18
+            Bounds.baseFontFamily = "Helvetica, Arial"
+            //if (containerBounds.width > 850)
+            //    Bounds.baseFontSize = 18
             chartView = ReactDOM.render(<ChartView bounds={containerBounds} chart={chart} isEditor={isEditor}/>, containerNode)
         }
 
@@ -199,7 +203,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
         } else{
             const {renderWidth, renderHeight} = this
 
-            const style = { width: renderWidth, height: renderHeight, fontSize: 16 }
+            const style = { width: renderWidth, height: renderHeight, fontSize: Bounds.baseFontSize }
 
             return <div id="chart" className={this.classNames} style={style}>
                 {this.chart.data.isReady ? this.renderReady() : this.renderLoading()}

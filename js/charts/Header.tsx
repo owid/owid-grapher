@@ -110,7 +110,7 @@ export default class Header {
         let fontSize = 1.5
         while (true) {
             title = new TextWrap({ maxWidth: maxWidth, fontSize: fontSize, text: titleText, lineHeight: 1 })
-            if (fontSize <= 1 || title.lines.length <= 1)
+            if (fontSize <= 1.2 || title.lines.length <= 1)
                 break
             fontSize -= 0.05
         }
@@ -128,7 +128,7 @@ export default class Header {
         const _this = this
         return new TextWrap({
             get maxWidth() { return _this.subtitleWidth },
-            get fontSize() { return 0.8 },
+            get fontSize() { return 0.85 },
             get text() { return _this.subtitleText }
         })
     }
