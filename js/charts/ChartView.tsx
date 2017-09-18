@@ -75,7 +75,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
         if (isEditor)
             return false
         else
-            return isEmbed || isExport || containerBounds.width < authorWidth || containerBounds.height < authorHeight
+            return isEmbed || isExport || containerBounds.height < authorHeight || containerBounds.width < (authorWidth/authorHeight)*containerBounds.height
     }
 
     // In the case of an embed, our target height is specified for us; we can't change it
