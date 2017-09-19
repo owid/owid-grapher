@@ -84,13 +84,6 @@ export function getRelativeMouse(node: SVGElement, event: any): Vector2 {
   return new Vector2(clientX - rect.left - node.clientLeft, clientY - rect.top - node.clientTop)
 };
 
-// Create an instance of a JSX node before rendering
-// Used for when we need to precalculate bounds
-export function preInstantiate(vnode: VNode) {
-    return new vnode.nodeName(vnode.props)
-}
-
-
 // Make an arbitrary string workable as a css class name
 export function makeSafeForCSS(name: string) {
     return name.replace(/[^a-z0-9]/g, function(s) {

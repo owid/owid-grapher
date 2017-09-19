@@ -4,8 +4,8 @@ import {observable, computed, action} from 'mobx'
 import {observer} from 'mobx-react'
 import ChoroplethMap, {ChoroplethData, GeoFeature, MapBracket, MapEntity} from './ChoroplethMap'
 import Timeline from './Timeline'
-import MapLegend from './MapLegend'
-import {getRelativeMouse, preInstantiate, formatValue} from './Util'
+import MapLegend, {MapLegendView} from './MapLegend'
+import {getRelativeMouse, formatValue, isString} from './Util'
 import Header from './Header'
 import SourcesFooter from './SourcesFooter'
 import ChartConfig from './ChartConfig'
@@ -47,7 +47,7 @@ class TimelineMap extends React.Component<TimelineMapProps> {
             this.tooltip = <Tooltip x={mouse.x} y={mouse.y} style={{textAlign: "center"}}>
                 <h3 style={{padding: "0.3em 0.9em", margin: 0, backgroundColor: "#fcfcfc", borderBottom: "1px solid #ebebeb", fontWeight: "normal", fontSize: "1em"}}>{datum.entity}</h3>
                 <p style={{margin: 0, padding: "0.3em 0.9em", fontSize: "0.8em"}}>
-                    <span>{formatValue(datum.value as number, { unit: chart.map.data.variable.unit })}</span><br/>
+                    <span>{isString(datum.value) ? datum.value : formatValue(datum.value as number, { unit: chart.map.data.variable.unit })}</span><br/>
                     in<br/>
                     <span>{datum.year}</span>
                 </p>
@@ -98,9 +98,14 @@ class TimelineMap extends React.Component<TimelineMapProps> {
     }
 
     @computed get mapLegend(): MapLegend {
-        const {legendData, legendTitle} = this.props
-        const {focusBracket, focusEntity, timelineHeight} = this
-        return preInstantiate(<MapLegend bounds={this.props.bounds.padBottom(timelineHeight+5)} legendData={legendData} title={legendTitle} focusBracket={focusBracket} focusEntity={focusEntity} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave}/>)
+        const that = this
+        return new MapLegend({
+            get bounds() { return that.props.bounds.padBottom(that.timelineHeight+5) },
+            get legendData() { return that.props.legendData },
+            get title() { return that.props.legendTitle },
+            get focusBracket() { return that.focusBracket },
+            get focusEntity() { return that.focusEntity }
+        })
     }
 
     componentDidMount() {
@@ -121,7 +126,7 @@ class TimelineMap extends React.Component<TimelineMapProps> {
         return <g className="mapTab">
             {/*<rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height-timelineHeight} fill="#ecf6fc"/>*/}
             <ChoroplethMap bounds={bounds.padBottom(timelineHeight+mapLegend.height+15)} choroplethData={choroplethData} projection={projection} defaultFill={defaultFill} onHover={this.onMapMouseOver} onHoverStop={this.onMapMouseLeave} onClick={this.onClick} focusBracket={focusBracket} focusEntity={focusEntity}/>
-            <MapLegend {...mapLegend.props}/>
+            <MapLegendView legend={mapLegend} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave}/>
             {hasTimeline && <Timeline bounds={this.props.bounds.fromBottom(timelineHeight)} onTargetChange={this.onTargetChange} years={years} startYear={inputYear} endYear={inputYear} singleYearMode={true}/>}
             {tooltip}
         </g>
