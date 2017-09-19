@@ -21,7 +21,7 @@
 			{% for result in results %}
                 {% if not result.new.matched %}
                 <tr class="table-danger">
-					<td id="{{ forloop.counter }}-original">{{ result.original }}</td>
+					<td id="{{ forloop.counter }}-original"><pre>{{ result.original }}</pre></td>
                     <td>
                         <label for="{{ forloop.counter }}-select">Select an approximated result:</label>
 		                    <select class="form-control" id="{{ forloop.counter }}-select" name="{{ forloop.counter }}">
