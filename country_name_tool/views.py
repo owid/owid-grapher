@@ -35,7 +35,7 @@ def process_countries(country_list, input_type, output_type):
             if "----custom_name----" not in each:
                 if contains_alphabetic(each):
                     if each not in unique_country_names:
-                        if all_country_dict.get(each.lower(), 0):
+                        if all_country_dict.get(each.lower(), 0) and each.lower().strip() != 'micronesia':
                             result_list.append(
                                 {'matched': True, 'country': all_country_dict[each.lower()].owid_name})
                             unique_country_names[each] = {'matched': True, 'country': all_country_dict[each.lower()].owid_name}
@@ -322,7 +322,9 @@ def country_tool_page(request):
 
             for i in range(1, len(json_data)):
                 if not json_data[i][len(json_data[i]) - 1] and json_data[i][0] not in country_list:
-                    if not isinstance(selections[json_data[i][0]], dict):  # checking if the selection contains a custom name
+                    if not isinstance(selections[json_data[i][0]],
+                                      dict) and json_data[i][0].lower().strip() != 'micronesia':
+                        # checking if the selection contains a custom name or the name micronesia
                         new_country_name = CountryName()
                         owid_country_name = CountryData.objects.filter(owid_name=selections[json_data[i][0]])
                         if not owid_country_name:
@@ -336,11 +338,18 @@ def country_tool_page(request):
 
                 if selections.get(json_data[i][0]):
                     if not isinstance(selections[json_data[i][0]],
-                                      dict):  # checking if the selection contains a custom name
+                                      dict) and json_data[i][0].lower().strip() != 'micronesia':
+                        # checking if the selection contains a custom name or the name micronesia
                         country_list.append(json_data[i][0])
                     else:
                         # sending the custom name to process_countries with a special separator, so that we can skip matching these countries
-                        country_list.append(json_data[i][0] + "----custom_name----" + selections[json_data[i][0]]["custom_name"])
+                        if isinstance(selections[json_data[i][0]], dict):
+                            # if the custom name was entered in the text box
+                            country_list.append(json_data[i][0] + "----custom_name----" + selections[json_data[i][0]]["custom_name"])
+                        else:
+                            # this should happen rarely. For instance, when matching the name Micronesia
+                            country_list.append(
+                                json_data[i][0] + "----custom_name----" + selections[json_data[i][0]])
                 else:
                     country_list.append(json_data[i][0])
                 varcounter = 0

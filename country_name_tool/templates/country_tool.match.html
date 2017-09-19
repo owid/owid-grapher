@@ -56,7 +56,7 @@
         <script>
             $(document).ready(function() {
                     $("select").change(function (event) {
-                        data["selections"][$('#' + event.target.id.substr(0, event.target.id.indexOf('-')) + '-original').html().replace(/&amp;/g, '&')] = $('#' + event.target.id).val();
+                        data["selections"][$('#' + event.target.id.substr(0, event.target.id.indexOf('-')) + '-original').text()] = $('#' + event.target.id).val();
                     });
             });
 
@@ -64,11 +64,11 @@
                 $("input").change(function(event) {
                     if ($('#' + event.target.id).val().length > 0) {
                         $('#' + event.target.id.substr(0, event.target.id.indexOf('-')) + '-select').val("not selected");
-                        data["selections"][$('#' + event.target.id.substr(0, event.target.id.indexOf('-')) + '-original').html()] = {"custom_name": $('#' + event.target.id).val()};
+                        data["selections"][$('#' + event.target.id.substr(0, event.target.id.indexOf('-')) + '-original').text()] = {"custom_name": $('#' + event.target.id).val()};
                     }
                     else {
                         $('#' + event.target.id.substr(0, event.target.id.indexOf('-')) + '-select').val("not selected");
-                        data["selections"][$('#' + event.target.id.substr(0, event.target.id.indexOf('-')) + '-original').html()] = "not selected";
+                        data["selections"][$('#' + event.target.id.substr(0, event.target.id.indexOf('-')) + '-original').text()] = "not selected";
                     }
                 });
             });
