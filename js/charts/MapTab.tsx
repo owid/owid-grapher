@@ -88,16 +88,13 @@ class TimelineMap extends React.Component<TimelineMapProps> {
         this.focusBracket = null
     }
 
-    @computed get timeline(): Timeline|null {
-        if (this.props.years.length <= 1 || this.context.chartView.isExport) return null
 
-        const {years, inputYear} = this.props
-
-        return preInstantiate(<Timeline bounds={this.props.bounds.fromBottom(35)} onTargetChange={this.onTargetChange} years={years} startYear={inputYear} endYear={inputYear} singleYearMode={true}/>)
+    @computed get hasTimeline(): boolean {
+        return this.props.years.length > 1 && !this.context.chartView.isExport
     }
 
     @computed get timelineHeight(): number {
-        return this.timeline ? this.timeline.height : 10
+        return this.hasTimeline ? 35 : 10
     }
 
     @computed get mapLegend(): MapLegend {
@@ -119,13 +116,13 @@ class TimelineMap extends React.Component<TimelineMapProps> {
 
     render() {
         const { choroplethData, projection, defaultFill } = this.props
-        let { bounds } = this.props
-        const {focusBracket, focusEntity, timeline, timelineHeight, mapLegend, tooltip} = this
+        let { bounds, years, inputYear } = this.props
+        const {focusBracket, focusEntity, hasTimeline, timelineHeight, mapLegend, tooltip} = this
         return <g className="mapTab">
             {/*<rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height-timelineHeight} fill="#ecf6fc"/>*/}
             <ChoroplethMap bounds={bounds.padBottom(timelineHeight+mapLegend.height+15)} choroplethData={choroplethData} projection={projection} defaultFill={defaultFill} onHover={this.onMapMouseOver} onHoverStop={this.onMapMouseLeave} onClick={this.onClick} focusBracket={focusBracket} focusEntity={focusEntity}/>
             <MapLegend {...mapLegend.props}/>
-            {timeline && <Timeline {...timeline.props}/>}
+            {hasTimeline && <Timeline bounds={this.props.bounds.fromBottom(timelineHeight)} onTargetChange={this.onTargetChange} years={years} startYear={inputYear} endYear={inputYear} singleYearMode={true}/>}
             {tooltip}
         </g>
     }

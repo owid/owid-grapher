@@ -17,10 +17,9 @@ import ChartConfig from './ChartConfig'
 import NoData from './NoData'
 import Timeline from './Timeline'
 import PointsWithLabels, {ScatterSeries, ScatterValue} from './PointsWithLabels'
-import {preInstantiate} from './Util'
 import TextWrap from './TextWrap'
 import ConnectedScatterLegend from './ConnectedScatterLegend'
-import ScatterColorLegend from './ScatterColorLegend'
+import ScatterColorLegend, {ScatterColorLegendView} from './ScatterColorLegend'
 import AxisBox, {AxisBoxView} from './AxisBox'
 import ComparisonLine from './ComparisonLine'
 import {ScaleType} from './AxisScale'
@@ -49,22 +48,21 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
             this.chart.data.toggleKey(datakey)
     }
 
-    @computed get timeline(): Timeline|null {
-        if (this.props.isStatic || !this.transform.hasTimeline || this.transform.timelineYears.length == 0) return null
-
-        const {bounds, transform, onTargetChange} = this
-        const {timelineYears, startYear, endYear} = transform
-        return preInstantiate(
-            <Timeline bounds={bounds.fromBottom(35)} onTargetChange={onTargetChange} years={timelineYears} startYear={startYear} endYear={endYear}/>
-        )
+    @computed get hasTimeline(): boolean {
+        return this.transform.hasTimeline && this.transform.timelineYears.length > 0 && !this.props.isStatic
     }
 
-    @computed.struct get timelineHeight(): number {
-        return this.timeline ? this.timeline.height : 0
+    @computed get timelineHeight(): number {
+        return this.hasTimeline ? 35 : 0
     }
 
     @computed get legend(): ScatterColorLegend {
-        return preInstantiate(<ScatterColorLegend maxWidth={this.sidebarMaxWidth} colors={this.transform.colorsInUse} scale={this.transform.colorScale}/>)
+        const that = this
+        return new ScatterColorLegend({
+            get maxWidth() { return that.sidebarMaxWidth },
+            get colors() { return that.transform.colorsInUse },
+            get scale() { return that.transform.colorScale }
+        })
     }
 
     @observable focusColors: string[] = []
@@ -187,7 +185,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
             <AxisBoxView axisBox={axisBox} onXScaleChange={this.onXScaleChange} onYScaleChange={this.onYScaleChange}/>
             {comparisonLine && <ComparisonLine axisBox={axisBox} comparisonLine={comparisonLine}/>}
             <PointsWithLabels data={currentData} bounds={axisBox.innerBounds} xScale={axisBox.xScale} yScale={axisBox.yScale} sizeDomain={sizeDomain} onSelectEntity={this.onSelectEntity} focusKeys={focusKeys} hoverKeys={hoverKeys} onMouseOver={this.onScatterMouseOver} onMouseLeave={this.onScatterMouseLeave}/>
-            <ScatterColorLegend {...legend.props} x={bounds.right-sidebarWidth} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} onClick={this.onLegendClick} focusColors={focusColors}/>
+            <ScatterColorLegendView legend={legend} x={bounds.right-sidebarWidth} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} onClick={this.onLegendClick} focusColors={focusColors}/>
             {(arrowLegend||tooltipSeries) && <line x1={bounds.right-sidebarWidth} y1={bounds.top+legend.height+2} x2={bounds.right-5} y2={bounds.top+legend.height+2} stroke="#ccc"/>}
             {arrowLegend && <g className="clickable" onClick={this.onToggleEndpoints}>
                 {arrowLegend.render(bounds.right-sidebarWidth, bounds.top+legend.height+11)}
@@ -196,11 +194,27 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         </g>
     }
 
+    renderTimeline(): JSX.Element|undefined {
+        const {hasTimeline} = this
+        if (!hasTimeline) return undefined
+
+        const {bounds, transform, onTargetChange} = this
+        const {timelineYears, startYear, endYear} = transform
+
+        return <Timeline 
+            bounds={bounds.fromBottom(35)} 
+            onTargetChange={onTargetChange} 
+            years={timelineYears} 
+            startYear={startYear} 
+            endYear={endYear} 
+            onStartDrag={this.onTimelineStart} 
+            onStopDrag={this.onTimelineStop}/>
+    }
+
     render() {
-        const {timeline} = this
         return <g className="ScatterPlot">
             {this.renderInner()}
-            {timeline && <Timeline {...timeline.props} onStartDrag={this.onTimelineStart} onStopDrag={this.onTimelineStop}/>}
+            {this.renderTimeline()}
         </g>
     }
 }
