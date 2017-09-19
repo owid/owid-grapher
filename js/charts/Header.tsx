@@ -128,7 +128,7 @@ export default class Header {
         const _this = this
         return new TextWrap({
             get maxWidth() { return _this.subtitleWidth },
-            get fontSize() { return 0.85 },
+            get fontSize() { return 0.8 },
             get text() { return _this.subtitleText }
         })
     }

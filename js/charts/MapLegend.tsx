@@ -38,6 +38,7 @@ class NumericMapLegend {
     @computed get focusBracket() { return this.props.focusBracket }
     @computed get numericBins(): NumericBin[] { return this.props.legendData.filter(l => l instanceof NumericBin) as NumericBin[] }
     @computed get rectHeight(): number { return 10 }
+    @computed get tickFontSize(): number { return 0.75 }
 
     // NumericMapLegend wants to map a range to a width. However, sometimes we are given
     // data without a clear min/max. So we must fit these scurrilous bins into the width somehow.
@@ -45,7 +46,7 @@ class NumericMapLegend {
     @computed get maxValue(): number { return max(this.numericBins.map(d => d.max)) as number }
     @computed get rangeSize(): number { return this.maxValue - this.minValue }
     @computed get categoryBinWidth(): number {
-        return Bounds.forText("No data", { fontSize: "0.6em" }).width
+        return Bounds.forText("No data", { fontSize: this.tickFontSize+'em' }).width
     }
     @computed get categoryBinMargin(): number { return this.rectHeight*1.5 }
     @computed get totalDefaultWidth(): number {
@@ -83,7 +84,7 @@ class NumericMapLegend {
 
     @computed get numericLabels(): NumericLabel[] {
         const {rectHeight, positionedBins} = this
-        const fontSize = "0.6em"
+        const fontSize = this.tickFontSize+'em'
 
         const makeBoundaryLabel = (d: PositionedBin, minOrMax: 'min'|'max', text: string) => {
             const labelBounds = Bounds.forText(text, { fontSize: fontSize })
