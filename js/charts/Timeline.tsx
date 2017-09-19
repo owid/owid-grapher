@@ -137,13 +137,13 @@ export default class Timeline extends React.Component<TimelineProps> {
 
 	@computed get minYearBox(): Bounds {
 		const { minYear, bounds } = this
-        const minYearBox = Bounds.forText(formatYear(minYear), { fontSize: "0.8em" })
+        const minYearBox = Bounds.forText(formatYear(minYear), { fontSize: "0.9em" })
         return minYearBox.extend({ x: bounds.left+35, y: bounds.centerY-minYearBox.height/2 })
 	}
 
 	@computed get maxYearBox(): Bounds {
 		const { maxYear, bounds } = this
-        const maxYearBox = Bounds.forText(formatYear(maxYear), { fontSize: "0.8em" })
+        const maxYearBox = Bounds.forText(formatYear(maxYear), { fontSize: "0.9em" })
         return maxYearBox.extend({ x: bounds.right-maxYearBox.width, y: bounds.centerY-maxYearBox.height/2 })
     }
 
