@@ -12,7 +12,7 @@ import DataTab from './DataTab'
 import MapTab from './MapTab'
 import SourcesTab from './SourcesTab'
 import DownloadTab from './DownloadTab'
-import {preInstantiate, VNode} from './Util'
+import {VNode} from './Util'
 import Bounds from './Bounds'
 import DataSelector from './DataSelector'
 
@@ -95,8 +95,16 @@ export default class ChartView extends React.Component<ChartViewProps> {
     @computed get renderWidth() { return this.fitBounds ? this.containerBounds.width-(this.isEmbed ? 3 : 0) : this.idealWidth }
     @computed get renderHeight() { return this.fitBounds ? this.containerBounds.height-(this.isEmbed ? 3 : 0) : this.idealHeight }
 
+    @computed get controlsFooterHeight() {
+        const height = Bounds.forText("CHART", { fontSize: Bounds.baseFontSize +'px' }).height*2
+        if (this.isPortrait && this.props.chart.tab == 'chart')
+            return height*2
+        else
+            return height        
+    }
+
     @computed get svgBounds() {
-        return (new Bounds(0, 0, this.renderWidth, this.renderHeight)).padBottom(this.isExport ? 0 : this.controlsFooter.height)
+        return (new Bounds(0, 0, this.renderWidth, this.renderHeight)).padBottom(this.isExport ? 0 : this.controlsFooterHeight)
     }
 
     @computed get svgInnerBounds() {
@@ -109,10 +117,6 @@ export default class ChartView extends React.Component<ChartViewProps> {
     @observable.ref htmlNode: HTMLDivElement
     @observable.ref svgNode: SVGSVGElement
     base: HTMLDivElement
-
-    @computed get controlsFooter() {
-        return preInstantiate(<ControlsFooter chart={this.chart} chartView={this}/>)
-    }
 
     @computed get classNames(): string {
         const classNames = [
@@ -181,11 +185,11 @@ export default class ChartView extends React.Component<ChartViewProps> {
     }
 
     renderReady() {
-        const {svgBounds, controlsFooter, chart} = this
+        const {svgBounds, chart} = this
 
         return [
             this.renderSVG(),
-            <ControlsFooter {...controlsFooter.props}/>,
+            <ControlsFooter chart={this.chart} chartView={this}/>,
             this.renderOverlayTab(svgBounds),
             this.popups,
             this.chart.tooltip,

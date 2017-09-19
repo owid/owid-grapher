@@ -164,14 +164,6 @@ class AbsRelToggle extends React.Component<{ chart: ChartConfig }> {
 
 @observer
 export default class ControlsFooter extends React.Component<ControlsFooterProps> {
-    @computed get height() {
-        const height = Bounds.forText("CHART", { fontSize: 16 +'px' }).height*2
-        if (this.props.chartView.isPortrait && this.props.chart.tab == 'chart')
-            return height*2
-        else
-            return height
-    }
-
     @observable isShareMenuActive: boolean = false
 
     @action.bound onShareMenu() {
