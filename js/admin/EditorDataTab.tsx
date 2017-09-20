@@ -34,7 +34,7 @@ class DataKeyItem extends React.Component<DataKeyItemProps> {
 		const {chart, datakey, ...rest} = props
 		const meta = chart.data.keyData.get(datakey)
 
-		return <li className="country-label clickable" style={{ backgroundColor: color||"white" }}{...rest}>
+		return <li className="country-label clickable" style={{ backgroundColor: color||"white", width: "100%" }}{...rest}>
 			<i className="fa fa-remove" onClick={this.onRemove}/>
 			<i className="fa fa-paint-brush" onClick={_ => this.isChoosingColor = true} style={{position: 'relative'}}>
 				{isChoosingColor && <Colorpicker color={color} onColor={this.onColor} onClose={() => this.isChoosingColor = false}/>}

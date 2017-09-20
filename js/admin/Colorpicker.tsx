@@ -20,7 +20,7 @@ export default class Colorpicker extends React.Component<ColorpickerProps> {
     
 
     render() {
-        const availableColors: Color[] = last(ColorSchemes['owid-distinct'].colors) as Color[]
+        const availableColors: Color[] = last(ColorSchemes['owid-distinct'].colorSets) as Color[]
 
         return <div className="popup-picker-wrapper" tabIndex={0} onClick={e => e.stopPropagation()}>
             <a href='#' className='close-btn pull-right' onClick={this.props.onClose}>

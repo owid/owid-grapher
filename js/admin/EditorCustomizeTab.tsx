@@ -1,5 +1,4 @@
 import * as React from 'react'
-import {extend, map} from '../charts/Util'
 import {computed, action} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartEditor from './ChartEditor'
@@ -16,11 +15,13 @@ class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
 
 	render() {
 		const {chart} = this.props
-		const availableColorSchemes = ['default'].concat(map(ColorSchemes, (v: any, k: any) => extend({}, v, { key: k })).filter((v: any) => !!v.name).map((d: any) => d.key))
+
+		const availableColorSchemes = Object.keys(ColorSchemes)
+		const colorSchemeLabels = availableColorSchemes.map(scheme => ColorSchemes[scheme].name)
 
 		return <section>
 			<h3>Colors</h3>
-			<SelectField label="Color scheme" value={chart.baseColorScheme||"default"} onValue={this.onValue} options={availableColorSchemes}/>
+			<SelectField label="Color scheme" value={chart.baseColorScheme||"default"} onValue={this.onValue} options={["default"].concat(availableColorSchemes)} optionLabels={["Default"].concat(colorSchemeLabels)}/>
 		</section>
 	}
 }
@@ -52,7 +53,7 @@ export default class EditorCustomizeTab extends React.Component<{ editor: ChartE
 		const {chart} = this.props.editor
 
 		return <div className="tab-pane">
-			{chart.isScatter && <ColorSchemeSelector chart={chart}/>}
+			<ColorSchemeSelector chart={chart}/>
 
 			{chart.isLineChart && false && <section className="type-of-line-section">
 				<h2>Choose Type of Line</h2>

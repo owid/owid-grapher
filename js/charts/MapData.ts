@@ -1,6 +1,4 @@
-import {rgb} from 'd3-color'
-import {interpolate} from 'd3-interpolate'
-import {floor, ceil, round, toArray, keys, isEmpty, clone, reverse, includes, extend, each, find} from './Util'
+import {floor, ceil, round, toArray, keys, isEmpty, reverse, includes, extend, each, find} from './Util'
 import {computed, autorun, runInAction, reaction, toJS} from 'mobx'
 import ChartConfig from './ChartConfig'
 import {defaultTo} from './Util'
@@ -177,28 +175,7 @@ export default class MapData {
         const {dimension, colorScheme, bucketMaximums} = this
         const {isColorSchemeInverted} = this.map
 		const numColors = bucketMaximums.length + (dimension ? dimension.variable.categoricalValues.length : 0)
-
-        let colors: Color[]
-		if (!isEmpty(colorScheme.colors[numColors])) {
-			colors = clone(colorScheme.colors[numColors]);
-		} else if (numColors == 1 && !isEmpty(colorScheme.colors[2])) {
-    		// Handle the case of a single color (just for completeness' sake)
-			colors = [colorScheme.colors[2][0]];
-        } else {
-            // If there's no preset color colorScheme for this many colors, improvise a new one
-            colors = clone(colorScheme.colors[colorScheme.colors.length-1]);
-            while (colors.length < numColors) {
-                for (var i = 1; i < colors.length; i++) {
-                    var startColor = rgb(colors[i-1]);
-                    var endColor = rgb(colors[i]);
-                    var newColor = interpolate(startColor, endColor)(0.5);
-                    colors.splice(i, 0, newColor);
-                    i += 1;
-
-                    if (colors.length >= numColors) break;
-                }
-            }
-        }
+        const colors = colorScheme.getGradientColors(numColors)
 
         if (isColorSchemeInverted) {
             reverse(colors)

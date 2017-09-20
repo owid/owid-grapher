@@ -1,8 +1,7 @@
 import {computed} from 'mobx'
 import {scaleOrdinal} from 'd3-scale'
-import {some, isEmpty, last, min, max, sortBy, cloneDeep, sum, extend, find, identity, sortedUniq} from './Util'
+import {some, isEmpty, min, max, sortBy, cloneDeep, sum, extend, find, identity, sortedUniq} from './Util'
 import ChartConfig from './ChartConfig'
-import Color from './Color'
 import DataKey from './DataKey'
 import {StackedAreaSeries, StackedAreaValue} from './StackedArea'
 import AxisSpec from './AxisSpec'
@@ -32,11 +31,6 @@ export default class StackedAreaTransform implements IChartTransform {
 		else
 			return undefined
     }
-
-	@computed get baseColorScheme() {
-		//return ["#9e0142","#d53e4f","#f46d43","#fdae61","#fee08b","#ffffbf","#e6f598","#abdda4","#66c2a5","#3288bd","#5e4fa2"]
-		return last(ColorSchemes['owid-distinct'].colors) as Color[]
-	}
 
 	// Get the data for all years, before any time filtering
 	@computed get initialData(): StackedAreaSeries[] {
@@ -120,6 +114,16 @@ export default class StackedAreaTransform implements IChartTransform {
 		this.chart.props.stackMode = value ? 'relative' : 'absolute'
 	}
 
+	@computed get colorScheme() {
+		//return ["#9e0142","#d53e4f","#f46d43","#fdae61","#fee08b","#ffffbf","#e6f598","#abdda4","#66c2a5","#3288bd","#5e4fa2"]
+		const schemeName = defaultTo(this.chart.props.baseColorScheme, "stackedArea")
+		return ColorSchemes[schemeName]
+	}
+
+	@computed get baseColors() {
+		return this.colorScheme.getDistinctColors(this.initialData.length)
+	}
+
 	@computed get groupedData(): StackedAreaSeries[] {
 		const {chart, startYear, endYear} = this
 		const {selectedKeys} = chart.data
@@ -165,7 +169,7 @@ export default class StackedAreaTransform implements IChartTransform {
 		groupedData = sortBy(groupedData, series => -selectedKeys.indexOf(series.key))
 
         // Assign colors
-        const colorScale = scaleOrdinal(this.baseColorScheme)
+        const colorScale = scaleOrdinal(this.baseColors)
         groupedData.forEach(series => {
             series.color = chart.data.keyColors[series.key] || colorScale(series.key)
         })

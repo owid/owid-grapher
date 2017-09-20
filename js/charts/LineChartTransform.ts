@@ -1,12 +1,10 @@
 import {computed} from 'mobx'
 import {some, min, max, isEmpty, sortBy, find, identity, cloneDeep, sortedUniq} from './Util'
-import {scaleOrdinal} from 'd3-scale'
 import ChartConfig from './ChartConfig'
-import Color from './Color'
 import DataKey from './DataKey'
 import {LineChartSeries, LineChartValue} from './LineChart'
 import AxisSpec from './AxisSpec'
-import {defaultTo, formatYear, findClosest, last} from './Util'
+import {defaultTo, formatYear, findClosest} from './Util'
 import ColorSchemes from './ColorSchemes'
 import IChartTransform from './IChartTransform'
 import DimensionWithData from './DimensionWithData'
@@ -72,15 +70,18 @@ export default class LineChartTransform implements IChartTransform {
 			chartData = chartData.concat([...Array.from(seriesByKey.values())]);
 		});
 
-        // Preserve ordering. Note for line charts, the series order only affects the visual stacking order on overlaps.
+        // Color from lowest to highest
+        chartData = sortBy(chartData, series => series.values[series.values.length-1].y)        
+		const schemeName = defaultTo(this.chart.props.baseColorScheme, "stackedArea")
+		const colorScheme = ColorSchemes[schemeName]
+        const colors = colorScheme.getDistinctColors(chartData.length)
+        chartData.forEach((series, i) => {
+            series.color = chart.data.keyColors[series.key] || colors[i]
+        })
+
+        // Preserve the original ordering for render. Note for line charts, the series order only affects the visual stacking order on overlaps.
         chartData = sortBy(chartData, series => selectedKeys.indexOf(series.key))
 
-        // Assign colors
-        const colorScheme = last(ColorSchemes['owid-distinct'].colors) as Color[]
-        const colorScale = scaleOrdinal(colorScheme)
-        chartData.forEach(series => {
-            series.color = chart.data.keyColors[series.key] || colorScale(series.key)
-        })
 
         return chartData
 	}

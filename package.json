@@ -74,8 +74,8 @@
   "dependencies": {
     "chrome-launcher": "^0.2.1",
     "chrome-remote-interface": "^0.22.0",
+    "lockfile": "^1.0.3",
     "minimist": "^1.2.0",
-    "node-cleanup": "^2.1.2",
-    "lockfile": "^1.0.3"
+    "node-cleanup": "^2.1.2"
   }
 }
