@@ -90,10 +90,10 @@ export class Areas extends React.Component<AreasProps> {
             return <path
                 key={series.key+'-line'}
                 strokeLinecap="round"
-                stroke={series.color}
+                stroke={"#fff"}
                 d={pathify(points)}
                 fill={series.color}
-                strokeWidth={1}
+                strokeWidth={0.5}
                 clipPath={this.props.clipPath}
             />
         })
