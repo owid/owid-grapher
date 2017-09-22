@@ -26,9 +26,11 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
         // Client-side SVG => PNG export. Somewhat experimental, so we fall back to server-side exports if needed.
         try {
             const canvas = document.createElement("canvas")
-            canvas.width = targetWidth
-            canvas.height = targetHeight
+            canvas.width = targetWidth*2
+            canvas.height = targetHeight*2
             const ctx = canvas.getContext("2d", {alpha: false}) as CanvasRenderingContext2D;
+            ctx.imageSmoothingEnabled = false
+            ctx.setTransform(2,0,0,2,0,0);
             const DOMURL = self.URL || (self as any).webkitURL || self;
             const img = new Image();
             const svg = new Blob([chart.staticSVG], {type: "image/svg+xml;charset=utf-8"});
