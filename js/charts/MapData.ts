@@ -7,7 +7,8 @@ import {defaultTo} from './Util'
 import ColorSchemes from './ColorSchemes'
 import Color from './Color'
 import {ChoroplethData} from './ChoroplethMap'
-import {entityNameForMap, formatValue} from './Util'
+import {entityNameForMap} from './Util'
+import DimensionWithData from './DimensionWithData'
 
 export interface MapDataValue {
     entity: string,
@@ -108,35 +109,38 @@ export default class MapData {
         return map.variableId != null && !!vardata.variablesById[map.variableId]
 	}
 
-    @computed get variable() {
-        return this.vardata.variablesById[this.map.variableId as number]
+    @computed get dimension(): DimensionWithData|undefined {
+        return this.chart.data.filledDimensions.find(d => d.variableId == this.map.variableId)
     }
 
-    @computed get years() {
-        return this.variable.yearsUniq
+    @computed get years(): number[] {
+        return this.dimension ? this.dimension.variable.yearsUniq : [1900, 2000]
     }
 
-    @computed get targetYear() {
-        return defaultTo(this.map.props.targetYear, this.variable.years[0])
+    @computed get targetYear(): number {
+        return defaultTo(this.map.props.targetYear, this.years[0])
     }
 
-    @computed get legendTitle() {
-        return defaultTo(this.map.props.legendDescription, this.variable.name)
-    }    
+    @computed get legendTitle(): string {
+        return defaultTo(this.map.props.legendDescription, this.dimension ? this.dimension.displayName : "")
+    }
 
 	// When automatic classification is turned on, this takes the numeric map data
 	// and works out some discrete ranges to assign colors to
-	@computed get autoBucketMaximums() {
-        const {map, variable} = this
+	@computed get autoBucketMaximums(): number[] {
+        const {map, dimension} = this
+        if (!dimension) return []
+
         const {numBuckets} = map
+        const {variable} = dimension
 
 		if (!variable.hasNumericValues || numBuckets <= 0) return [];
 
-		var rangeValue = variable.maxValue - variable.minValue,
+		var rangeValue = dimension.maxValue - dimension.minValue,
 			rangeMagnitude = Math.floor(Math.log(rangeValue) / Math.log(10));
 
-		var minValue = floor(variable.minValue, -(rangeMagnitude-1)),
-			maxValue = ceil(variable.maxValue, -(rangeMagnitude-1));
+		var minValue = floor(dimension.minValue, -(rangeMagnitude-1)),
+			maxValue = ceil(dimension.maxValue, -(rangeMagnitude-1));
 
 		var bucketMaximums = [];
 		for (var i = 1; i <= numBuckets; i++) {
@@ -150,10 +154,10 @@ export default class MapData {
 	@computed get bucketMaximums() {
         if (this.map.isAutoBuckets) return this.autoBucketMaximums
 
-        const {map, variable} = this
+        const {map, dimension} = this
         const {numBuckets, colorSchemeValues} = map
 
-		if (!variable.hasNumericValues || numBuckets <= 0)
+		if (!dimension || !dimension.variable.hasNumericValues || numBuckets <= 0)
 			return [];
 
         let values = toArray(colorSchemeValues)
@@ -170,10 +174,10 @@ export default class MapData {
     }
 
 	@computed get baseColors() {
-        const {variable, colorScheme, bucketMaximums} = this
+        const {dimension, colorScheme, bucketMaximums} = this
         const {isColorSchemeInverted} = this.map
-		const numColors = bucketMaximums.length + variable.categoricalValues.length
-        
+		const numColors = bucketMaximums.length + (dimension ? dimension.variable.categoricalValues.length : 0)
+
         let colors: Color[]
 		if (!isEmpty(colorScheme.colors[numColors])) {
 			colors = clone(colorScheme.colors[numColors]);
@@ -205,7 +209,8 @@ export default class MapData {
 
     // Add default 'No data' category
     @computed get categoricalValues() {
-        const {categoricalValues} = this.variable
+        const {dimension} = this
+        const categoricalValues = dimension ? dimension.variable.categoricalValues : []
         if (!includes(categoricalValues, "No data"))
             return ["No data"].concat(categoricalValues)
         else
@@ -224,7 +229,7 @@ export default class MapData {
 		//  { value: 'Foobar', text: "Foobar Boop", color: '#bbbbbb'}]
 		var legendData = [];
 
-        const {map, variable, bucketMaximums, baseColors, categoricalValues, customCategoryColors} = this
+        const {map, dimension, bucketMaximums, baseColors, categoricalValues, customCategoryColors} = this
         const {customBucketLabels, customNumericColors, customCategoryLabels, customHiddenCategories, minBucketValue} = map
 
         /*var unitsString = chart.model.get("units"),
@@ -238,7 +243,7 @@ export default class MapData {
             const color = defaultTo(customNumericColors[i], baseColor)
             const maxValue = +(bucketMaximums[i] as number)
             const label = customBucketLabels[i]
-            legendData.push(new NumericBin({ index: i, min: minValue, max: maxValue, color: color, label: label, format: v => formatValue(v, { unit: variable.shortUnit||""}) }))
+            legendData.push(new NumericBin({ index: i, min: minValue, max: maxValue, color: color, label: label, format: dimension ? dimension.formatValueShort : () => "" }))
             minValue = maxValue;
         }
 
@@ -256,10 +261,12 @@ export default class MapData {
     }
 
     // Get values for the current year, without any color info yet
-    @computed get valuesByEntity() {
-        const {map, variable, targetYear} = this
+    @computed get valuesByEntity(): {[key: string]: MapDataValue} {
+        const {map, dimension, targetYear} = this
+        if (!dimension) return {}
+
         const {tolerance} = map
-        const {years, values, entities} = variable
+        const {years, values, entities} = dimension
 		let currentValues: {[key: string]: MapDataValue} = {};
 
 		for (var i = 0; i < values.length; i++) {
@@ -298,5 +305,9 @@ export default class MapData {
         })
 
         return choroplethData
+    }
+
+    @computed get formatTooltipValue(): (d: number|string) => string {
+        return this.dimension ? this.dimension.formatValueLong : () => ""
     }
 }

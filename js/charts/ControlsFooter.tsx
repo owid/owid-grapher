@@ -1,4 +1,3 @@
-import Bounds from './Bounds'
 import {extend, keys, map} from './Util'
 import * as React from 'react'
 import { observable, computed, action } from 'mobx'

@@ -1,6 +1,6 @@
 import {Variable} from './VariableData'
 import {observable, computed} from 'mobx'
-import {defaultTo, formatValue, some} from './Util'
+import {defaultTo, formatValue, some, isString} from './Util'
 import ChartDimension from './ChartDimension'
 
 export default class DimensionWithData {
@@ -59,14 +59,24 @@ export default class DimensionWithData {
 		}
 	}
 
-	@computed get formatValueShort(): (value: number) => string {
+	@computed get formatValueShort(): (value: number|string) => string {
 		const {shortUnit} = this
-		return value => formatValue(value, { unit: shortUnit })
+		return value => {
+			if (isString(value))
+				return value
+			else
+				return formatValue(value, { unit: shortUnit })
+		}
 	}
 
 	@computed get formatValueLong(): (value: number) => string {
 		const {unit} = this
-		return value => formatValue(value, { unit: unit })
+		return value => {
+			if (isString(value))
+				return value
+			else
+				return formatValue(value, { unit: unit })
+		}
 	}
 
 	@computed get values() {
@@ -75,6 +85,14 @@ export default class DimensionWithData {
 			return this.variable.values.map(v => (v as number)*unitConversionFactor)
 		else
 			return this.variable.values
+	}
+
+	@computed get minValue(): number {
+		return this.variable.minValue*this.unitConversionFactor
+	}
+
+	@computed get maxValue(): number {
+		return this.variable.maxValue*this.unitConversionFactor
 	}
 
 	get years() {

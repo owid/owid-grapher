@@ -168,10 +168,11 @@ class ColorSchemeEditor extends React.Component<{ map: MapConfig }> {
 
 	render() {
 		const mapConfig = this.props.map
-		if (!mapConfig.data) return null
+		const {dimension} = mapConfig.data
+		if (!dimension) return null
 
 		return <ul className="map-color-scheme-preview clearfix automatic-values">
-			{mapConfig.data.variable.hasNumericValues && <li className='clearfix min-color-wrapper'>
+			{dimension.variable.hasNumericValues && <li className='clearfix min-color-wrapper'>
 				<NumberField label="Minimal value:" value={mapConfig.props.colorSchemeMinValue} onValue={this.onMinimalValue}/>
 			 </li>}
 

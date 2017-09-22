@@ -93,10 +93,10 @@ export class NumberField extends React.Component<NumberFieldProps> {
         const passthroughProps = pick(props, ['min', 'max', 'placeholder', 'disabled'])
         if (props.label) {
             return <label className="NumberField">
-                {props.label} <input type="number" value={toString(props.value)} onChange={(ev) => props.onValue(numberOnly(ev.currentTarget.value))} {...passthroughProps}/>
+                {props.label} <input type="text" value={toString(props.value)} onChange={(ev) => props.onValue(numberOnly(ev.currentTarget.value))} {...passthroughProps}/>
             </label>
         } else {
-            return <input className="NumberField" type="number" value={toString(props.value)} onChange={(ev) => props.onValue(numberOnly(ev.currentTarget.value))} {...passthroughProps}/>
+            return <input className="NumberField" type="text" value={toString(props.value)} onChange={(ev) => props.onValue(numberOnly(ev.currentTarget.value))} {...passthroughProps}/>
         }
     }
 }

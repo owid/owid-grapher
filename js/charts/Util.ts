@@ -180,16 +180,17 @@ export function formatValue(value: number, options: { maxDecimalPlaces?: number,
 	const noTrailingZeroes = true
 	const maxDecimalPlaces = defaultTo(options.maxDecimalPlaces, 2)
 	const unit = defaultTo(options.unit, "")
+	const isNoSpaceUnit = unit[0] == "%"
 
 	let output: string = value.toString()
 	
-	if (!unit && Math.abs(value) >= 1e6) {
+	if (!isNoSpaceUnit && Math.abs(value) >= 1e6) {
 		if (value >= 1e12) 
-			return formatValue(value/1e12, extend({}, options, { unit: "trillion" }))
+			output = formatValue(value/1e12, extend({}, options, { unit: "trillion" }))
 		else if (value >= 1e9) 
-			return formatValue(value/1e9, extend({}, options, { unit: "billion" }))
+			output = formatValue(value/1e9, extend({}, options, { unit: "billion" }))
 		else if (value >= 1e6) 
-			return formatValue(value/1e6, extend({}, options, { unit: "million" }))
+			output = formatValue(value/1e6, extend({}, options, { unit: "million" }))
 	} else {
 		if (maxDecimalPlaces >= 0 && value % 1 != 0) {
 			var fixed = Math.min(20, maxDecimalPlaces);
@@ -208,7 +209,7 @@ export function formatValue(value: number, options: { maxDecimalPlaces?: number,
 
 	if (unit == "$" || unit == "£")
 		output = unit + output;
-	else if (unit[0] == "%" || unit.length == 1) {
+	else if (isNoSpaceUnit) {
 		output = output + unit
 	} else if (unit.length > 0) {
 		output = output + " " + unit
