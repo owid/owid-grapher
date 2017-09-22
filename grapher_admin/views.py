@@ -128,7 +128,7 @@ def chart_editor(request: HttpRequest, chartconfig: Dict):
     })
 
 def createchart(request: HttpRequest):
-    return chart_editor(request, {})
+    return chart_editor(request, { "yAxis": { "min": 0 }})
 
 def editchart(request: HttpRequest, chartid: Union[str, int]):
     try:

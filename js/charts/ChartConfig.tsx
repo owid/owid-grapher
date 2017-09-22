@@ -100,7 +100,7 @@ export class ChartConfigProps {
     @observable.ref hideTitleAnnotation?: true = undefined
 
     @observable.ref xAxis: AxisConfigProps = new AxisConfigProps()
-    @observable.ref yAxis: AxisConfigProps = extend(new AxisConfigProps(), { min: 0 }) // Default to 0 min for y axis
+    @observable.ref yAxis: AxisConfigProps = new AxisConfigProps()
 
     @observable.ref selectedData: EntitySelection[] = []
     @observable.ref minTime?: number = undefined
