@@ -13,7 +13,7 @@ import urllib.parse
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 import owid_grapher.wsgi
 import django.db
-from grapher_admin.models import Entity, DatasetSubcategory, DatasetCategory, Dataset, Source, Variable, VariableType, DataValue, ChartDimension
+from grapher_admin.models import Entity, DatasetSubcategory, DatasetCategory, Dataset, Source, Variable, VariableType, DataValue
 from importer.models import ImportHistory
 from country_name_tool.models import CountryName
 from django.conf import settings
@@ -162,7 +162,8 @@ with open(os.path.join(metadata_location, 'metadata.csv'), encoding='utf-8') as 
 import_history = ImportHistory.objects.filter(import_type='clioinfra')
 
 with transaction.atomic():
-    datasets_list = []
+    new_datasets_list = []
+    old_datasets_list = []
     existing_categories = DatasetCategory.objects.values('name')
     existing_categories_list = {item['name'] for item in existing_categories}
 
@@ -231,7 +232,7 @@ with transaction.atomic():
                                                      namespace='clioinfra', fk_dst_cat_id=the_category,
                                                      fk_dst_subcat_id=the_subcategory)
                                 newdataset.save()
-                                datasets_list.append(newdataset)
+                                new_datasets_list.append(newdataset)
                                 existing_subcategories_list.add(dataset_to_category[varname])
                             else:
                                 the_subcategory = DatasetSubcategory.objects.get(
@@ -252,7 +253,7 @@ with transaction.atomic():
                                                    unit=varunit if
                                                    varunit else '', short_unit=short_unit_extract(varunit),
                                                    description='',
-                                                   code=None, timespan='',
+                                                   code=filename_to_pagelink[one_file][filename_to_pagelink[one_file].rfind('/') + 1:], timespan='',
                                                    fk_dst_id=newdataset, fk_var_type_id=VariableType.objects.get(pk=4),
                                                    sourceId=newsource)
 
@@ -312,6 +313,133 @@ with transaction.atomic():
         else:
             if imported_before_hash == file_checksum(file):
                 print('No updates available for file %s.' % one_file)
+            else:
+                if 'historical' in one_file.lower():
+                    print('Processing: %s' % one_file)
+                    wb = load_workbook(file, read_only=True)
 
-    for eachdataset in datasets_list:
+                    data_ws = wb['Data']
+
+                    column_number = 0  # this will be reset to 0 on each new row
+                    row_number = 0  # this will be reset to 0 if we switch to another worksheet, or start reading the worksheet from the beginning one more time
+
+                    for row in data_ws.rows:
+                        row_number += 1
+                        for cell in row:
+
+                            column_number += 1
+
+                            if row_number == 1 and column_number == 1:
+                                varname = cell.value
+
+                            if row_number == 2 and column_number == 1:
+                                varunit = cell.value
+
+                            if row_number == 3 and column_number == 1:
+                                # inserting a subcategory and dataset
+                                if dataset_to_category[varname] not in existing_subcategories_list:
+                                    the_subcategory = DatasetSubcategory(name=dataset_to_category[varname],
+                                                                         fk_dst_cat_id=the_category)
+                                    the_subcategory.save()
+                                    newdataset = Dataset(name='Clio-Infra - %s' % the_subcategory.name,
+                                                         description='This is a dataset imported by the automated fetcher',
+                                                         namespace='clioinfra', fk_dst_cat_id=the_category,
+                                                         fk_dst_subcat_id=the_subcategory)
+                                    newdataset.save()
+                                    new_datasets_list.append(newdataset)
+                                    existing_subcategories_list.add(dataset_to_category[varname])
+                                else:
+                                    the_subcategory = DatasetSubcategory.objects.get(
+                                        name=dataset_to_category[varname], fk_dst_cat_id=the_category)
+                                    try:
+                                        newdataset = Dataset.objects.get(name='Clio-Infra - %s' % the_subcategory.name,
+                                                                     namespace='clioinfra')
+                                    except Dataset.DoesNotExist:
+                                        newdataset = Dataset.objects.get(name__startswith='Clio-Infra - %s' % the_subcategory.name,
+                                                                         namespace='clioinfra')
+                                    if newdataset not in old_datasets_list:
+                                        old_datasets_list.append(newdataset)
+
+                                newsource = Variable.objects.get(code=filename_to_pagelink[one_file][filename_to_pagelink[one_file].rfind('/') + 1:], fk_dst_id__namespace='clioinfra').sourceId
+                                newsource.description = source_template % (newdataset.name,
+                                                                           filename_to_pagelink[one_file],
+                                                                           filename_to_pagelink[one_file],
+                                                                          )
+                                newsource.datasetId = newdataset.pk
+                                newsource.save()
+
+                                newvariable = Variable.objects.get(code=filename_to_pagelink[one_file][filename_to_pagelink[one_file].rfind('/') + 1:], fk_dst_id__namespace='clioinfra')
+                                newvariable.name = varname
+                                newvariable.unit = varunit if varunit else ''
+                                newvariable.short_unit = short_unit_extract(varunit)
+                                newvariable.description = ''
+                                newvariable.timespan = ''
+                                newvariable.fk_dst_id = newdataset
+                                newvariable.fk_var_type_id = VariableType.objects.get(pk=4)
+                                newvariable.sourceId = newsource
+
+                                newvariable.save()
+
+                                # Deleting old data values
+                                while DataValue.objects.filter(fk_var_id__pk=newvariable.pk).first():
+                                    with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang
+                                        c.execute('DELETE FROM %s WHERE fk_var_id = %s LIMIT 10000;' %
+                                                  (DataValue._meta.db_table, newvariable.pk))
+
+                            if row_number == 3 and column_number > 6:
+                                try:
+                                    column_to_year[column_number] = int(cell.value)
+                                except ValueError:
+                                    pass
+
+                            if row_number > 3:
+                                if column_number == 4 and cell.value is not None:
+                                    countryname = cell.value
+                                    if countryname not in country_name_entity_ref:
+                                        if countryname.lower() in existing_entities_list:
+                                            newentity = Entity.objects.get(name=countryname)
+                                        elif country_tool_names_dict.get(unidecode.unidecode(countryname.lower()), 0):
+                                            newentity = Entity.objects.get(
+                                                name=country_tool_names_dict[
+                                                    unidecode.unidecode(countryname.lower())].owid_name)
+                                        else:
+                                            newentity = Entity(name=countryname, validated=False)
+                                            newentity.save()
+                                        country_name_entity_ref[countryname] = newentity
+
+                                if column_number > 6 and cell.value is not None:
+                                    try:
+                                        value = float(cell.value)
+                                    except ValueError:
+                                        continue
+                                    if data_values_dict.get(country_name_entity_ref[countryname].pk):
+                                        data_values_dict[country_name_entity_ref[countryname].pk][
+                                            column_to_year[column_number]] = str(value)
+                                    else:
+                                        data_values_dict[country_name_entity_ref[countryname].pk] = {}
+                                        data_values_dict[country_name_entity_ref[countryname].pk][
+                                            column_to_year[column_number]] = str(value)
+
+                        column_number = 0
+
+                    data_values_tuple_list = []
+                    for country, data_value in data_values_dict.items():
+                        for year, value in data_value.items():
+                            data_values_tuple_list.append((value, year, country, newvariable.pk))
+
+                    with connection.cursor() as c:
+                        c.executemany(insert_string, data_values_tuple_list)
+
+                    newimport = ImportHistory(import_type='clioinfra',
+                                              import_time=timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
+                                              import_notes='Importing file %s' % one_file,
+                                              import_state=json.dumps(
+                                                  {'file_hash': file_checksum(file),
+                                                   'file_name': one_file
+                                                   }))
+                    newimport.save()
+
+    for eachdataset in new_datasets_list:
         write_dataset_csv(eachdataset.pk, eachdataset.name, None, 'clioinfra_fetcher', '')
+    for eachdataset in old_datasets_list:
+        write_dataset_csv(eachdataset.pk, eachdataset.name, eachdataset.name, 'clioinfra_fetcher', '')
