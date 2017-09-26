@@ -13,12 +13,13 @@ import ChartConfig from './ChartConfig'
 import Bounds from './Bounds'
 import AxisBox from './AxisBox'
 import StandardAxisBoxView from './StandardAxisBoxView'
-import {getRelativeMouse} from './Util'
+import {getRelativeMouse, makeSafeForCSS} from './Util'
 import HeightedLegend, {HeightedLegendView} from './HeightedLegend'
 import NoData from './NoData'
 import Tooltip from './Tooltip'
 import {select} from 'd3-selection'
 import {easeLinear} from 'd3-ease'
+import {rgb} from 'd3-color'
 
 export interface StackedAreaValue {
     x: number,
@@ -74,7 +75,7 @@ export class Areas extends React.Component<AreasProps> {
         this.props.onHover(this.hoverIndex)
     }
 
-    @computed get polylines(): JSX.Element[] {
+    @computed get areas(): JSX.Element[] {
         const {axisBox, data} = this.props
         const {xScale, yScale} = axisBox
         const xBottomLeft = [xScale.range[0], yScale.range[0]]
@@ -88,12 +89,34 @@ export class Areas extends React.Component<AreasProps> {
             prevPoints = mainPoints
 
             return <path
-                key={series.key+'-line'}
+                className={makeSafeForCSS(series.key)+'-area'}
+                key={series.key+'-area'}
                 strokeLinecap="round"
-                stroke={"#fff"}
                 d={pathify(points)}
                 fill={series.color}
+                fillOpacity={0.7}
+                clipPath={this.props.clipPath}
+            />
+        })
+    }
+
+    @computed get borders(): JSX.Element[] {
+        const {axisBox, data} = this.props
+        const {xScale, yScale} = axisBox
+
+        // Stacked area chart stacks each series upon the previous series, so we must keep track of the last point set we used
+        return data.map(series => {
+            const points = series.values.map(v => [xScale.place(v.x), yScale.place(v.y)] as [number, number])
+
+            return <path
+                className={makeSafeForCSS(series.key)+'-border'}
+                key={series.key+'-border'}
+                strokeLinecap="round"
+                d={pathify(points)}
+                stroke={rgb(series.color).darker(0.5).toString()}
+                strokeOpacity={0.7}
                 strokeWidth={0.5}
+                fill="none"
                 clipPath={this.props.clipPath}
             />
         })
@@ -104,9 +127,10 @@ export class Areas extends React.Component<AreasProps> {
         const {xScale, yScale} = axisBox
         const {hoverIndex} = this
 
-        return <g className="Areas" opacity={0.7} onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseMove}>
+        return <g className="Areas" onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseMove}>
             <rect x={xScale.range[0]} y={yScale.range[1]} width={xScale.range[1]-xScale.range[0]} height={yScale.range[0]-yScale.range[1]} opacity={0} fill="rgba(255,255,255,0)"/> 
-            {this.polylines}
+            {this.areas}
+            {this.borders}
             {hoverIndex != null && <g className="hoverIndicator">
                 {data.map(series => {
                     return <circle cx={xScale.place(series.values[hoverIndex].x)} cy={yScale.place(series.values[hoverIndex].y)} r={5} fill={series.color}/>

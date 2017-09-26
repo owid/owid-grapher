@@ -72,7 +72,7 @@ export default class LineChartTransform implements IChartTransform {
 
         // Color from lowest to highest
         chartData = sortBy(chartData, series => series.values[series.values.length-1].y)        
-		const schemeName = defaultTo(this.chart.props.baseColorScheme, "stackedArea")
+		const schemeName = defaultTo(this.chart.props.baseColorScheme, "owid-distinct")
 		const colorScheme = ColorSchemes[schemeName]
         const colors = colorScheme.getDistinctColors(chartData.length)
         chartData.forEach((series, i) => {
