@@ -137,11 +137,15 @@ export default (function() {
 		colorSchemes[schemeKey] = ColorScheme.fromObject(name, colorSets)
 	}
 
-
 	colorSchemes['stackedAreaDefault'] = new ColorScheme(
 		"OWID 4 Color Gradient",
 		[
-            ["#ca2628", "#ffd53e", "#34983f", "#3360a9", "#a652ba", "#9ecc8a", "#e6332e", "#ed6c2d", "#df3c64", "#e6332e", "#6bb537", "#f07f59", "#b077b1", "#932834", "#5eb77e", "#f6a324", "#2a939b", "#818282", "#7ec7ce", "#fceb8c", "#cfcd1e", "#58888f", "#ce8ebd", "#9ecc8a", "#db2445", "#f9bc8f", "#d26e66", "#c8c8c8"]
+			["#3360a9", "#34983f"],
+			["#3360a9", "#34983f", "#ffd53e"],
+			["#3360a9", "#ca2628", "#ffd53e", "#34983f"],
+            ["#3360a9", "#ca2628", "#ffd53e", "#9ecc8a", "#34983f"],
+            ["#3360a9", "#e6332e", "#ca2628", "#ffd53e", "#9ecc8a", "#34983f"],
+            ["#3360a9", "#2a939b", "#e6332e", "#ca2628", "#ffd53e", "#9ecc8a", "#34983f"]
 		]
 	)
 
