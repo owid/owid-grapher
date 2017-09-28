@@ -207,6 +207,7 @@ export default (function() {
 	colorSchemes['stackedAreaDefault'] = new ColorScheme(
 		"OWID 4 Color Gradient",
 		[
+			["#3360a9"],
 			["#3360a9", "#34983f"],
 			["#3360a9", "#34983f", "#ffd53e"],
 			["#3360a9", "#ca2628", "#ffd53e", "#34983f"],
