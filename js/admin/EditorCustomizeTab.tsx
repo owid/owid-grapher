@@ -13,6 +13,10 @@ class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
 		this.props.chart.props.baseColorScheme = value == 'default' ? undefined : value
 	}
 
+	@action.bound onInvertColorScheme(value: boolean) {
+		this.props.chart.props.invertColorScheme = value||undefined
+	}
+
 	render() {
 		const {chart} = this.props
 
@@ -21,7 +25,8 @@ class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
 
 		return <section>
 			<h3>Colors</h3>
-			<SelectField label="Color scheme" value={chart.baseColorScheme||"default"} onValue={this.onValue} options={["default"].concat(availableColorSchemes)} optionLabels={["Default"].concat(colorSchemeLabels)}/>
+			<SelectField label="Color scheme" value={chart.baseColorScheme||"default"} onValue={this.onValue} options={["default"].concat(availableColorSchemes)} optionLabels={["Default"].concat(colorSchemeLabels)}/><br/>
+			<Toggle label="Invert colors" value={!!chart.props.invertColorScheme} onValue={this.onInvertColorScheme}/>
 		</section>
 	}
 }

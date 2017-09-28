@@ -184,8 +184,8 @@ export default class ScatterTransform implements IChartTransform {
 
         const colorScheme = baseColorScheme && ColorSchemes[baseColorScheme]
         if (!colorScheme) return this.defaultColors
-        else if (!colorDimension) return colorScheme.getDistinctColors(4)
-        else return colorScheme.getDistinctColors(colorDimension.variable.categoricalValues.length)
+        else if (!colorDimension) return colorScheme.getColors(4)
+        else return colorScheme.getColors(colorDimension.variable.categoricalValues.length)
     }
 
     @computed get colorScale(): d3.ScaleOrdinal<string, string> {

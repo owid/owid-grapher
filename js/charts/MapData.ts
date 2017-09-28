@@ -175,7 +175,7 @@ export default class MapData {
         const {dimension, colorScheme, bucketMaximums} = this
         const {isColorSchemeInverted} = this.map
 		const numColors = bucketMaximums.length + (dimension ? dimension.variable.categoricalValues.length : 0)
-        const colors = colorScheme.getGradientColors(numColors)
+        const colors = colorScheme.getColors(numColors)
 
         if (isColorSchemeInverted) {
             reverse(colors)

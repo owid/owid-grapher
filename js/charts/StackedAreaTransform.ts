@@ -121,7 +121,10 @@ export default class StackedAreaTransform implements IChartTransform {
 	}
 
 	@computed get baseColors() {
-		return this.colorScheme.getDistinctColors(this.initialData.length)
+		const colors = this.colorScheme.getColors(this.initialData.length)
+		if (this.chart.props.invertColorScheme)
+			colors.reverse()
+		return colors
 	}
 
 	@computed get groupedData(): StackedAreaSeries[] {

@@ -8,6 +8,7 @@ import Observations from './Observations'
 import {SlopeChartSeries} from './LabelledSlopes'
 import {first, last, makeSafeForCSS} from './Util'
 import IChartTransform from './IChartTransform'
+import ColorSchemes from './ColorSchemes'
 
 // Responsible for translating chart configuration into the form
 // of a line chart
@@ -83,25 +84,39 @@ export default class SlopeChartTransform implements IChartTransform {
 		return new Observations(obvs)
 	}
 
-	@computed get colorScale(): d3.ScaleOrdinal<string, string> {
-		const {colorDim} = this
 
-        const colorScheme = [ // TODO less ad hoc color scheme (probably would have to annotate the datasets)
-                "#5675c1", // Africa
-                "#aec7e8", // Antarctica
-                "#d14e5b", // Asia
-                "#ffd336", // Europe
-                "#4d824b", // North America
-                "#a652ba", // Oceania
-                "#69c487", // South America
-                "#ff7f0e", "#1f77b4", "#ffbb78", "#2ca02c", "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b", "c49c94", "e377c2", "f7b6d2", "7f7f7f", "c7c7c7", "bcbd22", "dbdb8d", "17becf", "9edae5", "1f77b4"]
+    @computed get defaultColors(): string[] {
+        return [ // default color scheme for continents
+            "#5675c1", // Africa
+            "#aec7e8", // Antarctica
+            "#d14e5b", // Asia
+            "#ffd336", // Europe
+            "#4d824b", // North America
+            "#a652ba", // Oceania
+            "#69c487", // South America
+            "#ff7f0e", "#1f77b4", "#ffbb78", "#2ca02c", "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b", "c49c94", "e377c2", "f7b6d2", "7f7f7f", "c7c7c7", "bcbd22", "dbdb8d", "17becf", "9edae5", "1f77b4"]
+    }
 
-        const colorScale = scaleOrdinal(colorScheme)
-        if (colorDim.variable)
-	        colorScale.domain(colorDim.variable.categoricalValues)
+    @computed get colorScheme(): string[] {
+        const {baseColorScheme} = this.chart
+        const {colorDim} = this
 
-	    return colorScale
-	}
+        const colorScheme = baseColorScheme && ColorSchemes[baseColorScheme]
+        if (!colorScheme) return this.defaultColors
+        else if (!colorDim) return colorScheme.getColors(4)
+        else return colorScheme.getColors(colorDim.variable.categoricalValues.length)
+    }
+
+    @computed get colorScale(): d3.ScaleOrdinal<string, string> {
+        const colorDim = this.chart.data.dimensionsByField['color']
+
+        const colorScale = scaleOrdinal(this.colorScheme)
+        if (colorDim) {
+            colorScale.domain(colorDim.variable.categoricalValues);
+        }
+
+        return colorScale
+    }
 
 	@computed get data() : SlopeChartSeries[] {
 		if (isEmpty(this.yDim)) return []

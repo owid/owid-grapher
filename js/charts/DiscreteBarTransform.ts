@@ -1,11 +1,10 @@
 import {computed} from 'mobx'
 import {some, isEmpty, find, sortBy, max, values} from './Util'
 import ChartConfig from './ChartConfig'
-import Color from './Color'
 import {DiscreteBarDatum} from './DiscreteBarChart'
-import ColorBinder from './ColorBinder'
 import IChartTransform from './IChartTransform'
 import DimensionWithData from './DimensionWithData'
+import ColorSchemes from './ColorSchemes'
 
 // Responsible for translating chart configuration into the form
 // of a discrete bar chart
@@ -28,18 +27,6 @@ export default class DiscreteBarTransform implements IChartTransform {
             return "No matching data"
         else
             return undefined
-    }
-
-	@computed get baseColorScheme(): Color[] {
-		return ["#F2585B"]
-	}
-
-    @computed get colors(): ColorBinder {
-        const _this = this
-        return new ColorBinder({
-            get chart() { return _this.chart },
-            get colorScheme() { return _this.baseColorScheme }
-        })
     }
 
     @computed get primaryDimension(): DimensionWithData|undefined {
@@ -68,7 +55,7 @@ export default class DiscreteBarTransform implements IChartTransform {
     }
 
     @computed get data(): DiscreteBarDatum[] {
-		const {chart, targetYear, colors} = this
+		const {chart, targetYear} = this
         const {filledDimensions, selectedKeysByKey} = chart.data
         const dataByKey: {[key: string]: DiscreteBarDatum} = {}
 
@@ -89,16 +76,28 @@ export default class DiscreteBarTransform implements IChartTransform {
                     continue
 
                 const datum = {
+                    key: datakey,
                     value: +dimension.values[i],
                     year: year,
                     label: chart.data.formatKey(datakey),
-                    color: colors.getColorForKey(datakey)
+                    color: "#F2585B"
                 }
 
                 dataByKey[datakey] = datum
 			}
 		});
 
-        return sortBy(values(dataByKey), d => -d.value)
+        const data = sortBy(values(dataByKey), d => d.value)
+
+        const colorScheme = chart.baseColorScheme && ColorSchemes[chart.baseColorScheme]
+        const colors = colorScheme ? colorScheme.getColors(data.length) : []
+        if (chart.props.invertColorScheme)
+            colors.reverse()
+
+        data.forEach((d, i) => {
+            d.color = chart.data.keyColors[d.key] || colors[i] || d.color
+        })
+
+        return sortBy(data, d => -d.value)
     }
 }

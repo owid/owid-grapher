@@ -19,6 +19,7 @@ import {AxisGridLines} from './AxisBox'
 import NoData from './NoData'
 
 export interface DiscreteBarDatum {
+    key: string,
     value: number,
     year: number,
     label: string,

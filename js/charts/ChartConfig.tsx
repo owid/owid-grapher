@@ -124,7 +124,9 @@ export class ChartConfigProps {
     @observable.ref internalNotes?: string = undefined
     @observable.ref originUrl?: string = undefined
     @observable.ref isPublished?: true = undefined
+    
     @observable.ref baseColorScheme?: string = undefined
+    @observable.ref invertColorScheme?: true = undefined
 
     // Currently scatterplot-specific options
     @observable.ref hideTimeline?: true = undefined

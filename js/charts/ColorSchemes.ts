@@ -17,7 +17,7 @@ const longSchemeNames: {[key: string]: string} = {
 	'YlOrRd': 'Yellow-Orange-Red shades',
 	'YlOrBr': 'Yellow-Orange-Brown shades',
 	'Purples': 'Purple shades',
-	'Blues': 'Blue shades',
+	//'Blues': 'Blue shades',
 	'Greens': 'Green shades',
 	'Oranges': 'Orange shades',
 	'Reds': 'Red shades',
@@ -66,10 +66,12 @@ function interpolateArray(scaleArr: string[]) {
 export class ColorScheme {
 	name: string
 	colorSets: Color[][] // Different color sets depending on how many distinct colors you want
+	isDistinct: boolean
 
-	constructor(name: string, colorSets: Color[][]) {
+	constructor(name: string, colorSets: Color[][], isDistinct?: boolean) {
 		this.name = name
 		this.colorSets = []
+		this.isDistinct = !!isDistinct
 		colorSets.forEach(set => this.colorSets[set.length] = set)
 	}
 
@@ -79,7 +81,24 @@ export class ColorScheme {
 		return new ColorScheme(name, colorSetsArray)
 	}
 
-	improviseGradient(knownColors: Color[], numColors: number) {
+    improviseGradientFromShorter(shortColors: Color[], numColors: number): Color[] {
+        const newColors = clone(shortColors)
+
+        while (newColors.length < numColors) {
+            for (var i = newColors.length-1; i > 0; i -= 1) {
+                var startColor = rgb(newColors[i-1]);
+                var endColor = rgb(newColors[i]);
+                var newColor = interpolate(startColor, endColor)(0.5);
+                newColors.splice(i, 0, newColor);
+
+                if (newColors.length >= numColors) break;
+			}
+		}
+
+		return newColors
+	}
+
+	improviseGradientFromLonger(knownColors: Color[], numColors: number): Color[] {
 		const newColors = []
 		const scale = interpolateArray(knownColors)
 		for (var i = 0; i < numColors; i++) {
@@ -92,13 +111,13 @@ export class ColorScheme {
 		const {colorSets} = this
 
 		if (colorSets[numColors])
-			return colorSets[numColors]
+			return clone(colorSets[numColors])
 		else {
 			const prevColors = clone(colorSets).reverse().find(set => set && set.length < numColors)
 			if (prevColors)
-				return this.improviseGradient(prevColors, numColors)
+				return this.improviseGradientFromShorter(prevColors, numColors)
 			else
-				return this.improviseGradient(colorSets.find(set => !!set) as Color[], numColors)
+				return this.improviseGradientFromLonger(colorSets.find(set => !!set) as Color[], numColors)
 		}
 	}
 
@@ -106,9 +125,9 @@ export class ColorScheme {
 		const {colorSets} = this
 
 		if (colorSets[numColors])
-			return colorSets[numColors]
+			return clone(colorSets[numColors])
 		else if (numColors > colorSets.length-1) // If more colors are wanted than we have defined, have to improvise
-			return this.improviseGradient(last(colorSets), numColors)
+			return this.improviseGradientFromShorter(last(colorSets), numColors)
 		else {
 			// We have enough colors but not a specific set for this number-- improvise from the closest longer set
 			for (var i = numColors; i < colorSets.length; i++) {
@@ -120,6 +139,14 @@ export class ColorScheme {
 			return []
 		}
 	}
+
+	getColors(numColors: number): Color[] {
+		if (this.isDistinct) {
+			return this.getDistinctColors(numColors)
+		} else {
+			return this.getGradientColors(numColors)
+		}
+	}
 }
 
 export default (function() {
@@ -127,9 +154,11 @@ export default (function() {
 
 	// Create a ColorScheme for each colorbrewer scheme
 	for (let schemeKey in colorbrewer) {
-		const name = longSchemeNames[schemeKey] || schemeKey
-		const colorSets: {[numColors: string]: Color[]} = (colorbrewer as any)[schemeKey]
-		colorSchemes[schemeKey] = ColorScheme.fromObject(name, colorSets)
+		const name = longSchemeNames[schemeKey]
+		if (name) {
+			const colorSets: {[numColors: string]: Color[]} = (colorbrewer as any)[schemeKey]
+			colorSchemes[schemeKey] = ColorScheme.fromObject(name, colorSets)
+		}
 	}
 
 	// Perceptual color scales from https://github.com/politiken-journalism/scale-color-perceptual
@@ -171,7 +200,8 @@ export default (function() {
              "#5eb77e", "#818282", "#7ec7ce", "#fceb8c", 
              "#cfcd1e", "#58888f", "#ce8ebd", "#9ecc8a", "#db2445", 
              "#f9bc8f", "#d26e66", "#c8c8c8", "#ed6c2d"]
-		]
+		],
+		true
 	)
 
 	colorSchemes['stackedAreaDefault'] = new ColorScheme(

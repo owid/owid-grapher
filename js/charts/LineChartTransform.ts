@@ -71,10 +71,13 @@ export default class LineChartTransform implements IChartTransform {
 		});
 
         // Color from lowest to highest
-        chartData = sortBy(chartData, series => series.values[series.values.length-1].y)        
+        chartData = sortBy(chartData, series => series.values[series.values.length-1].y)
+
 		const schemeName = defaultTo(this.chart.props.baseColorScheme, "owid-distinct")
 		const colorScheme = ColorSchemes[schemeName]
-        const colors = colorScheme.getDistinctColors(chartData.length)
+        const colors = colorScheme.getColors(chartData.length)
+        if (this.chart.props.invertColorScheme)
+            colors.reverse()
         chartData.forEach((series, i) => {
             series.color = chart.data.keyColors[series.key] || colors[i]
         })
