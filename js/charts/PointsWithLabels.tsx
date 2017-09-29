@@ -560,6 +560,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             radiuses.push(circle.getAttribute('r') as string)
             circle.setAttribute('r', "0")
         }).transition().duration(500).attr('r', (_, i) => radiuses[i])
+          .on("end", () => this.forceUpdate())
     }
 
     render() {

@@ -236,6 +236,7 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
                 .duration(800)
                 .ease(easeLinear)
                 .attr("width", this.bounds.width)
+                .on("end", () => this.forceUpdate()) // Important in case bounds changes during transition
     }
 
     render() {

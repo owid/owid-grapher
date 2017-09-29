@@ -115,6 +115,7 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
                 .duration(800)
                 .ease(easeLinear)
                 .attr("width", this.bounds.width)
+                .on("end", () => this.forceUpdate()) // Important in case bounds changes during transition
     }
 
     @computed get axisBox() {
