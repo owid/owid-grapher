@@ -1,6 +1,6 @@
 import {scaleOrdinal} from 'd3-scale'
 import ChartConfig from './ChartConfig'
-import {some, isEmpty, find, intersection, min, max, keyBy, extend, isNumber, has, uniq, groupBy, sortBy, map, includes} from './Util'
+import {some, isEmpty, find, intersection, min, max, keyBy, extend, isNumber, has, groupBy, sortBy, map, includes} from './Util'
 import {computed, observable} from 'mobx'
 import {defaultTo, first, last} from './Util'
 import DimensionWithData from './DimensionWithData'
@@ -166,32 +166,28 @@ export default class ScatterTransform implements IChartTransform {
         }
     }
 
-    @computed get defaultColors(): string[] {
-        return [ // default color scheme for continents
-            "#5675c1", // Africa
-            "#aec7e8", // Antarctica
-            "#d14e5b", // Asia
-            "#ffd336", // Europe
-            "#4d824b", // North America
-            "#a652ba", // Oceania
-            "#69c487", // South America
-            "#ff7f0e", "#1f77b4", "#ffbb78", "#2ca02c", "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b", "c49c94", "e377c2", "f7b6d2", "7f7f7f", "c7c7c7", "bcbd22", "dbdb8d", "17becf", "9edae5", "1f77b4"]
+    @computed get colorSchemeName(): string {
+        return defaultTo(this.chart.props.baseColorScheme, "continents")
     }
 
-    @computed get colorScheme(): string[] {
-        const {baseColorScheme} = this.chart
-        const {colorDimension} = this
+    @computed get colorSet(): string[] {
+        const {colorSchemeName, colorDimension} = this
+        const colorScheme = ColorSchemes[colorSchemeName]
+        const numColors = colorDimension ? colorDimension.variable.categoricalValues.length : 4
+        const colors = colorScheme.getColors(numColors)
 
-        const colorScheme = baseColorScheme && ColorSchemes[baseColorScheme]
-        if (!colorScheme) return this.defaultColors
-        else if (!colorDimension) return colorScheme.getColors(4)
-        else return colorScheme.getColors(colorDimension.variable.categoricalValues.length)
+        if (this.chart.props.invertColorScheme)
+            colors.reverse()
+
+        console.log(colors)
+
+        return colors
     }
 
     @computed get colorScale(): d3.ScaleOrdinal<string, string> {
         const colorDim = this.chart.data.dimensionsByField['color']
 
-        const colorScale = scaleOrdinal(this.colorScheme)
+        const colorScale = scaleOrdinal(this.colorSet)
         if (colorDim) {
             colorScale.domain(colorDim.variable.categoricalValues);
         }
@@ -245,7 +241,7 @@ export default class ScatterTransform implements IChartTransform {
                             key: datakey,
                             label: chart.data.formatKey(datakey),
                             values: [{ year: outputYear, time: {} }],
-                            color: keyColors[datakey]
+                            color: "#000"
                         } as ScatterSeries
                         dataByYear.set(outputYear, series)
                     }
@@ -257,10 +253,10 @@ export default class ScatterTransform implements IChartTransform {
                     if (isFinite(originYear) && Math.abs(originYear-targetYear) < Math.abs(year-targetYear))
                         continue;
 
+                    (d.time as any)[dimension.property] = year;
                     if (dimension.property == 'color') {
-                        if (!series.color) series.color = colorScale(value as string);
+                        series.color = keyColors[datakey] || colorScale(value as string);
                     } else {
-                        (d.time as any)[dimension.property] = year;
                         (d as any)[dimension.property] = value;
                     }
                 }
@@ -366,10 +362,6 @@ export default class ScatterTransform implements IChartTransform {
             return domainExtent(sizeValues, 'linear')
     }
 
-    @computed get colorsInUse(): string[] {
-        return uniq(this.allGroups.map(s => s.color))
-    }
-
     @computed get yScaleType() {
         return this.isRelativeMode ? 'linear' : this.chart.yAxis.scaleType
     }
@@ -462,6 +454,9 @@ export default class ScatterTransform implements IChartTransform {
 
                 group = group || extend({}, groupForYear, { values: [] }) as ScatterSeries
                 group.values = group.values.concat(groupForYear.values)
+
+                // Use most recent size and color values
+                group.color = groupForYear.color || group.color
                 if (isNumber(groupForYear.values[0].size))
                     group.size = groupForYear.values[0].size
             })

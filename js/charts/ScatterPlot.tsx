@@ -56,11 +56,16 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         return this.hasTimeline ? 35 : 0
     }
 
+    // Only show colors on legend that are actually in use
+    @computed get legendColors() {
+        return uniq(this.transform.currentData.map(g => g.color))
+    }
+
     @computed get legend(): ScatterColorLegend {
         const that = this
         return new ScatterColorLegend({
             get maxWidth() { return that.sidebarMaxWidth },
-            get colors() { return that.transform.colorsInUse },
+            get colors() { return that.legendColors },
             get scale() { return that.transform.colorScale }
         })
     }
@@ -90,12 +95,15 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
 
     @computed get hoverKeys(): string[] {
         const {hoverColor} = this
-        return uniq(this.transform.allGroups.filter(g => hoverColor !== undefined && g.color == hoverColor).map(g => g.key))
+        if (hoverColor === undefined)
+            return []
+        else
+            return uniq(this.transform.currentData.filter(g => g.color == hoverColor).map(g => g.key))
     }
 
     @computed get focusKeys(): string[] {
         const {transform, focusColors} = this
-        const focusColorKeys = uniq(transform.allGroups.filter(g => includes(focusColors, g.color)).map(g => g.key))
+        const focusColorKeys = uniq(transform.currentData.filter(g => includes(focusColors, g.color)).map(g => g.key))
         return this.chart.data.selectedKeys.concat(focusColorKeys)
     }
 

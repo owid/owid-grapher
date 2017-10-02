@@ -1,4 +1,4 @@
-import {extend, some, isString, isNumber, uniq, min, max, keyBy, keys, values, each, sortBy} from './Util'
+import {extend, some, isString, isNumber, uniq, sortedUniq, min, max, keyBy, keys, values, each, sortBy} from './Util'
 import ChartConfig from './ChartConfig'
 import {observable, computed, action, reaction} from 'mobx'
 
@@ -38,11 +38,11 @@ export class Variable {
 	}
 
 	@computed get numericValues(): number[] {
-		return uniq(sortBy(this.values.filter(v => isNumber(v)))) as number[]
+		return sortedUniq(sortBy(this.values.filter(v => isNumber(v)))) as number[]
 	}	
 
 	@computed get categoricalValues(): string[] {
-		return uniq(sortBy(this.values.filter(v => isString(v)))) as string[]
+		return uniq(this.values.filter(v => isString(v))) as string[]
 	}
 
 	@computed get hasCategoricalValues(): boolean {
