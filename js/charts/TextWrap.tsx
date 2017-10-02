@@ -44,11 +44,9 @@ export default class TextWrap {
         let line: string[] = []
         let lineBounds = Bounds.empty()
 
-        each(words, (word, i) => {
+        words.forEach(word => {
             let nextLine = line.concat([word])
             let nextBounds = Bounds.forText(strip(nextLine.join(' ')), {fontSize: fontSize+'em'})
-
-            const newlines = (word.match(/\n/g)||[]).length
 
             if (nextBounds.width > maxWidth && line.length >= 1) {
                 lines.push({ text: line.join(' '), width: lineBounds.width, height: lineBounds.height })
@@ -57,10 +55,6 @@ export default class TextWrap {
             } else {
                 line = nextLine
                 lineBounds = nextBounds
-            }
-
-            for (var i = 0; i < newlines; i++) {
-                lines.push({ text: "", width: 0, height: lineHeight })
             }
         })
         if (line.length > 0)
