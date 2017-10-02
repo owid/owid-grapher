@@ -1,7 +1,6 @@
 import {map, every, keyBy, includes, uniqWith, cloneDeep, intersection, each, sortBy, without, find, extend, uniq} from './Util'
 import {computed} from 'mobx'
 import ChartConfig from './ChartConfig'
-import {Variable} from './VariableData'
 import DataKey from './DataKey'
 import Color from './Color'
 import {last, defaultTo, slugify} from './Util'
@@ -18,10 +17,10 @@ export interface DataKeyInfo {
 	shortCode: string
 }
 
-export interface SourceWithVariable {
+export interface SourceWithDimension {
 	name: string,
 	description: string,
-	variable: Variable
+	dimension: DimensionWithData
 }
 
 export default class ChartData {
@@ -295,15 +294,15 @@ export default class ChartData {
 		return yDimension ? this.vardata.variablesById[yDimension.variableId] : undefined
 	}
 
-	@computed get sources(): SourceWithVariable[] {
+	@computed get sources(): SourceWithDimension[] {
 		const {filledDimensions} = this
 
-		let sources: SourceWithVariable[] = []
+		let sources: SourceWithDimension[] = []
 		each(filledDimensions, (dim) => {
 			const {variable} = dim
 			// HACK (Mispy): Ignore the default color source on scatterplots.
 			if (variable.name != "Countries Continents" && variable.name != "Total population (Gapminder)")
-				sources.push(extend({}, variable.source, { variable: variable }))
+				sources.push(extend({}, variable.source, { dimension: dim }))
 		});
 		return sources
 	}

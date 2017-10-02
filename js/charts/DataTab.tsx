@@ -13,25 +13,27 @@ function csvEscape(value: any): string {
 		return value
 }
 
+// Client-side data export from chart
 @observer
 export default class DataTab extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
 	@computed get bounds() {
 		return this.props.bounds
 	}
 
+	// Here's where the actual CSV is made
 	@computed get csvUrl() {
 		const {chart} = this.props
 		const {vardata} = chart
 
 		const dimensions = chart.data.filledDimensions.filter(d => d.property != 'color')
-		const entitiesUniq = sortBy(uniq(flatten(dimensions.map(d => d.variable.entitiesUniq)))) as string[]
-		const yearsUniq = sortBy(uniq(flatten(dimensions.map(d => d.variable.yearsUniq)))) as number[]
+		const entitiesUniq = sortBy(uniq(flatten(dimensions.map(d => d.entitiesUniq)))) as string[]
+		const yearsUniq = sortBy(uniq(flatten(dimensions.map(d => d.yearsUniq)))) as number[]
 
 		const rows: string[] = []
 
 		const titleRow = ["Entity", "Code", "Year"]
 		dimensions.forEach(dim => {
-			titleRow.push(csvEscape(dim.variable.name))
+			titleRow.push(csvEscape(dim.fullNameWithUnit))
 		})
 		rows.push(titleRow.join(","))
 
@@ -41,7 +43,7 @@ export default class DataTab extends React.Component<{ bounds: Bounds, chart: Ch
 				
 				let rowHasSomeValue = false
 				dimensions.forEach(dim => {
-					const valueByYear = dim.variable.valueByEntityAndYear.get(entity)
+					const valueByYear = dim.valueByEntityAndYear.get(entity)
 					const value = valueByYear ? valueByYear.get(year) : null
 
 					if (value == null)

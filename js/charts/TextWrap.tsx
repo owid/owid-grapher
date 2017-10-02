@@ -1,4 +1,4 @@
-import {isEmpty, each, reduce, map, max} from './Util'
+import {isEmpty, reduce, map, max} from './Util'
 import {computed} from 'mobx'
 import FontSize from './FontSize'
 import {defaultTo} from './Util'
@@ -36,7 +36,7 @@ export default class TextWrap {
     @computed get text(): string { return this.props.text }
 
     @computed get lines(): WrapLine[] {
-        const {text, maxWidth, lineHeight, fontSize} = this
+        const {text, maxWidth, fontSize} = this
 
         const words = isEmpty(text) ? [] : text.split(' ')
         const lines: WrapLine[] = []

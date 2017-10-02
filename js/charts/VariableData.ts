@@ -76,23 +76,6 @@ export class Variable {
 	@computed get isNumeric(): boolean {
 		return this.hasNumericValues && !this.hasCategoricalValues		
 	}
-
-	@computed get valueByEntityAndYear(): Map<string, Map<number, (string|number)>> {
-        let valueByEntityAndYear = new Map<string, Map<number, (string|number)>>()
-		for (let i = 0; i < this.values.length; i++) {
-			const entity = this.entities[i]
-			const year = this.years[i]
-			const value = this.values[i]
-
-			let valueByYear = valueByEntityAndYear.get(entity)
-			if (!valueByYear) {
-				valueByYear = new Map()
-				valueByEntityAndYear.set(entity, valueByYear)
-			}
-			valueByYear.set(year, value)
-		}
-		return valueByEntityAndYear
-	}
 }
 
 interface EntityMeta {

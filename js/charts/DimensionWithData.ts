@@ -24,6 +24,11 @@ export default class DimensionWithData {
 		return defaultTo(defaultTo(this.props.unit, this.variable.displayUnit), this.variable.unit)
 	}
 
+	// Full name of the variable with associated unit information, used for data export
+	@computed get fullNameWithUnit(): string {
+		return this.displayName + (this.unit ? ` (${this.unit})` : "")
+	}
+
 	@computed get unitConversionFactor(): number {
 		return defaultTo(defaultTo(this.props.conversionFactor, this.variable.displayUnitConversionFactor), 1)
 	}
@@ -95,12 +100,37 @@ export default class DimensionWithData {
 		return this.variable.maxValue*this.unitConversionFactor
 	}
 
+	get yearsUniq() {
+		return this.variable.yearsUniq
+	}
+
+	get entitiesUniq() {
+		return this.variable.entitiesUniq
+	}
+
 	get years() {
 		return this.variable.years
 	}
 
 	get entities() {
 		return this.variable.entities
+	}
+
+	@computed get valueByEntityAndYear(): Map<string, Map<number, (string|number)>> {
+        let valueByEntityAndYear = new Map<string, Map<number, (string|number)>>()
+		for (let i = 0; i < this.values.length; i++) {
+			const entity = this.entities[i]
+			const year = this.years[i]
+			const value = this.values[i]
+
+			let valueByYear = valueByEntityAndYear.get(entity)
+			if (!valueByYear) {
+				valueByYear = new Map()
+				valueByEntityAndYear.set(entity, valueByYear)
+			}
+			valueByYear.set(year, value)
+		}
+		return valueByEntityAndYear
 	}
 
     constructor(index: number, dimension: ChartDimension, variable: Variable) {
