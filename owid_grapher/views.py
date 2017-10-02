@@ -173,7 +173,7 @@ def showchart(request, chart):
     if configfile.get('subtitle', ''):
         chartmeta['description'] = configfile['subtitle']
     else:
-        chartmeta['description'] = 'An interactive visualization from Our World In Data.'
+        chartmeta['description'] = 'An interactive visualization from Our World in Data.'
     query_string = get_query_string(request)
     if query_string:
         canonicalurl += '?' + query_string
