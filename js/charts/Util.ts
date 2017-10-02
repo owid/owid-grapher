@@ -143,12 +143,14 @@ export function unitFormat(unit: any, value: any, options?: any): string {
 	var titlePrefix = (unit.title ? unit.title + ": " : ""),
 		unitSuffix = (unit.unit ? trim(unit.unit) : "");
 
+
 	// Do precision fiddling, if the value is numeric
 	if (isNumber(value)) {
-		if (value % 1 == 0 && Math.abs(value) >= 1e6) {
-			if (value >= 1e12) value = value/1e12 + " trillion"
-			else if (value >= 1e9) value = value/1e9 + " billion"
-			else if (value >= 1e6) value = value/1e6 + " million"
+		const absValue = Math.abs(value)
+		if (absValue % 1 == 0 && absValue >= 1e6) {
+			if (absValue >= 1e12) value = value/1e12 + " trillion"
+			else if (absValue >= 1e9) value = value/1e9 + " billion"
+			else if (absValue >= 1e6) value = value/1e6 + " million"
 		} else {
             const unitFormat = parseInt(unit.format)
 			if (isFinite(unitFormat) && unitFormat >= 0) {
@@ -184,12 +186,13 @@ export function formatValue(value: number, options: { maxDecimalPlaces?: number,
 
 	let output: string = value.toString()
 	
-	if (!isNoSpaceUnit && Math.abs(value) >= 1e6) {
-		if (value >= 1e12) 
+	const absValue = Math.abs(value)
+	if (!isNoSpaceUnit && absValue >= 1e6) {
+		if (absValue >= 1e12) 
 			output = formatValue(value/1e12, extend({}, options, { unit: "trillion" }))
-		else if (value >= 1e9) 
+		else if (absValue >= 1e9) 
 			output = formatValue(value/1e9, extend({}, options, { unit: "billion" }))
-		else if (value >= 1e6) 
+		else if (absValue >= 1e6) 
 			output = formatValue(value/1e6, extend({}, options, { unit: "million" }))
 	} else {
 		if (maxDecimalPlaces >= 0 && value % 1 != 0) {
