@@ -179,8 +179,6 @@ export default class ScatterTransform implements IChartTransform {
         if (this.chart.props.invertColorScheme)
             colors.reverse()
 
-        console.log(colors)
-
         return colors
     }
 
