@@ -11,7 +11,7 @@ import zipfile
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 import owid_grapher.wsgi
 import django.db
-from grapher_admin.models import Entity, DatasetSubcategory, DatasetCategory, Dataset, Source, Variable, VariableType, DataValue, ChartDimension
+from grapher_admin.models import Entity, DatasetSubcategory, DatasetCategory, Dataset, Source, Variable, VariableType, DataValue
 from importer.models import ImportHistory
 from country_name_tool.models import CountryName
 from django.conf import settings
@@ -405,11 +405,113 @@ def short_unit_extract(unit: str):
     return short_unit
 
 
+def process_csv_file_update(filename_to_process: str, original_filename: str):
+    print('Processing: %s' % original_filename)
+
+    # we will now construct the list of all unique variable names found in one file
+
+    unique_var_names = []
+    global vars_to_delete
+
+    with open(filename_to_process, encoding='latin-1') as currentfile:
+        currentreader = csv.DictReader(currentfile)
+        filecolumns = tuple(currentreader.fieldnames)
+
+        if filecolumns == column_types[0] or filecolumns == column_types[1] \
+           or filecolumns == column_types[2] or filecolumns == column_types[3] \
+           or filecolumns == column_types[4]:
+
+            for row in currentreader:
+                if filecolumns == column_types[0]:
+                    variablename = row['Item']
+                if filecolumns == column_types[1]:
+                    variablename = '%s - %s' % (row['Item'], row['Element'])
+                if filecolumns == column_types[2]:
+                    variablename = '%s - %s' % (row['Item'], row['Element'])
+                if filecolumns == column_types[3]:
+                    variablename = '%s - %s' % (row['Item'], row['Element'])
+                if filecolumns == column_types[4]:
+                    variablename = '%s - %s' % (row['Indicator'], row['Source'])
+
+                if original_filename == 'Emissions_Agriculture_Energy_E_All_Data_(Norm).zip':
+                    variablename += ' - %s' % row['Unit']
+
+                if original_filename == 'Production_LivestockPrimary_E_All_Data_(Normalized).zip':
+                    variablename += ' - %s' % row['Unit']
+
+                if original_filename == 'Trade_LiveAnimals_E_All_Data_(Normalized).zip':
+                    variablename += ' - %s' % row['Unit']
+
+                variablename = file_dataset_names[original_filename] + ': ' + variablename
+                if variablename not in unique_var_names:
+                    unique_var_names.append(variablename)
+
+        if filecolumns == column_types[5] or filecolumns == column_types[6] or filecolumns == column_types[7]:
+            if filecolumns == column_types[5]:
+                iterations = [
+                    {
+                        'varname_format': '%s - Donors'
+                    },
+                    {
+                        'varname_format': '%s - Recipients'
+                    }]
+            if filecolumns == column_types[6]:
+                iterations = [
+                    {
+                        'varname_format': '%s - %s - Reporters'
+                    },
+                    {
+                        'varname_format': '%s - %s - Partners'
+                    }]
+            if filecolumns == column_types[7]:
+                iterations = [
+                    {
+                        'varname_format': '%s - %s - Donors'
+                    },
+                    {
+                        'varname_format': '%s - %s - Recipients'
+                    }]
+            for oneiteration in iterations:
+                currentfile.seek(0)
+                row_counter = 0
+                for row in currentreader:
+                    if row['Year'] == 'Year':
+                        continue
+                    row_counter += 1
+                    if row_counter % 300 == 0:
+                        time.sleep(0.001)  # this is done in order to not keep the CPU busy all the time
+                    if filecolumns == column_types[5]:
+                        variablename = oneiteration['varname_format'] % row['Item']
+                    if filecolumns == column_types[6]:
+                        variablename = oneiteration['varname_format'] % (row['Item'], row['Element'])
+                    if filecolumns == column_types[7]:
+                        variablename = oneiteration['varname_format'] % (row['Item'], row['Purpose'])
+
+                    variablename = file_dataset_names[original_filename] + ': ' + variablename
+                    if variablename not in unique_var_names:
+                        unique_var_names.append(variablename)
+
+        for onevariable in unique_var_names:
+            found_vars = Variable.objects.filter(name=onevariable, fk_dst_id__namespace='faostat')
+            if found_vars:
+                for each_found_var in found_vars:
+                    vars_to_delete.append(each_found_var)
+
+        for each_var in vars_to_delete:
+            while DataValue.objects.filter(fk_var_id__pk=each_var.pk).first():
+                with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang
+                    c.execute('DELETE FROM %s WHERE fk_var_id = %s LIMIT 10000;' %
+                              (DataValue._meta.db_table, each_var.pk))
+
+    process_csv_file_insert(filename_to_process, original_filename)
+
+
 def process_csv_file_insert(filename_to_process: str, original_filename: str):
     print('Processing: %s' % original_filename)
 
     global unique_data_tracker
     global datasets_list
+    global existing_datasets_list
 
     current_file_vars_countries = set()  # keeps track of variables+countries we saw in the current file
     current_file_var_codes = set()
@@ -422,18 +524,22 @@ def process_csv_file_insert(filename_to_process: str, original_filename: str):
         the_subcategory.save()
         existing_subcategories_list.add(file_to_category_dict[original_filename])
     else:
-        the_subcategory = DatasetSubcategory.objects.get(name=file_to_category_dict[original_filename])
+        the_subcategory = DatasetSubcategory.objects.get(name=file_to_category_dict[original_filename], fk_dst_cat_id=the_category)
 
     insert_string = 'INSERT into data_values (value, year, fk_ent_id, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
     data_values_tuple_list = []
 
     # inserting a dataset
-    newdataset = Dataset(name='%s: %s' % (file_to_category_dict[original_filename], file_dataset_names[original_filename]),
-                         description='This is a dataset imported by the automated fetcher',
-                         namespace='faostat', fk_dst_cat_id=the_category,
-                         fk_dst_subcat_id=the_subcategory)
-    newdataset.save()
-    datasets_list.append(newdataset)
+    if Dataset.objects.filter(name='%s: %s' % (file_to_category_dict[original_filename], file_dataset_names[original_filename]), namespace='faostat'):
+        newdataset = Dataset.objects.get(name='%s: %s' % (file_to_category_dict[original_filename], file_dataset_names[original_filename]), namespace='faostat')
+        existing_datasets_list.append(newdataset)
+    else:
+        newdataset = Dataset(name='%s: %s' % (file_to_category_dict[original_filename], file_dataset_names[original_filename]),
+                             description='This is a dataset imported by the automated fetcher',
+                             namespace='faostat', fk_dst_cat_id=the_category,
+                             fk_dst_subcat_id=the_subcategory)
+        newdataset.save()
+        datasets_list.append(newdataset)
 
     # reading source information from a csv file in metadata_dir
     metadata_file_path = os.path.join(metadata_dir, os.path.splitext(original_filename)[0] + ".csv")
@@ -456,15 +562,24 @@ def process_csv_file_insert(filename_to_process: str, original_filename: str):
                     data_publishers_source = row['Metadata']
 
     # inserting a dataset source
-    newsource = Source(name=file_dataset_names[original_filename],
-                       description=source_template %
-                                   (file_dataset_names[original_filename],
-                                    data_published_by,
-                                    data_publishers_source,
-                                    additional_information
-                                    ),
-                       datasetId=newdataset.pk)
-    newsource.save()
+    if Source.objects.filter(name=file_dataset_names[original_filename], datasetId=newdataset.pk):
+        newsource = Source.objects.get(name=file_dataset_names[original_filename], datasetId=newdataset.pk)
+        newsource.description = source_template % (file_dataset_names[original_filename],
+                                                   data_published_by,
+                                                   data_publishers_source,
+                                                   additional_information
+                                                   )
+        newsource.save()
+    else:
+        newsource = Source(name=file_dataset_names[original_filename],
+                           description=source_template %
+                                       (file_dataset_names[original_filename],
+                                        data_published_by,
+                                        data_publishers_source,
+                                        additional_information
+                                        ),
+                           datasetId=newdataset.pk)
+        newsource.save()
 
     existing_fao_variables = Variable.objects.filter(fk_dst_id__in=Dataset.objects.filter(namespace='faostat'))
     existing_fao_variables_dict = {}
@@ -523,11 +638,19 @@ def process_csv_file_insert(filename_to_process: str, original_filename: str):
 
                 # avoiding duplicate rows
                 if original_filename == 'FoodBalanceSheets_E_All_Data_(Normalized).csv':
-                    if tuple(row) == previous_row:
-                        previous_row = tuple(row)
+                    temp_row = [rowvalue for rowkey, rowvalue in row.items()]
+                    if tuple(temp_row) == previous_row:
+                        previous_row = tuple(temp_row)
                         continue
                     else:
-                        previous_row = tuple(row)
+                        previous_row = tuple(temp_row)
+                    if row['Item Code'] not in current_file_var_codes and row['Item'] not in current_file_var_names:
+                        current_file_var_codes.add(row['Item Code'])
+                        current_file_var_names.add(row['Item'])
+                    elif row['Item Code'] in current_file_var_codes and row['Item'] in current_file_var_names:
+                        pass
+                    else:
+                        continue
 
                 try:
                     year = int(row['Year'])
@@ -688,6 +811,7 @@ def process_one_row(year, value, countryname, variablecode, variablename, existi
 
     global unique_data_tracker
     global processed_values
+    global vars_to_delete
 
     processed_values += 1
     if processed_values % 300 == 0:
@@ -698,11 +822,11 @@ def process_one_row(year, value, countryname, variablecode, variablename, existi
     if year is not False and value is not False:
         if tuple([countryname, variablecode]) not in unique_data_tracker:
             if countryname not in country_name_entity_ref:
-                if countryname.lower() in existing_entities_list:
-                    newentity = Entity.objects.get(name=countryname)
-                elif country_tool_names_dict.get(unidecode.unidecode(countryname.lower()), 0):
+                if country_tool_names_dict.get(unidecode.unidecode(countryname.lower()), 0):
                     newentity = Entity.objects.get(
                         name=country_tool_names_dict[unidecode.unidecode(countryname.lower())].owid_name)
+                elif countryname.lower() in existing_entities_list:
+                    newentity = Entity.objects.get(name=countryname)
                 else:
                     newentity = Entity(name=countryname, validated=False)
                     newentity.save()
@@ -730,6 +854,21 @@ def process_one_row(year, value, countryname, variablecode, variablename, existi
                                            sourceId=source)
                     newvariable.save()
                 existing_fao_variables_dict[variablename] = newvariable
+            else:
+                if existing_fao_variables_dict[variablename] in vars_to_delete:
+                    existing_fao_variables_dict[variablename].unit = unit if unit else ''
+                    existing_fao_variables_dict[variablename].short_unit = short_unit_extract(unit)
+                    existing_fao_variables_dict[variablename].description = var_desc
+                    existing_fao_variables_dict[variablename].code = variablecode
+                    existing_fao_variables_dict[variablename].fk_dst_id = dataset
+                    existing_fao_variables_dict[variablename].sourceId = source
+                    try:
+                        with transaction.atomic():
+                            existing_fao_variables_dict[variablename].save()
+                    except django.db.utils.IntegrityError:
+                        existing_fao_variables_dict[variablename].code = None
+                        existing_fao_variables_dict[variablename].save()
+                    del vars_to_delete[vars_to_delete.index(existing_fao_variables_dict[variablename])]
             data_values_tuple_list.append((str(value), int(year),
                                            country_name_entity_ref[countryname].pk,
                                            existing_fao_variables_dict[variablename].pk))
@@ -743,6 +882,8 @@ import_history = ImportHistory.objects.filter(import_type='faostat')
 with transaction.atomic():
     processed_values = 0  # the total number of values processed
     datasets_list = []
+    existing_datasets_list = []
+    vars_to_delete = []
     existing_categories = DatasetCategory.objects.values('name')
     existing_categories_list = {item['name'] for item in existing_categories}
 
@@ -798,6 +939,16 @@ with transaction.atomic():
                 else:
                     if imported_before_hash == file_checksum(eachfile):
                         print('No updates available for file %s.' % os.path.basename(eachfile))
+                    else:
+                        process_csv_file_update("/tmp/%s" % csv_filename, os.path.basename(eachfile))
+                        os.remove("/tmp/%s" % csv_filename)
+                        newimport = ImportHistory(import_type='faostat',
+                                                  import_time=timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
+                                                  import_notes='Importing file %s' % os.path.basename(eachfile),
+                                                  import_state=json.dumps(
+                                                      {'file_hash': file_checksum(eachfile),
+                                                       'file_name': os.path.basename(eachfile)
+                                                       }))
 
     for eachfile in glob.glob(all_dataset_files_dir + "/*.csv"):
         if os.path.basename(eachfile) not in files_to_exclude:
@@ -819,8 +970,19 @@ with transaction.atomic():
             else:
                 if imported_before_hash == file_checksum(eachfile):
                     print('No updates available for file %s.' % os.path.basename(eachfile))
+                else:
+                    process_csv_file_update(eachfile, os.path.basename(eachfile))
+                    newimport = ImportHistory(import_type='faostat',
+                                              import_time=timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
+                                              import_notes='Importing file %s' % os.path.basename(eachfile),
+                                              import_state=json.dumps(
+                                                  {'file_hash': file_checksum(eachfile),
+                                                   'file_name': os.path.basename(eachfile)
+                                                   }))
 
     for eachdataset in datasets_list:
         write_dataset_csv(eachdataset.pk, eachdataset.name, None, 'faostat_fetcher', '')
+    for eachdataset in existing_datasets_list:
+        write_dataset_csv(eachdataset.pk, eachdataset.name, eachdataset.name, 'faostat_fetcher', '')
 
 print("Script execution time: %s" % (datetime.now() - start_time))
