@@ -1,18 +1,18 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import {observable, computed, action} from 'mobx'
-import {observer} from 'mobx-react'
-import {select, selectAll} from 'd3-selection'
+import { observable, computed, action } from 'mobx'
+import { observer } from 'mobx-react'
+import { select, selectAll } from 'd3-selection'
 import 'd3-transition'
 
-import ChartConfig, {ChartConfigProps} from './ChartConfig'
+import ChartConfig, { ChartConfigProps } from './ChartConfig'
 import ControlsFooter from './ControlsFooter'
 import ChartTab from './ChartTab'
 import DataTab from './DataTab'
 import MapTab from './MapTab'
 import SourcesTab from './SourcesTab'
 import DownloadTab from './DownloadTab'
-import {VNode} from './Util'
+import { VNode } from './Util'
 import Bounds from './Bounds'
 import DataSelector from './DataSelector'
 
@@ -48,7 +48,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
             Bounds.baseFontFamily = "Helvetica, Arial"
             //if (containerBounds.width > 850)
             //    Bounds.baseFontSize = 18
-            chartView = ReactDOM.render(<ChartView bounds={containerBounds} chart={chart} isEditor={isEditor}/>, containerNode)
+            chartView = ReactDOM.render(<ChartView bounds={containerBounds} chart={chart} isEditor={isEditor} />, containerNode)
         }
 
         render()
@@ -60,11 +60,10 @@ export default class ChartView extends React.Component<ChartViewProps> {
 
     @computed get isExport() { return !!this.props.isExport }
     @computed get isEditor() { return !!this.props.isEditor }
-    @computed get isEmbed() { return !this.isExport && (window.self != window.top || this.isEditor) }
+    @computed get isEmbed() { return !this.isExport && (window.self !== window.top || this.isEditor) }
     @computed get isMobile() { return select('html').classed('touchevents') }
 
     @computed get containerBounds() { return this.props.bounds }
-
 
     @computed get isPortrait() { return this.containerBounds.width < this.containerBounds.height }
     @computed get isLandscape() { return !this.isPortrait }
@@ -74,7 +73,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
 
     // If the available space is very small, we use all of the space given to us
     @computed get fitBounds(): boolean {
-        const {isEditor, isEmbed, isExport, containerBounds, authorWidth, authorHeight} = this
+        const { isEditor, isEmbed, isExport, containerBounds, authorWidth, authorHeight } = this
 
         if (isEditor)
             return false
@@ -83,24 +82,24 @@ export default class ChartView extends React.Component<ChartViewProps> {
     }
 
     // If we have a big screen to be in, we can define our own aspect ratio and sit in the center
-    @computed get paddedWidth(): number { return this.isPortrait ? this.containerBounds.width*0.9 : this.containerBounds.width*0.9 }
-    @computed get paddedHeight(): number { return this.isPortrait ? this.containerBounds.height*0.9 : this.containerBounds.height*0.9 }
+    @computed get paddedWidth(): number { return this.isPortrait ? this.containerBounds.width * 0.9 : this.containerBounds.width * 0.9 }
+    @computed get paddedHeight(): number { return this.isPortrait ? this.containerBounds.height * 0.9 : this.containerBounds.height * 0.9 }
     @computed get scaleToFitIdeal(): number {
-        return Math.min(this.paddedWidth/this.authorWidth, this.paddedHeight/this.authorHeight)        
+        return Math.min(this.paddedWidth / this.authorWidth, this.paddedHeight / this.authorHeight)
     }
-    @computed get idealWidth(): number { return this.authorWidth*this.scaleToFitIdeal }
-    @computed get idealHeight(): number { return this.authorHeight*this.scaleToFitIdeal }
+    @computed get idealWidth(): number { return this.authorWidth * this.scaleToFitIdeal }
+    @computed get idealHeight(): number { return this.authorHeight * this.scaleToFitIdeal }
 
     // These are the final render dimensions
-    @computed get renderWidth() { return this.fitBounds ? this.containerBounds.width-(this.isEmbed ? 3 : 0) : this.idealWidth }
-    @computed get renderHeight() { return this.fitBounds ? this.containerBounds.height-(this.isEmbed ? 3 : 0) : this.idealHeight }
+    @computed get renderWidth() { return this.fitBounds ? this.containerBounds.width - (this.isEmbed ? 3 : 0) : this.idealWidth }
+    @computed get renderHeight() { return this.fitBounds ? this.containerBounds.height - (this.isEmbed ? 3 : 0) : this.idealHeight }
 
     @computed get controlsFooterHeight() {
-        const height = Bounds.forText("CHART", { fontSize: Bounds.baseFontSize +'px' }).height*2
-        if (this.isPortrait && this.props.chart.tab == 'chart')
-            return height*2
+        const height = Bounds.forText("CHART", { fontSize: Bounds.baseFontSize + 'px' }).height * 2
+        if (this.isPortrait && this.props.chart.tab === 'chart')
+            return height * 2
         else
-            return height        
+            return height
     }
 
     @computed get svgBounds() {
@@ -117,6 +116,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
     @observable.ref htmlNode: HTMLDivElement
     @observable.ref svgNode: SVGSVGElement
     base: HTMLDivElement
+    hasFadedIn: boolean = false
 
     @computed get classNames(): string {
         const classNames = [
@@ -135,43 +135,43 @@ export default class ChartView extends React.Component<ChartViewProps> {
     }
 
     removePopup(vnodeType: any) {
-        this.popups = this.popups.filter(d => !(d.nodeName == vnodeType))
+        this.popups = this.popups.filter(d => !(d.nodeName === vnodeType))
     }
 
     getChildContext() {
-        return { 
+        return {
             chart: this.chart,
-            chartView: this, 
-            isStatic: this.isExport, 
-            addPopup: this.addPopup.bind(this), 
+            chartView: this,
+            isStatic: this.isExport,
+            addPopup: this.addPopup.bind(this),
             removePopup: this.removePopup.bind(this)
         }
     }
 
-    renderPrimaryTab(bounds: Bounds): JSX.Element|undefined {
-        const {chart} = this
-        if (chart.primaryTab == 'chart')
-            return <ChartTab bounds={bounds} chartView={this} chart={this.chart}/>
-        else if (chart.primaryTab == 'map')
-            return <MapTab bounds={bounds} chart={this.chart}/>
+    renderPrimaryTab(bounds: Bounds): JSX.Element | undefined {
+        const { chart } = this
+        if (chart.primaryTab === 'chart')
+            return <ChartTab bounds={bounds} chartView={this} chart={this.chart} />
+        else if (chart.primaryTab === 'map')
+            return <MapTab bounds={bounds} chart={this.chart} />
         else
             return undefined
     }
 
-    renderOverlayTab(bounds: Bounds): JSX.Element|undefined {
-        const {chart} = this
-        if (chart.overlayTab == 'sources')
-            return <SourcesTab bounds={bounds} chart={chart}/>
-        else if (chart.overlayTab == 'data')
-            return <DataTab bounds={bounds} chart={chart}/>
-        else if (chart.overlayTab == 'download')
-            return <DownloadTab bounds={bounds} chart={chart}/>
+    renderOverlayTab(bounds: Bounds): JSX.Element | undefined {
+        const { chart } = this
+        if (chart.overlayTab === 'sources')
+            return <SourcesTab bounds={bounds} chart={chart} />
+        else if (chart.overlayTab === 'data')
+            return <DataTab bounds={bounds} chart={chart} />
+        else if (chart.overlayTab === 'download')
+            return <DownloadTab bounds={bounds} chart={chart} />
         else
             return undefined
     }
 
     renderSVG() {
-        const {svgBounds, svgInnerBounds} = this
+        const { svgBounds, svgInnerBounds } = this
 
         const svgStyle = {
             fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
@@ -185,27 +185,27 @@ export default class ChartView extends React.Component<ChartViewProps> {
     }
 
     renderReady() {
-        const {svgBounds, chart} = this
+        const { svgBounds, chart } = this
 
         return [
             this.renderSVG(),
-            <ControlsFooter chart={this.chart} chartView={this}/>,
+            <ControlsFooter chart={this.chart} chartView={this} />,
             this.renderOverlayTab(svgBounds),
             this.popups,
             this.chart.tooltip,
-            this.isSelectingData && <DataSelector chart={chart} chartView={this} onDismiss={action(() => this.isSelectingData = false)}/>
+            this.isSelectingData && <DataSelector chart={chart} chartView={this} onDismiss={action(() => this.isSelectingData = false)} />
         ]
     }
 
     renderLoading() {
-        return <div className="loadingIcon"><i className="fa fa-spinner fa-spin"/></div>
+        return <div className="loadingIcon"><i className="fa fa-spinner fa-spin" /></div>
     }
 
     render() {
         if (this.isExport) {
             return this.renderSVG()
-        } else{
-            const {renderWidth, renderHeight} = this
+        } else {
+            const { renderWidth, renderHeight } = this
 
             const style = { width: renderWidth, height: renderHeight, fontSize: Bounds.baseFontSize }
 
@@ -220,8 +220,6 @@ export default class ChartView extends React.Component<ChartViewProps> {
         window.chartView = this
     }
 
-    
-    hasFadedIn: boolean = false
     componentDidUpdate() {
         if (this.chart.data.isReady && !this.hasFadedIn) {
             selectAll("#chart > *").style('opacity', 0).transition().style('opacity', null)
@@ -231,14 +229,14 @@ export default class ChartView extends React.Component<ChartViewProps> {
 
     // XXX
     getTransformedBounds(node: HTMLElement) {
-        var chartRect = this.base.getBoundingClientRect(),
-            nodeRect = node.getBoundingClientRect();
+        const chartRect = this.base.getBoundingClientRect()
+        const nodeRect = node.getBoundingClientRect()
 
         return new Bounds(
-            nodeRect.left-chartRect.left,
-            nodeRect.top-chartRect.top,
+            nodeRect.left - chartRect.left,
+            nodeRect.top - chartRect.top,
             nodeRect.width,
             nodeRect.height
-        );
-    };
+        )
+    }
 }

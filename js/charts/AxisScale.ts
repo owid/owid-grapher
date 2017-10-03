@@ -10,7 +10,7 @@ import {scaleLog, scaleLinear, ScaleLinear, ScaleLogarithmic} from 'd3-scale'
 import {map, extend} from './Util'
 import {observable, computed, toJS} from 'mobx'
 
-export type ScaleType = 'linear' | 'log';
+export type ScaleType = 'linear' | 'log'
 
 export interface AxisConfig {
     scaleType: ScaleType,
@@ -27,8 +27,22 @@ export default class AxisScale {
     @observable.struct domain: [number, number]
     @observable.struct range: [number, number]
 
-    @computed get d3_scaleConstructor(): Function {
-        return this.scaleType == 'log' ? scaleLog : scaleLinear
+    constructor({ scaleType = 'linear',
+                  scaleTypeOptions = ['linear'],
+                  tickFormat = (d => d.toString()),
+                  domain = [0, 0],
+                  range = [0, 0] }:
+                { scaleType?: ScaleType, scaleTypeOptions?: ScaleType[],
+                  tickFormat?: (v: number) => string, domain: [number, number], range?: [number, number] }) {
+        this.scaleType = scaleType
+        this.scaleTypeOptions = scaleTypeOptions
+        this.tickFormat = tickFormat
+        this.domain = domain
+        this.range = range
+    }
+
+    @computed get d3_scaleConstructor(): any {
+        return this.scaleType === 'log' ? scaleLog : scaleLinear
     }
 
     @computed get d3_scale(): ScaleLinear<number, number> | ScaleLogarithmic<number, number> {
@@ -51,14 +65,14 @@ export default class AxisScale {
         const {scaleType, domain, d3_scale} = this
 
         let ticks: number[] = []
-        if (scaleType == 'log') {
-            let minPower10 = Math.ceil(Math.log(domain[0]) / Math.log(10));
+        if (scaleType === 'log') {
+            let minPower10 = Math.ceil(Math.log(domain[0]) / Math.log(10))
             if (!isFinite(minPower10)) minPower10 = 0
-            let maxPower10 = Math.floor(Math.log(domain[1]) / Math.log(10));
+            let maxPower10 = Math.floor(Math.log(domain[1]) / Math.log(10))
             if (maxPower10 <= minPower10) maxPower10 += 1
 
-            for (var i = minPower10; i <= maxPower10; i++) {
-                ticks.push(Math.pow(10, i));
+            for (let i = minPower10; i <= maxPower10; i++) {
+                ticks.push(Math.pow(10, i))
             }
         } else {
             ticks = d3_scale.ticks(6)
@@ -75,28 +89,14 @@ export default class AxisScale {
         if (!this.range) {
             console.error("Can't place value on scale without a defined output range")
             return value
-        } else if (this.scaleType == 'log' && value <= 0) {
+        } else if (this.scaleType === 'log' && value <= 0) {
             console.error("Can't have values <= 0 on a log scale")
             return value
         }
         return parseFloat(this.d3_scale(value).toFixed(1))
     }
 
-    extend(props: Object) {
+    extend(props: any) {
         return new AxisScale(extend(toJS(this), props))
-    }
-
-    constructor({ scaleType = 'linear', 
-                  scaleTypeOptions = ['linear'],
-                  tickFormat = (d => d.toString()),
-                  domain = [0, 0], 
-                  range = [0, 0] } :
-                { scaleType?: ScaleType, scaleTypeOptions?: ScaleType[],
-                  tickFormat?: (v: number) => string, domain: [number, number], range?: [number, number] }) {
-        this.scaleType = scaleType
-        this.scaleTypeOptions = scaleTypeOptions
-        this.tickFormat = tickFormat
-        this.domain = domain
-        this.range = range
     }
 }

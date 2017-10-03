@@ -15,13 +15,13 @@ export default class ChartDimension {
 
     // XXX move this somewhere else, it's only used for scatter x override
     @observable targetYear?: number = undefined
-    
+
     // If enabled, dimension settings will be saved onto variable as defaults
     // for future charts
     @observable saveToVariable?: true = undefined
 
     constructor(json: { property: string, variableId: number }) {
-        for (let key in this) {
+        for (const key in this) {
             if (key in json) {
                 (this as any)[key] = (json as any)[key]
 
@@ -29,6 +29,6 @@ export default class ChartDimension {
                 if ((json as any)[key] === "")
                     (this as any)[key] = undefined
             }
-        }        
+        }
     }
 }

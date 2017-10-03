@@ -1,19 +1,19 @@
-import {extend, keys, map} from './Util'
+import { extend, keys, map } from './Util'
 import * as React from 'react'
 import { observable, computed, action } from 'mobx'
-import {observer} from 'mobx-react'
+import { observer } from 'mobx-react'
 import * as Cookies from 'js-cookie'
 import ChartConfig from './ChartConfig'
-import {getQueryParams} from './Util'
+import { getQueryParams } from './Util'
 import ChartView from './ChartView'
-import {HighlightToggleConfig} from './ChartConfig'
+import { HighlightToggleConfig } from './ChartConfig'
 
 declare const Global: any
 
 @observer
 class EmbedMenu extends React.Component<{ embedUrl: string }> {
     render() {
-        const {embedUrl} = this.props
+        const { embedUrl } = this.props
 
         return <div className="embedMenu" onClick={evt => evt.stopPropagation()}>
             <h2>Embed</h2>
@@ -33,19 +33,19 @@ interface ShareMenuProps {
 
 @observer
 class ShareMenu extends React.Component<ShareMenuProps> {
-    @computed get title() : string {
+    @computed get title(): string {
         return document.title.replace(" - Our World In Data", "")
     }
 
-    @computed get editUrl() : string|null {
+    @computed get editUrl(): string | null {
         return Cookies.get('isAdmin') ? (Global.adminRootUrl + '/charts/' + this.props.chart.props.id + '/edit') : null
     }
 
-    @computed get canonicalUrl(): string|undefined {
+    @computed get canonicalUrl(): string | undefined {
         return this.props.chart.url.canonicalUrl
     }
 
-    @observable isEmbedMenuActive : boolean = false
+    @observable isEmbedMenuActive: boolean = false
 
     embedMenu: any
 
@@ -68,7 +68,7 @@ class ShareMenu extends React.Component<ShareMenuProps> {
 
     @action.bound onEmbed() {
         if (this.canonicalUrl)
-            this.props.chartView.addPopup(<EmbedMenu embedUrl={this.canonicalUrl}/>)
+            this.props.chartView.addPopup(<EmbedMenu embedUrl={this.canonicalUrl} />)
     }
 
     @computed get twitterHref(): string {
@@ -86,21 +86,21 @@ class ShareMenu extends React.Component<ShareMenuProps> {
     }
 
     render() {
-        const {editUrl, twitterHref, facebookHref} = this
+        const { editUrl, twitterHref, facebookHref } = this
 
         return <div className="shareMenu" onClick={(evt) => evt.stopPropagation()}>
             <h2>Share</h2>
             <a className="btn" target="_blank" title="Tweet a link" href={twitterHref}>
-                <i className="fa fa-twitter"/> Twitter
+                <i className="fa fa-twitter" /> Twitter
             </a>
             <a className="btn" target="_blank" title="Share on Facebook" href={facebookHref}>
-                <i className="fa fa-facebook"/> Facebook
+                <i className="fa fa-facebook" /> Facebook
             </a>
             <a className="btn" title="Embed this visualization in another HTML document" onClick={this.onEmbed}>
-                <i className="fa fa-code"/> Embed
+                <i className="fa fa-code" /> Embed
             </a>
             {editUrl && <a className="btn" target="_blank" title="Edit chart" href={editUrl}>
-                <i className="fa fa-edit"/> Edit
+                <i className="fa fa-edit" /> Edit
             </a>}
         </div>
     }
@@ -116,7 +116,7 @@ class HighlightToggle extends React.Component<{ chart: ChartConfig, highlightTog
     @computed get highlight() { return this.props.highlightToggle }
 
     @computed get highlightParams() {
-        return getQueryParams((this.highlight.paramStr||"").substring(1))
+        return getQueryParams((this.highlight.paramStr || "").substring(1))
     }
 
     @action.bound onHighlightToggle(e: React.FormEvent<HTMLInputElement>) {
@@ -132,30 +132,30 @@ class HighlightToggle extends React.Component<{ chart: ChartConfig, highlightTog
         const params = getQueryParams()
         let isActive = true
         keys(this.highlightParams).forEach((key) => {
-            if (params[key] != this.highlightParams[key])
+            if (params[key] !== this.highlightParams[key])
                 isActive = false
         })
         return isActive
     }
 
     render() {
-        const {highlight, isHighlightActive} = this
+        const { highlight, isHighlightActive } = this
         return <label className="clickable HighlightToggle">
-            <input type="checkbox" checked={isHighlightActive} onChange={this.onHighlightToggle}/> {highlight.description}
+            <input type="checkbox" checked={isHighlightActive} onChange={this.onHighlightToggle} /> {highlight.description}
         </label>
     }
 }
 
 class AbsRelToggle extends React.Component<{ chart: ChartConfig }> {
     @action.bound onToggle() {
-        const {stackedArea} = this.props.chart
+        const { stackedArea } = this.props.chart
         stackedArea.isRelative = !stackedArea.isRelative
     }
 
     render() {
-        const {chart} = this.props
+        const { chart } = this.props
         return <label className="clickable">
-            <input type="checkbox" checked={chart.stackedArea.isRelative} onChange={this.onToggle}/> {chart.isStackedArea ? "Relative" : "Average annual change"}
+            <input type="checkbox" checked={chart.stackedArea.isRelative} onChange={this.onToggle} /> {chart.isStackedArea ? "Relative" : "Average annual change"}
         </label>
     }
 }
@@ -173,41 +173,41 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps>
     }
 
     @computed get addDataTerm() {
-        const {chart} = this.props
+        const { chart } = this.props
         return chart.data.isSingleEntity ? "data" : chart.entityType
     }
 
     render() {
-        const {props, isShareMenuActive} = this
-        const {chart} = props
+        const { props, isShareMenuActive } = this
+        const { chart } = props
 
         return <div className="ControlsFooter">
             <nav className="tabs">
                 <ul>
                     {map(chart.availableTabs, (tabName) => {
-                        return tabName != 'download' && <li className={"tab clickable" + (tabName == chart.tab ? ' active' : '')} onClick={() => chart.tab = tabName}><a>{tabName}</a></li>
+                        return tabName !== 'download' && <li className={"tab clickable" + (tabName === chart.tab ? ' active' : '')} onClick={() => chart.tab = tabName}><a>{tabName}</a></li>
                     })}
-                    <li className={"tab clickable icon" + (chart.tab == 'download' ? ' active' : '')} onClick={() => chart.tab = 'download'} title="Download as .png or .svg">
-                        <a><i className="fa fa-download"/></a>
+                    <li className={"tab clickable icon" + (chart.tab === 'download' ? ' active' : '')} onClick={() => chart.tab = 'download'} title="Download as .png or .svg">
+                        <a><i className="fa fa-download" /></a>
                     </li>
-                    <li className="clickable icon"><a title="Share" onClick={this.onShareMenu}><i className="fa fa-share-alt"/></a></li>
-                    {props.chartView.isEmbed && <li className="clickable icon"><a title="Open chart in new tab" href={chart.url.canonicalUrl} target="_blank"><i className="fa fa-expand"/></a></li>}
+                    <li className="clickable icon"><a title="Share" onClick={this.onShareMenu}><i className="fa fa-share-alt" /></a></li>
+                    {props.chartView.isEmbed && <li className="clickable icon"><a title="Open chart in new tab" href={chart.url.canonicalUrl} target="_blank"><i className="fa fa-expand" /></a></li>}
                 </ul>
             </nav>
-            {chart.tab == 'chart' && <div className="extraControls">          
+            {chart.tab === 'chart' && <div className="extraControls">
                 {chart.data.canAddData && <button onClick={this.onDataSelect}>
-                    {chart.isScatter ? <span><i className="fa fa-search"/> Search</span> : <span><i className="fa fa-plus"/> Add {this.addDataTerm}</span>}
+                    {chart.isScatter ? <span><i className="fa fa-search" /> Search</span> : <span><i className="fa fa-plus" /> Add {this.addDataTerm}</span>}
                 </button>}
 
                 {chart.data.canChangeEntity && <button onClick={this.onDataSelect}>
-                    <i className="fa fa-exchange"/> Change {chart.entityType}
+                    <i className="fa fa-exchange" /> Change {chart.entityType}
                 </button>}
-                
-                {chart.isScatter && chart.highlightToggle && <HighlightToggle chart={chart} highlightToggle={chart.highlightToggle}/>}
-                {chart.isStackedArea && chart.stackedArea.canToggleRelative && <AbsRelToggle chart={chart}/>}
-                {chart.isScatter && chart.scatter.canToggleRelative && <AbsRelToggle chart={chart}/>}
+
+                {chart.isScatter && chart.highlightToggle && <HighlightToggle chart={chart} highlightToggle={chart.highlightToggle} />}
+                {chart.isStackedArea && chart.stackedArea.canToggleRelative && <AbsRelToggle chart={chart} />}
+                {chart.isScatter && chart.scatter.canToggleRelative && <AbsRelToggle chart={chart} />}
             </div>}
-            {isShareMenuActive && <ShareMenu chartView={this.props.chartView} chart={this.props.chart} onDismiss={() => this.isShareMenuActive = false}/>}
+            {isShareMenuActive && <ShareMenu chartView={this.props.chartView} chart={this.props.chart} onDismiss={() => this.isShareMenuActive = false} />}
         </div>
     }
 }

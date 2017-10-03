@@ -1,12 +1,12 @@
-import {scaleOrdinal} from 'd3-scale'
-import {some, union, min, max, find, isEmpty} from './Util'
-import {computed} from 'mobx'
+import { scaleOrdinal } from 'd3-scale'
+import { some, union, min, max, find, isEmpty } from './Util'
+import { computed } from 'mobx'
 import ChartConfig from './ChartConfig'
-import {defaultTo, findClosest} from './Util'
+import { defaultTo, findClosest } from './Util'
 import DimensionWithData from './DimensionWithData'
 import Observations from './Observations'
-import {SlopeChartSeries} from './LabelledSlopes'
-import {first, last, makeSafeForCSS} from './Util'
+import { SlopeChartSeries } from './LabelledSlopes'
+import { first, last, makeSafeForCSS } from './Util'
 import IChartTransform from './IChartTransform'
 import ColorSchemes from './ColorSchemes'
 
@@ -19,18 +19,18 @@ export default class SlopeChartTransform implements IChartTransform {
         this.chart = chart
     }
 
-	@computed get isValidConfig(): boolean {
-		return some(this.chart.dimensions, d => d.property == 'y')
-	}
+    @computed get isValidConfig(): boolean {
+        return some(this.chart.dimensions, d => d.property === 'y')
+    }
 
-    @computed get failMessage(): string|undefined {
-        const {filledDimensions} = this.chart.data
-        if (!some(filledDimensions, d => d.property == 'y'))
+    @computed get failMessage(): string | undefined {
+        const { filledDimensions } = this.chart.data
+        if (!some(filledDimensions, d => d.property === 'y'))
             return "Missing Y axis variable"
         else if (isEmpty(this.data))
             return "No matching data"
-		else
-			return undefined
+        else
+            return undefined
     }
 
     @computed get timelineYears(): number[] {
@@ -55,35 +55,34 @@ export default class SlopeChartTransform implements IChartTransform {
         return defaultTo(findClosest(this.timelineYears, maxYear), this.maxTimelineYear)
     }
 
-	@computed.struct get xDomain() : [number|null, number|null] {
-		return [this.startYear, this.endYear]
-	}
+    @computed.struct get xDomain(): [number | null, number | null] {
+        return [this.startYear, this.endYear]
+    }
 
-	@computed.struct get sizeDim(): DimensionWithData {
-		return find(this.chart.data.filledDimensions, d => d.property == 'size') as DimensionWithData
-	}
+    @computed.struct get sizeDim(): DimensionWithData {
+        return find(this.chart.data.filledDimensions, d => d.property === 'size') as DimensionWithData
+    }
 
-	@computed.struct get colorDim(): DimensionWithData {
-		return find(this.chart.data.filledDimensions, d => d.property == 'color') as DimensionWithData
-	}
+    @computed.struct get colorDim(): DimensionWithData {
+        return find(this.chart.data.filledDimensions, d => d.property === 'color') as DimensionWithData
+    }
 
-	@computed.struct get yDimension(): DimensionWithData|undefined {
-		return find(this.chart.data.filledDimensions, d => d.property == 'y')
-	}
+    @computed.struct get yDimension(): DimensionWithData | undefined {
+        return find(this.chart.data.filledDimensions, d => d.property === 'y')
+    }
 
-	@computed get variableData() : Observations {
-		const variables = this.chart.data.filledDimensions.map(d => d.variable)
-		let obvs : any[]= []
-		variables.forEach(v => {
-			for (var i = 0; i < v.years.length; i++) {
-				let d: any = { year: v.years[i], entity: v.entities[i] }
-				d[v.id] = v.values[i]
-				obvs.push(d)
-			}
-		})
-		return new Observations(obvs)
-	}
-
+    @computed get variableData(): Observations {
+        const variables = this.chart.data.filledDimensions.map(d => d.variable)
+        const obvs: any[] = []
+        variables.forEach(v => {
+            for (let i = 0; i < v.years.length; i++) {
+                const d: any = { year: v.years[i], entity: v.entities[i] }
+                d[v.id] = v.values[i]
+                obvs.push(d)
+            }
+        })
+        return new Observations(obvs)
+    }
 
     @computed get defaultColors(): string[] {
         return [ // default color scheme for continents
@@ -98,8 +97,8 @@ export default class SlopeChartTransform implements IChartTransform {
     }
 
     @computed get colorScheme(): string[] {
-        const {baseColorScheme} = this.chart
-        const {colorDim} = this
+        const { baseColorScheme } = this.chart
+        const { colorDim } = this
 
         const colorScheme = baseColorScheme && ColorSchemes[baseColorScheme]
         if (!colorScheme) return this.defaultColors
@@ -112,47 +111,47 @@ export default class SlopeChartTransform implements IChartTransform {
 
         const colorScale = scaleOrdinal(this.colorScheme)
         if (colorDim) {
-            colorScale.domain(colorDim.variable.categoricalValues);
+            colorScale.domain(colorDim.variable.categoricalValues)
         }
 
         return colorScale
     }
 
-	@computed get yTickFormat(): (d: number) => string {
-		return this.yDimension ? this.yDimension.formatValueShort : d => `${d}`
-	}
+    @computed get yTickFormat(): (d: number) => string {
+        return this.yDimension ? this.yDimension.formatValueShort : d => `${d}`
+    }
 
-	@computed get data() : SlopeChartSeries[] {
-		if (!this.yDimension) return []
+    @computed get data(): SlopeChartSeries[] {
+        if (!this.yDimension) return []
 
-		let {variableData, sizeDim, yDimension, xDomain, colorDim, colorScale} = this
-		let data = variableData
-		const entityKey = this.chart.vardata.entityMetaByKey
+        const { variableData, sizeDim, yDimension, xDomain, colorDim, colorScale } = this
+        let data = variableData
+        const entityKey = this.chart.vardata.entityMetaByKey
 
-		// Make sure we're using time bounds that actually contain data
-		const longestRange: number[] = data.filter((d: any) => isFinite(d[yDimension.variable.id]))
-			.mergeBy('entity', (rows: Observations) => rows.pluck('year'))
-			.sortBy((d: number[]) => last(d)-first(d))
-			.last() as number[]
+        // Make sure we're using time bounds that actually contain data
+        const longestRange: number[] = data.filter((d: any) => isFinite(d[yDimension.variable.id]))
+            .mergeBy('entity', (rows: Observations) => rows.pluck('year'))
+            .sortBy((d: number[]) => last(d) - first(d))
+            .last() as number[]
 
-		const minYear = xDomain[0] == null ? first(longestRange) : Math.max(xDomain[0]||-Infinity, first(longestRange))
-		const maxYear = xDomain[1] == null ? last(longestRange) : Math.min(xDomain[1]||Infinity, last(longestRange))
+        const minYear = xDomain[0] == null ? first(longestRange) : Math.max(xDomain[0] || -Infinity, first(longestRange))
+        const maxYear = xDomain[1] == null ? last(longestRange) : Math.min(xDomain[1] || Infinity, last(longestRange))
 
-		data = data.mergeBy('entity', (rows : Observations, entity : string) => {
-			return {
-				label: entityKey[entity].name,
-				key: makeSafeForCSS(entityKey[entity].name),
-				color: colorScale(rows.first(colorDim.variable.id)),
-				size: rows.first(sizeDim.variable.id),
-				values: rows.filter((d: any) => isFinite(d[yDimension.variable.id]) && (d.year == minYear || d.year == maxYear)).mergeBy('year').map((d: any) => {
-					return {
-						x: d.year,
-						y: d[yDimension.variable.id]
-					}
-				}).toArray()
-			}
-		}).filter((d: any) => d.values.length >= 2)
+        data = data.mergeBy('entity', (rows: Observations, entity: string) => {
+            return {
+                label: entityKey[entity].name,
+                key: makeSafeForCSS(entityKey[entity].name),
+                color: colorScale(rows.first(colorDim.variable.id)),
+                size: rows.first(sizeDim.variable.id),
+                values: rows.filter((d: any) => isFinite(d[yDimension.variable.id]) && (d.year === minYear || d.year === maxYear)).mergeBy('year').map((d: any) => {
+                    return {
+                        x: d.year,
+                        y: d[yDimension.variable.id]
+                    }
+                }).toArray()
+            }
+        }).filter((d: any) => d.values.length >= 2)
 
-		return data.toArray() as SlopeChartSeries[]
-	}
+        return data.toArray() as SlopeChartSeries[]
+    }
 }

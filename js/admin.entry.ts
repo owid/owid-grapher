@@ -8,7 +8,6 @@ import '../css/admin.css'
 
 // Admin only code
 
-
 declare var window: any
 window.$ = window.jQuery = require('jquery')
 

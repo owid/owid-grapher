@@ -1,10 +1,3 @@
-/* StackedArea.tsx
- * ================
- *
- * A stacked area chart.
- *
- */
-
 import * as React from 'react'
 import {sortBy, reverse, clone, last} from './Util'
 import {computed, action, observable} from 'mobx'
@@ -36,10 +29,10 @@ export interface StackedAreaSeries {
     isProjection?: boolean,
 }
 
-function pathify(points: [number, number][]) {
+function pathify(points: Array<[number, number]>) {
     let path = ""
     for (let i = 0; i < points.length; i++) {
-        if (i == 0)
+        if (i === 0)
             path += `M${points[i][0]} ${points[i][1]}`
         else
             path += `L${points[i][0]} ${points[i][1]}`
@@ -50,20 +43,20 @@ function pathify(points: [number, number][]) {
 interface AreasProps extends React.SVGAttributes<SVGGElement> {
     axisBox: AxisBox
     data: StackedAreaSeries[]
-    onHover: (hoverIndex: number|undefined) => void 
+    onHover: (hoverIndex: number|undefined) => void
 }
 
 @observer
 export class Areas extends React.Component<AreasProps> {
     base: SVGGElement
-    
+
     @observable hoverIndex?: number
 
     @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement>) {
         const {axisBox, data} = this.props
 
         const mouse = getRelativeMouse(this.base, ev)
-        
+
         if (axisBox.innerBounds.contains(mouse)) {
             const closestPoint = sortBy(data[0].values, d => Math.abs(axisBox.xScale.place(d.x) - mouse.x))[0]
             const index = data[0].values.indexOf(closestPoint)
@@ -128,7 +121,7 @@ export class Areas extends React.Component<AreasProps> {
         const {hoverIndex} = this
 
         return <g className="Areas" onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseMove}>
-            <rect x={xScale.range[0]} y={yScale.range[1]} width={xScale.range[1]-xScale.range[0]} height={yScale.range[0]-yScale.range[1]} opacity={0} fill="rgba(255,255,255,0)"/> 
+            <rect x={xScale.range[0]} y={yScale.range[1]} width={xScale.range[1]-xScale.range[0]} height={yScale.range[0]-yScale.range[1]} opacity={0} fill="rgba(255,255,255,0)"/>
             {this.areas}
             {this.borders}
             {hoverIndex != null && <g className="hoverIndicator">
@@ -143,10 +136,11 @@ export class Areas extends React.Component<AreasProps> {
 
 @observer
 export default class StackedAreaChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
+    base: SVGGElement
+
     @computed get chart(): ChartConfig { return this.props.chart }
     @computed get bounds(): Bounds { return this.props.bounds }
     @computed get transform() { return this.props.chart.stackedArea }
-
 
     @computed get midpoints(): number[] {
         let prevY = 0
@@ -173,10 +167,10 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
         if (this.chart.hideLegend)
             return undefined
 
-        const _this = this
+        const that = this
         return new HeightedLegend({
             get maxWidth() { return 150 },
-            get items() { return _this.legendItems }
+            get items() { return that.legendItems }
         })
     }
 
@@ -225,7 +219,6 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
         </Tooltip>
     }
 
-    base: SVGGElement
     componentDidMount() {
         // Fancy intro animation
 
@@ -242,7 +235,7 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
     render() {
         if (this.transform.failMessage)
             return <NoData bounds={this.props.bounds} message={this.transform.failMessage}/>
-            
+
         const {chart, bounds, axisBox, legend, transform} = this
         return <g className="StackedArea">
             <defs>

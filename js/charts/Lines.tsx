@@ -1,18 +1,11 @@
-/* LineChart.tsx
- * ================
- *
- * A standard line chart.
- *
- */
-
 import * as React from 'react'
-import {map, flatten, some, includes, sortBy, filter, sum} from './Util'
-import {computed, action, observable} from 'mobx'
-import {observer} from 'mobx-react'
-import {LineChartSeries, LineChartValue} from './LineChart'
+import { map, flatten, some, includes, sortBy, filter, sum } from './Util'
+import { computed, action, observable } from 'mobx'
+import { observer } from 'mobx-react'
+import { LineChartSeries, LineChartValue } from './LineChart'
 import AxisScale from './AxisScale'
 import Vector2 from './Vector2'
-import {getRelativeMouse, makeSafeForCSS} from './Util'
+import { getRelativeMouse, makeSafeForCSS } from './Util'
 import Bounds from './Bounds'
 import DataKey from './DataKey'
 
@@ -43,10 +36,10 @@ export interface HoverTarget {
 @observer
 export default class Lines extends React.Component<LinesProps> {
     base: SVGGElement
-    @observable.ref hover: HoverTarget|null = null
+    @observable.ref hover: HoverTarget | null = null
 
     @computed get renderData(): LineRenderSeries[] {
-        const {data, xScale, yScale, focusKeys} = this.props
+        const { data, xScale, yScale, focusKeys } = this.props
         return map(data, series => {
             return {
                 key: series.key,
@@ -66,13 +59,13 @@ export default class Lines extends React.Component<LinesProps> {
     }
 
     @computed get hoverData(): HoverTarget[] {
-        const {data} = this.props
+        const { data } = this.props
         return flatten(map(this.renderData, (series, i) => {
             return map(series.values, (v, j) => {
                 return {
                     pos: v,
                     series: data[i],
-                    value: data[i].values[j] 
+                    value: data[i].values[j]
                 }
             })
         }))
@@ -80,7 +73,7 @@ export default class Lines extends React.Component<LinesProps> {
 
     @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement>) {
         const mouse = getRelativeMouse(this.base, ev)
-        const {hoverData} = this
+        const { hoverData } = this
 
         const value = sortBy(hoverData, v => Vector2.distanceSq(v.pos, mouse))[0]
         if (Vector2.distance(value.pos, mouse) < 100) {
@@ -97,9 +90,9 @@ export default class Lines extends React.Component<LinesProps> {
     }
 
     @computed get bounds() {
-        const {xScale, yScale} = this.props
+        const { xScale, yScale } = this.props
         return Bounds.fromCorners(new Vector2(xScale.range[0], yScale.range[0]),
-                                  new Vector2(xScale.range[1], yScale.range[1]))
+            new Vector2(xScale.range[1], yScale.range[1]))
     }
 
     @computed get focusGroups() {
@@ -118,14 +111,14 @@ export default class Lines extends React.Component<LinesProps> {
     renderFocusGroups() {
         return map(this.focusGroups, series =>
             <g className={series.displayKey}>
-                <defs key={series.displayKey+'-defs'}>
-                    <marker id={series.displayKey+'-circle'} viewBox="0 0 16 16"
-                            refX={8} refY={8} orient="auto" fill={series.isProjection ? "#fff" : series.color} stroke={series.color}>
-                        <circle cx={8} cy={8} r={8}/>
+                <defs key={series.displayKey + '-defs'}>
+                    <marker id={series.displayKey + '-circle'} viewBox="0 0 16 16"
+                        refX={8} refY={8} orient="auto" fill={series.isProjection ? "#fff" : series.color} stroke={series.color}>
+                        <circle cx={8} cy={8} r={8} />
                     </marker>
                 </defs>
                 <polyline
-                    key={series.key+'-line'}
+                    key={series.key + '-line'}
                     strokeLinecap="round"
                     stroke={series.color}
                     points={map(series.values, v => `${v.x},${v.y}`).join(' ')}
@@ -142,9 +135,9 @@ export default class Lines extends React.Component<LinesProps> {
     }
 
     renderBackgroundGroups() {
-       return map(this.backgroundGroups, series =>
+        return map(this.backgroundGroups, series =>
             <polyline
-                key={series.key+'-line'}
+                key={series.key + '-line'}
                 strokeLinecap="round"
                 stroke="#ccc"
                 points={map(series.values, v => `${v.x},${v.y}`).join(' ')}
@@ -156,13 +149,13 @@ export default class Lines extends React.Component<LinesProps> {
     }
 
     render() {
-        const {hover, bounds} = this        
+        const { hover, bounds } = this
 
         return <g className="Lines" onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseLeave}>
-            <rect x={Math.round(bounds.x)} y={Math.round(bounds.y)} width={Math.round(bounds.width)} height={Math.round(bounds.height)} fill="rgba(255,255,255,0)" opacity={0}/>
+            <rect x={Math.round(bounds.x)} y={Math.round(bounds.y)} width={Math.round(bounds.width)} height={Math.round(bounds.height)} fill="rgba(255,255,255,0)" opacity={0} />
             {this.renderBackgroundGroups()}
             {this.renderFocusGroups()}
-            {hover && <circle cx={hover.pos.x} cy={hover.pos.y} r={5} fill={hover.series.color}/>}
+            {hover && <circle cx={hover.pos.x} cy={hover.pos.y} r={5} fill={hover.series.color} />}
         </g>
     }
 }

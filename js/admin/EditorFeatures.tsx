@@ -1,4 +1,4 @@
-import {computed} from 'mobx'
+import { computed } from 'mobx'
 import ChartEditor from './ChartEditor'
 
 // Responsible for determining what parts of the editor should be shown, based on the
@@ -26,7 +26,7 @@ export default class EditorFeatures {
     @computed get timeDomain() { return !this.chart.isDiscreteBar }
 
     @computed get hideLegend() {
-        return this.chart.isLineChart|| this.chart.isStackedArea
+        return this.chart.isLineChart || this.chart.isStackedArea
     }
 
     @computed get stackedArea() {
@@ -34,7 +34,7 @@ export default class EditorFeatures {
     }
 
     @computed get entityType() {
-        return (!this.chart.isScatter && this.chart.addCountryMode == 'add-country') || this.chart.addCountryMode == 'change-country'
+        return (!this.chart.isScatter && this.chart.addCountryMode === 'add-country') || this.chart.addCountryMode === 'change-country'
     }
 
     @computed get relativeModeToggle() {

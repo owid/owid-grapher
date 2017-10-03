@@ -7,7 +7,7 @@ export default class EditorModal extends React.Component<{ children: any }> {
     modalContainer: HTMLDivElement
 
     componentDidMount() {
-        let modalContainer = document.createElement('div')
+        const modalContainer = document.createElement('div')
         modalContainer.className = "editorModal"
         document.body.appendChild(modalContainer)
         this.modalContainer = modalContainer
