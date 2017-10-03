@@ -192,8 +192,8 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 
     @computed get yDomain(): [number, number] {
         return [
-            this.props.yDomain[0] == null ? this.yDomainDefault[0] : this.props.yDomain[0],
-            this.props.yDomain[1] == null ? this.yDomainDefault[1] : this.props.yDomain[1]
+            this.props.yDomain[0] === undefined ? this.yDomainDefault[0] : this.props.yDomain[0],
+            this.props.yDomain[1] === undefined ? this.yDomainDefault[1] : this.props.yDomain[1]
         ] as [number, number]
     }
 
@@ -250,8 +250,8 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
             const fontSize = (isPortrait ? 0.6 : 0.65)
             const leftValueStr = yTickFormat(v1.y)
             const rightValueStr = yTickFormat(v2.y)
-            const leftValueWidth = Bounds.forText(leftValueStr, { fontSize: fontSize + 'em' }).width
-            const rightValueWidth = Bounds.forText(rightValueStr, { fontSize: fontSize + 'em' }).width
+            const leftValueWidth = Bounds.forText(leftValueStr, { fontSize: `${fontSize}em` }).width
+            const rightValueWidth = Bounds.forText(rightValueStr, { fontSize: `${fontSize}em` }).width
             const leftLabel = new TextWrap({ maxWidth: maxLabelWidth, fontSize: fontSize, text: series.label })
             const rightLabel = new TextWrap({ maxWidth: maxLabelWidth, fontSize: fontSize, text: series.label })
 
@@ -261,7 +261,7 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
                 leftValueStr: leftValueStr, rightValueStr: rightValueStr,
                 leftValueWidth: leftValueWidth, rightValueWidth: rightValueWidth,
                 leftLabel: leftLabel, rightLabel: rightLabel,
-                labelFontSize: fontSize + 'em', key: series.key, isFocused: false,
+                labelFontSize: `${fontSize}em`, key: series.key, isFocused: false,
                 hasLeftLabel: true, hasRightLabel: true
             } as SlopeProps)
         })

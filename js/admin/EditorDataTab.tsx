@@ -104,7 +104,7 @@ class TimeSection extends React.Component<{ editor: ChartEditor }> {
     @computed get chart() { return this.props.editor.chart }
 
     @computed get isDynamicTime() {
-        return this.chart.timeDomain[0] == null && this.chart.timeDomain[1] == null
+        return this.chart.timeDomain[0] === undefined && this.chart.timeDomain[1] === undefined
     }
 
     @computed get minTime() { return this.chart.props.minTime }
@@ -120,7 +120,7 @@ class TimeSection extends React.Component<{ editor: ChartEditor }> {
         if (this.isDynamicTime) {
             this.chart.timeDomain = [this.minPossibleTime, this.maxPossibleTime]
         } else {
-            this.chart.timeDomain = [null, null]
+            this.chart.timeDomain = [undefined, undefined]
         }
     }
 

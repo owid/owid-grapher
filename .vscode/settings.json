@@ -7,5 +7,6 @@
     "search.exclude": {
         "public": true,
         "env": true
-    }
+    },
+    "typescript.tsdk": "node_modules/typescript/lib"
 }

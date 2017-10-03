@@ -55,7 +55,7 @@ export default class SlopeChartTransform implements IChartTransform {
         return defaultTo(findClosest(this.timelineYears, maxYear), this.maxTimelineYear)
     }
 
-    @computed.struct get xDomain(): [number | null, number | null] {
+    @computed.struct get xDomain(): [number, number] {
         return [this.startYear, this.endYear]
     }
 
@@ -134,8 +134,8 @@ export default class SlopeChartTransform implements IChartTransform {
             .sortBy((d: number[]) => last(d) - first(d))
             .last() as number[]
 
-        const minYear = xDomain[0] == null ? first(longestRange) : Math.max(xDomain[0] || -Infinity, first(longestRange))
-        const maxYear = xDomain[1] == null ? last(longestRange) : Math.min(xDomain[1] || Infinity, last(longestRange))
+        const minYear = Math.max(xDomain[0] || -Infinity, first(longestRange))
+        const maxYear = Math.min(xDomain[1] || Infinity, last(longestRange))
 
         data = data.mergeBy('entity', (rows: Observations, entity: string) => {
             return {

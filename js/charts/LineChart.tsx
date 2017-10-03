@@ -89,7 +89,7 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
 
     @computed get tooltip() {
         const { hoverTarget, chart } = this
-        if (hoverTarget == null) return undefined
+        if (hoverTarget === undefined) return
 
         return <Tooltip x={hoverTarget.pos.x} y={hoverTarget.pos.y} style={{ textAlign: "center" }}>
             <h3 style={{ padding: "0.3em 0.9em", margin: 0, backgroundColor: "#fcfcfc", borderBottom: "1px solid #ebebeb", fontWeight: "normal", fontSize: "1em" }}>{chart.data.formatKey(hoverTarget.series.key)}</h3>

@@ -16,7 +16,11 @@ export class Triangle extends React.Component<TriangleProps> {
     render() {
         const {cx, cy, r} = this.props
         const x = cx-r, y = cy-r
-        const points = [x + ',' + (y + r*2), x + r*2 / 2 + ',' + y, x + r*2 + ',' + (y + r*2)]
+        const points = [
+            `${x},${y + 4*2}`,
+            `${x + r*2 / 2},${y}`,
+            `${x + r*2},${y + r*2}`
+        ]
 
         return <polygon
             points={points.join(' ')}

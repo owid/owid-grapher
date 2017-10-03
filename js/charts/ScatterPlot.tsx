@@ -249,7 +249,7 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps> {
     formatValueX(value: ScatterValue) {
         let s = "X Axis: " + this.props.formatX(value.x)
         if (!value.time.span && value.time.y !== value.time.x)
-            s += " (data from " + value.time.x + ")"
+            s += ` (data from ${value.time.x})`
         return s
     }
 

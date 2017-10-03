@@ -92,7 +92,7 @@ export default class URLBinder {
         if (this.chart.isPublished)
             return Global.rootUrl + "/" + this.chart.data.slug
         else if (this.chart.props.id !== undefined)
-            return Global.rootUrl + "/admin/charts/" + this.chart.props.id + "/"
+            return `${Global.rootUrl}/admin/charts/${this.chart.props.id}/`
         else
             return undefined
     }
@@ -118,7 +118,7 @@ export default class URLBinder {
         const { minTime, maxTime } = chart.props
         if (minTime !== origChart.minTime || maxTime !== origChart.maxTime) {
             if (isFinite(minTime) && isFinite(maxTime) && minTime !== maxTime) {
-                return minTime + ".." + maxTime
+                return `${minTime}..${maxTime}`
             } else if (isNumber(minTime)) {
                 return toString(minTime)
             } else {

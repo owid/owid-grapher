@@ -203,11 +203,11 @@ export default class ChartConfig {
         }
     }
 
-    @computed get timeDomain(): [number | null, number | null] {
-        return [this.props.minTime || null, this.props.maxTime || null]
+    @computed get timeDomain(): [number | undefined, number | undefined] {
+        return [this.props.minTime || undefined, this.props.maxTime || undefined]
     }
 
-    set timeDomain(value: [number | null, number | null]) {
+    set timeDomain(value: [number | undefined, number | undefined]) {
         this.props.minTime = value[0] || undefined
         this.props.maxTime = value[1] || undefined
     }

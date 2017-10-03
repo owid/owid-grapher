@@ -8,7 +8,7 @@ import ChartConfig from './ChartConfig'
 function csvEscape(value: any): string {
     const valueStr = toString(value)
     if (includes(valueStr, ","))
-        return '"' + value.replace(/\"/g, "\"\"") + '"'
+        return `"${value.replace(/\"/g, "\"\"")}"`
     else
         return value
 }

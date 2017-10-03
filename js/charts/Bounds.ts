@@ -52,9 +52,9 @@ export default class Bounds {
         }
 
         if (isNumber(fontSize))
-            fontSize = fontSize + 'px'
+            fontSize = `${fontSize}px`
         else if (includes(fontSize, 'em'))
-            fontSize = this.baseFontSize * parseFloat(fontSize) + 'px'
+            fontSize = `${this.baseFontSize * parseFloat(fontSize)}px`
 
         const key = str + '-' + fontSize
         const fontFace = fontFamily || this.baseFontFamily
@@ -213,7 +213,7 @@ export default class Bounds {
     }
 
     toCSS(): { left: string, top: string, width: string, height: string } {
-        return { left: this.left + 'px', top: this.top + 'px', width: this.width + 'px', height: this.height + 'px' }
+        return { left: `${this.left}px`, top: `${this.top}px`, width: `${this.width}px`, height: `${this.height}px` }
     }
 
     toProps(): { x: number, y: number, width: number, height: number } {

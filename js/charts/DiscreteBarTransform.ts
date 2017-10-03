@@ -38,7 +38,7 @@ export default class DiscreteBarTransform implements IChartTransform {
         if (!this.primaryDimension) return 1900
 
         const { variable } = this.primaryDimension
-        if (maxYear != null)
+        if (maxYear !== undefined)
             return sortBy(variable.yearsUniq, year => Math.abs(year - maxYear))[0]
         else
             return max(variable.yearsUniq) as number
@@ -50,7 +50,7 @@ export default class DiscreteBarTransform implements IChartTransform {
         const formatValue = primaryDimension ? primaryDimension.formatValueShort : (d: number) => `${d}`
 
         return (datum: DiscreteBarDatum) => {
-            return formatValue(datum.value) + (datum.year !== targetYear ? " (in " + datum.year + ")" : "")
+            return formatValue(datum.value) + (datum.year !== targetYear ? ` (in ${datum.year})` : "")
         }
     }
 

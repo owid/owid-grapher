@@ -45,7 +45,7 @@ class NumericMapLegend {
     @computed get maxValue(): number { return max(this.numericBins.map(d => d.max)) as number }
     @computed get rangeSize(): number { return this.maxValue - this.minValue }
     @computed get categoryBinWidth(): number {
-        return Bounds.forText("No data", { fontSize: this.tickFontSize + 'em' }).width
+        return Bounds.forText("No data", { fontSize: `${this.tickFontSize}em` }).width
     }
     @computed get categoryBinMargin(): number { return this.rectHeight * 1.5 }
     @computed get totalDefaultWidth(): number {
@@ -83,7 +83,7 @@ class NumericMapLegend {
 
     @computed get numericLabels(): NumericLabel[] {
         const { rectHeight, positionedBins } = this
-        const fontSize = this.tickFontSize + 'em'
+        const fontSize = `${this.tickFontSize}em`
 
         const makeBoundaryLabel = (d: PositionedBin, minOrMax: 'min' | 'max', text: string) => {
             const labelBounds = Bounds.forText(text, { fontSize: fontSize })
@@ -263,7 +263,7 @@ class CategoricalMapLegend {
 
     @computed get markLines(): MarkLine[] {
         const props = this.props, rectSize = 10 * props.scale,
-            rectPadding = 5, markPadding = 5, fontSize = (0.6 * props.scale) + "em"
+            rectPadding = 5, markPadding = 5, fontSize = `${0.6 * props.scale}em`
 
         const lines: MarkLine[] = []
         let marks: CategoricalMark[] = [], xOffset = 0, yOffset = 0

@@ -12,7 +12,7 @@ import EditorFeatures from './EditorFeatures'
 import Admin from './Admin'
 import * as $ from 'jquery'
 
-declare const Global: any
+declare const Global: { rootUrl: string }
 
 export interface ChartEditorProps {
     chart: ChartConfig

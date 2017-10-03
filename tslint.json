@@ -27,7 +27,11 @@
         "no-var-requires": false,
         "prefer-for-of": false,
         "radix": false,
-        "array-type": false
+        "array-type": false,
+        "no-boolean-literal-compare": true,
+        "restrict-plus-operands": true,
+        "strict-type-predicates": true,
+        "no-for-in-array": true
     },
     "rulesDirectory": []
 }

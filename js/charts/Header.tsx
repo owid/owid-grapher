@@ -139,7 +139,7 @@ export default class Header {
     }
 
     render(x: number, y: number) {
-        return <HeaderView x={x} y={y} header={this} />
+        return <HeaderView x={x} y={y} header={this}/>
     }
 }
 

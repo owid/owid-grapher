@@ -21,7 +21,7 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
     exportPng() {
         const { targetWidth, targetHeight } = this
         const { chart } = this.props
-        const fallbackPngUrl = chart.url.baseUrl + ".png"
+        const fallbackPngUrl = `${chart.url.baseUrl}.png`
 
         // Client-side SVG => PNG export. Somewhat experimental, so we fall back to server-side exports if needed.
         const baseFontSize = Bounds.baseFontSize // XXX

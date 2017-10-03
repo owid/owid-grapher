@@ -153,7 +153,7 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         const newOffsetX = boundsCenterX - newCenterX
         const newOffsetY = boundsCenterY - newCenterY
 
-        const matrixStr = "matrix(" + scale + ",0,0," + scale + "," + newOffsetX + "," + newOffsetY + ")"
+        const matrixStr = `matrix(${scale},0,0,${scale},${newOffsetX},${newOffsetY})`
         return matrixStr
     }
 

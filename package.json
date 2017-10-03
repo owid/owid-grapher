@@ -2,6 +2,7 @@
   "private": true,
   "scripts": {
     "dev": "./node_modules/.bin/concurrently --kill-others --raw \"./node_modules/.bin/webpack-dev-server -d\" \"python3 manage.py runserver 0.0.0.0:8000\"",
+    "lint": "tslint --project . -t verbose",
     "build": "webpack -p --progress"
   },
   "devDependencies": {
@@ -65,6 +66,7 @@
     "topojson": "^2.2.0",
     "ts-loader": "^2.3.7",
     "tslint": "^5.7.0",
+    "tslint-language-service": "^0.9.6",
     "tslint-loader": "^3.5.3",
     "typescript": "^2.5.2",
     "url-loader": "^0.5.8",

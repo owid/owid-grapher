@@ -75,7 +75,7 @@ export default class ScatterTransform implements IChartTransform {
     }
 
     @computed get canToggleRelative(): boolean {
-        return this.hasTimeline && !this.chart.props.hideRelativeToggle && this.xOverrideYear == null
+        return this.hasTimeline && !this.chart.props.hideRelativeToggle && this.xOverrideYear === undefined
     }
 
     // Unlike other charts, the scatterplot shows all available data by default, and the selection
@@ -113,7 +113,7 @@ export default class ScatterTransform implements IChartTransform {
         const yDimensionYears = this.yDimension ? this.yDimension.variable.yearsUniq : []
         const xDimensionYears = this.xDimension ? this.xDimension.variable.yearsUniq : []
 
-        if (this.xOverrideYear != null)
+        if (this.xOverrideYear !== undefined)
             return yDimensionYears
         else
             return intersection(yDimensionYears, xDimensionYears)
@@ -134,7 +134,7 @@ export default class ScatterTransform implements IChartTransform {
     @computed get startYear(): number {
         const minYear = this.chart.timeDomain[0]
 
-        if (minYear != null)
+        if (minYear !== undefined)
             return defaultTo(findClosest(this.timelineYears, minYear), this.minTimelineYear)
         else
             return this.maxTimelineYear
@@ -143,7 +143,7 @@ export default class ScatterTransform implements IChartTransform {
     @computed get endYear(): number {
         const maxYear = this.chart.timeDomain[1]
 
-        if (maxYear != null)
+        if (maxYear !== undefined)
             return defaultTo(findClosest(this.timelineYears, maxYear), this.maxTimelineYear)
         else
             return this.maxTimelineYear
@@ -220,7 +220,7 @@ export default class ScatterTransform implements IChartTransform {
                     if ((dimension.property === 'x' || dimension.property === 'y') && !isNumber(value))
                         continue
 
-                    const targetYear = (dimension.property === 'x' && xOverrideYear != null) ? xOverrideYear : outputYear
+                    const targetYear = (dimension.property === 'x' && xOverrideYear !== undefined) ? xOverrideYear : outputYear
 
                     // Skip years that aren't within tolerance of the target
                     if (year < targetYear - tolerance || year > targetYear + tolerance)
@@ -393,8 +393,8 @@ export default class ScatterTransform implements IChartTransform {
 
     @computed get xAxisLabelBase(): string | undefined {
         const xDimName = this.xDimension && this.xDimension.displayName
-        if (this.xOverrideYear != null)
-            return xDimName + " in " + this.xOverrideYear
+        if (this.xOverrideYear !== undefined)
+            return `${xDimName} in ${this.xOverrideYear}`
         else
             return xDimName
     }
@@ -466,7 +466,7 @@ export default class ScatterTransform implements IChartTransform {
                 sortBy(vals, v => (v.year === startYear || v.year === endYear) ? -Infinity : Math.abs(v.year - v.time.y))[0]
             )
 
-            if (xOverrideYear == null) {
+            if (xOverrideYear === undefined) {
                 values = map(groupBy(values, v => v.time.x), (vals: ScatterValue[]) =>
                     sortBy(vals, v => (v.year === startYear || v.year === endYear) ? -Infinity : Math.abs(v.year - v.time.x))[0]
                 )

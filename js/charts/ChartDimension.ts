@@ -26,7 +26,7 @@ export default class ChartDimension {
                 (this as any)[key] = (json as any)[key]
 
                 // XXX migrate this away
-                if ((json as any)[key] === "")
+                if ((json as any)[key] === "" || (json as any)[key] === null)
                     (this as any)[key] = undefined
             }
         }

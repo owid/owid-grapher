@@ -124,7 +124,7 @@ export class Areas extends React.Component<AreasProps> {
             <rect x={xScale.range[0]} y={yScale.range[1]} width={xScale.range[1]-xScale.range[0]} height={yScale.range[0]-yScale.range[1]} opacity={0} fill="rgba(255,255,255,0)"/>
             {this.areas}
             {this.borders}
-            {hoverIndex != null && <g className="hoverIndicator">
+            {hoverIndex !== undefined && <g className="hoverIndicator">
                 {data.map(series => {
                     return <circle cx={xScale.place(series.values[hoverIndex].x)} cy={yScale.place(series.values[hoverIndex].y)} r={5} fill={series.color}/>
                 })}
@@ -180,13 +180,13 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
         return new AxisBox({bounds: bounds.padRight(legend ? legend.width+5 : 20), xAxis, yAxis})
     }
 
-    @observable hoverIndex: number
+    @observable hoverIndex?: number
     @action.bound onHover(hoverIndex: number) {
         this.hoverIndex = hoverIndex
     }
 
     @computed get tooltip(): JSX.Element|undefined {
-        if (this.hoverIndex == null) return undefined
+        if (this.hoverIndex === undefined) return undefined
 
         const {transform, hoverIndex, axisBox, chart} = this
 

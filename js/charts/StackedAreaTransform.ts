@@ -145,7 +145,7 @@ export default class StackedAreaTransform implements IChartTransform {
             let isBeforeStart = true
 
             while (i < allYears.length) {
-                const value = series.values[i]
+                const value = series.values[i] as StackedAreaValue|undefined
                 const expectedYear = allYears[i]
 
                 if (value === undefined || value.x > allYears[i]) {

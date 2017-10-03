@@ -44,7 +44,7 @@ export default class AxisBox {
     }
 
     @computed.struct get currentYDomain(): [number, number] {
-        if (this.animProgress == null) return this.props.yAxis.domain
+        if (this.animProgress === undefined) return this.props.yAxis.domain
 
         const [prevMinY, prevMaxY] = this.prevYDomain
         const [targetMinY, targetMaxY] = this.targetYDomain
@@ -56,7 +56,7 @@ export default class AxisBox {
     }
 
     @computed.struct get currentXDomain(): [number, number] {
-        if (this.animProgress == null) return this.props.xAxis.domain
+        if (this.animProgress === undefined) return this.props.xAxis.domain
 
         const [prevMinX, prevMaxX] = this.prevXDomain
         const [targetMinX, targetMaxX] = this.targetXDomain
@@ -86,7 +86,7 @@ export default class AxisBox {
     }
 
     @action.bound frame(timestamp: number) {
-        if (this.animProgress == null) return
+        if (this.animProgress === undefined) return
 
         if (!this.frameStart) this.frameStart = timestamp
         this.animProgress = Math.min(1, this.animProgress + (timestamp - this.frameStart) / 300)

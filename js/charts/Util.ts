@@ -63,7 +63,7 @@ export type VNode = any
 
 export function getRelativeMouse(node: SVGElement, event: any): Vector2 {
     let clientX, clientY
-    if ((event as MouseEvent).clientX != null) {
+    if ((event as any).clientX != null) {
         clientX = (event as MouseEvent).clientX
         clientY = (event as MouseEvent).clientY
     } else {
@@ -104,12 +104,12 @@ export function entityNameForMap(name: string) {
 
 export function formatYear(year: number): string {
     if (isNaN(year)) {
-        console.error("Invalid year '" + year + "'")
+        console.error(`Invalid year '${year}'`)
         return ""
     }
 
     if (year < 0)
-        return Math.abs(year) + " BCE"
+        return `${Math.abs(year)} BCE`
     else
         return year.toString()
 }
@@ -151,7 +151,7 @@ export function formatValue(value: number, options: { maxDecimalPlaces?: number,
     } else {
         if (maxDecimalPlaces >= 0 && value % 1 !== 0) {
             const fixed = Math.min(20, maxDecimalPlaces)
-            output = format(",." + fixed + "f")(value)
+            output = format(`,.${fixed}f`)(value)
         } else {
             output = format(",")(value)
         }
@@ -183,7 +183,7 @@ export function defaultTo<T, K>(value: T | undefined | null, defaultValue: K): T
 export function first<T>(arr: T[]) { return arr[0] }
 export function last<T>(arr: T[]) { return arr[arr.length - 1] }
 
-export interface QueryParams { [key: string]: string }
+export interface QueryParams { [key: string]: string|undefined }
 
 export function getQueryParams(queryStr?: string): QueryParams {
     queryStr = queryStr || window.location.search.substring(1)
@@ -215,7 +215,7 @@ export function queryParamsToStr(params: QueryParams) {
 export function setQueryVariable(key: string, val: string | null) {
     const params = getQueryParams()
 
-    if (val == null || val === "") {
+    if (val === null || val === "") {
         delete params[key]
     } else {
         params[key] = val

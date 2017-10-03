@@ -343,14 +343,22 @@ export default class Timeline extends React.Component<TimelineProps> {
             </g>
             <rect className="sliderBackground" x={sliderBounds.left} y={sliderBounds.top} width={sliderBounds.width} height={sliderBounds.height} rx={5} ry={5} stroke-width={0.1} fill="#eee" />
             <rect x={xScale(startYear)} y={sliderBounds.top} width={xScale(endYear) - xScale(startYear)} height={sliderBounds.height} fill="#3F9EFF" />
-            <TimelineHandle year={startYear} xScale={xScale} bounds={sliderBounds} label={startYear === minYear || startYear === maxYear ? '' : targetStartYear} handleClass="startMarker" />
-            <TimelineHandle year={endYear} xScale={xScale} bounds={sliderBounds} label={endYear === minYear || endYear === maxYear ? '' : targetEndYear} handleClass="endMarker" />
+            <TimelineHandle year={startYear} xScale={xScale} bounds={sliderBounds} label={startYear === minYear || startYear === maxYear ? '' : `${targetStartYear}`} handleClass="startMarker" />
+            <TimelineHandle year={endYear} xScale={xScale} bounds={sliderBounds} label={endYear === minYear || endYear === maxYear ? '' : `${targetEndYear}`} handleClass="endMarker" />
         </g>
     }
 }
 
+interface TimelineHandleProps {
+    year: number
+    xScale: any
+    bounds: Bounds
+    label: string
+    handleClass: string
+}
+
 @observer
-class TimelineHandle extends React.Component<any> {
+class TimelineHandle extends React.Component<TimelineHandleProps> {
     render() {
         const { year, xScale, bounds, label, handleClass } = this.props
 

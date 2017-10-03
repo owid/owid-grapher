@@ -95,7 +95,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
     @computed get renderHeight() { return this.fitBounds ? this.containerBounds.height - (this.isEmbed ? 3 : 0) : this.idealHeight }
 
     @computed get controlsFooterHeight() {
-        const height = Bounds.forText("CHART", { fontSize: Bounds.baseFontSize + 'px' }).height * 2
+        const height = Bounds.forText("CHART", { fontSize: `${Bounds.baseFontSize}'px'` }).height * 2
         if (this.isPortrait && this.props.chart.tab === 'chart')
             return height * 2
         else

@@ -45,12 +45,12 @@ export default class TextWrap {
 
         words.forEach(word => {
             const nextLine = line.concat([word])
-            const nextBounds = Bounds.forText(strip(nextLine.join(' ')), { fontSize: fontSize + 'em' })
+            const nextBounds = Bounds.forText(strip(nextLine.join(' ')), { fontSize: `${fontSize}em` })
 
             if (nextBounds.width > maxWidth && line.length >= 1) {
                 lines.push({ text: line.join(' '), width: lineBounds.width, height: lineBounds.height })
                 line = [word]
-                lineBounds = Bounds.forText(strip(word), { fontSize: fontSize + 'em' })
+                lineBounds = Bounds.forText(strip(word), { fontSize: `${fontSize}em` })
             } else {
                 line = nextLine
                 lineBounds = nextBounds

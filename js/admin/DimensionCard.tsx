@@ -26,6 +26,7 @@ export default class DimensionCard extends React.Component<{ dimension: Dimensio
         this.props.dimension.props.displayName = value || undefined
     }
 
+    
     @action.bound onUnit(value: string) {
         this.props.dimension.props.unit = value || undefined
     }
