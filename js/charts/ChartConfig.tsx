@@ -142,7 +142,6 @@ export default class ChartConfig {
     props: ChartConfigProps = new ChartConfigProps()
 
     @computed get id() { return this.props.id }
-    @computed get type() { return this.props.type }
     @computed get subtitle() { return defaultTo(this.props.subtitle, "") }
     @computed get note() { return defaultTo(this.props.note, "") }
     @computed get internalNotes() { return defaultTo(this.props.internalNotes, "") }
@@ -265,7 +264,7 @@ export default class ChartConfig {
         this.variableCacheTag = json["variableCacheTag"]
         this.logosSVG = json["logosSVG"]
     }
-
+    
     @computed.struct get json() {
         const {props} = this
 
@@ -290,11 +289,11 @@ export default class ChartConfig {
         return json
     }
 
-    @computed get isLineChart() { return this.type == ChartType.LineChart }
-    @computed get isScatter() { return this.type == ChartType.ScatterPlot }
-    @computed get isStackedArea() { return this.type == ChartType.StackedArea }
-    @computed get isSlopeChart() { return this.type == ChartType.SlopeChart }
-    @computed get isDiscreteBar() { return this.type == ChartType.DiscreteBar }
+    @computed get isLineChart() { return this.props.type == ChartType.LineChart }
+    @computed get isScatter() { return this.props.type == ChartType.ScatterPlot }
+    @computed get isStackedArea() { return this.props.type == ChartType.StackedArea }
+    @computed get isSlopeChart() { return this.props.type == ChartType.SlopeChart }
+    @computed get isDiscreteBar() { return this.props.type == ChartType.DiscreteBar }
 
     @computed get lineChart() { return new LineChartTransform(this) }
     @computed get scatter() { return new ScatterTransform(this) }

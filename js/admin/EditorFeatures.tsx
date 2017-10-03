@@ -1,6 +1,5 @@
 import {computed} from 'mobx'
 import ChartEditor from './ChartEditor'
-import ChartType from '../charts/ChartType'
 
 // Responsible for determining what parts of the editor should be shown, based on the
 // type of chart being edited
@@ -15,11 +14,11 @@ export default class EditorFeatures {
     }
 
     @computed get customYAxis() {
-        return this.chart.type != ChartType.StackedArea
+        return this.chart.isStackedArea
     }
 
     @computed get customXAxis() {
-        return this.chart.type == ChartType.ScatterPlot
+        return this.chart.isScatter
     }
 
     @computed get linLogToggle() { return !this.chart.isDiscreteBar }
@@ -27,11 +26,11 @@ export default class EditorFeatures {
     @computed get timeDomain() { return !this.chart.isDiscreteBar }
 
     @computed get hideLegend() {
-        return this.chart.type == ChartType.LineChart || this.chart.type == ChartType.StackedArea
+        return this.chart.isLineChart|| this.chart.isStackedArea
     }
 
     @computed get stackedArea() {
-        return this.chart.type == ChartType.StackedArea
+        return this.chart.isStackedArea
     }
 
     @computed get entityType() {

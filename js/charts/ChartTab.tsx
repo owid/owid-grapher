@@ -9,7 +9,6 @@ import ChartConfig from './ChartConfig'
 import ScatterPlot from './ScatterPlot'
 import LineChart from './LineChart'
 import ChartView from './ChartView'
-import ChartType from './ChartType'
 import StackedArea from './StackedArea'
 import DiscreteBarChart from './DiscreteBarChart'
 
@@ -64,15 +63,15 @@ export default class ChartTab extends React.Component<{ chart: ChartConfig, char
 		const {header, footer} = this
         const bounds = this.props.bounds.padTop(header.height).padBottom(footer.height)
 
-        if (chart.type == ChartType.SlopeChart)
+        if (chart.isSlopeChart)
             return <SlopeChart bounds={bounds.padTop(20)} chart={chart}/>
-        else if (chart.type == ChartType.ScatterPlot)
+        else if (chart.isScatter)
             return <ScatterPlot bounds={bounds.padTop(20).padBottom(15)} config={chart} isStatic={chartView.isExport}/>
-		else if (chart.type == ChartType.LineChart)
+		else if (chart.isLineChart)
 			return <LineChart bounds={bounds.padTop(20).padBottom(15)} chart={chart}/>
-		else if (chart.type == ChartType.StackedArea)
+		else if (chart.isStackedArea)
 			return <StackedArea bounds={bounds.padTop(20).padBottom(15)} chart={chart}/>
-		else if (chart.type == ChartType.DiscreteBar)
+		else if (chart.isDiscreteBar)
 			return <DiscreteBarChart bounds={bounds.padTop(20).padBottom(15)} chart={chart}/>
         else
             return null

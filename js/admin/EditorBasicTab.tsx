@@ -38,7 +38,7 @@ class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: C
 
 		if (this.dispose) this.dispose()
 		this.dispose = reaction(
-			() => chart.type && chart.data.primaryDimensions,
+			() => chart.props.type && chart.data.primaryDimensions,
 			() => {
 				if (chart.isScatter || chart.isSlopeChart) {
 					chart.data.selectedKeys = []
@@ -102,7 +102,7 @@ export default class EditorBasicTab extends React.Component<{ editor: ChartEdito
 		return <div className={"tab-pane active " + styles.EditorBasicTab}>
 			<section className="chart-type-section">
 				<h2>What type of chart</h2>
-				<select className="form-control chart-type-select" onChange={this.onChartType} ref={el => { if (el) el.value = chart.type }}>
+				<select className="form-control chart-type-select" onChange={this.onChartType} ref={el => { if (el) el.value = chart.props.type }}>
 					<option value="" disabled>Select type</option>
 					<option value="LineChart">Line Chart</option>
 					<option value="SlopeChart">Slope Chart</option>

@@ -8,7 +8,6 @@
 import {observable, computed, reaction} from 'mobx'
 import {extend, toString, uniq} from '../charts/Util'
 import ChartConfig from '../charts/ChartConfig'
-import ChartType from '../charts/ChartType'
 import EditorFeatures from './EditorFeatures'
 import Admin from './Admin'
 import * as $ from 'jquery'
@@ -65,7 +64,7 @@ export default class ChartEditor {
 		} else {
 			const tabs: EditorTab[] = ['basic', 'data', 'text', 'customize']
 			if (this.chart.hasMapTab) tabs.push('map')
-			if (this.chart.type == ChartType.ScatterPlot) tabs.push('scatter')
+			if (this.chart.isScatter) tabs.push('scatter')
 			return tabs
 		}
 	}

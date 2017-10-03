@@ -4,7 +4,6 @@ import { observable, computed, action } from 'mobx'
 import {observer} from 'mobx-react'
 import * as Cookies from 'js-cookie'
 import ChartConfig from './ChartConfig'
-import ChartType from './ChartType'
 import {getQueryParams} from './Util'
 import ChartView from './ChartView'
 import {HighlightToggleConfig} from './ChartConfig'
@@ -204,7 +203,7 @@ export default class ControlsFooter extends React.Component<ControlsFooterProps>
                     <i className="fa fa-exchange"/> Change {chart.entityType}
                 </button>}
                 
-                {chart.type == ChartType.ScatterPlot && chart.highlightToggle && <HighlightToggle chart={chart} highlightToggle={chart.highlightToggle}/>}
+                {chart.isScatter && chart.highlightToggle && <HighlightToggle chart={chart} highlightToggle={chart.highlightToggle}/>}
                 {chart.isStackedArea && chart.stackedArea.canToggleRelative && <AbsRelToggle chart={chart}/>}
                 {chart.isScatter && chart.scatter.canToggleRelative && <AbsRelToggle chart={chart}/>}
             </div>}
