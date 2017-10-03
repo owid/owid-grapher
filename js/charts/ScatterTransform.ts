@@ -365,9 +365,6 @@ export default class ScatterTransform implements IChartTransform {
     }
 
     @computed get yAxisLabelBase(): string|undefined {
-        if (this.chart.yAxis.label != null)
-            return this.chart.yAxis.label
-
         return this.yDimension && this.yDimension.displayName
     }
 
@@ -397,9 +394,6 @@ export default class ScatterTransform implements IChartTransform {
     }
 
     @computed get xAxisLabelBase(): string|undefined {
-        if (this.chart.xAxis.label != null)
-            return this.chart.xAxis.label
-
         const xDimName = this.xDimension && this.xDimension.displayName
         if (this.xOverrideYear != null)
             return xDimName + " in " + this.xOverrideYear

@@ -90,8 +90,9 @@ export class DimensionSlot {
 }
 
 export class ChartConfigProps {
-    @observable.ref id: number|undefined = undefined
     @observable.ref type: ChartTypeType = "LineChart"
+
+    @observable.ref id?: number = undefined
     @observable.ref slug?: string = undefined
     @observable.ref title?: string = undefined
     @observable.ref subtitle?: string = undefined
@@ -141,7 +142,6 @@ export class ChartConfigProps {
 export default class ChartConfig {
     props: ChartConfigProps = new ChartConfigProps()
 
-    @computed get id() { return this.props.id }
     @computed get subtitle() { return defaultTo(this.props.subtitle, "") }
     @computed get note() { return defaultTo(this.props.note, "") }
     @computed get internalNotes() { return defaultTo(this.props.internalNotes, "") }

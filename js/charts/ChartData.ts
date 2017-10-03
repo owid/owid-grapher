@@ -23,6 +23,8 @@ export interface SourceWithDimension {
 	dimension: DimensionWithData
 }
 
+// This component computes useful information using both the chart configuration and the actual data
+// Where possible, code should go in the individual chart type transforms instead and be exposed via interface
 export default class ChartData {
 	chart: ChartConfig
 

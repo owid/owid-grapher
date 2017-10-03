@@ -67,8 +67,8 @@ export default class SlopeChartTransform implements IChartTransform {
 		return find(this.chart.data.filledDimensions, d => d.property == 'color') as DimensionWithData
 	}
 
-	@computed.struct get yDim(): DimensionWithData {
-		return find(this.chart.data.filledDimensions, d => d.property == 'y') as DimensionWithData
+	@computed.struct get yDimension(): DimensionWithData|undefined {
+		return find(this.chart.data.filledDimensions, d => d.property == 'y')
 	}
 
 	@computed get variableData() : Observations {
@@ -118,14 +118,19 @@ export default class SlopeChartTransform implements IChartTransform {
         return colorScale
     }
 
+	@computed get yTickFormat(): (d: number) => string {
+		return this.yDimension ? this.yDimension.formatValueShort : d => `${d}`
+	}
+
 	@computed get data() : SlopeChartSeries[] {
-		if (isEmpty(this.yDim)) return []
-		let {variableData, sizeDim, yDim, xDomain, colorDim, colorScale} = this
+		if (!this.yDimension) return []
+
+		let {variableData, sizeDim, yDimension, xDomain, colorDim, colorScale} = this
 		let data = variableData
 		const entityKey = this.chart.vardata.entityMetaByKey
 
 		// Make sure we're using time bounds that actually contain data
-		const longestRange: number[] = data.filter((d: any) => isFinite(d[yDim.variable.id]))
+		const longestRange: number[] = data.filter((d: any) => isFinite(d[yDimension.variable.id]))
 			.mergeBy('entity', (rows: Observations) => rows.pluck('year'))
 			.sortBy((d: number[]) => last(d)-first(d))
 			.last() as number[]
@@ -139,10 +144,10 @@ export default class SlopeChartTransform implements IChartTransform {
 				key: makeSafeForCSS(entityKey[entity].name),
 				color: colorScale(rows.first(colorDim.variable.id)),
 				size: rows.first(sizeDim.variable.id),
-				values: rows.filter((d: any) => isFinite(d[yDim.variable.id]) && (d.year == minYear || d.year == maxYear)).mergeBy('year').map((d: any) => {
+				values: rows.filter((d: any) => isFinite(d[yDimension.variable.id]) && (d.year == minYear || d.year == maxYear)).mergeBy('year').map((d: any) => {
 					return {
 						x: d.year,
-						y: d[yDim.variable.id]
+						y: d[yDimension.variable.id]
 					}
 				}).toArray()
 			}

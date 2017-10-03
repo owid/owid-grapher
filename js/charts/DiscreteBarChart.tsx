@@ -85,8 +85,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
     @computed get xAxis() {
         const _this = this
         return new HorizontalAxis({
-            get scale() { return _this.xScale },
-            get labelText() { return _this.chart.yAxis.label||"" }
+            get scale() { return _this.xScale }
         })
     }
 

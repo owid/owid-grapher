@@ -46,8 +46,8 @@ export default class DiscreteBarTransform implements IChartTransform {
     }
 
     @computed get barValueFormat(): (datum: DiscreteBarDatum) => string {
-        const {chart, primaryDimension, targetYear} = this
-        const formatValue = primaryDimension ? primaryDimension.formatValueShort : chart.yAxis.tickFormat
+        const {primaryDimension, targetYear} = this
+        const formatValue = primaryDimension ? primaryDimension.formatValueShort : (d: number) => `${d}`
 
         return (datum: DiscreteBarDatum) => {
             return formatValue(datum.value) + (datum.year != targetYear ? " (in " + datum.year + ")" : "")

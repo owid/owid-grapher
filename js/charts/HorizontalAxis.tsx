@@ -10,7 +10,7 @@ import TextWrap from './TextWrap'
 
 interface HorizontalAxisProps {
     scale: AxisScale,
-    labelText: string
+    labelText?: string
 }
 
 // Axis layout model. Computes the space needed for displaying an axis.

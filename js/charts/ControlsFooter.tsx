@@ -38,7 +38,7 @@ class ShareMenu extends React.Component<ShareMenuProps> {
     }
 
     @computed get editUrl() : string|null {
-        return Cookies.get('isAdmin') ? (Global.adminRootUrl + '/charts/' + this.props.chart.id + '/edit') : null
+        return Cookies.get('isAdmin') ? (Global.adminRootUrl + '/charts/' + this.props.chart.props.id + '/edit') : null
     }
 
     @computed get canonicalUrl(): string|undefined {

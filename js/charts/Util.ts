@@ -132,52 +132,6 @@ export function component<T extends {[key: string]: any}>(current: T|undefined, 
     return instance
 }
 
-// Todo: clean this up a bit, it's from old stuff
-export function unitFormat(unit: any, value: any, options?: any): string {
-	if (value === "") return "";
-
-	unit = unit || {};
-	options = options || {};
-	options.noTrailingZeroes = options.noTrailingZeroes || true;
-
-	var titlePrefix = (unit.title ? unit.title + ": " : ""),
-		unitSuffix = (unit.unit ? trim(unit.unit) : "");
-
-
-	// Do precision fiddling, if the value is numeric
-	if (isNumber(value)) {
-		const absValue = Math.abs(value)
-		if (absValue % 1 == 0 && absValue >= 1e6) {
-			if (absValue >= 1e12) value = value/1e12 + " trillion"
-			else if (absValue >= 1e9) value = value/1e9 + " billion"
-			else if (absValue >= 1e6) value = value/1e6 + " million"
-		} else {
-            const unitFormat = parseInt(unit.format)
-			if (isFinite(unitFormat) && unitFormat >= 0) {
-				var fixed = Math.min(20, unit.format);
-				value = format("." + fixed + "f")(value);
-			} else {
-				value = format(",")(value);
-			}
-
-			if (options.noTrailingZeroes) {
-				var m = value.match(/([0-9,-]+.[0-9,]*?)0*$/);
-				if (m) value = m[1];
-				if (value[value.length-1] == ".")
-					value = value.slice(0, value.length-1);
-			}
-		}
-	}
-
-	if (unitSuffix == "$" || unitSuffix == "£")
-		return titlePrefix + unitSuffix + value;
-	else {
-		if (unitSuffix && unitSuffix[0] != "%")
-			unitSuffix = " " + unitSuffix;
-		return titlePrefix + value + unitSuffix;
-	}
-};
-
 export function formatValue(value: number, options: { maxDecimalPlaces?: number, unit?: string }): string {
 	const noTrailingZeroes = true
 	const maxDecimalPlaces = defaultTo(options.maxDecimalPlaces, 2)

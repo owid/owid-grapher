@@ -91,8 +91,8 @@ export default class URLBinder {
     @computed get baseUrl(): string|undefined {
         if (this.chart.isPublished)
             return Global.rootUrl + "/" + this.chart.data.slug
-        else if (this.chart.id != null)
-            return Global.rootUrl + "/admin/charts/" + this.chart.id + "/"
+        else if (this.chart.props.id !== undefined)
+            return Global.rootUrl + "/admin/charts/" + this.chart.props.id + "/"
         else
             return undefined
     }

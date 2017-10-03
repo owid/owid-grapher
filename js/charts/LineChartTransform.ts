@@ -157,7 +157,7 @@ export default class LineChartTransform implements IChartTransform {
     @computed get yAxis(): AxisSpec {
         const {chart, yDomain, yDimensionFirst} = this
         return {
-            label: chart.yAxis.label||"",
+            label: "",
             tickFormat: yDimensionFirst ? yDimensionFirst.formatValueShort : identity,
             domain: yDomain,
             scaleType: chart.yAxis.scaleType,

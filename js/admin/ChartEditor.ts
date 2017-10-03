@@ -70,7 +70,7 @@ export default class ChartEditor {
 	}
 
 	@computed get isNewChart() {
-		return this.chart.id === undefined
+		return this.chart.props.id === undefined
 	}
 
 	@computed get features() {
@@ -105,7 +105,7 @@ export default class ChartEditor {
 	async saveChart({ onError }: { onError?: () => void } = {}) {
 		const {chart, isNewChart} = this
 
-		const targetUrl = isNewChart ? "/admin/charts" : `/admin/charts/${chart.id}`
+		const targetUrl = isNewChart ? "/admin/charts" : `/admin/charts/${chart.props.id}`
 
 
 		const handleError = (err: string) => {
