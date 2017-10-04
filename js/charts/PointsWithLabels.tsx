@@ -369,17 +369,22 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         return uniq(map(this.renderData, 'color'))
     }
 
+    mouseFrame?: number
     @action.bound onMouseLeave() {
-        requestAnimationFrame(() => {
-            this.hoverKey = null
+        if (this.mouseFrame !== undefined)
+            cancelAnimationFrame(this.mouseFrame)
 
-            if (this.props.onMouseLeave)
-                this.props.onMouseLeave()
-        })
+        this.hoverKey = null
+
+        if (this.props.onMouseLeave)
+            this.props.onMouseLeave()
     }
 
     @action.bound onMouseMove(ev: any) {
-        requestAnimationFrame(() => {
+        if (this.mouseFrame !== undefined)
+            cancelAnimationFrame(this.mouseFrame)
+
+        this.mouseFrame = requestAnimationFrame(() => {
             const mouse = getRelativeMouse(this.base, ev)
 
             const closestSeries = sortBy(this.renderData, (series) => {

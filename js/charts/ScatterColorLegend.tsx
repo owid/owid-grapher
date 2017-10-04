@@ -3,7 +3,7 @@ import { sum, includes, max } from './Util'
 import { computed } from 'mobx'
 import { observer } from 'mobx-react'
 import TextWrap from './TextWrap'
-import { defaultTo, isEmpty } from './Util'
+import { defaultTo } from './Util'
 import Bounds from './Bounds'
 
 export interface ScatterColorLegendProps {
