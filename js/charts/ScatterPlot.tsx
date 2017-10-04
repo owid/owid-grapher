@@ -10,7 +10,7 @@
 
 import * as React from 'react'
 import { observable, computed, action } from 'mobx'
-import { find, includes, uniq } from './Util'
+import { intersection, without, includes, uniq } from './Util'
 import { observer } from 'mobx-react'
 import Bounds from './Bounds'
 import ChartConfig from './ChartConfig'
@@ -31,8 +31,6 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     @observable hoverKey?: string
     // currently hovered legend color
     @observable hoverColor?: string
-    // colors selected by clicking the legend
-    @observable focusColors: string[] = []
 
     @computed get chart(): ChartConfig {
         return this.props.config
@@ -87,15 +85,26 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
 
     // When the color legend is clicked, toggle selection fo all associated keys
     @action.bound onLegendClick() {
-        if (this.chart.addCountryMode === 'disabled')
+        const {chart, hoverColor} = this
+        if (chart.addCountryMode === 'disabled' || hoverColor === undefined)
             return
 
-        if (this.hoverColor) {
-            if (this.focusColors.indexOf(this.hoverColor) === -1)
-                this.focusColors.push(this.hoverColor)
-            else
-                this.focusColors = this.focusColors.filter(c => c !== this.hoverColor)
-        }
+        const {transform} = this
+        const keysToToggle = transform.currentData.filter(g => g.color === hoverColor).map(g => g.key)
+        const allKeysActive = intersection(keysToToggle, chart.data.selectedKeys).length === keysToToggle.length
+        if (allKeysActive)
+            chart.data.selectedKeys = without(chart.data.selectedKeys, ...keysToToggle)
+        else
+            chart.data.selectedKeys = uniq(chart.data.selectedKeys.concat(keysToToggle))
+    }
+
+    // Colors on the legend for which every matching group is focused
+    @computed get focusColors(): string[] {
+        const {legendColors, transform, chart} = this
+        return legendColors.filter(color => {
+            const matchingKeys = transform.currentData.filter(g => g.color === color).map(g => g.key)
+            return intersection(matchingKeys, chart.data.selectedKeys).length === matchingKeys.length
+        })
     }
 
     // All currently hovered group keys, combining the legend and the main UI
@@ -110,11 +119,8 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         return hoverKeys
     }
 
-    // All currently focused group keys, combining the legend and the main UI
     @computed get focusKeys(): string[] {
-        const { transform, focusColors } = this
-        const focusColorKeys = uniq(transform.currentData.filter(g => includes(focusColors, g.color)).map(g => g.key))
-        return this.chart.data.selectedKeys.concat(focusColorKeys)
+        return this.chart.data.selectedKeys
     }
 
     @computed get arrowLegend(): ConnectedScatterLegend | undefined {
