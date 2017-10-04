@@ -27,9 +27,12 @@ import { formatYear, first, last } from './Util'
 
 @observer
 export default class ScatterPlot extends React.Component<{ bounds: Bounds, config: ChartConfig, isStatic: boolean }> {
+    // currently hovered individual series key
+    @observable hoverKey?: string
+    // currently hovered legend color
+    @observable hoverColor?: string
+    // colors selected by clicking the legend
     @observable focusColors: string[] = []
-    @observable hoverColor: string | undefined
-    @observable.ref hoverSeries?: ScatterSeries
 
     @computed get chart(): ChartConfig {
         return this.props.config
@@ -95,14 +98,19 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         }
     }
 
+    // All currently hovered group keys, combining the legend and the main UI
     @computed get hoverKeys(): string[] {
-        const { hoverColor } = this
-        if (hoverColor === undefined)
-            return []
-        else
-            return uniq(this.transform.currentData.filter(g => g.color === hoverColor).map(g => g.key))
+        const { hoverColor, hoverKey, transform } = this
+
+        const hoverKeys = hoverColor === undefined ? [] : uniq(transform.currentData.filter(g => g.color === hoverColor).map(g => g.key))
+
+        if (hoverKey !== undefined)
+            hoverKeys.push(hoverKey)
+
+        return hoverKeys
     }
 
+    // All currently focused group keys, combining the legend and the main UI
     @computed get focusKeys(): string[] {
         const { transform, focusColors } = this
         const focusColorKeys = uniq(transform.currentData.filter(g => includes(focusColors, g.color)).map(g => g.key))
@@ -126,21 +134,21 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     }
 
     @action.bound onScatterMouseOver(series: ScatterSeries) {
-        this.hoverSeries = series
+        this.hoverKey = series.key
     }
 
     @action.bound onScatterMouseLeave() {
-        this.hoverSeries = undefined
+        this.hoverKey = undefined
     }
 
-    @computed get tooltipSeries() {
-        const { hoverSeries, focusKeys, transform } = this
-        if (hoverSeries)
-            return hoverSeries
+    @computed get tooltipSeries(): ScatterSeries|undefined {
+        const { hoverKey, focusKeys, transform } = this
+        if (hoverKey !== undefined)
+            return transform.currentData.find(g => g.key === hoverKey)
         else if (focusKeys && focusKeys.length === 1)
-            return find(transform.currentData, series => series.key === focusKeys[0])
+            return transform.currentData.find(g => g.key === focusKeys[0])
         else
-            return null
+            return undefined
     }
 
     @computed get sidebarMaxWidth() { return this.bounds.width * 0.5 }
@@ -183,18 +191,29 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         this.transform.compareEndPointsOnly = !this.transform.compareEndPointsOnly
     }
 
+    // Colors currently on the chart and not greyed out
+    @computed get activeColors(): string[] {
+        const {hoverKeys, focusKeys, transform} = this
+        const activeKeys = hoverKeys.concat(focusKeys)
+
+        if (activeKeys.length === 0) // No hover or focus means they're all active by default
+            return uniq(transform.currentData.map(g => g.color))
+        else
+            return uniq(transform.currentData.filter(g => activeKeys.indexOf(g.key) !== -1).map(g => g.color))
+    }
+
     renderInner() {
         if (this.transform.failMessage)
             return <NoData bounds={this.bounds} message={this.transform.failMessage} />
 
-        const { transform, bounds, axisBox, legend, focusKeys, hoverKeys, focusColors, arrowLegend, sidebarWidth, tooltipSeries, comparisonLine } = this
+        const { transform, bounds, axisBox, legend, focusKeys, hoverKeys, focusColors, activeColors, arrowLegend, sidebarWidth, tooltipSeries, comparisonLine } = this
         const { currentData, sizeDomain } = transform
 
         return <g>
             <AxisBoxView axisBox={axisBox} onXScaleChange={this.onXScaleChange} onYScaleChange={this.onYScaleChange} />
             {comparisonLine && <ComparisonLine axisBox={axisBox} comparisonLine={comparisonLine} />}
             <PointsWithLabels data={currentData} bounds={axisBox.innerBounds} xScale={axisBox.xScale} yScale={axisBox.yScale} sizeDomain={sizeDomain} onSelectEntity={this.onSelectEntity} focusKeys={focusKeys} hoverKeys={hoverKeys} onMouseOver={this.onScatterMouseOver} onMouseLeave={this.onScatterMouseLeave} />
-            <ScatterColorLegendView legend={legend} x={bounds.right - sidebarWidth} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} onClick={this.onLegendClick} focusColors={focusColors} />
+            <ScatterColorLegendView legend={legend} x={bounds.right - sidebarWidth} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} onClick={this.onLegendClick} focusColors={focusColors} activeColors={activeColors} />
             {(arrowLegend || tooltipSeries) && <line x1={bounds.right - sidebarWidth} y1={bounds.top + legend.height + 2} x2={bounds.right - 5} y2={bounds.top + legend.height + 2} stroke="#ccc" />}
             {arrowLegend && <g className="clickable" onClick={this.onToggleEndpoints}>
                 {arrowLegend.render(bounds.right - sidebarWidth, bounds.top + legend.height + 11)}

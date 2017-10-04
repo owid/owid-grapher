@@ -3,7 +3,7 @@ import { sum, includes, max } from './Util'
 import { computed } from 'mobx'
 import { observer } from 'mobx-react'
 import TextWrap from './TextWrap'
-import { defaultTo } from './Util'
+import { defaultTo, isEmpty } from './Util'
 import Bounds from './Bounds'
 
 export interface ScatterColorLegendProps {
@@ -64,6 +64,7 @@ export interface ScatterColorLegendViewProps {
     x: number,
     y: number,
     legend: ScatterColorLegend,
+    activeColors: string[],
     focusColors?: string[],
     onMouseOver?: (color: string) => void,
     onClick?: (color: string) => void,
@@ -74,20 +75,21 @@ export interface ScatterColorLegendViewProps {
 export class ScatterColorLegendView extends React.Component<ScatterColorLegendViewProps> {
     render() {
         const { props } = this
-        const { focusColors, onMouseOver, onMouseLeave, onClick } = props
+        const { focusColors, activeColors, onMouseOver, onMouseLeave, onClick } = props
         const { labelMarks, rectSize, rectPadding, lineHeight } = props.legend
         let offset = 0
 
         return <g className="ScatterColorLegend clickable" style={{ cursor: 'pointer' }}>
             {labelMarks.map(mark => {
+                const isActive = includes(activeColors, mark.color)
                 const isFocus = includes(focusColors, mark.color)
                 const mouseOver = onMouseOver ? () => onMouseOver(mark.color) : undefined
                 const mouseLeave = onMouseLeave || undefined
                 const click = onClick ? () => onClick(mark.color) : undefined
 
-                const result = <g className="legendMark" onMouseOver={mouseOver} onMouseLeave={mouseLeave} onClick={click}>
+                const result = <g className="legendMark" onMouseOver={mouseOver} onMouseLeave={mouseLeave} onClick={click} fill={!isActive ? "#ccc": undefined}>
                     <rect x={props.x} y={props.y + offset - lineHeight / 2} width={mark.width} height={mark.height + lineHeight} fill="#fff" opacity={0} />,
-                    <rect x={props.x} y={props.y + offset + rectSize / 2} width={rectSize} height={rectSize} fill={mark.color} />,
+                    <rect x={props.x} y={props.y + offset + rectSize / 2} width={rectSize} height={rectSize} fill={isActive ? mark.color : undefined} />,
                     {mark.label.render(props.x + rectSize + rectPadding, props.y + offset, isFocus ? { style: { fontWeight: 'bold' } } : undefined)}
                 </g>
 
