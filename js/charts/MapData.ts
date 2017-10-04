@@ -1,4 +1,4 @@
-import { floor, ceil, round, toArray, keys, isEmpty, reverse, includes, extend, each, find } from './Util'
+import { floor, ceil, round, toArray, keys, isEmpty, reverse, includes, extend, each, find, sortedUniq, keyBy } from './Util'
 import { computed, autorun, runInAction, reaction, toJS } from 'mobx'
 import ChartConfig from './ChartConfig'
 import { defaultTo } from './Util'
@@ -7,6 +7,7 @@ import Color from './Color'
 import { ChoroplethData } from './ChoroplethMap'
 import { entityNameForMap } from './Util'
 import DimensionWithData from './DimensionWithData'
+import MapTopology from './MapTopology'
 
 export interface MapDataValue {
     entity: string,
@@ -104,19 +105,29 @@ export default class MapData {
     // Make sure map has an assigned variable and the data is ready
     @computed get isReady(): boolean {
         const { map, vardata } = this
-        return map.variableId != null && !!vardata.variablesById[map.variableId]
+        return map.variableId !== undefined && !!vardata.variablesById[map.variableId]
     }
 
     @computed get dimension(): DimensionWithData | undefined {
         return this.chart.data.filledDimensions.find(d => d.variableId === this.map.variableId)
     }
 
-    @computed get years(): number[] {
-        return this.dimension ? this.dimension.variable.yearsUniq : [1900, 2000]
+    @computed get knownMapEntityIds(): { [id: string]: boolean|undefined } {
+        return keyBy(MapTopology.objects.world.geometries.map((g: any) => g.id))
+    }
+
+    // All available years with data for the map
+    // Note that we're only interested in any data that is actually renderable
+    @computed get timelineYears(): number[] {
+        const {dimension} = this
+        if (!dimension) return [1900, 2000]
+
+        const {knownMapEntityIds} = this
+        return sortedUniq(dimension.years.filter((_, i) => !!knownMapEntityIds[entityNameForMap(dimension.entities[i])]))
     }
 
     @computed get targetYear(): number {
-        return defaultTo(this.map.props.targetYear, this.years[0])
+        return defaultTo(this.map.props.targetYear, this.timelineYears[0])
     }
 
     @computed get legendTitle(): string {

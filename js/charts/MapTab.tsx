@@ -172,7 +172,7 @@ export default class MapTab extends React.Component<MapTabProps> {
             <TimelineMap
                 bounds={bounds.padTop(header.height + 5).padBottom(footer.height)}
                 choroplethData={map.data.choroplethData}
-                years={map.data.years}
+                years={map.data.timelineYears}
                 inputYear={map.data.targetYear}
                 legendData={map.data.legendData}
                 legendTitle={map.data.legendTitle}
