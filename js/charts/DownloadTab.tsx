@@ -26,7 +26,7 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
         // Client-side SVG => PNG export. Somewhat experimental, so we fall back to server-side exports if needed.
         const baseFontSize = Bounds.baseFontSize // XXX
         try {
-            Bounds.baseFontSize = 20
+            Bounds.baseFontSize = 18
             const canvas = document.createElement("canvas")
             canvas.width = targetWidth * 2
             canvas.height = targetHeight * 2
