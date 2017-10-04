@@ -14,15 +14,13 @@ export default class EditorFeatures {
     }
 
     @computed get customYAxis() {
-        return this.chart.isStackedArea
+        return !this.chart.isStackedArea && !this.chart.isDiscreteBar
     }
 
     @computed get customXAxis() {
         return this.chart.isScatter
     }
 
-    @computed get linLogToggle() { return !this.chart.isDiscreteBar }
-    @computed get axisMinMax() { return !this.chart.isDiscreteBar }
     @computed get timeDomain() { return !this.chart.isDiscreteBar }
 
     @computed get hideLegend() {
