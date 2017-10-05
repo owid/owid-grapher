@@ -27,6 +27,7 @@ urlpatterns = [
     ### Admin-only
 
     url(r'^grapher/?$', owid_views.index, name="index"),
+    url(r'^grapher/embedCharts.js$', owid_views.embed_snippet, name="embedsnippet"),
     url(r'^grapher/login$', owid_views.index, name="index"), # Backwards compatibility
     url(r'^grapher/admin/?$', admin_views.listcharts, name="listcharts"),
     url(r'^grapher/admin/charts$', admin_views.storechart, name="storechart"),  # post request for storing
@@ -104,6 +105,7 @@ urlpatterns = [
     url(r'^grapher/testall', owid_views.test_all, name="testall"),
     url(r'^grapher/testsome', owid_views.testsome, name="testsome"),
     url(r'^grapher/invitation/(?P<code>[\w]+)$', admin_views.register_by_invite, name="registerbyinvite"),
+    url(r'^grapher/(?P<slug>[^/]+)\.config\.json', owid_views.config_json_by_slug, name="configjsonbyslug"),
     url(r'^grapher/(?P<slug>[^/]+)\.export', owid_views.show, name="exportchart"),
     url(r'^grapher/(?P<slug>[^/]+)\.(?P<fileformat>.+)', owid_views.exportfile, name="exportfile"),
     url(r'^grapher/(?P<slug>[^/]+)/?$', owid_views.show, name="showchart"),

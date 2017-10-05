@@ -16,11 +16,7 @@ import { VNode } from './Util'
 import Bounds from './Bounds'
 import DataSelector from './DataSelector'
 
-declare const App: any // XXX
 declare const window: any
-
-App.IDEAL_WIDTH = 1020
-App.IDEAL_HEIGHT = 720
 
 interface ChartViewProps {
     bounds: Bounds,
@@ -31,7 +27,7 @@ interface ChartViewProps {
 
 @observer
 export default class ChartView extends React.Component<ChartViewProps> {
-    static bootstrap({ jsonConfig, containerNode, isEditor }: { jsonConfig: ChartConfigProps, containerNode: HTMLElement, isEditor: boolean }) {
+    static bootstrap({ jsonConfig, containerNode, isEditor }: { jsonConfig: ChartConfigProps, containerNode: HTMLElement, isEditor?: boolean }) {
         select(containerNode).classed('chart-container', true)
         let chartView
         const chart = new ChartConfig(jsonConfig)

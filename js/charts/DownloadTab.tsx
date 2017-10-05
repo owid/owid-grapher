@@ -10,12 +10,10 @@ interface DownloadTabProps {
     chart: ChartConfig
 }
 
-declare var App: { IDEAL_WIDTH: number, IDEAL_HEIGHT: number }
-
 @observer
 export default class DownloadTab extends React.Component<DownloadTabProps> {
-    @computed get targetWidth() { return App.IDEAL_WIDTH }
-    @computed get targetHeight() { return App.IDEAL_HEIGHT }
+    @computed get targetWidth() { return 1020 }
+    @computed get targetHeight() { return 720 }
 
     @observable pngUrl?: string
     exportPng() {
