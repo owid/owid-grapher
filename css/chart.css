@@ -1,17 +1,8 @@
-html, body {
-    height: 100%;
-    width: 100%;
-    /* for embeds */
-    background: none !important;
-}
-
-html {
-    box-sizing: border-box;
-}
-* {
+#chart * {
     box-sizing: inherit;
 }
-button {
+
+#chart button {
     background: none;
     border: none;
 }
@@ -21,34 +12,10 @@ button {
     white-space: normal;
 }
 
-body.chart-container {
-    /* Ridiculous hack for iOS compatibility: http://stackoverflow.com/questions/23083462/how-to-get-an-iframe-to-be-responsive-in-ios-safari */
-    width: 1px;
-    min-width: 100%;
-    overflow: hidden;
-}
-
-body.chart-container {
-    text-align: center;
-}
-
-/* Fake (pseudo) element, that enables vertical-align */
-body.chart-container:before {
-  content: "";
-  display: inline-block;
-  vertical-align: middle;
-  height: 100%;
-}
-.browserupgrade {
-    margin: 0.2em 0;
-    background: #ccc;
-    color: #000;
-    padding: 0.2em 0;
-}
-.flash {
+#chart .flash {
     margin: 10px;
 }
-.clickable {
+#chart .clickable, #chart button {
     cursor: pointer;
     -webkit-user-select: none;
     -ms-user-select: none;
@@ -56,46 +23,20 @@ body.chart-container:before {
     -webkit-user-select: none;
     user-select: none;
 }
-.noselect {
+#chart .noselect {
     -webkit-user-select: none;
     -ms-user-select: none;
     -moz-user-select: none;
     -webkit-user-select: none;
     user-select: none;
 }
-input[type=checkbox] {
+#chart input[type=checkbox] {
     cursor: pointer;
-}
-/* ==========================================================================
-   Helper classes
-   ========================================================================== */
-
-.no-bullets {
-    list-style-type: none;
-}
-select.disabled {
-    color: #ccc;
-}
-/**
-* CHARTS
-**/
-
-#chart.line-dots .nvd3.nv-line .nvd3.nv-scatter .nv-groups .nv-point {
-    stroke-opacity: 1;
-    fill-opacity: 1;
 }
 
 /* Make World line slightly thicker */
 #chart svg .key-World_0 polyline {
     stroke-width: 2 !important;
-}
-
-.nv-group.World .nv-point {
-    stroke-width: 3;
-}
-
-.nv-group.World .nv-point.hover {
-    stroke-width: 6;
 }
 
 #chart .projection .nv-line {
@@ -226,6 +167,8 @@ a {
 
 #chart .extraControls button {
     margin: 0;
+    font-size: 1em;
+    color: #666;
 }
 
 #chart.landscape .extraControls button {
@@ -445,9 +388,40 @@ a {
     text-align: center;
 }
 
+#chart .dataTab .btn {
+    color: #fff;
+    background-color: #0275d8;
+    border-color: #0275d8;
+    display: inline-block;
+    font-weight: 400;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    border: 1px solid transparent;
+    padding: .375rem 1rem;
+    font-size: 1em;
+    line-height: 1.5;
+    border-radius: .25rem;
+    text-decoration: none;
+}
+
+#chart .dataTab .btn:hover {
+    color: #fff;
+    background-color: #025aa5;
+    border-color: #01549b;    
+}
+
 #chart h2 {
     font-size: 2em;
+    margin-top: 0;
     margin-bottom: 0.8em;
+    font-weight: 500;
+    line-height: 1.1;
 }
 
 /* Sources Tab
@@ -535,7 +509,7 @@ a {
 }
 
 #chart .shareMenu .btn {
-    width: 100%;
+    display: block;
     padding: 1em 1.5em;
     padding-right: 3em;
     text-align: left;

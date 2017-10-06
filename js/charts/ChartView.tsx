@@ -218,7 +218,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
 
     componentDidUpdate() {
         if (this.chart.data.isReady && !this.hasFadedIn) {
-            selectAll("#chart > *").style('opacity', 0).transition().style('opacity', null)
+            select(this.base).selectAll("#chart > *").style('opacity', 0).transition().style('opacity', null)
             this.hasFadedIn = true
         }
     }

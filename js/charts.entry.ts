@@ -1,8 +1,6 @@
 // CSS
 
-import 'bootstrap.css'
 import 'font-awesome.css'
-import 'normalize.css'
 import '../css/chart.css'
 
 // Enable mobx-formatters
