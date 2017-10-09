@@ -1,5 +1,5 @@
 #chart * {
-    box-sizing: inherit;
+    box-sizing: border-box;
 }
 
 #chart button {
@@ -323,30 +323,7 @@ a {
     color: black;
     text-transform: uppercase;
 }
-/* Tooltips
---------------------------------------------- */
 
-/*#chart .owid-tooltip {
-    font-size: 1em;
-    background: white;
-    border: 1px solid rgba(0, 0, 0, 0.2);
-    pointer-events: none;
-}
-#chart .owid-tooltip h3 {
-    padding: 0.3em 0.9em;
-    font-size: 1em;
-    margin: 0;
-    line-height: 18px;
-    font-weight: normal;
-    background-color: rgba(247,247,247,0.75);
-    text-align: center;
-    border-bottom: 1px solid #ebebeb;
-}
-#chart .owid-tooltip p {
-    font-size: 0.8em;
-    padding: 0.3em 0.9em;
-    margin: 0;
-}*/
 /* Chart Tab
 --------------------------------------------- */
 

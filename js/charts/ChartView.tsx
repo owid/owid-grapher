@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
-import { select, selectAll } from 'd3-selection'
+import { select } from 'd3-selection'
 import 'd3-transition'
 
 import ChartConfig, { ChartConfigProps } from './ChartConfig'
@@ -22,15 +22,16 @@ interface ChartViewProps {
     bounds: Bounds,
     chart: ChartConfig,
     isExport?: boolean,
-    isEditor?: boolean
+    isEditor?: boolean,
+    isEmbed?: boolean
 }
 
 @observer
 export default class ChartView extends React.Component<ChartViewProps> {
-    static bootstrap({ jsonConfig, containerNode, isEditor }: { jsonConfig: ChartConfigProps, containerNode: HTMLElement, isEditor?: boolean }) {
+    static bootstrap({ jsonConfig, containerNode, isEditor, isEmbed, queryStr }: { jsonConfig: ChartConfigProps, containerNode: HTMLElement, isEditor?: boolean, isEmbed?: true, queryStr?: string }) {
         select(containerNode).classed('chart-container', true)
         let chartView
-        const chart = new ChartConfig(jsonConfig)
+        const chart = new ChartConfig(jsonConfig, { isEmbed: isEmbed, queryStr: queryStr })
 
         function render() {
             const rect = containerNode.getBoundingClientRect()
@@ -44,7 +45,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
             Bounds.baseFontFamily = "Helvetica, Arial"
             //if (containerBounds.width > 850)
             //    Bounds.baseFontSize = 18
-            chartView = ReactDOM.render(<ChartView bounds={containerBounds} chart={chart} isEditor={isEditor} />, containerNode)
+            chartView = ReactDOM.render(<ChartView bounds={containerBounds} chart={chart} isEditor={isEditor} isEmbed={isEmbed} />, containerNode)
         }
 
         render()
@@ -56,7 +57,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
 
     @computed get isExport() { return !!this.props.isExport }
     @computed get isEditor() { return !!this.props.isEditor }
-    @computed get isEmbed() { return !this.isExport && (window.self !== window.top || this.isEditor) }
+    @computed get isEmbed() { return this.props.isEmbed || (!this.isExport && (window.self !== window.top || this.isEditor)) }
     @computed get isMobile() { return select('html').classed('touchevents') }
 
     @computed get containerBounds() { return this.props.bounds }
