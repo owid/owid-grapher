@@ -12,7 +12,7 @@ import DataTab from './DataTab'
 import MapTab from './MapTab'
 import SourcesTab from './SourcesTab'
 import DownloadTab from './DownloadTab'
-import { VNode, debounce } from './Util'
+import { VNode, throttle } from './Util'
 import Bounds from './Bounds'
 import DataSelector from './DataSelector'
 
@@ -49,7 +49,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
         }
 
         render()
-        window.addEventListener('resize', debounce(render, 100))
+        window.addEventListener('resize', throttle(render))
         return chartView
     }
 
