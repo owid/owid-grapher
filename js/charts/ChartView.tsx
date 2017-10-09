@@ -12,7 +12,7 @@ import DataTab from './DataTab'
 import MapTab from './MapTab'
 import SourcesTab from './SourcesTab'
 import DownloadTab from './DownloadTab'
-import { VNode } from './Util'
+import { VNode, debounce } from './Util'
 import Bounds from './Bounds'
 import DataSelector from './DataSelector'
 
@@ -49,7 +49,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
         }
 
         render()
-        window.onresize = render
+        window.addEventListener('resize', debounce(render, 100))
         return chartView
     }
 
@@ -88,8 +88,8 @@ export default class ChartView extends React.Component<ChartViewProps> {
     @computed get idealHeight(): number { return this.authorHeight * this.scaleToFitIdeal }
 
     // These are the final render dimensions
-    @computed get renderWidth() { return this.fitBounds ? this.containerBounds.width - (this.isEmbed ? 3 : 0) : this.idealWidth }
-    @computed get renderHeight() { return this.fitBounds ? this.containerBounds.height - (this.isEmbed ? 3 : 0) : this.idealHeight }
+    @computed get renderWidth() { return this.fitBounds ? this.containerBounds.width - 3 : this.idealWidth }
+    @computed get renderHeight() { return this.fitBounds ? this.containerBounds.height - 3 : this.idealHeight }
 
     @computed get controlsFooterHeight() {
         const height = Bounds.forText("CHART", { fontSize: `${Bounds.baseFontSize}'px'` }).height * 2

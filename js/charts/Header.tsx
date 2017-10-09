@@ -150,7 +150,8 @@ class HeaderView extends React.Component<{ x: number, y: number, header: Header 
         const { title, titleText, logo, subtitle } = props.header
         const { chart, maxWidth } = props.header.props
 
-        document.title = titleText
+        if (!chart.isEmbed)
+            document.title = titleText
 
         return <g className="HeaderView">
             {logo.height > 0 && logo.render(props.x + maxWidth - logo.width, props.y)}
