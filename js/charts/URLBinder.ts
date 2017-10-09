@@ -87,6 +87,9 @@ export default class URLBinder {
         params.time = this.timeParam
         params.country = this.countryParam
 
+        if (chart.props.map && origChart.map && chart.props.map.projection !== origChart.map.projection)
+            params.region = chart.props.map.projection
+
         return params
     }
 
