@@ -18,7 +18,8 @@ interface TimelineProps {
     onStartDrag?: () => void,
     onStopDrag?: () => void,
     bounds: Bounds,
-    singleYearMode?: boolean
+    singleYearMode?: boolean,
+    fontSize: number
 }
 
 @observer
@@ -139,13 +140,13 @@ export default class Timeline extends React.Component<TimelineProps> {
 
     @computed get minYearBox(): Bounds {
         const { minYear, bounds } = this
-        const minYearBox = Bounds.forText(formatYear(minYear), { fontSize: "0.9em" })
+        const minYearBox = Bounds.forText(formatYear(minYear), { fontSize: 0.9*this.props.fontSize })
         return minYearBox.extend({ x: bounds.left + 35, y: bounds.centerY - minYearBox.height / 2 })
     }
 
     @computed get maxYearBox(): Bounds {
         const { maxYear, bounds } = this
-        const maxYearBox = Bounds.forText(formatYear(maxYear), { fontSize: "0.9em" })
+        const maxYearBox = Bounds.forText(formatYear(maxYear), { fontSize: 0.9*this.props.fontSize })
         return maxYearBox.extend({ x: bounds.right - maxYearBox.width, y: bounds.centerY - maxYearBox.height / 2 })
     }
 
@@ -326,7 +327,7 @@ export default class Timeline extends React.Component<TimelineProps> {
         const { bounds, sliderBounds, minYear, maxYear, minYearBox, maxYearBox, xScale, years, isPlaying, startYear, endYear, targetStartYear, targetEndYear } = this
 
         const toggleText = isPlaying ? "\uf04c" : "\uf04b"
-        const toggleFontSize = "1.1em"
+        const toggleFontSize = 1.1*this.props.fontSize
         const toggleTextBounds = Bounds.forText(toggleText, { fontSize: toggleFontSize })
 
         return <g className="clickable" onTouchStart={this.onMouseDown} onMouseDown={this.onMouseDown}>
@@ -334,8 +335,8 @@ export default class Timeline extends React.Component<TimelineProps> {
             <Text className="toggle" onClick={() => this.isPlaying = !this.isPlaying} x={bounds.left + 10} y={bounds.centerY - toggleTextBounds.height / 2} fontFamily="FontAwesome" fontSize={toggleFontSize}>
                 {toggleText}
             </Text>
-            <Text className="minYearLabel" x={minYearBox.x} y={minYearBox.y} fontSize="0.9em" fill="#666">{formatYear(minYear)}</Text>
-            <Text className="maxYearLabel" x={maxYearBox.x} y={maxYearBox.y} fontSize="0.9em" fill="#666">{maxYear.toString()}</Text>
+            <Text className="minYearLabel" x={minYearBox.x} y={minYearBox.y} fontSize={0.9*this.props.fontSize} fill="#666">{formatYear(minYear)}</Text>
+            <Text className="maxYearLabel" x={maxYearBox.x} y={maxYearBox.y} fontSize={0.9*this.props.fontSize} fill="#666">{maxYear.toString()}</Text>
             <g className="ticks">
                 {years.slice(1, -1).map(year => {
                     return <rect className="tick" x={xScale(year)} y={sliderBounds.top + sliderBounds.height - 1} width="1px" height="0.2em" fill="rgba(0,0,0,0.2)" />

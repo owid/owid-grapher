@@ -151,6 +151,7 @@ export default class ChartConfig {
     @observable.ref variableCacheTag: string
     @observable.ref tooltip: React.ReactNode
     @observable.ref isEmbed: boolean
+    @observable.ref baseFontSize: number = 16
 
     vardata: VariableData
     data: ChartData
@@ -349,7 +350,7 @@ export default class ChartConfig {
         const svg = ReactDOMServer.renderToStaticMarkup(<ChartView
             chart={this}
             isExport={true}
-            bounds={new Bounds(0, 0, App.IDEAL_WIDTH, App.IDEAL_HEIGHT)} />)
+            bounds={new Bounds(0, 0, 1020, 720)} />)
 
         return svg
     }

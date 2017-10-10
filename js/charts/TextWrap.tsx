@@ -9,7 +9,7 @@ export interface TextWrapProps {
     text: string,
     maxWidth: number,
     lineHeight?: number,
-    fontSize?: FontSize,
+    fontSize: FontSize,
     raw?: true
 }
 
@@ -45,12 +45,12 @@ export default class TextWrap {
 
         words.forEach(word => {
             const nextLine = line.concat([word])
-            const nextBounds = Bounds.forText(strip(nextLine.join(' ')), { fontSize: `${fontSize}em` })
+            const nextBounds = Bounds.forText(strip(nextLine.join(' ')), { fontSize: fontSize})
 
             if (nextBounds.width > maxWidth && line.length >= 1) {
                 lines.push({ text: line.join(' '), width: lineBounds.width, height: lineBounds.height })
                 line = [word]
-                lineBounds = Bounds.forText(strip(word), { fontSize: `${fontSize}em` })
+                lineBounds = Bounds.forText(strip(word), { fontSize: fontSize })
             } else {
                 line = nextLine
                 lineBounds = nextBounds
@@ -77,12 +77,12 @@ export default class TextWrap {
             return null
 
         const yOffset = y + lines[0].height - lines[0].height * 0.2
-        return <text fontSize={(fontSize * Bounds.baseFontSize).toFixed(2)} x={x.toFixed(1)} y={yOffset.toFixed(1)} {...options}>
+        return <text fontSize={fontSize.toFixed(2)} x={x.toFixed(1)} y={yOffset.toFixed(1)} {...options}>
             {map(lines, (line, i) => {
                 if (props.raw)
-                    return <tspan x={x} y={yOffset + (i === 0 ? 0 : lineHeight * fontSize * Bounds.baseFontSize * i)} dangerouslySetInnerHTML={{ __html: line.text }} />
+                    return <tspan x={x} y={yOffset + (i === 0 ? 0 : lineHeight * fontSize * i)} dangerouslySetInnerHTML={{ __html: line.text }} />
                 else
-                    return <tspan x={x} y={yOffset + (i === 0 ? 0 : lineHeight * fontSize * Bounds.baseFontSize * i)}>{strip(line.text)}</tspan>
+                    return <tspan x={x} y={yOffset + (i === 0 ? 0 : lineHeight * fontSize * i)}>{strip(line.text)}</tspan>
             })}
         </text>
     }

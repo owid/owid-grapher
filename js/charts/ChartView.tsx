@@ -37,14 +37,11 @@ export default class ChartView extends React.Component<ChartViewProps> {
             const rect = containerNode.getBoundingClientRect()
             const containerBounds = Bounds.fromRect(rect)
 
-            Bounds.baseFontSize = 16
             if (containerBounds.width <= 350)
-                Bounds.baseFontSize = 14
+                chart.baseFontSize = 14
             else if (containerBounds.width >= 1080)
-                Bounds.baseFontSize = 18
+                chart.baseFontSize = 18
             Bounds.baseFontFamily = "Helvetica, Arial"
-            //if (containerBounds.width > 850)
-            //    Bounds.baseFontSize = 18
             chartView = ReactDOM.render(<ChartView bounds={containerBounds} chart={chart} isEditor={isEditor} isEmbed={isEmbed} />, containerNode)
         }
 
@@ -88,11 +85,11 @@ export default class ChartView extends React.Component<ChartViewProps> {
     @computed get idealHeight(): number { return this.authorHeight * this.scaleToFitIdeal }
 
     // These are the final render dimensions
-    @computed get renderWidth() { return this.fitBounds ? this.containerBounds.width - 3 : this.idealWidth }
-    @computed get renderHeight() { return this.fitBounds ? this.containerBounds.height - 3 : this.idealHeight }
+    @computed get renderWidth() { return this.fitBounds ? this.containerBounds.width - (this.isExport ? 0 : 3) : this.idealWidth }
+    @computed get renderHeight() { return this.fitBounds ? this.containerBounds.height - (this.isExport ? 0 : 3) : this.idealHeight }
 
     @computed get controlsFooterHeight() {
-        const height = Bounds.forText("CHART", { fontSize: `${Bounds.baseFontSize}'px'` }).height * 2
+        const height = Bounds.forText("CHART", { fontSize: this.props.chart.baseFontSize }).height * 2
         if (this.isPortrait && this.props.chart.tab === 'chart')
             return height * 2
         else
@@ -139,6 +136,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
         return {
             chart: this.chart,
             chartView: this,
+            baseFontSize: this.chart.baseFontSize,
             isStatic: this.isExport,
             addPopup: this.addPopup.bind(this),
             removePopup: this.removePopup.bind(this)
@@ -168,11 +166,11 @@ export default class ChartView extends React.Component<ChartViewProps> {
     }
 
     renderSVG() {
-        const { svgBounds, svgInnerBounds } = this
+        const { chart, svgBounds, svgInnerBounds } = this
 
         const svgStyle = {
             fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
-            fontSize: Bounds.baseFontSize,
+            fontSize: chart.baseFontSize,
             backgroundColor: "white"
         }
 
@@ -204,7 +202,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
         } else {
             const { renderWidth, renderHeight } = this
 
-            const style = { width: renderWidth, height: renderHeight, fontSize: Bounds.baseFontSize }
+            const style = { width: renderWidth, height: renderHeight, fontSize: this.chart.baseFontSize }
 
             return <div id="chart" className={this.classNames} style={style}>
                 {this.chart.data.isReady ? this.renderReady() : this.renderLoading()}

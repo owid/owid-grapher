@@ -71,6 +71,7 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
         const that = this
         return new HeightedLegend({
             get maxWidth() { return that.bounds.width / 3 },
+            get fontSize() { return that.chart.baseFontSize },
             get items() { return that.legendItems }
         })
     }
@@ -123,6 +124,7 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
         const that = this
         return new AxisBox({
             get bounds() { return that.bounds.padRight(10).padRight(that.legend ? that.legend.width : 0) },
+            get fontSize() { return that.chart.baseFontSize },
             get yAxis() { return that.transform.yAxis },
             get xAxis() { return that.transform.xAxis }
         })

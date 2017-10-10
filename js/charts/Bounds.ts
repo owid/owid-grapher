@@ -1,11 +1,9 @@
-import { observable } from 'mobx'
-import { isNumber, includes, extend } from './Util'
+import { extend } from './Util'
 import Vector2 from './Vector2'
 
 export default class Bounds {
     static textBoundsCache: { [key: string]: Bounds }
     static ctx: CanvasRenderingContext2D
-    @observable static baseFontSize: number
     static baseFontFamily: string
 
     static fromProps(props: { x: number, y: number, width: number, height: number }): Bounds {
@@ -38,35 +36,29 @@ export default class Bounds {
         return new Bounds(0, 0, 0, 0)
     }
 
-    static forText(str: string, { x = 0, y = 0, fontSize = '1em', fontFamily = null }: { x?: number, y?: number, fontSize?: string | number, fontFamily?: string } = {}): Bounds {
+    static forText(str: string, { x = 0, y = 0, fontSize = 16, fontFamily = null }: { x?: number, y?: number, fontSize?: number, fontFamily?: string } = {}): Bounds {
         if (str === "")
             return Bounds.empty()
 
         this.textBoundsCache = this.textBoundsCache || {}
         this.ctx = this.ctx || document.createElement('canvas').getContext('2d')
 
-        if (!this.baseFontSize || !this.baseFontFamily) {
+        if (!this.baseFontFamily) {
             const svg = document.querySelector("svg") as SVGSVGElement
-            this.baseFontSize = parseFloat(svg.style.fontSize as string)
             this.baseFontFamily = svg.style.fontFamily as string
         }
 
-        if (isNumber(fontSize))
-            fontSize = `${fontSize}px`
-        else if (includes(fontSize, 'em'))
-            fontSize = `${this.baseFontSize * parseFloat(fontSize)}px`
-
-        const key = str + '-' + fontSize
+        const key = `${str}-${fontSize}`
         const fontFace = fontFamily || this.baseFontFamily
 
         let bounds = this.textBoundsCache[key]
         if (bounds) return bounds.extend({ x, y: y - bounds.height })
 
-        this.ctx.font = fontSize + ' ' + fontFace
+        this.ctx.font = `${fontSize}px ${fontFace}`
         const m = this.ctx.measureText(str)
 
         const width = m.width
-        const height = parseFloat(fontSize)
+        const height = fontSize
 
         bounds = new Bounds(x, y - height, width, height)
 

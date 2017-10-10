@@ -20,6 +20,6 @@ export default class SlopeChart extends React.Component<{ bounds: Bounds, chart:
         const { yAxis } = chart
         const { data } = this.transform
 
-        return <LabelledSlopes bounds={bounds} yDomain={yAxis.domain} yTickFormat={this.transform.yTickFormat} yScaleType={yAxis.scaleType} yScaleTypeOptions={yAxis.scaleTypeOptions} onScaleTypeChange={(scaleType) => { chart.yAxis.scaleType = scaleType }} data={data} />
+        return <LabelledSlopes bounds={bounds} yDomain={yAxis.domain} yTickFormat={this.transform.yTickFormat} yScaleType={yAxis.scaleType} yScaleTypeOptions={yAxis.scaleTypeOptions} onScaleTypeChange={(scaleType) => { chart.yAxis.scaleType = scaleType }} data={data} fontSize={chart.baseFontSize} />
     }
 }

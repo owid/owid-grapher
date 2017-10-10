@@ -170,14 +170,15 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
         const that = this
         return new HeightedLegend({
             get maxWidth() { return 150 },
+            get fontSize() { return that.chart.baseFontSize },
             get items() { return that.legendItems }
         })
     }
 
     @computed get axisBox(): AxisBox {
-        const {bounds, transform, legend} = this
+        const {bounds, transform, legend, chart} = this
         const {xAxis, yAxis} = transform
-        return new AxisBox({bounds: bounds.padRight(legend ? legend.width+5 : 20), xAxis, yAxis})
+        return new AxisBox({bounds: bounds.padRight(legend ? legend.width+5 : 20), fontSize: chart.baseFontSize, xAxis, yAxis})
     }
 
     @observable hoverIndex?: number
