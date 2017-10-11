@@ -30,6 +30,7 @@ export class MultiEmbedder {
 
     // Check for figures which are available to load and load them
     update() {
+        const preloadDistance = window.innerHeight/2
         this.figuresToLoad.forEach(figure => {
             if (!figure.isActive && figure.jsonConfig) {
                 const windowTop = window.scrollY
@@ -38,7 +39,7 @@ export class MultiEmbedder {
                 const bodyRect = document.body.getBoundingClientRect()
                 const figureTop = figureRect.top-bodyRect.top
                 const figureBottom = figureRect.bottom-bodyRect.top
-                if (windowBottom >= figureTop && windowTop <= figureBottom) {
+                if (windowBottom+preloadDistance >= figureTop && windowTop-preloadDistance <= figureBottom) {
                     figure.isActive = true
                     ChartView.bootstrap({ jsonConfig: figure.jsonConfig, containerNode: figure.element, isEmbed: true, queryStr: figure.queryStr })
                 }
