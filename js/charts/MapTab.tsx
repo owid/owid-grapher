@@ -45,12 +45,16 @@ class TimelineMap extends React.Component<TimelineMapProps> {
 
         const mouse = getRelativeMouse(this.base, ev)
         if (datum) {
+            const specifyYear = datum.year !== this.props.inputYear
+
             this.tooltip = <Tooltip x={mouse.x} y={mouse.y} style={{ textAlign: "center" }}>
                 <h3 style={{ padding: "0.3em 0.9em", margin: 0, backgroundColor: "#fcfcfc", borderBottom: "1px solid #ebebeb", fontWeight: "normal", fontSize: "1em" }}>{datum.entity}</h3>
                 <p style={{ margin: 0, padding: "0.3em 0.9em", fontSize: "0.8em" }}>
                     <span>{chart.map.data.formatTooltipValue(datum.value)}</span><br />
-                    in<br />
-                    <span>{datum.year}</span>
+                    {specifyYear && <div>
+                        in<br />
+                        <span>{datum.year}</span>
+                    </div>}
                 </p>
             </Tooltip>
         }
