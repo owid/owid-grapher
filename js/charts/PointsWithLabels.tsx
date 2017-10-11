@@ -10,7 +10,7 @@
 
 import * as React from 'react'
 import { scaleLinear, scaleOrdinal, ScaleOrdinal, schemeCategory20 } from 'd3-scale'
-import { some, map, last, sortBy, cloneDeep, each, includes, filter, flatten, uniq, min, find, first, isEmpty } from './Util'
+import { some, map, last, sortBy, cloneDeep, each, includes, filter, flatten, uniq, min, find, first, isEmpty, guid } from './Util'
 import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 import Bounds from './Bounds'
@@ -487,8 +487,12 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         })
     }
 
+    @computed get renderUid() {
+        return guid()
+    }
+
     renderForegroundLines() {
-        const { foregroundGroups, isSubtleForeground } = this
+        const { foregroundGroups, isSubtleForeground, renderUid } = this
 
         return map(foregroundGroups, series => {
             const lastValue = last(series.values) as ScatterRenderValue
@@ -508,10 +512,10 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                 const firstValue = series.values[0]
                 return <g key={series.displayKey} className={series.displayKey}>
                     <defs>
-                        <marker id={series.displayKey + '-arrow'} fill={series.color} viewBox="0 -5 10 10" refX={5} refY={0} markerWidth={4} markerHeight={4} orient="auto">
+                        <marker id={`${series.displayKey}-arrow-${renderUid}`} fill={series.color} viewBox="0 -5 10 10" refX={5} refY={0} markerWidth={4} markerHeight={4} orient="auto">
                             <path d="M0,-5L10,0L0,5" />
                         </marker>
-                        <marker id={series.displayKey + '-circle'} viewBox="0 0 12 12"
+                        <marker id={`${series.displayKey}-circle-${renderUid}`} viewBox="0 0 12 12"
                             refX={4} refY={4} orient="auto" fill={series.color}>
                             <circle cx={4} cy={4} r={4} />
                         </marker>
@@ -531,9 +535,9 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                         fill="none"
                         strokeWidth={strokeWidth}
                         opacity={isSubtleForeground ? 0.6 : 1}
-                        markerStart={`url(#${series.displayKey}-circle)`}
-                        markerMid={`url(#${series.displayKey}-circle)`}
-                        markerEnd={`url(#${series.displayKey}-arrow)`}
+                        markerStart={`url(#${series.displayKey}-circle-${renderUid})`}
+                        markerMid={`url(#${series.displayKey}-circle-${renderUid})`}
+                        markerEnd={`url(#${series.displayKey}-arrow-${renderUid})`}
                     />
                 </g>
             }
@@ -545,7 +549,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         return map(foregroundGroups, series => {
             return map(series.allLabels, (l, i) =>
                 !l.isHidden && <text
-                    key={series.displayKey + '-label-' + i}
+                    key={`${series.displayKey}-label-${i}`}
                     x={l.bounds.x}
                     y={l.bounds.y + l.bounds.height}
                     fontSize={l.fontSize}
@@ -568,16 +572,16 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     render() {
         //Bounds.debug(flatten(map(this.renderData, d => map(d.labels, 'bounds'))))
 
-        const { bounds, renderData } = this
+        const { bounds, renderData, renderUid } = this
         const clipBounds = bounds.pad(-10)
 
         if (isEmpty(renderData))
             return <NoData bounds={bounds} />
 
-        return <g className="PointsWithLabels clickable" clipPath="url(#scatterBounds)" onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
+        return <g className="PointsWithLabels clickable" clipPath={`url(#scatterBounds-${renderUid})`} onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
             <rect key="background" x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="rgba(255,255,255,0)" />
             <defs>
-                <clipPath id="scatterBounds">
+                <clipPath id={`scatterBounds-${renderUid}`}>
                     <rect x={clipBounds.x} y={clipBounds.y} width={clipBounds.width} height={clipBounds.height} />
                 </clipPath>
             </defs>

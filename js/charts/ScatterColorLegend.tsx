@@ -4,10 +4,10 @@ import { computed } from 'mobx'
 import { observer } from 'mobx-react'
 import TextWrap from './TextWrap'
 import { defaultTo } from './Util'
-import Bounds from './Bounds'
 
 export interface ScatterColorLegendProps {
     maxWidth: number,
+    fontSize: number,
     colors: string[],
     scale: d3.ScaleOrdinal<string, string>
 }
@@ -25,8 +25,8 @@ export default class ScatterColorLegend {
         this.props = props
     }
 
-    @computed get fontSize(): number { return 0.7 }
-    @computed get rectSize(): number { return Bounds.baseFontSize / 3 }
+    @computed get fontSize(): number { return 0.7*this.props.fontSize}
+    @computed get rectSize(): number { return this.props.fontSize / 3 }
     @computed get rectPadding(): number { return 5 }
     @computed get lineHeight(): number { return 5 }
 

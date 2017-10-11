@@ -107,7 +107,8 @@ class TimelineMap extends React.Component<TimelineMapProps> {
             get legendData() { return that.props.legendData },
             get title() { return that.props.legendTitle },
             get focusBracket() { return that.focusBracket },
-            get focusEntity() { return that.focusEntity }
+            get focusEntity() { return that.focusEntity },
+            get fontSize() { return that.context.chart.baseFontSize }
         })
     }
 
@@ -130,7 +131,7 @@ class TimelineMap extends React.Component<TimelineMapProps> {
             {/*<rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height-timelineHeight} fill="#ecf6fc"/>*/}
             <ChoroplethMap bounds={bounds.padBottom(timelineHeight + mapLegend.height + 15)} choroplethData={choroplethData} projection={projection} defaultFill={defaultFill} onHover={this.onMapMouseOver} onHoverStop={this.onMapMouseLeave} onClick={this.onClick} focusBracket={focusBracket} focusEntity={focusEntity} />
             <MapLegendView legend={mapLegend} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} />
-            {hasTimeline && <Timeline bounds={this.props.bounds.fromBottom(timelineHeight)} onTargetChange={this.onTargetChange} years={years} startYear={inputYear} endYear={inputYear} singleYearMode={true} />}
+            {hasTimeline && <Timeline bounds={this.props.bounds.fromBottom(timelineHeight)} fontSize={this.context.chart.baseFontSize} onTargetChange={this.onTargetChange} years={years} startYear={inputYear} endYear={inputYear} singleYearMode={true} />}
             {tooltip}
         </g>
     }

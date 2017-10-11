@@ -52,7 +52,6 @@ interface HeaderProps {
 
 export default class Header {
     props: HeaderProps
-    private fontSize?: number
 
     constructor(props: HeaderProps) {
         this.props = props
@@ -108,16 +107,15 @@ export default class Header {
 
         // Try to fit the title into a single line if possible-- but not if it would make the text super small
         let title: TextWrap
-        let fontSize = 1.5
+        let fontScale = 1.5
         while (true) {
-            title = new TextWrap({ maxWidth: maxWidth, fontSize: fontSize, text: titleText, lineHeight: 1 })
-            if (fontSize <= 1.2 || title.lines.length <= 1)
+            title = new TextWrap({ maxWidth: maxWidth, fontSize: fontScale*props.chart.baseFontSize, text: titleText, lineHeight: 1 })
+            if (fontScale <= 1.2 || title.lines.length <= 1)
                 break
-            fontSize -= 0.05
+            fontScale -= 0.05
         }
-        this.fontSize = fontSize
 
-        return new TextWrap({ maxWidth: maxWidth, fontSize: fontSize, text: this.titleText, lineHeight: 1 })
+        return new TextWrap({ maxWidth: maxWidth, fontSize: fontScale*props.chart.baseFontSize, text: this.titleText, lineHeight: 1 })
     }
 
     @computed get subtitleWidth() {
@@ -129,7 +127,7 @@ export default class Header {
         const that = this
         return new TextWrap({
             get maxWidth() { return that.subtitleWidth },
-            get fontSize() { return 0.8 },
+            get fontSize() { return 0.8*that.props.chart.baseFontSize },
             get text() { return that.subtitleText }
         })
     }
@@ -150,7 +148,8 @@ class HeaderView extends React.Component<{ x: number, y: number, header: Header 
         const { title, titleText, logo, subtitle } = props.header
         const { chart, maxWidth } = props.header.props
 
-        document.title = titleText
+        if (!chart.isEmbed)
+            document.title = titleText
 
         return <g className="HeaderView">
             {logo.height > 0 && logo.render(props.x + maxWidth - logo.width, props.y)}

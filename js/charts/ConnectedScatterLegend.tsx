@@ -6,6 +6,7 @@ import { formatYear } from './Util'
 
 interface ConnectedScatterLegendProps {
     maxWidth: number
+    fontSize: number
     startYear: number
     endYear: number
     endpointsOnly: boolean
@@ -17,7 +18,7 @@ export default class ConnectedScatterLegend {
         this.props = props
     }
 
-    @computed get fontSize(): number { return 0.7 }
+    @computed get fontSize(): number { return 0.7*this.props.fontSize }
     @computed get fontColor(): string { return "#333" }
     @computed get maxLabelWidth(): number { return this.props.maxWidth / 3 }
 

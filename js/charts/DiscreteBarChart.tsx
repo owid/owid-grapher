@@ -35,23 +35,23 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
     }
 
     @computed get legendFontSize() {
-        return 0.85
+        return 0.85*this.props.chart.baseFontSize
     }
 
     // Account for the width of the legend
     @computed get legendWidth() {
         const longestLabel = sortBy(this.data, d => -d.label.length)[0].label
-        return Bounds.forText(longestLabel, { fontSize: `${this.legendFontSize}em` }).width
+        return Bounds.forText(longestLabel, { fontSize: this.legendFontSize }).width
     }
 
     // Account for the width of the little value labels at the end of bars
     @computed get valueFontSize() {
-        return 0.75
+        return 0.75*this.props.chart.baseFontSize
     }
 
     @computed get maxValueWidth(): number {
         const maxValue = sortBy(this.data, d => -d.value.toString().length)[0]
-        return Bounds.forText(this.barValueFormat(maxValue), { fontSize: `${this.valueFontSize}em` }).width
+        return Bounds.forText(this.barValueFormat(maxValue), { fontSize: this.valueFontSize }).width
     }
 
     @computed get hasNegative() {
@@ -78,7 +78,8 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
     @computed get xAxis() {
         const that = this
         return new HorizontalAxis({
-            get scale() { return that.xScale }
+            get scale() { return that.xScale },
+            get fontSize() { return that.chart.baseFontSize }
         })
     }
 
@@ -144,9 +145,9 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
                 const barWidth = isNegative ? xScale.place(0) - barX : xScale.place(d.value) - barX
 
                 const result = <g className="bar">
-                    <text x={bounds.left + legendWidth - 5} y={yOffset} fill="#666" dominant-baseline="middle" textAnchor="end" fontSize={`${valueFontSize}em`}>{d.label}</text>
+                    <text x={bounds.left + legendWidth - 5} y={yOffset} fill="#666" dominant-baseline="middle" textAnchor="end" fontSize={valueFontSize}>{d.label}</text>
                     <rect x={barX} y={yOffset - barHeight / 2} width={barWidth} height={barHeight} fill={d.color} opacity={0.85} />
-                    <text x={xScale.place(d.value) + (isNegative ? -5 : 5)} y={yOffset} fill="#666" dominant-baseline="middle" textAnchor={isNegative ? "end" : "start"} fontSize={`${this.valueFontSize}em`}>{barValueFormat(d)}</text>
+                    <text x={xScale.place(d.value) + (isNegative ? -5 : 5)} y={yOffset} fill="#666" dominant-baseline="middle" textAnchor={isNegative ? "end" : "start"} fontSize={valueFontSize}>{barValueFormat(d)}</text>
                 </g>
                 yOffset += barHeight + barSpacing
                 return result

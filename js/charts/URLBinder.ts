@@ -39,21 +39,27 @@ export default class URLBinder {
     mapQueryStr: string = "?"
     debounceMode: boolean = false
 
-    constructor(chart: ChartConfig) {
+    constructor(chart: ChartConfig, queryStr?: string) {
         this.chart = chart
         this.origChartProps = toJS(chart.props)
-        this.populateFromURL(getQueryParams())
 
-        // There is a surprisingly considerable performance overhead to updating the url
-        // while animating, so we debounce to allow e.g. smoother timelines
+        if (!chart.isEmbed) {
+            // Only change the actual url if we're not an embed
 
-        const pushParams = () => setQueryStr(queryParamsToStr(this.params as QueryParams))
-        const debouncedPushParams = debounce(pushParams, 100)
+            this.populateFromURL(getQueryParams())
 
-        reaction(
-            () => this.params,
-            () => this.debounceMode ? debouncedPushParams() : pushParams()
-        )
+            // There is a surprisingly considerable performance overhead to updating the url
+            // while animating, so we debounce to allow e.g. smoother timelines
+            const pushParams = () => setQueryStr(queryParamsToStr(this.params as QueryParams))
+            const debouncedPushParams = debounce(pushParams, 100)
+
+            reaction(
+                () => this.params,
+                () => this.debounceMode ? debouncedPushParams() : pushParams()
+            )
+        } else if (queryStr !== undefined) {
+            this.populateFromURL(getQueryParams(queryStr))
+        }
     }
 
     @computed get origChart() {
@@ -80,6 +86,9 @@ export default class URLBinder {
         params.year = this.yearParam
         params.time = this.timeParam
         params.country = this.countryParam
+
+        if (chart.props.map && origChart.map && chart.props.map.projection !== origChart.map.projection)
+            params.region = chart.props.map.projection
 
         return params
     }

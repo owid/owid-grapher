@@ -10,7 +10,14 @@
     overflow-y: scroll;
     text-align: left;
 
+    & h2 button {
+        line-height: 1.15;
+        margin: 0;
+        font-size: 1em;
+    }
+
     & ul {
+        margin: 0;
         padding: 0;
     }
     
@@ -19,6 +26,7 @@
         padding: 0.5em;
         color: #666;
         cursor: pointer;
+        margin-bottom: 0.3em;
     }
 
     & li:hover {
@@ -48,6 +56,9 @@
 
     & h2 button {
         float: right;
+        line-height: 1.15;
+        margin-right: 1em; 
+        font-size: 1em;
     }
 
     & > div {
@@ -70,12 +81,14 @@
     }
 
     & ul {
+        margin: 0;        
         padding: 0;
     }
     
     & li {
         list-style-type: none;
         flex: 1 0 15em;
+        margin-bottom: 0.3em;
     }
 
     & li > label {

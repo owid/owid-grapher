@@ -10,7 +10,8 @@ import TextWrap from './TextWrap'
 interface NumericMapLegendProps {
     width: number,
     legendData: MapLegendBin[],
-    focusBracket?: MapLegendBin
+    focusBracket?: MapLegendBin,
+    fontSize: number
 }
 
 interface PositionedBin {
@@ -22,7 +23,7 @@ interface PositionedBin {
 
 interface NumericLabel {
     text: string,
-    fontSize: string,
+    fontSize: number,
     bounds: Bounds,
     priority?: boolean,
     hidden: boolean,
@@ -37,7 +38,7 @@ class NumericMapLegend {
     @computed get focusBracket() { return this.props.focusBracket }
     @computed get numericBins(): NumericBin[] { return this.props.legendData.filter(l => l instanceof NumericBin) as NumericBin[] }
     @computed get rectHeight(): number { return 10 }
-    @computed get tickFontSize(): number { return 0.75 }
+    @computed get tickFontSize(): number { return 0.75*this.props.fontSize }
 
     // NumericMapLegend wants to map a range to a width. However, sometimes we are given
     // data without a clear min/max. So we must fit these scurrilous bins into the width somehow.
@@ -45,7 +46,7 @@ class NumericMapLegend {
     @computed get maxValue(): number { return max(this.numericBins.map(d => d.max)) as number }
     @computed get rangeSize(): number { return this.maxValue - this.minValue }
     @computed get categoryBinWidth(): number {
-        return Bounds.forText("No data", { fontSize: `${this.tickFontSize}em` }).width
+        return Bounds.forText("No data", { fontSize: this.tickFontSize }).width
     }
     @computed get categoryBinMargin(): number { return this.rectHeight * 1.5 }
     @computed get totalDefaultWidth(): number {
@@ -82,30 +83,29 @@ class NumericMapLegend {
     }
 
     @computed get numericLabels(): NumericLabel[] {
-        const { rectHeight, positionedBins } = this
-        const fontSize = `${this.tickFontSize}em`
+        const { rectHeight, positionedBins, tickFontSize } = this
 
         const makeBoundaryLabel = (d: PositionedBin, minOrMax: 'min' | 'max', text: string) => {
-            const labelBounds = Bounds.forText(text, { fontSize: fontSize })
+            const labelBounds = Bounds.forText(text, { fontSize: tickFontSize })
             const x = d.x + (minOrMax === 'min' ? 0 : d.width) - labelBounds.width / 2
             const y = -rectHeight - labelBounds.height - 3
 
             return {
                 text: text,
-                fontSize: fontSize,
+                fontSize: tickFontSize,
                 bounds: labelBounds.extend({ x: x, y: y }),
                 hidden: false
             }
         }
 
         const makeRangeLabel = (d: PositionedBin) => {
-            const labelBounds = Bounds.forText(d.bin.text, { fontSize: fontSize })
+            const labelBounds = Bounds.forText(d.bin.text, { fontSize: tickFontSize })
             const x = d.x + d.width / 2 - labelBounds.width / 2
             const y = -rectHeight - labelBounds.height - 3
 
             return {
                 text: d.bin.text,
-                fontSize: fontSize,
+                fontSize: tickFontSize,
                 bounds: labelBounds.extend({ x: x, y: y }),
                 priority: true,
                 hidden: false
@@ -235,7 +235,8 @@ interface CategoricalMapLegendProps {
     maxWidth: number,
     scale: number,
     legendData: CategoricalBin[],
-    focusBracket?: CategoricalBin
+    focusBracket?: CategoricalBin,
+    fontSize: number
 }
 
 interface CategoricalMark {
@@ -245,7 +246,7 @@ interface CategoricalMark {
     label: {
         text: string,
         bounds: Bounds,
-        fontSize: string
+        fontSize: number
     },
     bin: CategoricalBin
 }
@@ -263,7 +264,7 @@ class CategoricalMapLegend {
 
     @computed get markLines(): MarkLine[] {
         const props = this.props, rectSize = 10 * props.scale,
-            rectPadding = 5, markPadding = 5, fontSize = `${0.6 * props.scale}em`
+            rectPadding = 5, markPadding = 5, fontSize = 0.6 * props.scale * this.props.fontSize
 
         const lines: MarkLine[] = []
         let marks: CategoricalMark[] = [], xOffset = 0, yOffset = 0
@@ -363,7 +364,8 @@ export interface MapLegendProps {
     title: string,
     bounds: Bounds,
     focusBracket: MapLegendBin,
-    focusEntity: any
+    focusEntity: any,
+    fontSize: number
 }
 
 export default class MapLegend {
@@ -424,7 +426,8 @@ export default class MapLegend {
         return this.hasCategorical ? new CategoricalMapLegend({
             get legendData() { return that.categoricalLegendData },
             get maxWidth() { return that.props.bounds.width * 0.8 },
-            get scale() { return 1 }
+            get scale() { return 1 },
+            get fontSize() { return that.props.fontSize }
         }) : undefined
     }
 
@@ -437,7 +440,8 @@ export default class MapLegend {
         return this.hasNumeric ? new NumericMapLegend({
             get legendData() { return that.numericLegendData },
             get width() { return that.props.bounds.width * 0.5 },
-            get focusBracket() { return that.numericFocusBracket }
+            get focusBracket() { return that.numericFocusBracket },
+            get fontSize() { return that.props.fontSize }
         }) : undefined
     }
 

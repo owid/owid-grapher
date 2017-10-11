@@ -1,4 +1,4 @@
-import { map, min, max, each, identity, sortBy } from './Util'
+import { map, min, max, each, identity, sortBy, guid } from './Util'
 import Bounds from './Bounds'
 import * as React from 'react'
 import { computed } from 'mobx'
@@ -40,6 +40,10 @@ interface ChoroplethMapProps {
 @observer
 export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
     subunits: any
+
+    @computed get uid(): number {
+        return guid()
+    }
 
     @computed get geoData(): GeoFeature[] {
         return topojson.feature(MapTopology, MapTopology.objects.world).features.filter(feature => feature.id !== "ATA")
@@ -158,13 +162,13 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
     }
 
     render() {
-        const { bounds, choroplethData, defaultFill, geoData, pathData, matrixTransform } = this
+        const { uid, bounds, choroplethData, defaultFill, geoData, pathData, matrixTransform } = this
         const focusColor = "#FFEC38"
         const focusStrokeWidth = 2.5
 
-        return <g className="ChoroplethMap" clip-path="url(#boundsClip)">
+        return <g className="ChoroplethMap" clip-path={`url(#boundsClip-${uid})`}>
             <defs>
-                <clipPath id="boundsClip">
+                <clipPath id={`boundsClip-${uid}`}>
                     <rect x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height}></rect>
                 </clipPath>
             </defs>

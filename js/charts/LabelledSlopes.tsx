@@ -101,7 +101,7 @@ export interface SlopeProps {
     size: number
     hasLeftLabel: boolean
     hasRightLabel: boolean
-    labelFontSize: string
+    labelFontSize: number
     leftLabelBounds: Bounds
     rightLabelBounds: Bounds
     leftValueStr: string
@@ -146,7 +146,8 @@ export interface LabelledSlopesProps {
     yTickFormat: (value: number) => string
     yScaleType: ScaleType
     yScaleTypeOptions: ScaleType[]
-    onScaleTypeChange: (scaleType: ScaleType) => void
+    onScaleTypeChange: (scaleType: ScaleType) => void,
+    fontSize: number
 }
 
 @observer
@@ -247,11 +248,11 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
             const [v1, v2] = series.values
             const [x1, x2] = [xScale(v1.x), xScale(v2.x)]
             const [y1, y2] = [yScale(v1.y), yScale(v2.y)]
-            const fontSize = (isPortrait ? 0.6 : 0.65)
+            const fontSize = (isPortrait ? 0.6 : 0.65) * this.props.fontSize
             const leftValueStr = yTickFormat(v1.y)
             const rightValueStr = yTickFormat(v2.y)
-            const leftValueWidth = Bounds.forText(leftValueStr, { fontSize: `${fontSize}em` }).width
-            const rightValueWidth = Bounds.forText(rightValueStr, { fontSize: `${fontSize}em` }).width
+            const leftValueWidth = Bounds.forText(leftValueStr, { fontSize: fontSize }).width
+            const rightValueWidth = Bounds.forText(rightValueStr, { fontSize: fontSize }).width
             const leftLabel = new TextWrap({ maxWidth: maxLabelWidth, fontSize: fontSize, text: series.label })
             const rightLabel = new TextWrap({ maxWidth: maxLabelWidth, fontSize: fontSize, text: series.label })
 
@@ -261,7 +262,7 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
                 leftValueStr: leftValueStr, rightValueStr: rightValueStr,
                 leftValueWidth: leftValueWidth, rightValueWidth: rightValueWidth,
                 leftLabel: leftLabel, rightLabel: rightLabel,
-                labelFontSize: `${fontSize}em`, key: series.key, isFocused: false,
+                labelFontSize: fontSize, key: series.key, isFocused: false,
                 hasLeftLabel: true, hasRightLabel: true
             } as SlopeProps)
         })

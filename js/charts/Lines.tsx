@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { map, flatten, some, includes, sortBy, filter, sum } from './Util'
+import { map, flatten, some, includes, sortBy, filter, sum, guid } from './Util'
 import { computed, action, observable } from 'mobx'
 import { observer } from 'mobx-react'
 import { LineChartSeries, LineChartValue } from './LineChart'
@@ -38,12 +38,16 @@ export default class Lines extends React.Component<LinesProps> {
     base: SVGGElement
     @observable.ref hover: HoverTarget | null = null
 
+    @computed get renderUid(): number {
+        return guid()
+    }
+
     @computed get renderData(): LineRenderSeries[] {
         const { data, xScale, yScale, focusKeys } = this.props
         return map(data, series => {
             return {
                 key: series.key,
-                displayKey: "key-" + makeSafeForCSS(series.key),
+                displayKey: `key-${makeSafeForCSS(series.key)}`,
                 color: series.color,
                 values: series.values.map(v => {
                     return new Vector2(Math.round(xScale.place(v.x)), Math.round(yScale.place(v.y)))
@@ -111,23 +115,23 @@ export default class Lines extends React.Component<LinesProps> {
     renderFocusGroups() {
         return map(this.focusGroups, series =>
             <g className={series.displayKey}>
-                <defs key={series.displayKey + '-defs'}>
-                    <marker id={series.displayKey + '-circle'} viewBox="0 0 16 16"
+                <defs key={`${series.displayKey}-defs`}>
+                    <marker id={`${series.displayKey}-circle-${this.renderUid}`} viewBox="0 0 16 16"
                         refX={8} refY={8} orient="auto" fill={series.isProjection ? "#fff" : series.color} stroke={series.color}>
                         <circle cx={8} cy={8} r={8} />
                     </marker>
                 </defs>
                 <polyline
-                    key={series.key + '-line'}
+                    key={`${series.key}-line`}
                     strokeLinecap="round"
                     stroke={series.color}
                     points={map(series.values, v => `${v.x},${v.y}`).join(' ')}
                     fill="none"
                     strokeWidth={1.5}
                     opacity={1}
-                    markerStart={this.hasMarkers ? `url(#${series.displayKey}-circle)` : undefined}
-                    markerMid={this.hasMarkers ? `url(#${series.displayKey}-circle)` : undefined}
-                    markerEnd={this.hasMarkers ? `url(#${series.displayKey}-circle)` : undefined}
+                    markerStart={this.hasMarkers ? `url(#${series.displayKey}-circle-${this.renderUid})` : undefined}
+                    markerMid={this.hasMarkers ? `url(#${series.displayKey}-circle-${this.renderUid})` : undefined}
+                    markerEnd={this.hasMarkers ? `url(#${series.displayKey}-circle-${this.renderUid})` : undefined}
                     stroke-dasharray={series.isProjection && "1,4"}
                 />
             </g>

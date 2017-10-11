@@ -142,22 +142,27 @@ export class ChartConfigProps {
     @observable map?: MapConfigProps = undefined
 }
 
+// TODO: this really represents more than just the configuration state and should be split
+// into multiple components. It's sort of the top-level chart state.
 export default class ChartConfig {
     props: ChartConfigProps = new ChartConfigProps()
 
     @observable.ref logosSVG: string[]
     @observable.ref variableCacheTag: string
     @observable.ref tooltip: React.ReactNode
+    @observable.ref isEmbed: boolean
+    @observable.ref baseFontSize: number = 16
 
     vardata: VariableData
     data: ChartData
     url: URLBinder
 
-    constructor(props: ChartConfigProps) {
+    constructor(props: ChartConfigProps, options: { isEmbed?: true, queryStr?: string } = {}) {
+        this.isEmbed = !!options.isEmbed
         this.update(props)
         this.vardata = new VariableData(this)
         this.data = new ChartData(this)
-        this.url = new URLBinder(this)
+        this.url = new URLBinder(this, options.queryStr)
 
         window.chart = this
 
@@ -345,7 +350,7 @@ export default class ChartConfig {
         const svg = ReactDOMServer.renderToStaticMarkup(<ChartView
             chart={this}
             isExport={true}
-            bounds={new Bounds(0, 0, App.IDEAL_WIDTH, App.IDEAL_HEIGHT)} />)
+            bounds={new Bounds(0, 0, 1020, 720)} />)
 
         return svg
     }

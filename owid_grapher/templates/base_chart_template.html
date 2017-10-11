@@ -33,6 +33,42 @@
 	<meta name="twitter:image" content="{{ chartmeta.imageUrl }}">
     {% endif %}
     <link href="{% webpack "charts.css" %}" rel="stylesheet" type="text/css">
+    <style>
+        html, body {
+            height: 100%;
+            width: 100%;
+            background: none !important;
+        }
+
+        html {
+            box-sizing: border-box;
+        }
+
+        body.chart-container {
+            /* Ridiculous hack for iOS compatibility: http://stackoverflow.com/questions/23083462/how-to-get-an-iframe-to-be-responsive-in-ios-safari */
+            width: 1px;
+            min-width: 100%;
+            overflow: hidden;
+        }
+
+        body.chart-container {
+            text-align: center;
+        }
+
+        /* Fake (pseudo) element, that enables vertical-align */
+        body.chart-container:before {
+            content: "";
+            display: inline-block;
+            vertical-align: middle;
+            height: 100%;
+        }
+        .browserupgrade {
+            margin: 0.2em 0;
+            background: #ccc;
+            color: #000;
+            padding: 0.2em 0;
+        }
+    </style>
 </head>
 {% endautoescape %}
 <body style="margin: 0;">
@@ -40,7 +76,7 @@
     {% endblock %}
 	<!--[if lt IE 9]>
 	<p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
-	<![endif]-->
+    <![endif]-->
 	<script>
 		var Global = {};
         Global.rootUrl = "{% rootrequest %}";

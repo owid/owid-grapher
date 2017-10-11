@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
-import { select, selectAll } from 'd3-selection'
+import { select } from 'd3-selection'
 import 'd3-transition'
 
 import ChartConfig, { ChartConfigProps } from './ChartConfig'
@@ -12,47 +12,41 @@ import DataTab from './DataTab'
 import MapTab from './MapTab'
 import SourcesTab from './SourcesTab'
 import DownloadTab from './DownloadTab'
-import { VNode } from './Util'
+import { VNode, throttle } from './Util'
 import Bounds from './Bounds'
 import DataSelector from './DataSelector'
 
-declare const App: any // XXX
 declare const window: any
-
-App.IDEAL_WIDTH = 1020
-App.IDEAL_HEIGHT = 720
 
 interface ChartViewProps {
     bounds: Bounds,
     chart: ChartConfig,
     isExport?: boolean,
-    isEditor?: boolean
+    isEditor?: boolean,
+    isEmbed?: boolean
 }
 
 @observer
 export default class ChartView extends React.Component<ChartViewProps> {
-    static bootstrap({ jsonConfig, containerNode, isEditor }: { jsonConfig: ChartConfigProps, containerNode: HTMLElement, isEditor: boolean }) {
+    static bootstrap({ jsonConfig, containerNode, isEditor, isEmbed, queryStr }: { jsonConfig: ChartConfigProps, containerNode: HTMLElement, isEditor?: boolean, isEmbed?: true, queryStr?: string }) {
         select(containerNode).classed('chart-container', true)
         let chartView
-        const chart = new ChartConfig(jsonConfig)
+        const chart = new ChartConfig(jsonConfig, { isEmbed: isEmbed, queryStr: queryStr })
 
         function render() {
             const rect = containerNode.getBoundingClientRect()
             const containerBounds = Bounds.fromRect(rect)
 
-            Bounds.baseFontSize = 16
             if (containerBounds.width <= 350)
-                Bounds.baseFontSize = 14
+                chart.baseFontSize = 14
             else if (containerBounds.width >= 1080)
-                Bounds.baseFontSize = 18
+                chart.baseFontSize = 18
             Bounds.baseFontFamily = "Helvetica, Arial"
-            //if (containerBounds.width > 850)
-            //    Bounds.baseFontSize = 18
-            chartView = ReactDOM.render(<ChartView bounds={containerBounds} chart={chart} isEditor={isEditor} />, containerNode)
+            chartView = ReactDOM.render(<ChartView bounds={containerBounds} chart={chart} isEditor={isEditor} isEmbed={isEmbed} />, containerNode)
         }
 
         render()
-        window.onresize = render
+        window.addEventListener('resize', throttle(render))
         return chartView
     }
 
@@ -60,7 +54,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
 
     @computed get isExport() { return !!this.props.isExport }
     @computed get isEditor() { return !!this.props.isEditor }
-    @computed get isEmbed() { return !this.isExport && (window.self !== window.top || this.isEditor) }
+    @computed get isEmbed() { return this.props.isEmbed || (!this.isExport && (window.self !== window.top || this.isEditor)) }
     @computed get isMobile() { return select('html').classed('touchevents') }
 
     @computed get containerBounds() { return this.props.bounds }
@@ -91,11 +85,11 @@ export default class ChartView extends React.Component<ChartViewProps> {
     @computed get idealHeight(): number { return this.authorHeight * this.scaleToFitIdeal }
 
     // These are the final render dimensions
-    @computed get renderWidth() { return this.fitBounds ? this.containerBounds.width - (this.isEmbed ? 3 : 0) : this.idealWidth }
-    @computed get renderHeight() { return this.fitBounds ? this.containerBounds.height - (this.isEmbed ? 3 : 0) : this.idealHeight }
+    @computed get renderWidth() { return this.fitBounds ? this.containerBounds.width - (this.isExport ? 0 : 5) : this.idealWidth }
+    @computed get renderHeight() { return this.fitBounds ? this.containerBounds.height - (this.isExport ? 0 : 5) : this.idealHeight }
 
     @computed get controlsFooterHeight() {
-        const height = Bounds.forText("CHART", { fontSize: `${Bounds.baseFontSize}'px'` }).height * 2
+        const height = Bounds.forText("CHART", { fontSize: this.props.chart.baseFontSize }).height * 2
         if (this.isPortrait && this.props.chart.tab === 'chart')
             return height * 2
         else
@@ -142,6 +136,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
         return {
             chart: this.chart,
             chartView: this,
+            baseFontSize: this.chart.baseFontSize,
             isStatic: this.isExport,
             addPopup: this.addPopup.bind(this),
             removePopup: this.removePopup.bind(this)
@@ -171,11 +166,11 @@ export default class ChartView extends React.Component<ChartViewProps> {
     }
 
     renderSVG() {
-        const { svgBounds, svgInnerBounds } = this
+        const { chart, svgBounds, svgInnerBounds } = this
 
         const svgStyle = {
             fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
-            fontSize: Bounds.baseFontSize,
+            fontSize: chart.baseFontSize,
             backgroundColor: "white"
         }
 
@@ -207,7 +202,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
         } else {
             const { renderWidth, renderHeight } = this
 
-            const style = { width: renderWidth, height: renderHeight, fontSize: Bounds.baseFontSize }
+            const style = { width: renderWidth, height: renderHeight, fontSize: this.chart.baseFontSize }
 
             return <div id="chart" className={this.classNames} style={style}>
                 {this.chart.data.isReady ? this.renderReady() : this.renderLoading()}
@@ -222,7 +217,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
 
     componentDidUpdate() {
         if (this.chart.data.isReady && !this.hasFadedIn) {
-            selectAll("#chart > *").style('opacity', 0).transition().style('opacity', null)
+            select(this.base).selectAll("#chart > *").style('opacity', 0).transition().style('opacity', null)
             this.hasFadedIn = true
         }
     }

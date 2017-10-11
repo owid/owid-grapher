@@ -21,6 +21,7 @@ import { extend } from './Util'
 
 interface AxisBoxProps {
     bounds: Bounds,
+    fontSize: number,
     xAxis: AxisSpec,
     yAxis: AxisSpec
 }
@@ -109,14 +110,16 @@ export default class AxisBox {
     @computed get xAxisHeight() {
         return new HorizontalAxis({
             scale: new AxisScale(this.xAxisSpec).extend({ range: [0, this.props.bounds.width] }),
-            labelText: this.xAxisSpec.label
+            labelText: this.xAxisSpec.label,
+            fontSize: this.props.fontSize
         }).height
     }
 
     @computed get yAxisWidth() {
         return new VerticalAxis({
             scale: new AxisScale(this.yAxisSpec).extend({ range: [0, this.props.bounds.height] }),
-            labelText: this.yAxisSpec.label
+            labelText: this.yAxisSpec.label,
+            fontSize: this.props.fontSize
         }).width
     }
 
@@ -137,7 +140,8 @@ export default class AxisBox {
         const that = this
         return new HorizontalAxis({
             get scale() { return that.xScale },
-            get labelText() { return that.xAxisSpec.label }
+            get labelText() { return that.xAxisSpec.label },
+            get fontSize() { return that.props.fontSize }
         })
     }
 
@@ -145,7 +149,8 @@ export default class AxisBox {
         const that = this
         return new VerticalAxis({
             get scale() { return that.yScale },
-            get labelText() { return that.yAxisSpec.label }
+            get labelText() { return that.yAxisSpec.label },
+            get fontSize() { return that.props.fontSize }
         })
     }
 

@@ -6,7 +6,7 @@
  */
 
 import * as React from 'react'
-import { last } from './Util'
+import { last, guid } from './Util'
 import { computed, action, observable } from 'mobx'
 import { observer } from 'mobx-react'
 import ChartConfig from './ChartConfig'
@@ -71,6 +71,7 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
         const that = this
         return new HeightedLegend({
             get maxWidth() { return that.bounds.width / 3 },
+            get fontSize() { return that.chart.baseFontSize },
             get items() { return that.legendItems }
         })
     }
@@ -123,6 +124,7 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
         const that = this
         return new AxisBox({
             get bounds() { return that.bounds.padRight(10).padRight(that.legend ? that.legend.width : 0) },
+            get fontSize() { return that.chart.baseFontSize },
             get yAxis() { return that.transform.yAxis },
             get xAxis() { return that.transform.xAxis }
         })
@@ -135,14 +137,16 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
         const { chart, transform, bounds, legend, tooltip, focusKeys, axisBox } = this
         const { groupedData } = transform
 
+        const renderUid = guid()
+
         return <g className="LineChart">
             <defs>
-                <clipPath id="boundsClip">
+                <clipPath id={`boundsClip-${renderUid}`}>
                     <rect x={axisBox.innerBounds.x - 10} y={0} width={bounds.width + 10} height={bounds.height * 2}></rect>
                 </clipPath>
             </defs>
             <StandardAxisBoxView axisBox={axisBox} chart={chart} />
-            <g clipPath="url(#boundsClip)">
+            <g clipPath={`url(#boundsClip-${renderUid})`}>
                 {legend && <HeightedLegendView x={bounds.right - legend.width} legend={legend} focusKeys={focusKeys} yScale={axisBox.yScale} onClick={this.onLegendClick} />}
                 <Lines xScale={axisBox.xScale} yScale={axisBox.yScale} data={groupedData} onHoverPoint={this.onHoverPoint} onHoverStop={this.onHoverStop} focusKeys={focusKeys} />
             </g>

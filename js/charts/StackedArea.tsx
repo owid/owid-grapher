@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {sortBy, reverse, clone, last} from './Util'
+import {sortBy, reverse, clone, last, guid} from './Util'
 import {computed, action, observable} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartConfig from './ChartConfig'
@@ -170,14 +170,15 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
         const that = this
         return new HeightedLegend({
             get maxWidth() { return 150 },
+            get fontSize() { return that.chart.baseFontSize },
             get items() { return that.legendItems }
         })
     }
 
     @computed get axisBox(): AxisBox {
-        const {bounds, transform, legend} = this
+        const {bounds, transform, legend, chart} = this
         const {xAxis, yAxis} = transform
-        return new AxisBox({bounds: bounds.padRight(legend ? legend.width+5 : 20), xAxis, yAxis})
+        return new AxisBox({bounds: bounds.padRight(legend ? legend.width+5 : 20), fontSize: chart.baseFontSize, xAxis, yAxis})
     }
 
     @observable hoverIndex?: number
@@ -232,19 +233,23 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
                 .on("end", () => this.forceUpdate()) // Important in case bounds changes during transition
     }
 
+    @computed get renderUid() {
+        return guid()
+    }
+
     render() {
         if (this.transform.failMessage)
             return <NoData bounds={this.props.bounds} message={this.transform.failMessage}/>
 
-        const {chart, bounds, axisBox, legend, transform} = this
+        const {chart, bounds, axisBox, legend, transform, renderUid} = this
         return <g className="StackedArea">
             <defs>
-                <clipPath id="boundsClip">
+                <clipPath id={`boundsClip-${renderUid}`}>
                     <rect x={axisBox.innerBounds.x} y={0} width={bounds.width} height={bounds.height*2}></rect>
                 </clipPath>
             </defs>
             <StandardAxisBoxView axisBox={axisBox} chart={chart}/>
-            <g clipPath="url(#boundsClip)">
+            <g clipPath={`url(#boundsClip-${renderUid})`}>
                 {legend && <HeightedLegendView legend={legend} x={bounds.right-legend.width} yScale={axisBox.yScale} focusKeys={[]}/>}
                 <Areas axisBox={axisBox} data={transform.stackedData} onHover={this.onHover}/>
             </g>

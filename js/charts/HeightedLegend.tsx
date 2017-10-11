@@ -14,7 +14,8 @@ import Bounds from './Bounds'
 
 export interface HeightedLegendProps {
     items: HeightedLegendItem[],
-    maxWidth?: number
+    maxWidth?: number,
+    fontSize: number
 }
 
 export interface HeightedLegendItem {
@@ -34,7 +35,7 @@ interface HeightedLegendMark {
 export default class HeightedLegend {
     props: HeightedLegendProps
 
-    @computed get fontSize(): number { return 0.8 }
+    @computed get fontSize(): number { return 0.8*this.props.fontSize }
     @computed get rectSize(): number { return 10 }
     @computed get rectPadding(): number { return 5 }
     @computed get maxWidth() { return defaultTo(this.props.maxWidth, Infinity) }

@@ -10,12 +10,10 @@ interface DownloadTabProps {
     chart: ChartConfig
 }
 
-declare var App: { IDEAL_WIDTH: number, IDEAL_HEIGHT: number }
-
 @observer
 export default class DownloadTab extends React.Component<DownloadTabProps> {
-    @computed get targetWidth() { return App.IDEAL_WIDTH }
-    @computed get targetHeight() { return App.IDEAL_HEIGHT }
+    @computed get targetWidth() { return 1020 }
+    @computed get targetHeight() { return 720 }
 
     @observable pngUrl?: string
     exportPng() {
@@ -24,9 +22,9 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
         const fallbackPngUrl = `${chart.url.baseUrl}.png`
 
         // Client-side SVG => PNG export. Somewhat experimental, so we fall back to server-side exports if needed.
-        const baseFontSize = Bounds.baseFontSize // XXX
+        const baseFontSize = chart.baseFontSize // XXX
         try {
-            Bounds.baseFontSize = 18
+            chart.baseFontSize = 18
             const canvas = document.createElement("canvas")
             canvas.width = targetWidth * 2
             canvas.height = targetHeight * 2
@@ -47,7 +45,7 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
                 this.pngUrl = fallbackPngUrl
             }
             img.src = url
-            Bounds.baseFontSize = baseFontSize
+            chart.baseFontSize = baseFontSize
         } catch (e) {
             console.error(e)
             this.pngUrl = fallbackPngUrl

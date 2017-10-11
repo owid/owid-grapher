@@ -9,23 +9,30 @@ import TextWrap from './TextWrap'
 
 interface HorizontalAxisProps {
     scale: AxisScale,
-    labelText?: string
+    labelText?: string,
+    fontSize: number
 }
 
 // Axis layout model. Computes the space needed for displaying an axis.
 export default class HorizontalAxis {
     static labelPadding = 5
-    static tickFontSize = "0.9em"
-    static labelFontSize = 0.7
 
     props: HorizontalAxisProps
     constructor(props: HorizontalAxisProps) {
         this.props = props
     }
 
+    @computed get tickFontSize() {
+        return 0.9*this.props.fontSize
+    }
+
+    @computed get labelFontSize() {
+        return 0.7*this.props.fontSize
+    }
+
     @computed get label(): TextWrap | undefined {
         const { props, width } = this
-        return props.labelText ? new TextWrap({ maxWidth: width, fontSize: HorizontalAxis.labelFontSize, text: props.labelText }) : undefined
+        return props.labelText ? new TextWrap({ maxWidth: width, fontSize: this.labelFontSize, text: props.labelText }) : undefined
     }
 
     @computed get labelOffset(): number {
@@ -38,7 +45,7 @@ export default class HorizontalAxis {
 
     @computed get height() {
         const { props, labelOffset } = this
-        return Bounds.forText(props.scale.getFormattedTicks()[0], { fontSize: HorizontalAxis.tickFontSize }).height + labelOffset + 5
+        return Bounds.forText(props.scale.getFormattedTicks()[0], { fontSize: this.tickFontSize }).height + labelOffset + 5
     }
 
     @computed get scale(): AxisScale {
@@ -59,7 +66,7 @@ export default class HorizontalAxis {
     @computed get tickPlacements() {
         const { scale, labelOffset } = this
         return this.baseTicks.map(tick => {
-            const bounds = Bounds.forText(scale.tickFormat(tick), { fontSize: HorizontalAxis.tickFontSize })
+            const bounds = Bounds.forText(scale.tickFormat(tick), { fontSize: this.tickFontSize })
             return {
                 tick: tick,
                 bounds: bounds.extend({ x: scale.place(tick) - bounds.width / 2, y: bounds.bottom - labelOffset }),
@@ -95,7 +102,7 @@ export class HorizontalAxisView extends React.Component<{ bounds: Bounds, axis: 
         return <g className="HorizontalAxis">
             {label && label.render(bounds.centerX - label.width / 2, bounds.bottom - label.height)}
             {ticks.map(tick => {
-                return <text x={scale.place(tick)} y={bounds.bottom - labelOffset} fill={textColor} textAnchor="middle" fontSize={HorizontalAxis.tickFontSize}>{scale.tickFormat(tick)}</text>
+                return <text x={scale.place(tick)} y={bounds.bottom - labelOffset} fill={textColor} textAnchor="middle" fontSize={axis.tickFontSize}>{scale.tickFormat(tick)}</text>
             })}
             {scale.scaleTypeOptions.length > 1 && onScaleTypeChange &&
                 <ScaleSelector x={bounds.right} y={bounds.bottom - 5} scaleType={scale.scaleType} scaleTypeOptions={scale.scaleTypeOptions} onChange={onScaleTypeChange} />}
