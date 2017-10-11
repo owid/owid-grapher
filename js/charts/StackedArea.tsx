@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {sortBy, reverse, clone, last} from './Util'
+import {sortBy, reverse, clone, last, guid} from './Util'
 import {computed, action, observable} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartConfig from './ChartConfig'
@@ -233,19 +233,23 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
                 .on("end", () => this.forceUpdate()) // Important in case bounds changes during transition
     }
 
+    @computed get renderUid() {
+        return guid()
+    }
+
     render() {
         if (this.transform.failMessage)
             return <NoData bounds={this.props.bounds} message={this.transform.failMessage}/>
 
-        const {chart, bounds, axisBox, legend, transform} = this
+        const {chart, bounds, axisBox, legend, transform, renderUid} = this
         return <g className="StackedArea">
             <defs>
-                <clipPath id={`boundsClip-${chart.props.id}`}>
+                <clipPath id={`boundsClip-${renderUid}`}>
                     <rect x={axisBox.innerBounds.x} y={0} width={bounds.width} height={bounds.height*2}></rect>
                 </clipPath>
             </defs>
             <StandardAxisBoxView axisBox={axisBox} chart={chart}/>
-            <g clipPath={`url(#boundsClip-${chart.props.id})`}>
+            <g clipPath={`url(#boundsClip-${renderUid})`}>
                 {legend && <HeightedLegendView legend={legend} x={bounds.right-legend.width} yScale={axisBox.yScale} focusKeys={[]}/>}
                 <Areas axisBox={axisBox} data={transform.stackedData} onHover={this.onHover}/>
             </g>

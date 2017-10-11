@@ -85,8 +85,8 @@ export default class ChartView extends React.Component<ChartViewProps> {
     @computed get idealHeight(): number { return this.authorHeight * this.scaleToFitIdeal }
 
     // These are the final render dimensions
-    @computed get renderWidth() { return this.fitBounds ? this.containerBounds.width - (this.isExport ? 0 : 3) : this.idealWidth }
-    @computed get renderHeight() { return this.fitBounds ? this.containerBounds.height - (this.isExport ? 0 : 3) : this.idealHeight }
+    @computed get renderWidth() { return this.fitBounds ? this.containerBounds.width - (this.isExport ? 0 : 5) : this.idealWidth }
+    @computed get renderHeight() { return this.fitBounds ? this.containerBounds.height - (this.isExport ? 0 : 5) : this.idealHeight }
 
     @computed get controlsFooterHeight() {
         const height = Bounds.forText("CHART", { fontSize: this.props.chart.baseFontSize }).height * 2

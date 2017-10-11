@@ -78,10 +78,11 @@
     box-shadow: rgba(0, 0, 0, 0.117647) 0px 0px 2px 0px, rgba(0, 0, 0, 0.239216) 0px 2px 2px 0px
 }
 
-a {
+#chart a {
     cursor: pointer;
     color: #0645ad;
     fill: #0645ad;
+    border-bottom: none;
 }
 
 #chart .logos {

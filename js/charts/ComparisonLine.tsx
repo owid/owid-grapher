@@ -1,6 +1,6 @@
 import { scaleLinear } from 'd3-scale'
 import { line as d3_line, curveLinear } from 'd3-shape'
-import { defaultTo } from './Util'
+import { defaultTo, guid } from './Util'
 import * as React from 'react'
 import { computed } from 'mobx'
 import { observer } from 'mobx-react'
@@ -41,14 +41,15 @@ export default class ComparisonLine extends React.Component<{ axisBox: AxisBox, 
     render() {
         const { innerBounds } = this.props.axisBox
         const { lineData } = this
+        const renderUid = guid()
 
         return <g className="ComparisonLine">
             <defs>
-                <clipPath id="axisBounds">
+                <clipPath id={`axisBounds-${renderUid}`}>
                     <rect x={innerBounds.x} y={innerBounds.y} width={innerBounds.width} height={innerBounds.height} />
                 </clipPath>
             </defs>
-            <path d={lineData || undefined} clipPath="url(#axisBounds)" fill="none" stroke="#ccc" />
+            <path d={lineData || undefined} clipPath={`url(#axisBounds-${renderUid})`} fill="none" stroke="#ccc" />
         </g>
     }
 }

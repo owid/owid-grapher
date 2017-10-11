@@ -104,8 +104,7 @@ export default class ChartData {
 
     // Make a unique string key for an entity on a variable
     keyFor(entity: string, dimensionIndex: number): DataKey {
-        // The chart id is needed for iframeless embeds to distinguish across charts
-        return `${entity}_${dimensionIndex}_${this.chart.props.id}`
+        return `${entity}_${dimensionIndex}`
     }
 
     @computed get dimensionsByField(): { [key: string]: DimensionWithData } {
