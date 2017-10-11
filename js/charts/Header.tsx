@@ -64,7 +64,7 @@ export default class Header {
         if (!chart.props.hideTitleAnnotation) {
             const { minYear, maxYear } = this.props
 
-            if (chart.tab === "chart" && chart.addCountryMode !== "add-country" && chart.data.selectedEntities.length === 1) {
+            if (chart.props.tab === "chart" && chart.addCountryMode !== "add-country" && chart.data.selectedEntities.length === 1) {
                 const { selectedEntities } = chart.data
                 const entityStr = selectedEntities.join(', ')
                 if (entityStr.length > 0) {
