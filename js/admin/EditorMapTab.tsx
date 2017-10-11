@@ -36,6 +36,10 @@ class VariableSection extends React.Component<{ mapConfig: MapConfig }> {
 
 @observer
 class TimelineSection extends React.Component<{ mapConfig: MapConfig }> {
+    @action.bound onToggleHideTimeline(value: boolean) {
+        this.props.mapConfig.props.hideTimeline = value||undefined
+    }
+
     @action.bound onTolerance(tolerance: number) {
         this.props.mapConfig.props.timeTolerance = tolerance
     }
@@ -44,6 +48,7 @@ class TimelineSection extends React.Component<{ mapConfig: MapConfig }> {
         const {mapConfig} = this.props
         return <section>
             <h2>Timeline</h2>
+            <Toggle label="Hide timeline" value={!!mapConfig.props.hideTimeline} onValue={this.onToggleHideTimeline}/>
             <label>
                 <NumberField label="Tolerance of data" value={mapConfig.props.timeTolerance} onValue={this.onTolerance} min={0} />
                 <p className="form-section-desc">Specify a range of years from which to pull data. For example, if the map shows 1990 and tolerance is set to 1, then data from 1989 or 1991 will be shown if no data is available for 1990.</p>

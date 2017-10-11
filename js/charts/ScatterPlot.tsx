@@ -10,7 +10,7 @@
 
 import * as React from 'react'
 import { observable, computed, action } from 'mobx'
-import { intersection, without, includes, uniq } from './Util'
+import { intersection, without, uniq } from './Util'
 import { observer } from 'mobx-react'
 import Bounds from './Bounds'
 import ChartConfig from './ChartConfig'

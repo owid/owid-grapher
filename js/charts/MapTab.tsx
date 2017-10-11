@@ -89,7 +89,7 @@ class TimelineMap extends React.Component<TimelineMapProps> {
     }
 
     @computed get hasTimeline(): boolean {
-        return this.props.years.length > 1 && !this.context.chartView.isExport
+        return !this.context.chart.map.props.hideTimeline && this.props.years.length > 1 && !this.context.chartView.isExport
     }
 
     @computed get timelineHeight(): number {
