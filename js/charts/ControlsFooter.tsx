@@ -8,7 +8,7 @@ import { getQueryParams } from './Util'
 import ChartView from './ChartView'
 import { HighlightToggleConfig } from './ChartConfig'
 
-declare const Global: { adminRootUrl: string }
+declare const Global: { rootUrl: string }
 
 @observer
 class EmbedMenu extends React.Component<{ embedUrl: string }> {
@@ -38,7 +38,7 @@ class ShareMenu extends React.Component<ShareMenuProps> {
     }
 
     @computed get editUrl(): string | undefined {
-        return Cookies.get('isAdmin') ? `${Global.adminRootUrl}/charts/${this.props.chart.props.id}/edit` : undefined
+        return Cookies.get('isAdmin') ? `${Global.rootUrl}/admin/charts/${this.props.chart.props.id}/edit` : undefined
     }
 
     @computed get canonicalUrl(): string | undefined {
