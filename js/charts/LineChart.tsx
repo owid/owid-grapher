@@ -139,12 +139,12 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
 
         return <g className="LineChart">
             <defs>
-                <clipPath id="boundsClip">
+                <clipPath id={`boundsClip-${chart.props.id}`}>
                     <rect x={axisBox.innerBounds.x - 10} y={0} width={bounds.width + 10} height={bounds.height * 2}></rect>
                 </clipPath>
             </defs>
             <StandardAxisBoxView axisBox={axisBox} chart={chart} />
-            <g clipPath="url(#boundsClip)">
+            <g clipPath={`url(#boundsClip-${chart.props.id})`}>
                 {legend && <HeightedLegendView x={bounds.right - legend.width} legend={legend} focusKeys={focusKeys} yScale={axisBox.yScale} onClick={this.onLegendClick} />}
                 <Lines xScale={axisBox.xScale} yScale={axisBox.yScale} data={groupedData} onHoverPoint={this.onHoverPoint} onHoverStop={this.onHoverStop} focusKeys={focusKeys} />
             </g>

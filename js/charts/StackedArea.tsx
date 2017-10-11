@@ -240,12 +240,12 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
         const {chart, bounds, axisBox, legend, transform} = this
         return <g className="StackedArea">
             <defs>
-                <clipPath id="boundsClip">
+                <clipPath id={`boundsClip-${chart.props.id}`}>
                     <rect x={axisBox.innerBounds.x} y={0} width={bounds.width} height={bounds.height*2}></rect>
                 </clipPath>
             </defs>
             <StandardAxisBoxView axisBox={axisBox} chart={chart}/>
-            <g clipPath="url(#boundsClip)">
+            <g clipPath={`url(#boundsClip-${chart.props.id})`}>
                 {legend && <HeightedLegendView legend={legend} x={bounds.right-legend.width} yScale={axisBox.yScale} focusKeys={[]}/>}
                 <Areas axisBox={axisBox} data={transform.stackedData} onHover={this.onHover}/>
             </g>

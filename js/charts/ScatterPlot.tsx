@@ -134,6 +134,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         const that = this
         return new ConnectedScatterLegend({
             get maxWidth() { return that.sidebarWidth },
+            get fontSize() { return that.chart.baseFontSize },
             get startYear() { return that.transform.startYear },
             get endYear() { return that.transform.endYear },
             get endpointsOnly() { return that.transform.compareEndPointsOnly }
