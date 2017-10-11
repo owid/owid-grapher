@@ -5,7 +5,8 @@ import ChartConfig from './ChartConfig'
 
 interface SourcesFooterProps {
     chart: ChartConfig,
-    maxWidth: number
+    maxWidth: number,
+    fontSize: number
 }
 
 export default class SourcesFooter {
@@ -47,7 +48,7 @@ export default class SourcesFooter {
     }
 
     @computed get fontSize() {
-        return 0.7
+        return 0.7*this.props.chart.baseFontSize
     }
 
     @computed get sources() {
