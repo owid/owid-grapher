@@ -47,7 +47,7 @@ def embed_snippet(request):
         document.head.appendChild(script);
     """
 
-    response = HttpResponse(script)
+    response = HttpResponse(script, content_type="application/javascript")
     response['Cache-Control'] = 'public, max-age=0, s-maxage=604800'
     return response
 
