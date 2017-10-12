@@ -99,7 +99,7 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
 
     @action.bound onPNGDownload(ev: React.MouseEvent<HTMLAnchorElement>) {
         if (window.navigator.msSaveBlob) {
-            window.navigator.msSaveBlob(this.pngBlob, this.baseFilename + ".svg")
+            window.navigator.msSaveBlob(this.pngBlob, this.baseFilename + ".png")
             ev.preventDefault()
         }
     }
