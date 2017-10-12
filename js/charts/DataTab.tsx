@@ -59,7 +59,7 @@ export default class DataTab extends React.Component<{ bounds: Bounds, chart: Ch
                     rows.push(row.map(csvEscape).join(","))
             })
         })
-        return "data:text/csv;charset=utf-8," + encodeURIComponent(rows.join("\n"))
+        return "data:text/csv;base64," + btoa(rows.join("\n"))
     }
 
     @computed get csvFilename() {
