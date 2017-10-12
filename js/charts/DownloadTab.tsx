@@ -18,10 +18,28 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
     @observable svgBlob?: Blob
     @observable svgBlobUrl?: string
     @observable svgDataUri?: string
+    @observable pngBlob?: Blob
     @observable pngBlobUrl?: string
     @observable pngDataUri?: string
     @observable isReady: boolean = false
     @action.bound export() {
+        if (!HTMLCanvasElement.prototype.toBlob) {
+            // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toBlob#Polyfill
+            Object.defineProperty(HTMLCanvasElement.prototype, 'toBlob', {
+                value: function(callback: (blob: Blob) => void, type: string, quality: any) {
+                    const binStr = atob((this as HTMLCanvasElement).toDataURL(type, quality).split(',')[1])
+                    const len = binStr.length
+                    const arr = new Uint8Array(len)
+
+                    for (let i = 0; i < len; i++) {
+                        arr[i] = binStr.charCodeAt(i)
+                    }
+
+                    callback(new Blob([arr], { type: type || 'image/png' }))
+                }
+            })
+        }
+
         const { targetWidth, targetHeight } = this
         const { chart } = this.props
 
@@ -47,14 +65,11 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
                     ctx.setTransform(2, 0, 0, 2, 0, 0)
                     ctx.drawImage(img, 0, 0)
                     this.pngDataUri = canvas.toDataURL("image/png")
-                    if (canvas.toBlob) {
-                        canvas.toBlob(blob => {
-                            this.pngBlobUrl = URL.createObjectURL(blob)
-                            this.isReady = true
-                        })
-                    } else {
+                    canvas.toBlob(blob => {
+                        this.pngBlob = blob as Blob
+                        this.pngBlobUrl = URL.createObjectURL(blob)
                         this.isReady = true
-                    }
+                    })
                 } catch (e) {
                     console.error(e)
                     this.isReady = true
@@ -82,9 +97,16 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
         return this.props.bounds.height > this.props.bounds.width
     }
 
+    @action.bound onPNGDownload(ev: React.MouseEvent<HTMLAnchorElement>) {
+        if (window.navigator.msSaveBlob) {
+            window.navigator.msSaveBlob(this.pngBlob, this.baseFilename + ".svg")
+            ev.preventDefault()
+        }
+    }
+
     @action.bound onSVGDownload(ev: React.MouseEvent<HTMLAnchorElement>) {
         if (window.navigator.msSaveBlob) {
-            window.navigator.msSaveBlob(this.svgBlob, this.baseFilename+".svg")
+            window.navigator.msSaveBlob(this.svgBlob, this.baseFilename + ".svg")
             ev.preventDefault()
         }
     }
@@ -105,7 +127,7 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
         const imgStyle = { minWidth: previewWidth, minHeight: previewHeight, maxWidth: previewWidth, maxHeight: previewHeight, border: "1px solid #ccc", margin: "1em" }
 
         return [
-            <a href={pngDownloadUrl} download={baseFilename + ".png"}>
+            <a href={pngDownloadUrl} download={baseFilename + ".png"} onClick={this.onPNGDownload}>
                 {isPortrait
                     ? <div>
                         <h2>Save as .png</h2>
