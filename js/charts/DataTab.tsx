@@ -1,7 +1,7 @@
 import { toString, includes, flatten, uniq, sortBy, extend } from './Util'
 import Bounds from './Bounds'
 import * as React from 'react'
-import { computed } from 'mobx'
+import { computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 import ChartConfig from './ChartConfig'
 
@@ -21,7 +21,7 @@ export default class DataTab extends React.Component<{ bounds: Bounds, chart: Ch
     }
 
     // Here's where the actual CSV is made
-    @computed get csvUrl() {
+    @computed get csvBlob() {
         const { chart } = this.props
         const { vardata } = chart
 
@@ -59,20 +59,33 @@ export default class DataTab extends React.Component<{ bounds: Bounds, chart: Ch
                     rows.push(row.map(csvEscape).join(","))
             })
         })
-        return "data:text/csv;base64," + btoa(rows.join("\n"))
+
+        return new Blob([rows.join("\n")], { type: "text/csv" })
     }
 
-    @computed get csvFilename() {
+    @computed get csvDataUri(): string {
+        return window.URL.createObjectURL(this.csvBlob)
+    }
+
+    @computed get csvFilename(): string {
         return this.props.chart.data.slug + ".csv"
     }
 
+    // IE11 compatibility
+    @action.bound onDownload(ev: React.MouseEvent<HTMLAnchorElement>) {
+        if (window.navigator.msSaveBlob) {
+            window.navigator.msSaveBlob(this.csvBlob, this.csvFilename)
+            ev.preventDefault()
+        }
+    }
+
     render() {
-        const { bounds, csvUrl, csvFilename } = this
+        const { bounds, csvDataUri, csvFilename } = this
 
         return <div className="dataTab" style={extend(bounds.toCSS(), { position: 'absolute' })}>
             <div>
                 <p>Download a CSV file containing all data used in this visualization:</p>
-                <a href={csvUrl} download={csvFilename} className="btn btn-primary" target="_blank"><i className="fa fa-download"></i> {csvFilename}</a>
+                <a href={csvDataUri} download={csvFilename} className="btn btn-primary" target="_blank" onClick={this.onDownload}><i className="fa fa-download"></i> {csvFilename}</a>
             </div>
         </div>
     }
