@@ -1,6 +1,6 @@
 import { extend } from './Util'
 import * as React from 'react'
-import { observable, computed } from 'mobx'
+import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 import Bounds from './Bounds'
 import ChartConfig from './ChartConfig'
@@ -15,54 +15,82 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
     @computed get targetWidth() { return 1020 }
     @computed get targetHeight() { return 720 }
 
-    @observable pngUrl?: string
-    exportPng() {
+    @observable svgBlob?: Blob
+    @observable svgBlobUrl?: string
+    @observable svgDataUri?: string
+    @observable pngBlobUrl?: string
+    @observable pngDataUri?: string
+    @observable isReady: boolean = false
+    @action.bound export() {
         const { targetWidth, targetHeight } = this
         const { chart } = this.props
-        const fallbackPngUrl = `${chart.url.baseUrl}.png`
 
-        // Client-side SVG => PNG export. Somewhat experimental, so we fall back to server-side exports if needed.
-        const baseFontSize = chart.baseFontSize // XXX
-        try {
-            chart.baseFontSize = 18
-            const canvas = document.createElement("canvas")
-            canvas.width = targetWidth * 2
-            canvas.height = targetHeight * 2
-            const ctx = canvas.getContext("2d", { alpha: false }) as CanvasRenderingContext2D
-            ctx.imageSmoothingEnabled = false
-            ctx.setTransform(2, 0, 0, 2, 0, 0)
-            const DOMURL = self.URL || (self as any).webkitURL || self
+        const originalFontSize = chart.baseFontSize
+        chart.baseFontSize = 18
+        const staticSVG = chart.staticSVG
+        chart.baseFontSize = originalFontSize
+
+        this.svgBlob = new Blob([staticSVG], { type: "image/svg+xml;charset=utf-8" })
+        this.svgBlobUrl = URL.createObjectURL(this.svgBlob)
+        const reader = new FileReader()
+        reader.onload = (ev: any) => {
+            this.svgDataUri = ev.target.result as string
+            // Client-side SVG => PNG export. Somewhat experimental, so there's a lot of cross-browser fiddling and fallbacks here.
             const img = new Image()
-            const svg = new Blob([chart.staticSVG], { type: "image/svg+xml;charset=utf-8" })
-            const url = DOMURL.createObjectURL(svg)
             img.onload = () => {
-                ctx.drawImage(img, 0, 0)
-                this.pngUrl = canvas.toDataURL("image/png")
-                DOMURL.revokeObjectURL(this.pngUrl)
+                try {
+                    const canvas = document.createElement("canvas")
+                    canvas.width = targetWidth * 2
+                    canvas.height = targetHeight * 2
+                    const ctx = canvas.getContext("2d", { alpha: false }) as CanvasRenderingContext2D
+                    ctx.imageSmoothingEnabled = false
+                    ctx.setTransform(2, 0, 0, 2, 0, 0)
+                    ctx.drawImage(img, 0, 0)
+                    this.pngDataUri = canvas.toDataURL("image/png")
+                    if (canvas.toBlob) {
+                        canvas.toBlob(blob => {
+                            this.pngBlobUrl = URL.createObjectURL(blob)
+                            this.isReady = true
+                        })
+                    } else {
+                        this.isReady = true
+                    }
+                } catch (e) {
+                    console.error(e)
+                    this.isReady = true
+                }
             }
-            img.onerror = (e) => {
-                console.error(e)
-                this.pngUrl = fallbackPngUrl
+            img.onerror = (err) => {
+                console.error(JSON.stringify(err))
+                this.isReady = true
             }
-            img.src = url
-            chart.baseFontSize = baseFontSize
-        } catch (e) {
-            console.error(e)
-            this.pngUrl = fallbackPngUrl
+            img.src = this.svgDataUri
         }
+        reader.readAsDataURL(this.svgBlob)
     }
 
-    @computed get svgUrl() {
-        return "data:image/svg+xml;utf8," + encodeURIComponent(this.props.chart.staticSVG)
+    @computed get fallbackPngUrl() {
+        return `${this.props.chart.url.baseUrl}.png${this.props.chart.url.queryStr}`
     }
+    @computed get baseFilename() { return this.props.chart.data.slug }
+    @computed get svgPreviewUrl() { return this.svgDataUri }
+    @computed get pngPreviewUrl() { return this.pngDataUri || this.fallbackPngUrl }
+    @computed get svgDownloadUrl() { return this.svgBlobUrl }
+    @computed get pngDownloadUrl() { return this.pngBlobUrl || this.pngDataUri || this.fallbackPngUrl }
 
     @computed get isPortrait(): boolean {
         return this.props.bounds.height > this.props.bounds.width
     }
 
+    @action.bound onSVGDownload(ev: React.MouseEvent<HTMLAnchorElement>) {
+        if (window.navigator.msSaveBlob) {
+            window.navigator.msSaveBlob(this.svgBlob, this.baseFilename+".svg")
+            ev.preventDefault()
+        }
+    }
+
     renderReady() {
-        const { props, targetWidth, targetHeight, pngUrl, svgUrl, isPortrait } = this
-        const { chart } = props
+        const { props, targetWidth, targetHeight, pngPreviewUrl, pngDownloadUrl, svgPreviewUrl, svgDownloadUrl, isPortrait, baseFilename } = this
 
         let previewWidth: number
         let previewHeight: number
@@ -77,30 +105,30 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
         const imgStyle = { minWidth: previewWidth, minHeight: previewHeight, maxWidth: previewWidth, maxHeight: previewHeight, border: "1px solid #ccc", margin: "1em" }
 
         return [
-            <a href={pngUrl} download={chart.data.slug + ".png"}>
+            <a href={pngDownloadUrl} download={baseFilename + ".png"}>
                 {isPortrait
                     ? <div>
                         <h2>Save as .png</h2>
-                        <img src={pngUrl} style={imgStyle} />
+                        <img src={pngPreviewUrl} style={imgStyle} />
                         <p>A standard image of the visualization that can be used in presentations or other documents.</p>
                     </div>
                     : <div>
-                        <img src={pngUrl} style={imgStyle} />
+                        <img src={pngPreviewUrl} style={imgStyle} />
                         <aside>
                             <h2>Save as .png</h2>
                             <p>A standard image of the visualization that can be used in presentations or other documents.</p>
                         </aside>
                     </div>}
             </a>,
-            <a href={svgUrl} download={chart.data.slug + ".svg"}>
+            <a href={svgDownloadUrl} download={baseFilename + ".svg"} onClick={this.onSVGDownload}>
                 {isPortrait
                     ? <div>
                         <h2>Save as .svg</h2>
-                        <img src={svgUrl} style={imgStyle} />
+                        <img src={svgPreviewUrl} style={imgStyle} />
                         <p>A vector format image useful for further redesigning the visualization with vector graphic software.</p>
                     </div>
                     : <div>
-                        <img src={svgUrl} style={imgStyle} />
+                        <img src={svgPreviewUrl} style={imgStyle} />
                         <aside>
                             <h2>Save as .svg</h2>
                             <p>A vector format image useful for further redesigning the visualization with vector graphic software.</p>
@@ -110,12 +138,19 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
     }
 
     componentWillMount() {
-        this.exportPng()
+        this.export()
+    }
+
+    componentWillUnmount() {
+        if (this.pngBlobUrl !== undefined)
+            URL.revokeObjectURL(this.pngBlobUrl)
+        if (this.svgBlobUrl !== undefined)
+            URL.revokeObjectURL(this.svgBlobUrl)
     }
 
     render() {
         return <div className='downloadTab' style={extend(this.props.bounds.toCSS(), { position: 'absolute' })}>
-            {this.pngUrl ? this.renderReady() : <div className="loadingIcon"><i className="fa fa-spinner fa-spin" /></div>}
+            {this.isReady ? this.renderReady() : <div className="loadingIcon"><i className="fa fa-spinner fa-spin" /></div>}
         </div>
     }
 }
