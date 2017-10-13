@@ -72,7 +72,11 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
 
     @computed get xScale() {
         const xAxis = this.chart.yAxis.toSpec({ defaultDomain: this.xDomainDefault }) // XXX
-        return new AxisScale(xAxis).extend({ domain: this.xDomainDefault, range: this.xRange })
+        return new AxisScale(xAxis).extend({
+            domain: this.xDomainDefault,
+            range: this.xRange,
+            tickFormat: this.chart.discreteBar.tickFormat
+        })
     }
 
     @computed get xAxis() {

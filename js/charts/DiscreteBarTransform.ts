@@ -54,6 +54,11 @@ export default class DiscreteBarTransform implements IChartTransform {
         }
     }
 
+    @computed get tickFormat(): (d: number) => string {
+        const {primaryDimension} = this
+        return primaryDimension ? primaryDimension.formatValueShort : (d: number) => `${d}`
+    }
+
     @computed get data(): DiscreteBarDatum[] {
         const { chart, targetYear } = this
         const { filledDimensions, selectedKeysByKey } = chart.data
