@@ -2,6 +2,7 @@
   "private": true,
   "scripts": {
     "dev": "./node_modules/.bin/concurrently --kill-others --raw \"./node_modules/.bin/webpack-dev-server -d\" \"python3 manage.py runserver 0.0.0.0:8000\"",
+    "lint": "tslint --project . -t verbose",
     "build": "webpack -p --progress"
   },
   "devDependencies": {
@@ -64,6 +65,9 @@
     "timeago.js": "^3.0.2",
     "topojson": "^2.2.0",
     "ts-loader": "^2.3.7",
+    "tslint": "^5.7.0",
+    "tslint-language-service": "^0.9.6",
+    "tslint-loader": "^3.5.3",
     "typescript": "^2.5.2",
     "url-loader": "^0.5.8",
     "webpack": "^3.5.6",
@@ -74,8 +78,8 @@
   "dependencies": {
     "chrome-launcher": "^0.2.1",
     "chrome-remote-interface": "^0.22.0",
+    "lockfile": "^1.0.3",
     "minimist": "^1.2.0",
-    "node-cleanup": "^2.1.2",
-    "lockfile": "^1.0.3"
+    "node-cleanup": "^2.1.2"
   }
 }

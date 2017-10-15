@@ -1,7 +1,12 @@
 // Place your settings in this file to overwrite default and user settings.
 {
+    "editor.insertSpaces": true,
+    "editor.tabSize": 4,
+    "editor.detectIndentation": false,
+    "tslint.autoFixOnSave": true,
     "search.exclude": {
         "public": true,
         "env": true
-    }
+    },
+    "typescript.tsdk": "node_modules/typescript/lib"
 }

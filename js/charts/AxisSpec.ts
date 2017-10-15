@@ -17,4 +17,3 @@ interface AxisSpec {
 }
 
 export default AxisSpec
-

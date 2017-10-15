@@ -13,7 +13,10 @@
         "noUnusedLocals": true,
         "noUnusedParameters": true,
         "forceConsistentCasingInFileNames": true,
-        "lib": ["dom", "es6"]
+        "lib": ["dom", "es6"],
+        "plugins": [
+            { "name": "tslint-language-service" }
+        ]
     },
     "exclude": ["node_modules"]
 }

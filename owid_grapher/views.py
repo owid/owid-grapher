@@ -10,18 +10,46 @@ from django.shortcuts import render, redirect
 from django.conf import settings
 from django.db import connection
 from django.db.models import Q
-from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect, StreamingHttpResponse
+from django.http import HttpResponse, JsonResponse, HttpResponseNotFound, HttpResponseRedirect, StreamingHttpResponse
 from django.template.response import TemplateResponse
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.utils.encoding import smart_str
 from grapher_admin.models import Chart, Variable, License, ChartSlugRedirect
 from django.views.decorators.clickjacking import xframe_options_exempt
+from owid_grapher.templatetags.webpack import webpack
+from django.conf import settings
 
 @login_required
 def index(request):
     return redirect('listcharts')
 
+def embed_snippet(request):
+    chartsJs = webpack("charts.js")
+    chartsCss = webpack("charts.css")
+
+    script = """
+        window.App = {};
+        window.Global = { rootUrl: '""" + settings.BASE_URL + """' };
+
+        var link = document.createElement('link');
+        link.type = 'text/css';
+        link.rel = 'stylesheet';
+        link.href = '""" + chartsCss + """';
+        document.head.appendChild(link);
+
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.onload = function() {
+            window.Grapher.embedAll();
+        }
+        script.src = '""" + chartsJs + """';
+        document.head.appendChild(script);
+    """
+
+    response = HttpResponse(script, content_type="application/javascript")
+    response['Cache-Control'] = 'public, max-age=0, s-maxage=604800'
+    return response
 
 def test_all(request):
     test_type = request.GET.get('type', '')
@@ -173,7 +201,7 @@ def showchart(request, chart):
     if configfile.get('subtitle', ''):
         chartmeta['description'] = configfile['subtitle']
     else:
-        chartmeta['description'] = 'An interactive visualization from Our World In Data.'
+        chartmeta['description'] = 'An interactive visualization from Our World in Data.'
     query_string = get_query_string(request)
     if query_string:
         canonicalurl += '?' + query_string
@@ -235,6 +263,24 @@ def show(request, slug):
         return HttpResponseNotFound('No such chart!')
     return showchart(request, chart)
 
+
+def config_json_by_slug(request, slug):
+    """
+    :param request: Request object
+    :param slug: Chart slug
+    :return: config json
+    """
+    chart = find_with_redirects(slug)
+    if not chart:
+        return HttpResponseNotFound('No such chart!')
+
+    configdict = chart.get_config()
+    configdict['variableCacheTag'] = chart.make_cache_tag()
+
+    response = JsonResponse(configdict)
+    response['Cache-Control'] = 'public, max-age=0, s-maxage=604800'
+
+    return response
 
 def config(request, configid):
     """

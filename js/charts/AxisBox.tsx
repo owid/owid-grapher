@@ -2,25 +2,26 @@
  * ================
  *
  * Standard axis box layout model. Precompute before rendering and pass it around.
- * 
+ *
  * @project Our World In Data
  * @author  Jaiden Mispy
  * @created 2017-02-11
  */
 
 import * as React from 'react'
-import {observable, computed, reaction, action} from 'mobx'
-import {observer} from 'mobx-react'
+import { observable, computed, reaction, action } from 'mobx'
+import { observer } from 'mobx-react'
 import Bounds from './Bounds'
 import AxisScale from './AxisScale'
-import VerticalAxis, {VerticalAxisView} from './VerticalAxis'
-import HorizontalAxis, {HorizontalAxisView} from './HorizontalAxis'
+import VerticalAxis, { VerticalAxisView } from './VerticalAxis'
+import HorizontalAxis, { HorizontalAxisView } from './HorizontalAxis'
 import AxisSpec from './AxisSpec'
 import ScaleType from './ScaleType'
-import {extend} from './Util'
+import { extend } from './Util'
 
 interface AxisBoxProps {
     bounds: Bounds,
+    fontSize: number,
     xAxis: AxisSpec,
     yAxis: AxisSpec
 }
@@ -37,28 +38,33 @@ export default class AxisBox {
     @observable prevYDomain: [number, number] = [1, 100]
     @observable prevXDomain: [number, number] = [1, 100]
     @observable animProgress?: number
+    private frameStart?: number
+
+    constructor(props: AxisBoxProps) {
+        this.props = props
+    }
 
     @computed.struct get currentYDomain(): [number, number] {
-        if (this.animProgress == null) return this.props.yAxis.domain
+        if (this.animProgress === undefined) return this.props.yAxis.domain
 
         const [prevMinY, prevMaxY] = this.prevYDomain
         const [targetMinY, targetMaxY] = this.targetYDomain
 
         return [
-            prevMinY+(targetMinY-prevMinY)*this.animProgress,
-            prevMaxY+(targetMaxY-prevMaxY)*this.animProgress
+            prevMinY + (targetMinY - prevMinY) * this.animProgress,
+            prevMaxY + (targetMaxY - prevMaxY) * this.animProgress
         ]
     }
 
     @computed.struct get currentXDomain(): [number, number] {
-        if (this.animProgress == null) return this.props.xAxis.domain
+        if (this.animProgress === undefined) return this.props.xAxis.domain
 
         const [prevMinX, prevMaxX] = this.prevXDomain
         const [targetMinX, targetMaxX] = this.targetXDomain
 
         return [
-            prevMinX+(targetMinX-prevMinX)*this.animProgress,
-            prevMaxX+(targetMaxX-prevMaxX)*this.animProgress
+            prevMinX + (targetMinX - prevMinX) * this.animProgress,
+            prevMaxX + (targetMaxX - prevMaxX) * this.animProgress
         ]
     }
 
@@ -80,18 +86,13 @@ export default class AxisBox {
         )
     }
 
-    constructor(props: AxisBoxProps) {
-        this.props = props
-    }
-
-    frameStart?: number
     @action.bound frame(timestamp: number) {
-        if (this.animProgress == null) return
+        if (this.animProgress === undefined) return
 
         if (!this.frameStart) this.frameStart = timestamp
-        this.animProgress = Math.min(1, this.animProgress+(timestamp-this.frameStart)/300)
+        this.animProgress = Math.min(1, this.animProgress + (timestamp - this.frameStart) / 300)
 
-        if (this.animProgress < 1) 
+        if (this.animProgress < 1)
             requestAnimationFrame(this.frame)
         else
             this.frameStart = undefined
@@ -109,14 +110,16 @@ export default class AxisBox {
     @computed get xAxisHeight() {
         return new HorizontalAxis({
             scale: new AxisScale(this.xAxisSpec).extend({ range: [0, this.props.bounds.width] }),
-            labelText: this.xAxisSpec.label
+            labelText: this.xAxisSpec.label,
+            fontSize: this.props.fontSize
         }).height
     }
 
     @computed get yAxisWidth() {
         return new VerticalAxis({
             scale: new AxisScale(this.yAxisSpec).extend({ range: [0, this.props.bounds.height] }),
-            labelText: this.yAxisSpec.label
+            labelText: this.yAxisSpec.label,
+            fontSize: this.props.fontSize
         }).width
     }
 
@@ -137,7 +140,8 @@ export default class AxisBox {
         const that = this
         return new HorizontalAxis({
             get scale() { return that.xScale },
-            get labelText() { return that.xAxisSpec.label }
+            get labelText() { return that.xAxisSpec.label },
+            get fontSize() { return that.props.fontSize }
         })
     }
 
@@ -145,7 +149,8 @@ export default class AxisBox {
         const that = this
         return new VerticalAxis({
             get scale() { return that.yScale },
-            get labelText() { return that.yAxisSpec.label }
+            get labelText() { return that.yAxisSpec.label },
+            get fontSize() { return that.props.fontSize }
         })
     }
 
@@ -163,17 +168,17 @@ interface AxisGridLinesProps {
 @observer
 export class AxisGridLines extends React.Component<AxisGridLinesProps> {
     render() {
-        const {orient, bounds} = this.props
-        let scale = this.props.scale.extend({ range: orient == 'left' ? bounds.yRange() : bounds.xRange() })
+        const { orient, bounds } = this.props
+        const scale = this.props.scale.extend({ range: orient === 'left' ? bounds.yRange() : bounds.xRange() })
 
         return <g className="AxisGridLines">
             {scale.getTickValues().map(v => {
-                if (orient == 'left')
-                    return <line x1={bounds.left.toFixed(2)} y1={scale.place(v)} x2={bounds.right.toFixed(2)} y2={scale.place(v)} stroke={v == 0 ? "#ccc" : "#ddd"} stroke-dasharray={v != 0 && "3,2"}/>
+                if (orient === 'left')
+                    return <line x1={bounds.left.toFixed(2)} y1={scale.place(v)} x2={bounds.right.toFixed(2)} y2={scale.place(v)} stroke={v === 0 ? "#ccc" : "#ddd"} stroke-dasharray={v !== 0 && "3,2"} />
                 else
-                    return <line x1={scale.place(v)} y1={bounds.bottom.toFixed(2)} x2={scale.place(v)} y2={bounds.top.toFixed(2)} stroke={v == 0 ? "#ccc" : "#ddd"} stroke-dasharray={v != 0 && "3,2"}/>
-                
-            })}    
+                    return <line x1={scale.place(v)} y1={bounds.bottom.toFixed(2)} x2={scale.place(v)} y2={bounds.top.toFixed(2)} stroke={v === 0 ? "#ccc" : "#ddd"} stroke-dasharray={v !== 0 && "3,2"} />
+
+            })}
         </g>
     }
 }
@@ -190,16 +195,16 @@ export class AxisBoxView extends React.Component<AxisBoxViewProps> {
     componentDidMount() {
         requestAnimationFrame(this.props.axisBox.setupAnimation)
     }
-    
+
     render() {
-        const {axisBox, onYScaleChange, onXScaleChange} = this.props
-        const {bounds, xScale, yScale, xAxis, yAxis, innerBounds} = axisBox
+        const { axisBox, onYScaleChange, onXScaleChange } = this.props
+        const { bounds, xScale, yScale, xAxis, yAxis, innerBounds } = axisBox
 
         return <g className="AxisBoxView">
-            <HorizontalAxisView bounds={bounds} axis={xAxis} onScaleTypeChange={onXScaleChange}/>
-            <VerticalAxisView bounds={bounds} axis={yAxis} onScaleTypeChange={onYScaleChange}/>
-            <AxisGridLines orient="left" scale={yScale} bounds={innerBounds}/>
-            <AxisGridLines orient="bottom" scale={xScale} bounds={innerBounds}/>
+            <HorizontalAxisView bounds={bounds} axis={xAxis} onScaleTypeChange={onXScaleChange} />
+            <VerticalAxisView bounds={bounds} axis={yAxis} onScaleTypeChange={onYScaleChange} />
+            <AxisGridLines orient="left" scale={yScale} bounds={innerBounds} />
+            <AxisGridLines orient="bottom" scale={xScale} bounds={innerBounds} />
         </g>
     }
 }

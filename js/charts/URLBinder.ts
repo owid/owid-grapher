@@ -7,12 +7,12 @@
  *
  */
 
-import {debounce, isNumber, includes, filter, uniq, toString, isFinite} from './Util'
-import {computed, when, runInAction, reaction, toJS} from 'mobx'
+import { debounce, isNumber, includes, filter, uniq, toString, isFinite } from './Util'
+import { computed, when, runInAction, reaction, toJS } from 'mobx'
 import ChartTabOption from './ChartTabOption'
-import {defaultTo} from './Util'
-import ChartConfig, {ChartConfigProps} from './ChartConfig'
-import {getQueryParams, setQueryStr, queryParamsToStr, QueryParams} from './Util'
+import { defaultTo } from './Util'
+import ChartConfig, { ChartConfigProps } from './ChartConfig'
+import { getQueryParams, setQueryStr, queryParamsToStr, QueryParams } from './Util'
 import MapProjection from './MapProjection'
 
 interface ChartQueryParams {
@@ -39,21 +39,27 @@ export default class URLBinder {
     mapQueryStr: string = "?"
     debounceMode: boolean = false
 
-    constructor(chart: ChartConfig) {
+    constructor(chart: ChartConfig, queryStr?: string) {
         this.chart = chart
         this.origChartProps = toJS(chart.props)
-        this.populateFromURL(getQueryParams())
 
-        // There is a surprisingly considerable performance overhead to updating the url
-        // while animating, so we debounce to allow e.g. smoother timelines
+        if (!chart.isEmbed) {
+            // Only change the actual url if we're not an embed
 
-        const pushParams = () => setQueryStr(queryParamsToStr(this.params as QueryParams))
-        const debouncedPushParams = debounce(pushParams, 100)
-        
-        reaction(
-            () => this.params,
-            () => this.debounceMode ? debouncedPushParams() : pushParams()
-        )
+            this.populateFromURL(getQueryParams())
+
+            // There is a surprisingly considerable performance overhead to updating the url
+            // while animating, so we debounce to allow e.g. smoother timelines
+            const pushParams = () => setQueryStr(queryParamsToStr(this.params as QueryParams))
+            const debouncedPushParams = debounce(pushParams, 100)
+
+            reaction(
+                () => this.params,
+                () => this.debounceMode ? debouncedPushParams() : pushParams()
+            )
+        } else if (queryStr !== undefined) {
+            this.populateFromURL(getQueryParams(queryStr))
+        }
     }
 
     @computed get origChart() {
@@ -69,17 +75,20 @@ export default class URLBinder {
     // and original config state
     @computed.struct get params(): ChartQueryParams {
         const params: ChartQueryParams = {}
-        const {chart, origChart} = this
+        const { chart, origChart } = this
 
-        params.tab = chart.props.tab == origChart.tab ? undefined : chart.props.tab
-        params.overlay = chart.props.overlay == origChart.overlay ? undefined : chart.props.overlay
-        params.xScale = chart.props.xAxis.scaleType == origChart.xAxis.scaleType ? undefined : chart.xAxis.scaleType
-        params.yScale = chart.props.yAxis.scaleType == origChart.yAxis.scaleType? undefined : chart.yAxis.scaleType
-        params.stackMode = chart.props.stackMode == origChart.stackMode ? undefined : chart.props.stackMode
-        params.endpointsOnly = chart.props.compareEndPointsOnly == origChart.compareEndPointsOnly ? undefined : (chart.props.compareEndPointsOnly ? "1" : "0")
+        params.tab = chart.props.tab === origChart.tab ? undefined : chart.props.tab
+        params.overlay = chart.props.overlay === origChart.overlay ? undefined : chart.props.overlay
+        params.xScale = chart.props.xAxis.scaleType === origChart.xAxis.scaleType ? undefined : chart.xAxis.scaleType
+        params.yScale = chart.props.yAxis.scaleType === origChart.yAxis.scaleType ? undefined : chart.yAxis.scaleType
+        params.stackMode = chart.props.stackMode === origChart.stackMode ? undefined : chart.props.stackMode
+        params.endpointsOnly = chart.props.compareEndPointsOnly === origChart.compareEndPointsOnly ? undefined : (chart.props.compareEndPointsOnly ? "1" : "0")
         params.year = this.yearParam
         params.time = this.timeParam
         params.country = this.countryParam
+
+        if (chart.props.map && origChart.map && chart.props.map.projection !== origChart.map.projection)
+            params.region = chart.props.map.projection
 
         return params
     }
@@ -88,37 +97,37 @@ export default class URLBinder {
         return queryParamsToStr(this.params as QueryParams)
     }
 
-    @computed get baseUrl(): string|undefined {
+    @computed get baseUrl(): string | undefined {
         if (this.chart.isPublished)
             return Global.rootUrl + "/" + this.chart.data.slug
-        else if (this.chart.id != null)
-            return Global.rootUrl + "/admin/charts/" + this.chart.id + "/"
+        else if (this.chart.props.id !== undefined)
+            return `${Global.rootUrl}/admin/charts/${this.chart.props.id}/`
         else
             return undefined
     }
 
     // Get the full url representing the canonical location of this chart state
-    @computed get canonicalUrl(): string|undefined {
+    @computed get canonicalUrl(): string | undefined {
         return this.baseUrl ? this.baseUrl + this.queryStr : undefined
     }
 
-    @computed get yearParam(): string|undefined {
-        const {chart, origChart} = this
+    @computed get yearParam(): string | undefined {
+        const { chart, origChart } = this
 
-        if (chart.props.map && origChart.map && chart.props.map.targetYear != origChart.map.targetYear) {
+        if (chart.props.map && origChart.map && chart.props.map.targetYear !== origChart.map.targetYear) {
             return toString(chart.props.map.targetYear)
         } else {
             return undefined
         }
     }
 
-    @computed get timeParam(): string|undefined {
-        const {chart, origChart} = this
+    @computed get timeParam(): string | undefined {
+        const { chart, origChart } = this
 
-        const {minTime, maxTime} = chart.props
-        if (minTime != origChart.minTime || maxTime != origChart.maxTime) {
-            if (isFinite(minTime) && isFinite(maxTime) && minTime != maxTime) {
-                return minTime + ".." + maxTime
+        const { minTime, maxTime } = chart.props
+        if (minTime !== origChart.minTime || maxTime !== origChart.maxTime) {
+            if (isFinite(minTime) && isFinite(maxTime) && minTime !== maxTime) {
+                return `${minTime}..${maxTime}`
             } else if (isNumber(minTime)) {
                 return toString(minTime)
             } else {
@@ -129,9 +138,9 @@ export default class URLBinder {
         }
     }
 
-    @computed get countryParam(): string|undefined {
-        const {chart, origChart} = this
-        if (chart.data.isReady && JSON.stringify(chart.props.selectedData) != JSON.stringify(origChart.selectedData)) {
+    @computed get countryParam(): string | undefined {
+        const { chart, origChart } = this
+        if (chart.data.isReady && JSON.stringify(chart.props.selectedData) !== JSON.stringify(origChart.selectedData)) {
             return uniq(chart.data.selectedKeys.map(k => chart.data.lookupKey(k).shortCode).map(encodeURIComponent)).join("+")
         } else {
             return undefined
@@ -156,27 +165,26 @@ export default class URLBinder {
 
     /**
      * Apply any url parameters on chartView startup
-     */    
+     */
     populateFromURL(params: ChartQueryParams) {
-        const {chart} = this
+        const { chart } = this
 
         // Set tab if specified
-        const tab = params.tab;
+        const tab = params.tab
         if (tab) {
             if (!includes(chart.availableTabs, tab))
-                console.error("Unexpected tab: " + tab);
+                console.error("Unexpected tab: " + tab)
             else
                 chart.props.tab = (tab as ChartTabOption)
         }
 
-        const overlay = params.overlay;
+        const overlay = params.overlay
         if (overlay) {
             if (!includes(chart.availableTabs, overlay))
-                console.error("Unexpected overlay: " + overlay);
+                console.error("Unexpected overlay: " + overlay)
             else
                 chart.props.overlay = (overlay as ChartTabOption)
         }
-
 
         // Stack mode for bar and stacked area charts
         chart.props.stackMode = defaultTo(params.stackMode, chart.props.stackMode)
@@ -184,7 +192,7 @@ export default class URLBinder {
         // Axis scale mode
         const xScaleType = params.xScale
         if (xScaleType) {
-            if (xScaleType == 'linear' || xScaleType == 'log')
+            if (xScaleType === 'linear' || xScaleType === 'log')
                 chart.xAxis.scaleType = xScaleType
             else
                 console.error("Unexpected xScale: " + xScaleType)
@@ -192,13 +200,13 @@ export default class URLBinder {
 
         const yScaleType = params.yScale
         if (yScaleType) {
-            if (yScaleType == 'linear' || yScaleType == 'log')
+            if (yScaleType === 'linear' || yScaleType === 'log')
                 chart.yAxis.scaleType = yScaleType
             else
                 console.error("Unexpected xScale: " + yScaleType)
         }
-        
-        var time = params.time;
+
+        const time = params.time
         if (time !== undefined) {
             const m = time.match(/^(\d+)\.\.(\d+)$/)
             if (m) {
@@ -210,26 +218,25 @@ export default class URLBinder {
 
         const endpointsOnly = params.endpointsOnly
         if (endpointsOnly !== undefined) {
-            chart.props.compareEndPointsOnly = endpointsOnly == "1" ? true : undefined
+            chart.props.compareEndPointsOnly = endpointsOnly === "1" ? true : undefined
         }
 
         // Map stuff below
 
         if (chart.props.map) {
-            var year = parseInt(params.year||"");
+            const year = parseInt(params.year || "")
             if (!isNaN(year)) {
                 chart.props.map.targetYear = year
             }
 
-            var region = params.region;
+            const region = params.region
             if (region !== undefined) {
                 chart.props.map.projection = region as MapProjection
             }
         }
 
-
         // Selected countries -- we can't actually look these up until we have the data
-        var country = params.country;
+        const country = params.country
         when(() => chart.data.isReady, () => {
             runInAction(() => {
                 if (country) {
@@ -238,12 +245,12 @@ export default class URLBinder {
                     if (chart.data.canChangeEntity) {
                         chart.data.availableEntities.forEach(entity => {
                             const entityMeta = chart.vardata.entityMetaByKey[entity]
-                            if (entityMeta.code == entityCodes[0] || entityMeta.name == entityCodes[0])
+                            if (entityMeta.code === entityCodes[0] || entityMeta.name === entityCodes[0])
                                 chart.data.switchEntity(entityMeta.id)
                         })
                     } else {
                         chart.data.selectedKeys = filter(chart.data.availableKeys, datakey => {
-                            const meta = chart.data.lookupKey(datakey)                         
+                            const meta = chart.data.lookupKey(datakey)
                             const entityMeta = chart.vardata.entityMetaByKey[meta.entity]
                             return includes(entityCodes, meta.shortCode) || includes(entityCodes, entityMeta.code) || includes(entityCodes, entityMeta.name)
                         })
@@ -253,13 +260,13 @@ export default class URLBinder {
         })
 
         // Set shown legend keys for chartViews with toggleable series
-       /*var shown = params.shown;
-        if (isString(shown)) {
-            var keys = map(shown.split("+"), function(key) {
-                return decodeURIComponent(key);
-            });
+        /*var shown = params.shown;
+         if (isString(shown)) {
+             var keys = map(shown.split("+"), function(key) {
+                 return decodeURIComponent(key);
+             });
 
-            chart.activeLegendKeys = keys
-        }*/
+             chart.activeLegendKeys = keys
+         }*/
     }
 }

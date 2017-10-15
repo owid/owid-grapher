@@ -1,86 +1,66 @@
-import {observable} from 'mobx'
-import {isNumber, includes, extend} from './Util'
+import { extend } from './Util'
 import Vector2 from './Vector2'
 
 export default class Bounds {
-	readonly x: number
-	readonly y: number
-	readonly width: number
-	readonly height: number
+    static textBoundsCache: { [key: string]: Bounds }
+    static ctx: CanvasRenderingContext2D
+    static baseFontFamily: string
 
-	constructor(x: number, y: number, width: number, height: number) {
-		this.x = x
-		this.y = y
-		this.width = width
-		this.height = height
-	}
+    static fromProps(props: { x: number, y: number, width: number, height: number }): Bounds {
+        const { x, y, width, height } = props
+        return new Bounds(x, y, width, height)
+    }
 
-	static fromProps(props: { x: number, y: number, width: number, height: number }): Bounds {
-		const { x, y, width, height } = props
-		return new Bounds(x, y, width, height)
-	}
+    static fromBBox(bbox: { x: number, y: number, width: number, height: number }): Bounds {
+        return this.fromProps(bbox)
+    }
 
-	static fromBBox(bbox : { x: number, y: number, width: number, height: number }) : Bounds {
-		return this.fromProps(bbox)
-	}
-
-    static fromRect(rect : ClientRect) {
+    static fromRect(rect: ClientRect) {
         return new Bounds(rect.left, rect.top, rect.width, rect.height)
     }
 
-	static fromElement(el: HTMLElement) {
-		return Bounds.fromRect(el.getBoundingClientRect())
-	}
+    static fromElement(el: HTMLElement) {
+        return Bounds.fromRect(el.getBoundingClientRect())
+    }
 
-	static fromCorners(p1: Vector2, p2: Vector2) {
-		const x1 = Math.min(p1.x, p2.x)
-		const x2 = Math.max(p1.x, p2.x)
-		const y1 = Math.min(p1.y, p2.y)
-		const y2 = Math.max(p1.y, p2.y)
+    static fromCorners(p1: Vector2, p2: Vector2) {
+        const x1 = Math.min(p1.x, p2.x)
+        const x2 = Math.max(p1.x, p2.x)
+        const y1 = Math.min(p1.y, p2.y)
+        const y2 = Math.max(p1.y, p2.y)
 
-		return new Bounds(x1, y1, x2-x1, y2-y1)
-	}
+        return new Bounds(x1, y1, x2 - x1, y2 - y1)
+    }
 
-	static empty() : Bounds {
-		return new Bounds(0,0,0,0)
-	}
+    static empty(): Bounds {
+        return new Bounds(0, 0, 0, 0)
+    }
 
-    static textBoundsCache: { [key: string]: Bounds }
-    static ctx: CanvasRenderingContext2D
-    @observable static baseFontSize: number
-    static baseFontFamily: string
-
-    static forText(str: string, { x = 0, y = 0, fontSize = '1em', fontFamily = null }: { x?: number, y?: number, fontSize?: string|number, fontFamily?: string } = {}): Bounds {
-        if (str == "")
+    static forText(str: string, { x = 0, y = 0, fontSize = 16, fontFamily = null }: { x?: number, y?: number, fontSize?: number, fontFamily?: string } = {}): Bounds {
+        if (str === "")
             return Bounds.empty()
 
         this.textBoundsCache = this.textBoundsCache || {}
         this.ctx = this.ctx || document.createElement('canvas').getContext('2d')
 
-		if (!this.baseFontSize || !this.baseFontFamily) {
-			const svg = document.querySelector("svg") as SVGSVGElement
-			this.baseFontSize = parseFloat(svg.style.fontSize as string)
-			this.baseFontFamily = svg.style.fontFamily as string
-		}
+        if (!this.baseFontFamily) {
+            const svg = document.querySelector("svg") as SVGSVGElement
+            this.baseFontFamily = svg.style.fontFamily as string
+        }
 
-        if (isNumber(fontSize))
-            fontSize = fontSize + 'px'
-        else if (includes(fontSize, 'em'))
-            fontSize = this.baseFontSize*parseFloat(fontSize)+'px'
-
-        const key = str+'-'+fontSize
+        const key = `${str}-${fontSize}`
         const fontFace = fontFamily || this.baseFontFamily
 
         let bounds = this.textBoundsCache[key]
-        if (bounds) return bounds.extend({ x: x, y: y-bounds.height })
+        if (bounds) return bounds.extend({ x, y: y - bounds.height })
 
-        this.ctx.font = fontSize + ' ' + fontFace;
+        this.ctx.font = `${fontSize}px ${fontFace}`
         const m = this.ctx.measureText(str)
 
-        let width = m.width
-        let height = parseFloat(fontSize)
+        const width = m.width
+        const height = fontSize
 
-        bounds = new Bounds(x, y-height, width, height)
+        bounds = new Bounds(x, y - height, width, height)
 
         this.textBoundsCache[key] = bounds
         return bounds
@@ -120,115 +100,127 @@ export default class Bounds {
                 .style('border', '1px solid red');
     }*/
 
-	get left(): number { return this.x }
-	get top(): number { return this.y }
-	get right(): number { return this.x+this.width }
-	get bottom(): number { return this.y+this.height }
-    get centerX(): number { return this.x+this.width/2 }
-    get centerY(): number { return this.y+this.height/2 }
+    readonly x: number
+    readonly y: number
+    readonly width: number
+    readonly height: number
 
-	get topLeft(): Vector2 { return new Vector2(this.left, this.top) }
-	get topRight(): Vector2 { return new Vector2(this.right, this.top)}
-	get bottomLeft(): Vector2 { return new Vector2(this.left, this.bottom) }
-	get bottomRight(): Vector2 { return new Vector2(this.right, this.bottom) }
+    constructor(x: number, y: number, width: number, height: number) {
+        this.x = x
+        this.y = y
+        this.width = width
+        this.height = height
+    }
 
-	padLeft(amount: number): Bounds {
-		return new Bounds(this.x+amount, this.y, this.width-amount, this.height)
-	}
+    get left(): number { return this.x }
+    get top(): number { return this.y }
+    get right(): number { return this.x + this.width }
+    get bottom(): number { return this.y + this.height }
+    get centerX(): number { return this.x + this.width / 2 }
+    get centerY(): number { return this.y + this.height / 2 }
 
-	padRight(amount: number): Bounds {
-		return new Bounds(this.x, this.y, this.width-amount, this.height)
-	}
+    get topLeft(): Vector2 { return new Vector2(this.left, this.top) }
+    get topRight(): Vector2 { return new Vector2(this.right, this.top) }
+    get bottomLeft(): Vector2 { return new Vector2(this.left, this.bottom) }
+    get bottomRight(): Vector2 { return new Vector2(this.right, this.bottom) }
 
-	padBottom(amount: number): Bounds {
-		return new Bounds(this.x, this.y, this.width, this.height-amount)
-	}
+    padLeft(amount: number): Bounds {
+        return new Bounds(this.x + amount, this.y, this.width - amount, this.height)
+    }
 
-	padTop(amount: number): Bounds {
-		return new Bounds(this.x, this.y+amount, this.width, this.height-amount)
-	}
+    padRight(amount: number): Bounds {
+        return new Bounds(this.x, this.y, this.width - amount, this.height)
+    }
 
-	padWidth(amount: number): Bounds {
-		return new Bounds(this.x+amount, this.y, this.width-amount*2, this.height)
-	}
+    padBottom(amount: number): Bounds {
+        return new Bounds(this.x, this.y, this.width, this.height - amount)
+    }
 
-	padHeight(amount: number): Bounds {
-		return new Bounds(this.x, this.y+amount, this.width, this.height-amount*2)
-	}
+    padTop(amount: number): Bounds {
+        return new Bounds(this.x, this.y + amount, this.width, this.height - amount)
+    }
+
+    padWidth(amount: number): Bounds {
+        return new Bounds(this.x + amount, this.y, this.width - amount * 2, this.height)
+    }
+
+    padHeight(amount: number): Bounds {
+        return new Bounds(this.x, this.y + amount, this.width, this.height - amount * 2)
+    }
 
     fromLeft(amount: number): Bounds {
-        return this.padRight(this.width-amount)
+        return this.padRight(this.width - amount)
     }
 
     fromBottom(amount: number): Bounds {
-        return this.padTop(this.height-amount)
+        return this.padTop(this.height - amount)
     }
 
-	pad(amount: number): Bounds {
-		return new Bounds(this.x+amount, this.y+amount, this.width-amount*2, this.height-amount*2)
-	}
+    pad(amount: number): Bounds {
+        return new Bounds(this.x + amount, this.y + amount, this.width - amount * 2, this.height - amount * 2)
+    }
 
-	extend(props: { x?: number, y?: number, width?: number, height?: number }): Bounds {
-		return Bounds.fromProps(extend({}, this, props))
-	}
+    extend(props: { x?: number, y?: number, width?: number, height?: number }): Bounds {
+        return Bounds.fromProps(extend({}, this, props))
+    }
 
-	scale(scale: number): Bounds {
-		return new Bounds(this.x*scale, this.y*scale, this.width*scale, this.height*scale)
-	}
+    scale(scale: number): Bounds {
+        return new Bounds(this.x * scale, this.y * scale, this.width * scale, this.height * scale)
+    }
 
-	intersects(otherBounds: Bounds): boolean {
-		const r1 = this, r2 = otherBounds
+    intersects(otherBounds: Bounds): boolean {
+        const r1 = this
+        const r2 = otherBounds
 
-	    return !(r2.left > r1.right || r2.right < r1.left ||
-             r2.top > r1.bottom || r2.bottom < r1.top)
-	}
+        return !(r2.left > r1.right || r2.right < r1.left ||
+            r2.top > r1.bottom || r2.bottom < r1.top)
+    }
 
-	lines(): Vector2[][] {
-		return [
-			[this.topLeft, this.topRight],
-			[this.topRight, this.bottomRight],
-			[this.bottomRight, this.bottomLeft],
-			[this.bottomLeft, this.topLeft]
-		]
-	}
+    lines(): Vector2[][] {
+        return [
+            [this.topLeft, this.topRight],
+            [this.topRight, this.bottomRight],
+            [this.bottomRight, this.bottomLeft],
+            [this.bottomLeft, this.topLeft]
+        ]
+    }
 
-	boundedPoint(p: Vector2): Vector2 {
-		return new Vector2(
-			Math.max(Math.min(p.x, this.right), this.left),
-			Math.max(Math.min(p.y, this.bottom), this.top)
-		)
-	}
+    boundedPoint(p: Vector2): Vector2 {
+        return new Vector2(
+            Math.max(Math.min(p.x, this.right), this.left),
+            Math.max(Math.min(p.y, this.bottom), this.top)
+        )
+    }
 
-	containsPoint(x : number, y : number) : boolean {
-		return x >= this.left && x <= this.right && y >= this.top && y <= this.bottom
-	}
+    containsPoint(x: number, y: number): boolean {
+        return x >= this.left && x <= this.right && y >= this.top && y <= this.bottom
+    }
 
-	contains(p: Vector2) {
-		return this.containsPoint(p.x, p.y)
-	}
+    contains(p: Vector2) {
+        return this.containsPoint(p.x, p.y)
+    }
 
     encloses(bounds: Bounds) {
         return this.containsPoint(bounds.left, bounds.top) && this.containsPoint(bounds.left, bounds.bottom) && this.containsPoint(bounds.right, bounds.top) && this.containsPoint(bounds.right, bounds.bottom)
     }
 
-	toCSS() : { left: string, top: string, width: string, height: string } {
-		return { left: this.left+'px', top: this.top+'px', width: this.width+'px', height: this.height+'px'}
-	}
+    toCSS(): { left: string, top: string, width: string, height: string } {
+        return { left: `${this.left}px`, top: `${this.top}px`, width: `${this.width}px`, height: `${this.height}px` }
+    }
 
-	toProps(): { x: number, y: number, width: number, height: number } {
-		return { x: this.x, y: this.y, width: this.width, height: this.height }
-	}
+    toProps(): { x: number, y: number, width: number, height: number } {
+        return { x: this.x, y: this.y, width: this.width, height: this.height }
+    }
 
-	xRange() : [number, number] {
-		return [this.left, this.right]
-	}
+    xRange(): [number, number] {
+        return [this.left, this.right]
+    }
 
-	yRange() : [number, number] {
-		return [this.bottom, this.top]
-	}
+    yRange(): [number, number] {
+        return [this.bottom, this.top]
+    }
 
-	equals(bounds: Bounds) {
-		return this.x == bounds.x && this.y == bounds.y && this.width == bounds.width && this.height == bounds.height
-	}
+    equals(bounds: Bounds) {
+        return this.x === bounds.x && this.y === bounds.y && this.width === bounds.width && this.height === bounds.height
+    }
 }
-

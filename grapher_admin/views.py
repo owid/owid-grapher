@@ -267,7 +267,7 @@ def savechart(chart: Chart, data: Dict, user: User):
     if settings.CLOUDFLARE_KEY:
         config_url = f"{settings.CLOUDFLARE_BASE_URL}/config/{chart.id}.js"
         chart_url = f"{settings.CLOUDFLARE_BASE_URL}/{chart.slug}"
-        urls_to_purge = [config_url, chart_url, chart_url + "?tab=chart", chart_url + "?tab=map", chart_url + ".csv", chart_url + ".png", chart_url + ".svg"]
+        urls_to_purge = [config_url, chart_url, chart_url + ".config.json", chart_url + "?tab=chart", chart_url + "?tab=map", chart_url + ".csv", chart_url + ".png", chart_url + ".svg"]
         existing_urls = {item['url'] for item in CloudflarePurgeQueue.objects.all().values('url')}
         for each_url in urls_to_purge:
             if each_url not in existing_urls:
@@ -358,13 +358,19 @@ def starchart(request: HttpRequest, chartid: str):
         chart.starred = True
         chart.save()
 
-        # Purge the Cloudflare cache for the "latest visualization"
-        if settings.CLOUDFLARE_KEY:
-            chart_url = f"{settings.CLOUDFLARE_BASE_URL}/latest"
-            cf = CloudFlare.CloudFlare(email=settings.CLOUDFLARE_EMAIL, token=settings.CLOUDFLARE_KEY)
-            cf.zones.purge_cache.delete(settings.CLOUDFLARE_ZONE_ID, data={ "files": [chart_url] })
-
-        return JsonResponse({'starred': True}, safe=False)
+    # Purge the Cloudflare cache for the chart config url
+    # Also purge the html for some common query string urls to update the meta tags
+    # TODO: a job queue / coverage of more urls with query strings
+    if settings.CLOUDFLARE_KEY:
+        chart_url = f"{settings.CLOUDFLARE_BASE_URL}/latest"
+        existing_urls = {item['url'] for item in CloudflarePurgeQueue.objects.all().values('url')}
+        if chart_url not in existing_urls:
+            new_url = CloudflarePurgeQueue(url=chart_url)
+            new_url.save()
+        purge_cache = threading.Thread(target=purge_cloudflare_cache_queue, args=(), kwargs={})
+        purge_cache.start()
+        
+    return JsonResponse({'starred': True}, safe=False)
 
 
 def unstarchart(request: HttpRequest, chartid: str):

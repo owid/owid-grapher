@@ -1,77 +1,92 @@
-import {toString, includes, flatten, uniq, sortBy, extend} from './Util'
+import { toString, includes, flatten, uniq, sortBy, extend } from './Util'
 import Bounds from './Bounds'
 import * as React from 'react'
-import {computed} from 'mobx'
-import {observer} from 'mobx-react'
+import { computed, action } from 'mobx'
+import { observer } from 'mobx-react'
 import ChartConfig from './ChartConfig'
 
 function csvEscape(value: any): string {
-	const valueStr = toString(value)
-	if (includes(valueStr, ","))
-		return '"' + value.replace(/\"/g, "\"\"") + '"'
-	else
-		return value
+    const valueStr = toString(value)
+    if (includes(valueStr, ","))
+        return `"${value.replace(/\"/g, "\"\"")}"`
+    else
+        return value
 }
 
+// Client-side data export from chart
 @observer
 export default class DataTab extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
-	@computed get bounds() {
-		return this.props.bounds
-	}
+    @computed get bounds() {
+        return this.props.bounds
+    }
 
-	@computed get csvUrl() {
-		const {chart} = this.props
-		const {vardata} = chart
+    // Here's where the actual CSV is made
+    @computed get csvBlob() {
+        const { chart } = this.props
+        const { vardata } = chart
 
-		const dimensions = chart.data.filledDimensions.filter(d => d.property != 'color')
-		const entitiesUniq = sortBy(uniq(flatten(dimensions.map(d => d.variable.entitiesUniq)))) as string[]
-		const yearsUniq = sortBy(uniq(flatten(dimensions.map(d => d.variable.yearsUniq)))) as number[]
+        const dimensions = chart.data.filledDimensions.filter(d => d.property !== 'color')
+        const entitiesUniq = sortBy(uniq(flatten(dimensions.map(d => d.entitiesUniq)))) as string[]
+        const yearsUniq = sortBy(uniq(flatten(dimensions.map(d => d.yearsUniq)))) as number[]
 
-		const rows: string[] = []
+        const rows: string[] = []
 
-		const titleRow = ["Entity", "Code", "Year"]
-		dimensions.forEach(dim => {
-			titleRow.push(csvEscape(dim.variable.name))
-		})
-		rows.push(titleRow.join(","))
+        const titleRow = ["Entity", "Code", "Year"]
+        dimensions.forEach(dim => {
+            titleRow.push(csvEscape(dim.fullNameWithUnit))
+        })
+        rows.push(titleRow.join(","))
 
-		entitiesUniq.forEach(entity => {
-			yearsUniq.forEach(year => {
-				const row = [entity, vardata.entityMetaByKey[entity].code||"", year]
-				
-				let rowHasSomeValue = false
-				dimensions.forEach(dim => {
-					const valueByYear = dim.variable.valueByEntityAndYear.get(entity)
-					const value = valueByYear ? valueByYear.get(year) : null
+        entitiesUniq.forEach(entity => {
+            yearsUniq.forEach(year => {
+                const row = [entity, vardata.entityMetaByKey[entity].code || "", year]
 
-					if (value == null)
-						row.push("")
-					else {
-						row.push(value)
-						rowHasSomeValue = true
-					}
-				})
+                let rowHasSomeValue = false
+                dimensions.forEach(dim => {
+                    const valueByYear = dim.valueByEntityAndYear.get(entity)
+                    const value = valueByYear ? valueByYear.get(year) : null
 
-				// Only add rows which actually have some data in them
-				if (rowHasSomeValue)
-					rows.push(row.map(csvEscape).join(","))
-			})
-		})
-		return "data:text/csv;charset=utf-8,"+encodeURIComponent(rows.join("\n"))
-	}
+                    if (value == null)
+                        row.push("")
+                    else {
+                        row.push(value)
+                        rowHasSomeValue = true
+                    }
+                })
 
-	@computed get csvFilename() {
-		return this.props.chart.data.slug + ".csv"
-	}
+                // Only add rows which actually have some data in them
+                if (rowHasSomeValue)
+                    rows.push(row.map(csvEscape).join(","))
+            })
+        })
 
-	render() {
-		const {bounds, csvUrl, csvFilename} = this
+        return new Blob([rows.join("\n")], { type: "text/csv" })
+    }
 
-		return <div className="dataTab" style={extend(bounds.toCSS(), { position: 'absolute' })}>
-			<div>
-				<p>Download a CSV file containing all data used in this visualization:</p>
-				<a href={csvUrl} download={csvFilename} className="btn btn-primary" target="_blank"><i className="fa fa-download"></i> {csvFilename}</a>
-			</div>
-		</div>
-	}
+    @computed get csvDataUri(): string {
+        return window.URL.createObjectURL(this.csvBlob)
+    }
+
+    @computed get csvFilename(): string {
+        return this.props.chart.data.slug + ".csv"
+    }
+
+    // IE11 compatibility
+    @action.bound onDownload(ev: React.MouseEvent<HTMLAnchorElement>) {
+        if (window.navigator.msSaveBlob) {
+            window.navigator.msSaveBlob(this.csvBlob, this.csvFilename)
+            ev.preventDefault()
+        }
+    }
+
+    render() {
+        const { bounds, csvDataUri, csvFilename } = this
+
+        return <div className="dataTab" style={extend(bounds.toCSS(), { position: 'absolute' })}>
+            <div>
+                <p>Download a CSV file containing all data used in this visualization:</p>
+                <a href={csvDataUri} download={csvFilename} className="btn btn-primary" target="_blank" onClick={this.onDownload}><i className="fa fa-download"></i> {csvFilename}</a>
+            </div>
+        </div>
+    }
 }

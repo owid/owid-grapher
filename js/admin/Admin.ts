@@ -8,7 +8,7 @@ declare var Global: { rootUrl: string }
 
 class Admin {
     url(path: string): string {
-        return Global.rootUrl + path;
+        return Global.rootUrl + path
     }
 
     get csrfToken() {
@@ -19,14 +19,14 @@ class Admin {
     }
 
     fetchJSON(path: string) {
-        return fetch(this.url(path), { credentials: 'same-origin' }).then(data => data.json());
+        return fetch(this.url(path), { credentials: 'same-origin' }).then(data => data.json())
     }
 
     get(path: string) {
         return this.request(path, {}, 'GET')
     }
 
-    request(path: string, data: Object, method: 'GET'|'PUT'|'POST') {
+    request(path: string, data: any, method: 'GET' | 'PUT' | 'POST') {
         return fetch(this.url(path), {
             method: method,
             credentials: 'same-origin',
@@ -35,7 +35,7 @@ class Admin {
                 'Accept': 'application/json',
                 'X-CSRFToken': this.csrfToken
             },
-            body: method != 'GET' ? JSON.stringify(data) : undefined
+            body: method !== 'GET' ? JSON.stringify(data) : undefined
         })
     }
 }

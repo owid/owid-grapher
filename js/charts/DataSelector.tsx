@@ -1,9 +1,9 @@
-import {uniqBy} from './Util'
+import { uniqBy } from './Util'
 import * as React from 'react'
-import {observer} from 'mobx-react'
-import {computed, action, observable} from 'mobx'
+import { observer } from 'mobx-react'
+import { computed, action, observable } from 'mobx'
 import ChartConfig from './ChartConfig'
-import {DataKeyInfo} from './ChartData'
+import { DataKeyInfo } from './ChartData'
 const styles = require("./DataSelector.css")
 import ChartView from './ChartView'
 import FuzzySearch from './FuzzySearch'
@@ -15,10 +15,10 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
     base: HTMLDivElement
 
     @computed get availableData(): DataKeyInfo[] {
-        const {chart} = this.props
+        const { chart } = this.props
         return chart.data.availableKeys.map(key => chart.data.lookupKey(key))
     }
-    
+
     @computed get selectedData() {
         return this.availableData.filter(d => this.props.chart.data.selectedKeysByKey[d.key])
     }
@@ -33,9 +33,6 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
 
     @computed get searchResults(): DataKeyInfo[] {
         return this.searchInput ? this.fuzzy.search(this.searchInput) : this.unselectedData
-    }
-
-    componentWillMount() {
     }
 
     @action.bound onClickOutside(e: MouseEvent) {
@@ -54,27 +51,27 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
     }
 
     @action.bound onSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-        if (e.key == "Enter" && this.searchResults.length > 0) {
+        if (e.key === "Enter" && this.searchResults.length > 0) {
             this.props.chart.data.toggleKey(this.searchResults[0].key)
             this.searchInput = ""
-        } else if (e.key == "Escape")
+        } else if (e.key === "Escape")
             this.props.onDismiss()
     }
 
     render() {
-        const {chart} = this.props
-        const {selectedData, searchResults, searchInput} = this
+        const { chart } = this.props
+        const { selectedData, searchResults, searchInput } = this
 
         return <div className={styles.DataSelectorMulti} onClick={e => e.stopPropagation()}>
-            <h2>Choose data to show <button onClick={this.props.onDismiss}><i className="fa fa-times"/></button></h2>
+            <h2>Choose data to show <button onClick={this.props.onDismiss}><i className="fa fa-times" /></button></h2>
             <div>
                 <div className="searchResults">
-                    <input type="search" placeholder="Search..." value={searchInput} onInput={e => this.searchInput = e.currentTarget.value} onKeyDown={this.onSearchKeyDown} ref={e => this.searchField = (e as HTMLInputElement)}/>
+                    <input type="search" placeholder="Search..." value={searchInput} onInput={e => this.searchInput = e.currentTarget.value} onKeyDown={this.onSearchKeyDown} ref={e => this.searchField = (e as HTMLInputElement)} />
                     <ul>
                         {searchResults.map(d => {
                             return <li>
                                 <label className="clickable">
-                                    <input type="checkbox" checked={false} onChange={() => chart.data.toggleKey(d.key)}/> {d.label}
+                                    <input type="checkbox" checked={false} onChange={() => chart.data.toggleKey(d.key)} /> {d.label}
                                 </label>
                             </li>
                         })}
@@ -85,7 +82,7 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
                         {selectedData.map(d => {
                             return <li>
                                 <label className="clickable">
-                                    <input type="checkbox" checked={true} onChange={() => chart.data.toggleKey(d.key)}/> {d.label}
+                                    <input type="checkbox" checked={true} onChange={() => chart.data.toggleKey(d.key)} /> {d.label}
                                 </label>
                             </li>
                         })}
@@ -137,10 +134,10 @@ export class DataSelectorSingle extends React.Component<{ chart: ChartConfig, ch
     }
 
     @action.bound onSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-        if (e.key == "Enter" && this.searchResults.length > 0) {
+        if (e.key === "Enter" && this.searchResults.length > 0) {
             this.onSelect(this.searchResults[0].id)
             this.searchInput = ""
-        } else if (e.key == "Escape")
+        } else if (e.key === "Escape")
             this.props.onDismiss()
     }
 
@@ -150,10 +147,10 @@ export class DataSelectorSingle extends React.Component<{ chart: ChartConfig, ch
     }
 
     render() {
-        const {searchResults, searchInput} = this
+        const { searchResults, searchInput } = this
 
         return <div className={styles.DataSelectorSingle} onClick={e => e.stopPropagation()}>
-            <input type="search" placeholder="Search..." value={searchInput} onInput={e => this.searchInput = e.currentTarget.value} onKeyDown={this.onSearchKeyDown} ref={e => this.searchField = (e as HTMLInputElement)}/>
+            <input type="search" placeholder="Search..." value={searchInput} onInput={e => this.searchInput = e.currentTarget.value} onKeyDown={this.onSearchKeyDown} ref={e => this.searchField = (e as HTMLInputElement)} />
             <ul>
                 {searchResults.map(d => {
                     return <li className="clickable" onClick={() => this.onSelect(d.id)}>
@@ -168,11 +165,11 @@ export class DataSelectorSingle extends React.Component<{ chart: ChartConfig, ch
 @observer
 export default class DataSelector extends React.Component<{ chart: ChartConfig, chartView: ChartView, onDismiss: () => void }> {
     render() {
-        const {chart} = this.props
+        const { chart } = this.props
 
         if (chart.data.canChangeEntity)
-            return <DataSelectorSingle {...this.props}/>
+            return <DataSelectorSingle {...this.props} />
         else
-            return <DataSelectorMulti {...this.props}/>
+            return <DataSelectorMulti {...this.props} />
     }
 }

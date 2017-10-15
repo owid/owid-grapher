@@ -1,12 +1,10 @@
-import {computed} from 'mobx'
-import {some, min, max, isEmpty, sortBy, find, identity, cloneDeep, sortedUniq} from './Util'
-import {scaleOrdinal} from 'd3-scale'
+import { computed } from 'mobx'
+import { some, min, max, isEmpty, sortBy, find, identity, cloneDeep, sortedUniq } from './Util'
 import ChartConfig from './ChartConfig'
-import Color from './Color'
 import DataKey from './DataKey'
-import {LineChartSeries, LineChartValue} from './LineChart'
+import { LineChartSeries, LineChartValue } from './LineChart'
 import AxisSpec from './AxisSpec'
-import {defaultTo, formatYear, findClosest, last} from './Util'
+import { defaultTo, formatYear, findClosest } from './Util'
 import ColorSchemes from './ColorSchemes'
 import IChartTransform from './IChartTransform'
 import DimensionWithData from './DimensionWithData'
@@ -20,12 +18,12 @@ export default class LineChartTransform implements IChartTransform {
     }
 
     @computed get isValidConfig(): boolean {
-        return some(this.chart.dimensions, d => d.property == 'y')
+        return some(this.chart.dimensions, d => d.property === 'y')
     }
 
-    @computed get failMessage(): string|undefined {
-        const {filledDimensions} = this.chart.data
-        if (!some(filledDimensions, d => d.property == 'y'))
+    @computed get failMessage(): string | undefined {
+        const { filledDimensions } = this.chart.data
+        if (!some(filledDimensions, d => d.property === 'y'))
             return "Missing Y axis variable"
         else if (isEmpty(this.groupedData))
             return "No matching data"
@@ -33,62 +31,67 @@ export default class LineChartTransform implements IChartTransform {
             return undefined
     }
 
-	@computed get initialData(): LineChartSeries[] {
-		const {chart} = this
-		const {yAxis} = chart
-        const {filledDimensions, selectedKeys, selectedKeysByKey} = chart.data
+    @computed get initialData(): LineChartSeries[] {
+        const { chart } = this
+        const { yAxis } = chart
+        const { filledDimensions, selectedKeys, selectedKeysByKey } = chart.data
 
-		let chartData: LineChartSeries[] = []
+        let chartData: LineChartSeries[] = []
 
-		filledDimensions.forEach((dimension, dimIndex) => {
-			const seriesByKey = new Map<DataKey, LineChartSeries>()
+        filledDimensions.forEach((dimension, dimIndex) => {
+            const seriesByKey = new Map<DataKey, LineChartSeries>()
 
-			for (var i = 0; i < dimension.years.length; i++) {
-				const year = dimension.years[i]
-				const value = parseFloat(dimension.values[i] as string)
-				const entity = dimension.entities[i]
-				const datakey = chart.data.keyFor(entity, dimIndex)
-				let series = seriesByKey.get(datakey)
+            for (let i = 0; i < dimension.years.length; i++) {
+                const year = dimension.years[i]
+                const value = parseFloat(dimension.values[i] as string)
+                const entity = dimension.entities[i]
+                const datakey = chart.data.keyFor(entity, dimIndex)
+                let series = seriesByKey.get(datakey)
 
-				// Not a selected key, don't add any data for it
-				if (!selectedKeysByKey[datakey]) continue;
+                // Not a selected key, don't add any data for it
+                if (!selectedKeysByKey[datakey]) continue
                 // Can't have values <= 0 on log scale
-                if (value <= 0 && yAxis.scaleType == 'log') continue;
+                if (value <= 0 && yAxis.scaleType === 'log') continue
 
-				if (!series) {
-					series = {
-						values: [],
-						key: datakey,
-						isProjection: dimension.isProjection,
+                if (!series) {
+                    series = {
+                        values: [],
+                        key: datakey,
+                        isProjection: dimension.isProjection,
                         formatValue: dimension.formatValueLong,
                         color: "#000" // tmp
-					};
-					seriesByKey.set(datakey, series);
-				}
+                    }
+                    seriesByKey.set(datakey, series)
+                }
 
-				series.values.push({ x: year, y: value, time: year, gapYearsToNext: 0 });
-			}
+                series.values.push({ x: year, y: value, time: year, gapYearsToNext: 0 })
+            }
 
-			chartData = chartData.concat([...Array.from(seriesByKey.values())]);
-		});
-
-        // Preserve ordering. Note for line charts, the series order only affects the visual stacking order on overlaps.
-        chartData = sortBy(chartData, series => selectedKeys.indexOf(series.key))
-
-        // Assign colors
-        const colorScheme = last(ColorSchemes['owid-distinct'].colors) as Color[]
-        const colorScale = scaleOrdinal(colorScheme)
-        chartData.forEach(series => {
-            series.color = chart.data.keyColors[series.key] || colorScale(series.key)
+            chartData = chartData.concat([...Array.from(seriesByKey.values())])
         })
 
+        // Color from lowest to highest
+        chartData = sortBy(chartData, series => series.values[series.values.length - 1].y)
+
+        const schemeName = defaultTo(this.chart.props.baseColorScheme, "owid-distinct")
+        const colorScheme = ColorSchemes[schemeName]
+        const colors = colorScheme.getColors(chartData.length)
+        if (this.chart.props.invertColorScheme)
+            colors.reverse()
+        chartData.forEach((series, i) => {
+            series.color = chart.data.keyColors[series.key] || colors[i]
+        })
+
+        // Preserve the original ordering for render. Note for line charts, the series order only affects the visual stacking order on overlaps.
+        chartData = sortBy(chartData, series => selectedKeys.indexOf(series.key))
+
         return chartData
-	}
+    }
 
     @computed get timelineYears(): number[] {
-		const allYears: number[] = []
-		this.initialData.forEach(g => allYears.push(...g.values.map(d => d.x)))
-		return sortedUniq(sortBy(allYears))
+        const allYears: number[] = []
+        this.initialData.forEach(g => allYears.push(...g.values.map(d => d.x)))
+        return sortedUniq(sortBy(allYears))
     }
 
     @computed get minTimelineYear(): number {
@@ -120,7 +123,7 @@ export default class LineChartTransform implements IChartTransform {
     }
 
     @computed get xAxis(): AxisSpec {
-        const {xDomain} = this
+        const { xDomain } = this
         return {
             label: "",
             tickFormat: formatYear,
@@ -130,8 +133,8 @@ export default class LineChartTransform implements IChartTransform {
         }
     }
 
-    @computed get yDimensionFirst(): DimensionWithData|undefined {
-        return find(this.chart.data.filledDimensions, d => d.property == 'y')
+    @computed get yDimensionFirst(): DimensionWithData | undefined {
+        return find(this.chart.data.filledDimensions, d => d.property === 'y')
     }
 
     @computed get yDomainDefault(): [number, number] {
@@ -143,7 +146,7 @@ export default class LineChartTransform implements IChartTransform {
     }
 
     @computed get yDomain(): [number, number] {
-        const {chart, yDomainDefault} = this
+        const { chart, yDomainDefault } = this
         return [
             Math.min(defaultTo(chart.yAxis.domain[0], Infinity), yDomainDefault[0]),
             Math.max(defaultTo(chart.yAxis.domain[1], -Infinity), yDomainDefault[1])
@@ -151,19 +154,19 @@ export default class LineChartTransform implements IChartTransform {
     }
 
     @computed get yAxis(): AxisSpec {
-        const {chart, yDomain, yDimensionFirst} = this
+        const { chart, yDomain, yDimensionFirst } = this
         return {
-            label: chart.yAxis.label||"",
+            label: "",
             tickFormat: yDimensionFirst ? yDimensionFirst.formatValueShort : identity,
             domain: yDomain,
             scaleType: chart.yAxis.scaleType,
-            scaleTypeOptions: chart.yAxis.scaleTypeOptions            
+            scaleTypeOptions: chart.yAxis.scaleTypeOptions
         }
     }
 
     // Filter the data so it fits within the domains
     @computed get groupedData(): LineChartSeries[] {
-        const {initialData, xAxis, yAxis} = this
+        const { initialData, xAxis, yAxis } = this
         const groupedData = cloneDeep(initialData)
 
         groupedData.forEach(g => {

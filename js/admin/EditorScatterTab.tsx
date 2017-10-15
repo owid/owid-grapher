@@ -65,7 +65,7 @@ export default class EditorScatterTab extends React.Component<{ chart: ChartConf
         }
 
         const entityId = chart.vardata.entityMetaByKey[entity].id
-        if (chart.props.excludedEntities.indexOf(entityId) == -1)
+        if (chart.props.excludedEntities.indexOf(entityId) === -1)
             chart.props.excludedEntities.push(entityId)
     }
 
@@ -74,7 +74,7 @@ export default class EditorScatterTab extends React.Component<{ chart: ChartConf
         if (!chart.props.excludedEntities) return
 
         const entityId = chart.vardata.entityMetaByKey[entity].id
-        chart.props.excludedEntities = chart.props.excludedEntities.filter(e => e != entityId)
+        chart.props.excludedEntities = chart.props.excludedEntities.filter(e => e !== entityId)
     }
 
     render() {
@@ -100,7 +100,7 @@ export default class EditorScatterTab extends React.Component<{ chart: ChartConf
 
                 <h2>Comparison line</h2>
                 <p className="form-section-desc">Overlay a line onto the chart for comparison. Supports basic <a href="https://github.com/silentmatt/expr-eval#expression-syntax">mathematical expressions</a>.</p>
-                <label className="clickable"><input type="checkbox" checked={!!hasComparisonLine} onChange={this.onToggleComparisonLine}/> Enable comparison line</label>                
+                <label className="clickable"><input type="checkbox" checked={!!hasComparisonLine} onChange={this.onToggleComparisonLine}/> Enable comparison line</label>
                 {hasComparisonLine && <div>
                     <label>y= <input type="text" value={comparisonLine.yEquals} placeholder="x" onChange={e => { this.comparisonLine.yEquals = e.target.value; this.save() }}/></label>
                 </div>}

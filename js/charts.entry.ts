@@ -1,22 +1,21 @@
 // CSS
 
-import 'bootstrap.css'
 import 'font-awesome.css'
-import 'normalize.css'
 import '../css/chart.css'
 
 // Enable mobx-formatters
-var Mobx = require('mobx')
-var mobxFormatters = require('mobx-formatters').default
-
+const Mobx = require('mobx')
+const mobxFormatters = require('mobx-formatters').default
 mobxFormatters(Mobx)
 //Mobx.useStrict(true)
 
 //import 'preact/devtools'
 
+import Grapher from './charts/Grapher'
 import ChartView from './charts/ChartView'
 import ExportView from './charts/ExportView'
 declare var window: any
+window.Grapher = Grapher
 window.ChartView = ChartView
 window.ExportView = ExportView
 

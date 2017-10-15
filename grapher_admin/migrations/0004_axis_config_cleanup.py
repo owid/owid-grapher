@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from django.db import migrations, models, transaction
 import json
 
+
 def tweak_selectedEntities(apps, schema_editor):
     Chart = apps.get_model('grapher_admin', 'Chart')
     with transaction.atomic():
