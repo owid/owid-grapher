@@ -389,7 +389,7 @@ export default class MapLegend {
     @computed get hasCategorical(): boolean { return this.categoricalLegendData.length > 1 }
 
     @computed get mainLabel(): TextWrap {
-        return new TextWrap({ maxWidth: this.props.bounds.width, fontSize: 0.7, text: this.props.title })
+        return new TextWrap({ maxWidth: this.props.bounds.width, fontSize: 0.7*this.props.fontSize, text: this.props.title })
     }
 
     @computed get numericFocusBracket(): MapLegendBin | undefined {
