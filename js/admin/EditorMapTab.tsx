@@ -231,7 +231,7 @@ class ColorsSection extends React.Component<{ mapConfig: MapConfig }> {
             {" "}<Toggle label="Invert colors" value={mapConfig.props.colorSchemeInvert || false} onValue={this.onInvert} />
             <NumberField label="Number of intervals:" value={mapConfig.props.colorSchemeInterval} min={1} max={99} onValue={this.onNumIntervals} />
             <Toggle label="Automatic classification" value={!mapConfig.props.isManualBuckets} onValue={this.onAutomatic} />
-            <Toggle label="Equal size bins" value={!!mapConfig.props.equalSizeBins} onValue={this.onEqualSizeBins} />
+            <Toggle label="Disable visual scaling of legend bins" value={!!mapConfig.props.equalSizeBins} onValue={this.onEqualSizeBins} />
             <ColorSchemeEditor map={mapConfig} />
         </section>
     }
