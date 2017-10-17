@@ -21,6 +21,7 @@ export class MapConfigProps {
     @observable.struct colorSchemeValues: (number | undefined)[] = []
     @observable.struct colorSchemeLabels: (string | undefined)[] = []
     @observable.ref isManualBuckets?: true = undefined
+    @observable.ref equalSizeBins?: true = undefined
     // Whether to reverse the color scheme on output
     @observable.ref colorSchemeInvert?: true = undefined
     @observable.ref customColorsActive?: true = undefined
