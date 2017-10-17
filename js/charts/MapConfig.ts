@@ -17,7 +17,7 @@ export class MapConfigProps {
     // Number of numeric intervals used to color data
     @observable.ref colorSchemeInterval?: number = 10
     // Minimum value shown on map legend
-    @observable.ref colorSchemeMinValue?: number = undefined
+    @observable.ref colorSchemeMinValue?: number = 0
     @observable.struct colorSchemeValues: (number | undefined)[] = []
     @observable.struct colorSchemeLabels: (string | undefined)[] = []
     @observable.ref isManualBuckets?: true = undefined
