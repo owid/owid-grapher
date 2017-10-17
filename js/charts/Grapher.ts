@@ -1,4 +1,5 @@
 import ChartView from './ChartView'
+import {throttle} from './Util'
 
 interface LoadableFigure {
     configUrl: string
@@ -25,7 +26,7 @@ export class MultiEmbedder {
             }
         })
 
-        window.addEventListener('scroll', () => this.update())
+        window.addEventListener('scroll', throttle(() => this.update(), 100))
     }
 
     // Check for figures which are available to load and load them
