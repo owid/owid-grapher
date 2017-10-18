@@ -248,7 +248,7 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
     }
 
     render() {
-        return <g className="HeightedLegend clickable" onMouseLeave={() => this.onMouseLeave()} >
+        return <g className="HeightedLegend clickable" onMouseLeave={() => this.onMouseLeave()}>
             {this.renderBackground()}
             {this.renderFocus()}
         </g>

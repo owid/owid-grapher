@@ -116,8 +116,10 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
     }
 
     @action.bound onLegendClick(datakey: string) {
-        if (this.chart.addCountryMode === 'add-country')
+        if (this.chart.addCountryMode === 'add-country') {
             this.chart.data.toggleKey(datakey)
+            this.onLegendMouseLeave()
+        }
     }
 
     @action.bound onLegendMouseOver(datakey: string) {
