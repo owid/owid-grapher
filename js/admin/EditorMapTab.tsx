@@ -89,6 +89,7 @@ class NumericBinView extends React.Component<{ mapConfig: MapConfig, bin: Numeri
 
         while (mapConfig.props.customNumericColors.length < mapConfig.numBuckets)
             mapConfig.props.customNumericColors.push(undefined)
+
         mapConfig.props.customNumericColors[index] = color
     }
 
