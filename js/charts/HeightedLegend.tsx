@@ -72,8 +72,8 @@ export interface HeightedLegendViewProps {
     legend: HeightedLegend,
     yScale: AxisScale,
     focusKeys: string[],
-    onMouseOver?: (color: string) => void,
-    onClick?: (color: string) => void,
+    onMouseOver?: (key: string) => void,
+    onClick?: (key: string) => void,
     onMouseLeave?: () => void
 }
 
@@ -221,7 +221,7 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
         const { backgroundMarks, isFocusMode } = this
 
         return backgroundMarks.map(mark => {
-            const result = <g className="legendMark" onMouseOver={() => this.onMouseOver(mark.mark.item.color)} onMouseLeave={() => this.onMouseLeave()} onClick={() => this.onClick(mark.mark.item.key)}>
+            const result = <g className="legendMark" onMouseOver={() => this.onMouseOver(mark.mark.item.key)} onClick={() => this.onClick(mark.mark.item.key)}>
                 <rect x={x} y={mark.bounds.y} width={mark.bounds.width} height={mark.bounds.height} fill="#fff" opacity={0} />
                 <rect x={x} y={mark.bounds.centerY - rectSize / 8} width={rectSize} height={rectSize / 4} fill={isFocusMode ? "#ccc" : mark.mark.item.color} />
                 {mark.mark.textWrap.render(x + rectSize + rectPadding, mark.bounds.y, { fill: isFocusMode ? "#ccc" : "#eee" })}
@@ -237,7 +237,7 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
         const { focusMarks } = this
 
         return focusMarks.map(mark => {
-            const result = <g className="legendMark" onMouseOver={() => this.onMouseOver(mark.mark.item.color)} onMouseLeave={() => this.onMouseLeave()} onClick={() => this.onClick(mark.mark.item.key)}>
+            const result = <g className="legendMark" onMouseOver={() => this.onMouseOver(mark.mark.item.key)} onClick={() => this.onClick(mark.mark.item.key)}>
                 <rect x={x} y={mark.bounds.y} width={mark.bounds.width} height={mark.bounds.height} fill="#fff" opacity={0} />
                 <rect x={x} y={mark.bounds.centerY - rectSize / 8} width={rectSize} height={rectSize / 4} fill={mark.mark.item.color} />
                 {mark.mark.textWrap.render(x + rectSize + rectPadding, mark.bounds.y, { fill: "#333" })}
@@ -248,7 +248,7 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
     }
 
     render() {
-        return <g className="HeightedLegend clickable">
+        return <g className="HeightedLegend clickable" onMouseLeave={() => this.onMouseLeave()} >
             {this.renderBackground()}
             {this.renderFocus()}
         </g>

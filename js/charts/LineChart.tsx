@@ -120,8 +120,12 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
             this.chart.data.toggleKey(datakey)
     }
 
-    @action.bound onLegendHover(datakey: string) {
+    @action.bound onLegendMouseOver(datakey: string) {
         this.hoverKey = datakey
+    }
+
+    @action.bound onLegendMouseLeave() {
+        this.hoverKey = undefined
     }
 
     componentDidMount() {
@@ -154,7 +158,7 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
             </defs>
             <StandardAxisBoxView axisBox={axisBox} chart={chart} />
             <g clipPath={`url(#boundsClip-${renderUid})`}>
-                {legend && <HeightedLegendView x={bounds.right - legend.width} legend={legend} focusKeys={focusKeys} yScale={axisBox.yScale} onClick={this.onLegendClick} onMouseOver={this.onLegendHover}/>}
+                {legend && <HeightedLegendView x={bounds.right - legend.width} legend={legend} focusKeys={focusKeys} yScale={axisBox.yScale} onClick={this.onLegendClick} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave}/>}
                 <Lines xScale={axisBox.xScale} yScale={axisBox.yScale} data={groupedData} onHoverPoint={this.onHoverPoint} onHoverStop={this.onHoverStop} focusKeys={focusKeys} />
             </g>
             {/*hoverTarget && <AxisBoxHighlight axisBox={axisBox} value={hoverTarget.value}/>*/}
