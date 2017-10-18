@@ -77,15 +77,18 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
     }
 
     @observable hoverTarget?: HoverTarget
+    @observable hoverKey?: string
     @action.bound onHoverPoint(target: HoverTarget) {
         this.hoverTarget = target
+        this.hoverKey = target.series.key
     }
     @action.bound onHoverStop() {
         this.hoverTarget = undefined
+        this.hoverKey = undefined
     }
 
     @computed get focusKeys(): DataKey[] {
-        return this.hoverTarget ? [this.hoverTarget.series.key] : this.chart.data.selectedKeys
+        return this.hoverKey ? [this.hoverKey] : this.chart.data.selectedKeys
     }
 
     @computed get tooltip() {
@@ -102,9 +105,23 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
         </Tooltip>
     }
 
-    @action.bound onLegendClick(datakey: DataKey) {
+    @computed get axisBox() {
+        const that = this
+        return new AxisBox({
+            get bounds() { return that.bounds.padRight(10).padRight(that.legend ? that.legend.width : 0) },
+            get fontSize() { return that.chart.baseFontSize },
+            get yAxis() { return that.transform.yAxis },
+            get xAxis() { return that.transform.xAxis }
+        })
+    }
+
+    @action.bound onLegendClick(datakey: string) {
         if (this.chart.addCountryMode === 'add-country')
             this.chart.data.toggleKey(datakey)
+    }
+
+    @action.bound onLegendHover(datakey: string) {
+        this.hoverKey = datakey
     }
 
     componentDidMount() {
@@ -118,16 +135,6 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
             .ease(easeLinear)
             .attr("width", this.bounds.width)
             .on("end", () => this.forceUpdate()) // Important in case bounds changes during transition
-    }
-
-    @computed get axisBox() {
-        const that = this
-        return new AxisBox({
-            get bounds() { return that.bounds.padRight(10).padRight(that.legend ? that.legend.width : 0) },
-            get fontSize() { return that.chart.baseFontSize },
-            get yAxis() { return that.transform.yAxis },
-            get xAxis() { return that.transform.xAxis }
-        })
     }
 
     render() {
@@ -147,7 +154,7 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
             </defs>
             <StandardAxisBoxView axisBox={axisBox} chart={chart} />
             <g clipPath={`url(#boundsClip-${renderUid})`}>
-                {legend && <HeightedLegendView x={bounds.right - legend.width} legend={legend} focusKeys={focusKeys} yScale={axisBox.yScale} onClick={this.onLegendClick} />}
+                {legend && <HeightedLegendView x={bounds.right - legend.width} legend={legend} focusKeys={focusKeys} yScale={axisBox.yScale} onClick={this.onLegendClick} onMouseOver={this.onLegendHover}/>}
                 <Lines xScale={axisBox.xScale} yScale={axisBox.yScale} data={groupedData} onHoverPoint={this.onHoverPoint} onHoverStop={this.onHoverStop} focusKeys={focusKeys} />
             </g>
             {/*hoverTarget && <AxisBoxHighlight axisBox={axisBox} value={hoverTarget.value}/>*/}
