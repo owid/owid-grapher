@@ -54,7 +54,7 @@ window.Cookies = Cookies
 			var $toggle = $(ev.target.closest('a')),
 				chartId = parseInt($toggle.attr("data-chart-id")),
 				starred = $toggle.find('i').hasClass('fa-star'),
-				route = Global.adminRootUrl + "/charts/" + chartId + "/" + (starred ? "unstar" : "star");
+				route = Global.rootUrl + "/admin/charts/" + chartId + "/" + (starred ? "unstar" : "star");
 
 			$.post(route, function() {
 				starred = !starred;

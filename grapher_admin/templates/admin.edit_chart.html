@@ -1,63 +1,33 @@
-{% extends 'base_admin_template.html' %}
+<!doctype html>
+{% load webpack %}{% load rootrequest %}{% load isdebug %}
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="_token" value="{{ csrf_token }}">
+		<title>{% block title %}owid-grapher{% endblock %}</title>
+		<meta name="description" content="">
+		<link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic" rel="stylesheet" type="text/css">
+		<!-- Place favicon.ico in the root directory -->
 
-{% block content %}
-    <div id="editor">
-        <div class="chart-container"></div>
-		<div id="form-view" class="form-wrapper"></div>
-	</div>
-{% endblock %}
+		<link href="{% webpack "charts.css" %}" rel="stylesheet" type="text/css">
+		<link href="{% webpack "admin.css" %}" rel="stylesheet" type="text/css">
+	</head>
+	<body class="skin-blue">
+		<script src="{% webpack "charts.js" %}"></script>
+		<script src="{% webpack "admin.js" %}"></script>
+        <script type="text/javascript">
+			window.Global = {}
+			Global.rootUrl = "{% rootrequest %}"
+			window.App = {}
+			App.isEditor = true
+			App.isDebug = {% isdebug %}
 
-{% block outercontent %}
-    <form class="settings-var-popup">
-		<div class="modal">
-			<div class="modal-dialog">
-				<div class="modal-content">
-					<div class="modal-header">
-						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-						<h4 class="modal-title">Settings for this variable</h4>
-					</div>
-					<div class="modal-body">
-						<div class="form-variable-select-wrapper">
-							<div class="settings-var-name">
-								<div class="input-wrapper">
-									<label for="display-name">Display Name</label>
-									<input class="form-control" type="text" name="display-name" style="width: 100%;"/>
-									<label class="isProjection">
-										<span>Is projection?</span>
-										<input type="checkbox" name="isProjection"/>
-									</label>
-								</label>
-								</div>
-							</div>
-							<br>
-							<div class="advanced-settings">
-								<label>
-									<span>Target year</span>
-									<input type="text" class="form-control digit-input" name="targetYear" />
-								</label>
-								<label>
-									<span>Tolerance</span>
-									<input type="text" class="form-control digit-input" name="tolerance" />
-								</label>
-							</div>
-						</div>
-					</div>
-					<div class="modal-footer">
-						<button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cancel</button>
-						<input type="submit" class="btn btn-primary" value="Save">
-					</div>
-				</div><!-- /.modal-content -->
-			</div><!-- /.modal-dialog -->
-		</div>
-	</form>
-{% endblock %}
-{% block scripts %}
-    {% autoescape off %}
-    <script type="text/javascript">
-        var chartConfig = {{ chartconfig }};
-		var cacheTag = {{ cachetag }}
-        var chartView = ChartView.bootstrap({ jsonConfig: chartConfig, containerNode: document.getElementsByClassName('chart-container')[0], isEditor: true })
-		ChartEditorView.bootstrap({ chartView: chartView, cacheTag: cacheTag })
-    </script>
-    {% endautoescape %}
-{% endblock %}
+            window.admin = new Admin("{% rootrequest %}", "{{ cachetag }}")
+            admin.start(document.body)
+            /*var chartConfig = {{ chartconfig }}
+            var cacheTag = {{ cachetag }}
+            var chartView = ChartView.bootstrap({ jsonConfig: chartConfig, containerNode: document.getElementsByClassName('chart-container')[0], isEditor: true })
+            ChartEditorView.bootstrap({ chartView: chartView, cacheTag: cacheTag })*/
+        </script>
+    </body>
+</html>

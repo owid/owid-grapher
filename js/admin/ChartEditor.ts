@@ -10,14 +10,8 @@ import { extend, toString, uniq } from '../charts/Util'
 import ChartConfig from '../charts/ChartConfig'
 import EditorFeatures from './EditorFeatures'
 import Admin from './Admin'
-import * as $ from 'jquery'
 
 declare const Global: { rootUrl: string }
-
-export interface ChartEditorProps {
-    chart: ChartConfig
-    cacheTag: string
-}
 
 export type EditorTab = string
 
@@ -46,27 +40,32 @@ export class EditorDatabase {
     }
 }
 
-export default class ChartEditor {
-    @observable.ref chart: ChartConfig
-    // Since the database metadata is quite large, we only fetch it when it is needed
-    // and then store it here
-    @observable.ref database: EditorDatabase
+export interface ChartEditorProps {
+    chart: ChartConfig
+    database: EditorDatabase
+}
 
+export default class ChartEditor {
+    props: ChartEditorProps
     // Whether the current chart state is saved or not
     @observable.ref isSaved: boolean = true
     @observable.ref currentRequest: Promise<any> | undefined
-
     @observable.ref tab: EditorTab = 'basic'
 
     constructor(props: ChartEditorProps) {
-        const { chart } = props
-        this.chart = chart
-        this.fetchData(props.cacheTag)
-
+        this.props = props
         reaction(
-            () => chart.json,
+            () => this.chart && this.chart.json,
             () => this.isSaved = false
         )
+    }
+
+    @computed get chart(): ChartConfig {
+        return this.props.chart
+    }
+
+    @computed get database(): EditorDatabase {
+        return this.props.database
     }
 
     @computed get availableTabs(): EditorTab[] {
@@ -88,29 +87,11 @@ export default class ChartEditor {
         return new EditorFeatures(this)
     }
 
+    // Track whether we're currently loading something
     load<T>(promise: Promise<T>) {
         this.currentRequest = promise
         promise.then(() => this.currentRequest = undefined).catch(() => this.currentRequest = undefined)
         return promise
-    }
-
-    async fetchData(cacheTag: string) {
-        const handleError = (err: string) => {
-            const $modal = modal({ title: "Error fetching editor data", content: toString(err) })
-            $modal.addClass("error")
-        }
-
-        try {
-            const response = await this.load(Admin.get("/admin/editorData." + cacheTag + ".json"))
-            if (!response.ok) {
-                return handleError(await response.text())
-            }
-
-            const json = await response.json()
-            this.database = new EditorDatabase(json)
-        } catch (err) {
-            handleError(err)
-        }
     }
 
     async saveChart({ onError }: { onError?: () => void } = {}) {

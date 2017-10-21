@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as ReactDOM from 'react-dom'
 import { capitalize, includes } from '../charts/Util'
 import EditorBasicTab from './EditorBasicTab'
 import EditorDataTab from './EditorDataTab'
@@ -7,49 +6,19 @@ import EditorTextTab from './EditorTextTab'
 import EditorCustomizeTab from './EditorCustomizeTab'
 import EditorScatterTab from './EditorScatterTab'
 import EditorMapTab from './EditorMapTab'
-import ChartView from '../charts/ChartView'
 import ChartEditor from './ChartEditor'
 import SaveButtons from './SaveButtons'
+import ChartView from '../charts/ChartView'
+import Bounds from '../charts/Bounds'
 import { observer } from 'mobx-react'
 import { action, autorun } from 'mobx'
-
-class LoadingBlocker extends React.Component {
-    render() {
-        const style: any = {
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            bottom: 0,
-            right: 0,
-            backgroundColor: 'black',
-            opacity: 0.5,
-            zIndex: 2100,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '36px',
-            color: 'white'
-        }
-        return <div style={style}>
-            <i className="fa fa-spinner fa-spin" />
-        </div>
-    }
-}
+import LoadingBlocker from './LoadingBlocker'
 
 declare const window: any
 
+// The tabbed widget containing all the chart editor options
 @observer
-export default class ChartEditorView extends React.Component<{ editor: ChartEditor }> {
-    static bootstrap({ chartView, cacheTag }: { chartView: ChartView, cacheTag: string }) {
-        const editor = new ChartEditor({ chart: chartView.chart, cacheTag: cacheTag })
-        window.editor = editor
-        ReactDOM.render(<ChartEditorView editor={editor} />, document.getElementById("form-view"))
-    }
-
-    constructor(props: any) {
-        super(props)
-    }
-
+export default class ChartEditorForm extends React.Component<{ editor: ChartEditor }> {
     getChildContext() {
         return {
             editor: this.props.editor
@@ -74,17 +43,17 @@ export default class ChartEditorView extends React.Component<{ editor: ChartEdit
         const match = window.location.hash.match(/#(.+?)-tab/)
         if (match) {
             const tab = match[1]
-            if (includes(this.props.editor.availableTabs, tab))
+            if (this.props.editor.chart && includes(this.props.editor.availableTabs, tab))
                 this.props.editor.tab = tab
         }
     }
 
-    render() {
-        const { editor } = this.props
-        const { chart, availableTabs } = editor
+    renderReady() {
+        const {editor} = this.props
+        const {chart, availableTabs} = editor
 
-        return <div className="form-wrapper-inner">
-            {(editor.currentRequest || !chart.data.isReady) && <LoadingBlocker />}
+        return [
+            <ChartView chart={chart} bounds={new Bounds(0, 0, 400, 850)}/>,
             <form onSubmit={e => e.preventDefault()}>
                 <div className="nav-tabs-custom">
                     <ul className="nav nav-tabs no-bullets">
@@ -105,6 +74,17 @@ export default class ChartEditorView extends React.Component<{ editor: ChartEdit
                 </div>
                 <SaveButtons editor={editor} />
             </form>
+        ]
+    }
+
+    render() {
+        const { editor } = this.props
+        const { chart } = editor
+
+        window.editor = editor
+        return <div className="form-wrapper-inner">
+            {(editor.currentRequest || !chart.data.isReady) && <LoadingBlocker />}
+            {chart && chart.data.isReady && this.renderReady()}
         </div>
     }
 }

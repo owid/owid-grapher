@@ -1,14 +1,27 @@
-/* Admin.ts
- * ================
- *
- * Singleton which governs interaction with the grapher admin server.
- */
+import * as React from 'react'
+import * as ReactDOM from 'react-dom'
+import AdminApp from './AdminApp'
+import {observable} from 'mobx'
 
-declare var Global: { rootUrl: string }
+// Entry point for the grapher admin
+// Currently just the editor, but eventually should expand to cover everything
+export default class Admin {
+    rootUrl: string
+    cacheTag: string
+    @observable.ref currentPath: string
+    constructor(rootUrl: string, cacheTag: string) {
+        this.rootUrl = rootUrl
+        this.cacheTag = cacheTag
+    }
 
-class Admin {
+    start(containerNode: HTMLElement) {
+        this.currentPath = window.location.pathname.split("/grapher/admin")[1]
+
+        ReactDOM.render(<AdminApp admin={this}/>, containerNode)
+    }
+
     url(path: string): string {
-        return Global.rootUrl + path
+        return this.rootUrl + path
     }
 
     get csrfToken() {
@@ -39,8 +52,3 @@ class Admin {
         })
     }
 }
-
-const admin = new Admin()
-declare var window: any
-window.Admin = admin
-export default admin

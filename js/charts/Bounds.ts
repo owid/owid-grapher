@@ -4,7 +4,8 @@ import Vector2 from './Vector2'
 export default class Bounds {
     static textBoundsCache: { [key: string]: Bounds }
     static ctx: CanvasRenderingContext2D
-    static baseFontFamily: string
+    static baseFontFamily: string = "Helvetica, Arial"
+    
 
     static fromProps(props: { x: number, y: number, width: number, height: number }): Bounds {
         const { x, y, width, height } = props
@@ -42,11 +43,6 @@ export default class Bounds {
 
         this.textBoundsCache = this.textBoundsCache || {}
         this.ctx = this.ctx || document.createElement('canvas').getContext('2d')
-
-        if (!this.baseFontFamily) {
-            const svg = document.querySelector("svg") as SVGSVGElement
-            this.baseFontFamily = svg.style.fontFamily as string
-        }
 
         const key = `${str}-${fontSize}`
         const fontFace = fontFamily || this.baseFontFamily

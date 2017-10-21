@@ -27,11 +27,11 @@ urlpatterns = [
     ### Admin-only
 
     url(r'^grapher/?$', owid_views.index, name="index"),
-    url(r'^grapher/embedCharts.js$', owid_views.embed_snippet, name="embedsnippet"),
     url(r'^grapher/login$', owid_views.index, name="index"), # Backwards compatibility
     url(r'^grapher/admin/?$', admin_views.listcharts, name="listcharts"),
     url(r'^grapher/admin/charts$', admin_views.storechart, name="storechart"),  # post request for storing
     url(r'^grapher/admin/charts/create/?$', admin_views.createchart, name="createchart"),
+    url(r'^grapher/admin/charts/(?P<chartid>[\d]+).config.json$', admin_views.config_json_by_id, name="configjsonbyid"),
     url(r'^grapher/admin/charts/(?P<chartid>[\w]+)/edit/?$', admin_views.editchart, name="editchart"),
     url(r'^grapher/admin/charts/(?P<chartid>[\w]+)$', admin_views.managechart, name="managechart"),  # update, destroy requests
     url(r'^grapher/admin/charts/(?P<chartid>[\w]+)/?$', admin_views.showchart, name="showchartinternal"),
@@ -99,6 +99,7 @@ urlpatterns = [
 
     url(r'^grapher/admin/login$', admin_views.custom_login, name='login'),
     url(r'^grapher/admin/logout/?$', logout, {'next_page': settings.BASE_URL}, name="logout"),
+    url(r'^grapher/embedCharts.js$', owid_views.embed_snippet, name="embedsnippet"),
     url(r'^grapher/config/(?P<configid>\d+)\.js$', owid_views.config, name="serveconfig"),
     url(r'^grapher/data/variables/(?P<ids>[\w\+]+)', owid_views.variables, name="servevariables"),
     url(r'^grapher/latest/?$', owid_views.latest, name="latestchart"),

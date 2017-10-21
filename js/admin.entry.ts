@@ -17,8 +17,7 @@ require('./libs/bootstrap.min.js')
 
 require('./admin/admin.global')
 
-window.ChartEditorView = require('./admin/ChartEditorView').default
-
+window.Admin = require('./admin/Admin').default
 // Importer code
 
 window.Importer = require('./admin/Importer').default
