@@ -80,6 +80,7 @@ urlpatterns = [
     url(r'^grapher/admin/standardize/countrytooldata/$', countrytool_views.serve_country_tool_data, name="servecountrytooldata"),
     url(r'^grapher/admin/standardize/update/$', countrytool_views.country_tool_update, name="countrytoolupdate"),
     url(r'^grapher/admin/standardize/csv/(?P<filename>[^/]+)$', countrytool_views.servecsv, name="servecsv"),
+    url(r'^grapher/admin/standardize/instructions/', countrytool_views.serve_instructions, name="countrytoolinstructions"),
     url(r'^grapher/admin/invite/?$', admin_views.invite_user, name="inviteuser"),
     url(r'^grapher/admin/wdidatasets/?$', importer_views.listwdidatasets, name="listwdidatasets"),
     url(r'^grapher/admin/unwppdatasets/?$', importer_views.listunwppdatasets, name="listunwppdatasets"),
