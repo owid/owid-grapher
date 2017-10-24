@@ -9,9 +9,10 @@ import TextWrap from './TextWrap'
 
 interface NumericMapLegendProps {
     width: number,
+    fontSize: number
     legendData: MapLegendBin[],
     focusBracket?: MapLegendBin,
-    fontSize: number
+    equalSizeBins?: true
 }
 
 interface PositionedBin {
@@ -66,7 +67,10 @@ class NumericMapLegend {
         return map(props.legendData, d => {
             let width = categoryBinWidth, margin = categoryBinMargin
             if (d instanceof NumericBin) {
-                width = ((d.max - d.min) / rangeSize) * availableWidth
+                if (props.equalSizeBins)
+                    width = availableWidth/props.legendData.length
+                else
+                    width = ((d.max - d.min) / rangeSize) * availableWidth
                 margin = 0
             }
 
@@ -360,12 +364,13 @@ class CategoricalMapLegendView extends React.Component<CategoricalMapLegendViewP
 }
 
 export interface MapLegendProps {
+    fontSize: number,
     legendData: MapLegendBin[],
     title: string,
     bounds: Bounds,
     focusBracket: MapLegendBin,
     focusEntity: any,
-    fontSize: number
+    equalSizeBins?: true
 }
 
 export default class MapLegend {
@@ -389,7 +394,7 @@ export default class MapLegend {
     @computed get hasCategorical(): boolean { return this.categoricalLegendData.length > 1 }
 
     @computed get mainLabel(): TextWrap {
-        return new TextWrap({ maxWidth: this.props.bounds.width, fontSize: 0.7, text: this.props.title })
+        return new TextWrap({ maxWidth: this.props.bounds.width, fontSize: 0.7*this.props.fontSize, text: this.props.title })
     }
 
     @computed get numericFocusBracket(): MapLegendBin | undefined {
@@ -440,6 +445,7 @@ export default class MapLegend {
         return this.hasNumeric ? new NumericMapLegend({
             get legendData() { return that.numericLegendData },
             get width() { return that.props.bounds.width * 0.5 },
+            get equalSizeBins() { return that.props.equalSizeBins },
             get focusBracket() { return that.numericFocusBracket },
             get fontSize() { return that.props.fontSize }
         }) : undefined

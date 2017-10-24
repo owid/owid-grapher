@@ -375,7 +375,7 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
         select(this.base).select(".slopes").attr('stroke-dasharray', "100%").attr('stroke-dashoffset', "100%").transition().attr('stroke-dashoffset', "0%")
     }
     render() {
-        const { yTickFormat, yScaleType, yScaleTypeOptions, onScaleTypeChange } = this.props
+        const { yTickFormat, yScaleType, yScaleTypeOptions, onScaleTypeChange, fontSize } = this.props
         const { bounds, slopeData, isPortrait, xDomain, yScale } = this
 
         if (isEmpty(slopeData))
@@ -386,27 +386,25 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 
         const onMouseMove = throttle(this.onMouseMove, 100)
 
-        return (
-            <g className="LabelledSlopes" onMouseMove={onMouseMove} onTouchMove={onMouseMove} onTouchStart={onMouseMove} onMouseLeave={onMouseMove}>
-                <rect x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="rgba(0,0,0,0)" opacity={0} />
-                <g className="gridlines">
-                    {SlopeChartAxis.getTicks(yScale, yScaleType).map(tick => {
-                        return <line x1={x1} y1={yScale(tick)} x2={x2} y2={yScale(tick)} stroke="#eee" stroke-dasharray="3,2" />
-                    })}
-                </g>
-                {!isPortrait && <SlopeChartAxis orient="left" tickFormat={yTickFormat} scale={yScale} scaleType={yScaleType} bounds={bounds} />}
-                {!isPortrait && <SlopeChartAxis orient="right" tickFormat={yTickFormat} scale={yScale} scaleType={yScaleType} bounds={bounds} />}
-                <line x1={x1} y1={y1} x2={x1} y2={y2} stroke="#333" />
-                <line x1={x2} y1={y1} x2={x2} y2={y2} stroke="#333" />
-                {yScaleTypeOptions.length > 1 && <ScaleSelector x={x1 + 5} y={y2 - 8} scaleType={yScaleType} scaleTypeOptions={yScaleTypeOptions} onChange={onScaleTypeChange} />}
-                <Text x={x1} y={y1 + 10} textAnchor="middle" fill="#666">{xDomain[0].toString()}</Text>
-                <Text x={x2} y={y1 + 10} textAnchor="middle" fill="#666">{xDomain[1].toString()}</Text>
-                <g className="slopes">
-                    {slopeData.map(slope => {
-                        return <Slope key={slope.key} {...slope} />
-                    })}
-                </g>
+        return <g className="LabelledSlopes" onMouseMove={onMouseMove} onTouchMove={onMouseMove} onTouchStart={onMouseMove} onMouseLeave={onMouseMove}>
+            <rect x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="rgba(0,0,0,0)" opacity={0} />
+            <g className="gridlines">
+                {SlopeChartAxis.getTicks(yScale, yScaleType).map(tick => {
+                    return <line x1={x1} y1={yScale(tick)} x2={x2} y2={yScale(tick)} stroke="#eee" stroke-dasharray="3,2" />
+                })}
             </g>
-        )
+            {!isPortrait && <SlopeChartAxis orient="left" tickFormat={yTickFormat} scale={yScale} scaleType={yScaleType} bounds={bounds} />}
+            {!isPortrait && <SlopeChartAxis orient="right" tickFormat={yTickFormat} scale={yScale} scaleType={yScaleType} bounds={bounds} />}
+            <line x1={x1} y1={y1} x2={x1} y2={y2} stroke="#333" />
+            <line x1={x2} y1={y1} x2={x2} y2={y2} stroke="#333" />
+            {yScaleTypeOptions.length > 1 && <ScaleSelector x={x1 + 5} y={y2 - 8} scaleType={yScaleType} scaleTypeOptions={yScaleTypeOptions} onChange={onScaleTypeChange} />}
+            <Text x={x1} y={y1 + 10} textAnchor="middle" fill="#666" fontSize={fontSize}>{xDomain[0].toString()}</Text>
+            <Text x={x2} y={y1 + 10} textAnchor="middle" fill="#666" fontSize={fontSize}>{xDomain[1].toString()}</Text>
+            <g className="slopes">
+                {slopeData.map(slope => {
+                    return <Slope key={slope.key} {...slope} />
+                })}
+            </g>
+        </g>
     }
 }

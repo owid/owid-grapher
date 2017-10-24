@@ -89,6 +89,7 @@ class NumericBinView extends React.Component<{ mapConfig: MapConfig, bin: Numeri
 
         while (mapConfig.props.customNumericColors.length < mapConfig.numBuckets)
             mapConfig.props.customNumericColors.push(undefined)
+
         mapConfig.props.customNumericColors[index] = color
     }
 
@@ -216,6 +217,10 @@ class ColorsSection extends React.Component<{ mapConfig: MapConfig }> {
         this.props.mapConfig.props.isManualBuckets = isAutomatic ? undefined : true
     }
 
+    @action.bound onEqualSizeBins(isEqual: boolean) {
+        this.props.mapConfig.props.equalSizeBins = isEqual ? true : undefined
+    }
+
     render() {
         const {mapConfig} = this.props
         const availableColorSchemes = map(ColorSchemes, (v: any, k: any) => extend({}, v, { key: k })).filter((v: any) => !!v.name)
@@ -224,9 +229,10 @@ class ColorsSection extends React.Component<{ mapConfig: MapConfig }> {
         return <section>
             <h2>Colors</h2>
             <SelectField label="Color scheme:" value={currentColorScheme} options={availableColorSchemes.map(d => d.key).concat(['custom'])} optionLabels={availableColorSchemes.map(d => d.name).concat(['custom'])} onValue={this.onColorScheme} />
+            {" "}<Toggle label="Invert colors" value={mapConfig.props.colorSchemeInvert || false} onValue={this.onInvert} />
             <NumberField label="Number of intervals:" value={mapConfig.props.colorSchemeInterval} min={1} max={99} onValue={this.onNumIntervals} />
-            <Toggle label="Invert colors" value={mapConfig.props.colorSchemeInvert || false} onValue={this.onInvert} />
             <Toggle label="Automatic classification" value={!mapConfig.props.isManualBuckets} onValue={this.onAutomatic} />
+            <Toggle label="Disable visual scaling of legend bins" value={!!mapConfig.props.equalSizeBins} onValue={this.onEqualSizeBins} />
             <ColorSchemeEditor map={mapConfig} />
         </section>
     }

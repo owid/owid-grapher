@@ -251,6 +251,10 @@ button[type="submit"]:not(".delete-btn") {
   background-color: #666;
   z-index: 100; }
 
+.popup-picker-wrapper input {
+    width: 100% !important;
+}
+
 .map-color-scheme-preview .popup-picker-wrapper {
   left: 45px; }
 
@@ -259,6 +263,7 @@ button[type="submit"]:not(".delete-btn") {
   padding-left: 0px; }
 
 .popup-picker-wrapper li {
+  list-style-type: none;
   float: left;
   width: 14px;
   height: 14px;

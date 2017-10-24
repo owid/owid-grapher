@@ -72,12 +72,12 @@ export default class SlopeChartTransform implements IChartTransform {
     }
 
     @computed get variableData(): Observations {
-        const variables = this.chart.data.filledDimensions.map(d => d.variable)
+        const {filledDimensions} = this.chart.data
         const obvs: any[] = []
-        variables.forEach(v => {
+        filledDimensions.forEach(v => {
             for (let i = 0; i < v.years.length; i++) {
                 const d: any = { year: v.years[i], entity: v.entities[i] }
-                d[v.id] = v.values[i]
+                d[v.variable.id] = v.values[i]
                 obvs.push(d)
             }
         })

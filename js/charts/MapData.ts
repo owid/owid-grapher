@@ -228,7 +228,7 @@ export default class MapData {
         let minValue = minBucketValue
         for (let i = 0; i < bucketMaximums.length; i++) {
             const baseColor = baseColors[i]
-            const color = defaultTo(customNumericColors[i], baseColor)
+            const color = defaultTo(customNumericColors.length > i ? customNumericColors[i] : undefined, baseColor)
             const maxValue = +(bucketMaximums[i] as number)
             const label = customBucketLabels[i]
             legendData.push(new NumericBin({ index: i, min: minValue, max: maxValue, color: color, label: label, format: dimension ? dimension.formatValueShort : () => "" }))

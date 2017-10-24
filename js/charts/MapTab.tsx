@@ -105,6 +105,7 @@ class TimelineMap extends React.Component<TimelineMapProps> {
         return new MapLegend({
             get bounds() { return that.props.bounds.padBottom(that.timelineHeight + 5) },
             get legendData() { return that.props.legendData },
+            get equalSizeBins() { return that.context.chart.map.props.equalSizeBins },
             get title() { return that.props.legendTitle },
             get focusBracket() { return that.focusBracket },
             get focusEntity() { return that.focusEntity },
