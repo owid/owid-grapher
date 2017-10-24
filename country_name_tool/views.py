@@ -511,3 +511,8 @@ def serve_country_tool_data(request):
                          each.owid_country.penn_code, each.owid_country.continent.continent_code if each.owid_country.continent else ''])
 
     return response
+
+
+def serve_instructions(request):
+    return render(request, 'country_tool_instructions.html', context={'current_user': request.user.name,
+                                                                      'images_folder': settings.BASE_URL + '/public/img/'})
