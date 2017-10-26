@@ -354,9 +354,16 @@ def variables(request, ids):
     for variable in variables:
         variable['shortUnit'] = variable.pop('short_unit')
         variable['datasetName'] = variable.pop('fk_dst_id__name')
+        source_description = json.loads(variable.pop('sourceId__description'))
         variable['source'] = {}
         variable['source']['name'] = variable.pop('sourceId__name')
-        variable['source']['description'] = variable.pop('sourceId__description')
+        variable['source']['dataPublishedBy'] = "" if not source_description['dataPublishedBy'] else source_description['dataPublishedBy']
+        variable['source']['dataPublisherSource'] = "" if not source_description['dataPublisherSource'] else source_description[
+            'dataPublisherSource']
+        variable['source']['link'] = "" if not source_description['link'] else source_description['link']
+        variable['source']['retrievedDate'] = "" if not source_description['retrievedDate'] else source_description['retrievedDate']
+        variable['source']['additionalInfo'] = "" if not source_description['additionalInfo'] else source_description[
+            'additionalInfo']
         meta['variables'][variable['id']] = variable
 
     # Now fetch the actual data, using a custom csv-like transfer format

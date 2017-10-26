@@ -68,7 +68,6 @@ urlpatterns = [
     url(r'^grapher/admin/sources/(?P<sourceid>[\w]+)/$', admin_views.showsource, name="showsource"),
     url(r'^grapher/admin/sources/(?P<sourceid>[\w]+)/edit/$', admin_views.editsource, name="editsource"),
     url(r'^grapher/admin/sources/(?P<sourceid>[\w]+)$', admin_views.managesource, name="managesource"),
-    url(r'^grapher/admin/sourceTemplate/', admin_views.editsourcetemplate, name="editsourcetemplate"),
     url(r'^grapher/admin/subcategories/(?P<subcatid>[\w]+)/edit/$', admin_views.editsubcategory, name="editsubcategory"),
     url(r'^grapher/admin/subcategories/(?P<subcatid>[\w]+)$', admin_views.managesubcategory, name="managesubcategory"),
     url(r'^grapher/admin/subcategories/create/$', admin_views.createsubcategory, name="createsubcategory"),

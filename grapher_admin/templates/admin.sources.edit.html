@@ -11,9 +11,25 @@
 				<label for="name">Name:</label>
 				<input class="form-control" name="name" type="text" value="{{ source.name }}" id="name">
 			</div>
+            <div class="form-group">
+				<label for="dataPublishedBy">Data published by:</label>
+				<input class="form-control" name="dataPublishedBy" type="text" value="{{ source.dataPublishedBy }}" id="dataPublishedBy">
+			</div>
+            <div class="form-group">
+				<label for="dataPublisherSource">Data publisher's source:</label>
+				<input class="form-control" name="dataPublisherSource" type="text" value="{{ source.dataPublisherSource }}" id="dataPublisherSource">
+			</div>
+            <div class="form-group">
+				<label for="link">Link:</label>
+				<input class="form-control" name="link" type="text" value="{{ source.link }}" id="link">
+			</div>
+            <div class="form-group">
+				<label for="retrievedDate">Retrieved date:</label>
+				<input class="form-control" name="retrievedDate" type="text" value="{{ source.retrievedDate }}" id="retrievedDate">
+			</div>
 			<div class="form-group">
-				<label for="description">Description:</label>
-				<textarea class="form-control source-editor" rows="20" name="description" cols="50" id="description">{% autoescape off %}{{ source.description }}{% endautoescape %}</textarea>
+				<label for="additionalInfo">Additional Information:</label>
+				<textarea class="form-control source-editor" rows="20" name="additionalInfo" cols="50" id="additionalInfo">{{ source.additionalInfo }}</textarea>
 			</div>
 			<div class="form-group">
 				<input class="btn btn-success" type="submit" value="Update source">

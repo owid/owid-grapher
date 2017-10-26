@@ -29,10 +29,12 @@
 		</div>
 		<div class="property-wrapper">
 			<h3>Description</h3>
-			<div class="property-value datasource-wrapper" style="font-size: 1.0em;">
-				{% autoescape off %}
-                {{ source.description }}
-			    {% endautoescape %}
+			<div class="property-value datasource-wrapper" style="font-size: 1.0em;white-space: pre-line">
+                    <span><i><b>Data published by:</b></i></span> {{ source.description.dataPublishedBy }} <br/>
+                    <span><i><b>Data publisher's source:</b></i></span> {{ source.description.dataPublisherSource }} <br/>
+                    <span><i><b>Link:</b></i></span> {{ source.description.link }} <br/>
+                    <span><i><b>Retrieved date:</b></i></span> {{ source.description.retrievedDate }} <br/>
+                    <span><i><b>Additional information:</b></i></span> {{ source.description.additionalInfo }} <br/>
             </div>
 		</div>
 	</div>
