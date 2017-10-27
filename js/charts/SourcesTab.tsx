@@ -29,7 +29,7 @@ export default class SourcesTab extends React.Component<{ bounds: Bounds, chart:
                 {source.dataPublishedBy && <tr><td>Data published by</td><td>{source.dataPublishedBy}</td></tr>}
                 {source.dataPublisherSource && <tr><td>Data publisher's source</td><td>{source.dataPublisherSource}</td></tr>}
                 {source.link && <tr><td>Link</td><td>{source.link}</td></tr>}
-                {source.retrievedDate && <tr><td>Retrieved date</td><td>{source.retrievedDate}</td></tr>}
+                {source.retrievedDate && <tr><td>Retrieved</td><td>{source.retrievedDate}</td></tr>}
                 {source.additionalInfo && <tr><td>Additional information</td><td>{source.additionalInfo}</td></tr>}
             </table>
         </div>

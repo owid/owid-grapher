@@ -40,36 +40,10 @@ start_time = datetime.now()
 
 fao_category_name_in_db = 'FAOSTAT'  # set the name of the root category of all data that will be imported by this script
 
-source_template = '<table>' \
-                    '<tr>' \
-                        '<td>Dataset name</td>' \
-                        '<td>%s</td>' \
-                    '</tr>' \
-                    '<tr>' \
-                        '<td>Data published by</td>' \
-                        '<td>%s</td>' \
-                    '</tr>' \
-                    '<tr>' \
-                        '<td>Data publisher\'s source</td>' \
-                        '<td>%s</td>' \
-                    '</tr>' \
-                    '<tr>' \
-                        '<td>Link</td>' \
-                        '<td><a target="_blank" href="http://www.fao.org/faostat/en/?#data/">' \
-                  'http://www.fao.org/faostat/en/?#data/</a></td>' \
-                    '</tr>' \
-                    '<tr>' \
-                        '<td>Retrieved</td>' \
-                        '<td>' + timezone.now().strftime("%d-%B-%y") +'</td>' \
-                    '</tr>' \
-                  '</table>' \
-                  '<div class="datasource-additional">' \
-                    '<p>' \
-                    '<b><i style="text-decoration: underline;">Additional information as provided by the source</i></b><br>' \
-                    '%s' \
-                    '</p>' \
-                  '</div>'
-
+source_description = {
+    'link': "http://www.fao.org/faostat/en/?#data/",
+    'retrievedDate': timezone.now().strftime("%d-%B-%y")
+}
 
 category_files = {
     "Production": [
@@ -564,20 +538,17 @@ def process_csv_file_insert(filename_to_process: str, original_filename: str):
     # inserting a dataset source
     if Source.objects.filter(name=file_dataset_names[original_filename], datasetId=newdataset.pk):
         newsource = Source.objects.get(name=file_dataset_names[original_filename], datasetId=newdataset.pk)
-        newsource.description = source_template % (file_dataset_names[original_filename],
-                                                   data_published_by,
-                                                   data_publishers_source,
-                                                   additional_information
-                                                   )
+        source_description['dataPublishedBy'] = data_published_by
+        source_description['dataPublisherSource'] = data_publishers_source
+        source_description['additionalInfo'] = additional_information
+        newsource.description = json.dumps(source_description)
         newsource.save()
     else:
+        source_description['dataPublishedBy'] = data_published_by
+        source_description['dataPublisherSource'] = data_publishers_source
+        source_description['additionalInfo'] = additional_information
         newsource = Source(name=file_dataset_names[original_filename],
-                           description=source_template %
-                                       (file_dataset_names[original_filename],
-                                        data_published_by,
-                                        data_publishers_source,
-                                        additional_information
-                                        ),
+                           description=json.dumps(source_description),
                            datasetId=newdataset.pk)
         newsource.save()
 

@@ -35,25 +35,14 @@ def file_checksum(filename, blocksize=2**20):
             m.update(buffer)
     return m.hexdigest()
 
-source_template = '<table>' \
-                    '<tr>' \
-                        '<td>Variable category</td>' \
-                        '<td>Energy</td>' \
-                    '</tr>' \
-                    '<tr>' \
-                        '<td>Data published by</td>' \
-                        '<td>BP</td>' \
-                    '</tr>' \
-                    '<tr>' \
-                        '<td>Link</td>' \
-                        '<td><a target="_blank" href="http://www.bp.com/statisticalreview">' \
-                  'http://www.bp.com/statisticalreview</a></td>' \
-                    '</tr>' \
-                    '<tr>' \
-                        '<td>Retrieved</td>' \
-                        '<td>' + timezone.now().strftime("%d-%B-%y") +'</td>' \
-                    '</tr>' \
-                  '</table>'
+
+source_description = {
+    'dataPublishedBy': "BP",
+    'dataPublisherSource': None,
+    'link': 'http://www.bp.com/statisticalreview',
+    'retrievedDate': timezone.now().strftime("%d-%B-%y"),
+    'additionalInfo': None
+}
 
 bp_file_url = 'https://www.bp.com/content/dam/bp/en/corporate/excel/energy-economics/statistical-review-2017/bp-statistical-review-of-world-energy-2017-underpinning-data.xlsx'
 bp_downloads_save_location = settings.BASE_DIR + '/data/bp_statistical_review/'
@@ -978,7 +967,7 @@ with transaction.atomic():
     if Source.objects.filter(name='BP Statistical Review of Global Energy', datasetId=newdataset.pk):
         newsource = Source.objects.get(name='BP Statistical Review of Global Energy', datasetId=newdataset.pk)
     else:
-        newsource = Source(name='BP Statistical Review of Global Energy', description=source_template,
+        newsource = Source(name='BP Statistical Review of Global Energy', description=json.dumps(source_description),
                            datasetId=newdataset.pk)
         newsource.save()
 

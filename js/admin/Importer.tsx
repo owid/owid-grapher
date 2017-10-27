@@ -399,7 +399,7 @@ class EditSource extends React.Component<{ variable: Variable, dataset: Dataset,
                         <input type="text" value={source.link} onInput={e => source.link = e.currentTarget.value} />
                     </label>
                     <label>
-                        <span>Retrieved date:</span>
+                        <span>Retrieved:</span>
                         <input type="text" value={source.retrievedDate} onInput={e => source.retrievedDate = e.currentTarget.value} />
                     </label>
                     <label>
