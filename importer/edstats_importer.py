@@ -55,50 +55,12 @@ def short_unit_extract(unit: str):
             short_unit = unit
     return short_unit
 
-source_template = '<table>' \
-                    '<tr>' \
-                        '<td>Variable category</td>' \
-                        '<td>%s</td>' \
-                    '</tr>' \
-                    '<tr>' \
-                        '<td>Unit of measure</td>' \
-                        '<td>%s</td>' \
-                    '</tr>' \
-                    '<tr>' \
-                        '<td>Variable code in original source</td>' \
-                        '<td>%s</td>' \
-                    '</tr>' \
-                    '<tr>' \
-                        '<td>Data published by</td>' \
-                        '<td>%s</td>' \
-                    '</tr>' \
-                    '<tr>' \
-                        '<td>Data publisher\'s source</td>' \
-                        '<td>%s</td>' \
-                    '</tr>' \
-                    '<tr>' \
-                        '<td>Link</td>' \
-                        '<td><a target="_blank" href="https://data.worldbank.org/data-catalog/ed-stats">' \
-                  'https://data.worldbank.org/data-catalog/ed-stats</a></td>' \
-                    '</tr>' \
-                    '<tr>' \
-                        '<td>Retrieved</td>' \
-                        '<td>' + timezone.now().strftime("%d-%B-%y") +'</td>' \
-                    '</tr>' \
-                  '</table>' \
-                  '<div class="datasource-additional">' \
-                    '<p>' \
-                    '<b><i style="text-decoration: underline;">Additional information as provided by the source</i></b><br>' \
-                    '<i style="text-decoration: underline;">Definitions and characteristics of countries and other territories:</i> <a href="' + reverse("serveedstatscountryinfo") + '">EDSTATS_Country_info.xlsx</a><br>' \
-                    '%s' \
-                    '%s' \
-                    '%s' \
-                    '%s' \
-                    '%s' \
-                    '%s' \
-                    '</p>' \
-                  '</div>'
 
+source_description = {
+    'dataPublishedBy': "World Bank EdStats",
+    'link': "https://data.worldbank.org/data-catalog/ed-stats",
+    'retrievedDate': timezone.now().strftime("%d-%B-%y")
+}
 
 edstats_zip_file_url = 'http://databank.worldbank.org/data/download/EdStats_excel.zip'
 edstats_downloads_save_location = settings.BASE_DIR + '/data/edstats_downloads/'
@@ -363,26 +325,16 @@ with transaction.atomic():
                             if len(data_values):
                                 if indicator_code in category_vars[category]:
                                     if not global_cat[indicator_code]['saved']:
+                                        source_description['additionalInfo'] = "Definitions and characteristics of countries and other territories: " + "https://ourworldindata.org" + reverse("serveedstatscountryinfo") + "\n"
+                                        source_description['additionalInfo'] += "Limitations and exceptions:\n" + global_cat[indicator_code]['limitations'] + "\n" if global_cat[indicator_code]['limitations'] else ''
+                                        source_description['additionalInfo'] += "Notes from original source:\n" + global_cat[indicator_code]['sourcenotes'] + "\n" if global_cat[indicator_code]['sourcenotes'] else ''
+                                        source_description['additionalInfo'] += "General comments:\n" + global_cat[indicator_code]['comments'] + "\n" if global_cat[indicator_code]['comments'] else ''
+                                        source_description['additionalInfo'] += "Statistical concept and methodology:\n" + global_cat[indicator_code]['concept'] + "\n" if global_cat[indicator_code]['concept'] else ''
+                                        source_description['additionalInfo'] += "Related source links:\n" + global_cat[indicator_code]['sourcelinks'] + "\n" if global_cat[indicator_code]['sourcelinks'] else ''
+                                        source_description['additionalInfo'] += "Other web links:\n" + global_cat[indicator_code]['weblinks'] + "\n" if global_cat[indicator_code]['weblinks'] else ''
+                                        source_description['dataPublisherSource'] = global_cat[indicator_code]['source']
                                         newsource = Source(name='World Bank EdStats: ' + global_cat[indicator_code]['name'],
-                                                           description=source_template %
-                                                           (global_cat[indicator_code]['category'],
-                                                            global_cat[indicator_code]['unitofmeasure'],
-                                                            indicator_code,
-                                                            'World Bank EdStats',
-                                                            global_cat[indicator_code]['source'],
-                                                            '<i style="text-decoration: underline;">Limitations and exceptions: </i><br>' +
-                                                            global_cat[indicator_code]['limitations'] + '<br>' if global_cat[indicator_code]['limitations'] else '',
-                                                            '<i style="text-decoration: underline;">Notes from original source: </i><br>' +
-                                                            global_cat[indicator_code]['sourcenotes'] + '<br>' if global_cat[indicator_code]['sourcenotes'] else '',
-                                                            '<i style="text-decoration: underline;">General comments: </i><br>' + global_cat[indicator_code][
-                                                                'comments'] + '<br>' if global_cat[indicator_code]['comments'] else '',
-                                                            '<i style="text-decoration: underline;">Statistical concept and methodology: </i><br>' +
-                                                            global_cat[indicator_code]['concept'] + '<br>' if global_cat[indicator_code]['concept'] else '',
-                                                            '<i style="text-decoration: underline;">Related source links: </i><br>' +
-                                                            global_cat[indicator_code]['sourcelinks'] + '<br>' if global_cat[indicator_code]['sourcelinks'] else '',
-                                                            '<i style="text-decoration: underline;">Other web links: </i><br>' + global_cat[indicator_code][
-                                                                'weblinks'] + '<br>' if global_cat[indicator_code]['weblinks'] else ''
-                                                            ),
+                                                           description=json.dumps(source_description),
                                                            datasetId=newdataset.pk)
                                         newsource.save()
                                         logger.info("Inserting a source %s." % newsource.name.encode('utf8'))
@@ -703,37 +655,16 @@ with transaction.atomic():
                                 if indicator_code in category_vars[category]:
                                     total_values_tracker += len(data_values)
                                     if indicator_code in vars_to_add:
+                                        source_description['additionalInfo'] = "Definitions and characteristics of countries and other territories: " + "https://ourworldindata.org" + reverse("serveedstatscountryinfo") + "\n"
+                                        source_description['additionalInfo'] += "Limitations and exceptions:\n" + global_cat[indicator_code]['limitations'] + "\n" if global_cat[indicator_code]['limitations'] else ''
+                                        source_description['additionalInfo'] += "Notes from original source:\n" + global_cat[indicator_code]['sourcenotes'] + "\n" if global_cat[indicator_code]['sourcenotes'] else ''
+                                        source_description['additionalInfo'] += "General comments:\n" + global_cat[indicator_code]['comments'] + "\n" if global_cat[indicator_code]['comments'] else ''
+                                        source_description['additionalInfo'] += "Statistical concept and methodology:\n" + global_cat[indicator_code]['concept'] + "\n" if global_cat[indicator_code]['concept'] else ''
+                                        source_description['additionalInfo'] += "Related source links:\n" + global_cat[indicator_code]['sourcelinks'] + "\n" if global_cat[indicator_code]['sourcelinks'] else ''
+                                        source_description['additionalInfo'] += "Other web links:\n" + global_cat[indicator_code]['weblinks'] + "\n" if global_cat[indicator_code]['weblinks'] else ''
+                                        source_description['dataPublisherSource'] = global_cat[indicator_code]['source']
                                         newsource = Source(name='World Bank EdStats: ' + global_cat[indicator_code]['name'],
-                                                           description=source_template %
-                                                                       (global_cat[indicator_code]['category'],
-                                                                        global_cat[indicator_code]['unitofmeasure'],
-                                                                        indicator_code,
-                                                                        'World Bank EdStats',
-                                                                        global_cat[indicator_code]['source'],
-                                                                        '<i style="text-decoration: underline;">Limitations and exceptions: </i><br>' +
-                                                                        global_cat[indicator_code][
-                                                                            'limitations'] + '<br>' if
-                                                                        global_cat[indicator_code]['limitations'] else '',
-                                                                        '<i style="text-decoration: underline;">Notes from original source: </i><br>' +
-                                                                        global_cat[indicator_code][
-                                                                            'sourcenotes'] + '<br>' if
-                                                                        global_cat[indicator_code]['sourcenotes'] else '',
-                                                                        '<i style="text-decoration: underline;">General comments: </i><br>' +
-                                                                        global_cat[indicator_code][
-                                                                            'comments'] + '<br>' if
-                                                                        global_cat[indicator_code]['comments'] else '',
-                                                                        '<i style="text-decoration: underline;">Statistical concept and methodology: </i><br>' +
-                                                                        global_cat[indicator_code]['concept'] + '<br>' if
-                                                                        global_cat[indicator_code]['concept'] else '',
-                                                                        '<i style="text-decoration: underline;">Related source links: </i><br>' +
-                                                                        global_cat[indicator_code][
-                                                                            'sourcelinks'] + '<br>' if
-                                                                        global_cat[indicator_code]['sourcelinks'] else '',
-                                                                        '<i style="text-decoration: underline;">Other web links: </i><br>' +
-                                                                        global_cat[indicator_code][
-                                                                            'weblinks'] + '<br>' if
-                                                                        global_cat[indicator_code]['weblinks'] else ''
-                                                                        ),
+                                                           description=json.dumps(source_description),
                                                            datasetId=newdataset.pk)
                                         newsource.save()
                                         logger.info("Inserting a source %s." % newsource.name.encode('utf8'))
@@ -758,24 +689,15 @@ with transaction.atomic():
                                         if not global_cat[indicator_code]['saved']:
                                             newsource = Source.objects.get(name='World Bank EdStats: ' + Variable.objects.get(code=indicator_code, fk_dst_id__in=Dataset.objects.filter(namespace='edstats')).name)
                                             newsource.name = 'World Bank EdStats: ' + global_cat[indicator_code]['name']
-                                            newsource.description=source_template % (global_cat[indicator_code]['category'],
-                                                            global_cat[indicator_code]['unitofmeasure'],
-                                                            indicator_code,
-                                                            'World Bank EdStats',
-                                                            global_cat[indicator_code]['source'],
-                                                            '<i style="text-decoration: underline;">Limitations and exceptions: </i><br>' +
-                                                            global_cat[indicator_code]['limitations'] + '<br>' if global_cat[indicator_code]['limitations'] else '',
-                                                            '<i style="text-decoration: underline;">Notes from original source: </i><br>' +
-                                                            global_cat[indicator_code]['sourcenotes'] + '<br>' if global_cat[indicator_code]['sourcenotes'] else '',
-                                                            '<i style="text-decoration: underline;">General comments: </i><br>' + global_cat[indicator_code][
-                                                                'comments'] + '<br>' if global_cat[indicator_code]['comments'] else '',
-                                                            '<i style="text-decoration: underline;">Statistical concept and methodology: </i><br>' +
-                                                            global_cat[indicator_code]['concept'] + '<br>' if global_cat[indicator_code]['concept'] else '',
-                                                            '<i style="text-decoration: underline;">Related source links: </i><br>' +
-                                                            global_cat[indicator_code]['sourcelinks'] + '<br>' if global_cat[indicator_code]['sourcelinks'] else '',
-                                                            '<i style="text-decoration: underline;">Other web links: </i><br>' + global_cat[indicator_code][
-                                                                'weblinks'] + '<br>' if global_cat[indicator_code]['weblinks'] else ''
-                                                            )
+                                            source_description['additionalInfo'] = "Definitions and characteristics of countries and other territories: " + "https://ourworldindata.org" + reverse("serveedstatscountryinfo") + "\n"
+                                            source_description['additionalInfo'] += "Limitations and exceptions:\n" + global_cat[indicator_code]['limitations'] + "\n" if global_cat[indicator_code]['limitations'] else ''
+                                            source_description['additionalInfo'] += "Notes from original source:\n" + global_cat[indicator_code]['sourcenotes'] + "\n" if global_cat[indicator_code]['sourcenotes'] else ''
+                                            source_description['additionalInfo'] += "General comments:\n" + global_cat[indicator_code]['comments'] + "\n" if global_cat[indicator_code]['comments'] else ''
+                                            source_description['additionalInfo'] += "Statistical concept and methodology:\n" + global_cat[indicator_code]['concept'] + "\n" if global_cat[indicator_code]['concept'] else ''
+                                            source_description['additionalInfo'] += "Related source links:\n" + global_cat[indicator_code]['sourcelinks'] + "\n" if global_cat[indicator_code]['sourcelinks'] else ''
+                                            source_description['additionalInfo'] += "Other web links:\n" + global_cat[indicator_code]['weblinks'] + "\n" if global_cat[indicator_code]['weblinks'] else ''
+                                            source_description['dataPublisherSource'] = global_cat[indicator_code]['source']
+                                            newsource.description=json.dumps(source_description)
                                             newsource.datasetId=newdataset.pk
                                             newsource.save()
                                             logger.info("Updating the source %s." % newsource.name.encode('utf8'))

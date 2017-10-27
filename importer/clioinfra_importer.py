@@ -62,25 +62,12 @@ def short_unit_extract(unit: str):
 
 clioinfra_category_name_in_db = 'Clio-Infra'  # set the name of the root category of all data that will be imported by this script
 
-source_template = '<table>' \
-                    '<tr>' \
-                        '<td>Dataset name</td>' \
-                        '<td>%s</td>' \
-                    '</tr>' \
-                    '<tr>' \
-                        '<td>Data published by</td>' \
-                        '<td>Clio-Infra</td>' \
-                    '</tr>' \
-                    '<tr>' \
-                        '<td>Link</td>' \
-                        '<td><a target="_blank" href="%s">' \
-                  '%s</a></td>' \
-                    '</tr>' \
-                    '<tr>' \
-                        '<td>Retrieved</td>' \
-                        '<td>' + timezone.now().strftime("%d-%B-%y") + '</td>' \
-                    '</tr>' \
-                  '</table>'
+source_description = {
+    'dataPublishedBy': "Clio-Infra",
+    'dataPublisherSource': None,
+    'retrievedDate': timezone.now().strftime("%d-%B-%y"),
+    'additionalInfo': None
+}
 
 base_dataverse_url = "https://datasets.socialhistory.org"
 # downloaded excel files will be saved here
@@ -239,13 +226,9 @@ with transaction.atomic():
                                     name=dataset_to_category[varname], fk_dst_cat_id=the_category)
                                 newdataset = Dataset.objects.get(name='Clio-Infra - %s' % the_subcategory.name,
                                                                  namespace='clioinfra')
-
+                            source_description['link'] = filename_to_pagelink[one_file]
                             newsource = Source(name=varname,
-                                               description=source_template %
-                                                           (newdataset.name,
-                                                            filename_to_pagelink[one_file],
-                                                            filename_to_pagelink[one_file],
-                                                            ),
+                                               description=json.dumps(source_description),
                                                datasetId=newdataset.pk)
                             newsource.save()
 
@@ -361,10 +344,8 @@ with transaction.atomic():
                                         old_datasets_list.append(newdataset)
 
                                 newsource = Variable.objects.get(code=filename_to_pagelink[one_file][filename_to_pagelink[one_file].rfind('/') + 1:], fk_dst_id__namespace='clioinfra').sourceId
-                                newsource.description = source_template % (newdataset.name,
-                                                                           filename_to_pagelink[one_file],
-                                                                           filename_to_pagelink[one_file],
-                                                                          )
+                                source_description['link'] = filename_to_pagelink[one_file]
+                                newsource.description = json.dumps(source_description)
                                 newsource.datasetId = newdataset.pk
                                 newsource.save()
 

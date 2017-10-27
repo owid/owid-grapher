@@ -22,9 +22,9 @@ def assign_codes_to_clioinfra_vars(apps, schema_editor):
             if all_tds[i].text == "Link":
                 link = all_tds[i + 1].xpath('//a/@href')[0]
 
-        var_code = link[link.rfind('/') + 1:]
-        each.code = var_code
-        each.save()
+                var_code = link[link.rfind('/') + 1:]
+                each.code = var_code
+                each.save()
 
 
 class Migration(migrations.Migration):

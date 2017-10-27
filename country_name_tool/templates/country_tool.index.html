@@ -1,7 +1,11 @@
 {% extends 'base_admin_template.html' %}
 {% load crispy_forms_tags %}
 {% block content %}
-    <div class="alert alert-info">Please note that all country names must be listed under the header name <b>Country</b> in the uploaded CSV file</div>
     <div class="alert alert-info">If you want to update the country tool data via a CSV file, go <a href="{% url 'countrytoolupdate' %}">here</a>.</div>
+    <div class="alert alert-warning">
+        Upload a csv file in which the country names (or country codes) are located under the header name <em>Country</em> or <em>country</em>.<br/>
+        If you select 'OUR WORLD IN DATA NAME' as the output type, the file you get back from the tool will have these standardized names listed on the
+        newly added column under the header <em>owid_name</em>. <br/>
+        [For a detailed explanation of the tool see <a href="{% url 'countrytoolinstructions' %}">here</a>.]</div>
     {% crispy form %}
 {% endblock %}

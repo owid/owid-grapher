@@ -64,7 +64,6 @@
 	flex-direction: row;
 
 	& .description {
-		width: 50%;
 		margin: 10px;
 	}
 

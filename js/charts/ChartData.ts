@@ -19,7 +19,11 @@ export interface DataKeyInfo {
 
 export interface SourceWithDimension {
     name: string,
-    description: string,
+    dataPublishedBy: string,
+    dataPublisherSource: string,
+    link: string,
+    retrievedDate: string,
+    additionalInfo: string,
     dimension: DimensionWithData
 }
 

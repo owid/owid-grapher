@@ -32,37 +32,10 @@ def file_checksum(filename, blocksize=2**20):
     return m.hexdigest()
 
 
-source_template = '<table>' \
-                    '<tr>' \
-                        '<td>Source description</td>' \
-                        '<td>%s</td>' \
-                    '</tr>' \
-                    '<tr>' \
-                        '<td>Data provided by</td>' \
-                        '<td>The Quality of Government Institute</td>' \
-                    '</tr>' \
-                    '<tr>' \
-                        '<td>Link</td>' \
-                        '<td><a target="_blank" href="http://qog.pol.gu.se/data">http://qog.pol.gu.se/data</a></td>' \
-                    '</tr>' \
-                    '<tr>' \
-                        '<td>Data publisher\'s source</td>' \
-                        '<td>%s</td>' \
-                    '</tr>' \
-                    '<tr>' \
-                        '<td>Dataset name in the original data source</td>' \
-                        '<td>%s</td>' \
-                    '</tr>' \
-                    '<tr>' \
-                        '<td>Link to the original dataset</td>' \
-                        '<td><a target="_blank" href="%s">%s</a></td>' \
-                    '</tr>' \
-                    '<tr>' \
-                        '<td>Retrieved</td>' \
-                        '<td>' + timezone.now().strftime("%d-%B-%y") +'</td>' \
-                    '</tr>' \
-                  '</table>'
-
+source_description = {
+    'dataPublishedBy': "The Quality of Government Institute",
+    'retrievedDate': timezone.now().strftime("%d-%B-%y")
+}
 
 qog_file_url = 'http://www.qogdata.pol.gu.se/data/qog_std_ts_jan17.csv'
 qog_metadata_file = settings.BASE_DIR + '/data/qog/metadata/qog_metadata.csv'  # metadata file should be put in this directory manually
@@ -247,16 +220,13 @@ with transaction.atomic():
             source_name = varcode[:varcode.index('_') + 1]
             if source_name in saved_sources:
                 if vardata['category'] not in saved_sources[source_name]:
+                    source_description['additionalInfo'] = qog_sources[source_name]['description']
+                    source_description['link'] = "http://qog.pol.gu.se/data"
+                    source_description['link'] += ", " + qog_sources[source_name]['url'] if qog_sources[source_name]['url'] else ""
+                    source_description['dataPublisherSource'] = qog_sources[source_name]['name']
                     newsource = Source(name='%s via the Quality of Government dataset' % (
                         qog_sources[source_name]['name']),
-                                       description=source_template % (
-                                           qog_sources[source_name]['description'],
-                                           qog_sources[source_name]['name'],
-                                           qog_sources[source_name]['original_dataset'],
-                                           qog_sources[source_name]['url'],
-                                           qog_sources[source_name]['url']
-
-                                       ),
+                                       description=json.dumps(source_description),
                                        datasetId=datasets_ref_models[vardata['category']].pk)
                     # in the metadata file, some of the sources have the same name, but are treated as different sources
                     # so if we see a source with the same name in the same category, we switch to using the original dataset name
@@ -270,16 +240,14 @@ with transaction.atomic():
                     logger.info("Inserting a source %s." % newsource.name.encode('utf8'))
                     saved_sources[source_name].update({vardata['category']: newsource})
             else:
+                source_description['additionalInfo'] = qog_sources[source_name]['description']
+                source_description['link'] = "http://qog.pol.gu.se/data"
+                source_description['link'] += ", " + qog_sources[source_name]['url'] if qog_sources[source_name][
+                    'url'] else ""
+                source_description['dataPublisherSource'] = qog_sources[source_name]['name']
                 newsource = Source(name='%s via the Quality of Government dataset' % (
                     qog_sources[source_name]['name']),
-                                   description=source_template % (
-                                       qog_sources[source_name]['description'],
-                                       qog_sources[source_name]['name'],
-                                       qog_sources[source_name]['original_dataset'],
-                                       qog_sources[source_name]['url'],
-                                       qog_sources[source_name]['url']
-
-                                   ),
+                                   description=json.dumps(source_description),
                                    datasetId=datasets_ref_models[vardata['category']].pk)
                 try:
                     with transaction.atomic():
@@ -493,13 +461,12 @@ with transaction.atomic():
                         source = existing_sources[source_name][category]
                         source.name = '%s via the Quality of Government dataset' % (
                                         qog_sources[source_name]['name'])
-                        source.description = source_template % (
-                                               qog_sources[source_name]['description'],
-                                               qog_sources[source_name]['name'],
-                                               qog_sources[source_name]['original_dataset'],
-                                               qog_sources[source_name]['url'],
-                                               qog_sources[source_name]['url']
-                        )
+                        source_description['additionalInfo'] = qog_sources[source_name]['description']
+                        source_description['link'] = "http://qog.pol.gu.se/data"
+                        source_description['link'] += ", " + qog_sources[source_name]['url'] if \
+                        qog_sources[source_name]['url'] else ""
+                        source_description['dataPublisherSource'] = qog_sources[source_name]['name']
+                        source.description = json.dumps(source_description)
                         source.datasetId = datasets_ref_models[category].pk
                         try:
                             with transaction.atomic():
@@ -513,13 +480,12 @@ with transaction.atomic():
                         source = existing_sources[source_name][category]
                         source.name = '%s via the Quality of Government dataset' % (
                                         qog_sources[source_name]['name'])
-                        source.description = source_template % (
-                                               qog_sources[source_name]['description'],
-                                               qog_sources[source_name]['name'],
-                                               qog_sources[source_name]['original_dataset'],
-                                               qog_sources[source_name]['url'],
-                                               qog_sources[source_name]['url']
-                        )
+                        source_description['additionalInfo'] = qog_sources[source_name]['description']
+                        source_description['link'] = "http://qog.pol.gu.se/data"
+                        source_description['link'] += ", " + qog_sources[source_name]['url'] if \
+                        qog_sources[source_name]['url'] else ""
+                        source_description['dataPublisherSource'] = qog_sources[source_name]['name']
+                        source.description = json.dumps(source_description)
                         source.datasetId = datasets_ref_models[category].pk
                         try:
                             with transaction.atomic():
@@ -530,16 +496,14 @@ with transaction.atomic():
                             source.save()
                         logger.info("Updating the source %s." % source.name.encode('utf8'))
                 else:
+                    source_description['additionalInfo'] = qog_sources[source_name]['description']
+                    source_description['link'] = "http://qog.pol.gu.se/data"
+                    source_description['link'] += ", " + qog_sources[source_name]['url'] if qog_sources[source_name][
+                        'url'] else ""
+                    source_description['dataPublisherSource'] = qog_sources[source_name]['name']
                     source = Source(name='%s via the Quality of Government dataset' % (
                         qog_sources[source_name]['name']),
-                                       description=source_template % (
-                                           qog_sources[source_name]['description'],
-                                           qog_sources[source_name]['name'],
-                                           qog_sources[source_name]['original_dataset'],
-                                           qog_sources[source_name]['url'],
-                                           qog_sources[source_name]['url']
-
-                                       ),
+                                       description=json.dumps(source_description),
                                        datasetId=datasets_ref_models[category].pk)
                     try:
                         with transaction.atomic():
@@ -551,16 +515,14 @@ with transaction.atomic():
                     logger.info("Inserting the source %s." % source.name.encode('utf8'))
                     existing_sources[source_name].update({category: source})
             else:
+                source_description['additionalInfo'] = qog_sources[source_name]['description']
+                source_description['link'] = "http://qog.pol.gu.se/data"
+                source_description['link'] += ", " + qog_sources[source_name]['url'] if qog_sources[source_name][
+                    'url'] else ""
+                source_description['dataPublisherSource'] = qog_sources[source_name]['name']
                 source = Source(name='%s via the Quality of Government dataset' % (
                     qog_sources[source_name]['name']),
-                                description=source_template % (
-                                    qog_sources[source_name]['description'],
-                                    qog_sources[source_name]['name'],
-                                    qog_sources[source_name]['original_dataset'],
-                                    qog_sources[source_name]['url'],
-                                    qog_sources[source_name]['url']
-
-                                ),
+                                description=json.dumps(source_description),
                                 datasetId=datasets_ref_models[category].pk)
                 try:
                     with transaction.atomic():
@@ -598,15 +560,14 @@ with transaction.atomic():
                     if category in existing_sources[source_name]:
                         if category not in up_to_date_sources:
                             source = existing_sources[source_name][category]
+                            source_description['additionalInfo'] = qog_sources[source_name]['description']
+                            source_description['link'] = "http://qog.pol.gu.se/data"
+                            source_description['link'] += ", " + qog_sources[source_name]['url'] if \
+                            qog_sources[source_name]['url'] else ""
+                            source_description['dataPublisherSource'] = qog_sources[source_name]['name']
                             source.name = '%s via the Quality of Government dataset' % (
                                 qog_sources[source_name]['name'])
-                            source.description = source_template % (
-                                qog_sources[source_name]['description'],
-                                qog_sources[source_name]['name'],
-                                qog_sources[source_name]['original_dataset'],
-                                qog_sources[source_name]['url'],
-                                qog_sources[source_name]['url']
-                            )
+                            source.description = json.dumps(source_description)
                             source.datasetId = datasets_ref_models[category].pk
                             try:
                                 with transaction.atomic():
@@ -618,15 +579,14 @@ with transaction.atomic():
                             logger.info("Updating the source %s." % source.name.encode('utf8'))
                         elif category not in up_to_date_sources[source_name]:
                             source = existing_sources[source_name][category]
+                            source_description['additionalInfo'] = qog_sources[source_name]['description']
+                            source_description['link'] = "http://qog.pol.gu.se/data"
+                            source_description['link'] += ", " + qog_sources[source_name]['url'] if \
+                            qog_sources[source_name]['url'] else ""
+                            source_description['dataPublisherSource'] = qog_sources[source_name]['name']
                             source.name = '%s via the Quality of Government dataset' % (
                                 qog_sources[source_name]['name'])
-                            source.description = source_template % (
-                                qog_sources[source_name]['description'],
-                                qog_sources[source_name]['name'],
-                                qog_sources[source_name]['original_dataset'],
-                                qog_sources[source_name]['url'],
-                                qog_sources[source_name]['url']
-                            )
+                            source.description = json.dumps(source_description)
                             source.datasetId = datasets_ref_models[category].pk
                             try:
                                 with transaction.atomic():
@@ -637,16 +597,14 @@ with transaction.atomic():
                                 source.save()
                             logger.info("Updating the source %s." % source.name.encode('utf8'))
                     else:
+                        source_description['additionalInfo'] = qog_sources[source_name]['description']
+                        source_description['link'] = "http://qog.pol.gu.se/data"
+                        source_description['link'] += ", " + qog_sources[source_name]['url'] if \
+                        qog_sources[source_name]['url'] else ""
+                        source_description['dataPublisherSource'] = qog_sources[source_name]['name']
                         source = Source(name='%s via the Quality of Government dataset' % (
                             qog_sources[source_name]['name']),
-                                        description=source_template % (
-                                            qog_sources[source_name]['description'],
-                                            qog_sources[source_name]['name'],
-                                            qog_sources[source_name]['original_dataset'],
-                                            qog_sources[source_name]['url'],
-                                            qog_sources[source_name]['url']
-
-                                        ),
+                                        description=json.dumps(source_description),
                                         datasetId=datasets_ref_models[category].pk)
                         try:
                             with transaction.atomic():
@@ -658,16 +616,14 @@ with transaction.atomic():
                         logger.info("Inserting the source %s." % source.name.encode('utf8'))
                         existing_sources[source_name].update({category: source})
                 else:
+                    source_description['additionalInfo'] = qog_sources[source_name]['description']
+                    source_description['link'] = "http://qog.pol.gu.se/data"
+                    source_description['link'] += ", " + qog_sources[source_name]['url'] if qog_sources[source_name][
+                        'url'] else ""
+                    source_description['dataPublisherSource'] = qog_sources[source_name]['name']
                     source = Source(name='%s via the Quality of Government dataset' % (
                         qog_sources[source_name]['name']),
-                                    description=source_template % (
-                                        qog_sources[source_name]['description'],
-                                        qog_sources[source_name]['name'],
-                                        qog_sources[source_name]['original_dataset'],
-                                        qog_sources[source_name]['url'],
-                                        qog_sources[source_name]['url']
-
-                                    ),
+                                    description=json.dumps(source_description),
                                     datasetId=datasets_ref_models[category].pk)
                     try:
                         with transaction.atomic():

@@ -1,0 +1,105 @@
+{% extends 'base_admin_template.html' %}
+{% block content %}
+<h1>
+How to use the Country Name tool
+</h1>
+    <div style="padding: 15px">
+        <p>When using cross-country data from different sources, it is common to find variations of country names.
+        For instance, it is common for datasets to use 'US', 'USA', or 'United States of America'. Similarly, some datasets use official country names that are correct but not customary (e.g. the Bolivarian Republic of Venezuela).
+        Because of this,  we standardize country names before uploading data into our database.
+        </p>
+        <p>
+            The country name tool is an application that lets users standardize country names in an uploaded CSV file by matching them to names that we store in our database.<br />
+            The country name tool is located at <a href="https://ourworldindata.org/grapher/admin/standardize/">https://ourworldindata.org/grapher/admin/standardize/</a>.
+        </p>
+        <div style="text-align: center;">
+            <img src="{{ images_folder }}country_tool1.jpg"><br/>
+            <em><span>Figure 1. Country name tool: upload CSV page</span></em>
+        </div>
+        <p>On the main page users can upload the dataset file with country names and data values. There are two main requirements for the file format that users upload to the country tool:</p>
+        <ul>
+            <li>It must be a CSV file</li>
+            <li>The country names (or country codes) must be located under the header name <b>Country</b></li>
+        </ul>
+        <p>Here is a very simple CSV file that can be uploaded to the country tool:</p>
+        <div style="text-align: center;">
+            <img src="{{ images_folder }}country_tool2.jpg"><br/>
+            <em><span>Figure 2. A sample CSV file for uploading</span></em>
+        </div>
+        <p>
+            You can upload a CSV file with multiple columns that contain data values. The country tool will place these extra columns after the column with standardized country names when returning the resulting file.
+            The <b>Country</b> column can also contain names for multiple countries (Figure 2).
+        </p>
+        <p>On the upload page, users have the option to select input and output formats for country names. Country names can be in the following formats when received as an input to the application:</p>
+            COUNTRY NAME (non-standardized country name, for instance: US) <br/>
+            OUR WORLD IN DATA NAME (standardized country name, for instance: United States) <br/>
+            ISO 3166-1 ALPHA-3 CODE <br/>
+            ISO 3166-1 ALPHA-2 CODE <br/>
+            IMF COUNTRY CODE <br/>
+            COW LETTERS <br/>
+            COW CODES <br/>
+            UNCTAD 3-LETTER CODE <br/>
+            MARC COUNTRY CODES (LIBRARY OF CONGRESS) <br/>
+            NATIONAL CAPABILITIES DATASET CODES <br/>
+            KANSAS EVENT DATA SYSTEM, CAMEO COUNTRY CODES <br/>
+            PENN WORLD TABLE 7.0 <br/><br/>
+        <p>Country names can be in the following formats when outputted by the application:</p>
+            OUR WORLD IN DATA NAME <br/>
+            ISO 3166-1 ALPHA-3 CODE <br/>
+            ISO 3166-1 ALPHA-2 CODE <br/>
+            CONTINENT NAME <br/>
+            CONTINENT CODE <br/>
+            IMF COUNTRY CODE <br/>
+            COW LETTERS <br/>
+            COW CODES <br/>
+            UNCTAD 3-LETTER CODE <br/>
+            MARC COUNTRY CODES (LIBRARY OF CONGRESS) <br/>
+            NATIONAL CAPABILITIES DATASET CODES <br/>
+            KANSAS EVENT DATA SYSTEM, CAMEO COUNTRY CODES <br/>
+            PENN WORLD TABLE 7.0 <br/>
+        <div style="text-align: center;">
+            <img src="{{ images_folder }}country_tool3.jpg"><br/>
+            <em><span>Figure 3. How the country name tool stores name data internally</span></em>
+        </div>
+        <p>Here is what will happen when a dataset file is uploaded to the application:</p>
+        <ol>
+            <li>The application will collect the country names listed under the Country header in the uploaded CSV file.</li>
+            <li>For each country name, the application will check if the country name has the matching record in the database pointing to the standardized name (the application will check if the uploaded country name is present in the <em>country_name</em> field shown on Figure 3).
+                <ul>
+                    <li>If yes, the application will output the matching value in the output format selected by the user.</li>
+                    <li>If no, the application will calculate the string similarity score of the input country name with the standardized country names and their variations, and will present the user with the page that contains the country names that weren't matched and the country names list sorted by their similarity scores (Figure 4).
+                        <ol>
+                            <li>On the country name matching page, users can either select the standardized country name from the dropdown list of names sorted by the similarity scores, or they can enter another name manually.</li>
+                            <li>For country names that were matched to standardized names by making a selection from the dropdown box, the application will save the selected standardized country names as the matching records for the corresponding input country names. When those input country names are seen again by the application, they will be automatically matched in the step <em>a</em> above.</li>
+                            <li>For country names for which the matching names were entered manually in the <em>Or enter custom name</em> box, the application <strong>will not</strong> save matching records information, and will just output to resulting file whatever was entered in the text box for corresponding country names.</li>
+                        </ol>
+                    </li>
+                </ul>
+            </li>
+            <li>In the end, the application will return a CSV file with the <em>_countries_standardized </em>suffix attached to the original filename. The resulting file will contain an extra column with the standardized names. On Figure 5, you can see the original file's contents on the left, and the resulting file on the right.</li>
+        </ol>
+        <div style="text-align: center;">
+            <img src="{{ images_folder }}country_tool4.jpg"><br/>
+            <em><span>Figure 4. Country name matching page</span></em>
+        </div>
+        <br/>
+        <div style="text-align: center;">
+            <img src="{{ images_folder }}country_tool5.jpg"><br/>
+            <em><span>Figure 5. Original file and the resulting file</span></em>
+        </div>
+        <p>IMPORTANT: The country name tool will perform the name matching by calculating string similarity scores only when the input format COUNTRY NAME and the output format OUR WORLD IN DATA NAME are selected on the upload page.
+        For all other combinations of input and output formats, the application will only check if the matching record in the selected format exists in the database.
+        If such record does not exist for a certain country, the application will return an empty result for that country name.
+        </p>
+        <p>The country name tool also allows users to update the tool's database by uploading one CSV file containing all the needed country name data (Figure 6).
+        The format for this file is shown on Figure 3. The existing country name data can be downloaded on the <em>Upload country data</em> page by pressing on the <em>Download existing country tool data</em> link.
+        You can edit the downloaded file by adding more country names, or making changes to existing data, and upload the file again to load new data.
+        Keep in mind that uploading the new CSV file on the <em>Upload country data</em> page (Figure 6) <strong>will wipe the existing country data information</strong> and will load the data that is contained in the new CSV file.
+        To avoid losing data, remember to keep the backup of the tool's database by regularly downloading existing data by going to <em>Download existing country tool data </em>link.
+        </p>
+        <div style="text-align: center;">
+            <img src="{{ images_folder }}country_tool6.jpg"><br/>
+            <em><span>Figure 6. Upload country data page</span></em>
+        </div>
+    </div>
+{% endblock %}
