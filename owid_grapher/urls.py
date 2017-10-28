@@ -88,6 +88,7 @@ urlpatterns = [
     url(r'^grapher/admin/clioinfradatasets/$', importer_views.listclioinfradatasets, name="listclioinfradatasets"),
     url(r'^grapher/admin/edstatsdatasets/$', importer_views.listedstatsdatasets, name="listedstatsdatasets"),
     url(r'^grapher/admin/genderstatsdatasets/$', importer_views.listgenderstatsdatasets, name="listgenderstatsdatasets"),
+    url(r'^grapher/admin/hnpstatsdatasets/$', importer_views.listhnpstatsdatasets, name="listhnpstatsdatasets"),
     # for future use on the frontend
     url(r'^grapher/admin/charts\.json$',  admin_views.listcharts, name="listchartsjson"),
     url(r'^grapher/admin/charts/create.json$', admin_views.createchart, name="createchartjson"),
@@ -113,4 +114,5 @@ urlpatterns = [
     url(r'^grapher/wdi/WDI_Country_info.xls$', importer_views.serve_wdi_country_info_xls, name='servewdicountryinfo'),
     url(r'^grapher/edstats/EDSTATS_Country_info.xls$', importer_views.serve_edstats_country_info_xls, name='serveedstatscountryinfo'),
     url(r'^grapher/genderstats/GENDERSTATS_Country_info.xls$', importer_views.serve_genderstats_country_info_xls, name='servegenderstatscountryinfo'),
+    url(r'^grapher/hnpstats/HNPSTATS_Country_info.xls$', importer_views.serve_hnpstats_country_info_xls, name='servehnpstatscountryinfo'),
 ]
