@@ -19,7 +19,6 @@ def is_json(myjson):
 
 
 def get_json_structure(namespace, html):
-
     data_publisher_source = None
     data_published_by = None
     additional_info = None
@@ -169,7 +168,6 @@ def restructure_dataset_source_info(apps, schema_editor):
         owid_sources_file = json.loads(owid_sources_json)
 
         for source_id, source_description in owid_sources_file.items():
-            print(source_id, source_description)
             try:
                 source_object = Source.objects.get(pk=source_id)
             

@@ -22,6 +22,7 @@
     "@types/striptags": "^0.0.5",
     "@types/topojson": "^3.0.1",
     "@types/webpack": "^3.0.10",
+    "anchorme": "^1.1.2",
     "autoprefixer": "^6.7.6",
     "bootstrap": "^3.3.7",
     "colorbrewer": "^1.0.0",
