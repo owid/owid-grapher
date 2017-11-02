@@ -37,7 +37,9 @@
 {% for i in urls %}
     <div class="row">
 		<iframe src="{{ i.live_url }}"></iframe>
-		<iframe src="{{ i.local_url }}"></iframe>
+        {% if i.live_url != i.local_url %}
+            <iframe src="{{ i.local_url }}"></iframe>
+        {% endif %}
     </div>
 {% endfor %}
 
