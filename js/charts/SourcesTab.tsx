@@ -38,7 +38,7 @@ export default class SourcesTab extends React.Component<{ bounds: Bounds, chart:
         return <div className="datasource-wrapper">
             <h2>{variable.name} {editUrl && <a href={editUrl} target="_blank"><i className="fa fa-pencil"/></a>}</h2>
             <table className="variable-desc">
-                {variable.description && <tr><td>Variable description</td><td dangerouslySetInnerHTML={{__html: linkify(source.additionalInfo)}}/></tr>}
+                {variable.description && <tr><td>Variable description</td><td dangerouslySetInnerHTML={{__html: linkify(variable.description)}}/></tr>}
                 {variable.coverage && <tr><td>Variable geographic coverage</td><td>{variable.coverage}</td></tr>}
                 {variable.timespan && <tr><td>Variable time span</td><td>{variable.timespan}</td></tr>}
                 {dimension.unitConversionFactor !== 1 && <tr><td>Unit conversion factor for chart</td><td>{dimension.unitConversionFactor}</td></tr>}

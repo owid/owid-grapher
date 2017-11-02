@@ -44,7 +44,11 @@ class OwidTests(TestCase):
             'source': {
                 'id': None,
                 'name': 'Test Source',
-                'description': 'Description'
+                'dataPublishedBy': "test publisher",
+                'dataPublisherSource': "test publisher source",
+                'link': "https://example.com",
+                'retrievedDate': "2017-01-01",
+                'additionalInfo': "test additional info"
             },
             'values': ["0.000431591", "0.000462546", "0.000478732", "0.000479573", "0.00045079", "0.000470082"]
         })
@@ -58,7 +62,11 @@ class OwidTests(TestCase):
             'source': {
                 'id': None,
                 'name': 'Test Source',
-                'description': 'Description'
+                'dataPublishedBy': "test publisher",
+                'dataPublisherSource': "test publisher source",
+                'link': "https://example.com",
+                'retrievedDate': "2017-01-01",
+                'additionalInfo': "test additional info"
             },
             'values': ["3.6", "3.2", "6.5", "7.4", "3.456", "3"]
         })
