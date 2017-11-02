@@ -42,8 +42,8 @@ export default class SourcesTab extends React.Component<{ bounds: Bounds, chart:
                 {variable.coverage && <tr><td>Variable geographic coverage</td><td>{variable.coverage}</td></tr>}
                 {variable.timespan && <tr><td>Variable time span</td><td>{variable.timespan}</td></tr>}
                 {dimension.unitConversionFactor !== 1 && <tr><td>Unit conversion factor for chart</td><td>{dimension.unitConversionFactor}</td></tr>}
-                {source.dataPublishedBy && <tr><td>Data published by</td><td>{source.dataPublishedBy}</td></tr>}
-                {source.dataPublisherSource && <tr><td>Data publisher's source</td><td>{source.dataPublisherSource}</td></tr>}
+                {source.dataPublishedBy && <tr><td>Data published by</td><td dangerouslySetInnerHTML={{__html: linkify(source.dataPublishedBy)}}/></tr>}
+                {source.dataPublisherSource && <tr><td>Data publisher's source</td><td dangerouslySetInnerHTML={{__html: linkify(source.dataPublisherSource)}}/></tr>}
                 {source.link && <tr><td>Link</td><td dangerouslySetInnerHTML={{__html: linkify(source.link)}}/></tr>}
                 {source.retrievedDate && <tr><td>Retrieved</td><td>{source.retrievedDate}</td></tr>}
             </table>
