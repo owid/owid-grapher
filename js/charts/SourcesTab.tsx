@@ -5,16 +5,11 @@ import { observer } from 'mobx-react'
 import Bounds from './Bounds'
 import ChartConfig from './ChartConfig'
 import { SourceWithDimension } from './ChartData'
-import anchorme from 'anchorme'
+const linkifyHtml = require('linkifyjs/html')
 import * as Cookies from 'js-cookie'
 
 function linkify(s: string) {
-    return anchorme(s, {
-        attributes: [{
-            name: "target",
-            value: "_blank"
-        }]
-    }).replace(/(?:\r\n|\r|\n)/g, '<br/>')
+    return linkifyHtml(s).replace(/(?:\r\n|\r|\n)/g, '<br/>')
 }
 
 declare const Global: { rootUrl: string }
