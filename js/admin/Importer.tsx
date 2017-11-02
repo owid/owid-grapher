@@ -413,7 +413,6 @@ class EditSource extends React.Component<{ variable: Variable, dataset: Dataset,
                 For institutional projects, the format should be similar, but detailing the corresponding project or report. <br />
                 For data that we have modified extensively in order to change the meaning of the data, we should list OWID as publisher, and provide the name of the person in charge of the calculation.<br />
                 The field “Data publisher’s source” should give basic pointers (e.g. surveys data). Anything longer than a line should be relegated to the field “Additional information”. <br />
-                Sometimes it is necessary to change the structure of this description. (e.g. the row dedicated to ‘Link’ or Data publisher’s source has to be deleted).
             </p>
             {source.id && <p className="existing-source-warning text-warning">
                 <i className="fa fa-warning"></i> You are editing an existing source. Changes may also affect other variables.

@@ -64,7 +64,6 @@ urlpatterns = [
     url(r'^grapher/admin/logos/(?P<logoid>[\w]+)/$', admin_views.showlogo, name="showlogo"),
     url(r'^grapher/admin/logos/(?P<logoid>[\w]+)/edit/$', admin_views.editlogo, name="editlogo"),
     url(r'^grapher/admin/logos/(?P<logoid>[\w]+)$', admin_views.managelogo, name="managelogo"),
-    url(r'^grapher/admin/sources/$', admin_views.listsources, name="listsources"),
     url(r'^grapher/admin/sources/(?P<sourceid>[\w]+)/$', admin_views.showsource, name="showsource"),
     url(r'^grapher/admin/sources/(?P<sourceid>[\w]+)/edit/$', admin_views.editsource, name="editsource"),
     url(r'^grapher/admin/sources/(?P<sourceid>[\w]+)$', admin_views.managesource, name="managesource"),

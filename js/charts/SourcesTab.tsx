@@ -6,6 +6,18 @@ import Bounds from './Bounds'
 import ChartConfig from './ChartConfig'
 import { SourceWithDimension } from './ChartData'
 import anchorme from 'anchorme'
+import * as Cookies from 'js-cookie'
+
+function linkify(s: string) {
+    return anchorme(s, {
+        attributes: [{
+            name: "target",
+            value: "_blank"
+        }]
+    }).replace(/(?:\r\n|\r|\n)/g, '<br/>')
+}
+
+declare const Global: { rootUrl: string }
 
 @observer
 export default class SourcesTab extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
@@ -17,33 +29,25 @@ export default class SourcesTab extends React.Component<{ bounds: Bounds, chart:
         return this.props.chart.data.sources
     }
 
-    base: HTMLDivElement
-    componentDidMount() {
-        this.base.innerHTML = anchorme(this.base.innerHTML, {
-            attributes: [{
-                name: "target",
-                value: "_blank"
-            }]
-        })
-    }
-
     renderSource(source: SourceWithDimension) {
         const { dimension } = source
         const { variable } = dimension
-        console.log(source.additionalInfo)
+
+        const editUrl = Cookies.get('isAdmin') ? `${Global.rootUrl}/admin/sources/${source.id}/edit` : undefined
+
         return <div className="datasource-wrapper">
-            <h2>{variable.name}</h2>
+            <h2>{variable.name} {editUrl && <a href={editUrl} target="_blank"><i className="fa fa-pencil"/></a>}</h2>
             <table className="variable-desc">
-                {variable.description && <tr><td>Variable description</td><td>{variable.description}</td></tr>}
+                {variable.description && <tr><td>Variable description</td><td dangerouslySetInnerHTML={{__html: linkify(source.additionalInfo)}}/></tr>}
                 {variable.coverage && <tr><td>Variable geographic coverage</td><td>{variable.coverage}</td></tr>}
                 {variable.timespan && <tr><td>Variable time span</td><td>{variable.timespan}</td></tr>}
                 {dimension.unitConversionFactor !== 1 && <tr><td>Unit conversion factor for chart</td><td>{dimension.unitConversionFactor}</td></tr>}
                 {source.dataPublishedBy && <tr><td>Data published by</td><td>{source.dataPublishedBy}</td></tr>}
                 {source.dataPublisherSource && <tr><td>Data publisher's source</td><td>{source.dataPublisherSource}</td></tr>}
-                {source.link && <tr><td>Link</td><td>{source.link}</td></tr>}
+                {source.link && <tr><td>Link</td><td dangerouslySetInnerHTML={{__html: linkify(source.link)}}/></tr>}
                 {source.retrievedDate && <tr><td>Retrieved</td><td>{source.retrievedDate}</td></tr>}
             </table>
-            {source.additionalInfo && <p>{source.additionalInfo}</p>}
+            {source.additionalInfo && <p dangerouslySetInnerHTML={{__html: linkify(source.additionalInfo)}}/>}
         </div>
     }
 

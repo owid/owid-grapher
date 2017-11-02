@@ -70,6 +70,7 @@ def embed_snippet(request):
 def test_all(request):
     test_type = request.GET.get('type', '')
     test_tab = request.GET.get('tab', '')
+    test_overlay = request.GET.get('overlay', '')
     test_page = request.GET.get('page', '')
     test_compare = request.GET.get('compare', '')
 
@@ -120,6 +121,12 @@ def test_all(request):
             live_url = live_url + '?tab=' + test_tab
             local_url_png = local_url_png + '?tab=' + test_tab
             live_url_png = live_url_png + '?tab=' + test_tab
+
+        if test_overlay:
+            local_url = local_url + '?overlay=' + test_overlay
+            live_url = live_url + '?overlay=' + test_overlay
+            local_url_png = local_url_png + '?overlay=' + test_overlay
+            live_url_png = live_url_png + '?overlay=' + test_overlay
 
         urls.append({'local_url': local_url, 'live_url': live_url, 'local_url_png': local_url_png,
                      'live_url_png': live_url_png})
@@ -347,7 +354,7 @@ def variables(request, ids):
     variables = Variable.objects.filter(id__in=variable_ids).select_related('fk_dst_id', 'sourceId').values(
         'id', 'name', 'description', 'unit', 'short_unit',
         'displayName', 'displayUnit', 'displayShortUnit', 'displayUnitConversionFactor', 'displayTolerance', 'displayIsProjection',
-        'fk_dst_id__name', 'sourceId__name', 'sourceId__description'
+        'fk_dst_id__name', 'sourceId__pk', 'sourceId__name', 'sourceId__description'
     )
 
     # Process the metadata into a nicer form
@@ -355,7 +362,7 @@ def variables(request, ids):
         variable['shortUnit'] = variable.pop('short_unit')
         variable['datasetName'] = variable.pop('fk_dst_id__name')
         source_description = json.loads(variable.pop('sourceId__description'))
-        variable['source'] = {}
+        variable['source'] = { 'id': variable.pop('sourceId__pk') }
         variable['source']['name'] = variable.pop('sourceId__name')
         variable['source']['dataPublishedBy'] = "" if not source_description['dataPublishedBy'] else source_description['dataPublishedBy']
         variable['source']['dataPublisherSource'] = "" if not source_description['dataPublisherSource'] else source_description[
