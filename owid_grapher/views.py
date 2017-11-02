@@ -362,7 +362,8 @@ def variables(request, ids):
         variable['shortUnit'] = variable.pop('short_unit')
         variable['datasetName'] = variable.pop('fk_dst_id__name')
         source_description = json.loads(variable.pop('sourceId__description'))
-        variable['source'] = { 'id': variable.pop('sourceId__pk') }
+        variable['source'] = source_description
+        variable['source']['id'] = variable.pop('sourceId__pk')
         variable['source']['name'] = variable.pop('sourceId__name')
         variable['source']['dataPublishedBy'] = "" if not source_description['dataPublishedBy'] else source_description['dataPublishedBy']
         variable['source']['dataPublisherSource'] = "" if not source_description['dataPublisherSource'] else source_description[
