@@ -2,7 +2,7 @@
 
 {% block content %}
     <div id="editor">
-        <div class="chart-container"></div>
+        <figure data-grapher-src=""></figure>
 		<div id="form-view" class="form-wrapper"></div>
 	</div>
 {% endblock %}
@@ -56,7 +56,7 @@
     <script type="text/javascript">
         var chartConfig = {{ chartconfig }};
 		var cacheTag = {{ cachetag }}
-        var chartView = ChartView.bootstrap({ jsonConfig: chartConfig, containerNode: document.getElementsByClassName('chart-container')[0], isEditor: true })
+        var chartView = ChartView.bootstrap({ jsonConfig: chartConfig, containerNode: document.getElementsByTagName('figure')[0], isEditor: true })
 		ChartEditorView.bootstrap({ chartView: chartView, cacheTag: cacheTag })
     </script>
     {% endautoescape %}

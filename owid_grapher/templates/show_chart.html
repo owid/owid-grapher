@@ -36,12 +36,10 @@
             margin: 0;
         }
 
-        body {
+        figure[data-grapher-src] {
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-        figure[data-grapher-src] {
             margin: 0;
             width: 100%;
             height: 100%;
@@ -50,7 +48,7 @@
     <script src="{% rootrequest %}/embedCharts.js"></script>
 </head>
 {% endautoescape %}
-<body>
+<body class="singleChart">
     <figure data-grapher-src="{{ chartmeta.canonicalUrl }}"></figure>
 </body>
 </html>

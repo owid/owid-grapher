@@ -107,7 +107,7 @@ button > i {
   height: 100%;
 }
 
-#editor .chart-container {
+#editor figure[data-grapher-src] {
   height: 90vh;
   width: 50%;
   display: flex;

@@ -42,7 +42,7 @@ export class MultiEmbedder {
                 const figureBottom = figureRect.bottom-bodyRect.top
                 if (windowBottom+preloadDistance >= figureTop && windowTop-preloadDistance <= figureBottom) {
                     figure.isActive = true
-                    ChartView.bootstrap({ jsonConfig: figure.jsonConfig, containerNode: figure.element, isEmbed: true, queryStr: figure.queryStr })
+                    ChartView.bootstrap({ jsonConfig: figure.jsonConfig, containerNode: figure.element, isEmbed: figure.element.parentNode !== document.body || undefined, queryStr: figure.queryStr })
                 }
             }
         })
