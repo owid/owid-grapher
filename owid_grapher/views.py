@@ -51,7 +51,6 @@ def embed_snippet(request):
         script.src = "https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,fetch"
         document.head.appendChild(script);
 
-
         var script = document.createElement('script');
         script.type = 'text/javascript';
         script.onload = function() {
