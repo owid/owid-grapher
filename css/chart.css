@@ -5,24 +5,28 @@ figure[data-grapher-src]:empty {
 }
 
 figure[data-grapher-src]:empty:after {
-    content: attr(data-grapher-src);
+    content: "";
+    border: 5px solid #333;
+    border-radius: 30px;
+    height: 30px;
+    width: 30px;
+    opacity: 0;
  
-    animation: loading 4s;
+    animation: pulsate 1s ease-out;
     animation-iteration-count: infinite;
 }
 
-@keyframes loading {
+@keyframes pulsate {
     0% {
-        content: attr(data-grapher-src) "";
-    }
-    25% {
-        content: attr(data-grapher-src) ".";
+        transform: scale(.1);
+        opacity: 0.0;
     }
     50% {
-        content: attr(data-grapher-src) "..";
+        opacity: 1;
     }
-    75% {
-        content: attr(data-grapher-src) "...";
+    100% {
+        transform: scale(1.2);
+        opacity: 0;
     }
 }
 
@@ -99,7 +103,7 @@ figure[data-grapher-src]:empty:after {
     overflow: hidden;
 }
 
-body.singleChart #chart, #editor #chart, body:not(.singleChart) figure[data-grapher-src] {
+#chart {
     border: 1px solid #f0f0f0;
     border-radius: 2px;
     box-shadow: rgba(0, 0, 0, 0.117647) 0px 0px 2px 0px, rgba(0, 0, 0, 0.239216) 0px 2px 2px 0px
