@@ -22,8 +22,13 @@ export class Variable {
     @observable.ref displayIsProjection?: boolean = undefined
 
     @observable.struct source: {
+        id: number,
         name: string,
-        description: string
+        dataPublishedBy: string,
+        dataPublisherSource: string,
+        link: string,
+        retrievedDate: string,
+        additionalInfo: string,
     }
     @observable.ref years: number[] = []
     @observable.ref entities: string[] = []

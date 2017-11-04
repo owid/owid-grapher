@@ -1,9 +1,18 @@
-{% extends 'base_chart_template.html' %}
-
-{% block content %}
-
+<!doctype html>
+{% load webpack %}{% load rootrequest %}
+<html lang="en">
+{% autoescape off %}
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Test All Charts</title>
     <style>
-		iframe {
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+		figure, iframe {
 			border: 0;
 			width: 914px;
 			height: 400px;
@@ -28,18 +37,23 @@
 			width: 100%;
 			text-align: center;
 		}
-	</style>
-
-<div class="row">
-	<h3>Old Version</h3>
-	<h3>New Version</h3>
-</div>
-{% for i in urls %}
+    </style>
+</head>
+{% endautoescape %}
+<body>
     <div class="row">
-		<iframe src="{{ i.live_url }}"></iframe>
-		<iframe src="{{ i.local_url }}"></iframe>
+        <h3>Old Version</h3>
+        <h3>New Version</h3>
     </div>
-{% endfor %}
+    
+    {% for i in urls %}
+        <div class="row">
+            <iframe src="{{ i.live_url }}"></iframe>
+            {% if i.live_url != i.local_url %}
+                <figure data-grapher-src="{{ i.local_url }}"></figure>
+            {% endif %}
+        </div>
+    {% endfor %}
 
     <nav class="pagination">
 		{% if prev_page_url %}
@@ -50,4 +64,6 @@
 		{% endif %}
 	</nav>
 
-{% endblock %}
+    <script src="{% rootrequest %}/embedCharts.js"></script>
+</body>
+</html>

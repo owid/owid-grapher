@@ -1220,43 +1220,6 @@ def managelogo(request: HttpRequest, logoid: str):
     if request.method == 'GET':
         return HttpResponseRedirect(reverse('showlogo', args=[logoid]))
 
-
-def listsources(request: HttpRequest):
-
-    datasets = Dataset.objects.all().iterator()
-    variables = Variable.objects.all().iterator()
-    sources = Source.objects.all().order_by('name').iterator()
-
-    source_var_dict: Dict = {}
-    dataset_dict: Dict = {}
-
-    for each in datasets:
-        dataset_dict[each.pk] = {'id': each.pk, 'name': each.name}
-
-    for each in variables:
-        if not source_var_dict.get(each.sourceId.pk, 0):
-            source_var_dict[each.sourceId.pk] = []
-            source_var_dict[each.sourceId.pk].append({
-            'id': each.pk,
-            'name': each.name
-            })
-        else:
-            source_var_dict[each.sourceId.pk].append({
-            'id': each.pk,
-            'name': each.name
-            })
-
-    sources_list = []
-
-    for each in sources:
-        sources_list.append({'id': each.pk, 'name': each.name,
-                             'dataset': dataset_dict.get(each.datasetId, None),
-                             'variables': source_var_dict.get(each.pk, [])})
-
-    return render(request, 'admin.sources.html', context={'current_user': request.user.name,
-                                                          'sources': sources_list})
-
-
 def showsource(request: HttpRequest, sourceid: str):
     try:
         source = Source.objects.get(pk=int(sourceid))

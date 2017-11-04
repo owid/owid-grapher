@@ -18,6 +18,7 @@ export interface DataKeyInfo {
 }
 
 export interface SourceWithDimension {
+    id: number,
     name: string,
     dataPublishedBy: string,
     dataPublisherSource: string,
