@@ -7,21 +7,6 @@ from openpyxl.writer.excel import save_virtual_workbook
 from importer.models import AdditionalCountryInfo
 
 
-def listwdidatasets(request: HttpRequest):
-    variables = Variable.objects.filter(fk_dst_id__namespace='wdi')
-    datasets: Dict = {}
-
-    for each in variables:
-        if datasets.get(each.fk_dst_id.fk_dst_subcat_id.name):
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
-        else:
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name] = []
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
-
-    return render(request, 'admin.worldbank.data.html', context={'current_user': request.user.name,
-                                                           'datasets': datasets})
-
-
 def listunwppdatasets(request: HttpRequest):
     variables = Variable.objects.filter(fk_dst_id__namespace__contains='unwpp')
     datasets: Dict = {}
@@ -83,8 +68,27 @@ def listclioinfradatasets(request: HttpRequest):
                                                            'datasets': datasets})
 
 
-def listedstatsdatasets(request: HttpRequest):
-    variables = Variable.objects.filter(fk_dst_id__namespace='edstats')
+def listwbdatasets(request: HttpRequest, dataset: str):
+    if dataset == 'wdidatasets':
+        dataset_name = 'wdi'
+        dataset_title = 'World Bank WDI Datasets'
+    elif dataset == 'edstatsdatasets':
+        dataset_name = 'edstats'
+        dataset_title = 'EdStats Datasets'
+    elif dataset == 'genderstatsdatasets':
+        dataset_name = 'genderstats'
+        dataset_title = 'World Bank Gender Statistics Datasets'
+    elif dataset == 'hnpstatsdatasets':
+        dataset_name = 'hnpstats'
+        dataset_title = 'World Bank Health Nutrition and Population Statistics Datasets'
+    elif dataset == 'findexdatasets':
+        dataset_name = 'findex'
+        dataset_title = 'World Bank Global Findex Datasets'
+    elif dataset == 'bbscdatasets':
+        dataset_name = 'bbsc'
+        dataset_title = 'World Bank Data on Statistical Capacity'
+
+    variables = Variable.objects.filter(fk_dst_id__namespace=dataset_name)
     datasets: Dict = {}
 
     for each in variables:
@@ -94,62 +98,36 @@ def listedstatsdatasets(request: HttpRequest):
             datasets[each.fk_dst_id.fk_dst_subcat_id.name] = []
             datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
 
-    return render(request, 'admin.edstats.data.html', context={'current_user': request.user.name,
-                                                           'datasets': datasets})
+    return render(request, 'admin.wb.data.html', context={'current_user': request.user.name,
+                                                           'datasets': datasets,
+                                                           'dataset_title': dataset_title})
 
 
-def listgenderstatsdatasets(request: HttpRequest):
-    variables = Variable.objects.filter(fk_dst_id__namespace='genderstats')
-    datasets: Dict = {}
-
-    for each in variables:
-        if datasets.get(each.fk_dst_id.fk_dst_subcat_id.name):
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
-        else:
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name] = []
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
-
-    return render(request, 'admin.genderstats.data.html', context={'current_user': request.user.name,
-                                                           'datasets': datasets})
-
-
-def listhnpstatsdatasets(request: HttpRequest):
-    variables = Variable.objects.filter(fk_dst_id__namespace='hnpstats')
-    datasets: Dict = {}
-
-    for each in variables:
-        if datasets.get(each.fk_dst_id.fk_dst_subcat_id.name):
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
-        else:
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name] = []
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
-
-    return render(request, 'admin.hnpstats.data.html', context={'current_user': request.user.name,
-                                                           'datasets': datasets})
-
-
-def listfindexdatasets(request: HttpRequest):
-    variables = Variable.objects.filter(fk_dst_id__namespace='findex')
-    datasets: Dict = {}
-
-    for each in variables:
-        if datasets.get(each.fk_dst_id.fk_dst_subcat_id.name):
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
-        else:
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name] = []
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
-
-    return render(request, 'admin.findex.data.html', context={'current_user': request.user.name,
-                                                           'datasets': datasets})
-
-
-def serve_wdi_country_info_xls(request: HttpRequest):
+def serve_wb_country_info_xls(request: HttpRequest):
+    if 'WDI_Country_info.xls' in request.path:
+        filename = 'WDI_Country_info.xls'
+        dataset_name = 'wdi'
+    if 'EDSTATS_Country_info.xls' in request.path:
+        filename = 'EDSTATS_Country_info.xls'
+        dataset_name = 'edstats'
+    if 'GENDERSTATS_Country_info.xls' in request.path:
+        filename = 'GENDERSTATS_Country_info.xls'
+        dataset_name = 'genderstats'
+    if 'HNPSTATS_Country_info.xls' in request.path:
+        filename = 'HNPSTATS_Country_info.xls'
+        dataset_name = 'hnpstats'
+    if 'FINDEX_Country_info.xls' in request.path:
+        filename = 'FINDEX_Country_info.xls'
+        dataset_name = 'findex'
+    if 'BBSC_Country_info.xls' in request.path:
+        filename = 'BBSC_Country_info.xls'
+        dataset_name = 'bbsc'
 
     wb = Workbook()
 
     ws = wb.worksheets[0]
 
-    all_wdi_additional_country_info = AdditionalCountryInfo.objects.filter(dataset='wdi')
+    all_wdi_additional_country_info = AdditionalCountryInfo.objects.filter(dataset=dataset_name)
 
     ws.cell(column=1, row=1, value="Country")
     ws.cell(column=2, row=1, value="Country's World Bank Region")
@@ -172,137 +150,5 @@ def serve_wdi_country_info_xls(request: HttpRequest):
         row += 1
 
     response = HttpResponse(save_virtual_workbook(wb), content_type='application/vnd.ms-excel')
-    response['Content-Disposition'] = 'attachment; filename="WDI_Country_info.xlsx"'
-    return response
-
-
-def serve_edstats_country_info_xls(request: HttpRequest):
-
-    wb = Workbook()
-
-    ws = wb.worksheets[0]
-
-    all_edstats_additional_country_info = AdditionalCountryInfo.objects.filter(dataset='edstats')
-
-    ws.cell(column=1, row=1, value="Country")
-    ws.cell(column=2, row=1, value="Country's World Bank Region")
-    ws.cell(column=3, row=1, value="Country's World Bank income group")
-    ws.cell(column=4, row=1, value="Special notes")
-    ws.cell(column=5, row=1, value="Latest population census")
-    ws.cell(column=6, row=1, value="Latest household survey")
-    ws.cell(column=7, row=1, value="Source of most recent Income and expenditure data")
-
-    row = 2
-    for each in all_edstats_additional_country_info:
-        ws.cell(column=1, row=row, value="{0}".format(each.country_name))
-        ws.cell(column=2, row=row, value="{0}".format(each.country_wb_region))
-        ws.cell(column=3, row=row, value="{0}".format(each.country_wb_income_group))
-        ws.cell(column=4, row=row, value="{0}".format(each.country_special_notes))
-        ws.cell(column=5, row=row, value="{0}".format(each.country_latest_census))
-        ws.cell(column=6, row=row, value="{0}".format(each.country_latest_survey))
-        ws.cell(column=7, row=row, value="{0}".format(each.country_recent_income_source))
-
-        row += 1
-
-    response = HttpResponse(save_virtual_workbook(wb), content_type='application/vnd.ms-excel')
-    response['Content-Disposition'] = 'attachment; filename="EDSTATS_Country_info.xlsx"'
-    return response
-
-
-def serve_genderstats_country_info_xls(request: HttpRequest):
-
-    wb = Workbook()
-
-    ws = wb.worksheets[0]
-
-    all_edstats_additional_country_info = AdditionalCountryInfo.objects.filter(dataset='genderstats')
-
-    ws.cell(column=1, row=1, value="Country")
-    ws.cell(column=2, row=1, value="Country's World Bank Region")
-    ws.cell(column=3, row=1, value="Country's World Bank income group")
-    ws.cell(column=4, row=1, value="Special notes")
-    ws.cell(column=5, row=1, value="Latest population census")
-    ws.cell(column=6, row=1, value="Latest household survey")
-    ws.cell(column=7, row=1, value="Source of most recent Income and expenditure data")
-
-    row = 2
-    for each in all_edstats_additional_country_info:
-        ws.cell(column=1, row=row, value="{0}".format(each.country_name))
-        ws.cell(column=2, row=row, value="{0}".format(each.country_wb_region))
-        ws.cell(column=3, row=row, value="{0}".format(each.country_wb_income_group))
-        ws.cell(column=4, row=row, value="{0}".format(each.country_special_notes))
-        ws.cell(column=5, row=row, value="{0}".format(each.country_latest_census))
-        ws.cell(column=6, row=row, value="{0}".format(each.country_latest_survey))
-        ws.cell(column=7, row=row, value="{0}".format(each.country_recent_income_source))
-
-        row += 1
-
-    response = HttpResponse(save_virtual_workbook(wb), content_type='application/vnd.ms-excel')
-    response['Content-Disposition'] = 'attachment; filename="GENDERSTATS_Country_info.xlsx"'
-    return response
-
-
-def serve_hnpstats_country_info_xls(request: HttpRequest):
-
-    wb = Workbook()
-
-    ws = wb.worksheets[0]
-
-    all_edstats_additional_country_info = AdditionalCountryInfo.objects.filter(dataset='hnpstats')
-
-    ws.cell(column=1, row=1, value="Country")
-    ws.cell(column=2, row=1, value="Country's World Bank Region")
-    ws.cell(column=3, row=1, value="Country's World Bank income group")
-    ws.cell(column=4, row=1, value="Special notes")
-    ws.cell(column=5, row=1, value="Latest population census")
-    ws.cell(column=6, row=1, value="Latest household survey")
-    ws.cell(column=7, row=1, value="Source of most recent Income and expenditure data")
-
-    row = 2
-    for each in all_edstats_additional_country_info:
-        ws.cell(column=1, row=row, value="{0}".format(each.country_name))
-        ws.cell(column=2, row=row, value="{0}".format(each.country_wb_region))
-        ws.cell(column=3, row=row, value="{0}".format(each.country_wb_income_group))
-        ws.cell(column=4, row=row, value="{0}".format(each.country_special_notes))
-        ws.cell(column=5, row=row, value="{0}".format(each.country_latest_census))
-        ws.cell(column=6, row=row, value="{0}".format(each.country_latest_survey))
-        ws.cell(column=7, row=row, value="{0}".format(each.country_recent_income_source))
-
-        row += 1
-
-    response = HttpResponse(save_virtual_workbook(wb), content_type='application/vnd.ms-excel')
-    response['Content-Disposition'] = 'attachment; filename="HNPSTATS_Country_info.xlsx"'
-    return response
-
-
-def serve_findex_country_info_xls(request: HttpRequest):
-
-    wb = Workbook()
-
-    ws = wb.worksheets[0]
-
-    all_edstats_additional_country_info = AdditionalCountryInfo.objects.filter(dataset='findex')
-
-    ws.cell(column=1, row=1, value="Country")
-    ws.cell(column=2, row=1, value="Country's World Bank Region")
-    ws.cell(column=3, row=1, value="Country's World Bank income group")
-    ws.cell(column=4, row=1, value="Special notes")
-    ws.cell(column=5, row=1, value="Latest population census")
-    ws.cell(column=6, row=1, value="Latest household survey")
-    ws.cell(column=7, row=1, value="Source of most recent Income and expenditure data")
-
-    row = 2
-    for each in all_edstats_additional_country_info:
-        ws.cell(column=1, row=row, value="{0}".format(each.country_name))
-        ws.cell(column=2, row=row, value="{0}".format(each.country_wb_region))
-        ws.cell(column=3, row=row, value="{0}".format(each.country_wb_income_group))
-        ws.cell(column=4, row=row, value="{0}".format(each.country_special_notes))
-        ws.cell(column=5, row=row, value="{0}".format(each.country_latest_census))
-        ws.cell(column=6, row=row, value="{0}".format(each.country_latest_survey))
-        ws.cell(column=7, row=row, value="{0}".format(each.country_recent_income_source))
-
-        row += 1
-
-    response = HttpResponse(save_virtual_workbook(wb), content_type='application/vnd.ms-excel')
-    response['Content-Disposition'] = 'attachment; filename="FINDEX_Country_info.xlsx"'
+    response['Content-Disposition'] = 'attachment; filename="%s"' % filename
     return response
