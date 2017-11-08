@@ -9,8 +9,21 @@ html, body {
 }
 
 .ChartEditorPage {
-    height: 100%;
+    height: calc(100% - 60px);
     display: flex;
+
+    /*& .tabular.menu {
+        background: #2185d0;
+    }
+
+    & .tabular.menu a:not(.active) {
+        background: #2185d0;
+        color: white;
+    }
+
+    & .tabular.menu > .item {
+        border-radius: 0;
+    }*/
 
     & > form {
         width: 500px;

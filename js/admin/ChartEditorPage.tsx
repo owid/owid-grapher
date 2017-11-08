@@ -21,7 +21,7 @@ import { capitalize } from '../charts/Util'
 const Button = require('preact-material-components/Button').default
 const Tabs = require('preact-material-components/Tabs').default
 
-import { Menu } from 'semantic-ui-react'
+import { Menu, Form, Dimmer, Loader, Grid } from 'semantic-ui-react'
 
 @observer
 export default class ChartEditorPage extends React.Component<{ admin: Admin, chartId: number }> {
@@ -86,7 +86,9 @@ export default class ChartEditorPage extends React.Component<{ admin: Admin, cha
 
     render() {
         return <div className="ChartEditorPage">
-            {this.editor === undefined && <LoadingBlocker/>}
+            {this.editor === undefined && <Dimmer active>
+                <Loader/>
+            </Dimmer>}
             {this.editor !== undefined && this.renderReady(this.editor)}
         </div>
     }
@@ -95,7 +97,7 @@ export default class ChartEditorPage extends React.Component<{ admin: Admin, cha
         const {chart, availableTabs} = editor
 
         return [
-            <form onSubmit={e => e.preventDefault()}>
+            <Form onSubmit={e => e.preventDefault()}>
                 <div>
                     <Menu tabular>
                         {availableTabs.map(tab =>
@@ -112,7 +114,7 @@ export default class ChartEditorPage extends React.Component<{ admin: Admin, cha
                     {editor.tab === 'map' && <EditorMapTab editor={editor} />}
                 </div>
                 <SaveButtons editor={editor} />
-            </form>,
+            </Form>,
             <figure data-grapher-src>
                 <ChartView chart={chart} bounds={new Bounds(0, 0, 400, 850)}/>
             </figure>

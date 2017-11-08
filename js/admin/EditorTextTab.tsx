@@ -31,25 +31,15 @@ export default class EditorTextTab extends React.Component<{ editor: ChartEditor
         const { chart } = this
 
         return <div className="tab-pane active">
-            <div>
-                <TextField label="Title" value={chart.data.title} onValue={this.onTitle}/>
-                <Toggle label="Automatic title" value={chart.props.title === undefined} onValue={this.onToggleAutoTitle}/>
-            </div>
-            <div>
-                <TextField label="/grapher/" value={chart.data.slug} onValue={this.onSlug} title="Human-friendly URL slug for this chart" />
-                <Toggle label="Automatic slug" value={chart.props.slug === undefined} onValue={this.onToggleAutoSlug}/>
-            </div>
-            <div>
-                <Toggle label="Hide automatic time/entity" value={!!chart.props.hideTitleAnnotation} onValue={this.onToggleTitleAnnotation} />
-            </div>
+            <TextField label="Title" value={chart.data.title} onValue={this.onTitle}/>
+            <Toggle label="Automatic title" value={chart.props.title === undefined} onValue={this.onToggleAutoTitle}/>
+            <TextField label="/grapher/" value={chart.data.slug} onValue={this.onSlug} title="Human-friendly URL slug for this chart" />
+            <Toggle label="Automatic slug" value={chart.props.slug === undefined} onValue={this.onToggleAutoSlug}/>
+            <Toggle label="Hide automatic time/entity" value={!!chart.props.hideTitleAnnotation} onValue={this.onToggleTitleAnnotation} />
             <TextAreaField label="Subtitle" value={chart.props.subtitle} onValue={this.onSubtitle} placeholder="Briefly describe the context of the data" />
-            <div>
-                <TextField label="Source" style={{ width: "90%" }} value={chart.data.sourcesLine} onValue={this.onSource}/><br/>
-                <Toggle label="Automatic source" value={chart.props.sourceDesc === undefined} onValue={this.onToggleAutoSource}/>
-            </div>
-            <div>
-                <TextField label="Footer note" value={chart.props.note} onValue={this.onNote} helpText="Any important clarification needed to avoid miscommunication" />
-            </div>
+            <TextField label="Source" style={{ width: "90%" }} value={chart.data.sourcesLine} onValue={this.onSource}/>
+            <Toggle label="Automatic source" value={chart.props.sourceDesc === undefined} onValue={this.onToggleAutoSource}/>
+            <TextField label="Footer note" value={chart.props.note} onValue={this.onNote} helpText="Any important clarification needed to avoid miscommunication" />
             <TextAreaField label="Internal author notes" value={chart.props.internalNotes} onValue={this.onInternalNotes} placeholder="e.g. WIP, needs review, etc" />
         </div>
     }
