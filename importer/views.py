@@ -87,6 +87,9 @@ def listwbdatasets(request: HttpRequest, dataset: str):
     elif dataset == 'bbscdatasets':
         dataset_name = 'bbsc'
         dataset_title = 'World Bank Data on Statistical Capacity'
+    elif dataset == 'povstatsdatasets':
+        dataset_name = 'povstats'
+        dataset_title = 'World Bank Poverty and Equity database'
 
     variables = Variable.objects.filter(fk_dst_id__namespace=dataset_name)
     datasets: Dict = {}
@@ -122,6 +125,9 @@ def serve_wb_country_info_xls(request: HttpRequest):
     if 'BBSC_Country_info.xls' in request.path:
         filename = 'BBSC_Country_info.xls'
         dataset_name = 'bbsc'
+    if 'POVSTATS_Country_info.xls' in request.path:
+        filename = 'POVSTATS_Country_info.xls'
+        dataset_name = 'povstats'
 
     wb = Workbook()
 
