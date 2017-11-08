@@ -12,36 +12,45 @@ export default class EditorTextTab extends React.Component<{ editor: ChartEditor
 
     lastTitle: string
 
-    @action.bound onTitle(title: string) { this.chart.props.title = title || undefined }
+    @action.bound onTitle(title: string|undefined) { this.chart.props.title = title||"" }
+    @action.bound onToggleAutoTitle(value: boolean) { this.chart.props.title = value ? undefined : this.chart.data.defaultTitle }
+
     @action.bound onSlug(slug: string) { this.chart.props.slug = slug || undefined }
+    @action.bound onToggleAutoSlug(value: boolean) { this.chart.props.slug = value ? undefined : this.chart.data.defaultSlug }
+
     @action.bound onToggleTitleAnnotation(value: boolean) { this.chart.props.hideTitleAnnotation = value || undefined }
     @action.bound onSubtitle(value: string) { this.chart.props.subtitle = value || undefined }
-    @action.bound onSource(sourceDesc: string) { this.chart.props.sourceDesc = sourceDesc || undefined }
-    @action.bound onNote(value: string) { this.chart.props.note = value || undefined }
+
+    @action.bound onSource(sourceDesc: string|undefined) { this.chart.props.sourceDesc = sourceDesc||"" }
+    @action.bound onToggleAutoSource(value: boolean) { this.chart.props.sourceDesc = value ? undefined : this.chart.data.defaultSourcesLine }
+
+    @action.bound onNote(value: string|undefined) { this.chart.props.note = value || undefined }
     @action.bound onInternalNotes(value: string) { this.chart.props.internalNotes = value || undefined }
 
     render() {
         const { chart } = this
 
         return <div className="tab-pane active">
-            <section>
-                <TextField label="Title" value={chart.props.title} onValue={this.onTitle} style={{ width: "100%" }} placeholder={chart.data.title} />
-                <TextField label="/grapher/" value={chart.props.slug} onValue={this.onSlug} placeholder={chart.data.slug} title="Human-friendly URL slug for this chart" />
+            <div>
+                <TextField label="Title" value={chart.data.title} onValue={this.onTitle}/>
+                <Toggle label="Automatic title" value={chart.props.title === undefined} onValue={this.onToggleAutoTitle}/>
+            </div>
+            <div>
+                <TextField label="/grapher/" value={chart.data.slug} onValue={this.onSlug} title="Human-friendly URL slug for this chart" />
+                <Toggle label="Automatic slug" value={chart.props.slug === undefined} onValue={this.onToggleAutoSlug}/>
+            </div>
+            <div>
                 <Toggle label="Hide automatic time/entity" value={!!chart.props.hideTitleAnnotation} onValue={this.onToggleTitleAnnotation} />
-            </section>
+            </div>
             <TextAreaField label="Subtitle" value={chart.props.subtitle} onValue={this.onSubtitle} placeholder="Briefly describe the context of the data" />
-            <section>
-                <h2>Sources</h2>
-                <TextAreaField value={chart.props.sourceDesc} onValue={this.onSource} placeholder={chart.data.sourcesLine} />
-            </section>
-            <section>
-                <h2>Footer note</h2>
-                <TextAreaField value={chart.props.note} onValue={this.onNote} placeholder="Any further relevant information e.g. adjustments or limitations" />
-            </section>
-            <section>
-                <h2>Internal author notes</h2>
-                <TextAreaField value={chart.props.internalNotes} onValue={this.onInternalNotes} placeholder="e.g. WIP, needs review, etc" />
-            </section>
+            <div>
+                <TextField label="Source" style={{ width: "90%" }} value={chart.data.sourcesLine} onValue={this.onSource}/>
+                <Toggle label="Automatic source" value={chart.props.sourceDesc === undefined} onValue={this.onToggleAutoSource}/>
+            </div>
+            <div>
+                <TextField label="Footer note" value={chart.props.note} onValue={this.onNote} helpText="Any further relevant information e.g. adjustments or limitations" />
+            </div>
+            <TextAreaField label="Internal author notes" value={chart.props.internalNotes} onValue={this.onInternalNotes} placeholder="e.g. WIP, needs review, etc" />
         </div>
     }
 }
