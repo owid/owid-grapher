@@ -26,19 +26,23 @@ export default class AxisScale {
     @observable tickFormat: (v: number) => string
     @observable.struct domain: [number, number]
     @observable.struct range: [number, number]
+    @observable hideFractionalTicks: boolean
 
     constructor({ scaleType = 'linear',
                   scaleTypeOptions = ['linear'],
                   tickFormat = (d => d.toString()),
                   domain = [0, 0],
-                  range = [0, 0] }:
+                  range = [0, 0],
+                  hideFractionalTicks = false }:
                 { scaleType?: ScaleType, scaleTypeOptions?: ScaleType[],
-                  tickFormat?: (v: number) => string, domain: [number, number], range?: [number, number] }) {
+                  tickFormat?: (v: number) => string, domain: [number, number], range?: [number, number],
+                  hideFractionalTicks?: boolean }) {
         this.scaleType = scaleType
         this.scaleTypeOptions = scaleTypeOptions
         this.tickFormat = tickFormat
         this.domain = domain
         this.range = range
+        this.hideFractionalTicks = hideFractionalTicks
     }
 
     @computed get d3_scaleConstructor(): any {
@@ -77,6 +81,9 @@ export default class AxisScale {
         } else {
             ticks = d3_scale.ticks(6)
         }
+
+        if (this.hideFractionalTicks)
+            ticks = ticks.filter(t => t % 1 === 0)
 
         return ticks
     }
