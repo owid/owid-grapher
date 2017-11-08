@@ -7,13 +7,12 @@
 import * as React from 'react'
 import { extend, toString, numberOnly, pick, guid } from '../charts/Util'
 import { bind } from 'decko'
+import { Button as SButton, Form, Checkbox } from 'semantic-ui-react'
 
 const MDButton = require('preact-material-components/Button').default
 const Select = require('preact-material-components/Select').default
-const Formfield = require('preact-material-components/Formfield').default
 
 const MDCTextfield = require('@material/textfield').MDCTextfield
-const MDCCheckbox = require('@material/checkbox').MDCCheckbox
 
 export interface TextFieldProps extends React.HTMLAttributes<HTMLLabelElement> {
     label?: string,
@@ -66,9 +65,9 @@ export class TextField extends React.Component<TextFieldProps> {
         const { props } = this
         const passthroughProps = pick(props, ['title', 'disabled'])
 
-        return <div style={extend({display: "inline-block"}, props.style||{})}>
+        return <div style={extend({ display: "inline-block" }, props.style || {})}>
             <div className="mdc-textfield mdc-textfield--dense" style={{ width: "100%" }} {...passthroughProps}>
-                <input type="text" id={this.id} className="mdc-textfield__input" onInput={this.onInput} value={props.value}/>
+                <input type="text" id={this.id} className="mdc-textfield__input" onInput={this.onInput} value={props.value} />
                 <label htmlFor={this.id} className="mdc-textfield__label">{props.label}</label>
                 <div className="mdc-textfield__bottom-line"></div>
             </div>
@@ -167,7 +166,7 @@ export class SelectField extends React.Component<SelectFieldProps> {
                     <Select.Item>{props.optionLabels ? props.optionLabels[i] : value}</Select.Item>
                 )}
             </Select>
-         </Formfield>
+        </Formfield>
     }
 }
 
@@ -220,31 +219,16 @@ export class Toggle extends React.Component<ToggleProps> {
 
         </div>*/
 
-        return <div className="mdc-form-field">
-            <div className="mdc-checkbox">
-                <input type="checkbox"
-                    className="mdc-checkbox__native-control"
-                    onChange={(ev) => props.onValue(ev.target.checked)} />
-                <div className="mdc-checkbox__background">
-                    <svg className="mdc-checkbox__checkmark"
-                        viewBox="0 0 24 24">
-                        <path className="mdc-checkbox__checkmark__path"
-                            fill="none"
-                            stroke="white"
-                            d="M1.73,12.91 8.1,19.28 22.79,4.59" />
-                    </svg>
-                    <div className="mdc-checkbox__mixedmark"></div>
-                </div>
-            </div>
-            <label>{props.label}</label>
-        </div>
+        return <Form.Field>
+            <Checkbox label='I agree to the Terms and Conditions' />
+        </Form.Field>
         /* return <FormField>
-             <Checkbox checked={props.value} onChange={(ev) => props.onValue(ev.target.checked)}/> <label>{props.label}</label>
-         </FormField>
-         return <label className="Toggle clickable">
-             <input type="checkbox" checked={props.value}  />
-             {" " + props.label}
-         </label>*/
+           <Checkbox checked={props.value} onChange={(ev) => props.onValue(ev.target.checked)}/> <label>{props.label}</label>
+       </FormField>
+       return <label className="Toggle clickable">
+           <input type="checkbox" checked={props.value}  />
+           {" " + props.label}
+       </label>*/
     }
 }
 
@@ -255,7 +239,7 @@ export interface ButtonProps {
 
 export class Button extends React.Component<ButtonProps> {
     render() {
-        const {props} = this
-        return <MDButton onClick={props.onClick}>{props.label}</MDButton>
+        const { props } = this
+        return <SButton onClick={props.onClick}>{props.label}</SButton>
     }
 }

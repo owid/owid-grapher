@@ -21,6 +21,8 @@ import { capitalize } from '../charts/Util'
 const Button = require('preact-material-components/Button').default
 const Tabs = require('preact-material-components/Tabs').default
 
+import { Menu } from 'semantic-ui-react'
+
 @observer
 export default class ChartEditorPage extends React.Component<{ admin: Admin, chartId: number }> {
     @observable.ref chart?: ChartConfig
@@ -95,11 +97,11 @@ export default class ChartEditorPage extends React.Component<{ admin: Admin, cha
         return [
             <form onSubmit={e => e.preventDefault()}>
                 <div>
-                    <Tabs>
+                    <Menu tabular>
                         {availableTabs.map(tab =>
-                            <Tabs.Tab active={tab === editor.tab} onClick={() => editor.tab = tab}>{capitalize(tab)}</Tabs.Tab>
+                            <Menu.Item name={tab} active={tab === editor.tab} onClick={() => editor.tab = tab}/>
                         )}
-                    </Tabs>
+                    </Menu>
                 </div>
                 <div className="innerForm">
                     {editor.tab === 'basic' && <EditorBasicTab editor={editor} />}

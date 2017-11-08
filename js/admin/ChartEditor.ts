@@ -50,7 +50,7 @@ export default class ChartEditor {
     // Whether the current chart state is saved or not
     @observable.ref isSaved: boolean = true
     @observable.ref currentRequest: Promise<any> | undefined
-    @observable.ref tab: EditorTab = 'text'
+    @observable.ref tab: EditorTab = 'basic'
 
     constructor(props: ChartEditorProps) {
         this.props = props
