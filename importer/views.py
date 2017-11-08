@@ -93,6 +93,9 @@ def listwbdatasets(request: HttpRequest, dataset: str):
     elif dataset == 'climatechdatasets':
         dataset_name = 'climatech'
         dataset_title = 'World Bank Climate Change Data'
+    elif dataset == 'hnpqstatsdatasets':
+        dataset_name = 'hnpqstats'
+        dataset_title = 'World Bank Health Nutrition and Population Statistics by Wealth Quintile'
 
     variables = Variable.objects.filter(fk_dst_id__namespace=dataset_name)
     datasets: Dict = {}
@@ -131,6 +134,9 @@ def serve_wb_country_info_xls(request: HttpRequest):
     if 'POVSTATS_Country_info.xls' in request.path:
         filename = 'POVSTATS_Country_info.xls'
         dataset_name = 'povstats'
+    if 'HNPQSTATS_Country_info.xls' in request.path:
+        filename = 'HNPQSTATS_Country_info.xls'
+        dataset_name = 'hnpqstats'
 
     wb = Workbook()
 

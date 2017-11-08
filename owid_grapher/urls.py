@@ -113,5 +113,6 @@ urlpatterns = [
     url(r'^grapher/hnpstats/HNPSTATS_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='servehnpstatscountryinfo'),
     url(r'^grapher/findex/FINDEX_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='servefindexcountryinfo'),
     url(r'^grapher/bbsc/BBSC_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='servebbsccountryinfo'),
-    url(r'^grapher/povstats/POVSTATS_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='servepovstatscountryinfo')
+    url(r'^grapher/povstats/POVSTATS_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='servepovstatscountryinfo'),
+    url(r'^grapher/hnpqstats/HNPQSTATS_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='servehnpqstatscountryinfo'),
 ]
