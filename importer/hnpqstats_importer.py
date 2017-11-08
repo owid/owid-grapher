@@ -715,7 +715,7 @@ with transaction.atomic():
         all_hnpqstats_datasets = Dataset.objects.filter(namespace='hnpqstats')
         all_hnpqstats_datasets_with_vars = Variable.objects.filter(fk_dst_id__in=all_hnpqstats_datasets).values(
             'fk_dst_id').distinct()
-        all_hnpqstats_datasets_with_vars_dict = {item['fk_dst_id'] for item in all_npqstats_datasets_with_vars}
+        all_hnpqstats_datasets_with_vars_dict = {item['fk_dst_id'] for item in all_hnpqstats_datasets_with_vars}
 
         for each in all_hnpqstats_datasets:
             if each.pk not in all_hnpqstats_datasets_with_vars_dict:
