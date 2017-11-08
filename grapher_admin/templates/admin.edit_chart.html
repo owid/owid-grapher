@@ -9,7 +9,7 @@
 		<link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic" rel="stylesheet" type="text/css">
 		<!-- Place favicon.ico in the root directory -->
 
-		<link href="{% webpack "charts.css" %}" rel="stylesheet" type="text/css">
+        <link href="{% webpack "charts.css" %}" rel="stylesheet" type="text/css">
 		<link href="{% webpack "admin.css" %}" rel="stylesheet" type="text/css">
 	</head>
 	<body class="skin-blue">
@@ -24,6 +24,7 @@
 
             window.admin = new Admin("{% rootrequest %}", "{{ cachetag }}")
             admin.start(document.body)
+
             /*var chartConfig = {{ chartconfig }}
             var cacheTag = {{ cachetag }}
             var chartView = ChartView.bootstrap({ jsonConfig: chartConfig, containerNode: document.getElementsByClassName('chart-container')[0], isEditor: true })

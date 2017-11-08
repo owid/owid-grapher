@@ -16,7 +16,7 @@ import EditorMapTab from './EditorMapTab'
 import ChartView from '../charts/ChartView'
 import Bounds from '../charts/Bounds'
 import SaveButtons from './SaveButtons'
-import { capitalize, includes } from '../charts/Util'
+import { capitalize } from '../charts/Util'
 
 @observer
 export default class ChartEditorPage extends React.Component<{ admin: Admin, chartId: number }> {
@@ -80,7 +80,7 @@ export default class ChartEditorPage extends React.Component<{ admin: Admin, cha
     }
 
     render() {
-        return <div>
+        return <div className="ChartEditorPage">
             {this.editor === undefined && <LoadingBlocker/>}
             {this.editor !== undefined && this.renderReady(this.editor)}
         </div>
@@ -90,7 +90,6 @@ export default class ChartEditorPage extends React.Component<{ admin: Admin, cha
         const {chart, availableTabs} = editor
 
         return [
-            <ChartView chart={chart} bounds={new Bounds(0, 0, 400, 850)}/>,
             <form onSubmit={e => e.preventDefault()}>
                 <div className="nav-tabs-custom">
                     <ul className="nav nav-tabs no-bullets">
@@ -110,7 +109,10 @@ export default class ChartEditorPage extends React.Component<{ admin: Admin, cha
                     {editor.tab === 'map' && <EditorMapTab editor={editor} />}
                 </div>
                 <SaveButtons editor={editor} />
-            </form>
+            </form>,
+            <figure data-grapher-src>
+                <ChartView chart={chart} bounds={new Bounds(0, 0, 400, 850)}/>
+            </figure>
         ]
 
     }

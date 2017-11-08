@@ -389,7 +389,7 @@ def starchart(request: HttpRequest, chartid: str):
             new_url.save()
         purge_cache = threading.Thread(target=purge_cloudflare_cache_queue, args=(), kwargs={})
         purge_cache.start()
-        
+
     return JsonResponse({'starred': True}, safe=False)
 
 
@@ -520,11 +520,21 @@ def store_import_data(request: HttpRequest):
                             source_id = variable['source']['id']
                         else:
                             source_id = None
-                        source_desc = variable['source']['description']
+                        source_desc = {
+                            'dataPublishedBy': None if not variable['source']['dataPublishedBy'] else variable['source']['dataPublishedBy'],
+                            'dataPublisherSource': None if not variable['source']['dataPublisherSource'] else variable['source']['dataPublisherSource'],
+                            'link': None if not variable['source']['link'] else variable['source']['link'],
+                            'retrievedDate': None if not variable['source']['retrievedDate'] else variable['source']['retrievedDate'],
+                            'additionalInfo': None if not variable['source']['additionalInfo'] else variable['source']['additionalInfo']
+                        }
                         if source_id:
-                            Source.objects.filter(pk=source_id).update(updated_at=timezone.now(), **variable['source'])
+                            existing_source = Source.objects.get(pk=source_id)
+                            existing_source.name = variable['source']['name']
+                            existing_source.updated_at = timezone.now()
+                            existing_source.description = json.dumps(source_desc)
+                            existing_source.save()
                         else:
-                            new_source = Source(datasetId=dataset_id, name=source_name, description=source_desc)
+                            new_source = Source(datasetId=dataset_id, name=source_name, description=json.dumps(source_desc))
                             new_source.save()
                             source_id = new_source.pk
                             source_ids_by_name[source_name] = source_id
@@ -815,10 +825,15 @@ def dataset_json(request: HttpRequest, datasetid: str):
     variables = Variable.objects.filter(fk_dst_id=dataset.id).select_related('sourceId')
 
     for var in variables:
+        source_description = json.loads(var.sourceId.description)
         sourcedata = {
             'id': var.sourceId.pk,
             'name': var.sourceId.name,
-            'description': var.sourceId.description
+            'dataPublishedBy': "" if not source_description['dataPublishedBy'] else source_description['dataPublishedBy'],
+            'dataPublisherSource': "" if not source_description['dataPublisherSource'] else source_description['dataPublisherSource'],
+            'link': "" if not source_description['link'] else source_description['link'],
+            'retrievedDate': "" if not source_description['retrievedDate'] else source_description['retrievedDate'],
+            'additionalInfo': "" if not source_description['additionalInfo'] else source_description['additionalInfo']
         }
 
         chartdata = []
@@ -1225,53 +1240,16 @@ def managelogo(request: HttpRequest, logoid: str):
     if request.method == 'GET':
         return HttpResponseRedirect(reverse('showlogo', args=[logoid]))
 
-
-def listsources(request: HttpRequest):
-
-    datasets = Dataset.objects.all().iterator()
-    variables = Variable.objects.all().iterator()
-    sources = Source.objects.all().order_by('name').iterator()
-
-    source_var_dict: Dict = {}
-    dataset_dict: Dict = {}
-
-    for each in datasets:
-        dataset_dict[each.pk] = {'id': each.pk, 'name': each.name}
-
-    for each in variables:
-        if not source_var_dict.get(each.sourceId.pk, 0):
-            source_var_dict[each.sourceId.pk] = []
-            source_var_dict[each.sourceId.pk].append({
-            'id': each.pk,
-            'name': each.name
-            })
-        else:
-            source_var_dict[each.sourceId.pk].append({
-            'id': each.pk,
-            'name': each.name
-            })
-
-    sources_list = []
-
-    for each in sources:
-        sources_list.append({'id': each.pk, 'name': each.name,
-                             'dataset': dataset_dict.get(each.datasetId, None),
-                             'variables': source_var_dict.get(each.pk, [])})
-
-    return render(request, 'admin.sources.html', context={'current_user': request.user.name,
-                                                          'sources': sources_list})
-
-
 def showsource(request: HttpRequest, sourceid: str):
     try:
         source = Source.objects.get(pk=int(sourceid))
     except Source.DoesNotExist:
         return HttpResponseNotFound('Source does not exist!')
 
-    source = {'id': source.pk, 'name': source.name, 'description': source.description}
+    source = {'id': source.pk, 'name': source.name, 'description': json.loads(source.description), 'datasetId': source.datasetId}
 
     try:
-        dataset = Dataset.objects.get(pk=source['id'])
+        dataset = Dataset.objects.get(pk=source['datasetId'])
         source['dataset'] = {'id': dataset.pk, 'name': dataset.name}
     except:
         source['dataset'] = None
@@ -1289,11 +1267,15 @@ def editsource(request: HttpRequest, sourceid: str):
         source = Source.objects.get(pk=int(sourceid))
     except Source.DoesNotExist:
         return HttpResponseNotFound('Source does not exist!')
-
+    description = json.loads(source.description)
     source = {
         'id': source.pk,
         'name': source.name,
-        'description': source.description
+        'dataPublishedBy': "" if not description['dataPublishedBy'] else description['dataPublishedBy'],
+        'dataPublisherSource': "" if not description['dataPublisherSource'] else description['dataPublisherSource'],
+        'link': "" if not description['link'] else description['link'],
+        'retrievedDate': "" if not description['retrievedDate'] else description['retrievedDate'],
+        'additionalInfo': "" if not description['additionalInfo'] else description['additionalInfo']
     }
 
     return render(request, 'admin.sources.edit.html', context={'current_user': request.user.name,
@@ -1311,8 +1293,21 @@ def managesource(request: HttpRequest, sourceid: str):
         if request_dict['_method'] == 'PATCH':
             request_dict.pop('_method', None)
             request_dict.pop('csrfmiddlewaretoken', None)
+            for dictkey, value in request_dict.items():
+                if not value.strip():
+                    request_dict[dictkey] = None
+            description = {
+                'dataPublishedBy': request_dict['dataPublishedBy'],
+                'dataPublisherSource': request_dict['dataPublisherSource'],
+                'link': request_dict['link'],
+                'retrievedDate': request_dict['retrievedDate'],
+                'additionalInfo': request_dict['additionalInfo']
+            }
             try:
-                Source.objects.filter(pk=int(sourceid)).update(updated_at=timezone.now(), **request_dict)
+                source.name = request_dict['name']
+                source.updated_at = timezone.now()
+                source.description = json.dumps(description)
+                source.save()
             except Exception as e:
                 messages.error(request, e.args[1])
                 return HttpResponseRedirect(reverse('showsource', args=[sourceid]))
@@ -1321,28 +1316,6 @@ def managesource(request: HttpRequest, sourceid: str):
 
     if request.method == 'GET':
         return HttpResponseRedirect(reverse('showsource', args=[sourceid]))
-
-
-def editsourcetemplate(request: HttpRequest):
-    sourcetemplate = Setting.objects.filter(meta_name='sourceTemplate').first()
-
-    if request.method == 'GET':
-
-        sourcetemplate = {'meta_value': sourcetemplate.meta_value}
-
-        return render(request, 'admin.sourcetemplate.edit.html', context={'current_user': request.user.name,
-                                                                          'sourcetemplate': sourcetemplate})
-    if request.method == 'POST':
-        if not request.POST.get('source_template', 0):
-            messages.error(request, 'Source template field should not be empty.')
-            return render(request, 'admin.sourcetemplate.edit.html', context={'current_user': request.user.name,
-                                                                              'sourcetemplate': sourcetemplate})
-        else:
-            sourcetemplate.meta_value = request.POST['source_template']
-            sourcetemplate.save()
-            messages.success(request, 'Source template updated.')
-            return render(request, 'admin.sourcetemplate.edit.html', context={'current_user': request.user.name,
-                                                                              'sourcetemplate': sourcetemplate})
 
 
 def editsubcategory(request: HttpRequest, subcatid: str):

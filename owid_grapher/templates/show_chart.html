@@ -1,5 +1,54 @@
-{% extends 'base_chart_template.html' %}
+<!doctype html>
+{% load rootrequest %}
+<html lang="en">
+{% autoescape off %}
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% if chartmeta %}
+        <title>{{ chartmeta.title }} - Our World in Data</title>
+        <meta name="description" content="{{ chartmeta.description }}">
+    {% endif %}
+    {% if chartmeta %}
+        {% if query %}
+            <meta name="robots" content="noindex">
+        {% else %}
+            <link rel="canonical" href="{{ chartmeta.canonicalUrl }}">
+        {% endif %}
+        <meta property="fb:app_id" content="1149943818390250">
+        <meta property="og:url" content="{{ chartmeta.canonicalUrl }}">
+        <meta property="og:title" content="{{ chartmeta.title }}">
+        <meta property="og:description" content="{{ chartmeta.description }}">
+        <meta property="og:image" content="{{ chartmeta.imageUrl }}">
+        <meta property="og:image:width" content="1080">
+        <meta property="og:image:height" content="720">
+        <meta property="og:site_name" content="Our World in Data">
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:site" content="@MaxCRoser">
+        <meta name="twitter:creator" content="@MaxCRoser">
+        <meta name="twitter:title" content="{{ chartmeta.title }}">
+        <meta name="twitter:description" content="{{ chartmeta.description }}">
+        <meta name="twitter:image" content="{{ chartmeta.imageUrl }}">
+    {% endif %}
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
 
-{% block config_file %}
-    <script src="{{ configpath }}"></script>
-{% endblock %}
+        figure[data-grapher-src] {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+    <script src="{% rootrequest %}/embedCharts.js"></script>
+</head>
+{% endautoescape %}
+<body class="singleChart">
+    <figure data-grapher-src="{{ chartmeta.canonicalUrl }}"></figure>
+</body>
+</html>

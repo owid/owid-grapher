@@ -51,7 +51,6 @@ def embed_snippet(request):
         script.src = "https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,fetch"
         document.head.appendChild(script);
 
-
         var script = document.createElement('script');
         script.type = 'text/javascript';
         script.onload = function() {
@@ -70,6 +69,7 @@ def embed_snippet(request):
 def test_all(request):
     test_type = request.GET.get('type', '')
     test_tab = request.GET.get('tab', '')
+    test_overlay = request.GET.get('overlay', '')
     test_page = request.GET.get('page', '')
     test_compare = request.GET.get('compare', '')
 
@@ -120,6 +120,12 @@ def test_all(request):
             live_url = live_url + '?tab=' + test_tab
             local_url_png = local_url_png + '?tab=' + test_tab
             live_url_png = live_url_png + '?tab=' + test_tab
+
+        if test_overlay:
+            local_url = local_url + '?overlay=' + test_overlay
+            live_url = live_url + '?overlay=' + test_overlay
+            local_url_png = local_url_png + '?overlay=' + test_overlay
+            live_url_png = live_url_png + '?overlay=' + test_overlay
 
         urls.append({'local_url': local_url, 'live_url': live_url, 'local_url_png': local_url_png,
                      'live_url_png': live_url_png})
@@ -347,16 +353,24 @@ def variables(request, ids):
     variables = Variable.objects.filter(id__in=variable_ids).select_related('fk_dst_id', 'sourceId').values(
         'id', 'name', 'description', 'unit', 'short_unit',
         'displayName', 'displayUnit', 'displayShortUnit', 'displayUnitConversionFactor', 'displayTolerance', 'displayIsProjection',
-        'fk_dst_id__name', 'sourceId__name', 'sourceId__description'
+        'fk_dst_id__name', 'sourceId__pk', 'sourceId__name', 'sourceId__description'
     )
 
     # Process the metadata into a nicer form
     for variable in variables:
         variable['shortUnit'] = variable.pop('short_unit')
         variable['datasetName'] = variable.pop('fk_dst_id__name')
-        variable['source'] = {}
+        source_description = json.loads(variable.pop('sourceId__description'))
+        variable['source'] = source_description
+        variable['source']['id'] = variable.pop('sourceId__pk')
         variable['source']['name'] = variable.pop('sourceId__name')
-        variable['source']['description'] = variable.pop('sourceId__description')
+        variable['source']['dataPublishedBy'] = "" if not source_description['dataPublishedBy'] else source_description['dataPublishedBy']
+        variable['source']['dataPublisherSource'] = "" if not source_description['dataPublisherSource'] else source_description[
+            'dataPublisherSource']
+        variable['source']['link'] = "" if not source_description['link'] else source_description['link']
+        variable['source']['retrievedDate'] = "" if not source_description['retrievedDate'] else source_description['retrievedDate']
+        variable['source']['additionalInfo'] = "" if not source_description['additionalInfo'] else source_description[
+            'additionalInfo']
         meta['variables'][variable['id']] = variable
 
     # Now fetch the actual data, using a custom csv-like transfer format

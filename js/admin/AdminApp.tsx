@@ -9,8 +9,8 @@ export default class AdminApp extends React.Component<{ admin: Admin }> {
         const m = admin.currentPath.match(/\/charts\/(\d+)\/edit/)
         const chartId = m && parseInt(m[1])
 
-        return <div>
-            {chartId !== undefined && <ChartEditorPage admin={admin} chartId={chartId}/>}
+        return <div className="AdminApp">
+            {chartId !== null && <ChartEditorPage admin={admin} chartId={chartId}/>}
         </div>
     }
 }

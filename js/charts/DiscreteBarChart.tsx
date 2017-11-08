@@ -50,7 +50,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
     }
 
     @computed get maxValueWidth(): number {
-        const maxValue = sortBy(this.data, d => -d.value.toString().length)[0]
+        const maxValue = sortBy(this.data, d => -this.barValueFormat(d).length)[0]
         return Bounds.forText(this.barValueFormat(maxValue), { fontSize: this.valueFontSize }).width
     }
 

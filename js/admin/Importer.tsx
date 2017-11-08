@@ -17,12 +17,20 @@ class Source {
 
     @observable id?: number
     @observable name: string
-    @observable description: string
+    @observable dataPublishedBy: string
+    @observable dataPublisherSource: string
+    @observable link: string
+    @observable retrievedDate: string
+    @observable additionalInfo: string
 
-    constructor({ id = null, name = "", description = "" } = {}) {
+    constructor({ id = null, name = "", dataPublishedBy = "", dataPublisherSource = "", link = "", retrievedDate = "", additionalInfo = "" } = {}) {
         this.id = id as any
         this.name = name
-        this.description = description || Source.template
+        this.dataPublishedBy = dataPublishedBy
+        this.dataPublisherSource = dataPublisherSource
+        this.link = link
+        this.retrievedDate = retrievedDate
+        this.additionalInfo = additionalInfo
     }
 }
 
@@ -378,12 +386,26 @@ class EditSource extends React.Component<{ variable: Variable, dataset: Dataset,
             </p>
             <div className="editSourceDescription">
                 <label className="description">
-                    <span>Description:</span>
-                    <textarea rows={10} required value={source.description} onInput={e => source.description = e.currentTarget.value}></textarea>
-                </label>
-                <label className="preview datasource-wrapper">
-                    <span>Preview:</span>
-                    <div dangerouslySetInnerHTML={{ __html: source.description }}></div>
+                    <label>
+                        <span>Data published by:</span>
+                        <input type="text" value={source.dataPublishedBy} onInput={e => source.dataPublishedBy = e.currentTarget.value} />
+                    </label>
+                    <label>
+                        <span>Data publisher's source:</span>
+                        <input type="text" value={source.dataPublisherSource} onInput={e => source.dataPublisherSource = e.currentTarget.value} />
+                    </label>
+                    <label>
+                        <span>Link:</span>
+                        <input type="text" value={source.link} onInput={e => source.link = e.currentTarget.value} />
+                    </label>
+                    <label>
+                        <span>Retrieved:</span>
+                        <input type="text" value={source.retrievedDate} onInput={e => source.retrievedDate = e.currentTarget.value} />
+                    </label>
+                    <label>
+                        <span>Additional Information:</span>
+                        <textarea rows={5} value={source.additionalInfo} onInput={e => source.additionalInfo = e.currentTarget.value}></textarea>
+                    </label>
                 </label>
             </div>
             <p className="form-section-desc">
@@ -391,7 +413,6 @@ class EditSource extends React.Component<{ variable: Variable, dataset: Dataset,
                 For institutional projects, the format should be similar, but detailing the corresponding project or report. <br />
                 For data that we have modified extensively in order to change the meaning of the data, we should list OWID as publisher, and provide the name of the person in charge of the calculation.<br />
                 The field “Data publisher’s source” should give basic pointers (e.g. surveys data). Anything longer than a line should be relegated to the field “Additional information”. <br />
-                Sometimes it is necessary to change the structure of this description. (e.g. the row dedicated to ‘Link’ or Data publisher’s source has to be deleted).
             </p>
             {source.id && <p className="existing-source-warning text-warning">
                 <i className="fa fa-warning"></i> You are editing an existing source. Changes may also affect other variables.

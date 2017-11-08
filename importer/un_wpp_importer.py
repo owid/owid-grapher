@@ -28,7 +28,7 @@ from grapher_admin.views import write_dataset_csv
 
 
 # Enter the name of the file to parse (include the xls or xlsx extension)
-file_to_parse = 'WPP2017_POP_F01_1_TOTAL_POPULATION_BOTH_SEXES.xlsx'
+file_to_parse = 'WPP2017_INT_F02C_1_ANNUAL_POPULATION_INDICATORS_DEPENDENCY_RATIOS_BOTH_SEXES.xlsx'
 
 un_wpp_data_page_url = 'https://esa.un.org/unpd/wpp/Download/Standard/Population/'
 un_wpp_root_url = 'https://esa.un.org/'
@@ -37,27 +37,12 @@ wpp_downloads_save_location = settings.BASE_DIR + '/data/un_wpp_downloads/'
 # create a directory for holding the downloads
 # if the directory exists, delete it and recreate it
 
-source_template = '<table>' \
-                    '<tr>' \
-                        '<td>Source description</td>' \
-                        '<td>%s</td>' \
-                    '</tr>' \
-                    '<tr>' \
-                        '<td>Data provided by</td>' \
-                        '<td>United Nations, Department of Economic and Social Affairs, Population Division (2017). ' \
-                  'World Population Prospects: The 2017 Revision, DVD Edition.</td>' \
-                    '</tr>' \
-                    '<tr>' \
-                        '<td>Link</td>' \
-                        '<td><a target="_blank" href="https://esa.un.org/unpd/wpp/Download/Standard/Population/">' \
-                  'https://esa.un.org/unpd/wpp/Download/Standard/Population/</a></td>' \
-                    '</tr>' \
-                    '<tr>' \
-                        '<td>Retrieved</td>' \
-                        '<td>' + timezone.now().strftime("%d-%B-%y") +'</td>' \
-                    '</tr>' \
-                  '</table>'
-
+source_description = {
+    'dataPublishedBy': "United Nations, Department of Economic and Social Affairs, Population Division (2017). World Population Prospects: The 2017 Revision, DVD Edition.",
+    'dataPublisherSource': None,
+    'link': "https://esa.un.org/unpd/wpp/Download/Standard/Population/",
+    'retrievedDate': timezone.now().strftime("%d-%B-%y")
+}
 
 # we will use the file checksum to check if the downloaded file has changed since we last saw it
 def file_checksum(filename, blocksize=2**20):
@@ -178,17 +163,6 @@ with transaction.atomic():
     vertical = []
     found_country_col = False
     country_names_dict = {}
-    country_notes = {}
-
-    # UN WPP datasets contain notes about countries/regions that need to be included
-    if 'NOTES' in ws_names:
-        for row in wb['NOTES']:
-            for cell in row:
-                if cell.value:
-                    if cell.value.startswith('('):
-                        note_index_start = cell.value.index('(') + 1
-                        note_index_end = cell.value.index(')')
-                        country_notes[cell.value[note_index_start:note_index_end]] = cell.value[4:]
 
     for row in wb[ws_names[0]]:
         row_number += 1
@@ -208,15 +182,36 @@ with transaction.atomic():
                 if column_number == 3:
                     if cell.value:
                         the_country_name = cell.value
-                if column_number == 4:
-                    if cell.value:
-                        the_country_name += ', %s' % country_notes[str(cell.value)]
-                        if len(the_country_name) > 254:   # we will need to trim the country name if the note is too long
-                            the_country_name = the_country_name[:254]
                 if column_number == 5:
-                    # There is Micronesia as a region and Micronesia (Fed. States of)
+                    if 'Serbia' == the_country_name:
+                        the_country_name = 'Serbia (including Kosovo)'
+                    if 'Guadeloupe' == the_country_name:
+                        the_country_name = 'Guadeloupe (including Saint-Barthélemy and Saint-Martin)'
+                    if 'United Republic of Tanzania' == the_country_name:
+                        the_country_name = 'Tanzania'
+                    if 'China' == the_country_name:
+                        the_country_name = 'China'
+                    if 'China, Hong Kong SAR' == the_country_name:
+                        the_country_name = 'Hong Kong'
+                    if 'China, Macao SAR' == the_country_name:
+                        the_country_name = 'Macao'
+                    if 'China, Taiwan Province of China' == the_country_name:
+                        the_country_name = 'Taiwan'
+                    if 'State of Palestine' == the_country_name:
+                        the_country_name = 'Palestine'
+                    if 'Czechia' == the_country_name:
+                        the_country_name = 'Czech Republic'
+                    if 'Republic of Moldova' == the_country_name:
+                        the_country_name = 'Moldova'
+                    if 'TFYR Macedonia' == the_country_name:
+                        the_country_name = 'Macedonia'
+                    if 'NORTHERN AMERICA' == the_country_name:
+                        the_country_name = 'Northern America'
                     if the_country_name == 'Micronesia':
-                        the_country_name = 'Micronesia, Including Guam, Kiribati, Marshall Islands, Micronesia (Fed. States of), Nauru, Northern Mariana Islands, Palau'
+                        the_country_name = 'Micronesia (region)'
+                    if the_country_name == 'Micronesia (Fed. States of)':
+                        the_country_name = 'Micronesia (country)'
+
                     if cell.value:
                         if cell.value not in country_names_dict:
                             country_names_dict[cell.value] = the_country_name
@@ -274,7 +269,7 @@ with transaction.atomic():
 
         wb = load_workbook(os.path.join(wpp_downloads_save_location, file_to_parse), read_only=True)
         sheets = wb.get_sheet_names()
-        sheets.remove('NOTES')  # we have already looked at this sheet
+        sheets.remove('NOTES')  # we don't need this sheet
 
         if dataset_info['structure'] == 6:
             dataset_saved = False
@@ -316,10 +311,9 @@ with transaction.atomic():
                                                      fk_dst_subcat_id=the_subcategory)
                                 newdataset.save()
                                 dataset_saved = True
-
-                                newsource = Source(name='UN WPP - %s' % dataset_name,
-                                                   description=source_template %
-                                                   (dataset_info['description']),
+                                source_description['additionalInfo'] = dataset_info['description']
+                                newsource = Source(name='United Nations – Population Division (2017 Revision)',
+                                                   description=json.dumps(source_description),
                                                    datasetId=newdataset.pk)
                                 newsource.save()
 
@@ -411,10 +405,9 @@ with transaction.atomic():
                                                      fk_dst_subcat_id=the_subcategory)
                                 newdataset.save()
                                 dataset_saved = True
-
-                                newsource = Source(name='UN WPP - %s' % dataset_name,
-                                                   description=source_template %
-                                                   (dataset_info['description']),
+                                source_description['additionalInfo'] = dataset_info['description']
+                                newsource = Source(name='United Nations – Population Division (2017 Revision)',
+                                                   description=json.dumps(source_description),
                                                    datasetId=newdataset.pk)
                                 newsource.save()
 
@@ -500,7 +493,7 @@ with transaction.atomic():
 
         wb = load_workbook(os.path.join(wpp_downloads_save_location, file_to_parse), read_only=True)
         sheets = wb.get_sheet_names()
-        sheets.remove('NOTES')  # we have already looked at this sheet
+        sheets.remove('NOTES')  # we don't need this sheet
 
         if dataset_info['structure'] == 6:
             new_variables = []
@@ -602,8 +595,9 @@ with transaction.atomic():
                                 newdataset.save()
                                 dataset_saved = True
 
-                                newsource = Source.objects.get(name='UN WPP - %s' % dataset_name)
-                                newsource.description = source_template % (dataset_info['description'])
+                                source_description['additionalInfo'] = dataset_info['description']
+                                newsource = Source.objects.get(datasetId=newdataset.pk)
+                                newsource.description = json.dumps(source_description)
                                 newsource.save()
 
                             if not variables_saved:
@@ -760,8 +754,9 @@ with transaction.atomic():
                                 newdataset.save()
                                 dataset_saved = True
 
-                                newsource = Source.objects.get(name='UN WPP - %s' % dataset_name)
-                                newsource.description = source_template % (dataset_info['description'])
+                                source_description['additionalInfo'] = dataset_info['description']
+                                newsource = Source.objects.get(datasetId=newdataset.pk)
+                                newsource.description = json.dumps(source_description)
                                 newsource.save()
 
                             if not variables_saved:

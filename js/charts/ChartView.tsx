@@ -192,10 +192,6 @@ export default class ChartView extends React.Component<ChartViewProps> {
         ]
     }
 
-    renderLoading() {
-        return <div className="loadingIcon"><i className="fa fa-spinner fa-spin" /></div>
-    }
-
     render() {
         if (this.isExport) {
             return this.renderSVG()
@@ -204,8 +200,8 @@ export default class ChartView extends React.Component<ChartViewProps> {
 
             const style = { width: renderWidth, height: renderHeight, fontSize: this.chart.baseFontSize }
 
-            return <div id="chart" className={this.classNames} style={style}>
-                {this.chart.data.isReady ? this.renderReady() : this.renderLoading()}
+            return this.chart.data.isReady && <div id="chart" className={this.classNames} style={style}>
+                {this.renderReady()}
             </div>
         }
     }
@@ -220,18 +216,5 @@ export default class ChartView extends React.Component<ChartViewProps> {
             select(this.base).selectAll("#chart > *").style('opacity', 0).transition().style('opacity', null)
             this.hasFadedIn = true
         }
-    }
-
-    // XXX
-    getTransformedBounds(node: HTMLElement) {
-        const chartRect = this.base.getBoundingClientRect()
-        const nodeRect = node.getBoundingClientRect()
-
-        return new Bounds(
-            nodeRect.left - chartRect.left,
-            nodeRect.top - chartRect.top,
-            nodeRect.width,
-            nodeRect.height
-        )
     }
 }

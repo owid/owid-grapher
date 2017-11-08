@@ -230,7 +230,8 @@ export default class StackedAreaTransform implements IChartTransform {
         const { chart, xDomainDefault } = this
         return extend(
             chart.xAxis.toSpec({ defaultDomain: xDomainDefault }),
-            { tickFormat: (year: number) => formatYear(year) }
+            { tickFormat: (year: number) => formatYear(year),
+              hideFractionalTicks: true }
         ) as AxisSpec
     }
 
