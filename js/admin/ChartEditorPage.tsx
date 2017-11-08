@@ -94,14 +94,14 @@ export default class ChartEditorPage extends React.Component<{ admin: Admin, cha
 
         return [
             <form onSubmit={e => e.preventDefault()}>
-                <div className="nav-tabs-custom">
+                <div>
                     <Tabs>
                         {availableTabs.map(tab =>
                             <Tabs.Tab active={tab === editor.tab} onClick={() => editor.tab = tab}>{capitalize(tab)}</Tabs.Tab>
                         )}
                     </Tabs>
                 </div>
-                <div>
+                <div className="innerForm">
                     {editor.tab === 'basic' && <EditorBasicTab editor={editor} />}
                     {editor.tab === 'text' && <EditorTextTab editor={editor} />}
                     {editor.tab === 'data' && <EditorDataTab editor={editor} />}

@@ -5,11 +5,12 @@
  */
 
 import * as React from 'react'
-import { toString, numberOnly, pick, guid } from '../charts/Util'
+import { extend, toString, numberOnly, pick, guid } from '../charts/Util'
 import { bind } from 'decko'
 
+const MDButton = require('preact-material-components/Button').default
 const Select = require('preact-material-components/Select').default
-const MDTextField = require('preact-material-components/TextField').default
+const Formfield = require('preact-material-components/Formfield').default
 
 const MDCTextfield = require('@material/textfield').MDCTextfield
 const MDCCheckbox = require('@material/checkbox').MDCCheckbox
@@ -63,10 +64,10 @@ export class TextField extends React.Component<TextFieldProps> {
 
     render() {
         const { props } = this
-        const passthroughProps = pick(props, ['style', 'title', 'disabled'])
+        const passthroughProps = pick(props, ['title', 'disabled'])
 
-        return <div style={{display: "inline-block"}}>
-            <div className="mdc-textfield" {...passthroughProps}>
+        return <div style={extend({display: "inline-block"}, props.style||{})}>
+            <div className="mdc-textfield mdc-textfield--dense" style={{ width: "100%" }} {...passthroughProps}>
                 <input type="text" id={this.id} className="mdc-textfield__input" onInput={this.onInput} value={props.value}/>
                 <label htmlFor={this.id} className="mdc-textfield__label">{props.label}</label>
                 <div className="mdc-textfield__bottom-line"></div>
@@ -108,8 +109,8 @@ export class TextAreaField extends React.Component<TextFieldProps> {
         const passthroughProps = pick(props, ['placeholder', 'title', 'disabled', 'label', 'helpText'])
 
 
-        return <div className="mdc-textfield mdc-textfield--textarea">
-            <textarea id="textarea" className="mdc-textfield__input" rows={8} cols={40} value={props.value} onInput={this.onInput}></textarea>
+        return <div className="mdc-textfield mdc-textfield--textarea mdc-textfield--dense">
+            <textarea id="textarea" className="mdc-textfield__input" rows={6} cols={60} value={props.value} onInput={this.onInput}></textarea>
             <label htmlFor="textarea" className="mdc-textfield__label">{props.label}</label>
         </div>
         //return <MDTextField fullwidth={true} value={props.value} onInput={this.onInput} {...passthroughProps}/>
@@ -159,14 +160,14 @@ export interface SelectFieldProps {
 export class SelectField extends React.Component<SelectFieldProps> {
     render() {
         const { props } = this
-        return <label>
-            {props.label}
-            <Select selectedIndex={props.value ? props.options.indexOf(props.value) : undefined} onChange={(e: any) => props.onValue(props.options[e.selectedIndex])}>
+
+        return <Formfield>
+            <label>{props.label}</label> <Select selectedIndex={props.value ? props.options.indexOf(props.value) : undefined} onChange={(e: any) => props.onValue(props.options[e.selectedIndex])}>
                 {props.options.map((value, i) =>
                     <Select.Item>{props.optionLabels ? props.optionLabels[i] : value}</Select.Item>
                 )}
             </Select>
-        </label>
+         </Formfield>
     }
 }
 
@@ -235,7 +236,6 @@ export class Toggle extends React.Component<ToggleProps> {
                     <div className="mdc-checkbox__mixedmark"></div>
                 </div>
             </div>
-
             <label>{props.label}</label>
         </div>
         /* return <FormField>
@@ -245,5 +245,17 @@ export class Toggle extends React.Component<ToggleProps> {
              <input type="checkbox" checked={props.value}  />
              {" " + props.label}
          </label>*/
+    }
+}
+
+export interface ButtonProps {
+    onClick: () => void,
+    label: string
+}
+
+export class Button extends React.Component<ButtonProps> {
+    render() {
+        const {props} = this
+        return <MDButton onClick={props.onClick}>{props.label}</MDButton>
     }
 }

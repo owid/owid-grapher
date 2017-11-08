@@ -44,11 +44,11 @@ export default class EditorTextTab extends React.Component<{ editor: ChartEditor
             </div>
             <TextAreaField label="Subtitle" value={chart.props.subtitle} onValue={this.onSubtitle} placeholder="Briefly describe the context of the data" />
             <div>
-                <TextField label="Source" style={{ width: "90%" }} value={chart.data.sourcesLine} onValue={this.onSource}/>
+                <TextField label="Source" style={{ width: "90%" }} value={chart.data.sourcesLine} onValue={this.onSource}/><br/>
                 <Toggle label="Automatic source" value={chart.props.sourceDesc === undefined} onValue={this.onToggleAutoSource}/>
             </div>
             <div>
-                <TextField label="Footer note" value={chart.props.note} onValue={this.onNote} helpText="Any further relevant information e.g. adjustments or limitations" />
+                <TextField label="Footer note" value={chart.props.note} onValue={this.onNote} helpText="Any important clarification needed to avoid miscommunication" />
             </div>
             <TextAreaField label="Internal author notes" value={chart.props.internalNotes} onValue={this.onInternalNotes} placeholder="e.g. WIP, needs review, etc" />
         </div>

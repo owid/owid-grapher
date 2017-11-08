@@ -1,5 +1,6 @@
 html, body {
     height: 100%;
+    margin: 0;
     font-family: Roboto, sans-serif;
 }
 
@@ -12,15 +13,27 @@ html, body {
     display: flex;
 
     & > form {
-        width: 50%;
-        max-height: 100%;
+        width: 500px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    & .innerForm {
         overflow-y: auto;
+        flex-grow: 1;
+        padding: 24px;
+    }
+
+    & .SaveButtons {
+        padding: 24px;
     }
 
     & > figure {
-        width: 50%;
         /*min-width: 850px;*/
         display: flex;
+        flex-grow: 1;
         align-items: center;
         justify-content: center;
     }
