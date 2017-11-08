@@ -96,6 +96,9 @@ def listwbdatasets(request: HttpRequest, dataset: str):
     elif dataset == 'hnpqstatsdatasets':
         dataset_name = 'hnpqstats'
         dataset_title = 'World Bank Health Nutrition and Population Statistics by Wealth Quintile'
+    elif dataset == 'se4alldatasets':
+        dataset_name = 'se4all'
+        dataset_title = 'World Bank SE4ALL database'
 
     variables = Variable.objects.filter(fk_dst_id__namespace=dataset_name)
     datasets: Dict = {}
