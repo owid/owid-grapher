@@ -3,6 +3,8 @@
 import './charts.entry'
 
 import '../css/editor.css'
-import 'preact-material-components/style.css'
+import 'material-components-web/dist/material-components-web.css'
+import autoInit from '@material/auto-init'
 
 window.Admin = require('./admin/Admin').default
+autoInit()

@@ -25,18 +25,11 @@ export default class EditorTextTab extends React.Component<{ editor: ChartEditor
 
         return <div className="tab-pane active">
             <section>
-                <h2>Title of the visualization</h2>
-                <TextField value={chart.props.title} onValue={this.onTitle} style={{ width: "100%" }} placeholder={chart.data.title} />
-                <div className="input-group">
-                    <span className="input-group-addon">/grapher/</span>
-                    <TextField value={chart.props.slug} onValue={this.onSlug} placeholder={chart.data.slug} title="Human-friendly URL slug for this chart" />
-                </div>
+                <TextField label="Title" value={chart.props.title} onValue={this.onTitle} style={{ width: "100%" }} placeholder={chart.data.title} />
+                <TextField label="/grapher/" value={chart.props.slug} onValue={this.onSlug} placeholder={chart.data.slug} title="Human-friendly URL slug for this chart" />
                 <Toggle label="Hide automatic time/entity" value={!!chart.props.hideTitleAnnotation} onValue={this.onToggleTitleAnnotation} />
             </section>
-            <section>
-                <h2>Subtitle of the visualization</h2>
-                <TextAreaField value={chart.props.subtitle} onValue={this.onSubtitle} placeholder="Briefly describe the context of the data" />
-            </section>
+            <TextAreaField label="Subtitle" value={chart.props.subtitle} onValue={this.onSubtitle} placeholder="Briefly describe the context of the data" />
             <section>
                 <h2>Sources</h2>
                 <TextAreaField value={chart.props.sourceDesc} onValue={this.onSource} placeholder={chart.data.sourcesLine} />

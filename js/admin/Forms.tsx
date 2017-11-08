@@ -9,8 +9,8 @@ import { toString, numberOnly, pick } from '../charts/Util'
 import { bind } from 'decko'
 
 const Select = require('preact-material-components/Select').default
-const Checkbox = require('preact-material-components/Checkbox').default
 const FormField = require('preact-material-components/FormField').default
+const MDTextField = require('preact-material-components/TextField').default
 
 export interface TextFieldProps extends React.HTMLAttributes<HTMLLabelElement> {
     label?: string,
@@ -43,16 +43,17 @@ export class TextField extends React.Component<TextFieldProps> {
 
     render() {
         const { props } = this
-        const passthroughProps = pick(props, ['placeholder', 'title', 'disabled'])
+        const passthroughProps = pick(props, ['title', 'disabled', 'helpText'])
 
-        if (props.label) {
+        return <MDTextField label={props.label} value={props.value} onInput={this.onInput} {...passthroughProps}/>
+        /*if (props.label) {
             return <label className="TextField" style={props.style}>
                 {props.label}
                 <input className="form-control" type="text" value={props.value} onInput={this.onInput} onKeyDown={this.onKeyDown} {...passthroughProps} />
             </label>
         } else {
             return <input style={props.style} className="TextField form-control" type="text" value={props.value} onInput={this.onInput} onKeyDown={this.onKeyDown} {...passthroughProps} />
-        }
+        }*/
     }
 }
 
@@ -68,16 +69,17 @@ export class TextAreaField extends React.Component<TextFieldProps> {
 
     render() {
         const { props } = this
-        const passthroughProps = pick(props, ['placeholder', 'title', 'disabled'])
+        const passthroughProps = pick(props, ['placeholder', 'title', 'disabled', 'label', 'helpText'])
 
-        if (props.label) {
+        return <MDTextField fullwidth={true} value={props.value} onInput={this.onInput} {...passthroughProps}/>
+        /*if (props.label) {
             return <label style={props.style} className="TextAreaField">
                 {props.label}
                 <textarea className="form-control" value={props.value} onInput={this.onInput} {...passthroughProps} />
             </label>
         } else {
             return <textarea className="TextAreaField form-control" style={props.style} value={props.value} onInput={this.onInput} {...passthroughProps} />
-        }
+        }*/
     }
 }
 
@@ -162,12 +164,35 @@ export interface ToggleProps {
 export class Toggle extends React.Component<ToggleProps> {
     render() {
         const { props } = this
-        return <FormField>
+        /*return <div className="mdc-form-field">
+
+        </div>*/
+
+        return <div className="mdc-form-field">
+            <div className="mdc-checkbox">
+            <input type="checkbox"
+                    className="mdc-checkbox__native-control"
+                    onChange={(ev) => props.onValue(ev.target.checked)}/>
+            <div className="mdc-checkbox__background">
+                <svg className="mdc-checkbox__checkmark"
+                    viewBox="0 0 24 24">
+                <path className="mdc-checkbox__checkmark__path"
+                        fill="none"
+                        stroke="white"
+                        d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+                </svg>
+                <div className="mdc-checkbox__mixedmark"></div>
+            </div>
+            </div>
+
+            <label>My Checkbox Label</label>
+        </div>
+       /* return <FormField>
             <Checkbox checked={props.value} onChange={(ev) => props.onValue(ev.target.checked)}/> <label>{props.label}</label>
         </FormField>
         return <label className="Toggle clickable">
             <input type="checkbox" checked={props.value}  />
             {" " + props.label}
-        </label>
+        </label>*/
     }
 }
