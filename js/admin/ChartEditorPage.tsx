@@ -18,6 +18,9 @@ import Bounds from '../charts/Bounds'
 import SaveButtons from './SaveButtons'
 import { capitalize } from '../charts/Util'
 
+const Button = require('preact-material-components/Button').default
+const Tabs = require('preact-material-components/Tabs').default
+
 @observer
 export default class ChartEditorPage extends React.Component<{ admin: Admin, chartId: number }> {
     @observable.ref chart?: ChartConfig
@@ -92,13 +95,11 @@ export default class ChartEditorPage extends React.Component<{ admin: Admin, cha
         return [
             <form onSubmit={e => e.preventDefault()}>
                 <div className="nav-tabs-custom">
-                    <ul className="nav nav-tabs no-bullets">
+                    <Tabs>
                         {availableTabs.map(tab =>
-                            <li className={tab === editor.tab ? "nav-item active" : "nav-item"}>
-                                <a className="nav-link clickable" onClick={() => editor.tab = tab}>{capitalize(tab)}</a>
-                            </li>
+                            <Tabs.Tab active={tab === editor.tab} onClick={() => editor.tab = tab}>{capitalize(tab)}</Tabs.Tab>
                         )}
-                    </ul>
+                    </Tabs>
                 </div>
                 <div>
                     {editor.tab === 'basic' && <EditorBasicTab editor={editor} />}

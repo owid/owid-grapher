@@ -4,7 +4,7 @@ import { observable, action, reaction, IReactionDisposer } from 'mobx'
 import { observer } from 'mobx-react'
 import { DimensionSlot } from '../charts/ChartConfig'
 import { ChartTypeType } from '../charts/ChartType'
-import { Toggle } from './Forms'
+import { Toggle, SelectField } from './Forms'
 import DimensionWithData from '../charts/DimensionWithData'
 import ChartEditor, { Variable } from './ChartEditor'
 import VariableSelector from './VariableSelector'
@@ -94,7 +94,7 @@ class VariablesSection extends React.Component<{ editor: ChartEditor }> {
 
 @observer
 export default class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
-    @action.bound onChartType(evt: React.FormEvent<HTMLSelectElement>) { this.props.editor.chart.props.type = (evt.currentTarget.value as ChartTypeType) }
+    @action.bound onChartType(value: string) { this.props.editor.chart.props.type = (value as ChartTypeType) }
 
     render() {
         const { editor } = this.props
@@ -103,14 +103,8 @@ export default class EditorBasicTab extends React.Component<{ editor: ChartEdito
         return <div className={"tab-pane active " + styles.EditorBasicTab}>
             <section className="chart-type-section">
                 <h2>What type of chart</h2>
-                <select className="form-control chart-type-select" onChange={this.onChartType} ref={el => { if (el) el.value = chart.props.type }}>
-                    <option value="" disabled>Select type</option>
-                    <option value="LineChart">Line Chart</option>
-                    <option value="SlopeChart">Slope Chart</option>
-                    <option value="ScatterPlot">Scatter Plot</option>
-                    <option value="StackedArea">Stacked Area</option>
-                    <option value="DiscreteBar">Discrete Bar</option>
-                </select>
+
+                <SelectField label="Chart type" value={chart.props.type} onValue={this.onChartType} options={["LineChart", "SlopeChart", "ScatterPlot", "StackedArea", "DiscreteBar"]}/>
                 <Toggle label="Chart tab" value={chart.props.hasChartTab} onValue={value => chart.props.hasChartTab = value} />
                 {" "}<Toggle label="Map tab" value={chart.props.hasMapTab} onValue={value => chart.props.hasMapTab = value} />
             </section>

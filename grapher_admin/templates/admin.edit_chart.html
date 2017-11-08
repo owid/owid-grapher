@@ -6,15 +6,13 @@
 		<meta name="_token" value="{{ csrf_token }}">
 		<title>{% block title %}owid-grapher{% endblock %}</title>
 		<meta name="description" content="">
-		<link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic" rel="stylesheet" type="text/css">
-		<!-- Place favicon.ico in the root directory -->
-
+        <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
         <link href="{% webpack "charts.css" %}" rel="stylesheet" type="text/css">
-		<link href="{% webpack "admin.css" %}" rel="stylesheet" type="text/css">
+		<link href="{% webpack "editor.css" %}" rel="stylesheet" type="text/css">
 	</head>
 	<body class="skin-blue">
 		<script src="{% webpack "charts.js" %}"></script>
-		<script src="{% webpack "admin.js" %}"></script>
+		<script src="{% webpack "editor.js" %}"></script>
         <script type="text/javascript">
 			window.Global = {}
 			Global.rootUrl = "{% rootrequest %}"

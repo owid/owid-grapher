@@ -1,0 +1,27 @@
+html, body {
+    height: 100%;
+    font-family: Roboto, sans-serif;
+}
+
+.AdminApp {
+    height: 100%;
+}
+
+.ChartEditorPage {
+    height: 100%;
+    display: flex;
+
+    & > form {
+        width: 50%;
+        max-height: 100%;
+        overflow: auto;
+    }
+
+    & > figure {
+        width: 50%;
+        /*min-width: 850px;*/
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}

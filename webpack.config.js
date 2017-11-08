@@ -12,7 +12,8 @@ module.exports = {
     context: __dirname,
     entry: {
         charts: "./js/charts.entry.ts",
-        admin: "./js/admin.entry.ts"
+        admin: "./js/admin.entry.ts",
+        editor: "./js/editor.entry.ts"
     },
     output: {
         path: path.join(__dirname, "public/build"),

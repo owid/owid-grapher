@@ -8,6 +8,10 @@ import * as React from 'react'
 import { toString, numberOnly, pick } from '../charts/Util'
 import { bind } from 'decko'
 
+const Select = require('preact-material-components/Select').default
+const Checkbox = require('preact-material-components/Checkbox').default
+const FormField = require('preact-material-components/FormField').default
+
 export interface TextFieldProps extends React.HTMLAttributes<HTMLLabelElement> {
     label?: string,
     value: string | undefined,
@@ -114,11 +118,11 @@ export class SelectField extends React.Component<SelectFieldProps> {
         const { props } = this
         return <label>
             {props.label}
-            <select className="form-control" value={toString(props.value)} onChange={(ev: React.FormEvent<HTMLSelectElement>) => props.onValue(ev.currentTarget.value.length === 0 ? undefined : ev.currentTarget.value)}>
+            <Select selectedIndex={props.value ? props.options.indexOf(props.value) : undefined} onChange={(e: any) => props.onValue(props.options[e.selectedIndex])}>
                 {props.options.map((value, i) =>
-                    <option value={value}>{props.optionLabels ? props.optionLabels[i] : value}</option>
+                    <Select.Item>{props.optionLabels ? props.optionLabels[i] : value}</Select.Item>
                 )}
-            </select>
+            </Select>
         </label>
     }
 }
@@ -158,8 +162,11 @@ export interface ToggleProps {
 export class Toggle extends React.Component<ToggleProps> {
     render() {
         const { props } = this
+        return <FormField>
+            <Checkbox checked={props.value} onChange={(ev) => props.onValue(ev.target.checked)}/> <label>{props.label}</label>
+        </FormField>
         return <label className="Toggle clickable">
-            <input type="checkbox" checked={props.value} onChange={(ev) => props.onValue(ev.target.checked)} />
+            <input type="checkbox" checked={props.value}  />
             {" " + props.label}
         </label>
     }
