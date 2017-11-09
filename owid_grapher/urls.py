@@ -115,4 +115,5 @@ urlpatterns = [
     url(r'^grapher/bbsc/BBSC_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='servebbsccountryinfo'),
     url(r'^grapher/povstats/POVSTATS_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='servepovstatscountryinfo'),
     url(r'^grapher/hnpqstats/HNPQSTATS_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='servehnpqstatscountryinfo'),
+    url(r'^grapher/aspire/ASPIRE_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='serveaspirecountryinfo'),
 ]

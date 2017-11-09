@@ -99,6 +99,9 @@ def listwbdatasets(request: HttpRequest, dataset: str):
     elif dataset == 'se4alldatasets':
         dataset_name = 'se4all'
         dataset_title = 'World Bank SE4ALL database'
+    elif dataset == 'aspiredatasets':
+        dataset_name = 'aspire'
+        dataset_title = 'World Bank The Atlas of Social Protection: Indicators of Resilience and Equity'
 
     variables = Variable.objects.filter(fk_dst_id__namespace=dataset_name)
     datasets: Dict = {}
@@ -140,6 +143,9 @@ def serve_wb_country_info_xls(request: HttpRequest):
     if 'HNPQSTATS_Country_info.xls' in request.path:
         filename = 'HNPQSTATS_Country_info.xls'
         dataset_name = 'hnpqstats'
+    if 'ASPIRE_Country_info.xls' in request.path:
+        filename = 'ASPIRE_Country_info.xls'
+        dataset_name = 'aspire'
 
     wb = Workbook()
 
