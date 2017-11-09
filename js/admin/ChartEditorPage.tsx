@@ -1,12 +1,11 @@
 import ChartEditor, {EditorDatabase} from './ChartEditor'
 import Admin from './Admin'
 import * as React from 'react'
-import {extend, toString} from '../charts/Util'
+import {extend, toString, includes} from '../charts/Util'
 import * as $ from 'jquery'
 import ChartConfig from '../charts/ChartConfig'
 import {observer} from 'mobx-react'
-import {observable, computed, runInAction} from 'mobx'
-import LoadingBlocker from './LoadingBlocker'
+import {observable, computed, runInAction, autorun, action, IReactionDisposer} from 'mobx'
 import EditorBasicTab from './EditorBasicTab'
 import EditorDataTab from './EditorDataTab'
 import EditorTextTab from './EditorTextTab'
@@ -16,12 +15,36 @@ import EditorMapTab from './EditorMapTab'
 import ChartView from '../charts/ChartView'
 import Bounds from '../charts/Bounds'
 import SaveButtons from './SaveButtons'
-import { capitalize } from '../charts/Util'
-
-const Button = require('preact-material-components/Button').default
-const Tabs = require('preact-material-components/Tabs').default
 
 import { Menu, Form, Dimmer, Loader, Grid } from 'semantic-ui-react'
+
+@observer
+class TabBinder extends React.Component<{ editor: ChartEditor }> {
+    dispose: IReactionDisposer
+    componentDidMount() {
+        window.addEventListener("hashchange", this.onHashChange)
+        this.onHashChange()
+
+        this.dispose = autorun(() => {
+            const tab = this.props.editor.tab
+            setTimeout(() => window.location.hash = `#${tab}-tab`, 100)
+        })
+    }
+
+    componentDidUnmount() {
+        window.removeEventListener("hashchange", this.onHashChange)
+        this.dispose()
+    }
+
+    @action.bound onHashChange() {
+        const match = window.location.hash.match(/#(.+?)-tab/)
+        if (match) {
+            const tab = match[1]
+            if (this.props.editor.chart && includes(this.props.editor.availableTabs, tab))
+                this.props.editor.tab = tab
+        }
+    }
+}
 
 @observer
 export default class ChartEditorPage extends React.Component<{ admin: Admin, chartId: number }> {
@@ -97,6 +120,7 @@ export default class ChartEditorPage extends React.Component<{ admin: Admin, cha
         const {chart, availableTabs} = editor
 
         return [
+            <TabBinder editor={editor}/>,
             <Form onSubmit={e => e.preventDefault()}>
                 <div>
                     <Menu tabular>

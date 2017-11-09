@@ -64,8 +64,7 @@ export default class DimensionCard extends React.Component<{ dimension: Dimensio
             </header>
             {this.isExpanded && <div>
                 <TextField label="Display name" value={dimension.props.displayName} onValue={this.onDisplayName} placeholder={dimension.displayName} />
-                <TextField label="Unit of measurement" value={dimension.props.unit} onValue={this.onUnit} placeholder={dimension.unit} />
-                <div style={{ marginBottom: ".5rem" }}>Original database unit: <em>{dimension.variable.unit}</em></div>
+                <TextField label="Unit of measurement" value={dimension.props.unit} onValue={this.onUnit} placeholder={dimension.unit} helpText={`Original database unit: ${dimension.variable.unit}`}/>
                 <TextField label="Short (axis) unit" value={dimension.props.shortUnit} onValue={this.onShortUnit} placeholder={dimension.shortUnit} />
                 <NumberField label="Unit conversion factor" value={dimension.props.conversionFactor} onValue={this.onConversionFactor} placeholder={toString(dimension.unitConversionFactor)} />
                 {(chart.isScatter || chart.isDiscreteBar) && <NumberField label="Tolerance" value={dimension.props.tolerance} onValue={this.onTolerance} placeholder={toString(dimension.tolerance)} />}

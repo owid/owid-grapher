@@ -25,6 +25,10 @@ html, body {
         border-radius: 0;
     }*/
 
+    & .tabular.menu .active.item {
+        background: #fafafa;
+    }
+
     & > form {
         width: 500px;
         height: 100%;
@@ -37,6 +41,7 @@ html, body {
         overflow-y: auto;
         flex-grow: 1;
         padding: 24px;
+        background-color: #fafafa;
     }
 
     & .SaveButtons {
