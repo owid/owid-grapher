@@ -48,6 +48,10 @@ def short_unit_extract(unit: str):
                 if y in unit:
                     short_unit = y
                     break
+        elif 'percentage' in unit:
+            short_unit = '%'
+        elif 'percent' in unit.lower():
+            short_unit = '%'
         elif len(unit) < 9:  # this length is sort of arbitrary at this point, taken from the unit 'hectares'
             short_unit = unit
     return short_unit
@@ -116,6 +120,13 @@ with transaction.atomic():
                         indicatordict['description'] = cell.value
                     if column_number == 8:
                         indicatordict['source'] = cell.value
+                    if column_number == 3:
+                        if '(' not in indicatordict['name']:
+                            indicatordict['unitofmeasure'] = ''
+                        else:
+                            indicatordict['unitofmeasure'] = indicatordict['name'][
+                                                             indicatordict['name'].rfind('(') + 1:indicatordict[
+                                                                 'name'].rfind(')')]
                     indicatordict['saved'] = False
 
             column_number = 0
@@ -238,8 +249,15 @@ with transaction.atomic():
                                                            datasetId=newdataset.pk)
                                         newsource.save()
                                         logger.info("Inserting a source %s." % newsource.name.encode('utf8'))
-
-                                        newvariable = Variable(name=global_cat[indicator_code]['name'], unit='', description=global_cat[indicator_code]['description'],
+                                        if global_cat[indicator_code]['unitofmeasure']:
+                                            if len(global_cat[indicator_code]['unitofmeasure']) < 40:
+                                                unit_of_measure = global_cat[indicator_code]['unitofmeasure']
+                                            else:
+                                                unit_of_measure = ''
+                                        else:
+                                            unit_of_measure = ''
+                                        s_unit = short_unit_extract(unit_of_measure)
+                                        newvariable = Variable(name=global_cat[indicator_code]['name'], unit=unit_of_measure, short_unit=s_unit, description=global_cat[indicator_code]['description'],
                                                                code=indicator_code, timespan='', fk_dst_id=newdataset, fk_var_type_id=VariableType.objects.get(pk=4), sourceId=newsource)
                                         newvariable.save()
                                         logger.info("Inserting a variable %s." % newvariable.name.encode('utf8'))
@@ -329,6 +347,13 @@ with transaction.atomic():
                         indicatordict['description'] = cell.value
                     if column_number == 8:
                         indicatordict['source'] = cell.value
+                    if column_number == 3:
+                        if '(' not in indicatordict['name']:
+                            indicatordict['unitofmeasure'] = ''
+                        else:
+                            indicatordict['unitofmeasure'] = indicatordict['name'][
+                                                             indicatordict['name'].rfind('(') + 1:indicatordict[
+                                                                 'name'].rfind(')')]
                     indicatordict['saved'] = False
 
             column_number = 0
@@ -488,8 +513,16 @@ with transaction.atomic():
                                         newsource.save()
                                         logger.info("Inserting a source %s." % newsource.name.encode('utf8'))
                                         global_cat[indicator_code]['source_object'] = newsource
+                                        if global_cat[indicator_code]['unitofmeasure']:
+                                            if len(global_cat[indicator_code]['unitofmeasure']) < 40:
+                                                unit_of_measure = global_cat[indicator_code]['unitofmeasure']
+                                            else:
+                                                unit_of_measure = ''
+                                        else:
+                                            unit_of_measure = ''
+                                        s_unit = short_unit_extract(unit_of_measure)
                                         newvariable = Variable(name=global_cat[indicator_code]['name'],
-                                                               unit='',
+                                                               unit=unit_of_measure, short_unit=s_unit,
                                                                description=global_cat[indicator_code]['description'],
                                                                code=indicator_code,
                                                                timespan='',
@@ -511,9 +544,18 @@ with transaction.atomic():
                                             newsource.datasetId=newdataset.pk
                                             newsource.save()
                                             logger.info("Updating the source %s." % newsource.name.encode('utf8'))
+                                            if global_cat[indicator_code]['unitofmeasure']:
+                                                if len(global_cat[indicator_code]['unitofmeasure']) < 40:
+                                                    unit_of_measure = global_cat[indicator_code]['unitofmeasure']
+                                                else:
+                                                    unit_of_measure = ''
+                                            else:
+                                                unit_of_measure = ''
+                                            s_unit = short_unit_extract(unit_of_measure)
                                             newvariable = Variable.objects.get(code=indicator_code, fk_dst_id__in=Dataset.objects.filter(namespace='climatech'))
                                             newvariable.name = global_cat[indicator_code]['name']
-                                            newvariable.unit=''
+                                            newvariable.unit=unit_of_measure
+                                            newvariable.short_unit = s_unit
                                             newvariable.description=global_cat[indicator_code]['description']
                                             newvariable.timespan=''
                                             newvariable.fk_dst_id=newdataset
