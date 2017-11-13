@@ -129,18 +129,21 @@ export default class ChartEditorPage extends React.Component<{ admin: Admin, cha
                         )}
                     </Menu>
                 </div>
-                <div className="innerForm">
-                    {editor.tab === 'basic' && <EditorBasicTab editor={editor} />}
-                    {editor.tab === 'text' && <EditorTextTab editor={editor} />}
-                    {editor.tab === 'data' && <EditorDataTab editor={editor} />}
-                    {editor.tab === 'customize' && <EditorCustomizeTab editor={editor} />}
-                    {editor.tab === 'scatter' && <EditorScatterTab chart={chart} />}
-                    {editor.tab === 'map' && <EditorMapTab editor={editor} />}
-                </div>
+                <Grid padded={true} columns={1} className="innerForm">
+                    <Grid.Column>
+                        {editor.tab === 'basic' && <EditorBasicTab editor={editor} />}
+                        {editor.tab === 'text' && <EditorTextTab editor={editor} />}
+                        {editor.tab === 'data' && <EditorDataTab editor={editor} />}
+                        {editor.tab === 'customize' && <EditorCustomizeTab editor={editor} />}
+                        {editor.tab === 'scatter' && <EditorScatterTab chart={chart} />}
+                        {editor.tab === 'map' && <EditorMapTab editor={editor} />}
+                    </Grid.Column>
+                </Grid>
                 <SaveButtons editor={editor} />
             </Form>,
             <figure data-grapher-src>
-                <ChartView chart={chart} bounds={new Bounds(0, 0, 400, 850)}/>
+                {/*<ChartView chart={chart} bounds={new Bounds(0, 0, 400, 850)}/>*/}
+                <ChartView chart={chart} bounds={new Bounds(0, 0, 800, 600)}/>
             </figure>
         ]
 

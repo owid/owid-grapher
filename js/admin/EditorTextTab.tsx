@@ -33,9 +33,9 @@ export default class EditorTextTab extends React.Component<{ editor: ChartEditor
         return <div className="tab-pane active">
             <TextField label="Title" value={chart.data.title} onValue={this.onTitle}/>
             <Toggle label="Automatic title" value={chart.props.title === undefined} onValue={this.onToggleAutoTitle}/>
+            <Toggle label="Hide automatic time/entity" value={!!chart.props.hideTitleAnnotation} onValue={this.onToggleTitleAnnotation} />
             <TextField label="/grapher/" value={chart.data.slug} onValue={this.onSlug} title="Human-friendly URL slug for this chart" />
             <Toggle label="Automatic slug" value={chart.props.slug === undefined} onValue={this.onToggleAutoSlug}/>
-            <Toggle label="Hide automatic time/entity" value={!!chart.props.hideTitleAnnotation} onValue={this.onToggleTitleAnnotation} />
             <TextAreaField label="Subtitle" value={chart.props.subtitle} onValue={this.onSubtitle} placeholder="Briefly describe the context of the data" />
             <TextField label="Source" style={{ width: "90%" }} value={chart.data.sourcesLine} onValue={this.onSource}/>
             <Toggle label="Automatic source" value={chart.props.sourceDesc === undefined} onValue={this.onToggleAutoSource}/>

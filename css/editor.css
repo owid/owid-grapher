@@ -40,8 +40,17 @@ html, body {
     & .innerForm {
         overflow-y: auto;
         flex-grow: 1;
-        padding: 24px;
         background-color: #fafafa;
+    }
+
+    & .FieldsRow {
+        display: flex;
+        align-items: center;
+        margin: 0 0 1em;
+    }
+
+    & .FieldsRow > * {
+        padding-right: 1rem;
     }
 
     & .SaveButtons {

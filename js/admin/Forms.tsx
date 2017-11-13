@@ -13,10 +13,19 @@ const MDButton = require('preact-material-components/Button').default
 
 const MDCTextfield = require('@material/textfield').MDCTextfield
 
+export class FieldsRow extends React.Component<{}> {
+    render() {
+        const {props} = this
+        return <div className="FieldsRow">
+            {props.children}
+        </div>
+    }
+}
+
 export interface TextFieldProps extends React.HTMLAttributes<HTMLLabelElement> {
     label?: string,
     value: string | undefined,
-    onValue: (value: string | undefined) => void,
+    onValue: (value: string) => void,
     onEnter?: () => void,
     onEscape?: () => void,
     placeholder?: string,
@@ -27,15 +36,6 @@ export interface TextFieldProps extends React.HTMLAttributes<HTMLLabelElement> {
 }
 
 export class TextField extends React.Component<TextFieldProps> {
-    @bind onInput(ev: React.FormEvent<HTMLInputElement>) {
-        const value = ev.currentTarget.value
-        if (value === "") {
-            this.props.onValue(undefined)
-        } else {
-            this.props.onValue(value)
-        }
-    }
-
     @bind onKeyDown(ev: React.KeyboardEvent<HTMLInputElement>) {
         if (ev.key === "Enter" && this.props.onEnter) {
             this.props.onEnter()
@@ -46,11 +46,11 @@ export class TextField extends React.Component<TextFieldProps> {
 
     render() {
         const { props } = this
-        const passthroughProps = pick(props, ['title', 'disabled'])
+        const passthroughProps = pick(props, ['placeholder', 'title', 'disabled'])
 
         return <Form.Field>
             {props.label && <label>{props.label}</label>}
-            <input type="text" value={props.value} onInput={this.onInput} {...passthroughProps}/>
+            <input type="text" value={props.value} onInput={e => this.props.onValue(e.currentTarget.value)} {...passthroughProps}/>
             {props.helpText && <small>{props.helpText}</small>}
         </Form.Field>
 
@@ -98,27 +98,11 @@ export class TextAreaField extends React.Component<TextFieldProps> {
     }
 }
 
-export interface NumberFieldProps {
-    label?: string,
-    value: number | undefined,
-    onValue: (value: number | undefined) => void,
-    min?: number,
-    max?: number,
-    placeholder?: string
-    disabled?: boolean
-}
 
-export class NumberField extends React.Component<NumberFieldProps> {
+export class NumberField extends React.Component<TextFieldProps> {
     render() {
         const { props } = this
-        const passthroughProps = pick(props, ['min', 'max', 'placeholder', 'disabled'])
-        if (props.label) {
-            return <label className="NumberField">
-                {props.label} <input type="text" value={toString(props.value)} onChange={(ev) => props.onValue(numberOnly(ev.currentTarget.value))} {...passthroughProps} />
-            </label>
-        } else {
-            return <input className="NumberField" type="text" value={toString(props.value)} onChange={(ev) => props.onValue(numberOnly(ev.currentTarget.value))} {...passthroughProps} />
-        }
+        return <TextField {...props}/>
     }
 }
 
@@ -142,7 +126,12 @@ export class SelectField extends React.Component<SelectFieldProps> {
             }
         })
 
-        return <Select value={props.value} options={options} onChange={(_, select) => props.onValue(select.value)}/>
+        return <Form.Field>
+            {props.label && <label>{props.label}</label>}
+            <Select label={props.label} value={props.value} options={options} onChange={(_, select) => props.onValue(select.value)}/>
+            {props.helpText && <small>{props.helpText}</small>}
+        </Form.Field>
+
 
         /*return <div>
             <label>{props.label}</label> <Select selectedIndex={props.value ? props.options.indexOf(props.value) : undefined} >

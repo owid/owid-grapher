@@ -8,6 +8,7 @@ import Color from '../charts/Color'
 import { NumberField } from './Forms'
 import Colorpicker from './Colorpicker'
 import ChartEditor from './ChartEditor'
+import { Form, Radio } from 'semantic-ui-react'
 
 interface DataKeyItemProps extends React.HTMLAttributes<HTMLLIElement> {
     chart: ChartConfig
@@ -152,18 +153,15 @@ export default class EditorDataTab extends React.Component<{ editor: ChartEditor
         return <div className={"tab-pane"}>
             <section className="add-country-control-wrapper">
                 <h4>Can user add/change data?</h4>
-                <label>
-                    <input type="radio" name="add-country-mode" value="add-country" checked={chart.addCountryMode === "add-country"} onClick={_ => chart.props.addCountryMode = "add-country"} />
-                    User can add and remove data
-                </label>
-                <label>
-                    <input type="radio" name="add-country-mode" value="change-country" checked={chart.addCountryMode === "change-country"} onClick={_ => chart.props.addCountryMode = "change-country"} />
-                    User can change entity
-                </label>
-                <label>
-                    <input type="radio" name="add-country-mode" value="disabled" checked={chart.addCountryMode === "disabled"} onClick={_ => chart.props.addCountryMode = "disabled"} />
-                    User cannot change/add data
-                </label>
+                <Form.Field>
+                    <Radio label="User can add and remove data" name="add-country-mode" value="add-country" checked={chart.addCountryMode === "add-country"} onClick={_ => chart.props.addCountryMode = "add-country"}/>
+                </Form.Field>
+                <Form.Field>
+                    <Radio label="User can change entity" name="add-country-mode" value="change-country" checked={chart.addCountryMode === "change-country"} onClick={_ => chart.props.addCountryMode = "change-country"} />
+                </Form.Field>
+                <Form.Field>
+                    <Radio label="User cannot change/add data" name="add-country-mode" value="disabled" checked={chart.addCountryMode === "disabled"} onClick={_ => chart.props.addCountryMode = "disabled"} />
+                </Form.Field>
             </section>
             {!editor.chart.isScatter && <TimeSection editor={editor} />}
             <KeysSection chart={editor.chart} />
