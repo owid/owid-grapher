@@ -5,7 +5,7 @@ import { observer } from 'mobx-react'
 import { LineChartSeries, LineChartValue } from './LineChart'
 import AxisScale from './AxisScale'
 import Vector2 from './Vector2'
-import { getRelativeMouse, makeSafeForCSS } from './Util'
+import { getRelativeMouse, makeSafeForCSS, pointsToPath } from './Util'
 import Bounds from './Bounds'
 import DataKey from './DataKey'
 
@@ -114,18 +114,17 @@ export default class Lines extends React.Component<LinesProps> {
 
     renderFocusGroups() {
         return map(this.focusGroups, series =>
-            <g className={series.displayKey}>
-                <defs key={`${series.displayKey}-defs`}>
+            <g className={series.displayKey} key={series.displayKey}>
+                <defs>
                     <marker id={`${series.displayKey}-circle-${this.renderUid}`} viewBox="0 0 16 16"
                         refX={8} refY={8} orient="auto" fill={series.isProjection ? "#fff" : series.color} stroke={series.color}>
                         <circle cx={8} cy={8} r={8} />
                     </marker>
                 </defs>
-                <polyline
-                    key={`${series.key}-line`}
+                <path
                     strokeLinecap="round"
                     stroke={series.color}
-                    points={map(series.values, v => `${v.x},${v.y}`).join(' ')}
+                    d={pointsToPath(series.values.map(v => [v.x, v.y]) as [number, number][])}
                     fill="none"
                     strokeWidth={1.5}
                     opacity={1}
@@ -140,15 +139,17 @@ export default class Lines extends React.Component<LinesProps> {
 
     renderBackgroundGroups() {
         return map(this.backgroundGroups, series =>
-            <polyline
-                key={series.key + '-line'}
-                strokeLinecap="round"
-                stroke="#ccc"
-                points={map(series.values, v => `${v.x},${v.y}`).join(' ')}
-                fill="none"
-                strokeWidth={1}
-                opacity={1}
-            />,
+            <g className={series.displayKey} key={series.displayKey}>
+                <path
+                    key={series.key + '-line'}
+                    strokeLinecap="round"
+                    stroke="#ccc"
+                    d={pointsToPath(series.values.map(v => [v.x, v.y]) as [number, number][])}
+                    fill="none"
+                    strokeWidth={1}
+                    opacity={1}
+                />
+            </g>
         )
     }
 

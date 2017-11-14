@@ -143,14 +143,16 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
             .on("end", () => this.forceUpdate()) // Important in case bounds changes during transition
     }
 
+    @computed get renderUid(): number {
+        return guid()
+    }
+
     render() {
         if (this.transform.failMessage)
             return <NoData bounds={this.props.bounds} message={this.transform.failMessage} />
 
-        const { chart, transform, bounds, legend, tooltip, focusKeys, axisBox } = this
+        const { chart, transform, bounds, legend, tooltip, focusKeys, axisBox, renderUid } = this
         const { groupedData } = transform
-
-        const renderUid = guid()
 
         return <g className="LineChart">
             <defs>

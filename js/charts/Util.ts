@@ -257,3 +257,15 @@ export function guid(): number {
     n += 1
     return n
 }
+
+// Take an array of points and make it into an SVG path specification string
+export function pointsToPath(points: Array<[number, number]>) {
+    let path = ""
+    for (let i = 0; i < points.length; i++) {
+        if (i === 0)
+            path += `M${points[i][0]} ${points[i][1]}`
+        else
+            path += `L${points[i][0]} ${points[i][1]}`
+    }
+    return path
+}
