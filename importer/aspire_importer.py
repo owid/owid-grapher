@@ -51,6 +51,10 @@ def short_unit_extract(unit: str):
                 if y in unit:
                     short_unit = y
                     break
+        elif 'percentage' in unit:
+            short_unit = '%'
+        elif 'percent' in unit.lower():
+            short_unit = '%'
         elif len(unit) < 9:  # this length is sort of arbitrary at this point, taken from the unit 'hectares'
             short_unit = unit
     return short_unit
@@ -135,12 +139,22 @@ with transaction.atomic():
                         indicatordict['description'] = cell.value
                     if column_number == 6:
                         if cell.value:
-                            indicatordict['unitofmeasure'] = cell.value
+                            if cell.value == '.':
+                                if '(' not in indicatordict['name']:
+                                    indicatordict['unitofmeasure'] = ''
+                                else:
+                                    indicatordict['unitofmeasure'] = indicatordict['name'][
+                                                                 indicatordict['name'].rfind('(') + 1:indicatordict[
+                                                                     'name'].rfind(')')]
+                            else:
+                                indicatordict['unitofmeasure'] = cell.value
                         else:
                             if '(' not in indicatordict['name']:
                                 indicatordict['unitofmeasure'] = ''
                             else:
-                                indicatordict['unitofmeasure'] = indicatordict['name'][indicatordict['name'].index('('):-1].replace('(', '').replace(')','')
+                                indicatordict['unitofmeasure'] = indicatordict['name'][
+                                                                 indicatordict['name'].rfind('(') + 1:indicatordict[
+                                                                     'name'].rfind(')')]
                     if column_number == 11:
                         if cell.value:
                             indicatordict['limitations'] = cell.value
@@ -437,12 +451,22 @@ with transaction.atomic():
                         indicatordict['description'] = cell.value
                     if column_number == 6:
                         if cell.value:
-                            indicatordict['unitofmeasure'] = cell.value
+                            if cell.value == '.':
+                                if '(' not in indicatordict['name']:
+                                    indicatordict['unitofmeasure'] = ''
+                                else:
+                                    indicatordict['unitofmeasure'] = indicatordict['name'][
+                                                                 indicatordict['name'].rfind('(') + 1:indicatordict[
+                                                                     'name'].rfind(')')]
+                            else:
+                                indicatordict['unitofmeasure'] = cell.value
                         else:
                             if '(' not in indicatordict['name']:
                                 indicatordict['unitofmeasure'] = ''
                             else:
-                                indicatordict['unitofmeasure'] = indicatordict['name'][indicatordict['name'].index('('):-1].replace('(', '').replace(')','')
+                                indicatordict['unitofmeasure'] = indicatordict['name'][
+                                                                 indicatordict['name'].rfind('(') + 1:indicatordict[
+                                                                     'name'].rfind(')')]
                     if column_number == 11:
                         if cell.value:
                             indicatordict['limitations'] = cell.value
