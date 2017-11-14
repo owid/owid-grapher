@@ -45,7 +45,7 @@ export class MultiEmbedder {
                     figure.isActive = true
 
                     if (window.location.pathname.match(/.export$/))
-                        ExportView.bootstrap({ jsonConfig: figure.jsonConfig, containerNode: document.body })
+                        ExportView.bootstrap({ jsonConfig: figure.jsonConfig })
                     else
                         ChartView.bootstrap({ jsonConfig: figure.jsonConfig, containerNode: figure.element, isEmbed: figure.element.parentNode !== document.body || undefined, queryStr: figure.queryStr })
                 }

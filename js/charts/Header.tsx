@@ -1,9 +1,7 @@
-import { isFinite } from './Util'
 import * as React from 'react'
 import TextWrap from './TextWrap'
 import { computed } from 'mobx'
 import { observer } from 'mobx-react'
-import { formatYear } from './Util'
 import ChartConfig from './ChartConfig'
 
 interface LogoProps {
@@ -45,8 +43,6 @@ class Logo {
 
 interface HeaderProps {
     maxWidth: number,
-    minYear: number | null,
-    maxYear: number | null,
     chart: ChartConfig
 }
 
@@ -75,7 +71,7 @@ export default class Header {
 
         const maxWidth = props.maxWidth - logo.width - 15
         // HACK (Mispy): Stop the title jumping around during timeline transitions
-        if (props.minYear === props.maxYear && props.chart.data.isShowingTimeline) {
+        if (props.chart.data.minYear === props.chart.data.maxYear && props.chart.data.isShowingTimeline) {
             titleText = titleText + " in 2000"
         }
 
