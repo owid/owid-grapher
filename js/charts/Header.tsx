@@ -57,34 +57,8 @@ export default class Header {
         this.props = props
     }
 
-    fillTemplate(text: string) {
-        const { chart } = this.props
-
-        if (!chart.props.hideTitleAnnotation) {
-            const { minYear, maxYear } = this.props
-
-            if (chart.props.tab === "chart" && chart.addCountryMode !== "add-country" && chart.data.selectedEntities.length === 1) {
-                const { selectedEntities } = chart.data
-                const entityStr = selectedEntities.join(', ')
-                if (entityStr.length > 0) {
-                    text = text + ", " + entityStr
-                }
-            }
-
-            if (isFinite(minYear)) {
-                const timeFrom = formatYear(minYear as number)
-                const timeTo = formatYear(isFinite(maxYear) ? maxYear as number : minYear as number)
-                const time = timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo
-
-                text = text + ", " + time
-            }
-        }
-
-        return text.trim()
-    }
-
     @computed get titleText() {
-        return this.fillTemplate(this.props.chart.data.title)
+        return this.props.chart.data.currentTitle
     }
 
     @computed get subtitleText() {

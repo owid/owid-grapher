@@ -1,4 +1,4 @@
-import { map, every, keyBy, includes, uniqWith, cloneDeep, intersection, each, sortBy, without, find, extend, uniq } from './Util'
+import { map, every, keyBy, includes, uniqWith, cloneDeep, intersection, each, sortBy, without, find, extend, uniq, formatYear } from './Util'
 import { computed } from 'mobx'
 import ChartConfig from './ChartConfig'
 import DataKey from './DataKey'
@@ -77,6 +77,62 @@ export default class ChartData {
 
     @computed get title(): string {
         return defaultTo(this.chart.props.title, this.defaultTitle)
+    }
+
+    // XXX refactor into the transforms
+    @computed get minYear(): number | null {
+        const { chart } = this
+        //if (chart.isScatter && !chart.scatter.failMessage && chart.scatter.xOverrideYear != null)
+        //    return null
+        if (chart.tab === "map")
+            return chart.map.data.targetYear
+        else if (chart.isScatter && !chart.scatter.failMessage)
+            return chart.scatter.startYear
+        else if (chart.isDiscreteBar && !chart.discreteBar.failMessage)
+            return chart.discreteBar.targetYear
+        else
+            return null
+    }
+
+    @computed get maxYear(): number | null {
+        const { chart } = this
+        //if (chart.isScatter && !chart.scatter.failMessage && chart.scatter.xOverrideYear != null)
+        //    return null
+        if (chart.tab === "map")
+            return chart.map.data.targetYear
+        else if (chart.isScatter && !chart.scatter.failMessage)
+            return chart.scatter.endYear
+        else if (chart.isDiscreteBar && !chart.discreteBar.failMessage)
+            return chart.discreteBar.targetYear
+        else
+            return null
+    }
+
+    @computed get currentTitle(): string {
+        const { chart } = this
+        let text = this.title
+
+        if (!chart.props.hideTitleAnnotation) {
+            const { minYear, maxYear } = this
+
+            if (chart.props.tab === "chart" && chart.addCountryMode !== "add-country" && chart.data.selectedEntities.length === 1) {
+                const { selectedEntities } = chart.data
+                const entityStr = selectedEntities.join(', ')
+                if (entityStr.length > 0) {
+                    text = text + ", " + entityStr
+                }
+            }
+
+            if (minYear !== null) {
+                const timeFrom = formatYear(minYear)
+                const timeTo = formatYear(maxYear !== null ? maxYear : minYear)
+                const time = timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo
+
+                text = text + ", " + time
+            }
+        }
+
+        return text.trim()
     }
 
     @computed get defaultSlug(): string {
