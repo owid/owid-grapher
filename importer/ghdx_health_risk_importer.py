@@ -49,7 +49,7 @@ new_datasets_list = []
 existing_datasets_list = []
 
 start_time = time.time()
-
+row_number = 0
 with transaction.atomic():
     existing_categories = DatasetCategory.objects.values('name')
     existing_categories_list = {item['name'] for item in existing_categories}
@@ -96,7 +96,7 @@ with transaction.atomic():
             print('Processing: %s' % file)
             reader = csv.DictReader(f)
             for row in reader:
-
+                row_number += 1
                 if row['sex_name'] in sex_names and row['age_name'] in age_names and row[
                     'metric_name'] in metric_names and row['measure_name'] in measure_names and row['cause_name'] == 'All causes':
                     if row['rei_name'] not in existing_subcategories_list:
@@ -171,14 +171,14 @@ with transaction.atomic():
                                                    c_name_entity_ref[row['location_name']].pk,
                                                    variable_name_to_object[variable_name].pk))
 
-                    if len(data_values_tuple_list) % 300 == 0:
-                        time.sleep(0.001)
-
                     if len(data_values_tuple_list) > 3000:  # insert when the length of the list goes over 3000
 
                         with connection.cursor() as c:
                             c.executemany(insert_string, data_values_tuple_list)
                         data_values_tuple_list = []
+
+                if row_number % 100 == 0:
+                    time.sleep(0.001)  # this is done in order to not keep the CPU busy all the time, the delay after each 100th row is 1 millisecond
 
         if len(data_values_tuple_list):  # insert any leftover data_values
             with connection.cursor() as c:
@@ -187,10 +187,10 @@ with transaction.atomic():
 
         os.remove(csv_filename)
 
-for dataset in existing_datasets_list:
-    write_dataset_csv(dataset.pk, dataset.name, dataset.name, 'gbd_risk_fetcher', '')
-for dataset in new_datasets_list:
-    write_dataset_csv(dataset.pk, dataset.name, None, 'gbd_risk_fetcher', '')
+# for dataset in existing_datasets_list:
+#     write_dataset_csv(dataset.pk, dataset.name, dataset.name, 'gbd_risk_fetcher', '')
+# for dataset in new_datasets_list:
+#     write_dataset_csv(dataset.pk, dataset.name, None, 'gbd_risk_fetcher', '')
 
 newimport = ImportHistory(import_type='gbd_risk', import_time=timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
                           import_notes='A gbd import was performed',
